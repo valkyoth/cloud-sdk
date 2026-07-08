@@ -12,7 +12,7 @@ Most users should start with:
 
 ```toml
 [dependencies]
-cloud-sdk-hetzner = "0.5.0"
+cloud-sdk-hetzner = "0.6.0"
 ```
 
 Use this crate only when the release notes say a transport adapter has been

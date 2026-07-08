@@ -12,16 +12,16 @@ models in small reviewed releases.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.5.0"
-cloud-sdk-hetzner = "0.5.0"
+cloud-sdk = "0.6.0"
+cloud-sdk-hetzner = "0.6.0"
 ```
 
 ## Current Scope
 
-The current main branch has reached the `0.6.0` implementation stop for server
-request domains. It does not yet implement HTTP transport, serde models, body
-serialization, token storage, live API tests, retry policy, pagination
-iterators, or action polling.
+The current main branch has reached the `0.6.0` release candidate for server
+request domains. Pentest and retest are complete. It does not yet implement
+HTTP transport, serde models, body serialization, token storage, live API
+tests, retry policy, pagination iterators, or action polling.
 
 Implemented in the published `0.2.0` line:
 
@@ -56,7 +56,7 @@ Implemented in the published `0.5.0` line:
 - redacted `Debug` output for secret-adjacent SSH public key and certificate
   PEM request values.
 
-Implemented on main for next `0.6.0`:
+Implemented in the release-candidate `0.6.0` line:
 
 - server list/create/get/update/delete request primitives;
 - server metrics request primitives with time range validation;

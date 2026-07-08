@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.6.0 - 2026-07-08
+
 - Added `cloud-sdk-hetzner::cloud::servers` no_std request primitives for
   server list/create/get/update/delete and metrics endpoints scheduled for
   `v0.6.0`.

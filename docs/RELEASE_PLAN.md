@@ -301,7 +301,7 @@ v0.5.0 implementation stop reached. Run pentest for this exact commit.
 
 ### v0.6.0 - Server Resource Models
 
-Status: implementation stop; awaiting pentest.
+Status: release candidate; retest passed and permanent report is included.
 
 Goal: implement server CRUD, metrics request domains, and server actions
 without adding transport or token storage.
