@@ -50,8 +50,8 @@ please report it so it can be fixed.
 
 ## Current Status
 
-Status: `v0.5.0` implementation stop; run pentest for the current
-implementation commit before release metadata is finalized.
+Status: `v0.5.0` release candidate; pentest and retest are complete, and the
+permanent release report is included.
 
 Implemented now:
 
@@ -122,8 +122,8 @@ Not implemented yet:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.4.0"
-cloud-sdk-hetzner = "0.4.0"
+cloud-sdk = "0.5.0"
+cloud-sdk-hetzner = "0.5.0"
 ```
 
 ## Workspace Crates
@@ -219,7 +219,7 @@ before overwriting the fingerprint files.
 The minimum supported Rust version is Rust `1.90.0`. Development uses the
 pinned stable Rust `1.96.1` until the toolchain policy is updated.
 
-Compatibility evidence for `0.4.0`:
+Compatibility evidence for `0.5.0`:
 
 | Rust | Local Evidence |
 | --- | --- |
@@ -242,4 +242,5 @@ scripts/check_hetzner_api_drift.py --fetch
 scripts/release_0_2_gate.sh
 scripts/release_0_3_gate.sh
 scripts/release_0_4_gate.sh
+scripts/release_0_5_gate.sh
 ```

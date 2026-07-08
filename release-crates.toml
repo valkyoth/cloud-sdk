@@ -1,38 +1,38 @@
 [release]
-version = "0.4.0"
+version = "0.5.0"
 policy = "independent"
 
 [crates."cloud-sdk"]
-previous_version = "0.3.0"
-version = "0.4.0"
+previous_version = "0.4.0"
+version = "0.5.0"
 change = "code"
 publish = true
-reason = "Release metadata, README updates, and v0.4.0 release gate evidence for the provider-neutral facade."
+reason = "Release metadata, README updates, and v0.5.0 release gate evidence for the provider-neutral facade."
 
 [crates."cloud-sdk-hetzner"]
-previous_version = "0.3.0"
-version = "0.4.0"
+previous_version = "0.4.0"
+version = "0.5.0"
 change = "code"
 publish = true
-reason = "Read-only no_std catalog request domains for locations, pricing, server types, load balancer types, ISOs, and public images."
+reason = "No_std security request domains for SSH key CRUD, certificate CRUD, and certificate retry action endpoints."
 
 [crates."cloud-sdk-hetzner-reqwest"]
-previous_version = "0.3.0"
-version = "0.4.0"
+previous_version = "0.4.0"
+version = "0.5.0"
 change = "metadata"
 publish = true
-reason = "Keep optional transport boundary metadata aligned with v0.4.0 release evidence."
+reason = "Keep optional transport boundary metadata aligned with v0.5.0 release evidence."
 
 [crates."cloud-sdk-hetzner-sanitization"]
-previous_version = "0.3.0"
-version = "0.4.0"
+previous_version = "0.4.0"
+version = "0.5.0"
 change = "metadata"
 publish = true
-reason = "Keep sanitization boundary metadata aligned with v0.4.0 release evidence."
+reason = "Keep sanitization boundary metadata aligned with v0.5.0 release evidence."
 
 [crates."cloud-sdk-hetzner-testkit"]
-previous_version = "0.3.0"
-version = "0.4.0"
+previous_version = "0.4.0"
+version = "0.5.0"
 change = "metadata"
 publish = true
-reason = "Keep testkit boundary metadata aligned with v0.4.0 release evidence."
+reason = "Keep testkit boundary metadata aligned with v0.5.0 release evidence."

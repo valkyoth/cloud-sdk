@@ -1,6 +1,6 @@
 # cloud-sdk 0.5.0 Release Notes
 
-Status: implementation stop; awaiting pentest.
+Status: release candidate; pentest and retest complete.
 
 ## Scope
 
@@ -55,5 +55,12 @@ action polling.
 
 ## Pentest
 
-- Pending. Stop at the implementation commit and run pentest before release
-  metadata is finalized.
+- PASS. Permanent report: `security/pentest/v0.5.0.md`.
+
+## Crate Versions
+
+- `cloud-sdk` publishes as `0.5.0`.
+- `cloud-sdk-hetzner` publishes as `0.5.0`.
+- `cloud-sdk-hetzner-reqwest` publishes as `0.5.0`.
+- `cloud-sdk-hetzner-sanitization` publishes as `0.5.0`.
+- `cloud-sdk-hetzner-testkit` publishes as `0.5.0`.

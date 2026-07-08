@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.5.0 - 2026-07-08
+
 - Added `cloud-sdk-hetzner::security::ssh_keys` no_std request primitives for
   SSH key list/create/get/update/delete endpoints scheduled for `v0.5.0`.
 - Added `cloud-sdk-hetzner::security::certificates` no_std request primitives

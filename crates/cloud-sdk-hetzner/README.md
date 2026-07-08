@@ -12,16 +12,15 @@ models in small reviewed releases.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.4.0"
-cloud-sdk-hetzner = "0.4.0"
+cloud-sdk = "0.5.0"
+cloud-sdk-hetzner = "0.5.0"
 ```
 
 ## Current Scope
 
-The current main branch has reached the `0.5.0` implementation stop for
-security request domains. It does not yet implement HTTP transport, serde
-models, body serialization, token storage, live API tests, retry policy,
-pagination iterators, or action polling.
+`0.5.0` is a security request-domain release. It does not yet implement HTTP
+transport, serde models, body serialization, token storage, live API tests,
+retry policy, pagination iterators, or action polling.
 
 Implemented in the published `0.2.0` line:
 
@@ -46,7 +45,7 @@ Implemented in the published `0.4.0` line:
 - fixed-buffer get-path and list-query construction for catalog endpoints;
 - pagination and sorting capability checks from the source-locked API matrix.
 
-Implemented on main for next `0.5.0`:
+Implemented in the published `0.5.0` line:
 
 - SSH key list/create/get/update/delete request primitives;
 - certificate list/create/get/update/delete request primitives;

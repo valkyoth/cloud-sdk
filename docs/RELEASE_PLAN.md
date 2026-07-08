@@ -270,7 +270,7 @@ v0.4.0 implementation stop reached. Run pentest for this exact commit.
 
 ### v0.5.0 - Security Resources
 
-Status: implementation stop; awaiting pentest.
+Status: release candidate; retest passed and permanent report is included.
 
 Goal: model SSH keys and certificates safely before server creation can depend
 on them.

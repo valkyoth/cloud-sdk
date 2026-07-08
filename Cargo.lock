@@ -4,32 +4,32 @@ version = 4
 
 [[package]]
 name = "cloud-sdk"
-version = "0.4.0"
+version = "0.5.0"
 
 [[package]]
 name = "cloud-sdk-hetzner"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "cloud-sdk",
 ]
 
 [[package]]
 name = "cloud-sdk-hetzner-reqwest"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "cloud-sdk-hetzner",
 ]
 
 [[package]]
 name = "cloud-sdk-hetzner-sanitization"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "cloud-sdk-hetzner",
 ]
 
 [[package]]
 name = "cloud-sdk-hetzner-testkit"
-version = "0.4.0"
+version = "0.5.0"
 dependencies = [
  "cloud-sdk-hetzner",
 ]
