@@ -26,6 +26,8 @@ pub enum ServerRequestError {
     PathBufferTooSmall,
     /// Caller-provided query buffer is too small.
     QueryBufferTooSmall,
+    /// Caller-provided body buffer is too small.
+    BodyBufferTooSmall,
     /// Decimal conversion failed.
     NumberEncodingFailed,
     /// Path bytes failed UTF-8 conversion after construction.
@@ -150,6 +152,10 @@ impl<'a> TextValue<'a> {
 }
 
 /// Cloud-init user data.
+///
+/// User data may contain quotes, backslashes, and newlines. Body writers must
+/// use [`UserData::write_json_string`] instead of writing the raw value into a
+/// JSON string.
 #[derive(Clone, Copy, Eq, PartialEq)]
 pub struct UserData<'a> {
     value: &'a str,
@@ -168,6 +174,18 @@ impl<'a> UserData<'a> {
     #[must_use]
     pub const fn as_str(self) -> &'a str {
         self.value
+    }
+
+    /// Writes this value as a complete JSON string into a caller-owned buffer.
+    pub fn write_json_string(self, output: &mut [u8]) -> Result<usize, ServerRequestError> {
+        let mut len = 0;
+        buffer::write_json_string(
+            output,
+            &mut len,
+            self.value,
+            ServerRequestError::BodyBufferTooSmall,
+        )?;
+        Ok(len)
     }
 }
 

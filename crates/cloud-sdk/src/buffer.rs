@@ -73,6 +73,43 @@ pub fn write_percent_encoded<E: Copy>(
     Ok(())
 }
 
+/// Writes JSON-string contents with required escaping, without surrounding quotes.
+pub fn write_json_string_escaped<E: Copy>(
+    output: &mut [u8],
+    len: &mut usize,
+    value: &str,
+    error: E,
+) -> Result<(), E> {
+    for byte in value.bytes() {
+        match byte {
+            b'"' => write_str(output, len, "\\\"", error)?,
+            b'\\' => write_str(output, len, "\\\\", error)?,
+            b'\n' => write_str(output, len, "\\n", error)?,
+            b'\r' => write_str(output, len, "\\r", error)?,
+            b'\t' => write_str(output, len, "\\t", error)?,
+            0x00..=0x1f => {
+                write_str(output, len, "\\u00", error)?;
+                write_byte(output, len, hex_digit(byte >> 4), error)?;
+                write_byte(output, len, hex_digit(byte & 0x0f), error)?;
+            }
+            _ => write_byte(output, len, byte, error)?,
+        }
+    }
+    Ok(())
+}
+
+/// Writes a complete JSON string with surrounding quotes.
+pub fn write_json_string<E: Copy>(
+    output: &mut [u8],
+    len: &mut usize,
+    value: &str,
+    error: E,
+) -> Result<(), E> {
+    write_byte(output, len, b'"', error)?;
+    write_json_string_escaped(output, len, value, error)?;
+    write_byte(output, len, b'"', error)
+}
+
 /// Writes `&` unless this is the first query pair.
 pub fn write_query_separator<E: Copy>(
     output: &mut [u8],
@@ -144,7 +181,10 @@ const fn hex_digit(nibble: u8) -> u8 {
 
 #[cfg(test)]
 mod tests {
-    use super::{write_percent_encoded, write_query_pair, write_query_u64, write_str, write_u64};
+    use super::{
+        write_json_string, write_percent_encoded, write_query_pair, write_query_u64, write_str,
+        write_u64,
+    };
 
     #[derive(Clone, Copy, Debug, Eq, PartialEq)]
     enum TestError {
@@ -225,5 +265,24 @@ mod tests {
             .get(..len)
             .and_then(|bytes| core::str::from_utf8(bytes).ok());
         assert_eq!(query, Some("label_selector=env%3Dprod&page=0"));
+    }
+
+    #[test]
+    fn writes_json_strings_with_required_escaping() {
+        let mut output = [0u8; 96];
+        let mut len = 0;
+        assert_eq!(
+            write_json_string(
+                &mut output,
+                &mut len,
+                "line\n\"quoted\"\\slash\t\u{001f}",
+                TestError::TooSmall,
+            ),
+            Ok(())
+        );
+        let json = output
+            .get(..len)
+            .and_then(|bytes| core::str::from_utf8(bytes).ok());
+        assert_eq!(json, Some("\"line\\n\\\"quoted\\\"\\\\slash\\t\\u001F\""));
     }
 }

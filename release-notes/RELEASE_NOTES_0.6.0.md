@@ -31,10 +31,12 @@ pagination iterators, or action polling.
   The Hetzner server and security request domains now use it for string,
   decimal, query, and percent-encoded output while preserving domain-specific
   error enums.
+- Shared JSON-string escaping in `cloud_sdk::buffer` plus a `UserData`
+  body-writing path for future server create body serialization.
 - Tests for source-locked server paths, list query construction, required
   create fields, mutual exclusions, metrics time ranges, DNS pointer intent,
-  body-required action guards, shared buffer writer behavior, pentest
-  remediation paths, and every server action path.
+  body-required action guards, shared buffer writer behavior, user-data JSON
+  escaping, pentest remediation paths, and every server action path.
 - `scripts/release_0_6_gate.sh`.
 
 ## Security Notes
@@ -45,6 +47,8 @@ pagination iterators, or action polling.
   `EndpointPath` boundary.
 - Metrics and list queries use caller-owned fixed buffers and percent encoding.
 - Cloud-init user data redacts through `Debug`.
+- Cloud-init user data is not JSON-safe by validation; future body serializers
+  must use its escaped JSON string writer.
 - Server references and text action fields reject JSON-significant bytes before
   future body serialization support exists.
 - Metrics timestamps use fixed-width UTC `YYYY-MM-DDTHH:MM:SSZ` validation so

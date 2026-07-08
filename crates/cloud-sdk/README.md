@@ -78,6 +78,24 @@ assert_eq!(query, Some("page=0"));
 # }
 ```
 
+## JSON String Example
+
+```rust
+use cloud_sdk::buffer::write_json_string;
+
+# fn main() -> Result<(), ()> {
+let mut output = [0u8; 48];
+let mut len = 0;
+write_json_string(&mut output, &mut len, "line\n\"quoted\"", ())?;
+
+let value = output
+    .get(..len)
+    .and_then(|bytes| core::str::from_utf8(bytes).ok());
+assert_eq!(value, Some("\"line\\n\\\"quoted\\\"\""));
+# Ok(())
+# }
+```
+
 ## Scope
 
 - Default features are empty.

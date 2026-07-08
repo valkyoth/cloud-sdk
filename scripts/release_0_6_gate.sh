@@ -4,6 +4,7 @@ set -eu
 scripts/checks.sh
 scripts/check_hetzner_upstream.sh --local-only
 scripts/check_hetzner_api_drift.py --fetch
+# Full-suite coverage already ran in scripts/checks.sh; this is the v0.6 targeted rerun.
 cargo test -p cloud-sdk-hetzner --all-features servers
 
 if ! cargo deny --version >/dev/null 2>&1; then

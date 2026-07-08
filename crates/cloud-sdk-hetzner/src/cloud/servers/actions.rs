@@ -131,6 +131,7 @@ impl ServerActionEndpoint {
         match self {
             Self::ListAll => super::shared::write_static_path(output, "/servers/actions"),
             Self::Get(id) => {
+                // ActionId is nonzero by construction; ResourceId keeps the path helper generic.
                 let id = ResourceId::new(id.get()).ok_or(ServerRequestError::InvalidReference)?;
                 write_id_path(output, "/servers/actions/", id, "")
             }

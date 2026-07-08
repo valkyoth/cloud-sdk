@@ -102,6 +102,32 @@ fn server_create_validates_required_fields_and_mutual_exclusions() {
 }
 
 #[test]
+fn server_user_data_writes_json_string_without_raw_interpolation() {
+    let user_data = UserData::new("#cloud-config\nwrite_files:\n- path: \"C:\\\\tmp\"\n");
+    let mut output = [0u8; 96];
+    if let Ok(user_data) = user_data {
+        let written = user_data.write_json_string(&mut output);
+        assert_eq!(written, Ok(54));
+        let body_value = output
+            .get(..54)
+            .and_then(|bytes| core::str::from_utf8(bytes).ok());
+        assert_eq!(
+            body_value,
+            Some("\"#cloud-config\\nwrite_files:\\n- path: \\\"C:\\\\\\\\tmp\\\"\\n\"")
+        );
+    }
+
+    let user_data = UserData::new("quoted \" value");
+    let mut output = [0u8; 8];
+    if let Ok(user_data) = user_data {
+        assert_eq!(
+            user_data.write_json_string(&mut output),
+            Err(ServerRequestError::BodyBufferTooSmall)
+        );
+    }
+}
+
+#[test]
 fn server_text_values_reject_json_and_bidi_spoofing_bytes() {
     assert_eq!(
         ServerReference::new("cpx22\\bad"),
