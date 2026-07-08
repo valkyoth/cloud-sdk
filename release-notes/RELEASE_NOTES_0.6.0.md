@@ -32,7 +32,8 @@ pagination iterators, or action polling.
   decimal, query, and percent-encoded output while preserving domain-specific
   error enums.
 - Shared JSON-string escaping in `cloud_sdk::buffer` plus a `UserData`
-  body-writing path for future server create body serialization.
+  body-writing path for future server create body serialization. `UserData`
+  intentionally does not expose a raw string accessor.
 - Tests for source-locked server paths, list query construction, required
   create fields, mutual exclusions, metrics time ranges, DNS pointer intent,
   body-required action guards, shared buffer writer behavior, user-data JSON
@@ -48,7 +49,8 @@ pagination iterators, or action polling.
 - Metrics and list queries use caller-owned fixed buffers and percent encoding.
 - Cloud-init user data redacts through `Debug`.
 - Cloud-init user data is not JSON-safe by validation; future body serializers
-  must use its escaped JSON string writer.
+  must use its escaped JSON string writer because no raw string accessor is
+  exposed.
 - Server references and text action fields reject JSON-significant bytes before
   future body serialization support exists.
 - Metrics timestamps use fixed-width UTC `YYYY-MM-DDTHH:MM:SSZ` validation so

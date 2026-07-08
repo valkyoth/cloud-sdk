@@ -19,7 +19,8 @@
   server and security request domains for string, decimal, query, and percent
   encoding output.
 - Added shared JSON-string escaping for future body serializers and a
-  `UserData` body-writing path that avoids raw JSON interpolation.
+  `UserData` body-writing path that avoids raw JSON interpolation without
+  exposing a raw string accessor.
 - Added the `v0.6.0` release gate script.
 
 ## 0.5.0 - 2026-07-08

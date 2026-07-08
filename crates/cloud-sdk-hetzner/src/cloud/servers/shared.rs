@@ -154,8 +154,9 @@ impl<'a> TextValue<'a> {
 /// Cloud-init user data.
 ///
 /// User data may contain quotes, backslashes, and newlines. Body writers must
-/// use [`UserData::write_json_string`] instead of writing the raw value into a
-/// JSON string.
+/// use [`UserData::write_json_string`]. The raw value is intentionally not
+/// exposed, so future SDK body serialization cannot accidentally interpolate it
+/// into JSON without escaping.
 #[derive(Clone, Copy, Eq, PartialEq)]
 pub struct UserData<'a> {
     value: &'a str,
@@ -168,12 +169,6 @@ impl<'a> UserData<'a> {
             return Err(ServerRequestError::InvalidUserData);
         }
         Ok(Self { value })
-    }
-
-    /// Returns the value.
-    #[must_use]
-    pub const fn as_str(self) -> &'a str {
-        self.value
     }
 
     /// Writes this value as a complete JSON string into a caller-owned buffer.
