@@ -36,7 +36,7 @@ the same pattern, for example `cloud-sdk-cloudflare`.
 
 ## Current Status
 
-Status: `v0.1.0` repository foundation.
+Status: `v0.2.0` release candidate.
 
 Implemented now:
 
@@ -54,6 +54,13 @@ Implemented now:
 - MIT OR Apache-2.0 license.
 - Security, implementation, release, modularity, supply-chain, and threat-model
   docs.
+- Official Hetzner Cloud/DNS and Storage Box spec source lock for `v0.2.0`.
+- Complete source-derived API matrix with 221 operations, owner modules,
+  pagination, sorting, action behavior, deprecation status, and implementation
+  status.
+- Local upstream lock validation for the pinned Hetzner spec URLs and hashes.
+- Hetzner API drift detection for added, removed, and changed operations and
+  component schemas.
 
 Not implemented yet:
 
@@ -91,8 +98,8 @@ Not implemented yet:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.1.0"
-cloud-sdk-hetzner = "0.1.0"
+cloud-sdk = "0.2.0"
+cloud-sdk-hetzner = "0.2.0"
 ```
 
 ## Workspace Crates
@@ -148,16 +155,42 @@ Endpoint groups scheduled for the SDK:
 | Storage Boxes | storage boxes, storage box actions, storage box subaccounts |
 | Catalog and billing | locations, pricing |
 
-Before any endpoint model is implemented, `v0.2.0` must verify the current
-official OpenAPI/spec source and update [`docs/API_MATRIX.md`](docs/API_MATRIX.md)
-with any newly discovered or changed endpoints.
+The `v0.2.0` planning pass source-locked the official machine-readable specs:
+
+- Cloud and DNS: <https://docs.hetzner.cloud/cloud.spec.json>
+- Storage Boxes: <https://docs.hetzner.cloud/hetzner.spec.json>
+
+[`docs/API_MATRIX.md`](docs/API_MATRIX.md) tracks all 221 discovered operations.
+Deprecated operations remain listed for drift tracking, but are marked
+`deferred-deprecated` until the SDK has an explicit compatibility policy.
+
+Before changing endpoint models, run:
+
+```bash
+scripts/check_hetzner_api_drift.py --fetch
+```
+
+That compares the current upstream specs with the locked operation and schema
+fingerprints in [`docs/API_FINGERPRINTS.tsv`](docs/API_FINGERPRINTS.tsv) and
+[`docs/API_SCHEMA_FINGERPRINTS.tsv`](docs/API_SCHEMA_FINGERPRINTS.tsv).
+
+Do not refresh lock files directly from a drift report. First review the
+upstream changes and update the pinned spec hashes in the source-lock evidence.
+Then refresh the fingerprints during the reviewed source-lock pass:
+
+```bash
+scripts/check_hetzner_api_drift.py --fetch --write-lock --accept-lock-refresh
+```
+
+The write path verifies fetched spec bytes against the pinned SHA-256 values
+before overwriting the fingerprint files.
 
 ## Rust Version Support
 
 The minimum supported Rust version is Rust `1.90.0`. Development uses the
 pinned stable Rust `1.96.1` until the toolchain policy is updated.
 
-Compatibility evidence for `0.1.0`:
+Compatibility evidence for `0.2.0`:
 
 | Rust | Local Evidence |
 | --- | --- |
@@ -175,4 +208,7 @@ Compatibility evidence for `0.1.0`:
 ```bash
 scripts/checks.sh
 scripts/release_0_1_gate.sh
+scripts/check_hetzner_upstream.sh --local-only
+scripts/check_hetzner_api_drift.py --fetch
+scripts/release_0_2_gate.sh
 ```

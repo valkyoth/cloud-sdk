@@ -7,6 +7,7 @@ scripts/validate-file-lengths.sh
 scripts/validate-modularity-policy.sh check
 scripts/validate-security-policy.sh
 scripts/validate-release-metadata.sh
+scripts/check_hetzner_api_drift.py --local-only
 scripts/release_crates.py --check
 scripts/test-release-crates.py
 cargo package -p cloud-sdk --allow-dirty

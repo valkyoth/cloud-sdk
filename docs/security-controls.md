@@ -12,5 +12,5 @@
 | cargo deny | required before tags |
 | pentest before tags | required |
 | CodeQL default setup | repository setting |
-| API source lock | planned for `v0.2.0` |
-| Storage Boxes drift check | planned for `v0.2.0` |
+| API source lock | active for `v0.2.0` |
+| Storage Boxes drift check | active for `v0.2.0` |

@@ -2,12 +2,12 @@
 set -eu
 
 version=$(sed -n 's/^version = "\(.*\)"/\1/p' release-crates.toml | sed -n '1p')
-if [ "$version" != "0.1.0" ]; then
-    echo "release metadata: expected release-crates.toml version 0.1.0, got $version" >&2
+if ! printf '%s\n' "$version" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+    echo "release metadata: invalid release-crates.toml version $version" >&2
     exit 1
 fi
 
-for required in release-notes/RELEASE_NOTES_0.1.0.md security/pentest/v0.1.0.md docs/CRATE_VERSION_MATRIX.md; do
+for required in "release-notes/RELEASE_NOTES_${version}.md" "security/pentest/v${version}.md" docs/CRATE_VERSION_MATRIX.md; do
     if [ ! -s "$required" ]; then
         echo "release metadata: missing or empty $required" >&2
         exit 1
@@ -47,7 +47,7 @@ check_pentest_report() {
     fi
 }
 
-check_pentest_report "0.1.0"
+check_pentest_report "$version"
 
 if [ ! -x scripts/release_crates.py ] || [ ! -x scripts/test-release-crates.py ]; then
     echo "release metadata: missing executable independent crate release scripts" >&2

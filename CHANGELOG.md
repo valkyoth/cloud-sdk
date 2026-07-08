@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.2.0 - 2026-07-08
+
+- Source-locked the official Hetzner Cloud/DNS and Storage Box OpenAPI specs.
+- Replaced the initial group-level API plan with a complete 221-operation
+  endpoint matrix, including pagination, sorting, action, deprecation, and owner
+  module tracking.
+- Added local Hetzner upstream lock validation and a `v0.2.0` release gate.
+- Added Hetzner API drift fingerprints and a drift detector for upstream
+  operation and schema changes.
+- Expanded the release plan so every milestone has concrete deliverables,
+  verification commands, and an explicit pentest stop gate.
+- Hardened the API drift lock refresh path to require explicit acknowledgement
+  and pinned SHA-256 verification before overwriting fingerprint locks.
+- Documented current Hetzner changelog items that affect future SDK models,
+  including deprecated omitted DNS pointer and RRSet TTL fields, deprecated
+  datacenter endpoints, and deprecated resource-local action lookups.
+
 ## 0.1.0 - 2026-07-08
 
 - Initialized the `cloud-sdk` Rust workspace.
