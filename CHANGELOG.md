@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.0 - Unreleased
+## 0.1.0 - 2026-07-08
 
 - Initialized the `cloud-sdk` Rust workspace.
 - Added `cloud-sdk` as the provider-neutral crate.

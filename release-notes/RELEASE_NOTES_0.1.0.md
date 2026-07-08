@@ -1,6 +1,6 @@
 # cloud-sdk 0.1.0 Release Notes
 
-Status: draft
+Status: release candidate; pentest and retest complete.
 
 ## Added
 
