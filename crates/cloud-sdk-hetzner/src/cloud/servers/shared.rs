@@ -1,5 +1,7 @@
 //! Shared server request helpers.
 
+use core::fmt;
+
 use crate::request::{EndpointPath, EndpointPathError};
 
 /// Maximum server name bytes.
@@ -102,7 +104,11 @@ pub struct ServerReference<'a> {
 impl<'a> ServerReference<'a> {
     /// Creates a bounded printable reference.
     pub fn new(value: &'a str) -> Result<Self, ServerRequestError> {
-        if value.is_empty() || value.len() > MAX_REFERENCE_BYTES || has_control_byte(value) {
+        if value.is_empty()
+            || value.len() > MAX_REFERENCE_BYTES
+            || has_control_byte(value)
+            || has_json_significant_byte(value)
+        {
             return Err(ServerRequestError::InvalidReference);
         }
         Ok(Self { value })
@@ -124,7 +130,11 @@ pub struct TextValue<'a> {
 impl<'a> TextValue<'a> {
     /// Creates a bounded non-control text value.
     pub fn new(value: &'a str) -> Result<Self, ServerRequestError> {
-        if value.is_empty() || value.len() > MAX_TEXT_BYTES || has_control_byte(value) {
+        if value.is_empty()
+            || value.len() > MAX_TEXT_BYTES
+            || has_control_byte(value)
+            || has_json_significant_byte(value)
+        {
             return Err(ServerRequestError::InvalidText);
         }
         Ok(Self { value })
@@ -138,7 +148,7 @@ impl<'a> TextValue<'a> {
 }
 
 /// Cloud-init user data.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Eq, PartialEq)]
 pub struct UserData<'a> {
     value: &'a str,
 }
@@ -159,6 +169,12 @@ impl<'a> UserData<'a> {
     }
 }
 
+impl fmt::Debug for UserData<'_> {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.write_str("UserData([redacted])")
+    }
+}
+
 /// RFC3339 timestamp string.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct TimestampValue<'a> {
@@ -169,13 +185,19 @@ impl<'a> TimestampValue<'a> {
     /// Creates a conservative RFC3339 UTC timestamp value.
     pub fn new(value: &'a str) -> Result<Self, ServerRequestError> {
         let bytes = value.as_bytes();
-        if bytes.len() < 20
+        if bytes.len() != 20
+            || !ascii_digits(bytes, 0, 4)
             || bytes.get(4) != Some(&b'-')
+            || !ascii_digits(bytes, 5, 7)
             || bytes.get(7) != Some(&b'-')
+            || !ascii_digits(bytes, 8, 10)
             || bytes.get(10) != Some(&b'T')
+            || !ascii_digits(bytes, 11, 13)
             || bytes.get(13) != Some(&b':')
+            || !ascii_digits(bytes, 14, 16)
             || bytes.get(16) != Some(&b':')
-            || !value.ends_with('Z')
+            || !ascii_digits(bytes, 17, 19)
+            || bytes.get(19) != Some(&b'Z')
             || has_control_byte(value)
         {
             return Err(ServerRequestError::InvalidTimestamp);
@@ -350,6 +372,9 @@ fn write_u64(
     mut value: u64,
     error: ServerRequestError,
 ) -> Result<(), ServerRequestError> {
+    if value == 0 {
+        return write_byte(output, len, b'0', error);
+    }
     let mut digits = [0u8; 20];
     let mut cursor = digits.len();
     while value != 0 {
@@ -398,6 +423,30 @@ fn validate_written_path(output: &[u8], len: usize) -> Result<(), ServerRequestE
 
 fn has_control_byte(value: &str) -> bool {
     value.bytes().any(|byte| byte < 0x20 || byte == 0x7f)
+        || value.chars().any(|ch| {
+            matches!(
+                ch,
+                '\u{202A}'
+                    | '\u{202B}'
+                    | '\u{202C}'
+                    | '\u{202D}'
+                    | '\u{202E}'
+                    | '\u{2066}'
+                    | '\u{2067}'
+                    | '\u{2068}'
+                    | '\u{2069}'
+            )
+        })
+}
+
+fn has_json_significant_byte(value: &str) -> bool {
+    value.bytes().any(|byte| matches!(byte, b'"' | b'\\'))
+}
+
+fn ascii_digits(bytes: &[u8], start: usize, end: usize) -> bool {
+    bytes
+        .get(start..end)
+        .is_some_and(|slice| slice.iter().all(u8::is_ascii_digit))
 }
 
 const fn hex_digit(nibble: u8) -> u8 {

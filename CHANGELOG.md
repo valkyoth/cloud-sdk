@@ -11,6 +11,10 @@
   console, and password reset operations.
 - Added explicit DNS pointer set/reset intent and validation for server create
   required fields, public network mutual exclusions, and metrics time ranges.
+- Hardened v0.6.0 server request validation after pentest review by redacting
+  cloud-init user data in `Debug`, fixing zero numeric query serialization,
+  rejecting JSON-significant and bidi-control bytes in server text values, and
+  requiring fixed-width digit-only metrics timestamps.
 - Added the `v0.6.0` release gate script.
 
 ## 0.5.0 - 2026-07-08

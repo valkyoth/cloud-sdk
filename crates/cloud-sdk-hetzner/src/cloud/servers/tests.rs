@@ -12,6 +12,7 @@ use crate::actions::ActionId;
 use crate::labels::LabelSelector;
 use crate::pagination::{Page, PerPage, SortDirection};
 use crate::request::ApiBaseUrl;
+use core::fmt::Write;
 
 #[test]
 fn server_paths_match_api_matrix() {
@@ -77,10 +78,13 @@ fn server_create_validates_required_fields_and_mutual_exclusions() {
         assert!(request.is_ok());
         let user_data = UserData::new("#cloud-config\n");
         if let (Ok(request), Ok(user_data)) = (request, user_data) {
-            assert_eq!(
-                request.with_user_data(user_data).endpoint(),
-                ServerEndpoint::Create
-            );
+            let request = request.with_user_data(user_data);
+            assert_eq!(request.endpoint(), ServerEndpoint::Create);
+            let mut debug = DebugBuffer::new();
+            assert!(write!(&mut debug, "{request:?}").is_ok());
+            let debug = debug.as_str();
+            assert!(debug.contains("[redacted]"));
+            assert!(!debug.contains("#cloud-config"));
         }
     }
     let primary_ip = ServerResourceId::new(7);
@@ -95,6 +99,54 @@ fn server_create_validates_required_fields_and_mutual_exclusions() {
             Err(ServerRequestError::MutuallyExclusiveFields)
         );
     }
+}
+
+#[test]
+fn server_text_values_reject_json_and_bidi_spoofing_bytes() {
+    assert_eq!(
+        ServerReference::new("cpx22\\bad"),
+        Err(ServerRequestError::InvalidReference)
+    );
+    assert_eq!(
+        ServerReference::new("cpx22\"bad"),
+        Err(ServerRequestError::InvalidReference)
+    );
+    assert_eq!(
+        TextValue::new("server.example.com\u{202E}"),
+        Err(ServerRequestError::InvalidText)
+    );
+    assert_eq!(
+        TextValue::new("image \"description\""),
+        Err(ServerRequestError::InvalidText)
+    );
+}
+
+#[test]
+fn server_timestamp_validation_is_fixed_width_and_digit_only() {
+    assert_eq!(
+        TimestampValue::new("9999-99-99T99:99:99Z").map(TimestampValue::as_str),
+        Ok("9999-99-99T99:99:99Z")
+    );
+    assert_eq!(
+        TimestampValue::new("2026-07-08T10:00:00.500Z"),
+        Err(ServerRequestError::InvalidTimestamp)
+    );
+    assert_eq!(
+        TimestampValue::new("2026-aa-08T10:00:00Z"),
+        Err(ServerRequestError::InvalidTimestamp)
+    );
+}
+
+#[test]
+fn server_query_writer_serializes_zero_without_silent_empty_value() {
+    let mut output = [0u8; 16];
+    let mut writer = super::shared::ServerQueryError::new(&mut output);
+    assert!(writer.u64_pair("n", 0).is_ok());
+    assert_eq!(writer.len(), 3);
+    let query = output
+        .get(..3)
+        .and_then(|bytes| core::str::from_utf8(bytes).ok());
+    assert_eq!(query, Some("n=0"));
 }
 
 #[test]
@@ -273,4 +325,32 @@ fn server_actions_validate_body_requirements_and_dns_ptr_intent() {
         );
     }
     assert_eq!(ServerImageType::Snapshot, ServerImageType::Snapshot);
+}
+
+struct DebugBuffer {
+    bytes: [u8; 512],
+    len: usize,
+}
+
+impl DebugBuffer {
+    const fn new() -> Self {
+        Self {
+            bytes: [0u8; 512],
+            len: 0,
+        }
+    }
+
+    fn as_str(&self) -> &str {
+        core::str::from_utf8(self.bytes.get(..self.len).unwrap_or_default()).unwrap_or_default()
+    }
+}
+
+impl Write for DebugBuffer {
+    fn write_str(&mut self, value: &str) -> core::fmt::Result {
+        let end = self.len.checked_add(value.len()).ok_or(core::fmt::Error)?;
+        let target = self.bytes.get_mut(self.len..end).ok_or(core::fmt::Error)?;
+        target.copy_from_slice(value.as_bytes());
+        self.len = end;
+        Ok(())
+    }
 }

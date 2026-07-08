@@ -24,9 +24,13 @@ pagination iterators, or action polling.
   ordering.
 - Explicit DNS pointer action intent via set or reset, so omitted `dns_ptr`
   behavior is not modeled as an accidental default.
+- Pentest remediation for cloud-init user data redaction, zero numeric query
+  serialization, JSON-significant byte rejection, bidi-control rejection, and
+  fixed-width metrics timestamp validation.
 - Tests for source-locked server paths, list query construction, required
   create fields, mutual exclusions, metrics time ranges, DNS pointer intent,
-  body-required action guards, and every server action path.
+  body-required action guards, pentest remediation paths, and every server
+  action path.
 - `scripts/release_0_6_gate.sh`.
 
 ## Security Notes
@@ -36,6 +40,11 @@ pagination iterators, or action polling.
 - Server ID paths validate the fully assembled path through the shared
   `EndpointPath` boundary.
 - Metrics and list queries use caller-owned fixed buffers and percent encoding.
+- Cloud-init user data redacts through `Debug`.
+- Server references and text action fields reject JSON-significant bytes before
+  future body serialization support exists.
+- Metrics timestamps use fixed-width UTC `YYYY-MM-DDTHH:MM:SSZ` validation so
+  lexicographic start/end checks remain meaningful.
 - The SDK still does not serialize request bodies or execute API requests.
 
 ## Verification
