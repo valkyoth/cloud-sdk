@@ -12,6 +12,8 @@
   rate-limit metadata.
 - Added fixed-buffer query percent encoding, endpoint group base URL mapping,
   and stricter label selector structure checks for `v0.3.0`.
+- Hardened endpoint path validation against authority overrides, query or
+  fragment injection, and parent directory segments after pentest review.
 - Added the `v0.3.0` release gate script.
 
 ## 0.2.0 - 2026-07-08

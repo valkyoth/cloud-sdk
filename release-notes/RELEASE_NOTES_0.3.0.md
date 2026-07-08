@@ -31,7 +31,9 @@ or action polling.
 - Query builders store borrowed values and do not allocate.
 - Query encoding writes to caller-owned buffers and reports undersized buffers
   without panicking.
-- Endpoint paths reject absolute URLs and whitespace/control bytes.
+- Endpoint paths reject absolute URLs, authority-override paths, backslashes,
+  query/fragment separators, parent directory segments, and
+  whitespace/control bytes.
 - Endpoint group base URL selection is centralized before endpoint builders are
   introduced.
 - Unknown API error codes fail into an explicit `Unknown` category instead of

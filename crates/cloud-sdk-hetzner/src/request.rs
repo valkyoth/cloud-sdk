@@ -47,6 +47,8 @@ pub enum EndpointPathError {
     InvalidByte,
     /// Endpoint paths must be relative to the selected base URL.
     AbsoluteUrl,
+    /// Endpoint paths must not contain parent directory segments.
+    ParentDirectorySegment,
 }
 
 /// Borrowed, validated endpoint path.
@@ -64,14 +66,17 @@ impl<'a> EndpointPath<'a> {
         if value.len() > MAX_ENDPOINT_PATH_BYTES {
             return Err(EndpointPathError::TooLong);
         }
-        if !value.starts_with('/') {
+        if !value.starts_with('/') || value.starts_with("//") {
             return Err(EndpointPathError::MissingLeadingSlash);
         }
-        if value.contains("://") {
+        if value.contains("://") || value.contains('\\') {
             return Err(EndpointPathError::AbsoluteUrl);
         }
         if has_invalid_path_byte(value) {
             return Err(EndpointPathError::InvalidByte);
+        }
+        if has_parent_directory_segment(value) {
+            return Err(EndpointPathError::ParentDirectorySegment);
         }
         Ok(Self { value })
     }
@@ -85,11 +90,15 @@ impl<'a> EndpointPath<'a> {
 
 fn has_invalid_path_byte(value: &str) -> bool {
     for byte in value.bytes() {
-        if byte <= b' ' || byte == 0x7f {
+        if byte <= b' ' || byte == 0x7f || matches!(byte, b'?' | b'#') {
             return true;
         }
     }
     false
+}
+
+fn has_parent_directory_segment(value: &str) -> bool {
+    value.split('/').any(|segment| segment == "..")
 }
 
 #[cfg(test)]
@@ -117,6 +126,26 @@ mod tests {
         assert_eq!(
             EndpointPath::new("/servers bad"),
             Err(EndpointPathError::InvalidByte)
+        );
+        assert_eq!(
+            EndpointPath::new("//evil.example/steal"),
+            Err(EndpointPathError::MissingLeadingSlash)
+        );
+        assert_eq!(
+            EndpointPath::new("/\\evil.example/steal"),
+            Err(EndpointPathError::AbsoluteUrl)
+        );
+        assert_eq!(
+            EndpointPath::new("/servers?admin=true"),
+            Err(EndpointPathError::InvalidByte)
+        );
+        assert_eq!(
+            EndpointPath::new("/servers#fragment"),
+            Err(EndpointPathError::InvalidByte)
+        );
+        assert_eq!(
+            EndpointPath::new("/servers/../../v2/admin"),
+            Err(EndpointPathError::ParentDirectorySegment)
         );
         assert_eq!(
             EndpointPath::new("/servers").map(EndpointPath::as_str),
