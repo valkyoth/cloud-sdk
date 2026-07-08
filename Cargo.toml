@@ -1,0 +1,43 @@
+[workspace]
+members = [
+    "crates/cloud-sdk",
+    "crates/cloud-sdk-hetzner",
+    "crates/cloud-sdk-hetzner-reqwest",
+    "crates/cloud-sdk-hetzner-sanitization",
+    "crates/cloud-sdk-hetzner-testkit",
+]
+default-members = ["crates/cloud-sdk"]
+resolver = "3"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.90"
+license = "MIT OR Apache-2.0"
+homepage = "https://github.com/valkyoth/cloud-sdk"
+repository = "https://github.com/valkyoth/cloud-sdk"
+readme = "README.md"
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+unsafe_op_in_unsafe_fn = "forbid"
+unused_must_use = "deny"
+missing_docs = "deny"
+
+[workspace.lints.clippy]
+panic = "forbid"
+unwrap_used = "forbid"
+expect_used = "forbid"
+undocumented_unsafe_blocks = "forbid"
+indexing_slicing = "forbid"
+arithmetic_side_effects = "forbid"
+cast_possible_truncation = "deny"
+cast_sign_loss = "deny"
+
+[workspace.dependencies]
+cloud-sdk = { path = "crates/cloud-sdk", version = "0.1.0" }
+cloud-sdk-hetzner = { path = "crates/cloud-sdk-hetzner", version = "0.1.0" }
+
+[profile.release]
+overflow-checks = true
+panic = "abort"

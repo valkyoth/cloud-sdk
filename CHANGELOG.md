@@ -1,0 +1,15 @@
+# Changelog
+
+## 0.1.0 - Unreleased
+
+- Initialized the `cloud-sdk` Rust workspace.
+- Added `cloud-sdk` as the provider-neutral crate.
+- Added `cloud-sdk-hetzner` as the first provider crate.
+- Added one no_std SDK crate with internal Cloud, DNS, security, and Storage Box
+  modules.
+- Added placeholder crates for future reqwest transport, testkit, and
+  sanitization boundaries.
+- Added MIT OR Apache-2.0 licensing, security policy, dependency policy, CI
+  metadata, and release planning.
+- Added local checks for formatting, linting, tests, no_std policy, modularity,
+  shell syntax, security policy, and file length.

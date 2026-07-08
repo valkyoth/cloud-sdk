@@ -1,0 +1,21 @@
+[package]
+name = "cloud-sdk-hetzner"
+description = "no_std-first Hetzner provider crate for cloud-sdk."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+homepage.workspace = true
+repository.workspace = true
+readme.workspace = true
+
+[features]
+default = []
+alloc = ["cloud-sdk/alloc"]
+std = ["alloc", "cloud-sdk/std"]
+
+[dependencies]
+cloud-sdk.workspace = true
+
+[lints]
+workspace = true

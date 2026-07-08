@@ -1,0 +1,38 @@
+[release]
+version = "0.1.0"
+policy = "independent"
+
+[crates."cloud-sdk"]
+previous_version = "none"
+version = "0.1.0"
+change = "code"
+publish = true
+reason = "Initial no_std provider-neutral cloud SDK foundation."
+
+[crates."cloud-sdk-hetzner"]
+previous_version = "none"
+version = "0.1.0"
+change = "code"
+publish = true
+reason = "Initial no_std SDK crate with internal Cloud, DNS, security, and Storage Box modules."
+
+[crates."cloud-sdk-hetzner-reqwest"]
+previous_version = "none"
+version = "0.1.0"
+change = "code"
+publish = true
+reason = "Initial optional reqwest transport adapter boundary without admitting reqwest yet."
+
+[crates."cloud-sdk-hetzner-sanitization"]
+previous_version = "none"
+version = "0.1.0"
+change = "code"
+publish = true
+reason = "Initial optional secret-sanitization boundary without admitting third-party dependencies yet."
+
+[crates."cloud-sdk-hetzner-testkit"]
+previous_version = "none"
+version = "0.1.0"
+change = "code"
+publish = true
+reason = "Initial testkit boundary for mock transports and fixtures."

@@ -1,0 +1,20 @@
+[package]
+name = "cloud-sdk-hetzner-testkit"
+description = "Mock transport and fixture boundary for cloud-sdk-hetzner."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+homepage.workspace = true
+repository.workspace = true
+
+[features]
+default = []
+alloc = ["cloud-sdk-hetzner/alloc"]
+std = ["alloc", "cloud-sdk-hetzner/std"]
+
+[dependencies]
+cloud-sdk-hetzner.workspace = true
+
+[lints]
+workspace = true
