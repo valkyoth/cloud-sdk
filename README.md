@@ -32,7 +32,21 @@ will be admitted later behind explicit features or adapter crates.
 The project target is a serious production-ready `cloud-sdk` foundation and
 Hetzner provider at `1.0.0`, reached through small reviewed releases with test,
 security, dependency, and release evidence. Future provider crates can follow
-the same pattern, for example `cloud-sdk-cloudflare`.
+the same pattern, especially focused cloud and SaaS providers such as
+`cloud-sdk-scaleway` or `cloud-sdk-ovh`.
+
+## Cost And Production Warning
+
+Cloud APIs can create, modify, and delete billable resources. This SDK is built
+with careful review, tests, security gates, and release checks, but no SDK can
+guarantee that it is free from mistakes or that every provider-side API behavior
+is risk-free.
+
+Before running code against a real cloud account, review the exact operations,
+inputs, permissions, and provider pricing yourself. You are responsible for the
+infrastructure actions you execute and for any costs, downtime, data loss, or
+configuration changes caused by those actions. If you find an SDK mistake,
+please report it so it can be fixed.
 
 ## Current Status
 
@@ -76,8 +90,9 @@ Not implemented yet:
 - No retry, rate-limit, or action polling helper.
 - No generated endpoint model.
 - No live Hetzner API tests.
-- No non-Hetzner providers yet. `cloud-sdk-cloudflare` is a planned future
-  provider pattern, not a 1.0 deliverable.
+- No non-Hetzner providers yet. Smaller focused cloud and SaaS providers such
+  as Scaleway and OVH are better future fits than hyperscaler-scale APIs, but
+  no non-Hetzner provider is a 1.0 deliverable.
 - No Robot Webservice support. Robot is planned after the Hetzner Cloud/DNS
   provider reaches `1.0.0`, likely as a `1.1.0` track exposed through
   `cloud-sdk-hetzner`.
