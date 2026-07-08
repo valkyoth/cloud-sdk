@@ -87,7 +87,41 @@ def test_facade_code_changes_must_use_milestone_version() -> None:
         "reason": "test",
     }
     assert_fails(
-        "version must be 0.4.0",
+        "must always match release version 0.4.0",
+        release_crates.validate_plan_entry,
+        "cloud-sdk",
+        entry,
+        "0.4.0",
+    )
+
+
+def test_facade_must_always_match_release_version() -> None:
+    entry = {
+        "previous_version": "0.3.0",
+        "version": "0.3.0",
+        "change": "unchanged",
+        "publish": False,
+        "reason": "test",
+    }
+    assert_fails(
+        "must always match release version 0.4.0",
+        release_crates.validate_plan_entry,
+        "cloud-sdk",
+        entry,
+        "0.4.0",
+    )
+
+
+def test_facade_must_publish_for_every_release() -> None:
+    entry = {
+        "previous_version": "0.3.0",
+        "version": "0.4.0",
+        "change": "metadata",
+        "publish": False,
+        "reason": "test",
+    }
+    assert_fails(
+        "must publish for every release",
         release_crates.validate_plan_entry,
         "cloud-sdk",
         entry,
@@ -162,7 +196,7 @@ def test_unchanged_crates_are_not_published() -> None:
     assert_fails(
         "unchanged but publish is true",
         release_crates.validate_plan_entry,
-        "cloud-sdk",
+        "cloud-sdk-hetzner",
         entry,
         "0.4.0",
     )
@@ -195,6 +229,8 @@ def run_tests() -> None:
     tests = (
         test_current_plan_accepts_unchanged_crates,
         test_facade_code_changes_must_use_milestone_version,
+        test_facade_must_always_match_release_version,
+        test_facade_must_publish_for_every_release,
         test_provider_code_changes_use_next_independent_minor,
         test_provider_code_changes_reject_release_counter_jump,
         test_initial_release_accepts_none_previous_version,

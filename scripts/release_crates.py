@@ -142,6 +142,16 @@ def validate_plan_entry(package_name: str, entry: dict, release: str) -> None:
         return
 
     previous_version = parse_version(previous)
+    if package_name == "cloud-sdk":
+        if planned_version != release_parts:
+            raise RuntimeError(
+                f"{package_name} must always match release version {release}"
+            )
+        if not publish:
+            raise RuntimeError(f"{package_name} must publish for every release")
+        if change == "unchanged":
+            raise RuntimeError(f"{package_name} cannot be unchanged in a release")
+
     if change == "code":
         if package_name == "cloud-sdk":
             expected = release_parts

@@ -1,8 +1,5 @@
 #![no_std]
-//! Optional secret-sanitization boundary for token-adjacent helpers.
-//!
-//! This crate intentionally does not admit a third-party sanitization dependency
-//! yet. The dependency will be added only after a dedicated review.
+#![doc = include_str!("../README.md")]
 
 #[cfg(feature = "std")]
 extern crate std;

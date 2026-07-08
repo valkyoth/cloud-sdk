@@ -11,10 +11,16 @@ adapters, test utilities, and secret-handling helpers.
 
 | Change kind | Version rule | Publish? |
 | --- | --- | --- |
-| `code` | `cloud-sdk` follows the milestone release version. Provider and boundary crates use independent minor bumps after their initial release. | Yes |
-| `dependency` | Patch-bump the existing line when a manifest dependency range must change. | Yes |
-| `metadata` | Use the release version when republishing corrected immutable package metadata. | Yes |
+| `code` | `cloud-sdk` always follows the release/tag version. Provider and boundary crates use independent minor bumps after their initial release. | Yes |
+| `dependency` | Provider and boundary crates patch-bump the existing line when a manifest dependency range must change. `cloud-sdk` still follows the release/tag version. | Yes |
+| `metadata` | Use the release/tag version when republishing corrected immutable package metadata or release evidence. | Yes |
 | `unchanged` | Keep the previous published version. | No |
+
+`cloud-sdk` is the facade crate and must publish on every release with the same
+version as the tag. Other crates publish independently: real code changes move
+to the next independent minor line, dependency-only related bumps stay on the
+same minor line and increase only the patch number, metadata-only release
+alignment uses the release/tag version, and unchanged crates are not published.
 
 ## v0.1.0 Tracking Table
 

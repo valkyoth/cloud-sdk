@@ -1,5 +1,19 @@
 # Changelog
 
+## Unreleased
+
+- Added crate-local README and rustdoc entry-point documentation for every
+  workspace crate.
+- Clarified that `cloud-sdk-hetzner` is the main Hetzner-specific documentation
+  surface while `cloud-sdk` remains the provider-neutral foundation.
+- Added the first `v0.3.0` core request/response policy domains in
+  `cloud-sdk-hetzner`: endpoint paths, base URL selection, bounded query
+  parameters, labels, pagination, sorting, action status, API errors, and
+  rate-limit metadata.
+- Added fixed-buffer query percent encoding, endpoint group base URL mapping,
+  and stricter label selector structure checks for `v0.3.0`.
+- Added the `v0.3.0` release gate script.
+
 ## 0.2.0 - 2026-07-08
 
 - Source-locked the official Hetzner Cloud/DNS and Storage Box OpenAPI specs.

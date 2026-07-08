@@ -1,5 +1,5 @@
 #![no_std]
-//! `no_std`-first Hetzner provider crate for `cloud-sdk`.
+#![doc = include_str!("../README.md")]
 
 #[cfg(feature = "std")]
 extern crate std;
@@ -10,6 +10,7 @@ pub mod dns;
 pub mod endpoint;
 pub mod labels;
 pub mod pagination;
+pub mod query;
 pub mod rate_limit;
 pub mod request;
 pub mod response;

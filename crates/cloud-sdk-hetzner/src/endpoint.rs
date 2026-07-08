@@ -1,5 +1,7 @@
 //! Endpoint ownership domains for the SDK.
 
+use crate::request::ApiBaseUrl;
+
 /// High-level API surface represented by an SDK module boundary.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum ApiSurface {
@@ -98,5 +100,35 @@ impl EndpointGroup {
             }
             _ => ApiSurface::Cloud,
         }
+    }
+
+    /// Returns the base URL family for this endpoint group.
+    #[must_use]
+    pub const fn api_base_url(self) -> ApiBaseUrl {
+        match self.surface() {
+            ApiSurface::Storage => ApiBaseUrl::HetznerV1,
+            ApiSurface::Cloud | ApiSurface::Dns | ApiSurface::Security => ApiBaseUrl::CloudV1,
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{ApiSurface, EndpointGroup};
+    use crate::request::ApiBaseUrl;
+
+    #[test]
+    fn maps_endpoint_groups_to_base_urls() {
+        assert_eq!(EndpointGroup::Servers.api_base_url(), ApiBaseUrl::CloudV1);
+        assert_eq!(EndpointGroup::Zones.api_base_url(), ApiBaseUrl::CloudV1);
+        assert_eq!(
+            EndpointGroup::Certificates.api_base_url(),
+            ApiBaseUrl::CloudV1
+        );
+        assert_eq!(
+            EndpointGroup::StorageBoxes.api_base_url(),
+            ApiBaseUrl::HetznerV1
+        );
+        assert_eq!(EndpointGroup::Zones.surface(), ApiSurface::Dns);
     }
 }

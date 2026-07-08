@@ -1,8 +1,5 @@
 #![no_std]
-//! Optional reqwest transport adapter boundary.
-//!
-//! This crate intentionally does not admit `reqwest` yet. The dependency will
-//! be added only after transport policy, TLS policy, and tests are source-locked.
+#![doc = include_str!("../README.md")]
 
 #[cfg(feature = "std")]
 extern crate std;

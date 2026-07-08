@@ -207,6 +207,8 @@ v0.2.0 implementation stop reached. Run pentest for this exact commit.
 
 ### v0.3.0 - Core Request And Response Policy
 
+Status: in progress on main.
+
 Goal: implement the no_std request, query, error, rate-limit, and action
 foundation before endpoint families depend on it.
 
@@ -228,7 +230,7 @@ Verification:
 - `scripts/checks.sh`
 - `scripts/check_hetzner_api_drift.py --fetch`
 - `cargo test -p cloud-sdk-hetzner --all-features`
-- `scripts/release_0_3_gate.sh` once added.
+- `scripts/release_0_3_gate.sh`
 
 Stop gate:
 

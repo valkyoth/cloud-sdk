@@ -1,5 +1,5 @@
 #![no_std]
-//! Testkit boundary for mock transports, fixtures, and adversarial API cases.
+#![doc = include_str!("../README.md")]
 
 #[cfg(feature = "std")]
 extern crate std;

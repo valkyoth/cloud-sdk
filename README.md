@@ -36,7 +36,8 @@ the same pattern, for example `cloud-sdk-cloudflare`.
 
 ## Current Status
 
-Status: `v0.2.0` release candidate.
+Status: `v0.3.0` development on main after the published `v0.2.0` source-lock
+release.
 
 Implemented now:
 
@@ -61,6 +62,10 @@ Implemented now:
 - Local upstream lock validation for the pinned Hetzner spec URLs and hashes.
 - Hetzner API drift detection for added, removed, and changed operations and
   component schemas.
+- Core Hetzner request/response policy domains for endpoint paths, base URL
+  selection, endpoint group base mapping, bounded query parameters,
+  fixed-buffer percent encoding, labels, pagination, sorting, action status,
+  API errors, and rate-limit metadata.
 
 Not implemented yet:
 
@@ -106,11 +111,15 @@ cloud-sdk-hetzner = "0.2.0"
 
 | Crate | Default `std`? | Purpose |
 | --- | --- | --- |
-| `cloud-sdk` | no | Provider-neutral domains and shared SDK foundation. |
-| `cloud-sdk-hetzner` | no | Hetzner provider crate with internal `cloud`, `dns`, `security`, and `storage` modules. |
-| `cloud-sdk-hetzner-reqwest` | no | Future optional reqwest transport adapter; no transport dependency admitted yet. |
-| `cloud-sdk-hetzner-testkit` | no | Future mock transport, fixtures, and adversarial API response helpers. |
-| `cloud-sdk-hetzner-sanitization` | no | Future optional token/secret sanitization helpers. |
+| [`cloud-sdk`](crates/cloud-sdk/README.md) | no | Provider-neutral domains and shared SDK foundation. |
+| [`cloud-sdk-hetzner`](crates/cloud-sdk-hetzner/README.md) | no | Main Hetzner documentation and provider crate with internal `cloud`, `dns`, `security`, and `storage` modules. |
+| [`cloud-sdk-hetzner-reqwest`](crates/cloud-sdk-hetzner-reqwest/README.md) | no | Future optional reqwest transport adapter; no transport dependency admitted yet. |
+| [`cloud-sdk-hetzner-testkit`](crates/cloud-sdk-hetzner-testkit/README.md) | no | Future mock transport, fixtures, and adversarial API response helpers. |
+| [`cloud-sdk-hetzner-sanitization`](crates/cloud-sdk-hetzner-sanitization/README.md) | no | Future optional token/secret sanitization helpers. |
+
+The root README documents the workspace and release process. Crate-local README
+files document the crate-specific role and examples. For Hetzner-specific usage,
+start with [`cloud-sdk-hetzner`](crates/cloud-sdk-hetzner/README.md).
 
 Hetzner endpoint modules live inside the provider crate:
 

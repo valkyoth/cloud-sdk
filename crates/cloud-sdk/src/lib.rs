@@ -1,5 +1,5 @@
 #![no_std]
-//! Provider-neutral foundations for the `cloud-sdk` workspace.
+#![doc = include_str!("../README.md")]
 
 #[cfg(feature = "std")]
 extern crate std;
@@ -39,6 +39,19 @@ pub enum Method {
     Delete,
 }
 
+impl Method {
+    /// Returns the HTTP method token.
+    #[must_use]
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Get => "GET",
+            Self::Post => "POST",
+            Self::Put => "PUT",
+            Self::Delete => "DELETE",
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::{ApiFamily, Method, Provider};
@@ -48,5 +61,6 @@ mod tests {
         assert_eq!(Provider::Hetzner, Provider::Hetzner);
         assert_eq!(ApiFamily::Cloud, ApiFamily::Cloud);
         assert_eq!(Method::Get, Method::Get);
+        assert_eq!(Method::Post.as_str(), "POST");
     }
 }
