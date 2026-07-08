@@ -12,15 +12,15 @@ models in small reviewed releases.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.3.0"
-cloud-sdk-hetzner = "0.3.0"
+cloud-sdk = "0.4.0"
+cloud-sdk-hetzner = "0.4.0"
 ```
 
 ## Current Scope
 
-`0.3.0` is a core request/response policy release. It does not yet implement
-HTTP transport, serde models, endpoint builders, token storage, live API tests,
-retry policy, or action polling.
+`0.4.0` is a read-only catalog request release. It does not yet implement HTTP
+transport, serde models, token storage, live API tests, retry policy,
+pagination iterators, or action polling.
 
 Implemented in the published `0.2.0` line:
 
@@ -38,7 +38,7 @@ Implemented in the published `0.3.0` line:
 - label key, value, and selector validation;
 - pagination, sorting, action status, API error, and rate-limit domains.
 
-Implemented on `main` for the next `0.4.0` release:
+Implemented in the published `0.4.0` line:
 
 - read-only catalog request primitives for locations, pricing, server types,
   load balancer types, ISOs, and public images;

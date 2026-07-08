@@ -1,6 +1,6 @@
 # cloud-sdk 0.4.0 Release Notes
 
-Status: draft, implementation in progress.
+Status: release candidate; pentest and retest complete.
 
 ## Scope
 
@@ -32,8 +32,12 @@ polling.
 - Catalog IDs are nonzero.
 - Catalog path and query construction writes to caller-owned buffers and reports
   undersized buffers without panicking.
+- Catalog get paths validate the fully assembled path through the same
+  `EndpointPath` boundary used elsewhere in the SDK.
 - Public image listing is explicit about the admitted provider image kinds so
   snapshot and backup images are not accidentally included by the helper.
+- Public image get requests document that ID scoping is enforced server-side by
+  Hetzner, not proven by the request builder.
 - Mutation endpoints for images and other catalog-adjacent resources remain out
   of scope.
 
@@ -48,5 +52,12 @@ polling.
 
 ## Pentest
 
-- Pending. Permanent report will be added as `security/pentest/v0.4.0.md`
-  after the release-scope pentest and retest are complete.
+- PASS. Permanent report: `security/pentest/v0.4.0.md`.
+
+## Crate Versions
+
+- `cloud-sdk` publishes as `0.4.0`.
+- `cloud-sdk-hetzner` publishes as `0.4.0`.
+- `cloud-sdk-hetzner-reqwest` publishes as `0.4.0`.
+- `cloud-sdk-hetzner-sanitization` publishes as `0.4.0`.
+- `cloud-sdk-hetzner-testkit` publishes as `0.4.0`.

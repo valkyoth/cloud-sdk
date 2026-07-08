@@ -239,7 +239,7 @@ v0.3.0 implementation stop reached. Run pentest for this exact commit.
 
 ### v0.4.0 - Read-Only Catalog Resources
 
-Status: in progress on main.
+Status: release candidate; retest passed and permanent report is included.
 
 Goal: implement low-risk read-only resources first using the v0.3 request
 foundation.
@@ -260,7 +260,7 @@ Verification:
 - `scripts/checks.sh`
 - `scripts/check_hetzner_api_drift.py --fetch`
 - `cargo test -p cloud-sdk-hetzner --all-features catalog`
-- `scripts/release_0_4_gate.sh` once added.
+- `scripts/release_0_4_gate.sh`
 
 Stop gate:
 

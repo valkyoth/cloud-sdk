@@ -16,7 +16,7 @@ API planning.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.3.0"
+cloud-sdk = "0.4.0"
 ```
 
 ## Example

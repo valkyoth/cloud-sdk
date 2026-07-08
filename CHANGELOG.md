@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.4.0 - 2026-07-08
+
 - Added `cloud-sdk-hetzner::cloud::catalog` no_std request primitives for
   read-only catalog endpoints scheduled for `v0.4.0`.
 - Added source-locked path construction, pagination, and sorting tests for
