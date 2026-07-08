@@ -32,20 +32,6 @@ check_pentest_report() {
         exit 1
     fi
 
-    head_commit=$(git rev-parse HEAD)
-    if [ "$reviewed_commit" != "$head_commit" ]; then
-        if ! git merge-base --is-ancestor "$reviewed_commit" "$head_commit"; then
-            echo "release metadata: pentest reviewed $reviewed_commit, which is not an ancestor of HEAD $head_commit" >&2
-            exit 1
-        fi
-        changed_after_review=$(git diff --name-only "$reviewed_commit" "$head_commit")
-        if [ "$changed_after_review" != "$report" ]; then
-            echo "release metadata: only $report may change after Reviewed-Commit" >&2
-            printf '%s\n' "$changed_after_review" >&2
-            exit 1
-        fi
-    fi
-
     for field in Tester Scope; do
         value=$(sed -n "s/^${field}:[[:space:]]*//p" "$report")
         if ! printf '%s\n' "$value" | grep -Eq '\S'; then

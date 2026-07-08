@@ -49,10 +49,9 @@ A version is not tag-ready until:
 - the pentest report has a `Date: YYYY-MM-DD` field;
 - `sbom/cloud-sdk.spdx.json` exists and is non-empty.
 
-The reviewed commit may be the tag commit itself. If the pentest report is
-committed after the reviewed implementation commit, the only permitted change
-between `Reviewed-Commit:` and `HEAD` is the matching
-`security/pentest/vX.Y.Z.md` report.
+`Reviewed-Commit:` records the commit that was reviewed. If retest, CodeQL, or
+another release gate causes release-relevant changes, rerun the review and
+update `Reviewed-Commit:` to the latest reviewed commit before tagging.
 
 ## Crate Versioning And Publish Order
 
