@@ -16,6 +16,7 @@ Status: release candidate; pentest and retest complete.
 - Fail-closed release metadata validation for pentest reports.
 - Hardened no_std policy validation for accidental `std` usage.
 - Fail-closed `cargo-deny` and `cargo-audit` checks in the release gate.
+- Full-history CI checkout for reviewed-commit ancestry validation.
 
 ## Known Limitations
 

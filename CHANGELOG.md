@@ -15,3 +15,5 @@
   shell syntax, security policy, and file length.
 - Hardened release gates for pentest evidence, no_std policy validation, and
   required dependency security tools.
+- Configured CI checkout with full history so pentest reviewed-commit ancestry
+  checks work on GitHub Actions.
