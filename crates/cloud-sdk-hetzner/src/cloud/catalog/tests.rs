@@ -1,10 +1,10 @@
 use super::{
     CatalogGetEndpoint, CatalogId, CatalogListEndpoint, CatalogListRequest, CatalogRequestError,
-    CatalogSingletonEndpoint, PublicImageKind,
+    CatalogSingletonEndpoint, PublicImageKind, validate_written_path,
 };
 use crate::EndpointGroup;
 use crate::pagination::{Page, PerPage, Sort, SortDirection, SortKey};
-use crate::request::ApiBaseUrl;
+use crate::request::{ApiBaseUrl, EndpointPathError};
 
 #[test]
 fn catalog_list_paths_match_api_matrix() {
@@ -63,6 +63,21 @@ fn catalog_get_path_reports_too_small_buffer() {
             Err(CatalogRequestError::PathBufferTooSmall)
         );
     }
+}
+
+#[test]
+fn catalog_written_path_validation_rejects_invalid_paths() {
+    assert_eq!(validate_written_path(b"/images/42", 10), Ok(()));
+    assert_eq!(
+        validate_written_path(b"/images/../42", 13),
+        Err(CatalogRequestError::InvalidPath(
+            EndpointPathError::ParentDirectorySegment
+        ))
+    );
+    assert_eq!(
+        validate_written_path(b"/images/\xff", 9),
+        Err(CatalogRequestError::PathEncodingFailed)
+    );
 }
 
 #[test]
