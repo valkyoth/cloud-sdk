@@ -2,6 +2,8 @@
 
 use core::fmt;
 
+use cloud_sdk::buffer;
+
 use crate::labels::{LabelError, LabelKey, LabelValue};
 use crate::request::{EndpointPath, EndpointPathError};
 
@@ -267,19 +269,19 @@ pub fn write_id_path(
     suffix: &str,
 ) -> Result<usize, SecurityRequestError> {
     let mut len = 0;
-    write_raw(
+    buffer::write_str(
         output,
         &mut len,
         prefix,
         SecurityRequestError::PathBufferTooSmall,
     )?;
-    write_u64(
+    buffer::write_u64(
         output,
         &mut len,
         id.get(),
         SecurityRequestError::PathBufferTooSmall,
     )?;
-    write_raw(
+    buffer::write_str(
         output,
         &mut len,
         suffix,
@@ -287,19 +289,6 @@ pub fn write_id_path(
     )?;
     validate_written_path(output, len)?;
     Ok(len)
-}
-
-/// Writes an optional query parameter separator.
-pub fn write_separator(
-    output: &mut [u8],
-    len: &mut usize,
-    first: &mut bool,
-) -> Result<(), SecurityRequestError> {
-    if *first {
-        *first = false;
-        return Ok(());
-    }
-    write_byte(output, len, b'&', SecurityRequestError::QueryBufferTooSmall)
 }
 
 /// Writes a query key/value pair with percent-encoded value.
@@ -310,10 +299,14 @@ pub fn write_query_pair(
     key: &str,
     value: &str,
 ) -> Result<(), SecurityRequestError> {
-    write_separator(output, len, first)?;
-    write_percent_component(output, len, key)?;
-    write_byte(output, len, b'=', SecurityRequestError::QueryBufferTooSmall)?;
-    write_percent_component(output, len, value)
+    buffer::write_query_pair(
+        output,
+        len,
+        first,
+        key,
+        value,
+        SecurityRequestError::QueryBufferTooSmall,
+    )
 }
 
 /// Writes a query key/u64 pair.
@@ -324,100 +317,14 @@ pub fn write_query_u64(
     key: &str,
     value: u64,
 ) -> Result<(), SecurityRequestError> {
-    write_separator(output, len, first)?;
-    write_percent_component(output, len, key)?;
-    write_byte(output, len, b'=', SecurityRequestError::QueryBufferTooSmall)?;
-    write_u64(
+    buffer::write_query_u64(
         output,
         len,
+        first,
+        key,
         value,
         SecurityRequestError::QueryBufferTooSmall,
     )
-}
-
-fn write_raw(
-    output: &mut [u8],
-    len: &mut usize,
-    value: &str,
-    error: SecurityRequestError,
-) -> Result<(), SecurityRequestError> {
-    for byte in value.bytes() {
-        write_byte(output, len, byte, error)?;
-    }
-    Ok(())
-}
-
-fn write_percent_component(
-    output: &mut [u8],
-    len: &mut usize,
-    value: &str,
-) -> Result<(), SecurityRequestError> {
-    for byte in value.bytes() {
-        if is_unreserved(byte) {
-            write_byte(output, len, byte, SecurityRequestError::QueryBufferTooSmall)?;
-        } else {
-            write_byte(output, len, b'%', SecurityRequestError::QueryBufferTooSmall)?;
-            write_byte(
-                output,
-                len,
-                hex_digit(byte >> 4),
-                SecurityRequestError::QueryBufferTooSmall,
-            )?;
-            write_byte(
-                output,
-                len,
-                hex_digit(byte & 0x0f),
-                SecurityRequestError::QueryBufferTooSmall,
-            )?;
-        }
-    }
-    Ok(())
-}
-
-fn write_u64(
-    output: &mut [u8],
-    len: &mut usize,
-    mut value: u64,
-    error: SecurityRequestError,
-) -> Result<(), SecurityRequestError> {
-    if value == 0 {
-        return write_byte(output, len, b'0', error);
-    }
-    let mut digits = [0u8; 20];
-    let mut cursor = digits.len();
-    while value != 0 {
-        cursor = cursor
-            .checked_sub(1)
-            .ok_or(SecurityRequestError::NumberEncodingFailed)?;
-        let digit =
-            u8::try_from(value % 10).map_err(|_| SecurityRequestError::NumberEncodingFailed)?;
-        let slot = digits
-            .get_mut(cursor)
-            .ok_or(SecurityRequestError::NumberEncodingFailed)?;
-        *slot = b'0'
-            .checked_add(digit)
-            .ok_or(SecurityRequestError::NumberEncodingFailed)?;
-        value /= 10;
-    }
-    let encoded = digits
-        .get(cursor..)
-        .ok_or(SecurityRequestError::NumberEncodingFailed)?;
-    for byte in encoded {
-        write_byte(output, len, *byte, error)?;
-    }
-    Ok(())
-}
-
-fn write_byte(
-    output: &mut [u8],
-    len: &mut usize,
-    byte: u8,
-    error: SecurityRequestError,
-) -> Result<(), SecurityRequestError> {
-    let slot = output.get_mut(*len).ok_or(error)?;
-    *slot = byte;
-    *len = len.checked_add(1).ok_or(error)?;
-    Ok(())
 }
 
 fn validate_written_path(output: &[u8], len: usize) -> Result<(), SecurityRequestError> {
@@ -456,29 +363,4 @@ fn has_alphanumeric_boundaries(value: &str) -> bool {
 
 fn is_domain_label_byte(byte: u8) -> bool {
     byte.is_ascii_alphanumeric() || byte == b'-'
-}
-
-const fn is_unreserved(byte: u8) -> bool {
-    matches!(byte, b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'.' | b'_' | b'~')
-}
-
-const fn hex_digit(nibble: u8) -> u8 {
-    match nibble {
-        0 => b'0',
-        1 => b'1',
-        2 => b'2',
-        3 => b'3',
-        4 => b'4',
-        5 => b'5',
-        6 => b'6',
-        7 => b'7',
-        8 => b'8',
-        9 => b'9',
-        10 => b'A',
-        11 => b'B',
-        12 => b'C',
-        13 => b'D',
-        14 => b'E',
-        _ => b'F',
-    }
 }

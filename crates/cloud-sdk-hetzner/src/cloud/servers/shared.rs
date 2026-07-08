@@ -2,6 +2,8 @@
 
 use core::fmt;
 
+use cloud_sdk::buffer;
+
 use crate::request::{EndpointPath, EndpointPathError};
 
 /// Maximum server name bytes.
@@ -269,19 +271,19 @@ pub fn write_id_path(
     suffix: &str,
 ) -> Result<usize, ServerRequestError> {
     let mut len = 0;
-    write_raw(
+    buffer::write_str(
         output,
         &mut len,
         prefix,
         ServerRequestError::PathBufferTooSmall,
     )?;
-    write_u64(
+    buffer::write_u64(
         output,
         &mut len,
         id.get(),
         ServerRequestError::PathBufferTooSmall,
     )?;
-    write_raw(
+    buffer::write_str(
         output,
         &mut len,
         suffix,
@@ -299,14 +301,14 @@ pub fn write_query_pair(
     key: &str,
     value: &str,
 ) -> Result<(), ServerRequestError> {
-    if *first {
-        *first = false;
-    } else {
-        write_byte(output, len, b'&', ServerRequestError::QueryBufferTooSmall)?;
-    }
-    write_percent(output, len, key)?;
-    write_byte(output, len, b'=', ServerRequestError::QueryBufferTooSmall)?;
-    write_percent(output, len, value)
+    buffer::write_query_pair(
+        output,
+        len,
+        first,
+        key,
+        value,
+        ServerRequestError::QueryBufferTooSmall,
+    )
 }
 
 /// Writes a query key/u64 pair.
@@ -317,99 +319,14 @@ pub fn write_query_u64(
     key: &str,
     value: u64,
 ) -> Result<(), ServerRequestError> {
-    if *first {
-        *first = false;
-    } else {
-        write_byte(output, len, b'&', ServerRequestError::QueryBufferTooSmall)?;
-    }
-    write_percent(output, len, key)?;
-    write_byte(output, len, b'=', ServerRequestError::QueryBufferTooSmall)?;
-    write_u64(output, len, value, ServerRequestError::QueryBufferTooSmall)
-}
-
-fn write_percent(
-    output: &mut [u8],
-    len: &mut usize,
-    value: &str,
-) -> Result<(), ServerRequestError> {
-    for byte in value.bytes() {
-        if matches!(byte, b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'.' | b'_' | b'~') {
-            write_byte(output, len, byte, ServerRequestError::QueryBufferTooSmall)?;
-        } else {
-            write_byte(output, len, b'%', ServerRequestError::QueryBufferTooSmall)?;
-            write_byte(
-                output,
-                len,
-                hex_digit(byte >> 4),
-                ServerRequestError::QueryBufferTooSmall,
-            )?;
-            write_byte(
-                output,
-                len,
-                hex_digit(byte & 0x0f),
-                ServerRequestError::QueryBufferTooSmall,
-            )?;
-        }
-    }
-    Ok(())
-}
-
-fn write_raw(
-    output: &mut [u8],
-    len: &mut usize,
-    value: &str,
-    error: ServerRequestError,
-) -> Result<(), ServerRequestError> {
-    for byte in value.bytes() {
-        write_byte(output, len, byte, error)?;
-    }
-    Ok(())
-}
-
-fn write_u64(
-    output: &mut [u8],
-    len: &mut usize,
-    mut value: u64,
-    error: ServerRequestError,
-) -> Result<(), ServerRequestError> {
-    if value == 0 {
-        return write_byte(output, len, b'0', error);
-    }
-    let mut digits = [0u8; 20];
-    let mut cursor = digits.len();
-    while value != 0 {
-        cursor = cursor
-            .checked_sub(1)
-            .ok_or(ServerRequestError::NumberEncodingFailed)?;
-        let digit =
-            u8::try_from(value % 10).map_err(|_| ServerRequestError::NumberEncodingFailed)?;
-        let slot = digits
-            .get_mut(cursor)
-            .ok_or(ServerRequestError::NumberEncodingFailed)?;
-        *slot = b'0'
-            .checked_add(digit)
-            .ok_or(ServerRequestError::NumberEncodingFailed)?;
-        value /= 10;
-    }
-    let encoded = digits
-        .get(cursor..)
-        .ok_or(ServerRequestError::NumberEncodingFailed)?;
-    for byte in encoded {
-        write_byte(output, len, *byte, error)?;
-    }
-    Ok(())
-}
-
-fn write_byte(
-    output: &mut [u8],
-    len: &mut usize,
-    byte: u8,
-    error: ServerRequestError,
-) -> Result<(), ServerRequestError> {
-    let slot = output.get_mut(*len).ok_or(error)?;
-    *slot = byte;
-    *len = len.checked_add(1).ok_or(error)?;
-    Ok(())
+    buffer::write_query_u64(
+        output,
+        len,
+        first,
+        key,
+        value,
+        ServerRequestError::QueryBufferTooSmall,
+    )
 }
 
 fn validate_written_path(output: &[u8], len: usize) -> Result<(), ServerRequestError> {
@@ -447,25 +364,4 @@ fn ascii_digits(bytes: &[u8], start: usize, end: usize) -> bool {
     bytes
         .get(start..end)
         .is_some_and(|slice| slice.iter().all(u8::is_ascii_digit))
-}
-
-const fn hex_digit(nibble: u8) -> u8 {
-    match nibble {
-        0 => b'0',
-        1 => b'1',
-        2 => b'2',
-        3 => b'3',
-        4 => b'4',
-        5 => b'5',
-        6 => b'6',
-        7 => b'7',
-        8 => b'8',
-        9 => b'9',
-        10 => b'A',
-        11 => b'B',
-        12 => b'C',
-        13 => b'D',
-        14 => b'E',
-        _ => b'F',
-    }
 }

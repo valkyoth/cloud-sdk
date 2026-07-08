@@ -30,6 +30,9 @@ project. It contains shared, no_std-first domains that provider crates can use
 without pulling in HTTP clients, TLS, async runtimes, token storage, serde, or
 filesystem dependencies.
 
+It also exposes no_std fixed-buffer writer helpers used by provider crates for
+deterministic request construction without allocation.
+
 Most Hetzner users should read and depend on
 [`cloud-sdk-hetzner`](https://crates.io/crates/cloud-sdk-hetzner). That crate is
 the main documentation surface for Hetzner Cloud, DNS, security, and Storage Box
@@ -54,6 +57,25 @@ let method = Method::Get;
 assert_eq!(provider, Provider::Hetzner);
 assert_eq!(family, ApiFamily::Cloud);
 assert_eq!(method, Method::Get);
+```
+
+## Fixed Buffer Example
+
+```rust
+use cloud_sdk::buffer::write_query_u64;
+
+# fn main() -> Result<(), ()> {
+let mut output = [0u8; 8];
+let mut len = 0;
+let mut first = true;
+write_query_u64(&mut output, &mut len, &mut first, "page", 0, ())?;
+
+let query = output
+    .get(..len)
+    .and_then(|bytes| core::str::from_utf8(bytes).ok());
+assert_eq!(query, Some("page=0"));
+# Ok(())
+# }
 ```
 
 ## Scope

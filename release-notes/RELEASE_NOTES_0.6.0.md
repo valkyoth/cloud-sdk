@@ -27,10 +27,14 @@ pagination iterators, or action polling.
 - Pentest remediation for cloud-init user data redaction, zero numeric query
   serialization, JSON-significant byte rejection, bidi-control rejection, and
   fixed-width metrics timestamp validation.
+- `cloud_sdk::buffer`, a shared no_std fixed-buffer writer for provider crates.
+  The Hetzner server and security request domains now use it for string,
+  decimal, query, and percent-encoded output while preserving domain-specific
+  error enums.
 - Tests for source-locked server paths, list query construction, required
   create fields, mutual exclusions, metrics time ranges, DNS pointer intent,
-  body-required action guards, pentest remediation paths, and every server
-  action path.
+  body-required action guards, shared buffer writer behavior, pentest
+  remediation paths, and every server action path.
 - `scripts/release_0_6_gate.sh`.
 
 ## Security Notes
@@ -45,6 +49,8 @@ pagination iterators, or action polling.
   future body serialization support exists.
 - Metrics timestamps use fixed-width UTC `YYYY-MM-DDTHH:MM:SSZ` validation so
   lexicographic start/end checks remain meaningful.
+- Numeric and percent-encoded query output uses one shared tested writer across
+  security and server request domains.
 - The SDK still does not serialize request bodies or execute API requests.
 
 ## Verification

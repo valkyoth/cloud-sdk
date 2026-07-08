@@ -4,6 +4,8 @@
 #[cfg(feature = "std")]
 extern crate std;
 
+pub mod buffer;
+
 /// Cloud provider namespace.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum Provider {
