@@ -12,15 +12,15 @@ models in small reviewed releases.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.2.0"
-cloud-sdk-hetzner = "0.2.0"
+cloud-sdk = "0.3.0"
+cloud-sdk-hetzner = "0.3.0"
 ```
 
 ## Current Scope
 
-`0.2.0` is a source-lock and planning release. It does not yet implement HTTP
-transport, serde models, endpoint builders, token storage, live API tests, retry
-policy, or action polling.
+`0.3.0` is a core request/response policy release. It does not yet implement
+HTTP transport, serde models, endpoint builders, token storage, live API tests,
+retry policy, or action polling.
 
 Implemented in the published `0.2.0` line:
 
@@ -30,7 +30,7 @@ Implemented in the published `0.2.0` line:
 - explicit optional boundaries for future transport, testkit, and sanitization
   crates.
 
-Implemented on `main` for the next `0.3.0` release:
+Implemented in the published `0.3.0` line:
 
 - endpoint path validation and base URL selection;
 - endpoint group to base URL mapping;

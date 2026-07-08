@@ -16,7 +16,7 @@ API planning.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.2.0"
+cloud-sdk = "0.3.0"
 ```
 
 ## Example
@@ -40,4 +40,3 @@ assert_eq!(method, Method::Get);
 - It is provider-neutral and intentionally small.
 - Provider-specific examples live in provider crates such as
   `cloud-sdk-hetzner`.
-

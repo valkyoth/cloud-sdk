@@ -36,8 +36,8 @@ the same pattern, for example `cloud-sdk-cloudflare`.
 
 ## Current Status
 
-Status: `v0.3.0` development on main after the published `v0.2.0` source-lock
-release.
+Status: `v0.3.0` release candidate; pentest and retest are complete, and the
+permanent release report is included.
 
 Implemented now:
 
@@ -103,8 +103,8 @@ Not implemented yet:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.2.0"
-cloud-sdk-hetzner = "0.2.0"
+cloud-sdk = "0.3.0"
+cloud-sdk-hetzner = "0.3.0"
 ```
 
 ## Workspace Crates
@@ -199,7 +199,7 @@ before overwriting the fingerprint files.
 The minimum supported Rust version is Rust `1.90.0`. Development uses the
 pinned stable Rust `1.96.1` until the toolchain policy is updated.
 
-Compatibility evidence for `0.2.0`:
+Compatibility evidence for `0.3.0`:
 
 | Rust | Local Evidence |
 | --- | --- |
@@ -220,4 +220,5 @@ scripts/release_0_1_gate.sh
 scripts/check_hetzner_upstream.sh --local-only
 scripts/check_hetzner_api_drift.py --fetch
 scripts/release_0_2_gate.sh
+scripts/release_0_3_gate.sh
 ```

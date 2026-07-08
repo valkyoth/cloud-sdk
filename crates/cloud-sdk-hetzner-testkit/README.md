@@ -12,7 +12,7 @@ Most users should start with:
 
 ```toml
 [dependencies]
-cloud-sdk-hetzner = "0.2.0"
+cloud-sdk-hetzner = "0.3.0"
 ```
 
 Use this crate for tests once fixture helpers are admitted.
@@ -34,4 +34,3 @@ assert_eq!(fixture, FixtureKind::Pagination);
 - Rate-limit metadata.
 - Malformed and oversized API responses.
 - Deprecated endpoint behavior.
-

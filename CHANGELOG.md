@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.3.0 - 2026-07-08
+
 - Added crate-local README and rustdoc entry-point documentation for every
   workspace crate.
 - Clarified that `cloud-sdk-hetzner` is the main Hetzner-specific documentation

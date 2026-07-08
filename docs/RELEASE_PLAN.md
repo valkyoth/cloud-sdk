@@ -172,8 +172,7 @@ v0.1.0 implementation stop reached. Run pentest for this exact commit.
 
 ### v0.2.0 - Official API Source Lock
 
-Status: release candidate; retest passed and permanent report is required
-before tagging.
+Status: tagged.
 
 Goal: pin the authoritative current Hetzner API source before endpoint models.
 
@@ -207,7 +206,7 @@ v0.2.0 implementation stop reached. Run pentest for this exact commit.
 
 ### v0.3.0 - Core Request And Response Policy
 
-Status: in progress on main.
+Status: release candidate; retest passed and permanent report is included.
 
 Goal: implement the no_std request, query, error, rate-limit, and action
 foundation before endpoint families depend on it.

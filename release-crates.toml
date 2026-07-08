@@ -1,38 +1,38 @@
 [release]
-version = "0.2.0"
+version = "0.3.0"
 policy = "independent"
 
 [crates."cloud-sdk"]
-previous_version = "0.1.0"
-version = "0.2.0"
-change = "metadata"
+previous_version = "0.2.0"
+version = "0.3.0"
+change = "code"
 publish = true
-reason = "Source-lock documentation, release metadata, API drift evidence, and v0.2.0 release gate."
+reason = "Provider-neutral method token helper, crate-local documentation, release metadata, and v0.3.0 release gate evidence."
 
 [crates."cloud-sdk-hetzner"]
-previous_version = "0.1.0"
-version = "0.2.0"
-change = "metadata"
+previous_version = "0.2.0"
+version = "0.3.0"
+change = "code"
 publish = true
-reason = "Source-locked Hetzner Cloud/DNS and Storage Box API matrix with drift fingerprints."
+reason = "Core no_std request/response policy domains for endpoint paths, query encoding, labels, pagination, actions, errors, and rate-limit metadata."
 
 [crates."cloud-sdk-hetzner-reqwest"]
-previous_version = "0.1.0"
-version = "0.2.0"
+previous_version = "0.2.0"
+version = "0.3.0"
 change = "metadata"
 publish = true
-reason = "Keep optional transport boundary metadata aligned with v0.2.0 release evidence."
+reason = "Publish crate-local README and rustdoc metadata aligned with v0.3.0 release evidence."
 
 [crates."cloud-sdk-hetzner-sanitization"]
-previous_version = "0.1.0"
-version = "0.2.0"
+previous_version = "0.2.0"
+version = "0.3.0"
 change = "metadata"
 publish = true
-reason = "Keep sanitization boundary metadata aligned with v0.2.0 release evidence."
+reason = "Publish crate-local README and rustdoc metadata aligned with v0.3.0 release evidence."
 
 [crates."cloud-sdk-hetzner-testkit"]
-previous_version = "0.1.0"
-version = "0.2.0"
+previous_version = "0.2.0"
+version = "0.3.0"
 change = "metadata"
 publish = true
-reason = "Keep testkit boundary metadata aligned with v0.2.0 release evidence."
+reason = "Publish crate-local README and rustdoc metadata aligned with v0.3.0 release evidence."

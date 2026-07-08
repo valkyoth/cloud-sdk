@@ -1,6 +1,6 @@
 # cloud-sdk 0.3.0 Release Notes
 
-Status: draft, implementation in progress.
+Status: release candidate; pentest and retest complete.
 
 ## Scope
 
@@ -51,5 +51,12 @@ or action polling.
 
 ## Pentest
 
-- Pending. Permanent report will be added as `security/pentest/v0.3.0.md`
-  after the release-scope pentest and retest are complete.
+- PASS. Permanent report: `security/pentest/v0.3.0.md`.
+
+## Crate Versions
+
+- `cloud-sdk` publishes as `0.3.0`.
+- `cloud-sdk-hetzner` publishes as `0.3.0`.
+- `cloud-sdk-hetzner-reqwest` publishes as `0.3.0`.
+- `cloud-sdk-hetzner-sanitization` publishes as `0.3.0`.
+- `cloud-sdk-hetzner-testkit` publishes as `0.3.0`.

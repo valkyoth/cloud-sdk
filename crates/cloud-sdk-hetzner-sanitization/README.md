@@ -12,7 +12,7 @@ Most users should start with:
 
 ```toml
 [dependencies]
-cloud-sdk-hetzner = "0.2.0"
+cloud-sdk-hetzner = "0.3.0"
 ```
 
 Use this crate only when the release notes say sanitization helpers have been
@@ -35,4 +35,3 @@ Sanitization helpers do not replace review of token ownership, copies, logging,
 environment variables, paging, crash dumps, compiler behavior, or process
 boundaries. Any future dependency must be admitted with explicit release notes,
 tests, and pentest evidence.
-

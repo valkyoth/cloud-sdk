@@ -12,7 +12,7 @@ Most users should start with:
 
 ```toml
 [dependencies]
-cloud-sdk-hetzner = "0.2.0"
+cloud-sdk-hetzner = "0.3.0"
 ```
 
 Use this crate only when the release notes say a transport adapter has been
@@ -39,4 +39,3 @@ Before a real reqwest dependency is admitted, the workspace must review:
 - authentication header redaction;
 - default feature impact;
 - mock and live-test strategy.
-
