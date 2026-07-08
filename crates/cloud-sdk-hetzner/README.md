@@ -18,8 +18,9 @@ cloud-sdk-hetzner = "0.4.0"
 
 ## Current Scope
 
-`0.4.0` is a read-only catalog request release. It does not yet implement HTTP
-transport, serde models, token storage, live API tests, retry policy,
+The current main branch has reached the `0.5.0` implementation stop for
+security request domains. It does not yet implement HTTP transport, serde
+models, body serialization, token storage, live API tests, retry policy,
 pagination iterators, or action polling.
 
 Implemented in the published `0.2.0` line:
@@ -44,6 +45,16 @@ Implemented in the published `0.4.0` line:
   load balancer types, ISOs, and public images;
 - fixed-buffer get-path and list-query construction for catalog endpoints;
 - pagination and sorting capability checks from the source-locked API matrix.
+
+Implemented on main for next `0.5.0`:
+
+- SSH key list/create/get/update/delete request primitives;
+- certificate list/create/get/update/delete request primitives;
+- certificate retry action request primitive;
+- validation for names, SSH public keys, PEM values, managed certificate domain
+  names, labels, pagination, and source-locked sorting;
+- redacted `Debug` output for secret-adjacent SSH public key and certificate
+  PEM request values.
 
 ## Endpoint Surface Example
 
@@ -126,6 +137,24 @@ let encoded = output
     .and_then(|bytes| core::str::from_utf8(bytes).ok());
 
 assert_eq!(encoded, Some("type=system&page=1&per_page=25"));
+# Ok(())
+# }
+```
+
+## Security Request Example
+
+```rust
+use cloud_sdk_hetzner::security::ssh_keys::{
+    SshKeyCreateRequest, SshKeyName, SshPublicKey,
+};
+
+# fn main() -> Result<(), cloud_sdk_hetzner::security::ssh_keys::SecurityRequestError> {
+let name = SshKeyName::new("deploy")?;
+let public_key = SshPublicKey::new("ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMockKey")?;
+let request = SshKeyCreateRequest::try_new(Some(name), Some(public_key))?;
+
+assert_eq!(request.endpoint().method().as_str(), "POST");
+assert_eq!(request.endpoint().write_path(&mut [0u8; 16])?, 9);
 # Ok(())
 # }
 ```

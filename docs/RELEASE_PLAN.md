@@ -270,6 +270,8 @@ v0.4.0 implementation stop reached. Run pentest for this exact commit.
 
 ### v0.5.0 - Security Resources
 
+Status: implementation stop; awaiting pentest.
+
 Goal: model SSH keys and certificates safely before server creation can depend
 on them.
 
@@ -289,7 +291,7 @@ Verification:
 - `scripts/checks.sh`
 - `scripts/check_hetzner_api_drift.py --fetch`
 - `cargo test -p cloud-sdk-hetzner --all-features security`
-- `scripts/release_0_5_gate.sh` once added.
+- `scripts/release_0_5_gate.sh`
 
 Stop gate:
 

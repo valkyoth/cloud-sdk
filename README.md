@@ -50,8 +50,8 @@ please report it so it can be fixed.
 
 ## Current Status
 
-Status: `v0.4.0` release candidate; pentest and retest are complete, and the
-permanent release report is included.
+Status: `v0.5.0` implementation stop; run pentest for the current
+implementation commit before release metadata is finalized.
 
 Implemented now:
 
@@ -82,12 +82,14 @@ Implemented now:
   API errors, and rate-limit metadata.
 - Read-only Hetzner catalog request primitives for locations, pricing, server
   types, load balancer types, ISOs, and public images.
+- Hetzner security request primitives for SSH key CRUD, certificate CRUD, and
+  certificate retry action endpoints.
 
 Not implemented yet:
 
 - No HTTP transport.
 - No token storage or secret manager integration.
-- No serde request/response models.
+- No serde request/response models or body serialization.
 - No pagination iterator.
 - No retry, rate-limit, or action polling helper.
 - No generated response model.

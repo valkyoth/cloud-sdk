@@ -1,6 +1,7 @@
 //! Certificate and SSH key resource modules.
 
 pub mod certificates;
+mod shared;
 pub mod ssh_keys;
 
 use crate::EndpointGroup;

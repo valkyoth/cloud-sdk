@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- Added `cloud-sdk-hetzner::security::ssh_keys` no_std request primitives for
+  SSH key list/create/get/update/delete endpoints scheduled for `v0.5.0`.
+- Added `cloud-sdk-hetzner::security::certificates` no_std request primitives
+  for certificate list/create/get/update/delete and retry action endpoints
+  scheduled for `v0.5.0`.
+- Added conservative validation and redacted `Debug` output for
+  secret-adjacent SSH public key and certificate PEM request values.
+- Added the `v0.5.0` release gate script.
+
 ## 0.4.0 - 2026-07-08
 
 - Added `cloud-sdk-hetzner::cloud::catalog` no_std request primitives for

@@ -69,13 +69,13 @@ Total source-locked operations: 221 (`cloud`: 189, `hetzner`: 32).
 | cloud | Certificate Actions | GET | `/certificates/actions` | `list_certificates_actions` | `cloud_sdk_hetzner::security::certificates` | yes | yes | action-list | no | planned |
 | cloud | Certificate Actions | GET | `/certificates/actions/{id}` | `get_certificates_action` | `cloud_sdk_hetzner::security::certificates` | no | no | action-get | no | planned |
 | cloud | Certificate Actions | GET | `/certificates/{id}/actions` | `list_certificate_actions` | `cloud_sdk_hetzner::security::certificates` | yes | yes | action-list | no | planned |
-| cloud | Certificate Actions | POST | `/certificates/{id}/actions/retry` | `retry_certificate` | `cloud_sdk_hetzner::security::certificates` | no | no | starts-action | no | planned |
+| cloud | Certificate Actions | POST | `/certificates/{id}/actions/retry` | `retry_certificate` | `cloud_sdk_hetzner::security::certificates` | no | no | starts-action | no | implemented |
 | cloud | Certificate Actions | GET | `/certificates/{id}/actions/{action_id}` | `get_certificate_action` | `cloud_sdk_hetzner::security::certificates` | no | no | resource-action-get | yes | deferred-deprecated |
-| cloud | Certificates | GET | `/certificates` | `list_certificates` | `cloud_sdk_hetzner::security::certificates` | yes | yes | none | no | planned |
-| cloud | Certificates | POST | `/certificates` | `create_certificate` | `cloud_sdk_hetzner::security::certificates` | no | no | none | no | planned |
-| cloud | Certificates | DELETE | `/certificates/{id}` | `delete_certificate` | `cloud_sdk_hetzner::security::certificates` | no | no | none | no | planned |
-| cloud | Certificates | GET | `/certificates/{id}` | `get_certificate` | `cloud_sdk_hetzner::security::certificates` | no | no | none | no | planned |
-| cloud | Certificates | PUT | `/certificates/{id}` | `update_certificate` | `cloud_sdk_hetzner::security::certificates` | no | no | none | no | planned |
+| cloud | Certificates | GET | `/certificates` | `list_certificates` | `cloud_sdk_hetzner::security::certificates` | yes | yes | none | no | implemented |
+| cloud | Certificates | POST | `/certificates` | `create_certificate` | `cloud_sdk_hetzner::security::certificates` | no | no | none | no | implemented |
+| cloud | Certificates | DELETE | `/certificates/{id}` | `delete_certificate` | `cloud_sdk_hetzner::security::certificates` | no | no | none | no | implemented |
+| cloud | Certificates | GET | `/certificates/{id}` | `get_certificate` | `cloud_sdk_hetzner::security::certificates` | no | no | none | no | implemented |
+| cloud | Certificates | PUT | `/certificates/{id}` | `update_certificate` | `cloud_sdk_hetzner::security::certificates` | no | no | none | no | implemented |
 | cloud | Data Centers | GET | `/datacenters` | `list_datacenters` | `cloud_sdk_hetzner::cloud::pricing` | yes | yes | none | yes | deferred-deprecated |
 | cloud | Data Centers | GET | `/datacenters/{id}` | `get_datacenter` | `cloud_sdk_hetzner::cloud::pricing` | no | no | none | yes | deferred-deprecated |
 | cloud | Firewall Actions | GET | `/firewalls/actions` | `list_firewalls_actions` | `cloud_sdk_hetzner::cloud::firewalls` | yes | yes | action-list | no | planned |
@@ -175,11 +175,11 @@ Total source-locked operations: 221 (`cloud`: 189, `hetzner`: 32).
 | cloud | Primary IPs | DELETE | `/primary_ips/{id}` | `delete_primary_ip` | `cloud_sdk_hetzner::cloud::networks` | no | no | none | no | planned |
 | cloud | Primary IPs | GET | `/primary_ips/{id}` | `get_primary_ip` | `cloud_sdk_hetzner::cloud::networks` | no | no | none | no | planned |
 | cloud | Primary IPs | PUT | `/primary_ips/{id}` | `update_primary_ip` | `cloud_sdk_hetzner::cloud::networks` | no | no | none | no | planned |
-| cloud | SSH Keys | GET | `/ssh_keys` | `list_ssh_keys` | `cloud_sdk_hetzner::security::ssh_keys` | yes | yes | none | no | planned |
-| cloud | SSH Keys | POST | `/ssh_keys` | `create_ssh_key` | `cloud_sdk_hetzner::security::ssh_keys` | no | no | none | no | planned |
-| cloud | SSH Keys | DELETE | `/ssh_keys/{id}` | `delete_ssh_key` | `cloud_sdk_hetzner::security::ssh_keys` | no | no | none | no | planned |
-| cloud | SSH Keys | GET | `/ssh_keys/{id}` | `get_ssh_key` | `cloud_sdk_hetzner::security::ssh_keys` | no | no | none | no | planned |
-| cloud | SSH Keys | PUT | `/ssh_keys/{id}` | `update_ssh_key` | `cloud_sdk_hetzner::security::ssh_keys` | no | no | none | no | planned |
+| cloud | SSH Keys | GET | `/ssh_keys` | `list_ssh_keys` | `cloud_sdk_hetzner::security::ssh_keys` | yes | yes | none | no | implemented |
+| cloud | SSH Keys | POST | `/ssh_keys` | `create_ssh_key` | `cloud_sdk_hetzner::security::ssh_keys` | no | no | none | no | implemented |
+| cloud | SSH Keys | DELETE | `/ssh_keys/{id}` | `delete_ssh_key` | `cloud_sdk_hetzner::security::ssh_keys` | no | no | none | no | implemented |
+| cloud | SSH Keys | GET | `/ssh_keys/{id}` | `get_ssh_key` | `cloud_sdk_hetzner::security::ssh_keys` | no | no | none | no | implemented |
+| cloud | SSH Keys | PUT | `/ssh_keys/{id}` | `update_ssh_key` | `cloud_sdk_hetzner::security::ssh_keys` | no | no | none | no | implemented |
 | cloud | Server Actions | GET | `/servers/actions` | `list_servers_actions` | `cloud_sdk_hetzner::cloud::servers` | yes | yes | action-list | no | planned |
 | cloud | Server Actions | GET | `/servers/actions/{id}` | `get_servers_action` | `cloud_sdk_hetzner::cloud::servers` | no | no | action-get | no | planned |
 | cloud | Server Actions | GET | `/servers/{id}/actions` | `list_server_actions` | `cloud_sdk_hetzner::cloud::servers` | yes | yes | action-list | no | planned |
