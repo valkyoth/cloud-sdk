@@ -1,6 +1,6 @@
 # cloud-sdk 0.2.0 Release Notes
 
-Status: implementation and retest complete; permanent pentest report pending.
+Status: release candidate; pentest and retest complete.
 
 ## Scope
 
@@ -49,8 +49,7 @@ transport, serde models, endpoint builders, token storage, or live API tests.
 
 ## Pentest
 
-- Retest passed. Permanent report will be added as
-  `security/pentest/v0.2.0.md` before tagging.
+- PASS. Permanent report: `security/pentest/v0.2.0.md`.
 
 ## Versioning
 
