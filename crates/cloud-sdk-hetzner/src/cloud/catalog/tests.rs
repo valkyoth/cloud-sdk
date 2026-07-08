@@ -53,6 +53,19 @@ fn catalog_get_paths_match_api_matrix() {
 }
 
 #[test]
+fn catalog_get_path_reports_too_small_buffer() {
+    let id = CatalogId::new(42);
+    let mut output = [0u8; 4];
+    if let Some(id) = id {
+        let request = CatalogGetEndpoint::Location(id);
+        assert_eq!(
+            request.write_path(&mut output),
+            Err(CatalogRequestError::PathBufferTooSmall)
+        );
+    }
+}
+
+#[test]
 fn catalog_pricing_path_matches_api_matrix() {
     assert_eq!(
         CatalogSingletonEndpoint::Pricing

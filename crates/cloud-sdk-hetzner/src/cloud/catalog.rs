@@ -21,6 +21,8 @@ pub enum CatalogRequestError {
     QueryBufferTooSmall,
     /// Decimal conversion failed.
     NumberEncodingFailed,
+    /// Path bytes failed UTF-8 conversion after construction.
+    PathEncodingFailed,
 }
 
 /// Nonzero identifier for read-only catalog resources.
@@ -132,7 +134,13 @@ pub enum CatalogGetEndpoint {
     LoadBalancerType(CatalogId),
     /// `GET /isos/{id}`.
     Iso(CatalogId),
-    /// `GET /images/{id}` for a public image identifier.
+    /// `GET /images/{id}` for an image identifier.
+    ///
+    /// The `PublicImage` variant name reflects the intended catalog use case:
+    /// looking up a provider-maintained image by ID. It does not and cannot
+    /// verify that `id` refers to a public image rather than a private snapshot
+    /// or backup. That scoping is enforced server-side by the Hetzner API based
+    /// on account ownership, not by this request builder.
     PublicImage(CatalogId),
 }
 
@@ -154,6 +162,7 @@ impl CatalogGetEndpoint {
         let mut len = 0;
         write_path_str(output, &mut len, self.path_prefix())?;
         write_path_u64(output, &mut len, self.id().get())?;
+        validate_written_path(output, len)?;
         Ok(len)
     }
 
@@ -441,6 +450,15 @@ fn write_byte(
     let slot = output.get_mut(*len).ok_or(buffer_error)?;
     *slot = byte;
     *len = len.checked_add(1).ok_or(buffer_error)?;
+    Ok(())
+}
+
+fn validate_written_path(output: &[u8], len: usize) -> Result<(), CatalogRequestError> {
+    let bytes = output
+        .get(..len)
+        .ok_or(CatalogRequestError::PathBufferTooSmall)?;
+    let path = core::str::from_utf8(bytes).map_err(|_| CatalogRequestError::PathEncodingFailed)?;
+    EndpointPath::new(path).map_err(CatalogRequestError::InvalidPath)?;
     Ok(())
 }
 
