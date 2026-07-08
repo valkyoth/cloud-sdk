@@ -38,6 +38,13 @@ Implemented in the published `0.3.0` line:
 - label key, value, and selector validation;
 - pagination, sorting, action status, API error, and rate-limit domains.
 
+Implemented on `main` for the next `0.4.0` release:
+
+- read-only catalog request primitives for locations, pricing, server types,
+  load balancer types, ISOs, and public images;
+- fixed-buffer get-path and list-query construction for catalog endpoints;
+- pagination and sorting capability checks from the source-locked API matrix.
+
 ## Endpoint Surface Example
 
 ```rust
@@ -84,6 +91,41 @@ let encoded = output
     .and_then(|bytes| core::str::from_utf8(bytes).ok());
 
 assert_eq!(encoded, Some("label_selector=env%3Dprod"));
+# Ok(())
+# }
+```
+
+## Catalog Request Example
+
+```rust
+use cloud_sdk_hetzner::cloud::catalog::{
+    CatalogListEndpoint, CatalogListRequest, PublicImageKind,
+};
+use cloud_sdk_hetzner::pagination::{Page, PerPage};
+
+# fn main() -> Result<(), cloud_sdk_hetzner::cloud::catalog::CatalogRequestError> {
+let page = match Page::new(1) {
+    Ok(page) => page,
+    Err(_) => return Ok(()),
+};
+let per_page = match PerPage::new(25) {
+    Ok(per_page) => per_page,
+    Err(_) => return Ok(()),
+};
+
+let request = CatalogListRequest::new(CatalogListEndpoint::PublicImages(
+    PublicImageKind::System,
+))
+.with_page(page)?
+.with_per_page(per_page)?;
+
+let mut output = [0u8; 64];
+let written = request.write_query(&mut output)?;
+let encoded = output
+    .get(..written)
+    .and_then(|bytes| core::str::from_utf8(bytes).ok());
+
+assert_eq!(encoded, Some("type=system&page=1&per_page=25"));
 # Ok(())
 # }
 ```

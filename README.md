@@ -50,8 +50,8 @@ please report it so it can be fixed.
 
 ## Current Status
 
-Status: `v0.3.0` release candidate; pentest and retest are complete, and the
-permanent release report is included.
+Status: `v0.4.0` development on main after the published `v0.3.0` core
+request/response policy release.
 
 Implemented now:
 
@@ -80,6 +80,8 @@ Implemented now:
   selection, endpoint group base mapping, bounded query parameters,
   fixed-buffer percent encoding, labels, pagination, sorting, action status,
   API errors, and rate-limit metadata.
+- Read-only Hetzner catalog request primitives for locations, pricing, server
+  types, load balancer types, ISOs, and public images.
 
 Not implemented yet:
 
@@ -88,7 +90,7 @@ Not implemented yet:
 - No serde request/response models.
 - No pagination iterator.
 - No retry, rate-limit, or action polling helper.
-- No generated endpoint model.
+- No generated response model.
 - No live Hetzner API tests.
 - No non-Hetzner providers yet. Smaller focused cloud and SaaS providers such
   as Scaleway and OVH are better future fits than hyperscaler-scale APIs, but
@@ -147,6 +149,7 @@ crates/cloud-sdk-hetzner/src/
   rate_limit.rs
   request.rs
   response.rs
+  cloud/catalog.rs
   cloud/
   dns/
   security/

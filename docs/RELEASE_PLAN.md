@@ -206,7 +206,7 @@ v0.2.0 implementation stop reached. Run pentest for this exact commit.
 
 ### v0.3.0 - Core Request And Response Policy
 
-Status: release candidate; retest passed and permanent report is included.
+Status: tagged.
 
 Goal: implement the no_std request, query, error, rate-limit, and action
 foundation before endpoint families depend on it.
@@ -238,6 +238,8 @@ v0.3.0 implementation stop reached. Run pentest for this exact commit.
 ```
 
 ### v0.4.0 - Read-Only Catalog Resources
+
+Status: in progress on main.
 
 Goal: implement low-risk read-only resources first using the v0.3 request
 foundation.

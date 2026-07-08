@@ -103,16 +103,16 @@ Total source-locked operations: 221 (`cloud`: 189, `hetzner`: 32).
 | cloud | Floating IPs | DELETE | `/floating_ips/{id}` | `delete_floating_ip` | `cloud_sdk_hetzner::cloud::networks` | no | no | none | no | planned |
 | cloud | Floating IPs | GET | `/floating_ips/{id}` | `get_floating_ip` | `cloud_sdk_hetzner::cloud::networks` | no | no | none | no | planned |
 | cloud | Floating IPs | PUT | `/floating_ips/{id}` | `update_floating_ip` | `cloud_sdk_hetzner::cloud::networks` | no | no | none | no | planned |
-| cloud | ISOs | GET | `/isos` | `list_isos` | `cloud_sdk_hetzner::cloud::images` | yes | no | none | no | planned |
-| cloud | ISOs | GET | `/isos/{id}` | `get_iso` | `cloud_sdk_hetzner::cloud::images` | no | no | none | no | planned |
+| cloud | ISOs | GET | `/isos` | `list_isos` | `cloud_sdk_hetzner::cloud::images` | yes | no | none | no | implemented-v0.4 |
+| cloud | ISOs | GET | `/isos/{id}` | `get_iso` | `cloud_sdk_hetzner::cloud::images` | no | no | none | no | implemented-v0.4 |
 | cloud | Image Actions | GET | `/images/actions` | `list_images_actions` | `cloud_sdk_hetzner::cloud::images` | yes | yes | action-list | no | planned |
 | cloud | Image Actions | GET | `/images/actions/{id}` | `get_images_action` | `cloud_sdk_hetzner::cloud::images` | no | no | action-get | no | planned |
 | cloud | Image Actions | GET | `/images/{id}/actions` | `list_image_actions` | `cloud_sdk_hetzner::cloud::images` | yes | yes | action-list | no | planned |
 | cloud | Image Actions | POST | `/images/{id}/actions/change_protection` | `change_image_protection` | `cloud_sdk_hetzner::cloud::images` | no | no | starts-action | no | planned |
 | cloud | Image Actions | GET | `/images/{id}/actions/{action_id}` | `get_image_action` | `cloud_sdk_hetzner::cloud::images` | no | no | resource-action-get | yes | deferred-deprecated |
-| cloud | Images | GET | `/images` | `list_images` | `cloud_sdk_hetzner::cloud::images` | yes | yes | none | no | planned |
+| cloud | Images | GET | `/images` | `list_images` | `cloud_sdk_hetzner::cloud::images` | yes | yes | none | no | implemented-v0.4-public-only |
 | cloud | Images | DELETE | `/images/{id}` | `delete_image` | `cloud_sdk_hetzner::cloud::images` | no | no | none | no | planned |
-| cloud | Images | GET | `/images/{id}` | `get_image` | `cloud_sdk_hetzner::cloud::images` | no | no | none | no | planned |
+| cloud | Images | GET | `/images/{id}` | `get_image` | `cloud_sdk_hetzner::cloud::images` | no | no | none | no | implemented-v0.4-public-only |
 | cloud | Images | PUT | `/images/{id}` | `update_image` | `cloud_sdk_hetzner::cloud::images` | no | no | none | no | planned |
 | cloud | Load Balancer Actions | GET | `/load_balancers/actions` | `list_load_balancers_actions` | `cloud_sdk_hetzner::cloud::load_balancers` | yes | yes | action-list | no | planned |
 | cloud | Load Balancer Actions | GET | `/load_balancers/actions/{id}` | `get_load_balancers_action` | `cloud_sdk_hetzner::cloud::load_balancers` | no | no | action-get | no | planned |
@@ -131,16 +131,16 @@ Total source-locked operations: 221 (`cloud`: 189, `hetzner`: 32).
 | cloud | Load Balancer Actions | POST | `/load_balancers/{id}/actions/remove_target` | `remove_load_balancer_target` | `cloud_sdk_hetzner::cloud::load_balancers` | no | no | starts-action | no | planned |
 | cloud | Load Balancer Actions | POST | `/load_balancers/{id}/actions/update_service` | `update_load_balancer_service` | `cloud_sdk_hetzner::cloud::load_balancers` | no | no | starts-action | no | planned |
 | cloud | Load Balancer Actions | GET | `/load_balancers/{id}/actions/{action_id}` | `get_load_balancer_action` | `cloud_sdk_hetzner::cloud::load_balancers` | no | no | resource-action-get | yes | deferred-deprecated |
-| cloud | Load Balancer Types | GET | `/load_balancer_types` | `list_load_balancer_types` | `cloud_sdk_hetzner::cloud::load_balancers` | yes | no | none | no | planned |
-| cloud | Load Balancer Types | GET | `/load_balancer_types/{id}` | `get_load_balancer_type` | `cloud_sdk_hetzner::cloud::load_balancers` | no | no | none | no | planned |
+| cloud | Load Balancer Types | GET | `/load_balancer_types` | `list_load_balancer_types` | `cloud_sdk_hetzner::cloud::load_balancers` | yes | no | none | no | implemented-v0.4 |
+| cloud | Load Balancer Types | GET | `/load_balancer_types/{id}` | `get_load_balancer_type` | `cloud_sdk_hetzner::cloud::load_balancers` | no | no | none | no | implemented-v0.4 |
 | cloud | Load Balancers | GET | `/load_balancers` | `list_load_balancers` | `cloud_sdk_hetzner::cloud::load_balancers` | yes | yes | none | no | planned |
 | cloud | Load Balancers | POST | `/load_balancers` | `create_load_balancer` | `cloud_sdk_hetzner::cloud::load_balancers` | no | no | none | no | planned |
 | cloud | Load Balancers | DELETE | `/load_balancers/{id}` | `delete_load_balancer` | `cloud_sdk_hetzner::cloud::load_balancers` | no | no | none | no | planned |
 | cloud | Load Balancers | GET | `/load_balancers/{id}` | `get_load_balancer` | `cloud_sdk_hetzner::cloud::load_balancers` | no | no | none | no | planned |
 | cloud | Load Balancers | PUT | `/load_balancers/{id}` | `update_load_balancer` | `cloud_sdk_hetzner::cloud::load_balancers` | no | no | none | no | planned |
 | cloud | Load Balancers | GET | `/load_balancers/{id}/metrics` | `get_load_balancer_metrics` | `cloud_sdk_hetzner::cloud::load_balancers` | no | no | none | no | planned |
-| cloud | Locations | GET | `/locations` | `list_locations` | `cloud_sdk_hetzner::cloud::pricing` | yes | yes | none | no | planned |
-| cloud | Locations | GET | `/locations/{id}` | `get_location` | `cloud_sdk_hetzner::cloud::pricing` | no | no | none | no | planned |
+| cloud | Locations | GET | `/locations` | `list_locations` | `cloud_sdk_hetzner::cloud::pricing` | yes | yes | none | no | implemented-v0.4 |
+| cloud | Locations | GET | `/locations/{id}` | `get_location` | `cloud_sdk_hetzner::cloud::pricing` | no | no | none | no | implemented-v0.4 |
 | cloud | Network Actions | GET | `/networks/actions` | `list_networks_actions` | `cloud_sdk_hetzner::cloud::networks` | yes | yes | action-list | no | planned |
 | cloud | Network Actions | GET | `/networks/actions/{id}` | `get_networks_action` | `cloud_sdk_hetzner::cloud::networks` | no | no | action-get | no | planned |
 | cloud | Network Actions | GET | `/networks/{id}/actions` | `list_network_actions` | `cloud_sdk_hetzner::cloud::networks` | yes | yes | action-list | no | planned |
@@ -161,7 +161,7 @@ Total source-locked operations: 221 (`cloud`: 189, `hetzner`: 32).
 | cloud | Placement Groups | DELETE | `/placement_groups/{id}` | `delete_placement_group` | `cloud_sdk_hetzner::cloud::servers` | no | no | none | no | planned |
 | cloud | Placement Groups | GET | `/placement_groups/{id}` | `get_placement_group` | `cloud_sdk_hetzner::cloud::servers` | no | no | none | no | planned |
 | cloud | Placement Groups | PUT | `/placement_groups/{id}` | `update_placement_group` | `cloud_sdk_hetzner::cloud::servers` | no | no | none | no | planned |
-| cloud | Pricing | GET | `/pricing` | `get_pricing` | `cloud_sdk_hetzner::cloud::pricing` | no | no | none | no | planned |
+| cloud | Pricing | GET | `/pricing` | `get_pricing` | `cloud_sdk_hetzner::cloud::pricing` | no | no | none | no | implemented-v0.4 |
 | cloud | Primary IP Actions | GET | `/primary_ips/actions` | `list_primary_ips_actions` | `cloud_sdk_hetzner::cloud::networks` | yes | yes | action-list | no | planned |
 | cloud | Primary IP Actions | GET | `/primary_ips/actions/{id}` | `get_primary_ips_action` | `cloud_sdk_hetzner::cloud::networks` | no | no | action-get | no | planned |
 | cloud | Primary IP Actions | GET | `/primary_ips/{id}/actions` | `list_primary_ip_actions` | `cloud_sdk_hetzner::cloud::networks` | yes | yes | action-list | no | planned |
@@ -207,8 +207,8 @@ Total source-locked operations: 221 (`cloud`: 189, `hetzner`: 32).
 | cloud | Server Actions | POST | `/servers/{id}/actions/reset_password` | `reset_server_password` | `cloud_sdk_hetzner::cloud::servers` | no | no | starts-action | no | planned |
 | cloud | Server Actions | POST | `/servers/{id}/actions/shutdown` | `shutdown_server` | `cloud_sdk_hetzner::cloud::servers` | no | no | starts-action | no | planned |
 | cloud | Server Actions | GET | `/servers/{id}/actions/{action_id}` | `get_server_action` | `cloud_sdk_hetzner::cloud::servers` | no | no | resource-action-get | yes | deferred-deprecated |
-| cloud | Server Types | GET | `/server_types` | `list_server_types` | `cloud_sdk_hetzner::cloud::pricing` | yes | no | none | no | planned |
-| cloud | Server Types | GET | `/server_types/{id}` | `get_server_type` | `cloud_sdk_hetzner::cloud::pricing` | no | no | none | no | planned |
+| cloud | Server Types | GET | `/server_types` | `list_server_types` | `cloud_sdk_hetzner::cloud::pricing` | yes | no | none | no | implemented-v0.4 |
+| cloud | Server Types | GET | `/server_types/{id}` | `get_server_type` | `cloud_sdk_hetzner::cloud::pricing` | no | no | none | no | implemented-v0.4 |
 | cloud | Servers | GET | `/servers` | `list_servers` | `cloud_sdk_hetzner::cloud::servers` | yes | yes | none | no | planned |
 | cloud | Servers | POST | `/servers` | `create_server` | `cloud_sdk_hetzner::cloud::servers` | no | no | none | no | planned |
 | cloud | Servers | DELETE | `/servers/{id}` | `delete_server` | `cloud_sdk_hetzner::cloud::servers` | no | no | none | no | planned |

@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- Added `cloud-sdk-hetzner::cloud::catalog` no_std request primitives for
+  read-only catalog endpoints scheduled for `v0.4.0`.
+- Added source-locked path construction, pagination, and sorting tests for
+  locations, pricing, server types, load balancer types, ISOs, and public image
+  catalog requests.
+- Added the `v0.4.0` release gate script.
+
 ## 0.3.0 - 2026-07-08
 
 - Added crate-local README and rustdoc entry-point documentation for every

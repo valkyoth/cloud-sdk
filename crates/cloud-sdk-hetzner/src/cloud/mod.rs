@@ -1,5 +1,6 @@
 //! Hetzner Cloud resource modules.
 
+pub mod catalog;
 pub mod firewalls;
 pub mod images;
 pub mod load_balancers;
