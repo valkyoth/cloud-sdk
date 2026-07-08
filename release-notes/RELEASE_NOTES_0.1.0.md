@@ -13,6 +13,9 @@ Status: draft
 - MIT OR Apache-2.0 license metadata.
 - Security, implementation, release, modularity, and supply-chain docs.
 - Local check and release gate scripts.
+- Fail-closed release metadata validation for pentest reports.
+- Hardened no_std policy validation for accidental `std` usage.
+- Fail-closed `cargo-deny` and `cargo-audit` checks in the release gate.
 
 ## Known Limitations
 

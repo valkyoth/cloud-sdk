@@ -13,3 +13,5 @@
   metadata, and release planning.
 - Added local checks for formatting, linting, tests, no_std policy, modularity,
   shell syntax, security policy, and file length.
+- Hardened release gates for pentest evidence, no_std policy validation, and
+  required dependency security tools.

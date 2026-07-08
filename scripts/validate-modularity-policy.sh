@@ -15,9 +15,25 @@ for root in crates/*/src/lib.rs; do
     fi
 done
 
-if grep -RInE '(^|[^A-Za-z0-9_])std::|extern crate std' crates --include='*.rs' |
-    grep -v '#[cfg(feature = "std")]' |
-    grep -v 'extern crate std'; then
+for root in crates/*/src/lib.rs; do
+    if ! awk '
+        /^#\[cfg\(feature = "std"\)\]$/ { guarded = 1; next }
+        /extern crate std;/ {
+            if (!guarded) {
+                print FILENAME ":" FNR ": unguarded extern crate std" > "/dev/stderr"
+                bad = 1
+            }
+        }
+        { guarded = 0 }
+        END { exit bad }
+    ' "$root"; then
+        status=1
+    fi
+done
+
+if grep -RInE '(^|[^A-Za-z0-9_])std([[:space:]]*::|[[:space:]]+as|[[:space:]]*\{|[[:space:]]*;)' crates --include='*.rs' |
+    grep -Ev '^[^:]+:[0-9]+:extern crate std;' |
+    grep -Ev '^[^:]+:[0-9]+:[[:space:]]*(//|///|//!|/\*)'; then
     echo "modularity policy: unguarded std usage found under crates/" >&2
     status=1
 fi

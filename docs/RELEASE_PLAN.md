@@ -49,6 +49,11 @@ A version is not tag-ready until:
 - the pentest report has a `Date: YYYY-MM-DD` field;
 - `sbom/cloud-sdk.spdx.json` exists and is non-empty.
 
+The reviewed commit may be the tag commit itself. If the pentest report is
+committed after the reviewed implementation commit, the only permitted change
+between `Reviewed-Commit:` and `HEAD` is the matching
+`security/pentest/vX.Y.Z.md` report.
+
 ## Crate Versioning And Publish Order
 
 Provider-neutral domains live in `cloud-sdk`. Hetzner endpoint models live in
@@ -72,6 +77,8 @@ Deliverables:
 - One provider-neutral no_std crate, one focused Hetzner provider crate, and
   three optional Hetzner boundary crates.
 - CI, dependency policy, security policy, release notes.
+- Fail-closed release gates for pentest evidence, no_std policy, and required
+  dependency security tools.
 - Implementation, release, API, threat-model, modularity, toolchain, unsafe,
   and supply-chain docs.
 
