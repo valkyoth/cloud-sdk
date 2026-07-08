@@ -180,41 +180,41 @@ Total source-locked operations: 221 (`cloud`: 189, `hetzner`: 32).
 | cloud | SSH Keys | DELETE | `/ssh_keys/{id}` | `delete_ssh_key` | `cloud_sdk_hetzner::security::ssh_keys` | no | no | none | no | implemented |
 | cloud | SSH Keys | GET | `/ssh_keys/{id}` | `get_ssh_key` | `cloud_sdk_hetzner::security::ssh_keys` | no | no | none | no | implemented |
 | cloud | SSH Keys | PUT | `/ssh_keys/{id}` | `update_ssh_key` | `cloud_sdk_hetzner::security::ssh_keys` | no | no | none | no | implemented |
-| cloud | Server Actions | GET | `/servers/actions` | `list_servers_actions` | `cloud_sdk_hetzner::cloud::servers` | yes | yes | action-list | no | planned |
-| cloud | Server Actions | GET | `/servers/actions/{id}` | `get_servers_action` | `cloud_sdk_hetzner::cloud::servers` | no | no | action-get | no | planned |
-| cloud | Server Actions | GET | `/servers/{id}/actions` | `list_server_actions` | `cloud_sdk_hetzner::cloud::servers` | yes | yes | action-list | no | planned |
-| cloud | Server Actions | POST | `/servers/{id}/actions/add_to_placement_group` | `add_server_to_placement_group` | `cloud_sdk_hetzner::cloud::servers` | no | no | starts-action | no | planned |
-| cloud | Server Actions | POST | `/servers/{id}/actions/attach_iso` | `attach_server_iso` | `cloud_sdk_hetzner::cloud::servers` | no | no | starts-action | no | planned |
-| cloud | Server Actions | POST | `/servers/{id}/actions/attach_to_network` | `attach_server_to_network` | `cloud_sdk_hetzner::cloud::servers` | no | no | starts-action | no | planned |
-| cloud | Server Actions | POST | `/servers/{id}/actions/change_alias_ips` | `change_server_alias_ips` | `cloud_sdk_hetzner::cloud::servers` | no | no | starts-action | no | planned |
-| cloud | Server Actions | POST | `/servers/{id}/actions/change_dns_ptr` | `change_server_dns_ptr` | `cloud_sdk_hetzner::cloud::servers` | no | no | starts-action | no | planned |
-| cloud | Server Actions | POST | `/servers/{id}/actions/change_protection` | `change_server_protection` | `cloud_sdk_hetzner::cloud::servers` | no | no | starts-action | no | planned |
-| cloud | Server Actions | POST | `/servers/{id}/actions/change_type` | `change_server_type` | `cloud_sdk_hetzner::cloud::servers` | no | no | starts-action | no | planned |
-| cloud | Server Actions | POST | `/servers/{id}/actions/create_image` | `create_server_image` | `cloud_sdk_hetzner::cloud::servers` | no | no | starts-action | no | planned |
-| cloud | Server Actions | POST | `/servers/{id}/actions/detach_from_network` | `detach_server_from_network` | `cloud_sdk_hetzner::cloud::servers` | no | no | starts-action | no | planned |
-| cloud | Server Actions | POST | `/servers/{id}/actions/detach_iso` | `detach_server_iso` | `cloud_sdk_hetzner::cloud::servers` | no | no | starts-action | no | planned |
-| cloud | Server Actions | POST | `/servers/{id}/actions/disable_backup` | `disable_server_backup` | `cloud_sdk_hetzner::cloud::servers` | no | no | starts-action | no | planned |
-| cloud | Server Actions | POST | `/servers/{id}/actions/disable_rescue` | `disable_server_rescue` | `cloud_sdk_hetzner::cloud::servers` | no | no | starts-action | no | planned |
-| cloud | Server Actions | POST | `/servers/{id}/actions/enable_backup` | `enable_server_backup` | `cloud_sdk_hetzner::cloud::servers` | no | no | starts-action | no | planned |
-| cloud | Server Actions | POST | `/servers/{id}/actions/enable_rescue` | `enable_server_rescue` | `cloud_sdk_hetzner::cloud::servers` | no | no | starts-action | no | planned |
-| cloud | Server Actions | POST | `/servers/{id}/actions/poweroff` | `poweroff_server` | `cloud_sdk_hetzner::cloud::servers` | no | no | starts-action | no | planned |
-| cloud | Server Actions | POST | `/servers/{id}/actions/poweron` | `poweron_server` | `cloud_sdk_hetzner::cloud::servers` | no | no | starts-action | no | planned |
-| cloud | Server Actions | POST | `/servers/{id}/actions/reboot` | `reboot_server` | `cloud_sdk_hetzner::cloud::servers` | no | no | starts-action | no | planned |
-| cloud | Server Actions | POST | `/servers/{id}/actions/rebuild` | `rebuild_server` | `cloud_sdk_hetzner::cloud::servers` | no | no | starts-action | no | planned |
-| cloud | Server Actions | POST | `/servers/{id}/actions/remove_from_placement_group` | `remove_server_from_placement_group` | `cloud_sdk_hetzner::cloud::servers` | no | no | starts-action | no | planned |
-| cloud | Server Actions | POST | `/servers/{id}/actions/request_console` | `request_server_console` | `cloud_sdk_hetzner::cloud::servers` | no | no | starts-action | no | planned |
-| cloud | Server Actions | POST | `/servers/{id}/actions/reset` | `reset_server` | `cloud_sdk_hetzner::cloud::servers` | no | no | starts-action | no | planned |
-| cloud | Server Actions | POST | `/servers/{id}/actions/reset_password` | `reset_server_password` | `cloud_sdk_hetzner::cloud::servers` | no | no | starts-action | no | planned |
-| cloud | Server Actions | POST | `/servers/{id}/actions/shutdown` | `shutdown_server` | `cloud_sdk_hetzner::cloud::servers` | no | no | starts-action | no | planned |
+| cloud | Server Actions | GET | `/servers/actions` | `list_servers_actions` | `cloud_sdk_hetzner::cloud::servers` | yes | yes | action-list | no | implemented |
+| cloud | Server Actions | GET | `/servers/actions/{id}` | `get_servers_action` | `cloud_sdk_hetzner::cloud::servers` | no | no | action-get | no | implemented |
+| cloud | Server Actions | GET | `/servers/{id}/actions` | `list_server_actions` | `cloud_sdk_hetzner::cloud::servers` | yes | yes | action-list | no | implemented |
+| cloud | Server Actions | POST | `/servers/{id}/actions/add_to_placement_group` | `add_server_to_placement_group` | `cloud_sdk_hetzner::cloud::servers` | no | no | starts-action | no | implemented |
+| cloud | Server Actions | POST | `/servers/{id}/actions/attach_iso` | `attach_server_iso` | `cloud_sdk_hetzner::cloud::servers` | no | no | starts-action | no | implemented |
+| cloud | Server Actions | POST | `/servers/{id}/actions/attach_to_network` | `attach_server_to_network` | `cloud_sdk_hetzner::cloud::servers` | no | no | starts-action | no | implemented |
+| cloud | Server Actions | POST | `/servers/{id}/actions/change_alias_ips` | `change_server_alias_ips` | `cloud_sdk_hetzner::cloud::servers` | no | no | starts-action | no | implemented |
+| cloud | Server Actions | POST | `/servers/{id}/actions/change_dns_ptr` | `change_server_dns_ptr` | `cloud_sdk_hetzner::cloud::servers` | no | no | starts-action | no | implemented |
+| cloud | Server Actions | POST | `/servers/{id}/actions/change_protection` | `change_server_protection` | `cloud_sdk_hetzner::cloud::servers` | no | no | starts-action | no | implemented |
+| cloud | Server Actions | POST | `/servers/{id}/actions/change_type` | `change_server_type` | `cloud_sdk_hetzner::cloud::servers` | no | no | starts-action | no | implemented |
+| cloud | Server Actions | POST | `/servers/{id}/actions/create_image` | `create_server_image` | `cloud_sdk_hetzner::cloud::servers` | no | no | starts-action | no | implemented |
+| cloud | Server Actions | POST | `/servers/{id}/actions/detach_from_network` | `detach_server_from_network` | `cloud_sdk_hetzner::cloud::servers` | no | no | starts-action | no | implemented |
+| cloud | Server Actions | POST | `/servers/{id}/actions/detach_iso` | `detach_server_iso` | `cloud_sdk_hetzner::cloud::servers` | no | no | starts-action | no | implemented |
+| cloud | Server Actions | POST | `/servers/{id}/actions/disable_backup` | `disable_server_backup` | `cloud_sdk_hetzner::cloud::servers` | no | no | starts-action | no | implemented |
+| cloud | Server Actions | POST | `/servers/{id}/actions/disable_rescue` | `disable_server_rescue` | `cloud_sdk_hetzner::cloud::servers` | no | no | starts-action | no | implemented |
+| cloud | Server Actions | POST | `/servers/{id}/actions/enable_backup` | `enable_server_backup` | `cloud_sdk_hetzner::cloud::servers` | no | no | starts-action | no | implemented |
+| cloud | Server Actions | POST | `/servers/{id}/actions/enable_rescue` | `enable_server_rescue` | `cloud_sdk_hetzner::cloud::servers` | no | no | starts-action | no | implemented |
+| cloud | Server Actions | POST | `/servers/{id}/actions/poweroff` | `poweroff_server` | `cloud_sdk_hetzner::cloud::servers` | no | no | starts-action | no | implemented |
+| cloud | Server Actions | POST | `/servers/{id}/actions/poweron` | `poweron_server` | `cloud_sdk_hetzner::cloud::servers` | no | no | starts-action | no | implemented |
+| cloud | Server Actions | POST | `/servers/{id}/actions/reboot` | `reboot_server` | `cloud_sdk_hetzner::cloud::servers` | no | no | starts-action | no | implemented |
+| cloud | Server Actions | POST | `/servers/{id}/actions/rebuild` | `rebuild_server` | `cloud_sdk_hetzner::cloud::servers` | no | no | starts-action | no | implemented |
+| cloud | Server Actions | POST | `/servers/{id}/actions/remove_from_placement_group` | `remove_server_from_placement_group` | `cloud_sdk_hetzner::cloud::servers` | no | no | starts-action | no | implemented |
+| cloud | Server Actions | POST | `/servers/{id}/actions/request_console` | `request_server_console` | `cloud_sdk_hetzner::cloud::servers` | no | no | starts-action | no | implemented |
+| cloud | Server Actions | POST | `/servers/{id}/actions/reset` | `reset_server` | `cloud_sdk_hetzner::cloud::servers` | no | no | starts-action | no | implemented |
+| cloud | Server Actions | POST | `/servers/{id}/actions/reset_password` | `reset_server_password` | `cloud_sdk_hetzner::cloud::servers` | no | no | starts-action | no | implemented |
+| cloud | Server Actions | POST | `/servers/{id}/actions/shutdown` | `shutdown_server` | `cloud_sdk_hetzner::cloud::servers` | no | no | starts-action | no | implemented |
 | cloud | Server Actions | GET | `/servers/{id}/actions/{action_id}` | `get_server_action` | `cloud_sdk_hetzner::cloud::servers` | no | no | resource-action-get | yes | deferred-deprecated |
 | cloud | Server Types | GET | `/server_types` | `list_server_types` | `cloud_sdk_hetzner::cloud::pricing` | yes | no | none | no | implemented-v0.4 |
 | cloud | Server Types | GET | `/server_types/{id}` | `get_server_type` | `cloud_sdk_hetzner::cloud::pricing` | no | no | none | no | implemented-v0.4 |
-| cloud | Servers | GET | `/servers` | `list_servers` | `cloud_sdk_hetzner::cloud::servers` | yes | yes | none | no | planned |
-| cloud | Servers | POST | `/servers` | `create_server` | `cloud_sdk_hetzner::cloud::servers` | no | no | none | no | planned |
-| cloud | Servers | DELETE | `/servers/{id}` | `delete_server` | `cloud_sdk_hetzner::cloud::servers` | no | no | none | no | planned |
-| cloud | Servers | GET | `/servers/{id}` | `get_server` | `cloud_sdk_hetzner::cloud::servers` | no | no | none | no | planned |
-| cloud | Servers | PUT | `/servers/{id}` | `update_server` | `cloud_sdk_hetzner::cloud::servers` | no | no | none | no | planned |
-| cloud | Servers | GET | `/servers/{id}/metrics` | `get_server_metrics` | `cloud_sdk_hetzner::cloud::servers` | no | no | none | no | planned |
+| cloud | Servers | GET | `/servers` | `list_servers` | `cloud_sdk_hetzner::cloud::servers` | yes | yes | none | no | implemented |
+| cloud | Servers | POST | `/servers` | `create_server` | `cloud_sdk_hetzner::cloud::servers` | no | no | none | no | implemented |
+| cloud | Servers | DELETE | `/servers/{id}` | `delete_server` | `cloud_sdk_hetzner::cloud::servers` | no | no | none | no | implemented |
+| cloud | Servers | GET | `/servers/{id}` | `get_server` | `cloud_sdk_hetzner::cloud::servers` | no | no | none | no | implemented |
+| cloud | Servers | PUT | `/servers/{id}` | `update_server` | `cloud_sdk_hetzner::cloud::servers` | no | no | none | no | implemented |
+| cloud | Servers | GET | `/servers/{id}/metrics` | `get_server_metrics` | `cloud_sdk_hetzner::cloud::servers` | no | no | none | no | implemented |
 | cloud | Volume Actions | GET | `/volumes/actions` | `list_volumes_actions` | `cloud_sdk_hetzner::cloud::volumes` | yes | yes | action-list | no | planned |
 | cloud | Volume Actions | GET | `/volumes/actions/{id}` | `get_volumes_action` | `cloud_sdk_hetzner::cloud::volumes` | no | no | action-get | no | planned |
 | cloud | Volume Actions | GET | `/volumes/{id}/actions` | `list_volume_actions` | `cloud_sdk_hetzner::cloud::volumes` | yes | yes | action-list | no | planned |

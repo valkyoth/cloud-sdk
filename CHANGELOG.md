@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- Added `cloud-sdk-hetzner::cloud::servers` no_std request primitives for
+  server list/create/get/update/delete and metrics endpoints scheduled for
+  `v0.6.0`.
+- Added source-locked server action endpoint paths and request markers for
+  power, reboot, reset, shutdown, rebuild, rescue, backup, ISO, network,
+  placement group, DNS pointer, protection, type change, image creation,
+  console, and password reset operations.
+- Added explicit DNS pointer set/reset intent and validation for server create
+  required fields, public network mutual exclusions, and metrics time ranges.
+- Added the `v0.6.0` release gate script.
+
 ## 0.5.0 - 2026-07-08
 
 - Added `cloud-sdk-hetzner::security::ssh_keys` no_std request primitives for

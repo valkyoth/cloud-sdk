@@ -18,9 +18,10 @@ cloud-sdk-hetzner = "0.5.0"
 
 ## Current Scope
 
-`0.5.0` is a security request-domain release. It does not yet implement HTTP
-transport, serde models, body serialization, token storage, live API tests,
-retry policy, pagination iterators, or action polling.
+The current main branch has reached the `0.6.0` implementation stop for server
+request domains. It does not yet implement HTTP transport, serde models, body
+serialization, token storage, live API tests, retry policy, pagination
+iterators, or action polling.
 
 Implemented in the published `0.2.0` line:
 
@@ -54,6 +55,15 @@ Implemented in the published `0.5.0` line:
   names, labels, pagination, and source-locked sorting;
 - redacted `Debug` output for secret-adjacent SSH public key and certificate
   PEM request values.
+
+Implemented on main for next `0.6.0`:
+
+- server list/create/get/update/delete request primitives;
+- server metrics request primitives with time range validation;
+- server action endpoint paths and request markers for all source-locked server
+  actions;
+- explicit DNS pointer set/reset intent for deprecated omitted `dns_ptr`
+  behavior.
 
 ## Endpoint Surface Example
 
@@ -154,6 +164,25 @@ let request = SshKeyCreateRequest::try_new(Some(name), Some(public_key))?;
 
 assert_eq!(request.endpoint().method().as_str(), "POST");
 assert_eq!(request.endpoint().write_path(&mut [0u8; 16])?, 9);
+# Ok(())
+# }
+```
+
+## Server Request Example
+
+```rust
+use cloud_sdk_hetzner::cloud::servers::{
+    ServerCreateRequest, ServerName, ServerReference,
+};
+
+# fn main() -> Result<(), cloud_sdk_hetzner::cloud::servers::ServerRequestError> {
+let name = ServerName::new("web-1")?;
+let server_type = ServerReference::new("cpx22")?;
+let image = ServerReference::new("ubuntu-24.04")?;
+let request = ServerCreateRequest::try_new(Some(name), Some(server_type), Some(image))?;
+
+assert_eq!(request.endpoint().method().as_str(), "POST");
+assert_eq!(request.endpoint().write_path(&mut [0u8; 16])?, 8);
 # Ok(())
 # }
 ```

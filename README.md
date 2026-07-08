@@ -50,8 +50,8 @@ please report it so it can be fixed.
 
 ## Current Status
 
-Status: `v0.5.0` release candidate; pentest and retest are complete, and the
-permanent release report is included.
+Status: `v0.6.0` implementation stop; run pentest for the current
+implementation commit before release metadata is finalized.
 
 Implemented now:
 
@@ -84,6 +84,8 @@ Implemented now:
   types, load balancer types, ISOs, and public images.
 - Hetzner security request primitives for SSH key CRUD, certificate CRUD, and
   certificate retry action endpoints.
+- Hetzner server request primitives for server CRUD, metrics, and server action
+  endpoint paths.
 
 Not implemented yet:
 
@@ -243,4 +245,5 @@ scripts/release_0_2_gate.sh
 scripts/release_0_3_gate.sh
 scripts/release_0_4_gate.sh
 scripts/release_0_5_gate.sh
+scripts/release_0_6_gate.sh
 ```

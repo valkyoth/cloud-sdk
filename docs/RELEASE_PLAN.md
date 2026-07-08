@@ -301,6 +301,8 @@ v0.5.0 implementation stop reached. Run pentest for this exact commit.
 
 ### v0.6.0 - Server Resource Models
 
+Status: implementation stop; awaiting pentest.
+
 Goal: implement server CRUD, metrics request domains, and server actions
 without adding transport or token storage.
 
@@ -321,7 +323,7 @@ Verification:
 - `scripts/checks.sh`
 - `scripts/check_hetzner_api_drift.py --fetch`
 - `cargo test -p cloud-sdk-hetzner --all-features servers`
-- `scripts/release_0_6_gate.sh` once added.
+- `scripts/release_0_6_gate.sh`
 
 Stop gate:
 
