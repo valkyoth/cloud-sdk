@@ -6,7 +6,9 @@ use crate::EndpointGroup;
 use crate::labels::LabelSelector;
 use crate::pagination::{Page, PerPage, SortDirection};
 use crate::request::{ApiBaseUrl, EndpointPath};
-use crate::security::shared::{static_path, write_id_path, write_query_pair, write_query_u64};
+use crate::security::shared::{
+    MAX_SSH_FINGERPRINT_BYTES, static_path, write_id_path, write_query_pair, write_query_u64,
+};
 
 /// SSH key endpoint groups.
 pub const ENDPOINT_GROUPS: &[EndpointGroup] = &[EndpointGroup::SshKeys];
@@ -139,6 +141,7 @@ impl<'a> SshKeyListRequest<'a> {
     /// Sets exact fingerprint filtering.
     pub fn with_fingerprint(mut self, fingerprint: &'a str) -> Result<Self, SecurityRequestError> {
         if fingerprint.is_empty()
+            || fingerprint.len() > MAX_SSH_FINGERPRINT_BYTES
             || fingerprint
                 .bytes()
                 .any(|byte| !(byte.is_ascii_hexdigit() || byte == b':'))

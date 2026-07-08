@@ -75,21 +75,19 @@ fn certificate_create_modes_validate_required_fields_and_redact_debug() {
     let private_key = private_key_pem(KEY);
     if let (Ok(name), Ok(certificate), Ok(private_key)) = (name, certificate, private_key) {
         let mode = CertificateCreateMode::uploaded(certificate, private_key);
-        if let Ok(mode) = mode {
-            assert_eq!(
-                CertificateCreateRequest::try_new(None, Some(mode)),
-                Err(SecurityRequestError::MissingRequiredField)
-            );
-            let request = CertificateCreateRequest::try_new(Some(name), Some(mode));
-            assert!(request.is_ok());
-            if let Ok(request) = request {
-                let mut debug = DebugBuffer::new();
-                assert!(write!(&mut debug, "{request:?}").is_ok());
-                let debug = debug.as_str();
-                assert!(debug.contains("[redacted]"));
-                assert!(!debug.contains("PRIVATE KEY"));
-                assert_eq!(request.mode().certificate_type(), CertificateType::Uploaded);
-            }
+        assert_eq!(
+            CertificateCreateRequest::try_new(None, Some(mode)),
+            Err(SecurityRequestError::MissingRequiredField)
+        );
+        let request = CertificateCreateRequest::try_new(Some(name), Some(mode));
+        assert!(request.is_ok());
+        if let Ok(request) = request {
+            let mut debug = DebugBuffer::new();
+            assert!(write!(&mut debug, "{request:?}").is_ok());
+            let debug = debug.as_str();
+            assert!(debug.contains("[redacted]"));
+            assert!(!debug.contains("PRIVATE KEY"));
+            assert_eq!(request.mode().certificate_type(), CertificateType::Uploaded);
         }
     }
 }
@@ -115,6 +113,14 @@ fn managed_certificate_domains_are_validated() {
 fn pem_validation_rejects_wrong_markers() {
     assert_eq!(
         certificate_pem("-----BEGIN PRIVATE KEY-----\nMIIB\n-----END PRIVATE KEY-----"),
+        Err(SecurityRequestError::InvalidPem)
+    );
+    assert_eq!(
+        certificate_pem("-----END CERTIFICATE-----\nMIIB\n-----BEGIN CERTIFICATE-----"),
+        Err(SecurityRequestError::InvalidPem)
+    );
+    assert_eq!(
+        certificate_pem("-----BEGIN CERTIFICATE----------END CERTIFICATE-----"),
         Err(SecurityRequestError::InvalidPem)
     );
     assert_eq!(private_key_pem(KEY).map(|pem| pem.as_str()), Ok(KEY));

@@ -120,10 +120,27 @@ fn ssh_key_validation_rejects_bad_inputs() {
         SshKeyListRequest::new().with_fingerprint("zz:zz"),
         Err(SecurityRequestError::InvalidSshFingerprint)
     );
+    assert_eq!(
+        SshKeyListRequest::new()
+            .with_fingerprint("11:22:33:44:55:66:77:88:99:aa:bb:cc:dd:ee:ff:00:11:22:33:44:55:66"),
+        Err(SecurityRequestError::InvalidSshFingerprint)
+    );
     let key = LabelKey::new("z");
     let value = LabelValue::new("");
     if let (Ok(key), Ok(value)) = (key, value) {
         let labels = [(key, value)];
         assert!(SecurityLabels::new(&labels).is_ok());
+    }
+    let duplicate_key = LabelKey::new("a");
+    let first = LabelValue::new("one");
+    let second = LabelValue::new("two");
+    if let (Ok(duplicate_key), Ok(first), Ok(second)) = (duplicate_key, first, second) {
+        let labels = [(duplicate_key, first), (duplicate_key, second)];
+        assert_eq!(
+            SecurityLabels::new(&labels),
+            Err(SecurityRequestError::InvalidLabel(
+                crate::labels::LabelError::InvalidSelectorSyntax
+            ))
+        );
     }
 }

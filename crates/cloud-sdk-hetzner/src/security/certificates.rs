@@ -289,14 +289,16 @@ pub enum CertificateCreateMode<'a> {
 
 impl<'a> CertificateCreateMode<'a> {
     /// Creates the uploaded certificate mode.
-    pub fn uploaded(
-        certificate: CertificatePem<'a>,
-        private_key: PrivateKeyPem<'a>,
-    ) -> Result<Self, SecurityRequestError> {
-        Ok(Self::Uploaded {
+    ///
+    /// This only records values that already passed PEM marker validation. It
+    /// does not prove that the private key matches the certificate; that would
+    /// require ASN.1/crypto validation outside this no_std request-domain
+    /// layer.
+    pub fn uploaded(certificate: CertificatePem<'a>, private_key: PrivateKeyPem<'a>) -> Self {
+        Self::Uploaded {
             certificate,
             private_key,
-        })
+        }
     }
 
     /// Creates the managed certificate mode.

@@ -23,6 +23,8 @@ action polling.
   names, and label entry order.
 - Redacted `Debug` output for SSH public keys, PEM values, and request structs
   containing secret-adjacent values.
+- Pentest remediation for PEM marker order, SSH fingerprint length caps,
+  duplicate label-key rejection, and uploaded certificate mode documentation.
 - Tests for source-locked paths, query construction, missing required fields,
   invalid labels and inputs, redaction, managed certificate modes, and
   certificate retry action paths.
@@ -37,6 +39,9 @@ action polling.
 - SSH public keys and PEM values never expose raw contents through `Debug`.
 - Uploaded certificate requests require both certificate and private-key PEM
   values; managed certificate requests require at least one validated domain.
+- Uploaded certificate mode does not claim certificate/private-key pair
+  matching. That requires crypto validation outside this no_std request-domain
+  layer.
 - The SDK still does not serialize request bodies or execute API requests.
 
 ## Verification

@@ -9,6 +9,9 @@
   scheduled for `v0.5.0`.
 - Added conservative validation and redacted `Debug` output for
   secret-adjacent SSH public key and certificate PEM request values.
+- Hardened v0.5.0 security request validation after pentest review by checking
+  PEM marker order, capping SSH fingerprint filters, rejecting duplicate label
+  keys, and clarifying uploaded certificate mode guarantees.
 - Added the `v0.5.0` release gate script.
 
 ## 0.4.0 - 2026-07-08

@@ -14,6 +14,9 @@ pub const MAX_SSH_PUBLIC_KEY_BYTES: usize = 8192;
 /// Maximum PEM value length admitted by the SDK policy.
 pub const MAX_PEM_BYTES: usize = 65_536;
 
+/// Maximum SSH fingerprint length admitted by the SDK policy.
+pub const MAX_SSH_FINGERPRINT_BYTES: usize = 64;
+
 /// Error returned while building security request components.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum SecurityRequestError {
@@ -148,11 +151,23 @@ impl<'a> PemValue<'a> {
         begin_marker: &str,
         end_marker: &str,
     ) -> Result<Self, SecurityRequestError> {
-        if value.is_empty()
-            || value.len() > MAX_PEM_BYTES
-            || !value.contains(begin_marker)
-            || !value.contains(end_marker)
-        {
+        if value.is_empty() || value.len() > MAX_PEM_BYTES {
+            return Err(SecurityRequestError::InvalidPem);
+        }
+        let begin_at = value
+            .find(begin_marker)
+            .ok_or(SecurityRequestError::InvalidPem)?;
+        let after_begin = begin_at
+            .checked_add(begin_marker.len())
+            .ok_or(SecurityRequestError::InvalidPem)?;
+        let remainder = value
+            .get(after_begin..)
+            .ok_or(SecurityRequestError::InvalidPem)?;
+        let end_at = remainder
+            .find(end_marker)
+            .and_then(|offset| after_begin.checked_add(offset))
+            .ok_or(SecurityRequestError::InvalidPem)?;
+        if end_at <= after_begin {
             return Err(SecurityRequestError::InvalidPem);
         }
         Ok(Self { value })
@@ -221,7 +236,7 @@ impl<'a> SecurityLabels<'a> {
         let mut previous: Option<&str> = None;
         for (key, _) in entries {
             if let Some(previous) = previous
-                && previous > key.as_str()
+                && previous >= key.as_str()
             {
                 return Err(SecurityRequestError::InvalidLabel(
                     LabelError::InvalidSelectorSyntax,
