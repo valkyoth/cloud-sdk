@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.7.0 - 2026-07-09
+
 - Added `cloud-sdk-hetzner::cloud::images` no_std request primitives for
   image list/get/update/delete and image action endpoints scheduled for
   `v0.7.0`.
@@ -15,6 +17,9 @@
 - Hardened v0.7.0 request intent by requiring explicit primary IP DNS pointer
   set/reset and by omitting removed datacenter request fields from create and
   update builders.
+- Removed unused public cloud request error variants after pentest review and
+  documented that primary IP address and DNS pointer semantic validation must
+  be added before future body serialization.
 - Added the `v0.7.0` release gate script.
 
 ## 0.6.0 - 2026-07-08

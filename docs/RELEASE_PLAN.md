@@ -333,7 +333,7 @@ v0.6.0 implementation stop reached. Run pentest for this exact commit.
 
 ### v0.7.0 - Images, Placement Groups, And Primary IPs
 
-Status: implementation stop; awaiting pentest.
+Status: release candidate; retest passed and permanent report is included.
 
 Goal: complete remaining server-adjacent resource models.
 
@@ -354,7 +354,7 @@ Verification:
 - `scripts/checks.sh`
 - `scripts/check_hetzner_api_drift.py --fetch`
 - `cargo test -p cloud-sdk-hetzner --all-features server_adjacent`
-- `scripts/release_0_7_gate.sh` once added.
+- `scripts/release_0_7_gate.sh`
 
 Stop gate:
 

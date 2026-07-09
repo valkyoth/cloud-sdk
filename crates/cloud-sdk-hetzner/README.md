@@ -12,16 +12,16 @@ models in small reviewed releases.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.6.0"
-cloud-sdk-hetzner = "0.6.0"
+cloud-sdk = "0.7.0"
+cloud-sdk-hetzner = "0.7.0"
 ```
 
 ## Current Scope
 
-The current main branch has reached the `0.7.0` implementation stop for
-server-adjacent request domains. It does not yet implement HTTP transport,
-serde models, body serialization, token storage, live API tests, retry policy,
-pagination iterators, or action polling.
+The current release candidate is `0.7.0`, covering server-adjacent request
+domains. It does not yet implement HTTP transport, serde models, body
+serialization, token storage, live API tests, retry policy, pagination
+iterators, or action polling.
 
 Implemented in the published `0.2.0` line:
 
@@ -65,7 +65,7 @@ Implemented in the published `0.6.0` line:
 - explicit DNS pointer set/reset intent for deprecated omitted `dns_ptr`
   behavior.
 
-Implemented on main for next `0.7.0`:
+Implemented in the `0.7.0` release candidate:
 
 - image list/get/update/delete request primitives;
 - image action list/get, per-image action list, and protection action paths;
