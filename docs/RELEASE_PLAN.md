@@ -407,6 +407,8 @@ v0.8.0 implementation stop reached. Run pentest for this exact commit.
 
 ### v0.9.0 - Storage Box Models
 
+Status: implementation stop; awaiting pentest.
+
 Goal: implement Storage Box operations from the Hetzner spec while keeping them
 separate from Robot Webservice support.
 
@@ -425,7 +427,7 @@ Verification:
 - `scripts/checks.sh`
 - `scripts/check_hetzner_api_drift.py --fetch`
 - `cargo test -p cloud-sdk-hetzner --all-features storage_boxes`
-- `scripts/release_0_9_gate.sh` once added.
+- `scripts/release_0_9_gate.sh`
 
 Stop gate:
 

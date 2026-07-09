@@ -52,7 +52,8 @@ please report it so it can be fixed.
 
 ## Current Status
 
-Status: `v0.8.0` release candidate; pentest and retest complete.
+Status: `v0.9.0` implementation stop; run pentest for the current
+implementation commit before release metadata is finalized.
 
 Implemented now:
 
@@ -91,6 +92,8 @@ Implemented now:
   primary IPs, and their v0.7 action paths.
 - Hetzner storage/IP request primitives for volumes, floating IPs, and their
   v0.8 action paths.
+- Hetzner Storage Box request primitives for boxes, box types, snapshots,
+  subaccounts, Storage Box actions, and subaccount actions.
 
 Not implemented yet:
 
@@ -313,4 +316,5 @@ scripts/release_0_5_gate.sh
 scripts/release_0_6_gate.sh
 scripts/release_0_7_gate.sh
 scripts/release_0_8_gate.sh
+scripts/release_0_9_gate.sh
 ```

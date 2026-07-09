@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- Added `cloud-sdk-hetzner::storage::storage_boxes` no_std request primitives
+  for Storage Box CRUD, folder listing, type catalog endpoints, snapshots,
+  subaccounts, Storage Box actions, and subaccount actions scheduled for
+  `v0.9.0`.
+- Added source-locked Storage Box query builders for box, type, action,
+  snapshot, and subaccount list endpoints.
+- Added redacted Storage Box password markers, bounded snapshot-plan markers,
+  conservative home-directory validation, and explicit deferred policy for the
+  deprecated resource-local action lookup endpoint.
+- Added the `v0.9.0` release gate script.
+
 ## 0.8.0 - 2026-07-09
 
 - Added `cloud-sdk-hetzner::cloud::volumes` no_std request primitives for

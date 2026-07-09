@@ -253,38 +253,38 @@ Total source-locked operations: 221 (`cloud`: 189, `hetzner`: 32).
 | cloud | Zones | GET | `/zones/{id_or_name}` | `get_zone` | `cloud_sdk_hetzner::dns::zones` | no | no | none | no | planned |
 | cloud | Zones | PUT | `/zones/{id_or_name}` | `update_zone` | `cloud_sdk_hetzner::dns::zones` | no | no | none | no | planned |
 | cloud | Zones | GET | `/zones/{id_or_name}/zonefile` | `get_zone_zonefile` | `cloud_sdk_hetzner::dns::zones` | no | no | none | no | planned |
-| hetzner | Storage Box Actions | GET | `/storage_boxes/actions` | `list_storage_boxes_actions` | `cloud_sdk_hetzner::storage::storage_boxes` | yes | yes | action-list | no | planned |
-| hetzner | Storage Box Actions | GET | `/storage_boxes/actions/{id}` | `get_storage_boxes_action` | `cloud_sdk_hetzner::storage::storage_boxes` | no | no | action-get | no | planned |
-| hetzner | Storage Box Actions | GET | `/storage_boxes/{id}/actions` | `list_storage_box_actions` | `cloud_sdk_hetzner::storage::storage_boxes` | yes | yes | action-list | no | planned |
-| hetzner | Storage Box Actions | POST | `/storage_boxes/{id}/actions/change_protection` | `change_storage_box_protection` | `cloud_sdk_hetzner::storage::storage_boxes` | no | no | starts-action | no | planned |
-| hetzner | Storage Box Actions | POST | `/storage_boxes/{id}/actions/change_type` | `change_storage_box_type` | `cloud_sdk_hetzner::storage::storage_boxes` | no | no | starts-action | no | planned |
-| hetzner | Storage Box Actions | POST | `/storage_boxes/{id}/actions/disable_snapshot_plan` | `disable_storage_box_snapshot_plan` | `cloud_sdk_hetzner::storage::storage_boxes` | no | no | starts-action | no | planned |
-| hetzner | Storage Box Actions | POST | `/storage_boxes/{id}/actions/enable_snapshot_plan` | `enable_storage_box_snapshot_plan` | `cloud_sdk_hetzner::storage::storage_boxes` | no | no | starts-action | no | planned |
-| hetzner | Storage Box Actions | POST | `/storage_boxes/{id}/actions/reset_password` | `reset_storage_box_password` | `cloud_sdk_hetzner::storage::storage_boxes` | no | no | starts-action | no | planned |
-| hetzner | Storage Box Actions | POST | `/storage_boxes/{id}/actions/rollback_snapshot` | `rollback_storage_box_snapshot` | `cloud_sdk_hetzner::storage::storage_boxes` | no | no | starts-action | no | planned |
-| hetzner | Storage Box Actions | POST | `/storage_boxes/{id}/actions/update_access_settings` | `update_storage_box_access_settings` | `cloud_sdk_hetzner::storage::storage_boxes` | no | no | starts-action | no | planned |
+| hetzner | Storage Box Actions | GET | `/storage_boxes/actions` | `list_storage_boxes_actions` | `cloud_sdk_hetzner::storage::storage_boxes` | yes | yes | action-list | no | implemented |
+| hetzner | Storage Box Actions | GET | `/storage_boxes/actions/{id}` | `get_storage_boxes_action` | `cloud_sdk_hetzner::storage::storage_boxes` | no | no | action-get | no | implemented |
+| hetzner | Storage Box Actions | GET | `/storage_boxes/{id}/actions` | `list_storage_box_actions` | `cloud_sdk_hetzner::storage::storage_boxes` | yes | yes | action-list | no | implemented |
+| hetzner | Storage Box Actions | POST | `/storage_boxes/{id}/actions/change_protection` | `change_storage_box_protection` | `cloud_sdk_hetzner::storage::storage_boxes` | no | no | starts-action | no | implemented |
+| hetzner | Storage Box Actions | POST | `/storage_boxes/{id}/actions/change_type` | `change_storage_box_type` | `cloud_sdk_hetzner::storage::storage_boxes` | no | no | starts-action | no | implemented |
+| hetzner | Storage Box Actions | POST | `/storage_boxes/{id}/actions/disable_snapshot_plan` | `disable_storage_box_snapshot_plan` | `cloud_sdk_hetzner::storage::storage_boxes` | no | no | starts-action | no | implemented |
+| hetzner | Storage Box Actions | POST | `/storage_boxes/{id}/actions/enable_snapshot_plan` | `enable_storage_box_snapshot_plan` | `cloud_sdk_hetzner::storage::storage_boxes` | no | no | starts-action | no | implemented |
+| hetzner | Storage Box Actions | POST | `/storage_boxes/{id}/actions/reset_password` | `reset_storage_box_password` | `cloud_sdk_hetzner::storage::storage_boxes` | no | no | starts-action | no | implemented |
+| hetzner | Storage Box Actions | POST | `/storage_boxes/{id}/actions/rollback_snapshot` | `rollback_storage_box_snapshot` | `cloud_sdk_hetzner::storage::storage_boxes` | no | no | starts-action | no | implemented |
+| hetzner | Storage Box Actions | POST | `/storage_boxes/{id}/actions/update_access_settings` | `update_storage_box_access_settings` | `cloud_sdk_hetzner::storage::storage_boxes` | no | no | starts-action | no | implemented |
 | hetzner | Storage Box Actions | GET | `/storage_boxes/{id}/actions/{action_id}` | `get_storage_box_action` | `cloud_sdk_hetzner::storage::storage_boxes` | no | no | resource-action-get | yes | deferred-deprecated |
-| hetzner | Storage Box Snapshots | GET | `/storage_boxes/{id}/snapshots` | `list_storage_box_snapshots` | `cloud_sdk_hetzner::storage::storage_boxes` | no | yes | none | no | planned |
-| hetzner | Storage Box Snapshots | POST | `/storage_boxes/{id}/snapshots` | `create_storage_box_snapshot` | `cloud_sdk_hetzner::storage::storage_boxes` | no | no | none | no | planned |
-| hetzner | Storage Box Snapshots | DELETE | `/storage_boxes/{id}/snapshots/{snapshot_id}` | `delete_storage_box_snapshot` | `cloud_sdk_hetzner::storage::storage_boxes` | no | no | none | no | planned |
-| hetzner | Storage Box Snapshots | GET | `/storage_boxes/{id}/snapshots/{snapshot_id}` | `get_storage_box_snapshot` | `cloud_sdk_hetzner::storage::storage_boxes` | no | no | none | no | planned |
-| hetzner | Storage Box Snapshots | PUT | `/storage_boxes/{id}/snapshots/{snapshot_id}` | `update_storage_box_snapshot` | `cloud_sdk_hetzner::storage::storage_boxes` | no | no | none | no | planned |
-| hetzner | Storage Box Subaccount Actions | POST | `/storage_boxes/{id}/subaccounts/{subaccount_id}/actions/change_home_directory` | `change_storage_box_subaccount_home_directory` | `cloud_sdk_hetzner::storage::storage_boxes` | no | no | starts-action | no | planned |
-| hetzner | Storage Box Subaccount Actions | POST | `/storage_boxes/{id}/subaccounts/{subaccount_id}/actions/reset_subaccount_password` | `reset_storage_box_subaccount_password` | `cloud_sdk_hetzner::storage::storage_boxes` | no | no | starts-action | no | planned |
-| hetzner | Storage Box Subaccount Actions | POST | `/storage_boxes/{id}/subaccounts/{subaccount_id}/actions/update_access_settings` | `update_storage_box_subaccount_access_settings` | `cloud_sdk_hetzner::storage::storage_boxes` | no | no | starts-action | no | planned |
-| hetzner | Storage Box Subaccounts | GET | `/storage_boxes/{id}/subaccounts` | `list_storage_box_subaccounts` | `cloud_sdk_hetzner::storage::storage_boxes` | no | yes | none | no | planned |
-| hetzner | Storage Box Subaccounts | POST | `/storage_boxes/{id}/subaccounts` | `create_storage_box_subaccount` | `cloud_sdk_hetzner::storage::storage_boxes` | no | no | none | no | planned |
-| hetzner | Storage Box Subaccounts | DELETE | `/storage_boxes/{id}/subaccounts/{subaccount_id}` | `delete_storage_box_subaccount` | `cloud_sdk_hetzner::storage::storage_boxes` | no | no | none | no | planned |
-| hetzner | Storage Box Subaccounts | GET | `/storage_boxes/{id}/subaccounts/{subaccount_id}` | `get_storage_box_subaccount` | `cloud_sdk_hetzner::storage::storage_boxes` | no | no | none | no | planned |
-| hetzner | Storage Box Subaccounts | PUT | `/storage_boxes/{id}/subaccounts/{subaccount_id}` | `update_storage_box_subaccount` | `cloud_sdk_hetzner::storage::storage_boxes` | no | no | none | no | planned |
-| hetzner | Storage Box Types | GET | `/storage_box_types` | `list_storage_box_types` | `cloud_sdk_hetzner::storage::storage_boxes` | yes | no | none | no | planned |
-| hetzner | Storage Box Types | GET | `/storage_box_types/{id}` | `get_storage_box_type` | `cloud_sdk_hetzner::storage::storage_boxes` | no | no | none | no | planned |
-| hetzner | Storage Boxes | GET | `/storage_boxes` | `list_storage_boxes` | `cloud_sdk_hetzner::storage::storage_boxes` | yes | yes | none | no | planned |
-| hetzner | Storage Boxes | POST | `/storage_boxes` | `create_storage_box` | `cloud_sdk_hetzner::storage::storage_boxes` | no | no | none | no | planned |
-| hetzner | Storage Boxes | DELETE | `/storage_boxes/{id}` | `delete_storage_box` | `cloud_sdk_hetzner::storage::storage_boxes` | no | no | none | no | planned |
-| hetzner | Storage Boxes | GET | `/storage_boxes/{id}` | `get_storage_box` | `cloud_sdk_hetzner::storage::storage_boxes` | no | no | none | no | planned |
-| hetzner | Storage Boxes | PUT | `/storage_boxes/{id}` | `update_storage_box` | `cloud_sdk_hetzner::storage::storage_boxes` | no | no | none | no | planned |
-| hetzner | Storage Boxes | GET | `/storage_boxes/{id}/folders` | `list_storage_box_folders` | `cloud_sdk_hetzner::storage::storage_boxes` | no | no | none | no | planned |
+| hetzner | Storage Box Snapshots | GET | `/storage_boxes/{id}/snapshots` | `list_storage_box_snapshots` | `cloud_sdk_hetzner::storage::storage_boxes` | no | yes | none | no | implemented |
+| hetzner | Storage Box Snapshots | POST | `/storage_boxes/{id}/snapshots` | `create_storage_box_snapshot` | `cloud_sdk_hetzner::storage::storage_boxes` | no | no | none | no | implemented |
+| hetzner | Storage Box Snapshots | DELETE | `/storage_boxes/{id}/snapshots/{snapshot_id}` | `delete_storage_box_snapshot` | `cloud_sdk_hetzner::storage::storage_boxes` | no | no | none | no | implemented |
+| hetzner | Storage Box Snapshots | GET | `/storage_boxes/{id}/snapshots/{snapshot_id}` | `get_storage_box_snapshot` | `cloud_sdk_hetzner::storage::storage_boxes` | no | no | none | no | implemented |
+| hetzner | Storage Box Snapshots | PUT | `/storage_boxes/{id}/snapshots/{snapshot_id}` | `update_storage_box_snapshot` | `cloud_sdk_hetzner::storage::storage_boxes` | no | no | none | no | implemented |
+| hetzner | Storage Box Subaccount Actions | POST | `/storage_boxes/{id}/subaccounts/{subaccount_id}/actions/change_home_directory` | `change_storage_box_subaccount_home_directory` | `cloud_sdk_hetzner::storage::storage_boxes` | no | no | starts-action | no | implemented |
+| hetzner | Storage Box Subaccount Actions | POST | `/storage_boxes/{id}/subaccounts/{subaccount_id}/actions/reset_subaccount_password` | `reset_storage_box_subaccount_password` | `cloud_sdk_hetzner::storage::storage_boxes` | no | no | starts-action | no | implemented |
+| hetzner | Storage Box Subaccount Actions | POST | `/storage_boxes/{id}/subaccounts/{subaccount_id}/actions/update_access_settings` | `update_storage_box_subaccount_access_settings` | `cloud_sdk_hetzner::storage::storage_boxes` | no | no | starts-action | no | implemented |
+| hetzner | Storage Box Subaccounts | GET | `/storage_boxes/{id}/subaccounts` | `list_storage_box_subaccounts` | `cloud_sdk_hetzner::storage::storage_boxes` | no | yes | none | no | implemented |
+| hetzner | Storage Box Subaccounts | POST | `/storage_boxes/{id}/subaccounts` | `create_storage_box_subaccount` | `cloud_sdk_hetzner::storage::storage_boxes` | no | no | none | no | implemented |
+| hetzner | Storage Box Subaccounts | DELETE | `/storage_boxes/{id}/subaccounts/{subaccount_id}` | `delete_storage_box_subaccount` | `cloud_sdk_hetzner::storage::storage_boxes` | no | no | none | no | implemented |
+| hetzner | Storage Box Subaccounts | GET | `/storage_boxes/{id}/subaccounts/{subaccount_id}` | `get_storage_box_subaccount` | `cloud_sdk_hetzner::storage::storage_boxes` | no | no | none | no | implemented |
+| hetzner | Storage Box Subaccounts | PUT | `/storage_boxes/{id}/subaccounts/{subaccount_id}` | `update_storage_box_subaccount` | `cloud_sdk_hetzner::storage::storage_boxes` | no | no | none | no | implemented |
+| hetzner | Storage Box Types | GET | `/storage_box_types` | `list_storage_box_types` | `cloud_sdk_hetzner::storage::storage_boxes` | yes | no | none | no | implemented |
+| hetzner | Storage Box Types | GET | `/storage_box_types/{id}` | `get_storage_box_type` | `cloud_sdk_hetzner::storage::storage_boxes` | no | no | none | no | implemented |
+| hetzner | Storage Boxes | GET | `/storage_boxes` | `list_storage_boxes` | `cloud_sdk_hetzner::storage::storage_boxes` | yes | yes | none | no | implemented |
+| hetzner | Storage Boxes | POST | `/storage_boxes` | `create_storage_box` | `cloud_sdk_hetzner::storage::storage_boxes` | no | no | none | no | implemented |
+| hetzner | Storage Boxes | DELETE | `/storage_boxes/{id}` | `delete_storage_box` | `cloud_sdk_hetzner::storage::storage_boxes` | no | no | none | no | implemented |
+| hetzner | Storage Boxes | GET | `/storage_boxes/{id}` | `get_storage_box` | `cloud_sdk_hetzner::storage::storage_boxes` | no | no | none | no | implemented |
+| hetzner | Storage Boxes | PUT | `/storage_boxes/{id}` | `update_storage_box` | `cloud_sdk_hetzner::storage::storage_boxes` | no | no | none | no | implemented |
+| hetzner | Storage Boxes | GET | `/storage_boxes/{id}/folders` | `list_storage_box_folders` | `cloud_sdk_hetzner::storage::storage_boxes` | no | no | none | no | implemented |
 
 ## Post-1.0 Robot Webservice
 
