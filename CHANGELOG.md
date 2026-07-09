@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- Added `cloud-sdk-hetzner::cloud::volumes` no_std request primitives for
+  volume list/create/get/update/delete and volume action endpoints scheduled
+  for `v0.8.0`.
+- Added `cloud-sdk-hetzner::cloud::networks::floating_ips` no_std request
+  primitives for floating IP list/create/get/update/delete and floating IP
+  action endpoints.
+- Added bounded Volume size markers, explicit volume server/location
+  placement, explicit floating IP server/home-location placement, and explicit
+  floating IP DNS pointer set/reset intent.
+- Added the `v0.8.0` release gate script.
+
 ## 0.7.0 - 2026-07-09
 
 - Added `cloud-sdk-hetzner::cloud::images` no_std request primitives for

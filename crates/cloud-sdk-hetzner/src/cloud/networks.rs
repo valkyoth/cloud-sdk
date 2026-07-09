@@ -2,6 +2,7 @@
 
 use crate::EndpointGroup;
 
+pub mod floating_ips;
 pub mod primary_ips;
 
 /// Network and IP endpoint groups.

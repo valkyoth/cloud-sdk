@@ -18,10 +18,10 @@ cloud-sdk-hetzner = "0.7.0"
 
 ## Current Scope
 
-The current release candidate is `0.7.0`, covering server-adjacent request
-domains. It does not yet implement HTTP transport, serde models, body
-serialization, token storage, live API tests, retry policy, pagination
-iterators, or action polling.
+The current main branch has reached the `0.8.0` implementation stop for
+storage/IP request domains. It does not yet implement HTTP transport, serde
+models, body serialization, token storage, live API tests, retry policy,
+pagination iterators, or action polling.
 
 Implemented in the published `0.2.0` line:
 
@@ -65,7 +65,7 @@ Implemented in the published `0.6.0` line:
 - explicit DNS pointer set/reset intent for deprecated omitted `dns_ptr`
   behavior.
 
-Implemented in the `0.7.0` release candidate:
+Implemented in the published `0.7.0` line:
 
 - image list/get/update/delete request primitives;
 - image action list/get, per-image action list, and protection action paths;
@@ -74,6 +74,17 @@ Implemented in the `0.7.0` release candidate:
 - primary IP assign, unassign, DNS pointer, and protection action paths;
 - explicit primary IP DNS pointer set/reset intent;
 - no public create/update fields for removed datacenter request parameters.
+
+Implemented on main for next `0.8.0`:
+
+- volume list/create/get/update/delete request primitives;
+- volume action list/get, per-volume action list, attach, detach, resize, and
+  protection action paths;
+- bounded volume size markers for the source-locked `10..=10240` GB range;
+- floating IP list/create/get/update/delete request primitives;
+- floating IP assign, unassign, DNS pointer, and protection action paths;
+- explicit volume and floating IP server/location placement markers;
+- explicit floating IP DNS pointer set/reset intent.
 
 ## Endpoint Surface Example
 

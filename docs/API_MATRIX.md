@@ -90,19 +90,19 @@ Total source-locked operations: 221 (`cloud`: 189, `hetzner`: 32).
 | cloud | Firewalls | DELETE | `/firewalls/{id}` | `delete_firewall` | `cloud_sdk_hetzner::cloud::firewalls` | no | no | none | no | planned |
 | cloud | Firewalls | GET | `/firewalls/{id}` | `get_firewall` | `cloud_sdk_hetzner::cloud::firewalls` | no | no | none | no | planned |
 | cloud | Firewalls | PUT | `/firewalls/{id}` | `update_firewall` | `cloud_sdk_hetzner::cloud::firewalls` | no | no | none | no | planned |
-| cloud | Floating IP Actions | GET | `/floating_ips/actions` | `list_floating_ips_actions` | `cloud_sdk_hetzner::cloud::networks` | yes | yes | action-list | no | planned |
-| cloud | Floating IP Actions | GET | `/floating_ips/actions/{id}` | `get_floating_ips_action` | `cloud_sdk_hetzner::cloud::networks` | no | no | action-get | no | planned |
-| cloud | Floating IP Actions | GET | `/floating_ips/{id}/actions` | `list_floating_ip_actions` | `cloud_sdk_hetzner::cloud::networks` | yes | yes | action-list | no | planned |
-| cloud | Floating IP Actions | POST | `/floating_ips/{id}/actions/assign` | `assign_floating_ip` | `cloud_sdk_hetzner::cloud::networks` | no | no | starts-action | no | planned |
-| cloud | Floating IP Actions | POST | `/floating_ips/{id}/actions/change_dns_ptr` | `change_floating_ip_dns_ptr` | `cloud_sdk_hetzner::cloud::networks` | no | no | starts-action | no | planned |
-| cloud | Floating IP Actions | POST | `/floating_ips/{id}/actions/change_protection` | `change_floating_ip_protection` | `cloud_sdk_hetzner::cloud::networks` | no | no | starts-action | no | planned |
-| cloud | Floating IP Actions | POST | `/floating_ips/{id}/actions/unassign` | `unassign_floating_ip` | `cloud_sdk_hetzner::cloud::networks` | no | no | starts-action | no | planned |
+| cloud | Floating IP Actions | GET | `/floating_ips/actions` | `list_floating_ips_actions` | `cloud_sdk_hetzner::cloud::networks` | yes | yes | action-list | no | implemented-v0.8 |
+| cloud | Floating IP Actions | GET | `/floating_ips/actions/{id}` | `get_floating_ips_action` | `cloud_sdk_hetzner::cloud::networks` | no | no | action-get | no | implemented-v0.8 |
+| cloud | Floating IP Actions | GET | `/floating_ips/{id}/actions` | `list_floating_ip_actions` | `cloud_sdk_hetzner::cloud::networks` | yes | yes | action-list | no | implemented-v0.8 |
+| cloud | Floating IP Actions | POST | `/floating_ips/{id}/actions/assign` | `assign_floating_ip` | `cloud_sdk_hetzner::cloud::networks` | no | no | starts-action | no | implemented-v0.8 |
+| cloud | Floating IP Actions | POST | `/floating_ips/{id}/actions/change_dns_ptr` | `change_floating_ip_dns_ptr` | `cloud_sdk_hetzner::cloud::networks` | no | no | starts-action | no | implemented-v0.8 |
+| cloud | Floating IP Actions | POST | `/floating_ips/{id}/actions/change_protection` | `change_floating_ip_protection` | `cloud_sdk_hetzner::cloud::networks` | no | no | starts-action | no | implemented-v0.8 |
+| cloud | Floating IP Actions | POST | `/floating_ips/{id}/actions/unassign` | `unassign_floating_ip` | `cloud_sdk_hetzner::cloud::networks` | no | no | starts-action | no | implemented-v0.8 |
 | cloud | Floating IP Actions | GET | `/floating_ips/{id}/actions/{action_id}` | `get_floating_ip_action` | `cloud_sdk_hetzner::cloud::networks` | no | no | resource-action-get | yes | deferred-deprecated |
-| cloud | Floating IPs | GET | `/floating_ips` | `list_floating_ips` | `cloud_sdk_hetzner::cloud::networks` | yes | yes | none | no | planned |
-| cloud | Floating IPs | POST | `/floating_ips` | `create_floating_ip` | `cloud_sdk_hetzner::cloud::networks` | no | no | none | no | planned |
-| cloud | Floating IPs | DELETE | `/floating_ips/{id}` | `delete_floating_ip` | `cloud_sdk_hetzner::cloud::networks` | no | no | none | no | planned |
-| cloud | Floating IPs | GET | `/floating_ips/{id}` | `get_floating_ip` | `cloud_sdk_hetzner::cloud::networks` | no | no | none | no | planned |
-| cloud | Floating IPs | PUT | `/floating_ips/{id}` | `update_floating_ip` | `cloud_sdk_hetzner::cloud::networks` | no | no | none | no | planned |
+| cloud | Floating IPs | GET | `/floating_ips` | `list_floating_ips` | `cloud_sdk_hetzner::cloud::networks` | yes | yes | none | no | implemented-v0.8 |
+| cloud | Floating IPs | POST | `/floating_ips` | `create_floating_ip` | `cloud_sdk_hetzner::cloud::networks` | no | no | none | no | implemented-v0.8 |
+| cloud | Floating IPs | DELETE | `/floating_ips/{id}` | `delete_floating_ip` | `cloud_sdk_hetzner::cloud::networks` | no | no | none | no | implemented-v0.8 |
+| cloud | Floating IPs | GET | `/floating_ips/{id}` | `get_floating_ip` | `cloud_sdk_hetzner::cloud::networks` | no | no | none | no | implemented-v0.8 |
+| cloud | Floating IPs | PUT | `/floating_ips/{id}` | `update_floating_ip` | `cloud_sdk_hetzner::cloud::networks` | no | no | none | no | implemented-v0.8 |
 | cloud | ISOs | GET | `/isos` | `list_isos` | `cloud_sdk_hetzner::cloud::images` | yes | no | none | no | implemented-v0.4 |
 | cloud | ISOs | GET | `/isos/{id}` | `get_iso` | `cloud_sdk_hetzner::cloud::images` | no | no | none | no | implemented-v0.4 |
 | cloud | Image Actions | GET | `/images/actions` | `list_images_actions` | `cloud_sdk_hetzner::cloud::images` | yes | yes | action-list | no | implemented-v0.7 |
@@ -215,19 +215,19 @@ Total source-locked operations: 221 (`cloud`: 189, `hetzner`: 32).
 | cloud | Servers | GET | `/servers/{id}` | `get_server` | `cloud_sdk_hetzner::cloud::servers` | no | no | none | no | implemented |
 | cloud | Servers | PUT | `/servers/{id}` | `update_server` | `cloud_sdk_hetzner::cloud::servers` | no | no | none | no | implemented |
 | cloud | Servers | GET | `/servers/{id}/metrics` | `get_server_metrics` | `cloud_sdk_hetzner::cloud::servers` | no | no | none | no | implemented |
-| cloud | Volume Actions | GET | `/volumes/actions` | `list_volumes_actions` | `cloud_sdk_hetzner::cloud::volumes` | yes | yes | action-list | no | planned |
-| cloud | Volume Actions | GET | `/volumes/actions/{id}` | `get_volumes_action` | `cloud_sdk_hetzner::cloud::volumes` | no | no | action-get | no | planned |
-| cloud | Volume Actions | GET | `/volumes/{id}/actions` | `list_volume_actions` | `cloud_sdk_hetzner::cloud::volumes` | yes | yes | action-list | no | planned |
-| cloud | Volume Actions | POST | `/volumes/{id}/actions/attach` | `attach_volume` | `cloud_sdk_hetzner::cloud::volumes` | no | no | starts-action | no | planned |
-| cloud | Volume Actions | POST | `/volumes/{id}/actions/change_protection` | `change_volume_protection` | `cloud_sdk_hetzner::cloud::volumes` | no | no | starts-action | no | planned |
-| cloud | Volume Actions | POST | `/volumes/{id}/actions/detach` | `detach_volume` | `cloud_sdk_hetzner::cloud::volumes` | no | no | starts-action | no | planned |
-| cloud | Volume Actions | POST | `/volumes/{id}/actions/resize` | `resize_volume` | `cloud_sdk_hetzner::cloud::volumes` | no | no | starts-action | no | planned |
+| cloud | Volume Actions | GET | `/volumes/actions` | `list_volumes_actions` | `cloud_sdk_hetzner::cloud::volumes` | yes | yes | action-list | no | implemented-v0.8 |
+| cloud | Volume Actions | GET | `/volumes/actions/{id}` | `get_volumes_action` | `cloud_sdk_hetzner::cloud::volumes` | no | no | action-get | no | implemented-v0.8 |
+| cloud | Volume Actions | GET | `/volumes/{id}/actions` | `list_volume_actions` | `cloud_sdk_hetzner::cloud::volumes` | yes | yes | action-list | no | implemented-v0.8 |
+| cloud | Volume Actions | POST | `/volumes/{id}/actions/attach` | `attach_volume` | `cloud_sdk_hetzner::cloud::volumes` | no | no | starts-action | no | implemented-v0.8 |
+| cloud | Volume Actions | POST | `/volumes/{id}/actions/change_protection` | `change_volume_protection` | `cloud_sdk_hetzner::cloud::volumes` | no | no | starts-action | no | implemented-v0.8 |
+| cloud | Volume Actions | POST | `/volumes/{id}/actions/detach` | `detach_volume` | `cloud_sdk_hetzner::cloud::volumes` | no | no | starts-action | no | implemented-v0.8 |
+| cloud | Volume Actions | POST | `/volumes/{id}/actions/resize` | `resize_volume` | `cloud_sdk_hetzner::cloud::volumes` | no | no | starts-action | no | implemented-v0.8 |
 | cloud | Volume Actions | GET | `/volumes/{id}/actions/{action_id}` | `get_volume_action` | `cloud_sdk_hetzner::cloud::volumes` | no | no | resource-action-get | yes | deferred-deprecated |
-| cloud | Volumes | GET | `/volumes` | `list_volumes` | `cloud_sdk_hetzner::cloud::volumes` | yes | yes | none | no | planned |
-| cloud | Volumes | POST | `/volumes` | `create_volume` | `cloud_sdk_hetzner::cloud::volumes` | no | no | none | no | planned |
-| cloud | Volumes | DELETE | `/volumes/{id}` | `delete_volume` | `cloud_sdk_hetzner::cloud::volumes` | no | no | none | no | planned |
-| cloud | Volumes | GET | `/volumes/{id}` | `get_volume` | `cloud_sdk_hetzner::cloud::volumes` | no | no | none | no | planned |
-| cloud | Volumes | PUT | `/volumes/{id}` | `update_volume` | `cloud_sdk_hetzner::cloud::volumes` | no | no | none | no | planned |
+| cloud | Volumes | GET | `/volumes` | `list_volumes` | `cloud_sdk_hetzner::cloud::volumes` | yes | yes | none | no | implemented-v0.8 |
+| cloud | Volumes | POST | `/volumes` | `create_volume` | `cloud_sdk_hetzner::cloud::volumes` | no | no | none | no | implemented-v0.8 |
+| cloud | Volumes | DELETE | `/volumes/{id}` | `delete_volume` | `cloud_sdk_hetzner::cloud::volumes` | no | no | none | no | implemented-v0.8 |
+| cloud | Volumes | GET | `/volumes/{id}` | `get_volume` | `cloud_sdk_hetzner::cloud::volumes` | no | no | none | no | implemented-v0.8 |
+| cloud | Volumes | PUT | `/volumes/{id}` | `update_volume` | `cloud_sdk_hetzner::cloud::volumes` | no | no | none | no | implemented-v0.8 |
 | cloud | Zone Actions | GET | `/zones/actions` | `list_zones_actions` | `cloud_sdk_hetzner::dns::zones` | yes | yes | action-list | no | planned |
 | cloud | Zone Actions | GET | `/zones/actions/{id}` | `get_zones_action` | `cloud_sdk_hetzner::dns::zones` | no | no | action-get | no | planned |
 | cloud | Zone Actions | GET | `/zones/{id_or_name}/actions` | `list_zone_actions` | `cloud_sdk_hetzner::dns::zones` | yes | yes | action-list | no | planned |

@@ -364,6 +364,8 @@ v0.7.0 implementation stop reached. Run pentest for this exact commit.
 
 ### v0.8.0 - Volumes And Floating IPs
 
+Status: implementation stop; awaiting pentest.
+
 Goal: implement volume and floating IP resources plus actions.
 
 Deliverables:
@@ -381,7 +383,7 @@ Verification:
 - `scripts/checks.sh`
 - `scripts/check_hetzner_api_drift.py --fetch`
 - `cargo test -p cloud-sdk-hetzner --all-features storage_ip`
-- `scripts/release_0_8_gate.sh` once added.
+- `scripts/release_0_8_gate.sh`
 
 Stop gate:
 

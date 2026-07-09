@@ -50,7 +50,8 @@ please report it so it can be fixed.
 
 ## Current Status
 
-Status: `v0.7.0` release candidate; pentest and retest complete.
+Status: `v0.8.0` implementation stop; run pentest for the current
+implementation commit before release metadata is finalized.
 
 Implemented now:
 
@@ -87,6 +88,8 @@ Implemented now:
   endpoint paths.
 - Hetzner server-adjacent request primitives for images, placement groups,
   primary IPs, and their v0.7 action paths.
+- Hetzner storage/IP request primitives for volumes, floating IPs, and their
+  v0.8 action paths.
 
 Not implemented yet:
 
@@ -248,4 +251,5 @@ scripts/release_0_4_gate.sh
 scripts/release_0_5_gate.sh
 scripts/release_0_6_gate.sh
 scripts/release_0_7_gate.sh
+scripts/release_0_8_gate.sh
 ```
