@@ -407,7 +407,7 @@ v0.8.0 implementation stop reached. Run pentest for this exact commit.
 
 ### v0.9.0 - Storage Box Models
 
-Status: implementation stop; awaiting pentest.
+Status: release candidate; retest passed and permanent report is included.
 
 Goal: implement Storage Box operations from the Hetzner spec while keeping them
 separate from Robot Webservice support.

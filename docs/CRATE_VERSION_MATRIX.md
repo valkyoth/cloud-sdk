@@ -1,6 +1,6 @@
 # Crate Version Matrix
 
-Status: `v0.8.0` release candidate.
+Status: `v0.9.0` release candidate.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Extra
@@ -137,3 +137,18 @@ workspace still uses a shared package version.
 | `cloud-sdk-hetzner-reqwest` | `0.7.0` | `0.8.0` | `metadata` | Yes | Keep optional transport boundary metadata aligned with v0.8.0 release evidence. |
 | `cloud-sdk-hetzner-sanitization` | `0.7.0` | `0.8.0` | `metadata` | Yes | Keep sanitization boundary metadata aligned with v0.8.0 release evidence. |
 | `cloud-sdk-hetzner-testkit` | `0.7.0` | `0.8.0` | `metadata` | Yes | Keep testkit boundary metadata aligned with v0.8.0 release evidence. |
+
+## v0.9.0 Tracking Table
+
+`v0.9.0` adds Hetzner Storage Box request domains. The provider-neutral facade
+follows the release tag, the Hetzner provider publishes a code release, and
+optional boundary crates publish metadata-aligned packages because the
+workspace still uses a shared package version.
+
+| Crate | Published | Planned | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.8.0` | `0.9.0` | `code` | Yes | Release metadata, README updates, and v0.9.0 release evidence for the provider-neutral facade. |
+| `cloud-sdk-hetzner` | `0.8.0` | `0.9.0` | `code` | Yes | No_std Storage Box request domains for boxes, types, snapshots, subaccounts, and source-locked action endpoint paths. |
+| `cloud-sdk-hetzner-reqwest` | `0.8.0` | `0.9.0` | `metadata` | Yes | Keep optional transport boundary metadata aligned with v0.9.0 release evidence. |
+| `cloud-sdk-hetzner-sanitization` | `0.8.0` | `0.9.0` | `metadata` | Yes | Keep sanitization boundary metadata aligned with v0.9.0 release evidence. |
+| `cloud-sdk-hetzner-testkit` | `0.8.0` | `0.9.0` | `metadata` | Yes | Keep testkit boundary metadata aligned with v0.9.0 release evidence. |

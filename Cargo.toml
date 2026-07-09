@@ -10,7 +10,7 @@ default-members = ["crates/cloud-sdk"]
 resolver = "3"
 
 [workspace.package]
-version = "0.8.0"
+version = "0.9.0"
 edition = "2024"
 rust-version = "1.90"
 license = "MIT OR Apache-2.0"
@@ -35,8 +35,8 @@ cast_possible_truncation = "deny"
 cast_sign_loss = "deny"
 
 [workspace.dependencies]
-cloud-sdk = { path = "crates/cloud-sdk", version = "0.8.0" }
-cloud-sdk-hetzner = { path = "crates/cloud-sdk-hetzner", version = "0.8.0" }
+cloud-sdk = { path = "crates/cloud-sdk", version = "0.9.0" }
+cloud-sdk-hetzner = { path = "crates/cloud-sdk-hetzner", version = "0.9.0" }
 
 [profile.release]
 overflow-checks = true

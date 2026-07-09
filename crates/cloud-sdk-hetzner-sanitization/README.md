@@ -37,7 +37,7 @@ Most users should start with:
 
 ```toml
 [dependencies]
-cloud-sdk-hetzner = "0.8.0"
+cloud-sdk-hetzner = "0.9.0"
 ```
 
 Use this crate only when the release notes say sanitization helpers have been

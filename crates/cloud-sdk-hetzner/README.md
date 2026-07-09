@@ -38,16 +38,16 @@ models in small reviewed releases.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.8.0"
-cloud-sdk-hetzner = "0.8.0"
+cloud-sdk = "0.9.0"
+cloud-sdk-hetzner = "0.9.0"
 ```
 
 ## Current Scope
 
-The current main branch has reached the `0.9.0` implementation stop for
-Storage Box request domains. It does not yet implement HTTP transport, serde
-models, body serialization, token storage, live API tests, retry policy,
-pagination iterators, or action polling.
+The current main branch has reached the `0.9.0` release candidate for Storage
+Box request domains, with pentest and retest complete. It does not yet
+implement HTTP transport, serde models, body serialization, token storage, live
+API tests, retry policy, pagination iterators, or action polling.
 
 Implemented in the published `0.2.0` line:
 
@@ -112,7 +112,7 @@ Implemented in the `0.8.0` release candidate:
 - explicit volume and floating IP server/location placement markers;
 - explicit floating IP DNS pointer set/reset intent.
 
-Implemented on main for next `0.9.0`:
+Implemented in the `0.9.0` release candidate:
 
 - Storage Box list/create/get/update/delete and folder-list request primitives;
 - Storage Box type list/get request primitives;

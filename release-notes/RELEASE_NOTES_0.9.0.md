@@ -1,6 +1,6 @@
 # cloud-sdk 0.9.0 Release Notes
 
-Status: implementation stop; awaiting pentest.
+Status: release candidate; pentest and retest complete.
 
 ## Scope
 
@@ -50,10 +50,20 @@ pagination iterators, action polling, or Robot Webservice support.
 - `cargo clippy -p cloud-sdk-hetzner --all-targets --all-features -- -D warnings`
 - `cargo test -p cloud-sdk-hetzner --all-features storage_box`
 - `scripts/check_hetzner_api_drift.py --fetch`
+- `scripts/validate-release-metadata.sh`
 - `scripts/checks.sh`
 - `scripts/release_0_9_gate.sh`
+- `git diff --check`
 
 ## Pentest
 
-- Pending. Stop at the implementation commit and run pentest before release
-  metadata is finalized.
+- PASS. Permanent report: `security/pentest/v0.9.0.md`.
+- Retest is green. No blocking findings remain for tagging `v0.9.0`.
+
+## Publishing Plan
+
+- `cloud-sdk` publishes as `0.9.0`.
+- `cloud-sdk-hetzner` publishes as `0.9.0`.
+- `cloud-sdk-hetzner-reqwest` publishes as `0.9.0`.
+- `cloud-sdk-hetzner-sanitization` publishes as `0.9.0`.
+- `cloud-sdk-hetzner-testkit` publishes as `0.9.0`.
