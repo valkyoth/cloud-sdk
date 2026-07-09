@@ -38,6 +38,9 @@ pagination iterators, or action polling.
 - List queries use caller-owned fixed buffers and percent encoding.
 - Bounded Cloud text/name values reject control bytes, JSON-significant bytes,
   and bidi-control scalars before future body serialization exists.
+- Primary IP address and DNS pointer values are bounded text markers in this
+  transport-free release; semantic IP and hostname validation must be added
+  before these markers are serialized into request bodies.
 - Primary IP DNS pointer changes require explicit set or reset intent.
 - Deprecated resource-local action lookup endpoints remain deferred.
 - The SDK still does not serialize request bodies or execute API requests.

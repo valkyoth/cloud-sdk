@@ -23,8 +23,6 @@ pub enum CloudRequestError {
     PathBufferTooSmall,
     /// Caller-provided query buffer is too small.
     QueryBufferTooSmall,
-    /// Decimal conversion failed.
-    NumberEncodingFailed,
     /// Path bytes failed UTF-8 conversion after construction.
     PathEncodingFailed,
     /// Name failed conservative validation.
@@ -33,12 +31,8 @@ pub enum CloudRequestError {
     InvalidText,
     /// Enum-like API value failed validation.
     InvalidType,
-    /// IP address-like text failed conservative validation.
-    InvalidIp,
     /// DNS pointer action requires explicit set or reset.
     MissingDnsPtrIntent,
-    /// Fields cannot be combined safely.
-    MutuallyExclusiveFields,
 }
 
 /// Nonzero Cloud resource identifier.
