@@ -1,7 +1,33 @@
+<p align="center">
+  <b>no_std-first Hetzner provider crate for cloud-sdk.</b><br>
+  Provider crates, explicit API domains, security-first release gates, and transport-free core types.
+</p>
+
+<div align="center">
+  <a href="https://crates.io/crates/cloud-sdk">cloud-sdk crate</a>
+  |
+  <a href="https://docs.rs/cloud-sdk-hetzner">Docs.rs</a>
+  |
+  <a href="https://github.com/valkyoth/cloud-sdk/blob/main/docs/RELEASE_PLAN.md">Release Plan</a>
+  |
+  <a href="https://github.com/valkyoth/cloud-sdk/blob/main/docs/threat-model.md">Threat Model</a>
+  |
+  <a href="https://github.com/valkyoth/cloud-sdk/blob/main/SECURITY.md">Security</a>
+</div>
+
+<br>
+
+<p align="center">
+  <a href="https://github.com/valkyoth/cloud-sdk">
+    <img src="https://raw.githubusercontent.com/valkyoth/cloud-sdk/main/.github/images/cloud-sdk.webp" alt="cloud-sdk Rust crate overview">
+  </a>
+</p>
+
 # cloud-sdk-hetzner
 
-Hetzner provider crate for the main
-[`cloud-sdk`](https://github.com/valkyoth/cloud-sdk) workspace.
+Hetzner provider crate for the main GitHub
+[`cloud-sdk`](https://github.com/valkyoth/cloud-sdk) workspace and the
+[`cloud-sdk`](https://crates.io/crates/cloud-sdk) crate on crates.io.
 
 This is the main documentation surface for Hetzner support in `cloud-sdk`.
 It source-locks the Hetzner Cloud/DNS and Storage Box OpenAPI specs, owns the

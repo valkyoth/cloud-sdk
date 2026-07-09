@@ -1,3 +1,28 @@
+<p align="center">
+  <b>Hetzner testkit boundary for cloud-sdk.</b><br>
+  Provider crates, explicit API domains, security-first release gates, and transport-free core types.
+</p>
+
+<div align="center">
+  <a href="https://crates.io/crates/cloud-sdk">cloud-sdk crate</a>
+  |
+  <a href="https://docs.rs/cloud-sdk-hetzner-testkit">Docs.rs</a>
+  |
+  <a href="https://github.com/valkyoth/cloud-sdk/blob/main/docs/RELEASE_PLAN.md">Release Plan</a>
+  |
+  <a href="https://github.com/valkyoth/cloud-sdk/blob/main/docs/threat-model.md">Threat Model</a>
+  |
+  <a href="https://github.com/valkyoth/cloud-sdk/blob/main/SECURITY.md">Security</a>
+</div>
+
+<br>
+
+<p align="center">
+  <a href="https://github.com/valkyoth/cloud-sdk">
+    <img src="https://raw.githubusercontent.com/valkyoth/cloud-sdk/main/.github/images/cloud-sdk.webp" alt="cloud-sdk Rust crate overview">
+  </a>
+</p>
+
 # cloud-sdk-hetzner-testkit
 
 Testkit boundary for

@@ -4,13 +4,15 @@
 </p>
 
 <div align="center">
+  <a href="https://crates.io/crates/cloud-sdk">Crates.io</a>
+  |
   <a href="https://docs.rs/cloud-sdk">Docs.rs</a>
   |
-  <a href="docs/RELEASE_PLAN.md">Release Plan</a>
+  <a href="https://github.com/valkyoth/cloud-sdk/blob/main/docs/RELEASE_PLAN.md">Release Plan</a>
   |
-  <a href="docs/threat-model.md">Threat Model</a>
+  <a href="https://github.com/valkyoth/cloud-sdk/blob/main/docs/threat-model.md">Threat Model</a>
   |
-  <a href="SECURITY.md">Security</a>
+  <a href="https://github.com/valkyoth/cloud-sdk/blob/main/SECURITY.md">Security</a>
 </div>
 
 <br>
@@ -37,6 +39,13 @@ Most Hetzner users should read and depend on
 [`cloud-sdk-hetzner`](https://crates.io/crates/cloud-sdk-hetzner). That crate is
 the main documentation surface for Hetzner Cloud, DNS, security, and Storage Box
 API planning.
+
+## Provider Roadmap
+
+| Provider | Target Version | Crate |
+| --- | --- | --- |
+| [`Hetzner Cloud`](https://www.hetzner.com/) | 1.0.0 | [`cloud-sdk-hetzner`](https://crates.io/crates/cloud-sdk-hetzner) |
+| [`Hetzner Robot`](https://www.hetzner.com/) | 1.1.0 | planned in `cloud-sdk-hetzner` |
 
 ## Install
 
