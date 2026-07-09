@@ -50,7 +50,8 @@ please report it so it can be fixed.
 
 ## Current Status
 
-Status: `v0.6.0` release candidate; pentest and retest complete.
+Status: `v0.7.0` implementation stop; run pentest for the current
+implementation commit before release metadata is finalized.
 
 Implemented now:
 
@@ -85,6 +86,8 @@ Implemented now:
   certificate retry action endpoints.
 - Hetzner server request primitives for server CRUD, metrics, and server action
   endpoint paths.
+- Hetzner server-adjacent request primitives for images, placement groups,
+  primary IPs, and their v0.7 action paths.
 
 Not implemented yet:
 
@@ -245,4 +248,5 @@ scripts/release_0_3_gate.sh
 scripts/release_0_4_gate.sh
 scripts/release_0_5_gate.sh
 scripts/release_0_6_gate.sh
+scripts/release_0_7_gate.sh
 ```

@@ -333,6 +333,8 @@ v0.6.0 implementation stop reached. Run pentest for this exact commit.
 
 ### v0.7.0 - Images, Placement Groups, And Primary IPs
 
+Status: implementation stop; awaiting pentest.
+
 Goal: complete remaining server-adjacent resource models.
 
 Deliverables:

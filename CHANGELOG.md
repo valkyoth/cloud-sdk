@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+- Added `cloud-sdk-hetzner::cloud::images` no_std request primitives for
+  image list/get/update/delete and image action endpoints scheduled for
+  `v0.7.0`.
+- Added `cloud-sdk-hetzner::cloud::servers::placement_groups` no_std request
+  primitives for placement group list/create/get/update/delete.
+- Added `cloud-sdk-hetzner::cloud::networks::primary_ips` no_std request
+  primitives for primary IP list/create/get/update/delete and primary IP
+  action endpoints.
+- Added shared Cloud request helpers for nonzero IDs, bounded JSON-safe
+  text/name values, ordered labels, fixed-buffer paths, and query construction.
+- Hardened v0.7.0 request intent by requiring explicit primary IP DNS pointer
+  set/reset and by omitting removed datacenter request fields from create and
+  update builders.
+- Added the `v0.7.0` release gate script.
+
 ## 0.6.0 - 2026-07-08
 
 - Added `cloud-sdk-hetzner::cloud::servers` no_std request primitives for

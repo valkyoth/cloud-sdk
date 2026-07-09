@@ -7,6 +7,7 @@ pub mod load_balancers;
 pub mod networks;
 pub mod pricing;
 pub mod servers;
+pub mod shared;
 pub mod volumes;
 
 use crate::EndpointGroup;

@@ -18,10 +18,10 @@ cloud-sdk-hetzner = "0.6.0"
 
 ## Current Scope
 
-The current main branch has reached the `0.6.0` release candidate for server
-request domains. Pentest and retest are complete. It does not yet implement
-HTTP transport, serde models, body serialization, token storage, live API
-tests, retry policy, pagination iterators, or action polling.
+The current main branch has reached the `0.7.0` implementation stop for
+server-adjacent request domains. It does not yet implement HTTP transport,
+serde models, body serialization, token storage, live API tests, retry policy,
+pagination iterators, or action polling.
 
 Implemented in the published `0.2.0` line:
 
@@ -56,7 +56,7 @@ Implemented in the published `0.5.0` line:
 - redacted `Debug` output for secret-adjacent SSH public key and certificate
   PEM request values.
 
-Implemented in the release-candidate `0.6.0` line:
+Implemented in the published `0.6.0` line:
 
 - server list/create/get/update/delete request primitives;
 - server metrics request primitives with time range validation;
@@ -64,6 +64,16 @@ Implemented in the release-candidate `0.6.0` line:
   actions;
 - explicit DNS pointer set/reset intent for deprecated omitted `dns_ptr`
   behavior.
+
+Implemented on main for next `0.7.0`:
+
+- image list/get/update/delete request primitives;
+- image action list/get, per-image action list, and protection action paths;
+- placement group list/create/get/update/delete request primitives;
+- primary IP list/create/get/update/delete request primitives;
+- primary IP assign, unassign, DNS pointer, and protection action paths;
+- explicit primary IP DNS pointer set/reset intent;
+- no public create/update fields for removed datacenter request parameters.
 
 ## Endpoint Surface Example
 

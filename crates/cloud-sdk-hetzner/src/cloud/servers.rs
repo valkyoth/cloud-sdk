@@ -2,6 +2,8 @@
 
 mod shared;
 
+pub mod placement_groups;
+
 use cloud_sdk::Method;
 
 use crate::EndpointGroup;
