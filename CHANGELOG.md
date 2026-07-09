@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.8.0 - 2026-07-09
+
 - Added `cloud-sdk-hetzner::cloud::volumes` no_std request primitives for
   volume list/create/get/update/delete and volume action endpoints scheduled
   for `v0.8.0`.
@@ -11,6 +13,8 @@
 - Added bounded Volume size markers, explicit volume server/location
   placement, explicit floating IP server/home-location placement, and explicit
   floating IP DNS pointer set/reset intent.
+- Hardened v0.8.0 storage/IP tests after pentest review by making fallible
+  fixture constructor failures explicit assertion failures.
 - Added the `v0.8.0` release gate script.
 
 ## 0.7.0 - 2026-07-09

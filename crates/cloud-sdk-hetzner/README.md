@@ -38,16 +38,16 @@ models in small reviewed releases.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.7.0"
-cloud-sdk-hetzner = "0.7.0"
+cloud-sdk = "0.8.0"
+cloud-sdk-hetzner = "0.8.0"
 ```
 
 ## Current Scope
 
-The current main branch has reached the `0.8.0` implementation stop for
-storage/IP request domains. It does not yet implement HTTP transport, serde
-models, body serialization, token storage, live API tests, retry policy,
-pagination iterators, or action polling.
+The current main branch has reached the `0.8.0` release candidate for
+storage/IP request domains, with pentest and retest complete. It does not yet
+implement HTTP transport, serde models, body serialization, token storage, live
+API tests, retry policy, pagination iterators, or action polling.
 
 Implemented in the published `0.2.0` line:
 
@@ -101,7 +101,7 @@ Implemented in the published `0.7.0` line:
 - explicit primary IP DNS pointer set/reset intent;
 - no public create/update fields for removed datacenter request parameters.
 
-Implemented on main for next `0.8.0`:
+Implemented in the `0.8.0` release candidate:
 
 - volume list/create/get/update/delete request primitives;
 - volume action list/get, per-volume action list, attach, detach, resize, and

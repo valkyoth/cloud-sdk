@@ -1,6 +1,6 @@
 # cloud-sdk 0.8.0 Release Notes
 
-Status: implementation stop; awaiting pentest.
+Status: release candidate; pentest and retest complete.
 
 ## Scope
 
@@ -33,6 +33,8 @@ pagination iterators, or action polling.
 - List queries use caller-owned fixed buffers and percent encoding.
 - Volume create and floating IP create use explicit placement enums so future
   body serializers do not accidentally combine server and location fields.
+- v0.8 volume and floating IP tests now fail closed when shared fixture
+  constructors reject their inputs.
 - Floating IP address and DNS pointer values are bounded text markers in this
   transport-free release; semantic IP and hostname validation must be added
   before these markers are serialized into request bodies.
@@ -45,10 +47,20 @@ pagination iterators, or action polling.
 - `cargo clippy -p cloud-sdk-hetzner --all-targets --all-features -- -D warnings`
 - `cargo test -p cloud-sdk-hetzner --all-features storage_ip`
 - `scripts/check_hetzner_api_drift.py --fetch`
+- `scripts/validate-release-metadata.sh`
 - `scripts/checks.sh`
 - `scripts/release_0_8_gate.sh`
+- `git diff --check`
 
 ## Pentest
 
-- Pending. Stop at the implementation commit and run pentest before release
-  metadata is finalized.
+- PASS. Permanent report: `security/pentest/v0.8.0.md`.
+- Retest is green. No blocking findings remain for tagging `v0.8.0`.
+
+## Publishing Plan
+
+- `cloud-sdk` publishes as `0.8.0`.
+- `cloud-sdk-hetzner` publishes as `0.8.0`.
+- `cloud-sdk-hetzner-reqwest` publishes as `0.8.0`.
+- `cloud-sdk-hetzner-sanitization` publishes as `0.8.0`.
+- `cloud-sdk-hetzner-testkit` publishes as `0.8.0`.

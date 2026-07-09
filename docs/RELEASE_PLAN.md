@@ -378,7 +378,7 @@ v0.7.0 implementation stop reached. Run pentest for this exact commit.
 
 ### v0.8.0 - Volumes And Floating IPs
 
-Status: implementation stop; awaiting pentest.
+Status: release candidate; retest passed and permanent report is included.
 
 Goal: implement volume and floating IP resources plus actions.
 
