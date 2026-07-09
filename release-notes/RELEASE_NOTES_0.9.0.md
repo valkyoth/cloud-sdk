@@ -36,6 +36,10 @@ pagination iterators, action polling, or Robot Webservice support.
 - List queries use caller-owned fixed buffers and percent encoding.
 - Password-like request values are redacted in `Debug` and can only be written
   through JSON-string escaping in this release.
+- Password JSON output buffers contain plaintext until the caller overwrites
+  them after transmission.
+- Subaccount home-directory validation rejects absolute paths and trimmed `.`
+  or `..` segments.
 - The deprecated resource-local action lookup endpoint remains intentionally
   deferred.
 - The SDK still does not serialize request bodies or execute API requests.

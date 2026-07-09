@@ -239,6 +239,8 @@ fn storage_box_body_markers_validate_required_fields_and_secrets() {
         &output,
         r#""a\"b\\c""#,
     );
+    output.fill(0);
+    assert_eq!(output, [0u8; 16]);
     assert_eq!(
         StorageBoxResetPasswordRequest::try_new(None),
         Err(StorageBoxRequestError::MissingRequiredField)
@@ -288,6 +290,14 @@ fn storage_box_snapshot_and_subaccount_markers_validate_boundaries() {
     );
     assert_eq!(
         StorageBoxHomeDirectory::new("safe/../escape"),
+        Err(StorageBoxRequestError::InvalidText)
+    );
+    assert_eq!(
+        StorageBoxHomeDirectory::new("safe/.. /escape"),
+        Err(StorageBoxRequestError::InvalidText)
+    );
+    assert_eq!(
+        StorageBoxHomeDirectory::new("safe/./path"),
         Err(StorageBoxRequestError::InvalidText)
     );
     let home = StorageBoxHomeDirectory::new("safe/path");

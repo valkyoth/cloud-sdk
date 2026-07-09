@@ -115,6 +115,12 @@ impl<'a> StorageBoxPassword<'a> {
     }
 
     /// Writes this password as a JSON string into a caller-owned buffer.
+    ///
+    /// # Security
+    ///
+    /// `output` contains the plaintext password after this call succeeds.
+    /// Callers must overwrite the written bytes, for example with
+    /// `output[..written].fill(0)`, once the request body has been sent.
     pub fn write_json_string(self, output: &mut [u8]) -> Result<usize, StorageBoxRequestError> {
         let mut len = 0;
         buffer::write_json_string(
@@ -145,7 +151,9 @@ impl<'a> StorageBoxHomeDirectory<'a> {
         if value.is_empty()
             || value.len() > 999
             || value.starts_with('/')
-            || value.split('/').any(|segment| segment == "..")
+            || value
+                .split('/')
+                .any(|segment| matches!(segment.trim(), "." | ".."))
             || !value.bytes().all(is_home_directory_byte)
         {
             return Err(StorageBoxRequestError::InvalidText);
