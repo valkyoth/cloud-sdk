@@ -104,6 +104,20 @@ Use this loop for every version:
 Root `PENTEST.md` is temporary scratch input. It must not be committed. The
 permanent report is part of the release tag.
 
+## Source Spec Pin Rotation
+
+The Hetzner API drift check fetches upstream OpenAPI specs over HTTPS and
+verifies the downloaded bytes against pinned SHA-256 values before using them.
+That pin is a trust boundary. When `PINNED_SPEC_SHA256` changes:
+
+1. Fetch the new spec manually.
+2. Diff the new spec content against the previous pinned spec content, not only
+   the hash value.
+3. Confirm the diff matches the intended upstream changelog or reviewed API
+   documentation change.
+4. Update `PINNED_SPEC_SHA256` only in the same reviewed source-lock pass that
+   updates fingerprints, release notes, and pentest evidence.
+
 ## Crate Versioning And Publish Order
 
 Provider-neutral domains live in `cloud-sdk`. Hetzner endpoint models live in
