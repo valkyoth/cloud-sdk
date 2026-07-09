@@ -4,13 +4,15 @@
 </p>
 
 <div align="center">
+  <a href="https://crates.io/crates/cloud-sdk">Crates.io</a>
+  |
   <a href="https://docs.rs/cloud-sdk">Docs.rs</a>
   |
-  <a href="docs/RELEASE_PLAN.md">Release Plan</a>
+  <a href="https://github.com/valkyoth/cloud-sdk/blob/main/docs/RELEASE_PLAN.md">Release Plan</a>
   |
-  <a href="docs/threat-model.md">Threat Model</a>
+  <a href="https://github.com/valkyoth/cloud-sdk/blob/main/docs/threat-model.md">Threat Model</a>
   |
-  <a href="SECURITY.md">Security</a>
+  <a href="https://github.com/valkyoth/cloud-sdk/blob/main/SECURITY.md">Security</a>
 </div>
 
 <br>
@@ -121,8 +123,15 @@ Not implemented yet:
 | Network defaults | none |
 | Secret storage defaults | none |
 | Release evidence | local gates, dependency policy, SBOM, pentest report before tags |
-| Crate versions | tracked in [`docs/CRATE_VERSION_MATRIX.md`](docs/CRATE_VERSION_MATRIX.md) |
+| Crate versions | tracked in [`docs/CRATE_VERSION_MATRIX.md`](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATE_VERSION_MATRIX.md) |
 | 1.0 target | serious production-ready provider-neutral foundation plus Hetzner provider |
+
+## Provider Roadmap
+
+| Provider | Target Version | Crate |
+| --- | --- | --- |
+| [`Hetzner Cloud`](https://www.hetzner.com/) | 1.0.0 | [`cloud-sdk-hetzner`](https://crates.io/crates/cloud-sdk-hetzner) |
+| [`Hetzner Robot`](https://www.hetzner.com/) | 1.1.0 | planned in `cloud-sdk-hetzner` |
 
 ## Install
 
@@ -132,19 +141,70 @@ cloud-sdk = "0.7.0"
 cloud-sdk-hetzner = "0.7.0"
 ```
 
+## Provider-Neutral Example
+
+```rust
+use cloud_sdk::{ApiFamily, Method, Provider};
+
+let provider = Provider::Hetzner;
+let family = ApiFamily::Cloud;
+let method = Method::Get;
+
+assert_eq!(provider, Provider::Hetzner);
+assert_eq!(family, ApiFamily::Cloud);
+assert_eq!(method, Method::Get);
+```
+
+## Fixed Buffer Example
+
+```rust
+use cloud_sdk::buffer::write_query_u64;
+
+# fn main() -> Result<(), ()> {
+let mut output = [0u8; 8];
+let mut len = 0;
+let mut first = true;
+write_query_u64(&mut output, &mut len, &mut first, "page", 0, ())?;
+
+let query = output
+    .get(..len)
+    .and_then(|bytes| core::str::from_utf8(bytes).ok());
+assert_eq!(query, Some("page=0"));
+# Ok(())
+# }
+```
+
+## JSON String Example
+
+```rust
+use cloud_sdk::buffer::write_json_string;
+
+# fn main() -> Result<(), ()> {
+let mut output = [0u8; 48];
+let mut len = 0;
+write_json_string(&mut output, &mut len, "line\n\"quoted\"", ())?;
+
+let value = output
+    .get(..len)
+    .and_then(|bytes| core::str::from_utf8(bytes).ok());
+assert_eq!(value, Some("\"line\\n\\\"quoted\\\"\""));
+# Ok(())
+# }
+```
+
 ## Workspace Crates
 
 | Crate | Default `std`? | Purpose |
 | --- | --- | --- |
-| [`cloud-sdk`](crates/cloud-sdk/README.md) | no | Provider-neutral domains and shared SDK foundation. |
-| [`cloud-sdk-hetzner`](crates/cloud-sdk-hetzner/README.md) | no | Main Hetzner documentation and provider crate with internal `cloud`, `dns`, `security`, and `storage` modules. |
-| [`cloud-sdk-hetzner-reqwest`](crates/cloud-sdk-hetzner-reqwest/README.md) | no | Future optional reqwest transport adapter; no transport dependency admitted yet. |
-| [`cloud-sdk-hetzner-testkit`](crates/cloud-sdk-hetzner-testkit/README.md) | no | Future mock transport, fixtures, and adversarial API response helpers. |
-| [`cloud-sdk-hetzner-sanitization`](crates/cloud-sdk-hetzner-sanitization/README.md) | no | Future optional token/secret sanitization helpers. |
+| [`cloud-sdk`](https://crates.io/crates/cloud-sdk) | no | Provider-neutral domains and shared SDK foundation. |
+| [`cloud-sdk-hetzner`](https://crates.io/crates/cloud-sdk-hetzner) | no | Main Hetzner documentation and provider crate with internal `cloud`, `dns`, `security`, and `storage` modules. |
+| [`cloud-sdk-hetzner-reqwest`](https://crates.io/crates/cloud-sdk-hetzner-reqwest) | no | Future optional reqwest transport adapter; no transport dependency admitted yet. |
+| [`cloud-sdk-hetzner-testkit`](https://crates.io/crates/cloud-sdk-hetzner-testkit) | no | Future mock transport, fixtures, and adversarial API response helpers. |
+| [`cloud-sdk-hetzner-sanitization`](https://crates.io/crates/cloud-sdk-hetzner-sanitization) | no | Future optional token/secret sanitization helpers. |
 
 The root README documents the workspace and release process. Crate-local README
 files document the crate-specific role and examples. For Hetzner-specific usage,
-start with [`cloud-sdk-hetzner`](crates/cloud-sdk-hetzner/README.md).
+start with [`cloud-sdk-hetzner`](https://crates.io/crates/cloud-sdk-hetzner).
 
 Hetzner endpoint modules live inside the provider crate:
 
@@ -195,7 +255,7 @@ The `v0.2.0` planning pass source-locked the official machine-readable specs:
 - Cloud and DNS: <https://docs.hetzner.cloud/cloud.spec.json>
 - Storage Boxes: <https://docs.hetzner.cloud/hetzner.spec.json>
 
-[`docs/API_MATRIX.md`](docs/API_MATRIX.md) tracks all 221 discovered operations.
+[`docs/API_MATRIX.md`](https://github.com/valkyoth/cloud-sdk/blob/main/docs/API_MATRIX.md) tracks all 221 discovered operations.
 Deprecated operations remain listed for drift tracking, but are marked
 `deferred-deprecated` until the SDK has an explicit compatibility policy.
 
@@ -206,8 +266,10 @@ scripts/check_hetzner_api_drift.py --fetch
 ```
 
 That compares the current upstream specs with the locked operation and schema
-fingerprints in [`docs/API_FINGERPRINTS.tsv`](docs/API_FINGERPRINTS.tsv) and
-[`docs/API_SCHEMA_FINGERPRINTS.tsv`](docs/API_SCHEMA_FINGERPRINTS.tsv).
+fingerprints in
+[`docs/API_FINGERPRINTS.tsv`](https://github.com/valkyoth/cloud-sdk/blob/main/docs/API_FINGERPRINTS.tsv)
+and
+[`docs/API_SCHEMA_FINGERPRINTS.tsv`](https://github.com/valkyoth/cloud-sdk/blob/main/docs/API_SCHEMA_FINGERPRINTS.tsv).
 
 Do not refresh lock files directly from a drift report. First review the
 upstream changes and update the pinned spec hashes in the source-lock evidence.
