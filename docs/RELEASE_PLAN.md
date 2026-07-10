@@ -62,8 +62,9 @@ A version is not tag-ready until:
 - release notes exist at `release-notes/RELEASE_NOTES_X.Y.Z.md`;
 - a pentest report exists at `security/pentest/vX.Y.Z.md`;
 - the pentest report names the exact full 40-character `Reviewed-Commit:`;
-- the pentest report has a valid detached OpenSSH signature from the approved
-  `pentest@cloud-sdk` identity under namespace `cloud-sdk-pentest-v1`;
+- the pentest report has a valid OpenSSH-signed attestation from the approved
+  `pentest@cloud-sdk` identity under namespace `cloud-sdk-pentest-v1`, binding
+  its committed Git blob, path, and SHA-256;
 - the pentest report has `Status: PASS`;
 - the pentest report has non-blank `Tester:` and `Scope:` fields;
 - the pentest report has a `Date: YYYY-MM-DD` field;
@@ -114,12 +115,14 @@ Use this loop for every version:
 7. Local gates are run again.
 8. GitHub CI and CodeQL default setup are checked after the fix commit.
 9. A permanent report is written at `security/pentest/vX.Y.Z.md` only when the
-   exact finalized commit has passed with `Status: PASS`, then signed using
-   `scripts/sign-pentest-report.sh` by the approved pentest identity.
-10. Commit the permanent report and evidence-only artifacts. Any later change
-    under a release-sensitive path requires another retest.
-11. GitHub CI and CodeQL default setup are checked on the report commit.
-12. Tagging and pushing tags happen only when explicitly requested.
+   exact finalized commit has passed with `Status: PASS`.
+10. Commit the unsigned report, ensure the repository is clean, then run
+    `scripts/sign-pentest-report.sh` using the approved pentest identity. The
+    helper signs an attestation for the immutable report blob from `HEAD`.
+11. Commit the generated `.md.attestation`, `.md.sig`, and other evidence-only
+    artifacts. Any later release-sensitive change requires another retest.
+12. GitHub CI and CodeQL default setup are checked on the evidence commit.
+13. Tagging and pushing tags happen only when explicitly requested.
 
 Root `PENTEST.md` is temporary scratch input. It must not be committed. The
 permanent report is part of the release tag.

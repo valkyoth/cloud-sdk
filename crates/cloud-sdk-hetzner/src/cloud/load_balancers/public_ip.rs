@@ -15,6 +15,9 @@ impl Ipv6Prefix {
     }
 
     fn contains(self, address: Ipv6Addr) -> bool {
+        if self.prefix_len > 32 {
+            return false;
+        }
         let [first, second, _, _, _, _, _, _] = address.segments();
         let value = (u32::from(first) << 16) | u32::from(second);
         let shift = 32_u32.checked_sub(u32::from(self.prefix_len)).unwrap_or(32);
@@ -107,5 +110,12 @@ mod tests {
             let address = Ipv6Addr::new(first, second, 0, 0, 0, 0, 0, 1);
             assert!(!invalid_public_v6(address), "rejected {address}");
         }
+    }
+
+    #[test]
+    fn unsupported_long_prefix_fails_closed() {
+        let prefix = Ipv6Prefix::new(0, 0, 33);
+        assert!(!prefix.contains(Ipv6Addr::LOCALHOST));
+        assert!(!prefix.contains(Ipv6Addr::UNSPECIFIED));
     }
 }

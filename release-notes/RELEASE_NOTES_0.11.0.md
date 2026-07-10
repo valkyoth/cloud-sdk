@@ -56,18 +56,19 @@ pagination iterators, or action polling.
   documentation, deprecated, special-purpose, unallocated, and reserved ranges
   are rejected.
 - Release metadata requires exactly one unambiguous `Reviewed-Commit:` field.
-- Permanent pentest reports require a detached OpenSSH signature from the
+- Permanent pentest reports require an OpenSSH-signed attestation from the
   approved pentest key, which is distinct from the release-tag signing key.
-- Pentest reports, signatures, and signer policy are opened without following
-  links, copied into private bounded snapshots, and report fields are parsed
-  only from the exact bytes whose signature verified.
+- Pentest reports, attestations, signatures, and signer policy are opened
+  without following links and copied into private bounded snapshots. The
+  signed metadata binds the report's immutable Git commit, path, and SHA-256.
 - Source-lock files, release notes, changelog, and security documentation are
   included in post-review content binding.
 - Local OpenAPI inputs are opened once without following links and validated
   from the resulting descriptor; symlinks, FIFOs, devices, and oversized files
   are rejected before hashing or parsing.
-- Pentest signatures are created from a private report copy and atomically
-  hard-linked into place without overwriting any existing path.
+- Pentest signing requires a clean repository, reads the committed report as a
+  Git blob, and hard-links verified attestation files into place without
+  overwriting any existing path.
 - The release gate fetches bounded copies of both IANA IPv6 registries and
   fails on digest, allocation, special-range, lock-file, or Rust-policy drift.
 
@@ -93,6 +94,9 @@ pagination iterators, or action polling.
   provenance, content-binding scope, and local OpenAPI file handling.
 - Final remediation source-locked IANA IPv6 allocations, removed signed-report
   and local-spec pathname races, and hardened signature publication.
+- Final signing hardening binds evidence to a committed Git blob, makes future
+  unsupported IPv6 prefix lengths fail closed, and authenticates IANA bytes
+  before CSV parsing.
 - All findings are remediated; retest is pending for the finalized
   release-sensitive commit and its signed report.
 

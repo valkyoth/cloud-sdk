@@ -4,7 +4,9 @@
 from __future__ import annotations
 
 import importlib.util
+import hashlib
 import io
+import tempfile
 from pathlib import Path
 
 
@@ -87,6 +89,27 @@ def test_local_lock_matches_rust_policy() -> None:
         raise AssertionError("local IANA lock does not match Rust policy")
 
 
+def test_registry_is_authenticated_before_parsing() -> None:
+    payload = b"not authenticated CSV"
+    original = checker.REGISTRIES["global-unicast"]
+    checker.REGISTRIES["global-unicast"] = (original[0], hashlib.sha256(b"x").hexdigest())
+    try:
+        assert_exits(
+            "SHA-256 mismatch", checker.verified_registry, "global-unicast", payload
+        )
+    finally:
+        checker.REGISTRIES["global-unicast"] = original
+
+
+def test_rust_policy_rejects_unrepresentable_prefixes() -> None:
+    with tempfile.TemporaryDirectory() as directory:
+        policy = Path(directory) / "public_ip.rs"
+        policy.write_text(
+            "Ipv6Prefix::new(0x2001, 0x0200, 33),\n", encoding="utf-8"
+        )
+        assert_exits("longer than", checker.rust_prefixes, policy)
+
+
 def main() -> None:
     tests = (
         test_allocated_rows_apply_policy_exclusions,
@@ -95,6 +118,8 @@ def main() -> None:
         test_bounded_reader_rejects_oversize,
         test_bounded_reader_rejects_total_timeout,
         test_local_lock_matches_rust_policy,
+        test_registry_is_authenticated_before_parsing,
+        test_rust_policy_rejects_unrepresentable_prefixes,
     )
     for test in tests:
         test()

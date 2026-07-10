@@ -31,6 +31,9 @@
 - Added a fail-closed IANA IPv6 registry drift checker that keeps the
   machine-readable allocation lock and Rust policy synchronized and runs live
   from the release gate.
+- Bound pentest signatures to an immutable committed report blob through
+  signed commit/path/SHA-256 metadata, rejected unrepresentable IPv6 prefixes,
+  and authenticated IANA registry bytes before parsing.
 
 ## 0.10.0 - 2026-07-10
 

@@ -109,6 +109,10 @@ def rust_prefixes(path: Path = RUST_POLICY) -> set[str]:
         raise SystemExit(f"cannot read Rust IPv6 policy: {path}") from error
     prefixes = set()
     for first, second, length in PREFIX_PATTERN.findall(source):
+        if int(length) > 32:
+            raise SystemExit(
+                "Rust IPv6 policy uses a prefix longer than its 32-bit storage"
+            )
         network = (int(first, 16) << 112) | (int(second, 16) << 96)
         try:
             prefix = ipaddress.IPv6Network((network, int(length)), strict=True)
@@ -182,6 +186,17 @@ def fetch_registry(name: str) -> bytes:
         raise SystemExit(f"could not fetch {name} registry: {error}") from error
 
 
+def verified_registry(name: str, payload: bytes) -> bytes:
+    actual = hashlib.sha256(payload).hexdigest()
+    expected = REGISTRIES[name][1]
+    if actual != expected:
+        raise SystemExit(
+            f"{name} registry SHA-256 mismatch: expected {expected}, got {actual}"
+        )
+    print(f"{name} registry SHA-256 verified")
+    return payload
+
+
 def validate_local() -> int:
     locked = locked_rows()
     status = report_drift("Rust IPv6 policy", set(locked), rust_prefixes())
@@ -197,7 +212,9 @@ def validate_local() -> int:
 
 
 def validate_fetched() -> int:
-    payloads = {name: fetch_registry(name) for name in REGISTRIES}
+    payloads = {
+        name: verified_registry(name, fetch_registry(name)) for name in REGISTRIES
+    }
     status = report_drift(
         "IANA global-unicast allocations",
         locked_rows(),
@@ -213,17 +230,6 @@ def validate_fetched() -> int:
             file=sys.stderr,
         )
         status = 1
-    for name, payload in payloads.items():
-        actual = hashlib.sha256(payload).hexdigest()
-        expected = REGISTRIES[name][1]
-        if actual != expected:
-            print(
-                f"{name} registry SHA-256 mismatch: expected {expected}, got {actual}",
-                file=sys.stderr,
-            )
-            status = 1
-        else:
-            print(f"{name} registry SHA-256 verified")
     return status
 
 
