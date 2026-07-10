@@ -52,8 +52,7 @@ please report it so it can be fixed.
 
 ## Current Status
 
-Status: `v0.10.0` implementation stop; run pentest for the current
-implementation commit before release metadata is finalized.
+Status: `v0.10.0` release candidate; pentest and retest complete.
 
 Implemented now:
 
@@ -143,8 +142,8 @@ Not implemented yet:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.9.0"
-cloud-sdk-hetzner = "0.9.0"
+cloud-sdk = "0.10.0"
+cloud-sdk-hetzner = "0.10.0"
 ```
 
 ## Provider-Neutral Example

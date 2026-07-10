@@ -437,7 +437,7 @@ v0.9.0 implementation stop reached. Run pentest for this exact commit.
 
 ### v0.10.0 - Firewalls And Networks
 
-Status: implementation stop; awaiting pentest.
+Status: release candidate; retest passed and permanent report is included.
 
 Goal: implement firewall, firewall action, network, and network action request
 domains.

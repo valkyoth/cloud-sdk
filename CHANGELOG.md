@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.10.0 - 2026-07-10
+
 - Added `cloud-sdk-hetzner::cloud::firewalls` no_std request primitives for
   Firewall CRUD, resource apply/remove actions, and rule replacement.
 - Added `cloud-sdk-hetzner::cloud::networks` no_std request primitives for
@@ -11,6 +13,8 @@
   validation.
 - Updated the development compiler to current stable Rust `1.97.0` and the CI
   `cargo-deny` pin to current `0.20.2`.
+- Hardened Firewall CIDR validation after pentest review by rejecting IPv4 and
+  IPv6 host bits while retaining `/32` and `/128` single-host selectors.
 - Added the `v0.10.0` release gate script.
 
 ## 0.9.0 - 2026-07-09

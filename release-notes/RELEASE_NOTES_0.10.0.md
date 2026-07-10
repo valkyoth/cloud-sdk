@@ -1,6 +1,6 @@
 # cloud-sdk 0.10.0 Release Notes
 
-Status: implementation stop; pentest required before release metadata is finalized.
+Status: release candidate; pentest and retest complete.
 
 ## Scope
 
@@ -61,9 +61,13 @@ pagination iterators, or action polling.
 
 ## Pentest
 
-- Pending for the exact implementation-stop commit.
+- PASS. Permanent report: `security/pentest/v0.10.0.md`.
+- Retest is green. No blocking findings remain for tagging `v0.10.0`.
 
 ## Publishing Plan
 
-- Final crate versions and publish decisions are recorded after pentest and
-  retest in `docs/CRATE_VERSION_MATRIX.md` and `release-crates.toml`.
+- `cloud-sdk` publishes as `0.10.0`.
+- `cloud-sdk-hetzner` publishes as `0.10.0`.
+- `cloud-sdk-hetzner-reqwest` publishes as `0.10.0`.
+- `cloud-sdk-hetzner-sanitization` publishes as `0.10.0`.
+- `cloud-sdk-hetzner-testkit` publishes as `0.10.0`.

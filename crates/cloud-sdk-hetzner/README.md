@@ -38,16 +38,16 @@ models in small reviewed releases.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.9.0"
-cloud-sdk-hetzner = "0.9.0"
+cloud-sdk = "0.10.0"
+cloud-sdk-hetzner = "0.10.0"
 ```
 
 ## Current Scope
 
-The current main branch has reached the `0.10.0` implementation stop for
-Firewall and Network request domains. It does not yet
-implement HTTP transport, serde models, body serialization, token storage, live
-API tests, retry policy, pagination iterators, or action polling.
+The current main branch has reached the `0.10.0` release candidate for
+Firewall and Network request domains, with pentest and retest complete. It does
+not yet implement HTTP transport, serde models, body serialization, token
+storage, live API tests, retry policy, pagination iterators, or action polling.
 
 Implemented in the published `0.2.0` line:
 
@@ -101,7 +101,7 @@ Implemented in the published `0.7.0` line:
 - explicit primary IP DNS pointer set/reset intent;
 - no public create/update fields for removed datacenter request parameters.
 
-Implemented in the `0.8.0` release candidate:
+Implemented in the published `0.8.0` line:
 
 - volume list/create/get/update/delete request primitives;
 - volume action list/get, per-volume action list, attach, detach, resize, and
@@ -112,7 +112,7 @@ Implemented in the `0.8.0` release candidate:
 - explicit volume and floating IP server/location placement markers;
 - explicit floating IP DNS pointer set/reset intent.
 
-Implemented in the `0.9.0` release candidate:
+Implemented in the published `0.9.0` line:
 
 - Storage Box list/create/get/update/delete and folder-list request primitives;
 - Storage Box type list/get request primitives;
@@ -122,7 +122,7 @@ Implemented in the `0.9.0` release candidate:
 - redacted Storage Box password markers, bounded snapshot-plan markers, and
   conservative subaccount home-directory validation.
 
-Implemented on main for next `0.10.0`:
+Implemented in the `0.10.0` release candidate:
 
 - Firewall list/create/get/update/delete request primitives;
 - Firewall apply/remove resource and set-rules action request primitives;
