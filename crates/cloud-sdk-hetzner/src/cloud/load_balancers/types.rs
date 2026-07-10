@@ -1,10 +1,12 @@
 //! Shared Load Balancer request values.
 
-use core::net::{IpAddr, Ipv4Addr, Ipv6Addr};
+use core::net::IpAddr;
 use core::str::FromStr;
 
 use crate::cloud::ip::IpValidationError;
 use crate::cloud::shared::{CloudLabels, CloudRequestError, CloudResourceId};
+
+use super::public_ip::{invalid_public_v4, invalid_public_v6};
 
 /// Load Balancer identifier.
 pub type LoadBalancerId = CloudResourceId;
@@ -223,39 +225,6 @@ impl<'a> LoadBalancerPublicIp<'a> {
     pub const fn as_str(self) -> &'a str {
         self.0.as_str()
     }
-}
-
-fn invalid_public_v4(address: Ipv4Addr) -> bool {
-    let [first, second, third, _] = address.octets();
-    address.is_private()
-        || address.is_loopback()
-        || address.is_link_local()
-        || address.is_multicast()
-        || address.is_unspecified()
-        || address.is_broadcast()
-        || first == 0
-        || (first == 100 && (64..=127).contains(&second))
-        || (first == 192 && second == 0 && (third == 0 || third == 2))
-        || (first == 192 && second == 88 && third == 99)
-        || (first == 198 && (second == 18 || second == 19))
-        || (first == 198 && second == 51 && third == 100)
-        || (first == 203 && second == 0 && third == 113)
-        || first >= 240
-}
-
-fn invalid_public_v6(address: Ipv6Addr) -> bool {
-    let [first, second, _, _, _, _, _, _] = address.segments();
-    if address.to_ipv4_mapped().is_some() {
-        return true;
-    }
-
-    let global_unicast_shape = first & 0xe000 == 0x2000;
-    let ietf_special = first == 0x2001 && second <= 0x01ff;
-    let documentation_2001 = first == 0x2001 && second == 0x0db8;
-    let six_to_four = first == 0x2002;
-    let documentation_3fff = first == 0x3fff && second & 0xf000 == 0;
-
-    !global_unicast_shape || ietf_special || documentation_2001 || six_to_four || documentation_3fff
 }
 
 fn invalid_text(value: &str, max: usize, reject_empty: bool) -> bool {

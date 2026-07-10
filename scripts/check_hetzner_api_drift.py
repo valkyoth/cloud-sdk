@@ -7,6 +7,7 @@ import argparse
 import csv
 import hashlib
 import json
+import os
 import stat
 import sys
 import tempfile
@@ -116,26 +117,37 @@ def schema_rows(api: str, document: dict[str, Any]) -> list[dict[str, str]]:
 def read_bounded_file(
     api: str, path: Path, *, max_bytes: int = MAX_SPEC_BYTES
 ) -> bytes:
+    required = ("O_CLOEXEC", "O_NOFOLLOW", "O_NONBLOCK")
+    if any(not hasattr(os, name) for name in required):
+        raise SystemExit("platform lacks secure no-follow local spec reads")
+    flags = os.O_RDONLY | os.O_CLOEXEC | os.O_NOFOLLOW | os.O_NONBLOCK
     try:
-        info = path.lstat()
+        descriptor = os.open(path, flags)
     except OSError as error:
-        raise SystemExit(f"{api} spec cannot be inspected: {path}: {error}") from error
-    if not stat.S_ISREG(info.st_mode):
-        raise SystemExit(f"{api} spec must be a regular file: {path}")
-    if info.st_size > max_bytes:
-        raise SystemExit(f"{api} spec exceeds {max_bytes} bytes")
+        raise SystemExit(
+            f"{api} spec must be a readable regular file: {path}"
+        ) from error
+    try:
+        info = os.fstat(descriptor)
+        if not stat.S_ISREG(info.st_mode):
+            raise SystemExit(f"{api} spec must be a regular file: {path}")
+        if info.st_size > max_bytes:
+            raise SystemExit(f"{api} spec exceeds {max_bytes} bytes")
 
-    data = bytearray()
-    with path.open("rb") as handle:
+        data = bytearray()
         while True:
             remaining = max_bytes + 1 - len(data)
-            chunk = handle.read(min(READ_CHUNK_BYTES, remaining))
+            try:
+                chunk = os.read(descriptor, min(READ_CHUNK_BYTES, remaining))
+            except OSError as error:
+                raise SystemExit(f"{api} spec could not be read: {path}") from error
             if not chunk:
-                break
+                return bytes(data)
             data.extend(chunk)
             if len(data) > max_bytes:
                 raise SystemExit(f"{api} spec exceeds {max_bytes} bytes")
-    return bytes(data)
+    finally:
+        os.close(descriptor)
 
 
 def read_verified_spec(api: str, path: Path) -> dict[str, Any]:

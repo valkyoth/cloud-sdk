@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import importlib.util
 import io
+import os
 import tempfile
 from pathlib import Path
 
@@ -101,7 +102,14 @@ def test_local_reader_rejects_symlink() -> None:
         link = root / "link.json"
         target.write_bytes(b"{}")
         link.symlink_to(target)
-        assert_exits("must be a regular file", checker.read_bounded_file, "cloud", link)
+        assert_exits("regular file", checker.read_bounded_file, "cloud", link)
+
+
+def test_local_reader_rejects_fifo_without_blocking() -> None:
+    with tempfile.TemporaryDirectory() as directory:
+        fifo = Path(directory) / "spec.fifo"
+        os.mkfifo(fifo)
+        assert_exits("regular file", checker.read_bounded_file, "cloud", fifo)
 
 
 def main() -> None:
@@ -112,6 +120,7 @@ def main() -> None:
         test_load_specs_authenticates_before_parsing,
         test_local_reader_rejects_oversize_before_reading,
         test_local_reader_rejects_symlink,
+        test_local_reader_rejects_fifo_without_blocking,
     )
     for test in tests:
         test()

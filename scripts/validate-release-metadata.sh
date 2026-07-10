@@ -44,34 +44,6 @@ else
         target="v${version}"
     fi
     scripts/validate_pentest_binding.py --version "$version" --target "$target"
-
-    if ! grep -Eq '^Status: PASS$' "$report"; then
-        echo "release metadata: $report is not Status: PASS" >&2
-        exit 1
-    fi
-
-    reviewed_commit=$(sed -n 's/^Reviewed-Commit:[[:space:]]*//p' "$report")
-    reviewed_count=$(printf '%s\n' "$reviewed_commit" | awk 'NF { count++ } END { print count + 0 }')
-    if [ "$reviewed_count" -ne 1 ] \
-        || ! printf '%s\n' "$reviewed_commit" | grep -Eq '^[0-9a-f]{40}$'; then
-        echo "release metadata: $report must contain exactly one full Reviewed-Commit" >&2
-        exit 1
-    fi
-
-    for field in Tester Scope; do
-        value=$(sed -n "s/^${field}:[[:space:]]*//p" "$report")
-        if ! printf '%s\n' "$value" | grep -Eq '\S'; then
-            echo "release metadata: $report has blank $field" >&2
-            exit 1
-        fi
-    done
-
-    date_value=$(sed -n 's/^Date:[[:space:]]*//p' "$report")
-    if ! printf '%s\n' "$date_value" | grep -Eq '^[0-9]{4}-[0-9]{2}-[0-9]{2}$'; then
-        echo "release metadata: $report missing Date: YYYY-MM-DD" >&2
-        exit 1
-    fi
-
 fi
 
 if [ ! -x scripts/release_crates.py ] || [ ! -x scripts/test-release-crates.py ]; then

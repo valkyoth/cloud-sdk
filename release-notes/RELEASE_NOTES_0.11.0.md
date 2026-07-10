@@ -52,15 +52,22 @@ pagination iterators, or action polling.
 - Release-sensitive source, manifests, lockfiles, scripts, and workflow files
   may not change after the commit named by the pentest report.
 - Public server targets conservatively admit only ordinary global-unicast IPv6
-  addresses; translated, transition, benchmarking, documentation, deprecated,
-  and IETF-reserved ranges are rejected.
+  allocations source-locked from IANA; translated, transition, benchmarking,
+  documentation, deprecated, special-purpose, unallocated, and reserved ranges
+  are rejected.
 - Release metadata requires exactly one unambiguous `Reviewed-Commit:` field.
 - Permanent pentest reports require a detached OpenSSH signature from the
   approved pentest key, which is distinct from the release-tag signing key.
+- Pentest reports, signatures, and signer policy are opened without following
+  links, copied into private bounded snapshots, and report fields are parsed
+  only from the exact bytes whose signature verified.
 - Source-lock files, release notes, changelog, and security documentation are
   included in post-review content binding.
-- Local OpenAPI inputs must be bounded regular files; symlinks, special files,
-  and oversized files are rejected before hashing or parsing.
+- Local OpenAPI inputs are opened once without following links and validated
+  from the resulting descriptor; symlinks, FIFOs, devices, and oversized files
+  are rejected before hashing or parsing.
+- Pentest signatures are created from a private report copy and atomically
+  hard-linked into place without overwriting any existing path.
 
 ## Verification
 
@@ -80,6 +87,8 @@ pagination iterators, or action polling.
   secret-buffer failure cleanup, and remote-download resource limits.
 - Subsequent review tightened IPv6 classification, independent pentest
   provenance, content-binding scope, and local OpenAPI file handling.
+- Final remediation source-locked IANA IPv6 allocations, removed signed-report
+  and local-spec pathname races, and hardened signature publication.
 - All findings are remediated; retest is pending for the finalized
   release-sensitive commit and its signed report.
 

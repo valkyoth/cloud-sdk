@@ -363,6 +363,10 @@ fn load_balancers_public_server_ip_rejects_private_and_special_addresses() {
         "2001:10::1",
         "2002:c000:0201::",
         "3fff::1",
+        "2200::1",
+        "3000::1",
+        "3ffe::1",
+        "2620:4f:8000::1",
     ] {
         assert_eq!(
             LoadBalancerPublicIp::new(value),
@@ -370,6 +374,7 @@ fn load_balancers_public_server_ip_rejects_private_and_special_addresses() {
         );
     }
     assert!(LoadBalancerPublicIp::new("2606:4700:4700::1111").is_ok());
+    assert!(LoadBalancerPublicIp::new("2001:4860:4860::8888").is_ok());
     assert!(LoadBalancerPublicIp::new("2a01:4f8:1c1c::1").is_ok());
 }
 

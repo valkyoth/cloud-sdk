@@ -23,6 +23,11 @@
   release-consumed source-lock and security documentation.
 - Applied regular-file and size checks to local as well as fetched OpenAPI
   inputs before hashing and parsing.
+- Source-locked public IPv6 server targets to IANA allocations and rejected
+  reserved gaps such as `3000::/5` and `3ffe::/16`.
+- Removed pentest-evidence and local OpenAPI pathname races with no-follow,
+  bounded descriptor reads and authenticated private snapshots, and made
+  pentest signature publication atomic and no-overwrite.
 
 ## 0.10.0 - 2026-07-10
 
