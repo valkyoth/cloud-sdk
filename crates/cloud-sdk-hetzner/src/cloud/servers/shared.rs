@@ -172,6 +172,7 @@ impl<'a> UserData<'a> {
     }
 
     /// Writes this value as a complete JSON string into a caller-owned buffer.
+    /// An undersized buffer is not modified.
     pub fn write_json_string(self, output: &mut [u8]) -> Result<usize, ServerRequestError> {
         let mut len = 0;
         buffer::write_json_string(

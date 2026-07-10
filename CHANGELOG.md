@@ -9,6 +9,12 @@
   mutually exclusive target selection, public server-IP validation, explicit
   reverse-DNS set/reset intent, and deterministic multi-metric queries.
 - Added the `v0.11.0` release gate script.
+- Made JSON-string writes atomic so undersized buffers retain no password or
+  cloud-init prefix.
+- Enforced complete pinned OpenAPI hashes before parsing, bounded remote spec
+  size and download time, and added regression tests for both controls.
+- Bound `v0.11.0+` pentest evidence to release-sensitive content, made release
+  tags mandatory for publishing, and removed normal publisher bypass flags.
 
 ## 0.10.0 - 2026-07-10
 

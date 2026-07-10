@@ -3,7 +3,10 @@
 
 from __future__ import annotations
 
+import argparse
+import contextlib
 import importlib.util
+import io
 from pathlib import Path
 
 
@@ -225,6 +228,49 @@ def test_publish_plan_skips_unchanged_crates() -> None:
     assert release_crates.publish_plan(plan) == ("cloud-sdk-hetzner",)
 
 
+def test_required_release_tag_rejects_mismatched_head() -> None:
+    original = release_crates.try_capture
+    values = iter(("a" * 40, "b" * 40))
+    release_crates.try_capture = lambda _command: next(values)
+    try:
+        try:
+            with contextlib.redirect_stderr(io.StringIO()):
+                release_crates.check_release_tag("0.11.0", require_tag=True)
+        except SystemExit:
+            return
+        raise AssertionError("mismatched required tag was accepted")
+    finally:
+        release_crates.try_capture = original
+
+
+def test_required_release_tag_rejects_unsigned_tag() -> None:
+    original = release_crates.try_capture
+    values = iter(("a" * 40, "a" * 40, "commit", None))
+    release_crates.try_capture = lambda _command: next(values)
+    try:
+        try:
+            with contextlib.redirect_stderr(io.StringIO()):
+                release_crates.check_release_tag("0.11.0", require_tag=True)
+        except SystemExit:
+            return
+        raise AssertionError("unsigned required tag was accepted")
+    finally:
+        release_crates.try_capture = original
+
+
+def test_publish_command_has_no_bypass_flags() -> None:
+    commands: list[list[str]] = []
+    original = release_crates.run
+    release_crates.run = lambda command, *, dry_run: commands.append(command)
+    try:
+        release_crates.publish(
+            "cloud-sdk", argparse.Namespace(dry_run=False)
+        )
+    finally:
+        release_crates.run = original
+    assert commands == [["cargo", "publish", "-p", "cloud-sdk"]]
+
+
 def run_tests() -> None:
     tests = (
         test_current_plan_accepts_unchanged_crates,
@@ -238,6 +284,9 @@ def run_tests() -> None:
         test_unchanged_crates_are_not_published,
         test_metadata_changes_use_milestone_version,
         test_publish_plan_skips_unchanged_crates,
+        test_required_release_tag_rejects_mismatched_head,
+        test_required_release_tag_rejects_unsigned_tag,
+        test_publish_command_has_no_bypass_flags,
     )
     for test in tests:
         test()

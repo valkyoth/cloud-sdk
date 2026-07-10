@@ -9,6 +9,7 @@ import hashlib
 import json
 import sys
 import tempfile
+import time
 import urllib.request
 from pathlib import Path
 from typing import Any
@@ -31,6 +32,10 @@ PINNED_SPEC_SHA256 = {
 
 DOC_ONLY_KEYS = {"description", "summary", "externalDocs", "example", "examples"}
 HTTP_METHODS = {"get", "post", "put", "patch", "delete"}
+MAX_SPEC_BYTES = 32 * 1024 * 1024
+FETCH_CONNECT_TIMEOUT_SECONDS = 10
+FETCH_TOTAL_TIMEOUT_SECONDS = 60
+READ_CHUNK_BYTES = 64 * 1024
 
 
 def clean_json(value: Any) -> Any:
@@ -121,15 +126,42 @@ def verify_pinned_spec(api: str, path: Path) -> None:
     expected = PINNED_SPEC_SHA256[api]
     if actual != expected:
         raise SystemExit(
-            f"{api} spec SHA-256 mismatch before lock write: "
+            f"{api} spec SHA-256 mismatch: "
             f"expected {expected}, got {actual}"
         )
 
 
+def read_bounded_response(
+    response: Any,
+    api: str,
+    *,
+    max_bytes: int = MAX_SPEC_BYTES,
+    total_seconds: int = FETCH_TOTAL_TIMEOUT_SECONDS,
+    monotonic: Any = time.monotonic,
+) -> bytes:
+    started = monotonic()
+    data = bytearray()
+    while True:
+        if monotonic() - started > total_seconds:
+            raise SystemExit(f"{api} spec download exceeded {total_seconds} seconds")
+        remaining = max_bytes + 1 - len(data)
+        chunk = response.read(min(READ_CHUNK_BYTES, remaining))
+        if monotonic() - started > total_seconds:
+            raise SystemExit(f"{api} spec download exceeded {total_seconds} seconds")
+        if not chunk:
+            break
+        data.extend(chunk)
+        if len(data) > max_bytes:
+            raise SystemExit(f"{api} spec exceeds {max_bytes} bytes")
+    return bytes(data)
+
+
 def fetch_spec(api: str, directory: Path) -> Path:
     target = directory / f"{api}.spec.json"
-    with urllib.request.urlopen(SPECS[api], timeout=30) as response:
-        target.write_bytes(response.read())
+    with urllib.request.urlopen(
+        SPECS[api], timeout=FETCH_CONNECT_TIMEOUT_SECONDS
+    ) as response:
+        target.write_bytes(read_bounded_response(response, api))
     print(f"{api} spec sha256: {file_sha256(target)}")
     return target
 
@@ -150,9 +182,8 @@ def load_specs(args: argparse.Namespace) -> dict[str, dict[str, Any]]:
             "cloud": Path(args.current_cloud),
             "hetzner": Path(args.current_hetzner),
         }
-    if args.write_lock:
-        for api, path in paths.items():
-            verify_pinned_spec(api, path)
+    for api, path in paths.items():
+        verify_pinned_spec(api, path)
     return {api: read_spec(path) for api, path in paths.items()}
 
 

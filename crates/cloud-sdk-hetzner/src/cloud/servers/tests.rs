@@ -118,12 +118,14 @@ fn server_user_data_writes_json_string_without_raw_interpolation() {
     }
 
     let user_data = UserData::new("quoted \" value");
-    let mut output = [0u8; 8];
+    let mut output = [0xa5_u8; 8];
     if let Ok(user_data) = user_data {
+        let original = output;
         assert_eq!(
             user_data.write_json_string(&mut output),
             Err(ServerRequestError::BodyBufferTooSmall)
         );
+        assert_eq!(output, original);
     }
 }
 

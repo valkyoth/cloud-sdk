@@ -241,6 +241,13 @@ fn storage_box_body_markers_validate_required_fields_and_secrets() {
     );
     output.fill(0);
     assert_eq!(output, [0u8; 16]);
+    let mut short_output = [0xa5_u8; 6];
+    let original = short_output;
+    assert_eq!(
+        password.write_json_string(&mut short_output),
+        Err(StorageBoxRequestError::QueryBufferTooSmall)
+    );
+    assert_eq!(short_output, original);
     assert_eq!(
         StorageBoxResetPasswordRequest::try_new(None),
         Err(StorageBoxRequestError::MissingRequiredField)

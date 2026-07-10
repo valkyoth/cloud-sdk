@@ -1,6 +1,6 @@
 # cloud-sdk 0.11.0 Release Notes
 
-Status: implementation stop reached; pentest pending.
+Status: release candidate; pentest remediation complete and retest pending.
 
 ## Scope
 
@@ -22,6 +22,13 @@ pagination iterators, or action polling.
 - Network attach/detach, algorithm, reverse-DNS, protection, type-change, and
   public-interface action models.
 - `scripts/release_0_11_gate.sh`.
+- Atomic shared JSON-string writes that leave undersized caller buffers
+  unchanged, including Storage Box passwords and cloud-init user data.
+- Full-byte pinned SHA-256 verification before any fetched OpenAPI document is
+  parsed, plus 32 MiB, connection-time, and total-time download ceilings.
+- Content-bound pentest evidence for release-sensitive paths from `v0.11.0`,
+  mandatory verifiable signed tags for publishing, and a normal publisher
+  without bypass flags.
 
 ## Security Notes
 
@@ -42,12 +49,16 @@ pagination iterators, or action polling.
   containment, and current project state remain enforced by Hetzner.
 - The deprecated resource-local action lookup endpoint remains intentionally
   deferred.
+- Release-sensitive source, manifests, lockfiles, scripts, and workflow files
+  may not change after the commit named by the pentest report.
 
 ## Verification
 
 - `cargo fmt --all --check`
 - `cargo clippy --workspace --all-targets --all-features -- -D warnings`
 - `cargo test -p cloud-sdk-hetzner --all-features load_balancers`
+- `scripts/test-hetzner-api-drift.py`
+- `scripts/test-pentest-binding.py`
 - `scripts/check_hetzner_api_drift.py --fetch`
 - `scripts/checks.sh`
 - `scripts/release_0_11_gate.sh`
@@ -55,9 +66,15 @@ pagination iterators, or action polling.
 
 ## Pentest
 
-- Pending for the exact implementation-stop commit.
+- Initial review reported release-attestation binding, pinned-spec integrity,
+  secret-buffer failure cleanup, and remote-download resource limits.
+- All four findings are remediated; retest is pending for the finalized
+  release-sensitive commit.
 
 ## Publishing Plan
 
-The crate version and independent publish set will be finalized only after the
-pentest and retest are green.
+- `cloud-sdk` publishes as `0.11.0`.
+- `cloud-sdk-hetzner` publishes as `0.11.0`.
+- `cloud-sdk-hetzner-reqwest` publishes as `0.11.0`.
+- `cloud-sdk-hetzner-sanitization` publishes as `0.11.0`.
+- `cloud-sdk-hetzner-testkit` publishes as `0.11.0`.

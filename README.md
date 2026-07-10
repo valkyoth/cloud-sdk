@@ -52,8 +52,8 @@ please report it so it can be fixed.
 
 ## Current Status
 
-Status: `v0.11.0` implementation stop reached; pentest pending. The latest
-published release is `v0.10.0`.
+Status: `v0.11.0` release candidate; pentest remediation is complete and
+retest is pending. The latest published release is `v0.10.0`.
 
 Implemented now:
 
@@ -146,8 +146,8 @@ Not implemented yet:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.10.0"
-cloud-sdk-hetzner = "0.10.0"
+cloud-sdk = "0.11.0"
+cloud-sdk-hetzner = "0.11.0"
 ```
 
 ## Provider-Neutral Example

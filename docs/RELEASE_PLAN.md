@@ -72,6 +72,16 @@ retest, CodeQL, or another release gate causes release-relevant changes, rerun
 the review and update `Reviewed-Commit:` to the latest reviewed commit before
 tagging.
 
+Starting with `v0.11.0`, `scripts/validate_pentest_binding.py` rejects changes
+after `Reviewed-Commit:` under release-sensitive paths, including crate source
+and crate documentation, manifests, the lockfile, dependency policy, toolchain
+configuration, release metadata, scripts, and GitHub workflows. Release
+versions and those files must therefore be finalized before the passing
+retest. Evidence-only files such as the permanent pentest report and SBOM may
+be committed afterward. The normal publisher requires a verifiable signed,
+annotated `vX.Y.Z` tag to point at `HEAD` and has no dirty-tree, skipped-check,
+untagged, or no-verification bypass flags.
+
 When a version's implementation criteria are done, stop and say:
 
 ```text
@@ -84,20 +94,23 @@ No tag is created at that point.
 
 Use this loop for every version:
 
-1. Implementation reaches the version stop point.
+1. Implementation and all release-sensitive metadata reach the version stop
+   point, including versions, manifests, lockfiles, scripts, crate READMEs, and
+   workflow files.
 2. Local gates pass: `scripts/checks.sh`, `cargo deny check`, and
    `cargo audit`.
 3. The maintainer runs pentest and writes temporary findings to root
    `PENTEST.md`.
 4. Findings are reviewed and fixed.
-5. Documentation, tests, release notes, and drift/source-lock evidence are
-   updated for the fixes.
+5. Documentation, tests, release notes, drift/source-lock evidence, and all
+   release-sensitive metadata are finalized for the fixes.
 6. `PENTEST.md` is removed after findings are handled.
 7. Local gates are run again.
 8. GitHub CI and CodeQL default setup are checked after the fix commit.
 9. A permanent report is written at `security/pentest/vX.Y.Z.md` only when the
-   exact implementation commit has passed with `Status: PASS`.
-10. Commit the permanent report and any required release metadata.
+   exact finalized commit has passed with `Status: PASS`.
+10. Commit the permanent report and evidence-only artifacts. Any later change
+    under a release-sensitive path requires another retest.
 11. GitHub CI and CodeQL default setup are checked on the report commit.
 12. Tagging and pushing tags happen only when explicitly requested.
 
@@ -117,6 +130,10 @@ That pin is a trust boundary. When `PINNED_SPEC_SHA256` changes:
    documentation change.
 4. Update `PINNED_SPEC_SHA256` only in the same reviewed source-lock pass that
    updates fingerprints, release notes, and pentest evidence.
+
+Release fetches reject documents larger than 32 MiB and enforce connection and
+total-time ceilings before verifying the complete pinned digest. Unpinned
+documents are never parsed by the release drift command.
 
 ## Crate Versioning And Publish Order
 

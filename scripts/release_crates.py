@@ -203,7 +203,7 @@ def require_clean_tree(*, allow_dirty: bool) -> None:
     if status:
         print("Refusing to publish from a dirty worktree:", file=sys.stderr)
         print(status, file=sys.stderr)
-        print("Commit or stash changes, or pass --allow-dirty.", file=sys.stderr)
+        print("Commit or stash changes before publishing.", file=sys.stderr)
         sys.exit(1)
 
 
@@ -256,31 +256,20 @@ def check_release_tag(version: str, *, require_tag: bool) -> None:
         print(f"Warning: {message}.", file=sys.stderr)
         return
 
-    print(f"Release tag {tag} points at HEAD.")
+    tag_type = try_capture(["git", "cat-file", "-t", tag])
+    signature = try_capture(["git", "verify-tag", tag])
+    if tag_type != "tag" or signature is None:
+        message = f"release tag {tag} is not an annotated, verifiable signed tag"
+        if require_tag:
+            print(f"Refusing to publish: {message}.", file=sys.stderr)
+            sys.exit(1)
+        print(f"Warning: {message}.", file=sys.stderr)
+        return
 
-
-def confirm_no_verify(args: argparse.Namespace) -> int:
-    if not args.no_verify or args.dry_run:
-        return 0
-
-    print(
-        "\nWARNING: --no-verify bypasses cargo package verification.\n"
-        "Use it only with a documented release incident or crates.io issue.\n"
-        "Type 'no-verify confirmed' to continue:",
-        file=sys.stderr,
-    )
-    response = input().strip()
-    if response != "no-verify confirmed":
-        print("Aborted.", file=sys.stderr)
-        return 1
-    return 0
+    print(f"Signed release tag {tag} points at HEAD and verifies.")
 
 
 def run_preflight(args: argparse.Namespace) -> None:
-    if args.skip_checks:
-        print("Skipping preflight checks by request.")
-        return
-
     version = parse_version(args.version)
     gate = ROOT / "scripts" / f"release_{version[0]}_{version[1]}_gate.sh"
     if gate.exists():
@@ -321,10 +310,6 @@ def wait_for_index(package: str, version: str, *, dry_run: bool) -> None:
 
 def publish(package: str, args: argparse.Namespace) -> None:
     command = ["cargo", "publish", "-p", package]
-    if args.allow_dirty:
-        command.append("--allow-dirty")
-    if args.no_verify:
-        command.append("--no-verify")
     run(command, dry_run=args.dry_run)
 
 
@@ -337,10 +322,6 @@ def main() -> int:
     parser.add_argument("--start-at", default=None, choices=PUBLISH_ORDER)
     parser.add_argument("--check", action="store_true")
     parser.add_argument("--dry-run", action="store_true")
-    parser.add_argument("--allow-dirty", action="store_true")
-    parser.add_argument("--skip-checks", action="store_true")
-    parser.add_argument("--no-verify", action="store_true")
-    parser.add_argument("--require-tag", action="store_true")
     parser.add_argument("--yes", action="store_true")
     args = parser.parse_args()
 
@@ -365,8 +346,12 @@ def main() -> int:
         print(f"release_crates.py release plan is {args.version}.")
         return 0
 
-    require_clean_tree(allow_dirty=args.allow_dirty or args.dry_run)
-    check_release_tag(args.version, require_tag=args.require_tag)
+    require_clean_tree(allow_dirty=args.dry_run)
+    check_release_tag(args.version, require_tag=not args.dry_run)
+    run(
+        ["scripts/validate-release-metadata.sh", "--release", "HEAD"],
+        dry_run=args.dry_run,
+    )
 
     planned_publish = publish_plan(plan)
     start_at = args.start_at or (planned_publish[0] if planned_publish else "")
@@ -388,10 +373,6 @@ def main() -> int:
         if answer != args.version:
             print("Version confirmation did not match; aborting.", file=sys.stderr)
             return 1
-
-    no_verify_result = confirm_no_verify(args)
-    if no_verify_result != 0:
-        return no_verify_result
 
     run_preflight(args)
 

@@ -80,6 +80,8 @@ pub fn write_json_string_escaped<E: Copy>(
     value: &str,
     error: E,
 ) -> Result<(), E> {
+    let required = json_escaped_len(value, error)?;
+    ensure_capacity(output, *len, required, error)?;
     for byte in value.bytes() {
         match byte {
             b'"' => write_str(output, len, "\\\"", error)?,
@@ -105,9 +107,36 @@ pub fn write_json_string<E: Copy>(
     value: &str,
     error: E,
 ) -> Result<(), E> {
+    let escaped = json_escaped_len(value, error)?;
+    let required = escaped.checked_add(2).ok_or(error)?;
+    ensure_capacity(output, *len, required, error)?;
     write_byte(output, len, b'"', error)?;
     write_json_string_escaped(output, len, value, error)?;
     write_byte(output, len, b'"', error)
+}
+
+fn json_escaped_len<E: Copy>(value: &str, error: E) -> Result<usize, E> {
+    let mut len = 0_usize;
+    for byte in value.bytes() {
+        let encoded = match byte {
+            b'"' | b'\\' | b'\n' | b'\r' | b'\t' => 2,
+            0x00..=0x1f => 6,
+            _ => 1,
+        };
+        len = len.checked_add(encoded).ok_or(error)?;
+    }
+    Ok(len)
+}
+
+fn ensure_capacity<E: Copy>(
+    output: &[u8],
+    len: usize,
+    additional: usize,
+    error: E,
+) -> Result<(), E> {
+    let end = len.checked_add(additional).ok_or(error)?;
+    output.get(len..end).ok_or(error)?;
+    Ok(())
 }
 
 /// Writes `&` unless this is the first query pair.
@@ -284,5 +313,23 @@ mod tests {
             .get(..len)
             .and_then(|bytes| core::str::from_utf8(bytes).ok());
         assert_eq!(json, Some("\"line\\n\\\"quoted\\\"\\\\slash\\t\\u001F\""));
+    }
+
+    #[test]
+    fn json_writes_are_atomic_when_capacity_is_insufficient() {
+        let mut output = [0xa5_u8; 7];
+        let original = output;
+        let mut len = 2;
+        assert_eq!(
+            write_json_string(
+                &mut output,
+                &mut len,
+                "token=classified",
+                TestError::TooSmall,
+            ),
+            Err(TestError::TooSmall)
+        );
+        assert_eq!(len, 2);
+        assert_eq!(output, original);
     }
 }

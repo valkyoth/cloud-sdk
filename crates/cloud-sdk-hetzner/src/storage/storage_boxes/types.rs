@@ -120,7 +120,8 @@ impl<'a> StorageBoxPassword<'a> {
     ///
     /// `output` contains the plaintext password after this call succeeds.
     /// Callers must overwrite the written bytes, for example with
-    /// `output[..written].fill(0)`, once the request body has been sent.
+    /// `output[..written].fill(0)`, once the request body has been sent. If the
+    /// buffer is too small, the writer returns before modifying it.
     pub fn write_json_string(self, output: &mut [u8]) -> Result<usize, StorageBoxRequestError> {
         let mut len = 0;
         buffer::write_json_string(

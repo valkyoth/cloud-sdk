@@ -44,8 +44,10 @@ check_fetch_lock() {
     tmp_dir="$(mktemp -d)"
     trap 'rm -rf "$tmp_dir"' EXIT HUP INT TERM
 
-    curl -fsSL "$cloud_url" -o "$tmp_dir/cloud.spec.json"
-    curl -fsSL "$hetzner_url" -o "$tmp_dir/hetzner.spec.json"
+    curl -fsSL --connect-timeout 10 --max-time 60 --max-filesize 33554432 \
+        "$cloud_url" -o "$tmp_dir/cloud.spec.json"
+    curl -fsSL --connect-timeout 10 --max-time 60 --max-filesize 33554432 \
+        "$hetzner_url" -o "$tmp_dir/hetzner.spec.json"
 
     printf '%s  %s\n' "$cloud_sha256" "$tmp_dir/cloud.spec.json" | sha256sum -c -
     printf '%s  %s\n' "$hetzner_sha256" "$tmp_dir/hetzner.spec.json" | sha256sum -c -
