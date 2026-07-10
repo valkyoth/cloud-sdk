@@ -45,8 +45,8 @@ cloud-sdk-hetzner = "0.11.0"
 ## Current Scope
 
 The current main branch is the `0.11.0` release candidate for Load Balancer
-request domains. Pentest remediation is complete and retest is pending. The
-latest published release is `0.10.0`. This crate does not yet implement HTTP
+request domains. Pentest and retest are complete. The latest published release
+is `0.10.0`. This crate does not yet implement HTTP
 transport, serde models, body serialization, token storage, live API tests,
 retry policy, pagination iterators, or action polling.
 

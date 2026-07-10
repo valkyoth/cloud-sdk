@@ -52,8 +52,8 @@ please report it so it can be fixed.
 
 ## Current Status
 
-Status: `v0.11.0` release candidate; pentest remediation is complete and
-retest is pending. The latest published release is `v0.10.0`.
+Status: `v0.11.0` release candidate; pentest and retest are complete. The
+latest published release is `v0.10.0`.
 
 Implemented now:
 

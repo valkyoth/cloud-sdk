@@ -1,6 +1,6 @@
 # cloud-sdk 0.11.0 Release Notes
 
-Status: release candidate; pentest remediation complete and retest pending.
+Status: release candidate; pentest and retest complete.
 
 ## Scope
 
@@ -99,8 +99,8 @@ pagination iterators, or action polling.
   before CSV parsing.
 - Signed pentest evidence is published as one bounded transactional bundle, so
   failed publication cannot leave a partial attestation/signature pair.
-- All findings are remediated; retest is pending for the finalized
-  release-sensitive commit and its signed report.
+- All findings are remediated; retest passed for the finalized
+  release-sensitive commit.
 
 ## Publishing Plan
 

@@ -1,6 +1,6 @@
 # Crate Version Matrix
 
-Status: `v0.11.0` release candidate; retest pending.
+Status: `v0.11.0` release candidate; pentest and retest complete.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Extra

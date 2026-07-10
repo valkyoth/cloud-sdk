@@ -496,7 +496,7 @@ v0.10.0 implementation stop reached. Run pentest for this exact commit.
 
 ### v0.11.0 - Load Balancer Models
 
-Status: implementation stop reached; pentest pending.
+Status: release candidate; pentest and retest complete.
 
 Goal: implement load balancers, metrics, services, targets, network attach,
 public interface actions, algorithms, and type changes.
