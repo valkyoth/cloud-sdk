@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- Added `cloud-sdk-hetzner::cloud::firewalls` no_std request primitives for
+  Firewall CRUD, resource apply/remove actions, and rule replacement.
+- Added `cloud-sdk-hetzner::cloud::networks` no_std request primitives for
+  Network CRUD, routes, subnets, IP range changes, and protection actions.
+- Added allocation-free IPv4/IPv6 CIDR, RFC 1918 range, route, gateway,
+  Firewall direction/protocol, port-range, and rule-conflict validation.
+- Updated the development compiler to current stable Rust `1.97.0` and the CI
+  `cargo-deny` pin to current `0.20.2`.
+- Added the `v0.10.0` release gate script.
+
 ## 0.9.0 - 2026-07-09
 
 - Added `cloud-sdk-hetzner::storage::storage_boxes` no_std request primitives

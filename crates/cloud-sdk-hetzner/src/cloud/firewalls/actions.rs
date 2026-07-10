@@ -1,0 +1,116 @@
+//! Firewall action endpoints and request bodies.
+
+use cloud_sdk::Method;
+
+use crate::EndpointGroup;
+use crate::actions::ActionId;
+use crate::request::ApiBaseUrl;
+
+use super::super::shared::{CloudRequestError, CloudResourceId, write_id_path, write_static_path};
+use super::rules::FirewallRuleSet;
+use super::{FirewallId, FirewallRequestError, FirewallResource};
+
+/// Firewall action endpoint.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum FirewallActionEndpoint {
+    /// `GET /firewalls/actions`.
+    ListAll,
+    /// `GET /firewalls/actions/{id}`.
+    Get(ActionId),
+    /// `GET /firewalls/{id}/actions`.
+    ListForFirewall(FirewallId),
+    /// `POST /firewalls/{id}/actions/apply_to_resources`.
+    ApplyToResources(FirewallId),
+    /// `POST /firewalls/{id}/actions/remove_from_resources`.
+    RemoveFromResources(FirewallId),
+    /// `POST /firewalls/{id}/actions/set_rules`.
+    SetRules(FirewallId),
+}
+
+impl FirewallActionEndpoint {
+    /// Returns the HTTP method.
+    #[must_use]
+    pub const fn method(self) -> Method {
+        match self {
+            Self::ListAll | Self::Get(_) | Self::ListForFirewall(_) => Method::Get,
+            Self::ApplyToResources(_) | Self::RemoveFromResources(_) | Self::SetRules(_) => {
+                Method::Post
+            }
+        }
+    }
+
+    /// Returns the endpoint group.
+    #[must_use]
+    pub const fn endpoint_group(self) -> EndpointGroup {
+        EndpointGroup::FirewallActions
+    }
+
+    /// Returns the base URL family.
+    #[must_use]
+    pub const fn api_base_url(self) -> ApiBaseUrl {
+        ApiBaseUrl::CloudV1
+    }
+
+    /// Writes the endpoint path into a caller-owned buffer.
+    pub fn write_path(self, output: &mut [u8]) -> Result<usize, FirewallRequestError> {
+        match self {
+            Self::ListAll => write_static_path(output, "/firewalls/actions"),
+            Self::Get(id) => {
+                let id = CloudResourceId::new(id.get()).ok_or(CloudRequestError::InvalidType)?;
+                write_id_path(output, "/firewalls/actions/", id, "")
+            }
+            Self::ListForFirewall(id) => write_id_path(output, "/firewalls/", id, "/actions"),
+            Self::ApplyToResources(id) => {
+                write_id_path(output, "/firewalls/", id, "/actions/apply_to_resources")
+            }
+            Self::RemoveFromResources(id) => {
+                write_id_path(output, "/firewalls/", id, "/actions/remove_from_resources")
+            }
+            Self::SetRules(id) => write_id_path(output, "/firewalls/", id, "/actions/set_rules"),
+        }
+    }
+}
+
+/// Required resource list for apply/remove actions.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct FirewallResourcesRequest<'a> {
+    resources: &'a [FirewallResource<'a>],
+}
+
+impl<'a> FirewallResourcesRequest<'a> {
+    /// Creates a request. An explicitly empty list is retained for exact API intent.
+    pub fn try_new(
+        resources: Option<&'a [FirewallResource<'a>]>,
+    ) -> Result<Self, FirewallRequestError> {
+        Ok(Self {
+            resources: resources.ok_or(FirewallRequestError::MissingRequiredField)?,
+        })
+    }
+
+    /// Returns the resources.
+    #[must_use]
+    pub const fn resources(self) -> &'a [FirewallResource<'a>] {
+        self.resources
+    }
+}
+
+/// Required replacement rules for the set-rules action.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct FirewallSetRulesRequest<'a> {
+    rules: FirewallRuleSet<'a>,
+}
+
+impl<'a> FirewallSetRulesRequest<'a> {
+    /// Creates an explicit replacement request, including an empty ruleset.
+    pub fn try_new(rules: Option<FirewallRuleSet<'a>>) -> Result<Self, FirewallRequestError> {
+        Ok(Self {
+            rules: rules.ok_or(FirewallRequestError::MissingRequiredField)?,
+        })
+    }
+
+    /// Returns the replacement rules.
+    #[must_use]
+    pub const fn rules(self) -> FirewallRuleSet<'a> {
+        self.rules
+    }
+}

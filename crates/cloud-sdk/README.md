@@ -52,12 +52,13 @@ please report it so it can be fixed.
 
 ## Current Status
 
-Status: `v0.9.0` release candidate; pentest and retest complete.
+Status: `v0.10.0` implementation stop; run pentest for the current
+implementation commit before release metadata is finalized.
 
 Implemented now:
 
-- Rust workspace pinned to stable `1.96.1`.
-- MSRV policy for Rust `1.90.0` through `1.96.1`.
+- Rust workspace pinned to stable `1.97.0`.
+- MSRV policy for Rust `1.90.0` through `1.97.0`.
 - Edition 2024 and workspace resolver `3`.
 - `cloud-sdk` provider-neutral crate.
 - `cloud-sdk-hetzner` provider crate with focused internal modules.
@@ -93,6 +94,10 @@ Implemented now:
   v0.8 action paths.
 - Hetzner Storage Box request primitives for boxes, box types, snapshots,
   subaccounts, Storage Box actions, and subaccount actions.
+- Hetzner Firewall request primitives for CRUD, resource application, and
+  validated rule replacement.
+- Hetzner Network request primitives for CRUD, routes, subnets, range changes,
+  and protection actions.
 
 Not implemented yet:
 
@@ -116,7 +121,7 @@ Not implemented yet:
 | --- | --- |
 | License | `MIT OR Apache-2.0` |
 | MSRV | Rust `1.90.0` |
-| Pinned toolchain | Rust `1.96.1` |
+| Pinned toolchain | Rust `1.97.0` |
 | Default target | `no_std` |
 | Default runtime dependencies | none in `cloud-sdk`; provider crates remain transport-free by default |
 | Unsafe policy | first-party crates use `#![forbid(unsafe_code)]` |
@@ -286,9 +291,9 @@ before overwriting the fingerprint files.
 ## Rust Version Support
 
 The minimum supported Rust version is Rust `1.90.0`. Development uses the
-pinned stable Rust `1.96.1` until the toolchain policy is updated.
+pinned stable Rust `1.97.0` until the toolchain policy is updated.
 
-Compatibility evidence for `0.9.0`:
+Compatibility verification matrix for current main:
 
 | Rust | Local Evidence |
 | --- | --- |
@@ -299,7 +304,8 @@ Compatibility evidence for `0.9.0`:
 | `1.94.0` | `cargo +1.94.0 check --workspace --all-features` |
 | `1.95.0` | `cargo +1.95.0 check --workspace --all-features` |
 | `1.96.0` | `cargo +1.96.0 check --workspace --all-features` |
-| `1.96.1` | `scripts/checks.sh` |
+| `1.96.1` | `cargo +1.96.1 check --workspace --all-features` |
+| `1.97.0` | `scripts/checks.sh` |
 
 ## Checks
 

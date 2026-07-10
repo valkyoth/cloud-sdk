@@ -163,8 +163,8 @@ Goal: initialize the serious Rust workspace and policy baseline.
 
 Deliverables:
 
-- Rust stable `1.96.1` pinned.
-- Rust `1.90.0` through `1.96.1` compatibility policy.
+- Rust stable `1.97.0` pinned.
+- Rust `1.90.0` through `1.97.0` compatibility policy.
 - One provider-neutral no_std crate, one focused Hetzner provider crate, and
   three optional Hetzner boundary crates.
 - CI, dependency policy, security policy, release notes.
@@ -437,6 +437,8 @@ v0.9.0 implementation stop reached. Run pentest for this exact commit.
 
 ### v0.10.0 - Firewalls And Networks
 
+Status: implementation stop; awaiting pentest.
+
 Goal: implement firewall, firewall action, network, and network action request
 domains.
 
@@ -456,7 +458,7 @@ Verification:
 - `scripts/checks.sh`
 - `scripts/check_hetzner_api_drift.py --fetch`
 - `cargo test -p cloud-sdk-hetzner --all-features networks_firewalls`
-- `scripts/release_0_10_gate.sh` once added.
+- `scripts/release_0_10_gate.sh`
 
 Stop gate:
 

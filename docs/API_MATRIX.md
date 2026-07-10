@@ -78,18 +78,18 @@ Total source-locked operations: 221 (`cloud`: 189, `hetzner`: 32).
 | cloud | Certificates | PUT | `/certificates/{id}` | `update_certificate` | `cloud_sdk_hetzner::security::certificates` | no | no | none | no | implemented |
 | cloud | Data Centers | GET | `/datacenters` | `list_datacenters` | `cloud_sdk_hetzner::cloud::pricing` | yes | yes | none | yes | deferred-deprecated |
 | cloud | Data Centers | GET | `/datacenters/{id}` | `get_datacenter` | `cloud_sdk_hetzner::cloud::pricing` | no | no | none | yes | deferred-deprecated |
-| cloud | Firewall Actions | GET | `/firewalls/actions` | `list_firewalls_actions` | `cloud_sdk_hetzner::cloud::firewalls` | yes | yes | action-list | no | planned |
-| cloud | Firewall Actions | GET | `/firewalls/actions/{id}` | `get_firewalls_action` | `cloud_sdk_hetzner::cloud::firewalls` | no | no | action-get | no | planned |
-| cloud | Firewall Actions | GET | `/firewalls/{id}/actions` | `list_firewall_actions` | `cloud_sdk_hetzner::cloud::firewalls` | yes | yes | action-list | no | planned |
-| cloud | Firewall Actions | POST | `/firewalls/{id}/actions/apply_to_resources` | `apply_firewall_to_resources` | `cloud_sdk_hetzner::cloud::firewalls` | no | no | starts-action | no | planned |
-| cloud | Firewall Actions | POST | `/firewalls/{id}/actions/remove_from_resources` | `remove_firewall_from_resources` | `cloud_sdk_hetzner::cloud::firewalls` | no | no | starts-action | no | planned |
-| cloud | Firewall Actions | POST | `/firewalls/{id}/actions/set_rules` | `set_firewall_rules` | `cloud_sdk_hetzner::cloud::firewalls` | no | no | starts-action | no | planned |
+| cloud | Firewall Actions | GET | `/firewalls/actions` | `list_firewalls_actions` | `cloud_sdk_hetzner::cloud::firewalls` | yes | yes | action-list | no | implemented-v0.10 |
+| cloud | Firewall Actions | GET | `/firewalls/actions/{id}` | `get_firewalls_action` | `cloud_sdk_hetzner::cloud::firewalls` | no | no | action-get | no | implemented-v0.10 |
+| cloud | Firewall Actions | GET | `/firewalls/{id}/actions` | `list_firewall_actions` | `cloud_sdk_hetzner::cloud::firewalls` | yes | yes | action-list | no | implemented-v0.10 |
+| cloud | Firewall Actions | POST | `/firewalls/{id}/actions/apply_to_resources` | `apply_firewall_to_resources` | `cloud_sdk_hetzner::cloud::firewalls` | no | no | starts-action | no | implemented-v0.10 |
+| cloud | Firewall Actions | POST | `/firewalls/{id}/actions/remove_from_resources` | `remove_firewall_from_resources` | `cloud_sdk_hetzner::cloud::firewalls` | no | no | starts-action | no | implemented-v0.10 |
+| cloud | Firewall Actions | POST | `/firewalls/{id}/actions/set_rules` | `set_firewall_rules` | `cloud_sdk_hetzner::cloud::firewalls` | no | no | starts-action | no | implemented-v0.10 |
 | cloud | Firewall Actions | GET | `/firewalls/{id}/actions/{action_id}` | `get_firewall_action` | `cloud_sdk_hetzner::cloud::firewalls` | no | no | resource-action-get | yes | deferred-deprecated |
-| cloud | Firewalls | GET | `/firewalls` | `list_firewalls` | `cloud_sdk_hetzner::cloud::firewalls` | yes | yes | none | no | planned |
-| cloud | Firewalls | POST | `/firewalls` | `create_firewall` | `cloud_sdk_hetzner::cloud::firewalls` | no | no | none | no | planned |
-| cloud | Firewalls | DELETE | `/firewalls/{id}` | `delete_firewall` | `cloud_sdk_hetzner::cloud::firewalls` | no | no | none | no | planned |
-| cloud | Firewalls | GET | `/firewalls/{id}` | `get_firewall` | `cloud_sdk_hetzner::cloud::firewalls` | no | no | none | no | planned |
-| cloud | Firewalls | PUT | `/firewalls/{id}` | `update_firewall` | `cloud_sdk_hetzner::cloud::firewalls` | no | no | none | no | planned |
+| cloud | Firewalls | GET | `/firewalls` | `list_firewalls` | `cloud_sdk_hetzner::cloud::firewalls` | yes | yes | none | no | implemented-v0.10 |
+| cloud | Firewalls | POST | `/firewalls` | `create_firewall` | `cloud_sdk_hetzner::cloud::firewalls` | no | no | none | no | implemented-v0.10 |
+| cloud | Firewalls | DELETE | `/firewalls/{id}` | `delete_firewall` | `cloud_sdk_hetzner::cloud::firewalls` | no | no | none | no | implemented-v0.10 |
+| cloud | Firewalls | GET | `/firewalls/{id}` | `get_firewall` | `cloud_sdk_hetzner::cloud::firewalls` | no | no | none | no | implemented-v0.10 |
+| cloud | Firewalls | PUT | `/firewalls/{id}` | `update_firewall` | `cloud_sdk_hetzner::cloud::firewalls` | no | no | none | no | implemented-v0.10 |
 | cloud | Floating IP Actions | GET | `/floating_ips/actions` | `list_floating_ips_actions` | `cloud_sdk_hetzner::cloud::networks` | yes | yes | action-list | no | implemented-v0.8 |
 | cloud | Floating IP Actions | GET | `/floating_ips/actions/{id}` | `get_floating_ips_action` | `cloud_sdk_hetzner::cloud::networks` | no | no | action-get | no | implemented-v0.8 |
 | cloud | Floating IP Actions | GET | `/floating_ips/{id}/actions` | `list_floating_ip_actions` | `cloud_sdk_hetzner::cloud::networks` | yes | yes | action-list | no | implemented-v0.8 |
@@ -141,21 +141,21 @@ Total source-locked operations: 221 (`cloud`: 189, `hetzner`: 32).
 | cloud | Load Balancers | GET | `/load_balancers/{id}/metrics` | `get_load_balancer_metrics` | `cloud_sdk_hetzner::cloud::load_balancers` | no | no | none | no | planned |
 | cloud | Locations | GET | `/locations` | `list_locations` | `cloud_sdk_hetzner::cloud::pricing` | yes | yes | none | no | implemented-v0.4 |
 | cloud | Locations | GET | `/locations/{id}` | `get_location` | `cloud_sdk_hetzner::cloud::pricing` | no | no | none | no | implemented-v0.4 |
-| cloud | Network Actions | GET | `/networks/actions` | `list_networks_actions` | `cloud_sdk_hetzner::cloud::networks` | yes | yes | action-list | no | planned |
-| cloud | Network Actions | GET | `/networks/actions/{id}` | `get_networks_action` | `cloud_sdk_hetzner::cloud::networks` | no | no | action-get | no | planned |
-| cloud | Network Actions | GET | `/networks/{id}/actions` | `list_network_actions` | `cloud_sdk_hetzner::cloud::networks` | yes | yes | action-list | no | planned |
-| cloud | Network Actions | POST | `/networks/{id}/actions/add_route` | `add_network_route` | `cloud_sdk_hetzner::cloud::networks` | no | no | starts-action | no | planned |
-| cloud | Network Actions | POST | `/networks/{id}/actions/add_subnet` | `add_network_subnet` | `cloud_sdk_hetzner::cloud::networks` | no | no | starts-action | no | planned |
-| cloud | Network Actions | POST | `/networks/{id}/actions/change_ip_range` | `change_network_ip_range` | `cloud_sdk_hetzner::cloud::networks` | no | no | starts-action | no | planned |
-| cloud | Network Actions | POST | `/networks/{id}/actions/change_protection` | `change_network_protection` | `cloud_sdk_hetzner::cloud::networks` | no | no | starts-action | no | planned |
-| cloud | Network Actions | POST | `/networks/{id}/actions/delete_route` | `delete_network_route` | `cloud_sdk_hetzner::cloud::networks` | no | no | starts-action | no | planned |
-| cloud | Network Actions | POST | `/networks/{id}/actions/delete_subnet` | `delete_network_subnet` | `cloud_sdk_hetzner::cloud::networks` | no | no | starts-action | no | planned |
+| cloud | Network Actions | GET | `/networks/actions` | `list_networks_actions` | `cloud_sdk_hetzner::cloud::networks` | yes | yes | action-list | no | implemented-v0.10 |
+| cloud | Network Actions | GET | `/networks/actions/{id}` | `get_networks_action` | `cloud_sdk_hetzner::cloud::networks` | no | no | action-get | no | implemented-v0.10 |
+| cloud | Network Actions | GET | `/networks/{id}/actions` | `list_network_actions` | `cloud_sdk_hetzner::cloud::networks` | yes | yes | action-list | no | implemented-v0.10 |
+| cloud | Network Actions | POST | `/networks/{id}/actions/add_route` | `add_network_route` | `cloud_sdk_hetzner::cloud::networks` | no | no | starts-action | no | implemented-v0.10 |
+| cloud | Network Actions | POST | `/networks/{id}/actions/add_subnet` | `add_network_subnet` | `cloud_sdk_hetzner::cloud::networks` | no | no | starts-action | no | implemented-v0.10 |
+| cloud | Network Actions | POST | `/networks/{id}/actions/change_ip_range` | `change_network_ip_range` | `cloud_sdk_hetzner::cloud::networks` | no | no | starts-action | no | implemented-v0.10 |
+| cloud | Network Actions | POST | `/networks/{id}/actions/change_protection` | `change_network_protection` | `cloud_sdk_hetzner::cloud::networks` | no | no | starts-action | no | implemented-v0.10 |
+| cloud | Network Actions | POST | `/networks/{id}/actions/delete_route` | `delete_network_route` | `cloud_sdk_hetzner::cloud::networks` | no | no | starts-action | no | implemented-v0.10 |
+| cloud | Network Actions | POST | `/networks/{id}/actions/delete_subnet` | `delete_network_subnet` | `cloud_sdk_hetzner::cloud::networks` | no | no | starts-action | no | implemented-v0.10 |
 | cloud | Network Actions | GET | `/networks/{id}/actions/{action_id}` | `get_network_action` | `cloud_sdk_hetzner::cloud::networks` | no | no | resource-action-get | yes | deferred-deprecated |
-| cloud | Networks | GET | `/networks` | `list_networks` | `cloud_sdk_hetzner::cloud::networks` | yes | yes | none | no | planned |
-| cloud | Networks | POST | `/networks` | `create_network` | `cloud_sdk_hetzner::cloud::networks` | no | no | none | no | planned |
-| cloud | Networks | DELETE | `/networks/{id}` | `delete_network` | `cloud_sdk_hetzner::cloud::networks` | no | no | none | no | planned |
-| cloud | Networks | GET | `/networks/{id}` | `get_network` | `cloud_sdk_hetzner::cloud::networks` | no | no | none | no | planned |
-| cloud | Networks | PUT | `/networks/{id}` | `update_network` | `cloud_sdk_hetzner::cloud::networks` | no | no | none | no | planned |
+| cloud | Networks | GET | `/networks` | `list_networks` | `cloud_sdk_hetzner::cloud::networks` | yes | yes | none | no | implemented-v0.10 |
+| cloud | Networks | POST | `/networks` | `create_network` | `cloud_sdk_hetzner::cloud::networks` | no | no | none | no | implemented-v0.10 |
+| cloud | Networks | DELETE | `/networks/{id}` | `delete_network` | `cloud_sdk_hetzner::cloud::networks` | no | no | none | no | implemented-v0.10 |
+| cloud | Networks | GET | `/networks/{id}` | `get_network` | `cloud_sdk_hetzner::cloud::networks` | no | no | none | no | implemented-v0.10 |
+| cloud | Networks | PUT | `/networks/{id}` | `update_network` | `cloud_sdk_hetzner::cloud::networks` | no | no | none | no | implemented-v0.10 |
 | cloud | Placement Groups | GET | `/placement_groups` | `list_placement_groups` | `cloud_sdk_hetzner::cloud::servers` | yes | yes | none | no | implemented-v0.7 |
 | cloud | Placement Groups | POST | `/placement_groups` | `create_placement_group` | `cloud_sdk_hetzner::cloud::servers` | no | no | none | no | implemented-v0.7 |
 | cloud | Placement Groups | DELETE | `/placement_groups/{id}` | `delete_placement_group` | `cloud_sdk_hetzner::cloud::servers` | no | no | none | no | implemented-v0.7 |

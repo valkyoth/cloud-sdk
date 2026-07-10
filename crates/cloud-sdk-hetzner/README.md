@@ -44,8 +44,8 @@ cloud-sdk-hetzner = "0.9.0"
 
 ## Current Scope
 
-The current main branch has reached the `0.9.0` release candidate for Storage
-Box request domains, with pentest and retest complete. It does not yet
+The current main branch has reached the `0.10.0` implementation stop for
+Firewall and Network request domains. It does not yet
 implement HTTP transport, serde models, body serialization, token storage, live
 API tests, retry policy, pagination iterators, or action polling.
 
@@ -121,6 +121,17 @@ Implemented in the `0.9.0` release candidate:
 - Storage Box and subaccount action endpoint paths;
 - redacted Storage Box password markers, bounded snapshot-plan markers, and
   conservative subaccount home-directory validation.
+
+Implemented on main for next `0.10.0`:
+
+- Firewall list/create/get/update/delete request primitives;
+- Firewall apply/remove resource and set-rules action request primitives;
+- direction-specific source/destination CIDR selectors, protocols, ports,
+  descriptions, rule limits, and duplicate conflict validation;
+- Network list/create/get/update/delete request primitives;
+- Network route, subnet, IP range, and protection action request primitives;
+- canonical RFC 1918 range, route destination, private gateway, vSwitch, and
+  CIDR boundary validation.
 
 ## Endpoint Surface Example
 
@@ -242,6 +253,59 @@ assert_eq!(request.endpoint().method().as_str(), "POST");
 assert_eq!(request.endpoint().write_path(&mut [0u8; 16])?, 8);
 # Ok(())
 # }
+```
+
+## Firewall And Network Examples
+
+### Firewall Rule
+
+```rust
+use cloud_sdk_hetzner::cloud::firewalls::rules::{
+    FirewallPort, FirewallProtocol, FirewallRule, FirewallSelectors,
+};
+use cloud_sdk_hetzner::cloud::ip::IpCidr;
+
+let source = match IpCidr::new("192.0.2.0/24") {
+    Ok(source) => source,
+    Err(_) => return,
+};
+let sources = [source];
+let selectors = match FirewallSelectors::incoming(&sources) {
+    Ok(selectors) => selectors,
+    Err(_) => return,
+};
+let port = match FirewallPort::new("443") {
+    Ok(port) => port,
+    Err(_) => return,
+};
+let rule = match FirewallRule::try_new(selectors, FirewallProtocol::Tcp, Some(port)) {
+    Ok(rule) => rule,
+    Err(_) => return,
+};
+
+assert_eq!(rule.protocol(), FirewallProtocol::Tcp);
+```
+
+### Network Create Request
+
+```rust
+use cloud_sdk_hetzner::cloud::ip::NetworkIpRange;
+use cloud_sdk_hetzner::cloud::networks::{NetworkCreateRequest, NetworkName};
+
+let name = match NetworkName::new("private") {
+    Ok(name) => name,
+    Err(_) => return,
+};
+let ip_range = match NetworkIpRange::new("10.0.0.0/16") {
+    Ok(ip_range) => ip_range,
+    Err(_) => return,
+};
+let request = match NetworkCreateRequest::try_new(Some(name), Some(ip_range)) {
+    Ok(request) => request,
+    Err(_) => return,
+};
+
+assert_eq!(request.ip_range().as_str(), "10.0.0.0/16");
 ```
 
 ## Module Ownership Example

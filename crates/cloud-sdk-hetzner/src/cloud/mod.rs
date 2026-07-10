@@ -3,6 +3,7 @@
 pub mod catalog;
 pub mod firewalls;
 pub mod images;
+pub mod ip;
 pub mod load_balancers;
 pub mod networks;
 pub mod pricing;
