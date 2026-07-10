@@ -51,6 +51,9 @@ pagination iterators, or action polling.
   deferred.
 - Release-sensitive source, manifests, lockfiles, scripts, and workflow files
   may not change after the commit named by the pentest report.
+- IANA globally reachable NAT64, Teredo, and 6to4 target ranges are
+  intentionally eligible; Hetzner remains authoritative for ownership.
+- Release metadata requires exactly one unambiguous `Reviewed-Commit:` field.
 
 ## Verification
 

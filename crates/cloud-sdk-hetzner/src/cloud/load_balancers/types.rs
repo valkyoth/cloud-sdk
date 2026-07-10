@@ -245,6 +245,9 @@ fn invalid_public_v4(address: Ipv4Addr) -> bool {
 
 fn invalid_public_v6(address: Ipv6Addr) -> bool {
     let [first, second, third, fourth, _, _, _, _] = address.segments();
+    // IANA marks 64:ff9b::/96 (NAT64), 2001::/32 (Teredo), and 2002::/16
+    // (6to4) globally reachable. They are intentionally accepted here; Hetzner
+    // still enforces that a selected target address belongs to the project.
     address.is_loopback()
         || address.is_unspecified()
         || address.is_multicast()

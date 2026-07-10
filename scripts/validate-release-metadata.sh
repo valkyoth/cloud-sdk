@@ -46,8 +46,10 @@ else
     fi
 
     reviewed_commit=$(sed -n 's/^Reviewed-Commit:[[:space:]]*//p' "$report")
-    if ! printf '%s\n' "$reviewed_commit" | grep -Eq '^[0-9a-f]{40}$'; then
-        echo "release metadata: $report missing full 40-char Reviewed-Commit" >&2
+    reviewed_count=$(printf '%s\n' "$reviewed_commit" | awk 'NF { count++ } END { print count + 0 }')
+    if [ "$reviewed_count" -ne 1 ] \
+        || ! printf '%s\n' "$reviewed_commit" | grep -Eq '^[0-9a-f]{40}$'; then
+        echo "release metadata: $report must contain exactly one full Reviewed-Commit" >&2
         exit 1
     fi
 

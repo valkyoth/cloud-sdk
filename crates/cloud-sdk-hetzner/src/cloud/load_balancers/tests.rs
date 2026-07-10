@@ -364,6 +364,20 @@ fn load_balancers_public_server_ip_rejects_private_and_special_addresses() {
 }
 
 #[test]
+fn load_balancers_public_server_ip_explicitly_accepts_global_transition_ranges() {
+    for value in [
+        "64:ff9b::c000:201",
+        "2001:0:4136:e378:8000:63bf:3fff:fdd2",
+        "2002:c000:0201::",
+    ] {
+        assert!(
+            LoadBalancerPublicIp::new(value).is_ok(),
+            "IANA globally reachable transition address must remain eligible"
+        );
+    }
+}
+
+#[test]
 fn load_balancers_dns_pointer_requires_explicit_set_or_reset() {
     let ip = valid!(LoadBalancerIp::new("2001:db8::1"));
     assert_eq!(
