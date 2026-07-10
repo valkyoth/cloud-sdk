@@ -354,6 +354,15 @@ fn load_balancers_public_server_ip_rejects_private_and_special_addresses() {
         "fc00::1",
         "2001:db8::1",
         "::ffff:10.0.0.1",
+        "::10.0.0.1",
+        "::ffff:0:10.0.0.1",
+        "64:ff9b::c000:201",
+        "fec0::1",
+        "2001:0:4136:e378:8000:63bf:3fff:fdd2",
+        "2001:2::1",
+        "2001:10::1",
+        "2002:c000:0201::",
+        "3fff::1",
     ] {
         assert_eq!(
             LoadBalancerPublicIp::new(value),
@@ -361,20 +370,7 @@ fn load_balancers_public_server_ip_rejects_private_and_special_addresses() {
         );
     }
     assert!(LoadBalancerPublicIp::new("2606:4700:4700::1111").is_ok());
-}
-
-#[test]
-fn load_balancers_public_server_ip_explicitly_accepts_global_transition_ranges() {
-    for value in [
-        "64:ff9b::c000:201",
-        "2001:0:4136:e378:8000:63bf:3fff:fdd2",
-        "2002:c000:0201::",
-    ] {
-        assert!(
-            LoadBalancerPublicIp::new(value).is_ok(),
-            "IANA globally reachable transition address must remain eligible"
-        );
-    }
+    assert!(LoadBalancerPublicIp::new("2a01:4f8:1c1c::1").is_ok());
 }
 
 #[test]

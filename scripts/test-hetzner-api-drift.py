@@ -81,12 +81,37 @@ def test_load_specs_authenticates_before_parsing() -> None:
         assert_exits("cloud spec SHA-256 mismatch", checker.load_specs, args)
 
 
+def test_local_reader_rejects_oversize_before_reading() -> None:
+    with tempfile.TemporaryDirectory() as directory:
+        path = Path(directory) / "oversize.json"
+        path.write_bytes(b"123456789")
+        assert_exits(
+            "exceeds 8 bytes",
+            checker.read_bounded_file,
+            "cloud",
+            path,
+            max_bytes=8,
+        )
+
+
+def test_local_reader_rejects_symlink() -> None:
+    with tempfile.TemporaryDirectory() as directory:
+        root = Path(directory)
+        target = root / "target.json"
+        link = root / "link.json"
+        target.write_bytes(b"{}")
+        link.symlink_to(target)
+        assert_exits("must be a regular file", checker.read_bounded_file, "cloud", link)
+
+
 def main() -> None:
     tests = (
         test_bounded_reader_accepts_exact_limit,
         test_bounded_reader_rejects_oversize_response,
         test_bounded_reader_rejects_total_timeout,
         test_load_specs_authenticates_before_parsing,
+        test_local_reader_rejects_oversize_before_reading,
+        test_local_reader_rejects_symlink,
     )
     for test in tests:
         test()

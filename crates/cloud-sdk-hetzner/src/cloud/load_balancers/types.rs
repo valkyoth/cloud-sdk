@@ -244,18 +244,18 @@ fn invalid_public_v4(address: Ipv4Addr) -> bool {
 }
 
 fn invalid_public_v6(address: Ipv6Addr) -> bool {
-    let [first, second, third, fourth, _, _, _, _] = address.segments();
-    // IANA marks 64:ff9b::/96 (NAT64), 2001::/32 (Teredo), and 2002::/16
-    // (6to4) globally reachable. They are intentionally accepted here; Hetzner
-    // still enforces that a selected target address belongs to the project.
-    address.is_loopback()
-        || address.is_unspecified()
-        || address.is_multicast()
-        || address.is_unique_local()
-        || address.is_unicast_link_local()
-        || address.to_ipv4_mapped().is_some_and(invalid_public_v4)
-        || (first == 0x100 && second == 0 && third == 0 && fourth == 0)
-        || (first == 0x2001 && second == 0x0db8)
+    let [first, second, _, _, _, _, _, _] = address.segments();
+    if address.to_ipv4_mapped().is_some() {
+        return true;
+    }
+
+    let global_unicast_shape = first & 0xe000 == 0x2000;
+    let ietf_special = first == 0x2001 && second <= 0x01ff;
+    let documentation_2001 = first == 0x2001 && second == 0x0db8;
+    let six_to_four = first == 0x2002;
+    let documentation_3fff = first == 0x3fff && second & 0xf000 == 0;
+
+    !global_unicast_shape || ietf_special || documentation_2001 || six_to_four || documentation_3fff
 }
 
 fn invalid_text(value: &str, max: usize, reject_empty: bool) -> bool {

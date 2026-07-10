@@ -7,6 +7,7 @@ import argparse
 import csv
 import hashlib
 import json
+import stat
 import sys
 import tempfile
 import time
@@ -112,23 +113,41 @@ def schema_rows(api: str, document: dict[str, Any]) -> list[dict[str, str]]:
     return sorted(rows, key=lambda row: (row["api"], row["schema"]))
 
 
-def read_spec(path: Path) -> dict[str, Any]:
-    with path.open("r", encoding="utf-8") as handle:
-        return json.load(handle)
+def read_bounded_file(
+    api: str, path: Path, *, max_bytes: int = MAX_SPEC_BYTES
+) -> bytes:
+    try:
+        info = path.lstat()
+    except OSError as error:
+        raise SystemExit(f"{api} spec cannot be inspected: {path}: {error}") from error
+    if not stat.S_ISREG(info.st_mode):
+        raise SystemExit(f"{api} spec must be a regular file: {path}")
+    if info.st_size > max_bytes:
+        raise SystemExit(f"{api} spec exceeds {max_bytes} bytes")
+
+    data = bytearray()
+    with path.open("rb") as handle:
+        while True:
+            remaining = max_bytes + 1 - len(data)
+            chunk = handle.read(min(READ_CHUNK_BYTES, remaining))
+            if not chunk:
+                break
+            data.extend(chunk)
+            if len(data) > max_bytes:
+                raise SystemExit(f"{api} spec exceeds {max_bytes} bytes")
+    return bytes(data)
 
 
-def file_sha256(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
-
-
-def verify_pinned_spec(api: str, path: Path) -> None:
-    actual = file_sha256(path)
+def read_verified_spec(api: str, path: Path) -> dict[str, Any]:
+    payload = read_bounded_file(api, path)
+    actual = hashlib.sha256(payload).hexdigest()
     expected = PINNED_SPEC_SHA256[api]
     if actual != expected:
         raise SystemExit(
             f"{api} spec SHA-256 mismatch: "
             f"expected {expected}, got {actual}"
         )
+    return json.loads(payload)
 
 
 def read_bounded_response(
@@ -161,8 +180,9 @@ def fetch_spec(api: str, directory: Path) -> Path:
     with urllib.request.urlopen(
         SPECS[api], timeout=FETCH_CONNECT_TIMEOUT_SECONDS
     ) as response:
-        target.write_bytes(read_bounded_response(response, api))
-    print(f"{api} spec sha256: {file_sha256(target)}")
+        payload = read_bounded_response(response, api)
+    target.write_bytes(payload)
+    print(f"{api} spec sha256: {hashlib.sha256(payload).hexdigest()}")
     return target
 
 
@@ -182,9 +202,7 @@ def load_specs(args: argparse.Namespace) -> dict[str, dict[str, Any]]:
             "cloud": Path(args.current_cloud),
             "hetzner": Path(args.current_hetzner),
         }
-    for api, path in paths.items():
-        verify_pinned_spec(api, path)
-    return {api: read_spec(path) for api, path in paths.items()}
+    return {api: read_verified_spec(api, path) for api, path in paths.items()}
 
 
 def read_tsv(path: Path) -> list[dict[str, str]]:

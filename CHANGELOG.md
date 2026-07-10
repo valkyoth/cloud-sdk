@@ -15,6 +15,14 @@
   size and download time, and added regression tests for both controls.
 - Bound `v0.11.0+` pentest evidence to release-sensitive content, made release
   tags mandatory for publishing, and removed normal publisher bypass flags.
+- Tightened public IPv6 server targets to ordinary global-unicast ranges and
+  rejected translated, transition, benchmarking, documentation, deprecated,
+  and IETF-reserved address space.
+- Required detached OpenSSH pentest signatures from an approved key distinct
+  from the release signer and expanded post-review binding to all
+  release-consumed source-lock and security documentation.
+- Applied regular-file and size checks to local as well as fetched OpenAPI
+  inputs before hashing and parsing.
 
 ## 0.10.0 - 2026-07-10
 

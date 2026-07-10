@@ -60,6 +60,8 @@ A version is not tag-ready until:
 - release notes exist at `release-notes/RELEASE_NOTES_X.Y.Z.md`;
 - a pentest report exists at `security/pentest/vX.Y.Z.md`;
 - the pentest report names the exact full 40-character `Reviewed-Commit:`;
+- the pentest report has a valid detached OpenSSH signature from the approved
+  `pentest@cloud-sdk` identity under namespace `cloud-sdk-pentest-v1`;
 - the pentest report has `Status: PASS`;
 - the pentest report has non-blank `Tester:` and `Scope:` fields;
 - the pentest report has a `Date: YYYY-MM-DD` field;
@@ -75,12 +77,14 @@ tagging.
 Starting with `v0.11.0`, `scripts/validate_pentest_binding.py` rejects changes
 after `Reviewed-Commit:` under release-sensitive paths, including crate source
 and crate documentation, manifests, the lockfile, dependency policy, toolchain
-configuration, release metadata, scripts, and GitHub workflows. Release
-versions and those files must therefore be finalized before the passing
-retest. Evidence-only files such as the permanent pentest report and SBOM may
-be committed afterward. The normal publisher requires a verifiable signed,
-annotated `vX.Y.Z` tag to point at `HEAD` and has no dirty-tree, skipped-check,
-untagged, or no-verification bypass flags.
+configuration, release metadata, source-lock and security documentation,
+scripts, approved pentest signers, and GitHub workflows. Release versions and
+those files must therefore be finalized before the passing retest.
+Evidence-only files such as the signed permanent pentest report and SBOM may be
+committed afterward. The pentest key is distinct from the release-tag key. The
+normal publisher requires a verifiable signed, annotated `vX.Y.Z` tag to point
+at `HEAD` and has no dirty-tree, skipped-check, untagged, or no-verification
+bypass flags.
 
 When a version's implementation criteria are done, stop and say:
 
@@ -108,7 +112,8 @@ Use this loop for every version:
 7. Local gates are run again.
 8. GitHub CI and CodeQL default setup are checked after the fix commit.
 9. A permanent report is written at `security/pentest/vX.Y.Z.md` only when the
-   exact finalized commit has passed with `Status: PASS`.
+   exact finalized commit has passed with `Status: PASS`, then signed using
+   `scripts/sign-pentest-report.sh` by the approved pentest identity.
 10. Commit the permanent report and evidence-only artifacts. Any later change
     under a release-sensitive path requires another retest.
 11. GitHub CI and CodeQL default setup are checked on the report commit.

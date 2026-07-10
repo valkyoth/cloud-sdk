@@ -40,6 +40,11 @@ if [ ! -s "$report" ]; then
     fi
     echo "release metadata: v${version} pentest report pending"
 else
+    if [ "$strict" = false ] && git rev-parse --verify "v${version}^{commit}" >/dev/null 2>&1; then
+        target="v${version}"
+    fi
+    scripts/validate_pentest_binding.py --version "$version" --target "$target"
+
     if ! grep -Eq '^Status: PASS$' "$report"; then
         echo "release metadata: $report is not Status: PASS" >&2
         exit 1
@@ -67,10 +72,6 @@ else
         exit 1
     fi
 
-    if [ "$strict" = false ] && git rev-parse --verify "v${version}^{commit}" >/dev/null 2>&1; then
-        target="v${version}"
-    fi
-    scripts/validate_pentest_binding.py --version "$version" --target "$target"
 fi
 
 if [ ! -x scripts/release_crates.py ] || [ ! -x scripts/test-release-crates.py ]; then

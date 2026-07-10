@@ -51,9 +51,16 @@ pagination iterators, or action polling.
   deferred.
 - Release-sensitive source, manifests, lockfiles, scripts, and workflow files
   may not change after the commit named by the pentest report.
-- IANA globally reachable NAT64, Teredo, and 6to4 target ranges are
-  intentionally eligible; Hetzner remains authoritative for ownership.
+- Public server targets conservatively admit only ordinary global-unicast IPv6
+  addresses; translated, transition, benchmarking, documentation, deprecated,
+  and IETF-reserved ranges are rejected.
 - Release metadata requires exactly one unambiguous `Reviewed-Commit:` field.
+- Permanent pentest reports require a detached OpenSSH signature from the
+  approved pentest key, which is distinct from the release-tag signing key.
+- Source-lock files, release notes, changelog, and security documentation are
+  included in post-review content binding.
+- Local OpenAPI inputs must be bounded regular files; symlinks, special files,
+  and oversized files are rejected before hashing or parsing.
 
 ## Verification
 
@@ -71,8 +78,10 @@ pagination iterators, or action polling.
 
 - Initial review reported release-attestation binding, pinned-spec integrity,
   secret-buffer failure cleanup, and remote-download resource limits.
-- All four findings are remediated; retest is pending for the finalized
-  release-sensitive commit.
+- Subsequent review tightened IPv6 classification, independent pentest
+  provenance, content-binding scope, and local OpenAPI file handling.
+- All findings are remediated; retest is pending for the finalized
+  release-sensitive commit and its signed report.
 
 ## Publishing Plan
 
