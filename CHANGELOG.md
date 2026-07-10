@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+- Added `cloud-sdk-hetzner::cloud::load_balancers` no_std request primitives
+  for Load Balancer CRUD, metrics, services, targets, networks, reverse DNS,
+  protection, algorithms, type changes, and public-interface actions.
+- Added protocol-safe HTTP/HTTPS service settings, bounded health checks,
+  mutually exclusive target selection, public server-IP validation, explicit
+  reverse-DNS set/reset intent, and deterministic multi-metric queries.
+- Added the `v0.11.0` release gate script.
+
 ## 0.10.0 - 2026-07-10
 
 - Added `cloud-sdk-hetzner::cloud::firewalls` no_std request primitives for

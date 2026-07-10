@@ -114,31 +114,31 @@ Total source-locked operations: 221 (`cloud`: 189, `hetzner`: 32).
 | cloud | Images | DELETE | `/images/{id}` | `delete_image` | `cloud_sdk_hetzner::cloud::images` | no | no | none | no | implemented-v0.7 |
 | cloud | Images | GET | `/images/{id}` | `get_image` | `cloud_sdk_hetzner::cloud::images` | no | no | none | no | implemented-v0.7 |
 | cloud | Images | PUT | `/images/{id}` | `update_image` | `cloud_sdk_hetzner::cloud::images` | no | no | none | no | implemented-v0.7 |
-| cloud | Load Balancer Actions | GET | `/load_balancers/actions` | `list_load_balancers_actions` | `cloud_sdk_hetzner::cloud::load_balancers` | yes | yes | action-list | no | planned |
-| cloud | Load Balancer Actions | GET | `/load_balancers/actions/{id}` | `get_load_balancers_action` | `cloud_sdk_hetzner::cloud::load_balancers` | no | no | action-get | no | planned |
-| cloud | Load Balancer Actions | GET | `/load_balancers/{id}/actions` | `list_load_balancer_actions` | `cloud_sdk_hetzner::cloud::load_balancers` | yes | yes | action-list | no | planned |
-| cloud | Load Balancer Actions | POST | `/load_balancers/{id}/actions/add_service` | `add_load_balancer_service` | `cloud_sdk_hetzner::cloud::load_balancers` | no | no | starts-action | no | planned |
-| cloud | Load Balancer Actions | POST | `/load_balancers/{id}/actions/add_target` | `add_load_balancer_target` | `cloud_sdk_hetzner::cloud::load_balancers` | no | no | starts-action | no | planned |
-| cloud | Load Balancer Actions | POST | `/load_balancers/{id}/actions/attach_to_network` | `attach_load_balancer_to_network` | `cloud_sdk_hetzner::cloud::load_balancers` | no | no | starts-action | no | planned |
-| cloud | Load Balancer Actions | POST | `/load_balancers/{id}/actions/change_algorithm` | `change_load_balancer_algorithm` | `cloud_sdk_hetzner::cloud::load_balancers` | no | no | starts-action | no | planned |
-| cloud | Load Balancer Actions | POST | `/load_balancers/{id}/actions/change_dns_ptr` | `change_load_balancer_dns_ptr` | `cloud_sdk_hetzner::cloud::load_balancers` | no | no | starts-action | no | planned |
-| cloud | Load Balancer Actions | POST | `/load_balancers/{id}/actions/change_protection` | `change_load_balancer_protection` | `cloud_sdk_hetzner::cloud::load_balancers` | no | no | starts-action | no | planned |
-| cloud | Load Balancer Actions | POST | `/load_balancers/{id}/actions/change_type` | `change_load_balancer_type` | `cloud_sdk_hetzner::cloud::load_balancers` | no | no | starts-action | no | planned |
-| cloud | Load Balancer Actions | POST | `/load_balancers/{id}/actions/delete_service` | `delete_load_balancer_service` | `cloud_sdk_hetzner::cloud::load_balancers` | no | no | starts-action | no | planned |
-| cloud | Load Balancer Actions | POST | `/load_balancers/{id}/actions/detach_from_network` | `detach_load_balancer_from_network` | `cloud_sdk_hetzner::cloud::load_balancers` | no | no | starts-action | no | planned |
-| cloud | Load Balancer Actions | POST | `/load_balancers/{id}/actions/disable_public_interface` | `disable_load_balancer_public_interface` | `cloud_sdk_hetzner::cloud::load_balancers` | no | no | starts-action | no | planned |
-| cloud | Load Balancer Actions | POST | `/load_balancers/{id}/actions/enable_public_interface` | `enable_load_balancer_public_interface` | `cloud_sdk_hetzner::cloud::load_balancers` | no | no | starts-action | no | planned |
-| cloud | Load Balancer Actions | POST | `/load_balancers/{id}/actions/remove_target` | `remove_load_balancer_target` | `cloud_sdk_hetzner::cloud::load_balancers` | no | no | starts-action | no | planned |
-| cloud | Load Balancer Actions | POST | `/load_balancers/{id}/actions/update_service` | `update_load_balancer_service` | `cloud_sdk_hetzner::cloud::load_balancers` | no | no | starts-action | no | planned |
+| cloud | Load Balancer Actions | GET | `/load_balancers/actions` | `list_load_balancers_actions` | `cloud_sdk_hetzner::cloud::load_balancers` | yes | yes | action-list | no | implemented-v0.11 |
+| cloud | Load Balancer Actions | GET | `/load_balancers/actions/{id}` | `get_load_balancers_action` | `cloud_sdk_hetzner::cloud::load_balancers` | no | no | action-get | no | implemented-v0.11 |
+| cloud | Load Balancer Actions | GET | `/load_balancers/{id}/actions` | `list_load_balancer_actions` | `cloud_sdk_hetzner::cloud::load_balancers` | yes | yes | action-list | no | implemented-v0.11 |
+| cloud | Load Balancer Actions | POST | `/load_balancers/{id}/actions/add_service` | `add_load_balancer_service` | `cloud_sdk_hetzner::cloud::load_balancers` | no | no | starts-action | no | implemented-v0.11 |
+| cloud | Load Balancer Actions | POST | `/load_balancers/{id}/actions/add_target` | `add_load_balancer_target` | `cloud_sdk_hetzner::cloud::load_balancers` | no | no | starts-action | no | implemented-v0.11 |
+| cloud | Load Balancer Actions | POST | `/load_balancers/{id}/actions/attach_to_network` | `attach_load_balancer_to_network` | `cloud_sdk_hetzner::cloud::load_balancers` | no | no | starts-action | no | implemented-v0.11 |
+| cloud | Load Balancer Actions | POST | `/load_balancers/{id}/actions/change_algorithm` | `change_load_balancer_algorithm` | `cloud_sdk_hetzner::cloud::load_balancers` | no | no | starts-action | no | implemented-v0.11 |
+| cloud | Load Balancer Actions | POST | `/load_balancers/{id}/actions/change_dns_ptr` | `change_load_balancer_dns_ptr` | `cloud_sdk_hetzner::cloud::load_balancers` | no | no | starts-action | no | implemented-v0.11 |
+| cloud | Load Balancer Actions | POST | `/load_balancers/{id}/actions/change_protection` | `change_load_balancer_protection` | `cloud_sdk_hetzner::cloud::load_balancers` | no | no | starts-action | no | implemented-v0.11 |
+| cloud | Load Balancer Actions | POST | `/load_balancers/{id}/actions/change_type` | `change_load_balancer_type` | `cloud_sdk_hetzner::cloud::load_balancers` | no | no | starts-action | no | implemented-v0.11 |
+| cloud | Load Balancer Actions | POST | `/load_balancers/{id}/actions/delete_service` | `delete_load_balancer_service` | `cloud_sdk_hetzner::cloud::load_balancers` | no | no | starts-action | no | implemented-v0.11 |
+| cloud | Load Balancer Actions | POST | `/load_balancers/{id}/actions/detach_from_network` | `detach_load_balancer_from_network` | `cloud_sdk_hetzner::cloud::load_balancers` | no | no | starts-action | no | implemented-v0.11 |
+| cloud | Load Balancer Actions | POST | `/load_balancers/{id}/actions/disable_public_interface` | `disable_load_balancer_public_interface` | `cloud_sdk_hetzner::cloud::load_balancers` | no | no | starts-action | no | implemented-v0.11 |
+| cloud | Load Balancer Actions | POST | `/load_balancers/{id}/actions/enable_public_interface` | `enable_load_balancer_public_interface` | `cloud_sdk_hetzner::cloud::load_balancers` | no | no | starts-action | no | implemented-v0.11 |
+| cloud | Load Balancer Actions | POST | `/load_balancers/{id}/actions/remove_target` | `remove_load_balancer_target` | `cloud_sdk_hetzner::cloud::load_balancers` | no | no | starts-action | no | implemented-v0.11 |
+| cloud | Load Balancer Actions | POST | `/load_balancers/{id}/actions/update_service` | `update_load_balancer_service` | `cloud_sdk_hetzner::cloud::load_balancers` | no | no | starts-action | no | implemented-v0.11 |
 | cloud | Load Balancer Actions | GET | `/load_balancers/{id}/actions/{action_id}` | `get_load_balancer_action` | `cloud_sdk_hetzner::cloud::load_balancers` | no | no | resource-action-get | yes | deferred-deprecated |
 | cloud | Load Balancer Types | GET | `/load_balancer_types` | `list_load_balancer_types` | `cloud_sdk_hetzner::cloud::load_balancers` | yes | no | none | no | implemented-v0.4 |
 | cloud | Load Balancer Types | GET | `/load_balancer_types/{id}` | `get_load_balancer_type` | `cloud_sdk_hetzner::cloud::load_balancers` | no | no | none | no | implemented-v0.4 |
-| cloud | Load Balancers | GET | `/load_balancers` | `list_load_balancers` | `cloud_sdk_hetzner::cloud::load_balancers` | yes | yes | none | no | planned |
-| cloud | Load Balancers | POST | `/load_balancers` | `create_load_balancer` | `cloud_sdk_hetzner::cloud::load_balancers` | no | no | none | no | planned |
-| cloud | Load Balancers | DELETE | `/load_balancers/{id}` | `delete_load_balancer` | `cloud_sdk_hetzner::cloud::load_balancers` | no | no | none | no | planned |
-| cloud | Load Balancers | GET | `/load_balancers/{id}` | `get_load_balancer` | `cloud_sdk_hetzner::cloud::load_balancers` | no | no | none | no | planned |
-| cloud | Load Balancers | PUT | `/load_balancers/{id}` | `update_load_balancer` | `cloud_sdk_hetzner::cloud::load_balancers` | no | no | none | no | planned |
-| cloud | Load Balancers | GET | `/load_balancers/{id}/metrics` | `get_load_balancer_metrics` | `cloud_sdk_hetzner::cloud::load_balancers` | no | no | none | no | planned |
+| cloud | Load Balancers | GET | `/load_balancers` | `list_load_balancers` | `cloud_sdk_hetzner::cloud::load_balancers` | yes | yes | none | no | implemented-v0.11 |
+| cloud | Load Balancers | POST | `/load_balancers` | `create_load_balancer` | `cloud_sdk_hetzner::cloud::load_balancers` | no | no | none | no | implemented-v0.11 |
+| cloud | Load Balancers | DELETE | `/load_balancers/{id}` | `delete_load_balancer` | `cloud_sdk_hetzner::cloud::load_balancers` | no | no | none | no | implemented-v0.11 |
+| cloud | Load Balancers | GET | `/load_balancers/{id}` | `get_load_balancer` | `cloud_sdk_hetzner::cloud::load_balancers` | no | no | none | no | implemented-v0.11 |
+| cloud | Load Balancers | PUT | `/load_balancers/{id}` | `update_load_balancer` | `cloud_sdk_hetzner::cloud::load_balancers` | no | no | none | no | implemented-v0.11 |
+| cloud | Load Balancers | GET | `/load_balancers/{id}/metrics` | `get_load_balancer_metrics` | `cloud_sdk_hetzner::cloud::load_balancers` | no | no | none | no | implemented-v0.11 |
 | cloud | Locations | GET | `/locations` | `list_locations` | `cloud_sdk_hetzner::cloud::pricing` | yes | yes | none | no | implemented-v0.4 |
 | cloud | Locations | GET | `/locations/{id}` | `get_location` | `cloud_sdk_hetzner::cloud::pricing` | no | no | none | no | implemented-v0.4 |
 | cloud | Network Actions | GET | `/networks/actions` | `list_networks_actions` | `cloud_sdk_hetzner::cloud::networks` | yes | yes | action-list | no | implemented-v0.10 |

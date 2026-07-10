@@ -44,10 +44,11 @@ cloud-sdk-hetzner = "0.10.0"
 
 ## Current Scope
 
-The current main branch has reached the `0.10.0` release candidate for
-Firewall and Network request domains, with pentest and retest complete. It does
-not yet implement HTTP transport, serde models, body serialization, token
-storage, live API tests, retry policy, pagination iterators, or action polling.
+The current main branch has reached the `0.11.0` implementation stop for Load
+Balancer request domains; pentest is pending. The latest published release is
+`0.10.0`. This crate does not yet implement HTTP transport, serde models, body
+serialization, token storage, live API tests, retry policy, pagination
+iterators, or action polling.
 
 Implemented in the published `0.2.0` line:
 
@@ -122,7 +123,7 @@ Implemented in the published `0.9.0` line:
 - redacted Storage Box password markers, bounded snapshot-plan markers, and
   conservative subaccount home-directory validation.
 
-Implemented in the `0.10.0` release candidate:
+Implemented in the published `0.10.0` line:
 
 - Firewall list/create/get/update/delete request primitives;
 - Firewall apply/remove resource and set-rules action request primitives;
@@ -132,6 +133,18 @@ Implemented in the `0.10.0` release candidate:
 - Network route, subnet, IP range, and protection action request primitives;
 - canonical RFC 1918 range, route destination, private gateway, vSwitch, and
   CIDR boundary validation.
+
+Implemented on main for `0.11.0`:
+
+- Load Balancer list/create/get/update/delete and metrics request primitives;
+- service add/update/delete models for TCP, HTTP, and HTTPS;
+- bounded health checks, sticky-session settings, certificate selection, and
+  redirect behavior;
+- server, label-selector, and direct-IP target add/remove models;
+- network attach/detach, reverse-DNS, protection, algorithm, type-change, and
+  public-interface action models;
+- explicit reverse-DNS set/reset intent and deterministic multi-metric query
+  construction.
 
 ## Endpoint Surface Example
 
@@ -306,6 +319,33 @@ let request = match NetworkCreateRequest::try_new(Some(name), Some(ip_range)) {
 };
 
 assert_eq!(request.ip_range().as_str(), "10.0.0.0/16");
+```
+
+## Load Balancer Request Example
+
+```rust
+use cloud_sdk_hetzner::cloud::load_balancers::{
+    LoadBalancerAlgorithm, LoadBalancerCreateRequest, LoadBalancerName,
+    LoadBalancerType,
+};
+
+# fn main() -> Result<(), cloud_sdk_hetzner::cloud::load_balancers::LoadBalancerRequestError> {
+let name = LoadBalancerName::new("public-edge")?;
+let load_balancer_type = LoadBalancerType::new("lb11")?;
+let request = LoadBalancerCreateRequest::try_new(Some(name), Some(load_balancer_type))?
+    .with_algorithm(LoadBalancerAlgorithm::LeastConnections)
+    .with_public_interface(true);
+
+let mut path = [0u8; 32];
+let written = request.endpoint().write_path(&mut path)?;
+let path = path
+    .get(..written)
+    .and_then(|value| core::str::from_utf8(value).ok());
+
+assert_eq!(request.endpoint().method().as_str(), "POST");
+assert_eq!(path, Some("/load_balancers"));
+# Ok(())
+# }
 ```
 
 ## Module Ownership Example

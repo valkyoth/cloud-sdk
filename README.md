@@ -52,7 +52,8 @@ please report it so it can be fixed.
 
 ## Current Status
 
-Status: `v0.10.0` release candidate; pentest and retest complete.
+Status: `v0.11.0` implementation stop reached; pentest pending. The latest
+published release is `v0.10.0`.
 
 Implemented now:
 
@@ -97,6 +98,9 @@ Implemented now:
   validated rule replacement.
 - Hetzner Network request primitives for CRUD, routes, subnets, range changes,
   and protection actions.
+- Hetzner Load Balancer request primitives for CRUD, metrics, services,
+  targets, network attachment, reverse DNS, protection, algorithms, type
+  changes, and public-interface actions.
 
 Not implemented yet:
 
@@ -321,4 +325,6 @@ scripts/release_0_6_gate.sh
 scripts/release_0_7_gate.sh
 scripts/release_0_8_gate.sh
 scripts/release_0_9_gate.sh
+scripts/release_0_10_gate.sh
+scripts/release_0_11_gate.sh
 ```
