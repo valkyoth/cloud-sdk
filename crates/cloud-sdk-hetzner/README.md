@@ -126,8 +126,8 @@ Implemented on main for next `0.10.0`:
 
 - Firewall list/create/get/update/delete request primitives;
 - Firewall apply/remove resource and set-rules action request primitives;
-- direction-specific source/destination CIDR selectors, protocols, ports,
-  descriptions, rule limits, and duplicate conflict validation;
+- direction-specific canonical source/destination CIDR selectors, protocols,
+  ports, descriptions, rule limits, and duplicate conflict validation;
 - Network list/create/get/update/delete request primitives;
 - Network route, subnet, IP range, and protection action request primitives;
 - canonical RFC 1918 range, route destination, private gateway, vSwitch, and

@@ -49,6 +49,9 @@ reviewed source-lock pass.
 
 ## Changelog Items Considered
 
+- 2025-11-12: Firewall `source_ips` and `destination_ips` stopped accepting
+  CIDRs with host bits set on 2025-12-10. Canonical networks and individual
+  `/32` or `/128` hosts remain valid.
 - 2026-07-08: omitted `ttl` for `POST /zones/{id_or_name}/rrsets/{rr_name}/{rr_type}/actions/change_ttl` is deprecated. Future models must require explicit `ttl` or `null` once the API removal date is reached.
 - 2026-07-08: omitted `dns_ptr` for DNS pointer change actions is deprecated for servers, primary IPs, floating IPs, and load balancers. Future models must require explicit `dns_ptr` or `null` once the API removal date is reached.
 - 2026-07-01: `datacenter` was removed from Servers and Primary IPs create/update request and response shapes.

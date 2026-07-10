@@ -1,6 +1,6 @@
 //! Allocation-free IP address and CIDR validation for Cloud request domains.
 
-use core::net::{IpAddr, Ipv4Addr};
+use core::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 use core::str::FromStr;
 
 /// IP validation error.
@@ -39,13 +39,19 @@ pub struct IpCidr<'a> {
 }
 
 impl<'a> IpCidr<'a> {
-    /// Validates CIDR syntax and prefix bounds.
+    /// Validates CIDR syntax, prefix bounds, and canonical network host bits.
     pub fn new(value: &'a str) -> Result<Self, IpValidationError> {
         let (address, prefix) = split_cidr(value)?;
         let address = IpAddr::from_str(address).map_err(|_| IpValidationError::InvalidSyntax)?;
         let family = match address {
-            IpAddr::V4(_) if prefix <= 32 => IpFamily::Ipv4,
-            IpAddr::V6(_) if prefix <= 128 => IpFamily::Ipv6,
+            IpAddr::V4(address) if prefix <= 32 => {
+                ensure_ipv4_host_bits_clear(address, prefix)?;
+                IpFamily::Ipv4
+            }
+            IpAddr::V6(address) if prefix <= 128 => {
+                ensure_ipv6_host_bits_clear(address, prefix)?;
+                IpFamily::Ipv6
+            }
             IpAddr::V4(_) | IpAddr::V6(_) => return Err(IpValidationError::InvalidPrefix),
         };
         Ok(Self { value, family })
@@ -182,6 +188,11 @@ fn ipv4_network(value: &str) -> Result<(Ipv4Addr, u8), IpValidationError> {
         return Err(IpValidationError::InvalidPrefix);
     }
     let address = Ipv4Addr::from_str(address).map_err(|_| IpValidationError::InvalidSyntax)?;
+    ensure_ipv4_host_bits_clear(address, prefix)?;
+    Ok((address, prefix))
+}
+
+fn ensure_ipv4_host_bits_clear(address: Ipv4Addr, prefix: u8) -> Result<(), IpValidationError> {
     let shift = 32_u32
         .checked_sub(u32::from(prefix))
         .ok_or(IpValidationError::InvalidPrefix)?;
@@ -189,7 +200,18 @@ fn ipv4_network(value: &str) -> Result<(Ipv4Addr, u8), IpValidationError> {
     if u32::from(address) & mask != u32::from(address) {
         return Err(IpValidationError::HostBitsSet);
     }
-    Ok((address, prefix))
+    Ok(())
+}
+
+fn ensure_ipv6_host_bits_clear(address: Ipv6Addr, prefix: u8) -> Result<(), IpValidationError> {
+    let shift = 128_u32
+        .checked_sub(u32::from(prefix))
+        .ok_or(IpValidationError::InvalidPrefix)?;
+    let mask = u128::MAX.checked_shl(shift).unwrap_or(0);
+    if u128::from(address) & mask != u128::from(address) {
+        return Err(IpValidationError::HostBitsSet);
+    }
+    Ok(())
 }
 
 fn ensure_private_block(address: Ipv4Addr, prefix: u8) -> Result<(), IpValidationError> {
@@ -226,6 +248,16 @@ mod tests {
             Ok(IpFamily::Ipv4)
         );
         assert_eq!(IpCidr::new("::/0").map(IpCidr::family), Ok(IpFamily::Ipv6));
+        assert_eq!(
+            IpCidr::new("192.0.2.42/24"),
+            Err(IpValidationError::HostBitsSet)
+        );
+        assert_eq!(
+            IpCidr::new("2001:db8::42/64"),
+            Err(IpValidationError::HostBitsSet)
+        );
+        assert!(IpCidr::new("192.0.2.42/32").is_ok());
+        assert!(IpCidr::new("2001:db8::42/128").is_ok());
         assert_eq!(
             IpCidr::new("192.0.2.1/33"),
             Err(IpValidationError::InvalidPrefix)

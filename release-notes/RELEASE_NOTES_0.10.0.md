@@ -24,8 +24,8 @@ pagination iterators, or action polling.
   delete protection.
 - Non-deprecated Cloud and vSwitch subnet models with vSwitch IDs required by
   construction.
-- Allocation-free IPv4/IPv6 CIDR parsing and canonical RFC 1918 Network,
-  subnet, route destination, and gateway validation.
+- Allocation-free canonical IPv4/IPv6 Firewall CIDR parsing and canonical RFC
+  1918 Network, subnet, route destination, and gateway validation.
 - `scripts/release_0_10_gate.sh`.
 - Current stable Rust `1.97.0` development pin and `cargo-deny 0.20.2` CI pin;
   cargo-deny's Rust `1.88.0` requirement remains below this workspace's Rust
@@ -39,6 +39,8 @@ pagination iterators, or action polling.
 - Network and Firewall IDs remain nonzero.
 - Network ranges must be canonical RFC 1918 IPv4 networks of at least `/24`;
   subnets must be at least `/30`.
+- Firewall CIDRs reject host bits as required by Hetzner since 10 December
+  2025; individual hosts remain valid as `/32` or `/128`.
 - Route destinations are private IPv4 CIDRs or `0.0.0.0/0`; gateways are
   private IPv4 addresses, and Hetzner's reserved `172.31.1.1` is rejected.
 - Project-state checks such as overlap with existing routes/subnets, gateway
