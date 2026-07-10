@@ -58,7 +58,7 @@ pagination iterators, or action polling.
 - Release metadata requires exactly one unambiguous `Reviewed-Commit:` field.
 - Permanent pentest reports require an OpenSSH-signed attestation from the
   approved pentest key, which is distinct from the release-tag signing key.
-- Pentest reports, attestations, signatures, and signer policy are opened
+- Pentest reports, signed attestation bundles, and signer policy are opened
   without following links and copied into private bounded snapshots. The
   signed metadata binds the report's immutable Git commit, path, and SHA-256.
 - Source-lock files, release notes, changelog, and security documentation are
@@ -67,8 +67,8 @@ pagination iterators, or action polling.
   from the resulting descriptor; symlinks, FIFOs, devices, and oversized files
   are rejected before hashing or parsing.
 - Pentest signing requires a clean repository, reads the committed report as a
-  Git blob, and hard-links verified attestation files into place without
-  overwriting any existing path.
+  Git blob, and publishes one complete signed bundle with a single
+  non-overwriting hard link.
 - The release gate fetches bounded copies of both IANA IPv6 registries and
   fails on digest, allocation, special-range, lock-file, or Rust-policy drift.
 
@@ -97,6 +97,8 @@ pagination iterators, or action polling.
 - Final signing hardening binds evidence to a committed Git blob, makes future
   unsupported IPv6 prefix lengths fail closed, and authenticates IANA bytes
   before CSV parsing.
+- Signed pentest evidence is published as one bounded transactional bundle, so
+  failed publication cannot leave a partial attestation/signature pair.
 - All findings are remediated; retest is pending for the finalized
   release-sensitive commit and its signed report.
 

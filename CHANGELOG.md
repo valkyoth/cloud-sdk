@@ -34,6 +34,8 @@
 - Bound pentest signatures to an immutable committed report blob through
   signed commit/path/SHA-256 metadata, rejected unrepresentable IPv6 prefixes,
   and authenticated IANA registry bytes before parsing.
+- Published pentest attestation metadata and its OpenSSH signature as one
+  bounded, atomically installed evidence bundle.
 
 ## 0.10.0 - 2026-07-10
 

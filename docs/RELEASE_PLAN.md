@@ -119,8 +119,9 @@ Use this loop for every version:
 10. Commit the unsigned report, ensure the repository is clean, then run
     `scripts/sign-pentest-report.sh` using the approved pentest identity. The
     helper signs an attestation for the immutable report blob from `HEAD`.
-11. Commit the generated `.md.attestation`, `.md.sig`, and other evidence-only
-    artifacts. Any later release-sensitive change requires another retest.
+11. Commit the generated `.md.attestation.signed` bundle and other
+    evidence-only artifacts. Any later release-sensitive change requires
+    another retest.
 12. GitHub CI and CodeQL default setup are checked on the evidence commit.
 13. Tagging and pushing tags happen only when explicitly requested.
 
