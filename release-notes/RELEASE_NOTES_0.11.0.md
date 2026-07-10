@@ -68,6 +68,8 @@ pagination iterators, or action polling.
   are rejected before hashing or parsing.
 - Pentest signatures are created from a private report copy and atomically
   hard-linked into place without overwriting any existing path.
+- The release gate fetches bounded copies of both IANA IPv6 registries and
+  fails on digest, allocation, special-range, lock-file, or Rust-policy drift.
 
 ## Verification
 
@@ -76,6 +78,8 @@ pagination iterators, or action polling.
 - `cargo test -p cloud-sdk-hetzner --all-features load_balancers`
 - `scripts/test-hetzner-api-drift.py`
 - `scripts/test-pentest-binding.py`
+- `scripts/test-iana-ipv6-registry.py`
+- `scripts/check_iana_ipv6_registry.py --fetch`
 - `scripts/check_hetzner_api_drift.py --fetch`
 - `scripts/checks.sh`
 - `scripts/release_0_11_gate.sh`

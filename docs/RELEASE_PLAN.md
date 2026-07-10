@@ -54,6 +54,8 @@ applies to `v0.N.P` patch tags as well as milestone tags.
 A version is not tag-ready until:
 
 - `scripts/checks.sh` passes;
+- the version-specific release gate, including required live Hetzner and IANA
+  drift checks, passes;
 - `cargo deny check` passes;
 - `cargo audit` passes;
 - `scripts/generate-sbom.sh` succeeds;

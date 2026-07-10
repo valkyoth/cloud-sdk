@@ -9,6 +9,8 @@ scripts/validate-security-policy.sh
 scripts/validate-release-metadata.sh
 scripts/test-pentest-binding.py
 scripts/test-pentest-signing.py
+scripts/check_iana_ipv6_registry.py --local-only
+scripts/test-iana-ipv6-registry.py
 scripts/check_hetzner_api_drift.py --local-only
 scripts/test-hetzner-api-drift.py
 scripts/release_crates.py --check

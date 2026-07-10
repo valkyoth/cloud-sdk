@@ -28,6 +28,9 @@
 - Removed pentest-evidence and local OpenAPI pathname races with no-follow,
   bounded descriptor reads and authenticated private snapshots, and made
   pentest signature publication atomic and no-overwrite.
+- Added a fail-closed IANA IPv6 registry drift checker that keeps the
+  machine-readable allocation lock and Rust policy synchronized and runs live
+  from the release gate.
 
 ## 0.10.0 - 2026-07-10
 

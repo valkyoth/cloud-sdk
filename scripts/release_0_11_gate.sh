@@ -4,6 +4,7 @@ set -eu
 scripts/checks.sh
 scripts/check_hetzner_upstream.sh --local-only
 scripts/check_hetzner_api_drift.py --fetch
+scripts/check_iana_ipv6_registry.py --fetch
 # Full-suite coverage already ran in scripts/checks.sh; this is the v0.11 targeted rerun.
 cargo test -p cloud-sdk-hetzner --all-features load_balancers
 
