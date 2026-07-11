@@ -34,8 +34,12 @@ pagination iterators, or action polling.
   leading, trailing, empty, or overlong labels.
 - Zonefiles are nonempty, NUL-free, capped at 1 MiB, redacted in `Debug`, and
   exposed only through an atomic JSON-string writer.
-- TSIG keys are bounded, strict padded standard Base64 values, redacted in
-  `Debug`, and exposed only through an atomic JSON-string writer.
+- TSIG keys are bounded, canonical padded standard Base64 values with zero
+  unused padding bits, redacted in `Debug`, and exposed only through an atomic
+  JSON-string writer.
+- Callers must securely erase the complete caller-owned buffer used by TSIG or
+  zonefile JSON writers after transport completes. The SDK cannot erase memory
+  it does not own; use a reviewed non-elidable mechanism for the target.
 - Primary nameservers require unique public IP addresses, a nonzero port, and
   coherent optional TSIG credentials.
 - Zone change-TTL requests require an explicit `60..=2147483647` value. Zone

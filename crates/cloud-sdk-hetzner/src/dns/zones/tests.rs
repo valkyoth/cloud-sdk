@@ -290,9 +290,12 @@ fn dns_zones_primary_nameservers_require_public_unique_addresses() {
 
 #[test]
 fn dns_zones_tsig_is_coherent_validated_and_redacted() {
-    for invalid in ["", "abc", "YWJjZA=", "YW=JjZA=", "é=="] {
+    for invalid in ["", "abc", "YWJjZA=", "YW=JjZA=", "é==", "Zh==", "Zm9="] {
         assert_eq!(TsigKey::new(invalid), Err(ZoneRequestError::InvalidTsigKey));
     }
+    assert!(TsigKey::new("Zg==").is_ok());
+    assert!(TsigKey::new("Zm8=").is_ok());
+    assert!(TsigKey::new("Zm9v").is_ok());
     let key = valid!(TsigKey::new("YWJjZA=="));
     let credentials = TsigCredentials::new(key, TsigAlgorithm::HmacSha256);
     let server = nameserver!("1.1.1.1").with_tsig(credentials);

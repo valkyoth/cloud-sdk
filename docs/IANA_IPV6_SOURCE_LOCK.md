@@ -1,8 +1,8 @@
 # IANA IPv6 Source Lock
 
-Status: source-locked for `v0.11.0`.
+Status: source-locked for `v0.12.0`.
 
-Retrieved: 2026-07-10
+Retrieved: 2026-07-11
 
 ## Sources
 
@@ -16,8 +16,9 @@ Machine-readable sources:
 - <https://www.iana.org/assignments/ipv6-unicast-address-assignments/ipv6-unicast-address-assignments.csv>
 - <https://www.iana.org/assignments/iana-ipv6-special-registry/iana-ipv6-special-registry-1.csv>
 
-The public Load Balancer server-target policy admits only the following
-allocated global-unicast prefixes. The machine-readable copy is
+The shared public-IP policy used by Load Balancer server targets and DNS
+primary nameservers admits only the following allocated global-unicast
+prefixes. The machine-readable copy is
 `docs/IANA_IPV6_GLOBAL_UNICAST.tsv`:
 
 ```text
@@ -46,7 +47,7 @@ Run the offline synchronization check during development:
 scripts/check_iana_ipv6_registry.py --local-only
 ```
 
-The `v0.11.0` release gate runs the live registry check:
+The `v0.12.0` release gate runs the live registry check:
 
 ```bash
 scripts/check_iana_ipv6_registry.py --fetch

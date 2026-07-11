@@ -169,6 +169,8 @@ impl<'a> ZoneFile<'a> {
     }
 
     /// Writes the complete JSON string without exposing a raw accessor.
+    ///
+    /// The caller owns `output` and must securely erase it after transport use.
     pub fn write_json_string(self, output: &mut [u8]) -> Result<usize, ZoneRequestError> {
         let mut len = 0;
         buffer::write_json_string(
@@ -215,7 +217,7 @@ impl TsigAlgorithm {
 pub struct TsigKey<'a>(&'a str);
 
 impl<'a> TsigKey<'a> {
-    /// Validates strict padded standard Base64 shape.
+    /// Validates canonical padded standard Base64.
     pub fn new(value: &'a str) -> Result<Self, ZoneRequestError> {
         let bytes = value.as_bytes();
         let padding = value
@@ -233,6 +235,7 @@ impl<'a> TsigKey<'a> {
             || !value.len().is_multiple_of(4)
             || padding > 2
             || invalid_data
+            || !has_canonical_base64_padding(bytes, data_len, padding)
         {
             return Err(ZoneRequestError::InvalidTsigKey);
         }
@@ -240,6 +243,8 @@ impl<'a> TsigKey<'a> {
     }
 
     /// Writes the complete JSON string without exposing a raw accessor.
+    ///
+    /// The caller owns `output` and must securely erase it after transport use.
     pub fn write_json_string(self, output: &mut [u8]) -> Result<usize, ZoneRequestError> {
         let mut len = 0;
         buffer::write_json_string(
@@ -249,6 +254,32 @@ impl<'a> TsigKey<'a> {
             ZoneRequestError::BodyBufferTooSmall,
         )?;
         Ok(len)
+    }
+}
+
+fn has_canonical_base64_padding(bytes: &[u8], data_len: usize, padding: usize) -> bool {
+    if padding == 0 {
+        return true;
+    }
+    let last = data_len
+        .checked_sub(1)
+        .and_then(|index| bytes.get(index))
+        .and_then(|byte| base64_sextet(*byte));
+    match (padding, last) {
+        (1, Some(value)) => value & 0b0000_0011 == 0,
+        (2, Some(value)) => value & 0b0000_1111 == 0,
+        _ => false,
+    }
+}
+
+fn base64_sextet(byte: u8) -> Option<u8> {
+    match byte {
+        b'A'..=b'Z' => byte.checked_sub(b'A'),
+        b'a'..=b'z' => byte.checked_sub(b'a')?.checked_add(26),
+        b'0'..=b'9' => byte.checked_sub(b'0')?.checked_add(52),
+        b'+' => Some(62),
+        b'/' => Some(63),
+        _ => None,
     }
 }
 

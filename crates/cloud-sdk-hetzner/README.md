@@ -157,6 +157,15 @@ Implemented on main for `0.12.0`:
 - redacted zonefile and TSIG debug output, fixed-buffer paths, and structural
   primary/secondary Zone creation modes.
 
+### Sensitive Output Buffers
+
+`ZoneFile::write_json_string` and `TsigKey::write_json_string` copy potentially
+sensitive values into caller-owned buffers. After the request has completed,
+the caller must securely erase the entire destination buffer with a reviewed,
+non-elidable zeroization mechanism appropriate for the target platform. The SDK
+cannot erase memory it does not own, and ordinary writes are not guaranteed to
+survive compiler optimization as secure erasure.
+
 ## Endpoint Surface Example
 
 ```rust

@@ -14,6 +14,10 @@
 - Reused the source-locked public IP policy for Load Balancer targets and DNS
   primary nameservers.
 - Added the `v0.12.0` release gate script.
+- Enforced canonical TSIG Base64 padding bits and documented secure erasure of
+  caller-owned TSIG and zonefile output buffers after transport use.
+- Updated the IANA IPv6 source lock for its shared Load Balancer and DNS
+  primary-nameserver policy location.
 
 ## 0.11.0 - 2026-07-11
 
