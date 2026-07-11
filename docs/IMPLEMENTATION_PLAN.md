@@ -53,11 +53,11 @@ explicit trust and dependency review.
   `src/cloud`, `src/dns`, `src/security`, and `src/storage`, with shared
   request, response, pagination, label, rate-limit, and action domains in
   top-level source files.
-- `cloud-sdk-hetzner-reqwest`: future optional reqwest transport adapter. It
+- `cloud-sdk-reqwest`: future provider-neutral reqwest transport adapter. It
   exists as a boundary, but does not admit `reqwest`, TLS, or runtime
   dependencies until reviewed.
-- `cloud-sdk-hetzner-testkit`: future fixtures, adversarial responses, mock
-  transport, pagination/action simulations, and live-test gating helpers.
+- `cloud-sdk-testkit`: future provider-neutral fixtures, adversarial responses,
+  mock transport, pagination/action simulations, and live-test gating helpers.
 - `cloud-sdk-sanitization`: future provider-neutral token, credential, and
   caller-owned buffer sanitization helpers. It exists as a boundary, but does
   not admit sanitization dependencies until reviewed.

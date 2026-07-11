@@ -148,10 +148,10 @@ documents are never parsed by the release drift command.
 
 ## Crate Versioning And Publish Order
 
-Provider-neutral domains live in `cloud-sdk`; reusable secret handling belongs
-in `cloud-sdk-sanitization`. Hetzner endpoint models live in
-`cloud-sdk-hetzner`. Extra provider-specific crates are versioned only for real
-optional boundaries such as reqwest transport and testkit fixtures.
+Provider-neutral domains live in `cloud-sdk`; reusable transport, testkit, and
+secret handling belong in `cloud-sdk-reqwest`, `cloud-sdk-testkit`, and
+`cloud-sdk-sanitization`. Hetzner endpoint models live in
+`cloud-sdk-hetzner`. The default architecture is one primary crate per provider.
 
 Track every release in `release-crates.toml` and
 `docs/CRATE_VERSION_MATRIX.md`:
@@ -193,8 +193,8 @@ Deliverables:
 
 - Rust stable `1.97.0` pinned.
 - Rust `1.90.0` through `1.97.0` compatibility policy.
-- Provider-neutral no_std foundation and sanitization boundary crates, one
-  focused Hetzner provider crate, and two optional Hetzner boundary crates.
+- Provider-neutral no_std foundation, reqwest, testkit, and sanitization
+  boundary crates plus one focused Hetzner provider crate.
 - CI, dependency policy, security policy, release notes.
 - Fail-closed release gates for pentest evidence, no_std policy, and required
   dependency security tools.
@@ -623,7 +623,7 @@ Deliverables:
   features disabled and no_std preserved.
 - Non-elidable cleanup on success, error, early return, and unwind where unwind
   exists, with explicit limitations for source strings and downstream copies.
-- First usable `cloud-sdk-hetzner-testkit` mock transport boundary.
+- First usable `cloud-sdk-testkit` mock transport boundary.
 - Fixture builders for success, paginated, action, rate-limit, and error
   responses.
 - Adversarial corpus for malformed JSON, unknown fields, missing required
@@ -636,7 +636,7 @@ Verification:
 - `scripts/checks.sh`
 - `cargo test -p cloud-sdk-sanitization --all-features`
 - `cargo tree -p cloud-sdk-sanitization --no-default-features`
-- `cargo test -p cloud-sdk-hetzner-testkit --all-features`
+- `cargo test -p cloud-sdk-testkit --all-features`
 - `cargo test --workspace --all-features`
 - `scripts/release_0_15_gate.sh` once added.
 
@@ -664,7 +664,7 @@ Deliverables:
 Verification:
 
 - `scripts/checks.sh`
-- `cargo test -p cloud-sdk-hetzner-reqwest --all-features`
+- `cargo test -p cloud-sdk-reqwest --all-features`
 - `cargo tree -p cloud-sdk-hetzner --no-default-features`
 - `scripts/release_0_16_gate.sh` once added.
 
@@ -690,7 +690,7 @@ Deliverables:
 Verification:
 
 - `scripts/checks.sh`
-- `cargo test -p cloud-sdk-hetzner-reqwest --all-features`
+- `cargo test -p cloud-sdk-reqwest --all-features`
 - `cargo tree -p cloud-sdk-hetzner --no-default-features`
 - `scripts/release_0_17_gate.sh` once added.
 

@@ -18,13 +18,11 @@ scripts/test-release-crates.py
 cargo package -p cloud-sdk --allow-dirty
 cargo package -p cloud-sdk-hetzner --allow-dirty \
     --config 'patch.crates-io.cloud-sdk.path="crates/cloud-sdk"'
-cargo package -p cloud-sdk-hetzner-reqwest --allow-dirty \
-    --config 'patch.crates-io.cloud-sdk.path="crates/cloud-sdk"' \
-    --config 'patch.crates-io.cloud-sdk-hetzner.path="crates/cloud-sdk-hetzner"'
+cargo package -p cloud-sdk-reqwest --allow-dirty \
+    --config 'patch.crates-io.cloud-sdk.path="crates/cloud-sdk"'
 cargo package -p cloud-sdk-sanitization --allow-dirty \
     --config 'patch.crates-io.cloud-sdk.path="crates/cloud-sdk"'
-cargo package -p cloud-sdk-hetzner-testkit --allow-dirty \
-    --config 'patch.crates-io.cloud-sdk.path="crates/cloud-sdk"' \
-    --config 'patch.crates-io.cloud-sdk-hetzner.path="crates/cloud-sdk-hetzner"'
+cargo package -p cloud-sdk-testkit --allow-dirty \
+    --config 'patch.crates-io.cloud-sdk.path="crates/cloud-sdk"'
 cargo clippy --workspace --all-targets --all-features -- -D warnings
 cargo test --workspace --all-features

@@ -21,7 +21,10 @@
 - Replaced the unused `cloud-sdk-hetzner-sanitization` workspace placeholder
   with the provider-neutral `cloud-sdk-sanitization` crate before adoption.
 - Added a fail-closed retired-package denylist so release planning, workspace
-  verification, and direct publishing reject the former package name.
+  verification, and direct publishing reject former package names.
+- Replaced the unused Hetzner-specific reqwest and testkit placeholders with
+  provider-neutral `cloud-sdk-reqwest` and `cloud-sdk-testkit` crates, keeping
+  the architecture to one primary crate per provider.
 
 ## 0.11.0 - 2026-07-11
 

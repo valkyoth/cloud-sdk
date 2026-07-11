@@ -16,12 +16,12 @@ change = "code"
 publish = true
 reason = "No_std DNS Zone CRUD, zonefile, nameserver, TTL, protection, and action request domains."
 
-[crates."cloud-sdk-hetzner-reqwest"]
-previous_version = "0.11.0"
+[crates."cloud-sdk-reqwest"]
+previous_version = "none"
 version = "0.12.0"
-change = "metadata"
+change = "code"
 publish = true
-reason = "Keep optional transport boundary metadata aligned with v0.12.0 release evidence."
+reason = "Initial provider-neutral no_std reqwest transport boundary for all cloud providers."
 
 [crates."cloud-sdk-sanitization"]
 previous_version = "none"
@@ -30,9 +30,9 @@ change = "code"
 publish = true
 reason = "Initial provider-neutral no_std sanitization boundary for reusable cloud SDK secret helpers."
 
-[crates."cloud-sdk-hetzner-testkit"]
-previous_version = "0.11.0"
+[crates."cloud-sdk-testkit"]
+previous_version = "none"
 version = "0.12.0"
-change = "metadata"
+change = "code"
 publish = true
-reason = "Keep testkit boundary metadata aligned with v0.12.0 release evidence."
+reason = "Initial provider-neutral no_std mock transport and fixture boundary for all cloud providers."

@@ -1,6 +1,6 @@
 [package]
-name = "cloud-sdk-hetzner-reqwest"
-description = "Optional reqwest transport adapter boundary for cloud-sdk-hetzner."
+name = "cloud-sdk-reqwest"
+description = "Optional provider-neutral reqwest transport boundary for cloud-sdk."
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -11,10 +11,10 @@ readme = "README.md"
 
 [features]
 default = []
-std = ["cloud-sdk-hetzner/std"]
+std = ["cloud-sdk/std"]
 
 [dependencies]
-cloud-sdk-hetzner.workspace = true
+cloud-sdk.workspace = true
 
 [lints]
 workspace = true

@@ -55,13 +55,9 @@ def base_packages() -> dict[str, dict]:
         name: package(name, "0.3.0") for name in release_crates.PUBLISH_ORDER
     }
     packages["cloud-sdk-hetzner"]["dependencies"] = [{"name": "cloud-sdk"}]
-    packages["cloud-sdk-hetzner-reqwest"]["dependencies"] = [
-        {"name": "cloud-sdk-hetzner"}
-    ]
+    packages["cloud-sdk-reqwest"]["dependencies"] = [{"name": "cloud-sdk"}]
     packages["cloud-sdk-sanitization"]["dependencies"] = [{"name": "cloud-sdk"}]
-    packages["cloud-sdk-hetzner-testkit"]["dependencies"] = [
-        {"name": "cloud-sdk-hetzner"}
-    ]
+    packages["cloud-sdk-testkit"]["dependencies"] = [{"name": "cloud-sdk"}]
     return packages
 
 
@@ -86,32 +82,32 @@ def test_retired_package_is_absent_from_publish_order() -> None:
 
 
 def test_retired_package_is_rejected_from_workspace_metadata() -> None:
-    packages = base_packages()
-    retired = "cloud-sdk-hetzner-sanitization"
-    packages[retired] = package(retired, "0.11.0")
-    assert_fails(
-        "workspace metadata contains retired packages",
-        release_crates.verify_publish_order,
-        packages,
-        base_plan(),
-    )
+    for retired in release_crates.RETIRED_PACKAGES:
+        packages = base_packages()
+        packages[retired] = package(retired, "0.11.0")
+        assert_fails(
+            "workspace metadata contains retired packages",
+            release_crates.verify_publish_order,
+            packages,
+            base_plan(),
+        )
 
 
 def test_retired_package_is_rejected_from_release_plan() -> None:
-    plan = base_plan()
-    retired = "cloud-sdk-hetzner-sanitization"
-    plan["crates"][retired] = {
-        "previous_version": "0.11.0",
-        "version": "0.12.0",
-        "change": "metadata",
-        "publish": True,
-        "reason": "test",
-    }
-    assert_fails(
-        "release plan contains retired packages",
-        release_crates.publish_plan,
-        plan,
-    )
+    for retired in release_crates.RETIRED_PACKAGES:
+        plan = base_plan()
+        plan["crates"][retired] = {
+            "previous_version": "0.11.0",
+            "version": "0.12.0",
+            "change": "metadata",
+            "publish": True,
+            "reason": "test",
+        }
+        assert_fails(
+            "release plan contains retired packages",
+            release_crates.publish_plan,
+            plan,
+        )
 
 
 def test_facade_code_changes_must_use_milestone_version() -> None:
@@ -309,12 +305,13 @@ def test_publish_command_rejects_retired_package() -> None:
     original = release_crates.run
     release_crates.run = lambda command, *, dry_run: commands.append(command)
     try:
-        assert_fails(
-            "publish request contains retired packages",
-            release_crates.publish,
-            "cloud-sdk-hetzner-sanitization",
-            argparse.Namespace(dry_run=False),
-        )
+        for retired in release_crates.RETIRED_PACKAGES:
+            assert_fails(
+                "publish request contains retired packages",
+                release_crates.publish,
+                retired,
+                argparse.Namespace(dry_run=False),
+            )
     finally:
         release_crates.run = original
     assert commands == []

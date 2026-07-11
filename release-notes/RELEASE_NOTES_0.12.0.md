@@ -25,8 +25,10 @@ pagination iterators, or action polling.
   primary nameservers.
 - Replaced the unused Hetzner-specific sanitization placeholder with the new
   provider-neutral `cloud-sdk-sanitization` boundary.
-- Added release-script regression guards that reject the retired
-  `cloud-sdk-hetzner-sanitization` name in publish order, workspace metadata,
+- Replaced the unused Hetzner-specific reqwest and testkit placeholders with
+  provider-neutral `cloud-sdk-reqwest` and `cloud-sdk-testkit` boundaries.
+- Added release-script regression guards that reject all retired
+  Hetzner-specific boundary names in publish order, workspace metadata,
   release plans, and direct publish requests.
 - `scripts/release_0_12_gate.sh`.
 
@@ -77,6 +79,6 @@ release-sensitive commit passes.
 
 - `cloud-sdk` publishes as `0.12.0`.
 - `cloud-sdk-hetzner` publishes as `0.12.0`.
-- `cloud-sdk-hetzner-reqwest` publishes as `0.12.0`.
+- `cloud-sdk-reqwest` publishes for the first time as `0.12.0`.
 - `cloud-sdk-sanitization` publishes for the first time as `0.12.0`.
-- `cloud-sdk-hetzner-testkit` publishes as `0.12.0`.
+- `cloud-sdk-testkit` publishes for the first time as `0.12.0`.

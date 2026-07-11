@@ -20,14 +20,20 @@ except ModuleNotFoundError:  # pragma: no cover - release host guard.
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_PLAN = ROOT / "release-crates.toml"
 CHANGE_KINDS = ("code", "dependency", "metadata", "unchanged")
-RETIRED_PACKAGES = frozenset({"cloud-sdk-hetzner-sanitization"})
+RETIRED_PACKAGES = frozenset(
+    {
+        "cloud-sdk-hetzner-reqwest",
+        "cloud-sdk-hetzner-sanitization",
+        "cloud-sdk-hetzner-testkit",
+    }
+)
 
 PUBLISH_ORDER = (
     "cloud-sdk",
     "cloud-sdk-sanitization",
+    "cloud-sdk-reqwest",
+    "cloud-sdk-testkit",
     "cloud-sdk-hetzner",
-    "cloud-sdk-hetzner-reqwest",
-    "cloud-sdk-hetzner-testkit",
 )
 
 

@@ -2,9 +2,9 @@
 members = [
     "crates/cloud-sdk",
     "crates/cloud-sdk-hetzner",
-    "crates/cloud-sdk-hetzner-reqwest",
+    "crates/cloud-sdk-reqwest",
     "crates/cloud-sdk-sanitization",
-    "crates/cloud-sdk-hetzner-testkit",
+    "crates/cloud-sdk-testkit",
 ]
 default-members = ["crates/cloud-sdk"]
 resolver = "3"

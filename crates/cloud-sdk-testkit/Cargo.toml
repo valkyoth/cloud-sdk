@@ -1,6 +1,6 @@
 [package]
-name = "cloud-sdk-hetzner-testkit"
-description = "Mock transport and fixture boundary for cloud-sdk-hetzner."
+name = "cloud-sdk-testkit"
+description = "Provider-neutral mock transport and fixture boundary for cloud-sdk."
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -11,11 +11,11 @@ readme = "README.md"
 
 [features]
 default = []
-alloc = ["cloud-sdk-hetzner/alloc"]
-std = ["alloc", "cloud-sdk-hetzner/std"]
+alloc = ["cloud-sdk/alloc"]
+std = ["alloc", "cloud-sdk/std"]
 
 [dependencies]
-cloud-sdk-hetzner.workspace = true
+cloud-sdk.workspace = true
 
 [lints]
 workspace = true
