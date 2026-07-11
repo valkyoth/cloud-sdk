@@ -195,6 +195,6 @@ workspace still uses a shared package version.
 | `cloud-sdk` | `0.11.0` | `0.12.0` | `metadata` | Yes | README updates and v0.12.0 release evidence for the provider-neutral facade. |
 | `cloud-sdk-hetzner` | `0.11.0` | `0.12.0` | `code` | Yes | No_std DNS Zone CRUD, zonefile, nameserver, TTL, protection, and action request domains. |
 | `cloud-sdk-hetzner-reqwest` | `0.11.0` | `0.12.0` | `metadata` | Yes | Keep optional transport boundary metadata aligned with v0.12.0 release evidence. |
-| `cloud-sdk-hetzner-sanitization` | `0.11.0` | `0.11.0` | `unchanged` | No | Retired from the workspace before adoption; historical releases remain available under the old name. |
+| `cloud-sdk-hetzner-sanitization` | `0.11.0` | `0.11.0` | `unchanged` | No | Retired from the workspace before adoption and not part of the v0.12.0 publish plan. |
 | `cloud-sdk-sanitization` | none | `0.12.0` | `code` | Yes | Initial provider-neutral no_std sanitization boundary for reusable cloud SDK secret helpers. |
 | `cloud-sdk-hetzner-testkit` | `0.11.0` | `0.12.0` | `metadata` | Yes | Keep testkit boundary metadata aligned with v0.12.0 release evidence. |
