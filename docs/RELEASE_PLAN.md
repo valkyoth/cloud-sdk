@@ -148,10 +148,10 @@ documents are never parsed by the release drift command.
 
 ## Crate Versioning And Publish Order
 
-Provider-neutral domains live in `cloud-sdk`. Hetzner endpoint models live in
+Provider-neutral domains live in `cloud-sdk`; reusable secret handling belongs
+in `cloud-sdk-sanitization`. Hetzner endpoint models live in
 `cloud-sdk-hetzner`. Extra provider-specific crates are versioned only for real
-optional boundaries: reqwest transport, testkit fixtures, and secret
-sanitization.
+optional boundaries such as reqwest transport and testkit fixtures.
 
 Track every release in `release-crates.toml` and
 `docs/CRATE_VERSION_MATRIX.md`:
@@ -193,8 +193,8 @@ Deliverables:
 
 - Rust stable `1.97.0` pinned.
 - Rust `1.90.0` through `1.97.0` compatibility policy.
-- One provider-neutral no_std crate, one focused Hetzner provider crate, and
-  three optional Hetzner boundary crates.
+- Provider-neutral no_std foundation and sanitization boundary crates, one
+  focused Hetzner provider crate, and two optional Hetzner boundary crates.
 - CI, dependency policy, security policy, release notes.
 - Fail-closed release gates for pentest evidence, no_std policy, and required
   dependency security tools.
@@ -610,13 +610,19 @@ Stop gate:
 v0.14.0 implementation stop reached. Run pentest for this exact commit.
 ```
 
-### v0.15.0 - Mock Transport And Testkit
+### v0.15.0 - Sanitization And Testkit Boundaries
 
-Goal: implement deterministic mock transport, pagination/action fixtures, and
-adversarial response corpus before real transports are admitted.
+Goal: admit provider-neutral secret-buffer sanitization, then implement
+deterministic mock transport, pagination/action fixtures, and an adversarial
+response corpus before real transports are admitted.
 
 Deliverables:
 
+- First usable `cloud-sdk-sanitization` guarded caller-buffer boundary.
+- Reviewed admission of the first-party `sanitization` crate with default
+  features disabled and no_std preserved.
+- Non-elidable cleanup on success, error, early return, and unwind where unwind
+  exists, with explicit limitations for source strings and downstream copies.
 - First usable `cloud-sdk-hetzner-testkit` mock transport boundary.
 - Fixture builders for success, paginated, action, rate-limit, and error
   responses.
@@ -628,6 +634,8 @@ Deliverables:
 Verification:
 
 - `scripts/checks.sh`
+- `cargo test -p cloud-sdk-sanitization --all-features`
+- `cargo tree -p cloud-sdk-sanitization --no-default-features`
 - `cargo test -p cloud-sdk-hetzner-testkit --all-features`
 - `cargo test --workspace --all-features`
 - `scripts/release_0_15_gate.sh` once added.

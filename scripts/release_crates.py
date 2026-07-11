@@ -23,9 +23,9 @@ CHANGE_KINDS = ("code", "dependency", "metadata", "unchanged")
 
 PUBLISH_ORDER = (
     "cloud-sdk",
+    "cloud-sdk-sanitization",
     "cloud-sdk-hetzner",
     "cloud-sdk-hetzner-reqwest",
-    "cloud-sdk-hetzner-sanitization",
     "cloud-sdk-hetzner-testkit",
 )
 

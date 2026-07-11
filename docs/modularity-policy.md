@@ -8,8 +8,9 @@ Rules:
 - `cloud-sdk-hetzner` is the Hetzner endpoint implementation home.
 - Hetzner Cloud resources, DNS resources, security resources, and Storage Box
   resources live in separate modules under the Hetzner provider crate.
-- Provider-specific transport adapters, test fixtures, and secret-sanitization
-  helpers may live in separate crates when they admit optional dependencies.
+- Provider-specific transport adapters and test fixtures may live in separate
+  crates when they admit optional dependencies. Reusable secret-sanitization
+  helpers belong in a provider-neutral boundary crate.
 - Keep `lib.rs` as module wiring and public API shape.
 - Non-generated Rust source files must stay under 500 lines.
 - A file approaching 300 lines should be reviewed for splitting.

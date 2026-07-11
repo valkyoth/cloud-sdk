@@ -21,15 +21,15 @@ dependencies = [
 ]
 
 [[package]]
-name = "cloud-sdk-hetzner-sanitization"
+name = "cloud-sdk-hetzner-testkit"
 version = "0.12.0"
 dependencies = [
  "cloud-sdk-hetzner",
 ]
 
 [[package]]
-name = "cloud-sdk-hetzner-testkit"
+name = "cloud-sdk-sanitization"
 version = "0.12.0"
 dependencies = [
- "cloud-sdk-hetzner",
+ "cloud-sdk",
 ]

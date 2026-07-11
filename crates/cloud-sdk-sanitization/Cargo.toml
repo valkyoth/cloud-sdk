@@ -1,6 +1,6 @@
 [package]
-name = "cloud-sdk-hetzner-sanitization"
-description = "Optional secret-sanitization boundary for cloud-sdk-hetzner."
+name = "cloud-sdk-sanitization"
+description = "Optional provider-neutral secret-sanitization boundary for cloud-sdk."
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -11,10 +11,10 @@ readme = "README.md"
 
 [features]
 default = []
-std = ["cloud-sdk-hetzner/std"]
+std = ["cloud-sdk/std"]
 
 [dependencies]
-cloud-sdk-hetzner.workspace = true
+cloud-sdk.workspace = true
 
 [lints]
 workspace = true

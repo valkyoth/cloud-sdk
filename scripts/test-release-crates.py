@@ -58,9 +58,7 @@ def base_packages() -> dict[str, dict]:
     packages["cloud-sdk-hetzner-reqwest"]["dependencies"] = [
         {"name": "cloud-sdk-hetzner"}
     ]
-    packages["cloud-sdk-hetzner-sanitization"]["dependencies"] = [
-        {"name": "cloud-sdk-hetzner"}
-    ]
+    packages["cloud-sdk-sanitization"]["dependencies"] = [{"name": "cloud-sdk"}]
     packages["cloud-sdk-hetzner-testkit"]["dependencies"] = [
         {"name": "cloud-sdk-hetzner"}
     ]

@@ -1,12 +1,12 @@
 <p align="center">
-  <b>optional Hetzner sanitization boundary for cloud-sdk.</b><br>
+  <b>optional provider-neutral sanitization boundary for cloud-sdk.</b><br>
   Provider crates, explicit API domains, security-first release gates, and transport-free core types.
 </p>
 
 <div align="center">
   <a href="https://crates.io/crates/cloud-sdk">cloud-sdk crate</a>
   |
-  <a href="https://docs.rs/cloud-sdk-hetzner-sanitization">Docs.rs</a>
+  <a href="https://docs.rs/cloud-sdk-sanitization">Docs.rs</a>
   |
   <a href="https://github.com/valkyoth/cloud-sdk/blob/main/docs/RELEASE_PLAN.md">Release Plan</a>
   |
@@ -23,21 +23,21 @@
   </a>
 </p>
 
-# cloud-sdk-hetzner-sanitization
+# cloud-sdk-sanitization
 
-Optional secret-handling boundary for
-[`cloud-sdk-hetzner`](https://crates.io/crates/cloud-sdk-hetzner), which belongs
-to the main [`cloud-sdk`](https://github.com/valkyoth/cloud-sdk) workspace.
+Optional provider-neutral secret-handling boundary for the main
+[`cloud-sdk`](https://github.com/valkyoth/cloud-sdk) workspace and
+[`cloud-sdk`](https://crates.io/crates/cloud-sdk) crate.
 
-This crate exists so future token-adjacent sanitization helpers can be reviewed
-outside the default no_std provider crate. It intentionally does not depend on a
-third-party sanitization crate yet.
+This crate exists so reusable token, credential, and caller-owned buffer
+sanitization helpers can be reviewed outside the default no_std SDK and provider
+crates. It intentionally does not depend on a sanitization implementation yet.
 
 Most users should start with:
 
 ```toml
 [dependencies]
-cloud-sdk-hetzner = "0.12.0"
+cloud-sdk = "0.12.0"
 ```
 
 Use this crate only when the release notes say sanitization helpers have been
@@ -46,7 +46,7 @@ admitted.
 ## Current Example
 
 ```rust
-use cloud_sdk_hetzner_sanitization::SanitizationStatus;
+use cloud_sdk_sanitization::SanitizationStatus;
 
 assert_eq!(
     SanitizationStatus::DependencyNotAdmitted,

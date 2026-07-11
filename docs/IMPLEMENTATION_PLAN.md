@@ -58,9 +58,9 @@ explicit trust and dependency review.
   dependencies until reviewed.
 - `cloud-sdk-hetzner-testkit`: future fixtures, adversarial responses, mock
   transport, pagination/action simulations, and live-test gating helpers.
-- `cloud-sdk-hetzner-sanitization`: future optional token/secret sanitization
-  helpers. It exists as a boundary, but does not admit third-party
-  sanitization dependencies until reviewed.
+- `cloud-sdk-sanitization`: future provider-neutral token, credential, and
+  caller-owned buffer sanitization helpers. It exists as a boundary, but does
+  not admit sanitization dependencies until reviewed.
 
 ## Source Discipline
 

@@ -18,6 +18,8 @@
   caller-owned TSIG and zonefile output buffers after transport use.
 - Updated the IANA IPv6 source lock for its shared Load Balancer and DNS
   primary-nameserver policy location.
+- Replaced the unused `cloud-sdk-hetzner-sanitization` workspace placeholder
+  with the provider-neutral `cloud-sdk-sanitization` crate before adoption.
 
 ## 0.11.0 - 2026-07-11
 

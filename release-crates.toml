@@ -23,12 +23,12 @@ change = "metadata"
 publish = true
 reason = "Keep optional transport boundary metadata aligned with v0.12.0 release evidence."
 
-[crates."cloud-sdk-hetzner-sanitization"]
-previous_version = "0.11.0"
+[crates."cloud-sdk-sanitization"]
+previous_version = "none"
 version = "0.12.0"
-change = "metadata"
+change = "code"
 publish = true
-reason = "Keep sanitization boundary metadata aligned with v0.12.0 release evidence."
+reason = "Initial provider-neutral no_std sanitization boundary for reusable cloud SDK secret helpers."
 
 [crates."cloud-sdk-hetzner-testkit"]
 previous_version = "0.11.0"

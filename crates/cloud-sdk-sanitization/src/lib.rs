@@ -4,7 +4,7 @@
 #[cfg(feature = "std")]
 extern crate std;
 
-/// Secret-helper readiness state.
+/// Provider-neutral secret-helper readiness state.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum SanitizationStatus {
     /// Boundary exists, but no secret-handling dependency is admitted.

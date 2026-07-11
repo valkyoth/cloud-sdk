@@ -23,6 +23,8 @@ pagination iterators, or action polling.
   on secondary Zones.
 - Shared conservative public-IP validation for Load Balancer targets and DNS
   primary nameservers.
+- Replaced the unused Hetzner-specific sanitization placeholder with the new
+  provider-neutral `cloud-sdk-sanitization` boundary.
 - `scripts/release_0_12_gate.sh`.
 
 ## Security Notes
@@ -73,5 +75,5 @@ release-sensitive commit passes.
 - `cloud-sdk` publishes as `0.12.0`.
 - `cloud-sdk-hetzner` publishes as `0.12.0`.
 - `cloud-sdk-hetzner-reqwest` publishes as `0.12.0`.
-- `cloud-sdk-hetzner-sanitization` publishes as `0.12.0`.
+- `cloud-sdk-sanitization` publishes for the first time as `0.12.0`.
 - `cloud-sdk-hetzner-testkit` publishes as `0.12.0`.

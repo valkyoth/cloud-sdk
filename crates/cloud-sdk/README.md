@@ -64,8 +64,8 @@ Implemented now:
 - `cloud-sdk-hetzner` provider crate with focused internal modules.
 - Initial Hetzner API surface partition for Cloud, DNS, security, and Storage
   Box resources.
-- Explicit placeholder crates for future Hetzner reqwest transport, testkit,
-  and sanitization boundaries.
+- Explicit placeholder crates for future Hetzner reqwest transport and testkit
+  boundaries plus provider-neutral sanitization helpers.
 - Local checks for formatting, linting, tests, no_std policy, modularity, and
   file length.
 - MIT OR Apache-2.0 license.
@@ -211,7 +211,7 @@ assert_eq!(value, Some("\"line\\n\\\"quoted\\\"\""));
 | [`cloud-sdk-hetzner`](https://crates.io/crates/cloud-sdk-hetzner) | no | Main Hetzner documentation and provider crate with internal `cloud`, `dns`, `security`, and `storage` modules. |
 | [`cloud-sdk-hetzner-reqwest`](https://crates.io/crates/cloud-sdk-hetzner-reqwest) | no | Future optional reqwest transport adapter; no transport dependency admitted yet. |
 | [`cloud-sdk-hetzner-testkit`](https://crates.io/crates/cloud-sdk-hetzner-testkit) | no | Future mock transport, fixtures, and adversarial API response helpers. |
-| [`cloud-sdk-hetzner-sanitization`](https://crates.io/crates/cloud-sdk-hetzner-sanitization) | no | Future optional token/secret sanitization helpers. |
+| [`cloud-sdk-sanitization`](https://crates.io/crates/cloud-sdk-sanitization) | no | Future provider-neutral token, credential, and caller-owned buffer sanitization helpers. |
 
 The root README documents the workspace and release process. Crate-local README
 files document the crate-specific role and examples. For Hetzner-specific usage,
