@@ -20,6 +20,8 @@
   primary-nameserver policy location.
 - Replaced the unused `cloud-sdk-hetzner-sanitization` workspace placeholder
   with the provider-neutral `cloud-sdk-sanitization` crate before adoption.
+- Added a fail-closed retired-package denylist so release planning, workspace
+  verification, and direct publishing reject the former package name.
 
 ## 0.11.0 - 2026-07-11
 

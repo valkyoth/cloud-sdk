@@ -25,6 +25,9 @@ pagination iterators, or action polling.
   primary nameservers.
 - Replaced the unused Hetzner-specific sanitization placeholder with the new
   provider-neutral `cloud-sdk-sanitization` boundary.
+- Added release-script regression guards that reject the retired
+  `cloud-sdk-hetzner-sanitization` name in publish order, workspace metadata,
+  release plans, and direct publish requests.
 - `scripts/release_0_12_gate.sh`.
 
 ## Security Notes

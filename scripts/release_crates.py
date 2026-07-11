@@ -20,6 +20,7 @@ except ModuleNotFoundError:  # pragma: no cover - release host guard.
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_PLAN = ROOT / "release-crates.toml"
 CHANGE_KINDS = ("code", "dependency", "metadata", "unchanged")
+RETIRED_PACKAGES = frozenset({"cloud-sdk-hetzner-sanitization"})
 
 PUBLISH_ORDER = (
     "cloud-sdk",
@@ -94,6 +95,12 @@ def workspace_packages(metadata: dict) -> dict[str, dict]:
     }
 
 
+def reject_retired_packages(package_names, *, source: str) -> None:
+    retired = tuple(sorted(set(package_names) & RETIRED_PACKAGES))
+    if retired:
+        raise RuntimeError(f"{source} contains retired packages: {retired}")
+
+
 def release_plan(plan_path: Path) -> dict:
     plan = load_toml(plan_path)
     release = plan.get("release", {})
@@ -103,6 +110,8 @@ def release_plan(plan_path: Path) -> dict:
         raise RuntimeError("release-crates.toml is missing [release].version")
     if release.get("policy") != "independent":
         raise RuntimeError("release-crates.toml must use policy = \"independent\"")
+    reject_retired_packages(PUBLISH_ORDER, source="PUBLISH_ORDER")
+    reject_retired_packages(crates, source="release-crates.toml")
     if set(crates) != set(PUBLISH_ORDER):
         raise RuntimeError(
             "release-crates.toml crates are not in sync with PUBLISH_ORDER: "
@@ -208,6 +217,9 @@ def require_clean_tree(*, allow_dirty: bool) -> None:
 
 
 def verify_publish_order(packages: dict[str, dict], plan: dict) -> None:
+    reject_retired_packages(PUBLISH_ORDER, source="PUBLISH_ORDER")
+    reject_retired_packages(packages, source="workspace metadata")
+    reject_retired_packages(plan["crates"], source="release plan")
     expected_names = tuple(sorted(PUBLISH_ORDER))
     actual_names = tuple(sorted(packages))
     if actual_names != expected_names:
@@ -281,6 +293,8 @@ def run_preflight(args: argparse.Namespace) -> None:
 
 
 def publish_plan(plan: dict) -> tuple[str, ...]:
+    reject_retired_packages(PUBLISH_ORDER, source="PUBLISH_ORDER")
+    reject_retired_packages(plan["crates"], source="release plan")
     return tuple(
         package for package in PUBLISH_ORDER if plan["crates"][package]["publish"]
     )
@@ -309,6 +323,7 @@ def wait_for_index(package: str, version: str, *, dry_run: bool) -> None:
 
 
 def publish(package: str, args: argparse.Namespace) -> None:
+    reject_retired_packages((package,), source="publish request")
     command = ["cargo", "publish", "-p", package]
     run(command, dry_run=args.dry_run)
 

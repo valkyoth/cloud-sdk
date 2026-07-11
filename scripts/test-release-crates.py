@@ -79,6 +79,41 @@ def test_current_plan_accepts_unchanged_crates() -> None:
     release_crates.verify_publish_order(base_packages(), base_plan())
 
 
+def test_retired_package_is_absent_from_publish_order() -> None:
+    assert not (
+        set(release_crates.PUBLISH_ORDER) & release_crates.RETIRED_PACKAGES
+    )
+
+
+def test_retired_package_is_rejected_from_workspace_metadata() -> None:
+    packages = base_packages()
+    retired = "cloud-sdk-hetzner-sanitization"
+    packages[retired] = package(retired, "0.11.0")
+    assert_fails(
+        "workspace metadata contains retired packages",
+        release_crates.verify_publish_order,
+        packages,
+        base_plan(),
+    )
+
+
+def test_retired_package_is_rejected_from_release_plan() -> None:
+    plan = base_plan()
+    retired = "cloud-sdk-hetzner-sanitization"
+    plan["crates"][retired] = {
+        "previous_version": "0.11.0",
+        "version": "0.12.0",
+        "change": "metadata",
+        "publish": True,
+        "reason": "test",
+    }
+    assert_fails(
+        "release plan contains retired packages",
+        release_crates.publish_plan,
+        plan,
+    )
+
+
 def test_facade_code_changes_must_use_milestone_version() -> None:
     entry = {
         "previous_version": "0.3.0",
@@ -269,9 +304,28 @@ def test_publish_command_has_no_bypass_flags() -> None:
     assert commands == [["cargo", "publish", "-p", "cloud-sdk"]]
 
 
+def test_publish_command_rejects_retired_package() -> None:
+    commands: list[list[str]] = []
+    original = release_crates.run
+    release_crates.run = lambda command, *, dry_run: commands.append(command)
+    try:
+        assert_fails(
+            "publish request contains retired packages",
+            release_crates.publish,
+            "cloud-sdk-hetzner-sanitization",
+            argparse.Namespace(dry_run=False),
+        )
+    finally:
+        release_crates.run = original
+    assert commands == []
+
+
 def run_tests() -> None:
     tests = (
         test_current_plan_accepts_unchanged_crates,
+        test_retired_package_is_absent_from_publish_order,
+        test_retired_package_is_rejected_from_workspace_metadata,
+        test_retired_package_is_rejected_from_release_plan,
         test_facade_code_changes_must_use_milestone_version,
         test_facade_must_always_match_release_version,
         test_facade_must_publish_for_every_release,
@@ -285,6 +339,7 @@ def run_tests() -> None:
         test_required_release_tag_rejects_mismatched_head,
         test_required_release_tag_rejects_unsigned_tag,
         test_publish_command_has_no_bypass_flags,
+        test_publish_command_rejects_retired_package,
     )
     for test in tests:
         test()
