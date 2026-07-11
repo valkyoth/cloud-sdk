@@ -66,7 +66,7 @@ const IANA_ORDINARY_GLOBAL_UNICAST: &[Ipv6Prefix] = &[
     Ipv6Prefix::new(0x2c00, 0x0000, 12),
 ];
 
-pub(super) fn invalid_public_v4(address: Ipv4Addr) -> bool {
+pub(crate) fn invalid_public_v4(address: Ipv4Addr) -> bool {
     let [first, second, third, _] = address.octets();
     address.is_private()
         || address.is_loopback()
@@ -84,7 +84,7 @@ pub(super) fn invalid_public_v4(address: Ipv4Addr) -> bool {
         || first >= 240
 }
 
-pub(super) fn invalid_public_v6(address: Ipv6Addr) -> bool {
+pub(crate) fn invalid_public_v6(address: Ipv6Addr) -> bool {
     let [first, second, third, _, _, _, _, _] = address.segments();
     let documentation = first == 0x2001 && second == 0x0db8;
     let as112_service = first == 0x2620 && second == 0x004f && third == 0x8000;

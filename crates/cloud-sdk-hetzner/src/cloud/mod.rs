@@ -7,6 +7,7 @@ pub mod ip;
 pub mod load_balancers;
 pub mod networks;
 pub mod pricing;
+pub(crate) mod public_ip;
 pub mod servers;
 pub mod shared;
 pub mod volumes;

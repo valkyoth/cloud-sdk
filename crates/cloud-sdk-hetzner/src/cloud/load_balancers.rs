@@ -2,7 +2,6 @@
 
 mod actions;
 mod metrics;
-mod public_ip;
 mod resources;
 mod services;
 mod targets;

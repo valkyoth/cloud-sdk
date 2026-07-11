@@ -6,7 +6,7 @@ use core::str::FromStr;
 use crate::cloud::ip::IpValidationError;
 use crate::cloud::shared::{CloudLabels, CloudRequestError, CloudResourceId};
 
-use super::public_ip::{invalid_public_v4, invalid_public_v6};
+use crate::cloud::public_ip::{invalid_public_v4, invalid_public_v6};
 
 /// Load Balancer identifier.
 pub type LoadBalancerId = CloudResourceId;

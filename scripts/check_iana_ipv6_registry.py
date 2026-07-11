@@ -19,7 +19,7 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 LOCK = ROOT / "docs" / "IANA_IPV6_GLOBAL_UNICAST.tsv"
 DOCUMENTATION = ROOT / "docs" / "IANA_IPV6_SOURCE_LOCK.md"
-RUST_POLICY = ROOT / "crates/cloud-sdk-hetzner/src/cloud/load_balancers/public_ip.rs"
+RUST_POLICY = ROOT / "crates/cloud-sdk-hetzner/src/cloud/public_ip.rs"
 REGISTRIES = {
     "global-unicast": (
         "https://www.iana.org/assignments/ipv6-unicast-address-assignments/"
