@@ -496,7 +496,7 @@ v0.10.0 implementation stop reached. Run pentest for this exact commit.
 
 ### v0.11.0 - Load Balancer Models
 
-Status: release candidate; pentest and retest complete.
+Status: tagged and published.
 
 Goal: implement load balancers, metrics, services, targets, network attach,
 public interface actions, algorithms, and type changes.
@@ -526,6 +526,8 @@ v0.11.0 implementation stop reached. Run pentest for this exact commit.
 ```
 
 ### v0.12.0 - DNS Zones
+
+Status: implementation complete; pentest pending.
 
 Goal: implement zones, zonefile import/export, zone actions, TTL policy, and
 primary nameserver policy.

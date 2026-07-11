@@ -2,6 +2,21 @@
 
 ## Unreleased
 
+- Added `cloud-sdk-hetzner::dns::zones` no_std request primitives for Zone
+  CRUD, zonefile export/import, global and per-Zone action lists, global action
+  lookup, primary nameserver replacement, deletion protection, and TTL changes.
+- Added bounded lowercase Zone names, default TTLs, zonefiles, public primary
+  nameservers, strict Base64 TSIG keys with redacted debug output, deterministic
+  list queries, and fixed-buffer endpoint paths.
+- Required explicit TTL values for Zone change-TTL actions while preserving the
+  source-locked optional default TTL on Zone creation; the separate RRSet TTL
+  deprecation remains assigned to `v0.13.0`.
+- Reused the source-locked public IP policy for Load Balancer targets and DNS
+  primary nameservers.
+- Added the `v0.12.0` release gate script.
+
+## 0.11.0 - 2026-07-11
+
 - Added `cloud-sdk-hetzner::cloud::load_balancers` no_std request primitives
   for Load Balancer CRUD, metrics, services, targets, networks, reverse DNS,
   protection, algorithms, type changes, and public-interface actions.

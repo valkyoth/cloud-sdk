@@ -38,15 +38,15 @@ models in small reviewed releases.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.11.0"
-cloud-sdk-hetzner = "0.11.0"
+cloud-sdk = "0.12.0"
+cloud-sdk-hetzner = "0.12.0"
 ```
 
 ## Current Scope
 
-The current main branch is the `0.11.0` release candidate for Load Balancer
-request domains. Pentest and retest are complete. The latest published release
-is `0.10.0`. This crate does not yet implement HTTP
+The current main branch is the `0.12.0` implementation candidate for DNS Zone
+request domains. Pentest is pending. The latest published release is `0.11.0`.
+This crate does not yet implement HTTP
 transport, serde models, body serialization, token storage, live API tests,
 retry policy, pagination iterators, or action polling.
 
@@ -134,7 +134,7 @@ Implemented in the published `0.10.0` line:
 - canonical RFC 1918 range, route destination, private gateway, vSwitch, and
   CIDR boundary validation.
 
-Implemented on main for `0.11.0`:
+Implemented in the published `0.11.0` line:
 
 - Load Balancer list/create/get/update/delete and metrics request primitives;
 - service add/update/delete models for TCP, HTTP, and HTTPS;
@@ -145,6 +145,17 @@ Implemented on main for `0.11.0`:
   public-interface action models;
 - explicit reverse-DNS set/reset intent and deterministic multi-metric query
   construction.
+
+Implemented on main for `0.12.0`:
+
+- Zone list/create/get/update/delete and zonefile export request primitives;
+- global and per-Zone action lists plus global action lookup;
+- zonefile import, primary nameserver replacement, deletion protection, and
+  explicit TTL-change action models;
+- bounded lowercase Zone names, default TTLs, zonefiles, public primary
+  nameservers, strict Base64 TSIG keys, and deterministic Zone queries;
+- redacted zonefile and TSIG debug output, fixed-buffer paths, and structural
+  primary/secondary Zone creation modes.
 
 ## Endpoint Surface Example
 
@@ -344,6 +355,32 @@ let path = path
 
 assert_eq!(request.endpoint().method().as_str(), "POST");
 assert_eq!(path, Some("/load_balancers"));
+# Ok(())
+# }
+```
+
+## DNS Zone Request Example
+
+```rust
+use cloud_sdk_hetzner::dns::zones::{
+    ZoneCreateMode, ZoneCreateRequest, ZoneName, ZoneTtl,
+};
+
+# fn main() -> Result<(), cloud_sdk_hetzner::dns::zones::ZoneRequestError> {
+let name = ZoneName::new("example.com")?;
+let ttl = ZoneTtl::new(3600)?;
+let request = ZoneCreateRequest::try_new(Some(name), Some(ZoneCreateMode::Primary))?
+    .with_ttl(ttl);
+
+let mut path = [0u8; 16];
+let written = request.endpoint().write_path(&mut path)?;
+let path = path
+    .get(..written)
+    .and_then(|value| core::str::from_utf8(value).ok());
+
+assert_eq!(request.endpoint().method().as_str(), "POST");
+assert_eq!(request.ttl().map(ZoneTtl::get), Some(3600));
+assert_eq!(path, Some("/zones"));
 # Ok(())
 # }
 ```

@@ -3,6 +3,40 @@ use super::*;
 use crate::actions::ActionStatus;
 use crate::pagination::{Page, PerPage, SortDirection};
 
+struct DebugBuffer {
+    bytes: [u8; 128],
+    len: usize,
+}
+
+impl DebugBuffer {
+    const fn new() -> Self {
+        Self {
+            bytes: [0; 128],
+            len: 0,
+        }
+    }
+
+    fn as_str(&self) -> Option<&str> {
+        core::str::from_utf8(self.bytes.get(..self.len)?).ok()
+    }
+}
+
+impl core::fmt::Write for DebugBuffer {
+    fn write_str(&mut self, value: &str) -> core::fmt::Result {
+        let end = self.len.checked_add(value.len()).ok_or(core::fmt::Error)?;
+        let target = self.bytes.get_mut(self.len..end).ok_or(core::fmt::Error)?;
+        target.copy_from_slice(value.as_bytes());
+        self.len = end;
+        Ok(())
+    }
+}
+
+fn debug_buffer(value: &impl core::fmt::Debug) -> DebugBuffer {
+    let mut output = DebugBuffer::new();
+    assert!(core::fmt::write(&mut output, format_args!("{value:?}")).is_ok());
+    output
+}
+
 macro_rules! valid {
     ($value:expr) => {{
         let result = $value;
@@ -88,6 +122,7 @@ fn dns_zones_resource_paths_and_methods_are_source_locked() {
         let len = valid!(endpoint.write_path(&mut output));
         assert_eq!(endpoint.method(), method);
         assert_eq!(endpoint.endpoint_group(), crate::EndpointGroup::Zones);
+        assert_eq!(endpoint.api_base_url(), crate::request::ApiBaseUrl::CloudV1);
         assert_eq!(output.get(..len), Some(expected.as_bytes()));
     }
 }
@@ -95,32 +130,48 @@ fn dns_zones_resource_paths_and_methods_are_source_locked() {
 #[test]
 fn dns_zones_action_paths_cover_nondeprecated_operations() {
     let cases = [
-        (ZoneActionEndpoint::ListAll, "/zones/actions"),
-        (ZoneActionEndpoint::Get(action_id!(7)), "/zones/actions/7"),
+        (
+            ZoneActionEndpoint::ListAll,
+            cloud_sdk::Method::Get,
+            "/zones/actions",
+        ),
+        (
+            ZoneActionEndpoint::Get(action_id!(7)),
+            cloud_sdk::Method::Get,
+            "/zones/actions/7",
+        ),
         (
             ZoneActionEndpoint::ListForZone(zone!("example.com")),
+            cloud_sdk::Method::Get,
             "/zones/example.com/actions",
         ),
         (
             ZoneActionEndpoint::ChangePrimaryNameservers(zone!("example.com")),
+            cloud_sdk::Method::Post,
             "/zones/example.com/actions/change_primary_nameservers",
         ),
         (
             ZoneActionEndpoint::ChangeProtection(zone!("example.com")),
+            cloud_sdk::Method::Post,
             "/zones/example.com/actions/change_protection",
         ),
         (
             ZoneActionEndpoint::ChangeTtl(zone!("example.com")),
+            cloud_sdk::Method::Post,
             "/zones/example.com/actions/change_ttl",
         ),
         (
             ZoneActionEndpoint::ImportZoneFile(zone!("example.com")),
+            cloud_sdk::Method::Post,
             "/zones/example.com/actions/import_zonefile",
         ),
     ];
-    for (endpoint, expected) in cases {
+    for (endpoint, method, expected) in cases {
         let mut output = [0_u8; 96];
         let len = valid!(endpoint.write_path(&mut output));
+        assert_eq!(endpoint.method(), method);
+        assert_eq!(endpoint.endpoint_group(), crate::EndpointGroup::ZoneActions);
+        assert_eq!(endpoint.api_base_url(), crate::request::ApiBaseUrl::CloudV1);
         assert_eq!(output.get(..len), Some(expected.as_bytes()));
     }
 }
@@ -192,7 +243,7 @@ fn dns_zones_zonefile_is_bounded_redacted_and_atomically_escaped() {
     );
 
     let file = valid!(ZoneFile::new("$ORIGIN example.com.\n@ IN TXT \"value\""));
-    assert_eq!(std::format!("{file:?}"), "ZoneFile([redacted])");
+    assert_eq!(debug_buffer(&file).as_str(), Some("ZoneFile([redacted])"));
     let mut output = [0xaa_u8; 8];
     assert_eq!(
         file.write_json_string(&mut output),
@@ -239,15 +290,23 @@ fn dns_zones_primary_nameservers_require_public_unique_addresses() {
 
 #[test]
 fn dns_zones_tsig_is_coherent_validated_and_redacted() {
-    for invalid in ["", "abc", "YWJjZA=", "YW=JjZA="] {
+    for invalid in ["", "abc", "YWJjZA=", "YW=JjZA=", "é=="] {
         assert_eq!(TsigKey::new(invalid), Err(ZoneRequestError::InvalidTsigKey));
     }
     let key = valid!(TsigKey::new("YWJjZA=="));
     let credentials = TsigCredentials::new(key, TsigAlgorithm::HmacSha256);
     let server = nameserver!("1.1.1.1").with_tsig(credentials);
     assert_eq!(server.tsig(), Some(credentials));
-    assert!(!std::format!("{credentials:?}").contains("YWJjZA"));
-    assert!(!std::format!("{key:?}").contains("YWJjZA"));
+    assert!(
+        !debug_buffer(&credentials)
+            .as_str()
+            .is_some_and(|value| value.contains("YWJjZA"))
+    );
+    assert!(
+        !debug_buffer(&key)
+            .as_str()
+            .is_some_and(|value| value.contains("YWJjZA"))
+    );
     let mut output = [0_u8; 16];
     let len = valid!(key.write_json_string(&mut output));
     assert_eq!(output.get(..len), Some(b"\"YWJjZA==\"".as_slice()));

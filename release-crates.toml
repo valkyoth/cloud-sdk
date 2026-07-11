@@ -1,38 +1,38 @@
 [release]
-version = "0.11.0"
+version = "0.12.0"
 policy = "independent"
 
 [crates."cloud-sdk"]
-previous_version = "0.10.0"
-version = "0.11.0"
-change = "code"
+previous_version = "0.11.0"
+version = "0.12.0"
+change = "metadata"
 publish = true
-reason = "Atomic no_std JSON string writes, release-attestation hardening, and v0.11.0 release evidence for the provider-neutral facade."
+reason = "README updates and v0.12.0 release evidence for the provider-neutral facade."
 
 [crates."cloud-sdk-hetzner"]
-previous_version = "0.10.0"
-version = "0.11.0"
+previous_version = "0.11.0"
+version = "0.12.0"
 change = "code"
 publish = true
-reason = "No_std Load Balancer request domains plus atomic secret writers and source-lock download hardening."
+reason = "No_std DNS Zone CRUD, zonefile, nameserver, TTL, protection, and action request domains."
 
 [crates."cloud-sdk-hetzner-reqwest"]
-previous_version = "0.10.0"
-version = "0.11.0"
+previous_version = "0.11.0"
+version = "0.12.0"
 change = "metadata"
 publish = true
-reason = "Keep optional transport boundary metadata aligned with v0.11.0 release evidence."
+reason = "Keep optional transport boundary metadata aligned with v0.12.0 release evidence."
 
 [crates."cloud-sdk-hetzner-sanitization"]
-previous_version = "0.10.0"
-version = "0.11.0"
+previous_version = "0.11.0"
+version = "0.12.0"
 change = "metadata"
 publish = true
-reason = "Keep sanitization boundary metadata aligned with v0.11.0 release evidence."
+reason = "Keep sanitization boundary metadata aligned with v0.12.0 release evidence."
 
 [crates."cloud-sdk-hetzner-testkit"]
-previous_version = "0.10.0"
-version = "0.11.0"
+previous_version = "0.11.0"
+version = "0.12.0"
 change = "metadata"
 publish = true
-reason = "Keep testkit boundary metadata aligned with v0.11.0 release evidence."
+reason = "Keep testkit boundary metadata aligned with v0.12.0 release evidence."

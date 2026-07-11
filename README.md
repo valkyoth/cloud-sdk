@@ -52,8 +52,8 @@ please report it so it can be fixed.
 
 ## Current Status
 
-Status: `v0.11.0` release candidate; pentest and retest are complete. The
-latest published release is `v0.10.0`.
+Status: `v0.12.0` implementation candidate; pentest is pending. The latest
+published release is `v0.11.0`.
 
 Implemented now:
 
@@ -101,6 +101,8 @@ Implemented now:
 - Hetzner Load Balancer request primitives for CRUD, metrics, services,
   targets, network attachment, reverse DNS, protection, algorithms, type
   changes, and public-interface actions.
+- Hetzner DNS Zone request primitives for CRUD, zonefile import/export,
+  primary nameservers, TTL and protection actions, and action listing.
 
 Not implemented yet:
 
@@ -146,8 +148,8 @@ Not implemented yet:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.11.0"
-cloud-sdk-hetzner = "0.11.0"
+cloud-sdk = "0.12.0"
+cloud-sdk-hetzner = "0.12.0"
 ```
 
 ## Provider-Neutral Example

@@ -1,6 +1,6 @@
 # Crate Version Matrix
 
-Status: `v0.11.0` release candidate; pentest and retest complete.
+Status: `v0.12.0` implementation candidate; pentest pending.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Extra
@@ -182,3 +182,18 @@ metadata is finalized before retest so the reviewed commit covers it.
 | `cloud-sdk-hetzner-reqwest` | `0.10.0` | `0.11.0` | `metadata` | Yes | Keep optional transport boundary metadata aligned with v0.11.0 release evidence. |
 | `cloud-sdk-hetzner-sanitization` | `0.10.0` | `0.11.0` | `metadata` | Yes | Keep sanitization boundary metadata aligned with v0.11.0 release evidence. |
 | `cloud-sdk-hetzner-testkit` | `0.10.0` | `0.11.0` | `metadata` | Yes | Keep testkit boundary metadata aligned with v0.11.0 release evidence. |
+
+## v0.12.0 Tracking Table
+
+`v0.12.0` adds Hetzner DNS Zone request domains. The provider-neutral facade
+follows the release tag, the Hetzner provider publishes a code release, and
+optional boundary crates publish metadata-aligned packages because the
+workspace still uses a shared package version.
+
+| Crate | Published | Planned | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.11.0` | `0.12.0` | `metadata` | Yes | README updates and v0.12.0 release evidence for the provider-neutral facade. |
+| `cloud-sdk-hetzner` | `0.11.0` | `0.12.0` | `code` | Yes | No_std DNS Zone CRUD, zonefile, nameserver, TTL, protection, and action request domains. |
+| `cloud-sdk-hetzner-reqwest` | `0.11.0` | `0.12.0` | `metadata` | Yes | Keep optional transport boundary metadata aligned with v0.12.0 release evidence. |
+| `cloud-sdk-hetzner-sanitization` | `0.11.0` | `0.12.0` | `metadata` | Yes | Keep sanitization boundary metadata aligned with v0.12.0 release evidence. |
+| `cloud-sdk-hetzner-testkit` | `0.11.0` | `0.12.0` | `metadata` | Yes | Keep testkit boundary metadata aligned with v0.12.0 release evidence. |

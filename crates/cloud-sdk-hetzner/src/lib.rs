@@ -1,7 +1,7 @@
 #![no_std]
 #![doc = include_str!("../README.md")]
 
-#[cfg(any(feature = "std", test))]
+#[cfg(feature = "std")]
 extern crate std;
 
 pub mod actions;

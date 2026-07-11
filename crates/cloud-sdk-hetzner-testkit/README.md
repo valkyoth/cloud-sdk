@@ -37,7 +37,7 @@ Most users should start with:
 
 ```toml
 [dependencies]
-cloud-sdk-hetzner = "0.11.0"
+cloud-sdk-hetzner = "0.12.0"
 ```
 
 Use this crate for tests once fixture helpers are admitted.

@@ -60,6 +60,14 @@ reviewed source-lock pass.
 - 2026-04-30: resource-local `GET .../actions/{action_id}` lookups are deprecated. Prefer global action lookup or non-deprecated resource action surfaces where available.
 - 2026-01-15: Storage Box Subaccount includes a `name` property.
 
+## v0.12.0 DNS TTL Policy
+
+The source-locked Zone create schema permits its default `ttl` field to be
+omitted, so `ZoneCreateRequest` retains optional explicit TTL intent. The Zone
+`change_ttl` action requires `ttl`, so `ZoneTtlRequest` cannot represent
+omission. The 2026-07-08 omitted-TTL deprecation applies to the separate RRSet
+`change_ttl` action and remains assigned to `v0.13.0` with RRSet models.
+
 ## Deferred Scope
 
 Robot Webservice is explicitly deferred until after the Cloud/DNS SDK reaches
