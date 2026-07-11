@@ -27,6 +27,9 @@
   the architecture to one primary crate per provider.
 - Enforced the future package-cardinality rule by rejecting nested names such
   as `cloud-sdk-{provider}-{boundary}` throughout release automation.
+- Hardened DNS TSIG credentials to HMAC-SHA256 only, required at least 32
+  decoded secret bytes, and removed ordinary equality from secret-bearing
+  values and request containers.
 
 ## 0.11.0 - 2026-07-11
 

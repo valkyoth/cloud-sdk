@@ -68,6 +68,18 @@ omitted, so `ZoneCreateRequest` retains optional explicit TTL intent. The Zone
 omission. The 2026-07-08 omitted-TTL deprecation applies to the separate RRSet
 `change_ttl` action and remains assigned to `v0.13.0` with RRSet models.
 
+## v0.12.0 DNS TSIG Policy
+
+The source-locked Hetzner schema accepts `md5`, `sha1`, and `sha256` for
+secondary-zone TSIG credentials. The SDK deliberately exposes only SHA-256.
+RFC 8945 [prohibits HMAC-MD5 use, does not recommend HMAC-SHA1 use, and
+recommends HMAC-SHA256](https://www.rfc-editor.org/rfc/rfc8945.html#section-6),
+while its [local policy rules](https://www.rfc-editor.org/rfc/rfc8945.html#section-7)
+permit stricter rejection. TSIG secrets must decode to at least 32 bytes to
+match the SHA-256 output size; callers remain responsible for the RFC's
+[CSPRNG generation and two-party scope requirements](https://www.rfc-editor.org/rfc/rfc8945.html#section-8),
+protected storage, and rotation.
+
 ## Deferred Scope
 
 Robot Webservice is explicitly deferred until after the Cloud/DNS SDK reaches

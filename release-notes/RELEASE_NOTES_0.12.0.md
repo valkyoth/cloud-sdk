@@ -18,7 +18,7 @@ pagination iterators, or action polling.
 - Deterministic Zone and action list queries with source-locked filters and
   sorting.
 - Bounded lowercase Zone names, TTLs, zonefiles, primary nameserver lists, and
-  strict padded Base64 TSIG keys.
+  hardened TSIG keys.
 - Structural primary and secondary Zone creation modes that reject a zonefile
   on secondary Zones.
 - Shared conservative public-IP validation for Load Balancer targets and DNS
@@ -45,8 +45,14 @@ pagination iterators, or action polling.
 - Zonefiles are nonempty, NUL-free, capped at 1 MiB, redacted in `Debug`, and
   exposed only through an atomic JSON-string writer.
 - TSIG keys are bounded, canonical padded standard Base64 values with zero
-  unused padding bits, redacted in `Debug`, and exposed only through an atomic
-  JSON-string writer.
+  unused padding bits, at least 32 decoded bytes, redacted in `Debug`, and
+  exposed only through an atomic JSON-string writer.
+- The TSIG API exposes only HMAC-SHA256. HMAC-MD5 and HMAC-SHA1 are
+  intentionally unavailable under the hardened local policy.
+- TSIG secrets must be CSPRNG-generated, shared by only two entities, and
+  rotated; validation can enforce representation and size but not entropy.
+- Zone files, TSIG keys, credentials, nameservers carrying credentials, and
+  containing requests do not implement ordinary variable-time equality.
 - Callers must securely erase the complete caller-owned buffer used by TSIG or
   zonefile JSON writers after transport completes. The SDK cannot erase memory
   it does not own; use a reviewed non-elidable mechanism for the target.

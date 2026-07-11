@@ -183,7 +183,7 @@ impl Default for ZoneActionListRequest {
 }
 
 /// Change-primary-nameservers action body.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug)]
 pub struct ZonePrimaryNameserversRequest<'a> {
     zone: ZoneReference<'a>,
     nameservers: PrimaryNameservers<'a>,
@@ -258,7 +258,7 @@ impl<'a> ZoneTtlRequest<'a> {
 }
 
 /// Import-zonefile action body.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug)]
 pub struct ZoneFileImportRequest<'a> {
     zone: ZoneReference<'a>,
     zonefile: ZoneFile<'a>,

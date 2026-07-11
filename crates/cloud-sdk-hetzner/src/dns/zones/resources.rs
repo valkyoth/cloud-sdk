@@ -171,7 +171,7 @@ impl Default for ZoneListRequest<'_> {
 }
 
 /// Structurally valid Zone creation mode.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug)]
 pub enum ZoneCreateMode<'a> {
     /// Create a primary Zone hosted by Hetzner.
     Primary,
@@ -191,7 +191,7 @@ impl ZoneCreateMode<'_> {
 }
 
 /// Zone create request.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug)]
 pub struct ZoneCreateRequest<'a> {
     name: ZoneName<'a>,
     mode: ZoneCreateMode<'a>,

@@ -231,16 +231,19 @@ fn dns_zones_ttl_bounds_are_exact() {
 
 #[test]
 fn dns_zones_zonefile_is_bounded_redacted_and_atomically_escaped() {
-    assert_eq!(ZoneFile::new(""), Err(ZoneRequestError::InvalidZoneFile));
-    assert_eq!(
+    assert!(matches!(
+        ZoneFile::new(""),
+        Err(ZoneRequestError::InvalidZoneFile)
+    ));
+    assert!(matches!(
         ZoneFile::new("$ORIGIN example.com.\0"),
         Err(ZoneRequestError::InvalidZoneFile)
-    );
+    ));
     let too_large = "x".repeat(MAX_ZONE_FILE_BYTES + 1);
-    assert_eq!(
+    assert!(matches!(
         ZoneFile::new(&too_large),
         Err(ZoneRequestError::InvalidZoneFile)
-    );
+    ));
 
     let file = valid!(ZoneFile::new("$ORIGIN example.com.\n@ IN TXT \"value\""));
     assert_eq!(debug_buffer(&file).as_str(), Some("ZoneFile([redacted])"));
@@ -261,66 +264,90 @@ fn dns_zones_zonefile_is_bounded_redacted_and_atomically_escaped() {
 #[test]
 fn dns_zones_primary_nameservers_require_public_unique_addresses() {
     for invalid in ["not-an-ip", "10.0.0.1", "127.0.0.1", "2001:db8::1"] {
-        assert_eq!(
+        assert!(matches!(
             PrimaryNameserver::new(invalid),
             Err(ZoneRequestError::InvalidNameserverAddress)
-        );
+        ));
     }
     let first = nameserver!("8.8.8.8");
-    assert_eq!(
+    assert!(matches!(
         first.with_port(0),
         Err(ZoneRequestError::InvalidNameserverPort)
-    );
+    ));
     assert_eq!(first.port(), 53);
     let duplicate = [first, valid!(first.with_port(5353))];
-    assert_eq!(
+    assert!(matches!(
         PrimaryNameservers::new(&duplicate),
         Err(ZoneRequestError::DuplicatePrimaryNameserver)
-    );
-    assert_eq!(
+    ));
+    assert!(matches!(
         PrimaryNameservers::new(&[]),
         Err(ZoneRequestError::EmptyPrimaryNameservers)
-    );
+    ));
     let too_many = [first; MAX_PRIMARY_NAMESERVERS + 1];
-    assert_eq!(
+    assert!(matches!(
         PrimaryNameservers::new(&too_many),
         Err(ZoneRequestError::TooManyPrimaryNameservers)
-    );
+    ));
 }
 
 #[test]
 fn dns_zones_tsig_is_coherent_validated_and_redacted() {
-    for invalid in ["", "abc", "YWJjZA=", "YW=JjZA=", "é==", "Zh==", "Zm9="] {
-        assert_eq!(TsigKey::new(invalid), Err(ZoneRequestError::InvalidTsigKey));
+    assert_eq!(MIN_TSIG_SECRET_BYTES, 32);
+    for invalid in [
+        "",
+        "abc",
+        "YWJjZA=",
+        "YW=JjZA=",
+        "é==",
+        "Zh==",
+        "Zm9=",
+        "MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZQ==",
+        "MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWZ=",
+    ] {
+        assert!(matches!(
+            TsigKey::new(invalid),
+            Err(ZoneRequestError::InvalidTsigKey)
+        ));
     }
-    assert!(TsigKey::new("Zg==").is_ok());
-    assert!(TsigKey::new("Zm8=").is_ok());
-    assert!(TsigKey::new("Zm9v").is_ok());
-    let key = valid!(TsigKey::new("YWJjZA=="));
+    let encoded_key = "MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=";
+    let key = valid!(TsigKey::new(encoded_key));
+    let algorithm_name = match TsigAlgorithm::HmacSha256 {
+        TsigAlgorithm::HmacSha256 => "hmac-sha256",
+    };
+    assert_eq!(algorithm_name, "hmac-sha256");
     let credentials = TsigCredentials::new(key, TsigAlgorithm::HmacSha256);
     let server = nameserver!("1.1.1.1").with_tsig(credentials);
-    assert_eq!(server.tsig(), Some(credentials));
+    let Some(configured) = server.tsig() else {
+        assert!(server.tsig().is_some());
+        return;
+    };
+    assert_eq!(configured.algorithm(), TsigAlgorithm::HmacSha256);
+    assert_eq!(configured.algorithm().as_api_str(), "hmac-sha256");
     assert!(
         !debug_buffer(&credentials)
             .as_str()
-            .is_some_and(|value| value.contains("YWJjZA"))
+            .is_some_and(|value| value.contains("MDEyMz"))
     );
     assert!(
         !debug_buffer(&key)
             .as_str()
-            .is_some_and(|value| value.contains("YWJjZA"))
+            .is_some_and(|value| value.contains("MDEyMz"))
     );
-    let mut output = [0_u8; 16];
+    let mut output = [0_u8; 64];
     let len = valid!(key.write_json_string(&mut output));
-    assert_eq!(output.get(..len), Some(b"\"YWJjZA==\"".as_slice()));
+    assert_eq!(
+        output.get(..len),
+        Some(b"\"MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=\"".as_slice())
+    );
 }
 
 #[test]
 fn dns_zones_create_mode_prevents_conflicting_configuration() {
-    assert_eq!(
+    assert!(matches!(
         ZoneCreateRequest::try_new(None, Some(ZoneCreateMode::Primary)),
         Err(ZoneRequestError::MissingRequiredField)
-    );
+    ));
     let servers = [nameserver!("8.8.8.8"), nameserver!("1.1.1.1")];
     let servers = valid!(PrimaryNameservers::new(&servers));
     let secondary = valid!(ZoneCreateRequest::try_new(
@@ -328,10 +355,10 @@ fn dns_zones_create_mode_prevents_conflicting_configuration() {
         Some(ZoneCreateMode::Secondary(servers))
     ));
     let file = valid!(ZoneFile::new("$ORIGIN example.com."));
-    assert_eq!(
+    assert!(matches!(
         secondary.with_zonefile(file),
         Err(ZoneRequestError::InvalidModeConfiguration)
-    );
+    ));
     let primary = valid!(ZoneCreateRequest::try_new(
         Some(name!("example.com")),
         Some(ZoneCreateMode::Primary)
@@ -395,7 +422,15 @@ fn dns_zones_action_bodies_preserve_explicit_intent() {
         primary.endpoint(),
         ZoneActionEndpoint::ChangePrimaryNameservers(zone)
     );
-    assert_eq!(primary.nameservers(), servers);
+    assert_eq!(primary.nameservers().entries().len(), 1);
+    assert_eq!(
+        primary
+            .nameservers()
+            .entries()
+            .first()
+            .map(|value| value.as_str()),
+        Some("8.8.8.8")
+    );
 
     let protection = ZoneProtectionRequest::new(zone, false);
     assert!(!protection.delete());
@@ -410,6 +445,9 @@ fn dns_zones_action_bodies_preserve_explicit_intent() {
 
     let file = valid!(ZoneFile::new("$ORIGIN example.com."));
     let import = ZoneFileImportRequest::new(zone, file);
-    assert_eq!(import.zonefile(), file);
+    assert_eq!(
+        debug_buffer(&import.zonefile()).as_str(),
+        Some("ZoneFile([redacted])")
+    );
     assert_eq!(import.endpoint(), ZoneActionEndpoint::ImportZoneFile(zone));
 }

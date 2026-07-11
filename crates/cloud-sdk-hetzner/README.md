@@ -153,7 +153,7 @@ Implemented on main for `0.12.0`:
 - zonefile import, primary nameserver replacement, deletion protection, and
   explicit TTL-change action models;
 - bounded lowercase Zone names, default TTLs, zonefiles, public primary
-  nameservers, strict Base64 TSIG keys, and deterministic Zone queries;
+  nameservers, hardened TSIG keys, and deterministic Zone queries;
 - redacted zonefile and TSIG debug output, fixed-buffer paths, and structural
   primary/secondary Zone creation modes.
 
@@ -165,6 +165,23 @@ the caller must securely erase the entire destination buffer with a reviewed,
 non-elidable zeroization mechanism appropriate for the target platform. The SDK
 cannot erase memory it does not own, and ordinary writes are not guaranteed to
 survive compiler optimization as secure erasure.
+
+### TSIG Policy
+
+The hardened API supports only HMAC-SHA256. HMAC-MD5 is prohibited and
+HMAC-SHA1 is intentionally excluded even though Hetzner accepts both for legacy
+interoperability. TSIG secrets must decode to at least 32 bytes, use canonical
+padded Base64, and should be generated with a CSPRNG, shared by only two
+entities, and rotated periodically. Representation checks cannot establish
+entropy.
+
+`ZoneFile`, `TsigKey`, `TsigCredentials`, and request structures containing
+them intentionally do not implement ordinary equality. Do not compare secrets
+with normal string equality; use a reviewed constant-time mechanism if secret
+comparison is required outside this request-building crate. See RFC 8945 for
+the [algorithm requirements](https://www.rfc-editor.org/rfc/rfc8945.html#section-6),
+[local policy](https://www.rfc-editor.org/rfc/rfc8945.html#section-7), and
+[shared-secret requirements](https://www.rfc-editor.org/rfc/rfc8945.html#section-8).
 
 ## Endpoint Surface Example
 
