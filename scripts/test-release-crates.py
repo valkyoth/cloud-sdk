@@ -110,6 +110,77 @@ def test_retired_package_is_rejected_from_release_plan() -> None:
         )
 
 
+def test_neutral_boundaries_and_single_provider_crates_are_allowed() -> None:
+    release_crates.reject_nested_cloud_sdk_packages(
+        (
+            "cloud-sdk",
+            "cloud-sdk-hetzner",
+            "cloud-sdk-reqwest",
+            "cloud-sdk-sanitization",
+            "cloud-sdk-testkit",
+            "cloud-sdk-ovh",
+            "cloud-sdk-scaleway",
+        ),
+        source="test",
+    )
+
+
+def test_provider_subcrates_and_scoped_boundaries_are_rejected() -> None:
+    for package_name in (
+        "cloud-sdk-ovh-dns",
+        "cloud-sdk-scaleway-reqwest",
+        "cloud-sdk-provider-sanitization",
+        "cloud-sdk-provider-testkit",
+    ):
+        assert_fails(
+            "contains nested cloud-sdk packages",
+            lambda names: release_crates.reject_nested_cloud_sdk_packages(
+                names, source="test"
+            ),
+            (package_name,),
+        )
+
+
+def test_nested_package_is_rejected_at_release_boundaries() -> None:
+    nested = "cloud-sdk-ovh-reqwest"
+    packages = base_packages()
+    packages[nested] = package(nested, "0.12.0")
+    assert_fails(
+        "workspace metadata contains nested cloud-sdk packages",
+        release_crates.verify_publish_order,
+        packages,
+        base_plan(),
+    )
+
+    plan = base_plan()
+    plan["crates"][nested] = {
+        "previous_version": "none",
+        "version": "0.12.0",
+        "change": "code",
+        "publish": True,
+        "reason": "test",
+    }
+    assert_fails(
+        "release plan contains nested cloud-sdk packages",
+        release_crates.publish_plan,
+        plan,
+    )
+
+    commands: list[list[str]] = []
+    original = release_crates.run
+    release_crates.run = lambda command, *, dry_run: commands.append(command)
+    try:
+        assert_fails(
+            "publish request contains nested cloud-sdk packages",
+            release_crates.publish,
+            nested,
+            argparse.Namespace(dry_run=False),
+        )
+    finally:
+        release_crates.run = original
+    assert commands == []
+
+
 def test_facade_code_changes_must_use_milestone_version() -> None:
     entry = {
         "previous_version": "0.3.0",
@@ -323,6 +394,9 @@ def run_tests() -> None:
         test_retired_package_is_absent_from_publish_order,
         test_retired_package_is_rejected_from_workspace_metadata,
         test_retired_package_is_rejected_from_release_plan,
+        test_neutral_boundaries_and_single_provider_crates_are_allowed,
+        test_provider_subcrates_and_scoped_boundaries_are_rejected,
+        test_nested_package_is_rejected_at_release_boundaries,
         test_facade_code_changes_must_use_milestone_version,
         test_facade_must_always_match_release_version,
         test_facade_must_publish_for_every_release,

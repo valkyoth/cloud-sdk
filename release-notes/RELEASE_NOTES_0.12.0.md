@@ -30,6 +30,9 @@ pagination iterators, or action polling.
 - Added release-script regression guards that reject all retired
   Hetzner-specific boundary names in publish order, workspace metadata,
   release plans, and direct publish requests.
+- Added a general one-crate-per-provider guard that rejects nested package names
+  such as `cloud-sdk-ovh-dns` and `cloud-sdk-scaleway-reqwest` at every release
+  boundary.
 - `scripts/release_0_12_gate.sh`.
 
 ## Security Notes

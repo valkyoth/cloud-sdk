@@ -62,6 +62,11 @@ explicit trust and dependency review.
   caller-owned buffer sanitization helpers. It exists as a boundary, but does
   not admit sanitization dependencies until reviewed.
 
+Future providers add one `cloud-sdk-{provider}` crate. Provider API families
+stay as internal modules, while reusable transports, test infrastructure,
+serialization, and secret handling extend the provider-neutral boundaries.
+Release automation rejects nested provider packages.
+
 ## Source Discipline
 
 The official API reference is <https://docs.hetzner.cloud/reference/cloud>.

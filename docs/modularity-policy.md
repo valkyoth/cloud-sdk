@@ -27,3 +27,21 @@ The local gate is:
 ```bash
 scripts/validate-modularity-policy.sh check
 ```
+
+## Provider Crate Cardinality
+
+- Each provider has exactly one primary package named `cloud-sdk-{provider}`.
+- Provider identifiers use one package-name segment, such as `hetzner`, `ovh`,
+  or `scaleway`.
+- Provider API families, authentication, models, errors, and fixtures use
+  modules or narrowly reviewed features inside that provider package.
+- Cross-provider capabilities use one neutral package named for the capability,
+  such as `cloud-sdk-reqwest`, `cloud-sdk-testkit`, or
+  `cloud-sdk-sanitization`.
+- Nested package names such as `cloud-sdk-ovh-dns`,
+  `cloud-sdk-scaleway-reqwest`, or `cloud-sdk-hetzner-testkit` are prohibited.
+
+`scripts/release_crates.py` rejects nested `cloud-sdk` package names in its
+publish order, release plan, Cargo workspace metadata, and final publish call.
+An exception requires a documented architectural constraint, an explicit
+policy and validator change, release notes, and a new pentest-reviewed commit.

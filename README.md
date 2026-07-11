@@ -213,6 +213,12 @@ assert_eq!(value, Some("\"line\\n\\\"quoted\\\"\""));
 | [`cloud-sdk-testkit`](https://crates.io/crates/cloud-sdk-testkit) | no | Future provider-neutral mock transport, fixtures, fault injection, and adversarial response helpers. |
 | [`cloud-sdk-sanitization`](https://crates.io/crates/cloud-sdk-sanitization) | no | Future provider-neutral token, credential, and caller-owned buffer sanitization helpers. |
 
+The workspace uses one primary crate per provider. Provider-specific API
+families remain modules inside that crate; reusable transport, testkit,
+serialization, and sanitization boundaries remain provider-neutral. Package
+names with another scoped suffix, such as `cloud-sdk-ovh-reqwest` or
+`cloud-sdk-scaleway-dns`, are rejected by release automation.
+
 The root README documents the workspace and release process. Crate-local README
 files document the crate-specific role and examples. For Hetzner-specific usage,
 start with [`cloud-sdk-hetzner`](https://crates.io/crates/cloud-sdk-hetzner).

@@ -25,6 +25,8 @@
 - Replaced the unused Hetzner-specific reqwest and testkit placeholders with
   provider-neutral `cloud-sdk-reqwest` and `cloud-sdk-testkit` crates, keeping
   the architecture to one primary crate per provider.
+- Enforced the future package-cardinality rule by rejecting nested names such
+  as `cloud-sdk-{provider}-{boundary}` throughout release automation.
 
 ## 0.11.0 - 2026-07-11
 
