@@ -30,6 +30,9 @@
 - Hardened DNS TSIG credentials to HMAC-SHA256 only, required at least 32
   decoded secret bytes, and removed ordinary equality from secret-bearing
   values and request containers.
+- Replaced pentest key/signature attestations with the `eth` workspace's
+  report-only release model: the final report commit must directly follow the
+  reviewed commit and may change no other path.
 
 ## 0.11.0 - 2026-07-11
 

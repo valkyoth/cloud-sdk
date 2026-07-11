@@ -2,15 +2,13 @@
 set -eu
 
 strict=false
-target=HEAD
 case "${1:-}" in
 "") ;;
 --release)
     strict=true
-    target="${2:-HEAD}"
     ;;
 *)
-    echo "usage: scripts/validate-release-metadata.sh [--release [TARGET]]" >&2
+    echo "usage: scripts/validate-release-metadata.sh [--release]" >&2
     exit 2
     ;;
 esac
@@ -28,25 +26,15 @@ for required in "release-notes/RELEASE_NOTES_${version}.md" docs/CRATE_VERSION_M
     fi
 done
 
-report="security/pentest/v${version}.md"
-if [ ! -s "$report" ]; then
-    if [ "$strict" = true ]; then
-        echo "release metadata: missing or empty $report" >&2
-        exit 1
-    fi
-    if git rev-parse --verify "v${version}^{commit}" >/dev/null 2>&1; then
-        echo "release metadata: tagged v${version} is missing $report" >&2
-        exit 1
-    fi
-    echo "release metadata: v${version} pentest report pending"
+if [ "$strict" = true ]; then
+    scripts/validate-release-readiness.sh "v${version}"
 else
-    if [ "$strict" = false ] && git rev-parse --verify "v${version}^{commit}" >/dev/null 2>&1; then
-        target="v${version}"
-    fi
-    scripts/validate_pentest_binding.py --version "$version" --target "$target"
+    echo "release metadata: v${version} pentest report checked only by release readiness"
 fi
 
-if [ ! -x scripts/release_crates.py ] || [ ! -x scripts/test-release-crates.py ]; then
+if [ ! -x scripts/release_crates.py ] || [ ! -x scripts/test-release-crates.py ] \
+    || [ ! -x scripts/validate-release-readiness.sh ] \
+    || [ ! -x scripts/test-release-readiness.sh ]; then
     echo "release metadata: missing executable independent crate release scripts" >&2
     exit 1
 fi

@@ -394,7 +394,7 @@ def main() -> int:
     require_clean_tree(allow_dirty=args.dry_run)
     check_release_tag(args.version, require_tag=not args.dry_run)
     run(
-        ["scripts/validate-release-metadata.sh", "--release", "HEAD"],
+        ["scripts/validate-release-metadata.sh", "--release"],
         dry_run=args.dry_run,
     )
 

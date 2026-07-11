@@ -1,6 +1,7 @@
 #!/usr/bin/env sh
 set -eu
 
+scripts/validate-release-readiness.sh v0.12.0
 scripts/checks.sh
 scripts/check_hetzner_upstream.sh --local-only
 scripts/check_hetzner_api_drift.py --fetch

@@ -62,13 +62,12 @@ A version is not tag-ready until:
 - release notes exist at `release-notes/RELEASE_NOTES_X.Y.Z.md`;
 - a pentest report exists at `security/pentest/vX.Y.Z.md`;
 - the pentest report names the exact full 40-character `Reviewed-Commit:`;
-- the pentest report has a valid OpenSSH-signed attestation from the approved
-  `pentest@cloud-sdk` identity under namespace `cloud-sdk-pentest-v1`, binding
-  its committed Git blob, path, and SHA-256;
 - the pentest report has `Status: PASS`;
 - the pentest report has non-blank `Tester:` and `Scope:` fields;
 - the pentest report has a `Date: YYYY-MM-DD` field;
 - `sbom/cloud-sdk.spdx.json` exists and is non-empty;
+- `scripts/validate-release-readiness.sh vX.Y.Z` proves that the report-only
+  release commit has the reviewed commit as its direct parent;
 - GitHub CI and CodeQL default setup are green on the release-report commit;
 - tagging has been explicitly requested.
 
@@ -77,17 +76,14 @@ retest, CodeQL, or another release gate causes release-relevant changes, rerun
 the review and update `Reviewed-Commit:` to the latest reviewed commit before
 tagging.
 
-Starting with `v0.11.0`, `scripts/validate_pentest_binding.py` rejects changes
-after `Reviewed-Commit:` under release-sensitive paths, including crate source
-and crate documentation, manifests, the lockfile, dependency policy, toolchain
-configuration, release metadata, source-lock and security documentation,
-scripts, approved pentest signers, and GitHub workflows. Release versions and
-those files must therefore be finalized before the passing retest.
-Evidence-only files such as the signed permanent pentest report and SBOM may be
-committed afterward. The pentest key is distinct from the release-tag key. The
-normal publisher requires a verifiable signed, annotated `vX.Y.Z` tag to point
-at `HEAD` and has no dirty-tree, skipped-check, untagged, or no-verification
-bypass flags.
+Normal CI validates release metadata without requiring the still-pending
+current report. The versioned release gate requires the report before tagging.
+The report commit must have `Reviewed-Commit:` as its direct parent and may
+change only `security/pentest/vX.Y.Z.md`, matching the release-evidence model
+used by the `eth` workspace. The SBOM and every release-sensitive file must be
+finalized before that reviewed parent. The normal publisher still requires a
+verifiable signed, annotated `vX.Y.Z` tag to point at `HEAD` and has no
+dirty-tree, skipped-check, untagged, or no-verification bypass flags.
 
 When a version's implementation criteria are done, stop and say:
 
@@ -114,16 +110,16 @@ Use this loop for every version:
 6. `PENTEST.md` is removed after findings are handled.
 7. Local gates are run again.
 8. GitHub CI and CodeQL default setup are checked after the fix commit.
-9. A permanent report is written at `security/pentest/vX.Y.Z.md` only when the
-   exact finalized commit has passed with `Status: PASS`.
-10. Commit the unsigned report, ensure the repository is clean, then run
-    `scripts/sign-pentest-report.sh` using the approved pentest identity. The
-    helper signs an attestation for the immutable report blob from `HEAD`.
-11. Commit the generated `.md.attestation.signed` bundle and other
-    evidence-only artifacts. Any later release-sensitive change requires
-    another retest.
-12. GitHub CI and CodeQL default setup are checked on the evidence commit.
-13. Tagging and pushing tags happen only when explicitly requested.
+9. Generate and commit the final SBOM before the reviewed implementation
+   commit is handed off.
+10. A permanent report is written at `security/pentest/vX.Y.Z.md` only when
+    that exact finalized commit has passed with `Status: PASS`.
+11. Commit only the permanent report as the direct child of the reviewed
+    commit. Any other changed path fails release readiness.
+12. GitHub CI and CodeQL default setup are checked on the report commit.
+13. `scripts/validate-release-readiness.sh vX.Y.Z` passes through the
+    versioned release gate before tagging.
+14. Tagging and pushing tags happen only when explicitly requested.
 
 Root `PENTEST.md` is temporary scratch input. It must not be committed. The
 permanent report is part of the release tag.
@@ -528,7 +524,7 @@ v0.11.0 implementation stop reached. Run pentest for this exact commit.
 
 ### v0.12.0 - DNS Zones
 
-Status: implementation complete; pentest pending.
+Status: implementation complete; pentest and retest passed.
 
 Goal: implement zones, zonefile import/export, zone actions, TTL policy, and
 primary nameserver policy.
@@ -552,7 +548,8 @@ Verification:
 Stop gate:
 
 ```text
-v0.12.0 implementation stop reached. Run pentest for this exact commit.
+v0.12.0 pentest stop passed. Commit only the permanent report, wait for CI,
+then run release readiness before tagging.
 ```
 
 ### v0.13.0 - DNS RRSets

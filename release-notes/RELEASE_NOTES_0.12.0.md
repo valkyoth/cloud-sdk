@@ -1,6 +1,6 @@
 # cloud-sdk 0.12.0 Release Notes
 
-Status: implementation candidate; pentest pending.
+Status: release candidate; pentest and retest passed.
 
 ## Scope
 
@@ -75,14 +75,15 @@ pagination iterators, or action polling.
 - `scripts/check_iana_ipv6_registry.py --fetch`
 - `scripts/check_hetzner_api_drift.py --fetch`
 - `scripts/checks.sh`
+- `scripts/test-release-readiness.sh`
 - `scripts/release_0_12_gate.sh`
 - `git diff --check`
 
 ## Pentest
 
-Pentest and retest are required before tagging. Permanent evidence will be
-published at `security/pentest/v0.12.0.md` only after the finalized
-release-sensitive commit passes.
+Pentest and retest passed. Permanent evidence is published at
+`security/pentest/v0.12.0.md` as the only change in the direct child of the
+reviewed release commit, matching the `eth` workspace release model.
 
 ## Publishing Plan
 
