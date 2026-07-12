@@ -38,6 +38,7 @@ cast_sign_loss = "deny"
 cloud-sdk = { path = "crates/cloud-sdk", version = "0.14.0" }
 cloud-sdk-hetzner = { path = "crates/cloud-sdk-hetzner", version = "0.14.0" }
 cloud-sdk-sanitization = { path = "crates/cloud-sdk-sanitization", version = "0.13.0" }
+cloud-sdk-testkit = { path = "crates/cloud-sdk-testkit", version = "0.12.2" }
 serde = { version = "1.0.228", default-features = false, features = ["alloc", "derive"] }
 serde_json = { version = "1.0.150" }
 sanitization = { version = "1.2.4", default-features = false }

@@ -15,6 +15,7 @@ use crate::dns::rrsets::{
 use crate::dns::zones::{ZoneName, ZoneReference, ZoneTtl};
 use crate::labels::{LabelKey, LabelValue};
 use crate::response::{ApiErrorCode, ErrorCategory};
+use cloud_sdk_testkit::{AdversarialKind, adversarial_corpus};
 
 macro_rules! valid {
     ($expression:expr) => {
@@ -296,4 +297,33 @@ fn serde_response_bytes_are_bounded_before_parser_use() {
         ResponseBytes::new(&rejected),
         Err(ResponseSizeError::TooLarge)
     );
+}
+
+#[test]
+fn serde_boundary_consumes_provider_neutral_adversarial_corpus() {
+    let corpus = valid!(adversarial_corpus());
+    for fixture in corpus {
+        match fixture.kind() {
+            AdversarialKind::MalformedJson | AdversarialKind::MissingRequiredFields => {
+                let bytes = valid!(fixture.body().as_bytes().ok_or(ResponseSizeError::TooLarge));
+                assert!(serde_json::from_slice::<ActionEnvelope<'_>>(bytes).is_err());
+            }
+            AdversarialKind::UnknownFields => {
+                let bytes = valid!(fixture.body().as_bytes().ok_or(ResponseSizeError::TooLarge));
+                assert!(serde_json::from_slice::<ActionEnvelope<'_>>(bytes).is_ok());
+            }
+            AdversarialKind::OversizedResponse => {
+                let bytes = vec![0_u8; fixture.body().len()];
+                assert_eq!(ResponseBytes::new(&bytes), Err(ResponseSizeError::TooLarge));
+            }
+            AdversarialKind::InvalidPagination => {
+                let bytes = valid!(fixture.body().as_bytes().ok_or(ResponseSizeError::TooLarge));
+                assert!(serde_json::from_slice::<serde_json::Value>(bytes).is_ok());
+            }
+            AdversarialKind::InvalidActionState => {
+                let bytes = valid!(fixture.body().as_bytes().ok_or(ResponseSizeError::TooLarge));
+                assert!(serde_json::from_slice::<ActionEnvelope<'_>>(bytes).is_err());
+            }
+        }
+    }
 }

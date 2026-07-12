@@ -5,6 +5,7 @@
 extern crate std;
 
 pub mod buffer;
+pub mod transport;
 
 /// Cloud provider namespace.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]

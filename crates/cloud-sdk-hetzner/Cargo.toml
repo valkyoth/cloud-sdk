@@ -21,6 +21,7 @@ serde = { workspace = true, optional = true }
 
 [dev-dependencies]
 cloud-sdk-sanitization.workspace = true
+cloud-sdk-testkit.workspace = true
 serde_json.workspace = true
 
 [lints]
