@@ -109,6 +109,11 @@ aggregate body. The optional serialization and transport layers must enforce a
 separate current provider request-body limit before allocation or transmission;
 the request-domain bounds are not a transport-size guarantee.
 
+Validated endpoint paths are bounded to 1024 bytes. This covers the complete
+path assembled from independently maximum-sized validated Zone and RRSet names,
+percent encoding, RR type, and the longest action suffix while retaining a
+finite transport-facing path policy.
+
 ## Deferred Scope
 
 Robot Webservice is explicitly deferred until after the Cloud/DNS SDK reaches

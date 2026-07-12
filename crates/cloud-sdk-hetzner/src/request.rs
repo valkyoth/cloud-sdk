@@ -12,7 +12,10 @@ pub const HETZNER_API_BASE_URL: &str = "https://api.hetzner.com/v1";
 pub const CLOUD_API_VERSION: u8 = 1;
 
 /// Maximum endpoint path length admitted by the SDK policy.
-pub const MAX_ENDPOINT_PATH_BYTES: usize = 256;
+///
+/// This covers independently maximum-sized validated Zone and RRSet names,
+/// percent encoding, RR types, and action suffixes.
+pub const MAX_ENDPOINT_PATH_BYTES: usize = 1_024;
 
 /// API base URL selected for an endpoint family.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
@@ -105,7 +108,7 @@ fn has_parent_directory_segment(value: &str) -> bool {
 mod tests {
     use super::{
         ApiBaseUrl, CLOUD_API_BASE_URL, CLOUD_API_VERSION, EndpointPath, EndpointPathError,
-        HETZNER_API_BASE_URL,
+        HETZNER_API_BASE_URL, MAX_ENDPOINT_PATH_BYTES,
     };
 
     #[test]
@@ -151,5 +154,23 @@ mod tests {
             EndpointPath::new("/servers").map(EndpointPath::as_str),
             Ok("/servers")
         );
+
+        let mut maximum = [b'a'; MAX_ENDPOINT_PATH_BYTES];
+        maximum[0] = b'/';
+        let maximum = core::str::from_utf8(&maximum);
+        assert!(maximum.is_ok());
+        let Ok(maximum) = maximum else {
+            return;
+        };
+        assert!(EndpointPath::new(maximum).is_ok());
+
+        let mut too_long = [b'a'; MAX_ENDPOINT_PATH_BYTES + 1];
+        too_long[0] = b'/';
+        let too_long = core::str::from_utf8(&too_long);
+        assert!(too_long.is_ok());
+        let Ok(too_long) = too_long else {
+            return;
+        };
+        assert_eq!(EndpointPath::new(too_long), Err(EndpointPathError::TooLong));
     }
 }

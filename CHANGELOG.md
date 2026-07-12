@@ -10,6 +10,8 @@
   JSON-string writers for values and comments.
 - Added the `v0.13.0` release gate and independent dependency-only `0.12.1`
   boundary-crate version plan.
+- Increased the bounded endpoint-path policy to cover maximum valid DNS RRSet
+  action paths and added long-name regression coverage.
 
 ## 0.12.0 - 2026-07-11
 

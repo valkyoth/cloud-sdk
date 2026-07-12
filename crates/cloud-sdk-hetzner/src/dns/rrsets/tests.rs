@@ -6,7 +6,7 @@ use crate::cloud::shared::CloudResourceId;
 use crate::dns::zones::{ZoneName, ZoneReference, ZoneTtl};
 use crate::labels::LabelSelector;
 use crate::pagination::{Page, PerPage, SortDirection};
-use crate::request::ApiBaseUrl;
+use crate::request::{ApiBaseUrl, MAX_ENDPOINT_PATH_BYTES};
 
 struct DebugBuffer {
     bytes: [u8; 128],
@@ -102,6 +102,28 @@ fn dns_rrsets_names_are_relative_lowercase_and_path_safe() {
     assert_eq!(
         output.get(..len),
         Some(b"/zones/example.com/rrsets/%2A.apps/TXT".as_slice())
+    );
+}
+
+#[test]
+fn dns_rrsets_long_valid_names_fit_action_paths() {
+    let mut long_name = "a".repeat(63);
+    long_name.push('.');
+    long_name.push_str(&"b".repeat(63));
+    long_name.push('.');
+    long_name.push_str(&"c".repeat(63));
+    long_name.push('.');
+    long_name.push_str(&"d".repeat(28));
+    assert_eq!(long_name.len(), 220);
+
+    let name = valid!(RrsetName::new(&long_name));
+    let reference = RrsetReference::new(zone(), name, RrsetType::A);
+    let mut output = [0_u8; MAX_ENDPOINT_PATH_BYTES];
+    let len = valid!(RrsetActionEndpoint::ChangeProtection(reference).write_path(&mut output));
+    assert!(len > 256);
+    assert_eq!(
+        output.get(len - "/actions/change_protection".len()..len),
+        Some(b"/actions/change_protection".as_slice())
     );
 }
 

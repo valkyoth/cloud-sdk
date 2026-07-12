@@ -30,6 +30,8 @@ pagination iterators, action polling, or type-specific RDATA normalization.
 - The default graph remains no_std, allocation-free, and transport-free.
 - Every RRSet endpoint path is assembled in caller-owned buffers, percent
   encodes dynamic RR names, and validates the complete `EndpointPath`.
+- The shared 1024-byte endpoint policy covers maximum structurally valid Zone
+  and RRSet names plus the longest action suffix.
 - Change-TTL requires explicit `RrsetTtl::Explicit` or
   `RrsetTtl::InheritZoneDefault`; deprecated omission is not representable.
 - Create and add-records retain an outer optional TTL because their distinct
