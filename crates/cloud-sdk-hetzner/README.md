@@ -205,6 +205,13 @@ conservative 50-record ceiling as mutation actions. Callers remain responsible
 for supplying values accepted by Hetzner's
 [DNS record type documentation](https://docs.hetzner.com/networking/dns/record-types/overview/).
 
+Record uniqueness uses exact value bytes. The RR-type-neutral list cannot
+case-fold domain-name-valued records without also corrupting the semantics of
+case-sensitive RDATA such as `TXT`. Canonicalize domain-name values before
+constructing records when semantic, case-insensitive uniqueness is required.
+Future serializers and transports must also apply an aggregate request-body
+limit; the per-record and record-count bounds are not a transport-size limit.
+
 Record values and comments expose complete JSON-string writers instead of raw
 string accessors. Future serializers must use those writers so quotes and
 backslashes cannot be interpolated into JSON unsafely.

@@ -98,7 +98,16 @@ operations.
 
 Record values are bounded and safely writable as JSON strings, but the SDK
 does not normalize every type-specific RDATA grammar. Hetzner remains the
-authoritative validator for record semantics.
+authoritative validator for record semantics. Duplicate detection therefore
+uses exact value bytes, matching the source schema's item uniqueness without
+incorrectly case-folding case-sensitive RDATA such as `TXT`. Callers that need
+semantic uniqueness for domain-name-valued records must canonicalize those
+values before constructing `RecordValue` instances.
+
+The per-record and per-request count bounds can still describe a large
+aggregate body. The optional serialization and transport layers must enforce a
+separate current provider request-body limit before allocation or transmission;
+the request-domain bounds are not a transport-size guarantee.
 
 ## Deferred Scope
 

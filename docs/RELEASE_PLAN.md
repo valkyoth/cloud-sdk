@@ -593,6 +593,8 @@ Deliverables:
 - Derive coverage for source-locked request and response models implemented so
   far.
 - Duplicate/unknown-field, optional-null, and redaction policy.
+- Aggregate request-body limits checked before serialization or transport,
+  including worst-case bounded RRSet record lists.
 - Tests proving default features remain empty and no serde dependency appears
   in the default graph.
 - JSON fixture tests for representative success and error responses.

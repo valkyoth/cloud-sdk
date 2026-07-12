@@ -44,6 +44,12 @@ pagination iterators, action polling, or type-specific RDATA normalization.
 - Record values/comments are redacted from `Debug` output.
 - The SDK validates structure but does not normalize every RR type's RDATA.
   Callers remain responsible for Hetzner-compatible record semantics.
+- Duplicate detection compares exact record-value bytes. Callers requiring
+  case-insensitive semantic uniqueness for domain-name RDATA must canonicalize
+  those values before constructing records.
+- The per-value and record-count bounds are not an aggregate transport-size
+  guarantee. Future serializers and transports must enforce a separate current
+  provider request-body limit before allocation or transmission.
 
 ## Version Plan
 
