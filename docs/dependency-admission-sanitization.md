@@ -16,6 +16,8 @@ runtime dependencies with default features disabled.
 `cloud-sdk-sanitization` exposes a narrow `sanitize_bytes` function and a
 `SecretBuffer` guard. Provider crates remain independent of the implementation,
 and the default `cloud-sdk` and `cloud-sdk-hetzner` graphs remain unchanged.
+The Hetzner crate uses this boundary only as a dev dependency to verify cleanup
+of secret-producing writers.
 
 ## Security Boundary
 

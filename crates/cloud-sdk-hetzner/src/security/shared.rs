@@ -38,6 +38,8 @@ pub enum SecurityRequestError {
     PathBufferTooSmall,
     /// Caller-provided query buffer is too small.
     QueryBufferTooSmall,
+    /// Caller-provided request-body buffer is too small.
+    BodyBufferTooSmall,
     /// Decimal conversion failed.
     NumberEncodingFailed,
     /// Path bytes failed UTF-8 conversion after construction.

@@ -30,6 +30,8 @@ or live API tests.
 - Serde dependency admission evidence and an automated default-graph gate.
 - `cloud-sdk-sanitization::SecretBuffer` and explicit `sanitize_bytes` cleanup
   through `sanitization` 1.2.4 with default features disabled.
+- Atomic escaped private-key JSON output without raw private-key access or
+  ordinary equality, plus provider integration tests using `SecretBuffer`.
 - `scripts/release_0_14_gate.sh`.
 
 ## Security Notes
@@ -48,6 +50,8 @@ or live API tests.
 - Guarded caller-owned buffers are volatile-cleared on success, error, early
   return, and unwind where unwind exists. Source strings and downstream copies
   remain caller and transport responsibilities.
+- Private-key JSON writes preflight capacity and leave undersized destination
+  buffers unchanged.
 - Known duplicate and missing response fields fail. Unknown response fields are
   ignored to tolerate additive provider changes.
 - Escaped response strings use `Cow`, borrowing when possible and allocating

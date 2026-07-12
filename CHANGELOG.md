@@ -11,6 +11,8 @@
   `sanitization` crate, including an early-return-safe `SecretBuffer` guard.
 - Redacted borrowed API error messages and removed ordinary equality from
   Storage Box passwords, private keys, and containing request types.
+- Added atomic escaped private-key JSON output without restoring raw access,
+  with guarded cleanup and unchanged-buffer failure tests.
 - Added the `v0.14.0` release gate, including sanitization graph isolation, and
   an independent `cloud-sdk-sanitization` `0.13.0` code release.
 

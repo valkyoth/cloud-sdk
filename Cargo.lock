@@ -11,6 +11,7 @@ name = "cloud-sdk-hetzner"
 version = "0.14.0"
 dependencies = [
  "cloud-sdk",
+ "cloud-sdk-sanitization",
  "serde",
  "serde_json",
 ]

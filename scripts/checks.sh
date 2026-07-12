@@ -18,7 +18,8 @@ scripts/release_crates.py --check
 scripts/test-release-crates.py
 cargo package -p cloud-sdk --allow-dirty
 cargo package -p cloud-sdk-hetzner --allow-dirty --features serde \
-    --config 'patch.crates-io.cloud-sdk.path="crates/cloud-sdk"'
+    --config 'patch.crates-io.cloud-sdk.path="crates/cloud-sdk"' \
+    --config 'patch.crates-io.cloud-sdk-sanitization.path="crates/cloud-sdk-sanitization"'
 cargo package -p cloud-sdk-reqwest --allow-dirty \
     --config 'patch.crates-io.cloud-sdk.path="crates/cloud-sdk"'
 cargo package -p cloud-sdk-sanitization --allow-dirty \

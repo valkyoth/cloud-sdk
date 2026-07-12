@@ -8,6 +8,7 @@ use crate::labels::LabelSelector;
 use crate::pagination::{Page, PerPage, SortDirection};
 use crate::request::ApiBaseUrl;
 use crate::security::shared::SecurityRequestError;
+use cloud_sdk_sanitization::SecretBuffer;
 use core::fmt::Write;
 
 const CERT: &str = "-----BEGIN CERTIFICATE-----\nMIIB\n-----END CERTIFICATE-----";
@@ -124,6 +125,45 @@ fn pem_validation_rejects_wrong_markers() {
         Err(SecurityRequestError::InvalidPem)
     );
     assert!(private_key_pem(KEY).is_ok());
+}
+
+#[test]
+fn private_key_writer_escapes_atomically_and_uses_guarded_cleanup() {
+    const ESCAPED_KEY: &str = "-----BEGIN PRIVATE KEY-----\nA\\\"B\n-----END PRIVATE KEY-----";
+    let private_key = private_key_pem(ESCAPED_KEY);
+    assert!(private_key.is_ok(), "fixture private key must validate");
+    let Ok(private_key) = private_key else {
+        return;
+    };
+
+    let mut short = [0xa5_u8; 16];
+    let original = short;
+    assert_eq!(
+        private_key.write_json_string(&mut short),
+        Err(SecurityRequestError::BodyBufferTooSmall)
+    );
+    assert_eq!(short, original);
+
+    let mut output = [0xa5_u8; 128];
+    {
+        let mut guarded = SecretBuffer::new(&mut output);
+        let written = private_key.write_json_string(guarded.as_mut_slice());
+        assert!(written.is_ok(), "private key writer must succeed");
+        let Ok(written) = written else { return };
+        let encoded = guarded
+            .as_slice()
+            .get(..written)
+            .and_then(|bytes| core::str::from_utf8(bytes).ok());
+        assert_eq!(
+            encoded,
+            Some("\"-----BEGIN PRIVATE KEY-----\\nA\\\\\\\"B\\n-----END PRIVATE KEY-----\"")
+        );
+    }
+    assert_eq!(output, [0_u8; 128]);
+
+    let mut debug = DebugBuffer::new();
+    assert!(write!(&mut debug, "{private_key:?}").is_ok());
+    assert_eq!(debug.as_str(), "PrivateKeyPem([redacted])");
 }
 
 struct DebugBuffer {

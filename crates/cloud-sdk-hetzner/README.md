@@ -186,7 +186,7 @@ Implemented on main for `0.14.0`:
 
 `ZoneFile::write_json_string`, `TsigKey::write_json_string`,
 `UserData::write_json_string`, `StorageBoxPassword::write_json_string`, and
-future private-key serializers copy potentially sensitive values into
+`PrivateKeyPem::write_json_string` copy potentially sensitive values into
 caller-owned buffers. Wrap the entire destination in
 `cloud_sdk_sanitization::SecretBuffer` before writing so it is volatile-cleared
 after transport use, including on early returns. The SDK cannot erase source

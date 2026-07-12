@@ -1,5 +1,7 @@
 //! Certificate endpoint request domains.
 
+mod private_key;
+
 use cloud_sdk::Method;
 
 use crate::EndpointGroup;
@@ -9,6 +11,8 @@ use crate::request::{ApiBaseUrl, EndpointPath};
 use crate::security::shared::{
     PemValue, static_path, write_id_path, write_query_pair, write_query_u64,
 };
+
+pub use private_key::{PrivateKeyPem, private_key_pem};
 
 /// Certificate endpoint groups.
 pub const ENDPOINT_GROUPS: &[EndpointGroup] = &[
@@ -24,31 +28,6 @@ pub use crate::security::shared::SecurityName as CertificateName;
 
 /// Uploaded certificate PEM value.
 pub type CertificatePem<'a> = PemValue<'a>;
-
-/// Uploaded certificate private key PEM value.
-///
-/// Ordinary equality is intentionally unavailable because string equality is
-/// variable-time.
-///
-/// ```compile_fail
-/// use cloud_sdk_hetzner::security::certificates::private_key_pem;
-///
-/// let left = private_key_pem("-----BEGIN PRIVATE KEY-----\nAA==\n-----END PRIVATE KEY-----")?;
-/// let right = left;
-/// let _ = left == right;
-/// # Ok::<(), cloud_sdk_hetzner::security::SecurityRequestError>(())
-/// ```
-#[derive(Clone, Copy)]
-#[allow(dead_code)]
-pub struct PrivateKeyPem<'a> {
-    value: PemValue<'a>,
-}
-
-impl core::fmt::Debug for PrivateKeyPem<'_> {
-    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        formatter.write_str("PrivateKeyPem([redacted])")
-    }
-}
 
 /// Managed certificate domain name.
 pub use crate::security::shared::CertificateDomainName;
@@ -458,24 +437,6 @@ pub fn certificate_pem(value: &str) -> Result<CertificatePem<'_>, SecurityReques
         "-----BEGIN CERTIFICATE-----",
         "-----END CERTIFICATE-----",
     )
-}
-
-/// Creates a validated private key PEM value.
-pub fn private_key_pem(value: &str) -> Result<PrivateKeyPem<'_>, SecurityRequestError> {
-    if value.contains("-----BEGIN PRIVATE KEY-----") {
-        return PemValue::new(
-            value,
-            "-----BEGIN PRIVATE KEY-----",
-            "-----END PRIVATE KEY-----",
-        )
-        .map(|value| PrivateKeyPem { value });
-    }
-    PemValue::new(
-        value,
-        "-----BEGIN RSA PRIVATE KEY-----",
-        "-----END RSA PRIVATE KEY-----",
-    )
-    .map(|value| PrivateKeyPem { value })
 }
 
 const fn sort_value(field: CertificateSortField, direction: SortDirection) -> &'static str {
