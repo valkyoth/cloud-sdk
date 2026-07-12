@@ -29,34 +29,40 @@ Optional provider-neutral secret-handling boundary for the main
 [`cloud-sdk`](https://github.com/valkyoth/cloud-sdk) workspace and
 [`cloud-sdk`](https://crates.io/crates/cloud-sdk) crate.
 
-This crate exists so reusable token, credential, and caller-owned buffer
-sanitization helpers can be reviewed outside the default no_std SDK and provider
-crates. It intentionally does not depend on a sanitization implementation yet.
+This crate provides reusable caller-owned buffer sanitization outside the
+default no_std SDK and provider crates. It delegates volatile clearing to the
+independently reviewed [`sanitization`](https://crates.io/crates/sanitization)
+crate with default features disabled.
 
 Most users should start with:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.12.0"
+cloud-sdk = "0.14.0"
+cloud-sdk-sanitization = "0.13.0"
 ```
 
-Use this crate only when the release notes say sanitization helpers have been
-admitted.
-
-## Current Example
+## Example
 
 ```rust
-use cloud_sdk_sanitization::SanitizationStatus;
+use cloud_sdk_sanitization::SecretBuffer;
 
-assert_eq!(
-    SanitizationStatus::DependencyNotAdmitted,
-    SanitizationStatus::DependencyNotAdmitted,
-);
+let mut output = [0_u8; 128];
+{
+    let mut guarded = SecretBuffer::new(&mut output);
+    guarded.as_mut_slice()[..6].copy_from_slice(b"secret");
+    assert_eq!(&guarded.as_slice()[..6], b"secret");
+}
+assert_eq!(output, [0_u8; 128]);
 ```
 
 ## Security Notes
 
-Sanitization helpers do not replace review of token ownership, copies, logging,
-environment variables, paging, crash dumps, compiler behavior, or process
-boundaries. Any future dependency must be admitted with explicit release notes,
-tests, and pentest evidence.
+`SecretBuffer` volatile-clears its entire borrowed slice on drop, including
+after early returns and unwind where unwind exists. `sanitize_bytes` provides
+the same reviewed primitive for explicit cleanup.
+
+These helpers do not clear immutable source strings or copies made by
+transports, operating systems, crash handlers, swap, remote services, or other
+processes. They also do not replace review of token ownership, logging,
+environment variables, paging, compiler behavior, or process boundaries.

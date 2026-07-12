@@ -75,10 +75,10 @@ fn certificate_create_modes_validate_required_fields_and_redact_debug() {
     let private_key = private_key_pem(KEY);
     if let (Ok(name), Ok(certificate), Ok(private_key)) = (name, certificate, private_key) {
         let mode = CertificateCreateMode::uploaded(certificate, private_key);
-        assert_eq!(
+        assert!(matches!(
             CertificateCreateRequest::try_new(None, Some(mode)),
             Err(SecurityRequestError::MissingRequiredField)
-        );
+        ));
         let request = CertificateCreateRequest::try_new(Some(name), Some(mode));
         assert!(request.is_ok());
         if let Ok(request) = request {
@@ -104,8 +104,8 @@ fn managed_certificate_domains_are_validated() {
         assert!(CertificateCreateMode::managed(&domains).is_ok());
     }
     assert_eq!(
-        CertificateCreateMode::managed(&[]),
-        Err(SecurityRequestError::EmptyDomainNames)
+        CertificateCreateMode::managed(&[]).map(CertificateCreateMode::certificate_type),
+        Err(SecurityRequestError::EmptyDomainNames),
     );
 }
 
@@ -123,7 +123,7 @@ fn pem_validation_rejects_wrong_markers() {
         certificate_pem("-----BEGIN CERTIFICATE----------END CERTIFICATE-----"),
         Err(SecurityRequestError::InvalidPem)
     );
-    assert_eq!(private_key_pem(KEY).map(|pem| pem.as_str()), Ok(KEY));
+    assert!(private_key_pem(KEY).is_ok());
 }
 
 struct DebugBuffer {

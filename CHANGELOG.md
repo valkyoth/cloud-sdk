@@ -7,8 +7,12 @@
 - Added a 1 MiB aggregate RRSet JSON policy, borrowed-or-owned escaped response
   text, adversarial fixtures, dependency admission evidence, and automated
   default-graph enforcement.
-- Added the `v0.14.0` release gate and independent dependency-only `0.12.2`
-  boundary-crate version plan.
+- Added provider-neutral volatile caller-buffer cleanup through the reviewed
+  `sanitization` crate, including an early-return-safe `SecretBuffer` guard.
+- Redacted borrowed API error messages and removed ordinary equality from
+  Storage Box passwords, private keys, and containing request types.
+- Added the `v0.14.0` release gate, including sanitization graph isolation, and
+  an independent `cloud-sdk-sanitization` `0.13.0` code release.
 
 ## 0.13.0 - 2026-07-12
 
@@ -122,7 +126,7 @@
   deprecated resource-local action lookup endpoint.
 - Hardened v0.9.0 Storage Box request validation after pentest review by
   rejecting trimmed `.` and `..` home-directory segments and documenting caller
-  zeroization responsibility for password output buffers.
+  sanitization responsibility for password output buffers.
 - Added the `v0.9.0` release gate script.
 
 ## 0.8.0 - 2026-07-09

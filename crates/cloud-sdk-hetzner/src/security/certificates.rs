@@ -26,7 +26,29 @@ pub use crate::security::shared::SecurityName as CertificateName;
 pub type CertificatePem<'a> = PemValue<'a>;
 
 /// Uploaded certificate private key PEM value.
-pub type PrivateKeyPem<'a> = PemValue<'a>;
+///
+/// Ordinary equality is intentionally unavailable because string equality is
+/// variable-time.
+///
+/// ```compile_fail
+/// use cloud_sdk_hetzner::security::certificates::private_key_pem;
+///
+/// let left = private_key_pem("-----BEGIN PRIVATE KEY-----\nAA==\n-----END PRIVATE KEY-----")?;
+/// let right = left;
+/// let _ = left == right;
+/// # Ok::<(), cloud_sdk_hetzner::security::SecurityRequestError>(())
+/// ```
+#[derive(Clone, Copy)]
+#[allow(dead_code)]
+pub struct PrivateKeyPem<'a> {
+    value: PemValue<'a>,
+}
+
+impl core::fmt::Debug for PrivateKeyPem<'_> {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        formatter.write_str("PrivateKeyPem([redacted])")
+    }
+}
 
 /// Managed certificate domain name.
 pub use crate::security::shared::CertificateDomainName;
@@ -271,7 +293,7 @@ impl Default for CertificateListRequest<'_> {
 }
 
 /// Certificate create mode.
-#[derive(Clone, Copy, Eq, PartialEq)]
+#[derive(Clone, Copy)]
 pub enum CertificateCreateMode<'a> {
     /// Uploaded PEM certificate and private key.
     Uploaded {
@@ -338,7 +360,7 @@ impl core::fmt::Debug for CertificateCreateMode<'_> {
 }
 
 /// Certificate create request fields.
-#[derive(Clone, Copy, Eq, PartialEq)]
+#[derive(Clone, Copy)]
 pub struct CertificateCreateRequest<'a> {
     name: CertificateName<'a>,
     mode: CertificateCreateMode<'a>,
@@ -445,13 +467,15 @@ pub fn private_key_pem(value: &str) -> Result<PrivateKeyPem<'_>, SecurityRequest
             value,
             "-----BEGIN PRIVATE KEY-----",
             "-----END PRIVATE KEY-----",
-        );
+        )
+        .map(|value| PrivateKeyPem { value });
     }
     PemValue::new(
         value,
         "-----BEGIN RSA PRIVATE KEY-----",
         "-----END RSA PRIVATE KEY-----",
     )
+    .map(|value| PrivateKeyPem { value })
 }
 
 const fn sort_value(field: CertificateSortField, direction: SortDirection) -> &'static str {

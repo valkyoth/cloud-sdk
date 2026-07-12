@@ -100,7 +100,19 @@ pub enum StorageBoxSubaccountSortField {
 }
 
 /// Redacted Storage Box password value.
-#[derive(Clone, Copy, Eq, PartialEq)]
+///
+/// Ordinary equality is intentionally unavailable because string equality is
+/// variable-time.
+///
+/// ```compile_fail
+/// use cloud_sdk_hetzner::storage::storage_boxes::StorageBoxPassword;
+///
+/// let left = StorageBoxPassword::new("a-valid-password")?;
+/// let right = left;
+/// let _ = left == right;
+/// # Ok::<(), cloud_sdk_hetzner::storage::storage_boxes::StorageBoxRequestError>(())
+/// ```
+#[derive(Clone, Copy)]
 pub struct StorageBoxPassword<'a> {
     value: &'a str,
 }
@@ -119,9 +131,10 @@ impl<'a> StorageBoxPassword<'a> {
     /// # Security
     ///
     /// `output` contains the plaintext password after this call succeeds.
-    /// Callers must overwrite the written bytes, for example with
-    /// `output[..written].fill(0)`, once the request body has been sent. If the
-    /// buffer is too small, the writer returns before modifying it.
+    /// Guard the full destination with `cloud_sdk_sanitization::SecretBuffer`
+    /// so it is volatile-cleared after transport use, including on early
+    /// returns. If the buffer is too small, the writer returns before modifying
+    /// it.
     pub fn write_json_string(self, output: &mut [u8]) -> Result<usize, StorageBoxRequestError> {
         let mut len = 0;
         buffer::write_json_string(

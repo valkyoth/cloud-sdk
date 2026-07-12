@@ -1,5 +1,7 @@
 //! Response-domain primitives.
 
+use core::fmt;
+
 /// Error category for API failures.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum ErrorCategory {
@@ -69,10 +71,20 @@ impl ApiErrorCode {
 }
 
 /// Borrowed API error envelope.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Eq, PartialEq)]
 pub struct ApiError<'a> {
     code: ApiErrorCode,
     message: &'a str,
+}
+
+impl fmt::Debug for ApiError<'_> {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("ApiError")
+            .field("code", &self.code)
+            .field("message", &"[redacted]")
+            .finish()
+    }
 }
 
 impl<'a> ApiError<'a> {
@@ -98,6 +110,8 @@ impl<'a> ApiError<'a> {
 #[cfg(test)]
 mod tests {
     use super::{ApiError, ApiErrorCode, ErrorCategory};
+    use core::fmt;
+    use core::fmt::Write;
 
     #[test]
     fn classifies_known_error_codes() {
@@ -116,5 +130,42 @@ mod tests {
         let error = ApiError::new(ApiErrorCode::InvalidInput, "bad input");
         assert_eq!(error.code(), ApiErrorCode::InvalidInput);
         assert_eq!(error.message(), "bad input");
+    }
+
+    #[test]
+    fn api_error_debug_redacts_provider_message() {
+        let error = ApiError::new(ApiErrorCode::InvalidInput, "reflected-secret");
+        let mut output = DebugBuffer::new();
+        assert!(write!(&mut output, "{error:?}").is_ok());
+        assert!(output.as_str().contains("[redacted]"));
+        assert!(!output.as_str().contains("reflected-secret"));
+    }
+
+    struct DebugBuffer {
+        bytes: [u8; 96],
+        len: usize,
+    }
+
+    impl DebugBuffer {
+        const fn new() -> Self {
+            Self {
+                bytes: [0; 96],
+                len: 0,
+            }
+        }
+
+        fn as_str(&self) -> &str {
+            core::str::from_utf8(self.bytes.get(..self.len).unwrap_or_default()).unwrap_or_default()
+        }
+    }
+
+    impl Write for DebugBuffer {
+        fn write_str(&mut self, value: &str) -> fmt::Result {
+            let end = self.len.checked_add(value.len()).ok_or(fmt::Error)?;
+            let target = self.bytes.get_mut(self.len..end).ok_or(fmt::Error)?;
+            target.copy_from_slice(value.as_bytes());
+            self.len = end;
+            Ok(())
+        }
     }
 }

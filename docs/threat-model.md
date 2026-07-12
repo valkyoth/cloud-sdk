@@ -6,7 +6,7 @@
 - Cloud infrastructure state.
 - DNS zone and RRSet state.
 - DNS TSIG shared secrets and zonefile contents.
-- Certificate and SSH key metadata.
+- Storage Box passwords, certificate private keys, and SSH key metadata.
 - Local CI and release credentials.
 
 ## Primary Risks
@@ -22,7 +22,9 @@
 - RRSet widening, duplicate values, ambiguous TTL inheritance, or unsafe RDATA
   interpolation;
 - weak, downgraded, exposed, or variable-time-compared TSIG secrets;
-- certificate or SSH key redaction failures;
+- password, certificate, API error, or SSH key redaction failures;
+- secret remnants in caller-owned request buffers or variable-time secret
+  comparisons;
 - unsafe JSON interpolation, oversized request bodies, duplicate response
   fields, or deserialization around validated constructors;
 - API drift from Hetzner documentation;
@@ -38,6 +40,8 @@
 - mock and adversarial testkit before transport helpers are stabilized;
 - SHA256-only TSIG policy, minimum secret size, redacted output, and no ordinary
   equality on secret-bearing types;
+- provider-neutral volatile caller-buffer guards and no ordinary equality on
+  Storage Box passwords, private keys, or containing request types;
 - structural RRSet names/types, explicit TTL intent, bounded unique record
   mutations, and atomic JSON-string output;
 - checked Serde request wrappers, aggregate body limits, private response wire

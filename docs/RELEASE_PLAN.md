@@ -617,19 +617,13 @@ Stop gate:
 v0.14.0 implementation stop reached. Run pentest for this exact commit.
 ```
 
-### v0.15.0 - Sanitization And Testkit Boundaries
+### v0.15.0 - Testkit Boundary
 
-Goal: admit provider-neutral secret-buffer sanitization, then implement
-deterministic mock transport, pagination/action fixtures, and an adversarial
-response corpus before real transports are admitted.
+Goal: implement deterministic mock transport, pagination/action fixtures, and
+an adversarial response corpus before real transports are admitted.
 
 Deliverables:
 
-- First usable `cloud-sdk-sanitization` guarded caller-buffer boundary.
-- Reviewed admission of the first-party `sanitization` crate with default
-  features disabled and no_std preserved.
-- Non-elidable cleanup on success, error, early return, and unwind where unwind
-  exists, with explicit limitations for source strings and downstream copies.
 - First usable `cloud-sdk-testkit` mock transport boundary.
 - Fixture builders for success, paginated, action, rate-limit, and error
   responses.
@@ -641,8 +635,6 @@ Deliverables:
 Verification:
 
 - `scripts/checks.sh`
-- `cargo test -p cloud-sdk-sanitization --all-features`
-- `cargo tree -p cloud-sdk-sanitization --no-default-features`
 - `cargo test -p cloud-sdk-testkit --all-features`
 - `cargo test --workspace --all-features`
 - `scripts/release_0_15_gate.sh` once added.

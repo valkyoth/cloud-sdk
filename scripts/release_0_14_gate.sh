@@ -4,6 +4,7 @@ set -eu
 scripts/validate-release-readiness.sh v0.14.0
 scripts/checks.sh
 scripts/check_serde_boundary.sh
+scripts/check_sanitization_boundary.sh
 scripts/check_hetzner_upstream.sh --local-only
 scripts/check_hetzner_api_drift.py --fetch
 scripts/check_iana_ipv6_registry.py --fetch

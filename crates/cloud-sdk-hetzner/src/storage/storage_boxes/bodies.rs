@@ -10,7 +10,8 @@ use super::types::{
 };
 
 /// Storage Box create request fields.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug)]
+#[allow(dead_code)]
 pub struct StorageBoxCreateRequest<'a> {
     name: StorageBoxName<'a>,
     location: StorageBoxLocation<'a>,

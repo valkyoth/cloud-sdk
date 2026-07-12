@@ -56,7 +56,7 @@ impl<'a> StorageBoxChangeTypeRequest<'a> {
 }
 
 /// Storage Box reset-password action request.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug)]
 pub struct StorageBoxResetPasswordRequest<'a> {
     password: StorageBoxPassword<'a>,
 }

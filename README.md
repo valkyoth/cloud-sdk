@@ -216,7 +216,7 @@ assert_eq!(value, Some("\"line\\n\\\"quoted\\\"\""));
 | [`cloud-sdk-hetzner`](https://crates.io/crates/cloud-sdk-hetzner) | no | Main Hetzner documentation and provider crate with internal `cloud`, `dns`, `security`, and `storage` modules. |
 | [`cloud-sdk-reqwest`](https://crates.io/crates/cloud-sdk-reqwest) | no | Future provider-neutral reqwest transport adapter; no transport dependency admitted yet. |
 | [`cloud-sdk-testkit`](https://crates.io/crates/cloud-sdk-testkit) | no | Future provider-neutral mock transport, fixtures, fault injection, and adversarial response helpers. |
-| [`cloud-sdk-sanitization`](https://crates.io/crates/cloud-sdk-sanitization) | no | Future provider-neutral token, credential, and caller-owned buffer sanitization helpers. |
+| [`cloud-sdk-sanitization`](https://crates.io/crates/cloud-sdk-sanitization) | no | Provider-neutral volatile caller-buffer cleanup and guarded secret buffers. |
 
 The workspace uses one primary crate per provider. Provider-specific API
 families remain modules inside that crate; reusable transport, testkit,

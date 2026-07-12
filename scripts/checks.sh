@@ -7,6 +7,7 @@ scripts/validate-file-lengths.sh
 scripts/validate-modularity-policy.sh check
 scripts/validate-security-policy.sh
 scripts/check_serde_boundary.sh
+scripts/check_sanitization_boundary.sh
 scripts/validate-release-metadata.sh
 scripts/test-release-readiness.sh
 scripts/check_iana_ipv6_registry.py --local-only

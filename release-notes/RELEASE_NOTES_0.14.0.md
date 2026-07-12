@@ -6,9 +6,11 @@ Status: implementation candidate; pentest pending.
 
 `0.14.0` adds an optional no_std Serde boundary to `cloud-sdk-hetzner`. It
 serializes the complete v0.13 RRSet request-body surface and deserializes shared
-action and API error response envelopes. It does not add HTTP transport, token
-storage, broad serialization for older resource domains, resource response
-models, retry policy, pagination iterators, action polling, or live API tests.
+action and API error response envelopes. It also admits provider-neutral
+volatile cleanup for caller-owned secret buffers. It does not add HTTP
+transport, token storage, broad serialization for older resource domains,
+resource response models, retry policy, pagination iterators, action polling,
+or live API tests.
 
 ## Added
 
@@ -26,6 +28,8 @@ models, retry policy, pagination iterators, action polling, or live API tests.
 - JSON fixtures for success, error, explicit null, escaped strings, duplicate
   fields, missing fields, unknown fields, invalid IDs, status, and progress.
 - Serde dependency admission evidence and an automated default-graph gate.
+- `cloud-sdk-sanitization::SecretBuffer` and explicit `sanitize_bytes` cleanup
+  through `sanitization` 1.2.4 with default features disabled.
 - `scripts/release_0_14_gate.sh`.
 
 ## Security Notes
@@ -39,6 +43,11 @@ models, retry policy, pagination iterators, action polling, or live API tests.
 - Response wire models are private. Nonzero IDs, known action status, progress
   at most 100, and interpreted text controls are validated after parsing.
 - Raw response bytes and API error messages are redacted from `Debug` output.
+- Storage Box passwords and certificate private keys, along with request types
+  containing them, do not implement ordinary variable-time equality.
+- Guarded caller-owned buffers are volatile-cleared on success, error, early
+  return, and unwind where unwind exists. Source strings and downstream copies
+  remain caller and transport responsibilities.
 - Known duplicate and missing response fields fail. Unknown response fields are
   ignored to tolerate additive provider changes.
 - Escaped response strings use `Cow`, borrowing when possible and allocating
@@ -53,8 +62,9 @@ models, retry policy, pagination iterators, action polling, or live API tests.
 
 - `cloud-sdk` publishes as `0.14.0`.
 - `cloud-sdk-hetzner` publishes its code release as `0.14.0`.
-- `cloud-sdk-reqwest`, `cloud-sdk-sanitization`, and `cloud-sdk-testkit`
-  publish dependency-only patch releases as `0.12.2`.
+- `cloud-sdk-sanitization` publishes its code release as `0.13.0`.
+- `cloud-sdk-reqwest` and `cloud-sdk-testkit` publish dependency-only patch
+  releases as `0.12.2`.
 - Retired Hetzner-specific boundary packages remain rejected and unpublished.
 
 ## Verification
@@ -63,6 +73,8 @@ models, retry policy, pagination iterators, action polling, or live API tests.
 - `cargo clippy --workspace --all-targets --all-features -- -D warnings`
 - `cargo test --workspace --all-features`
 - `scripts/check_serde_boundary.sh`
+- `scripts/check_sanitization_boundary.sh`
+- `cargo test -p cloud-sdk-sanitization --all-features`
 - `cargo package -p cloud-sdk-hetzner --features serde`
 - `scripts/test-release-readiness.sh`
 - `scripts/test-release-crates.py`

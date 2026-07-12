@@ -20,3 +20,9 @@ by `cloud-sdk-hetzner/serde`. serde_json `1.0.150` is dev-only. The full decisio
 and transitive surface are recorded in
 [`dependency-admission-serde.md`](dependency-admission-serde.md), and
 `scripts/check_serde_boundary.sh` enforces graph isolation.
+
+The first-party `sanitization` `1.2.4` crate is admitted only through
+`cloud-sdk-sanitization`, with default features disabled and no transitive
+runtime dependencies. The decision and limits are recorded in
+[`dependency-admission-sanitization.md`](dependency-admission-sanitization.md),
+and `scripts/check_sanitization_boundary.sh` enforces graph isolation.

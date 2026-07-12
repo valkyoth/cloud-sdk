@@ -24,9 +24,10 @@ dependencies = [
 
 [[package]]
 name = "cloud-sdk-sanitization"
-version = "0.12.2"
+version = "0.13.0"
 dependencies = [
  "cloud-sdk",
+ "sanitization",
 ]
 
 [[package]]
@@ -65,6 +66,12 @@ checksum = "dfbc457d0c7a0759a614551b11a6409e5951f6c7537be1f1b7682b9ae9230368"
 dependencies = [
  "proc-macro2",
 ]
+
+[[package]]
+name = "sanitization"
+version = "1.2.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "530e428069232d6d07b439cde737f1263aa1b86d534c1348d2190ada082c2335"
 
 [[package]]
 name = "serde"

@@ -25,10 +25,10 @@ reason = "Update the cloud-sdk dependency to the v0.14 facade line."
 
 [crates."cloud-sdk-sanitization"]
 previous_version = "0.12.1"
-version = "0.12.2"
-change = "dependency"
+version = "0.13.0"
+change = "code"
 publish = true
-reason = "Update the cloud-sdk dependency to the v0.14 facade line."
+reason = "Admit the reviewed no_std sanitization primitive and guarded caller-owned buffers."
 
 [crates."cloud-sdk-testkit"]
 previous_version = "0.12.1"

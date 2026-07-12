@@ -83,7 +83,8 @@ pub type StorageBoxSubaccountUpdateAccessSettingsRequest =
 pub type StorageBoxSubaccountResetPasswordRequest<'a> = StorageBoxResetPasswordRequest<'a>;
 
 /// Storage Box subaccount create request fields.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug)]
+#[allow(dead_code)]
 pub struct StorageBoxSubaccountCreateRequest<'a> {
     storage_box: StorageBoxId,
     home_directory: StorageBoxHomeDirectory<'a>,

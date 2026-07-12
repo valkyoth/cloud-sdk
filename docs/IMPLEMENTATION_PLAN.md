@@ -58,9 +58,8 @@ explicit trust and dependency review.
   dependencies until reviewed.
 - `cloud-sdk-testkit`: future provider-neutral fixtures, adversarial responses,
   mock transport, pagination/action simulations, and live-test gating helpers.
-- `cloud-sdk-sanitization`: future provider-neutral token, credential, and
-  caller-owned buffer sanitization helpers. It exists as a boundary, but does
-  not admit sanitization dependencies until reviewed.
+- `cloud-sdk-sanitization`: provider-neutral volatile caller-buffer cleanup and
+  guarded secret buffers using the reviewed first-party `sanitization` crate.
 
 Future providers add one `cloud-sdk-{provider}` crate. Provider API families
 stay as internal modules, while reusable transports, test infrastructure,
@@ -124,6 +123,7 @@ Expected future candidates must be reviewed before use:
   production parser use still requires a transport-specific review.
 - HTTP/TLS/client crates only in transport adapter crates, never in the main
   SDK default graph.
-- `sanitization` only for optional secret-bearing helpers.
+- `sanitization` admitted in `v0.14.0` with default features disabled through
+  the provider-neutral `cloud-sdk-sanitization` boundary.
 
 Every admission needs a document under `docs/dependency-admission-*.md`.
