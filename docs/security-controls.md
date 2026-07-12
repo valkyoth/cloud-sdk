@@ -22,6 +22,8 @@
 | DNS TSIG policy | HMAC-SHA256 only; canonical Base64; minimum 32 decoded bytes; no ordinary equality on secret-bearing types |
 | DNS RRSet mutations | source-locked RR types; bounded unique redacted records; mandatory change-TTL intent; atomic JSON-string writers |
 | optional Serde boundary | default graph exclusion; no Serde `std`; 1 MiB request and 8 MiB response policies; bounded validated response envelopes |
+| testkit boundary | no_std ordered mock; atomic bounded response writes; payload-free mismatch errors; redacted fixture/request debug |
+| transport contract | origin-form targets only; caller-owned response buffers; no authentication, headers, TLS, retry, or network implementation |
 | CodeQL default setup | repository setting |
 | API source lock | active for `v0.2.0` |
 | Storage Boxes drift check | active for `v0.2.0` |

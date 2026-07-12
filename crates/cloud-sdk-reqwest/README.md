@@ -37,7 +37,7 @@ Most users should start with:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.12.0"
+cloud-sdk = "0.15.0"
 ```
 
 Use this crate only when the release notes say a transport adapter has been

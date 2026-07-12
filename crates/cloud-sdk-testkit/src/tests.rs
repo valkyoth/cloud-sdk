@@ -1,3 +1,4 @@
+use alloc::format;
 use cloud_sdk::Method;
 use cloud_sdk::transport::{BlockingTransport, RequestTarget, StatusCode, TransportRequest};
 
@@ -48,6 +49,10 @@ fn metadata_rejects_incoherent_values() {
     assert_eq!(
         PaginationFixture::new(3, 50, 100, 2),
         Err(FixtureMetadataError::PageAfterLast)
+    );
+    assert_eq!(
+        PaginationFixture::new(1, 50, 100, 1),
+        Err(FixtureMetadataError::InvalidLastPage)
     );
     assert_eq!(
         ActionFixture::new(ActionState::Success, 101),
@@ -129,6 +134,44 @@ fn mock_transport_does_not_consume_exchange_when_response_buffer_is_small() {
         );
         assert_eq!(short, original);
         assert_eq!(transport.remaining(), 1);
+    }
+}
+
+#[test]
+fn mock_transport_distinguishes_target_and_body_mismatches_without_leaking_debug() {
+    let expected_target = RequestTarget::new("/servers");
+    let wrong_target = RequestTarget::new("/servers/secret");
+    let response_body = FixtureBody::new(b"response-secret");
+    if let (Ok(expected_target), Ok(wrong_target), Ok(response_body)) =
+        (expected_target, wrong_target, response_body)
+    {
+        let exchange = MockExchange::new(
+            ExpectedRequest::new(Method::Post, expected_target).with_body(b"expected-secret"),
+            ResponseFixture::success(response_body),
+        );
+        let exchanges = [exchange];
+        let mut transport = MockTransport::new(&exchanges);
+        let mut output = [0_u8; 32];
+
+        assert_eq!(
+            transport.send(
+                TransportRequest::new(Method::Post, wrong_target).with_body(b"expected-secret"),
+                &mut output,
+            ),
+            Err(MockError::TargetMismatch)
+        );
+        assert_eq!(
+            transport.send(
+                TransportRequest::new(Method::Post, expected_target).with_body(b"wrong-secret"),
+                &mut output,
+            ),
+            Err(MockError::BodyMismatch)
+        );
+        assert_eq!(transport.remaining(), 1);
+
+        let debug = format!("{exchange:?}");
+        assert!(debug.contains("[redacted]"));
+        assert!(!debug.contains("secret"));
     }
 }
 

@@ -1,6 +1,6 @@
 <p align="center">
-  <b>provider-neutral testkit boundary for cloud-sdk.</b><br>
-  Provider crates, explicit API domains, security-first release gates, and transport-free core types.
+  <b>provider-neutral no_std testkit for cloud-sdk.</b><br>
+  Deterministic mock transport, bounded response fixtures, and adversarial corpora.
 </p>
 
 <div align="center">
@@ -25,42 +25,89 @@
 
 # cloud-sdk-testkit
 
-Provider-neutral testkit boundary for the main
-[`cloud-sdk`](https://github.com/valkyoth/cloud-sdk) workspace and
-[`cloud-sdk`](https://crates.io/crates/cloud-sdk) crate.
-
-This crate is reserved for deterministic mock transports, source-locked
-protocol fixtures, fault injection, and adversarial response cases reusable by
-every provider. It intentionally stays small until provider-neutral transport
-and response contracts are implemented.
-
-Most users should start with:
+Provider-neutral testing support for the main
+[`cloud-sdk`](https://crates.io/crates/cloud-sdk) crate and its provider crates.
+The default graph is no_std, allocation-free, network-free, filesystem-free,
+and runtime-free.
 
 ```toml
-[dependencies]
-cloud-sdk = "0.12.0"
+[dev-dependencies]
+cloud-sdk = "0.15.0"
+cloud-sdk-testkit = "0.13.0"
 ```
 
-Use this crate for tests once fixture helpers are admitted.
-
-## Current Example
+## Mock Transport
 
 ```rust
-use cloud_sdk_testkit::FixtureKind;
+use cloud_sdk::Method;
+use cloud_sdk::transport::{BlockingTransport, RequestTarget, TransportRequest};
+use cloud_sdk_testkit::{
+    ExpectedRequest, FixtureBody, MockExchange, MockTransport, ResponseFixture,
+};
 
-let fixture = FixtureKind::Pagination;
-assert_eq!(fixture, FixtureKind::Pagination);
+let Ok(target) = RequestTarget::new("/servers?page=1") else {
+    return;
+};
+let Ok(body) = FixtureBody::new(br#"{"servers":[]}"#) else {
+    return;
+};
+let exchanges = [MockExchange::new(
+    ExpectedRequest::new(Method::Get, target),
+    ResponseFixture::success(body),
+)];
+let mut transport = MockTransport::new(&exchanges);
+let mut output = [0_u8; 64];
+
+let Ok(response) = transport.send(
+    TransportRequest::new(Method::Get, target),
+    &mut output,
+) else {
+    return;
+};
+
+assert_eq!(response.status().get(), 200);
+assert_eq!(response.body_len(), 14);
+assert!(transport.is_complete());
 ```
 
-## Planned Fixture Areas
+Each exchange is consumed only after the request matches and the complete
+response body fits. Method, target, body, exhaustion, and response-capacity
+failures are distinct and payload-free. Debug output redacts request targets,
+request bodies, and response bodies.
 
-- Pagination responses.
-- Action polling responses.
-- Error envelopes.
-- Rate-limit metadata.
-- Malformed and oversized API responses.
-- Deprecated endpoint behavior.
+## Fixture Builders
 
-Provider-specific fixtures remain in their provider crates and compose these
-generic primitives. This crate must not depend on provider crates or collect a
-feature for every provider.
+`ResponseFixture` builds deterministic success, paginated, action, rate-limit,
+and error responses. `PaginationFixture`, `ActionFixture`, and
+`RateLimitFixture` reject incoherent metadata before a fixture can be used.
+
+`FixtureBody` supports borrowed bytes and compact repeated-byte bodies up to
+8 MiB plus one byte. Writes preflight capacity and leave undersized destination
+buffers unchanged.
+
+## Adversarial Corpus
+
+`adversarial_corpus()` returns reusable cases for:
+
+- malformed JSON;
+- additive unknown fields;
+- missing required fields;
+- an oversized response represented without an 8 MiB static allocation;
+- invalid pagination metadata;
+- an invalid action state and progress value.
+
+Provider crates consume applicable cases in their own parser tests. The
+Hetzner Serde boundary exercises this corpus without making the testkit depend
+on `cloud-sdk-hetzner`.
+
+## Security Notes
+
+This crate is test infrastructure, not a production transport. Exact request
+matching uses ordinary byte equality and must not be exposed as a remote secret
+comparison oracle. Authentication, base URLs, headers, timeout policy, TLS,
+retry behavior, and secret ownership remain responsibilities of future
+transport adapters.
+
+The testkit stores only borrowed expectations and fixture bodies. Callers must
+keep borrowed data alive and must still sanitize secret-bearing test buffers
+when their threat model requires it.

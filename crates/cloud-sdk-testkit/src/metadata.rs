@@ -7,6 +7,8 @@ pub enum FixtureMetadataError {
     PaginationZero,
     /// Current page must not exceed the last page.
     PageAfterLast,
+    /// Last page does not match total entries and page size.
+    InvalidLastPage,
     /// Remaining requests must not exceed the rate limit.
     RemainingExceedsLimit,
     /// Rate limits must be nonzero.
@@ -37,6 +39,26 @@ impl PaginationFixture {
         }
         if page > last_page {
             return Err(FixtureMetadataError::PageAfterLast);
+        }
+        let mut expected_last = match total_entries.checked_div(per_page) {
+            Some(value) => value,
+            None => return Err(FixtureMetadataError::PaginationZero),
+        };
+        let remainder = match total_entries.checked_rem(per_page) {
+            Some(value) => value,
+            None => return Err(FixtureMetadataError::PaginationZero),
+        };
+        if remainder != 0 {
+            expected_last = match expected_last.checked_add(1) {
+                Some(value) => value,
+                None => return Err(FixtureMetadataError::InvalidLastPage),
+            };
+        }
+        if expected_last == 0 {
+            expected_last = 1;
+        }
+        if last_page != expected_last {
+            return Err(FixtureMetadataError::InvalidLastPage);
         }
         Ok(Self {
             page,

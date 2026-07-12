@@ -48,7 +48,7 @@ explicit trust and dependency review.
 ## Workspace Shape
 
 - `cloud-sdk`: provider-neutral no_std SDK foundation for shared provider,
-  API-family, and method domains.
+  API-family, method, and blocking transport-contract domains.
 - `cloud-sdk-hetzner`: Hetzner no_std provider crate. Endpoint models live under
   `src/cloud`, `src/dns`, `src/security`, and `src/storage`, with shared
   request, response, pagination, label, rate-limit, and action domains in
@@ -56,8 +56,9 @@ explicit trust and dependency review.
 - `cloud-sdk-reqwest`: future provider-neutral reqwest transport adapter. It
   exists as a boundary, but does not admit `reqwest`, TLS, or runtime
   dependencies until reviewed.
-- `cloud-sdk-testkit`: future provider-neutral fixtures, adversarial responses,
-  mock transport, pagination/action simulations, and live-test gating helpers.
+- `cloud-sdk-testkit`: provider-neutral no_std ordered mock transport, bounded
+  response fixtures, pagination/action/rate-limit metadata, and adversarial
+  response corpus. Future releases may add live-test gating helpers.
 - `cloud-sdk-sanitization`: provider-neutral volatile caller-buffer cleanup and
   guarded secret buffers using the reviewed first-party `sanitization` crate.
 

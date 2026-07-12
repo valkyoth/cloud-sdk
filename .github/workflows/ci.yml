@@ -15,6 +15,34 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
+  compatibility:
+    name: Rust ${{ matrix.rust }} compatibility
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        rust:
+          - 1.90.0
+          - 1.91.0
+          - 1.92.0
+          - 1.93.0
+          - 1.94.0
+          - 1.95.0
+          - 1.96.0
+          - 1.96.1
+          - 1.97.0
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Install Rust ${{ matrix.rust }}
+        run: rustup toolchain install "${{ matrix.rust }}" --profile minimal
+
+      - name: Check supported compiler
+        run: scripts/check_rust_version_matrix.sh "${{ matrix.rust }}"
+
   checks:
     name: Format, lint, test, and audit
     runs-on: ubuntu-latest

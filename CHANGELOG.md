@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+- Added provider-neutral no_std blocking transport contracts with validated
+  origin-form request targets, bounded status codes, caller-owned response
+  buffers, and redacted request debug output.
+- Added the first usable `cloud-sdk-testkit` ordered mock transport, bounded
+  fixture builders, compact oversized bodies, and six-case adversarial corpus.
+- Reused the adversarial corpus in the Hetzner Serde response tests without
+  adding testkit or transport dependencies to the provider's normal graph.
+- Added the `v0.15.0` release gate and independent crate version plan.
+
 ## 0.14.0 - 2026-07-12
 
 - Added an opt-in no_std Serde boundary for size-checked DNS RRSet request

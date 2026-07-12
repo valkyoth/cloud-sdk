@@ -28,9 +28,10 @@
 `cloud-sdk` is a `no_std`-first Rust workspace for cloud provider SDKs. The
 first provider crate is `cloud-sdk-hetzner`, covering the Hetzner Cloud and DNS
 APIs. The default crates have no network client, TLS stack, async runtime,
-filesystem, clock, or secret-storage dependency. Transport and serde support
-remain explicit boundaries; v0.14 adds narrowly reviewed no_std Serde and
-caller-buffer sanitization support without changing the default provider graph.
+filesystem, clock, or secret-storage dependency. Transport and serialization
+remain explicit boundaries: v0.15 defines a no-network contract and testkit,
+while v0.14 added narrowly reviewed no_std Serde and caller-buffer sanitization
+without changing the default provider graph.
 
 The project target is a serious production-ready `cloud-sdk` foundation and
 Hetzner provider at `1.0.0`, reached through small reviewed releases with test,
@@ -53,8 +54,8 @@ please report it so it can be fixed.
 
 ## Current Status
 
-Status: `v0.14.0` release candidate; pentest and retest passed. The latest
-published release is `v0.13.0`.
+Status: `v0.15.0` implementation candidate; pentest pending. The latest
+published release is `v0.14.0`.
 
 Implemented now:
 
@@ -65,8 +66,10 @@ Implemented now:
 - `cloud-sdk-hetzner` provider crate with focused internal modules.
 - Initial Hetzner API surface partition for Cloud, DNS, security, and Storage
   Box resources.
-- Explicit provider-neutral boundaries for future reqwest transport and
-  testkit helpers, plus admitted guarded caller-buffer sanitization.
+- Provider-neutral blocking transport contracts and a no_std deterministic
+  mock testkit with response metadata and adversarial fixtures.
+- Explicit provider-neutral boundary for future reqwest transport, plus
+  admitted guarded caller-buffer sanitization.
 - Local checks for formatting, linting, tests, no_std policy, modularity, and
   file length.
 - MIT OR Apache-2.0 license.
@@ -154,8 +157,8 @@ Not implemented yet:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.14.0"
-cloud-sdk-hetzner = "0.14.0"
+cloud-sdk = "0.15.0"
+cloud-sdk-hetzner = "0.15.0"
 ```
 
 ## Provider-Neutral Example
@@ -171,6 +174,25 @@ assert_eq!(provider, Provider::Hetzner);
 assert_eq!(family, ApiFamily::Cloud);
 assert_eq!(method, Method::Get);
 ```
+
+## Transport Contract Example
+
+```rust
+use cloud_sdk::Method;
+use cloud_sdk::transport::{RequestTarget, TransportRequest};
+
+let Ok(target) = RequestTarget::new("/servers?page=1") else {
+    return;
+};
+let request = TransportRequest::new(Method::Get, target);
+
+assert_eq!(request.method(), Method::Get);
+assert_eq!(request.target().as_str(), "/servers?page=1");
+assert!(request.body().is_empty());
+```
+
+The core contract performs no I/O. Use `cloud-sdk-testkit` for deterministic
+tests; the first production adapter is scheduled separately.
 
 ## Fixed Buffer Example
 
@@ -216,7 +238,7 @@ assert_eq!(value, Some("\"line\\n\\\"quoted\\\"\""));
 | [`cloud-sdk`](https://crates.io/crates/cloud-sdk) | no | Provider-neutral domains and shared SDK foundation. |
 | [`cloud-sdk-hetzner`](https://crates.io/crates/cloud-sdk-hetzner) | no | Main Hetzner documentation and provider crate with internal `cloud`, `dns`, `security`, and `storage` modules. |
 | [`cloud-sdk-reqwest`](https://crates.io/crates/cloud-sdk-reqwest) | no | Future provider-neutral reqwest transport adapter; no transport dependency admitted yet. |
-| [`cloud-sdk-testkit`](https://crates.io/crates/cloud-sdk-testkit) | no | Future provider-neutral mock transport, fixtures, fault injection, and adversarial response helpers. |
+| [`cloud-sdk-testkit`](https://crates.io/crates/cloud-sdk-testkit) | no | Provider-neutral ordered mock transport, response metadata fixtures, and adversarial corpus. |
 | [`cloud-sdk-sanitization`](https://crates.io/crates/cloud-sdk-sanitization) | no | Provider-neutral volatile caller-buffer cleanup and guarded secret buffers. |
 
 The workspace uses one primary crate per provider. Provider-specific API

@@ -29,6 +29,8 @@
   fields, or deserialization around validated constructors;
 - API drift from Hetzner documentation;
 - malicious or compromised third-party dependency.
+- test fixtures accidentally performing network or filesystem operations;
+- mock mismatch diagnostics disclosing request targets or bodies.
 
 ## Controls
 
@@ -46,4 +48,6 @@
   mutations, and atomic JSON-string output;
 - checked Serde request wrappers, aggregate body limits, private response wire
   models, post-parse validation, and default dependency-graph isolation;
+- no_std mock transport with borrowed expectations, atomic bounded fixture
+  writes, payload-free errors, and redacted request/response diagnostics;
 - pentest report before every tag.

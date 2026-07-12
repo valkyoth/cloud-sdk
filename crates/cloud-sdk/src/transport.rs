@@ -216,6 +216,26 @@ mod tests {
             RequestTarget::new("/servers#fragment"),
             Err(RequestTargetError::InvalidByte)
         );
+        assert_eq!(RequestTarget::new(""), Err(RequestTargetError::Empty));
+        assert_eq!(
+            RequestTarget::new("/servers bad"),
+            Err(RequestTargetError::InvalidByte)
+        );
+        let accepted = [b'/'; super::MAX_REQUEST_TARGET_BYTES];
+        let accepted = core::str::from_utf8(&accepted);
+        assert!(accepted.is_ok());
+        if let Ok(accepted) = accepted {
+            assert!(RequestTarget::new(accepted).is_ok());
+        }
+        let rejected = [b'/'; super::MAX_REQUEST_TARGET_BYTES + 1];
+        let rejected = core::str::from_utf8(&rejected);
+        assert!(rejected.is_ok());
+        if let Ok(rejected) = rejected {
+            assert_eq!(
+                RequestTarget::new(rejected),
+                Err(RequestTargetError::TooLong)
+            );
+        }
     }
 
     #[test]

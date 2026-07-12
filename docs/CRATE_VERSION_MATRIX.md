@@ -1,6 +1,6 @@
 # Crate Version Matrix
 
-Status: `v0.14.0` release candidate; pentest and retest passed.
+Status: `v0.15.0` implementation candidate; pentest pending.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
@@ -230,3 +230,18 @@ crates receive dependency-only patches for the facade's `0.14` line.
 | `cloud-sdk-reqwest` | `0.12.1` | `0.12.2` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.14 facade line. |
 | `cloud-sdk-sanitization` | `0.12.1` | `0.13.0` | `code` | Yes | Admit reviewed volatile caller-buffer cleanup and an early-return-safe guard. |
 | `cloud-sdk-testkit` | `0.12.1` | `0.12.2` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.14 facade line. |
+
+## v0.15.0 Tracking Table
+
+`v0.15.0` adds provider-neutral blocking transport contracts and the first
+usable no_std testkit. The facade follows the tag, testkit receives a code
+minor, and crates whose manifests only follow the new facade or dev boundary
+receive dependency-only patches.
+
+| Crate | Published | Planned | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.14.0` | `0.15.0` | `code` | Yes | Provider-neutral blocking transport contracts for reusable mock and future real adapters. |
+| `cloud-sdk-hetzner` | `0.14.0` | `0.15.0` | `code` | Yes | Integrate the provider-neutral adversarial corpus into Hetzner Serde tests. |
+| `cloud-sdk-reqwest` | `0.12.2` | `0.12.3` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.15 facade line. |
+| `cloud-sdk-sanitization` | `0.13.0` | `0.13.1` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.15 facade line. |
+| `cloud-sdk-testkit` | `0.12.2` | `0.13.0` | `code` | Yes | Ordered no_std mock transport, response metadata fixtures, and adversarial response corpus. |

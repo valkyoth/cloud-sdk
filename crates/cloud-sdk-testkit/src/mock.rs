@@ -139,6 +139,10 @@ impl BlockingTransport for MockTransport<'_> {
         if request.body() != exchange.request.body() {
             return Err(MockError::BodyMismatch);
         }
+        let next_cursor = self
+            .cursor
+            .checked_add(1)
+            .ok_or(MockError::CursorOverflow)?;
         let body_len =
             exchange
                 .response
@@ -149,10 +153,7 @@ impl BlockingTransport for MockTransport<'_> {
                         MockError::ResponseBufferTooSmall
                     }
                 })?;
-        self.cursor = self
-            .cursor
-            .checked_add(1)
-            .ok_or(MockError::CursorOverflow)?;
+        self.cursor = next_cursor;
         Ok(TransportResponse::new(exchange.response.status(), body_len))
     }
 }

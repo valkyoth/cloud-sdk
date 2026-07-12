@@ -38,18 +38,18 @@ models in small reviewed releases.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.14.0"
-cloud-sdk-hetzner = "0.14.0"
+cloud-sdk = "0.15.0"
+cloud-sdk-hetzner = "0.15.0"
 ```
 
 ## Current Scope
 
-The current main branch is the `0.14.0` release candidate for the optional
-Serde boundary and secret-output hardening. Pentest and retest passed. The
-latest published release is `0.13.0`. This crate does not yet implement HTTP
-transport, broad Serde coverage outside reviewed RRSet/shared response models,
-token storage, live API tests, retry policy, pagination iterators, or action
-polling.
+The current main branch is the `0.15.0` implementation candidate. It integrates
+the provider-neutral adversarial response corpus as a dev-only boundary;
+pentest is pending. The latest published provider release is `0.14.0`. This
+crate does not yet implement HTTP transport, broad Serde coverage outside
+reviewed RRSet/shared response models, token storage, live API tests, retry
+policy, pagination iterators, or action polling.
 
 Implemented in the published `0.2.0` line:
 
@@ -170,7 +170,7 @@ Implemented in the published `0.13.0` line:
 - bounded, debug-redacted record values/comments, `1..=50` unique-value
   mutation lists, and atomic fixed-buffer JSON-string writers.
 
-Implemented on main for `0.14.0`:
+Implemented in the published `0.14.0` line:
 
 - opt-in `serde` feature with Serde defaults and `std` disabled;
 - size-checked JSON serialization wrappers for every RRSet create, update,
@@ -239,7 +239,7 @@ Enable Serde explicitly; it is never part of the default graph:
 
 ```toml
 [dependencies]
-cloud-sdk-hetzner = { version = "0.14.0", features = ["serde"] }
+cloud-sdk-hetzner = { version = "0.15.0", features = ["serde"] }
 ```
 
 `serde_json` is used below only as an example format implementation and remains

@@ -623,6 +623,8 @@ v0.14.0 implementation stop reached. Run pentest for this exact commit.
 
 ### v0.15.0 - Testkit Boundary
 
+Status: implementation complete; pentest pending.
+
 Goal: implement deterministic mock transport, pagination/action fixtures, and
 an adversarial response corpus before real transports are admitted.
 
@@ -635,10 +637,16 @@ Deliverables:
   fields, oversized responses, invalid pagination, and invalid action states.
 - Tests proving mock transport does not require network, TLS, filesystem, or
   runtime dependencies by default.
+- Provider-neutral blocking transport request/response contract in
+  `cloud-sdk`, limited to origin-form targets and caller-owned buffers.
+- Hetzner Serde integration proving shared adversarial cases exercise a real
+  provider parser without creating a testkit-to-provider dependency.
 
 Verification:
 
 - `scripts/checks.sh`
+- `scripts/check_testkit_boundary.sh`
+- `scripts/check_rust_version_matrix.sh`
 - `cargo test -p cloud-sdk-testkit --all-features`
 - `cargo test --workspace --all-features`
 - `scripts/release_0_15_gate.sh` once added.

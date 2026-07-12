@@ -16,6 +16,10 @@ Compatibility must be maintained for:
 | `1.96.1` | `cargo +1.96.1 check --workspace --all-features` |
 | `1.97.0` | full release gate |
 
+`scripts/check_rust_version_matrix.sh` checks the complete table locally. CI
+runs each version as an independent fail-fast-disabled matrix job so one failure
+does not hide results from the remaining supported compilers.
+
 Pinned release tools, checked against crates.io on 2026-07-12:
 
 | Tool | Version |
