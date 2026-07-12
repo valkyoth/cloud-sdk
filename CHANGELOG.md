@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.15.0 - 2026-07-12
 
 - Added provider-neutral no_std blocking transport contracts with validated
   origin-form request targets, bounded status codes, caller-owned response
