@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- Added `cloud-sdk-hetzner::dns::rrsets` no_std request primitives for RRSet
+  CRUD, repeated-type list filters, protection, TTL, and all record mutation
+  actions.
+- Added all 16 source-locked RR types, relative/apex/wildcard name validation,
+  explicit JSON-null TTL inheritance, bounded unique record lists, and atomic
+  JSON-string writers for values and comments.
+- Added the `v0.13.0` release gate and independent dependency-only `0.12.1`
+  boundary-crate version plan.
+
+## 0.12.0 - 2026-07-11
+
 - Added `cloud-sdk-hetzner::dns::zones` no_std request primitives for Zone
   CRUD, zonefile export/import, global and per-Zone action lists, global action
   lookup, primary nameserver replacement, deletion protection, and TTL changes.

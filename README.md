@@ -52,8 +52,8 @@ please report it so it can be fixed.
 
 ## Current Status
 
-Status: `v0.12.0` release candidate; pentest and retest passed. The latest
-published release is `v0.11.0`.
+Status: `v0.13.0` implementation candidate; pentest is pending. The latest
+published release is `v0.12.0`.
 
 Implemented now:
 
@@ -103,6 +103,8 @@ Implemented now:
   changes, and public-interface actions.
 - Hetzner DNS Zone request primitives for CRUD, zonefile import/export,
   primary nameservers, TTL and protection actions, and action listing.
+- Hetzner DNS RRSet request primitives for CRUD, list filtering, TTL and
+  protection actions, and bounded record mutations.
 
 Not implemented yet:
 
@@ -148,8 +150,8 @@ Not implemented yet:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.12.0"
-cloud-sdk-hetzner = "0.12.0"
+cloud-sdk = "0.13.0"
+cloud-sdk-hetzner = "0.13.0"
 ```
 
 ## Provider-Neutral Example
@@ -335,4 +337,6 @@ scripts/release_0_8_gate.sh
 scripts/release_0_9_gate.sh
 scripts/release_0_10_gate.sh
 scripts/release_0_11_gate.sh
+scripts/release_0_12_gate.sh
+scripts/release_0_13_gate.sh
 ```

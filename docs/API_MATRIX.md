@@ -236,17 +236,17 @@ Total source-locked operations: 221 (`cloud`: 189, `hetzner`: 32).
 | cloud | Zone Actions | POST | `/zones/{id_or_name}/actions/change_ttl` | `change_zone_ttl` | `cloud_sdk_hetzner::dns::zones` | no | no | starts-action | no | implemented-v0.12 |
 | cloud | Zone Actions | POST | `/zones/{id_or_name}/actions/import_zonefile` | `import_zone_zonefile` | `cloud_sdk_hetzner::dns::zones` | no | no | starts-action | no | implemented-v0.12 |
 | cloud | Zone Actions | GET | `/zones/{id_or_name}/actions/{action_id}` | `get_zone_action` | `cloud_sdk_hetzner::dns::zones` | no | no | resource-action-get | yes | deferred-deprecated |
-| cloud | Zone RRSet Actions | POST | `/zones/{id_or_name}/rrsets/{rr_name}/{rr_type}/actions/add_records` | `add_zone_rrset_records` | `cloud_sdk_hetzner::dns::rrsets` | no | no | starts-action | no | planned |
-| cloud | Zone RRSet Actions | POST | `/zones/{id_or_name}/rrsets/{rr_name}/{rr_type}/actions/change_protection` | `change_zone_rrset_protection` | `cloud_sdk_hetzner::dns::rrsets` | no | no | starts-action | no | planned |
-| cloud | Zone RRSet Actions | POST | `/zones/{id_or_name}/rrsets/{rr_name}/{rr_type}/actions/change_ttl` | `change_zone_rrset_ttl` | `cloud_sdk_hetzner::dns::rrsets` | no | no | starts-action | no | planned |
-| cloud | Zone RRSet Actions | POST | `/zones/{id_or_name}/rrsets/{rr_name}/{rr_type}/actions/remove_records` | `remove_zone_rrset_records` | `cloud_sdk_hetzner::dns::rrsets` | no | no | starts-action | no | planned |
-| cloud | Zone RRSet Actions | POST | `/zones/{id_or_name}/rrsets/{rr_name}/{rr_type}/actions/set_records` | `set_zone_rrset_records` | `cloud_sdk_hetzner::dns::rrsets` | no | no | starts-action | no | planned |
-| cloud | Zone RRSet Actions | POST | `/zones/{id_or_name}/rrsets/{rr_name}/{rr_type}/actions/update_records` | `update_zone_rrset_records` | `cloud_sdk_hetzner::dns::rrsets` | no | no | starts-action | no | planned |
-| cloud | Zone RRSets | GET | `/zones/{id_or_name}/rrsets` | `list_zone_rrsets` | `cloud_sdk_hetzner::dns::rrsets` | yes | yes | none | no | planned |
-| cloud | Zone RRSets | POST | `/zones/{id_or_name}/rrsets` | `create_zone_rrset` | `cloud_sdk_hetzner::dns::rrsets` | no | no | none | no | planned |
-| cloud | Zone RRSets | DELETE | `/zones/{id_or_name}/rrsets/{rr_name}/{rr_type}` | `delete_zone_rrset` | `cloud_sdk_hetzner::dns::rrsets` | no | no | none | no | planned |
-| cloud | Zone RRSets | GET | `/zones/{id_or_name}/rrsets/{rr_name}/{rr_type}` | `get_zone_rrset` | `cloud_sdk_hetzner::dns::rrsets` | no | no | none | no | planned |
-| cloud | Zone RRSets | PUT | `/zones/{id_or_name}/rrsets/{rr_name}/{rr_type}` | `update_zone_rrset` | `cloud_sdk_hetzner::dns::rrsets` | no | no | none | no | planned |
+| cloud | Zone RRSet Actions | POST | `/zones/{id_or_name}/rrsets/{rr_name}/{rr_type}/actions/add_records` | `add_zone_rrset_records` | `cloud_sdk_hetzner::dns::rrsets` | no | no | starts-action | no | implemented-v0.13 |
+| cloud | Zone RRSet Actions | POST | `/zones/{id_or_name}/rrsets/{rr_name}/{rr_type}/actions/change_protection` | `change_zone_rrset_protection` | `cloud_sdk_hetzner::dns::rrsets` | no | no | starts-action | no | implemented-v0.13 |
+| cloud | Zone RRSet Actions | POST | `/zones/{id_or_name}/rrsets/{rr_name}/{rr_type}/actions/change_ttl` | `change_zone_rrset_ttl` | `cloud_sdk_hetzner::dns::rrsets` | no | no | starts-action | no | implemented-v0.13 |
+| cloud | Zone RRSet Actions | POST | `/zones/{id_or_name}/rrsets/{rr_name}/{rr_type}/actions/remove_records` | `remove_zone_rrset_records` | `cloud_sdk_hetzner::dns::rrsets` | no | no | starts-action | no | implemented-v0.13 |
+| cloud | Zone RRSet Actions | POST | `/zones/{id_or_name}/rrsets/{rr_name}/{rr_type}/actions/set_records` | `set_zone_rrset_records` | `cloud_sdk_hetzner::dns::rrsets` | no | no | starts-action | no | implemented-v0.13 |
+| cloud | Zone RRSet Actions | POST | `/zones/{id_or_name}/rrsets/{rr_name}/{rr_type}/actions/update_records` | `update_zone_rrset_records` | `cloud_sdk_hetzner::dns::rrsets` | no | no | starts-action | no | implemented-v0.13 |
+| cloud | Zone RRSets | GET | `/zones/{id_or_name}/rrsets` | `list_zone_rrsets` | `cloud_sdk_hetzner::dns::rrsets` | yes | yes | none | no | implemented-v0.13 |
+| cloud | Zone RRSets | POST | `/zones/{id_or_name}/rrsets` | `create_zone_rrset` | `cloud_sdk_hetzner::dns::rrsets` | no | no | none | no | implemented-v0.13 |
+| cloud | Zone RRSets | DELETE | `/zones/{id_or_name}/rrsets/{rr_name}/{rr_type}` | `delete_zone_rrset` | `cloud_sdk_hetzner::dns::rrsets` | no | no | none | no | implemented-v0.13 |
+| cloud | Zone RRSets | GET | `/zones/{id_or_name}/rrsets/{rr_name}/{rr_type}` | `get_zone_rrset` | `cloud_sdk_hetzner::dns::rrsets` | no | no | none | no | implemented-v0.13 |
+| cloud | Zone RRSets | PUT | `/zones/{id_or_name}/rrsets/{rr_name}/{rr_type}` | `update_zone_rrset` | `cloud_sdk_hetzner::dns::rrsets` | no | no | none | no | implemented-v0.13 |
 | cloud | Zones | GET | `/zones` | `list_zones` | `cloud_sdk_hetzner::dns::zones` | yes | yes | none | no | implemented-v0.12 |
 | cloud | Zones | POST | `/zones` | `create_zone` | `cloud_sdk_hetzner::dns::zones` | no | no | none | no | implemented-v0.12 |
 | cloud | Zones | DELETE | `/zones/{id_or_name}` | `delete_zone` | `cloud_sdk_hetzner::dns::zones` | no | no | none | no | implemented-v0.12 |

@@ -1,38 +1,38 @@
 [release]
-version = "0.12.0"
+version = "0.13.0"
 policy = "independent"
 
 [crates."cloud-sdk"]
-previous_version = "0.11.0"
-version = "0.12.0"
+previous_version = "0.12.0"
+version = "0.13.0"
 change = "metadata"
 publish = true
-reason = "README updates and v0.12.0 release evidence for the provider-neutral facade."
+reason = "README updates and v0.13.0 release evidence for the provider-neutral facade."
 
 [crates."cloud-sdk-hetzner"]
-previous_version = "0.11.0"
-version = "0.12.0"
+previous_version = "0.12.0"
+version = "0.13.0"
 change = "code"
 publish = true
-reason = "No_std DNS Zone CRUD, zonefile, nameserver, TTL, protection, and action request domains."
+reason = "No_std DNS RRSet CRUD, record mutation, TTL, and protection request domains."
 
 [crates."cloud-sdk-reqwest"]
-previous_version = "none"
-version = "0.12.0"
-change = "code"
+previous_version = "0.12.0"
+version = "0.12.1"
+change = "dependency"
 publish = true
-reason = "Initial provider-neutral no_std reqwest transport boundary for all cloud providers."
+reason = "Update the cloud-sdk dependency to the v0.13 facade line."
 
 [crates."cloud-sdk-sanitization"]
-previous_version = "none"
-version = "0.12.0"
-change = "code"
+previous_version = "0.12.0"
+version = "0.12.1"
+change = "dependency"
 publish = true
-reason = "Initial provider-neutral no_std sanitization boundary for reusable cloud SDK secret helpers."
+reason = "Update the cloud-sdk dependency to the v0.13 facade line."
 
 [crates."cloud-sdk-testkit"]
-previous_version = "none"
-version = "0.12.0"
-change = "code"
+previous_version = "0.12.0"
+version = "0.12.1"
+change = "dependency"
 publish = true
-reason = "Initial provider-neutral no_std mock transport and fixture boundary for all cloud providers."
+reason = "Update the cloud-sdk dependency to the v0.13 facade line."

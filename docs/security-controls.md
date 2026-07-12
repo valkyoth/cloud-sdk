@@ -18,6 +18,7 @@
 | public IPv6 targets | conservative IANA allocation allowlist pinned in `docs/IANA_IPV6_SOURCE_LOCK.md`; live registry drift is release-gated |
 | secret buffer failure | JSON writes preflight capacity and leave undersized buffers unchanged |
 | DNS TSIG policy | HMAC-SHA256 only; canonical Base64; minimum 32 decoded bytes; no ordinary equality on secret-bearing types |
+| DNS RRSet mutations | source-locked RR types; bounded unique redacted records; mandatory change-TTL intent; atomic JSON-string writers |
 | CodeQL default setup | repository setting |
 | API source lock | active for `v0.2.0` |
 | Storage Boxes drift check | active for `v0.2.0` |

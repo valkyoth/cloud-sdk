@@ -80,6 +80,26 @@ match the SHA-256 output size; callers remain responsible for the RFC's
 [CSPRNG generation and two-party scope requirements](https://www.rfc-editor.org/rfc/rfc8945.html#section-8),
 protected storage, and rotation.
 
+## v0.13.0 DNS RRSet Policy
+
+The source-locked RRSet surface supports `A`, `AAAA`, `CAA`, `CNAME`, `DS`,
+`HINFO`, `HTTPS`, `MX`, `NS`, `PTR`, `RP`, `SOA`, `SRV`, `SVCB`, `TLSA`, and
+`TXT`. Mutation actions admit `1..=50` records and identify records by value;
+the SDK rejects duplicate values before transport. The create schema requires
+a nonempty distinct list but does not publish a numeric maximum; the SDK
+deliberately applies the same 50-record request ceiling to create operations as
+a conservative resource bound.
+
+The RRSet `change_ttl` request requires its `ttl` property. The SDK therefore
+represents only an explicit bounded TTL or explicit JSON `null` inheritance,
+closing the 2026-07-08 omitted-field deprecation. Create and add-records retain
+an outer optional TTL because omission remains source-valid for those distinct
+operations.
+
+Record values are bounded and safely writable as JSON strings, but the SDK
+does not normalize every type-specific RDATA grammar. Hetzner remains the
+authoritative validator for record semantics.
+
 ## Deferred Scope
 
 Robot Webservice is explicitly deferred until after the Cloud/DNS SDK reaches

@@ -16,7 +16,7 @@ Compatibility must be maintained for:
 | `1.96.1` | `cargo +1.96.1 check --workspace --all-features` |
 | `1.97.0` | full release gate |
 
-Pinned release tools, checked against crates.io on 2026-07-10:
+Pinned release tools, checked against crates.io on 2026-07-12:
 
 | Tool | Version |
 | --- | --- |

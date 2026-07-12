@@ -554,6 +554,8 @@ then run release readiness before tagging.
 
 ### v0.13.0 - DNS RRSets
 
+Status: implementation complete; pentest pending.
+
 Goal: implement RRSet CRUD, RRSet actions, record mutation helpers, and DNS
 record validation.
 
@@ -572,7 +574,7 @@ Verification:
 - `scripts/checks.sh`
 - `scripts/check_hetzner_api_drift.py --fetch`
 - `cargo test -p cloud-sdk-hetzner --all-features dns_rrsets`
-- `scripts/release_0_13_gate.sh` once added.
+- `scripts/release_0_13_gate.sh` after the permanent pentest report is added.
 
 Stop gate:
 

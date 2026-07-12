@@ -38,14 +38,14 @@ models in small reviewed releases.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.12.0"
-cloud-sdk-hetzner = "0.12.0"
+cloud-sdk = "0.13.0"
+cloud-sdk-hetzner = "0.13.0"
 ```
 
 ## Current Scope
 
-The current main branch is the `0.12.0` implementation candidate for DNS Zone
-request domains. Pentest is pending. The latest published release is `0.11.0`.
+The current main branch is the `0.13.0` implementation candidate for DNS RRSet
+request domains. Pentest is pending. The latest published release is `0.12.0`.
 This crate does not yet implement HTTP
 transport, serde models, body serialization, token storage, live API tests,
 retry policy, pagination iterators, or action polling.
@@ -146,7 +146,7 @@ Implemented in the published `0.11.0` line:
 - explicit reverse-DNS set/reset intent and deterministic multi-metric query
   construction.
 
-Implemented on main for `0.12.0`:
+Implemented in the published `0.12.0` line:
 
 - Zone list/create/get/update/delete and zonefile export request primitives;
 - global and per-Zone action lists plus global action lookup;
@@ -156,6 +156,18 @@ Implemented on main for `0.12.0`:
   nameservers, hardened TSIG keys, and deterministic Zone queries;
 - redacted zonefile and TSIG debug output, fixed-buffer paths, and structural
   primary/secondary Zone creation modes.
+
+Implemented on main for `0.13.0`:
+
+- RRSet list/create/get/update/delete request primitives;
+- RRSet protection, TTL, set-records, add-records, remove-records, and
+  update-record-comments action request primitives;
+- all 16 source-locked RR types, relative lowercase names, apex and wildcard
+  path encoding, repeated type filters, pagination, labels, and sorting;
+- mandatory explicit TTL or JSON-null inheritance for change-TTL, with
+  optional TTL intent retained only where the source schema permits omission;
+- bounded, debug-redacted record values/comments, `1..=50` unique-value
+  mutation lists, and atomic fixed-buffer JSON-string writers.
 
 ### Sensitive Output Buffers
 
@@ -182,6 +194,54 @@ comparison is required outside this request-building crate. See RFC 8945 for
 the [algorithm requirements](https://www.rfc-editor.org/rfc/rfc8945.html#section-6),
 [local policy](https://www.rfc-editor.org/rfc/rfc8945.html#section-7), and
 [shared-secret requirements](https://www.rfc-editor.org/rfc/rfc8945.html#section-8).
+
+### RRSet Validation Policy
+
+The SDK validates RRSet names, the 16 source-locked RR types, TTL bounds,
+record-list count and uniqueness, control and bidi characters, fixed-buffer
+paths, and JSON escaping. It deliberately does not normalize or reinterpret
+the complete RDATA grammar for every record type. Create requests use the same
+conservative 50-record ceiling as mutation actions. Callers remain responsible
+for supplying values accepted by Hetzner's
+[DNS record type documentation](https://docs.hetzner.com/networking/dns/record-types/overview/).
+
+Record values and comments expose complete JSON-string writers instead of raw
+string accessors. Future serializers must use those writers so quotes and
+backslashes cannot be interpolated into JSON unsafely.
+
+## RRSet Request Example
+
+```rust
+use cloud_sdk::Method;
+use cloud_sdk_hetzner::dns::rrsets::{
+    Record, RecordValue, Records, RrsetCreateRequest, RrsetName, RrsetType,
+};
+use cloud_sdk_hetzner::dns::zones::{ZoneName, ZoneReference};
+
+# fn main() -> Result<(), cloud_sdk_hetzner::dns::rrsets::RrsetRequestError> {
+let zone_name = ZoneName::new("example.com")
+    .map_err(|_| cloud_sdk_hetzner::dns::rrsets::RrsetRequestError::InvalidName)?;
+let zone = ZoneReference::Name(zone_name);
+let name = RrsetName::new("www")?;
+let values = [Record::new(RecordValue::new("192.0.2.1")?)];
+let records = Records::new(&values)?;
+let request = RrsetCreateRequest::try_new(
+    zone,
+    Some(name),
+    Some(RrsetType::A),
+    Some(records),
+)?;
+
+assert_eq!(request.endpoint().method(), Method::Post);
+let mut path = [0_u8; 64];
+let written = request.endpoint().write_path(&mut path)?;
+assert_eq!(
+    path.get(..written),
+    Some(b"/zones/example.com/rrsets".as_slice())
+);
+# Ok(())
+# }
+```
 
 ## Endpoint Surface Example
 

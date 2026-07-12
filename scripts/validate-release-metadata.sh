@@ -26,6 +26,22 @@ for required in "release-notes/RELEASE_NOTES_${version}.md" docs/CRATE_VERSION_M
     fi
 done
 
+patch="${version##*.}"
+if [ "$patch" = "0" ]; then
+    gate_version="${version%.*}"
+else
+    gate_version="$version"
+fi
+gate="scripts/release_$(printf '%s' "$gate_version" | tr . _)_gate.sh"
+if [ ! -x "$gate" ]; then
+    echo "release metadata: missing executable $gate" >&2
+    exit 1
+fi
+if ! grep -Fq "scripts/validate-release-readiness.sh v${version}" "$gate"; then
+    echo "release metadata: $gate does not enforce release readiness" >&2
+    exit 1
+fi
+
 if [ "$strict" = true ]; then
     scripts/validate-release-readiness.sh "v${version}"
 else

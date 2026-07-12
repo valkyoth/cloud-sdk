@@ -1,6 +1,6 @@
 # Crate Version Matrix
 
-Status: `v0.12.0` release candidate; pentest and retest passed.
+Status: `v0.13.0` implementation candidate; pentest pending.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
@@ -200,3 +200,18 @@ workspace still uses a shared package version.
 | `cloud-sdk-sanitization` | none | `0.12.0` | `code` | Yes | Initial provider-neutral no_std sanitization boundary for reusable cloud SDK secret helpers. |
 | `cloud-sdk-hetzner-testkit` | `0.11.0` | `0.11.0` | `unchanged` | No | Retired from the workspace before adoption and not part of the v0.12.0 publish plan. |
 | `cloud-sdk-testkit` | none | `0.12.0` | `code` | Yes | Initial provider-neutral no_std mock transport and fixture boundary for all cloud providers. |
+
+## v0.13.0 Tracking Table
+
+`v0.13.0` adds Hetzner DNS RRSet request domains. The facade follows the tag,
+the Hetzner provider receives its next code minor, and the provider-neutral
+boundary crates receive dependency-only patch releases for the facade's new
+`0.13` line.
+
+| Crate | Published | Planned | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.12.0` | `0.13.0` | `metadata` | Yes | README updates and v0.13.0 release evidence for the provider-neutral facade. |
+| `cloud-sdk-hetzner` | `0.12.0` | `0.13.0` | `code` | Yes | No_std DNS RRSet CRUD, record mutation, TTL, and protection request domains. |
+| `cloud-sdk-reqwest` | `0.12.0` | `0.12.1` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.13 facade line. |
+| `cloud-sdk-sanitization` | `0.12.0` | `0.12.1` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.13 facade line. |
+| `cloud-sdk-testkit` | `0.12.0` | `0.12.1` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.13 facade line. |

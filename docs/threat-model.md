@@ -19,6 +19,8 @@
 - incorrect action polling causing premature success reports;
 - rate-limit mishandling that triggers denial of service or retry storms;
 - DNS record mutation mistakes;
+- RRSet widening, duplicate values, ambiguous TTL inheritance, or unsafe RDATA
+  interpolation;
 - weak, downgraded, exposed, or variable-time-compared TSIG secrets;
 - certificate or SSH key redaction failures;
 - API drift from Hetzner documentation;
@@ -34,4 +36,6 @@
 - mock and adversarial testkit before transport helpers are stabilized;
 - SHA256-only TSIG policy, minimum secret size, redacted output, and no ordinary
   equality on secret-bearing types;
+- structural RRSet names/types, explicit TTL intent, bounded unique record
+  mutations, and atomic JSON-string output;
 - pentest report before every tag.
