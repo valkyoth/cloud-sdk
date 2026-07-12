@@ -1,6 +1,6 @@
 # cloud-sdk 0.14.0 Release Notes
 
-Status: implementation candidate; pentest pending.
+Status: release candidate; pentest and retest passed.
 
 ## Scope
 

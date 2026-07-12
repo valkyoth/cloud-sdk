@@ -582,12 +582,12 @@ Stop gate:
 v0.13.0 implementation stop reached. Run pentest for this exact commit.
 ```
 
-### v0.14.0 - Optional Serde Boundary
+### v0.14.0 - Serde And Sanitization Boundaries
 
-Status: implementation complete; pentest pending.
+Status: release candidate; pentest and retest passed.
 
-Goal: admit optional serde request/response support without weakening the
-default no_std graph.
+Goal: admit optional serde request/response support and provider-neutral
+caller-buffer sanitization without weakening the default no_std provider graph.
 
 Deliverables:
 
@@ -602,6 +602,10 @@ Deliverables:
 - Tests proving default features remain empty and no serde dependency appears
   in the default graph.
 - JSON fixture tests for representative success and error responses.
+- First usable `cloud-sdk-sanitization` volatile caller-buffer guard through
+  the reviewed first-party `sanitization` crate with default features disabled.
+- Redacted API errors, no ordinary equality for password/private-key request
+  values, and atomic escaped private-key output without raw access.
 
 Verification:
 

@@ -44,11 +44,12 @@ cloud-sdk-hetzner = "0.14.0"
 
 ## Current Scope
 
-The current main branch is the `0.14.0` implementation candidate for the
-optional Serde boundary. Pentest is pending. The latest published release is
-`0.13.0`. This crate does not yet implement HTTP transport, broad Serde coverage
-outside reviewed RRSet/shared response models, token storage, live API tests,
-retry policy, pagination iterators, or action polling.
+The current main branch is the `0.14.0` release candidate for the optional
+Serde boundary and secret-output hardening. Pentest and retest passed. The
+latest published release is `0.13.0`. This crate does not yet implement HTTP
+transport, broad Serde coverage outside reviewed RRSet/shared response models,
+token storage, live API tests, retry policy, pagination iterators, or action
+polling.
 
 Implemented in the published `0.2.0` line:
 

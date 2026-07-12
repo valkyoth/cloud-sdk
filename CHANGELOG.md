@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.14.0 - 2026-07-12
 
 - Added an opt-in no_std Serde boundary for size-checked DNS RRSet request
   bodies and validated shared action/error response envelopes.

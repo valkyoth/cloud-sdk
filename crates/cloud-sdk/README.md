@@ -29,7 +29,8 @@
 first provider crate is `cloud-sdk-hetzner`, covering the Hetzner Cloud and DNS
 APIs. The default crates have no network client, TLS stack, async runtime,
 filesystem, clock, or secret-storage dependency. Transport and serde support
-will be admitted later behind explicit features or adapter crates.
+remain explicit boundaries; v0.14 adds narrowly reviewed no_std Serde and
+caller-buffer sanitization support without changing the default provider graph.
 
 The project target is a serious production-ready `cloud-sdk` foundation and
 Hetzner provider at `1.0.0`, reached through small reviewed releases with test,
@@ -52,7 +53,7 @@ please report it so it can be fixed.
 
 ## Current Status
 
-Status: `v0.14.0` implementation candidate; pentest is pending. The latest
+Status: `v0.14.0` release candidate; pentest and retest passed. The latest
 published release is `v0.13.0`.
 
 Implemented now:
@@ -64,8 +65,8 @@ Implemented now:
 - `cloud-sdk-hetzner` provider crate with focused internal modules.
 - Initial Hetzner API surface partition for Cloud, DNS, security, and Storage
   Box resources.
-- Explicit provider-neutral boundaries for future reqwest transport, testkit,
-  and sanitization helpers.
+- Explicit provider-neutral boundaries for future reqwest transport and
+  testkit helpers, plus admitted guarded caller-buffer sanitization.
 - Local checks for formatting, linting, tests, no_std policy, modularity, and
   file length.
 - MIT OR Apache-2.0 license.
