@@ -32,6 +32,9 @@ tests, or a production transport implementation.
 ## Security Notes
 
 - Request targets and request/response bodies are redacted from debug output.
+- Request targets reject scheme-relative `//` prefixes and backslashes to
+  prevent authority replacement and intermediary normalization ambiguity in
+  future authenticated adapters.
 - Fixture writes preflight destination capacity and leave undersized buffers
   unchanged. Failed and mismatched exchanges are not consumed.
 - Mock errors carry no compared request or response payloads.

@@ -62,6 +62,10 @@ Before a real reqwest dependency is admitted, the workspace must review:
 - TLS policy;
 - timeout and retry behavior;
 - authentication header redaction;
+- authority-preserving base URL and origin-form target composition without
+  scheme-relative `//` replacement or generic `Url::join` ambiguity;
+- final outbound scheme, host, and port verification before attaching an
+  authentication header;
 - default feature impact;
 - mock and live-test strategy.
 

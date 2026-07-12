@@ -31,6 +31,8 @@
 - malicious or compromised third-party dependency.
 - test fixtures accidentally performing network or filesystem operations;
 - mock mismatch diagnostics disclosing request targets or bodies.
+- authority replacement or path-normalization confusion when a future adapter
+  combines untrusted request targets with an authenticated provider base URL;
 
 ## Controls
 
@@ -50,4 +52,6 @@
   models, post-parse validation, and default dependency-graph isolation;
 - no_std mock transport with borrowed expectations, atomic bounded fixture
   writes, payload-free errors, and redacted request/response diagnostics;
+- origin-form targets reject scheme-relative prefixes, backslashes, fragments,
+  controls, spaces, and non-ASCII before an adapter can attach credentials;
 - pentest report before every tag.

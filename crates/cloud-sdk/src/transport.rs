@@ -16,7 +16,8 @@ pub enum RequestTargetError {
     NotOriginForm,
     /// Request targets exceed [`MAX_REQUEST_TARGET_BYTES`].
     TooLong,
-    /// Request targets contain a control, space, non-ASCII, or fragment byte.
+    /// Request targets contain a control, space, non-ASCII, fragment, or
+    /// backslash byte.
     InvalidByte,
 }
 
@@ -35,12 +36,12 @@ impl<'a> RequestTarget<'a> {
         if value.len() > MAX_REQUEST_TARGET_BYTES {
             return Err(RequestTargetError::TooLong);
         }
-        if !value.starts_with('/') {
+        if !value.starts_with('/') || value.starts_with("//") {
             return Err(RequestTargetError::NotOriginForm);
         }
         if !value
             .bytes()
-            .all(|byte| byte.is_ascii_graphic() && byte != b'#')
+            .all(|byte| byte.is_ascii_graphic() && byte != b'#' && byte != b'\\')
         {
             return Err(RequestTargetError::InvalidByte);
         }
@@ -213,7 +214,19 @@ mod tests {
             Err(RequestTargetError::NotOriginForm)
         );
         assert_eq!(
+            RequestTarget::new("//evil.example/steal"),
+            Err(RequestTargetError::NotOriginForm)
+        );
+        assert_eq!(
+            RequestTarget::new("///evil.example/steal"),
+            Err(RequestTargetError::NotOriginForm)
+        );
+        assert_eq!(
             RequestTarget::new("/servers#fragment"),
+            Err(RequestTargetError::InvalidByte)
+        );
+        assert_eq!(
+            RequestTarget::new("/\\evil"),
             Err(RequestTargetError::InvalidByte)
         );
         assert_eq!(RequestTarget::new(""), Err(RequestTargetError::Empty));
@@ -221,13 +234,19 @@ mod tests {
             RequestTarget::new("/servers bad"),
             Err(RequestTargetError::InvalidByte)
         );
-        let accepted = [b'/'; super::MAX_REQUEST_TARGET_BYTES];
+        let mut accepted = [b'a'; super::MAX_REQUEST_TARGET_BYTES];
+        if let Some(first) = accepted.first_mut() {
+            *first = b'/';
+        }
         let accepted = core::str::from_utf8(&accepted);
         assert!(accepted.is_ok());
         if let Ok(accepted) = accepted {
             assert!(RequestTarget::new(accepted).is_ok());
         }
-        let rejected = [b'/'; super::MAX_REQUEST_TARGET_BYTES + 1];
+        let mut rejected = [b'a'; super::MAX_REQUEST_TARGET_BYTES + 1];
+        if let Some(first) = rejected.first_mut() {
+            *first = b'/';
+        }
         let rejected = core::str::from_utf8(&rejected);
         assert!(rejected.is_ok());
         if let Ok(rejected) = rejected {

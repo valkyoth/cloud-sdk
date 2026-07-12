@@ -10,6 +10,8 @@
 - Reused the adversarial corpus in the Hetzner Serde response tests without
   adding testkit or transport dependencies to the provider's normal graph.
 - Added the `v0.15.0` release gate and independent crate version plan.
+- Rejected scheme-relative and backslash-containing request targets before
+  future adapters can compose authenticated provider URLs.
 
 ## 0.14.0 - 2026-07-12
 
