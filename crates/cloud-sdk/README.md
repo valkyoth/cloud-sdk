@@ -52,8 +52,8 @@ please report it so it can be fixed.
 
 ## Current Status
 
-Status: `v0.13.0` release candidate; pentest and retest passed. The latest
-published release is `v0.12.0`.
+Status: `v0.14.0` implementation candidate; pentest is pending. The latest
+published release is `v0.13.0`.
 
 Implemented now:
 
@@ -105,12 +105,15 @@ Implemented now:
   primary nameservers, TTL and protection actions, and action listing.
 - Hetzner DNS RRSet request primitives for CRUD, list filtering, TTL and
   protection actions, and bounded record mutations.
+- Optional no_std Serde boundary for size-checked RRSet request bodies and
+  validated shared action/error response envelopes.
 
 Not implemented yet:
 
 - No HTTP transport.
 - No token storage or secret manager integration.
-- No serde request/response models or body serialization.
+- No broad request/response serialization outside the reviewed RRSet and
+  shared response boundary.
 - No pagination iterator.
 - No retry, rate-limit, or action polling helper.
 - No generated response model.
@@ -150,8 +153,8 @@ Not implemented yet:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.13.0"
-cloud-sdk-hetzner = "0.13.0"
+cloud-sdk = "0.14.0"
+cloud-sdk-hetzner = "0.14.0"
 ```
 
 ## Provider-Neutral Example
@@ -339,4 +342,5 @@ scripts/release_0_10_gate.sh
 scripts/release_0_11_gate.sh
 scripts/release_0_12_gate.sh
 scripts/release_0_13_gate.sh
+scripts/release_0_14_gate.sh
 ```

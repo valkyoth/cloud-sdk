@@ -118,8 +118,10 @@ No third-party runtime dependency is admitted in `v0.1.0`.
 
 Expected future candidates must be reviewed before use:
 
-- `serde` with `default-features = false` for optional model derives.
-- `serde_json` only outside the default graph for JSON transport adapters.
+- `serde` admitted in `v0.14.0` with `default-features = false` behind the
+  provider's optional no_std model boundary.
+- `serde_json` admitted only as a dev dependency for `v0.14.0` JSON fixtures;
+  production parser use still requires a transport-specific review.
 - HTTP/TLS/client crates only in transport adapter crates, never in the main
   SDK default graph.
 - `sanitization` only for optional secret-bearing helpers.

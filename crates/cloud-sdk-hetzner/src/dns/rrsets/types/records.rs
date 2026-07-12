@@ -30,6 +30,21 @@ impl<'a> RecordValue<'a> {
     pub fn write_json_string(self, output: &mut [u8]) -> Result<usize, RrsetRequestError> {
         write_json(self.0, output)
     }
+
+    #[cfg(feature = "serde")]
+    pub(crate) fn json_size_upper_bound(self) -> Option<usize> {
+        json_string_size_upper_bound(self.0)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl ::serde::Serialize for RecordValue<'_> {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: ::serde::Serializer,
+    {
+        serializer.serialize_str(self.0)
+    }
 }
 
 impl fmt::Debug for RecordValue<'_> {
@@ -54,6 +69,21 @@ impl<'a> RecordComment<'a> {
     /// Writes a complete escaped JSON string. Failure leaves output unchanged.
     pub fn write_json_string(self, output: &mut [u8]) -> Result<usize, RrsetRequestError> {
         write_json(self.0, output)
+    }
+
+    #[cfg(feature = "serde")]
+    pub(crate) fn json_size_upper_bound(self) -> Option<usize> {
+        json_string_size_upper_bound(self.0)
+    }
+}
+
+#[cfg(feature = "serde")]
+impl ::serde::Serialize for RecordComment<'_> {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: ::serde::Serializer,
+    {
+        serializer.serialize_str(self.0)
     }
 }
 
@@ -100,6 +130,23 @@ impl<'a> Record<'a> {
     }
 }
 
+#[cfg(feature = "serde")]
+impl ::serde::Serialize for Record<'_> {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: ::serde::Serializer,
+    {
+        use ::serde::ser::SerializeMap;
+
+        let mut map = serializer.serialize_map(Some(if self.comment.is_some() { 2 } else { 1 }))?;
+        map.serialize_entry("value", &self.value)?;
+        if let Some(comment) = self.comment {
+            map.serialize_entry("comment", &comment)?;
+        }
+        map.end()
+    }
+}
+
 /// Nonempty record list with unique values.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct Records<'a>(&'a [Record<'a>]);
@@ -123,6 +170,16 @@ impl<'a> Records<'a> {
     #[must_use]
     pub const fn entries(self) -> &'a [Record<'a>] {
         self.0
+    }
+}
+
+#[cfg(feature = "serde")]
+impl ::serde::Serialize for Records<'_> {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: ::serde::Serializer,
+    {
+        self.0.serialize(serializer)
     }
 }
 
@@ -153,6 +210,21 @@ impl<'a> RecordUpdate<'a> {
     }
 }
 
+#[cfg(feature = "serde")]
+impl ::serde::Serialize for RecordUpdate<'_> {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: ::serde::Serializer,
+    {
+        use ::serde::ser::SerializeStruct;
+
+        let mut state = serializer.serialize_struct("RecordUpdate", 2)?;
+        state.serialize_field("value", &self.value)?;
+        state.serialize_field("comment", &self.comment)?;
+        state.end()
+    }
+}
+
 /// Nonempty update list with unique record values.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct RecordUpdates<'a>(&'a [RecordUpdate<'a>]);
@@ -176,6 +248,16 @@ impl<'a> RecordUpdates<'a> {
     #[must_use]
     pub const fn entries(self) -> &'a [RecordUpdate<'a>] {
         self.0
+    }
+}
+
+#[cfg(feature = "serde")]
+impl ::serde::Serialize for RecordUpdates<'_> {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: ::serde::Serializer,
+    {
+        self.0.serialize(serializer)
     }
 }
 
@@ -221,4 +303,19 @@ fn write_json(value: &str, output: &mut [u8]) -> Result<usize, RrsetRequestError
         RrsetRequestError::BodyBufferTooSmall,
     )?;
     Ok(len)
+}
+
+#[cfg(feature = "serde")]
+fn json_string_size_upper_bound(value: &str) -> Option<usize> {
+    let mut size = 2_usize;
+    for character in value.chars() {
+        let encoded = match character {
+            '"' | '\\' => 2,
+            '\0'..='\u{7f}' => 1,
+            '\u{80}'..='\u{ffff}' => 6,
+            _ => 12,
+        };
+        size = size.checked_add(encoded)?;
+    }
+    Some(size)
 }

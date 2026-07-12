@@ -6,6 +6,7 @@ scripts/check_shell_syntax.sh
 scripts/validate-file-lengths.sh
 scripts/validate-modularity-policy.sh check
 scripts/validate-security-policy.sh
+scripts/check_serde_boundary.sh
 scripts/validate-release-metadata.sh
 scripts/test-release-readiness.sh
 scripts/check_iana_ipv6_registry.py --local-only
@@ -15,7 +16,7 @@ scripts/test-hetzner-api-drift.py
 scripts/release_crates.py --check
 scripts/test-release-crates.py
 cargo package -p cloud-sdk --allow-dirty
-cargo package -p cloud-sdk-hetzner --allow-dirty \
+cargo package -p cloud-sdk-hetzner --allow-dirty --features serde \
     --config 'patch.crates-io.cloud-sdk.path="crates/cloud-sdk"'
 cargo package -p cloud-sdk-reqwest --allow-dirty \
     --config 'patch.crates-io.cloud-sdk.path="crates/cloud-sdk"'

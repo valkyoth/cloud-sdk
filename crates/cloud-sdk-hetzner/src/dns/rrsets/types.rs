@@ -79,6 +79,16 @@ impl<'a> RrsetName<'a> {
     }
 }
 
+#[cfg(feature = "serde")]
+impl ::serde::Serialize for RrsetName<'_> {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: ::serde::Serializer,
+    {
+        serializer.serialize_str(self.0)
+    }
+}
+
 /// Source-locked RR type.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum RrsetType {
@@ -141,6 +151,16 @@ impl RrsetType {
     }
 }
 
+#[cfg(feature = "serde")]
+impl ::serde::Serialize for RrsetType {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: ::serde::Serializer,
+    {
+        serializer.serialize_str(self.as_api_str())
+    }
+}
+
 /// Nonempty, unique RR type filter list.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct RrsetTypeFilter<'a>(&'a [RrsetType]);
@@ -176,6 +196,19 @@ pub enum RrsetTtl {
     InheritZoneDefault,
     /// Emit an explicit bounded TTL.
     Explicit(ZoneTtl),
+}
+
+#[cfg(feature = "serde")]
+impl ::serde::Serialize for RrsetTtl {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: ::serde::Serializer,
+    {
+        match self {
+            Self::InheritZoneDefault => serializer.serialize_none(),
+            Self::Explicit(ttl) => ttl.serialize(serializer),
+        }
+    }
 }
 
 /// Complete RRSet path selector.

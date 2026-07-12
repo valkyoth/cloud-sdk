@@ -1,6 +1,6 @@
 # Crate Version Matrix
 
-Status: `v0.13.0` release candidate; pentest and retest passed.
+Status: `v0.14.0` implementation candidate; pentest pending.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
@@ -215,3 +215,17 @@ boundary crates receive dependency-only patch releases for the facade's new
 | `cloud-sdk-reqwest` | `0.12.0` | `0.12.1` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.13 facade line. |
 | `cloud-sdk-sanitization` | `0.12.0` | `0.12.1` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.13 facade line. |
 | `cloud-sdk-testkit` | `0.12.0` | `0.12.1` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.13 facade line. |
+
+## v0.14.0 Tracking Table
+
+`v0.14.0` admits the optional Hetzner Serde boundary. The facade follows the
+tag, the provider receives a code minor, and neutral boundary crates receive
+dependency-only patches for the facade's `0.14` line.
+
+| Crate | Published | Planned | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.13.0` | `0.14.0` | `metadata` | Yes | README updates and v0.14.0 release evidence for the provider-neutral facade. |
+| `cloud-sdk-hetzner` | `0.13.0` | `0.14.0` | `code` | Yes | Optional no_std Serde boundary for RRSet bodies and validated shared response envelopes. |
+| `cloud-sdk-reqwest` | `0.12.1` | `0.12.2` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.14 facade line. |
+| `cloud-sdk-sanitization` | `0.12.1` | `0.12.2` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.14 facade line. |
+| `cloud-sdk-testkit` | `0.12.1` | `0.12.2` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.14 facade line. |

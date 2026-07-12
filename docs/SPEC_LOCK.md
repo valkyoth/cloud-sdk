@@ -114,6 +114,38 @@ path assembled from independently maximum-sized validated Zone and RRSet names,
 percent encoding, RR type, and the longest action suffix while retaining a
 finite transport-facing path policy.
 
+## v0.14.0 Serde Policy
+
+Serde is optional, enables allocation but not `std`, and remains absent from
+the default normal dependency graph. Complete RRSet request structs do not
+implement `Serialize`; callers must construct `RrsetRequestBody`, which omits
+endpoint selectors and checks a conservative 1 MiB JSON upper bound before the
+wrapper becomes serializable. The estimate assumes a JSON serializer may escape
+every non-ASCII scalar, including surrogate pairs.
+
+The boundary serializes create, labels update, protection, TTL, set-records,
+add-records, remove-records, and update-record-comments bodies. Explicit
+`RrsetTtl::InheritZoneDefault` serializes as JSON `null`; an absent optional TTL
+is omitted only where the source schema permits omission.
+
+Shared action and API error responses deserialize through private wire models.
+Known duplicate fields, missing required fields, zero IDs, unknown action
+statuses, progress above 100, and control bytes in interpreted response text
+are rejected. Unknown response fields are ignored for additive provider
+compatibility. `Cow` preserves borrowing for ordinary strings and owns strings
+that require JSON unescaping. Required nullable action fields distinguish an
+explicit JSON `null` from an omitted field.
+
+Callers must construct `ResponseBytes` before invoking their selected Serde
+format parser. It caps raw input at 8 MiB before parser allocation. Parsed
+action responses additionally admit at most 256 related resources and bound
+interpreted command, timestamp, resource-type, error-code, and error-message
+text. Raw response bytes and API error messages are redacted from `Debug`.
+
+No other request body or resource response is Serde-enabled in this release.
+Adding one requires an explicit source-locked mapping and adversarial fixtures;
+blanket derives over validated request or path types are prohibited.
+
 ## Deferred Scope
 
 Robot Webservice is explicitly deferred until after the Cloud/DNS SDK reaches

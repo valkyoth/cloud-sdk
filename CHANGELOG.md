@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+- Added an opt-in no_std Serde boundary for size-checked DNS RRSet request
+  bodies and validated shared action/error response envelopes.
+- Added a 1 MiB aggregate RRSet JSON policy, borrowed-or-owned escaped response
+  text, adversarial fixtures, dependency admission evidence, and automated
+  default-graph enforcement.
+- Added the `v0.14.0` release gate and independent dependency-only `0.12.2`
+  boundary-crate version plan.
+
+## 0.13.0 - 2026-07-12
+
 - Added `cloud-sdk-hetzner::dns::rrsets` no_std request primitives for RRSet
   CRUD, repeated-type list filters, protection, TTL, and all record mutation
   actions.

@@ -38,16 +38,16 @@ models in small reviewed releases.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.13.0"
-cloud-sdk-hetzner = "0.13.0"
+cloud-sdk = "0.14.0"
+cloud-sdk-hetzner = "0.14.0"
 ```
 
 ## Current Scope
 
-The current main branch is the `0.13.0` release candidate for DNS RRSet request
-domains. Pentest and retest passed. The latest published release is `0.12.0`.
-This crate does not yet implement HTTP
-transport, serde models, body serialization, token storage, live API tests,
+The current main branch is the `0.14.0` implementation candidate for the
+optional Serde boundary. Pentest is pending. The latest published release is
+`0.13.0`. This crate does not yet implement HTTP transport, broad Serde coverage
+outside reviewed RRSet/shared response models, token storage, live API tests,
 retry policy, pagination iterators, or action polling.
 
 Implemented in the published `0.2.0` line:
@@ -157,7 +157,7 @@ Implemented in the published `0.12.0` line:
 - redacted zonefile and TSIG debug output, fixed-buffer paths, and structural
   primary/secondary Zone creation modes.
 
-Implemented on main for `0.13.0`:
+Implemented in the published `0.13.0` line:
 
 - RRSet list/create/get/update/delete request primitives;
 - RRSet protection, TTL, set-records, add-records, remove-records, and
@@ -168,6 +168,19 @@ Implemented on main for `0.13.0`:
   optional TTL intent retained only where the source schema permits omission;
 - bounded, debug-redacted record values/comments, `1..=50` unique-value
   mutation lists, and atomic fixed-buffer JSON-string writers.
+
+Implemented on main for `0.14.0`:
+
+- opt-in `serde` feature with Serde defaults and `std` disabled;
+- size-checked JSON serialization wrappers for every RRSet create, update,
+  protection, TTL, set, add, remove, and comment-update body;
+- validated borrowed-or-owned action and API error response envelopes;
+- duplicate and missing known response fields rejected, additive unknown
+  response fields ignored, and escaped JSON strings supported through `Cow`;
+- 8 MiB pre-parser response input, 256 action-resource, and interpreted response
+  text bounds;
+- automated proof that Serde and serde_json remain outside the normal default
+  dependency graph.
 
 ### Sensitive Output Buffers
 
@@ -209,12 +222,60 @@ Record uniqueness uses exact value bytes. The RR-type-neutral list cannot
 case-fold domain-name-valued records without also corrupting the semantics of
 case-sensitive RDATA such as `TXT`. Canonicalize domain-name values before
 constructing records when semantic, case-insensitive uniqueness is required.
-Future serializers and transports must also apply an aggregate request-body
-limit; the per-record and record-count bounds are not a transport-size limit.
+The optional Serde wrapper applies a conservative 1 MiB JSON upper bound before
+serialization. Future transports must preserve an independently reviewed body
+limit rather than assuming per-record bounds are sufficient.
 
 Record values and comments expose complete JSON-string writers instead of raw
-string accessors. Future serializers must use those writers so quotes and
-backslashes cannot be interpolated into JSON unsafely.
+string accessors. The optional Serde implementation serializes those validated
+types directly so quotes and backslashes cannot be interpolated unsafely.
+
+## Optional Serde Boundary
+
+Enable Serde explicitly; it is never part of the default graph:
+
+```toml
+[dependencies]
+cloud-sdk-hetzner = { version = "0.14.0", features = ["serde"] }
+```
+
+`serde_json` is used below only as an example format implementation and remains
+a dev dependency in this repository:
+
+```rust
+use cloud_sdk_hetzner::dns::rrsets::{
+    RrsetName, RrsetProtectionRequest, RrsetReference, RrsetType,
+};
+use cloud_sdk_hetzner::dns::zones::{ZoneName, ZoneReference};
+use cloud_sdk_hetzner::serde::RrsetRequestBody;
+
+let Ok(zone_name) = ZoneName::new("example.com") else {
+    return;
+};
+let Ok(rrset_name) = RrsetName::new("www") else {
+    return;
+};
+let reference = RrsetReference::new(
+    ZoneReference::Name(zone_name),
+    rrset_name,
+    RrsetType::A,
+);
+let request = RrsetProtectionRequest::new(reference, true);
+let Ok(body) = RrsetRequestBody::protection(request) else {
+    return;
+};
+
+let json = serde_json::to_string(&body);
+assert!(json.is_ok());
+if let Ok(json) = json {
+    assert_eq!(json, r#"{"change":true}"#);
+}
+```
+
+Before deserializing an untrusted response, construct
+`cloud_sdk_hetzner::serde::ResponseBytes` and pass only its admitted slice to
+the selected format parser. Direct parser use bypasses the SDK's 8 MiB raw
+response policy.
 
 ## RRSet Request Example
 

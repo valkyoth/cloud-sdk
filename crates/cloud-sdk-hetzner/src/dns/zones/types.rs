@@ -159,6 +159,16 @@ impl ZoneTtl {
     }
 }
 
+#[cfg(feature = "serde")]
+impl ::serde::Serialize for ZoneTtl {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: ::serde::Serializer,
+    {
+        serializer.serialize_u32(self.0)
+    }
+}
+
 /// Bounded zone-file body. Debug output is redacted and ordinary equality is
 /// intentionally unavailable because zone files can contain secret material.
 ///

@@ -129,6 +129,22 @@ impl<'a> CloudLabels<'a> {
     }
 }
 
+#[cfg(feature = "serde")]
+impl ::serde::Serialize for CloudLabels<'_> {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: ::serde::Serializer,
+    {
+        use ::serde::ser::SerializeMap;
+
+        let mut map = serializer.serialize_map(Some(self.entries.len()))?;
+        for (key, value) in self.entries {
+            map.serialize_entry(key.as_str(), value.as_str())?;
+        }
+        map.end()
+    }
+}
+
 /// Small deterministic query writer.
 pub struct CloudQueryWriter<'a> {
     output: &'a mut [u8],

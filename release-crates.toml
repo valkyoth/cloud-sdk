@@ -1,38 +1,38 @@
 [release]
-version = "0.13.0"
+version = "0.14.0"
 policy = "independent"
 
 [crates."cloud-sdk"]
-previous_version = "0.12.0"
-version = "0.13.0"
+previous_version = "0.13.0"
+version = "0.14.0"
 change = "metadata"
 publish = true
-reason = "README updates and v0.13.0 release evidence for the provider-neutral facade."
+reason = "README updates and v0.14.0 release evidence for the provider-neutral facade."
 
 [crates."cloud-sdk-hetzner"]
-previous_version = "0.12.0"
-version = "0.13.0"
+previous_version = "0.13.0"
+version = "0.14.0"
 change = "code"
 publish = true
-reason = "No_std DNS RRSet CRUD, record mutation, TTL, and protection request domains."
+reason = "Optional no_std Serde boundary for RRSet bodies and validated shared response envelopes."
 
 [crates."cloud-sdk-reqwest"]
-previous_version = "0.12.0"
-version = "0.12.1"
+previous_version = "0.12.1"
+version = "0.12.2"
 change = "dependency"
 publish = true
-reason = "Update the cloud-sdk dependency to the v0.13 facade line."
+reason = "Update the cloud-sdk dependency to the v0.14 facade line."
 
 [crates."cloud-sdk-sanitization"]
-previous_version = "0.12.0"
-version = "0.12.1"
+previous_version = "0.12.1"
+version = "0.12.2"
 change = "dependency"
 publish = true
-reason = "Update the cloud-sdk dependency to the v0.13 facade line."
+reason = "Update the cloud-sdk dependency to the v0.14 facade line."
 
 [crates."cloud-sdk-testkit"]
-previous_version = "0.12.0"
-version = "0.12.1"
+previous_version = "0.12.1"
+version = "0.12.2"
 change = "dependency"
 publish = true
-reason = "Update the cloud-sdk dependency to the v0.13 facade line."
+reason = "Update the cloud-sdk dependency to the v0.14 facade line."

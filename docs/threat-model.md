@@ -23,6 +23,8 @@
   interpolation;
 - weak, downgraded, exposed, or variable-time-compared TSIG secrets;
 - certificate or SSH key redaction failures;
+- unsafe JSON interpolation, oversized request bodies, duplicate response
+  fields, or deserialization around validated constructors;
 - API drift from Hetzner documentation;
 - malicious or compromised third-party dependency.
 
@@ -38,4 +40,6 @@
   equality on secret-bearing types;
 - structural RRSet names/types, explicit TTL intent, bounded unique record
   mutations, and atomic JSON-string output;
+- checked Serde request wrappers, aggregate body limits, private response wire
+  models, post-parse validation, and default dependency-graph isolation;
 - pentest report before every tag.

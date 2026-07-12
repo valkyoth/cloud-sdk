@@ -12,10 +12,15 @@ readme = "README.md"
 [features]
 default = []
 alloc = ["cloud-sdk/alloc"]
+serde = ["alloc", "dep:serde"]
 std = ["alloc", "cloud-sdk/std"]
 
 [dependencies]
 cloud-sdk.workspace = true
+serde = { workspace = true, optional = true }
+
+[dev-dependencies]
+serde_json.workspace = true
 
 [lints]
 workspace = true

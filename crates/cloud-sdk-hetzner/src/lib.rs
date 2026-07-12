@@ -4,6 +4,9 @@
 #[cfg(feature = "std")]
 extern crate std;
 
+#[cfg(feature = "alloc")]
+extern crate alloc;
+
 pub mod actions;
 pub mod cloud;
 pub mod dns;
@@ -15,6 +18,8 @@ pub mod rate_limit;
 pub mod request;
 pub mod response;
 pub mod security;
+#[cfg(feature = "serde")]
+pub mod serde;
 pub mod storage;
 
 pub use endpoint::{ApiSurface, EndpointGroup};

@@ -584,14 +584,18 @@ v0.13.0 implementation stop reached. Run pentest for this exact commit.
 
 ### v0.14.0 - Optional Serde Boundary
 
+Status: implementation complete; pentest pending.
+
 Goal: admit optional serde request/response support without weakening the
 default no_std graph.
 
 Deliverables:
 
-- Non-default serde feature or adapter crate decision.
-- Derive coverage for source-locked request and response models implemented so
-  far.
+- Non-default no_std `serde` feature with optional allocation and no Serde
+  `std` feature.
+- Explicit checked serialization for all v0.13 RRSet body models and validated
+  deserialization for shared action/error response envelopes. Other models
+  remain unsupported until individually source-mapped.
 - Duplicate/unknown-field, optional-null, and redaction policy.
 - Aggregate request-body limits checked before serialization or transport,
   including worst-case bounded RRSet record lists.
@@ -602,9 +606,10 @@ Deliverables:
 Verification:
 
 - `scripts/checks.sh`
+- `scripts/check_serde_boundary.sh`
 - `cargo tree -p cloud-sdk-hetzner --no-default-features`
 - `cargo test -p cloud-sdk-hetzner --all-features serde`
-- `scripts/release_0_14_gate.sh` once added.
+- `scripts/release_0_14_gate.sh` after the permanent pentest report is added.
 
 Stop gate:
 
