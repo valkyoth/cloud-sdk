@@ -44,9 +44,9 @@ cloud-sdk-hetzner = "0.15.0"
 
 ## Current Scope
 
-The current main branch is the `0.15.0` implementation candidate. It integrates
-the provider-neutral adversarial response corpus as a dev-only boundary;
-pentest is pending. The latest published provider release is `0.14.0`. This
+The current main branch is the `0.15.0` release candidate. It integrates the
+provider-neutral adversarial response corpus as a dev-only boundary; pentest
+and retest passed. The latest published provider release is `0.14.0`. This
 crate does not yet implement HTTP transport, broad Serde coverage outside
 reviewed RRSet/shared response models, token storage, live API tests, retry
 policy, pagination iterators, or action polling.

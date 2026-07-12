@@ -623,7 +623,7 @@ v0.14.0 implementation stop reached. Run pentest for this exact commit.
 
 ### v0.15.0 - Testkit Boundary
 
-Status: implementation complete; pentest pending.
+Status: release candidate; pentest and retest passed.
 
 Goal: implement deterministic mock transport, pagination/action fixtures, and
 an adversarial response corpus before real transports are admitted.

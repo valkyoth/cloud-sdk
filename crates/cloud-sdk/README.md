@@ -54,7 +54,7 @@ please report it so it can be fixed.
 
 ## Current Status
 
-Status: `v0.15.0` implementation candidate; pentest pending. The latest
+Status: `v0.15.0` release candidate; pentest and retest passed. The latest
 published release is `v0.14.0`.
 
 Implemented now:
