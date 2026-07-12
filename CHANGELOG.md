@@ -12,6 +12,8 @@
 - Added the `v0.15.0` release gate and independent crate version plan.
 - Rejected scheme-relative and backslash-containing request targets before
   future adapters can compose authenticated provider URLs.
+- Bound transport responses to initialized caller-buffer slices so safe
+  implementations cannot report an out-of-bounds response length.
 
 ## 0.14.0 - 2026-07-12
 

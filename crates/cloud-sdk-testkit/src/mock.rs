@@ -121,11 +121,11 @@ impl<'a> MockTransport<'a> {
 impl BlockingTransport for MockTransport<'_> {
     type Error = MockError;
 
-    fn send(
+    fn send<'buffer>(
         &mut self,
         request: TransportRequest<'_>,
-        response_body: &mut [u8],
-    ) -> Result<TransportResponse, Self::Error> {
+        response_body: &'buffer mut [u8],
+    ) -> Result<TransportResponse<'buffer>, Self::Error> {
         let exchange = self
             .exchanges
             .get(self.cursor)
@@ -153,8 +153,14 @@ impl BlockingTransport for MockTransport<'_> {
                         MockError::ResponseBufferTooSmall
                     }
                 })?;
+        let initialized = response_body
+            .get(..body_len)
+            .ok_or(MockError::ResponseBufferTooSmall)?;
         self.cursor = next_cursor;
-        Ok(TransportResponse::new(exchange.response.status(), body_len))
+        Ok(TransportResponse::new(
+            exchange.response.status(),
+            initialized,
+        ))
     }
 }
 

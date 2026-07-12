@@ -23,7 +23,7 @@
 | DNS RRSet mutations | source-locked RR types; bounded unique redacted records; mandatory change-TTL intent; atomic JSON-string writers |
 | optional Serde boundary | default graph exclusion; no Serde `std`; 1 MiB request and 8 MiB response policies; bounded validated response envelopes |
 | testkit boundary | no_std ordered mock; atomic bounded response writes; payload-free mismatch errors; redacted fixture/request debug |
-| transport contract | origin-form targets reject leading `//`, backslash, fragments, controls, spaces, and non-ASCII; caller-owned response buffers; no authentication, headers, TLS, retry, or network implementation |
+| transport contract | origin-form targets reject leading `//`, backslash, fragments, controls, spaces, and non-ASCII; responses borrow their initialized caller-buffer slice; no independent untrusted body length; no authentication, headers, TLS, retry, or network implementation |
 | CodeQL default setup | repository setting |
 | API source lock | active for `v0.2.0` |
 | Storage Boxes drift check | active for `v0.2.0` |

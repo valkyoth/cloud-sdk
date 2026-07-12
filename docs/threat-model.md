@@ -33,6 +33,7 @@
 - mock mismatch diagnostics disclosing request targets or bodies.
 - authority replacement or path-normalization confusion when a future adapter
   combines untrusted request targets with an authenticated provider base URL;
+- out-of-bounds response lengths from buggy or malicious safe transports;
 
 ## Controls
 
@@ -54,4 +55,6 @@
   writes, payload-free errors, and redacted request/response diagnostics;
 - origin-form targets reject scheme-relative prefixes, backslashes, fragments,
   controls, spaces, and non-ASCII before an adapter can attach credentials;
+- transport responses borrow only the initialized slice of the caller-owned
+  buffer instead of trusting an independently reported numeric length;
 - pentest report before every tag.

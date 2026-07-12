@@ -37,6 +37,8 @@ tests, or a production transport implementation.
   future authenticated adapters.
 - Fixture writes preflight destination capacity and leave undersized buffers
   unchanged. Failed and mismatched exchanges are not consumed.
+- Transport responses borrow the initialized caller-buffer slice directly;
+  safe implementations cannot report an independent out-of-bounds body length.
 - Mock errors carry no compared request or response payloads.
 - The mock uses ordinary exact-byte matching and is test infrastructure, not a
   production secret-comparison boundary.

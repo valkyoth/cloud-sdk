@@ -155,36 +155,56 @@ impl StatusCode {
     }
 }
 
-/// Metadata returned after a transport writes a response body.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct TransportResponse {
+/// Response returned after a transport initializes part of a caller buffer.
+///
+/// The body is structurally bounded by the borrowed initialized slice. A
+/// transport cannot report a numeric length independently of the caller's
+/// response buffer.
+///
+/// ```compile_fail
+/// use cloud_sdk::transport::{StatusCode, TransportResponse};
+///
+/// let _ = TransportResponse::new(StatusCode::OK, 1024_usize);
+/// ```
+#[derive(Clone, Copy)]
+pub struct TransportResponse<'buffer> {
     status: StatusCode,
-    body_len: usize,
+    body: &'buffer [u8],
 }
 
-impl TransportResponse {
-    /// Creates response metadata.
+impl<'buffer> TransportResponse<'buffer> {
+    /// Creates a response over the initialized body bytes.
     #[must_use]
-    pub const fn new(status: StatusCode, body_len: usize) -> Self {
-        Self { status, body_len }
+    pub const fn new(status: StatusCode, body: &'buffer [u8]) -> Self {
+        Self { status, body }
     }
 
     /// Returns the status code.
     #[must_use]
-    pub const fn status(self) -> StatusCode {
+    pub const fn status(&self) -> StatusCode {
         self.status
     }
 
-    /// Returns the initialized prefix length in the caller's response buffer.
+    /// Returns the initialized response body bytes.
     #[must_use]
-    pub const fn body_len(self) -> usize {
-        self.body_len
+    pub const fn body(&self) -> &'buffer [u8] {
+        self.body
+    }
+}
+
+impl fmt::Debug for TransportResponse<'_> {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("TransportResponse")
+            .field("status", &self.status)
+            .field("body_len", &self.body.len())
+            .field("body", &"[redacted]")
+            .finish()
     }
 }
 
 /// Synchronous transport over caller-owned request and response buffers.
 ///
-/// Implementations must return a `body_len` no larger than `response_body`.
 /// Authentication, base URLs, headers, timeouts, TLS, and retry policy belong
 /// to adapters and are intentionally outside this minimal contract.
 pub trait BlockingTransport {
@@ -192,16 +212,18 @@ pub trait BlockingTransport {
     type Error;
 
     /// Sends one request and writes the response body into the caller buffer.
-    fn send(
+    fn send<'buffer>(
         &mut self,
         request: TransportRequest<'_>,
-        response_body: &mut [u8],
-    ) -> Result<TransportResponse, Self::Error>;
+        response_body: &'buffer mut [u8],
+    ) -> Result<TransportResponse<'buffer>, Self::Error>;
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{RequestTarget, RequestTargetError, StatusCode, TransportRequest};
+    use super::{
+        RequestTarget, RequestTargetError, StatusCode, TransportRequest, TransportResponse,
+    };
     use crate::Method;
     use core::fmt::Write;
 
@@ -276,6 +298,23 @@ mod tests {
         assert!(StatusCode::new(204).is_some_and(StatusCode::is_success));
         assert!(StatusCode::new(429).is_some_and(StatusCode::is_error));
         assert_eq!(StatusCode::new(600), None);
+    }
+
+    #[test]
+    fn transport_response_borrows_exact_initialized_body_and_redacts_debug() {
+        let output = b"secret-response-trailing-capacity";
+        let body = output.get(..15).unwrap_or_default();
+        let response = TransportResponse::new(StatusCode::OK, body);
+
+        assert_eq!(response.status(), StatusCode::OK);
+        assert_eq!(response.body(), b"secret-response");
+
+        let mut debug = DebugBuffer::new();
+        assert!(write!(&mut debug, "{response:?}").is_ok());
+        let debug = debug.as_str();
+        assert!(debug.contains("body_len: 15"));
+        assert!(debug.contains("[redacted]"));
+        assert!(!debug.contains("secret-response"));
     }
 
     struct DebugBuffer {

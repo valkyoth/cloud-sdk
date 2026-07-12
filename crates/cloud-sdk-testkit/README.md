@@ -66,7 +66,7 @@ let Ok(response) = transport.send(
 };
 
 assert_eq!(response.status().get(), 200);
-assert_eq!(response.body_len(), 14);
+assert_eq!(response.body(), br#"{"servers":[]}"#);
 assert!(transport.is_complete());
 ```
 

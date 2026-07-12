@@ -98,20 +98,25 @@ fn mock_transport_is_ordered_fail_closed_and_non_consuming_on_mismatch() {
         let mut transport = MockTransport::new(&exchanges);
         let wrong = TransportRequest::new(Method::Delete, target);
         let mut output = [0xa5_u8; 32];
-        assert_eq!(
+        assert!(matches!(
             transport.send(wrong, &mut output),
             Err(MockError::MethodMismatch)
-        );
+        ));
         assert_eq!(transport.remaining(), 1);
 
         let request = TransportRequest::new(Method::Get, target);
-        let response = transport.send(request, &mut output);
-        assert_eq!(response.map(|value| value.body_len()), Ok(14));
+        {
+            let response = transport.send(request, &mut output);
+            assert!(response.is_ok());
+            if let Ok(response) = response {
+                assert_eq!(response.body(), br#"{"servers":[]}"#);
+            }
+        }
         assert!(transport.is_complete());
-        assert_eq!(
+        assert!(matches!(
             transport.send(request, &mut output),
             Err(MockError::Exhausted)
-        );
+        ));
     }
 }
 
@@ -128,10 +133,10 @@ fn mock_transport_does_not_consume_exchange_when_response_buffer_is_small() {
         let request = TransportRequest::new(Method::Get, target);
         let mut short = [0xa5_u8; 4];
         let original = short;
-        assert_eq!(
+        assert!(matches!(
             transport.send(request, &mut short),
             Err(MockError::ResponseBufferTooSmall)
-        );
+        ));
         assert_eq!(short, original);
         assert_eq!(transport.remaining(), 1);
     }
@@ -153,20 +158,20 @@ fn mock_transport_distinguishes_target_and_body_mismatches_without_leaking_debug
         let mut transport = MockTransport::new(&exchanges);
         let mut output = [0_u8; 32];
 
-        assert_eq!(
+        assert!(matches!(
             transport.send(
                 TransportRequest::new(Method::Post, wrong_target).with_body(b"expected-secret"),
                 &mut output,
             ),
             Err(MockError::TargetMismatch)
-        );
-        assert_eq!(
+        ));
+        assert!(matches!(
             transport.send(
                 TransportRequest::new(Method::Post, expected_target).with_body(b"wrong-secret"),
                 &mut output,
             ),
             Err(MockError::BodyMismatch)
-        );
+        ));
         assert_eq!(transport.remaining(), 1);
 
         let debug = format!("{exchange:?}");
