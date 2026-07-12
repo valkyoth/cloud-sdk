@@ -311,11 +311,25 @@ fn json_string_size_upper_bound(value: &str) -> Option<usize> {
     for character in value.chars() {
         let encoded = match character {
             '"' | '\\' => 2,
-            '\0'..='\u{7f}' => 1,
+            '\u{20}'..='\u{7e}' => 1,
+            '\0'..='\u{1f}' | '\u{7f}' => 6,
             '\u{80}'..='\u{ffff}' => 6,
             _ => 12,
         };
         size = size.checked_add(encoded)?;
     }
     Some(size)
+}
+
+#[cfg(all(test, feature = "serde"))]
+mod serde_size_tests {
+    use super::json_string_size_upper_bound;
+
+    #[test]
+    fn json_upper_bound_accounts_for_unreachable_control_bytes() {
+        assert_eq!(json_string_size_upper_bound("\n"), Some(8));
+        assert_eq!(json_string_size_upper_bound("\u{7f}"), Some(8));
+        assert_eq!(json_string_size_upper_bound("printable"), Some(11));
+        assert_eq!(json_string_size_upper_bound("\u{1f4a1}"), Some(14));
+    }
 }

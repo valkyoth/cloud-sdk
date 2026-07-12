@@ -17,7 +17,8 @@ models, retry policy, pagination iterators, action polling, or live API tests.
 - Checked `RrsetRequestBody` constructors for create, labels update,
   protection, TTL, set, add, remove, and comment-update operations.
 - Conservative 1 MiB RRSet JSON upper-bound enforcement before complete bodies
-  become serializable, including worst-case non-ASCII escaping.
+  become serializable, including worst-case control, non-ASCII, and surrogate
+  escaping even where current constructors make a case unreachable.
 - Validated `ActionEnvelope` and `ApiErrorEnvelope` response models using
   borrowed-or-owned text.
 - `ResponseBytes` with an 8 MiB pre-parser input cap, plus 256-resource and

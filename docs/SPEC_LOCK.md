@@ -121,7 +121,9 @@ the default normal dependency graph. Complete RRSet request structs do not
 implement `Serialize`; callers must construct `RrsetRequestBody`, which omits
 endpoint selectors and checks a conservative 1 MiB JSON upper bound before the
 wrapper becomes serializable. The estimate assumes a JSON serializer may escape
-every non-ASCII scalar, including surrogate pairs.
+every control or non-ASCII scalar, including surrogate pairs. Control-byte
+accounting remains conservative even though current record constructors reject
+those bytes before estimation.
 
 The boundary serializes create, labels update, protection, TTL, set-records,
 add-records, remove-records, and update-record-comments bodies. Explicit
