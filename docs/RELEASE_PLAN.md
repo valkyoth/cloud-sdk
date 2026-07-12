@@ -554,7 +554,7 @@ then run release readiness before tagging.
 
 ### v0.13.0 - DNS RRSets
 
-Status: implementation complete; pentest pending.
+Status: implementation complete; pentest and retest passed.
 
 Goal: implement RRSet CRUD, RRSet actions, record mutation helpers, and DNS
 record validation.

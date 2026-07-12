@@ -44,8 +44,8 @@ cloud-sdk-hetzner = "0.13.0"
 
 ## Current Scope
 
-The current main branch is the `0.13.0` implementation candidate for DNS RRSet
-request domains. Pentest is pending. The latest published release is `0.12.0`.
+The current main branch is the `0.13.0` release candidate for DNS RRSet request
+domains. Pentest and retest passed. The latest published release is `0.12.0`.
 This crate does not yet implement HTTP
 transport, serde models, body serialization, token storage, live API tests,
 retry policy, pagination iterators, or action polling.
