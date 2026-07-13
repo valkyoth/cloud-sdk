@@ -36,6 +36,8 @@ SDK or provider graph.
   world permission bits.
 - Accepts an exact token with at most one LF or CRLF terminator and rejects
   boundary whitespace.
+- Preallocates the complete bounded token-read capacity before file I/O so
+  buffer growth cannot retire allocations containing plaintext token fragments.
 - Clears bounded caller-owned token and response source buffers through
   `cloud-sdk-sanitization` on success and failure. Adapter, TLS, OS, shell, and
   filesystem copies remain documented operational boundaries.
@@ -74,6 +76,8 @@ use a separate command and cannot reuse the read-only opt-in.
 
 The authenticated `--read-only` run is manual and requires a caller-provided
 least-privilege token. It is not executed by default CI or release automation.
+The release gate also rejects an uncommitted worktree before binding its checks
+to the reviewed `HEAD`.
 
 ## Pentest
 

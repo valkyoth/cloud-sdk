@@ -76,11 +76,13 @@ The wrapper supplies the second required opt-in,
 `CLOUD_SDK_HETZNER_LIVE_MODE=read-only`, only to the ignored test process. It
 rejects `CLOUD_SDK_HETZNER_ALLOW_DESTRUCTIVE` in read-only mode.
 
-Delete or revoke the token after the run. The harness clears its bounded token
-source buffer, response buffer, adapter-owned authorization bytes, and
+Delete or revoke the token after the run. Before reading, the harness reserves
+the complete bounded token capacity in one allocation so buffer growth cannot
+leave plaintext fragments in retired allocations. It clears that token source
+buffer, the response buffer, adapter-owned authorization bytes, and
 adapter-owned request storage. It cannot clear copies retained by the shell,
-filesystem, OS cache, allocator, reqwest, rustls, crash tooling, swap, or the
-remote service.
+filesystem, OS cache, reqwest, rustls, crash tooling, swap, or the remote
+service.
 
 ## Output Policy
 

@@ -1,6 +1,11 @@
 #!/usr/bin/env sh
 set -eu
 
+if [ -n "$(git status --porcelain)" ]; then
+    echo "release gate: working tree is not clean" >&2
+    exit 1
+fi
+
 scripts/validate-release-readiness.sh v0.19.0
 reviewed_head="$(git rev-parse HEAD)"
 scripts/checks.sh

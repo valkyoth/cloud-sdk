@@ -83,7 +83,7 @@ fn read_token_file(path: &Path) -> Result<BearerToken, LiveConfigurationError> {
         return Err(LiveConfigurationError::TokenFileTooLarge);
     }
 
-    let mut bytes = Vec::new();
+    let mut bytes = token_read_buffer()?;
     let read_result = file.take(MAX_TOKEN_READ_BYTES).read_to_end(&mut bytes);
     let guarded = SecretBuffer::new(bytes.as_mut_slice());
     read_result.map_err(|_| LiveConfigurationError::TokenFileReadFailed)?;
@@ -98,6 +98,16 @@ fn read_token_file(path: &Path) -> Result<BearerToken, LiveConfigurationError> {
         return Err(LiveConfigurationError::TokenFileTooLarge);
     }
     BearerToken::new(token).map_err(|_| LiveConfigurationError::TokenRejected)
+}
+
+fn token_read_buffer() -> Result<Vec<u8>, LiveConfigurationError> {
+    let read_capacity = usize::try_from(MAX_TOKEN_READ_BYTES)
+        .map_err(|_| LiveConfigurationError::TokenFileReadFailed)?;
+    let mut bytes = Vec::new();
+    bytes
+        .try_reserve_exact(read_capacity)
+        .map_err(|_| LiveConfigurationError::TokenFileReadFailed)?;
+    Ok(bytes)
 }
 
 fn validate_metadata(metadata: &Metadata) -> Result<(), LiveConfigurationError> {
@@ -146,7 +156,10 @@ mod tests {
     use std::path::{Path, PathBuf};
     use std::sync::atomic::{AtomicU64, Ordering};
 
-    use super::{LiveConfigurationError, normalized_token, read_token_file, validate_live_mode};
+    use super::{
+        LiveConfigurationError, MAX_TOKEN_READ_BYTES, normalized_token, read_token_file,
+        token_read_buffer, validate_live_mode,
+    };
 
     static TEMP_SEQUENCE: AtomicU64 = AtomicU64::new(0);
 
@@ -220,6 +233,18 @@ mod tests {
             validate_live_mode(Some(std::ffi::OsStr::new("read-only")), true),
             Err(LiveConfigurationError::DestructiveModeForbidden)
         );
+    }
+
+    #[test]
+    fn reserves_the_complete_token_read_bound_before_io() {
+        let result = token_read_buffer();
+        assert!(result.is_ok());
+        let Ok(buffer) = result else { return };
+        let Ok(required) = usize::try_from(MAX_TOKEN_READ_BYTES) else {
+            return;
+        };
+        assert!(buffer.is_empty());
+        assert!(buffer.capacity() >= required);
     }
 
     #[test]
