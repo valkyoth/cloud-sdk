@@ -6,6 +6,7 @@ scripts/check_shell_syntax.sh
 scripts/test-live-smoke-wrapper.py
 scripts/test-hetzner-live-smoke-runner.py
 scripts/test-platform-matrix.py
+scripts/test-publishable-readmes.py
 scripts/validate-file-lengths.sh
 scripts/validate-modularity-policy.sh check
 scripts/validate-security-policy.sh
@@ -15,6 +16,7 @@ scripts/check_testkit_boundary.sh
 scripts/check_platform_matrix.sh --default-boundary
 scripts/check_reqwest_boundary.sh
 scripts/smoke_hetzner_live.sh --check
+scripts/check_publishable_readmes.sh
 scripts/validate-release-metadata.sh
 scripts/test-release-readiness.sh
 scripts/test-sbom-freshness.sh

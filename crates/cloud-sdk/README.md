@@ -60,9 +60,13 @@ please report it so it can be fixed.
 
 ## Current Status
 
-Status: `v0.20.0` platform matrix implementation stop reached; pentest
-required.
-The latest published release is `v0.19.0`.
+Published versions and immutable package snapshots are listed on
+[crates.io](https://crates.io/crates/cloud-sdk). Repository development status,
+independent crate versions, and upcoming release plans are tracked in the
+[crate version matrix](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATE_VERSION_MATRIX.md)
+and [changelog](https://github.com/valkyoth/cloud-sdk/blob/main/CHANGELOG.md).
+Every release candidate must pass its documented checks, pentest, retest, and
+release gate before tagging.
 
 Implemented now:
 

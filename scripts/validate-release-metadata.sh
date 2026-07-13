@@ -26,6 +26,8 @@ for required in "release-notes/RELEASE_NOTES_${version}.md" docs/CRATE_VERSION_M
     fi
 done
 
+scripts/check_publishable_readmes.sh
+
 patch="${version##*.}"
 if [ "$patch" = "0" ]; then
     gate_version="${version%.*}"

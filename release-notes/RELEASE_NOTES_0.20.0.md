@@ -56,6 +56,8 @@ transport traits.
   rustls, AWS-LC, Mio, socket2, or Windows bindings become active.
 - Regression tests cover unknown targets, missing targets, extra arguments,
   exact command construction, native mode, and forbidden dependencies.
+- Publishable READMEs use immutable release wording; validation rejects
+  development-only status that would become false in crates.io snapshots.
 - Existing response bounds, credential redaction, timeout, redirect, retry,
   and cleanup requirements remain mandatory for every future transport.
 

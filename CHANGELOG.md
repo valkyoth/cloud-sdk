@@ -12,6 +12,8 @@
   network, TLS, runtime, socket, and OS abstraction crates.
 - Added adversarial regression tests for target allowlisting, missing target
   libraries, argument validation, command construction, and dependency leaks.
+- Removed transient release-candidate status from publishable READMEs and added
+  a regression gate that rejects stale crates.io release-status wording.
 - Documented support tiers and explicit reqwest limitations for FreeBSD,
   Android, iOS, WASM, embedded, and future Aesynx environments.
 - Added the `v0.20.0` release gate and independent crate version plan.

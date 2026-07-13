@@ -44,13 +44,15 @@ cloud-sdk-hetzner = "0.17.1"
 
 ## Current Scope
 
-The current main branch is preparing the workspace `0.20.0` release. The latest
-published provider release is `0.17.0`; planned provider `0.17.1` updates only
-the facade dependency and package documentation. This crate remains no_std and
-does not itself implement HTTP transport, broad Serde coverage outside
-reviewed RRSet/shared response models, token storage, destructive live tests,
-automatic retries, sleeps, or page fetching. Blocking and async HTTP
-implementations belong to the provider-neutral `cloud-sdk-reqwest` crate.
+Published package snapshots are listed on
+[crates.io](https://crates.io/crates/cloud-sdk-hetzner). Repository development
+status and independent crate versions are tracked in the
+[crate version matrix](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATE_VERSION_MATRIX.md).
+This crate remains no_std and does not itself implement HTTP transport, broad
+Serde coverage outside reviewed RRSet/shared response models, token storage,
+destructive live tests, automatic retries, sleeps, or page fetching. Blocking
+and async HTTP implementations belong to the provider-neutral
+`cloud-sdk-reqwest` crate.
 
 Implemented in the published `0.2.0` line:
 
