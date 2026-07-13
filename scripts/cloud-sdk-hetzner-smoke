@@ -1,0 +1,5 @@
+#!/bin/sh
+set -eu
+
+exec /usr/bin/python3 -I -S \
+    /usr/local/libexec/cloud-sdk-live-smoke/runner.py

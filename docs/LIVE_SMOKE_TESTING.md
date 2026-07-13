@@ -43,7 +43,7 @@ limits its own behavior to typed read-only requests, but token scope, project
 membership, creation, rotation, revocation, and billing controls remain caller
 responsibilities.
 
-## Sealed Build Phase
+## Credential-Free Build Phase
 
 Build the live-smoke executable from a clean reviewed commit **before** the
 token file exists or is mounted:
@@ -55,15 +55,46 @@ scripts/smoke_hetzner_live.sh --prepare
 ```
 
 `--prepare` invokes Cargo without credential variables, selects exactly one
-`live_smoke` test executable from Cargo's structured JSON output, installs it
-read-only under ignored `target/` storage, and records its SHA-256 digest and
-the reviewed Git commit. The wrapper rejects a dirty worktree. It cannot prove
-that an unreferenced credential elsewhere on the build host is unavailable, so
-credential removal or mount isolation during this phase is an operational
-requirement.
+`live_smoke` test executable from Cargo's structured JSON output, and creates an
+ignored staging bundle containing the executable, runtime, launcher, manifest,
+SHA-256 digests, and reviewed Git commit. The wrapper rejects a dirty worktree
+and anchors all repository paths to its own physical location, not the caller's
+working directory.
 
-Do not rebuild after provisioning the token. If code changes, revoke or remove
-the token first, commit and review the changes, then run `--prepare` again.
+The staging directory is user-owned and **not trusted**. Read-only mode bits and
+adjacent hashes do not make it authentic. Credential removal or mount isolation
+during this phase remains an operational requirement.
+
+## Privileged Sealing Phase
+
+After the build process and any build container have exited, review the staged
+bundle and install it with trusted absolute utilities. Do not run a repository
+script as root:
+
+```sh
+stage="$PWD/target/cloud-sdk-live-smoke/staging"
+
+sudo /usr/bin/install -d -o root -g root -m 0755 \
+    /usr/local/libexec/cloud-sdk-live-smoke
+sudo /usr/bin/install -o root -g root -m 0555 \
+    "$stage/live_smoke" /usr/local/libexec/cloud-sdk-live-smoke/live_smoke
+sudo /usr/bin/install -o root -g root -m 0444 \
+    "$stage/runner.py" /usr/local/libexec/cloud-sdk-live-smoke/runner.py
+sudo /usr/bin/install -o root -g root -m 0444 \
+    "$stage/manifest" /usr/local/libexec/cloud-sdk-live-smoke/manifest
+sudo /usr/bin/install -o root -g root -m 0555 \
+    "$stage/cloud-sdk-hetzner-smoke" /usr/local/bin/cloud-sdk-hetzner-smoke
+```
+
+Install the launcher last so an incomplete update fails closed. Confirm that
+`/usr/local`, `/usr/local/libexec`, the bundle directory, `/usr/local/bin`, and
+all installed files are owned by root and are not group- or world-writable.
+Terminate the credential-free build environment before creating or mounting the
+token. The repository wrapper cannot perform this privileged trust transition.
+
+Do not rebuild or reseal after provisioning the token. If code changes, revoke
+or remove the token first, commit and review the changes, then repeat both
+credential-free phases.
 
 ## Private Token File
 
@@ -96,16 +127,22 @@ authenticated smoke test with only the path in the environment:
 
 ```sh
 CLOUD_SDK_HETZNER_TOKEN_FILE="$token_file" \
-    scripts/smoke_hetzner_live.sh --read-only
+    /usr/local/bin/cloud-sdk-hetzner-smoke
 ```
 
-The wrapper immediately removes the token path from its own exported
-environment, verifies that the read-only sealed executable matches both the
-recorded commit and SHA-256 digest, then replaces itself with that executable
-under a minimal environment. It does not invoke Cargo or other build tooling in
-the authenticated phase. The wrapper supplies
-`CLOUD_SDK_HETZNER_LIVE_MODE=read-only` only to the test process and rejects
-`CLOUD_SDK_HETZNER_ALLOW_DESTRUCTIVE` in read-only mode.
+Do not invoke the mutable repository wrapper with a credential. The root-owned
+launcher starts the system Python interpreter in isolated, no-site mode. Its
+root-owned runner clears the inherited environment, rejects arguments and
+destructive opt-in, validates UID/GID 0 ownership, exact file modes, regular
+single-link files, non-writable root-owned parent directories, and the bounded
+manifest. It hashes an already-open executable descriptor and executes that
+same descriptor, eliminating path substitution between verification and
+execution. Only the fixed read-only marker, minimal `PATH`, and token-file path
+reach the test process.
+
+Root ownership is the authenticity trust anchor for this local operational
+workflow. The project does not claim offline-signature provenance for the
+staging bundle; review and privileged installation remain administrator duties.
 
 Delete or revoke the token after the run. Before reading, the harness reserves
 the complete bounded token capacity in one allocation so buffer growth cannot

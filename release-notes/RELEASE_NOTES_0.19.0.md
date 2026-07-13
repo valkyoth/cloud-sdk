@@ -29,8 +29,12 @@ SDK or provider graph.
 - Separates a clean-commit credential-free build phase from authenticated
   execution; Cargo, build scripts, procedural macros, and compiler tooling
   never receive the token-file environment variable.
-- Seals the selected test executable to the reviewed commit and a SHA-256
-  digest, then invokes it directly under a minimal authenticated environment.
+- Treats user-owned build output as untrusted staging and requires privileged
+  installation of the executable and runtime into root-owned non-writable
+  system paths.
+- Validates ownership, modes, hard-link count, parent directories, bounded
+  manifest, and SHA-256 through open file descriptors, then executes the same
+  verified descriptor under a minimal authenticated environment.
 - Requires both the ignored-test opt-in and
   `CLOUD_SDK_HETZNER_LIVE_MODE=read-only`; the wrapper sets the latter only for
   `--read-only` execution.
@@ -73,6 +77,7 @@ use a separate command and cannot reuse the read-only opt-in.
 - `scripts/smoke_hetzner_live.sh --check`
 - `scripts/smoke_hetzner_live.sh --prepare` without any credential present or
   mounted
+- `scripts/test-hetzner-live-smoke-runner.py`
 - `cargo test -p cloud-sdk-hetzner --test live_smoke --all-features`
 - `scripts/check_reqwest_boundary.sh`
 - `scripts/check_rust_version_matrix.sh`

@@ -46,8 +46,12 @@ The locked downstream feature-unification fixture is audited independently and
 has its own SPDX SBOM; its exact target-specific duplicate dependency is
 documented in the reqwest admission record.
 
-The opt-in Hetzner live harness separates build and credential phases. Cargo and
-all build-time dependencies run only while the token is absent or unmounted and
-no token-file variable is exported. The later authenticated phase verifies a
-read-only executable against its reviewed commit and SHA-256 digest and invokes
-it directly under a minimal environment; it never invokes Cargo.
+The opt-in Hetzner live harness separates build, privileged sealing, and
+credential phases. Cargo and all build-time dependencies run only while the
+token is absent or unmounted and no token-file variable is exported. Build
+output remains explicitly untrusted until an administrator installs the staged
+bundle into root-owned non-writable system paths with trusted absolute tools.
+The root-owned authenticated runtime validates the installation and hashes and
+executes the same open descriptor under a minimal environment; it never invokes
+Cargo. Root ownership, not an attacker-replaceable adjacent digest, is the local
+authenticity trust anchor. Detached signature provenance is not claimed.
