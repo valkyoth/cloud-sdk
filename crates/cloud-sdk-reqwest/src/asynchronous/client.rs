@@ -6,7 +6,7 @@ use cloud_sdk_sanitization::sanitize_bytes;
 use reqwest::header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE, HeaderValue};
 use reqwest::{Body, Client};
 
-use crate::shared::{BearerToken, HttpsEndpoint, TransportError};
+use crate::shared::{BearerToken, HttpsEndpoint, TransportError, parse_rate_limit};
 
 use super::body::SanitizedBuffer;
 
@@ -76,13 +76,15 @@ impl AsyncClient {
         }
         let status =
             StatusCode::new(response.status().as_u16()).ok_or(TransportError::InvalidStatus)?;
+        let rate_limit = parse_rate_limit(response.headers())?;
         let buffered = read_response(&mut response, response_body.len()).await?;
         let body_len = buffered.len();
         let initialized = response_body
             .get_mut(..body_len)
             .ok_or(TransportError::ResponseReadFailed)?;
         initialized.copy_from_slice(buffered.as_ref());
-        Ok(TransportResponse::new(status, initialized))
+        let response = TransportResponse::new(status, initialized);
+        Ok(rate_limit.map_or(response, |value| response.with_rate_limit(value)))
     }
 }
 

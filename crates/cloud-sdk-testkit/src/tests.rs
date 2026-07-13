@@ -17,7 +17,7 @@ fn fixture_builders_cover_success_pagination_action_rate_limit_and_error() {
     let body = FixtureBody::new(br#"{"ok":true}"#);
     let pagination = PaginationFixture::new(2, 50, 75, 2);
     let action = ActionFixture::new(ActionState::Running, 25);
-    let rate_limit = RateLimitFixture::new(3600, 0, Some(42));
+    let rate_limit = RateLimitFixture::new(3600, 0, 42);
     if let (Ok(body), Ok(pagination), Ok(action), Ok(rate_limit)) =
         (body, pagination, action, rate_limit)
     {
@@ -63,7 +63,7 @@ fn metadata_rejects_incoherent_values() {
         Err(FixtureMetadataError::InvalidProgress)
     );
     assert_eq!(
-        RateLimitFixture::new(10, 11, None),
+        RateLimitFixture::new(10, 11, 42),
         Err(FixtureMetadataError::RemainingExceedsLimit)
     );
 }
@@ -143,6 +143,38 @@ fn mock_transport_does_not_consume_exchange_when_response_buffer_is_small() {
         ));
         assert_eq!(short, original);
         assert_eq!(transport.remaining(), 1);
+    }
+}
+
+#[test]
+fn mock_transport_propagates_rate_limit_metadata() {
+    let target = RequestTarget::new("/servers?page=1");
+    let body = FixtureBody::new(br#"{"servers":[]}"#);
+    let rate_limit = RateLimitFixture::new(3600, 3599, 42);
+    if let (Ok(target), Ok(body), Ok(rate_limit)) = (target, body, rate_limit) {
+        let response = ResponseFixture::paginated(
+            body,
+            PaginationFixture::new(1, 25, 0, 1).unwrap_or_else(|_| unreachable!()),
+        )
+        .with_rate_limit(rate_limit);
+        let exchanges = [MockExchange::new(
+            ExpectedRequest::new(Method::Get, target),
+            response,
+        )];
+        let mut transport = MockTransport::new(&exchanges);
+        let mut output = [0_u8; 32];
+        let result = BlockingTransport::send(
+            &mut transport,
+            TransportRequest::new(Method::Get, target),
+            &mut output,
+        );
+        assert!(result.is_ok());
+        let Some(metadata) = result.ok().and_then(|value| value.rate_limit()) else {
+            return;
+        };
+        assert_eq!(metadata.limit(), 3600);
+        assert_eq!(metadata.remaining(), 3599);
+        assert_eq!(metadata.reset_epoch_seconds(), 42);
     }
 }
 

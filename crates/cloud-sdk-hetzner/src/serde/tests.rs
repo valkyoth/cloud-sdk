@@ -15,6 +15,7 @@ use crate::dns::rrsets::{
 use crate::dns::zones::{ZoneName, ZoneReference, ZoneTtl};
 use crate::labels::{LabelKey, LabelValue};
 use crate::response::{ApiErrorCode, ErrorCategory};
+use cloud_sdk::action_polling::ActionUpdate;
 use cloud_sdk_testkit::{AdversarialKind, adversarial_corpus};
 
 macro_rules! valid {
@@ -208,6 +209,7 @@ fn serde_action_envelope_validates_security_relevant_fields() {
     assert_eq!(envelope.action().id().get(), 42);
     assert_eq!(envelope.action().command(), "create_rrset");
     assert_eq!(envelope.action().status(), ActionStatus::Running);
+    assert_eq!(envelope.action().polling_update(), ActionUpdate::Running);
     assert_eq!(envelope.action().progress(), 50);
     assert_eq!(envelope.action().resources().len(), 1);
     let resource = envelope.action().resources().first();
@@ -272,6 +274,10 @@ fn serde_action_error_is_classified_without_exposing_raw_unknown_code() {
     };
     assert_eq!(error.code(), ApiErrorCode::Unknown);
     assert_eq!(error.message(), "failed");
+    assert_eq!(
+        envelope.action().polling_update(),
+        ActionUpdate::Failed(Some(error))
+    );
 }
 
 #[test]

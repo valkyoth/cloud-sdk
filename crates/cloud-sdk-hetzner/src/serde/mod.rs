@@ -5,9 +5,11 @@
 //! before a request becomes serializable. Response deserialization validates
 //! security-relevant fields after parsing.
 
+mod pagination;
 mod response;
 mod rrsets;
 
+pub use pagination::PaginationEnvelope;
 pub use response::{
     ActionEnvelope, ActionResource, ActionResponse, ApiErrorEnvelope, ApiErrorResponse,
     MAX_ACTION_RESPONSE_RESOURCES, MAX_API_ERROR_MESSAGE_BYTES, MAX_SERDE_RESPONSE_BYTES,

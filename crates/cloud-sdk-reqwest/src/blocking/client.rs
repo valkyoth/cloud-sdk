@@ -8,7 +8,7 @@ use reqwest::blocking::{Body, Client};
 use reqwest::header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE, HeaderValue};
 
 use super::body::{ReadBodyError, SanitizedRequestBody, read_bounded};
-use crate::shared::{BearerToken, HttpsEndpoint, TransportError};
+use crate::shared::{BearerToken, HttpsEndpoint, TransportError, parse_rate_limit};
 
 /// Hardened provider-neutral reqwest blocking transport.
 pub struct BlockingClient {
@@ -74,11 +74,13 @@ impl BlockingClient {
         }
         let status =
             StatusCode::new(response.status().as_u16()).ok_or(TransportError::InvalidStatus)?;
+        let rate_limit = parse_rate_limit(response.headers())?;
         let body_len = read_response(&mut response, response_body)?;
         let initialized = response_body
             .get(..body_len)
             .ok_or(TransportError::ResponseReadFailed)?;
-        Ok(TransportResponse::new(status, initialized))
+        let response = TransportResponse::new(status, initialized);
+        Ok(rate_limit.map_or(response, |value| response.with_rate_limit(value)))
     }
 }
 

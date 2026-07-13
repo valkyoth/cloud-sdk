@@ -28,6 +28,8 @@ pub enum TransportError {
     RequestFailed,
     /// The response status is outside the core SDK's admitted HTTP range.
     InvalidStatus,
+    /// Rate-limit response headers were incomplete, non-decimal, or incoherent.
+    InvalidRateLimitHeaders,
     /// The declared or observed response body exceeds the caller buffer.
     ResponseTooLarge,
     /// Reading the response body failed.

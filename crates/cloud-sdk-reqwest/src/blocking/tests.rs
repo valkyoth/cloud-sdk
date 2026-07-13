@@ -213,6 +213,59 @@ fn redirects_are_returned_and_oversized_bodies_are_cleared() {
 }
 
 #[test]
+fn response_propagates_validated_rate_limit_headers() {
+    let server = spawn(
+        "200 OK",
+        &[
+            ("RateLimit-Limit", "3600"),
+            ("RateLimit-Remaining", "3599"),
+            ("RateLimit-Reset", "42"),
+        ],
+        b"{}",
+        Duration::ZERO,
+    );
+    let Ok(server) = server else { return };
+    let Some(mut client) = build_loopback(&server.endpoint) else {
+        return;
+    };
+    let Ok(target) = RequestTarget::new("/servers") else {
+        return;
+    };
+    let mut output = [0_u8; 8];
+    let response = client.send(TransportRequest::new(Method::Get, target), &mut output);
+    assert!(response.is_ok());
+    let Some(rate_limit) = response.ok().and_then(|value| value.rate_limit()) else {
+        return;
+    };
+    assert_eq!(rate_limit.limit(), 3600);
+    assert_eq!(rate_limit.remaining(), 3599);
+    assert_eq!(rate_limit.reset_epoch_seconds(), 42);
+}
+
+#[test]
+fn incomplete_rate_limit_headers_fail_closed() {
+    let server = spawn(
+        "200 OK",
+        &[("RateLimit-Limit", "3600")],
+        b"secret",
+        Duration::ZERO,
+    );
+    let Ok(server) = server else { return };
+    let Some(mut client) = build_loopback(&server.endpoint) else {
+        return;
+    };
+    let Ok(target) = RequestTarget::new("/servers") else {
+        return;
+    };
+    let mut output = [0xa5_u8; 8];
+    assert!(matches!(
+        client.send(TransportRequest::new(Method::Get, target), &mut output),
+        Err(TransportError::InvalidRateLimitHeaders)
+    ));
+    assert_eq!(output, [0_u8; 8]);
+}
+
+#[test]
 fn nonempty_body_requires_content_type_before_network_access() {
     let Some(mut client) = build_loopback("http://127.0.0.1:9/v1") else {
         return;

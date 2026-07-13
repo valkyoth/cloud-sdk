@@ -232,7 +232,7 @@ impl<'a> CertificateListRequest<'a> {
             write_query_pair(output, &mut len, &mut first, "name", name.as_str())?;
         }
         if let Some(page) = self.page {
-            write_query_u64(output, &mut len, &mut first, "page", u64::from(page.get()))?;
+            write_query_u64(output, &mut len, &mut first, "page", page.get())?;
         }
         if let Some(per_page) = self.per_page {
             write_query_u64(

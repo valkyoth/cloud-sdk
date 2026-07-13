@@ -89,6 +89,8 @@ pub enum MockError {
     ResponseBufferTooSmall,
     /// Internal cursor arithmetic failed closed.
     CursorOverflow,
+    /// Fixture metadata could not be represented by the core transport.
+    InvalidFixtureMetadata,
 }
 
 /// Ordered no-allocation mock implementation of [`BlockingTransport`].
@@ -155,10 +157,14 @@ impl<'a> MockTransport<'a> {
             .get(..body_len)
             .ok_or(MockError::ResponseBufferTooSmall)?;
         self.cursor = next_cursor;
-        Ok(TransportResponse::new(
-            exchange.response.status(),
-            initialized,
-        ))
+        let response = TransportResponse::new(exchange.response.status(), initialized);
+        let rate_limit = exchange
+            .response
+            .rate_limit()
+            .map(|value| value.into_rate_limit())
+            .transpose()
+            .map_err(|_| MockError::InvalidFixtureMetadata)?;
+        Ok(rate_limit.map_or(response, |value| response.with_rate_limit(value)))
     }
 }
 

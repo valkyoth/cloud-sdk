@@ -126,7 +126,7 @@ impl<'a> NetworkListRequest<'a> {
             writer.pair("name", name.as_str())?;
         }
         if let Some(page) = self.page {
-            writer.u64_pair("page", u64::from(page.get()))?;
+            writer.u64_pair("page", page.get())?;
         }
         if let Some(per_page) = self.per_page {
             writer.u64_pair("per_page", u64::from(per_page.get()))?;

@@ -78,7 +78,7 @@ impl<'a> StorageBoxListRequest<'a> {
             writer.pair("name", name.as_str())?;
         }
         if let Some(page) = self.page {
-            writer.u64_pair("page", u64::from(page.get()))?;
+            writer.u64_pair("page", page.get())?;
         }
         if let Some(per_page) = self.per_page {
             writer.u64_pair("per_page", u64::from(per_page.get()))?;
@@ -143,7 +143,7 @@ impl<'a> StorageBoxTypeListRequest<'a> {
             writer.pair("name", name.as_str())?;
         }
         if let Some(page) = self.page {
-            writer.u64_pair("page", u64::from(page.get()))?;
+            writer.u64_pair("page", page.get())?;
         }
         if let Some(per_page) = self.per_page {
             writer.u64_pair("per_page", u64::from(per_page.get()))?;
@@ -227,7 +227,7 @@ impl StorageBoxActionListRequest {
             writer.u64_pair("id", id.get())?;
         }
         if let Some(page) = self.page {
-            writer.u64_pair("page", u64::from(page.get()))?;
+            writer.u64_pair("page", page.get())?;
         }
         if let Some(per_page) = self.per_page {
             writer.u64_pair("per_page", u64::from(per_page.get()))?;

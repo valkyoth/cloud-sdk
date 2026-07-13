@@ -68,6 +68,13 @@ impl<'a> ResponseFixture<'a> {
         fixture
     }
 
+    /// Adds rate-limit metadata to any response fixture.
+    #[must_use]
+    pub const fn with_rate_limit(mut self, rate_limit: RateLimitFixture) -> Self {
+        self.rate_limit = Some(rate_limit);
+        self
+    }
+
     /// Creates a client or server error response.
     pub const fn error(
         status: StatusCode,

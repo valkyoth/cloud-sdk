@@ -1,5 +1,7 @@
 //! Provider-neutral response metadata fixtures.
 
+use cloud_sdk::rate_limit::RateLimit;
+
 /// Fixture metadata validation error.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum FixtureMetadataError {
@@ -138,7 +140,7 @@ impl ActionFixture {
 pub struct RateLimitFixture {
     limit: u64,
     remaining: u64,
-    reset_at: Option<u64>,
+    reset_at: u64,
 }
 
 impl RateLimitFixture {
@@ -146,7 +148,7 @@ impl RateLimitFixture {
     pub const fn new(
         limit: u64,
         remaining: u64,
-        reset_at: Option<u64>,
+        reset_at: u64,
     ) -> Result<Self, FixtureMetadataError> {
         if limit == 0 {
             return Err(FixtureMetadataError::RateLimitZero);
@@ -173,9 +175,16 @@ impl RateLimitFixture {
         self.remaining
     }
 
-    /// Returns an optional provider-specific reset timestamp.
+    /// Returns the provider-specific reset timestamp.
     #[must_use]
-    pub const fn reset_at(self) -> Option<u64> {
+    pub const fn reset_at(self) -> u64 {
         self.reset_at
+    }
+
+    pub(crate) const fn into_rate_limit(self) -> Result<RateLimit, FixtureMetadataError> {
+        match RateLimit::new(self.limit, self.remaining, self.reset_at) {
+            Ok(value) => Ok(value),
+            Err(_) => Err(FixtureMetadataError::RemainingExceedsLimit),
+        }
     }
 }

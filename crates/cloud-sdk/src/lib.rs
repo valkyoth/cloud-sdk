@@ -4,7 +4,10 @@
 #[cfg(feature = "std")]
 extern crate std;
 
+pub mod action_polling;
 pub mod buffer;
+pub mod pagination;
+pub mod rate_limit;
 pub mod transport;
 
 /// Cloud provider namespace.

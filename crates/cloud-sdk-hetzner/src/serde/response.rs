@@ -6,6 +6,7 @@ use core::fmt;
 
 use ::serde::Deserialize;
 use ::serde::de::Error as _;
+use cloud_sdk::action_polling::ActionUpdate;
 
 use crate::actions::{ActionId, ActionStatus};
 use crate::cloud::shared::CloudResourceId;
@@ -222,6 +223,16 @@ impl<'a> ActionResponse<'a> {
     #[must_use]
     pub const fn error(&self) -> Option<&ApiErrorResponse<'a>> {
         self.error.as_ref()
+    }
+
+    /// Converts the provider status and optional error into a polling update.
+    #[must_use]
+    pub const fn polling_update(&self) -> ActionUpdate<Option<&ApiErrorResponse<'a>>> {
+        match self.status {
+            ActionStatus::Running => ActionUpdate::Running,
+            ActionStatus::Success => ActionUpdate::Success,
+            ActionStatus::Error => ActionUpdate::Failed(self.error.as_ref()),
+        }
     }
 }
 

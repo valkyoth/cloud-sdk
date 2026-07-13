@@ -294,7 +294,7 @@ fn dns_rrsets_list_query_is_deterministic_and_repeats_types() {
         .with_name(name("www"))
         .with_types(valid!(RrsetTypeFilter::new(&types)))
         .with_label_selector(valid!(LabelSelector::new("environment=prod")))
-        .with_page(valid!(Page::new(2)), valid!(PerPage::new(100)))
+        .with_page(valid!(Page::new(2)), valid!(PerPage::new(50)))
         .with_sort(RrsetSortField::Created, SortDirection::Desc);
     assert_eq!(request.endpoint(), RrsetEndpoint::List(zone()));
     let mut output = [0_u8; 256];
@@ -302,7 +302,7 @@ fn dns_rrsets_list_query_is_deterministic_and_repeats_types() {
     assert_eq!(
         output.get(..len),
         Some(
-            b"label_selector=environment%3Dprod&name=www&page=2&per_page=100&sort=created%3Adesc&type=A&type=AAAA&type=TXT"
+            b"label_selector=environment%3Dprod&name=www&page=2&per_page=50&sort=created%3Adesc&type=A&type=AAAA&type=TXT"
                 .as_slice()
         )
     );

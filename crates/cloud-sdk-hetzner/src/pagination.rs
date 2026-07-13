@@ -1,10 +1,12 @@
 //! Pagination domains.
 
-/// Default page size used when callers do not override pagination.
-pub const DEFAULT_PER_PAGE: u16 = 50;
+use cloud_sdk::pagination::PageMetadata;
 
-/// Maximum page size admitted by the SDK policy until source-locked.
-pub const MAX_PER_PAGE: u16 = 100;
+/// Default page size documented by the Hetzner API.
+pub const DEFAULT_PER_PAGE: u16 = 25;
+
+/// Maximum page size documented by the Hetzner API unless specified otherwise.
+pub const MAX_PER_PAGE: u16 = 50;
 
 /// Pagination validation error.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -15,15 +17,17 @@ pub enum PaginationError {
     PerPageZero,
     /// Per-page values are capped by [`MAX_PER_PAGE`].
     PerPageTooLarge,
+    /// Pagination navigation metadata is contradictory.
+    InvalidNavigation,
 }
 
 /// One-based page number.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-pub struct Page(u32);
+pub struct Page(u64);
 
 impl Page {
     /// Creates a one-based page number.
-    pub const fn new(value: u32) -> Result<Self, PaginationError> {
+    pub const fn new(value: u64) -> Result<Self, PaginationError> {
         if value == 0 {
             return Err(PaginationError::PageZero);
         }
@@ -32,7 +36,7 @@ impl Page {
 
     /// Returns the page number.
     #[must_use]
-    pub const fn get(self) -> u32 {
+    pub const fn get(self) -> u64 {
         self.0
     }
 }
@@ -64,6 +68,100 @@ impl Default for PerPage {
     fn default() -> Self {
         Self(DEFAULT_PER_PAGE)
     }
+}
+
+/// Validated metadata from a Hetzner paginated response.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct PaginationMetadata {
+    page: Page,
+    per_page: PerPage,
+    previous_page: Option<Page>,
+    next_page: Option<Page>,
+    last_page: Option<Page>,
+    total_entries: Option<u64>,
+    core: PageMetadata,
+}
+
+impl PaginationMetadata {
+    /// Creates metadata using Hetzner's documented pagination fields.
+    pub fn new(
+        page: Page,
+        per_page: PerPage,
+        previous_page: Option<Page>,
+        next_page: Option<Page>,
+        last_page: Option<Page>,
+        total_entries: Option<u64>,
+    ) -> Result<Self, PaginationError> {
+        let page_number = to_core_page(page)?;
+        let previous = previous_page.map(to_core_page).transpose()?;
+        let next = next_page.map(to_core_page).transpose()?;
+        let last = last_page.map(to_core_page).transpose()?;
+        let core = PageMetadata::new(
+            page_number,
+            u64::from(per_page.get()),
+            previous,
+            next,
+            last,
+            total_entries,
+        )
+        .map_err(|_| PaginationError::InvalidNavigation)?;
+        Ok(Self {
+            page,
+            per_page,
+            previous_page,
+            next_page,
+            last_page,
+            total_entries,
+            core,
+        })
+    }
+
+    /// Returns the current page.
+    #[must_use]
+    pub const fn page(self) -> Page {
+        self.page
+    }
+
+    /// Returns the requested maximum entries per page.
+    #[must_use]
+    pub const fn per_page(self) -> PerPage {
+        self.per_page
+    }
+
+    /// Returns the previous page when present.
+    #[must_use]
+    pub const fn previous_page(self) -> Option<Page> {
+        self.previous_page
+    }
+
+    /// Returns the next page when present.
+    #[must_use]
+    pub const fn next_page(self) -> Option<Page> {
+        self.next_page
+    }
+
+    /// Returns the final page when known.
+    #[must_use]
+    pub const fn last_page(self) -> Option<Page> {
+        self.last_page
+    }
+
+    /// Returns the total matching entries when known.
+    #[must_use]
+    pub const fn total_entries(self) -> Option<u64> {
+        self.total_entries
+    }
+
+    /// Returns provider-neutral metadata for the core pagination cursor.
+    #[must_use]
+    pub const fn as_core(self) -> PageMetadata {
+        self.core
+    }
+}
+
+fn to_core_page(page: Page) -> Result<cloud_sdk::pagination::PageNumber, PaginationError> {
+    cloud_sdk::pagination::PageNumber::new(page.get())
+        .map_err(|_| PaginationError::InvalidNavigation)
 }
 
 /// Sort direction.
@@ -140,14 +238,49 @@ impl<'a> Sort<'a> {
 
 #[cfg(test)]
 mod tests {
-    use super::{Page, PaginationError, PerPage, SortDirection, SortError, SortKey};
+    use super::{
+        Page, PaginationError, PaginationMetadata, PerPage, SortDirection, SortError, SortKey,
+    };
 
     #[test]
     fn validates_pagination_bounds() {
         assert_eq!(Page::new(0), Err(PaginationError::PageZero));
         assert_eq!(PerPage::new(0), Err(PaginationError::PerPageZero));
-        assert_eq!(PerPage::new(101), Err(PaginationError::PerPageTooLarge));
-        assert_eq!(PerPage::new(100).map(PerPage::get), Ok(100));
+        assert_eq!(PerPage::new(51), Err(PaginationError::PerPageTooLarge));
+        assert_eq!(PerPage::new(50).map(PerPage::get), Ok(50));
+        assert_eq!(PerPage::default().get(), 25);
+    }
+
+    #[test]
+    fn validates_navigation_and_converts_to_core_metadata() {
+        let metadata = PaginationMetadata::new(
+            Page::new(2).unwrap_or_else(|_| unreachable!()),
+            PerPage::new(25).unwrap_or_else(|_| unreachable!()),
+            Page::new(1).ok(),
+            Page::new(3).ok(),
+            Page::new(4).ok(),
+            Some(100),
+        );
+        assert!(metadata.is_ok());
+        let Ok(metadata) = metadata else { return };
+        assert_eq!(metadata.as_core().page().get(), 2);
+        assert_eq!(
+            metadata.as_core().next_page().map(|page| page.get()),
+            Some(3)
+        );
+        assert_eq!(metadata.total_entries(), Some(100));
+
+        assert_eq!(
+            PaginationMetadata::new(
+                Page::new(2).unwrap_or_else(|_| unreachable!()),
+                PerPage::default(),
+                None,
+                Page::new(2).ok(),
+                None,
+                None,
+            ),
+            Err(PaginationError::InvalidNavigation)
+        );
     }
 
     #[test]
