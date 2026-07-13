@@ -98,8 +98,8 @@ Production builders enforce:
 - explicit nonzero total and connect timeouts, each at most 300 seconds;
 - explicit validated user agent and bearer authorization;
 - caller-sized bounded response bodies;
-- strict all-or-none decimal parsing of the three provider-neutral rate-limit
-  response metadata fields;
+- strict all-or-none decimal parsing of exactly one of each of the three
+  provider-neutral rate-limit response metadata fields;
 - async response accumulation limited to caller capacity, followed by one
   complete-success copy into the caller buffer.
 

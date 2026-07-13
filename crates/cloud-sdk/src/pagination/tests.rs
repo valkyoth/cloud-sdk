@@ -107,4 +107,34 @@ fn validates_provider_navigation_metadata() {
         PageMetadata::new(page(2), 25, None, Some(page(3)), Some(page(2)), None),
         Err(PaginationError::InvalidLastPage)
     );
+    assert_eq!(
+        PageMetadata::new(page(1), 25, None, None, Some(page(4)), Some(100)),
+        Err(PaginationError::InvalidLastPage)
+    );
+}
+
+#[test]
+fn rejects_entry_counts_and_totals_without_mutating_the_cursor() {
+    let limit = PageLimit::new(4).unwrap_or_else(|_| unreachable!());
+    let mut cursor = PaginationCursor::new(page(1), limit);
+    assert_eq!(
+        cursor.observe(metadata(1, None), 26, None),
+        Err(PaginationError::InvalidEntryCount)
+    );
+
+    let short = PageMetadata::new(page(1), 25, None, Some(page(2)), Some(page(4)), Some(100))
+        .unwrap_or_else(|_| unreachable!());
+    assert_eq!(
+        cursor.observe(short, 24, None),
+        Err(PaginationError::InvalidEntryCount)
+    );
+
+    let premature = PageMetadata::new(page(1), 25, None, None, None, Some(100))
+        .unwrap_or_else(|_| unreachable!());
+    assert_eq!(
+        cursor.observe(premature, 25, None),
+        Err(PaginationError::InvalidEntryCount)
+    );
+    assert_eq!(cursor.pages_seen(), 0);
+    assert_eq!(cursor.next_page(), Ok(page(1)));
 }

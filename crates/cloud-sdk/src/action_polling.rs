@@ -81,9 +81,9 @@ pub enum ActionPollStep<E> {
 /// Action observation or policy failure.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum ActionPollError<E> {
-    /// Provider-reported progress exceeded 100.
+    /// Running provider progress exceeded 100.
     InvalidProgress,
-    /// Progress moved backwards across observations.
+    /// Running progress moved backwards across observations.
     ProgressRegressed,
     /// A caller policy requested a zero-duration busy loop.
     ZeroDelay,
@@ -141,12 +141,6 @@ impl ActionPoller {
         if self.terminal {
             return Err(ActionPollError::Terminal);
         }
-        if progress > 100 {
-            return Err(ActionPollError::InvalidProgress);
-        }
-        if self.last_progress.is_some_and(|last| progress < last) {
-            return Err(ActionPollError::ProgressRegressed);
-        }
         let observations = self
             .observations
             .checked_add(1)
@@ -156,6 +150,12 @@ impl ActionPoller {
             ActionUpdate::Success => ActionPollStep::Complete,
             ActionUpdate::Failed(error) => ActionPollStep::Failed(error),
             ActionUpdate::Running => {
+                if progress > 100 {
+                    return Err(ActionPollError::InvalidProgress);
+                }
+                if self.last_progress.is_some_and(|last| progress < last) {
+                    return Err(ActionPollError::ProgressRegressed);
+                }
                 let context = PollContext {
                     observation: observations,
                     progress,

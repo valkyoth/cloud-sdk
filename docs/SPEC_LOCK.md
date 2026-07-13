@@ -163,22 +163,26 @@ states otherwise. Paginated JSON object responses include
 zero pages, page sizes outside `1..=50`, non-adjacent or repeated navigation, a
 next page beyond the known last page, and empty pages that still advertise a
 continuation. Advertised previous and next pages must equal `page - 1` and
-`page + 1` respectively, with checked arithmetic. A caller-selected hard page
-limit remains mandatory even when the provider supplies a last page.
+`page + 1` respectively, with checked arithmetic. A known last page must agree
+with terminal state. Decoded entries cannot exceed `per_page`; when
+`total_entries` is present, the current page count and continuation state must
+match it exactly. A caller-selected hard page limit remains mandatory even
+when the provider supplies a last page.
 
 Actions remain `running` until the provider reports `success` or `error`.
 Polling frequency is intentionally caller-owned because the official source
 warns against frequent requests. The SDK rejects zero-delay polling and
 progress regression, propagates the optional validated provider error on a
 terminal failure, and never owns a sleep, retry loop, clock, deadline, or
-executor.
+executor. Terminal success or failure takes precedence over non-authoritative
+progress telemetry so the provider's final result is not discarded.
 
 The official response metadata uses the complete `RateLimit-Limit`,
 `RateLimit-Remaining`, and `RateLimit-Reset` header set. Reqwest adapters parse
-only unsigned decimal values, require all three headers when any is present,
-reject zero limits and remaining values above the limit, and expose the result
-through `TransportResponse`. They do not infer a retry delay or automatically
-replay a request.
+only unsigned decimal values, require each of the three headers exactly once
+when any is present, reject duplicates, zero limits, and remaining values above
+the limit, and expose the result through `TransportResponse`. They do not infer
+a retry delay or automatically replay a request.
 
 ## Deferred Scope
 

@@ -15,12 +15,14 @@ pub enum PaginationError {
     InvalidPreviousPage,
     /// The next-page link is not immediately after the current page.
     InvalidNextPage,
-    /// The last page is before the current or next page.
+    /// The last page contradicts the current page or continuation state.
     InvalidLastPage,
     /// The response page differs from the page the cursor requested.
     UnexpectedPage,
     /// A non-terminal empty page advertised another page.
     EmptyPageWithNextPage,
+    /// The decoded entry count contradicts page or total-entry metadata.
+    InvalidEntryCount,
     /// Advancing would exceed the caller-selected page limit.
     PageLimitExceeded,
     /// The cursor already reached its terminal page.
@@ -109,6 +111,9 @@ impl PageMetadata {
         }
         if let Some(last) = last_page {
             if last.0 < page.0 {
+                return Err(PaginationError::InvalidLastPage);
+            }
+            if (page.0 < last.0) != next_page.is_some() {
                 return Err(PaginationError::InvalidLastPage);
             }
             if let Some(next) = next_page
@@ -231,8 +236,8 @@ impl PaginationCursor {
         self.pages_seen
     }
 
-    /// Validates and records one decoded response page.
-    pub const fn observe(
+    /// Validates metadata and exact decoded entry count, then records the page.
+    pub fn observe(
         &mut self,
         metadata: PageMetadata,
         entries: usize,
@@ -244,6 +249,28 @@ impl PaginationCursor {
         };
         if metadata.page.0 != expected.0 {
             return Err(PaginationError::UnexpectedPage);
+        }
+        let entry_count = u64::try_from(entries).map_err(|_| PaginationError::InvalidEntryCount)?;
+        if entry_count > metadata.per_page {
+            return Err(PaginationError::InvalidEntryCount);
+        }
+        if let Some(total) = metadata.total_entries {
+            let page_offset = metadata
+                .page
+                .0
+                .checked_sub(1)
+                .and_then(|page| page.checked_mul(metadata.per_page))
+                .ok_or(PaginationError::InvalidEntryCount)?;
+            let expected_entries = total.saturating_sub(page_offset).min(metadata.per_page);
+            let expected_continuation = total
+                > page_offset
+                    .checked_add(entry_count)
+                    .ok_or(PaginationError::InvalidEntryCount)?;
+            if entry_count != expected_entries
+                || expected_continuation != metadata.next_page.is_some()
+            {
+                return Err(PaginationError::InvalidEntryCount);
+            }
         }
         if entries == 0 && metadata.next_page.is_some() {
             return Err(PaginationError::EmptyPageWithNextPage);

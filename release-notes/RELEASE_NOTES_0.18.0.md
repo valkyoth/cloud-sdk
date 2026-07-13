@@ -19,6 +19,9 @@ no_std, allocation-free, runtime-neutral, clock-free, and transport-neutral.
   pages, zero page values, and page-limit exhaustion fail without advancing.
 - Advertised previous and next pages must be exactly adjacent to the current
   page; checked arithmetic rejects gaps and page-number overflow.
+- Known last pages must agree with terminal state. Decoded entries cannot
+  exceed `per_page`, and supplied totals must match the exact page entry count
+  and continuation state before the cursor advances.
 - Every accepted `PageBoundary` exposes page metadata, decoded entry count,
   terminal state, and optional response rate-limit metadata.
 - Hetzner's optional Serde boundary extracts strict `meta.pagination` fields
@@ -30,6 +33,8 @@ no_std, allocation-free, runtime-neutral, clock-free, and transport-neutral.
 
 - `ActionPoller` accepts decoded running, successful, or failed updates.
 - Terminal provider failure payloads are returned unchanged to the caller.
+- Terminal success and failure take precedence over progress telemetry, so a
+  lower or malformed final progress value cannot suppress the provider result.
 - Running observations invoke caller-owned `PollPolicy`, which explicitly
   chooses a nonzero delay, cancellation, or timeout.
 - Progress regression, progress above 100, zero-delay busy loops, observation
@@ -42,9 +47,11 @@ no_std, allocation-free, runtime-neutral, clock-free, and transport-neutral.
 - `TransportResponse` carries optional validated provider-neutral rate-limit
   metadata while preserving its initialized caller-buffer body contract.
 - Blocking and async reqwest adapters parse `RateLimit-Limit`,
-  `RateLimit-Remaining`, and `RateLimit-Reset` as one complete decimal set.
+  `RateLimit-Remaining`, and `RateLimit-Reset` as one complete decimal set with
+  each header occurring exactly once.
 - Partial, empty, signed, non-decimal, overflowing, zero-limit, and incoherent
-  header sets fail before a response body is exposed as successful.
+  or duplicate header sets fail before a response body is exposed as
+  successful.
 - Testkit fixtures can attach coherent rate-limit metadata to paginated,
   action, success, error, or `429` responses.
 

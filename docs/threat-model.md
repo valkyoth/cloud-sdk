@@ -46,7 +46,8 @@
   adapter-owned secret response copies in memory;
 - an async adapter silently owning a runtime or introducing one into default,
   provider, or testkit graphs;
-- malformed or partial rate-limit headers causing incorrect request budgets;
+- duplicate, malformed, or partial rate-limit headers causing incorrect request
+  budgets;
 - repeated, contradictory, or empty non-terminal pages causing loops or
   incomplete resource traversal;
 - zero-delay action policies causing busy polling, or terminal provider errors
@@ -88,15 +89,17 @@
   reaches the cleared caller buffer only after complete success;
 - adapter-owned bearer, request-body, and async response allocations are
   redacted or cleared through the provider-neutral sanitization boundary;
-- rate-limit headers are parsed as a strict all-or-none decimal set and
-  validated before transport metadata is exposed;
+- rate-limit headers are parsed as a strict all-or-none decimal set, each field
+  must occur exactly once, and values are validated before metadata is exposed;
 - pagination requires a caller-selected hard page limit, exact expected-page
-  transitions, adjacent advertised navigation, nonempty continuation pages,
-  and provider-validated navigation;
+  transitions, adjacent advertised navigation, known-last terminal coherence,
+  bounded entry counts, total-entry reconciliation, nonempty continuation
+  pages, and provider-validated navigation;
 - release drift fetches require exact non-redirecting HTTPS URLs under the
   default validating TLS context, bounded downloads, and pinned digest
   verification before parsing;
-- action polling rejects progress regression and zero-delay loops, preserves
-  terminal provider failures, and delegates delay, timeout, and cancellation
-  to caller policy without owning a clock or retry loop;
+- action polling rejects running progress regression and zero-delay loops,
+  gives terminal status precedence over progress telemetry, preserves provider
+  failures, and delegates delay, timeout, and cancellation to caller policy
+  without owning a clock or retry loop;
 - pentest report before every tag.

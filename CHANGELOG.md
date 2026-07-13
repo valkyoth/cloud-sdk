@@ -14,6 +14,12 @@
   conversion for the provider-neutral helpers.
 - Corrected the source-locked Hetzner page default and maximum to 25 and 50.
 - Required advertised previous and next page numbers to be exactly adjacent.
+- Rejected premature known-last termination, entries above `per_page`, and
+  page counts or continuation state inconsistent with supplied totals.
+- Preserved terminal action failures ahead of non-authoritative progress
+  regression checks.
+- Rejected identical or conflicting duplicate rate-limit headers in blocking
+  and async transports.
 - Hardened live release drift fetches with explicit validating TLS contexts,
   exact non-redirecting HTTPS URLs, and regression tests for downgrade and
   redirect rejection before reading response data.

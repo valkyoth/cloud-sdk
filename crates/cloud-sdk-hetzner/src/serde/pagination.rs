@@ -142,6 +142,7 @@ mod tests {
             r#"{"meta":{"pagination":{"page":1,"per_page":51,"previous_page":null,"next_page":null,"last_page":1,"total_entries":1}}}"#,
             r#"{"meta":{"pagination":{"page":2,"per_page":25,"previous_page":1,"next_page":2,"last_page":4,"total_entries":100}}}"#,
             r#"{"meta":{"pagination":{"page":2,"per_page":25,"previous_page":1,"next_page":4,"last_page":4,"total_entries":100}}}"#,
+            r#"{"meta":{"pagination":{"page":1,"per_page":25,"previous_page":null,"next_page":null,"last_page":4,"total_entries":100}}}"#,
             r#"{"meta":{"pagination":{"page":2,"per_page":25,"previous_page":0,"next_page":3,"last_page":4,"total_entries":100}}}"#,
             r#"{"meta":{"pagination":{"page":3,"per_page":25,"previous_page":1,"next_page":4,"last_page":4,"total_entries":100}}}"#,
             r#"{"meta":{"pagination":{"page":1,"per_page":25,"previous_page":null,"next_page":null,"last_page":1,"total_entries":-1}}}"#,

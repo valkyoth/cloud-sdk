@@ -76,6 +76,32 @@ fn terminal_success_and_failure_bypass_delay_policy() {
 }
 
 #[test]
+fn terminal_failure_takes_precedence_over_progress_telemetry() {
+    let mut policy = Policy {
+        decision: PollDecision::Delay(Duration::from_secs(1)),
+        context: None,
+    };
+    let mut poller = ActionPoller::new();
+    assert!(
+        poller
+            .observe(ActionUpdate::<u8>::Running, 80, None, &mut policy)
+            .is_ok()
+    );
+    assert_eq!(
+        poller.observe(ActionUpdate::Failed(7_u8), 60, None, &mut policy),
+        Ok(ActionPollStep::Failed(7))
+    );
+    assert!(poller.is_terminal());
+    assert_eq!(poller.observations(), 2);
+
+    let mut malformed_progress = ActionPoller::new();
+    assert_eq!(
+        malformed_progress.observe(ActionUpdate::Failed(9_u8), 255, None, &mut policy),
+        Ok(ActionPollStep::Failed(9))
+    );
+}
+
+#[test]
 fn caller_policy_controls_cancel_and_timeout() {
     for (decision, expected) in [
         (PollDecision::Cancel, ActionPollStep::Cancelled),

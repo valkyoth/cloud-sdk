@@ -266,6 +266,34 @@ fn incomplete_rate_limit_headers_fail_closed() {
 }
 
 #[test]
+fn duplicate_rate_limit_headers_fail_closed() {
+    let server = spawn(
+        "200 OK",
+        &[
+            ("RateLimit-Limit", "3600"),
+            ("RateLimit-Limit", "7200"),
+            ("RateLimit-Remaining", "3599"),
+            ("RateLimit-Reset", "42"),
+        ],
+        b"secret",
+        Duration::ZERO,
+    );
+    let Ok(server) = server else { return };
+    let Some(mut client) = build_loopback(&server.endpoint) else {
+        return;
+    };
+    let Ok(target) = RequestTarget::new("/servers") else {
+        return;
+    };
+    let mut output = [0xa5_u8; 8];
+    assert!(matches!(
+        client.send(TransportRequest::new(Method::Get, target), &mut output),
+        Err(TransportError::InvalidRateLimitHeaders)
+    ));
+    assert_eq!(output, [0_u8; 8]);
+}
+
+#[test]
 fn nonempty_body_requires_content_type_before_network_access() {
     let Some(mut client) = build_loopback("http://127.0.0.1:9/v1") else {
         return;

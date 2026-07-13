@@ -307,8 +307,9 @@ assert_eq!(cursor.next_page()?, second);
 
 The caller fetches and decodes each requested page, then passes only validated
 metadata and the decoded entry count to the cursor. Empty non-terminal pages,
-repeated pages, contradictory navigation, and the caller's hard page limit
-fail closed. Each accepted boundary preserves transport rate-limit metadata.
+repeated pages, contradictory navigation, entries above `per_page`, mismatch
+with a supplied total, and the caller's hard page limit fail closed. Each
+accepted boundary preserves transport rate-limit metadata.
 
 ## Action Polling Example
 

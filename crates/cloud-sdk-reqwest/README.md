@@ -140,8 +140,9 @@ assert_eq!(request.content_type(), Some(ContentType::JSON));
   decompression.
 - Exact scheme, host, and port preservation after target composition.
 - Caller-sized response buffers with overflow detection and cleanup.
-- Strict all-or-none decimal parsing and propagation of `RateLimit-Limit`,
-  `RateLimit-Remaining`, and `RateLimit-Reset` response headers.
+- Strict all-or-none decimal parsing and propagation of exactly one
+  `RateLimit-Limit`, `RateLimit-Remaining`, and `RateLimit-Reset` response
+  header; duplicates fail closed.
 - Async responses are buffered within the caller's capacity and copied only
   after complete success; cancellation leaves the caller buffer cleared.
 - Payload-free errors and redacted client, token, target, and body diagnostics.

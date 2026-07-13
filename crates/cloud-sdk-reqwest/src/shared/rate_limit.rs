@@ -8,9 +8,9 @@ const REMAINING: &str = "ratelimit-remaining";
 const RESET: &str = "ratelimit-reset";
 
 pub(crate) fn parse_rate_limit(headers: &HeaderMap) -> Result<Option<RateLimit>, TransportError> {
-    let limit = headers.get(LIMIT);
-    let remaining = headers.get(REMAINING);
-    let reset = headers.get(RESET);
+    let limit = exactly_one(headers, LIMIT)?;
+    let remaining = exactly_one(headers, REMAINING)?;
+    let reset = exactly_one(headers, RESET)?;
     if limit.is_none() && remaining.is_none() && reset.is_none() {
         return Ok(None);
     }
@@ -20,6 +20,18 @@ pub(crate) fn parse_rate_limit(headers: &HeaderMap) -> Result<Option<RateLimit>,
     RateLimit::new(limit, remaining, reset)
         .map(Some)
         .map_err(|_| TransportError::InvalidRateLimitHeaders)
+}
+
+fn exactly_one<'a>(
+    headers: &'a HeaderMap,
+    name: &'static str,
+) -> Result<Option<&'a HeaderValue>, TransportError> {
+    let mut values = headers.get_all(name).iter();
+    let first = values.next();
+    if values.next().is_some() {
+        return Err(TransportError::InvalidRateLimitHeaders);
+    }
+    Ok(first)
 }
 
 fn parse_decimal(value: &HeaderValue) -> Result<u64, TransportError> {
@@ -78,6 +90,24 @@ mod tests {
                 parse_rate_limit(&headers(values.0, values.1, values.2)),
                 Err(TransportError::InvalidRateLimitHeaders)
             );
+        }
+    }
+
+    #[test]
+    fn rejects_identical_and_conflicting_duplicate_headers() {
+        for (name, identical, conflicting) in [
+            (LIMIT, "3600", "7200"),
+            (REMAINING, "3599", "1"),
+            (RESET, "42", "84"),
+        ] {
+            for duplicate in [identical, conflicting] {
+                let mut values = headers("3600", "3599", "42");
+                values.append(name, HeaderValue::from_static(duplicate));
+                assert_eq!(
+                    parse_rate_limit(&values),
+                    Err(TransportError::InvalidRateLimitHeaders)
+                );
+            }
         }
     }
 

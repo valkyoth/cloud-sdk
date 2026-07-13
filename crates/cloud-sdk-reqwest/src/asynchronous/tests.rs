@@ -159,6 +159,42 @@ fn async_response_propagates_validated_rate_limit_headers() {
 }
 
 #[test]
+fn async_duplicate_rate_limit_headers_fail_closed() {
+    run_async_test(async {
+        let server = spawn(
+            "200 OK",
+            &[
+                ("RateLimit-Limit", "3600"),
+                ("RateLimit-Limit", "7200"),
+                ("RateLimit-Remaining", "3599"),
+                ("RateLimit-Reset", "42"),
+            ],
+            b"secret",
+            Duration::ZERO,
+        );
+        let Ok(server) = server else { return };
+        let Some(mut client) = build_loopback(&server.endpoint) else {
+            return;
+        };
+        let Ok(target) = RequestTarget::new("/servers") else {
+            return;
+        };
+        let mut output = [0xa5_u8; 8];
+        let result = AsyncTransport::send(
+            &mut client,
+            TransportRequest::new(Method::Get, target),
+            &mut output,
+        )
+        .await;
+        assert!(matches!(
+            result,
+            Err(TransportError::InvalidRateLimitHeaders)
+        ));
+        assert_eq!(output, [0_u8; 8]);
+    });
+}
+
+#[test]
 fn missing_content_type_fails_before_network_access() {
     run_async_test(async {
         let Some(mut client) = build_loopback("http://127.0.0.1:9/v1") else {
