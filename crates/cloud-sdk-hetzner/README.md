@@ -38,18 +38,20 @@ models in small reviewed releases.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.15.0"
-cloud-sdk-hetzner = "0.15.0"
+cloud-sdk = "0.16.0"
+cloud-sdk-hetzner = "0.15.1"
 ```
 
 ## Current Scope
 
-The current main branch is the `0.15.0` release candidate. It integrates the
-provider-neutral adversarial response corpus as a dev-only boundary; pentest
-and retest passed. The latest published provider release is `0.14.0`. This
-crate does not yet implement HTTP transport, broad Serde coverage outside
-reviewed RRSet/shared response models, token storage, live API tests, retry
-policy, pagination iterators, or action polling.
+The current main branch is preparing the workspace `0.16.0` release. The latest
+published provider release is `0.15.0`; the planned provider `0.15.1` is a
+dependency-only update to the `cloud-sdk` `0.16.0` transport contract. This
+crate remains no_std and does not itself implement HTTP transport, broad Serde
+coverage outside reviewed RRSet/shared response models, token storage, live
+API tests, retry policy, pagination iterators, or action polling. The optional
+blocking implementation belongs to the provider-neutral `cloud-sdk-reqwest`
+crate.
 
 Implemented in the published `0.2.0` line:
 
@@ -183,6 +185,13 @@ Implemented in the published `0.14.0` line:
 - automated proof that Serde and serde_json remain outside the normal default
   dependency graph.
 
+Implemented in the published `0.15.0` line:
+
+- integration tests that apply the provider-neutral adversarial response
+  corpus to real Hetzner Serde response parsing;
+- compatibility with the provider-neutral blocking transport request and
+  caller-owned response-buffer contract without adding transport dependencies.
+
 ### Sensitive Output Buffers
 
 `ZoneFile::write_json_string`, `TsigKey::write_json_string`,
@@ -239,7 +248,7 @@ Enable Serde explicitly; it is never part of the default graph:
 
 ```toml
 [dependencies]
-cloud-sdk-hetzner = { version = "0.15.0", features = ["serde"] }
+cloud-sdk-hetzner = { version = "0.15.1", features = ["serde"] }
 ```
 
 `serde_json` is used below only as an example format implementation and remains

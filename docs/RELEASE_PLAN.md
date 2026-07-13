@@ -623,7 +623,7 @@ v0.14.0 implementation stop reached. Run pentest for this exact commit.
 
 ### v0.15.0 - Testkit Boundary
 
-Status: release candidate; pentest and retest passed.
+Status: tagged and published.
 
 Goal: implement deterministic mock transport, pagination/action fixtures, and
 an adversarial response corpus before real transports are admitted.
@@ -659,22 +659,29 @@ v0.15.0 implementation stop reached. Run pentest for this exact commit.
 
 ### v0.16.0 - Optional Blocking Transport Adapter
 
+Status: implementation complete; pentest and retest required.
+
 Goal: admit the first reviewed blocking transport adapter outside the default
 graph.
 
 Deliverables:
 
 - Blocking transport trait implementation in an optional adapter crate.
-- Dependency admission document for HTTP, TLS, URL, and header crates used.
+- Reqwest 0.13.4 dependency admission document for HTTP, TLS, URL, runtime,
+  cryptographic-provider, and header dependencies used.
 - Explicit timeout, user-agent, authentication header, retry, and redaction
   policy.
-- Tests with mock HTTP server or testkit fixtures only; no live network by
-  default.
+- HTTPS-only rustls client with TLS 1.2 minimum, no redirect, no retry, no
+  proxy, no referer, and no response decompression.
+- Authority-preserving target composition, bounded response reads, and
+  sanitized adapter-owned token and request-body buffers.
+- Deterministic loopback tests only; no live network by default.
 - Default workspace graph remains transport-free.
 
 Verification:
 
 - `scripts/checks.sh`
+- `scripts/check_reqwest_boundary.sh`
 - `cargo test -p cloud-sdk-reqwest --all-features`
 - `cargo tree -p cloud-sdk-hetzner --no-default-features`
 - `scripts/release_0_16_gate.sh` once added.

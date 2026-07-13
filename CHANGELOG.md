@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.16.0 - 2026-07-13
+
+- Added explicit bounded content-type metadata to provider-neutral transport
+  requests.
+- Added the first hardened provider-neutral blocking reqwest adapter behind
+  the non-default `blocking-rustls` feature.
+- Required HTTPS, rustls with TLS 1.2 minimum, explicit timeouts and user
+  agent, no redirects, no retries, no proxies, and no response decompression.
+- Added redacted bearer-token ownership, sanitized adapter-owned request
+  bodies, bounded response reads, payload-free failures, and failure cleanup.
+- Added deterministic loopback security tests, dependency admission evidence,
+  a fail-closed reqwest graph boundary, and the `v0.16.0` release gate.
+
 ## 0.15.0 - 2026-07-12
 
 - Added provider-neutral no_std blocking transport contracts with validated

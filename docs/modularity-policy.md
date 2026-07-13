@@ -21,6 +21,9 @@ Rules:
   has a documented technical reason that cannot be shared.
 - Feature flags must not silently enable networking, TLS, filesystem, clocks,
   token storage, or async runtimes.
+- `std` paths are prohibited except under the explicitly reviewed
+  `cloud-sdk-reqwest/src/blocking` module, which must remain guarded by the
+  non-default `blocking-rustls` feature at its public module boundary.
 
 The local gate is:
 

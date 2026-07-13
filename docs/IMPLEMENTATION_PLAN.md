@@ -53,9 +53,9 @@ explicit trust and dependency review.
   `src/cloud`, `src/dns`, `src/security`, and `src/storage`, with shared
   request, response, pagination, label, rate-limit, and action domains in
   top-level source files.
-- `cloud-sdk-reqwest`: future provider-neutral reqwest transport adapter. It
-  exists as a boundary, but does not admit `reqwest`, TLS, or runtime
-  dependencies until reviewed.
+- `cloud-sdk-reqwest`: provider-neutral no_std boundary by default, with the
+  first reviewed blocking reqwest/rustls transport behind the non-default
+  `blocking-rustls` feature. Provider crates never depend on it directly.
 - `cloud-sdk-testkit`: provider-neutral no_std ordered mock transport, bounded
   response fixtures, pagination/action/rate-limit metadata, and adversarial
   response corpus. Future releases may add live-test gating helpers.
@@ -126,5 +126,8 @@ Expected future candidates must be reviewed before use:
   SDK default graph.
 - `sanitization` admitted in `v0.14.0` with default features disabled through
   the provider-neutral `cloud-sdk-sanitization` boundary.
+- `reqwest` `0.13.4` admitted in `v0.16.0` with default features disabled only
+  through `cloud-sdk-reqwest/blocking-rustls`; the facade and provider default
+  graphs remain transport-free.
 
 Every admission needs a document under `docs/dependency-admission-*.md`.

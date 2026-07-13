@@ -1,3 +1,4 @@
+use core::fmt;
 use reqwest::Url;
 use std::string::String;
 #[cfg(test)]
@@ -31,10 +32,16 @@ pub enum EndpointError {
 }
 
 /// Validated HTTPS API endpoint, optionally including a fixed base path.
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct HttpsEndpoint {
     base: Url,
     prefix: String,
+}
+
+impl fmt::Debug for HttpsEndpoint {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.write_str("HttpsEndpoint([redacted])")
+    }
 }
 
 impl HttpsEndpoint {

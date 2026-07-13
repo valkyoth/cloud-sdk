@@ -30,8 +30,9 @@ first provider crate is `cloud-sdk-hetzner`, covering the Hetzner Cloud and DNS
 APIs. The default crates have no network client, TLS stack, async runtime,
 filesystem, clock, or secret-storage dependency. Transport and serialization
 remain explicit boundaries: v0.15 defines a no-network contract and testkit,
-while v0.14 added narrowly reviewed no_std Serde and caller-buffer sanitization
-without changing the default provider graph.
+v0.16 adds an opt-in blocking rustls adapter, and v0.14 added narrowly reviewed
+no_std Serde and caller-buffer sanitization. None changes the default provider
+graph.
 
 The project target is a serious production-ready `cloud-sdk` foundation and
 Hetzner provider at `1.0.0`, reached through small reviewed releases with test,
@@ -54,8 +55,8 @@ please report it so it can be fixed.
 
 ## Current Status
 
-Status: `v0.15.0` release candidate; pentest and retest passed. The latest
-published release is `v0.14.0`.
+Status: `v0.16.0` implementation complete; pentest and retest are required.
+The latest published release is `v0.15.0`.
 
 Implemented now:
 
@@ -68,7 +69,7 @@ Implemented now:
   Box resources.
 - Provider-neutral blocking transport contracts and a no_std deterministic
   mock testkit with response metadata and adversarial fixtures.
-- Explicit provider-neutral boundary for future reqwest transport, plus
+- Optional hardened provider-neutral blocking reqwest/rustls transport, plus
   admitted guarded caller-buffer sanitization.
 - Local checks for formatting, linting, tests, no_std policy, modularity, and
   file length.
@@ -114,7 +115,9 @@ Implemented now:
 
 Not implemented yet:
 
-- No HTTP transport.
+- No async HTTP transport.
+- No provider-level client that executes typed Hetzner request models end to
+  end; v0.16 exposes the reviewed provider-neutral blocking transport.
 - No token storage or secret manager integration.
 - No broad request/response serialization outside the reviewed RRSet and
   shared response boundary.
@@ -157,8 +160,8 @@ Not implemented yet:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.15.0"
-cloud-sdk-hetzner = "0.15.0"
+cloud-sdk = "0.16.0"
+cloud-sdk-hetzner = "0.15.1"
 ```
 
 ## Provider-Neutral Example
@@ -192,7 +195,49 @@ assert!(request.body().is_empty());
 ```
 
 The core contract performs no I/O. Use `cloud-sdk-testkit` for deterministic
-tests; the first production adapter is scheduled separately.
+tests or opt into `cloud-sdk-reqwest/blocking-rustls` for blocking HTTPS.
+
+## Optional Blocking Transport
+
+```toml
+[dependencies]
+cloud-sdk = "0.16.0"
+cloud-sdk-reqwest = { version = "0.13.0", features = ["blocking-rustls"] }
+```
+
+```rust,ignore
+use std::time::Duration;
+
+use cloud_sdk::Method;
+use cloud_sdk::transport::{BlockingTransport, RequestTarget, TransportRequest};
+use cloud_sdk_reqwest::blocking::{
+    BearerToken, BlockingClientBuilder, HttpsEndpoint, RequestTimeouts,
+    UserAgent,
+};
+
+let Ok(endpoint) = HttpsEndpoint::new("https://api.hetzner.cloud/v1") else { return };
+let Ok(token) = BearerToken::new("replace-with-scoped-token") else { return };
+let Ok(user_agent) = UserAgent::new("my-service/1.0") else { return };
+let Ok(timeouts) = RequestTimeouts::new(
+    Duration::from_secs(30),
+    Duration::from_secs(10),
+) else { return };
+let Ok(mut client) = BlockingClientBuilder::new(endpoint, token, user_agent, timeouts).build()
+else { return };
+
+let Ok(target) = RequestTarget::new("/servers?page=1") else { return };
+let request = TransportRequest::new(Method::Get, target);
+let mut response_body = [0_u8; 65_536];
+let Ok(response) = client.send(request, &mut response_body) else { return };
+
+assert!(response.status().is_success());
+```
+
+The production builder is HTTPS-only, requires explicit bounded timeouts and a
+user agent, uses rustls with TLS 1.2 minimum, and disables redirects, retries,
+proxies, referer generation, and response decompression. The caller owns token
+generation, scope, rotation, revocation, and cleanup of the original secret;
+the adapter clears only its own token and request-body storage.
 
 ## Fixed Buffer Example
 
@@ -237,7 +282,7 @@ assert_eq!(value, Some("\"line\\n\\\"quoted\\\"\""));
 | --- | --- | --- |
 | [`cloud-sdk`](https://crates.io/crates/cloud-sdk) | no | Provider-neutral domains and shared SDK foundation. |
 | [`cloud-sdk-hetzner`](https://crates.io/crates/cloud-sdk-hetzner) | no | Main Hetzner documentation and provider crate with internal `cloud`, `dns`, `security`, and `storage` modules. |
-| [`cloud-sdk-reqwest`](https://crates.io/crates/cloud-sdk-reqwest) | no | Future provider-neutral reqwest transport adapter; no transport dependency admitted yet. |
+| [`cloud-sdk-reqwest`](https://crates.io/crates/cloud-sdk-reqwest) | no | Provider-neutral optional blocking reqwest/rustls transport; transport-free by default. |
 | [`cloud-sdk-testkit`](https://crates.io/crates/cloud-sdk-testkit) | no | Provider-neutral ordered mock transport, response metadata fixtures, and adversarial corpus. |
 | [`cloud-sdk-sanitization`](https://crates.io/crates/cloud-sdk-sanitization) | no | Provider-neutral volatile caller-buffer cleanup and guarded secret buffers. |
 

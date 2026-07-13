@@ -57,7 +57,13 @@ fn bearer_tokens_are_bounded_validated_and_redacted() {
 
 #[test]
 fn endpoints_reject_authority_and_normalization_ambiguity() {
-    assert!(HttpsEndpoint::new("https://api.example.test/v1").is_ok());
+    let redacted = HttpsEndpoint::new("https://api.example.test/v1");
+    assert!(redacted.is_ok());
+    if let Ok(redacted) = redacted {
+        let debug = format!("{redacted:?}");
+        assert!(debug.contains("[redacted]"));
+        assert!(!debug.contains("api.example.test"));
+    }
     assert!(matches!(
         HttpsEndpoint::new("http://api.example.test/v1"),
         Err(EndpointError::HttpsRequired)

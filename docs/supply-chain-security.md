@@ -26,3 +26,12 @@ The first-party `sanitization` `1.2.4` crate is admitted only through
 runtime dependencies. The decision and limits are recorded in
 [`dependency-admission-sanitization.md`](dependency-admission-sanitization.md),
 and `scripts/check_sanitization_boundary.sh` enforces graph isolation.
+
+Reqwest `0.13.4` is admitted only through the non-default
+`cloud-sdk-reqwest/blocking-rustls` feature. Reqwest defaults are disabled;
+native TLS, response decompression, proxies, redirects, and retries are not
+admitted by policy. The full HTTP, Tokio, URL, rustls, platform-verifier,
+aws-lc, license, duplicate-version, and transitive-zeroize review is recorded
+in [`dependency-admission-reqwest.md`](dependency-admission-reqwest.md).
+`scripts/check_reqwest_boundary.sh` keeps reqwest outside every default graph
+and rejects direct first-party `zeroize` dependencies.

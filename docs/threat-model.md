@@ -34,6 +34,10 @@
 - authority replacement or path-normalization confusion when a future adapter
   combines untrusted request targets with an authenticated provider base URL;
 - out-of-bounds response lengths from buggy or malicious safe transports;
+- credential forwarding through redirects, proxies, normalized authorities,
+  retries, referers, or environment-derived routing;
+- decompression bombs, unbounded response reads, and timeout-free blocking;
+- secret copies retained in adapter-owned allocation after request completion;
 
 ## Controls
 
@@ -57,4 +61,9 @@
   controls, spaces, and non-ASCII before an adapter can attach credentials;
 - transport responses borrow only the initialized slice of the caller-owned
   buffer instead of trusting an independently reported numeric length;
+- optional production blocking transport requires exact HTTPS authority,
+  rustls with TLS 1.2 minimum, explicit bounded timeouts, no redirects,
+  retries, proxies, referers, or decompression, and caller-bounded responses;
+- adapter-owned bearer and request-body allocations are redacted and cleared
+  through the provider-neutral sanitization boundary;
 - pentest report before every tag.
