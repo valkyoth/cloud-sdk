@@ -6,6 +6,7 @@ from __future__ import annotations
 import importlib.util
 import os
 from pathlib import Path
+import shutil
 import stat
 import tempfile
 
@@ -107,12 +108,34 @@ def test_descriptor_hash(runner) -> None:
     assert os.execve in os.supports_fd
 
 
+def test_descriptor_execution_ignores_path_replacement(runner) -> None:
+    with tempfile.TemporaryDirectory() as temporary:
+        directory = Path(temporary)
+        executable = directory / "selected"
+        replaced = directory / "selected-before-replacement"
+        shutil.copyfile("/usr/bin/true", executable)
+        executable.chmod(0o755)
+        descriptor = os.open(executable, os.O_RDONLY)
+        runner.sha256_descriptor(descriptor)
+        executable.rename(replaced)
+        shutil.copyfile("/usr/bin/false", executable)
+        executable.chmod(0o755)
+
+        child = os.fork()
+        if child == 0:
+            runner.execute_descriptor(descriptor, "/unused-test-token")
+        os.close(descriptor)
+        _, status = os.waitpid(child, 0)
+        assert os.waitstatus_to_exitcode(status) == 0
+
+
 def main() -> None:
     runner = load_runner()
     test_manifest(runner)
     test_ownership(runner)
     test_descriptor_hash(runner)
-    print("8 live smoke runner tests passed.")
+    test_descriptor_execution_ignores_path_replacement(runner)
+    print("9 live smoke runner tests passed.")
 
 
 if __name__ == "__main__":

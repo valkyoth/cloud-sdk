@@ -111,6 +111,28 @@ def sha256_descriptor(descriptor: int) -> str:
     return digest.hexdigest()
 
 
+def execute_descriptor(artifact_descriptor: int, token_file: str) -> NoReturn:
+    os.set_inheritable(artifact_descriptor, True)
+    environment = {
+        "PATH": "/usr/bin:/bin",
+        "CLOUD_SDK_HETZNER_LIVE_MODE": "read-only",
+        TOKEN_ENV: token_file,
+    }
+    arguments = [
+        str(ARTIFACT),
+        "read_only_catalog_smoke",
+        "--exact",
+        "--ignored",
+        "--nocapture",
+        "--test-threads=1",
+    ]
+    try:
+        os.execve(artifact_descriptor, arguments, environment)
+    except OSError:
+        os.close(artifact_descriptor)
+        fail("descriptor execution failed")
+
+
 def execute() -> NoReturn:
     token_file = os.environ.get(TOKEN_ENV, "")
     destructive = os.environ.get(DESTRUCTIVE_ENV, "")
@@ -147,25 +169,7 @@ def execute() -> NoReturn:
     except (OSError, RunnerError):
         fail("installed bundle verification failed")
 
-    os.set_inheritable(artifact_descriptor, True)
-    environment = {
-        "PATH": "/usr/bin:/bin",
-        "CLOUD_SDK_HETZNER_LIVE_MODE": "read-only",
-        TOKEN_ENV: token_file,
-    }
-    arguments = [
-        str(ARTIFACT),
-        "read_only_catalog_smoke",
-        "--exact",
-        "--ignored",
-        "--nocapture",
-        "--test-threads=1",
-    ]
-    try:
-        os.execve(artifact_descriptor, arguments, environment)
-    except OSError:
-        os.close(artifact_descriptor)
-        fail("descriptor execution failed")
+    execute_descriptor(artifact_descriptor, token_file)
 
 
 if __name__ == "__main__":
