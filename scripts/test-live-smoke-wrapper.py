@@ -71,8 +71,10 @@ def initialize_repository(path: Path) -> str:
 
 def write_sealed_fixture(path: Path, commit: str) -> None:
     artifact_dir = path / "target" / "cloud-sdk-live-smoke"
-    artifact_dir.mkdir(parents=True)
+    artifact_dir.mkdir(parents=True, exist_ok=True)
     artifact = artifact_dir / "live_smoke"
+    if artifact.exists():
+        artifact.chmod(0o755)
     artifact.write_text(
         "#!/bin/sh\n"
         "test \"${CLOUD_SDK_HETZNER_LIVE_MODE:-}\" = read-only || exit 20\n"
@@ -86,6 +88,8 @@ def write_sealed_fixture(path: Path, commit: str) -> None:
     artifact.chmod(0o555)
     digest = hashlib.sha256(artifact.read_bytes()).hexdigest()
     manifest = artifact_dir / "live_smoke.manifest"
+    if manifest.exists():
+        manifest.chmod(0o644)
     manifest.write_text(
         f"format=1\ncommit={commit}\nsha256={digest}\n", encoding="ascii"
     )
@@ -109,6 +113,36 @@ def test_direct_execution() -> None:
         assert result.returncode == 0, result
         assert result.stdout == "direct execution passed\n"
         assert str(token) not in result.stdout + result.stderr
+
+        artifact = directory / "target" / "cloud-sdk-live-smoke" / "live_smoke"
+        artifact.chmod(0o755)
+        artifact.write_text(artifact.read_text(encoding="utf-8") + "# tampered\n")
+        artifact.chmod(0o555)
+        tampered = run([str(WRAPPER), "--read-only"], directory, {TOKEN_ENV: str(token)})
+        assert tampered.returncode == 1, tampered
+        assert "sealed executable verification failed" in tampered.stderr
+
+        write_sealed_fixture(directory, commit)
+        (directory / "reviewed").write_text("new commit\n", encoding="utf-8")
+        assert run(["git", "add", "reviewed"], directory).returncode == 0
+        next_commit = run(
+            [
+                "git",
+                "-c",
+                "user.name=cloud-sdk test",
+                "-c",
+                "user.email=test.invalid@example.invalid",
+                "commit",
+                "-q",
+                "-m",
+                "next",
+            ],
+            directory,
+        )
+        assert next_commit.returncode == 0, next_commit
+        stale = run([str(WRAPPER), "--read-only"], directory, {TOKEN_ENV: str(token)})
+        assert stale.returncode == 1, stale
+        assert "sealed executable verification failed" in stale.stderr
 
 
 def selector_result(messages: list[dict[str, object] | str]) -> subprocess.CompletedProcess[str]:
@@ -148,7 +182,7 @@ def main() -> None:
     assert_credential_rejected("--prepare")
     test_direct_execution()
     test_selector()
-    print("7 live smoke wrapper tests passed.")
+    print("9 live smoke wrapper tests passed.")
 
 
 if __name__ == "__main__":
