@@ -50,7 +50,8 @@ transport traits.
 ## Security Boundaries
 
 - The target argument is accepted only from a fixed allowlist.
-- Missing Rust target libraries fail before Cargo execution.
+- Missing Rust target libraries and unavailable or failing rustup commands fail
+  with distinct diagnostics before Cargo execution.
 - Cross-target checks never infer native runtime or network support.
 - The default workspace graph is rejected if reqwest, Tokio, Hyper, Tower,
   rustls, AWS-LC, Mio, socket2, or Windows bindings become active.

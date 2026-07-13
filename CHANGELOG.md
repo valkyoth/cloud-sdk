@@ -11,7 +11,8 @@
 - Added a default dependency-graph gate that rejects accidental activation of
   network, TLS, runtime, socket, and OS abstraction crates.
 - Added adversarial regression tests for target allowlisting, missing target
-  libraries, argument validation, command construction, and dependency leaks.
+  libraries, unavailable or broken rustup commands, argument validation,
+  command construction, and dependency leaks.
 - Removed transient release-candidate status from publishable READMEs and added
   a regression gate that rejects stale crates.io release-status wording.
 - Documented support tiers and explicit reqwest limitations for FreeBSD,

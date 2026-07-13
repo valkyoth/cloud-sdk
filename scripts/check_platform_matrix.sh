@@ -40,7 +40,15 @@ is_portable_target() {
 
 require_installed_target() {
     target="$1"
-    if ! rustup target list --installed | grep -Fxq "$target"; then
+    if ! command -v rustup >/dev/null 2>&1; then
+        echo "platform matrix: rustup not found on PATH" >&2
+        exit 2
+    fi
+    if ! installed_targets="$(rustup target list --installed)"; then
+        echo "platform matrix: rustup could not list installed targets" >&2
+        exit 2
+    fi
+    if ! printf '%s\n' "$installed_targets" | grep -Fxq "$target"; then
         echo "platform matrix: Rust target is not installed: $target" >&2
         echo "install it with: rustup target add $target" >&2
         exit 2

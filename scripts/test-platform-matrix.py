@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
+import shutil
 import subprocess
 import tempfile
 
@@ -93,6 +94,36 @@ def test_rejected_and_missing_targets() -> None:
         assert not log.exists()
 
 
+def test_rustup_failures() -> None:
+    with tempfile.TemporaryDirectory() as temporary:
+        directory = Path(temporary)
+        environment, log = fake_environment(directory)
+        isolated_bin = directory / "isolated-bin"
+        isolated_bin.mkdir()
+        for command in ("sh", "dirname", "grep"):
+            source = shutil.which(command)
+            assert source is not None, command
+            (isolated_bin / command).symlink_to(source)
+        environment["PATH"] = str(isolated_bin)
+        missing = run(["--portable", "x86_64-unknown-linux-gnu"], environment)
+        assert missing.returncode == 2, missing
+        assert "rustup not found on PATH" in missing.stderr
+        assert not log.exists()
+
+    with tempfile.TemporaryDirectory() as temporary:
+        directory = Path(temporary)
+        environment, log = fake_environment(directory)
+        rustup = directory / "bin" / "rustup"
+        rustup.write_text(
+            "#!/bin/sh\nprintf '%s\\n' x86_64-unknown-linux-gnu\nexit 1\n",
+            encoding="ascii",
+        )
+        broken = run(["--portable", "x86_64-unknown-linux-gnu"], environment)
+        assert broken.returncode == 2, broken
+        assert "could not list installed targets" in broken.stderr
+        assert not log.exists()
+
+
 def test_native_mode() -> None:
     with tempfile.TemporaryDirectory() as temporary:
         environment, log = fake_environment(Path(temporary))
@@ -134,10 +165,11 @@ def test_argument_validation() -> None:
 def main() -> None:
     test_portable_target()
     test_rejected_and_missing_targets()
+    test_rustup_failures()
     test_native_mode()
     test_default_dependency_boundary()
     test_argument_validation()
-    print("5 platform matrix regression groups passed.")
+    print("6 platform matrix regression groups passed.")
 
 
 if __name__ == "__main__":
