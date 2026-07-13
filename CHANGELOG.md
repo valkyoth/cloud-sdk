@@ -9,7 +9,8 @@
 - Added native full-workspace transport compilation on Linux, Windows, macOS
   ARM64, and macOS x86-64 GitHub-hosted runners.
 - Added a default dependency-graph gate that rejects accidental activation of
-  network, TLS, runtime, socket, and OS abstraction crates.
+  network, TLS, runtime, socket, and OS abstraction crates across default
+  features and all target-specific dependency branches.
 - Added adversarial regression tests for target allowlisting, missing target
   libraries, unavailable or broken rustup commands, argument validation,
   command construction, and dependency leaks.

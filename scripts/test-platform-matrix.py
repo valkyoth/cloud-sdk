@@ -137,20 +137,27 @@ def test_native_mode() -> None:
 def test_default_dependency_boundary() -> None:
     with tempfile.TemporaryDirectory() as temporary:
         directory = Path(temporary)
-        environment, _ = fake_environment(directory)
+        environment, log = fake_environment(directory)
         accepted = run(["--default-boundary"], environment)
         assert accepted.returncode == 0, accepted
+        assert log.read_text(encoding="ascii").splitlines() == [
+            "tree --locked --workspace --target all --edges normal --prefix none"
+        ]
 
     with tempfile.TemporaryDirectory() as temporary:
         directory = Path(temporary)
-        environment, _ = fake_environment(
+        environment, log = fake_environment(
             directory,
-            tree="cloud-sdk v0.20.0\nreqwest v0.13.4\nrustls v0.23.42",
+            tree="cloud-sdk v0.20.0\nreqwest v0.13.4\nwindows-sys v0.61.2",
         )
         rejected = run(["--default-boundary"], environment)
         assert rejected.returncode == 1, rejected
         assert "default features activate" in rejected.stderr
         assert "reqwest v0.13.4" in rejected.stderr
+        assert "windows-sys v0.61.2" in rejected.stderr
+        assert log.read_text(encoding="ascii").splitlines() == [
+            "tree --locked --workspace --target all --edges normal --prefix none"
+        ]
 
 
 def test_argument_validation() -> None:

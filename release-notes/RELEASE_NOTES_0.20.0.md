@@ -53,8 +53,8 @@ transport traits.
 - Missing Rust target libraries and unavailable or failing rustup commands fail
   with distinct diagnostics before Cargo execution.
 - Cross-target checks never infer native runtime or network support.
-- The default workspace graph is rejected if reqwest, Tokio, Hyper, Tower,
-  rustls, AWS-LC, Mio, socket2, or Windows bindings become active.
+- The all-target default-feature workspace graph is rejected if a network,
+  TLS, runtime, socket, native system, or OS binding dependency becomes active.
 - Regression tests cover unknown targets, missing targets, extra arguments,
   exact command construction, native mode, and forbidden dependencies.
 - Publishable READMEs use immutable release wording; validation rejects

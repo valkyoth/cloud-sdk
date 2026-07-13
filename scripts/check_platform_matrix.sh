@@ -81,10 +81,10 @@ check_native() {
 
 check_default_boundary() {
     dependency_tree="$(
-        cargo tree --locked --workspace --no-default-features \
+        cargo tree --locked --workspace --target all \
             --edges normal --prefix none
     )"
-    forbidden='^(reqwest|tokio|hyper|hyper-util|tower|tower-http|rustls|rustls-platform-verifier|aws-lc-rs|aws-lc-sys|mio|socket2|windows-sys) v'
+    forbidden='^(reqwest|tokio|hyper|hyper-util|tower|tower-http|rustls|rustls-platform-verifier|aws-lc-rs|aws-lc-sys|mio|socket2|windows([_-].*)?|native-tls|openssl|openssl-sys|schannel|security-framework|web-sys|wasm-bindgen|libc|getrandom) v'
     if printf '%s\n' "$dependency_tree" | grep -Eq "$forbidden"; then
         echo "platform matrix: default features activate an OS or transport dependency" >&2
         printf '%s\n' "$dependency_tree" | grep -E "$forbidden" >&2

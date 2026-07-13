@@ -85,11 +85,12 @@ The local and CI check gate runs:
 scripts/check_platform_matrix.sh --default-boundary
 ```
 
-It inspects the normal default-feature workspace graph and fails if reqwest,
-Tokio, Hyper, Tower, rustls, AWS-LC, Mio, socket2, or Windows system bindings
-appear. Regression tests prove that unknown targets, missing target libraries,
-extra arguments, and forbidden default dependencies fail closed before a
-platform claim is accepted.
+It inspects the normal default-feature workspace graph for all target-specific
+dependency branches and fails if a network, TLS, runtime, socket, native
+system, or OS binding dependency appears. Regression tests bind validation to
+the exact all-target Cargo command and prove that unknown targets, missing
+target libraries, extra arguments, and forbidden default dependencies fail
+closed before a platform claim is accepted.
 
 ## Transport Selection
 
