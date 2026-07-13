@@ -28,6 +28,10 @@ Pinned release tools, checked against crates.io on 2026-07-12:
 | `cargo-audit` | `0.22.2` |
 | `cargo-sbom` | `0.10.0` |
 
+SBOM freshness checks also require `jq` `1.6` or newer. CI uses the runner's
+system package; the canonicalization filter is covered by repository tests and
+uses no version-specific behavior beyond stable sorting and key deletion.
+
 Before changing the pinned toolchain, check the current stable Rust release and
 update this document, `README.md`, and `rust-toolchain.toml` together.
 

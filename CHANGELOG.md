@@ -13,6 +13,8 @@
   HTTP/2/Hickory feature-unification regression fixture.
 - Added independent policy, advisory, and SPDX SBOM gates for the standalone
   feature-unification fixture lockfile.
+- Added canonical CI and release-gate comparisons that reject stale committed
+  SBOM evidence while ignoring only generator metadata and array ordering.
 - Added redacted bearer-token ownership, sanitized adapter-owned request
   bodies, bounded response reads, payload-free failures, and failure cleanup.
 - Added deterministic loopback security tests, dependency admission evidence,

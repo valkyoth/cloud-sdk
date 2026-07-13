@@ -12,6 +12,7 @@ scripts/check_testkit_boundary.sh
 scripts/check_reqwest_boundary.sh
 scripts/validate-release-metadata.sh
 scripts/test-release-readiness.sh
+scripts/test-sbom-freshness.sh
 scripts/check_iana_ipv6_registry.py --local-only
 scripts/test-iana-ipv6-registry.py
 scripts/check_hetzner_api_drift.py --local-only

@@ -80,5 +80,5 @@ jobs:
           cargo audit --no-fetch \
             --file tests/reqwest-feature-unification/Cargo.lock
 
-      - name: Generate SBOM
-        run: scripts/generate-sbom.sh
+      - name: Check committed SBOM freshness
+        run: scripts/check_sbom_freshness.sh

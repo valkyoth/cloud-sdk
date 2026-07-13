@@ -59,6 +59,8 @@ A version is not tag-ready until:
 - `cargo deny check` passes;
 - `cargo audit` passes;
 - `scripts/generate-sbom.sh` succeeds;
+- `scripts/check_sbom_freshness.sh` proves both committed SBOMs match their
+  current dependency graphs;
 - release notes exist at `release-notes/RELEASE_NOTES_X.Y.Z.md`;
 - a pentest report exists at `security/pentest/vX.Y.Z.md`;
 - the pentest report names the exact full 40-character `Reviewed-Commit:`;
@@ -688,6 +690,7 @@ Verification:
 - `cargo test -p cloud-sdk-reqwest --all-features`
 - fixture-scoped `cargo deny` and `cargo audit` checks;
 - production and feature-unification SPDX SBOM generation;
+- canonical committed-SBOM freshness comparison;
 - `cargo tree -p cloud-sdk-hetzner --no-default-features`
 - `scripts/release_0_16_gate.sh` once added.
 

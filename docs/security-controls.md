@@ -7,7 +7,7 @@
 | default transport dependency | none |
 | default token storage | none |
 | dependency policy | active |
-| SBOM generation | scripted for the production workspace and standalone executable test/tooling graphs |
+| SBOM generation | scripted for the production workspace and standalone executable test/tooling graphs; canonical freshness comparison is required in CI and release gates |
 | cargo audit | required before tags |
 | cargo deny | required before tags |
 | pentest before tags | required |

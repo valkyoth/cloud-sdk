@@ -14,6 +14,9 @@ Dependencies are denied by default until reviewed. New dependencies require:
 Release gates require `cargo deny check`, `cargo audit`, and an SBOM before
 tagging. Standalone test/tooling workspaces compiled by release CI require
 their own locked policy check, advisory audit, and SBOM.
+`scripts/check_sbom_freshness.sh` regenerates both inventories and compares
+canonical content with the committed evidence. It ignores only the generated
+creation timestamp, random document namespace, and array ordering.
 
 Serde `1.0.228` is the first admitted optional third-party normal dependency.
 Its defaults are disabled and its `alloc` and `derive` features are enabled only

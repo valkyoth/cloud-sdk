@@ -52,6 +52,8 @@ tests, token generation, or secret-manager integration.
   verify runtime policy remains frozen under downstream feature unification.
 - The fixture's separate dependency graph receives independent advisory,
   license, source, audit, and SPDX SBOM verification in release CI.
+- CI and the release gate regenerate both SBOMs and reject canonical content
+  drift from the committed release evidence.
 
 ## Version Plan
 
@@ -69,6 +71,8 @@ tests, token generation, or secret-manager integration.
 - `cargo test --workspace --all-features`
 - `cargo test -p cloud-sdk-reqwest --all-features`
 - `scripts/check_reqwest_boundary.sh`
+- `scripts/check_sbom_freshness.sh`
+- `scripts/test-sbom-freshness.sh`
 - `scripts/check_rust_version_matrix.sh`
 - `scripts/test-release-readiness.sh`
 - `scripts/test-release-crates.py`
