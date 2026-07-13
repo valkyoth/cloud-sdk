@@ -22,7 +22,8 @@ tests, token generation, or secret-manager integration.
 - Owned redacted bearer authorization with adapter-owned volatile cleanup.
 - Required user-agent, total-timeout, and connect-timeout configuration.
 - Hardened reqwest client policy using rustls, TLS 1.2 minimum, no redirects,
-  no retries, no proxies, no referer, and no response decompression.
+  no retries, no proxies, no referer, no response decompression, HTTP/1 only,
+  and the system resolver only.
 - Sized sanitized request-body copies and caller-bounded response reads.
 - Payload-free transport failures and response-buffer cleanup on every error.
 - Deterministic loopback tests for exact wire output, status handling,
@@ -37,7 +38,8 @@ tests, token generation, or secret-manager integration.
 - Encoded structural path bytes and URL normalization changes are rejected
   before attaching authorization.
 - Bearer tokens, request bodies, request targets, response bodies, endpoints,
-  and transport errors are redacted or payload-free as appropriate.
+  content types, and transport errors are redacted or payload-free as
+  appropriate.
 - Adapter-owned token and request-body storage uses
   `cloud-sdk-sanitization`; direct first-party `zeroize` use is forbidden.
 - Rustls internally depends on `zeroize`; this transitive TLS implementation
@@ -46,6 +48,8 @@ tests, token generation, or secret-manager integration.
   revocation, and cleanup of their original secret storage.
 - No redirect, retry, proxy, decompression, or environment-derived routing can
   silently alter an authenticated request.
+- A locked non-published fixture enables reqwest HTTP/2 and Hickory DNS to
+  verify runtime policy remains frozen under downstream feature unification.
 
 ## Version Plan
 

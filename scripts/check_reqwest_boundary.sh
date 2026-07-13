@@ -48,15 +48,15 @@ if printf '%s\n' "$blocking_tree" | grep -Eq \
 fi
 
 legacy_windows_tree=$(cargo tree -p cloud-sdk-reqwest --no-default-features \
-    --features blocking-rustls --target all --edges normal -i windows-sys@0.52.0)
-if ! printf '%s\n' "$legacy_windows_tree" | grep -Fq \
-    'rustls-platform-verifier v0.7.0'; then
-    echo "reqwest boundary: remove the obsolete windows-sys 0.52 deny exception" >&2
+    --features blocking-rustls --target all --edges normal \
+    -i windows-sys@0.52.0 2>/dev/null || true)
+if printf '%s\n' "$legacy_windows_tree" | grep -Fq 'windows-sys v0.52.0'; then
+    echo "reqwest boundary: legacy windows-sys 0.52 re-entered the active graph" >&2
     exit 1
 fi
 
 feature_tree=$(cargo tree -p cloud-sdk-reqwest --no-default-features \
-    --features blocking-rustls --edges features -i reqwest)
+    --features blocking-rustls --edges features,no-dev -i reqwest)
 for feature in 'reqwest feature "blocking"' 'reqwest feature "rustls"'; do
     if ! printf '%s\n' "$feature_tree" | grep -Fq "$feature"; then
         echo "reqwest boundary: required $feature is missing" >&2
@@ -64,11 +64,20 @@ for feature in 'reqwest feature "blocking"' 'reqwest feature "rustls"'; do
     fi
 done
 if printf '%s\n' "$feature_tree" | grep -Eq \
-    'reqwest feature "(default|native-tls|gzip|brotli|zstd|deflate|cookies|json|multipart|socks)"'; then
+    'reqwest feature "(default|native-tls|gzip|brotli|zstd|deflate|cookies|hickory-dns|http2|json|multipart|socks)"'; then
     echo "reqwest boundary: unreviewed reqwest feature entered graph" >&2
     printf '%s\n' "$feature_tree" >&2
     exit 1
 fi
+
+adversarial_tree=$(cargo tree --manifest-path tests/reqwest-feature-unification/Cargo.toml \
+    --locked --edges features -i reqwest)
+for feature in 'reqwest feature "hickory-dns"' 'reqwest feature "http2"'; do
+    if ! printf '%s\n' "$adversarial_tree" | grep -Fq "$feature"; then
+        echo "reqwest boundary: adversarial test graph is missing $feature" >&2
+        exit 1
+    fi
+done
 
 for package in cloud-sdk cloud-sdk-hetzner; do
     package_tree=$(cargo tree -p "$package" --no-default-features --edges normal)
@@ -85,6 +94,9 @@ fi
 
 for policy in \
     '.build_inner(true)' \
+    '.tls_backend_rustls()' \
+    '.http1_only()' \
+    '.no_hickory_dns()' \
     '.min_tls_version(Version::TLS_1_2)' \
     '.redirect(Policy::none())' \
     '.retry(reqwest::retry::never())' \
@@ -103,6 +115,10 @@ done
 cargo check -p cloud-sdk-reqwest --no-default-features
 cargo check -p cloud-sdk-reqwest --no-default-features --features std
 cargo test -p cloud-sdk-reqwest --all-features
+cargo fmt --manifest-path tests/reqwest-feature-unification/Cargo.toml -- --check
+cargo clippy --manifest-path tests/reqwest-feature-unification/Cargo.toml \
+    --locked --all-targets -- -D warnings
+cargo test --manifest-path tests/reqwest-feature-unification/Cargo.toml --locked
 cargo package -p cloud-sdk-reqwest --allow-dirty --features blocking-rustls \
     --config 'patch.crates-io.cloud-sdk.path="crates/cloud-sdk"' \
     --config 'patch.crates-io.cloud-sdk-sanitization.path="crates/cloud-sdk-sanitization"'

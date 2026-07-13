@@ -23,9 +23,15 @@ pub enum ContentTypeError {
 }
 
 /// Borrowed, validated HTTP content type.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Eq, PartialEq)]
 pub struct ContentType<'a> {
     value: &'a str,
+}
+
+impl fmt::Debug for ContentType<'_> {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.write_str("ContentType([redacted])")
+    }
 }
 
 impl<'a> ContentType<'a> {
@@ -380,12 +386,16 @@ mod tests {
     fn transport_request_debug_redacts_target_and_body() {
         let target = RequestTarget::new("/servers?token=secret");
         if let Ok(target) = target {
+            let content_type = ContentType::new("application/x-private; token=secret-content");
+            assert!(content_type.is_ok());
             let request = TransportRequest::new(Method::Post, target).with_body(b"secret-body");
+            let request = content_type.map_or(request, |value| request.with_content_type(value));
             let mut debug = DebugBuffer::new();
             assert!(write!(&mut debug, "{request:?}").is_ok());
             let debug = debug.as_str();
             assert!(debug.contains("[redacted]"));
             assert!(!debug.contains("secret"));
+            assert!(!debug.contains("application/x-private"));
         }
     }
 

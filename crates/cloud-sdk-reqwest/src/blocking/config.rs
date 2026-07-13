@@ -151,8 +151,10 @@ fn configured_client(
     https_only: bool,
 ) -> Result<Client, BuildError> {
     Client::builder()
-        .use_rustls_tls()
+        .tls_backend_rustls()
         .https_only(https_only)
+        .http1_only()
+        .no_hickory_dns()
         .min_tls_version(Version::TLS_1_2)
         .redirect(Policy::none())
         .retry(reqwest::retry::never())

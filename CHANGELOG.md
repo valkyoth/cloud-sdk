@@ -7,7 +7,10 @@
 - Added the first hardened provider-neutral blocking reqwest adapter behind
   the non-default `blocking-rustls` feature.
 - Required HTTPS, rustls with TLS 1.2 minimum, explicit timeouts and user
-  agent, no redirects, no retries, no proxies, and no response decompression.
+  agent, HTTP/1, system DNS, no redirects, no retries, no proxies, and no
+  response decompression.
+- Redacted content-type parameters and added an isolated downstream reqwest
+  HTTP/2/Hickory feature-unification regression fixture.
 - Added redacted bearer-token ownership, sanitized adapter-owned request
   bodies, bounded response reads, payload-free failures, and failure cleanup.
 - Added deterministic loopback security tests, dependency admission evidence,

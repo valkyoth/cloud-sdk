@@ -91,6 +91,8 @@ assert_eq!(request.content_type(), Some(ContentType::JSON));
 - Rustls with TLS 1.2 minimum and platform certificate verification.
 - Explicit total and connect timeouts, each nonzero and at most 300 seconds.
 - Explicit validated user agent and bounded bearer token.
+- HTTP/1 and the system resolver are forced even under downstream reqwest
+  HTTP/2 or Hickory DNS feature unification.
 - No redirects, automatic retries, proxies, referer generation, or response
   decompression.
 - Exact scheme, host, and port preservation after target composition.

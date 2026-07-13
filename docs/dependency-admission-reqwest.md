@@ -20,11 +20,9 @@ default features disabled.
 The exact complete graph is pinned by `Cargo.lock`, checked by `cargo deny`,
 and recorded in the generated SBOM. All admitted licenses satisfy
 `deny.toml`. The rustls trust-root data requires `CDLA-Permissive-2.0`, which
-is explicitly admitted. `windows-sys` `0.52.0` is a narrow duplicate exception
-because rustls platform verification has not yet converged on the `0.61` line
-used by Tokio and rustls-native-certs. The reqwest boundary gate fails when
-that legacy platform-verifier path disappears so the exception cannot remain
-silently.
+is explicitly admitted. No duplicate-version exception is active for the
+transport graph; the boundary rejects legacy `windows-sys` `0.52.0` if it
+becomes reachable again.
 
 Aws-lc-sys introduces the workspace's first native dependency build script. It
 invokes a C/CMake toolchain to compile vendored C and assembly cryptographic
@@ -57,6 +55,10 @@ Reqwest default features are disabled. Native TLS, cookies, JSON, multipart,
 SOCKS, system proxy discovery, redirects, retries, referer generation, and
 response decompression are not admitted. Async APIs are not exposed by this
 release, although reqwest's blocking implementation internally uses Tokio.
+HTTP/2 and Hickory DNS are also absent from the production feature graph. A
+separate locked, non-published test fixture deliberately enables both on the
+same reqwest instance to exercise Cargo feature unification against the
+runtime overrides.
 
 ## Client Policy
 
@@ -66,6 +68,8 @@ Production builders enforce:
 - rustls with TLS 1.2 as the minimum protocol version;
 - platform trust-store certificate verification;
 - no invalid-certificate or invalid-hostname bypass;
+- HTTP/1 only, even if another dependency enables reqwest HTTP/2;
+- the system resolver, even if another dependency enables reqwest Hickory DNS;
 - no redirects and no automatic retries;
 - no proxy use or environment proxy discovery;
 - no gzip, Brotli, Zstandard, or deflate response decompression;
@@ -123,7 +127,8 @@ does not enable this std adapter.
 `scripts/check_reqwest_boundary.sh` verifies the exact top-level versions,
 default and std graph isolation, required and forbidden reqwest features,
 absence of native TLS and decompression dependencies, direct-zeroize
-exclusion, hardened builder policy, focused tests, and package verification.
+exclusion, hardened builder policy, adversarial HTTP/2/Hickory feature
+unification, focused tests, and package verification.
 The v0.16 release gate additionally runs the full workspace checks, MSRV
 matrix, cargo-deny, cargo-audit, upstream API drift checks, and pentest evidence
 validation.

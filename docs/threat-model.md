@@ -40,6 +40,8 @@
 - secret copies retained in adapter-owned allocation after request completion;
 - compromised or attacker-extended host trust stores silently validating a
   hostile TLS endpoint;
+- downstream Cargo feature unification silently enabling a different DNS
+  resolver or broader HTTP protocol parser;
 
 ## Controls
 
@@ -68,6 +70,8 @@
   retries, proxies, referers, or decompression, and caller-bounded responses;
 - platform trust-store use is explicit; v0.16 does not claim root, certificate,
   or public-key pinning;
+- the blocking client forces HTTP/1 and disables Hickory DNS at runtime; a
+  locked external fixture tests both downstream reqwest features unified;
 - adapter-owned bearer and request-body allocations are redacted and cleared
   through the provider-neutral sanitization boundary;
 - pentest report before every tag.

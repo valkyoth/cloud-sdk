@@ -1,0 +1,12 @@
+[package]
+name = "cloud-sdk-reqwest-feature-unification-test"
+version = "0.0.0"
+edition = "2024"
+rust-version = "1.90"
+publish = false
+
+[workspace]
+
+[dependencies]
+cloud-sdk-reqwest = { path = "../../crates/cloud-sdk-reqwest", features = ["blocking-rustls"] }
+reqwest = { version = "=0.13.4", default-features = false, features = ["hickory-dns", "http2"] }

@@ -235,9 +235,11 @@ assert!(response.status().is_success());
 
 The production builder is HTTPS-only, requires explicit bounded timeouts and a
 user agent, uses rustls with TLS 1.2 minimum, and disables redirects, retries,
-proxies, referer generation, and response decompression. The caller owns token
-generation, scope, rotation, revocation, and cleanup of the original secret;
-the adapter clears only its own token and request-body storage.
+proxies, referer generation, and response decompression. It forces HTTP/1 and
+the system resolver even if another dependency enables reqwest HTTP/2 or
+Hickory DNS. The caller owns token generation, scope, rotation, revocation,
+and cleanup of the original secret; the adapter clears only its own token and
+request-body storage.
 
 ## Fixed Buffer Example
 
