@@ -8,11 +8,13 @@ import csv
 import hashlib
 import json
 import os
+import ssl
 import stat
 import sys
 import tempfile
 import time
 import urllib.request
+from urllib.parse import urlsplit
 from pathlib import Path
 from typing import Any
 
@@ -187,11 +189,22 @@ def read_bounded_response(
     return bytes(data)
 
 
+def validate_fetch_response(response: Any, expected_url: str, api: str) -> None:
+    final_url = response.geturl()
+    if not isinstance(final_url, str) or urlsplit(final_url).scheme.lower() != "https":
+        raise SystemExit(f"{api} spec download resolved to a non-HTTPS URL")
+    if final_url != expected_url:
+        raise SystemExit(f"{api} spec download redirected away from its pinned URL")
+
+
 def fetch_spec(api: str, directory: Path) -> Path:
     target = directory / f"{api}.spec.json"
     with urllib.request.urlopen(
-        SPECS[api], timeout=FETCH_CONNECT_TIMEOUT_SECONDS
+        SPECS[api],
+        timeout=FETCH_CONNECT_TIMEOUT_SECONDS,
+        context=ssl.create_default_context(),
     ) as response:
+        validate_fetch_response(response, SPECS[api], api)
         payload = read_bounded_response(response, api)
     target.write_bytes(payload)
     print(f"{api} spec sha256: {hashlib.sha256(payload).hexdigest()}")

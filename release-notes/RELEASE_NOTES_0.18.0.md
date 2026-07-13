@@ -17,6 +17,8 @@ no_std, allocation-free, runtime-neutral, clock-free, and transport-neutral.
   exact decoded entry count.
 - Repeated or unexpected pages, contradictory navigation, empty non-terminal
   pages, zero page values, and page-limit exhaustion fail without advancing.
+- Advertised previous and next pages must be exactly adjacent to the current
+  page; checked arithmetic rejects gaps and page-number overflow.
 - Every accepted `PageBoundary` exposes page metadata, decoded entry count,
   terminal state, and optional response rate-limit metadata.
 - Hetzner's optional Serde boundary extracts strict `meta.pagination` fields
@@ -45,6 +47,13 @@ no_std, allocation-free, runtime-neutral, clock-free, and transport-neutral.
   header sets fail before a response body is exposed as successful.
 - Testkit fixtures can attach coherent rate-limit metadata to paginated,
   action, success, error, or `429` responses.
+
+## Release Source Integrity
+
+- Live Hetzner and IANA drift checks use explicit default validating TLS
+  contexts and require exact pinned HTTPS URLs without redirects.
+- Bounded response bytes must match pinned SHA-256 digests before OpenAPI JSON
+  or registry CSV parsing begins.
 
 ## Version Plan
 

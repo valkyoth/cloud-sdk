@@ -14,8 +14,8 @@
 | pentest content binding | final release commit changes only `security/pentest/vX.Y.Z.md` from its direct reviewed parent |
 | pentest provenance | committed report with required PASS, reviewed commit, tester, scope, and date fields |
 | release publishing | readiness and the complete release gate require one clean unchanged `HEAD` at entry and exit; signed annotated tag must verify; no normal-path bypass flags |
-| OpenAPI integrity | full pinned SHA-256 before parsing, with size/time ceilings and no-follow descriptor reads for local inputs |
-| public IPv6 targets | conservative IANA allocation allowlist pinned in `docs/IANA_IPV6_SOURCE_LOCK.md`; live registry drift is release-gated |
+| OpenAPI integrity | exact non-redirecting HTTPS source URL with default certificate and hostname verification; full pinned SHA-256 before parsing; size/time ceilings and no-follow descriptor reads for local inputs |
+| public IPv6 targets | conservative IANA allocation allowlist pinned in `docs/IANA_IPV6_SOURCE_LOCK.md`; live registry drift uses exact non-redirecting HTTPS URLs, bounded downloads, and digest-before-parse authentication |
 | secret buffer failure | JSON writes preflight capacity and leave undersized buffers unchanged |
 | secret buffer cleanup | `cloud-sdk-sanitization::SecretBuffer` volatile-clears the full caller-owned destination on drop |
 | private-key output | escaped atomic writer only; no raw accessor or ordinary equality; guarded cleanup tested |

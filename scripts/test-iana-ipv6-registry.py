@@ -26,6 +26,14 @@ def load_checker():
 checker = load_checker()
 
 
+class FetchResponse:
+    def __init__(self, url: str) -> None:
+        self.url = url
+
+    def geturl(self) -> str:
+        return self.url
+
+
 def assert_exits(expected: str, function, *args, **kwargs) -> None:
     try:
         function(*args, **kwargs)
@@ -84,6 +92,27 @@ def test_bounded_reader_rejects_total_timeout() -> None:
     )
 
 
+def test_fetch_response_requires_exact_https_url() -> None:
+    expected = checker.REGISTRIES["global-unicast"][0]
+    checker.validate_fetch_response(
+        FetchResponse(expected), expected, "global-unicast"
+    )
+    assert_exits(
+        "non-HTTPS URL",
+        checker.validate_fetch_response,
+        FetchResponse("http://www.iana.org/registry.csv"),
+        expected,
+        "global-unicast",
+    )
+    assert_exits(
+        "redirected away",
+        checker.validate_fetch_response,
+        FetchResponse("https://example.invalid/registry.csv"),
+        expected,
+        "global-unicast",
+    )
+
+
 def test_local_lock_matches_rust_policy() -> None:
     if checker.validate_local() != 0:
         raise AssertionError("local IANA lock does not match Rust policy")
@@ -117,6 +146,7 @@ def main() -> None:
         test_bounded_reader_accepts_exact_limit,
         test_bounded_reader_rejects_oversize,
         test_bounded_reader_rejects_total_timeout,
+        test_fetch_response_requires_exact_https_url,
         test_local_lock_matches_rust_policy,
         test_registry_is_authenticated_before_parsing,
         test_rust_policy_rejects_unrepresentable_prefixes,

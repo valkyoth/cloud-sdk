@@ -13,6 +13,10 @@
 - Added strict reusable Hetzner `meta.pagination` parsing and action response
   conversion for the provider-neutral helpers.
 - Corrected the source-locked Hetzner page default and maximum to 25 and 50.
+- Required advertised previous and next page numbers to be exactly adjacent.
+- Hardened live release drift fetches with explicit validating TLS contexts,
+  exact non-redirecting HTTPS URLs, and regression tests for downgrade and
+  redirect rejection before reading response data.
 - Prepared independent v0.18 crate versions, release notes, and release gate.
 
 ## 0.17.0 - 2026-07-13

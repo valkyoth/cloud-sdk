@@ -11,9 +11,9 @@ pub enum PaginationError {
     PerPageZero,
     /// The caller-selected page limit must be nonzero.
     PageLimitZero,
-    /// The previous-page link is not before the current page.
+    /// The previous-page link is not immediately before the current page.
     InvalidPreviousPage,
-    /// The next-page link is not after the current page.
+    /// The next-page link is not immediately after the current page.
     InvalidNextPage,
     /// The last page is before the current or next page.
     InvalidLastPage,
@@ -91,15 +91,21 @@ impl PageMetadata {
         if per_page == 0 {
             return Err(PaginationError::PerPageZero);
         }
-        if let Some(previous) = previous_page
-            && previous.0 >= page.0
-        {
-            return Err(PaginationError::InvalidPreviousPage);
+        if let Some(previous) = previous_page {
+            let Some(expected) = page.0.checked_sub(1) else {
+                return Err(PaginationError::InvalidPreviousPage);
+            };
+            if previous.0 != expected {
+                return Err(PaginationError::InvalidPreviousPage);
+            }
         }
-        if let Some(next) = next_page
-            && next.0 <= page.0
-        {
-            return Err(PaginationError::InvalidNextPage);
+        if let Some(next) = next_page {
+            let Some(expected) = page.0.checked_add(1) else {
+                return Err(PaginationError::InvalidNextPage);
+            };
+            if next.0 != expected {
+                return Err(PaginationError::InvalidNextPage);
+            }
         }
         if let Some(last) = last_page {
             if last.0 < page.0 {

@@ -35,6 +35,11 @@ fingerprints, and changed component schemas. It strips prose-only OpenAPI fields
 such as descriptions and examples before hashing so documentation copy changes
 do not create release noise.
 
+Live fetches use Python's default certificate- and hostname-validating TLS
+context, require the response to remain at the exact pinned HTTPS URL without a
+redirect, and enforce connection, total-time, and 32 MiB limits. The complete
+download must match its pinned SHA-256 before JSON parsing or fingerprint use.
+
 When an upstream change is accepted, first update the pinned spec hashes in this
 document and in the drift checker. Then refresh the fingerprints intentionally:
 
@@ -155,10 +160,11 @@ default `per_page` of 25, and a maximum of 50 unless an operation explicitly
 states otherwise. Paginated JSON object responses include
 `meta.pagination`; `previous_page`, `next_page`, `last_page`, and
 `total_entries` are required nullable fields. The SDK rejects omitted fields,
-zero pages, page sizes outside `1..=50`, backwards or repeated navigation, a
+zero pages, page sizes outside `1..=50`, non-adjacent or repeated navigation, a
 next page beyond the known last page, and empty pages that still advertise a
-continuation. A caller-selected hard page limit remains mandatory even when
-the provider supplies a last page.
+continuation. Advertised previous and next pages must equal `page - 1` and
+`page + 1` respectively, with checked arithmetic. A caller-selected hard page
+limit remains mandatory even when the provider supplies a last page.
 
 Actions remain `running` until the provider reports `success` or `error`.
 Polling frequency is intentionally caller-owned because the official source

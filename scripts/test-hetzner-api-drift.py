@@ -27,6 +27,14 @@ def load_checker():
 checker = load_checker()
 
 
+class FetchResponse:
+    def __init__(self, url: str) -> None:
+        self.url = url
+
+    def geturl(self) -> str:
+        return self.url
+
+
 def assert_exits(expected: str, function, *args, **kwargs) -> None:
     try:
         function(*args, **kwargs)
@@ -63,6 +71,25 @@ def test_bounded_reader_rejects_total_timeout() -> None:
         io.BytesIO(b"{}"),
         "cloud",
         monotonic=lambda: next(ticks),
+    )
+
+
+def test_fetch_response_requires_exact_https_url() -> None:
+    expected = checker.SPECS["cloud"]
+    checker.validate_fetch_response(FetchResponse(expected), expected, "cloud")
+    assert_exits(
+        "non-HTTPS URL",
+        checker.validate_fetch_response,
+        FetchResponse("http://docs.hetzner.cloud/cloud.spec.json"),
+        expected,
+        "cloud",
+    )
+    assert_exits(
+        "redirected away",
+        checker.validate_fetch_response,
+        FetchResponse("https://example.invalid/cloud.spec.json"),
+        expected,
+        "cloud",
     )
 
 
@@ -117,6 +144,7 @@ def main() -> None:
         test_bounded_reader_accepts_exact_limit,
         test_bounded_reader_rejects_oversize_response,
         test_bounded_reader_rejects_total_timeout,
+        test_fetch_response_requires_exact_https_url,
         test_load_specs_authenticates_before_parsing,
         test_local_reader_rejects_oversize_before_reading,
         test_local_reader_rejects_symlink,

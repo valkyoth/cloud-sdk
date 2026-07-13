@@ -88,11 +88,23 @@ fn validates_provider_navigation_metadata() {
         Err(PaginationError::InvalidNextPage)
     );
     assert_eq!(
+        PageMetadata::new(page(2), 25, None, Some(page(4)), Some(page(4)), None),
+        Err(PaginationError::InvalidNextPage)
+    );
+    assert_eq!(
         PageMetadata::new(page(2), 25, Some(page(2)), None, None, None),
         Err(PaginationError::InvalidPreviousPage)
     );
     assert_eq!(
-        PageMetadata::new(page(2), 25, None, Some(page(4)), Some(page(3)), None),
+        PageMetadata::new(page(3), 25, Some(page(1)), None, None, None),
+        Err(PaginationError::InvalidPreviousPage)
+    );
+    assert_eq!(
+        PageMetadata::new(page(u64::MAX), 25, None, Some(page(1)), None, None),
+        Err(PaginationError::InvalidNextPage)
+    );
+    assert_eq!(
+        PageMetadata::new(page(2), 25, None, Some(page(3)), Some(page(2)), None),
         Err(PaginationError::InvalidLastPage)
     );
 }

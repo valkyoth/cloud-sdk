@@ -56,3 +56,8 @@ scripts/check_iana_ipv6_registry.py --fetch
 The live check is intentionally fail-closed. Any changed registry digest,
 allocation row, or required special-purpose range requires manual policy
 review before the pinned hashes and prefix lock are updated.
+
+Live fetches use Python's default certificate- and hostname-validating TLS
+context, require the response to remain at the exact pinned HTTPS URL without a
+redirect, and enforce connection, total-time, and 1 MiB limits. CSV parsing
+begins only after the complete payload matches its pinned SHA-256.

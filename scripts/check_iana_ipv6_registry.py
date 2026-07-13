@@ -9,9 +9,11 @@ import hashlib
 import io
 import ipaddress
 import re
+import ssl
 import sys
 import time
 import urllib.request
+from urllib.parse import urlsplit
 from pathlib import Path
 from typing import Any
 
@@ -177,10 +179,25 @@ def read_bounded_response(
             raise SystemExit(f"{registry} registry exceeds {max_bytes} bytes")
 
 
+def validate_fetch_response(response: Any, expected_url: str, registry: str) -> None:
+    final_url = response.geturl()
+    if not isinstance(final_url, str) or urlsplit(final_url).scheme.lower() != "https":
+        raise SystemExit(f"{registry} registry download resolved to a non-HTTPS URL")
+    if final_url != expected_url:
+        raise SystemExit(
+            f"{registry} registry download redirected away from its pinned URL"
+        )
+
+
 def fetch_registry(name: str) -> bytes:
     url, _ = REGISTRIES[name]
     try:
-        with urllib.request.urlopen(url, timeout=CONNECT_TIMEOUT_SECONDS) as response:
+        with urllib.request.urlopen(
+            url,
+            timeout=CONNECT_TIMEOUT_SECONDS,
+            context=ssl.create_default_context(),
+        ) as response:
+            validate_fetch_response(response, url, name)
             return read_bounded_response(response, name)
     except OSError as error:
         raise SystemExit(f"could not fetch {name} registry: {error}") from error

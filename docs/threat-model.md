@@ -91,7 +91,11 @@
 - rate-limit headers are parsed as a strict all-or-none decimal set and
   validated before transport metadata is exposed;
 - pagination requires a caller-selected hard page limit, exact expected-page
-  transitions, nonempty continuation pages, and provider-validated navigation;
+  transitions, adjacent advertised navigation, nonempty continuation pages,
+  and provider-validated navigation;
+- release drift fetches require exact non-redirecting HTTPS URLs under the
+  default validating TLS context, bounded downloads, and pinned digest
+  verification before parsing;
 - action polling rejects progress regression and zero-delay loops, preserves
   terminal provider failures, and delegates delay, timeout, and cancellation
   to caller policy without owning a clock or retry loop;
