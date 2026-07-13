@@ -8,6 +8,7 @@ import importlib.util
 import io
 import os
 import tempfile
+import urllib.error
 from pathlib import Path
 
 
@@ -33,6 +34,11 @@ class FetchResponse:
 
     def geturl(self) -> str:
         return self.url
+
+
+class RedirectingOpener:
+    def open(self, url: str, *, timeout: int):
+        raise urllib.error.HTTPError(url, 302, "Found", {}, None)
 
 
 def assert_exits(expected: str, function, *args, **kwargs) -> None:
@@ -107,6 +113,21 @@ def test_redirect_handler_refuses_followup_requests() -> None:
         raise AssertionError("redirect handler created a follow-up request")
 
 
+def test_fetch_spec_reports_rejected_redirect_without_traceback() -> None:
+    original = checker.urllib.request.build_opener
+    checker.urllib.request.build_opener = lambda *_handlers: RedirectingOpener()
+    try:
+        with tempfile.TemporaryDirectory() as directory:
+            assert_exits(
+                "could not fetch cloud spec: HTTP Error 302: Found",
+                checker.fetch_spec,
+                "cloud",
+                Path(directory),
+            )
+    finally:
+        checker.urllib.request.build_opener = original
+
+
 def test_load_specs_authenticates_before_parsing() -> None:
     with tempfile.TemporaryDirectory() as directory:
         root = Path(directory)
@@ -160,6 +181,7 @@ def main() -> None:
         test_bounded_reader_rejects_total_timeout,
         test_fetch_response_requires_exact_https_url,
         test_redirect_handler_refuses_followup_requests,
+        test_fetch_spec_reports_rejected_redirect_without_traceback,
         test_load_specs_authenticates_before_parsing,
         test_local_reader_rejects_oversize_before_reading,
         test_local_reader_rejects_symlink,

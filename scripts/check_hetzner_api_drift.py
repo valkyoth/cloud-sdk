@@ -218,12 +218,15 @@ def fetch_spec(api: str, directory: Path) -> Path:
         urllib.request.HTTPSHandler(context=ssl.create_default_context()),
         RejectRedirects(),
     )
-    with opener.open(
-        SPECS[api],
-        timeout=FETCH_CONNECT_TIMEOUT_SECONDS,
-    ) as response:
-        validate_fetch_response(response, SPECS[api], api)
-        payload = read_bounded_response(response, api)
+    try:
+        with opener.open(
+            SPECS[api],
+            timeout=FETCH_CONNECT_TIMEOUT_SECONDS,
+        ) as response:
+            validate_fetch_response(response, SPECS[api], api)
+            payload = read_bounded_response(response, api)
+    except OSError as error:
+        raise SystemExit(f"could not fetch {api} spec: {error}") from error
     target.write_bytes(payload)
     print(f"{api} spec sha256: {hashlib.sha256(payload).hexdigest()}")
     return target
