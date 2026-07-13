@@ -19,11 +19,22 @@ blocking-rustls = [
     "reqwest/blocking",
     "reqwest/rustls",
 ]
+async-rustls = [
+    "std",
+    "dep:bytes",
+    "dep:cloud-sdk-sanitization",
+    "dep:reqwest",
+    "reqwest/rustls",
+]
 
 [dependencies]
+bytes = { workspace = true, optional = true }
 cloud-sdk.workspace = true
 cloud-sdk-sanitization = { workspace = true, optional = true }
 reqwest = { workspace = true, optional = true }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["macros", "rt", "time"] }
 
 [lints]
 workspace = true

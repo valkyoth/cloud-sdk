@@ -7,10 +7,8 @@ use cloud_sdk_sanitization::sanitize_bytes;
 use reqwest::blocking::{Body, Client};
 use reqwest::header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE, HeaderValue};
 
-use super::auth::BearerToken;
 use super::body::{ReadBodyError, SanitizedRequestBody, read_bounded};
-use super::endpoint::HttpsEndpoint;
-use super::error::TransportError;
+use crate::shared::{BearerToken, HttpsEndpoint, TransportError};
 
 /// Hardened provider-neutral reqwest blocking transport.
 pub struct BlockingClient {

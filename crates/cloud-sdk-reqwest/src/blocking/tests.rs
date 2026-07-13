@@ -8,12 +8,12 @@ use cloud_sdk::transport::{
     BlockingTransport, ContentType, RequestTarget, StatusCode, TransportRequest,
 };
 
-use super::auth::{BearerToken, BearerTokenError};
 use super::body::{ReadBodyError, read_bounded};
-use super::config::{BlockingClientBuilder, RequestTimeouts, TimeoutError, UserAgent};
-use super::endpoint::{EndpointError, HttpsEndpoint};
-use super::error::TransportError;
 use super::test_server::spawn;
+use super::{
+    BearerToken, BearerTokenError, BlockingClientBuilder, EndpointError, HttpsEndpoint,
+    RequestTimeouts, TimeoutError, TransportError, UserAgent,
+};
 
 fn test_timeouts() -> Option<RequestTimeouts> {
     RequestTimeouts::new(Duration::from_secs(2), Duration::from_secs(1)).ok()

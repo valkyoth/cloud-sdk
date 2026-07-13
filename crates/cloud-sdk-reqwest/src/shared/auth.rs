@@ -60,14 +60,14 @@ impl BearerToken {
         Ok(Self { authorization })
     }
 
-    pub(super) fn header_value(&self) -> Result<HeaderValue, ()> {
+    pub(crate) fn header_value(&self) -> Result<HeaderValue, ()> {
         let mut value = HeaderValue::from_bytes(&self.authorization).map_err(|_| ())?;
         value.set_sensitive(true);
         Ok(value)
     }
 
     #[cfg(test)]
-    pub(super) fn owned_bytes(&self) -> &[u8] {
+    pub(crate) fn owned_bytes(&self) -> &[u8] {
         &self.authorization
     }
 }

@@ -78,7 +78,7 @@ impl HttpsEndpoint {
         Ok(Self { base, prefix })
     }
 
-    pub(super) fn compose(&self, target: RequestTarget<'_>) -> Result<Url, EndpointError> {
+    pub(crate) fn compose(&self, target: RequestTarget<'_>) -> Result<Url, EndpointError> {
         validate_target_encoding(target.as_str())?;
         let mut absolute = self.prefix.clone();
         absolute
@@ -93,7 +93,7 @@ impl HttpsEndpoint {
         Ok(url)
     }
 
-    pub(super) fn verify_origin(&self, url: &Url) -> Result<(), EndpointError> {
+    pub(crate) fn verify_origin(&self, url: &Url) -> Result<(), EndpointError> {
         if url.scheme() != self.base.scheme()
             || url.host_str() != self.base.host_str()
             || url.port_or_known_default() != self.base.port_or_known_default()
@@ -106,7 +106,7 @@ impl HttpsEndpoint {
     }
 
     #[cfg(test)]
-    pub(super) fn local_http(value: &str) -> Result<Self, EndpointError> {
+    pub(crate) fn local_http(value: &str) -> Result<Self, EndpointError> {
         let endpoint = Self::new_inner(value, false)?;
         if endpoint.base.scheme() != "http"
             || !endpoint.base.host().is_some_and(|host| {

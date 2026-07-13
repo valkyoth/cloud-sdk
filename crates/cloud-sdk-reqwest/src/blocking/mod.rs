@@ -1,17 +1,16 @@
 //! Hardened provider-neutral blocking transport implementation.
 
-mod auth;
 mod body;
 mod client;
 mod config;
-mod endpoint;
-mod error;
 
-pub use auth::{BearerToken, BearerTokenError, MAX_BEARER_TOKEN_BYTES};
+pub use crate::shared::{
+    BearerToken, BearerTokenError, BuildError, EndpointError, HttpsEndpoint,
+    MAX_BEARER_TOKEN_BYTES, MAX_TIMEOUT_SECONDS, RequestTimeouts, TimeoutError, TransportError,
+    UserAgent, UserAgentError,
+};
 pub use client::BlockingClient;
-pub use config::{BlockingClientBuilder, RequestTimeouts, TimeoutError, UserAgent, UserAgentError};
-pub use endpoint::{EndpointError, HttpsEndpoint};
-pub use error::{BuildError, TransportError};
+pub use config::BlockingClientBuilder;
 
 #[cfg(test)]
 mod test_server;
