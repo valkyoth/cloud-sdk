@@ -14,6 +14,15 @@ version="${tag#v}"
 release_notes="release-notes/RELEASE_NOTES_${version}.md"
 pentest_report="security/pentest/${tag}.md"
 
+require_clean_tree() {
+    status="$(git status --porcelain=v1 --untracked-files=all)"
+    if [ -n "$status" ]; then
+        echo "release readiness: worktree must be clean" >&2
+        printf '%s\n' "$status" >&2
+        exit 1
+    fi
+}
+
 if git rev-parse -q --verify "refs/tags/${tag}" >/dev/null; then
     tagged_commit="$(git rev-list -n 1 "$tag")"
     head_commit="$(git rev-parse HEAD)"
@@ -27,6 +36,8 @@ if [ -f PENTEST.md ]; then
     echo "root PENTEST.md is temporary scratch input and must be removed" >&2
     exit 1
 fi
+
+require_clean_tree
 
 if [ ! -f "$release_notes" ]; then
     echo "missing release notes: ${release_notes}" >&2

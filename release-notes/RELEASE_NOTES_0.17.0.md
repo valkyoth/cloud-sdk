@@ -42,6 +42,8 @@ enters any default provider or facade graph.
   adapters.
 - Enforced that reqwest, bytes, Tokio, hyper, and rustls remain absent from the
   default facade, provider, and testkit graphs.
+- Bound the complete release gate to a clean unchanged commit at entry and
+  exit. Shared readiness rejects modified tracked files and all untracked files.
 
 ## Version Plan
 

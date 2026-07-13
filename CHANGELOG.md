@@ -12,6 +12,8 @@
   cancellation, overflow, redaction, and downstream feature unification.
 - Extended dependency, modularity, package, and default-graph gates for async
   reqwest, bytes, and Tokio without admitting them to provider defaults.
+- Bound release-gate verification to one clean unchanged commit at entry and
+  exit, including tracked and untracked worktree regression tests.
 - Prepared independent v0.17 crate versions, release notes, and release gate.
 
 ## 0.16.0 - 2026-07-13

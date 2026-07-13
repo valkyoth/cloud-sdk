@@ -13,7 +13,7 @@
 | pentest before tags | required |
 | pentest content binding | final release commit changes only `security/pentest/vX.Y.Z.md` from its direct reviewed parent |
 | pentest provenance | committed report with required PASS, reviewed commit, tester, scope, and date fields |
-| release publishing | clean `HEAD` with a verifiable signed annotated tag; no normal-path bypass flags |
+| release publishing | readiness and the complete release gate require one clean unchanged `HEAD` at entry and exit; signed annotated tag must verify; no normal-path bypass flags |
 | OpenAPI integrity | full pinned SHA-256 before parsing, with size/time ceilings and no-follow descriptor reads for local inputs |
 | public IPv6 targets | conservative IANA allocation allowlist pinned in `docs/IANA_IPV6_SOURCE_LOCK.md`; live registry drift is release-gated |
 | secret buffer failure | JSON writes preflight capacity and leave undersized buffers unchanged |

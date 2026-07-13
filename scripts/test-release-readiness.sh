@@ -16,7 +16,7 @@ make_fixture() {
         git config user.email "release-readiness@example.invalid"
         git config user.name "Release Readiness Test"
         printf 'fixture\n' >README.md
-        git add README.md
+        git add README.md scripts/validate-release-readiness.sh
         git commit -q -m "fixture"
     )
     printf '%s\n' "$repo"
@@ -81,6 +81,22 @@ repo="$(make_fixture scratch-pentest)"
         scripts/validate-release-readiness.sh "v0.2.0"
 )
 
+repo="$(make_fixture modified-tracked-file)"
+(
+    cd "$repo"
+    printf 'modified\n' >>README.md
+    assert_fails_with "release readiness: worktree must be clean" \
+        scripts/validate-release-readiness.sh "v0.2.0"
+)
+
+repo="$(make_fixture untracked-file)"
+(
+    cd "$repo"
+    printf 'untracked\n' >UNTRACKED.txt
+    assert_fails_with "release readiness: worktree must be clean" \
+        scripts/validate-release-readiness.sh "v0.2.0"
+)
+
 repo="$(make_fixture missing-release-notes)"
 (
     cd "$repo"
@@ -92,6 +108,8 @@ repo="$(make_fixture missing-sbom)"
 (
     cd "$repo"
     write_release_notes "0.2.0"
+    git add release-notes
+    git commit -q -m "release notes"
     assert_fails_with "missing or empty SBOM" \
         scripts/validate-release-readiness.sh "v0.2.0"
 )
@@ -101,6 +119,8 @@ repo="$(make_fixture missing-report)"
     cd "$repo"
     write_release_notes "0.2.0"
     write_sbom
+    git add release-notes sbom
+    git commit -q -m "release metadata"
     assert_fails_with "missing pentest report" \
         scripts/validate-release-readiness.sh "v0.2.0"
 )
@@ -110,6 +130,8 @@ repo="$(make_fixture missing-fixture-sbom)"
     cd "$repo"
     write_release_notes "0.2.0"
     printf '{"spdxVersion":"SPDX-2.3"}\n' >sbom/cloud-sdk.spdx.json
+    git add release-notes sbom
+    git commit -q -m "partial release metadata"
     assert_fails_with "missing or empty SBOM: sbom/reqwest-feature-unification.spdx.json" \
         scripts/validate-release-readiness.sh "v0.2.0"
 )
@@ -120,6 +142,9 @@ repo="$(make_fixture uncommitted-report)"
     reviewed_commit="$(git rev-parse HEAD)"
     write_release_notes "0.2.0"
     write_sbom
+    printf 'security/pentest/v0.2.0.md\n' >.gitignore
+    git add .gitignore release-notes sbom
+    git commit -q -m "release metadata"
     write_pentest "v0.2.0" "$reviewed_commit"
     assert_fails_with "pentest report must be committed" \
         scripts/validate-release-readiness.sh "v0.2.0"
@@ -131,7 +156,7 @@ repo="$(make_fixture wrong-reviewed-commit)"
     write_release_notes "0.2.0"
     write_sbom
     write_pentest "v0.2.0" "0000000000000000000000000000000000000000"
-    git add security/pentest/v0.2.0.md
+    git add release-notes sbom security/pentest/v0.2.0.md
     git commit -q -m "report"
     assert_fails_with "reviewed commit .* was not found" \
         scripts/validate-release-readiness.sh "v0.2.0"
@@ -140,9 +165,11 @@ repo="$(make_fixture wrong-reviewed-commit)"
 repo="$(make_fixture mixed-report-commit)"
 (
     cd "$repo"
-    reviewed_commit="$(git rev-parse HEAD)"
     write_release_notes "0.2.0"
     write_sbom
+    git add release-notes sbom
+    git commit -q -m "release metadata"
+    reviewed_commit="$(git rev-parse HEAD)"
     write_pentest "v0.2.0" "$reviewed_commit"
     printf 'changed\n' >>README.md
     git add README.md security/pentest/v0.2.0.md
@@ -167,4 +194,4 @@ repo="$(make_fixture ready)"
     scripts/validate-release-readiness.sh "v0.2.0"
 )
 
-echo "10 release readiness tests passed."
+echo "12 release readiness tests passed."

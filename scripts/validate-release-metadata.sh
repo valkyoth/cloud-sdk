@@ -37,8 +37,14 @@ if [ ! -x "$gate" ]; then
     echo "release metadata: missing executable $gate" >&2
     exit 1
 fi
-if ! grep -Fq "scripts/validate-release-readiness.sh v${version}" "$gate"; then
-    echo "release metadata: $gate does not enforce release readiness" >&2
+readiness_call="scripts/validate-release-readiness.sh v${version}"
+if [ "$(grep -Fxc "$readiness_call" "$gate")" -ne 2 ]; then
+    echo "release metadata: $gate must enforce release readiness at entry and exit" >&2
+    exit 1
+fi
+if ! grep -Fq 'reviewed_head="$(git rev-parse HEAD)"' "$gate" \
+    || ! grep -Fq 'if [ "$(git rev-parse HEAD)" != "$reviewed_head" ]; then' "$gate"; then
+    echo "release metadata: $gate must bind checks to one unchanged HEAD" >&2
     exit 1
 fi
 

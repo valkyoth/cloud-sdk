@@ -2,6 +2,7 @@
 set -eu
 
 scripts/validate-release-readiness.sh v0.17.0
+reviewed_head="$(git rev-parse HEAD)"
 scripts/checks.sh
 scripts/check_reqwest_boundary.sh
 scripts/check_rust_version_matrix.sh
@@ -24,3 +25,9 @@ if ! cargo audit --version >/dev/null 2>&1; then
 fi
 cargo audit
 cargo audit --no-fetch --file tests/reqwest-feature-unification/Cargo.lock
+
+if [ "$(git rev-parse HEAD)" != "$reviewed_head" ]; then
+    echo "release gate: HEAD changed while checks were running" >&2
+    exit 1
+fi
+scripts/validate-release-readiness.sh v0.17.0

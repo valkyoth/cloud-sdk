@@ -72,6 +72,9 @@ A version is not tag-ready until:
   the standalone downstream fixture is present;
 - `scripts/validate-release-readiness.sh vX.Y.Z` proves that the report-only
   release commit has the reviewed commit as its direct parent;
+- shared readiness rejects modified tracked files and all untracked files;
+- the version-specific gate snapshots the clean validated `HEAD`, requires it
+  to remain unchanged, and reruns readiness after every check;
 - GitHub CI and CodeQL default setup are green on the release-report commit;
 - tagging has been explicitly requested.
 
@@ -121,8 +124,9 @@ Use this loop for every version:
 11. Commit only the permanent report as the direct child of the reviewed
     commit. Any other changed path fails release readiness.
 12. GitHub CI and CodeQL default setup are checked on the report commit.
-13. `scripts/validate-release-readiness.sh vX.Y.Z` passes through the
-    versioned release gate before tagging.
+13. The versioned release gate starts and ends with
+    `scripts/validate-release-readiness.sh vX.Y.Z`, and its recorded `HEAD`
+    remains unchanged across every check.
 14. Tagging and pushing tags happen only when explicitly requested.
 
 Root `PENTEST.md` is temporary scratch input. It must not be committed. The
