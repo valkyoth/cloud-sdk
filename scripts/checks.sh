@@ -10,6 +10,7 @@ scripts/check_serde_boundary.sh
 scripts/check_sanitization_boundary.sh
 scripts/check_testkit_boundary.sh
 scripts/check_reqwest_boundary.sh
+scripts/smoke_hetzner_live.sh --check
 scripts/validate-release-metadata.sh
 scripts/test-release-readiness.sh
 scripts/test-sbom-freshness.sh
@@ -22,6 +23,7 @@ scripts/test-release-crates.py
 cargo package -p cloud-sdk --allow-dirty
 cargo package -p cloud-sdk-hetzner --allow-dirty --features serde \
     --config 'patch.crates-io.cloud-sdk.path="crates/cloud-sdk"' \
+    --config 'patch.crates-io.cloud-sdk-reqwest.path="crates/cloud-sdk-reqwest"' \
     --config 'patch.crates-io.cloud-sdk-sanitization.path="crates/cloud-sdk-sanitization"' \
     --config 'patch.crates-io.cloud-sdk-testkit.path="crates/cloud-sdk-testkit"'
 cargo package -p cloud-sdk-reqwest --allow-dirty --all-features \

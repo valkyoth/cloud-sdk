@@ -1,7 +1,7 @@
 # Crate Version Matrix
 
-Status: `v0.18.0` pagination and action polling implementation stop reached;
-pentest required. The latest published release is `v0.17.0`.
+Status: `v0.19.0` live smoke harness implementation stop reached; pentest
+required. The latest published release is `v0.18.0`.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
@@ -291,3 +291,18 @@ independent minor; sanitization follows the facade dependency with a patch.
 | `cloud-sdk-reqwest` | `0.14.0` | `0.15.0` | `code` | Yes | Validate and propagate provider rate-limit response headers. |
 | `cloud-sdk-sanitization` | `0.13.3` | `0.13.4` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.18 facade line. |
 | `cloud-sdk-testkit` | `0.14.0` | `0.15.0` | `code` | Yes | Propagate validated rate-limit metadata through deterministic fixtures. |
+
+## v0.19.0 Tracking Table
+
+`v0.19.0` adds an opt-in, read-only Hetzner catalog smoke harness without
+placing filesystem, HTTP, TLS, or runtime dependencies in any provider default
+graph. The provider test code receives an independent minor; provider-neutral
+boundaries follow the facade dependency with patch releases.
+
+| Crate | Published | Planned | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.18.0` | `0.19.0` | `metadata` | Yes | Live smoke documentation, release evidence, and v0.19 facade metadata. |
+| `cloud-sdk-hetzner` | `0.16.0` | `0.17.0` | `code` | Yes | Opt-in read-only Hetzner catalog smoke harness and adversarial credential-file tests. |
+| `cloud-sdk-reqwest` | `0.15.0` | `0.15.1` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.19 facade line. |
+| `cloud-sdk-sanitization` | `0.13.4` | `0.13.5` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.19 facade line. |
+| `cloud-sdk-testkit` | `0.15.0` | `0.15.1` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.19 facade line. |

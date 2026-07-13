@@ -20,7 +20,7 @@ Compatibility must be maintained for:
 runs each version as an independent fail-fast-disabled matrix job so one failure
 does not hide results from the remaining supported compilers.
 
-Pinned release tools, checked against crates.io on 2026-07-12:
+Pinned release tools, checked against crates.io on 2026-07-13:
 
 | Tool | Version |
 | --- | --- |

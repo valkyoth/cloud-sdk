@@ -22,9 +22,12 @@ Rules:
 - Feature flags must not silently enable networking, TLS, filesystem, clocks,
   token storage, or async runtimes.
 - `std` paths are prohibited except under explicitly reviewed optional
-  `cloud-sdk-reqwest` blocking, async, shared-policy, and test modules. Public
-  blocking and async modules must remain guarded by their respective
-  non-default `blocking-rustls` and `async-rustls` features.
+  `cloud-sdk-reqwest` blocking, async, shared-policy, and test modules, plus the
+  ignored `cloud-sdk-hetzner` live-smoke integration test. The live harness may
+  use provider-neutral adapters only through dev dependencies and must never
+  enter the provider's normal graph. Public blocking and async modules remain
+  guarded by their respective non-default `blocking-rustls` and `async-rustls`
+  features.
 
 The local gate is:
 

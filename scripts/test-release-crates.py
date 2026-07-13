@@ -232,6 +232,30 @@ def test_facade_must_publish_for_every_release() -> None:
     )
 
 
+def test_previous_release_version_uses_latest_semantic_tag_before_release() -> None:
+    tags = ("v0.17.0", "v0.18.0", "v0.19.0", "not-a-release", "vbroken")
+    assert release_crates.previous_release_version(tags, "0.19.0") == "0.18.0"
+    assert release_crates.previous_release_version(tags, "0.18.0") == "0.17.0"
+
+
+def test_facade_previous_version_must_match_latest_prior_tag() -> None:
+    plan = base_plan()
+    plan["version"] = "0.19.0"
+    plan["crates"]["cloud-sdk"]["previous_version"] = "0.17.0"
+    original = release_crates.capture
+    release_crates.capture = lambda _command: "v0.17.0\nv0.18.0\n"
+    try:
+        assert_fails(
+            "expected 0.18.0, actual 0.17.0",
+            release_crates.verify_facade_previous_version,
+            plan,
+        )
+        plan["crates"]["cloud-sdk"]["previous_version"] = "0.18.0"
+        release_crates.verify_facade_previous_version(plan)
+    finally:
+        release_crates.capture = original
+
+
 def test_provider_code_changes_use_next_independent_minor() -> None:
     entry = {
         "previous_version": "0.7.0",
@@ -400,6 +424,8 @@ def run_tests() -> None:
         test_facade_code_changes_must_use_milestone_version,
         test_facade_must_always_match_release_version,
         test_facade_must_publish_for_every_release,
+        test_previous_release_version_uses_latest_semantic_tag_before_release,
+        test_facade_previous_version_must_match_latest_prior_tag,
         test_provider_code_changes_use_next_independent_minor,
         test_provider_code_changes_reject_release_counter_jump,
         test_initial_release_accepts_none_previous_version,

@@ -1,38 +1,38 @@
 [release]
-version = "0.18.0"
+version = "0.19.0"
 policy = "independent"
 
 [crates."cloud-sdk"]
-previous_version = "0.17.0"
-version = "0.18.0"
-change = "code"
+previous_version = "0.18.0"
+version = "0.19.0"
+change = "metadata"
 publish = true
-reason = "Provider-neutral pagination, action polling, and rate-limit metadata contracts."
+reason = "Live smoke documentation, release evidence, and v0.19 facade metadata."
 
 [crates."cloud-sdk-hetzner"]
-previous_version = "0.15.2"
-version = "0.16.0"
+previous_version = "0.16.0"
+version = "0.17.0"
 change = "code"
 publish = true
-reason = "Strict Hetzner pagination metadata parsing and action polling conversion."
+reason = "Opt-in read-only Hetzner catalog smoke harness and adversarial credential-file tests."
 
 [crates."cloud-sdk-reqwest"]
-previous_version = "0.14.0"
-version = "0.15.0"
-change = "code"
-publish = true
-reason = "Validate and propagate provider rate-limit response headers."
-
-[crates."cloud-sdk-sanitization"]
-previous_version = "0.13.3"
-version = "0.13.4"
+previous_version = "0.15.0"
+version = "0.15.1"
 change = "dependency"
 publish = true
-reason = "Update the cloud-sdk dependency to the v0.18 facade line."
+reason = "Update the cloud-sdk dependency to the v0.19 facade line."
+
+[crates."cloud-sdk-sanitization"]
+previous_version = "0.13.4"
+version = "0.13.5"
+change = "dependency"
+publish = true
+reason = "Update the cloud-sdk dependency to the v0.19 facade line."
 
 [crates."cloud-sdk-testkit"]
-previous_version = "0.14.0"
-version = "0.15.0"
-change = "code"
+previous_version = "0.15.0"
+version = "0.15.1"
+change = "dependency"
 publish = true
-reason = "Propagate validated rate-limit metadata through deterministic fixtures."
+reason = "Update the cloud-sdk dependency to the v0.19 facade line."

@@ -774,6 +774,8 @@ v0.18.0 implementation stop reached. Run pentest for this exact commit.
 
 ### v0.19.0 - Live Smoke Harness
 
+Status: implementation stop reached; pentest required.
+
 Goal: add opt-in live tests gated by environment variables and least-privilege
 test project guidance.
 
@@ -781,17 +783,25 @@ Deliverables:
 
 - Live smoke harness disabled by default.
 - Required environment variables and token-scope guidance.
-- Read-only smoke tests for catalog resources.
-- Optional destructive test plan that requires explicit opt-in and resource
-  naming prefix.
-- Redaction of tokens and IDs in logs.
+- Read-only smoke tests for locations, server types, load balancer types, ISOs,
+  public system images, and pricing.
+- A separately documented destructive test plan that requires a dedicated
+  project, explicit opt-in, a unique resource prefix, and cleanup verification;
+  mutation execution remains disabled in this release.
+- Fixed provider origin, bounded responses, private regular token-file input,
+  source-buffer cleanup, and redaction of tokens, paths, response bodies, and
+  IDs in diagnostics.
+- Offline tests for request methods and targets, response-envelope shape,
+  pagination, token normalization, size bounds, symlinks, Unix permissions,
+  and diagnostic redaction.
 
 Verification:
 
 - `scripts/checks.sh`
 - `cargo test --workspace --all-features`
+- `scripts/smoke_hetzner_live.sh --check`
 - Documented manual live-smoke command with no token in shell history examples.
-- `scripts/release_0_19_gate.sh` once added.
+- `scripts/release_0_19_gate.sh`.
 
 Stop gate:
 

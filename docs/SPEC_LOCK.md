@@ -188,6 +188,20 @@ when any is present, reject duplicates, zero limits, and remaining values above
 the limit, and expose the result through `TransportResponse`. They do not infer
 a retry delay or automatically replay a request.
 
+## v0.19.0 Live Smoke Policy
+
+The live harness covers only source-locked `GET` operations for locations,
+server types, load balancer types, ISOs, public system images, and pricing.
+List requests use the source-locked `per_page` parameter and strict shared
+`meta.pagination` parser. Pricing validates its documented singleton envelope.
+The harness does not infer API coverage from a successful smoke run and does
+not replace operation/schema fingerprint drift checks.
+
+The authenticated origin is fixed to the source-locked Cloud API v1 URL.
+Response bodies are bounded, parsed only after HTTP success, cleared after each
+probe, and never logged. Mutation operations and configurable origins are not
+part of this harness.
+
 ## Deferred Scope
 
 Robot Webservice is explicitly deferred until after the Cloud/DNS SDK reaches

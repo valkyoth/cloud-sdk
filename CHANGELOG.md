@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.19.0 - 2026-07-13
+
+- Added an opt-in read-only Hetzner live smoke harness for locations, server
+  types, load balancer types, ISOs, public system images, and pricing.
+- Required an exact live-mode marker and a private regular token file; direct
+  token environment variables and configurable provider origins are not used.
+- Added bounded token and response reads, symlink and Unix permission checks,
+  opened-file identity validation, and volatile cleanup of token and response
+  source buffers.
+- Kept the live network test ignored by default while compiling it in normal
+  workspace checks and running eleven offline policy and adversarial tests.
+- Added static diagnostics that omit token values, token paths, response
+  bodies, and provider resource IDs.
+- Documented least-privilege read-only project setup and a separate future
+  destructive-test plan whose mutation execution remains disabled.
+- Added the `v0.19.0` release gate and independent crate version plan.
+- Bound the facade's planned previous version to the latest earlier semantic
+  release tag, with regression coverage for stale release metadata.
+
 ## 0.18.0 - 2026-07-13
 
 - Added no_std provider-neutral pagination and action polling state machines

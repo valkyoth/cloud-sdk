@@ -38,20 +38,19 @@ models in small reviewed releases.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.18.0"
-cloud-sdk-hetzner = "0.16.0"
+cloud-sdk = "0.19.0"
+cloud-sdk-hetzner = "0.17.0"
 ```
 
 ## Current Scope
 
-The current main branch is preparing the workspace `0.18.0` release. The latest
-published provider release is `0.15.2`; the planned provider `0.16.0` adds
-strict shared pagination metadata and action polling conversion. This crate
-remains no_std and does not itself implement HTTP transport, broad Serde
-coverage outside reviewed RRSet/shared response models, token storage, live
-API tests, automatic retries, sleeps, or page fetching. Blocking and async
-HTTP implementations belong to the provider-neutral `cloud-sdk-reqwest`
-crate.
+The current main branch is preparing the workspace `0.19.0` release. The latest
+published provider release is `0.16.0`; the planned provider `0.17.0` adds an
+opt-in read-only live catalog smoke harness. This crate remains no_std and does
+not itself implement HTTP transport, broad Serde coverage outside reviewed
+RRSet/shared response models, token storage, destructive live tests, automatic
+retries, sleeps, or page fetching. Blocking and async HTTP implementations
+belong to the provider-neutral `cloud-sdk-reqwest` crate.
 
 Implemented in the published `0.2.0` line:
 
@@ -192,7 +191,7 @@ Implemented in the published `0.15.0` line:
 - compatibility with the provider-neutral blocking transport request and
   caller-owned response-buffer contract without adding transport dependencies.
 
-Implemented on main for the planned `0.16.0` line:
+Implemented in the published `0.16.0` line:
 
 - strict reusable `meta.pagination` parsing with required nullable fields,
   additive-field compatibility, and validated navigation;
@@ -201,6 +200,27 @@ Implemented on main for the planned `0.16.0` line:
   pagination cursor;
 - conversion from validated Hetzner action responses into polling updates that
   preserve terminal provider errors.
+
+Implemented on main for the planned `0.17.0` line:
+
+- ignored opt-in live smoke coverage for locations, server types, load
+  balancer types, ISOs, public system images, and pricing;
+- typed GET-only request construction through this provider crate and the
+  hardened provider-neutral blocking reqwest/rustls transport;
+- fixed official origin, private regular token-file input, bounded response
+  storage, static redacted diagnostics, and source-buffer cleanup;
+- offline adversarial coverage for target construction, response envelopes,
+  pagination, token normalization, size bounds, symlinks, and Unix modes.
+
+### Live Smoke Harness
+
+The live test is ignored by default and is run from the main repository, not
+by downstream crate builds. Use a dedicated Hetzner test project and a token
+with **Read** permission. The token value is accepted only through a private
+file path and must never be placed directly in shell history or an environment
+variable. See the repository's
+[`LIVE_SMOKE_TESTING.md`](https://github.com/valkyoth/cloud-sdk/blob/main/docs/LIVE_SMOKE_TESTING.md)
+for setup, execution, cleanup, and the separately disabled destructive plan.
 
 ### Sensitive Output Buffers
 
@@ -258,7 +278,7 @@ Enable Serde explicitly; it is never part of the default graph:
 
 ```toml
 [dependencies]
-cloud-sdk-hetzner = { version = "0.16.0", features = ["serde"] }
+cloud-sdk-hetzner = { version = "0.17.0", features = ["serde"] }
 ```
 
 `serde_json` is used below only as an example format implementation and remains

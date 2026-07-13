@@ -135,6 +135,9 @@ Expected future candidates must be reviewed before use:
   concrete async adapter execution boundary.
 - `v0.18.0` adds pagination and action-polling state machines without new
   third-party dependencies, clocks, runtimes, automatic requests, or sleeps.
+- `v0.19.0` uses the already admitted provider, reqwest, Serde, JSON, and
+  sanitization dependencies only in an ignored integration test. No new
+  third-party dependency or default-graph feature is admitted.
 - Rustls FIPS and `aws-lc-fips-sys` are not admitted in v0.16.0. Their exact
   module version, certificate, operating environments, build chain, provider
   configuration, runtime verification, and feature graph are a dedicated

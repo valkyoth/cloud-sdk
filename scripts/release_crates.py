@@ -78,6 +78,36 @@ def parse_version(version: str) -> tuple[int, int, int]:
     return (major, minor, patch)
 
 
+def previous_release_version(tags: tuple[str, ...], release: str) -> str:
+    release_parts = parse_version(release)
+    prior: list[tuple[int, int, int]] = []
+    for tag in tags:
+        if not tag.startswith("v"):
+            continue
+        try:
+            candidate = parse_version(tag.removeprefix("v"))
+        except RuntimeError:
+            continue
+        if candidate < release_parts:
+            prior.append(candidate)
+    if not prior:
+        return "none"
+    major, minor, patch = max(prior)
+    return f"{major}.{minor}.{patch}"
+
+
+def verify_facade_previous_version(plan: dict) -> None:
+    raw_tags = capture(["git", "tag", "--list", "v*.*.*"])
+    tags = tuple(line for line in raw_tags.splitlines() if line)
+    expected = previous_release_version(tags, plan["version"])
+    actual = plan["crates"]["cloud-sdk"]["previous_version"]
+    if actual != expected:
+        raise RuntimeError(
+            "cloud-sdk previous_version does not match latest prior release tag: "
+            f"expected {expected}, actual {actual}"
+        )
+
+
 def is_initial(previous: str) -> bool:
     return previous == "none"
 
@@ -373,6 +403,8 @@ def main() -> int:
     raw_plan_path = Path(args.plan)
     plan_path = raw_plan_path if raw_plan_path.is_absolute() else (ROOT / raw_plan_path)
     plan = release_plan(plan_path.resolve())
+    if plan_path.resolve() == DEFAULT_PLAN.resolve():
+        verify_facade_previous_version(plan)
     if args.version is None:
         args.version = plan["version"]
     elif args.version != plan["version"]:

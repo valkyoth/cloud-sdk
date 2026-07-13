@@ -32,8 +32,9 @@ filesystem, clock, or secret-storage dependency. Transport and serialization
 remain explicit boundaries: v0.15 defines a no-network contract and testkit,
 v0.16 adds an opt-in blocking rustls adapter, v0.17 adds an executor-neutral
 async contract and optional Tokio-backed adapter, and v0.14 added narrowly
-reviewed no_std Serde and caller-buffer sanitization. None changes the default
-provider graph.
+reviewed no_std Serde and caller-buffer sanitization. v0.18 adds explicit
+pagination and action polling, while v0.19 adds an ignored opt-in live smoke
+harness. None changes the default provider graph.
 
 The project target is a serious production-ready `cloud-sdk` foundation and
 Hetzner provider at `1.0.0`, reached through small reviewed releases with test,
@@ -56,9 +57,9 @@ please report it so it can be fixed.
 
 ## Current Status
 
-Status: `v0.18.0` pagination and action polling implementation stop reached;
+Status: `v0.19.0` live smoke harness implementation stop reached;
 pentest required.
-The latest published release is `v0.17.0`.
+The latest published release is `v0.18.0`.
 
 Implemented now:
 
@@ -77,6 +78,10 @@ Implemented now:
   transports without hidden retries.
 - Optional hardened provider-neutral blocking and async reqwest/rustls
   transports, plus admitted guarded caller-buffer sanitization.
+- Opt-in read-only Hetzner catalog smoke harness with fixed provider origin,
+  private token-file input, bounded responses, redacted diagnostics, and eleven
+  offline security-policy tests; live network execution remains ignored by
+  default.
 - Local checks for formatting, linting, tests, no_std policy, modularity, and
   file length.
 - MIT OR Apache-2.0 license.
@@ -131,7 +136,8 @@ Not implemented yet:
 - No automatic retries or sleeps; the action poller delegates delay, timeout,
   and cancellation decisions to caller policy.
 - No generated response model.
-- No live Hetzner API tests.
+- No destructive live Hetzner tests; v0.19 includes only explicitly enabled
+  read-only catalog probes.
 - No non-Hetzner providers yet. Smaller focused cloud and SaaS providers such
   as Scaleway and OVH are better future fits than hyperscaler-scale APIs, but
   no non-Hetzner provider is a 1.0 deliverable.
@@ -167,8 +173,8 @@ Not implemented yet:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.18.0"
-cloud-sdk-hetzner = "0.16.0"
+cloud-sdk = "0.19.0"
+cloud-sdk-hetzner = "0.17.0"
 ```
 
 ## Provider-Neutral Example
@@ -209,8 +215,8 @@ The core contracts perform no I/O and select no executor. Use
 
 ```toml
 [dependencies]
-cloud-sdk = "0.18.0"
-cloud-sdk-reqwest = { version = "0.15.0", features = ["blocking-rustls"] }
+cloud-sdk = "0.19.0"
+cloud-sdk-reqwest = { version = "0.15.1", features = ["blocking-rustls"] }
 ```
 
 ```rust,ignore
@@ -249,12 +255,31 @@ Hickory DNS. The caller owns token generation, scope, rotation, revocation,
 and cleanup of the original secret; the adapter clears only its own token and
 request-body storage.
 
+## Opt-In Hetzner Live Smoke Test
+
+The repository includes an ignored read-only harness for locations, server
+types, load balancer types, ISOs, public system images, and pricing. It accepts
+only a private token-file path, fixes the authenticated origin to Hetzner Cloud
+API v1, bounds and clears response storage, and never logs response bodies or
+resource IDs.
+
+```sh
+scripts/smoke_hetzner_live.sh --check
+```
+
+Authenticated execution requires a dedicated test project, a provider token
+with **Read** permission, and two explicit opt-ins. The token value does not
+belong in a command or environment variable. Follow
+[`docs/LIVE_SMOKE_TESTING.md`](https://github.com/valkyoth/cloud-sdk/blob/main/docs/LIVE_SMOKE_TESTING.md)
+for private token-file setup and the manual command. Destructive execution is
+not implemented in v0.19.
+
 ## Optional Async Transport
 
 ```toml
 [dependencies]
-cloud-sdk = "0.18.0"
-cloud-sdk-reqwest = { version = "0.15.0", features = ["async-rustls"] }
+cloud-sdk = "0.19.0"
+cloud-sdk-reqwest = { version = "0.15.1", features = ["async-rustls"] }
 ```
 
 ```rust,ignore

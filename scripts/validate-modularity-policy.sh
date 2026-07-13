@@ -35,7 +35,8 @@ if grep -RInE '(^|[^A-Za-z0-9_])std([[:space:]]*::|[[:space:]]+as|[[:space:]]*\{
     grep -Ev '^[^:]+:[0-9]+:extern crate std;' |
     grep -Ev '^[^:]+:[0-9]+:[[:space:]]*(//|///|//!|/\*)' |
     grep -Ev '^crates/cloud-sdk-reqwest/src/(asynchronous|blocking|shared)/' |
-    grep -Ev '^crates/cloud-sdk-reqwest/src/test_server.rs:'; then
+    grep -Ev '^crates/cloud-sdk-reqwest/src/test_server.rs:' |
+    grep -Ev '^crates/cloud-sdk-hetzner/tests/live_smoke(\.rs:|/)'; then
     echo "modularity policy: unguarded std usage found under crates/" >&2
     status=1
 fi
