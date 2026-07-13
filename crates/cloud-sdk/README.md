@@ -10,6 +10,8 @@
   |
   <a href="https://github.com/valkyoth/cloud-sdk/blob/main/docs/RELEASE_PLAN.md">Release Plan</a>
   |
+  <a href="https://github.com/valkyoth/cloud-sdk/blob/main/docs/PLATFORM_SUPPORT.md">Platforms</a>
+  |
   <a href="https://github.com/valkyoth/cloud-sdk/blob/main/docs/threat-model.md">Threat Model</a>
   |
   <a href="https://github.com/valkyoth/cloud-sdk/blob/main/SECURITY.md">Security</a>
@@ -34,7 +36,8 @@ v0.16 adds an opt-in blocking rustls adapter, v0.17 adds an executor-neutral
 async contract and optional Tokio-backed adapter, and v0.14 added narrowly
 reviewed no_std Serde and caller-buffer sanitization. v0.18 adds explicit
 pagination and action polling, while v0.19 adds an ignored opt-in live smoke
-harness. None changes the default provider graph.
+harness. v0.20 adds explicit portable-target and native transport compile
+evidence. None changes the default provider graph.
 
 The project target is a serious production-ready `cloud-sdk` foundation and
 Hetzner provider at `1.0.0`, reached through small reviewed releases with test,
@@ -57,9 +60,8 @@ please report it so it can be fixed.
 
 ## Current Status
 
-Status: `v0.19.0` live smoke harness implementation stop reached;
-pentest required.
-The latest published release is `v0.18.0`.
+Status: `v0.20.0` platform matrix implementation in progress.
+The latest published release is `v0.19.0`.
 
 Implemented now:
 
@@ -82,6 +84,9 @@ Implemented now:
   a root-sealed build-before-credential workflow, private token-file input,
   bounded responses, redacted diagnostics, and twelve offline security-policy
   tests; live network execution remains ignored by default.
+- Explicit compile matrix for Linux, Windows, FreeBSD, macOS, Android, iOS,
+  WASM, and embedded no_std targets, with native reqwest adapter checks limited
+  to Linux, Windows, and macOS.
 - Local checks for formatting, linting, tests, no_std policy, modularity, and
   file length.
 - MIT OR Apache-2.0 license.
@@ -159,6 +164,7 @@ Not implemented yet:
 | Network defaults | none |
 | Secret storage defaults | none |
 | Release evidence | local gates, dependency policy, SBOM, pentest report before tags |
+| Platform support | explicit tiers and targets in [`docs/PLATFORM_SUPPORT.md`](https://github.com/valkyoth/cloud-sdk/blob/main/docs/PLATFORM_SUPPORT.md) |
 | Crate versions | tracked in [`docs/CRATE_VERSION_MATRIX.md`](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATE_VERSION_MATRIX.md) |
 | 1.0 target | serious production-ready provider-neutral foundation plus Hetzner provider |
 
@@ -535,6 +541,13 @@ Compatibility verification matrix for current main:
 | `1.96.0` | `cargo +1.96.0 check --workspace --all-features` |
 | `1.96.1` | `cargo +1.96.1 check --workspace --all-features` |
 | `1.97.0` | `scripts/checks.sh` |
+
+Platform checks are separate from compiler-version checks. Portable no_std and
+alloc/Serde combinations are cross-checked on ten explicit targets, while the
+full reqwest/rustls feature graph is checked natively on Linux, Windows, and
+macOS. See
+[`docs/PLATFORM_SUPPORT.md`](https://github.com/valkyoth/cloud-sdk/blob/main/docs/PLATFORM_SUPPORT.md)
+for the exact support levels and transport limitations.
 
 ## Checks
 

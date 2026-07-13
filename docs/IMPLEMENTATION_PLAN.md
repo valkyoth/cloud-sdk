@@ -139,6 +139,8 @@ Expected future candidates must be reviewed before use:
 - `v0.19.0` uses the already admitted provider, reqwest, Serde, JSON, and
   sanitization dependencies only in an ignored integration test. No new
   third-party dependency or default-graph feature is admitted.
+- `v0.20.0` adds compile and dependency-graph evidence for portable and native
+  platform claims without admitting a new crate or enabling a default feature.
 - Rustls FIPS and `aws-lc-fips-sys` are not admitted in v0.16.0. Their exact
   module version, certificate, operating environments, build chain, provider
   configuration, runtime verification, and feature graph are a dedicated

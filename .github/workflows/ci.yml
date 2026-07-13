@@ -15,6 +15,56 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
+  portable-platforms:
+    name: Portable ${{ matrix.target }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - x86_64-unknown-linux-gnu
+          - aarch64-unknown-linux-gnu
+          - x86_64-pc-windows-msvc
+          - x86_64-unknown-freebsd
+          - x86_64-apple-darwin
+          - aarch64-apple-darwin
+          - aarch64-linux-android
+          - aarch64-apple-ios
+          - wasm32-unknown-unknown
+          - thumbv7em-none-eabihf
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Install target
+        run: rustup target add "${{ matrix.target }}"
+
+      - name: Check portable crates
+        run: scripts/check_platform_matrix.sh --portable "${{ matrix.target }}"
+
+  native-platforms:
+    name: Native transport ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest
+          - macos-15
+          - macos-15-intel
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Check native workspace and transport
+        shell: bash
+        run: scripts/check_platform_matrix.sh --native
+
   compatibility:
     name: Rust ${{ matrix.rust }} compatibility
     runs-on: ubuntu-latest
