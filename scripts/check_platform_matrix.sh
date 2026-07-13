@@ -84,10 +84,16 @@ check_default_boundary() {
         cargo tree --locked --workspace --target all \
             --edges normal --prefix none
     )"
-    forbidden='^(reqwest|tokio|hyper|hyper-util|tower|tower-http|rustls|rustls-platform-verifier|aws-lc-rs|aws-lc-sys|mio|socket2|windows([_-].*)?|native-tls|openssl|openssl-sys|schannel|security-framework|web-sys|wasm-bindgen|libc|getrandom) v'
-    if printf '%s\n' "$dependency_tree" | grep -Eq "$forbidden"; then
-        echo "platform matrix: default features activate an OS or transport dependency" >&2
-        printf '%s\n' "$dependency_tree" | grep -E "$forbidden" >&2
+    allowed='^(cloud-sdk|cloud-sdk-hetzner|cloud-sdk-reqwest|cloud-sdk-sanitization|cloud-sdk-testkit|sanitization) v'
+    unexpected="$(
+        printf '%s\n' "$dependency_tree" \
+            | grep -E '^[^[:space:]]+ v' \
+            | grep -Ev "$allowed" \
+            || true
+    )"
+    if [ -n "$unexpected" ]; then
+        echo "platform matrix: unexpected default dependency" >&2
+        printf '%s\n' "$unexpected" >&2
         exit 1
     fi
 }

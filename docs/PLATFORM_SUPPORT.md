@@ -86,11 +86,11 @@ scripts/check_platform_matrix.sh --default-boundary
 ```
 
 It inspects the normal default-feature workspace graph for all target-specific
-dependency branches and fails if a network, TLS, runtime, socket, native
-system, or OS binding dependency appears. Regression tests bind validation to
-the exact all-target Cargo command and prove that unknown targets, missing
-target libraries, extra arguments, and forbidden default dependencies fail
-closed before a platform claim is accepted.
+dependency branches. Only the five first-party workspace crates and the
+admitted `sanitization` package are allowed; every other package fails closed.
+Regression tests bind validation to the exact all-target Cargo command and
+prove that unknown targets, missing target libraries, extra arguments, and
+unlisted dependencies fail closed before a platform claim is accepted.
 
 ## Transport Selection
 

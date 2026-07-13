@@ -148,13 +148,20 @@ def test_default_dependency_boundary() -> None:
         directory = Path(temporary)
         environment, log = fake_environment(
             directory,
-            tree="cloud-sdk v0.20.0\nreqwest v0.13.4\nwindows-sys v0.61.2",
+            tree=(
+                "cloud-sdk v0.20.0\n"
+                "sanitization v1.2.4\n"
+                "ureq v3.1.2\n"
+                "curl v0.4.49\n"
+                "async-std v1.13.2"
+            ),
         )
         rejected = run(["--default-boundary"], environment)
         assert rejected.returncode == 1, rejected
-        assert "default features activate" in rejected.stderr
-        assert "reqwest v0.13.4" in rejected.stderr
-        assert "windows-sys v0.61.2" in rejected.stderr
+        assert "unexpected default dependency" in rejected.stderr
+        assert "ureq v3.1.2" in rejected.stderr
+        assert "curl v0.4.49" in rejected.stderr
+        assert "async-std v1.13.2" in rejected.stderr
         assert log.read_text(encoding="ascii").splitlines() == [
             "tree --locked --workspace --target all --edges normal --prefix none"
         ]
