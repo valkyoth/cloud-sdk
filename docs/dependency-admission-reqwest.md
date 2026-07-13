@@ -1,15 +1,16 @@
-# Reqwest Blocking Transport Dependency Admission
+# Reqwest Transport Dependency Admission
 
-Status: admitted only through `cloud-sdk-reqwest/blocking-rustls` with reqwest
-default features disabled.
+Status: admitted only through `cloud-sdk-reqwest/blocking-rustls` and
+`cloud-sdk-reqwest/async-rustls`, with reqwest default features disabled.
 
 ## Decision
 
 | Crate | Version | Role | Default features |
 | --- | --- | --- | --- |
-| `reqwest` | `0.13.4` | blocking HTTP client and URL/header types | disabled |
+| `reqwest` | `0.13.4` | blocking/async HTTP client and URL/header types | disabled |
+| `bytes` | `1.12.1` | sanitized owned async request-body handoff | disabled |
 | `hyper` | `1.10.1` | transitive HTTP implementation | transitive |
-| `tokio` | `1.52.3` | transitive blocking-client runtime support | transitive |
+| `tokio` | `1.52.3` | reqwest runtime; direct dev-only async test executor | transitive/disabled |
 | `url` | `2.5.8` | authority-preserving endpoint parsing | transitive |
 | `rustls` | `0.23.41` | TLS implementation | transitive |
 | `rustls-platform-verifier` | `0.7.0` | platform trust-store verification | transitive |
@@ -44,22 +45,33 @@ documentation, and upstream source:
 ## Feature Boundary
 
 The crate remains no_std and transport-free by default. Its `std` feature also
-does not admit reqwest. Only `blocking-rustls` enables:
+does not admit reqwest. `blocking-rustls` enables:
 
 - `std`;
 - `cloud-sdk-sanitization`;
 - `reqwest/blocking`;
 - `reqwest/rustls`.
 
+`async-rustls` enables:
+
+- `std`;
+- `bytes`;
+- `cloud-sdk-sanitization`;
+- `reqwest/rustls`.
+
+It deliberately does not enable `reqwest/blocking`. The core async contract
+and testkit do not depend on Tokio. The concrete async reqwest adapter requires
+callers to poll requests from an active Tokio executor; it does not create,
+install, or own a runtime.
+
 Reqwest default features are disabled. Native TLS, cookies, JSON, multipart,
 SOCKS, system proxy discovery, redirects, retries, referer generation, and
-response decompression are not admitted. Async APIs are not exposed by this
-release, although reqwest's blocking implementation internally uses Tokio.
-HTTP/2 and Hickory DNS are also absent from the production feature graph. A
+response decompression are not admitted. HTTP/2 and Hickory DNS are also absent
+from both production feature graphs. A
 separate locked, non-published test fixture deliberately enables both on the
-same reqwest instance to exercise Cargo feature unification against the
-runtime overrides. Its local `cloud-sdk-reqwest` dependency is pinned exactly
-to `0.13.0`.
+same reqwest instance and builds both adapters to exercise Cargo feature
+unification against the runtime overrides. Its local `cloud-sdk-reqwest`
+dependency is pinned exactly to `0.14.0`.
 
 The fixture lockfile is a separate 200-package tooling graph. Release and CI
 gates apply the root advisory, license, and source policy to that lockfile,
@@ -85,7 +97,9 @@ Production builders enforce:
 - no gzip, Brotli, Zstandard, or deflate response decompression;
 - explicit nonzero total and connect timeouts, each at most 300 seconds;
 - explicit validated user agent and bearer authorization;
-- caller-sized bounded response bodies.
+- caller-sized bounded response bodies;
+- async response accumulation limited to caller capacity, followed by one
+  complete-success copy into the caller buffer.
 
 The adapter validates the final scheme, host, and port against the configured
 endpoint. Request targets are origin-form, and encoded path separators,
@@ -96,7 +110,7 @@ Platform trust roots intentionally follow host policy. A compromised or
 attacker-extended host trust store, including an enterprise interception root,
 can therefore validate a hostile endpoint. The v0.24 dependency-hardening
 milestone will evaluate a separately reviewed deterministic root-store option;
-v0.16 does not claim certificate or public-key pinning.
+v0.17 does not claim certificate or public-key pinning.
 
 A separate `blocking-rustls-fips` transport is assigned to v0.23.0. It must
 use and verify the rustls FIPS provider and configuration explicitly; callers
@@ -108,7 +122,10 @@ enabling unrelated dependency features is not an SDK FIPS guarantee.
 storage, marks reqwest's header value sensitive, redacts diagnostics, and
 volatile-clears its owned bytes on drop through `cloud-sdk-sanitization`.
 Request-body copies and caller response buffers are also cleared on their
-owned failure or drop paths.
+owned failure or drop paths. Async response data is accumulated in a
+pre-reserved adapter-owned sanitized buffer and copied into the already-cleared
+caller buffer only after complete success. Dropping the future during connect,
+send, or response reading drops and clears that adapter-owned accumulation.
 
 The adapter cannot clear the caller's original immutable token string,
 reqwest/header/TLS copies, operating-system socket buffers, kernel memory,
@@ -125,8 +142,9 @@ direct `zeroize` admission.
 ## Platform Scope
 
 The core and provider crates remain portable no_std libraries. The optional
-blocking adapter requires a reqwest/rustls-supported std target, platform trust
-roots, networking, threads, and the native build requirements of aws-lc-sys.
+adapters require a reqwest/rustls-supported std target, platform trust roots,
+networking, threads, and the native build requirements of aws-lc-sys. The async
+adapter additionally requires an active Tokio executor supplied by the caller.
 Linux, Windows, macOS, BSD, Android, and iOS remain intended targets, but a
 platform is not claimed as release-verified until its target check or CI job is
 recorded. Aesynx compatibility remains a future no_std integration concern and
@@ -135,11 +153,12 @@ does not enable this std adapter.
 ## Verification
 
 `scripts/check_reqwest_boundary.sh` verifies the exact top-level versions,
-default and std graph isolation, required and forbidden reqwest features,
+default and std graph isolation, separate blocking/async required and forbidden
+reqwest features,
 absence of native TLS and decompression dependencies, direct-zeroize
 exclusion, hardened builder policy, adversarial HTTP/2/Hickory feature
 unification, focused tests, fixture lockfile policy and audit coverage, and
 package verification.
-The v0.16 release gate additionally runs the full workspace checks, MSRV
+The v0.17 release gate additionally runs the full workspace checks, MSRV
 matrix, cargo-deny, cargo-audit, upstream API drift checks, and pentest evidence
 validation.

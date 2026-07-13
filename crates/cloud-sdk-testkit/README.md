@@ -70,6 +70,36 @@ assert_eq!(response.body(), br#"{"servers":[]}"#);
 assert!(transport.is_complete());
 ```
 
+The same mock implements the executor-neutral async contract without adding a
+runtime dependency:
+
+```rust,no_run
+# async fn example() {
+use cloud_sdk::Method;
+use cloud_sdk::transport::{AsyncTransport, RequestTarget, TransportRequest};
+use cloud_sdk_testkit::{
+    ExpectedRequest, FixtureBody, MockExchange, MockTransport, ResponseFixture,
+};
+
+let Ok(target) = RequestTarget::new("/servers/42") else { return };
+let Ok(body) = FixtureBody::new(br#"{"id":42}"#) else { return };
+let exchanges = [MockExchange::new(
+    ExpectedRequest::new(Method::Get, target),
+    ResponseFixture::success(body),
+)];
+let mut transport = MockTransport::new(&exchanges);
+let mut output = [0_u8; 32];
+let Ok(response) = AsyncTransport::send(
+    &mut transport,
+    TransportRequest::new(Method::Get, target),
+    &mut output,
+).await else { return };
+
+assert_eq!(response.body(), br#"{"id":42}"#);
+# }
+# fn main() {}
+```
+
 Each exchange is consumed only after the request matches and the complete
 response body fits. Method, target, body, exhaustion, and response-capacity
 failures are distinct and payload-free. Debug output redacts request targets,
@@ -105,7 +135,7 @@ on `cloud-sdk-hetzner`.
 This crate is test infrastructure, not a production transport. Exact request
 matching uses ordinary byte equality and must not be exposed as a remote secret
 comparison oracle. Authentication, base URLs, headers, timeout policy, TLS,
-retry behavior, and secret ownership remain responsibilities of future
+retry behavior, and secret ownership remain responsibilities of concrete
 transport adapters.
 
 The testkit stores only borrowed expectations and fixture bodies. Callers must

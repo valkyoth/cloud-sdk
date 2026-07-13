@@ -48,14 +48,14 @@ explicit trust and dependency review.
 ## Workspace Shape
 
 - `cloud-sdk`: provider-neutral no_std SDK foundation for shared provider,
-  API-family, method, and blocking transport-contract domains.
+  API-family, method, and blocking/runtime-neutral async transport contracts.
 - `cloud-sdk-hetzner`: Hetzner no_std provider crate. Endpoint models live under
   `src/cloud`, `src/dns`, `src/security`, and `src/storage`, with shared
   request, response, pagination, label, rate-limit, and action domains in
   top-level source files.
-- `cloud-sdk-reqwest`: provider-neutral no_std boundary by default, with the
-  first reviewed blocking reqwest/rustls transport behind the non-default
-  `blocking-rustls` feature. Provider crates never depend on it directly.
+- `cloud-sdk-reqwest`: provider-neutral no_std boundary by default, with
+  reviewed blocking and async reqwest/rustls transports behind non-default
+  features. Provider crates never depend on it directly.
 - `cloud-sdk-testkit`: provider-neutral no_std ordered mock transport, bounded
   response fixtures, pagination/action/rate-limit metadata, and adversarial
   response corpus. Future releases may add live-test gating helpers.
@@ -128,8 +128,11 @@ Expected future candidates must be reviewed before use:
 - `sanitization` admitted in `v0.14.0` with default features disabled through
   the provider-neutral `cloud-sdk-sanitization` boundary.
 - `reqwest` `0.13.4` admitted in `v0.16.0` with default features disabled only
-  through `cloud-sdk-reqwest/blocking-rustls`; the facade and provider default
-  graphs remain transport-free.
+  through `cloud-sdk-reqwest/blocking-rustls`, extended to `async-rustls` in
+  `v0.17.0`; the facade and provider default graphs remain transport-free.
+- `bytes` `1.12.1` admitted in `v0.17.0` only for sanitized owned async request
+  bodies; Tokio remains absent from core/testkit and is caller-supplied at the
+  concrete async adapter execution boundary.
 - Rustls FIPS and `aws-lc-fips-sys` are not admitted in v0.16.0. Their exact
   module version, certificate, operating environments, build chain, provider
   configuration, runtime verification, and feature graph are a dedicated

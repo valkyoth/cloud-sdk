@@ -702,18 +702,25 @@ v0.16.0 implementation stop reached. Run pentest for this exact commit.
 
 ### v0.17.0 - Optional Async Transport Adapter
 
-Status: implementation in progress.
+Status: implementation stop reached; pentest required.
 
 Goal: add async transport support with explicit runtime neutrality and no
 default runtime dependency.
 
 Deliverables:
 
-- Async transport trait or adapter implementation behind non-default features.
-- Runtime-neutral future model or documented runtime feature policy.
-- Cancellation, timeout, body-size, rate-limit, and retry guidance.
-- Tests with deterministic mock transport and no live API by default.
-- Dependency review for async, TLS, and HTTP crates.
+- Runtime-neutral `AsyncTransport` future contract in the no_std core.
+- No-allocation async mock implementation in `cloud-sdk-testkit` without an
+  executor dependency.
+- Optional `cloud-sdk-reqwest/async-rustls` implementation requiring a
+  caller-provided Tokio executor while leaving all default graphs runtime-free.
+- Cancellation-safe, caller-bounded async response accumulation with sanitized
+  adapter-owned request and response storage.
+- Explicit no-redirect/no-retry policy: rate-limit and retry interpretation
+  remains visible to caller-owned provider logic.
+- Deterministic loopback coverage for exact requests, timeouts, cancellation,
+  overflow, redirects, content types, feature unification, and redaction.
+- Updated reqwest, bytes, Tokio, TLS, and HTTP dependency review and graph gates.
 
 Verification:
 

@@ -47,6 +47,45 @@ pub(super) fn spawn(
     Ok(TestServer { endpoint, request })
 }
 
+pub(super) fn spawn_split(
+    status: &str,
+    first: &[u8],
+    second: &[u8],
+    between_delay: Duration,
+) -> Result<TestServer, std::io::Error> {
+    let listener = TcpListener::bind("127.0.0.1:0")?;
+    let address = listener.local_addr()?;
+    let endpoint = format!("http://{address}/v1");
+    let (sender, request) = channel();
+    let body_len = first
+        .len()
+        .checked_add(second.len())
+        .ok_or_else(|| std::io::Error::other("response length overflow"))?;
+    let head =
+        format!("HTTP/1.1 {status}\r\nContent-Length: {body_len}\r\nConnection: close\r\n\r\n");
+    let first = first.to_vec();
+    let second = second.to_vec();
+
+    thread::spawn(move || {
+        let Ok((mut stream, _)) = listener.accept() else {
+            return;
+        };
+        let _ = stream.set_read_timeout(Some(Duration::from_secs(2)));
+        let Ok(bytes) = read_request(&mut stream) else {
+            return;
+        };
+        let _ = sender.send(RecordedRequest { bytes });
+        let _ = stream.write_all(head.as_bytes());
+        let _ = stream.write_all(&first);
+        let _ = stream.flush();
+        thread::sleep(between_delay);
+        let _ = stream.write_all(&second);
+        let _ = stream.flush();
+    });
+
+    Ok(TestServer { endpoint, request })
+}
+
 fn response_bytes(
     status: &str,
     headers: &[(&str, &str)],

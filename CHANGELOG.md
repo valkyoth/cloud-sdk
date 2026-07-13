@@ -2,8 +2,16 @@
 
 ## 0.17.0 - 2026-07-13
 
-- Started the runtime-neutral async transport contract and optional hardened
-  async reqwest adapter milestone.
+- Added the runtime-neutral no_std `AsyncTransport` contract and an
+  allocation-free async mock implementation in `cloud-sdk-testkit`.
+- Added the optional hardened `cloud-sdk-reqwest/async-rustls` adapter with
+  explicit caller-provided Tokio execution.
+- Added cancellation-safe caller-bounded response buffering and sanitized
+  adapter-owned async request/response storage.
+- Added deterministic loopback tests for exact requests, redirects, timeouts,
+  cancellation, overflow, redaction, and downstream feature unification.
+- Extended dependency, modularity, package, and default-graph gates for async
+  reqwest, bytes, and Tokio without admitting them to provider defaults.
 - Prepared independent v0.17 crate versions, release notes, and release gate.
 
 ## 0.16.0 - 2026-07-13

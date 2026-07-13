@@ -32,13 +32,16 @@ runtime dependencies. The decision and limits are recorded in
 and `scripts/check_sanitization_boundary.sh` enforces graph isolation.
 
 Reqwest `0.13.4` is admitted only through the non-default
-`cloud-sdk-reqwest/blocking-rustls` feature. Reqwest defaults are disabled;
+`cloud-sdk-reqwest/blocking-rustls` and `async-rustls` features. Bytes `1.12.1`
+is a direct optional dependency only for sanitized async request-body ownership.
+Reqwest defaults are disabled;
 native TLS, response decompression, proxies, redirects, and retries are not
 admitted by policy. The full HTTP, Tokio, URL, rustls, platform-verifier,
 aws-lc, license, duplicate-version, and transitive-zeroize review is recorded
 in [`dependency-admission-reqwest.md`](dependency-admission-reqwest.md).
-`scripts/check_reqwest_boundary.sh` keeps reqwest outside every default graph
-and rejects direct first-party `zeroize` dependencies.
+`scripts/check_reqwest_boundary.sh` keeps reqwest, bytes, and Tokio outside
+every default/provider graph, validates the blocking and async feature graphs
+separately, and rejects direct first-party `zeroize` dependencies.
 The locked downstream feature-unification fixture is audited independently and
 has its own SPDX SBOM; its exact target-specific duplicate dependency is
 documented in the reqwest admission record.

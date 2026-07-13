@@ -42,7 +42,9 @@ New third-party crates require:
 ## Secret Policy
 
 The default SDK must not store API tokens. Callers provide authorization at the
-transport boundary. Any future secret-bearing helper must be optional, reviewed,
+transport boundary. Optional transport adapters must redact and sanitize their
+owned secret storage, while callers remain responsible for original token and
+response buffers. Any future secret-bearing helper must be optional, reviewed,
 tested, and isolated from the default no_std graph.
 
 ## Reporting

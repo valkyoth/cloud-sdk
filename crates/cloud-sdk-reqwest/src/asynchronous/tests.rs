@@ -8,7 +8,7 @@ use super::{
     AsyncClient, AsyncClientBuilder, BearerToken, HttpsEndpoint, RequestTimeouts, TransportError,
     UserAgent,
 };
-use crate::test_server::spawn;
+use crate::test_server::{spawn, spawn_split};
 
 fn test_timeouts() -> Option<RequestTimeouts> {
     RequestTimeouts::new(Duration::from_secs(2), Duration::from_secs(1)).ok()
@@ -156,8 +156,13 @@ async fn internal_timeout_is_payload_free_and_clears_output() {
 }
 
 #[tokio::test(flavor = "current_thread")]
-async fn caller_cancellation_never_exposes_partial_response() {
-    let server = spawn("200 OK", &[], b"secret", Duration::from_millis(150));
+async fn caller_cancellation_after_partial_body_never_exposes_response() {
+    let server = spawn_split(
+        "200 OK",
+        b"secret-prefix",
+        b"-tail",
+        Duration::from_millis(500),
+    );
     let Ok(server) = server else { return };
     let Some(mut client) = build_loopback(&server.endpoint) else {
         return;
@@ -165,15 +170,15 @@ async fn caller_cancellation_never_exposes_partial_response() {
     let Ok(target) = RequestTarget::new("/slow") else {
         return;
     };
-    let mut output = [0xa5_u8; 16];
+    let mut output = [0xa5_u8; 32];
     let future = AsyncTransport::send(
         &mut client,
         TransportRequest::new(Method::Get, target),
         &mut output,
     );
-    let result = tokio::time::timeout(Duration::from_millis(30), future).await;
-    assert!(result.is_err());
-    assert_eq!(output, [0_u8; 16]);
+    let result = tokio::time::timeout(Duration::from_millis(100), future).await;
+    assert!(result.is_err(), "unexpected early completion: {result:?}");
+    assert_eq!(output, [0_u8; 32]);
 }
 
 #[test]

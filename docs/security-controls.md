@@ -23,8 +23,9 @@
 | DNS RRSet mutations | source-locked RR types; bounded unique redacted records; mandatory change-TTL intent; atomic JSON-string writers |
 | optional Serde boundary | default graph exclusion; no Serde `std`; 1 MiB request and 8 MiB response policies; bounded validated response envelopes |
 | testkit boundary | no_std ordered mock; atomic bounded response writes; payload-free mismatch errors; redacted fixture/request debug |
-| transport contract | origin-form targets reject leading `//`, backslash, fragments, controls, spaces, and non-ASCII; responses borrow their initialized caller-buffer slice; no independent untrusted body length; no authentication, headers, TLS, retry, or network implementation |
+| transport contract | blocking plus executor-neutral async traits; origin-form targets reject leading `//`, backslash, fragments, controls, spaces, and non-ASCII; responses borrow their initialized caller-buffer slice; no independent untrusted body length; no authentication, headers, TLS, retry, runtime, or network implementation |
 | optional blocking transport | non-default reqwest/rustls; HTTPS only; TLS 1.2 minimum; HTTP/1 and system DNS forced under feature unification; explicit bounded timeouts and user agent; no redirect, retry, proxy, referer, or decompression; exact response bounds; payload-free failures |
+| optional async transport | non-default reqwest/rustls with caller-provided Tokio execution; blocking feature excluded from async-only graph; complete-success response copy from bounded sanitized temporary storage; cancellation, timeout, read failure, and overflow leave caller output cleared |
 | content-type diagnostics | validated values remain available to the adapter but all `Debug` output is structurally redacted |
 | adapter secret ownership | bearer and request-body copies are redacted and cleared through `cloud-sdk-sanitization`; caller and reqwest/TLS/OS copies remain caller/operational boundaries |
 | CodeQL default setup | repository setting |

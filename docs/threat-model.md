@@ -42,6 +42,10 @@
   hostile TLS endpoint;
 - downstream Cargo feature unification silently enabling a different DNS
   resolver or broader HTTP protocol parser;
+- async cancellation exposing partially initialized response data or leaving
+  adapter-owned secret response copies in memory;
+- an async adapter silently owning a runtime or introducing one into default,
+  provider, or testkit graphs;
 
 ## Controls
 
@@ -65,13 +69,18 @@
   controls, spaces, and non-ASCII before an adapter can attach credentials;
 - transport responses borrow only the initialized slice of the caller-owned
   buffer instead of trusting an independently reported numeric length;
-- optional production blocking transport requires exact HTTPS authority,
-  rustls with TLS 1.2 minimum, explicit bounded timeouts, no redirects,
-  retries, proxies, referers, or decompression, and caller-bounded responses;
-- platform trust-store use is explicit; v0.16 does not claim root, certificate,
+- optional production blocking and async transports require exact HTTPS
+  authority, rustls with TLS 1.2 minimum, explicit bounded timeouts, no
+  redirects, retries, proxies, referers, or decompression, and caller-bounded
+  responses;
+- platform trust-store use is explicit; v0.17 does not claim root, certificate,
   or public-key pinning;
-- the blocking client forces HTTP/1 and disables Hickory DNS at runtime; a
-  locked external fixture tests both downstream reqwest features unified;
-- adapter-owned bearer and request-body allocations are redacted and cleared
-  through the provider-neutral sanitization boundary;
+- both clients force HTTP/1 and disable Hickory DNS; a locked external fixture
+  tests both adapters with downstream reqwest HTTP/2 and Hickory features unified;
+- the core async trait and testkit are executor-neutral; only the optional
+  reqwest adapter requires caller-provided Tokio execution;
+- async response data stays in caller-bounded sanitized temporary storage and
+  reaches the cleared caller buffer only after complete success;
+- adapter-owned bearer, request-body, and async response allocations are
+  redacted or cleared through the provider-neutral sanitization boundary;
 - pentest report before every tag.

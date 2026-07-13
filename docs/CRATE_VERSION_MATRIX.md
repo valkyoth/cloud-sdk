@@ -1,6 +1,6 @@
 # Crate Version Matrix
 
-Status: `v0.17.0` async transport implementation in progress. The latest
+Status: `v0.17.0` async transport implementation stop reached; pentest required. The latest
 published release is `v0.16.0`.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
