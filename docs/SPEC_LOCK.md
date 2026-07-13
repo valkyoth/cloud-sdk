@@ -148,6 +148,32 @@ No other request body or resource response is Serde-enabled in this release.
 Adding one requires an explicit source-locked mapping and adversarial fixtures;
 blanket derives over validated request or path types are prohibited.
 
+## v0.18.0 Pagination, Action, And Rate-Limit Policy
+
+Both pinned official specifications document one-based `page` values, a
+default `per_page` of 25, and a maximum of 50 unless an operation explicitly
+states otherwise. Paginated JSON object responses include
+`meta.pagination`; `previous_page`, `next_page`, `last_page`, and
+`total_entries` are required nullable fields. The SDK rejects omitted fields,
+zero pages, page sizes outside `1..=50`, backwards or repeated navigation, a
+next page beyond the known last page, and empty pages that still advertise a
+continuation. A caller-selected hard page limit remains mandatory even when
+the provider supplies a last page.
+
+Actions remain `running` until the provider reports `success` or `error`.
+Polling frequency is intentionally caller-owned because the official source
+warns against frequent requests. The SDK rejects zero-delay polling and
+progress regression, propagates the optional validated provider error on a
+terminal failure, and never owns a sleep, retry loop, clock, deadline, or
+executor.
+
+The official response metadata uses the complete `RateLimit-Limit`,
+`RateLimit-Remaining`, and `RateLimit-Reset` header set. Reqwest adapters parse
+only unsigned decimal values, require all three headers when any is present,
+reject zero limits and remaining values above the limit, and expose the result
+through `TransportResponse`. They do not infer a retry delay or automatically
+replay a request.
+
 ## Deferred Scope
 
 Robot Webservice is explicitly deferred until after the Cloud/DNS SDK reaches

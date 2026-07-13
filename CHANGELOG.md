@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.18.0 - 2026-07-13
+
+- Added no_std provider-neutral pagination and action polling state machines
+  without hidden requests, sleeps, clocks, executors, or retry policy.
+- Added hard page limits, exact transition checks, empty/repeated page
+  rejection, progress-regression checks, zero-delay rejection, explicit
+  cancellation/timeout decisions, and terminal provider-error propagation.
+- Added validated provider-neutral rate-limit metadata to transport responses.
+- Added strict all-or-none rate-limit header parsing to blocking and async
+  reqwest transports and deterministic metadata propagation in the testkit.
+- Added strict reusable Hetzner `meta.pagination` parsing and action response
+  conversion for the provider-neutral helpers.
+- Corrected the source-locked Hetzner page default and maximum to 25 and 50.
+- Prepared independent v0.18 crate versions, release notes, and release gate.
+
 ## 0.17.0 - 2026-07-13
 
 - Added the runtime-neutral no_std `AsyncTransport` contract and an

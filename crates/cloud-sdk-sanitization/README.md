@@ -38,8 +38,8 @@ Most users should start with:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.17.0"
-cloud-sdk-sanitization = "0.13.3"
+cloud-sdk = "0.18.0"
+cloud-sdk-sanitization = "0.13.4"
 ```
 
 ## Example

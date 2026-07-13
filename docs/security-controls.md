@@ -26,6 +26,9 @@
 | transport contract | blocking plus executor-neutral async traits; origin-form targets reject leading `//`, backslash, fragments, controls, spaces, and non-ASCII; responses borrow their initialized caller-buffer slice; no independent untrusted body length; no authentication, headers, TLS, retry, runtime, or network implementation |
 | optional blocking transport | non-default reqwest/rustls; HTTPS only; TLS 1.2 minimum; HTTP/1 and system DNS forced under feature unification; explicit bounded timeouts and user agent; no redirect, retry, proxy, referer, or decompression; exact response bounds; payload-free failures |
 | optional async transport | non-default reqwest/rustls with caller-provided Tokio execution; blocking feature excluded from async-only graph; complete-success response copy from bounded sanitized temporary storage; cancellation, timeout, read failure, and overflow leave caller output cleared |
+| rate-limit metadata | transports admit only a complete coherent decimal header set; malformed, partial, zero-limit, overflow, and remaining-above-limit values fail closed |
+| pagination state | no_std caller-driven cursor with a hard page limit; exact page transitions; contradictory, repeated, and empty non-terminal pages rejected; rate-limit metadata preserved per boundary |
+| action polling state | no_std caller-driven poller; terminal provider failures preserved; progress regression and zero delay rejected; caller policy owns backoff, cancellation, timeout, sleep, and request execution |
 | content-type diagnostics | validated values remain available to the adapter but all `Debug` output is structurally redacted |
 | adapter secret ownership | bearer and request-body copies are redacted and cleared through `cloud-sdk-sanitization`; caller and reqwest/TLS/OS copies remain caller/operational boundaries |
 | CodeQL default setup | repository setting |

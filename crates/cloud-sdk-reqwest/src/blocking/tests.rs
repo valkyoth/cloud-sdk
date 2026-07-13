@@ -22,7 +22,7 @@ fn test_timeouts() -> Option<RequestTimeouts> {
 fn build_loopback(endpoint: &str) -> Option<super::BlockingClient> {
     let endpoint = HttpsEndpoint::local_http(endpoint).ok()?;
     let token = BearerToken::new("test-token").ok()?;
-    let user_agent = UserAgent::new("cloud-sdk-test/0.16").ok()?;
+    let user_agent = UserAgent::new("cloud-sdk-test/0.18").ok()?;
     let timeouts = test_timeouts()?;
     BlockingClientBuilder::new(endpoint, token, user_agent, timeouts)
         .build_for_loopback()
@@ -170,7 +170,7 @@ fn blocking_client_sends_exact_headers_target_and_body_once() {
         let wire = String::from_utf8_lossy(&recorded.bytes).to_ascii_lowercase();
         assert!(wire.starts_with("post /v1/servers?name=test%20server http/1.1\r\n"));
         assert!(wire.contains("authorization: bearer test-token\r\n"));
-        assert!(wire.contains("user-agent: cloud-sdk-test/0.16\r\n"));
+        assert!(wire.contains("user-agent: cloud-sdk-test/0.18\r\n"));
         assert!(wire.contains("content-type: application/json\r\n"));
         assert!(wire.ends_with(r#"{"name":"server"}"#));
     }
@@ -290,7 +290,7 @@ fn response_timeout_is_payload_free_and_clears_output() {
     let Ok(server) = server else { return };
     let endpoint = HttpsEndpoint::local_http(&server.endpoint);
     let token = BearerToken::new("test-token");
-    let user_agent = UserAgent::new("cloud-sdk-test/0.16");
+    let user_agent = UserAgent::new("cloud-sdk-test/0.18");
     let timeouts = RequestTimeouts::new(Duration::from_millis(40), Duration::from_millis(20));
     let (Ok(endpoint), Ok(token), Ok(user_agent), Ok(timeouts)) =
         (endpoint, token, user_agent, timeouts)

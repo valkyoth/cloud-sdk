@@ -15,7 +15,7 @@ Status: admitted only through `cloud-sdk-reqwest/blocking-rustls` and
 | `rustls` | `0.23.41` | TLS implementation | transitive |
 | `rustls-platform-verifier` | `0.7.0` | platform trust-store verification | transitive |
 | `aws-lc-rs` | `1.17.1` | rustls cryptographic provider | transitive |
-| `cloud-sdk-sanitization` | `0.13.3` | adapter-owned secret-buffer cleanup | disabled |
+| `cloud-sdk-sanitization` | `0.13.4` | adapter-owned secret-buffer cleanup | disabled |
 | `sanitization` | `1.2.4` | reviewed volatile cleanup primitive | disabled |
 
 The exact complete graph is pinned by `Cargo.lock`, checked by `cargo deny`,
@@ -71,7 +71,7 @@ from both production feature graphs. A
 separate locked, non-published test fixture deliberately enables both on the
 same reqwest instance and builds both adapters to exercise Cargo feature
 unification against the runtime overrides. Its local `cloud-sdk-reqwest`
-dependency is pinned exactly to `0.14.0`.
+dependency is pinned exactly to `0.15.0`.
 
 The fixture lockfile is a separate 200-package tooling graph. Release and CI
 gates apply the root advisory, license, and source policy to that lockfile,
@@ -98,6 +98,8 @@ Production builders enforce:
 - explicit nonzero total and connect timeouts, each at most 300 seconds;
 - explicit validated user agent and bearer authorization;
 - caller-sized bounded response bodies;
+- strict all-or-none decimal parsing of the three provider-neutral rate-limit
+  response metadata fields;
 - async response accumulation limited to caller capacity, followed by one
   complete-success copy into the caller buffer.
 

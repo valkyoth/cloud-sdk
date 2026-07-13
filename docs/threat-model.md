@@ -46,6 +46,11 @@
   adapter-owned secret response copies in memory;
 - an async adapter silently owning a runtime or introducing one into default,
   provider, or testkit graphs;
+- malformed or partial rate-limit headers causing incorrect request budgets;
+- repeated, contradictory, or empty non-terminal pages causing loops or
+  incomplete resource traversal;
+- zero-delay action policies causing busy polling, or terminal provider errors
+  being discarded;
 
 ## Controls
 
@@ -83,4 +88,11 @@
   reaches the cleared caller buffer only after complete success;
 - adapter-owned bearer, request-body, and async response allocations are
   redacted or cleared through the provider-neutral sanitization boundary;
+- rate-limit headers are parsed as a strict all-or-none decimal set and
+  validated before transport metadata is exposed;
+- pagination requires a caller-selected hard page limit, exact expected-page
+  transitions, nonempty continuation pages, and provider-validated navigation;
+- action polling rejects progress regression and zero-delay loops, preserves
+  terminal provider failures, and delegates delay, timeout, and cancellation
+  to caller policy without owning a clock or retry loop;
 - pentest report before every tag.

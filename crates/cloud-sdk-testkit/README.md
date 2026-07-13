@@ -32,8 +32,8 @@ and runtime-free.
 
 ```toml
 [dev-dependencies]
-cloud-sdk = "0.17.0"
-cloud-sdk-testkit = "0.14.0"
+cloud-sdk = "0.18.0"
+cloud-sdk-testkit = "0.15.0"
 ```
 
 ## Mock Transport
@@ -110,6 +110,8 @@ request bodies, and response bodies.
 `ResponseFixture` builds deterministic success, paginated, action, rate-limit,
 and error responses. `PaginationFixture`, `ActionFixture`, and
 `RateLimitFixture` reject incoherent metadata before a fixture can be used.
+Use `ResponseFixture::with_rate_limit` to attach validated transport metadata
+to paginated, action, success, or error responses.
 
 `FixtureBody` supports borrowed bytes and compact repeated-byte bodies up to
 8 MiB plus one byte. Writes preflight capacity and leave undersized destination

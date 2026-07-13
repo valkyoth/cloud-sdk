@@ -1,38 +1,38 @@
 [release]
-version = "0.17.0"
+version = "0.18.0"
 policy = "independent"
 
 [crates."cloud-sdk"]
-previous_version = "0.16.0"
-version = "0.17.0"
+previous_version = "0.17.0"
+version = "0.18.0"
 change = "code"
 publish = true
-reason = "Runtime-neutral async transport contract for provider-neutral adapters and testkits."
+reason = "Provider-neutral pagination, action polling, and rate-limit metadata contracts."
 
 [crates."cloud-sdk-hetzner"]
-previous_version = "0.15.1"
-version = "0.15.2"
-change = "dependency"
+previous_version = "0.15.2"
+version = "0.16.0"
+change = "code"
 publish = true
-reason = "Update the cloud-sdk dependency to the v0.17 facade line."
+reason = "Strict Hetzner pagination metadata parsing and action polling conversion."
 
 [crates."cloud-sdk-reqwest"]
-previous_version = "0.13.0"
-version = "0.14.0"
+previous_version = "0.14.0"
+version = "0.15.0"
 change = "code"
 publish = true
-reason = "Add the hardened provider-neutral async reqwest adapter."
+reason = "Validate and propagate provider rate-limit response headers."
 
 [crates."cloud-sdk-sanitization"]
-previous_version = "0.13.2"
-version = "0.13.3"
+previous_version = "0.13.3"
+version = "0.13.4"
 change = "dependency"
 publish = true
-reason = "Update the cloud-sdk dependency to the v0.17 facade line."
+reason = "Update the cloud-sdk dependency to the v0.18 facade line."
 
 [crates."cloud-sdk-testkit"]
-previous_version = "0.13.1"
-version = "0.14.0"
+previous_version = "0.14.0"
+version = "0.15.0"
 change = "code"
 publish = true
-reason = "Implement the runtime-neutral async mock transport contract."
+reason = "Propagate validated rate-limit metadata through deterministic fixtures."

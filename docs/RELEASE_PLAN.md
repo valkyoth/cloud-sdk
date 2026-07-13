@@ -552,7 +552,7 @@ Verification:
 - `scripts/checks.sh`
 - `scripts/check_hetzner_api_drift.py --fetch`
 - `cargo test -p cloud-sdk-hetzner --all-features dns_zones`
-- `scripts/release_0_12_gate.sh` once added.
+- `scripts/release_0_12_gate.sh`.
 
 Stop gate:
 
@@ -658,7 +658,7 @@ Verification:
 - `scripts/check_rust_version_matrix.sh`
 - `cargo test -p cloud-sdk-testkit --all-features`
 - `cargo test --workspace --all-features`
-- `scripts/release_0_15_gate.sh` once added.
+- `scripts/release_0_15_gate.sh`.
 
 Stop gate:
 
@@ -696,7 +696,7 @@ Verification:
 - production and feature-unification SPDX SBOM generation;
 - canonical committed-SBOM freshness comparison;
 - `cargo tree -p cloud-sdk-hetzner --no-default-features`
-- `scripts/release_0_16_gate.sh` once added.
+- `scripts/release_0_16_gate.sh`.
 
 Stop gate:
 
@@ -706,7 +706,7 @@ v0.16.0 implementation stop reached. Run pentest for this exact commit.
 
 ### v0.17.0 - Optional Async Transport Adapter
 
-Status: implementation stop reached; pentest required.
+Status: tagged and published.
 
 Goal: add async transport support with explicit runtime neutrality and no
 default runtime dependency.
@@ -731,7 +731,7 @@ Verification:
 - `scripts/checks.sh`
 - `cargo test -p cloud-sdk-reqwest --all-features`
 - `cargo tree -p cloud-sdk-hetzner --no-default-features`
-- `scripts/release_0_17_gate.sh` once added.
+- `scripts/release_0_17_gate.sh`.
 
 Stop gate:
 
@@ -741,6 +741,8 @@ v0.17.0 implementation stop reached. Run pentest for this exact commit.
 
 ### v0.18.0 - Pagination And Action Polling Helpers
 
+Status: implementation stop reached; pentest required.
+
 Goal: provide ergonomic optional helpers over transport traits without hiding
 rate-limit, timeout, or retry policy.
 
@@ -749,14 +751,20 @@ Deliverables:
 - Pagination helper that exposes page boundaries and rate-limit metadata.
 - Action polling helper with caller-supplied delay/backoff policy.
 - Terminal action states and failure propagation.
+- Strict all-or-none rate-limit header parsing in blocking and async adapters.
+- Strict reusable Hetzner `meta.pagination` parsing and conversion into the
+  provider-neutral cursor.
+- Source-locked correction of Hetzner's default page size to 25 and maximum to
+  50 unless an operation documents an exception.
 - Tests for stop conditions, timeout/cancel behavior, empty pages, repeated
   pages, action failure, and rate-limit propagation.
 
 Verification:
 
 - `scripts/checks.sh`
-- `cargo test --workspace --all-features pagination action_polling`
-- `scripts/release_0_18_gate.sh` once added.
+- `cargo test --workspace --all-features pagination`
+- `cargo test --workspace --all-features action_polling`
+- `scripts/release_0_18_gate.sh`.
 
 Stop gate:
 

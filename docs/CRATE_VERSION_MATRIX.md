@@ -1,7 +1,7 @@
 # Crate Version Matrix
 
-Status: `v0.17.0` async transport implementation stop reached; pentest required. The latest
-published release is `v0.16.0`.
+Status: `v0.18.0` pagination and action polling implementation stop reached;
+pentest required. The latest published release is `v0.17.0`.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
@@ -276,3 +276,18 @@ patches.
 | `cloud-sdk-reqwest` | `0.13.0` | `0.14.0` | `code` | Yes | Add the hardened provider-neutral async reqwest adapter. |
 | `cloud-sdk-sanitization` | `0.13.2` | `0.13.3` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.17 facade line. |
 | `cloud-sdk-testkit` | `0.13.1` | `0.14.0` | `code` | Yes | Implement the runtime-neutral async mock transport contract. |
+
+## v0.18.0 Tracking Table
+
+`v0.18.0` adds explicit provider-neutral pagination and action polling state,
+strict transport rate-limit metadata, and the first Hetzner shared pagination
+response parser. Every crate whose code implements the boundary receives an
+independent minor; sanitization follows the facade dependency with a patch.
+
+| Crate | Published | Planned | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.17.0` | `0.18.0` | `code` | Yes | Provider-neutral pagination, action polling, and rate-limit metadata contracts. |
+| `cloud-sdk-hetzner` | `0.15.2` | `0.16.0` | `code` | Yes | Strict Hetzner pagination metadata parsing and action polling conversion. |
+| `cloud-sdk-reqwest` | `0.14.0` | `0.15.0` | `code` | Yes | Validate and propagate provider rate-limit response headers. |
+| `cloud-sdk-sanitization` | `0.13.3` | `0.13.4` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.18 facade line. |
+| `cloud-sdk-testkit` | `0.14.0` | `0.15.0` | `code` | Yes | Propagate validated rate-limit metadata through deterministic fixtures. |

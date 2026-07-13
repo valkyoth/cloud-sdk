@@ -133,6 +133,8 @@ Expected future candidates must be reviewed before use:
 - `bytes` `1.12.1` admitted in `v0.17.0` only for sanitized owned async request
   bodies; Tokio remains absent from core/testkit and is caller-supplied at the
   concrete async adapter execution boundary.
+- `v0.18.0` adds pagination and action-polling state machines without new
+  third-party dependencies, clocks, runtimes, automatic requests, or sleeps.
 - Rustls FIPS and `aws-lc-fips-sys` are not admitted in v0.16.0. Their exact
   module version, certificate, operating environments, build chain, provider
   configuration, runtime verification, and feature graph are a dedicated

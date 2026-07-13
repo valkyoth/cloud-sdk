@@ -10,7 +10,7 @@ default-members = ["crates/cloud-sdk"]
 resolver = "3"
 
 [workspace.package]
-version = "0.17.0"
+version = "0.18.0"
 edition = "2024"
 rust-version = "1.90"
 license = "MIT OR Apache-2.0"
@@ -36,10 +36,10 @@ cast_sign_loss = "deny"
 
 [workspace.dependencies]
 bytes = { version = "1.12.1", default-features = false }
-cloud-sdk = { path = "crates/cloud-sdk", version = "0.17.0" }
-cloud-sdk-hetzner = { path = "crates/cloud-sdk-hetzner", version = "0.15.2" }
-cloud-sdk-sanitization = { path = "crates/cloud-sdk-sanitization", version = "0.13.3" }
-cloud-sdk-testkit = { path = "crates/cloud-sdk-testkit", version = "0.14.0" }
+cloud-sdk = { path = "crates/cloud-sdk", version = "0.18.0" }
+cloud-sdk-hetzner = { path = "crates/cloud-sdk-hetzner", version = "0.16.0" }
+cloud-sdk-sanitization = { path = "crates/cloud-sdk-sanitization", version = "0.13.4" }
+cloud-sdk-testkit = { path = "crates/cloud-sdk-testkit", version = "0.15.0" }
 reqwest = { version = "0.13.4", default-features = false }
 tokio = { version = "1.52.3", default-features = false }
 serde = { version = "1.0.228", default-features = false, features = ["alloc", "derive"] }

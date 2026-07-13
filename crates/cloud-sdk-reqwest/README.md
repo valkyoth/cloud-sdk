@@ -38,8 +38,8 @@ Most users should start with:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.17.0"
-cloud-sdk-reqwest = { version = "0.14.0", features = ["blocking-rustls"] }
+cloud-sdk = "0.18.0"
+cloud-sdk-reqwest = { version = "0.15.0", features = ["blocking-rustls"] }
 ```
 
 ## Blocking Example
@@ -140,6 +140,8 @@ assert_eq!(request.content_type(), Some(ContentType::JSON));
   decompression.
 - Exact scheme, host, and port preservation after target composition.
 - Caller-sized response buffers with overflow detection and cleanup.
+- Strict all-or-none decimal parsing and propagation of `RateLimit-Limit`,
+  `RateLimit-Remaining`, and `RateLimit-Reset` response headers.
 - Async responses are buffered within the caller's capacity and copied only
   after complete success; cancellation leaves the caller buffer cleared.
 - Payload-free errors and redacted client, token, target, and body diagnostics.

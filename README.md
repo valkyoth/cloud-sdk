@@ -56,8 +56,9 @@ please report it so it can be fixed.
 
 ## Current Status
 
-Status: `v0.17.0` async transport implementation stop reached; pentest required.
-The latest published release is `v0.16.0`.
+Status: `v0.18.0` pagination and action polling implementation stop reached;
+pentest required.
+The latest published release is `v0.17.0`.
 
 Implemented now:
 
@@ -70,6 +71,10 @@ Implemented now:
   Box resources.
 - Provider-neutral blocking and runtime-neutral async transport contracts, plus
   a no_std deterministic mock testkit implementing both contracts.
+- Provider-neutral bounded pagination and action polling state machines with
+  caller-owned page fetching, parsing, delay, timeout, and cancellation policy.
+- Validated rate-limit metadata propagation through blocking, async, and mock
+  transports without hidden retries.
 - Optional hardened provider-neutral blocking and async reqwest/rustls
   transports, plus admitted guarded caller-buffer sanitization.
 - Local checks for formatting, linting, tests, no_std policy, modularity, and
@@ -121,8 +126,10 @@ Not implemented yet:
 - No token storage or secret manager integration.
 - No broad request/response serialization outside the reviewed RRSet and
   shared response boundary.
-- No pagination iterator.
-- No retry, rate-limit, or action polling helper.
+- No automatic pagination stream; the explicit cursor requires callers to
+  fetch and decode each page.
+- No automatic retries or sleeps; the action poller delegates delay, timeout,
+  and cancellation decisions to caller policy.
 - No generated response model.
 - No live Hetzner API tests.
 - No non-Hetzner providers yet. Smaller focused cloud and SaaS providers such
@@ -160,8 +167,8 @@ Not implemented yet:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.17.0"
-cloud-sdk-hetzner = "0.15.2"
+cloud-sdk = "0.18.0"
+cloud-sdk-hetzner = "0.16.0"
 ```
 
 ## Provider-Neutral Example
@@ -202,8 +209,8 @@ The core contracts perform no I/O and select no executor. Use
 
 ```toml
 [dependencies]
-cloud-sdk = "0.17.0"
-cloud-sdk-reqwest = { version = "0.14.0", features = ["blocking-rustls"] }
+cloud-sdk = "0.18.0"
+cloud-sdk-reqwest = { version = "0.15.0", features = ["blocking-rustls"] }
 ```
 
 ```rust,ignore
@@ -246,8 +253,8 @@ request-body storage.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.17.0"
-cloud-sdk-reqwest = { version = "0.14.0", features = ["async-rustls"] }
+cloud-sdk = "0.18.0"
+cloud-sdk-reqwest = { version = "0.15.0", features = ["async-rustls"] }
 ```
 
 ```rust,ignore
@@ -267,6 +274,84 @@ The async adapter requires an active Tokio executor because reqwest uses Tokio
 internally; the core trait and testkit remain executor-neutral. Responses are
 buffered only up to caller capacity and copied after complete success. Timeout,
 read failure, overflow, or cancellation leaves the caller buffer cleared.
+
+## Pagination Cursor Example
+
+```rust
+use cloud_sdk::pagination::{
+    PageLimit, PageMetadata, PageNumber, PaginationCursor,
+};
+
+# fn main() -> Result<(), cloud_sdk::pagination::PaginationError> {
+let first = PageNumber::new(1)?;
+let second = PageNumber::new(2)?;
+let limit = PageLimit::new(10)?;
+let mut cursor = PaginationCursor::new(first, limit);
+
+assert_eq!(cursor.next_page()?, first);
+let metadata = PageMetadata::new(
+    first,
+    25,
+    None,
+    Some(second),
+    Some(second),
+    Some(30),
+)?;
+let boundary = cursor.observe(metadata, 25, None)?;
+
+assert!(!boundary.is_terminal());
+assert_eq!(cursor.next_page()?, second);
+# Ok(())
+# }
+```
+
+The caller fetches and decodes each requested page, then passes only validated
+metadata and the decoded entry count to the cursor. Empty non-terminal pages,
+repeated pages, contradictory navigation, and the caller's hard page limit
+fail closed. Each accepted boundary preserves transport rate-limit metadata.
+
+## Action Polling Example
+
+```rust
+use core::time::Duration;
+use cloud_sdk::action_polling::{
+    ActionPollStep, ActionPoller, ActionUpdate, PollContext, PollDecision,
+    PollPolicy,
+};
+
+struct FixedDelay;
+
+impl PollPolicy for FixedDelay {
+    type Error = ();
+
+    fn decide(&mut self, _context: PollContext) -> Result<PollDecision, Self::Error> {
+        Ok(PollDecision::Delay(Duration::from_secs(2)))
+    }
+}
+
+let mut poller = ActionPoller::new();
+let mut policy = FixedDelay;
+let running = poller.observe(
+    ActionUpdate::<()>::Running,
+    25,
+    None,
+    &mut policy,
+);
+assert_eq!(running, Ok(ActionPollStep::Delay(Duration::from_secs(2))));
+
+let complete = poller.observe(
+    ActionUpdate::<()>::Success,
+    100,
+    None,
+    &mut policy,
+);
+assert_eq!(complete, Ok(ActionPollStep::Complete));
+```
+
+Provider failures are returned as `ActionPollStep::Failed(E)` without being
+discarded. Running observations invoke caller policy, which must explicitly
+choose a nonzero delay, cancellation, or timeout; the SDK owns no clock,
+executor, sleep, retry count, or deadline.
 
 ## Fixed Buffer Example
 

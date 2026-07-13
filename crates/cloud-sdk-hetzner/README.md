@@ -38,19 +38,19 @@ models in small reviewed releases.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.17.0"
-cloud-sdk-hetzner = "0.15.2"
+cloud-sdk = "0.18.0"
+cloud-sdk-hetzner = "0.16.0"
 ```
 
 ## Current Scope
 
-The current main branch is preparing the workspace `0.17.0` release. The latest
-published provider release is `0.15.1`; the planned provider `0.15.2` is a
-dependency-only update to the `cloud-sdk` `0.17.0` transport contract. This
-crate remains no_std and does not itself implement HTTP transport, broad Serde
+The current main branch is preparing the workspace `0.18.0` release. The latest
+published provider release is `0.15.2`; the planned provider `0.16.0` adds
+strict shared pagination metadata and action polling conversion. This crate
+remains no_std and does not itself implement HTTP transport, broad Serde
 coverage outside reviewed RRSet/shared response models, token storage, live
-API tests, retry policy, pagination iterators, or action polling. The optional
-blocking implementation belongs to the provider-neutral `cloud-sdk-reqwest`
+API tests, automatic retries, sleeps, or page fetching. Blocking and async
+HTTP implementations belong to the provider-neutral `cloud-sdk-reqwest`
 crate.
 
 Implemented in the published `0.2.0` line:
@@ -192,6 +192,16 @@ Implemented in the published `0.15.0` line:
 - compatibility with the provider-neutral blocking transport request and
   caller-owned response-buffer contract without adding transport dependencies.
 
+Implemented on main for the planned `0.16.0` line:
+
+- strict reusable `meta.pagination` parsing with required nullable fields,
+  additive-field compatibility, and validated navigation;
+- source-locked page defaults and limits of 25 and 50;
+- conversion from Hetzner page metadata into the provider-neutral bounded
+  pagination cursor;
+- conversion from validated Hetzner action responses into polling updates that
+  preserve terminal provider errors.
+
 ### Sensitive Output Buffers
 
 `ZoneFile::write_json_string`, `TsigKey::write_json_string`,
@@ -248,7 +258,7 @@ Enable Serde explicitly; it is never part of the default graph:
 
 ```toml
 [dependencies]
-cloud-sdk-hetzner = { version = "0.15.2", features = ["serde"] }
+cloud-sdk-hetzner = { version = "0.16.0", features = ["serde"] }
 ```
 
 `serde_json` is used below only as an example format implementation and remains
@@ -407,6 +417,88 @@ assert_eq!(encoded, Some("type=system&page=1&per_page=25"));
 # Ok(())
 # }
 ```
+
+## Pagination Response Example
+
+The optional Serde boundary can extract shared pagination metadata from any
+Hetzner list response while ignoring the resource-specific fields:
+
+```rust
+use cloud_sdk::pagination::{PageLimit, PaginationCursor};
+use cloud_sdk_hetzner::serde::PaginationEnvelope;
+
+let body = br#"{
+    "servers": [{"id": 42}],
+    "meta": {"pagination": {
+        "page": 1,
+        "per_page": 25,
+        "previous_page": null,
+        "next_page": null,
+        "last_page": 1,
+        "total_entries": 1
+    }}
+}"#;
+let Ok(envelope) = serde_json::from_slice::<PaginationEnvelope>(body) else {
+    return;
+};
+let metadata = envelope.pagination();
+let Ok(limit) = PageLimit::new(10) else { return };
+let Ok(first) = cloud_sdk::pagination::PageNumber::new(1) else { return };
+let mut cursor = PaginationCursor::new(first, limit);
+let Ok(boundary) = cursor.observe(metadata.as_core(), 1, None) else {
+    return;
+};
+
+assert!(boundary.is_terminal());
+assert_eq!(metadata.total_entries(), Some(1));
+```
+
+Pass `TransportResponse::rate_limit()` as the final `observe` argument when a
+real or mock transport supplies it. The caller remains responsible for
+decoding the resource array and reporting its exact entry count.
+
+## Action Polling Example
+
+```rust
+use core::time::Duration;
+use cloud_sdk::action_polling::{
+    ActionPollStep, ActionPoller, PollContext, PollDecision, PollPolicy,
+};
+use cloud_sdk_hetzner::serde::ActionEnvelope;
+
+struct FixedDelay;
+
+impl PollPolicy for FixedDelay {
+    type Error = ();
+
+    fn decide(&mut self, _context: PollContext) -> Result<PollDecision, Self::Error> {
+        Ok(PollDecision::Delay(Duration::from_secs(2)))
+    }
+}
+
+let body = br#"{"action":{
+    "id":42,"command":"create_server","status":"running","progress":25,
+    "started":"2026-07-13T12:00:00Z","finished":null,
+    "resources":[],"error":null
+}}"#;
+let Ok(envelope) = serde_json::from_slice::<ActionEnvelope<'_>>(body) else {
+    return;
+};
+let mut poller = ActionPoller::new();
+let mut policy = FixedDelay;
+let step = poller.observe(
+    envelope.action().polling_update(),
+    envelope.action().progress(),
+    None,
+    &mut policy,
+);
+
+assert_eq!(step, Ok(ActionPollStep::Delay(Duration::from_secs(2))));
+```
+
+For an `error` action, the step is `ActionPollStep::Failed` and carries the
+validated optional Hetzner error response. The SDK never sleeps, retries, or
+declares a timeout on its own.
 
 ## Security Request Example
 

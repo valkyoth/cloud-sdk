@@ -20,6 +20,16 @@ impl PollPolicy for Policy {
     }
 }
 
+struct FailingPolicy;
+
+impl PollPolicy for FailingPolicy {
+    type Error = u8;
+
+    fn decide(&mut self, _context: PollContext) -> Result<PollDecision, Self::Error> {
+        Err(7)
+    }
+}
+
 #[test]
 fn caller_policy_receives_progress_and_rate_limit() {
     let rate_limit = RateLimit::new(3600, 3, 42).ok();
@@ -82,6 +92,17 @@ fn caller_policy_controls_cancel_and_timeout() {
         );
         assert!(poller.is_terminal());
     }
+}
+
+#[test]
+fn policy_errors_are_preserved_without_advancing_the_poller() {
+    let mut poller = ActionPoller::new();
+    assert_eq!(
+        poller.observe(ActionUpdate::<()>::Running, 10, None, &mut FailingPolicy,),
+        Err(ActionPollError::Policy(7))
+    );
+    assert_eq!(poller.observations(), 0);
+    assert!(!poller.is_terminal());
 }
 
 #[test]
