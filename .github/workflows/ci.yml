@@ -69,10 +69,16 @@ jobs:
         run: scripts/checks.sh
 
       - name: Check dependency policy
-        run: cargo deny check
+        run: |
+          cargo deny check
+          cargo deny --manifest-path tests/reqwest-feature-unification/Cargo.toml \
+            --config deny.toml --locked check advisories licenses sources
 
       - name: Check RustSec advisories
-        run: cargo audit
+        run: |
+          cargo audit
+          cargo audit --no-fetch \
+            --file tests/reqwest-feature-unification/Cargo.lock
 
       - name: Generate SBOM
         run: scripts/generate-sbom.sh

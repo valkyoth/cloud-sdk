@@ -14,9 +14,12 @@ if ! cargo deny --version >/dev/null 2>&1; then
     exit 1
 fi
 cargo deny check
+cargo deny --manifest-path tests/reqwest-feature-unification/Cargo.toml \
+    --config deny.toml --locked check advisories licenses sources
 
 if ! cargo audit --version >/dev/null 2>&1; then
     echo "release gate: cargo-audit not installed; install the pinned version before tagging" >&2
     exit 1
 fi
 cargo audit
+cargo audit --no-fetch --file tests/reqwest-feature-unification/Cargo.lock

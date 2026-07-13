@@ -58,7 +58,17 @@ release, although reqwest's blocking implementation internally uses Tokio.
 HTTP/2 and Hickory DNS are also absent from the production feature graph. A
 separate locked, non-published test fixture deliberately enables both on the
 same reqwest instance to exercise Cargo feature unification against the
-runtime overrides.
+runtime overrides. Its local `cloud-sdk-reqwest` dependency is pinned exactly
+to `0.13.0`.
+
+The fixture lockfile is a separate 200-package tooling graph. Release and CI
+gates apply the root advisory, license, and source policy to that lockfile,
+audit it independently, and generate a dedicated SPDX SBOM. The root
+production graph retains `multiple-versions = "deny"`. The fixture does not
+apply that ban because enabling Hickory and rustls platform verification
+together currently requires `core-foundation` `0.9.4` and `0.10.1` on Apple
+targets. This exception is confined to the non-published adversarial fixture;
+the production reqwest feature graph excludes Hickory.
 
 ## Client Policy
 
@@ -128,7 +138,8 @@ does not enable this std adapter.
 default and std graph isolation, required and forbidden reqwest features,
 absence of native TLS and decompression dependencies, direct-zeroize
 exclusion, hardened builder policy, adversarial HTTP/2/Hickory feature
-unification, focused tests, and package verification.
+unification, focused tests, fixture lockfile policy and audit coverage, and
+package verification.
 The v0.16 release gate additionally runs the full workspace checks, MSRV
 matrix, cargo-deny, cargo-audit, upstream API drift checks, and pentest evidence
 validation.

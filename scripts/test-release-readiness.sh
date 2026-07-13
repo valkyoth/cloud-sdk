@@ -42,6 +42,8 @@ write_release_notes() {
 
 write_sbom() {
     printf '{"spdxVersion":"SPDX-2.3"}\n' >sbom/cloud-sdk.spdx.json
+    printf '{"spdxVersion":"SPDX-2.3"}\n' \
+        >sbom/reqwest-feature-unification.spdx.json
 }
 
 write_pentest() {
@@ -103,6 +105,15 @@ repo="$(make_fixture missing-report)"
         scripts/validate-release-readiness.sh "v0.2.0"
 )
 
+repo="$(make_fixture missing-fixture-sbom)"
+(
+    cd "$repo"
+    write_release_notes "0.2.0"
+    printf '{"spdxVersion":"SPDX-2.3"}\n' >sbom/cloud-sdk.spdx.json
+    assert_fails_with "missing or empty SBOM: sbom/reqwest-feature-unification.spdx.json" \
+        scripts/validate-release-readiness.sh "v0.2.0"
+)
+
 repo="$(make_fixture uncommitted-report)"
 (
     cd "$repo"
@@ -156,4 +167,4 @@ repo="$(make_fixture ready)"
     scripts/validate-release-readiness.sh "v0.2.0"
 )
 
-echo "9 release readiness tests passed."
+echo "10 release readiness tests passed."

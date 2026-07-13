@@ -12,7 +12,8 @@ Dependencies are denied by default until reviewed. New dependencies require:
 - documentation under `docs/dependency-admission-*.md`.
 
 Release gates require `cargo deny check`, `cargo audit`, and an SBOM before
-tagging.
+tagging. Standalone test/tooling workspaces compiled by release CI require
+their own locked policy check, advisory audit, and SBOM.
 
 Serde `1.0.228` is the first admitted optional third-party normal dependency.
 Its defaults are disabled and its `alloc` and `derive` features are enabled only
@@ -35,3 +36,6 @@ aws-lc, license, duplicate-version, and transitive-zeroize review is recorded
 in [`dependency-admission-reqwest.md`](dependency-admission-reqwest.md).
 `scripts/check_reqwest_boundary.sh` keeps reqwest outside every default graph
 and rejects direct first-party `zeroize` dependencies.
+The locked downstream feature-unification fixture is audited independently and
+has its own SPDX SBOM; its exact target-specific duplicate dependency is
+documented in the reqwest admission record.

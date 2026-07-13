@@ -50,6 +50,8 @@ tests, token generation, or secret-manager integration.
   silently alter an authenticated request.
 - A locked non-published fixture enables reqwest HTTP/2 and Hickory DNS to
   verify runtime policy remains frozen under downstream feature unification.
+- The fixture's separate dependency graph receives independent advisory,
+  license, source, audit, and SPDX SBOM verification in release CI.
 
 ## Version Plan
 
@@ -73,7 +75,9 @@ tests, token generation, or secret-manager integration.
 - `scripts/checks.sh`
 - `scripts/release_0_16_gate.sh`
 - `cargo deny check`
+- `cargo deny --manifest-path tests/reqwest-feature-unification/Cargo.toml --config deny.toml --locked check advisories licenses sources`
 - `cargo audit`
+- `cargo audit --no-fetch --file tests/reqwest-feature-unification/Cargo.lock`
 - `git diff --check`
 
 ## Pentest

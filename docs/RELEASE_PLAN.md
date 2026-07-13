@@ -66,6 +66,8 @@ A version is not tag-ready until:
 - the pentest report has non-blank `Tester:` and `Scope:` fields;
 - the pentest report has a `Date: YYYY-MM-DD` field;
 - `sbom/cloud-sdk.spdx.json` exists and is non-empty;
+- `sbom/reqwest-feature-unification.spdx.json` exists and is non-empty when
+  the standalone downstream fixture is present;
 - `scripts/validate-release-readiness.sh vX.Y.Z` proves that the report-only
   release commit has the reviewed commit as its direct parent;
 - GitHub CI and CodeQL default setup are green on the release-report commit;
@@ -80,7 +82,7 @@ Normal CI validates release metadata without requiring the still-pending
 current report. The versioned release gate requires the report before tagging.
 The report commit must have `Reviewed-Commit:` as its direct parent and may
 change only `security/pentest/vX.Y.Z.md`, matching the release-evidence model
-used by the `eth` workspace. The SBOM and every release-sensitive file must be
+used by the `eth` workspace. All SBOMs and every release-sensitive file must be
 finalized before that reviewed parent. The normal publisher still requires a
 verifiable signed, annotated `vX.Y.Z` tag to point at `HEAD` and has no
 dirty-tree, skipped-check, untagged, or no-verification bypass flags.
@@ -110,7 +112,7 @@ Use this loop for every version:
 6. `PENTEST.md` is removed after findings are handled.
 7. Local gates are run again.
 8. GitHub CI and CodeQL default setup are checked after the fix commit.
-9. Generate and commit the final SBOM before the reviewed implementation
+9. Generate and commit the final SBOMs before the reviewed implementation
    commit is handed off.
 10. A permanent report is written at `security/pentest/vX.Y.Z.md` only when
     that exact finalized commit has passed with `Status: PASS`.
@@ -684,6 +686,8 @@ Verification:
 - `scripts/checks.sh`
 - `scripts/check_reqwest_boundary.sh`
 - `cargo test -p cloud-sdk-reqwest --all-features`
+- fixture-scoped `cargo deny` and `cargo audit` checks;
+- production and feature-unification SPDX SBOM generation;
 - `cargo tree -p cloud-sdk-hetzner --no-default-features`
 - `scripts/release_0_16_gate.sh` once added.
 
