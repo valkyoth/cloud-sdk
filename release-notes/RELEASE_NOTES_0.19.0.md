@@ -35,9 +35,9 @@ SDK or provider graph.
 - Validates ownership, modes, hard-link count, parent directories, bounded
   manifest, and SHA-256 through open file descriptors, then executes the same
   verified descriptor under a minimal authenticated environment.
-- Requires both the ignored-test opt-in and
-  `CLOUD_SDK_HETZNER_LIVE_MODE=read-only`; the wrapper sets the latter only for
-  `--read-only` execution.
+- Requires both the ignored-test selection and
+  `CLOUD_SDK_HETZNER_LIVE_MODE=read-only`; the root-owned runner supplies both
+  only to the verified test executable.
 - Accepts only `CLOUD_SDK_HETZNER_TOKEN_FILE`, never a raw token environment
   variable or command-line token.
 - Rejects empty paths, symlinks, non-regular files, files above the bounded
@@ -86,10 +86,11 @@ use a separate command and cannot reuse the read-only opt-in.
 - `cargo audit`
 - `git diff --check`
 
-The authenticated `--read-only` run is manual and requires a caller-provided
-least-privilege token. It is not executed by default CI or release automation.
-The release gate also rejects an uncommitted worktree before binding its checks
-to the reviewed `HEAD`.
+The authenticated `/usr/local/bin/cloud-sdk-hetzner-smoke` run is manual and
+requires a caller-provided least-privilege token after privileged sealing and
+build-environment teardown. It is not executed by default CI or release
+automation. The release gate also rejects an uncommitted worktree before
+binding its checks to the reviewed `HEAD`.
 
 ## Pentest
 

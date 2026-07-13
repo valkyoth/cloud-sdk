@@ -12,7 +12,7 @@ Status: admitted only through `cloud-sdk-reqwest/blocking-rustls` and
 | `hyper` | `1.10.1` | transitive HTTP implementation | transitive |
 | `tokio` | `1.52.3` | reqwest runtime; direct dev-only async test executor | transitive/disabled |
 | `url` | `2.5.8` | authority-preserving endpoint parsing | transitive |
-| `rustls` | `0.23.41` | TLS implementation | transitive |
+| `rustls` | `0.23.42` | TLS implementation | transitive |
 | `rustls-platform-verifier` | `0.7.0` | platform trust-store verification | transitive |
 | `aws-lc-rs` | `1.17.1` | rustls cryptographic provider | transitive |
 | `cloud-sdk-sanitization` | `0.13.5` | adapter-owned secret-buffer cleanup | disabled |
