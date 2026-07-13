@@ -11,6 +11,7 @@ publish = false
 cloud-sdk-reqwest = {
     path = "../../crates/cloud-sdk-reqwest",
     version = "=0.14.0",
-    features = ["blocking-rustls"],
+    features = ["async-rustls", "blocking-rustls"],
 }
 reqwest = { version = "=0.13.4", default-features = false, features = ["hickory-dns", "http2"] }
+tokio = { version = "=1.52.3", default-features = false, features = ["macros", "rt"] }

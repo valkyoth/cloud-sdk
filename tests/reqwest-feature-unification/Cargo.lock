@@ -115,6 +115,7 @@ version = "0.17.0"
 name = "cloud-sdk-reqwest"
 version = "0.14.0"
 dependencies = [
+ "bytes",
  "cloud-sdk",
  "cloud-sdk-sanitization",
  "reqwest",
@@ -126,6 +127,7 @@ version = "0.0.0"
 dependencies = [
  "cloud-sdk-reqwest",
  "reqwest",
+ "tokio",
 ]
 
 [[package]]

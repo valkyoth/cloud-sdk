@@ -34,8 +34,21 @@ done
 if grep -RInE '(^|[^A-Za-z0-9_])std([[:space:]]*::|[[:space:]]+as|[[:space:]]*\{|[[:space:]]*;)' crates --include='*.rs' |
     grep -Ev '^[^:]+:[0-9]+:extern crate std;' |
     grep -Ev '^[^:]+:[0-9]+:[[:space:]]*(//|///|//!|/\*)' |
-    grep -Ev '^crates/cloud-sdk-reqwest/src/blocking/'; then
+    grep -Ev '^crates/cloud-sdk-reqwest/src/(asynchronous|blocking|shared)/' |
+    grep -Ev '^crates/cloud-sdk-reqwest/src/test_server.rs:'; then
     echo "modularity policy: unguarded std usage found under crates/" >&2
+    status=1
+fi
+
+if ! awk '
+    /^#\[cfg\(feature = "async-rustls"\)\]$/ { guarded = 1; next }
+    /^pub mod asynchronous;$/ {
+        if (guarded) found = 1
+    }
+    { guarded = 0 }
+    END { exit !found }
+' crates/cloud-sdk-reqwest/src/lib.rs; then
+    echo "modularity policy: reqwest async module lost feature guard" >&2
     status=1
 fi
 

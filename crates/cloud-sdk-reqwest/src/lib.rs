@@ -10,6 +10,12 @@ mod shared;
 #[cfg(feature = "blocking-rustls")]
 pub mod blocking;
 
+#[cfg(feature = "async-rustls")]
+pub mod asynchronous;
+
+#[cfg(all(test, any(feature = "async-rustls", feature = "blocking-rustls")))]
+mod test_server;
+
 /// Provider-neutral transport adapter readiness state.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum ReqwestAdapterStatus {

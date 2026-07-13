@@ -9,11 +9,11 @@ use cloud_sdk::transport::{
 };
 
 use super::body::{ReadBodyError, read_bounded};
-use super::test_server::spawn;
 use super::{
     BearerToken, BearerTokenError, BlockingClientBuilder, EndpointError, HttpsEndpoint,
     RequestTimeouts, TimeoutError, TransportError, UserAgent,
 };
+use crate::test_server::spawn;
 
 fn test_timeouts() -> Option<RequestTimeouts> {
     RequestTimeouts::new(Duration::from_secs(2), Duration::from_secs(1)).ok()

@@ -30,8 +30,9 @@ Optional provider-neutral transport adapter for the main
 [`cloud-sdk`](https://crates.io/crates/cloud-sdk) crate.
 
 The crate remains no_std and transport-free by default. Its non-default
-`blocking-rustls` feature provides the reviewed blocking HTTPS implementation
-for every provider without adding transport dependencies to provider crates.
+`blocking-rustls` and `async-rustls` features provide reviewed HTTPS
+implementations for every provider without adding transport dependencies to
+provider crates.
 
 Most users should start with:
 
@@ -44,6 +45,8 @@ cloud-sdk-reqwest = { version = "0.14.0", features = ["blocking-rustls"] }
 ## Blocking Example
 
 ```rust,no_run
+# #[cfg(feature = "blocking-rustls")]
+# fn main() {
 use std::time::Duration;
 
 use cloud_sdk::Method;
@@ -69,6 +72,46 @@ let mut response_body = [0_u8; 65_536];
 let Ok(response) = client.send(request, &mut response_body) else { return };
 
 assert!(response.status().is_success());
+# }
+# #[cfg(not(feature = "blocking-rustls"))]
+# fn main() {}
+```
+
+## Async Example
+
+The async adapter uses reqwest's Tokio-based execution internally but does not
+create or own a runtime. Call it from an active Tokio executor:
+
+```rust,no_run
+# #[cfg(feature = "async-rustls")]
+# async fn example() {
+use std::time::Duration;
+
+use cloud_sdk::Method;
+use cloud_sdk::transport::{AsyncTransport, RequestTarget, TransportRequest};
+use cloud_sdk_reqwest::asynchronous::{
+    AsyncClientBuilder, BearerToken, HttpsEndpoint, RequestTimeouts, UserAgent,
+};
+
+let Ok(endpoint) = HttpsEndpoint::new("https://api.hetzner.cloud/v1") else { return };
+let Ok(token) = BearerToken::new("replace-with-scoped-token") else { return };
+let Ok(user_agent) = UserAgent::new("my-service/1.0") else { return };
+let Ok(timeouts) = RequestTimeouts::new(
+    Duration::from_secs(30),
+    Duration::from_secs(10),
+) else { return };
+let Ok(mut client) = AsyncClientBuilder::new(endpoint, token, user_agent, timeouts).build()
+else { return };
+
+let Ok(target) = RequestTarget::new("/servers?page=1") else { return };
+let request = TransportRequest::new(Method::Get, target);
+let mut response_body = [0_u8; 65_536];
+let Ok(response) = AsyncTransport::send(&mut client, request, &mut response_body).await
+else { return };
+
+assert!(response.status().is_success());
+# }
+# fn main() {}
 ```
 
 For a non-empty request body, set an explicit validated content type:
@@ -97,6 +140,8 @@ assert_eq!(request.content_type(), Some(ContentType::JSON));
   decompression.
 - Exact scheme, host, and port preservation after target composition.
 - Caller-sized response buffers with overflow detection and cleanup.
+- Async responses are buffered within the caller's capacity and copied only
+  after complete success; cancellation leaves the caller buffer cleared.
 - Payload-free errors and redacted client, token, target, and body diagnostics.
 
 `BearerToken` clears its adapter-owned authorization bytes through
@@ -111,6 +156,7 @@ mutable secret storage after transport use.
 | --- | --- | --- |
 | `std` | no | Enables only std support in first-party boundary crates. |
 | `blocking-rustls` | no | Enables the hardened blocking reqwest/rustls adapter and sanitization boundary. |
+| `async-rustls` | no | Enables the hardened async reqwest/rustls adapter; callers provide an active Tokio runtime. |
 
 Reqwest's default features are disabled. The complete dependency and security
 decision is recorded in

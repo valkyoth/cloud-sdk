@@ -1,4 +1,4 @@
-//! Hardened provider-neutral blocking transport implementation.
+//! Hardened provider-neutral asynchronous transport implementation.
 
 mod body;
 mod client;
@@ -9,8 +9,8 @@ pub use crate::shared::{
     MAX_BEARER_TOKEN_BYTES, MAX_TIMEOUT_SECONDS, RequestTimeouts, TimeoutError, TransportError,
     UserAgent, UserAgentError,
 };
-pub use client::BlockingClient;
-pub use config::BlockingClientBuilder;
+pub use client::AsyncClient;
+pub use config::AsyncClientBuilder;
 
 #[cfg(test)]
 mod tests;

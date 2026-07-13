@@ -24,7 +24,7 @@ cargo package -p cloud-sdk-hetzner --allow-dirty --features serde \
     --config 'patch.crates-io.cloud-sdk.path="crates/cloud-sdk"' \
     --config 'patch.crates-io.cloud-sdk-sanitization.path="crates/cloud-sdk-sanitization"' \
     --config 'patch.crates-io.cloud-sdk-testkit.path="crates/cloud-sdk-testkit"'
-cargo package -p cloud-sdk-reqwest --allow-dirty --features blocking-rustls \
+cargo package -p cloud-sdk-reqwest --allow-dirty --all-features \
     --config 'patch.crates-io.cloud-sdk.path="crates/cloud-sdk"' \
     --config 'patch.crates-io.cloud-sdk-sanitization.path="crates/cloud-sdk-sanitization"'
 cargo package -p cloud-sdk-sanitization --allow-dirty \

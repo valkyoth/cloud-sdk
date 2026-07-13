@@ -66,7 +66,7 @@ impl BearerToken {
         Ok(value)
     }
 
-    #[cfg(test)]
+    #[cfg(all(test, feature = "blocking-rustls"))]
     pub(crate) fn owned_bytes(&self) -> &[u8] {
         &self.authorization
     }

@@ -47,6 +47,27 @@ if printf '%s\n' "$blocking_tree" | grep -Eq \
     exit 1
 fi
 
+async_tree=$(cargo tree -p cloud-sdk-reqwest --no-default-features \
+    --features async-rustls --edges normal)
+for dependency in \
+    'bytes v1.12.1' \
+    'reqwest v0.13.4' \
+    'tokio v1.52.3' \
+    'cloud-sdk-sanitization v0.13.3' \
+    'sanitization v1.2.4' \
+    'rustls v0.23.41'; do
+    if ! printf '%s\n' "$async_tree" | grep -Fq "$dependency"; then
+        echo "reqwest boundary: admitted async dependency $dependency is missing" >&2
+        exit 1
+    fi
+done
+if printf '%s\n' "$async_tree" | grep -Eq \
+    'native-tls|openssl-sys|flate2|brotli v|zstd v|async-compression'; then
+    echo "reqwest boundary: native TLS or response decompression entered async graph" >&2
+    printf '%s\n' "$async_tree" >&2
+    exit 1
+fi
+
 legacy_windows_tree=$(cargo tree -p cloud-sdk-reqwest --no-default-features \
     --features blocking-rustls --target all --edges normal \
     -i windows-sys@0.52.0 2>/dev/null || true)
@@ -67,6 +88,19 @@ if printf '%s\n' "$feature_tree" | grep -Eq \
     'reqwest feature "(default|native-tls|gzip|brotli|zstd|deflate|cookies|hickory-dns|http2|json|multipart|socks)"'; then
     echo "reqwest boundary: unreviewed reqwest feature entered graph" >&2
     printf '%s\n' "$feature_tree" >&2
+    exit 1
+fi
+
+async_feature_tree=$(cargo tree -p cloud-sdk-reqwest --no-default-features \
+    --features async-rustls --edges features,no-dev -i reqwest)
+if ! printf '%s\n' "$async_feature_tree" | grep -Fq 'reqwest feature "rustls"'; then
+    echo "reqwest boundary: async graph is missing reqwest rustls" >&2
+    exit 1
+fi
+if printf '%s\n' "$async_feature_tree" | grep -Eq \
+    'reqwest feature "(blocking|default|native-tls|gzip|brotli|zstd|deflate|cookies|hickory-dns|http2|json|multipart|socks)"'; then
+    echo "reqwest boundary: unreviewed reqwest feature entered async graph" >&2
+    printf '%s\n' "$async_feature_tree" >&2
     exit 1
 fi
 
@@ -92,6 +126,9 @@ if find crates -name Cargo.toml -exec grep -HnE '(^|[[:space:]])zeroize([[:space
     exit 1
 fi
 
+for config in \
+    crates/cloud-sdk-reqwest/src/blocking/config.rs \
+    crates/cloud-sdk-reqwest/src/asynchronous/config.rs; do
 for policy in \
     '.build_inner(true)' \
     '.tls_backend_rustls()' \
@@ -106,19 +143,22 @@ for policy in \
     '.no_brotli()' \
     '.no_zstd()' \
     '.no_deflate()'; do
-    if ! grep -Fq "$policy" crates/cloud-sdk-reqwest/src/blocking/config.rs; then
-        echo "reqwest boundary: required client policy $policy is missing" >&2
+    if ! grep -Fq "$policy" "$config"; then
+        echo "reqwest boundary: required client policy $policy is missing from $config" >&2
         exit 1
     fi
+done
 done
 
 cargo check -p cloud-sdk-reqwest --no-default-features
 cargo check -p cloud-sdk-reqwest --no-default-features --features std
+cargo test -p cloud-sdk-reqwest --no-default-features --features blocking-rustls
+cargo test -p cloud-sdk-reqwest --no-default-features --features async-rustls
 cargo test -p cloud-sdk-reqwest --all-features
 cargo fmt --manifest-path tests/reqwest-feature-unification/Cargo.toml -- --check
 cargo clippy --manifest-path tests/reqwest-feature-unification/Cargo.toml \
     --locked --all-targets -- -D warnings
 cargo test --manifest-path tests/reqwest-feature-unification/Cargo.toml --locked
-cargo package -p cloud-sdk-reqwest --allow-dirty --features blocking-rustls \
+cargo package -p cloud-sdk-reqwest --allow-dirty --all-features \
     --config 'patch.crates-io.cloud-sdk.path="crates/cloud-sdk"' \
     --config 'patch.crates-io.cloud-sdk-sanitization.path="crates/cloud-sdk-sanitization"'
