@@ -10,7 +10,7 @@ publish = false
 [dependencies]
 cloud-sdk-reqwest = {
     path = "../../crates/cloud-sdk-reqwest",
-    version = "=0.15.1",
+    version = "=0.15.2",
     features = ["async-rustls", "blocking-rustls"],
 }
 reqwest = { version = "=0.13.4", default-features = false, features = ["hickory-dns", "http2"] }

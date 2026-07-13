@@ -60,7 +60,8 @@ please report it so it can be fixed.
 
 ## Current Status
 
-Status: `v0.20.0` platform matrix implementation in progress.
+Status: `v0.20.0` platform matrix implementation stop reached; pentest
+required.
 The latest published release is `v0.19.0`.
 
 Implemented now:
@@ -179,8 +180,8 @@ Not implemented yet:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.19.0"
-cloud-sdk-hetzner = "0.17.0"
+cloud-sdk = "0.20.0"
+cloud-sdk-hetzner = "0.17.1"
 ```
 
 ## Provider-Neutral Example
@@ -221,8 +222,8 @@ The core contracts perform no I/O and select no executor. Use
 
 ```toml
 [dependencies]
-cloud-sdk = "0.19.0"
-cloud-sdk-reqwest = { version = "0.15.1", features = ["blocking-rustls"] }
+cloud-sdk = "0.20.0"
+cloud-sdk-reqwest = { version = "0.15.2", features = ["blocking-rustls"] }
 ```
 
 ```rust,ignore
@@ -288,8 +289,8 @@ not implemented in v0.19.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.19.0"
-cloud-sdk-reqwest = { version = "0.15.1", features = ["async-rustls"] }
+cloud-sdk = "0.20.0"
+cloud-sdk-reqwest = { version = "0.15.2", features = ["async-rustls"] }
 ```
 
 ```rust,ignore
@@ -569,4 +570,10 @@ scripts/release_0_11_gate.sh
 scripts/release_0_12_gate.sh
 scripts/release_0_13_gate.sh
 scripts/release_0_14_gate.sh
+scripts/release_0_15_gate.sh
+scripts/release_0_16_gate.sh
+scripts/release_0_17_gate.sh
+scripts/release_0_18_gate.sh
+scripts/release_0_19_gate.sh
+scripts/release_0_20_gate.sh
 ```

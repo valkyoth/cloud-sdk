@@ -822,17 +822,23 @@ iOS, WASM, and embedded/no_std targets where applicable.
 
 Deliverables:
 
-- Target matrix document with supported, best-effort, and unsupported targets.
-- `cargo check` evidence for no_std and std feature combinations.
-- CI jobs or documented local commands for representative targets.
-- Platform-specific transport limitations documented.
-- Tests proving default crates do not require OS services.
+- Target matrix document with native, portable, best-effort, and unsupported
+  transport tiers.
+- Allowlisted no_std and alloc/Serde checks for representative Linux, Windows,
+  FreeBSD, macOS, Android, iOS, WASM, and bare-metal targets.
+- Native all-feature workspace checks on Linux, Windows, macOS ARM64, and macOS
+  x86-64 runners.
+- Platform-specific reqwest limitations and target-native transport guidance.
+- Default dependency-graph rejection for network, TLS, runtime, socket, and OS
+  dependencies, with adversarial script regression tests.
 
 Verification:
 
 - `scripts/checks.sh`
-- Target-specific `cargo check` commands documented in release notes.
-- `scripts/release_0_20_gate.sh` once added.
+- `scripts/test-platform-matrix.py`
+- `scripts/check_platform_matrix.sh --all`
+- Target-specific commands documented in the release notes and platform guide.
+- `scripts/release_0_20_gate.sh`.
 
 Stop gate:
 

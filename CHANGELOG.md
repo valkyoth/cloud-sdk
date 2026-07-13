@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.20.0 - 2026-07-13
+
+- Added an explicit allowlisted compile matrix for representative Linux,
+  Windows, FreeBSD, macOS, Android, iOS, WASM, and embedded targets.
+- Checked portable crates with default no_std features and with their
+  allocation-bearing or Serde feature combinations.
+- Added native full-workspace transport compilation on Linux, Windows, macOS
+  ARM64, and macOS x86-64 GitHub-hosted runners.
+- Added a default dependency-graph gate that rejects accidental activation of
+  network, TLS, runtime, socket, and OS abstraction crates.
+- Added adversarial regression tests for target allowlisting, missing target
+  libraries, argument validation, command construction, and dependency leaks.
+- Documented support tiers and explicit reqwest limitations for FreeBSD,
+  Android, iOS, WASM, embedded, and future Aesynx environments.
+- Added the `v0.20.0` release gate and independent crate version plan.
+
 ## 0.19.0 - 2026-07-13
 
 - Added an opt-in read-only Hetzner live smoke harness for locations, server

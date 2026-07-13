@@ -202,6 +202,25 @@ Response bodies are bounded, parsed only after HTTP success, cleared after each
 probe, and never logged. Mutation operations and configurable origins are not
 part of this harness.
 
+## v0.20.0 Platform Evidence Policy
+
+Platform claims distinguish portable crate compilation from native transport
+support. The portable allowlist contains representative Linux, Windows,
+FreeBSD, macOS, Android, iOS, WebAssembly, and bare-metal targets. Every target
+checks default no_std crates and allocation-bearing core, testkit, and Hetzner
+Serde combinations.
+
+The optional reqwest/rustls graph is native evidence only on Linux, Windows,
+macOS ARM64, and macOS x86-64. Cross-compilation never upgrades a platform to a
+native transport claim. FreeBSD transport is best effort; Android, iOS, WASM,
+and bare-metal users must supply a target-native implementation of the core
+transport contract.
+
+The default dependency boundary rejects activation of network, TLS, runtime,
+socket, and operating-system abstraction crates. New targets or transport
+claims require an explicit allowlist, CI, documentation, and release-evidence
+change rather than automatic host inference.
+
 ## Deferred Scope
 
 Robot Webservice is explicitly deferred until after the Cloud/DNS SDK reaches

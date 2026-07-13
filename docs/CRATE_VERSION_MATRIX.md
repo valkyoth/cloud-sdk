@@ -1,7 +1,7 @@
 # Crate Version Matrix
 
-Status: `v0.19.0` live smoke harness implementation stop reached; pentest
-required. The latest published release is `v0.18.0`.
+Status: `v0.20.0` platform matrix implementation stop reached; pentest
+required. The latest published release is `v0.19.0`.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
@@ -306,3 +306,18 @@ boundaries follow the facade dependency with patch releases.
 | `cloud-sdk-reqwest` | `0.15.0` | `0.15.1` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.19 facade line. |
 | `cloud-sdk-sanitization` | `0.13.4` | `0.13.5` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.19 facade line. |
 | `cloud-sdk-testkit` | `0.15.0` | `0.15.1` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.19 facade line. |
+
+## v0.20.0 Tracking Table
+
+`v0.20.0` adds cross-target no_std/alloc compile evidence, native desktop
+transport checks, and a default dependency-graph boundary. No crate API code
+changes; the facade carries release metadata and dependents patch-bump their
+facade requirement.
+
+| Crate | Published | Planned | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.19.0` | `0.20.0` | `metadata` | Yes | Platform support documentation, release evidence, and v0.20 facade metadata. |
+| `cloud-sdk-hetzner` | `0.17.0` | `0.17.1` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.20 facade line. |
+| `cloud-sdk-reqwest` | `0.15.1` | `0.15.2` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.20 facade line. |
+| `cloud-sdk-sanitization` | `0.13.5` | `0.13.6` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.20 facade line. |
+| `cloud-sdk-testkit` | `0.15.1` | `0.15.2` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.20 facade line. |

@@ -38,19 +38,19 @@ models in small reviewed releases.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.19.0"
-cloud-sdk-hetzner = "0.17.0"
+cloud-sdk = "0.20.0"
+cloud-sdk-hetzner = "0.17.1"
 ```
 
 ## Current Scope
 
-The current main branch is preparing the workspace `0.19.0` release. The latest
-published provider release is `0.16.0`; the planned provider `0.17.0` adds an
-opt-in read-only live catalog smoke harness. This crate remains no_std and does
-not itself implement HTTP transport, broad Serde coverage outside reviewed
-RRSet/shared response models, token storage, destructive live tests, automatic
-retries, sleeps, or page fetching. Blocking and async HTTP implementations
-belong to the provider-neutral `cloud-sdk-reqwest` crate.
+The current main branch is preparing the workspace `0.20.0` release. The latest
+published provider release is `0.17.0`; planned provider `0.17.1` updates only
+the facade dependency and package documentation. This crate remains no_std and
+does not itself implement HTTP transport, broad Serde coverage outside
+reviewed RRSet/shared response models, token storage, destructive live tests,
+automatic retries, sleeps, or page fetching. Blocking and async HTTP
+implementations belong to the provider-neutral `cloud-sdk-reqwest` crate.
 
 Implemented in the published `0.2.0` line:
 
@@ -201,7 +201,7 @@ Implemented in the published `0.16.0` line:
 - conversion from validated Hetzner action responses into polling updates that
   preserve terminal provider errors.
 
-Implemented on main for the planned `0.17.0` line:
+Implemented in the published `0.17.0` line:
 
 - ignored opt-in live smoke coverage for locations, server types, load
   balancer types, ISOs, public system images, and pricing;
@@ -283,7 +283,7 @@ Enable Serde explicitly; it is never part of the default graph:
 
 ```toml
 [dependencies]
-cloud-sdk-hetzner = { version = "0.17.0", features = ["serde"] }
+cloud-sdk-hetzner = { version = "0.17.1", features = ["serde"] }
 ```
 
 `serde_json` is used below only as an example format implementation and remains
