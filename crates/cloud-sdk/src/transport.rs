@@ -1,4 +1,8 @@
-//! Provider-neutral blocking transport contracts.
+//! Provider-neutral blocking and asynchronous transport contracts.
+
+mod asynchronous;
+
+pub use asynchronous::AsyncTransport;
 
 use core::fmt;
 

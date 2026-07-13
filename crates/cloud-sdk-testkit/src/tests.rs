@@ -1,6 +1,10 @@
 use alloc::format;
 use cloud_sdk::Method;
-use cloud_sdk::transport::{BlockingTransport, RequestTarget, StatusCode, TransportRequest};
+use cloud_sdk::transport::{
+    AsyncTransport, BlockingTransport, RequestTarget, StatusCode, TransportRequest,
+};
+use core::future::Future;
+use core::task::{Context, Poll, Waker};
 
 use crate::{
     ActionFixture, ActionState, AdversarialKind, ExpectedRequest, FixtureBody, FixtureBodyError,
@@ -99,14 +103,14 @@ fn mock_transport_is_ordered_fail_closed_and_non_consuming_on_mismatch() {
         let wrong = TransportRequest::new(Method::Delete, target);
         let mut output = [0xa5_u8; 32];
         assert!(matches!(
-            transport.send(wrong, &mut output),
+            BlockingTransport::send(&mut transport, wrong, &mut output),
             Err(MockError::MethodMismatch)
         ));
         assert_eq!(transport.remaining(), 1);
 
         let request = TransportRequest::new(Method::Get, target);
         {
-            let response = transport.send(request, &mut output);
+            let response = BlockingTransport::send(&mut transport, request, &mut output);
             assert!(response.is_ok());
             if let Ok(response) = response {
                 assert_eq!(response.body(), br#"{"servers":[]}"#);
@@ -114,7 +118,7 @@ fn mock_transport_is_ordered_fail_closed_and_non_consuming_on_mismatch() {
         }
         assert!(transport.is_complete());
         assert!(matches!(
-            transport.send(request, &mut output),
+            BlockingTransport::send(&mut transport, request, &mut output),
             Err(MockError::Exhausted)
         ));
     }
@@ -134,10 +138,63 @@ fn mock_transport_does_not_consume_exchange_when_response_buffer_is_small() {
         let mut short = [0xa5_u8; 4];
         let original = short;
         assert!(matches!(
-            transport.send(request, &mut short),
+            BlockingTransport::send(&mut transport, request, &mut short),
             Err(MockError::ResponseBufferTooSmall)
         ));
         assert_eq!(short, original);
+        assert_eq!(transport.remaining(), 1);
+    }
+}
+
+#[test]
+fn async_mock_transport_matches_blocking_behavior_without_an_executor() {
+    let target = RequestTarget::new("/servers/42");
+    let body = FixtureBody::new(br#"{"id":42}"#);
+    if let (Ok(target), Ok(body)) = (target, body) {
+        let exchanges = [MockExchange::new(
+            ExpectedRequest::new(Method::Get, target),
+            ResponseFixture::success(body),
+        )];
+        let mut transport = MockTransport::new(&exchanges);
+        let mut output = [0_u8; 32];
+        {
+            let future = AsyncTransport::send(
+                &mut transport,
+                TransportRequest::new(Method::Get, target),
+                &mut output,
+            );
+            let mut future = core::pin::pin!(future);
+            let waker = Waker::noop();
+            let mut context = Context::from_waker(waker);
+            let response = Future::poll(future.as_mut(), &mut context);
+            assert!(matches!(response, Poll::Ready(Ok(_))));
+            if let Poll::Ready(Ok(response)) = response {
+                assert_eq!(response.body(), br#"{"id":42}"#);
+            }
+        }
+        assert!(transport.is_complete());
+    }
+}
+
+#[test]
+fn dropping_unpolled_async_mock_does_not_consume_or_write() {
+    let target = RequestTarget::new("/actions/7");
+    let body = FixtureBody::new(b"response");
+    if let (Ok(target), Ok(body)) = (target, body) {
+        let exchanges = [MockExchange::new(
+            ExpectedRequest::new(Method::Get, target),
+            ResponseFixture::success(body),
+        )];
+        let mut transport = MockTransport::new(&exchanges);
+        let mut output = [0xa5_u8; 16];
+        let original = output;
+        let future = AsyncTransport::send(
+            &mut transport,
+            TransportRequest::new(Method::Get, target),
+            &mut output,
+        );
+        drop(future);
+        assert_eq!(output, original);
         assert_eq!(transport.remaining(), 1);
     }
 }
@@ -159,14 +216,16 @@ fn mock_transport_distinguishes_target_and_body_mismatches_without_leaking_debug
         let mut output = [0_u8; 32];
 
         assert!(matches!(
-            transport.send(
+            BlockingTransport::send(
+                &mut transport,
                 TransportRequest::new(Method::Post, wrong_target).with_body(b"expected-secret"),
                 &mut output,
             ),
             Err(MockError::TargetMismatch)
         ));
         assert!(matches!(
-            transport.send(
+            BlockingTransport::send(
+                &mut transport,
                 TransportRequest::new(Method::Post, expected_target).with_body(b"wrong-secret"),
                 &mut output,
             ),

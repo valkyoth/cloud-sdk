@@ -3,7 +3,9 @@
 use core::fmt;
 
 use cloud_sdk::Method;
-use cloud_sdk::transport::{BlockingTransport, RequestTarget, TransportRequest, TransportResponse};
+use cloud_sdk::transport::{
+    AsyncTransport, BlockingTransport, RequestTarget, TransportRequest, TransportResponse,
+};
 
 use crate::{FixtureBodyError, ResponseFixture};
 
@@ -116,16 +118,12 @@ impl<'a> MockTransport<'a> {
     pub const fn is_complete(&self) -> bool {
         self.remaining() == 0
     }
-}
 
-impl BlockingTransport for MockTransport<'_> {
-    type Error = MockError;
-
-    fn send<'buffer>(
+    fn send_inner<'buffer>(
         &mut self,
         request: TransportRequest<'_>,
         response_body: &'buffer mut [u8],
-    ) -> Result<TransportResponse<'buffer>, Self::Error> {
+    ) -> Result<TransportResponse<'buffer>, MockError> {
         let exchange = self
             .exchanges
             .get(self.cursor)
@@ -161,6 +159,36 @@ impl BlockingTransport for MockTransport<'_> {
             exchange.response.status(),
             initialized,
         ))
+    }
+}
+
+impl BlockingTransport for MockTransport<'_> {
+    type Error = MockError;
+
+    fn send<'buffer>(
+        &mut self,
+        request: TransportRequest<'_>,
+        response_body: &'buffer mut [u8],
+    ) -> Result<TransportResponse<'buffer>, Self::Error> {
+        self.send_inner(request, response_body)
+    }
+}
+
+impl AsyncTransport for MockTransport<'_> {
+    type Error = MockError;
+
+    fn send<'transport, 'request, 'buffer>(
+        &'transport mut self,
+        request: TransportRequest<'request>,
+        response_body: &'buffer mut [u8],
+    ) -> impl core::future::Future<Output = Result<TransportResponse<'buffer>, Self::Error>>
+    + Send
+    + 'transport
+    where
+        'request: 'transport,
+        'buffer: 'transport,
+    {
+        async move { self.send_inner(request, response_body) }
     }
 }
 
