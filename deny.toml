@@ -38,7 +38,8 @@ multiple-versions = "deny"
 wildcards = "deny"
 highlight = "all"
 # rustls-platform-verifier 0.7 still uses windows-sys 0.52 while Tokio and
-# rustls-native-certs use 0.61. Keep this exact reviewed duplicate visible.
+# rustls-native-certs use 0.61. check_reqwest_boundary.sh fails when that
+# upstream path disappears so this exact exception must then be removed.
 skip = [{ name = "windows-sys", version = "0.52.0" }]
 
 [advisories]

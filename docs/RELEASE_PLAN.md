@@ -174,6 +174,7 @@ has not been assigned to a release.
 | API drift could otherwise be missed between endpoint implementation passes. | Added operation and schema fingerprints in `v0.2.0`; recurring maintenance hardening lands in `v0.24.0`. |
 | Optional serde support can break no_std/default graph expectations. | Scheduled as a dedicated boundary in `v0.14.0`. |
 | Transport adapters can accidentally admit runtime, TLS, or secret handling assumptions. | Blocking and async adapters are separated into `v0.16.0` and `v0.17.0`, after model/testkit work. |
+| Platform trust stores can be attacker-extended and aws-lc introduces native build-script, C, and assembly trust. | Documented for `v0.16.0`; deterministic roots and native build reproducibility are reviewed again in `v0.23.0`. |
 | Adding providers could multiply transport, testkit, sanitization, or API-family crates. | Enforced one primary crate per provider and provider-neutral shared boundaries in `v0.12.0`; release automation rejects nested `cloud-sdk-{provider}-{suffix}` packages. |
 | Robot Webservice has different auth, encoding, and API shape than Cloud/DNS. | Deferred to `v1.1.0+` with a separate source lock and implementation track. |
 | Future providers such as Cloudflare need patterns but are not part of Hetzner 1.0. | Provider-neutral naming and module guidance are part of `v1.0.0`; no non-Hetzner provider is claimed before 1.0. |
@@ -858,6 +859,10 @@ release-candidate work.
 Deliverables:
 
 - Current dependency review for every default, optional, dev, and tool crate.
+- Re-evaluate platform trust-store policy and a separately reviewed
+  deterministic root-store feature for high-assurance deployments.
+- Re-audit aws-lc-sys build-script, vendored C/assembly, Cargo checksum,
+  offline-build, and pinned native-toolchain requirements.
 - `cargo-deny` and `cargo-audit` evidence.
 - SBOM generation and documentation.
 - Toolchain and MSRV review for Rust `1.90.0` through current pinned stable.

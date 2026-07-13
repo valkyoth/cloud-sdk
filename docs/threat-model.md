@@ -38,6 +38,8 @@
   retries, referers, or environment-derived routing;
 - decompression bombs, unbounded response reads, and timeout-free blocking;
 - secret copies retained in adapter-owned allocation after request completion;
+- compromised or attacker-extended host trust stores silently validating a
+  hostile TLS endpoint;
 
 ## Controls
 
@@ -64,6 +66,8 @@
 - optional production blocking transport requires exact HTTPS authority,
   rustls with TLS 1.2 minimum, explicit bounded timeouts, no redirects,
   retries, proxies, referers, or decompression, and caller-bounded responses;
+- platform trust-store use is explicit; v0.16 does not claim root, certificate,
+  or public-key pinning;
 - adapter-owned bearer and request-body allocations are redacted and cleared
   through the provider-neutral sanitization boundary;
 - pentest report before every tag.

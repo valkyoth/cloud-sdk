@@ -47,6 +47,14 @@ if printf '%s\n' "$blocking_tree" | grep -Eq \
     exit 1
 fi
 
+legacy_windows_tree=$(cargo tree -p cloud-sdk-reqwest --no-default-features \
+    --features blocking-rustls --target all --edges normal -i windows-sys@0.52.0)
+if ! printf '%s\n' "$legacy_windows_tree" | grep -Fq \
+    'rustls-platform-verifier v0.7.0'; then
+    echo "reqwest boundary: remove the obsolete windows-sys 0.52 deny exception" >&2
+    exit 1
+fi
+
 feature_tree=$(cargo tree -p cloud-sdk-reqwest --no-default-features \
     --features blocking-rustls --edges features -i reqwest)
 for feature in 'reqwest feature "blocking"' 'reqwest feature "rustls"'; do

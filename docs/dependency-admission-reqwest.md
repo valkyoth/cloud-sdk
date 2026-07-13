@@ -22,7 +22,19 @@ and recorded in the generated SBOM. All admitted licenses satisfy
 `deny.toml`. The rustls trust-root data requires `CDLA-Permissive-2.0`, which
 is explicitly admitted. `windows-sys` `0.52.0` is a narrow duplicate exception
 because rustls platform verification has not yet converged on the `0.61` line
-used by Tokio and rustls-native-certs.
+used by Tokio and rustls-native-certs. The reqwest boundary gate fails when
+that legacy platform-verifier path disappears so the exception cannot remain
+silently.
+
+Aws-lc-sys introduces the workspace's first native dependency build script. It
+invokes a C/CMake toolchain to compile vendored C and assembly cryptographic
+code. Cargo authenticates the published crate archive against the checksum
+pinned in `Cargo.lock`; this does not remove the trust placed in the crate's
+build script, bundled source, compiler, assembler, CMake, linker, or build
+host. Release CI and reproducible/offline builders must use pinned, audited
+build images and toolchains. Offline preparation must preserve Cargo's
+authenticated package checksum rather than copying unauthenticated source
+trees. The v0.23 dependency-hardening pass must revisit this native surface.
 
 The version review used the reqwest 0.13.4 crate metadata, feature list, API
 documentation, and upstream source:
@@ -65,6 +77,12 @@ The adapter validates the final scheme, host, and port against the configured
 endpoint. Request targets are origin-form, and encoded path separators,
 backslashes, dot bytes, controls, non-ASCII bytes, fragments, and malformed
 percent escapes are rejected before credentials are attached.
+
+Platform trust roots intentionally follow host policy. A compromised or
+attacker-extended host trust store, including an enterprise interception root,
+can therefore validate a hostile endpoint. The v0.23 dependency-hardening
+milestone will evaluate a separately reviewed deterministic root-store option;
+v0.16 does not claim certificate or public-key pinning.
 
 ## Secret Boundary
 
