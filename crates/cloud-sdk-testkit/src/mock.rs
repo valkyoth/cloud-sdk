@@ -177,18 +177,16 @@ impl BlockingTransport for MockTransport<'_> {
 impl AsyncTransport for MockTransport<'_> {
     type Error = MockError;
 
-    fn send<'transport, 'request, 'buffer>(
+    async fn send<'transport, 'request, 'buffer>(
         &'transport mut self,
         request: TransportRequest<'request>,
         response_body: &'buffer mut [u8],
-    ) -> impl core::future::Future<Output = Result<TransportResponse<'buffer>, Self::Error>>
-    + Send
-    + 'transport
+    ) -> Result<TransportResponse<'buffer>, Self::Error>
     where
         'request: 'transport,
         'buffer: 'transport,
     {
-        async move { self.send_inner(request, response_body) }
+        self.send_inner(request, response_body)
     }
 }
 

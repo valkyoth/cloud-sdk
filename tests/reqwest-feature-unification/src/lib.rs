@@ -33,24 +33,31 @@ mod tests {
         }
     }
 
-    #[tokio::test(flavor = "current_thread")]
-    async fn hardened_async_client_builds_with_hickory_and_http2_unified() {
-        let endpoint = AsyncHttpsEndpoint::new("https://api.example.test/v1");
-        let token = AsyncBearerToken::new("test-token");
-        let user_agent = AsyncUserAgent::new("cloud-sdk-feature-unification-test/0.17");
-        let timeouts = AsyncRequestTimeouts::new(Duration::from_secs(2), Duration::from_secs(1));
-        assert!(endpoint.is_ok());
-        assert!(token.is_ok());
-        assert!(user_agent.is_ok());
-        assert!(timeouts.is_ok());
-        if let (Ok(endpoint), Ok(token), Ok(user_agent), Ok(timeouts)) =
-            (endpoint, token, user_agent, timeouts)
-        {
-            assert!(
-                AsyncClientBuilder::new(endpoint, token, user_agent, timeouts)
-                    .build()
-                    .is_ok()
-            );
+    #[test]
+    fn hardened_async_client_builds_with_hickory_and_http2_unified() {
+        let runtime = tokio::runtime::Builder::new_current_thread().build();
+        assert!(runtime.is_ok());
+        if let Ok(runtime) = runtime {
+            runtime.block_on(async {
+                let endpoint = AsyncHttpsEndpoint::new("https://api.example.test/v1");
+                let token = AsyncBearerToken::new("test-token");
+                let user_agent = AsyncUserAgent::new("cloud-sdk-feature-unification-test/0.17");
+                let timeouts =
+                    AsyncRequestTimeouts::new(Duration::from_secs(2), Duration::from_secs(1));
+                assert!(endpoint.is_ok());
+                assert!(token.is_ok());
+                assert!(user_agent.is_ok());
+                assert!(timeouts.is_ok());
+                if let (Ok(endpoint), Ok(token), Ok(user_agent), Ok(timeouts)) =
+                    (endpoint, token, user_agent, timeouts)
+                {
+                    assert!(
+                        AsyncClientBuilder::new(endpoint, token, user_agent, timeouts)
+                            .build()
+                            .is_ok()
+                    );
+                }
+            });
         }
     }
 }

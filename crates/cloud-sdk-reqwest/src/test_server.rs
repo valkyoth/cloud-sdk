@@ -47,6 +47,7 @@ pub(super) fn spawn(
     Ok(TestServer { endpoint, request })
 }
 
+#[cfg(feature = "async-rustls")]
 pub(super) fn spawn_split(
     status: &str,
     first: &[u8],

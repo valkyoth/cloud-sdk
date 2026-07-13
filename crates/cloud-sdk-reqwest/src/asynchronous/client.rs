@@ -89,18 +89,16 @@ impl AsyncClient {
 impl AsyncTransport for AsyncClient {
     type Error = TransportError;
 
-    fn send<'transport, 'request, 'buffer>(
+    async fn send<'transport, 'request, 'buffer>(
         &'transport mut self,
         request: TransportRequest<'request>,
         response_body: &'buffer mut [u8],
-    ) -> impl core::future::Future<Output = Result<TransportResponse<'buffer>, Self::Error>>
-    + Send
-    + 'transport
+    ) -> Result<TransportResponse<'buffer>, Self::Error>
     where
         'request: 'transport,
         'buffer: 'transport,
     {
-        async move { self.send_inner(request, response_body).await }
+        self.send_inner(request, response_body).await
     }
 }
 
