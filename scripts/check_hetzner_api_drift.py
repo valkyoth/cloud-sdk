@@ -42,6 +42,21 @@ FETCH_TOTAL_TIMEOUT_SECONDS = 60
 READ_CHUNK_BYTES = 64 * 1024
 
 
+class RejectRedirects(urllib.request.HTTPRedirectHandler):
+    """Prevent the release fetch from following any redirect."""
+
+    def redirect_request(
+        self,
+        _request: Any,
+        _file: Any,
+        _code: int,
+        _message: str,
+        _headers: Any,
+        _new_url: str,
+    ) -> None:
+        return None
+
+
 def clean_json(value: Any) -> Any:
     if isinstance(value, dict):
         return {
@@ -199,10 +214,13 @@ def validate_fetch_response(response: Any, expected_url: str, api: str) -> None:
 
 def fetch_spec(api: str, directory: Path) -> Path:
     target = directory / f"{api}.spec.json"
-    with urllib.request.urlopen(
+    opener = urllib.request.build_opener(
+        urllib.request.HTTPSHandler(context=ssl.create_default_context()),
+        RejectRedirects(),
+    )
+    with opener.open(
         SPECS[api],
         timeout=FETCH_CONNECT_TIMEOUT_SECONDS,
-        context=ssl.create_default_context(),
     ) as response:
         validate_fetch_response(response, SPECS[api], api)
         payload = read_bounded_response(response, api)

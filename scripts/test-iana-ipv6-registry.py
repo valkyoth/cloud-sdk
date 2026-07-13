@@ -113,6 +113,21 @@ def test_fetch_response_requires_exact_https_url() -> None:
     )
 
 
+def test_redirect_handler_refuses_followup_requests() -> None:
+    expected = checker.REGISTRIES["global-unicast"][0]
+    request = checker.urllib.request.Request(expected)
+    redirected = checker.RejectRedirects().redirect_request(
+        request,
+        None,
+        302,
+        "Found",
+        {},
+        "https://example.invalid/registry.csv",
+    )
+    if redirected is not None:
+        raise AssertionError("redirect handler created a follow-up request")
+
+
 def test_local_lock_matches_rust_policy() -> None:
     if checker.validate_local() != 0:
         raise AssertionError("local IANA lock does not match Rust policy")
@@ -147,6 +162,7 @@ def main() -> None:
         test_bounded_reader_rejects_oversize,
         test_bounded_reader_rejects_total_timeout,
         test_fetch_response_requires_exact_https_url,
+        test_redirect_handler_refuses_followup_requests,
         test_local_lock_matches_rust_policy,
         test_registry_is_authenticated_before_parsing,
         test_rust_policy_rejects_unrepresentable_prefixes,

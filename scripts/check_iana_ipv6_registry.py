@@ -50,6 +50,21 @@ PREFIX_PATTERN = re.compile(
 )
 
 
+class RejectRedirects(urllib.request.HTTPRedirectHandler):
+    """Prevent the release fetch from following any redirect."""
+
+    def redirect_request(
+        self,
+        _request: Any,
+        _file: Any,
+        _code: int,
+        _message: str,
+        _headers: Any,
+        _new_url: str,
+    ) -> None:
+        return None
+
+
 def canonical_prefix(value: str) -> str:
     without_footnote = re.sub(r"\s+\[[0-9]+\]$", "", value.strip())
     try:
@@ -191,11 +206,14 @@ def validate_fetch_response(response: Any, expected_url: str, registry: str) -> 
 
 def fetch_registry(name: str) -> bytes:
     url, _ = REGISTRIES[name]
+    opener = urllib.request.build_opener(
+        urllib.request.HTTPSHandler(context=ssl.create_default_context()),
+        RejectRedirects(),
+    )
     try:
-        with urllib.request.urlopen(
+        with opener.open(
             url,
             timeout=CONNECT_TIMEOUT_SECONDS,
-            context=ssl.create_default_context(),
         ) as response:
             validate_fetch_response(response, url, name)
             return read_bounded_response(response, name)

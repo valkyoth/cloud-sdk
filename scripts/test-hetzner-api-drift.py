@@ -93,6 +93,20 @@ def test_fetch_response_requires_exact_https_url() -> None:
     )
 
 
+def test_redirect_handler_refuses_followup_requests() -> None:
+    request = checker.urllib.request.Request(checker.SPECS["cloud"])
+    redirected = checker.RejectRedirects().redirect_request(
+        request,
+        None,
+        302,
+        "Found",
+        {},
+        "https://example.invalid/cloud.spec.json",
+    )
+    if redirected is not None:
+        raise AssertionError("redirect handler created a follow-up request")
+
+
 def test_load_specs_authenticates_before_parsing() -> None:
     with tempfile.TemporaryDirectory() as directory:
         root = Path(directory)
@@ -145,6 +159,7 @@ def main() -> None:
         test_bounded_reader_rejects_oversize_response,
         test_bounded_reader_rejects_total_timeout,
         test_fetch_response_requires_exact_https_url,
+        test_redirect_handler_refuses_followup_requests,
         test_load_specs_authenticates_before_parsing,
         test_local_reader_rejects_oversize_before_reading,
         test_local_reader_rejects_symlink,
