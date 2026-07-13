@@ -34,7 +34,7 @@ build script, bundled source, compiler, assembler, CMake, linker, or build
 host. Release CI and reproducible/offline builders must use pinned, audited
 build images and toolchains. Offline preparation must preserve Cargo's
 authenticated package checksum rather than copying unauthenticated source
-trees. The v0.23 dependency-hardening pass must revisit this native surface.
+trees. The v0.24 dependency-hardening pass must revisit this native surface.
 
 The version review used the reqwest 0.13.4 crate metadata, feature list, API
 documentation, and upstream source:
@@ -80,9 +80,13 @@ percent escapes are rejected before credentials are attached.
 
 Platform trust roots intentionally follow host policy. A compromised or
 attacker-extended host trust store, including an enterprise interception root,
-can therefore validate a hostile endpoint. The v0.23 dependency-hardening
+can therefore validate a hostile endpoint. The v0.24 dependency-hardening
 milestone will evaluate a separately reviewed deterministic root-store option;
 v0.16 does not claim certificate or public-key pinning.
+
+A separate `blocking-rustls-fips` transport is assigned to v0.23.0. It must
+use and verify the rustls FIPS provider and configuration explicitly; callers
+enabling unrelated dependency features is not an SDK FIPS guarantee.
 
 ## Secret Boundary
 

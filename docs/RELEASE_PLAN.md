@@ -169,12 +169,12 @@ has not been assigned to a release.
 | Gap | Resolution |
 | --- | --- |
 | The original prompt omitted Storage Box operations even though Hetzner's current spec includes them. | Added Storage Boxes to `v0.2.0` source lock and scheduled implementation in `v0.9.0`. |
-| Deprecated datacenter endpoints exist in the spec but should not become accidental public commitments. | Tracked as `deferred-deprecated` in `docs/API_MATRIX.md`; final deprecated-endpoint policy lands in `v0.25.0`. |
+| Deprecated datacenter endpoints exist in the spec but should not become accidental public commitments. | Tracked as `deferred-deprecated` in `docs/API_MATRIX.md`; final deprecated-endpoint policy lands in `v0.26.0`. |
 | Resource-local action lookups are deprecated upstream but still present in the spec. | Tracked as `deferred-deprecated`; action helper policy lands in `v0.18.0`. |
-| API drift could otherwise be missed between endpoint implementation passes. | Added operation and schema fingerprints in `v0.2.0`; recurring maintenance hardening lands in `v0.24.0`. |
+| API drift could otherwise be missed between endpoint implementation passes. | Added operation and schema fingerprints in `v0.2.0`; recurring maintenance hardening lands in `v0.25.0`. |
 | Optional serde support can break no_std/default graph expectations. | Scheduled as a dedicated boundary in `v0.14.0`. |
 | Transport adapters can accidentally admit runtime, TLS, or secret handling assumptions. | Blocking and async adapters are separated into `v0.16.0` and `v0.17.0`, after model/testkit work. |
-| Platform trust stores can be attacker-extended and aws-lc introduces native build-script, C, and assembly trust. | Documented for `v0.16.0`; deterministic roots and native build reproducibility are reviewed again in `v0.23.0`. |
+| Platform trust stores can be attacker-extended and aws-lc introduces native build-script, C, and assembly trust. | Documented for `v0.16.0`; FIPS transport lands in `v0.23.0`, followed by deterministic-root and native-build review in `v0.24.0`. |
 | Adding providers could multiply transport, testkit, sanitization, or API-family crates. | Enforced one primary crate per provider and provider-neutral shared boundaries in `v0.12.0`; release automation rejects nested `cloud-sdk-{provider}-{suffix}` packages. |
 | Robot Webservice has different auth, encoding, and API shape than Cloud/DNS. | Deferred to `v1.1.0+` with a separate source lock and implementation track. |
 | Future providers such as Cloudflare need patterns but are not part of Hetzner 1.0. | Provider-neutral naming and module guidance are part of `v1.0.0`; no non-Hetzner provider is claimed before 1.0. |
@@ -851,7 +851,55 @@ Stop gate:
 v0.22.0 implementation stop reached. Run pentest for this exact commit.
 ```
 
-### v0.23.0 - Dependency And Tooling Hardening
+### v0.23.0 - Optional Blocking FIPS Transport
+
+Goal: add a fail-closed blocking rustls transport backed by the validated
+AWS-LC FIPS module without weakening or silently changing the standard
+blocking transport.
+
+Deliverables:
+
+- Dedicated `blocking-rustls-fips` feature in `cloud-sdk-reqwest`; default and
+  `std` graphs remain transport-free.
+- Explicit rustls FIPS `CryptoProvider` and `ClientConfig`, with runtime
+  `fips()` verification before client construction succeeds.
+- FIPS-only dependency graph uses `aws-lc-fips-sys` and excludes the ordinary
+  `aws-lc-sys` cryptographic implementation.
+- Defined additive-feature behavior: the FIPS provider wins safely when both
+  blocking transport features are selected, while the FIPS-only graph remains
+  independently auditable.
+- Existing HTTPS-only, TLS-version, timeout, redirect, retry, proxy,
+  decompression, authority, response-bound, redaction, and sanitization policy
+  remains enforced.
+- Fail-closed tests for missing, conflicting, preinstalled non-FIPS, or
+  non-FIPS-reporting provider configuration, isolated in subprocesses where
+  process-global rustls state requires it.
+- FIPS dependency admission covering the exact aws-lc-fips-sys release, NIST
+  certificate and security policy, approved operating environments, C/C++
+  compiler, CMake, Go, bindgen, checksum, and reproducible-build requirements.
+- Documentation stating that a crate feature does not make an application or
+  deployment FIPS compliant outside the validated module boundary and approved
+  operating environment.
+- Dedicated CI/release check on at least one operating environment covered by
+  the selected AWS-LC FIPS security policy.
+
+Verification:
+
+- `scripts/checks.sh`
+- `scripts/check_reqwest_fips_boundary.sh` once added.
+- FIPS-only Cargo feature and dependency-tree checks.
+- Runtime `CryptoProvider::fips()` and `ClientConfig::fips()` tests.
+- `cargo deny check`
+- `cargo audit`
+- `scripts/release_0_23_gate.sh` once added.
+
+Stop gate:
+
+```text
+v0.23.0 implementation stop reached. Run pentest for this exact commit.
+```
+
+### v0.24.0 - Dependency And Tooling Hardening
 
 Goal: refresh dependency, tool, SBOM, audit, and supply-chain evidence before
 release-candidate work.
@@ -875,15 +923,15 @@ Verification:
 - `scripts/generate-sbom.sh`
 - `cargo deny check`
 - `cargo audit`
-- `scripts/release_0_23_gate.sh` once added.
+- `scripts/release_0_24_gate.sh` once added.
 
 Stop gate:
 
 ```text
-v0.23.0 implementation stop reached. Run pentest for this exact commit.
+v0.24.0 implementation stop reached. Run pentest for this exact commit.
 ```
 
-### v0.24.0 - API Drift Automation Hardening
+### v0.25.0 - API Drift Automation Hardening
 
 Goal: make upstream drift monitoring actionable as a maintenance process, not
 only a one-off source lock.
@@ -902,15 +950,15 @@ Verification:
 - `scripts/checks.sh`
 - `scripts/check_hetzner_api_drift.py --fetch`
 - Drift-detector fixture tests.
-- `scripts/release_0_24_gate.sh` once added.
+- `scripts/release_0_25_gate.sh` once added.
 
 Stop gate:
 
 ```text
-v0.24.0 implementation stop reached. Run pentest for this exact commit.
+v0.25.0 implementation stop reached. Run pentest for this exact commit.
 ```
 
-### v0.25.0 - Release Candidate Cleanup
+### v0.26.0 - Release Candidate Cleanup
 
 Goal: finish public API review, deprecation policy, examples, docs, and
 semver-readiness audit before 1.0.
@@ -929,12 +977,12 @@ Verification:
 - `scripts/checks.sh`
 - `scripts/check_hetzner_api_drift.py --fetch`
 - `cargo public-api` or equivalent if admitted.
-- `scripts/release_0_25_gate.sh` once added.
+- `scripts/release_0_26_gate.sh` once added.
 
 Stop gate:
 
 ```text
-v0.25.0 implementation stop reached. Run pentest for this exact commit.
+v0.26.0 implementation stop reached. Run pentest for this exact commit.
 ```
 
 ### v1.0.0 - Production SDK

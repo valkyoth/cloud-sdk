@@ -100,7 +100,8 @@ firewall, and vSwitch operations.
    load balancers, metrics, and actions.
 8. DNS resources: zones, zonefiles, zone actions, RRSets, and RRSet actions.
 9. Optional transport: request builder, auth injection, response parsing,
-   pagination streams, action polling, retry/rate-limit policy.
+   pagination streams, action polling, retry/rate-limit policy, and a dedicated
+   fail-closed FIPS blocking mode in `v0.23.0`.
 10. Integration evidence: mock transport, recorded fixtures, live-test harness
    gated by explicit environment variables.
 11. 1.0 hardening: docs, examples, fuzzing, mutation/adversarial tests, SBOM,
@@ -129,5 +130,9 @@ Expected future candidates must be reviewed before use:
 - `reqwest` `0.13.4` admitted in `v0.16.0` with default features disabled only
   through `cloud-sdk-reqwest/blocking-rustls`; the facade and provider default
   graphs remain transport-free.
+- Rustls FIPS and `aws-lc-fips-sys` are not admitted in v0.16.0. Their exact
+  module version, certificate, operating environments, build chain, provider
+  configuration, runtime verification, and feature graph are a dedicated
+  `v0.23.0` admission.
 
 Every admission needs a document under `docs/dependency-admission-*.md`.
