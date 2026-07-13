@@ -22,6 +22,9 @@ no_std, allocation-free, runtime-neutral, clock-free, and transport-neutral.
 - Known last pages must agree with terminal state. Decoded entries cannot
   exceed `per_page`, and supplied totals must match the exact page entry count
   and continuation state before the cursor advances.
+- Cursor construction binds the requested page size. The first accepted total
+  and last-page values are retained for the traversal; any later change fails
+  without advancing and requires callers to restart.
 - Every accepted `PageBoundary` exposes page metadata, decoded entry count,
   terminal state, and optional response rate-limit metadata.
 - Hetzner's optional Serde boundary extracts strict `meta.pagination` fields

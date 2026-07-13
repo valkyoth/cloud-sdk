@@ -23,6 +23,10 @@ pub enum PaginationError {
     EmptyPageWithNextPage,
     /// The decoded entry count contradicts page or total-entry metadata.
     InvalidEntryCount,
+    /// Response page size differs from the caller-bound request size.
+    PageSizeChanged,
+    /// Total entries or last page changed during one traversal.
+    TraversalChanged,
     /// Advancing would exceed the caller-selected page limit.
     PageLimitExceeded,
     /// The cursor already reached its terminal page.
@@ -203,23 +207,35 @@ impl PageBoundary {
     }
 }
 
-/// Bounded explicit cursor for caller-driven pagination.
+/// Bounded explicit cursor that locks page size and traversal metadata.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct PaginationCursor {
     next_page: Option<PageNumber>,
     pages_seen: u32,
     limit: PageLimit,
+    expected_per_page: u64,
+    expected_total_entries: Option<u64>,
+    expected_last_page: Option<PageNumber>,
 }
 
 impl PaginationCursor {
-    /// Starts a cursor at a caller-selected page with a hard page limit.
-    #[must_use]
-    pub const fn new(first_page: PageNumber, limit: PageLimit) -> Self {
-        Self {
+    /// Starts a cursor with caller-bound page size and hard page limit.
+    pub const fn new(
+        first_page: PageNumber,
+        expected_per_page: u64,
+        limit: PageLimit,
+    ) -> Result<Self, PaginationError> {
+        if expected_per_page == 0 {
+            return Err(PaginationError::PerPageZero);
+        }
+        Ok(Self {
             next_page: Some(first_page),
             pages_seen: 0,
             limit,
-        }
+            expected_per_page,
+            expected_total_entries: None,
+            expected_last_page: None,
+        })
     }
 
     /// Returns the page the caller must request next.
@@ -236,7 +252,7 @@ impl PaginationCursor {
         self.pages_seen
     }
 
-    /// Validates metadata and exact decoded entry count, then records the page.
+    /// Validates locked traversal metadata and decoded entries, then records the page.
     pub fn observe(
         &mut self,
         metadata: PageMetadata,
@@ -249,6 +265,15 @@ impl PaginationCursor {
         };
         if metadata.page.0 != expected.0 {
             return Err(PaginationError::UnexpectedPage);
+        }
+        if metadata.per_page != self.expected_per_page {
+            return Err(PaginationError::PageSizeChanged);
+        }
+        if self.pages_seen != 0
+            && (metadata.total_entries != self.expected_total_entries
+                || metadata.last_page != self.expected_last_page)
+        {
+            return Err(PaginationError::TraversalChanged);
         }
         let entry_count = u64::try_from(entries).map_err(|_| PaginationError::InvalidEntryCount)?;
         if entry_count > metadata.per_page {
@@ -284,6 +309,10 @@ impl PaginationCursor {
         }
         self.pages_seen = pages_seen;
         self.next_page = metadata.next_page;
+        if pages_seen == 1 {
+            self.expected_total_entries = metadata.total_entries;
+            self.expected_last_page = metadata.last_page;
+        }
         Ok(PageBoundary {
             metadata,
             entries,

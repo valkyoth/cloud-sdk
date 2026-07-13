@@ -286,7 +286,7 @@ use cloud_sdk::pagination::{
 let first = PageNumber::new(1)?;
 let second = PageNumber::new(2)?;
 let limit = PageLimit::new(10)?;
-let mut cursor = PaginationCursor::new(first, limit);
+let mut cursor = PaginationCursor::new(first, 25, limit)?;
 
 assert_eq!(cursor.next_page()?, first);
 let metadata = PageMetadata::new(
@@ -308,8 +308,9 @@ assert_eq!(cursor.next_page()?, second);
 The caller fetches and decodes each requested page, then passes only validated
 metadata and the decoded entry count to the cursor. Empty non-terminal pages,
 repeated pages, contradictory navigation, entries above `per_page`, mismatch
-with a supplied total, and the caller's hard page limit fail closed. Each
-accepted boundary preserves transport rate-limit metadata.
+with a supplied total, page-size or traversal-total changes, and the caller's
+hard page limit fail closed. Restart the traversal when provider metadata
+changes. Each accepted boundary preserves transport rate-limit metadata.
 
 ## Action Polling Example
 

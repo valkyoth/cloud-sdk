@@ -444,7 +444,13 @@ let Ok(envelope) = serde_json::from_slice::<PaginationEnvelope>(body) else {
 let metadata = envelope.pagination();
 let Ok(limit) = PageLimit::new(10) else { return };
 let Ok(first) = cloud_sdk::pagination::PageNumber::new(1) else { return };
-let mut cursor = PaginationCursor::new(first, limit);
+let Ok(mut cursor) = PaginationCursor::new(
+    first,
+    u64::from(metadata.per_page().get()),
+    limit,
+) else {
+    return;
+};
 let Ok(boundary) = cursor.observe(metadata.as_core(), 1, None) else {
     return;
 };

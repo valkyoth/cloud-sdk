@@ -16,6 +16,8 @@
 - Required advertised previous and next page numbers to be exactly adjacent.
 - Rejected premature known-last termination, entries above `per_page`, and
   page counts or continuation state inconsistent with supplied totals.
+- Bound cursor page size and first-response total/last metadata across each
+  traversal so snapshot changes fail before advancing.
 - Preserved terminal action failures ahead of non-authoritative progress
   regression checks.
 - Rejected identical or conflicting duplicate rate-limit headers in blocking

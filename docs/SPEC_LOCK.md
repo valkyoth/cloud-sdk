@@ -166,8 +166,12 @@ continuation. Advertised previous and next pages must equal `page - 1` and
 `page + 1` respectively, with checked arithmetic. A known last page must agree
 with terminal state. Decoded entries cannot exceed `per_page`; when
 `total_entries` is present, the current page count and continuation state must
-match it exactly. A caller-selected hard page limit remains mandatory even
-when the provider supplies a last page.
+match it exactly. The cursor binds the caller's requested `per_page` value and
+the first accepted response's nullable `total_entries` and `last_page` values
+for the entire traversal. Any change fails before advancing and requires a new
+traversal, preventing page-size changes or concurrent snapshot drift from
+silently skipping resources. A caller-selected hard page limit remains
+mandatory even when the provider supplies a last page.
 
 Actions remain `running` until the provider reports `success` or `error`.
 Polling frequency is intentionally caller-owned because the official source

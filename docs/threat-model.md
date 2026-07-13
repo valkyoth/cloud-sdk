@@ -50,6 +50,8 @@
   budgets;
 - repeated, contradictory, or empty non-terminal pages causing loops or
   incomplete resource traversal;
+- page-size, total-entry, or last-page changes combining different pagination
+  snapshots and silently skipping resources;
 - zero-delay action policies causing busy polling, or terminal provider errors
   being discarded;
 
@@ -93,8 +95,9 @@
   must occur exactly once, and values are validated before metadata is exposed;
 - pagination requires a caller-selected hard page limit, exact expected-page
   transitions, adjacent advertised navigation, known-last terminal coherence,
-  bounded entry counts, total-entry reconciliation, nonempty continuation
-  pages, and provider-validated navigation;
+  caller-bound page size, first-response total/last snapshot, bounded entry
+  counts, total-entry reconciliation, nonempty continuation pages, and
+  provider-validated navigation; snapshot changes require a new traversal;
 - release drift fetches require exact non-redirecting HTTPS URLs under the
   default validating TLS context, bounded downloads, and pinned digest
   verification before parsing;
