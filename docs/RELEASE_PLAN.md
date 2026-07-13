@@ -664,7 +664,7 @@ v0.15.0 implementation stop reached. Run pentest for this exact commit.
 
 ### v0.16.0 - Optional Blocking Transport Adapter
 
-Status: implementation complete; pentest and retest required.
+Status: tagged and published.
 
 Goal: admit the first reviewed blocking transport adapter outside the default
 graph.
@@ -701,6 +701,8 @@ v0.16.0 implementation stop reached. Run pentest for this exact commit.
 ```
 
 ### v0.17.0 - Optional Async Transport Adapter
+
+Status: implementation in progress.
 
 Goal: add async transport support with explicit runtime neutrality and no
 default runtime dependency.

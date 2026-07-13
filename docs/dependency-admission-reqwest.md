@@ -14,7 +14,7 @@ default features disabled.
 | `rustls` | `0.23.41` | TLS implementation | transitive |
 | `rustls-platform-verifier` | `0.7.0` | platform trust-store verification | transitive |
 | `aws-lc-rs` | `1.17.1` | rustls cryptographic provider | transitive |
-| `cloud-sdk-sanitization` | `0.13.2` | adapter-owned secret-buffer cleanup | disabled |
+| `cloud-sdk-sanitization` | `0.13.3` | adapter-owned secret-buffer cleanup | disabled |
 | `sanitization` | `1.2.4` | reviewed volatile cleanup primitive | disabled |
 
 The exact complete graph is pinned by `Cargo.lock`, checked by `cargo deny`,

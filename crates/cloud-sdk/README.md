@@ -55,8 +55,8 @@ please report it so it can be fixed.
 
 ## Current Status
 
-Status: `v0.16.0` implementation complete; pentest and retest are required.
-The latest published release is `v0.15.0`.
+Status: `v0.17.0` async transport implementation in progress.
+The latest published release is `v0.16.0`.
 
 Implemented now:
 
@@ -160,8 +160,8 @@ Not implemented yet:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.16.0"
-cloud-sdk-hetzner = "0.15.1"
+cloud-sdk = "0.17.0"
+cloud-sdk-hetzner = "0.15.2"
 ```
 
 ## Provider-Neutral Example
@@ -201,8 +201,8 @@ tests or opt into `cloud-sdk-reqwest/blocking-rustls` for blocking HTTPS.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.16.0"
-cloud-sdk-reqwest = { version = "0.13.0", features = ["blocking-rustls"] }
+cloud-sdk = "0.17.0"
+cloud-sdk-reqwest = { version = "0.14.0", features = ["blocking-rustls"] }
 ```
 
 ```rust,ignore

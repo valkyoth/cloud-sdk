@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.17.0 - 2026-07-13
+
+- Started the runtime-neutral async transport contract and optional hardened
+  async reqwest adapter milestone.
+- Prepared independent v0.17 crate versions, release notes, and release gate.
+
 ## 0.16.0 - 2026-07-13
 
 - Added explicit bounded content-type metadata to provider-neutral transport

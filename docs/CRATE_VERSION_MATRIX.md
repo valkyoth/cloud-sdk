@@ -1,7 +1,7 @@
 # Crate Version Matrix
 
-Status: `v0.16.0` implementation complete; pentest and retest required. The
-latest published release is `v0.15.0`.
+Status: `v0.17.0` async transport implementation in progress. The latest
+published release is `v0.16.0`.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
@@ -261,3 +261,18 @@ follow the facade receive dependency-only patches.
 | `cloud-sdk-reqwest` | `0.12.3` | `0.13.0` | `code` | Yes | First blocking adapter with explicit rustls, timeout, redirect, retry, proxy, and redaction policy. |
 | `cloud-sdk-sanitization` | `0.13.1` | `0.13.2` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.16 facade line. |
 | `cloud-sdk-testkit` | `0.13.0` | `0.13.1` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.16 facade line. |
+
+## v0.17.0 Tracking Table
+
+`v0.17.0` adds a runtime-neutral async core contract and an optional hardened
+async reqwest adapter. The facade, reqwest boundary, and testkit receive code
+releases; crates whose manifests only follow the facade receive dependency
+patches.
+
+| Crate | Published | Planned | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.16.0` | `0.17.0` | `code` | Yes | Runtime-neutral async transport contract for provider-neutral adapters and testkits. |
+| `cloud-sdk-hetzner` | `0.15.1` | `0.15.2` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.17 facade line. |
+| `cloud-sdk-reqwest` | `0.13.0` | `0.14.0` | `code` | Yes | Add the hardened provider-neutral async reqwest adapter. |
+| `cloud-sdk-sanitization` | `0.13.2` | `0.13.3` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.17 facade line. |
+| `cloud-sdk-testkit` | `0.13.1` | `0.14.0` | `code` | Yes | Implement the runtime-neutral async mock transport contract. |

@@ -38,15 +38,15 @@ models in small reviewed releases.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.16.0"
-cloud-sdk-hetzner = "0.15.1"
+cloud-sdk = "0.17.0"
+cloud-sdk-hetzner = "0.15.2"
 ```
 
 ## Current Scope
 
-The current main branch is preparing the workspace `0.16.0` release. The latest
-published provider release is `0.15.0`; the planned provider `0.15.1` is a
-dependency-only update to the `cloud-sdk` `0.16.0` transport contract. This
+The current main branch is preparing the workspace `0.17.0` release. The latest
+published provider release is `0.15.1`; the planned provider `0.15.2` is a
+dependency-only update to the `cloud-sdk` `0.17.0` transport contract. This
 crate remains no_std and does not itself implement HTTP transport, broad Serde
 coverage outside reviewed RRSet/shared response models, token storage, live
 API tests, retry policy, pagination iterators, or action polling. The optional
@@ -248,7 +248,7 @@ Enable Serde explicitly; it is never part of the default graph:
 
 ```toml
 [dependencies]
-cloud-sdk-hetzner = { version = "0.15.1", features = ["serde"] }
+cloud-sdk-hetzner = { version = "0.15.2", features = ["serde"] }
 ```
 
 `serde_json` is used below only as an example format implementation and remains
