@@ -207,8 +207,9 @@ Implemented on main for the planned `0.17.0` line:
   balancer types, ISOs, public system images, and pricing;
 - typed GET-only request construction through this provider crate and the
   hardened provider-neutral blocking reqwest/rustls transport;
-- fixed official origin, private regular token-file input, bounded response
-  storage, static redacted diagnostics, and source-buffer cleanup;
+- fixed official origin, sealed build-before-credential execution, private
+  regular token-file input, bounded response storage, static redacted
+  diagnostics, and source-buffer cleanup;
 - offline adversarial coverage for target construction, response envelopes,
   pagination, token normalization, size bounds, symlinks, and Unix modes.
 
@@ -216,9 +217,11 @@ Implemented on main for the planned `0.17.0` line:
 
 The live test is ignored by default and is run from the main repository, not
 by downstream crate builds. Use a dedicated Hetzner test project and a token
-with **Read** permission. The token value is accepted only through a private
-file path and must never be placed directly in shell history or an environment
-variable. See the repository's
+with **Read** permission. Prepare the sealed test executable from a clean commit
+before the token exists or is mounted; authenticated execution invokes that
+verified executable directly and never invokes Cargo. The token value is
+accepted only through a private file path and must never be placed directly in
+shell history or an environment variable. See the repository's
 [`LIVE_SMOKE_TESTING.md`](https://github.com/valkyoth/cloud-sdk/blob/main/docs/LIVE_SMOKE_TESTING.md)
 for setup, execution, cleanup, and the separately disabled destructive plan.
 

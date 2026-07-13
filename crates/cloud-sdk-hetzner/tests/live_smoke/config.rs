@@ -151,7 +151,7 @@ fn normalized_token(bytes: &[u8]) -> Result<&[u8], LiveConfigurationError> {
 
 #[cfg(test)]
 mod tests {
-    use std::fs::{self, OpenOptions};
+    use std::fs::{self, DirBuilder, OpenOptions};
     use std::io::Write;
     use std::path::{Path, PathBuf};
     use std::sync::atomic::{AtomicU64, Ordering};
@@ -170,7 +170,23 @@ mod tests {
             let sequence = TEMP_SEQUENCE.fetch_add(1, Ordering::Relaxed);
             let name = format!("cloud-sdk-live-smoke-{}-{sequence}", std::process::id());
             let path = std::env::temp_dir().join(name);
-            fs::create_dir(&path)?;
+            let mut builder = DirBuilder::new();
+            #[cfg(unix)]
+            {
+                use std::os::unix::fs::{DirBuilderExt, PermissionsExt};
+
+                builder.mode(0o700);
+                builder.create(&path)?;
+                if fs::metadata(&path)?.permissions().mode() & 0o777 != 0o700 {
+                    let _ = fs::remove_dir(&path);
+                    return Err(std::io::Error::new(
+                        std::io::ErrorKind::PermissionDenied,
+                        "temporary directory is not private",
+                    ));
+                }
+            }
+            #[cfg(not(unix))]
+            builder.create(&path)?;
             Ok(Self(path))
         }
 
@@ -248,59 +264,56 @@ mod tests {
     }
 
     #[test]
-    fn reads_a_private_regular_token_file_with_redacted_diagnostics() {
-        let Ok(directory) = TempDirectory::new() else {
-            return;
-        };
+    fn reads_a_private_regular_token_file_with_redacted_diagnostics() -> std::io::Result<()> {
+        let directory = TempDirectory::new()?;
         let path = directory.path().join("token");
-        assert!(write_private_file(&path, b"secret-token\n").is_ok());
+        write_private_file(&path, b"secret-token\n")?;
         let result = read_token_file(&path);
         assert!(result.is_ok());
-        let Ok(token) = result else { return };
+        let Ok(token) = result else { return Ok(()) };
         let diagnostic = format!("{token:?}");
         assert_eq!(diagnostic, "BearerToken([redacted])");
         assert!(!diagnostic.contains("secret-token"));
+        Ok(())
     }
 
     #[test]
-    fn rejects_non_regular_and_oversized_token_files() {
-        let Ok(directory) = TempDirectory::new() else {
-            return;
-        };
+    fn rejects_non_regular_and_oversized_token_files() -> std::io::Result<()> {
+        let directory = TempDirectory::new()?;
         assert!(matches!(
             read_token_file(directory.path()),
             Err(LiveConfigurationError::TokenFileNotRegular)
         ));
 
         let path = directory.path().join("oversized-token");
-        assert!(write_private_file(&path, &[b'a'; 4_099]).is_ok());
+        write_private_file(&path, &[b'a'; 4_099])?;
         assert!(matches!(
             read_token_file(&path),
             Err(LiveConfigurationError::TokenFileTooLarge)
         ));
+        Ok(())
     }
 
     #[cfg(unix)]
     #[test]
-    fn rejects_symlinks_and_group_or_world_access() {
+    fn rejects_symlinks_and_group_or_world_access() -> std::io::Result<()> {
         use std::os::unix::fs::{PermissionsExt, symlink};
 
-        let Ok(directory) = TempDirectory::new() else {
-            return;
-        };
+        let directory = TempDirectory::new()?;
         let path = directory.path().join("token");
-        assert!(write_private_file(&path, b"secret-token\n").is_ok());
+        write_private_file(&path, b"secret-token\n")?;
         let link = directory.path().join("token-link");
-        assert!(symlink(&path, &link).is_ok());
+        symlink(&path, &link)?;
         assert!(matches!(
             read_token_file(&link),
             Err(LiveConfigurationError::TokenFileSymlink)
         ));
 
-        assert!(fs::set_permissions(&path, fs::Permissions::from_mode(0o640)).is_ok());
+        fs::set_permissions(&path, fs::Permissions::from_mode(0o640))?;
         assert!(matches!(
             read_token_file(&path),
             Err(LiveConfigurationError::TokenFilePermissionsTooBroad)
         ));
+        Ok(())
     }
 }

@@ -102,8 +102,9 @@ firewall, and vSwitch operations.
 9. Optional transport: request builder, auth injection, response parsing,
    pagination streams, action polling, retry/rate-limit policy, and a dedicated
    fail-closed FIPS blocking mode in `v0.23.0`.
-10. Integration evidence: mock transport, recorded fixtures, live-test harness
-   gated by explicit environment variables.
+10. Integration evidence: mock transport, recorded fixtures, and a live-test
+   harness with separate credential-free sealed build and authenticated direct
+   execution phases.
 11. 1.0 hardening: docs, examples, fuzzing, mutation/adversarial tests, SBOM,
    pentest, dependency audit, and platform matrix.
 12. Post-1.0 Robot Webservice: separate source lock, Basic Auth policy,

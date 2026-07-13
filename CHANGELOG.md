@@ -10,7 +10,9 @@
   opened-file identity validation, and volatile cleanup of token and response
   source buffers.
 - Kept the live network test ignored by default while compiling it in normal
-  workspace checks and running eleven offline policy and adversarial tests.
+  workspace checks and running twelve offline policy and adversarial tests.
+- Separated credential-free Cargo compilation from authenticated execution,
+  sealing the direct test executable to the reviewed commit and SHA-256 digest.
 - Added static diagnostics that omit token values, token paths, response
   bodies, and provider resource IDs.
 - Documented least-privilege read-only project setup and a separate future

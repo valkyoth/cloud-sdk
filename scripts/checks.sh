@@ -3,6 +3,7 @@ set -eu
 
 cargo fmt --all --check
 scripts/check_shell_syntax.sh
+scripts/test-live-smoke-wrapper.py
 scripts/validate-file-lengths.sh
 scripts/validate-modularity-policy.sh check
 scripts/validate-security-policy.sh

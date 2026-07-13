@@ -55,7 +55,8 @@
 - zero-delay action policies causing busy polling, or terminal provider errors
   being discarded;
 - live-test credentials leaking through shell history, environment dumps,
-  symlinked or permissive files, response logging, or configurable origins;
+  Cargo build-time processes, symlinked or permissive files, response logging,
+  or configurable origins;
 - an accidentally enabled live or destructive test creating billable resources
   in CI or a production project;
 
@@ -109,10 +110,13 @@
   gives terminal status precedence over progress telemetry, preserves provider
   failures, and delegates delay, timeout, and cancellation to caller policy
   without owning a clock or retry loop;
-- the live harness is ignored by default, requires an exact read-only marker
-  and private token-file path, fixes the authenticated origin, rejects
-  destructive opt-in, bounds and clears source/response buffers, issues only
-  typed catalog GET requests, and emits no response bodies or resource IDs;
+- the live harness is ignored by default; its clean-commit build phase rejects
+  credential variables and seals the selected executable to a commit and
+  SHA-256 digest; its authenticated phase invokes no Cargo or build tooling,
+  requires an exact read-only marker and private token-file path, fixes the
+  authenticated origin, rejects destructive opt-in, bounds and clears
+  source/response buffers, issues only typed catalog GET requests, and emits no
+  response bodies or resource IDs;
 - destructive live execution is absent; its documented future plan requires a
   separate command, dedicated project and token, unique prefix, explicit cost
   review, cleanup on every path, and post-run inventory verification;

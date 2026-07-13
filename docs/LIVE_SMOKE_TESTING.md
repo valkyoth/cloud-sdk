@@ -27,6 +27,10 @@ ignored:
 scripts/smoke_hetzner_live.sh --check
 ```
 
+Both `--check` and the build phase reject a token-file environment variable so
+Cargo, build scripts, procedural macros, compiler wrappers, linkers, and other
+build tooling cannot discover its path through their inherited environment.
+
 ## Least-Privilege Project
 
 Create the token in a dedicated Hetzner Cloud test project with no production
@@ -38,6 +42,28 @@ The SDK cannot prove the provider-side scope of a bearer token. The harness
 limits its own behavior to typed read-only requests, but token scope, project
 membership, creation, rotation, revocation, and billing controls remain caller
 responsibilities.
+
+## Sealed Build Phase
+
+Build the live-smoke executable from a clean reviewed commit **before** the
+token file exists or is mounted:
+
+```sh
+unset CLOUD_SDK_HETZNER_TOKEN_FILE
+unset CLOUD_SDK_HETZNER_ALLOW_DESTRUCTIVE
+scripts/smoke_hetzner_live.sh --prepare
+```
+
+`--prepare` invokes Cargo without credential variables, selects exactly one
+`live_smoke` test executable from Cargo's structured JSON output, installs it
+read-only under ignored `target/` storage, and records its SHA-256 digest and
+the reviewed Git commit. The wrapper rejects a dirty worktree. It cannot prove
+that an unreferenced credential elsewhere on the build host is unavailable, so
+credential removal or mount isolation during this phase is an operational
+requirement.
+
+Do not rebuild after provisioning the token. If code changes, revoke or remove
+the token first, commit and review the changes, then run `--prepare` again.
 
 ## Private Token File
 
@@ -65,16 +91,21 @@ files above the bounded token size. On Windows, place the file in a private
 user directory and restrict its ACL to the test account before running; Unix
 mode and inode checks do not apply there.
 
-Run the authenticated smoke test with only the path in the environment:
+Only after `--prepare` succeeds, create or mount the token file. Run the
+authenticated smoke test with only the path in the environment:
 
 ```sh
 CLOUD_SDK_HETZNER_TOKEN_FILE="$token_file" \
     scripts/smoke_hetzner_live.sh --read-only
 ```
 
-The wrapper supplies the second required opt-in,
-`CLOUD_SDK_HETZNER_LIVE_MODE=read-only`, only to the ignored test process. It
-rejects `CLOUD_SDK_HETZNER_ALLOW_DESTRUCTIVE` in read-only mode.
+The wrapper immediately removes the token path from its own exported
+environment, verifies that the read-only sealed executable matches both the
+recorded commit and SHA-256 digest, then replaces itself with that executable
+under a minimal environment. It does not invoke Cargo or other build tooling in
+the authenticated phase. The wrapper supplies
+`CLOUD_SDK_HETZNER_LIVE_MODE=read-only` only to the test process and rejects
+`CLOUD_SDK_HETZNER_ALLOW_DESTRUCTIVE` in read-only mode.
 
 Delete or revoke the token after the run. Before reading, the harness reserves
 the complete bounded token capacity in one allocation so buffer growth cannot

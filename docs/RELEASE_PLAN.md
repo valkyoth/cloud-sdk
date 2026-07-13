@@ -782,6 +782,8 @@ test project guidance.
 Deliverables:
 
 - Live smoke harness disabled by default.
+- Clean-commit sealed build phase with no token present or mounted, followed by
+  authenticated direct execution that never invokes Cargo or build tooling.
 - Required environment variables and token-scope guidance.
 - Read-only smoke tests for locations, server types, load balancer types, ISOs,
   public system images, and pricing.
@@ -789,8 +791,8 @@ Deliverables:
   project, explicit opt-in, a unique resource prefix, and cleanup verification;
   mutation execution remains disabled in this release.
 - Fixed provider origin, bounded responses, private regular token-file input,
-  source-buffer cleanup, and redaction of tokens, paths, response bodies, and
-  IDs in diagnostics.
+  single-allocation source-buffer cleanup, and redaction of tokens, paths,
+  response bodies, and IDs in diagnostics.
 - Offline tests for request methods and targets, response-envelope shape,
   pagination, token normalization, size bounds, symlinks, Unix permissions,
   and diagnostic redaction.
@@ -800,7 +802,9 @@ Verification:
 - `scripts/checks.sh`
 - `cargo test --workspace --all-features`
 - `scripts/smoke_hetzner_live.sh --check`
-- Documented manual live-smoke command with no token in shell history examples.
+- `scripts/smoke_hetzner_live.sh --prepare` before credential provisioning.
+- Documented manual live-smoke command with no token in shell history examples
+  and no Cargo invocation during authenticated execution.
 - `scripts/release_0_19_gate.sh`.
 
 Stop gate:

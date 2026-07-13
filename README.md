@@ -79,9 +79,9 @@ Implemented now:
 - Optional hardened provider-neutral blocking and async reqwest/rustls
   transports, plus admitted guarded caller-buffer sanitization.
 - Opt-in read-only Hetzner catalog smoke harness with fixed provider origin,
-  private token-file input, bounded responses, redacted diagnostics, and eleven
-  offline security-policy tests; live network execution remains ignored by
-  default.
+  a sealed build-before-credential workflow, private token-file input, bounded
+  responses, redacted diagnostics, and twelve offline security-policy tests;
+  live network execution remains ignored by default.
 - Local checks for formatting, linting, tests, no_std policy, modularity, and
   file length.
 - MIT OR Apache-2.0 license.
@@ -268,8 +268,10 @@ scripts/smoke_hetzner_live.sh --check
 ```
 
 Authenticated execution requires a dedicated test project, a provider token
-with **Read** permission, and two explicit opt-ins. The token value does not
-belong in a command or environment variable. Follow
+with **Read** permission, and a sealed executable prepared from a clean commit
+before the token exists or is mounted. Cargo is never invoked by the
+authenticated phase. The token value does not belong in a command or
+environment variable. Follow
 [`docs/LIVE_SMOKE_TESTING.md`](https://github.com/valkyoth/cloud-sdk/blob/main/docs/LIVE_SMOKE_TESTING.md)
 for private token-file setup and the manual command. Destructive execution is
 not implemented in v0.19.
