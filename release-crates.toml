@@ -1,38 +1,38 @@
 [release]
-version = "0.15.0"
+version = "0.16.0"
 policy = "independent"
 
 [crates."cloud-sdk"]
-previous_version = "0.14.0"
-version = "0.15.0"
+previous_version = "0.15.0"
+version = "0.16.0"
 change = "code"
 publish = true
-reason = "Provider-neutral blocking transport contracts for reusable mock adapters."
+reason = "Explicit content-type support for the provider-neutral transport contract."
 
 [crates."cloud-sdk-hetzner"]
-previous_version = "0.14.0"
-version = "0.15.0"
-change = "code"
-publish = true
-reason = "Integrate the provider-neutral adversarial corpus into Hetzner Serde tests."
-
-[crates."cloud-sdk-reqwest"]
-previous_version = "0.12.2"
-version = "0.12.3"
+previous_version = "0.15.0"
+version = "0.15.1"
 change = "dependency"
 publish = true
-reason = "Update the cloud-sdk dependency to the v0.15 facade line."
+reason = "Update the cloud-sdk dependency to the v0.16 facade line."
+
+[crates."cloud-sdk-reqwest"]
+previous_version = "0.12.3"
+version = "0.13.0"
+change = "code"
+publish = true
+reason = "First provider-neutral blocking reqwest adapter with an explicit rustls policy."
 
 [crates."cloud-sdk-sanitization"]
+previous_version = "0.13.1"
+version = "0.13.2"
+change = "dependency"
+publish = true
+reason = "Update the cloud-sdk dependency to the v0.16 facade line."
+
+[crates."cloud-sdk-testkit"]
 previous_version = "0.13.0"
 version = "0.13.1"
 change = "dependency"
 publish = true
-reason = "Update the cloud-sdk dependency to the v0.15 facade line."
-
-[crates."cloud-sdk-testkit"]
-previous_version = "0.12.2"
-version = "0.13.0"
-change = "code"
-publish = true
-reason = "First usable no_std mock transport, response fixtures, and adversarial corpus."
+reason = "Update the cloud-sdk dependency to the v0.16 facade line."

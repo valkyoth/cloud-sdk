@@ -7,6 +7,86 @@ use crate::Method;
 /// Maximum origin-form request-target length admitted by the core contract.
 pub const MAX_REQUEST_TARGET_BYTES: usize = 8192;
 
+/// Maximum content-type header value length admitted by the core contract.
+pub const MAX_CONTENT_TYPE_BYTES: usize = 128;
+
+/// Content-type validation error.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum ContentTypeError {
+    /// Content types must not be empty.
+    Empty,
+    /// Content types exceed [`MAX_CONTENT_TYPE_BYTES`].
+    TooLong,
+    /// Content types must contain a token-shaped `type/subtype` essence and
+    /// only visible ASCII bytes.
+    Invalid,
+}
+
+/// Borrowed, validated HTTP content type.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct ContentType<'a> {
+    value: &'a str,
+}
+
+impl<'a> ContentType<'a> {
+    /// `application/json`.
+    pub const JSON: Self = Self {
+        value: "application/json",
+    };
+
+    /// Validates a content-type header value.
+    pub fn new(value: &'a str) -> Result<Self, ContentTypeError> {
+        if value.is_empty() {
+            return Err(ContentTypeError::Empty);
+        }
+        if value.len() > MAX_CONTENT_TYPE_BYTES {
+            return Err(ContentTypeError::TooLong);
+        }
+        if !value.bytes().all(|byte| (b' '..=b'~').contains(&byte)) {
+            return Err(ContentTypeError::Invalid);
+        }
+        let essence = value.split(';').next().unwrap_or_default();
+        let Some((media_type, subtype)) = essence.split_once('/') else {
+            return Err(ContentTypeError::Invalid);
+        };
+        if media_type.is_empty()
+            || subtype.is_empty()
+            || !media_type.bytes().all(is_http_token_byte)
+            || !subtype.bytes().all(is_http_token_byte)
+        {
+            return Err(ContentTypeError::Invalid);
+        }
+        Ok(Self { value })
+    }
+
+    /// Returns the validated header value.
+    #[must_use]
+    pub const fn as_str(self) -> &'a str {
+        self.value
+    }
+}
+
+const fn is_http_token_byte(byte: u8) -> bool {
+    byte.is_ascii_alphanumeric()
+        || matches!(
+            byte,
+            b'!' | b'#'
+                | b'$'
+                | b'%'
+                | b'&'
+                | b'\''
+                | b'*'
+                | b'+'
+                | b'-'
+                | b'.'
+                | b'^'
+                | b'_'
+                | b'`'
+                | b'|'
+                | b'~'
+        )
+}
+
 /// Request-target validation error.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum RequestTargetError {
@@ -67,6 +147,7 @@ pub struct TransportRequest<'a> {
     method: Method,
     target: RequestTarget<'a>,
     body: &'a [u8],
+    content_type: Option<ContentType<'a>>,
 }
 
 impl<'a> TransportRequest<'a> {
@@ -77,6 +158,7 @@ impl<'a> TransportRequest<'a> {
             method,
             target,
             body: &[],
+            content_type: None,
         }
     }
 
@@ -84,6 +166,13 @@ impl<'a> TransportRequest<'a> {
     #[must_use]
     pub const fn with_body(mut self, body: &'a [u8]) -> Self {
         self.body = body;
+        self
+    }
+
+    /// Adds an explicit content type for the borrowed request body.
+    #[must_use]
+    pub const fn with_content_type(mut self, content_type: ContentType<'a>) -> Self {
+        self.content_type = Some(content_type);
         self
     }
 
@@ -104,6 +193,12 @@ impl<'a> TransportRequest<'a> {
     pub const fn body(self) -> &'a [u8] {
         self.body
     }
+
+    /// Returns the explicit request-body content type, when configured.
+    #[must_use]
+    pub const fn content_type(self) -> Option<ContentType<'a>> {
+        self.content_type
+    }
 }
 
 impl fmt::Debug for TransportRequest<'_> {
@@ -113,6 +208,7 @@ impl fmt::Debug for TransportRequest<'_> {
             .field("method", &self.method)
             .field("target", &self.target)
             .field("body", &"[redacted]")
+            .field("content_type", &self.content_type)
             .finish()
     }
 }
@@ -222,7 +318,8 @@ pub trait BlockingTransport {
 #[cfg(test)]
 mod tests {
     use super::{
-        RequestTarget, RequestTargetError, StatusCode, TransportRequest, TransportResponse,
+        ContentType, ContentTypeError, RequestTarget, RequestTargetError, StatusCode,
+        TransportRequest, TransportResponse,
     };
     use crate::Method;
     use core::fmt::Write;
@@ -289,6 +386,44 @@ mod tests {
             let debug = debug.as_str();
             assert!(debug.contains("[redacted]"));
             assert!(!debug.contains("secret"));
+        }
+    }
+
+    #[test]
+    fn content_types_are_bounded_and_header_safe() {
+        assert_eq!(
+            ContentType::new("application/json").map(ContentType::as_str),
+            Ok("application/json")
+        );
+        assert_eq!(
+            ContentType::new("text/plain; charset=utf-8").map(ContentType::as_str),
+            Ok("text/plain; charset=utf-8")
+        );
+        assert_eq!(ContentType::new(""), Err(ContentTypeError::Empty));
+        assert_eq!(
+            ContentType::new("application"),
+            Err(ContentTypeError::Invalid)
+        );
+        assert_eq!(
+            ContentType::new("application/json\r\nx-evil: true"),
+            Err(ContentTypeError::Invalid)
+        );
+        let oversized = [b'a'; super::MAX_CONTENT_TYPE_BYTES + 1];
+        let oversized = core::str::from_utf8(&oversized);
+        assert!(oversized.is_ok());
+        if let Ok(oversized) = oversized {
+            assert_eq!(ContentType::new(oversized), Err(ContentTypeError::TooLong));
+        }
+    }
+
+    #[test]
+    fn transport_requests_preserve_explicit_content_type() {
+        let target = RequestTarget::new("/servers");
+        if let Ok(target) = target {
+            let request = TransportRequest::new(Method::Post, target)
+                .with_body(b"{}")
+                .with_content_type(ContentType::JSON);
+            assert_eq!(request.content_type(), Some(ContentType::JSON));
         }
     }
 

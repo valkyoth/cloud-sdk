@@ -1,6 +1,7 @@
 # Crate Version Matrix
 
-Status: `v0.15.0` release candidate; pentest and retest passed.
+Status: `v0.16.0` implementation in progress. The latest published release is
+`v0.15.0`.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
@@ -245,3 +246,18 @@ receive dependency-only patches.
 | `cloud-sdk-reqwest` | `0.12.2` | `0.12.3` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.15 facade line. |
 | `cloud-sdk-sanitization` | `0.13.0` | `0.13.1` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.15 facade line. |
 | `cloud-sdk-testkit` | `0.12.2` | `0.13.0` | `code` | Yes | Ordered no_std mock transport, response metadata fixtures, and adversarial response corpus. |
+
+## v0.16.0 Tracking Table
+
+`v0.16.0` admits the first provider-neutral blocking reqwest adapter behind an
+explicit non-default rustls feature. The facade gains explicit content-type
+metadata, reqwest receives a code minor, and crates whose manifests only
+follow the facade receive dependency-only patches.
+
+| Crate | Published | Planned | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.15.0` | `0.16.0` | `code` | Yes | Explicit content-type support for the provider-neutral transport contract. |
+| `cloud-sdk-hetzner` | `0.15.0` | `0.15.1` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.16 facade line. |
+| `cloud-sdk-reqwest` | `0.12.3` | `0.13.0` | `code` | Yes | First blocking adapter with explicit rustls, timeout, redirect, retry, proxy, and redaction policy. |
+| `cloud-sdk-sanitization` | `0.13.1` | `0.13.2` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.16 facade line. |
+| `cloud-sdk-testkit` | `0.13.0` | `0.13.1` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.16 facade line. |
