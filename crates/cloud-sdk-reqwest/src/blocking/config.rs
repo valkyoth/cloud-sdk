@@ -1,8 +1,18 @@
 use core::fmt;
 
 use reqwest::blocking::Client;
+#[cfg(feature = "blocking-rustls-fips")]
+use reqwest::blocking::ClientBuilder;
 use reqwest::redirect::Policy;
 use reqwest::tls::Version;
+#[cfg(feature = "blocking-rustls-fips")]
+use rustls::ClientConfig;
+#[cfg(feature = "blocking-rustls-fips")]
+use rustls::crypto::CryptoProvider;
+#[cfg(feature = "blocking-rustls-fips")]
+use rustls_platform_verifier::BuilderVerifierExt;
+#[cfg(feature = "blocking-rustls-fips")]
+use std::sync::Arc;
 
 use crate::shared::{BearerToken, BuildError, HttpsEndpoint, RequestTimeouts, UserAgent};
 
@@ -67,8 +77,7 @@ fn configured_client(
     timeouts: RequestTimeouts,
     https_only: bool,
 ) -> Result<Client, BuildError> {
-    Client::builder()
-        .tls_backend_rustls()
+    configured_tls_builder()?
         .https_only(https_only)
         .http1_only()
         .no_hickory_dns()
@@ -87,4 +96,52 @@ fn configured_client(
         .user_agent(user_agent.value.clone())
         .build()
         .map_err(|_| BuildError::ClientBuildFailed)
+}
+
+#[cfg(not(feature = "blocking-rustls-fips"))]
+fn configured_tls_builder() -> Result<reqwest::blocking::ClientBuilder, BuildError> {
+    Ok(Client::builder().tls_backend_rustls())
+}
+
+#[cfg(feature = "blocking-rustls-fips")]
+fn configured_tls_builder() -> Result<ClientBuilder, BuildError> {
+    let config = fips_client_config()?;
+    Ok(Client::builder().tls_backend_preconfigured(config))
+}
+
+#[cfg(feature = "blocking-rustls-fips")]
+fn fips_client_config() -> Result<ClientConfig, BuildError> {
+    let provider = Arc::new(rustls::crypto::default_fips_provider());
+    validate_fips_provider(provider.as_ref())?;
+    let config = ClientConfig::builder_with_provider(provider)
+        .with_safe_default_protocol_versions()
+        .map_err(|_| BuildError::FipsProtocolConfigurationFailed)?
+        .with_platform_verifier()
+        .map_err(|_| BuildError::FipsPlatformVerifierFailed)?
+        .with_no_client_auth();
+    validate_fips_config(&config)?;
+    Ok(config)
+}
+
+#[cfg(feature = "blocking-rustls-fips")]
+fn validate_fips_provider(provider: &CryptoProvider) -> Result<(), BuildError> {
+    if provider.fips() {
+        Ok(())
+    } else {
+        Err(BuildError::FipsProviderRejected)
+    }
+}
+
+#[cfg(feature = "blocking-rustls-fips")]
+fn validate_fips_config(config: &ClientConfig) -> Result<(), BuildError> {
+    if config.fips() {
+        Ok(())
+    } else {
+        Err(BuildError::FipsClientConfigurationRejected)
+    }
+}
+
+#[cfg(all(test, feature = "blocking-rustls-fips"))]
+pub(super) fn test_fips_configuration() -> Result<bool, BuildError> {
+    fips_client_config().map(|config| config.fips())
 }

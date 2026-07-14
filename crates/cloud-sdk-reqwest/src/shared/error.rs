@@ -1,6 +1,14 @@
 /// Client construction failure.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum BuildError {
+    /// The selected cryptographic provider did not report FIPS operation.
+    FipsProviderRejected,
+    /// Rustls could not enable its safe protocol-version set for the FIPS provider.
+    FipsProtocolConfigurationFailed,
+    /// The platform certificate verifier could not be configured.
+    FipsPlatformVerifierFailed,
+    /// The complete TLS client configuration did not report FIPS operation.
+    FipsClientConfigurationRejected,
     /// Reqwest rejected the fixed hardened client configuration.
     ClientBuildFailed,
 }

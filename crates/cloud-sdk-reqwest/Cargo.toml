@@ -22,6 +22,18 @@ blocking-rustls = [
     "reqwest/blocking",
     "reqwest/rustls",
 ]
+blocking-rustls-fips = [
+    "std",
+    "dep:cloud-sdk-sanitization",
+    "dep:reqwest",
+    "dep:rustls",
+    "dep:rustls-platform-verifier",
+    "reqwest/blocking",
+    "reqwest/rustls-no-provider",
+    "rustls/fips",
+    "rustls/std",
+    "rustls/tls12",
+]
 async-rustls = [
     "std",
     "dep:bytes",
@@ -35,6 +47,8 @@ bytes = { workspace = true, optional = true }
 cloud-sdk.workspace = true
 cloud-sdk-sanitization = { workspace = true, optional = true }
 reqwest = { workspace = true, optional = true }
+rustls = { workspace = true, optional = true }
+rustls-platform-verifier = { workspace = true, optional = true }
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["rt", "time"] }

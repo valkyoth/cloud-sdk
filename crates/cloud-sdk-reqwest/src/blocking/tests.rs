@@ -343,3 +343,9 @@ fn response_timeout_is_payload_free_and_clears_output() {
 fn status_constant_remains_compatible_with_transport_response() {
     assert_eq!(StatusCode::OK.get(), 200);
 }
+
+#[cfg(feature = "blocking-rustls-fips")]
+#[test]
+fn fips_provider_and_complete_client_configuration_report_fips() {
+    assert_eq!(super::config::test_fips_configuration(), Ok(true));
+}

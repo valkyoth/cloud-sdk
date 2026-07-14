@@ -4,16 +4,27 @@
 #[cfg(feature = "std")]
 extern crate std;
 
-#[cfg(any(feature = "async-rustls", feature = "blocking-rustls"))]
+#[cfg(any(
+    feature = "async-rustls",
+    feature = "blocking-rustls",
+    feature = "blocking-rustls-fips"
+))]
 mod shared;
 
-#[cfg(feature = "blocking-rustls")]
+#[cfg(any(feature = "blocking-rustls", feature = "blocking-rustls-fips"))]
 pub mod blocking;
 
 #[cfg(feature = "async-rustls")]
 pub mod asynchronous;
 
-#[cfg(all(test, any(feature = "async-rustls", feature = "blocking-rustls")))]
+#[cfg(all(
+    test,
+    any(
+        feature = "async-rustls",
+        feature = "blocking-rustls",
+        feature = "blocking-rustls-fips"
+    )
+))]
 mod test_server;
 
 /// Provider-neutral transport adapter readiness state.
@@ -23,6 +34,8 @@ pub enum ReqwestAdapterStatus {
     TransportFreeByDefault,
     /// The blocking rustls adapter is available when its feature is enabled.
     BlockingRustlsAvailable,
+    /// The blocking rustls adapter can require an explicitly verified FIPS configuration.
+    BlockingRustlsFipsAvailable,
     /// The asynchronous rustls adapter is available when its feature is enabled.
     AsyncRustlsAvailable,
 }
