@@ -6,6 +6,7 @@ members = [
     "crates/cloud-sdk-sanitization",
     "crates/cloud-sdk-testkit",
 ]
+exclude = ["fuzz"]
 default-members = ["crates/cloud-sdk"]
 resolver = "3"
 

@@ -1,0 +1,1 @@
+{"action":{"id":42,"command":"create_rrset","status":"running","progress":50,"started":"2026-07-12T12:00:00Z","finished":null,"resources":[{"id":7,"type":"zone"}],"error":null}}

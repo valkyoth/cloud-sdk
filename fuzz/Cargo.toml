@@ -1,0 +1,56 @@
+[package]
+name = "cloud-sdk-fuzz"
+version = "0.0.0"
+publish = false
+edition = "2024"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+cloud-sdk = { path = "../crates/cloud-sdk" }
+cloud-sdk-hetzner = { path = "../crates/cloud-sdk-hetzner", features = ["serde"] }
+libfuzzer-sys = "0.4.13"
+serde_json = "1.0.150"
+
+[[bin]]
+name = "buffer_writers"
+path = "fuzz_targets/buffer_writers.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "request_targets"
+path = "fuzz_targets/request_targets.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "labels_dns"
+path = "fuzz_targets/labels_dns.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "pagination"
+path = "fuzz_targets/pagination.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "action_polling"
+path = "fuzz_targets/action_polling.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "response_envelopes"
+path = "fuzz_targets/response_envelopes.rs"
+test = false
+doc = false
+bench = false

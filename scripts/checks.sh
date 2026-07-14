@@ -9,6 +9,7 @@ scripts/test-live-smoke-wrapper.py
 scripts/test-hetzner-live-smoke-runner.py
 scripts/test-platform-matrix.py
 scripts/test-publishable-readmes.py
+scripts/check_fuzz_harness.sh --metadata
 scripts/validate-file-lengths.sh
 scripts/validate-modularity-policy.sh check
 scripts/validate-security-policy.sh
