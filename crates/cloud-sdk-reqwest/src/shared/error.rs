@@ -15,6 +15,8 @@ pub enum BuildError {
     FipsRevocationVerifierFailed,
     /// The complete TLS client configuration did not report FIPS operation.
     FipsClientConfigurationRejected,
+    /// Rustls could not enable its safe protocol-version set for deterministic roots.
+    WebPkiRootsProtocolConfigurationFailed,
     /// Reqwest rejected the fixed hardened client configuration.
     ClientBuildFailed,
 }

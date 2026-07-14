@@ -30,16 +30,16 @@ Optional provider-neutral transport adapter for the main
 [`cloud-sdk`](https://crates.io/crates/cloud-sdk) crate.
 
 The crate remains no_std and transport-free by default. Its non-default
-`blocking-rustls`, `blocking-rustls-fips`, and `async-rustls` features provide
-reviewed HTTPS implementations for every provider without adding transport
-dependencies to provider crates.
+`blocking-rustls`, `blocking-rustls-webpki-roots`, `blocking-rustls-fips`, and
+`async-rustls` features provide reviewed HTTPS implementations for every
+provider without adding transport dependencies to provider crates.
 
 Most users should start with:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.23.0"
-cloud-sdk-reqwest = { version = "0.16.0", features = ["blocking-rustls"] }
+cloud-sdk = "0.24.0"
+cloud-sdk-reqwest = { version = "0.17.0", features = ["blocking-rustls"] }
 ```
 
 ## Blocking Example
@@ -77,14 +77,33 @@ assert!(response.status().is_success());
 # fn main() {}
 ```
 
+## Deterministic Root Snapshot
+
+The standard blocking feature follows the host trust store. Select the
+separate deterministic feature to use only the reviewed Mozilla root snapshot
+compiled into `webpki-roots`:
+
+```toml
+[dependencies]
+cloud-sdk = "0.24.0"
+cloud-sdk-reqwest = { version = "0.17.0", features = ["blocking-rustls-webpki-roots"] }
+```
+
+The blocking API is identical to the example above. The custom rustls client
+configuration receives only the compiled snapshot, even though reqwest still
+compiles its platform-verifier dependency. Host and enterprise roots are not
+consulted by this client. Root changes require a reviewed dependency update.
+This mode does not add CRL/OCSP revocation checking, private roots, pinning, or
+FIPS status. When combined with `blocking-rustls-fips`, the FIPS policy wins.
+
 ## Blocking FIPS Example
 
 Use the same blocking API with the dedicated feature:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.23.0"
-cloud-sdk-reqwest = { version = "0.16.0", features = ["blocking-rustls-fips"] }
+cloud-sdk = "0.24.0"
+cloud-sdk-reqwest = { version = "0.17.0", features = ["blocking-rustls-fips"] }
 rustls = "=0.23.42"
 ```
 
@@ -181,7 +200,8 @@ assert_eq!(request.content_type(), Some(ContentType::JSON));
 - HTTPS-only production endpoints with no embedded credentials, query, or
   fragment.
 - Rustls with TLS 1.2 minimum; platform certificate verification for standard
-  transports and mandatory deployment roots plus CRLs for FIPS.
+  transports, deterministic Mozilla roots for the snapshot feature, and
+  mandatory deployment roots plus CRLs for FIPS.
 - Explicit total and connect timeouts, each nonzero and at most 300 seconds.
 - Explicit validated user agent and bounded bearer token.
 - HTTP/1 and the system resolver are forced even under downstream reqwest
@@ -210,6 +230,7 @@ mutable secret storage after transport use.
 | `default` | yes | Empty; keeps the crate transport-free and `no_std`. |
 | `std` | no | Enables only std support in first-party boundary crates. |
 | `blocking-rustls` | no | Enables the hardened blocking reqwest/rustls adapter and sanitization boundary. |
+| `blocking-rustls-webpki-roots` | no | Enables the blocking adapter with a deterministic reviewed Mozilla root snapshot. |
 | `blocking-rustls-fips` | no | Enables the blocking adapter with runtime-verified AWS-LC FIPS plus mandatory deployment roots and CRLs. |
 | `async-rustls` | no | Enables the hardened async reqwest/rustls adapter; callers provide an active Tokio runtime. |
 

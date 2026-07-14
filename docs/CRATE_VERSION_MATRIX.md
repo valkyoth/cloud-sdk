@@ -1,7 +1,7 @@
 # Crate Version Matrix
 
-Status: `v0.23.0` implementation stop reached; pentest required. The latest
-published release is `v0.22.0`.
+Status: `v0.24.0` implementation stop reached; pentest required. The latest
+published release is `v0.23.0`.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
@@ -369,3 +369,18 @@ facade dependency receive patch releases.
 | `cloud-sdk-reqwest` | `0.15.4` | `0.16.0` | `code` | Yes | Explicitly selected and runtime-verified blocking rustls FIPS-mode transport. |
 | `cloud-sdk-sanitization` | `0.13.8` | `0.13.9` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.23 facade line. |
 | `cloud-sdk-testkit` | `0.15.4` | `0.15.5` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.23 facade line. |
+
+## v0.24.0 Tracking Table
+
+`v0.24.0` adds an optional deterministic Mozilla-root blocking transport and
+refreshes dependency, tool, native-build, audit, and SBOM evidence. The facade
+follows the tag, reqwest receives an independent code minor, and crates
+following the facade dependency receive patch releases.
+
+| Crate | Published | Planned | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.23.0` | `0.24.0` | `metadata` | Yes | Dependency, tooling, deterministic-root documentation, and v0.24 release evidence. |
+| `cloud-sdk-hetzner` | `0.19.1` | `0.19.2` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.24 facade line. |
+| `cloud-sdk-reqwest` | `0.16.0` | `0.17.0` | `code` | Yes | Deterministic Mozilla-root transport and hardened dependency/tooling evidence. |
+| `cloud-sdk-sanitization` | `0.13.9` | `0.13.10` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.24 facade line. |
+| `cloud-sdk-testkit` | `0.15.5` | `0.15.6` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.24 facade line. |

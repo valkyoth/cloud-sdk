@@ -978,8 +978,9 @@ release-candidate work.
 Deliverables:
 
 - Current dependency review for every default, optional, dev, and tool crate.
-- Re-evaluate platform trust-store policy and a separately reviewed
-  deterministic root-store feature for high-assurance deployments.
+- Re-evaluate platform trust-store policy and add a separately reviewed
+  deterministic Mozilla root-store feature for reproducible public WebPKI
+  trust decisions.
 - Re-audit aws-lc-sys build-script, vendored C/assembly, Cargo checksum,
   offline-build, and pinned native-toolchain requirements.
 - `cargo-deny` and `cargo-audit` evidence.
@@ -990,7 +991,8 @@ Deliverables:
 Verification:
 
 - `scripts/checks.sh`
-- `scripts/check_latest_tools.sh`
+- `scripts/check_latest_tools.sh --fetch`
+- `scripts/check_reqwest_webpki_roots_boundary.sh`
 - `scripts/generate-sbom.sh`
 - `cargo deny check`
 - `cargo audit`

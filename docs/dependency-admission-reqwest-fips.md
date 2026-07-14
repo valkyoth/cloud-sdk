@@ -87,10 +87,14 @@ operating environment. The repository does not test or certify that mode.
 
 Release builders must retain Cargo checksum verification, use reviewed pinned
 build images, avoid untrusted compiler environment flags, and preserve build
-logs. Reproducible byte-for-byte native outputs are not claimed in `v0.23.0`.
-Cargo Deny narrowly skips duplicate detection for build-only `shlex 1.3.0`:
-bindgen requires the 1.x line while cc requires 2.x. No runtime duplicate is
-allowed, and `v0.24.0` must re-evaluate this exception.
+logs. Reproducible byte-for-byte native outputs are not claimed. The v0.24
+review records exact Cargo archive checksums and confirms that hosted native
+tools remain mutable; production builders must pin those tools in an immutable
+reviewed image. Cargo Deny narrowly skips duplicate detection for build-only
+`shlex 1.3.0`: bindgen requires the 1.x line while cc requires 2.x. The review
+confirmed that neither duplicate has a runtime path, so the exception remains
+until either parent dependency can converge. See
+[`DEPENDENCY_REVIEW_0.24.0.md`](DEPENDENCY_REVIEW_0.24.0.md).
 
 Primary upstream references:
 

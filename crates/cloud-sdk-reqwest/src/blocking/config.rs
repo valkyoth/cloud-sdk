@@ -1,7 +1,10 @@
 use core::fmt;
 
 use reqwest::blocking::Client;
-#[cfg(feature = "blocking-rustls-fips")]
+#[cfg(any(
+    feature = "blocking-rustls-fips",
+    feature = "blocking-rustls-webpki-roots"
+))]
 use reqwest::blocking::ClientBuilder;
 use reqwest::redirect::Policy;
 use reqwest::tls::Version;
@@ -11,9 +14,15 @@ use rustls::client::WebPkiServerVerifier;
 use rustls::crypto::CryptoProvider;
 #[cfg(feature = "blocking-rustls-fips")]
 use rustls::pki_types::CertificateRevocationListDer;
-#[cfg(feature = "blocking-rustls-fips")]
+#[cfg(any(
+    feature = "blocking-rustls-fips",
+    feature = "blocking-rustls-webpki-roots"
+))]
 use rustls::{ClientConfig, RootCertStore};
-#[cfg(feature = "blocking-rustls-fips")]
+#[cfg(any(
+    feature = "blocking-rustls-fips",
+    feature = "blocking-rustls-webpki-roots"
+))]
 use std::sync::Arc;
 #[cfg(feature = "blocking-rustls-fips")]
 use std::vec::Vec;
@@ -154,11 +163,50 @@ fn configured_client(
         .map_err(|_| BuildError::ClientBuildFailed)
 }
 
-#[cfg(not(feature = "blocking-rustls-fips"))]
+#[cfg(all(
+    not(feature = "blocking-rustls-fips"),
+    not(feature = "blocking-rustls-webpki-roots")
+))]
 fn configured_tls_builder(
     _configuration: &BlockingClientBuilder,
 ) -> Result<reqwest::blocking::ClientBuilder, BuildError> {
     Ok(Client::builder().tls_backend_rustls())
+}
+
+#[cfg(all(
+    not(feature = "blocking-rustls-fips"),
+    feature = "blocking-rustls-webpki-roots"
+))]
+fn configured_tls_builder(
+    _configuration: &BlockingClientBuilder,
+) -> Result<ClientBuilder, BuildError> {
+    let config = webpki_roots_client_config()?;
+    Ok(Client::builder().tls_backend_preconfigured(config))
+}
+
+#[cfg(all(
+    not(feature = "blocking-rustls-fips"),
+    feature = "blocking-rustls-webpki-roots"
+))]
+fn webpki_roots_client_config() -> Result<ClientConfig, BuildError> {
+    let provider = Arc::new(rustls::crypto::aws_lc_rs::default_provider());
+    let mut roots = RootCertStore::empty();
+    roots.extend(webpki_roots::TLS_SERVER_ROOTS.iter().cloned());
+    Ok(ClientConfig::builder_with_provider(provider)
+        .with_safe_default_protocol_versions()
+        .map_err(|_| BuildError::WebPkiRootsProtocolConfigurationFailed)?
+        .with_root_certificates(roots)
+        .with_no_client_auth())
+}
+
+#[cfg(all(
+    test,
+    not(feature = "blocking-rustls-fips"),
+    feature = "blocking-rustls-webpki-roots"
+))]
+pub(super) fn test_webpki_roots_configuration() -> Result<(usize, bool), BuildError> {
+    let config = webpki_roots_client_config()?;
+    Ok((webpki_roots::TLS_SERVER_ROOTS.len(), config.fips()))
 }
 
 #[cfg(feature = "blocking-rustls-fips")]

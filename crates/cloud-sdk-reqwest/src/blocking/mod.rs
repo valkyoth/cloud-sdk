@@ -16,3 +16,9 @@ pub use config::FipsTlsPolicy;
 
 #[cfg(test)]
 mod tests;
+#[cfg(all(
+    test,
+    feature = "blocking-rustls-webpki-roots",
+    not(feature = "blocking-rustls-fips")
+))]
+mod webpki_roots_tests;

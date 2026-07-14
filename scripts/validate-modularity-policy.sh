@@ -54,14 +54,19 @@ if ! awk '
 fi
 
 if ! awk '
-    /^#\[cfg\(any\(feature = "blocking-rustls", feature = "blocking-rustls-fips"\)\)\]$/ {
-        guarded = 1
+    /^#\[cfg\(any\($/ { in_guard = 1; next }
+    in_guard && /feature = "blocking-rustls"/ { blocking = 1; next }
+    in_guard && /feature = "blocking-rustls-webpki-roots"/ { roots = 1; next }
+    in_guard && /feature = "blocking-rustls-fips"/ { fips = 1; next }
+    in_guard && /^\)\)\]$/ {
+        guarded = blocking && roots && fips
+        in_guard = blocking = roots = fips = 0
         next
     }
     /^pub mod blocking;$/ {
         if (guarded) found = 1
     }
-    { guarded = 0 }
+    !in_guard && !/^pub mod blocking;$/ { guarded = 0 }
     END { exit !found }
 ' crates/cloud-sdk-reqwest/src/lib.rs; then
     echo "modularity policy: reqwest blocking module lost feature guard" >&2

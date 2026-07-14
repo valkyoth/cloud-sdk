@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.24.0 - 2026-07-14
+
+- Added an opt-in blocking transport with a deterministic Mozilla public-root
+  snapshot and an explicit rustls AWS-LC provider.
+- Preserved FIPS roots-and-CRLs precedence under additive feature selection.
+- Added exact graph, feature, focused runtime, and additive compilation checks
+  for the deterministic-root boundary.
+- Reviewed every direct runtime, optional, dev, fuzz, and release-tool pin
+  against current upstream releases.
+- Recorded AWS-LC archive checksums, native build and offline constraints,
+  mutable hosted-tool limitations, and the reviewed build-only shlex duplicate.
+- Converted the release-tool reminder into a live installed-version and
+  crates.io freshness gate.
+- Added the `v0.24.0` release gate and independent crate version plan.
+
 ## 0.23.0 - 2026-07-14
 
 - Added the non-default `cloud-sdk-reqwest/blocking-rustls-fips` feature.

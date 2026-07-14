@@ -27,7 +27,8 @@ Rules:
   use provider-neutral adapters only through dev dependencies and must never
   enter the provider's normal graph. Public blocking and async modules remain
   guarded by their reviewed non-default `blocking-rustls`,
-  `blocking-rustls-fips`, and `async-rustls` features.
+  `blocking-rustls-webpki-roots`, `blocking-rustls-fips`, and `async-rustls`
+  features.
 
 The local gate is:
 

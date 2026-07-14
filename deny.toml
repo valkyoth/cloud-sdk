@@ -39,7 +39,7 @@ multiple-versions = "deny"
 wildcards = "deny"
 highlight = "all"
 skip = [
-    { crate = "shlex@1.3.0", reason = "aws-lc-fips-sys bindgen uses shlex 1 while cc uses shlex 2; build-only and revisited in v0.24.0" },
+    { crate = "shlex@1.3.0", reason = "aws-lc-fips-sys bindgen uses shlex 1 while cc uses shlex 2; v0.24 confirmed both are build-only" },
 ]
 
 [advisories]

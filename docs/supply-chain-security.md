@@ -32,8 +32,8 @@ runtime dependencies. The decision and limits are recorded in
 and `scripts/check_sanitization_boundary.sh` enforces graph isolation.
 
 Reqwest `0.13.4` is admitted only through the non-default
-`cloud-sdk-reqwest/blocking-rustls`, `blocking-rustls-fips`, and `async-rustls`
-features. Bytes `1.12.1`
+`cloud-sdk-reqwest/blocking-rustls`, `blocking-rustls-webpki-roots`,
+`blocking-rustls-fips`, and `async-rustls` features. Bytes `1.12.1`
 is a direct optional dependency only for sanitized async request-body ownership.
 Reqwest defaults are disabled;
 native TLS, response decompression, proxies, redirects, and retries are not
@@ -46,6 +46,13 @@ separately, and rejects direct first-party `zeroize` dependencies.
 The locked downstream feature-unification fixture is audited independently and
 has its own SPDX SBOM; its exact target-specific duplicate dependency is
 documented in the reqwest admission record.
+
+The deterministic blocking feature admits `webpki-roots 1.0.8` with defaults
+disabled and supplies that compiled Mozilla snapshot to a complete custom
+rustls client configuration. Its trust-store and update tradeoffs, exact
+archive checksums, direct dependency freshness review, and native AWS-LC build
+review are recorded in
+[`DEPENDENCY_REVIEW_0.24.0.md`](DEPENDENCY_REVIEW_0.24.0.md).
 
 The FIPS-mode boundary publishes exact requirements for reqwest `0.13.4`,
 rustls `0.23.42`, rustls-platform-verifier `0.7.0`, aws-lc-rs `1.17.1`,

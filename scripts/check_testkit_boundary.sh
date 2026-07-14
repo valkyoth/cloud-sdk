@@ -2,8 +2,8 @@
 set -eu
 
 default_tree=$(cargo tree -p cloud-sdk-testkit --no-default-features --edges normal,build)
-if ! printf '%s\n' "$default_tree" | grep -Fq 'cloud-sdk v0.23.0'; then
-    echo "testkit boundary: cloud-sdk v0.23.0 is missing" >&2
+if ! printf '%s\n' "$default_tree" | grep -Fq 'cloud-sdk v0.24.0'; then
+    echo "testkit boundary: cloud-sdk v0.24.0 is missing" >&2
     exit 1
 fi
 if printf '%s\n' "$default_tree" | grep -Eq \

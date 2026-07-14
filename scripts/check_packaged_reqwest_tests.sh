@@ -38,4 +38,12 @@ CARGO_TARGET_DIR="$test_target" cargo test \
     --config "patch.crates-io.cloud-sdk.path=\"$root/crates/cloud-sdk\"" \
     --config "patch.crates-io.cloud-sdk-sanitization.path=\"$root/crates/cloud-sdk-sanitization\""
 
-printf '%s\n' "Packaged cloud-sdk-reqwest FIPS tests compiled successfully."
+CARGO_TARGET_DIR="$test_target" cargo test \
+    --manifest-path "$temporary/$package_name/Cargo.toml" \
+    --locked \
+    --no-run \
+    --features blocking-rustls-webpki-roots \
+    --config "patch.crates-io.cloud-sdk.path=\"$root/crates/cloud-sdk\"" \
+    --config "patch.crates-io.cloud-sdk-sanitization.path=\"$root/crates/cloud-sdk-sanitization\""
+
+printf '%s\n' "Packaged cloud-sdk-reqwest FIPS and deterministic-root tests compiled successfully."

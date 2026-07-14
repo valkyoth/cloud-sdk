@@ -195,8 +195,8 @@ Not implemented yet:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.23.0"
-cloud-sdk-hetzner = "0.19.1"
+cloud-sdk = "0.24.0"
+cloud-sdk-hetzner = "0.19.2"
 ```
 
 ## Features
@@ -249,15 +249,15 @@ assert!(request.body().is_empty());
 
 The core contracts perform no I/O and select no executor. Use
 `cloud-sdk-testkit` for deterministic blocking or async tests, or opt into
-`cloud-sdk-reqwest/blocking-rustls`, `blocking-rustls-fips`, or `async-rustls`
-for HTTPS.
+`cloud-sdk-reqwest/blocking-rustls`, `blocking-rustls-webpki-roots`,
+`blocking-rustls-fips`, or `async-rustls` for HTTPS.
 
 ## Optional Blocking Transport
 
 ```toml
 [dependencies]
-cloud-sdk = "0.23.0"
-cloud-sdk-reqwest = { version = "0.16.0", features = ["blocking-rustls"] }
+cloud-sdk = "0.24.0"
+cloud-sdk-reqwest = { version = "0.17.0", features = ["blocking-rustls"] }
 ```
 
 ```rust,ignore
@@ -296,6 +296,23 @@ Hickory DNS. The caller owns token generation, scope, rotation, revocation,
 and cleanup of the original secret; the adapter clears only its own token and
 request-body storage.
 
+### Optional Deterministic Root Snapshot
+
+Use a source-pinned Mozilla root snapshot instead of host trust-store contents
+when deterministic public WebPKI roots are required:
+
+```toml
+[dependencies]
+cloud-sdk = "0.24.0"
+cloud-sdk-reqwest = { version = "0.17.0", features = ["blocking-rustls-webpki-roots"] }
+```
+
+The blocking API is unchanged. This feature excludes host-added enterprise
+roots from trust decisions and updates roots only when `webpki-roots` is
+reviewed and upgraded. It does not provide certificate revocation checking,
+certificate pinning, private PKI support, or FIPS status. When combined with
+`blocking-rustls-fips`, the explicit FIPS roots-and-CRLs policy wins.
+
 ### Optional Blocking FIPS Transport
 
 Applications that require the reviewed FIPS path must select the dedicated
@@ -303,8 +320,8 @@ feature instead of relying on dependency feature unification:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.23.0"
-cloud-sdk-reqwest = { version = "0.16.0", features = ["blocking-rustls-fips"] }
+cloud-sdk = "0.24.0"
+cloud-sdk-reqwest = { version = "0.17.0", features = ["blocking-rustls-fips"] }
 ```
 
 Client construction explicitly selects rustls' AWS-LC FIPS provider and fails
@@ -345,8 +362,8 @@ not implemented in v0.19.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.23.0"
-cloud-sdk-reqwest = { version = "0.16.0", features = ["async-rustls"] }
+cloud-sdk = "0.24.0"
+cloud-sdk-reqwest = { version = "0.17.0", features = ["async-rustls"] }
 ```
 
 ```rust,ignore

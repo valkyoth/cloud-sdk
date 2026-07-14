@@ -1,8 +1,9 @@
 # Reqwest Transport Dependency Admission
 
 Status: admitted only through `cloud-sdk-reqwest/blocking-rustls`,
-`cloud-sdk-reqwest/blocking-rustls-fips`, and
-`cloud-sdk-reqwest/async-rustls`, with reqwest default features disabled.
+`cloud-sdk-reqwest/blocking-rustls-webpki-roots`,
+`cloud-sdk-reqwest/blocking-rustls-fips`, and `cloud-sdk-reqwest/async-rustls`,
+with reqwest default features disabled.
 
 ## Decision
 
@@ -15,8 +16,9 @@ Status: admitted only through `cloud-sdk-reqwest/blocking-rustls`,
 | `url` | `2.5.8` | authority-preserving endpoint parsing | transitive |
 | `rustls` | `0.23.42` | TLS implementation | transitive |
 | `rustls-platform-verifier` | `0.7.0` | platform trust-store verification | transitive |
+| `webpki-roots` | `1.0.8` | deterministic Mozilla trust-root snapshot | disabled |
 | `aws-lc-rs` | `1.17.1` | rustls cryptographic provider | transitive |
-| `cloud-sdk-sanitization` | `0.13.9` | adapter-owned secret-buffer cleanup | disabled |
+| `cloud-sdk-sanitization` | `0.13.10` | adapter-owned secret-buffer cleanup | disabled |
 | `sanitization` | `1.2.4` | reviewed volatile cleanup primitive | disabled |
 
 The exact repository graph is pinned by `Cargo.lock`, checked by `cargo deny`,
@@ -38,7 +40,8 @@ build script, bundled source, compiler, assembler, CMake, linker, or build
 host. Release CI and reproducible/offline builders must use pinned, audited
 build images and toolchains. Offline preparation must preserve Cargo's
 authenticated package checksum rather than copying unauthenticated source
-trees. The v0.24 dependency-hardening pass must revisit this native surface.
+trees. The v0.24 review and exact archive checksums are recorded in
+[`DEPENDENCY_REVIEW_0.24.0.md`](DEPENDENCY_REVIEW_0.24.0.md).
 
 The version review used the reqwest 0.13.4 crate metadata, feature list, API
 documentation, and upstream source:
@@ -63,6 +66,14 @@ configuration. Its additional native graph, runtime checks, validation-status
 limits, and build requirements are reviewed separately in
 [`dependency-admission-reqwest-fips.md`](dependency-admission-reqwest-fips.md).
 
+`blocking-rustls-webpki-roots` enables the blocking and sanitization
+boundaries with an explicit AWS-LC provider, direct rustls configuration, and
+`webpki-roots 1.0.8`. Its client receives only the compiled Mozilla snapshot.
+Reqwest still compiles its platform-verifier graph, but that verifier is not
+installed into this preconfigured client. Root changes require a dependency
+update; host enterprise roots, private PKI, revocation checking, and pinning
+are not provided by this mode.
+
 `async-rustls` enables:
 
 - `std`;
@@ -82,9 +93,10 @@ from both production feature graphs. A
 separate locked, non-published test fixture deliberately enables both on the
 same reqwest instance and builds both adapters to exercise Cargo feature
 unification against the runtime overrides. Its local `cloud-sdk-reqwest`
-dependency is pinned exactly to `0.16.0` and enables all three transport
-features, proving the explicit FIPS configuration wins under additive feature
-unification.
+dependency is pinned exactly to `0.17.0` and enables the standard, FIPS, and
+async transport features, proving the explicit FIPS configuration wins under
+additive feature unification. The deterministic-root boundary separately
+compiles both its standard combination and its combination with FIPS.
 
 The fixture lockfile is a separate 200-package tooling graph. Release and CI
 gates apply the root advisory, license, and source policy to that lockfile,
@@ -121,11 +133,12 @@ endpoint. Request targets are origin-form, and encoded path separators,
 backslashes, dot bytes, controls, non-ASCII bytes, fragments, and malformed
 percent escapes are rejected before credentials are attached.
 
-Platform trust roots intentionally follow host policy. A compromised or
+Standard transport roots intentionally follow host policy. A compromised or
 attacker-extended host trust store, including an enterprise interception root,
-can therefore validate a hostile endpoint. The v0.24 dependency-hardening
-milestone will evaluate a separately reviewed deterministic root-store option;
-v0.17 does not claim certificate or public-key pinning.
+can therefore validate a hostile endpoint. The separately reviewed
+`blocking-rustls-webpki-roots` feature avoids host-added roots with a compiled
+Mozilla snapshot, but it does not provide revocation checks or certificate or
+public-key pinning.
 
 The `blocking-rustls-fips` transport explicitly selects and verifies the rustls
 FIPS provider and complete client configuration. It does not trust unrelated
@@ -168,7 +181,8 @@ does not enable this std adapter.
 
 ## Verification
 
-`scripts/check_reqwest_boundary.sh` and
+`scripts/check_reqwest_boundary.sh`,
+`scripts/check_reqwest_webpki_roots_boundary.sh`, and
 `scripts/check_reqwest_fips_boundary.sh` verify the exact top-level versions,
 default and std graph isolation, separate blocking/async required and forbidden
 reqwest features,

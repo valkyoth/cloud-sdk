@@ -153,5 +153,8 @@ Expected future candidates must be reviewed before use:
 - `v0.23.0` admits rustls' optional FIPS mode with explicit provider and
   complete-client runtime verification. Current aws-lc-fips-sys binds a 3.0.x
   module whose active NIST certificate is not claimed by this repository.
+- `v0.24.0` admits `webpki-roots 1.0.8` only through a non-default blocking
+  feature with a complete explicit rustls configuration. It also records the
+  direct dependency/tool freshness and AWS-LC native checksum/build review.
 
 Every admission needs a document under `docs/dependency-admission-*.md`.

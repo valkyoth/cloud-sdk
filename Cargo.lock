@@ -157,11 +157,11 @@ dependencies = [
 
 [[package]]
 name = "cloud-sdk"
-version = "0.23.0"
+version = "0.24.0"
 
 [[package]]
 name = "cloud-sdk-hetzner"
-version = "0.19.1"
+version = "0.19.2"
 dependencies = [
  "cloud-sdk",
  "cloud-sdk-reqwest",
@@ -173,7 +173,7 @@ dependencies = [
 
 [[package]]
 name = "cloud-sdk-reqwest"
-version = "0.16.0"
+version = "0.17.0"
 dependencies = [
  "aws-lc-fips-sys",
  "aws-lc-rs",
@@ -185,11 +185,12 @@ dependencies = [
  "rustls",
  "rustls-platform-verifier",
  "tokio",
+ "webpki-roots",
 ]
 
 [[package]]
 name = "cloud-sdk-sanitization"
-version = "0.13.9"
+version = "0.13.10"
 dependencies = [
  "cloud-sdk",
  "sanitization",
@@ -197,7 +198,7 @@ dependencies = [
 
 [[package]]
 name = "cloud-sdk-testkit"
-version = "0.15.5"
+version = "0.15.6"
 dependencies = [
  "cloud-sdk",
 ]
@@ -1525,6 +1526,15 @@ name = "webpki-root-certs"
 version = "1.0.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0d46a5a140e6f7afeccd8eae97eff335163939eac8b929834875168b29b3d267"
+dependencies = [
+ "rustls-pki-types",
+]
+
+[[package]]
+name = "webpki-roots"
+version = "1.0.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bf85cb06032201fa7c6f829d7db5a7e5aa45bcc0655327713065f6f0576731bf"
 dependencies = [
  "rustls-pki-types",
 ]

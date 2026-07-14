@@ -7,11 +7,16 @@ extern crate std;
 #[cfg(any(
     feature = "async-rustls",
     feature = "blocking-rustls",
+    feature = "blocking-rustls-webpki-roots",
     feature = "blocking-rustls-fips"
 ))]
 mod shared;
 
-#[cfg(any(feature = "blocking-rustls", feature = "blocking-rustls-fips"))]
+#[cfg(any(
+    feature = "blocking-rustls",
+    feature = "blocking-rustls-webpki-roots",
+    feature = "blocking-rustls-fips"
+))]
 pub mod blocking;
 
 #[cfg(feature = "async-rustls")]
@@ -22,6 +27,7 @@ pub mod asynchronous;
     any(
         feature = "async-rustls",
         feature = "blocking-rustls",
+        feature = "blocking-rustls-webpki-roots",
         feature = "blocking-rustls-fips"
     )
 ))]
@@ -34,6 +40,8 @@ pub enum ReqwestAdapterStatus {
     TransportFreeByDefault,
     /// The blocking rustls adapter is available when its feature is enabled.
     BlockingRustlsAvailable,
+    /// The blocking adapter can use a deterministic Mozilla trust-root snapshot.
+    BlockingRustlsWebPkiRootsAvailable,
     /// The blocking rustls adapter can require an explicitly verified FIPS configuration.
     BlockingRustlsFipsAvailable,
     /// The asynchronous rustls adapter is available when its feature is enabled.

@@ -37,6 +37,10 @@ SBOM freshness checks also require `jq` `1.6` or newer. CI uses the runner's
 system package; the canonicalization filter is covered by repository tests and
 uses no version-specific behavior beyond stable sorting and key deletion.
 
+`scripts/check_latest_tools.sh --local-only` verifies installed pins. Its
+`--fetch` mode also compares every Cargo tool pin with crates.io and is required
+by the release gate.
+
 Before changing the pinned toolchain, check the current stable Rust release and
 update this document, `README.md`, and `rust-toolchain.toml` together.
 

@@ -83,7 +83,7 @@ check_native() {
         -p cloud-sdk-testkit
     cargo check --locked --all-targets --no-default-features \
         -p cloud-sdk-reqwest \
-        --features std,blocking-rustls,async-rustls
+        --features std,blocking-rustls,blocking-rustls-webpki-roots,async-rustls
 }
 
 check_default_boundary() {

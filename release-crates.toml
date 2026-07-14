@@ -1,38 +1,38 @@
 [release]
-version = "0.23.0"
+version = "0.24.0"
 policy = "independent"
 
 [crates."cloud-sdk"]
-previous_version = "0.22.0"
-version = "0.23.0"
+previous_version = "0.23.0"
+version = "0.24.0"
 change = "metadata"
 publish = true
-reason = "Optional blocking FIPS transport documentation and v0.23 release evidence."
+reason = "Dependency, tooling, deterministic-root transport documentation, and v0.24 release evidence."
 
 [crates."cloud-sdk-hetzner"]
-previous_version = "0.19.0"
-version = "0.19.1"
+previous_version = "0.19.1"
+version = "0.19.2"
 change = "dependency"
 publish = true
-reason = "Update the cloud-sdk dependency to the v0.23 facade line."
+reason = "Update the cloud-sdk dependency to the v0.24 facade line."
 
 [crates."cloud-sdk-reqwest"]
-previous_version = "0.15.4"
-version = "0.16.0"
+previous_version = "0.16.0"
+version = "0.17.0"
 change = "code"
 publish = true
-reason = "Fail-closed optional blocking rustls transport with explicit FIPS provider and configuration verification."
+reason = "Optional deterministic Mozilla-root transport and hardened dependency/tooling evidence."
 
 [crates."cloud-sdk-sanitization"]
-previous_version = "0.13.8"
-version = "0.13.9"
+previous_version = "0.13.9"
+version = "0.13.10"
 change = "dependency"
 publish = true
-reason = "Update the cloud-sdk dependency to the v0.23 facade line."
+reason = "Update the cloud-sdk dependency to the v0.24 facade line."
 
 [crates."cloud-sdk-testkit"]
-previous_version = "0.15.4"
-version = "0.15.5"
+previous_version = "0.15.5"
+version = "0.15.6"
 change = "dependency"
 publish = true
-reason = "Update the cloud-sdk dependency to the v0.23 facade line."
+reason = "Update the cloud-sdk dependency to the v0.24 facade line."
