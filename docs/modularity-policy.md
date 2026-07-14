@@ -26,8 +26,8 @@ Rules:
   ignored `cloud-sdk-hetzner` live-smoke integration test. The live harness may
   use provider-neutral adapters only through dev dependencies and must never
   enter the provider's normal graph. Public blocking and async modules remain
-  guarded by their respective non-default `blocking-rustls` and `async-rustls`
-  features.
+  guarded by their reviewed non-default `blocking-rustls`,
+  `blocking-rustls-fips`, and `async-rustls` features.
 
 The local gate is:
 

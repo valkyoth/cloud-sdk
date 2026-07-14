@@ -44,6 +44,10 @@ runs the exact graph and runtime FIPS checks; it is not described as a
 validated operating environment. Standard native Linux, Windows, and macOS
 jobs exclude the separately scoped FIPS feature.
 
+The native build graph has one narrow Cargo Deny duplicate exception:
+bindgen uses `shlex 1.3.0`, while cc uses `shlex 2.0.1`. Both are build-only;
+the exception is assigned to the `0.24.0` dependency-hardening review.
+
 ## Release Publisher Fix
 
 The crate publisher no longer reruns the complete network-sensitive gate after

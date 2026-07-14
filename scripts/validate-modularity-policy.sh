@@ -54,7 +54,10 @@ if ! awk '
 fi
 
 if ! awk '
-    /^#\[cfg\(feature = "blocking-rustls"\)\]$/ { guarded = 1; next }
+    /^#\[cfg\(any\(feature = "blocking-rustls", feature = "blocking-rustls-fips"\)\)\]$/ {
+        guarded = 1
+        next
+    }
     /^pub mod blocking;$/ {
         if (guarded) found = 1
     }

@@ -22,9 +22,11 @@ Status: admitted only through `cloud-sdk-reqwest/blocking-rustls`,
 The exact complete graph is pinned by `Cargo.lock`, checked by `cargo deny`,
 and recorded in the generated SBOM. All admitted licenses satisfy
 `deny.toml`. The rustls trust-root data requires `CDLA-Permissive-2.0`, which
-is explicitly admitted. No duplicate-version exception is active for the
-transport graph; the boundary rejects legacy `windows-sys` `0.52.0` if it
-becomes reachable again.
+is explicitly admitted. The ordinary transport graph has no duplicate-version
+exception. The FIPS native build graph narrowly skips build-only
+`shlex 1.3.0` because bindgen and cc require different major lines; the
+boundary still rejects legacy `windows-sys` `0.52.0` if it becomes reachable
+again.
 
 Aws-lc-sys introduces the workspace's first native dependency build script. It
 invokes a C/CMake toolchain to compile vendored C and assembly cryptographic
