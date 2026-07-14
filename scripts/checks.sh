@@ -22,6 +22,7 @@ scripts/smoke_hetzner_live.sh --check
 scripts/check_publishable_readmes.sh
 scripts/validate-release-metadata.sh
 scripts/test-release-readiness.sh
+scripts/test-complete-spdx-sbom.py
 scripts/test-sbom-freshness.sh
 scripts/check_iana_ipv6_registry.py --local-only
 scripts/test-iana-ipv6-registry.py

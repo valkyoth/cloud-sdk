@@ -38,6 +38,9 @@ build dependency, feature, example, or normal workspace member.
 - Smoke runs copy seeds into a temporary writable directory.
 - Input length and per-input timeout are bounded.
 - Exact versions are locked and checked with Cargo Deny and RustSec.
+- SPDX generation is completed from locked Cargo metadata and independently
+  checked to include every runtime, target, development, and native build
+  package, including the complete `libfuzzer-sys` C build chain.
 - The dedicated CI job compiles all targets with sanitizer instrumentation.
 
 Fuzzing can demonstrate crashes and violated assertions for explored inputs; it

@@ -7,7 +7,7 @@
 | default transport dependency | none |
 | default token storage | none |
 | dependency policy | active |
-| SBOM generation | scripted for the production workspace, reqwest feature-unification fixture, and fuzz tooling graph; canonical freshness comparison is required in CI and release gates |
+| SBOM generation | scripted for the production workspace, reqwest feature-unification fixture, and fuzz tooling graph; cargo-sbom output is completed from locked Cargo metadata; independent package completeness and canonical freshness checks are required in CI and release gates |
 | cargo audit | required before tags |
 | cargo deny | required before tags |
 | fuzzing | six isolated non-published libFuzzer targets; pinned nightly and cargo-fuzz; synthetic tracked seeds; temporary writable smoke corpora; deterministic regressions remain authoritative |

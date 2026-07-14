@@ -31,6 +31,9 @@ ignored and rejected if tracked.
 The harness uses `nightly-2026-07-13`, `cargo-fuzz 0.13.2`, and
 `libfuzzer-sys 0.4.13`. It lives in the excluded, non-published `fuzz/` package
 with an independent lockfile, Cargo Deny/RustSec checks, and SPDX SBOM.
+Because cargo-sbom omits build and development dependencies, the repository
+completes all three SPDX documents from locked Cargo metadata and independently
+rejects any missing, duplicate, ambiguous, unexpected, or stale package set.
 
 ## Deterministic Regressions
 

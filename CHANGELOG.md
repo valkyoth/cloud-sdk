@@ -14,6 +14,9 @@
   Serde regressions for malformed, nested, oversized, duplicate, overflowing,
   and control-character upstream inputs.
 - Added separate Cargo Deny, RustSec, and SPDX SBOM evidence for the fuzz graph.
+- Completed all SPDX package inventories from locked Cargo metadata and added
+  an independent fail-closed gate for omitted native build or development
+  dependencies.
 - Added the `v0.22.0` release gate and independent crate version plan.
 
 ## 0.21.0 - 2026-07-14

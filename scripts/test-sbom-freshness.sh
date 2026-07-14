@@ -49,4 +49,16 @@ if cmp -s "$tmp/committed.canonical.json" "$tmp/stale.canonical.json"; then
     exit 1
 fi
 
-echo "2 SBOM freshness tests passed."
+scripts/check_sbom_completeness.sh fuzz/Cargo.toml sbom/fuzz.spdx.json fuzz \
+    >"$tmp/completeness.stdout"
+jq 'del(.packages[] | select(.name == "cc"))' sbom/fuzz.spdx.json \
+    >"$tmp/incomplete.json"
+if scripts/check_sbom_completeness.sh fuzz/Cargo.toml \
+    "$tmp/incomplete.json" fuzz >"$tmp/stdout" 2>"$tmp/stderr"; then
+    echo "SBOM freshness test: missing build dependency was accepted" >&2
+    exit 1
+fi
+grep -q 'fuzz is missing locked packages' "$tmp/stderr"
+grep -q '^cc@' "$tmp/stderr"
+
+echo "4 SBOM freshness and completeness tests passed."
