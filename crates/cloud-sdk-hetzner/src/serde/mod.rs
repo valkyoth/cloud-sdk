@@ -18,4 +18,6 @@ pub use response::{
 pub use rrsets::{MAX_RRSET_JSON_BODY_BYTES, RrsetBodyError, RrsetRequestBody};
 
 #[cfg(test)]
+mod adversarial_tests;
+#[cfg(test)]
 mod tests;

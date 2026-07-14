@@ -332,4 +332,32 @@ mod tests {
         assert_eq!(len, 2);
         assert_eq!(output, original);
     }
+
+    #[test]
+    fn json_writes_are_atomic_at_every_undersized_capacity() {
+        let value = "line\n\"quoted\"\\slash\t\u{001f}";
+        let mut complete = [0_u8; 96];
+        let mut complete_len = 0;
+        assert_eq!(
+            write_json_string(&mut complete, &mut complete_len, value, TestError::TooSmall,),
+            Ok(())
+        );
+
+        for capacity in 0..complete_len {
+            let mut output = [0xa5_u8; 96];
+            let original = output;
+            let mut len = 0;
+            assert_eq!(
+                write_json_string(
+                    output.get_mut(..capacity).unwrap_or_default(),
+                    &mut len,
+                    value,
+                    TestError::TooSmall,
+                ),
+                Err(TestError::TooSmall)
+            );
+            assert_eq!(len, 0);
+            assert_eq!(output, original);
+        }
+    }
 }
