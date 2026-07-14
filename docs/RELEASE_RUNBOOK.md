@@ -45,11 +45,17 @@ security tools.
 Create and push a signed annotated tag only after the maintainer explicitly
 approves tagging. The publisher verifies that the tag points at `HEAD`, reads
 the independent publish plan from `release-crates.toml`, and must not revive
-retired provider-specific helper crates. It does not rerun the full release
-gate by default because the signed tag already binds the unchanged commit that
-passed that gate and GitHub checks. Use `scripts/release_crates.py
---rerun-gate` only when an intentional second, network-sensitive gate run is
-required before publishing.
+retired provider-specific helper crates. It always refreshes `cargo audit`
+after tag verification and before confirmation so advisories disclosed after
+the release gate still block publication. It does not rerun the complete gate
+by default because the signed tag already binds the unchanged commit that
+passed that gate and GitHub checks. Use `scripts/release_crates.py --rerun-gate`
+only when an intentional second, network-sensitive gate run is required.
+
+`git verify-tag` uses the release operator's configured Git signature trust.
+The publisher proves tag integrity, not maintainer identity through a
+repository-pinned fingerprint; signer authorization and key rotation remain
+release-host responsibilities.
 
 ## Failure Handling
 

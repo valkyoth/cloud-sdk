@@ -51,11 +51,13 @@ the exception is assigned to the `0.24.0` dependency-hardening review.
 ## Release Publisher Fix
 
 The crate publisher no longer reruns the complete network-sensitive gate after
-a signed tag has bound the unchanged locally and GitHub-approved commit. It
-still requires a clean tree, matching verifiable signed tag, strict release
-metadata, and the independent crate publish plan. `--rerun-gate` explicitly
-requests a second full gate run. Subprocess failures now produce one concise
-release-command diagnostic instead of a Python traceback.
+a signed tag has bound the unchanged locally and GitHub-approved commit. A
+fresh `cargo audit` still runs unconditionally after tag verification and
+before publication confirmation. The publisher also requires a clean tree,
+matching verifiable signed tag, strict release metadata, and the independent
+crate publish plan. `--rerun-gate` explicitly requests a second full gate run.
+Subprocess failures now produce one concise release-command diagnostic instead
+of a Python traceback.
 
 ## Independent Crate Versions
 

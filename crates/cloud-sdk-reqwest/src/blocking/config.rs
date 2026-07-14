@@ -147,7 +147,7 @@ pub(super) fn test_fips_configuration() -> Result<bool, BuildError> {
 }
 
 #[cfg(all(test, feature = "blocking-rustls-fips"))]
-pub(super) fn test_non_fips_rejection() -> Result<bool, BuildError> {
+fn non_fips_provider() -> CryptoProvider {
     #[derive(Debug)]
     struct NonFipsRandom;
 
@@ -160,6 +160,12 @@ pub(super) fn test_non_fips_rejection() -> Result<bool, BuildError> {
     static NON_FIPS_RANDOM: NonFipsRandom = NonFipsRandom;
     let mut provider = rustls::crypto::default_fips_provider();
     provider.secure_random = &NON_FIPS_RANDOM;
+    provider
+}
+
+#[cfg(all(test, feature = "blocking-rustls-fips"))]
+pub(super) fn test_non_fips_rejection() -> Result<bool, BuildError> {
+    let provider = non_fips_provider();
     let provider_rejected =
         validate_fips_provider(&provider) == Err(BuildError::FipsProviderRejected);
     let config = ClientConfig::builder_with_provider(Arc::new(provider))
@@ -171,4 +177,14 @@ pub(super) fn test_non_fips_rejection() -> Result<bool, BuildError> {
     let config_rejected =
         validate_fips_config(&config) == Err(BuildError::FipsClientConfigurationRejected);
     Ok(provider_rejected && config_rejected)
+}
+
+#[cfg(all(test, feature = "blocking-rustls-fips"))]
+pub(super) fn test_non_fips_global_independence() -> bool {
+    let provider = non_fips_provider();
+    if provider.fips() || provider.install_default().is_err() {
+        return false;
+    }
+    let global_is_non_fips = CryptoProvider::get_default().is_some_and(|value| !value.fips());
+    global_is_non_fips && test_fips_configuration() == Ok(true)
 }

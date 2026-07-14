@@ -339,10 +339,11 @@ def check_release_tag(version: str, *, require_tag: bool) -> None:
 
 
 def run_preflight(args: argparse.Namespace) -> None:
+    run(["cargo", "audit"], dry_run=args.dry_run)
     if not args.rerun_gate:
         print(
             "Release gate not rerun: the signed tag binds the pre-tag gate and "
-            "GitHub-approved commit."
+            "operator-approved commit."
         )
         return
 

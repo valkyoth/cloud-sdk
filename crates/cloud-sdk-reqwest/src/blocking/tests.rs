@@ -1,5 +1,7 @@
 use std::format;
 use std::io::Cursor;
+#[cfg(feature = "blocking-rustls-fips")]
+use std::println;
 use std::string::String;
 use std::time::Duration;
 
@@ -354,4 +356,40 @@ fn fips_provider_and_complete_client_configuration_report_fips() {
 #[test]
 fn non_fips_provider_and_complete_configuration_fail_closed() {
     assert_eq!(super::config::test_non_fips_rejection(), Ok(true));
+}
+
+#[cfg(feature = "blocking-rustls-fips")]
+#[test]
+fn preinstalled_non_fips_global_provider_does_not_influence_fips_client() {
+    const CHILD: &str = "CLOUD_SDK_FIPS_GLOBAL_PROVIDER_CHILD";
+    const CHILD_MARKER: &str = "cloud-sdk FIPS global-provider child ran";
+    if std::env::var_os(CHILD).is_some() {
+        assert!(super::config::test_non_fips_global_independence());
+        println!("{CHILD_MARKER}");
+        return;
+    }
+
+    let executable = std::env::current_exe();
+    assert!(executable.is_ok());
+    let Ok(executable) = executable else { return };
+    let output = std::process::Command::new(executable)
+        .args([
+            "--exact",
+            "blocking::tests::preinstalled_non_fips_global_provider_does_not_influence_fips_client",
+            "--nocapture",
+        ])
+        .env(CHILD, "1")
+        .output();
+    assert!(output.is_ok());
+    let Ok(output) = output else { return };
+    let stdout = String::from_utf8_lossy(&output.stdout);
+    assert!(
+        output.status.success(),
+        "isolated FIPS test failed: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(
+        stdout.contains(CHILD_MARKER),
+        "isolated FIPS test did not run"
+    );
 }

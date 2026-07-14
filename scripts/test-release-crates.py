@@ -412,7 +412,7 @@ def test_publish_command_rejects_retired_package() -> None:
     assert commands == []
 
 
-def test_post_tag_preflight_does_not_rerun_gate_by_default() -> None:
+def test_post_tag_preflight_refreshes_audit_without_rerunning_gate() -> None:
     commands: list[list[str]] = []
     original = release_crates.run
     release_crates.run = lambda command, *, dry_run: commands.append(command)
@@ -422,7 +422,7 @@ def test_post_tag_preflight_does_not_rerun_gate_by_default() -> None:
         )
     finally:
         release_crates.run = original
-    assert commands == []
+    assert commands == [["cargo", "audit"]]
 
 
 def test_post_tag_preflight_can_explicitly_rerun_version_gate() -> None:
@@ -435,7 +435,7 @@ def test_post_tag_preflight_can_explicitly_rerun_version_gate() -> None:
         )
     finally:
         release_crates.run = original
-    assert commands == [["scripts/release_0_22_gate.sh"]]
+    assert commands == [["cargo", "audit"], ["scripts/release_0_22_gate.sh"]]
 
 
 def run_tests() -> None:
@@ -463,7 +463,7 @@ def run_tests() -> None:
         test_required_release_tag_rejects_unsigned_tag,
         test_publish_command_has_no_bypass_flags,
         test_publish_command_rejects_retired_package,
-        test_post_tag_preflight_does_not_rerun_gate_by_default,
+        test_post_tag_preflight_refreshes_audit_without_rerunning_gate,
         test_post_tag_preflight_can_explicitly_rerun_version_gate,
     )
     for test in tests:

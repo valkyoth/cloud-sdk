@@ -26,16 +26,6 @@ if printf '%s\n' "$fips_tree" | grep -Eq \
     exit 1
 fi
 
-if ! grep -Fq 'rustls::crypto::default_fips_provider()' \
-    crates/cloud-sdk-reqwest/src/blocking/config.rs \
-    || ! grep -Fq 'validate_fips_provider(provider.as_ref())?' \
-        crates/cloud-sdk-reqwest/src/blocking/config.rs \
-    || ! grep -Fq 'validate_fips_config(&config)?' \
-        crates/cloud-sdk-reqwest/src/blocking/config.rs; then
-    echo "reqwest FIPS boundary: explicit runtime verification is missing" >&2
-    exit 1
-fi
-
 AWS_LC_FIPS_SYS_USE_SYSTEM=0 cargo test -p cloud-sdk-reqwest --no-default-features \
     --features blocking-rustls-fips
 AWS_LC_FIPS_SYS_USE_SYSTEM=0 cargo check -p cloud-sdk-reqwest --no-default-features \
