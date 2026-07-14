@@ -1,38 +1,38 @@
 [release]
-version = "0.22.0"
+version = "0.23.0"
 policy = "independent"
 
 [crates."cloud-sdk"]
-previous_version = "0.21.0"
-version = "0.22.0"
-change = "code"
+previous_version = "0.22.0"
+version = "0.23.0"
+change = "metadata"
 publish = true
-reason = "Isolated fuzz harness, deterministic adversarial tests, and v0.22 release evidence."
+reason = "Optional blocking FIPS transport documentation and v0.23 release evidence."
 
 [crates."cloud-sdk-hetzner"]
-previous_version = "0.18.0"
-version = "0.19.0"
-change = "code"
+previous_version = "0.19.0"
+version = "0.19.1"
+change = "dependency"
 publish = true
-reason = "Adversarial Serde response tests for malformed and oversized upstream inputs."
+reason = "Update the cloud-sdk dependency to the v0.23 facade line."
 
 [crates."cloud-sdk-reqwest"]
-previous_version = "0.15.3"
-version = "0.15.4"
-change = "dependency"
+previous_version = "0.15.4"
+version = "0.16.0"
+change = "code"
 publish = true
-reason = "Update the cloud-sdk dependency to the v0.22 facade line."
+reason = "Fail-closed optional blocking rustls transport with explicit FIPS provider and configuration verification."
 
 [crates."cloud-sdk-sanitization"]
-previous_version = "0.13.7"
-version = "0.13.8"
+previous_version = "0.13.8"
+version = "0.13.9"
 change = "dependency"
 publish = true
-reason = "Update the cloud-sdk dependency to the v0.22 facade line."
+reason = "Update the cloud-sdk dependency to the v0.23 facade line."
 
 [crates."cloud-sdk-testkit"]
-previous_version = "0.15.3"
-version = "0.15.4"
+previous_version = "0.15.4"
+version = "0.15.5"
 change = "dependency"
 publish = true
-reason = "Update the cloud-sdk dependency to the v0.22 facade line."
+reason = "Update the cloud-sdk dependency to the v0.23 facade line."

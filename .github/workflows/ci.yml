@@ -65,6 +65,18 @@ jobs:
         shell: bash
         run: scripts/check_platform_matrix.sh --native
 
+  fips-transport:
+    name: Blocking FIPS mode on Linux
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Check bundled-source FIPS boundary
+        run: scripts/check_reqwest_fips_boundary.sh
+
   compatibility:
     name: Rust ${{ matrix.rust }} compatibility
     runs-on: ubuntu-latest

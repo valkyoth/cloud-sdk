@@ -30,16 +30,16 @@ Optional provider-neutral transport adapter for the main
 [`cloud-sdk`](https://crates.io/crates/cloud-sdk) crate.
 
 The crate remains no_std and transport-free by default. Its non-default
-`blocking-rustls` and `async-rustls` features provide reviewed HTTPS
-implementations for every provider without adding transport dependencies to
-provider crates.
+`blocking-rustls`, `blocking-rustls-fips`, and `async-rustls` features provide
+reviewed HTTPS implementations for every provider without adding transport
+dependencies to provider crates.
 
 Most users should start with:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.22.0"
-cloud-sdk-reqwest = { version = "0.15.4", features = ["blocking-rustls"] }
+cloud-sdk = "0.23.0"
+cloud-sdk-reqwest = { version = "0.16.0", features = ["blocking-rustls"] }
 ```
 
 ## Blocking Example
@@ -76,6 +76,25 @@ assert!(response.status().is_success());
 # #[cfg(not(feature = "blocking-rustls"))]
 # fn main() {}
 ```
+
+## Blocking FIPS Example
+
+Use the same blocking API with the dedicated feature:
+
+```toml
+[dependencies]
+cloud-sdk = "0.23.0"
+cloud-sdk-reqwest = { version = "0.16.0", features = ["blocking-rustls-fips"] }
+```
+
+Client construction explicitly selects rustls' AWS-LC FIPS provider and fails
+closed unless both the provider and complete TLS client configuration report
+FIPS operation. If both blocking features are enabled, the explicitly built
+FIPS configuration wins. A crate feature is not an application or deployment
+compliance claim; callers remain responsible for the validated module's
+security policy, approved operating environment, toolchain, entropy,
+deployment, and operational controls. See
+[`docs/dependency-admission-reqwest-fips.md`](https://github.com/valkyoth/cloud-sdk/blob/main/docs/dependency-admission-reqwest-fips.md).
 
 ## Async Example
 
@@ -160,6 +179,7 @@ mutable secret storage after transport use.
 | `default` | yes | Empty; keeps the crate transport-free and `no_std`. |
 | `std` | no | Enables only std support in first-party boundary crates. |
 | `blocking-rustls` | no | Enables the hardened blocking reqwest/rustls adapter and sanitization boundary. |
+| `blocking-rustls-fips` | no | Enables the blocking adapter with an explicitly selected and runtime-verified AWS-LC FIPS configuration. |
 | `async-rustls` | no | Enables the hardened async reqwest/rustls adapter; callers provide an active Tokio runtime. |
 
 Reqwest's default features are disabled. The complete dependency and security

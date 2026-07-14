@@ -8,15 +8,15 @@ usable in `no_std` environments.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.22.0"
+cloud-sdk = "0.23.0"
 ```
 
 Provider-specific request models are separate dependencies. For Hetzner:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.22.0"
-cloud-sdk-hetzner = "0.19.0"
+cloud-sdk = "0.23.0"
+cloud-sdk-hetzner = "0.19.1"
 ```
 
 ## Build A Transport Request
@@ -48,7 +48,8 @@ cargo run -p cloud-sdk --example provider_neutral
 - Use `cloud-sdk-testkit` for deterministic blocking and async unit tests.
 - Implement `BlockingTransport` or `AsyncTransport` for a platform-native
   transport.
-- Enable `cloud-sdk-reqwest/blocking-rustls` or `async-rustls` when the
+- Enable `cloud-sdk-reqwest/blocking-rustls`, `blocking-rustls-fips`, or
+  `async-rustls` when the
   supported native reqwest boundary fits the target.
 
 Provider crates do not depend on transport crates. This keeps cloud request

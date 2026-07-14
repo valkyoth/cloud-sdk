@@ -38,8 +38,8 @@ models in small reviewed releases.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.22.0"
-cloud-sdk-hetzner = "0.19.0"
+cloud-sdk = "0.23.0"
+cloud-sdk-hetzner = "0.19.1"
 ```
 
 ## Features
@@ -305,7 +305,7 @@ Enable Serde explicitly; it is never part of the default graph:
 
 ```toml
 [dependencies]
-cloud-sdk-hetzner = { version = "0.19.0", features = ["serde"] }
+cloud-sdk-hetzner = { version = "0.19.1", features = ["serde"] }
 ```
 
 `serde_json` is used below only as an example format implementation and remains

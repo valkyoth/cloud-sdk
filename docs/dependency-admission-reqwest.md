@@ -1,6 +1,7 @@
 # Reqwest Transport Dependency Admission
 
-Status: admitted only through `cloud-sdk-reqwest/blocking-rustls` and
+Status: admitted only through `cloud-sdk-reqwest/blocking-rustls`,
+`cloud-sdk-reqwest/blocking-rustls-fips`, and
 `cloud-sdk-reqwest/async-rustls`, with reqwest default features disabled.
 
 ## Decision
@@ -15,7 +16,7 @@ Status: admitted only through `cloud-sdk-reqwest/blocking-rustls` and
 | `rustls` | `0.23.42` | TLS implementation | transitive |
 | `rustls-platform-verifier` | `0.7.0` | platform trust-store verification | transitive |
 | `aws-lc-rs` | `1.17.1` | rustls cryptographic provider | transitive |
-| `cloud-sdk-sanitization` | `0.13.8` | adapter-owned secret-buffer cleanup | disabled |
+| `cloud-sdk-sanitization` | `0.13.9` | adapter-owned secret-buffer cleanup | disabled |
 | `sanitization` | `1.2.4` | reviewed volatile cleanup primitive | disabled |
 
 The exact complete graph is pinned by `Cargo.lock`, checked by `cargo deny`,
@@ -52,6 +53,12 @@ does not admit reqwest. `blocking-rustls` enables:
 - `reqwest/blocking`;
 - `reqwest/rustls`.
 
+`blocking-rustls-fips` enables the blocking and sanitization boundaries with
+`reqwest/rustls-no-provider`, plus direct rustls FIPS and platform-verifier
+configuration. Its additional native graph, runtime checks, validation-status
+limits, and build requirements are reviewed separately in
+[`dependency-admission-reqwest-fips.md`](dependency-admission-reqwest-fips.md).
+
 `async-rustls` enables:
 
 - `std`;
@@ -71,7 +78,9 @@ from both production feature graphs. A
 separate locked, non-published test fixture deliberately enables both on the
 same reqwest instance and builds both adapters to exercise Cargo feature
 unification against the runtime overrides. Its local `cloud-sdk-reqwest`
-dependency is pinned exactly to `0.15.4`.
+dependency is pinned exactly to `0.16.0` and enables all three transport
+features, proving the explicit FIPS configuration wins under additive feature
+unification.
 
 The fixture lockfile is a separate 200-package tooling graph. Release and CI
 gates apply the root advisory, license, and source policy to that lockfile,
@@ -114,9 +123,10 @@ can therefore validate a hostile endpoint. The v0.24 dependency-hardening
 milestone will evaluate a separately reviewed deterministic root-store option;
 v0.17 does not claim certificate or public-key pinning.
 
-A separate `blocking-rustls-fips` transport is assigned to v0.23.0. It must
-use and verify the rustls FIPS provider and configuration explicitly; callers
-enabling unrelated dependency features is not an SDK FIPS guarantee.
+The `blocking-rustls-fips` transport explicitly selects and verifies the rustls
+FIPS provider and complete client configuration. It does not trust unrelated
+dependency features or process-global provider state, and it is not a broader
+application or deployment compliance guarantee.
 
 ## Secret Boundary
 
@@ -154,13 +164,14 @@ does not enable this std adapter.
 
 ## Verification
 
-`scripts/check_reqwest_boundary.sh` verifies the exact top-level versions,
+`scripts/check_reqwest_boundary.sh` and
+`scripts/check_reqwest_fips_boundary.sh` verify the exact top-level versions,
 default and std graph isolation, separate blocking/async required and forbidden
 reqwest features,
 absence of native TLS and decompression dependencies, direct-zeroize
 exclusion, hardened builder policy, adversarial HTTP/2/Hickory feature
-unification, focused tests, fixture lockfile policy and audit coverage, and
-package verification.
-The v0.17 release gate additionally runs the full workspace checks, MSRV
+unification, focused tests, fixture lockfile policy and audit coverage,
+package verification, the FIPS graph, and runtime FIPS status.
+The release gate additionally runs the full workspace checks, MSRV
 matrix, cargo-deny, cargo-audit, upstream API drift checks, and pentest evidence
 validation.

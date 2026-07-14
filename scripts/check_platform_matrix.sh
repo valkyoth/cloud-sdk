@@ -76,7 +76,14 @@ check_portable_target() {
 }
 
 check_native() {
-    cargo check --locked --workspace --all-targets --all-features
+    cargo check --locked --all-targets --all-features \
+        -p cloud-sdk \
+        -p cloud-sdk-hetzner \
+        -p cloud-sdk-sanitization \
+        -p cloud-sdk-testkit
+    cargo check --locked --all-targets --no-default-features \
+        -p cloud-sdk-reqwest \
+        --features std,blocking-rustls,async-rustls
 }
 
 check_default_boundary() {

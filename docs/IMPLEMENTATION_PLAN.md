@@ -150,5 +150,8 @@ Expected future candidates must be reviewed before use:
   module version, certificate, operating environments, build chain, provider
   configuration, runtime verification, and feature graph are a dedicated
   `v0.23.0` admission.
+- `v0.23.0` admits rustls' optional FIPS mode with explicit provider and
+  complete-client runtime verification. Current aws-lc-fips-sys binds a 3.0.x
+  module whose active NIST certificate is not claimed by this repository.
 
 Every admission needs a document under `docs/dependency-admission-*.md`.

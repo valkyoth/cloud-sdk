@@ -145,3 +145,30 @@ fn validate_fips_config(config: &ClientConfig) -> Result<(), BuildError> {
 pub(super) fn test_fips_configuration() -> Result<bool, BuildError> {
     fips_client_config().map(|config| config.fips())
 }
+
+#[cfg(all(test, feature = "blocking-rustls-fips"))]
+pub(super) fn test_non_fips_rejection() -> Result<bool, BuildError> {
+    #[derive(Debug)]
+    struct NonFipsRandom;
+
+    impl rustls::crypto::SecureRandom for NonFipsRandom {
+        fn fill(&self, _buffer: &mut [u8]) -> Result<(), rustls::crypto::GetRandomFailed> {
+            Err(rustls::crypto::GetRandomFailed)
+        }
+    }
+
+    static NON_FIPS_RANDOM: NonFipsRandom = NonFipsRandom;
+    let mut provider = rustls::crypto::default_fips_provider();
+    provider.secure_random = &NON_FIPS_RANDOM;
+    let provider_rejected =
+        validate_fips_provider(&provider) == Err(BuildError::FipsProviderRejected);
+    let config = ClientConfig::builder_with_provider(Arc::new(provider))
+        .with_safe_default_protocol_versions()
+        .map_err(|_| BuildError::FipsProtocolConfigurationFailed)?
+        .with_platform_verifier()
+        .map_err(|_| BuildError::FipsPlatformVerifierFailed)?
+        .with_no_client_auth();
+    let config_rejected =
+        validate_fips_config(&config) == Err(BuildError::FipsClientConfigurationRejected);
+    Ok(provider_rejected && config_rejected)
+}

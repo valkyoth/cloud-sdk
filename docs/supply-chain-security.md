@@ -32,7 +32,8 @@ runtime dependencies. The decision and limits are recorded in
 and `scripts/check_sanitization_boundary.sh` enforces graph isolation.
 
 Reqwest `0.13.4` is admitted only through the non-default
-`cloud-sdk-reqwest/blocking-rustls` and `async-rustls` features. Bytes `1.12.1`
+`cloud-sdk-reqwest/blocking-rustls`, `blocking-rustls-fips`, and `async-rustls`
+features. Bytes `1.12.1`
 is a direct optional dependency only for sanitized async request-body ownership.
 Reqwest defaults are disabled;
 native TLS, response decompression, proxies, redirects, and retries are not
@@ -45,6 +46,15 @@ separately, and rejects direct first-party `zeroize` dependencies.
 The locked downstream feature-unification fixture is audited independently and
 has its own SPDX SBOM; its exact target-specific duplicate dependency is
 documented in the reqwest admission record.
+
+The FIPS-mode boundary directly admits rustls `0.23.42` and
+rustls-platform-verifier `0.7.0`, selecting aws-lc-rs `1.17.1` and
+aws-lc-fips-sys `0.13.15`. Its explicit runtime verification, current
+validation-status limitation, native build requirements, system-library
+discovery risk, and additive feature behavior are recorded in
+[`dependency-admission-reqwest-fips.md`](dependency-admission-reqwest-fips.md).
+Repository checks force bundled Cargo-authenticated source rather than an
+automatically discovered system module.
 
 The opt-in Hetzner live harness separates build, privileged sealing, and
 credential phases. Cargo and all build-time dependencies run only while the

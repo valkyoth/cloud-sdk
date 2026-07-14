@@ -11,8 +11,8 @@ not require an allocator, network client, TLS implementation, async runtime,
 filesystem, clock, socket API, or operating-system abstraction crate.
 
 `cloud-sdk-reqwest` is different. Its default feature set is transport-free,
-but `blocking-rustls` and `async-rustls` deliberately enable std, reqwest,
-rustls, sockets, DNS, and runtime integration. A portable provider model
+but `blocking-rustls`, `blocking-rustls-fips`, and `async-rustls` deliberately
+enable std, reqwest, rustls, sockets, DNS, and runtime integration. A portable provider model
 compiling for a target does not imply that this optional adapter is supported
 on that target.
 
@@ -72,10 +72,15 @@ Native Linux, Windows, macOS ARM64, and macOS x86-64 jobs run:
 scripts/check_platform_matrix.sh --native
 ```
 
-That command checks the complete workspace, all targets, and all features,
-including blocking and async reqwest/rustls adapters. Linux remains the runtime
-test platform in the main check gate; Windows and both macOS architectures
-provide native compile evidence in `v0.20.0`.
+That command checks every portable crate with all features and the standard
+blocking and async reqwest/rustls adapters. Linux remains the runtime test
+platform in the main check gate; Windows and both macOS architectures provide
+native compile evidence without enabling the separately scoped FIPS feature.
+
+The FIPS feature has a narrower claim. A dedicated Linux job builds the
+Cargo-authenticated bundled AWS-LC-FIPS source and verifies that the provider
+and complete client configuration report FIPS operation. No other target and
+no NIST-validated operating environment is claimed for this dependency line.
 
 ## Default Dependency Proof
 
@@ -97,6 +102,8 @@ unlisted dependencies fail closed before a platform claim is accepted.
 - Linux, Windows, and macOS applications may opt into
   `cloud-sdk-reqwest/blocking-rustls` or `async-rustls` subject to their own
   deployment and trust-store testing.
+- `blocking-rustls-fips` has repository runtime evidence only on Linux x86-64;
+  it is not a compliance or cross-platform support claim.
 - FreeBSD users may evaluate the reqwest adapter, but this repository does not
   provide a native FreeBSD transport job.
 - Android and iOS applications should implement the core blocking or async

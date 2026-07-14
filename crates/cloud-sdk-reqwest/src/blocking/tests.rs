@@ -349,3 +349,9 @@ fn status_constant_remains_compatible_with_transport_response() {
 fn fips_provider_and_complete_client_configuration_report_fips() {
     assert_eq!(super::config::test_fips_configuration(), Ok(true));
 }
+
+#[cfg(feature = "blocking-rustls-fips")]
+#[test]
+fn non_fips_provider_and_complete_configuration_fail_closed() {
+    assert_eq!(super::config::test_non_fips_rejection(), Ok(true));
+}

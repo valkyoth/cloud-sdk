@@ -39,7 +39,9 @@ pagination and action polling, while v0.19 adds an ignored opt-in live smoke
 harness. v0.20 adds explicit portable-target and native transport compile
 evidence. v0.21 adds compile-checked workflow examples, docs.rs feature
 coverage, security recipes, and tested local documentation-link validation.
-None changes the default provider graph.
+v0.22 adds isolated fuzzing and adversarial response tests. v0.23 adds an
+explicitly verified, opt-in blocking FIPS transport. None changes the default
+provider graph.
 
 The project target is a serious production-ready `cloud-sdk` foundation and
 Hetzner provider at `1.0.0`, reached through small reviewed releases with test,
@@ -86,7 +88,8 @@ Implemented now:
 - Validated rate-limit metadata propagation through blocking, async, and mock
   transports without hidden retries.
 - Optional hardened provider-neutral blocking and async reqwest/rustls
-  transports, plus admitted guarded caller-buffer sanitization.
+  transports, an explicitly verified blocking FIPS mode, and admitted guarded
+  caller-buffer sanitization.
 - Opt-in read-only Hetzner catalog smoke harness with fixed provider origin,
   a root-sealed build-before-credential workflow, private token-file input,
   bounded responses, redacted diagnostics, and twelve offline security-policy
@@ -192,8 +195,8 @@ Not implemented yet:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.22.0"
-cloud-sdk-hetzner = "0.19.0"
+cloud-sdk = "0.23.0"
+cloud-sdk-hetzner = "0.19.1"
 ```
 
 ## Features
@@ -246,14 +249,15 @@ assert!(request.body().is_empty());
 
 The core contracts perform no I/O and select no executor. Use
 `cloud-sdk-testkit` for deterministic blocking or async tests, or opt into
-`cloud-sdk-reqwest/blocking-rustls` or `async-rustls` for HTTPS.
+`cloud-sdk-reqwest/blocking-rustls`, `blocking-rustls-fips`, or `async-rustls`
+for HTTPS.
 
 ## Optional Blocking Transport
 
 ```toml
 [dependencies]
-cloud-sdk = "0.22.0"
-cloud-sdk-reqwest = { version = "0.15.4", features = ["blocking-rustls"] }
+cloud-sdk = "0.23.0"
+cloud-sdk-reqwest = { version = "0.16.0", features = ["blocking-rustls"] }
 ```
 
 ```rust,ignore
@@ -292,6 +296,25 @@ Hickory DNS. The caller owns token generation, scope, rotation, revocation,
 and cleanup of the original secret; the adapter clears only its own token and
 request-body storage.
 
+### Optional Blocking FIPS Transport
+
+Applications that require the reviewed FIPS path must select the dedicated
+feature instead of relying on dependency feature unification:
+
+```toml
+[dependencies]
+cloud-sdk = "0.23.0"
+cloud-sdk-reqwest = { version = "0.16.0", features = ["blocking-rustls-fips"] }
+```
+
+The public blocking API is unchanged. Client construction explicitly selects
+rustls' AWS-LC FIPS provider and fails unless both `CryptoProvider::fips()` and
+`ClientConfig::fips()` report true. The feature alone does not make an
+application or deployment FIPS compliant: the caller must satisfy the AWS-LC
+security policy, approved operating-environment, build, entropy, deployment,
+and operational requirements. See the
+[FIPS dependency admission](https://github.com/valkyoth/cloud-sdk/blob/main/docs/dependency-admission-reqwest-fips.md).
+
 ## Opt-In Hetzner Live Smoke Test
 
 The repository includes an ignored read-only harness for locations, server
@@ -319,8 +342,8 @@ not implemented in v0.19.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.22.0"
-cloud-sdk-reqwest = { version = "0.15.4", features = ["async-rustls"] }
+cloud-sdk = "0.23.0"
+cloud-sdk-reqwest = { version = "0.16.0", features = ["async-rustls"] }
 ```
 
 ```rust,ignore

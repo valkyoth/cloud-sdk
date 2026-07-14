@@ -18,7 +18,7 @@ def fake_environment(
     directory: Path,
     *,
     installed: str = "x86_64-unknown-linux-gnu",
-    tree: str = "cloud-sdk v0.22.0\ncloud-sdk-hetzner v0.19.0\n",
+    tree: str = "cloud-sdk v0.23.0\ncloud-sdk-hetzner v0.19.1\n",
 ) -> tuple[dict[str, str], Path]:
     fake_bin = directory / "bin"
     fake_bin.mkdir()
@@ -130,7 +130,10 @@ def test_native_mode() -> None:
         result = run(["--native"], environment)
         assert result.returncode == 0, result
         assert log.read_text(encoding="ascii").splitlines() == [
-            "check --locked --workspace --all-targets --all-features"
+            "check --locked --all-targets --all-features -p cloud-sdk "
+            "-p cloud-sdk-hetzner -p cloud-sdk-sanitization -p cloud-sdk-testkit",
+            "check --locked --all-targets --no-default-features "
+            "-p cloud-sdk-reqwest --features std,blocking-rustls,async-rustls",
         ]
 
 
@@ -149,7 +152,7 @@ def test_default_dependency_boundary() -> None:
         environment, log = fake_environment(
             directory,
             tree=(
-                "cloud-sdk v0.22.0\n"
+                "cloud-sdk v0.23.0\n"
                 "sanitization v1.2.4\n"
                 "ureq v3.1.2\n"
                 "curl v0.4.49\n"

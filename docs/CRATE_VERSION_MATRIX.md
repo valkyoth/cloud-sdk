@@ -1,7 +1,7 @@
 # Crate Version Matrix
 
-Status: `v0.22.0` pentest passed after remediation; final release commit pending.
-The latest published release is `v0.21.0`.
+Status: `v0.23.0` implementation in progress. The latest published release is
+`v0.22.0`.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
@@ -353,3 +353,19 @@ boundary crates patch-bump for the facade dependency.
 | `cloud-sdk-reqwest` | `0.15.3` | `0.15.4` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.22 facade line. |
 | `cloud-sdk-sanitization` | `0.13.7` | `0.13.8` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.22 facade line. |
 | `cloud-sdk-testkit` | `0.15.3` | `0.15.4` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.22 facade line. |
+
+## v0.23.0 Tracking Table
+
+`v0.23.0` adds a fail-closed optional blocking FIPS-mode transport, explicit
+provider and complete-client runtime checks, bundled-source build evidence,
+and a documented current validation-status limitation. The facade follows the
+tag, reqwest receives an independent code minor, and crates following the
+facade dependency receive patch releases.
+
+| Crate | Published | Planned | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.22.0` | `0.23.0` | `metadata` | Yes | Optional blocking FIPS transport documentation and v0.23 release evidence. |
+| `cloud-sdk-hetzner` | `0.19.0` | `0.19.1` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.23 facade line. |
+| `cloud-sdk-reqwest` | `0.15.4` | `0.16.0` | `code` | Yes | Explicitly selected and runtime-verified blocking rustls FIPS-mode transport. |
+| `cloud-sdk-sanitization` | `0.13.8` | `0.13.9` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.23 facade line. |
+| `cloud-sdk-testkit` | `0.15.4` | `0.15.5` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.23 facade line. |

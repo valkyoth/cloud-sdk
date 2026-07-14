@@ -913,9 +913,9 @@ v0.22.0 implementation stop reached. Run pentest for this exact commit.
 
 ### v0.23.0 - Optional Blocking FIPS Transport
 
-Goal: add a fail-closed blocking rustls transport backed by the validated
-AWS-LC FIPS module without weakening or silently changing the standard
-blocking transport.
+Goal: add a fail-closed blocking rustls FIPS-mode transport without weakening
+or silently changing the standard blocking transport, while avoiding a
+validation claim the current AWS-LC-FIPS 3.0.x dependency cannot support.
 
 Deliverables:
 
@@ -923,25 +923,25 @@ Deliverables:
   `std` graphs remain transport-free.
 - Explicit rustls FIPS `CryptoProvider` and `ClientConfig`, with runtime
   `fips()` verification before client construction succeeds.
-- FIPS-only dependency graph uses `aws-lc-fips-sys` and excludes the ordinary
-  `aws-lc-sys` cryptographic implementation.
+- FIPS-only dependency graph includes `aws-lc-fips-sys`; the boundary records
+  and checks rustls' current compilation of ordinary `aws-lc-sys` alongside
+  the FIPS-selected FFI instead of claiming that build dependency is absent.
 - Defined additive-feature behavior: the FIPS provider wins safely when both
   blocking transport features are selected, while the FIPS-only graph remains
   independently auditable.
 - Existing HTTPS-only, TLS-version, timeout, redirect, retry, proxy,
   decompression, authority, response-bound, redaction, and sanitization policy
   remains enforced.
-- Fail-closed tests for missing, conflicting, preinstalled non-FIPS, or
-  non-FIPS-reporting provider configuration, isolated in subprocesses where
-  process-global rustls state requires it.
-- FIPS dependency admission covering the exact aws-lc-fips-sys release, NIST
-  certificate and security policy, approved operating environments, C/C++
-  compiler, CMake, Go, bindgen, checksum, and reproducible-build requirements.
+- Explicit per-client provider construction that is independent of missing,
+  conflicting, or preinstalled process-global provider state, plus runtime
+  rejection if the provider or complete configuration does not report FIPS.
+- FIPS dependency admission covering the exact aws-lc-fips-sys release,
+  current NIST validation-status limitation, C/C++ compiler, CMake, Go, Perl,
+  bindgen, checksum, system-library discovery, and reproducible-build limits.
 - Documentation stating that a crate feature does not make an application or
-  deployment FIPS compliant outside the validated module boundary and approved
-  operating environment.
-- Dedicated CI/release check on at least one operating environment covered by
-  the selected AWS-LC FIPS security policy.
+  deployment FIPS compliant or establish a current validation certificate.
+- Dedicated Linux CI/release check for bundled-source graph and runtime FIPS
+  status, without presenting the runner as a validated operating environment.
 
 Verification:
 

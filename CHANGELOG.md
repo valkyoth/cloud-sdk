@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.23.0 - 2026-07-14
+
+- Added the non-default `cloud-sdk-reqwest/blocking-rustls-fips` feature.
+- Built each FIPS-mode client from an explicit rustls FIPS provider and
+  rejected providers or complete TLS configurations that do not report FIPS.
+- Kept process-global rustls providers out of the decision and made the FIPS
+  path win when both blocking transport features are enabled.
+- Added exact graph checks and runtime tests for rustls, AWS-LC-RS,
+  AWS-LC-FIPS, alternate TLS/crypto exclusions, and additive features.
+- Forced repository checks to compile Cargo-authenticated bundled
+  AWS-LC-FIPS source instead of auto-discovering a system library.
+- Documented native build trust, upstream certificate mismatch, platform
+  scope, and the absence of an application or deployment compliance claim.
+- Separated standard native transport CI from the dedicated Linux FIPS job.
+- Fixed post-tag publishing so the signed approved commit does not rerun the
+  network-sensitive release gate unless `--rerun-gate` is requested.
+- Added the `v0.23.0` release gate and independent crate version plan.
+
 ## 0.22.0 - 2026-07-14
 
 - Added six isolated libFuzzer targets for fixed-buffer writers, request

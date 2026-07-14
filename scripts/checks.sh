@@ -18,6 +18,7 @@ scripts/check_sanitization_boundary.sh
 scripts/check_testkit_boundary.sh
 scripts/check_platform_matrix.sh --default-boundary
 scripts/check_reqwest_boundary.sh
+scripts/check_reqwest_fips_boundary.sh
 scripts/smoke_hetzner_live.sh --check
 scripts/check_publishable_readmes.sh
 scripts/validate-release-metadata.sh
