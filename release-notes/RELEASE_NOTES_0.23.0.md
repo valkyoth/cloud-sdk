@@ -106,8 +106,10 @@ No retired provider-specific helper crate is published.
 - `scripts/release_crates.py --dry-run --yes --version 0.23.0`
 - `scripts/release_0_23_gate.sh` after pentest evidence is committed.
 
-## Security Review Stop
+## Security Review
 
-Pentest and any required focused retest must pass before tagging. The permanent
-report will be stored at `security/pentest/v0.23.0.md` and bound to the exact
-reviewed implementation commit.
+Pentest and focused retests passed. The permanent report is stored at
+`security/pentest/v0.23.0.md` and binds the reviewed implementation commit
+`b4c2d39de890003eb91a98e9f7f4a913500e6f81`. Tagging remains blocked until the
+final release commit passes GitHub CI, CodeQL default setup, and the clean
+versioned release gate.
