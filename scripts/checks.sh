@@ -38,7 +38,7 @@ cargo package -p cloud-sdk-hetzner --allow-dirty --features serde \
     --config 'patch.crates-io.cloud-sdk-reqwest.path="crates/cloud-sdk-reqwest"' \
     --config 'patch.crates-io.cloud-sdk-sanitization.path="crates/cloud-sdk-sanitization"' \
     --config 'patch.crates-io.cloud-sdk-testkit.path="crates/cloud-sdk-testkit"'
-scripts/check_packaged_reqwest_tests.sh
+CARGO_TARGET_DIR=/dev/null scripts/check_packaged_reqwest_tests.sh
 cargo package -p cloud-sdk-sanitization --allow-dirty \
     --config 'patch.crates-io.cloud-sdk.path="crates/cloud-sdk"'
 cargo package -p cloud-sdk-testkit --allow-dirty \

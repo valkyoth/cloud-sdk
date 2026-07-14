@@ -74,6 +74,10 @@ rustls-platform-verifier, aws-lc-rs, aws-lc-fips-sys, and aws-lc-sys. Consumers
 must still retain a reviewed application lockfile or vendored source graph.
 Repository checks extract the generated reqwest crate and compile its locked
 FIPS tests, proving the public certificate and CRL fixtures are published.
+Both stages use fresh script-owned target directories, preventing inherited
+Cargo target settings or stale local archives from changing the evidence. The
+main check gate supplies an unusable inherited target directory as a
+regression test for this boundary.
 
 ## Independent Crate Versions
 

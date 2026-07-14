@@ -9,17 +9,28 @@ package_id="$(cargo pkgid -p cloud-sdk-reqwest)"
 package_version="${package_id##*#}"
 package_version="${package_version##*@}"
 package_name="cloud-sdk-reqwest-${package_version}"
-archive="target/package/${package_name}.crate"
-
-cargo package -p cloud-sdk-reqwest --allow-dirty --all-features \
-    --config 'patch.crates-io.cloud-sdk.path="crates/cloud-sdk"' \
-    --config 'patch.crates-io.cloud-sdk-sanitization.path="crates/cloud-sdk-sanitization"'
 
 temporary="$(mktemp -d "${TMPDIR:-/tmp}/cloud-sdk-package.XXXXXX")"
 trap 'rm -rf -- "$temporary"' EXIT HUP INT TERM
+package_target="$temporary/package-target"
+test_target="$temporary/test-target"
+archive="$package_target/package/${package_name}.crate"
+
+CARGO_TARGET_DIR="$package_target" cargo package \
+    --locked \
+    -p cloud-sdk-reqwest \
+    --allow-dirty \
+    --all-features \
+    --config 'patch.crates-io.cloud-sdk.path="crates/cloud-sdk"' \
+    --config 'patch.crates-io.cloud-sdk-sanitization.path="crates/cloud-sdk-sanitization"'
+
+if [ ! -f "$archive" ]; then
+    echo "packaged reqwest tests: expected archive was not generated" >&2
+    exit 1
+fi
 tar -xzf "$archive" -C "$temporary"
 
-cargo test \
+CARGO_TARGET_DIR="$test_target" cargo test \
     --manifest-path "$temporary/$package_name/Cargo.toml" \
     --locked \
     --no-run \
