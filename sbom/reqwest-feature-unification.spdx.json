@@ -1,14 +1,14 @@
 {
   "SPDXID": "SPDXRef-DOCUMENT",
   "creationInfo": {
-    "created": "2026-07-14T15:01:25Z",
+    "created": "2026-07-14T16:21:09Z",
     "creators": [
       "Tool: cargo-sbom-v0.10.0",
       "Tool: cloud-sdk-complete-spdx-v1"
     ]
   },
   "dataLicense": "CC0-1.0",
-  "documentNamespace": "https://spdx.org/spdxdocs/reqwest-feature-unification-ae3e7908-6ab3-4ad7-84e7-bb418c1e9990",
+  "documentNamespace": "https://spdx.org/spdxdocs/reqwest-feature-unification-9decbf5f-e31c-47b5-8ed0-091d4a4e86ff",
   "files": [
     {
       "SPDXID": "SPDXRef-File-cloud_sdk_reqwest_feature_unification_test",
@@ -323,7 +323,7 @@
     },
     {
       "SPDXID": "SPDXRef-Package-cloud-sdk-0.24.0",
-      "description": "no_std-first multi-provider cloud SDK foundations.",
+      "description": "no_std-first provider-neutral cloud SDK foundations.",
       "downloadLocation": "NONE",
       "homepage": "https://github.com/valkyoth/cloud-sdk",
       "licenseConcluded": "MIT OR Apache-2.0",

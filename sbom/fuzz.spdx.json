@@ -1,14 +1,14 @@
 {
   "SPDXID": "SPDXRef-DOCUMENT",
   "creationInfo": {
-    "created": "2026-07-14T15:01:25Z",
+    "created": "2026-07-14T16:21:09Z",
     "creators": [
       "Tool: cargo-sbom-v0.10.0",
       "Tool: cloud-sdk-complete-spdx-v1"
     ]
   },
   "dataLicense": "CC0-1.0",
-  "documentNamespace": "https://spdx.org/spdxdocs/fuzz-b7ab6789-9b0f-452c-9ff2-3928464fa335",
+  "documentNamespace": "https://spdx.org/spdxdocs/fuzz-dd5ff6ea-b9f8-4607-bc8f-dda7cb3d566e",
   "files": [
     {
       "SPDXID": "SPDXRef-File-action_polling",
@@ -148,7 +148,7 @@
     },
     {
       "SPDXID": "SPDXRef-Package-cloud-sdk-0.24.0",
-      "description": "no_std-first multi-provider cloud SDK foundations.",
+      "description": "no_std-first provider-neutral cloud SDK foundations.",
       "downloadLocation": "NONE",
       "homepage": "https://github.com/valkyoth/cloud-sdk",
       "licenseConcluded": "MIT OR Apache-2.0",
