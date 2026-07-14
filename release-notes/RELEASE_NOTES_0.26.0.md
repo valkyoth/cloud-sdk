@@ -90,10 +90,13 @@ No retired provider-specific helper crate is published.
 - `cargo deny check`
 - `cargo audit`
 - `scripts/release_crates.py --dry-run --yes --version 0.26.0`
-- `scripts/release_0_26_gate.sh` after pentest evidence is committed.
+- `scripts/release_0_26_gate.sh`
 
 ## Security Review
 
-Pentest is required for the exact implementation commit before release
-finalization. Tagging remains blocked until the report, retest when applicable,
-full release checks, GitHub CI, and CodeQL default setup are green.
+The iterative pentest identified one Low fuzz-coverage gap and one
+informational documentation observation. The dedicated `action_requests` fuzz
+target and the explicit upstream action-ID rationale address both. Retest is
+green on commit `84d74431f8eeb6326a1e4f29feaf4c1340c38e1f`; no blocking finding
+remains. Tagging remains blocked until the clean release gate, GitHub CI, and
+CodeQL default setup are green.
