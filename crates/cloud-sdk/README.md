@@ -82,14 +82,14 @@ response decoding end to end.
 | Release evidence | local gates, dependency policy, SBOM, pentest report before tags |
 | Platform support | explicit tiers and targets in [`docs/PLATFORM_SUPPORT.md`](https://github.com/valkyoth/cloud-sdk/blob/main/docs/PLATFORM_SUPPORT.md) |
 | Crate versions | tracked in [`docs/CRATE_VERSION_MATRIX.md`](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATE_VERSION_MATRIX.md) |
-| 1.0 target | serious production-ready provider-neutral foundation plus Hetzner provider |
+| 1.0 target | serious production-ready foundation plus complete Hetzner Cloud, DNS, Console Storage Box, and Robot provider |
 
 ## Provider Roadmap
 
 | Provider | Target Version | Crate |
 | --- | --- | --- |
 | [`Hetzner Cloud`](https://www.hetzner.com/) | 1.0.0 | [`cloud-sdk-hetzner`](https://crates.io/crates/cloud-sdk-hetzner) |
-| [`Hetzner Robot`](https://www.hetzner.com/) | 1.1.0 | planned in `cloud-sdk-hetzner` |
+| [`Hetzner Robot`](https://robot.hetzner.com/doc/webservice/en.html) | 1.0.0 | pre-1.0 milestones in `cloud-sdk-hetzner` |
 
 ## Rust Version Support
 

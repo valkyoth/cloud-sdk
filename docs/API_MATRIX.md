@@ -286,28 +286,30 @@ Total source-locked operations: 221 (`cloud`: 189, `hetzner`: 32).
 | hetzner | Storage Boxes | PUT | `/storage_boxes/{id}` | `update_storage_box` | `cloud_sdk_hetzner::storage::storage_boxes` | no | no | none | no | implemented |
 | hetzner | Storage Boxes | GET | `/storage_boxes/{id}/folders` | `list_storage_box_folders` | `cloud_sdk_hetzner::storage::storage_boxes` | no | no | none | no | implemented |
 
-## Post-1.0 Robot Webservice
+## Pre-1.0 Robot Webservice
 
-Robot Webservice is not part of the Cloud/DNS 1.0 endpoint matrix. It is
-planned for `v1.1.0+` and must be tracked in a separate Robot matrix because it
-uses a different base URL, authentication model, request encoding, and resource
-set.
+Robot Webservice is required for the full Hetzner 1.0 SDK. It will be tracked
+in a separate source-locked Robot matrix because it uses a different base URL,
+authentication model, request encoding, and resource set. The current official
+reference documents 105 operation headings; the `v0.28.0` source-lock pass must
+confirm the expected 89 active operations after excluding all 16 deprecated
+Robot Storage Box operations.
 
-Initial Robot groups to source-lock later:
+Robot implementation schedule:
 
 | Group | Planned Module | Status |
 | --- | --- | --- |
-| server | `cloud_sdk_hetzner::robot::server` | post-1.0 |
-| IP | `cloud_sdk_hetzner::robot::ip` | post-1.0 |
-| subnet | `cloud_sdk_hetzner::robot::subnet` | post-1.0 |
-| reset | `cloud_sdk_hetzner::robot::reset` | post-1.0 |
-| failover | `cloud_sdk_hetzner::robot::failover` | post-1.0 |
-| wake on LAN | `cloud_sdk_hetzner::robot::wol` | post-1.0 |
-| boot configuration | `cloud_sdk_hetzner::robot::boot` | post-1.0 |
-| reverse DNS | `cloud_sdk_hetzner::robot::rdns` | post-1.0 |
-| traffic | `cloud_sdk_hetzner::robot::traffic` | post-1.0 |
-| SSH keys | `cloud_sdk_hetzner::robot::ssh_keys` | post-1.0 |
-| server ordering | `cloud_sdk_hetzner::robot::ordering` | post-1.0 |
-| storage box | `cloud_sdk_hetzner::robot::storage_box` | post-1.0 |
-| firewall | `cloud_sdk_hetzner::robot::firewall` | post-1.0 |
-| vSwitch | `cloud_sdk_hetzner::robot::vswitch` | post-1.0 |
+| server | `cloud_sdk_hetzner::robot::server` | `v0.30.0` |
+| IP | `cloud_sdk_hetzner::robot::ip` | `v0.31.0` |
+| subnet | `cloud_sdk_hetzner::robot::subnet` | `v0.31.0` |
+| reset | `cloud_sdk_hetzner::robot::reset` | `v0.32.0` |
+| failover | `cloud_sdk_hetzner::robot::failover` | `v0.32.0` |
+| wake on LAN | `cloud_sdk_hetzner::robot::wol` | `v0.32.0` |
+| boot configuration | `cloud_sdk_hetzner::robot::boot` | `v0.33.0` |
+| reverse DNS | `cloud_sdk_hetzner::robot::rdns` | `v0.34.0` |
+| traffic | `cloud_sdk_hetzner::robot::traffic` | `v0.34.0` |
+| SSH keys | `cloud_sdk_hetzner::robot::ssh_keys` | `v0.34.0` |
+| firewall | `cloud_sdk_hetzner::robot::firewall` | `v0.35.0` |
+| vSwitch | `cloud_sdk_hetzner::robot::vswitch` | `v0.35.0` |
+| server ordering | `cloud_sdk_hetzner::robot::ordering` | `v0.36.0` read-only; `v0.37.0` mutations |
+| legacy storage box | existing Console Storage Box modules | excluded: deprecated upstream |

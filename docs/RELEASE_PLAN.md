@@ -15,7 +15,7 @@ Tags use:
 v0.N.0      milestone release
 v0.N.P      patch/fix release for milestone N
 v1.0.0      first serious production-ready cloud-sdk foundation and Hetzner provider
-v1.1.0+     post-1.0 Robot Webservice support track
+v0.28.0+    pre-1.0 Robot Webservice support track
 ```
 
 ## Release Principles
@@ -179,7 +179,10 @@ has not been assigned to a release.
 | Transport adapters can accidentally admit runtime, TLS, or secret handling assumptions. | Blocking and async adapters are separated into `v0.16.0` and `v0.17.0`, after model/testkit work. |
 | Platform trust stores can be attacker-extended and aws-lc introduces native build-script, C, and assembly trust. | Documented for `v0.16.0`; FIPS transport lands in `v0.23.0`, followed by deterministic-root and native-build review in `v0.24.0`. |
 | Adding providers could multiply transport, testkit, sanitization, or API-family crates. | Enforced one primary crate per provider and provider-neutral shared boundaries in `v0.12.0`; release automation rejects nested `cloud-sdk-{provider}-{suffix}` packages. |
-| Robot Webservice has different auth, encoding, and API shape than Cloud/DNS. | Deferred to `v1.1.0+` with a separate source lock and implementation track. |
+| Robot Webservice has different auth, encoding, and API shape than Cloud/DNS. | Assigned a separate source lock and twelve pre-1.0 implementation and hardening milestones from `v0.28.0` through `v0.39.0`. |
+| Legacy Robot Storage Box operations are deprecated and overlap the supported Console API. | The `v0.28.0` Robot matrix must mark all 16 legacy operations excluded and must not create a Robot Storage Box module. |
+| Repeated invalid Robot credentials can temporarily block the caller's source IP. | Basic credentials are type-separated and redacted in `v0.29.0`; `v0.38.0` live tests never submit intentionally invalid credentials. |
+| Robot ordering mutations can create immediate infrastructure costs. | Read-only ordering lands separately in `v0.36.0`; `v0.37.0` requires explicit cost-bearing intent and keeps billable calls outside CI and normal live smoke tests. |
 | Future providers such as Cloudflare need patterns but are not part of Hetzner 1.0. | Provider-neutral naming and module guidance are part of `v1.0.0`; no non-Hetzner provider is claimed before 1.0. |
 
 ## Milestones
@@ -1073,19 +1076,20 @@ Stop gate:
 v0.26.0 implementation stop reached. Run pentest for this exact commit.
 ```
 
-### v0.27.0 - Release Candidate Cleanup
+### v0.27.0 - Existing Hetzner Surface Stabilization
 
-Goal: finish public API review, deprecation policy, examples, docs, and
-semver-readiness audit before 1.0.
+Goal: stabilize the existing Cloud, DNS, and Console Storage Box surface before
+adding Robot-specific protocol and endpoint modules.
 
 Deliverables:
 
-- Public API review for all exported types and feature flags.
+- Public API review for existing exported types and feature flags.
 - Deprecated upstream endpoint policy.
 - Error and versioning policy.
-- Semver-readiness audit and migration notes.
+- Pre-Robot semver audit and migration notes.
 - Examples and docs.rs output reviewed.
-- Release notes for known limitations and 1.0 blockers.
+- Release notes for known limitations carried into the Robot implementation
+  track.
 
 Verification:
 
@@ -1100,27 +1104,407 @@ Stop gate:
 v0.27.0 implementation stop reached. Run pentest for this exact commit.
 ```
 
-### v1.0.0 - Production SDK
+### v0.28.0 - Robot Source Lock And Operation Matrix
 
-Goal: first serious production-ready `cloud-sdk` foundation and Hetzner
-Cloud/DNS provider.
+Goal: establish a reproducible source of truth for every active and deprecated
+Robot Webservice operation before adding public Robot types.
 
 Deliverables:
 
-- Complete claimed endpoint coverage for non-deprecated Cloud/DNS and Storage
-  Box operations.
-- Default graph remains no_std and transport-free.
-- Optional transport adapters have security and dependency evidence.
-- API drift process is documented and tested.
-- Live and mock tests cover critical workflows.
-- Platform matrix and MSRV evidence are current.
-- Provider-neutral naming and module patterns are documented for later crates
-  such as `cloud-sdk-cloudflare`.
+- Pin <https://robot.hetzner.com/doc/webservice/en.html> with digest, retrieval
+  metadata, normalized operation inventory, and a tested drift detector.
+- Confirm the current expected inventory of 105 documented operation headings,
+  16 deprecated Robot Storage Box operations, and 89 active target operations.
+- Record methods, paths, inputs, response shapes, errors, request limits, and
+  deprecations in a separate Robot API matrix.
+- Document HTTPS-only HTTP Basic Auth, form-encoded inputs, JSON responses,
+  optional YAML paths, authentication lockout behavior, and maintenance errors.
+- Exclude every deprecated Robot Storage Box endpoint and point users to the
+  already supported Console Storage Box API.
+- Keep all future Robot modules inside `cloud-sdk-hetzner`; no nested provider
+  crate is introduced.
 
 Verification:
 
 - `scripts/checks.sh`
-- `scripts/check_hetzner_api_drift.py --fetch`
+- Robot source-lock fixture and parser tests.
+- `scripts/check_hetzner_robot_drift.py --fetch` once added.
+- `scripts/release_0_28_gate.sh` once added.
+
+Stop gate:
+
+```text
+v0.28.0 implementation stop reached. Run pentest for this exact commit.
+```
+
+### v0.29.0 - Robot Protocol And Credential Foundation
+
+Goal: add the shared Robot protocol, credential, encoding, error, and transport
+boundaries without implementing resource operations prematurely.
+
+Deliverables:
+
+- `cloud_sdk_hetzner::robot` foundation with the fixed Robot base URL,
+  bounded identifiers, origin-form paths, methods, and request metadata.
+- Allocation-free `application/x-www-form-urlencoded` writers with atomic
+  caller-buffer failure and repeated-field support.
+- Bounded Robot error envelopes, invalid-input detail, maintenance handling,
+  and per-operation request-limit policy.
+- Provider-neutral Basic Auth credential support in `cloud-sdk-reqwest`, with
+  redacted diagnostics, sanitization-backed cleanup, HTTPS-only enforcement,
+  and no accidental bearer/Basic cross-use.
+- Blocking and async adapters support Robot without changing default features
+  or weakening standard, deterministic-root, or FIPS TLS modes.
+- Robot request/response fixtures and mock transport helpers in the existing
+  provider-neutral testkit.
+
+Verification:
+
+- `scripts/checks.sh`
+- Robot auth, form-encoding, error, rate-limit, redaction, and transport tests.
+- Default/no_std and optional transport dependency-boundary checks.
+- Robot source-lock drift check.
+- `scripts/release_0_29_gate.sh` once added.
+
+Stop gate:
+
+```text
+v0.29.0 implementation stop reached. Run pentest for this exact commit.
+```
+
+### v0.30.0 - Robot Servers And Cancellation
+
+Goal: implement the six active Robot server and cancellation operations.
+
+Deliverables:
+
+- Server list, get, and update request and response domains.
+- Cancellation get, create, and revoke domains with explicit date, reason, and
+  location-reservation validation.
+- Server-number identifiers are canonical; deprecated server-IP path aliases
+  remain excluded.
+- Destructive cancellation requests require explicit typed intent and never
+  appear in live read-only smoke coverage.
+- Focused fixtures and adversarial tests for nullable subnets, capability
+  flags, dates, status, cancellation conflicts, and empty responses.
+
+Verification:
+
+- `scripts/checks.sh`
+- Focused Robot server and cancellation tests.
+- Robot source-lock drift check.
+- `scripts/release_0_30_gate.sh` once added.
+
+Stop gate:
+
+```text
+v0.30.0 implementation stop reached. Run pentest for this exact commit.
+```
+
+### v0.31.0 - Robot IP And Subnet Management
+
+Goal: implement all 18 active Robot IP and subnet operations.
+
+Deliverables:
+
+- IP and subnet list, get, traffic-warning update, MAC get/set/delete, and
+  cancellation get/create/revoke domains.
+- Canonical IPv4, IPv6, subnet, MAC, gateway, mask, and broadcast validation.
+- Bounded repeated form fields and explicit cancellation dates.
+- Response models cover nullable MACs, traffic thresholds, lock state, and
+  assignment metadata without exposing unvalidated network identities.
+- Focused malformed-address, host-bit, encoding, boundary, and conflict tests.
+
+Verification:
+
+- `scripts/checks.sh`
+- Focused Robot IP, subnet, MAC, and cancellation tests.
+- Robot source-lock drift check.
+- `scripts/release_0_31_gate.sh` once added.
+
+Stop gate:
+
+```text
+v0.31.0 implementation stop reached. Run pentest for this exact commit.
+```
+
+### v0.32.0 - Robot Reset, Failover, And Wake-On-LAN
+
+Goal: implement the nine active reset, failover, and Wake-on-LAN operations.
+
+Deliverables:
+
+- Reset list/get/execute domains with source-locked reset-type validation.
+- Failover list/get/route/delete domains with canonical IP handling.
+- Wake-on-LAN get/execute domains keyed only by server number.
+- Mutation types make reboot, rerouting, and wake intent explicit.
+- Tests cover unsupported capabilities, invalid reset types, route targets,
+  no-output responses, and deprecated server-IP aliases remaining absent.
+
+Verification:
+
+- `scripts/checks.sh`
+- Focused Robot reset, failover, and Wake-on-LAN tests.
+- Robot source-lock drift check.
+- `scripts/release_0_32_gate.sh` once added.
+
+Stop gate:
+
+```text
+v0.32.0 implementation stop reached. Run pentest for this exact commit.
+```
+
+### v0.33.0 - Robot Boot Configuration
+
+Goal: implement all 15 active Robot boot, rescue, Linux, VNC, and Windows
+configuration operations.
+
+Deliverables:
+
+- Boot overview and rescue get/activate/deactivate/last domains.
+- Linux get/activate/deactivate/last domains.
+- VNC and Windows get/activate/deactivate domains.
+- Passwords, authorized keys, host keys, language, distribution, architecture,
+  and license-related fields receive explicit validation and redaction policy.
+- Deprecated server-IP aliases and deprecated response fields are excluded or
+  represented only through a documented compatibility boundary.
+- Atomic form encoding and adversarial secret-output tests cover every mode.
+
+Verification:
+
+- `scripts/checks.sh`
+- Focused Robot boot configuration and secret-handling tests.
+- Robot source-lock drift check.
+- `scripts/release_0_33_gate.sh` once added.
+
+Stop gate:
+
+```text
+v0.33.0 implementation stop reached. Run pentest for this exact commit.
+```
+
+### v0.34.0 - Robot Reverse DNS, Traffic, And SSH Keys
+
+Goal: implement the 11 active reverse DNS, traffic, and SSH-key operations.
+
+Deliverables:
+
+- Reverse-DNS list/get/set/update/delete domains with canonical addresses and
+  bounded DNS names.
+- Traffic query domain with bounded time ranges, intervals, repeated addresses,
+  and numeric response limits.
+- SSH-key list/create/get/update/delete domains with fingerprint, key, name,
+  algorithm, and response redaction policy.
+- Form encoding safely handles SSH key material and repeated traffic inputs.
+- Focused DNS, date-range, numeric-boundary, key-format, and secret-output tests.
+
+Verification:
+
+- `scripts/checks.sh`
+- Focused Robot reverse-DNS, traffic, and SSH-key tests.
+- Robot source-lock drift check.
+- `scripts/release_0_34_gate.sh` once added.
+
+Stop gate:
+
+```text
+v0.34.0 implementation stop reached. Run pentest for this exact commit.
+```
+
+### v0.35.0 - Robot Firewalls And vSwitches
+
+Goal: implement the 15 active Robot firewall and vSwitch operations.
+
+Deliverables:
+
+- Server firewall get/update/delete and template list/create/get/update/delete
+  domains.
+- vSwitch list/create/get/update/cancel and server attach/detach domains.
+- Bounded firewall rule collections, canonical addresses, ports, protocols,
+  VLANs, server lists, and cancellation dates.
+- Explicit mutation intent for firewall replacement, vSwitch cancellation, and
+  server membership changes.
+- Tests cover rule ordering, duplicate/conflicting entries, CIDR policy,
+  repeated form fields, in-progress conflicts, and empty responses.
+
+Verification:
+
+- `scripts/checks.sh`
+- Focused Robot firewall and vSwitch tests.
+- Robot source-lock drift check.
+- `scripts/release_0_35_gate.sh` once added.
+
+Stop gate:
+
+```text
+v0.35.0 implementation stop reached. Run pentest for this exact commit.
+```
+
+### v0.36.0 - Robot Ordering Catalogs And Read-Only Transactions
+
+Goal: implement the 12 read-only Robot ordering operations without admitting
+billable order creation yet.
+
+Deliverables:
+
+- Standard-server and Server Auction product list/get domains.
+- Standard-server, Server Auction, and addon transaction list/get domains.
+- Per-server addon product list and account currency lookup.
+- Exact decimal price strings, setup/hourly/monthly prices, locations,
+  distributions, addons, product limits, and transaction states are bounded.
+- Deprecated product response fields remain outside the stable model unless a
+  reviewed compatibility boundary requires them.
+- Read-only ordering examples state that displayed prices can change and must
+  be revalidated before any later purchase request.
+
+Verification:
+
+- `scripts/checks.sh`
+- Focused Robot ordering catalog, price, and transaction-response tests.
+- Robot source-lock drift check.
+- `scripts/release_0_36_gate.sh` once added.
+
+Stop gate:
+
+```text
+v0.36.0 implementation stop reached. Run pentest for this exact commit.
+```
+
+### v0.37.0 - Robot Billable Ordering Mutations
+
+Goal: implement the three server, Server Auction, and addon order-creation
+operations with explicit cost-bearing intent.
+
+Deliverables:
+
+- Typed order requests for standard servers, Server Auction products, and
+  server addons.
+- Required product, location, distribution, SSH-key, addon, quantity, and
+  acceptance fields are source-locked and atomically form encoded.
+- Callers must supply an explicit cost-acknowledgement marker bound to the
+  selected product and observed price; no convenience default can place an
+  order.
+- Order requests and responses redact credentials and customer identifiers.
+- CI and normal live smoke tests can never submit billable orders; only a
+  separate manual destructive harness may exercise them.
+- Adversarial tests prove missing acknowledgement, stale/mismatched product
+  identity, malformed prices, duplicate addons, and partial buffers fail closed.
+
+Verification:
+
+- `scripts/checks.sh`
+- Focused Robot billable-order policy and form-encoding tests.
+- Credential-free tests proving normal live paths cannot submit orders.
+- Robot source-lock drift check.
+- `scripts/release_0_37_gate.sh` once added.
+
+Stop gate:
+
+```text
+v0.37.0 implementation stop reached. Run pentest for this exact commit.
+```
+
+### v0.38.0 - Robot Client Integration And Live Evidence
+
+Goal: combine Robot request, transport, response, and policy layers into usable
+blocking and async workflows without weakening destructive-operation controls.
+
+Deliverables:
+
+- High-level Robot client workflows for all active endpoint families.
+- Blocking and executor-neutral async examples with Basic credentials kept
+  distinct from Cloud API bearer tokens.
+- Mock fixtures cover success, invalid input, auth, rate-limit, maintenance,
+  conflict, empty-body, and oversized-response behavior.
+- Opt-in read-only live smoke catalog uses a private credential file, bounded
+  responses, redacted diagnostics, and source-locked Robot authority.
+- Live tests never attempt invalid credentials because Robot can temporarily
+  block the source IP after repeated authentication failures.
+- Destructive and billable operations remain absent from normal live smoke
+  catalogs and CI.
+
+Verification:
+
+- `scripts/checks.sh`
+- Robot mock and high-level workflow tests.
+- Credential-free live staging and `--check` tests.
+- Explicit operator-run read-only live smoke test.
+- Robot source-lock drift check.
+- `scripts/release_0_38_gate.sh` once added.
+
+Stop gate:
+
+```text
+v0.38.0 implementation stop reached. Run pentest for this exact commit.
+```
+
+### v0.39.0 - Complete Hetzner SDK Hardening
+
+Goal: finish the complete pre-1.0 Hetzner surface and produce release-candidate
+evidence for Cloud, DNS, Console Storage Box, and Robot together.
+
+Deliverables:
+
+- Robot matrix reports every active operation implemented and every deprecated
+  operation explicitly excluded; no unexplained planned row remains.
+- Combined high-level client, response, error, rate-limit, auth-separation, and
+  transport behavior receives public API and semver review.
+- Robot form writers, paths, parsers, errors, ordering policy, and response
+  envelopes receive fuzz and adversarial coverage.
+- Complete Hetzner examples, security recipes, threat model, API matrices,
+  source locks, platform evidence, SBOMs, dependency review, and migration notes.
+- Final deprecation policy covers Cloud/DNS and Robot without exporting legacy
+  aliases accidentally.
+- Full pentest focuses on credential separation, authentication lockout,
+  destructive calls, billable ordering, SSRF, encoding ambiguity, redaction,
+  response bounds, and release evidence.
+
+Verification:
+
+- `scripts/checks.sh`
+- Cloud/DNS, Console Storage Box, and Robot live drift checks.
+- Complete active-operation matrix checks.
+- Robot and existing fuzz build/smoke suites.
+- `scripts/generate-sbom.sh`
+- `cargo deny check`
+- `cargo audit`
+- `scripts/release_0_39_gate.sh` once added.
+
+Stop gate:
+
+```text
+v0.39.0 implementation stop reached. Run pentest for this exact commit.
+```
+
+### v1.0.0 - Full Hetzner Production SDK
+
+Goal: first serious production-ready `cloud-sdk` foundation and complete
+Hetzner Cloud, DNS, Console Storage Box, and Robot provider.
+
+Deliverables:
+
+- Complete claimed endpoint coverage for every non-deprecated Cloud, DNS,
+  Console Storage Box, and Robot operation.
+- Deprecated Robot Storage Box and legacy alias operations remain excluded.
+- Default graphs remain no_std and transport-free.
+- Optional blocking, async, deterministic-root, and FIPS transport adapters
+  have current security and dependency evidence.
+- Bearer and Basic credentials remain type-separated, redacted, sanitized, and
+  bound to fixed HTTPS authorities.
+- API drift processes are documented and tested for every supported Hetzner
+  source.
+- Live and mock tests cover critical read-only workflows while destructive and
+  billable workflows require explicit manual policy gates.
+- Platform matrix, MSRV, documentation, SBOM, audit, fuzz, and pentest evidence
+  are current.
+- Provider-neutral naming and module patterns are documented for later focused
+  provider crates.
+
+Verification:
+
+- `scripts/checks.sh`
+- All Hetzner source-lock drift checks.
+- Complete active-operation matrix checks.
 - `scripts/generate-sbom.sh`
 - `cargo deny check`
 - `cargo audit`
@@ -1130,58 +1514,4 @@ Stop gate:
 
 ```text
 v1.0.0 implementation stop reached. Run pentest for this exact commit.
-```
-
-### v1.1.0 - Robot Webservice Source Lock
-
-Goal: start Robot Webservice support without changing the 1.0 Cloud/DNS
-contract.
-
-Deliverables:
-
-- Source-lock <https://robot.hetzner.com/doc/webservice/en.html>.
-- Document Robot as a distinct API surface with HTTP Basic Auth, HTTPS-only
-  transport, form-encoded POST parameters, JSON/YAML response modes, and
-  Robot-specific errors/rate limits.
-- Add a `robot` module plan for server, IP, subnet, reset, failover,
-  wake-on-LAN, boot configuration, reverse DNS, traffic, SSH keys, server
-  ordering, Robot storage box, firewall, and vSwitch operations.
-- Decide whether Robot implementation lives in the main SDK crate modules only
-  or also gets an optional adapter/helper crate.
-
-Verification:
-
-- `scripts/checks.sh`
-- Robot source-lock drift check once added.
-- `scripts/release_1_1_gate.sh` once added.
-
-Stop gate:
-
-```text
-v1.1.0 implementation stop reached. Run pentest for this exact commit.
-```
-
-### v1.2.0+ - Robot Webservice Implementation
-
-Goal: implement Robot Webservice operations in small reviewed passes and expose
-them through `cloud-sdk-hetzner`.
-
-Deliverables:
-
-- Separate Robot auth, encoding, error, rate-limit, fixture, and live-test
-  evidence.
-- Robot operations implemented in small endpoint-family releases.
-- Cloud/DNS default behavior remains unchanged.
-- Robot docs clearly separate Cloud API tokens from Robot webservice users.
-
-Verification:
-
-- `scripts/checks.sh`
-- Robot source-lock drift check.
-- Version-specific release gate scripts.
-
-Stop gate:
-
-```text
-v1.2.0 implementation stop reached. Run pentest for this exact commit.
 ```

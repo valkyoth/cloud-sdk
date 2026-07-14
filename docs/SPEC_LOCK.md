@@ -252,11 +252,14 @@ reviewed seeds. Longer campaigns and crash minimization remain explicit local
 operations. Every confirmed defect must become a deterministic regression test
 in the owning published crate before release.
 
-## Deferred Scope
+## Pending Pre-1.0 Scope
 
-Robot Webservice is explicitly deferred until after the Cloud/DNS SDK reaches
-1.0. Its source reference is:
+Robot Webservice is required for the full Hetzner 1.0 SDK. Its source
+reference is:
 
 - <https://robot.hetzner.com/doc/webservice/en.html>
 
-`v1.1.0` must pin Robot separately before any Robot operation is implemented.
+`v0.28.0` must pin Robot separately before any Robot operation is implemented.
+The lock must distinguish active operations from deprecated alternatives and
+exclude the deprecated Robot Storage Box family, whose supported replacement
+is already tracked by the Console Storage Box source.
