@@ -30,6 +30,8 @@ Provider-neutral testing support for the main
 The default graph is no_std, allocation-free, network-free, filesystem-free,
 and runtime-free.
 
+## Install
+
 ```toml
 [dev-dependencies]
 cloud-sdk = "0.24.0"
@@ -45,10 +47,10 @@ use cloud_sdk_testkit::{
     ExpectedRequest, FixtureBody, MockExchange, MockTransport, ResponseFixture,
 };
 
-let Ok(target) = RequestTarget::new("/servers?page=1") else {
+let Ok(target) = RequestTarget::new("/resources?page=1") else {
     return;
 };
-let Ok(body) = FixtureBody::new(br#"{"servers":[]}"#) else {
+let Ok(body) = FixtureBody::new(br#"{"resources":[]}"#) else {
     return;
 };
 let exchanges = [MockExchange::new(
@@ -66,7 +68,7 @@ let Ok(response) = transport.send(
 };
 
 assert_eq!(response.status().get(), 200);
-assert_eq!(response.body(), br#"{"servers":[]}"#);
+assert_eq!(response.body(), br#"{"resources":[]}"#);
 assert!(transport.is_complete());
 ```
 
@@ -81,7 +83,7 @@ use cloud_sdk_testkit::{
     ExpectedRequest, FixtureBody, MockExchange, MockTransport, ResponseFixture,
 };
 
-let Ok(target) = RequestTarget::new("/servers/42") else { return };
+let Ok(target) = RequestTarget::new("/resources/42") else { return };
 let Ok(body) = FixtureBody::new(br#"{"id":42}"#) else { return };
 let exchanges = [MockExchange::new(
     ExpectedRequest::new(Method::Get, target),

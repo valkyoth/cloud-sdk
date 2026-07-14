@@ -34,7 +34,7 @@ default no_std SDK and provider crates. It delegates volatile clearing to the
 independently reviewed [`sanitization`](https://crates.io/crates/sanitization)
 crate with default features disabled.
 
-Most users should start with:
+## Install
 
 ```toml
 [dependencies]

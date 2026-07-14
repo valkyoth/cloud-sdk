@@ -1,6 +1,6 @@
 [package]
 name = "cloud-sdk"
-description = "no_std-first multi-provider cloud SDK foundations."
+description = "no_std-first provider-neutral cloud SDK foundations."
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true

@@ -1,5 +1,5 @@
 <p align="center">
-  <b>no_std-first multi-provider cloud SDK for Rust.</b><br>
+  <b>no_std-first provider-neutral cloud SDK foundation for Rust.</b><br>
   Provider crates, explicit API domains, security-first release gates, and transport-free core types.
 </p>
 
@@ -27,27 +27,18 @@
 
 # cloud-sdk
 
-`cloud-sdk` is a `no_std`-first Rust workspace for cloud provider SDKs. The
-first provider crate is `cloud-sdk-hetzner`, covering the Hetzner Cloud and DNS
-APIs. The default crates have no network client, TLS stack, async runtime,
-filesystem, clock, or secret-storage dependency. Transport and serialization
-remain explicit boundaries: v0.15 defines a no-network contract and testkit,
-v0.16 adds an opt-in blocking rustls adapter, v0.17 adds an executor-neutral
-async contract and optional Tokio-backed adapter, and v0.14 added narrowly
-reviewed no_std Serde and caller-buffer sanitization. v0.18 adds explicit
-pagination and action polling, while v0.19 adds an ignored opt-in live smoke
-harness. v0.20 adds explicit portable-target and native transport compile
-evidence. v0.21 adds compile-checked workflow examples, docs.rs feature
-coverage, security recipes, and tested local documentation-link validation.
-v0.22 adds isolated fuzzing and adversarial response tests. v0.23 adds an
-explicitly verified, opt-in blocking FIPS transport. None changes the default
-provider graph.
+`cloud-sdk` is a `no_std`-first Rust foundation for building secure, portable
+SDKs for cloud services. Provider APIs use shared, provider-neutral contracts
+while retaining ownership of their request models, response models, endpoint
+rules, and errors.
 
-The project target is a serious production-ready `cloud-sdk` foundation and
-Hetzner provider at `1.0.0`, reached through small reviewed releases with test,
-security, dependency, and release evidence. Future provider crates can follow
-the same pattern, especially focused cloud and SaaS providers such as
-`cloud-sdk-scaleway` or `cloud-sdk-ovh`.
+The workspace keeps networking, TLS, async runtimes, serialization,
+filesystem access, clocks, and secret storage outside the default dependency
+graph. These capabilities are explicit optional boundaries so applications
+can select the transport, runtime, trust policy, and platform integration that
+fit their environment. The project emphasizes validated inputs, bounded
+memory use, caller-controlled behavior, cross-platform compatibility,
+security review, and reproducible release evidence.
 
 ## Cost And Production Warning
 
@@ -64,107 +55,16 @@ please report it so it can be fixed.
 
 ## Current Status
 
-Published versions and immutable package snapshots are listed on
-[crates.io](https://crates.io/crates/cloud-sdk). Repository development status,
-independent crate versions, and upcoming release plans are tracked in the
-[crate version matrix](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATE_VERSION_MATRIX.md)
-and [changelog](https://github.com/valkyoth/cloud-sdk/blob/main/CHANGELOG.md).
-Every release candidate must pass its documented checks, pentest, retest, and
-release gate before tagging.
+Completed milestones and upcoming work are tracked in the
+[release roadmap](https://github.com/valkyoth/cloud-sdk/blob/main/docs/RELEASE_PLAN.md).
+Published and planned versions for each independently versioned crate are
+listed in the
+[crate version matrix](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATE_VERSION_MATRIX.md).
 
-Implemented now:
-
-- Rust workspace pinned to stable `1.97.0`.
-- MSRV policy for Rust `1.90.0` through `1.97.0`.
-- Edition 2024 and workspace resolver `3`.
-- `cloud-sdk` provider-neutral crate.
-- `cloud-sdk-hetzner` provider crate with focused internal modules.
-- Initial Hetzner API surface partition for Cloud, DNS, security, and Storage
-  Box resources.
-- Provider-neutral blocking and runtime-neutral async transport contracts, plus
-  a no_std deterministic mock testkit implementing both contracts.
-- Provider-neutral bounded pagination and action polling state machines with
-  caller-owned page fetching, parsing, delay, timeout, and cancellation policy.
-- Validated rate-limit metadata propagation through blocking, async, and mock
-  transports without hidden retries.
-- Optional hardened provider-neutral blocking and async reqwest/rustls
-  transports, an explicitly verified blocking FIPS mode, and admitted guarded
-  caller-buffer sanitization.
-- Opt-in read-only Hetzner catalog smoke harness with fixed provider origin,
-  a root-sealed build-before-credential workflow, private token-file input,
-  bounded responses, redacted diagnostics, and twelve offline security-policy
-  tests; live network execution remains ignored by default.
-- Explicit compile matrix for Linux, Windows, FreeBSD, macOS, Android, iOS,
-  WASM, and embedded no_std targets, with native reqwest adapter checks limited
-  to Linux, Windows, and macOS.
-- Compile-checked provider-neutral and Hetzner workflow examples, complete
-  crate feature tables, security recipes, a release runbook, doctest checks,
-  and tested repository-local documentation-link validation.
-- Six isolated libFuzzer targets with synthetic source-derived seeds,
-  deterministic adversarial regressions, and a documented
-  [crash-reproduction workflow](https://github.com/valkyoth/cloud-sdk/blob/main/docs/FUZZING.md).
-- Local checks for formatting, linting, tests, no_std policy, modularity, and
-  file length.
-- MIT OR Apache-2.0 license.
-- Security, implementation, release, modularity, supply-chain, and threat-model
-  docs.
-- Official Hetzner Cloud/DNS and Storage Box spec source lock for `v0.2.0`.
-- Complete source-derived API matrix with 221 operations, owner modules,
-  pagination, sorting, action behavior, deprecation status, and implementation
-  status.
-- Local upstream lock validation for the pinned Hetzner spec URLs and hashes.
-- Hetzner API drift detection for added, removed, and changed operations and
-  component schemas.
-- Core Hetzner request/response policy domains for endpoint paths, base URL
-  selection, endpoint group base mapping, bounded query parameters,
-  fixed-buffer percent encoding, labels, pagination, sorting, action status,
-  API errors, and rate-limit metadata.
-- Read-only Hetzner catalog request primitives for locations, pricing, server
-  types, load balancer types, ISOs, and public images.
-- Hetzner security request primitives for SSH key CRUD, certificate CRUD, and
-  certificate retry action endpoints.
-- Hetzner server request primitives for server CRUD, metrics, and server action
-  endpoint paths.
-- Hetzner server-adjacent request primitives for images, placement groups,
-  primary IPs, and their v0.7 action paths.
-- Hetzner storage/IP request primitives for volumes, floating IPs, and their
-  v0.8 action paths.
-- Hetzner Storage Box request primitives for boxes, box types, snapshots,
-  subaccounts, Storage Box actions, and subaccount actions.
-- Hetzner Firewall request primitives for CRUD, resource application, and
-  validated rule replacement.
-- Hetzner Network request primitives for CRUD, routes, subnets, range changes,
-  and protection actions.
-- Hetzner Load Balancer request primitives for CRUD, metrics, services,
-  targets, network attachment, reverse DNS, protection, algorithms, type
-  changes, and public-interface actions.
-- Hetzner DNS Zone request primitives for CRUD, zonefile import/export,
-  primary nameservers, TTL and protection actions, and action listing.
-- Hetzner DNS RRSet request primitives for CRUD, list filtering, TTL and
-  protection actions, and bounded record mutations.
-- Optional no_std Serde boundary for size-checked RRSet request bodies and
-  validated shared action/error response envelopes.
-
-Not implemented yet:
-
-- No provider-level client that executes typed Hetzner request models end to
-  end; v0.17 exposes reviewed provider-neutral blocking and async transports.
-- No token storage or secret manager integration.
-- No broad request/response serialization outside the reviewed RRSet and
-  shared response boundary.
-- No automatic pagination stream; the explicit cursor requires callers to
-  fetch and decode each page.
-- No automatic retries or sleeps; the action poller delegates delay, timeout,
-  and cancellation decisions to caller policy.
-- No generated response model.
-- No destructive live Hetzner tests; v0.19 includes only explicitly enabled
-  read-only catalog probes.
-- No non-Hetzner providers yet. Smaller focused cloud and SaaS providers such
-  as Scaleway and OVH are better future fits than hyperscaler-scale APIs, but
-  no non-Hetzner provider is a 1.0 deliverable.
-- No Robot Webservice support. Robot is planned after the Hetzner Cloud/DNS
-  provider reaches `1.0.0`, likely as a `1.1.0` track exposed through
-  `cloud-sdk-hetzner`.
+Current releases provide provider-neutral contracts and provider-owned,
+validated request and response building blocks. They do not yet provide
+high-level provider clients that combine request construction, transport, and
+response decoding end to end.
 
 ## Trust Dashboard
 
@@ -191,6 +91,19 @@ Not implemented yet:
 | [`Hetzner Cloud`](https://www.hetzner.com/) | 1.0.0 | [`cloud-sdk-hetzner`](https://crates.io/crates/cloud-sdk-hetzner) |
 | [`Hetzner Robot`](https://www.hetzner.com/) | 1.1.0 | planned in `cloud-sdk-hetzner` |
 
+## Rust Version Support
+
+The minimum supported Rust version is Rust `1.90.0`. Development uses the
+pinned stable Rust `1.97.0` until the toolchain policy is updated.
+
+| Rust | Local Evidence |
+| --- | --- |
+| `1.90.0 - 1.96.1` | `cargo +<version> check --workspace --all-features` for every supported compiler |
+| `1.97.0` | `scripts/checks.sh` |
+
+Portable and native platform evidence is documented in
+[`docs/PLATFORM_SUPPORT.md`](https://github.com/valkyoth/cloud-sdk/blob/main/docs/PLATFORM_SUPPORT.md).
+
 ## Install
 
 ```toml
@@ -199,7 +112,7 @@ cloud-sdk = "0.24.0"
 cloud-sdk-hetzner = "0.19.2"
 ```
 
-## Features
+## cloud-sdk Features
 
 | Feature | Default | Effect |
 | --- | --- | --- |
@@ -214,36 +127,23 @@ visible. Applications should enable only the features they use.
 
 - [Provider-neutral quickstart](https://github.com/valkyoth/cloud-sdk/blob/main/docs/QUICKSTART.md)
 - [Hetzner workflow examples](https://github.com/valkyoth/cloud-sdk/blob/main/docs/HETZNER_EXAMPLES.md)
+- [Hetzner live smoke testing](https://github.com/valkyoth/cloud-sdk/blob/main/docs/LIVE_SMOKE_TESTING.md)
 - [Security recipes](https://github.com/valkyoth/cloud-sdk/blob/main/docs/SECURITY_RECIPES.md)
 - [Release runbook](https://github.com/valkyoth/cloud-sdk/blob/main/docs/RELEASE_RUNBOOK.md)
 
-## Provider-Neutral Example
-
-```rust
-use cloud_sdk::{ApiFamily, Method, Provider};
-
-let provider = Provider::Hetzner;
-let family = ApiFamily::Cloud;
-let method = Method::Get;
-
-assert_eq!(provider, Provider::Hetzner);
-assert_eq!(family, ApiFamily::Cloud);
-assert_eq!(method, Method::Get);
-```
-
-## Transport Contract Example
+## Provider-Neutral Quickstart
 
 ```rust
 use cloud_sdk::Method;
 use cloud_sdk::transport::{RequestTarget, TransportRequest};
 
-let Ok(target) = RequestTarget::new("/servers?page=1") else {
+let Ok(target) = RequestTarget::new("/resources?page=1") else {
     return;
 };
 let request = TransportRequest::new(Method::Get, target);
 
 assert_eq!(request.method(), Method::Get);
-assert_eq!(request.target().as_str(), "/servers?page=1");
+assert_eq!(request.target().as_str(), "/resources?page=1");
 assert!(request.body().is_empty());
 ```
 
@@ -260,34 +160,6 @@ cloud-sdk = "0.24.0"
 cloud-sdk-reqwest = { version = "0.17.0", features = ["blocking-rustls"] }
 ```
 
-```rust,ignore
-use std::time::Duration;
-
-use cloud_sdk::Method;
-use cloud_sdk::transport::{BlockingTransport, RequestTarget, TransportRequest};
-use cloud_sdk_reqwest::blocking::{
-    BearerToken, BlockingClientBuilder, HttpsEndpoint, RequestTimeouts,
-    UserAgent,
-};
-
-let Ok(endpoint) = HttpsEndpoint::new("https://api.hetzner.cloud/v1") else { return };
-let Ok(token) = BearerToken::new("replace-with-scoped-token") else { return };
-let Ok(user_agent) = UserAgent::new("my-service/1.0") else { return };
-let Ok(timeouts) = RequestTimeouts::new(
-    Duration::from_secs(30),
-    Duration::from_secs(10),
-) else { return };
-let Ok(mut client) = BlockingClientBuilder::new(endpoint, token, user_agent, timeouts).build()
-else { return };
-
-let Ok(target) = RequestTarget::new("/servers?page=1") else { return };
-let request = TransportRequest::new(Method::Get, target);
-let mut response_body = [0_u8; 65_536];
-let Ok(response) = client.send(request, &mut response_body) else { return };
-
-assert!(response.status().is_success());
-```
-
 The production builder is HTTPS-only, requires explicit bounded timeouts and a
 user agent, uses rustls with TLS 1.2 minimum, and disables redirects, retries,
 proxies, referer generation, and response decompression. It forces HTTP/1 and
@@ -295,6 +167,10 @@ the system resolver even if another dependency enables reqwest HTTP/2 or
 Hickory DNS. The caller owns token generation, scope, rotation, revocation,
 and cleanup of the original secret; the adapter clears only its own token and
 request-body storage.
+
+See the complete, compile-checked
+[`cloud-sdk-reqwest` blocking example](https://docs.rs/cloud-sdk-reqwest/latest/cloud_sdk_reqwest/#blocking-example)
+for client construction and request execution.
 
 ### Optional Deterministic Root Snapshot
 
@@ -335,29 +211,6 @@ example is in the
 [reqwest crate README](https://crates.io/crates/cloud-sdk-reqwest). See also the
 [FIPS dependency admission](https://github.com/valkyoth/cloud-sdk/blob/main/docs/dependency-admission-reqwest-fips.md).
 
-## Opt-In Hetzner Live Smoke Test
-
-The repository includes an ignored read-only harness for locations, server
-types, load balancer types, ISOs, public system images, and pricing. It accepts
-only a private token-file path, fixes the authenticated origin to Hetzner Cloud
-API v1, bounds and clears response storage, and never logs response bodies or
-resource IDs.
-
-```sh
-scripts/smoke_hetzner_live.sh --check
-```
-
-Authenticated execution requires a dedicated test project, a provider token
-with **Read** permission, and a root-sealed bundle prepared from a clean commit
-before the token exists or is mounted. An administrator must install the staged
-bundle and launcher into root-owned, non-writable system paths; authenticated
-execution then hashes and executes the same open file descriptor without
-invoking Cargo. The token value does not belong in a command or environment
-variable. Follow
-[`docs/LIVE_SMOKE_TESTING.md`](https://github.com/valkyoth/cloud-sdk/blob/main/docs/LIVE_SMOKE_TESTING.md)
-for private token-file setup and the manual command. Destructive execution is
-not implemented in v0.19.
-
 ## Optional Async Transport
 
 ```toml
@@ -366,23 +219,13 @@ cloud-sdk = "0.24.0"
 cloud-sdk-reqwest = { version = "0.17.0", features = ["async-rustls"] }
 ```
 
-```rust,ignore
-use cloud_sdk::Method;
-use cloud_sdk::transport::{AsyncTransport, RequestTarget, TransportRequest};
-
-let Ok(target) = RequestTarget::new("/servers?page=1") else { return };
-let request = TransportRequest::new(Method::Get, target);
-let mut response_body = [0_u8; 65_536];
-let Ok(response) = AsyncTransport::send(&mut client, request, &mut response_body).await
-else { return };
-
-assert!(response.status().is_success());
-```
-
 The async adapter requires an active Tokio executor because reqwest uses Tokio
 internally; the core trait and testkit remain executor-neutral. Responses are
 buffered only up to caller capacity and copied after complete success. Timeout,
 read failure, overflow, or cancellation leaves the caller buffer cleared.
+See the complete, compile-checked
+[`cloud-sdk-reqwest` async example](https://docs.rs/cloud-sdk-reqwest/latest/cloud_sdk_reqwest/#async-example)
+for client construction and request execution.
 
 ## Pagination Cursor Example
 
@@ -506,147 +349,25 @@ assert_eq!(value, Some("\"line\\n\\\"quoted\\\"\""));
 | Crate | Default `std`? | Purpose |
 | --- | --- | --- |
 | [`cloud-sdk`](https://crates.io/crates/cloud-sdk) | no | Provider-neutral domains and shared SDK foundation. |
-| [`cloud-sdk-hetzner`](https://crates.io/crates/cloud-sdk-hetzner) | no | Main Hetzner documentation and provider crate with internal `cloud`, `dns`, `security`, and `storage` modules. |
+| [`cloud-sdk-hetzner`](https://crates.io/crates/cloud-sdk-hetzner) | no | Hetzner provider APIs and provider-specific documentation. |
 | [`cloud-sdk-reqwest`](https://crates.io/crates/cloud-sdk-reqwest) | no | Provider-neutral optional blocking and async reqwest/rustls transports; transport-free by default. |
 | [`cloud-sdk-testkit`](https://crates.io/crates/cloud-sdk-testkit) | no | Provider-neutral blocking/async mock transport, response metadata fixtures, and adversarial corpus. |
 | [`cloud-sdk-sanitization`](https://crates.io/crates/cloud-sdk-sanitization) | no | Provider-neutral volatile caller-buffer cleanup and guarded secret buffers. |
 
-The workspace uses one primary crate per provider. Provider-specific API
-families remain modules inside that crate; reusable transport, testkit,
-serialization, and sanitization boundaries remain provider-neutral. Package
-names with another scoped suffix, such as `cloud-sdk-ovh-reqwest` or
-`cloud-sdk-scaleway-dns`, are rejected by release automation.
+Each provider has one primary crate for its APIs and documentation. Reusable
+transport, testing, and secret-handling capabilities remain provider-neutral.
 
-The root README documents the workspace and release process. Crate-local README
-files document the crate-specific role and examples. For Hetzner-specific usage,
-start with [`cloud-sdk-hetzner`](https://crates.io/crates/cloud-sdk-hetzner).
+## Provider Documentation
 
-Hetzner endpoint modules live inside the provider crate:
+Provider-specific API coverage and maintenance procedures live outside this
+provider-neutral README. For Hetzner, see the
+[`cloud-sdk-hetzner` crate](https://crates.io/crates/cloud-sdk-hetzner), the
+[API matrix](https://github.com/valkyoth/cloud-sdk/blob/main/docs/API_MATRIX.md),
+and the
+[source-lock policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/SPEC_LOCK.md).
 
-```text
-crates/cloud-sdk-hetzner/src/
-  actions.rs
-  endpoint.rs
-  labels.rs
-  pagination.rs
-  rate_limit.rs
-  request.rs
-  response.rs
-  cloud/catalog.rs
-  cloud/
-  dns/
-  security/
-  storage/
-```
+## Development Checks
 
-## API Scope
-
-The first planning pass covers the Hetzner Cloud API reference at
-<https://docs.hetzner.cloud/reference/cloud>, including overview material for
-authentication, query parameters, errors, actions, labels, pagination, rate
-limiting, server metadata, sorting, and deprecation notices.
-
-Robot Webservice support is intentionally post-1.0. It uses a different API
-shape, authentication model, and request encoding than the Cloud/DNS API. The
-planned direction is to expose it through `cloud-sdk-hetzner` after 1.0,
-without letting Robot-specific behavior weaken the default Cloud SDK design.
-
-Endpoint groups scheduled for the SDK:
-
-| Area | Groups |
-| --- | --- |
-| Cross-resource | actions |
-| Servers | servers, server actions, server types, images, image actions, ISOs, placement groups, primary IPs, primary IP actions |
-| Storage | volumes, volume actions |
-| IPs | floating IPs, floating IP actions |
-| Network edge | firewalls, firewall actions, load balancers, load balancer actions, load balancer types, networks, network actions |
-| DNS | zones, zone actions, zone RRSets, zone RRSet actions |
-| Security | certificates, certificate actions, SSH keys |
-| Storage Boxes | storage boxes, storage box actions, storage box subaccounts |
-| Catalog and billing | locations, pricing |
-
-The `v0.2.0` planning pass source-locked the official machine-readable specs:
-
-- Cloud and DNS: <https://docs.hetzner.cloud/cloud.spec.json>
-- Storage Boxes: <https://docs.hetzner.cloud/hetzner.spec.json>
-
-[`docs/API_MATRIX.md`](https://github.com/valkyoth/cloud-sdk/blob/main/docs/API_MATRIX.md) tracks all 221 discovered operations.
-Deprecated operations remain listed for drift tracking, but are marked
-`deferred-deprecated` until the SDK has an explicit compatibility policy.
-
-Before changing endpoint models, run:
-
-```bash
-scripts/check_hetzner_api_drift.py --fetch
-```
-
-That compares the current upstream specs with the locked operation and schema
-fingerprints in
-[`docs/API_FINGERPRINTS.tsv`](https://github.com/valkyoth/cloud-sdk/blob/main/docs/API_FINGERPRINTS.tsv)
-and
-[`docs/API_SCHEMA_FINGERPRINTS.tsv`](https://github.com/valkyoth/cloud-sdk/blob/main/docs/API_SCHEMA_FINGERPRINTS.tsv).
-
-Do not refresh lock files directly from a drift report. First review the
-upstream changes and update the pinned spec hashes in the source-lock evidence.
-Then refresh the fingerprints during the reviewed source-lock pass:
-
-```bash
-scripts/check_hetzner_api_drift.py --fetch --write-lock --accept-lock-refresh
-```
-
-The write path verifies fetched spec bytes against the pinned SHA-256 values
-before overwriting the fingerprint files.
-
-## Rust Version Support
-
-The minimum supported Rust version is Rust `1.90.0`. Development uses the
-pinned stable Rust `1.97.0` until the toolchain policy is updated.
-
-Compatibility verification matrix for current main:
-
-| Rust | Local Evidence |
-| --- | --- |
-| `1.90.0` | `cargo +1.90.0 check --workspace --all-features` |
-| `1.91.0` | `cargo +1.91.0 check --workspace --all-features` |
-| `1.92.0` | `cargo +1.92.0 check --workspace --all-features` |
-| `1.93.0` | `cargo +1.93.0 check --workspace --all-features` |
-| `1.94.0` | `cargo +1.94.0 check --workspace --all-features` |
-| `1.95.0` | `cargo +1.95.0 check --workspace --all-features` |
-| `1.96.0` | `cargo +1.96.0 check --workspace --all-features` |
-| `1.96.1` | `cargo +1.96.1 check --workspace --all-features` |
-| `1.97.0` | `scripts/checks.sh` |
-
-Platform checks are separate from compiler-version checks. Portable no_std and
-alloc/Serde combinations are cross-checked on ten explicit targets, while the
-full reqwest/rustls feature graph is checked natively on Linux, Windows, and
-macOS. See
-[`docs/PLATFORM_SUPPORT.md`](https://github.com/valkyoth/cloud-sdk/blob/main/docs/PLATFORM_SUPPORT.md)
-for the exact support levels and transport limitations.
-
-## Checks
-
-```bash
-scripts/checks.sh
-scripts/release_0_1_gate.sh
-scripts/check_hetzner_upstream.sh --local-only
-scripts/check_hetzner_api_drift.py --fetch
-scripts/release_0_2_gate.sh
-scripts/release_0_3_gate.sh
-scripts/release_0_4_gate.sh
-scripts/release_0_5_gate.sh
-scripts/release_0_6_gate.sh
-scripts/release_0_7_gate.sh
-scripts/release_0_8_gate.sh
-scripts/release_0_9_gate.sh
-scripts/release_0_10_gate.sh
-scripts/release_0_11_gate.sh
-scripts/release_0_12_gate.sh
-scripts/release_0_13_gate.sh
-scripts/release_0_14_gate.sh
-scripts/release_0_15_gate.sh
-scripts/release_0_16_gate.sh
-scripts/release_0_17_gate.sh
-scripts/release_0_18_gate.sh
-scripts/release_0_19_gate.sh
-scripts/release_0_20_gate.sh
-```
+Run `scripts/checks.sh` for the maintained local check suite. The complete
+pentest, CI, release-gate, tagging, and publication process is documented in
+the [release runbook](https://github.com/valkyoth/cloud-sdk/blob/main/docs/RELEASE_RUNBOOK.md).

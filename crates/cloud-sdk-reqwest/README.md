@@ -34,13 +34,16 @@ The crate remains no_std and transport-free by default. Its non-default
 `async-rustls` features provide reviewed HTTPS implementations for every
 provider without adding transport dependencies to provider crates.
 
-Most users should start with:
+## Install
 
 ```toml
 [dependencies]
 cloud-sdk = "0.24.0"
 cloud-sdk-reqwest = { version = "0.17.0", features = ["blocking-rustls"] }
 ```
+
+The examples use Hetzner as a concrete endpoint, but the adapter contains no
+provider-specific routing, authentication, or response logic.
 
 ## Blocking Example
 
