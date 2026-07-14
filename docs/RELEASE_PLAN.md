@@ -183,6 +183,7 @@ has not been assigned to a release.
 | Platform trust stores can be attacker-extended and aws-lc introduces native build-script, C, and assembly trust. | Documented for `v0.16.0`; FIPS transport lands in `v0.23.0`, followed by deterministic-root and native-build review in `v0.24.0`. |
 | Adding providers could multiply transport, testkit, sanitization, or API-family crates. | Enforced one primary crate per provider and provider-neutral shared boundaries in `v0.12.0`; release automation rejects nested `cloud-sdk-{provider}-{suffix}` packages. |
 | Safe endpoint models still require callers to assemble transport requests, status checks, response bounds, content-type checks, and decoding manually. | Add provider-neutral prepared-request policy in `v0.28.0`, complete prepared operations for the existing Hetzner surface in `v0.29.0`, and opt-in typed client workflows inside `cloud-sdk-hetzner` in `v0.30.0`. No nested Hetzner client crate is introduced. |
+| A provider-neutral custom HTTPS endpoint receives the configured credential and can exfiltrate it when its value is attacker-controlled. | Make custom endpoint trust explicit in `v0.27.0`, expose immutable credential-bound endpoint identity in `v0.28.0`, and require exact official Hetzner authority checks or explicit custom-endpoint acknowledgement in `v0.30.0`. |
 | Robot Webservice has different auth, encoding, and API shape than Cloud/DNS. | Assigned a separate source lock and twelve pre-1.0 implementation and hardening milestones from `v0.31.0` through `v0.42.0`. |
 | Legacy Robot Storage Box operations are deprecated and overlap the supported Console API. | The `v0.31.0` Robot matrix must mark all 16 legacy operations excluded and must not create a Robot Storage Box module. |
 | Repeated invalid Robot credentials can temporarily block the caller's source IP. | Basic credentials are type-separated and redacted in `v0.32.0`; `v0.41.0` live tests never submit intentionally invalid credentials. |
@@ -1096,6 +1097,12 @@ Deliverables:
 - API-matrix and README terminology consistently defines current `implemented`
   status as request-construction coverage, with a checked documentation
   regression test preventing capability claims from drifting ahead of code.
+- `cloud-sdk-reqwest` endpoint and client-builder documentation states that the
+  configured HTTPS endpoint receives the supplied credential and must never be
+  derived from tenant-controlled or otherwise untrusted input.
+- Generic endpoint construction and builder APIs receive a naming and semver
+  review so arbitrary credential-bearing destinations use a conspicuous custom
+  endpoint path; any rename or deprecation includes migration notes.
 - Pre-Robot semver audit and migration notes.
 - Examples and docs.rs output reviewed.
 - Release notes for known limitations carried into the Robot implementation
@@ -1106,6 +1113,8 @@ Verification:
 - `scripts/checks.sh`
 - `scripts/check_hetzner_api_drift.py --fetch`
 - `cargo public-api` or equivalent if admitted.
+- Documentation tests require the custom-endpoint credential warning beside
+  every blocking and async construction example.
 - `scripts/release_0_27_gate.sh` once added.
 
 Stop gate:
@@ -1137,6 +1146,13 @@ Deliverables:
 - Prepared-request construction and validation remain allocation-free and do
   not add networking, TLS, runtime, filesystem, clock, or credential storage to
   the default graph.
+- A provider-neutral bound-endpoint identity reports the transport's immutable,
+  normalized scheme, host, effective port, and base path without exposing
+  credentials; provider facades can compare it with source-owned official
+  endpoint constants before permitting execution.
+- Endpoint identity cannot be changed after credential binding, and prepared
+  requests carry their required provider service/base family so mismatched
+  transports fail before sending.
 - The execution contract sends exactly once. Core policy contains no implicit
   retry loop, delay, jitter, sleep, or retry default.
 - `cloud-sdk-testkit` records prepared-request metadata and can model missing,
@@ -1148,6 +1164,9 @@ Verification:
 - `scripts/checks.sh`
 - Default/no_std dependency-boundary checks.
 - Prepared-request invariant and adversarial response-policy tests.
+- Bound-endpoint identity tests cover host, subdomain, port, base-path, and
+  normalization mismatches and prove identity cannot be replaced after
+  credential binding.
 - Blocking and executor-neutral async transport conformance tests.
 - `scripts/release_0_28_gate.sh` once added.
 
@@ -1214,6 +1233,13 @@ Deliverables:
 - An opt-in `client` feature inside `cloud-sdk-hetzner`, generic over
   `BlockingTransport` or `AsyncTransport`; provider code never selects reqwest,
   TLS roots, an async executor, timeouts, credentials, or secret storage.
+- Safe Cloud/DNS and Console Storage Box constructors verify that the supplied
+  credential-bound transport exactly matches the corresponding official
+  Hetzner scheme, host, effective port, and base path before accepting it.
+- Arbitrary routing is available only through a visibly named
+  `with_custom_endpoint` path requiring explicit caller acknowledgement that
+  credentials will be sent to that endpoint; documentation forbids endpoint
+  values derived from tenant-controlled or otherwise untrusted input.
 - High-level operation methods prepare into bounded caller-owned storage, send
   exactly one request, enforce the prepared status/body/content-type policy,
   and decode the operation's typed success or Hetzner error envelope.
@@ -1244,6 +1270,12 @@ Verification:
 - Default/no_std, `client`, blocking, and async feature-matrix checks.
 - Complete mock happy-path and adversarial response tests for every endpoint
   response family.
+- Official-constructor tests reject lookalike hosts, subdomains, non-default
+  ports, altered base paths, user information, and custom endpoints before any
+  credential-bearing request is sent.
+- Custom-endpoint tests prove acknowledgement is mandatory and redirects,
+  cross-origin forwarding, proxies, and environment-derived routing stay
+  disabled.
 - Compile-checked blocking and executor-neutral async examples.
 - Credential-free live staging plus the existing opt-in read-only smoke suite.
 - `scripts/release_0_30_gate.sh` once added.
