@@ -143,6 +143,9 @@ Expected future candidates must be reviewed before use:
   platform claims without admitting a new crate or enabling a default feature.
 - `v0.21.0` adds compile-checked examples, docs.rs metadata, and documentation
   validation without admitting a new crate or enabling a default feature.
+- `v0.22.0` admits `libfuzzer-sys 0.4.13` only in an excluded, non-published
+  fuzz package under pinned nightly tooling. Published and default graphs are
+  unchanged.
 - Rustls FIPS and `aws-lc-fips-sys` are not admitted in v0.16.0. Their exact
   module version, certificate, operating environments, build chain, provider
   configuration, runtime verification, and feature graph are a dedicated

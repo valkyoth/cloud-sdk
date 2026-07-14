@@ -1,6 +1,6 @@
 # cloud-sdk 0.21.0 Release Notes
 
-Status: pentest passed with no findings; final release commit pending.
+Status: released.
 
 ## Overview
 

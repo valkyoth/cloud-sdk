@@ -16,6 +16,8 @@ trap 'rm -rf "$tmp"' EXIT
 cargo sbom --output-format spdx_json_2_3 >"$tmp/cloud-sdk.raw.json"
 cargo sbom --project-directory tests/reqwest-feature-unification \
     --output-format spdx_json_2_3 >"$tmp/reqwest-fixture.raw.json"
+cargo sbom --project-directory fuzz \
+    --output-format spdx_json_2_3 >"$tmp/fuzz.raw.json"
 
 canonicalize() {
     jq -S -f scripts/canonicalize-sbom.jq "$1" >"$2"
@@ -37,5 +39,6 @@ compare_sbom() {
 compare_sbom sbom/cloud-sdk.spdx.json "$tmp/cloud-sdk.raw.json" cloud-sdk
 compare_sbom sbom/reqwest-feature-unification.spdx.json \
     "$tmp/reqwest-fixture.raw.json" reqwest-feature-unification
+compare_sbom sbom/fuzz.spdx.json "$tmp/fuzz.raw.json" fuzz
 
-echo "SBOM freshness: committed evidence matches both dependency graphs"
+echo "SBOM freshness: committed evidence matches all three dependency graphs"

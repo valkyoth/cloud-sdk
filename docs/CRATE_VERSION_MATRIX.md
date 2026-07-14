@@ -1,7 +1,7 @@
 # Crate Version Matrix
 
-Status: `v0.21.0` pentest passed with no findings; final release commit pending.
-The latest published release is `v0.20.0`.
+Status: `v0.22.0` implementation stop reached; pentest required.
+The latest published release is `v0.21.0`.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
@@ -337,3 +337,19 @@ boundary crates patch-bump for the facade dependency.
 | `cloud-sdk-reqwest` | `0.15.2` | `0.15.3` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.21 facade line. |
 | `cloud-sdk-sanitization` | `0.13.6` | `0.13.7` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.21 facade line. |
 | `cloud-sdk-testkit` | `0.15.2` | `0.15.3` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.21 facade line. |
+
+## v0.22.0 Tracking Table
+
+`v0.22.0` adds an isolated fuzz package, six libFuzzer targets, source-derived
+seed inputs, deterministic adversarial regressions, and separately audited
+fuzz supply-chain evidence. The facade follows the tag, the Hetzner provider
+receives an independent code minor for response-boundary tests, and the neutral
+boundary crates patch-bump for the facade dependency.
+
+| Crate | Published | Planned | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.21.0` | `0.22.0` | `code` | Yes | Isolated fuzz harness, deterministic adversarial tests, and v0.22 release evidence. |
+| `cloud-sdk-hetzner` | `0.18.0` | `0.19.0` | `code` | Yes | Adversarial Serde response tests for malformed and oversized upstream inputs. |
+| `cloud-sdk-reqwest` | `0.15.3` | `0.15.4` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.22 facade line. |
+| `cloud-sdk-sanitization` | `0.13.7` | `0.13.8` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.22 facade line. |
+| `cloud-sdk-testkit` | `0.15.3` | `0.15.4` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.22 facade line. |

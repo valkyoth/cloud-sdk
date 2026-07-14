@@ -1,38 +1,38 @@
 [release]
-version = "0.21.0"
+version = "0.22.0"
 policy = "independent"
 
 [crates."cloud-sdk"]
-previous_version = "0.20.0"
-version = "0.21.0"
+previous_version = "0.21.0"
+version = "0.22.0"
 change = "code"
 publish = true
-reason = "Compile-checked quickstart, documentation gates, and v0.21 release evidence."
+reason = "Isolated fuzz harness, deterministic adversarial tests, and v0.22 release evidence."
 
 [crates."cloud-sdk-hetzner"]
-previous_version = "0.17.1"
-version = "0.18.0"
+previous_version = "0.18.0"
+version = "0.19.0"
 change = "code"
 publish = true
-reason = "Compile-checked Hetzner read-only, mutation, pagination, action, DNS, and Storage Box examples."
+reason = "Adversarial Serde response tests for malformed and oversized upstream inputs."
 
 [crates."cloud-sdk-reqwest"]
-previous_version = "0.15.2"
-version = "0.15.3"
+previous_version = "0.15.3"
+version = "0.15.4"
 change = "dependency"
 publish = true
-reason = "Update the cloud-sdk dependency to the v0.21 facade line."
+reason = "Update the cloud-sdk dependency to the v0.22 facade line."
 
 [crates."cloud-sdk-sanitization"]
-previous_version = "0.13.6"
-version = "0.13.7"
+previous_version = "0.13.7"
+version = "0.13.8"
 change = "dependency"
 publish = true
-reason = "Update the cloud-sdk dependency to the v0.21 facade line."
+reason = "Update the cloud-sdk dependency to the v0.22 facade line."
 
 [crates."cloud-sdk-testkit"]
-previous_version = "0.15.2"
-version = "0.15.3"
+previous_version = "0.15.3"
+version = "0.15.4"
 change = "dependency"
 publish = true
-reason = "Update the cloud-sdk dependency to the v0.21 facade line."
+reason = "Update the cloud-sdk dependency to the v0.22 facade line."

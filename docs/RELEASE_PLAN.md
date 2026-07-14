@@ -70,6 +70,8 @@ A version is not tag-ready until:
 - `sbom/cloud-sdk.spdx.json` exists and is non-empty;
 - `sbom/reqwest-feature-unification.spdx.json` exists and is non-empty when
   the standalone downstream fixture is present;
+- `sbom/fuzz.spdx.json` exists and is non-empty for the excluded fuzz tooling
+  graph;
 - `scripts/validate-release-readiness.sh vX.Y.Z` proves that the reviewed
   implementation commit is an ancestor of the final release commit;
 - shared readiness rejects modified tracked files and all untracked files;
@@ -842,7 +844,7 @@ v0.20.0 implementation stop reached. Run pentest for this exact commit.
 
 ### v0.21.0 - Documentation And Examples Hardening
 
-Status: pentest passed with no findings; final release commit pending.
+Status: tagged.
 
 Goal: make docs.rs examples, transport examples, security recipes, and release
 runbooks complete enough for real users.
@@ -873,24 +875,35 @@ v0.21.0 implementation stop reached. Run pentest for this exact commit.
 
 ### v0.22.0 - Fuzzing And Adversarial Tests
 
+Status: implementation stop reached; pentest required.
+
 Goal: fuzz request builders, parsers, validators, and response handling.
 
 Deliverables:
 
-- Fuzz targets for query/path builders, label selectors, DNS records,
-  pagination metadata, error envelopes, and action states.
-- Seed corpus from source-locked valid and invalid examples.
-- Crash reproduction process.
-- CI or release-gate build check for fuzz targets, without requiring long fuzz
-  runs in every CI job.
-- Adversarial tests for malformed upstream responses and oversized inputs.
+- Six isolated libFuzzer targets for fixed-buffer writers, request targets,
+  labels and DNS, pagination, action polling, and response envelopes.
+- Synthetic named seed corpus derived from source-locked valid and invalid
+  examples, with generated corpora and artifacts rejected from version control.
+- Pinned nightly Rust, cargo-fuzz, and libfuzzer-sys versions in an excluded,
+  non-published package with an independently audited lockfile and SBOM.
+- Documented long-run, exact crash replay, minimization, sanitization, and
+  deterministic-regression process.
+- Dedicated CI and release-gate build plus bounded seed replay, without
+  requiring unbounded fuzz campaigns in every CI job.
+- Exhaustive fixed-buffer JSON atomicity tests and adversarial Serde tests for
+  malformed, deeply nested, oversized, duplicate, overflowing, and
+  control-character upstream inputs.
 
 Verification:
 
 - `scripts/checks.sh`
-- Fuzz target build command documented in release notes.
+- `scripts/check_fuzz_harness.sh --build`
+- `scripts/check_fuzz_harness.sh --smoke`
 - `cargo test --workspace --all-features`
-- `scripts/release_0_22_gate.sh` once added.
+- Workspace, downstream fixture, and fuzz lockfile Cargo Deny/RustSec checks.
+- `scripts/check_sbom_freshness.sh`
+- `scripts/release_0_22_gate.sh`.
 
 Stop gate:
 

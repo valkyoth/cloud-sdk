@@ -93,6 +93,26 @@ jobs:
       - name: Check supported compiler
         run: scripts/check_rust_version_matrix.sh "${{ matrix.rust }}"
 
+  fuzz-build:
+    name: Fuzz targets
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Install pinned nightly
+        run: rustup toolchain install nightly-2026-07-13 --profile minimal
+
+      - name: Install cargo-fuzz
+        run: cargo install --locked cargo-fuzz --version 0.13.2
+
+      - name: Build and replay fuzz seeds
+        run: |
+          scripts/check_fuzz_harness.sh --build
+          scripts/check_fuzz_harness.sh --smoke
+
   checks:
     name: Format, lint, test, and audit
     runs-on: ubuntu-latest
@@ -123,12 +143,15 @@ jobs:
           cargo deny check
           cargo deny --manifest-path tests/reqwest-feature-unification/Cargo.toml \
             --config deny.toml --locked check advisories licenses sources
+          cargo deny --manifest-path fuzz/Cargo.toml \
+            --config deny.toml --locked check advisories licenses sources
 
       - name: Check RustSec advisories
         run: |
           cargo audit
           cargo audit --no-fetch \
             --file tests/reqwest-feature-unification/Cargo.lock
+          cargo audit --no-fetch --file fuzz/Cargo.lock
 
       - name: Check committed SBOM freshness
         run: scripts/check_sbom_freshness.sh

@@ -61,6 +61,10 @@
   caller-CWD path confusion, or replacement between hashing and execution;
 - an accidentally enabled live or destructive test creating billable resources
   in CI or a production project;
+- fuzz seeds, generated corpora, or crash artifacts capturing credentials,
+  production responses, or private infrastructure data;
+- fuzz-only nightly, native build, or sanitizer dependencies leaking into a
+  published or default SDK graph;
 
 ## Controls
 
@@ -125,4 +129,8 @@
 - destructive live execution is absent; its documented future plan requires a
   separate command, dedicated project and token, unique prefix, explicit cost
   review, cleanup on every path, and post-run inventory verification;
+- the fuzz harness is excluded and non-published, uses a separate lockfile,
+  calls only pure SDK boundaries, admits synthetic seeds, rejects tracked
+  generated corpora/artifacts, bounds smoke inputs and time, and compiles under
+  a separately pinned nightly without changing stable crate support;
 - pentest report before every tag.

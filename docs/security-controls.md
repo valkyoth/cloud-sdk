@@ -7,9 +7,10 @@
 | default transport dependency | none |
 | default token storage | none |
 | dependency policy | active |
-| SBOM generation | scripted for the production workspace and standalone executable test/tooling graphs; canonical freshness comparison is required in CI and release gates |
+| SBOM generation | scripted for the production workspace, reqwest feature-unification fixture, and fuzz tooling graph; canonical freshness comparison is required in CI and release gates |
 | cargo audit | required before tags |
 | cargo deny | required before tags |
+| fuzzing | six isolated non-published libFuzzer targets; pinned nightly and cargo-fuzz; synthetic tracked seeds; temporary writable smoke corpora; deterministic regressions remain authoritative |
 | pentest before tags | required |
 | pentest content binding | report records an exact reviewed implementation commit that must be an ancestor of the final GitHub-validated release commit |
 | pentest provenance | committed report with required PASS, reviewed commit, tester, scope, and date fields |

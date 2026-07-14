@@ -20,13 +20,18 @@ Compatibility must be maintained for:
 runs each version as an independent fail-fast-disabled matrix job so one failure
 does not hide results from the remaining supported compilers.
 
-Pinned release tools, checked against crates.io on 2026-07-13:
+Pinned release tools, checked against crates.io on 2026-07-14:
 
 | Tool | Version |
 | --- | --- |
 | `cargo-deny` | `0.20.2` |
 | `cargo-audit` | `0.22.2` |
 | `cargo-sbom` | `0.10.0` |
+| `cargo-fuzz` | `0.13.2` |
+
+The non-published fuzz harness separately pins
+`nightly-2026-07-13` and `libfuzzer-sys 0.4.13`. Nightly is never used to
+compile or test the supported published-crate matrix.
 
 SBOM freshness checks also require `jq` `1.6` or newer. CI uses the runner's
 system package; the canonicalization filter is covered by repository tests and

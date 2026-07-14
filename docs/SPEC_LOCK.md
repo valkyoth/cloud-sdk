@@ -233,6 +233,25 @@ Publishable crate READMEs remain rustdoc inputs and run under the all-feature
 workspace doctest gate. Repository-local Markdown and HTML link targets are
 validated without fetching unauthenticated external content.
 
+## v0.22.0 Fuzz Evidence Policy
+
+The v0.22 fuzz harness exercises only source-locked request construction,
+validation, pagination, action, and response-envelope behavior. A successful
+campaign is evidence for explored inputs, not a new API coverage claim and not
+proof that defects are absent.
+
+Nightly Rust, cargo-fuzz, libfuzzer-sys, generated corpora, and crash artifacts
+remain outside every published crate and supported stable compiler graph. The
+excluded `fuzz/` package has a pinned toolchain, independent lockfile, Cargo
+Deny and RustSec checks, and a separate SBOM. Committed seeds are synthetic and
+named; they must not contain credentials, production responses, customer data,
+or billable resource identifiers.
+
+CI and the release gate build every target and replay bounded copies of the
+reviewed seeds. Longer campaigns and crash minimization remain explicit local
+operations. Every confirmed defect must become a deterministic regression test
+in the owning published crate before release.
+
 ## Deferred Scope
 
 Robot Webservice is explicitly deferred until after the Cloud/DNS SDK reaches

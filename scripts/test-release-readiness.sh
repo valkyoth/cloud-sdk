@@ -44,6 +44,7 @@ write_sbom() {
     printf '{"spdxVersion":"SPDX-2.3"}\n' >sbom/cloud-sdk.spdx.json
     printf '{"spdxVersion":"SPDX-2.3"}\n' \
         >sbom/reqwest-feature-unification.spdx.json
+    printf '{"spdxVersion":"SPDX-2.3"}\n' >sbom/fuzz.spdx.json
 }
 
 write_pentest() {
@@ -136,6 +137,19 @@ repo="$(make_fixture missing-fixture-sbom)"
         scripts/validate-release-readiness.sh "v0.2.0"
 )
 
+repo="$(make_fixture missing-fuzz-sbom)"
+(
+    cd "$repo"
+    write_release_notes "0.2.0"
+    printf '{"spdxVersion":"SPDX-2.3"}\n' >sbom/cloud-sdk.spdx.json
+    printf '{"spdxVersion":"SPDX-2.3"}\n' \
+        >sbom/reqwest-feature-unification.spdx.json
+    git add release-notes sbom
+    git commit -q -m "partial release metadata"
+    assert_fails_with "missing or empty SBOM: sbom/fuzz.spdx.json" \
+        scripts/validate-release-readiness.sh "v0.2.0"
+)
+
 repo="$(make_fixture uncommitted-report)"
 (
     cd "$repo"
@@ -211,4 +225,4 @@ repo="$(make_fixture ready)"
     scripts/validate-release-readiness.sh "v0.2.0"
 )
 
-echo "14 release readiness tests passed."
+echo "15 release readiness tests passed."

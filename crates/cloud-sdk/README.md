@@ -97,6 +97,9 @@ Implemented now:
 - Compile-checked provider-neutral and Hetzner workflow examples, complete
   crate feature tables, security recipes, a release runbook, doctest checks,
   and tested repository-local documentation-link validation.
+- Six isolated libFuzzer targets with synthetic source-derived seeds,
+  deterministic adversarial regressions, and a documented
+  [crash-reproduction workflow](https://github.com/valkyoth/cloud-sdk/blob/main/docs/FUZZING.md).
 - Local checks for formatting, linting, tests, no_std policy, modularity, and
   file length.
 - MIT OR Apache-2.0 license.
@@ -189,8 +192,8 @@ Not implemented yet:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.21.0"
-cloud-sdk-hetzner = "0.18.0"
+cloud-sdk = "0.22.0"
+cloud-sdk-hetzner = "0.19.0"
 ```
 
 ## Features
@@ -249,8 +252,8 @@ The core contracts perform no I/O and select no executor. Use
 
 ```toml
 [dependencies]
-cloud-sdk = "0.21.0"
-cloud-sdk-reqwest = { version = "0.15.3", features = ["blocking-rustls"] }
+cloud-sdk = "0.22.0"
+cloud-sdk-reqwest = { version = "0.15.4", features = ["blocking-rustls"] }
 ```
 
 ```rust,ignore
@@ -316,8 +319,8 @@ not implemented in v0.19.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.21.0"
-cloud-sdk-reqwest = { version = "0.15.3", features = ["async-rustls"] }
+cloud-sdk = "0.22.0"
+cloud-sdk-reqwest = { version = "0.15.4", features = ["async-rustls"] }
 ```
 
 ```rust,ignore

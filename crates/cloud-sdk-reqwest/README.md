@@ -38,8 +38,8 @@ Most users should start with:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.21.0"
-cloud-sdk-reqwest = { version = "0.15.3", features = ["blocking-rustls"] }
+cloud-sdk = "0.22.0"
+cloud-sdk-reqwest = { version = "0.15.4", features = ["blocking-rustls"] }
 ```
 
 ## Blocking Example

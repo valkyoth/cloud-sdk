@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.22.0 - 2026-07-14
+
+- Added six isolated libFuzzer targets for fixed-buffer writers, request
+  targets, labels and DNS, pagination, action polling, and response envelopes.
+- Added synthetic source-derived seed corpora and rejected generated corpora
+  or crash artifacts from tracked release inputs.
+- Pinned the fuzz nightly, cargo-fuzz, and libfuzzer-sys toolchain in an
+  excluded non-published package with an independent lockfile.
+- Added bounded CI seed replay and a documented long-run, crash replay,
+  minimization, sanitization, and deterministic-regression workflow.
+- Added exhaustive undersized-buffer JSON atomicity tests and adversarial
+  Serde regressions for malformed, nested, oversized, duplicate, overflowing,
+  and control-character upstream inputs.
+- Added separate Cargo Deny, RustSec, and SPDX SBOM evidence for the fuzz graph.
+- Added the `v0.22.0` release gate and independent crate version plan.
+
 ## 0.21.0 - 2026-07-14
 
 - Added a provider-neutral executable quickstart and six compile-checked

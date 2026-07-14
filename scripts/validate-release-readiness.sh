@@ -54,6 +54,11 @@ if [ ! -s sbom/reqwest-feature-unification.spdx.json ]; then
     exit 1
 fi
 
+if [ ! -s sbom/fuzz.spdx.json ]; then
+    echo "missing or empty SBOM: sbom/fuzz.spdx.json" >&2
+    exit 1
+fi
+
 if [ ! -f "$pentest_report" ]; then
     echo "missing pentest report: ${pentest_report}" >&2
     exit 1
