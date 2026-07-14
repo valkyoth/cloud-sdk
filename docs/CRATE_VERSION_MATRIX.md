@@ -1,6 +1,6 @@
 # Crate Version Matrix
 
-Status: `v0.25.0` implementation is in progress; pentest is required.
+Status: `v0.25.0` pentest and retest passed; final release checks are pending.
 The latest published release is `v0.24.0`.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as

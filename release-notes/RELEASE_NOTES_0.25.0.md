@@ -91,6 +91,9 @@ No retired provider-specific helper crate is published.
 
 ## Security Review
 
-The implementation is ready for the v0.25 pentest. Tagging remains blocked
-until the permanent pentest report, full release checks, GitHub CI, CodeQL
-default setup, and the clean versioned release gate pass.
+The v0.25 pentest and retest passed with no security finding requiring
+remediation. Two non-vulnerability observations confirmed the bounded Python
+socket timeout behavior and the read-only workflow's fail-closed upstream trust
+boundary. The permanent report is stored at
+`security/pentest/v0.25.0.md`. Tagging remains blocked until the full release
+checks, GitHub CI, CodeQL default setup, and clean versioned release gate pass.
