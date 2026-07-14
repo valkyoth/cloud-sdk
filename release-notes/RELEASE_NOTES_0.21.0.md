@@ -42,6 +42,11 @@ code examples and external URLs, validates every local Markdown and HTML link
 on a line, rejects missing targets, and rejects paths escaping the repository.
 Regression tests cover each security-relevant branch.
 
+The final lockfiles refresh existing transitive dependencies to
+`simd_cesu8 1.2.0` and `socket2 0.6.5`. The all-target transport boundary
+continues to keep broad Windows dependency ranges on `windows-sys 0.61`; only
+the target-specific `ring` dependency retains its required `0.52` line.
+
 ## Version Plan
 
 - `cloud-sdk` publishes code/documentation release `0.21.0`.

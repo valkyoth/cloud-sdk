@@ -14,6 +14,8 @@
   including regression tests for multiple links, missing targets, fenced
   examples, and repository traversal.
 - Added an explicit all-feature workspace doctest gate to normal checks.
+- Refreshed locked transitive dependencies to `simd_cesu8 1.2.0` and
+  `socket2 0.6.5` while preserving the legacy Windows dependency boundary.
 - Added the `v0.21.0` release gate and independent crate version plan.
 
 ## 0.20.0 - 2026-07-13
