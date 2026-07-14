@@ -171,7 +171,8 @@ has not been assigned to a release.
 | Gap | Resolution |
 | --- | --- |
 | The original prompt omitted Storage Box operations even though Hetzner's current spec includes them. | Added Storage Boxes to `v0.2.0` source lock and scheduled implementation in `v0.9.0`. |
-| Deprecated datacenter endpoints exist in the spec but should not become accidental public commitments. | Tracked as `deferred-deprecated` in `docs/API_MATRIX.md`; final deprecated-endpoint policy lands in `v0.26.0`. |
+| Five non-deprecated global and certificate action queries remain `planned` after the resource-family implementation passes. | Assigned all five operations and a zero-planned-non-deprecated matrix gate to `v0.26.0`. |
+| Deprecated datacenter endpoints exist in the spec but should not become accidental public commitments. | Tracked as `deferred-deprecated` in `docs/API_MATRIX.md`; final deprecated-endpoint policy lands in `v0.27.0`. |
 | Resource-local action lookups are deprecated upstream but still present in the spec. | Tracked as `deferred-deprecated`; action helper policy lands in `v0.18.0`. |
 | API drift could otherwise be missed between endpoint implementation passes. | Added operation and schema fingerprints in `v0.2.0`; recurring maintenance hardening lands in `v0.25.0`. |
 | Optional serde support can break no_std/default graph expectations. | Scheduled as a dedicated boundary in `v0.14.0`. |
@@ -1033,7 +1034,46 @@ Stop gate:
 v0.25.0 implementation stop reached. Run pentest for this exact commit.
 ```
 
-### v0.26.0 - Release Candidate Cleanup
+### v0.26.0 - Complete Non-Deprecated Endpoint Coverage
+
+Goal: implement every remaining non-deprecated Hetzner Cloud/DNS and Storage
+Box request operation so the source-locked API matrix reaches 100% claimed
+endpoint coverage without exposing deprecated operations.
+
+Deliverables:
+
+- Global action request support for `GET /actions`, including the required
+  action-ID filter and bounded repeated query encoding.
+- Global action lookup support for `GET /actions/{id}`.
+- Certificate action request support for `GET /certificates/actions` with
+  pagination and sorting.
+- Certificate action lookup support for `GET /certificates/actions/{id}`.
+- Per-certificate action list support for `GET /certificates/{id}/actions`
+  with pagination and sorting.
+- Focused endpoint, query, pagination, sorting, buffer-boundary, and
+  adversarial tests for all five operations.
+- API-matrix validation that fails unless every non-deprecated operation is
+  implemented and no `planned` non-deprecated row remains.
+- README and operation-level documentation updated from partial to complete
+  endpoint coverage.
+- Deprecated resource-local action lookups and datacenter endpoints remain
+  `deferred-deprecated` and are not added to the public API.
+
+Verification:
+
+- `scripts/checks.sh`
+- `scripts/check_hetzner_api_drift.py --fetch`
+- Zero-planned-non-deprecated API-matrix regression check.
+- Focused global-action and certificate-action request tests.
+- `scripts/release_0_26_gate.sh` once added.
+
+Stop gate:
+
+```text
+v0.26.0 implementation stop reached. Run pentest for this exact commit.
+```
+
+### v0.27.0 - Release Candidate Cleanup
 
 Goal: finish public API review, deprecation policy, examples, docs, and
 semver-readiness audit before 1.0.
@@ -1052,12 +1092,12 @@ Verification:
 - `scripts/checks.sh`
 - `scripts/check_hetzner_api_drift.py --fetch`
 - `cargo public-api` or equivalent if admitted.
-- `scripts/release_0_26_gate.sh` once added.
+- `scripts/release_0_27_gate.sh` once added.
 
 Stop gate:
 
 ```text
-v0.26.0 implementation stop reached. Run pentest for this exact commit.
+v0.27.0 implementation stop reached. Run pentest for this exact commit.
 ```
 
 ### v1.0.0 - Production SDK

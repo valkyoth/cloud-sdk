@@ -91,7 +91,8 @@ firewall, and vSwitch operations.
    pagination, sorting, error envelopes, rate-limit metadata, and action states.
 3. Catalog/read-only resources: locations, pricing, server types, load balancer
    types, ISOs, image list/get.
-4. Security resources: SSH keys and certificates with redaction and validation.
+4. Security resources: SSH keys and certificates with redaction and validation,
+   including all non-deprecated certificate action queries.
 5. Storage Box source lock: verify exact current groups and operations from the
    official source because this area was discovered from the 2026 changelog.
 6. Compute resources: servers, server metrics, server actions, images,
@@ -102,15 +103,17 @@ firewall, and vSwitch operations.
 9. Optional transport: request builder, auth injection, response parsing,
    pagination streams, action polling, retry/rate-limit policy, and a dedicated
    fail-closed FIPS blocking mode in `v0.23.0`.
-10. Integration evidence: mock transport, recorded fixtures, and a live-test
+10. Endpoint completion: global action lookup/list requests, certificate action
+   lookup/list requests, and a zero-planned-non-deprecated matrix gate.
+11. Integration evidence: mock transport, recorded fixtures, and a live-test
    harness with separate credential-free staging, privileged root sealing, and
    authenticated open-descriptor execution phases.
-11. 1.0 hardening: docs, examples, fuzzing, mutation/adversarial tests, SBOM,
+12. 1.0 hardening: docs, examples, fuzzing, mutation/adversarial tests, SBOM,
    pentest, dependency audit, and platform matrix.
-12. Post-1.0 Robot Webservice: separate source lock, Basic Auth policy,
+13. Post-1.0 Robot Webservice: separate source lock, Basic Auth policy,
    form-encoded request model, Robot-specific errors/rate limits, and
    dedicated-server operation modules exposed through the SDK.
-13. Future providers: add provider crates such as `cloud-sdk-cloudflare` only
+14. Future providers: add provider crates such as `cloud-sdk-cloudflare` only
    after the provider's official API source, auth model, transport expectations,
    and test strategy are documented.
 

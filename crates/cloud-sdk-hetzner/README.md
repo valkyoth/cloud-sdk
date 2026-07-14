@@ -66,20 +66,23 @@ Security-sensitive transport decisions are covered by the
 
 | Hetzner API area | Coverage |
 | --- | --- |
-| Global actions | Partial: response and polling models are supported; list/get requests are planned |
+| Global actions | Partial: response and polling models are supported; list/get requests are planned for v0.26.0 |
 | Servers, images, ISOs, placement groups, and primary IPs | Supported |
 | Volumes and floating IPs | Supported |
 | Firewalls, load balancers, and networks | Supported |
 | DNS zones and RRSets | Supported |
-| Certificates and SSH keys | Partial: CRUD and certificate retry are supported; certificate action queries are planned |
+| Certificates and SSH keys | Partial: CRUD and certificate retry are supported; certificate action queries are planned for v0.26.0 |
 | Storage Boxes, snapshots, and subaccounts | Supported |
 | Locations, server types, load balancer types, and pricing | Supported |
 
 The API matrix tracks five remaining non-deprecated request operations: two
-global action queries and three certificate action queries. Shared action,
-error, and pagination responses have reviewed optional Serde support.
-Resource-specific response models and a high-level client that combines
-requests, transport, and decoding are not yet complete; see the
+global action queries and three certificate action queries. The v0.26.0
+milestone implements all five and adds a zero-planned-non-deprecated matrix
+gate, reaching 100% coverage of source-locked non-deprecated request
+operations. Shared action, error, and pagination responses have reviewed
+optional Serde support. Resource-specific response models and a high-level
+client that combines requests, transport, and decoding are not yet complete;
+see the
 [API matrix](https://github.com/valkyoth/cloud-sdk/blob/main/docs/API_MATRIX.md)
 for operation-level status.
 
