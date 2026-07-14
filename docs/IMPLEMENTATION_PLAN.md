@@ -76,7 +76,7 @@ stops until the difference is documented and versioned.
 
 The Robot Webservice source is <https://robot.hetzner.com/doc/webservice/en.html>.
 Robot is part of the 1.0 Hetzner claim, but it must be source-locked separately
-in `v0.28.0` before implementation because it uses a different base URL,
+in `v0.31.0` before implementation because it uses a different base URL,
 HTTP Basic Auth, form encoding, errors, and rate limits. Deprecated Robot
 Storage Box operations are excluded; their supported replacement is the
 Console Storage Box API already owned by `cloud-sdk-hetzner::storage`.
@@ -105,17 +105,23 @@ Console Storage Box API already owned by `cloud-sdk-hetzner::storage`.
 11. Integration evidence: mock transport, recorded fixtures, and a live-test
    harness with separate credential-free staging, privileged root sealing, and
    authenticated open-descriptor execution phases.
-12. Robot Webservice foundation and implementation: separate source lock,
+12. Secure high-level workflows: provider-neutral prepared-request and
+   response-policy contracts, complete prepared operations for the existing
+   Hetzner surface, and an opt-in generic typed client in `v0.28.0` through
+   `v0.30.0`. The default provider graph remains transport-free, requests send
+   once unless an explicit caller policy permits retry, and no nested Hetzner
+   client crate is introduced.
+13. Robot Webservice foundation and implementation: separate source lock,
    Basic Auth policy, form-encoded requests, Robot-specific errors and rate
    limits, dedicated-server operations, and explicit exclusion of deprecated
-   Robot Storage Box endpoints in `v0.28.0` through `v0.37.0`.
-13. Robot integration and hardening: high-level client workflows, mock and
+   Robot Storage Box endpoints in `v0.31.0` through `v0.40.0`.
+14. Robot integration and hardening: high-level client workflows, mock and
    carefully gated live evidence, fuzzing, complete active-operation coverage,
-   and security review in `v0.38.0` and `v0.39.0`.
-14. 1.0 hardening: complete Cloud, DNS, Console Storage Box, and Robot docs,
+   and security review in `v0.41.0` and `v0.42.0`.
+15. 1.0 hardening: complete Cloud, DNS, Console Storage Box, and Robot docs,
    examples, mutation/adversarial tests, SBOM, pentest, dependency audit, and
    platform matrix.
-15. Future providers: add provider crates such as `cloud-sdk-cloudflare` only
+16. Future providers: add provider crates such as `cloud-sdk-cloudflare` only
    after the provider's official API source, auth model, transport expectations,
    and test strategy are documented.
 

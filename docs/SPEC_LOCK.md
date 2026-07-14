@@ -268,7 +268,7 @@ reference is:
 
 - <https://robot.hetzner.com/doc/webservice/en.html>
 
-`v0.28.0` must pin Robot separately before any Robot operation is implemented.
+`v0.31.0` must pin Robot separately before any Robot operation is implemented.
 The lock must distinguish active operations from deprecated alternatives and
 exclude the deprecated Robot Storage Box family, whose supported replacement
 is already tracked by the Console Storage Box source.

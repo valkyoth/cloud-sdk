@@ -294,7 +294,7 @@ deferred.
 Robot Webservice is required for the full Hetzner 1.0 SDK. It will be tracked
 in a separate source-locked Robot matrix because it uses a different base URL,
 authentication model, request encoding, and resource set. The current official
-reference documents 105 operation headings; the `v0.28.0` source-lock pass must
+reference documents 105 operation headings; the `v0.31.0` source-lock pass must
 confirm the expected 89 active operations after excluding all 16 deprecated
 Robot Storage Box operations.
 
@@ -302,17 +302,17 @@ Robot implementation schedule:
 
 | Group | Planned Module | Status |
 | --- | --- | --- |
-| server | `cloud_sdk_hetzner::robot::server` | `v0.30.0` |
-| IP | `cloud_sdk_hetzner::robot::ip` | `v0.31.0` |
-| subnet | `cloud_sdk_hetzner::robot::subnet` | `v0.31.0` |
-| reset | `cloud_sdk_hetzner::robot::reset` | `v0.32.0` |
-| failover | `cloud_sdk_hetzner::robot::failover` | `v0.32.0` |
-| wake on LAN | `cloud_sdk_hetzner::robot::wol` | `v0.32.0` |
-| boot configuration | `cloud_sdk_hetzner::robot::boot` | `v0.33.0` |
-| reverse DNS | `cloud_sdk_hetzner::robot::rdns` | `v0.34.0` |
-| traffic | `cloud_sdk_hetzner::robot::traffic` | `v0.34.0` |
-| SSH keys | `cloud_sdk_hetzner::robot::ssh_keys` | `v0.34.0` |
-| firewall | `cloud_sdk_hetzner::robot::firewall` | `v0.35.0` |
-| vSwitch | `cloud_sdk_hetzner::robot::vswitch` | `v0.35.0` |
-| server ordering | `cloud_sdk_hetzner::robot::ordering` | `v0.36.0` read-only; `v0.37.0` mutations |
+| server | `cloud_sdk_hetzner::robot::server` | `v0.33.0` |
+| IP | `cloud_sdk_hetzner::robot::ip` | `v0.34.0` |
+| subnet | `cloud_sdk_hetzner::robot::subnet` | `v0.34.0` |
+| reset | `cloud_sdk_hetzner::robot::reset` | `v0.35.0` |
+| failover | `cloud_sdk_hetzner::robot::failover` | `v0.35.0` |
+| wake on LAN | `cloud_sdk_hetzner::robot::wol` | `v0.35.0` |
+| boot configuration | `cloud_sdk_hetzner::robot::boot` | `v0.36.0` |
+| reverse DNS | `cloud_sdk_hetzner::robot::rdns` | `v0.37.0` |
+| traffic | `cloud_sdk_hetzner::robot::traffic` | `v0.37.0` |
+| SSH keys | `cloud_sdk_hetzner::robot::ssh_keys` | `v0.37.0` |
+| firewall | `cloud_sdk_hetzner::robot::firewall` | `v0.38.0` |
+| vSwitch | `cloud_sdk_hetzner::robot::vswitch` | `v0.38.0` |
+| server ordering | `cloud_sdk_hetzner::robot::ordering` | `v0.39.0` read-only; `v0.40.0` mutations |
 | legacy storage box | existing Console Storage Box modules | excluded: deprecated upstream |
