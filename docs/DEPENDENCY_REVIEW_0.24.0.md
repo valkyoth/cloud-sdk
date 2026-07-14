@@ -60,11 +60,15 @@ The lockfile authenticates the crates.io archives with these SHA-256 checksums:
 | `aws-lc-sys 0.42.0` | `6d9ceb1da931507a12f4fccea479dccd00da1943e1b4ae72d8e502d707361444` |
 | `aws-lc-fips-sys 0.13.15` | `6c0e6249c249b8916c98ebae7bc06216c8dcab3002f32872b4abe642d17063b1` |
 
-Repository checks force `AWS_LC_FIPS_SYS_USE_SYSTEM=0`, so automatic system
-module discovery cannot replace the authenticated bundled source. The build
-still executes upstream Rust build scripts and native C/C++/assembly tooling.
-FIPS additionally requires CMake and Go; Perl and bindgen/libclang may be
-required by the target and build path.
+Every maintained native check and release entry point sources a shared policy
+that forces both `AWS_LC_SYS_USE_SYSTEM=0` and
+`AWS_LC_FIPS_SYS_USE_SYSTEM=0`. It rejects
+target-qualified variants because those take precedence over the generic
+controls. Automatic system module discovery therefore cannot replace either
+authenticated bundled source in repository checks. The build still executes
+upstream Rust build scripts and native C/C++/assembly tooling. FIPS
+additionally requires CMake and Go; Perl and bindgen/libclang may be required
+by the target and build path.
 
 The repository pins the FIPS CI operating-system image to `ubuntu-22.04`, but
 GitHub-hosted image tools are mutable and are not byte-pinned. Production and

@@ -1,8 +1,11 @@
 #!/usr/bin/env sh
 set -eu
 
+. scripts/enforce_bundled_aws_lc.sh
+
 cargo fmt --all --check
 scripts/check_shell_syntax.sh
+scripts/test-aws-lc-build-policy.py
 scripts/check_doc_links.sh
 scripts/test-doc-links.py
 scripts/test-live-smoke-wrapper.py

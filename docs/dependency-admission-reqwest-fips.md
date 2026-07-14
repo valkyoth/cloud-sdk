@@ -78,9 +78,11 @@ linker, and target-appropriate bindings. Targets without pregenerated bindings
 also require libclang/bindgen. These tools execute before application runtime
 and are part of the trusted build boundary.
 
-The upstream build script can discover a system AWS-LC installation through
-AWS-LC, OpenSSL, or pkg-config environment settings. Repository checks set
-`AWS_LC_FIPS_SYS_USE_SYSTEM=0`, forcing the Cargo-authenticated bundled source.
+The upstream build scripts can discover system AWS-LC installations through
+AWS-LC, OpenSSL, or pkg-config environment settings. Repository build entry
+points force `AWS_LC_SYS_USE_SYSTEM=0` and
+`AWS_LC_FIPS_SYS_USE_SYSTEM=0`, and reject target-qualified variants that
+would take precedence. This forces both Cargo-authenticated bundled sources.
 Applications intentionally using a system module must independently pin and
 verify its library, bindings, FIPS mode, loader path, version, and approved
 operating environment. The repository does not test or certify that mode.

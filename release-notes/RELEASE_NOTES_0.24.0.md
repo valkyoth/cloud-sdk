@@ -32,6 +32,11 @@ SBOM coverage, and the trust placed in native build scripts and C/C++/assembly
 tools. The build-only `shlex 1.3.0`/`2.0.1` duplicate remains necessary for
 bindgen and cc and has no runtime path.
 
+All maintained repository checks that can compile AWS-LC force bundled
+ordinary and FIPS sources. Target-qualified system-library controls are
+rejected because they take precedence over generic controls; regression tests
+bind this policy to standalone checks and the release gate.
+
 The FIPS CI job remains pinned to Ubuntu 22.04, but hosted image tools are
 mutable. This release does not claim byte-for-byte native reproducibility;
 production and offline builders must pin an immutable toolchain image and

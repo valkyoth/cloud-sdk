@@ -1,6 +1,8 @@
 #!/usr/bin/env sh
 set -eu
 
+. scripts/enforce_bundled_aws_lc.sh
+
 default_tree=$(cargo tree -p cloud-sdk-reqwest --no-default-features --edges normal)
 default_dependencies=$(printf '%s\n' "$default_tree" | sed '1d')
 if ! printf '%s\n' "$default_tree" | grep -Fq 'cloud-sdk v0.24.0'; then

@@ -3,6 +3,7 @@ set -eu
 
 root_dir="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd -P)"
 cd "$root_dir"
+. scripts/enforce_bundled_aws_lc.sh
 
 portable_targets="
 x86_64-unknown-linux-gnu

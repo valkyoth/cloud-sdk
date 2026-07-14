@@ -190,6 +190,9 @@ absence of native TLS and decompression dependencies, direct-zeroize
 exclusion, hardened builder policy, adversarial HTTP/2/Hickory feature
 unification, focused tests, fixture lockfile policy and audit coverage,
 package verification, the FIPS graph, and runtime FIPS status.
+Every entry point that can compile AWS-LC also sources the shared bundled-build
+policy, which rejects target-qualified system-library overrides and forces the
+ordinary and FIPS generic system controls off.
 The release gate additionally runs the full workspace checks, MSRV
 matrix, cargo-deny, cargo-audit, upstream API drift checks, and pentest evidence
 validation.

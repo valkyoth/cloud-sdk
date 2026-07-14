@@ -3,7 +3,7 @@ set -eu
 
 root="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
 cd "$root"
-export AWS_LC_FIPS_SYS_USE_SYSTEM=0
+. scripts/enforce_bundled_aws_lc.sh
 
 package_id="$(cargo pkgid -p cloud-sdk-reqwest)"
 package_version="${package_id##*#}"

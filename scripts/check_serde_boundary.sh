@@ -1,6 +1,8 @@
 #!/usr/bin/env sh
 set -eu
 
+. scripts/enforce_bundled_aws_lc.sh
+
 default_tree=$(cargo tree -p cloud-sdk-hetzner --no-default-features --edges normal,build)
 if printf '%s\n' "$default_tree" | grep -Eq '(^|[[:space:]])serde(_json)? v'; then
     echo "serde boundary: serde entered the default normal graph" >&2

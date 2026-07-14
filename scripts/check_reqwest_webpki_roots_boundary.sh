@@ -1,6 +1,8 @@
 #!/usr/bin/env sh
 set -eu
 
+. scripts/enforce_bundled_aws_lc.sh
+
 roots_tree="$(
     cargo tree -p cloud-sdk-reqwest --no-default-features \
         --features blocking-rustls-webpki-roots --edges normal

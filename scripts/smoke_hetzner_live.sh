@@ -30,6 +30,7 @@ fi
 script_dir="$(CDPATH= cd -- "$script_dir" && pwd -P)" || exit 1
 repo_root="$(CDPATH= cd -- "$script_dir/.." && pwd -P)" || exit 1
 cd "$repo_root"
+. scripts/enforce_bundled_aws_lc.sh
 
 artifact_dir="$repo_root/target/cloud-sdk-live-smoke"
 staging_dir="$artifact_dir/staging"

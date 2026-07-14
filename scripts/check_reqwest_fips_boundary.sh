@@ -1,6 +1,8 @@
 #!/usr/bin/env sh
 set -eu
 
+. scripts/enforce_bundled_aws_lc.sh
+
 scripts/check_fips_manifest.py
 
 fips_tree="$(
@@ -28,7 +30,7 @@ if printf '%s\n' "$fips_tree" | grep -Eq \
     exit 1
 fi
 
-AWS_LC_FIPS_SYS_USE_SYSTEM=0 cargo test -p cloud-sdk-reqwest --no-default-features \
+cargo test -p cloud-sdk-reqwest --no-default-features \
     --features blocking-rustls-fips
-AWS_LC_FIPS_SYS_USE_SYSTEM=0 cargo check -p cloud-sdk-reqwest --no-default-features \
+cargo check -p cloud-sdk-reqwest --no-default-features \
     --features blocking-rustls,blocking-rustls-fips
