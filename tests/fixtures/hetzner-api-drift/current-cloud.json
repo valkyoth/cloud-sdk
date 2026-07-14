@@ -1,0 +1,49 @@
+{
+  "openapi": "3.1.0",
+  "paths": {
+    "/changed": {
+      "post": {
+        "operationId": "change_resource",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {"type": "string", "maxLength": 32}
+            }
+          }
+        },
+        "responses": {"200": {"description": "Changed response"}},
+        "tags": ["fixtures"]
+      }
+    },
+    "/deprecated": {
+      "get": {
+        "deprecated": true,
+        "operationId": "deprecated_resource",
+        "responses": {"200": {"description": "Deprecated response"}},
+        "tags": ["fixtures"]
+      }
+    },
+    "/new": {
+      "put": {
+        "operationId": "add_resource",
+        "responses": {"201": {"description": "Added response"}},
+        "tags": ["fixtures"]
+      }
+    },
+    "/stable": {
+      "get": {
+        "description": "New prose that must not cause drift",
+        "operationId": "stable_resource",
+        "responses": {"200": {"description": "Stable response"}},
+        "tags": ["fixtures"]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Added": {"type": "boolean"},
+      "Changed": {"type": "string", "maxLength": 20},
+      "Stable": {"type": "string", "description": "New prose"}
+    }
+  }
+}

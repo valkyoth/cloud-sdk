@@ -8,15 +8,15 @@ usable in `no_std` environments.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.24.0"
+cloud-sdk = "0.25.0"
 ```
 
 Provider-specific request models are separate dependencies. For Hetzner:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.24.0"
-cloud-sdk-hetzner = "0.19.2"
+cloud-sdk = "0.25.0"
+cloud-sdk-hetzner = "0.19.3"
 ```
 
 ## Build A Transport Request

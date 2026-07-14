@@ -13,6 +13,7 @@ POLICY = ROOT / "scripts" / "enforce_bundled_aws_lc.sh"
 PROTECTED_SCRIPTS = (
     "checks.sh",
     "release_0_24_gate.sh",
+    "release_0_25_gate.sh",
     "check_packaged_reqwest_tests.sh",
     "check_platform_matrix.sh",
     "check_reqwest_boundary.sh",

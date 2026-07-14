@@ -1,38 +1,38 @@
 [release]
-version = "0.24.0"
+version = "0.25.0"
 policy = "independent"
 
 [crates."cloud-sdk"]
-previous_version = "0.23.0"
-version = "0.24.0"
+previous_version = "0.24.0"
+version = "0.25.0"
 change = "metadata"
 publish = true
-reason = "Dependency, tooling, deterministic-root transport documentation, and v0.24 release evidence."
+reason = "API drift maintenance automation, documentation, and v0.25 release evidence."
 
 [crates."cloud-sdk-hetzner"]
-previous_version = "0.19.1"
-version = "0.19.2"
+previous_version = "0.19.2"
+version = "0.19.3"
 change = "dependency"
 publish = true
-reason = "Update the cloud-sdk dependency to the v0.24 facade line."
+reason = "Update the cloud-sdk dependency to the v0.25 facade line."
 
 [crates."cloud-sdk-reqwest"]
-previous_version = "0.16.0"
-version = "0.17.0"
-change = "code"
+previous_version = "0.17.0"
+version = "0.17.1"
+change = "dependency"
 publish = true
-reason = "Optional deterministic Mozilla-root transport and hardened dependency/tooling evidence."
+reason = "Update the cloud-sdk dependency to the v0.25 facade line."
 
 [crates."cloud-sdk-sanitization"]
-previous_version = "0.13.9"
-version = "0.13.10"
+previous_version = "0.13.10"
+version = "0.13.11"
 change = "dependency"
 publish = true
-reason = "Update the cloud-sdk dependency to the v0.24 facade line."
+reason = "Update the cloud-sdk dependency to the v0.25 facade line."
 
 [crates."cloud-sdk-testkit"]
-previous_version = "0.15.5"
-version = "0.15.6"
+previous_version = "0.15.6"
+version = "0.15.7"
 change = "dependency"
 publish = true
-reason = "Update the cloud-sdk dependency to the v0.24 facade line."
+reason = "Update the cloud-sdk dependency to the v0.25 facade line."

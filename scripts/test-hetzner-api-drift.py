@@ -4,8 +4,10 @@
 from __future__ import annotations
 
 import argparse
+import contextlib
 import importlib.util
 import io
+import json
 import os
 import tempfile
 import urllib.error
@@ -14,6 +16,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts" / "check_hetzner_api_drift.py"
+FIXTURES = ROOT / "tests" / "fixtures" / "hetzner-api-drift"
+WORKFLOW = ROOT / ".github" / "workflows" / "hetzner-api-drift.yml"
 
 
 def load_checker():
@@ -144,6 +148,215 @@ def test_load_specs_authenticates_before_parsing() -> None:
         assert_exits("cloud spec SHA-256 mismatch", checker.load_specs, args)
 
 
+def read_fixture(name: str) -> dict:
+    with (FIXTURES / name).open("r", encoding="utf-8") as handle:
+        return json.load(handle)
+
+
+def fixture_rows(prefix: str) -> tuple[list[dict[str, str]], list[dict[str, str]]]:
+    operations = []
+    schemas = []
+    for api in ("cloud", "hetzner"):
+        document = read_fixture(f"{prefix}-{api}.json")
+        operations.extend(checker.operation_rows(api, document))
+        schemas.extend(checker.schema_rows(api, document))
+    return operations, schemas
+
+
+def test_fixture_report_groups_every_drift_category() -> None:
+    locked_operations, locked_schemas = fixture_rows("locked")
+    current_operations, current_schemas = fixture_rows("current")
+    report = checker.build_drift_report(
+        locked_operations,
+        current_operations,
+        locked_schemas,
+        current_schemas,
+        checker.PINNED_SPEC_SHA256.copy(),
+        checker.PINNED_SPEC_SHA256,
+    )
+
+    assert report["added"] == [("cloud", "PUT", "/new")]
+    assert report["removed"] == [("cloud", "DELETE", "/removed")]
+    assert [change["key"] for change in report["deprecated"]] == [
+        ("cloud", "GET", "/deprecated")
+    ]
+    assert [change["key"] for change in report["changed"]] == [
+        ("cloud", "POST", "/changed")
+    ]
+    schemas = report["schema_only"]
+    assert schemas["added"] == [("cloud", "Added")]
+    assert schemas["removed"] == [("cloud", "Removed")]
+    assert [change["key"] for change in schemas["changed"]] == [
+        ("cloud", "Changed")
+    ]
+
+    errors = io.StringIO()
+    with contextlib.redirect_stderr(errors):
+        status = checker.print_drift_report(report)
+    output = errors.getvalue()
+    assert status == 1
+    for heading in (
+        "added operations:",
+        "removed operations:",
+        "deprecated operations:",
+        "changed operations:",
+        "schema-only changes:",
+    ):
+        assert heading in output
+
+
+def test_fixture_report_ignores_prose_only_changes() -> None:
+    locked_operations, locked_schemas = fixture_rows("locked")
+    stable_operation = next(
+        row for row in locked_operations if row["path"] == "/stable"
+    )
+    stable_schema = next(row for row in locked_schemas if row["schema"] == "Stable")
+    current_operations, current_schemas = fixture_rows("current")
+    current_operation = next(
+        row for row in current_operations if row["path"] == "/stable"
+    )
+    current_schema = next(
+        row for row in current_schemas if row["schema"] == "Stable"
+    )
+    assert stable_operation == current_operation
+    assert stable_schema == current_schema
+
+
+def test_changed_fetched_digest_is_reported_after_safe_parsing() -> None:
+    payload = b'{"openapi":"3.1.0","paths":{}}'
+    with tempfile.TemporaryDirectory() as directory:
+        path = Path(directory) / "cloud.json"
+        path.write_bytes(payload)
+        document, actual = checker.read_spec("cloud", path, expected_sha256=None)
+    assert document["openapi"] == "3.1.0"
+    report = checker.build_drift_report(
+        [],
+        [],
+        [],
+        [],
+        {"cloud": actual, "hetzner": checker.PINNED_SPEC_SHA256["hetzner"]},
+        checker.PINNED_SPEC_SHA256,
+    )
+    assert [change["key"] for change in report["changed_sources"]] == [
+        ("cloud",)
+    ]
+
+
+def test_duplicate_operation_identity_is_rejected() -> None:
+    row = {
+        "api": "cloud",
+        "method": "GET",
+        "path": "/duplicate",
+    }
+    assert_exits(
+        "duplicate current operation identity",
+        checker.compare_row_sets,
+        "operation",
+        [],
+        [row, row.copy()],
+        ("api", "method", "path"),
+    )
+
+
+def test_deprecation_with_contract_change_appears_in_both_groups() -> None:
+    locked = {
+        "api": "cloud",
+        "method": "GET",
+        "path": "/changing",
+        "deprecated": "no",
+        "fingerprint": "old-contract",
+    }
+    current = locked | {"deprecated": "yes", "fingerprint": "new-contract"}
+    report = checker.build_drift_report(
+        [locked],
+        [current],
+        [],
+        [],
+        checker.PINNED_SPEC_SHA256.copy(),
+        checker.PINNED_SPEC_SHA256,
+    )
+    expected = [("cloud", "GET", "/changing")]
+    assert [change["key"] for change in report["deprecated"]] == expected
+    assert [change["key"] for change in report["changed"]] == expected
+
+
+def test_lock_refresh_rejects_unreviewed_source_digest() -> None:
+    assert_exits(
+        "lock refresh requires reviewed source pins for: cloud",
+        checker.ensure_refresh_sources_pinned,
+        {"cloud": "0" * 64, "hetzner": checker.PINNED_SPEC_SHA256["hetzner"]},
+    )
+
+
+def test_tsv_writer_uses_portable_lf_endings() -> None:
+    with tempfile.TemporaryDirectory() as directory:
+        path = Path(directory) / "lock.tsv"
+        checker.write_tsv(path, [{"api": "cloud"}], ["api"])
+        assert path.read_bytes() == b"api\ncloud\n"
+
+
+def test_report_escapes_control_and_terminal_bytes() -> None:
+    report = {
+        "added": [("cloud", "GET", "/line\n\x1b[31m")],
+        "removed": [],
+        "deprecated": [],
+        "changed": [
+            {
+                "key": ("cloud", "GET", "/changed"),
+                "fields": {"operation_id": ("old\rvalue", "new\tvalue")},
+            }
+        ],
+        "changed_sources": [],
+        "schema_only": {"added": [], "removed": [], "changed": []},
+    }
+    errors = io.StringIO()
+    with contextlib.redirect_stderr(errors):
+        assert checker.print_drift_report(report) == 1
+    output = errors.getvalue()
+    assert "\x1b" not in output
+    assert "/line\\n\\u001b[31m" in output
+    assert "old\\rvalue -> new\\tvalue" in output
+
+
+def test_malformed_openapi_shapes_and_lock_rows_fail_cleanly() -> None:
+    assert_exits(
+        "cloud spec paths must be an object",
+        checker.operation_rows,
+        "cloud",
+        {"paths": []},
+    )
+    assert_exits(
+        "cloud spec contains invalid operation parameters",
+        checker.operation_rows,
+        "cloud",
+        {"paths": {"/bad": {"get": {"parameters": [None]}}}},
+    )
+    assert_exits(
+        "cloud spec schemas must be a text-keyed object",
+        checker.schema_rows,
+        "cloud",
+        {"components": {"schemas": []}},
+    )
+    assert_exits(
+        "missing identity field path",
+        checker.compare_row_sets,
+        "operation",
+        [],
+        [{"api": "cloud", "method": "GET"}],
+        ("api", "method", "path"),
+    )
+
+
+def test_maintenance_workflow_is_read_only_and_runs_live_detector() -> None:
+    workflow = WORKFLOW.read_text(encoding="utf-8")
+    assert "schedule:" in workflow
+    assert "workflow_dispatch:" in workflow
+    assert "permissions:\n  contents: read" in workflow
+    assert "scripts/check_hetzner_api_drift.py --fetch" in workflow
+    assert "--write-lock" not in workflow
+    assert "pull-requests: write" not in workflow
+
+
 def test_local_reader_rejects_oversize_before_reading() -> None:
     with tempfile.TemporaryDirectory() as directory:
         path = Path(directory) / "oversize.json"
@@ -183,6 +396,16 @@ def main() -> None:
         test_redirect_handler_refuses_followup_requests,
         test_fetch_spec_reports_rejected_redirect_without_traceback,
         test_load_specs_authenticates_before_parsing,
+        test_fixture_report_groups_every_drift_category,
+        test_fixture_report_ignores_prose_only_changes,
+        test_changed_fetched_digest_is_reported_after_safe_parsing,
+        test_duplicate_operation_identity_is_rejected,
+        test_deprecation_with_contract_change_appears_in_both_groups,
+        test_lock_refresh_rejects_unreviewed_source_digest,
+        test_tsv_writer_uses_portable_lf_endings,
+        test_report_escapes_control_and_terminal_bytes,
+        test_malformed_openapi_shapes_and_lock_rows_fail_cleanly,
+        test_maintenance_workflow_is_read_only_and_runs_live_detector,
         test_local_reader_rejects_oversize_before_reading,
         test_local_reader_rejects_symlink,
         test_local_reader_rejects_fifo_without_blocking,

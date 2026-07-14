@@ -1,7 +1,7 @@
 # Crate Version Matrix
 
-Status: `v0.24.0` pentest and retest passed; final release checks are pending.
-The latest published release is `v0.23.0`.
+Status: `v0.25.0` implementation is in progress; pentest is required.
+The latest published release is `v0.24.0`.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
@@ -384,3 +384,19 @@ following the facade dependency receive patch releases.
 | `cloud-sdk-reqwest` | `0.16.0` | `0.17.0` | `code` | Yes | Deterministic Mozilla-root transport and hardened dependency/tooling evidence. |
 | `cloud-sdk-sanitization` | `0.13.9` | `0.13.10` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.24 facade line. |
 | `cloud-sdk-testkit` | `0.15.5` | `0.15.6` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.24 facade line. |
+
+## v0.25.0 Tracking Table
+
+`v0.25.0` turns source-spec drift detection into an actionable maintenance
+process with grouped reports, checked-in fixture specifications, a read-only
+scheduled check, and explicit source-lock decision documentation. Published
+crate APIs are unchanged; the facade follows the tag and dependents receive
+patch-only manifest updates.
+
+| Crate | Published | Planned | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.24.0` | `0.25.0` | `metadata` | Yes | API drift maintenance automation, documentation, and v0.25 release evidence. |
+| `cloud-sdk-hetzner` | `0.19.2` | `0.19.3` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.25 facade line. |
+| `cloud-sdk-reqwest` | `0.17.0` | `0.17.1` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.25 facade line. |
+| `cloud-sdk-sanitization` | `0.13.10` | `0.13.11` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.25 facade line. |
+| `cloud-sdk-testkit` | `0.15.6` | `0.15.7` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.25 facade line. |

@@ -1,0 +1,26 @@
+name: Hetzner API Drift
+
+on:
+  schedule:
+    - cron: "23 7 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hetzner-api-drift
+  cancel-in-progress: false
+
+jobs:
+  compare-source-lock:
+    name: Compare official specs to source lock
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Compare official Hetzner API specs
+        run: scripts/check_hetzner_api_drift.py --fetch

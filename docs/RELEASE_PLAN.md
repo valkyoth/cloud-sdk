@@ -128,8 +128,8 @@ permanent report is part of the release tag.
 
 ## Source Spec Pin Rotation
 
-The Hetzner API drift check fetches upstream OpenAPI specs over HTTPS and
-verifies the downloaded bytes against pinned SHA-256 values before using them.
+The Hetzner API drift check fetches upstream OpenAPI specs over HTTPS from exact
+official URLs and reports downloaded SHA-256 values against reviewed pins.
 That pin is a trust boundary. When `PINNED_SPEC_SHA256` changes:
 
 1. Fetch the new spec manually.
@@ -140,9 +140,12 @@ That pin is a trust boundary. When `PINNED_SPEC_SHA256` changes:
 4. Update `PINNED_SPEC_SHA256` only in the same reviewed source-lock pass that
    updates fingerprints, release notes, and pentest evidence.
 
-Release fetches reject documents larger than 32 MiB and enforce connection and
-total-time ceilings before verifying the complete pinned digest. Unpinned
-documents are never parsed by the release drift command.
+Release fetches reject redirects and documents larger than 32 MiB, enforce
+connection and total-time ceilings, and require valid UTF-8 JSON objects. A
+new digest may be parsed only to classify maintenance drift; the command still
+fails, and fetched content is never accepted, compiled, or packaged
+automatically. Caller-supplied local documents are authenticated against the
+reviewed digest before parsing.
 
 ## Crate Versioning And Publish Order
 
@@ -1020,7 +1023,7 @@ Deliverables:
 - Drift detector reports grouped by added, removed, changed, deprecated, and
   schema-only changes.
 - Maintenance playbook for accepting, rejecting, or deferring upstream changes.
-- Optional scheduled CI workflow or documented manual check for maintainers.
+- Read-only scheduled and manual CI workflow for maintainers.
 - Release-note template for upstream drift updates.
 - Tests for the drift detector using checked-in fixture specs.
 
@@ -1029,7 +1032,7 @@ Verification:
 - `scripts/checks.sh`
 - `scripts/check_hetzner_api_drift.py --fetch`
 - Drift-detector fixture tests.
-- `scripts/release_0_25_gate.sh` once added.
+- `scripts/release_0_25_gate.sh`.
 
 Stop gate:
 

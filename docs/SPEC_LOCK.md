@@ -30,27 +30,36 @@ Use the drift detector before endpoint-model work or release prep:
 scripts/check_hetzner_api_drift.py --fetch
 ```
 
-The detector reports added operations, removed operations, changed operation
-fingerprints, and changed component schemas. It strips prose-only OpenAPI fields
-such as descriptions and examples before hashing so documentation copy changes
-do not create release noise.
+The detector reports added, removed, deprecated, and changed operations plus
+schema-only and source-digest changes. It strips prose-only OpenAPI fields such
+as descriptions and examples before hashing so documentation copy changes do
+not create semantic release noise. The separately indexed deprecation flag is
+excluded from the semantic fingerprint, so a deprecation-only transition and a
+simultaneous contract change are classified independently. The complete
+maintenance and decision flow is documented in
+`docs/API_DRIFT_MAINTENANCE.md`.
 
 Live fetches use Python's default certificate- and hostname-validating TLS
-context, require the response to remain at the exact pinned HTTPS URL without a
-redirect, and enforce connection, total-time, and 32 MiB limits. The complete
-download must match its pinned SHA-256 before JSON parsing or fingerprint use.
+context, require the response to remain at the exact official HTTPS URL without
+a redirect, and enforce connection, total-time, and 32 MiB limits. Fetched
+documents must be valid UTF-8 JSON objects. A digest mismatch is parsed only to
+produce the maintenance drift report and always fails the command; fetched
+content is never accepted, compiled, or packaged automatically. Caller-supplied
+local documents must match the pinned SHA-256 before JSON parsing.
 
-When an upstream change is accepted, first update the pinned spec hashes in this
-document and in the drift checker. Then refresh the fingerprints intentionally:
+When an upstream change is accepted after complete source review, update the
+pinned spec hashes in this document and both drift scripts. Then refresh the
+fingerprints intentionally:
 
 ```bash
 scripts/check_hetzner_api_drift.py --fetch --write-lock --accept-lock-refresh
 ```
 
-The write path verifies fetched spec bytes against the pinned SHA-256 values
-before overwriting the fingerprint files. Then update `docs/API_MATRIX.md`,
-`docs/SPEC_LOCK.md`, release notes, and the pentest/retest evidence in the same
-reviewed source-lock pass.
+The write path still requires both explicit acceptance flags, requires fetched
+bytes to match the reviewed pins, and does not update source pins. Update
+`docs/API_MATRIX.md`, `docs/SPEC_LOCK.md`, release notes, and pentest/retest
+evidence in the same reviewed source-lock pass. Use
+`docs/API_DRIFT_RELEASE_NOTE_TEMPLATE.md` to record the decision and evidence.
 
 ## Changelog Items Considered
 

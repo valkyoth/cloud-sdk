@@ -1,0 +1,17 @@
+{
+  "openapi": "3.1.0",
+  "paths": {
+    "/storage_boxes": {
+      "get": {
+        "operationId": "list_storage_boxes",
+        "responses": {"200": {"description": "Storage Boxes"}},
+        "tags": ["storage-boxes"]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "StorageBox": {"type": "object", "required": ["id"]}
+    }
+  }
+}

@@ -38,8 +38,8 @@ boundaries.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.24.0"
-cloud-sdk-hetzner = "0.19.2"
+cloud-sdk = "0.25.0"
+cloud-sdk-hetzner = "0.19.3"
 ```
 
 ## Features
@@ -85,6 +85,8 @@ client that combines requests, transport, and decoding are not yet complete;
 see the
 [API matrix](https://github.com/valkyoth/cloud-sdk/blob/main/docs/API_MATRIX.md)
 for operation-level status.
+Upstream source monitoring and lock-refresh decisions follow the
+[API drift maintenance runbook](https://github.com/valkyoth/cloud-sdk/blob/main/docs/API_DRIFT_MAINTENANCE.md).
 
 ## Optional Serde Boundary
 
@@ -92,7 +94,7 @@ Enable Serde explicitly; it is never part of the default graph:
 
 ```toml
 [dependencies]
-cloud-sdk-hetzner = { version = "0.19.2", features = ["serde"] }
+cloud-sdk-hetzner = { version = "0.19.3", features = ["serde"] }
 ```
 
 `serde_json` is used below only as an example format implementation and remains

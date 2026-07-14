@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.25.0 - 2026-07-14
+
+- Grouped Hetzner API drift by added, removed, deprecated, changed, and
+  schema-only changes with bounded deterministic diagnostics.
+- Preserved exact HTTPS URLs, redirect rejection, download limits, and strict
+  JSON parsing while allowing changed source digests to be classified before
+  the command fails closed.
+- Added checked-in old/current OpenAPI fixtures and regressions for every drift
+  category, prose-only changes, duplicate identities, and digest changes.
+- Added a read-only weekly/manual GitHub workflow for current official specs.
+- Added an accept, reject, and defer runbook plus an upstream-drift release-note
+  template.
+- Added the `v0.25.0` release gate and independent crate version plan.
+
 ## 0.24.0 - 2026-07-14
 
 - Added an opt-in blocking transport with a deterministic Mozilla public-root

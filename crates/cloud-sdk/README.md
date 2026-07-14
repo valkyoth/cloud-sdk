@@ -108,8 +108,8 @@ Portable and native platform evidence is documented in
 
 ```toml
 [dependencies]
-cloud-sdk = "0.24.0"
-cloud-sdk-hetzner = "0.19.2"
+cloud-sdk = "0.25.0"
+cloud-sdk-hetzner = "0.19.3"
 ```
 
 ## cloud-sdk Features
@@ -156,8 +156,8 @@ The core contracts perform no I/O and select no executor. Use
 
 ```toml
 [dependencies]
-cloud-sdk = "0.24.0"
-cloud-sdk-reqwest = { version = "0.17.0", features = ["blocking-rustls"] }
+cloud-sdk = "0.25.0"
+cloud-sdk-reqwest = { version = "0.17.1", features = ["blocking-rustls"] }
 ```
 
 The production builder is HTTPS-only, requires explicit bounded timeouts and a
@@ -179,8 +179,8 @@ when deterministic public WebPKI roots are required:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.24.0"
-cloud-sdk-reqwest = { version = "0.17.0", features = ["blocking-rustls-webpki-roots"] }
+cloud-sdk = "0.25.0"
+cloud-sdk-reqwest = { version = "0.17.1", features = ["blocking-rustls-webpki-roots"] }
 ```
 
 The blocking API is unchanged. This feature excludes host-added enterprise
@@ -196,8 +196,8 @@ feature instead of relying on dependency feature unification:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.24.0"
-cloud-sdk-reqwest = { version = "0.17.0", features = ["blocking-rustls-fips"] }
+cloud-sdk = "0.25.0"
+cloud-sdk-reqwest = { version = "0.17.1", features = ["blocking-rustls-fips"] }
 ```
 
 Client construction explicitly selects rustls' AWS-LC FIPS provider and fails
@@ -215,8 +215,8 @@ example is in the
 
 ```toml
 [dependencies]
-cloud-sdk = "0.24.0"
-cloud-sdk-reqwest = { version = "0.17.0", features = ["async-rustls"] }
+cloud-sdk = "0.25.0"
+cloud-sdk-reqwest = { version = "0.17.1", features = ["async-rustls"] }
 ```
 
 The async adapter requires an active Tokio executor because reqwest uses Tokio
@@ -364,7 +364,9 @@ provider-neutral README. For Hetzner, see the
 [`cloud-sdk-hetzner` crate](https://crates.io/crates/cloud-sdk-hetzner), the
 [API matrix](https://github.com/valkyoth/cloud-sdk/blob/main/docs/API_MATRIX.md),
 and the
-[source-lock policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/SPEC_LOCK.md).
+[source-lock policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/SPEC_LOCK.md),
+and the
+[API drift maintenance runbook](https://github.com/valkyoth/cloud-sdk/blob/main/docs/API_DRIFT_MAINTENANCE.md).
 
 ## Development Checks
 

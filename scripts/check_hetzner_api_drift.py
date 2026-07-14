@@ -18,6 +18,12 @@ from urllib.parse import urlsplit
 from pathlib import Path
 from typing import Any
 
+from hetzner_drift_report import (
+    build_drift_report,
+    compare_row_sets,
+    print_drift_report,
+)
+
 ROOT = Path(__file__).resolve().parents[1]
 OP_LOCK = ROOT / "docs" / "API_FINGERPRINTS.tsv"
 SCHEMA_LOCK = ROOT / "docs" / "API_SCHEMA_FINGERPRINTS.tsv"
@@ -89,41 +95,79 @@ def action_kind(method: str, path: str) -> str:
 
 
 def query_names(operation: dict[str, Any]) -> set[str]:
-    return {
-        param.get("name", "")
-        for param in operation.get("parameters", [])
-        if param.get("in") == "query"
-    }
+    parameters = operation.get("parameters", [])
+    if not isinstance(parameters, list):
+        raise ValueError("parameters must be an array")
+    names = set()
+    for parameter in parameters:
+        if not isinstance(parameter, dict):
+            raise ValueError("parameter must be an object")
+        if parameter.get("in") == "query":
+            name = parameter.get("name")
+            if not isinstance(name, str):
+                raise ValueError("query parameter name must be text")
+            names.add(name)
+    return names
 
 
 def operation_rows(api: str, document: dict[str, Any]) -> list[dict[str, str]]:
     rows: list[dict[str, str]] = []
-    for path, path_item in document.get("paths", {}).items():
+    paths = document.get("paths", {})
+    if not isinstance(paths, dict):
+        raise SystemExit(f"{api} spec paths must be an object")
+    for path, path_item in paths.items():
+        if not isinstance(path, str) or not isinstance(path_item, dict):
+            raise SystemExit(f"{api} spec contains an invalid path item")
         for method, operation in path_item.items():
             if method not in HTTP_METHODS:
                 continue
-            queries = query_names(operation)
+            if not isinstance(operation, dict):
+                raise SystemExit(f"{api} spec contains an invalid operation")
+            try:
+                queries = query_names(operation)
+            except ValueError as error:
+                raise SystemExit(
+                    f"{api} spec contains invalid operation parameters"
+                ) from error
+            tags = operation.get("tags") or ["untagged"]
+            operation_id = operation.get("operationId", "")
+            if (
+                not isinstance(tags, list)
+                or not tags
+                or not isinstance(tags[0], str)
+                or not isinstance(operation_id, str)
+            ):
+                raise SystemExit(f"{api} spec contains invalid operation metadata")
+            fingerprint_input = dict(operation)
+            fingerprint_input.pop("deprecated", None)
             rows.append(
                 {
                     "api": api,
                     "method": method.upper(),
                     "path": path,
-                    "tag": (operation.get("tags") or ["untagged"])[0],
-                    "operation_id": operation.get("operationId", ""),
+                    "tag": tags[0],
+                    "operation_id": operation_id,
                     "deprecated": "yes" if operation.get("deprecated") else "no",
                     "pagination": "yes"
                     if {"page", "per_page"}.issubset(queries)
                     else "no",
                     "sorting": "yes" if "sort" in queries else "no",
                     "action": action_kind(method, path),
-                    "fingerprint": digest(operation),
+                    "fingerprint": digest(fingerprint_input),
                 }
             )
     return sorted(rows, key=lambda row: (row["api"], row["path"], row["method"]))
 
 
 def schema_rows(api: str, document: dict[str, Any]) -> list[dict[str, str]]:
-    schemas = document.get("components", {}).get("schemas", {})
+    components = document.get("components", {})
+    if not isinstance(components, dict):
+        raise SystemExit(f"{api} spec components must be an object")
+    schemas = components.get("schemas", {})
+    if not isinstance(schemas, dict) or any(
+        not isinstance(name, str) for name in schemas
+    ):
+        raise SystemExit(f"{api} spec schemas must be a text-keyed object")
     rows = [
         {"api": api, "schema": name, "fingerprint": digest(schema)}
         for name, schema in schemas.items()
@@ -167,16 +211,34 @@ def read_bounded_file(
         os.close(descriptor)
 
 
-def read_verified_spec(api: str, path: Path) -> dict[str, Any]:
+def parse_spec(api: str, payload: bytes) -> dict[str, Any]:
+    try:
+        document = json.loads(payload)
+    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        raise SystemExit(f"{api} spec is not valid UTF-8 JSON: {error}") from error
+    if not isinstance(document, dict):
+        raise SystemExit(f"{api} spec root must be a JSON object")
+    return document
+
+
+def read_spec(
+    api: str, path: Path, *, expected_sha256: str | None
+) -> tuple[dict[str, Any], str]:
     payload = read_bounded_file(api, path)
     actual = hashlib.sha256(payload).hexdigest()
-    expected = PINNED_SPEC_SHA256[api]
-    if actual != expected:
+    if expected_sha256 is not None and actual != expected_sha256:
         raise SystemExit(
             f"{api} spec SHA-256 mismatch: "
-            f"expected {expected}, got {actual}"
+            f"expected {expected_sha256}, got {actual}"
         )
-    return json.loads(payload)
+    return parse_spec(api, payload), actual
+
+
+def read_verified_spec(api: str, path: Path) -> dict[str, Any]:
+    document, _actual = read_spec(
+        api, path, expected_sha256=PINNED_SPEC_SHA256[api]
+    )
+    return document
 
 
 def read_bounded_response(
@@ -232,7 +294,9 @@ def fetch_spec(api: str, directory: Path) -> Path:
     return target
 
 
-def load_specs(args: argparse.Namespace) -> dict[str, dict[str, Any]]:
+def load_specs(
+    args: argparse.Namespace,
+) -> tuple[dict[str, dict[str, Any]], dict[str, str]]:
     paths: dict[str, Path] = {}
     if args.fetch:
         tmp = tempfile.TemporaryDirectory()
@@ -248,7 +312,14 @@ def load_specs(args: argparse.Namespace) -> dict[str, dict[str, Any]]:
             "cloud": Path(args.current_cloud),
             "hetzner": Path(args.current_hetzner),
         }
-    return {api: read_verified_spec(api, path) for api, path in paths.items()}
+    documents: dict[str, dict[str, Any]] = {}
+    source_hashes: dict[str, str] = {}
+    for api, path in paths.items():
+        expected = None if args.fetch else PINNED_SPEC_SHA256[api]
+        documents[api], source_hashes[api] = read_spec(
+            api, path, expected_sha256=expected
+        )
+    return documents, source_hashes
 
 
 def read_tsv(path: Path) -> list[dict[str, str]]:
@@ -258,52 +329,24 @@ def read_tsv(path: Path) -> list[dict[str, str]]:
 
 def write_tsv(path: Path, rows: list[dict[str, str]], fields: list[str]) -> None:
     with path.open("w", encoding="utf-8", newline="") as handle:
-        writer = csv.DictWriter(handle, delimiter="\t", fieldnames=fields)
+        writer = csv.DictWriter(
+            handle, delimiter="\t", fieldnames=fields, lineterminator="\n"
+        )
         writer.writeheader()
         writer.writerows(rows)
 
 
-def row_key(row: dict[str, str], fields: tuple[str, ...]) -> tuple[str, ...]:
-    return tuple(row[field] for field in fields)
-
-
-def compare_rows(
-    name: str,
-    locked: list[dict[str, str]],
-    current: list[dict[str, str]],
-    keys: tuple[str, ...],
-) -> int:
-    locked_map = {row_key(row, keys): row for row in locked}
-    current_map = {row_key(row, keys): row for row in current}
-    added = sorted(set(current_map) - set(locked_map))
-    removed = sorted(set(locked_map) - set(current_map))
-    changed = []
-    for key in sorted(set(current_map) & set(locked_map)):
-        if current_map[key] != locked_map[key]:
-            changed.append(key)
-
-    if not added and not removed and not changed:
-        print(f"{name}: no drift")
-        return 0
-
-    print(f"{name}: drift detected", file=sys.stderr)
-    for key in added[:50]:
-        print(f"  added: {' '.join(key)}", file=sys.stderr)
-    for key in removed[:50]:
-        print(f"  removed: {' '.join(key)}", file=sys.stderr)
-    for key in changed[:50]:
-        print(f"  changed: {' '.join(key)}", file=sys.stderr)
-        locked_row = locked_map[key]
-        current_row = current_map[key]
-        for field in sorted(current_row):
-            if current_row[field] != locked_row.get(field):
-                print(
-                    f"    {field}: {locked_row.get(field, '')} -> {current_row[field]}",
-                    file=sys.stderr,
-                )
-    if len(added) + len(removed) + len(changed) > 50:
-        print("  output truncated to first 50 entries per category", file=sys.stderr)
-    return 1
+def ensure_refresh_sources_pinned(source_hashes: dict[str, str]) -> None:
+    mismatched = [
+        api
+        for api, expected in PINNED_SPEC_SHA256.items()
+        if source_hashes.get(api) != expected
+    ]
+    if mismatched:
+        raise SystemExit(
+            "lock refresh requires reviewed source pins for: "
+            + ", ".join(sorted(mismatched))
+        )
 
 
 def validate_local_files() -> int:
@@ -348,7 +391,7 @@ def main() -> int:
     if args.local_only:
         return validate_local_files()
 
-    documents = load_specs(args)
+    documents, source_hashes = load_specs(args)
     operations = []
     schemas = []
     for api, document in documents.items():
@@ -360,17 +403,18 @@ def main() -> int:
             raise SystemExit(
                 "--write-lock requires --accept-lock-refresh after drift review"
             )
+        ensure_refresh_sources_pinned(source_hashes)
         status = validate_local_files()
         if status == 0:
-            status |= compare_rows(
-                "operations",
+            report = build_drift_report(
                 read_tsv(OP_LOCK),
                 operations,
-                ("api", "method", "path"),
+                read_tsv(SCHEMA_LOCK),
+                schemas,
+                source_hashes,
+                PINNED_SPEC_SHA256,
             )
-            status |= compare_rows(
-                "schemas", read_tsv(SCHEMA_LOCK), schemas, ("api", "schema")
-            )
+            status = print_drift_report(report)
             if status:
                 print("accepted drift; writing refreshed lock files")
         write_tsv(
@@ -395,10 +439,15 @@ def main() -> int:
         return 0
 
     status = validate_local_files()
-    status |= compare_rows(
-        "operations", read_tsv(OP_LOCK), operations, ("api", "method", "path")
+    report = build_drift_report(
+        read_tsv(OP_LOCK),
+        operations,
+        read_tsv(SCHEMA_LOCK),
+        schemas,
+        source_hashes,
+        PINNED_SPEC_SHA256,
     )
-    status |= compare_rows("schemas", read_tsv(SCHEMA_LOCK), schemas, ("api", "schema"))
+    status |= print_drift_report(report)
     return status
 
 
