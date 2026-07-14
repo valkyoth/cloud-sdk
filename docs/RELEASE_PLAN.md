@@ -875,7 +875,7 @@ v0.21.0 implementation stop reached. Run pentest for this exact commit.
 
 ### v0.22.0 - Fuzzing And Adversarial Tests
 
-Status: implementation stop reached; pentest required.
+Status: pentest passed after remediation; final release commit pending.
 
 Goal: fuzz request builders, parsers, validators, and response handling.
 

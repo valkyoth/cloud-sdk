@@ -1,6 +1,6 @@
 # cloud-sdk 0.22.0 Release Notes
 
-Status: implementation stop reached; pentest required.
+Status: pentest passed after remediation; final release commit pending.
 
 ## Overview
 
@@ -75,8 +75,9 @@ and conversion of confirmed defects into owning-crate regression tests.
 - workspace, downstream fixture, and fuzz RustSec audits;
 - `scripts/release_0_22_gate.sh` after pentest evidence is committed.
 
-## Pentest Stop
+## Pentest
 
-Pentest the exact committed implementation state. A no-findings result is valid
-evidence and does not require a redundant retest. Findings require remediation,
-deterministic regression coverage, and another pentest pass before tagging.
+The pentest identified incomplete build and development dependency coverage in
+the initial SPDX documents. All three inventories are now completed from locked
+Cargo metadata and independently checked. The focused retest is green, and the
+permanent report records the exact reviewed remediation commit.
