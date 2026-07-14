@@ -54,6 +54,12 @@ pub enum SecurityRequestError {
     InvalidDomainName,
     /// Managed certificate requests require at least one domain name.
     EmptyDomainNames,
+    /// A certificate action query contains too many action IDs.
+    TooManyActionIds,
+    /// A certificate action query contains too many status filters.
+    TooManyActionStatuses,
+    /// A certificate action query contains too many sort values.
+    TooManyActionSorts,
 }
 
 /// Nonzero identifier for security resources.

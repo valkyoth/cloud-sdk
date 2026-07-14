@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.26.0 - 2026-07-14
+
+- Added bounded global action list and lookup request models, including the
+  upstream-required repeated action-ID filter.
+- Added global and per-certificate action list requests plus global certificate
+  action lookup, with pagination and repeated status and sort filters.
+- Enforced source-locked action ID and repeated-query limits without allocation.
+- Reached 208/208 implemented non-deprecated Cloud, DNS, and Storage Box
+  operations while keeping 13 deprecated operations unavailable.
+- Added a tested API-matrix coverage gate and a compile-checked action-query
+  workflow example.
+- Added the `v0.26.0` release gate and independent crate version plan.
+
 ## 0.25.0 - 2026-07-14
 
 - Grouped Hetzner API drift by added, removed, deprecated, changed, and

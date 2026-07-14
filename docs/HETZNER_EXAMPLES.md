@@ -12,6 +12,7 @@ execution so running them cannot create billable resources.
 | Server mutation request | [`mutation.rs`](../crates/cloud-sdk-hetzner/examples/mutation.rs) | `cargo run -p cloud-sdk-hetzner --example mutation` |
 | Pagination response | [`pagination.rs`](../crates/cloud-sdk-hetzner/examples/pagination.rs) | `cargo run -p cloud-sdk-hetzner --example pagination --features serde` |
 | Action polling | [`action_polling.rs`](../crates/cloud-sdk-hetzner/examples/action_polling.rs) | `cargo run -p cloud-sdk-hetzner --example action_polling --features serde` |
+| Global and certificate action queries | [`actions.rs`](../crates/cloud-sdk-hetzner/examples/actions.rs) | `cargo run -p cloud-sdk-hetzner --example actions` |
 | DNS Zone request | [`dns.rs`](../crates/cloud-sdk-hetzner/examples/dns.rs) | `cargo run -p cloud-sdk-hetzner --example dns` |
 | Storage Box list request | [`storage_box.rs`](../crates/cloud-sdk-hetzner/examples/storage_box.rs) | `cargo run -p cloud-sdk-hetzner --example storage_box` |
 

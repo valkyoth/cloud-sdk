@@ -38,8 +38,8 @@ boundaries.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.25.0"
-cloud-sdk-hetzner = "0.19.3"
+cloud-sdk = "0.26.0"
+cloud-sdk-hetzner = "0.20.0"
 ```
 
 ## Features
@@ -66,23 +66,22 @@ Security-sensitive transport decisions are covered by the
 
 | Hetzner API area | Coverage |
 | --- | --- |
-| Global actions | Partial: response and polling models are supported; list/get requests are planned for v0.26.0 |
+| Global actions | Supported |
 | Servers, images, ISOs, placement groups, and primary IPs | Supported |
 | Volumes and floating IPs | Supported |
 | Firewalls, load balancers, and networks | Supported |
 | DNS zones and RRSets | Supported |
-| Certificates and SSH keys | Partial: CRUD and certificate retry are supported; certificate action queries are planned for v0.26.0 |
+| Certificates and SSH keys | Supported |
 | Storage Boxes, snapshots, and subaccounts | Supported |
 | Locations, server types, load balancer types, and pricing | Supported |
 
-The API matrix tracks five remaining non-deprecated request operations: two
-global action queries and three certificate action queries. The v0.26.0
-milestone implements all five and adds a zero-planned-non-deprecated matrix
-gate, reaching 100% coverage of source-locked non-deprecated request
-operations. Shared action, error, and pagination responses have reviewed
-optional Serde support. Resource-specific response models and a high-level
-client that combines requests, transport, and decoding are not yet complete;
-see the
+The provider implements all 208 source-locked non-deprecated Cloud, DNS, and
+Storage Box request operations. Thirteen deprecated operations remain
+deliberately unavailable. A checked release gate prevents non-deprecated
+operations from returning to a planned or deferred state. Shared action,
+error, and pagination responses have reviewed optional Serde support.
+Resource-specific response models and a high-level client that combines
+requests, transport, and decoding are not yet complete; see the
 [API matrix](https://github.com/valkyoth/cloud-sdk/blob/main/docs/API_MATRIX.md)
 for operation-level status.
 Upstream source monitoring and lock-refresh decisions follow the
@@ -94,7 +93,7 @@ Enable Serde explicitly; it is never part of the default graph:
 
 ```toml
 [dependencies]
-cloud-sdk-hetzner = { version = "0.19.3", features = ["serde"] }
+cloud-sdk-hetzner = { version = "0.20.0", features = ["serde"] }
 ```
 
 `serde_json` is used below only as an example format implementation and remains

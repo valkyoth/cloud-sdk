@@ -1,6 +1,7 @@
 # Hetzner API Matrix
 
-Status: source-locked for `v0.2.0`.
+Status: source lock introduced in `v0.2.0`; all non-deprecated operations
+implemented in `v0.26.0`.
 
 Sources:
 
@@ -9,6 +10,8 @@ Sources:
 
 Retrieved: 2026-07-08
 Total source-locked operations: 221 (`cloud`: 189, `hetzner`: 32).
+Coverage: 208 non-deprecated operations implemented; 13 deprecated operations
+deferred.
 
 ## Matrix Rules
 
@@ -16,7 +19,7 @@ Total source-locked operations: 221 (`cloud`: 189, `hetzner`: 32).
 - Sorting is `yes` when an operation exposes a `sort` query parameter.
 - Action behavior is `action-list`, `action-get`, `resource-action-get`, `starts-action`, or `none`.
 - Deprecated operations are kept in the matrix for drift tracking, but implementation status is `deferred-deprecated` until the SDK has an explicit compatibility policy.
-- All non-deprecated operations are `planned` until endpoint models are implemented in later versions.
+- Non-deprecated operations must have an `implemented` status. The release gate rejects planned or deferred active operations.
 
 ## Owner Modules
 
@@ -64,11 +67,11 @@ Total source-locked operations: 221 (`cloud`: 189, `hetzner`: 32).
 
 | API | Group | Method | Path | Operation | Owner | Pagination | Sorting | Action | Deprecated | Status |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| cloud | Actions | GET | `/actions` | `get_actions` | `cloud_sdk_hetzner::actions` | no | no | action-list | no | planned |
-| cloud | Actions | GET | `/actions/{id}` | `get_action` | `cloud_sdk_hetzner::actions` | no | no | action-get | no | planned |
-| cloud | Certificate Actions | GET | `/certificates/actions` | `list_certificates_actions` | `cloud_sdk_hetzner::security::certificates` | yes | yes | action-list | no | planned |
-| cloud | Certificate Actions | GET | `/certificates/actions/{id}` | `get_certificates_action` | `cloud_sdk_hetzner::security::certificates` | no | no | action-get | no | planned |
-| cloud | Certificate Actions | GET | `/certificates/{id}/actions` | `list_certificate_actions` | `cloud_sdk_hetzner::security::certificates` | yes | yes | action-list | no | planned |
+| cloud | Actions | GET | `/actions` | `get_actions` | `cloud_sdk_hetzner::actions` | no | no | action-list | no | implemented-v0.26 |
+| cloud | Actions | GET | `/actions/{id}` | `get_action` | `cloud_sdk_hetzner::actions` | no | no | action-get | no | implemented-v0.26 |
+| cloud | Certificate Actions | GET | `/certificates/actions` | `list_certificates_actions` | `cloud_sdk_hetzner::security::certificates` | yes | yes | action-list | no | implemented-v0.26 |
+| cloud | Certificate Actions | GET | `/certificates/actions/{id}` | `get_certificates_action` | `cloud_sdk_hetzner::security::certificates` | no | no | action-get | no | implemented-v0.26 |
+| cloud | Certificate Actions | GET | `/certificates/{id}/actions` | `list_certificate_actions` | `cloud_sdk_hetzner::security::certificates` | yes | yes | action-list | no | implemented-v0.26 |
 | cloud | Certificate Actions | POST | `/certificates/{id}/actions/retry` | `retry_certificate` | `cloud_sdk_hetzner::security::certificates` | no | no | starts-action | no | implemented |
 | cloud | Certificate Actions | GET | `/certificates/{id}/actions/{action_id}` | `get_certificate_action` | `cloud_sdk_hetzner::security::certificates` | no | no | resource-action-get | yes | deferred-deprecated |
 | cloud | Certificates | GET | `/certificates` | `list_certificates` | `cloud_sdk_hetzner::security::certificates` | yes | yes | none | no | implemented |

@@ -1,5 +1,6 @@
 //! Certificate endpoint request domains.
 
+mod actions;
 mod private_key;
 
 use cloud_sdk::Method;
@@ -12,6 +13,11 @@ use crate::security::shared::{
     PemValue, static_path, write_id_path, write_query_pair, write_query_u64,
 };
 
+pub use actions::{
+    CertificateActionEndpoint, CertificateActionListForCertificateRequest,
+    CertificateActionListRequest, CertificateActionSortField, MAX_CERTIFICATE_ACTION_IDS,
+    MAX_CERTIFICATE_ACTION_SORTS, MAX_CERTIFICATE_ACTION_STATUSES,
+};
 pub use private_key::{PrivateKeyPem, private_key_pem};
 
 /// Certificate endpoint groups.

@@ -1,7 +1,7 @@
 # Crate Version Matrix
 
-Status: `v0.25.0` pentest and retest passed; final release checks are pending.
-The latest published release is `v0.24.0`.
+Status: `v0.26.0` implementation stop reached; pentest is required for the
+exact candidate commit. The latest published release is `v0.25.0`.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
@@ -400,3 +400,19 @@ patch-only manifest updates.
 | `cloud-sdk-reqwest` | `0.17.0` | `0.17.1` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.25 facade line. |
 | `cloud-sdk-sanitization` | `0.13.10` | `0.13.11` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.25 facade line. |
 | `cloud-sdk-testkit` | `0.15.6` | `0.15.7` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.25 facade line. |
+
+## v0.26.0 Tracking Table
+
+`v0.26.0` implements the five remaining non-deprecated action request
+operations and adds a fail-closed matrix gate for complete source-locked
+coverage. The facade follows the tag, the Hetzner provider receives an
+independent code minor, and neutral crates patch-bump for the facade
+dependency.
+
+| Crate | Published | Planned | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.25.0` | `0.26.0` | `metadata` | Yes | Complete non-deprecated Hetzner endpoint coverage and v0.26 release evidence. |
+| `cloud-sdk-hetzner` | `0.19.3` | `0.20.0` | `code` | Yes | Add the five remaining non-deprecated action query operations. |
+| `cloud-sdk-reqwest` | `0.17.1` | `0.17.2` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.26 facade line. |
+| `cloud-sdk-sanitization` | `0.13.11` | `0.13.12` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.26 facade line. |
+| `cloud-sdk-testkit` | `0.15.7` | `0.15.8` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.26 facade line. |

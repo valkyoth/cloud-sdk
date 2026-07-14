@@ -1,38 +1,38 @@
 [release]
-version = "0.25.0"
+version = "0.26.0"
 policy = "independent"
 
 [crates."cloud-sdk"]
-previous_version = "0.24.0"
-version = "0.25.0"
+previous_version = "0.25.0"
+version = "0.26.0"
 change = "metadata"
 publish = true
-reason = "API drift maintenance automation, documentation, and v0.25 release evidence."
+reason = "Complete non-deprecated Hetzner endpoint coverage and v0.26 release evidence."
 
 [crates."cloud-sdk-hetzner"]
-previous_version = "0.19.2"
-version = "0.19.3"
-change = "dependency"
+previous_version = "0.19.3"
+version = "0.20.0"
+change = "code"
 publish = true
-reason = "Update the cloud-sdk dependency to the v0.25 facade line."
+reason = "Add the five remaining non-deprecated action query operations."
 
 [crates."cloud-sdk-reqwest"]
-previous_version = "0.17.0"
-version = "0.17.1"
+previous_version = "0.17.1"
+version = "0.17.2"
 change = "dependency"
 publish = true
-reason = "Update the cloud-sdk dependency to the v0.25 facade line."
+reason = "Update the cloud-sdk dependency to the v0.26 facade line."
 
 [crates."cloud-sdk-sanitization"]
-previous_version = "0.13.10"
-version = "0.13.11"
+previous_version = "0.13.11"
+version = "0.13.12"
 change = "dependency"
 publish = true
-reason = "Update the cloud-sdk dependency to the v0.25 facade line."
+reason = "Update the cloud-sdk dependency to the v0.26 facade line."
 
 [crates."cloud-sdk-testkit"]
-previous_version = "0.15.6"
-version = "0.15.7"
+previous_version = "0.15.7"
+version = "0.15.8"
 change = "dependency"
 publish = true
-reason = "Update the cloud-sdk dependency to the v0.25 facade line."
+reason = "Update the cloud-sdk dependency to the v0.26 facade line."
