@@ -27,3 +27,11 @@ serde_json.workspace = true
 
 [lints]
 workspace = true
+
+[[example]]
+name = "action_polling"
+required-features = ["serde"]
+
+[[example]]
+name = "pagination"
+required-features = ["serde"]
