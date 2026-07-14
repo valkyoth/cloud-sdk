@@ -80,7 +80,10 @@ No retired provider-specific helper crate is published.
 
 ## Security Review
 
-The v0.24 implementation stop requires pentest review before release. The
-permanent report will be stored at `security/pentest/v0.24.0.md` and bind the
-reviewed implementation commit. Tagging remains blocked until the report,
-GitHub CI, CodeQL default setup, and the clean versioned release gate pass.
+The v0.24 pentest identified a target-qualified AWS-LC system-library override
+that could bypass the repository's generic bundled-source control. The fix
+rejects target-qualified controls, forces both ordinary and FIPS bundled
+sources, and binds maintained native build entry points through regression
+tests. The focused retest passed; the permanent report is stored at
+`security/pentest/v0.24.0.md`. Tagging remains blocked until GitHub CI, CodeQL
+default setup, and the clean versioned release gate pass.

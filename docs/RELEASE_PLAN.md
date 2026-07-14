@@ -972,6 +972,8 @@ v0.23.0 implementation stop reached. Run pentest for this exact commit.
 
 ### v0.24.0 - Dependency And Tooling Hardening
 
+Status: pentest and retest passed; final release checks are pending.
+
 Goal: refresh dependency, tool, SBOM, audit, and supply-chain evidence before
 release-candidate work.
 
