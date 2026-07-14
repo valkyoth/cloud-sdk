@@ -86,10 +86,10 @@ complete body serialization, typed response decoding, or end-to-end execution.
 | --- | --- | --- |
 | Request models | Complete for all 208 non-deprecated operations | Current |
 | Path/query encoding | Complete for all 208 non-deprecated operations | Current |
-| Body serialization | Partial: complete public aggregate serialization is currently RRSet-specific | `v0.29.0` |
-| Success response models | Partial: shared action and pagination envelopes only | `v0.30.0` |
-| Error response models | Partial: reviewed shared API error envelope, not yet integrated per operation | `v0.30.0` |
-| End-to-end client | Not available | `v0.30.0` |
+| Body serialization | Partial: complete public aggregate serialization is currently RRSet-specific | `v0.30.0` |
+| Success response models | Partial: shared action and pagination envelopes only | `v0.31.0` |
+| Error response models | Partial: reviewed shared API error envelope, not yet integrated per operation | `v0.31.0` |
+| End-to-end client | Not available | `v0.32.0` |
 
 Thirteen deprecated operations remain deliberately unavailable. A checked
 release gate prevents non-deprecated request operations from returning to a

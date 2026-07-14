@@ -76,7 +76,7 @@ stops until the difference is documented and versioned.
 
 The Robot Webservice source is <https://robot.hetzner.com/doc/webservice/en.html>.
 Robot is part of the 1.0 Hetzner claim, but it must be source-locked separately
-in `v0.31.0` before implementation because it uses a different base URL,
+in `v0.33.0` before implementation because it uses a different base URL,
 HTTP Basic Auth, form encoding, errors, and rate limits. Deprecated Robot
 Storage Box operations are excluded; their supported replacement is the
 Console Storage Box API already owned by `cloud-sdk-hetzner::storage`.
@@ -105,19 +105,20 @@ Console Storage Box API already owned by `cloud-sdk-hetzner::storage`.
 11. Integration evidence: mock transport, recorded fixtures, and a live-test
    harness with separate credential-free staging, privileged root sealing, and
    authenticated open-descriptor execution phases.
-12. Secure high-level workflows: provider-neutral prepared-request and
-   response-policy contracts, complete prepared operations for the existing
-   Hetzner surface, and an opt-in generic typed client in `v0.28.0` through
-   `v0.30.0`. The default provider graph remains transport-free, requests send
-   once unless an explicit caller policy permits retry, and no nested Hetzner
-   client crate is introduced.
+12. Secure high-level workflows: shared concurrent transport and credential
+   lifecycle, provider-neutral preparation and operation metadata, complete
+   prepared operations for the existing Hetzner surface, checked typed response
+   decoding, and an opt-in generic client in `v0.28.0` through `v0.32.0`. The
+   default provider graph remains transport-free, requests send once unless an
+   explicit caller policy permits retry, and no nested Hetzner client crate is
+   introduced.
 13. Robot Webservice foundation and implementation: separate source lock,
    Basic Auth policy, form-encoded requests, Robot-specific errors and rate
    limits, dedicated-server operations, and explicit exclusion of deprecated
-   Robot Storage Box endpoints in `v0.31.0` through `v0.40.0`.
+   Robot Storage Box endpoints in `v0.33.0` through `v0.42.0`.
 14. Robot integration and hardening: high-level client workflows, mock and
    carefully gated live evidence, fuzzing, complete active-operation coverage,
-   and security review in `v0.41.0` and `v0.42.0`.
+   and security review in `v0.43.0` and `v0.44.0`.
 15. 1.0 hardening: complete Cloud, DNS, Console Storage Box, and Robot docs,
    examples, mutation/adversarial tests, SBOM, pentest, dependency audit, and
    platform matrix.

@@ -15,7 +15,7 @@ Tags use:
 v0.N.0      milestone release
 v0.N.P      patch/fix release for milestone N
 v1.0.0      first serious production-ready cloud-sdk foundation and Hetzner provider
-v0.31.0+    pre-1.0 Robot Webservice support track
+v0.33.0+    pre-1.0 Robot Webservice support track
 ```
 
 ## Release Principles
@@ -182,12 +182,16 @@ has not been assigned to a release.
 | Transport adapters can accidentally admit runtime, TLS, or secret handling assumptions. | Blocking and async adapters are separated into `v0.16.0` and `v0.17.0`, after model/testkit work. |
 | Platform trust stores can be attacker-extended and aws-lc introduces native build-script, C, and assembly trust. | Documented for `v0.16.0`; FIPS transport lands in `v0.23.0`, followed by deterministic-root and native-build review in `v0.24.0`. |
 | Adding providers could multiply transport, testkit, sanitization, or API-family crates. | Enforced one primary crate per provider and provider-neutral shared boundaries in `v0.12.0`; release automation rejects nested `cloud-sdk-{provider}-{suffix}` packages. |
-| Safe endpoint models still require callers to assemble transport requests, status checks, response bounds, content-type checks, and decoding manually. | Add provider-neutral prepared-request policy in `v0.28.0`, complete prepared operations for the existing Hetzner surface in `v0.29.0`, and opt-in typed client workflows inside `cloud-sdk-hetzner` in `v0.30.0`. No nested Hetzner client crate is introduced. |
-| A provider-neutral custom HTTPS endpoint receives the configured credential and can exfiltrate it when its value is attacker-controlled. | Make custom endpoint trust explicit in `v0.27.0`, expose immutable credential-bound endpoint identity in `v0.28.0`, and require exact official Hetzner authority checks or explicit custom-endpoint acknowledgement in `v0.30.0`. |
-| Robot Webservice has different auth, encoding, and API shape than Cloud/DNS. | Assigned a separate source lock and twelve pre-1.0 implementation and hardening milestones from `v0.31.0` through `v0.42.0`. |
-| Legacy Robot Storage Box operations are deprecated and overlap the supported Console API. | The `v0.31.0` Robot matrix must mark all 16 legacy operations excluded and must not create a Robot Storage Box module. |
-| Repeated invalid Robot credentials can temporarily block the caller's source IP. | Basic credentials are type-separated and redacted in `v0.32.0`; `v0.41.0` live tests never submit intentionally invalid credentials. |
-| Robot ordering mutations can create immediate infrastructure costs. | Read-only ordering lands separately in `v0.39.0`; `v0.40.0` requires explicit cost-bearing intent and keeps billable calls outside CI and normal live smoke tests. |
+| Required request fields represented as `Option` permit invalid intermediate states and generic missing-field errors. | Audit all public constructors in `v0.27.0`; required values become direct typed arguments, while `Option` remains only for genuinely optional or tri-state input. |
+| Public errors lack safe `Display` and `core::error::Error` integration. | Add static payload-free formatting, field-specific variants, redaction tests, and no_std error-trait coverage in `v0.27.0`. |
+| Mutable transport receivers prevent ordinary concurrent requests and encourage mutex guards across `.await`. | Add shared blocking and async transport contracts, caller-bounded concurrency guidance, and concurrent conformance tests in `v0.28.0`. |
+| Immutable text token input cannot be cleared and current clients lack an explicit rotation path. | Add mutable-byte and guarded-buffer ingestion with source cleanup plus concurrency-safe credential rotation in `v0.28.0`. |
+| Safe endpoint models still require callers to assemble transport requests, status checks, response bounds, content-type checks, and decoding manually. | Add common prepared-request policy in `v0.29.0`, complete prepared operations for the existing Hetzner surface in `v0.30.0`, checked typed decoding in `v0.31.0`, and opt-in client workflows inside `cloud-sdk-hetzner` in `v0.32.0`. No nested Hetzner client crate is introduced. |
+| A provider-neutral custom HTTPS endpoint receives the configured credential and can exfiltrate it when its value is attacker-controlled. | Make custom endpoint trust explicit in `v0.27.0`, expose immutable credential-bound endpoint identity in `v0.28.0`, and require exact official Hetzner authority checks or explicit custom-endpoint acknowledgement in `v0.32.0`. |
+| Robot Webservice has different auth, encoding, and API shape than Cloud/DNS. | Assigned a separate source lock and twelve pre-1.0 implementation and hardening milestones from `v0.33.0` through `v0.44.0`. |
+| Legacy Robot Storage Box operations are deprecated and overlap the supported Console API. | The `v0.33.0` Robot matrix must mark all 16 legacy operations excluded and must not create a Robot Storage Box module. |
+| Repeated invalid Robot credentials can temporarily block the caller's source IP. | Basic credentials are type-separated and redacted in `v0.34.0`; `v0.43.0` live tests never submit intentionally invalid credentials. |
+| Robot ordering mutations can create immediate infrastructure costs. | Read-only ordering lands separately in `v0.41.0`; `v0.42.0` requires explicit cost-bearing intent and keeps billable calls outside CI and normal live smoke tests. |
 | Future providers such as Cloudflare need patterns but are not part of Hetzner 1.0. | Provider-neutral naming and module guidance are part of `v1.0.0`; no non-Hetzner provider is claimed before 1.0. |
 
 ## Milestones
@@ -1103,6 +1107,18 @@ Deliverables:
 - Generic endpoint construction and builder APIs receive a naming and semver
   review so arbitrary credential-bearing destinations use a conspicuous custom
   endpoint path; any rename or deprecation includes migration notes.
+- Every public request constructor is audited. Required fields become direct
+  validated arguments to `new` or `try_new`; `Option` is accepted only for
+  genuinely optional, nullable, resettable, or tri-state API semantics.
+- Constructors do not create an invalid intermediate request merely to return a
+  generic `MissingRequiredField`. Cross-field validation remains fallible, and
+  migration notes cover every changed signature.
+- All public first-party error enums implement payload-free `Display` and
+  `core::error::Error` under the MSRV. Messages are static and never interpolate
+  request targets, bodies, credentials, provider payloads, or customer data.
+- Missing-input errors that remain possible use field-specific variants such as
+  `MissingServerName`; broad variants remain only where no safe, stable field
+  distinction exists.
 - Pre-Robot semver audit and migration notes.
 - Examples and docs.rs output reviewed.
 - Release notes for known limitations carried into the Robot implementation
@@ -1115,6 +1131,10 @@ Verification:
 - `cargo public-api` or equivalent if admitted.
 - Documentation tests require the custom-endpoint credential warning beside
   every blocking and async construction example.
+- Compile tests prove required constructor fields cannot be omitted, while
+  optional and tri-state fields retain their intended semantics.
+- Error-trait, exact static-message, redaction, and no-sensitive-payload tests
+  cover every public error family.
 - `scripts/release_0_27_gate.sh` once added.
 
 Stop gate:
@@ -1123,51 +1143,56 @@ Stop gate:
 v0.27.0 implementation stop reached. Run pentest for this exact commit.
 ```
 
-### v0.28.0 - Prepared Request And Response Policy
+### v0.28.0 - Shared Transport And Credential Lifecycle
 
-Goal: define the provider-neutral contracts needed to turn validated endpoint
-models into requests whose method, target, body, response bounds, and response
-policy cannot be assembled inconsistently by each caller.
+Goal: make provider-neutral transports safely shareable for caller-bounded
+concurrency while binding credentials to an immutable endpoint and providing a
+clear secret-ingestion and rotation lifecycle.
 
 Deliverables:
 
-- A no_std `PreparedRequest` contract in `cloud-sdk` that binds one validated
-  `TransportRequest` to its expected success statuses, accepted response media
-  types, maximum response-body length, and empty-body policy.
-- Validated response content-type metadata in `TransportResponse`; concrete
-  transports reject malformed header values while response policy distinguishes
-  missing, unexpected, and valid content types.
-- Provider-neutral response-policy validation that classifies unexpected
-  status, missing or incorrect content type, forbidden body, and oversized body
-  before provider decoding starts.
-- Caller-owned bounded response storage remains structural: execution lends
-  only the operation's admitted response capacity to the transport and never
-  trusts a reported numeric length beyond the initialized slice.
-- Prepared-request construction and validation remain allocation-free and do
-  not add networking, TLS, runtime, filesystem, clock, or credential storage to
-  the default graph.
+- The primary blocking and executor-neutral async transport contracts send
+  through `&self`, so a thread-safe implementation can serve concurrent
+  requests without a caller-held mutex across I/O or `.await`.
+- Implementations that are not `Sync` remain usable sequentially; concurrency
+  is available only when the concrete transport satisfies the caller's `Sync`,
+  `Send`, executor, and task-lifetime requirements.
+- `cloud-sdk-reqwest` blocking and async clients are safely cloneable or
+  shareable handles over bounded internal state. Request-local bodies and
+  response buffers are never shared implicitly.
+- Concurrency remains caller-bounded. The SDK creates no unbounded task set,
+  semaphore, queue, retry fan-out, or background runtime.
 - A provider-neutral bound-endpoint identity reports the transport's immutable,
   normalized scheme, host, effective port, and base path without exposing
-  credentials; provider facades can compare it with source-owned official
-  endpoint constants before permitting execution.
-- Endpoint identity cannot be changed after credential binding, and prepared
-  requests carry their required provider service/base family so mismatched
-  transports fail before sending.
-- The execution contract sends exactly once. Core policy contains no implicit
-  retry loop, delay, jitter, sleep, or retry default.
-- `cloud-sdk-testkit` records prepared-request metadata and can model missing,
-  malformed, or unexpected content types, status mismatches, empty bodies, and
-  oversized responses.
+  credentials; provider facades can compare it with official endpoint constants
+  before permitting execution.
+- Endpoint identity cannot be replaced after credential binding. Custom
+  endpoints remain explicit and cannot be populated from environment proxy
+  configuration or redirected at request time.
+- `BearerToken` accepts validated mutable bytes and guarded secret storage in
+  addition to the compatibility text constructor. Consuming mutable input
+  clears the admitted source buffer on both success and failure.
+- Blocking and async transports expose a documented token-rotation operation.
+  Rotation is atomic for newly started requests, does not hold a lock across
+  network I/O or `.await`, leaves the previous token active on rejected input,
+  and sanitizes retired token storage after the last in-flight use.
+- Token construction, rotation, debug output, and errors never expose secret
+  bytes; caller-owned immutable strings remain a documented cleanup boundary.
 
 Verification:
 
 - `scripts/checks.sh`
-- Default/no_std dependency-boundary checks.
-- Prepared-request invariant and adversarial response-policy tests.
+- Default/no_std and optional transport dependency-boundary checks.
+- Shared blocking and async conformance tests issue overlapping requests and
+  prove request/response buffers and failures remain isolated.
+- Tests prove concurrency requires caller-selected bounds and no SDK path
+  spawns tasks, sleeps, retries, or owns an executor.
 - Bound-endpoint identity tests cover host, subdomain, port, base-path, and
   normalization mismatches and prove identity cannot be replaced after
   credential binding.
-- Blocking and executor-neutral async transport conformance tests.
+- Mutable-byte and guarded-token tests cover cleanup on every success/error
+  path, concurrent rotation, in-flight token snapshots, and retired-token
+  sanitization.
 - `scripts/release_0_28_gate.sh` once added.
 
 Stop gate:
@@ -1176,31 +1201,83 @@ Stop gate:
 v0.28.0 implementation stop reached. Run pentest for this exact commit.
 ```
 
-### v0.29.0 - Existing Hetzner Prepared Operations
+### v0.29.0 - Prepared Request And Response Policy
 
-Goal: make every supported Cloud, DNS, and Console Storage Box operation
-produce one complete prepared request without requiring callers to combine
-paths, queries, bodies, methods, or response expectations manually.
+Goal: define one provider-neutral contract that turns a validated operation
+into method, target, query, body, endpoint, retry metadata, and checked response
+policy without caller-specific assembly.
+
+Deliverables:
+
+- A common no_std operation/preparation trait in `cloud-sdk` produces a
+  `PreparedRequest` from typed input and caller-owned target/body storage.
+- `PreparedRequest` binds one validated `TransportRequest` to its provider
+  service/base family, expected success statuses, accepted response media
+  types, maximum response-body length, and empty-body policy.
+- Operation metadata distinguishes `ReadOnly`, `Mutation`, and `Destructive`
+  impact, with a separate safe/idempotent/non-idempotent classification and
+  explicit retry eligibility. Cost-bearing intent remains an orthogonal marker.
+- Metadata has no convenience default that can classify an unknown mutation as
+  read-only, idempotent, retryable, or non-destructive.
+- Validated response content-type metadata is added to `TransportResponse`;
+  concrete transports reject malformed header values while response policy
+  distinguishes missing, unexpected, and valid content types.
+- Provider-neutral response-policy validation classifies endpoint mismatch,
+  unexpected status, missing or incorrect content type, forbidden body, and
+  oversized body before provider decoding starts.
+- Caller-owned response storage remains structural: execution lends only the
+  operation's admitted capacity to the transport and never trusts a numeric
+  length beyond the initialized slice.
+- Preparation remains allocation-free and adds no network, TLS, runtime,
+  filesystem, clock, credential storage, automatic retry, delay, jitter, or
+  sleep to the default graph.
+- `cloud-sdk-testkit` records prepared requests and operation metadata and can
+  model endpoint mismatch, content-type failures, status mismatch, empty bodies,
+  oversized responses, and retry-classification mistakes.
+
+Verification:
+
+- `scripts/checks.sh`
+- Default/no_std dependency-boundary checks.
+- Compile tests require complete operation metadata and caller-owned storage.
+- Adversarial tests prove mutations and destructive operations cannot acquire
+  read-only, idempotent, or retryable behavior through defaults or conversion.
+- Prepared-request, endpoint-family, response-policy, and testkit conformance
+  tests cover both shared blocking and async transports.
+- `scripts/release_0_29_gate.sh` once added.
+
+Stop gate:
+
+```text
+v0.29.0 implementation stop reached. Run pentest for this exact commit.
+```
+
+### v0.30.0 - Existing Hetzner Prepared Operations
+
+Goal: make every source-locked non-deprecated Cloud, DNS, and Console Storage
+Box operation produce one complete prepared request without requiring callers
+to combine paths, queries, bodies, methods, or response expectations manually.
 
 Deliverables:
 
 - Operation descriptors inside `cloud-sdk-hetzner` reuse the existing typed
-  endpoint constructors and bind the official method, origin-form target,
-  request content type, expected success statuses, response media type, body
-  policy, and response bound.
+  endpoint constructors, implement the common preparation contract, and bind
+  the official method, origin-form target, request content type, expected
+  success statuses, response media type, body policy, and response bound.
 - Caller-supplied target and body buffers are written atomically. Insufficient
   capacity returns a typed preparation error without exposing a partial request
   as executable.
 - List filters, pagination, sorting, label selectors, resource identifiers,
   JSON request bodies, zonefiles, metrics queries, actions, and empty-body
-  operations all retain their existing validation and encoding rules.
+  operations receive complete atomic wire serialization while retaining their
+  existing validation and encoding rules.
 - Preparation covers every non-deprecated operation claimed in
   `docs/API_MATRIX.md`; a release check fails when an implemented operation has
   no prepared-request path or when prepared metadata disagrees with the source
   lock.
 - Read-only, mutating, destructive, and cost-bearing operations remain
-  distinguishable in operation metadata so later execution policy cannot treat
-  them as interchangeable.
+  source-locked in operation metadata together with idempotency and retry
+  classification so later execution policy cannot treat them as interchangeable.
 - The prepared-operation layer remains no_std and transport-independent.
   `cloud-sdk-hetzner` does not depend on `cloud-sdk-reqwest`, and no
   `cloud-sdk-hetzner-client` package is introduced.
@@ -1214,15 +1291,63 @@ Verification:
 - Zero-missing-prepared-operation API-matrix gate.
 - Per-family golden request and insufficient-buffer tests.
 - Mutation-classification and source-locked response-policy tests.
-- `scripts/release_0_29_gate.sh` once added.
+- `scripts/release_0_30_gate.sh` once added.
 
 Stop gate:
 
 ```text
-v0.29.0 implementation stop reached. Run pentest for this exact commit.
+v0.30.0 implementation stop reached. Run pentest for this exact commit.
 ```
 
-### v0.30.0 - Secure High-Level Hetzner Client Workflows
+### v0.31.0 - Checked Hetzner Response Decoding
+
+Goal: provide one checked decoding path that consumes a transport response,
+enforces every prepared response policy, and returns typed provider success or
+error data without requiring callers to remember security steps.
+
+Deliverables:
+
+- Resource-specific success response models cover every non-deprecated Cloud,
+  DNS, and Console Storage Box operation, including list envelopes, nullable
+  fields, action results, empty success bodies, metrics, and zonefiles.
+- A checked decoder consumes `TransportResponse` together with the operation's
+  prepared metadata; callers cannot pass a raw body while bypassing its status,
+  content-type, empty-body, or maximum-size policy. Endpoint/service mismatch
+  is rejected before transport execution by the prepared-request path.
+- The decoder applies the bounded `ResponseBytes` boundary before parser use,
+  then returns either the operation's typed success value or typed Hetzner API
+  error envelope according to source-locked status semantics.
+- Unexpected status, malformed or missing content type, oversized body,
+  malformed payload, duplicate fields, invalid identifiers, unknown enum values,
+  and typed provider errors remain distinct payload-free error cases.
+- Response models validate security-relevant fields after parsing, tolerate
+  only documented additive compatibility, and never expose unvalidated wire
+  structs publicly.
+- The decoder remains transport-independent and performs no request, retry,
+  sleep, allocation beyond its admitted feature contract, logging, or implicit
+  sanitization of caller-owned response storage.
+- Optional parser dependencies and alloc use receive explicit no_std, license,
+  feature, malformed-input, and supply-chain review; default features stay empty.
+
+Verification:
+
+- `scripts/checks.sh`
+- `scripts/check_hetzner_api_drift.py --fetch`
+- Zero-missing-success-model and zero-missing-decoder operation-matrix gates.
+- Golden and adversarial decoding fixtures for every response family and every
+  documented success/error status shape.
+- Fuzz coverage for shared envelopes and representative resource, list,
+  metrics, zonefile, nullable, empty-body, and malformed response paths.
+- Default/no_std and optional decoder feature-matrix checks.
+- `scripts/release_0_31_gate.sh` once added.
+
+Stop gate:
+
+```text
+v0.31.0 implementation stop reached. Run pentest for this exact commit.
+```
+
+### v0.32.0 - Secure High-Level Hetzner Client Workflows
 
 Goal: make the secure end-to-end path the shortest supported path for existing
 Hetzner Cloud, DNS, and Console Storage Box operations while preserving the
@@ -1231,8 +1356,9 @@ transport-free default provider graph.
 Deliverables:
 
 - An opt-in `client` feature inside `cloud-sdk-hetzner`, generic over
-  `BlockingTransport` or `AsyncTransport`; provider code never selects reqwest,
-  TLS roots, an async executor, timeouts, credentials, or secret storage.
+  the shared blocking or async transport contract; provider code never selects
+  reqwest, TLS roots, an async executor, timeouts, credentials, or secret
+  storage.
 - Safe Cloud/DNS and Console Storage Box constructors verify that the supplied
   credential-bound transport exactly matches the corresponding official
   Hetzner scheme, host, effective port, and base path before accepting it.
@@ -1241,14 +1367,14 @@ Deliverables:
   credentials will be sent to that endpoint; documentation forbids endpoint
   values derived from tenant-controlled or otherwise untrusted input.
 - High-level operation methods prepare into bounded caller-owned storage, send
-  exactly one request, enforce the prepared status/body/content-type policy,
-  and decode the operation's typed success or Hetzner error envelope.
+  exactly one request, invoke only the checked decoder, and return the
+  operation's typed success or Hetzner error value.
 - Typed errors preserve preparation, transport, HTTP/API, policy, and decoding
   failures as distinct cases without logging or embedding request bodies,
   credentials, zonefiles, user data, or response secrets in diagnostics.
-- The optional production decoder and its feature graph receive an explicit
-  no_std/alloc, dependency, license, and malformed-input review before
-  admission; default features remain empty.
+- Shared client handles support caller-bounded concurrent operations without a
+  mutex guard across network I/O or `.await`; each call owns distinct bounded
+  target, body, and response storage.
 - No request is retried by default. Any admitted retry policy must be supplied
   explicitly by the caller, receive method and operation classification, keep
   delay/sleep execution caller-controlled, and require separate explicit intent
@@ -1268,8 +1394,8 @@ Verification:
 
 - `scripts/checks.sh`
 - Default/no_std, `client`, blocking, and async feature-matrix checks.
-- Complete mock happy-path and adversarial response tests for every endpoint
-  response family.
+- Complete mock happy-path, checked-decoder, and adversarial response tests for
+  every endpoint response family.
 - Official-constructor tests reject lookalike hosts, subdomains, non-default
   ports, altered base paths, user information, and custom endpoints before any
   credential-bearing request is sent.
@@ -1278,15 +1404,17 @@ Verification:
   disabled.
 - Compile-checked blocking and executor-neutral async examples.
 - Credential-free live staging plus the existing opt-in read-only smoke suite.
-- `scripts/release_0_30_gate.sh` once added.
+- Concurrent client tests use explicit caller bounds and cover token rotation,
+  cancellation, independent buffers, and failure isolation.
+- `scripts/release_0_32_gate.sh` once added.
 
 Stop gate:
 
 ```text
-v0.30.0 implementation stop reached. Run pentest for this exact commit.
+v0.32.0 implementation stop reached. Run pentest for this exact commit.
 ```
 
-### v0.31.0 - Robot Source Lock And Operation Matrix
+### v0.33.0 - Robot Source Lock And Operation Matrix
 
 Goal: establish a reproducible source of truth for every active and deprecated
 Robot Webservice operation before adding public Robot types.
@@ -1311,15 +1439,15 @@ Verification:
 - `scripts/checks.sh`
 - Robot source-lock fixture and parser tests.
 - `scripts/check_hetzner_robot_drift.py --fetch` once added.
-- `scripts/release_0_31_gate.sh` once added.
+- `scripts/release_0_33_gate.sh` once added.
 
 Stop gate:
 
 ```text
-v0.31.0 implementation stop reached. Run pentest for this exact commit.
+v0.33.0 implementation stop reached. Run pentest for this exact commit.
 ```
 
-### v0.32.0 - Robot Protocol And Credential Foundation
+### v0.34.0 - Robot Protocol And Credential Foundation
 
 Goal: add the shared Robot protocol, credential, encoding, error, and transport
 boundaries without implementing resource operations prematurely.
@@ -1346,15 +1474,15 @@ Verification:
 - Robot auth, form-encoding, error, rate-limit, redaction, and transport tests.
 - Default/no_std and optional transport dependency-boundary checks.
 - Robot source-lock drift check.
-- `scripts/release_0_32_gate.sh` once added.
+- `scripts/release_0_34_gate.sh` once added.
 
 Stop gate:
 
 ```text
-v0.32.0 implementation stop reached. Run pentest for this exact commit.
+v0.34.0 implementation stop reached. Run pentest for this exact commit.
 ```
 
-### v0.33.0 - Robot Servers And Cancellation
+### v0.35.0 - Robot Servers And Cancellation
 
 Goal: implement the six active Robot server and cancellation operations.
 
@@ -1375,15 +1503,15 @@ Verification:
 - `scripts/checks.sh`
 - Focused Robot server and cancellation tests.
 - Robot source-lock drift check.
-- `scripts/release_0_33_gate.sh` once added.
+- `scripts/release_0_35_gate.sh` once added.
 
 Stop gate:
 
 ```text
-v0.33.0 implementation stop reached. Run pentest for this exact commit.
+v0.35.0 implementation stop reached. Run pentest for this exact commit.
 ```
 
-### v0.34.0 - Robot IP And Subnet Management
+### v0.36.0 - Robot IP And Subnet Management
 
 Goal: implement all 18 active Robot IP and subnet operations.
 
@@ -1402,15 +1530,15 @@ Verification:
 - `scripts/checks.sh`
 - Focused Robot IP, subnet, MAC, and cancellation tests.
 - Robot source-lock drift check.
-- `scripts/release_0_34_gate.sh` once added.
+- `scripts/release_0_36_gate.sh` once added.
 
 Stop gate:
 
 ```text
-v0.34.0 implementation stop reached. Run pentest for this exact commit.
+v0.36.0 implementation stop reached. Run pentest for this exact commit.
 ```
 
-### v0.35.0 - Robot Reset, Failover, And Wake-On-LAN
+### v0.37.0 - Robot Reset, Failover, And Wake-On-LAN
 
 Goal: implement the nine active reset, failover, and Wake-on-LAN operations.
 
@@ -1428,15 +1556,15 @@ Verification:
 - `scripts/checks.sh`
 - Focused Robot reset, failover, and Wake-on-LAN tests.
 - Robot source-lock drift check.
-- `scripts/release_0_35_gate.sh` once added.
+- `scripts/release_0_37_gate.sh` once added.
 
 Stop gate:
 
 ```text
-v0.35.0 implementation stop reached. Run pentest for this exact commit.
+v0.37.0 implementation stop reached. Run pentest for this exact commit.
 ```
 
-### v0.36.0 - Robot Boot Configuration
+### v0.38.0 - Robot Boot Configuration
 
 Goal: implement all 15 active Robot boot, rescue, Linux, VNC, and Windows
 configuration operations.
@@ -1457,15 +1585,15 @@ Verification:
 - `scripts/checks.sh`
 - Focused Robot boot configuration and secret-handling tests.
 - Robot source-lock drift check.
-- `scripts/release_0_36_gate.sh` once added.
+- `scripts/release_0_38_gate.sh` once added.
 
 Stop gate:
 
 ```text
-v0.36.0 implementation stop reached. Run pentest for this exact commit.
+v0.38.0 implementation stop reached. Run pentest for this exact commit.
 ```
 
-### v0.37.0 - Robot Reverse DNS, Traffic, And SSH Keys
+### v0.39.0 - Robot Reverse DNS, Traffic, And SSH Keys
 
 Goal: implement the 11 active reverse DNS, traffic, and SSH-key operations.
 
@@ -1485,15 +1613,15 @@ Verification:
 - `scripts/checks.sh`
 - Focused Robot reverse-DNS, traffic, and SSH-key tests.
 - Robot source-lock drift check.
-- `scripts/release_0_37_gate.sh` once added.
+- `scripts/release_0_39_gate.sh` once added.
 
 Stop gate:
 
 ```text
-v0.37.0 implementation stop reached. Run pentest for this exact commit.
+v0.39.0 implementation stop reached. Run pentest for this exact commit.
 ```
 
-### v0.38.0 - Robot Firewalls And vSwitches
+### v0.40.0 - Robot Firewalls And vSwitches
 
 Goal: implement the 15 active Robot firewall and vSwitch operations.
 
@@ -1514,15 +1642,15 @@ Verification:
 - `scripts/checks.sh`
 - Focused Robot firewall and vSwitch tests.
 - Robot source-lock drift check.
-- `scripts/release_0_38_gate.sh` once added.
+- `scripts/release_0_40_gate.sh` once added.
 
 Stop gate:
 
 ```text
-v0.38.0 implementation stop reached. Run pentest for this exact commit.
+v0.40.0 implementation stop reached. Run pentest for this exact commit.
 ```
 
-### v0.39.0 - Robot Ordering Catalogs And Read-Only Transactions
+### v0.41.0 - Robot Ordering Catalogs And Read-Only Transactions
 
 Goal: implement the 12 read-only Robot ordering operations without admitting
 billable order creation yet.
@@ -1544,15 +1672,15 @@ Verification:
 - `scripts/checks.sh`
 - Focused Robot ordering catalog, price, and transaction-response tests.
 - Robot source-lock drift check.
-- `scripts/release_0_39_gate.sh` once added.
+- `scripts/release_0_41_gate.sh` once added.
 
 Stop gate:
 
 ```text
-v0.39.0 implementation stop reached. Run pentest for this exact commit.
+v0.41.0 implementation stop reached. Run pentest for this exact commit.
 ```
 
-### v0.40.0 - Robot Billable Ordering Mutations
+### v0.42.0 - Robot Billable Ordering Mutations
 
 Goal: implement the three server, Server Auction, and addon order-creation
 operations with explicit cost-bearing intent.
@@ -1578,15 +1706,15 @@ Verification:
 - Focused Robot billable-order policy and form-encoding tests.
 - Credential-free tests proving normal live paths cannot submit orders.
 - Robot source-lock drift check.
-- `scripts/release_0_40_gate.sh` once added.
+- `scripts/release_0_42_gate.sh` once added.
 
 Stop gate:
 
 ```text
-v0.40.0 implementation stop reached. Run pentest for this exact commit.
+v0.42.0 implementation stop reached. Run pentest for this exact commit.
 ```
 
-### v0.41.0 - Robot Client Integration And Live Evidence
+### v0.43.0 - Robot Client Integration And Live Evidence
 
 Goal: combine Robot request, transport, response, and policy layers into usable
 blocking and async workflows without weakening destructive-operation controls.
@@ -1612,15 +1740,15 @@ Verification:
 - Credential-free live staging and `--check` tests.
 - Explicit operator-run read-only live smoke test.
 - Robot source-lock drift check.
-- `scripts/release_0_41_gate.sh` once added.
+- `scripts/release_0_43_gate.sh` once added.
 
 Stop gate:
 
 ```text
-v0.41.0 implementation stop reached. Run pentest for this exact commit.
+v0.43.0 implementation stop reached. Run pentest for this exact commit.
 ```
 
-### v0.42.0 - Complete Hetzner SDK Hardening
+### v0.44.0 - Complete Hetzner SDK Hardening
 
 Goal: finish the complete pre-1.0 Hetzner surface and produce release-candidate
 evidence for Cloud, DNS, Console Storage Box, and Robot together.
@@ -1650,12 +1778,12 @@ Verification:
 - `scripts/generate-sbom.sh`
 - `cargo deny check`
 - `cargo audit`
-- `scripts/release_0_42_gate.sh` once added.
+- `scripts/release_0_44_gate.sh` once added.
 
 Stop gate:
 
 ```text
-v0.42.0 implementation stop reached. Run pentest for this exact commit.
+v0.44.0 implementation stop reached. Run pentest for this exact commit.
 ```
 
 ### v1.0.0 - Full Hetzner Production SDK
