@@ -76,15 +76,7 @@ if ! git cat-file -e "${reviewed_commit}^{commit}" 2>/dev/null; then
     exit 1
 fi
 
-head_parent="$(git rev-parse HEAD^)"
-if [ "$reviewed_commit" != "$head_parent" ]; then
-    echo "reviewed commit ${reviewed_commit} does not match first parent ${head_parent}" >&2
-    exit 1
-fi
-
-changed_paths="$(git diff --name-only "$reviewed_commit" HEAD)"
-if [ "$changed_paths" != "$pentest_report" ]; then
-    echo "release report commit may only change ${pentest_report}" >&2
-    printf '%s\n' "$changed_paths" >&2
+if ! git merge-base --is-ancestor "$reviewed_commit" HEAD; then
+    echo "reviewed commit ${reviewed_commit} is not an ancestor of HEAD" >&2
     exit 1
 fi

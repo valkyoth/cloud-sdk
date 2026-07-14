@@ -11,7 +11,7 @@
 | cargo audit | required before tags |
 | cargo deny | required before tags |
 | pentest before tags | required |
-| pentest content binding | final release commit changes only `security/pentest/vX.Y.Z.md` from its direct reviewed parent |
+| pentest content binding | report records an exact reviewed implementation commit that must be an ancestor of the final GitHub-validated release commit |
 | pentest provenance | committed report with required PASS, reviewed commit, tester, scope, and date fields |
 | release publishing | readiness and the complete release gate require one clean unchanged `HEAD` at entry and exit; signed annotated tag must verify; no normal-path bypass flags |
 | OpenAPI integrity | exact non-redirecting HTTPS source URL with default certificate and hostname verification; full pinned SHA-256 before parsing; size/time ceilings and no-follow descriptor reads for local inputs |

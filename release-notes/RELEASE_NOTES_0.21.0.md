@@ -1,6 +1,6 @@
 # cloud-sdk 0.21.0 Release Notes
 
-Status: implementation stop reached; pentest and retest required before tagging.
+Status: pentest passed with no findings; final release commit pending.
 
 ## Overview
 
@@ -33,7 +33,7 @@ stop before transport execution.
   logging, timeouts, retries, action polling, live smoke tests, and incident
   response.
 - Added a concise [release runbook](../docs/RELEASE_RUNBOOK.md) aligned with the
-  existing pentest parent/report evidence model.
+  pentest, GitHub validation, and tagging flow.
 - Added complete feature tables and docs.rs all-feature metadata to every
   crate.
 
@@ -77,5 +77,6 @@ the target-specific `ring` dependency retains its required `0.52` line.
 
 ## Pentest
 
-Pentest and retest are required before tagging. The final report must be the
-only change in the direct child of the reviewed implementation commit.
+Two pentest passes reported no findings. The permanent report records the exact
+reviewed implementation commit, and release readiness requires that commit to
+be an ancestor of the final GitHub-validated release commit.

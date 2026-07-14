@@ -70,12 +70,12 @@ A version is not tag-ready until:
 - `sbom/cloud-sdk.spdx.json` exists and is non-empty;
 - `sbom/reqwest-feature-unification.spdx.json` exists and is non-empty when
   the standalone downstream fixture is present;
-- `scripts/validate-release-readiness.sh vX.Y.Z` proves that the report-only
-  release commit has the reviewed commit as its direct parent;
+- `scripts/validate-release-readiness.sh vX.Y.Z` proves that the reviewed
+  implementation commit is an ancestor of the final release commit;
 - shared readiness rejects modified tracked files and all untracked files;
 - the version-specific gate snapshots the clean validated `HEAD`, requires it
   to remain unchanged, and reruns readiness after every check;
-- GitHub CI and CodeQL default setup are green on the release-report commit;
+- GitHub CI and CodeQL default setup are green on the final release commit;
 - tagging has been explicitly requested.
 
 `Reviewed-Commit:` records the implementation commit that was reviewed. If
@@ -85,12 +85,12 @@ tagging.
 
 Normal CI validates release metadata without requiring the still-pending
 current report. The versioned release gate requires the report before tagging.
-The report commit must have `Reviewed-Commit:` as its direct parent and may
-change only `security/pentest/vX.Y.Z.md`, matching the release-evidence model
-used by the `eth` workspace. All SBOMs and every release-sensitive file must be
-finalized before that reviewed parent. The normal publisher still requires a
-verifiable signed, annotated `vX.Y.Z` tag to point at `HEAD` and has no
-dirty-tree, skipped-check, untagged, or no-verification bypass flags.
+The reviewed implementation commit must be an ancestor of the final release
+commit. The permanent report and final release metadata may be committed
+together after a green pentest. GitHub validates that complete release commit.
+The normal publisher still requires a verifiable signed, annotated `vX.Y.Z`
+tag to point at `HEAD` and has no dirty-tree, skipped-check, untagged, or
+no-verification bypass flags.
 
 When a version's implementation criteria are done, stop and say:
 
@@ -104,30 +104,22 @@ No tag is created at that point.
 
 Use this loop for every version:
 
-1. Implementation and all release-sensitive metadata reach the version stop
-   point, including versions, manifests, lockfiles, scripts, crate READMEs, and
-   workflow files.
-2. Local gates pass: `scripts/checks.sh`, `cargo deny check`, and
-   `cargo audit`.
-3. The maintainer runs pentest and writes temporary findings to root
-   `PENTEST.md`.
-4. Findings are reviewed and fixed.
-5. Documentation, tests, release notes, drift/source-lock evidence, and all
-   release-sensitive metadata are finalized for the fixes.
-6. `PENTEST.md` is removed after findings are handled.
-7. Local gates are run again.
-8. GitHub CI and CodeQL default setup are checked after the fix commit.
-9. Generate and commit the final SBOMs before the reviewed implementation
-   commit is handed off.
-10. A permanent report is written at `security/pentest/vX.Y.Z.md` only when
-    that exact finalized commit has passed with `Status: PASS`.
-11. Commit only the permanent report as the direct child of the reviewed
-    commit. Any other changed path fails release readiness.
-12. GitHub CI and CodeQL default setup are checked on the report commit.
-13. The versioned release gate starts and ends with
-    `scripts/validate-release-readiness.sh vX.Y.Z`, and its recorded `HEAD`
-    remains unchanged across every check.
-14. Tagging and pushing tags happen only when explicitly requested.
+1. Complete the implementation, tests, documentation, release metadata, and
+   local gates, then commit the exact state handed to pentest.
+2. The maintainer runs pentest. Temporary findings may be recorded in root
+   `PENTEST.md`, which must never be committed.
+3. If pentest finds an issue, fix it, add regression coverage, remove
+   `PENTEST.md`, rerun local gates, commit the fix, and repeat pentest.
+4. If pentest is green, write `security/pentest/vX.Y.Z.md` with `Status: PASS`
+   and the full `Reviewed-Commit`. A no-findings result is valid evidence and
+   does not require a redundant retest.
+5. Finalize the SBOMs and release metadata, remove root `PENTEST.md`, run local
+   gates, and commit the permanent report with the final release state.
+6. Wait for GitHub CI and CodeQL default setup on that final release commit.
+7. If GitHub finds an issue, fix it, update the pentest report to describe the
+   change and latest reviewed state, commit, and wait for GitHub again.
+8. When GitHub is green, run the versioned release gate against the unchanged
+   commit. Tag and push only when explicitly requested.
 
 Root `PENTEST.md` is temporary scratch input. It must not be committed. The
 permanent report is part of the release tag.
@@ -850,7 +842,7 @@ v0.20.0 implementation stop reached. Run pentest for this exact commit.
 
 ### v0.21.0 - Documentation And Examples Hardening
 
-Status: implementation stop reached; pentest required.
+Status: pentest passed with no findings; final release commit pending.
 
 Goal: make docs.rs examples, transport examples, security recipes, and release
 runbooks complete enough for real users.

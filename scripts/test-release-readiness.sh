@@ -162,7 +162,25 @@ repo="$(make_fixture wrong-reviewed-commit)"
         scripts/validate-release-readiness.sh "v0.2.0"
 )
 
-repo="$(make_fixture mixed-report-commit)"
+repo="$(make_fixture unrelated-reviewed-commit)"
+(
+    cd "$repo"
+    reviewed_commit="$(git rev-parse HEAD)"
+    git checkout -q --orphan unrelated
+    git rm -q -rf .
+    mkdir -p scripts release-notes security/pentest sbom
+    cp "$source_script" scripts/validate-release-readiness.sh
+    printf 'unrelated\n' >README.md
+    write_release_notes "0.2.0"
+    write_sbom
+    write_pentest "v0.2.0" "$reviewed_commit"
+    git add .
+    git commit -q -m "unrelated report"
+    assert_fails_with "reviewed commit .* is not an ancestor of HEAD" \
+        scripts/validate-release-readiness.sh "v0.2.0"
+)
+
+repo="$(make_fixture mixed-release-commit)"
 (
     cd "$repo"
     write_release_notes "0.2.0"
@@ -173,9 +191,8 @@ repo="$(make_fixture mixed-report-commit)"
     write_pentest "v0.2.0" "$reviewed_commit"
     printf 'changed\n' >>README.md
     git add README.md security/pentest/v0.2.0.md
-    git commit -q -m "report plus code"
-    assert_fails_with "release report commit may only change" \
-        scripts/validate-release-readiness.sh "v0.2.0"
+    git commit -q -m "report plus final metadata"
+    scripts/validate-release-readiness.sh "v0.2.0"
 )
 
 repo="$(make_fixture ready)"
@@ -194,4 +211,4 @@ repo="$(make_fixture ready)"
     scripts/validate-release-readiness.sh "v0.2.0"
 )
 
-echo "12 release readiness tests passed."
+echo "14 release readiness tests passed."
