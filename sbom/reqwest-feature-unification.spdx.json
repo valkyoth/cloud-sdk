@@ -1,21 +1,21 @@
 {
   "SPDXID": "SPDXRef-DOCUMENT",
   "creationInfo": {
-    "created": "2026-07-14T09:44:38Z",
+    "created": "2026-07-14T11:29:23Z",
     "creators": [
       "Tool: cargo-sbom-v0.10.0",
       "Tool: cloud-sdk-complete-spdx-v1"
     ]
   },
   "dataLicense": "CC0-1.0",
-  "documentNamespace": "https://spdx.org/spdxdocs/reqwest-feature-unification-2be77a39-e66d-41ef-a455-85af761e8dfa",
+  "documentNamespace": "https://spdx.org/spdxdocs/reqwest-feature-unification-7b0d93fb-b186-4495-84bd-bd6588fc75da",
   "files": [
     {
       "SPDXID": "SPDXRef-File-cloud_sdk_reqwest_feature_unification_test",
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "3436a27a1343ced92f324c49b3313f3bfe1a7f2e"
+          "checksumValue": "ae3bdb43c3099e890af93a04a87bc1244cf315a0"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -27,6 +27,23 @@
   ],
   "name": "reqwest-feature-unification",
   "packages": [
+    {
+      "SPDXID": "SPDXRef-Package-aho-corasick-1.1.4",
+      "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
+      "licenseConcluded": "Unlicense OR MIT",
+      "name": "aho-corasick",
+      "versionInfo": "1.1.4",
+      "licenseDeclared": "Unlicense OR MIT",
+      "description": "Fast multiple substring searching.",
+      "homepage": "https://github.com/BurntSushi/aho-corasick",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:cargo/aho-corasick@1.1.4",
+          "referenceType": "purl"
+        }
+      ]
+    },
     {
       "SPDXID": "SPDXRef-Package-async-trait-0.1.89",
       "description": "Type erasure for async trait methods",
@@ -76,6 +93,22 @@
       ]
     },
     {
+      "SPDXID": "SPDXRef-Package-aws-lc-fips-sys-0.13.15",
+      "description": "AWS-LC is a general-purpose cryptographic library maintained by the AWS Cryptography team for AWS and their customers. This is the FIPS validated version of AWS-LC.",
+      "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:cargo/aws-lc-fips-sys@0.13.15",
+          "referenceType": "purl"
+        }
+      ],
+      "licenseConcluded": "ISC AND (Apache-2.0 OR ISC) AND OpenSSL",
+      "licenseDeclared": "ISC AND (Apache-2.0 OR ISC) AND OpenSSL",
+      "name": "aws-lc-fips-sys",
+      "versionInfo": "0.13.15"
+    },
+    {
       "SPDXID": "SPDXRef-Package-aws-lc-rs-1.17.1",
       "description": "aws-lc-rs is a cryptographic library using AWS-LC for its cryptographic operations. This library strives to be API-compatible with the popular Rust library named ring.",
       "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
@@ -123,6 +156,23 @@
       "licenseDeclared": "MIT OR Apache-2.0",
       "name": "base64",
       "versionInfo": "0.22.1"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-bindgen-0.72.1",
+      "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
+      "licenseConcluded": "BSD-3-Clause",
+      "name": "bindgen",
+      "versionInfo": "0.72.1",
+      "licenseDeclared": "BSD-3-Clause",
+      "description": "Automatically generates Rust FFI bindings to C and C++ libraries.",
+      "homepage": "https://rust-lang.github.io/rust-bindgen/",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:cargo/bindgen@0.72.1",
+          "referenceType": "purl"
+        }
+      ]
     },
     {
       "SPDXID": "SPDXRef-Package-bitflags-2.13.0",
@@ -191,6 +241,22 @@
       ]
     },
     {
+      "SPDXID": "SPDXRef-Package-cexpr-0.6.0",
+      "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
+      "licenseConcluded": "Apache-2.0/MIT",
+      "name": "cexpr",
+      "versionInfo": "0.6.0",
+      "licenseDeclared": "Apache-2.0/MIT",
+      "description": "A C expression parser and evaluator",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:cargo/cexpr@0.6.0",
+          "referenceType": "purl"
+        }
+      ]
+    },
+    {
       "SPDXID": "SPDXRef-Package-cfg-5f-aliases-0.2.1",
       "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
       "licenseConcluded": "MIT",
@@ -240,24 +306,40 @@
       "versionInfo": "0.10.1"
     },
     {
-      "SPDXID": "SPDXRef-Package-cloud-sdk-0.22.0",
+      "SPDXID": "SPDXRef-Package-clang-sys-1.8.1",
+      "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
+      "licenseConcluded": "Apache-2.0",
+      "name": "clang-sys",
+      "versionInfo": "1.8.1",
+      "licenseDeclared": "Apache-2.0",
+      "description": "Rust bindings for libclang.",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:cargo/clang-sys@1.8.1",
+          "referenceType": "purl"
+        }
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-Package-cloud-sdk-0.23.0",
       "description": "no_std-first multi-provider cloud SDK foundations.",
       "downloadLocation": "NONE",
       "homepage": "https://github.com/valkyoth/cloud-sdk",
       "licenseConcluded": "MIT OR Apache-2.0",
       "licenseDeclared": "MIT OR Apache-2.0",
       "name": "cloud-sdk",
-      "versionInfo": "0.22.0"
+      "versionInfo": "0.23.0"
     },
     {
-      "SPDXID": "SPDXRef-Package-cloud-sdk-reqwest-0.15.4",
+      "SPDXID": "SPDXRef-Package-cloud-sdk-reqwest-0.16.0",
       "description": "Optional provider-neutral reqwest transport boundary for cloud-sdk.",
       "downloadLocation": "NONE",
       "homepage": "https://github.com/valkyoth/cloud-sdk",
       "licenseConcluded": "MIT OR Apache-2.0",
       "licenseDeclared": "MIT OR Apache-2.0",
       "name": "cloud-sdk-reqwest",
-      "versionInfo": "0.15.4"
+      "versionInfo": "0.16.0"
     },
     {
       "SPDXID": "SPDXRef-Package-cloud-sdk-reqwest-feature-unification-test-0.0.0",
@@ -267,14 +349,14 @@
       "versionInfo": "0.0.0"
     },
     {
-      "SPDXID": "SPDXRef-Package-cloud-sdk-sanitization-0.13.8",
+      "SPDXID": "SPDXRef-Package-cloud-sdk-sanitization-0.13.9",
       "description": "Optional provider-neutral secret-sanitization boundary for cloud-sdk.",
       "downloadLocation": "NONE",
       "homepage": "https://github.com/valkyoth/cloud-sdk",
       "licenseConcluded": "MIT OR Apache-2.0",
       "licenseDeclared": "MIT OR Apache-2.0",
       "name": "cloud-sdk-sanitization",
-      "versionInfo": "0.13.8"
+      "versionInfo": "0.13.9"
     },
     {
       "SPDXID": "SPDXRef-Package-cmake-0.1.58",
@@ -741,6 +823,23 @@
       "versionInfo": "0.4.3"
     },
     {
+      "SPDXID": "SPDXRef-Package-glob-0.3.3",
+      "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
+      "licenseConcluded": "MIT OR Apache-2.0",
+      "name": "glob",
+      "versionInfo": "0.3.3",
+      "licenseDeclared": "MIT OR Apache-2.0",
+      "description": "Support for matching file paths against Unix shell style patterns.\n",
+      "homepage": "https://github.com/rust-lang/glob",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:cargo/glob@0.3.3",
+          "referenceType": "purl"
+        }
+      ]
+    },
+    {
       "SPDXID": "SPDXRef-Package-h2-0.4.15",
       "description": "An HTTP/2 client and server",
       "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
@@ -1140,6 +1239,22 @@
       "versionInfo": "2.12.0"
     },
     {
+      "SPDXID": "SPDXRef-Package-itertools-0.13.0",
+      "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
+      "licenseConcluded": "MIT OR Apache-2.0",
+      "name": "itertools",
+      "versionInfo": "0.13.0",
+      "licenseDeclared": "MIT OR Apache-2.0",
+      "description": "Extra iterator adaptors, iterator methods, free functions, and macros.",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:cargo/itertools@0.13.0",
+          "referenceType": "purl"
+        }
+      ]
+    },
+    {
       "SPDXID": "SPDXRef-Package-itoa-1.0.18",
       "description": "Fast integer primitive to string conversion",
       "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
@@ -1270,6 +1385,22 @@
       "versionInfo": "0.2.186"
     },
     {
+      "SPDXID": "SPDXRef-Package-libloading-0.8.9",
+      "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
+      "licenseConcluded": "ISC",
+      "name": "libloading",
+      "versionInfo": "0.8.9",
+      "licenseDeclared": "ISC",
+      "description": "Bindings around the platform's dynamic library loading primitives with greatly improved memory safety.",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:cargo/libloading@0.8.9",
+          "referenceType": "purl"
+        }
+      ]
+    },
+    {
       "SPDXID": "SPDXRef-Package-litemap-0.8.2",
       "description": "A key-value Map implementation based on a flat, sorted Vec.",
       "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
@@ -1351,6 +1482,22 @@
       "versionInfo": "2.8.3"
     },
     {
+      "SPDXID": "SPDXRef-Package-minimal-lexical-0.2.1",
+      "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
+      "licenseConcluded": "MIT/Apache-2.0",
+      "name": "minimal-lexical",
+      "versionInfo": "0.2.1",
+      "licenseDeclared": "MIT/Apache-2.0",
+      "description": "Fast float parsing conversion routines.",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:cargo/minimal-lexical@0.2.1",
+          "referenceType": "purl"
+        }
+      ]
+    },
+    {
       "SPDXID": "SPDXRef-Package-mio-1.2.2",
       "description": "Lightweight non-blocking I/O.",
       "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
@@ -1399,6 +1546,22 @@
       "licenseDeclared": "MIT OR Apache-2.0",
       "name": "ndk-context",
       "versionInfo": "0.1.1"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-nom-7.1.3",
+      "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
+      "licenseConcluded": "MIT",
+      "name": "nom",
+      "versionInfo": "7.1.3",
+      "licenseDeclared": "MIT",
+      "description": "A byte-oriented, zero-copy, parser combinators library",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:cargo/nom@7.1.3",
+          "referenceType": "purl"
+        }
+      ]
     },
     {
       "SPDXID": "SPDXRef-Package-num-traits-0.2.19",
@@ -1581,6 +1744,22 @@
       "versionInfo": "0.8.4"
     },
     {
+      "SPDXID": "SPDXRef-Package-prettyplease-0.2.37",
+      "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
+      "licenseConcluded": "MIT OR Apache-2.0",
+      "name": "prettyplease",
+      "versionInfo": "0.2.37",
+      "licenseDeclared": "MIT OR Apache-2.0",
+      "description": "A minimal `syn` syntax tree pretty-printer",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:cargo/prettyplease@0.2.37",
+          "referenceType": "purl"
+        }
+      ]
+    },
+    {
       "SPDXID": "SPDXRef-Package-proc-macro2-1.0.106",
       "description": "A substitute implementation of the compiler's `proc_macro` API to decouple token-based libraries from the procedural macro use case.",
       "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
@@ -1743,6 +1922,57 @@
       "licenseDeclared": "MIT",
       "name": "redox_syscall",
       "versionInfo": "0.5.18"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-regex-1.13.0",
+      "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
+      "licenseConcluded": "MIT OR Apache-2.0",
+      "name": "regex",
+      "versionInfo": "1.13.0",
+      "licenseDeclared": "MIT OR Apache-2.0",
+      "description": "An implementation of regular expressions for Rust. This implementation uses\nfinite automata and guarantees linear time matching on all inputs.\n",
+      "homepage": "https://github.com/rust-lang/regex",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:cargo/regex@1.13.0",
+          "referenceType": "purl"
+        }
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-Package-regex-automata-0.4.15",
+      "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
+      "licenseConcluded": "MIT OR Apache-2.0",
+      "name": "regex-automata",
+      "versionInfo": "0.4.15",
+      "licenseDeclared": "MIT OR Apache-2.0",
+      "description": "Automata construction and matching using regular expressions.",
+      "homepage": "https://github.com/rust-lang/regex/tree/master/regex-automata",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:cargo/regex-automata@0.4.15",
+          "referenceType": "purl"
+        }
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-Package-regex-syntax-0.8.11",
+      "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
+      "licenseConcluded": "MIT OR Apache-2.0",
+      "name": "regex-syntax",
+      "versionInfo": "0.8.11",
+      "licenseDeclared": "MIT OR Apache-2.0",
+      "description": "A regular expression parser.",
+      "homepage": "https://github.com/rust-lang/regex/tree/master/regex-syntax",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:cargo/regex-syntax@0.8.11",
+          "referenceType": "purl"
+        }
+      ]
     },
     {
       "SPDXID": "SPDXRef-Package-reqwest-0.13.4",
@@ -2106,6 +2336,22 @@
       "licenseDeclared": "MIT OR Apache-2.0",
       "name": "serde",
       "versionInfo": "1.0.228"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-shlex-1.3.0",
+      "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
+      "licenseConcluded": "MIT OR Apache-2.0",
+      "name": "shlex",
+      "versionInfo": "1.3.0",
+      "licenseDeclared": "MIT OR Apache-2.0",
+      "description": "Split a string into shell words, like Python's shlex.",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:cargo/shlex@1.3.0",
+          "referenceType": "purl"
+        }
+      ]
     },
     {
       "SPDXID": "SPDXRef-Package-shlex-2.0.1",
@@ -3300,6 +3546,11 @@
       "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-reqwest-feature-unification-test-0.0.0"
     },
     {
+      "spdxElementId": "SPDXRef-Package-aho-corasick-1.1.4",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-memchr-2.8.3"
+    },
+    {
       "spdxElementId": "SPDXRef-Package-async-trait-0.1.89",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-proc-macro2-1.0.106"
@@ -3318,6 +3569,46 @@
       "spdxElementId": "SPDXRef-Package-autocfg-1.5.1",
       "relationshipType": "BUILD_DEPENDENCY_OF",
       "relatedSpdxElement": "SPDXRef-Package-num-traits-0.2.19"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-aws-lc-fips-sys-0.13.15",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-bindgen-0.72.1"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-aws-lc-fips-sys-0.13.15",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-cc-1.2.67"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-aws-lc-fips-sys-0.13.15",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-cmake-0.1.58"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-aws-lc-fips-sys-0.13.15",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-dunce-1.0.5"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-aws-lc-fips-sys-0.13.15",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-fs-5f-extra-1.3.0"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-aws-lc-fips-sys-0.13.15",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-pkg-config-0.3.33"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-aws-lc-fips-sys-0.13.15",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-regex-1.13.0"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-aws-lc-rs-1.17.1",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-aws-lc-fips-sys-0.13.15"
     },
     {
       "spdxElementId": "SPDXRef-Package-aws-lc-rs-1.17.1",
@@ -3355,6 +3646,76 @@
       "relatedSpdxElement": "SPDXRef-Package-pkg-config-0.3.33"
     },
     {
+      "spdxElementId": "SPDXRef-Package-bindgen-0.72.1",
+      "relationshipType": "BUILD_DEPENDENCY_OF",
+      "relatedSpdxElement": "SPDXRef-Package-aws-lc-fips-sys-0.13.15"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-bindgen-0.72.1",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-bitflags-2.13.0"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-bindgen-0.72.1",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-cexpr-0.6.0"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-bindgen-0.72.1",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-clang-sys-1.8.1"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-bindgen-0.72.1",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-itertools-0.13.0"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-bindgen-0.72.1",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-log-0.4.33"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-bindgen-0.72.1",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-prettyplease-0.2.37"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-bindgen-0.72.1",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-proc-macro2-1.0.106"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-bindgen-0.72.1",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-quote-1.0.46"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-bindgen-0.72.1",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-regex-1.13.0"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-bindgen-0.72.1",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-rustc-hash-2.1.3"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-bindgen-0.72.1",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-shlex-1.3.0"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-bindgen-0.72.1",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-syn-2.0.118"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-cc-1.2.67",
+      "relationshipType": "BUILD_DEPENDENCY_OF",
+      "relatedSpdxElement": "SPDXRef-Package-aws-lc-fips-sys-0.13.15"
+    },
+    {
       "spdxElementId": "SPDXRef-Package-cc-1.2.67",
       "relationshipType": "BUILD_DEPENDENCY_OF",
       "relatedSpdxElement": "SPDXRef-Package-aws-lc-sys-0.42.0"
@@ -3385,6 +3746,11 @@
       "relatedSpdxElement": "SPDXRef-Package-shlex-2.0.1"
     },
     {
+      "spdxElementId": "SPDXRef-Package-cexpr-0.6.0",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-nom-7.1.3"
+    },
+    {
       "spdxElementId": "SPDXRef-Package-cfg-5f-aliases-0.2.1",
       "relationshipType": "BUILD_DEPENDENCY_OF",
       "relatedSpdxElement": "SPDXRef-Package-quinn-0.11.11"
@@ -3410,29 +3776,54 @@
       "relatedSpdxElement": "SPDXRef-Package-rand--core-0.10.1"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.15.4",
+      "spdxElementId": "SPDXRef-Package-clang-sys-1.8.1",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-glob-0.3.3"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-clang-sys-1.8.1",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-libc-0.2.186"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-clang-sys-1.8.1",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-libloading-0.8.9"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.16.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-bytes-1.12.1"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.15.4",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.16.0",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-0.22.0"
+      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-0.23.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.15.4",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.16.0",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-sanitization-0.13.8"
+      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-sanitization-0.13.9"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.15.4",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.16.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-reqwest-0.13.4"
     },
     {
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.16.0",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-rustls-0.23.42"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.16.0",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-rustls-platform-verifier-0.7.0"
+    },
+    {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-feature-unification-test-0.0.0",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-reqwest-0.15.4"
+      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-reqwest-0.16.0"
     },
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-feature-unification-test-0.0.0",
@@ -3445,14 +3836,19 @@
       "relatedSpdxElement": "SPDXRef-Package-tokio-1.52.3"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-sanitization-0.13.8",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-sanitization-0.13.9",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-0.22.0"
+      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-0.23.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-sanitization-0.13.8",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-sanitization-0.13.9",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-sanitization-1.2.4"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-cmake-0.1.58",
+      "relationshipType": "BUILD_DEPENDENCY_OF",
+      "relatedSpdxElement": "SPDXRef-Package-aws-lc-fips-sys-0.13.15"
     },
     {
       "spdxElementId": "SPDXRef-Package-cmake-0.1.58",
@@ -3527,12 +3923,22 @@
     {
       "spdxElementId": "SPDXRef-Package-dunce-1.0.5",
       "relationshipType": "BUILD_DEPENDENCY_OF",
+      "relatedSpdxElement": "SPDXRef-Package-aws-lc-fips-sys-0.13.15"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-dunce-1.0.5",
+      "relationshipType": "BUILD_DEPENDENCY_OF",
       "relatedSpdxElement": "SPDXRef-Package-aws-lc-sys-0.42.0"
     },
     {
       "spdxElementId": "SPDXRef-Package-form--urlencoded-1.2.2",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-percent-encoding-2.3.2"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-fs-5f-extra-1.3.0",
+      "relationshipType": "BUILD_DEPENDENCY_OF",
+      "relatedSpdxElement": "SPDXRef-Package-aws-lc-fips-sys-0.13.15"
     },
     {
       "spdxElementId": "SPDXRef-Package-fs-5f-extra-1.3.0",
@@ -3658,6 +4064,11 @@
       "spdxElementId": "SPDXRef-Package-getrandom-0.4.3",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-wasm-bindgen-0.2.126"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-glob-0.3.3",
+      "relationshipType": "BUILD_DEPENDENCY_OF",
+      "relatedSpdxElement": "SPDXRef-Package-clang-sys-1.8.1"
     },
     {
       "spdxElementId": "SPDXRef-Package-h2-0.4.15",
@@ -4380,6 +4791,11 @@
       "relatedSpdxElement": "SPDXRef-Package-serde-1.0.228"
     },
     {
+      "spdxElementId": "SPDXRef-Package-itertools-0.13.0",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-either-1.16.0"
+    },
+    {
       "spdxElementId": "SPDXRef-Package-jni-0.22.4",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cfg-if-1.0.4"
@@ -4490,6 +4906,16 @@
       "relatedSpdxElement": "SPDXRef-Package-wasm-bindgen-0.2.126"
     },
     {
+      "spdxElementId": "SPDXRef-Package-libloading-0.8.9",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-cfg-if-1.0.4"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-libloading-0.8.9",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-windows-link-0.2.1"
+    },
+    {
       "spdxElementId": "SPDXRef-Package-lock--api-0.4.14",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-scopeguard-1.2.0"
@@ -4555,6 +4981,16 @@
       "relatedSpdxElement": "SPDXRef-Package-uuid-1.23.5"
     },
     {
+      "spdxElementId": "SPDXRef-Package-nom-7.1.3",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-memchr-2.8.3"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-nom-7.1.3",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-minimal-lexical-0.2.1"
+    },
+    {
       "spdxElementId": "SPDXRef-Package-num-traits-0.2.19",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-autocfg-1.5.1"
@@ -4607,6 +5043,11 @@
     {
       "spdxElementId": "SPDXRef-Package-pkg-config-0.3.33",
       "relationshipType": "BUILD_DEPENDENCY_OF",
+      "relatedSpdxElement": "SPDXRef-Package-aws-lc-fips-sys-0.13.15"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-pkg-config-0.3.33",
+      "relationshipType": "BUILD_DEPENDENCY_OF",
       "relatedSpdxElement": "SPDXRef-Package-aws-lc-sys-0.42.0"
     },
     {
@@ -4628,6 +5069,16 @@
       "spdxElementId": "SPDXRef-Package-prefix-trie-0.8.4",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-num-traits-0.2.19"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-prettyplease-0.2.37",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-proc-macro2-1.0.106"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-prettyplease-0.2.37",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-syn-2.0.118"
     },
     {
       "spdxElementId": "SPDXRef-Package-proc-macro2-1.0.106",
@@ -4828,6 +5279,46 @@
       "spdxElementId": "SPDXRef-Package-redox--syscall-0.5.18",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-bitflags-2.13.0"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-regex-1.13.0",
+      "relationshipType": "BUILD_DEPENDENCY_OF",
+      "relatedSpdxElement": "SPDXRef-Package-aws-lc-fips-sys-0.13.15"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-regex-1.13.0",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-aho-corasick-1.1.4"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-regex-1.13.0",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-memchr-2.8.3"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-regex-1.13.0",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-regex-automata-0.4.15"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-regex-1.13.0",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-regex-syntax-0.8.11"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-regex-automata-0.4.15",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-aho-corasick-1.1.4"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-regex-automata-0.4.15",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-memchr-2.8.3"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-regex-automata-0.4.15",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-regex-syntax-0.8.11"
     },
     {
       "spdxElementId": "SPDXRef-Package-reqwest-0.13.4",

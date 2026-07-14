@@ -17,7 +17,8 @@ generate_complete() {
     project="$1"
     manifest="$2"
     label="$3"
-    cargo metadata --manifest-path "$manifest" --locked --format-version 1 \
+    cargo metadata --manifest-path "$manifest" --locked --all-features \
+        --format-version 1 \
         >"$tmp/${label}.metadata.json"
     cargo sbom --project-directory "$project" --output-format spdx_json_2_3 \
         >"$tmp/${label}.base.json"

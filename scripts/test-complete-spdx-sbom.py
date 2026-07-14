@@ -144,11 +144,22 @@ def test_rejects_ambiguous_and_unresolved_graphs() -> None:
     )
 
 
+def test_sbom_commands_resolve_all_features() -> None:
+    for relative in (
+        "scripts/generate-sbom.sh",
+        "scripts/check_sbom_freshness.sh",
+        "scripts/check_sbom_completeness.sh",
+    ):
+        source = (ROOT / relative).read_text(encoding="ascii")
+        assert source.count("--all-features") == 1, relative
+
+
 def main() -> None:
     tests = (
         test_adds_build_package_and_complete_edges,
         test_completion_is_idempotent,
         test_rejects_ambiguous_and_unresolved_graphs,
+        test_sbom_commands_resolve_all_features,
     )
     for test in tests:
         test()

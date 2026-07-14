@@ -15,7 +15,8 @@ fi
 
 tmp="$(mktemp -d)"
 trap 'rm -rf "$tmp"' EXIT HUP INT TERM
-cargo metadata --manifest-path "$manifest" --locked --format-version 1 \
+cargo metadata --manifest-path "$manifest" --locked --all-features \
+    --format-version 1 \
     >"$tmp/metadata.json"
 
 jq -er '.packages[] | "\(.name)@\(.version)"' "$tmp/metadata.json" |
