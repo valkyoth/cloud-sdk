@@ -52,6 +52,10 @@ cargo run -p cloud-sdk --example provider_neutral
   `async-rustls` when the
   supported native reqwest boundary fits the target.
 
+The FIPS blocking feature additionally requires an explicit `FipsTlsPolicy`
+containing deployment-managed trust roots and complete, current CRLs. Missing,
+unknown, malformed, or expired revocation state fails closed.
+
 Provider crates do not depend on transport crates. This keeps cloud request
 models portable to Linux, Windows, BSD, macOS, Android, iOS, WASM, embedded
 targets, and future operating systems while allowing each application to own

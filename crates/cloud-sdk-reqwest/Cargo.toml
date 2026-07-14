@@ -8,6 +8,7 @@ license.workspace = true
 homepage.workspace = true
 repository.workspace = true
 readme = "README.md"
+exclude = ["testdata/"]
 
 [package.metadata.docs.rs]
 all-features = true
@@ -24,6 +25,9 @@ blocking-rustls = [
 ]
 blocking-rustls-fips = [
     "std",
+    "dep:aws-lc-fips-sys",
+    "dep:aws-lc-rs",
+    "dep:aws-lc-sys",
     "dep:cloud-sdk-sanitization",
     "dep:reqwest",
     "dep:rustls",
@@ -43,6 +47,9 @@ async-rustls = [
 ]
 
 [dependencies]
+aws-lc-fips-sys = { workspace = true, optional = true }
+aws-lc-rs = { workspace = true, optional = true }
+aws-lc-sys = { workspace = true, optional = true }
 bytes = { workspace = true, optional = true }
 cloud-sdk.workspace = true
 cloud-sdk-sanitization = { workspace = true, optional = true }

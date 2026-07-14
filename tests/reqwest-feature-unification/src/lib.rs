@@ -9,8 +9,26 @@ mod tests {
         RequestTimeouts as AsyncRequestTimeouts, UserAgent as AsyncUserAgent,
     };
     use cloud_sdk_reqwest::blocking::{
-        BearerToken, BlockingClientBuilder, HttpsEndpoint, RequestTimeouts, UserAgent,
+        BearerToken, BlockingClientBuilder, FipsTlsPolicy, HttpsEndpoint, RequestTimeouts,
+        UserAgent,
     };
+    use rustls::RootCertStore;
+    use rustls::pki_types::pem::PemObject;
+    use rustls::pki_types::{CertificateDer, CertificateRevocationListDer};
+
+    fn fips_policy() -> Option<FipsTlsPolicy> {
+        let certificate = CertificateDer::from_pem_slice(include_bytes!(
+            "../../../crates/cloud-sdk-reqwest/testdata/fips_root.pem"
+        ))
+        .ok()?;
+        let crl = CertificateRevocationListDer::from_pem_slice(include_bytes!(
+            "../../../crates/cloud-sdk-reqwest/testdata/fips.crl.pem"
+        ))
+        .ok()?;
+        let mut roots = RootCertStore::empty();
+        roots.add(certificate).ok()?;
+        FipsTlsPolicy::new(roots, vec![crl]).ok()
+    }
 
     #[test]
     fn hardened_client_builds_with_hickory_and_http2_unified() {
@@ -25,8 +43,12 @@ mod tests {
         if let (Ok(endpoint), Ok(token), Ok(user_agent), Ok(timeouts)) =
             (endpoint, token, user_agent, timeouts)
         {
+            let Some(policy) = fips_policy() else {
+                return;
+            };
             assert!(
                 BlockingClientBuilder::new(endpoint, token, user_agent, timeouts)
+                    .with_fips_tls_policy(policy)
                     .build()
                     .is_ok()
             );

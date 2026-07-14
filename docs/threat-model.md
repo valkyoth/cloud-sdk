@@ -40,6 +40,8 @@
 - secret copies retained in adapter-owned allocation after request completion;
 - compromised or attacker-extended host trust stores silently validating a
   hostile TLS endpoint;
+- absent, incomplete, stale, or unauthenticated CRLs allowing a revoked cloud
+  endpoint certificate to remain usable;
 - downstream Cargo feature unification silently enabling a different DNS
   resolver or broader HTTP protocol parser;
 - async cancellation exposing partially initialized response data or leaving
@@ -92,8 +94,9 @@
   authority, rustls with TLS 1.2 minimum, explicit bounded timeouts, no
   redirects, retries, proxies, referers, or decompression, and caller-bounded
   responses;
-- platform trust-store use is explicit; v0.17 does not claim root, certificate,
-  or public-key pinning;
+- standard transports use platform trust stores explicitly; FIPS transport
+  requires deployment-managed roots and complete CRLs, checks the full chain,
+  denies unknown revocation status, and enforces CRL expiration;
 - both clients force HTTP/1 and disable Hickory DNS; a locked external fixture
   tests both adapters with downstream reqwest HTTP/2 and Hickory features unified;
 - the core async trait and testkit are executor-neutral; only the optional

@@ -11,6 +11,8 @@ pub use crate::shared::{
 };
 pub use client::BlockingClient;
 pub use config::BlockingClientBuilder;
+#[cfg(feature = "blocking-rustls-fips")]
+pub use config::FipsTlsPolicy;
 
 #[cfg(test)]
 mod tests;

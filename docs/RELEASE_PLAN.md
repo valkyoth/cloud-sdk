@@ -923,6 +923,11 @@ Deliverables:
   `std` graphs remain transport-free.
 - Explicit rustls FIPS `CryptoProvider` and `ClientConfig`, with runtime
   `fips()` verification before client construction succeeds.
+- Mandatory deployment-managed trust roots and complete CRLs, with chain-wide
+  unknown-status denial and CRL-expiration enforcement.
+- Exact published requirements for reqwest, rustls, platform-verifier, and all
+  AWS-LC packages in the reviewed FIPS graph; applications still own a locked
+  or vendored complete dependency resolution.
 - FIPS-only dependency graph includes `aws-lc-fips-sys`; the boundary records
   and checks rustls' current compilation of ordinary `aws-lc-sys` alongside
   the FIPS-selected FFI instead of claiming that build dependency is absent.
@@ -949,6 +954,10 @@ Verification:
 - `scripts/check_reqwest_fips_boundary.sh` once added.
 - FIPS-only Cargo feature and dependency-tree checks.
 - Runtime `CryptoProvider::fips()` and `ClientConfig::fips()` tests.
+- Missing-policy, empty-root, empty-CRL, malformed-CRL, and successful
+  verifier-construction tests; rustls' fail-closed unknown-status and CRL
+  expiration policies are selected without permissive overrides.
+- Publish-state mutation and exact manifest-constraint tests.
 - `cargo deny check`
 - `cargo audit`
 - `scripts/release_0_23_gate.sh` once added.

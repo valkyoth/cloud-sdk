@@ -7,16 +7,21 @@ Status: admitted only through the non-default
 
 | Crate | Version | Role |
 | --- | --- | --- |
+| `reqwest` | `0.13.4` | blocking HTTP transport |
 | `rustls` | `0.23.42` | TLS configuration and FIPS status checks |
-| `rustls-platform-verifier` | `0.7.0` | host certificate verification |
+| `rustls-platform-verifier` | `0.7.0` | reqwest graph dependency; not the FIPS verifier |
 | `aws-lc-rs` | `1.17.1` | rustls cryptographic provider |
 | `aws-lc-fips-sys` | `0.13.15` | AWS-LC-FIPS 3.0.x native module |
 | `aws-lc-sys` | `0.42.0` | compiled transitive dependency retained by rustls feature unification |
 
 The feature is additive and disabled by default. It does not enter the
-`cloud-sdk`, provider, reqwest-default, or reqwest-`std` graphs. The complete
-published graph is locked by `Cargo.lock`, checked by Cargo Deny and RustSec,
-and recorded in the workspace SPDX SBOM.
+`cloud-sdk`, provider, reqwest-default, or reqwest-`std` graphs. The published
+manifest uses exact requirements for every package in the table, including
+the three AWS-LC packages that would otherwise be transitive. The repository
+resolution is locked by `Cargo.lock`, checked by Cargo Deny and RustSec, and
+recorded in the workspace SPDX SBOM. Applications must also retain and review
+their own `Cargo.lock` with `--locked`, or vendor and verify all sources;
+library lockfiles do not control unrelated downstream dependencies.
 
 ## Runtime Boundary
 
@@ -24,15 +29,24 @@ The adapter never relies on rustls' process-global default provider. It:
 
 1. constructs `rustls::crypto::default_fips_provider()` explicitly;
 2. rejects it unless `CryptoProvider::fips()` returns true;
-3. builds a `ClientConfig` from that exact provider and safe protocol versions;
-4. installs the platform certificate verifier and no client authentication;
-5. rejects the complete configuration unless `ClientConfig::fips()` returns
+3. requires caller-owned trust roots and at least one complete CRL;
+4. builds a WebPKI verifier that checks the complete chain, denies unknown
+   revocation status, and rejects expired CRLs;
+5. builds a `ClientConfig` from that provider and verifier, with safe protocol
+   versions and no client authentication;
+6. rejects the complete configuration unless `ClientConfig::fips()` returns
    true; and
-6. passes that exact configuration to reqwest's preconfigured TLS boundary.
+7. passes that exact configuration to reqwest's preconfigured TLS boundary.
 
 This makes missing or preinstalled process-global providers irrelevant. When
 `blocking-rustls` and `blocking-rustls-fips` are both enabled, the FIPS-specific
 construction path wins. Client construction remains fallible and payload-free.
+
+The application owns authenticated distribution, completeness, freshness,
+issuer coverage, and emergency replacement of its roots and CRLs. An absent,
+empty, malformed, unknown-status, or expired revocation policy fails closed.
+The FIPS path does not use Linux platform-verifier behavior that omits
+revocation checks.
 
 Rustls `0.23.42` implements its official `fips` feature by enabling both the
 `aws-lc-rs/fips` backend and its ordinary `aws_lc_rs` feature. Cargo therefore
@@ -95,10 +109,10 @@ portable no_std or ordinary reqwest transport support claims.
 
 ## Verification
 
-`scripts/check_reqwest_fips_boundary.sh` checks the exact direct and native
-graph, rejects alternate TLS/crypto and decompression dependencies, verifies
-the explicit provider/configuration checks remain in source, forces bundled
-source, runs the FIPS status test, and compiles the additive blocking feature
-combination. `scripts/release_0_23_gate.sh` also runs workspace tests, platform
-checks, Cargo Deny, RustSec, SBOM freshness, upstream drift checks, and pentest
-readiness.
+`scripts/check_reqwest_fips_boundary.sh` checks exact published constraints and
+the resolved direct/native graph, rejects alternate TLS, crypto, and
+decompression dependencies, forces bundled source, runs provider,
+configuration, CRL-policy, and process-global independence tests, and compiles
+the additive blocking feature combination. `scripts/release_0_23_gate.sh` also
+runs workspace tests, platform checks, Cargo Deny, RustSec, SBOM freshness,
+upstream drift checks, and pentest readiness.

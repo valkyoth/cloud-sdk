@@ -307,12 +307,15 @@ cloud-sdk = "0.23.0"
 cloud-sdk-reqwest = { version = "0.16.0", features = ["blocking-rustls-fips"] }
 ```
 
-The public blocking API is unchanged. Client construction explicitly selects
-rustls' AWS-LC FIPS provider and fails unless both `CryptoProvider::fips()` and
-`ClientConfig::fips()` report true. The feature alone does not make an
-application or deployment FIPS compliant: the caller must satisfy the AWS-LC
-security policy, approved operating-environment, build, entropy, deployment,
-and operational requirements. See the
+Client construction explicitly selects rustls' AWS-LC FIPS provider and fails
+unless both `CryptoProvider::fips()` and `ClientConfig::fips()` report true. It
+also requires a `FipsTlsPolicy` with deployment-managed trust roots and
+complete, current CRLs; unknown or expired revocation status fails closed. The
+feature alone does not make an application or deployment FIPS compliant: the
+caller must satisfy the AWS-LC security policy, approved operating-environment,
+build, entropy, deployment, and operational requirements. The full policy
+example is in the
+[reqwest crate README](https://crates.io/crates/cloud-sdk-reqwest). See also the
 [FIPS dependency admission](https://github.com/valkyoth/cloud-sdk/blob/main/docs/dependency-admission-reqwest-fips.md).
 
 ## Opt-In Hetzner Live Smoke Test

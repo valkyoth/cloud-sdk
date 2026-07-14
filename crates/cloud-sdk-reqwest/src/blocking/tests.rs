@@ -4,6 +4,15 @@ use std::io::Cursor;
 use std::println;
 use std::string::String;
 use std::time::Duration;
+#[cfg(feature = "blocking-rustls-fips")]
+use std::vec;
+
+#[cfg(feature = "blocking-rustls-fips")]
+use rustls::RootCertStore;
+#[cfg(feature = "blocking-rustls-fips")]
+use rustls::pki_types::pem::PemObject;
+#[cfg(feature = "blocking-rustls-fips")]
+use rustls::pki_types::{CertificateDer, CertificateRevocationListDer};
 
 use cloud_sdk::Method;
 use cloud_sdk::transport::{
@@ -15,6 +24,8 @@ use super::{
     BearerToken, BearerTokenError, BlockingClientBuilder, EndpointError, HttpsEndpoint,
     RequestTimeouts, TimeoutError, TransportError, UserAgent,
 };
+#[cfg(feature = "blocking-rustls-fips")]
+use super::{BuildError, FipsTlsPolicy};
 use crate::test_server::spawn;
 
 fn test_timeouts() -> Option<RequestTimeouts> {
@@ -26,9 +37,27 @@ fn build_loopback(endpoint: &str) -> Option<super::BlockingClient> {
     let token = BearerToken::new("test-token").ok()?;
     let user_agent = UserAgent::new("cloud-sdk-test/0.18").ok()?;
     let timeouts = test_timeouts()?;
-    BlockingClientBuilder::new(endpoint, token, user_agent, timeouts)
-        .build_for_loopback()
-        .ok()
+    let builder = BlockingClientBuilder::new(endpoint, token, user_agent, timeouts);
+    #[cfg(feature = "blocking-rustls-fips")]
+    let builder = builder.with_fips_tls_policy(fips_tls_policy()?);
+    builder.build_for_loopback().ok()
+}
+
+#[cfg(feature = "blocking-rustls-fips")]
+fn fips_roots() -> Option<RootCertStore> {
+    let certificate =
+        CertificateDer::from_pem_slice(include_bytes!("../../testdata/fips_root.pem")).ok()?;
+    let mut roots = RootCertStore::empty();
+    roots.add(certificate).ok()?;
+    Some(roots)
+}
+
+#[cfg(feature = "blocking-rustls-fips")]
+fn fips_tls_policy() -> Option<FipsTlsPolicy> {
+    let crl =
+        CertificateRevocationListDer::from_pem_slice(include_bytes!("../../testdata/fips.crl.pem"))
+            .ok()?;
+    FipsTlsPolicy::new(fips_roots()?, vec![crl]).ok()
 }
 
 #[test]
@@ -349,13 +378,60 @@ fn status_constant_remains_compatible_with_transport_response() {
 #[cfg(feature = "blocking-rustls-fips")]
 #[test]
 fn fips_provider_and_complete_client_configuration_report_fips() {
-    assert_eq!(super::config::test_fips_configuration(), Ok(true));
+    let Some(policy) = fips_tls_policy() else {
+        return;
+    };
+    assert_eq!(super::config::test_fips_configuration(&policy), Ok(true));
 }
 
 #[cfg(feature = "blocking-rustls-fips")]
 #[test]
 fn non_fips_provider_and_complete_configuration_fail_closed() {
-    assert_eq!(super::config::test_non_fips_rejection(), Ok(true));
+    let Some(policy) = fips_tls_policy() else {
+        return;
+    };
+    assert_eq!(super::config::test_non_fips_rejection(&policy), Ok(true));
+}
+
+#[cfg(feature = "blocking-rustls-fips")]
+#[test]
+fn fips_policy_rejects_missing_roots_crls_and_malformed_crls() {
+    let crl = CertificateRevocationListDer::from(vec![0xff]);
+    assert!(matches!(
+        FipsTlsPolicy::new(RootCertStore::empty(), vec![crl.clone()]),
+        Err(BuildError::FipsTrustRootsRequired)
+    ));
+    let Some(roots) = fips_roots() else { return };
+    assert!(matches!(
+        FipsTlsPolicy::new(roots, vec![]),
+        Err(BuildError::FipsCertificateRevocationListsRequired)
+    ));
+    let Some(roots) = fips_roots() else { return };
+    let Ok(policy) = FipsTlsPolicy::new(roots, vec![crl]) else {
+        return;
+    };
+    assert_eq!(
+        super::config::test_fips_configuration(&policy),
+        Err(BuildError::FipsRevocationVerifierFailed)
+    );
+}
+
+#[cfg(feature = "blocking-rustls-fips")]
+#[test]
+fn fips_client_builder_requires_an_explicit_tls_policy() {
+    let endpoint = HttpsEndpoint::new("https://api.example.test");
+    let token = BearerToken::new("test-token");
+    let user_agent = UserAgent::new("cloud-sdk-test/0.23");
+    let timeouts = test_timeouts();
+    let (Ok(endpoint), Ok(token), Ok(user_agent), Some(timeouts)) =
+        (endpoint, token, user_agent, timeouts)
+    else {
+        return;
+    };
+    assert!(matches!(
+        BlockingClientBuilder::new(endpoint, token, user_agent, timeouts).build(),
+        Err(BuildError::FipsTlsPolicyRequired)
+    ));
 }
 
 #[cfg(feature = "blocking-rustls-fips")]
@@ -364,7 +440,10 @@ fn preinstalled_non_fips_global_provider_does_not_influence_fips_client() {
     const CHILD: &str = "CLOUD_SDK_FIPS_GLOBAL_PROVIDER_CHILD";
     const CHILD_MARKER: &str = "cloud-sdk FIPS global-provider child ran";
     if std::env::var_os(CHILD).is_some() {
-        assert!(super::config::test_non_fips_global_independence());
+        let Some(policy) = fips_tls_policy() else {
+            return;
+        };
+        assert!(super::config::test_non_fips_global_independence(&policy));
         println!("{CHILD_MARKER}");
         return;
     }

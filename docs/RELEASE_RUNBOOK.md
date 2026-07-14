@@ -57,6 +57,12 @@ The publisher proves tag integrity, not maintainer identity through a
 repository-pinned fingerprint; signer authorization and key rotation remain
 release-host responsibilities.
 
+Immediately before every crate publication, the publisher rechecks that
+`HEAD`, the clean worktree, annotated tag target, and tag signature still
+match the originally approved commit. Every publication uses `--locked`; a
+checkout, tag replacement, or filesystem change during confirmation or a
+crates.io wait aborts the remaining sequence.
+
 ## Failure Handling
 
 - If CI or CodeQL finds an issue, fix it, update the report to describe the

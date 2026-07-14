@@ -15,12 +15,16 @@ enters the default facade or provider graphs.
 `rustls::crypto::default_fips_provider()` directly, checks
 `CryptoProvider::fips()`, builds a complete `ClientConfig` from that provider,
 and checks `ClientConfig::fips()` before passing the configuration to reqwest.
-It does not rely on rustls' process-global provider. If both blocking features
-are selected, this explicit FIPS path wins.
+It requires deployment-managed trust roots and complete CRLs, checks
+revocation across the certificate chain, denies unknown status, and enforces
+CRL expiration. It does not rely on rustls' process-global provider. If both
+blocking features are selected, this explicit FIPS path wins.
 
-The ordinary HTTPS, TLS 1.2 minimum, platform certificate verifier, HTTP/1,
-system resolver, timeout, redirect, retry, proxy, referer, decompression,
-authority, response-bound, redaction, and sanitization policies are unchanged.
+The ordinary HTTPS, TLS 1.2 minimum, HTTP/1, system resolver, timeout, redirect,
+retry, proxy, referer, decompression, authority, response-bound, redaction, and
+sanitization policies are unchanged. Standard transports retain platform
+certificate verification; the FIPS path fails closed without explicit CRL
+coverage instead of inheriting Linux's no-revocation platform behavior.
 
 ## Validation Limit
 
@@ -58,6 +62,15 @@ matching verifiable signed tag, strict release metadata, and the independent
 crate publish plan. `--rerun-gate` explicitly requests a second full gate run.
 Subprocess failures now produce one concise release-command diagnostic instead
 of a Python traceback.
+
+The publisher captures the approved commit and revalidates the clean worktree,
+`HEAD`, annotated tag target, and signature before every locked Cargo
+publication. Changes during confirmation or crates.io waits abort the
+sequence.
+
+The published FIPS manifest uses exact requirements for reqwest, rustls,
+rustls-platform-verifier, aws-lc-rs, aws-lc-fips-sys, and aws-lc-sys. Consumers
+must still retain a reviewed application lockfile or vendored source graph.
 
 ## Independent Crate Versions
 

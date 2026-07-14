@@ -6,17 +6,60 @@ use reqwest::blocking::ClientBuilder;
 use reqwest::redirect::Policy;
 use reqwest::tls::Version;
 #[cfg(feature = "blocking-rustls-fips")]
-use rustls::ClientConfig;
+use rustls::client::WebPkiServerVerifier;
 #[cfg(feature = "blocking-rustls-fips")]
 use rustls::crypto::CryptoProvider;
 #[cfg(feature = "blocking-rustls-fips")]
-use rustls_platform_verifier::BuilderVerifierExt;
+use rustls::pki_types::CertificateRevocationListDer;
+#[cfg(feature = "blocking-rustls-fips")]
+use rustls::{ClientConfig, RootCertStore};
 #[cfg(feature = "blocking-rustls-fips")]
 use std::sync::Arc;
+#[cfg(feature = "blocking-rustls-fips")]
+use std::vec::Vec;
 
 use crate::shared::{BearerToken, BuildError, HttpsEndpoint, RequestTimeouts, UserAgent};
 
 use super::BlockingClient;
+
+/// Deployment-managed trust anchors and complete CRLs for FIPS TLS.
+#[cfg(feature = "blocking-rustls-fips")]
+pub struct FipsTlsPolicy {
+    roots: Arc<RootCertStore>,
+    crls: Vec<CertificateRevocationListDer<'static>>,
+}
+
+#[cfg(feature = "blocking-rustls-fips")]
+impl FipsTlsPolicy {
+    /// Creates a policy that checks the complete certificate chain, rejects
+    /// unknown revocation status, and rejects expired CRLs.
+    pub fn new(
+        roots: RootCertStore,
+        crls: Vec<CertificateRevocationListDer<'static>>,
+    ) -> Result<Self, BuildError> {
+        if roots.is_empty() {
+            return Err(BuildError::FipsTrustRootsRequired);
+        }
+        if crls.is_empty() {
+            return Err(BuildError::FipsCertificateRevocationListsRequired);
+        }
+        Ok(Self {
+            roots: Arc::new(roots),
+            crls,
+        })
+    }
+}
+
+#[cfg(feature = "blocking-rustls-fips")]
+impl fmt::Debug for FipsTlsPolicy {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("FipsTlsPolicy")
+            .field("trust_anchors", &self.roots.len())
+            .field("crls", &self.crls.len())
+            .finish_non_exhaustive()
+    }
+}
 
 /// Builder requiring endpoint, bearer token, user agent, and all timeout
 /// dimensions before a client can be constructed.
@@ -25,6 +68,8 @@ pub struct BlockingClientBuilder {
     token: BearerToken,
     user_agent: UserAgent,
     timeouts: RequestTimeouts,
+    #[cfg(feature = "blocking-rustls-fips")]
+    fips_tls_policy: Option<FipsTlsPolicy>,
 }
 
 impl BlockingClientBuilder {
@@ -41,7 +86,17 @@ impl BlockingClientBuilder {
             token,
             user_agent,
             timeouts,
+            #[cfg(feature = "blocking-rustls-fips")]
+            fips_tls_policy: None,
         }
+    }
+
+    /// Supplies mandatory deployment-managed roots and CRLs for FIPS TLS.
+    #[cfg(feature = "blocking-rustls-fips")]
+    #[must_use]
+    pub fn with_fips_tls_policy(mut self, policy: FipsTlsPolicy) -> Self {
+        self.fips_tls_policy = Some(policy);
+        self
     }
 
     /// Builds a hardened HTTPS-only client.
@@ -50,7 +105,7 @@ impl BlockingClientBuilder {
     }
 
     fn build_inner(self, https_only: bool) -> Result<BlockingClient, BuildError> {
-        let client = configured_client(&self.user_agent, self.timeouts, https_only)?;
+        let client = configured_client(&self, https_only)?;
         Ok(BlockingClient::new(client, self.endpoint, self.token))
     }
 
@@ -62,22 +117,23 @@ impl BlockingClientBuilder {
 
 impl fmt::Debug for BlockingClientBuilder {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        formatter
-            .debug_struct("BlockingClientBuilder")
+        let mut debug = formatter.debug_struct("BlockingClientBuilder");
+        debug
             .field("endpoint", &"[redacted]")
             .field("token", &"[redacted]")
             .field("user_agent", &self.user_agent)
-            .field("timeouts", &self.timeouts)
-            .finish()
+            .field("timeouts", &self.timeouts);
+        #[cfg(feature = "blocking-rustls-fips")]
+        debug.field("fips_tls_policy", &self.fips_tls_policy);
+        debug.finish()
     }
 }
 
 fn configured_client(
-    user_agent: &UserAgent,
-    timeouts: RequestTimeouts,
+    configuration: &BlockingClientBuilder,
     https_only: bool,
 ) -> Result<Client, BuildError> {
-    configured_tls_builder()?
+    configured_tls_builder(configuration)?
         .https_only(https_only)
         .http1_only()
         .no_hickory_dns()
@@ -90,37 +146,61 @@ fn configured_client(
         .no_brotli()
         .no_zstd()
         .no_deflate()
-        .timeout(timeouts.total())
-        .connect_timeout(timeouts.connect())
+        .timeout(configuration.timeouts.total())
+        .connect_timeout(configuration.timeouts.connect())
         .connection_verbose(false)
-        .user_agent(user_agent.value.clone())
+        .user_agent(configuration.user_agent.value.clone())
         .build()
         .map_err(|_| BuildError::ClientBuildFailed)
 }
 
 #[cfg(not(feature = "blocking-rustls-fips"))]
-fn configured_tls_builder() -> Result<reqwest::blocking::ClientBuilder, BuildError> {
+fn configured_tls_builder(
+    _configuration: &BlockingClientBuilder,
+) -> Result<reqwest::blocking::ClientBuilder, BuildError> {
     Ok(Client::builder().tls_backend_rustls())
 }
 
 #[cfg(feature = "blocking-rustls-fips")]
-fn configured_tls_builder() -> Result<ClientBuilder, BuildError> {
-    let config = fips_client_config()?;
+fn configured_tls_builder(
+    configuration: &BlockingClientBuilder,
+) -> Result<ClientBuilder, BuildError> {
+    let policy = configuration
+        .fips_tls_policy
+        .as_ref()
+        .ok_or(BuildError::FipsTlsPolicyRequired)?;
+    let config = fips_client_config(policy)?;
     Ok(Client::builder().tls_backend_preconfigured(config))
 }
 
 #[cfg(feature = "blocking-rustls-fips")]
-fn fips_client_config() -> Result<ClientConfig, BuildError> {
+fn fips_client_config(policy: &FipsTlsPolicy) -> Result<ClientConfig, BuildError> {
     let provider = Arc::new(rustls::crypto::default_fips_provider());
     validate_fips_provider(provider.as_ref())?;
-    let config = ClientConfig::builder_with_provider(provider)
-        .with_safe_default_protocol_versions()
-        .map_err(|_| BuildError::FipsProtocolConfigurationFailed)?
-        .with_platform_verifier()
-        .map_err(|_| BuildError::FipsPlatformVerifierFailed)?
-        .with_no_client_auth();
+    let config = client_config_with_provider(provider, policy)?;
     validate_fips_config(&config)?;
     Ok(config)
+}
+
+#[cfg(feature = "blocking-rustls-fips")]
+fn client_config_with_provider(
+    provider: Arc<CryptoProvider>,
+    policy: &FipsTlsPolicy,
+) -> Result<ClientConfig, BuildError> {
+    let verifier = WebPkiServerVerifier::builder_with_provider(
+        Arc::clone(&policy.roots),
+        Arc::clone(&provider),
+    )
+    .with_crls(policy.crls.iter().cloned())
+    .enforce_revocation_expiration()
+    .build()
+    .map_err(|_| BuildError::FipsRevocationVerifierFailed)?;
+    Ok(ClientConfig::builder_with_provider(provider)
+        .with_safe_default_protocol_versions()
+        .map_err(|_| BuildError::FipsProtocolConfigurationFailed)?
+        .dangerous()
+        .with_custom_certificate_verifier(verifier)
+        .with_no_client_auth())
 }
 
 #[cfg(feature = "blocking-rustls-fips")]
@@ -142,8 +222,8 @@ fn validate_fips_config(config: &ClientConfig) -> Result<(), BuildError> {
 }
 
 #[cfg(all(test, feature = "blocking-rustls-fips"))]
-pub(super) fn test_fips_configuration() -> Result<bool, BuildError> {
-    fips_client_config().map(|config| config.fips())
+pub(super) fn test_fips_configuration(policy: &FipsTlsPolicy) -> Result<bool, BuildError> {
+    fips_client_config(policy).map(|config| config.fips())
 }
 
 #[cfg(all(test, feature = "blocking-rustls-fips"))]
@@ -164,27 +244,22 @@ fn non_fips_provider() -> CryptoProvider {
 }
 
 #[cfg(all(test, feature = "blocking-rustls-fips"))]
-pub(super) fn test_non_fips_rejection() -> Result<bool, BuildError> {
+pub(super) fn test_non_fips_rejection(policy: &FipsTlsPolicy) -> Result<bool, BuildError> {
     let provider = non_fips_provider();
     let provider_rejected =
         validate_fips_provider(&provider) == Err(BuildError::FipsProviderRejected);
-    let config = ClientConfig::builder_with_provider(Arc::new(provider))
-        .with_safe_default_protocol_versions()
-        .map_err(|_| BuildError::FipsProtocolConfigurationFailed)?
-        .with_platform_verifier()
-        .map_err(|_| BuildError::FipsPlatformVerifierFailed)?
-        .with_no_client_auth();
+    let config = client_config_with_provider(Arc::new(provider), policy)?;
     let config_rejected =
         validate_fips_config(&config) == Err(BuildError::FipsClientConfigurationRejected);
     Ok(provider_rejected && config_rejected)
 }
 
 #[cfg(all(test, feature = "blocking-rustls-fips"))]
-pub(super) fn test_non_fips_global_independence() -> bool {
+pub(super) fn test_non_fips_global_independence(policy: &FipsTlsPolicy) -> bool {
     let provider = non_fips_provider();
     if provider.fips() || provider.install_default().is_err() {
         return false;
     }
     let global_is_non_fips = CryptoProvider::get_default().is_some_and(|value| !value.fips());
-    global_is_non_fips && test_fips_configuration() == Ok(true)
+    global_is_non_fips && test_fips_configuration(policy) == Ok(true)
 }

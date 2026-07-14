@@ -1,21 +1,21 @@
 {
   "SPDXID": "SPDXRef-DOCUMENT",
   "creationInfo": {
-    "created": "2026-07-14T11:29:23Z",
+    "created": "2026-07-14T13:06:52Z",
     "creators": [
       "Tool: cargo-sbom-v0.10.0",
       "Tool: cloud-sdk-complete-spdx-v1"
     ]
   },
   "dataLicense": "CC0-1.0",
-  "documentNamespace": "https://spdx.org/spdxdocs/cloud-sdk-8ae81823-0f08-473b-913e-24b0887b21f5",
+  "documentNamespace": "https://spdx.org/spdxdocs/cloud-sdk-16070de4-545f-4011-864f-98d78c8e7055",
   "files": [
     {
       "SPDXID": "SPDXRef-File-cloud_sdk",
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "455e1bf16886bbe461ea38cb22b944f8d223c6e3"
+          "checksumValue": "ae6c43570b3dc3f545e52456f4c164caf6334e87"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -29,7 +29,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "455e1bf16886bbe461ea38cb22b944f8d223c6e3"
+          "checksumValue": "ae6c43570b3dc3f545e52456f4c164caf6334e87"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -43,7 +43,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "455e1bf16886bbe461ea38cb22b944f8d223c6e3"
+          "checksumValue": "ae6c43570b3dc3f545e52456f4c164caf6334e87"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -57,7 +57,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "455e1bf16886bbe461ea38cb22b944f8d223c6e3"
+          "checksumValue": "ae6c43570b3dc3f545e52456f4c164caf6334e87"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -71,7 +71,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "455e1bf16886bbe461ea38cb22b944f8d223c6e3"
+          "checksumValue": "ae6c43570b3dc3f545e52456f4c164caf6334e87"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -3300,6 +3300,21 @@
       "spdxElementId": "SPDXRef-Package-cloud-sdk-hetzner-0.19.1",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-serde-5f-json-1.0.150"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.16.0",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-aws-lc-fips-sys-0.13.15"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.16.0",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-aws-lc-rs-1.17.1"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.16.0",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-aws-lc-sys-0.42.0"
     },
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.16.0",

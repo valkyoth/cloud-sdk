@@ -392,7 +392,7 @@ def test_publish_command_has_no_bypass_flags() -> None:
         )
     finally:
         release_crates.run = original
-    assert commands == [["cargo", "publish", "-p", "cloud-sdk"]]
+    assert commands == [["cargo", "publish", "--locked", "-p", "cloud-sdk"]]
 
 
 def test_publish_command_rejects_retired_package() -> None:

@@ -1,6 +1,8 @@
 #!/usr/bin/env sh
 set -eu
 
+scripts/check_fips_manifest.py
+
 fips_tree="$(
     cargo tree -p cloud-sdk-reqwest --no-default-features \
         --features blocking-rustls-fips --edges normal

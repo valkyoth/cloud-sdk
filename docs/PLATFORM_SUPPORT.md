@@ -79,8 +79,10 @@ native compile evidence without enabling the separately scoped FIPS feature.
 
 The FIPS feature has a narrower claim. A dedicated Linux job builds the
 Cargo-authenticated bundled AWS-LC-FIPS source and verifies that the provider
-and complete client configuration report FIPS operation. No other target and
-no NIST-validated operating environment is claimed for this dependency line.
+and complete client configuration report FIPS operation. The client requires
+deployment-managed roots and complete CRLs rather than Linux platform trust
+without revocation. No other target and no NIST-validated operating
+environment is claimed for this dependency line.
 
 ## Default Dependency Proof
 
@@ -103,7 +105,8 @@ unlisted dependencies fail closed before a platform claim is accepted.
   `cloud-sdk-reqwest/blocking-rustls` or `async-rustls` subject to their own
   deployment and trust-store testing.
 - `blocking-rustls-fips` has repository runtime evidence only on Linux x86-64;
-  it is not a compliance or cross-platform support claim.
+  it requires caller-managed roots and CRLs and is not a compliance or
+  cross-platform support claim.
 - FreeBSD users may evaluate the reqwest adapter, but this repository does not
   provide a native FreeBSD transport job.
 - Android and iOS applications should implement the core blocking or async

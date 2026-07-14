@@ -1,21 +1,21 @@
 {
   "SPDXID": "SPDXRef-DOCUMENT",
   "creationInfo": {
-    "created": "2026-07-14T11:29:23Z",
+    "created": "2026-07-14T13:06:52Z",
     "creators": [
       "Tool: cargo-sbom-v0.10.0",
       "Tool: cloud-sdk-complete-spdx-v1"
     ]
   },
   "dataLicense": "CC0-1.0",
-  "documentNamespace": "https://spdx.org/spdxdocs/reqwest-feature-unification-7b0d93fb-b186-4495-84bd-bd6588fc75da",
+  "documentNamespace": "https://spdx.org/spdxdocs/reqwest-feature-unification-6115854a-0950-4e95-8895-920bba92954c",
   "files": [
     {
       "SPDXID": "SPDXRef-File-cloud_sdk_reqwest_feature_unification_test",
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "ae3bdb43c3099e890af93a04a87bc1244cf315a0"
+          "checksumValue": "cf27f4cab343377561460d69d1b1d7e546c3347d"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -3793,6 +3793,21 @@
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.16.0",
       "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-aws-lc-fips-sys-0.13.15"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.16.0",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-aws-lc-rs-1.17.1"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.16.0",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-aws-lc-sys-0.42.0"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.16.0",
+      "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-bytes-1.12.1"
     },
     {
@@ -3829,6 +3844,11 @@
       "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-feature-unification-test-0.0.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-reqwest-0.13.4"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-feature-unification-test-0.0.0",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-rustls-0.23.42"
     },
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-feature-unification-test-0.0.0",

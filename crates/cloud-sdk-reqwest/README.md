@@ -85,15 +85,45 @@ Use the same blocking API with the dedicated feature:
 [dependencies]
 cloud-sdk = "0.23.0"
 cloud-sdk-reqwest = { version = "0.16.0", features = ["blocking-rustls-fips"] }
+rustls = "=0.23.42"
 ```
 
-Client construction explicitly selects rustls' AWS-LC FIPS provider and fails
-closed unless both the provider and complete TLS client configuration report
-FIPS operation. If both blocking features are enabled, the explicitly built
-FIPS configuration wins. A crate feature is not an application or deployment
-compliance claim; callers remain responsible for the validated module's
-security policy, approved operating environment, toolchain, entropy,
-deployment, and operational controls. See
+```rust,no_run
+# #[cfg(feature = "blocking-rustls-fips")]
+# fn main() {
+use rustls::RootCertStore;
+use rustls::pki_types::{CertificateDer, CertificateRevocationListDer};
+use cloud_sdk_reqwest::blocking::{BlockingClientBuilder, FipsTlsPolicy};
+
+# fn configure(
+#     builder: BlockingClientBuilder,
+#     root_der: Vec<u8>,
+#     crl_der: Vec<u8>,
+# ) {
+let mut roots = RootCertStore::empty();
+let Ok(()) = roots.add(CertificateDer::from(root_der)) else { return };
+let Ok(policy) = FipsTlsPolicy::new(
+    roots,
+    vec![CertificateRevocationListDer::from(crl_der)],
+) else { return };
+let Ok(_client) = builder.with_fips_tls_policy(policy).build() else { return };
+# }
+# }
+# #[cfg(not(feature = "blocking-rustls-fips"))]
+# fn main() {}
+```
+
+The application must authenticate, refresh, and supply complete CRLs for every
+issuer in an accepted chain. Construction rejects missing roots, missing or
+malformed CRLs, and a missing policy; handshakes reject unknown revocation
+status and expired CRLs. Client construction also fails closed unless both the
+provider and complete TLS client configuration report FIPS operation. If both
+blocking features are enabled, this explicit FIPS configuration wins.
+
+A crate feature is not an application or deployment compliance claim; callers
+remain responsible for the validated module's security policy, approved
+operating environment, reviewed application lockfile or vendored sources,
+toolchain, entropy, deployment, and operational controls. See
 [`docs/dependency-admission-reqwest-fips.md`](https://github.com/valkyoth/cloud-sdk/blob/main/docs/dependency-admission-reqwest-fips.md).
 
 ## Async Example
@@ -150,7 +180,8 @@ assert_eq!(request.content_type(), Some(ContentType::JSON));
 
 - HTTPS-only production endpoints with no embedded credentials, query, or
   fragment.
-- Rustls with TLS 1.2 minimum and platform certificate verification.
+- Rustls with TLS 1.2 minimum; platform certificate verification for standard
+  transports and mandatory deployment roots plus CRLs for FIPS.
 - Explicit total and connect timeouts, each nonzero and at most 300 seconds.
 - Explicit validated user agent and bounded bearer token.
 - HTTP/1 and the system resolver are forced even under downstream reqwest
@@ -179,7 +210,7 @@ mutable secret storage after transport use.
 | `default` | yes | Empty; keeps the crate transport-free and `no_std`. |
 | `std` | no | Enables only std support in first-party boundary crates. |
 | `blocking-rustls` | no | Enables the hardened blocking reqwest/rustls adapter and sanitization boundary. |
-| `blocking-rustls-fips` | no | Enables the blocking adapter with an explicitly selected and runtime-verified AWS-LC FIPS configuration. |
+| `blocking-rustls-fips` | no | Enables the blocking adapter with runtime-verified AWS-LC FIPS plus mandatory deployment roots and CRLs. |
 | `async-rustls` | no | Enables the hardened async reqwest/rustls adapter; callers provide an active Tokio runtime. |
 
 Reqwest's default features are disabled. The complete dependency and security

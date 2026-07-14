@@ -175,6 +175,9 @@ dependencies = [
 name = "cloud-sdk-reqwest"
 version = "0.16.0"
 dependencies = [
+ "aws-lc-fips-sys",
+ "aws-lc-rs",
+ "aws-lc-sys",
  "bytes",
  "cloud-sdk",
  "cloud-sdk-sanitization",

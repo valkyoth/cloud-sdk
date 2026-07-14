@@ -1,12 +1,18 @@
 /// Client construction failure.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum BuildError {
+    /// FIPS transport construction omitted its required trust and revocation policy.
+    FipsTlsPolicyRequired,
+    /// The FIPS trust policy contained no trust anchors.
+    FipsTrustRootsRequired,
+    /// The FIPS trust policy contained no certificate revocation lists.
+    FipsCertificateRevocationListsRequired,
     /// The selected cryptographic provider did not report FIPS operation.
     FipsProviderRejected,
     /// Rustls could not enable its safe protocol-version set for the FIPS provider.
     FipsProtocolConfigurationFailed,
-    /// The platform certificate verifier could not be configured.
-    FipsPlatformVerifierFailed,
+    /// The chain-wide, fail-closed certificate revocation verifier could not be configured.
+    FipsRevocationVerifierFailed,
     /// The complete TLS client configuration did not report FIPS operation.
     FipsClientConfigurationRejected,
     /// Reqwest rejected the fixed hardened client configuration.

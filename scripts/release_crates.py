@@ -10,6 +10,8 @@ import sys
 import time
 from pathlib import Path
 
+from release_state import verify_release_state
+
 try:
     import tomllib
 except ModuleNotFoundError:  # pragma: no cover - release host guard.
@@ -390,7 +392,7 @@ def wait_for_index(package: str, version: str, *, dry_run: bool) -> None:
 def publish(package: str, args: argparse.Namespace) -> None:
     reject_retired_packages((package,), source="publish request")
     reject_nested_cloud_sdk_packages((package,), source="publish request")
-    command = ["cargo", "publish", "-p", package]
+    command = ["cargo", "publish", "--locked", "-p", package]
     run(command, dry_run=args.dry_run)
 
 
@@ -435,6 +437,7 @@ def main() -> int:
         return 0
 
     require_clean_tree(allow_dirty=args.dry_run)
+    expected_head = capture(["git", "rev-parse", "HEAD"])
     check_release_tag(args.version, require_tag=not args.dry_run)
     run(
         ["scripts/validate-release-metadata.sh", "--release"],
@@ -465,6 +468,9 @@ def main() -> int:
             return 1
 
     for index, package in enumerate(steps):
+        verify_release_state(
+            ROOT, args.version, expected_head, dry_run=args.dry_run
+        )
         publish(package, args)
         version = plan["crates"][package]["version"]
         if index != len(steps) - 1:

@@ -31,6 +31,7 @@ scripts/check_hetzner_api_drift.py --local-only
 scripts/test-hetzner-api-drift.py
 scripts/release_crates.py --check
 scripts/test-release-crates.py
+scripts/test-release-state.py
 cargo package -p cloud-sdk --allow-dirty
 cargo package -p cloud-sdk-hetzner --allow-dirty --features serde \
     --config 'patch.crates-io.cloud-sdk.path="crates/cloud-sdk"' \

@@ -19,11 +19,13 @@ Status: admitted only through `cloud-sdk-reqwest/blocking-rustls`,
 | `cloud-sdk-sanitization` | `0.13.9` | adapter-owned secret-buffer cleanup | disabled |
 | `sanitization` | `1.2.4` | reviewed volatile cleanup primitive | disabled |
 
-The exact complete graph is pinned by `Cargo.lock`, checked by `cargo deny`,
-and recorded in the generated SBOM. All admitted licenses satisfy
-`deny.toml`. The rustls trust-root data requires `CDLA-Permissive-2.0`, which
-is explicitly admitted. The ordinary transport graph has no duplicate-version
-exception. The FIPS native build graph narrowly skips build-only
+The exact repository graph is pinned by `Cargo.lock`, checked by `cargo deny`,
+and recorded in the generated SBOM. Applications own their downstream
+resolution and must retain a reviewed lockfile or vendored source set; a
+library lockfile is not published as a consumer constraint. All admitted
+licenses satisfy `deny.toml`. The rustls trust-root data requires
+`CDLA-Permissive-2.0`, which is explicitly admitted. The ordinary transport
+graph has no duplicate-version exception. The FIPS native build graph narrowly skips build-only
 `shlex 1.3.0` because bindgen and cc require different major lines; the
 boundary still rejects legacy `windows-sys` `0.52.0` if it becomes reachable
 again.

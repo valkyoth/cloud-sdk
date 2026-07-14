@@ -47,11 +47,13 @@ The locked downstream feature-unification fixture is audited independently and
 has its own SPDX SBOM; its exact target-specific duplicate dependency is
 documented in the reqwest admission record.
 
-The FIPS-mode boundary directly admits rustls `0.23.42` and
-rustls-platform-verifier `0.7.0`, selecting aws-lc-rs `1.17.1` and
-aws-lc-fips-sys `0.13.15`. Its explicit runtime verification, current
-validation-status limitation, native build requirements, system-library
-discovery risk, and additive feature behavior are recorded in
+The FIPS-mode boundary publishes exact requirements for reqwest `0.13.4`,
+rustls `0.23.42`, rustls-platform-verifier `0.7.0`, aws-lc-rs `1.17.1`,
+aws-lc-fips-sys `0.13.15`, and aws-lc-sys `0.42.0`. Applications still own a
+reviewed complete lockfile or vendored source graph. Its explicit runtime
+verification, mandatory roots and CRLs, current validation-status limitation,
+native build requirements, system-library discovery risk, and additive feature
+behavior are recorded in
 [`dependency-admission-reqwest-fips.md`](dependency-admission-reqwest-fips.md).
 Repository checks force bundled Cargo-authenticated source rather than an
 automatically discovered system module.
