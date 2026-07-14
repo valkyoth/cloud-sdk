@@ -221,6 +221,18 @@ socket, and operating-system abstraction crates. New targets or transport
 claims require an explicit allowlist, CI, documentation, and release-evidence
 change rather than automatic host inference.
 
+## v0.21.0 Documentation Evidence Policy
+
+The v0.21 examples exercise only already source-locked endpoint methods,
+paths, queries, request models, pagination metadata, and action responses. They
+do not expand the API coverage claim or change provider behavior.
+
+Executable examples are compiled as Cargo example targets. Serde-dependent
+pagination and action examples declare their required feature explicitly.
+Publishable crate READMEs remain rustdoc inputs and run under the all-feature
+workspace doctest gate. Repository-local Markdown and HTML link targets are
+validated without fetching unauthenticated external content.
+
 ## Deferred Scope
 
 Robot Webservice is explicitly deferred until after the Cloud/DNS SDK reaches

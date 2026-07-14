@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.21.0 - 2026-07-14
+
+- Added a provider-neutral executable quickstart and six compile-checked
+  Hetzner examples for read-only catalog requests, mutation request building,
+  pagination, action polling, DNS Zones, and Storage Boxes.
+- Added workflow-oriented quickstart, Hetzner, security, and release-runbook
+  guides with explicit credential, logging, timeout, retry, live-smoke, and
+  mutation-cost boundaries.
+- Added docs.rs all-feature metadata and complete feature tables to every
+  published crate.
+- Added a dependency-free repository-local Markdown and HTML link validator,
+  including regression tests for multiple links, missing targets, fenced
+  examples, and repository traversal.
+- Added an explicit all-feature workspace doctest gate to normal checks.
+- Added the `v0.21.0` release gate and independent crate version plan.
+
 ## 0.20.0 - 2026-07-13
 
 - Added an explicit allowlisted compile matrix for representative Linux,

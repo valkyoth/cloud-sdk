@@ -37,7 +37,9 @@ async contract and optional Tokio-backed adapter, and v0.14 added narrowly
 reviewed no_std Serde and caller-buffer sanitization. v0.18 adds explicit
 pagination and action polling, while v0.19 adds an ignored opt-in live smoke
 harness. v0.20 adds explicit portable-target and native transport compile
-evidence. None changes the default provider graph.
+evidence. v0.21 adds compile-checked workflow examples, docs.rs feature
+coverage, security recipes, and tested local documentation-link validation.
+None changes the default provider graph.
 
 The project target is a serious production-ready `cloud-sdk` foundation and
 Hetzner provider at `1.0.0`, reached through small reviewed releases with test,
@@ -92,6 +94,9 @@ Implemented now:
 - Explicit compile matrix for Linux, Windows, FreeBSD, macOS, Android, iOS,
   WASM, and embedded no_std targets, with native reqwest adapter checks limited
   to Linux, Windows, and macOS.
+- Compile-checked provider-neutral and Hetzner workflow examples, complete
+  crate feature tables, security recipes, a release runbook, doctest checks,
+  and tested repository-local documentation-link validation.
 - Local checks for formatting, linting, tests, no_std policy, modularity, and
   file length.
 - MIT OR Apache-2.0 license.
@@ -184,8 +189,8 @@ Not implemented yet:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.20.0"
-cloud-sdk-hetzner = "0.17.1"
+cloud-sdk = "0.21.0"
+cloud-sdk-hetzner = "0.18.0"
 ```
 
 ## Features
@@ -244,8 +249,8 @@ The core contracts perform no I/O and select no executor. Use
 
 ```toml
 [dependencies]
-cloud-sdk = "0.20.0"
-cloud-sdk-reqwest = { version = "0.15.2", features = ["blocking-rustls"] }
+cloud-sdk = "0.21.0"
+cloud-sdk-reqwest = { version = "0.15.3", features = ["blocking-rustls"] }
 ```
 
 ```rust,ignore
@@ -311,8 +316,8 @@ not implemented in v0.19.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.20.0"
-cloud-sdk-reqwest = { version = "0.15.2", features = ["async-rustls"] }
+cloud-sdk = "0.21.0"
+cloud-sdk-reqwest = { version = "0.15.3", features = ["async-rustls"] }
 ```
 
 ```rust,ignore

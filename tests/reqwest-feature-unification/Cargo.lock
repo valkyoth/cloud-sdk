@@ -109,11 +109,11 @@ dependencies = [
 
 [[package]]
 name = "cloud-sdk"
-version = "0.20.0"
+version = "0.21.0"
 
 [[package]]
 name = "cloud-sdk-reqwest"
-version = "0.15.2"
+version = "0.15.3"
 dependencies = [
  "bytes",
  "cloud-sdk",
@@ -132,7 +132,7 @@ dependencies = [
 
 [[package]]
 name = "cloud-sdk-sanitization"
-version = "0.13.6"
+version = "0.13.7"
 dependencies = [
  "cloud-sdk",
  "sanitization",

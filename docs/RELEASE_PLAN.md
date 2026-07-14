@@ -741,7 +741,7 @@ v0.17.0 implementation stop reached. Run pentest for this exact commit.
 
 ### v0.18.0 - Pagination And Action Polling Helpers
 
-Status: implementation stop reached; pentest required.
+Status: tagged and published.
 
 Goal: provide ergonomic optional helpers over transport traits without hiding
 rate-limit, timeout, or retry policy.
@@ -774,7 +774,7 @@ v0.18.0 implementation stop reached. Run pentest for this exact commit.
 
 ### v0.19.0 - Live Smoke Harness
 
-Status: implementation stop reached; pentest required.
+Status: tagged and published.
 
 Goal: add opt-in live tests gated by environment variables and least-privilege
 test project guidance.
@@ -817,6 +817,8 @@ v0.19.0 implementation stop reached. Run pentest for this exact commit.
 
 ### v0.20.0 - Platform Matrix
 
+Status: tagged and published.
+
 Goal: prove claimed platform support for Linux, Windows, BSD, macOS, Android,
 iOS, WASM, and embedded/no_std targets where applicable.
 
@@ -848,6 +850,8 @@ v0.20.0 implementation stop reached. Run pentest for this exact commit.
 
 ### v0.21.0 - Documentation And Examples Hardening
 
+Status: implementation stop reached; pentest required.
+
 Goal: make docs.rs examples, transport examples, security recipes, and release
 runbooks complete enough for real users.
 
@@ -865,8 +869,9 @@ Verification:
 
 - `scripts/checks.sh`
 - `cargo test --workspace --doc --all-features`
-- Documentation link check if available.
-- `scripts/release_0_21_gate.sh` once added.
+- `scripts/check_doc_links.sh`
+- `scripts/test-doc-links.py`
+- `scripts/release_0_21_gate.sh`.
 
 Stop gate:
 

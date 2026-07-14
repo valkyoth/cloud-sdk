@@ -16,7 +16,7 @@ Provider-specific request models are separate dependencies. For Hetzner:
 ```toml
 [dependencies]
 cloud-sdk = "0.21.0"
-cloud-sdk-hetzner = "0.17.2"
+cloud-sdk-hetzner = "0.18.0"
 ```
 
 ## Build A Transport Request
