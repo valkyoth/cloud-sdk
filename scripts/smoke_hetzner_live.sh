@@ -35,7 +35,7 @@ artifact_dir="$repo_root/target/cloud-sdk-live-smoke"
 staging_dir="$artifact_dir/staging"
 
 require_clean_worktree() {
-    if [ -n "$(/usr/bin/git status --porcelain)" ]; then
+    if [ -n "$(/usr/bin/git status --porcelain=v1 --untracked-files=all)" ]; then
         echo "live smoke: clean worktree required" >&2
         exit 1
     fi

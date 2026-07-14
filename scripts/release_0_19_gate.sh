@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 set -eu
 
-if [ -n "$(git status --porcelain)" ]; then
+if [ -n "$(git status --porcelain=v1 --untracked-files=all)" ]; then
     echo "release gate: working tree is not clean" >&2
     exit 1
 fi

@@ -12,6 +12,14 @@ def capture(root: Path, command: list[str]) -> str:
     return subprocess.check_output(command, cwd=root, text=True).strip()
 
 
+def worktree_status(root: Path) -> str:
+    """Return all worktree changes regardless of local status configuration."""
+    return capture(
+        root,
+        ["git", "status", "--porcelain=v1", "--untracked-files=all"],
+    )
+
+
 def verify_release_state(
     root: Path, version: str, expected_head: str, *, dry_run: bool
 ) -> None:
@@ -23,7 +31,7 @@ def verify_release_state(
     current_head = capture(root, ["git", "rev-parse", "HEAD"])
     if current_head != expected_head:
         raise RuntimeError("HEAD changed after release approval")
-    if capture(root, ["git", "status", "--porcelain"]):
+    if worktree_status(root):
         raise RuntimeError("working tree changed after release approval")
 
     tag = f"v{version}"

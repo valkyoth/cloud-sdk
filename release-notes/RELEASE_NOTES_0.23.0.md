@@ -65,12 +65,15 @@ of a Python traceback.
 
 The publisher captures the approved commit and revalidates the clean worktree,
 `HEAD`, annotated tag target, and signature before every locked Cargo
-publication. Changes during confirmation or crates.io waits abort the
-sequence.
+publication. The clean check explicitly includes all untracked files even
+when repository Git configuration hides them. Changes during confirmation or
+crates.io waits abort the sequence.
 
 The published FIPS manifest uses exact requirements for reqwest, rustls,
 rustls-platform-verifier, aws-lc-rs, aws-lc-fips-sys, and aws-lc-sys. Consumers
 must still retain a reviewed application lockfile or vendored source graph.
+Repository checks extract the generated reqwest crate and compile its locked
+FIPS tests, proving the public certificate and CRL fixtures are published.
 
 ## Independent Crate Versions
 
@@ -86,6 +89,7 @@ No retired provider-specific helper crate is published.
 
 - `scripts/checks.sh`
 - `scripts/check_reqwest_fips_boundary.sh`
+- `scripts/check_packaged_reqwest_tests.sh`
 - `scripts/check_platform_matrix.sh --all`
 - `scripts/check_rust_version_matrix.sh`
 - `scripts/check_hetzner_api_drift.py --fetch`

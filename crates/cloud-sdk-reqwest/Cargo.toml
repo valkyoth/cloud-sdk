@@ -8,7 +8,6 @@ license.workspace = true
 homepage.workspace = true
 repository.workspace = true
 readme = "README.md"
-exclude = ["testdata/"]
 
 [package.metadata.docs.rs]
 all-features = true

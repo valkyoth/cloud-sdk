@@ -957,6 +957,8 @@ Verification:
 - Missing-policy, empty-root, empty-CRL, malformed-CRL, and successful
   verifier-construction tests; rustls' fail-closed unknown-status and CRL
   expiration policies are selected without permissive overrides.
+- Generated-crate extraction and locked FIPS test compilation, including the
+  public certificate and CRL verifier fixtures.
 - Publish-state mutation and exact manifest-constraint tests.
 - `cargo deny check`
 - `cargo audit`

@@ -61,7 +61,14 @@ Immediately before every crate publication, the publisher rechecks that
 `HEAD`, the clean worktree, annotated tag target, and tag signature still
 match the originally approved commit. Every publication uses `--locked`; a
 checkout, tag replacement, or filesystem change during confirmation or a
-crates.io wait aborts the remaining sequence.
+crates.io wait aborts the remaining sequence. Clean-tree checks explicitly
+request all untracked files and do not trust repository Git status display
+configuration.
+
+Repository checks also extract the generated `cloud-sdk-reqwest` crate and
+compile its FIPS tests with `--locked`. Public certificate and CRL verifier
+fixtures used by those tests must therefore be present in the publishable
+archive.
 
 ## Failure Handling
 

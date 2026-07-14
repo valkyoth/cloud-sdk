@@ -10,7 +10,7 @@ import sys
 import time
 from pathlib import Path
 
-from release_state import verify_release_state
+from release_state import verify_release_state, worktree_status
 
 try:
     import tomllib
@@ -264,7 +264,7 @@ def validate_plan_entry(package_name: str, entry: dict, release: str) -> None:
 def require_clean_tree(*, allow_dirty: bool) -> None:
     if allow_dirty:
         return
-    status = capture(["git", "status", "--porcelain"])
+    status = worktree_status(ROOT)
     if status:
         print("Refusing to publish from a dirty worktree:", file=sys.stderr)
         print(status, file=sys.stderr)

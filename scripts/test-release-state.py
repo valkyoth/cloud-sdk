@@ -36,7 +36,12 @@ with tempfile.TemporaryDirectory() as directory:
     ).strip()
 
     assert_rejected(root, "0.23.0", "0" * 40, "HEAD changed")
+    run(root, "git", "config", "status.showUntrackedFiles", "no")
     (root / "DIRTY").write_text("dirty\n", encoding="ascii")
+    hidden_status = subprocess.check_output(
+        ["git", "status", "--porcelain"], cwd=root, text=True
+    ).strip()
+    assert hidden_status == "", hidden_status
     assert_rejected(root, "0.23.0", head, "working tree changed")
     (root / "DIRTY").unlink()
     (root / "SECOND").write_text("second\n", encoding="ascii")
