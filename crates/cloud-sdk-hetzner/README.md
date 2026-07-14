@@ -100,6 +100,8 @@ cloud-sdk-hetzner = { version = "0.20.0", features = ["serde"] }
 a dev dependency in this repository:
 
 ```rust
+# #[cfg(feature = "serde")]
+# fn main() {
 use cloud_sdk_hetzner::dns::rrsets::{
     RrsetName, RrsetProtectionRequest, RrsetReference, RrsetType,
 };
@@ -127,6 +129,9 @@ assert!(json.is_ok());
 if let Ok(json) = json {
     assert_eq!(json, r#"{"change":true}"#);
 }
+# }
+# #[cfg(not(feature = "serde"))]
+# fn main() {}
 ```
 
 Before deserializing an untrusted response, construct
@@ -229,6 +234,8 @@ The optional Serde boundary can extract shared pagination metadata from any
 Hetzner list response while ignoring the resource-specific fields:
 
 ```rust
+# #[cfg(feature = "serde")]
+# fn main() {
 use cloud_sdk::pagination::{PageLimit, PaginationCursor};
 use cloud_sdk_hetzner::serde::PaginationEnvelope;
 
@@ -262,6 +269,9 @@ let Ok(boundary) = cursor.observe(metadata.as_core(), 1, None) else {
 
 assert!(boundary.is_terminal());
 assert_eq!(metadata.total_entries(), Some(1));
+# }
+# #[cfg(not(feature = "serde"))]
+# fn main() {}
 ```
 
 Pass `TransportResponse::rate_limit()` as the final `observe` argument when a
@@ -271,6 +281,8 @@ decoding the resource array and reporting its exact entry count.
 ## Action Polling Example
 
 ```rust
+# #[cfg(feature = "serde")]
+# fn main() {
 use core::time::Duration;
 use cloud_sdk::action_polling::{
     ActionPollStep, ActionPoller, PollContext, PollDecision, PollPolicy,
@@ -305,6 +317,9 @@ let step = poller.observe(
 );
 
 assert_eq!(step, Ok(ActionPollStep::Delay(Duration::from_secs(2))));
+# }
+# #[cfg(not(feature = "serde"))]
+# fn main() {}
 ```
 
 For an `error` action, the step is `ActionPollStep::Failed` and carries the

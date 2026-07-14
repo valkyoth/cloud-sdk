@@ -51,5 +51,6 @@ cargo package -p cloud-sdk-sanitization --allow-dirty \
 cargo package -p cloud-sdk-testkit --allow-dirty \
     --config 'patch.crates-io.cloud-sdk.path="crates/cloud-sdk"'
 cargo clippy --workspace --all-targets --all-features -- -D warnings
+cargo test --workspace
 cargo test --workspace --doc --all-features
 cargo test --workspace --all-features

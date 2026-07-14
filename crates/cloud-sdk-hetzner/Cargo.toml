@@ -31,6 +31,10 @@ serde_json.workspace = true
 [lints]
 workspace = true
 
+[[test]]
+name = "live_smoke"
+required-features = ["serde"]
+
 [[example]]
 name = "action_polling"
 required-features = ["serde"]
