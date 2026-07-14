@@ -28,6 +28,13 @@ doc = false
 bench = false
 
 [[bin]]
+name = "action_requests"
+path = "fuzz_targets/action_requests.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
 name = "labels_dns"
 path = "fuzz_targets/labels_dns.rs"
 test = false

@@ -23,6 +23,10 @@ All paths and queries write into caller-owned buffers. Undersized buffers,
 empty ID lists, excessive ID lists, invalid IDs, and invalid constructed paths
 fail explicitly without allocation.
 
+The dedicated `action_requests` fuzz target varies action IDs, filter counts,
+pagination, sort/status combinations, and caller-owned path/query capacities
+across the global and certificate action writers.
+
 ## Certificate Actions
 
 The certificate module now covers:

@@ -11,6 +11,8 @@
   operations while keeping 13 deprecated operations unavailable.
 - Added a tested API-matrix coverage gate and a compile-checked action-query
   workflow example.
+- Added dedicated fuzz coverage for every new global and certificate action
+  path/query writer, including bounded filter counts and output capacities.
 - Added the `v0.26.0` release gate and independent crate version plan.
 
 ## 0.25.0 - 2026-07-14

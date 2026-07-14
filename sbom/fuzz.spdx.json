@@ -1,17 +1,31 @@
 {
   "SPDXID": "SPDXRef-DOCUMENT",
   "creationInfo": {
-    "created": "2026-07-14T18:40:37Z",
+    "created": "2026-07-14T19:02:49Z",
     "creators": [
       "Tool: cargo-sbom-v0.10.0",
       "Tool: cloud-sdk-complete-spdx-v1"
     ]
   },
   "dataLicense": "CC0-1.0",
-  "documentNamespace": "https://spdx.org/spdxdocs/fuzz-a6c6d847-f1f7-42d1-b27f-53f28e6694a2",
+  "documentNamespace": "https://spdx.org/spdxdocs/fuzz-40b2e22a-86b6-48c9-896e-66e50000dcc5",
   "files": [
     {
       "SPDXID": "SPDXRef-File-action_polling",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "1b2390885b260cfbfa4302dd0faa177b938857e1"
+        }
+      ],
+      "fileName": "./Cargo.lock",
+      "fileTypes": [
+        "SOURCE",
+        "TEXT"
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-File-action_requests",
       "checksums": [
         {
           "algorithm": "SHA1",
@@ -477,6 +491,11 @@
     {
       "spdxElementId": "SPDXRef-DOCUMENT",
       "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-File-action_requests"
+    },
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
       "relatedSpdxElement": "SPDXRef-File-buffer_writers"
     },
     {
@@ -501,6 +520,11 @@
     },
     {
       "spdxElementId": "SPDXRef-File-action_polling",
+      "relationshipType": "GENERATED_FROM",
+      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-fuzz-0.0.0"
+    },
+    {
+      "spdxElementId": "SPDXRef-File-action_requests",
       "relationshipType": "GENERATED_FROM",
       "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-fuzz-0.0.0"
     },

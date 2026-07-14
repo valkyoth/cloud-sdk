@@ -41,6 +41,7 @@ scripts/check_fuzz_harness.sh --smoke
 | --- | --- |
 | `buffer_writers` | decimal, percent, and atomic JSON fixed-buffer writers |
 | `request_targets` | origin-form paths, query validation, ordering, and encoding |
+| `action_requests` | global and certificate action path/query buffer boundaries |
 | `labels_dns` | labels, selectors, DNS names, endpoint paths, and record JSON |
 | `pagination` | metadata coherence, entry bounds, traversal locks, and non-mutation |
 | `action_polling` | progress, policy, terminal state, and non-mutation |

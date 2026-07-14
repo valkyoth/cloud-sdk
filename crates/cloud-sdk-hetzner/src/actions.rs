@@ -6,6 +6,9 @@ use crate::EndpointGroup;
 use crate::request::{ApiBaseUrl, EndpointPath, EndpointPathError};
 
 /// Largest action identifier admitted by the source-locked API schema.
+///
+/// Mirrors the upstream OpenAPI maximum for action IDs: JavaScript's largest
+/// exactly representable integer (`Number.MAX_SAFE_INTEGER`, or `2^53 - 1`).
 pub const MAX_ACTION_ID: u64 = 9_007_199_254_740_991;
 
 /// Maximum number of action IDs admitted by one global list request.
