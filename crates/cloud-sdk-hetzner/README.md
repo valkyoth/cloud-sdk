@@ -48,7 +48,7 @@ cloud-sdk-hetzner = "0.20.0"
 | --- | --- | --- |
 | `default` | yes | Empty; keeps provider models allocation-free, transport-free, and `no_std`. |
 | `alloc` | no | Enables provider APIs that require the Rust `alloc` crate. |
-| `serde` | no | Enables the reviewed no_std Serde request and response boundary; also enables `alloc`. |
+| `serde` | no | Enables reviewed RRSet request-body and shared pagination/action/error Serde support; also enables `alloc`. |
 | `std` | no | Enables `alloc` and standard-library integration without selecting a transport. |
 
 Docs.rs builds with all features. The default dependency graph still includes
@@ -62,28 +62,42 @@ Storage Box examples are indexed in the
 Security-sensitive transport decisions are covered by the
 [security recipes](https://github.com/valkyoth/cloud-sdk/blob/main/docs/SECURITY_RECIPES.md).
 
-## Supported APIs
+## Request Operation Coverage
 
-| Hetzner API area | Coverage |
+The current release has request models and path/query encoding for all 208
+source-locked non-deprecated Cloud, DNS, and Storage Box operations. In this
+table, `Complete` means request-construction coverage. It does not claim
+complete body serialization, typed response decoding, or end-to-end execution.
+
+| Hetzner API area | Request models and path/query encoding |
 | --- | --- |
-| Global actions | Supported |
-| Servers, images, ISOs, placement groups, and primary IPs | Supported |
-| Volumes and floating IPs | Supported |
-| Firewalls, load balancers, and networks | Supported |
-| DNS zones and RRSets | Supported |
-| Certificates and SSH keys | Supported |
-| Storage Boxes, snapshots, and subaccounts | Supported |
-| Locations, server types, load balancer types, and pricing | Supported |
+| Global actions | Complete |
+| Servers, images, ISOs, placement groups, and primary IPs | Complete |
+| Volumes and floating IPs | Complete |
+| Firewalls, load balancers, and networks | Complete |
+| DNS zones and RRSets | Complete |
+| Certificates and SSH keys | Complete |
+| Storage Boxes, snapshots, and subaccounts | Complete |
+| Locations, server types, load balancer types, and pricing | Complete |
 
-The provider implements all 208 source-locked non-deprecated Cloud, DNS, and
-Storage Box request operations. Thirteen deprecated operations remain
-deliberately unavailable. A checked release gate prevents non-deprecated
-operations from returning to a planned or deferred state. Shared action,
-error, and pagination responses have reviewed optional Serde support.
-Resource-specific response models and a high-level client that combines
-requests, transport, and decoding are not yet complete; see the
+### Capability Coverage
+
+| Capability | Current coverage | Planned completion |
+| --- | --- | --- |
+| Request models | Complete for all 208 non-deprecated operations | Current |
+| Path/query encoding | Complete for all 208 non-deprecated operations | Current |
+| Body serialization | Partial: complete public aggregate serialization is currently RRSet-specific | `v0.29.0` |
+| Success response models | Partial: shared action and pagination envelopes only | `v0.30.0` |
+| Error response models | Partial: reviewed shared API error envelope, not yet integrated per operation | `v0.30.0` |
+| End-to-end client | Not available | `v0.30.0` |
+
+Thirteen deprecated operations remain deliberately unavailable. A checked
+release gate prevents non-deprecated request operations from returning to a
+planned or deferred state. See the
 [API matrix](https://github.com/valkyoth/cloud-sdk/blob/main/docs/API_MATRIX.md)
-for operation-level status.
+for operation-level request status and the
+[release plan](https://github.com/valkyoth/cloud-sdk/blob/main/docs/RELEASE_PLAN.md)
+for prepared-request, serialization, response, and client milestones.
 Upstream source monitoring and lock-refresh decisions follow the
 [API drift maintenance runbook](https://github.com/valkyoth/cloud-sdk/blob/main/docs/API_DRIFT_MAINTENANCE.md).
 
@@ -97,7 +111,9 @@ cloud-sdk-hetzner = { version = "0.20.0", features = ["serde"] }
 ```
 
 `serde_json` is used below only as an example format implementation and remains
-a dev dependency in this repository:
+a dev dependency in this repository. The current public Serde boundary covers
+RRSet request bodies plus shared pagination, action, and API error response
+envelopes; it is not yet a serializer or decoder for every operation:
 
 ```rust
 # #[cfg(feature = "serde")]

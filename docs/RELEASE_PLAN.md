@@ -1090,6 +1090,12 @@ Deliverables:
 - Public API review for existing exported types and feature flags.
 - Deprecated upstream endpoint policy.
 - Error and versioning policy.
+- Provider documentation distinguishes request models, path/query encoding,
+  body serialization, success responses, error responses, and end-to-end
+  client coverage instead of using an ambiguous `Supported` claim.
+- API-matrix and README terminology consistently defines current `implemented`
+  status as request-construction coverage, with a checked documentation
+  regression test preventing capability claims from drifting ahead of code.
 - Pre-Robot semver audit and migration notes.
 - Examples and docs.rs output reviewed.
 - Release notes for known limitations carried into the Robot implementation

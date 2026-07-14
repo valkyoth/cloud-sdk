@@ -10,8 +10,8 @@ Sources:
 
 Retrieved: 2026-07-08
 Total source-locked operations: 221 (`cloud`: 189, `hetzner`: 32).
-Coverage: 208 non-deprecated operations implemented; 13 deprecated operations
-deferred.
+Request coverage: 208 non-deprecated operations implemented; 13 deprecated
+operations deferred.
 
 ## Matrix Rules
 
@@ -19,7 +19,8 @@ deferred.
 - Sorting is `yes` when an operation exposes a `sort` query parameter.
 - Action behavior is `action-list`, `action-get`, `resource-action-get`, `starts-action`, or `none`.
 - Deprecated operations are kept in the matrix for drift tracking, but implementation status is `deferred-deprecated` until the SDK has an explicit compatibility policy.
-- Non-deprecated operations must have an `implemented` status. The release gate rejects planned or deferred active operations.
+- Status records request-construction coverage only. It does not claim complete request-body serialization, typed success decoding, or end-to-end client execution.
+- Non-deprecated operations must have an `implemented` request status. The release gate rejects planned or deferred active operations.
 
 ## Owner Modules
 

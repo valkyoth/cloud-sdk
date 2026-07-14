@@ -1,9 +1,11 @@
 //! Optional no_std Serde boundary.
 //!
-//! Request serialization is exposed through checked wrappers so endpoint
-//! selectors cannot leak into JSON bodies and aggregate size policy is applied
-//! before a request becomes serializable. Response deserialization validates
-//! security-relevant fields after parsing.
+//! Current public request serialization is limited to checked RRSet body
+//! wrappers, so endpoint selectors cannot leak into those JSON bodies and an
+//! aggregate size policy is applied before serialization. Current response
+//! deserialization covers shared pagination, action, and API error envelopes
+//! and validates security-relevant fields after parsing. Resource-specific
+//! bodies and responses are not implied by enabling this feature.
 
 mod pagination;
 mod response;
