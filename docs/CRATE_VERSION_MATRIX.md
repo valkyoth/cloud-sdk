@@ -1,7 +1,7 @@
 # Crate Version Matrix
 
-Status: `v0.23.0` implementation in progress. The latest published release is
-`v0.22.0`.
+Status: `v0.23.0` implementation stop reached; pentest required. The latest
+published release is `v0.22.0`.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
