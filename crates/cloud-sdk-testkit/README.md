@@ -132,6 +132,17 @@ Provider crates consume applicable cases in their own parser tests. The
 Hetzner Serde boundary exercises this corpus without making the testkit depend
 on `cloud-sdk-hetzner`.
 
+## Features
+
+| Feature | Default | Effect |
+| --- | --- | --- |
+| `default` | yes | Empty; keeps the testkit allocation-free, runtime-free, and `no_std`. |
+| `alloc` | no | Enables allocation-bearing test helpers and `cloud-sdk/alloc`. |
+| `std` | no | Enables `alloc` and standard-library integration without selecting a runtime. |
+
+Docs.rs builds with all features. The mock transport remains network-free in
+every configuration.
+
 ## Security Notes
 
 This crate is test infrastructure, not a production transport. Exact request

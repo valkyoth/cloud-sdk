@@ -9,6 +9,9 @@ homepage.workspace = true
 repository.workspace = true
 readme = "README.md"
 
+[package.metadata.docs.rs]
+all-features = true
+
 [features]
 default = []
 std = ["cloud-sdk/std", "cloud-sdk-sanitization?/std"]

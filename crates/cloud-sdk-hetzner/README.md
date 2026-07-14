@@ -42,6 +42,26 @@ cloud-sdk = "0.20.0"
 cloud-sdk-hetzner = "0.17.1"
 ```
 
+## Features
+
+| Feature | Default | Effect |
+| --- | --- | --- |
+| `default` | yes | Empty; keeps provider models allocation-free, transport-free, and `no_std`. |
+| `alloc` | no | Enables provider APIs that require the Rust `alloc` crate. |
+| `serde` | no | Enables the reviewed no_std Serde request and response boundary; also enables `alloc`. |
+| `std` | no | Enables `alloc` and standard-library integration without selecting a transport. |
+
+Docs.rs builds with all features. The default dependency graph still includes
+no network client, TLS implementation, async runtime, filesystem, or clock.
+
+## Workflow Examples
+
+Compile-checked read-only, mutation, pagination, action polling, DNS, and
+Storage Box examples are indexed in the
+[Hetzner workflow guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/HETZNER_EXAMPLES.md).
+Security-sensitive transport decisions are covered by the
+[security recipes](https://github.com/valkyoth/cloud-sdk/blob/main/docs/SECURITY_RECIPES.md).
+
 ## Current Scope
 
 Published package snapshots are listed on

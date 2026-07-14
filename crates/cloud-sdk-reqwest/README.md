@@ -157,6 +157,7 @@ mutable secret storage after transport use.
 
 | Feature | Default | Effect |
 | --- | --- | --- |
+| `default` | yes | Empty; keeps the crate transport-free and `no_std`. |
 | `std` | no | Enables only std support in first-party boundary crates. |
 | `blocking-rustls` | no | Enables the hardened blocking reqwest/rustls adapter and sanitization boundary. |
 | `async-rustls` | no | Enables the hardened async reqwest/rustls adapter; callers provide an active Tokio runtime. |

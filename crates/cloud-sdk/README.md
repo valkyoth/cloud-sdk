@@ -188,6 +188,24 @@ cloud-sdk = "0.20.0"
 cloud-sdk-hetzner = "0.17.1"
 ```
 
+## Features
+
+| Feature | Default | Effect |
+| --- | --- | --- |
+| `default` | yes | Empty; keeps the crate allocation-free and `no_std`. |
+| `alloc` | no | Enables APIs that require the Rust `alloc` crate. |
+| `std` | no | Enables `alloc` and standard-library integration. |
+
+Docs.rs builds this crate with all features so every public optional API is
+visible. Applications should enable only the features they use.
+
+## Guides
+
+- [Provider-neutral quickstart](https://github.com/valkyoth/cloud-sdk/blob/main/docs/QUICKSTART.md)
+- [Hetzner workflow examples](https://github.com/valkyoth/cloud-sdk/blob/main/docs/HETZNER_EXAMPLES.md)
+- [Security recipes](https://github.com/valkyoth/cloud-sdk/blob/main/docs/SECURITY_RECIPES.md)
+- [Release runbook](https://github.com/valkyoth/cloud-sdk/blob/main/docs/RELEASE_RUNBOOK.md)
+
 ## Provider-Neutral Example
 
 ```rust

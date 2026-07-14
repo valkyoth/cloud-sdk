@@ -3,6 +3,8 @@ set -eu
 
 cargo fmt --all --check
 scripts/check_shell_syntax.sh
+scripts/check_doc_links.sh
+scripts/test-doc-links.py
 scripts/test-live-smoke-wrapper.py
 scripts/test-hetzner-live-smoke-runner.py
 scripts/test-platform-matrix.py
@@ -40,4 +42,5 @@ cargo package -p cloud-sdk-sanitization --allow-dirty \
 cargo package -p cloud-sdk-testkit --allow-dirty \
     --config 'patch.crates-io.cloud-sdk.path="crates/cloud-sdk"'
 cargo clippy --workspace --all-targets --all-features -- -D warnings
+cargo test --workspace --doc --all-features
 cargo test --workspace --all-features

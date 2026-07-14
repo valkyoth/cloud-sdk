@@ -56,6 +56,16 @@ let mut output = [0_u8; 128];
 assert_eq!(output, [0_u8; 128]);
 ```
 
+## Features
+
+| Feature | Default | Effect |
+| --- | --- | --- |
+| `default` | yes | Empty; keeps the boundary `no_std`. |
+| `std` | no | Enables standard-library integration in `cloud-sdk`; clearing behavior is unchanged. |
+
+Docs.rs builds with all features. The underlying `sanitization` dependency
+keeps its default features disabled in every configuration.
+
 ## Security Notes
 
 `SecretBuffer` volatile-clears its entire borrowed slice on drop, including
