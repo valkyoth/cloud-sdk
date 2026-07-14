@@ -412,6 +412,32 @@ def test_publish_command_rejects_retired_package() -> None:
     assert commands == []
 
 
+def test_post_tag_preflight_does_not_rerun_gate_by_default() -> None:
+    commands: list[list[str]] = []
+    original = release_crates.run
+    release_crates.run = lambda command, *, dry_run: commands.append(command)
+    try:
+        release_crates.run_preflight(
+            argparse.Namespace(version="0.23.0", rerun_gate=False, dry_run=False)
+        )
+    finally:
+        release_crates.run = original
+    assert commands == []
+
+
+def test_post_tag_preflight_can_explicitly_rerun_version_gate() -> None:
+    commands: list[list[str]] = []
+    original = release_crates.run
+    release_crates.run = lambda command, *, dry_run: commands.append(command)
+    try:
+        release_crates.run_preflight(
+            argparse.Namespace(version="0.22.0", rerun_gate=True, dry_run=False)
+        )
+    finally:
+        release_crates.run = original
+    assert commands == [["scripts/release_0_22_gate.sh"]]
+
+
 def run_tests() -> None:
     tests = (
         test_current_plan_accepts_unchanged_crates,
@@ -437,6 +463,8 @@ def run_tests() -> None:
         test_required_release_tag_rejects_unsigned_tag,
         test_publish_command_has_no_bypass_flags,
         test_publish_command_rejects_retired_package,
+        test_post_tag_preflight_does_not_rerun_gate_by_default,
+        test_post_tag_preflight_can_explicitly_rerun_version_gate,
     )
     for test in tests:
         test()

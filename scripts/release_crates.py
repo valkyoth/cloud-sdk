@@ -339,14 +339,19 @@ def check_release_tag(version: str, *, require_tag: bool) -> None:
 
 
 def run_preflight(args: argparse.Namespace) -> None:
+    if not args.rerun_gate:
+        print(
+            "Release gate not rerun: the signed tag binds the pre-tag gate and "
+            "GitHub-approved commit."
+        )
+        return
+
     version = parse_version(args.version)
     gate = ROOT / "scripts" / f"release_{version[0]}_{version[1]}_gate.sh"
     if gate.exists():
         run([str(gate.relative_to(ROOT))], dry_run=args.dry_run)
     else:
         run(["scripts/checks.sh"], dry_run=args.dry_run)
-    run(["cargo", "deny", "check"], dry_run=args.dry_run)
-    run(["cargo", "audit"], dry_run=args.dry_run)
 
 
 def publish_plan(plan: dict) -> tuple[str, ...]:
@@ -398,6 +403,11 @@ def main() -> int:
     parser.add_argument("--check", action="store_true")
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--yes", action="store_true")
+    parser.add_argument(
+        "--rerun-gate",
+        action="store_true",
+        help="Rerun the full version gate after tag verification.",
+    )
     args = parser.parse_args()
 
     raw_plan_path = Path(args.plan)
@@ -445,13 +455,13 @@ def main() -> int:
         print("  - no crates selected for publishing")
     print()
 
+    run_preflight(args)
+
     if not args.yes:
         answer = input("Type the release version to start publishing: ").strip()
         if answer != args.version:
             print("Version confirmation did not match; aborting.", file=sys.stderr)
             return 1
-
-    run_preflight(args)
 
     for index, package in enumerate(steps):
         publish(package, args)
@@ -466,4 +476,12 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    try:
+        raise SystemExit(main())
+    except subprocess.CalledProcessError as error:
+        command = " ".join(str(part) for part in error.cmd)
+        print(
+            f"Release command failed with status {error.returncode}: {command}",
+            file=sys.stderr,
+        )
+        raise SystemExit(error.returncode) from None
