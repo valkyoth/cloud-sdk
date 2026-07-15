@@ -11,11 +11,10 @@ use crate::request::ApiBaseUrl;
 
 use super::operation::method_metadata;
 use super::{
-    EndpointWire, HetznerPreparationError, HetznerPreparedOperation, QueryWire, RequestShape,
-    ResponseProfile,
+    HetznerPreparationError, HetznerPreparedOperation, QueryWire, RequestShape, ResponseProfile,
 };
 
-impl EndpointWire for ActionEndpoint {
+impl crate::prepared::EndpointWire for ActionEndpoint {
     fn method(self) -> Method {
         self.method()
     }
@@ -85,7 +84,7 @@ impl PrepareOperation for ActionListRequest<'_> {
     }
 }
 
-impl EndpointWire for CatalogListEndpoint {
+impl crate::prepared::EndpointWire for CatalogListEndpoint {
     fn method(self) -> Method {
         Method::Get
     }
@@ -122,7 +121,7 @@ impl EndpointWire for CatalogListEndpoint {
     }
 }
 
-impl EndpointWire for CatalogGetEndpoint {
+impl crate::prepared::EndpointWire for CatalogGetEndpoint {
     fn method(self) -> Method {
         Method::Get
     }
@@ -159,7 +158,7 @@ impl EndpointWire for CatalogGetEndpoint {
     }
 }
 
-impl EndpointWire for CatalogSingletonEndpoint {
+impl crate::prepared::EndpointWire for CatalogSingletonEndpoint {
     fn method(self) -> Method {
         Method::Get
     }
@@ -197,7 +196,7 @@ impl QueryWire for CatalogListRequest<'_> {
     }
 
     fn operation_key(self) -> &'static str {
-        self.endpoint().operation_key()
+        crate::prepared::EndpointWire::operation_key(self.endpoint())
     }
 }
 
@@ -252,7 +251,7 @@ macro_rules! endpoint_wire {
         $destructive:expr,
         $cost:expr
     ) => {
-        impl super::EndpointWire for $type {
+        impl crate::prepared::EndpointWire for $type {
             fn method(self) -> cloud_sdk::Method {
                 <$type>::method(self)
             }
@@ -323,7 +322,7 @@ macro_rules! query_wire {
 
             fn operation_key(self) -> &'static str {
                 let $value = self;
-                super::EndpointWire::operation_key($endpoint)
+                crate::prepared::EndpointWire::operation_key($endpoint)
             }
         }
 

@@ -52,10 +52,12 @@ of new third-party dependencies.
   that declare request bodies.
 - `scripts/check_prepared_operation_coverage.py` derives operation keys only
   from Rust items parsed by an isolated, locked `syn` checker. The endpoint
-  macro accepts only explicit pattern-to-string-literal mappings. Constants,
-  nested comments, raw strings, `cfg`, `cfg_attr`, discarded/helper
-  expressions, unknown keys, ambiguous mappings, missing adapters, and
-  deprecated evidence are rejected.
+  macro accepts only explicit pattern-to-string-literal mappings. Adapter
+  macros must be unqualified top-level items, while manual implementations
+  must use canonical `crate::prepared` trait paths. Constants, nested comments,
+  raw strings, `cfg`, `cfg_attr`, namespaced or shadowed adapters, inline fake
+  traits, discarded/helper expressions, unknown keys, ambiguous mappings,
+  missing adapters, and deprecated evidence are rejected.
 - Mutation tests prove those structural checks and malformed duplicate body
   locks fail closed; normal Rust checks prove the admitted declarations
   compile.

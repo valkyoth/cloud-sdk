@@ -1,6 +1,6 @@
 //! Console Storage Box JSON bodies.
 
-use crate::prepared::{BodyWire, HetznerPreparationError, JsonWriter};
+use crate::prepared::{HetznerPreparationError, JsonWriter};
 use crate::storage::storage_boxes::{
     StorageBoxAccessSettingsRequest, StorageBoxChangeHomeDirectoryRequest,
     StorageBoxChangeTypeRequest, StorageBoxCreateRequest, StorageBoxProtectionRequest,
@@ -53,7 +53,7 @@ body_component!(
     write_subaccount_access_body
 );
 
-impl BodyWire for StorageBoxResetPasswordRequest<'_> {
+impl crate::prepared::BodyWire for StorageBoxResetPasswordRequest<'_> {
     fn write_body(self, output: &mut [u8]) -> Result<usize, HetznerPreparationError> {
         write_password(self, output)
     }

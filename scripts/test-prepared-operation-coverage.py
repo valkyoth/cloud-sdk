@@ -48,11 +48,21 @@ def run(
     matrix.write_text(HEADER + row("read_test") + row("write_test"), encoding="utf-8")
     body_lock = directory / "bodies.txt"
     body_lock.write_text("write_test\n", encoding="ascii")
-    endpoint_dir = directory / "prepared"
-    body_dir = endpoint_dir / "bodies"
+    prepared_dir = directory / "prepared"
+    endpoint_dir = prepared_dir / "endpoints"
+    body_dir = prepared_dir / "bodies"
+    endpoint_dir.mkdir(parents=True, exist_ok=True)
     body_dir.mkdir(parents=True, exist_ok=True)
-    (directory / "prepared.rs").write_text(endpoints, encoding="utf-8")
-    (endpoint_dir / "bodies.rs").write_text("", encoding="utf-8")
+    (prepared_dir / "endpoints.rs").write_text(
+        "macro_rules! endpoint_wire { ($($tokens:tt)*) => {}; }\n",
+        encoding="utf-8",
+    )
+    (endpoint_dir / "test.rs").write_text(endpoints, encoding="utf-8")
+    (prepared_dir / "bodies.rs").write_text(
+        "macro_rules! body_wire { ($($tokens:tt)*) => {}; }\n"
+        "macro_rules! body_component { ($($tokens:tt)*) => {}; }\n",
+        encoding="utf-8",
+    )
     (body_dir / "test.rs").write_text(bodies, encoding="utf-8")
     return subprocess.run(
         [
@@ -222,6 +232,91 @@ def main() -> None:
         assert helper_expression.returncode == 1, helper_expression
         assert "must be an explicit match" in helper_expression.stderr
 
+        namespaced_endpoint = run(
+            directory,
+            endpoints=(
+                "mod decoy { macro_rules! endpoint_wire { ($($tokens:tt)*) => {}; } "
+                "pub(crate) use endpoint_wire; }\n"
+                "decoy::endpoint_wire!(Fake, value => (), (), match value { "
+                'Fake::Read => "read_test" }, false, ());\n'
+                "endpoint_wire!(Real, value => (), (), match value { "
+                'Real::Write => "write_test" }, false, ());'
+            ),
+        )
+        assert namespaced_endpoint.returncode == 1, namespaced_endpoint
+        assert "must use an unqualified path" in namespaced_endpoint.stderr
+
+        namespaced_body = run(
+            directory,
+            bodies=(
+                "mod decoy { macro_rules! body_wire { ($($tokens:tt)*) => {}; } "
+                "pub(crate) use body_wire; }\n"
+                'decoy::body_wire!(Fake, value => (), "write_test", write);'
+            ),
+        )
+        assert namespaced_body.returncode == 1, namespaced_body
+        assert "must use an unqualified path" in namespaced_body.stderr
+
+        inline_fake_trait = run(
+            directory,
+            endpoints=(
+                "mod decoy { trait EndpointWire { fn operation_key(self) -> &'static str; } "
+                "struct Fake; impl EndpointWire for Fake { "
+                'fn operation_key(self) -> &\'static str { "read_test" } } }\n'
+                "endpoint_wire!(Real, value => (), (), match value { "
+                'Real::Write => "write_test" }, false, ());'
+            ),
+        )
+        assert inline_fake_trait.returncode == 1, inline_fake_trait
+        assert "missing endpoint adapters: read_test" in inline_fake_trait.stderr
+
+        imported_adapter = run(
+            directory,
+            endpoints="use decoy::endpoint_wire;\n" + ENDPOINTS,
+        )
+        assert imported_adapter.returncode == 1, imported_adapter
+        assert "imports and aliases are forbidden" in imported_adapter.stderr
+
+        glob_import = run(
+            directory,
+            endpoints="use decoy::*;\n" + ENDPOINTS,
+        )
+        assert glob_import.returncode == 1, glob_import
+        assert "imports and aliases are forbidden" in glob_import.stderr
+
+        macro_use = run(
+            directory,
+            endpoints=(
+                "#[macro_use] mod decoy { "
+                "macro_rules! endpoint_wire { ($($tokens:tt)*) => {}; } }\n"
+                + ENDPOINTS
+            ),
+        )
+        assert macro_use.returncode == 1, macro_use
+        assert "macro imports are forbidden" in macro_use.stderr
+
+        local_adapter = run(
+            directory,
+            endpoints=(
+                "macro_rules! endpoint_wire { ($($tokens:tt)*) => {}; }\n" + ENDPOINTS
+            ),
+        )
+        assert local_adapter.returncode == 1, local_adapter
+        assert "macro shadowing is forbidden" in local_adapter.stderr
+
+        fake_trait = run(
+            directory,
+            endpoints=(
+                "trait EndpointWire { fn operation_key(self) -> &'static str; } "
+                "struct Fake; impl EndpointWire for Fake { "
+                'fn operation_key(self) -> &\'static str { "read_test" } }\n'
+                "endpoint_wire!(Real, value => (), (), match value { "
+                'Real::Write => "write_test" }, false, ());'
+            ),
+        )
+        assert fake_trait.returncode == 1, fake_trait
+        assert "local EndpointWire trait definitions are forbidden" in fake_trait.stderr
+
         duplicate_lock = directory / "bodies.txt"
         duplicate_lock.write_text("write_test\nwrite_test\n", encoding="ascii")
         command = [
@@ -229,7 +324,7 @@ def main() -> None:
             "--matrix",
             str(directory / "matrix.md"),
             "--endpoints",
-            str(directory / "prepared"),
+            str(directory / "prepared" / "endpoints"),
             "--bodies",
             str(directory / "prepared" / "bodies"),
             "--body-lock",
@@ -243,7 +338,7 @@ def main() -> None:
         assert duplicate.returncode == 1, duplicate
         assert "duplicate body operation" in duplicate.stderr
 
-    print("15 prepared-operation coverage tests passed.")
+    print("23 prepared-operation coverage tests passed.")
 
 
 if __name__ == "__main__":

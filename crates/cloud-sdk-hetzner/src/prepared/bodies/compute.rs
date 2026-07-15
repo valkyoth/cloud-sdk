@@ -14,7 +14,7 @@ use crate::cloud::volumes::{
     VolumeAttachRequest, VolumeCreatePlacement, VolumeCreateRequest, VolumeProtectionRequest,
     VolumeResizeRequest, VolumeUpdateRequest,
 };
-use crate::prepared::{BodyWire, HetznerPreparationError, JsonWriter};
+use crate::prepared::{HetznerPreparationError, JsonWriter};
 
 body_wire!(ServerCreateRequest<'_>, request => request.endpoint(), "create_server", write_server_create);
 body_wire!(ServerUpdateRequest<'_>, request => request.endpoint(), "update_server", write_server_update);
@@ -36,7 +36,7 @@ body_component!(
 );
 body_component!(VolumeResizeRequest, "resize_volume", write_volume_resize);
 
-impl BodyWire for ServerActionRequest<'_> {
+impl crate::prepared::BodyWire for ServerActionRequest<'_> {
     fn write_body(self, output: &mut [u8]) -> Result<usize, HetznerPreparationError> {
         write_server_action(self, output)
     }

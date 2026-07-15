@@ -72,7 +72,7 @@ fn source_files(root: &Path, directory: &Path) -> Result<Vec<PathBuf>, String> {
 
 fn emit_registry(files: &[PathBuf], kind: RegistryKind) -> Result<(), String> {
     let mut total = 0_usize;
-    for path in files {
+    for (index, path) in files.iter().enumerate() {
         let bytes =
             fs::read(path).map_err(|error| format!("cannot read {}: {error}", path.display()))?;
         total = total
@@ -83,8 +83,8 @@ fn emit_registry(files: &[PathBuf], kind: RegistryKind) -> Result<(), String> {
         }
         let source = std::str::from_utf8(&bytes)
             .map_err(|error| format!("{} is not UTF-8: {error}", path.display()))?;
-        let keys =
-            inspect_source(source, kind).map_err(|error| format!("{}: {error}", path.display()))?;
+        let keys = inspect_source(source, kind, index == 0)
+            .map_err(|error| format!("{}: {error}", path.display()))?;
         for key in keys {
             println!("{}\t{key}", kind.label());
         }

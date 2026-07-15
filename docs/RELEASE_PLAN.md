@@ -1293,7 +1293,8 @@ Verification:
 - `scripts/check_hetzner_api_drift.py --fetch`
 - Zero-missing-prepared-operation API-matrix gate.
 - Excluded, locked `syn` checker and adversarial `cfg_attr`, nested-comment,
-  raw-string, discarded-literal, helper-expression, and duplicate mutations.
+  raw-string, discarded-literal, helper-expression, namespaced-macro,
+  shadowing, inline-fake-trait, and duplicate mutations.
 - Per-family golden request and insufficient-buffer tests.
 - Mutation-classification and source-locked response-policy tests.
 - `scripts/release_0_30_gate.sh` once added.

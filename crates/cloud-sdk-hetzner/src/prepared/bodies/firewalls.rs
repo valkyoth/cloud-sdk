@@ -9,7 +9,7 @@ use crate::cloud::firewalls::rules::{
 use crate::cloud::firewalls::{
     FirewallCreateRequest, FirewallEndpoint, FirewallResource, FirewallUpdateRequest,
 };
-use crate::prepared::{BodyWire, HetznerPreparationError, JsonWriter};
+use crate::prepared::{HetznerPreparationError, JsonWriter};
 
 body_wire!(FirewallCreateRequest<'_>, request => FirewallEndpoint::Create, "create_firewall", write_create);
 body_wire!(FirewallUpdateRequest<'_>, request => request.endpoint(), "update_firewall", write_update);
@@ -19,7 +19,7 @@ body_component!(
     write_set_rules
 );
 
-impl BodyWire for FirewallResourcesRequest<'_> {
+impl crate::prepared::BodyWire for FirewallResourcesRequest<'_> {
     fn write_body(self, output: &mut [u8]) -> Result<usize, HetznerPreparationError> {
         write_resources_request(self, output)
     }

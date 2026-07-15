@@ -2,7 +2,7 @@
 
 use std::collections::BTreeSet;
 
-use syn::{Attribute, Expr, ImplItem, Item, ItemImpl, Lit, Stmt};
+use syn::{Attribute, Expr, ImplItem, Item, ItemImpl, Lit, Path, PathArguments, Stmt, UseTree};
 
 use crate::parse::{AcceptedKeys, BodyComponentArgs, BodyWireArgs, EndpointWireArgs};
 
@@ -21,26 +21,53 @@ impl RegistryKind {
     }
 }
 
-pub(crate) fn inspect_source(source: &str, kind: RegistryKind) -> Result<Vec<String>, String> {
+pub(crate) fn inspect_source(
+    source: &str,
+    kind: RegistryKind,
+    adapter_definition_root: bool,
+) -> Result<Vec<String>, String> {
     let file = syn::parse_file(source).map_err(|error| format!("Rust parse failed: {error}"))?;
     let mut keys = Vec::new();
-    inspect_items(&file.items, kind, &mut keys)?;
+    inspect_items(&file.items, kind, adapter_definition_root, &mut keys)?;
     Ok(keys)
 }
 
-fn inspect_items(items: &[Item], kind: RegistryKind, keys: &mut Vec<String>) -> Result<(), String> {
+fn inspect_items(
+    items: &[Item],
+    kind: RegistryKind,
+    adapter_definition_root: bool,
+    keys: &mut Vec<String>,
+) -> Result<(), String> {
     for item in items {
         reject_conditional(item_attrs(item))?;
         match item {
             Item::Macro(item_macro) => {
+                if item_macro.mac.path.is_ident("macro_rules") {
+                    if item_macro
+                        .ident
+                        .as_ref()
+                        .is_some_and(|ident| reserved_macro(kind, ident.to_string().as_str()))
+                        && !adapter_definition_root
+                    {
+                        return Err("prepared adapter macro shadowing is forbidden".to_owned());
+                    }
+                    continue;
+                }
                 let name = item_macro
                     .mac
                     .path
                     .segments
                     .last()
                     .map(|segment| &segment.ident);
+                if name.is_some_and(|ident| reserved_macro(kind, ident.to_string().as_str()))
+                    && !unqualified_adapter_macro(&item_macro.mac.path, kind)
+                {
+                    return Err("prepared adapter macros must use an unqualified path".to_owned());
+                }
                 match (kind, name.map(ToString::to_string).as_deref()) {
-                    (RegistryKind::Endpoint, Some("endpoint_wire")) => {
+                    (RegistryKind::Endpoint, Some("endpoint_wire"))
+                        if item_macro.mac.path.is_ident("endpoint_wire") =>
+                    {
                         let arguments =
                             syn::parse2::<EndpointWireArgs>(item_macro.mac.tokens.clone())
                                 .map_err(|error| {
@@ -48,12 +75,16 @@ fn inspect_items(items: &[Item], kind: RegistryKind, keys: &mut Vec<String>) -> 
                                 })?;
                         keys.extend(strict_endpoint_mapping(&arguments.mapping)?);
                     }
-                    (RegistryKind::Body, Some("body_wire")) => {
+                    (RegistryKind::Body, Some("body_wire"))
+                        if item_macro.mac.path.is_ident("body_wire") =>
+                    {
                         let arguments = syn::parse2::<BodyWireArgs>(item_macro.mac.tokens.clone())
                             .map_err(|error| format!("invalid body_wire declaration: {error}"))?;
                         keys.push(checked_key(&arguments.key)?);
                     }
-                    (RegistryKind::Body, Some("body_component")) => {
+                    (RegistryKind::Body, Some("body_component"))
+                        if item_macro.mac.path.is_ident("body_component") =>
+                    {
                         let arguments =
                             syn::parse2::<BodyComponentArgs>(item_macro.mac.tokens.clone())
                                 .map_err(|error| {
@@ -64,13 +95,29 @@ fn inspect_items(items: &[Item], kind: RegistryKind, keys: &mut Vec<String>) -> 
                     _ => {}
                 }
             }
-            Item::Impl(item_impl) if implements(item_impl, kind.label_wire()) => {
+            Item::Impl(item_impl) if implements_reserved(item_impl, kind) => {
+                if !implements_canonical(item_impl, kind) {
+                    return Err(format!(
+                        "{} implementations must use crate::prepared::{}",
+                        kind.label_wire(),
+                        kind.label_wire()
+                    ));
+                }
                 inspect_implementation(item_impl, kind, keys)?;
             }
-            Item::Mod(item_mod) => {
-                if let Some((_, nested)) = &item_mod.content {
-                    inspect_items(nested, kind, keys)?;
-                }
+            Item::Use(item_use) => reject_reserved_use(&item_use.tree, kind)?,
+            Item::Trait(item_trait) if item_trait.ident == kind.label_wire() => {
+                return Err(format!(
+                    "local {} trait definitions are forbidden",
+                    kind.label_wire()
+                ));
+            }
+            Item::Type(item_type) if item_type.ident == kind.label_wire() => {
+                return Err(format!("local {} aliases are forbidden", kind.label_wire()));
+            }
+            Item::Mod(_) => {
+                // Each legitimate prepared module is inspected from its own source file.
+                // Inline modules cannot provide release evidence.
             }
             _ => {}
         }
@@ -115,14 +162,80 @@ fn reject_conditional(attributes: &[Attribute]) -> Result<(), String> {
     {
         return Err("conditionally compiled prepared evidence is forbidden".to_owned());
     }
+    if attributes
+        .iter()
+        .any(|attribute| attribute.path().is_ident("macro_use"))
+    {
+        return Err("macro imports are forbidden in prepared evidence".to_owned());
+    }
     Ok(())
 }
 
-fn implements(item: &ItemImpl, expected: &str) -> bool {
+fn implements_reserved(item: &ItemImpl, kind: RegistryKind) -> bool {
     item.trait_
         .as_ref()
         .and_then(|(_, path, _)| path.segments.last())
-        .is_some_and(|segment| segment.ident == expected)
+        .is_some_and(|segment| segment.ident == kind.label_wire())
+}
+
+fn implements_canonical(item: &ItemImpl, kind: RegistryKind) -> bool {
+    item.trait_
+        .as_ref()
+        .is_some_and(|(_, path, _)| canonical_trait(path, kind.label_wire()))
+}
+
+fn canonical_trait(path: &Path, trait_name: &str) -> bool {
+    let expected = ["crate", "prepared", trait_name];
+    path.leading_colon.is_none()
+        && path.segments.len() == expected.len()
+        && path.segments.iter().zip(expected).all(|(segment, name)| {
+            segment.ident == name && matches!(segment.arguments, PathArguments::None)
+        })
+}
+
+fn reserved_macro(kind: RegistryKind, name: &str) -> bool {
+    match kind {
+        RegistryKind::Endpoint => name == "endpoint_wire",
+        RegistryKind::Body => name == "body_wire" || name == "body_component",
+    }
+}
+
+fn unqualified_adapter_macro(path: &Path, kind: RegistryKind) -> bool {
+    match kind {
+        RegistryKind::Endpoint => path.is_ident("endpoint_wire"),
+        RegistryKind::Body => path.is_ident("body_wire") || path.is_ident("body_component"),
+    }
+}
+
+fn reject_reserved_use(tree: &UseTree, kind: RegistryKind) -> Result<(), String> {
+    if use_tree_has_reserved(tree, kind) {
+        return Err("prepared adapter imports and aliases are forbidden".to_owned());
+    }
+    Ok(())
+}
+
+fn use_tree_has_reserved(tree: &UseTree, kind: RegistryKind) -> bool {
+    match tree {
+        UseTree::Path(path) => {
+            reserved_macro(kind, path.ident.to_string().as_str())
+                || path.ident == kind.label_wire()
+                || use_tree_has_reserved(&path.tree, kind)
+        }
+        UseTree::Name(name) => {
+            reserved_macro(kind, name.ident.to_string().as_str()) || name.ident == kind.label_wire()
+        }
+        UseTree::Rename(rename) => {
+            reserved_macro(kind, rename.ident.to_string().as_str())
+                || reserved_macro(kind, rename.rename.to_string().as_str())
+                || rename.ident == kind.label_wire()
+                || rename.rename == kind.label_wire()
+        }
+        UseTree::Group(group) => group
+            .items
+            .iter()
+            .any(|item| use_tree_has_reserved(item, kind)),
+        UseTree::Glob(_) => true,
+    }
 }
 
 fn inspect_implementation(
