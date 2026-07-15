@@ -2,20 +2,19 @@
 
 use core::fmt;
 
-use cloud_sdk::transport::{BoundTransport, EndpointIdentityError, EndpointScheme};
+use cloud_sdk::transport::{
+    BoundTransport, EndpointIdentity, EndpointIdentityError, EndpointScheme,
+};
 
 use crate::request::ApiBaseUrl;
-
-const HTTPS_PORT: u16 = 443;
-const V1_BASE_PATH: &str = "/v1";
-const CLOUD_API_HOST: &str = "api.hetzner.cloud";
-const HETZNER_API_HOST: &str = "api.hetzner.com";
 
 /// Failure while verifying a credential-bound transport destination.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum OfficialEndpointError {
     /// The transport could not provide a valid normalized endpoint identity.
     InvalidIdentity(EndpointIdentityError),
+    /// An SDK-owned official endpoint constant is not a supported canonical URL.
+    InvalidOfficialEndpoint,
     /// The transport destination does not exactly match the selected official endpoint.
     DestinationMismatch,
 }
@@ -24,6 +23,7 @@ impl fmt::Display for OfficialEndpointError {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter.write_str(match self {
             Self::InvalidIdentity(_) => "transport endpoint identity is invalid",
+            Self::InvalidOfficialEndpoint => "official Hetzner endpoint is invalid",
             Self::DestinationMismatch => {
                 "transport destination is not an official Hetzner endpoint"
             }
@@ -35,7 +35,7 @@ impl core::error::Error for OfficialEndpointError {
     fn source(&self) -> Option<&(dyn core::error::Error + 'static)> {
         match self {
             Self::InvalidIdentity(error) => Some(error),
-            Self::DestinationMismatch => None,
+            Self::InvalidOfficialEndpoint | Self::DestinationMismatch => None,
         }
     }
 }
@@ -51,18 +51,22 @@ pub fn verify_official_endpoint(
     let identity = transport
         .endpoint_identity()
         .map_err(OfficialEndpointError::InvalidIdentity)?;
-    let expected_host = match expected {
-        ApiBaseUrl::CloudV1 => CLOUD_API_HOST,
-        ApiBaseUrl::HetznerV1 => HETZNER_API_HOST,
-    };
-    if identity.scheme() != EndpointScheme::Https
-        || identity.host() != expected_host
-        || identity.effective_port() != HTTPS_PORT
-        || identity.base_path() != V1_BASE_PATH
-    {
+    let expected = parse_official_endpoint(expected.as_str())
+        .ok_or(OfficialEndpointError::InvalidOfficialEndpoint)?;
+    if identity != expected {
         return Err(OfficialEndpointError::DestinationMismatch);
     }
     Ok(())
+}
+
+fn parse_official_endpoint(base_url: &'static str) -> Option<EndpointIdentity<'static>> {
+    let authority_and_path = base_url.strip_prefix("https://")?;
+    let path_start = authority_and_path.find('/')?;
+    let (host, base_path) = authority_and_path.split_at(path_start);
+    if host.contains(':') {
+        return None;
+    }
+    EndpointIdentity::new(EndpointScheme::Https, host, 443, base_path).ok()
 }
 
 /// High-level API surface represented by an SDK module boundary.
@@ -181,8 +185,11 @@ mod tests {
         BoundTransport, EndpointIdentity, EndpointIdentityError, EndpointScheme,
     };
 
-    use super::{ApiSurface, EndpointGroup, OfficialEndpointError, verify_official_endpoint};
-    use crate::request::ApiBaseUrl;
+    use super::{
+        ApiSurface, EndpointGroup, OfficialEndpointError, parse_official_endpoint,
+        verify_official_endpoint,
+    };
+    use crate::request::{ApiBaseUrl, CLOUD_API_BASE_URL, HETZNER_API_BASE_URL};
 
     #[test]
     fn maps_endpoint_groups_to_base_urls() {
@@ -215,6 +222,39 @@ mod tests {
             verify_official_endpoint(&cloud, ApiBaseUrl::HetznerV1),
             Err(OfficialEndpointError::DestinationMismatch)
         );
+    }
+
+    #[test]
+    fn canonical_base_urls_are_the_verifier_source_of_truth() {
+        let cloud = parse_official_endpoint(CLOUD_API_BASE_URL);
+        let storage = parse_official_endpoint(HETZNER_API_BASE_URL);
+        assert_eq!(
+            cloud.map(|identity| (
+                identity.scheme(),
+                identity.host(),
+                identity.effective_port(),
+                identity.base_path(),
+            )),
+            Some((EndpointScheme::Https, "api.hetzner.cloud", 443, "/v1"))
+        );
+        assert_eq!(
+            storage.map(|identity| (
+                identity.scheme(),
+                identity.host(),
+                identity.effective_port(),
+                identity.base_path(),
+            )),
+            Some((EndpointScheme::Https, "api.hetzner.com", 443, "/v1"))
+        );
+        for malformed in [
+            "http://api.hetzner.cloud/v1",
+            "https://api.hetzner.cloud:443/v1",
+            "https://api.hetzner.cloud",
+            "https:///v1",
+            "https://api.hetzner.cloud/v1/",
+        ] {
+            assert!(parse_official_endpoint(malformed).is_none());
+        }
     }
 
     #[test]

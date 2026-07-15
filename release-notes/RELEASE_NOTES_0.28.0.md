@@ -47,7 +47,9 @@ of new third-party dependencies.
 - Endpoint identity tests cover host, subdomain, scheme, port, base-path, and
   normalization differences.
 - `cloud-sdk-hetzner::verify_official_endpoint` checks both official v1 API
-  authorities without coupling the provider crate to a transport adapter.
+  authorities without coupling the provider crate to a transport adapter. It
+  derives its expected identity from the canonical provider base-URL constants,
+  and regression tests reject malformed or divergent canonical forms.
 - Blocking and async tests issue overlapping requests through one shared client
   and keep response buffers isolated.
 - Blocking and async in-flight tests prove rotation changes only newly started

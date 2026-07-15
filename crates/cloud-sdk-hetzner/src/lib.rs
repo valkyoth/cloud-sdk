@@ -117,6 +117,10 @@ mod tests {
             OfficialEndpointError::DestinationMismatch,
             "transport destination is not an official Hetzner endpoint",
         );
+        assert_display(
+            OfficialEndpointError::InvalidOfficialEndpoint,
+            "official Hetzner endpoint is invalid",
+        );
         assert_display(PaginationError::PageZero, "page number must be nonzero");
         assert_display(QueryError::EmptyKey, "query key is empty");
         assert_display(RrsetRequestError::InvalidName, "RRSet name is invalid");
