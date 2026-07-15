@@ -209,11 +209,11 @@ impl Default for PrimaryIpListRequest<'_> {
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct PrimaryIpCreateRequest<'a> {
     ip_type: PrimaryIpType,
-    name: Option<PrimaryIpName<'a>>,
-    assignee_id: Option<PrimaryIpAssigneeId>,
-    auto_delete: bool,
-    location: Option<PrimaryIpLocation<'a>>,
-    labels: Option<PrimaryIpLabels<'a>>,
+    pub(crate) name: Option<PrimaryIpName<'a>>,
+    pub(crate) assignee_id: Option<PrimaryIpAssigneeId>,
+    pub(crate) auto_delete: bool,
+    pub(crate) location: Option<PrimaryIpLocation<'a>>,
+    pub(crate) labels: Option<PrimaryIpLabels<'a>>,
 }
 
 impl<'a> PrimaryIpCreateRequest<'a> {
@@ -282,8 +282,8 @@ impl<'a> PrimaryIpCreateRequest<'a> {
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct PrimaryIpUpdateRequest<'a> {
     id: PrimaryIpId,
-    name: Option<PrimaryIpName<'a>>,
-    labels: Option<PrimaryIpLabels<'a>>,
+    pub(crate) name: Option<PrimaryIpName<'a>>,
+    pub(crate) labels: Option<PrimaryIpLabels<'a>>,
 }
 
 impl<'a> PrimaryIpUpdateRequest<'a> {

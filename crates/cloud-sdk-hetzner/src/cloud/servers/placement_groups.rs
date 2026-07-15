@@ -236,6 +236,12 @@ impl<'a> PlacementGroupCreateRequest<'a> {
     pub const fn placement_group_type(self) -> PlacementGroupType {
         self.placement_group_type
     }
+
+    pub(crate) const fn prepared_parts(
+        self,
+    ) -> (PlacementGroupName<'a>, Option<PlacementGroupLabels<'a>>) {
+        (self.name, self.labels)
+    }
 }
 
 /// Placement group update request fields.
@@ -275,6 +281,15 @@ impl<'a> PlacementGroupUpdateRequest<'a> {
     #[must_use]
     pub const fn endpoint(self) -> PlacementGroupEndpoint {
         PlacementGroupEndpoint::Update(self.id)
+    }
+
+    pub(crate) const fn prepared_parts(
+        self,
+    ) -> (
+        Option<PlacementGroupName<'a>>,
+        Option<PlacementGroupLabels<'a>>,
+    ) {
+        (self.name, self.labels)
     }
 }
 

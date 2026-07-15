@@ -244,6 +244,12 @@ impl<'a> ImageUpdateRequest<'a> {
     pub const fn endpoint(self) -> ImageEndpoint {
         ImageEndpoint::Update(self.id)
     }
+
+    pub(crate) const fn prepared_parts(
+        self,
+    ) -> (Option<ImageDescription<'a>>, Option<ImageLabels<'a>>) {
+        (self.description, self.labels)
+    }
 }
 
 /// Image action endpoint.

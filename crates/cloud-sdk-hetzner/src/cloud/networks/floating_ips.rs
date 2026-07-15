@@ -208,9 +208,9 @@ impl Default for FloatingIpListRequest<'_> {
 pub struct FloatingIpCreateRequest<'a> {
     ip_type: FloatingIpType,
     placement: FloatingIpCreatePlacement<'a>,
-    name: Option<FloatingIpName<'a>>,
-    description: Option<FloatingIpDescription<'a>>,
-    labels: Option<FloatingIpLabels<'a>>,
+    pub(crate) name: Option<FloatingIpName<'a>>,
+    pub(crate) description: Option<FloatingIpDescription<'a>>,
+    pub(crate) labels: Option<FloatingIpLabels<'a>>,
 }
 
 impl<'a> FloatingIpCreateRequest<'a> {
@@ -264,9 +264,9 @@ impl<'a> FloatingIpCreateRequest<'a> {
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct FloatingIpUpdateRequest<'a> {
     id: FloatingIpId,
-    name: Option<FloatingIpName<'a>>,
-    description: Option<FloatingIpDescription<'a>>,
-    labels: Option<FloatingIpLabels<'a>>,
+    pub(crate) name: Option<FloatingIpName<'a>>,
+    pub(crate) description: Option<FloatingIpDescription<'a>>,
+    pub(crate) labels: Option<FloatingIpLabels<'a>>,
 }
 
 impl<'a> FloatingIpUpdateRequest<'a> {

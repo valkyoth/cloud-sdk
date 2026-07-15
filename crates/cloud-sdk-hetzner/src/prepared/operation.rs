@@ -62,6 +62,10 @@ pub(crate) trait QueryWire: Copy {
 pub(crate) trait BodyWire: Copy {
     fn write_body(self, output: &mut [u8]) -> Result<usize, HetznerPreparationError>;
     fn operation_key(self) -> &'static str;
+
+    fn accepts_operation(self, operation_key: &str) -> bool {
+        self.operation_key() == operation_key
+    }
 }
 
 /// Marker for an operation without query parameters.
@@ -273,7 +277,7 @@ where
     let has_query = !query.operation_key().is_empty();
     let has_body = !body.operation_key().is_empty();
     let key = endpoint.operation_key();
-    if has_query && !query.accepts_operation(key) || has_body && body.operation_key() != key {
+    if has_query && !query.accepts_operation(key) || has_body && !body.accepts_operation(key) {
         return Err(HetznerPreparationError::OperationMismatch);
     }
     match (endpoint.request_shape(), has_query, has_body) {

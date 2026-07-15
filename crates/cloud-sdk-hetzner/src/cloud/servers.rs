@@ -267,10 +267,10 @@ pub enum PrimaryIpSelection {
 /// Server public network create options.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct ServerPublicNet {
-    enable_ipv4: bool,
-    enable_ipv6: bool,
-    ipv4: PrimaryIpSelection,
-    ipv6: PrimaryIpSelection,
+    pub(crate) enable_ipv4: bool,
+    pub(crate) enable_ipv6: bool,
+    pub(crate) ipv4: PrimaryIpSelection,
+    pub(crate) ipv6: PrimaryIpSelection,
 }
 
 impl ServerPublicNet {
@@ -299,12 +299,12 @@ impl ServerPublicNet {
 /// Server create request fields.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct ServerCreateRequest<'a> {
-    name: ServerName<'a>,
-    server_type: ServerReference<'a>,
-    image: ServerReference<'a>,
-    location: Option<ServerReference<'a>>,
-    public_net: Option<ServerPublicNet>,
-    user_data: Option<UserData<'a>>,
+    pub(crate) name: ServerName<'a>,
+    pub(crate) server_type: ServerReference<'a>,
+    pub(crate) image: ServerReference<'a>,
+    pub(crate) location: Option<ServerReference<'a>>,
+    pub(crate) public_net: Option<ServerPublicNet>,
+    pub(crate) user_data: Option<UserData<'a>>,
 }
 
 impl<'a> ServerCreateRequest<'a> {
@@ -365,7 +365,7 @@ impl<'a> ServerCreateRequest<'a> {
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct ServerUpdateRequest<'a> {
     id: ServerId,
-    name: Option<ServerName<'a>>,
+    pub(crate) name: Option<ServerName<'a>>,
 }
 
 impl<'a> ServerUpdateRequest<'a> {

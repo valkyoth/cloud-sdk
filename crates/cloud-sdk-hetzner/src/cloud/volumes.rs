@@ -252,10 +252,10 @@ impl Default for VolumeListRequest<'_> {
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct VolumeCreateRequest<'a> {
     size: VolumeSizeGb,
-    name: VolumeName<'a>,
+    pub(crate) name: VolumeName<'a>,
     placement: VolumeCreatePlacement<'a>,
-    format: Option<VolumeFormat<'a>>,
-    labels: Option<VolumeLabels<'a>>,
+    pub(crate) format: Option<VolumeFormat<'a>>,
+    pub(crate) labels: Option<VolumeLabels<'a>>,
 }
 
 impl<'a> VolumeCreateRequest<'a> {
@@ -312,8 +312,8 @@ impl<'a> VolumeCreateRequest<'a> {
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct VolumeUpdateRequest<'a> {
     id: VolumeId,
-    name: Option<VolumeName<'a>>,
-    labels: Option<VolumeLabels<'a>>,
+    pub(crate) name: Option<VolumeName<'a>>,
+    pub(crate) labels: Option<VolumeLabels<'a>>,
 }
 
 impl<'a> VolumeUpdateRequest<'a> {
