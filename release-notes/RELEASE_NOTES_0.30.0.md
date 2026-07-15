@@ -56,10 +56,13 @@ of new third-party dependencies.
   macros must be unqualified top-level items, while manual implementations
   must use canonical `crate::prepared` trait paths. All five module-scope macro
   definitions are structurally source-locked in their reviewed roots, and
-  module-scope invocations are allowlisted. Evidence files must have an exact
-  unconditional `mod name;` declaration and regular `name.rs` file pairing.
-  Constants, nested comments, raw strings, file/item `cfg`, `cfg_attr`, orphaned
-  or redirected modules, namespaced or generated-shadow adapters, duplicate or
+  module-scope invocations are allowlisted. The complete canonical module chain
+  from `lib.rs` through `prepared.rs` is checked before evidence files receive
+  an exact unconditional `mod name;` declaration and regular `name.rs` file
+  pairing. Counted macros, implementations, methods, and match arms must be
+  unattributed. Constants, nested comments, raw strings, file/item `cfg`,
+  `cfg_attr`, parent-edge substitutions, orphaned or redirected modules,
+  procedural erasure, namespaced or generated-shadow adapters, duplicate or
   modified definitions, inline fake traits, discarded/helper expressions,
   unknown keys, ambiguous mappings, missing adapters, and deprecated evidence
   are rejected.

@@ -38,6 +38,13 @@ The previous Python scanner did not implement nested Rust comments,
 because release-integrity evidence must follow the same lexical and AST rules
 as Rust source.
 
+The checker anchors evidence to canonical, unattributed module edges from
+`cloud-sdk-hetzner/src/lib.rs` through `prepared.rs` to `endpoints.rs` and
+`bodies.rs`. The public `prepared` edge and private endpoint/body edges must be
+external declarations with their exact expected visibility. Redirected,
+conditional, inline, duplicate, missing, or substituted parent edges fail
+closed.
+
 The checker accepts operation evidence only from top-level, unqualified
 `endpoint_wire!`, `body_wire!`, and `body_component!` item macros or explicit
 implementations using the canonical `crate::prepared::EndpointWire` and
@@ -59,6 +66,11 @@ definitions, and namespaced adapter calls fail closed.
 Every module-scope macro invocation is also allowlisted. Endpoint and body
 adapters plus the two reviewed endpoint helper macros are accepted; an
 unreviewed macro cannot expand into a shadowing adapter definition.
+
+Adapter macro invocations, canonical trait implementations, operation-key
+methods, accepted-operation methods, and counted match arms must have no
+attributes. This prevents procedural attributes from erasing or replacing
+evidence after the syntax-aware checker has counted it.
 
 Endpoint mappings must be match arms returning string literals. Conditional
 items, helper expressions, discarded literals, unknown operations, and

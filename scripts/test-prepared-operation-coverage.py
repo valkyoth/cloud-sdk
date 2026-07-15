@@ -7,101 +7,15 @@ import subprocess
 import tempfile
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
-CHECKER = ROOT / "scripts" / "check_prepared_operation_coverage.py"
-LOCKS = ROOT / "tools" / "prepared-coverage-check" / "locks"
-ENDPOINT_DEFINITIONS = (LOCKS / "endpoints.rs").read_text(encoding="utf-8")
-BODY_DEFINITIONS = (LOCKS / "bodies.rs").read_text(encoding="utf-8")
-HEADER = """# Matrix
-
-## Operations
-
-| API | Group | Method | Path | Operation | Owner | Pagination | Sorting | Action | Deprecated | Status |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-"""
-ENDPOINTS = """endpoint_wire!(
-    TestEndpoint,
-    endpoint => (),
-    (),
-    match endpoint {
-        TestEndpoint::Read => "read_test",
-        TestEndpoint::Write => "write_test",
-    },
-    false,
-    ()
-);"""
-BODIES = 'body_wire!(WriteRequest, request => (), "write_test", write_test);'
-
-
-def row(operation: str, *, deprecated: str = "no") -> str:
-    status = "deferred-deprecated" if deprecated == "yes" else "implemented"
-    return (
-        f"| cloud | Test | POST | `/test` | `{operation}` | `test` | no | no | "
-        f"none | {deprecated} | {status} |\n"
-    )
-
-
-def run(
-    directory: Path,
-    *,
-    endpoints: str = ENDPOINTS,
-    bodies: str = BODIES,
-    endpoint_definitions: str = ENDPOINT_DEFINITIONS,
-    body_definitions: str = BODY_DEFINITIONS,
-    endpoint_modules: str = "mod test;\n",
-    body_modules: str = "mod test;\n",
-    extra_endpoint_files: dict[str, str] | None = None,
-    write_endpoint_module: bool = True,
-) -> subprocess.CompletedProcess[str]:
-    matrix = directory / "matrix.md"
-    matrix.write_text(HEADER + row("read_test") + row("write_test"), encoding="utf-8")
-    body_lock = directory / "bodies.txt"
-    body_lock.write_text("write_test\n", encoding="ascii")
-    prepared_dir = directory / "prepared"
-    endpoint_dir = prepared_dir / "endpoints"
-    body_dir = prepared_dir / "bodies"
-    endpoint_dir.mkdir(parents=True, exist_ok=True)
-    body_dir.mkdir(parents=True, exist_ok=True)
-    for source_file in endpoint_dir.glob("*.rs"):
-        source_file.unlink()
-    for source_file in body_dir.glob("*.rs"):
-        source_file.unlink()
-    (prepared_dir / "endpoints.rs").write_text(
-        endpoint_definitions + endpoint_modules,
-        encoding="utf-8",
-    )
-    if write_endpoint_module:
-        (endpoint_dir / "test.rs").write_text(endpoints, encoding="utf-8")
-    else:
-        (endpoint_dir / "test.rs").unlink(missing_ok=True)
-    for name, source in (extra_endpoint_files or {}).items():
-        (endpoint_dir / name).write_text(source, encoding="utf-8")
-    (prepared_dir / "bodies.rs").write_text(
-        body_definitions + body_modules,
-        encoding="utf-8",
-    )
-    (body_dir / "test.rs").write_text(bodies, encoding="utf-8")
-    return subprocess.run(
-        [
-            str(CHECKER),
-            "--matrix",
-            str(matrix),
-            "--endpoints",
-            str(endpoint_dir),
-            "--bodies",
-            str(body_dir),
-            "--body-lock",
-            str(body_lock),
-            "--expected-active",
-            "2",
-            "--expected-bodies",
-            "1",
-        ],
-        cwd=ROOT,
-        check=False,
-        capture_output=True,
-        text=True,
-    )
+from prepared_coverage_test_support import (
+    BODIES,
+    BODY_DEFINITIONS,
+    CHECKER,
+    ENDPOINT_DEFINITIONS,
+    ENDPOINTS,
+    ROOT,
+    run,
+)
 
 
 def main() -> None:
@@ -110,6 +24,71 @@ def main() -> None:
         complete = run(directory)
         assert complete.returncode == 0, complete
         assert "2 endpoints and 1 request bodies" in complete.stdout
+
+        missing_prepared_edge = run(directory, crate_root="")
+        assert missing_prepared_edge.returncode == 1, missing_prepared_edge
+        assert "missing canonical mod prepared" in missing_prepared_edge.stderr
+
+        conditional_prepared_edge = run(
+            directory,
+            crate_root="#[cfg(any())]\npub mod prepared;\n",
+        )
+        assert conditional_prepared_edge.returncode == 1, conditional_prepared_edge
+        assert "noncanonical module edge for prepared" in conditional_prepared_edge.stderr
+
+        redirected_prepared_edge = run(
+            directory,
+            crate_root='#[path = "decoy.rs"]\npub mod prepared;\n',
+        )
+        assert redirected_prepared_edge.returncode == 1, redirected_prepared_edge
+        assert "noncanonical module edge for prepared" in redirected_prepared_edge.stderr
+
+        inline_prepared_edge = run(directory, crate_root="pub mod prepared {}\n")
+        assert inline_prepared_edge.returncode == 1, inline_prepared_edge
+        assert "noncanonical module edge for prepared" in inline_prepared_edge.stderr
+
+        missing_endpoints_edge = run(directory, prepared_root="mod bodies;\n")
+        assert missing_endpoints_edge.returncode == 1, missing_endpoints_edge
+        assert "missing canonical mod endpoints" in missing_endpoints_edge.stderr
+
+        conditional_endpoints_edge = run(
+            directory,
+            prepared_root="#[cfg(any())]\nmod endpoints;\nmod bodies;\n",
+        )
+        assert conditional_endpoints_edge.returncode == 1, conditional_endpoints_edge
+        assert "noncanonical module edge for endpoints" in conditional_endpoints_edge.stderr
+
+        redirected_endpoints_edge = run(
+            directory,
+            prepared_root=(
+                '#[path = "endpoints_decoy.rs"]\nmod endpoints;\nmod bodies;\n'
+            ),
+        )
+        assert redirected_endpoints_edge.returncode == 1, redirected_endpoints_edge
+        assert "noncanonical module edge for endpoints" in redirected_endpoints_edge.stderr
+
+        inline_endpoints_edge = run(
+            directory,
+            prepared_root="mod endpoints {}\nmod bodies;\n",
+        )
+        assert inline_endpoints_edge.returncode == 1, inline_endpoints_edge
+        assert "noncanonical module edge for endpoints" in inline_endpoints_edge.stderr
+
+        attributed_endpoint = run(directory, endpoints="#[erase]\n" + ENDPOINTS)
+        assert attributed_endpoint.returncode == 1, attributed_endpoint
+        assert "attributes on prepared-operation evidence" in attributed_endpoint.stderr
+
+        attributed_implementation = run(
+            directory,
+            endpoints=(
+                "endpoint_wire!(Real, value => (), (), match value { "
+                'Real::Write => "write_test" }, false, ());\n'
+                "#[erase]\nimpl crate::prepared::EndpointWire for Fake { "
+                'fn operation_key(self) -> &\'static str { "read_test" } }'
+            ),
+        )
+        assert attributed_implementation.returncode == 1, attributed_implementation
+        assert "attributes on prepared-operation evidence" in attributed_implementation.stderr
 
         removed_module = run(directory, endpoint_modules="")
         assert removed_module.returncode == 1, removed_module
@@ -446,7 +425,7 @@ def main() -> None:
         assert duplicate.returncode == 1, duplicate
         assert "duplicate body operation" in duplicate.stderr
 
-    print("37 prepared-operation coverage tests passed.")
+    print("47 prepared-operation coverage tests passed.")
 
 
 if __name__ == "__main__":

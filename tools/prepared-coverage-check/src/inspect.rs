@@ -45,6 +45,7 @@ fn inspect_items(
         reject_conditional(item_attrs(item))?;
         match item {
             Item::Macro(item_macro) => {
+                require_unattributed_evidence(&item_macro.attrs)?;
                 if item_macro.mac.path.is_ident("macro_rules") {
                     continue;
                 }
@@ -100,6 +101,7 @@ fn inspect_items(
                 }
             }
             Item::Impl(item_impl) if implements_reserved(item_impl, kind) => {
+                require_unattributed_evidence(&item_impl.attrs)?;
                 if !implements_canonical(item_impl, kind) {
                     return Err(format!(
                         "{} implementations must use crate::prepared::{}",
@@ -176,6 +178,14 @@ fn reject_conditional(attributes: &[Attribute]) -> Result<(), String> {
         return Err("macro imports are forbidden in prepared evidence".to_owned());
     }
     Ok(())
+}
+
+fn require_unattributed_evidence(attributes: &[Attribute]) -> Result<(), String> {
+    if attributes.is_empty() {
+        Ok(())
+    } else {
+        Err("attributes on prepared-operation evidence are forbidden".to_owned())
+    }
 }
 
 fn implements_reserved(item: &ItemImpl, kind: RegistryKind) -> bool {
@@ -258,7 +268,7 @@ fn inspect_implementation(
             _ => None,
         })
         .ok_or_else(|| format!("{} implementation has no operation_key", kind.label_wire()))?;
-    reject_conditional(&operation.attrs)?;
+    require_unattributed_evidence(&operation.attrs)?;
     let mut implementation_keys = BTreeSet::new();
     implementation_keys.extend(strict_operation_expression(
         block_tail(&operation.block)?,
@@ -271,7 +281,7 @@ fn inspect_implementation(
             _ => None,
         })
     {
-        reject_conditional(&accepted.attrs)?;
+        require_unattributed_evidence(&accepted.attrs)?;
         let expression = block_tail(&accepted.block)?;
         let Expr::Macro(expression_macro) = expression else {
             return Err("accepts_operation must contain one matches! expression".to_owned());
@@ -308,7 +318,7 @@ fn strict_operation_expression(
         Expr::Match(expression_match) => {
             let mut keys = Vec::new();
             for arm in &expression_match.arms {
-                reject_conditional(&arm.attrs)?;
+                require_unattributed_evidence(&arm.attrs)?;
                 if arm.guard.is_some() {
                     return Err("operation match arms cannot have guards".to_owned());
                 }

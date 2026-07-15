@@ -24,6 +24,8 @@ fn main() {
 fn run() -> Result<(), String> {
     let mut arguments = env::args_os();
     let _program = arguments.next();
+    let crate_root = required_path(arguments.next(), "crate root")?;
+    let prepared_root = required_path(arguments.next(), "prepared root")?;
     let endpoint_root = required_path(arguments.next(), "endpoint root")?;
     let body_root = required_path(arguments.next(), "body root")?;
     let endpoint_dir = required_path(arguments.next(), "endpoint directory")?;
@@ -32,10 +34,115 @@ fn run() -> Result<(), String> {
         return Err("unexpected checker argument".to_owned());
     }
 
+    require_canonical_layout(
+        &crate_root,
+        &prepared_root,
+        &endpoint_root,
+        &body_root,
+        &endpoint_dir,
+        &body_dir,
+    )?;
+    require_module_edge(&crate_root, "prepared", true)?;
+    require_module_edge(&prepared_root, "endpoints", false)?;
+    require_module_edge(&prepared_root, "bodies", false)?;
+
     let endpoint_files = source_files(&endpoint_root, &endpoint_dir)?;
     let body_files = source_files(&body_root, &body_dir)?;
     emit_registry(&endpoint_files, RegistryKind::Endpoint)?;
     emit_registry(&body_files, RegistryKind::Body)
+}
+
+fn require_canonical_layout(
+    crate_root: &Path,
+    prepared_root: &Path,
+    endpoint_root: &Path,
+    body_root: &Path,
+    endpoint_dir: &Path,
+    body_dir: &Path,
+) -> Result<(), String> {
+    let source_dir = crate_root
+        .parent()
+        .ok_or_else(|| "crate root has no parent directory".to_owned())?;
+    if crate_root != source_dir.join("lib.rs") {
+        return Err("noncanonical crate root path".to_owned());
+    }
+    let prepared_dir = source_dir.join("prepared");
+    let expected = [
+        (
+            prepared_root,
+            source_dir.join("prepared.rs"),
+            "prepared root",
+        ),
+        (
+            endpoint_root,
+            prepared_dir.join("endpoints.rs"),
+            "endpoint root",
+        ),
+        (body_root, prepared_dir.join("bodies.rs"), "body root"),
+        (
+            endpoint_dir,
+            prepared_dir.join("endpoints"),
+            "endpoint directory",
+        ),
+        (body_dir, prepared_dir.join("bodies"), "body directory"),
+    ];
+    for (actual, canonical, label) in expected {
+        if actual != canonical {
+            return Err(format!("noncanonical {label} path"));
+        }
+    }
+    Ok(())
+}
+
+fn require_module_edge(parent: &Path, expected: &str, public: bool) -> Result<(), String> {
+    require_regular_source(parent)?;
+    let bytes =
+        fs::read(parent).map_err(|error| format!("cannot read {}: {error}", parent.display()))?;
+    if bytes.len() > MAX_SOURCE_BYTES {
+        return Err("prepared module parent exceeds local size limit".to_owned());
+    }
+    let source = std::str::from_utf8(&bytes)
+        .map_err(|error| format!("{} is not UTF-8: {error}", parent.display()))?;
+    let file = syn::parse_file(source)
+        .map_err(|error| format!("cannot parse {}: {error}", parent.display()))?;
+    if file.attrs.iter().any(forbidden_compilation_attribute) {
+        return Err(format!(
+            "conditional crate or module root is forbidden: {}",
+            parent.display()
+        ));
+    }
+    let mut matches = file.items.iter().filter_map(|item| {
+        let syn::Item::Mod(module) = item else {
+            return None;
+        };
+        (module.ident == expected).then_some(module)
+    });
+    let module = matches
+        .next()
+        .ok_or_else(|| format!("missing canonical mod {expected};"))?;
+    if matches.next().is_some()
+        || !module.attrs.is_empty()
+        || module.content.is_some()
+        || module.semi.is_none()
+        || module.unsafety.is_some()
+    {
+        return Err(format!("noncanonical module edge for {expected}"));
+    }
+    let visibility_ok = if public {
+        matches!(module.vis, syn::Visibility::Public(_))
+    } else {
+        matches!(module.vis, syn::Visibility::Inherited)
+    };
+    if !visibility_ok {
+        return Err(format!("invalid visibility for module {expected}"));
+    }
+    Ok(())
+}
+
+fn forbidden_compilation_attribute(attribute: &syn::Attribute) -> bool {
+    attribute.path().is_ident("cfg")
+        || attribute.path().is_ident("cfg_attr")
+        || attribute.path().is_ident("macro_use")
 }
 
 fn required_path(value: Option<std::ffi::OsString>, label: &str) -> Result<PathBuf, String> {

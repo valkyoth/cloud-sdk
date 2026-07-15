@@ -49,6 +49,9 @@ def read_body_lock(path: Path) -> set[str]:
 
 def ast_registries(endpoints: Path, bodies: Path) -> tuple[list[str], list[str]]:
     """Obtain adapter keys from Rust items parsed by the isolated syn checker."""
+    prepared_directory = endpoints.parent
+    prepared_root = prepared_directory.with_suffix(".rs")
+    crate_root = prepared_root.parent / "lib.rs"
     command = [
         "cargo",
         "run",
@@ -57,6 +60,8 @@ def ast_registries(endpoints: Path, bodies: Path) -> tuple[list[str], list[str]]
         "--manifest-path",
         str(CHECKER_MANIFEST),
         "--",
+        str(crate_root),
+        str(prepared_root),
         str(endpoints.with_suffix(".rs")),
         str(bodies.with_suffix(".rs")),
         str(endpoints),
