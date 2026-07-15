@@ -265,14 +265,12 @@ pub struct LoadBalancerChangeDnsPtrRequest<'a> {
 
 impl<'a> LoadBalancerChangeDnsPtrRequest<'a> {
     /// Creates a request requiring explicit set or reset intent.
-    pub fn try_new(
+    #[must_use]
+    pub const fn new(
         ip: LoadBalancerIp<'a>,
-        dns_ptr: Option<LoadBalancerDnsPtrIntent<'a>>,
-    ) -> Result<Self, LoadBalancerRequestError> {
-        Ok(Self {
-            ip,
-            dns_ptr: dns_ptr.ok_or(LoadBalancerRequestError::MissingDnsPtrIntent)?,
-        })
+        dns_ptr: LoadBalancerDnsPtrIntent<'a>,
+    ) -> Self {
+        Self { ip, dns_ptr }
     }
     /// Returns the address.
     #[must_use]

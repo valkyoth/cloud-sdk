@@ -20,8 +20,6 @@ pub const RRSET_TYPE_COUNT: usize = 16;
 pub enum RrsetRequestError {
     /// A shared Cloud request operation failed.
     Cloud(CloudRequestError),
-    /// A required request field was omitted.
-    MissingRequiredField,
     /// RRSet name validation failed.
     InvalidName,
     /// Record value validation failed.

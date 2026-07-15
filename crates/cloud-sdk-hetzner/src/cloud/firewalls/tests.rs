@@ -1,11 +1,11 @@
-use super::actions::{FirewallActionEndpoint, FirewallResourcesRequest, FirewallSetRulesRequest};
+use super::actions::{FirewallActionEndpoint, FirewallResourcesRequest};
 use super::rules::{
     FirewallDescription, FirewallPort, FirewallProtocol, FirewallRule, FirewallRuleError,
     FirewallRuleSet, FirewallSelectors,
 };
 use super::{
     FirewallCreateRequest, FirewallEndpoint, FirewallId, FirewallLabels, FirewallListRequest,
-    FirewallName, FirewallRequestError, FirewallResource, FirewallSortField,
+    FirewallName, FirewallResource, FirewallSortField,
 };
 use crate::actions::ActionId;
 use crate::cloud::ip::IpCidr;
@@ -128,18 +128,6 @@ fn networks_firewalls_rules_reject_conflicts_and_bad_ports() {
 
 #[test]
 fn networks_firewalls_required_fields_and_bodies_are_explicit() {
-    assert_eq!(
-        FirewallCreateRequest::try_new(None),
-        Err(FirewallRequestError::MissingRequiredField)
-    );
-    assert_eq!(
-        FirewallResourcesRequest::try_new(None),
-        Err(FirewallRequestError::MissingRequiredField)
-    );
-    assert_eq!(
-        FirewallSetRulesRequest::try_new(None),
-        Err(FirewallRequestError::MissingRequiredField)
-    );
     assert!(FirewallDescription::new("allow application traffic").is_ok());
     assert_eq!(
         FirewallDescription::new("bad\ntext"),
@@ -150,11 +138,7 @@ fn networks_firewalls_required_fields_and_bodies_are_explicit() {
     assert!(server.is_some(), "fixture server ID must validate");
     let Some(server) = server else { return };
     let resources = [FirewallResource::Server(server)];
-    assert_eq!(
-        FirewallResourcesRequest::try_new(Some(&resources))
-            .map(|request| request.resources().len()),
-        Ok(1)
-    );
+    assert_eq!(FirewallResourcesRequest::new(&resources).resources().len(), 1);
 
     let key = LabelKey::new("env");
     let value = LabelValue::new("prod");
@@ -169,7 +153,8 @@ fn networks_firewalls_required_fields_and_bodies_are_explicit() {
     let name = FirewallName::new("edge");
     assert!(name.is_ok(), "fixture name must validate");
     let Ok(name) = name else { return };
-    let request = FirewallCreateRequest::try_new(Some(name))
-        .map(|request| request.with_labels(labels).with_resources(&resources));
-    assert_eq!(request.map(FirewallCreateRequest::labels), Ok(Some(labels)));
+    let request = FirewallCreateRequest::new(name)
+        .with_labels(labels)
+        .with_resources(&resources);
+    assert_eq!(request.labels(), Some(labels));
 }

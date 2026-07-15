@@ -9,9 +9,7 @@ fn main() {
     let Ok(ttl) = ZoneTtl::new(3_600) else {
         return;
     };
-    let Ok(request) = ZoneCreateRequest::try_new(Some(name), Some(ZoneCreateMode::Primary)) else {
-        return;
-    };
+    let request = ZoneCreateRequest::new(name, ZoneCreateMode::Primary);
     let request = request.with_ttl(ttl);
     let endpoint = request.endpoint();
     let mut path = [0_u8; 16];

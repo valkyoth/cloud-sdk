@@ -58,23 +58,16 @@ fn ssh_key_list_query_writes_filters_pagination_and_sorting() {
 }
 
 #[test]
-fn ssh_key_create_validates_required_fields_and_redacts_debug() {
+fn ssh_key_create_redacts_debug() {
     let name = SshKeyName::new("deploy");
     let public_key = SshPublicKey::new("ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMockKey");
     if let (Ok(name), Ok(public_key)) = (name, public_key) {
-        assert_eq!(
-            SshKeyCreateRequest::try_new(None, Some(public_key)),
-            Err(SecurityRequestError::MissingRequiredField)
-        );
-        let request = SshKeyCreateRequest::try_new(Some(name), Some(public_key));
-        assert!(request.is_ok());
-        if let Ok(request) = request {
-            let mut debug = DebugBuffer::new();
-            assert!(write!(&mut debug, "{request:?}").is_ok());
-            let debug = debug.as_str();
-            assert!(debug.contains("[redacted]"));
-            assert!(!debug.contains("AAAAC3"));
-        }
+        let request = SshKeyCreateRequest::new(name, public_key);
+        let mut debug = DebugBuffer::new();
+        assert!(write!(&mut debug, "{request:?}").is_ok());
+        let debug = debug.as_str();
+        assert!(debug.contains("[redacted]"));
+        assert!(!debug.contains("AAAAC3"));
     }
 }
 

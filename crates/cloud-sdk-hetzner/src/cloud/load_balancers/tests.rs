@@ -193,14 +193,10 @@ fn load_balancers_name_rejects_boundary_whitespace_and_controls() {
 }
 
 #[test]
-fn load_balancers_create_requires_name_and_type_and_preserves_intent() {
+fn load_balancers_create_preserves_intent() {
     let name = valid!(LoadBalancerName::new("edge"));
     let ty = valid!(LoadBalancerType::new("lb11"));
-    assert_eq!(
-        LoadBalancerCreateRequest::try_new(None, Some(ty)),
-        Err(LoadBalancerRequestError::MissingRequiredField)
-    );
-    let request = valid!(LoadBalancerCreateRequest::try_new(Some(name), Some(ty)))
+    let request = LoadBalancerCreateRequest::new(name, ty)
         .with_algorithm(LoadBalancerAlgorithm::LeastConnections)
         .with_public_interface(false)
         .with_placement(LoadBalancerPlacement::NetworkZone(valid!(
@@ -231,24 +227,20 @@ fn load_balancers_health_check_bounds_are_enforced() {
 }
 
 #[test]
-fn load_balancers_http_health_check_requires_path_and_limits_status_codes() {
-    assert_eq!(
-        HttpHealthCheck::try_new(None, None),
-        Err(LoadBalancerRequestError::MissingRequiredField)
-    );
+fn load_balancers_http_health_check_validates_domain_and_limits_status_codes() {
     let path = valid!(HealthCheckPath::new("/ready"));
     assert_eq!(
         HealthCheckPath::new("/not ready"),
         Err(LoadBalancerRequestError::InvalidText)
     );
     assert_eq!(
-        HttpHealthCheck::try_new(Some("bad host"), Some(path)),
+        HttpHealthCheck::try_new(Some("bad host"), path),
         Err(LoadBalancerRequestError::InvalidText)
     );
     let code = valid!(HealthCheckStatusCode::new("2??"));
     let statuses = [code; 21];
     assert_eq!(
-        valid!(HttpHealthCheck::try_new(None, Some(path))).with_status_codes(&statuses),
+        valid!(HttpHealthCheck::try_new(None, path)).with_status_codes(&statuses),
         Err(LoadBalancerRequestError::TooManyItems)
     );
 }
@@ -379,16 +371,9 @@ fn load_balancers_public_server_ip_rejects_private_and_special_addresses() {
 }
 
 #[test]
-fn load_balancers_dns_pointer_requires_explicit_set_or_reset() {
+fn load_balancers_dns_pointer_preserves_explicit_reset() {
     let ip = valid!(LoadBalancerIp::new("2001:db8::1"));
-    assert_eq!(
-        LoadBalancerChangeDnsPtrRequest::try_new(ip, None),
-        Err(LoadBalancerRequestError::MissingDnsPtrIntent)
-    );
-    let reset = valid!(LoadBalancerChangeDnsPtrRequest::try_new(
-        ip,
-        Some(LoadBalancerDnsPtrIntent::Reset)
-    ));
+    let reset = LoadBalancerChangeDnsPtrRequest::new(ip, LoadBalancerDnsPtrIntent::Reset);
     assert_eq!(reset.dns_ptr(), LoadBalancerDnsPtrIntent::Reset);
     assert_eq!(
         LoadBalancerDnsPtr::new("-bad.example"),

@@ -3,7 +3,7 @@ use super::{
     FloatingIpChangeDnsPtrRequest, FloatingIpCreatePlacement, FloatingIpCreateRequest,
     FloatingIpDnsPtr, FloatingIpDnsPtrIntent, FloatingIpEndpoint, FloatingIpHomeLocation,
     FloatingIpId, FloatingIpListRequest, FloatingIpName, FloatingIpProtectionRequest,
-    FloatingIpRequestError, FloatingIpSortField, FloatingIpType,
+    FloatingIpSortField, FloatingIpType,
 };
 use crate::EndpointGroup;
 use crate::actions::ActionId;
@@ -96,37 +96,29 @@ fn storage_ip_floating_ip_query_writes_filters_pagination_and_sorting() {
 
 #[test]
 fn storage_ip_floating_ip_create_selection_is_explicit() {
-    assert_eq!(
-        FloatingIpCreateRequest::try_new(Some(FloatingIpType::Ipv4), None),
-        Err(FloatingIpRequestError::MissingRequiredField)
-    );
     let location = FloatingIpHomeLocation::new("fsn1");
     assert!(
         location.is_ok(),
         "fixture floating IP home location must validate"
     );
     let Ok(location) = location else { return };
-    let request = FloatingIpCreateRequest::try_new(
-        Some(FloatingIpType::Ipv6),
-        Some(FloatingIpCreatePlacement::HomeLocation(location)),
+    let request = FloatingIpCreateRequest::new(
+        FloatingIpType::Ipv6,
+        FloatingIpCreatePlacement::HomeLocation(location),
     );
     assert_eq!(
-        request.map(FloatingIpCreateRequest::placement),
-        Ok(FloatingIpCreatePlacement::HomeLocation(location))
+        request.placement(),
+        FloatingIpCreatePlacement::HomeLocation(location)
     );
 }
 
 #[test]
-fn storage_ip_floating_ip_action_markers_require_required_fields() {
-    assert_eq!(
-        FloatingIpAssignRequest::try_new(None),
-        Err(FloatingIpRequestError::MissingRequiredField)
-    );
+fn storage_ip_floating_ip_action_markers_preserve_required_fields() {
     let server = FloatingIpId::new(42);
     assert!(server.is_some(), "fixture server ID must validate");
     let Some(server) = server else { return };
-    let assign = FloatingIpAssignRequest::try_new(Some(server));
-    assert_eq!(assign.map(FloatingIpAssignRequest::server), Ok(server));
+    let assign = FloatingIpAssignRequest::new(server);
+    assert_eq!(assign.server(), server);
 
     let ip = FloatingIpAddress::new("2001:db8::1");
     assert!(ip.is_ok(), "fixture floating IP address must validate");
@@ -134,19 +126,15 @@ fn storage_ip_floating_ip_action_markers_require_required_fields() {
     let ptr = FloatingIpDnsPtr::new("server.example.com");
     assert!(ptr.is_ok(), "fixture floating IP DNS PTR must validate");
     let Ok(ptr) = ptr else { return };
+    let set = FloatingIpChangeDnsPtrRequest::new(ip, FloatingIpDnsPtrIntent::Set(ptr));
     assert_eq!(
-        FloatingIpChangeDnsPtrRequest::try_new(ip, None),
-        Err(FloatingIpRequestError::MissingDnsPtrIntent)
+        set.dns_ptr(),
+        FloatingIpDnsPtrIntent::Set(ptr)
     );
-    let set = FloatingIpChangeDnsPtrRequest::try_new(ip, Some(FloatingIpDnsPtrIntent::Set(ptr)));
+    let reset = FloatingIpChangeDnsPtrRequest::new(ip, FloatingIpDnsPtrIntent::Reset);
     assert_eq!(
-        set.map(FloatingIpChangeDnsPtrRequest::dns_ptr),
-        Ok(FloatingIpDnsPtrIntent::Set(ptr))
-    );
-    let reset = FloatingIpChangeDnsPtrRequest::try_new(ip, Some(FloatingIpDnsPtrIntent::Reset));
-    assert_eq!(
-        reset.map(FloatingIpChangeDnsPtrRequest::dns_ptr),
-        Ok(FloatingIpDnsPtrIntent::Reset)
+        reset.dns_ptr(),
+        FloatingIpDnsPtrIntent::Reset
     );
     assert!(FloatingIpProtectionRequest::new(true).delete());
 }

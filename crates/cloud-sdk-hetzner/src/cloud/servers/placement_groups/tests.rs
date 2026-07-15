@@ -73,16 +73,8 @@ fn server_adjacent_placement_group_type_and_required_fields_are_validated() {
     );
     let name = PlacementGroupName::new("spread-a");
     if let Ok(name) = name {
-        assert_eq!(
-            PlacementGroupCreateRequest::try_new(Some(name), None),
-            Err(PlacementGroupRequestError::MissingRequiredField)
-        );
-        let request =
-            PlacementGroupCreateRequest::try_new(Some(name), Some(PlacementGroupType::Spread));
-        assert!(request.is_ok());
-        if let Ok(request) = request {
-            assert_eq!(request.endpoint(), PlacementGroupEndpoint::Create);
-            assert_eq!(request.placement_group_type(), PlacementGroupType::Spread);
-        }
+        let request = PlacementGroupCreateRequest::new(name, PlacementGroupType::Spread);
+        assert_eq!(request.endpoint(), PlacementGroupEndpoint::Create);
+        assert_eq!(request.placement_group_type(), PlacementGroupType::Spread);
     }
 }

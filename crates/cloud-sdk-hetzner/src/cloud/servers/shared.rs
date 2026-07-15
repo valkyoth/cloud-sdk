@@ -20,8 +20,10 @@ pub const MAX_USER_DATA_BYTES: usize = 32 * 1024;
 pub enum ServerRequestError {
     /// Endpoint paths failed validation.
     InvalidPath(EndpointPathError),
-    /// Required field was not supplied.
-    MissingRequiredField,
+    /// A change-alias-IPs request supplied no replacement addresses.
+    EmptyAliasIps,
+    /// A server action requiring a request body was requested as bodyless.
+    ActionBodyRequired,
     /// Caller-provided path buffer is too small.
     PathBufferTooSmall,
     /// Caller-provided query buffer is too small.
@@ -46,8 +48,6 @@ pub enum ServerRequestError {
     InvalidTimeRange,
     /// Fields cannot be combined safely.
     MutuallyExclusiveFields,
-    /// DNS pointer action requires explicit set or reset.
-    MissingDnsPtrIntent,
 }
 
 /// Nonzero server-adjacent resource identifier.

@@ -26,8 +26,6 @@ pub const MAX_PRIMARY_NAMESERVERS: usize = 32;
 pub enum ZoneRequestError {
     /// A shared Cloud request operation failed.
     Cloud(CloudRequestError),
-    /// A required request field was omitted.
-    MissingRequiredField,
     /// Zone name validation failed.
     InvalidZoneName,
     /// TTL must be between 60 and 2,147,483,647 seconds.

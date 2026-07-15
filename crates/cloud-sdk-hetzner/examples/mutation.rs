@@ -12,10 +12,7 @@ fn main() {
     let Ok(image) = ServerReference::new("ubuntu-24.04") else {
         return;
     };
-    let Ok(request) = ServerCreateRequest::try_new(Some(name), Some(server_type), Some(image))
-    else {
-        return;
-    };
+    let request = ServerCreateRequest::new(name, server_type, image);
     let endpoint = request.endpoint();
     let mut path = [0_u8; 16];
     let Ok(written) = endpoint.write_path(&mut path) else {

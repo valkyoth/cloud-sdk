@@ -191,13 +191,14 @@ pub struct FirewallCreateRequest<'a> {
 
 impl<'a> FirewallCreateRequest<'a> {
     /// Creates a request with the required unique name.
-    pub fn try_new(name: Option<FirewallName<'a>>) -> Result<Self, FirewallRequestError> {
-        Ok(Self {
-            name: name.ok_or(FirewallRequestError::MissingRequiredField)?,
+    #[must_use]
+    pub const fn new(name: FirewallName<'a>) -> Self {
+        Self {
+            name,
             labels: None,
             rules: None,
             apply_to: None,
-        })
+        }
     }
 
     /// Sets labels.

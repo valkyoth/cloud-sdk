@@ -235,26 +235,21 @@ impl<'a> ServerActionRequest<'a> {
         alias_ips: &'a [TextValue<'a>],
     ) -> Result<Self, ServerRequestError> {
         if alias_ips.is_empty() {
-            return Err(ServerRequestError::MissingRequiredField);
+            return Err(ServerRequestError::EmptyAliasIps);
         }
         Ok(Self::ChangeAliasIps { network, alias_ips })
     }
 
     /// Creates a change-DNS-PTR request requiring explicit set or reset.
-    pub fn change_dns_ptr(
-        ip: TextValue<'a>,
-        dns_ptr: Option<DnsPtrIntent<'a>>,
-    ) -> Result<Self, ServerRequestError> {
-        Ok(Self::ChangeDnsPtr {
-            ip,
-            dns_ptr: dns_ptr.ok_or(ServerRequestError::MissingDnsPtrIntent)?,
-        })
+    #[must_use]
+    pub const fn change_dns_ptr(ip: TextValue<'a>, dns_ptr: DnsPtrIntent<'a>) -> Self {
+        Self::ChangeDnsPtr { ip, dns_ptr }
     }
 
     /// Creates a path-only action request and rejects actions requiring bodies.
     pub fn empty(kind: ServerActionKind) -> Result<Self, ServerRequestError> {
         if kind_requires_body(kind) {
-            return Err(ServerRequestError::MissingRequiredField);
+            return Err(ServerRequestError::ActionBodyRequired);
         }
         Ok(Self::Empty(kind))
     }

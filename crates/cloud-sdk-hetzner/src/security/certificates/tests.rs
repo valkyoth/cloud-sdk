@@ -70,26 +70,19 @@ fn certificate_list_query_writes_filters_pagination_and_sorting() {
 }
 
 #[test]
-fn certificate_create_modes_validate_required_fields_and_redact_debug() {
+fn certificate_create_modes_redact_debug() {
     let name = CertificateName::new("web");
     let certificate = certificate_pem(CERT);
     let private_key = private_key_pem(KEY);
     if let (Ok(name), Ok(certificate), Ok(private_key)) = (name, certificate, private_key) {
         let mode = CertificateCreateMode::uploaded(certificate, private_key);
-        assert!(matches!(
-            CertificateCreateRequest::try_new(None, Some(mode)),
-            Err(SecurityRequestError::MissingRequiredField)
-        ));
-        let request = CertificateCreateRequest::try_new(Some(name), Some(mode));
-        assert!(request.is_ok());
-        if let Ok(request) = request {
-            let mut debug = DebugBuffer::new();
-            assert!(write!(&mut debug, "{request:?}").is_ok());
-            let debug = debug.as_str();
-            assert!(debug.contains("[redacted]"));
-            assert!(!debug.contains("PRIVATE KEY"));
-            assert_eq!(request.mode().certificate_type(), CertificateType::Uploaded);
-        }
+        let request = CertificateCreateRequest::new(name, mode);
+        let mut debug = DebugBuffer::new();
+        assert!(write!(&mut debug, "{request:?}").is_ok());
+        let debug = debug.as_str();
+        assert!(debug.contains("[redacted]"));
+        assert!(!debug.contains("PRIVATE KEY"));
+        assert_eq!(request.mode().certificate_type(), CertificateType::Uploaded);
     }
 }
 

@@ -5,7 +5,7 @@ use super::{
     StorageBoxChangeHomeDirectoryRequest, StorageBoxCreateRequest, StorageBoxEndpoint,
     StorageBoxHomeDirectory, StorageBoxId, StorageBoxListRequest, StorageBoxLocation,
     StorageBoxName, StorageBoxPassword, StorageBoxProtectionRequest, StorageBoxRequestError,
-    StorageBoxResetPasswordRequest, StorageBoxRollbackSnapshotRequest, StorageBoxSnapshotEndpoint,
+    StorageBoxRollbackSnapshotRequest, StorageBoxSnapshotEndpoint,
     StorageBoxSnapshotId, StorageBoxSnapshotListRequest, StorageBoxSnapshotPlanRequest,
     StorageBoxSnapshotRef, StorageBoxSnapshotSortField, StorageBoxSortField,
     StorageBoxSubaccountActionEndpoint, StorageBoxSubaccountCreateRequest,
@@ -205,7 +205,7 @@ fn storage_box_queries_match_source_locked_parameters() {
 }
 
 #[test]
-fn storage_box_body_markers_validate_required_fields_and_secrets() {
+fn storage_box_body_markers_preserve_required_fields_and_secrets() {
     let name = StorageBoxName::new("backup-box");
     assert!(name.is_ok(), "fixture name must validate");
     let Ok(name) = name else { return };
@@ -220,19 +220,9 @@ fn storage_box_body_markers_validate_required_fields_and_secrets() {
     let Ok(password) = password else { return };
     let mut output = [0u8; 16];
 
-    assert!(matches!(
-        StorageBoxCreateRequest::try_new(Some(name), Some(location), Some(box_type), None),
-        Err(StorageBoxRequestError::MissingRequiredField)
-    ));
     assert_eq!(
-        StorageBoxCreateRequest::try_new(
-            Some(name),
-            Some(location),
-            Some(box_type),
-            Some(password)
-        )
-        .map(StorageBoxCreateRequest::endpoint),
-        Ok(StorageBoxEndpoint::Create)
+        StorageBoxCreateRequest::new(name, location, box_type, password).endpoint(),
+        StorageBoxEndpoint::Create
     );
     assert_query(
         password.write_json_string(&mut output),
@@ -246,10 +236,6 @@ fn storage_box_body_markers_validate_required_fields_and_secrets() {
         Err(StorageBoxRequestError::QueryBufferTooSmall)
     );
     assert_eq!(short_output, original);
-    assert!(matches!(
-        StorageBoxResetPasswordRequest::try_new(None),
-        Err(StorageBoxRequestError::MissingRequiredField)
-    ));
     assert!(StorageBoxProtectionRequest::new(true).delete());
 }
 
@@ -279,14 +265,12 @@ fn storage_box_snapshot_and_subaccount_markers_validate_boundaries() {
     assert!(hour.is_some(), "fixture hour validates");
     let Some(hour) = hour else { return };
     assert_eq!(
-        StorageBoxSnapshotPlanRequest::try_new(Some(max_snapshots), Some(minute), Some(hour))
-            .map(StorageBoxSnapshotPlanRequest::max_snapshots),
-        Ok(max_snapshots)
+        StorageBoxSnapshotPlanRequest::new(max_snapshots, minute, hour).max_snapshots(),
+        max_snapshots
     );
     assert_eq!(
-        StorageBoxRollbackSnapshotRequest::try_new(Some(snapshot))
-            .map(StorageBoxRollbackSnapshotRequest::snapshot),
-        Ok(snapshot)
+        StorageBoxRollbackSnapshotRequest::new(snapshot).snapshot(),
+        snapshot
     );
 
     assert_eq!(
@@ -312,14 +296,12 @@ fn storage_box_snapshot_and_subaccount_markers_validate_boundaries() {
     assert!(password.is_ok(), "fixture password validates");
     let Ok(password) = password else { return };
     assert_eq!(
-        StorageBoxSubaccountCreateRequest::try_new(id, Some(home), Some(password))
-            .map(StorageBoxSubaccountCreateRequest::endpoint),
-        Ok(StorageBoxSubaccountEndpoint::Create(id))
+        StorageBoxSubaccountCreateRequest::new(id, home, password).endpoint(),
+        StorageBoxSubaccountEndpoint::Create(id)
     );
     assert_eq!(
-        StorageBoxChangeHomeDirectoryRequest::try_new(Some(home))
-            .map(StorageBoxChangeHomeDirectoryRequest::home_directory),
-        Ok(home)
+        StorageBoxChangeHomeDirectoryRequest::new(home).home_directory(),
+        home
     );
 }
 

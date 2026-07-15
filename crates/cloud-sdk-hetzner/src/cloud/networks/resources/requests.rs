@@ -157,18 +157,16 @@ pub struct NetworkCreateRequest<'a> {
 
 impl<'a> NetworkCreateRequest<'a> {
     /// Creates a request with required name and private IPv4 range.
-    pub fn try_new(
-        name: Option<NetworkName<'a>>,
-        ip_range: Option<NetworkIpRange<'a>>,
-    ) -> Result<Self, NetworkRequestError> {
-        Ok(Self {
-            name: name.ok_or(NetworkRequestError::MissingRequiredField)?,
-            ip_range: ip_range.ok_or(NetworkRequestError::MissingRequiredField)?,
+    #[must_use]
+    pub const fn new(name: NetworkName<'a>, ip_range: NetworkIpRange<'a>) -> Self {
+        Self {
+            name,
+            ip_range,
             labels: None,
             subnets: None,
             routes: None,
             expose_routes_to_vswitch: false,
-        })
+        }
     }
 
     /// Sets labels.

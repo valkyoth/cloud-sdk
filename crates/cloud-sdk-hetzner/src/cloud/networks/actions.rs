@@ -93,10 +93,9 @@ pub struct NetworkRouteRequest<'a>(NetworkRoute<'a>);
 
 impl<'a> NetworkRouteRequest<'a> {
     /// Creates a request with required route fields.
-    pub fn try_new(route: Option<NetworkRoute<'a>>) -> Result<Self, NetworkRequestError> {
-        Ok(Self(
-            route.ok_or(NetworkRequestError::MissingRequiredField)?,
-        ))
+    #[must_use]
+    pub const fn new(route: NetworkRoute<'a>) -> Self {
+        Self(route)
     }
 
     /// Returns the route.
@@ -112,10 +111,9 @@ pub struct NetworkAddSubnetRequest<'a>(NetworkSubnet<'a>);
 
 impl<'a> NetworkAddSubnetRequest<'a> {
     /// Creates a request with required type and network zone encoded by the subnet type.
-    pub fn try_new(subnet: Option<NetworkSubnet<'a>>) -> Result<Self, NetworkRequestError> {
-        Ok(Self(
-            subnet.ok_or(NetworkRequestError::MissingRequiredField)?,
-        ))
+    #[must_use]
+    pub const fn new(subnet: NetworkSubnet<'a>) -> Self {
+        Self(subnet)
     }
 
     /// Returns the subnet.
@@ -131,10 +129,9 @@ pub struct NetworkDeleteSubnetRequest<'a>(SubnetIpRange<'a>);
 
 impl<'a> NetworkDeleteSubnetRequest<'a> {
     /// Creates a request with the required CIDR.
-    pub fn try_new(ip_range: Option<SubnetIpRange<'a>>) -> Result<Self, NetworkRequestError> {
-        Ok(Self(
-            ip_range.ok_or(NetworkRequestError::MissingRequiredField)?,
-        ))
+    #[must_use]
+    pub const fn new(ip_range: SubnetIpRange<'a>) -> Self {
+        Self(ip_range)
     }
 
     /// Returns the subnet range.
@@ -150,10 +147,9 @@ pub struct NetworkChangeIpRangeRequest<'a>(NetworkIpRange<'a>);
 
 impl<'a> NetworkChangeIpRangeRequest<'a> {
     /// Creates a request with the required private range.
-    pub fn try_new(ip_range: Option<NetworkIpRange<'a>>) -> Result<Self, NetworkRequestError> {
-        Ok(Self(
-            ip_range.ok_or(NetworkRequestError::MissingRequiredField)?,
-        ))
+    #[must_use]
+    pub const fn new(ip_range: NetworkIpRange<'a>) -> Self {
+        Self(ip_range)
     }
 
     /// Returns the target range.

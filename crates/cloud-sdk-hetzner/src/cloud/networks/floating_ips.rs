@@ -215,17 +215,18 @@ pub struct FloatingIpCreateRequest<'a> {
 
 impl<'a> FloatingIpCreateRequest<'a> {
     /// Creates a validated create request with explicit server or home location.
-    pub fn try_new(
-        ip_type: Option<FloatingIpType>,
-        placement: Option<FloatingIpCreatePlacement<'a>>,
-    ) -> Result<Self, FloatingIpRequestError> {
-        Ok(Self {
-            ip_type: ip_type.ok_or(FloatingIpRequestError::MissingRequiredField)?,
-            placement: placement.ok_or(FloatingIpRequestError::MissingRequiredField)?,
+    #[must_use]
+    pub const fn new(
+        ip_type: FloatingIpType,
+        placement: FloatingIpCreatePlacement<'a>,
+    ) -> Self {
+        Self {
+            ip_type,
+            placement,
             name: None,
             description: None,
             labels: None,
-        })
+        }
     }
 
     /// Sets resource name.
@@ -393,10 +394,9 @@ pub struct FloatingIpAssignRequest {
 
 impl FloatingIpAssignRequest {
     /// Creates an assign request.
-    pub fn try_new(server: Option<FloatingIpServerId>) -> Result<Self, FloatingIpRequestError> {
-        Ok(Self {
-            server: server.ok_or(FloatingIpRequestError::MissingRequiredField)?,
-        })
+    #[must_use]
+    pub const fn new(server: FloatingIpServerId) -> Self {
+        Self { server }
     }
 
     /// Returns the server ID.
@@ -415,14 +415,12 @@ pub struct FloatingIpChangeDnsPtrRequest<'a> {
 
 impl<'a> FloatingIpChangeDnsPtrRequest<'a> {
     /// Creates a DNS pointer request requiring explicit set or reset.
-    pub fn try_new(
+    #[must_use]
+    pub const fn new(
         ip: FloatingIpAddress<'a>,
-        dns_ptr: Option<FloatingIpDnsPtrIntent<'a>>,
-    ) -> Result<Self, FloatingIpRequestError> {
-        Ok(Self {
-            ip,
-            dns_ptr: dns_ptr.ok_or(FloatingIpRequestError::MissingDnsPtrIntent)?,
-        })
+        dns_ptr: FloatingIpDnsPtrIntent<'a>,
+    ) -> Self {
+        Self { ip, dns_ptr }
     }
 
     /// Returns the IP address whose pointer changes.

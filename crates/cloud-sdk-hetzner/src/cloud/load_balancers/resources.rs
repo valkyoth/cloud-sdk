@@ -188,14 +188,14 @@ pub struct LoadBalancerCreateRequest<'a> {
 
 impl<'a> LoadBalancerCreateRequest<'a> {
     /// Creates a request with its two required fields.
-    pub fn try_new(
-        name: Option<LoadBalancerName<'a>>,
-        load_balancer_type: Option<LoadBalancerType<'a>>,
-    ) -> Result<Self, LoadBalancerRequestError> {
-        Ok(Self {
-            name: name.ok_or(LoadBalancerRequestError::MissingRequiredField)?,
-            load_balancer_type: load_balancer_type
-                .ok_or(LoadBalancerRequestError::MissingRequiredField)?,
+    #[must_use]
+    pub const fn new(
+        name: LoadBalancerName<'a>,
+        load_balancer_type: LoadBalancerType<'a>,
+    ) -> Self {
+        Self {
+            name,
+            load_balancer_type,
             algorithm: None,
             labels: None,
             public_interface: None,
@@ -203,7 +203,7 @@ impl<'a> LoadBalancerCreateRequest<'a> {
             placement: None,
             services: None,
             targets: None,
-        })
+        }
     }
 
     /// Sets the balancing algorithm.

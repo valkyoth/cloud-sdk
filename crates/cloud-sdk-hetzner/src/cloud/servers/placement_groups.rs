@@ -206,16 +206,16 @@ pub struct PlacementGroupCreateRequest<'a> {
 
 impl<'a> PlacementGroupCreateRequest<'a> {
     /// Creates a validated create request.
-    pub fn try_new(
-        name: Option<PlacementGroupName<'a>>,
-        placement_group_type: Option<PlacementGroupType>,
-    ) -> Result<Self, PlacementGroupRequestError> {
-        Ok(Self {
-            name: name.ok_or(PlacementGroupRequestError::MissingRequiredField)?,
-            placement_group_type: placement_group_type
-                .ok_or(PlacementGroupRequestError::MissingRequiredField)?,
+    #[must_use]
+    pub const fn new(
+        name: PlacementGroupName<'a>,
+        placement_group_type: PlacementGroupType,
+    ) -> Self {
+        Self {
+            name,
+            placement_group_type,
             labels: None,
-        })
+        }
     }
 
     /// Sets labels.

@@ -1,13 +1,10 @@
 //! Storage Box subaccount request body markers.
 
-use crate::cloud::shared::CloudRequestError;
-
 use super::action_bodies::StorageBoxResetPasswordRequest;
 use super::endpoints::StorageBoxSubaccountEndpoint;
 use super::types::{
     StorageBoxHomeDirectory, StorageBoxId, StorageBoxLabels, StorageBoxPassword,
-    StorageBoxRequestError, StorageBoxSubaccountDescription, StorageBoxSubaccountId,
-    StorageBoxSubaccountName,
+    StorageBoxSubaccountDescription, StorageBoxSubaccountId, StorageBoxSubaccountName,
 };
 
 /// Storage Box subaccount access settings request.
@@ -97,20 +94,21 @@ pub struct StorageBoxSubaccountCreateRequest<'a> {
 
 impl<'a> StorageBoxSubaccountCreateRequest<'a> {
     /// Creates a subaccount create request.
-    pub fn try_new(
+    #[must_use]
+    pub const fn new(
         storage_box: StorageBoxId,
-        home_directory: Option<StorageBoxHomeDirectory<'a>>,
-        password: Option<StorageBoxPassword<'a>>,
-    ) -> Result<Self, StorageBoxRequestError> {
-        Ok(Self {
+        home_directory: StorageBoxHomeDirectory<'a>,
+        password: StorageBoxPassword<'a>,
+    ) -> Self {
+        Self {
             storage_box,
-            home_directory: home_directory.ok_or(CloudRequestError::MissingRequiredField)?,
-            password: password.ok_or(CloudRequestError::MissingRequiredField)?,
+            home_directory,
+            password,
             access_settings: None,
             name: None,
             description: None,
             labels: None,
-        })
+        }
     }
 
     /// Sets access settings.
@@ -216,12 +214,9 @@ pub struct StorageBoxChangeHomeDirectoryRequest<'a> {
 
 impl<'a> StorageBoxChangeHomeDirectoryRequest<'a> {
     /// Creates a change-home-directory request.
-    pub fn try_new(
-        home_directory: Option<StorageBoxHomeDirectory<'a>>,
-    ) -> Result<Self, StorageBoxRequestError> {
-        Ok(Self {
-            home_directory: home_directory.ok_or(CloudRequestError::MissingRequiredField)?,
-        })
+    #[must_use]
+    pub const fn new(home_directory: StorageBoxHomeDirectory<'a>) -> Self {
+        Self { home_directory }
     }
 
     /// Returns the home directory marker.

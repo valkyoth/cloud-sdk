@@ -309,19 +309,28 @@ pub struct ServerCreateRequest<'a> {
 
 impl<'a> ServerCreateRequest<'a> {
     /// Creates a validated server create request.
-    pub fn try_new(
-        name: Option<ServerName<'a>>,
-        server_type: Option<ServerReference<'a>>,
-        image: Option<ServerReference<'a>>,
-    ) -> Result<Self, ServerRequestError> {
-        Ok(Self {
-            name: name.ok_or(ServerRequestError::MissingRequiredField)?,
-            server_type: server_type.ok_or(ServerRequestError::MissingRequiredField)?,
-            image: image.ok_or(ServerRequestError::MissingRequiredField)?,
+    ///
+    /// Required inputs cannot be omitted:
+    ///
+    /// ```compile_fail
+    /// use cloud_sdk_hetzner::cloud::servers::ServerCreateRequest;
+    ///
+    /// let _ = ServerCreateRequest::new();
+    /// ```
+    #[must_use]
+    pub const fn new(
+        name: ServerName<'a>,
+        server_type: ServerReference<'a>,
+        image: ServerReference<'a>,
+    ) -> Self {
+        Self {
+            name,
+            server_type,
+            image,
             location: None,
             public_net: None,
             user_data: None,
-        })
+        }
     }
 
     /// Sets the location reference.

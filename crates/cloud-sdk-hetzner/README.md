@@ -171,12 +171,7 @@ let zone = ZoneReference::Name(zone_name);
 let name = RrsetName::new("www")?;
 let values = [Record::new(RecordValue::new("192.0.2.1")?)];
 let records = Records::new(&values)?;
-let request = RrsetCreateRequest::try_new(
-    zone,
-    Some(name),
-    Some(RrsetType::A),
-    Some(records),
-)?;
+let request = RrsetCreateRequest::new(zone, name, RrsetType::A, records);
 
 assert_eq!(request.endpoint().method(), Method::Post);
 let mut path = [0_u8; 64];
@@ -352,7 +347,7 @@ use cloud_sdk_hetzner::security::ssh_keys::{
 # fn main() -> Result<(), cloud_sdk_hetzner::security::ssh_keys::SecurityRequestError> {
 let name = SshKeyName::new("deploy")?;
 let public_key = SshPublicKey::new("ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMockKey")?;
-let request = SshKeyCreateRequest::try_new(Some(name), Some(public_key))?;
+let request = SshKeyCreateRequest::new(name, public_key);
 
 assert_eq!(request.endpoint().method().as_str(), "POST");
 assert_eq!(request.endpoint().write_path(&mut [0u8; 16])?, 9);
@@ -371,7 +366,7 @@ use cloud_sdk_hetzner::cloud::servers::{
 let name = ServerName::new("web-1")?;
 let server_type = ServerReference::new("cpx22")?;
 let image = ServerReference::new("ubuntu-24.04")?;
-let request = ServerCreateRequest::try_new(Some(name), Some(server_type), Some(image))?;
+let request = ServerCreateRequest::new(name, server_type, image);
 
 assert_eq!(request.endpoint().method().as_str(), "POST");
 assert_eq!(request.endpoint().write_path(&mut [0u8; 16])?, 8);
@@ -424,10 +419,7 @@ let ip_range = match NetworkIpRange::new("10.0.0.0/16") {
     Ok(ip_range) => ip_range,
     Err(_) => return,
 };
-let request = match NetworkCreateRequest::try_new(Some(name), Some(ip_range)) {
-    Ok(request) => request,
-    Err(_) => return,
-};
+let request = NetworkCreateRequest::new(name, ip_range);
 
 assert_eq!(request.ip_range().as_str(), "10.0.0.0/16");
 ```
@@ -443,7 +435,7 @@ use cloud_sdk_hetzner::cloud::load_balancers::{
 # fn main() -> Result<(), cloud_sdk_hetzner::cloud::load_balancers::LoadBalancerRequestError> {
 let name = LoadBalancerName::new("public-edge")?;
 let load_balancer_type = LoadBalancerType::new("lb11")?;
-let request = LoadBalancerCreateRequest::try_new(Some(name), Some(load_balancer_type))?
+let request = LoadBalancerCreateRequest::new(name, load_balancer_type)
     .with_algorithm(LoadBalancerAlgorithm::LeastConnections)
     .with_public_interface(true);
 
@@ -469,7 +461,7 @@ use cloud_sdk_hetzner::dns::zones::{
 # fn main() -> Result<(), cloud_sdk_hetzner::dns::zones::ZoneRequestError> {
 let name = ZoneName::new("example.com")?;
 let ttl = ZoneTtl::new(3600)?;
-let request = ZoneCreateRequest::try_new(Some(name), Some(ZoneCreateMode::Primary))?
+let request = ZoneCreateRequest::new(name, ZoneCreateMode::Primary)
     .with_ttl(ttl);
 
 let mut path = [0u8; 16];

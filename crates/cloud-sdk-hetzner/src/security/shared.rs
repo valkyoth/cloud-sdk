@@ -26,8 +26,6 @@ pub enum SecurityRequestError {
     InvalidPath(EndpointPathError),
     /// Labels failed validation.
     InvalidLabel(LabelError),
-    /// Required field was not supplied.
-    MissingRequiredField,
     /// Resource names must not be empty.
     EmptyName,
     /// Resource names are capped by [`MAX_SECURITY_NAME_BYTES`].

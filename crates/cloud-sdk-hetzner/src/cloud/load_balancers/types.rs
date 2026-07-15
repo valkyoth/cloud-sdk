@@ -30,8 +30,6 @@ pub enum LoadBalancerRequestError {
     Cloud(CloudRequestError),
     /// IP or CIDR validation failed.
     Ip(IpValidationError),
-    /// A required request field was omitted.
-    MissingRequiredField,
     /// A bounded string failed its endpoint-specific validation.
     InvalidText,
     /// A port was zero or outside the protocol's admitted range.
@@ -46,8 +44,6 @@ pub enum LoadBalancerRequestError {
     InvalidTimeRange,
     /// An array exceeds its source-locked API limit.
     TooManyItems,
-    /// DNS pointer intent must explicitly set or reset the record.
-    MissingDnsPtrIntent,
 }
 
 impl From<CloudRequestError> for LoadBalancerRequestError {

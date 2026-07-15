@@ -1,7 +1,7 @@
 use super::{
     VolumeActionEndpoint, VolumeAttachRequest, VolumeCreatePlacement, VolumeCreateRequest,
     VolumeEndpoint, VolumeId, VolumeListRequest, VolumeLocation, VolumeName,
-    VolumeProtectionRequest, VolumeRequestError, VolumeResizeRequest, VolumeSizeGb,
+    VolumeProtectionRequest, VolumeResizeRequest, VolumeSizeGb,
     VolumeSortField, VolumeStatus,
 };
 use crate::EndpointGroup;
@@ -114,44 +114,28 @@ fn storage_ip_volume_size_and_placement_are_validated() {
     let location = VolumeLocation::new("fsn1");
     assert!(location.is_ok(), "fixture volume location must validate");
     let Ok(location) = location else { return };
-    assert_eq!(
-        VolumeCreateRequest::try_new(
-            None,
-            Some(name),
-            Some(VolumeCreatePlacement::Location(location))
-        ),
-        Err(VolumeRequestError::MissingRequiredField)
-    );
-    let request = VolumeCreateRequest::try_new(
-        Some(size),
-        Some(name),
-        Some(VolumeCreatePlacement::Location(location)),
+    let request = VolumeCreateRequest::new(
+        size,
+        name,
+        VolumeCreatePlacement::Location(location),
     );
     assert_eq!(
-        request.map(VolumeCreateRequest::placement),
-        Ok(VolumeCreatePlacement::Location(location))
+        request.placement(),
+        VolumeCreatePlacement::Location(location)
     );
 }
 
 #[test]
-fn storage_ip_volume_action_markers_require_required_fields() {
-    assert_eq!(
-        VolumeAttachRequest::try_new(None, false),
-        Err(VolumeRequestError::MissingRequiredField)
-    );
-    assert_eq!(
-        VolumeResizeRequest::try_new(None),
-        Err(VolumeRequestError::MissingRequiredField)
-    );
+fn storage_ip_volume_action_markers_preserve_required_fields() {
     let server = VolumeId::new(42);
     assert!(server.is_some(), "fixture server ID must validate");
     let Some(server) = server else { return };
-    let attach = VolumeAttachRequest::try_new(Some(server), true);
-    assert_eq!(attach.map(VolumeAttachRequest::automount), Ok(true));
+    let attach = VolumeAttachRequest::new(server, true);
+    assert!(attach.automount());
     let size = VolumeSizeGb::new(64);
     assert!(size.is_some(), "fixture resize size must validate");
     let Some(size) = size else { return };
-    let resize = VolumeResizeRequest::try_new(Some(size));
-    assert_eq!(resize.map(VolumeResizeRequest::size), Ok(size));
+    let resize = VolumeResizeRequest::new(size);
+    assert_eq!(resize.size(), size);
     assert!(VolumeProtectionRequest::new(true).delete());
 }

@@ -202,17 +202,15 @@ pub struct ZoneCreateRequest<'a> {
 
 impl<'a> ZoneCreateRequest<'a> {
     /// Creates a request with the two required fields.
-    pub fn try_new(
-        name: Option<ZoneName<'a>>,
-        mode: Option<ZoneCreateMode<'a>>,
-    ) -> Result<Self, ZoneRequestError> {
-        Ok(Self {
-            name: name.ok_or(ZoneRequestError::MissingRequiredField)?,
-            mode: mode.ok_or(ZoneRequestError::MissingRequiredField)?,
+    #[must_use]
+    pub const fn new(name: ZoneName<'a>, mode: ZoneCreateMode<'a>) -> Self {
+        Self {
+            name,
+            mode,
             ttl: None,
             labels: None,
             zonefile: None,
-        })
+        }
     }
 
     /// Sets an explicit default TTL.

@@ -1,13 +1,12 @@
 use super::{
     NetworkCreateRequest, NetworkEndpoint, NetworkId, NetworkLabels, NetworkListRequest,
-    NetworkName, NetworkRequestError, NetworkRoute, NetworkSortField, NetworkSubnet,
+    NetworkName, NetworkRoute, NetworkSortField, NetworkSubnet,
     NetworkSubnetType, NetworkVswitchId, NetworkZone,
 };
 use crate::actions::ActionId;
 use crate::cloud::ip::{NetworkIpRange, RouteDestination, RouteGateway, SubnetIpRange};
 use crate::cloud::networks::actions::{
-    NetworkActionEndpoint, NetworkAddSubnetRequest, NetworkChangeIpRangeRequest,
-    NetworkDeleteSubnetRequest, NetworkRouteRequest,
+    NetworkActionEndpoint, NetworkAddSubnetRequest, NetworkRouteRequest,
 };
 use crate::labels::{LabelKey, LabelSelector, LabelValue};
 use crate::pagination::{Page, PerPage, SortDirection};
@@ -116,45 +115,19 @@ fn networks_firewalls_subnet_and_route_markers_enforce_shape() {
         return;
     };
     let route = NetworkRoute::new(destination, gateway);
-    assert_eq!(
-        NetworkRouteRequest::try_new(Some(route)).map(NetworkRouteRequest::route),
-        Ok(route)
-    );
-    assert_eq!(
-        NetworkAddSubnetRequest::try_new(Some(vswitch)).map(NetworkAddSubnetRequest::subnet),
-        Ok(vswitch)
-    );
+    assert_eq!(NetworkRouteRequest::new(route).route(), route);
+    assert_eq!(NetworkAddSubnetRequest::new(vswitch).subnet(), vswitch);
 }
 
 #[test]
-fn networks_firewalls_network_required_fields_are_explicit() {
+fn networks_firewalls_network_required_fields_are_preserved() {
     let Ok(name) = NetworkName::new("private") else {
         return;
     };
     let Ok(ip_range) = NetworkIpRange::new("10.0.0.0/16") else {
         return;
     };
-    assert_eq!(
-        NetworkCreateRequest::try_new(None, Some(ip_range)),
-        Err(NetworkRequestError::MissingRequiredField)
-    );
-    assert_eq!(
-        NetworkCreateRequest::try_new(Some(name), None),
-        Err(NetworkRequestError::MissingRequiredField)
-    );
-    assert_eq!(
-        NetworkDeleteSubnetRequest::try_new(None),
-        Err(NetworkRequestError::MissingRequiredField)
-    );
-    assert_eq!(
-        NetworkChangeIpRangeRequest::try_new(None),
-        Err(NetworkRequestError::MissingRequiredField)
-    );
-    assert_eq!(
-        NetworkCreateRequest::try_new(Some(name), Some(ip_range))
-            .map(NetworkCreateRequest::ip_range),
-        Ok(ip_range)
-    );
+    assert_eq!(NetworkCreateRequest::new(name, ip_range).ip_range(), ip_range);
 
     let key = LabelKey::new("env");
     let value = LabelValue::new("prod");
@@ -166,7 +139,6 @@ fn networks_firewalls_network_required_fields_are_explicit() {
     let labels = NetworkLabels::new(&entries);
     assert!(labels.is_ok(), "fixture labels must validate");
     let Ok(labels) = labels else { return };
-    let request = NetworkCreateRequest::try_new(Some(name), Some(ip_range))
-        .map(|request| request.with_labels(labels));
-    assert_eq!(request.map(NetworkCreateRequest::labels), Ok(Some(labels)));
+    let request = NetworkCreateRequest::new(name, ip_range).with_labels(labels);
+    assert_eq!(request.labels(), Some(labels));
 }

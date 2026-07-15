@@ -218,15 +218,16 @@ pub struct PrimaryIpCreateRequest<'a> {
 
 impl<'a> PrimaryIpCreateRequest<'a> {
     /// Creates a validated create request without deprecated datacenter fields.
-    pub fn try_new(ip_type: Option<PrimaryIpType>) -> Result<Self, PrimaryIpRequestError> {
-        Ok(Self {
-            ip_type: ip_type.ok_or(PrimaryIpRequestError::MissingRequiredField)?,
+    #[must_use]
+    pub const fn new(ip_type: PrimaryIpType) -> Self {
+        Self {
+            ip_type,
             name: None,
             assignee_id: None,
             auto_delete: false,
             location: None,
             labels: None,
-        })
+        }
     }
 
     /// Sets a resource name.
@@ -399,12 +400,9 @@ pub struct PrimaryIpAssignRequest {
 
 impl PrimaryIpAssignRequest {
     /// Creates an assign request.
-    pub fn try_new(
-        assignee_id: Option<PrimaryIpAssigneeId>,
-    ) -> Result<Self, PrimaryIpRequestError> {
-        Ok(Self {
-            assignee_id: assignee_id.ok_or(PrimaryIpRequestError::MissingRequiredField)?,
-        })
+    #[must_use]
+    pub const fn new(assignee_id: PrimaryIpAssigneeId) -> Self {
+        Self { assignee_id }
     }
 
     /// Returns the assignee ID.
@@ -423,14 +421,12 @@ pub struct PrimaryIpChangeDnsPtrRequest<'a> {
 
 impl<'a> PrimaryIpChangeDnsPtrRequest<'a> {
     /// Creates a DNS pointer request requiring explicit set or reset.
-    pub fn try_new(
+    #[must_use]
+    pub const fn new(
         ip: PrimaryIpAddress<'a>,
-        dns_ptr: Option<PrimaryIpDnsPtrIntent<'a>>,
-    ) -> Result<Self, PrimaryIpRequestError> {
-        Ok(Self {
-            ip,
-            dns_ptr: dns_ptr.ok_or(PrimaryIpRequestError::MissingDnsPtrIntent)?,
-        })
+        dns_ptr: PrimaryIpDnsPtrIntent<'a>,
+    ) -> Self {
+        Self { ip, dns_ptr }
     }
 
     /// Returns the explicit DNS pointer intent.

@@ -70,14 +70,9 @@ fn server_create_validates_required_fields_and_mutual_exclusions() {
     let server_type = ServerReference::new("cpx22");
     let image = ServerReference::new("ubuntu-24.04");
     if let (Ok(name), Ok(server_type), Ok(image)) = (name, server_type, image) {
-        assert_eq!(
-            ServerCreateRequest::try_new(None, Some(server_type), Some(image)),
-            Err(ServerRequestError::MissingRequiredField)
-        );
-        let request = ServerCreateRequest::try_new(Some(name), Some(server_type), Some(image));
-        assert!(request.is_ok());
+        let request = ServerCreateRequest::new(name, server_type, image);
         let user_data = UserData::new("#cloud-config\n");
-        if let (Ok(request), Ok(user_data)) = (request, user_data) {
+        if let Ok(user_data) = user_data {
             let request = request.with_user_data(user_data);
             assert_eq!(request.endpoint(), ServerEndpoint::Create);
             let mut debug = DebugBuffer::new();
@@ -335,21 +330,23 @@ fn server_actions_validate_body_requirements_and_dns_ptr_intent() {
     let ip = TextValue::new("2001:db8::1");
     if let Ok(ip) = ip {
         assert_eq!(
-            ServerActionRequest::change_dns_ptr(ip, None),
-            Err(ServerRequestError::MissingDnsPtrIntent)
+            ServerActionRequest::change_dns_ptr(ip, DnsPtrIntent::Reset),
+            ServerActionRequest::ChangeDnsPtr {
+                ip,
+                dns_ptr: DnsPtrIntent::Reset,
+            }
         );
-        assert!(ServerActionRequest::change_dns_ptr(ip, Some(DnsPtrIntent::Reset)).is_ok());
     }
     assert_eq!(
         ServerActionRequest::empty(ServerActionKind::Rebuild),
-        Err(ServerRequestError::MissingRequiredField)
+        Err(ServerRequestError::ActionBodyRequired)
     );
     assert!(ServerActionRequest::empty(ServerActionKind::Poweroff).is_ok());
     let network = ServerResourceId::new(7);
     if let Some(network) = network {
         assert_eq!(
             ServerActionRequest::change_alias_ips(network, &[]),
-            Err(ServerRequestError::MissingRequiredField)
+            Err(ServerRequestError::EmptyAliasIps)
         );
     }
     assert_eq!(ServerImageType::Snapshot, ServerImageType::Snapshot);

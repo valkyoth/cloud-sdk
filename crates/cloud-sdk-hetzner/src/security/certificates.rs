@@ -354,15 +354,13 @@ pub struct CertificateCreateRequest<'a> {
 
 impl<'a> CertificateCreateRequest<'a> {
     /// Creates a validated create request.
-    pub fn try_new(
-        name: Option<CertificateName<'a>>,
-        mode: Option<CertificateCreateMode<'a>>,
-    ) -> Result<Self, SecurityRequestError> {
-        Ok(Self {
-            name: name.ok_or(SecurityRequestError::MissingRequiredField)?,
-            mode: mode.ok_or(SecurityRequestError::MissingRequiredField)?,
+    #[must_use]
+    pub const fn new(name: CertificateName<'a>, mode: CertificateCreateMode<'a>) -> Self {
+        Self {
+            name,
+            mode,
             labels: None,
-        })
+        }
     }
 
     /// Adds validated labels.

@@ -79,12 +79,9 @@ pub struct FirewallResourcesRequest<'a> {
 
 impl<'a> FirewallResourcesRequest<'a> {
     /// Creates a request. An explicitly empty list is retained for exact API intent.
-    pub fn try_new(
-        resources: Option<&'a [FirewallResource<'a>]>,
-    ) -> Result<Self, FirewallRequestError> {
-        Ok(Self {
-            resources: resources.ok_or(FirewallRequestError::MissingRequiredField)?,
-        })
+    #[must_use]
+    pub const fn new(resources: &'a [FirewallResource<'a>]) -> Self {
+        Self { resources }
     }
 
     /// Returns the resources.
@@ -102,10 +99,9 @@ pub struct FirewallSetRulesRequest<'a> {
 
 impl<'a> FirewallSetRulesRequest<'a> {
     /// Creates an explicit replacement request, including an empty ruleset.
-    pub fn try_new(rules: Option<FirewallRuleSet<'a>>) -> Result<Self, FirewallRequestError> {
-        Ok(Self {
-            rules: rules.ok_or(FirewallRequestError::MissingRequiredField)?,
-        })
+    #[must_use]
+    pub const fn new(rules: FirewallRuleSet<'a>) -> Self {
+        Self { rules }
     }
 
     /// Returns the replacement rules.

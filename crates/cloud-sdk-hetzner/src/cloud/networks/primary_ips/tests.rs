@@ -2,7 +2,7 @@ use super::{
     PrimaryIpActionEndpoint, PrimaryIpAddress, PrimaryIpAssignRequest,
     PrimaryIpChangeDnsPtrRequest, PrimaryIpCreateRequest, PrimaryIpDnsPtr, PrimaryIpDnsPtrIntent,
     PrimaryIpEndpoint, PrimaryIpId, PrimaryIpListRequest, PrimaryIpProtectionRequest,
-    PrimaryIpRequestError, PrimaryIpSortField, PrimaryIpType,
+    PrimaryIpSortField, PrimaryIpType,
 };
 use crate::EndpointGroup;
 use crate::actions::ActionId;
@@ -86,48 +86,30 @@ fn server_adjacent_primary_ip_query_writes_filters_pagination_and_sorting() {
 
 #[test]
 fn server_adjacent_primary_ip_assignment_and_dns_ptr_intent_are_explicit() {
-    assert_eq!(
-        PrimaryIpAssignRequest::try_new(None),
-        Err(PrimaryIpRequestError::MissingRequiredField)
-    );
     if let Some(server_id) = PrimaryIpId::new(42) {
-        let assign = PrimaryIpAssignRequest::try_new(Some(server_id));
-        assert_eq!(
-            assign.map(PrimaryIpAssignRequest::assignee_id),
-            Ok(server_id)
-        );
+        let assign = PrimaryIpAssignRequest::new(server_id);
+        assert_eq!(assign.assignee_id(), server_id);
     }
 
     let ip = PrimaryIpAddress::new("192.0.2.10");
     let ptr = PrimaryIpDnsPtr::new("server.example.com");
     if let (Ok(ip), Ok(ptr)) = (ip, ptr) {
+        let set = PrimaryIpChangeDnsPtrRequest::new(ip, PrimaryIpDnsPtrIntent::Set(ptr));
         assert_eq!(
-            PrimaryIpChangeDnsPtrRequest::try_new(ip, None),
-            Err(PrimaryIpRequestError::MissingDnsPtrIntent)
+            set.dns_ptr(),
+            PrimaryIpDnsPtrIntent::Set(ptr)
         );
-        let set = PrimaryIpChangeDnsPtrRequest::try_new(ip, Some(PrimaryIpDnsPtrIntent::Set(ptr)));
+        let reset = PrimaryIpChangeDnsPtrRequest::new(ip, PrimaryIpDnsPtrIntent::Reset);
         assert_eq!(
-            set.map(PrimaryIpChangeDnsPtrRequest::dns_ptr),
-            Ok(PrimaryIpDnsPtrIntent::Set(ptr))
-        );
-        let reset = PrimaryIpChangeDnsPtrRequest::try_new(ip, Some(PrimaryIpDnsPtrIntent::Reset));
-        assert_eq!(
-            reset.map(PrimaryIpChangeDnsPtrRequest::dns_ptr),
-            Ok(PrimaryIpDnsPtrIntent::Reset)
+            reset.dns_ptr(),
+            PrimaryIpDnsPtrIntent::Reset
         );
     }
 }
 
 #[test]
 fn server_adjacent_primary_ip_create_excludes_removed_datacenter_field() {
-    assert_eq!(
-        PrimaryIpCreateRequest::try_new(None),
-        Err(PrimaryIpRequestError::MissingRequiredField)
-    );
-    let request = PrimaryIpCreateRequest::try_new(Some(PrimaryIpType::Ipv4));
-    assert_eq!(
-        request.map(PrimaryIpCreateRequest::ip_type),
-        Ok(PrimaryIpType::Ipv4)
-    );
+    let request = PrimaryIpCreateRequest::new(PrimaryIpType::Ipv4);
+    assert_eq!(request.ip_type(), PrimaryIpType::Ipv4);
     assert!(PrimaryIpProtectionRequest::new(true).delete());
 }

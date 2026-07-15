@@ -75,7 +75,7 @@ impl<'a> HttpHealthCheck<'a> {
     /// Creates an HTTP health check. `None` explicitly requests no Host header.
     pub fn try_new(
         domain: Option<&'a str>,
-        path: Option<HealthCheckPath<'a>>,
+        path: HealthCheckPath<'a>,
     ) -> Result<Self, LoadBalancerRequestError> {
         if let Some(domain) = domain
             && (domain.len() > 128
@@ -92,7 +92,7 @@ impl<'a> HttpHealthCheck<'a> {
         }
         Ok(Self {
             domain,
-            path: path.ok_or(LoadBalancerRequestError::MissingRequiredField)?,
+            path,
             response: None,
             status_codes: None,
             tls: false,

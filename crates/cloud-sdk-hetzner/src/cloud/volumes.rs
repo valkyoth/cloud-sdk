@@ -260,18 +260,19 @@ pub struct VolumeCreateRequest<'a> {
 
 impl<'a> VolumeCreateRequest<'a> {
     /// Creates a validated create request with explicit server or location placement.
-    pub fn try_new(
-        size: Option<VolumeSizeGb>,
-        name: Option<VolumeName<'a>>,
-        placement: Option<VolumeCreatePlacement<'a>>,
-    ) -> Result<Self, VolumeRequestError> {
-        Ok(Self {
-            size: size.ok_or(VolumeRequestError::MissingRequiredField)?,
-            name: name.ok_or(VolumeRequestError::MissingRequiredField)?,
-            placement: placement.ok_or(VolumeRequestError::MissingRequiredField)?,
+    #[must_use]
+    pub const fn new(
+        size: VolumeSizeGb,
+        name: VolumeName<'a>,
+        placement: VolumeCreatePlacement<'a>,
+    ) -> Self {
+        Self {
+            size,
+            name,
+            placement,
             format: None,
             labels: None,
-        })
+        }
     }
 
     /// Sets filesystem formatting at creation.
@@ -418,14 +419,9 @@ pub struct VolumeAttachRequest {
 
 impl VolumeAttachRequest {
     /// Creates an attach request.
-    pub fn try_new(
-        server: Option<VolumeServerId>,
-        automount: bool,
-    ) -> Result<Self, VolumeRequestError> {
-        Ok(Self {
-            server: server.ok_or(VolumeRequestError::MissingRequiredField)?,
-            automount,
-        })
+    #[must_use]
+    pub const fn new(server: VolumeServerId, automount: bool) -> Self {
+        Self { server, automount }
     }
 
     /// Returns the server ID.
@@ -449,10 +445,9 @@ pub struct VolumeResizeRequest {
 
 impl VolumeResizeRequest {
     /// Creates a resize request.
-    pub fn try_new(size: Option<VolumeSizeGb>) -> Result<Self, VolumeRequestError> {
-        Ok(Self {
-            size: size.ok_or(VolumeRequestError::MissingRequiredField)?,
-        })
+    #[must_use]
+    pub const fn new(size: VolumeSizeGb) -> Self {
+        Self { size }
     }
 
     /// Returns the target size.

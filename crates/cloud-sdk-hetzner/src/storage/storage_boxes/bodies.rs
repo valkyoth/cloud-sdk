@@ -1,12 +1,9 @@
 //! Storage Box request body markers.
 
-use crate::cloud::shared::CloudRequestError;
-
 use super::endpoints::{StorageBoxEndpoint, StorageBoxSnapshotEndpoint};
 use super::types::{
     StorageBoxId, StorageBoxLabels, StorageBoxLocation, StorageBoxName, StorageBoxPassword,
-    StorageBoxRequestError, StorageBoxSnapshotDescription, StorageBoxSnapshotId, StorageBoxSshKey,
-    StorageBoxTypeRef,
+    StorageBoxSnapshotDescription, StorageBoxSnapshotId, StorageBoxSshKey, StorageBoxTypeRef,
 };
 
 /// Storage Box create request fields.
@@ -24,21 +21,22 @@ pub struct StorageBoxCreateRequest<'a> {
 
 impl<'a> StorageBoxCreateRequest<'a> {
     /// Creates a validated create request.
-    pub fn try_new(
-        name: Option<StorageBoxName<'a>>,
-        location: Option<StorageBoxLocation<'a>>,
-        storage_box_type: Option<StorageBoxTypeRef<'a>>,
-        password: Option<StorageBoxPassword<'a>>,
-    ) -> Result<Self, StorageBoxRequestError> {
-        Ok(Self {
-            name: name.ok_or(CloudRequestError::MissingRequiredField)?,
-            location: location.ok_or(CloudRequestError::MissingRequiredField)?,
-            storage_box_type: storage_box_type.ok_or(CloudRequestError::MissingRequiredField)?,
-            password: password.ok_or(CloudRequestError::MissingRequiredField)?,
+    #[must_use]
+    pub const fn new(
+        name: StorageBoxName<'a>,
+        location: StorageBoxLocation<'a>,
+        storage_box_type: StorageBoxTypeRef<'a>,
+        password: StorageBoxPassword<'a>,
+    ) -> Self {
+        Self {
+            name,
+            location,
+            storage_box_type,
+            password,
             labels: None,
             ssh_keys: None,
             access_settings: None,
-        })
+        }
     }
 
     /// Sets labels.

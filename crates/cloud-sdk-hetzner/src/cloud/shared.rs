@@ -17,8 +17,6 @@ pub enum CloudRequestError {
     InvalidPath(EndpointPathError),
     /// Labels failed validation.
     InvalidLabel(LabelError),
-    /// Required field was not supplied.
-    MissingRequiredField,
     /// Caller-provided path buffer is too small.
     PathBufferTooSmall,
     /// Caller-provided query buffer is too small.
@@ -31,8 +29,6 @@ pub enum CloudRequestError {
     InvalidText,
     /// Enum-like API value failed validation.
     InvalidType,
-    /// DNS pointer action requires explicit set or reset.
-    MissingDnsPtrIntent,
 }
 
 /// Nonzero Cloud resource identifier.

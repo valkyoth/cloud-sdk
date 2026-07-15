@@ -314,19 +314,10 @@ fn dns_rrsets_list_query_is_deterministic_and_repeats_types() {
 }
 
 #[test]
-fn dns_rrsets_create_requires_fields_and_preserves_ttl_intent() {
+fn dns_rrsets_create_preserves_ttl_intent() {
     let entries = [Record::new(value("192.0.2.1"))];
     let entries = records(&entries);
-    assert_eq!(
-        RrsetCreateRequest::try_new(zone(), None, Some(RrsetType::A), Some(entries)),
-        Err(RrsetRequestError::MissingRequiredField)
-    );
-    let request = valid!(RrsetCreateRequest::try_new(
-        zone(),
-        Some(name("www")),
-        Some(RrsetType::A),
-        Some(entries)
-    ));
+    let request = RrsetCreateRequest::new(zone(), name("www"), RrsetType::A, entries);
     assert_eq!(request.ttl(), None);
     assert_eq!(
         request.with_ttl(RrsetTtl::InheritZoneDefault).ttl(),

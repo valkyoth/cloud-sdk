@@ -1,12 +1,9 @@
 //! Storage Box action request body markers.
 
-use crate::cloud::shared::CloudRequestError;
-
 use super::bodies::StorageBoxAccessSettingsRequest;
 use super::types::{
     SnapshotPlanDayOfMonth, SnapshotPlanDayOfWeek, SnapshotPlanHour, SnapshotPlanMaxSnapshots,
-    SnapshotPlanMinute, StorageBoxPassword, StorageBoxRequestError, StorageBoxSnapshotRef,
-    StorageBoxTypeRef,
+    SnapshotPlanMinute, StorageBoxPassword, StorageBoxSnapshotRef, StorageBoxTypeRef,
 };
 
 /// Storage Box update-access-settings action request.
@@ -40,12 +37,9 @@ pub struct StorageBoxChangeTypeRequest<'a> {
 
 impl<'a> StorageBoxChangeTypeRequest<'a> {
     /// Creates a change-type request.
-    pub fn try_new(
-        storage_box_type: Option<StorageBoxTypeRef<'a>>,
-    ) -> Result<Self, StorageBoxRequestError> {
-        Ok(Self {
-            storage_box_type: storage_box_type.ok_or(CloudRequestError::MissingRequiredField)?,
-        })
+    #[must_use]
+    pub const fn new(storage_box_type: StorageBoxTypeRef<'a>) -> Self {
+        Self { storage_box_type }
     }
 
     /// Returns the requested type marker.
@@ -63,12 +57,9 @@ pub struct StorageBoxResetPasswordRequest<'a> {
 
 impl<'a> StorageBoxResetPasswordRequest<'a> {
     /// Creates a reset-password request.
-    pub fn try_new(
-        password: Option<StorageBoxPassword<'a>>,
-    ) -> Result<Self, StorageBoxRequestError> {
-        Ok(Self {
-            password: password.ok_or(CloudRequestError::MissingRequiredField)?,
-        })
+    #[must_use]
+    pub const fn new(password: StorageBoxPassword<'a>) -> Self {
+        Self { password }
     }
 
     /// Returns the redacted password marker.
@@ -86,12 +77,9 @@ pub struct StorageBoxRollbackSnapshotRequest<'a> {
 
 impl<'a> StorageBoxRollbackSnapshotRequest<'a> {
     /// Creates a rollback request.
-    pub fn try_new(
-        snapshot: Option<StorageBoxSnapshotRef<'a>>,
-    ) -> Result<Self, StorageBoxRequestError> {
-        Ok(Self {
-            snapshot: snapshot.ok_or(CloudRequestError::MissingRequiredField)?,
-        })
+    #[must_use]
+    pub const fn new(snapshot: StorageBoxSnapshotRef<'a>) -> Self {
+        Self { snapshot }
     }
 
     /// Returns the snapshot ID-or-name marker.
@@ -113,18 +101,19 @@ pub struct StorageBoxSnapshotPlanRequest {
 
 impl StorageBoxSnapshotPlanRequest {
     /// Creates a snapshot-plan request.
-    pub fn try_new(
-        max_snapshots: Option<SnapshotPlanMaxSnapshots>,
-        minute: Option<SnapshotPlanMinute>,
-        hour: Option<SnapshotPlanHour>,
-    ) -> Result<Self, StorageBoxRequestError> {
-        Ok(Self {
-            max_snapshots: max_snapshots.ok_or(CloudRequestError::MissingRequiredField)?,
-            minute: minute.ok_or(CloudRequestError::MissingRequiredField)?,
-            hour: hour.ok_or(CloudRequestError::MissingRequiredField)?,
+    #[must_use]
+    pub const fn new(
+        max_snapshots: SnapshotPlanMaxSnapshots,
+        minute: SnapshotPlanMinute,
+        hour: SnapshotPlanHour,
+    ) -> Self {
+        Self {
+            max_snapshots,
+            minute,
+            hour,
             day_of_week: None,
             day_of_month: None,
-        })
+        }
     }
 
     /// Sets the optional day of week. `None` means every day.

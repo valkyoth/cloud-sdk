@@ -13,8 +13,8 @@ use crate::security::certificates::{CertificateId, SecurityRequestError};
 
 #[test]
 fn certificate_action_paths_match_source_lock() -> Result<(), SecurityRequestError> {
-    let action_id = ActionId::new(42).ok_or(SecurityRequestError::MissingRequiredField)?;
-    let certificate_id = CertificateId::new(7).ok_or(SecurityRequestError::MissingRequiredField)?;
+    let action_id = ActionId::new(42).ok_or(SecurityRequestError::InvalidNameByte)?;
+    let certificate_id = CertificateId::new(7).ok_or(SecurityRequestError::InvalidNameByte)?;
     let mut output = [0_u8; 64];
 
     let cases = [
@@ -43,7 +43,7 @@ fn certificate_action_paths_match_source_lock() -> Result<(), SecurityRequestErr
 
     let static_path = CertificateActionEndpoint::ListAll
         .static_path()
-        .ok_or(SecurityRequestError::MissingRequiredField)??;
+        .ok_or(SecurityRequestError::InvalidNameByte)??;
     assert_eq!(static_path.as_str(), "/certificates/actions");
     assert!(
         CertificateActionEndpoint::Get(action_id)
@@ -56,16 +56,16 @@ fn certificate_action_paths_match_source_lock() -> Result<(), SecurityRequestErr
 #[test]
 fn global_certificate_action_query_covers_every_filter() -> Result<(), SecurityRequestError> {
     let ids = [
-        ActionId::new(7).ok_or(SecurityRequestError::MissingRequiredField)?,
-        ActionId::new(42).ok_or(SecurityRequestError::MissingRequiredField)?,
+        ActionId::new(7).ok_or(SecurityRequestError::InvalidNameByte)?,
+        ActionId::new(42).ok_or(SecurityRequestError::InvalidNameByte)?,
     ];
     let statuses = [ActionStatus::Running, ActionStatus::Error];
     let sorts = [
         (CertificateActionSortField::Started, SortDirection::Desc),
         (CertificateActionSortField::Id, SortDirection::Asc),
     ];
-    let page = Page::new(2).map_err(|_| SecurityRequestError::MissingRequiredField)?;
-    let per_page = PerPage::new(50).map_err(|_| SecurityRequestError::MissingRequiredField)?;
+    let page = Page::new(2).map_err(|_| SecurityRequestError::InvalidNameByte)?;
+    let per_page = PerPage::new(50).map_err(|_| SecurityRequestError::InvalidNameByte)?;
     let request = CertificateActionListRequest::new()
         .with_action_ids(&ids)?
         .with_statuses(&statuses)?
@@ -88,11 +88,11 @@ fn global_certificate_action_query_covers_every_filter() -> Result<(), SecurityR
 
 #[test]
 fn certificate_local_query_cannot_encode_action_ids() -> Result<(), SecurityRequestError> {
-    let certificate_id = CertificateId::new(7).ok_or(SecurityRequestError::MissingRequiredField)?;
+    let certificate_id = CertificateId::new(7).ok_or(SecurityRequestError::InvalidNameByte)?;
     let statuses = [ActionStatus::Success];
     let sorts = [(CertificateActionSortField::Finished, SortDirection::Desc)];
-    let page = Page::new(3).map_err(|_| SecurityRequestError::MissingRequiredField)?;
-    let per_page = PerPage::new(25).map_err(|_| SecurityRequestError::MissingRequiredField)?;
+    let page = Page::new(3).map_err(|_| SecurityRequestError::InvalidNameByte)?;
+    let per_page = PerPage::new(25).map_err(|_| SecurityRequestError::InvalidNameByte)?;
     let request = CertificateActionListForCertificateRequest::new(certificate_id)
         .with_statuses(&statuses)?
         .with_sorts(&sorts)?
@@ -145,7 +145,7 @@ fn certificate_action_query_encodes_every_sort_and_status_value() -> Result<(), 
 
 #[test]
 fn certificate_action_filters_are_bounded() -> Result<(), SecurityRequestError> {
-    let action_id = ActionId::new(1).ok_or(SecurityRequestError::MissingRequiredField)?;
+    let action_id = ActionId::new(1).ok_or(SecurityRequestError::InvalidNameByte)?;
     let ids = [action_id; MAX_CERTIFICATE_ACTION_IDS + 1];
     assert_eq!(
         CertificateActionListRequest::new().with_action_ids(&ids),
@@ -169,7 +169,7 @@ fn certificate_action_filters_are_bounded() -> Result<(), SecurityRequestError> 
 
 #[test]
 fn certificate_action_paths_and_queries_report_small_buffers() -> Result<(), SecurityRequestError> {
-    let action_id = ActionId::new(42).ok_or(SecurityRequestError::MissingRequiredField)?;
+    let action_id = ActionId::new(42).ok_or(SecurityRequestError::InvalidNameByte)?;
     let ids = [action_id];
     let request = CertificateActionListRequest::new().with_action_ids(&ids)?;
 

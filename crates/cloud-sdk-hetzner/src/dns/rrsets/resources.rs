@@ -185,20 +185,29 @@ pub struct RrsetCreateRequest<'a> {
 
 impl<'a> RrsetCreateRequest<'a> {
     /// Creates a request with all source-required fields.
-    pub fn try_new(
+    ///
+    /// Required inputs cannot be omitted:
+    ///
+    /// ```compile_fail
+    /// use cloud_sdk_hetzner::dns::rrsets::RrsetCreateRequest;
+    ///
+    /// let _ = RrsetCreateRequest::new();
+    /// ```
+    #[must_use]
+    pub const fn new(
         zone: ZoneReference<'a>,
-        name: Option<RrsetName<'a>>,
-        rr_type: Option<RrsetType>,
-        records: Option<Records<'a>>,
-    ) -> Result<Self, RrsetRequestError> {
-        Ok(Self {
+        name: RrsetName<'a>,
+        rr_type: RrsetType,
+        records: Records<'a>,
+    ) -> Self {
+        Self {
             zone,
-            name: name.ok_or(RrsetRequestError::MissingRequiredField)?,
-            rr_type: rr_type.ok_or(RrsetRequestError::MissingRequiredField)?,
-            records: records.ok_or(RrsetRequestError::MissingRequiredField)?,
+            name,
+            rr_type,
+            records,
             ttl: None,
             labels: None,
-        })
+        }
     }
 
     /// Sets explicit TTL or JSON-null inheritance intent.

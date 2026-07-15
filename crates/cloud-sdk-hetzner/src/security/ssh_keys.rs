@@ -240,15 +240,13 @@ pub struct SshKeyCreateRequest<'a> {
 
 impl<'a> SshKeyCreateRequest<'a> {
     /// Creates a validated create request.
-    pub fn try_new(
-        name: Option<SshKeyName<'a>>,
-        public_key: Option<SshPublicKey<'a>>,
-    ) -> Result<Self, SecurityRequestError> {
-        Ok(Self {
-            name: name.ok_or(SecurityRequestError::MissingRequiredField)?,
-            public_key: public_key.ok_or(SecurityRequestError::MissingRequiredField)?,
+    #[must_use]
+    pub const fn new(name: SshKeyName<'a>, public_key: SshPublicKey<'a>) -> Self {
+        Self {
+            name,
+            public_key,
             labels: None,
-        })
+        }
     }
 
     /// Adds validated labels.
