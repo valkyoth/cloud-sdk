@@ -123,6 +123,63 @@ def assert_accepts_operation_mutations_rejected(directory: Path) -> None:
     )
     assert noncanonical_query.returncode == 1, noncanonical_query
     assert "must use crate::prepared::QueryWire" in noncanonical_query.stderr
+    parent_macro = (
+        "macro_rules! permissive { () => { "
+        "fn accepts_operation(self, _operation_key: &str) -> bool { true } "
+        "}; }\npub mod prepared;\n"
+    )
+    body_macro = run(
+        directory,
+        crate_root=parent_macro,
+        bodies=(
+            "impl crate::prepared::BodyWire for Fake { "
+            "fn operation_key(self) -> &'static str { \"write_test\" } "
+            "permissive!(); }"
+        ),
+    )
+    assert_impl_macro_rejected(body_macro)
+    query_macro = run(
+        directory,
+        crate_root=parent_macro,
+        endpoints=(
+            ENDPOINTS
+            + "\nimpl crate::prepared::QueryWire for Fake { permissive!(); }\n"
+        ),
+    )
+    assert_impl_macro_rejected(query_macro)
+    endpoint_macro = run(
+        directory,
+        crate_root=parent_macro,
+        endpoints=(
+            "endpoint_wire!(Real, value => (), (), match value { "
+            'Real::Write => "write_test" }, false, ());\n'
+            "impl crate::prepared::EndpointWire for Fake { permissive!(); }\n"
+        ),
+    )
+    assert_impl_macro_rejected(endpoint_macro)
+    body_include = run(
+        directory,
+        bodies=(
+            "impl crate::prepared::BodyWire for Fake { "
+            "fn operation_key(self) -> &'static str { \"write_test\" } "
+            'include!("permissive.inc"); }'
+        ),
+    )
+    assert_impl_macro_rejected(body_include)
+    query_include = run(
+        directory,
+        endpoints=(
+            ENDPOINTS
+            + '\nimpl crate::prepared::QueryWire for Fake { include!("permissive.inc"); }\n'
+        ),
+    )
+    assert_impl_macro_rejected(query_include)
+
+
+def assert_impl_macro_rejected(result: subprocess.CompletedProcess[str]) -> None:
+    """Require reserved wire implementation macros to fail closed."""
+    assert result.returncode == 1, result
+    assert "macros inside prepared wire implementations" in result.stderr
 
 
 def run(

@@ -106,6 +106,7 @@ fn inspect_items(
             }
             Item::Impl(item_impl) if implements_reserved(item_impl, kind) => {
                 require_unattributed_evidence(&item_impl.attrs)?;
+                reject_impl_item_macros(item_impl)?;
                 if !implements_canonical(item_impl, kind) {
                     return Err(format!(
                         "{} implementations must use crate::prepared::{}",
@@ -119,6 +120,7 @@ fn inspect_items(
                 if kind == RegistryKind::Endpoint && implements_named(item_impl, "QueryWire") =>
             {
                 require_unattributed_evidence(&item_impl.attrs)?;
+                reject_impl_item_macros(item_impl)?;
                 if !implements_canonical_named(item_impl, "QueryWire") {
                     return Err(
                         "QueryWire implementations must use crate::prepared::QueryWire".to_owned(),
@@ -203,6 +205,18 @@ fn reject_conditional(attributes: &[Attribute]) -> Result<(), String> {
 
 fn implements_reserved(item: &ItemImpl, kind: RegistryKind) -> bool {
     implements_named(item, kind.label_wire())
+}
+
+fn reject_impl_item_macros(implementation: &ItemImpl) -> Result<(), String> {
+    if implementation
+        .items
+        .iter()
+        .any(|item| matches!(item, ImplItem::Macro(_)))
+    {
+        Err("macros inside prepared wire implementations are forbidden".to_owned())
+    } else {
+        Ok(())
+    }
 }
 
 fn implements_named(item: &ItemImpl, name: &str) -> bool {
