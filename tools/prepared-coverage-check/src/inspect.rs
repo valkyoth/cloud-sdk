@@ -2,11 +2,14 @@
 
 use std::collections::BTreeSet;
 
-use syn::visit::{self, Visit};
-use syn::{Attribute, Expr, ImplItem, Item, ItemImpl, Lit, Path, PathArguments, Stmt, UseTree};
+use syn::{Attribute, Expr, ImplItem, Item, ItemImpl, Lit, Path, PathArguments, UseTree};
 
+use crate::compatibility::accepted_operation_keys;
 use crate::definitions::validate_adapter_definitions;
-use crate::parse::{AcceptedKeys, BodyComponentArgs, BodyWireArgs, EndpointWireArgs};
+use crate::evidence::{
+    operation_expression, require_unattributed_evidence, require_unattributed_expression,
+};
+use crate::parse::{BodyComponentArgs, BodyWireArgs, EndpointWireArgs};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub(crate) enum RegistryKind {
@@ -112,15 +115,32 @@ fn inspect_items(
                 }
                 inspect_implementation(item_impl, kind, keys)?;
             }
+            Item::Impl(item_impl)
+                if kind == RegistryKind::Endpoint && implements_named(item_impl, "QueryWire") =>
+            {
+                require_unattributed_evidence(&item_impl.attrs)?;
+                if !implements_canonical_named(item_impl, "QueryWire") {
+                    return Err(
+                        "QueryWire implementations must use crate::prepared::QueryWire".to_owned(),
+                    );
+                }
+                if let Some(accepted) = accepted_operation_keys(item_impl)? {
+                    for key in accepted {
+                        checked_key(&key)?;
+                    }
+                }
+            }
             Item::Use(item_use) => reject_reserved_use(&item_use.tree, kind)?,
-            Item::Trait(item_trait) if item_trait.ident == kind.label_wire() => {
+            Item::Trait(item_trait)
+                if reserved_trait(kind, item_trait.ident.to_string().as_str()) =>
+            {
                 return Err(format!(
                     "local {} trait definitions are forbidden",
-                    kind.label_wire()
+                    item_trait.ident
                 ));
             }
-            Item::Type(item_type) if item_type.ident == kind.label_wire() => {
-                return Err(format!("local {} aliases are forbidden", kind.label_wire()));
+            Item::Type(item_type) if reserved_trait(kind, item_type.ident.to_string().as_str()) => {
+                return Err(format!("local {} aliases are forbidden", item_type.ident));
             }
             Item::Mod(module) if module.content.is_some() => {
                 return Err("inline modules are forbidden in prepared evidence".to_owned());
@@ -181,25 +201,25 @@ fn reject_conditional(attributes: &[Attribute]) -> Result<(), String> {
     Ok(())
 }
 
-fn require_unattributed_evidence(attributes: &[Attribute]) -> Result<(), String> {
-    if attributes.is_empty() {
-        Ok(())
-    } else {
-        Err("attributes on prepared-operation evidence are forbidden".to_owned())
-    }
+fn implements_reserved(item: &ItemImpl, kind: RegistryKind) -> bool {
+    implements_named(item, kind.label_wire())
 }
 
-fn implements_reserved(item: &ItemImpl, kind: RegistryKind) -> bool {
+fn implements_named(item: &ItemImpl, name: &str) -> bool {
     item.trait_
         .as_ref()
         .and_then(|(_, path, _)| path.segments.last())
-        .is_some_and(|segment| segment.ident == kind.label_wire())
+        .is_some_and(|segment| segment.ident == name)
 }
 
 fn implements_canonical(item: &ItemImpl, kind: RegistryKind) -> bool {
+    implements_canonical_named(item, kind.label_wire())
+}
+
+fn implements_canonical_named(item: &ItemImpl, name: &str) -> bool {
     item.trait_
         .as_ref()
-        .is_some_and(|(_, path, _)| canonical_trait(path, kind.label_wire()))
+        .is_some_and(|(_, path, _)| canonical_trait(path, name))
 }
 
 fn canonical_trait(path: &Path, trait_name: &str) -> bool {
@@ -225,6 +245,10 @@ fn unqualified_adapter_macro(path: &Path, kind: RegistryKind) -> bool {
     }
 }
 
+fn reserved_trait(kind: RegistryKind, name: &str) -> bool {
+    name == kind.label_wire() || kind == RegistryKind::Endpoint && name == "QueryWire"
+}
+
 fn reject_reserved_use(tree: &UseTree, kind: RegistryKind) -> Result<(), String> {
     if use_tree_has_reserved(tree, kind) {
         return Err("prepared adapter imports and aliases are forbidden".to_owned());
@@ -236,17 +260,18 @@ fn use_tree_has_reserved(tree: &UseTree, kind: RegistryKind) -> bool {
     match tree {
         UseTree::Path(path) => {
             reserved_macro(kind, path.ident.to_string().as_str())
-                || path.ident == kind.label_wire()
+                || reserved_trait(kind, path.ident.to_string().as_str())
                 || use_tree_has_reserved(&path.tree, kind)
         }
         UseTree::Name(name) => {
-            reserved_macro(kind, name.ident.to_string().as_str()) || name.ident == kind.label_wire()
+            reserved_macro(kind, name.ident.to_string().as_str())
+                || reserved_trait(kind, name.ident.to_string().as_str())
         }
         UseTree::Rename(rename) => {
             reserved_macro(kind, rename.ident.to_string().as_str())
                 || reserved_macro(kind, rename.rename.to_string().as_str())
-                || rename.ident == kind.label_wire()
-                || rename.rename == kind.label_wire()
+                || reserved_trait(kind, rename.ident.to_string().as_str())
+                || reserved_trait(kind, rename.rename.to_string().as_str())
         }
         UseTree::Group(group) => group
             .items
@@ -277,55 +302,14 @@ fn inspect_implementation(
     )?);
 
     if kind == RegistryKind::Body
-        && let Some(accepted) = implementation.items.iter().find_map(|item| match item {
-            ImplItem::Fn(method) if method.sig.ident == "accepts_operation" => Some(method),
-            _ => None,
-        })
+        && let Some(accepted) = accepted_operation_keys(implementation)?
     {
-        require_unattributed_evidence(&accepted.attrs)?;
-        let expression = operation_expression(&accepted.block)?;
-        let Expr::Macro(expression_macro) = expression else {
-            return Err("accepts_operation must contain one matches! expression".to_owned());
-        };
-        if !expression_macro.mac.path.is_ident("matches") {
-            return Err("accepts_operation must use matches!".to_owned());
-        }
-        let accepted = syn::parse2::<AcceptedKeys>(expression_macro.mac.tokens.clone())
-            .map_err(|error| format!("invalid accepts_operation mapping: {error}"))?;
-        for key in accepted.keys {
+        for key in accepted {
             implementation_keys.insert(checked_key(&key)?);
         }
     }
     keys.extend(implementation_keys);
     Ok(())
-}
-
-fn operation_expression(block: &syn::Block) -> Result<&Expr, String> {
-    let [Stmt::Expr(expression, None)] = block.stmts.as_slice() else {
-        return Err("operation mapping must contain exactly one tail expression".to_owned());
-    };
-    require_unattributed_expression(expression)?;
-    Ok(expression)
-}
-
-struct AttributeDetector {
-    found: bool,
-}
-
-impl<'ast> Visit<'ast> for AttributeDetector {
-    fn visit_attribute(&mut self, _attribute: &'ast Attribute) {
-        self.found = true;
-    }
-}
-
-fn require_unattributed_expression(expression: &Expr) -> Result<(), String> {
-    let mut detector = AttributeDetector { found: false };
-    visit::visit_expr(&mut detector, expression);
-    if detector.found {
-        Err("attributes inside operation evidence are forbidden".to_owned())
-    } else {
-        Ok(())
-    }
 }
 
 fn strict_operation_expression(

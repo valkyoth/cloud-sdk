@@ -10,7 +10,7 @@ use crate::storage::storage_boxes::{
 };
 
 use super::super::{
-    HetznerPreparationError, HetznerPreparedOperation, QueryWire, RequestShape, ResponseProfile,
+    HetznerPreparationError, HetznerPreparedOperation, RequestShape, ResponseProfile,
 };
 
 endpoint_wire!(
@@ -109,7 +109,7 @@ endpoint_wire!(
     }
 );
 
-impl QueryWire for StorageBoxActionListRequest {
+impl crate::prepared::QueryWire for StorageBoxActionListRequest {
     fn write_query(self, output: &mut [u8]) -> Result<usize, HetznerPreparationError> {
         self.write_query(output)
             .map_err(|_| HetznerPreparationError::Query)
@@ -166,7 +166,7 @@ endpoint_wire!(
     CostIntent::NoKnownCost
 );
 
-impl QueryWire for StorageBoxSnapshotListRequest<'_> {
+impl crate::prepared::QueryWire for StorageBoxSnapshotListRequest<'_> {
     fn write_query(self, output: &mut [u8]) -> Result<usize, HetznerPreparationError> {
         self.write_query(output)
             .map_err(|_| HetznerPreparationError::Query)
@@ -204,7 +204,7 @@ endpoint_wire!(
     CostIntent::NoKnownCost
 );
 
-impl QueryWire for StorageBoxSubaccountListRequest<'_> {
+impl crate::prepared::QueryWire for StorageBoxSubaccountListRequest<'_> {
     fn write_query(self, output: &mut [u8]) -> Result<usize, HetznerPreparationError> {
         self.write_query(output)
             .map_err(|_| HetznerPreparationError::Query)

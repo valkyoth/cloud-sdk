@@ -158,7 +158,7 @@ endpoint_wire!(
     CostIntent::NoKnownCost
 );
 
-impl super::super::QueryWire for ZoneActionListRequest {
+impl crate::prepared::QueryWire for ZoneActionListRequest {
     fn write_query(
         self,
         output: &mut [u8],

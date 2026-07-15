@@ -84,7 +84,7 @@ macro_rules! endpoint_wire {
 
 macro_rules! query_wire {
     ($type:ty, $value:ident => $endpoint:expr) => {
-        impl super::QueryWire for $type {
+        impl crate::prepared::QueryWire for $type {
             fn write_query(
                 self,
                 output: &mut [u8],

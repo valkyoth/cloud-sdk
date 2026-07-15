@@ -60,6 +60,13 @@ contains exactly the corresponding regular `name.rs` file. Missing, orphaned,
 duplicate, attributed, redirected, inline, public, and noncanonical module
 declarations fail closed.
 
+Manual `QueryWire` implementations are also restricted to the canonical
+`crate::prepared::QueryWire` path. Any `accepts_operation` override on a manual
+query or body implementation must have the exact
+`fn(self, operation_key: &str) -> bool` signature and one `matches!` expression
+whose scrutinee is that parameter. Literal, member-call, constant, renamed, or
+otherwise substituted scrutinees fail closed.
+
 The checker requires exactly the reviewed module-scope macro definitions in
 the two roots and compares their parsed delimiter and token structure with
 locks under `tools/prepared-coverage-check/locks`. Duplicate, missing,

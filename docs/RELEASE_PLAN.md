@@ -1298,7 +1298,8 @@ Verification:
   definition-replacement, orphan-module, path-redirection, inline-module,
   parent-edge substitution, Cargo-library-target substitution, preceding
   evidence statements, attributed-expression erasure, procedural-attribute
-  erasure, generated-shadow, and duplicate mapping mutations.
+  erasure, operation-scrutinee substitution, manual-query compatibility,
+  generated-shadow, and duplicate mapping mutations.
 - Per-family golden request and insufficient-buffer tests.
 - Mutation-classification and source-locked response-policy tests.
 - `scripts/release_0_30_gate.sh` once added.

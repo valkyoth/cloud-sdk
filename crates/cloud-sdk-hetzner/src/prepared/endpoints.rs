@@ -10,9 +10,7 @@ use crate::cloud::catalog::{
 use crate::request::ApiBaseUrl;
 
 use super::operation::method_metadata;
-use super::{
-    HetznerPreparationError, HetznerPreparedOperation, QueryWire, RequestShape, ResponseProfile,
-};
+use super::{HetznerPreparationError, HetznerPreparedOperation, RequestShape, ResponseProfile};
 
 impl crate::prepared::EndpointWire for ActionEndpoint {
     fn method(self) -> Method {
@@ -51,7 +49,7 @@ impl crate::prepared::EndpointWire for ActionEndpoint {
     }
 }
 
-impl QueryWire for ActionListRequest<'_> {
+impl crate::prepared::QueryWire for ActionListRequest<'_> {
     fn write_query(self, output: &mut [u8]) -> Result<usize, HetznerPreparationError> {
         self.write_query(output)
             .map_err(|_| HetznerPreparationError::Query)
@@ -189,7 +187,7 @@ impl crate::prepared::EndpointWire for CatalogSingletonEndpoint {
     }
 }
 
-impl QueryWire for CatalogListRequest<'_> {
+impl crate::prepared::QueryWire for CatalogListRequest<'_> {
     fn write_query(self, output: &mut [u8]) -> Result<usize, HetznerPreparationError> {
         self.write_query(output)
             .map_err(|_| HetznerPreparationError::Query)
@@ -311,7 +309,7 @@ macro_rules! endpoint_wire {
 
 macro_rules! query_wire {
     ($type:ty, $value:ident => $endpoint:expr) => {
-        impl super::QueryWire for $type {
+        impl crate::prepared::QueryWire for $type {
             fn write_query(
                 self,
                 output: &mut [u8],

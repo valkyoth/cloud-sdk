@@ -75,7 +75,18 @@ pub(crate) struct AcceptedKeys {
 
 impl Parse for AcceptedKeys {
     fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
-        let _: Expr = input.parse()?;
+        let scrutinee: Expr = input.parse()?;
+        let canonical_scrutinee = matches!(
+            &scrutinee,
+            Expr::Path(path)
+                if path.attrs.is_empty()
+                    && path.qself.is_none()
+                    && path.path.leading_colon.is_none()
+                    && path.path.is_ident("operation_key")
+        );
+        if !canonical_scrutinee {
+            return Err(input.error("accepts_operation must match the operation_key parameter"));
+        }
         input.parse::<Token![,]>()?;
         let mut keys = Vec::new();
         keys.push(input.parse()?);

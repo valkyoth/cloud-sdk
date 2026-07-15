@@ -15,6 +15,7 @@ from prepared_coverage_test_support import (
     ENDPOINTS,
     MANIFEST,
     ROOT,
+    assert_accepts_operation_mutations_rejected,
     assert_ambiguous_metadata_rejected,
     run,
 )
@@ -51,11 +52,10 @@ def main() -> None:
         assert missing_library.returncode == 1, missing_library
         assert "library target is missing or ambiguous" in missing_library.stderr
         assert_ambiguous_metadata_rejected(directory)
-
+        assert_accepts_operation_mutations_rejected(directory)
         missing_prepared_edge = run(directory, crate_root="")
         assert missing_prepared_edge.returncode == 1, missing_prepared_edge
         assert "missing canonical mod prepared" in missing_prepared_edge.stderr
-
         conditional_prepared_edge = run(
             directory,
             crate_root="#[cfg(any())]\npub mod prepared;\n",
@@ -492,7 +492,7 @@ def main() -> None:
         assert duplicate.returncode == 1, duplicate
         assert "duplicate body operation" in duplicate.stderr
 
-    print("56 prepared-operation coverage tests passed.")
+    print("62 prepared-operation coverage tests passed.")
 
 
 if __name__ == "__main__":

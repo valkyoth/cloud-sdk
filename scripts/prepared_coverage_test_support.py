@@ -80,6 +80,51 @@ def assert_ambiguous_metadata_rejected(directory: Path) -> None:
         raise AssertionError("ambiguous library metadata was accepted")
 
 
+def assert_accepts_operation_mutations_rejected(directory: Path) -> None:
+    """Reject compatibility methods detached from their canonical parameter."""
+    for scrutinee in ('"write_test"', "self.operation_key()", "OTHER_VALUE"):
+        result = run(
+            directory,
+            bodies=(
+                "impl crate::prepared::BodyWire for Fake { "
+                "fn operation_key(self) -> &'static str { \"write_test\" } "
+                "fn accepts_operation(self, operation_key: &str) -> bool { "
+                f'matches!({scrutinee}, "write_test") }} }}'
+            ),
+        )
+        assert result.returncode == 1, result
+        assert "must match the operation_key parameter" in result.stderr
+    invalid_signature = run(
+        directory,
+        bodies=(
+            "impl crate::prepared::BodyWire for Fake { "
+            "fn operation_key(self) -> &'static str { \"write_test\" } "
+            "fn accepts_operation(self) -> bool { "
+            'matches!(operation_key, "write_test") } }'
+        ),
+    )
+    assert invalid_signature.returncode == 1, invalid_signature
+    assert "must use the canonical signature" in invalid_signature.stderr
+    query_scrutinee = run(
+        directory,
+        endpoints=(
+            ENDPOINTS
+            + "\nimpl crate::prepared::QueryWire for Fake { "
+            + "fn operation_key(self) -> &'static str { \"read_test\" } "
+            + "fn accepts_operation(self, operation_key: &str) -> bool { "
+            + 'matches!(OTHER_VALUE, "read_test") } }'
+        ),
+    )
+    assert query_scrutinee.returncode == 1, query_scrutinee
+    assert "must match the operation_key parameter" in query_scrutinee.stderr
+    noncanonical_query = run(
+        directory,
+        endpoints=ENDPOINTS + "\nimpl QueryWire for Fake {}\n",
+    )
+    assert noncanonical_query.returncode == 1, noncanonical_query
+    assert "must use crate::prepared::QueryWire" in noncanonical_query.stderr
+
+
 def run(
     directory: Path,
     *,

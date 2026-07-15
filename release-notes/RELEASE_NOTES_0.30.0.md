@@ -62,12 +62,15 @@ of new third-party dependencies.
   evidence files receive an exact unconditional `mod name;` declaration and
   regular `name.rs` file pairing. Counted macros, implementations, methods,
   match arms, and operation expressions must be unattributed; evidence methods
-  contain exactly one tail expression. Constants, nested comments, raw strings,
-  file/item `cfg`, `cfg_attr`, Cargo target or parent-edge substitutions,
-  orphaned or redirected modules, procedural erasure, preceding statements,
-  namespaced or generated-shadow adapters, duplicate or modified definitions,
-  inline fake traits, discarded/helper expressions, unknown keys, ambiguous
-  mappings, missing adapters, and deprecated evidence are rejected.
+  contain exactly one tail expression. Manual query and body compatibility
+  overrides must use canonical traits and signatures and must match their real
+  `operation_key` parameter. Constants, nested comments, raw strings, file/item
+  `cfg`, `cfg_attr`, Cargo target or parent-edge substitutions, operation
+  scrutinee substitutions, orphaned or redirected modules, procedural erasure,
+  preceding statements, namespaced or generated-shadow adapters, duplicate or
+  modified definitions, inline fake traits, discarded/helper expressions,
+  unknown keys, ambiguous mappings, missing adapters, and deprecated evidence
+  are rejected.
 - Mutation tests prove those structural checks and malformed duplicate body
   locks fail closed. Cargo target binding, the module/file bijection, and normal
   Rust checks together prove the admitted source participates in the compiled
