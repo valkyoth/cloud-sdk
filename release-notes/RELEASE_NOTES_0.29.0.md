@@ -1,8 +1,9 @@
 # cloud-sdk 0.29.0 Release Notes
 
-Status: implementation stop reached; pentest required before tagging.
+Status: pentest and final retest passed; local release checks and GitHub CI
+remain required before tagging.
 
-Release date: pending
+Release date: 2026-07-15
 
 ## Overview
 
@@ -74,6 +75,15 @@ No retired provider-specific helper crate is present in the publish plan.
 See [`docs/MIGRATION_0.29.0.md`](../docs/MIGRATION_0.29.0.md) for prepared
 operation, response content-type, reqwest, and testkit changes.
 
+## Security Review
+
+The pentest found and remediated residual response bytes outside a smaller
+operation's admitted policy window. Prepared execution now sanitizes the
+complete caller-owned response buffer before endpoint verification and
+capacity admission. The review also added dedicated fuzz coverage for the
+strict response content-type parser. The final retest is green; see the
+[`v0.29.0` pentest report](../security/pentest/v0.29.0.md).
+
 ## Verification
 
 - `cargo fmt --all --check`
@@ -87,8 +97,9 @@ operation, response content-type, reqwest, and testkit changes.
 - `scripts/release_0_29_gate.sh`
 - `scripts/release_crates.py --dry-run --yes --version 0.29.0`
 
-## Stop Gate
+## Release Gate
 
 ```text
-v0.29.0 implementation stop reached. Run pentest for this exact commit.
+v0.29.0 pentest and final retest passed. Tag only after the clean local release
+gate and GitHub CI pass for the final release commit.
 ```
