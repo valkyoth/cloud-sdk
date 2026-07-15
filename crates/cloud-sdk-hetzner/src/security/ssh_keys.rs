@@ -273,6 +273,10 @@ impl<'a> SshKeyCreateRequest<'a> {
     pub const fn public_key(self) -> SshPublicKey<'a> {
         self.public_key
     }
+
+    pub(crate) const fn labels(self) -> Option<SecurityLabels<'a>> {
+        self.labels
+    }
 }
 
 impl core::fmt::Debug for SshKeyCreateRequest<'_> {
@@ -323,6 +327,12 @@ impl<'a> SshKeyUpdateRequest<'a> {
     #[must_use]
     pub const fn endpoint(self) -> SshKeyEndpoint {
         SshKeyEndpoint::Update(self.id)
+    }
+
+    pub(crate) const fn prepared_parts(
+        self,
+    ) -> (Option<SshKeyName<'a>>, Option<SecurityLabels<'a>>) {
+        (self.name, self.labels)
     }
 }
 

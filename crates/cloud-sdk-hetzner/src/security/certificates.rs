@@ -381,6 +381,10 @@ impl<'a> CertificateCreateRequest<'a> {
     pub const fn mode(self) -> CertificateCreateMode<'a> {
         self.mode
     }
+
+    pub(crate) const fn prepared_parts(self) -> (CertificateName<'a>, Option<SecurityLabels<'a>>) {
+        (self.name, self.labels)
+    }
 }
 
 impl core::fmt::Debug for CertificateCreateRequest<'_> {
@@ -431,6 +435,12 @@ impl<'a> CertificateUpdateRequest<'a> {
     #[must_use]
     pub const fn endpoint(self) -> CertificateEndpoint {
         CertificateEndpoint::Update(self.id)
+    }
+
+    pub(crate) const fn prepared_parts(
+        self,
+    ) -> (Option<CertificateName<'a>>, Option<SecurityLabels<'a>>) {
+        (self.name, self.labels)
     }
 }
 
