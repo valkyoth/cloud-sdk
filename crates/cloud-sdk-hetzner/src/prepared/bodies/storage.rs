@@ -63,10 +63,10 @@ impl crate::prepared::BodyWire for StorageBoxResetPasswordRequest<'_> {
     }
 
     fn accepts_operation(self, operation_key: &str) -> bool {
-        matches!(
-            operation_key,
-            "reset_storage_box_password" | "reset_storage_box_subaccount_password"
-        )
+        match operation_key {
+            "reset_storage_box_password" | "reset_storage_box_subaccount_password" => true,
+            _ => false,
+        }
     }
 }
 

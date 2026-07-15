@@ -96,7 +96,10 @@ impl crate::prepared::BodyWire for NetworkRouteRequest<'_> {
     }
 
     fn accepts_operation(self, operation_key: &str) -> bool {
-        matches!(operation_key, "add_network_route" | "delete_network_route")
+        match operation_key {
+            "add_network_route" | "delete_network_route" => true,
+            _ => false,
+        }
     }
 }
 

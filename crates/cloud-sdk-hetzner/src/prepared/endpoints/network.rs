@@ -38,7 +38,10 @@ endpoint_wire!(
         FirewallEndpoint::Update(_) => "update_firewall",
         FirewallEndpoint::Delete(_) => "delete_firewall",
     },
-    matches!(endpoint, FirewallEndpoint::Delete(_)),
+    match endpoint {
+        FirewallEndpoint::Delete(_) => true,
+        _ => false,
+    },
     CostIntent::NoKnownCost
 );
 
@@ -70,10 +73,12 @@ endpoint_wire!(
         FirewallActionEndpoint::RemoveFromResources(_) => "remove_firewall_from_resources",
         FirewallActionEndpoint::SetRules(_) => "set_firewall_rules",
     },
-    matches!(
-        endpoint,
-        FirewallActionEndpoint::RemoveFromResources(_) | FirewallActionEndpoint::SetRules(_)
-    ),
+    match endpoint {
+        FirewallActionEndpoint::RemoveFromResources(_) | FirewallActionEndpoint::SetRules(_) => {
+            true
+        }
+        _ => false,
+    },
     CostIntent::NoKnownCost
 );
 
@@ -98,11 +103,13 @@ endpoint_wire!(
         LoadBalancerEndpoint::Delete(_) => "delete_load_balancer",
         LoadBalancerEndpoint::Metrics(_) => "get_load_balancer_metrics",
     },
-    matches!(endpoint, LoadBalancerEndpoint::Delete(_)),
-    if matches!(endpoint, LoadBalancerEndpoint::Create) {
-        CostIntent::MayIncurCost
-    } else {
-        CostIntent::NoKnownCost
+    match endpoint {
+        LoadBalancerEndpoint::Delete(_) => true,
+        _ => false,
+    },
+    match endpoint {
+        LoadBalancerEndpoint::Create => CostIntent::MayIncurCost,
+        _ => CostIntent::NoKnownCost,
     }
 );
 
@@ -146,18 +153,17 @@ endpoint_wire!(
         LoadBalancerActionEndpoint::RemoveTarget(_) => "remove_load_balancer_target",
         LoadBalancerActionEndpoint::UpdateService(_) => "update_load_balancer_service",
     },
-    matches!(
-        endpoint,
+    match endpoint {
         LoadBalancerActionEndpoint::DeleteService(_)
             | LoadBalancerActionEndpoint::DetachFromNetwork(_)
             | LoadBalancerActionEndpoint::DisablePublicInterface(_)
             | LoadBalancerActionEndpoint::ChangeProtection(_)
-            | LoadBalancerActionEndpoint::RemoveTarget(_)
-    ),
-    if matches!(endpoint, LoadBalancerActionEndpoint::ChangeType(_)) {
-        CostIntent::MayIncurCost
-    } else {
-        CostIntent::NoKnownCost
+            | LoadBalancerActionEndpoint::RemoveTarget(_) => true,
+        _ => false,
+    },
+    match endpoint {
+        LoadBalancerActionEndpoint::ChangeType(_) => CostIntent::MayIncurCost,
+        _ => CostIntent::NoKnownCost,
     }
 );
 
@@ -180,7 +186,10 @@ endpoint_wire!(
         NetworkEndpoint::Update(_) => "update_network",
         NetworkEndpoint::Delete(_) => "delete_network",
     },
-    matches!(endpoint, NetworkEndpoint::Delete(_)),
+    match endpoint {
+        NetworkEndpoint::Delete(_) => true,
+        _ => false,
+    },
     CostIntent::NoKnownCost
 );
 
@@ -215,12 +224,12 @@ endpoint_wire!(
         NetworkActionEndpoint::DeleteRoute(_) => "delete_network_route",
         NetworkActionEndpoint::DeleteSubnet(_) => "delete_network_subnet",
     },
-    matches!(
-        endpoint,
+    match endpoint {
         NetworkActionEndpoint::ChangeProtection(_)
             | NetworkActionEndpoint::DeleteRoute(_)
-            | NetworkActionEndpoint::DeleteSubnet(_)
-    ),
+            | NetworkActionEndpoint::DeleteSubnet(_) => true,
+        _ => false,
+    },
     CostIntent::NoKnownCost
 );
 
@@ -243,11 +252,13 @@ endpoint_wire!(
         FloatingIpEndpoint::Update(_) => "update_floating_ip",
         FloatingIpEndpoint::Delete(_) => "delete_floating_ip",
     },
-    matches!(endpoint, FloatingIpEndpoint::Delete(_)),
-    if matches!(endpoint, FloatingIpEndpoint::Create) {
-        CostIntent::MayIncurCost
-    } else {
-        CostIntent::NoKnownCost
+    match endpoint {
+        FloatingIpEndpoint::Delete(_) => true,
+        _ => false,
+    },
+    match endpoint {
+        FloatingIpEndpoint::Create => CostIntent::MayIncurCost,
+        _ => CostIntent::NoKnownCost,
     }
 );
 
@@ -281,10 +292,12 @@ endpoint_wire!(
         FloatingIpActionEndpoint::ChangeProtection(_) => "change_floating_ip_protection",
         FloatingIpActionEndpoint::Unassign(_) => "unassign_floating_ip",
     },
-    matches!(
-        endpoint,
-        FloatingIpActionEndpoint::ChangeProtection(_) | FloatingIpActionEndpoint::Unassign(_)
-    ),
+    match endpoint {
+        FloatingIpActionEndpoint::ChangeProtection(_) | FloatingIpActionEndpoint::Unassign(_) => {
+            true
+        }
+        _ => false,
+    },
     CostIntent::NoKnownCost
 );
 
@@ -307,11 +320,13 @@ endpoint_wire!(
         PrimaryIpEndpoint::Update(_) => "update_primary_ip",
         PrimaryIpEndpoint::Delete(_) => "delete_primary_ip",
     },
-    matches!(endpoint, PrimaryIpEndpoint::Delete(_)),
-    if matches!(endpoint, PrimaryIpEndpoint::Create) {
-        CostIntent::MayIncurCost
-    } else {
-        CostIntent::NoKnownCost
+    match endpoint {
+        PrimaryIpEndpoint::Delete(_) => true,
+        _ => false,
+    },
+    match endpoint {
+        PrimaryIpEndpoint::Create => CostIntent::MayIncurCost,
+        _ => CostIntent::NoKnownCost,
     }
 );
 
@@ -346,9 +361,11 @@ endpoint_wire!(
         PrimaryIpActionEndpoint::ChangeProtection(_) => "change_primary_ip_protection",
         PrimaryIpActionEndpoint::Unassign(_) => "unassign_primary_ip",
     },
-    matches!(
-        endpoint,
-        PrimaryIpActionEndpoint::ChangeProtection(_) | PrimaryIpActionEndpoint::Unassign(_)
-    ),
+    match endpoint {
+        PrimaryIpActionEndpoint::ChangeProtection(_) | PrimaryIpActionEndpoint::Unassign(_) => {
+            true
+        }
+        _ => false,
+    },
     CostIntent::NoKnownCost
 );

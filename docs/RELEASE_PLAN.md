@@ -1303,9 +1303,10 @@ Verification:
   functions/constants/types, module-item attributes and derives, nested
   implementations and statement macros in functions/constants/wire methods and
   adapter arguments, anonymous-constant implementations in every adapter type
-  and writer path, opaque expression/type/pattern macros, unsafe `matches!`
-  payloads, unparsed endpoint-prepare type lists, generated-shadow, and
-  duplicate mapping mutations.
+  and writer path, opaque expression/type/pattern macros, parent-defined and
+  imported aliases named `matches`, substituted explicit-match scrutinees,
+  unparsed endpoint-prepare type lists, generated-shadow, and duplicate mapping
+  mutations.
 - Per-family golden request and insufficient-buffer tests.
 - Mutation-classification and source-locked response-policy tests.
 - `scripts/release_0_30_gate.sh` once added.

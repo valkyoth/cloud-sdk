@@ -30,11 +30,13 @@ endpoint_wire!(
         ServerEndpoint::Delete(_) => "delete_server",
         ServerEndpoint::Metrics(_) => "get_server_metrics",
     },
-    matches!(endpoint, ServerEndpoint::Delete(_)),
-    if matches!(endpoint, ServerEndpoint::Create) {
-        CostIntent::MayIncurCost
-    } else {
-        CostIntent::NoKnownCost
+    match endpoint {
+        ServerEndpoint::Delete(_) => true,
+        _ => false,
+    },
+    match endpoint {
+        ServerEndpoint::Create => CostIntent::MayIncurCost,
+        _ => CostIntent::NoKnownCost,
     }
 );
 
@@ -90,8 +92,7 @@ endpoint_wire!(
         ServerActionEndpoint::Start(_, ServerActionKind::ResetPassword) => "reset_server_password",
         ServerActionEndpoint::Start(_, ServerActionKind::Shutdown) => "shutdown_server",
     },
-    matches!(
-        endpoint,
+    match endpoint {
         ServerActionEndpoint::Start(
             _,
             ServerActionKind::DetachFromNetwork
@@ -105,20 +106,17 @@ endpoint_wire!(
                 | ServerActionKind::Reset
                 | ServerActionKind::ResetPassword
                 | ServerActionKind::Shutdown
-        )
-    ),
-    if matches!(
-        endpoint,
+        ) => true,
+        _ => false,
+    },
+    match endpoint {
         ServerActionEndpoint::Start(
             _,
             ServerActionKind::ChangeType
                 | ServerActionKind::CreateImage
                 | ServerActionKind::EnableBackup
-        )
-    ) {
-        CostIntent::MayIncurCost
-    } else {
-        CostIntent::NoKnownCost
+        ) => CostIntent::MayIncurCost,
+        _ => CostIntent::NoKnownCost,
     }
 );
 
@@ -129,10 +127,9 @@ endpoint_wire!(
         ImageEndpoint::Update(_) => RequestShape::RequiredJson,
         ImageEndpoint::Get(_) | ImageEndpoint::Delete(_) => RequestShape::None,
     },
-    if matches!(endpoint, ImageEndpoint::Delete(_)) {
-        ResponseProfile::NoContent
-    } else {
-        ResponseProfile::JsonOk
+    match endpoint {
+        ImageEndpoint::Delete(_) => ResponseProfile::NoContent,
+        _ => ResponseProfile::JsonOk,
     },
     match endpoint {
         ImageEndpoint::List => "list_images",
@@ -140,7 +137,10 @@ endpoint_wire!(
         ImageEndpoint::Update(_) => "update_image",
         ImageEndpoint::Delete(_) => "delete_image",
     },
-    matches!(endpoint, ImageEndpoint::Delete(_)),
+    match endpoint {
+        ImageEndpoint::Delete(_) => true,
+        _ => false,
+    },
     CostIntent::NoKnownCost
 );
 
@@ -158,10 +158,9 @@ endpoint_wire!(
         ImageActionEndpoint::Get(_) => RequestShape::None,
         ImageActionEndpoint::ChangeProtection(_) => RequestShape::RequiredJson,
     },
-    if matches!(endpoint, ImageActionEndpoint::ChangeProtection(_)) {
-        ResponseProfile::JsonCreated
-    } else {
-        ResponseProfile::JsonOk
+    match endpoint {
+        ImageActionEndpoint::ChangeProtection(_) => ResponseProfile::JsonCreated,
+        _ => ResponseProfile::JsonOk,
     },
     match endpoint {
         ImageActionEndpoint::ListAll => "list_images_actions",
@@ -169,7 +168,10 @@ endpoint_wire!(
         ImageActionEndpoint::ListForImage(_) => "list_image_actions",
         ImageActionEndpoint::ChangeProtection(_) => "change_image_protection",
     },
-    matches!(endpoint, ImageActionEndpoint::ChangeProtection(_)),
+    match endpoint {
+        ImageActionEndpoint::ChangeProtection(_) => true,
+        _ => false,
+    },
     CostIntent::NoKnownCost
 );
 
@@ -194,7 +196,10 @@ endpoint_wire!(
         PlacementGroupEndpoint::Update(_) => "update_placement_group",
         PlacementGroupEndpoint::Delete(_) => "delete_placement_group",
     },
-    matches!(endpoint, PlacementGroupEndpoint::Delete(_)),
+    match endpoint {
+        PlacementGroupEndpoint::Delete(_) => true,
+        _ => false,
+    },
     CostIntent::NoKnownCost
 );
 
@@ -222,11 +227,13 @@ endpoint_wire!(
         VolumeEndpoint::Update(_) => "update_volume",
         VolumeEndpoint::Delete(_) => "delete_volume",
     },
-    matches!(endpoint, VolumeEndpoint::Delete(_)),
-    if matches!(endpoint, VolumeEndpoint::Create) {
-        CostIntent::MayIncurCost
-    } else {
-        CostIntent::NoKnownCost
+    match endpoint {
+        VolumeEndpoint::Delete(_) => true,
+        _ => false,
+    },
+    match endpoint {
+        VolumeEndpoint::Create => CostIntent::MayIncurCost,
+        _ => CostIntent::NoKnownCost,
     }
 );
 
@@ -261,31 +268,30 @@ endpoint_wire!(
         VolumeActionEndpoint::Detach(_) => "detach_volume",
         VolumeActionEndpoint::Resize(_) => "resize_volume",
     },
-    matches!(
-        endpoint,
-        VolumeActionEndpoint::ChangeProtection(_) | VolumeActionEndpoint::Detach(_)
-    ),
-    if matches!(endpoint, VolumeActionEndpoint::Resize(_)) {
-        CostIntent::MayIncurCost
-    } else {
-        CostIntent::NoKnownCost
+    match endpoint {
+        VolumeActionEndpoint::ChangeProtection(_) | VolumeActionEndpoint::Detach(_) => true,
+        _ => false,
+    },
+    match endpoint {
+        VolumeActionEndpoint::Resize(_) => CostIntent::MayIncurCost,
+        _ => CostIntent::NoKnownCost,
     }
 );
 
 const fn server_action_requires_body(kind: ServerActionKind) -> bool {
-    !matches!(
-        kind,
+    match kind {
         ServerActionKind::DetachIso
-            | ServerActionKind::DisableBackup
-            | ServerActionKind::DisableRescue
-            | ServerActionKind::EnableBackup
-            | ServerActionKind::Poweroff
-            | ServerActionKind::Poweron
-            | ServerActionKind::Reboot
-            | ServerActionKind::RemoveFromPlacementGroup
-            | ServerActionKind::RequestConsole
-            | ServerActionKind::Reset
-            | ServerActionKind::ResetPassword
-            | ServerActionKind::Shutdown
-    )
+        | ServerActionKind::DisableBackup
+        | ServerActionKind::DisableRescue
+        | ServerActionKind::EnableBackup
+        | ServerActionKind::Poweroff
+        | ServerActionKind::Poweron
+        | ServerActionKind::Reboot
+        | ServerActionKind::RemoveFromPlacementGroup
+        | ServerActionKind::RequestConsole
+        | ServerActionKind::Reset
+        | ServerActionKind::ResetPassword
+        | ServerActionKind::Shutdown => false,
+        _ => true,
+    }
 }

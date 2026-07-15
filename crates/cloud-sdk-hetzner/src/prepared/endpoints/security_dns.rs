@@ -36,7 +36,10 @@ endpoint_wire!(
         CertificateEndpoint::Delete(_) => "delete_certificate",
         CertificateEndpoint::Retry(_) => "retry_certificate",
     },
-    matches!(endpoint, CertificateEndpoint::Delete(_)),
+    match endpoint {
+        CertificateEndpoint::Delete(_) => true,
+        _ => false,
+    },
     CostIntent::NoKnownCost
 );
 
@@ -88,7 +91,10 @@ endpoint_wire!(
         SshKeyEndpoint::Update(_) => "update_ssh_key",
         SshKeyEndpoint::Delete(_) => "delete_ssh_key",
     },
-    matches!(endpoint, SshKeyEndpoint::Delete(_)),
+    match endpoint {
+        SshKeyEndpoint::Delete(_) => true,
+        _ => false,
+    },
     CostIntent::NoKnownCost
 );
 
@@ -118,7 +124,10 @@ endpoint_wire!(
         ZoneEndpoint::Delete(_) => "delete_zone",
         ZoneEndpoint::ExportZoneFile(_) => "get_zone_zonefile",
     },
-    matches!(endpoint, ZoneEndpoint::Delete(_)),
+    match endpoint {
+        ZoneEndpoint::Delete(_) => true,
+        _ => false,
+    },
     CostIntent::NoKnownCost
 );
 
@@ -151,10 +160,10 @@ endpoint_wire!(
         ZoneActionEndpoint::ChangeTtl(_) => "change_zone_ttl",
         ZoneActionEndpoint::ImportZoneFile(_) => "import_zone_zonefile",
     },
-    matches!(
-        endpoint,
-        ZoneActionEndpoint::ChangeProtection(_) | ZoneActionEndpoint::ImportZoneFile(_)
-    ),
+    match endpoint {
+        ZoneActionEndpoint::ChangeProtection(_) | ZoneActionEndpoint::ImportZoneFile(_) => true,
+        _ => false,
+    },
     CostIntent::NoKnownCost
 );
 
@@ -172,7 +181,10 @@ impl crate::prepared::QueryWire for ZoneActionListRequest {
     }
 
     fn accepts_operation(self, operation_key: &str) -> bool {
-        matches!(operation_key, "list_zones_actions" | "list_zone_actions")
+        match operation_key {
+            "list_zones_actions" | "list_zone_actions" => true,
+            _ => false,
+        }
     }
 }
 
@@ -206,7 +218,10 @@ endpoint_wire!(
         RrsetEndpoint::Update(_) => "update_zone_rrset",
         RrsetEndpoint::Delete(_) => "delete_zone_rrset",
     },
-    matches!(endpoint, RrsetEndpoint::Delete(_)),
+    match endpoint {
+        RrsetEndpoint::Delete(_) => true,
+        _ => false,
+    },
     CostIntent::NoKnownCost
 );
 
@@ -215,10 +230,9 @@ query_wire!(RrsetListRequest<'_>, request => request.endpoint());
 endpoint_wire!(
     RrsetActionEndpoint<'_>,
     endpoint => RequestShape::RequiredJson,
-    if matches!(endpoint, RrsetActionEndpoint::UpdateRecords(_)) {
-        ResponseProfile::JsonOk
-    } else {
-        ResponseProfile::JsonCreated
+    match endpoint {
+        RrsetActionEndpoint::UpdateRecords(_) => ResponseProfile::JsonOk,
+        _ => ResponseProfile::JsonCreated,
     },
     match endpoint {
         RrsetActionEndpoint::ChangeProtection(_) => "change_zone_rrset_protection",
@@ -228,11 +242,11 @@ endpoint_wire!(
         RrsetActionEndpoint::RemoveRecords(_) => "remove_zone_rrset_records",
         RrsetActionEndpoint::UpdateRecords(_) => "update_zone_rrset_records",
     },
-    matches!(
-        endpoint,
+    match endpoint {
         RrsetActionEndpoint::ChangeProtection(_)
             | RrsetActionEndpoint::SetRecords(_)
-            | RrsetActionEndpoint::RemoveRecords(_)
-    ),
+            | RrsetActionEndpoint::RemoveRecords(_) => true,
+        _ => false,
+    },
     CostIntent::NoKnownCost
 );

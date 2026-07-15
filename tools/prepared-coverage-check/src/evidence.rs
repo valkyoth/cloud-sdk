@@ -3,8 +3,6 @@
 use syn::visit::{self, Visit};
 use syn::{Attribute, Expr, Item, Path, Signature, Stmt, Type};
 
-use crate::parse::MatchesArgs;
-
 pub(crate) fn require_unattributed_evidence(attributes: &[Attribute]) -> Result<(), String> {
     if attributes.is_empty() {
         Ok(())
@@ -107,17 +105,8 @@ impl<'ast> Visit<'ast> for NestedItemDetector {
     }
 
     fn visit_expr_macro(&mut self, expression: &'ast syn::ExprMacro) {
-        if !expression.mac.path.is_ident("matches") {
-            self.found = true;
-            return;
-        }
-        let Ok(arguments) = syn::parse2::<MatchesArgs>(expression.mac.tokens.clone()) else {
-            self.found = true;
-            return;
-        };
-        if matches_arguments_are_unsafe(&arguments) {
-            self.found = true;
-        }
+        let _ = expression;
+        self.found = true;
     }
 
     fn visit_type_macro(&mut self, _ty: &'ast syn::TypeMacro) {
@@ -141,14 +130,4 @@ impl NestedItemDetector {
             Ok(())
         }
     }
-}
-
-fn matches_arguments_are_unsafe(arguments: &MatchesArgs) -> bool {
-    let mut detector = NestedItemDetector { found: false };
-    detector.visit_expr(&arguments.expression);
-    detector.visit_pat(&arguments.pattern);
-    if let Some(guard) = &arguments.guard {
-        detector.visit_expr(guard);
-    }
-    detector.found
 }

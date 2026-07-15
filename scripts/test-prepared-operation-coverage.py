@@ -492,7 +492,7 @@ def main() -> None:
         assert duplicate.returncode == 1, duplicate
         assert "duplicate body operation" in duplicate.stderr
 
-    print("92 prepared-operation coverage tests passed.")
+    print("94 prepared-operation coverage tests passed.")
 
 
 if __name__ == "__main__":

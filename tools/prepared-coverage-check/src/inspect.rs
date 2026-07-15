@@ -158,7 +158,7 @@ fn inspect_items(
                 }
                 if let Some(accepted) = accepted_operation_keys(item_impl)? {
                     for key in accepted {
-                        checked_key(&key)?;
+                        checked_key_text(key)?;
                     }
                 }
             }
@@ -385,7 +385,7 @@ fn inspect_implementation(
         && let Some(accepted) = accepted_operation_keys(implementation)?
     {
         for key in accepted {
-            implementation_keys.insert(checked_key(&key)?);
+            implementation_keys.insert(checked_key_text(key)?);
         }
     }
     keys.extend(implementation_keys);
@@ -457,7 +457,10 @@ fn literal_key(value: &syn::LitStr, allow_empty_sentinel: bool) -> Result<Vec<St
 }
 
 fn checked_key(value: &syn::LitStr) -> Result<String, String> {
-    let key = value.value();
+    checked_key_text(value.value())
+}
+
+fn checked_key_text(key: String) -> Result<String, String> {
     let mut bytes = key.bytes();
     if !bytes.next().is_some_and(|byte| byte.is_ascii_lowercase())
         || !bytes.all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'_')

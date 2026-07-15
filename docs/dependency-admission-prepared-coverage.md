@@ -63,9 +63,10 @@ declarations fail closed.
 Manual `QueryWire` implementations are also restricted to the canonical
 `crate::prepared::QueryWire` path. Any `accepts_operation` override on a manual
 query or body implementation must have the exact
-`fn(self, operation_key: &str) -> bool` signature and one `matches!` expression
-whose scrutinee is that parameter. Literal, member-call, constant, renamed, or
-otherwise substituted scrutinees fail closed.
+`fn(self, operation_key: &str) -> bool` signature and one explicit match whose
+scrutinee is that parameter. The first arm must map one or more string literals
+to `true`, and the final wildcard arm must map to `false`. Literal, member-call,
+constant, renamed, or otherwise substituted scrutinees fail closed.
 
 Reserved endpoint, query, and body trait implementations may contain only
 unattributed methods. Associated-item macros, verbatim or unsupported syntax,
@@ -92,13 +93,17 @@ nonempty, recursively inspected type list. Nested items and statement-position
 macros in functions, constant blocks, wire methods, adapter types, writer
 paths, or adapter expressions fail closed.
 
-Expression, type, and pattern macros are opaque to `syn` and therefore fail
-closed. The sole exception is an unqualified `matches!` invocation, whose
-scrutinee, pattern, and optional guard are parsed with a dedicated grammar and
-recursively inspected under the same policy. Unparsed module items are also
-forbidden. Procedural attributes, derive macros, local implementations, and
-opaque macro expansion therefore cannot hide additional global wire
-implementations outside the inspected syntax.
+Expression, type, and pattern macros are opaque to `syn` and therefore all fail
+closed. Compatibility and policy expressions use explicit Rust matches instead
+of macro expansion. Parent-defined macros, imported aliases, procedural
+attributes, derive macros, and local implementations therefore cannot change or
+hide global wire behavior outside the inspected syntax. Unparsed module items
+are also forbidden.
+
+The provider crate narrowly allows Clippy's `match_like_matches_macro` lint
+because applying that style suggestion would violate this security boundary.
+The syntax-aware release gate, rather than the style lint, remains authoritative
+for every prepared evidence file.
 
 Every module-scope macro invocation is also allowlisted. Endpoint and body
 adapters plus the two reviewed endpoint helper macros are accepted; an

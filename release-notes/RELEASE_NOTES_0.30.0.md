@@ -73,12 +73,15 @@ of new third-party dependencies.
   anonymous-constant implementations in adapter types or writer paths, and
   opaque expression/type/pattern macros are rejected. Every field parsed from
   an adapter invocation is retained and recursively checked, including the
-  strict `impl_endpoint_prepare!` type list. `matches!` has a dedicated parser
-  that recursively checks its scrutinee, pattern, and optional guard. Statement
-  macros, procedural erasure, preceding statements, namespaced or
-  generated-shadow adapters, duplicate or modified definitions, inline fake
-  traits, discarded/helper expressions, unknown keys, ambiguous mappings,
-  missing adapters, and deprecated evidence are also rejected.
+  strict `impl_endpoint_prepare!` type list. All expression macros are rejected,
+  including lexically defined or imported aliases named `matches`; compatibility
+  overrides instead use a strict explicit-match grammar. Statement macros,
+  procedural erasure, preceding statements, namespaced or generated-shadow
+  adapters, duplicate or modified definitions, inline fake traits,
+  discarded/helper expressions, unknown keys, ambiguous mappings, missing
+  adapters, and deprecated evidence are also rejected. The provider crate
+  narrowly allows Clippy's conflicting `match_like_matches_macro` style lint;
+  the security checker enforces the macro-free prepared evidence boundary.
 - Mutation tests prove those structural checks and malformed duplicate body
   locks fail closed. Cargo target binding, the module/file bijection, and normal
   Rust checks together prove the admitted source participates in the compiled

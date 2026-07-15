@@ -34,11 +34,13 @@ endpoint_wire!(
         StorageBoxEndpoint::Delete(_) => "delete_storage_box",
         StorageBoxEndpoint::ListFolders(_) => "list_storage_box_folders",
     },
-    matches!(endpoint, StorageBoxEndpoint::Delete(_)),
-    if matches!(endpoint, StorageBoxEndpoint::Create) {
-        CostIntent::MayIncurCost
-    } else {
-        CostIntent::NoKnownCost
+    match endpoint {
+        StorageBoxEndpoint::Delete(_) => true,
+        _ => false,
+    },
+    match endpoint {
+        StorageBoxEndpoint::Create => CostIntent::MayIncurCost,
+        _ => CostIntent::NoKnownCost,
     }
 );
 
@@ -95,17 +97,16 @@ endpoint_wire!(
         StorageBoxActionEndpoint::RollbackSnapshot(_) => "rollback_storage_box_snapshot",
         StorageBoxActionEndpoint::UpdateAccessSettings(_) => "update_storage_box_access_settings",
     },
-    matches!(
-        endpoint,
+    match endpoint {
         StorageBoxActionEndpoint::ChangeProtection(_)
             | StorageBoxActionEndpoint::DisableSnapshotPlan(_)
             | StorageBoxActionEndpoint::ResetPassword(_)
-            | StorageBoxActionEndpoint::RollbackSnapshot(_)
-    ),
-    if matches!(endpoint, StorageBoxActionEndpoint::ChangeType(_)) {
-        CostIntent::MayIncurCost
-    } else {
-        CostIntent::NoKnownCost
+            | StorageBoxActionEndpoint::RollbackSnapshot(_) => true,
+        _ => false,
+    },
+    match endpoint {
+        StorageBoxActionEndpoint::ChangeType(_) => CostIntent::MayIncurCost,
+        _ => CostIntent::NoKnownCost,
     }
 );
 
@@ -120,10 +121,10 @@ impl crate::prepared::QueryWire for StorageBoxActionListRequest {
     }
 
     fn accepts_operation(self, operation_key: &str) -> bool {
-        matches!(
-            operation_key,
-            "list_storage_boxes_actions" | "list_storage_box_actions"
-        )
+        match operation_key {
+            "list_storage_boxes_actions" | "list_storage_box_actions" => true,
+            _ => false,
+        }
     }
 }
 
@@ -162,7 +163,10 @@ endpoint_wire!(
         StorageBoxSnapshotEndpoint::Update(_, _) => "update_storage_box_snapshot",
         StorageBoxSnapshotEndpoint::Delete(_, _) => "delete_storage_box_snapshot",
     },
-    matches!(endpoint, StorageBoxSnapshotEndpoint::Delete(_, _)),
+    match endpoint {
+        StorageBoxSnapshotEndpoint::Delete(_, _) => true,
+        _ => false,
+    },
     CostIntent::NoKnownCost
 );
 
@@ -200,7 +204,10 @@ endpoint_wire!(
         StorageBoxSubaccountEndpoint::Update(_, _) => "update_storage_box_subaccount",
         StorageBoxSubaccountEndpoint::Delete(_, _) => "delete_storage_box_subaccount",
     },
-    matches!(endpoint, StorageBoxSubaccountEndpoint::Delete(_, _)),
+    match endpoint {
+        StorageBoxSubaccountEndpoint::Delete(_, _) => true,
+        _ => false,
+    },
     CostIntent::NoKnownCost
 );
 
@@ -224,9 +231,9 @@ endpoint_wire!(
         StorageBoxSubaccountActionEndpoint::ResetPassword(_, _) => "reset_storage_box_subaccount_password",
         StorageBoxSubaccountActionEndpoint::UpdateAccessSettings(_, _) => "update_storage_box_subaccount_access_settings",
     },
-    matches!(
-        endpoint,
-        StorageBoxSubaccountActionEndpoint::ResetPassword(_, _)
-    ),
+    match endpoint {
+        StorageBoxSubaccountActionEndpoint::ResetPassword(_, _) => true,
+        _ => false,
+    },
     CostIntent::NoKnownCost
 );

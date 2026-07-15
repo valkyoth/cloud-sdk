@@ -1,5 +1,9 @@
 #![no_std]
 #![doc = include_str!("../README.md")]
+#![allow(
+    clippy::match_like_matches_macro,
+    reason = "prepared evidence forbids expression macros to prevent resolution confusion"
+)]
 
 #[cfg(feature = "std")]
 extern crate std;

@@ -89,7 +89,7 @@ def assert_accepts_operation_mutations_rejected(directory: Path) -> None:
                 "impl crate::prepared::BodyWire for Fake { "
                 "fn operation_key(self) -> &'static str { \"write_test\" } "
                 "fn accepts_operation(self, operation_key: &str) -> bool { "
-                f'matches!({scrutinee}, "write_test") }} }}'
+                f'match {scrutinee} {{ "write_test" => true, _ => false }} }} }}'
             ),
         )
         assert result.returncode == 1, result
@@ -100,7 +100,7 @@ def assert_accepts_operation_mutations_rejected(directory: Path) -> None:
             "impl crate::prepared::BodyWire for Fake { "
             "fn operation_key(self) -> &'static str { \"write_test\" } "
             "fn accepts_operation(self) -> bool { "
-            'matches!(operation_key, "write_test") } }'
+            'match operation_key { "write_test" => true, _ => false } } }'
         ),
     )
     assert invalid_signature.returncode == 1, invalid_signature
@@ -112,11 +112,35 @@ def assert_accepts_operation_mutations_rejected(directory: Path) -> None:
             + "\nimpl crate::prepared::QueryWire for Fake { "
             + "fn operation_key(self) -> &'static str { \"read_test\" } "
             + "fn accepts_operation(self, operation_key: &str) -> bool { "
-            + 'matches!(OTHER_VALUE, "read_test") } }'
+            + 'match OTHER_VALUE { "read_test" => true, _ => false } } }'
         ),
     )
     assert query_scrutinee.returncode == 1, query_scrutinee
     assert "must match the operation_key parameter" in query_scrutinee.stderr
+    shadowed_matches = (
+        "impl crate::prepared::BodyWire for Fake { "
+        "fn operation_key(self) -> &'static str { \"write_test\" } "
+        "fn accepts_operation(self, operation_key: &str) -> bool { "
+        'matches!(operation_key, "write_test") } }'
+    )
+    parent_matches = run(
+        directory,
+        crate_root=(
+            "macro_rules! matches { ($($tokens:tt)*) => { true }; }\n"
+            "pub mod prepared;\n"
+        ),
+        bodies=shadowed_matches,
+    )
+    assert_nested_item_rejected(parent_matches)
+    aliased_matches = run(
+        directory,
+        crate_root=(
+            "#[macro_export] macro_rules! bad { ($($tokens:tt)*) => { true }; }\n"
+            "pub mod prepared;\n"
+        ),
+        bodies="use crate::bad as matches;\n" + shadowed_matches,
+    )
+    assert_nested_item_rejected(aliased_matches)
     noncanonical_query = run(
         directory,
         endpoints=ENDPOINTS + "\nimpl QueryWire for Fake {}\n",
