@@ -31,11 +31,16 @@ pub(crate) fn inspect_source(
     reject_conditional(&file.attrs)?;
     validate_adapter_definitions(&file.items, kind, adapter_definition_root)?;
     let mut keys = Vec::new();
-    inspect_items(&file.items, kind, &mut keys)?;
+    inspect_items(&file.items, kind, adapter_definition_root, &mut keys)?;
     Ok(keys)
 }
 
-fn inspect_items(items: &[Item], kind: RegistryKind, keys: &mut Vec<String>) -> Result<(), String> {
+fn inspect_items(
+    items: &[Item],
+    kind: RegistryKind,
+    adapter_definition_root: bool,
+    keys: &mut Vec<String>,
+) -> Result<(), String> {
     for item in items {
         reject_conditional(item_attrs(item))?;
         match item {
@@ -82,7 +87,16 @@ fn inspect_items(items: &[Item], kind: RegistryKind, keys: &mut Vec<String>) -> 
                                 })?;
                         keys.push(checked_key(&arguments.key)?);
                     }
-                    _ => {}
+                    (RegistryKind::Endpoint, Some("query_wire"))
+                        if item_macro.mac.path.is_ident("query_wire") => {}
+                    (RegistryKind::Endpoint, Some("impl_endpoint_prepare"))
+                        if adapter_definition_root
+                            && item_macro.mac.path.is_ident("impl_endpoint_prepare") => {}
+                    _ => {
+                        return Err(
+                            "unreviewed module-scope macro invocation is forbidden".to_owned()
+                        );
+                    }
                 }
             }
             Item::Impl(item_impl) if implements_reserved(item_impl, kind) => {
@@ -105,10 +119,13 @@ fn inspect_items(items: &[Item], kind: RegistryKind, keys: &mut Vec<String>) -> 
             Item::Type(item_type) if item_type.ident == kind.label_wire() => {
                 return Err(format!("local {} aliases are forbidden", kind.label_wire()));
             }
-            Item::Mod(_) => {
-                // Each legitimate prepared module is inspected from its own source file.
-                // Inline modules cannot provide release evidence.
+            Item::Mod(module) if module.content.is_some() => {
+                return Err("inline modules are forbidden in prepared evidence".to_owned());
             }
+            Item::Mod(_) if !adapter_definition_root => {
+                return Err("nested prepared module declarations are forbidden".to_owned());
+            }
+            Item::Mod(_) => {}
             _ => {}
         }
     }

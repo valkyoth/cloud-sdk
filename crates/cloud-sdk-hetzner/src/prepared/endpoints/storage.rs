@@ -13,20 +13,6 @@ use super::super::{
     HetznerPreparationError, HetznerPreparedOperation, QueryWire, RequestShape, ResponseProfile,
 };
 
-macro_rules! query_component {
-    ($type:ty, $key:literal) => {
-        impl QueryWire for $type {
-            fn write_query(self, output: &mut [u8]) -> Result<usize, HetznerPreparationError> {
-                <$type>::write_query(self, output).map_err(|_| HetznerPreparationError::Query)
-            }
-
-            fn operation_key(self) -> &'static str {
-                $key
-            }
-        }
-    };
-}
-
 endpoint_wire!(
     StorageBoxEndpoint,
     endpoint => match endpoint {
@@ -180,10 +166,16 @@ endpoint_wire!(
     CostIntent::NoKnownCost
 );
 
-query_component!(
-    StorageBoxSnapshotListRequest<'_>,
-    "list_storage_box_snapshots"
-);
+impl QueryWire for StorageBoxSnapshotListRequest<'_> {
+    fn write_query(self, output: &mut [u8]) -> Result<usize, HetznerPreparationError> {
+        self.write_query(output)
+            .map_err(|_| HetznerPreparationError::Query)
+    }
+
+    fn operation_key(self) -> &'static str {
+        "list_storage_box_snapshots"
+    }
+}
 
 endpoint_wire!(
     StorageBoxSubaccountEndpoint,
@@ -212,10 +204,16 @@ endpoint_wire!(
     CostIntent::NoKnownCost
 );
 
-query_component!(
-    StorageBoxSubaccountListRequest<'_>,
-    "list_storage_box_subaccounts"
-);
+impl QueryWire for StorageBoxSubaccountListRequest<'_> {
+    fn write_query(self, output: &mut [u8]) -> Result<usize, HetznerPreparationError> {
+        self.write_query(output)
+            .map_err(|_| HetznerPreparationError::Query)
+    }
+
+    fn operation_key(self) -> &'static str {
+        "list_storage_box_subaccounts"
+    }
+}
 
 endpoint_wire!(
     StorageBoxSubaccountActionEndpoint,

@@ -54,15 +54,18 @@ of new third-party dependencies.
   from Rust items parsed by an isolated, locked `syn` checker. The endpoint
   macro accepts only explicit pattern-to-string-literal mappings. Adapter
   macros must be unqualified top-level items, while manual implementations
-  must use canonical `crate::prepared` trait paths. The three macro definitions
-  are structurally source-locked and must occur exactly once in their reviewed
-  roots. Constants, nested comments, raw strings, file/item `cfg`, `cfg_attr`,
-  namespaced or shadowed adapters, duplicate or modified definitions, inline
-  fake traits, discarded/helper expressions, unknown keys, ambiguous mappings,
-  missing adapters, and deprecated evidence are rejected.
+  must use canonical `crate::prepared` trait paths. All five module-scope macro
+  definitions are structurally source-locked in their reviewed roots, and
+  module-scope invocations are allowlisted. Evidence files must have an exact
+  unconditional `mod name;` declaration and regular `name.rs` file pairing.
+  Constants, nested comments, raw strings, file/item `cfg`, `cfg_attr`, orphaned
+  or redirected modules, namespaced or generated-shadow adapters, duplicate or
+  modified definitions, inline fake traits, discarded/helper expressions,
+  unknown keys, ambiguous mappings, missing adapters, and deprecated evidence
+  are rejected.
 - Mutation tests prove those structural checks and malformed duplicate body
-  locks fail closed; normal Rust checks prove the admitted declarations
-  compile.
+  locks fail closed. The module/file bijection and normal Rust checks together
+  prove the admitted source participates in the compiled provider crate.
 - Golden tests cover exact firewall, load-balancer, DNS, and Console Storage
   requests, destructive/cost metadata, mismatch rejection, and insufficient
   buffer cleanup.

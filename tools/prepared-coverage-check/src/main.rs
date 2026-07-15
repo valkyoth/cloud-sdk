@@ -4,6 +4,7 @@ mod definitions;
 mod inspect;
 mod parse;
 
+use std::collections::{BTreeMap, BTreeSet};
 use std::env;
 use std::ffi::OsStr;
 use std::fs;
@@ -44,31 +45,113 @@ fn required_path(value: Option<std::ffi::OsString>, label: &str) -> Result<PathB
 }
 
 fn source_files(root: &Path, directory: &Path) -> Result<Vec<PathBuf>, String> {
-    if !root.is_file() {
-        return Err(format!("missing Rust source {}", root.display()));
+    require_regular_source(root)?;
+    let root_bytes = fs::read(root)
+        .map_err(|error| format!("cannot read module root {}: {error}", root.display()))?;
+    if root_bytes.len() > MAX_SOURCE_BYTES {
+        return Err("prepared module root exceeds local size limit".to_owned());
     }
+    let root_source = std::str::from_utf8(&root_bytes)
+        .map_err(|error| format!("{} is not UTF-8: {error}", root.display()))?;
+    let root_file = syn::parse_file(root_source)
+        .map_err(|error| format!("cannot parse module root {}: {error}", root.display()))?;
+    let declared = declared_modules(&root_file.items)?;
+
     let entries = fs::read_dir(directory)
         .map_err(|error| format!("cannot read {}: {error}", directory.display()))?;
-    let mut files = Vec::new();
-    files.push(root.to_path_buf());
+    let mut available = BTreeMap::new();
     for entry in entries {
         let entry = entry.map_err(|error| format!("cannot read source entry: {error}"))?;
         let path = entry.path();
-        if path.is_file() && path.extension() == Some(OsStr::new("rs")) {
-            files.push(path);
+        if path.extension() != Some(OsStr::new("rs")) {
+            continue;
+        }
+        require_regular_source(&path)?;
+        let name = path
+            .file_stem()
+            .and_then(OsStr::to_str)
+            .ok_or_else(|| "prepared module filename is not UTF-8".to_owned())?;
+        if available.insert(name.to_owned(), path).is_some() {
+            return Err("duplicate prepared module filename".to_owned());
         }
     }
-    files
-        .get_mut(1..)
-        .ok_or_else(|| "invalid source list".to_owned())?
-        .sort();
-    if files.len() == 1 {
+    let available_names = available.keys().cloned().collect::<BTreeSet<_>>();
+    let missing = declared.difference(&available_names).next();
+    if let Some(name) = missing {
         return Err(format!(
-            "no Rust sources found under {}",
+            "declared prepared module {name} has no source file"
+        ));
+    }
+    let orphan = available_names.difference(&declared).next();
+    if let Some(name) = orphan {
+        return Err(format!("orphan prepared module source: {name}.rs"));
+    }
+    if declared.is_empty() {
+        return Err(format!(
+            "no declared Rust modules found under {}",
             directory.display()
         ));
     }
+    let mut files = Vec::with_capacity(declared.len() + 1);
+    files.push(root.to_path_buf());
+    for name in declared {
+        files.push(
+            available
+                .remove(&name)
+                .ok_or_else(|| "prepared module set changed during validation".to_owned())?,
+        );
+    }
     Ok(files)
+}
+
+fn declared_modules(items: &[syn::Item]) -> Result<BTreeSet<String>, String> {
+    let mut modules = BTreeSet::new();
+    for item in items {
+        let syn::Item::Mod(module) = item else {
+            continue;
+        };
+        if !module.attrs.is_empty() {
+            return Err(format!(
+                "prepared module {} cannot have attributes",
+                module.ident
+            ));
+        }
+        if module.content.is_some() || module.semi.is_none() {
+            return Err(format!(
+                "prepared module {} must be an external module declaration",
+                module.ident
+            ));
+        }
+        if !matches!(module.vis, syn::Visibility::Inherited) {
+            return Err(format!(
+                "prepared module {} must have inherited visibility",
+                module.ident
+            ));
+        }
+        let name = module.ident.to_string();
+        if !name
+            .bytes()
+            .all(|byte| byte.is_ascii_lowercase() || byte == b'_')
+        {
+            return Err("prepared module name is not canonical ASCII".to_owned());
+        }
+        if !modules.insert(name.clone()) {
+            return Err(format!("duplicate prepared module declaration: {name}"));
+        }
+    }
+    Ok(modules)
+}
+
+fn require_regular_source(path: &Path) -> Result<(), String> {
+    let metadata = fs::symlink_metadata(path)
+        .map_err(|error| format!("missing Rust source {}: {error}", path.display()))?;
+    if !metadata.file_type().is_file() {
+        return Err(format!(
+            "prepared Rust source is not a regular file: {}",
+            path.display()
+        ));
+    }
+    Ok(())
 }
 
 fn emit_registry(files: &[PathBuf], kind: RegistryKind) -> Result<(), String> {

@@ -14,7 +14,7 @@ pub(crate) fn validate_adapter_definitions(
     kind: RegistryKind,
     definition_root: bool,
 ) -> Result<(), String> {
-    let definitions = reserved_definitions(items)?;
+    let definitions = macro_definitions(items)?;
     if !definition_root {
         if definitions.is_empty() {
             return Ok(());
@@ -28,7 +28,7 @@ pub(crate) fn validate_adapter_definitions(
     };
     let expected_file = syn::parse_file(expected_source)
         .map_err(|error| format!("invalid built-in adapter definition lock: {error}"))?;
-    let expected = reserved_definitions(&expected_file.items)?;
+    let expected = macro_definitions(&expected_file.items)?;
     if definitions.keys().ne(expected.keys()) {
         return Err(format!(
             "{} root must contain exactly the source-locked adapter definitions",
@@ -46,7 +46,7 @@ pub(crate) fn validate_adapter_definitions(
     Ok(())
 }
 
-fn reserved_definitions(items: &[Item]) -> Result<BTreeMap<String, &ItemMacro>, String> {
+fn macro_definitions(items: &[Item]) -> Result<BTreeMap<String, &ItemMacro>, String> {
     let mut definitions = BTreeMap::new();
     for item in items {
         let Item::Macro(item_macro) = item else {
@@ -58,12 +58,6 @@ fn reserved_definitions(items: &[Item]) -> Result<BTreeMap<String, &ItemMacro>, 
         let Some(name) = item_macro.ident.as_ref().map(ToString::to_string) else {
             continue;
         };
-        if !matches!(
-            name.as_str(),
-            "endpoint_wire" | "body_wire" | "body_component"
-        ) {
-            continue;
-        }
         if !item_macro.attrs.is_empty() {
             return Err(format!("{name} definition attributes are forbidden"));
         }

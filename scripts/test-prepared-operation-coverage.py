@@ -48,6 +48,10 @@ def run(
     bodies: str = BODIES,
     endpoint_definitions: str = ENDPOINT_DEFINITIONS,
     body_definitions: str = BODY_DEFINITIONS,
+    endpoint_modules: str = "mod test;\n",
+    body_modules: str = "mod test;\n",
+    extra_endpoint_files: dict[str, str] | None = None,
+    write_endpoint_module: bool = True,
 ) -> subprocess.CompletedProcess[str]:
     matrix = directory / "matrix.md"
     matrix.write_text(HEADER + row("read_test") + row("write_test"), encoding="utf-8")
@@ -58,13 +62,22 @@ def run(
     body_dir = prepared_dir / "bodies"
     endpoint_dir.mkdir(parents=True, exist_ok=True)
     body_dir.mkdir(parents=True, exist_ok=True)
+    for source_file in endpoint_dir.glob("*.rs"):
+        source_file.unlink()
+    for source_file in body_dir.glob("*.rs"):
+        source_file.unlink()
     (prepared_dir / "endpoints.rs").write_text(
-        endpoint_definitions,
+        endpoint_definitions + endpoint_modules,
         encoding="utf-8",
     )
-    (endpoint_dir / "test.rs").write_text(endpoints, encoding="utf-8")
+    if write_endpoint_module:
+        (endpoint_dir / "test.rs").write_text(endpoints, encoding="utf-8")
+    else:
+        (endpoint_dir / "test.rs").unlink(missing_ok=True)
+    for name, source in (extra_endpoint_files or {}).items():
+        (endpoint_dir / name).write_text(source, encoding="utf-8")
     (prepared_dir / "bodies.rs").write_text(
-        body_definitions,
+        body_definitions + body_modules,
         encoding="utf-8",
     )
     (body_dir / "test.rs").write_text(bodies, encoding="utf-8")
@@ -97,6 +110,39 @@ def main() -> None:
         complete = run(directory)
         assert complete.returncode == 0, complete
         assert "2 endpoints and 1 request bodies" in complete.stdout
+
+        removed_module = run(directory, endpoint_modules="")
+        assert removed_module.returncode == 1, removed_module
+        assert "orphan prepared module source: test.rs" in removed_module.stderr
+
+        orphan_module = run(
+            directory,
+            extra_endpoint_files={"orphan.rs": "const UNUSED: () = ();\n"},
+        )
+        assert orphan_module.returncode == 1, orphan_module
+        assert "orphan prepared module source: orphan.rs" in orphan_module.stderr
+
+        redirected_module = run(
+            directory,
+            endpoint_modules='#[path = "redirected.rs"] mod test;\n',
+        )
+        assert redirected_module.returncode == 1, redirected_module
+        assert "prepared module test cannot have attributes" in redirected_module.stderr
+
+        inline_module = run(
+            directory,
+            endpoint_modules="mod test { const INLINE: () = (); }\n",
+        )
+        assert inline_module.returncode == 1, inline_module
+        assert "must be an external module declaration" in inline_module.stderr
+
+        missing_module_file = run(directory, write_endpoint_module=False)
+        assert missing_module_file.returncode == 1, missing_module_file
+        assert "declared prepared module test has no source file" in missing_module_file.stderr
+
+        duplicate_module = run(directory, endpoint_modules="mod test;\nmod test;\n")
+        assert duplicate_module.returncode == 1, duplicate_module
+        assert "duplicate prepared module declaration: test" in duplicate_module.stderr
 
         missing_endpoint = run(
             directory,
@@ -254,8 +300,6 @@ def main() -> None:
         namespaced_endpoint = run(
             directory,
             endpoints=(
-                "mod decoy { macro_rules! endpoint_wire { ($($tokens:tt)*) => {}; } "
-                "pub(crate) use endpoint_wire; }\n"
                 "decoy::endpoint_wire!(Fake, value => (), (), match value { "
                 'Fake::Read => "read_test" }, false, ());\n'
                 "endpoint_wire!(Real, value => (), (), match value { "
@@ -268,8 +312,6 @@ def main() -> None:
         namespaced_body = run(
             directory,
             bodies=(
-                "mod decoy { macro_rules! body_wire { ($($tokens:tt)*) => {}; } "
-                "pub(crate) use body_wire; }\n"
                 'decoy::body_wire!(Fake, value => (), "write_test", write);'
             ),
         )
@@ -287,7 +329,7 @@ def main() -> None:
             ),
         )
         assert inline_fake_trait.returncode == 1, inline_fake_trait
-        assert "missing endpoint adapters: read_test" in inline_fake_trait.stderr
+        assert "inline modules are forbidden" in inline_fake_trait.stderr
 
         imported_adapter = run(
             directory,
@@ -323,6 +365,18 @@ def main() -> None:
         assert local_adapter.returncode == 1, local_adapter
         assert "macro shadowing is forbidden" in local_adapter.stderr
 
+        generated_adapter = run(
+            directory,
+            endpoints=(
+                "macro_rules! install_decoy { () => { "
+                "macro_rules! endpoint_wire { ($($tokens:tt)*) => {}; } }; }\n"
+                "install_decoy!();\n"
+                + ENDPOINTS
+            ),
+        )
+        assert generated_adapter.returncode == 1, generated_adapter
+        assert "macro shadowing is forbidden" in generated_adapter.stderr
+
         fake_trait = run(
             directory,
             endpoints=(
@@ -341,12 +395,14 @@ def main() -> None:
             endpoint_definitions=ENDPOINT_DEFINITIONS + ENDPOINT_DEFINITIONS,
         )
         assert duplicate_endpoint_definition.returncode == 1, duplicate_endpoint_definition
-        assert "duplicate endpoint_wire definition" in duplicate_endpoint_definition.stderr
+        assert "duplicate impl_endpoint_prepare definition" in duplicate_endpoint_definition.stderr
 
         no_op_endpoint_definition = run(
             directory,
             endpoint_definitions=(
+                "macro_rules! impl_endpoint_prepare { ($($tokens:tt)*) => {}; }\n"
                 "macro_rules! endpoint_wire { ($($tokens:tt)*) => {}; }\n"
+                "macro_rules! query_wire { ($($tokens:tt)*) => {}; }\n"
             ),
         )
         assert no_op_endpoint_definition.returncode == 1, no_op_endpoint_definition
@@ -390,7 +446,7 @@ def main() -> None:
         assert duplicate.returncode == 1, duplicate
         assert "duplicate body operation" in duplicate.stderr
 
-    print("30 prepared-operation coverage tests passed.")
+    print("37 prepared-operation coverage tests passed.")
 
 
 if __name__ == "__main__":
