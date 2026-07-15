@@ -27,6 +27,7 @@ pub mod dns;
 pub mod endpoint;
 pub mod labels;
 pub mod pagination;
+pub mod prepared;
 pub mod query;
 pub mod rate_limit;
 pub mod request;
