@@ -1,3 +1,5 @@
+//! Prepare a billable Hetzner mutation without executing network I/O.
+
 use cloud_sdk::operation::{OperationImpact, PreparationStorage, PrepareOperation};
 use cloud_sdk::transport::StatusCode;
 use cloud_sdk_hetzner::cloud::load_balancers::{
