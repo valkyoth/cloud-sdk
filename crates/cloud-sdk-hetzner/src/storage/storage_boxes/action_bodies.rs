@@ -92,11 +92,11 @@ impl<'a> StorageBoxRollbackSnapshotRequest<'a> {
 /// Storage Box enable-snapshot-plan action request.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct StorageBoxSnapshotPlanRequest {
-    max_snapshots: SnapshotPlanMaxSnapshots,
-    minute: SnapshotPlanMinute,
-    hour: SnapshotPlanHour,
-    day_of_week: Option<SnapshotPlanDayOfWeek>,
-    day_of_month: Option<SnapshotPlanDayOfMonth>,
+    pub(crate) max_snapshots: SnapshotPlanMaxSnapshots,
+    pub(crate) minute: SnapshotPlanMinute,
+    pub(crate) hour: SnapshotPlanHour,
+    pub(crate) day_of_week: Option<SnapshotPlanDayOfWeek>,
+    pub(crate) day_of_month: Option<SnapshotPlanDayOfMonth>,
 }
 
 impl StorageBoxSnapshotPlanRequest {

@@ -10,13 +10,13 @@ use super::types::{
 #[derive(Clone, Copy, Debug)]
 #[allow(dead_code)]
 pub struct StorageBoxCreateRequest<'a> {
-    name: StorageBoxName<'a>,
-    location: StorageBoxLocation<'a>,
-    storage_box_type: StorageBoxTypeRef<'a>,
-    password: StorageBoxPassword<'a>,
-    labels: Option<StorageBoxLabels<'a>>,
-    ssh_keys: Option<&'a [StorageBoxSshKey<'a>]>,
-    access_settings: Option<StorageBoxAccessSettingsRequest>,
+    pub(crate) name: StorageBoxName<'a>,
+    pub(crate) location: StorageBoxLocation<'a>,
+    pub(crate) storage_box_type: StorageBoxTypeRef<'a>,
+    pub(crate) password: StorageBoxPassword<'a>,
+    pub(crate) labels: Option<StorageBoxLabels<'a>>,
+    pub(crate) ssh_keys: Option<&'a [StorageBoxSshKey<'a>]>,
+    pub(crate) access_settings: Option<StorageBoxAccessSettingsRequest>,
 }
 
 impl<'a> StorageBoxCreateRequest<'a> {
@@ -74,8 +74,8 @@ impl<'a> StorageBoxCreateRequest<'a> {
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct StorageBoxUpdateRequest<'a> {
     id: StorageBoxId,
-    name: Option<StorageBoxName<'a>>,
-    labels: Option<StorageBoxLabels<'a>>,
+    pub(crate) name: Option<StorageBoxName<'a>>,
+    pub(crate) labels: Option<StorageBoxLabels<'a>>,
 }
 
 impl<'a> StorageBoxUpdateRequest<'a> {
@@ -113,11 +113,11 @@ impl<'a> StorageBoxUpdateRequest<'a> {
 /// Storage Box access settings request.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct StorageBoxAccessSettingsRequest {
-    reachable_externally: Option<bool>,
-    samba_enabled: Option<bool>,
-    ssh_enabled: Option<bool>,
-    webdav_enabled: Option<bool>,
-    zfs_enabled: Option<bool>,
+    pub(crate) reachable_externally: Option<bool>,
+    pub(crate) samba_enabled: Option<bool>,
+    pub(crate) ssh_enabled: Option<bool>,
+    pub(crate) webdav_enabled: Option<bool>,
+    pub(crate) zfs_enabled: Option<bool>,
 }
 
 impl StorageBoxAccessSettingsRequest {
@@ -175,8 +175,8 @@ impl Default for StorageBoxAccessSettingsRequest {
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct StorageBoxSnapshotCreateRequest<'a> {
     storage_box: StorageBoxId,
-    description: Option<StorageBoxSnapshotDescription<'a>>,
-    labels: Option<StorageBoxLabels<'a>>,
+    pub(crate) description: Option<StorageBoxSnapshotDescription<'a>>,
+    pub(crate) labels: Option<StorageBoxLabels<'a>>,
 }
 
 impl<'a> StorageBoxSnapshotCreateRequest<'a> {
@@ -219,8 +219,8 @@ impl<'a> StorageBoxSnapshotCreateRequest<'a> {
 pub struct StorageBoxSnapshotUpdateRequest<'a> {
     storage_box: StorageBoxId,
     snapshot: StorageBoxSnapshotId,
-    description: Option<StorageBoxSnapshotDescription<'a>>,
-    labels: Option<StorageBoxLabels<'a>>,
+    pub(crate) description: Option<StorageBoxSnapshotDescription<'a>>,
+    pub(crate) labels: Option<StorageBoxLabels<'a>>,
 }
 
 impl<'a> StorageBoxSnapshotUpdateRequest<'a> {

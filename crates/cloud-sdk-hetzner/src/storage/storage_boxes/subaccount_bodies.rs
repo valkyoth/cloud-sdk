@@ -10,11 +10,11 @@ use super::types::{
 /// Storage Box subaccount access settings request.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct StorageBoxSubaccountAccessSettingsRequest {
-    readonly: Option<bool>,
-    reachable_externally: Option<bool>,
-    samba_enabled: Option<bool>,
-    ssh_enabled: Option<bool>,
-    webdav_enabled: Option<bool>,
+    pub(crate) readonly: Option<bool>,
+    pub(crate) reachable_externally: Option<bool>,
+    pub(crate) samba_enabled: Option<bool>,
+    pub(crate) ssh_enabled: Option<bool>,
+    pub(crate) webdav_enabled: Option<bool>,
 }
 
 impl StorageBoxSubaccountAccessSettingsRequest {
@@ -84,12 +84,12 @@ pub type StorageBoxSubaccountResetPasswordRequest<'a> = StorageBoxResetPasswordR
 #[allow(dead_code)]
 pub struct StorageBoxSubaccountCreateRequest<'a> {
     storage_box: StorageBoxId,
-    home_directory: StorageBoxHomeDirectory<'a>,
-    password: StorageBoxPassword<'a>,
-    access_settings: Option<StorageBoxSubaccountAccessSettingsRequest>,
-    name: Option<StorageBoxSubaccountName<'a>>,
-    description: Option<StorageBoxSubaccountDescription<'a>>,
-    labels: Option<StorageBoxLabels<'a>>,
+    pub(crate) home_directory: StorageBoxHomeDirectory<'a>,
+    pub(crate) password: StorageBoxPassword<'a>,
+    pub(crate) access_settings: Option<StorageBoxSubaccountAccessSettingsRequest>,
+    pub(crate) name: Option<StorageBoxSubaccountName<'a>>,
+    pub(crate) description: Option<StorageBoxSubaccountDescription<'a>>,
+    pub(crate) labels: Option<StorageBoxLabels<'a>>,
 }
 
 impl<'a> StorageBoxSubaccountCreateRequest<'a> {
@@ -157,9 +157,9 @@ impl<'a> StorageBoxSubaccountCreateRequest<'a> {
 pub struct StorageBoxSubaccountUpdateRequest<'a> {
     storage_box: StorageBoxId,
     subaccount: StorageBoxSubaccountId,
-    name: Option<StorageBoxSubaccountName<'a>>,
-    description: Option<StorageBoxSubaccountDescription<'a>>,
-    labels: Option<StorageBoxLabels<'a>>,
+    pub(crate) name: Option<StorageBoxSubaccountName<'a>>,
+    pub(crate) description: Option<StorageBoxSubaccountDescription<'a>>,
+    pub(crate) labels: Option<StorageBoxLabels<'a>>,
 }
 
 impl<'a> StorageBoxSubaccountUpdateRequest<'a> {

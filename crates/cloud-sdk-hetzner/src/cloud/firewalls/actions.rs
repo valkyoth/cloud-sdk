@@ -75,19 +75,51 @@ impl FirewallActionEndpoint {
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct FirewallResourcesRequest<'a> {
     resources: &'a [FirewallResource<'a>],
+    intent: FirewallResourceIntent,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(crate) enum FirewallResourceIntent {
+    Apply,
+    Remove,
 }
 
 impl<'a> FirewallResourcesRequest<'a> {
-    /// Creates a request. An explicitly empty list is retained for exact API intent.
+    /// Creates an apply-to-resources request.
+    ///
+    /// An explicitly empty list is retained for exact API intent. Use
+    /// [`Self::remove`] for the destructive remove operation.
     #[must_use]
     pub const fn new(resources: &'a [FirewallResource<'a>]) -> Self {
-        Self { resources }
+        Self::apply(resources)
+    }
+
+    /// Creates an apply-to-resources request.
+    #[must_use]
+    pub const fn apply(resources: &'a [FirewallResource<'a>]) -> Self {
+        Self {
+            resources,
+            intent: FirewallResourceIntent::Apply,
+        }
+    }
+
+    /// Creates a remove-from-resources request.
+    #[must_use]
+    pub const fn remove(resources: &'a [FirewallResource<'a>]) -> Self {
+        Self {
+            resources,
+            intent: FirewallResourceIntent::Remove,
+        }
     }
 
     /// Returns the resources.
     #[must_use]
     pub const fn resources(self) -> &'a [FirewallResource<'a>] {
         self.resources
+    }
+
+    pub(crate) const fn intent(self) -> FirewallResourceIntent {
+        self.intent
     }
 }
 

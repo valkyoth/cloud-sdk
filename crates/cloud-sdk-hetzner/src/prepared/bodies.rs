@@ -51,5 +51,8 @@ macro_rules! body_component {
 mod compute;
 mod dns_rrsets;
 mod dns_zones;
+mod firewalls;
+mod load_balancers;
 mod network;
 mod security;
+mod storage;
