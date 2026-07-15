@@ -175,6 +175,7 @@ def assert_accepts_operation_mutations_rejected(directory: Path) -> None:
     )
     assert_impl_macro_rejected(query_include)
     assert_attributed_impl_items_rejected(directory)
+    assert_hidden_module_evidence_rejected(directory)
 
 
 def assert_impl_macro_rejected(result: subprocess.CompletedProcess[str]) -> None:
@@ -237,6 +238,90 @@ def assert_impl_attribute_rejected(result: subprocess.CompletedProcess[str]) -> 
     """Require associated-item procedural attributes to fail closed."""
     assert result.returncode == 1, result
     assert "attributes inside prepared wire implementations" in result.stderr
+
+
+def assert_hidden_module_evidence_rejected(directory: Path) -> None:
+    """Reject module attributes and nested implementation evidence."""
+    custom_attribute = run(
+        directory,
+        bodies=BODIES + "\n#[generate_impl]\nstruct Marker;\n",
+    )
+    assert_module_attribute_rejected(custom_attribute)
+    derive_attribute = run(
+        directory,
+        bodies=BODIES + "\n#[derive(GenerateImpl)]\nstruct Marker;\n",
+    )
+    assert_module_attribute_rejected(derive_attribute)
+    hidden_impl = (
+        "impl crate::prepared::BodyWire for Hidden { "
+        "fn operation_key(self) -> &'static str { \"write_test\" } "
+        "fn accepts_operation(self, _operation_key: &str) -> bool { true } }"
+    )
+    nested_function = run(
+        directory,
+        bodies=BODIES + f"\nfn helper() {{ {hidden_impl} }}\n",
+    )
+    assert_nested_item_rejected(nested_function)
+    nested_constant = run(
+        directory,
+        bodies=BODIES + f"\nconst HIDDEN: () = {{ {hidden_impl} () }};\n",
+    )
+    assert_nested_item_rejected(nested_constant)
+    nested_wire_method = run(
+        directory,
+        bodies=(
+            "impl crate::prepared::BodyWire for Fake { "
+            "fn operation_key(self) -> &'static str { "
+            "impl crate::prepared::QueryWire for Hidden { "
+            "fn operation_key(self) -> &'static str { \"read_test\" } } "
+            '"write_test" } }'
+        ),
+    )
+    assert_nested_item_rejected(nested_wire_method)
+    nested_macro = run(
+        directory,
+        bodies=BODIES + "\nfn helper() { permissive!(); }\n",
+    )
+    assert_nested_item_rejected(nested_macro)
+    endpoint_argument = run(
+        directory,
+        endpoints=(
+            "endpoint_wire!(TestEndpoint, endpoint => { "
+            f"{hidden_impl} () }}, (), match endpoint {{ "
+            'TestEndpoint::Read => "read_test", '
+            'TestEndpoint::Write => "write_test" }, false, ());'
+        ),
+    )
+    assert_nested_item_rejected(endpoint_argument)
+    body_argument = run(
+        directory,
+        bodies=(
+            "body_wire!(WriteRequest, request => { "
+            f'{hidden_impl} () }}, "write_test", write_test);'
+        ),
+    )
+    assert_nested_item_rejected(body_argument)
+    query_argument = run(
+        directory,
+        endpoints=(
+            ENDPOINTS
+            + "\nquery_wire!(Fake, request => { "
+            + f"{hidden_impl} () }});\n"
+        ),
+    )
+    assert_nested_item_rejected(query_argument)
+
+
+def assert_module_attribute_rejected(result: subprocess.CompletedProcess[str]) -> None:
+    """Require all module-scope evidence items to be unattributed."""
+    assert result.returncode == 1, result
+    assert "attributes on prepared-operation evidence" in result.stderr
+
+
+def assert_nested_item_rejected(result: subprocess.CompletedProcess[str]) -> None:
+    """Require hidden nested items and statement macros to fail closed."""
+    assert result.returncode == 1, result
+    assert "nested items and statement-position macros" in result.stderr
 
 
 def run(

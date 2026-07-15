@@ -7,9 +7,10 @@ use syn::{Attribute, Expr, ImplItem, Item, ItemImpl, Lit, Path, PathArguments, U
 use crate::compatibility::accepted_operation_keys;
 use crate::definitions::validate_adapter_definitions;
 use crate::evidence::{
-    operation_expression, require_unattributed_evidence, require_unattributed_expression,
+    operation_expression, reject_nested_expression, reject_nested_items,
+    require_unattributed_evidence, require_unattributed_expression,
 };
-use crate::parse::{BodyComponentArgs, BodyWireArgs, EndpointWireArgs};
+use crate::parse::{BodyComponentArgs, BodyWireArgs, EndpointWireArgs, QueryWireArgs};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub(crate) enum RegistryKind {
@@ -33,6 +34,7 @@ pub(crate) fn inspect_source(
 ) -> Result<Vec<String>, String> {
     let file = syn::parse_file(source).map_err(|error| format!("Rust parse failed: {error}"))?;
     reject_conditional(&file.attrs)?;
+    require_doc_only(&file.attrs)?;
     validate_adapter_definitions(&file.items, kind, adapter_definition_root)?;
     let mut keys = Vec::new();
     inspect_items(&file.items, kind, adapter_definition_root, &mut keys)?;
@@ -47,9 +49,10 @@ fn inspect_items(
 ) -> Result<(), String> {
     for item in items {
         reject_conditional(item_attrs(item))?;
+        require_unattributed_evidence(item_attrs(item))?;
+        reject_nested_items(item)?;
         match item {
             Item::Macro(item_macro) => {
-                require_unattributed_evidence(&item_macro.attrs)?;
                 if item_macro.mac.path.is_ident("macro_rules") {
                     continue;
                 }
@@ -73,6 +76,10 @@ fn inspect_items(
                                 .map_err(|error| {
                                     format!("invalid endpoint_wire declaration: {error}")
                                 })?;
+                        validate_macro_expression(&arguments.shape)?;
+                        validate_macro_expression(&arguments.response)?;
+                        validate_macro_expression(&arguments.destructive)?;
+                        validate_macro_expression(&arguments.cost)?;
                         keys.extend(strict_endpoint_mapping(&arguments.mapping)?);
                     }
                     (RegistryKind::Body, Some("body_wire"))
@@ -80,6 +87,7 @@ fn inspect_items(
                     {
                         let arguments = syn::parse2::<BodyWireArgs>(item_macro.mac.tokens.clone())
                             .map_err(|error| format!("invalid body_wire declaration: {error}"))?;
+                        validate_macro_expression(&arguments.endpoint)?;
                         keys.push(checked_key(&arguments.key)?);
                     }
                     (RegistryKind::Body, Some("body_component"))
@@ -93,7 +101,12 @@ fn inspect_items(
                         keys.push(checked_key(&arguments.key)?);
                     }
                     (RegistryKind::Endpoint, Some("query_wire"))
-                        if item_macro.mac.path.is_ident("query_wire") => {}
+                        if item_macro.mac.path.is_ident("query_wire") =>
+                    {
+                        let arguments = syn::parse2::<QueryWireArgs>(item_macro.mac.tokens.clone())
+                            .map_err(|error| format!("invalid query_wire declaration: {error}"))?;
+                        validate_macro_expression(&arguments.endpoint)?;
+                    }
                     (RegistryKind::Endpoint, Some("impl_endpoint_prepare"))
                         if adapter_definition_root
                             && item_macro.mac.path.is_ident("impl_endpoint_prepare") => {}
@@ -105,7 +118,6 @@ fn inspect_items(
                 }
             }
             Item::Impl(item_impl) if implements_reserved(item_impl, kind) => {
-                require_unattributed_evidence(&item_impl.attrs)?;
                 validate_impl_items(item_impl)?;
                 if !implements_canonical(item_impl, kind) {
                     return Err(format!(
@@ -119,7 +131,6 @@ fn inspect_items(
             Item::Impl(item_impl)
                 if kind == RegistryKind::Endpoint && implements_named(item_impl, "QueryWire") =>
             {
-                require_unattributed_evidence(&item_impl.attrs)?;
                 validate_impl_items(item_impl)?;
                 if !implements_canonical_named(item_impl, "QueryWire") {
                     return Err(
@@ -151,6 +162,9 @@ fn inspect_items(
                 return Err("nested prepared module declarations are forbidden".to_owned());
             }
             Item::Mod(_) => {}
+            Item::Verbatim(_) => {
+                return Err("unparsed prepared module items are forbidden".to_owned());
+            }
             _ => {}
         }
     }
@@ -201,6 +215,17 @@ fn reject_conditional(attributes: &[Attribute]) -> Result<(), String> {
         return Err("macro imports are forbidden in prepared evidence".to_owned());
     }
     Ok(())
+}
+
+fn require_doc_only(attributes: &[Attribute]) -> Result<(), String> {
+    if attributes
+        .iter()
+        .all(|attribute| attribute.path().is_ident("doc"))
+    {
+        Ok(())
+    } else {
+        Err("only documentation attributes are allowed on prepared files".to_owned())
+    }
 }
 
 fn implements_reserved(item: &ItemImpl, kind: RegistryKind) -> bool {
@@ -383,10 +408,16 @@ fn strict_operation_expression(
 }
 
 fn strict_endpoint_mapping(expression: &Expr) -> Result<Vec<String>, String> {
+    reject_nested_expression(expression)?;
     if !matches!(expression, Expr::Match(_)) {
         return Err("endpoint operation mapping must be an explicit match".to_owned());
     }
     strict_operation_expression(expression, false)
+}
+
+fn validate_macro_expression(expression: &Expr) -> Result<(), String> {
+    require_unattributed_expression(expression)?;
+    reject_nested_expression(expression)
 }
 
 fn literal_key(value: &syn::LitStr, allow_empty_sentinel: bool) -> Result<Vec<String>, String> {

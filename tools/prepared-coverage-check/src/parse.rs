@@ -4,7 +4,11 @@ use syn::parse::{Parse, ParseStream};
 use syn::{Expr, Ident, LitStr, Path, Token, Type};
 
 pub(crate) struct EndpointWireArgs {
+    pub(crate) shape: Expr,
+    pub(crate) response: Expr,
     pub(crate) mapping: Expr,
+    pub(crate) destructive: Expr,
+    pub(crate) cost: Expr,
 }
 
 impl Parse for EndpointWireArgs {
@@ -13,23 +17,30 @@ impl Parse for EndpointWireArgs {
         input.parse::<Token![,]>()?;
         let _: Ident = input.parse()?;
         input.parse::<Token![=>]>()?;
-        let _: Expr = input.parse()?;
+        let shape: Expr = input.parse()?;
         input.parse::<Token![,]>()?;
-        let _: Expr = input.parse()?;
+        let response: Expr = input.parse()?;
         input.parse::<Token![,]>()?;
         let mapping: Expr = input.parse()?;
         input.parse::<Token![,]>()?;
-        let _: Expr = input.parse()?;
+        let destructive: Expr = input.parse()?;
         input.parse::<Token![,]>()?;
-        let _: Expr = input.parse()?;
+        let cost: Expr = input.parse()?;
         if !input.is_empty() {
             return Err(input.error("unexpected endpoint_wire tokens"));
         }
-        Ok(Self { mapping })
+        Ok(Self {
+            shape,
+            response,
+            mapping,
+            destructive,
+            cost,
+        })
     }
 }
 
 pub(crate) struct BodyWireArgs {
+    pub(crate) endpoint: Expr,
     pub(crate) key: LitStr,
 }
 
@@ -39,7 +50,7 @@ impl Parse for BodyWireArgs {
         input.parse::<Token![,]>()?;
         let _: Ident = input.parse()?;
         input.parse::<Token![=>]>()?;
-        let _: Expr = input.parse()?;
+        let endpoint: Expr = input.parse()?;
         input.parse::<Token![,]>()?;
         let key: LitStr = input.parse()?;
         input.parse::<Token![,]>()?;
@@ -47,7 +58,25 @@ impl Parse for BodyWireArgs {
         if !input.is_empty() {
             return Err(input.error("unexpected body_wire tokens"));
         }
-        Ok(Self { key })
+        Ok(Self { endpoint, key })
+    }
+}
+
+pub(crate) struct QueryWireArgs {
+    pub(crate) endpoint: Expr,
+}
+
+impl Parse for QueryWireArgs {
+    fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
+        let _: Type = input.parse()?;
+        input.parse::<Token![,]>()?;
+        let _: Ident = input.parse()?;
+        input.parse::<Token![=>]>()?;
+        let endpoint: Expr = input.parse()?;
+        if !input.is_empty() {
+            return Err(input.error("unexpected query_wire tokens"));
+        }
+        Ok(Self { endpoint })
     }
 }
 

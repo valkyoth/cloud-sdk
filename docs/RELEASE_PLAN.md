@@ -1300,7 +1300,9 @@ Verification:
   evidence statements, attributed-expression erasure, procedural-attribute
   erasure, operation-scrutinee substitution, manual-query compatibility,
   parent-defined and `include!` implementation macros, attributed associated
-  functions/constants/types, generated-shadow, and duplicate mapping mutations.
+  functions/constants/types, module-item attributes and derives, nested
+  implementations and statement macros in functions/constants/wire methods and
+  adapter arguments, generated-shadow, and duplicate mapping mutations.
 - Per-family golden request and insufficient-buffer tests.
 - Mutation-classification and source-locked response-policy tests.
 - `scripts/release_0_30_gate.sh` once added.

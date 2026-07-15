@@ -1,7 +1,7 @@
 //! Attribute and expression constraints shared by operation evidence.
 
 use syn::visit::{self, Visit};
-use syn::{Attribute, Expr, Signature, Stmt};
+use syn::{Attribute, Expr, Item, Signature, Stmt};
 
 pub(crate) fn require_unattributed_evidence(attributes: &[Attribute]) -> Result<(), String> {
     if attributes.is_empty() {
@@ -37,6 +37,26 @@ pub(crate) fn require_unattributed_signature(signature: &Signature) -> Result<()
     )
 }
 
+pub(crate) fn reject_nested_items(item: &Item) -> Result<(), String> {
+    let mut detector = NestedItemDetector { found: false };
+    detector.visit_item(item);
+    if detector.found {
+        Err("nested items and statement-position macros are forbidden".to_owned())
+    } else {
+        Ok(())
+    }
+}
+
+pub(crate) fn reject_nested_expression(expression: &Expr) -> Result<(), String> {
+    let mut detector = NestedItemDetector { found: false };
+    detector.visit_expr(expression);
+    if detector.found {
+        Err("nested items and statement-position macros are forbidden".to_owned())
+    } else {
+        Ok(())
+    }
+}
+
 struct AttributeDetector {
     found: bool,
 }
@@ -52,5 +72,19 @@ fn require_not_found(detector: AttributeDetector, message: &str) -> Result<(), S
         Err(message.to_owned())
     } else {
         Ok(())
+    }
+}
+
+struct NestedItemDetector {
+    found: bool,
+}
+
+impl<'ast> Visit<'ast> for NestedItemDetector {
+    fn visit_stmt(&mut self, statement: &'ast Stmt) {
+        if matches!(statement, Stmt::Item(_) | Stmt::Macro(_)) {
+            self.found = true;
+            return;
+        }
+        visit::visit_stmt(self, statement);
     }
 }

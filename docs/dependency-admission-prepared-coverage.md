@@ -83,6 +83,14 @@ Inline modules cannot provide evidence, while file-level or item-level `cfg`
 and `cfg_attr`, imports, aliases, glob imports, `macro_use`, local adapter
 definitions, and namespaced adapter calls fail closed.
 
+Only inner documentation attributes are allowed on prepared source files, and
+every module-scope item must be unattributed. Each top-level item is traversed
+recursively; nested items and statement-position macros in functions, constant
+blocks, wire methods, or admitted adapter-macro expression arguments fail
+closed. Unparsed module items are also forbidden. Procedural attributes,
+derive macros, local implementations, and macro expansion therefore cannot hide
+additional global wire implementations outside the inspected item set.
+
 Every module-scope macro invocation is also allowlisted. Endpoint and body
 adapters plus the two reviewed endpoint helper macros are accepted; an
 unreviewed macro cannot expand into a shadowing adapter definition.
