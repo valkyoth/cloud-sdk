@@ -1,9 +1,11 @@
 //! Strict parsers for the adapter macro inputs admitted as evidence.
 
 use syn::parse::{Parse, ParseStream};
-use syn::{Expr, Ident, LitStr, Path, Token, Type};
+use syn::punctuated::Punctuated;
+use syn::{Expr, Ident, LitStr, Pat, Path, Token, Type};
 
 pub(crate) struct EndpointWireArgs {
+    pub(crate) ty: Type,
     pub(crate) shape: Expr,
     pub(crate) response: Expr,
     pub(crate) mapping: Expr,
@@ -13,7 +15,7 @@ pub(crate) struct EndpointWireArgs {
 
 impl Parse for EndpointWireArgs {
     fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
-        let _: Type = input.parse()?;
+        let ty: Type = input.parse()?;
         input.parse::<Token![,]>()?;
         let _: Ident = input.parse()?;
         input.parse::<Token![=>]>()?;
@@ -30,6 +32,7 @@ impl Parse for EndpointWireArgs {
             return Err(input.error("unexpected endpoint_wire tokens"));
         }
         Ok(Self {
+            ty,
             shape,
             response,
             mapping,
@@ -40,13 +43,15 @@ impl Parse for EndpointWireArgs {
 }
 
 pub(crate) struct BodyWireArgs {
+    pub(crate) ty: Type,
     pub(crate) endpoint: Expr,
     pub(crate) key: LitStr,
+    pub(crate) writer: Path,
 }
 
 impl Parse for BodyWireArgs {
     fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
-        let _: Type = input.parse()?;
+        let ty: Type = input.parse()?;
         input.parse::<Token![,]>()?;
         let _: Ident = input.parse()?;
         input.parse::<Token![=>]>()?;
@@ -54,21 +59,27 @@ impl Parse for BodyWireArgs {
         input.parse::<Token![,]>()?;
         let key: LitStr = input.parse()?;
         input.parse::<Token![,]>()?;
-        let _: Path = input.parse()?;
+        let writer: Path = input.parse()?;
         if !input.is_empty() {
             return Err(input.error("unexpected body_wire tokens"));
         }
-        Ok(Self { endpoint, key })
+        Ok(Self {
+            ty,
+            endpoint,
+            key,
+            writer,
+        })
     }
 }
 
 pub(crate) struct QueryWireArgs {
+    pub(crate) ty: Type,
     pub(crate) endpoint: Expr,
 }
 
 impl Parse for QueryWireArgs {
     fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
-        let _: Type = input.parse()?;
+        let ty: Type = input.parse()?;
         input.parse::<Token![,]>()?;
         let _: Ident = input.parse()?;
         input.parse::<Token![=>]>()?;
@@ -76,25 +87,72 @@ impl Parse for QueryWireArgs {
         if !input.is_empty() {
             return Err(input.error("unexpected query_wire tokens"));
         }
-        Ok(Self { endpoint })
+        Ok(Self { ty, endpoint })
     }
 }
 
 pub(crate) struct BodyComponentArgs {
+    pub(crate) ty: Type,
     pub(crate) key: LitStr,
+    pub(crate) writer: Path,
 }
 
 impl Parse for BodyComponentArgs {
     fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
-        let _: Type = input.parse()?;
+        let ty: Type = input.parse()?;
         input.parse::<Token![,]>()?;
         let key: LitStr = input.parse()?;
         input.parse::<Token![,]>()?;
-        let _: Path = input.parse()?;
+        let writer: Path = input.parse()?;
         if !input.is_empty() {
             return Err(input.error("unexpected body_component tokens"));
         }
-        Ok(Self { key })
+        Ok(Self { ty, key, writer })
+    }
+}
+
+pub(crate) struct EndpointPrepareArgs {
+    pub(crate) types: Punctuated<Type, Token![,]>,
+}
+
+impl Parse for EndpointPrepareArgs {
+    fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
+        let types = Punctuated::parse_terminated(input)?;
+        if types.is_empty() {
+            return Err(input.error("impl_endpoint_prepare requires at least one type"));
+        }
+        Ok(Self { types })
+    }
+}
+
+pub(crate) struct MatchesArgs {
+    pub(crate) expression: Expr,
+    pub(crate) pattern: Pat,
+    pub(crate) guard: Option<Expr>,
+}
+
+impl Parse for MatchesArgs {
+    fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
+        let expression = input.parse()?;
+        input.parse::<Token![,]>()?;
+        let pattern = Pat::parse_multi_with_leading_vert(input)?;
+        let guard = if input.peek(Token![if]) {
+            input.parse::<Token![if]>()?;
+            Some(input.parse()?)
+        } else {
+            None
+        };
+        if input.peek(Token![,]) {
+            input.parse::<Token![,]>()?;
+        }
+        if !input.is_empty() {
+            return Err(input.error("unexpected matches! tokens"));
+        }
+        Ok(Self {
+            expression,
+            pattern,
+            guard,
+        })
     }
 }
 

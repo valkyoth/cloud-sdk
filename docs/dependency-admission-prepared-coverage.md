@@ -85,11 +85,20 @@ definitions, and namespaced adapter calls fail closed.
 
 Only inner documentation attributes are allowed on prepared source files, and
 every module-scope item must be unattributed. Each top-level item is traversed
-recursively; nested items and statement-position macros in functions, constant
-blocks, wire methods, or admitted adapter-macro expression arguments fail
-closed. Unparsed module items are also forbidden. Procedural attributes,
-derive macros, local implementations, and macro expansion therefore cannot hide
-additional global wire implementations outside the inspected item set.
+recursively. Every type, expression, and writer path parsed from the five
+admitted adapter macros is retained and inspected, including anonymous
+constants and generic arguments. `impl_endpoint_prepare!` accepts only a
+nonempty, recursively inspected type list. Nested items and statement-position
+macros in functions, constant blocks, wire methods, adapter types, writer
+paths, or adapter expressions fail closed.
+
+Expression, type, and pattern macros are opaque to `syn` and therefore fail
+closed. The sole exception is an unqualified `matches!` invocation, whose
+scrutinee, pattern, and optional guard are parsed with a dedicated grammar and
+recursively inspected under the same policy. Unparsed module items are also
+forbidden. Procedural attributes, derive macros, local implementations, and
+opaque macro expansion therefore cannot hide additional global wire
+implementations outside the inspected syntax.
 
 Every module-scope macro invocation is also allowlisted. Endpoint and body
 adapters plus the two reviewed endpoint helper macros are accepted; an

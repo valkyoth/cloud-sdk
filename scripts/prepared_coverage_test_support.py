@@ -241,7 +241,7 @@ def assert_impl_attribute_rejected(result: subprocess.CompletedProcess[str]) -> 
 
 
 def assert_hidden_module_evidence_rejected(directory: Path) -> None:
-    """Reject module attributes and nested implementation evidence."""
+    """Reject attributed, nested, discarded, and opaque implementation evidence."""
     custom_attribute = run(
         directory,
         bodies=BODIES + "\n#[generate_impl]\nstruct Marker;\n",
@@ -310,6 +310,65 @@ def assert_hidden_module_evidence_rejected(directory: Path) -> None:
         ),
     )
     assert_nested_item_rejected(query_argument)
+    hidden_type = f"[u8; {{ {hidden_impl} 1 }}]"
+    hidden_writer = f"Writer::<{{ {hidden_impl} 1 }}>::write"
+    hidden_adapter_fields = [
+        run(
+            directory,
+            endpoints=(
+                f"endpoint_wire!({hidden_type}, endpoint => (), (), match endpoint {{ "
+                'TestEndpoint::Read => "read_test", TestEndpoint::Write => "write_test" '
+                "}, false, ());"
+            ),
+        ),
+        run(directory, bodies=f'body_wire!({hidden_type}, request => (), "write_test", write);'),
+        run(
+            directory,
+            endpoints=ENDPOINTS + f"\nquery_wire!({hidden_type}, request => ());\n",
+        ),
+        run(directory, bodies=f'body_component!({hidden_type}, "write_test", write);'),
+        run(
+            directory,
+            bodies=f'body_wire!(WriteRequest, request => (), "write_test", {hidden_writer});',
+        ),
+        run(
+            directory,
+            bodies=f'body_component!(WriteRequest, "write_test", {hidden_writer});',
+        ),
+        run(
+            directory,
+            endpoint_definitions=(
+                ENDPOINT_DEFINITIONS + f"\nimpl_endpoint_prepare!({hidden_type});\n"
+            ),
+        ),
+    ]
+    for result in hidden_adapter_fields:
+        assert_nested_item_rejected(result)
+    opaque_macro_fields = [
+        run(
+            directory,
+            endpoints=(
+                "endpoint_wire!(TestEndpoint, endpoint => (), (), match endpoint { "
+                'TestEndpoint::Read => "read_test", TestEndpoint::Write => "write_test" }, '
+                f"matches!({{ {hidden_impl} endpoint }}, TestEndpoint::Read), ());"
+            ),
+        ),
+        run(
+            directory,
+            endpoints=ENDPOINTS + "\nquery_wire!(Fake, request => opaque!());\n",
+        ),
+        run(directory, bodies='body_wire!(opaque!(), request => (), "write_test", write);'),
+        run(
+            directory,
+            endpoints=(
+                "endpoint_wire!(TestEndpoint, endpoint => (), (), match endpoint { "
+                'opaque!() => "read_test", TestEndpoint::Write => "write_test" '
+                "}, false, ());"
+            ),
+        ),
+    ]
+    for result in opaque_macro_fields:
+        assert_nested_item_rejected(result)
 
 
 def assert_module_attribute_rejected(result: subprocess.CompletedProcess[str]) -> None:
@@ -319,9 +378,9 @@ def assert_module_attribute_rejected(result: subprocess.CompletedProcess[str]) -
 
 
 def assert_nested_item_rejected(result: subprocess.CompletedProcess[str]) -> None:
-    """Require hidden nested items and statement macros to fail closed."""
+    """Require hidden nested items and opaque macros to fail closed."""
     assert result.returncode == 1, result
-    assert "nested items and statement-position macros" in result.stderr
+    assert "nested items or opaque macros" in result.stderr
 
 
 def run(

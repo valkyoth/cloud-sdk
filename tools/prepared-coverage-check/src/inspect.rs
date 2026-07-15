@@ -7,10 +7,13 @@ use syn::{Attribute, Expr, ImplItem, Item, ItemImpl, Lit, Path, PathArguments, U
 use crate::compatibility::accepted_operation_keys;
 use crate::definitions::validate_adapter_definitions;
 use crate::evidence::{
-    operation_expression, reject_nested_expression, reject_nested_items,
-    require_unattributed_evidence, require_unattributed_expression,
+    operation_expression, reject_nested_expression, reject_nested_items, reject_nested_path,
+    reject_nested_type, require_unattributed_evidence, require_unattributed_expression,
+    require_unattributed_path, require_unattributed_type,
 };
-use crate::parse::{BodyComponentArgs, BodyWireArgs, EndpointWireArgs, QueryWireArgs};
+use crate::parse::{
+    BodyComponentArgs, BodyWireArgs, EndpointPrepareArgs, EndpointWireArgs, QueryWireArgs,
+};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub(crate) enum RegistryKind {
@@ -76,6 +79,7 @@ fn inspect_items(
                                 .map_err(|error| {
                                     format!("invalid endpoint_wire declaration: {error}")
                                 })?;
+                        validate_macro_type(&arguments.ty)?;
                         validate_macro_expression(&arguments.shape)?;
                         validate_macro_expression(&arguments.response)?;
                         validate_macro_expression(&arguments.destructive)?;
@@ -87,7 +91,9 @@ fn inspect_items(
                     {
                         let arguments = syn::parse2::<BodyWireArgs>(item_macro.mac.tokens.clone())
                             .map_err(|error| format!("invalid body_wire declaration: {error}"))?;
+                        validate_macro_type(&arguments.ty)?;
                         validate_macro_expression(&arguments.endpoint)?;
+                        validate_macro_path(&arguments.writer)?;
                         keys.push(checked_key(&arguments.key)?);
                     }
                     (RegistryKind::Body, Some("body_component"))
@@ -98,6 +104,8 @@ fn inspect_items(
                                 .map_err(|error| {
                                     format!("invalid body_component declaration: {error}")
                                 })?;
+                        validate_macro_type(&arguments.ty)?;
+                        validate_macro_path(&arguments.writer)?;
                         keys.push(checked_key(&arguments.key)?);
                     }
                     (RegistryKind::Endpoint, Some("query_wire"))
@@ -105,11 +113,22 @@ fn inspect_items(
                     {
                         let arguments = syn::parse2::<QueryWireArgs>(item_macro.mac.tokens.clone())
                             .map_err(|error| format!("invalid query_wire declaration: {error}"))?;
+                        validate_macro_type(&arguments.ty)?;
                         validate_macro_expression(&arguments.endpoint)?;
                     }
                     (RegistryKind::Endpoint, Some("impl_endpoint_prepare"))
                         if adapter_definition_root
-                            && item_macro.mac.path.is_ident("impl_endpoint_prepare") => {}
+                            && item_macro.mac.path.is_ident("impl_endpoint_prepare") =>
+                    {
+                        let arguments =
+                            syn::parse2::<EndpointPrepareArgs>(item_macro.mac.tokens.clone())
+                                .map_err(|error| {
+                                    format!("invalid impl_endpoint_prepare declaration: {error}")
+                                })?;
+                        for ty in &arguments.types {
+                            validate_macro_type(ty)?;
+                        }
+                    }
                     _ => {
                         return Err(
                             "unreviewed module-scope macro invocation is forbidden".to_owned()
@@ -418,6 +437,16 @@ fn strict_endpoint_mapping(expression: &Expr) -> Result<Vec<String>, String> {
 fn validate_macro_expression(expression: &Expr) -> Result<(), String> {
     require_unattributed_expression(expression)?;
     reject_nested_expression(expression)
+}
+
+fn validate_macro_type(ty: &syn::Type) -> Result<(), String> {
+    require_unattributed_type(ty)?;
+    reject_nested_type(ty)
+}
+
+fn validate_macro_path(path: &Path) -> Result<(), String> {
+    require_unattributed_path(path)?;
+    reject_nested_path(path)
 }
 
 fn literal_key(value: &syn::LitStr, allow_empty_sentinel: bool) -> Result<Vec<String>, String> {

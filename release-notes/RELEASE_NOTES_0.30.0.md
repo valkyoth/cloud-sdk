@@ -69,12 +69,16 @@ of new third-party dependencies.
   `cfg`, `cfg_attr`, Cargo target or parent-edge substitutions, operation
   scrutinee substitutions, parent-defined, `include!`, or procedural-attribute
   implementation expansion, unsupported associated items, orphaned or
-  redirected modules, module-item attributes and derives, nested items or
-  statement macros in ordinary bodies and adapter arguments, procedural
-  erasure, preceding statements, namespaced or generated-shadow adapters,
-  duplicate or modified definitions, inline fake traits, discarded/helper
-  expressions, unknown keys, ambiguous mappings, missing adapters, and
-  deprecated evidence are rejected.
+  redirected modules, module-item attributes and derives, nested items,
+  anonymous-constant implementations in adapter types or writer paths, and
+  opaque expression/type/pattern macros are rejected. Every field parsed from
+  an adapter invocation is retained and recursively checked, including the
+  strict `impl_endpoint_prepare!` type list. `matches!` has a dedicated parser
+  that recursively checks its scrutinee, pattern, and optional guard. Statement
+  macros, procedural erasure, preceding statements, namespaced or
+  generated-shadow adapters, duplicate or modified definitions, inline fake
+  traits, discarded/helper expressions, unknown keys, ambiguous mappings,
+  missing adapters, and deprecated evidence are also rejected.
 - Mutation tests prove those structural checks and malformed duplicate body
   locks fail closed. Cargo target binding, the module/file bijection, and normal
   Rust checks together prove the admitted source participates in the compiled
