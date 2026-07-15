@@ -2,7 +2,7 @@
 
 use crate::cloud::images::{ImageProtectionRequest, ImageUpdateRequest};
 use crate::cloud::servers::actions::{
-    DnsPtrIntent, RescueType, ServerActionRequest, ServerImageType,
+    DnsPtrIntent, RescueType, ServerActionKind as Kind, ServerActionRequest, ServerImageType,
 };
 use crate::cloud::servers::placement_groups::{
     PlacementGroupCreateRequest, PlacementGroupType, PlacementGroupUpdateRequest,
@@ -54,7 +54,19 @@ impl BodyWire for ServerActionRequest<'_> {
             Self::DetachFromNetwork { .. } => "detach_server_from_network",
             Self::EnableRescue { .. } => "enable_server_rescue",
             Self::Rebuild { .. } => "rebuild_server",
-            Self::Empty(kind) => empty_server_action_key(kind),
+            Self::Empty(Kind::DetachIso) => "detach_server_iso",
+            Self::Empty(Kind::DisableBackup) => "disable_server_backup",
+            Self::Empty(Kind::DisableRescue) => "disable_server_rescue",
+            Self::Empty(Kind::EnableBackup) => "enable_server_backup",
+            Self::Empty(Kind::Poweroff) => "poweroff_server",
+            Self::Empty(Kind::Poweron) => "poweron_server",
+            Self::Empty(Kind::Reboot) => "reboot_server",
+            Self::Empty(Kind::RemoveFromPlacementGroup) => "remove_server_from_placement_group",
+            Self::Empty(Kind::RequestConsole) => "request_server_console",
+            Self::Empty(Kind::Reset) => "reset_server",
+            Self::Empty(Kind::ResetPassword) => "reset_server_password",
+            Self::Empty(Kind::Shutdown) => "shutdown_server",
+            Self::Empty(_) => "",
         }
     }
 }
@@ -365,26 +377,5 @@ const fn image_type_value(value: ServerImageType) -> &'static str {
 const fn rescue_type_value(value: RescueType) -> &'static str {
     match value {
         RescueType::Linux64 => "linux64",
-    }
-}
-
-const fn empty_server_action_key(
-    kind: crate::cloud::servers::actions::ServerActionKind,
-) -> &'static str {
-    use crate::cloud::servers::actions::ServerActionKind;
-    match kind {
-        ServerActionKind::DetachIso => "detach_server_iso",
-        ServerActionKind::DisableBackup => "disable_server_backup",
-        ServerActionKind::DisableRescue => "disable_server_rescue",
-        ServerActionKind::EnableBackup => "enable_server_backup",
-        ServerActionKind::Poweroff => "poweroff_server",
-        ServerActionKind::Poweron => "poweron_server",
-        ServerActionKind::Reboot => "reboot_server",
-        ServerActionKind::RemoveFromPlacementGroup => "remove_server_from_placement_group",
-        ServerActionKind::RequestConsole => "request_server_console",
-        ServerActionKind::Reset => "reset_server",
-        ServerActionKind::ResetPassword => "reset_server_password",
-        ServerActionKind::Shutdown => "shutdown_server",
-        _ => "",
     }
 }

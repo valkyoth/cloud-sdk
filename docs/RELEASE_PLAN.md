@@ -1276,8 +1276,8 @@ Deliverables:
   existing validation and encoding rules.
 - Preparation covers every non-deprecated operation claimed in
   `docs/API_MATRIX.md`; a release check fails when an implemented operation has
-  no prepared-request path or when prepared metadata disagrees with the source
-  lock.
+  no AST-bound prepared endpoint or required body adapter. Dedicated Rust
+  tests lock security-sensitive metadata and response policy.
 - Read-only, mutating, destructive, and cost-bearing operations remain
   source-locked in operation metadata together with idempotency and retry
   classification so later execution policy cannot treat them as interchangeable.
@@ -1292,6 +1292,8 @@ Verification:
 - `scripts/checks.sh`
 - `scripts/check_hetzner_api_drift.py --fetch`
 - Zero-missing-prepared-operation API-matrix gate.
+- Excluded, locked `syn` checker and adversarial `cfg_attr`, nested-comment,
+  raw-string, discarded-literal, helper-expression, and duplicate mutations.
 - Per-family golden request and insufficient-buffer tests.
 - Mutation-classification and source-locked response-policy tests.
 - `scripts/release_0_30_gate.sh` once added.

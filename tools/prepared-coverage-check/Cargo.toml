@@ -1,0 +1,23 @@
+[package]
+name = "cloud-sdk-prepared-coverage-check"
+version = "0.0.0"
+publish = false
+edition = "2024"
+rust-version = "1.90"
+license = "MIT OR Apache-2.0"
+
+[dependencies]
+syn = { version = "=2.0.119", default-features = false, features = ["full", "parsing"] }
+
+[workspace]
+
+[lints.rust]
+unsafe_code = "forbid"
+unsafe_op_in_unsafe_fn = "forbid"
+unused_must_use = "deny"
+
+[lints.clippy]
+panic = "forbid"
+unwrap_used = "forbid"
+expect_used = "forbid"
+undocumented_unsafe_blocks = "forbid"

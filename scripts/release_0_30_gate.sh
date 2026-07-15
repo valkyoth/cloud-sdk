@@ -39,6 +39,8 @@ cargo deny --manifest-path tests/reqwest-feature-unification/Cargo.toml \
     --config deny.toml --locked check advisories licenses sources
 cargo deny --manifest-path fuzz/Cargo.toml \
     --config deny.toml --locked check advisories licenses sources
+cargo deny --manifest-path tools/prepared-coverage-check/Cargo.toml \
+    --config deny.toml --locked check advisories licenses sources
 
 if ! cargo audit --version >/dev/null 2>&1; then
     echo "release gate: cargo-audit not installed; install the pinned version before tagging" >&2
@@ -47,6 +49,7 @@ fi
 cargo audit
 cargo audit --no-fetch --file tests/reqwest-feature-unification/Cargo.lock
 cargo audit --no-fetch --file fuzz/Cargo.lock
+cargo audit --no-fetch --file tools/prepared-coverage-check/Cargo.lock
 
 if [ "$(git rev-parse HEAD)" != "$reviewed_head" ]; then
     echo "release gate: HEAD changed while checks were running" >&2

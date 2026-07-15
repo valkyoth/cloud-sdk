@@ -25,6 +25,10 @@ generate_complete tests/reqwest-feature-unification \
     tests/reqwest-feature-unification/Cargo.toml \
     sbom/reqwest-feature-unification.spdx.json reqwest-feature-unification
 generate_complete fuzz fuzz/Cargo.toml sbom/fuzz.spdx.json fuzz
+generate_complete tools/prepared-coverage-check \
+    tools/prepared-coverage-check/Cargo.toml \
+    sbom/prepared-coverage-check.spdx.json prepared-coverage-check
 test -s sbom/cloud-sdk.spdx.json
 test -s sbom/reqwest-feature-unification.spdx.json
 test -s sbom/fuzz.spdx.json
+test -s sbom/prepared-coverage-check.spdx.json

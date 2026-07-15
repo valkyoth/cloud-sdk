@@ -141,12 +141,8 @@ endpoint_wire!(
         LoadBalancerActionEndpoint::ChangeType(_) => "change_load_balancer_type",
         LoadBalancerActionEndpoint::DeleteService(_) => "delete_load_balancer_service",
         LoadBalancerActionEndpoint::DetachFromNetwork(_) => "detach_load_balancer_from_network",
-        LoadBalancerActionEndpoint::DisablePublicInterface(_) => {
-            "disable_load_balancer_public_interface"
-        }
-        LoadBalancerActionEndpoint::EnablePublicInterface(_) => {
-            "enable_load_balancer_public_interface"
-        }
+        LoadBalancerActionEndpoint::DisablePublicInterface(_) => "disable_load_balancer_public_interface",
+        LoadBalancerActionEndpoint::EnablePublicInterface(_) => "enable_load_balancer_public_interface",
         LoadBalancerActionEndpoint::RemoveTarget(_) => "remove_load_balancer_target",
         LoadBalancerActionEndpoint::UpdateService(_) => "update_load_balancer_service",
     },

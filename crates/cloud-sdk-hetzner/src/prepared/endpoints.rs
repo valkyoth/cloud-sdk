@@ -246,7 +246,9 @@ macro_rules! endpoint_wire {
         $type:ty,
         $value:ident => $shape:expr,
         $response:expr,
-        $key:expr,
+        match $key_value:ident {
+            $($key_pattern:pat => $key:literal),+ $(,)?
+        },
         $destructive:expr,
         $cost:expr
     ) => {
@@ -288,9 +290,10 @@ macro_rules! endpoint_wire {
             }
 
             fn operation_key(self) -> &'static str {
-                let $value = self;
-                let _ = $value;
-                $key
+                let $key_value = self;
+                match $key_value {
+                    $($key_pattern => $key),+
+                }
             }
         }
 

@@ -107,9 +107,7 @@ endpoint_wire!(
         StorageBoxActionEndpoint::EnableSnapshotPlan(_) => "enable_storage_box_snapshot_plan",
         StorageBoxActionEndpoint::ResetPassword(_) => "reset_storage_box_password",
         StorageBoxActionEndpoint::RollbackSnapshot(_) => "rollback_storage_box_snapshot",
-        StorageBoxActionEndpoint::UpdateAccessSettings(_) => {
-            "update_storage_box_access_settings"
-        }
+        StorageBoxActionEndpoint::UpdateAccessSettings(_) => "update_storage_box_access_settings",
     },
     matches!(
         endpoint,
@@ -224,15 +222,9 @@ endpoint_wire!(
     endpoint => RequestShape::RequiredJson,
     ResponseProfile::JsonCreated,
     match endpoint {
-        StorageBoxSubaccountActionEndpoint::ChangeHomeDirectory(_, _) => {
-            "change_storage_box_subaccount_home_directory"
-        }
-        StorageBoxSubaccountActionEndpoint::ResetPassword(_, _) => {
-            "reset_storage_box_subaccount_password"
-        }
-        StorageBoxSubaccountActionEndpoint::UpdateAccessSettings(_, _) => {
-            "update_storage_box_subaccount_access_settings"
-        }
+        StorageBoxSubaccountActionEndpoint::ChangeHomeDirectory(_, _) => "change_storage_box_subaccount_home_directory",
+        StorageBoxSubaccountActionEndpoint::ResetPassword(_, _) => "reset_storage_box_subaccount_password",
+        StorageBoxSubaccountActionEndpoint::UpdateAccessSettings(_, _) => "update_storage_box_subaccount_access_settings",
     },
     matches!(
         endpoint,

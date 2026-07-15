@@ -30,6 +30,8 @@ generate_complete . Cargo.toml cloud-sdk
 generate_complete tests/reqwest-feature-unification \
     tests/reqwest-feature-unification/Cargo.toml reqwest-feature-unification
 generate_complete fuzz fuzz/Cargo.toml fuzz
+generate_complete tools/prepared-coverage-check \
+    tools/prepared-coverage-check/Cargo.toml prepared-coverage-check
 
 canonicalize() {
     jq -S -f scripts/canonicalize-sbom.jq "$1" >"$2"
@@ -53,11 +55,15 @@ compare_sbom sbom/cloud-sdk.spdx.json \
 compare_sbom sbom/reqwest-feature-unification.spdx.json \
     "$tmp/reqwest-feature-unification.complete.json" reqwest-feature-unification
 compare_sbom sbom/fuzz.spdx.json "$tmp/fuzz.complete.json" fuzz
+compare_sbom sbom/prepared-coverage-check.spdx.json \
+    "$tmp/prepared-coverage-check.complete.json" prepared-coverage-check
 
 scripts/check_sbom_completeness.sh Cargo.toml \
     sbom/cloud-sdk.spdx.json cloud-sdk
 scripts/check_sbom_completeness.sh tests/reqwest-feature-unification/Cargo.toml \
     sbom/reqwest-feature-unification.spdx.json reqwest-feature-unification
 scripts/check_sbom_completeness.sh fuzz/Cargo.toml sbom/fuzz.spdx.json fuzz
+scripts/check_sbom_completeness.sh tools/prepared-coverage-check/Cargo.toml \
+    sbom/prepared-coverage-check.spdx.json prepared-coverage-check
 
-echo "SBOM freshness: all three complete dependency graphs match locked metadata"
+echo "SBOM freshness: all four complete dependency graphs match locked metadata"

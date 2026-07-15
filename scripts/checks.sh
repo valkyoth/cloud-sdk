@@ -40,6 +40,9 @@ scripts/check_hetzner_api_drift.py --local-only
 scripts/test-hetzner-api-drift.py
 scripts/check_api_matrix_coverage.py
 scripts/test-api-matrix-coverage.py
+cargo clippy --manifest-path tools/prepared-coverage-check/Cargo.toml \
+    --locked --all-targets -- -D warnings
+cargo test --manifest-path tools/prepared-coverage-check/Cargo.toml --locked
 scripts/check_prepared_operation_coverage.py
 scripts/test-prepared-operation-coverage.py
 scripts/release_crates.py --check

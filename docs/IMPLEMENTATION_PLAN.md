@@ -175,5 +175,7 @@ Expected future candidates must be reviewed before use:
 - `v0.29.0` adds allocation-free prepared-operation metadata, response policy,
   bounded execution, and testkit evidence without admitting any new
   third-party dependency or default feature.
+- `v0.30.0` admits `syn 2.0.119` only in the excluded, non-published prepared
+  coverage checker. It is absent from every SDK crate and published graph.
 
 Every admission needs a document under `docs/dependency-admission-*.md`.

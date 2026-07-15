@@ -52,6 +52,7 @@ def run(
     body_dir = endpoint_dir / "bodies"
     body_dir.mkdir(parents=True, exist_ok=True)
     (directory / "prepared.rs").write_text(endpoints, encoding="utf-8")
+    (endpoint_dir / "bodies.rs").write_text("", encoding="utf-8")
     (body_dir / "test.rs").write_text(bodies, encoding="utf-8")
     return subprocess.run(
         [
@@ -86,8 +87,8 @@ def main() -> None:
         missing_endpoint = run(
             directory,
             endpoints=(
-                "endpoint_wire!(TestEndpoint, endpoint => (), (), "
-                '"write_test", false, ());'
+                "endpoint_wire!(TestEndpoint, endpoint => (), (), match endpoint { "
+                'TestEndpoint::Write => "write_test" }, false, ());'
             ),
         )
         assert missing_endpoint.returncode == 1, missing_endpoint
@@ -101,7 +102,8 @@ def main() -> None:
             directory,
             endpoints=(
                 '// endpoint_wire!(Fake, value => (), (), "read_test", false, ());\n'
-                'endpoint_wire!(Real, value => (), (), "write_test", false, ());'
+                'endpoint_wire!(Real, value => (), (), match value { '
+                'Real::Write => "write_test" }, false, ());'
             ),
         )
         assert line_comments.returncode == 1, line_comments
@@ -120,7 +122,8 @@ def main() -> None:
         test_only = run(
             directory,
             endpoints=(
-                'endpoint_wire!(Real, value => (), (), "write_test", false, ());\n'
+                'endpoint_wire!(Real, value => (), (), match value { '
+                'Real::Write => "write_test" }, false, ());\n'
                 '#[cfg(test)] endpoint_wire!('
                 'TestOnly, value => (), (), "read_test", false, ());'
             ),
@@ -132,7 +135,8 @@ def main() -> None:
             directory,
             endpoints=(
                 'const CLAIMED: &str = "read_test";\n'
-                'endpoint_wire!(Real, value => (), (), "write_test", false, ());'
+                'endpoint_wire!(Real, value => (), (), match value { '
+                'Real::Write => "write_test" }, false, ());'
             ),
         )
         assert standalone_constants.returncode == 1, standalone_constants
@@ -143,7 +147,8 @@ def main() -> None:
             endpoints=(
                 ENDPOINTS
                 + '\nendpoint_wire!('
-                'Duplicate, value => (), (), "read_test", false, ());'
+                'Duplicate, value => (), (), match value { '
+                'Duplicate::Read => "read_test" }, false, ());'
             ),
         )
         assert duplicate_adapter.returncode == 1, duplicate_adapter
@@ -159,6 +164,63 @@ def main() -> None:
         )
         assert unknown_adapter.returncode == 1, unknown_adapter
         assert "unknown body adapter keys: unknown_test" in unknown_adapter.stderr
+
+        cfg_attr = run(
+            directory,
+            endpoints=(
+                '#[cfg_attr(not(any()), cfg(any()))]\n'
+                + ENDPOINTS
+            ),
+        )
+        assert cfg_attr.returncode == 1, cfg_attr
+        assert "conditionally compiled prepared evidence is forbidden" in cfg_attr.stderr
+
+        nested_comment = run(
+            directory,
+            endpoints=(
+                '/* outer /* inner */ endpoint_wire!('
+                'Fake, value => (), (), match value { '
+                'Fake::Read => "read_test" }, false, ()); */\n'
+                'endpoint_wire!(Real, value => (), (), match value { '
+                'Real::Write => "write_test" }, false, ());'
+            ),
+        )
+        assert nested_comment.returncode == 1, nested_comment
+        assert "missing endpoint adapters: read_test" in nested_comment.stderr
+
+        raw_string = run(
+            directory,
+            endpoints=(
+                'const CLAIMED: &str = r#"endpoint_wire!('
+                'Fake, value => (), (), match value { '
+                'Fake::Read => \\"read_test\\" }, false, ());"#;\n'
+                'endpoint_wire!(Real, value => (), (), match value { '
+                'Real::Write => "write_test" }, false, ());'
+            ),
+        )
+        assert raw_string.returncode == 1, raw_string
+        assert "missing endpoint adapters: read_test" in raw_string.stderr
+
+        discarded_literal = run(
+            directory,
+            endpoints=(
+                'endpoint_wire!(Fake, value => (), (), '
+                '{ let _ = "read_test"; "write_test" }, false, ());'
+            ),
+        )
+        assert discarded_literal.returncode == 1, discarded_literal
+        assert "must be an explicit match" in discarded_literal.stderr
+
+        helper_expression = run(
+            directory,
+            endpoints=(
+                'fn key(_: Fake) -> &\'static str { "write_test" }\n'
+                'endpoint_wire!(Fake, value => (), (), key(value), false, ());\n'
+                'const CLAIMED: &str = "read_test";'
+            ),
+        )
+        assert helper_expression.returncode == 1, helper_expression
+        assert "must be an explicit match" in helper_expression.stderr
 
         duplicate_lock = directory / "bodies.txt"
         duplicate_lock.write_text("write_test\nwrite_test\n", encoding="ascii")
@@ -181,7 +243,7 @@ def main() -> None:
         assert duplicate.returncode == 1, duplicate
         assert "duplicate body operation" in duplicate.stderr
 
-    print("10 prepared-operation coverage tests passed.")
+    print("15 prepared-operation coverage tests passed.")
 
 
 if __name__ == "__main__":
