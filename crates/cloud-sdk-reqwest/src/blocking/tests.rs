@@ -88,7 +88,7 @@ fn bearer_tokens_are_bounded_validated_and_redacted() {
 
 #[test]
 fn endpoints_reject_authority_and_normalization_ambiguity() {
-    let redacted = HttpsEndpoint::new("https://api.example.test/v1");
+    let redacted = HttpsEndpoint::new_custom("https://api.example.test/v1");
     assert!(redacted.is_ok());
     if let Ok(redacted) = redacted {
         let debug = format!("{redacted:?}");
@@ -96,23 +96,23 @@ fn endpoints_reject_authority_and_normalization_ambiguity() {
         assert!(!debug.contains("api.example.test"));
     }
     assert!(matches!(
-        HttpsEndpoint::new("http://api.example.test/v1"),
+        HttpsEndpoint::new_custom("http://api.example.test/v1"),
         Err(EndpointError::HttpsRequired)
     ));
     assert!(matches!(
-        HttpsEndpoint::new("https://user@api.example.test/v1"),
+        HttpsEndpoint::new_custom("https://user@api.example.test/v1"),
         Err(EndpointError::CredentialsForbidden)
     ));
     assert!(matches!(
-        HttpsEndpoint::new("https://api.example.test/v1?token=x"),
+        HttpsEndpoint::new_custom("https://api.example.test/v1?token=x"),
         Err(EndpointError::QueryForbidden)
     ));
     assert!(matches!(
-        HttpsEndpoint::new("https://api.example.test/v1/"),
+        HttpsEndpoint::new_custom("https://api.example.test/v1/"),
         Err(EndpointError::TrailingSlash)
     ));
 
-    let endpoint = HttpsEndpoint::new("https://api.example.test/v1");
+    let endpoint = HttpsEndpoint::new_custom("https://api.example.test/v1");
     let safe = RequestTarget::new("/servers?name=test%20server");
     if let (Ok(endpoint), Ok(safe)) = (endpoint, safe) {
         let url = endpoint.compose(safe);
@@ -419,7 +419,7 @@ fn fips_policy_rejects_missing_roots_crls_and_malformed_crls() {
 #[cfg(feature = "blocking-rustls-fips")]
 #[test]
 fn fips_client_builder_requires_an_explicit_tls_policy() {
-    let endpoint = HttpsEndpoint::new("https://api.example.test");
+    let endpoint = HttpsEndpoint::new_custom("https://api.example.test");
     let token = BearerToken::new("test-token");
     let user_agent = UserAgent::new("cloud-sdk-test/0.23");
     let timeouts = test_timeouts();

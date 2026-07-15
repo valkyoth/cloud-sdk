@@ -59,7 +59,9 @@ use cloud_sdk_reqwest::blocking::{
     UserAgent,
 };
 
-let Ok(endpoint) = HttpsEndpoint::new("https://api.hetzner.cloud/v1") else { return };
+// Custom endpoints are bearer-token destinations. Keep this value in trusted
+// operator configuration; never accept it from tenant-controlled input.
+let Ok(endpoint) = HttpsEndpoint::new_custom("https://api.hetzner.cloud/v1") else { return };
 let Ok(token) = BearerToken::new("replace-with-scoped-token") else { return };
 let Ok(user_agent) = UserAgent::new("my-service/1.0") else { return };
 let Ok(timeouts) = RequestTimeouts::new(
@@ -164,7 +166,9 @@ use cloud_sdk_reqwest::asynchronous::{
     AsyncClientBuilder, BearerToken, HttpsEndpoint, RequestTimeouts, UserAgent,
 };
 
-let Ok(endpoint) = HttpsEndpoint::new("https://api.hetzner.cloud/v1") else { return };
+// Custom endpoints are bearer-token destinations. Keep this value in trusted
+// operator configuration; never accept it from tenant-controlled input.
+let Ok(endpoint) = HttpsEndpoint::new_custom("https://api.hetzner.cloud/v1") else { return };
 let Ok(token) = BearerToken::new("replace-with-scoped-token") else { return };
 let Ok(user_agent) = UserAgent::new("my-service/1.0") else { return };
 let Ok(timeouts) = RequestTimeouts::new(

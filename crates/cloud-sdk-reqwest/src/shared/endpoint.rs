@@ -58,8 +58,12 @@ impl fmt::Debug for HttpsEndpoint {
 }
 
 impl HttpsEndpoint {
-    /// Validates an HTTPS endpoint without credentials, query, or fragment.
-    pub fn new(value: &str) -> Result<Self, EndpointError> {
+    /// Explicitly trusts and validates a custom HTTPS credential destination.
+    ///
+    /// The transport sends its bearer token to this origin. `value` must come
+    /// from trusted operator configuration and must never be controlled by a
+    /// tenant, request payload, or other untrusted input.
+    pub fn new_custom(value: &str) -> Result<Self, EndpointError> {
         Self::new_inner(value, true)
     }
 

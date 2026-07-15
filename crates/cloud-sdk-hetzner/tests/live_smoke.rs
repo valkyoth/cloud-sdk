@@ -58,7 +58,8 @@ impl From<ProbeFailure> for LiveSmokeError {
 #[ignore = "requires explicit opt-in and a private read-only Hetzner token file"]
 fn read_only_catalog_smoke() -> Result<(), LiveSmokeError> {
     let token = load_read_only_token()?;
-    let endpoint = HttpsEndpoint::new(CLOUD_API_BASE_URL).map_err(LiveSmokeError::Endpoint)?;
+    let endpoint =
+        HttpsEndpoint::new_custom(CLOUD_API_BASE_URL).map_err(LiveSmokeError::Endpoint)?;
     let user_agent =
         UserAgent::new("cloud-sdk-live-smoke/0.19.0").map_err(LiveSmokeError::UserAgent)?;
     let timeouts = RequestTimeouts::new(Duration::from_secs(30), Duration::from_secs(10))

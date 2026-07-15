@@ -10,7 +10,7 @@ fn deterministic_root_snapshot_is_nonempty_and_not_fips() {
 
 #[test]
 fn deterministic_root_client_builds_without_platform_state() {
-    let endpoint = HttpsEndpoint::new("https://api.example.test");
+    let endpoint = HttpsEndpoint::new_custom("https://api.example.test");
     let token = BearerToken::new("test-token");
     let user_agent = UserAgent::new("cloud-sdk-test/0.24");
     let timeouts = RequestTimeouts::new(Duration::from_secs(2), Duration::from_secs(1));

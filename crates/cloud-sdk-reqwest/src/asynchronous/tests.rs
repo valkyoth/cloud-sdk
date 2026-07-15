@@ -277,7 +277,7 @@ fn caller_cancellation_after_partial_body_never_exposes_response() {
 
 #[test]
 fn async_client_debug_redacts_endpoint_and_token() {
-    let endpoint = HttpsEndpoint::new("https://api.example.test/v1");
+    let endpoint = HttpsEndpoint::new_custom("https://api.example.test/v1");
     let token = BearerToken::new("secret-token");
     let user_agent = UserAgent::new("cloud-sdk-test/0.18");
     let timeouts = test_timeouts();
