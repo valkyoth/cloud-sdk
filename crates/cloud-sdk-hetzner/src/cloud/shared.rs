@@ -31,6 +31,17 @@ pub enum CloudRequestError {
     InvalidType,
 }
 
+impl_static_error!(CloudRequestError,
+    Self::InvalidPath(_) => "cloud endpoint path is invalid",
+    Self::InvalidLabel(_) => "cloud label is invalid",
+    Self::PathBufferTooSmall => "cloud path buffer is too small",
+    Self::QueryBufferTooSmall => "cloud query buffer is too small",
+    Self::PathEncodingFailed => "cloud path encoding failed",
+    Self::InvalidName => "cloud resource name is invalid",
+    Self::InvalidText => "cloud request text is invalid",
+    Self::InvalidType => "cloud request type is invalid",
+);
+
 /// Nonzero Cloud resource identifier.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct CloudResourceId(u64);

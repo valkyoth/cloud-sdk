@@ -34,6 +34,19 @@ pub enum LabelError {
     InvalidSelectorSyntax,
 }
 
+impl_static_error!(LabelError,
+    Self::EmptyKey => "label key is empty",
+    Self::KeyTooLong => "label key exceeds the length limit",
+    Self::InvalidKeyBoundary => "label key boundary is invalid",
+    Self::InvalidKeyByte => "label key contains an invalid byte",
+    Self::ValueTooLong => "label value exceeds the length limit",
+    Self::InvalidValueByte => "label value contains an invalid byte",
+    Self::EmptySelector => "label selector is empty",
+    Self::SelectorTooLong => "label selector exceeds the length limit",
+    Self::InvalidSelectorByte => "label selector contains an invalid byte",
+    Self::InvalidSelectorSyntax => "label selector syntax is invalid",
+);
+
 /// Borrowed label key.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct LabelKey<'a> {

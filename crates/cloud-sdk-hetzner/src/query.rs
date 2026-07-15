@@ -25,6 +25,16 @@ pub enum QueryError {
     EncodeBufferTooSmall,
 }
 
+impl_static_error!(QueryError,
+    Self::EmptyKey => "query key is empty",
+    Self::KeyTooLong => "query key exceeds the length limit",
+    Self::ValueTooLong => "query value exceeds the length limit",
+    Self::ControlByte => "query component contains a control byte",
+    Self::OutOfOrder => "query parameters are out of deterministic order",
+    Self::CapacityExceeded => "query parameter capacity was exceeded",
+    Self::EncodeBufferTooSmall => "query output buffer is too small",
+);
+
 /// Borrowed query parameter.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct QueryParam<'a> {

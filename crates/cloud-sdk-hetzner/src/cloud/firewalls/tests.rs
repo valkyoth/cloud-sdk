@@ -138,7 +138,10 @@ fn networks_firewalls_required_fields_and_bodies_are_explicit() {
     assert!(server.is_some(), "fixture server ID must validate");
     let Some(server) = server else { return };
     let resources = [FirewallResource::Server(server)];
-    assert_eq!(FirewallResourcesRequest::new(&resources).resources().len(), 1);
+    assert_eq!(
+        FirewallResourcesRequest::new(&resources).resources().len(),
+        1
+    );
 
     let key = LabelKey::new("env");
     let value = LabelValue::new("prod");

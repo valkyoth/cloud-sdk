@@ -95,6 +95,21 @@ pub enum ActionPollError<E> {
     Policy(E),
 }
 
+impl<E> core::fmt::Display for ActionPollError<E> {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        formatter.write_str(match self {
+            Self::InvalidProgress => "action progress exceeds 100",
+            Self::ProgressRegressed => "action progress moved backwards",
+            Self::ZeroDelay => "action poll policy requested a zero delay",
+            Self::ObservationOverflow => "action observation counter overflowed",
+            Self::Terminal => "action polling already reached a terminal state",
+            Self::Policy(_) => "action poll policy failed",
+        })
+    }
+}
+
+impl<E: core::fmt::Debug> core::error::Error for ActionPollError<E> {}
+
 /// Explicit state for one caller-driven action polling operation.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct ActionPoller {

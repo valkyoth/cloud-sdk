@@ -87,6 +87,14 @@ impl fmt::Debug for ApiError<'_> {
     }
 }
 
+impl core::fmt::Display for ApiError<'_> {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        formatter.write_str("Hetzner API returned an error")
+    }
+}
+
+impl core::error::Error for ApiError<'_> {}
+
 impl<'a> ApiError<'a> {
     /// Creates a borrowed API error envelope.
     #[must_use]

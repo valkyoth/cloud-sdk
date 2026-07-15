@@ -52,6 +52,22 @@ pub enum ZoneRequestError {
     InvalidActionFilter,
 }
 
+impl_static_error!(ZoneRequestError,
+    Self::Cloud(_) => "DNS zone cloud request is invalid",
+    Self::InvalidZoneName => "DNS zone name is invalid",
+    Self::InvalidTtl => "DNS zone TTL is invalid",
+    Self::InvalidZoneFile => "DNS zone file is invalid",
+    Self::BodyBufferTooSmall => "DNS zone request-body buffer is too small",
+    Self::InvalidNameserverAddress => "DNS primary nameserver address is invalid",
+    Self::InvalidNameserverPort => "DNS primary nameserver port is invalid",
+    Self::InvalidTsigKey => "DNS TSIG key is invalid",
+    Self::EmptyPrimaryNameservers => "DNS primary nameserver list is empty",
+    Self::TooManyPrimaryNameservers => "DNS primary nameserver list exceeds the item limit",
+    Self::DuplicatePrimaryNameserver => "DNS primary nameserver list contains a duplicate",
+    Self::InvalidModeConfiguration => "DNS zone mode configuration is invalid",
+    Self::InvalidActionFilter => "DNS zone action filter is invalid for this endpoint",
+);
+
 impl From<CloudRequestError> for ZoneRequestError {
     fn from(value: CloudRequestError) -> Self {
         Self::Cloud(value)

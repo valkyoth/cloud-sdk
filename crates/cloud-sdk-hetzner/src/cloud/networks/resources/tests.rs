@@ -1,7 +1,7 @@
 use super::{
     NetworkCreateRequest, NetworkEndpoint, NetworkId, NetworkLabels, NetworkListRequest,
-    NetworkName, NetworkRoute, NetworkSortField, NetworkSubnet,
-    NetworkSubnetType, NetworkVswitchId, NetworkZone,
+    NetworkName, NetworkRoute, NetworkSortField, NetworkSubnet, NetworkSubnetType,
+    NetworkVswitchId, NetworkZone,
 };
 use crate::actions::ActionId;
 use crate::cloud::ip::{NetworkIpRange, RouteDestination, RouteGateway, SubnetIpRange};
@@ -127,7 +127,10 @@ fn networks_firewalls_network_required_fields_are_preserved() {
     let Ok(ip_range) = NetworkIpRange::new("10.0.0.0/16") else {
         return;
     };
-    assert_eq!(NetworkCreateRequest::new(name, ip_range).ip_range(), ip_range);
+    assert_eq!(
+        NetworkCreateRequest::new(name, ip_range).ip_range(),
+        ip_range
+    );
 
     let key = LabelKey::new("env");
     let value = LabelValue::new("prod");

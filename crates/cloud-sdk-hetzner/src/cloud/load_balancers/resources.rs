@@ -189,10 +189,7 @@ pub struct LoadBalancerCreateRequest<'a> {
 impl<'a> LoadBalancerCreateRequest<'a> {
     /// Creates a request with its two required fields.
     #[must_use]
-    pub const fn new(
-        name: LoadBalancerName<'a>,
-        load_balancer_type: LoadBalancerType<'a>,
-    ) -> Self {
+    pub const fn new(name: LoadBalancerName<'a>, load_balancer_type: LoadBalancerType<'a>) -> Self {
         Self {
             name,
             load_balancer_type,

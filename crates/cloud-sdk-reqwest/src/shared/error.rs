@@ -21,6 +21,18 @@ pub enum BuildError {
     ClientBuildFailed,
 }
 
+impl_static_error!(BuildError,
+    Self::FipsTlsPolicyRequired => "FIPS TLS policy is required",
+    Self::FipsTrustRootsRequired => "FIPS trust roots are required",
+    Self::FipsCertificateRevocationListsRequired => "FIPS revocation lists are required",
+    Self::FipsProviderRejected => "cryptographic provider did not report FIPS operation",
+    Self::FipsProtocolConfigurationFailed => "FIPS protocol configuration failed",
+    Self::FipsRevocationVerifierFailed => "FIPS revocation verifier configuration failed",
+    Self::FipsClientConfigurationRejected => "TLS client did not report FIPS operation",
+    Self::WebPkiRootsProtocolConfigurationFailed => "web PKI protocol configuration failed",
+    Self::ClientBuildFailed => "HTTP client construction failed",
+);
+
 /// Payload-free transport failure.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum TransportError {
@@ -53,3 +65,20 @@ pub enum TransportError {
     /// The final response origin differed from the configured endpoint.
     ResponseOriginChanged,
 }
+
+impl_static_error!(TransportError,
+    Self::TargetRejected => "request target was rejected",
+    Self::MissingContentType => "request body content type is missing",
+    Self::HeaderRejected => "request header was rejected",
+    Self::RequestBodyAllocationFailed => "request-body allocation failed",
+    Self::RequestBodyTooLarge => "request body is too large",
+    Self::ResponseBodyAllocationFailed => "response-body allocation failed",
+    Self::ConnectFailed => "connection failed",
+    Self::TimedOut => "request timed out",
+    Self::RequestFailed => "request failed",
+    Self::InvalidStatus => "response status is invalid",
+    Self::InvalidRateLimitHeaders => "rate-limit headers are invalid",
+    Self::ResponseTooLarge => "response body exceeds the caller limit",
+    Self::ResponseReadFailed => "response body read failed",
+    Self::ResponseOriginChanged => "response origin changed",
+);

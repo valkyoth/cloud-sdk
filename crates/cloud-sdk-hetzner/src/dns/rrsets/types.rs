@@ -38,6 +38,18 @@ pub enum RrsetRequestError {
     BodyBufferTooSmall,
 }
 
+impl_static_error!(RrsetRequestError,
+    Self::Cloud(_) => "RRSet cloud request is invalid",
+    Self::InvalidName => "RRSet name is invalid",
+    Self::InvalidRecordValue => "RRSet record value is invalid",
+    Self::InvalidRecordComment => "RRSet record comment is invalid",
+    Self::EmptyRecords => "RRSet record list is empty",
+    Self::TooManyRecords => "RRSet record list exceeds the item limit",
+    Self::DuplicateRecord => "RRSet request contains a duplicate record",
+    Self::InvalidTypeFilter => "RRSet type filter is invalid",
+    Self::BodyBufferTooSmall => "RRSet request-body buffer is too small",
+);
+
 impl From<CloudRequestError> for RrsetRequestError {
     fn from(value: CloudRequestError) -> Self {
         Self::Cloud(value)

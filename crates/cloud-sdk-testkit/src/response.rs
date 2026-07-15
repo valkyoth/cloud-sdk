@@ -26,6 +26,10 @@ pub enum ResponseFixtureError {
     NonErrorStatus,
 }
 
+impl_static_error!(ResponseFixtureError,
+    Self::NonErrorStatus => "error fixture requires an HTTP error status",
+);
+
 /// Provider-neutral response body plus optional interpreted metadata.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct ResponseFixture<'a> {

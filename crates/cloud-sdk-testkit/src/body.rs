@@ -15,6 +15,11 @@ pub enum FixtureBodyError {
     OutputTooSmall,
 }
 
+impl_static_error!(FixtureBodyError,
+    Self::TooLarge => "fixture body exceeds the size limit",
+    Self::OutputTooSmall => "fixture output buffer is too small",
+);
+
 /// Borrowed or compact repeated-byte fixture body.
 #[derive(Clone, Copy, Eq, PartialEq)]
 pub enum FixtureBody<'a> {

@@ -19,6 +19,15 @@ pub enum FixtureMetadataError {
     InvalidProgress,
 }
 
+impl_static_error!(FixtureMetadataError,
+    Self::PaginationZero => "fixture pagination value must be nonzero",
+    Self::PageAfterLast => "fixture page exceeds the last page",
+    Self::InvalidLastPage => "fixture last-page metadata is invalid",
+    Self::RemainingExceedsLimit => "fixture remaining requests exceed the rate limit",
+    Self::RateLimitZero => "fixture rate limit must be nonzero",
+    Self::InvalidProgress => "fixture action progress exceeds 100",
+);
+
 /// Pagination metadata for a deterministic response.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct PaginationFixture {

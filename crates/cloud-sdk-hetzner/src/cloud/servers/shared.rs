@@ -50,6 +50,24 @@ pub enum ServerRequestError {
     MutuallyExclusiveFields,
 }
 
+impl_static_error!(ServerRequestError,
+    Self::InvalidPath(_) => "server endpoint path is invalid",
+    Self::EmptyAliasIps => "server alias-IP list is empty",
+    Self::ActionBodyRequired => "server action requires a request body",
+    Self::PathBufferTooSmall => "server path buffer is too small",
+    Self::QueryBufferTooSmall => "server query buffer is too small",
+    Self::BodyBufferTooSmall => "server body buffer is too small",
+    Self::NumberEncodingFailed => "server number encoding failed",
+    Self::PathEncodingFailed => "server path encoding failed",
+    Self::InvalidName => "server name is invalid",
+    Self::InvalidReference => "server resource reference is invalid",
+    Self::InvalidText => "server request text is invalid",
+    Self::InvalidUserData => "server user data is invalid",
+    Self::InvalidTimestamp => "server timestamp is invalid",
+    Self::InvalidTimeRange => "server time range is invalid",
+    Self::MutuallyExclusiveFields => "server request fields are mutually exclusive",
+);
+
 /// Nonzero server-adjacent resource identifier.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct ResourceId(u64);

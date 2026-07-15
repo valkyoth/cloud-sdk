@@ -216,10 +216,7 @@ pub struct FloatingIpCreateRequest<'a> {
 impl<'a> FloatingIpCreateRequest<'a> {
     /// Creates a validated create request with explicit server or home location.
     #[must_use]
-    pub const fn new(
-        ip_type: FloatingIpType,
-        placement: FloatingIpCreatePlacement<'a>,
-    ) -> Self {
+    pub const fn new(ip_type: FloatingIpType, placement: FloatingIpCreatePlacement<'a>) -> Self {
         Self {
             ip_type,
             placement,
@@ -416,10 +413,7 @@ pub struct FloatingIpChangeDnsPtrRequest<'a> {
 impl<'a> FloatingIpChangeDnsPtrRequest<'a> {
     /// Creates a DNS pointer request requiring explicit set or reset.
     #[must_use]
-    pub const fn new(
-        ip: FloatingIpAddress<'a>,
-        dns_ptr: FloatingIpDnsPtrIntent<'a>,
-    ) -> Self {
+    pub const fn new(ip: FloatingIpAddress<'a>, dns_ptr: FloatingIpDnsPtrIntent<'a>) -> Self {
         Self { ip, dns_ptr }
     }
 

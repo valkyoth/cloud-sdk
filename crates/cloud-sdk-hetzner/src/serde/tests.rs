@@ -52,8 +52,8 @@ fn serde_rrset_bodies_match_source_locked_json_shapes() {
     let labels = valid!(CloudLabels::new(&label_entries));
 
     let create = RrsetCreateRequest::new(zone, name, RrsetType::A, entries)
-    .with_ttl(RrsetTtl::InheritZoneDefault)
-    .with_labels(labels);
+        .with_ttl(RrsetTtl::InheritZoneDefault)
+        .with_labels(labels);
     let body = valid!(RrsetRequestBody::create(create));
     let json = valid!(serde_json::to_string(&body));
     assert_eq!(

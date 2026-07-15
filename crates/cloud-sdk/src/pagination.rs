@@ -33,6 +33,22 @@ pub enum PaginationError {
     Complete,
 }
 
+impl_static_error!(PaginationError,
+    Self::PageZero => "page number must be nonzero",
+    Self::PerPageZero => "page size must be nonzero",
+    Self::PageLimitZero => "page limit must be nonzero",
+    Self::InvalidPreviousPage => "previous-page metadata is invalid",
+    Self::InvalidNextPage => "next-page metadata is invalid",
+    Self::InvalidLastPage => "last-page metadata is invalid",
+    Self::UnexpectedPage => "response page differs from requested page",
+    Self::EmptyPageWithNextPage => "nonterminal response page is empty",
+    Self::InvalidEntryCount => "response entry count is invalid",
+    Self::PageSizeChanged => "response page size changed during traversal",
+    Self::TraversalChanged => "pagination metadata changed during traversal",
+    Self::PageLimitExceeded => "pagination page limit was exceeded",
+    Self::Complete => "pagination traversal is complete",
+);
+
 /// One-based provider-neutral page number.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct PageNumber(u64);

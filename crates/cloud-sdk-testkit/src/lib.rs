@@ -6,6 +6,20 @@ extern crate alloc;
 #[cfg(feature = "std")]
 extern crate std;
 
+macro_rules! impl_static_error {
+    ($error:ty, $($pattern:pat => $message:literal),+ $(,)?) => {
+        impl core::fmt::Display for $error {
+            fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+                formatter.write_str(match self {
+                    $($pattern => $message,)+
+                })
+            }
+        }
+
+        impl core::error::Error for $error {}
+    };
+}
+
 mod adversarial;
 mod body;
 mod metadata;

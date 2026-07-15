@@ -93,6 +93,16 @@ pub enum MockError {
     InvalidFixtureMetadata,
 }
 
+impl_static_error!(MockError,
+    Self::Exhausted => "mock transport has no expected exchange remaining",
+    Self::MethodMismatch => "mock request method differs from expectation",
+    Self::TargetMismatch => "mock request target differs from expectation",
+    Self::BodyMismatch => "mock request body differs from expectation",
+    Self::ResponseBufferTooSmall => "mock response buffer is too small",
+    Self::CursorOverflow => "mock transport cursor overflowed",
+    Self::InvalidFixtureMetadata => "mock fixture metadata is invalid",
+);
+
 /// Ordered no-allocation mock implementation of [`BlockingTransport`].
 pub struct MockTransport<'a> {
     exchanges: &'a [MockExchange<'a>],

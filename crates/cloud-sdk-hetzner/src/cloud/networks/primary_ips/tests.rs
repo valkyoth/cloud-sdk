@@ -95,15 +95,9 @@ fn server_adjacent_primary_ip_assignment_and_dns_ptr_intent_are_explicit() {
     let ptr = PrimaryIpDnsPtr::new("server.example.com");
     if let (Ok(ip), Ok(ptr)) = (ip, ptr) {
         let set = PrimaryIpChangeDnsPtrRequest::new(ip, PrimaryIpDnsPtrIntent::Set(ptr));
-        assert_eq!(
-            set.dns_ptr(),
-            PrimaryIpDnsPtrIntent::Set(ptr)
-        );
+        assert_eq!(set.dns_ptr(), PrimaryIpDnsPtrIntent::Set(ptr));
         let reset = PrimaryIpChangeDnsPtrRequest::new(ip, PrimaryIpDnsPtrIntent::Reset);
-        assert_eq!(
-            reset.dns_ptr(),
-            PrimaryIpDnsPtrIntent::Reset
-        );
+        assert_eq!(reset.dns_ptr(), PrimaryIpDnsPtrIntent::Reset);
     }
 }
 

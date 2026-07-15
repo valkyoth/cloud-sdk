@@ -60,6 +60,27 @@ pub enum SecurityRequestError {
     TooManyActionSorts,
 }
 
+impl_static_error!(SecurityRequestError,
+    Self::InvalidPath(_) => "security endpoint path is invalid",
+    Self::InvalidLabel(_) => "security resource label is invalid",
+    Self::EmptyName => "security resource name is empty",
+    Self::NameTooLong => "security resource name exceeds the length limit",
+    Self::InvalidNameByte => "security resource name contains an invalid byte",
+    Self::PathBufferTooSmall => "security path buffer is too small",
+    Self::QueryBufferTooSmall => "security query buffer is too small",
+    Self::BodyBufferTooSmall => "security request-body buffer is too small",
+    Self::NumberEncodingFailed => "security number encoding failed",
+    Self::PathEncodingFailed => "security path encoding failed",
+    Self::InvalidSshPublicKey => "SSH public key is invalid",
+    Self::InvalidSshFingerprint => "SSH fingerprint is invalid",
+    Self::InvalidPem => "PEM body is invalid",
+    Self::InvalidDomainName => "certificate domain name is invalid",
+    Self::EmptyDomainNames => "managed certificate domain list is empty",
+    Self::TooManyActionIds => "certificate action ID filter exceeds the item limit",
+    Self::TooManyActionStatuses => "certificate action status filter exceeds the item limit",
+    Self::TooManyActionSorts => "certificate action sort list exceeds the item limit",
+);
+
 /// Nonzero identifier for security resources.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct SecurityId(u64);

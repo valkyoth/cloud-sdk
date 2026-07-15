@@ -4,6 +4,20 @@
 #[cfg(feature = "std")]
 extern crate std;
 
+macro_rules! impl_static_error {
+    ($error:ty, $($pattern:pat => $message:literal),+ $(,)?) => {
+        impl core::fmt::Display for $error {
+            fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+                formatter.write_str(match self {
+                    $($pattern => $message,)+
+                })
+            }
+        }
+
+        impl core::error::Error for $error {}
+    };
+}
+
 pub mod action_polling;
 pub mod buffer;
 pub mod pagination;
@@ -61,6 +75,10 @@ impl Method {
 #[cfg(test)]
 mod tests {
     use super::{ApiFamily, Method, Provider};
+    use crate::action_polling::ActionPollError;
+    use crate::pagination::PaginationError;
+    use crate::rate_limit::RateLimitError;
+    use crate::transport::{ContentTypeError, RequestTargetError};
 
     #[test]
     fn exposes_provider_neutral_domains() {
@@ -68,5 +86,16 @@ mod tests {
         assert_eq!(ApiFamily::Cloud, ApiFamily::Cloud);
         assert_eq!(Method::Get, Method::Get);
         assert_eq!(Method::Post.as_str(), "POST");
+    }
+
+    #[test]
+    fn public_errors_implement_payload_free_core_error() {
+        fn assert_error<E: core::error::Error>() {}
+
+        assert_error::<PaginationError>();
+        assert_error::<RateLimitError>();
+        assert_error::<ContentTypeError>();
+        assert_error::<RequestTargetError>();
+        assert_error::<ActionPollError<&'static str>>();
     }
 }

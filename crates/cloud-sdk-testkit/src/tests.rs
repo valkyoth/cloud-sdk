@@ -13,6 +13,20 @@ use crate::{
 };
 
 #[test]
+fn public_errors_implement_payload_free_core_error() {
+    fn assert_error<E: core::error::Error>() {}
+
+    assert_error::<FixtureBodyError>();
+    assert_error::<FixtureMetadataError>();
+    assert_error::<MockError>();
+    assert_error::<ResponseFixtureError>();
+    assert_eq!(
+        format!("{}", MockError::TargetMismatch),
+        "mock request target differs from expectation"
+    );
+}
+
+#[test]
 fn fixture_builders_cover_success_pagination_action_rate_limit_and_error() {
     let body = FixtureBody::new(br#"{"ok":true}"#);
     let pagination = PaginationFixture::new(2, 50, 75, 2);

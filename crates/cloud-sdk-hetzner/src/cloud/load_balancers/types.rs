@@ -46,6 +46,18 @@ pub enum LoadBalancerRequestError {
     TooManyItems,
 }
 
+impl_static_error!(LoadBalancerRequestError,
+    Self::Cloud(_) => "load-balancer cloud request is invalid",
+    Self::Ip(_) => "load-balancer IP address or range is invalid",
+    Self::InvalidText => "load-balancer request text is invalid",
+    Self::InvalidPort => "load-balancer port is invalid",
+    Self::InvalidHealthCheck => "load-balancer health check is invalid",
+    Self::InvalidServiceConfiguration => "load-balancer service configuration is invalid",
+    Self::InvalidTargetConfiguration => "load-balancer target configuration is invalid",
+    Self::InvalidTimeRange => "load-balancer metrics time range is invalid",
+    Self::TooManyItems => "load-balancer request exceeds an item limit",
+);
+
 impl From<CloudRequestError> for LoadBalancerRequestError {
     fn from(value: CloudRequestError) -> Self {
         Self::Cloud(value)

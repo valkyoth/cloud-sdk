@@ -22,6 +22,16 @@ pub enum IpValidationError {
     ReservedRouteDestination,
 }
 
+impl_static_error!(IpValidationError,
+    Self::InvalidSyntax => "IP address or CIDR syntax is invalid",
+    Self::InvalidPrefix => "CIDR prefix is invalid",
+    Self::HostBitsSet => "CIDR has host bits set",
+    Self::NotPrivateIpv4 => "IP range is not private IPv4",
+    Self::RangeTooSmall => "IP range is smaller than the provider limit",
+    Self::ReservedGateway => "IP address is reserved as a provider gateway",
+    Self::ReservedRouteDestination => "route destination overlaps a reserved provider range",
+);
+
 /// IP address family carried by a validated CIDR.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum IpFamily {

@@ -23,6 +23,13 @@ pub enum BearerTokenError {
     AllocationFailed,
 }
 
+impl_static_error!(BearerTokenError,
+    Self::Empty => "bearer token is empty",
+    Self::TooLong => "bearer token exceeds the length limit",
+    Self::InvalidByte => "bearer token contains an invalid byte",
+    Self::AllocationFailed => "bearer-token allocation failed",
+);
+
 /// Owned bearer authorization value with redacted diagnostics and volatile
 /// cleanup of the adapter-owned bytes.
 pub struct BearerToken {

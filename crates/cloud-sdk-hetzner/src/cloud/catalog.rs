@@ -25,6 +25,16 @@ pub enum CatalogRequestError {
     PathEncodingFailed,
 }
 
+impl_static_error!(CatalogRequestError,
+    Self::InvalidPath(_) => "catalog endpoint path is invalid",
+    Self::UnsupportedPagination => "catalog endpoint does not support pagination",
+    Self::UnsupportedSorting => "catalog endpoint does not support sorting",
+    Self::PathBufferTooSmall => "catalog path buffer is too small",
+    Self::QueryBufferTooSmall => "catalog query buffer is too small",
+    Self::NumberEncodingFailed => "catalog number encoding failed",
+    Self::PathEncodingFailed => "catalog path encoding failed",
+);
+
 /// Nonzero identifier for read-only catalog resources.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct CatalogId(u64);

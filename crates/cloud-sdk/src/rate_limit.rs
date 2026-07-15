@@ -9,6 +9,11 @@ pub enum RateLimitError {
     RemainingExceedsLimit,
 }
 
+impl_static_error!(RateLimitError,
+    Self::LimitZero => "rate limit must be nonzero",
+    Self::RemainingExceedsLimit => "remaining requests exceed the rate limit",
+);
+
 /// Validated rate-limit metadata returned by a transport.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct RateLimit {

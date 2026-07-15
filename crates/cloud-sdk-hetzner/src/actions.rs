@@ -31,6 +31,15 @@ pub enum ActionRequestError {
     PathEncodingFailed,
 }
 
+impl_static_error!(ActionRequestError,
+    Self::InvalidPath(_) => "action endpoint path is invalid",
+    Self::EmptyActionIds => "action ID filter is empty",
+    Self::TooManyActionIds => "action ID filter exceeds the item limit",
+    Self::PathBufferTooSmall => "action path buffer is too small",
+    Self::QueryBufferTooSmall => "action query buffer is too small",
+    Self::PathEncodingFailed => "action path encoding failed",
+);
+
 /// Action lifecycle state returned by long-running Hetzner operations.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum ActionStatus {

@@ -1,8 +1,7 @@
 use super::{
     VolumeActionEndpoint, VolumeAttachRequest, VolumeCreatePlacement, VolumeCreateRequest,
     VolumeEndpoint, VolumeId, VolumeListRequest, VolumeLocation, VolumeName,
-    VolumeProtectionRequest, VolumeResizeRequest, VolumeSizeGb,
-    VolumeSortField, VolumeStatus,
+    VolumeProtectionRequest, VolumeResizeRequest, VolumeSizeGb, VolumeSortField, VolumeStatus,
 };
 use crate::EndpointGroup;
 use crate::actions::ActionId;
@@ -114,11 +113,7 @@ fn storage_ip_volume_size_and_placement_are_validated() {
     let location = VolumeLocation::new("fsn1");
     assert!(location.is_ok(), "fixture volume location must validate");
     let Ok(location) = location else { return };
-    let request = VolumeCreateRequest::new(
-        size,
-        name,
-        VolumeCreatePlacement::Location(location),
-    );
+    let request = VolumeCreateRequest::new(size, name, VolumeCreatePlacement::Location(location));
     assert_eq!(
         request.placement(),
         VolumeCreatePlacement::Location(location)

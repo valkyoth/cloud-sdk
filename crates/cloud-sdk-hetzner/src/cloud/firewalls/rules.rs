@@ -28,6 +28,16 @@ pub enum FirewallRuleError {
     PortProtocolConflict,
 }
 
+impl_static_error!(FirewallRuleError,
+    Self::TooManyCidrs => "firewall rule exceeds the CIDR limit",
+    Self::DuplicateCidr => "firewall rule contains a duplicate CIDR",
+    Self::TooManyRules => "firewall ruleset exceeds the rule limit",
+    Self::DuplicateRule => "firewall ruleset contains a duplicate rule",
+    Self::InvalidDescription => "firewall rule description is invalid",
+    Self::InvalidPort => "firewall rule port is invalid",
+    Self::PortProtocolConflict => "firewall rule port conflicts with its protocol",
+);
+
 /// Firewall traffic protocol.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum FirewallProtocol {

@@ -24,6 +24,11 @@ pub enum RrsetBodyError {
     BodyTooLarge,
 }
 
+impl_static_error!(RrsetBodyError,
+    Self::SizeOverflow => "RRSet JSON size calculation overflowed",
+    Self::BodyTooLarge => "RRSet JSON body exceeds the size limit",
+);
+
 /// Size-checked RRSet JSON request body.
 #[derive(Clone, Copy)]
 pub struct RrsetRequestBody<'a> {

@@ -35,6 +35,10 @@ pub enum ResponseSizeError {
     TooLarge,
 }
 
+impl_static_error!(ResponseSizeError,
+    Self::TooLarge => "provider response exceeds the parser size limit",
+);
+
 /// Size-checked raw response input for a caller-selected Serde format parser.
 #[derive(Clone, Copy, Eq, PartialEq)]
 pub struct ResponseBytes<'a>(&'a [u8]);
@@ -81,6 +85,14 @@ impl fmt::Debug for ApiErrorResponse<'_> {
             .finish()
     }
 }
+
+impl core::fmt::Display for ApiErrorResponse<'_> {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        formatter.write_str("Hetzner API returned an error response")
+    }
+}
+
+impl core::error::Error for ApiErrorResponse<'_> {}
 
 impl ApiErrorResponse<'_> {
     /// Returns the classified API error code.

@@ -266,10 +266,7 @@ pub struct LoadBalancerChangeDnsPtrRequest<'a> {
 impl<'a> LoadBalancerChangeDnsPtrRequest<'a> {
     /// Creates a request requiring explicit set or reset intent.
     #[must_use]
-    pub const fn new(
-        ip: LoadBalancerIp<'a>,
-        dns_ptr: LoadBalancerDnsPtrIntent<'a>,
-    ) -> Self {
+    pub const fn new(ip: LoadBalancerIp<'a>, dns_ptr: LoadBalancerDnsPtrIntent<'a>) -> Self {
         Self { ip, dns_ptr }
     }
     /// Returns the address.

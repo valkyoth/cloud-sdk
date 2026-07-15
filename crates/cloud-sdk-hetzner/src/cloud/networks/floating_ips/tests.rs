@@ -127,14 +127,8 @@ fn storage_ip_floating_ip_action_markers_preserve_required_fields() {
     assert!(ptr.is_ok(), "fixture floating IP DNS PTR must validate");
     let Ok(ptr) = ptr else { return };
     let set = FloatingIpChangeDnsPtrRequest::new(ip, FloatingIpDnsPtrIntent::Set(ptr));
-    assert_eq!(
-        set.dns_ptr(),
-        FloatingIpDnsPtrIntent::Set(ptr)
-    );
+    assert_eq!(set.dns_ptr(), FloatingIpDnsPtrIntent::Set(ptr));
     let reset = FloatingIpChangeDnsPtrRequest::new(ip, FloatingIpDnsPtrIntent::Reset);
-    assert_eq!(
-        reset.dns_ptr(),
-        FloatingIpDnsPtrIntent::Reset
-    );
+    assert_eq!(reset.dns_ptr(), FloatingIpDnsPtrIntent::Reset);
     assert!(FloatingIpProtectionRequest::new(true).delete());
 }

@@ -17,6 +17,12 @@ pub enum TimeoutError {
     ExceedsTotal,
 }
 
+impl_static_error!(TimeoutError,
+    Self::Zero => "timeout must be nonzero",
+    Self::TooLong => "timeout exceeds the configured limit",
+    Self::ExceedsTotal => "connection timeout exceeds total timeout",
+);
+
 /// Explicit total-request and connection timeout policy.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct RequestTimeouts {
@@ -59,6 +65,12 @@ pub enum UserAgentError {
     /// The value is not a valid HTTP header value.
     Invalid,
 }
+
+impl_static_error!(UserAgentError,
+    Self::Empty => "user agent is empty",
+    Self::TooLong => "user agent exceeds the length limit",
+    Self::Invalid => "user agent is invalid",
+);
 
 /// Validated, non-secret user-agent header value.
 #[derive(Clone)]

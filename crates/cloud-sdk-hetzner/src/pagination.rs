@@ -21,6 +21,13 @@ pub enum PaginationError {
     InvalidNavigation,
 }
 
+impl_static_error!(PaginationError,
+    Self::PageZero => "page number must be nonzero",
+    Self::PerPageZero => "page size must be nonzero",
+    Self::PerPageTooLarge => "page size exceeds the provider limit",
+    Self::InvalidNavigation => "pagination navigation metadata is invalid",
+);
+
 /// One-based page number.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct Page(u64);
@@ -181,6 +188,11 @@ pub enum SortError {
     /// Sort keys must contain only simple field-name bytes.
     InvalidByte,
 }
+
+impl_static_error!(SortError,
+    Self::Empty => "sort key is empty",
+    Self::InvalidByte => "sort key contains an invalid byte",
+);
 
 /// Borrowed sort key.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]

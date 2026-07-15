@@ -31,6 +31,19 @@ pub enum EndpointError {
     AllocationFailed,
 }
 
+impl_static_error!(EndpointError,
+    Self::InvalidUrl => "endpoint URL is invalid",
+    Self::HttpsRequired => "endpoint must use HTTPS",
+    Self::MissingHost => "endpoint host is missing",
+    Self::CredentialsForbidden => "endpoint credentials are forbidden",
+    Self::QueryForbidden => "endpoint query is forbidden",
+    Self::FragmentForbidden => "endpoint fragment is forbidden",
+    Self::TrailingSlash => "endpoint path has a forbidden trailing slash",
+    Self::InvalidTargetEncoding => "request target encoding is invalid",
+    Self::TargetNormalized => "request target was normalized or changed origin",
+    Self::AllocationFailed => "request-target allocation failed",
+);
+
 /// Validated HTTPS API endpoint, optionally including a fixed base path.
 #[derive(Clone)]
 pub struct HttpsEndpoint {

@@ -346,10 +346,8 @@ fn dns_zones_tsig_is_coherent_validated_and_redacted() {
 fn dns_zones_create_mode_prevents_conflicting_configuration() {
     let servers = [nameserver!("8.8.8.8"), nameserver!("1.1.1.1")];
     let servers = valid!(PrimaryNameservers::new(&servers));
-    let secondary = ZoneCreateRequest::new(
-        name!("example.com"),
-        ZoneCreateMode::Secondary(servers),
-    );
+    let secondary =
+        ZoneCreateRequest::new(name!("example.com"), ZoneCreateMode::Secondary(servers));
     let file = valid!(ZoneFile::new("$ORIGIN example.com."));
     assert!(matches!(
         secondary.with_zonefile(file),

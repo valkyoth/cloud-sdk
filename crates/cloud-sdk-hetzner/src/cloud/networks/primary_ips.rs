@@ -422,10 +422,7 @@ pub struct PrimaryIpChangeDnsPtrRequest<'a> {
 impl<'a> PrimaryIpChangeDnsPtrRequest<'a> {
     /// Creates a DNS pointer request requiring explicit set or reset.
     #[must_use]
-    pub const fn new(
-        ip: PrimaryIpAddress<'a>,
-        dns_ptr: PrimaryIpDnsPtrIntent<'a>,
-    ) -> Self {
+    pub const fn new(ip: PrimaryIpAddress<'a>, dns_ptr: PrimaryIpDnsPtrIntent<'a>) -> Self {
         Self { ip, dns_ptr }
     }
 

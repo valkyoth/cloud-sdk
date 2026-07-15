@@ -54,6 +54,15 @@ pub enum EndpointPathError {
     ParentDirectorySegment,
 }
 
+impl_static_error!(EndpointPathError,
+    Self::MissingLeadingSlash => "endpoint path lacks a leading slash",
+    Self::Empty => "endpoint path is empty",
+    Self::TooLong => "endpoint path exceeds the length limit",
+    Self::InvalidByte => "endpoint path contains an invalid byte",
+    Self::AbsoluteUrl => "endpoint path must not be an absolute URL",
+    Self::ParentDirectorySegment => "endpoint path contains a parent-directory segment",
+);
+
 /// Borrowed, validated endpoint path.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct EndpointPath<'a> {

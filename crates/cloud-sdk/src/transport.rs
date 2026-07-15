@@ -27,6 +27,12 @@ pub enum ContentTypeError {
     Invalid,
 }
 
+impl_static_error!(ContentTypeError,
+    Self::Empty => "content type is empty",
+    Self::TooLong => "content type exceeds the length limit",
+    Self::Invalid => "content type is invalid",
+);
+
 /// Borrowed, validated HTTP content type.
 #[derive(Clone, Copy, Eq, PartialEq)]
 pub struct ContentType<'a> {
@@ -111,6 +117,13 @@ pub enum RequestTargetError {
     /// backslash byte.
     InvalidByte,
 }
+
+impl_static_error!(RequestTargetError,
+    Self::Empty => "request target is empty",
+    Self::NotOriginForm => "request target is not in origin form",
+    Self::TooLong => "request target exceeds the length limit",
+    Self::InvalidByte => "request target contains a forbidden byte",
+);
 
 /// Validated origin-form HTTP request target.
 #[derive(Clone, Copy, Eq, PartialEq)]
