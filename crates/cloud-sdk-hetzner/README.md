@@ -38,8 +38,8 @@ boundaries.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.28.0"
-cloud-sdk-hetzner = "0.22.0"
+cloud-sdk = "0.29.0"
+cloud-sdk-hetzner = "0.22.1"
 ```
 
 ## Features
@@ -108,7 +108,7 @@ Upstream source monitoring and lock-refresh decisions follow the
 Breaking v0.27 constructor and custom-endpoint changes are listed in the
 [migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.27.0.md).
 Shared transport and credential lifecycle changes are listed in the
-[v0.28 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.28.0.md).
+[v0.29 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.29.0.md).
 
 ## Optional Serde Boundary
 
@@ -116,7 +116,7 @@ Enable Serde explicitly; it is never part of the default graph:
 
 ```toml
 [dependencies]
-cloud-sdk-hetzner = { version = "0.22.0", features = ["serde"] }
+cloud-sdk-hetzner = { version = "0.22.1", features = ["serde"] }
 ```
 
 `serde_json` is used below only as an example format implementation and remains

@@ -58,6 +58,12 @@ impl_static_error!(OperationMetadataError,
 );
 
 /// Complete operation safety metadata without permissive defaults.
+///
+/// ```compile_fail
+/// use cloud_sdk::operation::OperationMetadata;
+///
+/// let _: OperationMetadata = Default::default();
+/// ```
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct OperationMetadata {
     impact: OperationImpact,

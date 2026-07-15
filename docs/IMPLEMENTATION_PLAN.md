@@ -172,5 +172,8 @@ Expected future candidates must be reviewed before use:
   lifecycle without admitting any new third-party dependency or default
   feature. Shared reqwest clients use only existing standard-library and
   admitted sanitization boundaries.
+- `v0.29.0` adds allocation-free prepared-operation metadata, response policy,
+  bounded execution, and testkit evidence without admitting any new
+  third-party dependency or default feature.
 
 Every admission needs a document under `docs/dependency-admission-*.md`.

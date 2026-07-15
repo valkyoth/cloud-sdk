@@ -40,6 +40,14 @@ impl fmt::Debug for PreparationStorage<'_> {
 }
 
 /// Typed provider operation that can prepare one complete request.
+///
+/// ```compile_fail
+/// use cloud_sdk::operation::PrepareOperation;
+///
+/// fn prepare_without_storage<O: PrepareOperation>(operation: &O) {
+///     let _ = operation.prepare();
+/// }
+/// ```
 pub trait PrepareOperation {
     /// Preparation-specific failure.
     type Error;

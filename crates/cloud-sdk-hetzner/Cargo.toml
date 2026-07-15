@@ -1,7 +1,7 @@
 [package]
 name = "cloud-sdk-hetzner"
 description = "no_std-first Hetzner provider crate for cloud-sdk."
-version = "0.22.0"
+version = "0.22.1"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true

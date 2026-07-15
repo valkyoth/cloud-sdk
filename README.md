@@ -108,8 +108,8 @@ Portable and native platform evidence is documented in
 
 ```toml
 [dependencies]
-cloud-sdk = "0.28.0"
-cloud-sdk-hetzner = "0.22.0"
+cloud-sdk = "0.29.0"
+cloud-sdk-hetzner = "0.22.1"
 ```
 
 ## cloud-sdk Features
@@ -131,7 +131,7 @@ visible. Applications should enable only the features they use.
 - [Security recipes](https://github.com/valkyoth/cloud-sdk/blob/main/docs/SECURITY_RECIPES.md)
 - [Release runbook](https://github.com/valkyoth/cloud-sdk/blob/main/docs/RELEASE_RUNBOOK.md)
 - [Versioning and error policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/VERSIONING_POLICY.md)
-- [Migrating to v0.28](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.28.0.md)
+- [Migrating to v0.29](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.29.0.md)
 - [Deprecated endpoint policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/DEPRECATED_ENDPOINT_POLICY.md)
 
 ## Provider-Neutral Quickstart
@@ -155,12 +155,46 @@ The core contracts perform no I/O and select no executor. Use
 `cloud-sdk-reqwest/blocking-rustls`, `blocking-rustls-webpki-roots`,
 `blocking-rustls-fips`, or `async-rustls` for HTTPS.
 
+### Prepared Request Policy
+
+Provider operations can bind request execution to explicit impact, retry,
+cost, endpoint, and response rules without selecting a transport:
+
+```rust
+use cloud_sdk::operation::{
+    CostIntent, OperationImpact, OperationMetadata, RequestSemantics,
+    RetryEligibility,
+};
+
+# fn main() -> Result<(), cloud_sdk::operation::OperationMetadataError> {
+let metadata = OperationMetadata::new(
+    OperationImpact::Mutation,
+    RequestSemantics::Idempotent,
+    RetryEligibility::ExplicitPolicy,
+    CostIntent::MayIncurCost,
+)?;
+
+assert_eq!(metadata.impact(), OperationImpact::Mutation);
+assert_eq!(
+    metadata.retry_eligibility(),
+    RetryEligibility::ExplicitPolicy,
+);
+# Ok(())
+# }
+```
+
+`PrepareOperation` writes a validated target and body into caller-owned
+storage and returns one `PreparedRequest`. Blocking and async execution verify
+the immutable endpoint before sending, lend only the response policy's admitted
+capacity, and return `CheckedResponse` only after status, body, and content type
+pass. The SDK still performs no automatic retry or scheduling.
+
 ## Optional Blocking Transport
 
 ```toml
 [dependencies]
-cloud-sdk = "0.28.0"
-cloud-sdk-reqwest = { version = "0.19.0", features = ["blocking-rustls"] }
+cloud-sdk = "0.29.0"
+cloud-sdk-reqwest = { version = "0.20.0", features = ["blocking-rustls"] }
 ```
 
 The production builder is HTTPS-only, requires explicit bounded timeouts and a
@@ -183,8 +217,8 @@ when deterministic public WebPKI roots are required:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.28.0"
-cloud-sdk-reqwest = { version = "0.19.0", features = ["blocking-rustls-webpki-roots"] }
+cloud-sdk = "0.29.0"
+cloud-sdk-reqwest = { version = "0.20.0", features = ["blocking-rustls-webpki-roots"] }
 ```
 
 The blocking API is unchanged. This feature excludes host-added enterprise
@@ -200,8 +234,8 @@ feature instead of relying on dependency feature unification:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.28.0"
-cloud-sdk-reqwest = { version = "0.19.0", features = ["blocking-rustls-fips"] }
+cloud-sdk = "0.29.0"
+cloud-sdk-reqwest = { version = "0.20.0", features = ["blocking-rustls-fips"] }
 ```
 
 Client construction explicitly selects rustls' AWS-LC FIPS provider and fails
@@ -219,8 +253,8 @@ example is in the
 
 ```toml
 [dependencies]
-cloud-sdk = "0.28.0"
-cloud-sdk-reqwest = { version = "0.19.0", features = ["async-rustls"] }
+cloud-sdk = "0.29.0"
+cloud-sdk-reqwest = { version = "0.20.0", features = ["async-rustls"] }
 ```
 
 The async adapter requires an active Tokio executor because reqwest uses Tokio
@@ -354,10 +388,10 @@ assert_eq!(value, Some("\"line\\n\\\"quoted\\\"\""));
 
 | Crate | Default `std`? | Purpose |
 | --- | --- | --- |
-| [`cloud-sdk`](https://crates.io/crates/cloud-sdk) | no | Provider-neutral domains and shared SDK foundation. |
+| [`cloud-sdk`](https://crates.io/crates/cloud-sdk) | no | Provider-neutral domains, prepared operations, and checked response policy. |
 | [`cloud-sdk-hetzner`](https://crates.io/crates/cloud-sdk-hetzner) | no | Hetzner provider APIs and provider-specific documentation. |
 | [`cloud-sdk-reqwest`](https://crates.io/crates/cloud-sdk-reqwest) | no | Provider-neutral optional blocking and async reqwest/rustls transports; transport-free by default. |
-| [`cloud-sdk-testkit`](https://crates.io/crates/cloud-sdk-testkit) | no | Provider-neutral blocking/async mock transport, response metadata fixtures, and adversarial corpus. |
+| [`cloud-sdk-testkit`](https://crates.io/crates/cloud-sdk-testkit) | no | Provider-neutral blocking/async mock transport, prepared-request records, response fixtures, and adversarial corpus. |
 | [`cloud-sdk-sanitization`](https://crates.io/crates/cloud-sdk-sanitization) | no | Provider-neutral volatile caller-buffer cleanup and guarded secret buffers. |
 
 Each provider has one primary crate for its APIs and documentation. Reusable

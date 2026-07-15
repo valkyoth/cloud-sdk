@@ -11,7 +11,7 @@ default-members = ["crates/cloud-sdk"]
 resolver = "3"
 
 [workspace.package]
-version = "0.28.0"
+version = "0.29.0"
 edition = "2024"
 rust-version = "1.90"
 license = "MIT OR Apache-2.0"
@@ -40,11 +40,11 @@ aws-lc-fips-sys = { version = "=0.13.15", default-features = false }
 aws-lc-rs = { version = "=1.17.1", default-features = false }
 aws-lc-sys = { version = "=0.42.0", default-features = false }
 bytes = { version = "1.12.1", default-features = false }
-cloud-sdk = { path = "crates/cloud-sdk", version = "0.28.0" }
-cloud-sdk-hetzner = { path = "crates/cloud-sdk-hetzner", version = "0.22.0" }
-cloud-sdk-reqwest = { path = "crates/cloud-sdk-reqwest", version = "0.19.0" }
-cloud-sdk-sanitization = { path = "crates/cloud-sdk-sanitization", version = "0.13.14" }
-cloud-sdk-testkit = { path = "crates/cloud-sdk-testkit", version = "0.17.0" }
+cloud-sdk = { path = "crates/cloud-sdk", version = "0.29.0" }
+cloud-sdk-hetzner = { path = "crates/cloud-sdk-hetzner", version = "0.22.1" }
+cloud-sdk-reqwest = { path = "crates/cloud-sdk-reqwest", version = "0.20.0" }
+cloud-sdk-sanitization = { path = "crates/cloud-sdk-sanitization", version = "0.13.15" }
+cloud-sdk-testkit = { path = "crates/cloud-sdk-testkit", version = "0.18.0" }
 reqwest = { version = "=0.13.4", default-features = false }
 rustls = { version = "=0.23.42", default-features = false }
 rustls-platform-verifier = { version = "=0.7.0", default-features = false }

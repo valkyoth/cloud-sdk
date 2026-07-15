@@ -65,6 +65,9 @@ fn operation_metadata_rejects_privilege_escalating_combinations() {
 
 #[test]
 fn response_policy_requires_complete_coherent_configuration() {
+    static DUPLICATE_STATUS: [StatusCode; 2] = [StatusCode::OK, StatusCode::OK];
+    static ERROR_STATUS: [StatusCode; 1] = [StatusCode::TOO_MANY_REQUESTS];
+    static DUPLICATE_MEDIA: [MediaType<'static>; 2] = [MediaType::JSON, MediaType::JSON];
     assert_eq!(
         ResponsePolicy::new(
             &[],
@@ -109,6 +112,33 @@ fn response_policy_requires_complete_coherent_configuration() {
             0,
         ),
         Err(ResponsePolicyValidationError::ForbiddenBodyAllowsContentType)
+    );
+    assert_eq!(
+        ResponsePolicy::new(
+            &DUPLICATE_STATUS,
+            ContentTypePolicy::Required(&JSON_MEDIA),
+            ResponseBodyPolicy::Required,
+            16,
+        ),
+        Err(ResponsePolicyValidationError::DuplicateSuccessStatus)
+    );
+    assert_eq!(
+        ResponsePolicy::new(
+            &ERROR_STATUS,
+            ContentTypePolicy::Required(&JSON_MEDIA),
+            ResponseBodyPolicy::Required,
+            16,
+        ),
+        Err(ResponsePolicyValidationError::NonSuccessStatus)
+    );
+    assert_eq!(
+        ResponsePolicy::new(
+            &OK_STATUS,
+            ContentTypePolicy::Required(&DUPLICATE_MEDIA),
+            ResponseBodyPolicy::Required,
+            16,
+        ),
+        Err(ResponsePolicyValidationError::DuplicateAcceptedMediaType)
     );
 }
 
@@ -220,6 +250,16 @@ fn prepared_async_execution_uses_the_same_endpoint_and_response_policy() {
     }
     assert_eq!(transport.calls.load(Ordering::Acquire), 1);
     assert_eq!(transport.last_capacity.load(Ordering::Acquire), 16);
+}
+
+#[test]
+fn prepared_execution_errors_redact_transport_details() {
+    use core::fmt::Write;
+
+    let error = PreparedExecutionError::Transport("secret-transport-detail");
+    let mut debug = DebugBuffer::new();
+    assert!(write!(&mut debug, "{error:?}").is_ok());
+    assert_eq!(debug.as_str(), "Transport([redacted])");
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -358,4 +398,32 @@ fn official_endpoint() -> Result<EndpointIdentity<'static>, EndpointIdentityErro
 
 fn other_endpoint() -> Result<EndpointIdentity<'static>, EndpointIdentityError> {
     EndpointIdentity::new(EndpointScheme::Https, "example.invalid", 443, "/v1")
+}
+
+struct DebugBuffer {
+    bytes: [u8; 64],
+    len: usize,
+}
+
+impl DebugBuffer {
+    const fn new() -> Self {
+        Self {
+            bytes: [0; 64],
+            len: 0,
+        }
+    }
+
+    fn as_str(&self) -> &str {
+        core::str::from_utf8(self.bytes.get(..self.len).unwrap_or_default()).unwrap_or_default()
+    }
+}
+
+impl core::fmt::Write for DebugBuffer {
+    fn write_str(&mut self, value: &str) -> core::fmt::Result {
+        let end = self.len.checked_add(value.len()).ok_or(core::fmt::Error)?;
+        let target = self.bytes.get_mut(self.len..end).ok_or(core::fmt::Error)?;
+        target.copy_from_slice(value.as_bytes());
+        self.len = end;
+        Ok(())
+    }
 }

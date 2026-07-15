@@ -8,15 +8,15 @@ usable in `no_std` environments.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.28.0"
+cloud-sdk = "0.29.0"
 ```
 
 Provider-specific request models are separate dependencies. For Hetzner:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.28.0"
-cloud-sdk-hetzner = "0.22.0"
+cloud-sdk = "0.29.0"
+cloud-sdk-hetzner = "0.22.1"
 ```
 
 ## Build A Transport Request
@@ -43,6 +43,13 @@ it with:
 cargo run -p cloud-sdk --example provider_neutral
 ```
 
+The complete prepared-operation contract is demonstrated in
+[`prepared_request.rs`](../crates/cloud-sdk/examples/prepared_request.rs):
+
+```sh
+cargo run -p cloud-sdk --example prepared_request
+```
+
 ## Select A Transport
 
 - Use `cloud-sdk-testkit` for deterministic blocking and async unit tests.
@@ -65,6 +72,20 @@ Provider crates do not depend on transport crates. This keeps cloud request
 models portable to Linux, Windows, BSD, macOS, Android, iOS, WASM, embedded
 targets, and future operating systems while allowing each application to own
 its networking and runtime policy.
+
+## Prepare And Check Operations
+
+`PrepareOperation` turns typed provider input plus caller-owned target/body
+storage into one `PreparedRequest`. The result carries immutable endpoint
+identity, explicit read-only/mutation/destructive impact, request semantics,
+retry eligibility, cost intent, accepted statuses and media types, body shape,
+and maximum response length.
+
+`PreparedRequest::execute_blocking` and `execute_async` verify endpoint identity
+before sending and lend no more than the policy's admitted response capacity.
+They return `CheckedResponse` only after status, body shape, initialized length,
+and validated response content type pass. They execute once and never retry,
+sleep, schedule work, or select a clock.
 
 ## Continue
 

@@ -172,6 +172,66 @@ fn mock_models_oversized_responses_and_retry_classification_mistakes() {
     );
 }
 
+#[test]
+fn mock_rejects_unbound_endpoints_request_media_mismatch_and_invalid_fixture_media() {
+    let prepared = prepared_request(16);
+    let exchange = successful_exchange();
+    assert!(prepared.is_ok() && exchange.is_ok());
+    let (Ok(prepared), Ok(exchange)) = (prepared, exchange) else {
+        return;
+    };
+    let exchanges = [exchange];
+    let unbound = MockTransport::new(&exchanges);
+    let mut output = [0_u8; 16];
+    assert_eq!(
+        prepared.execute_blocking(&unbound, &mut output),
+        Err(PreparedExecutionError::EndpointIdentity(
+            EndpointIdentityError::UnboundTransport
+        ))
+    );
+    assert_eq!(unbound.remaining(), 1);
+
+    let endpoint = official_endpoint();
+    let target = RequestTarget::new("/servers");
+    let body = FixtureBody::new(b"{}");
+    assert!(endpoint.is_ok() && target.is_ok() && body.is_ok());
+    let (Ok(endpoint), Ok(target), Ok(body)) = (endpoint, target, body) else {
+        return;
+    };
+    let no_media_expectation = ExpectedRequest::new(Method::Post, target).with_body(b"{}");
+    let exchanges = [MockExchange::new(
+        no_media_expectation,
+        ResponseFixture::success(body).with_content_type("application/json"),
+    )];
+    let mock = MockTransport::new(&exchanges).with_endpoint(endpoint);
+    assert_eq!(
+        prepared.execute_blocking(&mock, &mut output),
+        Err(PreparedExecutionError::Transport(
+            MockError::ContentTypeMismatch
+        ))
+    );
+    assert_eq!(mock.remaining(), 1);
+
+    let expected = expected_request();
+    assert!(expected.is_ok());
+    if let Ok(expected) = expected {
+        let exchanges = [MockExchange::new(
+            expected,
+            ResponseFixture::success(body).with_content_type("application/json; charset"),
+        )];
+        let mock = MockTransport::new(&exchanges).with_endpoint(endpoint);
+        output.fill(0xA5);
+        assert_eq!(
+            prepared.execute_blocking(&mock, &mut output),
+            Err(PreparedExecutionError::Transport(
+                MockError::InvalidFixtureMetadata
+            ))
+        );
+        assert_eq!(output, [0xA5; 16]);
+        assert_eq!(mock.remaining(), 1);
+    }
+}
+
 fn prepared_request(max_body_bytes: usize) -> Result<PreparedRequest<'static>, ()> {
     let target = RequestTarget::new("/servers").map_err(|_| ())?;
     let request = TransportRequest::new(Method::Post, target)

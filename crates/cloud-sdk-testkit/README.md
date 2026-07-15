@@ -1,6 +1,6 @@
 <p align="center">
   <b>provider-neutral no_std testkit for cloud-sdk.</b><br>
-  Deterministic mock transport, bounded response fixtures, and adversarial corpora.
+  Deterministic mock transport, prepared-request records, bounded response fixtures, and adversarial corpora.
 </p>
 
 <div align="center">
@@ -34,8 +34,8 @@ and runtime-free.
 
 ```toml
 [dev-dependencies]
-cloud-sdk = "0.28.0"
-cloud-sdk-testkit = "0.17.0"
+cloud-sdk = "0.29.0"
+cloud-sdk-testkit = "0.18.0"
 ```
 
 ## Mock Transport
@@ -107,13 +107,26 @@ response body fits. Method, target, body, exhaustion, and response-capacity
 failures are distinct and payload-free. Debug output redacts request targets,
 request bodies, and response bodies.
 
+## Prepared Request Assertions
+
+Bind `MockTransport` with `with_endpoint` before executing a
+`PreparedRequest`. Endpoint mismatches fail before an exchange is consumed.
+`ExpectedRequest::with_content_type` checks the exact request header, while
+`ResponseFixture::with_content_type` models missing, accepted, unexpected, or
+malformed response metadata.
+
+`PreparedRequestRecord::capture` records method, redacted target/body lengths,
+provider service, complete operation metadata, and response policy without
+copying request values. Tests can therefore assert that mutations and
+destructive operations were not mislabeled as read-only, safe, or retryable.
+
 ## Fixture Builders
 
 `ResponseFixture` builds deterministic success, paginated, action, rate-limit,
 and error responses. `PaginationFixture`, `ActionFixture`, and
 `RateLimitFixture` reject incoherent metadata before a fixture can be used.
-Use `ResponseFixture::with_rate_limit` to attach validated transport metadata
-to paginated, action, success, or error responses.
+Use `ResponseFixture::with_rate_limit` and `with_content_type` to attach
+transport metadata to paginated, action, success, or error responses.
 
 `FixtureBody` supports borrowed bytes and compact repeated-byte bodies up to
 8 MiB plus one byte. Writes preflight capacity and leave undersized destination

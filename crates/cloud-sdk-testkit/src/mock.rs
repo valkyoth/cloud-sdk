@@ -184,6 +184,18 @@ impl<'a> MockTransport<'a> {
             return Err(MockError::ContentTypeMismatch);
         }
         let next_cursor = cursor.checked_add(1).ok_or(MockError::CursorOverflow)?;
+        let content_type = exchange
+            .response
+            .content_type()
+            .map(ResponseContentType::new)
+            .transpose()
+            .map_err(|_| MockError::InvalidFixtureMetadata)?;
+        let rate_limit = exchange
+            .response
+            .rate_limit()
+            .map(|value| value.into_rate_limit())
+            .transpose()
+            .map_err(|_| MockError::InvalidFixtureMetadata)?;
         let body_len =
             exchange
                 .response
@@ -198,19 +210,7 @@ impl<'a> MockTransport<'a> {
             .get(..body_len)
             .ok_or(MockError::ResponseBufferTooSmall)?;
         let response = TransportResponse::new(exchange.response.status(), initialized);
-        let content_type = exchange
-            .response
-            .content_type()
-            .map(ResponseContentType::new)
-            .transpose()
-            .map_err(|_| MockError::InvalidFixtureMetadata)?;
         let response = content_type.map_or(response, |value| response.with_content_type(value));
-        let rate_limit = exchange
-            .response
-            .rate_limit()
-            .map(|value| value.into_rate_limit())
-            .transpose()
-            .map_err(|_| MockError::InvalidFixtureMetadata)?;
         let response = rate_limit.map_or(response, |value| response.with_rate_limit(value));
         self.cursor
             .compare_exchange(cursor, next_cursor, Ordering::AcqRel, Ordering::Acquire)

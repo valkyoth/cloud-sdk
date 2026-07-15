@@ -77,9 +77,13 @@ impl Method {
 mod tests {
     use super::{ApiFamily, Method, Provider};
     use crate::action_polling::ActionPollError;
+    use crate::operation::{
+        OperationMetadataError, PreparedExecutionError, ResponsePolicyError,
+        ResponsePolicyValidationError,
+    };
     use crate::pagination::PaginationError;
     use crate::rate_limit::RateLimitError;
-    use crate::transport::{ContentTypeError, RequestTargetError};
+    use crate::transport::{ContentTypeError, EndpointIdentityError, RequestTargetError};
     use core::fmt::{self, Write};
 
     #[test]
@@ -97,13 +101,38 @@ mod tests {
         assert_error::<PaginationError>();
         assert_error::<RateLimitError>();
         assert_error::<ContentTypeError>();
+        assert_error::<EndpointIdentityError>();
         assert_error::<RequestTargetError>();
         assert_error::<ActionPollError<&'static str>>();
+        assert_error::<OperationMetadataError>();
+        assert_error::<ResponsePolicyError>();
+        assert_error::<ResponsePolicyValidationError>();
+        assert_error::<PreparedExecutionError<()>>();
 
         assert_display(PaginationError::PageZero, "page number must be nonzero");
         assert_display(RateLimitError::LimitZero, "rate limit must be nonzero");
         assert_display(ContentTypeError::Empty, "content type is empty");
+        assert_display(
+            EndpointIdentityError::UnboundTransport,
+            "transport endpoint identity is unbound",
+        );
         assert_display(RequestTargetError::Empty, "request target is empty");
+        assert_display(
+            OperationMetadataError::NonIdempotentRetry,
+            "non-idempotent operation cannot be retry eligible",
+        );
+        assert_display(
+            ResponsePolicyError::UnexpectedContentType,
+            "response content type is not accepted",
+        );
+        assert_display(
+            ResponsePolicyValidationError::MissingSuccessStatus,
+            "response policy has no success status",
+        );
+        assert_display(
+            PreparedExecutionError::<()>::Transport(()),
+            "prepared request transport failed",
+        );
         assert_display(
             ActionPollError::Policy("sentinel-secret"),
             "action poll policy failed",

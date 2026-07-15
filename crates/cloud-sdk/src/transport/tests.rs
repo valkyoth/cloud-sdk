@@ -1,6 +1,6 @@
 use super::{
-    ContentType, ContentTypeError, RequestTarget, RequestTargetError, StatusCode, TransportRequest,
-    TransportResponse,
+    ContentType, ContentTypeError, RequestTarget, RequestTargetError, ResponseContentType,
+    StatusCode, TransportRequest, TransportResponse,
 };
 use crate::Method;
 use crate::rate_limit::RateLimit;
@@ -131,13 +131,16 @@ fn transport_response_borrows_body_propagates_metadata_and_redacts_debug() {
     let output = b"secret-response-trailing-capacity";
     let body = output.get(..15).unwrap_or_default();
     let rate_limit = RateLimit::new(3600, 3599, 42).ok();
+    let content_type = ResponseContentType::new("application/private; token=secret-content").ok();
     let response = rate_limit.map_or(TransportResponse::new(StatusCode::OK, body), |rate_limit| {
         TransportResponse::new(StatusCode::OK, body).with_rate_limit(rate_limit)
     });
+    let response = content_type.map_or(response, |value| response.with_content_type(value));
 
     assert_eq!(response.status(), StatusCode::OK);
     assert_eq!(response.body(), b"secret-response");
     assert_eq!(response.rate_limit(), rate_limit);
+    assert_eq!(response.content_type(), content_type);
 
     let mut debug = DebugBuffer::new();
     assert!(write!(&mut debug, "{response:?}").is_ok());
@@ -145,6 +148,7 @@ fn transport_response_borrows_body_propagates_metadata_and_redacts_debug() {
     assert!(debug.contains("body_len: 15"));
     assert!(debug.contains("[redacted]"));
     assert!(!debug.contains("secret-response"));
+    assert!(!debug.contains("secret-content"));
 }
 
 struct SequentialBlockingTransport {
@@ -226,14 +230,14 @@ fn non_sync_transports_remain_usable_sequentially() {
 }
 
 struct DebugBuffer {
-    bytes: [u8; 192],
+    bytes: [u8; 256],
     len: usize,
 }
 
 impl DebugBuffer {
     const fn new() -> Self {
         Self {
-            bytes: [0; 192],
+            bytes: [0; 256],
             len: 0,
         }
     }

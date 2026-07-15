@@ -38,14 +38,14 @@ provider without adding transport dependencies to provider crates.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.28.0"
-cloud-sdk-reqwest = { version = "0.19.0", features = ["blocking-rustls"] }
+cloud-sdk = "0.29.0"
+cloud-sdk-reqwest = { version = "0.20.0", features = ["blocking-rustls"] }
 ```
 
 The examples use Hetzner as a concrete endpoint, but the adapter contains no
 provider-specific routing, authentication, or response logic.
-Receiver and rotation changes from the previous release are listed in the
-[v0.28 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.28.0.md).
+Response metadata changes from the previous release are listed in the
+[v0.29 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.29.0.md).
 
 ## Blocking Example
 
@@ -84,6 +84,10 @@ assert!(response.status().is_success());
 # fn main() {}
 ```
 
+Responses retain one validated, bounded `Content-Type` value for prepared
+response policy. Missing content type remains explicit; malformed, non-textual,
+or duplicate values fail closed before response bytes are returned.
+
 ## Deterministic Root Snapshot
 
 The standard blocking feature follows the host trust store. Select the
@@ -92,8 +96,8 @@ compiled into `webpki-roots`:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.28.0"
-cloud-sdk-reqwest = { version = "0.19.0", features = ["blocking-rustls-webpki-roots"] }
+cloud-sdk = "0.29.0"
+cloud-sdk-reqwest = { version = "0.20.0", features = ["blocking-rustls-webpki-roots"] }
 ```
 
 The blocking API is identical to the example above. The custom rustls client
@@ -109,8 +113,8 @@ Use the same blocking API with the dedicated feature:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.28.0"
-cloud-sdk-reqwest = { version = "0.19.0", features = ["blocking-rustls-fips"] }
+cloud-sdk = "0.29.0"
+cloud-sdk-reqwest = { version = "0.20.0", features = ["blocking-rustls-fips"] }
 rustls = "=0.23.42"
 ```
 

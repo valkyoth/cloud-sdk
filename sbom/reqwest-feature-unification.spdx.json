@@ -1,21 +1,21 @@
 {
   "SPDXID": "SPDXRef-DOCUMENT",
   "creationInfo": {
-    "created": "2026-07-15T08:00:19Z",
+    "created": "2026-07-15T09:59:44Z",
     "creators": [
       "Tool: cargo-sbom-v0.10.0",
       "Tool: cloud-sdk-complete-spdx-v1"
     ]
   },
   "dataLicense": "CC0-1.0",
-  "documentNamespace": "https://spdx.org/spdxdocs/reqwest-feature-unification-304f4e30-9dd4-4394-979d-7c94e408339f",
+  "documentNamespace": "https://spdx.org/spdxdocs/reqwest-feature-unification-b3bf81c6-e441-461b-986a-ddf02f2cc5b0",
   "files": [
     {
       "SPDXID": "SPDXRef-File-cloud_sdk_reqwest_feature_unification_test",
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "d792b5b3f20f15f73b061d15dcb1774865c76422"
+          "checksumValue": "3cda997f8e479d1668c35293f4c24252ca876fc0"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -322,24 +322,24 @@
       ]
     },
     {
-      "SPDXID": "SPDXRef-Package-cloud-sdk-0.28.0",
+      "SPDXID": "SPDXRef-Package-cloud-sdk-0.29.0",
       "description": "no_std-first provider-neutral cloud SDK foundations.",
       "downloadLocation": "NONE",
       "homepage": "https://github.com/valkyoth/cloud-sdk",
       "licenseConcluded": "MIT OR Apache-2.0",
       "licenseDeclared": "MIT OR Apache-2.0",
       "name": "cloud-sdk",
-      "versionInfo": "0.28.0"
+      "versionInfo": "0.29.0"
     },
     {
-      "SPDXID": "SPDXRef-Package-cloud-sdk-reqwest-0.19.0",
+      "SPDXID": "SPDXRef-Package-cloud-sdk-reqwest-0.20.0",
       "description": "Optional provider-neutral reqwest transport boundary for cloud-sdk.",
       "downloadLocation": "NONE",
       "homepage": "https://github.com/valkyoth/cloud-sdk",
       "licenseConcluded": "MIT OR Apache-2.0",
       "licenseDeclared": "MIT OR Apache-2.0",
       "name": "cloud-sdk-reqwest",
-      "versionInfo": "0.19.0"
+      "versionInfo": "0.20.0"
     },
     {
       "SPDXID": "SPDXRef-Package-cloud-sdk-reqwest-feature-unification-test-0.0.0",
@@ -349,14 +349,14 @@
       "versionInfo": "0.0.0"
     },
     {
-      "SPDXID": "SPDXRef-Package-cloud-sdk-sanitization-0.13.14",
+      "SPDXID": "SPDXRef-Package-cloud-sdk-sanitization-0.13.15",
       "description": "Optional provider-neutral secret-sanitization boundary for cloud-sdk.",
       "downloadLocation": "NONE",
       "homepage": "https://github.com/valkyoth/cloud-sdk",
       "licenseConcluded": "MIT OR Apache-2.0",
       "licenseDeclared": "MIT OR Apache-2.0",
       "name": "cloud-sdk-sanitization",
-      "versionInfo": "0.13.14"
+      "versionInfo": "0.13.15"
     },
     {
       "SPDXID": "SPDXRef-Package-cmake-0.1.58",
@@ -2486,20 +2486,20 @@
       "versionInfo": "2.6.1"
     },
     {
-      "SPDXID": "SPDXRef-Package-syn-2.0.118",
+      "SPDXID": "SPDXRef-Package-syn-2.0.119",
       "description": "Parser for Rust source code",
       "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
-          "referenceLocator": "pkg:cargo/syn@2.0.118",
+          "referenceLocator": "pkg:cargo/syn@2.0.119",
           "referenceType": "purl"
         }
       ],
       "licenseConcluded": "MIT OR Apache-2.0",
       "licenseDeclared": "MIT OR Apache-2.0",
       "name": "syn",
-      "versionInfo": "2.0.118"
+      "versionInfo": "2.0.119"
     },
     {
       "SPDXID": "SPDXRef-Package-sync--wrapper-1.0.2",
@@ -3580,7 +3580,7 @@
     {
       "spdxElementId": "SPDXRef-Package-async-trait-0.1.89",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-syn-2.0.118"
+      "relatedSpdxElement": "SPDXRef-Package-syn-2.0.119"
     },
     {
       "spdxElementId": "SPDXRef-Package-autocfg-1.5.1",
@@ -3725,7 +3725,7 @@
     {
       "spdxElementId": "SPDXRef-Package-bindgen-0.72.1",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-syn-2.0.118"
+      "relatedSpdxElement": "SPDXRef-Package-syn-2.0.119"
     },
     {
       "spdxElementId": "SPDXRef-Package-cc-1.2.67",
@@ -3808,59 +3808,59 @@
       "relatedSpdxElement": "SPDXRef-Package-libloading-0.8.9"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.19.0",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.20.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-aws-lc-fips-sys-0.13.15"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.19.0",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.20.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-aws-lc-rs-1.17.1"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.19.0",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.20.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-aws-lc-sys-0.42.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.19.0",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.20.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-bytes-1.12.1"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.19.0",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.20.0",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-0.28.0"
+      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-0.29.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.19.0",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.20.0",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-sanitization-0.13.14"
+      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-sanitization-0.13.15"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.19.0",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.20.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-reqwest-0.13.4"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.19.0",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.20.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-rustls-0.23.42"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.19.0",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.20.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-rustls-platform-verifier-0.7.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.19.0",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.20.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-webpki-roots-1.0.8"
     },
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-feature-unification-test-0.0.0",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-reqwest-0.19.0"
+      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-reqwest-0.20.0"
     },
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-feature-unification-test-0.0.0",
@@ -3878,12 +3878,12 @@
       "relatedSpdxElement": "SPDXRef-Package-tokio-1.52.3"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-sanitization-0.13.14",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-sanitization-0.13.15",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-0.28.0"
+      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-0.29.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-sanitization-0.13.14",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-sanitization-0.13.15",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-sanitization-1.2.4"
     },
@@ -3960,7 +3960,7 @@
     {
       "spdxElementId": "SPDXRef-Package-displaydoc-0.2.6",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-syn-2.0.118"
+      "relatedSpdxElement": "SPDXRef-Package-syn-2.0.119"
     },
     {
       "spdxElementId": "SPDXRef-Package-dunce-1.0.5",
@@ -4010,7 +4010,7 @@
     {
       "spdxElementId": "SPDXRef-Package-futures-macro-0.3.32",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-syn-2.0.118"
+      "relatedSpdxElement": "SPDXRef-Package-syn-2.0.119"
     },
     {
       "spdxElementId": "SPDXRef-Package-futures-util-0.3.32",
@@ -4905,7 +4905,7 @@
     {
       "spdxElementId": "SPDXRef-Package-jni-macros-0.22.4",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-syn-2.0.118"
+      "relatedSpdxElement": "SPDXRef-Package-syn-2.0.119"
     },
     {
       "spdxElementId": "SPDXRef-Package-jni-sys-0.4.1",
@@ -4920,7 +4920,7 @@
     {
       "spdxElementId": "SPDXRef-Package-jni-sys-macros-0.4.1",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-syn-2.0.118"
+      "relatedSpdxElement": "SPDXRef-Package-syn-2.0.119"
     },
     {
       "spdxElementId": "SPDXRef-Package-jobserver-0.1.35",
@@ -5120,7 +5120,7 @@
     {
       "spdxElementId": "SPDXRef-Package-prettyplease-0.2.37",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-syn-2.0.118"
+      "relatedSpdxElement": "SPDXRef-Package-syn-2.0.119"
     },
     {
       "spdxElementId": "SPDXRef-Package-proc-macro2-1.0.106",
@@ -5780,7 +5780,7 @@
     {
       "spdxElementId": "SPDXRef-Package-serde--derive-1.0.228",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-syn-2.0.118"
+      "relatedSpdxElement": "SPDXRef-Package-syn-2.0.119"
     },
     {
       "spdxElementId": "SPDXRef-Package-serde-1.0.228",
@@ -5813,17 +5813,17 @@
       "relatedSpdxElement": "SPDXRef-Package-windows-sys-0.61.2"
     },
     {
-      "spdxElementId": "SPDXRef-Package-syn-2.0.118",
+      "spdxElementId": "SPDXRef-Package-syn-2.0.119",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-proc-macro2-1.0.106"
     },
     {
-      "spdxElementId": "SPDXRef-Package-syn-2.0.118",
+      "spdxElementId": "SPDXRef-Package-syn-2.0.119",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-quote-1.0.46"
     },
     {
-      "spdxElementId": "SPDXRef-Package-syn-2.0.118",
+      "spdxElementId": "SPDXRef-Package-syn-2.0.119",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-unicode-ident-1.0.24"
     },
@@ -5845,7 +5845,7 @@
     {
       "spdxElementId": "SPDXRef-Package-synstructure-0.13.2",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-syn-2.0.118"
+      "relatedSpdxElement": "SPDXRef-Package-syn-2.0.119"
     },
     {
       "spdxElementId": "SPDXRef-Package-system-configuration-0.7.0",
@@ -5890,7 +5890,7 @@
     {
       "spdxElementId": "SPDXRef-Package-thiserror-impl-2.0.18",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-syn-2.0.118"
+      "relatedSpdxElement": "SPDXRef-Package-syn-2.0.119"
     },
     {
       "spdxElementId": "SPDXRef-Package-tinystr-0.8.3",
@@ -5955,7 +5955,7 @@
     {
       "spdxElementId": "SPDXRef-Package-tokio-macros-2.7.0",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-syn-2.0.118"
+      "relatedSpdxElement": "SPDXRef-Package-syn-2.0.119"
     },
     {
       "spdxElementId": "SPDXRef-Package-tokio-rustls-0.26.4",
@@ -6210,7 +6210,7 @@
     {
       "spdxElementId": "SPDXRef-Package-wasm-bindgen-macro-support-0.2.126",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-syn-2.0.118"
+      "relatedSpdxElement": "SPDXRef-Package-syn-2.0.119"
     },
     {
       "spdxElementId": "SPDXRef-Package-wasm-bindgen-macro-support-0.2.126",
@@ -6360,7 +6360,7 @@
     {
       "spdxElementId": "SPDXRef-Package-yoke-derive-0.8.2",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-syn-2.0.118"
+      "relatedSpdxElement": "SPDXRef-Package-syn-2.0.119"
     },
     {
       "spdxElementId": "SPDXRef-Package-yoke-derive-0.8.2",
@@ -6385,7 +6385,7 @@
     {
       "spdxElementId": "SPDXRef-Package-zerofrom-derive-0.1.7",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-syn-2.0.118"
+      "relatedSpdxElement": "SPDXRef-Package-syn-2.0.119"
     },
     {
       "spdxElementId": "SPDXRef-Package-zerofrom-derive-0.1.7",
@@ -6435,7 +6435,7 @@
     {
       "spdxElementId": "SPDXRef-Package-zerovec-derive-0.11.3",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-syn-2.0.118"
+      "relatedSpdxElement": "SPDXRef-Package-syn-2.0.119"
     }
   ],
   "spdxVersion": "SPDX-2.3"

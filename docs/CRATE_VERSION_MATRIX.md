@@ -1,7 +1,7 @@
 # Crate Version Matrix
 
-Status: `v0.28.0` pentest and final retest passed. Local release checks and
-GitHub CI remain required before tagging.
+Status: `v0.29.0` prepared-request and checked-response implementation stop
+reached. Pentest and local/GitHub release gates are required before tagging.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
@@ -445,3 +445,17 @@ credential lifecycle without changing any default dependency graph.
 | `cloud-sdk-reqwest` | `0.18.0` | `0.19.0` | `code` | Yes | Add shareable clients, endpoint identity, mutable token ingestion, and atomic rotation. |
 | `cloud-sdk-sanitization` | `0.13.13` | `0.13.14` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.28 facade line. |
 | `cloud-sdk-testkit` | `0.16.0` | `0.17.0` | `code` | Yes | Adapt the ordered mock to shared-reference blocking and async transports. |
+
+## v0.29.0 Tracking Table
+
+`v0.29.0` adds allocation-free operation preparation, explicit safety/retry
+metadata, immutable service endpoint binding, checked response policy, response
+content-type capture, and prepared-request testkit evidence.
+
+| Crate | Published | Planned | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.28.0` | `0.29.0` | `code` | Yes | Add prepared request metadata, bounded execution, and checked response policy. |
+| `cloud-sdk-hetzner` | `0.22.0` | `0.22.1` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.29 facade line. |
+| `cloud-sdk-reqwest` | `0.19.0` | `0.20.0` | `code` | Yes | Capture validated response content types and reject malformed or duplicate values. |
+| `cloud-sdk-sanitization` | `0.13.14` | `0.13.15` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.29 facade line. |
+| `cloud-sdk-testkit` | `0.17.0` | `0.18.0` | `code` | Yes | Add prepared-request records, bound endpoints, and response content-type fixtures. |
