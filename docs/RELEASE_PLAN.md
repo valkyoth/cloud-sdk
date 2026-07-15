@@ -1294,7 +1294,8 @@ Verification:
 - Zero-missing-prepared-operation API-matrix gate.
 - Excluded, locked `syn` checker and adversarial `cfg_attr`, nested-comment,
   raw-string, discarded-literal, helper-expression, namespaced-macro,
-  shadowing, inline-fake-trait, and duplicate mutations.
+  shadowing, inline-fake-trait, inner-attribute, duplicate-definition,
+  definition-replacement, and duplicate mapping mutations.
 - Per-family golden request and insufficient-buffer tests.
 - Mutation-classification and source-locked response-policy tests.
 - `scripts/release_0_30_gate.sh` once added.

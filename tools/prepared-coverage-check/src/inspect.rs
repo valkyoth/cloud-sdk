@@ -4,6 +4,7 @@ use std::collections::BTreeSet;
 
 use syn::{Attribute, Expr, ImplItem, Item, ItemImpl, Lit, Path, PathArguments, Stmt, UseTree};
 
+use crate::definitions::validate_adapter_definitions;
 use crate::parse::{AcceptedKeys, BodyComponentArgs, BodyWireArgs, EndpointWireArgs};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -27,30 +28,19 @@ pub(crate) fn inspect_source(
     adapter_definition_root: bool,
 ) -> Result<Vec<String>, String> {
     let file = syn::parse_file(source).map_err(|error| format!("Rust parse failed: {error}"))?;
+    reject_conditional(&file.attrs)?;
+    validate_adapter_definitions(&file.items, kind, adapter_definition_root)?;
     let mut keys = Vec::new();
-    inspect_items(&file.items, kind, adapter_definition_root, &mut keys)?;
+    inspect_items(&file.items, kind, &mut keys)?;
     Ok(keys)
 }
 
-fn inspect_items(
-    items: &[Item],
-    kind: RegistryKind,
-    adapter_definition_root: bool,
-    keys: &mut Vec<String>,
-) -> Result<(), String> {
+fn inspect_items(items: &[Item], kind: RegistryKind, keys: &mut Vec<String>) -> Result<(), String> {
     for item in items {
         reject_conditional(item_attrs(item))?;
         match item {
             Item::Macro(item_macro) => {
                 if item_macro.mac.path.is_ident("macro_rules") {
-                    if item_macro
-                        .ident
-                        .as_ref()
-                        .is_some_and(|ident| reserved_macro(kind, ident.to_string().as_str()))
-                        && !adapter_definition_root
-                    {
-                        return Err("prepared adapter macro shadowing is forbidden".to_owned());
-                    }
                     continue;
                 }
                 let name = item_macro

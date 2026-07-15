@@ -41,9 +41,14 @@ as Rust source.
 The checker accepts operation evidence only from top-level, unqualified
 `endpoint_wire!`, `body_wire!`, and `body_component!` item macros or explicit
 implementations using the canonical `crate::prepared::EndpointWire` and
-`crate::prepared::BodyWire` paths. The reviewed macro definitions are allowed
-only in their separately enumerated root files. Inline modules cannot provide
-evidence, while imports, aliases, glob imports, `macro_use`, local adapter
+`crate::prepared::BodyWire` paths. It requires exactly one of each applicable
+reviewed macro definition in the separately enumerated root files and compares
+their parsed delimiter and token structure with locks under
+`tools/prepared-coverage-check/locks`. Duplicate, missing, modified, or no-op
+definitions fail closed.
+
+Inline modules cannot provide evidence, while file-level or item-level `cfg`
+and `cfg_attr`, imports, aliases, glob imports, `macro_use`, local adapter
 definitions, and namespaced adapter calls fail closed.
 
 Endpoint mappings must be match arms returning string literals. Conditional

@@ -1,5 +1,6 @@
 //! Rust-syntax-aware prepared-operation coverage evidence.
 
+mod definitions;
 mod inspect;
 mod parse;
 

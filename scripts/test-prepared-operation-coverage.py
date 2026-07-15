@@ -9,6 +9,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 CHECKER = ROOT / "scripts" / "check_prepared_operation_coverage.py"
+LOCKS = ROOT / "tools" / "prepared-coverage-check" / "locks"
+ENDPOINT_DEFINITIONS = (LOCKS / "endpoints.rs").read_text(encoding="utf-8")
+BODY_DEFINITIONS = (LOCKS / "bodies.rs").read_text(encoding="utf-8")
 HEADER = """# Matrix
 
 ## Operations
@@ -43,6 +46,8 @@ def run(
     *,
     endpoints: str = ENDPOINTS,
     bodies: str = BODIES,
+    endpoint_definitions: str = ENDPOINT_DEFINITIONS,
+    body_definitions: str = BODY_DEFINITIONS,
 ) -> subprocess.CompletedProcess[str]:
     matrix = directory / "matrix.md"
     matrix.write_text(HEADER + row("read_test") + row("write_test"), encoding="utf-8")
@@ -54,13 +59,12 @@ def run(
     endpoint_dir.mkdir(parents=True, exist_ok=True)
     body_dir.mkdir(parents=True, exist_ok=True)
     (prepared_dir / "endpoints.rs").write_text(
-        "macro_rules! endpoint_wire { ($($tokens:tt)*) => {}; }\n",
+        endpoint_definitions,
         encoding="utf-8",
     )
     (endpoint_dir / "test.rs").write_text(endpoints, encoding="utf-8")
     (prepared_dir / "bodies.rs").write_text(
-        "macro_rules! body_wire { ($($tokens:tt)*) => {}; }\n"
-        "macro_rules! body_component { ($($tokens:tt)*) => {}; }\n",
+        body_definitions,
         encoding="utf-8",
     )
     (body_dir / "test.rs").write_text(bodies, encoding="utf-8")
@@ -184,6 +188,21 @@ def main() -> None:
         )
         assert cfg_attr.returncode == 1, cfg_attr
         assert "conditionally compiled prepared evidence is forbidden" in cfg_attr.stderr
+
+        inner_cfg = run(directory, endpoints="#![cfg(any())]\n" + ENDPOINTS)
+        assert inner_cfg.returncode == 1, inner_cfg
+        assert "conditionally compiled prepared evidence is forbidden" in inner_cfg.stderr
+
+        inner_cfg_attr = run(
+            directory,
+            bodies="#![cfg_attr(not(any()), cfg(any()))]\n" + BODIES,
+        )
+        assert inner_cfg_attr.returncode == 1, inner_cfg_attr
+        assert "conditionally compiled prepared evidence is forbidden" in inner_cfg_attr.stderr
+
+        inner_macro_use = run(directory, endpoints="#![macro_use]\n" + ENDPOINTS)
+        assert inner_macro_use.returncode == 1, inner_macro_use
+        assert "macro imports are forbidden" in inner_macro_use.stderr
 
         nested_comment = run(
             directory,
@@ -317,6 +336,39 @@ def main() -> None:
         assert fake_trait.returncode == 1, fake_trait
         assert "local EndpointWire trait definitions are forbidden" in fake_trait.stderr
 
+        duplicate_endpoint_definition = run(
+            directory,
+            endpoint_definitions=ENDPOINT_DEFINITIONS + ENDPOINT_DEFINITIONS,
+        )
+        assert duplicate_endpoint_definition.returncode == 1, duplicate_endpoint_definition
+        assert "duplicate endpoint_wire definition" in duplicate_endpoint_definition.stderr
+
+        no_op_endpoint_definition = run(
+            directory,
+            endpoint_definitions=(
+                "macro_rules! endpoint_wire { ($($tokens:tt)*) => {}; }\n"
+            ),
+        )
+        assert no_op_endpoint_definition.returncode == 1, no_op_endpoint_definition
+        assert "differs from its source lock" in no_op_endpoint_definition.stderr
+
+        duplicate_body_definition = run(
+            directory,
+            body_definitions=BODY_DEFINITIONS + BODY_DEFINITIONS,
+        )
+        assert duplicate_body_definition.returncode == 1, duplicate_body_definition
+        assert "duplicate body_wire definition" in duplicate_body_definition.stderr
+
+        no_op_body_definition = run(
+            directory,
+            body_definitions=(
+                "macro_rules! body_wire { ($($tokens:tt)*) => {}; }\n"
+                "macro_rules! body_component { ($($tokens:tt)*) => {}; }\n"
+            ),
+        )
+        assert no_op_body_definition.returncode == 1, no_op_body_definition
+        assert "differs from its source lock" in no_op_body_definition.stderr
+
         duplicate_lock = directory / "bodies.txt"
         duplicate_lock.write_text("write_test\nwrite_test\n", encoding="ascii")
         command = [
@@ -338,7 +390,7 @@ def main() -> None:
         assert duplicate.returncode == 1, duplicate
         assert "duplicate body operation" in duplicate.stderr
 
-    print("23 prepared-operation coverage tests passed.")
+    print("30 prepared-operation coverage tests passed.")
 
 
 if __name__ == "__main__":

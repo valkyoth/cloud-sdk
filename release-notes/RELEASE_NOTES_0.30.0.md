@@ -54,9 +54,11 @@ of new third-party dependencies.
   from Rust items parsed by an isolated, locked `syn` checker. The endpoint
   macro accepts only explicit pattern-to-string-literal mappings. Adapter
   macros must be unqualified top-level items, while manual implementations
-  must use canonical `crate::prepared` trait paths. Constants, nested comments,
-  raw strings, `cfg`, `cfg_attr`, namespaced or shadowed adapters, inline fake
-  traits, discarded/helper expressions, unknown keys, ambiguous mappings,
+  must use canonical `crate::prepared` trait paths. The three macro definitions
+  are structurally source-locked and must occur exactly once in their reviewed
+  roots. Constants, nested comments, raw strings, file/item `cfg`, `cfg_attr`,
+  namespaced or shadowed adapters, duplicate or modified definitions, inline
+  fake traits, discarded/helper expressions, unknown keys, ambiguous mappings,
   missing adapters, and deprecated evidence are rejected.
 - Mutation tests prove those structural checks and malformed duplicate body
   locks fail closed; normal Rust checks prove the admitted declarations
