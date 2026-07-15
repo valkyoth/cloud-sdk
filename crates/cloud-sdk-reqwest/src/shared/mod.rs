@@ -14,6 +14,7 @@ macro_rules! impl_static_error {
 
 mod auth;
 mod config;
+mod content_type;
 mod credentials;
 mod endpoint;
 mod error;
@@ -21,6 +22,7 @@ mod rate_limit;
 
 pub use auth::{BearerToken, BearerTokenError, MAX_BEARER_TOKEN_BYTES};
 pub use config::{MAX_TIMEOUT_SECONDS, RequestTimeouts, TimeoutError, UserAgent, UserAgentError};
+pub(crate) use content_type::parse_response_content_type;
 pub(crate) use credentials::CredentialStore;
 pub use credentials::{CredentialStateError, TokenRotationError};
 pub use endpoint::{EndpointError, HttpsEndpoint};

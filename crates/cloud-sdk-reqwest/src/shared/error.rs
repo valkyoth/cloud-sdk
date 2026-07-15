@@ -60,6 +60,8 @@ pub enum TransportError {
     InvalidStatus,
     /// Rate-limit response headers were incomplete, non-decimal, or incoherent.
     InvalidRateLimitHeaders,
+    /// The response content type was duplicated, non-textual, or malformed.
+    InvalidResponseContentType,
     /// The declared or observed response body exceeds the caller buffer.
     ResponseTooLarge,
     /// Reading the response body failed.
@@ -81,6 +83,7 @@ impl_static_error!(TransportError,
     Self::RequestFailed => "request failed",
     Self::InvalidStatus => "response status is invalid",
     Self::InvalidRateLimitHeaders => "rate-limit headers are invalid",
+    Self::InvalidResponseContentType => "response content type is invalid",
     Self::ResponseTooLarge => "response body exceeds the caller limit",
     Self::ResponseReadFailed => "response body read failed",
     Self::ResponseOriginChanged => "response origin changed",

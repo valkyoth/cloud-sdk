@@ -1,9 +1,13 @@
 //! Provider-neutral blocking and asynchronous transport contracts.
 
 mod asynchronous;
+mod content_type;
 mod endpoint;
 
 pub use asynchronous::AsyncTransport;
+pub use content_type::{
+    ContentType, ContentTypeError, MAX_CONTENT_TYPE_BYTES, MediaType, ResponseContentType,
+};
 pub use endpoint::{
     BoundTransport, EndpointIdentity, EndpointIdentityError, EndpointScheme,
     MAX_ENDPOINT_BASE_PATH_BYTES, MAX_ENDPOINT_HOST_BYTES,
@@ -16,98 +20,6 @@ use crate::rate_limit::RateLimit;
 
 /// Maximum origin-form request-target length admitted by the core contract.
 pub const MAX_REQUEST_TARGET_BYTES: usize = 8192;
-
-/// Maximum content-type header value length admitted by the core contract.
-pub const MAX_CONTENT_TYPE_BYTES: usize = 128;
-
-/// Content-type validation error.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum ContentTypeError {
-    /// Content types must not be empty.
-    Empty,
-    /// Content types exceed [`MAX_CONTENT_TYPE_BYTES`].
-    TooLong,
-    /// Content types must contain a token-shaped `type/subtype` essence and
-    /// only visible ASCII bytes.
-    Invalid,
-}
-
-impl_static_error!(ContentTypeError,
-    Self::Empty => "content type is empty",
-    Self::TooLong => "content type exceeds the length limit",
-    Self::Invalid => "content type is invalid",
-);
-
-/// Borrowed, validated HTTP content type.
-#[derive(Clone, Copy, Eq, PartialEq)]
-pub struct ContentType<'a> {
-    value: &'a str,
-}
-
-impl fmt::Debug for ContentType<'_> {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        formatter.write_str("ContentType([redacted])")
-    }
-}
-
-impl<'a> ContentType<'a> {
-    /// `application/json`.
-    pub const JSON: Self = Self {
-        value: "application/json",
-    };
-
-    /// Validates a content-type header value.
-    pub fn new(value: &'a str) -> Result<Self, ContentTypeError> {
-        if value.is_empty() {
-            return Err(ContentTypeError::Empty);
-        }
-        if value.len() > MAX_CONTENT_TYPE_BYTES {
-            return Err(ContentTypeError::TooLong);
-        }
-        if !value.bytes().all(|byte| (b' '..=b'~').contains(&byte)) {
-            return Err(ContentTypeError::Invalid);
-        }
-        let essence = value.split(';').next().unwrap_or_default();
-        let Some((media_type, subtype)) = essence.split_once('/') else {
-            return Err(ContentTypeError::Invalid);
-        };
-        if media_type.is_empty()
-            || subtype.is_empty()
-            || !media_type.bytes().all(is_http_token_byte)
-            || !subtype.bytes().all(is_http_token_byte)
-        {
-            return Err(ContentTypeError::Invalid);
-        }
-        Ok(Self { value })
-    }
-
-    /// Returns the validated header value.
-    #[must_use]
-    pub const fn as_str(self) -> &'a str {
-        self.value
-    }
-}
-
-const fn is_http_token_byte(byte: u8) -> bool {
-    byte.is_ascii_alphanumeric()
-        || matches!(
-            byte,
-            b'!' | b'#'
-                | b'$'
-                | b'%'
-                | b'&'
-                | b'\''
-                | b'*'
-                | b'+'
-                | b'-'
-                | b'.'
-                | b'^'
-                | b'_'
-                | b'`'
-                | b'|'
-                | b'~'
-        )
-}
 
 /// Request-target validation error.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -249,6 +161,12 @@ pub struct StatusCode(u16);
 impl StatusCode {
     /// `200 OK`.
     pub const OK: Self = Self(200);
+    /// `201 Created`.
+    pub const CREATED: Self = Self(201);
+    /// `202 Accepted`.
+    pub const ACCEPTED: Self = Self(202);
+    /// `204 No Content`.
+    pub const NO_CONTENT: Self = Self(204);
     /// `429 Too Many Requests`.
     pub const TOO_MANY_REQUESTS: Self = Self(429);
 
@@ -291,10 +209,11 @@ impl StatusCode {
 ///
 /// let _ = TransportResponse::new(StatusCode::OK, 1024_usize);
 /// ```
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Eq, PartialEq)]
 pub struct TransportResponse<'buffer> {
     status: StatusCode,
     body: &'buffer [u8],
+    content_type: Option<ResponseContentType>,
     rate_limit: Option<RateLimit>,
 }
 
@@ -305,8 +224,16 @@ impl<'buffer> TransportResponse<'buffer> {
         Self {
             status,
             body,
+            content_type: None,
             rate_limit: None,
         }
+    }
+
+    /// Adds a validated response content type captured by the transport.
+    #[must_use]
+    pub const fn with_content_type(mut self, content_type: ResponseContentType) -> Self {
+        self.content_type = Some(content_type);
+        self
     }
 
     /// Adds validated rate-limit metadata captured by the transport.
@@ -328,6 +255,12 @@ impl<'buffer> TransportResponse<'buffer> {
         self.body
     }
 
+    /// Returns the validated response content type when supplied.
+    #[must_use]
+    pub const fn content_type(&self) -> Option<ResponseContentType> {
+        self.content_type
+    }
+
     /// Returns validated rate-limit metadata when the response supplied it.
     #[must_use]
     pub const fn rate_limit(&self) -> Option<RateLimit> {
@@ -342,6 +275,7 @@ impl fmt::Debug for TransportResponse<'_> {
             .field("status", &self.status)
             .field("body_len", &self.body.len())
             .field("body", &"[redacted]")
+            .field("content_type", &self.content_type)
             .field("rate_limit", &self.rate_limit)
             .finish()
     }

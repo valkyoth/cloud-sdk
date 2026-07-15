@@ -24,6 +24,7 @@ mod adversarial;
 mod body;
 mod metadata;
 mod mock;
+mod prepared;
 mod response;
 
 pub use adversarial::{
@@ -34,6 +35,7 @@ pub use metadata::{
     ActionFixture, ActionState, FixtureMetadataError, PaginationFixture, RateLimitFixture,
 };
 pub use mock::{ExpectedRequest, MockError, MockExchange, MockTransport};
+pub use prepared::PreparedRequestRecord;
 pub use response::{FixtureKind, ResponseFixture, ResponseFixtureError};
 
 #[cfg(test)]

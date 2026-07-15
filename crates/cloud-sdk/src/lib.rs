@@ -20,6 +20,7 @@ macro_rules! impl_static_error {
 
 pub mod action_polling;
 pub mod buffer;
+pub mod operation;
 pub mod pagination;
 pub mod rate_limit;
 pub mod transport;

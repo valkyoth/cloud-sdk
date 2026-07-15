@@ -39,6 +39,7 @@ pub struct ResponseFixture<'a> {
     pagination: Option<PaginationFixture>,
     action: Option<ActionFixture>,
     rate_limit: Option<RateLimitFixture>,
+    content_type: Option<&'a str>,
 }
 
 impl<'a> ResponseFixture<'a> {
@@ -79,6 +80,13 @@ impl<'a> ResponseFixture<'a> {
         self
     }
 
+    /// Adds one raw response content type for transport-boundary modeling.
+    #[must_use]
+    pub const fn with_content_type(mut self, content_type: &'a str) -> Self {
+        self.content_type = Some(content_type);
+        self
+    }
+
     /// Creates a client or server error response.
     pub const fn error(
         status: StatusCode,
@@ -98,6 +106,7 @@ impl<'a> ResponseFixture<'a> {
             pagination: None,
             action: None,
             rate_limit: None,
+            content_type: None,
         }
     }
 
@@ -135,5 +144,11 @@ impl<'a> ResponseFixture<'a> {
     #[must_use]
     pub const fn rate_limit(self) -> Option<RateLimitFixture> {
         self.rate_limit
+    }
+
+    /// Returns the response content type when configured.
+    #[must_use]
+    pub const fn content_type(self) -> Option<&'a str> {
+        self.content_type
     }
 }

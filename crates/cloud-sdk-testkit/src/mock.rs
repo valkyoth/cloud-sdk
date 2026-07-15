@@ -5,7 +5,8 @@ use core::sync::atomic::{AtomicUsize, Ordering};
 
 use cloud_sdk::Method;
 use cloud_sdk::transport::{
-    AsyncTransport, BlockingTransport, RequestTarget, TransportRequest, TransportResponse,
+    AsyncTransport, BlockingTransport, BoundTransport, ContentType, EndpointIdentity,
+    EndpointIdentityError, RequestTarget, ResponseContentType, TransportRequest, TransportResponse,
 };
 
 use crate::{FixtureBodyError, ResponseFixture};
@@ -16,6 +17,7 @@ pub struct ExpectedRequest<'a> {
     method: Method,
     target: RequestTarget<'a>,
     body: &'a [u8],
+    content_type: Option<ContentType<'a>>,
 }
 
 impl<'a> ExpectedRequest<'a> {
@@ -26,6 +28,7 @@ impl<'a> ExpectedRequest<'a> {
             method,
             target,
             body: &[],
+            content_type: None,
         }
     }
 
@@ -33,6 +36,13 @@ impl<'a> ExpectedRequest<'a> {
     #[must_use]
     pub const fn with_body(mut self, body: &'a [u8]) -> Self {
         self.body = body;
+        self
+    }
+
+    /// Adds the exact expected request content type.
+    #[must_use]
+    pub const fn with_content_type(mut self, content_type: ContentType<'a>) -> Self {
+        self.content_type = Some(content_type);
         self
     }
 
@@ -47,6 +57,10 @@ impl<'a> ExpectedRequest<'a> {
     const fn body(self) -> &'a [u8] {
         self.body
     }
+
+    const fn content_type(self) -> Option<ContentType<'a>> {
+        self.content_type
+    }
 }
 
 impl fmt::Debug for ExpectedRequest<'_> {
@@ -56,6 +70,7 @@ impl fmt::Debug for ExpectedRequest<'_> {
             .field("method", &self.method)
             .field("target", &"[redacted]")
             .field("body", &"[redacted]")
+            .field("content_type", &self.content_type)
             .finish()
     }
 }
@@ -86,6 +101,8 @@ pub enum MockError {
     TargetMismatch,
     /// Request body differs from the next expectation.
     BodyMismatch,
+    /// Request content type differs from the next expectation.
+    ContentTypeMismatch,
     /// Caller response buffer cannot hold the complete fixture body.
     ResponseBufferTooSmall,
     /// Internal cursor arithmetic failed closed.
@@ -101,6 +118,7 @@ impl_static_error!(MockError,
     Self::MethodMismatch => "mock request method differs from expectation",
     Self::TargetMismatch => "mock request target differs from expectation",
     Self::BodyMismatch => "mock request body differs from expectation",
+    Self::ContentTypeMismatch => "mock request content type differs from expectation",
     Self::ResponseBufferTooSmall => "mock response buffer is too small",
     Self::CursorOverflow => "mock transport cursor overflowed",
     Self::ConcurrentRequest => "mock transport cursor changed concurrently",
@@ -111,6 +129,7 @@ impl_static_error!(MockError,
 pub struct MockTransport<'a> {
     exchanges: &'a [MockExchange<'a>],
     cursor: AtomicUsize,
+    endpoint: Option<EndpointIdentity<'a>>,
 }
 
 impl<'a> MockTransport<'a> {
@@ -120,7 +139,15 @@ impl<'a> MockTransport<'a> {
         Self {
             exchanges,
             cursor: AtomicUsize::new(0),
+            endpoint: None,
         }
+    }
+
+    /// Binds the mock permanently to one normalized endpoint identity.
+    #[must_use]
+    pub const fn with_endpoint(mut self, endpoint: EndpointIdentity<'a>) -> Self {
+        self.endpoint = Some(endpoint);
+        self
     }
 
     /// Returns the number of exchanges not yet consumed.
@@ -153,6 +180,9 @@ impl<'a> MockTransport<'a> {
         if request.body() != exchange.request.body() {
             return Err(MockError::BodyMismatch);
         }
+        if request.content_type() != exchange.request.content_type() {
+            return Err(MockError::ContentTypeMismatch);
+        }
         let next_cursor = cursor.checked_add(1).ok_or(MockError::CursorOverflow)?;
         let body_len =
             exchange
@@ -168,6 +198,13 @@ impl<'a> MockTransport<'a> {
             .get(..body_len)
             .ok_or(MockError::ResponseBufferTooSmall)?;
         let response = TransportResponse::new(exchange.response.status(), initialized);
+        let content_type = exchange
+            .response
+            .content_type()
+            .map(ResponseContentType::new)
+            .transpose()
+            .map_err(|_| MockError::InvalidFixtureMetadata)?;
+        let response = content_type.map_or(response, |value| response.with_content_type(value));
         let rate_limit = exchange
             .response
             .rate_limit()
@@ -207,6 +244,12 @@ impl AsyncTransport for MockTransport<'_> {
         'buffer: 'transport,
     {
         self.send_inner(request, response_body)
+    }
+}
+
+impl BoundTransport for MockTransport<'_> {
+    fn endpoint_identity(&self) -> Result<EndpointIdentity<'_>, EndpointIdentityError> {
+        self.endpoint.ok_or(EndpointIdentityError::UnboundTransport)
     }
 }
 

@@ -29,6 +29,7 @@ use super::{BuildError, FipsTlsPolicy};
 use crate::test_server::spawn;
 
 mod lifecycle;
+mod response_content_type;
 
 fn test_timeouts() -> Option<RequestTimeouts> {
     RequestTimeouts::new(Duration::from_secs(2), Duration::from_secs(1)).ok()
@@ -260,6 +261,7 @@ fn response_propagates_validated_rate_limit_headers() {
     let server = spawn(
         "200 OK",
         &[
+            ("Content-Type", "application/json; charset=utf-8"),
             ("RateLimit-Limit", "3600"),
             ("RateLimit-Remaining", "3599"),
             ("RateLimit-Reset", "42"),
@@ -277,7 +279,12 @@ fn response_propagates_validated_rate_limit_headers() {
     let mut output = [0_u8; 8];
     let response = client.send(TransportRequest::new(Method::Get, target), &mut output);
     assert!(response.is_ok());
-    let Some(rate_limit) = response.ok().and_then(|value| value.rate_limit()) else {
+    let Ok(response) = response else { return };
+    let Some(content_type) = response.content_type() else {
+        return;
+    };
+    assert_eq!(content_type.as_str(), "application/json; charset=utf-8");
+    let Some(rate_limit) = response.rate_limit() else {
         return;
     };
     assert_eq!(rate_limit.limit(), 3600);

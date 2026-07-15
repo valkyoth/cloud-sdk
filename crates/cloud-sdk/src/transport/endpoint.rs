@@ -11,6 +11,8 @@ pub const MAX_ENDPOINT_BASE_PATH_BYTES: usize = 1024;
 /// Endpoint identity validation error.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum EndpointIdentityError {
+    /// The transport has not been bound to an endpoint identity.
+    UnboundTransport,
     /// Endpoint hosts must not be empty.
     EmptyHost,
     /// Endpoint hosts exceed [`MAX_ENDPOINT_HOST_BYTES`].
@@ -27,6 +29,7 @@ pub enum EndpointIdentityError {
 }
 
 impl_static_error!(EndpointIdentityError,
+    Self::UnboundTransport => "transport endpoint identity is unbound",
     Self::EmptyHost => "endpoint identity host is empty",
     Self::HostTooLong => "endpoint identity host exceeds the length limit",
     Self::InvalidHost => "endpoint identity host is not normalized",

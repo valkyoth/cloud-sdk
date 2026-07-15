@@ -129,6 +129,7 @@ fn async_response_propagates_validated_rate_limit_headers() {
         let server = spawn(
             "200 OK",
             &[
+                ("Content-Type", "application/json; charset=utf-8"),
                 ("RateLimit-Limit", "3600"),
                 ("RateLimit-Remaining", "3599"),
                 ("RateLimit-Reset", "42"),
@@ -151,12 +152,47 @@ fn async_response_propagates_validated_rate_limit_headers() {
         )
         .await;
         assert!(response.is_ok());
-        let Some(rate_limit) = response.ok().and_then(|value| value.rate_limit()) else {
+        let Ok(response) = response else { return };
+        let Some(content_type) = response.content_type() else {
+            return;
+        };
+        assert_eq!(content_type.as_str(), "application/json; charset=utf-8");
+        let Some(rate_limit) = response.rate_limit() else {
             return;
         };
         assert_eq!(rate_limit.limit(), 3600);
         assert_eq!(rate_limit.remaining(), 3599);
         assert_eq!(rate_limit.reset_epoch_seconds(), 42);
+    });
+}
+
+#[test]
+fn async_malformed_or_duplicate_response_content_type_fails_closed() {
+    run_async_test(async {
+        let Ok(target) = RequestTarget::new("/servers") else {
+            return;
+        };
+        for headers in [
+            &[("Content-Type", "application/json; charset")][..],
+            &[
+                ("Content-Type", "application/json"),
+                ("Content-Type", "text/plain"),
+            ][..],
+        ] {
+            let server = spawn("200 OK", headers, b"secret", Duration::ZERO);
+            let Ok(server) = server else { return };
+            let Some(client) = build_loopback(&server.endpoint) else {
+                return;
+            };
+            let mut output = [0xa5_u8; 8];
+            assert_eq!(
+                client
+                    .send(TransportRequest::new(Method::Get, target), &mut output)
+                    .await,
+                Err(TransportError::InvalidResponseContentType)
+            );
+            assert_eq!(output, [0_u8; 8]);
+        }
     });
 }
 

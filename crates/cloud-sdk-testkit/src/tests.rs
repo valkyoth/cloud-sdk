@@ -12,6 +12,8 @@ use crate::{
     RateLimitFixture, ResponseFixture, ResponseFixtureError, adversarial_corpus,
 };
 
+mod prepared;
+
 #[test]
 fn public_errors_implement_payload_free_core_error() {
     fn assert_error<E: core::error::Error>() {}

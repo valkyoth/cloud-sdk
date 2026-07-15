@@ -12,7 +12,7 @@ use reqwest::{Body, Client};
 
 use crate::shared::{
     BearerToken, CredentialStateError, CredentialStore, HttpsEndpoint, TokenRotationError,
-    TransportError, parse_rate_limit,
+    TransportError, parse_rate_limit, parse_response_content_type,
 };
 
 use super::body::SanitizedBuffer;
@@ -117,6 +117,7 @@ impl AsyncClient {
         let status =
             StatusCode::new(response.status().as_u16()).ok_or(TransportError::InvalidStatus)?;
         let rate_limit = parse_rate_limit(response.headers())?;
+        let content_type = parse_response_content_type(response.headers())?;
         let buffered = read_response(&mut response, response_body.len()).await?;
         let body_len = buffered.len();
         let initialized = response_body
@@ -124,6 +125,7 @@ impl AsyncClient {
             .ok_or(TransportError::ResponseReadFailed)?;
         initialized.copy_from_slice(buffered.as_ref());
         let response = TransportResponse::new(status, initialized);
+        let response = content_type.map_or(response, |value| response.with_content_type(value));
         drop(token_snapshot);
         Ok(rate_limit.map_or(response, |value| response.with_rate_limit(value)))
     }
