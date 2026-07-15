@@ -13,7 +13,9 @@ from prepared_coverage_test_support import (
     CHECKER,
     ENDPOINT_DEFINITIONS,
     ENDPOINTS,
+    MANIFEST,
     ROOT,
+    assert_ambiguous_metadata_rejected,
     run,
 )
 
@@ -24,6 +26,31 @@ def main() -> None:
         complete = run(directory)
         assert complete.returncode == 0, complete
         assert "2 endpoints and 1 request bodies" in complete.stdout
+        redirected_library = run(
+            directory,
+            manifest=MANIFEST + '\n[lib]\npath = "src/decoy.rs"\n',
+            extra_source_files={"decoy.rs": "pub const DECOY: () = ();\n"},
+        )
+        assert redirected_library.returncode == 1, redirected_library
+        assert "does not use canonical src/lib.rs" in redirected_library.stderr
+        disabled_automatic_library = run(
+            directory,
+            manifest=MANIFEST + "autolib = false\n",
+        )
+        assert disabled_automatic_library.returncode == 1, disabled_automatic_library
+        assert "Cargo metadata failed" in disabled_automatic_library.stderr
+        missing_library = run(
+            directory,
+            manifest=(
+                MANIFEST
+                + 'autolib = false\n\n[[bin]]\nname = "fixture"\n'
+                + 'path = "src/main.rs"\n'
+            ),
+            extra_source_files={"main.rs": "fn main() {}\n"},
+        )
+        assert missing_library.returncode == 1, missing_library
+        assert "library target is missing or ambiguous" in missing_library.stderr
+        assert_ambiguous_metadata_rejected(directory)
 
         missing_prepared_edge = run(directory, crate_root="")
         assert missing_prepared_edge.returncode == 1, missing_prepared_edge
@@ -89,6 +116,44 @@ def main() -> None:
         )
         assert attributed_implementation.returncode == 1, attributed_implementation
         assert "attributes on prepared-operation evidence" in attributed_implementation.stderr
+
+        preceding_operation_statement = run(
+            directory,
+            endpoints=(
+                "endpoint_wire!(Real, value => (), (), match value { "
+                'Real::Write => "write_test" }, false, ());\n'
+                "impl crate::prepared::EndpointWire for Fake { "
+                "fn operation_key(self) -> &'static str { "
+                'return "wrong_operation"; "read_test" } }'
+            ),
+        )
+        assert preceding_operation_statement.returncode == 1, preceding_operation_statement
+        assert "exactly one tail expression" in preceding_operation_statement.stderr
+
+        attributed_operation_tail = run(
+            directory,
+            endpoints=(
+                "endpoint_wire!(Real, value => (), (), match value { "
+                'Real::Write => "write_test" }, false, ());\n'
+                "impl crate::prepared::EndpointWire for Fake { "
+                "fn operation_key(self) -> &'static str { "
+                '#[cfg(any())] "read_test" } }'
+            ),
+        )
+        assert attributed_operation_tail.returncode == 1, attributed_operation_tail
+        assert "attributes inside operation evidence" in attributed_operation_tail.stderr
+
+        attributed_macro_mapping = run(
+            directory,
+            endpoints=(
+                "endpoint_wire!(TestEndpoint, endpoint => (), (), "
+                "#[cfg(any())] match endpoint { "
+                'TestEndpoint::Read => "read_test", '
+                'TestEndpoint::Write => "write_test" }, false, ());'
+            ),
+        )
+        assert attributed_macro_mapping.returncode == 1, attributed_macro_mapping
+        assert "attributes inside operation evidence" in attributed_macro_mapping.stderr
 
         removed_module = run(directory, endpoint_modules="")
         assert removed_module.returncode == 1, removed_module
@@ -410,10 +475,12 @@ def main() -> None:
             str(CHECKER),
             "--matrix",
             str(directory / "matrix.md"),
+            "--manifest",
+            str(directory / "Cargo.toml"),
             "--endpoints",
-            str(directory / "prepared" / "endpoints"),
+            str(directory / "src" / "prepared" / "endpoints"),
             "--bodies",
-            str(directory / "prepared" / "bodies"),
+            str(directory / "src" / "prepared" / "bodies"),
             "--body-lock",
             str(duplicate_lock),
             "--expected-active",
@@ -425,7 +492,7 @@ def main() -> None:
         assert duplicate.returncode == 1, duplicate
         assert "duplicate body operation" in duplicate.stderr
 
-    print("47 prepared-operation coverage tests passed.")
+    print("56 prepared-operation coverage tests passed.")
 
 
 if __name__ == "__main__":

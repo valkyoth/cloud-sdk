@@ -45,6 +45,12 @@ external declarations with their exact expected visibility. Redirected,
 conditional, inline, duplicate, missing, or substituted parent edges fail
 closed.
 
+Before source inspection, locked and offline Cargo metadata must bind the exact
+`cloud-sdk-hetzner/Cargo.toml` package to one library target whose source is the
+same canonical `src/lib.rs`. Missing or ambiguous packages and library targets,
+disabled automatic libraries, malformed metadata, and `[lib] path` redirects
+fail closed.
+
 The checker accepts operation evidence only from top-level, unqualified
 `endpoint_wire!`, `body_wire!`, and `body_component!` item macros or explicit
 implementations using the canonical `crate::prepared::EndpointWire` and
@@ -71,6 +77,12 @@ Adapter macro invocations, canonical trait implementations, operation-key
 methods, accepted-operation methods, and counted match arms must have no
 attributes. This prevents procedural attributes from erasing or replacing
 evidence after the syntax-aware checker has counted it.
+
+Each evidence method must consist of exactly one tail expression. Attributes
+are rejected recursively throughout accepted operation expressions, including
+macro-provided mappings. Earlier returns or statements and attributed tail
+expressions therefore cannot make compiled behavior differ from counted
+evidence.
 
 Endpoint mappings must be match arms returning string literals. Conditional
 items, helper expressions, discarded literals, unknown operations, and

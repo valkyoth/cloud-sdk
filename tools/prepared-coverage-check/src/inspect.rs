@@ -2,6 +2,7 @@
 
 use std::collections::BTreeSet;
 
+use syn::visit::{self, Visit};
 use syn::{Attribute, Expr, ImplItem, Item, ItemImpl, Lit, Path, PathArguments, Stmt, UseTree};
 
 use crate::definitions::validate_adapter_definitions;
@@ -271,7 +272,7 @@ fn inspect_implementation(
     require_unattributed_evidence(&operation.attrs)?;
     let mut implementation_keys = BTreeSet::new();
     implementation_keys.extend(strict_operation_expression(
-        block_tail(&operation.block)?,
+        operation_expression(&operation.block)?,
         kind == RegistryKind::Body,
     )?);
 
@@ -282,7 +283,7 @@ fn inspect_implementation(
         })
     {
         require_unattributed_evidence(&accepted.attrs)?;
-        let expression = block_tail(&accepted.block)?;
+        let expression = operation_expression(&accepted.block)?;
         let Expr::Macro(expression_macro) = expression else {
             return Err("accepts_operation must contain one matches! expression".to_owned());
         };
@@ -299,10 +300,31 @@ fn inspect_implementation(
     Ok(())
 }
 
-fn block_tail(block: &syn::Block) -> Result<&Expr, String> {
-    match block.stmts.last() {
-        Some(Stmt::Expr(expression, None)) => Ok(expression),
-        _ => Err("operation mapping must be the method's tail expression".to_owned()),
+fn operation_expression(block: &syn::Block) -> Result<&Expr, String> {
+    let [Stmt::Expr(expression, None)] = block.stmts.as_slice() else {
+        return Err("operation mapping must contain exactly one tail expression".to_owned());
+    };
+    require_unattributed_expression(expression)?;
+    Ok(expression)
+}
+
+struct AttributeDetector {
+    found: bool,
+}
+
+impl<'ast> Visit<'ast> for AttributeDetector {
+    fn visit_attribute(&mut self, _attribute: &'ast Attribute) {
+        self.found = true;
+    }
+}
+
+fn require_unattributed_expression(expression: &Expr) -> Result<(), String> {
+    let mut detector = AttributeDetector { found: false };
+    visit::visit_expr(&mut detector, expression);
+    if detector.found {
+        Err("attributes inside operation evidence are forbidden".to_owned())
+    } else {
+        Ok(())
     }
 }
 
@@ -310,6 +332,7 @@ fn strict_operation_expression(
     expression: &Expr,
     allow_empty_sentinel: bool,
 ) -> Result<Vec<String>, String> {
+    require_unattributed_expression(expression)?;
     match expression {
         Expr::Lit(literal) => match &literal.lit {
             Lit::Str(value) => literal_key(value, allow_empty_sentinel),
