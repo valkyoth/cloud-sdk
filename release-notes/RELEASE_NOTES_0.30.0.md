@@ -1,7 +1,7 @@
 # cloud-sdk 0.30.0 Release Notes
 
-Status: implementation complete; pentest and final release checks remain
-required before tagging.
+Status: release candidate; pentest and retest passed. Final local and GitHub
+checks remain required before tagging.
 
 Release date: 2026-07-15
 
@@ -108,8 +108,10 @@ explicit firewall apply/remove intent.
 
 ## Security Review
 
-The v0.30 pentest is required at the implementation stop. Its permanent report
-will be added only after the review and any required retest pass.
+The iterative v0.30 pentest and final retest passed. The permanent report at
+[`security/pentest/v0.30.0.md`](../security/pentest/v0.30.0.md) binds the review
+to the exact implementation commit and records the AST coverage-gate
+remediation. No blocking finding remains open.
 
 ## Verification
 
@@ -128,7 +130,6 @@ will be added only after the review and any required retest pass.
 ## Release Gate
 
 ```text
-v0.30.0 implementation stop reached. Run the pentest for this exact commit.
-Tag only after the permanent PASS report, clean local release gate, and GitHub
-CI pass for the final release commit.
+v0.30.0 pentest stop passed. Tag only after the clean local release gate and
+GitHub CI pass for the final release commit.
 ```

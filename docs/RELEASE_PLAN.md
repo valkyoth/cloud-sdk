@@ -1255,7 +1255,7 @@ v0.29.0 implementation stop reached. Run pentest for this exact commit.
 
 ### v0.30.0 - Existing Hetzner Prepared Operations
 
-Status: implementation complete; pentest required.
+Status: release candidate; pentest and retest passed.
 
 Goal: make every source-locked non-deprecated Cloud, DNS, and Console Storage
 Box operation produce one complete prepared request without requiring callers
@@ -1314,7 +1314,8 @@ Verification:
 Stop gate:
 
 ```text
-v0.30.0 implementation stop reached. Run pentest for this exact commit.
+v0.30.0 pentest stop passed. Commit the permanent report, run the clean release
+gate, and wait for GitHub before tagging.
 ```
 
 ### v0.31.0 - Checked Hetzner Response Decoding
