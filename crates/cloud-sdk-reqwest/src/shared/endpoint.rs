@@ -31,6 +31,8 @@ pub enum EndpointError {
     TargetNormalized,
     /// Allocation failed during target composition.
     AllocationFailed,
+    /// The normalized endpoint could not be represented by the shared identity contract.
+    IdentityRejected,
 }
 
 impl_static_error!(EndpointError,
@@ -44,6 +46,7 @@ impl_static_error!(EndpointError,
     Self::InvalidTargetEncoding => "request target encoding is invalid",
     Self::TargetNormalized => "request target was normalized or changed origin",
     Self::AllocationFailed => "request-target allocation failed",
+    Self::IdentityRejected => "endpoint identity is invalid",
 );
 
 /// Validated HTTPS API endpoint, optionally including a fixed base path.
@@ -70,6 +73,7 @@ impl HttpsEndpoint {
     }
 
     fn new_inner(value: &str, require_https: bool) -> Result<Self, EndpointError> {
+        validate_configured_base_path(value)?;
         let base = Url::parse(value).map_err(|_| EndpointError::InvalidUrl)?;
         if require_https && base.scheme() != "https" {
             return Err(EndpointError::HttpsRequired);
@@ -94,7 +98,11 @@ impl HttpsEndpoint {
         if base.path() == "/" {
             prefix.pop();
         }
-        Ok(Self { base, prefix })
+        let endpoint = Self { base, prefix };
+        endpoint
+            .identity()
+            .map_err(|_| EndpointError::IdentityRejected)?;
+        Ok(endpoint)
     }
 
     /// Returns the normalized scheme, host, effective port, and base path.
@@ -156,6 +164,24 @@ impl HttpsEndpoint {
         }
         Ok(endpoint)
     }
+}
+
+fn validate_configured_base_path(value: &str) -> Result<(), EndpointError> {
+    let Some((_, authority_and_path)) = value.split_once("://") else {
+        return Ok(());
+    };
+    let path = authority_and_path
+        .find('/')
+        .and_then(|position| authority_and_path.get(position..))
+        .unwrap_or("/");
+    let path = path.split(['?', '#']).next().unwrap_or(path);
+    if path.contains('%')
+        || path.contains("//")
+        || path.split('/').any(|part| matches!(part, "." | ".."))
+    {
+        return Err(EndpointError::IdentityRejected);
+    }
+    Ok(())
 }
 
 fn validate_target_encoding(target: &str) -> Result<(), EndpointError> {

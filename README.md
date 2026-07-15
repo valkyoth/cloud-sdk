@@ -108,8 +108,8 @@ Portable and native platform evidence is documented in
 
 ```toml
 [dependencies]
-cloud-sdk = "0.27.0"
-cloud-sdk-hetzner = "0.21.0"
+cloud-sdk = "0.28.0"
+cloud-sdk-hetzner = "0.21.1"
 ```
 
 ## cloud-sdk Features
@@ -131,6 +131,7 @@ visible. Applications should enable only the features they use.
 - [Security recipes](https://github.com/valkyoth/cloud-sdk/blob/main/docs/SECURITY_RECIPES.md)
 - [Release runbook](https://github.com/valkyoth/cloud-sdk/blob/main/docs/RELEASE_RUNBOOK.md)
 - [Versioning and error policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/VERSIONING_POLICY.md)
+- [Migrating to v0.28](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.28.0.md)
 - [Deprecated endpoint policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/DEPRECATED_ENDPOINT_POLICY.md)
 
 ## Provider-Neutral Quickstart
@@ -158,8 +159,8 @@ The core contracts perform no I/O and select no executor. Use
 
 ```toml
 [dependencies]
-cloud-sdk = "0.27.0"
-cloud-sdk-reqwest = { version = "0.18.0", features = ["blocking-rustls"] }
+cloud-sdk = "0.28.0"
+cloud-sdk-reqwest = { version = "0.19.0", features = ["blocking-rustls"] }
 ```
 
 The production builder is HTTPS-only, requires explicit bounded timeouts and a
@@ -167,8 +168,9 @@ user agent, uses rustls with TLS 1.2 minimum, and disables redirects, retries,
 proxies, referer generation, and response decompression. It forces HTTP/1 and
 the system resolver even if another dependency enables reqwest HTTP/2 or
 Hickory DNS. The caller owns token generation, scope, rotation, revocation,
-and cleanup of the original secret; the adapter clears only its own token and
-request-body storage.
+and cleanup of immutable secret sources. Mutable and guarded token constructors
+clear their complete source buffers. Cloneable clients support caller-bounded
+concurrency and atomic rotation without holding credential locks across I/O.
 
 See the complete, compile-checked
 [`cloud-sdk-reqwest` blocking example](https://docs.rs/cloud-sdk-reqwest/latest/cloud_sdk_reqwest/#blocking-example)
@@ -181,8 +183,8 @@ when deterministic public WebPKI roots are required:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.27.0"
-cloud-sdk-reqwest = { version = "0.18.0", features = ["blocking-rustls-webpki-roots"] }
+cloud-sdk = "0.28.0"
+cloud-sdk-reqwest = { version = "0.19.0", features = ["blocking-rustls-webpki-roots"] }
 ```
 
 The blocking API is unchanged. This feature excludes host-added enterprise
@@ -198,8 +200,8 @@ feature instead of relying on dependency feature unification:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.27.0"
-cloud-sdk-reqwest = { version = "0.18.0", features = ["blocking-rustls-fips"] }
+cloud-sdk = "0.28.0"
+cloud-sdk-reqwest = { version = "0.19.0", features = ["blocking-rustls-fips"] }
 ```
 
 Client construction explicitly selects rustls' AWS-LC FIPS provider and fails
@@ -217,14 +219,16 @@ example is in the
 
 ```toml
 [dependencies]
-cloud-sdk = "0.27.0"
-cloud-sdk-reqwest = { version = "0.18.0", features = ["async-rustls"] }
+cloud-sdk = "0.28.0"
+cloud-sdk-reqwest = { version = "0.19.0", features = ["async-rustls"] }
 ```
 
 The async adapter requires an active Tokio executor because reqwest uses Tokio
 internally; the core trait and testkit remain executor-neutral. Responses are
 buffered only up to caller capacity and copied after complete success. Timeout,
 read failure, overflow, or cancellation leaves the caller buffer cleared.
+The shared-reference contract does not spawn tasks or select a concurrency
+limit; callers own task lifetimes, bounds, cancellation, and executor policy.
 See the complete, compile-checked
 [`cloud-sdk-reqwest` async example](https://docs.rs/cloud-sdk-reqwest/latest/cloud_sdk_reqwest/#async-example)
 for client construction and request execution.

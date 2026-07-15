@@ -1,38 +1,38 @@
 [release]
-version = "0.27.0"
+version = "0.28.0"
 policy = "independent"
 
 [crates."cloud-sdk"]
-previous_version = "0.26.0"
-version = "0.27.0"
+previous_version = "0.27.0"
+version = "0.28.0"
 change = "code"
 publish = true
-reason = "Add payload-free public error traits and v0.27 stabilization evidence."
+reason = "Add shared-reference transport and immutable endpoint identity contracts."
 
 [crates."cloud-sdk-hetzner"]
-previous_version = "0.20.0"
-version = "0.21.0"
-change = "code"
-publish = true
-reason = "Make required request inputs type-safe and stabilize public errors."
-
-[crates."cloud-sdk-reqwest"]
-previous_version = "0.17.2"
-version = "0.18.0"
-change = "code"
-publish = true
-reason = "Make custom credential destinations explicit and stabilize public errors."
-
-[crates."cloud-sdk-sanitization"]
-previous_version = "0.13.12"
-version = "0.13.13"
+previous_version = "0.21.0"
+version = "0.21.1"
 change = "dependency"
 publish = true
-reason = "Update the cloud-sdk dependency to the v0.27 facade line."
+reason = "Update provider-neutral dependencies to the v0.28 facade line."
 
-[crates."cloud-sdk-testkit"]
-previous_version = "0.15.8"
-version = "0.16.0"
+[crates."cloud-sdk-reqwest"]
+previous_version = "0.18.0"
+version = "0.19.0"
 change = "code"
 publish = true
-reason = "Add payload-free public error traits and update the facade dependency."
+reason = "Add shareable clients, endpoint identity, mutable token ingestion, and atomic rotation."
+
+[crates."cloud-sdk-sanitization"]
+previous_version = "0.13.13"
+version = "0.13.14"
+change = "dependency"
+publish = true
+reason = "Update the cloud-sdk dependency to the v0.28 facade line."
+
+[crates."cloud-sdk-testkit"]
+previous_version = "0.16.0"
+version = "0.17.0"
+change = "code"
+publish = true
+reason = "Adapt the ordered mock to shared-reference blocking and async transports."

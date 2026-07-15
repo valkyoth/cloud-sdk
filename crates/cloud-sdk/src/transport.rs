@@ -351,6 +351,10 @@ impl fmt::Debug for TransportResponse<'_> {
 ///
 /// Authentication, base URLs, headers, timeouts, TLS, and retry policy belong
 /// to adapters and are intentionally outside this minimal contract.
+/// The shared receiver does not itself promise concurrency: callers may issue
+/// overlapping requests only when the concrete implementation satisfies their
+/// required [`Sync`] and [`Send`] bounds. Sequential implementations may use
+/// safe interior mutability without becoming `Sync`.
 pub trait BlockingTransport {
     /// Transport-specific failure.
     type Error;

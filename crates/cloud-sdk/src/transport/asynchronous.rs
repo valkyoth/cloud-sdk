@@ -10,6 +10,10 @@ use super::{TransportRequest, TransportResponse};
 /// implementation, clock, or retry policy. Adapter crates document any runtime
 /// requirements they add.
 ///
+/// The shared receiver does not create concurrency. Callers may overlap or
+/// spawn returned futures only when the concrete implementation and future
+/// satisfy their executor's `Sync`, `Send`, and lifetime requirements.
+///
 /// Implementations must treat cancellation as an error path: dropping the
 /// returned future must not expose a partially initialized response as a
 /// successful [`TransportResponse`]. Implementations handling secret response

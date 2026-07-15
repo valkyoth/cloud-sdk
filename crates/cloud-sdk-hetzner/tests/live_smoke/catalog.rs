@@ -80,7 +80,7 @@ impl CatalogProbe {
         self.name
     }
 
-    pub(super) fn run(self, client: &mut BlockingClient) -> Result<(), ProbeFailure> {
+    pub(super) fn run(self, client: &BlockingClient) -> Result<(), ProbeFailure> {
         let mut target_bytes = [0_u8; MAX_TARGET_BYTES];
         let target_len = self
             .write_target(&mut target_bytes)

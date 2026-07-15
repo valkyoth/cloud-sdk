@@ -1,7 +1,7 @@
 # Crate Version Matrix
 
-Status: two separate `v0.27.0` pentests passed with no findings. Local release
-checks and GitHub CI remain required before tagging.
+Status: `v0.28.0` shared transport and credential lifecycle implementation stop
+reached. Pentest and local/GitHub release gates are required before tagging.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
@@ -431,3 +431,17 @@ are checked against the reviewed documentation contract.
 | `cloud-sdk-reqwest` | `0.17.2` | `0.18.0` | `code` | Yes | Make custom credential destinations explicit and stabilize public errors. |
 | `cloud-sdk-sanitization` | `0.13.12` | `0.13.13` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.27 facade line. |
 | `cloud-sdk-testkit` | `0.15.8` | `0.16.0` | `code` | Yes | Add payload-free public error traits and update the facade dependency. |
+
+## v0.28.0 Tracking Table
+
+`v0.28.0` moves blocking and async sends to shared references, adds immutable
+endpoint identity, and gives the optional reqwest clients a reviewed concurrent
+credential lifecycle without changing any default dependency graph.
+
+| Crate | Published | Planned | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.27.0` | `0.28.0` | `code` | Yes | Add shared-reference transport and immutable endpoint identity contracts. |
+| `cloud-sdk-hetzner` | `0.21.0` | `0.21.1` | `dependency` | Yes | Update provider-neutral dependencies to the v0.28 facade line. |
+| `cloud-sdk-reqwest` | `0.18.0` | `0.19.0` | `code` | Yes | Add shareable clients, endpoint identity, mutable token ingestion, and atomic rotation. |
+| `cloud-sdk-sanitization` | `0.13.13` | `0.13.14` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.28 facade line. |
+| `cloud-sdk-testkit` | `0.16.0` | `0.17.0` | `code` | Yes | Adapt the ordered mock to shared-reference blocking and async transports. |

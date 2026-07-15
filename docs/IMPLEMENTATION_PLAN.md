@@ -168,5 +168,9 @@ Expected future candidates must be reviewed before use:
 - `v0.24.0` admits `webpki-roots 1.0.8` only through a non-default blocking
   feature with a complete explicit rustls configuration. It also records the
   direct dependency/tool freshness and AWS-LC native checksum/build review.
+- `v0.28.0` changes transport receivers, endpoint identity, and credential
+  lifecycle without admitting any new third-party dependency or default
+  feature. Shared reqwest clients use only existing standard-library and
+  admitted sanitization boundaries.
 
 Every admission needs a document under `docs/dependency-admission-*.md`.

@@ -34,8 +34,8 @@ and runtime-free.
 
 ```toml
 [dev-dependencies]
-cloud-sdk = "0.27.0"
-cloud-sdk-testkit = "0.16.0"
+cloud-sdk = "0.28.0"
+cloud-sdk-testkit = "0.17.0"
 ```
 
 ## Mock Transport
@@ -57,7 +57,7 @@ let exchanges = [MockExchange::new(
     ExpectedRequest::new(Method::Get, target),
     ResponseFixture::success(body),
 )];
-let mut transport = MockTransport::new(&exchanges);
+let transport = MockTransport::new(&exchanges);
 let mut output = [0_u8; 64];
 
 let Ok(response) = transport.send(
@@ -89,10 +89,10 @@ let exchanges = [MockExchange::new(
     ExpectedRequest::new(Method::Get, target),
     ResponseFixture::success(body),
 )];
-let mut transport = MockTransport::new(&exchanges);
+let transport = MockTransport::new(&exchanges);
 let mut output = [0_u8; 32];
 let Ok(response) = AsyncTransport::send(
-    &mut transport,
+    &transport,
     TransportRequest::new(Method::Get, target),
     &mut output,
 ).await else { return };

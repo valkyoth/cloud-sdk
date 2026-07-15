@@ -38,6 +38,10 @@
   retries, referers, or environment-derived routing;
 - decompression bombs, unbounded response reads, and timeout-free blocking;
 - secret copies retained in adapter-owned allocation after request completion;
+- credential rotation races applying a partial token, changing an in-flight
+  request, holding a secret lock across I/O, or retaining retired token storage;
+- custom endpoint drift sending valid credentials to a changed host, subdomain,
+  port, scheme, or base path;
 - compromised or attacker-extended host trust stores silently validating a
   hostile TLS endpoint;
 - absent, incomplete, stale, or unauthenticated CRLs allowing a revoked cloud
@@ -94,6 +98,15 @@
   authority, rustls with TLS 1.2 minimum, explicit bounded timeouts, no
   redirects, retries, proxies, referers, or decompression, and caller-bounded
   responses;
+- transport sends use shared references; cloneable reqwest clients take an
+  atomic token snapshot under a short-lived lock, release it before I/O or
+  `.await`, retain old snapshots only for in-flight requests, and sanitize
+  retired adapter-owned storage after the last snapshot;
+- mutable and guarded token ingestion clears the complete source on success or
+  rejection, while rejected rotation leaves the active token unchanged;
+- credential-bound transports report immutable normalized endpoint identity so
+  provider clients can compare exact scheme, host, effective port, and base
+  path before execution;
 - standard transports use platform trust stores explicitly; FIPS transport
   requires deployment-managed roots and complete CRLs, checks the full chain,
   denies unknown revocation status, and enforces CRL expiration;

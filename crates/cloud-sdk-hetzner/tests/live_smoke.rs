@@ -61,15 +61,15 @@ fn read_only_catalog_smoke() -> Result<(), LiveSmokeError> {
     let endpoint =
         HttpsEndpoint::new_custom(CLOUD_API_BASE_URL).map_err(LiveSmokeError::Endpoint)?;
     let user_agent =
-        UserAgent::new("cloud-sdk-live-smoke/0.19.0").map_err(LiveSmokeError::UserAgent)?;
+        UserAgent::new("cloud-sdk-live-smoke/0.28.0").map_err(LiveSmokeError::UserAgent)?;
     let timeouts = RequestTimeouts::new(Duration::from_secs(30), Duration::from_secs(10))
         .map_err(LiveSmokeError::Timeout)?;
-    let mut client = BlockingClientBuilder::new(endpoint, token, user_agent, timeouts)
+    let client = BlockingClientBuilder::new(endpoint, token, user_agent, timeouts)
         .build()
         .map_err(LiveSmokeError::Client)?;
 
     for probe in PROBES {
-        probe.run(&mut client)?;
+        probe.run(&client)?;
         println!("live smoke: {} passed", probe.name());
     }
     Ok(())

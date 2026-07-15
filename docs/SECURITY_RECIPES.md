@@ -15,10 +15,27 @@ security controls.
   credential channel with explicit ownership and permissions.
 - Rotate and revoke tokens on a defined schedule and immediately after
   suspected exposure.
-- Clear caller-owned mutable secret buffers after the transport no longer
-  needs them. `cloud-sdk-sanitization::SecretBuffer` can guard those buffers,
-  but cannot clear immutable strings, operating-system copies, remote copies,
-  swap, or crash dumps.
+- Prefer `BearerToken::from_mut_bytes` or a consumed
+  `cloud-sdk-sanitization::SecretBuffer`; both clear the complete source on
+  success and rejection. Immutable strings, operating-system copies, remote
+  copies, swap, and crash dumps remain outside this guarantee.
+- Rotate through the client operation. Newly started requests take the new
+  credential atomically, in-flight requests retain their prior snapshot, and
+  retired adapter-owned storage is cleared after its last snapshot. Revoke the
+  old provider credential after the application's in-flight window closes.
+
+## Concurrency
+
+The blocking and async transport contracts use shared references. A concrete
+`Sync` client can serve overlapping caller-owned requests without a mutex held
+across I/O or `.await`; request and response buffers must remain distinct.
+Bound concurrency in the application with a fixed worker or task budget. The
+SDK does not create tasks, semaphores, queues, retries, sleeps, or an executor.
+
+Before credentials are used, compare `BoundTransport::endpoint_identity()`
+with the provider's exact official scheme, host, effective port, and base path.
+Custom endpoint values are credential destinations and must never come from
+tenant-controlled input.
 
 ## Logging
 

@@ -113,6 +113,16 @@ fn endpoints_reject_authority_and_normalization_ambiguity() {
         HttpsEndpoint::new_custom("https://api.example.test/v1/"),
         Err(EndpointError::TrailingSlash)
     ));
+    for endpoint in [
+        "https://api.example.test/v1/../admin",
+        "https://api.example.test/%76%31",
+        "https://api.example.test/v1//admin",
+    ] {
+        assert!(matches!(
+            HttpsEndpoint::new_custom(endpoint),
+            Err(EndpointError::IdentityRejected)
+        ));
+    }
 
     let endpoint = HttpsEndpoint::new_custom("https://api.example.test/v1");
     let safe = RequestTarget::new("/servers?name=test%20server");

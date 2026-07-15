@@ -38,12 +38,14 @@ provider without adding transport dependencies to provider crates.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.27.0"
-cloud-sdk-reqwest = { version = "0.18.0", features = ["blocking-rustls"] }
+cloud-sdk = "0.28.0"
+cloud-sdk-reqwest = { version = "0.19.0", features = ["blocking-rustls"] }
 ```
 
 The examples use Hetzner as a concrete endpoint, but the adapter contains no
 provider-specific routing, authentication, or response logic.
+Receiver and rotation changes from the previous release are listed in the
+[v0.28 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.28.0.md).
 
 ## Blocking Example
 
@@ -68,7 +70,7 @@ let Ok(timeouts) = RequestTimeouts::new(
     Duration::from_secs(30),
     Duration::from_secs(10),
 ) else { return };
-let Ok(mut client) = BlockingClientBuilder::new(endpoint, token, user_agent, timeouts).build()
+let Ok(client) = BlockingClientBuilder::new(endpoint, token, user_agent, timeouts).build()
 else { return };
 
 let Ok(target) = RequestTarget::new("/servers?page=1") else { return };
@@ -90,8 +92,8 @@ compiled into `webpki-roots`:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.27.0"
-cloud-sdk-reqwest = { version = "0.18.0", features = ["blocking-rustls-webpki-roots"] }
+cloud-sdk = "0.28.0"
+cloud-sdk-reqwest = { version = "0.19.0", features = ["blocking-rustls-webpki-roots"] }
 ```
 
 The blocking API is identical to the example above. The custom rustls client
@@ -107,8 +109,8 @@ Use the same blocking API with the dedicated feature:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.27.0"
-cloud-sdk-reqwest = { version = "0.18.0", features = ["blocking-rustls-fips"] }
+cloud-sdk = "0.28.0"
+cloud-sdk-reqwest = { version = "0.19.0", features = ["blocking-rustls-fips"] }
 rustls = "=0.23.42"
 ```
 
@@ -175,13 +177,13 @@ let Ok(timeouts) = RequestTimeouts::new(
     Duration::from_secs(30),
     Duration::from_secs(10),
 ) else { return };
-let Ok(mut client) = AsyncClientBuilder::new(endpoint, token, user_agent, timeouts).build()
+let Ok(client) = AsyncClientBuilder::new(endpoint, token, user_agent, timeouts).build()
 else { return };
 
 let Ok(target) = RequestTarget::new("/servers?page=1") else { return };
 let request = TransportRequest::new(Method::Get, target);
 let mut response_body = [0_u8; 65_536];
-let Ok(response) = AsyncTransport::send(&mut client, request, &mut response_body).await
+let Ok(response) = AsyncTransport::send(&client, request, &mut response_body).await
 else { return };
 
 assert!(response.status().is_success());
@@ -202,6 +204,50 @@ let request = TransportRequest::new(Method::Post, target)
 assert_eq!(request.content_type(), Some(ContentType::JSON));
 ```
 
+## Shared Clients And Credential Rotation
+
+Blocking and async clients are `Clone + Send + Sync`. Clones share one
+credential state and one immutable endpoint identity, while every request body
+and response buffer remains caller-owned. The SDK does not create tasks,
+queues, semaphores, retries, sleeps, or an executor; callers must bound their
+own blocking threads or async task sets.
+
+Both core transport traits send through `&self`. A request takes a short-lived
+token snapshot before I/O and releases the credential lock before network work
+or `.await`. Rotation changes the token for newly started requests atomically;
+an in-flight request keeps its previous snapshot, and retired adapter-owned
+storage is sanitized after its last snapshot is dropped.
+
+```rust,no_run
+# #[cfg(feature = "blocking-rustls")]
+# fn example(client: &cloud_sdk_reqwest::blocking::BlockingClient) {
+use cloud_sdk::transport::{BoundTransport, EndpointScheme};
+
+let official = client.endpoint_identity().is_ok_and(|identity| {
+    identity.scheme() == EndpointScheme::Https
+        && identity.host() == "api.hetzner.cloud"
+        && identity.effective_port() == 443
+        && identity.base_path() == "/v1"
+});
+assert!(official);
+
+let mut replacement = *b"replace-with-scoped-token";
+let result = client.rotate_bearer_token_from_mut_bytes(&mut replacement);
+assert!(result.is_ok());
+assert!(replacement.iter().all(|byte| *byte == 0));
+# }
+# fn main() {}
+```
+
+`BearerToken::from_mut_bytes` and the matching client rotation method clear the
+complete mutable source on success or rejection. `BearerToken::from_secret_buffer`
+and `rotate_bearer_token_from_secret_buffer` consume a
+`cloud_sdk_sanitization::SecretBuffer`, which provides the same cleanup on
+every return path. The compatibility `BearerToken::new(&str)` constructor
+cannot clear its immutable source. Construct a replacement before calling
+`rotate_bearer_token`, or use one of the source-clearing rotation methods;
+rejected input leaves the active credential unchanged.
+
 ## Enforced Policy
 
 - HTTPS-only production endpoints with no embedded credentials, query, or
@@ -216,6 +262,12 @@ assert_eq!(request.content_type(), Some(ContentType::JSON));
 - No redirects, automatic retries, proxies, referer generation, or response
   decompression.
 - Exact scheme, host, and port preservation after target composition.
+- Immutable normalized scheme, host, effective port, and base-path identity for
+  provider-side official-endpoint checks.
+- Shared-reference sends with cloneable clients, caller-bounded concurrency,
+  and no credential lock held across I/O or `.await`.
+- Atomic token rotation with in-flight snapshots and source-clearing mutable or
+  guarded constructors.
 - Caller-sized response buffers with overflow detection and cleanup.
 - Strict all-or-none decimal parsing and propagation of exactly one
   `RateLimit-Limit`, `RateLimit-Remaining`, and `RateLimit-Reset` response
@@ -225,10 +277,10 @@ assert_eq!(request.content_type(), Some(ContentType::JSON));
 - Payload-free errors and redacted client, token, target, and body diagnostics.
 
 `BearerToken` clears its adapter-owned authorization bytes through
-`cloud-sdk-sanitization`. It cannot clear the caller's original immutable
-string or copies owned by reqwest, TLS, the operating system, or remote
-services. Keep tokens scoped, rotate and revoke them, and erase caller-owned
-mutable secret storage after transport use.
+`cloud-sdk-sanitization`. Rotation cannot clear authorization copies already
+owned by reqwest, TLS, the operating system, or remote services. Keep tokens
+scoped, rotate and revoke them, and use mutable or guarded ingestion whenever
+the source can be cleared.
 
 ## Features
 

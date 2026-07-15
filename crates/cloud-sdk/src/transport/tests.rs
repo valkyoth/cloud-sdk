@@ -4,7 +4,12 @@ use super::{
 };
 use crate::Method;
 use crate::rate_limit::RateLimit;
+use core::cell::Cell;
 use core::fmt::Write;
+use core::future::Future;
+use core::task::{Context, Poll, Waker};
+
+use super::{AsyncTransport, BlockingTransport};
 
 #[test]
 fn request_targets_are_origin_form_and_bounded() {
@@ -140,6 +145,84 @@ fn transport_response_borrows_body_propagates_metadata_and_redacts_debug() {
     assert!(debug.contains("body_len: 15"));
     assert!(debug.contains("[redacted]"));
     assert!(!debug.contains("secret-response"));
+}
+
+struct SequentialBlockingTransport {
+    calls: Cell<u8>,
+}
+
+impl BlockingTransport for SequentialBlockingTransport {
+    type Error = ();
+
+    fn send<'buffer>(
+        &self,
+        _request: TransportRequest<'_>,
+        response_body: &'buffer mut [u8],
+    ) -> Result<TransportResponse<'buffer>, Self::Error> {
+        self.calls.set(self.calls.get().saturating_add(1));
+        let Some(output) = response_body.get_mut(..2) else {
+            return Err(());
+        };
+        output.copy_from_slice(b"ok");
+        Ok(TransportResponse::new(StatusCode::OK, output))
+    }
+}
+
+struct SequentialAsyncTransport {
+    _not_sync: Cell<()>,
+}
+
+impl AsyncTransport for SequentialAsyncTransport {
+    type Error = ();
+
+    // Avoid capturing the deliberately non-Sync receiver in the Send future.
+    #[allow(clippy::manual_async_fn)]
+    fn send<'transport, 'request, 'buffer>(
+        &'transport self,
+        _request: TransportRequest<'request>,
+        response_body: &'buffer mut [u8],
+    ) -> impl Future<Output = Result<TransportResponse<'buffer>, Self::Error>> + Send + 'transport
+    where
+        'request: 'transport,
+        'buffer: 'transport,
+    {
+        async move {
+            let Some(output) = response_body.get_mut(..2) else {
+                return Err(());
+            };
+            output.copy_from_slice(b"ok");
+            Ok(TransportResponse::new(StatusCode::OK, output))
+        }
+    }
+}
+
+#[test]
+fn non_sync_transports_remain_usable_sequentially() {
+    let Ok(target) = RequestTarget::new("/sequential") else {
+        return;
+    };
+    let request = TransportRequest::new(Method::Get, target);
+    let blocking = SequentialBlockingTransport {
+        calls: Cell::new(0),
+    };
+    let mut blocking_output = [0_u8; 2];
+    let response = blocking.send(request, &mut blocking_output);
+    assert!(response.is_ok_and(|response| response.body() == b"ok"));
+    assert_eq!(blocking.calls.get(), 1);
+
+    let asynchronous = SequentialAsyncTransport {
+        _not_sync: Cell::new(()),
+    };
+    let mut async_output = [0_u8; 2];
+    let future = AsyncTransport::send(&asynchronous, request, &mut async_output);
+    let mut future = core::pin::pin!(future);
+    let waker = Waker::noop();
+    let mut context = Context::from_waker(waker);
+    let response = Future::poll(future.as_mut(), &mut context);
+    assert!(matches!(response, Poll::Ready(Ok(_))));
+    if let Poll::Ready(Ok(response)) = response {
+        assert_eq!(response.body(), b"ok");
+    }
 }
 
 struct DebugBuffer {

@@ -18,7 +18,7 @@ with reqwest default features disabled.
 | `rustls-platform-verifier` | `0.7.0` | platform trust-store verification | transitive |
 | `webpki-roots` | `1.0.8` | deterministic Mozilla trust-root snapshot | disabled |
 | `aws-lc-rs` | `1.17.1` | rustls cryptographic provider | transitive |
-| `cloud-sdk-sanitization` | `0.13.13` | adapter-owned secret-buffer cleanup | disabled |
+| `cloud-sdk-sanitization` | `0.13.14` | adapter-owned secret-buffer cleanup | disabled |
 | `sanitization` | `1.2.4` | reviewed volatile cleanup primitive | disabled |
 
 The exact repository graph is pinned by `Cargo.lock`, checked by `cargo deny`,
@@ -93,7 +93,7 @@ from both production feature graphs. A
 separate locked, non-published test fixture deliberately enables both on the
 same reqwest instance and builds both adapters to exercise Cargo feature
 unification against the runtime overrides. Its local `cloud-sdk-reqwest`
-dependency is pinned exactly to `0.18.0` and enables the standard, FIPS, and
+dependency is pinned exactly to `0.19.0` and enables the standard, FIPS, and
 async transport features, proving the explicit FIPS configuration wins under
 additive feature unification. The deterministic-root boundary separately
 compiles both its standard combination and its combination with FIPS.
@@ -128,10 +128,23 @@ Production builders enforce:
 - async response accumulation limited to caller capacity, followed by one
   complete-success copy into the caller buffer.
 
+The blocking and async clients are cloneable shared handles. Their token store
+uses a short-lived standard-library read/write lock over reference-counted
+token snapshots. No lock is held while reqwest performs network I/O or while an
+async request is suspended. The SDK provides no queue, semaphore, task set,
+retry fan-out, sleep, or background rotation worker; applications select and
+enforce their own concurrency bounds.
+
 The adapter validates the final scheme, host, and port against the configured
 endpoint. Request targets are origin-form, and encoded path separators,
 backslashes, dot bytes, controls, non-ASCII bytes, fragments, and malformed
 percent escapes are rejected before credentials are attached.
+
+Every built client also implements `BoundTransport` and reports a normalized,
+credential-free scheme, host, effective port, and base path. The endpoint is
+owned immutably by every clone and cannot be replaced through rotation. This
+identity enables provider facades to fail closed on official-host, subdomain,
+port, scheme, or base-path mismatches.
 
 Standard transport roots intentionally follow host policy. A compromised or
 attacker-extended host trust store, including an enterprise interception root,
@@ -150,17 +163,22 @@ application or deployment compliance guarantee.
 `BearerToken` copies the complete authorization value into adapter-owned
 storage, marks reqwest's header value sensitive, redacts diagnostics, and
 volatile-clears its owned bytes on drop through `cloud-sdk-sanitization`.
+Mutable-byte and guarded-buffer constructors clear their complete caller-owned
+source on success or rejection. Rotation validates and allocates a replacement
+before changing shared state, so rejected input leaves the active token intact.
+In-flight requests retain reference-counted old-token snapshots; retired
+adapter storage drops and clears only after the last snapshot finishes.
 Request-body copies and caller response buffers are also cleared on their
 owned failure or drop paths. Async response data is accumulated in a
 pre-reserved adapter-owned sanitized buffer and copied into the already-cleared
 caller buffer only after complete success. Dropping the future during connect,
 send, or response reading drops and clears that adapter-owned accumulation.
 
-The adapter cannot clear the caller's original immutable token string,
+The adapter cannot clear a caller's original immutable token string,
 reqwest/header/TLS copies, operating-system socket buffers, kernel memory,
 swap, crash dumps, or remote systems. Callers must generate tokens with an
 appropriate CSPRNG, rotate and revoke them operationally, minimize scope, and
-clear any caller-owned mutable secret buffers after use.
+prefer the source-clearing constructors when mutable storage is available.
 
 The rustls dependency graph internally contains `zeroize` through rustls,
 aws-lc-rs, and rustls-pki-types. Workspace crates neither depend on it directly
