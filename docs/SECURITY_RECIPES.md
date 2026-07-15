@@ -32,10 +32,12 @@ across I/O or `.await`; request and response buffers must remain distinct.
 Bound concurrency in the application with a fixed worker or task budget. The
 SDK does not create tasks, semaphores, queues, retries, sleeps, or an executor.
 
-Before credentials are used, compare `BoundTransport::endpoint_identity()`
-with the provider's exact official scheme, host, effective port, and base path.
-Custom endpoint values are credential destinations and must never come from
-tenant-controlled input.
+Before Hetzner credentials are used, call
+`cloud_sdk_hetzner::verify_official_endpoint(&transport, expected_base)`. It
+compares `BoundTransport::endpoint_identity()` with the selected official
+scheme, host, effective port, and base path. Other providers must perform the
+same exact comparison with their own constants. Custom endpoint values are
+credential destinations and must never come from tenant-controlled input.
 
 ## Logging
 

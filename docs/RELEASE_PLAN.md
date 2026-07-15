@@ -1164,8 +1164,8 @@ Deliverables:
   semaphore, queue, retry fan-out, or background runtime.
 - A provider-neutral bound-endpoint identity reports the transport's immutable,
   normalized scheme, host, effective port, and base path without exposing
-  credentials; provider facades can compare it with official endpoint constants
-  before permitting execution.
+  credentials. The Hetzner provider exposes an exact verifier for both official
+  v1 endpoint families before permitting execution.
 - Endpoint identity cannot be replaced after credential binding. Custom
   endpoints remain explicit and cannot be populated from environment proxy
   configuration or redirected at request time.
@@ -1175,7 +1175,8 @@ Deliverables:
 - Blocking and async transports expose a documented token-rotation operation.
   Rotation is atomic for newly started requests, does not hold a lock across
   network I/O or `.await`, leaves the previous token active on rejected input,
-  and sanitizes retired token storage after the last in-flight use.
+  recovers structurally complete state after lock poisoning, and sanitizes
+  retired token storage after the last in-flight use.
 - Token construction, rotation, debug output, and errors never expose secret
   bytes; caller-owned immutable strings remain a documented cleanup boundary.
 
@@ -1192,7 +1193,7 @@ Verification:
   credential binding.
 - Mutable-byte and guarded-token tests cover cleanup on every success/error
   path, concurrent rotation, in-flight token snapshots, and retired-token
-  sanitization.
+  sanitization. A deliberate poisoning test proves all cloned clients recover.
 - `scripts/release_0_28_gate.sh` once added.
 
 Stop gate:

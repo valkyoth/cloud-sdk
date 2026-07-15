@@ -441,7 +441,7 @@ credential lifecycle without changing any default dependency graph.
 | Crate | Published | Planned | Change | Publish | Reason |
 | --- | --- | --- | --- | --- | --- |
 | `cloud-sdk` | `0.27.0` | `0.28.0` | `code` | Yes | Add shared-reference transport and immutable endpoint identity contracts. |
-| `cloud-sdk-hetzner` | `0.21.0` | `0.21.1` | `dependency` | Yes | Update provider-neutral dependencies to the v0.28 facade line. |
+| `cloud-sdk-hetzner` | `0.21.0` | `0.22.0` | `code` | Yes | Add exact official Cloud and Storage endpoint verification. |
 | `cloud-sdk-reqwest` | `0.18.0` | `0.19.0` | `code` | Yes | Add shareable clients, endpoint identity, mutable token ingestion, and atomic rotation. |
 | `cloud-sdk-sanitization` | `0.13.13` | `0.13.14` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.28 facade line. |
 | `cloud-sdk-testkit` | `0.16.0` | `0.17.0` | `code` | Yes | Adapt the ordered mock to shared-reference blocking and async transports. |

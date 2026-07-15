@@ -36,12 +36,12 @@ pub mod security;
 pub mod serde;
 pub mod storage;
 
-pub use endpoint::{ApiSurface, EndpointGroup};
+pub use endpoint::{ApiSurface, EndpointGroup, OfficialEndpointError, verify_official_endpoint};
 pub use request::{CLOUD_API_BASE_URL, CLOUD_API_VERSION};
 
 #[cfg(test)]
 mod tests {
-    use super::{ApiSurface, EndpointGroup};
+    use super::{ApiSurface, EndpointGroup, OfficialEndpointError};
     use crate::actions::ActionRequestError;
     use crate::cloud::catalog::CatalogRequestError;
     use crate::cloud::firewalls::rules::FirewallRuleError;
@@ -80,6 +80,7 @@ mod tests {
         assert_error::<IpValidationError>();
         assert_error::<LabelError>();
         assert_error::<LoadBalancerRequestError>();
+        assert_error::<OfficialEndpointError>();
         assert_error::<PaginationError>();
         assert_error::<QueryError>();
         assert_error::<RrsetRequestError>();
@@ -111,6 +112,10 @@ mod tests {
         assert_display(
             LoadBalancerRequestError::InvalidPort,
             "load-balancer port is invalid",
+        );
+        assert_display(
+            OfficialEndpointError::DestinationMismatch,
+            "transport destination is not an official Hetzner endpoint",
         );
         assert_display(PaginationError::PageZero, "page number must be nonzero");
         assert_display(QueryError::EmptyKey, "query key is empty");

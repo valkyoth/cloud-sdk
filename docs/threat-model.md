@@ -105,8 +105,10 @@
 - mutable and guarded token ingestion clears the complete source on success or
   rejection, while rejected rotation leaves the active token unchanged;
 - credential-bound transports report immutable normalized endpoint identity so
-  provider clients can compare exact scheme, host, effective port, and base
-  path before execution;
+  the Hetzner provider can verify exact scheme, host, effective port, and base
+  path for both official v1 API families before execution;
+- poisoned credential locks recover while holding a guard over one complete
+  token `Arc`, preventing permanent failure across every client clone;
 - standard transports use platform trust stores explicitly; FIPS transport
   requires deployment-managed roots and complete CRLs, checks the full chain,
   denies unknown revocation status, and enforces CRL expiration;

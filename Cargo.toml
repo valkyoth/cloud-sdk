@@ -41,7 +41,7 @@ aws-lc-rs = { version = "=1.17.1", default-features = false }
 aws-lc-sys = { version = "=0.42.0", default-features = false }
 bytes = { version = "1.12.1", default-features = false }
 cloud-sdk = { path = "crates/cloud-sdk", version = "0.28.0" }
-cloud-sdk-hetzner = { path = "crates/cloud-sdk-hetzner", version = "0.21.1" }
+cloud-sdk-hetzner = { path = "crates/cloud-sdk-hetzner", version = "0.22.0" }
 cloud-sdk-reqwest = { path = "crates/cloud-sdk-reqwest", version = "0.19.0" }
 cloud-sdk-sanitization = { path = "crates/cloud-sdk-sanitization", version = "0.13.14" }
 cloud-sdk-testkit = { path = "crates/cloud-sdk-testkit", version = "0.17.0" }

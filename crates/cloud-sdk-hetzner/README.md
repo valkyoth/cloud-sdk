@@ -39,7 +39,7 @@ boundaries.
 ```toml
 [dependencies]
 cloud-sdk = "0.28.0"
-cloud-sdk-hetzner = "0.21.1"
+cloud-sdk-hetzner = "0.22.0"
 ```
 
 ## Features
@@ -61,6 +61,11 @@ Storage Box examples are indexed in the
 [Hetzner workflow guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/HETZNER_EXAMPLES.md).
 Security-sensitive transport decisions are covered by the
 [security recipes](https://github.com/valkyoth/cloud-sdk/blob/main/docs/SECURITY_RECIPES.md).
+
+Before a custom transport sends credentials, call
+`verify_official_endpoint(&transport, expected_base)`. The helper fails closed
+unless scheme, host, effective port, and base path exactly match the selected
+official Cloud or Storage API endpoint.
 
 ## Request Operation Coverage
 
@@ -111,7 +116,7 @@ Enable Serde explicitly; it is never part of the default graph:
 
 ```toml
 [dependencies]
-cloud-sdk-hetzner = { version = "0.21.1", features = ["serde"] }
+cloud-sdk-hetzner = { version = "0.22.0", features = ["serde"] }
 ```
 
 `serde_json` is used below only as an example format implementation and remains

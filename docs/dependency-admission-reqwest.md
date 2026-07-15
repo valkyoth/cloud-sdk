@@ -133,7 +133,9 @@ uses a short-lived standard-library read/write lock over reference-counted
 token snapshots. No lock is held while reqwest performs network I/O or while an
 async request is suspended. The SDK provides no queue, semaphore, task set,
 retry fan-out, sleep, or background rotation worker; applications select and
-enforce their own concurrency bounds.
+enforce their own concurrency bounds. A poisoned lock is recovered while its
+guard still protects one structurally complete token `Arc`, so an unwind cannot
+permanently disable all cloned clients.
 
 The adapter validates the final scheme, host, and port against the configured
 endpoint. Request targets are origin-form, and encoded path separators,
@@ -144,7 +146,8 @@ Every built client also implements `BoundTransport` and reports a normalized,
 credential-free scheme, host, effective port, and base path. The endpoint is
 owned immutably by every clone and cannot be replaced through rotation. This
 identity enables provider facades to fail closed on official-host, subdomain,
-port, scheme, or base-path mismatches.
+port, scheme, or base-path mismatches. `cloud-sdk-hetzner` supplies this exact
+check for both official v1 endpoint families.
 
 Standard transport roots intentionally follow host policy. A compromised or
 attacker-extended host trust store, including an enterprise interception root,

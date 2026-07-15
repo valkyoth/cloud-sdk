@@ -161,7 +161,7 @@ version = "0.28.0"
 
 [[package]]
 name = "cloud-sdk-hetzner"
-version = "0.21.1"
+version = "0.22.0"
 dependencies = [
  "cloud-sdk",
  "cloud-sdk-reqwest",

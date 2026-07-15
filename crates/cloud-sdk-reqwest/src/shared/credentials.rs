@@ -55,19 +55,26 @@ impl CredentialStore {
     }
 
     pub(crate) fn snapshot(&self) -> Result<Arc<BearerToken>, CredentialStateError> {
-        self.current
-            .read()
-            .map(|current| Arc::clone(&current))
-            .map_err(|_| CredentialStateError::Unavailable)
+        let current = match self.current.read() {
+            Ok(current) => current,
+            Err(poisoned) => {
+                self.current.clear_poison();
+                poisoned.into_inner()
+            }
+        };
+        Ok(Arc::clone(&current))
     }
 
     pub(crate) fn rotate(&self, token: BearerToken) -> Result<(), CredentialStateError> {
         let replacement = Arc::new(token);
         let retired = {
-            let mut current = self
-                .current
-                .write()
-                .map_err(|_| CredentialStateError::Unavailable)?;
+            let mut current = match self.current.write() {
+                Ok(current) => current,
+                Err(poisoned) => {
+                    self.current.clear_poison();
+                    poisoned.into_inner()
+                }
+            };
             core::mem::replace(&mut *current, replacement)
         };
         drop(retired);
@@ -103,6 +110,8 @@ impl fmt::Debug for CredentialStore {
 
 #[cfg(test)]
 mod tests {
+    use std::boxed::Box;
+    use std::panic::{AssertUnwindSafe, catch_unwind, resume_unwind};
     use std::sync::{
         Arc,
         atomic::{AtomicUsize, Ordering},
@@ -172,5 +181,43 @@ mod tests {
         }
         drop(old_snapshot);
         assert_eq!(drops.load(Ordering::SeqCst), 1);
+    }
+
+    #[test]
+    fn poisoned_state_recovers_for_snapshots_and_rotations() {
+        let Ok(active) = BearerToken::new("active-token") else {
+            return;
+        };
+        let store = CredentialStore::new(active);
+
+        poison_state(&store);
+        let snapshot = store.snapshot();
+        assert!(snapshot.is_ok());
+        assert!(!store.current.is_poisoned());
+        if let Ok(snapshot) = snapshot {
+            assert_eq!(snapshot.owned_bytes(), b"Bearer active-token");
+        }
+
+        poison_state(&store);
+        let Ok(replacement) = BearerToken::new("replacement-token") else {
+            return;
+        };
+        assert!(store.rotate(replacement).is_ok());
+        assert!(!store.current.is_poisoned());
+        let snapshot = store.snapshot();
+        assert!(snapshot.is_ok());
+        if let Ok(snapshot) = snapshot {
+            assert_eq!(snapshot.owned_bytes(), b"Bearer replacement-token");
+        }
+    }
+
+    fn poison_state(store: &CredentialStore) {
+        let result = catch_unwind(AssertUnwindSafe(|| {
+            let guard = store.current.write();
+            let Ok(_guard) = guard else { return };
+            resume_unwind(Box::new(()));
+        }));
+        assert!(result.is_err());
+        assert!(store.current.is_poisoned());
     }
 }

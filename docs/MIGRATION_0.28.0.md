@@ -2,7 +2,7 @@
 
 The workspace facade moves to `0.28.0`. `cloud-sdk-reqwest` moves to `0.19.0`
 and `cloud-sdk-testkit` moves to `0.17.0`; the Hetzner provider receives a
-dependency-only patch at `0.21.1`.
+code release at `0.22.0`.
 
 ## Transport Receivers
 
@@ -27,6 +27,11 @@ scheme, host, effective port, and base path. Provider code should compare all
 four fields with official constants before execution. A custom endpoint remains
 an explicit credential destination and must never come from tenant input.
 
+`cloud-sdk-hetzner::verify_official_endpoint` performs this exact comparison
+for `ApiBaseUrl::CloudV1` and `ApiBaseUrl::HetznerV1`. It accepts any
+provider-neutral `BoundTransport` and therefore does not couple the provider
+crate to reqwest.
+
 ## Token Ingestion And Rotation
 
 `BearerToken::new(&str)` remains available for compatibility, but cannot clear
@@ -44,6 +49,11 @@ for newly started requests and never holds the credential lock across network
 I/O or `.await`. Rejected replacement input leaves the active token unchanged.
 An in-flight request retains its previous snapshot; revoke the old provider
 credential after the application's bounded in-flight window closes.
+
+The internal credential lock recovers from poisoning while its guard is held.
+Because the protected value is always one complete `Arc<BearerToken>`, recovery
+cannot expose partially initialized credential state or permanently disable
+every cloned client.
 
 ## Testkit
 

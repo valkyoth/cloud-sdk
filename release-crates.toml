@@ -11,10 +11,10 @@ reason = "Add shared-reference transport and immutable endpoint identity contrac
 
 [crates."cloud-sdk-hetzner"]
 previous_version = "0.21.0"
-version = "0.21.1"
-change = "dependency"
+version = "0.22.0"
+change = "code"
 publish = true
-reason = "Update provider-neutral dependencies to the v0.28 facade line."
+reason = "Add exact official Cloud and Storage endpoint verification."
 
 [crates."cloud-sdk-reqwest"]
 previous_version = "0.18.0"
