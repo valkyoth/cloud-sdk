@@ -37,6 +37,9 @@ of new third-party dependencies.
   mismatched combinations fail before request bytes are admitted.
 - Request metadata distinguishes read-only, mutation, destructive, retry, and
   cost-bearing behavior without permissive defaults.
+- Complete DNS and firewall replacement, credential reset, protection-change,
+  and other state-removal operations require destructive approval. Enabling
+  billed server backups requires cost approval.
 - Sensitive user data, private keys, TSIG material, Storage Box passwords,
   zonefiles, and record values use controlled JSON-string writers.
 - Response policies bind exact success status, content type, body presence,
@@ -47,10 +50,13 @@ of new third-party dependencies.
 
 - `docs/PREPARED_BODY_OPERATIONS.txt` locks the 91 active upstream operations
   that declare request bodies.
-- `scripts/check_prepared_operation_coverage.py` proves all 208 endpoints and
-  all 91 required body adapters are present and rejects deprecated evidence.
-- Mutation tests prove the gate rejects missing endpoint/body evidence and
-  malformed duplicate body locks.
+- `scripts/check_prepared_operation_coverage.py` derives operation keys only
+  from concrete adapter macro declarations and `EndpointWire`/`BodyWire`
+  methods. It rejects constants, comments, conditional code, unknown keys,
+  ambiguous mappings, missing adapters, and deprecated evidence.
+- Mutation tests prove those structural checks and malformed duplicate body
+  locks fail closed; normal Rust checks prove the admitted declarations
+  compile.
 - Golden tests cover exact firewall, load-balancer, DNS, and Console Storage
   requests, destructive/cost metadata, mismatch rejection, and insufficient
   buffer cleanup.

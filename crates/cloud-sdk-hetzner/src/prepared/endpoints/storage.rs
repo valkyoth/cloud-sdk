@@ -113,7 +113,9 @@ endpoint_wire!(
     },
     matches!(
         endpoint,
-        StorageBoxActionEndpoint::DisableSnapshotPlan(_)
+        StorageBoxActionEndpoint::ChangeProtection(_)
+            | StorageBoxActionEndpoint::DisableSnapshotPlan(_)
+            | StorageBoxActionEndpoint::ResetPassword(_)
             | StorageBoxActionEndpoint::RollbackSnapshot(_)
     ),
     if matches!(endpoint, StorageBoxActionEndpoint::ChangeType(_)) {
@@ -232,6 +234,9 @@ endpoint_wire!(
             "update_storage_box_subaccount_access_settings"
         }
     },
-    false,
+    matches!(
+        endpoint,
+        StorageBoxSubaccountActionEndpoint::ResetPassword(_, _)
+    ),
     CostIntent::NoKnownCost
 );

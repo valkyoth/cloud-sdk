@@ -151,7 +151,10 @@ endpoint_wire!(
         ZoneActionEndpoint::ChangeTtl(_) => "change_zone_ttl",
         ZoneActionEndpoint::ImportZoneFile(_) => "import_zone_zonefile",
     },
-    false,
+    matches!(
+        endpoint,
+        ZoneActionEndpoint::ChangeProtection(_) | ZoneActionEndpoint::ImportZoneFile(_)
+    ),
     CostIntent::NoKnownCost
 );
 
@@ -225,6 +228,11 @@ endpoint_wire!(
         RrsetActionEndpoint::RemoveRecords(_) => "remove_zone_rrset_records",
         RrsetActionEndpoint::UpdateRecords(_) => "update_zone_rrset_records",
     },
-    matches!(endpoint, RrsetActionEndpoint::RemoveRecords(_)),
+    matches!(
+        endpoint,
+        RrsetActionEndpoint::ChangeProtection(_)
+            | RrsetActionEndpoint::SetRecords(_)
+            | RrsetActionEndpoint::RemoveRecords(_)
+    ),
     CostIntent::NoKnownCost
 );

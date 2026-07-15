@@ -66,7 +66,31 @@ endpoint_wire!(
         ServerActionEndpoint::ListAll => "list_servers_actions",
         ServerActionEndpoint::Get(_) => "get_servers_action",
         ServerActionEndpoint::ListForServer(_) => "list_server_actions",
-        ServerActionEndpoint::Start(_, kind) => server_action_key(kind),
+        ServerActionEndpoint::Start(_, kind) => match kind {
+            ServerActionKind::AddToPlacementGroup => "add_server_to_placement_group",
+            ServerActionKind::AttachIso => "attach_server_iso",
+            ServerActionKind::AttachToNetwork => "attach_server_to_network",
+            ServerActionKind::ChangeAliasIps => "change_server_alias_ips",
+            ServerActionKind::ChangeDnsPtr => "change_server_dns_ptr",
+            ServerActionKind::ChangeProtection => "change_server_protection",
+            ServerActionKind::ChangeType => "change_server_type",
+            ServerActionKind::CreateImage => "create_server_image",
+            ServerActionKind::DetachFromNetwork => "detach_server_from_network",
+            ServerActionKind::DetachIso => "detach_server_iso",
+            ServerActionKind::DisableBackup => "disable_server_backup",
+            ServerActionKind::DisableRescue => "disable_server_rescue",
+            ServerActionKind::EnableBackup => "enable_server_backup",
+            ServerActionKind::EnableRescue => "enable_server_rescue",
+            ServerActionKind::Poweroff => "poweroff_server",
+            ServerActionKind::Poweron => "poweron_server",
+            ServerActionKind::Reboot => "reboot_server",
+            ServerActionKind::Rebuild => "rebuild_server",
+            ServerActionKind::RemoveFromPlacementGroup => "remove_server_from_placement_group",
+            ServerActionKind::RequestConsole => "request_server_console",
+            ServerActionKind::Reset => "reset_server",
+            ServerActionKind::ResetPassword => "reset_server_password",
+            ServerActionKind::Shutdown => "shutdown_server",
+        },
     },
     matches!(
         endpoint,
@@ -76,6 +100,7 @@ endpoint_wire!(
                 | ServerActionKind::DetachIso
                 | ServerActionKind::DisableBackup
                 | ServerActionKind::DisableRescue
+                | ServerActionKind::ChangeProtection
                 | ServerActionKind::Poweroff
                 | ServerActionKind::Rebuild
                 | ServerActionKind::RemoveFromPlacementGroup
@@ -88,7 +113,9 @@ endpoint_wire!(
         endpoint,
         ServerActionEndpoint::Start(
             _,
-            ServerActionKind::ChangeType | ServerActionKind::CreateImage
+            ServerActionKind::ChangeType
+                | ServerActionKind::CreateImage
+                | ServerActionKind::EnableBackup
         )
     ) {
         CostIntent::MayIncurCost
@@ -144,7 +171,7 @@ endpoint_wire!(
         ImageActionEndpoint::ListForImage(_) => "list_image_actions",
         ImageActionEndpoint::ChangeProtection(_) => "change_image_protection",
     },
-    false,
+    matches!(endpoint, ImageActionEndpoint::ChangeProtection(_)),
     CostIntent::NoKnownCost
 );
 
@@ -236,7 +263,10 @@ endpoint_wire!(
         VolumeActionEndpoint::Detach(_) => "detach_volume",
         VolumeActionEndpoint::Resize(_) => "resize_volume",
     },
-    matches!(endpoint, VolumeActionEndpoint::Detach(_)),
+    matches!(
+        endpoint,
+        VolumeActionEndpoint::ChangeProtection(_) | VolumeActionEndpoint::Detach(_)
+    ),
     if matches!(endpoint, VolumeActionEndpoint::Resize(_)) {
         CostIntent::MayIncurCost
     } else {
@@ -260,32 +290,4 @@ const fn server_action_requires_body(kind: ServerActionKind) -> bool {
             | ServerActionKind::ResetPassword
             | ServerActionKind::Shutdown
     )
-}
-
-const fn server_action_key(kind: ServerActionKind) -> &'static str {
-    match kind {
-        ServerActionKind::AddToPlacementGroup => "add_server_to_placement_group",
-        ServerActionKind::AttachIso => "attach_server_iso",
-        ServerActionKind::AttachToNetwork => "attach_server_to_network",
-        ServerActionKind::ChangeAliasIps => "change_server_alias_ips",
-        ServerActionKind::ChangeDnsPtr => "change_server_dns_ptr",
-        ServerActionKind::ChangeProtection => "change_server_protection",
-        ServerActionKind::ChangeType => "change_server_type",
-        ServerActionKind::CreateImage => "create_server_image",
-        ServerActionKind::DetachFromNetwork => "detach_server_from_network",
-        ServerActionKind::DetachIso => "detach_server_iso",
-        ServerActionKind::DisableBackup => "disable_server_backup",
-        ServerActionKind::DisableRescue => "disable_server_rescue",
-        ServerActionKind::EnableBackup => "enable_server_backup",
-        ServerActionKind::EnableRescue => "enable_server_rescue",
-        ServerActionKind::Poweroff => "poweroff_server",
-        ServerActionKind::Poweron => "poweron_server",
-        ServerActionKind::Reboot => "reboot_server",
-        ServerActionKind::Rebuild => "rebuild_server",
-        ServerActionKind::RemoveFromPlacementGroup => "remove_server_from_placement_group",
-        ServerActionKind::RequestConsole => "request_server_console",
-        ServerActionKind::Reset => "reset_server",
-        ServerActionKind::ResetPassword => "reset_server_password",
-        ServerActionKind::Shutdown => "shutdown_server",
-    }
 }

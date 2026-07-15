@@ -5,19 +5,28 @@ use crate::actions::{ActionEndpoint, ActionId, ActionListRequest};
 use crate::cloud::catalog::{CatalogGetEndpoint, CatalogId};
 use crate::cloud::firewalls::actions::{FirewallActionEndpoint, FirewallResourcesRequest};
 use crate::cloud::firewalls::{FirewallId, FirewallResource};
+use crate::cloud::images::ImageActionEndpoint;
 use crate::cloud::load_balancers::{
-    LoadBalancerAlgorithm, LoadBalancerCreateRequest, LoadBalancerName, LoadBalancerType,
+    LoadBalancerActionEndpoint, LoadBalancerAlgorithm, LoadBalancerCreateRequest, LoadBalancerName,
+    LoadBalancerType,
 };
+use crate::cloud::networks::actions::NetworkActionEndpoint;
+use crate::cloud::networks::floating_ips::FloatingIpActionEndpoint;
+use crate::cloud::networks::primary_ips::PrimaryIpActionEndpoint;
+use crate::cloud::servers::ServerId;
+use crate::cloud::servers::actions::{ServerActionEndpoint, ServerActionKind};
 use crate::cloud::shared::CloudResourceId;
+use crate::cloud::volumes::VolumeActionEndpoint;
+use crate::dns::rrsets::{RrsetActionEndpoint, RrsetName, RrsetReference, RrsetType};
 use crate::dns::zones::{
     ZoneActionEndpoint, ZoneActionListRequest, ZoneEndpoint, ZoneProtectionRequest, ZoneReference,
 };
 use crate::storage::storage_boxes::{
-    StorageBoxCreateRequest, StorageBoxListRequest, StorageBoxLocation, StorageBoxName,
-    StorageBoxPassword, StorageBoxTypeRef,
+    StorageBoxActionEndpoint, StorageBoxCreateRequest, StorageBoxListRequest, StorageBoxLocation,
+    StorageBoxName, StorageBoxPassword, StorageBoxSubaccountActionEndpoint, StorageBoxTypeRef,
 };
 
-use super::{HetznerPreparationError, HetznerPreparedOperation};
+use super::{EndpointWire, HetznerPreparationError, HetznerPreparedOperation};
 
 #[test]
 fn prepares_global_actions_and_catalog_gets() {
@@ -201,6 +210,68 @@ fn prepares_cost_bearing_load_balancer_create() {
     );
     assert_eq!(prepared.metadata().impact(), OperationImpact::Mutation);
     assert_eq!(prepared.metadata().cost_intent(), CostIntent::MayIncurCost);
+}
+
+#[test]
+fn destructive_metadata_covers_replacement_reset_and_protection_operations() {
+    macro_rules! assert_destructive {
+        ($endpoint:expr) => {{
+            let metadata = EndpointWire::metadata($endpoint);
+            assert!(metadata.is_ok());
+            let Ok(metadata) = metadata else { return };
+            assert_eq!(metadata.impact(), OperationImpact::Destructive);
+        }};
+    }
+
+    let cloud_id = CloudResourceId::new(7);
+    let server_id = ServerId::new(7);
+    let rrset_name = RrsetName::new("www");
+    assert!(cloud_id.is_some() && server_id.is_some() && rrset_name.is_ok());
+    let (Some(cloud_id), Some(server_id), Ok(rrset_name)) = (cloud_id, server_id, rrset_name)
+    else {
+        return;
+    };
+    let zone = ZoneReference::Id(cloud_id);
+    let rrset = RrsetReference::new(zone, rrset_name, RrsetType::A);
+
+    assert_destructive!(ZoneActionEndpoint::ImportZoneFile(zone));
+    assert_destructive!(RrsetActionEndpoint::SetRecords(rrset));
+    assert_destructive!(RrsetActionEndpoint::RemoveRecords(rrset));
+    assert_destructive!(FirewallActionEndpoint::SetRules(cloud_id));
+    assert_destructive!(StorageBoxActionEndpoint::DisableSnapshotPlan(cloud_id));
+    assert_destructive!(StorageBoxActionEndpoint::ResetPassword(cloud_id));
+    assert_destructive!(StorageBoxActionEndpoint::RollbackSnapshot(cloud_id));
+    assert_destructive!(StorageBoxSubaccountActionEndpoint::ResetPassword(
+        cloud_id, cloud_id
+    ));
+
+    assert_destructive!(ServerActionEndpoint::Start(
+        server_id,
+        ServerActionKind::ChangeProtection
+    ));
+    assert_destructive!(ImageActionEndpoint::ChangeProtection(cloud_id));
+    assert_destructive!(VolumeActionEndpoint::ChangeProtection(cloud_id));
+    assert_destructive!(LoadBalancerActionEndpoint::ChangeProtection(cloud_id));
+    assert_destructive!(NetworkActionEndpoint::ChangeProtection(cloud_id));
+    assert_destructive!(FloatingIpActionEndpoint::ChangeProtection(cloud_id));
+    assert_destructive!(PrimaryIpActionEndpoint::ChangeProtection(cloud_id));
+    assert_destructive!(ZoneActionEndpoint::ChangeProtection(zone));
+    assert_destructive!(RrsetActionEndpoint::ChangeProtection(rrset));
+    assert_destructive!(StorageBoxActionEndpoint::ChangeProtection(cloud_id));
+}
+
+#[test]
+fn enabling_server_backups_requires_cost_approval() {
+    let server_id = ServerId::new(7);
+    assert!(server_id.is_some());
+    let Some(server_id) = server_id else { return };
+    let metadata = EndpointWire::metadata(ServerActionEndpoint::Start(
+        server_id,
+        ServerActionKind::EnableBackup,
+    ));
+    assert!(metadata.is_ok());
+    let Ok(metadata) = metadata else { return };
+    assert_eq!(metadata.cost_intent(), CostIntent::MayIncurCost);
 }
 
 #[test]

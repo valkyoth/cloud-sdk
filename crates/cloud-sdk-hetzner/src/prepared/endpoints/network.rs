@@ -70,7 +70,10 @@ endpoint_wire!(
         FirewallActionEndpoint::RemoveFromResources(_) => "remove_firewall_from_resources",
         FirewallActionEndpoint::SetRules(_) => "set_firewall_rules",
     },
-    matches!(endpoint, FirewallActionEndpoint::RemoveFromResources(_)),
+    matches!(
+        endpoint,
+        FirewallActionEndpoint::RemoveFromResources(_) | FirewallActionEndpoint::SetRules(_)
+    ),
     CostIntent::NoKnownCost
 );
 
@@ -125,12 +128,34 @@ endpoint_wire!(
         | LoadBalancerActionEndpoint::ListForLoadBalancer(_) => ResponseProfile::JsonOk,
         _ => ResponseProfile::JsonCreated,
     },
-    load_balancer_action_key(endpoint),
+    match endpoint {
+        LoadBalancerActionEndpoint::ListAll => "list_load_balancers_actions",
+        LoadBalancerActionEndpoint::Get(_) => "get_load_balancers_action",
+        LoadBalancerActionEndpoint::ListForLoadBalancer(_) => "list_load_balancer_actions",
+        LoadBalancerActionEndpoint::AddService(_) => "add_load_balancer_service",
+        LoadBalancerActionEndpoint::AddTarget(_) => "add_load_balancer_target",
+        LoadBalancerActionEndpoint::AttachToNetwork(_) => "attach_load_balancer_to_network",
+        LoadBalancerActionEndpoint::ChangeAlgorithm(_) => "change_load_balancer_algorithm",
+        LoadBalancerActionEndpoint::ChangeDnsPtr(_) => "change_load_balancer_dns_ptr",
+        LoadBalancerActionEndpoint::ChangeProtection(_) => "change_load_balancer_protection",
+        LoadBalancerActionEndpoint::ChangeType(_) => "change_load_balancer_type",
+        LoadBalancerActionEndpoint::DeleteService(_) => "delete_load_balancer_service",
+        LoadBalancerActionEndpoint::DetachFromNetwork(_) => "detach_load_balancer_from_network",
+        LoadBalancerActionEndpoint::DisablePublicInterface(_) => {
+            "disable_load_balancer_public_interface"
+        }
+        LoadBalancerActionEndpoint::EnablePublicInterface(_) => {
+            "enable_load_balancer_public_interface"
+        }
+        LoadBalancerActionEndpoint::RemoveTarget(_) => "remove_load_balancer_target",
+        LoadBalancerActionEndpoint::UpdateService(_) => "update_load_balancer_service",
+    },
     matches!(
         endpoint,
         LoadBalancerActionEndpoint::DeleteService(_)
             | LoadBalancerActionEndpoint::DetachFromNetwork(_)
             | LoadBalancerActionEndpoint::DisablePublicInterface(_)
+            | LoadBalancerActionEndpoint::ChangeProtection(_)
             | LoadBalancerActionEndpoint::RemoveTarget(_)
     ),
     if matches!(endpoint, LoadBalancerActionEndpoint::ChangeType(_)) {
@@ -196,7 +221,9 @@ endpoint_wire!(
     },
     matches!(
         endpoint,
-        NetworkActionEndpoint::DeleteRoute(_) | NetworkActionEndpoint::DeleteSubnet(_)
+        NetworkActionEndpoint::ChangeProtection(_)
+            | NetworkActionEndpoint::DeleteRoute(_)
+            | NetworkActionEndpoint::DeleteSubnet(_)
     ),
     CostIntent::NoKnownCost
 );
@@ -258,7 +285,10 @@ endpoint_wire!(
         FloatingIpActionEndpoint::ChangeProtection(_) => "change_floating_ip_protection",
         FloatingIpActionEndpoint::Unassign(_) => "unassign_floating_ip",
     },
-    matches!(endpoint, FloatingIpActionEndpoint::Unassign(_)),
+    matches!(
+        endpoint,
+        FloatingIpActionEndpoint::ChangeProtection(_) | FloatingIpActionEndpoint::Unassign(_)
+    ),
     CostIntent::NoKnownCost
 );
 
@@ -320,31 +350,9 @@ endpoint_wire!(
         PrimaryIpActionEndpoint::ChangeProtection(_) => "change_primary_ip_protection",
         PrimaryIpActionEndpoint::Unassign(_) => "unassign_primary_ip",
     },
-    matches!(endpoint, PrimaryIpActionEndpoint::Unassign(_)),
+    matches!(
+        endpoint,
+        PrimaryIpActionEndpoint::ChangeProtection(_) | PrimaryIpActionEndpoint::Unassign(_)
+    ),
     CostIntent::NoKnownCost
 );
-
-const fn load_balancer_action_key(endpoint: LoadBalancerActionEndpoint) -> &'static str {
-    match endpoint {
-        LoadBalancerActionEndpoint::ListAll => "list_load_balancers_actions",
-        LoadBalancerActionEndpoint::Get(_) => "get_load_balancers_action",
-        LoadBalancerActionEndpoint::ListForLoadBalancer(_) => "list_load_balancer_actions",
-        LoadBalancerActionEndpoint::AddService(_) => "add_load_balancer_service",
-        LoadBalancerActionEndpoint::AddTarget(_) => "add_load_balancer_target",
-        LoadBalancerActionEndpoint::AttachToNetwork(_) => "attach_load_balancer_to_network",
-        LoadBalancerActionEndpoint::ChangeAlgorithm(_) => "change_load_balancer_algorithm",
-        LoadBalancerActionEndpoint::ChangeDnsPtr(_) => "change_load_balancer_dns_ptr",
-        LoadBalancerActionEndpoint::ChangeProtection(_) => "change_load_balancer_protection",
-        LoadBalancerActionEndpoint::ChangeType(_) => "change_load_balancer_type",
-        LoadBalancerActionEndpoint::DeleteService(_) => "delete_load_balancer_service",
-        LoadBalancerActionEndpoint::DetachFromNetwork(_) => "detach_load_balancer_from_network",
-        LoadBalancerActionEndpoint::DisablePublicInterface(_) => {
-            "disable_load_balancer_public_interface"
-        }
-        LoadBalancerActionEndpoint::EnablePublicInterface(_) => {
-            "enable_load_balancer_public_interface"
-        }
-        LoadBalancerActionEndpoint::RemoveTarget(_) => "remove_load_balancer_target",
-        LoadBalancerActionEndpoint::UpdateService(_) => "update_load_balancer_service",
-    }
-}
