@@ -83,6 +83,8 @@ and maximum response length.
 
 `PreparedRequest::execute_blocking` and `execute_async` verify endpoint identity
 before sending and lend no more than the policy's admitted response capacity.
+The transport must also implement `ResponseStorageSanitizer`; the complete
+caller buffer is cleared before endpoint verification or capacity truncation.
 They return `CheckedResponse` only after status, body shape, initialized length,
 and validated response content type pass. They execute once and never retry,
 sleep, schedule work, or select a clock.

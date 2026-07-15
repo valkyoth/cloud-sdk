@@ -2,7 +2,9 @@ use std::string::String;
 use std::time::Duration;
 
 use cloud_sdk::Method;
-use cloud_sdk::transport::{AsyncTransport, ContentType, RequestTarget, TransportRequest};
+use cloud_sdk::transport::{
+    AsyncTransport, ContentType, RequestTarget, ResponseStorageSanitizer, TransportRequest,
+};
 
 use super::{
     AsyncClient, AsyncClientBuilder, BearerToken, HttpsEndpoint, RequestTimeouts, TransportError,
@@ -25,6 +27,16 @@ fn run_async_test(future: impl core::future::Future<Output = ()>) {
 
 fn test_timeouts() -> Option<RequestTimeouts> {
     RequestTimeouts::new(Duration::from_secs(2), Duration::from_secs(1)).ok()
+}
+
+#[test]
+fn async_prepared_cleanup_contract_clears_the_complete_caller_buffer() {
+    let client = build_loopback("http://127.0.0.1:1/v1");
+    assert!(client.is_some());
+    let Some(client) = client else { return };
+    let mut output = [0xA5_u8; 64];
+    client.sanitize_response_storage(&mut output);
+    assert_eq!(output, [0_u8; 64]);
 }
 
 fn build_loopback(endpoint: &str) -> Option<AsyncClient> {

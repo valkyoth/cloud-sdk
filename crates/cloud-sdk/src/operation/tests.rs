@@ -10,8 +10,8 @@ use super::{
 };
 use crate::transport::{
     AsyncTransport, BlockingTransport, BoundTransport, EndpointIdentity, EndpointIdentityError,
-    EndpointScheme, MediaType, RequestTarget, ResponseContentType, StatusCode, TransportRequest,
-    TransportResponse,
+    EndpointScheme, MediaType, RequestTarget, ResponseContentType, ResponseStorageSanitizer,
+    StatusCode, TransportRequest, TransportResponse,
 };
 use crate::{ApiFamily, Method, Provider};
 
@@ -213,17 +213,22 @@ fn prepared_blocking_execution_checks_endpoint_and_lends_only_policy_capacity() 
         return;
     };
     let transport = RecordingTransport::new(official);
-    let mut response_storage = [0_u8; 64];
+    let mut response_storage = [0xA5_u8; 64];
     let response = prepared.execute_blocking(&transport, &mut response_storage);
     assert!(response.is_ok_and(|response| response.body() == b"{}"));
     assert_eq!(transport.calls.load(Ordering::Acquire), 1);
     assert_eq!(transport.last_capacity.load(Ordering::Acquire), 16);
+    assert_eq!(transport.sanitized_capacity.load(Ordering::Acquire), 64);
+    assert_eq!(response_storage.get(2..), Some([0_u8; 62].as_slice()));
 
     let Ok(other) = other_endpoint() else { return };
     let mismatched = RecordingTransport::new(other);
+    response_storage.fill(0xA5);
     let response = prepared.execute_blocking(&mismatched, &mut response_storage);
     assert_eq!(response, Err(PreparedExecutionError::EndpointMismatch));
     assert_eq!(mismatched.calls.load(Ordering::Acquire), 0);
+    assert_eq!(mismatched.sanitized_capacity.load(Ordering::Acquire), 64);
+    assert_eq!(response_storage, [0_u8; 64]);
 }
 
 #[test]
@@ -238,18 +243,22 @@ fn prepared_async_execution_uses_the_same_endpoint_and_response_policy() {
         return;
     };
     let transport = RecordingTransport::new(official);
-    let mut response_storage = [0_u8; 64];
-    let future = prepared.execute_async(&transport, &mut response_storage);
-    let mut future = core::pin::pin!(future);
-    let waker = Waker::noop();
-    let mut context = Context::from_waker(waker);
-    let response = Future::poll(future.as_mut(), &mut context);
-    assert!(matches!(response, Poll::Ready(Ok(_))));
-    if let Poll::Ready(Ok(response)) = response {
-        assert_eq!(response.body(), b"{}");
+    let mut response_storage = [0xA5_u8; 64];
+    {
+        let future = prepared.execute_async(&transport, &mut response_storage);
+        let mut future = core::pin::pin!(future);
+        let waker = Waker::noop();
+        let mut context = Context::from_waker(waker);
+        let response = Future::poll(future.as_mut(), &mut context);
+        assert!(matches!(response, Poll::Ready(Ok(_))));
+        if let Poll::Ready(Ok(response)) = response {
+            assert_eq!(response.body(), b"{}");
+        }
     }
     assert_eq!(transport.calls.load(Ordering::Acquire), 1);
     assert_eq!(transport.last_capacity.load(Ordering::Acquire), 16);
+    assert_eq!(transport.sanitized_capacity.load(Ordering::Acquire), 64);
+    assert_eq!(response_storage.get(2..), Some([0_u8; 62].as_slice()));
 }
 
 #[test]
@@ -313,6 +322,7 @@ struct RecordingTransport {
     endpoint: EndpointIdentity<'static>,
     calls: AtomicUsize,
     last_capacity: AtomicUsize,
+    sanitized_capacity: AtomicUsize,
 }
 
 impl RecordingTransport {
@@ -321,6 +331,7 @@ impl RecordingTransport {
             endpoint,
             calls: AtomicUsize::new(0),
             last_capacity: AtomicUsize::new(0),
+            sanitized_capacity: AtomicUsize::new(0),
         }
     }
 
@@ -341,6 +352,14 @@ impl RecordingTransport {
 impl BoundTransport for RecordingTransport {
     fn endpoint_identity(&self) -> Result<EndpointIdentity<'_>, EndpointIdentityError> {
         Ok(self.endpoint)
+    }
+}
+
+impl ResponseStorageSanitizer for RecordingTransport {
+    fn sanitize_response_storage(&self, response_storage: &mut [u8]) {
+        self.sanitized_capacity
+            .store(response_storage.len(), Ordering::Release);
+        response_storage.fill(0);
     }
 }
 

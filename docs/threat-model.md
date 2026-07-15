@@ -50,6 +50,8 @@
   resolver or broader HTTP protocol parser;
 - async cancellation exposing partially initialized response data or leaving
   adapter-owned secret response copies in memory;
+- a prepared operation admitting a smaller response window while residual
+  bytes from an earlier larger response remain in the caller buffer tail;
 - an async adapter silently owning a runtime or introducing one into default,
   provider, or testkit graphs;
 - duplicate, malformed, or partial rate-limit headers causing incorrect request
@@ -94,6 +96,9 @@
   controls, spaces, and non-ASCII before an adapter can attach credentials;
 - transport responses borrow only the initialized slice of the caller-owned
   buffer instead of trusting an independently reported numeric length;
+- prepared transports explicitly sanitize the complete caller response buffer
+  before endpoint verification and before the operation admits a smaller
+  response window; reqwest uses the reviewed volatile sanitization boundary;
 - optional production blocking and async transports require exact HTTPS
   authority, rustls with TLS 1.2 minimum, explicit bounded timeouts, no
   redirects, retries, proxies, referers, or decompression, and caller-bounded

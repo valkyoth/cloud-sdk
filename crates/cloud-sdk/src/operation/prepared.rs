@@ -5,7 +5,7 @@ use core::fmt;
 use crate::operation::{CheckedResponse, OperationMetadata, ResponsePolicy, ResponsePolicyError};
 use crate::transport::{
     AsyncTransport, BlockingTransport, BoundTransport, EndpointIdentity, EndpointIdentityError,
-    TransportRequest,
+    ResponseStorageSanitizer, TransportRequest,
 };
 use crate::{ApiFamily, Provider};
 
@@ -158,8 +158,9 @@ impl<'request> PreparedRequest<'request> {
         response_storage: &'buffer mut [u8],
     ) -> Result<CheckedResponse<'buffer>, PreparedExecutionError<T::Error>>
     where
-        T: BlockingTransport + BoundTransport,
+        T: BlockingTransport + BoundTransport + ResponseStorageSanitizer,
     {
+        transport.sanitize_response_storage(response_storage);
         self.verify_endpoint(transport)
             .map_err(map_endpoint_error)?;
         let admitted = self.admit_response_storage(response_storage)?;
@@ -178,10 +179,11 @@ impl<'request> PreparedRequest<'request> {
         response_storage: &'buffer mut [u8],
     ) -> Result<CheckedResponse<'buffer>, PreparedExecutionError<T::Error>>
     where
-        T: AsyncTransport + BoundTransport,
+        T: AsyncTransport + BoundTransport + ResponseStorageSanitizer,
         'request: 'transport,
         'buffer: 'transport,
     {
+        transport.sanitize_response_storage(response_storage);
         self.verify_endpoint(transport)
             .map_err(map_endpoint_error)?;
         let admitted = self.admit_response_storage(response_storage)?;

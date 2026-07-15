@@ -3,8 +3,8 @@ use std::sync::Arc;
 
 use cloud_sdk::Method;
 use cloud_sdk::transport::{
-    AsyncTransport, BoundTransport, EndpointIdentity, EndpointIdentityError, StatusCode,
-    TransportRequest, TransportResponse,
+    AsyncTransport, BoundTransport, EndpointIdentity, EndpointIdentityError,
+    ResponseStorageSanitizer, StatusCode, TransportRequest, TransportResponse,
 };
 use cloud_sdk_sanitization::{SecretBuffer, sanitize_bytes};
 use reqwest::header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE, HeaderValue};
@@ -144,6 +144,12 @@ impl AsyncTransport for AsyncClient {
         'buffer: 'transport,
     {
         self.send_inner(request, response_body).await
+    }
+}
+
+impl ResponseStorageSanitizer for AsyncClient {
+    fn sanitize_response_storage(&self, response_storage: &mut [u8]) {
+        sanitize_bytes(response_storage);
     }
 }
 

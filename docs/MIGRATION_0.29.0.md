@@ -34,6 +34,14 @@ lend at most the configured response capacity, and return `CheckedResponse`
 only after expected status, body policy, body limit, and content-type policy
 pass.
 
+Prepared transports must additionally implement `ResponseStorageSanitizer`.
+Execution invokes it for the complete caller-owned response buffer before
+endpoint verification and before lending the smaller admitted slice to
+`send`. Production implementations must use non-elidable cleanup. The reqwest
+adapters use the reviewed `cloud-sdk-sanitization` boundary; this prevents a
+smaller operation policy from retaining bytes written by an earlier larger
+response in the unused tail.
+
 `TransportResponse` now exposes `content_type() -> Option<ResponseContentType>`.
 Custom transports should validate and attach one bounded response content type
 with `with_content_type`. Missing metadata remains `None`; malformed metadata

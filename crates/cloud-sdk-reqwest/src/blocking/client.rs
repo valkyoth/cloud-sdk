@@ -4,8 +4,8 @@ use std::sync::Arc;
 
 use cloud_sdk::Method;
 use cloud_sdk::transport::{
-    BlockingTransport, BoundTransport, EndpointIdentity, EndpointIdentityError, StatusCode,
-    TransportRequest, TransportResponse,
+    BlockingTransport, BoundTransport, EndpointIdentity, EndpointIdentityError,
+    ResponseStorageSanitizer, StatusCode, TransportRequest, TransportResponse,
 };
 use cloud_sdk_sanitization::{SecretBuffer, sanitize_bytes};
 use reqwest::blocking::{Body, Client};
@@ -136,6 +136,12 @@ impl BlockingTransport for BlockingClient {
         response_body: &'buffer mut [u8],
     ) -> Result<TransportResponse<'buffer>, Self::Error> {
         self.send_inner(request, response_body)
+    }
+}
+
+impl ResponseStorageSanitizer for BlockingClient {
+    fn sanitize_response_storage(&self, response_storage: &mut [u8]) {
+        sanitize_bytes(response_storage);
     }
 }
 

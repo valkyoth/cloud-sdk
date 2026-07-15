@@ -88,6 +88,12 @@ Responses retain one validated, bounded `Content-Type` value for prepared
 response policy. Missing content type remains explicit; malformed, non-textual,
 or duplicate values fail closed before response bytes are returned.
 
+Both adapters implement `ResponseStorageSanitizer` through
+`cloud-sdk-sanitization`. Prepared execution therefore volatile-clears the
+complete caller buffer before endpoint checks and before lending the smaller
+operation-admitted response window. Direct transport sends continue clearing
+the complete slice passed to `send`.
+
 ## Deterministic Root Snapshot
 
 The standard blocking feature follows the host trust store. Select the

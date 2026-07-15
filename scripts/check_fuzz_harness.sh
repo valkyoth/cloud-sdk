@@ -4,7 +4,7 @@ set -eu
 mode="${1:---metadata}"
 toolchain="nightly-2026-07-13"
 cargo_fuzz_version="0.13.2"
-targets="buffer_writers request_targets action_requests labels_dns pagination action_polling response_envelopes"
+targets="buffer_writers request_targets action_requests labels_dns pagination action_polling response_envelopes response_content_type"
 
 check_layout() {
     cargo fmt --manifest-path fuzz/Cargo.toml -- --check
@@ -13,7 +13,7 @@ check_layout() {
 
     manifest_targets="$(
         sed -n 's/^name = "\([a-z_]*\)"$/\1/p' fuzz/Cargo.toml |
-            tail -n 7 |
+            tail -n 8 |
             tr '\n' ' ' |
             sed 's/ $//'
     )"
@@ -82,4 +82,4 @@ case "$mode" in
     ;;
 esac
 
-echo "fuzz harness: ${mode} passed for 7 targets"
+echo "fuzz harness: ${mode} passed for 8 targets"

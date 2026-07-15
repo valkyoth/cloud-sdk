@@ -46,6 +46,7 @@ scripts/check_fuzz_harness.sh --smoke
 | `pagination` | metadata coherence, entry bounds, traversal locks, and non-mutation |
 | `action_polling` | progress, policy, terminal state, and non-mutation |
 | `response_envelopes` | bounded action, error, and pagination JSON envelopes |
+| `response_content_type` | media-type essence, parameters, quoted strings, escapes, and bounded owned response metadata |
 
 Named seeds under `fuzz/seeds/` are synthetic valid and invalid cases derived
 from source-locked API examples and SDK policy boundaries. Generated corpora

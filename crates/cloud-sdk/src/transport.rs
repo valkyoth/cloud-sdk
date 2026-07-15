@@ -21,6 +21,19 @@ use crate::rate_limit::RateLimit;
 /// Maximum origin-form request-target length admitted by the core contract.
 pub const MAX_REQUEST_TARGET_BYTES: usize = 8192;
 
+/// Explicit cleanup contract for caller-owned response storage.
+///
+/// Prepared execution invokes this for the complete supplied buffer before
+/// endpoint verification or response-capacity admission. Production
+/// implementations must use a cleanup primitive that cannot be removed as a
+/// dead store. This remains separate from [`BlockingTransport`] and
+/// [`AsyncTransport`] so direct transport implementations cannot silently
+/// acquire a weaker cleanup promise.
+pub trait ResponseStorageSanitizer {
+    /// Clears the complete caller-owned response buffer.
+    fn sanitize_response_storage(&self, response_storage: &mut [u8]);
+}
+
 /// Request-target validation error.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum RequestTargetError {

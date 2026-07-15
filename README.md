@@ -187,7 +187,10 @@ assert_eq!(
 storage and returns one `PreparedRequest`. Blocking and async execution verify
 the immutable endpoint before sending, lend only the response policy's admitted
 capacity, and return `CheckedResponse` only after status, body, and content type
-pass. The SDK still performs no automatic retry or scheduling.
+pass. Prepared transports must implement `ResponseStorageSanitizer`; execution
+clears the complete caller buffer before endpoint checks so a smaller policy
+cannot leave bytes from an earlier larger response in the unused tail. The SDK
+still performs no automatic retry or scheduling.
 
 ## Optional Blocking Transport
 

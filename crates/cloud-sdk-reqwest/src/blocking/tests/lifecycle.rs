@@ -2,11 +2,23 @@ use std::string::String;
 use std::time::Duration;
 
 use cloud_sdk::Method;
-use cloud_sdk::transport::{BlockingTransport, BoundTransport, RequestTarget, TransportRequest};
+use cloud_sdk::transport::{
+    BlockingTransport, BoundTransport, RequestTarget, ResponseStorageSanitizer, TransportRequest,
+};
 use cloud_sdk_sanitization::SecretBuffer;
 
 use super::{BearerToken, build_loopback};
 use crate::test_server::{spawn_concurrent_pair, spawn_sequence_with_first_delay};
+
+#[test]
+fn prepared_cleanup_contract_clears_the_complete_caller_buffer() {
+    let client = build_loopback("http://127.0.0.1:1/v1");
+    assert!(client.is_some());
+    let Some(client) = client else { return };
+    let mut output = [0xA5_u8; 64];
+    client.sanitize_response_storage(&mut output);
+    assert_eq!(output, [0_u8; 64]);
+}
 
 #[test]
 fn blocking_client_is_clone_send_sync_and_endpoint_bound() {

@@ -6,7 +6,8 @@ use core::sync::atomic::{AtomicUsize, Ordering};
 use cloud_sdk::Method;
 use cloud_sdk::transport::{
     AsyncTransport, BlockingTransport, BoundTransport, ContentType, EndpointIdentity,
-    EndpointIdentityError, RequestTarget, ResponseContentType, TransportRequest, TransportResponse,
+    EndpointIdentityError, RequestTarget, ResponseContentType, ResponseStorageSanitizer,
+    TransportRequest, TransportResponse,
 };
 
 use crate::{FixtureBodyError, ResponseFixture};
@@ -244,6 +245,12 @@ impl AsyncTransport for MockTransport<'_> {
         'buffer: 'transport,
     {
         self.send_inner(request, response_body)
+    }
+}
+
+impl ResponseStorageSanitizer for MockTransport<'_> {
+    fn sanitize_response_storage(&self, response_storage: &mut [u8]) {
+        response_storage.fill(0);
     }
 }
 

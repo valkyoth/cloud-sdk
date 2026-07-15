@@ -115,6 +115,10 @@ Bind `MockTransport` with `with_endpoint` before executing a
 `ResponseFixture::with_content_type` models missing, accepted, unexpected, or
 malformed response metadata.
 
+The mock implements `ResponseStorageSanitizer` deterministically, so prepared
+tests can assert that the complete caller buffer is cleared even when endpoint
+or fixture validation fails before a response is returned.
+
 `PreparedRequestRecord::capture` records method, redacted target/body lengths,
 provider service, complete operation metadata, and response policy without
 copying request values. Tests can therefore assert that mutations and

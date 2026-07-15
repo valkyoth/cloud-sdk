@@ -61,3 +61,10 @@ path = "fuzz_targets/response_envelopes.rs"
 test = false
 doc = false
 bench = false
+
+[[bin]]
+name = "response_content_type"
+path = "fuzz_targets/response_content_type.rs"
+test = false
+doc = false
+bench = false

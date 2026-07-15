@@ -182,7 +182,7 @@ fn mock_rejects_unbound_endpoints_request_media_mismatch_and_invalid_fixture_med
     };
     let exchanges = [exchange];
     let unbound = MockTransport::new(&exchanges);
-    let mut output = [0_u8; 16];
+    let mut output = [0xA5_u8; 16];
     assert_eq!(
         prepared.execute_blocking(&unbound, &mut output),
         Err(PreparedExecutionError::EndpointIdentity(
@@ -190,6 +190,7 @@ fn mock_rejects_unbound_endpoints_request_media_mismatch_and_invalid_fixture_med
         ))
     );
     assert_eq!(unbound.remaining(), 1);
+    assert_eq!(output, [0_u8; 16]);
 
     let endpoint = official_endpoint();
     let target = RequestTarget::new("/servers");
@@ -227,7 +228,7 @@ fn mock_rejects_unbound_endpoints_request_media_mismatch_and_invalid_fixture_med
                 MockError::InvalidFixtureMetadata
             ))
         );
-        assert_eq!(output, [0xA5; 16]);
+        assert_eq!(output, [0_u8; 16]);
         assert_eq!(mock.remaining(), 1);
     }
 }

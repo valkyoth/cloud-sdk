@@ -1,14 +1,14 @@
 {
   "SPDXID": "SPDXRef-DOCUMENT",
   "creationInfo": {
-    "created": "2026-07-15T09:59:44Z",
+    "created": "2026-07-15T10:30:59Z",
     "creators": [
       "Tool: cargo-sbom-v0.10.0",
       "Tool: cloud-sdk-complete-spdx-v1"
     ]
   },
   "dataLicense": "CC0-1.0",
-  "documentNamespace": "https://spdx.org/spdxdocs/cloud-sdk-2a8b5e19-3e6d-48c3-96fd-d7e10da7759c",
+  "documentNamespace": "https://spdx.org/spdxdocs/cloud-sdk-591fb3e5-a5be-4a59-bca0-cce99714185d",
   "files": [
     {
       "SPDXID": "SPDXRef-File-cloud_sdk",

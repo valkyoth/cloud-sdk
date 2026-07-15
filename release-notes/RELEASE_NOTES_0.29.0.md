@@ -33,6 +33,9 @@ of new third-party dependencies.
 
 - Execution lends only the smaller of caller response storage and the
   operation's admitted maximum to the transport.
+- Prepared execution requires `ResponseStorageSanitizer` and clears the
+  complete caller buffer before endpoint verification and capacity admission,
+  preventing residual data beyond a smaller operation's admitted window.
 - `ResponsePolicy` checks expected success status, initialized body length,
   required/optional/forbidden body shape, and required/optional/forbidden media
   type before producing `CheckedResponse`.
@@ -53,6 +56,8 @@ of new third-party dependencies.
 - Blocking and async conformance tests cover endpoint mismatch, unexpected
   status, missing or unexpected media type, empty body, oversized response, and
   retry-classification assertions.
+- A dedicated content-type parser fuzz target covers media essences,
+  parameters, quoted strings, escapes, and bounded response copies.
 
 ## Independent Crate Versions
 

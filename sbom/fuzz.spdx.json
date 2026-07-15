@@ -1,14 +1,14 @@
 {
   "SPDXID": "SPDXRef-DOCUMENT",
   "creationInfo": {
-    "created": "2026-07-15T09:59:45Z",
+    "created": "2026-07-15T10:31:00Z",
     "creators": [
       "Tool: cargo-sbom-v0.10.0",
       "Tool: cloud-sdk-complete-spdx-v1"
     ]
   },
   "dataLicense": "CC0-1.0",
-  "documentNamespace": "https://spdx.org/spdxdocs/fuzz-2f471ee9-eed9-4ae4-ae4d-eace78247ae7",
+  "documentNamespace": "https://spdx.org/spdxdocs/fuzz-000a2cad-d130-45ef-926f-169d27f2743c",
   "files": [
     {
       "SPDXID": "SPDXRef-File-action_polling",
@@ -82,6 +82,20 @@
     },
     {
       "SPDXID": "SPDXRef-File-request_targets",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "4177496385918d125269734ca1b0cf8e39d01960"
+        }
+      ],
+      "fileName": "./Cargo.lock",
+      "fileTypes": [
+        "SOURCE",
+        "TEXT"
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-File-response_content_type",
       "checksums": [
         {
           "algorithm": "SHA1",
@@ -516,6 +530,11 @@
     {
       "spdxElementId": "SPDXRef-DOCUMENT",
       "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-File-response_content_type"
+    },
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
       "relatedSpdxElement": "SPDXRef-File-response_envelopes"
     },
     {
@@ -545,6 +564,11 @@
     },
     {
       "spdxElementId": "SPDXRef-File-request_targets",
+      "relationshipType": "GENERATED_FROM",
+      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-fuzz-0.0.0"
+    },
+    {
+      "spdxElementId": "SPDXRef-File-response_content_type",
       "relationshipType": "GENERATED_FROM",
       "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-fuzz-0.0.0"
     },
