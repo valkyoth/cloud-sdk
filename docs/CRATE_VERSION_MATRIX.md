@@ -1,7 +1,7 @@
 # Crate Version Matrix
 
-Status: `v0.28.0` shared transport and credential lifecycle implementation stop
-reached. Pentest and local/GitHub release gates are required before tagging.
+Status: `v0.28.0` pentest and final retest passed. Local release checks and
+GitHub CI remain required before tagging.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared

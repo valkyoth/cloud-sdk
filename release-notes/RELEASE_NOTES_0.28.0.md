@@ -1,8 +1,6 @@
 # cloud-sdk 0.28.0 Release Notes
 
-Status: implementation stop reached; pentest required before tagging.
-
-Release date: pending
+Release date: 2026-07-15
 
 ## Overview
 
@@ -77,8 +75,6 @@ endpoint-identity, token-rotation, and testkit changes.
 
 ## Verification
 
-Before the implementation stop:
-
 - `cargo fmt --all -- --check`
 - `cargo clippy --workspace --all-targets --all-features -- -D warnings`
 - `cargo test --workspace --all-targets --all-features`
@@ -88,13 +84,16 @@ Before the implementation stop:
 - `scripts/validate-file-lengths.sh`
 - `scripts/check_sbom_freshness.sh`
 
-After a committed PASS report and green GitHub checks:
-
 - `scripts/release_0_28_gate.sh`
 - `scripts/release_crates.py --dry-run --yes --version 0.28.0`
 
-## Stop Gate
+## Security Review
 
-```text
-v0.28.0 implementation stop reached. Run pentest for this exact commit.
-```
+Iterative pentest and retest reviewed commit
+`fc3765fdc3b2b1aef5efc950f643622317476e64`. Review identified two Low
+findings and one informational defense-in-depth improvement. Credential lock
+poisoning now recovers safely, the Hetzner provider supplies exact official
+endpoint verification, and that verifier derives from canonical base-URL
+constants instead of duplicated destination literals. The final retest is
+green and the permanent report records `PASS`; tagging remains blocked until
+the clean release gate, GitHub CI, and CodeQL default setup are green.
