@@ -40,6 +40,8 @@ scripts/check_hetzner_api_drift.py --local-only
 scripts/test-hetzner-api-drift.py
 scripts/check_api_matrix_coverage.py
 scripts/test-api-matrix-coverage.py
+scripts/check_prepared_operation_coverage.py
+scripts/test-prepared-operation-coverage.py
 scripts/release_crates.py --check
 scripts/test-release-crates.py
 scripts/test-release-state.py
