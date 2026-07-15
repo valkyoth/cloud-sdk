@@ -79,6 +79,30 @@ def main() -> None:
         assert missing_body.returncode == 1, missing_body
         assert "missing body adapters: write_test" in missing_body.stderr
 
+        line_comments = run(
+            directory,
+            endpoints='// "read_test"\nconst OPS: &[&str] = &["write_test"];',
+        )
+        assert line_comments.returncode == 1, line_comments
+        assert "missing endpoint adapters: read_test" in line_comments.stderr
+
+        block_comments = run(
+            directory,
+            bodies='/* "write_test" */ const OPS: &[&str] = &[];',
+        )
+        assert block_comments.returncode == 1, block_comments
+        assert "missing body adapters: write_test" in block_comments.stderr
+
+        test_only = run(
+            directory,
+            endpoints=(
+                'const OPS: &[&str] = &["write_test"];\n'
+                '#[cfg(test)] mod tests { const OP: &str = "read_test"; }'
+            ),
+        )
+        assert test_only.returncode == 1, test_only
+        assert "test-only code is forbidden" in test_only.stderr
+
         duplicate_lock = directory / "bodies.txt"
         duplicate_lock.write_text("write_test\nwrite_test\n", encoding="ascii")
         command = [
@@ -100,7 +124,7 @@ def main() -> None:
         assert duplicate.returncode == 1, duplicate
         assert "duplicate body operation" in duplicate.stderr
 
-    print("4 prepared-operation coverage tests passed.")
+    print("7 prepared-operation coverage tests passed.")
 
 
 if __name__ == "__main__":

@@ -20,6 +20,18 @@ EXPECTED_BODIES = 91
 MAX_SOURCE_BYTES = 2 * 1024 * 1024
 OPERATION = re.compile(r"[a-z][a-z0-9_]+")
 STRING = re.compile(r'"([a-z][a-z0-9_]+)"')
+LINE_COMMENT = re.compile(r"//[^\n]*")
+BLOCK_COMMENT = re.compile(r"/\*.*?\*/", re.DOTALL)
+TEST_CFG = re.compile(r"#\s*\[\s*cfg\s*\(\s*test\s*\)\s*\]")
+
+
+def production_source(source: str) -> str:
+    """Remove comments and reject test-only production evidence."""
+    without_blocks = BLOCK_COMMENT.sub("", source)
+    without_comments = LINE_COMMENT.sub("", without_blocks)
+    if TEST_CFG.search(without_comments):
+        raise ValueError("test-only code is forbidden in prepared evidence sources")
+    return without_comments
 
 
 def read_sources(path: Path, *, include_root: bool) -> str:
@@ -38,7 +50,7 @@ def read_sources(path: Path, *, include_root: bool) -> str:
         total += len(payload)
         if total > MAX_SOURCE_BYTES:
             raise ValueError("prepared source evidence exceeds local size limit")
-        payloads.append(payload.decode("utf-8"))
+        payloads.append(production_source(payload.decode("utf-8")))
     return "\n".join(payloads)
 
 

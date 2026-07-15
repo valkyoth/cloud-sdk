@@ -17,6 +17,16 @@ pub struct PreparationStorage<'storage> {
 
 impl<'storage> PreparationStorage<'storage> {
     /// Creates complete caller-owned storage for one preparation attempt.
+    ///
+    /// # Security
+    ///
+    /// Preparation may write credentials or other secrets into `body`. A
+    /// successful [`PreparedRequest`] must retain those bytes until transport
+    /// use, so this wrapper cannot clear them on success. For secret-bearing
+    /// operations, guard `body` with a volatile-clearing type such as
+    /// `cloud_sdk_sanitization::SecretBuffer` and drop the guard immediately
+    /// after transport use. A plain mutable slice is not cleared when the
+    /// prepared request is dropped.
     #[must_use]
     pub const fn new(target: &'storage mut [u8], body: &'storage mut [u8]) -> Self {
         Self { target, body }

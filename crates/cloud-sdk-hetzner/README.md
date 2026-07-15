@@ -81,6 +81,37 @@ assert_eq!(prepared.transport_request().target().as_str(), "/load_balancers");
 # Ok::<(), Box<dyn core::error::Error>>(())
 ```
 
+Secret-bearing operations need successful-path cleanup after transport use.
+Add `cloud-sdk-sanitization = "0.13.16"` and guard the complete body buffer:
+
+```rust
+use cloud_sdk::operation::{PreparationStorage, PrepareOperation};
+use cloud_sdk_hetzner::storage::storage_boxes::{
+    StorageBoxCreateRequest, StorageBoxLocation, StorageBoxName,
+    StorageBoxPassword, StorageBoxTypeRef,
+};
+use cloud_sdk_sanitization::SecretBuffer;
+
+let name = StorageBoxName::new("backup")?;
+let location = StorageBoxLocation::new("fsn1")?;
+let box_type = StorageBoxTypeRef::new("bx20")?;
+let password = StorageBoxPassword::new("example-only-not-a-real-secret")?;
+let operation = StorageBoxCreateRequest::new(name, location, box_type, password);
+let mut target = [0_u8; 128];
+let mut body_bytes = [0_u8; 512];
+{
+    let mut body = SecretBuffer::new(&mut body_bytes);
+    let prepared = operation.prepare(PreparationStorage::new(
+        &mut target,
+        body.as_mut_slice(),
+    ))?;
+    assert!(!prepared.transport_request().body().is_empty());
+    // Send while `prepared` borrows the guarded body, then leave this scope.
+}
+assert!(body_bytes.iter().all(|byte| *byte == 0));
+# Ok::<(), Box<dyn core::error::Error>>(())
+```
+
 Before a custom transport sends credentials, call
 `verify_official_endpoint(&transport, expected_base)`. The helper fails closed
 unless scheme, host, effective port, and base path exactly match the selected
