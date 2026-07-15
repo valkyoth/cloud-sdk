@@ -1,7 +1,7 @@
 # Crate Version Matrix
 
-Status: `v0.27.0` implementation stop is in progress; pentest is required
-before tagging.
+Status: two separate `v0.27.0` pentests passed with no findings. Local release
+checks and GitHub CI remain required before tagging.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared

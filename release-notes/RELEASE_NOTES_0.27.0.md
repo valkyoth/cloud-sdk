@@ -88,6 +88,8 @@ No retired provider-specific helper crate is published.
 
 ## Security Review
 
-Pentest evidence is required after the implementation-stop commit. Tagging is
-blocked until the permanent v0.27 report, clean release gate, GitHub CI, and
-CodeQL default setup are green.
+Two separate pentests reviewed commit
+`f115f9016a113fb00d2db87e6b4fd22f8000152f`. Neither assessment identified a
+security finding requiring remediation, so no redundant retest was needed.
+The permanent report records `PASS`; tagging remains blocked until the clean
+release gate, GitHub CI, and CodeQL default setup are green.
