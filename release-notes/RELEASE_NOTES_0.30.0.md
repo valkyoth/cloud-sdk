@@ -64,11 +64,12 @@ of new third-party dependencies.
   match arms, and operation expressions must be unattributed; evidence methods
   contain exactly one tail expression. Manual query and body compatibility
   overrides must use canonical traits and signatures and must match their real
-  `operation_key` parameter. Reserved wire implementations cannot contain macro
-  items. Constants, nested comments, raw strings, file/item `cfg`, `cfg_attr`,
-  Cargo target or parent-edge substitutions, operation scrutinee substitutions,
-  parent-defined or `include!` implementation expansion, orphaned or redirected
-  modules, procedural erasure, preceding statements, namespaced or
+  `operation_key` parameter. Reserved wire implementations may contain only
+  unattributed methods. Constants, nested comments, raw strings, file/item
+  `cfg`, `cfg_attr`, Cargo target or parent-edge substitutions, operation
+  scrutinee substitutions, parent-defined, `include!`, or procedural-attribute
+  implementation expansion, unsupported associated items, orphaned or
+  redirected modules, procedural erasure, preceding statements, namespaced or
   generated-shadow adapters, duplicate or modified definitions, inline fake
   traits, discarded/helper expressions, unknown keys, ambiguous mappings,
   missing adapters, and deprecated evidence are rejected.

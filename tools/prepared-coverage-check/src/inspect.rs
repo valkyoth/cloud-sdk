@@ -106,7 +106,7 @@ fn inspect_items(
             }
             Item::Impl(item_impl) if implements_reserved(item_impl, kind) => {
                 require_unattributed_evidence(&item_impl.attrs)?;
-                reject_impl_item_macros(item_impl)?;
+                validate_impl_items(item_impl)?;
                 if !implements_canonical(item_impl, kind) {
                     return Err(format!(
                         "{} implementations must use crate::prepared::{}",
@@ -120,7 +120,7 @@ fn inspect_items(
                 if kind == RegistryKind::Endpoint && implements_named(item_impl, "QueryWire") =>
             {
                 require_unattributed_evidence(&item_impl.attrs)?;
-                reject_impl_item_macros(item_impl)?;
+                validate_impl_items(item_impl)?;
                 if !implements_canonical_named(item_impl, "QueryWire") {
                     return Err(
                         "QueryWire implementations must use crate::prepared::QueryWire".to_owned(),
@@ -207,15 +207,37 @@ fn implements_reserved(item: &ItemImpl, kind: RegistryKind) -> bool {
     implements_named(item, kind.label_wire())
 }
 
-fn reject_impl_item_macros(implementation: &ItemImpl) -> Result<(), String> {
-    if implementation
-        .items
-        .iter()
-        .any(|item| matches!(item, ImplItem::Macro(_)))
-    {
-        Err("macros inside prepared wire implementations are forbidden".to_owned())
-    } else {
-        Ok(())
+fn validate_impl_items(implementation: &ItemImpl) -> Result<(), String> {
+    for item in &implementation.items {
+        match item {
+            ImplItem::Fn(method) if method.attrs.is_empty() => {}
+            ImplItem::Fn(_) | ImplItem::Const(_) | ImplItem::Type(_)
+                if !impl_attrs(item).is_empty() =>
+            {
+                return Err(
+                    "attributes inside prepared wire implementations are forbidden".to_owned(),
+                );
+            }
+            ImplItem::Macro(_) => {
+                return Err("macros inside prepared wire implementations are forbidden".to_owned());
+            }
+            ImplItem::Verbatim(_) => {
+                return Err("unparsed prepared wire implementation items are forbidden".to_owned());
+            }
+            _ => {
+                return Err("unsupported prepared wire implementation item".to_owned());
+            }
+        }
+    }
+    Ok(())
+}
+
+fn impl_attrs(item: &ImplItem) -> &[Attribute] {
+    match item {
+        ImplItem::Const(item) => &item.attrs,
+        ImplItem::Fn(item) => &item.attrs,
+        ImplItem::Type(item) => &item.attrs,
+        _ => &[],
     }
 }
 

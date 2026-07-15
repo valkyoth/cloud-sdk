@@ -67,10 +67,12 @@ query or body implementation must have the exact
 whose scrutinee is that parameter. Literal, member-call, constant, renamed, or
 otherwise substituted scrutinees fail closed.
 
-Reserved endpoint, query, and body trait implementations cannot contain macro
-items. Parent-defined macros, built-in expansion such as `include!`, and any
-other implementation-item macro therefore cannot generate methods after the
-checker has extracted compatibility or operation evidence.
+Reserved endpoint, query, and body trait implementations may contain only
+unattributed methods. Associated-item macros, verbatim or unsupported syntax,
+associated constants and types, and attributes on any associated item fail
+closed. Parent-defined macros, built-in expansion such as `include!`, and
+procedural attributes therefore cannot generate methods after the checker has
+extracted compatibility or operation evidence.
 
 The checker requires exactly the reviewed module-scope macro definitions in
 the two roots and compares their parsed delimiter and token structure with

@@ -174,12 +174,69 @@ def assert_accepts_operation_mutations_rejected(directory: Path) -> None:
         ),
     )
     assert_impl_macro_rejected(query_include)
+    assert_attributed_impl_items_rejected(directory)
 
 
 def assert_impl_macro_rejected(result: subprocess.CompletedProcess[str]) -> None:
     """Require reserved wire implementation macros to fail closed."""
     assert result.returncode == 1, result
     assert "macros inside prepared wire implementations" in result.stderr
+
+
+def assert_attributed_impl_items_rejected(directory: Path) -> None:
+    """Reject procedural attributes on every reserved associated item form."""
+    body_function = run(
+        directory,
+        bodies=(
+            "impl crate::prepared::BodyWire for Fake { "
+            "fn operation_key(self) -> &'static str { \"write_test\" } "
+            "#[generate_accepts] fn placeholder() {} }"
+        ),
+    )
+    assert_impl_attribute_rejected(body_function)
+    query_function = run(
+        directory,
+        endpoints=(
+            ENDPOINTS
+            + "\nimpl crate::prepared::QueryWire for Fake { "
+            + "#[generate_accepts] fn placeholder() {} }\n"
+        ),
+    )
+    assert_impl_attribute_rejected(query_function)
+    endpoint_function = run(
+        directory,
+        endpoints=(
+            "endpoint_wire!(Real, value => (), (), match value { "
+            'Real::Write => "write_test" }, false, ());\n'
+            "impl crate::prepared::EndpointWire for Fake { "
+            "#[generate_key] fn placeholder() {} }\n"
+        ),
+    )
+    assert_impl_attribute_rejected(endpoint_function)
+    body_constant = run(
+        directory,
+        bodies=(
+            "impl crate::prepared::BodyWire for Fake { "
+            "fn operation_key(self) -> &'static str { \"write_test\" } "
+            "#[generate_accepts] const PLACEHOLDER: () = (); }"
+        ),
+    )
+    assert_impl_attribute_rejected(body_constant)
+    query_type = run(
+        directory,
+        endpoints=(
+            ENDPOINTS
+            + "\nimpl crate::prepared::QueryWire for Fake { "
+            + "#[generate_accepts] type Placeholder = (); }\n"
+        ),
+    )
+    assert_impl_attribute_rejected(query_type)
+
+
+def assert_impl_attribute_rejected(result: subprocess.CompletedProcess[str]) -> None:
+    """Require associated-item procedural attributes to fail closed."""
+    assert result.returncode == 1, result
+    assert "attributes inside prepared wire implementations" in result.stderr
 
 
 def run(
