@@ -18,7 +18,7 @@ with reqwest default features disabled.
 | `rustls-platform-verifier` | `0.7.0` | platform trust-store verification | transitive |
 | `webpki-roots` | `1.0.8` | deterministic Mozilla trust-root snapshot | disabled |
 | `aws-lc-rs` | `1.17.1` | rustls cryptographic provider | transitive |
-| `cloud-sdk-sanitization` | `0.13.12` | adapter-owned secret-buffer cleanup | disabled |
+| `cloud-sdk-sanitization` | `0.13.13` | adapter-owned secret-buffer cleanup | disabled |
 | `sanitization` | `1.2.4` | reviewed volatile cleanup primitive | disabled |
 
 The exact repository graph is pinned by `Cargo.lock`, checked by `cargo deny`,
@@ -93,7 +93,7 @@ from both production feature graphs. A
 separate locked, non-published test fixture deliberately enables both on the
 same reqwest instance and builds both adapters to exercise Cargo feature
 unification against the runtime overrides. Its local `cloud-sdk-reqwest`
-dependency is pinned exactly to `0.17.2` and enables the standard, FIPS, and
+dependency is pinned exactly to `0.18.0` and enables the standard, FIPS, and
 async transport features, proving the explicit FIPS configuration wins under
 additive feature unification. The deterministic-root boundary separately
 compiles both its standard combination and its combination with FIPS.

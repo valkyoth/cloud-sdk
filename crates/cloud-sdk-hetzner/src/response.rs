@@ -147,6 +147,10 @@ mod tests {
         assert!(write!(&mut output, "{error:?}").is_ok());
         assert!(output.as_str().contains("[redacted]"));
         assert!(!output.as_str().contains("reflected-secret"));
+        let mut display = DebugBuffer::new();
+        assert!(write!(&mut display, "{error}").is_ok());
+        assert_eq!(display.as_str(), "Hetzner API returned an error");
+        assert!(!display.as_str().contains("reflected-secret"));
     }
 
     struct DebugBuffer {

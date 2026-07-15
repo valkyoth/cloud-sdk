@@ -1,7 +1,7 @@
 # Crate Version Matrix
 
-Status: `v0.26.0` pentest and retest passed; local release checks and GitHub CI
-remain required before tagging. The latest published release is `v0.25.0`.
+Status: `v0.27.0` implementation stop is in progress; pentest is required
+before tagging.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
@@ -416,3 +416,18 @@ dependency.
 | `cloud-sdk-reqwest` | `0.17.1` | `0.17.2` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.26 facade line. |
 | `cloud-sdk-sanitization` | `0.13.11` | `0.13.12` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.26 facade line. |
 | `cloud-sdk-testkit` | `0.15.7` | `0.15.8` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.26 facade line. |
+
+## v0.27.0 Tracking Table
+
+`v0.27.0` stabilizes existing public APIs before Robot implementation. Required
+request fields become direct arguments, public errors gain payload-free standard
+traits, custom credential destinations become explicit, and capability claims
+are checked against the reviewed documentation contract.
+
+| Crate | Published | Planned | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.26.0` | `0.27.0` | `code` | Yes | Add payload-free public error traits and v0.27 stabilization evidence. |
+| `cloud-sdk-hetzner` | `0.20.0` | `0.21.0` | `code` | Yes | Make required request inputs type-safe and stabilize public errors. |
+| `cloud-sdk-reqwest` | `0.17.2` | `0.18.0` | `code` | Yes | Make custom credential destinations explicit and stabilize public errors. |
+| `cloud-sdk-sanitization` | `0.13.12` | `0.13.13` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.27 facade line. |
+| `cloud-sdk-testkit` | `0.15.8` | `0.16.0` | `code` | Yes | Add payload-free public error traits and update the facade dependency. |

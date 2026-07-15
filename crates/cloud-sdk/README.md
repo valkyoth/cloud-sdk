@@ -108,8 +108,8 @@ Portable and native platform evidence is documented in
 
 ```toml
 [dependencies]
-cloud-sdk = "0.26.0"
-cloud-sdk-hetzner = "0.20.0"
+cloud-sdk = "0.27.0"
+cloud-sdk-hetzner = "0.21.0"
 ```
 
 ## cloud-sdk Features
@@ -130,6 +130,8 @@ visible. Applications should enable only the features they use.
 - [Hetzner live smoke testing](https://github.com/valkyoth/cloud-sdk/blob/main/docs/LIVE_SMOKE_TESTING.md)
 - [Security recipes](https://github.com/valkyoth/cloud-sdk/blob/main/docs/SECURITY_RECIPES.md)
 - [Release runbook](https://github.com/valkyoth/cloud-sdk/blob/main/docs/RELEASE_RUNBOOK.md)
+- [Versioning and error policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/VERSIONING_POLICY.md)
+- [Deprecated endpoint policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/DEPRECATED_ENDPOINT_POLICY.md)
 
 ## Provider-Neutral Quickstart
 
@@ -156,8 +158,8 @@ The core contracts perform no I/O and select no executor. Use
 
 ```toml
 [dependencies]
-cloud-sdk = "0.26.0"
-cloud-sdk-reqwest = { version = "0.17.2", features = ["blocking-rustls"] }
+cloud-sdk = "0.27.0"
+cloud-sdk-reqwest = { version = "0.18.0", features = ["blocking-rustls"] }
 ```
 
 The production builder is HTTPS-only, requires explicit bounded timeouts and a
@@ -179,8 +181,8 @@ when deterministic public WebPKI roots are required:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.26.0"
-cloud-sdk-reqwest = { version = "0.17.2", features = ["blocking-rustls-webpki-roots"] }
+cloud-sdk = "0.27.0"
+cloud-sdk-reqwest = { version = "0.18.0", features = ["blocking-rustls-webpki-roots"] }
 ```
 
 The blocking API is unchanged. This feature excludes host-added enterprise
@@ -196,8 +198,8 @@ feature instead of relying on dependency feature unification:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.26.0"
-cloud-sdk-reqwest = { version = "0.17.2", features = ["blocking-rustls-fips"] }
+cloud-sdk = "0.27.0"
+cloud-sdk-reqwest = { version = "0.18.0", features = ["blocking-rustls-fips"] }
 ```
 
 Client construction explicitly selects rustls' AWS-LC FIPS provider and fails
@@ -215,8 +217,8 @@ example is in the
 
 ```toml
 [dependencies]
-cloud-sdk = "0.26.0"
-cloud-sdk-reqwest = { version = "0.17.2", features = ["async-rustls"] }
+cloud-sdk = "0.27.0"
+cloud-sdk-reqwest = { version = "0.18.0", features = ["async-rustls"] }
 ```
 
 The async adapter requires an active Tokio executor because reqwest uses Tokio

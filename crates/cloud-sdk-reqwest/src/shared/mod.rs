@@ -29,6 +29,7 @@ mod error_tests {
     use super::{
         BearerTokenError, BuildError, EndpointError, TimeoutError, TransportError, UserAgentError,
     };
+    use std::string::ToString;
 
     #[test]
     fn public_errors_implement_payload_free_core_error() {
@@ -40,5 +41,18 @@ mod error_tests {
         assert_error::<TimeoutError>();
         assert_error::<TransportError>();
         assert_error::<UserAgentError>();
+
+        assert_eq!(BearerTokenError::Empty.to_string(), "bearer token is empty");
+        assert_eq!(
+            BuildError::ClientBuildFailed.to_string(),
+            "HTTP client construction failed"
+        );
+        assert_eq!(
+            EndpointError::InvalidUrl.to_string(),
+            "endpoint URL is invalid"
+        );
+        assert_eq!(TimeoutError::Zero.to_string(), "timeout must be nonzero");
+        assert_eq!(TransportError::RequestFailed.to_string(), "request failed");
+        assert_eq!(UserAgentError::Empty.to_string(), "user agent is empty");
     }
 }

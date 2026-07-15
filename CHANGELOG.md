@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.27.0 - 2026-07-15
+
+- Replaced required `Option<T>` request constructor inputs with direct validated
+  values throughout `cloud-sdk-hetzner`.
+- Replaced generic missing-field server action errors with precise action and
+  alias-IP variants.
+- Added payload-free `Display` and `core::error::Error` implementations for all
+  public first-party error families.
+- Renamed custom credential endpoint construction to
+  `HttpsEndpoint::new_custom` and documented its trusted-configuration boundary.
+- Added checked provider capability claims, public API review, migration,
+  versioning, error, and deprecated-endpoint policies.
+- Added the `v0.27.0` release gate and independent crate version plan.
+
 ## 0.26.0 - 2026-07-14
 
 - Added bounded global action list and lookup request models, including the

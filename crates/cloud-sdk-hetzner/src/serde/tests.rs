@@ -173,6 +173,9 @@ fn serde_error_envelope_borrows_and_ignores_additive_fields() {
     let debug = format!("{envelope:?}");
     assert!(debug.contains("[redacted]"));
     assert!(!debug.contains("slow"));
+    let display = format!("{}", envelope.error());
+    assert_eq!(display, "Hetzner API returned an error response");
+    assert!(!display.contains("slow"));
 
     let duplicate = r#"{"error":{"code":"forbidden","code":"not_found","message":"x"}}"#;
     assert!(serde_json::from_str::<ApiErrorEnvelope<'_>>(duplicate).is_err());

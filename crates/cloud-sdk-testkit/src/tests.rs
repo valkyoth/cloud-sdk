@@ -21,8 +21,20 @@ fn public_errors_implement_payload_free_core_error() {
     assert_error::<MockError>();
     assert_error::<ResponseFixtureError>();
     assert_eq!(
+        format!("{}", FixtureBodyError::TooLarge),
+        "fixture body exceeds the size limit"
+    );
+    assert_eq!(
+        format!("{}", FixtureMetadataError::PaginationZero),
+        "fixture pagination value must be nonzero"
+    );
+    assert_eq!(
         format!("{}", MockError::TargetMismatch),
         "mock request target differs from expectation"
+    );
+    assert_eq!(
+        format!("{}", ResponseFixtureError::NonErrorStatus),
+        "error fixture requires an HTTP error status"
     );
 }
 

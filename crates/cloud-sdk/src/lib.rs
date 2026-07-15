@@ -79,6 +79,7 @@ mod tests {
     use crate::pagination::PaginationError;
     use crate::rate_limit::RateLimitError;
     use crate::transport::{ContentTypeError, RequestTargetError};
+    use core::fmt::{self, Write};
 
     #[test]
     fn exposes_provider_neutral_domains() {
@@ -97,5 +98,48 @@ mod tests {
         assert_error::<ContentTypeError>();
         assert_error::<RequestTargetError>();
         assert_error::<ActionPollError<&'static str>>();
+
+        assert_display(PaginationError::PageZero, "page number must be nonzero");
+        assert_display(RateLimitError::LimitZero, "rate limit must be nonzero");
+        assert_display(ContentTypeError::Empty, "content type is empty");
+        assert_display(RequestTargetError::Empty, "request target is empty");
+        assert_display(
+            ActionPollError::Policy("sentinel-secret"),
+            "action poll policy failed",
+        );
+    }
+
+    fn assert_display(error: impl fmt::Display, expected: &str) {
+        let mut output = DisplayBuffer::new();
+        assert!(write!(&mut output, "{error}").is_ok());
+        assert_eq!(output.as_str(), expected);
+    }
+
+    struct DisplayBuffer {
+        bytes: [u8; 128],
+        len: usize,
+    }
+
+    impl DisplayBuffer {
+        const fn new() -> Self {
+            Self {
+                bytes: [0; 128],
+                len: 0,
+            }
+        }
+
+        fn as_str(&self) -> &str {
+            core::str::from_utf8(self.bytes.get(..self.len).unwrap_or_default()).unwrap_or_default()
+        }
+    }
+
+    impl Write for DisplayBuffer {
+        fn write_str(&mut self, value: &str) -> fmt::Result {
+            let end = self.len.checked_add(value.len()).ok_or(fmt::Error)?;
+            let target = self.bytes.get_mut(self.len..end).ok_or(fmt::Error)?;
+            target.copy_from_slice(value.as_bytes());
+            self.len = end;
+            Ok(())
+        }
     }
 }
