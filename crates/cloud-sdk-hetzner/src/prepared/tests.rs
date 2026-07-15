@@ -3,18 +3,26 @@ use cloud_sdk::transport::StatusCode;
 
 use crate::actions::{ActionEndpoint, ActionId, ActionListRequest};
 use crate::cloud::catalog::{CatalogGetEndpoint, CatalogId};
+use crate::cloud::shared::CloudResourceId;
+use crate::dns::zones::{ZoneActionEndpoint, ZoneActionListRequest, ZoneEndpoint, ZoneReference};
+use crate::storage::storage_boxes::StorageBoxListRequest;
 
-use super::HetznerPreparationError;
+use super::{HetznerPreparationError, HetznerPreparedOperation};
 
 #[test]
 fn prepares_global_actions_and_catalog_gets() {
-    let ids = [ActionId::new(7).expect("nonzero action ID")];
-    let operation = ActionListRequest::try_new(&ids).expect("bounded IDs");
+    let id = ActionId::new(7);
+    assert!(id.is_some());
+    let Some(id) = id else { return };
+    let ids = [id];
+    let operation = ActionListRequest::try_new(&ids);
+    assert!(operation.is_ok());
+    let Ok(operation) = operation else { return };
     let mut target = [0_u8; 64];
     let mut body = [0_u8; 1];
-    let prepared = operation
-        .prepare(PreparationStorage::new(&mut target, &mut body))
-        .expect("complete action request");
+    let prepared = operation.prepare(PreparationStorage::new(&mut target, &mut body));
+    assert!(prepared.is_ok());
+    let Ok(prepared) = prepared else { return };
     assert_eq!(
         prepared.transport_request().target().as_str(),
         "/actions?id=7"
@@ -26,10 +34,15 @@ fn prepares_global_actions_and_catalog_gets() {
         &[StatusCode::OK]
     );
 
-    let endpoint = CatalogGetEndpoint::Location(CatalogId::new(3).expect("catalog ID"));
-    let prepared = endpoint
-        .prepare(PreparationStorage::new(&mut target, &mut body))
-        .expect("catalog request");
+    let catalog_id = CatalogId::new(3);
+    assert!(catalog_id.is_some());
+    let Some(catalog_id) = catalog_id else {
+        return;
+    };
+    let endpoint = CatalogGetEndpoint::Location(catalog_id);
+    let prepared = endpoint.prepare(PreparationStorage::new(&mut target, &mut body));
+    assert!(prepared.is_ok());
+    let Ok(prepared) = prepared else { return };
     assert_eq!(
         prepared.transport_request().target().as_str(),
         "/locations/3"
@@ -50,7 +63,10 @@ fn missing_required_components_clear_complete_storage() {
 
 #[test]
 fn insufficient_target_storage_never_exposes_partial_bytes() {
-    let endpoint = ActionEndpoint::Get(ActionId::new(42).expect("action ID"));
+    let id = ActionId::new(42);
+    assert!(id.is_some());
+    let Some(id) = id else { return };
+    let endpoint = ActionEndpoint::Get(id);
     let mut target = [0xA5_u8; 4];
     let mut body = [0x5A_u8; 4];
     assert!(matches!(
@@ -59,4 +75,36 @@ fn insufficient_target_storage_never_exposes_partial_bytes() {
     ));
     assert_eq!(target, [0; 4]);
     assert_eq!(body, [0; 4]);
+}
+
+#[test]
+fn checked_pairing_supports_local_filters_and_rejects_mismatches() {
+    let zone_id = CloudResourceId::new(9);
+    assert!(zone_id.is_some());
+    let Some(zone_id) = zone_id else { return };
+    let zone = ZoneReference::Id(zone_id);
+    let operation = HetznerPreparedOperation::query(
+        ZoneActionEndpoint::ListForZone(zone),
+        ZoneActionListRequest::new(),
+    );
+    let mut target = [0_u8; 64];
+    let mut body = [0_u8; 8];
+    let prepared = operation.prepare(PreparationStorage::new(&mut target, &mut body));
+    assert!(prepared.is_ok());
+    let Ok(prepared) = prepared else { return };
+    assert_eq!(
+        prepared.transport_request().target().as_str(),
+        "/zones/9/actions"
+    );
+
+    target.fill(0xA5);
+    body.fill(0x5A);
+    let mismatch =
+        HetznerPreparedOperation::query(ZoneEndpoint::List, StorageBoxListRequest::new());
+    assert!(matches!(
+        mismatch.prepare(PreparationStorage::new(&mut target, &mut body)),
+        Err(HetznerPreparationError::OperationMismatch)
+    ));
+    assert!(target.iter().all(|byte| *byte == 0));
+    assert!(body.iter().all(|byte| *byte == 0));
 }

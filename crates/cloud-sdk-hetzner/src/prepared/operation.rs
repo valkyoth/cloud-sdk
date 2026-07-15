@@ -53,6 +53,10 @@ pub(crate) trait EndpointWire: Copy {
 pub(crate) trait QueryWire: Copy {
     fn write_query(self, output: &mut [u8]) -> Result<usize, HetznerPreparationError>;
     fn operation_key(self) -> &'static str;
+
+    fn accepts_operation(self, operation_key: &str) -> bool {
+        self.operation_key() == operation_key
+    }
 }
 
 pub(crate) trait BodyWire: Copy {
@@ -98,7 +102,9 @@ pub struct HetznerPreparedOperation<E, Q = NoQuery, B = NoBody> {
 }
 
 impl<E> HetznerPreparedOperation<E> {
-    pub(crate) const fn endpoint(endpoint: E) -> Self {
+    /// Creates an operation that has no query parameters or request body.
+    #[must_use]
+    pub const fn endpoint(endpoint: E) -> Self {
         Self {
             endpoint,
             query: NoQuery,
@@ -109,7 +115,12 @@ impl<E> HetznerPreparedOperation<E> {
 }
 
 impl<E, Q> HetznerPreparedOperation<E, Q> {
-    pub(crate) const fn query(endpoint: E, query: Q) -> Self {
+    /// Pairs an endpoint with its query request.
+    ///
+    /// Preparation rejects a query that is not source-locked to the endpoint
+    /// operation before writing any request bytes.
+    #[must_use]
+    pub const fn query(endpoint: E, query: Q) -> Self {
         Self {
             endpoint,
             query,
@@ -120,7 +131,12 @@ impl<E, Q> HetznerPreparedOperation<E, Q> {
 }
 
 impl<E, B> HetznerPreparedOperation<E, NoQuery, B> {
-    pub(crate) const fn json(endpoint: E, body: B) -> Self {
+    /// Pairs an endpoint with its JSON request body.
+    ///
+    /// Preparation rejects a body that is not source-locked to the endpoint
+    /// operation before writing any request bytes.
+    #[must_use]
+    pub const fn json(endpoint: E, body: B) -> Self {
         Self {
             endpoint,
             query: NoQuery,
@@ -163,9 +179,7 @@ where
     let metadata = endpoint.metadata()?;
     let policy = response_policy(endpoint.response_profile())?;
     let service = provider_service(endpoint.api_base_url())?;
-    if let Err(error) = validate_components(endpoint, query, body) {
-        return Err(error);
-    }
+    validate_components(endpoint, query, body)?;
     let (target_len, body_len) =
         match write_components(endpoint, query, body, target_storage, body_storage) {
             Ok(lengths) => lengths,
@@ -259,7 +273,7 @@ where
     let has_query = !query.operation_key().is_empty();
     let has_body = !body.operation_key().is_empty();
     let key = endpoint.operation_key();
-    if has_query && query.operation_key() != key || has_body && body.operation_key() != key {
+    if has_query && !query.accepts_operation(key) || has_body && body.operation_key() != key {
         return Err(HetznerPreparationError::OperationMismatch);
     }
     match (endpoint.request_shape(), has_query, has_body) {

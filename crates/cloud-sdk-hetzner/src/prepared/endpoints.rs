@@ -240,3 +240,105 @@ fn write_catalog_path(output: &mut [u8], path: &str) -> Result<usize, HetznerPre
     target.copy_from_slice(path.as_bytes());
     Ok(path.len())
 }
+
+macro_rules! endpoint_wire {
+    (
+        $type:ty,
+        $value:ident => $shape:expr,
+        $response:expr,
+        $key:expr,
+        $destructive:expr,
+        $cost:expr
+    ) => {
+        impl super::EndpointWire for $type {
+            fn method(self) -> cloud_sdk::Method {
+                <$type>::method(self)
+            }
+
+            fn api_base_url(self) -> crate::request::ApiBaseUrl {
+                <$type>::api_base_url(self)
+            }
+
+            fn write_path(
+                self,
+                output: &mut [u8],
+            ) -> Result<usize, super::HetznerPreparationError> {
+                <$type>::write_path(self, output).map_err(|_| super::HetznerPreparationError::Path)
+            }
+
+            fn request_shape(self) -> super::RequestShape {
+                let $value = self;
+                let _ = $value;
+                $shape
+            }
+
+            fn response_profile(self) -> super::ResponseProfile {
+                let $value = self;
+                let _ = $value;
+                $response
+            }
+
+            fn metadata(
+                self,
+            ) -> Result<cloud_sdk::operation::OperationMetadata, super::HetznerPreparationError>
+            {
+                let $value = self;
+                let _ = $value;
+                crate::prepared::operation::method_metadata(self.method(), $destructive, $cost)
+            }
+
+            fn operation_key(self) -> &'static str {
+                let $value = self;
+                let _ = $value;
+                $key
+            }
+        }
+
+        impl cloud_sdk::operation::PrepareOperation for $type {
+            type Error = super::HetznerPreparationError;
+
+            fn prepare<'storage>(
+                &self,
+                storage: cloud_sdk::operation::PreparationStorage<'storage>,
+            ) -> Result<cloud_sdk::operation::PreparedRequest<'storage>, Self::Error> {
+                super::HetznerPreparedOperation::endpoint(*self).prepare(storage)
+            }
+        }
+    };
+}
+
+macro_rules! query_wire {
+    ($type:ty, $value:ident => $endpoint:expr) => {
+        impl super::QueryWire for $type {
+            fn write_query(
+                self,
+                output: &mut [u8],
+            ) -> Result<usize, super::HetznerPreparationError> {
+                <$type>::write_query(self, output)
+                    .map_err(|_| super::HetznerPreparationError::Query)
+            }
+
+            fn operation_key(self) -> &'static str {
+                let $value = self;
+                super::EndpointWire::operation_key($endpoint)
+            }
+        }
+
+        impl cloud_sdk::operation::PrepareOperation for $type {
+            type Error = super::HetznerPreparationError;
+
+            fn prepare<'storage>(
+                &self,
+                storage: cloud_sdk::operation::PreparationStorage<'storage>,
+            ) -> Result<cloud_sdk::operation::PreparedRequest<'storage>, Self::Error> {
+                let $value = *self;
+                super::HetznerPreparedOperation::query($endpoint, *self).prepare(storage)
+            }
+        }
+    };
+}
+
+mod compute;
+mod network;
+mod security_dns;
+mod storage;
