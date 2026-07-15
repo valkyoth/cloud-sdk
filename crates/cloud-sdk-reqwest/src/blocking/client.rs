@@ -1,33 +1,70 @@
 use core::fmt;
 use std::io::Read;
+use std::sync::Arc;
 
 use cloud_sdk::Method;
-use cloud_sdk::transport::{BlockingTransport, StatusCode, TransportRequest, TransportResponse};
-use cloud_sdk_sanitization::sanitize_bytes;
+use cloud_sdk::transport::{
+    BlockingTransport, BoundTransport, EndpointIdentity, EndpointIdentityError, StatusCode,
+    TransportRequest, TransportResponse,
+};
+use cloud_sdk_sanitization::{SecretBuffer, sanitize_bytes};
 use reqwest::blocking::{Body, Client};
 use reqwest::header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE, HeaderValue};
 
 use super::body::{ReadBodyError, SanitizedRequestBody, read_bounded};
-use crate::shared::{BearerToken, HttpsEndpoint, TransportError, parse_rate_limit};
+use crate::shared::{
+    BearerToken, CredentialStateError, CredentialStore, HttpsEndpoint, TokenRotationError,
+    TransportError, parse_rate_limit,
+};
 
 /// Hardened provider-neutral reqwest blocking transport.
+#[derive(Clone)]
 pub struct BlockingClient {
     client: Client,
     endpoint: HttpsEndpoint,
-    token: BearerToken,
+    credentials: Arc<CredentialStore>,
 }
 
 impl BlockingClient {
-    pub(super) const fn new(client: Client, endpoint: HttpsEndpoint, token: BearerToken) -> Self {
+    pub(super) fn new(client: Client, endpoint: HttpsEndpoint, token: BearerToken) -> Self {
         Self {
             client,
             endpoint,
-            token,
+            credentials: Arc::new(CredentialStore::new(token)),
         }
     }
 
+    /// Atomically replaces the bearer token used by newly started requests.
+    ///
+    /// In-flight requests retain their previous snapshot. The retired token is
+    /// sanitized after its last request snapshot is dropped.
+    pub fn rotate_bearer_token(
+        &self,
+        replacement: BearerToken,
+    ) -> Result<(), CredentialStateError> {
+        self.credentials.rotate(replacement)
+    }
+
+    /// Validates and rotates from mutable bytes, clearing the complete source
+    /// on success or failure. Rejected input leaves the active token unchanged.
+    pub fn rotate_bearer_token_from_mut_bytes(
+        &self,
+        source: &mut [u8],
+    ) -> Result<(), TokenRotationError> {
+        self.credentials.rotate_from_mut_bytes(source)
+    }
+
+    /// Validates and rotates from guarded storage. Dropping the consumed guard
+    /// clears the complete source on success or failure.
+    pub fn rotate_bearer_token_from_secret_buffer(
+        &self,
+        source: SecretBuffer<'_>,
+    ) -> Result<(), TokenRotationError> {
+        self.credentials.rotate_from_secret_buffer(source)
+    }
+
     fn send_inner<'buffer>(
-        &mut self,
+        &self,
         request: TransportRequest<'_>,
         response_body: &'buffer mut [u8],
     ) -> Result<TransportResponse<'buffer>, TransportError> {
@@ -37,8 +74,11 @@ impl BlockingClient {
             .compose(request.target())
             .map_err(|_| TransportError::TargetRejected)?;
         let method = map_method(request.method());
-        let authorization = self
-            .token
+        let token_snapshot = self
+            .credentials
+            .snapshot()
+            .map_err(|_| TransportError::CredentialStateUnavailable)?;
+        let authorization = token_snapshot
             .header_value()
             .map_err(|_| TransportError::HeaderRejected)?;
         let mut outbound = self
@@ -80,6 +120,7 @@ impl BlockingClient {
             .get(..body_len)
             .ok_or(TransportError::ResponseReadFailed)?;
         let response = TransportResponse::new(status, initialized);
+        drop(token_snapshot);
         Ok(rate_limit.map_or(response, |value| response.with_rate_limit(value)))
     }
 }
@@ -88,11 +129,17 @@ impl BlockingTransport for BlockingClient {
     type Error = TransportError;
 
     fn send<'buffer>(
-        &mut self,
+        &self,
         request: TransportRequest<'_>,
         response_body: &'buffer mut [u8],
     ) -> Result<TransportResponse<'buffer>, Self::Error> {
         self.send_inner(request, response_body)
+    }
+}
+
+impl BoundTransport for BlockingClient {
+    fn endpoint_identity(&self) -> Result<EndpointIdentity<'_>, EndpointIdentityError> {
+        self.endpoint.identity()
     }
 }
 
@@ -101,7 +148,7 @@ impl fmt::Debug for BlockingClient {
         formatter
             .debug_struct("BlockingClient")
             .field("endpoint", &"[redacted]")
-            .field("token", &"[redacted]")
+            .field("credentials", &"[redacted]")
             .finish_non_exhaustive()
     }
 }

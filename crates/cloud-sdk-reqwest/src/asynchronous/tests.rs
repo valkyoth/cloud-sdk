@@ -10,6 +10,8 @@ use super::{
 };
 use crate::test_server::{spawn, spawn_split};
 
+mod lifecycle;
+
 fn run_async_test(future: impl core::future::Future<Output = ()>) {
     let runtime = tokio::runtime::Builder::new_current_thread()
         .enable_io()
@@ -45,7 +47,7 @@ fn async_client_sends_exact_headers_target_and_body_once() {
             Duration::ZERO,
         );
         let Ok(server) = server else { return };
-        let Some(mut client) = build_loopback(&server.endpoint) else {
+        let Some(client) = build_loopback(&server.endpoint) else {
             return;
         };
         let Ok(target) = RequestTarget::new("/servers?name=test%20server") else {
@@ -55,7 +57,7 @@ fn async_client_sends_exact_headers_target_and_body_once() {
             .with_body(br#"{"name":"server"}"#)
             .with_content_type(ContentType::JSON);
         let mut output = [0xa5_u8; 32];
-        let response = AsyncTransport::send(&mut client, request, &mut output).await;
+        let response = AsyncTransport::send(&client, request, &mut output).await;
         assert!(response.is_ok());
         if let Ok(response) = response {
             assert_eq!(response.status().get(), 503);
@@ -85,7 +87,7 @@ fn async_redirect_is_not_followed_and_oversized_body_is_rejected() {
             Duration::ZERO,
         );
         let Ok(redirect) = redirect else { return };
-        let Some(mut client) = build_loopback(&redirect.endpoint) else {
+        let Some(client) = build_loopback(&redirect.endpoint) else {
             return;
         };
         let Ok(target) = RequestTarget::new("/servers") else {
@@ -93,7 +95,7 @@ fn async_redirect_is_not_followed_and_oversized_body_is_rejected() {
         };
         let mut output = [0_u8; 16];
         let response = AsyncTransport::send(
-            &mut client,
+            &client,
             TransportRequest::new(Method::Get, target),
             &mut output,
         )
@@ -106,12 +108,12 @@ fn async_redirect_is_not_followed_and_oversized_body_is_rejected() {
 
         let oversized = spawn("200 OK", &[], b"oversized", Duration::ZERO);
         let Ok(oversized) = oversized else { return };
-        let Some(mut client) = build_loopback(&oversized.endpoint) else {
+        let Some(client) = build_loopback(&oversized.endpoint) else {
             return;
         };
         let mut short = [0xa5_u8; 4];
         let result = AsyncTransport::send(
-            &mut client,
+            &client,
             TransportRequest::new(Method::Get, target),
             &mut short,
         )
@@ -135,7 +137,7 @@ fn async_response_propagates_validated_rate_limit_headers() {
             Duration::ZERO,
         );
         let Ok(server) = server else { return };
-        let Some(mut client) = build_loopback(&server.endpoint) else {
+        let Some(client) = build_loopback(&server.endpoint) else {
             return;
         };
         let Ok(target) = RequestTarget::new("/servers") else {
@@ -143,7 +145,7 @@ fn async_response_propagates_validated_rate_limit_headers() {
         };
         let mut output = [0_u8; 8];
         let response = AsyncTransport::send(
-            &mut client,
+            &client,
             TransportRequest::new(Method::Get, target),
             &mut output,
         )
@@ -173,7 +175,7 @@ fn async_duplicate_rate_limit_headers_fail_closed() {
             Duration::ZERO,
         );
         let Ok(server) = server else { return };
-        let Some(mut client) = build_loopback(&server.endpoint) else {
+        let Some(client) = build_loopback(&server.endpoint) else {
             return;
         };
         let Ok(target) = RequestTarget::new("/servers") else {
@@ -181,7 +183,7 @@ fn async_duplicate_rate_limit_headers_fail_closed() {
         };
         let mut output = [0xa5_u8; 8];
         let result = AsyncTransport::send(
-            &mut client,
+            &client,
             TransportRequest::new(Method::Get, target),
             &mut output,
         )
@@ -197,7 +199,7 @@ fn async_duplicate_rate_limit_headers_fail_closed() {
 #[test]
 fn missing_content_type_fails_before_network_access() {
     run_async_test(async {
-        let Some(mut client) = build_loopback("http://127.0.0.1:9/v1") else {
+        let Some(client) = build_loopback("http://127.0.0.1:9/v1") else {
             return;
         };
         let Ok(target) = RequestTarget::new("/servers") else {
@@ -205,7 +207,7 @@ fn missing_content_type_fails_before_network_access() {
         };
         let mut output = [0xa5_u8; 8];
         let result = AsyncTransport::send(
-            &mut client,
+            &client,
             TransportRequest::new(Method::Post, target).with_body(b"{}"),
             &mut output,
         )
@@ -231,13 +233,13 @@ fn internal_timeout_is_payload_free_and_clears_output() {
         };
         let client =
             AsyncClientBuilder::new(endpoint, token, user_agent, timeouts).build_for_loopback();
-        let Ok(mut client) = client else { return };
+        let Ok(client) = client else { return };
         let Ok(target) = RequestTarget::new("/slow") else {
             return;
         };
         let mut output = [0xa5_u8; 8];
         let result = AsyncTransport::send(
-            &mut client,
+            &client,
             TransportRequest::new(Method::Get, target),
             &mut output,
         )
@@ -257,7 +259,7 @@ fn caller_cancellation_after_partial_body_never_exposes_response() {
             Duration::from_millis(500),
         );
         let Ok(server) = server else { return };
-        let Some(mut client) = build_loopback(&server.endpoint) else {
+        let Some(client) = build_loopback(&server.endpoint) else {
             return;
         };
         let Ok(target) = RequestTarget::new("/slow") else {
@@ -265,7 +267,7 @@ fn caller_cancellation_after_partial_body_never_exposes_response() {
         };
         let mut output = [0xa5_u8; 32];
         let future = AsyncTransport::send(
-            &mut client,
+            &client,
             TransportRequest::new(Method::Get, target),
             &mut output,
         );

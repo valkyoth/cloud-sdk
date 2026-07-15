@@ -1,8 +1,13 @@
 //! Provider-neutral blocking and asynchronous transport contracts.
 
 mod asynchronous;
+mod endpoint;
 
 pub use asynchronous::AsyncTransport;
+pub use endpoint::{
+    BoundTransport, EndpointIdentity, EndpointIdentityError, EndpointScheme,
+    MAX_ENDPOINT_BASE_PATH_BYTES, MAX_ENDPOINT_HOST_BYTES,
+};
 
 use core::fmt;
 
@@ -352,7 +357,7 @@ pub trait BlockingTransport {
 
     /// Sends one request and writes the response body into the caller buffer.
     fn send<'buffer>(
-        &mut self,
+        &self,
         request: TransportRequest<'_>,
         response_body: &'buffer mut [u8],
     ) -> Result<TransportResponse<'buffer>, Self::Error>;

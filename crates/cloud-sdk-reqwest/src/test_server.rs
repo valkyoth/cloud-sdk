@@ -47,6 +47,70 @@ pub(super) fn spawn(
     Ok(TestServer { endpoint, request })
 }
 
+pub(super) fn spawn_concurrent_pair(
+    status: &str,
+    body: &[u8],
+) -> Result<TestServer, std::io::Error> {
+    let listener = TcpListener::bind("127.0.0.1:0")?;
+    let address = listener.local_addr()?;
+    let endpoint = format!("http://{address}/v1");
+    let (sender, request) = channel();
+    let response = response_bytes(status, &[], body)?;
+
+    thread::spawn(move || {
+        let mut streams = Vec::new();
+        for _ in 0..2 {
+            let Ok((mut stream, _)) = listener.accept() else {
+                return;
+            };
+            let _ = stream.set_read_timeout(Some(Duration::from_secs(2)));
+            let Ok(bytes) = read_request(&mut stream) else {
+                return;
+            };
+            let _ = sender.send(RecordedRequest { bytes });
+            streams.push(stream);
+        }
+        for mut stream in streams {
+            let _ = stream.write_all(&response);
+            let _ = stream.flush();
+        }
+    });
+
+    Ok(TestServer { endpoint, request })
+}
+
+pub(super) fn spawn_sequence_with_first_delay(
+    status: &str,
+    body: &[u8],
+    first_delay: Duration,
+) -> Result<TestServer, std::io::Error> {
+    let listener = TcpListener::bind("127.0.0.1:0")?;
+    let address = listener.local_addr()?;
+    let endpoint = format!("http://{address}/v1");
+    let (sender, request) = channel();
+    let response = response_bytes(status, &[], body)?;
+
+    thread::spawn(move || {
+        for index in 0..2 {
+            let Ok((mut stream, _)) = listener.accept() else {
+                return;
+            };
+            let _ = stream.set_read_timeout(Some(Duration::from_secs(2)));
+            let Ok(bytes) = read_request(&mut stream) else {
+                return;
+            };
+            let _ = sender.send(RecordedRequest { bytes });
+            if index == 0 {
+                thread::sleep(first_delay);
+            }
+            let _ = stream.write_all(&response);
+            let _ = stream.flush();
+        }
+    });
+
+    Ok(TestServer { endpoint, request })
+}
+
 #[cfg(feature = "async-rustls")]
 pub(super) fn spawn_split(
     status: &str,

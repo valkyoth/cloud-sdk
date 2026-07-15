@@ -5,9 +5,9 @@ mod client;
 mod config;
 
 pub use crate::shared::{
-    BearerToken, BearerTokenError, BuildError, EndpointError, HttpsEndpoint,
-    MAX_BEARER_TOKEN_BYTES, MAX_TIMEOUT_SECONDS, RequestTimeouts, TimeoutError, TransportError,
-    UserAgent, UserAgentError,
+    BearerToken, BearerTokenError, BuildError, CredentialStateError, EndpointError, HttpsEndpoint,
+    MAX_BEARER_TOKEN_BYTES, MAX_TIMEOUT_SECONDS, RequestTimeouts, TimeoutError, TokenRotationError,
+    TransportError, UserAgent, UserAgentError,
 };
 pub use client::BlockingClient;
 pub use config::BlockingClientBuilder;

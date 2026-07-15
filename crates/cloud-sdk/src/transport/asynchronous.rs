@@ -21,7 +21,7 @@ pub trait AsyncTransport {
     /// Sends one request and initializes the complete response body in the
     /// caller buffer.
     fn send<'transport, 'request, 'buffer>(
-        &'transport mut self,
+        &'transport self,
         request: TransportRequest<'request>,
         response_body: &'buffer mut [u8],
     ) -> impl Future<Output = Result<TransportResponse<'buffer>, Self::Error>> + Send + 'transport

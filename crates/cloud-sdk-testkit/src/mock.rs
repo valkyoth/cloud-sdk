@@ -1,6 +1,7 @@
 //! Deterministic no-allocation mock transport.
 
 use core::fmt;
+use core::sync::atomic::{AtomicUsize, Ordering};
 
 use cloud_sdk::Method;
 use cloud_sdk::transport::{
@@ -89,6 +90,8 @@ pub enum MockError {
     ResponseBufferTooSmall,
     /// Internal cursor arithmetic failed closed.
     CursorOverflow,
+    /// Another request changed the ordered cursor during this exchange.
+    ConcurrentRequest,
     /// Fixture metadata could not be represented by the core transport.
     InvalidFixtureMetadata,
 }
@@ -100,13 +103,14 @@ impl_static_error!(MockError,
     Self::BodyMismatch => "mock request body differs from expectation",
     Self::ResponseBufferTooSmall => "mock response buffer is too small",
     Self::CursorOverflow => "mock transport cursor overflowed",
+    Self::ConcurrentRequest => "mock transport cursor changed concurrently",
     Self::InvalidFixtureMetadata => "mock fixture metadata is invalid",
 );
 
 /// Ordered no-allocation mock implementation of [`BlockingTransport`].
 pub struct MockTransport<'a> {
     exchanges: &'a [MockExchange<'a>],
-    cursor: usize,
+    cursor: AtomicUsize,
 }
 
 impl<'a> MockTransport<'a> {
@@ -115,31 +119,31 @@ impl<'a> MockTransport<'a> {
     pub const fn new(exchanges: &'a [MockExchange<'a>]) -> Self {
         Self {
             exchanges,
-            cursor: 0,
+            cursor: AtomicUsize::new(0),
         }
     }
 
     /// Returns the number of exchanges not yet consumed.
     #[must_use]
-    pub const fn remaining(&self) -> usize {
-        self.exchanges.len().saturating_sub(self.cursor)
+    pub fn remaining(&self) -> usize {
+        self.exchanges
+            .len()
+            .saturating_sub(self.cursor.load(Ordering::Acquire))
     }
 
     /// Reports whether every expected exchange was consumed.
     #[must_use]
-    pub const fn is_complete(&self) -> bool {
+    pub fn is_complete(&self) -> bool {
         self.remaining() == 0
     }
 
     fn send_inner<'buffer>(
-        &mut self,
+        &self,
         request: TransportRequest<'_>,
         response_body: &'buffer mut [u8],
     ) -> Result<TransportResponse<'buffer>, MockError> {
-        let exchange = self
-            .exchanges
-            .get(self.cursor)
-            .ok_or(MockError::Exhausted)?;
+        let cursor = self.cursor.load(Ordering::Acquire);
+        let exchange = self.exchanges.get(cursor).ok_or(MockError::Exhausted)?;
         if request.method() != exchange.request.method() {
             return Err(MockError::MethodMismatch);
         }
@@ -149,10 +153,7 @@ impl<'a> MockTransport<'a> {
         if request.body() != exchange.request.body() {
             return Err(MockError::BodyMismatch);
         }
-        let next_cursor = self
-            .cursor
-            .checked_add(1)
-            .ok_or(MockError::CursorOverflow)?;
+        let next_cursor = cursor.checked_add(1).ok_or(MockError::CursorOverflow)?;
         let body_len =
             exchange
                 .response
@@ -166,7 +167,6 @@ impl<'a> MockTransport<'a> {
         let initialized = response_body
             .get(..body_len)
             .ok_or(MockError::ResponseBufferTooSmall)?;
-        self.cursor = next_cursor;
         let response = TransportResponse::new(exchange.response.status(), initialized);
         let rate_limit = exchange
             .response
@@ -174,7 +174,11 @@ impl<'a> MockTransport<'a> {
             .map(|value| value.into_rate_limit())
             .transpose()
             .map_err(|_| MockError::InvalidFixtureMetadata)?;
-        Ok(rate_limit.map_or(response, |value| response.with_rate_limit(value)))
+        let response = rate_limit.map_or(response, |value| response.with_rate_limit(value));
+        self.cursor
+            .compare_exchange(cursor, next_cursor, Ordering::AcqRel, Ordering::Acquire)
+            .map_err(|_| MockError::ConcurrentRequest)?;
+        Ok(response)
     }
 }
 
@@ -182,7 +186,7 @@ impl BlockingTransport for MockTransport<'_> {
     type Error = MockError;
 
     fn send<'buffer>(
-        &mut self,
+        &self,
         request: TransportRequest<'_>,
         response_body: &'buffer mut [u8],
     ) -> Result<TransportResponse<'buffer>, Self::Error> {
@@ -194,7 +198,7 @@ impl AsyncTransport for MockTransport<'_> {
     type Error = MockError;
 
     async fn send<'transport, 'request, 'buffer>(
-        &'transport mut self,
+        &'transport self,
         request: TransportRequest<'request>,
         response_body: &'buffer mut [u8],
     ) -> Result<TransportResponse<'buffer>, Self::Error>

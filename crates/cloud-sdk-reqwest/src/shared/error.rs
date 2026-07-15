@@ -36,6 +36,8 @@ impl_static_error!(BuildError,
 /// Payload-free transport failure.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum TransportError {
+    /// The shared credential state could not be read safely.
+    CredentialStateUnavailable,
     /// The target could not be composed without parsing or normalization.
     TargetRejected,
     /// A non-empty body omitted its required explicit content type.
@@ -67,6 +69,7 @@ pub enum TransportError {
 }
 
 impl_static_error!(TransportError,
+    Self::CredentialStateUnavailable => "credential state is unavailable",
     Self::TargetRejected => "request target was rejected",
     Self::MissingContentType => "request body content type is missing",
     Self::HeaderRejected => "request header was rejected",

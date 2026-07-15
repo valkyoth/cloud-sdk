@@ -28,6 +28,8 @@ use super::{
 use super::{BuildError, FipsTlsPolicy};
 use crate::test_server::spawn;
 
+mod lifecycle;
+
 fn test_timeouts() -> Option<RequestTimeouts> {
     RequestTimeouts::new(Duration::from_secs(2), Duration::from_secs(1)).ok()
 }
@@ -180,7 +182,7 @@ fn blocking_client_sends_exact_headers_target_and_body_once() {
     let Ok(server) = server else { return };
     let client = build_loopback(&server.endpoint);
     assert!(client.is_some());
-    let Some(mut client) = client else { return };
+    let Some(client) = client else { return };
     let target = RequestTarget::new("/servers?name=test%20server");
     assert!(target.is_ok());
     let Ok(target) = target else { return };
@@ -216,7 +218,7 @@ fn redirects_are_returned_and_oversized_bodies_are_cleared() {
         Duration::ZERO,
     );
     let Ok(redirect) = redirect else { return };
-    let Some(mut client) = build_loopback(&redirect.endpoint) else {
+    let Some(client) = build_loopback(&redirect.endpoint) else {
         return;
     };
     let Ok(target) = RequestTarget::new("/servers") else {
@@ -232,7 +234,7 @@ fn redirects_are_returned_and_oversized_bodies_are_cleared() {
 
     let oversized = spawn("200 OK", &[], b"oversized", Duration::ZERO);
     let Ok(oversized) = oversized else { return };
-    let Some(mut client) = build_loopback(&oversized.endpoint) else {
+    let Some(client) = build_loopback(&oversized.endpoint) else {
         return;
     };
     let mut short = [0xa5_u8; 4];
@@ -256,7 +258,7 @@ fn response_propagates_validated_rate_limit_headers() {
         Duration::ZERO,
     );
     let Ok(server) = server else { return };
-    let Some(mut client) = build_loopback(&server.endpoint) else {
+    let Some(client) = build_loopback(&server.endpoint) else {
         return;
     };
     let Ok(target) = RequestTarget::new("/servers") else {
@@ -282,7 +284,7 @@ fn incomplete_rate_limit_headers_fail_closed() {
         Duration::ZERO,
     );
     let Ok(server) = server else { return };
-    let Some(mut client) = build_loopback(&server.endpoint) else {
+    let Some(client) = build_loopback(&server.endpoint) else {
         return;
     };
     let Ok(target) = RequestTarget::new("/servers") else {
@@ -310,7 +312,7 @@ fn duplicate_rate_limit_headers_fail_closed() {
         Duration::ZERO,
     );
     let Ok(server) = server else { return };
-    let Some(mut client) = build_loopback(&server.endpoint) else {
+    let Some(client) = build_loopback(&server.endpoint) else {
         return;
     };
     let Ok(target) = RequestTarget::new("/servers") else {
@@ -326,7 +328,7 @@ fn duplicate_rate_limit_headers_fail_closed() {
 
 #[test]
 fn nonempty_body_requires_content_type_before_network_access() {
-    let Some(mut client) = build_loopback("http://127.0.0.1:9/v1") else {
+    let Some(client) = build_loopback("http://127.0.0.1:9/v1") else {
         return;
     };
     let Ok(target) = RequestTarget::new("/servers") else {
@@ -358,7 +360,7 @@ fn response_timeout_is_payload_free_and_clears_output() {
     };
     let client =
         BlockingClientBuilder::new(endpoint, token, user_agent, timeouts).build_for_loopback();
-    let Ok(mut client) = client else { return };
+    let Ok(client) = client else { return };
     let Ok(target) = RequestTarget::new("/slow") else {
         return;
     };

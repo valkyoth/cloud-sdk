@@ -1,7 +1,12 @@
 use core::fmt;
 
-use cloud_sdk_sanitization::sanitize_bytes;
+use cloud_sdk_sanitization::{SecretBuffer, sanitize_bytes};
 use reqwest::header::HeaderValue;
+#[cfg(test)]
+use std::sync::{
+    Arc,
+    atomic::{AtomicUsize, Ordering},
+};
 use std::vec::Vec;
 
 /// Maximum bearer-token length accepted by the adapter.
@@ -34,11 +39,31 @@ impl_static_error!(BearerTokenError,
 /// cleanup of the adapter-owned bytes.
 pub struct BearerToken {
     authorization: Vec<u8>,
+    #[cfg(test)]
+    drop_probe: Option<Arc<AtomicUsize>>,
 }
 
 impl BearerToken {
     /// Validates and copies a bearer token into adapter-owned secret storage.
     pub fn new(token: &str) -> Result<Self, BearerTokenError> {
+        Self::from_bytes(token.as_bytes())
+    }
+
+    /// Consumes a mutable bearer-token source and clears the complete source
+    /// buffer on success or failure.
+    pub fn from_mut_bytes(token: &mut [u8]) -> Result<Self, BearerTokenError> {
+        let result = Self::from_bytes(token);
+        sanitize_bytes(token);
+        result
+    }
+
+    /// Consumes guarded bearer-token storage, which clears its complete source
+    /// buffer when this function returns on success or failure.
+    pub fn from_secret_buffer(token: SecretBuffer<'_>) -> Result<Self, BearerTokenError> {
+        Self::from_bytes(token.as_slice())
+    }
+
+    fn from_bytes(token: &[u8]) -> Result<Self, BearerTokenError> {
         if token.is_empty() {
             return Err(BearerTokenError::Empty);
         }
@@ -46,7 +71,7 @@ impl BearerToken {
             return Err(BearerTokenError::TooLong);
         }
         let mut padding = false;
-        for byte in token.bytes() {
+        for byte in token.iter().copied() {
             if byte == b'=' {
                 padding = true;
             } else if padding || !is_bearer_byte(byte) {
@@ -63,8 +88,12 @@ impl BearerToken {
             .try_reserve_exact(capacity)
             .map_err(|_| BearerTokenError::AllocationFailed)?;
         authorization.extend_from_slice(BEARER_PREFIX);
-        authorization.extend_from_slice(token.as_bytes());
-        Ok(Self { authorization })
+        authorization.extend_from_slice(token);
+        Ok(Self {
+            authorization,
+            #[cfg(test)]
+            drop_probe: None,
+        })
     }
 
     pub(crate) fn header_value(&self) -> Result<HeaderValue, ()> {
@@ -73,22 +102,29 @@ impl BearerToken {
         Ok(value)
     }
 
-    #[cfg(all(
-        test,
-        any(
-            feature = "blocking-rustls",
-            feature = "blocking-rustls-webpki-roots",
-            feature = "blocking-rustls-fips"
-        )
-    ))]
+    #[cfg(test)]
     pub(crate) fn owned_bytes(&self) -> &[u8] {
         &self.authorization
+    }
+
+    #[cfg(test)]
+    pub(crate) fn with_drop_probe(
+        token: &str,
+        probe: Arc<AtomicUsize>,
+    ) -> Result<Self, BearerTokenError> {
+        let mut value = Self::new(token)?;
+        value.drop_probe = Some(probe);
+        Ok(value)
     }
 }
 
 impl Drop for BearerToken {
     fn drop(&mut self) {
         sanitize_bytes(&mut self.authorization);
+        #[cfg(test)]
+        if let Some(probe) = &self.drop_probe {
+            probe.fetch_add(1, Ordering::SeqCst);
+        }
     }
 }
 

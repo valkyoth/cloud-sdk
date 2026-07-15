@@ -125,18 +125,18 @@ fn mock_transport_is_ordered_fail_closed_and_non_consuming_on_mismatch() {
             ResponseFixture::success(body),
         );
         let exchanges = [exchange];
-        let mut transport = MockTransport::new(&exchanges);
+        let transport = MockTransport::new(&exchanges);
         let wrong = TransportRequest::new(Method::Delete, target);
         let mut output = [0xa5_u8; 32];
         assert!(matches!(
-            BlockingTransport::send(&mut transport, wrong, &mut output),
+            BlockingTransport::send(&transport, wrong, &mut output),
             Err(MockError::MethodMismatch)
         ));
         assert_eq!(transport.remaining(), 1);
 
         let request = TransportRequest::new(Method::Get, target);
         {
-            let response = BlockingTransport::send(&mut transport, request, &mut output);
+            let response = BlockingTransport::send(&transport, request, &mut output);
             assert!(response.is_ok());
             if let Ok(response) = response {
                 assert_eq!(response.body(), br#"{"servers":[]}"#);
@@ -144,7 +144,7 @@ fn mock_transport_is_ordered_fail_closed_and_non_consuming_on_mismatch() {
         }
         assert!(transport.is_complete());
         assert!(matches!(
-            BlockingTransport::send(&mut transport, request, &mut output),
+            BlockingTransport::send(&transport, request, &mut output),
             Err(MockError::Exhausted)
         ));
     }
@@ -159,12 +159,12 @@ fn mock_transport_does_not_consume_exchange_when_response_buffer_is_small() {
             ExpectedRequest::new(Method::Get, target),
             ResponseFixture::success(body),
         )];
-        let mut transport = MockTransport::new(&exchanges);
+        let transport = MockTransport::new(&exchanges);
         let request = TransportRequest::new(Method::Get, target);
         let mut short = [0xa5_u8; 4];
         let original = short;
         assert!(matches!(
-            BlockingTransport::send(&mut transport, request, &mut short),
+            BlockingTransport::send(&transport, request, &mut short),
             Err(MockError::ResponseBufferTooSmall)
         ));
         assert_eq!(short, original);
@@ -187,10 +187,10 @@ fn mock_transport_propagates_rate_limit_metadata() {
             ExpectedRequest::new(Method::Get, target),
             response,
         )];
-        let mut transport = MockTransport::new(&exchanges);
+        let transport = MockTransport::new(&exchanges);
         let mut output = [0_u8; 32];
         let result = BlockingTransport::send(
-            &mut transport,
+            &transport,
             TransportRequest::new(Method::Get, target),
             &mut output,
         );
@@ -213,11 +213,11 @@ fn async_mock_transport_matches_blocking_behavior_without_an_executor() {
             ExpectedRequest::new(Method::Get, target),
             ResponseFixture::success(body),
         )];
-        let mut transport = MockTransport::new(&exchanges);
+        let transport = MockTransport::new(&exchanges);
         let mut output = [0_u8; 32];
         {
             let future = AsyncTransport::send(
-                &mut transport,
+                &transport,
                 TransportRequest::new(Method::Get, target),
                 &mut output,
             );
@@ -243,11 +243,11 @@ fn dropping_unpolled_async_mock_does_not_consume_or_write() {
             ExpectedRequest::new(Method::Get, target),
             ResponseFixture::success(body),
         )];
-        let mut transport = MockTransport::new(&exchanges);
+        let transport = MockTransport::new(&exchanges);
         let mut output = [0xa5_u8; 16];
         let original = output;
         let future = AsyncTransport::send(
-            &mut transport,
+            &transport,
             TransportRequest::new(Method::Get, target),
             &mut output,
         );
@@ -270,12 +270,12 @@ fn mock_transport_distinguishes_target_and_body_mismatches_without_leaking_debug
             ResponseFixture::success(response_body),
         );
         let exchanges = [exchange];
-        let mut transport = MockTransport::new(&exchanges);
+        let transport = MockTransport::new(&exchanges);
         let mut output = [0_u8; 32];
 
         assert!(matches!(
             BlockingTransport::send(
-                &mut transport,
+                &transport,
                 TransportRequest::new(Method::Post, wrong_target).with_body(b"expected-secret"),
                 &mut output,
             ),
@@ -283,7 +283,7 @@ fn mock_transport_distinguishes_target_and_body_mismatches_without_leaking_debug
         ));
         assert!(matches!(
             BlockingTransport::send(
-                &mut transport,
+                &transport,
                 TransportRequest::new(Method::Post, expected_target).with_body(b"wrong-secret"),
                 &mut output,
             ),

@@ -1,12 +1,19 @@
 use core::fmt;
+use std::sync::Arc;
 
 use cloud_sdk::Method;
-use cloud_sdk::transport::{AsyncTransport, StatusCode, TransportRequest, TransportResponse};
-use cloud_sdk_sanitization::sanitize_bytes;
+use cloud_sdk::transport::{
+    AsyncTransport, BoundTransport, EndpointIdentity, EndpointIdentityError, StatusCode,
+    TransportRequest, TransportResponse,
+};
+use cloud_sdk_sanitization::{SecretBuffer, sanitize_bytes};
 use reqwest::header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE, HeaderValue};
 use reqwest::{Body, Client};
 
-use crate::shared::{BearerToken, HttpsEndpoint, TransportError, parse_rate_limit};
+use crate::shared::{
+    BearerToken, CredentialStateError, CredentialStore, HttpsEndpoint, TokenRotationError,
+    TransportError, parse_rate_limit,
+};
 
 use super::body::SanitizedBuffer;
 
@@ -14,23 +21,53 @@ use super::body::SanitizedBuffer;
 ///
 /// The adapter uses reqwest's Tokio-based execution internally but does not
 /// install or own a runtime. Callers must poll it from a compatible executor.
+#[derive(Clone)]
 pub struct AsyncClient {
     client: Client,
     endpoint: HttpsEndpoint,
-    token: BearerToken,
+    credentials: Arc<CredentialStore>,
 }
 
 impl AsyncClient {
-    pub(super) const fn new(client: Client, endpoint: HttpsEndpoint, token: BearerToken) -> Self {
+    pub(super) fn new(client: Client, endpoint: HttpsEndpoint, token: BearerToken) -> Self {
         Self {
             client,
             endpoint,
-            token,
+            credentials: Arc::new(CredentialStore::new(token)),
         }
     }
 
+    /// Atomically replaces the bearer token used by newly started requests.
+    ///
+    /// In-flight requests retain their previous snapshot. No credential lock
+    /// is held across network I/O or `.await`.
+    pub fn rotate_bearer_token(
+        &self,
+        replacement: BearerToken,
+    ) -> Result<(), CredentialStateError> {
+        self.credentials.rotate(replacement)
+    }
+
+    /// Validates and rotates from mutable bytes, clearing the complete source
+    /// on success or failure. Rejected input leaves the active token unchanged.
+    pub fn rotate_bearer_token_from_mut_bytes(
+        &self,
+        source: &mut [u8],
+    ) -> Result<(), TokenRotationError> {
+        self.credentials.rotate_from_mut_bytes(source)
+    }
+
+    /// Validates and rotates from guarded storage. Dropping the consumed guard
+    /// clears the complete source on success or failure.
+    pub fn rotate_bearer_token_from_secret_buffer(
+        &self,
+        source: SecretBuffer<'_>,
+    ) -> Result<(), TokenRotationError> {
+        self.credentials.rotate_from_secret_buffer(source)
+    }
+
     async fn send_inner<'buffer>(
-        &mut self,
+        &self,
         request: TransportRequest<'_>,
         response_body: &'buffer mut [u8],
     ) -> Result<TransportResponse<'buffer>, TransportError> {
@@ -39,8 +76,11 @@ impl AsyncClient {
             .endpoint
             .compose(request.target())
             .map_err(|_| TransportError::TargetRejected)?;
-        let authorization = self
-            .token
+        let token_snapshot = self
+            .credentials
+            .snapshot()
+            .map_err(|_| TransportError::CredentialStateUnavailable)?;
+        let authorization = token_snapshot
             .header_value()
             .map_err(|_| TransportError::HeaderRejected)?;
         let mut outbound = self
@@ -84,6 +124,7 @@ impl AsyncClient {
             .ok_or(TransportError::ResponseReadFailed)?;
         initialized.copy_from_slice(buffered.as_ref());
         let response = TransportResponse::new(status, initialized);
+        drop(token_snapshot);
         Ok(rate_limit.map_or(response, |value| response.with_rate_limit(value)))
     }
 }
@@ -92,7 +133,7 @@ impl AsyncTransport for AsyncClient {
     type Error = TransportError;
 
     async fn send<'transport, 'request, 'buffer>(
-        &'transport mut self,
+        &'transport self,
         request: TransportRequest<'request>,
         response_body: &'buffer mut [u8],
     ) -> Result<TransportResponse<'buffer>, Self::Error>
@@ -104,12 +145,18 @@ impl AsyncTransport for AsyncClient {
     }
 }
 
+impl BoundTransport for AsyncClient {
+    fn endpoint_identity(&self) -> Result<EndpointIdentity<'_>, EndpointIdentityError> {
+        self.endpoint.identity()
+    }
+}
+
 impl fmt::Debug for AsyncClient {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter
             .debug_struct("AsyncClient")
             .field("endpoint", &"[redacted]")
-            .field("token", &"[redacted]")
+            .field("credentials", &"[redacted]")
             .finish_non_exhaustive()
     }
 }

@@ -4,7 +4,9 @@ use std::string::String;
 #[cfg(test)]
 use std::string::ToString;
 
-use cloud_sdk::transport::RequestTarget;
+use cloud_sdk::transport::{
+    EndpointIdentity, EndpointIdentityError, EndpointScheme, RequestTarget,
+};
 
 /// HTTPS endpoint validation or target-composition error.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -93,6 +95,24 @@ impl HttpsEndpoint {
             prefix.pop();
         }
         Ok(Self { base, prefix })
+    }
+
+    /// Returns the normalized scheme, host, effective port, and base path.
+    pub fn identity(&self) -> Result<EndpointIdentity<'_>, EndpointIdentityError> {
+        let scheme = match self.base.scheme() {
+            "https" => EndpointScheme::Https,
+            "http" => EndpointScheme::Http,
+            _ => return Err(EndpointIdentityError::InvalidBasePath),
+        };
+        let host = self
+            .base
+            .host_str()
+            .ok_or(EndpointIdentityError::EmptyHost)?;
+        let port = self
+            .base
+            .port_or_known_default()
+            .ok_or(EndpointIdentityError::InvalidPort)?;
+        EndpointIdentity::new(scheme, host, port, self.base.path())
     }
 
     pub(crate) fn compose(&self, target: RequestTarget<'_>) -> Result<Url, EndpointError> {
