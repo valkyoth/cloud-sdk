@@ -1,7 +1,7 @@
 # Crate Version Matrix
 
-Status: `v0.29.0` pentest and final retest passed. Local release checks and
-GitHub CI remain required before tagging.
+Status: `v0.30.0` implementation is complete; pentest is required before the
+release candidate is finalized.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
@@ -459,3 +459,17 @@ content-type capture, and prepared-request testkit evidence.
 | `cloud-sdk-reqwest` | `0.19.0` | `0.20.0` | `code` | Yes | Capture validated response content types and reject malformed or duplicate values. |
 | `cloud-sdk-sanitization` | `0.13.14` | `0.13.15` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.29 facade line. |
 | `cloud-sdk-testkit` | `0.17.0` | `0.18.0` | `code` | Yes | Add prepared-request records, bound endpoints, and response content-type fixtures. |
+
+## v0.30.0 Tracking Table
+
+`v0.30.0` completes allocation-free prepared requests for all 208 active
+Hetzner Cloud, DNS, and Console Storage operations and source-locks all 91
+operations with request bodies.
+
+| Crate | Published | Planned | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.29.0` | `0.30.0` | `metadata` | Yes | Publish the v0.30 facade metadata and Hetzner preparation documentation. |
+| `cloud-sdk-hetzner` | `0.22.1` | `0.23.0` | `code` | Yes | Prepare every active Hetzner operation with bounded target, body, metadata, and response policy. |
+| `cloud-sdk-reqwest` | `0.20.0` | `0.20.1` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.30 facade line. |
+| `cloud-sdk-sanitization` | `0.13.15` | `0.13.16` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.30 facade line. |
+| `cloud-sdk-testkit` | `0.18.0` | `0.18.1` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.30 facade line. |

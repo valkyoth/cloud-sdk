@@ -1,38 +1,38 @@
 [release]
-version = "0.29.0"
+version = "0.30.0"
 policy = "independent"
 
 [crates."cloud-sdk"]
-previous_version = "0.28.0"
-version = "0.29.0"
-change = "code"
+previous_version = "0.29.0"
+version = "0.30.0"
+change = "metadata"
 publish = true
-reason = "Add prepared request metadata, bounded execution, and checked response policy."
+reason = "Publish the v0.30 facade metadata and Hetzner preparation documentation."
 
 [crates."cloud-sdk-hetzner"]
-previous_version = "0.22.0"
-version = "0.22.1"
-change = "dependency"
+previous_version = "0.22.1"
+version = "0.23.0"
+change = "code"
 publish = true
-reason = "Update the cloud-sdk dependency to the v0.29 facade line."
+reason = "Prepare every active Hetzner operation with bounded target, body, metadata, and response policy."
 
 [crates."cloud-sdk-reqwest"]
-previous_version = "0.19.0"
-version = "0.20.0"
-change = "code"
-publish = true
-reason = "Capture validated response content types and reject malformed or duplicate values."
-
-[crates."cloud-sdk-sanitization"]
-previous_version = "0.13.14"
-version = "0.13.15"
+previous_version = "0.20.0"
+version = "0.20.1"
 change = "dependency"
 publish = true
-reason = "Update the cloud-sdk dependency to the v0.29 facade line."
+reason = "Update the cloud-sdk dependency to the v0.30 facade line."
+
+[crates."cloud-sdk-sanitization"]
+previous_version = "0.13.15"
+version = "0.13.16"
+change = "dependency"
+publish = true
+reason = "Update the cloud-sdk dependency to the v0.30 facade line."
 
 [crates."cloud-sdk-testkit"]
-previous_version = "0.17.0"
-version = "0.18.0"
-change = "code"
+previous_version = "0.18.0"
+version = "0.18.1"
+change = "dependency"
 publish = true
-reason = "Add prepared-request records, bound endpoints, and response content-type fixtures."
+reason = "Update the cloud-sdk dependency to the v0.30 facade line."

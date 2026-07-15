@@ -1255,6 +1255,8 @@ v0.29.0 implementation stop reached. Run pentest for this exact commit.
 
 ### v0.30.0 - Existing Hetzner Prepared Operations
 
+Status: implementation complete; pentest required.
+
 Goal: make every source-locked non-deprecated Cloud, DNS, and Console Storage
 Box operation produce one complete prepared request without requiring callers
 to combine paths, queries, bodies, methods, or response expectations manually.

@@ -38,8 +38,8 @@ boundaries.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.29.0"
-cloud-sdk-hetzner = "0.22.1"
+cloud-sdk = "0.30.0"
+cloud-sdk-hetzner = "0.23.0"
 ```
 
 ## Features
@@ -62,6 +62,25 @@ Storage Box examples are indexed in the
 Security-sensitive transport decisions are covered by the
 [security recipes](https://github.com/valkyoth/cloud-sdk/blob/main/docs/SECURITY_RECIPES.md).
 
+Every active operation can be converted into a bounded provider-neutral
+prepared request. This mutation example performs no network operation:
+
+```rust
+use cloud_sdk::operation::{PreparationStorage, PrepareOperation};
+use cloud_sdk_hetzner::cloud::load_balancers::{
+    LoadBalancerCreateRequest, LoadBalancerName, LoadBalancerType,
+};
+
+let name = LoadBalancerName::new("edge")?;
+let load_balancer_type = LoadBalancerType::new("lb11")?;
+let operation = LoadBalancerCreateRequest::new(name, load_balancer_type);
+let mut target = [0_u8; 128];
+let mut body = [0_u8; 512];
+let prepared = operation.prepare(PreparationStorage::new(&mut target, &mut body))?;
+assert_eq!(prepared.transport_request().target().as_str(), "/load_balancers");
+# Ok::<(), Box<dyn core::error::Error>>(())
+```
+
 Before a custom transport sends credentials, call
 `verify_official_endpoint(&transport, expected_base)`. The helper fails closed
 unless scheme, host, effective port, and base path exactly match the selected
@@ -69,10 +88,10 @@ official Cloud or Storage API endpoint.
 
 ## Request Operation Coverage
 
-The current release has request models and path/query encoding for all 208
-source-locked non-deprecated Cloud, DNS, and Storage Box operations. In this
-table, `Complete` means request-construction coverage. It does not claim
-complete body serialization, typed response decoding, or end-to-end execution.
+The current release has complete prepared-request coverage for all 208
+source-locked non-deprecated Cloud, DNS, and Storage Box operations. Each
+prepared operation binds its method, target, bounded body, response policy,
+safety and retry classification, cost intent, and exact official endpoint.
 
 | Hetzner API area | Request models and path/query encoding |
 | --- | --- |
@@ -91,7 +110,7 @@ complete body serialization, typed response decoding, or end-to-end execution.
 | --- | --- | --- |
 | Request models | Complete for all 208 non-deprecated operations | Current |
 | Path/query encoding | Complete for all 208 non-deprecated operations | Current |
-| Body serialization | Partial: complete public aggregate serialization is currently RRSet-specific | `v0.30.0` |
+| Body serialization | Complete for all 91 non-deprecated operations with request bodies | Current |
 | Success response models | Partial: shared action and pagination envelopes only | `v0.31.0` |
 | Error response models | Partial: reviewed shared API error envelope, not yet integrated per operation | `v0.31.0` |
 | End-to-end client | Not available | `v0.32.0` |
@@ -116,7 +135,7 @@ Enable Serde explicitly; it is never part of the default graph:
 
 ```toml
 [dependencies]
-cloud-sdk-hetzner = { version = "0.22.1", features = ["serde"] }
+cloud-sdk-hetzner = { version = "0.23.0", features = ["serde"] }
 ```
 
 `serde_json` is used below only as an example format implementation and remains

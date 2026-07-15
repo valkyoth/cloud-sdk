@@ -15,8 +15,8 @@ EXPECTED = (
     ("Path/query encoding", "Complete for all 208 non-deprecated operations", "Current"),
     (
         "Body serialization",
-        "Partial: complete public aggregate serialization is currently RRSet-specific",
-        "`v0.30.0`",
+        "Complete for all 91 non-deprecated operations with request bodies",
+        "Current",
     ),
     (
         "Success response models",
@@ -58,7 +58,7 @@ def validate(path: Path) -> None:
         raise ValueError("ambiguous Supported capability column is forbidden")
     rows = parse_table(text)
     if rows != EXPECTED:
-        raise ValueError("capability table differs from the reviewed v0.27 contract")
+        raise ValueError("capability table differs from the reviewed v0.30 contract")
 
 
 def main() -> int:
@@ -71,7 +71,7 @@ def main() -> int:
     except (OSError, UnicodeError, ValueError) as error:
         print(f"provider capabilities: {error}", file=sys.stderr)
         return 1
-    print("Provider capability claims match the reviewed v0.27 contract.")
+    print("Provider capability claims match the reviewed v0.30 contract.")
     return 0
 
 

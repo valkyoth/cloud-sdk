@@ -8,6 +8,7 @@ execution so running them cannot create billable resources.
 
 | Workflow | Source | Command |
 | --- | --- | --- |
+| Complete prepared mutation | [`prepared.rs`](../crates/cloud-sdk-hetzner/examples/prepared.rs) | `cargo run -p cloud-sdk-hetzner --example prepared` |
 | Read-only catalog request | [`read_only.rs`](../crates/cloud-sdk-hetzner/examples/read_only.rs) | `cargo run -p cloud-sdk-hetzner --example read_only` |
 | Server mutation request | [`mutation.rs`](../crates/cloud-sdk-hetzner/examples/mutation.rs) | `cargo run -p cloud-sdk-hetzner --example mutation` |
 | Pagination response | [`pagination.rs`](../crates/cloud-sdk-hetzner/examples/pagination.rs) | `cargo run -p cloud-sdk-hetzner --example pagination --features serde` |
@@ -18,17 +19,20 @@ execution so running them cannot create billable resources.
 
 ## Execution Boundary
 
-These examples deliberately separate four steps:
+Prepared operations combine the first three steps into one checked,
+provider-owned contract:
 
 1. Validate provider-specific input and endpoint policy.
-2. Write paths, queries, or JSON into caller-owned bounded buffers.
-3. Construct a provider-neutral transport request.
+2. Write the complete target and JSON body into caller-owned bounded buffers.
+3. Bind the provider-neutral request, official endpoint, operation metadata,
+   and response policy.
 4. Send only after the application has reviewed credentials, operation cost,
    timeout, retry, logging, and response-size policy.
 
-The current provider crate does not provide a high-level client that combines
-all four steps. That boundary is explicit so application code cannot silently
-inherit networking, retry, runtime, or secret-storage behavior.
+The provider crate covers the first three steps for all 208 active operations.
+It does not yet provide a high-level client that also performs transport and
+typed response decoding. That boundary is explicit so application code cannot
+silently inherit networking, retry, runtime, or secret-storage behavior.
 
 ## Mutation Safety
 
