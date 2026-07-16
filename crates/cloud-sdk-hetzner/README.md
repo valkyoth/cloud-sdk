@@ -144,7 +144,7 @@ safety and retry classification, cost intent, and exact official endpoint.
 | Body serialization | Complete for all 91 non-deprecated operations with request bodies | Current |
 | Success response models | Complete checked envelope and resource-identity coverage for all 208 non-deprecated operations | Provider-complete resource fields before `1.0.0` |
 | Error response models | Complete checked typed API error decoding for all active operations | Current |
-| End-to-end client | Not available | `v0.32.0` |
+| End-to-end client | Not available | `v0.41.0`, after provider-neutral contract hardening |
 
 Thirteen deprecated operations remain deliberately unavailable. A checked
 release gate prevents non-deprecated request operations from returning to a

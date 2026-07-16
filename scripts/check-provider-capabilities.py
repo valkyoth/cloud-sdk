@@ -29,7 +29,11 @@ EXPECTED = (
         "Complete checked typed API error decoding for all active operations",
         "Current",
     ),
-    ("End-to-end client", "Not available", "`v0.32.0`"),
+    (
+        "End-to-end client",
+        "Not available",
+        "`v0.41.0`, after provider-neutral contract hardening",
+    ),
 )
 
 
@@ -59,7 +63,7 @@ def validate(path: Path) -> None:
         raise ValueError("ambiguous Supported capability column is forbidden")
     rows = parse_table(text)
     if rows != EXPECTED:
-        raise ValueError("capability table differs from the reviewed v0.31 contract")
+        raise ValueError("capability table differs from the reviewed roadmap contract")
 
 
 def main() -> int:
@@ -72,7 +76,7 @@ def main() -> int:
     except (OSError, UnicodeError, ValueError) as error:
         print(f"provider capabilities: {error}", file=sys.stderr)
         return 1
-    print("Provider capability claims match the reviewed v0.31 contract.")
+    print("Provider capability claims match the reviewed roadmap contract.")
     return 0
 
 

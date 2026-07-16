@@ -51,7 +51,8 @@ matrix checks enforce this rule.
 - Shared request preparation and operation safety metadata: `v0.29.0`.
 - Complete checked body serialization: `v0.30.0`.
 - Typed success and error response decoding: `v0.31.0`.
-- Safe official-endpoint Hetzner client facade: `v0.32.0`.
+- Safe official-endpoint Hetzner client facade: `v0.41.0`, after the
+  provider-neutral architecture and typed-operation milestones.
 - Shared concurrent transport and credential rotation: `v0.28.0`.
 
 The exact constructor and endpoint migrations are documented in

@@ -62,9 +62,11 @@ listed in the
 [crate version matrix](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATE_VERSION_MATRIX.md).
 
 Current releases provide provider-neutral contracts and provider-owned,
-validated request and response building blocks. They do not yet provide
-high-level provider clients that combine request construction, transport, and
-response decoding end to end.
+validated request and response building blocks. Before the high-level client is
+stabilized, the roadmap now hardens extensible provider identities, HTTP
+metadata, authentication, pagination, local async, bounded decoding, and typed
+operation contracts, then validates them with an unpublished second-provider
+architecture probe.
 
 ## Trust Dashboard
 

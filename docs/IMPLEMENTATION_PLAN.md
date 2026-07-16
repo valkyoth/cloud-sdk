@@ -77,7 +77,7 @@ stops until the difference is documented and versioned.
 
 The Robot Webservice source is <https://robot.hetzner.com/doc/webservice/en.html>.
 Robot is part of the 1.0 Hetzner claim, but it must be source-locked separately
-in `v0.33.0` before implementation because it uses a different base URL,
+in `v0.47.0` before implementation because it uses a different base URL,
 HTTP Basic Auth, form encoding, errors, and rate limits. Deprecated Robot
 Storage Box operations are excluded; their supported replacement is the
 Console Storage Box API already owned by `cloud-sdk-hetzner::storage`.
@@ -106,26 +106,36 @@ Console Storage Box API already owned by `cloud-sdk-hetzner::storage`.
 11. Integration evidence: mock transport, recorded fixtures, and a live-test
    harness with separate credential-free staging, privileged root sealing, and
    authenticated open-descriptor execution phases.
-12. Secure high-level workflows: shared concurrent transport and credential
-   lifecycle, provider-neutral preparation and operation metadata, complete
-   prepared operations for the existing Hetzner surface, checked typed response
-   decoding, and an opt-in generic client in `v0.28.0` through `v0.32.0`. The
-   default provider graph remains transport-free, requests send once unless an
-   explicit caller policy permits retry, and no nested Hetzner client crate is
-   introduced.
-13. Robot Webservice foundation and implementation: separate source lock,
+12. Provider-neutral architecture hardening: extensible provider/service
+   identities, endpoint policies, canonical path/query handling, bounded
+   headers and response metadata, raw HTTP execution, provider-owned auth,
+   pagination/quota strategies, local async, streaming contracts, resource
+   profiles, and automatic response cleanup in `v0.32.0` through `v0.38.0`.
+13. Typed and enforceable workflows: compile-time operation/query/body/response
+   associations, scoped mutation/destructive/cost permits, a secure high-level
+   Hetzner client, pure workflow drivers, structured diagnostics, and expanded
+   testkit scenarios in `v0.39.0` through `v0.42.0`.
+14. Multi-provider proof and source governance: provider-generic drift
+   manifests, canonical historical evidence, and an unpublished second-provider
+   conformance probe before neutral API freeze in `v0.43.0` and `v0.44.0`.
+15. Complete pre-Robot Hetzner models: full Cloud, DNS, security, and Console
+   Storage Box response fields plus shared calendar-valid RFC3339 handling in
+   `v0.45.0` and `v0.46.0`.
+16. Robot Webservice foundation and implementation: separate source lock,
    Basic Auth policy, form-encoded requests, Robot-specific errors and rate
    limits, dedicated-server operations, and explicit exclusion of deprecated
-   Robot Storage Box endpoints in `v0.33.0` through `v0.42.0`.
-14. Robot integration and hardening: high-level client workflows, mock and
+   Robot Storage Box endpoints in `v0.47.0` through `v0.56.0`.
+17. Robot integration and hardening: high-level client workflows, mock and
    carefully gated live evidence, fuzzing, complete active-operation coverage,
-   and security review in `v0.43.0` and `v0.44.0`.
-15. 1.0 hardening: complete Cloud, DNS, Console Storage Box, and Robot docs,
-   examples, mutation/adversarial tests, SBOM, pentest, dependency audit, and
-   platform matrix.
-16. Future providers: add provider crates such as `cloud-sdk-cloudflare` only
+   and security review in `v0.57.0` and `v0.58.0`.
+18. 1.0 governance and release-candidate evidence: signer/provenance policy,
+   independent-review disclosure, controlled disposable-project mutation
+   evidence, final API freeze, docs, SBOM, pentest, dependency audit, and
+   platform matrix in `v0.59.0` and `v0.60.0`.
+19. Future providers: publish focused provider crates only
    after the provider's official API source, auth model, transport expectations,
-   and test strategy are documented.
+   and test strategy are documented. The unpublished `v0.44.0` probe proves
+   architecture only and is not a supported provider release.
 
 ## Dependency Admission Plan
 
@@ -178,5 +188,8 @@ Expected future candidates must be reviewed before use:
   third-party dependency or default feature.
 - `v0.30.0` admits `syn 2.0.119` only in the excluded, non-published prepared
   coverage checker. It is absent from every SDK crate and published graph.
+- `v0.32.0` through `v0.44.0` prefer first-party no_std contracts and excluded
+  conformance tooling. Any parser, streaming, signing, provenance, or
+  provider-probe dependency requires its own admission document before use.
 
 Every admission needs a document under `docs/dependency-admission-*.md`.

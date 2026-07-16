@@ -1,7 +1,7 @@
 # Crate Version Matrix
 
-Status: `v0.31.0` is a release candidate; pentest and final retest passed.
-GitHub checks remain before tagging.
+Status: `v0.31.0` is tagged. `v0.32.0` starts the pre-1.0
+provider-neutral architecture-hardening track.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
@@ -487,3 +487,26 @@ and adds checked typed success and API error decoding behind the optional
 | `cloud-sdk-reqwest` | `0.20.1` | `0.20.2` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.31 facade line. |
 | `cloud-sdk-sanitization` | `0.13.16` | `0.14.0` | `code` | Yes | Add alloc-backed owned UTF-8 secret storage with volatile cleanup for checked provider responses. |
 | `cloud-sdk-testkit` | `0.18.1` | `0.18.2` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.31 facade line. |
+
+## Planned Milestone Ownership
+
+Exact independent crate versions are assigned when each milestone starts.
+This table prevents a future release from accidentally publishing unrelated
+crates or placing provider-specific behavior in a neutral boundary.
+
+| Releases | Primary code owners | Purpose |
+| --- | --- | --- |
+| `v0.32.0 - v0.35.0` | `cloud-sdk`, `cloud-sdk-hetzner`, `cloud-sdk-reqwest`, `cloud-sdk-testkit` as required | Extensible identities/endpoints, canonical HTTP metadata, raw execution/auth separation, and pagination/quota/idempotency strategies. |
+| `v0.36.0 - v0.38.0` | `cloud-sdk`, provider decoder modules, adapters/testkit as required | Local async, streaming contracts, resource profiles, capacity reporting, automatic cleanup, and incremental decoding. |
+| `v0.39.0 - v0.42.0` | `cloud-sdk`, `cloud-sdk-hetzner`, `cloud-sdk-testkit`, optional adapters | Typed operations, enforced permits, secure high-level client workflows, diagnostics, and workflow scenarios. |
+| `v0.43.0` | provider-neutral drift tooling and documentation | Manifest-driven drift checks and canonical historical evidence. Published crates change only if a public contract is required. |
+| `v0.44.0` | excluded unpublished conformance package plus neutral contracts that the probe proves incomplete | Second-provider architecture probe and neutral API freeze. The probe must never enter the publish sequence. |
+| `v0.45.0 - v0.46.0` | `cloud-sdk-hetzner`, with neutral fixes only when genuinely provider-independent | Complete Cloud, DNS, security, and Console Storage Box response models. |
+| `v0.47.0 - v0.58.0` | `cloud-sdk-hetzner`; neutral auth/transport/testkit crates only for reusable behavior | Robot source lock, protocol, endpoint families, client integration, and complete Hetzner hardening. |
+| `v0.59.0 - v0.60.0` | release tooling/docs, affected crates only for proven release-candidate fixes | Provenance/governance review, controlled mutation evidence, and final 1.0 release candidate. |
+| `v1.0.0` | all changed publishable crates under independent version rules | Stable provider-neutral foundation and complete claimed Hetzner provider. |
+
+Every milestone still follows the independent rules above: `cloud-sdk` matches
+the release tag, code changes receive the crate's next minor version,
+dependency-only changes receive a patch version, and unchanged crates are not
+published.
