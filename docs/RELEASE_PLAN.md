@@ -198,7 +198,7 @@ has not been assigned to a release.
 | The secure end-to-end workflow is still manually assembled. | Move the high-level client to `v0.41.0`, after the neutral transport, metadata, typed-operation, and permit contracts are stable. |
 | Pagination/action workflows and diagnostics remain low-level, while the testkit cannot yet model dynamic multi-request scenarios. | Add pure workflow drivers, payload-free structured diagnostics, dynamic responders, fault injection, and request recording in `v0.42.0`. |
 | Drift tooling is Hetzner-specific and historical review evidence depends mainly on fingerprints. | Add a provider-manifest drift engine, canonical reviewed diffs, alert ownership, and compatibility policy in `v0.43.0`. |
-| Code review alone cannot prove that the provider-neutral core supports materially different providers. | Build an unpublished 5-10-operation OVHcloud API v2 architecture probe and freeze the neutral contracts only after its geographic endpoint, OAuth2, custom-header, cursor-pagination, and asynchronous-task requirements pass conformance in `v0.44.0`. |
+| Code review alone cannot prove that the provider-neutral core supports materially different providers. | Build an unpublished 5-10-operation OVHcloud API v2 architecture probe and freeze the neutral contracts only after its geographic endpoint, OAuth2 lifecycle, schema-version override, cursor-pagination, and asynchronous-task requirements pass conformance in `v0.44.0`. |
 | Existing Hetzner response models expose common identity rather than the complete supported field set, and timestamp validation is inconsistent. | Complete Cloud models and shared RFC3339 validation in `v0.45.0`, then complete DNS, security, and Console Storage Box models in `v0.46.0`. |
 | Robot Webservice has different auth, encoding, and API shape than Cloud/DNS. | Assigned a separate source lock and twelve pre-1.0 implementation and hardening milestones from `v0.47.0` through `v0.58.0`. |
 | Legacy Robot Storage Box operations are deprecated and overlap the supported Console API. | The `v0.47.0` Robot matrix must mark all 16 legacy operations excluded and must not create a Robot Storage Box module. |
@@ -217,8 +217,8 @@ probe is architecture evidence, not a provider release. It stays in an excluded
 package or fixture, is absent from the publish sequence, carries no support
 claim, and must not become `cloud-sdk-ovhcloud` by accident. Its purpose is to
 test contracts that differ materially from Hetzner: geographic API
-authorities, OAuth2 service-account authentication, versioned response
-headers, cursor pagination in headers, and asynchronous task or event
+authorities, OAuth2 service-account authentication, schema-version request
+overrides, cursor pagination in headers, and asynchronous task or event
 resources.
 
 Published provider work starts only after the Hetzner `v1.0.0` release:
@@ -227,18 +227,19 @@ Published provider work starts only after the Hetzner `v1.0.0` release:
    release plan must cover
    [Scaleway's APIs](https://www.scaleway.com/en/developers/api/), including
    global, regional, and zonal endpoints, `X-Auth-Token`, PATCH operations,
-   product-specific schemas, page-based pagination, and response quota
-   metadata. Stable GA API versions form the supported completeness claim.
-   Alpha and beta APIs require explicit experimental modules or features and
-   are excluded from stable coverage.
+   product-specific schemas, and product-specific pagination/count conventions
+   such as `per_page`, `page_size`, `X-Total-Count`, or body `total_count`.
+   Stable GA API versions form the supported completeness claim. Alpha and beta
+   APIs require explicit experimental modules or features and are excluded
+   from stable coverage.
 2. `cloud-sdk-digitalocean` is the second published provider. It must use
    DigitalOcean's
    [official OpenAPI source](https://github.com/digitalocean/openapi) and prove
-   the conventional bearer-auth, `/v2`, link-pagination, request-ID,
-   rate-limit, and `Retry-After` path without weakening bounded decoding or
-   retry policy. Large adjacent surfaces such as Spaces, metadata, OAuth
-   applications, and AI services require explicit scope decisions rather than
-   entering the initial claim automatically.
+   the conventional bearer-auth, `/v2`, same-authority link pagination,
+   optional error `request_id`, rate-limit, and `Retry-After` path without
+   weakening bounded decoding or retry policy. Large adjacent surfaces such as
+   Spaces, metadata, OAuth applications, and AI services require explicit
+   scope decisions rather than entering the initial claim automatically.
 3. `cloud-sdk-ovhcloud` follows later as a full provider. Its dedicated plan
    must separate API v2, required API v1 compatibility, OAuth2 and any retained
    legacy authentication, geographic endpoints, asynchronous tasks, ordering
@@ -1727,28 +1728,55 @@ Deliverables:
   [OVHcloud API v2](https://docs.ovhcloud.com/en/guides/manage-and-operate/api/apiv2/)
   and
   [OAuth2 service-account](https://docs.ovhcloud.com/en/guides/account-and-service-management/account-information/authenticate-api-with-service-account/)
-  documentation used by the probe.
+  documentation used by the probe, plus a reviewed immutable export or
+  fingerprint of every selected operation and schema from the official
+  console.
 - Implement 5-10 read-only OVHcloud API v2 operations in an unpublished,
   excluded conformance package or fixture. It is not a supported/public
   provider release.
-- Exercise trusted geographic API-authority selection, provider-owned OAuth2
-  bearer policy, bounded `X-Schemas-Version` metadata, cursor pagination from
-  `X-Pagination-*` headers, and asynchronous task or event response models.
+- Select operations only after the console source lock exists. Include a
+  collection, an item lookup, cursor continuation, and an actual read-only
+  `/task` or `/event` route when an official API v2 section exposes one.
+  Generic task/event examples may be model fixtures but must not be counted as
+  implemented endpoint coverage.
+- Exercise a source-locked set of geographic API authorities and any aliases
+  that official sources still document at the source-lock date, without
+  following credentialed redirects. Region selection maps to the matching
+  OAuth2 token authority; arbitrary API/token authority combinations are
+  rejected.
+- Exercise provider-owned OAuth2 bearer policy, bounded cursor pagination from
+  `X-Pagination-Size`, `X-Pagination-Cursor`, and
+  `X-Pagination-Cursor-Next`, and asynchronous task or event response models.
+  Cursor values remain opaque, bounded, control-free, and absent from
+  diagnostics.
+- Treat `X-Schemas-Version` as an explicit validation override that is omitted
+  by default, not as an unconditional production header. Record the reviewed
+  schema major beside fixtures and drift evidence.
 - Keep OAuth2 token acquisition outside the no_std core while proving that
-  acquired credentials can be bound to the selected official OVHcloud
-  authority without accepting tenant-controlled destinations.
+  the `expires_in` lifetime from an acquired token can be handled by an
+  external clock/refresh policy and atomic credential rotation. Acquired
+  credentials remain bound to the selected official OVHcloud authority without
+  accepting tenant-controlled destinations.
 - Exclude API v1 compatibility, legacy authentication, ordering, mutation,
   OpenStack product APIs, and all billable behavior from the probe.
 - Require the probe to use core contracts without adding provider-specific
   exceptions to `cloud-sdk`.
+- Add a probe-specific threat note covering credential destinations, regional
+  token endpoints, schema-version drift, untrusted cursor/header values,
+  task/event payloads, and the absence of credentialed redirects.
 - Record every abstraction change caused by the probe and complete a public
   API/semver freeze review for neutral 1.0 contracts.
 - Preserve the one-primary-crate-per-published-provider rule.
 
 Verification: official source lock for the probe, authority/auth/header/cursor
-and asynchronous-resource conformance tests, no-publish and dependency-boundary
-gates, API review, and
+and asynchronous-resource conformance tests, credential-free recorded
+fixtures, no-publish and dependency-boundary gates, API review, and
 `scripts/release_0_44_gate.sh`.
+
+An optional live smoke test may use a separately supplied least-privilege
+read-only OVHcloud service account. It is ignored by default, cannot be required
+for ordinary CI or release reproducibility, and must follow the same private
+credential-file and redacted-diagnostic controls as other live harnesses.
 
 Stop gate: `v0.44.0 implementation stop reached. Run pentest for this exact commit.`
 

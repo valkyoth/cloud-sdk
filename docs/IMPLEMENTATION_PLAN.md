@@ -118,9 +118,10 @@ Console Storage Box API already owned by `cloud-sdk-hetzner::storage`.
 14. Multi-provider proof and source governance: provider-generic drift
    manifests, canonical historical evidence, and an unpublished OVHcloud API
    v2 conformance probe before neutral API freeze in `v0.43.0` and `v0.44.0`.
-   The probe covers trusted geographic authorities, OAuth2 bearer policy,
-   `X-Schemas-Version`, cursor pagination headers, and asynchronous task/event
-   resources without publishing a provider crate or exercising mutations.
+   The probe covers source-locked geographic API/token authority pairs, OAuth2
+   token expiry and rotation, validation-only `X-Schemas-Version` overrides,
+   cursor pagination headers, and asynchronous task/event resources without
+   publishing a provider crate or exercising mutations.
 15. Complete pre-Robot Hetzner models: full Cloud, DNS, security, and Console
    Storage Box response fields plus shared calendar-valid RFC3339 handling in
    `v0.45.0` and `v0.46.0`.
@@ -148,16 +149,18 @@ The next published provider is `cloud-sdk-scaleway`. Its initial supported
 scope uses
 [Scaleway's stable GA APIs](https://www.scaleway.com/en/developers/api/) and
 must account for global, regional, and zonal authorities, `X-Auth-Token`, PATCH
-requests, per-product schemas, page-based pagination, and quota headers. Alpha
-and beta APIs remain explicitly experimental and outside the stable
-completeness claim.
+requests, per-product schemas, and product-specific pagination/count
+conventions such as `per_page`, `page_size`, `X-Total-Count`, and body
+`total_count`. Alpha and beta APIs remain explicitly experimental and outside
+the stable completeness claim.
 
 `cloud-sdk-digitalocean` follows Scaleway. It uses DigitalOcean's official
 [OpenAPI source](https://github.com/digitalocean/openapi) and validates the
-simpler bearer-auth and `/v2` path together with link pagination, request IDs,
-rate-limit metadata, `Retry-After`, and the same bounded response and explicit
-retry rules used by other providers. Adjacent APIs such as Spaces, metadata,
-OAuth applications, and AI services need separate scope decisions.
+simpler bearer-auth and `/v2` path together with same-authority link
+pagination, optional error `request_id`, rate-limit metadata, `Retry-After`,
+and the same bounded response and explicit retry rules used by other providers.
+Adjacent APIs such as Spaces, metadata, OAuth applications, and AI services
+need separate scope decisions.
 
 `cloud-sdk-ovhcloud` is planned after those providers because a production
 implementation needs a dedicated split for
