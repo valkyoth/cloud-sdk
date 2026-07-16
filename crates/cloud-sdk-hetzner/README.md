@@ -169,10 +169,13 @@ Enable Serde explicitly; it is never part of the default graph:
 cloud-sdk-hetzner = { version = "0.24.0", features = ["serde"] }
 ```
 
-The feature admits serde_json with `default-features = false` and `alloc` only.
-The checked decoder consumes a `TransportResponse` together with its exact
-`PreparedRequest`, applies the prepared status/content-type/body policy, rejects
-duplicate or malformed JSON, and returns validated typed success or API errors.
+The feature admits serde_json with `default-features = false` and `alloc` only
+for the public Serde request/envelope APIs. Checked responses use a private
+direct parser that never routes decoded string values through serde_json heap
+scratch storage. The decoder consumes a `TransportResponse` together with its
+exact `PreparedRequest`, applies the prepared status/content-type/body policy,
+rejects duplicate or malformed JSON, and returns validated typed success or API
+errors.
 Resource responses currently expose validated identity and common state fields;
 provider-complete resource field models remain planned before `1.0.0`. The
 bounded parser tree and its volatile-clearing string storage remain private:
@@ -247,10 +250,12 @@ operation-binding checks. Secret-bearing responses and zonefiles move their
 already protected parser strings into the response model without another
 plaintext allocation, expose their text only through checked closures, and use
 redacted diagnostics. Every parsed string value uses volatile-clearing storage
-from admission onward, including parser and model error paths. A shared
-65,536-node budget bounds aggregate JSON structure allocation. Cloned response
-models share the protected allocation, which is cleared after the final clone
-drops. Callers still own and must clear the original transport response buffer.
+from the first decoded byte, including escaped strings and parser/model error
+paths. Provider and action error messages use the same protected closure-access
+model. A shared 65,536-node budget bounds aggregate JSON structure allocation.
+Cloned response models share the protected allocation, which is cleared after
+the final clone drops. Callers still own and must clear the original transport
+response buffer.
 
 ## RRSet Request Example
 

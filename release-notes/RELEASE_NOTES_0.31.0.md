@@ -29,25 +29,28 @@ size cannot be checked independently or accidentally omitted.
 - `decode_response` returns typed action, resource identity, resource-list,
   composite, metrics, zonefile, pricing, folder, or empty success values.
 - 4xx and 5xx JSON envelopes return a classified typed `HetznerApiError` with
-  payload-free `Display` and redacted `Debug`.
+  payload-free `Display`, redacted `Debug`, and closure-scoped protected message
+  access. Embedded action errors use the same protected message model.
 - Resource identifiers, source-known statuses, action state, pagination,
   metrics pairs, text bounds, and special envelope fields are validated before
   crossing the public model boundary.
 - Secret-bearing fields and zonefiles require explicit accessors and remain
-  redacted from diagnostics. Every parsed JSON string value enters the private
-  tree as the reviewed `sanitization::SecretString`, so duplicate, trailing,
-  required-field, and model-validation failures clear full string allocation
-  capacity on drop. Source-locked secrets move without another plaintext copy
-  and expose UTF-8 only through checked closures. Cloned response models share
-  the protected allocation until the final clone drops.
+  redacted from diagnostics. The direct parser decodes every escaped and
+  unescaped JSON string value into the private tree as the reviewed
+  `sanitization::SecretString`, without serde_json's ordinary escaped-string
+  scratch allocation. Duplicate, trailing, required-field, and model-validation
+  failures clear full string allocation capacity on drop. Source-locked secrets
+  and redacted errors move without another plaintext copy and expose UTF-8 only
+  through checked closures. Cloned response models share the protected
+  allocation until the final clone drops.
 
 ## Parser And Supply Chain
 
 - The non-default `serde` feature now admits serde_json `1.0.150` with default
   features disabled and `alloc` only; the default graph remains unchanged.
-- A private bounded parser rejects duplicate keys, trailing documents,
-  excessive nesting, oversized strings, oversized arrays or objects, and more
-  than 65,536 aggregate JSON value nodes.
+- A private direct bounded parser rejects duplicate keys, trailing documents,
+  invalid escapes or surrogate pairs, excessive nesting, oversized strings,
+  oversized arrays or objects, and more than 65,536 aggregate JSON value nodes.
 - The fetched Hetzner drift gate regenerates the response-operation table in
   memory and rejects stale committed response evidence.
 
@@ -59,7 +62,8 @@ size cannot be checked independently or accidentally omitted.
 - Adversarial tests cover duplicate keys, unknown statuses, service mismatch,
   wrong success status, malformed payloads, Unicode format controls, diagnostic
   redaction, oversized integers, deep nesting, aggregate heap amplification,
-  protected credential failure paths, and invalid UTF-8.
+  escaped protected credentials and error messages, parser/model failure paths,
+  and invalid UTF-8.
 - A ninth isolated fuzz target drives prepared-policy, content-type, status,
   typed success/error, and malformed-payload paths through the checked decoder.
 - `scripts/check_response_operation_coverage.py` proves exact equality with the

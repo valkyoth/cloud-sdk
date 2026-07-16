@@ -1,6 +1,5 @@
 //! Policy-bound checked Hetzner response decoding.
 
-use alloc::string::String;
 use alloc::vec::Vec;
 use core::fmt;
 
@@ -24,7 +23,7 @@ use crate::response::ApiErrorCode;
 #[derive(Clone, Eq, PartialEq)]
 pub struct HetznerApiError {
     code: ApiErrorCode,
-    message: String,
+    message: SensitiveText,
 }
 
 impl HetznerApiError {
@@ -34,10 +33,12 @@ impl HetznerApiError {
         self.code
     }
 
-    /// Returns the provider message through an explicit accessor.
-    #[must_use]
-    pub fn message(&self) -> &str {
-        &self.message
+    /// Runs a closure with temporary access to the provider error message.
+    pub fn try_with_message<R>(
+        &self,
+        inspect: impl FnOnce(&str) -> R,
+    ) -> Result<R, core::str::Utf8Error> {
+        self.message.try_with_secret(inspect)
     }
 }
 
@@ -198,21 +199,24 @@ fn decode_provider_error(
     if !content_type.matches(MediaType::JSON) {
         return Err(HetznerDecodeError::ErrorContentType);
     }
-    let value =
+    let mut value =
         strict_json::parse(response.body()).map_err(|_| HetznerDecodeError::MalformedPayload)?;
-    let envelope = object(&value).map_err(HetznerDecodeError::Model)?;
-    let error = object(required(envelope, "error").map_err(HetznerDecodeError::Model)?)
+    let envelope = object_mut(&mut value).map_err(HetznerDecodeError::Model)?;
+    let error = object_mut(required_mut(envelope, "error").map_err(HetznerDecodeError::Model)?)
         .map_err(HetznerDecodeError::Model)?;
     let code = value_text(
         required(error, "code").map_err(HetznerDecodeError::Model)?,
         128,
     )
     .map_err(HetznerDecodeError::Model)?;
-    let message = value_text(
-        required(error, "message").map_err(HetznerDecodeError::Model)?,
-        16_384,
-    )
-    .map_err(HetznerDecodeError::Model)?;
+    let message = required_mut(error, "message")
+        .map_err(HetznerDecodeError::Model)?
+        .take_string()
+        .map(SensitiveText::new)
+        .ok_or(HetznerDecodeError::Model(ResponseModelError::WrongType))?;
+    message
+        .validate(16_384)
+        .map_err(HetznerDecodeError::Model)?;
     Ok(HetznerApiError {
         code: ApiErrorCode::from_api_str(&code),
         message,
@@ -234,14 +238,14 @@ fn decode_success(
         let envelope = object_mut(value)?;
         return parse_zonefile(required_mut(envelope, "zonefile")?).map(HetznerSuccess::ZoneFile);
     }
-    let envelope = object(value)?;
     match binding.shape {
         ResponseShape::Empty => Ok(HetznerSuccess::Empty),
-        ResponseShape::Action => required(envelope, "action")?
-            .pipe(parse_action)
-            .map(HetznerSuccess::Action),
+        ResponseShape::Action => {
+            parse_action(required_mut(object_mut(value)?, "action")?).map(HetznerSuccess::Action)
+        }
         ResponseShape::Actions | ResponseShape::ActionsPage => {
-            let actions = parse_actions(required(envelope, "actions")?)?;
+            let envelope = object_mut(value)?;
+            let actions = parse_actions(required_mut(envelope, "actions")?)?;
             let pagination = if binding.shape == ResponseShape::ActionsPage {
                 Some(parse_pagination(required(envelope, "meta")?)?)
             } else {
@@ -253,18 +257,18 @@ fn decode_success(
             })
         }
         ResponseShape::Resource | ResponseShape::ResourceList | ResponseShape::ResourcePage => {
-            decode_resources(binding, envelope)
+            decode_resources(binding, object(value)?)
         }
         ResponseShape::Composite => Err(ResponseModelError::EnvelopeMismatch),
         ResponseShape::Metrics => {
-            parse_metrics(required(envelope, "metrics")?).map(HetznerSuccess::Metrics)
+            parse_metrics(required(object(value)?, "metrics")?).map(HetznerSuccess::Metrics)
         }
         ResponseShape::ZoneFile => Err(ResponseModelError::EnvelopeMismatch),
         ResponseShape::Pricing => {
-            parse_pricing(required(envelope, "pricing")?).map(HetznerSuccess::Pricing)
+            parse_pricing(required(object(value)?, "pricing")?).map(HetznerSuccess::Pricing)
         }
         ResponseShape::Folders => {
-            parse_folders(required(envelope, "folders")?).map(HetznerSuccess::Folders)
+            parse_folders(required(object(value)?, "folders")?).map(HetznerSuccess::Folders)
         }
     }
 }
@@ -303,11 +307,11 @@ fn decode_composite(
             .transpose()?
     };
     let mut actions = Vec::new();
-    if let Some(value) = envelope.get("action") {
+    if let Some(value) = envelope.get_mut("action") {
         actions.push(parse_action(value)?);
     }
     for key in ["actions", "next_actions"] {
-        if let Some(value) = envelope.get(key) {
+        if let Some(value) = envelope.get_mut(key) {
             actions.extend(parse_actions(value)?);
         }
     }
@@ -357,11 +361,3 @@ fn validate_required(envelope: &Map, required_fields: &str) -> Result<(), Respon
     }
     Ok(())
 }
-
-trait Pipe: Sized {
-    fn pipe<T>(self, function: impl FnOnce(Self) -> T) -> T {
-        function(self)
-    }
-}
-
-impl<T> Pipe for T {}

@@ -6,7 +6,7 @@ use core::fmt;
 
 use cloud_sdk::action_polling::ActionUpdate;
 
-use super::{ResponseModelError, object, required, value_text};
+use super::{ResponseModelError, SensitiveText, object, required, value_text};
 use crate::actions::{ActionId, ActionStatus};
 use crate::cloud::shared::CloudResourceId;
 use crate::response::ApiErrorCode;
@@ -40,7 +40,7 @@ impl ActionResultResource {
 #[derive(Clone, Eq, PartialEq)]
 pub struct ActionResultError {
     code: ApiErrorCode,
-    message: String,
+    message: SensitiveText,
 }
 
 impl ActionResultError {
@@ -50,10 +50,12 @@ impl ActionResultError {
         self.code
     }
 
-    /// Returns the provider message through an explicit accessor.
-    #[must_use]
-    pub fn message(&self) -> &str {
-        &self.message
+    /// Runs a closure with temporary access to the provider action error message.
+    pub fn try_with_message<R>(
+        &self,
+        inspect: impl FnOnce(&str) -> R,
+    ) -> Result<R, core::str::Utf8Error> {
+        self.message.try_with_secret(inspect)
     }
 }
 
@@ -140,8 +142,8 @@ impl ActionResult {
     }
 }
 
-pub(crate) fn parse_action(value: &Value) -> Result<ActionResult, ResponseModelError> {
-    let fields = object(value)?;
+pub(crate) fn parse_action(value: &mut Value) -> Result<ActionResult, ResponseModelError> {
+    let fields = value.as_object_mut().ok_or(ResponseModelError::WrongType)?;
     let id = required(fields, "id")?
         .as_u64()
         .and_then(ActionId::new)
@@ -160,7 +162,11 @@ pub(crate) fn parse_action(value: &Value) -> Result<ActionResult, ResponseModelE
     let started = text_field(fields, "started", 64)?;
     let finished = nullable_text_field(fields, "finished", 64)?;
     let resources = parse_resources(required(fields, "resources")?)?;
-    let error = parse_error(required(fields, "error")?)?;
+    let error = parse_error(
+        fields
+            .get_mut("error")
+            .ok_or(ResponseModelError::MissingField)?,
+    )?;
     Ok(ActionResult {
         id,
         command,
@@ -173,12 +179,15 @@ pub(crate) fn parse_action(value: &Value) -> Result<ActionResult, ResponseModelE
     })
 }
 
-pub(crate) fn parse_actions(value: &Value) -> Result<Vec<ActionResult>, ResponseModelError> {
-    let values = value.as_array().ok_or(ResponseModelError::WrongType)?;
+pub(crate) fn parse_actions(value: &mut Value) -> Result<Vec<ActionResult>, ResponseModelError> {
+    let values = match value {
+        Value::Array(values) => values,
+        _ => return Err(ResponseModelError::WrongType),
+    };
     if values.len() > MAX_ACTIONS {
         return Err(ResponseModelError::TooManyItems);
     }
-    values.iter().map(parse_action).collect()
+    values.iter_mut().map(parse_action).collect()
 }
 
 fn parse_resources(value: &Value) -> Result<Vec<ActionResultResource>, ResponseModelError> {
@@ -200,13 +209,19 @@ fn parse_resources(value: &Value) -> Result<Vec<ActionResultResource>, ResponseM
         .collect()
 }
 
-fn parse_error(value: &Value) -> Result<Option<ActionResultError>, ResponseModelError> {
+fn parse_error(value: &mut Value) -> Result<Option<ActionResultError>, ResponseModelError> {
     if value.is_null() {
         return Ok(None);
     }
-    let fields = object(value)?;
+    let fields = value.as_object_mut().ok_or(ResponseModelError::WrongType)?;
     let code = text_field(fields, "code", 128)?;
-    let message = text_field(fields, "message", 16_384)?;
+    let message = fields
+        .get_mut("message")
+        .ok_or(ResponseModelError::MissingField)?
+        .take_string()
+        .map(SensitiveText::new)
+        .ok_or(ResponseModelError::WrongType)?;
+    message.validate(16_384)?;
     Ok(Some(ActionResultError {
         code: ApiErrorCode::from_api_str(&code),
         message,

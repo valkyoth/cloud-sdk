@@ -9,7 +9,7 @@ Checked: 2026-07-16.
 | Package | Version | Scope | License | Default features |
 | --- | --- | --- | --- | --- |
 | `serde` | `1.0.228` | optional normal dependency | MIT OR Apache-2.0 | disabled |
-| `serde_json` | `1.0.150` | optional normal dependency and test parser | MIT OR Apache-2.0 | disabled; `alloc` only |
+| `serde_json` | `1.0.150` | optional request/envelope Serde implementation and test parser | MIT OR Apache-2.0 | disabled; `alloc` only |
 | `cloud-sdk-sanitization` | `0.14.0` | optional first-party owned secret cleanup | MIT OR Apache-2.0 | disabled; `alloc` only |
 | `sanitization` | `1.2.4` | transitive volatile byte cleanup | MIT OR Apache-2.0 | disabled |
 
@@ -20,20 +20,21 @@ project at <https://github.com/serde-rs/serde> and
 ## Feature Policy
 
 The provider's `serde` feature enables its existing `alloc` boundary, Serde's
-`alloc` and `derive` features, serde_json's `alloc` parser, and the first-party
-sanitization crate's `alloc` storage. None enables `std`. The workspace's
-default graph remains the two local crates `cloud-sdk-hetzner` and `cloud-sdk`,
-with no third-party normal dependency.
+`alloc` and `derive` features, serde_json's `alloc` implementation for public
+request/envelope APIs, and the first-party sanitization crate's `alloc` storage.
+None enables `std`. The workspace's default graph remains the two local crates
+`cloud-sdk-hetzner` and `cloud-sdk`, with no third-party normal dependency.
 
-serde_json is admitted as the non-default checked-decoder parser in v0.31. A
-private parser tree stores every JSON string value in volatile-clearing
-`SecretString` from admission onward. A shared 65,536-node budget plus
-per-container, depth, string-size, and wire-size limits bounds aggregate parser
+Checked response admission uses a private direct parser because serde_json's
+escaped-string scratch allocation cannot be inspected or cleared. The parser
+decodes escaped and unescaped JSON string values directly into
+volatile-clearing `SecretString`. A shared 65,536-node budget plus
+per-container, depth, string-size, and wire-size limits bounds aggregate
 allocation before resource conversion. Duplicate keys and trailing documents
 are rejected. Only validated provider-owned models cross the public boundary.
-Source-locked secret strings move from the private tree into checked response
-models without another plaintext allocation and remain available only through
-closure-scoped UTF-8 access.
+Source-locked secrets and redacted provider/action errors move from the private
+tree into checked response models without another plaintext allocation and
+remain available only through closure-scoped UTF-8 access.
 
 ## Transitive Surface
 
@@ -64,15 +65,19 @@ from closed SDK types and never deserialize around validation constructors.
 
 Decoded display text rejects Unicode control, bidi-override, isolate,
 zero-width, word-joining, and BOM-formatting characters. All parsed JSON string
-values use volatile-clearing owned storage before duplicate, trailing-document,
-required-field, or resource/action validation can fail. Composite secrets and
-zonefiles move that same allocation into their public sensitive wrappers.
-Caller-owned transport response storage remains an explicit cleanup boundary.
+values, including escaped values, enter volatile-clearing owned storage without
+an ordinary decoded heap scratch copy before duplicate, trailing-document,
+required-field, or resource/action validation can fail. Composite secrets,
+zonefiles, and redacted error messages move that same allocation into their
+public sensitive wrappers. Caller-owned transport response storage remains an
+explicit cleanup boundary.
 
 ## Alternatives Considered
 
 - Hand-written JSON for every body would duplicate a mature escaping engine
   and increase parser and serializer review surface.
+- serde_json checked-response parsing was rejected because escaped strings use
+  an inaccessible ordinary heap scratch allocation that cannot be cleared.
 - Blanket `Serialize` and `Deserialize` derives would produce incorrect body
   shapes and permit deserialization around validation constructors.
 - A separate provider-specific Serde crate would violate the one-crate-per-

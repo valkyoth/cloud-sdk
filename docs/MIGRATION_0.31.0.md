@@ -30,23 +30,37 @@ Direct serde_json decoding is no longer the documented integration path
 because it cannot prove that response bytes passed the operation's prepared
 policy.
 
+Provider and action error messages no longer expose an ordinary borrowed
+`&str`. Use `HetznerApiError::try_with_message` or
+`ActionResultError::try_with_message` so clones continue sharing one protected
+allocation:
+
+```rust
+let contains_rate_limit = error
+    .try_with_message(|message| message.contains("rate"))
+    .unwrap_or(false);
+```
+
 ## Allocation Boundary
 
 The default provider graph remains allocation-free and `no_std`. The optional
 `serde` feature now admits serde_json `1.0.150` with default features disabled
-and its `alloc` feature enabled, plus `cloud-sdk-sanitization` `0.14.0` for
-owned secret cleanup. It does not enable `std`.
+and its `alloc` feature enabled for public Serde request/envelope APIs, plus
+`cloud-sdk-sanitization` `0.14.0` for owned secret cleanup. Checked response
+admission uses a private direct parser and adds no further dependency. It does
+not enable `std`.
 
 ## Sensitive Responses
 
 Root passwords, console passwords, WebSocket console URLs, API error messages,
-and zonefiles remain redacted from diagnostics. Closure-scoped accessors expose
-the values when needed. Every JSON string value enters volatile-clearing
-`SecretString` storage during parsing, including strings later discarded by
-duplicate, trailing-document, required-field, or model-validation errors.
-Composite secrets and zonefiles move that existing allocation into the public
-model without another plaintext copy. Cloning a response shares the protected
-allocation rather than copying plaintext; the allocation is cleared after the
-final clone drops. The SDK does not clear caller-owned transport response
-storage; sanitize that complete buffer after the decoded value is no longer
-needed.
+action error messages, and zonefiles remain redacted from diagnostics.
+Closure-scoped accessors expose the values when needed. Every JSON string value,
+including escaped text, is decoded directly into volatile-clearing
+`SecretString` storage rather than an ordinary parser scratch allocation.
+Strings later discarded by duplicate, trailing-document, required-field, or
+model-validation errors are therefore cleared. Sensitive public models move
+that existing allocation without another plaintext copy. Cloning a response
+shares the protected allocation rather than copying plaintext; the allocation
+is cleared after the final clone drops. The SDK does not clear caller-owned
+transport response storage; sanitize that complete buffer after the decoded
+value is no longer needed.

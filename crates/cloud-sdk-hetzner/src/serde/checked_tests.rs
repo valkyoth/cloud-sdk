@@ -289,7 +289,10 @@ fn returns_typed_redacted_provider_errors() {
         Err(HetznerDecodeError::Provider(error)) => Some(error),
         _ => None,
     };
-    assert_eq!(error.map(|error| error.message()), Some("slow down"));
+    assert_eq!(
+        error.map(|error| error.try_with_message(|message| message == "slow down")),
+        Some(Ok(true))
+    );
     assert!(
         error
             .map(|error| format!("{error:?}"))

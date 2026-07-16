@@ -3,12 +3,10 @@
 use alloc::collections::BTreeMap;
 use alloc::string::String;
 use alloc::vec::Vec;
-use core::cell::Cell;
-use core::fmt;
 
-use ::serde::de::{DeserializeSeed, Error as _, MapAccess, SeqAccess, Visitor};
 use cloud_sdk_sanitization::SecretString;
-use serde_json::Number;
+
+mod parser;
 
 pub(super) const MAX_JSON_DEPTH: usize = 64;
 pub(super) const MAX_JSON_CONTAINER_ENTRIES: usize = 4096;
@@ -16,6 +14,12 @@ pub(super) const MAX_JSON_NODES: usize = 65_536;
 pub(super) const MAX_JSON_STRING_BYTES: usize = 1_048_576;
 
 pub(super) type Map = BTreeMap<String, Value>;
+
+pub(super) enum Number {
+    Unsigned(u64),
+    Signed(i64),
+    Float(f64),
+}
 
 /// Private parser tree whose string values clear their full allocation on drop.
 pub(super) enum Value {
@@ -34,14 +38,17 @@ impl Value {
 
     pub(super) fn as_u64(&self) -> Option<u64> {
         match self {
-            Self::Number(value) => value.as_u64(),
+            Self::Number(Number::Unsigned(value)) => Some(*value),
+            Self::Number(Number::Signed(value)) => u64::try_from(*value).ok(),
             _ => None,
         }
     }
 
     pub(super) fn as_f64(&self) -> Option<f64> {
         match self {
-            Self::Number(value) => value.as_f64(),
+            Self::Number(Number::Unsigned(value)) => Some(*value as f64),
+            Self::Number(Number::Signed(value)) => Some(*value as f64),
+            Self::Number(Number::Float(value)) => Some(*value),
             _ => None,
         }
     }
@@ -89,184 +96,8 @@ impl Value {
     }
 }
 
-pub(super) fn parse(bytes: &[u8]) -> Result<Value, serde_json::Error> {
-    let budget = ParseBudget::new();
-    let mut deserializer = serde_json::Deserializer::from_slice(bytes);
-    let value = StrictValueSeed {
-        depth: 0,
-        budget: &budget,
-    }
-    .deserialize(&mut deserializer)?;
-    deserializer.end()?;
-    Ok(value)
-}
-
-struct ParseBudget {
-    nodes: Cell<usize>,
-}
-
-impl ParseBudget {
-    const fn new() -> Self {
-        Self {
-            nodes: Cell::new(0),
-        }
-    }
-
-    fn charge<E: ::serde::de::Error>(&self) -> Result<(), E> {
-        let next = self
-            .nodes
-            .get()
-            .checked_add(1)
-            .ok_or_else(|| E::custom("JSON node budget overflow"))?;
-        if next > MAX_JSON_NODES {
-            return Err(E::custom("JSON aggregate node limit exceeded"));
-        }
-        self.nodes.set(next);
-        Ok(())
-    }
-}
-
-struct StrictValueSeed<'a> {
-    depth: usize,
-    budget: &'a ParseBudget,
-}
-
-impl<'de> DeserializeSeed<'de> for StrictValueSeed<'_> {
-    type Value = Value;
-
-    fn deserialize<D>(self, deserializer: D) -> Result<Self::Value, D::Error>
-    where
-        D: ::serde::Deserializer<'de>,
-    {
-        self.budget.charge::<D::Error>()?;
-        if self.depth > MAX_JSON_DEPTH {
-            return Err(D::Error::custom("JSON nesting exceeds the response limit"));
-        }
-        deserializer.deserialize_any(StrictValueVisitor {
-            depth: self.depth,
-            budget: self.budget,
-        })
-    }
-}
-
-struct StrictValueVisitor<'a> {
-    depth: usize,
-    budget: &'a ParseBudget,
-}
-
-impl<'de> Visitor<'de> for StrictValueVisitor<'_> {
-    type Value = Value;
-
-    fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        formatter.write_str("a bounded JSON value without duplicate object keys")
-    }
-
-    fn visit_bool<E>(self, _value: bool) -> Result<Self::Value, E> {
-        Ok(Value::Bool)
-    }
-
-    fn visit_i64<E>(self, value: i64) -> Result<Self::Value, E> {
-        Ok(Value::Number(Number::from(value)))
-    }
-
-    fn visit_u64<E>(self, value: u64) -> Result<Self::Value, E> {
-        Ok(Value::Number(Number::from(value)))
-    }
-
-    fn visit_f64<E>(self, value: f64) -> Result<Self::Value, E>
-    where
-        E: ::serde::de::Error,
-    {
-        Number::from_f64(value)
-            .map(Value::Number)
-            .ok_or_else(|| E::custom("JSON number is not finite"))
-    }
-
-    fn visit_none<E>(self) -> Result<Self::Value, E> {
-        Ok(Value::Null)
-    }
-
-    fn visit_unit<E>(self) -> Result<Self::Value, E> {
-        Ok(Value::Null)
-    }
-
-    fn visit_borrowed_str<E>(self, value: &'de str) -> Result<Self::Value, E>
-    where
-        E: ::serde::de::Error,
-    {
-        checked_string(value)
-            .map(Value::String)
-            .ok_or_else(|| E::custom("JSON string exceeds the response limit"))
-    }
-
-    fn visit_str<E>(self, value: &str) -> Result<Self::Value, E>
-    where
-        E: ::serde::de::Error,
-    {
-        self.visit_borrowed_str(value)
-    }
-
-    fn visit_string<E>(self, value: String) -> Result<Self::Value, E>
-    where
-        E: ::serde::de::Error,
-    {
-        if value.len() > MAX_JSON_STRING_BYTES {
-            return Err(E::custom("JSON string exceeds the response limit"));
-        }
-        Ok(Value::String(SecretString::from_string(value)))
-    }
-
-    fn visit_seq<A>(self, mut sequence: A) -> Result<Self::Value, A::Error>
-    where
-        A: SeqAccess<'de>,
-    {
-        let mut values = Vec::with_capacity(
-            sequence
-                .size_hint()
-                .unwrap_or(0)
-                .min(MAX_JSON_CONTAINER_ENTRIES),
-        );
-        while let Some(value) = sequence.next_element_seed(StrictValueSeed {
-            depth: self.depth.saturating_add(1),
-            budget: self.budget,
-        })? {
-            if values.len() >= MAX_JSON_CONTAINER_ENTRIES {
-                return Err(A::Error::custom("JSON array exceeds the response limit"));
-            }
-            values.push(value);
-        }
-        Ok(Value::Array(values))
-    }
-
-    fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
-    where
-        A: MapAccess<'de>,
-    {
-        let mut values = Map::new();
-        while let Some(key) = map.next_key::<String>()? {
-            if key.len() > MAX_JSON_STRING_BYTES {
-                return Err(A::Error::custom(
-                    "JSON object key exceeds the response limit",
-                ));
-            }
-            if values.len() >= MAX_JSON_CONTAINER_ENTRIES {
-                return Err(A::Error::custom("JSON object exceeds the response limit"));
-            }
-            if values.contains_key(&key) {
-                return Err(A::Error::custom("JSON object contains a duplicate key"));
-            }
-            let value = map.next_value_seed(StrictValueSeed {
-                depth: self.depth.saturating_add(1),
-                budget: self.budget,
-            })?;
-            values.insert(key, value);
-        }
-        Ok(Value::Object(values))
-    }
-}
-
-fn checked_string(value: &str) -> Option<SecretString> {
-    (value.len() <= MAX_JSON_STRING_BYTES).then(|| SecretString::from_secret_str(value))
+pub(super) fn parse(bytes: &[u8]) -> Result<Value, parser::JsonError> {
+    parser::parse(bytes)
 }
 
 #[cfg(test)]
@@ -308,18 +139,17 @@ mod tests {
     }
 
     #[test]
-    fn parser_strings_use_protected_storage_and_can_move_without_copying() {
-        let parsed = parse(br#""temporary secret""#);
-        let Ok(mut parsed) = parsed else {
-            panic!("protected parser string must be accepted");
+    fn parser_strings_use_protected_storage_and_can_move_without_copying()
+    -> Result<(), &'static str> {
+        let mut parsed =
+            parse(br#""temporary secret""#).map_err(|_| "protected parser string was rejected")?;
+        let before = match &parsed {
+            Value::String(secret) => secret.with_secret_bytes(|bytes| bytes.as_ptr()),
+            _ => return Err("JSON string did not use protected storage"),
         };
-        let Value::String(secret) = &parsed else {
-            panic!("JSON string must use protected storage");
-        };
-        let before = secret.with_secret_bytes(|bytes| bytes.as_ptr());
-        let Some(secret) = parsed.take_string() else {
-            panic!("protected parser string must remain movable");
-        };
+        let secret = parsed
+            .take_string()
+            .ok_or("protected parser string was not movable")?;
         let after = secret.with_secret_bytes(|bytes| bytes.as_ptr());
 
         assert_eq!(before, after);
@@ -327,5 +157,57 @@ mod tests {
             secret.try_with_secret(|value| value == "temporary secret"),
             Ok(true)
         );
+        Ok(())
+    }
+
+    #[test]
+    fn decodes_escaped_strings_directly_into_protected_storage() -> Result<(), &'static str> {
+        let mut parsed = parse(br#""line\nquote: \" snowman: \u2603 music: \uD834\uDD1E""#)
+            .map_err(|_| "escaped protected parser string was rejected")?;
+        let secret = parsed
+            .take_string()
+            .ok_or("escaped JSON string did not use protected storage")?;
+
+        assert_eq!(
+            secret.try_with_secret(|value| value == "line\nquote: \" snowman: ☃ music: 𝄞"),
+            Ok(true)
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn accepts_complete_json_grammar_and_rejects_malformed_boundaries() {
+        for valid in [
+            br#"{"key":[null,true,false,-0,0,1.25,6.02e23,"text","\u0000","\uD834\uDD1E"]}"#
+                .as_slice(),
+            br#"{"escaped\u0020key":"snowman: \u2603"}"#,
+            br#"18446744073709551616"#,
+            br#"-9223372036854775809"#,
+            " \"é\" \n".as_bytes(),
+        ] {
+            assert!(parse(valid).is_ok());
+        }
+
+        for invalid in [
+            b"".as_slice(),
+            b"+1",
+            b".1",
+            b"01",
+            b"-01",
+            b"1.",
+            b"1e",
+            b"1e+",
+            b"NaN",
+            b"1e400",
+            br#""\x""#,
+            br#""\uD800""#,
+            br#""\uDC00""#,
+            br#""\uD800\u0041""#,
+            b"\"raw\ncontrol\"",
+            b"[1,]",
+            b"{\"key\":1,}",
+        ] {
+            assert!(parse(invalid).is_err());
+        }
     }
 }
