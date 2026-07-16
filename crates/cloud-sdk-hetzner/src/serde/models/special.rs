@@ -6,9 +6,9 @@ use alloc::vec::Vec;
 use core::fmt;
 
 use cloud_sdk_sanitization::SecretString;
-use serde_json::Value;
 
-use super::{ResponseModelError, checked_text, object, required, validate_text};
+use super::{ResponseModelError, checked_text, object, required, validate_text, value_text};
+use crate::serde::strict_json::{Map, Value};
 
 const MAX_FOLDERS: usize = 4096;
 const MAX_METRIC_SERIES: usize = 512;
@@ -22,8 +22,8 @@ const MAX_METRIC_POINTS: usize = 65_536;
 pub struct SensitiveText(Arc<SecretString>);
 
 impl SensitiveText {
-    pub(crate) fn new(value: String) -> Self {
-        Self(Arc::new(SecretString::from_string(value)))
+    pub(crate) fn new(value: SecretString) -> Self {
+        Self(Arc::new(value))
     }
 
     /// Runs a closure with temporary read-only access to the sensitive text.
@@ -211,10 +211,10 @@ impl fmt::Debug for FolderList {
 }
 
 pub(crate) fn parse_zonefile(value: &mut Value) -> Result<ZoneFile, ResponseModelError> {
-    let Value::String(value) = value else {
-        return Err(ResponseModelError::WrongType);
-    };
-    let secret = SensitiveText::new(core::mem::take(value));
+    let secret = value
+        .take_string()
+        .map(SensitiveText::new)
+        .ok_or(ResponseModelError::WrongType)?;
     secret.validate(8_388_608)?;
     Ok(ZoneFile(secret))
 }
@@ -226,12 +226,7 @@ pub(crate) fn parse_folders(value: &Value) -> Result<FolderList, ResponseModelEr
     }
     values
         .iter()
-        .map(|value| {
-            value
-                .as_str()
-                .ok_or(ResponseModelError::WrongType)
-                .and_then(|value| checked_text(value, 4096))
-        })
+        .map(|value| value_text(value, 4096))
         .collect::<Result<Vec<_>, _>>()
         .map(FolderList)
 }
@@ -271,9 +266,8 @@ pub(crate) fn parse_metrics(value: &Value) -> Result<Metrics, ResponseModelError
                 .ok_or(ResponseModelError::InvalidNumber)?;
             let value = point
                 .get(1)
-                .and_then(Value::as_str)
                 .ok_or(ResponseModelError::WrongType)
-                .and_then(|value| checked_text(value, 256))?;
+                .and_then(|value| value_text(value, 256))?;
             points.push(MetricPoint { timestamp, value });
         }
         series.push(MetricSeries { name, points });
@@ -317,27 +311,20 @@ pub(crate) fn parse_pricing(value: &Value) -> Result<Pricing, ResponseModelError
     })
 }
 
-fn text(
-    fields: &serde_json::Map<String, Value>,
-    key: &str,
-    max: usize,
-) -> Result<String, ResponseModelError> {
-    required(fields, key)?
-        .as_str()
-        .ok_or(ResponseModelError::WrongType)
-        .and_then(|value| checked_text(value, max))
+fn text(fields: &Map, key: &str, max: usize) -> Result<String, ResponseModelError> {
+    value_text(required(fields, key)?, max)
 }
 
 #[cfg(test)]
 mod tests {
-    use alloc::string::String;
     use alloc::sync::Arc;
+    use cloud_sdk_sanitization::SecretString;
 
     use super::SensitiveText;
 
     #[test]
     fn sensitive_text_clones_share_protected_storage() {
-        let secret = SensitiveText::new(String::from("temporary secret"));
+        let secret = SensitiveText::new(SecretString::from_secret_str("temporary secret"));
         let clone = secret.clone();
 
         assert!(Arc::ptr_eq(&secret.0, &clone.0));
@@ -350,9 +337,9 @@ mod tests {
 
     #[test]
     fn sensitive_text_equality_compares_secret_contents() {
-        let left = SensitiveText::new(String::from("same"));
-        let equal = SensitiveText::new(String::from("same"));
-        let different = SensitiveText::new(String::from("different"));
+        let left = SensitiveText::new(SecretString::from_secret_str("same"));
+        let equal = SensitiveText::new(SecretString::from_secret_str("same"));
+        let different = SensitiveText::new(SecretString::from_secret_str("different"));
 
         assert_eq!(left, equal);
         assert_ne!(left, different);

@@ -1337,8 +1337,9 @@ Deliverables:
   content-type, empty-body, or maximum-size policy. Endpoint/service mismatch
   is rejected before transport execution by the prepared-request path.
 - The decoder applies the bounded `ResponseBytes` boundary before parser use,
-  then returns either the operation's typed success value or typed Hetzner API
-  error envelope according to source-locked status semantics.
+  then applies a shared aggregate JSON-node budget before returning either the
+  operation's typed success value or typed Hetzner API error envelope according
+  to source-locked status semantics.
 - Unexpected status, malformed or missing content type, oversized body,
   malformed payload, duplicate fields, invalid identifiers, unknown enum values,
   and typed provider errors remain distinct payload-free error cases.
@@ -1348,8 +1349,9 @@ Deliverables:
   before `1.0.0` and are not claimed by this release.
 - Operator-facing decoded text rejects Unicode control, bidi, isolate,
   zero-width, and related invisible formatting characters. Source-locked
-  secrets move into first-party volatile-clearing owned storage before later
-  model validation and remain redacted from diagnostics.
+  secrets enter first-party volatile-clearing owned storage during parsing,
+  move into public sensitive models without another plaintext allocation, and
+  remain protected across parser and model-validation error paths.
 - The decoder remains transport-independent and performs no request, retry,
   sleep, allocation beyond its admitted feature contract, logging, or implicit
   sanitization of caller-owned response storage.
@@ -1362,7 +1364,8 @@ Verification:
 - `scripts/check_hetzner_api_drift.py --fetch`
 - Zero-missing-success-model and zero-missing-decoder operation-matrix gates.
 - Golden and adversarial decoding fixtures for every response family and every
-  documented success/error status shape.
+  documented success/error status shape, including aggregate heap amplification
+  and credential-bearing parser/model failure paths.
 - Fuzz coverage for shared envelopes and representative resource, list,
   metrics, zonefile, nullable, empty-body, and malformed response paths.
 - Default/no_std and optional decoder feature-matrix checks.

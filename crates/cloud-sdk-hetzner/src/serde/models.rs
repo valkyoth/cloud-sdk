@@ -9,6 +9,7 @@ use alloc::vec::Vec;
 use core::fmt;
 
 use crate::pagination::PaginationMetadata;
+use crate::serde::strict_json::{Map, Value};
 
 pub use actions::{ActionResult, ActionResultError, ActionResultResource};
 pub use resources::{Resource, ResourceIdentifier, ResourceKind};
@@ -164,17 +165,19 @@ impl fmt::Debug for NamedSensitiveText {
     }
 }
 
-pub(super) fn object(
-    value: &serde_json::Value,
-) -> Result<&serde_json::Map<String, serde_json::Value>, ResponseModelError> {
+pub(super) fn object(value: &Value) -> Result<&Map, ResponseModelError> {
     value.as_object().ok_or(ResponseModelError::WrongType)
 }
 
-pub(super) fn required<'a>(
-    object: &'a serde_json::Map<String, serde_json::Value>,
-    key: &str,
-) -> Result<&'a serde_json::Value, ResponseModelError> {
+pub(super) fn required<'a>(object: &'a Map, key: &str) -> Result<&'a Value, ResponseModelError> {
     object.get(key).ok_or(ResponseModelError::MissingField)
+}
+
+pub(super) fn value_text(value: &Value, max: usize) -> Result<String, ResponseModelError> {
+    value
+        .try_with_str(|value| checked_text(value, max))
+        .map_err(|_| ResponseModelError::InvalidText)?
+        .ok_or(ResponseModelError::WrongType)?
 }
 
 pub(super) fn checked_text(value: &str, max: usize) -> Result<String, ResponseModelError> {

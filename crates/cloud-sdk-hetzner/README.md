@@ -175,7 +175,7 @@ The checked decoder consumes a `TransportResponse` together with its exact
 duplicate or malformed JSON, and returns validated typed success or API errors.
 Resource responses currently expose validated identity and common state fields;
 provider-complete resource field models remain planned before `1.0.0`. The
-generic JSON representation remains private:
+bounded parser tree and its volatile-clearing string storage remain private:
 
 ```rust
 # #[cfg(feature = "serde")]
@@ -244,11 +244,13 @@ assert_eq!(server.name(), Some("web-1"));
 
 Direct parser use bypasses the prepared status, content-type, body-shape, and
 operation-binding checks. Secret-bearing responses and zonefiles move their
-parser-owned strings into volatile-clearing `SecretString` storage, expose
-their text only through checked closures, and use redacted diagnostics. Cloned
-response models share the protected allocation, which is cleared after the
-final clone drops. Callers still own and must clear the original transport
-response buffer.
+already protected parser strings into the response model without another
+plaintext allocation, expose their text only through checked closures, and use
+redacted diagnostics. Every parsed string value uses volatile-clearing storage
+from admission onward, including parser and model error paths. A shared
+65,536-node budget bounds aggregate JSON structure allocation. Cloned response
+models share the protected allocation, which is cleared after the final clone
+drops. Callers still own and must clear the original transport response buffer.
 
 ## RRSet Request Example
 

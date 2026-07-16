@@ -5,12 +5,12 @@ use alloc::vec::Vec;
 use core::fmt;
 
 use cloud_sdk::action_polling::ActionUpdate;
-use serde_json::Value;
 
-use super::{ResponseModelError, checked_text, object, required};
+use super::{ResponseModelError, object, required, value_text};
 use crate::actions::{ActionId, ActionStatus};
 use crate::cloud::shared::CloudResourceId;
 use crate::response::ApiErrorCode;
+use crate::serde::strict_json::{Map, Value};
 
 const MAX_ACTIONS: usize = 1024;
 const MAX_ACTION_RESOURCES: usize = 256;
@@ -147,11 +147,11 @@ pub(crate) fn parse_action(value: &Value) -> Result<ActionResult, ResponseModelE
         .and_then(ActionId::new)
         .ok_or(ResponseModelError::InvalidIdentifier)?;
     let command = text_field(fields, "command", 256)?;
-    let status_text = required(fields, "status")?
-        .as_str()
-        .ok_or(ResponseModelError::WrongType)?;
-    let status =
-        ActionStatus::from_api_str(status_text).ok_or(ResponseModelError::UnknownEnumValue)?;
+    let status = required(fields, "status")?
+        .try_with_str(ActionStatus::from_api_str)
+        .map_err(|_| ResponseModelError::InvalidText)?
+        .ok_or(ResponseModelError::WrongType)?
+        .ok_or(ResponseModelError::UnknownEnumValue)?;
     let progress = required(fields, "progress")?
         .as_u64()
         .and_then(|value| u8::try_from(value).ok())
@@ -213,19 +213,12 @@ fn parse_error(value: &Value) -> Result<Option<ActionResultError>, ResponseModel
     }))
 }
 
-fn text_field(
-    fields: &serde_json::Map<String, Value>,
-    key: &str,
-    max: usize,
-) -> Result<String, ResponseModelError> {
-    required(fields, key)?
-        .as_str()
-        .ok_or(ResponseModelError::WrongType)
-        .and_then(|value| checked_text(value, max))
+fn text_field(fields: &Map, key: &str, max: usize) -> Result<String, ResponseModelError> {
+    value_text(required(fields, key)?, max)
 }
 
 fn nullable_text_field(
-    fields: &serde_json::Map<String, Value>,
+    fields: &Map,
     key: &str,
     max: usize,
 ) -> Result<Option<String>, ResponseModelError> {
@@ -233,10 +226,6 @@ fn nullable_text_field(
     if value.is_null() {
         Ok(None)
     } else {
-        value
-            .as_str()
-            .ok_or(ResponseModelError::WrongType)
-            .and_then(|value| checked_text(value, max))
-            .map(Some)
+        value_text(value, max).map(Some)
     }
 }

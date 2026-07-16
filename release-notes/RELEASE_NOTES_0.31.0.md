@@ -34,18 +34,20 @@ size cannot be checked independently or accidentally omitted.
   metrics pairs, text bounds, and special envelope fields are validated before
   crossing the public model boundary.
 - Secret-bearing fields and zonefiles require explicit accessors and remain
-  redacted from diagnostics. Parser-owned secret strings move without a
-  plaintext copy into the reviewed `sanitization::SecretString`, which clears
-  full allocation capacity on drop and exposes UTF-8 only through checked
-  closures. Cloned response models share the protected allocation until the
-  final clone drops.
+  redacted from diagnostics. Every parsed JSON string value enters the private
+  tree as the reviewed `sanitization::SecretString`, so duplicate, trailing,
+  required-field, and model-validation failures clear full string allocation
+  capacity on drop. Source-locked secrets move without another plaintext copy
+  and expose UTF-8 only through checked closures. Cloned response models share
+  the protected allocation until the final clone drops.
 
 ## Parser And Supply Chain
 
 - The non-default `serde` feature now admits serde_json `1.0.150` with default
   features disabled and `alloc` only; the default graph remains unchanged.
 - A private bounded parser rejects duplicate keys, trailing documents,
-  excessive nesting, oversized strings, and oversized arrays or objects.
+  excessive nesting, oversized strings, oversized arrays or objects, and more
+  than 65,536 aggregate JSON value nodes.
 - The fetched Hetzner drift gate regenerates the response-operation table in
   memory and rejects stale committed response evidence.
 
@@ -56,7 +58,8 @@ size cannot be checked independently or accidentally omitted.
 - Golden tests cover all twelve response families and typed provider errors.
 - Adversarial tests cover duplicate keys, unknown statuses, service mismatch,
   wrong success status, malformed payloads, Unicode format controls, diagnostic
-  redaction, oversized integers, deep nesting, and invalid UTF-8.
+  redaction, oversized integers, deep nesting, aggregate heap amplification,
+  protected credential failure paths, and invalid UTF-8.
 - A ninth isolated fuzz target drives prepared-policy, content-type, status,
   typed success/error, and malformed-payload paths through the checked decoder.
 - `scripts/check_response_operation_coverage.py` proves exact equality with the

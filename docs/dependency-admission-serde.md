@@ -25,22 +25,24 @@ sanitization crate's `alloc` storage. None enables `std`. The workspace's
 default graph remains the two local crates `cloud-sdk-hetzner` and `cloud-sdk`,
 with no third-party normal dependency.
 
-serde_json is admitted as the non-default checked-decoder parser in v0.31. Its
-generic `Value` representation remains private. A bounded parser seed rejects
-duplicate keys, excessive nesting, oversized strings, and oversized
-containers before resource conversion. Only validated provider-owned models
-cross the public boundary. Source-locked secret strings move from the private
-JSON tree into volatile-clearing `SecretString` storage without another
-plaintext allocation. Checked response models expose those values only through
+serde_json is admitted as the non-default checked-decoder parser in v0.31. A
+private parser tree stores every JSON string value in volatile-clearing
+`SecretString` from admission onward. A shared 65,536-node budget plus
+per-container, depth, string-size, and wire-size limits bounds aggregate parser
+allocation before resource conversion. Duplicate keys and trailing documents
+are rejected. Only validated provider-owned models cross the public boundary.
+Source-locked secret strings move from the private tree into checked response
+models without another plaintext allocation and remain available only through
 closure-scoped UTF-8 access.
 
 ## Transitive Surface
 
 The derive feature adds build-time proc-macro dependencies `serde_derive`,
 `proc-macro2`, `quote`, `syn`, and `unicode-ident`. serde_json adds `itoa`,
-`memchr`, and `zmij`. The sanitization boundary reuses the already admitted
-`sanitization` crate. `cargo deny`, `cargo audit`, locked versions, and the
-workspace MSRV matrix cover the complete optional graph.
+`memchr`, and `zmij`. The private parser tree uses `alloc::collections` and
+introduces no additional dependency. The sanitization boundary reuses the
+already admitted `sanitization` crate. `cargo deny`, `cargo audit`, locked
+versions, and the workspace MSRV matrix cover the complete optional graph.
 
 ## Security Decision
 
@@ -53,17 +55,19 @@ control bytes after parsing. `ResponseBytes` caps raw parser input at 8 MiB,
 and action resource arrays and interpreted text have independent model bounds.
 
 Known and unknown response fields first pass the duplicate-rejecting bounded
-JSON admission layer. The source-locked operation table then requires the
-exact success status, envelope family, root key, and required top-level fields.
-Unknown response fields are ignored only after admission and are never exposed
-without model validation. Requests are emitted from closed SDK types and never
-deserialize around validation constructors.
+JSON admission layer. Every value consumes the shared aggregate node budget,
+including values in unknown subtrees. The source-locked operation table then
+requires the exact success status, envelope family, root key, and required
+top-level fields. Unknown response fields are ignored only after bounded
+admission and are never exposed without model validation. Requests are emitted
+from closed SDK types and never deserialize around validation constructors.
 
 Decoded display text rejects Unicode control, bidi-override, isolate,
-zero-width, word-joining, and BOM-formatting characters. Composite secrets and
-zonefiles are extracted into volatile-clearing owned storage before later
-resource/action validation, including error paths. Caller-owned transport
-response storage remains an explicit cleanup boundary.
+zero-width, word-joining, and BOM-formatting characters. All parsed JSON string
+values use volatile-clearing owned storage before duplicate, trailing-document,
+required-field, or resource/action validation can fail. Composite secrets and
+zonefiles move that same allocation into their public sensitive wrappers.
+Caller-owned transport response storage remains an explicit cleanup boundary.
 
 ## Alternatives Considered
 

@@ -19,7 +19,7 @@ const OK: &[StatusCode] = &[StatusCode::OK];
 const CREATED: &[StatusCode] = &[StatusCode::CREATED];
 const NO_CONTENT: &[StatusCode] = &[StatusCode::NO_CONTENT];
 
-fn prepared(
+pub(super) fn prepared(
     operation: &'static str,
     family: ApiFamily,
     status: StatusCode,
@@ -82,7 +82,10 @@ fn prepared(
     .with_operation_id(operation_id.unwrap_or_else(|_| unreachable!()))
 }
 
-fn response(status: StatusCode, body: &[u8]) -> cloud_sdk::transport::TransportResponse<'_> {
+pub(super) fn response(
+    status: StatusCode,
+    body: &[u8],
+) -> cloud_sdk::transport::TransportResponse<'_> {
     let content_type = ResponseContentType::new("application/json; charset=utf-8");
     assert!(content_type.is_ok());
     cloud_sdk::transport::TransportResponse::new(status, body)

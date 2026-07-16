@@ -3,10 +3,9 @@
 use alloc::string::String;
 use alloc::vec::Vec;
 
-use serde_json::Value;
-
-use super::{ResponseModelError, checked_text, object, required};
+use super::{ResponseModelError, checked_text, object, required, value_text};
 use crate::pagination::{Page, PaginationMetadata, PerPage};
+use crate::serde::strict_json::{Map, Value};
 
 const MAX_RESOURCES: usize = 1024;
 const MAX_RESOURCE_TEXT_BYTES: usize = 1024;
@@ -137,12 +136,7 @@ pub(crate) fn parse_resource(root: &str, value: &Value) -> Result<Resource, Resp
     let id = parse_id(kind, required(fields, "id")?)?;
     let name = fields
         .get("name")
-        .map(|value| {
-            value
-                .as_str()
-                .ok_or(ResponseModelError::WrongType)
-                .and_then(|text| checked_text(text, MAX_RESOURCE_TEXT_BYTES))
-        })
+        .map(|value| value_text(value, MAX_RESOURCE_TEXT_BYTES))
         .transpose()?;
     let status = fields
         .get("status")
@@ -188,8 +182,7 @@ pub(crate) fn parse_pagination(value: &Value) -> Result<PaginationMetadata, Resp
 
 fn parse_id(kind: ResourceKind, value: &Value) -> Result<ResourceIdentifier, ResponseModelError> {
     if kind == ResourceKind::Rrset {
-        let value = value.as_str().ok_or(ResponseModelError::WrongType)?;
-        return checked_text(value, MAX_RESOURCE_TEXT_BYTES)
+        return value_text(value, MAX_RESOURCE_TEXT_BYTES)
             .map(ResourceIdentifier::Text)
             .map_err(|_| ResponseModelError::InvalidIdentifier);
     }
@@ -202,45 +195,43 @@ fn parse_id(kind: ResourceKind, value: &Value) -> Result<ResourceIdentifier, Res
 }
 
 fn parse_status(kind: ResourceKind, value: &Value) -> Result<String, ResponseModelError> {
-    let value = value.as_str().ok_or(ResponseModelError::WrongType)?;
-    let known = match kind {
-        ResourceKind::Server => matches!(
-            value,
-            "running"
-                | "initializing"
-                | "starting"
-                | "stopping"
-                | "off"
-                | "deleting"
-                | "migrating"
-                | "rebuilding"
-                | "unknown"
-        ),
-        ResourceKind::Image => matches!(value, "available" | "creating" | "unavailable"),
-        ResourceKind::Volume => matches!(value, "available" | "creating"),
-        ResourceKind::Zone => matches!(value, "ok" | "updating" | "error"),
-        ResourceKind::StorageBox => matches!(value, "active" | "initializing" | "locked"),
-        _ => true,
-    };
-    if !known {
-        return Err(ResponseModelError::UnknownEnumValue);
-    }
-    checked_text(value, MAX_RESOURCE_TEXT_BYTES)
+    value
+        .try_with_str(|value| {
+            let known = match kind {
+                ResourceKind::Server => matches!(
+                    value,
+                    "running"
+                        | "initializing"
+                        | "starting"
+                        | "stopping"
+                        | "off"
+                        | "deleting"
+                        | "migrating"
+                        | "rebuilding"
+                        | "unknown"
+                ),
+                ResourceKind::Image => matches!(value, "available" | "creating" | "unavailable"),
+                ResourceKind::Volume => matches!(value, "available" | "creating"),
+                ResourceKind::Zone => matches!(value, "ok" | "updating" | "error"),
+                ResourceKind::StorageBox => matches!(value, "active" | "initializing" | "locked"),
+                _ => true,
+            };
+            if !known {
+                return Err(ResponseModelError::UnknownEnumValue);
+            }
+            checked_text(value, MAX_RESOURCE_TEXT_BYTES)
+        })
+        .map_err(|_| ResponseModelError::InvalidText)?
+        .ok_or(ResponseModelError::WrongType)?
 }
 
-fn required_u64(
-    object: &serde_json::Map<String, Value>,
-    key: &str,
-) -> Result<u64, ResponseModelError> {
+fn required_u64(object: &Map, key: &str) -> Result<u64, ResponseModelError> {
     required(object, key)?
         .as_u64()
         .ok_or(ResponseModelError::InvalidPagination)
 }
 
-fn required_nullable_u64(
-    object: &serde_json::Map<String, Value>,
-    key: &str,
-) -> Result<Option<u64>, ResponseModelError> {
+fn required_nullable_u64(object: &Map, key: &str) -> Result<Option<u64>, ResponseModelError> {
     let value = required(object, key)?;
     if value.is_null() {
         Ok(None)
@@ -252,10 +243,7 @@ fn required_nullable_u64(
     }
 }
 
-fn optional_page(
-    object: &serde_json::Map<String, Value>,
-    key: &str,
-) -> Result<Option<Page>, ResponseModelError> {
+fn optional_page(object: &Map, key: &str) -> Result<Option<Page>, ResponseModelError> {
     required_nullable_u64(object, key)?
         .map(|value| Page::new(value).map_err(|_| ResponseModelError::InvalidPagination))
         .transpose()

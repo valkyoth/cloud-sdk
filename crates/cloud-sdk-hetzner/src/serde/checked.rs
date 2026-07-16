@@ -8,15 +8,15 @@ use cloud_sdk::Provider;
 use cloud_sdk::operation::{PreparedRequest, ResponsePolicyError};
 use cloud_sdk::rate_limit::RateLimit;
 use cloud_sdk::transport::{MediaType, TransportResponse};
-use serde_json::Value;
 
 use super::binding::{ResponseBinding, ResponseShape, find};
 use super::models::{
-    CompositeResult, HetznerSuccess, NamedSensitiveText, ResponseModelError, SensitiveText,
-    checked_text, object, parse_action, parse_actions, parse_folders, parse_metrics,
-    parse_pagination, parse_pricing, parse_resource, parse_resources, parse_zonefile, required,
+    CompositeResult, HetznerSuccess, NamedSensitiveText, ResponseModelError, SensitiveText, object,
+    parse_action, parse_actions, parse_folders, parse_metrics, parse_pagination, parse_pricing,
+    parse_resource, parse_resources, parse_zonefile, required, value_text,
 };
 use super::strict_json;
+use super::strict_json::{Map, Value};
 use super::{MAX_SERDE_RESPONSE_BYTES, ResponseBytes, ResponseSizeError};
 use crate::response::ApiErrorCode;
 
@@ -203,16 +203,16 @@ fn decode_provider_error(
     let envelope = object(&value).map_err(HetznerDecodeError::Model)?;
     let error = object(required(envelope, "error").map_err(HetznerDecodeError::Model)?)
         .map_err(HetznerDecodeError::Model)?;
-    let code = required(error, "code")
-        .map_err(HetznerDecodeError::Model)?
-        .as_str()
-        .ok_or(HetznerDecodeError::Model(ResponseModelError::WrongType))?;
-    let message = required(error, "message")
-        .map_err(HetznerDecodeError::Model)?
-        .as_str()
-        .ok_or(HetznerDecodeError::Model(ResponseModelError::WrongType))?;
-    let code = checked_text(code, 128).map_err(HetznerDecodeError::Model)?;
-    let message = checked_text(message, 16_384).map_err(HetznerDecodeError::Model)?;
+    let code = value_text(
+        required(error, "code").map_err(HetznerDecodeError::Model)?,
+        128,
+    )
+    .map_err(HetznerDecodeError::Model)?;
+    let message = value_text(
+        required(error, "message").map_err(HetznerDecodeError::Model)?,
+        16_384,
+    )
+    .map_err(HetznerDecodeError::Model)?;
     Ok(HetznerApiError {
         code: ApiErrorCode::from_api_str(&code),
         message,
@@ -271,7 +271,7 @@ fn decode_success(
 
 fn decode_resources(
     binding: ResponseBinding,
-    envelope: &serde_json::Map<String, Value>,
+    envelope: &Map,
 ) -> Result<HetznerSuccess, ResponseModelError> {
     let value = required(envelope, binding.root)?;
     if binding.shape == ResponseShape::Resource {
@@ -291,7 +291,7 @@ fn decode_resources(
 
 fn decode_composite(
     binding: ResponseBinding,
-    envelope: &mut serde_json::Map<String, Value>,
+    envelope: &mut Map,
 ) -> Result<HetznerSuccess, ResponseModelError> {
     let secrets = take_composite_secrets(envelope)?;
     let resource = if binding.root == "-" {
@@ -319,7 +319,7 @@ fn decode_composite(
 }
 
 fn take_composite_secrets(
-    envelope: &mut serde_json::Map<String, Value>,
+    envelope: &mut Map,
 ) -> Result<Vec<NamedSensitiveText>, ResponseModelError> {
     let mut secrets = Vec::new();
     for key in ["root_password", "password", "wss_url"] {
@@ -327,10 +327,10 @@ fn take_composite_secrets(
             if value.is_null() {
                 continue;
             }
-            let Value::String(value) = value else {
-                return Err(ResponseModelError::WrongType);
-            };
-            let secret = SensitiveText::new(core::mem::take(value));
+            let secret = value
+                .take_string()
+                .map(SensitiveText::new)
+                .ok_or(ResponseModelError::WrongType)?;
             secret.validate(65_536)?;
             secrets.push(NamedSensitiveText::new(key, secret));
         }
@@ -338,23 +338,15 @@ fn take_composite_secrets(
     Ok(secrets)
 }
 
-fn object_mut(
-    value: &mut Value,
-) -> Result<&mut serde_json::Map<String, Value>, ResponseModelError> {
+fn object_mut(value: &mut Value) -> Result<&mut Map, ResponseModelError> {
     value.as_object_mut().ok_or(ResponseModelError::WrongType)
 }
 
-fn required_mut<'a>(
-    object: &'a mut serde_json::Map<String, Value>,
-    key: &str,
-) -> Result<&'a mut Value, ResponseModelError> {
+fn required_mut<'a>(object: &'a mut Map, key: &str) -> Result<&'a mut Value, ResponseModelError> {
     object.get_mut(key).ok_or(ResponseModelError::MissingField)
 }
 
-fn validate_required(
-    envelope: &serde_json::Map<String, Value>,
-    required_fields: &str,
-) -> Result<(), ResponseModelError> {
+fn validate_required(envelope: &Map, required_fields: &str) -> Result<(), ResponseModelError> {
     if required_fields == "-" {
         return Ok(());
     }

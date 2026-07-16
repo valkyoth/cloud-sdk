@@ -41,9 +41,12 @@ owned secret cleanup. It does not enable `std`.
 
 Root passwords, console passwords, WebSocket console URLs, API error messages,
 and zonefiles remain redacted from diagnostics. Closure-scoped accessors expose
-the values when needed. Composite secrets and zonefiles move from parser-owned
-strings into volatile-clearing `SecretString` storage without another plaintext
-copy. Cloning a response shares the protected allocation rather than copying
-plaintext; the allocation is cleared after the final clone drops. The SDK does
-not clear caller-owned transport response storage; sanitize that complete
-buffer after the decoded value is no longer needed.
+the values when needed. Every JSON string value enters volatile-clearing
+`SecretString` storage during parsing, including strings later discarded by
+duplicate, trailing-document, required-field, or model-validation errors.
+Composite secrets and zonefiles move that existing allocation into the public
+model without another plaintext copy. Cloning a response shares the protected
+allocation rather than copying plaintext; the allocation is cleared after the
+final clone drops. The SDK does not clear caller-owned transport response
+storage; sanitize that complete buffer after the decoded value is no longer
+needed.
