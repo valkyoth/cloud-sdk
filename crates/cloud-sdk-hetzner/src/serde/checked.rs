@@ -15,7 +15,6 @@ use super::models::{
     CompositeResult, HetznerSuccess, NamedSensitiveText, ResponseModelError, SensitiveText,
     checked_text, object, parse_action, parse_actions, parse_folders, parse_metrics,
     parse_pagination, parse_pricing, parse_resource, parse_resources, parse_zonefile, required,
-    validate_text,
 };
 use super::strict_json;
 use super::{MAX_SERDE_RESPONSE_BYTES, ResponseBytes, ResponseSizeError};
@@ -332,7 +331,7 @@ fn take_composite_secrets(
                 return Err(ResponseModelError::WrongType);
             };
             let secret = SensitiveText::new(core::mem::take(value));
-            validate_text(secret.expose_secret(), 65_536)?;
+            secret.validate(65_536)?;
             secrets.push(NamedSensitiveText::new(key, secret));
         }
     }

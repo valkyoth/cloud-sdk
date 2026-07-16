@@ -30,8 +30,9 @@ generic `Value` representation remains private. A bounded parser seed rejects
 duplicate keys, excessive nesting, oversized strings, and oversized
 containers before resource conversion. Only validated provider-owned models
 cross the public boundary. Source-locked secret strings move from the private
-JSON tree into volatile-clearing `SecretText` storage without another
-plaintext allocation.
+JSON tree into volatile-clearing `SecretString` storage without another
+plaintext allocation. Checked response models expose those values only through
+closure-scoped UTF-8 access.
 
 ## Transitive Surface
 

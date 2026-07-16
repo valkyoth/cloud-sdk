@@ -14,7 +14,7 @@ all-features = true
 
 [features]
 default = []
-alloc = ["cloud-sdk/alloc"]
+alloc = ["cloud-sdk/alloc", "sanitization/alloc"]
 std = ["alloc", "cloud-sdk/std"]
 
 [dependencies]

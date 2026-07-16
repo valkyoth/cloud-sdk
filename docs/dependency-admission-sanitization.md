@@ -14,7 +14,8 @@ The dependency is the first-party crate published from
 runtime dependencies with default features disabled.
 
 `cloud-sdk-sanitization` exposes a narrow `sanitize_bytes` function, a borrowed
-`SecretBuffer` guard, and an opt-in allocation-backed `SecretText` guard.
+`SecretBuffer` guard, and the reviewed opt-in allocation-backed
+`sanitization::SecretString`.
 Provider crates remain independent of the implementation by default, and the
 default `cloud-sdk` and `cloud-sdk-hetzner` graphs remain unchanged. The
 Hetzner `serde` feature enables the allocation-backed boundary so decoded
@@ -27,11 +28,12 @@ reviewed internal unsafe boundary. This workspace keeps `unsafe_code =
 "forbid"` for its own crates and does not duplicate that implementation.
 
 The borrowed guard clears its full destination on drop, including after errors,
-early returns, and unwind where unwind exists. `SecretText` consumes a `String`
-without making another plaintext copy and clears its initialized UTF-8 bytes on
-drop. Neither guard can clear immutable source strings, transport copies,
-kernel buffers, crash dumps, swap, remote systems, allocator metadata, or
-copies outside guarded storage.
+early returns, and unwind where unwind exists. `SecretString` consumes a
+`String` without making another plaintext copy, clears its full allocation
+capacity on drop, clears old allocations before growth, and exposes UTF-8 only
+through checked closures. Neither guard can clear immutable source strings,
+transport copies, kernel buffers, crash dumps, swap, remote systems, allocator
+metadata, or copies outside guarded storage.
 
 No interoperability features are enabled. In particular, the optional
 `zeroize`, `subtle`, memory-locking, derive, and platform features are absent

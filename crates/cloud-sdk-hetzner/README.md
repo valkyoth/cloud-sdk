@@ -244,8 +244,10 @@ assert_eq!(server.name(), Some("web-1"));
 
 Direct parser use bypasses the prepared status, content-type, body-shape, and
 operation-binding checks. Secret-bearing responses and zonefiles move their
-parser-owned strings into volatile-clearing `SecretText` storage and use
-redacted diagnostics. Callers still own and must clear the original transport
+parser-owned strings into volatile-clearing `SecretString` storage, expose
+their text only through checked closures, and use redacted diagnostics. Cloned
+response models share the protected allocation, which is cleared after the
+final clone drops. Callers still own and must clear the original transport
 response buffer.
 
 ## RRSet Request Example

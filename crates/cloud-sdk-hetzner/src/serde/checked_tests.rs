@@ -175,6 +175,15 @@ fn decodes_composite_special_empty_and_storage_families() {
         return;
     };
     assert_eq!(composite.secrets().len(), 1);
+    let Some(secret) = composite.secrets().first() else {
+        return;
+    };
+    assert_eq!(
+        secret
+            .value()
+            .try_with_secret(|value| value == "dont-log-this"),
+        Ok(true)
+    );
     assert!(!format!("{composite:?}").contains("dont-log-this"));
 
     let metrics = br#"{"metrics":{"start":"2026-01-01T00:00:00Z","end":"2026-01-01T01:00:00Z","step":60.0,"time_series":{"cpu":{"values":[[1.5,"42"]]}}}}"#;
@@ -186,12 +195,17 @@ fn decodes_composite_special_empty_and_storage_families() {
         .is_ok()
     );
     let zonefile = br#"{"zonefile":"example.com. 60 IN A 192.0.2.1"}"#;
-    assert!(
-        decode_response(
-            prepared("get_zone_zonefile", ApiFamily::Cloud, StatusCode::OK),
-            response(StatusCode::OK, zonefile),
-        )
-        .is_ok()
+    let decoded = decode_response(
+        prepared("get_zone_zonefile", ApiFamily::Cloud, StatusCode::OK),
+        response(StatusCode::OK, zonefile),
+    );
+    let Ok(decoded) = decoded else { return };
+    let HetznerSuccess::ZoneFile(zonefile) = decoded.success() else {
+        return;
+    };
+    assert_eq!(
+        zonefile.try_with_zonefile(|value| value == "example.com. 60 IN A 192.0.2.1"),
+        Ok(true)
     );
     let pricing = br#"{"pricing":{"currency":"EUR","vat_rate":"19.0","primary_ips":[],"floating_ips":[],"image":{},"volume":{},"server_backup":{},"server_types":[],"load_balancer_types":[],"floating_ip":{}}}"#;
     assert!(

@@ -28,6 +28,21 @@ if printf '%s\n' "$alloc_tree" | grep -Eq '(^|[[:space:]])(zeroize|subtle) v'; t
     echo "sanitization boundary: alloc feature enabled an interoperability dependency" >&2
     exit 1
 fi
+alloc_features=$(
+    cargo tree -p cloud-sdk-sanitization --no-default-features \
+        --features alloc --edges no-dev,features \
+        --invert sanitization@1.2.4
+)
+if ! printf '%s\n' "$alloc_features" |
+    grep -Fq 'sanitization feature "alloc"'; then
+    echo "sanitization boundary: alloc feature is missing protected owned strings" >&2
+    exit 1
+fi
+if printf '%s\n' "$alloc_features" |
+    grep -Eq 'sanitization feature "(serde|std|subtle-interop|zeroize-interop)"'; then
+    echo "sanitization boundary: alloc feature enabled an unadmitted dependency feature" >&2
+    exit 1
+fi
 
 for package in cloud-sdk cloud-sdk-hetzner; do
     default_tree=$(cargo tree -p "$package" --no-default-features --edges normal)

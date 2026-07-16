@@ -56,9 +56,10 @@ let mut output = [0_u8; 128];
 assert_eq!(output, [0_u8; 128]);
 ```
 
-With the optional `alloc` feature, `SecretText` consumes an owned `String`
-without copying its plaintext bytes and volatile-clears the initialized UTF-8
-storage on drop:
+With the optional `alloc` feature, the reviewed
+`sanitization::SecretString` is re-exported. It consumes an owned `String`
+without copying its plaintext bytes, restricts access to checked closures, and
+volatile-clears the full allocation capacity on drop:
 
 ```rust
 # #[cfg(feature = "alloc")]
@@ -66,11 +67,14 @@ storage on drop:
 extern crate alloc;
 
 use alloc::string::String;
-use cloud_sdk_sanitization::SecretText;
+use cloud_sdk_sanitization::SecretString;
 
-let secret = SecretText::new(String::from("temporary secret"));
-assert_eq!(secret.expose_secret(), "temporary secret");
-assert_eq!(alloc::format!("{secret:?}"), "SecretText([redacted])");
+let secret = SecretString::from_string(String::from("temporary secret"));
+assert_eq!(
+    secret.try_with_secret(|value| value == "temporary secret"),
+    Ok(true)
+);
+assert!(!alloc::format!("{secret:?}").contains("temporary secret"));
 # }
 # #[cfg(not(feature = "alloc"))]
 # fn main() {}
@@ -90,9 +94,10 @@ keeps its default features disabled in every configuration.
 ## Security Notes
 
 `SecretBuffer` volatile-clears its entire borrowed slice on drop, including
-after early returns and unwind where unwind exists. `SecretText` clears its
-initialized owned UTF-8 bytes on drop. `sanitize_bytes` provides the same
-reviewed primitive for explicit cleanup.
+after early returns and unwind where unwind exists. `SecretString` clears its
+full owned allocation capacity on drop and clears old allocations before
+growth. `sanitize_bytes` provides the same reviewed primitive for explicit
+cleanup.
 
 These helpers do not clear immutable source strings or copies made by
 transports, operating systems, crash handlers, swap, remote services, or other

@@ -40,8 +40,10 @@ owned secret cleanup. It does not enable `std`.
 ## Sensitive Responses
 
 Root passwords, console passwords, WebSocket console URLs, API error messages,
-and zonefiles remain redacted from diagnostics. Explicit accessors expose the
-values when needed. Composite secrets and zonefiles move from parser-owned
-strings into volatile-clearing `SecretText` storage without another plaintext
-copy. The SDK does not clear caller-owned transport response storage; sanitize
-that complete buffer after the decoded value is no longer needed.
+and zonefiles remain redacted from diagnostics. Closure-scoped accessors expose
+the values when needed. Composite secrets and zonefiles move from parser-owned
+strings into volatile-clearing `SecretString` storage without another plaintext
+copy. Cloning a response shares the protected allocation rather than copying
+plaintext; the allocation is cleared after the final clone drops. The SDK does
+not clear caller-owned transport response storage; sanitize that complete
+buffer after the decoded value is no longer needed.

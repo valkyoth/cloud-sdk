@@ -1,10 +1,11 @@
 //! Metrics, pricing, folder, and sensitive text models.
 
 use alloc::string::String;
+use alloc::sync::Arc;
 use alloc::vec::Vec;
 use core::fmt;
 
-use cloud_sdk_sanitization::SecretText as SanitizedSecretText;
+use cloud_sdk_sanitization::SecretString;
 use serde_json::Value;
 
 use super::{ResponseModelError, checked_text, object, required, validate_text};
@@ -13,21 +14,41 @@ const MAX_FOLDERS: usize = 4096;
 const MAX_METRIC_SERIES: usize = 512;
 const MAX_METRIC_POINTS: usize = 65_536;
 
-/// Sensitive provider text requiring an explicit access call.
-#[derive(Clone, Eq, PartialEq)]
-pub struct SensitiveText(SanitizedSecretText);
+/// Sensitive provider text requiring closure-scoped access.
+///
+/// Clones share one protected allocation. The allocation is cleared after the
+/// final clone is dropped.
+#[derive(Clone)]
+pub struct SensitiveText(Arc<SecretString>);
 
 impl SensitiveText {
     pub(crate) fn new(value: String) -> Self {
-        Self(SanitizedSecretText::new(value))
+        Self(Arc::new(SecretString::from_string(value)))
     }
 
-    /// Exposes the sensitive text. Do not log it and clear source storage.
-    #[must_use]
-    pub fn expose_secret(&self) -> &str {
-        self.0.expose_secret()
+    /// Runs a closure with temporary read-only access to the sensitive text.
+    pub fn try_with_secret<R>(
+        &self,
+        inspect: impl FnOnce(&str) -> R,
+    ) -> Result<R, core::str::Utf8Error> {
+        self.0.try_with_secret(inspect)
+    }
+
+    pub(crate) fn validate(&self, max: usize) -> Result<(), ResponseModelError> {
+        self.try_with_secret(|value| validate_text(value, max))
+            .map_err(|_| ResponseModelError::InvalidText)?
     }
 }
+
+impl PartialEq for SensitiveText {
+    fn eq(&self, other: &Self) -> bool {
+        other
+            .try_with_secret(|value| self.0.constant_time_eq(value))
+            .unwrap_or(false)
+    }
+}
+
+impl Eq for SensitiveText {}
 
 impl fmt::Debug for SensitiveText {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -40,10 +61,12 @@ impl fmt::Debug for SensitiveText {
 pub struct ZoneFile(SensitiveText);
 
 impl ZoneFile {
-    /// Exposes the zonefile. It can contain operationally sensitive records.
-    #[must_use]
-    pub fn expose_zonefile(&self) -> &str {
-        self.0.expose_secret()
+    /// Runs a closure with temporary access to the sensitive zonefile.
+    pub fn try_with_zonefile<R>(
+        &self,
+        inspect: impl FnOnce(&str) -> R,
+    ) -> Result<R, core::str::Utf8Error> {
+        self.0.try_with_secret(inspect)
     }
 }
 
@@ -192,7 +215,7 @@ pub(crate) fn parse_zonefile(value: &mut Value) -> Result<ZoneFile, ResponseMode
         return Err(ResponseModelError::WrongType);
     };
     let secret = SensitiveText::new(core::mem::take(value));
-    validate_text(secret.expose_secret(), 8_388_608)?;
+    secret.validate(8_388_608)?;
     Ok(ZoneFile(secret))
 }
 
@@ -303,4 +326,35 @@ fn text(
         .as_str()
         .ok_or(ResponseModelError::WrongType)
         .and_then(|value| checked_text(value, max))
+}
+
+#[cfg(test)]
+mod tests {
+    use alloc::string::String;
+    use alloc::sync::Arc;
+
+    use super::SensitiveText;
+
+    #[test]
+    fn sensitive_text_clones_share_protected_storage() {
+        let secret = SensitiveText::new(String::from("temporary secret"));
+        let clone = secret.clone();
+
+        assert!(Arc::ptr_eq(&secret.0, &clone.0));
+        assert_eq!(
+            clone.try_with_secret(|value| value == "temporary secret"),
+            Ok(true)
+        );
+        assert!(!alloc::format!("{clone:?}").contains("temporary secret"));
+    }
+
+    #[test]
+    fn sensitive_text_equality_compares_secret_contents() {
+        let left = SensitiveText::new(String::from("same"));
+        let equal = SensitiveText::new(String::from("same"));
+        let different = SensitiveText::new(String::from("different"));
+
+        assert_eq!(left, equal);
+        assert_ne!(left, different);
+    }
 }

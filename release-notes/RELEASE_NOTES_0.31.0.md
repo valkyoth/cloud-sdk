@@ -35,8 +35,10 @@ size cannot be checked independently or accidentally omitted.
   crossing the public model boundary.
 - Secret-bearing fields and zonefiles require explicit accessors and remain
   redacted from diagnostics. Parser-owned secret strings move without a
-  plaintext copy into `cloud-sdk-sanitization::SecretText`, whose initialized
-  UTF-8 bytes are volatile-cleared on drop.
+  plaintext copy into the reviewed `sanitization::SecretString`, which clears
+  full allocation capacity on drop and exposes UTF-8 only through checked
+  closures. Cloned response models share the protected allocation until the
+  final clone drops.
 
 ## Parser And Supply Chain
 

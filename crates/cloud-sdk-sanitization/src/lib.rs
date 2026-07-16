@@ -1,17 +1,11 @@
 #![no_std]
 #![doc = include_str!("../README.md")]
 
-#[cfg(feature = "alloc")]
-extern crate alloc;
-
 #[cfg(feature = "std")]
 extern crate std;
 
 #[cfg(feature = "alloc")]
-mod secret_text;
-
-#[cfg(feature = "alloc")]
-pub use secret_text::SecretText;
+pub use sanitization::SecretString;
 
 /// Volatile-clears an ordinary caller-owned byte buffer.
 ///
@@ -65,6 +59,11 @@ impl core::fmt::Debug for SecretBuffer<'_> {
 
 #[cfg(test)]
 mod tests {
+    #[cfg(feature = "alloc")]
+    extern crate alloc;
+
+    #[cfg(feature = "alloc")]
+    use super::SecretString;
     use super::{SecretBuffer, sanitize_bytes};
 
     #[test]
@@ -100,5 +99,17 @@ mod tests {
         let mut bytes = [0xa5_u8; 8];
         assert_eq!(write_then_fail(&mut bytes), Err(()));
         assert_eq!(bytes, [0; 8]);
+    }
+
+    #[cfg(feature = "alloc")]
+    #[test]
+    fn reexported_secret_string_uses_scoped_access_and_redacted_debug() {
+        let secret = SecretString::from_string(alloc::string::String::from("temporary secret"));
+
+        assert_eq!(
+            secret.try_with_secret(|value| value == "temporary secret"),
+            Ok(true)
+        );
+        assert!(!alloc::format!("{secret:?}").contains("temporary secret"));
     }
 }
