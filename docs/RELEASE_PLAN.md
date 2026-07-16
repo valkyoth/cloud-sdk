@@ -198,7 +198,7 @@ has not been assigned to a release.
 | The secure end-to-end workflow is still manually assembled. | Move the high-level client to `v0.41.0`, after the neutral transport, metadata, typed-operation, and permit contracts are stable. |
 | Pagination/action workflows and diagnostics remain low-level, while the testkit cannot yet model dynamic multi-request scenarios. | Add pure workflow drivers, payload-free structured diagnostics, dynamic responders, fault injection, and request recording in `v0.42.0`. |
 | Drift tooling is Hetzner-specific and historical review evidence depends mainly on fingerprints. | Add a provider-manifest drift engine, canonical reviewed diffs, alert ownership, and compatibility policy in `v0.43.0`. |
-| Code review alone cannot prove that the provider-neutral core supports materially different providers. | Build an unpublished 5-10-operation second-provider architecture probe and freeze the neutral contracts only after conformance in `v0.44.0`. |
+| Code review alone cannot prove that the provider-neutral core supports materially different providers. | Build an unpublished 5-10-operation OVHcloud API v2 architecture probe and freeze the neutral contracts only after its geographic endpoint, OAuth2, custom-header, cursor-pagination, and asynchronous-task requirements pass conformance in `v0.44.0`. |
 | Existing Hetzner response models expose common identity rather than the complete supported field set, and timestamp validation is inconsistent. | Complete Cloud models and shared RFC3339 validation in `v0.45.0`, then complete DNS, security, and Console Storage Box models in `v0.46.0`. |
 | Robot Webservice has different auth, encoding, and API shape than Cloud/DNS. | Assigned a separate source lock and twelve pre-1.0 implementation and hardening milestones from `v0.47.0` through `v0.58.0`. |
 | Legacy Robot Storage Box operations are deprecated and overlap the supported Console API. | The `v0.47.0` Robot matrix must mark all 16 legacy operations excluded and must not create a Robot Storage Box module. |
@@ -207,7 +207,49 @@ has not been assigned to a release.
 | Successful decoding does not automatically clear caller-owned wire storage. | Add `decode_and_clear` and guard-based cleanup in `v0.37.0`, with error, success, cancellation, and panic-unwind tests where `std` is available. |
 | Release controls do not by themselves provide organizationally independent review or repository-pinned signer authorization. | Add explicit governance limits, signer authorization/rotation policy, protected release guidance, provenance review, and independent pre-1.0 review evidence in `v0.59.0`; do not claim independence when it was not available. |
 | Destructive and billable behavior lacks controlled disposable-account integration evidence. | Add an explicitly manual mutation harness with spending ceilings, unique prefixes, cleanup ledgers, and empty-inventory verification in `v0.60.0`; CI remains incapable of invoking it. |
-| Future providers need proven patterns but are not part of the Hetzner 1.0 product claim. | The unpublished probe lands in `v0.44.0`; publishing a second provider remains post-1.0 and requires its own source lock, threat model, and release plan. |
+| Future providers need proven patterns but are not part of the Hetzner 1.0 product claim. | The unpublished OVHcloud v2 probe lands in `v0.44.0`. Post-1.0 publishing starts with Scaleway, then DigitalOcean, while a full OVHcloud provider follows only after a dedicated plan for its broader v1/v2, authentication, ordering, and OpenStack boundaries. |
+
+## Post-1.0 Provider Sequence
+
+The pre-1.0
+[OVHcloud API v2](https://docs.ovhcloud.com/en/guides/manage-and-operate/api/apiv2/)
+probe is architecture evidence, not a provider release. It stays in an excluded
+package or fixture, is absent from the publish sequence, carries no support
+claim, and must not become `cloud-sdk-ovhcloud` by accident. Its purpose is to
+test contracts that differ materially from Hetzner: geographic API
+authorities, OAuth2 service-account authentication, versioned response
+headers, cursor pagination in headers, and asynchronous task or event
+resources.
+
+Published provider work starts only after the Hetzner `v1.0.0` release:
+
+1. `cloud-sdk-scaleway` is the first published provider. Its source lock and
+   release plan must cover
+   [Scaleway's APIs](https://www.scaleway.com/en/developers/api/), including
+   global, regional, and zonal endpoints, `X-Auth-Token`, PATCH operations,
+   product-specific schemas, page-based pagination, and response quota
+   metadata. Stable GA API versions form the supported completeness claim.
+   Alpha and beta APIs require explicit experimental modules or features and
+   are excluded from stable coverage.
+2. `cloud-sdk-digitalocean` is the second published provider. It must use
+   DigitalOcean's
+   [official OpenAPI source](https://github.com/digitalocean/openapi) and prove
+   the conventional bearer-auth, `/v2`, link-pagination, request-ID,
+   rate-limit, and `Retry-After` path without weakening bounded decoding or
+   retry policy. Large adjacent surfaces such as Spaces, metadata, OAuth
+   applications, and AI services require explicit scope decisions rather than
+   entering the initial claim automatically.
+3. `cloud-sdk-ovhcloud` follows later as a full provider. Its dedicated plan
+   must separate API v2, required API v1 compatibility, OAuth2 and any retained
+   legacy authentication, geographic endpoints, asynchronous tasks, ordering
+   and other billable operations, and OpenStack-based services. The v0.44 probe
+   does not pre-approve those product or security boundaries.
+
+Every published provider keeps one primary crate, a separate official source
+lock, threat model, API matrix, live-test policy, release plan, and pentest
+stop gates. Exact post-1.0 versions are assigned when the preceding provider is
+stable enough that the next provider will not dilute maintenance or security
+review.
 
 ## Milestones
 
@@ -1674,27 +1716,38 @@ canonical-diff reproducibility, scheduled workflow tests, and
 
 Stop gate: `v0.43.0 implementation stop reached. Run pentest for this exact commit.`
 
-### v0.44.0 - Second-Provider Architecture Probe And Core Freeze
+### v0.44.0 - OVHcloud API v2 Architecture Probe And Core Freeze
 
 Goal: prove the neutral contracts against a materially different provider
 before freezing them for 1.0.
 
 Deliverables:
 
-- Survey focused providers such as Scaleway or OVH from official sources and
-  select one probe that exercises regional endpoints, non-bearer auth or
-  signing, custom headers, and non-numbered pagination; use two probes if no
-  single provider covers all required characteristics.
-- Implement 5-10 read-only operations in an unpublished, excluded conformance
-  package or fixture. It is not a supported/public provider release.
+- Source-lock the official
+  [OVHcloud API v2](https://docs.ovhcloud.com/en/guides/manage-and-operate/api/apiv2/)
+  and
+  [OAuth2 service-account](https://docs.ovhcloud.com/en/guides/account-and-service-management/account-information/authenticate-api-with-service-account/)
+  documentation used by the probe.
+- Implement 5-10 read-only OVHcloud API v2 operations in an unpublished,
+  excluded conformance package or fixture. It is not a supported/public
+  provider release.
+- Exercise trusted geographic API-authority selection, provider-owned OAuth2
+  bearer policy, bounded `X-Schemas-Version` metadata, cursor pagination from
+  `X-Pagination-*` headers, and asynchronous task or event response models.
+- Keep OAuth2 token acquisition outside the no_std core while proving that
+  acquired credentials can be bound to the selected official OVHcloud
+  authority without accepting tenant-controlled destinations.
+- Exclude API v1 compatibility, legacy authentication, ordering, mutation,
+  OpenStack product APIs, and all billable behavior from the probe.
 - Require the probe to use core contracts without adding provider-specific
   exceptions to `cloud-sdk`.
 - Record every abstraction change caused by the probe and complete a public
   API/semver freeze review for neutral 1.0 contracts.
 - Preserve the one-primary-crate-per-published-provider rule.
 
-Verification: official source lock for the probe, conformance tests, no-publish
-and dependency-boundary gates, API review, and
+Verification: official source lock for the probe, authority/auth/header/cursor
+and asynchronous-resource conformance tests, no-publish and dependency-boundary
+gates, API review, and
 `scripts/release_0_44_gate.sh`.
 
 Stop gate: `v0.44.0 implementation stop reached. Run pentest for this exact commit.`
@@ -2018,7 +2071,7 @@ Deliverables:
 - Default graphs remain no_std and transport-free; optional blocking, async,
   local async, deterministic-root, and FIPS boundaries have current evidence.
 - Deprecated Robot Storage Box and legacy aliases remain excluded.
-- Provider-neutral contracts have passed the unpublished second-provider probe.
+- Provider-neutral contracts have passed the unpublished OVHcloud API v2 probe.
 - Platform, MSRV, documentation, provenance, SBOM, audit, fuzz, controlled
   mutation, independent-review disclosure, and pentest evidence are current.
 

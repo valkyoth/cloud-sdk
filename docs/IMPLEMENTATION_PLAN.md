@@ -116,8 +116,11 @@ Console Storage Box API already owned by `cloud-sdk-hetzner::storage`.
    Hetzner client, pure workflow drivers, structured diagnostics, and expanded
    testkit scenarios in `v0.39.0` through `v0.42.0`.
 14. Multi-provider proof and source governance: provider-generic drift
-   manifests, canonical historical evidence, and an unpublished second-provider
-   conformance probe before neutral API freeze in `v0.43.0` and `v0.44.0`.
+   manifests, canonical historical evidence, and an unpublished OVHcloud API
+   v2 conformance probe before neutral API freeze in `v0.43.0` and `v0.44.0`.
+   The probe covers trusted geographic authorities, OAuth2 bearer policy,
+   `X-Schemas-Version`, cursor pagination headers, and asynchronous task/event
+   resources without publishing a provider crate or exercising mutations.
 15. Complete pre-Robot Hetzner models: full Cloud, DNS, security, and Console
    Storage Box response fields plus shared calendar-valid RFC3339 handling in
    `v0.45.0` and `v0.46.0`.
@@ -132,10 +135,41 @@ Console Storage Box API already owned by `cloud-sdk-hetzner::storage`.
    independent-review disclosure, controlled disposable-project mutation
    evidence, final API freeze, docs, SBOM, pentest, dependency audit, and
    platform matrix in `v0.59.0` and `v0.60.0`.
-19. Future providers: publish focused provider crates only
-   after the provider's official API source, auth model, transport expectations,
-   and test strategy are documented. The unpublished `v0.44.0` probe proves
-   architecture only and is not a supported provider release.
+19. Future providers: publish focused provider crates only after the provider's
+   official API source, auth model, transport expectations, threat model, API
+   matrix, live-test policy, and release plan are documented. The publication
+   order is Scaleway first, DigitalOcean second, and full OVHcloud later. The
+   unpublished `v0.44.0` OVHcloud v2 probe proves architecture only and is not
+   a supported provider release.
+
+## Post-1.0 Provider Direction
+
+The next published provider is `cloud-sdk-scaleway`. Its initial supported
+scope uses
+[Scaleway's stable GA APIs](https://www.scaleway.com/en/developers/api/) and
+must account for global, regional, and zonal authorities, `X-Auth-Token`, PATCH
+requests, per-product schemas, page-based pagination, and quota headers. Alpha
+and beta APIs remain explicitly experimental and outside the stable
+completeness claim.
+
+`cloud-sdk-digitalocean` follows Scaleway. It uses DigitalOcean's official
+[OpenAPI source](https://github.com/digitalocean/openapi) and validates the
+simpler bearer-auth and `/v2` path together with link pagination, request IDs,
+rate-limit metadata, `Retry-After`, and the same bounded response and explicit
+retry rules used by other providers. Adjacent APIs such as Spaces, metadata,
+OAuth applications, and AI services need separate scope decisions.
+
+`cloud-sdk-ovhcloud` is planned after those providers because a production
+implementation needs a dedicated split for
+[API v2](https://docs.ovhcloud.com/en/guides/manage-and-operate/api/apiv2/),
+any required API v1 coverage, OAuth2 and retained legacy authentication,
+geographic authorities, asynchronous task resources, billable ordering, and
+OpenStack-based products. The `v0.44.0` probe is deliberately too small and too
+isolated to count as this provider implementation.
+
+Each provider uses one primary crate. Shared transport, testkit, sanitization,
+pagination, authentication primitives, and policy abstractions remain neutral
+unless a provider demonstrates a genuinely different requirement.
 
 ## Dependency Admission Plan
 
