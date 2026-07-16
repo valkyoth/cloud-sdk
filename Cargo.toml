@@ -40,10 +40,10 @@ aws-lc-fips-sys = { version = "=0.13.15", default-features = false }
 aws-lc-rs = { version = "=1.17.1", default-features = false }
 aws-lc-sys = { version = "=0.42.0", default-features = false }
 bytes = { version = "1.12.1", default-features = false }
-cloud-sdk = { path = "crates/cloud-sdk", version = "0.31.0" }
+cloud-sdk = { path = "crates/cloud-sdk", version = "0.31.0", default-features = false }
 cloud-sdk-hetzner = { path = "crates/cloud-sdk-hetzner", version = "0.24.0" }
 cloud-sdk-reqwest = { path = "crates/cloud-sdk-reqwest", version = "0.20.2" }
-cloud-sdk-sanitization = { path = "crates/cloud-sdk-sanitization", version = "0.13.17" }
+cloud-sdk-sanitization = { path = "crates/cloud-sdk-sanitization", version = "0.14.0", default-features = false }
 cloud-sdk-testkit = { path = "crates/cloud-sdk-testkit", version = "0.18.2" }
 reqwest = { version = "=0.13.4", default-features = false }
 rustls = { version = "=0.23.42", default-features = false }

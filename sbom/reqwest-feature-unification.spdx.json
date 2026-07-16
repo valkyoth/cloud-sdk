@@ -1,21 +1,21 @@
 {
   "SPDXID": "SPDXRef-DOCUMENT",
   "creationInfo": {
-    "created": "2026-07-16T07:03:38Z",
+    "created": "2026-07-16T07:36:39Z",
     "creators": [
       "Tool: cargo-sbom-v0.10.0",
       "Tool: cloud-sdk-complete-spdx-v1"
     ]
   },
   "dataLicense": "CC0-1.0",
-  "documentNamespace": "https://spdx.org/spdxdocs/reqwest-feature-unification-461ebe06-93c2-404b-bde2-70fe6e54acfb",
+  "documentNamespace": "https://spdx.org/spdxdocs/reqwest-feature-unification-f437cadc-49f1-423c-bed6-ea852dea324a",
   "files": [
     {
       "SPDXID": "SPDXRef-File-cloud_sdk_reqwest_feature_unification_test",
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "475cea2bd1ac2dd2d7f570db41934b9dd3e65d9a"
+          "checksumValue": "4affd3fa8069c9ffc09cb307f98403d996c2f76c"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -349,14 +349,14 @@
       "versionInfo": "0.0.0"
     },
     {
-      "SPDXID": "SPDXRef-Package-cloud-sdk-sanitization-0.13.17",
+      "SPDXID": "SPDXRef-Package-cloud-sdk-sanitization-0.14.0",
       "description": "Optional provider-neutral secret-sanitization boundary for cloud-sdk.",
       "downloadLocation": "NONE",
       "homepage": "https://github.com/valkyoth/cloud-sdk",
       "licenseConcluded": "MIT OR Apache-2.0",
       "licenseDeclared": "MIT OR Apache-2.0",
       "name": "cloud-sdk-sanitization",
-      "versionInfo": "0.13.17"
+      "versionInfo": "0.14.0"
     },
     {
       "SPDXID": "SPDXRef-Package-cmake-0.1.58",
@@ -3835,7 +3835,7 @@
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.20.2",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-sanitization-0.13.17"
+      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-sanitization-0.14.0"
     },
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.20.2",
@@ -3878,12 +3878,12 @@
       "relatedSpdxElement": "SPDXRef-Package-tokio-1.52.3"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-sanitization-0.13.17",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-sanitization-0.14.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-0.31.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-sanitization-0.13.17",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-sanitization-0.14.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-sanitization-1.2.4"
     },

@@ -55,8 +55,9 @@ explicit trust and dependency review.
 - `cloud-sdk-testkit`: provider-neutral no_std ordered mock transport, bounded
   response fixtures, pagination/action/rate-limit metadata, and adversarial
   response corpus. Future releases may add live-test gating helpers.
-- `cloud-sdk-sanitization`: provider-neutral volatile caller-buffer cleanup and
-  guarded secret buffers using the reviewed first-party `sanitization` crate.
+- `cloud-sdk-sanitization`: provider-neutral volatile caller-buffer cleanup,
+  borrowed guards, and opt-in owned UTF-8 secret storage using the reviewed
+  first-party `sanitization` crate.
 
 Future providers add one `cloud-sdk-{provider}` crate. Provider API families
 stay as internal modules, while reusable transports, test infrastructure,

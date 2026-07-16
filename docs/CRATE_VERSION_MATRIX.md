@@ -485,5 +485,5 @@ and adds checked typed success and API error decoding behind the optional
 | `cloud-sdk` | `0.30.0` | `0.31.0` | `code` | Yes | Bind validated provider operation identifiers and expose prepared response-policy validation. |
 | `cloud-sdk-hetzner` | `0.23.0` | `0.24.0` | `code` | Yes | Decode all 208 active operations through source-locked success families and typed API errors. |
 | `cloud-sdk-reqwest` | `0.20.1` | `0.20.2` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.31 facade line. |
-| `cloud-sdk-sanitization` | `0.13.16` | `0.13.17` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.31 facade line. |
+| `cloud-sdk-sanitization` | `0.13.16` | `0.14.0` | `code` | Yes | Add alloc-backed owned UTF-8 secret storage with volatile cleanup for checked provider responses. |
 | `cloud-sdk-testkit` | `0.18.1` | `0.18.2` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.31 facade line. |

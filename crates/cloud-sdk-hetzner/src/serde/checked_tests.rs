@@ -268,11 +268,16 @@ fn returns_typed_redacted_provider_errors() {
         prepared("get_server", ApiFamily::Cloud, StatusCode::OK),
         response(StatusCode::TOO_MANY_REQUESTS, body),
     );
-    let Err(HetznerDecodeError::Provider(error)) = decoded else {
-        return;
+    let error = match &decoded {
+        Err(HetznerDecodeError::Provider(error)) => Some(error),
+        _ => None,
     };
-    assert_eq!(error.message(), "slow down");
-    assert!(!format!("{error:?}").contains("slow down"));
+    assert_eq!(error.map(|error| error.message()), Some("slow down"));
+    assert!(
+        error
+            .map(|error| format!("{error:?}"))
+            .is_some_and(|debug| !debug.contains("slow down"))
+    );
 }
 
 #[test]

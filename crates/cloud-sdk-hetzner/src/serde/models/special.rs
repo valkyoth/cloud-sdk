@@ -4,9 +4,10 @@ use alloc::string::String;
 use alloc::vec::Vec;
 use core::fmt;
 
+use cloud_sdk_sanitization::SecretText as SanitizedSecretText;
 use serde_json::Value;
 
-use super::{ResponseModelError, checked_text, object, required};
+use super::{ResponseModelError, checked_text, object, required, validate_text};
 
 const MAX_FOLDERS: usize = 4096;
 const MAX_METRIC_SERIES: usize = 512;
@@ -14,17 +15,17 @@ const MAX_METRIC_POINTS: usize = 65_536;
 
 /// Sensitive provider text requiring an explicit access call.
 #[derive(Clone, Eq, PartialEq)]
-pub struct SensitiveText(String);
+pub struct SensitiveText(SanitizedSecretText);
 
 impl SensitiveText {
     pub(crate) fn new(value: String) -> Self {
-        Self(value)
+        Self(SanitizedSecretText::new(value))
     }
 
     /// Exposes the sensitive text. Do not log it and clear source storage.
     #[must_use]
     pub fn expose_secret(&self) -> &str {
-        &self.0
+        self.0.expose_secret()
     }
 }
 
@@ -186,11 +187,13 @@ impl fmt::Debug for FolderList {
     }
 }
 
-pub(crate) fn parse_zonefile(value: &Value) -> Result<ZoneFile, ResponseModelError> {
-    let value = value.as_str().ok_or(ResponseModelError::WrongType)?;
-    checked_text(value, 8_388_608)
-        .map(SensitiveText::new)
-        .map(ZoneFile)
+pub(crate) fn parse_zonefile(value: &mut Value) -> Result<ZoneFile, ResponseModelError> {
+    let Value::String(value) = value else {
+        return Err(ResponseModelError::WrongType);
+    };
+    let secret = SensitiveText::new(core::mem::take(value));
+    validate_text(secret.expose_secret(), 8_388_608)?;
+    Ok(ZoneFile(secret))
 }
 
 pub(crate) fn parse_folders(value: &Value) -> Result<FolderList, ResponseModelError> {

@@ -1,8 +1,17 @@
 #![no_std]
 #![doc = include_str!("../README.md")]
 
+#[cfg(feature = "alloc")]
+extern crate alloc;
+
 #[cfg(feature = "std")]
 extern crate std;
+
+#[cfg(feature = "alloc")]
+mod secret_text;
+
+#[cfg(feature = "alloc")]
+pub use secret_text::SecretText;
 
 /// Volatile-clears an ordinary caller-owned byte buffer.
 ///

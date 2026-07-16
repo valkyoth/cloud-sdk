@@ -18,7 +18,7 @@
 | OpenAPI integrity | exact non-redirecting HTTPS source URL with default certificate and hostname verification; full pinned SHA-256 before parsing; size/time ceilings and no-follow descriptor reads for local inputs |
 | public IPv6 targets | conservative IANA allocation allowlist pinned in `docs/IANA_IPV6_SOURCE_LOCK.md`; live registry drift uses exact non-redirecting HTTPS URLs, bounded downloads, and digest-before-parse authentication |
 | secret buffer failure | JSON writes preflight capacity and leave undersized buffers unchanged |
-| secret buffer cleanup | `cloud-sdk-sanitization::SecretBuffer` volatile-clears the full caller-owned destination on drop |
+| secret buffer cleanup | `cloud-sdk-sanitization::SecretBuffer` volatile-clears the full caller-owned destination on drop; alloc-backed `SecretText` consumes owned UTF-8 without another plaintext copy and clears initialized bytes on drop |
 | private-key output | escaped atomic writer only; no raw accessor or ordinary equality; guarded cleanup tested |
 | DNS TSIG policy | HMAC-SHA256 only; canonical Base64; minimum 32 decoded bytes; no ordinary equality on secret-bearing types |
 | DNS RRSet mutations | source-locked RR types; bounded unique redacted records; mandatory change-TTL intent; atomic JSON-string writers |

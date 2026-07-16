@@ -29,7 +29,7 @@ pub enum ResponseModelError {
     WrongType,
     /// A resource or action identifier is invalid.
     InvalidIdentifier,
-    /// A bounded text field is empty, too long, or contains control bytes.
+    /// A bounded text field is empty, too long, or contains unsafe controls.
     InvalidText,
     /// A provider enum contains an unknown value.
     UnknownEnumValue,
@@ -178,8 +178,51 @@ pub(super) fn required<'a>(
 }
 
 pub(super) fn checked_text(value: &str, max: usize) -> Result<String, ResponseModelError> {
-    if value.is_empty() || value.len() > max || value.bytes().any(|byte| byte.is_ascii_control()) {
+    validate_text(value, max)?;
+    Ok(String::from(value))
+}
+
+pub(super) fn validate_text(value: &str, max: usize) -> Result<(), ResponseModelError> {
+    if value.is_empty() || value.len() > max || value.chars().any(is_unsafe_display_character) {
         return Err(ResponseModelError::InvalidText);
     }
-    Ok(String::from(value))
+    Ok(())
+}
+
+fn is_unsafe_display_character(character: char) -> bool {
+    character.is_control()
+        || matches!(
+            character,
+            '\u{061c}'
+                | '\u{200b}'..='\u{200f}'
+                | '\u{202a}'..='\u{202e}'
+                | '\u{2060}'..='\u{2069}'
+                | '\u{feff}'
+        )
+}
+
+#[cfg(test)]
+mod model_tests {
+    use super::{ResponseModelError, checked_text};
+
+    #[test]
+    fn checked_text_rejects_unicode_controls_and_invisible_formatting() {
+        for value in [
+            "line\u{0085}break",
+            "right\u{202e}left",
+            "zero\u{200b}width",
+            "isolate\u{2066}text",
+            "mark\u{061c}text",
+            "bom\u{feff}text",
+        ] {
+            assert_eq!(
+                checked_text(value, 64),
+                Err(ResponseModelError::InvalidText)
+            );
+        }
+        assert_eq!(
+            checked_text("visible text", 64).as_deref(),
+            Ok("visible text")
+        );
+    }
 }

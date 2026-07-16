@@ -1,21 +1,21 @@
 {
   "SPDXID": "SPDXRef-DOCUMENT",
   "creationInfo": {
-    "created": "2026-07-16T07:03:38Z",
+    "created": "2026-07-16T07:36:39Z",
     "creators": [
       "Tool: cargo-sbom-v0.10.0",
       "Tool: cloud-sdk-complete-spdx-v1"
     ]
   },
   "dataLicense": "CC0-1.0",
-  "documentNamespace": "https://spdx.org/spdxdocs/fuzz-63232915-1c8b-4810-abc7-332bb5ca1391",
+  "documentNamespace": "https://spdx.org/spdxdocs/fuzz-9196363c-7480-405a-9e55-0468fe0ff242",
   "files": [
     {
       "SPDXID": "SPDXRef-File-action_polling",
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "cb2ce9c3de3b1ae8cd7425ffce4c43e2c9055fcd"
+          "checksumValue": "f6ea3a928837fa1c750756adc1e5cce722df35be"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -29,7 +29,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "cb2ce9c3de3b1ae8cd7425ffce4c43e2c9055fcd"
+          "checksumValue": "f6ea3a928837fa1c750756adc1e5cce722df35be"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -43,7 +43,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "cb2ce9c3de3b1ae8cd7425ffce4c43e2c9055fcd"
+          "checksumValue": "f6ea3a928837fa1c750756adc1e5cce722df35be"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -57,7 +57,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "cb2ce9c3de3b1ae8cd7425ffce4c43e2c9055fcd"
+          "checksumValue": "f6ea3a928837fa1c750756adc1e5cce722df35be"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -71,7 +71,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "cb2ce9c3de3b1ae8cd7425ffce4c43e2c9055fcd"
+          "checksumValue": "f6ea3a928837fa1c750756adc1e5cce722df35be"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -85,7 +85,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "cb2ce9c3de3b1ae8cd7425ffce4c43e2c9055fcd"
+          "checksumValue": "f6ea3a928837fa1c750756adc1e5cce722df35be"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -99,7 +99,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "cb2ce9c3de3b1ae8cd7425ffce4c43e2c9055fcd"
+          "checksumValue": "f6ea3a928837fa1c750756adc1e5cce722df35be"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -113,7 +113,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "cb2ce9c3de3b1ae8cd7425ffce4c43e2c9055fcd"
+          "checksumValue": "f6ea3a928837fa1c750756adc1e5cce722df35be"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -127,7 +127,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "cb2ce9c3de3b1ae8cd7425ffce4c43e2c9055fcd"
+          "checksumValue": "f6ea3a928837fa1c750756adc1e5cce722df35be"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -214,6 +214,16 @@
       "licenseDeclared": "MIT OR Apache-2.0",
       "name": "cloud-sdk-hetzner",
       "versionInfo": "0.24.0"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-cloud-sdk-sanitization-0.14.0",
+      "description": "Optional provider-neutral secret-sanitization boundary for cloud-sdk.",
+      "downloadLocation": "NONE",
+      "homepage": "https://github.com/valkyoth/cloud-sdk",
+      "licenseConcluded": "MIT OR Apache-2.0",
+      "licenseDeclared": "MIT OR Apache-2.0",
+      "name": "cloud-sdk-sanitization",
+      "versionInfo": "0.14.0"
     },
     {
       "SPDXID": "SPDXRef-Package-find-msvc-tools-0.1.9",
@@ -377,6 +387,23 @@
           "referenceType": "purl"
         }
       ]
+    },
+    {
+      "SPDXID": "SPDXRef-Package-sanitization-1.2.4",
+      "description": "Dependency-free no_std secret memory sanitization with safe defaults and an explicit volatile wipe backend.",
+      "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:cargo/sanitization@1.2.4",
+          "referenceType": "purl"
+        }
+      ],
+      "homepage": "https://github.com/valkyoth/sanitization",
+      "licenseConcluded": "MIT OR Apache-2.0",
+      "licenseDeclared": "MIT OR Apache-2.0",
+      "name": "sanitization",
+      "versionInfo": "1.2.4"
     },
     {
       "SPDXID": "SPDXRef-Package-serde--core-1.0.228",
@@ -654,12 +681,27 @@
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-hetzner-0.24.0",
       "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-sanitization-0.14.0"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-hetzner-0.24.0",
+      "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-serde--json-1.0.150"
     },
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-hetzner-0.24.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-serde-1.0.228"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-sanitization-0.14.0",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-0.31.0"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-sanitization-0.14.0",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-sanitization-1.2.4"
     },
     {
       "spdxElementId": "SPDXRef-Package-getrandom-0.4.3",

@@ -46,6 +46,7 @@ cargo test --manifest-path tools/prepared-coverage-check/Cargo.toml --locked
 scripts/check_prepared_operation_coverage.py
 scripts/check_response_operation_coverage.py
 scripts/test-response-operation-coverage.py
+scripts/test-generate-response-operations.py
 scripts/test-prepared-operation-coverage.py
 scripts/release_crates.py --check
 scripts/test-release-crates.py

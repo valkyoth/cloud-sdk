@@ -54,7 +54,10 @@ def base_packages() -> dict[str, dict]:
     packages = {
         name: package(name, "0.3.0") for name in release_crates.PUBLISH_ORDER
     }
-    packages["cloud-sdk-hetzner"]["dependencies"] = [{"name": "cloud-sdk"}]
+    packages["cloud-sdk-hetzner"]["dependencies"] = [
+        {"name": "cloud-sdk"},
+        {"name": "cloud-sdk-sanitization"},
+    ]
     packages["cloud-sdk-reqwest"]["dependencies"] = [{"name": "cloud-sdk"}]
     packages["cloud-sdk-sanitization"]["dependencies"] = [{"name": "cloud-sdk"}]
     packages["cloud-sdk-testkit"]["dependencies"] = [{"name": "cloud-sdk"}]

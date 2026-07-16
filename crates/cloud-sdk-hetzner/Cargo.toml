@@ -15,11 +15,18 @@ all-features = true
 [features]
 default = []
 alloc = ["cloud-sdk/alloc"]
-serde = ["alloc", "dep:serde", "dep:serde_json"]
+serde = [
+    "alloc",
+    "dep:cloud-sdk-sanitization",
+    "dep:serde",
+    "dep:serde_json",
+    "cloud-sdk-sanitization/alloc",
+]
 std = ["alloc", "cloud-sdk/std"]
 
 [dependencies]
 cloud-sdk.workspace = true
+cloud-sdk-sanitization = { workspace = true, optional = true }
 serde = { workspace = true, optional = true }
 serde_json = { workspace = true, optional = true }
 

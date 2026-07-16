@@ -9,8 +9,10 @@ if printf '%s\n' "$default_tree" | grep -Eq '(^|[[:space:]])serde(_json)? v'; th
     exit 1
 fi
 
-feature_tree=$(cargo tree -p cloud-sdk-hetzner --no-default-features --features serde \
-    --edges normal,build -e features)
+feature_tree=$(
+    cargo tree -p cloud-sdk-hetzner --no-default-features --features serde \
+        --edges no-dev,features
+)
 if ! printf '%s\n' "$feature_tree" | grep -Fq 'serde feature "alloc"'; then
     echo "serde boundary: optional graph is missing serde alloc" >&2
     exit 1
@@ -25,6 +27,20 @@ if ! printf '%s\n' "$feature_tree" | grep -Fq 'serde_json feature "alloc"'; then
 fi
 if printf '%s\n' "$feature_tree" | grep -Fq 'serde_json feature "std"'; then
     echo "serde boundary: serde_json std must not enter the optional graph" >&2
+    exit 1
+fi
+sanitization_features=$(
+    cargo tree -p cloud-sdk-hetzner --no-default-features --features serde \
+        --edges no-dev,features --invert cloud-sdk-sanitization
+)
+if ! printf '%s\n' "$sanitization_features" |
+    grep -Fq 'cloud-sdk-sanitization feature "alloc"'; then
+    echo "serde boundary: checked secret responses are missing sanitization alloc" >&2
+    exit 1
+fi
+if printf '%s\n' "$sanitization_features" |
+    grep -Fq 'cloud-sdk-sanitization feature "std"'; then
+    echo "serde boundary: sanitization std must not enter the optional graph" >&2
     exit 1
 fi
 

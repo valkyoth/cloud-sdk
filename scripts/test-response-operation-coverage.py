@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import importlib.util
 from pathlib import Path
+import tempfile
 import unittest
 
 
@@ -38,6 +39,17 @@ class ResponseOperationCoverageTests(unittest.TestCase):
             MODULE.active_operations(row() + row())
         with self.assertRaisesRegex(ValueError, "active operation is not implemented"):
             MODULE.active_operations(row(status="planned"))
+
+    def test_rejects_malformed_response_table_columns(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            table = Path(directory) / "responses.tsv"
+            table.write_text(
+                "api\toperation_id\tstatus\tshape\troot\trequired\n"
+                "cloud\tget_actions\t200\tactions\t-\t-\textra\n",
+                encoding="ascii",
+            )
+            with self.assertRaisesRegex(ValueError, "wrong column count"):
+                MODULE.response_operations(table)
 
 
 if __name__ == "__main__":

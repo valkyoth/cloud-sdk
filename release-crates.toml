@@ -25,10 +25,10 @@ reason = "Update the cloud-sdk dependency to the v0.31 facade line."
 
 [crates."cloud-sdk-sanitization"]
 previous_version = "0.13.16"
-version = "0.13.17"
-change = "dependency"
+version = "0.14.0"
+change = "code"
 publish = true
-reason = "Update the cloud-sdk dependency to the v0.31 facade line."
+reason = "Add alloc-backed owned UTF-8 secret storage with volatile cleanup."
 
 [crates."cloud-sdk-testkit"]
 previous_version = "0.18.1"

@@ -82,7 +82,7 @@ assert_eq!(prepared.transport_request().target().as_str(), "/load_balancers");
 ```
 
 Secret-bearing operations need successful-path cleanup after transport use.
-Add `cloud-sdk-sanitization = "0.13.17"` and guard the complete body buffer:
+Add `cloud-sdk-sanitization = "0.14.0"` and guard the complete body buffer:
 
 ```rust
 use cloud_sdk::operation::{PreparationStorage, PrepareOperation};
@@ -243,8 +243,10 @@ assert_eq!(server.name(), Some("web-1"));
 ```
 
 Direct parser use bypasses the prepared status, content-type, body-shape, and
-operation-binding checks. Secret-bearing responses and zonefiles use redacted
-diagnostics, but callers still own and must clear the transport response buffer.
+operation-binding checks. Secret-bearing responses and zonefiles move their
+parser-owned strings into volatile-clearing `SecretText` storage and use
+redacted diagnostics. Callers still own and must clear the original transport
+response buffer.
 
 ## RRSet Request Example
 

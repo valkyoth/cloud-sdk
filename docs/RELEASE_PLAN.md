@@ -1346,6 +1346,10 @@ Deliverables:
   only documented additive compatibility, and never expose unvalidated wire
   structs publicly. Provider-complete resource field models remain scheduled
   before `1.0.0` and are not claimed by this release.
+- Operator-facing decoded text rejects Unicode control, bidi, isolate,
+  zero-width, and related invisible formatting characters. Source-locked
+  secrets move into first-party volatile-clearing owned storage before later
+  model validation and remain redacted from diagnostics.
 - The decoder remains transport-independent and performs no request, retry,
   sleep, allocation beyond its admitted feature contract, logging, or implicit
   sanitization of caller-owned response storage.

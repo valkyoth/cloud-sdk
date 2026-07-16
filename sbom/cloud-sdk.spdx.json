@@ -1,21 +1,21 @@
 {
   "SPDXID": "SPDXRef-DOCUMENT",
   "creationInfo": {
-    "created": "2026-07-16T07:03:38Z",
+    "created": "2026-07-16T07:36:39Z",
     "creators": [
       "Tool: cargo-sbom-v0.10.0",
       "Tool: cloud-sdk-complete-spdx-v1"
     ]
   },
   "dataLicense": "CC0-1.0",
-  "documentNamespace": "https://spdx.org/spdxdocs/cloud-sdk-bd5619bf-e31f-4fa0-86e0-6b8b3e6fed72",
+  "documentNamespace": "https://spdx.org/spdxdocs/cloud-sdk-931899cc-5ee0-45dd-a3d3-46843d83c4ee",
   "files": [
     {
       "SPDXID": "SPDXRef-File-cloud_sdk",
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "8788f957e4f05c867444de5917cb67e525c91d7a"
+          "checksumValue": "d3ee32b36c1c8d964c1d1856e13f8db7da60ae4b"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -29,7 +29,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "8788f957e4f05c867444de5917cb67e525c91d7a"
+          "checksumValue": "d3ee32b36c1c8d964c1d1856e13f8db7da60ae4b"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -43,7 +43,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "8788f957e4f05c867444de5917cb67e525c91d7a"
+          "checksumValue": "d3ee32b36c1c8d964c1d1856e13f8db7da60ae4b"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -57,7 +57,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "8788f957e4f05c867444de5917cb67e525c91d7a"
+          "checksumValue": "d3ee32b36c1c8d964c1d1856e13f8db7da60ae4b"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -71,7 +71,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "8788f957e4f05c867444de5917cb67e525c91d7a"
+          "checksumValue": "d3ee32b36c1c8d964c1d1856e13f8db7da60ae4b"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -376,14 +376,14 @@
       "versionInfo": "0.20.2"
     },
     {
-      "SPDXID": "SPDXRef-Package-cloud-sdk-sanitization-0.13.17",
+      "SPDXID": "SPDXRef-Package-cloud-sdk-sanitization-0.14.0",
       "description": "Optional provider-neutral secret-sanitization boundary for cloud-sdk.",
       "downloadLocation": "NONE",
       "homepage": "https://github.com/valkyoth/cloud-sdk",
       "licenseConcluded": "MIT OR Apache-2.0",
       "licenseDeclared": "MIT OR Apache-2.0",
       "name": "cloud-sdk-sanitization",
-      "versionInfo": "0.13.17"
+      "versionInfo": "0.14.0"
     },
     {
       "SPDXID": "SPDXRef-Package-cloud-sdk-testkit-0.18.2",
@@ -3056,7 +3056,7 @@
     {
       "spdxElementId": "SPDXRef-File-cloud_sdk_sanitization",
       "relationshipType": "GENERATED_FROM",
-      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-sanitization-0.13.17"
+      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-sanitization-0.14.0"
     },
     {
       "spdxElementId": "SPDXRef-File-cloud_sdk_testkit",
@@ -3301,7 +3301,7 @@
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-hetzner-0.24.0",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-sanitization-0.13.17"
+      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-sanitization-0.14.0"
     },
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-hetzner-0.24.0",
@@ -3346,7 +3346,7 @@
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.20.2",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-sanitization-0.13.17"
+      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-sanitization-0.14.0"
     },
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.20.2",
@@ -3374,12 +3374,12 @@
       "relatedSpdxElement": "SPDXRef-Package-webpki-roots-1.0.8"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-sanitization-0.13.17",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-sanitization-0.14.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-0.31.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-sanitization-0.13.17",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-sanitization-0.14.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-sanitization-1.2.4"
     },

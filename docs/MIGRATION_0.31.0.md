@@ -34,12 +34,14 @@ policy.
 
 The default provider graph remains allocation-free and `no_std`. The optional
 `serde` feature now admits serde_json `1.0.150` with default features disabled
-and its `alloc` feature enabled. It does not enable `std`.
+and its `alloc` feature enabled, plus `cloud-sdk-sanitization` `0.14.0` for
+owned secret cleanup. It does not enable `std`.
 
 ## Sensitive Responses
 
 Root passwords, console passwords, WebSocket console URLs, API error messages,
 and zonefiles remain redacted from diagnostics. Explicit accessors expose the
-values when needed. The SDK does not clear caller-owned transport response
-storage; sanitize that complete buffer after the decoded value is no longer
-needed.
+values when needed. Composite secrets and zonefiles move from parser-owned
+strings into volatile-clearing `SecretText` storage without another plaintext
+copy. The SDK does not clear caller-owned transport response storage; sanitize
+that complete buffer after the decoded value is no longer needed.

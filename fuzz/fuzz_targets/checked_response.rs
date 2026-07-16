@@ -46,6 +46,29 @@ fn prepared() -> Option<PreparedRequest<'static>> {
     )
 }
 
+fn decode_hex(value: &[u8]) -> Option<Vec<u8>> {
+    let chunks = value.chunks_exact(2);
+    if !chunks.remainder().is_empty() {
+        return None;
+    }
+    chunks
+        .map(|chunk| {
+            let high = hex_digit(*chunk.first()?)?;
+            let low = hex_digit(*chunk.get(1)?)?;
+            Some((high << 4) | low)
+        })
+        .collect()
+}
+
+fn hex_digit(value: u8) -> Option<u8> {
+    match value {
+        b'0'..=b'9' => Some(value - b'0'),
+        b'a'..=b'f' => Some(value - b'a' + 10),
+        b'A'..=b'F' => Some(value - b'A' + 10),
+        _ => None,
+    }
+}
+
 fuzz_target!(|data: &[u8]| {
     if data.len() < 2 {
         return;
@@ -60,7 +83,17 @@ fuzz_target!(|data: &[u8]| {
         3 => StatusCode::TOO_MANY_REQUESTS,
         _ => StatusCode::new(500).unwrap_or(StatusCode::TOO_MANY_REQUESTS),
     };
-    let mut response = TransportResponse::new(status, &data[2..]);
+    let decoded;
+    let body = if let Some(hex) = data[2..].strip_prefix(b"hex:") {
+        let Some(value) = decode_hex(hex) else {
+            return;
+        };
+        decoded = value;
+        decoded.as_slice()
+    } else {
+        &data[2..]
+    };
+    let mut response = TransportResponse::new(status, body);
     if data[1] % 3 != 2 {
         let value = if data[1] % 3 == 0 {
             "application/json; charset=utf-8"

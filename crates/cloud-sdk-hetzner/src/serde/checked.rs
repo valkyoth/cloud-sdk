@@ -15,6 +15,7 @@ use super::models::{
     CompositeResult, HetznerSuccess, NamedSensitiveText, ResponseModelError, SensitiveText,
     checked_text, object, parse_action, parse_actions, parse_folders, parse_metrics,
     parse_pagination, parse_pricing, parse_resource, parse_resources, parse_zonefile, required,
+    validate_text,
 };
 use super::strict_json;
 use super::{MAX_SERDE_RESPONSE_BYTES, ResponseBytes, ResponseSizeError};
@@ -171,9 +172,9 @@ pub fn decode_response(
         HetznerSuccess::Empty
     } else {
         let bytes = ResponseBytes::new(checked.body()).map_err(HetznerDecodeError::ResponseSize)?;
-        let value = strict_json::parse(bytes.as_slice())
+        let mut value = strict_json::parse(bytes.as_slice())
             .map_err(|_| HetznerDecodeError::MalformedPayload)?;
-        decode_success(binding, &value).map_err(HetznerDecodeError::Model)?
+        decode_success(binding, &mut value).map_err(HetznerDecodeError::Model)?
     };
     Ok(CheckedHetznerResponse {
         success,
@@ -221,10 +222,20 @@ fn decode_provider_error(
 
 fn decode_success(
     binding: ResponseBinding,
-    value: &Value,
+    value: &mut Value,
 ) -> Result<HetznerSuccess, ResponseModelError> {
+    {
+        let envelope = object(value)?;
+        validate_required(envelope, binding.required)?;
+    }
+    if binding.shape == ResponseShape::Composite {
+        return decode_composite(binding, object_mut(value)?);
+    }
+    if binding.shape == ResponseShape::ZoneFile {
+        let envelope = object_mut(value)?;
+        return parse_zonefile(required_mut(envelope, "zonefile")?).map(HetznerSuccess::ZoneFile);
+    }
     let envelope = object(value)?;
-    validate_required(envelope, binding.required)?;
     match binding.shape {
         ResponseShape::Empty => Ok(HetznerSuccess::Empty),
         ResponseShape::Action => required(envelope, "action")?
@@ -245,13 +256,11 @@ fn decode_success(
         ResponseShape::Resource | ResponseShape::ResourceList | ResponseShape::ResourcePage => {
             decode_resources(binding, envelope)
         }
-        ResponseShape::Composite => decode_composite(binding, envelope),
+        ResponseShape::Composite => Err(ResponseModelError::EnvelopeMismatch),
         ResponseShape::Metrics => {
             parse_metrics(required(envelope, "metrics")?).map(HetznerSuccess::Metrics)
         }
-        ResponseShape::ZoneFile => {
-            parse_zonefile(required(envelope, "zonefile")?).map(HetznerSuccess::ZoneFile)
-        }
+        ResponseShape::ZoneFile => Err(ResponseModelError::EnvelopeMismatch),
         ResponseShape::Pricing => {
             parse_pricing(required(envelope, "pricing")?).map(HetznerSuccess::Pricing)
         }
@@ -283,8 +292,9 @@ fn decode_resources(
 
 fn decode_composite(
     binding: ResponseBinding,
-    envelope: &serde_json::Map<String, Value>,
+    envelope: &mut serde_json::Map<String, Value>,
 ) -> Result<HetznerSuccess, ResponseModelError> {
+    let secrets = take_composite_secrets(envelope)?;
     let resource = if binding.root == "-" {
         None
     } else {
@@ -302,24 +312,44 @@ fn decode_composite(
             actions.extend(parse_actions(value)?);
         }
     }
-    let mut secrets = Vec::new();
-    for key in ["root_password", "password", "wss_url"] {
-        if let Some(value) = envelope.get(key) {
-            if value.is_null() {
-                continue;
-            }
-            let value = value.as_str().ok_or(ResponseModelError::WrongType)?;
-            secrets.push(NamedSensitiveText::new(
-                key,
-                SensitiveText::new(checked_text(value, 65_536)?),
-            ));
-        }
-    }
     Ok(HetznerSuccess::Composite(CompositeResult {
         resource,
         actions,
         secrets,
     }))
+}
+
+fn take_composite_secrets(
+    envelope: &mut serde_json::Map<String, Value>,
+) -> Result<Vec<NamedSensitiveText>, ResponseModelError> {
+    let mut secrets = Vec::new();
+    for key in ["root_password", "password", "wss_url"] {
+        if let Some(value) = envelope.get_mut(key) {
+            if value.is_null() {
+                continue;
+            }
+            let Value::String(value) = value else {
+                return Err(ResponseModelError::WrongType);
+            };
+            let secret = SensitiveText::new(core::mem::take(value));
+            validate_text(secret.expose_secret(), 65_536)?;
+            secrets.push(NamedSensitiveText::new(key, secret));
+        }
+    }
+    Ok(secrets)
+}
+
+fn object_mut(
+    value: &mut Value,
+) -> Result<&mut serde_json::Map<String, Value>, ResponseModelError> {
+    value.as_object_mut().ok_or(ResponseModelError::WrongType)
+}
+
+fn required_mut<'a>(
+    object: &'a mut serde_json::Map<String, Value>,
+    key: &str,
+) -> Result<&'a mut Value, ResponseModelError> {
+    object.get_mut(key).ok_or(ResponseModelError::MissingField)
 }
 
 fn validate_required(

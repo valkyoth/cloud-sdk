@@ -61,9 +61,18 @@ def active_operations(text: str) -> set[str]:
 
 def response_operations(path: Path) -> set[str]:
     with path.open("r", encoding="ascii", newline="") as handle:
-        rows = list(csv.DictReader(handle, delimiter="\t"))
+        reader = csv.DictReader(handle, delimiter="\t")
+        expected = ["api", "operation_id", "status", "shape", "root", "required"]
+        if reader.fieldnames != expected:
+            raise ValueError("response operation table header is invalid")
+        rows = list(reader)
     operations: set[str] = set()
     for row in rows:
+        if None in row or any(value is None for value in row.values()):
+            raise ValueError("response operation row has the wrong column count")
+        for value in row.values():
+            if any(character in value for character in ("\t", "\n", "\r", "\0")):
+                raise ValueError("response operation row contains an unsafe character")
         operation = row.get("operation_id", "")
         shape = row.get("shape", "")
         root = row.get("root", "")

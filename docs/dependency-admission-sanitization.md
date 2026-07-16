@@ -13,11 +13,12 @@ The dependency is the first-party crate published from
 <https://github.com/valkyoth/sanitization>. It is no_std by default and has no
 runtime dependencies with default features disabled.
 
-`cloud-sdk-sanitization` exposes a narrow `sanitize_bytes` function and a
-`SecretBuffer` guard. Provider crates remain independent of the implementation,
-and the default `cloud-sdk` and `cloud-sdk-hetzner` graphs remain unchanged.
-The Hetzner crate uses this boundary only as a dev dependency to verify cleanup
-of secret-producing writers.
+`cloud-sdk-sanitization` exposes a narrow `sanitize_bytes` function, a borrowed
+`SecretBuffer` guard, and an opt-in allocation-backed `SecretText` guard.
+Provider crates remain independent of the implementation by default, and the
+default `cloud-sdk` and `cloud-sdk-hetzner` graphs remain unchanged. The
+Hetzner `serde` feature enables the allocation-backed boundary so decoded
+secret strings can be cleared when their owned storage is dropped.
 
 ## Security Boundary
 
@@ -25,17 +26,21 @@ The admitted primitive uses volatile byte writes through the dependency's
 reviewed internal unsafe boundary. This workspace keeps `unsafe_code =
 "forbid"` for its own crates and does not duplicate that implementation.
 
-The guard clears its full borrowed destination on drop, including after errors,
-early returns, and unwind where unwind exists. It cannot clear immutable source
-strings, transport copies, kernel buffers, crash dumps, swap, remote systems,
-or copies outside the guarded slice.
+The borrowed guard clears its full destination on drop, including after errors,
+early returns, and unwind where unwind exists. `SecretText` consumes a `String`
+without making another plaintext copy and clears its initialized UTF-8 bytes on
+drop. Neither guard can clear immutable source strings, transport copies,
+kernel buffers, crash dumps, swap, remote systems, allocator metadata, or
+copies outside guarded storage.
 
 No interoperability features are enabled. In particular, the optional
-`zeroize`, `subtle`, allocation, memory-locking, derive, and platform features
-are absent from the admitted graph.
+`zeroize`, `subtle`, memory-locking, derive, and platform features are absent
+from the admitted graph. Allocation is enabled only through
+`cloud-sdk-sanitization/alloc`; `std` remains a separate opt-in feature.
 
 ## Verification
 
 `scripts/check_sanitization_boundary.sh` verifies the exact admitted version,
 absence of optional interoperability dependencies, isolation from facade and
-provider default graphs, package compilation, and guard behavior tests.
+provider default graphs, the bounded allocation feature relationship, package
+compilation, and guard behavior tests.

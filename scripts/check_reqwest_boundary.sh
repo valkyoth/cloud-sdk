@@ -34,7 +34,7 @@ blocking_tree=$(cargo tree -p cloud-sdk-reqwest --no-default-features \
     --features blocking-rustls --edges normal)
 for dependency in \
     'reqwest v0.13.4' \
-    'cloud-sdk-sanitization v0.13.17' \
+    'cloud-sdk-sanitization v0.14.0' \
     'sanitization v1.2.4' \
     'rustls v0.23.42'; do
     if ! printf '%s\n' "$blocking_tree" | grep -Fq "$dependency"; then
@@ -55,7 +55,7 @@ for dependency in \
     'bytes v1.12.1' \
     'reqwest v0.13.4' \
     'tokio v1.52.3' \
-    'cloud-sdk-sanitization v0.13.17' \
+    'cloud-sdk-sanitization v0.14.0' \
     'sanitization v1.2.4' \
     'rustls v0.23.42'; do
     if ! printf '%s\n' "$async_tree" | grep -Fq "$dependency"; then

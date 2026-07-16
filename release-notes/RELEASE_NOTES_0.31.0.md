@@ -34,7 +34,9 @@ size cannot be checked independently or accidentally omitted.
   metrics pairs, text bounds, and special envelope fields are validated before
   crossing the public model boundary.
 - Secret-bearing fields and zonefiles require explicit accessors and remain
-  redacted from diagnostics.
+  redacted from diagnostics. Parser-owned secret strings move without a
+  plaintext copy into `cloud-sdk-sanitization::SecretText`, whose initialized
+  UTF-8 bytes are volatile-cleared on drop.
 
 ## Parser And Supply Chain
 
@@ -51,7 +53,8 @@ size cannot be checked independently or accidentally omitted.
   operations.
 - Golden tests cover all twelve response families and typed provider errors.
 - Adversarial tests cover duplicate keys, unknown statuses, service mismatch,
-  wrong success status, malformed payloads, and diagnostic redaction.
+  wrong success status, malformed payloads, Unicode format controls, diagnostic
+  redaction, oversized integers, deep nesting, and invalid UTF-8.
 - A ninth isolated fuzz target drives prepared-policy, content-type, status,
   typed success/error, and malformed-payload paths through the checked decoder.
 - `scripts/check_response_operation_coverage.py` proves exact equality with the
@@ -67,7 +70,7 @@ size cannot be checked independently or accidentally omitted.
 | `cloud-sdk` | `0.31.0` | Operation identity and checked-policy foundation |
 | `cloud-sdk-hetzner` | `0.24.0` | Operation-complete checked response decoding |
 | `cloud-sdk-reqwest` | `0.20.2` | Dependency-only patch |
-| `cloud-sdk-sanitization` | `0.13.17` | Dependency-only patch |
+| `cloud-sdk-sanitization` | `0.14.0` | Owned volatile-clearing UTF-8 secret storage |
 | `cloud-sdk-testkit` | `0.18.2` | Dependency-only patch |
 
 ## Security Review

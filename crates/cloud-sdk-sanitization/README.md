@@ -39,7 +39,7 @@ crate with default features disabled.
 ```toml
 [dependencies]
 cloud-sdk = "0.31.0"
-cloud-sdk-sanitization = "0.13.17"
+cloud-sdk-sanitization = "0.14.0"
 ```
 
 ## Example
@@ -56,12 +56,33 @@ let mut output = [0_u8; 128];
 assert_eq!(output, [0_u8; 128]);
 ```
 
+With the optional `alloc` feature, `SecretText` consumes an owned `String`
+without copying its plaintext bytes and volatile-clears the initialized UTF-8
+storage on drop:
+
+```rust
+# #[cfg(feature = "alloc")]
+# fn main() {
+extern crate alloc;
+
+use alloc::string::String;
+use cloud_sdk_sanitization::SecretText;
+
+let secret = SecretText::new(String::from("temporary secret"));
+assert_eq!(secret.expose_secret(), "temporary secret");
+assert_eq!(alloc::format!("{secret:?}"), "SecretText([redacted])");
+# }
+# #[cfg(not(feature = "alloc"))]
+# fn main() {}
+```
+
 ## Features
 
 | Feature | Default | Effect |
 | --- | --- | --- |
 | `default` | yes | Empty; keeps the boundary `no_std`. |
-| `std` | no | Enables standard-library integration in `cloud-sdk`; clearing behavior is unchanged. |
+| `alloc` | no | Adds owned volatile-clearing UTF-8 secret storage. |
+| `std` | no | Enables `alloc` and standard-library integration in `cloud-sdk`; clearing behavior is unchanged. |
 
 Docs.rs builds with all features. The underlying `sanitization` dependency
 keeps its default features disabled in every configuration.
@@ -69,8 +90,9 @@ keeps its default features disabled in every configuration.
 ## Security Notes
 
 `SecretBuffer` volatile-clears its entire borrowed slice on drop, including
-after early returns and unwind where unwind exists. `sanitize_bytes` provides
-the same reviewed primitive for explicit cleanup.
+after early returns and unwind where unwind exists. `SecretText` clears its
+initialized owned UTF-8 bytes on drop. `sanitize_bytes` provides the same
+reviewed primitive for explicit cleanup.
 
 These helpers do not clear immutable source strings or copies made by
 transports, operating systems, crash handlers, swap, remote services, or other

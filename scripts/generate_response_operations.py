@@ -118,6 +118,7 @@ def rows(api: str, spec: dict[str, Any]) -> list[tuple[str, ...]]:
             operation_id = operation.get("operationId")
             if not isinstance(operation_id, str) or not operation_id:
                 raise ValueError("active operation has no operationId")
+            validate_tsv_cell(operation_id, "operationId")
             status, schema = success_schema(operation)
             shape, root, required = classify(schema)
             output.append((api, operation_id, status, shape, root, required))
@@ -130,9 +131,17 @@ def render(all_rows: list[tuple[str, ...]]) -> str:
     operation_ids = [row[1] for row in all_rows]
     if len(set(operation_ids)) != len(operation_ids):
         raise ValueError("operation identifiers are not globally unique")
+    for row in all_rows:
+        for index, value in enumerate(row):
+            validate_tsv_cell(value, f"response field {index}")
     lines = ["api\toperation_id\tstatus\tshape\troot\trequired"]
     lines.extend("\t".join(row) for row in sorted(all_rows, key=lambda row: row[1]))
     return "\n".join(lines) + "\n"
+
+
+def validate_tsv_cell(value: str, field: str) -> None:
+    if any(character in value for character in ("\t", "\n", "\r", "\0")):
+        raise ValueError(f"{field} contains a TSV-unsafe character: {value!r}")
 
 
 def main() -> int:
