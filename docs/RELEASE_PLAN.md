@@ -1320,7 +1320,7 @@ gate, and wait for GitHub before tagging.
 
 ### v0.31.0 - Checked Hetzner Response Decoding
 
-Status: implementation complete; pentest required.
+Status: release candidate; pentest and final retest passed.
 
 Goal: provide one checked decoding path that consumes a transport response,
 enforces every prepared response policy, and returns typed provider success or
@@ -1375,7 +1375,8 @@ Verification:
 Stop gate:
 
 ```text
-v0.31.0 implementation stop reached. Run pentest for this exact commit.
+v0.31.0 pentest stop passed. Permanent report and local release evidence are
+complete; wait for GitHub before tagging.
 ```
 
 ### v0.32.0 - Secure High-Level Hetzner Client Workflows

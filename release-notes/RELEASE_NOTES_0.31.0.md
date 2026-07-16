@@ -1,7 +1,7 @@
 # cloud-sdk 0.31.0 Release Notes
 
-Status: implementation complete; pentest and final release checks remain
-required before tagging.
+Status: release candidate; pentest, final retest, and local release checks
+passed. GitHub checks remain before tagging.
 
 Release date: 2026-07-16
 
@@ -70,7 +70,7 @@ size cannot be checked independently or accidentally omitted.
   active API matrix.
 - `scripts/checks.sh`
 - `scripts/check_hetzner_api_drift.py --fetch`
-- `scripts/release_0_31_gate.sh` after the permanent pentest report is added.
+- `scripts/release_0_31_gate.sh`
 
 ## Versions
 
@@ -84,11 +84,13 @@ size cannot be checked independently or accidentally omitted.
 
 ## Security Review
 
-Run the pentest against the exact implementation-stop commit. Add the permanent
-PASS report only after findings are resolved and the retest is green.
+The permanent PASS report records the exact green-retest implementation commit
+and the remediation of aggregate parser memory amplification, escaped-string
+scratch storage, protected error messages, and release-lint regressions.
 
 ## Release Gate
 
 ```text
-v0.31.0 implementation stop reached. Run pentest for this exact commit.
+v0.31.0 pentest stop passed. Local release checks are green; wait for GitHub
+before tagging.
 ```
