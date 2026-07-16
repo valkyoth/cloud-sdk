@@ -20,13 +20,14 @@ EXPECTED = (
     ),
     (
         "Success response models",
-        "Partial: shared action and pagination envelopes only",
-        "`v0.31.0`",
+        "Complete checked envelope and resource-identity coverage for all 208 "
+        "non-deprecated operations",
+        "Provider-complete resource fields before `1.0.0`",
     ),
     (
         "Error response models",
-        "Partial: reviewed shared API error envelope, not yet integrated per operation",
-        "`v0.31.0`",
+        "Complete checked typed API error decoding for all active operations",
+        "Current",
     ),
     ("End-to-end client", "Not available", "`v0.32.0`"),
 )
@@ -58,7 +59,7 @@ def validate(path: Path) -> None:
         raise ValueError("ambiguous Supported capability column is forbidden")
     rows = parse_table(text)
     if rows != EXPECTED:
-        raise ValueError("capability table differs from the reviewed v0.30 contract")
+        raise ValueError("capability table differs from the reviewed v0.31 contract")
 
 
 def main() -> int:
@@ -71,7 +72,7 @@ def main() -> int:
     except (OSError, UnicodeError, ValueError) as error:
         print(f"provider capabilities: {error}", file=sys.stderr)
         return 1
-    print("Provider capability claims match the reviewed v0.30 contract.")
+    print("Provider capability claims match the reviewed v0.31 contract.")
     return 0
 
 

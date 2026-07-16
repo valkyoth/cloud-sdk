@@ -10,7 +10,7 @@
 | SBOM generation | scripted for the production workspace, reqwest feature-unification fixture, and fuzz tooling graph; cargo-sbom output is completed from locked Cargo metadata; independent package completeness and canonical freshness checks are required in CI and release gates |
 | cargo audit | required before tags |
 | cargo deny | required before tags |
-| fuzzing | eight isolated non-published libFuzzer targets; pinned nightly and cargo-fuzz; synthetic tracked seeds; temporary writable smoke corpora; deterministic regressions remain authoritative |
+| fuzzing | nine isolated non-published libFuzzer targets; pinned nightly and cargo-fuzz; synthetic tracked seeds; temporary writable smoke corpora; deterministic regressions remain authoritative |
 | pentest before tags | required |
 | pentest content binding | report records an exact reviewed implementation commit that must be an ancestor of the final GitHub-validated release commit |
 | pentest provenance | committed report with required PASS, reviewed commit, tester, scope, and date fields |
@@ -22,7 +22,7 @@
 | private-key output | escaped atomic writer only; no raw accessor or ordinary equality; guarded cleanup tested |
 | DNS TSIG policy | HMAC-SHA256 only; canonical Base64; minimum 32 decoded bytes; no ordinary equality on secret-bearing types |
 | DNS RRSet mutations | source-locked RR types; bounded unique redacted records; mandatory change-TTL intent; atomic JSON-string writers |
-| optional Serde boundary | default graph exclusion; no Serde `std`; 1 MiB request and 8 MiB response policies; bounded validated response envelopes |
+| optional Serde boundary | default graph exclusion; no Serde or serde_json `std`; 1 MiB request and 8 MiB response policies; duplicate-rejecting bounded JSON admission; source-locked checked decoding for every active operation; typed actions, resource identities, pagination, special results, and provider errors |
 | testkit boundary | no_std ordered mock; atomic bounded response writes; payload-free mismatch errors; redacted fixture/request debug |
 | transport contract | shared-reference blocking plus executor-neutral async traits; prepared execution requires explicit complete response-storage sanitization before endpoint verification and capacity admission; normalized credential-free endpoint identity; exact Hetzner official-endpoint verifier derived from the canonical base-URL constants for both v1 API families; origin-form targets reject leading `//`, backslash, fragments, controls, spaces, and non-ASCII; responses borrow their initialized caller-buffer slice; no independent untrusted body length; no authentication, headers, TLS, retry, runtime, or network implementation |
 | optional blocking transport | cloneable shared non-default reqwest/rustls client; HTTPS only; TLS 1.2 minimum; HTTP/1 and system DNS forced under feature unification; explicit bounded timeouts and user agent; no redirect, retry, proxy, referer, decompression, queue, or background worker; exact response bounds; payload-free failures |

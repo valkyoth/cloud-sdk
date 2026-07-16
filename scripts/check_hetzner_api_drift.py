@@ -23,12 +23,17 @@ from hetzner_drift_report import (
     compare_row_sets,
     print_drift_report,
 )
+from generate_response_operations import render as render_response_operations
+from generate_response_operations import rows as response_operation_rows
 
 ROOT = Path(__file__).resolve().parents[1]
 OP_LOCK = ROOT / "docs" / "API_FINGERPRINTS.tsv"
 SCHEMA_LOCK = ROOT / "docs" / "API_SCHEMA_FINGERPRINTS.tsv"
 MATRIX = ROOT / "docs" / "API_MATRIX.md"
 SPEC_LOCK = ROOT / "docs" / "SPEC_LOCK.md"
+RESPONSE_LOCK = (
+    ROOT / "crates" / "cloud-sdk-hetzner" / "src" / "serde" / "response_operations.tsv"
+)
 
 SPECS = {
     "cloud": "https://docs.hetzner.cloud/cloud.spec.json",
@@ -351,7 +356,7 @@ def ensure_refresh_sources_pinned(source_hashes: dict[str, str]) -> None:
 
 def validate_local_files() -> int:
     status = 0
-    for path in (OP_LOCK, SCHEMA_LOCK, MATRIX, SPEC_LOCK):
+    for path in (OP_LOCK, SCHEMA_LOCK, MATRIX, SPEC_LOCK, RESPONSE_LOCK):
         if not path.is_file() or path.stat().st_size == 0:
             print(f"missing required lock file: {path}", file=sys.stderr)
             status = 1
@@ -392,6 +397,13 @@ def main() -> int:
         return validate_local_files()
 
     documents, source_hashes = load_specs(args)
+    try:
+        response_lock = render_response_operations(
+            response_operation_rows("cloud", documents["cloud"])
+            + response_operation_rows("hetzner", documents["hetzner"])
+        )
+    except ValueError as error:
+        raise SystemExit(f"invalid success-response schemas: {error}") from error
     operations = []
     schemas = []
     for api, document in documents.items():
@@ -434,11 +446,15 @@ def main() -> int:
             ],
         )
         write_tsv(SCHEMA_LOCK, schemas, ["api", "schema", "fingerprint"])
+        RESPONSE_LOCK.write_text(response_lock, encoding="ascii")
         print(f"wrote {len(operations)} operation fingerprints")
         print(f"wrote {len(schemas)} schema fingerprints")
         return 0
 
     status = validate_local_files()
+    if RESPONSE_LOCK.read_text(encoding="ascii") != response_lock:
+        print("Hetzner success-response operation lock has drift", file=sys.stderr)
+        status = 1
     report = build_drift_report(
         read_tsv(OP_LOCK),
         operations,

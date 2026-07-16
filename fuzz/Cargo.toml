@@ -68,3 +68,10 @@ path = "fuzz_targets/response_content_type.rs"
 test = false
 doc = false
 bench = false
+
+[[bin]]
+name = "checked_response"
+path = "fuzz_targets/checked_response.rs"
+test = false
+doc = false
+bench = false

@@ -1320,15 +1320,18 @@ gate, and wait for GitHub before tagging.
 
 ### v0.31.0 - Checked Hetzner Response Decoding
 
+Status: implementation complete; pentest required.
+
 Goal: provide one checked decoding path that consumes a transport response,
 enforces every prepared response policy, and returns typed provider success or
 error data without requiring callers to remember security steps.
 
 Deliverables:
 
-- Resource-specific success response models cover every non-deprecated Cloud,
-  DNS, and Console Storage Box operation, including list envelopes, nullable
-  fields, action results, empty success bodies, metrics, and zonefiles.
+- Source-locked success response bindings cover every non-deprecated Cloud,
+  DNS, and Console Storage Box operation, including resource identity and list
+  envelopes, pagination, action results, empty success bodies, metrics,
+  zonefiles, pricing, folders, and composite secret-bearing results.
 - A checked decoder consumes `TransportResponse` together with the operation's
   prepared metadata; callers cannot pass a raw body while bypassing its status,
   content-type, empty-body, or maximum-size policy. Endpoint/service mismatch
@@ -1341,7 +1344,8 @@ Deliverables:
   and typed provider errors remain distinct payload-free error cases.
 - Response models validate security-relevant fields after parsing, tolerate
   only documented additive compatibility, and never expose unvalidated wire
-  structs publicly.
+  structs publicly. Provider-complete resource field models remain scheduled
+  before `1.0.0` and are not claimed by this release.
 - The decoder remains transport-independent and performs no request, retry,
   sleep, allocation beyond its admitted feature contract, logging, or implicit
   sanitization of caller-owned response storage.
@@ -1778,6 +1782,10 @@ Deliverables:
   operation explicitly excluded; no unexplained planned row remains.
 - Combined high-level client, response, error, rate-limit, auth-separation, and
   transport behavior receives public API and semver review.
+- Cloud, DNS, and Console Storage Box resource responses expose the complete
+  supported non-deprecated field set or document an explicit compatibility
+  representation; the v0.31 common-identity models are not the final `1.0.0`
+  resource surface.
 - Robot form writers, paths, parsers, errors, ordering policy, and response
   envelopes receive fuzz and adversarial coverage.
 - Complete Hetzner examples, security recipes, threat model, API matrices,

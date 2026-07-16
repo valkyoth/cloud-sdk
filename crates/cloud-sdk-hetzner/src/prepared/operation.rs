@@ -3,9 +3,9 @@
 use core::marker::PhantomData;
 
 use cloud_sdk::operation::{
-    ContentTypePolicy, CostIntent, OperationImpact, OperationMetadata, PreparationStorage,
-    PrepareOperation, PreparedRequest, ProviderService, RequestSemantics, ResponseBodyPolicy,
-    ResponsePolicy, RetryEligibility,
+    ContentTypePolicy, CostIntent, OperationId, OperationImpact, OperationMetadata,
+    PreparationStorage, PrepareOperation, PreparedRequest, ProviderService, RequestSemantics,
+    ResponseBodyPolicy, ResponsePolicy, RetryEligibility,
 };
 use cloud_sdk::transport::{
     ContentType, EndpointIdentity, EndpointScheme, MediaType, RequestTarget, StatusCode,
@@ -217,7 +217,9 @@ where
             .with_body(body_bytes)
             .with_content_type(ContentType::JSON);
     }
-    Ok(PreparedRequest::new(request, service, metadata, policy))
+    let operation_id = OperationId::new(endpoint.operation_key())
+        .map_err(HetznerPreparationError::InvalidOperationId)?;
+    Ok(PreparedRequest::new(request, service, metadata, policy).with_operation_id(operation_id))
 }
 
 fn validate_target_storage(storage: &[u8], len: usize) -> Result<(), HetznerPreparationError> {

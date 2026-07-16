@@ -38,8 +38,8 @@ crate with default features disabled.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.30.0"
-cloud-sdk-sanitization = "0.13.16"
+cloud-sdk = "0.31.0"
+cloud-sdk-sanitization = "0.13.17"
 ```
 
 ## Example

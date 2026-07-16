@@ -13,6 +13,7 @@ execution so running them cannot create billable resources.
 | Server mutation request | [`mutation.rs`](../crates/cloud-sdk-hetzner/examples/mutation.rs) | `cargo run -p cloud-sdk-hetzner --example mutation` |
 | Pagination response | [`pagination.rs`](../crates/cloud-sdk-hetzner/examples/pagination.rs) | `cargo run -p cloud-sdk-hetzner --example pagination --features serde` |
 | Action polling | [`action_polling.rs`](../crates/cloud-sdk-hetzner/examples/action_polling.rs) | `cargo run -p cloud-sdk-hetzner --example action_polling --features serde` |
+| Checked response decoding | [`checked_response.rs`](../crates/cloud-sdk-hetzner/examples/checked_response.rs) | `cargo run -p cloud-sdk-hetzner --example checked_response --features serde` |
 | Global and certificate action queries | [`actions.rs`](../crates/cloud-sdk-hetzner/examples/actions.rs) | `cargo run -p cloud-sdk-hetzner --example actions` |
 | DNS Zone request | [`dns.rs`](../crates/cloud-sdk-hetzner/examples/dns.rs) | `cargo run -p cloud-sdk-hetzner --example dns` |
 | Storage Box list request | [`storage_box.rs`](../crates/cloud-sdk-hetzner/examples/storage_box.rs) | `cargo run -p cloud-sdk-hetzner --example storage_box` |
@@ -29,10 +30,13 @@ provider-owned contract:
 4. Send only after the application has reviewed credentials, operation cost,
    timeout, retry, logging, and response-size policy.
 
-The provider crate covers the first three steps for all 208 active operations.
-It does not yet provide a high-level client that also performs transport and
-typed response decoding. That boundary is explicit so application code cannot
-silently inherit networking, retry, runtime, or secret-storage behavior.
+The provider crate covers preparation and checked typed envelope decoding for
+all 208 active operations. Resource results expose validated common identity
+and state fields; provider-complete resource field models remain scheduled
+before `1.0.0`. The crate does not yet provide a high-level client that also
+performs transport or chooses caller-owned storage automatically. That
+boundary is explicit so application code cannot silently inherit networking,
+retry, runtime, or secret-storage behavior.
 
 ## Mutation Safety
 

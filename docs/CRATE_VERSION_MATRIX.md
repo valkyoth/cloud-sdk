@@ -1,7 +1,7 @@
 # Crate Version Matrix
 
-Status: `v0.30.0` is a release candidate; pentest and retest passed. Final
-local and GitHub checks remain required before tagging.
+Status: `v0.31.0` implementation is complete; pentest is required before the
+release candidate is finalized.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
@@ -473,3 +473,17 @@ operations with request bodies.
 | `cloud-sdk-reqwest` | `0.20.0` | `0.20.1` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.30 facade line. |
 | `cloud-sdk-sanitization` | `0.13.15` | `0.13.16` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.30 facade line. |
 | `cloud-sdk-testkit` | `0.18.0` | `0.18.1` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.30 facade line. |
+
+## v0.31.0 Tracking Table
+
+`v0.31.0` binds every prepared operation to its source-locked success schema
+and adds checked typed success and API error decoding behind the optional
+`serde`/`alloc` boundary.
+
+| Crate | Published | Planned | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.30.0` | `0.31.0` | `code` | Yes | Bind validated provider operation identifiers and expose prepared response-policy validation. |
+| `cloud-sdk-hetzner` | `0.23.0` | `0.24.0` | `code` | Yes | Decode all 208 active operations through source-locked success families and typed API errors. |
+| `cloud-sdk-reqwest` | `0.20.1` | `0.20.2` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.31 facade line. |
+| `cloud-sdk-sanitization` | `0.13.16` | `0.13.17` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.31 facade line. |
+| `cloud-sdk-testkit` | `0.18.1` | `0.18.2` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.31 facade line. |

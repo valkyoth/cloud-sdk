@@ -1,7 +1,8 @@
 # Hetzner API Matrix
 
 Status: source lock introduced in `v0.2.0`; all non-deprecated request models
-implemented in `v0.26.0` and prepared-request coverage completed in `v0.30.0`.
+implemented in `v0.26.0`, prepared-request coverage completed in `v0.30.0`,
+and checked success/error response coverage completed in `v0.31.0`.
 
 Sources:
 
@@ -20,6 +21,7 @@ operations deferred.
 - Action behavior is `action-list`, `action-get`, `resource-action-get`, `starts-action`, or `none`.
 - Deprecated operations are kept in the matrix for drift tracking, but implementation status is `deferred-deprecated` until the SDK has an explicit compatibility policy.
 - Status records request-model coverage. Prepared endpoint coverage for all 208 active operations and body coverage for all 91 active operations with request bodies are independently enforced by `scripts/check_prepared_operation_coverage.py`.
+- Success status, response family, root key, required fields, and checked decoder coverage for all 208 active operations are independently enforced by `scripts/check_response_operation_coverage.py` and the fetched API drift gate.
 - Non-deprecated operations must have an `implemented` request status. The release gate rejects planned or deferred active operations.
 
 ## Owner Modules

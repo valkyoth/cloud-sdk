@@ -38,8 +38,8 @@ boundaries.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.30.0"
-cloud-sdk-hetzner = "0.23.0"
+cloud-sdk = "0.31.0"
+cloud-sdk-hetzner = "0.24.0"
 ```
 
 ## Features
@@ -48,7 +48,7 @@ cloud-sdk-hetzner = "0.23.0"
 | --- | --- | --- |
 | `default` | yes | Empty; keeps provider models allocation-free, transport-free, and `no_std`. |
 | `alloc` | no | Enables provider APIs that require the Rust `alloc` crate. |
-| `serde` | no | Enables reviewed RRSet request-body and shared pagination/action/error Serde support; also enables `alloc`. |
+| `serde` | no | Enables reviewed RRSet request serialization and checked response decoding for every active operation; also enables `alloc`. |
 | `std` | no | Enables `alloc` and standard-library integration without selecting a transport. |
 
 Docs.rs builds with all features. The default dependency graph still includes
@@ -82,7 +82,7 @@ assert_eq!(prepared.transport_request().target().as_str(), "/load_balancers");
 ```
 
 Secret-bearing operations need successful-path cleanup after transport use.
-Add `cloud-sdk-sanitization = "0.13.16"` and guard the complete body buffer:
+Add `cloud-sdk-sanitization = "0.13.17"` and guard the complete body buffer:
 
 ```rust
 use cloud_sdk::operation::{PreparationStorage, PrepareOperation};
@@ -142,8 +142,8 @@ safety and retry classification, cost intent, and exact official endpoint.
 | Request models | Complete for all 208 non-deprecated operations | Current |
 | Path/query encoding | Complete for all 208 non-deprecated operations | Current |
 | Body serialization | Complete for all 91 non-deprecated operations with request bodies | Current |
-| Success response models | Partial: shared action and pagination envelopes only | `v0.31.0` |
-| Error response models | Partial: reviewed shared API error envelope, not yet integrated per operation | `v0.31.0` |
+| Success response models | Complete checked envelope and resource-identity coverage for all 208 non-deprecated operations | Provider-complete resource fields before `1.0.0` |
+| Error response models | Complete checked typed API error decoding for all active operations | Current |
 | End-to-end client | Not available | `v0.32.0` |
 
 Thirteen deprecated operations remain deliberately unavailable. A checked
@@ -166,13 +166,16 @@ Enable Serde explicitly; it is never part of the default graph:
 
 ```toml
 [dependencies]
-cloud-sdk-hetzner = { version = "0.23.0", features = ["serde"] }
+cloud-sdk-hetzner = { version = "0.24.0", features = ["serde"] }
 ```
 
-`serde_json` is used below only as an example format implementation and remains
-a dev dependency in this repository. The current public Serde boundary covers
-RRSet request bodies plus shared pagination, action, and API error response
-envelopes; it is not yet a serializer or decoder for every operation:
+The feature admits serde_json with `default-features = false` and `alloc` only.
+The checked decoder consumes a `TransportResponse` together with its exact
+`PreparedRequest`, applies the prepared status/content-type/body policy, rejects
+duplicate or malformed JSON, and returns validated typed success or API errors.
+Resource responses currently expose validated identity and common state fields;
+provider-complete resource field models remain planned before `1.0.0`. The
+generic JSON representation remains private:
 
 ```rust
 # #[cfg(feature = "serde")]
@@ -209,10 +212,39 @@ if let Ok(json) = json {
 # fn main() {}
 ```
 
-Before deserializing an untrusted response, construct
-`cloud_sdk_hetzner::serde::ResponseBytes` and pass only its admitted slice to
-the selected format parser. Direct parser use bypasses the SDK's 8 MiB raw
-response policy.
+Decode only through the prepared request that produced the response:
+
+```rust
+# #[cfg(feature = "serde")]
+# fn main() -> Result<(), Box<dyn core::error::Error>> {
+use cloud_sdk::operation::{PreparationStorage, PrepareOperation};
+use cloud_sdk::transport::{ResponseContentType, StatusCode, TransportResponse};
+use cloud_sdk_hetzner::cloud::servers::{ServerEndpoint, ServerId};
+use cloud_sdk_hetzner::serde::{HetznerSuccess, decode_response};
+
+let endpoint = ServerEndpoint::Get(ServerId::new(42).ok_or("invalid ID")?);
+let mut target = [0_u8; 64];
+let mut body = [];
+let prepared = endpoint.prepare(PreparationStorage::new(&mut target, &mut body))?;
+let response_body = br#"{"server":{"id":42,"name":"web-1","status":"running"}}"#;
+let content_type = ResponseContentType::new("application/json")?;
+let response = TransportResponse::new(StatusCode::OK, response_body)
+    .with_content_type(content_type);
+let decoded = decode_response(prepared, response)?;
+
+let HetznerSuccess::Resource(server) = decoded.success() else {
+    return Err("unexpected response family".into());
+};
+assert_eq!(server.name(), Some("web-1"));
+# Ok(())
+# }
+# #[cfg(not(feature = "serde"))]
+# fn main() {}
+```
+
+Direct parser use bypasses the prepared status, content-type, body-shape, and
+operation-binding checks. Secret-bearing responses and zonefiles use redacted
+diagnostics, but callers still own and must clear the transport response buffer.
 
 ## RRSet Request Example
 

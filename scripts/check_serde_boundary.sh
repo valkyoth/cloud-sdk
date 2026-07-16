@@ -19,8 +19,12 @@ if printf '%s\n' "$feature_tree" | grep -Fq 'serde feature "std"'; then
     echo "serde boundary: serde std must not enter the optional graph" >&2
     exit 1
 fi
-if printf '%s\n' "$feature_tree" | grep -Fq 'serde_json'; then
-    echo "serde boundary: serde_json must remain dev-only" >&2
+if ! printf '%s\n' "$feature_tree" | grep -Fq 'serde_json feature "alloc"'; then
+    echo "serde boundary: checked decoder is missing serde_json alloc" >&2
+    exit 1
+fi
+if printf '%s\n' "$feature_tree" | grep -Fq 'serde_json feature "std"'; then
+    echo "serde boundary: serde_json std must not enter the optional graph" >&2
     exit 1
 fi
 

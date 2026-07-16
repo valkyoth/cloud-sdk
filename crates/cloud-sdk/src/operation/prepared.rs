@@ -2,7 +2,9 @@
 
 use core::fmt;
 
-use crate::operation::{CheckedResponse, OperationMetadata, ResponsePolicy, ResponsePolicyError};
+use crate::operation::{
+    CheckedResponse, OperationId, OperationMetadata, ResponsePolicy, ResponsePolicyError,
+};
 use crate::transport::{
     AsyncTransport, BlockingTransport, BoundTransport, EndpointIdentity, EndpointIdentityError,
     ResponseStorageSanitizer, TransportRequest,
@@ -118,6 +120,7 @@ pub struct PreparedRequest<'request> {
     service: ProviderService,
     metadata: OperationMetadata,
     response_policy: ResponsePolicy,
+    operation_id: Option<OperationId>,
 }
 
 impl<'request> PreparedRequest<'request> {
@@ -134,7 +137,15 @@ impl<'request> PreparedRequest<'request> {
             service,
             metadata,
             response_policy,
+            operation_id: None,
         }
+    }
+
+    /// Binds a validated provider operation identifier to this request.
+    #[must_use]
+    pub const fn with_operation_id(mut self, operation_id: OperationId) -> Self {
+        self.operation_id = Some(operation_id);
+        self
     }
 
     /// Returns the validated transport request.
@@ -159,6 +170,20 @@ impl<'request> PreparedRequest<'request> {
     #[must_use]
     pub const fn response_policy(self) -> ResponsePolicy {
         self.response_policy
+    }
+
+    /// Returns the provider operation identifier when one was bound.
+    #[must_use]
+    pub const fn operation_id(self) -> Option<OperationId> {
+        self.operation_id
+    }
+
+    /// Applies the complete prepared response policy without executing transport.
+    pub fn validate_response<'buffer>(
+        self,
+        response: crate::transport::TransportResponse<'buffer>,
+    ) -> Result<CheckedResponse<'buffer>, ResponsePolicyError> {
+        self.response_policy.validate(response)
     }
 
     /// Verifies endpoint identity, executes once, and validates the response.
@@ -238,6 +263,7 @@ impl fmt::Debug for PreparedRequest<'_> {
             .field("service", &self.service)
             .field("metadata", &self.metadata)
             .field("response_policy", &self.response_policy)
+            .field("operation_id", &self.operation_id)
             .finish()
     }
 }
