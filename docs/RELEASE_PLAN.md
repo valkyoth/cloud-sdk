@@ -192,19 +192,19 @@ has not been assigned to a release.
 | Target validation is stronger in reqwest than core, so custom transports can accept ambiguous targets. | Separate and canonicalize path/query in core in `v0.35.0`; reject malformed percent triplets, encoded separators/controls, dot segments, doubled slashes, fragments, pre-encoded input, and ambiguous absent/empty/value/duplicate/space semantics. |
 | The transport request lacks bounded provider headers and general response metadata. | Add ordered sensitive header and response-metadata contracts in `v0.36.0`, reserve framing/auth/proxy headers, bind Host/SNI to endpoint identity, enforce per-field/count/aggregate caps, then complete raw execution/auth separation in `v0.40.0-v0.42.0`. |
 | `TransportResponse<'buffer>` does not prove that its body came from the admitted caller buffer. | Replace it with a sealed `ResponseWriter<'buffer>` in `v0.37.0`; only core commits status, bounded metadata, and initialized length into a cleanup-owning guard, so external/static bodies and escaping decoded borrows are unrepresentable. |
-| Response sanitization is a non-verifiable transport promise and misses failure, rejection, decode, and cancellation paths. | Make core-owned clearing mandatory through one audited non-elidable primitive in `v0.38.0`; guard the complete response workspace including retained metadata, cursors, request IDs, and decoder scratch; keep platform sanitizers additive and document lifecycle exclusions. |
-| Fixed-buffer writers can leave partial output or secret tail bytes after failure. | Make every path/query/header/JSON/form writer preflighted and transactional in `v0.39.0`, with checked arithmetic, exact preflight/write equivalence, deterministic two-pass inputs, aggregate caps, exact sensitive subslices, cleanup guards, and capacity profiles. |
+| Response sanitization is a non-verifiable transport promise and misses failure, rejection, decode, cancellation, and retained-state transfer paths. | Make core-owned clearing mandatory through one audited non-elidable primitive in `v0.38.0`; guard the complete response workspace; move retained sensitive metadata atomically into another cleanup-owning non-`Copy` type; clear failed, partial, and source storage; keep platform sanitizers additive and document lifecycle exclusions. |
+| Fixed-buffer writers can leave partial output or secret tail bytes after failure. | Make every path/query/header/JSON/form writer preflighted and transactional in `v0.39.0`, with checked arithmetic, exact preflight/write equivalence, immutable snapshots, exact generations, or collision-resistant fingerprints across two passes, aggregate caps, exact sensitive subslices, cleanup guards, and capacity profiles. |
 | Transport errors do not state whether a mutation may have reached the provider. | Add `NotSent`, `PossiblySent`, and `ResponseStarted` delivery phases in `v0.40.0`, map unknown to `PossiblySent`, consume the phase in retry policy in `v0.46.0`, and require Robot order reconciliation in `v0.93.0`. |
 | Response-head handling and adapter allocation lack explicit wire-level bounds. | In `v0.40.0`, define bounded informational responses, reject 101, enforce header/chunk limits before unbounded accumulation, stream-count actual bytes, distinguish caller-buffer from process-allocation guarantees, drop unadmitted headers, protect transient sensitive headers, and define HEAD/204/304/media/trailer/duplicate behavior. |
 | Structured queries cannot safely represent already encoded provider pagination links. | Add a distinct `ValidatedProviderLink` in `v0.44.0` that preserves raw encoded path/query bytes, remains operation-pattern bound, and cannot enter the structured query builder. |
 | Core pagination and rate-limit types encode Hetzner conventions. | Split pagination, quota, and retry/idempotency into `v0.44.0-v0.46.0`; distinguish delta, wall-clock, and HTTP-date resets, cap caller delay, resolve conflicting metadata, and retain cursor cleanup, authority, drift, replay, and quota-overflow tests. |
 | `AsyncTransport` requires `Send`, and large payloads require one contiguous buffer. | Add `LocalAsyncTransport` in `v0.47.0`, streaming transport contracts in `v0.48.0`, and bounded incremental decoding in `v0.49.0`. |
 | Fingerprints, plan confirmations, and idempotency keys lack collision and intent-identity rules. | Add versioned domain-separated canonical inputs and collision-resistant caller-supplied hashing or exact bounded comparison in `v0.46.0` and `v0.51.0`; fresh caller entropy creates each idempotency intent before binding it to a request fingerprint. |
-| Retry and streaming contracts do not state whether bodies and dirty sinks are replayable or structurally bounded. | Give `v0.46.0` one retry owner, explicit body replayability, hard attempt/cumulative-delay budgets, and distinct wall-clock/monotonic inputs; add per-operation upload caps, actual chunk accounting, declared-length checks, source-change invalidation, and transactional/dirty state in `v0.48.0`. |
+| Retry and streaming contracts do not state whether bodies and dirty sinks are replayable, structurally bounded, or required to make progress. | Give `v0.46.0` one retry owner, explicit body replayability, hard attempt/cumulative-delay budgets, and distinct wall-clock/monotonic inputs; add per-operation byte/chunk/observation and empty-chunk budgets, actual chunk accounting, declared-length checks, source-change invalidation, and transactional/dirty state in `v0.48.0`. |
 | Incremental decoding can still amplify token, field, number, exponent, or partial UTF-8 state. | Add total token/field and numeric/exponent limits plus chunk-spanning UTF-8 validation in `v0.49.0`. |
 | Query/body compatibility and response selection still depend on runtime operation keys. | Add exhaustive typed associations for service, endpoint, auth, headers, media, statuses, success/error policy, caps, pagination/quota/retry, streaming, and permit class in `v0.50.0`; prove all 208 Hetzner operations in `v0.68.0`. |
-| Cost, destructive intent, and retry metadata are inspectable but not enforced. | Add non-`Copy`, normally non-`Clone` stateful permits in `v0.51.0`; recover only after `NotSent`, mark uncertain delivery spent/pending reconciliation, require exact idempotency/reconciliation for repetition, and reject rollback-extended expiry. |
-| Credential refresh and Basic authorization can race, encode ambiguous credentials, or cross a same-authority service/tenant boundary. | Add generation/CAS-protected bearer refresh and optional provider/service/endpoint/audience/account/tenant scope in `v0.41.0`; apply the same scope to Basic in `v0.42.0`, source-lock username charset/colon rules, and cap encoded authorization length. |
+| Cost, destructive intent, and retry metadata are inspectable but not enforced. | Add non-`Copy` stateful permits in `v0.51.0`; direct permits are non-`Clone`, while explicitly shareable handles retain one atomic consumption state, budget, and recovery generation; recover only after generation-checked `NotSent`, mark uncertain delivery spent/pending reconciliation, require exact idempotency/reconciliation for repetition, and reject rollback-extended expiry. |
+| Credential refresh and Basic authorization can race, encode ambiguous credentials, or cross a same-authority service/tenant boundary. | Add generation/CAS-protected bearer refresh and provider/operation-owned `Required`, `Optional`, or `Forbidden` scope policy in `v0.41.0`; apply the same policy to Basic in `v0.42.0`, fail closed on omitted required fields, source-lock username charset/colon rules, and cap encoded authorization length. |
 | Concurrent clients need explicit workspace ownership rather than hidden queues or aliased buffers. | Require caller-owned per-request workspace leases, bounded admission, no mutable alias across await points, and identical blocking/Send-async/local-async cleanup in `v0.52.0`. |
 | Pagination/action workflows and diagnostics remain low-level, and action polling lacks a structural observation limit. | Add the client kernel in `v0.52.0`, bounded pager/action drivers and separated control/backoff/progress policy in `v0.53.0`, payload-free diagnostics and opt-in observation in `v0.54.0`, and dynamic testkit scenarios in `v0.55.0`. |
 | Drift tooling is Hetzner-specific and historical review evidence depends mainly on fingerprints. | Add a provider-manifest drift engine, canonical reviewed diffs, alert ownership, and compatibility policy in `v0.56.0`. |
@@ -213,7 +213,7 @@ has not been assigned to a release.
 | Existing Hetzner responses expose common identity rather than complete fields, and timestamps are inconsistent. | Complete Cloud/DNS/security/Console models in `v0.63.0-v0.67.0`, exact bindings in `v0.68.0`, and complete clients in `v0.69.0-v0.73.0`. |
 | Robot Webservice has different auth, encoding, and API shape than Cloud/DNS. | Assign source lock, protocol, every active family, ordering, clients, and live evidence to one-purpose milestones `v0.74.0-v0.95.0`. |
 | Legacy Robot Storage Box operations are deprecated and overlap the Console API. | The `v0.74.0` matrix marks all 16 legacy operations excluded and no Robot Storage Box module is created. |
-| Repeated invalid Robot credentials can temporarily block the caller's source IP. | Separate credentials and lockout policy in `v0.76.0`; `v0.95.0` live tests never intentionally submit invalid credentials. |
+| Repeated invalid Robot credentials can temporarily block the caller's source IP. | Separate credentials and lockout policy in `v0.76.0`; classify authentication rejection as structurally non-retryable in `v0.77.0`; require newly supplied or explicitly reconfirmed credentials before `v0.94.0` clients can attempt again; `v0.95.0` live tests never intentionally submit invalid credentials. |
 | Robot ordering mutations can create immediate infrastructure costs. | Keep catalogs/transactions read-only in `v0.91.0-v0.92.0`; `v0.93.0` requires cost permits, indeterminate-send reconciliation, and keeps purchases outside CI/live smoke. |
 | FIPS configuration flags do not prove certificate, CRL, target, current time, module, or operational readiness. | Add real good/revoked/unknown/expired/wrong-issuer/incomplete-chain handshakes, fail closed without trustworthy current time, and produce bounded readiness evidence in `v0.97.0`; continue to disclaim application or organizational compliance. |
 | Release controls do not provide organizationally independent review by themselves. | Add governance limits, signer policy, provenance review, and independent-review disclosure in `v0.98.0`; never claim independence when unavailable. |
@@ -1515,9 +1515,9 @@ Stop gate: `v0.37.0 implementation stop reached. Run pentest for this exact comm
 
 Goal: define and enforce the strongest cleanup guarantee Rust and the platform can actually provide.
 
-Deliverables: all core-owned clearing routes through one audited volatile/non-elidable primitive in the provider-neutral sanitization boundary, never scattered `fill(0)` implementations; additive platform sanitizers remain optional. The `CheckedResponseGuard` from `v0.37.0` owns the complete response workspace, including body storage, temporarily retained headers/metadata, pagination cursors, request identifiers, and decoder scratch, and clears it on normal return, transport/policy/decode error, cancellation, and unwind where supported. Borrowed decoding remains guard-scoped; a deliberately named explicit escape exists only if required; process abort, `mem::forget`/leaked guards, and unavoidable TLS, allocator, kernel, or device copies are explicit exclusions. Zero read-back is an integrity check, not proof that an additive sanitizer executed.
+Deliverables: all core-owned clearing routes through one audited volatile/non-elidable primitive in the provider-neutral sanitization boundary, never scattered `fill(0)` implementations; additive platform sanitizers remain optional. The `CheckedResponseGuard` from `v0.37.0` owns the complete response workspace, including body storage, temporarily retained headers/metadata, cursor or provider-link bytes, request identifiers, and decoder scratch, and clears it on normal return, transport/policy/decode error, cancellation, and unwind where supported. Retained sensitive state moves atomically into a distinct cleanup-owning non-`Copy` type; successful transfer clears the source immediately, and failed or partial transfer clears both source and destination. Provider/operation metadata explicitly classifies whether request identifiers may be retained, must stay protected, or must be discarded. Borrowed decoding remains guard-scoped; a deliberately named explicit escape exists only if required; process abort, `mem::forget`/leaked guards, and unavoidable TLS, allocator, kernel, or device copies are explicit exclusions. Zero read-back is an integrity check, not proof that an additive sanitizer executed.
 
-Verification: primitive-usage enforcement, body/header/cursor/request-ID/scratch dirty prefill, no-op additive sanitizer, rejection, cancellation, panic-unwind, success/decode cleanup, documented non-guarantees, Miri where applicable, and `scripts/release_0_38_gate.sh`.
+Verification: primitive-usage enforcement, body/header/cursor/request-ID/scratch dirty prefill, successful and failed/partial transfer cleanup, non-`Copy` retained-state compile failures, every request-ID sensitivity policy, no-op additive sanitizer, rejection, cancellation, panic-unwind, success/decode cleanup, documented non-guarantees, Miri where applicable, and `scripts/release_0_38_gate.sh`.
 
 Stop gate: `v0.38.0 implementation stop reached. Run pentest for this exact commit.`
 
@@ -1525,9 +1525,9 @@ Stop gate: `v0.38.0 implementation stop reached. Run pentest for this exact comm
 
 Goal: eliminate partial writes, state drift, and secret tails.
 
-Deliverables: checked arithmetic inside every `encoded_len`; exact preflight/write equivalence; immutable or fingerprint-checked inputs across both passes; transactional cursors, aggregate caps, exact sensitive subslices, preparation cleanup guards, request-side ownership/cleanup contracts, and embedded/default/large storage profiles with optional alloc convenience.
+Deliverables: checked arithmetic inside every `encoded_len`; exact preflight/write equivalence; immutable inputs or an exact generation/snapshot identity across both passes, with collision-resistant fingerprint comparison under the `v0.46.0` rules only when exact bounded comparison is impossible and never an ordinary `Hash`; transactional cursors, aggregate caps, exact sensitive subslices, preparation cleanup guards, request-side ownership/cleanup contracts, and embedded/default/large storage profiles with optional alloc convenience.
 
-Verification: arithmetic boundaries, preflight/write differential tests, mutated/nondeterministic two-pass input rejection, every undersized capacity, unchanged-storage assertions, secret-tail cleanup, allocation failure, fuzzing, and `scripts/release_0_39_gate.sh`.
+Verification: arithmetic boundaries, preflight/write differential tests, generation/snapshot mismatch, collision-resistant fingerprint vectors, non-cryptographic hash prohibition, mutated/nondeterministic two-pass input rejection, every undersized capacity, unchanged-storage assertions, secret-tail cleanup, allocation failure, fuzzing, and `scripts/release_0_39_gate.sh`.
 
 Stop gate: `v0.39.0 implementation stop reached. Run pentest for this exact commit.`
 
@@ -1545,9 +1545,9 @@ Stop gate: `v0.40.0 implementation stop reached. Run pentest for this exact comm
 
 Goal: provide reusable bearer auth outside neutral execution.
 
-Deliverables: HTTPS and exactly one owner of `Authorization`; optional immutable authentication scope binds provider, service, endpoint identity, and a bounded/redacted provider-owned audience/account/tenant marker so credentials cannot cross same-authority boundaries; mutable/guarded ingestion, atomic rotation, credential generations and compare-and-swap refresh so a slow refresh cannot overwrite a newer token, in-flight snapshots, executor-neutral snapshot/refresh handoff for expiring credentials, redaction, retired-token and adapter-header cleanup, and no acquisition, clock, executor, or secret store in core.
+Deliverables: HTTPS and exactly one owner of `Authorization`; immutable authentication scope binds provider, service, endpoint identity, and bounded/redacted provider-owned audience/account/tenant fields so credentials cannot cross same-authority boundaries. A provider/operation-owned policy marks each scope field `Required`, `Optional`, or `Forbidden`; omitted required fields, supplied forbidden fields, and every mismatch fail before header construction, so constructing an unscoped credential cannot bypass a required binding. Include mutable/guarded ingestion, atomic rotation, credential generations and compare-and-swap refresh so a slow refresh cannot overwrite a newer token, in-flight snapshots, executor-neutral snapshot/refresh handoff for expiring credentials, redaction, retired-token and adapter-header cleanup, and no acquisition, clock, executor, or secret store in core.
 
-Verification: provider/service/endpoint/audience/account/tenant mismatch, absent/present scope policy, rotation/refresh races, stale-generation CAS rejection, poisoned state, cleanup, blocking/async parity, and `scripts/release_0_41_gate.sh`.
+Verification: every provider/service/endpoint/audience/account/tenant required/optional/forbidden omission, presence, and mismatch case; unscoped-credential bypass attempts; rotation/refresh races; stale-generation CAS rejection; poisoned state; cleanup; blocking/async parity; and `scripts/release_0_41_gate.sh`.
 
 Stop gate: `v0.41.0 implementation stop reached. Run pentest for this exact commit.`
 
@@ -1555,7 +1555,7 @@ Stop gate: `v0.41.0 implementation stop reached. Run pentest for this exact comm
 
 Goal: support non-bearer providers without embedding provider signing in transports.
 
-Deliverables: type-separated Basic credentials with the same optional provider/service/endpoint/audience/account/tenant authentication scope, source-locked username charset/colon rules, and an encoded authorization-header cap; bounded canonical signing inputs covering selected headers, request-body digest, nonce, and caller-provided time; caller-provided hashing/signing; adapter-auth cleanup; and no implicit clock, randomness, filesystem, or key store. Source-lock a narrow Robot wire fixture covering one read request, one non-executed repeated-form mutation fixture, errors, quotas, maintenance, lockout policy, and empty-body behavior without claiming operation coverage.
+Deliverables: type-separated Basic credentials with the same provider/operation-owned `Required`, `Optional`, or `Forbidden` provider/service/endpoint/audience/account/tenant scope policy and fail-closed omission/presence/mismatch behavior; source-locked username charset/colon rules and an encoded authorization-header cap; bounded canonical signing inputs covering selected headers, request-body digest, nonce, and caller-provided time; caller-provided hashing/signing; adapter-auth cleanup; and no implicit clock, randomness, filesystem, or key store. Source-lock a narrow Robot wire fixture covering one read request, one non-executed repeated-form mutation fixture, errors, quotas, maintenance, lockout policy, and empty-body behavior without claiming operation coverage.
 
 Verification: auth ownership and every scope mismatch, Basic colon/charset/encoded-length boundaries, canonical-header and body-digest vectors, nonce/time replay, redaction/cleanup, Robot credential-free conformance and no-publish gates, and `scripts/release_0_42_gate.sh`.
 
@@ -1577,9 +1577,9 @@ Stop gate: `v0.43.0 implementation stop reached. Run pentest for this exact comm
 
 Goal: model numbered, cursor, offset, marker, and link pagination separately.
 
-Deliverables: hard budgets, bounded opaque state cleared on drop, and cursor-digest cycle checks where collisions fail closed rather than bypass correctness. A distinct `ValidatedProviderLink` preserves already encoded raw path/query bytes without decode/re-encode, cannot mix with structured query components, preserves duplicate ordering and percent encoding, binds to the original operation's admitted path pattern rather than only the provider base path, preserves the original method, and rejects authority, scheme, method, and operation-target changes plus all fragments and userinfo. Snapshot/drift policy and state updates remain explicit and transactional; diagnostics never contain cursors or links.
+Deliverables: hard budgets, bounded opaque state cleared on drop, and cursor-digest cycle checks where collisions fail closed rather than bypass correctness. `PaginationCursor` and `ValidatedProviderLink` are cleanup-owning non-`Copy` state types populated only through the atomic retained-state transfer contract from `v0.38.0`. A distinct `ValidatedProviderLink` preserves already encoded raw path/query bytes without decode/re-encode, cannot mix with structured query components, preserves duplicate ordering and percent encoding, binds to the original operation's admitted path pattern rather than only the provider base path, preserves the original method, and rejects authority, scheme, method, and operation-target changes plus all fragments and userinfo. Snapshot/drift policy and state updates remain explicit and transactional; diagnostics never contain cursors or links.
 
-Verification: omission/drift/repetition/cycle/digest collision, structured/link type separation, raw-byte/duplicate/percent preservation, authority/path-pattern/method/operation/userinfo/fragment/downgrade rejection, budget/cleanup tests, DigitalOcean-style fixtures, fuzzing, and `scripts/release_0_44_gate.sh`.
+Verification: omission/drift/repetition/cycle/digest collision, structured/link type separation, atomic response-to-state transfer and source/destination cleanup, non-`Copy` state compile failures, raw-byte/duplicate/percent preservation, authority/path-pattern/method/operation/userinfo/fragment/downgrade rejection, budget/cleanup tests, DigitalOcean-style fixtures, fuzzing, and `scripts/release_0_44_gate.sh`.
 
 Stop gate: `v0.44.0 implementation stop reached. Run pentest for this exact commit.`
 
@@ -1617,9 +1617,9 @@ Stop gate: `v0.47.0 implementation stop reached. Run pentest for this exact comm
 
 Goal: support bounded upload/download/event I/O without changing buffered requests.
 
-Deliverables: separate opt-in streaming boundaries; explicit body replayability; per-operation maximum upload bytes; checked actual-byte accounting across chunks; declared-length mismatch detection; overflow rejection before accepting the next chunk; explicit unknown-length and executor-owned framing policy; replayability invalidation when a source changes between attempts; transactional versus dirty partial upload/download sink states; partial-I/O and cancellation semantics; deterministic backpressure; no automatic retry for non-replayable mutations; and no implicit buffering/runtime.
+Deliverables: separate opt-in streaming boundaries; explicit body replayability; per-operation maximum upload bytes plus hard chunk and observation budgets; checked actual-byte accounting across chunks; declared-length mismatch detection; overflow rejection before accepting the next chunk; rejection or explicitly bounded tolerance of consecutive empty chunks; a progress requirement for finite upload/download streams; explicit unknown-length and executor-owned framing policy; replayability invalidation when a source changes between attempts; transactional versus dirty partial upload/download sink states; partial-I/O and cancellation semantics; deterministic backpressure; no automatic retry for non-replayable mutations; and no implicit buffering/runtime. Long-lived event streams may remain open-ended only with caller-owned cancellation and an observation policy that still bounds zero-progress behavior.
 
-Verification: exact/under/over/unknown declared lengths, every upload cap boundary, chunk-count overflow, source mutation between attempts, executor framing, chunk boundaries, short I/O, cancellation, transactional/dirty sinks, replay attempts, backpressure, cleanup, platform checks, and `scripts/release_0_48_gate.sh`.
+Verification: exact/under/over/unknown declared lengths, every byte/chunk/observation cap boundary, endless empty chunks, alternating empty/data chunks, consecutive-empty tolerance exhaustion, finite-stream zero progress, event cancellation/observation exhaustion, source mutation between attempts, executor framing, chunk boundaries, short I/O, cancellation, transactional/dirty sinks, replay attempts, backpressure, cleanup, platform checks, and `scripts/release_0_48_gate.sh`.
 
 Stop gate: `v0.48.0 implementation stop reached. Run pentest for this exact commit.`
 
@@ -1637,7 +1637,7 @@ Stop gate: `v0.49.0 implementation stop reached. Run pentest for this exact comm
 
 Goal: make endpoint/query/body/response mismatches unrepresentable.
 
-Deliverables: sealed operation traits, `QueryFor<O>`, `BodyFor<O>`, and typed `Prepared<O>` with exhaustive associated service/endpoint policy, auth class, request headers/media, admitted statuses, success/error body and media policies, response caps, pagination/quota/retry strategy, streaming mode, response/error types, and required permit class; plus forward-compatible enum rules.
+Deliverables: sealed operation traits, `QueryFor<O>`, `BodyFor<O>`, and typed `Prepared<O>` with exhaustive associated service/endpoint policy, auth class and authentication-scope requirements, request headers/media, admitted statuses, success/error body and media policies, response caps, pagination/quota/retry strategy, streaming mode, response/error types, and required permit class; plus forward-compatible enum rules.
 
 Verification: compile-fail mismatch for every association, source-derived binding coverage, semver review, and `scripts/release_0_50_gate.sh`.
 
@@ -1647,9 +1647,9 @@ Stop gate: `v0.50.0 implementation stop reached. Run pentest for this exact comm
 
 Goal: enforce safety intent at execution.
 
-Deliverables: scope/fingerprint/expiry-bound permits that are non-`Copy` and normally non-`Clone`; atomic state transition at execution under concurrency; `NotSent` may recover the permit, while `PossiblySent` or `ResponseStarted` consumes it into spent/pending-reconciliation state; repetition after uncertain delivery requires the exact idempotency identity and operation-specific reconciliation. Plan-confirm fingerprints use a distinct versioned domain over provider, service, operation, endpoint identity, exact query bytes, selected headers, body, account/tenant, currency, observed price, spending ceiling, and permit scope; use exact bounded comparison or caller-supplied collision-resistant hashing, never non-cryptographic `Hash`; clear/redact canonical inputs. Include no-op rejection, replay policy, and caller-owned time/price/entropy. Backward wall-clock observations cannot extend permit validity.
+Deliverables: scope/fingerprint/expiry-bound permits are non-`Copy`, and direct permits are non-`Clone`. If an explicitly shareable handle is needed, every clone references the same atomic consumption state, remaining budget, and recovery generation; cloning never creates independent authority, dropping one handle never restores authority consumed by another, and `NotSent` recovery is generation-checked before the shared state becomes usable again. `PossiblySent` or `ResponseStarted` consumes the shared authority into spent/pending-reconciliation state; repetition after uncertain delivery requires the exact idempotency identity and operation-specific reconciliation. Plan-confirm fingerprints use a distinct versioned domain over provider, service, operation, endpoint identity, exact query bytes, selected headers, body, account/tenant, currency, observed price, spending ceiling, and permit scope; use exact bounded comparison or caller-supplied collision-resistant hashing, never non-cryptographic `Hash`; clear/redact canonical inputs. Include no-op rejection, replay policy, and caller-owned time/price/entropy. Backward wall-clock observations cannot extend permit validity.
 
-Verification: plan-confirm version/domain/field separation, weak digest rejection, canonical-input cleanup, compile-fail copy/clone misuse, concurrent double-spend, every delivery-state transition, recover/reconcile/repeat rules, exact idempotency mismatch, wall-clock rollback, stale/mismatch/replay/budget/price/no-op/redaction tests, and `scripts/release_0_51_gate.sh`.
+Verification: plan-confirm version/domain/field separation, weak digest rejection, canonical-input cleanup, compile-fail direct copy/clone misuse, shared-handle clone/drop interleavings, shared-budget exhaustion, stale-generation `NotSent` recovery rejection, concurrent double-spend, every delivery-state transition, recover/reconcile/repeat rules, exact idempotency mismatch, wall-clock rollback, stale/mismatch/replay/budget/price/no-op/redaction tests, Loom where supported, and `scripts/release_0_51_gate.sh`.
 
 Stop gate: `v0.51.0 implementation stop reached. Run pentest for this exact commit.`
 
@@ -1677,7 +1677,7 @@ Stop gate: `v0.53.0 implementation stop reached. Run pentest for this exact comm
 
 Goal: make failures actionable without leaking provider or customer data.
 
-Deliverables: bounded provider/service/operation/status/request-ID/retry/error categories with no credentials, cursors, targets, bodies, messages, or generic payload-bearing `Debug` path; an opt-in observer receives structured lifecycle events, while core never logs automatically.
+Deliverables: bounded provider/service/operation/status/request-ID/retry/error categories with no credentials, cursors, targets, bodies, messages, or generic payload-bearing `Debug` path; request-ID observation follows the provider/operation sensitivity and retention policy established in `v0.38.0`; an opt-in observer receives structured lifecycle events, while core never logs automatically.
 
 Verification: redaction corpus, maximum lengths, observer disabled/enabled behavior, reentrancy/error isolation, downstream error types, snapshots, and `scripts/release_0_54_gate.sh`.
 
@@ -1687,7 +1687,7 @@ Stop gate: `v0.54.0 implementation stop reached. Run pentest for this exact comm
 
 Goal: test realistic multi-request behavior deterministically.
 
-Deliverables: bounded recording, dynamic responders, fault injection, pagination/action scripts, cancellation, partial I/O, and provider fixture builders.
+Deliverables: bounded recording, dynamic responders, fault injection including endless-empty and alternating-empty/data stream sources, pagination/action scripts, cancellation, partial I/O, and provider fixture builders.
 
 Verification: exhaustion, mismatch non-consumption, recording caps, injected failures, no_std checks, and `scripts/release_0_55_gate.sh`.
 
@@ -1903,9 +1903,9 @@ Stop gate: `v0.75.0 implementation stop reached. Run pentest for this exact comm
 
 Goal: type-separate Robot Basic credentials and prevent unsafe authentication testing.
 
-Deliverables: protected ingestion/rotation/cleanup, endpoint binding, lockout documentation, and no intentionally invalid live credentials.
+Deliverables: protected ingestion/rotation/cleanup, endpoint and Robot-service scope binding, and a lockout-aware credential-attempt generation. Authentication rejection closes that generation for execution; only newly supplied credentials or an explicit caller reconfirmation creates a new generation. No automatic policy, pager, action, or client path can reopen or repeat a rejected generation, and live evidence never intentionally uses invalid credentials.
 
-Verification: auth cross-use, redaction, rotation, lockout gate, and `scripts/release_0_76_gate.sh`.
+Verification: auth cross-use, redaction, rotation, rejection-state transition, stale/rejected generation reuse, explicit reconfirmation, concurrent attempts sharing one generation, lockout gate, and `scripts/release_0_76_gate.sh`.
 
 Stop gate: `v0.76.0 implementation stop reached. Run pentest for this exact commit.`
 
@@ -1913,9 +1913,9 @@ Stop gate: `v0.76.0 implementation stop reached. Run pentest for this exact comm
 
 Goal: type Robot errors, maintenance, invalid input, and quota behavior.
 
-Deliverables: bounded envelopes, payload-free diagnostics, provider quota decoder, retry classification, and fixtures.
+Deliverables: bounded envelopes, payload-free diagnostics, provider quota decoder, and structurally distinct authentication-rejection, quota, maintenance, invalid-input, and transient transport classifications. Authentication rejection is never automatically retryable and cannot be converted into a generic transient category by unknown-code fallback; fixtures bind this rule to the source-locked Robot protocol.
 
-Verification: malformed/unknown/oversized/duplicate/quota tests and `scripts/release_0_77_gate.sh`.
+Verification: malformed/unknown/oversized/duplicate/quota tests, auth-versus-quota/maintenance/transient separation, unknown-code fail-closed behavior, authentication retry denial, and `scripts/release_0_77_gate.sh`.
 
 Stop gate: `v0.77.0 implementation stop reached. Run pentest for this exact commit.`
 
@@ -2083,9 +2083,9 @@ Stop gate: `v0.93.0 implementation stop reached. Run pentest for this exact comm
 
 Goal: expose every active Robot operation through typed clients.
 
-Deliverables: blocking, Send-async, local-async, pager/action workflows, endpoint/auth separation, permits, cleanup, and complete mock scenarios.
+Deliverables: blocking, Send-async, local-async, pager/action workflows, endpoint/auth separation, permits, cleanup, and complete mock scenarios. All layers delegate retry ownership to the `v0.46.0` policy, propagate Robot authentication rejection without repetition, and require a newly supplied or explicitly reconfirmed credential-attempt generation before another call.
 
-Verification: client coverage, lockout/cancellation/concurrency scenarios, and `scripts/release_0_94_gate.sh`.
+Verification: client coverage, authentication rejection through direct/pager/action/workflow paths with exactly one wire attempt, rejected-generation reuse denial, explicit reconfirmation, lockout/cancellation/concurrency scenarios, and `scripts/release_0_94_gate.sh`.
 
 Stop gate: `v0.94.0 implementation stop reached. Run pentest for this exact commit.`
 

@@ -496,12 +496,12 @@ crates or placing provider-specific behavior in a neutral boundary.
 
 | Releases | Primary code owners | Purpose |
 | --- | --- | --- |
-| `v0.32.0 - v0.43.0` | `cloud-sdk`, neutral boundary crates, and `cloud-sdk-hetzner` only for migration and excluded fixtures | Neutral wire/isolation kernel, response provenance and cleanup, atomic encoding, auth policies, narrow pre-freeze Robot wire conformance, and migration of all existing Hetzner operations. |
-| `v0.44.0 - v0.56.0` | `cloud-sdk`, provider policy/decoder modules, adapters, and testkit as required | Structured and raw-link pagination, quota/retry strategies, cryptographic fingerprint domains, local async, upload-accounted streaming, typed operations, permits, client kernel, workflows, diagnostics, testkit, and drift tooling. |
+| `v0.32.0 - v0.43.0` | `cloud-sdk`, neutral boundary crates, and `cloud-sdk-hetzner` only for migration and excluded fixtures | Neutral wire/isolation kernel, response provenance, atomic cleanup-owning state transfer, snapshot-locked encoding, policy-required auth scopes, narrow pre-freeze Robot wire conformance, and migration of all existing Hetzner operations. |
+| `v0.44.0 - v0.56.0` | `cloud-sdk`, provider policy/decoder modules, adapters, and testkit as required | Structured and raw-link pagination, quota/retry strategies, cryptographic fingerprint domains, local async, progress-enforcing byte/chunk/observation-bounded streaming, typed operations, shared-state permits, client kernel, workflows, diagnostics, testkit, and drift tooling. |
 | `v0.57.0 - v0.61.0` | excluded unpublished OVHcloud API v2 conformance package plus neutral contracts only when the probe proves them incomplete | Source lock, authority/OAuth, cursor/header, task/event, and end-to-end conformance. The probe must never enter the publish sequence. |
 | `v0.62.0` | provider-neutral contracts, `cloud-sdk-hetzner` vertical slices, adapters, testkit, and documentation | Neutral API/semver freeze only after OVHcloud and Robot conformance plus full-fidelity Hetzner Cloud/DNS/security/Storage Box/error/no-content slices across every execution mode. |
 | `v0.63.0 - v0.73.0` | `cloud-sdk-hetzner`, with neutral fixes only when genuinely provider-independent | Complete pre-Robot models, exact operation bindings, and Cloud/DNS/security/Console Storage Box clients. |
-| `v0.74.0 - v0.95.0` | `cloud-sdk-hetzner`; neutral boundaries only for reusable behavior | Robot source lock, protocol, every active endpoint family, client integration, and live evidence. |
+| `v0.74.0 - v0.95.0` | `cloud-sdk-hetzner`; neutral boundaries only for reusable behavior | Robot source lock, protocol, lockout-safe non-retryable authentication rejection, every active endpoint family, client integration, and live evidence. |
 | `v0.96.0 - v0.99.0` | release tooling/docs and affected crates only for proven qualification fixes | Whole-platform adversarial, platform/MSRV/FIPS, provenance, and controlled-mutation release-candidate evidence. |
 | `v1.0.0` | all changed publishable crates under independent version rules | Stable provider-neutral foundation and complete claimed Hetzner provider. |
 

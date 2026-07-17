@@ -112,16 +112,18 @@ owned by `cloud-sdk-hetzner::storage`.
 12. Neutral wire and isolation kernel: extensible identities, complete HTTP
    method/target relationships, normalized endpoint-policy algebra, exact
    canonical path/query bytes, bounded headers, sealed `ResponseWriter`
-   provenance, bounded lifecycle cleanup, deterministic atomic encoders,
-   wire-level adapter limits, generation-safe authentication policies, and
+   provenance, atomic cleanup-owning retained-state transfer, deterministic
+   snapshot-locked encoders, wire-level adapter limits, generation-safe
+   authentication with provider/operation-owned scope requirements, and
    complete Hetzner migration in `v0.32.0` through `v0.43.0`.
 13. Control-plane and execution contracts: pagination, quota, retry,
    raw provider links, cryptographically defined fingerprint/idempotency
-   domains, unconditional attempt/delay budgets, local async, upload-accounted
-   replay-aware streaming, amplification-bounded incremental decoding, typed
-   operations, stateful enforceable permits, a provider-generic client kernel,
-   pure monotonic-budget workflow drivers, diagnostics, testkit scenarios, and
-   generic drift evidence in `v0.44.0` through `v0.56.0`.
+   domains, unconditional attempt/delay budgets, local async, byte/chunk/
+   observation-bounded progress-enforcing streaming, amplification-bounded
+   incremental decoding, typed operations, atomic shared-state permits, a
+   provider-generic client kernel, pure monotonic-budget workflow drivers,
+   diagnostics, zero-progress testkit scenarios, and generic drift evidence in
+   `v0.44.0` through `v0.56.0`.
 14. Multi-provider proof and neutral freeze: an unpublished OVHcloud API v2
    source lock and conformance probe in `v0.57.0` through `v0.61.0`, followed
    by the neutral API freeze in `v0.62.0`. The probe covers source-locked
@@ -139,12 +141,14 @@ owned by `cloud-sdk-hetzner::storage`.
 16. Complete pre-Robot Hetzner clients: provider-generic client integration and
    typed Cloud, DNS, security, and Console Storage Box workflows in `v0.69.0`
    through `v0.73.0`.
-17. Robot Webservice implementation: source lock, atomic forms, credentials,
-   lockout, errors, quotas, every active resource family, ordering, and scoped
-   billable mutations in `v0.74.0` through `v0.93.0`.
+17. Robot Webservice implementation: source lock, atomic forms, scoped
+   credential-attempt generations, structurally non-retryable authentication
+   rejection, lockout, errors, quotas, every active resource family, ordering,
+   and scoped billable mutations in `v0.74.0` through `v0.93.0`.
 18. Robot integration and live evidence: blocking, Send-async, local-async,
-   pager/action workflows, complete mock coverage, and carefully gated
-   read-only live evidence in `v0.94.0` and `v0.95.0`.
+   pager/action workflows that cannot repeat authentication rejection, complete
+   mock coverage, and carefully gated read-only live evidence in `v0.94.0` and
+   `v0.95.0`.
 19. Whole-platform qualification: adversarial/fuzz evidence, platform/MSRV/FIPS
    handshakes, provenance/governance review, controlled mutation evidence, and
    the final release candidate in `v0.96.0` through `v0.99.0`.
