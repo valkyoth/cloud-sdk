@@ -187,20 +187,22 @@ has not been assigned to a release.
 | Mutable transport receivers prevent ordinary concurrent requests and encourage mutex guards across `.await`. | Add shared blocking and async transport contracts, caller-bounded concurrency guidance, and concurrent conformance tests in `v0.28.0`. |
 | Immutable text token input cannot be cleared and current clients lack an explicit rotation path. | Add mutable-byte and guarded-buffer ingestion with source cleanup plus concurrency-safe credential rotation in `v0.28.0`. |
 | Safe endpoint models still require callers to assemble transport requests, policy checks, and decoding manually. | Keep preparation/decoding from `v0.29.0-v0.31.0`; add typed operations in `v0.50.0`, the neutral client kernel in `v0.52.0`, and complete Hetzner clients in `v0.69.0-v0.73.0`. No nested client crate is introduced. |
-| A custom HTTPS endpoint can receive real credentials when its value is attacker-controlled. | Keep explicit trust from `v0.27.0-v0.28.0`; add endpoint-policy algebra in `v0.34.0`, raw/auth separation in `v0.40.0-v0.42.0`, and official or acknowledged destinations in clients from `v0.52.0`. |
-| Closed provider/API-family and HTTP-method enums force core edits for later providers. | Add extensible identities in `v0.32.0`, complete method policy in `v0.33.0`, and endpoint-policy algebra in `v0.34.0`. |
-| Target validation is stronger in reqwest than core, so custom transports can accept ambiguous targets. | Separate and canonicalize path/query in core in `v0.35.0`; reject malformed percent triplets, encoded separators/controls, dot segments, doubled slashes, fragments, and ambiguous query boundaries. |
+| A custom HTTPS endpoint can receive real credentials when its value is attacker-controlled. | Keep explicit trust from `v0.27.0-v0.28.0`; add endpoint-policy algebra and exact IPv6/DNS/IDNA authority rules in `v0.34.0`, raw/auth separation in `v0.40.0-v0.42.0`, and official or acknowledged destinations in clients from `v0.52.0`. |
+| Closed provider/API-family and HTTP-method enums force core edits for later providers. | Add extensible identities in `v0.32.0`; complete methods in `v0.33.0` with uppercase non-aliasing extensions, origin-form-only OPTIONS, and explicit CONNECT/TRACE/upgrade denial; add endpoint-policy algebra in `v0.34.0`. |
+| Target validation is stronger in reqwest than core, so custom transports can accept ambiguous targets. | Separate and canonicalize path/query in core in `v0.35.0`; reject malformed percent triplets, encoded separators/controls, dot segments, doubled slashes, fragments, pre-encoded input, and ambiguous absent/empty/value/duplicate/space semantics. |
 | The transport request lacks bounded provider headers and general response metadata. | Add ordered sensitive header and response-metadata contracts in `v0.36.0`, reserve framing/auth/proxy headers, bind Host/SNI to endpoint identity, enforce per-field/count/aggregate caps, then complete raw execution/auth separation in `v0.40.0-v0.42.0`. |
-| `TransportResponse<'buffer>` does not prove that its body came from the admitted caller buffer. | Replace borrow-only provenance with a private response-buffer capability or checked initialized-length commit in `v0.37.0`; external/static response bodies become unrepresentable. |
+| `TransportResponse<'buffer>` does not prove that its body came from the admitted caller buffer. | Replace it with a sealed `ResponseWriter<'buffer>` in `v0.37.0`; only core commits status, bounded metadata, and initialized length into a cleanup-owning guard, so external/static bodies and escaping decoded borrows are unrepresentable. |
 | Response sanitization is a non-verifiable transport promise and misses failure, rejection, decode, and cancellation paths. | Make core-owned clearing mandatory in `v0.38.0`, keep platform sanitizers additive, guarantee ordinary return/error/cancellation and supported unwind paths, and explicitly exclude abort, leaked guards, and unavoidable TLS/kernel copies. Clear request-side adapter storage in `v0.39.0-v0.42.0`. |
-| Fixed-buffer writers can leave partial output or secret tail bytes after failure. | Make every path/query/header/JSON/form writer preflighted and transactional in `v0.39.0`, with aggregate caps, exact sensitive subslices, preparation cleanup guards, capacity profiles, and request-side cleanup ownership. |
+| Fixed-buffer writers can leave partial output or secret tail bytes after failure. | Make every path/query/header/JSON/form writer preflighted and transactional in `v0.39.0`, with checked arithmetic, exact preflight/write equivalence, deterministic two-pass inputs, aggregate caps, exact sensitive subslices, cleanup guards, and capacity profiles. |
 | Transport errors do not state whether a mutation may have reached the provider. | Add `NotSent`, `PossiblySent`, and `ResponseStarted` delivery phases in `v0.40.0`, map unknown to `PossiblySent`, consume the phase in retry policy in `v0.46.0`, and require Robot order reconciliation in `v0.93.0`. |
-| Response-head handling lacks explicit informational, body, media, trailer, and duplicate policy. | Define final-response selection, HEAD/204/304 body rules, separate success/error caps and media policy, duplicate rejection, disabled decoding, and explicit trailer behavior in `v0.40.0`. |
+| Response-head handling and adapter allocation lack explicit wire-level bounds. | In `v0.40.0`, define bounded informational responses, reject 101, enforce header/chunk limits before unbounded accumulation, stream-count actual bytes, distinguish caller-buffer from process-allocation guarantees, drop unadmitted headers, protect transient sensitive headers, and define HEAD/204/304/media/trailer/duplicate behavior. |
 | Core pagination and rate-limit types encode Hetzner conventions. | Split pagination, quota, and retry/idempotency into dedicated strategy releases `v0.44.0-v0.46.0`, including cursor cleanup, collision-safe cycle handling, base-path/authority confinement, drift, replay, and quota-overflow tests. |
 | `AsyncTransport` requires `Send`, and large payloads require one contiguous buffer. | Add `LocalAsyncTransport` in `v0.47.0`, streaming transport contracts in `v0.48.0`, and bounded incremental decoding in `v0.49.0`. |
-| Retry and streaming contracts do not state whether bodies and dirty sinks are replayable. | Give `v0.46.0` one retry owner and explicit body replayability; add transactional/dirty partial upload/download state in `v0.48.0`; never automatically retry non-replayable streaming mutations. |
+| Retry and streaming contracts do not state whether bodies and dirty sinks are replayable or structurally bounded. | Give `v0.46.0` one retry owner, explicit body replayability, hard attempt/cumulative-delay budgets, and distinct wall-clock/monotonic inputs; add transactional/dirty partial upload/download state in `v0.48.0`; never automatically retry non-replayable streaming mutations. |
+| Incremental decoding can still amplify token, field, number, exponent, or partial UTF-8 state. | Add total token/field and numeric/exponent limits plus chunk-spanning UTF-8 validation in `v0.49.0`. |
 | Query/body compatibility and response selection still depend on runtime operation keys. | Add exhaustive typed associations for service, endpoint, auth, headers, media, statuses, success/error policy, caps, pagination/quota/retry, streaming, and permit class in `v0.50.0`; prove all 208 Hetzner operations in `v0.68.0`. |
-| Cost, destructive intent, and retry metadata are inspectable but not enforced. | Add scoped mutation/destructive/cost permits, plan-confirm fingerprints, replay protection, and no-op rejection in `v0.51.0`. |
+| Cost, destructive intent, and retry metadata are inspectable but not enforced. | Add non-`Copy`, normally non-`Clone` stateful permits in `v0.51.0`; recover only after `NotSent`, mark uncertain delivery spent/pending reconciliation, require exact idempotency/reconciliation for repetition, and reject rollback-extended expiry. |
+| Credential refresh and Basic authorization can race or encode ambiguous credentials. | Add generation/CAS-protected bearer refresh in `v0.41.0`; source-lock Basic username charset/colon rules and cap encoded authorization length in `v0.42.0`. |
 | Concurrent clients need explicit workspace ownership rather than hidden queues or aliased buffers. | Require caller-owned per-request workspace leases, bounded admission, no mutable alias across await points, and identical blocking/Send-async/local-async cleanup in `v0.52.0`. |
 | Pagination/action workflows and diagnostics remain low-level, and action polling lacks a structural observation limit. | Add the client kernel in `v0.52.0`, bounded pager/action drivers and separated control/backoff/progress policy in `v0.53.0`, payload-free diagnostics and opt-in observation in `v0.54.0`, and dynamic testkit scenarios in `v0.55.0`. |
 | Drift tooling is Hetzner-specific and historical review evidence depends mainly on fingerprints. | Add a provider-manifest drift engine, canonical reviewed diffs, alert ownership, and compatibility policy in `v0.56.0`. |
@@ -1461,9 +1463,9 @@ Stop gate: `v0.32.0 implementation stop reached. Run pentest for this exact comm
 
 Goal: support provider HTTP methods without repeated core changes.
 
-Deliverables: GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS, a bounded extension-method policy, and method-independent safety classification.
+Deliverables: GET, POST, PUT, DELETE, PATCH, HEAD, and origin-form-only OPTIONS; bounded extension methods must be uppercase canonical tokens and must not alias known methods; CONNECT and TRACE are denied; `OPTIONS *`, protocol upgrade, and tunnelling require a separate future transport contract; safety classification remains operation-owned rather than method-inferred.
 
-Verification: token/adversarial tests, operation migration, API review, and `scripts/release_0_33_gate.sh`.
+Verification: casing/alias/token corpus, CONNECT/TRACE/OPTIONS-star/upgrade/tunnel rejection, operation migration, API review, and `scripts/release_0_33_gate.sh`.
 
 Stop gate: `v0.33.0 implementation stop reached. Run pentest for this exact commit.`
 
@@ -1471,9 +1473,9 @@ Stop gate: `v0.33.0 implementation stop reached. Run pentest for this exact comm
 
 Goal: make credential destinations provider-owned and explicit.
 
-Deliverables: fixed, finite official-set, region-derived, and acknowledged-custom endpoint policies with non-static identities and exact scheme/authority/port/base-path checks.
+Deliverables: fixed, finite official-set, region-derived, and acknowledged-custom endpoint policies with non-static identities and exact scheme/authority/port/base-path checks. Authority rules canonicalize bracketed IPv6 literals, reject IPv6 zone identifiers, trailing DNS dots, userinfo, percent-encoded hosts, and Unicode host input, and accept only canonical lowercase ASCII DNS/A-label IDNA. Resolved-address and egress filtering remain optional transport/environment policy, never DNS logic in core.
 
-Verification: SSRF, normalization, redirect, credential-binding, compile-fail trust tests, and `scripts/release_0_34_gate.sh`.
+Verification: SSRF, IPv6/zone/trailing-dot/userinfo/percent-host/IDNA normalization, redirect, credential binding, optional egress-hook isolation, compile-fail trust tests, and `scripts/release_0_34_gate.sh`.
 
 Stop gate: `v0.34.0 implementation stop reached. Run pentest for this exact commit.`
 
@@ -1481,9 +1483,9 @@ Stop gate: `v0.34.0 implementation stop reached. Run pentest for this exact comm
 
 Goal: give every transport the same request-target security meaning.
 
-Deliverables: separate validated path/query components and core rejection of malformed percent triplets, encoded separators/controls, dot segments, doubled slashes, fragments, backslashes, non-ASCII, and query ambiguity.
+Deliverables: separate validated path/query components; distinct absent and present-empty query states; stable pair ordering with duplicate-key preservation; distinct missing and empty values; uppercase percent hex; `%20` for query spaces while `+` remains a separate provider-dialect type; rejection of pre-encoded fragments; exact final query bytes reused by signing and request fingerprints; core rejection of malformed percent triplets, encoded separators/controls, dot segments, doubled slashes, fragments, backslashes, non-ASCII, and ambiguous assembly.
 
-Verification: cross-adapter corpus, fuzzing, atomic assembly tests, and `scripts/release_0_35_gate.sh`.
+Verification: absent/empty/missing/empty-value/duplicate/order/hex-case/space/pre-encoded vectors, signing/fingerprint byte identity, cross-adapter corpus, fuzzing, atomic assembly tests, and `scripts/release_0_35_gate.sh`.
 
 Stop gate: `v0.35.0 implementation stop reached. Run pentest for this exact commit.`
 
@@ -1501,9 +1503,9 @@ Stop gate: `v0.36.0 implementation stop reached. Run pentest for this exact comm
 
 Goal: make it impossible for a transport to return bytes outside the admitted caller buffer.
 
-Deliverables: private response-buffer capability or checked initialized-length commit; core constructs all response slices and checks the admitted capacity.
+Deliverables: one sealed `ResponseWriter<'buffer>` model with exclusive admitted-buffer access. Transports may write bytes and commit only status, bounded metadata, and initialized length; core validates the length, constructs the response slice internally, and returns a cleanup-owning `CheckedResponseGuard`. Owned decoding clears before return; borrowed decoding is closure-scoped and cannot outlive the guard.
 
-Verification: malicious safe transports returning static/external/oversized bodies, blocking/async parity, compile-fail tests, and `scripts/release_0_37_gate.sh`.
+Verification: malicious safe transports attempting static/external/oversized bodies or forged lengths, escaping-borrow compile-fail cases, owned/borrowed decode cleanup, blocking/async parity, and `scripts/release_0_37_gate.sh`.
 
 Stop gate: `v0.37.0 implementation stop reached. Run pentest for this exact commit.`
 
@@ -1511,7 +1513,7 @@ Stop gate: `v0.37.0 implementation stop reached. Run pentest for this exact comm
 
 Goal: define and enforce the strongest cleanup guarantee Rust and the platform can actually provide.
 
-Deliverables: mandatory core-owned clearing plus additive platform sanitizers; guarded cleanup on normal return, transport/policy/decode error, cancellation, and unwind where supported; a deliberately named explicit escape only if required; explicit exclusions for process abort, `mem::forget`/leaked guards, and unavoidable TLS, allocator, kernel, or device copies. Zero read-back is an integrity check, not proof that an additive sanitizer executed.
+Deliverables: mandatory core-owned clearing plus additive platform sanitizers; the `CheckedResponseGuard` from `v0.37.0` owns cleanup on normal return, transport/policy/decode error, cancellation, and unwind where supported; borrowed decoding remains guard-scoped; a deliberately named explicit escape exists only if required; process abort, `mem::forget`/leaked guards, and unavoidable TLS, allocator, kernel, or device copies are explicit exclusions. Zero read-back is an integrity check, not proof that an additive sanitizer executed.
 
 Verification: no-op additive sanitizer, dirty prefill, rejection, cancellation, panic-unwind, success/decode cleanup, documented non-guarantees, Miri where applicable, and `scripts/release_0_38_gate.sh`.
 
@@ -1521,9 +1523,9 @@ Stop gate: `v0.38.0 implementation stop reached. Run pentest for this exact comm
 
 Goal: eliminate partial writes, state drift, and secret tails.
 
-Deliverables: `encoded_len` preflight for every writer, transactional cursors, aggregate caps, exact sensitive subslices, preparation cleanup guards, request-side ownership/cleanup contracts, and embedded/default/large storage profiles with optional alloc convenience.
+Deliverables: checked arithmetic inside every `encoded_len`; exact preflight/write equivalence; immutable or fingerprint-checked inputs across both passes; transactional cursors, aggregate caps, exact sensitive subslices, preparation cleanup guards, request-side ownership/cleanup contracts, and embedded/default/large storage profiles with optional alloc convenience.
 
-Verification: every undersized capacity, unchanged-storage assertions, secret-tail cleanup, allocation failure, fuzzing, and `scripts/release_0_39_gate.sh`.
+Verification: arithmetic boundaries, preflight/write differential tests, mutated/nondeterministic two-pass input rejection, every undersized capacity, unchanged-storage assertions, secret-tail cleanup, allocation failure, fuzzing, and `scripts/release_0_39_gate.sh`.
 
 Stop gate: `v0.39.0 implementation stop reached. Run pentest for this exact commit.`
 
@@ -1531,9 +1533,9 @@ Stop gate: `v0.39.0 implementation stop reached. Run pentest for this exact comm
 
 Goal: make transports execute complete validated HTTP requests without provider policy.
 
-Deliverables: method/target/header/body execution; checked response commit; conservative delivery phase (`NotSent`, `PossiblySent`, `ResponseStarted`) with unknown mapped to `PossiblySent`; final-response selection after informational 1xx; HEAD and forbidden-body rules for 204/304; separate success/error body caps and media policies; duplicate response-head rejection; explicit trailer policy; adapter-owned request body/header/staging cleanup on every ordinary exit; and removal of implicit auth, JSON Accept, redirects, proxies, content decoding, retries, and cross-origin forwarding.
+Deliverables: method/target/header/body execution through `ResponseWriter`; conservative delivery phase (`NotSent`, `PossiblySent`, `ResponseStarted`) with unknown mapped to `PossiblySent`; a bounded informational-response count and final-response selection; rejection of 101; HEAD and forbidden-body rules for 204/304; wire-level header count/byte limits before unbounded accumulation; actual streamed-byte enforcement when `Content-Length` is absent, false, or oversized; separate success/error body caps and media policies; duplicate response-head rejection; explicit trailer policy; unknown response headers dropped unless admitted by the operation; cookies and transient sensitive headers redacted and cleared; documented upper bounds for unavoidable HTTP/TLS buffers and a precise distinction between caller-buffer and complete process-allocation guarantees; adapter-owned request body/header/staging cleanup on every ordinary exit; and removal of implicit auth, JSON Accept, redirects, proxies, content decoding, retries, and cross-origin forwarding.
 
-Verification: raw blocking/async/FIPS conformance, send-phase fault injection, 1xx/HEAD/204/304/duplicate/trailer/media/cap cases, auth confusion, cleanup, dependency checks, and `scripts/release_0_40_gate.sh`.
+Verification: raw blocking/async/FIPS conformance, send-phase fault injection, informational-count/101/HEAD/204/304/duplicate/trailer/media cases, hostile header accumulation, missing/false length, streamed overflow, unknown/cookie headers, documented allocation bounds, auth confusion, cleanup, dependency checks, and `scripts/release_0_40_gate.sh`.
 
 Stop gate: `v0.40.0 implementation stop reached. Run pentest for this exact commit.`
 
@@ -1541,9 +1543,9 @@ Stop gate: `v0.40.0 implementation stop reached. Run pentest for this exact comm
 
 Goal: provide reusable bearer auth outside neutral execution.
 
-Deliverables: HTTPS and endpoint binding, exactly one owner of `Authorization`, mutable/guarded ingestion, atomic rotation, in-flight snapshots, executor-neutral snapshot/refresh handoff for expiring credentials, redaction, retired-token and adapter-header cleanup, and no acquisition, clock, executor, or secret store in core.
+Deliverables: HTTPS and endpoint binding, exactly one owner of `Authorization`, mutable/guarded ingestion, atomic rotation, credential generations and compare-and-swap refresh so a slow refresh cannot overwrite a newer token, in-flight snapshots, executor-neutral snapshot/refresh handoff for expiring credentials, redaction, retired-token and adapter-header cleanup, and no acquisition, clock, executor, or secret store in core.
 
-Verification: destination mismatch, rotation races, poisoned state, cleanup, blocking/async parity, and `scripts/release_0_41_gate.sh`.
+Verification: destination mismatch, rotation/refresh races, stale-generation CAS rejection, poisoned state, cleanup, blocking/async parity, and `scripts/release_0_41_gate.sh`.
 
 Stop gate: `v0.41.0 implementation stop reached. Run pentest for this exact commit.`
 
@@ -1551,9 +1553,9 @@ Stop gate: `v0.41.0 implementation stop reached. Run pentest for this exact comm
 
 Goal: support non-bearer providers without embedding provider signing in transports.
 
-Deliverables: type-separated Basic credentials; bounded canonical signing inputs covering selected headers, request-body digest, nonce, and caller-provided time; caller-provided hashing/signing; adapter-auth cleanup; and no implicit clock, randomness, filesystem, or key store. Source-lock a narrow Robot wire fixture covering one read request, one non-executed repeated-form mutation fixture, errors, quotas, maintenance, lockout policy, and empty-body behavior without claiming operation coverage.
+Deliverables: type-separated Basic credentials with source-locked username charset/colon rules and an encoded authorization-header cap; bounded canonical signing inputs covering selected headers, request-body digest, nonce, and caller-provided time; caller-provided hashing/signing; adapter-auth cleanup; and no implicit clock, randomness, filesystem, or key store. Source-lock a narrow Robot wire fixture covering one read request, one non-executed repeated-form mutation fixture, errors, quotas, maintenance, lockout policy, and empty-body behavior without claiming operation coverage.
 
-Verification: auth ownership/cross-use, canonical-header and body-digest vectors, nonce/time replay, redaction/cleanup, Robot credential-free conformance and no-publish gates, and `scripts/release_0_42_gate.sh`.
+Verification: auth ownership/cross-use, Basic colon/charset/encoded-length boundaries, canonical-header and body-digest vectors, nonce/time replay, redaction/cleanup, Robot credential-free conformance and no-publish gates, and `scripts/release_0_42_gate.sh`.
 
 Stop gate: `v0.42.0 implementation stop reached. Run pentest for this exact commit.`
 
@@ -1593,9 +1595,9 @@ Stop gate: `v0.45.0 implementation stop reached. Run pentest for this exact comm
 
 Goal: source-lock retry behavior per operation instead of inferring it from methods.
 
-Deliverables: retry/idempotency tables, one explicit retry owner, request-body replayability capability, request-fingerprint-bound keys, mutation authorization, delivery-phase consumption with unknown treated as possibly sent, replay/mismatch rejection, and caller-owned delay/jitter/clock. Non-replayable bodies and indeterminate mutations never retry automatically.
+Deliverables: retry/idempotency tables, one explicit retry owner, request-body replayability capability, a non-bypassable nonzero `max_attempts`, maximum cumulative requested delay, request-fingerprint-bound keys, mutation authorization, delivery-phase consumption with unknown treated as possibly sent, replay/mismatch rejection, and caller-owned delay/jitter inputs. Wall-clock observations are typed separately from monotonic durations used for delay, timeout, and elapsed budgets; rollback cannot extend any budget. Non-replayable bodies and indeterminate mutations never retry automatically.
 
-Verification: policy completeness, delivery phases, stale/reused keys, body mismatch, replayable/non-replayable bodies, competing retry owners, retry fan-out, and `scripts/release_0_46_gate.sh`.
+Verification: policy completeness, zero/maximum attempts, cumulative-delay overflow/exhaustion, endless 429/transient responses, wall-clock rollback, monotonic-budget exhaustion, delivery phases, stale/reused keys, body mismatch, replayable/non-replayable bodies, competing retry owners, retry fan-out, and `scripts/release_0_46_gate.sh`.
 
 Stop gate: `v0.46.0 implementation stop reached. Run pentest for this exact commit.`
 
@@ -1623,9 +1625,9 @@ Stop gate: `v0.48.0 implementation stop reached. Run pentest for this exact comm
 
 Goal: decode large lists, metrics, zonefiles, logs, and streams without one large JSON tree.
 
-Deliverables: bounded visitor/state APIs preserving duplicate, nesting, aggregate, string, secret, early-stop, and cleanup protections.
+Deliverables: bounded visitor/state APIs preserving duplicate, nesting, aggregate, string, secret, early-stop, and cleanup protections; explicit total token and field limits; bounded numeric token and exponent lengths; validated partial UTF-8 state across chunk boundaries.
 
-Verification: differential fixtures, every chunk boundary, truncation, amplification, early stop, fuzzing, and `scripts/release_0_49_gate.sh`.
+Verification: differential fixtures, token/field/numeric/exponent exhaustion, every partial UTF-8 and general chunk boundary, truncation, amplification, early stop, fuzzing, and `scripts/release_0_49_gate.sh`.
 
 Stop gate: `v0.49.0 implementation stop reached. Run pentest for this exact commit.`
 
@@ -1643,9 +1645,9 @@ Stop gate: `v0.50.0 implementation stop reached. Run pentest for this exact comm
 
 Goal: enforce safety intent at execution.
 
-Deliverables: scope/fingerprint/expiry-bound permits, spending ceilings, plan-confirm hashes, no-op rejection, replay policy, and caller-owned time/price/randomness.
+Deliverables: scope/fingerprint/expiry-bound permits that are non-`Copy` and normally non-`Clone`; atomic state transition at execution under concurrency; `NotSent` may recover the permit, while `PossiblySent` or `ResponseStarted` consumes it into spent/pending-reconciliation state; repetition after uncertain delivery requires the exact idempotency identity and operation-specific reconciliation; spending ceilings, plan-confirm hashes, no-op rejection, replay policy, and caller-owned time/price/randomness. Backward wall-clock observations cannot extend permit validity.
 
-Verification: stale/mismatch/replay/budget/price/no-op/redaction tests and `scripts/release_0_51_gate.sh`.
+Verification: compile-fail copy/clone misuse, concurrent double-spend, every delivery-state transition, recover/reconcile/repeat rules, exact idempotency mismatch, wall-clock rollback, stale/mismatch/replay/budget/price/no-op/redaction tests, and `scripts/release_0_51_gate.sh`.
 
 Stop gate: `v0.51.0 implementation stop reached. Run pentest for this exact commit.`
 
@@ -1663,9 +1665,9 @@ Stop gate: `v0.52.0 implementation stop reached. Run pentest for this exact comm
 
 Goal: provide ergonomic workflows without clocks, sleep, or executors in core.
 
-Deliverables: pure next-request/delay drivers, unconditional observation limits, provider progress policies, separate `PollControl` and bounded backoff, and redacted policy errors.
+Deliverables: pure next-request/delay drivers, unconditional observation limits, provider progress policies, separate `PollControl` and bounded backoff, redacted policy errors, typed wall-clock observations only for provider timestamps/expiry, and monotonic durations for delay/timeout/elapsed budgets so clock rollback cannot extend execution.
 
-Verification: busy-loop, progress reset/regression, terminal bounds, cancellation, timeout, page/action scenarios, and `scripts/release_0_53_gate.sh`.
+Verification: busy-loop, progress reset/regression, terminal bounds, cancellation, wall-clock rollback, monotonic timeout/budget exhaustion, page/action scenarios, and `scripts/release_0_53_gate.sh`.
 
 Stop gate: `v0.53.0 implementation stop reached. Run pentest for this exact commit.`
 

@@ -110,15 +110,17 @@ owned by `cloud-sdk-hetzner::storage`.
    harness with separate credential-free staging, privileged root sealing, and
    authenticated open-descriptor execution phases.
 12. Neutral wire and isolation kernel: extensible identities, complete HTTP
-   methods, endpoint-policy algebra, canonical path/query handling, bounded
-   headers, response-buffer provenance, bounded lifecycle cleanup, atomic encoders,
-   raw execution, authentication policies, and complete Hetzner migration in
-   `v0.32.0` through `v0.43.0`.
+   method/target relationships, normalized endpoint-policy algebra, exact
+   canonical path/query bytes, bounded headers, sealed `ResponseWriter`
+   provenance, bounded lifecycle cleanup, deterministic atomic encoders,
+   wire-level adapter limits, generation-safe authentication policies, and
+   complete Hetzner migration in `v0.32.0` through `v0.43.0`.
 13. Control-plane and execution contracts: pagination, quota, retry,
-   idempotency, local async, streaming, incremental decoding, typed operations,
-   enforceable permits, a provider-generic client kernel, pure workflow
-   drivers, diagnostics, testkit scenarios, and generic drift evidence in
-   `v0.44.0` through `v0.56.0`.
+   idempotency, unconditional attempt/delay budgets, local async, replay-aware
+   streaming, amplification-bounded incremental decoding, typed operations,
+   stateful enforceable permits, a provider-generic client kernel, pure
+   monotonic-budget workflow drivers, diagnostics, testkit scenarios, and
+   generic drift evidence in `v0.44.0` through `v0.56.0`.
 14. Multi-provider proof and neutral freeze: an unpublished OVHcloud API v2
    source lock and conformance probe in `v0.57.0` through `v0.61.0`, followed
    by the neutral API freeze in `v0.62.0`. The probe covers source-locked
