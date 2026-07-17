@@ -113,7 +113,7 @@ owned by `cloud-sdk-hetzner::storage`.
    method/target relationships, normalized endpoint-policy algebra, exact
    canonical path/query bytes, bounded headers, sealed `ResponseWriter`
    provenance, atomic cleanup-owning retained-state transfer, deterministic
-   snapshot-locked encoders, wire-level adapter limits, generation-safe
+   snapshot/version-locked encoders, wire-level adapter limits, generation-safe
    authentication with provider/operation-owned scope requirements, and
    complete Hetzner migration in `v0.32.0` through `v0.43.0`.
 13. Control-plane and execution contracts: pagination, quota, retry,
