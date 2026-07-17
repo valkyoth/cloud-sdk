@@ -635,8 +635,8 @@ Verification:
 Stop gate:
 
 ```text
-v0.12.0 pentest stop passed. Commit only the permanent report, wait for CI,
-then run release readiness before tagging.
+v0.12.0 pentest stop passed for this exact commit. Commit only the
+permanent report, wait for CI, then run release readiness before tagging.
 ```
 
 ### v0.13.0 - DNS RRSets
@@ -1385,8 +1385,8 @@ Verification:
 Stop gate:
 
 ```text
-v0.30.0 pentest stop passed. Commit the permanent report, run the clean release
-gate, and wait for GitHub before tagging.
+v0.30.0 pentest stop passed for this exact commit. Commit the permanent
+report, run the clean release gate, and wait for GitHub before tagging.
 ```
 
 ### v0.31.0 - Checked Hetzner Response Decoding
@@ -1446,7 +1446,8 @@ Verification:
 Stop gate:
 
 ```text
-v0.31.0 tagged.
+v0.31.0 pentest stop passed for this exact commit before tagging.
+Permanent pentest and release evidence remain bound to that commit.
 ```
 
 ## Tier A - Neutral Wire And Isolation Kernel
@@ -2154,22 +2155,198 @@ Stop gate: `v1.0.0 implementation stop reached. Run pentest for this exact commi
 ## Post-1.0 Provider Blueprint
 
 Provider crates start their own pre-1.0 package histories even when the
-workspace facade is stable. Every row requires its own source lock,
+workspace facade is stable. Every release below requires its own source lock,
 threat-model delta, release notes, release gate, and exact-commit pentest stop.
 
-| Workspace milestone | Provider deliverable |
-| --- | --- |
-| `v1.1.0` | Select and source-lock a finite list of Scaleway products and exact stable GA API versions; create its threat model, operation matrix, and explicit product/version exclusions. No later milestone may silently widen this inventory. |
-| `v1.2.0` | Publish the initial `cloud-sdk-scaleway` preview with regional/zonal endpoints and `X-Auth-Token`. |
-| `v1.3.0` | Complete read-only rows classified as compute/catalog in the finite `v1.1.0` inventory. |
-| `v1.4.0` | Complete read-only rows classified as network/storage in the finite `v1.1.0` inventory. |
-| `v1.5.0` | Complete the explicitly admitted mutation/action rows, pagination variants, and cost permits from the finite `v1.1.0` inventory. |
-| `v1.6.0` | Reach zero unclassified rows and stabilize/pentest only the selected Scaleway inventory; alpha, beta, and all excluded products remain outside the claim. |
-| `v1.7.0` | Select and source-lock a finite DigitalOcean product/operation inventory from exact OpenAPI revisions; create its threat model, matrix, and explicit adjacent-service exclusions. No later milestone may silently widen this inventory. |
-| `v1.8.0` | Publish the initial `cloud-sdk-digitalocean` preview with bearer auth, `/v2`, and same-authority link pagination. |
-| `v1.9.0` | Complete read-only rows in the finite `v1.7.0` inventory plus its rate-limit and `Retry-After` policy. |
-| `v1.10.0` | Complete explicitly admitted DigitalOcean mutation/action rows and idempotency behavior from the finite inventory. |
-| `v1.11.0` | Reach zero unclassified rows and stabilize/pentest only the selected DigitalOcean inventory; Spaces, metadata, OAuth apps, AI, and all other exclusions remain separately scoped. |
-| `v1.12.0` | Run three-provider conformance against frozen neutral contracts before planning full OVHcloud publication. |
+### v1.1.0 - Scaleway Source Lock And Scope
 
-Full `cloud-sdk-ovhcloud` publication receives a separate version plan after `v1.12.0`; the unpublished pre-1.0 probe never becomes its package history. The one-primary-crate-per-provider rule remains mandatory.
+Goal: define a finite Scaleway product and stable-GA API scope before publishing
+provider code.
+
+Deliverables: exact official source revisions and retrieval evidence; a bounded
+product/version/operation inventory; provider threat model, endpoint and
+authentication policy, API matrix, deprecation policy, live-test policy, and
+explicit alpha, beta, adjacent-product, and version exclusions. Later releases
+cannot widen the inventory without a separately reviewed roadmap change.
+
+Verification: reproducible source digests, redirect and source-origin checks,
+zero unclassified inventory rows, documentation-link validation, and
+`scripts/release_1_1_gate.sh`.
+
+Stop gate: `v1.1.0 implementation stop reached. Run pentest for this exact commit.`
+
+### v1.2.0 - Scaleway Provider Foundation
+
+Goal: publish the initial focused `cloud-sdk-scaleway` preview without changing
+frozen neutral contracts unnecessarily.
+
+Deliverables: one primary provider crate; no_std request and response
+foundations; source-locked regional and zonal endpoint derivation;
+`X-Auth-Token` scope and rotation policy; typed errors; official/custom endpoint
+separation; and no provider-specific transport, sanitization, or testkit crate.
+
+Verification: default/no_std/platform builds, provider-crate policy, endpoint
+and credential-confusion tests, redaction and cleanup tests, source fixtures,
+package verification, and `scripts/release_1_2_gate.sh`.
+
+Stop gate: `v1.2.0 implementation stop reached. Run pentest for this exact commit.`
+
+### v1.3.0 - Scaleway Compute And Catalog Reads
+
+Goal: complete the read-only compute and catalog rows admitted by `v1.1.0`.
+
+Deliverables: complete typed models, request bindings, pagination, quota
+metadata, checked response decoding, and blocking, Send-async, and local-async
+client methods for every selected compute and catalog read operation.
+
+Verification: zero-missing selected rows, golden/adversarial fixtures,
+pagination and quota boundaries, cross-executor testkit scenarios, read-only
+live smoke, and `scripts/release_1_3_gate.sh`.
+
+Stop gate: `v1.3.0 implementation stop reached. Run pentest for this exact commit.`
+
+### v1.4.0 - Scaleway Network And Storage Reads
+
+Goal: complete the read-only network and storage rows admitted by `v1.1.0`.
+
+Deliverables: complete typed models, regional/zonal bindings, pagination,
+large-response handling, checked decoding, and all execution-mode client methods
+for every selected network and storage read operation.
+
+Verification: zero-missing selected rows, address and region/zone boundaries,
+large and malformed response fixtures, cross-executor scenarios, read-only live
+smoke, and `scripts/release_1_4_gate.sh`.
+
+Stop gate: `v1.4.0 implementation stop reached. Run pentest for this exact commit.`
+
+### v1.5.0 - Scaleway Mutations And Actions
+
+Goal: complete only the mutation and action rows explicitly admitted by
+`v1.1.0`.
+
+Deliverables: typed request/response bindings, provider pagination variants,
+source-locked retry and idempotency policy, mutation/destructive/cost permits,
+delivery-phase handling, action workflows, reconciliation rules, and no
+implicit retry or billable execution.
+
+Verification: operation coverage, permit and plan-confirm mismatch tests,
+not-sent/possibly-sent/response-started faults, idempotency and reconciliation
+scenarios, non-executing live staging, and `scripts/release_1_5_gate.sh`.
+
+Stop gate: `v1.5.0 implementation stop reached. Run pentest for this exact commit.`
+
+### v1.6.0 - Scaleway Scope Stabilization
+
+Goal: stabilize and qualify only the finite Scaleway scope selected in
+`v1.1.0`.
+
+Deliverables: zero unclassified selected rows; complete clients and examples;
+current source drift, threat model, migration notes, API support matrix,
+platform/SBOM/fuzz evidence, and explicit continued exclusion of every
+unselected, alpha, beta, or differently versioned product.
+
+Verification: full selected-inventory matrix, package and public-API review,
+default/no_std/platform/FIPS-compatible boundary checks, live read-only smoke,
+all Scaleway release gates, and `scripts/release_1_6_gate.sh`.
+
+Stop gate: `v1.6.0 implementation stop reached. Run pentest for this exact commit.`
+
+### v1.7.0 - DigitalOcean Source Lock And Scope
+
+Goal: define a finite DigitalOcean product and operation scope from exact
+official OpenAPI revisions before publishing provider code.
+
+Deliverables: reproducible source records; bounded product/operation inventory;
+provider threat model, `/v2` endpoint and bearer-auth policy, API matrix,
+pagination/rate-limit inventory, live-test policy, and explicit exclusions for
+Spaces, metadata, OAuth applications, AI, and every adjacent service.
+
+Verification: source digest and origin checks, schema/operation inventory,
+zero unclassified selected rows, exclusion regression tests, and
+`scripts/release_1_7_gate.sh`.
+
+Stop gate: `v1.7.0 implementation stop reached. Run pentest for this exact commit.`
+
+### v1.8.0 - DigitalOcean Provider Foundation
+
+Goal: publish the initial focused `cloud-sdk-digitalocean` preview on frozen
+neutral contracts.
+
+Deliverables: one primary provider crate; no_std models and request foundations;
+bearer scope and rotation; canonical `/v2` endpoint binding; raw
+same-authority `ValidatedProviderLink` pagination; typed errors; and no nested
+provider transport, sanitization, or testkit crates.
+
+Verification: default/no_std/platform builds, endpoint/auth and pagination-link
+confinement tests, redaction/cleanup, source fixtures, package boundaries, and
+`scripts/release_1_8_gate.sh`.
+
+Stop gate: `v1.8.0 implementation stop reached. Run pentest for this exact commit.`
+
+### v1.9.0 - DigitalOcean Read Operations
+
+Goal: complete all read-only rows selected in `v1.7.0`.
+
+Deliverables: complete typed read models and clients; checked decoding; bounded
+link pagination; provider rate-limit buckets; `Retry-After` conflict policy;
+and blocking, Send-async, and local-async parity.
+
+Verification: zero-missing selected reads, raw-link preservation and confinement,
+quota/time/conflict boundaries, malformed and oversized fixtures,
+cross-executor scenarios, read-only live smoke, and
+`scripts/release_1_9_gate.sh`.
+
+Stop gate: `v1.9.0 implementation stop reached. Run pentest for this exact commit.`
+
+### v1.10.0 - DigitalOcean Mutations And Actions
+
+Goal: complete only the mutation and action rows admitted by `v1.7.0`.
+
+Deliverables: typed mutation/action clients, source-locked retry and idempotency
+classification, fresh-intent keys, permits, delivery-phase handling, action
+workflows, and operation-specific reconciliation without implicit execution or
+retry.
+
+Verification: operation coverage, fingerprint/idempotency vectors, permit and
+replay denial, delivery-phase fault injection, reconciliation, non-executing
+live staging, and `scripts/release_1_10_gate.sh`.
+
+Stop gate: `v1.10.0 implementation stop reached. Run pentest for this exact commit.`
+
+### v1.11.0 - DigitalOcean Scope Stabilization
+
+Goal: stabilize and qualify only the finite DigitalOcean scope selected in
+`v1.7.0`.
+
+Deliverables: zero unclassified selected rows; complete clients, examples,
+source drift, threat model, migration notes, API support matrix,
+platform/SBOM/fuzz evidence, and explicit continued exclusion of Spaces,
+metadata, OAuth applications, AI, and every unselected product.
+
+Verification: complete selected-inventory and public-API review, package and
+platform checks, adversarial pagination/auth/retry evidence, live read-only
+smoke, all DigitalOcean release gates, and `scripts/release_1_11_gate.sh`.
+
+Stop gate: `v1.11.0 implementation stop reached. Run pentest for this exact commit.`
+
+### v1.12.0 - Three-Provider Neutral Conformance
+
+Goal: prove the frozen provider-neutral contracts against Hetzner, Scaleway,
+and DigitalOcean before planning full OVHcloud publication.
+
+Deliverables: one cross-provider matrix for identities, endpoints,
+authentication, paths/queries, structured and link pagination, quota/retry,
+streaming, decoding, permits, cleanup, diagnostics, and all execution modes;
+documented provider-owned differences; no compatibility fallback or premature
+`cloud-sdk-ovhcloud` package.
+
+Verification: shared conformance suites across all three provider crates,
+compile-fail association tests, cross-adapter differential scenarios, public-API
+and semver review, all provider drift gates, and
+`scripts/release_1_12_gate.sh`.
+
+Stop gate: `v1.12.0 implementation stop reached. Run pentest for this exact commit.`
+
+Full `cloud-sdk-ovhcloud` publication receives a separate version plan after
+`v1.12.0`; the unpublished pre-1.0 probe never becomes its package history. The
+one-primary-crate-per-provider rule remains mandatory.

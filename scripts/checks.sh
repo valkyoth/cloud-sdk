@@ -13,6 +13,8 @@ scripts/test-hetzner-live-smoke-runner.py
 scripts/test-platform-matrix.py
 scripts/test-latest-tools.py
 scripts/test-publishable-readmes.py
+scripts/check-release-plan-structure.py
+scripts/test-release-plan-structure.py
 scripts/check-provider-capabilities.py
 scripts/test-provider-capabilities.py
 scripts/check-custom-endpoint-docs.py
