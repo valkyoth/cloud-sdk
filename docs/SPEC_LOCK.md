@@ -268,7 +268,9 @@ reference is:
 
 - <https://robot.hetzner.com/doc/webservice/en.html>
 
-`v0.74.0` must pin Robot separately before any Robot operation is implemented.
-The lock must distinguish active operations from deprecated alternatives and
+`v0.42.0` must pin the Robot wire protocol and exercise credential-free
+conformance fixtures before neutral freeze. `v0.74.0` then pins the complete
+operation inventory before any Robot operation is implemented. The complete
+lock must distinguish active operations from deprecated alternatives and
 exclude the deprecated Robot Storage Box family, whose supported replacement
 is already tracked by the Console Storage Box source.

@@ -66,7 +66,7 @@ validated request and response building blocks. Before the high-level client is
 stabilized, the roadmap now hardens extensible provider identities, HTTP
 metadata, authentication, pagination, local async, bounded decoding, and typed
 operation contracts, then validates them with an unpublished OVHcloud API v2
-architecture probe.
+architecture probe and a narrow credential-free Robot wire fixture.
 
 ## Trust Dashboard
 

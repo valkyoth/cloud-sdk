@@ -496,10 +496,10 @@ crates or placing provider-specific behavior in a neutral boundary.
 
 | Releases | Primary code owners | Purpose |
 | --- | --- | --- |
-| `v0.32.0 - v0.43.0` | `cloud-sdk`, neutral boundary crates, and `cloud-sdk-hetzner` only for migration | Neutral wire/isolation kernel, response provenance and cleanup, atomic encoding, auth policies, and migration of all existing Hetzner operations. |
+| `v0.32.0 - v0.43.0` | `cloud-sdk`, neutral boundary crates, and `cloud-sdk-hetzner` only for migration and excluded fixtures | Neutral wire/isolation kernel, response provenance and cleanup, atomic encoding, auth policies, narrow pre-freeze Robot wire conformance, and migration of all existing Hetzner operations. |
 | `v0.44.0 - v0.56.0` | `cloud-sdk`, provider policy/decoder modules, adapters, and testkit as required | Pagination/quota/retry strategies, local async, streaming, typed operations, permits, client kernel, workflows, diagnostics, testkit, and drift tooling. |
 | `v0.57.0 - v0.61.0` | excluded unpublished OVHcloud API v2 conformance package plus neutral contracts only when the probe proves them incomplete | Source lock, authority/OAuth, cursor/header, task/event, and end-to-end conformance. The probe must never enter the publish sequence. |
-| `v0.62.0` | provider-neutral public contracts and documentation | Neutral API/semver freeze after the OVHcloud probe. |
+| `v0.62.0` | provider-neutral public contracts and documentation | Neutral API/semver freeze only after the OVHcloud probe and narrow Robot wire conformance fixture. |
 | `v0.63.0 - v0.73.0` | `cloud-sdk-hetzner`, with neutral fixes only when genuinely provider-independent | Complete pre-Robot models, exact operation bindings, and Cloud/DNS/security/Console Storage Box clients. |
 | `v0.74.0 - v0.95.0` | `cloud-sdk-hetzner`; neutral boundaries only for reusable behavior | Robot source lock, protocol, every active endpoint family, client integration, and live evidence. |
 | `v0.96.0 - v0.99.0` | release tooling/docs and affected crates only for proven qualification fixes | Whole-platform adversarial, platform/MSRV/FIPS, provenance, and controlled-mutation release-candidate evidence. |

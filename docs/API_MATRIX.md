@@ -297,25 +297,30 @@ operations deferred.
 Robot Webservice is required for the full Hetzner 1.0 SDK. It will be tracked
 in a separate source-locked Robot matrix because it uses a different base URL,
 authentication model, request encoding, and resource set. The current official
-reference documents 105 operation headings; the `v0.47.0` source-lock pass must
-confirm the expected 89 active operations after excluding all 16 deprecated
-Robot Storage Box operations.
+reference documents 105 operation headings. `v0.42.0` source-locks only the
+wire protocol and exercises credential-free read, form-mutation, error, quota,
+maintenance, and empty-body fixtures before neutral freeze. The `v0.74.0`
+complete source-lock pass must confirm the expected 89 active operations after
+excluding all 16 deprecated Robot Storage Box operations.
 
 Robot implementation schedule:
 
 | Group | Planned Module | Status |
 | --- | --- | --- |
-| server | `cloud_sdk_hetzner::robot::server` | `v0.49.0` |
-| IP | `cloud_sdk_hetzner::robot::ip` | `v0.50.0` |
-| subnet | `cloud_sdk_hetzner::robot::subnet` | `v0.50.0` |
-| reset | `cloud_sdk_hetzner::robot::reset` | `v0.51.0` |
-| failover | `cloud_sdk_hetzner::robot::failover` | `v0.51.0` |
-| wake on LAN | `cloud_sdk_hetzner::robot::wol` | `v0.51.0` |
-| boot configuration | `cloud_sdk_hetzner::robot::boot` | `v0.52.0` |
-| reverse DNS | `cloud_sdk_hetzner::robot::rdns` | `v0.53.0` |
-| traffic | `cloud_sdk_hetzner::robot::traffic` | `v0.53.0` |
-| SSH keys | `cloud_sdk_hetzner::robot::ssh_keys` | `v0.53.0` |
-| firewall | `cloud_sdk_hetzner::robot::firewall` | `v0.54.0` |
-| vSwitch | `cloud_sdk_hetzner::robot::vswitch` | `v0.54.0` |
-| server ordering | `cloud_sdk_hetzner::robot::ordering` | `v0.55.0` read-only; `v0.56.0` mutations |
+| server | `cloud_sdk_hetzner::robot::server` | `v0.78.0` |
+| cancellation | `cloud_sdk_hetzner::robot::cancellation` | `v0.79.0` |
+| IP | `cloud_sdk_hetzner::robot::ip` | `v0.80.0` |
+| subnet | `cloud_sdk_hetzner::robot::subnet` | `v0.81.0` |
+| reset | `cloud_sdk_hetzner::robot::reset` | `v0.82.0` |
+| failover | `cloud_sdk_hetzner::robot::failover` | `v0.83.0` |
+| wake on LAN | `cloud_sdk_hetzner::robot::wol` | `v0.84.0` |
+| boot configuration | `cloud_sdk_hetzner::robot::boot` | `v0.85.0` |
+| reverse DNS | `cloud_sdk_hetzner::robot::rdns` | `v0.86.0` |
+| traffic | `cloud_sdk_hetzner::robot::traffic` | `v0.87.0` |
+| SSH keys | `cloud_sdk_hetzner::robot::ssh_keys` | `v0.88.0` |
+| firewall | `cloud_sdk_hetzner::robot::firewall` | `v0.89.0` |
+| vSwitch | `cloud_sdk_hetzner::robot::vswitch` | `v0.90.0` |
+| ordering catalogs | `cloud_sdk_hetzner::robot::ordering` | `v0.91.0` |
+| transactions | `cloud_sdk_hetzner::robot::ordering` | `v0.92.0` |
+| ordering mutations | `cloud_sdk_hetzner::robot::ordering` | `v0.93.0` |
 | legacy storage box | existing Console Storage Box modules | excluded: deprecated upstream |

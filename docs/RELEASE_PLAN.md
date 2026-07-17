@@ -190,26 +190,31 @@ has not been assigned to a release.
 | A custom HTTPS endpoint can receive real credentials when its value is attacker-controlled. | Keep explicit trust from `v0.27.0-v0.28.0`; add endpoint-policy algebra in `v0.34.0`, raw/auth separation in `v0.40.0-v0.42.0`, and official or acknowledged destinations in clients from `v0.52.0`. |
 | Closed provider/API-family and HTTP-method enums force core edits for later providers. | Add extensible identities in `v0.32.0`, complete method policy in `v0.33.0`, and endpoint-policy algebra in `v0.34.0`. |
 | Target validation is stronger in reqwest than core, so custom transports can accept ambiguous targets. | Separate and canonicalize path/query in core in `v0.35.0`; reject malformed percent triplets, encoded separators/controls, dot segments, doubled slashes, fragments, and ambiguous query boundaries. |
-| The transport request lacks bounded provider headers and general response metadata. | Add ordered sensitive header and response-metadata contracts in `v0.36.0`, then complete raw execution/auth separation in `v0.40.0-v0.42.0`. |
+| The transport request lacks bounded provider headers and general response metadata. | Add ordered sensitive header and response-metadata contracts in `v0.36.0`, reserve framing/auth/proxy headers, bind Host/SNI to endpoint identity, enforce per-field/count/aggregate caps, then complete raw execution/auth separation in `v0.40.0-v0.42.0`. |
 | `TransportResponse<'buffer>` does not prove that its body came from the admitted caller buffer. | Replace borrow-only provenance with a private response-buffer capability or checked initialized-length commit in `v0.37.0`; external/static response bodies become unrepresentable. |
-| Response sanitization is a non-verifiable transport promise and misses failure, rejection, decode, and cancellation paths. | Add trusted verified preclear and an RAII response-storage guard in `v0.38.0`; the complete original buffer is cleared on every non-explicit escape path. |
-| Fixed-buffer writers can leave partial output or secret tail bytes after failure. | Make every path/query/header/JSON/form writer preflighted and transactional in `v0.39.0`, with aggregate caps, exact sensitive subslices, preparation cleanup guards, and capacity profiles. |
-| Core pagination and rate-limit types encode Hetzner conventions. | Split pagination, quota, and retry/idempotency into dedicated strategy releases `v0.44.0-v0.46.0`, including cycle, authority, drift, replay, and quota-overflow tests. |
+| Response sanitization is a non-verifiable transport promise and misses failure, rejection, decode, and cancellation paths. | Make core-owned clearing mandatory in `v0.38.0`, keep platform sanitizers additive, guarantee ordinary return/error/cancellation and supported unwind paths, and explicitly exclude abort, leaked guards, and unavoidable TLS/kernel copies. Clear request-side adapter storage in `v0.39.0-v0.42.0`. |
+| Fixed-buffer writers can leave partial output or secret tail bytes after failure. | Make every path/query/header/JSON/form writer preflighted and transactional in `v0.39.0`, with aggregate caps, exact sensitive subslices, preparation cleanup guards, capacity profiles, and request-side cleanup ownership. |
+| Transport errors do not state whether a mutation may have reached the provider. | Add `NotSent`, `PossiblySent`, and `ResponseStarted` delivery phases in `v0.40.0`, map unknown to `PossiblySent`, consume the phase in retry policy in `v0.46.0`, and require Robot order reconciliation in `v0.93.0`. |
+| Response-head handling lacks explicit informational, body, media, trailer, and duplicate policy. | Define final-response selection, HEAD/204/304 body rules, separate success/error caps and media policy, duplicate rejection, disabled decoding, and explicit trailer behavior in `v0.40.0`. |
+| Core pagination and rate-limit types encode Hetzner conventions. | Split pagination, quota, and retry/idempotency into dedicated strategy releases `v0.44.0-v0.46.0`, including cursor cleanup, collision-safe cycle handling, base-path/authority confinement, drift, replay, and quota-overflow tests. |
 | `AsyncTransport` requires `Send`, and large payloads require one contiguous buffer. | Add `LocalAsyncTransport` in `v0.47.0`, streaming transport contracts in `v0.48.0`, and bounded incremental decoding in `v0.49.0`. |
-| Query/body compatibility and response selection still depend on runtime operation keys. | Add typed operation/output contracts and sealed component associations in `v0.50.0`; prove all 208 Hetzner operations in `v0.68.0`. |
+| Retry and streaming contracts do not state whether bodies and dirty sinks are replayable. | Give `v0.46.0` one retry owner and explicit body replayability; add transactional/dirty partial upload/download state in `v0.48.0`; never automatically retry non-replayable streaming mutations. |
+| Query/body compatibility and response selection still depend on runtime operation keys. | Add exhaustive typed associations for service, endpoint, auth, headers, media, statuses, success/error policy, caps, pagination/quota/retry, streaming, and permit class in `v0.50.0`; prove all 208 Hetzner operations in `v0.68.0`. |
 | Cost, destructive intent, and retry metadata are inspectable but not enforced. | Add scoped mutation/destructive/cost permits, plan-confirm fingerprints, replay protection, and no-op rejection in `v0.51.0`. |
-| Pagination/action workflows and diagnostics remain low-level, and action polling lacks a structural observation limit. | Add the client kernel in `v0.52.0`, bounded pager/action drivers and separated control/backoff/progress policy in `v0.53.0`, payload-free diagnostics in `v0.54.0`, and dynamic testkit scenarios in `v0.55.0`. |
+| Concurrent clients need explicit workspace ownership rather than hidden queues or aliased buffers. | Require caller-owned per-request workspace leases, bounded admission, no mutable alias across await points, and identical blocking/Send-async/local-async cleanup in `v0.52.0`. |
+| Pagination/action workflows and diagnostics remain low-level, and action polling lacks a structural observation limit. | Add the client kernel in `v0.52.0`, bounded pager/action drivers and separated control/backoff/progress policy in `v0.53.0`, payload-free diagnostics and opt-in observation in `v0.54.0`, and dynamic testkit scenarios in `v0.55.0`. |
 | Drift tooling is Hetzner-specific and historical review evidence depends mainly on fingerprints. | Add a provider-manifest drift engine, canonical reviewed diffs, alert ownership, and compatibility policy in `v0.56.0`. |
+| A neutral freeze before Robot would miss Basic auth, repeated forms, lockout, unusual errors, quotas, maintenance, and empty bodies. | Source-lock a narrow credential-free Robot wire fixture in `v0.42.0`; keep the complete 89-operation inventory at `v0.74.0`; require both the Robot fixture and OVHcloud probe before freeze in `v0.62.0`. |
 | Code review alone cannot prove that neutral core supports materially different providers. | Source-lock and implement the unpublished OVHcloud v2 probe in `v0.57.0-v0.61.0`; freeze neutral contracts only after a dedicated review in `v0.62.0`. |
 | Existing Hetzner responses expose common identity rather than complete fields, and timestamps are inconsistent. | Complete Cloud/DNS/security/Console models in `v0.63.0-v0.67.0`, exact bindings in `v0.68.0`, and complete clients in `v0.69.0-v0.73.0`. |
 | Robot Webservice has different auth, encoding, and API shape than Cloud/DNS. | Assign source lock, protocol, every active family, ordering, clients, and live evidence to one-purpose milestones `v0.74.0-v0.95.0`. |
 | Legacy Robot Storage Box operations are deprecated and overlap the Console API. | The `v0.74.0` matrix marks all 16 legacy operations excluded and no Robot Storage Box module is created. |
 | Repeated invalid Robot credentials can temporarily block the caller's source IP. | Separate credentials and lockout policy in `v0.76.0`; `v0.95.0` live tests never intentionally submit invalid credentials. |
-| Robot ordering mutations can create immediate infrastructure costs. | Keep catalogs/transactions read-only in `v0.91.0-v0.92.0`; `v0.93.0` requires cost permits and keeps purchases outside CI/live smoke. |
-| FIPS configuration flags do not prove certificate, CRL, target, module, or operational readiness. | Add real good/revoked/unknown/expired/wrong-issuer/incomplete-chain handshakes and bounded readiness evidence in `v0.97.0`; continue to disclaim application or organizational compliance. |
+| Robot ordering mutations can create immediate infrastructure costs. | Keep catalogs/transactions read-only in `v0.91.0-v0.92.0`; `v0.93.0` requires cost permits, indeterminate-send reconciliation, and keeps purchases outside CI/live smoke. |
+| FIPS configuration flags do not prove certificate, CRL, target, current time, module, or operational readiness. | Add real good/revoked/unknown/expired/wrong-issuer/incomplete-chain handshakes, fail closed without trustworthy current time, and produce bounded readiness evidence in `v0.97.0`; continue to disclaim application or organizational compliance. |
 | Release controls do not provide organizationally independent review by themselves. | Add governance limits, signer policy, provenance review, and independent-review disclosure in `v0.98.0`; never claim independence when unavailable. |
 | Destructive and billable behavior lacks controlled disposable-account evidence. | Add a manual-only mutation harness with spending ceilings, cleanup ledgers, and empty-inventory verification in `v0.99.0`; CI remains incapable of invoking it. |
-| Future providers need proven patterns but are not part of the Hetzner 1.0 claim. | The unpublished OVHcloud probe lands in `v0.57.0-v0.61.0`; post-1.0 publishing starts with Scaleway in `v1.1.0`, then DigitalOcean in `v1.7.0`, with full OVHcloud considered after `v1.12.0`. |
+| Future providers need proven patterns but are not part of the Hetzner 1.0 claim. | The unpublished OVHcloud probe lands in `v0.57.0-v0.61.0`; post-1.0 publishing starts with a finite source-locked Scaleway inventory in `v1.1.0`, then a finite DigitalOcean inventory in `v1.7.0`, with full OVHcloud considered after `v1.12.0`. |
 
 ## Post-1.0 Provider Sequence
 
@@ -226,22 +231,23 @@ resources.
 Published provider work starts only after the Hetzner `v1.0.0` release:
 
 1. `cloud-sdk-scaleway` is the first published provider. Its source lock and
-   release plan must cover
+   release plan must select a finite product list and exact stable GA API
+   versions from
    [Scaleway's APIs](https://www.scaleway.com/en/developers/api/), including
    global, regional, and zonal endpoints, `X-Auth-Token`, PATCH operations,
    product-specific schemas, and product-specific pagination/count conventions
    such as `per_page`, `page_size`, `X-Total-Count`, or body `total_count`.
-   Stable GA API versions form the supported completeness claim. Alpha and beta
-   APIs require explicit experimental modules or features and are excluded
-   from stable coverage.
+   Only matrix rows in that immutable inventory form the supported completeness
+   claim. Alpha, beta, unselected GA versions, and unselected products remain
+   explicit exclusions until a later source-lock milestone adds them.
 2. `cloud-sdk-digitalocean` is the second published provider. It must use
    DigitalOcean's
-   [official OpenAPI source](https://github.com/digitalocean/openapi) and prove
-   the conventional bearer-auth, `/v2`, same-authority link pagination,
-   optional error `request_id`, rate-limit, and `Retry-After` path without
-   weakening bounded decoding or retry policy. Large adjacent surfaces such as
-   Spaces, metadata, OAuth applications, and AI services require explicit
-   scope decisions rather than entering the initial claim automatically.
+   [official OpenAPI source](https://github.com/digitalocean/openapi), select a
+   finite product/operation inventory at an exact revision, and prove the
+   conventional bearer-auth, `/v2`, same-authority link pagination, optional
+   error `request_id`, rate-limit, and `Retry-After` path without weakening
+   bounded decoding or retry policy. Spaces, metadata, OAuth applications, AI,
+   and every unselected surface remain explicit exclusions.
 3. `cloud-sdk-ovhcloud` follows later as a full provider. Its dedicated plan
    must separate API v2, required API v1 compatibility, OAuth2 and any retained
    legacy authentication, geographic endpoints, asynchronous tasks, ordering
@@ -1485,9 +1491,9 @@ Stop gate: `v0.35.0 implementation stop reached. Run pentest for this exact comm
 
 Goal: represent complete provider requests without adapter-injected policy.
 
-Deliverables: bounded ordered names/values, duplicate rules, sensitivity markers, atomic encoding, typed common headers, and bounded response metadata.
+Deliverables: bounded ordered names/values, sensitivity markers, atomic encoding, typed common headers, and bounded response metadata; reserve `Host`, `Content-Length`, `Transfer-Encoding`, hop-by-hop, proxy, and `Authorization` ownership; bind Host/SNI to `EndpointIdentity`; enforce per-header, header-count, and aggregate-byte request/response limits.
 
-Verification: smuggling, duplicate, control, redaction, capacity, adapter conformance, and `scripts/release_0_36_gate.sh`.
+Verification: smuggling, conflicting/identical duplicates, reserved ownership, Host/SNI mismatch, controls, redaction, every capacity boundary, adapter conformance, and `scripts/release_0_36_gate.sh`.
 
 Stop gate: `v0.36.0 implementation stop reached. Run pentest for this exact commit.`
 
@@ -1501,13 +1507,13 @@ Verification: malicious safe transports returning static/external/oversized bodi
 
 Stop gate: `v0.37.0 implementation stop reached. Run pentest for this exact commit.`
 
-### v0.38.0 - Verified Automatic Response Cleanup
+### v0.38.0 - Bounded Response Cleanup Guarantees
 
-Goal: clear complete response storage on every lifecycle exit.
+Goal: define and enforce the strongest cleanup guarantee Rust and the platform can actually provide.
 
-Deliverables: sanitizer separated from transports, verified preclear, RAII storage guard, cleanup on transport/policy/decode error and async cancellation, plus a deliberately named explicit escape only if required.
+Deliverables: mandatory core-owned clearing plus additive platform sanitizers; guarded cleanup on normal return, transport/policy/decode error, cancellation, and unwind where supported; a deliberately named explicit escape only if required; explicit exclusions for process abort, `mem::forget`/leaked guards, and unavoidable TLS, allocator, kernel, or device copies. Zero read-back is an integrity check, not proof that an additive sanitizer executed.
 
-Verification: no-op sanitizer, rejection, cancellation, panic-unwind, success/decode cleanup, Miri where applicable, and `scripts/release_0_38_gate.sh`.
+Verification: no-op additive sanitizer, dirty prefill, rejection, cancellation, panic-unwind, success/decode cleanup, documented non-guarantees, Miri where applicable, and `scripts/release_0_38_gate.sh`.
 
 Stop gate: `v0.38.0 implementation stop reached. Run pentest for this exact commit.`
 
@@ -1515,7 +1521,7 @@ Stop gate: `v0.38.0 implementation stop reached. Run pentest for this exact comm
 
 Goal: eliminate partial writes, state drift, and secret tails.
 
-Deliverables: `encoded_len` preflight for every writer, transactional cursors, aggregate caps, exact sensitive subslices, preparation cleanup guards, and embedded/default/large storage profiles with optional alloc convenience.
+Deliverables: `encoded_len` preflight for every writer, transactional cursors, aggregate caps, exact sensitive subslices, preparation cleanup guards, request-side ownership/cleanup contracts, and embedded/default/large storage profiles with optional alloc convenience.
 
 Verification: every undersized capacity, unchanged-storage assertions, secret-tail cleanup, allocation failure, fuzzing, and `scripts/release_0_39_gate.sh`.
 
@@ -1525,9 +1531,9 @@ Stop gate: `v0.39.0 implementation stop reached. Run pentest for this exact comm
 
 Goal: make transports execute complete validated HTTP requests without provider policy.
 
-Deliverables: method/target/header/body execution, checked response commit, and removal of implicit bearer auth, JSON Accept, redirects, proxies, decompression, retries, and cross-origin forwarding.
+Deliverables: method/target/header/body execution; checked response commit; conservative delivery phase (`NotSent`, `PossiblySent`, `ResponseStarted`) with unknown mapped to `PossiblySent`; final-response selection after informational 1xx; HEAD and forbidden-body rules for 204/304; separate success/error body caps and media policies; duplicate response-head rejection; explicit trailer policy; adapter-owned request body/header/staging cleanup on every ordinary exit; and removal of implicit auth, JSON Accept, redirects, proxies, content decoding, retries, and cross-origin forwarding.
 
-Verification: raw blocking/async/FIPS conformance, auth-confusion tests, dependency checks, and `scripts/release_0_40_gate.sh`.
+Verification: raw blocking/async/FIPS conformance, send-phase fault injection, 1xx/HEAD/204/304/duplicate/trailer/media/cap cases, auth confusion, cleanup, dependency checks, and `scripts/release_0_40_gate.sh`.
 
 Stop gate: `v0.40.0 implementation stop reached. Run pentest for this exact commit.`
 
@@ -1535,7 +1541,7 @@ Stop gate: `v0.40.0 implementation stop reached. Run pentest for this exact comm
 
 Goal: provide reusable bearer auth outside neutral execution.
 
-Deliverables: HTTPS and endpoint binding, mutable/guarded ingestion, atomic rotation, in-flight snapshots, redaction, retired-token cleanup, and no clock or secret store in core.
+Deliverables: HTTPS and endpoint binding, exactly one owner of `Authorization`, mutable/guarded ingestion, atomic rotation, in-flight snapshots, executor-neutral snapshot/refresh handoff for expiring credentials, redaction, retired-token and adapter-header cleanup, and no acquisition, clock, executor, or secret store in core.
 
 Verification: destination mismatch, rotation races, poisoned state, cleanup, blocking/async parity, and `scripts/release_0_41_gate.sh`.
 
@@ -1545,9 +1551,9 @@ Stop gate: `v0.41.0 implementation stop reached. Run pentest for this exact comm
 
 Goal: support non-bearer providers without embedding provider signing in transports.
 
-Deliverables: type-separated Basic credentials and bounded signing inputs for caller-supplied clock/nonce material; no implicit clock, randomness, filesystem, or key store.
+Deliverables: type-separated Basic credentials; bounded canonical signing inputs covering selected headers, request-body digest, nonce, and caller-provided time; caller-provided hashing/signing; adapter-auth cleanup; and no implicit clock, randomness, filesystem, or key store. Source-lock a narrow Robot wire fixture covering one read request, one non-executed repeated-form mutation fixture, errors, quotas, maintenance, lockout policy, and empty-body behavior without claiming operation coverage.
 
-Verification: auth cross-use, canonical signing inputs, replay/redaction/cleanup tests, and `scripts/release_0_42_gate.sh`.
+Verification: auth ownership/cross-use, canonical-header and body-digest vectors, nonce/time replay, redaction/cleanup, Robot credential-free conformance and no-publish gates, and `scripts/release_0_42_gate.sh`.
 
 Stop gate: `v0.42.0 implementation stop reached. Run pentest for this exact commit.`
 
@@ -1567,9 +1573,9 @@ Stop gate: `v0.43.0 implementation stop reached. Run pentest for this exact comm
 
 Goal: model numbered, cursor, offset, marker, and link pagination separately.
 
-Deliverables: hard budgets, bounded opaque state, cursor-digest cycle checks, same-authority links, explicit snapshot/drift policy, transactional updates, and no cursor diagnostics.
+Deliverables: hard budgets, bounded opaque state cleared on drop, cursor-digest cycle checks where collisions fail closed rather than bypass correctness, links confined to the same authority and admitted base path, rejection of userinfo/fragments/scheme downgrade, explicit snapshot/drift policy, transactional updates, and no cursor diagnostics.
 
-Verification: omission/drift/repetition/cycle/authority/budget tests, fuzzing, and `scripts/release_0_44_gate.sh`.
+Verification: omission/drift/repetition/cycle/digest-collision/authority/base-path/userinfo/fragment/downgrade/budget/cleanup tests, fuzzing, and `scripts/release_0_44_gate.sh`.
 
 Stop gate: `v0.44.0 implementation stop reached. Run pentest for this exact commit.`
 
@@ -1587,9 +1593,9 @@ Stop gate: `v0.45.0 implementation stop reached. Run pentest for this exact comm
 
 Goal: source-lock retry behavior per operation instead of inferring it from methods.
 
-Deliverables: retry/idempotency tables, request-fingerprint-bound keys, mutation authorization, replay/mismatch rejection, and caller-owned delay/jitter/clock.
+Deliverables: retry/idempotency tables, one explicit retry owner, request-body replayability capability, request-fingerprint-bound keys, mutation authorization, delivery-phase consumption with unknown treated as possibly sent, replay/mismatch rejection, and caller-owned delay/jitter/clock. Non-replayable bodies and indeterminate mutations never retry automatically.
 
-Verification: policy completeness, stale/reused keys, body mismatch, retry fan-out, and `scripts/release_0_46_gate.sh`.
+Verification: policy completeness, delivery phases, stale/reused keys, body mismatch, replayable/non-replayable bodies, competing retry owners, retry fan-out, and `scripts/release_0_46_gate.sh`.
 
 Stop gate: `v0.46.0 implementation stop reached. Run pentest for this exact commit.`
 
@@ -1607,9 +1613,9 @@ Stop gate: `v0.47.0 implementation stop reached. Run pentest for this exact comm
 
 Goal: support bounded upload/download/event I/O without changing buffered requests.
 
-Deliverables: separate opt-in streaming boundaries, partial-I/O and cancellation semantics, deterministic backpressure, and no implicit buffering/runtime.
+Deliverables: separate opt-in streaming boundaries, explicit body replayability, transactional versus dirty partial upload/download sink states, partial-I/O and cancellation semantics, deterministic backpressure, no automatic retry for non-replayable mutations, and no implicit buffering/runtime.
 
-Verification: chunk boundaries, short I/O, cancellation, backpressure, cleanup, platform checks, and `scripts/release_0_48_gate.sh`.
+Verification: chunk boundaries, short I/O, cancellation, transactional/dirty sinks, replay attempts, backpressure, cleanup, platform checks, and `scripts/release_0_48_gate.sh`.
 
 Stop gate: `v0.48.0 implementation stop reached. Run pentest for this exact commit.`
 
@@ -1627,9 +1633,9 @@ Stop gate: `v0.49.0 implementation stop reached. Run pentest for this exact comm
 
 Goal: make endpoint/query/body/response mismatches unrepresentable.
 
-Deliverables: sealed operation traits, `QueryFor<O>`, `BodyFor<O>`, typed `Prepared<O>`, associated responses/errors/policy, and forward-compatible enum rules.
+Deliverables: sealed operation traits, `QueryFor<O>`, `BodyFor<O>`, and typed `Prepared<O>` with exhaustive associated service/endpoint policy, auth class, request headers/media, admitted statuses, success/error body and media policies, response caps, pagination/quota/retry strategy, streaming mode, response/error types, and required permit class; plus forward-compatible enum rules.
 
-Verification: compile-fail mismatches, source-derived binding coverage, semver review, and `scripts/release_0_50_gate.sh`.
+Verification: compile-fail mismatch for every association, source-derived binding coverage, semver review, and `scripts/release_0_50_gate.sh`.
 
 Stop gate: `v0.50.0 implementation stop reached. Run pentest for this exact commit.`
 
@@ -1647,9 +1653,9 @@ Stop gate: `v0.51.0 implementation stop reached. Run pentest for this exact comm
 
 Goal: make secure typed execution reusable without publishing extra client crates.
 
-Deliverables: one policy path for blocking, Send-async, and local-async preparation, authentication, send-once execution, checked decoding, and cleanup.
+Deliverables: one policy path for blocking, Send-async, and local-async preparation, authentication, send-once execution, checked decoding, and cleanup; caller-owned workspace leases per in-flight request; bounded admission with no hidden unbounded queue; no aliased mutable storage across await points; identical cleanup semantics in every execution mode.
 
-Verification: fake-provider conformance, endpoint/auth mismatch, cancellation, concurrency, and `scripts/release_0_52_gate.sh`.
+Verification: fake-provider conformance, endpoint/auth mismatch, lease exhaustion/reuse, alias compile-fail cases, cancellation, bounded concurrency, cross-mode cleanup, and `scripts/release_0_52_gate.sh`.
 
 Stop gate: `v0.52.0 implementation stop reached. Run pentest for this exact commit.`
 
@@ -1667,9 +1673,9 @@ Stop gate: `v0.53.0 implementation stop reached. Run pentest for this exact comm
 
 Goal: make failures actionable without leaking provider or customer data.
 
-Deliverables: bounded provider/service/operation/status/request-ID/retry/error categories with no credentials, cursors, targets, bodies, messages, or generic payload-bearing `Debug` path.
+Deliverables: bounded provider/service/operation/status/request-ID/retry/error categories with no credentials, cursors, targets, bodies, messages, or generic payload-bearing `Debug` path; an opt-in observer receives structured lifecycle events, while core never logs automatically.
 
-Verification: redaction corpus, maximum lengths, downstream error types, snapshots, and `scripts/release_0_54_gate.sh`.
+Verification: redaction corpus, maximum lengths, observer disabled/enabled behavior, reentrancy/error isolation, downstream error types, snapshots, and `scripts/release_0_54_gate.sh`.
 
 Stop gate: `v0.54.0 implementation stop reached. Run pentest for this exact commit.`
 
@@ -1749,9 +1755,9 @@ Stop gate: `v0.61.0 implementation stop reached. Run pentest for this exact comm
 
 Goal: freeze provider-neutral contracts only after the probe.
 
-Deliverables: probe-driven changes complete, public API/semver review, compile-fail contract suite, migration guide, threat-model delta, and rejected-abstraction record.
+Deliverables: OVHcloud probe-driven changes complete; the `v0.42.0` Robot Basic/form/error/quota/maintenance/empty-body conformance fixture passes unchanged; public API/semver review, compile-fail contract suite, migration guide, threat-model delta, and rejected-abstraction record.
 
-Verification: public API diff, downstream fixtures, no_std/platform matrix, and `scripts/release_0_62_gate.sh`.
+Verification: public API diff, OVHcloud and Robot conformance fixtures, downstream fixtures, no_std/platform matrix, and `scripts/release_0_62_gate.sh`.
 
 Stop gate: `v0.62.0 implementation stop reached. Run pentest for this exact commit.`
 
@@ -2063,9 +2069,9 @@ Stop gate: `v0.92.0 implementation stop reached. Run pentest for this exact comm
 
 Goal: gate every billable server, auction, and addon order.
 
-Deliverables: cost permits and plan-confirm fingerprints bound to product, observed price, currency, quantity, account, expiry input, and replay policy; CI cannot purchase.
+Deliverables: cost permits and plan-confirm fingerprints bound to product, observed price, currency, quantity, account, expiry input, and replay policy; delivery-phase-aware indeterminate-send handling; mandatory transaction reconciliation before any repeat after a possibly sent order; CI cannot purchase.
 
-Verification: stale-price/mismatch/replay/budget/non-execution/source tests and `scripts/release_0_93_gate.sh`.
+Verification: stale-price/mismatch/replay/budget, not-sent/possibly-sent/response-started faults, reconciliation-before-repeat, non-execution/source tests, and `scripts/release_0_93_gate.sh`.
 
 Stop gate: `v0.93.0 implementation stop reached. Run pentest for this exact commit.`
 
@@ -2105,9 +2111,9 @@ Stop gate: `v0.96.0 implementation stop reached. Run pentest for this exact comm
 
 Goal: produce current evidence for every supported target, compiler, feature graph, and FIPS boundary.
 
-Deliverables: good/revoked/unknown/expired-CRL/wrong-issuer/incomplete-chain handshakes; readiness evidence with module/target/root/CRL/config/policy fingerprints; unsupported-target rejection; authenticated CRL metadata; current NIST review; no compliance overclaim.
+Deliverables: good/revoked/unknown/expired-CRL/wrong-issuer/incomplete-chain handshakes; readiness evidence with module/target/root/CRL/config/policy fingerprints; unsupported-target rejection; authenticated CRL metadata; fail-closed construction/validation when trustworthy current time is unavailable; current NIST review; no compliance overclaim.
 
-Verification: full platform/MSRV matrix, packaged FIPS tests, native-build review, dependency freshness, and `scripts/release_0_97_gate.sh`.
+Verification: full platform/MSRV matrix, packaged FIPS tests including missing/untrusted time, native-build review, dependency freshness, and `scripts/release_0_97_gate.sh`.
 
 Stop gate: `v0.97.0 implementation stop reached. Run pentest for this exact commit.`
 
@@ -2149,17 +2155,17 @@ threat-model delta, release notes, release gate, and exact-commit pentest stop.
 
 | Workspace milestone | Provider deliverable |
 | --- | --- |
-| `v1.1.0` | Source-lock stable GA Scaleway APIs; create its threat model, API matrix, and exclusions. |
+| `v1.1.0` | Select and source-lock a finite list of Scaleway products and exact stable GA API versions; create its threat model, operation matrix, and explicit product/version exclusions. No later milestone may silently widen this inventory. |
 | `v1.2.0` | Publish the initial `cloud-sdk-scaleway` preview with regional/zonal endpoints and `X-Auth-Token`. |
-| `v1.3.0` | Add Scaleway compute and catalog read-only coverage. |
-| `v1.4.0` | Add Scaleway network and storage read-only coverage. |
-| `v1.5.0` | Add scoped Scaleway mutations, actions, pagination variants, and cost permits. |
-| `v1.6.0` | Stabilize and pentest claimed Scaleway GA coverage; alpha/beta remain experimental. |
-| `v1.7.0` | Source-lock DigitalOcean OpenAPI; create its threat model, matrix, and explicit adjacent-service exclusions. |
+| `v1.3.0` | Complete read-only rows classified as compute/catalog in the finite `v1.1.0` inventory. |
+| `v1.4.0` | Complete read-only rows classified as network/storage in the finite `v1.1.0` inventory. |
+| `v1.5.0` | Complete the explicitly admitted mutation/action rows, pagination variants, and cost permits from the finite `v1.1.0` inventory. |
+| `v1.6.0` | Reach zero unclassified rows and stabilize/pentest only the selected Scaleway inventory; alpha, beta, and all excluded products remain outside the claim. |
+| `v1.7.0` | Select and source-lock a finite DigitalOcean product/operation inventory from exact OpenAPI revisions; create its threat model, matrix, and explicit adjacent-service exclusions. No later milestone may silently widen this inventory. |
 | `v1.8.0` | Publish the initial `cloud-sdk-digitalocean` preview with bearer auth, `/v2`, and same-authority link pagination. |
-| `v1.9.0` | Add DigitalOcean compute/network reads and rate-limit/`Retry-After` policy. |
-| `v1.10.0` | Add scoped DigitalOcean mutations/actions and idempotency behavior. |
-| `v1.11.0` | Stabilize and pentest claimed DigitalOcean coverage; Spaces, metadata, OAuth apps, and AI remain separately scoped. |
+| `v1.9.0` | Complete read-only rows in the finite `v1.7.0` inventory plus its rate-limit and `Retry-After` policy. |
+| `v1.10.0` | Complete explicitly admitted DigitalOcean mutation/action rows and idempotency behavior from the finite inventory. |
+| `v1.11.0` | Reach zero unclassified rows and stabilize/pentest only the selected DigitalOcean inventory; Spaces, metadata, OAuth apps, AI, and all other exclusions remain separately scoped. |
 | `v1.12.0` | Run three-provider conformance against frozen neutral contracts before planning full OVHcloud publication. |
 
 Full `cloud-sdk-ovhcloud` publication receives a separate version plan after `v1.12.0`; the unpublished pre-1.0 probe never becomes its package history. The one-primary-crate-per-provider rule remains mandatory.

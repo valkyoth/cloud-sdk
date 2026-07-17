@@ -76,11 +76,14 @@ If current docs or the OpenAPI source disagree with the plan, implementation
 stops until the difference is documented and versioned.
 
 The Robot Webservice source is <https://robot.hetzner.com/doc/webservice/en.html>.
-Robot is part of the 1.0 Hetzner claim, but it must be source-locked separately
-in `v0.47.0` before implementation because it uses a different base URL,
-HTTP Basic Auth, form encoding, errors, and rate limits. Deprecated Robot
-Storage Box operations are excluded; their supported replacement is the
-Console Storage Box API already owned by `cloud-sdk-hetzner::storage`.
+Robot is part of the 1.0 Hetzner claim. A narrow wire-protocol source lock and
+credential-free conformance fixture land in `v0.42.0` before neutral freeze
+because Robot uses a different base URL, HTTP Basic Auth, repeated form fields,
+errors, quotas, maintenance responses, and empty bodies. The complete active
+operation inventory is source-locked separately in `v0.74.0` before Robot
+operation implementation. Deprecated Robot Storage Box operations are
+excluded; their supported replacement is the Console Storage Box API already
+owned by `cloud-sdk-hetzner::storage`.
 
 ## API Coverage Tracks
 
@@ -108,7 +111,7 @@ Console Storage Box API already owned by `cloud-sdk-hetzner::storage`.
    authenticated open-descriptor execution phases.
 12. Neutral wire and isolation kernel: extensible identities, complete HTTP
    methods, endpoint-policy algebra, canonical path/query handling, bounded
-   headers, response-buffer provenance, automatic cleanup, atomic encoders,
+   headers, response-buffer provenance, bounded lifecycle cleanup, atomic encoders,
    raw execution, authentication policies, and complete Hetzner migration in
    `v0.32.0` through `v0.43.0`.
 13. Control-plane and execution contracts: pagination, quota, retry,
@@ -121,6 +124,8 @@ Console Storage Box API already owned by `cloud-sdk-hetzner::storage`.
    by the neutral API freeze in `v0.62.0`. The probe covers source-locked
    geographic API/token authority pairs, OAuth2 expiry and rotation,
    validation-only schema overrides, cursor headers, and task/event resources.
+   Freeze also requires the narrow Robot wire fixture from `v0.42.0`; this is
+   protocol evidence, not the complete Robot API inventory.
 15. Complete pre-Robot Hetzner models and bindings: Cloud, actions, metrics,
    DNS, security, Console Storage Box, RFC3339, exact decimals, and exact typed
    associations in `v0.63.0` through `v0.68.0`.
@@ -145,22 +150,23 @@ Console Storage Box API already owned by `cloud-sdk-hetzner::storage`.
 
 ## Post-1.0 Provider Direction
 
-The next published provider is `cloud-sdk-scaleway`. Its initial supported
-scope uses
-[Scaleway's stable GA APIs](https://www.scaleway.com/en/developers/api/) and
+The next published provider is `cloud-sdk-scaleway`. `v1.1.0` selects a finite
+product list and exact stable GA versions from
+[Scaleway's APIs](https://www.scaleway.com/en/developers/api/). That inventory
 must account for global, regional, and zonal authorities, `X-Auth-Token`, PATCH
 requests, per-product schemas, and product-specific pagination/count
 conventions such as `per_page`, `page_size`, `X-Total-Count`, and body
-`total_count`. Alpha and beta APIs remain explicitly experimental and outside
-the stable completeness claim.
+`total_count`. Only selected matrix rows enter the completeness claim; alpha,
+beta, unselected GA versions, and unselected products remain excluded.
 
-`cloud-sdk-digitalocean` follows Scaleway. It uses DigitalOcean's official
+`cloud-sdk-digitalocean` follows Scaleway. `v1.7.0` selects a finite operation
+inventory from an exact revision of DigitalOcean's official
 [OpenAPI source](https://github.com/digitalocean/openapi) and validates the
 simpler bearer-auth and `/v2` path together with same-authority link
 pagination, optional error `request_id`, rate-limit metadata, `Retry-After`,
 and the same bounded response and explicit retry rules used by other providers.
-Adjacent APIs such as Spaces, metadata, OAuth applications, and AI services
-need separate scope decisions.
+Spaces, metadata, OAuth applications, AI services, and every unselected
+surface remain explicit exclusions.
 
 `cloud-sdk-ovhcloud` is planned after those providers because a production
 implementation needs a dedicated split for
