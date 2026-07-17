@@ -116,10 +116,11 @@ owned by `cloud-sdk-hetzner::storage`.
    wire-level adapter limits, generation-safe authentication policies, and
    complete Hetzner migration in `v0.32.0` through `v0.43.0`.
 13. Control-plane and execution contracts: pagination, quota, retry,
-   idempotency, unconditional attempt/delay budgets, local async, replay-aware
-   streaming, amplification-bounded incremental decoding, typed operations,
-   stateful enforceable permits, a provider-generic client kernel, pure
-   monotonic-budget workflow drivers, diagnostics, testkit scenarios, and
+   raw provider links, cryptographically defined fingerprint/idempotency
+   domains, unconditional attempt/delay budgets, local async, upload-accounted
+   replay-aware streaming, amplification-bounded incremental decoding, typed
+   operations, stateful enforceable permits, a provider-generic client kernel,
+   pure monotonic-budget workflow drivers, diagnostics, testkit scenarios, and
    generic drift evidence in `v0.44.0` through `v0.56.0`.
 14. Multi-provider proof and neutral freeze: an unpublished OVHcloud API v2
    source lock and conformance probe in `v0.57.0` through `v0.61.0`, followed
@@ -127,7 +128,11 @@ owned by `cloud-sdk-hetzner::storage`.
    geographic API/token authority pairs, OAuth2 expiry and rotation,
    validation-only schema overrides, cursor headers, and task/event resources.
    Freeze also requires the narrow Robot wire fixture from `v0.42.0`; this is
-   protocol evidence, not the complete Robot API inventory.
+   protocol evidence, not the complete Robot API inventory. Full-fidelity
+   Hetzner vertical slices must additionally exercise Cloud pagination and
+   mutation/action behavior, DNS and security secrets, large incremental
+   Storage Box decoding, typed errors, no-content responses, response guards,
+   and blocking, Send-async, local-async, and testkit execution before freeze.
 15. Complete pre-Robot Hetzner models and bindings: Cloud, actions, metrics,
    DNS, security, Console Storage Box, RFC3339, exact decimals, and exact typed
    associations in `v0.63.0` through `v0.68.0`.
