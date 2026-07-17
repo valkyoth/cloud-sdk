@@ -106,42 +106,42 @@ Console Storage Box API already owned by `cloud-sdk-hetzner::storage`.
 11. Integration evidence: mock transport, recorded fixtures, and a live-test
    harness with separate credential-free staging, privileged root sealing, and
    authenticated open-descriptor execution phases.
-12. Provider-neutral architecture hardening: extensible provider/service
-   identities, endpoint policies, canonical path/query handling, bounded
-   headers and response metadata, raw HTTP execution, provider-owned auth,
-   pagination/quota strategies, local async, streaming contracts, resource
-   profiles, and automatic response cleanup in `v0.32.0` through `v0.38.0`.
-13. Typed and enforceable workflows: compile-time operation/query/body/response
-   associations, scoped mutation/destructive/cost permits, a secure high-level
-   Hetzner client, pure workflow drivers, structured diagnostics, and expanded
-   testkit scenarios in `v0.39.0` through `v0.42.0`.
-14. Multi-provider proof and source governance: provider-generic drift
-   manifests, canonical historical evidence, and an unpublished OVHcloud API
-   v2 conformance probe before neutral API freeze in `v0.43.0` and `v0.44.0`.
-   The probe covers source-locked geographic API/token authority pairs, OAuth2
-   token expiry and rotation, validation-only `X-Schemas-Version` overrides,
-   cursor pagination headers, and asynchronous task/event resources without
-   publishing a provider crate or exercising mutations.
-15. Complete pre-Robot Hetzner models: full Cloud, DNS, security, and Console
-   Storage Box response fields plus shared calendar-valid RFC3339 handling in
-   `v0.45.0` and `v0.46.0`.
-16. Robot Webservice foundation and implementation: separate source lock,
-   Basic Auth policy, form-encoded requests, Robot-specific errors and rate
-   limits, dedicated-server operations, and explicit exclusion of deprecated
-   Robot Storage Box endpoints in `v0.47.0` through `v0.56.0`.
-17. Robot integration and hardening: high-level client workflows, mock and
-   carefully gated live evidence, fuzzing, complete active-operation coverage,
-   and security review in `v0.57.0` and `v0.58.0`.
-18. 1.0 governance and release-candidate evidence: signer/provenance policy,
-   independent-review disclosure, controlled disposable-project mutation
-   evidence, final API freeze, docs, SBOM, pentest, dependency audit, and
-   platform matrix in `v0.59.0` and `v0.60.0`.
-19. Future providers: publish focused provider crates only after the provider's
+12. Neutral wire and isolation kernel: extensible identities, complete HTTP
+   methods, endpoint-policy algebra, canonical path/query handling, bounded
+   headers, response-buffer provenance, automatic cleanup, atomic encoders,
+   raw execution, authentication policies, and complete Hetzner migration in
+   `v0.32.0` through `v0.43.0`.
+13. Control-plane and execution contracts: pagination, quota, retry,
+   idempotency, local async, streaming, incremental decoding, typed operations,
+   enforceable permits, a provider-generic client kernel, pure workflow
+   drivers, diagnostics, testkit scenarios, and generic drift evidence in
+   `v0.44.0` through `v0.56.0`.
+14. Multi-provider proof and neutral freeze: an unpublished OVHcloud API v2
+   source lock and conformance probe in `v0.57.0` through `v0.61.0`, followed
+   by the neutral API freeze in `v0.62.0`. The probe covers source-locked
+   geographic API/token authority pairs, OAuth2 expiry and rotation,
+   validation-only schema overrides, cursor headers, and task/event resources.
+15. Complete pre-Robot Hetzner models and bindings: Cloud, actions, metrics,
+   DNS, security, Console Storage Box, RFC3339, exact decimals, and exact typed
+   associations in `v0.63.0` through `v0.68.0`.
+16. Complete pre-Robot Hetzner clients: provider-generic client integration and
+   typed Cloud, DNS, security, and Console Storage Box workflows in `v0.69.0`
+   through `v0.73.0`.
+17. Robot Webservice implementation: source lock, atomic forms, credentials,
+   lockout, errors, quotas, every active resource family, ordering, and scoped
+   billable mutations in `v0.74.0` through `v0.93.0`.
+18. Robot integration and live evidence: blocking, Send-async, local-async,
+   pager/action workflows, complete mock coverage, and carefully gated
+   read-only live evidence in `v0.94.0` and `v0.95.0`.
+19. Whole-platform qualification: adversarial/fuzz evidence, platform/MSRV/FIPS
+   handshakes, provenance/governance review, controlled mutation evidence, and
+   the final release candidate in `v0.96.0` through `v0.99.0`.
+20. Future providers: publish focused provider crates only after the provider's
    official API source, auth model, transport expectations, threat model, API
    matrix, live-test policy, and release plan are documented. The publication
    order is Scaleway first, DigitalOcean second, and full OVHcloud later. The
-   unpublished `v0.44.0` OVHcloud v2 probe proves architecture only and is not
-   a supported provider release.
+   unpublished `v0.57.0-v0.61.0` OVHcloud v2 probe proves architecture only
+   and is not a supported provider release.
 
 ## Post-1.0 Provider Direction
 
@@ -167,8 +167,8 @@ implementation needs a dedicated split for
 [API v2](https://docs.ovhcloud.com/en/guides/manage-and-operate/api/apiv2/),
 any required API v1 coverage, OAuth2 and retained legacy authentication,
 geographic authorities, asynchronous task resources, billable ordering, and
-OpenStack-based products. The `v0.44.0` probe is deliberately too small and too
-isolated to count as this provider implementation.
+OpenStack-based products. The `v0.57.0-v0.61.0` probe is deliberately too
+small and too isolated to count as this provider implementation.
 
 Each provider uses one primary crate. Shared transport, testkit, sanitization,
 pagination, authentication primitives, and policy abstractions remain neutral
@@ -225,7 +225,7 @@ Expected future candidates must be reviewed before use:
   third-party dependency or default feature.
 - `v0.30.0` admits `syn 2.0.119` only in the excluded, non-published prepared
   coverage checker. It is absent from every SDK crate and published graph.
-- `v0.32.0` through `v0.44.0` prefer first-party no_std contracts and excluded
+- `v0.32.0` through `v0.62.0` prefer first-party no_std contracts and excluded
   conformance tooling. Any parser, streaming, signing, provenance, or
   provider-probe dependency requires its own admission document before use.
 

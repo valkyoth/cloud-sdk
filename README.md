@@ -92,9 +92,9 @@ architecture probe.
 | --- | --- | --- |
 | [`Hetzner Cloud`](https://www.hetzner.com/) | `1.0.0` | [`cloud-sdk-hetzner`](https://crates.io/crates/cloud-sdk-hetzner) |
 | [`Hetzner Robot`](https://robot.hetzner.com/doc/webservice/en.html) | `1.0.0` | pre-1.0 milestones in `cloud-sdk-hetzner` |
-| [`OVHcloud API v2`](https://docs.ovhcloud.com/en/guides/manage-and-operate/api/apiv2/) architecture probe | `0.44.0` | unpublished conformance fixture; never a support claim |
-| [`Scaleway`](https://www.scaleway.com/en/developers/api/) | first provider after `1.0.0` | planned `cloud-sdk-scaleway`; stable GA APIs first |
-| [`DigitalOcean`](https://docs.digitalocean.com/reference/api/reference/public-apis/) | second provider after `1.0.0` | planned `cloud-sdk-digitalocean` |
+| [`OVHcloud API v2`](https://docs.ovhcloud.com/en/guides/manage-and-operate/api/apiv2/) architecture probe | `0.57.0 - 0.61.0` | unpublished conformance fixture; neutral freeze follows in `0.62.0` |
+| [`Scaleway`](https://www.scaleway.com/en/developers/api/) | `1.1.0 - 1.6.0` | planned `cloud-sdk-scaleway`; stable GA APIs first |
+| [`DigitalOcean`](https://docs.digitalocean.com/reference/api/reference/public-apis/) | `1.7.0 - 1.12.0` | planned `cloud-sdk-digitalocean` |
 | [`OVHcloud`](https://docs.ovhcloud.com/en/) full provider | later post-1.0 | planned `cloud-sdk-ovhcloud` after a dedicated v1/v2 and product-scope plan |
 
 The probe exists to test the shared architecture against a materially different

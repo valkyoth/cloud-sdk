@@ -496,14 +496,13 @@ crates or placing provider-specific behavior in a neutral boundary.
 
 | Releases | Primary code owners | Purpose |
 | --- | --- | --- |
-| `v0.32.0 - v0.35.0` | `cloud-sdk`, `cloud-sdk-hetzner`, `cloud-sdk-reqwest`, `cloud-sdk-testkit` as required | Extensible identities/endpoints, canonical HTTP metadata, raw execution/auth separation, and pagination/quota/idempotency strategies. |
-| `v0.36.0 - v0.38.0` | `cloud-sdk`, provider decoder modules, adapters/testkit as required | Local async, streaming contracts, resource profiles, capacity reporting, automatic cleanup, and incremental decoding. |
-| `v0.39.0 - v0.42.0` | `cloud-sdk`, `cloud-sdk-hetzner`, `cloud-sdk-testkit`, optional adapters | Typed operations, enforced permits, secure high-level client workflows, diagnostics, and workflow scenarios. |
-| `v0.43.0` | provider-neutral drift tooling and documentation | Manifest-driven drift checks and canonical historical evidence. Published crates change only if a public contract is required. |
-| `v0.44.0` | excluded unpublished OVHcloud API v2 conformance package plus neutral contracts that the probe proves incomplete | Exercise source-locked API/token authority pairs, OAuth2 expiry and rotation, validation-only schema overrides, cursor pagination, and asynchronous resources before the neutral API freeze. The probe must never enter the publish sequence. |
-| `v0.45.0 - v0.46.0` | `cloud-sdk-hetzner`, with neutral fixes only when genuinely provider-independent | Complete Cloud, DNS, security, and Console Storage Box response models. |
-| `v0.47.0 - v0.58.0` | `cloud-sdk-hetzner`; neutral auth/transport/testkit crates only for reusable behavior | Robot source lock, protocol, endpoint families, client integration, and complete Hetzner hardening. |
-| `v0.59.0 - v0.60.0` | release tooling/docs, affected crates only for proven release-candidate fixes | Provenance/governance review, controlled mutation evidence, and final 1.0 release candidate. |
+| `v0.32.0 - v0.43.0` | `cloud-sdk`, neutral boundary crates, and `cloud-sdk-hetzner` only for migration | Neutral wire/isolation kernel, response provenance and cleanup, atomic encoding, auth policies, and migration of all existing Hetzner operations. |
+| `v0.44.0 - v0.56.0` | `cloud-sdk`, provider policy/decoder modules, adapters, and testkit as required | Pagination/quota/retry strategies, local async, streaming, typed operations, permits, client kernel, workflows, diagnostics, testkit, and drift tooling. |
+| `v0.57.0 - v0.61.0` | excluded unpublished OVHcloud API v2 conformance package plus neutral contracts only when the probe proves them incomplete | Source lock, authority/OAuth, cursor/header, task/event, and end-to-end conformance. The probe must never enter the publish sequence. |
+| `v0.62.0` | provider-neutral public contracts and documentation | Neutral API/semver freeze after the OVHcloud probe. |
+| `v0.63.0 - v0.73.0` | `cloud-sdk-hetzner`, with neutral fixes only when genuinely provider-independent | Complete pre-Robot models, exact operation bindings, and Cloud/DNS/security/Console Storage Box clients. |
+| `v0.74.0 - v0.95.0` | `cloud-sdk-hetzner`; neutral boundaries only for reusable behavior | Robot source lock, protocol, every active endpoint family, client integration, and live evidence. |
+| `v0.96.0 - v0.99.0` | release tooling/docs and affected crates only for proven qualification fixes | Whole-platform adversarial, platform/MSRV/FIPS, provenance, and controlled-mutation release-candidate evidence. |
 | `v1.0.0` | all changed publishable crates under independent version rules | Stable provider-neutral foundation and complete claimed Hetzner provider. |
 
 Every milestone still follows the independent rules above: `cloud-sdk` matches
@@ -513,8 +512,9 @@ published.
 
 After `v1.0.0`, published provider work proceeds as
 `cloud-sdk-scaleway`, then `cloud-sdk-digitalocean`, then a separately planned
-full `cloud-sdk-ovhcloud`. Exact crate and workspace versions are assigned when
-each provider starts. The excluded `v0.44.0` OVHcloud API v2 probe is never
-converted into a published package; a full OVHcloud crate requires its own
-source lock, threat model, API matrix, release plan, and independent version
-history.
+full `cloud-sdk-ovhcloud`. Workspace milestones `v1.1.0-v1.6.0` are assigned
+to Scaleway and `v1.7.0-v1.12.0` to DigitalOcean; each provider crate receives
+its independent package version when its first milestone starts. The excluded
+`v0.57.0-v0.61.0` OVHcloud API v2 probe is never converted into a published
+package; a full OVHcloud crate requires its own source lock, threat model, API
+matrix, release plan, and independent version history.
