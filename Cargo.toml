@@ -38,7 +38,7 @@ cast_sign_loss = "deny"
 [workspace.dependencies]
 aws-lc-fips-sys = { version = "=0.13.15", default-features = false }
 aws-lc-rs = { version = "=1.17.1", default-features = false }
-aws-lc-sys = { version = "=0.42.0", default-features = false }
+aws-lc-sys = { version = "=0.43.0", default-features = false }
 bytes = { version = "1.12.1", default-features = false }
 cloud-sdk = { path = "crates/cloud-sdk", version = "0.31.0", default-features = false }
 cloud-sdk-hetzner = { path = "crates/cloud-sdk-hetzner", version = "0.24.0" }
