@@ -36,8 +36,8 @@ cast_possible_truncation = "deny"
 cast_sign_loss = "deny"
 
 [workspace.dependencies]
-aws-lc-fips-sys = { version = "=0.13.15", default-features = false }
-aws-lc-rs = { version = "=1.17.1", default-features = false }
+aws-lc-fips-sys = { version = "=0.13.16", default-features = false }
+aws-lc-rs = { version = "=1.17.3", default-features = false }
 aws-lc-sys = { version = "=0.42.0", default-features = false }
 bytes = { version = "1.12.1", default-features = false }
 cloud-sdk = { path = "crates/cloud-sdk", version = "0.31.0", default-features = false }
@@ -48,7 +48,7 @@ cloud-sdk-testkit = { path = "crates/cloud-sdk-testkit", version = "0.18.2" }
 reqwest = { version = "=0.13.4", default-features = false }
 rustls = { version = "=0.23.42", default-features = false }
 rustls-platform-verifier = { version = "=0.7.0", default-features = false }
-webpki-roots = { version = "=1.0.8", default-features = false }
+webpki-roots = { version = "=1.0.9", default-features = false }
 tokio = { version = "1.52.3", default-features = false }
 serde = { version = "1.0.228", default-features = false, features = ["alloc", "derive"] }
 serde_json = { version = "1.0.150", default-features = false, features = ["alloc"] }
