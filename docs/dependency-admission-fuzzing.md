@@ -2,7 +2,7 @@
 
 Status: admitted only in the excluded, non-published `fuzz/` package.
 
-Checked: 2026-07-14.
+Checked: 2026-07-20.
 
 ## Packages And Tools
 
@@ -11,9 +11,9 @@ Checked: 2026-07-14.
 | `cargo-fuzz` | `0.13.2` | installed test tool | MIT OR Apache-2.0 |
 | `libfuzzer-sys` | `0.4.13` | fuzz runtime and build wrapper | MIT OR Apache-2.0, and NCSA |
 | `arbitrary` | `1.4.2` | transitive byte-input support | MIT OR Apache-2.0 |
-| Rust nightly | `nightly-2026-07-13` | sanitizer and libFuzzer compiler support | Rust toolchain licenses |
+| Rust nightly | `nightly-2026-07-20` | sanitizer and libFuzzer compiler support | Rust toolchain licenses |
 
-The SDK already admits `serde_json 1.0.150` for response-boundary tests. The
+The SDK already admits `serde_json 1.0.151` for response-boundary tests. The
 fuzz package reuses that exact locked version.
 
 ## Isolation Decision
@@ -22,7 +22,7 @@ fuzz package reuses that exact locked version.
 separate lockfile. No published crate depends on `libfuzzer-sys`, and no
 default, alloc, Serde, transport, or all-feature SDK graph activates it.
 Nightly Rust is required only for this harness; supported SDK compilers remain
-stable Rust 1.90.0 through 1.97.0.
+stable Rust 1.90.0 through 1.97.1.
 
 `libfuzzer-sys` compiles and links LLVM libFuzzer support through its build
 dependencies, including `cc`. This native build surface is acceptable only in

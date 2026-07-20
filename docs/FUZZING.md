@@ -9,14 +9,14 @@ dependency graph.
 
 | Component | Version |
 | --- | --- |
-| Rust nightly | `nightly-2026-07-13` |
+| Rust nightly | `nightly-2026-07-20` |
 | `cargo-fuzz` | `0.13.2` |
 | `libfuzzer-sys` | `0.4.13` |
 
 Install the exact tools:
 
 ```sh
-rustup toolchain install nightly-2026-07-13 --profile minimal
+rustup toolchain install nightly-2026-07-20 --profile minimal
 cargo install --locked cargo-fuzz --version 0.13.2
 ```
 
@@ -65,7 +65,7 @@ target=response_envelopes
 corpus="$(mktemp -d)"
 trap 'rm -rf "$corpus"' EXIT
 cp -R "fuzz/seeds/${target}/." "$corpus"
-cargo +nightly-2026-07-13 fuzz run "$target" "$corpus" -- \
+cargo +nightly-2026-07-20 fuzz run "$target" "$corpus" -- \
     -max_total_time=3600 -max_len=16384 -timeout=10
 ```
 
@@ -79,14 +79,14 @@ tests for the 8 MiB response boundary and exact oversized model fields.
 the original file privately while investigating and replay it exactly:
 
 ```sh
-cargo +nightly-2026-07-13 fuzz run response_envelopes \
+cargo +nightly-2026-07-20 fuzz run response_envelopes \
     fuzz/artifacts/response_envelopes/crash-HASH
 ```
 
 Minimize only after exact replay succeeds:
 
 ```sh
-cargo +nightly-2026-07-13 fuzz tmin response_envelopes \
+cargo +nightly-2026-07-20 fuzz tmin response_envelopes \
     fuzz/artifacts/response_envelopes/crash-HASH
 ```
 

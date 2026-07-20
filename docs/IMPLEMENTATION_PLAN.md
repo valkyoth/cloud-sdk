@@ -24,8 +24,8 @@ explicit trust and dependency review.
 
 ## Non-Negotiable Engineering Rules
 
-- Rust stable `1.97.0`, edition 2024, workspace resolver `3`.
-- MSRV is Rust `1.90.0`; compatibility must be checked through `1.97.0`.
+- Rust stable `1.97.1`, edition 2024, workspace resolver `3`.
+- MSRV is Rust `1.90.0`; compatibility must be checked through `1.97.1`.
 - Latest crate and tool versions are checked before dependency or tooling edits.
 - Hetzner API behavior is implemented from current official documentation or a
   pinned official OpenAPI/spec source, never from memory.
@@ -228,9 +228,11 @@ Expected future candidates must be reviewed before use:
   configuration, runtime verification, and feature graph are a dedicated
   `v0.23.0` admission.
 - `v0.23.0` admits rustls' optional FIPS mode with explicit provider and
-  complete-client runtime verification. Current aws-lc-fips-sys binds a 3.0.x
-  module whose active NIST certificate is not claimed by this repository.
-- `v0.24.0` admits `webpki-roots 1.0.8` only through a non-default blocking
+  complete-client runtime verification. Current aws-lc-fips-sys binds a 3.x
+  module whose exact active NIST certificate coverage is not claimed by this
+  repository.
+- The deterministic-root boundary introduced in `v0.24.0` currently admits
+  `webpki-roots 1.0.9` only through a non-default blocking
   feature with a complete explicit rustls configuration. It also records the
   direct dependency/tool freshness and AWS-LC native checksum/build review.
 - `v0.28.0` changes transport receivers, endpoint identity, and credential

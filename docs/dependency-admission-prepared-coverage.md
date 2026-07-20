@@ -3,18 +3,18 @@
 Status: admitted only in the excluded, non-published
 `tools/prepared-coverage-check` package.
 
-Checked: 2026-07-15.
+Checked: 2026-07-20.
 
 ## Packages
 
 | Component | Version | Role | License | Rust |
 | --- | --- | --- | --- | --- |
-| `syn` | `2.0.119` | Rust source and macro-input parser | MIT OR Apache-2.0 | 1.71 |
-| `proc-macro2` | `1.0.106` | transitive token representation | MIT OR Apache-2.0 | 1.68 |
+| `syn` | `3.0.2` | Rust source and macro-input parser | MIT OR Apache-2.0 | 1.71 |
+| `proc-macro2` | `1.0.107` | transitive token representation | MIT OR Apache-2.0 | 1.68 |
 | `unicode-ident` | `1.0.24` | transitive identifier tables | Unicode-3.0 | 1.71 |
 
-`cargo search syn --limit 1` and `cargo info syn@2.0.119` confirmed the
-current release, license, and compiler floor on 2026-07-15. The checker pins
+`cargo search syn --limit 1` and `cargo info syn@3.0.2` confirmed the
+current release, license, and compiler floor on 2026-07-20. The checker pins
 the exact `syn` version and disables default features, enabling only `full`
 and `parsing`. It does not admit `quote`, a procedural macro, network access,
 or native code.

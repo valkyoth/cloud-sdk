@@ -275,8 +275,8 @@ Goal: initialize the serious Rust workspace and policy baseline.
 
 Deliverables:
 
-- Rust stable `1.97.0` pinned.
-- Rust `1.90.0` through `1.97.0` compatibility policy.
+- Rust stable `1.97.1` pinned.
+- Rust `1.90.0` through `1.97.1` compatibility policy.
 - Provider-neutral no_std foundation, reqwest, testkit, and sanitization
   boundary crates plus one focused Hetzner provider crate.
 - CI, dependency policy, security policy, release notes.
@@ -999,7 +999,7 @@ v0.22.0 implementation stop reached. Run pentest for this exact commit.
 
 Goal: add a fail-closed blocking rustls FIPS-mode transport without weakening
 or silently changing the standard blocking transport, while avoiding a
-validation claim the current AWS-LC-FIPS 3.0.x dependency cannot support.
+validation claim the current AWS-LC-FIPS 3.x dependency cannot support.
 
 Deliverables:
 

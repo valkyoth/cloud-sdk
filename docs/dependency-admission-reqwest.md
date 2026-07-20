@@ -5,6 +5,8 @@ Status: admitted only through `cloud-sdk-reqwest/blocking-rustls`,
 `cloud-sdk-reqwest/blocking-rustls-fips`, and `cloud-sdk-reqwest/async-rustls`,
 with reqwest default features disabled.
 
+Checked: 2026-07-20.
+
 ## Decision
 
 | Crate | Version | Role | Default features |
@@ -12,14 +14,14 @@ with reqwest default features disabled.
 | `reqwest` | `0.13.4` | blocking/async HTTP client and URL/header types | disabled |
 | `bytes` | `1.12.1` | sanitized owned async request-body handoff | disabled |
 | `hyper` | `1.10.1` | transitive HTTP implementation | transitive |
-| `tokio` | `1.52.3` | reqwest runtime; direct dev-only async test executor | transitive/disabled |
+| `tokio` | `1.53.0` | reqwest runtime; direct dev-only async test executor | transitive/disabled |
 | `url` | `2.5.8` | authority-preserving endpoint parsing | transitive |
 | `rustls` | `0.23.42` | TLS implementation | transitive |
 | `rustls-platform-verifier` | `0.7.0` | platform trust-store verification | transitive |
-| `webpki-roots` | `1.0.8` | deterministic Mozilla trust-root snapshot | disabled |
-| `aws-lc-rs` | `1.17.1` | rustls cryptographic provider | transitive |
+| `webpki-roots` | `1.0.9` | deterministic Mozilla trust-root snapshot | disabled |
+| `aws-lc-rs` | `1.17.3` | rustls cryptographic provider | transitive |
 | `cloud-sdk-sanitization` | `0.14.0` | adapter-owned secret-buffer cleanup | disabled |
-| `sanitization` | `1.2.4` | reviewed volatile cleanup primitive | disabled |
+| `sanitization` | `1.2.5` | reviewed volatile cleanup primitive | disabled |
 
 The exact repository graph is pinned by `Cargo.lock`, checked by `cargo deny`,
 and recorded in the generated SBOM. Applications own their downstream
@@ -40,8 +42,10 @@ build script, bundled source, compiler, assembler, CMake, linker, or build
 host. Release CI and reproducible/offline builders must use pinned, audited
 build images and toolchains. Offline preparation must preserve Cargo's
 authenticated package checksum rather than copying unauthenticated source
-trees. The v0.24 review and exact archive checksums are recorded in
-[`DEPENDENCY_REVIEW_0.24.0.md`](DEPENDENCY_REVIEW_0.24.0.md).
+trees. The original v0.24 admission is recorded in
+[`DEPENDENCY_REVIEW_0.24.0.md`](DEPENDENCY_REVIEW_0.24.0.md). Current native
+archive checksums and update evidence are recorded in
+[`DEPENDENCY_REVIEW_2026-07-20.md`](DEPENDENCY_REVIEW_2026-07-20.md).
 
 The version review used the reqwest 0.13.4 crate metadata, feature list, API
 documentation, and upstream source:
@@ -68,7 +72,7 @@ limits, and build requirements are reviewed separately in
 
 `blocking-rustls-webpki-roots` enables the blocking and sanitization
 boundaries with an explicit AWS-LC provider, direct rustls configuration, and
-`webpki-roots 1.0.8`. Its client receives only the compiled Mozilla snapshot.
+`webpki-roots 1.0.9`. Its client receives only the compiled Mozilla snapshot.
 Reqwest still compiles its platform-verifier graph, but that verifier is not
 installed into this preconfigured client. Root changes require a dependency
 update; host enterprise roots, private PKI, revocation checking, and pinning

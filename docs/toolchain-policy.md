@@ -1,6 +1,6 @@
 # Toolchain Policy
 
-The workspace develops on stable Rust `1.97.0` and declares MSRV `1.90`.
+The workspace develops on stable Rust `1.97.1` and declares MSRV `1.90`.
 
 Compatibility must be maintained for:
 
@@ -14,13 +14,14 @@ Compatibility must be maintained for:
 | `1.95.0` | `cargo +1.95.0 check --workspace --all-features` |
 | `1.96.0` | `cargo +1.96.0 check --workspace --all-features` |
 | `1.96.1` | `cargo +1.96.1 check --workspace --all-features` |
-| `1.97.0` | full release gate |
+| `1.97.0` | `cargo +1.97.0 check --workspace --all-features` |
+| `1.97.1` | full release gate |
 
 `scripts/check_rust_version_matrix.sh` checks the complete table locally. CI
 runs each version as an independent fail-fast-disabled matrix job so one failure
 does not hide results from the remaining supported compilers.
 
-Pinned release tools, checked against crates.io on 2026-07-14:
+Pinned release tools, checked against crates.io on 2026-07-20:
 
 | Tool | Version |
 | --- | --- |
@@ -30,7 +31,7 @@ Pinned release tools, checked against crates.io on 2026-07-14:
 | `cargo-fuzz` | `0.13.2` |
 
 The non-published fuzz harness separately pins
-`nightly-2026-07-13` and `libfuzzer-sys 0.4.13`. Nightly is never used to
+`nightly-2026-07-20` and `libfuzzer-sys 0.4.13`. Nightly is never used to
 compile or test the supported published-crate matrix.
 
 SBOM freshness checks also require `jq` `1.6` or newer. CI uses the runner's

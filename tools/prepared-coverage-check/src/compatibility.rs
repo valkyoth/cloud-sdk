@@ -1,6 +1,9 @@
 //! Validation for manual query and body operation compatibility overrides.
 
-use syn::{Expr, ExprMatch, FnArg, ImplItem, ImplItemFn, ItemImpl, Lit, Pat, ReturnType, Type};
+use syn::{
+    Expr, ExprMatch, FnArg, ImplItem, ImplItemFn, ItemImpl, Lit, Pat, ReceiverKind, ReturnType,
+    Safety, Type,
+};
 
 use crate::evidence::{
     operation_expression, require_unattributed_evidence, require_unattributed_signature,
@@ -39,10 +42,10 @@ fn accepted_match_keys(mapping: &ExprMatch) -> Result<Vec<String>, String> {
         return Err(canonical_mapping_error());
     };
     if !accepted.attrs.is_empty()
-        || accepted.guard.is_some()
+        || matches!(accepted.pat, Pat::Guard(_))
         || !bool_literal(accepted.body.as_ref(), true)
         || !fallback.attrs.is_empty()
-        || fallback.guard.is_some()
+        || matches!(fallback.pat, Pat::Guard(_))
         || !matches!(&fallback.pat, Pat::Wild(wildcard) if wildcard.attrs.is_empty())
         || !bool_literal(fallback.body.as_ref(), false)
     {
@@ -56,10 +59,7 @@ fn accepted_match_keys(mapping: &ExprMatch) -> Result<Vec<String>, String> {
     Ok(keys)
 }
 
-fn collect_literal_patterns(
-    pattern: &Pat,
-    keys: &mut Vec<String>,
-) -> Result<(), String> {
+fn collect_literal_patterns(pattern: &Pat, keys: &mut Vec<String>) -> Result<(), String> {
     match pattern {
         Pat::Lit(literal) if literal.attrs.is_empty() => {
             let Lit::Str(value) = &literal.lit else {
@@ -96,7 +96,7 @@ fn require_accepts_signature(method: &ImplItemFn) -> Result<(), String> {
     let signature = &method.sig;
     if signature.constness.is_some()
         || signature.asyncness.is_some()
-        || signature.unsafety.is_some()
+        || !matches!(signature.safety, Safety::Default)
         || signature.abi.is_some()
         || signature.variadic.is_some()
         || !signature.generics.params.is_empty()
@@ -109,9 +109,8 @@ fn require_accepts_signature(method: &ImplItemFn) -> Result<(), String> {
     let Some(FnArg::Receiver(receiver)) = inputs.next() else {
         return Err(canonical_signature_error());
     };
-    if receiver.reference.is_some()
+    if !matches!(receiver.kind, ReceiverKind::Value)
         || receiver.mutability.is_some()
-        || receiver.colon_token.is_some()
         || !receiver.attrs.is_empty()
     {
         return Err(canonical_signature_error());

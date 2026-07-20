@@ -8,9 +8,9 @@ import subprocess
 
 
 EXPECTED = {
-    "aws-lc-fips-sys": "=0.13.15",
-    "aws-lc-rs": "=1.17.1",
-    "aws-lc-sys": "=0.42.0",
+    "aws-lc-fips-sys": "=0.13.16",
+    "aws-lc-rs": "=1.17.3",
+    "aws-lc-sys": "=0.43.0",
     "reqwest": "=0.13.4",
     "rustls": "=0.23.42",
     "rustls-platform-verifier": "=0.7.0",

@@ -3,6 +3,8 @@
 Status: admitted only through the non-default
 `cloud-sdk-reqwest/blocking-rustls-fips` feature.
 
+Checked: 2026-07-20.
+
 ## Decision
 
 | Crate | Version | Role |
@@ -10,9 +12,9 @@ Status: admitted only through the non-default
 | `reqwest` | `0.13.4` | blocking HTTP transport |
 | `rustls` | `0.23.42` | TLS configuration and FIPS status checks |
 | `rustls-platform-verifier` | `0.7.0` | reqwest graph dependency; not the FIPS verifier |
-| `aws-lc-rs` | `1.17.1` | rustls cryptographic provider |
-| `aws-lc-fips-sys` | `0.13.15` | AWS-LC-FIPS 3.0.x native module |
-| `aws-lc-sys` | `0.42.0` | compiled transitive dependency retained by rustls feature unification |
+| `aws-lc-rs` | `1.17.3` | rustls cryptographic provider |
+| `aws-lc-fips-sys` | `0.13.16` | AWS-LC-FIPS 3.x native module |
+| `aws-lc-sys` | `0.43.0` | compiled transitive dependency retained by rustls feature unification |
 
 The feature is additive and disabled by default. It does not enter the
 `cloud-sdk`, provider, reqwest-default, or reqwest-`std` graphs. The published
@@ -58,12 +60,12 @@ the build supply chain.
 ## Validation And Compliance Scope
 
 NIST CMVP certificate
-[`#4816`](https://csrc.nist.gov/projects/cryptographic-module-validation-program/certificate/4816)
-covers AWS-LC FIPS `2.0.0`, not the `3.0.x` module bound by current
-`aws-lc-fips-sys 0.13.15`. The current package describes its module as having
-completed accredited validation testing and been submitted to NIST. This
-release therefore does not claim that the selected `3.0.x` module has an
-active validation certificate.
+[`#5314`](https://csrc.nist.gov/projects/cryptographic-module-validation-program/certificate/5314)
+is active for the static AWS-LC 3 module. Its security policy identifies the
+validated module as `3.1.0`, while bundled `aws-lc-fips-sys 0.13.16` reports
+AWS-LC FIPS `3.4.0`. This repository therefore does not claim that the exact
+selected module is covered by certificate `#5314` or another active
+certificate.
 
 The upstream package status, NIST module listings, and any new certificate and
 security policy must be rechecked before every dependency update and before a
@@ -90,18 +92,21 @@ operating environment. The repository does not test or certify that mode.
 Release builders must retain Cargo checksum verification, use reviewed pinned
 build images, avoid untrusted compiler environment flags, and preserve build
 logs. Reproducible byte-for-byte native outputs are not claimed. The v0.24
-review records exact Cargo archive checksums and confirms that hosted native
-tools remain mutable; production builders must pin those tools in an immutable
+review and the
+[`2026-07-20 maintenance review`](DEPENDENCY_REVIEW_2026-07-20.md) record the
+applicable exact Cargo archive checksums and confirm that hosted native tools
+remain mutable; production builders must pin those tools in an immutable
 reviewed image. Cargo Deny narrowly skips duplicate detection for build-only
-`shlex 1.3.0`: bindgen requires the 1.x line while cc requires 2.x. The review
-confirmed that neither duplicate has a runtime path, so the exception remains
-until either parent dependency can converge. See
+`shlex 1.3.0`: bindgen requires the 1.x line while cc requires 2.x. The
+all-feature workspace also permits compile-time `syn 2.0.119` while current
+Serde uses `syn 3`. Neither duplicate has a runtime path, so each exception
+remains only until its parent dependencies can converge. See
 [`DEPENDENCY_REVIEW_0.24.0.md`](DEPENDENCY_REVIEW_0.24.0.md).
 
 Primary upstream references:
 
 - <https://docs.rs/rustls/0.23.42/rustls/manual/_06_fips/>
-- <https://docs.rs/aws-lc-fips-sys/0.13.15/aws_lc_fips_sys/>
+- <https://docs.rs/aws-lc-fips-sys/0.13.16/aws_lc_fips_sys/>
 - <https://aws.github.io/aws-lc-rs/requirements/index.html>
 - <https://aws.github.io/aws-lc-rs/platform_support.html>
 

@@ -252,6 +252,12 @@ fn implements_reserved(item: &ItemImpl, kind: RegistryKind) -> bool {
 }
 
 fn validate_impl_items(implementation: &ItemImpl) -> Result<(), String> {
+    if implementation.modifiers.defaultness.is_some()
+        || implementation.modifiers.polarity.is_some()
+        || implementation.unsafety.is_some()
+    {
+        return Err("prepared wire implementations cannot use impl modifiers".to_owned());
+    }
     for item in &implementation.items {
         match item {
             ImplItem::Fn(method) if method.attrs.is_empty() => {}
@@ -288,7 +294,7 @@ fn impl_attrs(item: &ImplItem) -> &[Attribute] {
 fn implements_named(item: &ItemImpl, name: &str) -> bool {
     item.trait_
         .as_ref()
-        .and_then(|(_, path, _)| path.segments.last())
+        .and_then(|(path, _)| path.segments.last())
         .is_some_and(|segment| segment.ident == name)
 }
 
@@ -299,7 +305,7 @@ fn implements_canonical(item: &ItemImpl, kind: RegistryKind) -> bool {
 fn implements_canonical_named(item: &ItemImpl, name: &str) -> bool {
     item.trait_
         .as_ref()
-        .is_some_and(|(_, path, _)| canonical_trait(path, name))
+        .is_some_and(|(path, _)| canonical_trait(path, name))
 }
 
 fn canonical_trait(path: &Path, trait_name: &str) -> bool {
@@ -406,7 +412,7 @@ fn strict_operation_expression(
             let mut keys = Vec::new();
             for arm in &expression_match.arms {
                 require_unattributed_evidence(&arm.attrs)?;
-                if arm.guard.is_some() {
+                if matches!(arm.pat, syn::Pat::Guard(_)) {
                     return Err("operation match arms cannot have guards".to_owned());
                 }
                 let Expr::Lit(literal) = arm.body.as_ref() else {

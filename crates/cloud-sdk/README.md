@@ -75,7 +75,7 @@ full-fidelity Hetzner vertical slices before the neutral API freeze.
 | --- | --- |
 | License | `MIT OR Apache-2.0` |
 | MSRV | Rust `1.90.0` |
-| Pinned toolchain | Rust `1.97.0` |
+| Pinned toolchain | Rust `1.97.1` |
 | Default target | `no_std` |
 | Default runtime dependencies | none in `cloud-sdk`; provider crates remain transport-free by default |
 | Unsafe policy | first-party crates use `#![forbid(unsafe_code)]` |
@@ -105,12 +105,13 @@ matrix, release plan, tests, and pentest gates.
 ## Rust Version Support
 
 The minimum supported Rust version is Rust `1.90.0`. Development uses the
-pinned stable Rust `1.97.0` until the toolchain policy is updated.
+pinned stable Rust `1.97.1` until the toolchain policy is updated.
 
 | Rust | Local Evidence |
 | --- | --- |
 | `1.90.0 - 1.96.1` | `cargo +<version> check --workspace --all-features` for every supported compiler |
-| `1.97.0` | `scripts/checks.sh` |
+| `1.97.0` | `cargo +1.97.0 check --workspace --all-features` |
+| `1.97.1` | `scripts/checks.sh` |
 
 Portable and native platform evidence is documented in
 [`docs/PLATFORM_SUPPORT.md`](https://github.com/valkyoth/cloud-sdk/blob/main/docs/PLATFORM_SUPPORT.md).

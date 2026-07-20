@@ -2,16 +2,16 @@
 
 Status: admitted only behind the non-default `cloud-sdk-hetzner/serde` feature.
 
-Checked: 2026-07-16.
+Checked: 2026-07-20.
 
 ## Packages
 
 | Package | Version | Scope | License | Default features |
 | --- | --- | --- | --- | --- |
-| `serde` | `1.0.228` | optional normal dependency | MIT OR Apache-2.0 | disabled |
-| `serde_json` | `1.0.150` | optional request/envelope Serde implementation and test parser | MIT OR Apache-2.0 | disabled; `alloc` only |
+| `serde` | `1.0.229` | optional normal dependency | MIT OR Apache-2.0 | disabled |
+| `serde_json` | `1.0.151` | optional request/envelope Serde implementation and test parser | MIT OR Apache-2.0 | disabled; `alloc` only |
 | `cloud-sdk-sanitization` | `0.14.0` | optional first-party owned secret cleanup | MIT OR Apache-2.0 | disabled; `alloc` only |
-| `sanitization` | `1.2.4` | transitive volatile byte cleanup | MIT OR Apache-2.0 | disabled |
+| `sanitization` | `1.2.5` | transitive volatile byte cleanup | MIT OR Apache-2.0 | disabled |
 
 Serde and serde_json are sourced from crates.io and maintained by the Serde
 project at <https://github.com/serde-rs/serde> and
@@ -39,11 +39,14 @@ remain available only through closure-scoped UTF-8 access.
 ## Transitive Surface
 
 The derive feature adds build-time proc-macro dependencies `serde_derive`,
-`proc-macro2`, `quote`, `syn`, and `unicode-ident`. serde_json adds `itoa`,
+`proc-macro2`, `quote`, `syn 3`, and `unicode-ident`. serde_json adds `itoa`,
 `memchr`, and `zmij`. The private parser tree uses `alloc::collections` and
 introduces no additional dependency. The sanitization boundary reuses the
 already admitted `sanitization` crate. `cargo deny`, `cargo audit`, locked
 versions, and the workspace MSRV matrix cover the complete optional graph.
+The all-feature workspace retains compile-time `syn 2.0.119` through AWS-LC
+bindgen and platform macros, so Cargo Deny has one exact older-line exception;
+neither parser line enters a runtime path.
 
 ## Security Decision
 

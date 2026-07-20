@@ -3,11 +3,13 @@
 Status: admitted only through `cloud-sdk-sanitization` with default features
 disabled.
 
+Checked: 2026-07-20.
+
 ## Decision
 
 | Crate | Version | Role | License | Default features |
 | --- | --- | --- | --- | --- |
-| `sanitization` | `1.2.4` | volatile caller-buffer cleanup | MIT OR Apache-2.0 | disabled |
+| `sanitization` | `1.2.5` | volatile caller-buffer cleanup | MIT OR Apache-2.0 | disabled |
 
 The dependency is the first-party crate published from
 <https://github.com/valkyoth/sanitization>. It is no_std by default and has no

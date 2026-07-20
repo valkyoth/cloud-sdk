@@ -35,7 +35,7 @@ blocking_tree=$(cargo tree -p cloud-sdk-reqwest --no-default-features \
 for dependency in \
     'reqwest v0.13.4' \
     'cloud-sdk-sanitization v0.14.0' \
-    'sanitization v1.2.4' \
+    'sanitization v1.2.5' \
     'rustls v0.23.42'; do
     if ! printf '%s\n' "$blocking_tree" | grep -Fq "$dependency"; then
         echo "reqwest boundary: admitted dependency $dependency is missing" >&2
@@ -54,9 +54,9 @@ async_tree=$(cargo tree -p cloud-sdk-reqwest --no-default-features \
 for dependency in \
     'bytes v1.12.1' \
     'reqwest v0.13.4' \
-    'tokio v1.52.3' \
+    'tokio v1.53.0' \
     'cloud-sdk-sanitization v0.14.0' \
-    'sanitization v1.2.4' \
+    'sanitization v1.2.5' \
     'rustls v0.23.42'; do
     if ! printf '%s\n' "$async_tree" | grep -Fq "$dependency"; then
         echo "reqwest boundary: admitted async dependency $dependency is missing" >&2

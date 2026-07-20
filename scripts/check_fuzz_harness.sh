@@ -2,7 +2,7 @@
 set -eu
 
 mode="${1:---metadata}"
-toolchain="nightly-2026-07-13"
+toolchain="nightly-2026-07-20"
 cargo_fuzz_version="0.13.2"
 targets="buffer_writers request_targets action_requests labels_dns pagination action_polling response_envelopes response_content_type checked_response"
 

@@ -19,14 +19,14 @@ check_output() {
     fi
 }
 
-check_output Rust 'rustc 1.97.0 ' rustc --version
+check_output Rust 'rustc 1.97.1 ' rustc --version
 check_output cargo-deny 'cargo-deny 0.20.2' cargo deny --version
 check_output cargo-audit 'cargo-audit-audit 0.22.2' cargo audit --version
 check_output cargo-sbom 'cargo-sbom 0.10.0' cargo sbom --version
 check_output cargo-fuzz 'cargo-fuzz 0.13.2' cargo fuzz --version
 
 if [ "$mode" = "--local-only" ]; then
-    echo "Pinned Rust and Cargo tool installations match v0.24 policy."
+    echo "Pinned Rust and Cargo tool installations match repository policy."
     exit 0
 fi
 

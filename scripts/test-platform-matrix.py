@@ -154,7 +154,7 @@ def test_default_dependency_boundary() -> None:
             directory,
             tree=(
                 "cloud-sdk v0.31.0\n"
-                "sanitization v1.2.4\n"
+                "sanitization v1.2.5\n"
                 "ureq v3.1.2\n"
                 "curl v0.4.49\n"
                 "async-std v1.13.2"

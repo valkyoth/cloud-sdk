@@ -1,21 +1,21 @@
 {
   "SPDXID": "SPDXRef-DOCUMENT",
   "creationInfo": {
-    "created": "2026-07-16T07:36:39Z",
+    "created": "2026-07-20T08:17:19Z",
     "creators": [
       "Tool: cargo-sbom-v0.10.0",
       "Tool: cloud-sdk-complete-spdx-v1"
     ]
   },
   "dataLicense": "CC0-1.0",
-  "documentNamespace": "https://spdx.org/spdxdocs/fuzz-9196363c-7480-405a-9e55-0468fe0ff242",
+  "documentNamespace": "https://spdx.org/spdxdocs/fuzz-9a5b54d9-eeeb-4a37-9899-2e913b97c91c",
   "files": [
     {
       "SPDXID": "SPDXRef-File-action_polling",
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "f6ea3a928837fa1c750756adc1e5cce722df35be"
+          "checksumValue": "a9503a422dc266221c54e47dd45d047462cf17ef"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -29,7 +29,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "f6ea3a928837fa1c750756adc1e5cce722df35be"
+          "checksumValue": "a9503a422dc266221c54e47dd45d047462cf17ef"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -43,7 +43,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "f6ea3a928837fa1c750756adc1e5cce722df35be"
+          "checksumValue": "a9503a422dc266221c54e47dd45d047462cf17ef"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -57,7 +57,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "f6ea3a928837fa1c750756adc1e5cce722df35be"
+          "checksumValue": "a9503a422dc266221c54e47dd45d047462cf17ef"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -71,7 +71,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "f6ea3a928837fa1c750756adc1e5cce722df35be"
+          "checksumValue": "a9503a422dc266221c54e47dd45d047462cf17ef"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -85,7 +85,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "f6ea3a928837fa1c750756adc1e5cce722df35be"
+          "checksumValue": "a9503a422dc266221c54e47dd45d047462cf17ef"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -99,7 +99,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "f6ea3a928837fa1c750756adc1e5cce722df35be"
+          "checksumValue": "a9503a422dc266221c54e47dd45d047462cf17ef"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -113,7 +113,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "f6ea3a928837fa1c750756adc1e5cce722df35be"
+          "checksumValue": "a9503a422dc266221c54e47dd45d047462cf17ef"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -127,7 +127,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "f6ea3a928837fa1c750756adc1e5cce722df35be"
+          "checksumValue": "a9503a422dc266221c54e47dd45d047462cf17ef"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -156,18 +156,18 @@
       "versionInfo": "1.4.2"
     },
     {
-      "SPDXID": "SPDXRef-Package-cc-1.2.67",
+      "SPDXID": "SPDXRef-Package-cc-1.3.0",
       "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
       "licenseConcluded": "MIT OR Apache-2.0",
       "name": "cc",
-      "versionInfo": "1.2.67",
+      "versionInfo": "1.3.0",
       "licenseDeclared": "MIT OR Apache-2.0",
       "description": "A build-time dependency for Cargo build scripts to assist in invoking the native\nC compiler to compile native C code into a static archive to be linked into Rust\ncode.\n",
       "homepage": "https://github.com/rust-lang/cc-rs",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
-          "referenceLocator": "pkg:cargo/cc@1.2.67",
+          "referenceLocator": "pkg:cargo/cc@1.3.0",
           "referenceType": "purl"
         }
       ]
@@ -340,36 +340,36 @@
       "versionInfo": "2.8.3"
     },
     {
-      "SPDXID": "SPDXRef-Package-proc-macro2-1.0.106",
+      "SPDXID": "SPDXRef-Package-proc-macro2-1.0.107",
       "description": "A substitute implementation of the compiler's `proc_macro` API to decouple token-based libraries from the procedural macro use case.",
       "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
-          "referenceLocator": "pkg:cargo/proc-macro2@1.0.106",
+          "referenceLocator": "pkg:cargo/proc-macro2@1.0.107",
           "referenceType": "purl"
         }
       ],
       "licenseConcluded": "MIT OR Apache-2.0",
       "licenseDeclared": "MIT OR Apache-2.0",
       "name": "proc-macro2",
-      "versionInfo": "1.0.106"
+      "versionInfo": "1.0.107"
     },
     {
-      "SPDXID": "SPDXRef-Package-quote-1.0.46",
+      "SPDXID": "SPDXRef-Package-quote-1.0.47",
       "description": "Quasi-quoting macro quote!(...)",
       "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
-          "referenceLocator": "pkg:cargo/quote@1.0.46",
+          "referenceLocator": "pkg:cargo/quote@1.0.47",
           "referenceType": "purl"
         }
       ],
       "licenseConcluded": "MIT OR Apache-2.0",
       "licenseDeclared": "MIT OR Apache-2.0",
       "name": "quote",
-      "versionInfo": "1.0.46"
+      "versionInfo": "1.0.47"
     },
     {
       "SPDXID": "SPDXRef-Package-r-efi-6.0.0",
@@ -389,13 +389,13 @@
       ]
     },
     {
-      "SPDXID": "SPDXRef-Package-sanitization-1.2.4",
+      "SPDXID": "SPDXRef-Package-sanitization-1.2.5",
       "description": "Dependency-free no_std secret memory sanitization with safe defaults and an explicit volatile wipe backend.",
       "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
-          "referenceLocator": "pkg:cargo/sanitization@1.2.4",
+          "referenceLocator": "pkg:cargo/sanitization@1.2.5",
           "referenceType": "purl"
         }
       ],
@@ -403,16 +403,16 @@
       "licenseConcluded": "MIT OR Apache-2.0",
       "licenseDeclared": "MIT OR Apache-2.0",
       "name": "sanitization",
-      "versionInfo": "1.2.4"
+      "versionInfo": "1.2.5"
     },
     {
-      "SPDXID": "SPDXRef-Package-serde--core-1.0.228",
+      "SPDXID": "SPDXRef-Package-serde--core-1.0.229",
       "description": "Serde traits only, with no support for derive -- use the `serde` crate instead",
       "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
-          "referenceLocator": "pkg:cargo/serde_core@1.0.228",
+          "referenceLocator": "pkg:cargo/serde_core@1.0.229",
           "referenceType": "purl"
         }
       ],
@@ -420,16 +420,16 @@
       "licenseConcluded": "MIT OR Apache-2.0",
       "licenseDeclared": "MIT OR Apache-2.0",
       "name": "serde_core",
-      "versionInfo": "1.0.228"
+      "versionInfo": "1.0.229"
     },
     {
-      "SPDXID": "SPDXRef-Package-serde--derive-1.0.228",
+      "SPDXID": "SPDXRef-Package-serde--derive-1.0.229",
       "description": "Macros 1.1 implementation of #[derive(Serialize, Deserialize)]",
       "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
-          "referenceLocator": "pkg:cargo/serde_derive@1.0.228",
+          "referenceLocator": "pkg:cargo/serde_derive@1.0.229",
           "referenceType": "purl"
         }
       ],
@@ -437,32 +437,32 @@
       "licenseConcluded": "MIT OR Apache-2.0",
       "licenseDeclared": "MIT OR Apache-2.0",
       "name": "serde_derive",
-      "versionInfo": "1.0.228"
+      "versionInfo": "1.0.229"
     },
     {
-      "SPDXID": "SPDXRef-Package-serde--json-1.0.150",
+      "SPDXID": "SPDXRef-Package-serde--json-1.0.151",
       "description": "A JSON serialization file format",
       "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
-          "referenceLocator": "pkg:cargo/serde_json@1.0.150",
+          "referenceLocator": "pkg:cargo/serde_json@1.0.151",
           "referenceType": "purl"
         }
       ],
       "licenseConcluded": "MIT OR Apache-2.0",
       "licenseDeclared": "MIT OR Apache-2.0",
       "name": "serde_json",
-      "versionInfo": "1.0.150"
+      "versionInfo": "1.0.151"
     },
     {
-      "SPDXID": "SPDXRef-Package-serde-1.0.228",
+      "SPDXID": "SPDXRef-Package-serde-1.0.229",
       "description": "A generic serialization/deserialization framework",
       "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
-          "referenceLocator": "pkg:cargo/serde@1.0.228",
+          "referenceLocator": "pkg:cargo/serde@1.0.229",
           "referenceType": "purl"
         }
       ],
@@ -470,7 +470,7 @@
       "licenseConcluded": "MIT OR Apache-2.0",
       "licenseDeclared": "MIT OR Apache-2.0",
       "name": "serde",
-      "versionInfo": "1.0.228"
+      "versionInfo": "1.0.229"
     },
     {
       "SPDXID": "SPDXRef-Package-shlex-2.0.1",
@@ -489,20 +489,20 @@
       ]
     },
     {
-      "SPDXID": "SPDXRef-Package-syn-2.0.119",
+      "SPDXID": "SPDXRef-Package-syn-3.0.2",
       "description": "Parser for Rust source code",
       "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
-          "referenceLocator": "pkg:cargo/syn@2.0.119",
+          "referenceLocator": "pkg:cargo/syn@3.0.2",
           "referenceType": "purl"
         }
       ],
       "licenseConcluded": "MIT OR Apache-2.0",
       "licenseDeclared": "MIT OR Apache-2.0",
       "name": "syn",
-      "versionInfo": "2.0.119"
+      "versionInfo": "3.0.2"
     },
     {
       "SPDXID": "SPDXRef-Package-unicode-ident-1.0.24",
@@ -629,27 +629,27 @@
       "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-fuzz-0.0.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cc-1.2.67",
+      "spdxElementId": "SPDXRef-Package-cc-1.3.0",
       "relationshipType": "BUILD_DEPENDENCY_OF",
       "relatedSpdxElement": "SPDXRef-Package-libfuzzer-sys-0.4.13"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cc-1.2.67",
+      "spdxElementId": "SPDXRef-Package-cc-1.3.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-find-msvc-tools-0.1.9"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cc-1.2.67",
+      "spdxElementId": "SPDXRef-Package-cc-1.3.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-jobserver-0.1.35"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cc-1.2.67",
+      "spdxElementId": "SPDXRef-Package-cc-1.3.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-libc-0.2.186"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cc-1.2.67",
+      "spdxElementId": "SPDXRef-Package-cc-1.3.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-shlex-2.0.1"
     },
@@ -671,7 +671,7 @@
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-fuzz-0.0.0",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-serde--json-1.0.150"
+      "relatedSpdxElement": "SPDXRef-Package-serde--json-1.0.151"
     },
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-hetzner-0.24.0",
@@ -686,12 +686,12 @@
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-hetzner-0.24.0",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-serde--json-1.0.150"
+      "relatedSpdxElement": "SPDXRef-Package-serde--json-1.0.151"
     },
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-hetzner-0.24.0",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-serde-1.0.228"
+      "relatedSpdxElement": "SPDXRef-Package-serde-1.0.229"
     },
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-sanitization-0.14.0",
@@ -701,7 +701,7 @@
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-sanitization-0.14.0",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-sanitization-1.2.4"
+      "relatedSpdxElement": "SPDXRef-Package-sanitization-1.2.5"
     },
     {
       "spdxElementId": "SPDXRef-Package-getrandom-0.4.3",
@@ -736,85 +736,85 @@
     {
       "spdxElementId": "SPDXRef-Package-libfuzzer-sys-0.4.13",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cc-1.2.67"
+      "relatedSpdxElement": "SPDXRef-Package-cc-1.3.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-proc-macro2-1.0.106",
+      "spdxElementId": "SPDXRef-Package-proc-macro2-1.0.107",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-unicode-ident-1.0.24"
     },
     {
-      "spdxElementId": "SPDXRef-Package-quote-1.0.46",
+      "spdxElementId": "SPDXRef-Package-quote-1.0.47",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-proc-macro2-1.0.106"
+      "relatedSpdxElement": "SPDXRef-Package-proc-macro2-1.0.107"
     },
     {
-      "spdxElementId": "SPDXRef-Package-serde--core-1.0.228",
+      "spdxElementId": "SPDXRef-Package-serde--core-1.0.229",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-serde--derive-1.0.228"
+      "relatedSpdxElement": "SPDXRef-Package-serde--derive-1.0.229"
     },
     {
-      "spdxElementId": "SPDXRef-Package-serde--derive-1.0.228",
+      "spdxElementId": "SPDXRef-Package-serde--derive-1.0.229",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-proc-macro2-1.0.106"
+      "relatedSpdxElement": "SPDXRef-Package-proc-macro2-1.0.107"
     },
     {
-      "spdxElementId": "SPDXRef-Package-serde--derive-1.0.228",
+      "spdxElementId": "SPDXRef-Package-serde--derive-1.0.229",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-quote-1.0.46"
+      "relatedSpdxElement": "SPDXRef-Package-quote-1.0.47"
     },
     {
-      "spdxElementId": "SPDXRef-Package-serde--derive-1.0.228",
+      "spdxElementId": "SPDXRef-Package-serde--derive-1.0.229",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-syn-2.0.119"
+      "relatedSpdxElement": "SPDXRef-Package-syn-3.0.2"
     },
     {
-      "spdxElementId": "SPDXRef-Package-serde--json-1.0.150",
+      "spdxElementId": "SPDXRef-Package-serde--json-1.0.151",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-itoa-1.0.18"
     },
     {
-      "spdxElementId": "SPDXRef-Package-serde--json-1.0.150",
+      "spdxElementId": "SPDXRef-Package-serde--json-1.0.151",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-memchr-2.8.3"
     },
     {
-      "spdxElementId": "SPDXRef-Package-serde--json-1.0.150",
+      "spdxElementId": "SPDXRef-Package-serde--json-1.0.151",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-serde--core-1.0.228"
+      "relatedSpdxElement": "SPDXRef-Package-serde--core-1.0.229"
     },
     {
-      "spdxElementId": "SPDXRef-Package-serde--json-1.0.150",
+      "spdxElementId": "SPDXRef-Package-serde--json-1.0.151",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-serde-1.0.228"
+      "relatedSpdxElement": "SPDXRef-Package-serde-1.0.229"
     },
     {
-      "spdxElementId": "SPDXRef-Package-serde--json-1.0.150",
+      "spdxElementId": "SPDXRef-Package-serde--json-1.0.151",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-zmij-1.0.23"
     },
     {
-      "spdxElementId": "SPDXRef-Package-serde-1.0.228",
+      "spdxElementId": "SPDXRef-Package-serde-1.0.229",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-serde--core-1.0.228"
+      "relatedSpdxElement": "SPDXRef-Package-serde--core-1.0.229"
     },
     {
-      "spdxElementId": "SPDXRef-Package-serde-1.0.228",
+      "spdxElementId": "SPDXRef-Package-serde-1.0.229",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-serde--derive-1.0.228"
+      "relatedSpdxElement": "SPDXRef-Package-serde--derive-1.0.229"
     },
     {
-      "spdxElementId": "SPDXRef-Package-syn-2.0.119",
+      "spdxElementId": "SPDXRef-Package-syn-3.0.2",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-proc-macro2-1.0.106"
+      "relatedSpdxElement": "SPDXRef-Package-proc-macro2-1.0.107"
     },
     {
-      "spdxElementId": "SPDXRef-Package-syn-2.0.119",
+      "spdxElementId": "SPDXRef-Package-syn-3.0.2",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-quote-1.0.46"
+      "relatedSpdxElement": "SPDXRef-Package-quote-1.0.47"
     },
     {
-      "spdxElementId": "SPDXRef-Package-syn-2.0.119",
+      "spdxElementId": "SPDXRef-Package-syn-3.0.2",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-unicode-ident-1.0.24"
     }
