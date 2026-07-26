@@ -21,6 +21,7 @@ mod error;
 mod rate_limit;
 
 pub use auth::{BearerToken, BearerTokenError, MAX_BEARER_TOKEN_BYTES};
+pub use cloud_sdk::transport::CustomEndpointAcknowledgement;
 pub use config::{MAX_TIMEOUT_SECONDS, RequestTimeouts, TimeoutError, UserAgent, UserAgentError};
 pub(crate) use content_type::parse_response_content_type;
 pub(crate) use credentials::CredentialStore;

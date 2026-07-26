@@ -10,8 +10,8 @@ use super::{
 };
 use crate::transport::{
     AsyncTransport, BlockingTransport, BoundTransport, EndpointIdentity, EndpointIdentityError,
-    EndpointScheme, MediaType, RequestTarget, ResponseContentType, ResponseStorageSanitizer,
-    StatusCode, TransportRequest, TransportResponse,
+    EndpointPolicy, EndpointScheme, MediaType, RequestTarget, ResponseContentType,
+    ResponseStorageSanitizer, StatusCode, TransportRequest, TransportResponse,
 };
 use crate::{
     Method, ProviderId, ProviderMarker, ServiceId, ServiceMarker, provider_id, service_id,
@@ -326,7 +326,7 @@ impl PrepareOperation for ExampleOperation {
         let endpoint = official_endpoint().map_err(|_| ExamplePrepareError::Invalid)?;
         Ok(PreparedRequest::new(
             request,
-            ProviderService::from_marker::<ComputeService>(endpoint),
+            ProviderService::from_marker::<ComputeService>(EndpointPolicy::fixed(endpoint)),
             metadata,
             policy,
         ))

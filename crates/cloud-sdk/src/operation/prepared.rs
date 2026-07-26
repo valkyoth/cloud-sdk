@@ -6,7 +6,7 @@ use crate::operation::{
     CheckedResponse, OperationId, OperationMetadata, ResponsePolicy, ResponsePolicyError,
 };
 use crate::transport::{
-    AsyncTransport, BlockingTransport, BoundTransport, EndpointIdentity, EndpointIdentityError,
+    AsyncTransport, BlockingTransport, BoundTransport, EndpointIdentityError, EndpointPolicy,
     ResponseStorageSanitizer, TransportRequest,
 };
 use crate::{ProviderId, ProviderMarker, ServiceId, ServiceMarker};
@@ -71,33 +71,33 @@ pub trait PrepareOperation {
     ) -> Result<PreparedRequest<'storage>, Self::Error>;
 }
 
-/// Provider service and immutable expected endpoint identity.
+/// Provider service and immutable endpoint trust policy.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct ProviderService {
+pub struct ProviderService<'endpoint> {
     provider_id: ProviderId,
     service_id: ServiceId,
-    endpoint: EndpointIdentity<'static>,
+    endpoint_policy: EndpointPolicy<'endpoint>,
 }
 
-impl ProviderService {
-    /// Binds validated provider and service IDs to one expected endpoint.
+impl<'endpoint> ProviderService<'endpoint> {
+    /// Binds validated provider and service IDs to an endpoint trust policy.
     #[must_use]
     pub const fn new(
         provider_id: ProviderId,
         service_id: ServiceId,
-        endpoint: EndpointIdentity<'static>,
+        endpoint_policy: EndpointPolicy<'endpoint>,
     ) -> Self {
         Self {
             provider_id,
             service_id,
-            endpoint,
+            endpoint_policy,
         }
     }
 
-    /// Binds a provider-owned service marker to one expected endpoint.
+    /// Binds a provider-owned service marker to an endpoint trust policy.
     #[must_use]
-    pub const fn from_marker<S: ServiceMarker>(endpoint: EndpointIdentity<'static>) -> Self {
-        Self::new(<S::Provider as ProviderMarker>::ID, S::ID, endpoint)
+    pub const fn from_marker<S: ServiceMarker>(endpoint_policy: EndpointPolicy<'endpoint>) -> Self {
+        Self::new(<S::Provider as ProviderMarker>::ID, S::ID, endpoint_policy)
     }
 
     /// Returns the canonical provider namespace.
@@ -112,10 +112,10 @@ impl ProviderService {
         self.service_id
     }
 
-    /// Returns the immutable expected endpoint identity.
+    /// Returns the immutable endpoint trust policy.
     #[must_use]
-    pub const fn endpoint(self) -> EndpointIdentity<'static> {
-        self.endpoint
+    pub const fn endpoint_policy(self) -> EndpointPolicy<'endpoint> {
+        self.endpoint_policy
     }
 }
 
@@ -123,7 +123,7 @@ impl ProviderService {
 #[derive(Clone, Copy)]
 pub struct PreparedRequest<'request> {
     request: TransportRequest<'request>,
-    service: ProviderService,
+    service: ProviderService<'request>,
     metadata: OperationMetadata,
     response_policy: ResponsePolicy,
     operation_id: Option<OperationId>,
@@ -134,7 +134,7 @@ impl<'request> PreparedRequest<'request> {
     #[must_use]
     pub const fn new(
         request: TransportRequest<'request>,
-        service: ProviderService,
+        service: ProviderService<'request>,
         metadata: OperationMetadata,
         response_policy: ResponsePolicy,
     ) -> Self {
@@ -162,7 +162,7 @@ impl<'request> PreparedRequest<'request> {
 
     /// Returns the bound provider service.
     #[must_use]
-    pub const fn service(self) -> ProviderService {
+    pub const fn service(self) -> ProviderService<'request> {
         self.service
     }
 
@@ -244,10 +244,10 @@ impl<'request> PreparedRequest<'request> {
         let actual = transport
             .endpoint_identity()
             .map_err(EndpointCheckError::Invalid)?;
-        if actual != self.service.endpoint {
-            return Err(EndpointCheckError::Mismatch);
-        }
-        Ok(())
+        self.service
+            .endpoint_policy
+            .verify(actual)
+            .map_err(|_| EndpointCheckError::Mismatch)
     }
 
     fn admit_response_storage<E>(

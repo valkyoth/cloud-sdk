@@ -7,20 +7,20 @@ use cloud_sdk::operation::{OperationMetadata, PreparedRequest, ProviderService, 
 
 /// Non-secret record of one prepared request for policy assertions.
 #[derive(Clone, Copy, Eq, PartialEq)]
-pub struct PreparedRequestRecord {
+pub struct PreparedRequestRecord<'endpoint> {
     method: Method,
     target_len: usize,
     body_len: usize,
     has_request_content_type: bool,
-    service: ProviderService,
+    service: ProviderService<'endpoint>,
     metadata: OperationMetadata,
     response_policy: ResponsePolicy,
 }
 
-impl PreparedRequestRecord {
+impl<'endpoint> PreparedRequestRecord<'endpoint> {
     /// Captures request shape and complete policy without copying target or body bytes.
     #[must_use]
-    pub const fn capture(prepared: PreparedRequest<'_>) -> Self {
+    pub const fn capture(prepared: PreparedRequest<'endpoint>) -> Self {
         let request = prepared.transport_request();
         Self {
             method: request.method(),
@@ -59,7 +59,7 @@ impl PreparedRequestRecord {
 
     /// Returns the bound provider service and endpoint.
     #[must_use]
-    pub const fn service(self) -> ProviderService {
+    pub const fn service(self) -> ProviderService<'endpoint> {
         self.service
     }
 
@@ -76,7 +76,7 @@ impl PreparedRequestRecord {
     }
 }
 
-impl fmt::Debug for PreparedRequestRecord {
+impl fmt::Debug for PreparedRequestRecord<'_> {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter
             .debug_struct("PreparedRequestRecord")

@@ -34,8 +34,8 @@ and runtime-free.
 
 ```toml
 [dev-dependencies]
-cloud-sdk = "0.33.0"
-cloud-sdk-testkit = "0.18.4"
+cloud-sdk = "0.34.0"
+cloud-sdk-testkit = "0.19.0"
 ```
 
 ## Mock Transport
@@ -120,7 +120,7 @@ tests can assert that the complete caller buffer is cleared even when endpoint
 or fixture validation fails before a response is returned.
 
 `PreparedRequestRecord::capture` records method, redacted target/body lengths,
-provider service, complete operation metadata, and response policy without
+provider service and endpoint policy, complete operation metadata, and response policy without
 copying request values. Tests can therefore assert that mutations and
 destructive operations were not mislabeled as read-only, safe, or retryable.
 

@@ -16,9 +16,11 @@ def validate(readme: Path) -> None:
     if len(examples) != 2:
         raise ValueError("blocking and async examples must each construct one custom endpoint")
     for index in examples:
-        context = "\n".join(lines[max(0, index - 3) : index])
+        context = "\n".join(lines[max(0, index - 8) : index + 2])
         if "bearer-token destination" not in context or "tenant-controlled input" not in context:
             raise ValueError("custom endpoint example lacks an adjacent credential warning")
+        if "trusted_operator_configuration" not in context:
+            raise ValueError("custom endpoint example lacks explicit operator acknowledgement")
 
     for path in [*ROOT.glob("crates/**/*.rs"), *ROOT.glob("tests/**/*.rs")]:
         if "HttpsEndpoint::new(" in path.read_text(encoding="utf-8"):

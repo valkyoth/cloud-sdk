@@ -1,7 +1,7 @@
 //! External-crate proof that providers and services need no core registration.
 
 use cloud_sdk::operation::ProviderService;
-use cloud_sdk::transport::{EndpointIdentity, EndpointScheme};
+use cloud_sdk::transport::{EndpointIdentity, EndpointPolicy, EndpointScheme};
 use cloud_sdk::{ProviderId, ProviderMarker, ServiceId, ServiceMarker, provider_id, service_id};
 
 enum IndependentProvider {}
@@ -23,9 +23,10 @@ fn external_provider_owns_identity_without_core_enum_changes() {
         EndpointIdentity::new(EndpointScheme::Https, "api.independent.invalid", 443, "/v2");
     assert!(endpoint.is_ok());
     let Ok(endpoint) = endpoint else { return };
-    let service = ProviderService::from_marker::<ComputeV2>(endpoint);
+    let policy = EndpointPolicy::fixed(endpoint);
+    let service = ProviderService::from_marker::<ComputeV2>(policy);
 
     assert_eq!(service.provider_id(), IndependentProvider::ID);
     assert_eq!(service.service_id(), ComputeV2::ID);
-    assert_eq!(service.endpoint(), endpoint);
+    assert_eq!(service.endpoint_policy(), policy);
 }

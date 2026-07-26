@@ -34,6 +34,8 @@ The v0.32 major-version review is recorded in
 [`DEPENDENCY_REVIEW_0.32.0.md`](DEPENDENCY_REVIEW_0.32.0.md).
 The v0.33 no-external-change freshness review is recorded in
 [`DEPENDENCY_REVIEW_0.33.0.md`](DEPENDENCY_REVIEW_0.33.0.md).
+The v0.34 endpoint-policy no-external-change review is recorded in
+[`DEPENDENCY_REVIEW_0.34.0.md`](DEPENDENCY_REVIEW_0.34.0.md).
 
 Reqwest `0.13.4` is admitted only through the non-default
 `cloud-sdk-reqwest/blocking-rustls`, `blocking-rustls-webpki-roots`,

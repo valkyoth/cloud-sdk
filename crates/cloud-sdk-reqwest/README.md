@@ -38,8 +38,8 @@ provider without adding transport dependencies to provider crates.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.33.0"
-cloud-sdk-reqwest = { version = "0.21.0", features = ["blocking-rustls"] }
+cloud-sdk = "0.34.0"
+cloud-sdk-reqwest = { version = "0.22.0", features = ["blocking-rustls"] }
 ```
 
 The examples use Hetzner as a concrete endpoint, but the adapter contains no
@@ -50,6 +50,12 @@ The adapters transmit every method admitted by `cloud-sdk 0.33`, including
 bounded provider extensions. Method validation and migration details are in
 the
 [v0.33 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.33.0.md).
+Endpoint trust construction changed in v0.34. Prefer
+`HttpsEndpoint::new_with_policy` with a provider-owned fixed, official-set, or
+regional policy. `new_custom` now requires
+`CustomEndpointAcknowledgement::trusted_operator_configuration()` so a custom
+bearer-token destination cannot be selected accidentally. See the
+[v0.34 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.34.0.md).
 
 ## Blocking Example
 
@@ -61,13 +67,17 @@ use std::time::Duration;
 use cloud_sdk::Method;
 use cloud_sdk::transport::{BlockingTransport, RequestTarget, TransportRequest};
 use cloud_sdk_reqwest::blocking::{
-    BearerToken, BlockingClientBuilder, HttpsEndpoint, RequestTimeouts,
-    UserAgent,
+    BearerToken, BlockingClientBuilder, CustomEndpointAcknowledgement,
+    HttpsEndpoint, RequestTimeouts, UserAgent,
 };
 
 // Custom endpoints are bearer-token destinations. Keep this value in trusted
 // operator configuration; never accept it from tenant-controlled input.
-let Ok(endpoint) = HttpsEndpoint::new_custom("https://api.hetzner.cloud/v1") else { return };
+let acknowledgement =
+    CustomEndpointAcknowledgement::trusted_operator_configuration();
+let Ok(endpoint) =
+    HttpsEndpoint::new_custom("https://api.hetzner.cloud/v1", acknowledgement)
+else { return };
 let Ok(token) = BearerToken::new("replace-with-scoped-token") else { return };
 let Ok(user_agent) = UserAgent::new("my-service/1.0") else { return };
 let Ok(timeouts) = RequestTimeouts::new(
@@ -106,8 +116,8 @@ compiled into `webpki-roots`:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.33.0"
-cloud-sdk-reqwest = { version = "0.21.0", features = ["blocking-rustls-webpki-roots"] }
+cloud-sdk = "0.34.0"
+cloud-sdk-reqwest = { version = "0.22.0", features = ["blocking-rustls-webpki-roots"] }
 ```
 
 The blocking API is identical to the example above. The custom rustls client
@@ -123,8 +133,8 @@ Use the same blocking API with the dedicated feature:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.33.0"
-cloud-sdk-reqwest = { version = "0.21.0", features = ["blocking-rustls-fips"] }
+cloud-sdk = "0.34.0"
+cloud-sdk-reqwest = { version = "0.22.0", features = ["blocking-rustls-fips"] }
 rustls = "=0.23.42"
 ```
 
@@ -179,12 +189,17 @@ use std::time::Duration;
 use cloud_sdk::Method;
 use cloud_sdk::transport::{AsyncTransport, RequestTarget, TransportRequest};
 use cloud_sdk_reqwest::asynchronous::{
-    AsyncClientBuilder, BearerToken, HttpsEndpoint, RequestTimeouts, UserAgent,
+    AsyncClientBuilder, BearerToken, CustomEndpointAcknowledgement,
+    HttpsEndpoint, RequestTimeouts, UserAgent,
 };
 
 // Custom endpoints are bearer-token destinations. Keep this value in trusted
 // operator configuration; never accept it from tenant-controlled input.
-let Ok(endpoint) = HttpsEndpoint::new_custom("https://api.hetzner.cloud/v1") else { return };
+let acknowledgement =
+    CustomEndpointAcknowledgement::trusted_operator_configuration();
+let Ok(endpoint) =
+    HttpsEndpoint::new_custom("https://api.hetzner.cloud/v1", acknowledgement)
+else { return };
 let Ok(token) = BearerToken::new("replace-with-scoped-token") else { return };
 let Ok(user_agent) = UserAgent::new("my-service/1.0") else { return };
 let Ok(timeouts) = RequestTimeouts::new(
@@ -266,6 +281,8 @@ rejected input leaves the active credential unchanged.
 
 - HTTPS-only production endpoints with no embedded credentials, query, or
   fragment.
+- Provider-policy admission or explicit trusted-operator acknowledgement
+  before a credential destination is constructed.
 - Rustls with TLS 1.2 minimum; platform certificate verification for standard
   transports, deterministic Mozilla roots for the snapshot feature, and
   mandatory deployment roots plus CRLs for FIPS.
@@ -275,7 +292,10 @@ rejected input leaves the active credential unchanged.
   HTTP/2 or Hickory DNS feature unification.
 - No redirects, automatic retries, proxies, referer generation, or response
   decompression.
-- Exact scheme, host, and port preservation after target composition.
+- Exact scheme, host, port, and base-path preservation after target composition.
+- Rejection of userinfo, Unicode or percent-encoded hosts, trailing DNS dots,
+  IPv6 zones, unbracketed IPv6, and non-canonical DNS/port forms before URL
+  normalization.
 - Immutable normalized scheme, host, effective port, and base-path identity for
   provider-side official-endpoint checks.
 - Shared-reference sends with cloneable clients, caller-bounded concurrency,

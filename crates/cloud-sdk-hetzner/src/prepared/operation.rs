@@ -9,8 +9,8 @@ use cloud_sdk::operation::{
     ResponseBodyPolicy, ResponsePolicy, RetryEligibility,
 };
 use cloud_sdk::transport::{
-    ContentType, EndpointIdentity, EndpointScheme, MediaType, RequestTarget, StatusCode,
-    TransportRequest,
+    ContentType, EndpointIdentity, EndpointPolicy, EndpointScheme, MediaType, RequestTarget,
+    StatusCode, TransportRequest,
 };
 
 use crate::identity::{CloudService, StorageService};
@@ -306,16 +306,17 @@ where
     }
 }
 
-fn provider_service(base: ApiBaseUrl) -> Result<ProviderService, HetznerPreparationError> {
+fn provider_service(base: ApiBaseUrl) -> Result<ProviderService<'static>, HetznerPreparationError> {
     let host = match base {
         ApiBaseUrl::CloudV1 => "api.hetzner.cloud",
         ApiBaseUrl::HetznerV1 => "api.hetzner.com",
     };
     let endpoint = EndpointIdentity::new(EndpointScheme::Https, host, 443, "/v1")
         .map_err(HetznerPreparationError::InvalidOfficialEndpoint)?;
+    let policy = EndpointPolicy::fixed(endpoint);
     Ok(match base {
-        ApiBaseUrl::CloudV1 => ProviderService::from_marker::<CloudService>(endpoint),
-        ApiBaseUrl::HetznerV1 => ProviderService::from_marker::<StorageService>(endpoint),
+        ApiBaseUrl::CloudV1 => ProviderService::from_marker::<CloudService>(policy),
+        ApiBaseUrl::HetznerV1 => ProviderService::from_marker::<StorageService>(policy),
     })
 }
 

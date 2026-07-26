@@ -7,8 +7,8 @@ use cloud_sdk::transport::{
 };
 
 use super::{
-    AsyncClient, AsyncClientBuilder, BearerToken, HttpsEndpoint, RequestTimeouts, TransportError,
-    UserAgent,
+    AsyncClient, AsyncClientBuilder, BearerToken, CustomEndpointAcknowledgement, HttpsEndpoint,
+    RequestTimeouts, TransportError, UserAgent,
 };
 use crate::test_server::{spawn, spawn_split};
 
@@ -369,7 +369,10 @@ fn caller_cancellation_after_partial_body_never_exposes_response() {
 
 #[test]
 fn async_client_debug_redacts_endpoint_and_token() {
-    let endpoint = HttpsEndpoint::new_custom("https://api.example.test/v1");
+    let endpoint = HttpsEndpoint::new_custom(
+        "https://api.example.test/v1",
+        CustomEndpointAcknowledgement::trusted_operator_configuration(),
+    );
     let token = BearerToken::new("secret-token");
     let user_agent = UserAgent::new("cloud-sdk-test/0.18");
     let timeouts = test_timeouts();

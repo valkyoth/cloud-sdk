@@ -9,8 +9,10 @@ pub use content_type::{
     ContentType, ContentTypeError, MAX_CONTENT_TYPE_BYTES, MediaType, ResponseContentType,
 };
 pub use endpoint::{
-    BoundTransport, EndpointIdentity, EndpointIdentityError, EndpointScheme,
-    MAX_ENDPOINT_BASE_PATH_BYTES, MAX_ENDPOINT_HOST_BYTES,
+    AcknowledgedCustomEndpoint, BoundTransport, CustomEndpointAcknowledgement, EndpointIdentity,
+    EndpointIdentityError, EndpointPolicy, EndpointPolicyError, EndpointPolicyKind, EndpointScheme,
+    MAX_ENDPOINT_BASE_PATH_BYTES, MAX_ENDPOINT_HOST_BYTES, MAX_ENDPOINT_REGION_BYTES,
+    MAX_OFFICIAL_ENDPOINTS, RegionEndpoint,
 };
 
 use core::fmt;

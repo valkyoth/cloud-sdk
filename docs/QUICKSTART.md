@@ -8,15 +8,15 @@ usable in `no_std` environments.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.33.0"
+cloud-sdk = "0.34.0"
 ```
 
 Provider-specific request models are separate dependencies. For Hetzner:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.33.0"
-cloud-sdk-hetzner = "0.26.0"
+cloud-sdk = "0.34.0"
+cloud-sdk-hetzner = "0.27.0"
 ```
 
 ## Build A Transport Request
@@ -86,6 +86,13 @@ assert_eq!(ComputeService::ID.as_str(), "compute");
 See [`MIGRATION_0.32.0.md`](MIGRATION_0.32.0.md) for direct
 `ProviderService` construction and migration from the removed closed enums.
 
+## Bind Endpoint Trust
+
+`EndpointPolicy` admits fixed, finite official-set, provider-derived regional,
+and explicitly acknowledged custom destinations. Provider operations carry
+the policy into `PreparedRequest`; execution checks it before credentials are
+sent. See [`MIGRATION_0.34.0.md`](MIGRATION_0.34.0.md).
+
 ## Select A Transport
 
 - Use `cloud-sdk-testkit` for deterministic blocking and async unit tests.
@@ -112,12 +119,12 @@ its networking and runtime policy.
 ## Prepare And Check Operations
 
 `PrepareOperation` turns typed provider input plus caller-owned target/body
-storage into one `PreparedRequest`. The result carries immutable endpoint
-identity, explicit read-only/mutation/destructive impact, request semantics,
+storage into one `PreparedRequest`. The result carries an immutable endpoint
+trust policy, explicit read-only/mutation/destructive impact, request semantics,
 retry eligibility, cost intent, accepted statuses and media types, body shape,
 and maximum response length.
 
-`PreparedRequest::execute_blocking` and `execute_async` verify endpoint identity
+`PreparedRequest::execute_blocking` and `execute_async` verify endpoint policy
 before sending and lend no more than the policy's admitted response capacity.
 The transport must also implement `ResponseStorageSanitizer`; the complete
 caller buffer is cleared before endpoint verification or capacity truncation.

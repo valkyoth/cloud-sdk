@@ -6,7 +6,7 @@ use cloud_sdk::operation::{
     ResponsePolicy, RetryEligibility,
 };
 use cloud_sdk::transport::{
-    EndpointIdentity, EndpointScheme, MediaType, RequestTarget, StatusCode,
+    EndpointIdentity, EndpointPolicy, EndpointScheme, MediaType, RequestTarget, StatusCode,
 };
 use cloud_sdk::transport::{MAX_REQUEST_TARGET_BYTES, TransportRequest};
 use cloud_sdk::{
@@ -74,7 +74,7 @@ impl PrepareOperation for ListResources {
                 .map_err(|_| PrepareError::InvalidEndpoint)?;
         Ok(PreparedRequest::new(
             request,
-            ProviderService::from_marker::<ComputeService>(endpoint),
+            ProviderService::from_marker::<ComputeService>(EndpointPolicy::fixed(endpoint)),
             metadata,
             response_policy,
         ))

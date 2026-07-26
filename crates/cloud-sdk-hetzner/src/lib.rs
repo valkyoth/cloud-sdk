@@ -42,7 +42,10 @@ pub mod security;
 pub mod serde;
 pub mod storage;
 
-pub use endpoint::{ApiSurface, EndpointGroup, OfficialEndpointError, verify_official_endpoint};
+pub use endpoint::{
+    ApiSurface, EndpointGroup, OfficialEndpointError, official_endpoint_policy,
+    verify_any_official_endpoint, verify_official_endpoint,
+};
 pub use identity::{
     CLOUD_SERVICE_ID, CloudService, DNS_SERVICE_ID, DnsService, HETZNER_PROVIDER_ID, Hetzner,
     SECURITY_SERVICE_ID, STORAGE_SERVICE_ID, SecurityService, StorageService,

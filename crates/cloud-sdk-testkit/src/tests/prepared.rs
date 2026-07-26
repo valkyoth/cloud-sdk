@@ -7,8 +7,8 @@ use cloud_sdk::operation::{
     ResponsePolicyError, RetryEligibility,
 };
 use cloud_sdk::transport::{
-    ContentType, EndpointIdentity, EndpointIdentityError, EndpointScheme, MediaType, RequestTarget,
-    StatusCode, TransportRequest,
+    ContentType, EndpointIdentity, EndpointIdentityError, EndpointPolicy, EndpointScheme,
+    MediaType, RequestTarget, StatusCode, TransportRequest,
 };
 use cloud_sdk::{
     Method, ProviderId, ProviderMarker, ServiceId, ServiceMarker, provider_id, service_id,
@@ -270,7 +270,7 @@ fn prepared_request(max_body_bytes: usize) -> Result<PreparedRequest<'static>, (
     let endpoint = official_endpoint().map_err(|_| ())?;
     Ok(PreparedRequest::new(
         request,
-        ProviderService::from_marker::<ComputeService>(endpoint),
+        ProviderService::from_marker::<ComputeService>(EndpointPolicy::fixed(endpoint)),
         metadata,
         response_policy,
     ))

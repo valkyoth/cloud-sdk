@@ -120,8 +120,8 @@ Portable and native platform evidence is documented in
 
 ```toml
 [dependencies]
-cloud-sdk = "0.33.0"
-cloud-sdk-hetzner = "0.26.0"
+cloud-sdk = "0.34.0"
+cloud-sdk-hetzner = "0.27.0"
 ```
 
 ## cloud-sdk Features
@@ -148,6 +148,7 @@ visible. Applications should enable only the features they use.
 - [Migrating to v0.31](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.31.0.md)
 - [Migrating to v0.32](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.32.0.md)
 - [Migrating to v0.33](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.33.0.md)
+- [Migrating to v0.34](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.34.0.md)
 - [Deprecated endpoint policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/DEPRECATED_ENDPOINT_POLICY.md)
 
 ## Provider-Neutral Quickstart
@@ -218,6 +219,35 @@ IDs are allocation-free, at most 63 bytes, and accept lowercase ASCII letters,
 digits, and single internal hyphens. A service marker always names its owning
 provider.
 
+### Endpoint Trust Policy
+
+Provider services bind credentials to an explicit endpoint policy:
+
+```rust
+use cloud_sdk::transport::{
+    EndpointIdentity, EndpointPolicy, EndpointScheme,
+};
+
+let endpoint = EndpointIdentity::new(
+    EndpointScheme::Https,
+    "api.example.invalid",
+    443,
+    "/v1",
+)?;
+let policy = EndpointPolicy::fixed(endpoint);
+assert_eq!(policy.verify(endpoint), Ok(()));
+# Ok::<(), Box<dyn core::error::Error>>(())
+```
+
+Policies represent one fixed endpoint, a bounded finite official set, a
+provider-derived regional endpoint, or an explicitly acknowledged custom
+credential destination. DNS names must already be canonical lowercase ASCII;
+internationalized names use lowercase A-label form. IPv6 is bracketed and
+compared by address bits. Userinfo, zone identifiers, trailing DNS dots,
+percent-encoded hosts, and Unicode host input are rejected. DNS resolution,
+resolved-address filtering, and network egress controls remain optional
+transport or deployment policy and are not performed by `cloud-sdk`.
+
 The core contracts perform no I/O and select no executor. Use
 `cloud-sdk-testkit` for deterministic blocking or async tests, or opt into
 `cloud-sdk-reqwest/blocking-rustls`, `blocking-rustls-webpki-roots`,
@@ -253,7 +283,7 @@ assert_eq!(
 
 `PrepareOperation` writes a validated target and body into caller-owned
 storage and returns one `PreparedRequest`. Blocking and async execution verify
-the immutable endpoint before sending, lend only the response policy's admitted
+the provider-owned endpoint policy before sending, lend only the response policy's admitted
 capacity, and return `CheckedResponse` only after status, body, and content type
 pass. Prepared transports must implement `ResponseStorageSanitizer`; execution
 clears the complete caller buffer before endpoint checks so a smaller policy
@@ -264,8 +294,8 @@ still performs no automatic retry or scheduling.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.33.0"
-cloud-sdk-reqwest = { version = "0.21.0", features = ["blocking-rustls"] }
+cloud-sdk = "0.34.0"
+cloud-sdk-reqwest = { version = "0.22.0", features = ["blocking-rustls"] }
 ```
 
 The production builder is HTTPS-only, requires explicit bounded timeouts and a
@@ -288,8 +318,8 @@ when deterministic public WebPKI roots are required:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.33.0"
-cloud-sdk-reqwest = { version = "0.21.0", features = ["blocking-rustls-webpki-roots"] }
+cloud-sdk = "0.34.0"
+cloud-sdk-reqwest = { version = "0.22.0", features = ["blocking-rustls-webpki-roots"] }
 ```
 
 The blocking API is unchanged. This feature excludes host-added enterprise
@@ -305,8 +335,8 @@ feature instead of relying on dependency feature unification:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.33.0"
-cloud-sdk-reqwest = { version = "0.21.0", features = ["blocking-rustls-fips"] }
+cloud-sdk = "0.34.0"
+cloud-sdk-reqwest = { version = "0.22.0", features = ["blocking-rustls-fips"] }
 ```
 
 Client construction explicitly selects rustls' AWS-LC FIPS provider and fails
@@ -324,8 +354,8 @@ example is in the
 
 ```toml
 [dependencies]
-cloud-sdk = "0.33.0"
-cloud-sdk-reqwest = { version = "0.21.0", features = ["async-rustls"] }
+cloud-sdk = "0.34.0"
+cloud-sdk-reqwest = { version = "0.22.0", features = ["async-rustls"] }
 ```
 
 The async adapter requires an active Tokio executor because reqwest uses Tokio

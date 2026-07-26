@@ -38,8 +38,8 @@ boundaries.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.33.0"
-cloud-sdk-hetzner = "0.26.0"
+cloud-sdk = "0.34.0"
+cloud-sdk-hetzner = "0.27.0"
 ```
 
 ## Features
@@ -101,7 +101,7 @@ assert_eq!(prepared.transport_request().target().as_str(), "/load_balancers");
 ```
 
 Secret-bearing operations need successful-path cleanup after transport use.
-Add `cloud-sdk-sanitization = "0.15.1"` and guard the complete body buffer:
+Add `cloud-sdk-sanitization = "0.15.2"` and guard the complete body buffer:
 
 ```rust
 use cloud_sdk::operation::{PreparationStorage, PrepareOperation};
@@ -131,10 +131,13 @@ assert!(body_bytes.iter().all(|byte| *byte == 0));
 # Ok::<(), Box<dyn core::error::Error>>(())
 ```
 
-Before a custom transport sends credentials, call
-`verify_official_endpoint(&transport, expected_base)`. The helper fails closed
+Use `official_endpoint_policy(expected_base)` with a policy-aware transport
+constructor. Prepared operations carry that same provider-owned fixed policy.
+For an existing custom transport, `verify_official_endpoint` fails closed
 unless scheme, host, effective port, and base path exactly match the selected
-official Cloud or Storage API endpoint.
+official Cloud or Storage API endpoint. `verify_any_official_endpoint` checks
+the bounded two-endpoint set for provider-wide diagnostics, not operation
+execution.
 
 ## Request Operation Coverage
 
@@ -181,6 +184,8 @@ Shared transport and credential lifecycle changes are listed in the
 The complete method domain and explicit operation metadata migration are listed
 in the
 [v0.33 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.33.0.md).
+Endpoint trust-policy migration is listed in the
+[v0.34 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.34.0.md).
 
 ## Optional Serde Boundary
 
@@ -188,7 +193,7 @@ Enable Serde explicitly; it is never part of the default graph:
 
 ```toml
 [dependencies]
-cloud-sdk-hetzner = { version = "0.26.0", features = ["serde"] }
+cloud-sdk-hetzner = { version = "0.27.0", features = ["serde"] }
 ```
 
 The feature admits serde_json with `default-features = false` and `alloc` only

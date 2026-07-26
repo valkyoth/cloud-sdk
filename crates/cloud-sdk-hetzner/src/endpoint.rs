@@ -3,7 +3,8 @@
 use core::fmt;
 
 use cloud_sdk::transport::{
-    BoundTransport, EndpointIdentity, EndpointIdentityError, EndpointScheme,
+    BoundTransport, EndpointIdentity, EndpointIdentityError, EndpointPolicy, EndpointPolicyError,
+    EndpointScheme,
 };
 
 use crate::request::ApiBaseUrl;
@@ -40,6 +41,15 @@ impl core::error::Error for OfficialEndpointError {
     }
 }
 
+/// Returns the provider-owned fixed policy for one official Hetzner API base.
+pub fn official_endpoint_policy(
+    expected: ApiBaseUrl,
+) -> Result<EndpointPolicy<'static>, OfficialEndpointError> {
+    parse_official_endpoint(expected.as_str())
+        .map(EndpointPolicy::fixed)
+        .ok_or(OfficialEndpointError::InvalidOfficialEndpoint)
+}
+
 /// Verifies that a credential-bound transport exactly matches an official API endpoint.
 ///
 /// The check includes the HTTPS scheme, authority, effective port, and `/v1`
@@ -51,12 +61,34 @@ pub fn verify_official_endpoint(
     let identity = transport
         .endpoint_identity()
         .map_err(OfficialEndpointError::InvalidIdentity)?;
-    let expected = parse_official_endpoint(expected.as_str())
+    official_endpoint_policy(expected)?
+        .verify(identity)
+        .map_err(map_policy_error)
+}
+
+/// Verifies that a transport matches either active official Hetzner v1 API base.
+///
+/// Prepared operations use the narrower selected fixed policy. This finite-set
+/// helper is intended for provider-wide diagnostics and configuration checks.
+pub fn verify_any_official_endpoint(
+    transport: &(impl BoundTransport + ?Sized),
+) -> Result<(), OfficialEndpointError> {
+    let identity = transport
+        .endpoint_identity()
+        .map_err(OfficialEndpointError::InvalidIdentity)?;
+    let cloud = parse_official_endpoint(ApiBaseUrl::CloudV1.as_str())
         .ok_or(OfficialEndpointError::InvalidOfficialEndpoint)?;
-    if identity != expected {
-        return Err(OfficialEndpointError::DestinationMismatch);
-    }
-    Ok(())
+    let storage = parse_official_endpoint(ApiBaseUrl::HetznerV1.as_str())
+        .ok_or(OfficialEndpointError::InvalidOfficialEndpoint)?;
+    let official = [cloud, storage];
+    EndpointPolicy::official_set(&official)
+        .map_err(map_policy_error)?
+        .verify(identity)
+        .map_err(map_policy_error)
+}
+
+fn map_policy_error(_error: EndpointPolicyError) -> OfficialEndpointError {
+    OfficialEndpointError::DestinationMismatch
 }
 
 fn parse_official_endpoint(base_url: &'static str) -> Option<EndpointIdentity<'static>> {
@@ -186,8 +218,8 @@ mod tests {
     };
 
     use super::{
-        ApiSurface, EndpointGroup, OfficialEndpointError, parse_official_endpoint,
-        verify_official_endpoint,
+        ApiSurface, EndpointGroup, OfficialEndpointError, official_endpoint_policy,
+        parse_official_endpoint, verify_any_official_endpoint, verify_official_endpoint,
     };
     use crate::request::{ApiBaseUrl, CLOUD_API_BASE_URL, HETZNER_API_BASE_URL};
 
@@ -218,6 +250,9 @@ mod tests {
             verify_official_endpoint(&storage, ApiBaseUrl::HetznerV1),
             Ok(())
         );
+        assert_eq!(verify_any_official_endpoint(&cloud), Ok(()));
+        assert_eq!(verify_any_official_endpoint(&storage), Ok(()));
+        assert!(official_endpoint_policy(ApiBaseUrl::CloudV1).is_ok());
         assert_eq!(
             verify_official_endpoint(&cloud, ApiBaseUrl::HetznerV1),
             Err(OfficialEndpointError::DestinationMismatch)

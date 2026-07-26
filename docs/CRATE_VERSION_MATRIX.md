@@ -1,8 +1,7 @@
 # Crate Version Matrix
 
-Status: `v0.32.0` is tagged. `v0.33.0` is a release candidate; pentest,
-final retest, and local release checks passed, with GitHub checks remaining
-before tagging.
+Status: `v0.33.0` is tagged. `v0.34.0` endpoint-policy implementation is in
+progress and requires exact-commit pentest before release.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
@@ -517,6 +516,20 @@ provider extensions are validated, and operation safety remains provider-owned.
 | `cloud-sdk-reqwest` | `0.20.3` | `0.21.0` | `code` | Yes | Map every admitted known and extension method through blocking and async adapters with exact wire tests. |
 | `cloud-sdk-sanitization` | `0.15.0` | `0.15.1` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.33 facade line. |
 | `cloud-sdk-testkit` | `0.18.3` | `0.18.4` | `dependency` | Yes | Update the `cloud-sdk` dependency and prove exact extension-method matching. |
+
+## v0.34.0 Tracking Table
+
+`v0.34.0` replaces one static expected endpoint with provider-owned endpoint
+policy algebra. Authority input is canonical and custom credential
+destinations require an explicit trusted-operator acknowledgement.
+
+| Crate | Published | Planned | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.33.0` | `0.34.0` | `code` | Yes | Add fixed, bounded official-set, region-derived, and acknowledged-custom endpoint policies with non-static identities. |
+| `cloud-sdk-hetzner` | `0.26.0` | `0.27.0` | `code` | Yes | Own exact fixed Cloud/Storage policies and a bounded provider-wide official endpoint set. |
+| `cloud-sdk-reqwest` | `0.21.0` | `0.22.0` | `code` | Yes | Require provider policy or explicit custom acknowledgement and reject ambiguous raw authorities before URL normalization. |
+| `cloud-sdk-sanitization` | `0.15.1` | `0.15.2` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.34 facade line. |
+| `cloud-sdk-testkit` | `0.18.4` | `0.19.0` | `code` | Yes | Preserve non-static endpoint policy lifetimes in prepared-request records and policy matching tests. |
 
 ## Planned Milestone Ownership
 

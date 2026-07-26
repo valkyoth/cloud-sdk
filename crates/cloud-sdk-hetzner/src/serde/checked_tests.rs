@@ -7,8 +7,8 @@ use cloud_sdk::operation::{
     RetryEligibility,
 };
 use cloud_sdk::transport::{
-    EndpointIdentity, EndpointScheme, MediaType, RequestTarget, ResponseContentType, StatusCode,
-    TransportRequest,
+    EndpointIdentity, EndpointPolicy, EndpointScheme, MediaType, RequestTarget,
+    ResponseContentType, StatusCode, TransportRequest,
 };
 use cloud_sdk::{Method, ServiceId};
 
@@ -73,13 +73,13 @@ pub(super) fn prepared(
     PreparedRequest::new(
         TransportRequest::new(Method::Get, target.unwrap_or_else(|_| unreachable!())),
         if service_id == STORAGE_SERVICE_ID {
-            ProviderService::from_marker::<StorageService>(
+            ProviderService::from_marker::<StorageService>(EndpointPolicy::fixed(
                 endpoint.unwrap_or_else(|_| unreachable!()),
-            )
+            ))
         } else {
-            ProviderService::from_marker::<CloudService>(
+            ProviderService::from_marker::<CloudService>(EndpointPolicy::fixed(
                 endpoint.unwrap_or_else(|_| unreachable!()),
-            )
+            ))
         },
         metadata.unwrap_or_else(|_| unreachable!()),
         policy.unwrap_or_else(|_| unreachable!()),

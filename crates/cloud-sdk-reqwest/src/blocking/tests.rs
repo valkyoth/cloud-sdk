@@ -21,19 +21,27 @@ use cloud_sdk::transport::{
 
 use super::body::{ReadBodyError, read_bounded};
 use super::{
-    BearerToken, BearerTokenError, BlockingClientBuilder, EndpointError, HttpsEndpoint,
-    RequestTimeouts, TimeoutError, TransportError, UserAgent,
+    BearerToken, BearerTokenError, BlockingClientBuilder, CustomEndpointAcknowledgement,
+    EndpointError, HttpsEndpoint, RequestTimeouts, TimeoutError, TransportError, UserAgent,
 };
 #[cfg(feature = "blocking-rustls-fips")]
 use super::{BuildError, FipsTlsPolicy};
 use crate::test_server::spawn;
 
+mod endpoint_policy;
 mod lifecycle;
 mod method_domain;
 mod response_content_type;
 
 fn test_timeouts() -> Option<RequestTimeouts> {
     RequestTimeouts::new(Duration::from_secs(2), Duration::from_secs(1)).ok()
+}
+
+fn custom_endpoint(value: &str) -> Result<HttpsEndpoint, EndpointError> {
+    HttpsEndpoint::new_custom(
+        value,
+        CustomEndpointAcknowledgement::trusted_operator_configuration(),
+    )
 }
 
 fn build_loopback(endpoint: &str) -> Option<super::BlockingClient> {
@@ -86,70 +94,6 @@ fn bearer_tokens_are_bounded_validated_and_redacted() {
         assert!(header.is_ok());
         if let Ok(header) = header {
             assert!(header.is_sensitive());
-        }
-    }
-}
-
-#[test]
-fn endpoints_reject_authority_and_normalization_ambiguity() {
-    let redacted = HttpsEndpoint::new_custom("https://api.example.test/v1");
-    assert!(redacted.is_ok());
-    if let Ok(redacted) = redacted {
-        let debug = format!("{redacted:?}");
-        assert!(debug.contains("[redacted]"));
-        assert!(!debug.contains("api.example.test"));
-    }
-    assert!(matches!(
-        HttpsEndpoint::new_custom("http://api.example.test/v1"),
-        Err(EndpointError::HttpsRequired)
-    ));
-    assert!(matches!(
-        HttpsEndpoint::new_custom("https://user@api.example.test/v1"),
-        Err(EndpointError::CredentialsForbidden)
-    ));
-    assert!(matches!(
-        HttpsEndpoint::new_custom("https://api.example.test/v1?token=x"),
-        Err(EndpointError::QueryForbidden)
-    ));
-    assert!(matches!(
-        HttpsEndpoint::new_custom("https://api.example.test/v1/"),
-        Err(EndpointError::TrailingSlash)
-    ));
-    for endpoint in [
-        "https://api.example.test/v1/../admin",
-        "https://api.example.test/%76%31",
-        "https://api.example.test/v1//admin",
-    ] {
-        assert!(matches!(
-            HttpsEndpoint::new_custom(endpoint),
-            Err(EndpointError::IdentityRejected)
-        ));
-    }
-
-    let endpoint = HttpsEndpoint::new_custom("https://api.example.test/v1");
-    let safe = RequestTarget::new("/servers?name=test%20server");
-    if let (Ok(endpoint), Ok(safe)) = (endpoint, safe) {
-        let url = endpoint.compose(safe);
-        assert_eq!(
-            url.as_ref().map(reqwest::Url::as_str),
-            Ok("https://api.example.test/v1/servers?name=test%20server")
-        );
-        for target in ["/%2e%2e/admin", "/x%2fy", "/x%5cevil", "/x%25%32%66"] {
-            let target = RequestTarget::new(target);
-            assert!(target.is_ok());
-            if let Ok(target) = target {
-                assert_eq!(
-                    endpoint.compose(target),
-                    Err(EndpointError::InvalidTargetEncoding)
-                );
-            }
-        }
-        let parent = RequestTarget::new("/servers/../admin");
-        if let Ok(parent) = parent {
-            assert_eq!(
-                endpoint.compose(parent),
-                Err(EndpointError::TargetNormalized)
-            );
         }
     }
 }
@@ -439,7 +383,7 @@ fn fips_policy_rejects_missing_roots_crls_and_malformed_crls() {
 #[cfg(feature = "blocking-rustls-fips")]
 #[test]
 fn fips_client_builder_requires_an_explicit_tls_policy() {
-    let endpoint = HttpsEndpoint::new_custom("https://api.example.test");
+    let endpoint = custom_endpoint("https://api.example.test");
     let token = BearerToken::new("test-token");
     let user_agent = UserAgent::new("cloud-sdk-test/0.23");
     let timeouts = test_timeouts();

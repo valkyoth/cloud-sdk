@@ -1,5 +1,5 @@
 use cloud_sdk::operation::{CostIntent, OperationImpact, PreparationStorage, PrepareOperation};
-use cloud_sdk::transport::StatusCode;
+use cloud_sdk::transport::{EndpointIdentity, EndpointScheme, StatusCode};
 
 use crate::actions::{ActionEndpoint, ActionId, ActionListRequest};
 use crate::cloud::catalog::{CatalogGetEndpoint, CatalogId};
@@ -300,7 +300,18 @@ fn prepares_storage_secret_atomically_for_the_storage_api() {
         prepared.transport_request().body(),
         br#"{"location":"fsn1","name":"backup","password":"a\"b\\c","storage_box_type":"bx20"}"#
     );
-    assert_eq!(prepared.service().endpoint().host(), "api.hetzner.com");
+    let storage_endpoint =
+        EndpointIdentity::new(EndpointScheme::Https, "api.hetzner.com", 443, "/v1");
+    assert!(storage_endpoint.is_ok());
+    if let Ok(storage_endpoint) = storage_endpoint {
+        assert_eq!(
+            prepared
+                .service()
+                .endpoint_policy()
+                .verify(storage_endpoint),
+            Ok(())
+        );
+    }
 
     let mut short_target = [0xA5_u8; 32];
     let mut short_body = [0x5A_u8; 20];

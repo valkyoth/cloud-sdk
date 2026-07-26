@@ -7,8 +7,8 @@ use cloud_sdk::operation::{
     RetryEligibility,
 };
 use cloud_sdk::transport::{
-    EndpointIdentity, EndpointScheme, MediaType, RequestTarget, ResponseContentType, StatusCode,
-    TransportRequest, TransportResponse,
+    EndpointIdentity, EndpointPolicy, EndpointScheme, MediaType, RequestTarget,
+    ResponseContentType, StatusCode, TransportRequest, TransportResponse,
 };
 use cloud_sdk_hetzner::CloudService;
 use cloud_sdk_hetzner::serde::decode_response;
@@ -39,7 +39,7 @@ fn prepared() -> Option<PreparedRequest<'static>> {
     Some(
         PreparedRequest::new(
             TransportRequest::new(Method::Get, target),
-            ProviderService::from_marker::<CloudService>(endpoint),
+            ProviderService::from_marker::<CloudService>(EndpointPolicy::fixed(endpoint)),
             metadata,
             policy,
         )

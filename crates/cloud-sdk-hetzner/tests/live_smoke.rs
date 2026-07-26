@@ -9,7 +9,8 @@ mod config;
 
 use std::time::Duration;
 
-use cloud_sdk_hetzner::request::CLOUD_API_BASE_URL;
+use cloud_sdk_hetzner::official_endpoint_policy;
+use cloud_sdk_hetzner::request::{ApiBaseUrl, CLOUD_API_BASE_URL};
 use cloud_sdk_reqwest::blocking::{
     BlockingClientBuilder, BuildError, EndpointError, HttpsEndpoint, RequestTimeouts, TimeoutError,
     UserAgent, UserAgentError,
@@ -58,10 +59,12 @@ impl From<ProbeFailure> for LiveSmokeError {
 #[ignore = "requires explicit opt-in and a private read-only Hetzner token file"]
 fn read_only_catalog_smoke() -> Result<(), LiveSmokeError> {
     let token = load_read_only_token()?;
-    let endpoint =
-        HttpsEndpoint::new_custom(CLOUD_API_BASE_URL).map_err(LiveSmokeError::Endpoint)?;
+    let policy = official_endpoint_policy(ApiBaseUrl::CloudV1)
+        .map_err(|_| LiveSmokeError::Endpoint(EndpointError::PolicyRejected))?;
+    let endpoint = HttpsEndpoint::new_with_policy(CLOUD_API_BASE_URL, policy)
+        .map_err(LiveSmokeError::Endpoint)?;
     let user_agent =
-        UserAgent::new("cloud-sdk-live-smoke/0.33.0").map_err(LiveSmokeError::UserAgent)?;
+        UserAgent::new("cloud-sdk-live-smoke/0.34.0").map_err(LiveSmokeError::UserAgent)?;
     let timeouts = RequestTimeouts::new(Duration::from_secs(30), Duration::from_secs(10))
         .map_err(LiveSmokeError::Timeout)?;
     let client = BlockingClientBuilder::new(endpoint, token, user_agent, timeouts)
