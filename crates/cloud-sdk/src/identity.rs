@@ -145,29 +145,26 @@ pub const fn validate(value: &str, max_bytes: usize) -> Result<(), IdentityError
     if value.len() > max_bytes {
         return Err(IdentityError::TooLong);
     }
-    let bytes = value.as_bytes();
-    let mut index = 0;
+    let mut remaining = value.as_bytes();
+    let mut first = true;
     let mut previous_separator = false;
-    while index < bytes.len() {
-        // The loop condition proves this access is in bounds. Indexing is
-        // needed because slice::get is not const on the workspace MSRV.
-        #[allow(
-            clippy::indexing_slicing,
-            reason = "bounded const validation cannot use slice::get on Rust 1.90"
-        )]
-        let byte = bytes[index];
-        let separator = byte == b'-';
+    while let Some((byte, tail)) = remaining.split_first() {
+        let separator = *byte == b'-';
         if !byte.is_ascii_lowercase() && !byte.is_ascii_digit() && !separator {
             return Err(IdentityError::InvalidByte);
         }
-        if separator && (index == 0 || index + 1 == bytes.len()) {
+        if separator && first {
             return Err(IdentityError::InvalidBoundary);
         }
         if separator && previous_separator {
             return Err(IdentityError::RepeatedSeparator);
         }
         previous_separator = separator;
-        index += 1;
+        first = false;
+        remaining = tail;
+    }
+    if previous_separator {
+        return Err(IdentityError::InvalidBoundary);
     }
     Ok(())
 }
