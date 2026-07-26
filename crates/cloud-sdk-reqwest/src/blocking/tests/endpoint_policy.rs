@@ -1,9 +1,36 @@
 use cloud_sdk::transport::{
-    EndpointIdentity, EndpointPolicy, EndpointScheme, MAX_ENDPOINT_BASE_PATH_BYTES, RequestTarget,
+    EndpointIdentity, EndpointPolicy, EndpointScheme, MAX_ENDPOINT_BASE_PATH_BYTES,
+    MAX_ENDPOINT_HOST_BYTES, RequestTarget,
 };
 
 use super::{EndpointError, HttpsEndpoint, custom_endpoint};
 use crate::blocking::MAX_CONFIGURED_ENDPOINT_BYTES;
+
+#[test]
+fn exact_composite_endpoint_limit_is_accepted() {
+    let maximum_host = [
+        "a".repeat(63),
+        "b".repeat(63),
+        "c".repeat(63),
+        "d".repeat(61),
+    ]
+    .join(".");
+    assert_eq!(maximum_host.len(), MAX_ENDPOINT_HOST_BYTES);
+
+    let endpoint = std::format!(
+        "https://{maximum_host}:65535/{}",
+        "p".repeat(MAX_ENDPOINT_BASE_PATH_BYTES - 1)
+    );
+    assert_eq!(endpoint.len(), MAX_CONFIGURED_ENDPOINT_BYTES);
+    assert!(custom_endpoint(&endpoint).is_ok());
+
+    let oversized = std::format!("{endpoint}p");
+    assert_eq!(oversized.len(), MAX_CONFIGURED_ENDPOINT_BYTES + 1);
+    assert!(matches!(
+        custom_endpoint(&oversized),
+        Err(EndpointError::InputTooLong)
+    ));
+}
 
 #[test]
 fn endpoints_reject_authority_and_normalization_ambiguity() {
