@@ -43,6 +43,8 @@ central registry.
   bodies, and incomplete service ownership.
 - Identifier syntax and length boundary corpus.
 - Hetzner service mismatch regression coverage.
+- Minimal-`PATH` regression coverage keeps the provider identity gate independent
+  from optional developer search tools.
 - `scripts/check_provider_identities.sh`
 - `scripts/checks.sh`
 - `scripts/release_0_32_gate.sh` once pentest evidence is committed.
@@ -79,6 +81,11 @@ implementation commit. Review confirmed provider/service IDs remain routing
 metadata rather than endpoint trust, retained the explicit FIPS compliance
 boundary, and drove the identity literal macros to compile-time rejection
 inside function bodies instead of a possible runtime panic.
+
+The first GitHub run exposed an undeclared `rg` dependency in the identity
+release gate. The gate now uses portable `grep`, and a minimal-`PATH` regression
+test proves it does not depend on optional developer tooling. This CI-only
+correction does not change crate code or the independent publish plan.
 
 ## Release Gate
 

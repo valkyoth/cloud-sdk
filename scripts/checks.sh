@@ -15,6 +15,7 @@ scripts/test-latest-tools.py
 scripts/test-publishable-readmes.py
 scripts/check-release-plan-structure.py
 scripts/test-release-plan-structure.py
+scripts/test-provider-identities.py
 scripts/check_provider_identities.sh
 scripts/check-provider-capabilities.py
 scripts/test-provider-capabilities.py

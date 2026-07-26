@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 set -eu
 
-if rg -n 'pub enum (Provider|ApiFamily)' crates/cloud-sdk/src; then
+if grep -R -n -E 'pub enum (Provider|ApiFamily)' crates/cloud-sdk/src; then
     echo "provider identities: closed core provider taxonomy returned" >&2
     exit 1
 fi
@@ -15,7 +15,7 @@ for identity in \
     DNS_SERVICE_ID \
     SECURITY_SERVICE_ID \
     STORAGE_SERVICE_ID; do
-    if ! rg -q "pub const ${identity}:" \
+    if ! grep -q -E "pub const ${identity}:" \
         crates/cloud-sdk-hetzner/src/identity.rs; then
         echo "provider identities: missing Hetzner identity ${identity}" >&2
         exit 1
