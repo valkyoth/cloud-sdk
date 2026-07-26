@@ -175,7 +175,14 @@ endpoint_wire!(
             | LoadBalancerActionEndpoint::RemoveTarget(_) => {
                 OperationClass::NonIdempotentDestructive
             }
-        _ => OperationClass::NonIdempotentMutation,
+        LoadBalancerActionEndpoint::AddService(_)
+        | LoadBalancerActionEndpoint::AddTarget(_)
+        | LoadBalancerActionEndpoint::AttachToNetwork(_)
+        | LoadBalancerActionEndpoint::ChangeAlgorithm(_)
+        | LoadBalancerActionEndpoint::ChangeDnsPtr(_)
+        | LoadBalancerActionEndpoint::ChangeType(_)
+        | LoadBalancerActionEndpoint::EnablePublicInterface(_)
+        | LoadBalancerActionEndpoint::UpdateService(_) => OperationClass::NonIdempotentMutation,
     },
     match endpoint {
         LoadBalancerActionEndpoint::ChangeType(_) => CostIntent::MayIncurCost,
