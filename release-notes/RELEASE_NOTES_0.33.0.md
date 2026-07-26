@@ -1,8 +1,9 @@
 # cloud-sdk 0.33.0 Release Notes
 
-Status: implementation complete; pentest required before release.
+Status: release candidate; pentest, final retest, and local release checks
+passed. GitHub checks remain before tagging.
 
-Release date: pending
+Release date: 2026-07-26
 
 ## Overview
 

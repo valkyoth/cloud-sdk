@@ -1496,7 +1496,7 @@ v0.32.0 implementation stop reached. Run pentest for this exact commit.
 
 ### v0.33.0 - Complete HTTP Method Domain
 
-Status: implementation complete; pentest required.
+Status: implementation complete; pentest and final retest passed.
 
 Goal: support provider HTTP methods without repeated core changes.
 
