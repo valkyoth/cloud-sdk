@@ -8,15 +8,15 @@ usable in `no_std` environments.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.31.0"
+cloud-sdk = "0.32.0"
 ```
 
 Provider-specific request models are separate dependencies. For Hetzner:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.31.0"
-cloud-sdk-hetzner = "0.24.0"
+cloud-sdk = "0.32.0"
+cloud-sdk-hetzner = "0.25.0"
 ```
 
 ## Build A Transport Request
@@ -49,6 +49,37 @@ The complete prepared-operation contract is demonstrated in
 ```sh
 cargo run -p cloud-sdk --example prepared_request
 ```
+
+## Define Provider-Owned Identity
+
+Provider crates use open marker traits rather than registering variants in a
+central enum:
+
+```rust
+use cloud_sdk::{
+    ProviderId, ProviderMarker, ServiceId, ServiceMarker, provider_id,
+    service_id,
+};
+
+enum ExampleProvider {}
+
+impl ProviderMarker for ExampleProvider {
+    const ID: ProviderId = provider_id!("example");
+}
+
+enum ComputeService {}
+
+impl ServiceMarker for ComputeService {
+    type Provider = ExampleProvider;
+    const ID: ServiceId = service_id!("compute");
+}
+
+assert_eq!(ExampleProvider::ID.as_str(), "example");
+assert_eq!(ComputeService::ID.as_str(), "compute");
+```
+
+See [`MIGRATION_0.32.0.md`](MIGRATION_0.32.0.md) for direct
+`ProviderService` construction and migration from the removed closed enums.
 
 ## Select A Transport
 

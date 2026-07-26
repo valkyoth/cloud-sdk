@@ -13,7 +13,7 @@ pub use sanitization::SecretString;
 /// removed as an ordinary dead store.
 #[inline]
 pub fn sanitize_bytes(bytes: &mut [u8]) {
-    sanitization::sanitize_bytes(bytes);
+    sanitization::wipe::bytes(bytes);
 }
 
 /// Caller-owned byte buffer that is volatile-cleared when dropped.

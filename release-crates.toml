@@ -1,38 +1,38 @@
 [release]
-version = "0.31.0"
+version = "0.32.0"
 policy = "independent"
 
 [crates."cloud-sdk"]
-previous_version = "0.30.0"
-version = "0.31.0"
+previous_version = "0.31.0"
+version = "0.32.0"
 change = "code"
 publish = true
-reason = "Bind validated operation identifiers and expose prepared response-policy validation."
+reason = "Replace closed provider taxonomies with bounded extensible provider-owned identities."
 
 [crates."cloud-sdk-hetzner"]
-previous_version = "0.23.0"
-version = "0.24.0"
+previous_version = "0.24.0"
+version = "0.25.0"
 change = "code"
 publish = true
-reason = "Decode every active operation through source-locked checked success and error models."
+reason = "Own Hetzner provider and service markers and migrate preparation and decoding."
 
 [crates."cloud-sdk-reqwest"]
-previous_version = "0.20.1"
-version = "0.20.2"
+previous_version = "0.20.2"
+version = "0.20.3"
 change = "dependency"
 publish = true
-reason = "Update the cloud-sdk dependency to the v0.31 facade line."
+reason = "Update the cloud-sdk dependency to the v0.32 facade line."
 
 [crates."cloud-sdk-sanitization"]
-previous_version = "0.13.16"
-version = "0.14.0"
+previous_version = "0.14.0"
+version = "0.15.0"
 change = "code"
 publish = true
-reason = "Add alloc-backed owned UTF-8 secret storage with volatile cleanup."
+reason = "Adapt the stable wrapper API to sanitization 2.0.3 and update the cloud-sdk dependency."
 
 [crates."cloud-sdk-testkit"]
-previous_version = "0.18.1"
-version = "0.18.2"
+previous_version = "0.18.2"
+version = "0.18.3"
 change = "dependency"
 publish = true
-reason = "Update the cloud-sdk dependency to the v0.31 facade line."
+reason = "Update the cloud-sdk dependency to the v0.32 facade line."

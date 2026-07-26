@@ -38,8 +38,8 @@ boundaries.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.31.0"
-cloud-sdk-hetzner = "0.24.0"
+cloud-sdk = "0.32.0"
+cloud-sdk-hetzner = "0.25.0"
 ```
 
 ## Features
@@ -53,6 +53,25 @@ cloud-sdk-hetzner = "0.24.0"
 
 Docs.rs builds with all features. The default dependency graph still includes
 no network client, TLS implementation, async runtime, filesystem, or clock.
+
+## Provider Identity
+
+Hetzner owns its provider and service markers:
+
+| Marker | Canonical ID |
+| --- | --- |
+| `Hetzner` | `hetzner` |
+| `CloudService` | `cloud` |
+| `DnsService` | `dns` |
+| `SecurityService` | `security` |
+| `StorageService` | `storage` |
+
+Prepared Cloud and Console Storage operations bind the appropriate marker and
+official endpoint automatically. Callers comparing metadata can use
+`HETZNER_PROVIDER_ID`, `CLOUD_SERVICE_ID`, `DNS_SERVICE_ID`,
+`SECURITY_SERVICE_ID`, and `STORAGE_SERVICE_ID`. These IDs are routing
+metadata; exact endpoint verification remains a separate mandatory credential
+boundary.
 
 ## Workflow Examples
 
@@ -82,7 +101,7 @@ assert_eq!(prepared.transport_request().target().as_str(), "/load_balancers");
 ```
 
 Secret-bearing operations need successful-path cleanup after transport use.
-Add `cloud-sdk-sanitization = "0.14.0"` and guard the complete body buffer:
+Add `cloud-sdk-sanitization = "0.15.0"` and guard the complete body buffer:
 
 ```rust
 use cloud_sdk::operation::{PreparationStorage, PrepareOperation};
@@ -166,7 +185,7 @@ Enable Serde explicitly; it is never part of the default graph:
 
 ```toml
 [dependencies]
-cloud-sdk-hetzner = { version = "0.24.0", features = ["serde"] }
+cloud-sdk-hetzner = { version = "0.25.0", features = ["serde"] }
 ```
 
 The feature admits serde_json with `default-features = false` and `alloc` only

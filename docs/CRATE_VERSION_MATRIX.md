@@ -1,7 +1,7 @@
 # Crate Version Matrix
 
-Status: `v0.31.0` is tagged. `v0.32.0` starts the pre-1.0
-provider-neutral architecture-hardening track.
+Status: `v0.31.0` is tagged. `v0.32.0` implementation is in progress and
+starts the pre-1.0 provider-neutral architecture-hardening track.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
@@ -487,6 +487,21 @@ and adds checked typed success and API error decoding behind the optional
 | `cloud-sdk-reqwest` | `0.20.1` | `0.20.2` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.31 facade line. |
 | `cloud-sdk-sanitization` | `0.13.16` | `0.14.0` | `code` | Yes | Add alloc-backed owned UTF-8 secret storage with volatile cleanup for checked provider responses. |
 | `cloud-sdk-testkit` | `0.18.1` | `0.18.2` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.31 facade line. |
+
+## v0.32.0 Tracking Table
+
+`v0.32.0` replaces closed core provider and API-family enums with bounded
+canonical IDs and provider-owned marker traits. Hetzner owns its service
+identities; an external integration fixture proves another provider needs no
+central registry edit.
+
+| Crate | Published | Planned | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.31.0` | `0.32.0` | `code` | Yes | Add bounded provider/service IDs, open ownership markers, and marker-derived prepared-service binding. |
+| `cloud-sdk-hetzner` | `0.24.0` | `0.25.0` | `code` | Yes | Own Hetzner Cloud, DNS, security, and Console Storage identities and migrate preparation and decoding. |
+| `cloud-sdk-reqwest` | `0.20.2` | `0.20.3` | `dependency` | Yes | Adapt the stable wrapper API to sanitization 2.0.3 and update the cloud-sdk dependency. |
+| `cloud-sdk-sanitization` | `0.14.0` | `0.15.0` | `code` | Yes | Adapt the stable wrapper API to sanitization 2.0.3 and update the cloud-sdk dependency. |
+| `cloud-sdk-testkit` | `0.18.2` | `0.18.3` | `dependency` | Yes | Update the `cloud-sdk` dependency and identity assertions to the v0.32 facade line. |
 
 ## Planned Milestone Ownership
 

@@ -120,8 +120,8 @@ Portable and native platform evidence is documented in
 
 ```toml
 [dependencies]
-cloud-sdk = "0.31.0"
-cloud-sdk-hetzner = "0.24.0"
+cloud-sdk = "0.32.0"
+cloud-sdk-hetzner = "0.25.0"
 ```
 
 ## cloud-sdk Features
@@ -146,6 +146,7 @@ visible. Applications should enable only the features they use.
 - [Migrating to v0.29](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.29.0.md)
 - [Migrating to v0.30](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.30.0.md)
 - [Migrating to v0.31](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.31.0.md)
+- [Migrating to v0.32](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.32.0.md)
 - [Deprecated endpoint policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/DEPRECATED_ENDPOINT_POLICY.md)
 
 ## Provider-Neutral Quickstart
@@ -163,6 +164,38 @@ assert_eq!(request.method(), Method::Get);
 assert_eq!(request.target().as_str(), "/resources?page=1");
 assert!(request.body().is_empty());
 ```
+
+### Provider-Owned Identity
+
+Provider crates define their own bounded identities without changing a central
+`cloud-sdk` enum:
+
+```rust
+use cloud_sdk::{
+    ProviderId, ProviderMarker, ServiceId, ServiceMarker, provider_id,
+    service_id,
+};
+
+enum ExampleProvider {}
+
+impl ProviderMarker for ExampleProvider {
+    const ID: ProviderId = provider_id!("example");
+}
+
+enum ComputeService {}
+
+impl ServiceMarker for ComputeService {
+    type Provider = ExampleProvider;
+    const ID: ServiceId = service_id!("compute");
+}
+
+assert_eq!(ExampleProvider::ID.as_str(), "example");
+assert_eq!(ComputeService::ID.as_str(), "compute");
+```
+
+IDs are allocation-free, at most 63 bytes, and accept lowercase ASCII letters,
+digits, and single internal hyphens. A service marker always names its owning
+provider.
 
 The core contracts perform no I/O and select no executor. Use
 `cloud-sdk-testkit` for deterministic blocking or async tests, or opt into
@@ -210,8 +243,8 @@ still performs no automatic retry or scheduling.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.31.0"
-cloud-sdk-reqwest = { version = "0.20.2", features = ["blocking-rustls"] }
+cloud-sdk = "0.32.0"
+cloud-sdk-reqwest = { version = "0.20.3", features = ["blocking-rustls"] }
 ```
 
 The production builder is HTTPS-only, requires explicit bounded timeouts and a
@@ -234,8 +267,8 @@ when deterministic public WebPKI roots are required:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.31.0"
-cloud-sdk-reqwest = { version = "0.20.2", features = ["blocking-rustls-webpki-roots"] }
+cloud-sdk = "0.32.0"
+cloud-sdk-reqwest = { version = "0.20.3", features = ["blocking-rustls-webpki-roots"] }
 ```
 
 The blocking API is unchanged. This feature excludes host-added enterprise
@@ -251,8 +284,8 @@ feature instead of relying on dependency feature unification:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.31.0"
-cloud-sdk-reqwest = { version = "0.20.2", features = ["blocking-rustls-fips"] }
+cloud-sdk = "0.32.0"
+cloud-sdk-reqwest = { version = "0.20.3", features = ["blocking-rustls-fips"] }
 ```
 
 Client construction explicitly selects rustls' AWS-LC FIPS provider and fails
@@ -270,8 +303,8 @@ example is in the
 
 ```toml
 [dependencies]
-cloud-sdk = "0.31.0"
-cloud-sdk-reqwest = { version = "0.20.2", features = ["async-rustls"] }
+cloud-sdk = "0.32.0"
+cloud-sdk-reqwest = { version = "0.20.3", features = ["async-rustls"] }
 ```
 
 The async adapter requires an active Tokio executor because reqwest uses Tokio

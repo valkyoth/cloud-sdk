@@ -112,6 +112,9 @@
 - credential-bound transports report immutable normalized endpoint identity so
   the Hetzner provider can verify exact scheme, host, effective port, and base
   path for both official v1 API families before execution;
+- provider and service routing metadata uses distinct bounded canonical IDs;
+  provider crates own open markers, services declare their provider, and no
+  central enum or catch-all identity can silently absorb a new API surface;
 - poisoned credential locks recover while holding a guard over one complete
   token `Arc`, preventing permanent failure across every client clone;
 - standard transports use platform trust stores explicitly; FIPS transport

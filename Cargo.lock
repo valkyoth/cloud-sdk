@@ -157,11 +157,11 @@ dependencies = [
 
 [[package]]
 name = "cloud-sdk"
-version = "0.31.0"
+version = "0.32.0"
 
 [[package]]
 name = "cloud-sdk-hetzner"
-version = "0.24.0"
+version = "0.25.0"
 dependencies = [
  "cloud-sdk",
  "cloud-sdk-reqwest",
@@ -173,7 +173,7 @@ dependencies = [
 
 [[package]]
 name = "cloud-sdk-reqwest"
-version = "0.20.2"
+version = "0.20.3"
 dependencies = [
  "aws-lc-fips-sys",
  "aws-lc-rs",
@@ -190,7 +190,7 @@ dependencies = [
 
 [[package]]
 name = "cloud-sdk-sanitization"
-version = "0.14.0"
+version = "0.15.0"
 dependencies = [
  "cloud-sdk",
  "sanitization",
@@ -198,7 +198,7 @@ dependencies = [
 
 [[package]]
 name = "cloud-sdk-testkit"
-version = "0.18.2"
+version = "0.18.3"
 dependencies = [
  "cloud-sdk",
 ]
@@ -1074,9 +1074,9 @@ dependencies = [
 
 [[package]]
 name = "sanitization"
-version = "1.2.5"
+version = "2.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c92c75202f3f884d540d83c61b14a9e3787542ced35cd5d7842d075c7475c0b1"
+checksum = "75e43f2762b31232062e8ba7bfbdfcbd33c80c43bf7a306a7e195c3c4f734e0f"
 
 [[package]]
 name = "schannel"
@@ -1310,9 +1310,9 @@ checksum = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20"
 
 [[package]]
 name = "tokio"
-version = "1.53.0"
+version = "1.53.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d988bcd52dbe076d3d46903332f58c912b87a2c49b1428419a5845154762ffee"
+checksum = "202caea871b69668250d242070849eb495be178ed697a3e98aebce5bc81a0bed"
 dependencies = [
  "bytes",
  "libc",

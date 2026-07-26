@@ -1,5 +1,6 @@
 #![no_main]
 
+use cloud_sdk::Method;
 use cloud_sdk::operation::{
     ContentTypePolicy, CostIntent, OperationId, OperationImpact, OperationMetadata,
     PreparedRequest, ProviderService, RequestSemantics, ResponseBodyPolicy, ResponsePolicy,
@@ -9,7 +10,7 @@ use cloud_sdk::transport::{
     EndpointIdentity, EndpointScheme, MediaType, RequestTarget, ResponseContentType, StatusCode,
     TransportRequest, TransportResponse,
 };
-use cloud_sdk::{ApiFamily, Method, Provider};
+use cloud_sdk_hetzner::CloudService;
 use cloud_sdk_hetzner::serde::decode_response;
 use libfuzzer_sys::fuzz_target;
 
@@ -38,7 +39,7 @@ fn prepared() -> Option<PreparedRequest<'static>> {
     Some(
         PreparedRequest::new(
             TransportRequest::new(Method::Get, target),
-            ProviderService::new(Provider::Hetzner, ApiFamily::Cloud, endpoint),
+            ProviderService::from_marker::<CloudService>(endpoint),
             metadata,
             policy,
         )

@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.32.0 - Unreleased
+
+- Replaced closed provider and API-family enums with bounded canonical
+  `ProviderId` and `ServiceId` values.
+- Added open provider-owned marker traits and marker-derived prepared-service
+  construction.
+- Moved Hetzner Cloud, DNS, security, and Console Storage identities into
+  `cloud-sdk-hetzner`.
+- Added external-provider compilation, compile-fail compatibility, boundary,
+  migration, public API review, and release-gate evidence.
+
 ## 0.27.0 - 2026-07-15
 
 - Replaced required `Option<T>` request constructor inputs with direct validated

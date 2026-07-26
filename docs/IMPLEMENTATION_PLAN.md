@@ -242,8 +242,13 @@ Expected future candidates must be reviewed before use:
 - `v0.29.0` adds allocation-free prepared-operation metadata, response policy,
   bounded execution, and testkit evidence without admitting any new
   third-party dependency or default feature.
-- `v0.30.0` admits `syn 2.0.119` only in the excluded, non-published prepared
-  coverage checker. It is absent from every SDK crate and published graph.
+- `v0.30.0` introduced `syn` only in the excluded, non-published prepared
+  coverage checker. The current isolated pin is `syn 3.0.3`; it is absent from
+  every SDK crate and published graph.
+- `v0.32.0` updates the first-party optional sanitization boundary to `2.0.3`
+  after a dedicated major-version API, feature, MSRV, cleanup, and checksum
+  review. Default features remain disabled and no dependency enters the
+  provider-neutral default graph.
 - `v0.32.0` through `v0.62.0` prefer first-party no_std contracts and excluded
   conformance tooling. Any parser, streaming, signing, provenance, or
   provider-probe dependency requires its own admission document before use.

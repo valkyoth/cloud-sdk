@@ -1454,13 +1454,45 @@ Permanent pentest and release evidence remain bound to that commit.
 
 ### v0.32.0 - Extensible Provider And Service Identities
 
+Status: implementation complete; pentest required.
+
 Goal: remove closed Hetzner-shaped core taxonomies.
 
-Deliverables: bounded `ProviderId`/`ServiceId`, provider-owned markers, migration guidance, and proof that adding a provider requires no central enum edit.
+Deliverables:
 
-Verification: identifier boundaries, compile-fail compatibility tests, public API review, and `scripts/release_0_32_gate.sh`.
+- Allocation-free `ProviderId` and `ServiceId` values bounded to 63 bytes.
+- Locale-independent lowercase ASCII/digit syntax with canonical single
+  internal hyphens; invalid boundaries, repeated separators, Unicode, and
+  unbounded values fail closed.
+- Open provider-owned `ProviderMarker` and `ServiceMarker` contracts; every
+  service names its owning provider and no central registry or catch-all
+  service remains.
+- Marker-derived `ProviderService` construction plus direct construction from
+  already validated IDs.
+- Hetzner-owned Cloud, DNS, security, and Console Storage markers and complete
+  migration of preparation, checked decoding, examples, and testkit evidence.
+- Explicit migration guidance and public API/security review.
 
-Stop gate: `v0.32.0 implementation stop reached. Run pentest for this exact commit.`
+Verification:
+
+- Boundary tests for every identifier rejection class and exact maximum sizes.
+- External-crate proof that adding a provider requires no core source edit.
+- Compile-fail tests for forged IDs and incomplete service ownership.
+- Wrong-provider/service decoder rejection and unchanged endpoint binding.
+- Default, no_std, all-feature, docs, package, clippy, and MSRV checks.
+- `scripts/check_provider_identities.sh`.
+- `scripts/release_0_32_gate.sh` after pentest evidence is committed.
+
+Exit criteria: all deliverables and verification above are complete, the public
+API review records accepted and rejected designs, documentation and release
+metadata are synchronized, and the implementation commit is ready for
+independent security review.
+
+Stop gate:
+
+```text
+v0.32.0 implementation stop reached. Run pentest for this exact commit.
+```
 
 ### v0.33.0 - Complete HTTP Method Domain
 

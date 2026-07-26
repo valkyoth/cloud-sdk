@@ -5,7 +5,7 @@ Status: admitted only through `cloud-sdk-reqwest/blocking-rustls`,
 `cloud-sdk-reqwest/blocking-rustls-fips`, and `cloud-sdk-reqwest/async-rustls`,
 with reqwest default features disabled.
 
-Checked: 2026-07-20.
+Checked: 2026-07-26.
 
 ## Decision
 
@@ -14,14 +14,14 @@ Checked: 2026-07-20.
 | `reqwest` | `0.13.4` | blocking/async HTTP client and URL/header types | disabled |
 | `bytes` | `1.12.1` | sanitized owned async request-body handoff | disabled |
 | `hyper` | `1.10.1` | transitive HTTP implementation | transitive |
-| `tokio` | `1.53.0` | reqwest runtime; direct dev-only async test executor | transitive/disabled |
+| `tokio` | `1.53.1` | reqwest runtime; direct dev-only async test executor | transitive/disabled |
 | `url` | `2.5.8` | authority-preserving endpoint parsing | transitive |
 | `rustls` | `0.23.42` | TLS implementation | transitive |
 | `rustls-platform-verifier` | `0.7.0` | platform trust-store verification | transitive |
 | `webpki-roots` | `1.0.9` | deterministic Mozilla trust-root snapshot | disabled |
 | `aws-lc-rs` | `1.17.3` | rustls cryptographic provider | transitive |
-| `cloud-sdk-sanitization` | `0.14.0` | adapter-owned secret-buffer cleanup | disabled |
-| `sanitization` | `1.2.5` | reviewed volatile cleanup primitive | disabled |
+| `cloud-sdk-sanitization` | `0.15.0` | adapter-owned secret-buffer cleanup | disabled |
+| `sanitization` | `2.0.3` | reviewed volatile cleanup primitive | disabled |
 
 The exact repository graph is pinned by `Cargo.lock`, checked by `cargo deny`,
 and recorded in the generated SBOM. Applications own their downstream
@@ -97,7 +97,7 @@ from both production feature graphs. A
 separate locked, non-published test fixture deliberately enables both on the
 same reqwest instance and builds both adapters to exercise Cargo feature
 unification against the runtime overrides. Its local `cloud-sdk-reqwest`
-dependency is pinned exactly to `0.20.2` and enables the standard, FIPS, and
+dependency is pinned exactly to `0.20.3` and enables the standard, FIPS, and
 async transport features, proving the explicit FIPS configuration wins under
 additive feature unification. The deterministic-root boundary separately
 compiles both its standard combination and its combination with FIPS.

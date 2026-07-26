@@ -3,17 +3,18 @@
 Status: admitted only through `cloud-sdk-sanitization` with default features
 disabled.
 
-Checked: 2026-07-20.
+Checked: 2026-07-26.
 
 ## Decision
 
 | Crate | Version | Role | License | Default features |
 | --- | --- | --- | --- | --- |
-| `sanitization` | `1.2.5` | volatile caller-buffer cleanup | MIT OR Apache-2.0 | disabled |
+| `sanitization` | `2.0.3` | volatile caller-buffer and owned-secret cleanup | MIT OR Apache-2.0 | disabled |
 
 The dependency is the first-party crate published from
-<https://github.com/valkyoth/sanitization>. It is no_std by default and has no
-runtime dependencies with default features disabled.
+<https://github.com/valkyoth/sanitization>. Version `2.0.3` retains Rust 1.90
+and `no_std`, and has no runtime dependencies with default features disabled.
+The upstream default `asm-compare` feature is deliberately not admitted.
 
 `cloud-sdk-sanitization` exposes a narrow `sanitize_bytes` function, a borrowed
 `SecretBuffer` guard, and the reviewed opt-in allocation-backed
@@ -37,10 +38,21 @@ through checked closures. Neither guard can clear immutable source strings,
 transport copies, kernel buffers, crash dumps, swap, remote systems, allocator
 metadata, or copies outside guarded storage.
 
-No interoperability features are enabled. In particular, the optional
-`zeroize`, `subtle`, memory-locking, derive, and platform features are absent
-from the admitted graph. Allocation is enabled only through
+No interoperability or native hardening features are enabled. In particular,
+the optional `zeroize-interop`, `subtle-interop`, memory locking, guard pages,
+cache flushing, canaries, register scrubbing, derive, Serde, hardware secret,
+split-secret, and multi-pass features are absent from the admitted graph.
+Allocation is enabled only through
 `cloud-sdk-sanitization/alloc`; `std` remains a separate opt-in feature.
+
+The `1.2.5` to `2.0.3` major update was reviewed against the exact APIs used by
+this workspace. Upstream `sanitize_bytes` became `wipe::bytes`; the
+`cloud-sdk-sanitization::sanitize_bytes` wrapper preserves the existing public
+API. `SecretString::from_string`, closure-scoped UTF-8 access, capacity-aware
+growth cleanup, and drop cleanup remain available. No newly added default or
+optional feature is enabled through this boundary.
+The release-specific evidence and Cargo checksum are recorded in
+[`DEPENDENCY_REVIEW_0.32.0.md`](DEPENDENCY_REVIEW_0.32.0.md).
 
 ## Verification
 

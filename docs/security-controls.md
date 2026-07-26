@@ -4,6 +4,7 @@
 | --- | --- |
 | no_std default graph | active |
 | unsafe forbidden | active |
+| provider/service identity | allocation-free bounded canonical IDs; lowercase ASCII/digit syntax with single internal hyphens; private representation; provider-owned open markers; service markers require an associated provider; external-provider and compile-fail compatibility evidence; no central provider registry |
 | default transport dependency | none |
 | default token storage | none |
 | dependency policy | active |

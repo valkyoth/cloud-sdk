@@ -25,11 +25,13 @@ and transitive surface are recorded in
 [`dependency-admission-serde.md`](dependency-admission-serde.md), and
 `scripts/check_serde_boundary.sh` enforces graph isolation.
 
-The first-party `sanitization` `1.2.5` crate is admitted only through
+The first-party `sanitization` `2.0.3` crate is admitted only through
 `cloud-sdk-sanitization`, with default features disabled and no transitive
 runtime dependencies. The decision and limits are recorded in
 [`dependency-admission-sanitization.md`](dependency-admission-sanitization.md),
 and `scripts/check_sanitization_boundary.sh` enforces graph isolation.
+The v0.32 major-version review is recorded in
+[`DEPENDENCY_REVIEW_0.32.0.md`](DEPENDENCY_REVIEW_0.32.0.md).
 
 Reqwest `0.13.4` is admitted only through the non-default
 `cloud-sdk-reqwest/blocking-rustls`, `blocking-rustls-webpki-roots`,
