@@ -19,6 +19,8 @@ central registry.
 - Added open `ProviderMarker` and `ServiceMarker` traits with explicit service
   ownership.
 - Added `ProviderService::from_marker` and validated-ID direct construction.
+- Made each literal macro's validated ID the const initializer so invalid
+  literals fail compilation even inside function bodies.
 - Replaced `provider()` and `family()` accessors with `provider_id()` and
   `service_id()`.
 - Removed the closed `Provider`, `ApiFamily`, and catch-all `Extended` variants.

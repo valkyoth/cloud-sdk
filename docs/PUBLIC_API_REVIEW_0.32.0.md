@@ -44,6 +44,8 @@ before.
 - An integration test compiled as an external crate implements an independent
   provider and service without changing core source.
 - Compile-fail doctests reject forged ID tuple construction.
+- Compile-fail doctests reject invalid ID macro literals inside function
+  bodies, where validation must never become a runtime panic path.
 - Compile-fail doctests reject a service marker without an associated provider.
 - Boundary tests cover empty, oversized, uppercase, Unicode, whitespace,
   underscore, leading/trailing separator, and repeated-separator inputs.

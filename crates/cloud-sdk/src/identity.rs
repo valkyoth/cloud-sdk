@@ -170,28 +170,46 @@ pub const fn validate(value: &str, max_bytes: usize) -> Result<(), IdentityError
 }
 
 /// Creates a compile-time validated [`ProviderId`].
+///
+/// Invalid literals fail during compilation, including inside a function body:
+///
+/// ```compile_fail
+/// use cloud_sdk::provider_id;
+///
+/// fn main() {
+///     let _ = provider_id!("Uppercase");
+/// }
+/// ```
 #[macro_export]
 macro_rules! provider_id {
     ($value:literal) => {{
-        const RESULT: Result<$crate::ProviderId, $crate::IdentityError> =
-            $crate::ProviderId::new($value);
-        match RESULT {
+        const VALUE: $crate::ProviderId = match $crate::ProviderId::new($value) {
             Ok(value) => value,
             Err(_) => panic!("invalid provider identifier literal"),
-        }
+        };
+        VALUE
     }};
 }
 
 /// Creates a compile-time validated [`ServiceId`].
+///
+/// Invalid literals fail during compilation, including inside a function body:
+///
+/// ```compile_fail
+/// use cloud_sdk::service_id;
+///
+/// fn main() {
+///     let _ = service_id!("repeated--separator");
+/// }
+/// ```
 #[macro_export]
 macro_rules! service_id {
     ($value:literal) => {{
-        const RESULT: Result<$crate::ServiceId, $crate::IdentityError> =
-            $crate::ServiceId::new($value);
-        match RESULT {
+        const VALUE: $crate::ServiceId = match $crate::ServiceId::new($value) {
             Ok(value) => value,
             Err(_) => panic!("invalid service identifier literal"),
-        }
+        };
+        VALUE
     }};
 }
 
@@ -236,6 +254,14 @@ mod tests {
             Ok("object-storage")
         );
         assert!(ProviderId::new("a").is_ok());
+    }
+
+    #[test]
+    fn literal_macros_validate_inside_function_bodies() {
+        let provider = provider_id!("example-provider");
+        let service = service_id!("object-storage");
+        assert_eq!(provider.as_str(), "example-provider");
+        assert_eq!(service.as_str(), "object-storage");
     }
 
     #[test]

@@ -10,6 +10,8 @@
   `cloud-sdk-hetzner`.
 - Added external-provider compilation, compile-fail compatibility, boundary,
   migration, public API review, and release-gate evidence.
+- Forced invalid provider and service ID macro literals to fail during
+  compilation even when invoked inside function bodies.
 
 ## 0.27.0 - 2026-07-15
 
