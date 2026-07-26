@@ -40,6 +40,8 @@ pub enum TransportError {
     CredentialStateUnavailable,
     /// The target could not be composed without parsing or normalization.
     TargetRejected,
+    /// The validated SDK method could not be represented by the HTTP implementation.
+    MethodRejected,
     /// A non-empty body omitted its required explicit content type.
     MissingContentType,
     /// A validated header could not be represented by the HTTP implementation.
@@ -73,6 +75,7 @@ pub enum TransportError {
 impl_static_error!(TransportError,
     Self::CredentialStateUnavailable => "credential state is unavailable",
     Self::TargetRejected => "request target was rejected",
+    Self::MethodRejected => "request method was rejected",
     Self::MissingContentType => "request body content type is missing",
     Self::HeaderRejected => "request header was rejected",
     Self::RequestBodyAllocationFailed => "request-body allocation failed",

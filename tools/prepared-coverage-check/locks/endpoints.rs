@@ -21,7 +21,7 @@ macro_rules! endpoint_wire {
         match $key_value:ident {
             $($key_pattern:pat => $key:literal),+ $(,)?
         },
-        $destructive:expr,
+        $class:expr,
         $cost:expr
     ) => {
         impl crate::prepared::EndpointWire for $type {
@@ -58,7 +58,7 @@ macro_rules! endpoint_wire {
             {
                 let $value = self;
                 let _ = $value;
-                crate::prepared::operation::method_metadata(self.method(), $destructive, $cost)
+                crate::prepared::operation::operation_metadata($class, $cost)
             }
 
             fn operation_key(self) -> &'static str {

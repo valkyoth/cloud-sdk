@@ -90,6 +90,42 @@ fn async_client_sends_exact_headers_target_and_body_once() {
 }
 
 #[test]
+fn async_client_sends_complete_method_domain_exactly() {
+    run_async_test(async {
+        for method in [
+            Method::Patch,
+            Method::Head,
+            Method::Options,
+            Method::extension("PURGE").unwrap_or_else(|_| unreachable!()),
+        ] {
+            let server = spawn("200 OK", &[], b"", Duration::ZERO);
+            let Ok(server) = server else { return };
+            let Some(client) = build_loopback(&server.endpoint) else {
+                return;
+            };
+            let Ok(target) = RequestTarget::new("/method-check") else {
+                return;
+            };
+            let mut output = [0_u8; 1];
+            let response =
+                AsyncTransport::send(&client, TransportRequest::new(method, target), &mut output)
+                    .await;
+            assert!(response.is_ok());
+
+            let recorded = server.request.recv_timeout(Duration::from_secs(2));
+            assert!(recorded.is_ok());
+            if let Ok(recorded) = recorded {
+                let wire = String::from_utf8_lossy(&recorded.bytes);
+                assert!(wire.starts_with(method.as_str()));
+                assert!(
+                    wire[method.as_str().len()..].starts_with(" /v1/method-check HTTP/1.1\r\n")
+                );
+            }
+        }
+    });
+}
+
+#[test]
 fn async_redirect_is_not_followed_and_oversized_body_is_rejected() {
     run_async_test(async {
         let redirect = spawn(

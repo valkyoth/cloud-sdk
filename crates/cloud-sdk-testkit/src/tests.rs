@@ -153,6 +153,30 @@ fn mock_transport_is_ordered_fail_closed_and_non_consuming_on_mismatch() {
 }
 
 #[test]
+fn mock_transport_matches_extension_methods_without_aliasing() {
+    let target = RequestTarget::new("/cache");
+    let method = Method::extension("PURGE");
+    let body = FixtureBody::new(b"");
+    if let (Ok(target), Ok(method), Ok(body)) = (target, method, body) {
+        let exchange = MockExchange::new(
+            ExpectedRequest::new(method, target),
+            ResponseFixture::success(body),
+        );
+        let exchanges = [exchange];
+        let transport = MockTransport::new(&exchanges);
+        let mut output = [0_u8; 1];
+        assert!(
+            BlockingTransport::send(
+                &transport,
+                TransportRequest::new(method, target),
+                &mut output,
+            )
+            .is_ok()
+        );
+    }
+}
+
+#[test]
 fn mock_transport_does_not_consume_exchange_when_response_buffer_is_small() {
     let target = RequestTarget::new("/actions/1");
     let body = FixtureBody::new(b"response");

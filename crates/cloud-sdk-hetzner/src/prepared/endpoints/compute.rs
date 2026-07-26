@@ -8,6 +8,8 @@ use crate::cloud::servers::placement_groups::{PlacementGroupEndpoint, PlacementG
 use crate::cloud::servers::{ServerEndpoint, ServerListRequest, ServerMetricsRequest};
 use crate::cloud::volumes::{VolumeActionEndpoint, VolumeEndpoint, VolumeListRequest};
 
+use crate::prepared::operation::OperationClass;
+
 use super::super::{RequestShape, ResponseProfile};
 
 endpoint_wire!(
@@ -31,8 +33,12 @@ endpoint_wire!(
         ServerEndpoint::Metrics(_) => "get_server_metrics",
     },
     match endpoint {
-        ServerEndpoint::Delete(_) => true,
-        _ => false,
+        ServerEndpoint::List | ServerEndpoint::Get(_) | ServerEndpoint::Metrics(_) => {
+            OperationClass::ReadOnly
+        }
+        ServerEndpoint::Create => OperationClass::NonIdempotentMutation,
+        ServerEndpoint::Update(_) => OperationClass::IdempotentMutation,
+        ServerEndpoint::Delete(_) => OperationClass::IdempotentDestructive,
     },
     match endpoint {
         ServerEndpoint::Create => CostIntent::MayIncurCost,
@@ -93,6 +99,9 @@ endpoint_wire!(
         ServerActionEndpoint::Start(_, ServerActionKind::Shutdown) => "shutdown_server",
     },
     match endpoint {
+        ServerActionEndpoint::ListAll
+        | ServerActionEndpoint::Get(_)
+        | ServerActionEndpoint::ListForServer(_) => OperationClass::ReadOnly,
         ServerActionEndpoint::Start(
             _,
             ServerActionKind::DetachFromNetwork
@@ -106,8 +115,8 @@ endpoint_wire!(
                 | ServerActionKind::Reset
                 | ServerActionKind::ResetPassword
                 | ServerActionKind::Shutdown
-        ) => true,
-        _ => false,
+        ) => OperationClass::NonIdempotentDestructive,
+        ServerActionEndpoint::Start(_, _) => OperationClass::NonIdempotentMutation,
     },
     match endpoint {
         ServerActionEndpoint::Start(
@@ -138,8 +147,9 @@ endpoint_wire!(
         ImageEndpoint::Delete(_) => "delete_image",
     },
     match endpoint {
-        ImageEndpoint::Delete(_) => true,
-        _ => false,
+        ImageEndpoint::List | ImageEndpoint::Get(_) => OperationClass::ReadOnly,
+        ImageEndpoint::Update(_) => OperationClass::IdempotentMutation,
+        ImageEndpoint::Delete(_) => OperationClass::IdempotentDestructive,
     },
     CostIntent::NoKnownCost
 );
@@ -169,8 +179,10 @@ endpoint_wire!(
         ImageActionEndpoint::ChangeProtection(_) => "change_image_protection",
     },
     match endpoint {
-        ImageActionEndpoint::ChangeProtection(_) => true,
-        _ => false,
+        ImageActionEndpoint::ListAll
+        | ImageActionEndpoint::Get(_)
+        | ImageActionEndpoint::ListForImage(_) => OperationClass::ReadOnly,
+        ImageActionEndpoint::ChangeProtection(_) => OperationClass::NonIdempotentDestructive,
     },
     CostIntent::NoKnownCost
 );
@@ -197,8 +209,10 @@ endpoint_wire!(
         PlacementGroupEndpoint::Delete(_) => "delete_placement_group",
     },
     match endpoint {
-        PlacementGroupEndpoint::Delete(_) => true,
-        _ => false,
+        PlacementGroupEndpoint::List | PlacementGroupEndpoint::Get(_) => OperationClass::ReadOnly,
+        PlacementGroupEndpoint::Create => OperationClass::NonIdempotentMutation,
+        PlacementGroupEndpoint::Update(_) => OperationClass::IdempotentMutation,
+        PlacementGroupEndpoint::Delete(_) => OperationClass::IdempotentDestructive,
     },
     CostIntent::NoKnownCost
 );
@@ -228,8 +242,10 @@ endpoint_wire!(
         VolumeEndpoint::Delete(_) => "delete_volume",
     },
     match endpoint {
-        VolumeEndpoint::Delete(_) => true,
-        _ => false,
+        VolumeEndpoint::List | VolumeEndpoint::Get(_) => OperationClass::ReadOnly,
+        VolumeEndpoint::Create => OperationClass::NonIdempotentMutation,
+        VolumeEndpoint::Update(_) => OperationClass::IdempotentMutation,
+        VolumeEndpoint::Delete(_) => OperationClass::IdempotentDestructive,
     },
     match endpoint {
         VolumeEndpoint::Create => CostIntent::MayIncurCost,
@@ -269,8 +285,15 @@ endpoint_wire!(
         VolumeActionEndpoint::Resize(_) => "resize_volume",
     },
     match endpoint {
-        VolumeActionEndpoint::ChangeProtection(_) | VolumeActionEndpoint::Detach(_) => true,
-        _ => false,
+        VolumeActionEndpoint::ListAll
+        | VolumeActionEndpoint::Get(_)
+        | VolumeActionEndpoint::ListForVolume(_) => OperationClass::ReadOnly,
+        VolumeActionEndpoint::ChangeProtection(_) | VolumeActionEndpoint::Detach(_) => {
+            OperationClass::NonIdempotentDestructive
+        }
+        VolumeActionEndpoint::Attach(_) | VolumeActionEndpoint::Resize(_) => {
+            OperationClass::NonIdempotentMutation
+        }
     },
     match endpoint {
         VolumeActionEndpoint::Resize(_) => CostIntent::MayIncurCost,

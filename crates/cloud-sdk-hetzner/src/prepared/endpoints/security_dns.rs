@@ -10,6 +10,8 @@ use crate::security::certificates::{
 };
 use crate::security::ssh_keys::{SshKeyEndpoint, SshKeyListRequest};
 
+use crate::prepared::operation::OperationClass;
+
 use super::super::{RequestShape, ResponseProfile};
 
 endpoint_wire!(
@@ -37,8 +39,12 @@ endpoint_wire!(
         CertificateEndpoint::Retry(_) => "retry_certificate",
     },
     match endpoint {
-        CertificateEndpoint::Delete(_) => true,
-        _ => false,
+        CertificateEndpoint::List | CertificateEndpoint::Get(_) => OperationClass::ReadOnly,
+        CertificateEndpoint::Create | CertificateEndpoint::Retry(_) => {
+            OperationClass::NonIdempotentMutation
+        }
+        CertificateEndpoint::Update(_) => OperationClass::IdempotentMutation,
+        CertificateEndpoint::Delete(_) => OperationClass::IdempotentDestructive,
     },
     CostIntent::NoKnownCost
 );
@@ -62,7 +68,7 @@ endpoint_wire!(
         CertificateActionEndpoint::Get(_) => "get_certificates_action",
         CertificateActionEndpoint::ListForCertificate(_) => "list_certificate_actions",
     },
-    false,
+    OperationClass::ReadOnly,
     CostIntent::NoKnownCost
 );
 
@@ -92,8 +98,10 @@ endpoint_wire!(
         SshKeyEndpoint::Delete(_) => "delete_ssh_key",
     },
     match endpoint {
-        SshKeyEndpoint::Delete(_) => true,
-        _ => false,
+        SshKeyEndpoint::List | SshKeyEndpoint::Get(_) => OperationClass::ReadOnly,
+        SshKeyEndpoint::Create => OperationClass::NonIdempotentMutation,
+        SshKeyEndpoint::Update(_) => OperationClass::IdempotentMutation,
+        SshKeyEndpoint::Delete(_) => OperationClass::IdempotentDestructive,
     },
     CostIntent::NoKnownCost
 );
@@ -125,8 +133,12 @@ endpoint_wire!(
         ZoneEndpoint::ExportZoneFile(_) => "get_zone_zonefile",
     },
     match endpoint {
-        ZoneEndpoint::Delete(_) => true,
-        _ => false,
+        ZoneEndpoint::List | ZoneEndpoint::Get(_) | ZoneEndpoint::ExportZoneFile(_) => {
+            OperationClass::ReadOnly
+        }
+        ZoneEndpoint::Create => OperationClass::NonIdempotentMutation,
+        ZoneEndpoint::Update(_) => OperationClass::IdempotentMutation,
+        ZoneEndpoint::Delete(_) => OperationClass::IdempotentDestructive,
     },
     CostIntent::NoKnownCost
 );
@@ -161,8 +173,15 @@ endpoint_wire!(
         ZoneActionEndpoint::ImportZoneFile(_) => "import_zone_zonefile",
     },
     match endpoint {
-        ZoneActionEndpoint::ChangeProtection(_) | ZoneActionEndpoint::ImportZoneFile(_) => true,
-        _ => false,
+        ZoneActionEndpoint::ListAll
+        | ZoneActionEndpoint::Get(_)
+        | ZoneActionEndpoint::ListForZone(_) => OperationClass::ReadOnly,
+        ZoneActionEndpoint::ChangeProtection(_) | ZoneActionEndpoint::ImportZoneFile(_) => {
+            OperationClass::NonIdempotentDestructive
+        }
+        ZoneActionEndpoint::ChangePrimaryNameservers(_) | ZoneActionEndpoint::ChangeTtl(_) => {
+            OperationClass::NonIdempotentMutation
+        }
     },
     CostIntent::NoKnownCost
 );
@@ -219,8 +238,10 @@ endpoint_wire!(
         RrsetEndpoint::Delete(_) => "delete_zone_rrset",
     },
     match endpoint {
-        RrsetEndpoint::Delete(_) => true,
-        _ => false,
+        RrsetEndpoint::List(_) | RrsetEndpoint::Get(_) => OperationClass::ReadOnly,
+        RrsetEndpoint::Create(_) => OperationClass::NonIdempotentMutation,
+        RrsetEndpoint::Update(_) => OperationClass::IdempotentMutation,
+        RrsetEndpoint::Delete(_) => OperationClass::IdempotentDestructive,
     },
     CostIntent::NoKnownCost
 );
@@ -245,8 +266,12 @@ endpoint_wire!(
     match endpoint {
         RrsetActionEndpoint::ChangeProtection(_)
             | RrsetActionEndpoint::SetRecords(_)
-            | RrsetActionEndpoint::RemoveRecords(_) => true,
-        _ => false,
+            | RrsetActionEndpoint::RemoveRecords(_) => {
+                OperationClass::NonIdempotentDestructive
+            }
+        RrsetActionEndpoint::ChangeTtl(_)
+        | RrsetActionEndpoint::AddRecords(_)
+        | RrsetActionEndpoint::UpdateRecords(_) => OperationClass::NonIdempotentMutation,
     },
     CostIntent::NoKnownCost
 );

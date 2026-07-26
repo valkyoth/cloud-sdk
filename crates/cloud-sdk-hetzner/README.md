@@ -38,8 +38,8 @@ boundaries.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.32.0"
-cloud-sdk-hetzner = "0.25.0"
+cloud-sdk = "0.33.0"
+cloud-sdk-hetzner = "0.26.0"
 ```
 
 ## Features
@@ -101,7 +101,7 @@ assert_eq!(prepared.transport_request().target().as_str(), "/load_balancers");
 ```
 
 Secret-bearing operations need successful-path cleanup after transport use.
-Add `cloud-sdk-sanitization = "0.15.0"` and guard the complete body buffer:
+Add `cloud-sdk-sanitization = "0.15.1"` and guard the complete body buffer:
 
 ```rust
 use cloud_sdk::operation::{PreparationStorage, PrepareOperation};
@@ -163,7 +163,7 @@ safety and retry classification, cost intent, and exact official endpoint.
 | Body serialization | Complete for all 91 non-deprecated operations with request bodies | Current |
 | Success response models | Complete checked envelope and resource-identity coverage for all 208 non-deprecated operations | Provider-complete resource fields before `1.0.0` |
 | Error response models | Complete checked typed API error decoding for all active operations | Current |
-| End-to-end client | Not available | `v0.41.0`, after provider-neutral contract hardening |
+| End-to-end client | Not available | `v0.69.0 - v0.73.0`, after provider-neutral contract hardening and complete resource models |
 
 Thirteen deprecated operations remain deliberately unavailable. A checked
 release gate prevents non-deprecated request operations from returning to a
@@ -178,6 +178,9 @@ Breaking v0.27 constructor and custom-endpoint changes are listed in the
 [migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.27.0.md).
 Shared transport and credential lifecycle changes are listed in the
 [v0.29 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.29.0.md).
+The complete method domain and explicit operation metadata migration are listed
+in the
+[v0.33 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.33.0.md).
 
 ## Optional Serde Boundary
 
@@ -185,7 +188,7 @@ Enable Serde explicitly; it is never part of the default graph:
 
 ```toml
 [dependencies]
-cloud-sdk-hetzner = { version = "0.25.0", features = ["serde"] }
+cloud-sdk-hetzner = { version = "0.26.0", features = ["serde"] }
 ```
 
 The feature admits serde_json with `default-features = false` and `alloc` only

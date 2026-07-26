@@ -73,7 +73,7 @@ impl BlockingClient {
             .endpoint
             .compose(request.target())
             .map_err(|_| TransportError::TargetRejected)?;
-        let method = map_method(request.method());
+        let method = map_method(request.method())?;
         let token_snapshot = self
             .credentials
             .snapshot()
@@ -174,13 +174,9 @@ fn read_response(response: &mut impl Read, output: &mut [u8]) -> Result<usize, T
     }
 }
 
-const fn map_method(method: Method) -> reqwest::Method {
-    match method {
-        Method::Get => reqwest::Method::GET,
-        Method::Post => reqwest::Method::POST,
-        Method::Put => reqwest::Method::PUT,
-        Method::Delete => reqwest::Method::DELETE,
-    }
+fn map_method(method: Method) -> Result<reqwest::Method, TransportError> {
+    reqwest::Method::from_bytes(method.as_str().as_bytes())
+        .map_err(|_| TransportError::MethodRejected)
 }
 
 fn classify_reqwest_error(error: reqwest::Error) -> TransportError {

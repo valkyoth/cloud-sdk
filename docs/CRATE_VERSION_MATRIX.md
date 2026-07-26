@@ -1,8 +1,7 @@
 # Crate Version Matrix
 
-Status: `v0.31.0` is tagged. `v0.32.0` is a release candidate; pentest and
-final retest passed, and local release checks are green. GitHub checks remain
-before tagging.
+Status: `v0.32.0` is tagged. `v0.33.0` implementation is complete; pentest is
+required before tagging.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
@@ -503,6 +502,20 @@ central registry edit.
 | `cloud-sdk-reqwest` | `0.20.2` | `0.20.3` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.32 facade line. |
 | `cloud-sdk-sanitization` | `0.14.0` | `0.15.0` | `code` | Yes | Adapt the stable wrapper API to sanitization 2.0.3 and update the cloud-sdk dependency. |
 | `cloud-sdk-testkit` | `0.18.2` | `0.18.3` | `dependency` | Yes | Update the `cloud-sdk` dependency and identity assertions to the v0.32 facade line. |
+
+## v0.33.0 Tracking Table
+
+`v0.33.0` replaces the closed four-variant HTTP method enum with a bounded,
+allocation-free method value. Known methods have canonical constants,
+provider extensions are validated, and operation safety remains provider-owned.
+
+| Crate | Published | Planned | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.32.0` | `0.33.0` | `code` | Yes | Add GET, POST, PUT, DELETE, PATCH, HEAD, origin-form OPTIONS, and bounded canonical extension methods while denying CONNECT and TRACE. |
+| `cloud-sdk-hetzner` | `0.25.0` | `0.26.0` | `code` | Yes | Replace method-derived impact, semantics, and retry inference with explicit provider-owned operation classes. |
+| `cloud-sdk-reqwest` | `0.20.3` | `0.21.0` | `code` | Yes | Map every admitted known and extension method through blocking and async adapters with exact wire tests. |
+| `cloud-sdk-sanitization` | `0.15.0` | `0.15.1` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.33 facade line. |
+| `cloud-sdk-testkit` | `0.18.3` | `0.18.4` | `dependency` | Yes | Update the `cloud-sdk` dependency and prove exact extension-method matching. |
 
 ## Planned Milestone Ownership
 

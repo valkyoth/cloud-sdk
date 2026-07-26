@@ -1454,7 +1454,7 @@ Permanent pentest and release evidence remain bound to that commit.
 
 ### v0.32.0 - Extensible Provider And Service Identities
 
-Status: implementation complete; pentest required.
+Status: tagged 2026-07-26.
 
 Goal: remove closed Hetzner-shaped core taxonomies.
 
@@ -1496,13 +1496,49 @@ v0.32.0 implementation stop reached. Run pentest for this exact commit.
 
 ### v0.33.0 - Complete HTTP Method Domain
 
+Status: implementation complete; pentest required.
+
 Goal: support provider HTTP methods without repeated core changes.
 
-Deliverables: GET, POST, PUT, DELETE, PATCH, HEAD, and origin-form-only OPTIONS; bounded extension methods must be uppercase canonical tokens and must not alias known methods; CONNECT and TRACE are denied; `OPTIONS *`, protocol upgrade, and tunnelling require a separate future transport contract; safety classification remains operation-owned rather than method-inferred.
+Deliverables:
 
-Verification: casing/alias/token corpus, CONNECT/TRACE/OPTIONS-star/upgrade/tunnel rejection, operation migration, API review, and `scripts/release_0_33_gate.sh`.
+- Allocation-free GET, POST, PUT, DELETE, PATCH, HEAD, and origin-form-only
+  OPTIONS constants.
+- Static provider extension methods bounded to 32 bytes, restricted to
+  uppercase canonical HTTP token bytes, and prohibited from aliasing a known
+  method.
+- Explicit denial of CONNECT and TRACE.
+- Continued rejection of `OPTIONS *`; protocol upgrade and tunnelling remain
+  outside the transport contract and require a separately reviewed future
+  design.
+- Blocking and async reqwest mapping for every admitted method.
+- Hetzner operation impact, request semantics, and retry eligibility declared
+  by provider-owned operation classes rather than inferred from HTTP methods.
+- Migration guidance and public API/security review.
 
-Stop gate: `v0.33.0 implementation stop reached. Run pentest for this exact commit.`
+Verification:
+
+- Casing, known-alias, token-byte, empty, and exact length-boundary corpora.
+- CONNECT, TRACE, `OPTIONS *`, forged method, upgrade, and tunnel rejection
+  evidence.
+- Exact blocking and async wire tests for PATCH, HEAD, OPTIONS, and PURGE.
+- Testkit exact extension-method matching.
+- Complete Hetzner prepared-operation migration with preserved metadata tests.
+- Default, no_std, all-feature, docs, package, clippy, and MSRV checks.
+- `scripts/check_http_method_domain.sh`.
+- `scripts/release_0_33_gate.sh` after pentest evidence is committed.
+
+Exit criteria: every admitted method is canonical and bounded, no denied
+method or non-origin request target is constructible through safe public APIs,
+provider safety metadata has no method-derived helper, documentation and
+release metadata are synchronized, and the implementation commit is ready for
+independent security review.
+
+Stop gate:
+
+```text
+v0.33.0 implementation stop reached. Run pentest for this exact commit.
+```
 
 ### v0.34.0 - Endpoint Policy Algebra
 

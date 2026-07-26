@@ -41,6 +41,16 @@ pub(crate) enum ResponseProfile {
     NoContent,
 }
 
+/// Provider-owned operation safety and retry classification.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(crate) enum OperationClass {
+    ReadOnly,
+    IdempotentMutation,
+    NonIdempotentMutation,
+    IdempotentDestructive,
+    NonIdempotentDestructive,
+}
+
 pub(crate) trait EndpointWire: Copy {
     fn method(self) -> Method;
     fn api_base_url(self) -> ApiBaseUrl;
@@ -334,41 +344,90 @@ fn response_policy(profile: ResponseProfile) -> Result<ResponsePolicy, HetznerPr
         .map_err(HetznerPreparationError::InvalidResponsePolicy)
 }
 
-pub(crate) fn method_metadata(
-    method: Method,
-    destructive: bool,
+pub(crate) fn operation_metadata(
+    class: OperationClass,
     cost: CostIntent,
 ) -> Result<OperationMetadata, HetznerPreparationError> {
-    let (impact, semantics, retry) = match method {
-        Method::Get => (
+    let (impact, semantics, retry) = match class {
+        OperationClass::ReadOnly => (
             OperationImpact::ReadOnly,
             RequestSemantics::Safe,
             RetryEligibility::ExplicitPolicy,
         ),
-        Method::Put => (
-            if destructive {
-                OperationImpact::Destructive
-            } else {
-                OperationImpact::Mutation
-            },
+        OperationClass::IdempotentMutation => (
+            OperationImpact::Mutation,
             RequestSemantics::Idempotent,
             RetryEligibility::ExplicitPolicy,
         ),
-        Method::Delete => (
+        OperationClass::NonIdempotentMutation => (
+            OperationImpact::Mutation,
+            RequestSemantics::NonIdempotent,
+            RetryEligibility::Never,
+        ),
+        OperationClass::IdempotentDestructive => (
             OperationImpact::Destructive,
             RequestSemantics::Idempotent,
             RetryEligibility::Never,
         ),
-        Method::Post => (
-            if destructive {
-                OperationImpact::Destructive
-            } else {
-                OperationImpact::Mutation
-            },
+        OperationClass::NonIdempotentDestructive => (
+            OperationImpact::Destructive,
             RequestSemantics::NonIdempotent,
             RetryEligibility::Never,
         ),
     };
     OperationMetadata::new(impact, semantics, retry, cost)
         .map_err(HetznerPreparationError::InvalidMetadata)
+}
+
+#[cfg(test)]
+mod tests {
+    use cloud_sdk::operation::{CostIntent, OperationImpact, RequestSemantics, RetryEligibility};
+
+    use super::{OperationClass, operation_metadata};
+
+    #[test]
+    fn operation_classes_own_impact_semantics_and_retry_policy() {
+        let cases = [
+            (
+                OperationClass::ReadOnly,
+                OperationImpact::ReadOnly,
+                RequestSemantics::Safe,
+                RetryEligibility::ExplicitPolicy,
+            ),
+            (
+                OperationClass::IdempotentMutation,
+                OperationImpact::Mutation,
+                RequestSemantics::Idempotent,
+                RetryEligibility::ExplicitPolicy,
+            ),
+            (
+                OperationClass::NonIdempotentMutation,
+                OperationImpact::Mutation,
+                RequestSemantics::NonIdempotent,
+                RetryEligibility::Never,
+            ),
+            (
+                OperationClass::IdempotentDestructive,
+                OperationImpact::Destructive,
+                RequestSemantics::Idempotent,
+                RetryEligibility::Never,
+            ),
+            (
+                OperationClass::NonIdempotentDestructive,
+                OperationImpact::Destructive,
+                RequestSemantics::NonIdempotent,
+                RetryEligibility::Never,
+            ),
+        ];
+
+        for (class, impact, semantics, retry) in cases {
+            let metadata = operation_metadata(class, CostIntent::NoKnownCost);
+            assert!(metadata.is_ok());
+            if let Ok(metadata) = metadata {
+                assert_eq!(metadata.impact(), impact);
+                assert_eq!(metadata.semantics(), semantics);
+                assert_eq!(metadata.retry_eligibility(), retry);
+            }
+        }
+    }
 }

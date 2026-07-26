@@ -29,6 +29,7 @@ use super::{BuildError, FipsTlsPolicy};
 use crate::test_server::spawn;
 
 mod lifecycle;
+mod method_domain;
 mod response_content_type;
 
 fn test_timeouts() -> Option<RequestTimeouts> {

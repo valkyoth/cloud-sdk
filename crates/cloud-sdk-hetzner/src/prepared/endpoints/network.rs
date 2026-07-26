@@ -17,6 +17,8 @@ use crate::cloud::networks::primary_ips::{
 };
 use crate::cloud::networks::resources::{NetworkEndpoint, NetworkListRequest};
 
+use crate::prepared::operation::OperationClass;
+
 use super::super::{RequestShape, ResponseProfile};
 
 endpoint_wire!(
@@ -39,8 +41,10 @@ endpoint_wire!(
         FirewallEndpoint::Delete(_) => "delete_firewall",
     },
     match endpoint {
-        FirewallEndpoint::Delete(_) => true,
-        _ => false,
+        FirewallEndpoint::List | FirewallEndpoint::Get(_) => OperationClass::ReadOnly,
+        FirewallEndpoint::Create => OperationClass::NonIdempotentMutation,
+        FirewallEndpoint::Update(_) => OperationClass::IdempotentMutation,
+        FirewallEndpoint::Delete(_) => OperationClass::IdempotentDestructive,
     },
     CostIntent::NoKnownCost
 );
@@ -74,10 +78,13 @@ endpoint_wire!(
         FirewallActionEndpoint::SetRules(_) => "set_firewall_rules",
     },
     match endpoint {
+        FirewallActionEndpoint::ListAll
+        | FirewallActionEndpoint::Get(_)
+        | FirewallActionEndpoint::ListForFirewall(_) => OperationClass::ReadOnly,
         FirewallActionEndpoint::RemoveFromResources(_) | FirewallActionEndpoint::SetRules(_) => {
-            true
+            OperationClass::NonIdempotentDestructive
         }
-        _ => false,
+        FirewallActionEndpoint::ApplyToResources(_) => OperationClass::NonIdempotentMutation,
     },
     CostIntent::NoKnownCost
 );
@@ -104,8 +111,12 @@ endpoint_wire!(
         LoadBalancerEndpoint::Metrics(_) => "get_load_balancer_metrics",
     },
     match endpoint {
-        LoadBalancerEndpoint::Delete(_) => true,
-        _ => false,
+        LoadBalancerEndpoint::List
+        | LoadBalancerEndpoint::Get(_)
+        | LoadBalancerEndpoint::Metrics(_) => OperationClass::ReadOnly,
+        LoadBalancerEndpoint::Create => OperationClass::NonIdempotentMutation,
+        LoadBalancerEndpoint::Update(_) => OperationClass::IdempotentMutation,
+        LoadBalancerEndpoint::Delete(_) => OperationClass::IdempotentDestructive,
     },
     match endpoint {
         LoadBalancerEndpoint::Create => CostIntent::MayIncurCost,
@@ -154,12 +165,17 @@ endpoint_wire!(
         LoadBalancerActionEndpoint::UpdateService(_) => "update_load_balancer_service",
     },
     match endpoint {
+        LoadBalancerActionEndpoint::ListAll
+        | LoadBalancerActionEndpoint::Get(_)
+        | LoadBalancerActionEndpoint::ListForLoadBalancer(_) => OperationClass::ReadOnly,
         LoadBalancerActionEndpoint::DeleteService(_)
             | LoadBalancerActionEndpoint::DetachFromNetwork(_)
             | LoadBalancerActionEndpoint::DisablePublicInterface(_)
             | LoadBalancerActionEndpoint::ChangeProtection(_)
-            | LoadBalancerActionEndpoint::RemoveTarget(_) => true,
-        _ => false,
+            | LoadBalancerActionEndpoint::RemoveTarget(_) => {
+                OperationClass::NonIdempotentDestructive
+            }
+        _ => OperationClass::NonIdempotentMutation,
     },
     match endpoint {
         LoadBalancerActionEndpoint::ChangeType(_) => CostIntent::MayIncurCost,
@@ -187,8 +203,10 @@ endpoint_wire!(
         NetworkEndpoint::Delete(_) => "delete_network",
     },
     match endpoint {
-        NetworkEndpoint::Delete(_) => true,
-        _ => false,
+        NetworkEndpoint::List | NetworkEndpoint::Get(_) => OperationClass::ReadOnly,
+        NetworkEndpoint::Create => OperationClass::NonIdempotentMutation,
+        NetworkEndpoint::Update(_) => OperationClass::IdempotentMutation,
+        NetworkEndpoint::Delete(_) => OperationClass::IdempotentDestructive,
     },
     CostIntent::NoKnownCost
 );
@@ -225,10 +243,17 @@ endpoint_wire!(
         NetworkActionEndpoint::DeleteSubnet(_) => "delete_network_subnet",
     },
     match endpoint {
+        NetworkActionEndpoint::ListAll
+        | NetworkActionEndpoint::Get(_)
+        | NetworkActionEndpoint::ListForNetwork(_) => OperationClass::ReadOnly,
         NetworkActionEndpoint::ChangeProtection(_)
             | NetworkActionEndpoint::DeleteRoute(_)
-            | NetworkActionEndpoint::DeleteSubnet(_) => true,
-        _ => false,
+            | NetworkActionEndpoint::DeleteSubnet(_) => {
+                OperationClass::NonIdempotentDestructive
+            }
+        NetworkActionEndpoint::AddRoute(_)
+        | NetworkActionEndpoint::AddSubnet(_)
+        | NetworkActionEndpoint::ChangeIpRange(_) => OperationClass::NonIdempotentMutation,
     },
     CostIntent::NoKnownCost
 );
@@ -253,8 +278,10 @@ endpoint_wire!(
         FloatingIpEndpoint::Delete(_) => "delete_floating_ip",
     },
     match endpoint {
-        FloatingIpEndpoint::Delete(_) => true,
-        _ => false,
+        FloatingIpEndpoint::List | FloatingIpEndpoint::Get(_) => OperationClass::ReadOnly,
+        FloatingIpEndpoint::Create => OperationClass::NonIdempotentMutation,
+        FloatingIpEndpoint::Update(_) => OperationClass::IdempotentMutation,
+        FloatingIpEndpoint::Delete(_) => OperationClass::IdempotentDestructive,
     },
     match endpoint {
         FloatingIpEndpoint::Create => CostIntent::MayIncurCost,
@@ -293,10 +320,15 @@ endpoint_wire!(
         FloatingIpActionEndpoint::Unassign(_) => "unassign_floating_ip",
     },
     match endpoint {
+        FloatingIpActionEndpoint::ListAll
+        | FloatingIpActionEndpoint::Get(_)
+        | FloatingIpActionEndpoint::ListForFloatingIp(_) => OperationClass::ReadOnly,
         FloatingIpActionEndpoint::ChangeProtection(_) | FloatingIpActionEndpoint::Unassign(_) => {
-            true
+            OperationClass::NonIdempotentDestructive
         }
-        _ => false,
+        FloatingIpActionEndpoint::Assign(_) | FloatingIpActionEndpoint::ChangeDnsPtr(_) => {
+            OperationClass::NonIdempotentMutation
+        }
     },
     CostIntent::NoKnownCost
 );
@@ -321,8 +353,10 @@ endpoint_wire!(
         PrimaryIpEndpoint::Delete(_) => "delete_primary_ip",
     },
     match endpoint {
-        PrimaryIpEndpoint::Delete(_) => true,
-        _ => false,
+        PrimaryIpEndpoint::List | PrimaryIpEndpoint::Get(_) => OperationClass::ReadOnly,
+        PrimaryIpEndpoint::Create => OperationClass::NonIdempotentMutation,
+        PrimaryIpEndpoint::Update(_) => OperationClass::IdempotentMutation,
+        PrimaryIpEndpoint::Delete(_) => OperationClass::IdempotentDestructive,
     },
     match endpoint {
         PrimaryIpEndpoint::Create => CostIntent::MayIncurCost,
@@ -362,10 +396,15 @@ endpoint_wire!(
         PrimaryIpActionEndpoint::Unassign(_) => "unassign_primary_ip",
     },
     match endpoint {
+        PrimaryIpActionEndpoint::ListAll
+        | PrimaryIpActionEndpoint::Get(_)
+        | PrimaryIpActionEndpoint::ListForPrimaryIp(_) => OperationClass::ReadOnly,
         PrimaryIpActionEndpoint::ChangeProtection(_) | PrimaryIpActionEndpoint::Unassign(_) => {
-            true
+            OperationClass::NonIdempotentDestructive
         }
-        _ => false,
+        PrimaryIpActionEndpoint::Assign(_) | PrimaryIpActionEndpoint::ChangeDnsPtr(_) => {
+            OperationClass::NonIdempotentMutation
+        }
     },
     CostIntent::NoKnownCost
 );

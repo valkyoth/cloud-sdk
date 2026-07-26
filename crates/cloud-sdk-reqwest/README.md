@@ -38,14 +38,18 @@ provider without adding transport dependencies to provider crates.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.32.0"
-cloud-sdk-reqwest = { version = "0.20.3", features = ["blocking-rustls"] }
+cloud-sdk = "0.33.0"
+cloud-sdk-reqwest = { version = "0.21.0", features = ["blocking-rustls"] }
 ```
 
 The examples use Hetzner as a concrete endpoint, but the adapter contains no
 provider-specific routing, authentication, or response logic.
 Response metadata changes from the previous release are listed in the
 [v0.29 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.29.0.md).
+The adapters transmit every method admitted by `cloud-sdk 0.33`, including
+bounded provider extensions. Method validation and migration details are in
+the
+[v0.33 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.33.0.md).
 
 ## Blocking Example
 
@@ -102,8 +106,8 @@ compiled into `webpki-roots`:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.32.0"
-cloud-sdk-reqwest = { version = "0.20.3", features = ["blocking-rustls-webpki-roots"] }
+cloud-sdk = "0.33.0"
+cloud-sdk-reqwest = { version = "0.21.0", features = ["blocking-rustls-webpki-roots"] }
 ```
 
 The blocking API is identical to the example above. The custom rustls client
@@ -119,8 +123,8 @@ Use the same blocking API with the dedicated feature:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.32.0"
-cloud-sdk-reqwest = { version = "0.20.3", features = ["blocking-rustls-fips"] }
+cloud-sdk = "0.33.0"
+cloud-sdk-reqwest = { version = "0.21.0", features = ["blocking-rustls-fips"] }
 rustls = "=0.23.42"
 ```
 

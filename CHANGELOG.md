@@ -1,6 +1,17 @@
 # Changelog
 
-## 0.32.0 - Unreleased
+## 0.33.0 - Unreleased
+
+- Replaced the closed HTTP method enum with bounded canonical known and
+  provider extension methods.
+- Added PATCH, HEAD, origin-form OPTIONS, and exact blocking/async adapter
+  mapping while denying CONNECT, TRACE, upgrade, and tunnelling modes.
+- Moved Hetzner impact, semantics, and retry classification to explicit
+  provider-owned operation classes.
+- Added method-domain, testkit, migration, public API review, and release-gate
+  evidence.
+
+## 0.32.0 - 2026-07-26
 
 - Replaced closed provider and API-family enums with bounded canonical
   `ProviderId` and `ServiceId` values.

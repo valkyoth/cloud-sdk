@@ -8,15 +8,15 @@ usable in `no_std` environments.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.32.0"
+cloud-sdk = "0.33.0"
 ```
 
 Provider-specific request models are separate dependencies. For Hetzner:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.32.0"
-cloud-sdk-hetzner = "0.25.0"
+cloud-sdk = "0.33.0"
+cloud-sdk-hetzner = "0.26.0"
 ```
 
 ## Build A Transport Request
@@ -34,6 +34,11 @@ let request = TransportRequest::new(Method::Get, target);
 assert_eq!(request.target().as_str(), "/servers?page=1");
 # Ok::<(), cloud_sdk::transport::RequestTargetError>(())
 ```
+
+Provider crates can use `Method::extension("PURGE")` for a finite static
+extension. Extensions are bounded uppercase HTTP tokens; known aliases,
+CONNECT, and TRACE are rejected. See
+[`MIGRATION_0.33.0.md`](MIGRATION_0.33.0.md).
 
 The complete compile-checked source is
 [`provider_neutral.rs`](../crates/cloud-sdk/examples/provider_neutral.rs). Run

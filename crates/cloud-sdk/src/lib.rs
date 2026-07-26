@@ -21,6 +21,7 @@ macro_rules! impl_static_error {
 pub mod action_polling;
 pub mod buffer;
 mod identity;
+mod method;
 pub mod operation;
 pub mod pagination;
 pub mod rate_limit;
@@ -30,36 +31,11 @@ pub use identity::{
     IdentityError, MAX_PROVIDER_ID_BYTES, MAX_SERVICE_ID_BYTES, ProviderId, ProviderMarker,
     ServiceId, ServiceMarker,
 };
-
-/// HTTP method for a provider operation.
-#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-pub enum Method {
-    /// GET request.
-    Get,
-    /// POST request.
-    Post,
-    /// PUT request.
-    Put,
-    /// DELETE request.
-    Delete,
-}
-
-impl Method {
-    /// Returns the HTTP method token.
-    #[must_use]
-    pub const fn as_str(self) -> &'static str {
-        match self {
-            Self::Get => "GET",
-            Self::Post => "POST",
-            Self::Put => "PUT",
-            Self::Delete => "DELETE",
-        }
-    }
-}
+pub use method::{MAX_METHOD_BYTES, Method, MethodError};
 
 #[cfg(test)]
 mod tests {
-    use super::{Method, ProviderId, ServiceId};
+    use super::{Method, MethodError, ProviderId, ServiceId};
     use crate::action_polling::ActionPollError;
     use crate::operation::{
         OperationMetadataError, PreparedExecutionError, ResponsePolicyError,
@@ -93,6 +69,7 @@ mod tests {
         assert_error::<ContentTypeError>();
         assert_error::<EndpointIdentityError>();
         assert_error::<RequestTargetError>();
+        assert_error::<MethodError>();
         assert_error::<ActionPollError<&'static str>>();
         assert_error::<OperationMetadataError>();
         assert_error::<ResponsePolicyError>();
@@ -107,6 +84,10 @@ mod tests {
             "transport endpoint identity is unbound",
         );
         assert_display(RequestTargetError::Empty, "request target is empty");
+        assert_display(
+            MethodError::DeniedMethod,
+            "HTTP method is denied by the transport contract",
+        );
         assert_display(
             OperationMetadataError::NonIdempotentRetry,
             "non-idempotent operation cannot be retry eligible",

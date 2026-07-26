@@ -32,7 +32,8 @@ EXPECTED = (
     (
         "End-to-end client",
         "Not available",
-        "`v0.41.0`, after provider-neutral contract hardening",
+        "`v0.69.0 - v0.73.0`, after provider-neutral contract hardening and "
+        "complete resource models",
     ),
 )
 

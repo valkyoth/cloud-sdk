@@ -9,7 +9,7 @@ use crate::cloud::catalog::{
 };
 use crate::request::ApiBaseUrl;
 
-use super::operation::method_metadata;
+use super::operation::{OperationClass, operation_metadata};
 use super::{HetznerPreparationError, HetznerPreparedOperation, RequestShape, ResponseProfile};
 
 impl crate::prepared::EndpointWire for ActionEndpoint {
@@ -38,7 +38,7 @@ impl crate::prepared::EndpointWire for ActionEndpoint {
     }
 
     fn metadata(self) -> Result<cloud_sdk::operation::OperationMetadata, HetznerPreparationError> {
-        method_metadata(self.method(), false, CostIntent::NoKnownCost)
+        operation_metadata(OperationClass::ReadOnly, CostIntent::NoKnownCost)
     }
 
     fn operation_key(self) -> &'static str {
@@ -105,7 +105,7 @@ impl crate::prepared::EndpointWire for CatalogListEndpoint {
     }
 
     fn metadata(self) -> Result<cloud_sdk::operation::OperationMetadata, HetznerPreparationError> {
-        method_metadata(Method::Get, false, CostIntent::NoKnownCost)
+        operation_metadata(OperationClass::ReadOnly, CostIntent::NoKnownCost)
     }
 
     fn operation_key(self) -> &'static str {
@@ -142,7 +142,7 @@ impl crate::prepared::EndpointWire for CatalogGetEndpoint {
     }
 
     fn metadata(self) -> Result<cloud_sdk::operation::OperationMetadata, HetznerPreparationError> {
-        method_metadata(Method::Get, false, CostIntent::NoKnownCost)
+        operation_metadata(OperationClass::ReadOnly, CostIntent::NoKnownCost)
     }
 
     fn operation_key(self) -> &'static str {
@@ -179,7 +179,7 @@ impl crate::prepared::EndpointWire for CatalogSingletonEndpoint {
     }
 
     fn metadata(self) -> Result<cloud_sdk::operation::OperationMetadata, HetznerPreparationError> {
-        method_metadata(Method::Get, false, CostIntent::NoKnownCost)
+        operation_metadata(OperationClass::ReadOnly, CostIntent::NoKnownCost)
     }
 
     fn operation_key(self) -> &'static str {
@@ -246,7 +246,7 @@ macro_rules! endpoint_wire {
         match $key_value:ident {
             $($key_pattern:pat => $key:literal),+ $(,)?
         },
-        $destructive:expr,
+        $class:expr,
         $cost:expr
     ) => {
         impl crate::prepared::EndpointWire for $type {
@@ -283,7 +283,7 @@ macro_rules! endpoint_wire {
             {
                 let $value = self;
                 let _ = $value;
-                crate::prepared::operation::method_metadata(self.method(), $destructive, $cost)
+                crate::prepared::operation::operation_metadata($class, $cost)
             }
 
             fn operation_key(self) -> &'static str {

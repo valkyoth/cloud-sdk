@@ -2,6 +2,7 @@
 
 use cloud_sdk::operation::{CostIntent, PreparationStorage, PrepareOperation, PreparedRequest};
 
+use crate::prepared::operation::OperationClass;
 use crate::storage::storage_boxes::{
     StorageBoxActionEndpoint, StorageBoxActionListRequest, StorageBoxEndpoint,
     StorageBoxListRequest, StorageBoxSnapshotEndpoint, StorageBoxSnapshotListRequest,
@@ -35,8 +36,12 @@ endpoint_wire!(
         StorageBoxEndpoint::ListFolders(_) => "list_storage_box_folders",
     },
     match endpoint {
-        StorageBoxEndpoint::Delete(_) => true,
-        _ => false,
+        StorageBoxEndpoint::List
+        | StorageBoxEndpoint::Get(_)
+        | StorageBoxEndpoint::ListFolders(_) => OperationClass::ReadOnly,
+        StorageBoxEndpoint::Create => OperationClass::NonIdempotentMutation,
+        StorageBoxEndpoint::Update(_) => OperationClass::IdempotentMutation,
+        StorageBoxEndpoint::Delete(_) => OperationClass::IdempotentDestructive,
     },
     match endpoint {
         StorageBoxEndpoint::Create => CostIntent::MayIncurCost,
@@ -60,7 +65,7 @@ endpoint_wire!(
         StorageBoxTypeEndpoint::List => "list_storage_box_types",
         StorageBoxTypeEndpoint::Get(_) => "get_storage_box_type",
     },
-    false,
+    OperationClass::ReadOnly,
     CostIntent::NoKnownCost
 );
 
@@ -98,11 +103,20 @@ endpoint_wire!(
         StorageBoxActionEndpoint::UpdateAccessSettings(_) => "update_storage_box_access_settings",
     },
     match endpoint {
+        StorageBoxActionEndpoint::ListAll
+        | StorageBoxActionEndpoint::Get(_)
+        | StorageBoxActionEndpoint::ListForStorageBox(_) => OperationClass::ReadOnly,
         StorageBoxActionEndpoint::ChangeProtection(_)
             | StorageBoxActionEndpoint::DisableSnapshotPlan(_)
             | StorageBoxActionEndpoint::ResetPassword(_)
-            | StorageBoxActionEndpoint::RollbackSnapshot(_) => true,
-        _ => false,
+            | StorageBoxActionEndpoint::RollbackSnapshot(_) => {
+                OperationClass::NonIdempotentDestructive
+            }
+        StorageBoxActionEndpoint::ChangeType(_)
+        | StorageBoxActionEndpoint::EnableSnapshotPlan(_)
+        | StorageBoxActionEndpoint::UpdateAccessSettings(_) => {
+            OperationClass::NonIdempotentMutation
+        }
     },
     match endpoint {
         StorageBoxActionEndpoint::ChangeType(_) => CostIntent::MayIncurCost,
@@ -164,8 +178,12 @@ endpoint_wire!(
         StorageBoxSnapshotEndpoint::Delete(_, _) => "delete_storage_box_snapshot",
     },
     match endpoint {
-        StorageBoxSnapshotEndpoint::Delete(_, _) => true,
-        _ => false,
+        StorageBoxSnapshotEndpoint::List(_) | StorageBoxSnapshotEndpoint::Get(_, _) => {
+            OperationClass::ReadOnly
+        }
+        StorageBoxSnapshotEndpoint::Create(_) => OperationClass::NonIdempotentMutation,
+        StorageBoxSnapshotEndpoint::Update(_, _) => OperationClass::IdempotentMutation,
+        StorageBoxSnapshotEndpoint::Delete(_, _) => OperationClass::IdempotentDestructive,
     },
     CostIntent::NoKnownCost
 );
@@ -205,8 +223,12 @@ endpoint_wire!(
         StorageBoxSubaccountEndpoint::Delete(_, _) => "delete_storage_box_subaccount",
     },
     match endpoint {
-        StorageBoxSubaccountEndpoint::Delete(_, _) => true,
-        _ => false,
+        StorageBoxSubaccountEndpoint::List(_) | StorageBoxSubaccountEndpoint::Get(_, _) => {
+            OperationClass::ReadOnly
+        }
+        StorageBoxSubaccountEndpoint::Create(_) => OperationClass::NonIdempotentMutation,
+        StorageBoxSubaccountEndpoint::Update(_, _) => OperationClass::IdempotentMutation,
+        StorageBoxSubaccountEndpoint::Delete(_, _) => OperationClass::IdempotentDestructive,
     },
     CostIntent::NoKnownCost
 );
@@ -232,8 +254,13 @@ endpoint_wire!(
         StorageBoxSubaccountActionEndpoint::UpdateAccessSettings(_, _) => "update_storage_box_subaccount_access_settings",
     },
     match endpoint {
-        StorageBoxSubaccountActionEndpoint::ResetPassword(_, _) => true,
-        _ => false,
+        StorageBoxSubaccountActionEndpoint::ResetPassword(_, _) => {
+            OperationClass::NonIdempotentDestructive
+        }
+        StorageBoxSubaccountActionEndpoint::ChangeHomeDirectory(_, _)
+        | StorageBoxSubaccountActionEndpoint::UpdateAccessSettings(_, _) => {
+            OperationClass::NonIdempotentMutation
+        }
     },
     CostIntent::NoKnownCost
 );
