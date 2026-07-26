@@ -45,9 +45,13 @@ impl core::error::Error for OfficialEndpointError {
 pub fn official_endpoint_policy(
     expected: ApiBaseUrl,
 ) -> Result<EndpointPolicy<'static>, OfficialEndpointError> {
-    parse_official_endpoint(expected.as_str())
-        .map(EndpointPolicy::fixed)
-        .ok_or(OfficialEndpointError::InvalidOfficialEndpoint)
+    official_endpoint_identity(expected).map(EndpointPolicy::fixed)
+}
+
+pub(crate) fn official_endpoint_identity(
+    expected: ApiBaseUrl,
+) -> Result<EndpointIdentity<'static>, OfficialEndpointError> {
+    parse_official_endpoint(expected.as_str()).ok_or(OfficialEndpointError::InvalidOfficialEndpoint)
 }
 
 /// Verifies that a credential-bound transport exactly matches an official API endpoint.
@@ -76,10 +80,8 @@ pub fn verify_any_official_endpoint(
     let identity = transport
         .endpoint_identity()
         .map_err(OfficialEndpointError::InvalidIdentity)?;
-    let cloud = parse_official_endpoint(ApiBaseUrl::CloudV1.as_str())
-        .ok_or(OfficialEndpointError::InvalidOfficialEndpoint)?;
-    let storage = parse_official_endpoint(ApiBaseUrl::HetznerV1.as_str())
-        .ok_or(OfficialEndpointError::InvalidOfficialEndpoint)?;
+    let cloud = official_endpoint_identity(ApiBaseUrl::CloudV1)?;
+    let storage = official_endpoint_identity(ApiBaseUrl::HetznerV1)?;
     let official = [cloud, storage];
     EndpointPolicy::official_set(&official)
         .map_err(map_policy_error)?

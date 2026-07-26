@@ -34,7 +34,16 @@ labels, unbracketed IPv6, and ambiguous ports fail closed.
 The reqwest adapter validates the raw authority before `url` parsing. This
 prevents WHATWG URL normalization from silently converting Unicode, percent
 escapes, case, trailing dots, unusual IPv4, or IPv6 text before trust policy is
-applied. Redirects remain disabled and response origins remain checked.
+applied. It also bounds the complete raw endpoint before allocation, validates
+the raw base path as printable canonical ASCII, and requires the parsed path
+to equal those exact configured bytes. Backslashes, controls, whitespace,
+non-ASCII bytes, percent escapes, repeated slashes, and dot segments fail
+before URL normalization. Redirects remain disabled and response origins
+remain checked.
+
+Hetzner prepared services obtain their fixed policies from
+`official_endpoint_policy`; the public verifier, finite diagnostic set, and
+prepared execution therefore share one source of official endpoint identity.
 
 ## Open Provider Model
 

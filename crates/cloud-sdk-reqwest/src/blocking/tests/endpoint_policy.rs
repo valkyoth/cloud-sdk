@@ -1,6 +1,9 @@
-use cloud_sdk::transport::{EndpointIdentity, EndpointPolicy, EndpointScheme, RequestTarget};
+use cloud_sdk::transport::{
+    EndpointIdentity, EndpointPolicy, EndpointScheme, MAX_ENDPOINT_BASE_PATH_BYTES, RequestTarget,
+};
 
 use super::{EndpointError, HttpsEndpoint, custom_endpoint};
+use crate::blocking::MAX_CONFIGURED_ENDPOINT_BYTES;
 
 #[test]
 fn endpoints_reject_authority_and_normalization_ambiguity() {
@@ -31,12 +34,37 @@ fn endpoints_reject_authority_and_normalization_ambiguity() {
         "https://api.example.test/v1/../admin",
         "https://api.example.test/%76%31",
         "https://api.example.test/v1//admin",
+        "https://api.example.test/v1\\admin",
+        "https://api.example.test/v1\tadmin",
+        "https://api.example.test/v1\nadmin",
+        "https://api.example.test/v1\radmin",
+        "https://api.example.test/v1 admin",
+        "https://api.example.test/v1\u{007f}admin",
+        "https://api.example.test/v1\u{00e4}admin",
     ] {
         assert!(matches!(
             custom_endpoint(endpoint),
             Err(EndpointError::IdentityRejected)
         ));
     }
+    let oversized = "x".repeat(MAX_CONFIGURED_ENDPOINT_BYTES + 1);
+    assert!(matches!(
+        custom_endpoint(&oversized),
+        Err(EndpointError::InputTooLong)
+    ));
+    let maximum_path = std::format!(
+        "https://api.example.test/{}",
+        "a".repeat(MAX_ENDPOINT_BASE_PATH_BYTES - 1)
+    );
+    assert!(custom_endpoint(&maximum_path).is_ok());
+    let oversized_path = std::format!(
+        "https://api.example.test/{}",
+        "a".repeat(MAX_ENDPOINT_BASE_PATH_BYTES)
+    );
+    assert!(matches!(
+        custom_endpoint(&oversized_path),
+        Err(EndpointError::IdentityRejected)
+    ));
     for endpoint in [
         "https://API.example.test/v1",
         "https://api.example.test./v1",

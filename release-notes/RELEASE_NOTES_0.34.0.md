@@ -21,11 +21,15 @@ trusted-operator acknowledgement before constructing a credential endpoint.
 - Compared IPv6 by parsed address bits and rejected zone identifiers.
 - Rejected userinfo, trailing DNS dots, percent-encoded hosts, Unicode host
   input, uppercase DNS, ambiguous IPv4, and non-canonical ports.
+- Bounded raw endpoint input before URL parsing and rejected any base-path
+  bytes that the URL parser could normalize or remove.
 - Kept DNS resolution and egress filtering outside provider-neutral core.
 
 ## Provider And Adapter Migration
 
 - Added exact fixed Hetzner Cloud and Console Storage policies.
+- Routed prepared operations and diagnostic verification through the same
+  canonical Hetzner endpoint identity constructor.
 - Added a bounded two-endpoint Hetzner diagnostic policy.
 - Added `HttpsEndpoint::new_with_policy`.
 - Changed `new_custom` to require

@@ -3,7 +3,9 @@
 use cloud_sdk::operation::{
     OperationIdError, OperationMetadataError, ResponsePolicyValidationError,
 };
-use cloud_sdk::transport::{EndpointIdentityError, RequestTargetError};
+use cloud_sdk::transport::RequestTargetError;
+
+use crate::endpoint::OfficialEndpointError;
 
 /// Failure while producing a complete Hetzner transport request.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -29,7 +31,7 @@ pub enum HetznerPreparationError {
     /// The complete origin-form target failed provider-neutral validation.
     InvalidTarget(RequestTargetError),
     /// The canonical official endpoint identity was invalid.
-    InvalidOfficialEndpoint(EndpointIdentityError),
+    InvalidOfficialEndpoint(OfficialEndpointError),
     /// Source-locked operation metadata was internally inconsistent.
     InvalidMetadata(OperationMetadataError),
     /// Source-locked response policy was internally inconsistent.

@@ -8,11 +8,9 @@ use cloud_sdk::operation::{
     PreparationStorage, PrepareOperation, PreparedRequest, ProviderService, RequestSemantics,
     ResponseBodyPolicy, ResponsePolicy, RetryEligibility,
 };
-use cloud_sdk::transport::{
-    ContentType, EndpointIdentity, EndpointPolicy, EndpointScheme, MediaType, RequestTarget,
-    StatusCode, TransportRequest,
-};
+use cloud_sdk::transport::{ContentType, MediaType, RequestTarget, StatusCode, TransportRequest};
 
+use crate::endpoint::official_endpoint_policy;
 use crate::identity::{CloudService, StorageService};
 use crate::request::ApiBaseUrl;
 
@@ -307,13 +305,8 @@ where
 }
 
 fn provider_service(base: ApiBaseUrl) -> Result<ProviderService<'static>, HetznerPreparationError> {
-    let host = match base {
-        ApiBaseUrl::CloudV1 => "api.hetzner.cloud",
-        ApiBaseUrl::HetznerV1 => "api.hetzner.com",
-    };
-    let endpoint = EndpointIdentity::new(EndpointScheme::Https, host, 443, "/v1")
-        .map_err(HetznerPreparationError::InvalidOfficialEndpoint)?;
-    let policy = EndpointPolicy::fixed(endpoint);
+    let policy =
+        official_endpoint_policy(base).map_err(HetznerPreparationError::InvalidOfficialEndpoint)?;
     Ok(match base {
         ApiBaseUrl::CloudV1 => ProviderService::from_marker::<CloudService>(policy),
         ApiBaseUrl::HetznerV1 => ProviderService::from_marker::<StorageService>(policy),
@@ -384,7 +377,21 @@ pub(crate) fn operation_metadata(
 mod tests {
     use cloud_sdk::operation::{CostIntent, OperationImpact, RequestSemantics, RetryEligibility};
 
-    use super::{OperationClass, operation_metadata};
+    use super::{OperationClass, operation_metadata, provider_service};
+    use crate::endpoint::official_endpoint_policy;
+    use crate::request::ApiBaseUrl;
+
+    #[test]
+    fn prepared_services_use_the_canonical_official_policies() {
+        for base in [ApiBaseUrl::CloudV1, ApiBaseUrl::HetznerV1] {
+            let service = provider_service(base);
+            let official = official_endpoint_policy(base);
+            assert!(service.is_ok() && official.is_ok());
+            if let (Ok(service), Ok(official)) = (service, official) {
+                assert_eq!(service.endpoint_policy(), official);
+            }
+        }
+    }
 
     #[test]
     fn operation_classes_own_impact_semantics_and_retry_policy() {

@@ -26,7 +26,7 @@ pub use config::{MAX_TIMEOUT_SECONDS, RequestTimeouts, TimeoutError, UserAgent, 
 pub(crate) use content_type::parse_response_content_type;
 pub(crate) use credentials::CredentialStore;
 pub use credentials::{CredentialStateError, TokenRotationError};
-pub use endpoint::{EndpointError, HttpsEndpoint};
+pub use endpoint::{EndpointError, HttpsEndpoint, MAX_CONFIGURED_ENDPOINT_BYTES};
 pub use error::{BuildError, TransportError};
 pub(crate) use rate_limit::parse_rate_limit;
 
@@ -63,6 +63,10 @@ mod error_tests {
         assert_eq!(
             EndpointError::InvalidUrl.to_string(),
             "endpoint URL is invalid"
+        );
+        assert_eq!(
+            EndpointError::InputTooLong.to_string(),
+            "endpoint input exceeds the length limit"
         );
         assert_eq!(TimeoutError::Zero.to_string(), "timeout must be nonzero");
         assert_eq!(TransportError::RequestFailed.to_string(), "request failed");

@@ -6,12 +6,22 @@ use std::string::ToString;
 
 use cloud_sdk::transport::{
     AcknowledgedCustomEndpoint, CustomEndpointAcknowledgement, EndpointIdentity,
-    EndpointIdentityError, EndpointPolicy, EndpointScheme, RequestTarget,
+    EndpointIdentityError, EndpointPolicy, EndpointScheme, MAX_ENDPOINT_BASE_PATH_BYTES,
+    MAX_ENDPOINT_HOST_BYTES, RequestTarget,
 };
+
+/// Maximum endpoint input accepted before URL parsing or allocation.
+///
+/// This covers `https://`, a maximum-length host, `:65535`, and a
+/// maximum-length base path.
+pub const MAX_CONFIGURED_ENDPOINT_BYTES: usize =
+    "https://".len() + MAX_ENDPOINT_HOST_BYTES + 1 + 5 + MAX_ENDPOINT_BASE_PATH_BYTES;
 
 /// HTTPS endpoint validation or target-composition error.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum EndpointError {
+    /// The raw endpoint exceeds [`MAX_CONFIGURED_ENDPOINT_BYTES`].
+    InputTooLong,
     /// The endpoint is not a valid absolute URL.
     InvalidUrl,
     /// Public endpoints must use HTTPS.
@@ -41,6 +51,7 @@ pub enum EndpointError {
 }
 
 impl_static_error!(EndpointError,
+    Self::InputTooLong => "endpoint input exceeds the length limit",
     Self::InvalidUrl => "endpoint URL is invalid",
     Self::HttpsRequired => "endpoint must use HTTPS",
     Self::MissingHost => "endpoint host is missing",
@@ -115,9 +126,15 @@ impl HttpsEndpoint {
     }
 
     fn new_inner(value: &str, require_https: bool) -> Result<Self, EndpointError> {
+        if value.len() > MAX_CONFIGURED_ENDPOINT_BYTES {
+            return Err(EndpointError::InputTooLong);
+        }
         validate_raw_authority(value)?;
-        validate_configured_base_path(value)?;
+        let configured_path = validate_configured_base_path(value)?;
         let base = Url::parse(value).map_err(|_| EndpointError::InvalidUrl)?;
+        if base.path() != configured_path {
+            return Err(EndpointError::TargetNormalized);
+        }
         if require_https && base.scheme() != "https" {
             return Err(EndpointError::HttpsRequired);
         }
@@ -283,22 +300,32 @@ fn split_host_port(authority: &str) -> Result<(&str, Option<&str>), EndpointErro
     })
 }
 
-fn validate_configured_base_path(value: &str) -> Result<(), EndpointError> {
-    let Some((_, authority_and_path)) = value.split_once("://") else {
-        return Ok(());
+fn validate_configured_base_path(value: &str) -> Result<&str, EndpointError> {
+    let (_, authority_and_path) = value.split_once("://").ok_or(EndpointError::InvalidUrl)?;
+    let suffix_start = authority_and_path
+        .find(['/', '?', '#'])
+        .unwrap_or(authority_and_path.len());
+    let suffix = authority_and_path
+        .get(suffix_start..)
+        .ok_or(EndpointError::IdentityRejected)?;
+    let path = if suffix.starts_with('/') {
+        let path_end = suffix.find(['?', '#']).unwrap_or(suffix.len());
+        suffix
+            .get(..path_end)
+            .ok_or(EndpointError::IdentityRejected)?
+    } else {
+        "/"
     };
-    let path = authority_and_path
-        .find('/')
-        .and_then(|position| authority_and_path.get(position..))
-        .unwrap_or("/");
-    let path = path.split(['?', '#']).next().unwrap_or(path);
-    if path.contains('%')
+    if path.len() > MAX_ENDPOINT_BASE_PATH_BYTES
         || path.contains("//")
         || path.split('/').any(|part| matches!(part, "." | ".."))
+        || !path
+            .bytes()
+            .all(|byte| byte.is_ascii_graphic() && !matches!(byte, b'\\' | b'%' | b'?' | b'#'))
     {
         return Err(EndpointError::IdentityRejected);
     }
-    Ok(())
+    Ok(path)
 }
 
 fn validate_target_encoding(target: &str) -> Result<(), EndpointError> {

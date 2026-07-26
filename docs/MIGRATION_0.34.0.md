@@ -108,6 +108,12 @@ by address bits, and cannot carry zone identifiers. Userinfo, Unicode hosts,
 percent-encoded hosts, unbracketed IPv6, ambiguous IPv4, uppercase DNS, and
 non-canonical port forms fail before URL normalization.
 
+`cloud-sdk-reqwest` bounds raw endpoint input with
+`MAX_CONFIGURED_ENDPOINT_BYTES` before invoking the allocating URL parser.
+Configured base paths must use printable canonical ASCII, and their parsed
+form must match the exact input. Backslashes, controls, whitespace, non-ASCII
+bytes, percent escapes, repeated slashes, and dot segments are rejected.
+
 This is an application-layer credential destination policy. Core performs no
 DNS resolution and no resolved-address or network-egress filtering. Apply
 those optional controls in the transport, resolver, firewall, sandbox, or

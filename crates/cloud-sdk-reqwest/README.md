@@ -56,6 +56,10 @@ regional policy. `new_custom` now requires
 `CustomEndpointAcknowledgement::trusted_operator_configuration()` so a custom
 bearer-token destination cannot be selected accidentally. See the
 [v0.34 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.34.0.md).
+Raw endpoint input is bounded by `MAX_CONFIGURED_ENDPOINT_BYTES` before URL
+parsing. Base paths must already be exact printable ASCII and cannot contain
+backslashes, percent escapes, controls, whitespace, non-ASCII bytes, repeated
+slashes, or dot segments.
 
 ## Blocking Example
 
