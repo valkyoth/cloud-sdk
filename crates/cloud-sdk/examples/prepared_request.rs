@@ -9,10 +9,25 @@ use cloud_sdk::transport::{
     EndpointIdentity, EndpointScheme, MediaType, RequestTarget, StatusCode,
 };
 use cloud_sdk::transport::{MAX_REQUEST_TARGET_BYTES, TransportRequest};
-use cloud_sdk::{ApiFamily, Method, Provider};
+use cloud_sdk::{
+    Method, ProviderId, ProviderMarker, ServiceId, ServiceMarker, provider_id, service_id,
+};
 
 static OK_STATUS: [StatusCode; 1] = [StatusCode::OK];
 static JSON_MEDIA: [MediaType<'static>; 1] = [MediaType::JSON];
+
+enum ExampleProvider {}
+
+impl ProviderMarker for ExampleProvider {
+    const ID: ProviderId = provider_id!("example");
+}
+
+enum ComputeService {}
+
+impl ServiceMarker for ComputeService {
+    type Provider = ExampleProvider;
+    const ID: ServiceId = service_id!("compute");
+}
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum PrepareError {
@@ -59,7 +74,7 @@ impl PrepareOperation for ListResources {
                 .map_err(|_| PrepareError::InvalidEndpoint)?;
         Ok(PreparedRequest::new(
             request,
-            ProviderService::new(Provider::Hetzner, ApiFamily::Cloud, endpoint),
+            ProviderService::from_marker::<ComputeService>(endpoint),
             metadata,
             response_policy,
         ))

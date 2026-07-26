@@ -3,7 +3,6 @@
 use alloc::vec::Vec;
 use core::fmt;
 
-use cloud_sdk::Provider;
 use cloud_sdk::operation::{PreparedRequest, ResponsePolicyError};
 use cloud_sdk::rate_limit::RateLimit;
 use cloud_sdk::transport::{MediaType, TransportResponse};
@@ -17,6 +16,7 @@ use super::models::{
 use super::strict_json;
 use super::strict_json::{Map, Value};
 use super::{MAX_SERDE_RESPONSE_BYTES, ResponseBytes, ResponseSizeError};
+use crate::identity::HETZNER_PROVIDER_ID;
 use crate::response::ApiErrorCode;
 
 /// Typed provider error returned by a checked operation response.
@@ -151,7 +151,7 @@ pub fn decode_response(
         .ok_or(HetznerDecodeError::MissingOperationId)?;
     let binding = find(operation.as_str()).ok_or(HetznerDecodeError::UnknownOperation)?;
     let service = prepared.service();
-    if service.provider() != Provider::Hetzner || service.family() != binding.family {
+    if service.provider_id() != HETZNER_PROVIDER_ID || service.service_id() != binding.service_id {
         return Err(HetznerDecodeError::ServiceMismatch);
     }
     if response.status().is_error() {

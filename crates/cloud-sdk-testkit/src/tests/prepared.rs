@@ -10,7 +10,9 @@ use cloud_sdk::transport::{
     ContentType, EndpointIdentity, EndpointIdentityError, EndpointScheme, MediaType, RequestTarget,
     StatusCode, TransportRequest,
 };
-use cloud_sdk::{ApiFamily, Method, Provider};
+use cloud_sdk::{
+    Method, ProviderId, ProviderMarker, ServiceId, ServiceMarker, provider_id, service_id,
+};
 
 use crate::{
     ExpectedRequest, FixtureBody, MockError, MockExchange, MockTransport, PreparedRequestRecord,
@@ -19,6 +21,19 @@ use crate::{
 
 static OK_STATUS: [StatusCode; 1] = [StatusCode::OK];
 static JSON_MEDIA: [MediaType<'static>; 1] = [MediaType::JSON];
+
+enum ExampleProvider {}
+
+impl ProviderMarker for ExampleProvider {
+    const ID: ProviderId = provider_id!("example");
+}
+
+enum ComputeService {}
+
+impl ServiceMarker for ComputeService {
+    type Provider = ExampleProvider;
+    const ID: ServiceId = service_id!("compute");
+}
 
 #[test]
 fn prepared_records_capture_policy_and_redact_request_values() {
@@ -30,8 +45,8 @@ fn prepared_records_capture_policy_and_redact_request_values() {
     assert_eq!(record.target_len(), 8);
     assert_eq!(record.body_len(), 2);
     assert!(record.has_request_content_type());
-    assert_eq!(record.service().provider(), Provider::Hetzner);
-    assert_eq!(record.service().family(), ApiFamily::Cloud);
+    assert_eq!(record.service().provider_id(), ExampleProvider::ID);
+    assert_eq!(record.service().service_id(), ComputeService::ID);
     assert_eq!(record.metadata().impact(), OperationImpact::Mutation);
     assert_eq!(
         record.metadata().retry_eligibility(),
@@ -255,7 +270,7 @@ fn prepared_request(max_body_bytes: usize) -> Result<PreparedRequest<'static>, (
     let endpoint = official_endpoint().map_err(|_| ())?;
     Ok(PreparedRequest::new(
         request,
-        ProviderService::new(Provider::Hetzner, ApiFamily::Cloud, endpoint),
+        ProviderService::from_marker::<ComputeService>(endpoint),
         metadata,
         response_policy,
     ))

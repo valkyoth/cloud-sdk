@@ -29,6 +29,7 @@ pub mod actions;
 pub mod cloud;
 pub mod dns;
 pub mod endpoint;
+pub mod identity;
 pub mod labels;
 pub mod pagination;
 pub mod prepared;
@@ -42,6 +43,10 @@ pub mod serde;
 pub mod storage;
 
 pub use endpoint::{ApiSurface, EndpointGroup, OfficialEndpointError, verify_official_endpoint};
+pub use identity::{
+    CLOUD_SERVICE_ID, CloudService, DNS_SERVICE_ID, DnsService, HETZNER_PROVIDER_ID, Hetzner,
+    SECURITY_SERVICE_ID, STORAGE_SERVICE_ID, SecurityService, StorageService,
+};
 pub use request::{CLOUD_API_BASE_URL, CLOUD_API_VERSION};
 
 #[cfg(test)]

@@ -2,6 +2,7 @@
 
 use core::marker::PhantomData;
 
+use cloud_sdk::Method;
 use cloud_sdk::operation::{
     ContentTypePolicy, CostIntent, OperationId, OperationImpact, OperationMetadata,
     PreparationStorage, PrepareOperation, PreparedRequest, ProviderService, RequestSemantics,
@@ -11,8 +12,8 @@ use cloud_sdk::transport::{
     ContentType, EndpointIdentity, EndpointScheme, MediaType, RequestTarget, StatusCode,
     TransportRequest,
 };
-use cloud_sdk::{ApiFamily, Method, Provider};
 
+use crate::identity::{CloudService, StorageService};
 use crate::request::ApiBaseUrl;
 
 use super::HetznerPreparationError;
@@ -296,13 +297,16 @@ where
 }
 
 fn provider_service(base: ApiBaseUrl) -> Result<ProviderService, HetznerPreparationError> {
-    let (family, host) = match base {
-        ApiBaseUrl::CloudV1 => (ApiFamily::Cloud, "api.hetzner.cloud"),
-        ApiBaseUrl::HetznerV1 => (ApiFamily::Storage, "api.hetzner.com"),
+    let host = match base {
+        ApiBaseUrl::CloudV1 => "api.hetzner.cloud",
+        ApiBaseUrl::HetznerV1 => "api.hetzner.com",
     };
     let endpoint = EndpointIdentity::new(EndpointScheme::Https, host, 443, "/v1")
         .map_err(HetznerPreparationError::InvalidOfficialEndpoint)?;
-    Ok(ProviderService::new(Provider::Hetzner, family, endpoint))
+    Ok(match base {
+        ApiBaseUrl::CloudV1 => ProviderService::from_marker::<CloudService>(endpoint),
+        ApiBaseUrl::HetznerV1 => ProviderService::from_marker::<StorageService>(endpoint),
+    })
 }
 
 fn response_policy(profile: ResponseProfile) -> Result<ResponsePolicy, HetznerPreparationError> {

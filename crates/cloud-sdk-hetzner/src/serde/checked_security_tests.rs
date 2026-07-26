@@ -2,12 +2,12 @@
 
 use alloc::string::String;
 
-use cloud_sdk::ApiFamily;
 use cloud_sdk::transport::StatusCode;
 
 use super::checked_tests::{prepared, response};
 use super::strict_json::MAX_JSON_NODES;
 use super::{HetznerDecodeError, HetznerSuccess, decode_response};
+use crate::identity::CLOUD_SERVICE_ID;
 
 #[test]
 fn rejects_aggregate_json_amplification_and_protects_failure_path_strings() {
@@ -26,7 +26,7 @@ fn rejects_aggregate_json_amplification_and_protects_failure_path_strings() {
     assert!(amplified.len() < 1_000_000);
     assert_eq!(
         decode_response(
-            prepared("get_server", ApiFamily::Cloud, StatusCode::OK),
+            prepared("get_server", CLOUD_SERVICE_ID, StatusCode::OK),
             response(StatusCode::OK, amplified.as_bytes()),
         ),
         Err(HetznerDecodeError::MalformedPayload)
@@ -38,7 +38,7 @@ fn rejects_aggregate_json_amplification_and_protects_failure_path_strings() {
     ] {
         assert_eq!(
             decode_response(
-                prepared("create_server", ApiFamily::Cloud, StatusCode::CREATED),
+                prepared("create_server", CLOUD_SERVICE_ID, StatusCode::CREATED),
                 response(StatusCode::CREATED, malformed),
             ),
             Err(HetznerDecodeError::MalformedPayload)
@@ -46,7 +46,7 @@ fn rejects_aggregate_json_amplification_and_protects_failure_path_strings() {
     }
     assert!(matches!(
         decode_response(
-            prepared("create_server", ApiFamily::Cloud, StatusCode::CREATED),
+            prepared("create_server", CLOUD_SERVICE_ID, StatusCode::CREATED),
             response(StatusCode::CREATED, br#"{"root_password":"temporary"}"#),
         ),
         Err(HetznerDecodeError::Model(_))
@@ -56,7 +56,7 @@ fn rejects_aggregate_json_amplification_and_protects_failure_path_strings() {
 #[test]
 fn escaped_provider_and_action_errors_remain_in_protected_models() -> Result<(), &'static str> {
     let provider = decode_response(
-        prepared("get_server", ApiFamily::Cloud, StatusCode::OK),
+        prepared("get_server", CLOUD_SERVICE_ID, StatusCode::OK),
         response(
             StatusCode::TOO_MANY_REQUESTS,
             br#"{"error":{"code":"invalid_input","message":"secret: \"\u2603\""}}"#,
@@ -73,7 +73,7 @@ fn escaped_provider_and_action_errors_remain_in_protected_models() -> Result<(),
 
     let action = br#"{"action":{"id":1,"command":"create_server","status":"error","progress":100,"started":"2026-07-16T00:00:00Z","finished":"2026-07-16T00:00:01Z","resources":[],"error":{"code":"action_failed","message":"secret: \"\u2603\""}}}"#;
     let decoded = decode_response(
-        prepared("get_action", ApiFamily::Cloud, StatusCode::OK),
+        prepared("get_action", CLOUD_SERVICE_ID, StatusCode::OK),
         response(StatusCode::OK, action),
     )
     .map_err(|_| "action response was not decoded")?;

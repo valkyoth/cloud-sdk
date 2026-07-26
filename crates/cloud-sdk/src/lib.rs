@@ -20,32 +20,16 @@ macro_rules! impl_static_error {
 
 pub mod action_polling;
 pub mod buffer;
+mod identity;
 pub mod operation;
 pub mod pagination;
 pub mod rate_limit;
 pub mod transport;
 
-/// Cloud provider namespace.
-#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-pub enum Provider {
-    /// Hetzner Cloud and DNS APIs.
-    Hetzner,
-}
-
-/// Provider API family.
-#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-pub enum ApiFamily {
-    /// Cloud infrastructure API.
-    Cloud,
-    /// DNS API.
-    Dns,
-    /// Security-related API resources.
-    Security,
-    /// Storage-related API resources.
-    Storage,
-    /// Provider-specific post-1.0 API surface.
-    Extended,
-}
+pub use identity::{
+    IdentityError, MAX_PROVIDER_ID_BYTES, MAX_SERVICE_ID_BYTES, ProviderId, ProviderMarker,
+    ServiceId, ServiceMarker,
+};
 
 /// HTTP method for a provider operation.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
@@ -75,7 +59,7 @@ impl Method {
 
 #[cfg(test)]
 mod tests {
-    use super::{ApiFamily, Method, Provider};
+    use super::{Method, ProviderId, ServiceId};
     use crate::action_polling::ActionPollError;
     use crate::operation::{
         OperationMetadataError, PreparedExecutionError, ResponsePolicyError,
@@ -88,8 +72,14 @@ mod tests {
 
     #[test]
     fn exposes_provider_neutral_domains() {
-        assert_eq!(Provider::Hetzner, Provider::Hetzner);
-        assert_eq!(ApiFamily::Cloud, ApiFamily::Cloud);
+        assert_eq!(
+            ProviderId::new("example").map(ProviderId::as_str),
+            Ok("example")
+        );
+        assert_eq!(
+            ServiceId::new("compute").map(ServiceId::as_str),
+            Ok("compute")
+        );
         assert_eq!(Method::Get, Method::Get);
         assert_eq!(Method::Post.as_str(), "POST");
     }

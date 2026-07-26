@@ -13,10 +13,25 @@ use crate::transport::{
     EndpointScheme, MediaType, RequestTarget, ResponseContentType, ResponseStorageSanitizer,
     StatusCode, TransportRequest, TransportResponse,
 };
-use crate::{ApiFamily, Method, Provider};
+use crate::{
+    Method, ProviderId, ProviderMarker, ServiceId, ServiceMarker, provider_id, service_id,
+};
 
 static OK_STATUS: [StatusCode; 1] = [StatusCode::OK];
 static JSON_MEDIA: [MediaType<'static>; 1] = [MediaType::JSON];
+
+enum ExampleProvider {}
+
+impl ProviderMarker for ExampleProvider {
+    const ID: ProviderId = provider_id!("example");
+}
+
+enum ComputeService {}
+
+impl ServiceMarker for ComputeService {
+    type Provider = ExampleProvider;
+    const ID: ServiceId = service_id!("compute");
+}
 
 #[test]
 fn operation_metadata_rejects_privilege_escalating_combinations() {
@@ -311,7 +326,7 @@ impl PrepareOperation for ExampleOperation {
         let endpoint = official_endpoint().map_err(|_| ExamplePrepareError::Invalid)?;
         Ok(PreparedRequest::new(
             request,
-            ProviderService::new(Provider::Hetzner, ApiFamily::Cloud, endpoint),
+            ProviderService::from_marker::<ComputeService>(endpoint),
             metadata,
             policy,
         ))

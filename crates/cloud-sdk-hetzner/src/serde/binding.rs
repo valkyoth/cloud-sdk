@@ -1,6 +1,8 @@
 //! Source-locked operation-to-response bindings.
 
-use cloud_sdk::ApiFamily;
+use cloud_sdk::ServiceId;
+
+use crate::identity::{CLOUD_SERVICE_ID, STORAGE_SERVICE_ID};
 
 const TABLE: &str = include_str!("response_operations.tsv");
 
@@ -22,7 +24,7 @@ pub(super) enum ResponseShape {
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub(super) struct ResponseBinding {
-    pub(super) family: ApiFamily,
+    pub(super) service_id: ServiceId,
     pub(super) status: u16,
     pub(super) shape: ResponseShape,
     pub(super) root: &'static str,
@@ -41,13 +43,13 @@ pub(super) fn find(operation_id: &str) -> Option<ResponseBinding> {
         if fields.next().is_some() || operation != operation_id {
             return None;
         }
-        let family = match api {
-            "cloud" => ApiFamily::Cloud,
-            "hetzner" => ApiFamily::Storage,
+        let service_id = match api {
+            "cloud" => CLOUD_SERVICE_ID,
+            "hetzner" => STORAGE_SERVICE_ID,
             _ => return None,
         };
         Some(ResponseBinding {
-            family,
+            service_id,
             status,
             shape,
             root,
@@ -77,7 +79,7 @@ fn parse_shape(value: &str) -> Option<ResponseShape> {
 #[cfg(test)]
 mod tests {
     use super::{ResponseShape, TABLE, find};
-    use cloud_sdk::ApiFamily;
+    use crate::identity::{CLOUD_SERVICE_ID, STORAGE_SERVICE_ID};
 
     #[test]
     fn table_has_one_parseable_binding_per_active_operation() {
@@ -96,7 +98,7 @@ mod tests {
         let server = find("get_server");
         assert!(server.is_some());
         let Some(server) = server else { return };
-        assert_eq!(server.family, ApiFamily::Cloud);
+        assert_eq!(server.service_id, CLOUD_SERVICE_ID);
         assert_eq!(server.status, 200);
         assert_eq!(server.shape, ResponseShape::Resource);
         assert_eq!(server.root, "server");
@@ -104,7 +106,7 @@ mod tests {
         let storage = find("list_storage_boxes");
         assert!(storage.is_some());
         let Some(storage) = storage else { return };
-        assert_eq!(storage.family, ApiFamily::Storage);
+        assert_eq!(storage.service_id, STORAGE_SERVICE_ID);
         assert_eq!(storage.shape, ResponseShape::ResourcePage);
     }
 }

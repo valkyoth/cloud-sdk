@@ -9,7 +9,7 @@ use crate::transport::{
     AsyncTransport, BlockingTransport, BoundTransport, EndpointIdentity, EndpointIdentityError,
     ResponseStorageSanitizer, TransportRequest,
 };
-use crate::{ApiFamily, Provider};
+use crate::{ProviderId, ProviderMarker, ServiceId, ServiceMarker};
 
 /// Caller-owned target and request-body storage supplied to preparation.
 pub struct PreparationStorage<'storage> {
@@ -74,36 +74,42 @@ pub trait PrepareOperation {
 /// Provider service and immutable expected endpoint identity.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct ProviderService {
-    provider: Provider,
-    family: ApiFamily,
+    provider_id: ProviderId,
+    service_id: ServiceId,
     endpoint: EndpointIdentity<'static>,
 }
 
 impl ProviderService {
-    /// Binds a provider API family to one normalized expected endpoint.
+    /// Binds validated provider and service IDs to one expected endpoint.
     #[must_use]
     pub const fn new(
-        provider: Provider,
-        family: ApiFamily,
+        provider_id: ProviderId,
+        service_id: ServiceId,
         endpoint: EndpointIdentity<'static>,
     ) -> Self {
         Self {
-            provider,
-            family,
+            provider_id,
+            service_id,
             endpoint,
         }
     }
 
-    /// Returns the provider namespace.
+    /// Binds a provider-owned service marker to one expected endpoint.
     #[must_use]
-    pub const fn provider(self) -> Provider {
-        self.provider
+    pub const fn from_marker<S: ServiceMarker>(endpoint: EndpointIdentity<'static>) -> Self {
+        Self::new(<S::Provider as ProviderMarker>::ID, S::ID, endpoint)
     }
 
-    /// Returns the provider API family.
+    /// Returns the canonical provider namespace.
     #[must_use]
-    pub const fn family(self) -> ApiFamily {
-        self.family
+    pub const fn provider_id(self) -> ProviderId {
+        self.provider_id
+    }
+
+    /// Returns the canonical provider-owned service namespace.
+    #[must_use]
+    pub const fn service_id(self) -> ServiceId {
+        self.service_id
     }
 
     /// Returns the immutable expected endpoint identity.
