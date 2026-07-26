@@ -1,8 +1,9 @@
 # cloud-sdk 0.32.0 Release Notes
 
-Status: implementation complete; pentest required before release.
+Status: release candidate; pentest, final retest, and local release checks
+passed. GitHub checks remain before tagging.
 
-Release date: unreleased
+Release date: 2026-07-26
 
 ## Overview
 
@@ -38,7 +39,8 @@ central registry.
 ## Verification
 
 - External-crate provider implementation with no core registry edit.
-- Compile-fail coverage for forged IDs and incomplete service ownership.
+- Compile-fail coverage for forged IDs, invalid macro literals inside function
+  bodies, and incomplete service ownership.
 - Identifier syntax and length boundary corpus.
 - Hetzner service mismatch regression coverage.
 - `scripts/check_provider_identities.sh`
@@ -70,8 +72,17 @@ central registry.
 
 See [`docs/MIGRATION_0.32.0.md`](../docs/MIGRATION_0.32.0.md).
 
+## Security Review
+
+The permanent PASS report binds the green final retest to the exact reviewed
+implementation commit. Review confirmed provider/service IDs remain routing
+metadata rather than endpoint trust, retained the explicit FIPS compliance
+boundary, and drove the identity literal macros to compile-time rejection
+inside function bodies instead of a possible runtime panic.
+
 ## Release Gate
 
 ```text
-v0.32.0 implementation stop reached. Run pentest for this exact commit.
+v0.32.0 pentest stop passed. Local release checks are green; wait for GitHub
+before tagging.
 ```

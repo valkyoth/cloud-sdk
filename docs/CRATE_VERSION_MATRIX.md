@@ -1,7 +1,8 @@
 # Crate Version Matrix
 
-Status: `v0.31.0` is tagged. `v0.32.0` implementation is in progress and
-starts the pre-1.0 provider-neutral architecture-hardening track.
+Status: `v0.31.0` is tagged. `v0.32.0` is a release candidate; pentest and
+final retest passed, and local release checks are green. GitHub checks remain
+before tagging.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
@@ -499,7 +500,7 @@ central registry edit.
 | --- | --- | --- | --- | --- | --- |
 | `cloud-sdk` | `0.31.0` | `0.32.0` | `code` | Yes | Add bounded provider/service IDs, open ownership markers, and marker-derived prepared-service binding. |
 | `cloud-sdk-hetzner` | `0.24.0` | `0.25.0` | `code` | Yes | Own Hetzner Cloud, DNS, security, and Console Storage identities and migrate preparation and decoding. |
-| `cloud-sdk-reqwest` | `0.20.2` | `0.20.3` | `dependency` | Yes | Adapt the stable wrapper API to sanitization 2.0.3 and update the cloud-sdk dependency. |
+| `cloud-sdk-reqwest` | `0.20.2` | `0.20.3` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.32 facade line. |
 | `cloud-sdk-sanitization` | `0.14.0` | `0.15.0` | `code` | Yes | Adapt the stable wrapper API to sanitization 2.0.3 and update the cloud-sdk dependency. |
 | `cloud-sdk-testkit` | `0.18.2` | `0.18.3` | `dependency` | Yes | Update the `cloud-sdk` dependency and identity assertions to the v0.32 facade line. |
 
