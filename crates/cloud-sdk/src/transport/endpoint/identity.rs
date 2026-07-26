@@ -3,7 +3,7 @@
 use core::cmp::Ordering;
 use core::fmt;
 use core::hash::{Hash, Hasher};
-use core::net::{Ipv4Addr, Ipv6Addr};
+use core::net::Ipv6Addr;
 use core::str::FromStr;
 
 /// Maximum normalized endpoint host length admitted by the core contract.
@@ -229,7 +229,7 @@ fn parse_ipv4(host: &str) -> Result<CanonicalHost<'_>, EndpointIdentityError> {
             .checked_add(1)
             .ok_or(EndpointIdentityError::InvalidHost)?;
     }
-    if count != octets.len() || Ipv4Addr::from(octets).octets() != octets {
+    if count != octets.len() {
         return Err(EndpointIdentityError::InvalidHost);
     }
     Ok(CanonicalHost::Ipv4(octets))
@@ -313,6 +313,14 @@ mod tests {
         assert!(
             EndpointIdentity::new(EndpointScheme::Https, "xn--tst-qla.example", 443, "/v1").is_ok()
         );
+        assert!(EndpointIdentity::new(EndpointScheme::Https, "127.0.0.1", 443, "/v1").is_ok());
+        for host in ["127.0.0.1.2", "256.0.0.1"] {
+            assert_eq!(
+                EndpointIdentity::new(EndpointScheme::Https, host, 443, "/v1"),
+                Err(EndpointIdentityError::InvalidHost),
+                "{host}"
+            );
+        }
     }
 
     #[test]
