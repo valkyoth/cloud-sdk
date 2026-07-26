@@ -1,8 +1,9 @@
 # cloud-sdk 0.34.0 Release Notes
 
-Status: implementation complete; exact-commit pentest required before release.
+Status: release candidate; pentest, final retest, and local release checks
+passed. GitHub checks remain required before tagging.
 
-Release date: unreleased
+Release date: 2026-07-26
 
 ## Overview
 
@@ -59,6 +60,20 @@ trusted-operator acknowledgement before constructing a credential endpoint.
 - Default, no_std, all-feature, clippy, doctest, package, deny, audit, and SBOM
   gates
 
+## Pentest
+
+The iterative v0.34 pentest identified three Low endpoint-hardening findings
+and one informational unreachable IPv4 parser guard. Raw configured paths now
+reject every byte class that the URL parser could normalize, complete endpoint
+input is bounded before allocation, and prepared Hetzner operations use the
+canonical provider-owned policy source. The final retest passed commit
+`54d522fbf3717ebeea26f4fe65e0894dd951ad01`.
+
+The optional exact composite boundary is also covered: a valid 253-byte host,
+port `65535`, and 1,024-byte path produce the admitted 1,291-byte maximum, while
+one additional byte fails with `InputTooLong`. See the
+[`v0.34.0` pentest report](../security/pentest/v0.34.0.md).
+
 ## Migration
 
 See [`docs/MIGRATION_0.34.0.md`](../docs/MIGRATION_0.34.0.md),
@@ -68,5 +83,6 @@ See [`docs/MIGRATION_0.34.0.md`](../docs/MIGRATION_0.34.0.md),
 ## Release Gate
 
 ```text
-v0.34.0 implementation stop reached. Run pentest for this exact commit.
+v0.34.0 pentest stop passed. Tag only after the clean local release gate and
+GitHub checks pass on the final release commit.
 ```

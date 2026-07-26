@@ -1,7 +1,8 @@
 # Crate Version Matrix
 
-Status: `v0.33.0` is tagged. `v0.34.0` endpoint-policy implementation is in
-progress and requires exact-commit pentest before release.
+Status: `v0.33.0` is tagged. `v0.34.0` endpoint-policy implementation,
+pentest, final retest, and local release checks are complete; GitHub checks
+remain before tagging.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared

@@ -1542,11 +1542,19 @@ v0.33.0 implementation stop reached. Run pentest for this exact commit.
 
 ### v0.34.0 - Endpoint Policy Algebra
 
+Status: implementation complete; pentest and final retest passed.
+
 Goal: make credential destinations provider-owned and explicit.
 
 Deliverables: fixed, finite official-set, region-derived, and acknowledged-custom endpoint policies with non-static identities and exact scheme/authority/port/base-path checks. Authority rules canonicalize bracketed IPv6 literals, reject IPv6 zone identifiers, trailing DNS dots, userinfo, percent-encoded hosts, and Unicode host input, and accept only canonical lowercase ASCII DNS/A-label IDNA. Resolved-address and egress filtering remain optional transport/environment policy, never DNS logic in core.
 
 Verification: SSRF, IPv6/zone/trailing-dot/userinfo/percent-host/IDNA normalization, redirect, credential binding, optional egress-hook isolation, compile-fail trust tests, and `scripts/release_0_34_gate.sh`.
+
+Exit criteria: every credential destination is admitted by a provider-owned
+policy or explicit trusted-operator acknowledgement; authority and base-path
+normalization cannot change policy identity; complete endpoint input is bounded
+before allocation; blocking, async, testkit, docs, and migration evidence agree;
+and the implementation commit has passed independent security review.
 
 Stop gate: `v0.34.0 implementation stop reached. Run pentest for this exact commit.`
 

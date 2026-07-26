@@ -8,8 +8,8 @@ and testkit records.
 
 ## Decision
 
-The v0.34 endpoint API is accepted for exact-commit pentest with these
-boundaries:
+The v0.34 endpoint API is accepted after exact-commit pentest and final retest
+with these boundaries:
 
 - `EndpointPolicy` is allocation-free, `no_std`, borrowed, and non-static.
 - Trust provenance is one fixed identity, a bounded finite official set, one
