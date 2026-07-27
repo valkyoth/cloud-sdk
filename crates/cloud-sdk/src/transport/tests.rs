@@ -1,6 +1,6 @@
 use super::{
-    ContentType, ContentTypeError, RequestTarget, RequestTargetError, ResponseContentType,
-    StatusCode, TransportRequest, TransportResponse,
+    ContentType, ContentTypeError, RequestPathError, RequestTarget, RequestTargetError,
+    ResponseContentType, StatusCode, TransportRequest, TransportResponse,
 };
 use crate::Method;
 use crate::rate_limit::RateLimit;
@@ -17,28 +17,31 @@ fn request_targets_are_origin_form_and_bounded() {
     assert_eq!(target.map(RequestTarget::as_str), Ok("/servers?page=2"));
     assert_eq!(
         RequestTarget::new("https://example.invalid/servers"),
-        Err(RequestTargetError::NotOriginForm)
+        Err(RequestTargetError::Path(RequestPathError::NotOriginForm))
     );
     assert_eq!(
         RequestTarget::new("//evil.example/steal"),
-        Err(RequestTargetError::NotOriginForm)
+        Err(RequestTargetError::Path(RequestPathError::NotOriginForm))
     );
     assert_eq!(
         RequestTarget::new("///evil.example/steal"),
-        Err(RequestTargetError::NotOriginForm)
+        Err(RequestTargetError::Path(RequestPathError::NotOriginForm))
     );
     assert_eq!(
         RequestTarget::new("/servers#fragment"),
-        Err(RequestTargetError::InvalidByte)
+        Err(RequestTargetError::Path(RequestPathError::InvalidByte))
     );
     assert_eq!(
         RequestTarget::new("/\\evil"),
-        Err(RequestTargetError::InvalidByte)
+        Err(RequestTargetError::Path(RequestPathError::InvalidByte))
     );
-    assert_eq!(RequestTarget::new(""), Err(RequestTargetError::Empty));
+    assert_eq!(
+        RequestTarget::new(""),
+        Err(RequestTargetError::Path(RequestPathError::Empty))
+    );
     assert_eq!(
         RequestTarget::new("/servers bad"),
-        Err(RequestTargetError::InvalidByte)
+        Err(RequestTargetError::Path(RequestPathError::InvalidByte))
     );
     let mut accepted = [b'a'; super::MAX_REQUEST_TARGET_BYTES];
     if let Some(first) = accepted.first_mut() {

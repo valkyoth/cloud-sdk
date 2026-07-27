@@ -140,21 +140,8 @@ fn endpoints_reject_authority_and_normalization_ambiguity() {
             Ok("https://api.example.test/v1/servers?name=test%20server")
         );
         for target in ["/%2e%2e/admin", "/x%2fy", "/x%5cevil", "/x%25%32%66"] {
-            let target = RequestTarget::new(target);
-            assert!(target.is_ok());
-            if let Ok(target) = target {
-                assert_eq!(
-                    endpoint.compose(target),
-                    Err(EndpointError::InvalidTargetEncoding)
-                );
-            }
+            assert!(RequestTarget::new(target).is_err());
         }
-        let parent = RequestTarget::new("/servers/../admin");
-        if let Ok(parent) = parent {
-            assert_eq!(
-                endpoint.compose(parent),
-                Err(EndpointError::TargetNormalized)
-            );
-        }
+        assert!(RequestTarget::new("/servers/../admin").is_err());
     }
 }

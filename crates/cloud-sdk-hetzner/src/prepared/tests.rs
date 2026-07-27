@@ -1,5 +1,7 @@
 use cloud_sdk::operation::{CostIntent, OperationImpact, PreparationStorage, PrepareOperation};
-use cloud_sdk::transport::{EndpointIdentity, EndpointScheme, StatusCode};
+use cloud_sdk::transport::{
+    CanonicalQuery, EndpointIdentity, EndpointScheme, RequestPath, RequestQuery, StatusCode,
+};
 
 use crate::actions::{ActionEndpoint, ActionId, ActionListRequest};
 use crate::cloud::catalog::{CatalogGetEndpoint, CatalogId};
@@ -45,6 +47,18 @@ fn prepares_global_actions_and_catalog_gets() {
     assert_eq!(
         prepared.transport_request().target().as_str(),
         "/actions?id=7"
+    );
+    assert_eq!(
+        prepared.transport_request().target().path(),
+        RequestPath::new("/actions").expect("canonical path")
+    );
+    assert_eq!(
+        prepared.transport_request().target().query(),
+        RequestQuery::Canonical(CanonicalQuery::new("id=7").expect("canonical query"))
+    );
+    assert_eq!(
+        prepared.transport_request().target().query_bytes(),
+        Some(b"id=7".as_slice())
     );
     assert_eq!(prepared.transport_request().body(), b"");
     assert_eq!(prepared.metadata().impact(), OperationImpact::ReadOnly);

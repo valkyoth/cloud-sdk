@@ -1,6 +1,7 @@
 //! Request-domain primitives shared by endpoint modules.
 
 pub use cloud_sdk::Method;
+use cloud_sdk::transport::{RequestPath, RequestPathError};
 
 /// Hetzner Cloud API base URL for the public v1 REST API.
 pub const CLOUD_API_BASE_URL: &str = "https://api.hetzner.cloud/v1";
@@ -52,6 +53,8 @@ pub enum EndpointPathError {
     AbsoluteUrl,
     /// Endpoint paths must not contain parent directory segments.
     ParentDirectorySegment,
+    /// Endpoint paths must satisfy the provider-neutral canonical grammar.
+    NonCanonical(RequestPathError),
 }
 
 impl_static_error!(EndpointPathError,
@@ -61,6 +64,7 @@ impl_static_error!(EndpointPathError,
     Self::InvalidByte => "endpoint path contains an invalid byte",
     Self::AbsoluteUrl => "endpoint path must not be an absolute URL",
     Self::ParentDirectorySegment => "endpoint path contains a parent-directory segment",
+    Self::NonCanonical(_) => "endpoint path is not canonical",
 );
 
 /// Borrowed, validated endpoint path.
@@ -90,6 +94,7 @@ impl<'a> EndpointPath<'a> {
         if has_parent_directory_segment(value) {
             return Err(EndpointPathError::ParentDirectorySegment);
         }
+        RequestPath::new(value).map_err(EndpointPathError::NonCanonical)?;
         Ok(Self { value })
     }
 

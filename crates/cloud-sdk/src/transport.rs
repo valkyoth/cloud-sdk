@@ -3,6 +3,7 @@
 mod asynchronous;
 mod content_type;
 mod endpoint;
+mod request_target;
 
 pub use asynchronous::AsyncTransport;
 pub use content_type::{
@@ -14,14 +15,16 @@ pub use endpoint::{
     MAX_ENDPOINT_BASE_PATH_BYTES, MAX_ENDPOINT_HOST_BYTES, MAX_ENDPOINT_REGION_BYTES,
     MAX_OFFICIAL_ENDPOINTS, RegionEndpoint,
 };
+pub use request_target::{
+    CanonicalQuery, FormQuery, MAX_REQUEST_TARGET_BYTES, QueryDialect, QueryPair, QueryPairs,
+    RequestPath, RequestPathError, RequestQuery, RequestTarget, RequestTargetError,
+    StructuredQueryError,
+};
 
 use core::fmt;
 
 use crate::Method;
 use crate::rate_limit::RateLimit;
-
-/// Maximum origin-form request-target length admitted by the core contract.
-pub const MAX_REQUEST_TARGET_BYTES: usize = 8192;
 
 /// Explicit cleanup contract for caller-owned response storage.
 ///
@@ -34,67 +37,6 @@ pub const MAX_REQUEST_TARGET_BYTES: usize = 8192;
 pub trait ResponseStorageSanitizer {
     /// Clears the complete caller-owned response buffer.
     fn sanitize_response_storage(&self, response_storage: &mut [u8]);
-}
-
-/// Request-target validation error.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum RequestTargetError {
-    /// Request targets must not be empty.
-    Empty,
-    /// Request targets must start with `/`.
-    NotOriginForm,
-    /// Request targets exceed [`MAX_REQUEST_TARGET_BYTES`].
-    TooLong,
-    /// Request targets contain a control, space, non-ASCII, fragment, or
-    /// backslash byte.
-    InvalidByte,
-}
-
-impl_static_error!(RequestTargetError,
-    Self::Empty => "request target is empty",
-    Self::NotOriginForm => "request target is not in origin form",
-    Self::TooLong => "request target exceeds the length limit",
-    Self::InvalidByte => "request target contains a forbidden byte",
-);
-
-/// Validated origin-form HTTP request target.
-#[derive(Clone, Copy, Eq, PartialEq)]
-pub struct RequestTarget<'a> {
-    value: &'a str,
-}
-
-impl<'a> RequestTarget<'a> {
-    /// Validates a `/path?query` request target.
-    pub fn new(value: &'a str) -> Result<Self, RequestTargetError> {
-        if value.is_empty() {
-            return Err(RequestTargetError::Empty);
-        }
-        if value.len() > MAX_REQUEST_TARGET_BYTES {
-            return Err(RequestTargetError::TooLong);
-        }
-        if !value.starts_with('/') || value.starts_with("//") {
-            return Err(RequestTargetError::NotOriginForm);
-        }
-        if !value
-            .bytes()
-            .all(|byte| byte.is_ascii_graphic() && byte != b'#' && byte != b'\\')
-        {
-            return Err(RequestTargetError::InvalidByte);
-        }
-        Ok(Self { value })
-    }
-
-    /// Returns the validated request target.
-    #[must_use]
-    pub const fn as_str(self) -> &'a str {
-        self.value
-    }
-}
-
-impl fmt::Debug for RequestTarget<'_> {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        formatter.write_str("RequestTarget([redacted])")
-    }
 }
 
 /// Provider-neutral request passed to a blocking transport.

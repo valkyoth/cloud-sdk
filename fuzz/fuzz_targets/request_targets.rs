@@ -1,6 +1,9 @@
 #![no_main]
 
-use cloud_sdk::{Method, transport::RequestTarget};
+use cloud_sdk::{
+    Method,
+    transport::{CanonicalQuery, FormQuery, RequestPath, RequestQuery, RequestTarget},
+};
 use cloud_sdk_hetzner::{
     query::{QueryBuilder, QueryParam, write_percent_encoded_component},
     request::EndpointPath,
@@ -25,6 +28,29 @@ fuzz_target!(|data: &[u8]| {
     if let Ok(target) = RequestTarget::new(path) {
         let request = cloud_sdk::transport::TransportRequest::new(Method::Get, target);
         assert_eq!(request.target().as_str(), path);
+        assert!(target.path().as_str().len() <= target.len());
+        assert_eq!(target.query_bytes(), target.query().as_str().map(str::as_bytes));
+    }
+
+    if let Ok(path) = RequestPath::new(path) {
+        for query in [
+            CanonicalQuery::new(value_a).map(RequestQuery::Canonical),
+            FormQuery::new(value_a).map(RequestQuery::Form),
+        ] {
+            let Ok(query) = query else {
+                continue;
+            };
+            let mut assembled = vec![0xA5_u8; data.len().min(16_384)];
+            let before = assembled.clone();
+            match RequestTarget::assemble(path, query, &mut assembled) {
+                Ok(target) => {
+                    assert_eq!(target.path(), path);
+                    assert_eq!(target.query(), query);
+                    assert_eq!(target.query_bytes(), query.as_str().map(str::as_bytes));
+                }
+                Err(_) => assert_eq!(assembled, before),
+            }
+        }
     }
 
     let mut builder = QueryBuilder::<4>::new();

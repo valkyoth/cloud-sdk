@@ -38,8 +38,6 @@ pub enum EndpointError {
     FragmentForbidden,
     /// Non-root endpoint paths must not end in `/`.
     TrailingSlash,
-    /// Target percent encoding is malformed or encodes structural path bytes.
-    InvalidTargetEncoding,
     /// URL parsing changed the exact configured base plus target bytes.
     TargetNormalized,
     /// Allocation failed during target composition.
@@ -60,7 +58,6 @@ impl_static_error!(EndpointError,
     Self::QueryForbidden => "endpoint query is forbidden",
     Self::FragmentForbidden => "endpoint fragment is forbidden",
     Self::TrailingSlash => "endpoint path has a forbidden trailing slash",
-    Self::InvalidTargetEncoding => "request target encoding is invalid",
     Self::TargetNormalized => "request target was normalized or changed origin",
     Self::AllocationFailed => "request-target allocation failed",
     Self::IdentityRejected => "endpoint identity is invalid",
@@ -184,7 +181,6 @@ impl HttpsEndpoint {
     }
 
     pub(crate) fn compose(&self, target: RequestTarget<'_>) -> Result<Url, EndpointError> {
-        validate_target_encoding(target.as_str())?;
         let mut absolute = self.prefix.clone();
         absolute
             .try_reserve_exact(target.as_str().len())
@@ -326,65 +322,4 @@ fn validate_configured_base_path(value: &str) -> Result<&str, EndpointError> {
         return Err(EndpointError::IdentityRejected);
     }
     Ok(path)
-}
-
-fn validate_target_encoding(target: &str) -> Result<(), EndpointError> {
-    let path_end = target.find('?').unwrap_or(target.len());
-    let bytes = target.as_bytes();
-    let mut index = 0_usize;
-    while index < bytes.len() {
-        if bytes.get(index) != Some(&b'%') {
-            index = index
-                .checked_add(1)
-                .ok_or(EndpointError::InvalidTargetEncoding)?;
-            continue;
-        }
-        let high = bytes
-            .get(
-                index
-                    .checked_add(1)
-                    .ok_or(EndpointError::InvalidTargetEncoding)?,
-            )
-            .and_then(|byte| decode_hex(*byte));
-        let low = bytes
-            .get(
-                index
-                    .checked_add(2)
-                    .ok_or(EndpointError::InvalidTargetEncoding)?,
-            )
-            .and_then(|byte| decode_hex(*byte));
-        let (Some(high), Some(low)) = (high, low) else {
-            return Err(EndpointError::InvalidTargetEncoding);
-        };
-        let decoded = high
-            .checked_mul(16)
-            .and_then(|value| value.checked_add(low))
-            .ok_or(EndpointError::InvalidTargetEncoding)?;
-        if index < path_end
-            && (decoded <= b' '
-                || decoded >= 0x7f
-                || matches!(decoded, b'.' | b'/' | b'\\' | b'?' | b'#' | b'%'))
-        {
-            return Err(EndpointError::InvalidTargetEncoding);
-        }
-        index = index
-            .checked_add(3)
-            .ok_or(EndpointError::InvalidTargetEncoding)?;
-    }
-    Ok(())
-}
-
-const fn decode_hex(byte: u8) -> Option<u8> {
-    match byte {
-        b'0'..=b'9' => byte.checked_sub(b'0'),
-        b'a'..=b'f' => match byte.checked_sub(b'a') {
-            Some(value) => value.checked_add(10),
-            None => None,
-        },
-        b'A'..=b'F' => match byte.checked_sub(b'A') {
-            Some(value) => value.checked_add(10),
-            None => None,
-        },
-        _ => None,
-    }
 }

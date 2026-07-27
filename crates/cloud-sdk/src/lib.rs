@@ -43,7 +43,9 @@ mod tests {
     };
     use crate::pagination::PaginationError;
     use crate::rate_limit::RateLimitError;
-    use crate::transport::{ContentTypeError, EndpointIdentityError, RequestTargetError};
+    use crate::transport::{
+        ContentTypeError, EndpointIdentityError, RequestPathError, RequestTargetError,
+    };
     use core::fmt::{self, Write};
 
     #[test]
@@ -83,7 +85,10 @@ mod tests {
             EndpointIdentityError::UnboundTransport,
             "transport endpoint identity is unbound",
         );
-        assert_display(RequestTargetError::Empty, "request target is empty");
+        assert_display(
+            RequestTargetError::Path(RequestPathError::Empty),
+            "invalid request path: request path is empty",
+        );
         assert_display(
             MethodError::DeniedMethod,
             "HTTP method is denied by the transport contract",

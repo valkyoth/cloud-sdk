@@ -24,7 +24,7 @@ impl<'endpoint> PreparedRequestRecord<'endpoint> {
         let request = prepared.transport_request();
         Self {
             method: request.method(),
-            target_len: request.target().as_str().len(),
+            target_len: request.target().len(),
             body_len: request.body().len(),
             has_request_content_type: request.content_type().is_some(),
             service: prepared.service(),

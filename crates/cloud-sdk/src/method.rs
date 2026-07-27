@@ -237,7 +237,9 @@ mod tests {
         assert_eq!(Method::extension("TRACE"), Err(MethodError::DeniedMethod));
         assert_eq!(
             RequestTarget::new("*"),
-            Err(RequestTargetError::NotOriginForm)
+            Err(RequestTargetError::Path(
+                crate::transport::RequestPathError::NotOriginForm
+            ))
         );
 
         let target = RequestTarget::new("/").unwrap_or_else(|_| unreachable!());
