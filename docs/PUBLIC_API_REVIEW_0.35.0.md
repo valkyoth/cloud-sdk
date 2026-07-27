@@ -16,6 +16,8 @@ these boundaries:
   explicit; present queries may be empty.
 - `RequestTarget::assemble` preflights complete capacity and length before
   modifying caller storage.
+- successful assembly initializes only `output[..target.len()]`; the unused
+  tail remains caller-owned, untouched, and outside every target view.
 - `RequestTarget::new` accepts only the canonical query dialect.
 - `RequestTarget::path`, `query`, and `query_bytes` expose the exact admitted
   output without decoding, normalization, reordering, or re-encoding.
@@ -50,6 +52,15 @@ present-empty state and canonical versus form dialect. Hetzner provider paths
 must satisfy both the provider-specific 1,024-byte bound and the canonical
 core grammar. Prepared query bytes are directly observable through
 `RequestTarget::query_bytes`.
+
+## Scratch Buffer Boundary
+
+The returned target borrows the caller's output storage and exposes only the
+initialized prefix. Callers must use `target.as_str()`, `target.len()`, or the
+component views and must never log, hash, sign, or transmit the entire backing
+slice. The untouched tail may contain data from a prior request. Callers that
+reuse storage across sensitive boundaries must apply their cleanup policy to
+the complete buffer.
 
 ## Future Signing Boundary
 

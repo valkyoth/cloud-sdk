@@ -129,7 +129,7 @@ fn distinguishes_absent_and_present_empty_queries() {
 }
 
 #[test]
-fn assembles_atomically_and_preserves_exact_query_bytes() {
+fn assembles_prefix_only_and_preserves_exact_query_bytes() {
     let path = valid!(RequestPath::new("/servers"));
     let query = valid!(CanonicalQuery::new("flag&name=test%20server&name=api"));
     let mut output = [0xA5; 64];
@@ -140,9 +140,16 @@ fn assembles_atomically_and_preserves_exact_query_bytes() {
     ));
 
     assert_eq!(target.as_str(), "/servers?flag&name=test%20server&name=api");
+    let initialized_len = target.len();
     assert_eq!(target.path(), path);
     assert_eq!(target.query_bytes(), Some(query.as_str().as_bytes()));
     assert_eq!(target.query(), RequestQuery::Canonical(query));
+    let tail = output.get(initialized_len..);
+    assert!(tail.is_some());
+    let Some(tail) = tail else {
+        return;
+    };
+    assert!(tail.iter().all(|byte| *byte == 0xA5));
 }
 
 #[test]

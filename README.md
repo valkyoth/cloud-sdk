@@ -192,6 +192,8 @@ assert_eq!(target.query_bytes(), Some(query.as_str().as_bytes()));
 `RequestQuery::Absent` differs from a present empty query. Canonical spaces use
 `%20`; form-style `+` is admitted only through the separate `FormQuery` type.
 Pair iteration preserves exact order, duplicate keys, and `key` versus `key=`.
+Assembly initializes only `output[..target.len()]`; never consume the untouched
+scratch-buffer tail, which may contain bytes from an earlier use.
 
 Known methods include GET, POST, PUT, DELETE, PATCH, HEAD, and origin-form
 OPTIONS. Provider crates can define a finite extension without changing core:

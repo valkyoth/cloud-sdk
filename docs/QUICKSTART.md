@@ -60,6 +60,8 @@ assert_eq!(target.query_bytes(), Some(query.as_str().as_bytes()));
 Absent and present-empty queries are distinct. `CanonicalQuery` requires `%20`
 for spaces; provider-specific form semantics use `FormQuery`. See
 [`MIGRATION_0.35.0.md`](MIGRATION_0.35.0.md).
+Only `output[..target.len()]` is initialized; never consume the untouched
+scratch-buffer tail, which may contain bytes from an earlier use.
 
 Provider crates can use `Method::extension("PURGE")` for a finite static
 extension. Extensions are bounded uppercase HTTP tokens; known aliases,

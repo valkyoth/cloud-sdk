@@ -47,6 +47,12 @@ assert_eq!(target.query_bytes(), Some(query.as_str().as_bytes()));
 trailing `?`. Query pairs preserve insertion order and duplicate keys.
 `QueryPair::value()` returns `None` for `flag` and `Some("")` for `flag=`.
 
+`RequestTarget::assemble` writes only the prefix exposed by
+`target.as_str()` and `target.len()`. The unused output tail remains untouched
+and may contain bytes from an earlier use. Never log, hash, sign, or transmit
+the complete scratch buffer; apply the caller's cleanup policy to the complete
+buffer before reusing it across a sensitive boundary.
+
 Spaces use `%20` in `CanonicalQuery`. Providers that explicitly require
 form-style `+` encoding must construct `FormQuery` and assemble it through
 `RequestQuery::Form`; `RequestTarget::new` never infers form semantics.

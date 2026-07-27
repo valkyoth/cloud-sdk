@@ -313,6 +313,13 @@ impl<'a> RequestTarget<'a> {
     }
 
     /// Atomically writes validated components into caller-owned storage.
+    ///
+    /// Only `output[..target.len()]`, equivalently [`Self::as_str`], is
+    /// initialized by this operation. The remaining tail is left untouched
+    /// and may contain data from an earlier use. Never read, log, hash, sign,
+    /// or transmit the backing buffer past `target.len()`. Apply the caller's
+    /// cleanup policy to the complete buffer before reusing it across a
+    /// sensitive boundary.
     pub fn assemble<'output>(
         path: RequestPath<'_>,
         query: RequestQuery<'_>,

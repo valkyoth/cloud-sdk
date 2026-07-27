@@ -19,6 +19,8 @@ caller-buffer assembly preserves exact wire bytes without allocation.
 - Kept form-style `+` behind the explicit `FormQuery` type.
 - Added transactional `RequestTarget::assemble`.
 - Added exact `path`, `query`, and `query_bytes` views.
+- Documented that assembly initializes only `output[..target.len()]`; callers
+  must not consume the untouched scratch-buffer tail.
 - Rejected malformed percent triplets, hidden path separators and controls,
   dot segments, repeated slashes, fragments, backslashes, raw non-ASCII, and
   ambiguous structured-query syntax in core.
