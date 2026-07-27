@@ -47,8 +47,11 @@ if ! grep -Fq 'capture_response_headers(response.headers())' \
 fi
 
 cargo test -p cloud-sdk transport::header
+cargo test -p cloud-sdk transport::content_type
 cargo test -p cloud-sdk-hetzner prepared::
 cargo test -p cloud-sdk-testkit --all-features
 cargo test -p cloud-sdk-reqwest --all-features shared::headers
+cargo test -p cloud-sdk-reqwest --all-features \
+    asynchronous::tests::lifecycle::async_send_future_stays_within_explicit_state_budget
 
 echo "bounded HTTP header model checks passed."

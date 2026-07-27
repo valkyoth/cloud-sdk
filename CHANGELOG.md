@@ -10,6 +10,10 @@
 - Moved Hetzner Accept and Content-Type policy into prepared requests.
 - Updated blocking, async, and testkit transports for exact header forwarding,
   capture, matching, and typed metadata derivation.
+- Kept the fixed response-header arena out of suspended async task state and
+  added an explicit 2 KiB future-state regression budget.
+- Aligned typed Content-Type values with the no-trailing-space request-header
+  grammar.
 
 ## 0.35.0 - 2026-07-27
 

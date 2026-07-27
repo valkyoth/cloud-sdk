@@ -637,6 +637,15 @@ caller-owned buffers. Wrap the complete destination in
 transport use, including on early returns. The SDK cannot erase source strings
 or downstream copies it does not own.
 
+### Response Header Policy
+
+The source-locked Hetzner API contracts consumed by this crate do not require
+repeated response fields. The transport therefore rejects every duplicate
+response-header name, including repeated `Set-Cookie`, rather than combining
+values with field-specific rules. An upstream change that introduces a
+multi-value response header fails closed with `InvalidResponseHeaders` and must
+be reviewed before the provider contract is updated.
+
 ### TSIG Policy
 
 The hardened API supports only HMAC-SHA256. HMAC-MD5 is prohibited and

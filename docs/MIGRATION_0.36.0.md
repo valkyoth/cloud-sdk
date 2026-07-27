@@ -67,9 +67,11 @@ from trusted operator configuration.
 
 `TransportResponse::headers` returns an owned `ResponseHeaders` block. Each
 value is available as exact bounded bytes and carries a sensitivity marker.
-Reqwest captures metadata before reading the body and rejects controls,
+Reqwest captures metadata after its final asynchronous body-read suspension but
+before returning or copying body bytes into caller-visible storage. This keeps
+the fixed response-header arena out of suspended task state. Controls,
 identical or conflicting duplicates, more than 32 entries, values above 1,024
-bytes, or more than 8,192 aggregate encoded bytes.
+bytes, or more than 8,192 aggregate encoded bytes are rejected.
 
 `TransportResponse::content_type` and `rate_limit` remain typed conveniences
 derived from the same captured metadata. A duplicate content type or

@@ -44,7 +44,7 @@ impl<'a> ContentType<'a> {
         if value.len() > MAX_CONTENT_TYPE_BYTES {
             return Err(ContentTypeError::TooLong);
         }
-        if !value.bytes().all(|byte| (b' '..=b'~').contains(&byte)) {
+        if value.ends_with(' ') || !value.bytes().all(|byte| (b' '..=b'~').contains(&byte)) {
             return Err(ContentTypeError::Invalid);
         }
 
@@ -287,9 +287,16 @@ mod tests {
             "application/json; charset=",
             "application/json; charset=\"unterminated",
             "application/json ; charset=utf-8",
+            "application/json; charset=utf-8 ",
+            "application/json; charset=\"utf-8\" ",
         ] {
             assert_eq!(ContentType::new(value), Err(ContentTypeError::Invalid));
         }
+
+        assert_eq!(
+            ResponseContentType::new("application/json; charset=utf-8 "),
+            Err(ContentTypeError::Invalid)
+        );
     }
 
     #[test]

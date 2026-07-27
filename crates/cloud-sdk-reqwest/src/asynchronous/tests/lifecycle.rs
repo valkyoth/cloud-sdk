@@ -28,6 +28,27 @@ fn async_client_is_clone_send_sync_and_endpoint_bound() {
 }
 
 #[test]
+fn async_send_future_stays_within_explicit_state_budget() {
+    let Some(client) = build_loopback("http://127.0.0.1:9/v1") else {
+        return;
+    };
+    let Ok(target) = RequestTarget::new("/future-size") else {
+        return;
+    };
+    let mut output = [0_u8; 1];
+    let future = AsyncTransport::send(
+        &client,
+        TransportRequest::new(Method::Get, target),
+        &mut output,
+    );
+    let future_bytes = core::mem::size_of_val(&future);
+    assert!(
+        future_bytes <= 2_048,
+        "async send future exceeds the 2 KiB state budget: {future_bytes} bytes"
+    );
+}
+
+#[test]
 fn async_shared_handle_supports_overlapping_caller_bounded_requests() {
     run_async_test(async {
         let server = spawn_concurrent_pair("200 OK", b"ok");

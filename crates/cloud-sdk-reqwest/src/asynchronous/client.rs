@@ -115,7 +115,6 @@ impl AsyncClient {
         self.endpoint
             .verify_origin(response.url())
             .map_err(|_| TransportError::ResponseOriginChanged)?;
-        let headers = capture_response_headers(response.headers())?;
         if response.content_length().is_some_and(|length| {
             u64::try_from(response_body.len()).map_or(true, |cap| length > cap)
         }) {
@@ -123,9 +122,10 @@ impl AsyncClient {
         }
         let status =
             StatusCode::new(response.status().as_u16()).ok_or(TransportError::InvalidStatus)?;
+        let buffered = read_response(&mut response, response_body.len()).await?;
+        let headers = capture_response_headers(response.headers())?;
         let rate_limit = parse_rate_limit(&headers)?;
         let content_type = parse_response_content_type(&headers)?;
-        let buffered = read_response(&mut response, response_body.len()).await?;
         let body_len = buffered.len();
         let initialized = response_body
             .get_mut(..body_len)

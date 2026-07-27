@@ -31,10 +31,14 @@ metadata is retained only within fixed count and byte limits.
 - Forwarded exact admitted request headers in blocking and async adapters.
 - Bound Host and TLS SNI to the endpoint URL verified against
   `EndpointIdentity`.
-- Captured bounded response headers before body reads and derived typed content
-  and rate-limit metadata from that same collection.
+- Captured bounded response headers after the final async body-read suspension
+  but before caller-visible body publication, keeping the 8 KiB arena out of
+  suspended task state.
+- Derived typed content and rate-limit metadata from that same collection.
 - Added exact testkit header matching, raw response fixtures, and redacted
   prepared header counts.
+- Aligned typed Content-Type values with canonical no-trailing-space request
+  header grammar.
 
 ## Versions
 
