@@ -14,6 +14,10 @@
   added an explicit 2 KiB future-state regression budget.
 - Aligned typed Content-Type values with the no-trailing-space request-header
   grammar.
+- Defaulted unknown response fields to sensitive, preserved adapter sensitivity,
+  and restricted public classification to reviewed transport metadata.
+- Removed ordinary equality from secret-capable header values, collections,
+  responses, checked responses, and testkit wrappers.
 
 ## 0.35.0 - 2026-07-27
 

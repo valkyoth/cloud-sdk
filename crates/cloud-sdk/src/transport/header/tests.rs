@@ -9,23 +9,26 @@ use core::fmt::Write;
 #[test]
 fn validates_names_values_and_typed_common_headers() {
     assert!(RequestHeader::new("x-request-id", "abc 123").is_ok());
-    assert_eq!(RequestHeader::new("", "value"), Err(HeaderError::EmptyName));
-    assert_eq!(
+    assert!(matches!(
+        RequestHeader::new("", "value"),
+        Err(HeaderError::EmptyName)
+    ));
+    assert!(matches!(
         RequestHeader::new("bad name", "value"),
         Err(HeaderError::InvalidName)
-    );
-    assert_eq!(
+    ));
+    assert!(matches!(
         RequestHeader::new("x-test", "bad\r\ninjected: true"),
         Err(HeaderError::InvalidValue)
-    );
-    assert_eq!(
+    ));
+    assert!(matches!(
         RequestHeader::new("x-test", " padded"),
         Err(HeaderError::InvalidValue)
-    );
-    assert_eq!(
+    ));
+    assert!(matches!(
         RequestHeader::new("content-type", "not-a-media-type"),
         Err(HeaderError::InvalidContentType)
-    );
+    ));
 
     let accept = RequestHeader::accept(MediaType::JSON);
     let content_type = RequestHeader::content_type(ContentType::JSON);
@@ -54,9 +57,11 @@ fn rejects_every_reserved_authority_framing_and_auth_name() {
         "proxy-connection",
         "Authorization",
     ] {
-        assert_eq!(
-            RequestHeader::new(name, "value"),
-            Err(HeaderError::ReservedRequestHeader),
+        assert!(
+            matches!(
+                RequestHeader::new(name, "value"),
+                Err(HeaderError::ReservedRequestHeader)
+            ),
             "{name}"
         );
     }
@@ -70,14 +75,14 @@ fn duplicate_names_fail_regardless_of_case_or_value() {
     let (Ok(first), Ok(identical), Ok(conflicting)) = (first, identical, conflicting) else {
         return;
     };
-    assert_eq!(
+    assert!(matches!(
         RequestHeaders::new(&[first, identical]),
         Err(HeaderError::DuplicateName)
-    );
-    assert_eq!(
+    ));
+    assert!(matches!(
         RequestHeaders::new(&[first, conflicting]),
         Err(HeaderError::DuplicateName)
-    );
+    ));
 }
 
 #[test]
@@ -111,22 +116,22 @@ fn request_encoding_is_exact_and_failure_is_atomic() {
 fn all_request_capacity_boundaries_are_enforced() {
     let long_name = "x".repeat(MAX_HEADER_NAME_BYTES + 1);
     let long_value = "x".repeat(MAX_HEADER_VALUE_BYTES + 1);
-    assert_eq!(
+    assert!(matches!(
         RequestHeader::new(&long_name, "value"),
         Err(HeaderError::NameTooLong)
-    );
-    assert_eq!(
+    ));
+    assert!(matches!(
         RequestHeader::new("x-test", &long_value),
         Err(HeaderError::ValueTooLong)
-    );
+    ));
 
     let entry = RequestHeader::new("x", "").ok();
     if let Some(entry) = entry {
         let entries = [entry; MAX_REQUEST_HEADERS + 1];
-        assert_eq!(
+        assert!(matches!(
             RequestHeaders::new(&entries),
             Err(HeaderError::TooManyHeaders)
-        );
+        ));
     }
 
     let value = "x".repeat(MAX_HEADER_VALUE_BYTES);
@@ -170,10 +175,10 @@ fn all_request_capacity_boundaries_are_enforced() {
             *entry = value;
         }
     }
-    assert_eq!(
+    assert!(matches!(
         RequestHeaders::new(&entries),
         Err(HeaderError::AggregateTooLarge)
-    );
+    ));
 }
 
 #[test]
@@ -209,12 +214,12 @@ fn response_headers_are_owned_bounded_ordered_and_redacted() {
         headers.try_push("CONTENT-TYPE", b"text/plain", HeaderSensitivity::Public),
         Err(HeaderError::DuplicateName)
     );
-    assert_eq!(headers, snapshot);
+    assert_response_headers_match(&headers, &snapshot);
     assert_eq!(
         headers.try_push("x-bad", b"ok\r\nbad", HeaderSensitivity::Public),
         Err(HeaderError::InvalidValue)
     );
-    assert_eq!(headers, snapshot);
+    assert_response_headers_match(&headers, &snapshot);
 }
 
 #[test]
@@ -234,7 +239,7 @@ fn response_count_and_aggregate_limits_fail_atomically() {
         count.try_push("x-over", b"", HeaderSensitivity::Public),
         Err(HeaderError::TooManyHeaders)
     );
-    assert_eq!(count, snapshot);
+    assert_response_headers_match(&count, &snapshot);
 
     let mut aggregate = ResponseHeaders::new();
     let value = [b'x'; MAX_HEADER_VALUE_BYTES];
@@ -251,7 +256,7 @@ fn response_count_and_aggregate_limits_fail_atomically() {
         aggregate.try_push("x-over", &value, HeaderSensitivity::Public),
         Err(HeaderError::AggregateTooLarge)
     );
-    assert_eq!(aggregate, snapshot);
+    assert_response_headers_match(&aggregate, &snapshot);
 }
 
 #[test]
@@ -360,7 +365,17 @@ fn exact_aggregate_request_and_response_boundaries_are_admitted() {
         response.try_push("x-over", b"", HeaderSensitivity::Public),
         Err(HeaderError::AggregateTooLarge)
     );
-    assert_eq!(response, snapshot);
+    assert_response_headers_match(&response, &snapshot);
+}
+
+fn assert_response_headers_match(actual: &ResponseHeaders, expected: &ResponseHeaders) {
+    assert_eq!(actual.len(), expected.len());
+    assert_eq!(actual.encoded_len(), expected.encoded_len());
+    for (actual, expected) in actual.iter().zip(expected.iter()) {
+        assert_eq!(actual.name(), expected.name());
+        assert_eq!(actual.value(), expected.value());
+        assert_eq!(actual.sensitivity(), expected.sensitivity());
+    }
 }
 
 struct DebugBuffer {

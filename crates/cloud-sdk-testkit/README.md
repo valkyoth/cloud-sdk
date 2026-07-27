@@ -165,11 +165,12 @@ every configuration.
 
 ## Security Notes
 
-This crate is test infrastructure, not a production transport. Exact request
-matching uses ordinary byte equality and must not be exposed as a remote secret
-comparison oracle. Authentication, base URLs, headers, timeout policy, TLS,
-retry behavior, and secret ownership remain responsibilities of concrete
-transport adapters.
+This crate is test infrastructure, not a production transport. Core
+secret-capable header types do not expose ordinary equality. The mock uses a
+private exact byte matcher solely for deterministic expectations; it must not
+be exposed as a remote secret comparison oracle. Authentication, base URLs,
+headers, timeout policy, TLS, retry behavior, and secret ownership remain
+responsibilities of concrete transport adapters.
 
 The testkit stores only borrowed expectations and fixture bodies. Callers must
 keep borrowed data alive and must still sanitize secret-bearing test buffers

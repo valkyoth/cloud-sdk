@@ -7,7 +7,18 @@ use super::{
 };
 
 /// One validated borrowed request header.
-#[derive(Clone, Copy, Eq, PartialEq)]
+///
+/// Ordinary equality is intentionally unavailable because the value may be
+/// sensitive.
+///
+/// ```compile_fail
+/// use cloud_sdk::transport::RequestHeader;
+///
+/// let left = RequestHeader::sensitive("x-secret", "secret").unwrap();
+/// let right = RequestHeader::sensitive("x-secret", "secret").unwrap();
+/// let _ = left == right;
+/// ```
+#[derive(Clone, Copy)]
 pub struct RequestHeader<'a> {
     name: HeaderName<'a>,
     value: HeaderValue<'a>,
@@ -102,7 +113,7 @@ impl fmt::Debug for RequestHeader<'_> {
 }
 
 /// Validated ordered request-header block.
-#[derive(Clone, Copy, Eq, PartialEq)]
+#[derive(Clone, Copy)]
 pub struct RequestHeaders<'a> {
     entries: &'a [RequestHeader<'a>],
     encoded_len: usize,

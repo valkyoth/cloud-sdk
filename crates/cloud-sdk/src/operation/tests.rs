@@ -167,30 +167,30 @@ fn response_policy_classifies_every_rejection_before_decoding() {
     let Ok(json) = json else { return };
 
     let status = StatusCode::new(201).unwrap_or(StatusCode::OK);
-    assert_eq!(
+    assert!(matches!(
         required.validate(TransportResponse::new(status, b"{}")),
         Err(ResponsePolicyError::UnexpectedStatus)
-    );
-    assert_eq!(
+    ));
+    assert!(matches!(
         required.validate(TransportResponse::new(StatusCode::OK, b"12345")),
         Err(ResponsePolicyError::BodyTooLarge)
-    );
-    assert_eq!(
+    ));
+    assert!(matches!(
         required.validate(TransportResponse::new(StatusCode::OK, b"")),
         Err(ResponsePolicyError::MissingBody)
-    );
-    assert_eq!(
+    ));
+    assert!(matches!(
         required.validate(TransportResponse::new(StatusCode::OK, b"{}")),
         Err(ResponsePolicyError::MissingContentType)
-    );
+    ));
     let text = ResponseContentType::new("text/plain");
     assert!(text.is_ok());
     if let Ok(text) = text {
-        assert_eq!(
+        assert!(matches!(
             required
                 .validate(TransportResponse::new(StatusCode::OK, b"{}").with_content_type(text)),
             Err(ResponsePolicyError::UnexpectedContentType)
-        );
+        ));
     }
     let checked =
         required.validate(TransportResponse::new(StatusCode::OK, b"{}").with_content_type(json));
@@ -204,14 +204,14 @@ fn response_policy_classifies_every_rejection_before_decoding() {
     );
     assert!(forbidden.is_ok());
     if let Ok(forbidden) = forbidden {
-        assert_eq!(
+        assert!(matches!(
             forbidden.validate(TransportResponse::new(StatusCode::OK, b"x")),
             Err(ResponsePolicyError::ForbiddenBody)
-        );
-        assert_eq!(
+        ));
+        assert!(matches!(
             forbidden.validate(TransportResponse::new(StatusCode::OK, b"").with_content_type(json)),
             Err(ResponsePolicyError::ForbiddenContentType)
-        );
+        ));
     }
 }
 
@@ -240,7 +240,10 @@ fn prepared_blocking_execution_checks_endpoint_and_lends_only_policy_capacity() 
     let mismatched = RecordingTransport::new(other);
     response_storage.fill(0xA5);
     let response = prepared.execute_blocking(&mismatched, &mut response_storage);
-    assert_eq!(response, Err(PreparedExecutionError::EndpointMismatch));
+    assert!(matches!(
+        response,
+        Err(PreparedExecutionError::EndpointMismatch)
+    ));
     assert_eq!(mismatched.calls.load(Ordering::Acquire), 0);
     assert_eq!(mismatched.sanitized_capacity.load(Ordering::Acquire), 64);
     assert_eq!(response_storage, [0_u8; 64]);

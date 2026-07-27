@@ -23,7 +23,19 @@ const EMPTY_RANGE: HeaderRange = HeaderRange {
 };
 
 /// Borrowed view into one retained response header.
-#[derive(Clone, Copy, Eq, PartialEq)]
+///
+/// Ordinary equality is intentionally unavailable because the value may be
+/// sensitive.
+///
+/// ```compile_fail
+/// use cloud_sdk::transport::{HeaderSensitivity, ResponseHeaders};
+///
+/// let mut headers = ResponseHeaders::new();
+/// headers.try_push("x-secret", b"secret", HeaderSensitivity::Sensitive).unwrap();
+/// let header = headers.get("x-secret").unwrap();
+/// let _ = header == header;
+/// ```
+#[derive(Clone, Copy)]
 pub struct ResponseHeader<'a> {
     name: &'a str,
     value: &'a [u8],
@@ -62,7 +74,17 @@ impl fmt::Debug for ResponseHeader<'_> {
 }
 
 /// Owned fixed-capacity response-header metadata.
-#[derive(Clone, Copy, Eq, PartialEq)]
+///
+/// Ordinary equality is intentionally unavailable because retained values may
+/// be sensitive.
+///
+/// ```compile_fail
+/// use cloud_sdk::transport::ResponseHeaders;
+///
+/// let headers = ResponseHeaders::new();
+/// let _ = headers == headers;
+/// ```
+#[derive(Clone, Copy)]
 pub struct ResponseHeaders {
     bytes: [u8; MAX_RESPONSE_HEADER_BYTES],
     ranges: [HeaderRange; MAX_RESPONSE_HEADERS],

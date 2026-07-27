@@ -31,7 +31,7 @@ impl_static_error!(ResponseFixtureError,
 );
 
 /// Provider-neutral response body plus optional interpreted metadata.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug)]
 pub struct ResponseFixture<'a> {
     kind: FixtureKind,
     status: StatusCode,

@@ -13,7 +13,7 @@ use cloud_sdk::transport::{
 use crate::{FixtureBodyError, ResponseFixture};
 
 /// Expected request fields for one mock exchange.
-#[derive(Clone, Copy, Eq, PartialEq)]
+#[derive(Clone, Copy)]
 pub struct ExpectedRequest<'a> {
     method: Method,
     target: RequestTarget<'a>,
@@ -77,7 +77,7 @@ impl fmt::Debug for ExpectedRequest<'_> {
 }
 
 /// One expected request and deterministic response.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug)]
 pub struct MockExchange<'a> {
     request: ExpectedRequest<'a>,
     response: ResponseFixture<'a>,
@@ -181,7 +181,7 @@ impl<'a> MockTransport<'a> {
         if request.body() != exchange.request.body() {
             return Err(MockError::BodyMismatch);
         }
-        if request.headers() != exchange.request.headers() {
+        if !request_headers_match(request.headers(), exchange.request.headers()) {
             return Err(MockError::HeadersMismatch);
         }
         let next_cursor = cursor.checked_add(1).ok_or(MockError::CursorOverflow)?;
@@ -229,6 +229,17 @@ impl<'a> MockTransport<'a> {
             .map_err(|_| MockError::ConcurrentRequest)?;
         Ok(response)
     }
+}
+
+fn request_headers_match(actual: RequestHeaders<'_>, expected: RequestHeaders<'_>) -> bool {
+    let actual = actual.as_slice();
+    let expected = expected.as_slice();
+    actual.len() == expected.len()
+        && actual.iter().zip(expected).all(|(actual, expected)| {
+            actual.name() == expected.name()
+                && actual.value().as_str().as_bytes() == expected.value().as_str().as_bytes()
+                && actual.sensitivity() == expected.sensitivity()
+        })
 }
 
 fn push_rate_limit_headers(

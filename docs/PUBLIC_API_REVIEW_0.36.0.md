@@ -17,8 +17,12 @@ boundaries:
 - response blocks own a fixed-capacity byte arena and descriptor table;
 - all header names are unique under ASCII case-insensitive comparison;
 - all header values are redacted from `Debug`;
-- sensitivity is explicit on requests and assigned conservatively to known
-  response credential/cookie fields;
+- sensitivity is explicit on requests, preserved from adapters, and defaults
+  to sensitive for unknown response fields;
+- only reviewed content, length, date, and rate-limit response metadata is
+  classified as public;
+- secret-capable header values, collections, responses, and wrappers do not
+  expose ordinary equality;
 - typed `Accept` and `Content-Type` constructors reuse validated media types;
 - HTTP/1 field-line encoding does not modify undersized output.
 
@@ -71,6 +75,8 @@ This is a pre-1.0 breaking release. `TransportRequest::with_content_type` and
 `content_type` are removed in favor of `with_headers` and `headers`.
 Testkit replaces content-type-only expectation matching with complete header
 matching. Reqwest adds `TransportError::InvalidResponseHeaders`.
+The new header and response types intentionally omit `Eq` and `PartialEq`;
+testkit matching is an internal test-only operation.
 
 See [`MIGRATION_0.36.0.md`](MIGRATION_0.36.0.md).
 

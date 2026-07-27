@@ -187,7 +187,7 @@ impl ResponsePolicy {
 }
 
 /// Response that passed one operation's complete provider-neutral policy.
-#[derive(Clone, Copy, Eq, PartialEq)]
+#[derive(Clone, Copy)]
 pub struct CheckedResponse<'body> {
     response: TransportResponse<'body>,
 }

@@ -73,10 +73,24 @@ the fixed response-header arena out of suspended task state. Controls,
 identical or conflicting duplicates, more than 32 entries, values above 1,024
 bytes, or more than 8,192 aggregate encoded bytes are rejected.
 
+Unknown response fields default to `HeaderSensitivity::Sensitive`. The adapter
+preserves sensitivity already assigned by reqwest and marks only
+`Content-Type`, `Content-Length`, `Date`, `RateLimit-Limit`,
+`RateLimit-Remaining`, and `RateLimit-Reset` as reviewed public metadata.
+Provider-specific fields require a separate reviewed policy before they can be
+downgraded.
+
 `TransportResponse::content_type` and `rate_limit` remain typed conveniences
 derived from the same captured metadata. A duplicate content type or
 rate-limit field now returns `TransportError::InvalidResponseHeaders`; malformed
 single values retain their specific typed error.
+
+Ordinary `Eq` and `PartialEq` are intentionally unavailable for `HeaderValue`,
+request and response header entries or collections, `TransportResponse`,
+`CheckedResponse`, and testkit wrappers that transitively contain them. These
+types can carry secrets, so callers must not use variable-time structural
+equality as a credential comparison. The testkit retains only a private exact
+matcher for deterministic local expectations.
 
 ## Provider And Testkit Changes
 

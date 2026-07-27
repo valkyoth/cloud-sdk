@@ -48,6 +48,7 @@ fi
 
 cargo test -p cloud-sdk transport::header
 cargo test -p cloud-sdk transport::content_type
+cargo test -p cloud-sdk --doc
 cargo test -p cloud-sdk-hetzner prepared::
 cargo test -p cloud-sdk-testkit --all-features
 cargo test -p cloud-sdk-reqwest --all-features shared::headers

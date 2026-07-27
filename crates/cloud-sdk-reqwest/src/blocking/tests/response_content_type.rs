@@ -31,10 +31,10 @@ fn malformed_or_duplicate_response_content_type_fails_closed() {
             return;
         };
         let mut output = [0xa5_u8; 8];
-        assert_eq!(
+        assert!(matches!(
             client.send(TransportRequest::new(Method::Get, target), &mut output),
-            Err(expected)
-        );
+            Err(error) if error == expected
+        ));
         assert_eq!(output, [0_u8; 8]);
     }
 }

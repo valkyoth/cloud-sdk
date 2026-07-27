@@ -35,10 +35,15 @@ metadata is retained only within fixed count and byte limits.
   but before caller-visible body publication, keeping the 8 KiB arena out of
   suspended task state.
 - Derived typed content and rate-limit metadata from that same collection.
+- Preserved reqwest sensitivity, defaulted unknown response fields to
+  sensitive, and allowed public classification only for reviewed content,
+  length, date, and rate-limit metadata.
 - Added exact testkit header matching, raw response fixtures, and redacted
   prepared header counts.
 - Aligned typed Content-Type values with canonical no-trailing-space request
   header grammar.
+- Removed ordinary equality from secret-capable header values, collections,
+  transport responses, checked responses, and transitive testkit wrappers.
 
 ## Versions
 

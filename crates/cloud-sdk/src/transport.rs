@@ -172,7 +172,7 @@ impl StatusCode {
 ///
 /// let _ = TransportResponse::new(StatusCode::OK, 1024_usize);
 /// ```
-#[derive(Clone, Copy, Eq, PartialEq)]
+#[derive(Clone, Copy)]
 pub struct TransportResponse<'buffer> {
     status: StatusCode,
     body: &'buffer [u8],

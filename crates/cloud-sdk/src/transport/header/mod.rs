@@ -139,7 +139,18 @@ impl fmt::Debug for HeaderName<'_> {
 }
 
 /// Borrowed, validated request header value.
-#[derive(Clone, Copy, Eq, PartialEq)]
+///
+/// Ordinary equality is intentionally unavailable because values may contain
+/// secrets.
+///
+/// ```compile_fail
+/// use cloud_sdk::transport::HeaderValue;
+///
+/// let left = HeaderValue::new("secret").unwrap();
+/// let right = HeaderValue::new("secret").unwrap();
+/// let _ = left == right;
+/// ```
+#[derive(Clone, Copy)]
 pub struct HeaderValue<'a>(&'a str);
 
 impl<'a> HeaderValue<'a> {

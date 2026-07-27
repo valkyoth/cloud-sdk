@@ -63,10 +63,10 @@ fn fixture_builders_cover_success_pagination_action_rate_limit_and_error() {
             ResponseFixture::rate_limited(body, rate_limit).rate_limit(),
             Some(rate_limit)
         );
-        assert_eq!(
+        assert!(matches!(
             ResponseFixture::error(StatusCode::OK, body),
             Err(ResponseFixtureError::NonErrorStatus)
-        );
+        ));
         let error =
             StatusCode::new(503).and_then(|status| ResponseFixture::error(status, body).ok());
         assert!(error.is_some());
@@ -183,14 +183,14 @@ fn mock_transport_distinguishes_query_presence_and_dialect() {
     let transport = MockTransport::new(&exchanges);
     let mut response = [0_u8; 2];
 
-    assert_eq!(
+    assert!(matches!(
         BlockingTransport::send(
             &transport,
             TransportRequest::new(Method::Get, form_target),
             &mut response,
         ),
         Err(MockError::TargetMismatch)
-    );
+    ));
     assert_eq!(transport.remaining(), 1);
     assert!(
         BlockingTransport::send(

@@ -113,10 +113,10 @@ fn mock_models_endpoint_status_content_type_and_empty_body_failures() {
     let exchanges = [MockExchange::new(expected, success)];
     let wrong_endpoint = MockTransport::new(&exchanges).with_endpoint(other);
     let mut output = [0_u8; 16];
-    assert_eq!(
+    assert!(matches!(
         prepared.execute_blocking(&wrong_endpoint, &mut output),
         Err(PreparedExecutionError::EndpointMismatch)
-    );
+    ));
     assert_eq!(wrong_endpoint.remaining(), 1);
 
     let error = ResponseFixture::error(StatusCode::TOO_MANY_REQUESTS, json_body);
@@ -127,12 +127,12 @@ fn mock_models_endpoint_status_content_type_and_empty_body_failures() {
             error.with_content_type("application/json"),
         )];
         let mock = MockTransport::new(&exchanges).with_endpoint(endpoint);
-        assert_eq!(
+        assert!(matches!(
             prepared.execute_blocking(&mock, &mut output),
             Err(PreparedExecutionError::ResponsePolicy(
                 ResponsePolicyError::UnexpectedStatus
             ))
-        );
+        ));
     }
 
     for (fixture, expected_error) in [
@@ -151,10 +151,11 @@ fn mock_models_endpoint_status_content_type_and_empty_body_failures() {
     ] {
         let exchanges = [MockExchange::new(expected, fixture)];
         let mock = MockTransport::new(&exchanges).with_endpoint(endpoint);
-        assert_eq!(
+        assert!(matches!(
             prepared.execute_blocking(&mock, &mut output),
-            Err(PreparedExecutionError::ResponsePolicy(expected_error))
-        );
+            Err(PreparedExecutionError::ResponsePolicy(error))
+                if error == expected_error
+        ));
     }
 }
 
@@ -174,12 +175,12 @@ fn mock_models_oversized_responses_and_retry_classification_mistakes() {
     let exchanges = [MockExchange::new(expected, fixture)];
     let mock = MockTransport::new(&exchanges).with_endpoint(endpoint);
     let mut output = [0_u8; 64];
-    assert_eq!(
+    assert!(matches!(
         prepared.execute_blocking(&mock, &mut output),
         Err(PreparedExecutionError::Transport(
             MockError::ResponseBufferTooSmall
         ))
-    );
+    ));
     assert_eq!(mock.remaining(), 1);
 
     let record = PreparedRequestRecord::capture(prepared);
@@ -202,12 +203,12 @@ fn mock_rejects_unbound_endpoints_request_media_mismatch_and_invalid_fixture_med
     let exchanges = [exchange];
     let unbound = MockTransport::new(&exchanges);
     let mut output = [0xA5_u8; 16];
-    assert_eq!(
+    assert!(matches!(
         prepared.execute_blocking(&unbound, &mut output),
         Err(PreparedExecutionError::EndpointIdentity(
             EndpointIdentityError::UnboundTransport
         ))
-    );
+    ));
     assert_eq!(unbound.remaining(), 1);
     assert_eq!(output, [0_u8; 16]);
 
@@ -224,12 +225,12 @@ fn mock_rejects_unbound_endpoints_request_media_mismatch_and_invalid_fixture_med
         ResponseFixture::success(body).with_content_type("application/json"),
     )];
     let mock = MockTransport::new(&exchanges).with_endpoint(endpoint);
-    assert_eq!(
+    assert!(matches!(
         prepared.execute_blocking(&mock, &mut output),
         Err(PreparedExecutionError::Transport(
             MockError::HeadersMismatch
         ))
-    );
+    ));
     assert_eq!(mock.remaining(), 1);
 
     let expected = expected_request();
@@ -241,12 +242,12 @@ fn mock_rejects_unbound_endpoints_request_media_mismatch_and_invalid_fixture_med
         )];
         let mock = MockTransport::new(&exchanges).with_endpoint(endpoint);
         output.fill(0xA5);
-        assert_eq!(
+        assert!(matches!(
             prepared.execute_blocking(&mock, &mut output),
             Err(PreparedExecutionError::Transport(
                 MockError::InvalidFixtureMetadata
             ))
-        );
+        ));
         assert_eq!(output, [0_u8; 16]);
         assert_eq!(mock.remaining(), 1);
     }

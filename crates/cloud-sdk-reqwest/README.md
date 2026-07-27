@@ -111,7 +111,9 @@ assert!(response.status().is_success());
 Responses retain complete bounded header metadata plus one validated
 `Content-Type` value for prepared response policy. Duplicate names, controls,
 and per-value, count, or aggregate overflow fail closed before body bytes are
-returned.
+returned. Incoming sensitivity already marked by reqwest is preserved. Unknown
+fields default to sensitive; only Content-Type, Content-Length, Date, and the
+three typed rate-limit fields are classified as reviewed public metadata.
 
 Both adapters implement `ResponseStorageSanitizer` through
 `cloud-sdk-sanitization`. Prepared execution therefore volatile-clears the
