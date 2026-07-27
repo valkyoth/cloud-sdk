@@ -1580,7 +1580,7 @@ Stop gate: `v0.35.0 implementation stop reached. Run pentest for this exact comm
 
 ### v0.36.0 - Bounded HTTP Header Model
 
-Status: implementation complete; pentest required.
+Status: implementation complete; pentest and final retest passed.
 
 Goal: represent complete provider requests without adapter-injected policy.
 

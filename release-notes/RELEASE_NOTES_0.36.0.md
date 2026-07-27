@@ -1,6 +1,7 @@
 # cloud-sdk 0.36.0 Release Notes
 
-Status: implementation complete; pentest required before final release checks.
+Status: release candidate; pentest and final retest passed. Local and GitHub
+release checks remain required before tagging.
 
 Release date: 2026-07-27
 
@@ -63,6 +64,19 @@ metadata is retained only within fixed count and byte limits.
 - default, no_std, all-feature, clippy, doctest, package, deny, audit, platform,
   MSRV, and SBOM gates
 
+## Pentest
+
+The iterative v0.36 pentest found four issues in async header lifetime,
+Content-Type grammar, response-field sensitivity, and ordinary equality on
+secret-capable values. Response headers are now captured after the final async
+suspension, typed content values reject trailing whitespace, unknown response
+fields default to sensitive under a narrow public allowlist, and public
+secret-capable wrappers no longer expose structural equality.
+
+The final retest passed commit
+`7785ad754451c2ef4f2736ea0442d3fc3a4464db`. See the
+[`v0.36.0` pentest report](../security/pentest/v0.36.0.md).
+
 ## Migration
 
 See [`docs/MIGRATION_0.36.0.md`](../docs/MIGRATION_0.36.0.md),
@@ -72,5 +86,6 @@ See [`docs/MIGRATION_0.36.0.md`](../docs/MIGRATION_0.36.0.md),
 ## Release Gate
 
 ```text
-v0.36.0 implementation stop reached. Run pentest for this exact commit.
+v0.36.0 pentest stop passed. Tag only after the clean local release gate and
+GitHub checks pass on the final release commit.
 ```
