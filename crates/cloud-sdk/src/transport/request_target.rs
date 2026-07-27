@@ -228,7 +228,7 @@ impl<'a> RequestQuery<'a> {
 }
 
 /// One encoded query pair, preserving missing versus empty values.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Eq, PartialEq)]
 pub struct QueryPair<'a> {
     key: &'a str,
     value: Option<&'a str>,
@@ -248,8 +248,14 @@ impl<'a> QueryPair<'a> {
     }
 }
 
+impl fmt::Debug for QueryPair<'_> {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.write_str("QueryPair([redacted])")
+    }
+}
+
 /// Exact-order iterator over encoded query pairs.
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct QueryPairs<'a> {
     remaining: &'a str,
 }
@@ -257,6 +263,12 @@ pub struct QueryPairs<'a> {
 impl<'a> QueryPairs<'a> {
     const fn new(value: &'a str) -> Self {
         Self { remaining: value }
+    }
+}
+
+impl fmt::Debug for QueryPairs<'_> {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.write_str("QueryPairs([redacted])")
     }
 }
 

@@ -35,6 +35,7 @@ caller-buffer assembly preserves exact wire bytes without allocation.
 - Expanded the request-target fuzz harness and added a cross-adapter gate.
 - Updated the immutable `actions/checkout` pin to signed release `v7.0.1` and
   the isolated fuzz toolchain to `nightly-2026-07-26`.
+- Redacted encoded query keys and values from iterator and pair debug output.
 
 ## Versions
 

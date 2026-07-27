@@ -14,6 +14,8 @@
   provider, testkit, and fuzz conformance coverage.
 - Updated `actions/checkout` to the immutable `v7.0.1` release commit and the
   isolated fuzz toolchain to `nightly-2026-07-26`.
+- Redacted encoded query keys and values from `QueryPair` and `QueryPairs`
+  debug output.
 
 ## 0.34.0 - 2026-07-26
 

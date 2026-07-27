@@ -2,6 +2,7 @@ use super::{
     CanonicalQuery, FormQuery, MAX_REQUEST_TARGET_BYTES, RequestPath, RequestPathError,
     RequestQuery, RequestTarget, RequestTargetError, StructuredQueryError,
 };
+use core::fmt::{self, Write};
 
 macro_rules! valid {
     ($value:expr) => {{
@@ -117,6 +118,26 @@ fn preserves_query_order_duplicates_and_value_presence() {
 }
 
 #[test]
+fn redacts_query_wrappers_iterators_and_pairs() {
+    let canonical = valid!(CanonicalQuery::new(
+        "token=classified%20value&project=alpha"
+    ));
+    let form = valid!(FormQuery::new("token=classified+value&project=alpha"));
+    let mut pairs = canonical.pairs();
+    let first = pairs.next();
+
+    assert_debug(&canonical, "CanonicalQuery([redacted])");
+    assert_debug(&form, "FormQuery([redacted])");
+    assert_debug(
+        &RequestQuery::Canonical(canonical),
+        "Canonical(CanonicalQuery([redacted]))",
+    );
+    assert_debug(&RequestQuery::Form(form), "Form(FormQuery([redacted]))");
+    assert_debug(&pairs, "QueryPairs([redacted])");
+    assert_debug(&first, "Some(QueryPair([redacted]))");
+}
+
+#[test]
 fn distinguishes_absent_and_present_empty_queries() {
     let absent = valid!(RequestTarget::new("/servers"));
     let present = valid!(RequestTarget::new("/servers?"));
@@ -204,4 +225,38 @@ fn complete_target_bound_includes_query_delimiter() {
         Err(RequestTargetError::TooLong)
     );
     assert!(output.iter().all(|byte| *byte == 0xA5));
+}
+
+fn assert_debug(value: &impl fmt::Debug, expected: &str) {
+    let mut output = DebugBuffer::new();
+    assert!(write!(&mut output, "{value:?}").is_ok());
+    assert_eq!(output.as_str(), expected);
+}
+
+struct DebugBuffer {
+    bytes: [u8; 64],
+    len: usize,
+}
+
+impl DebugBuffer {
+    const fn new() -> Self {
+        Self {
+            bytes: [0; 64],
+            len: 0,
+        }
+    }
+
+    fn as_str(&self) -> &str {
+        core::str::from_utf8(self.bytes.get(..self.len).unwrap_or_default()).unwrap_or_default()
+    }
+}
+
+impl Write for DebugBuffer {
+    fn write_str(&mut self, value: &str) -> fmt::Result {
+        let end = self.len.checked_add(value.len()).ok_or(fmt::Error)?;
+        let target = self.bytes.get_mut(self.len..end).ok_or(fmt::Error)?;
+        target.copy_from_slice(value.as_bytes());
+        self.len = end;
+        Ok(())
+    }
 }
