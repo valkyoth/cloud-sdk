@@ -16,7 +16,8 @@ use rustls::pki_types::{CertificateDer, CertificateRevocationListDer};
 
 use cloud_sdk::Method;
 use cloud_sdk::transport::{
-    BlockingTransport, ContentType, RequestTarget, StatusCode, TransportRequest,
+    BlockingTransport, ContentType, RequestHeader, RequestHeaders, RequestTarget, StatusCode,
+    TransportRequest,
 };
 
 use super::body::{ReadBodyError, read_bounded};
@@ -142,9 +143,20 @@ fn blocking_client_sends_exact_headers_target_and_body_once() {
     let target = RequestTarget::new("/servers?name=test%20server");
     assert!(target.is_ok());
     let Ok(target) = target else { return };
+    let sensitive = RequestHeader::sensitive("x-test-secret", "redacted-value");
+    assert!(sensitive.is_ok());
+    let Ok(sensitive) = sensitive else { return };
+    let entries = [
+        RequestHeader::accept(cloud_sdk::transport::MediaType::JSON),
+        RequestHeader::content_type(ContentType::JSON),
+        sensitive,
+    ];
+    let headers = RequestHeaders::new(&entries);
+    assert!(headers.is_ok());
+    let Ok(headers) = headers else { return };
     let request = TransportRequest::new(Method::Post, target)
         .with_body(br#"{"name":"server"}"#)
-        .with_content_type(ContentType::JSON);
+        .with_headers(headers);
     let mut output = [0xa5_u8; 32];
     let response = client.send(request, &mut output);
     assert!(response.is_ok());
@@ -160,7 +172,9 @@ fn blocking_client_sends_exact_headers_target_and_body_once() {
         assert!(wire.starts_with("post /v1/servers?name=test%20server http/1.1\r\n"));
         assert!(wire.contains("authorization: bearer test-token\r\n"));
         assert!(wire.contains("user-agent: cloud-sdk-test/0.18\r\n"));
+        assert!(wire.contains("accept: application/json\r\n"));
         assert!(wire.contains("content-type: application/json\r\n"));
+        assert!(wire.contains("x-test-secret: redacted-value\r\n"));
         assert!(wire.ends_with(r#"{"name":"server"}"#));
     }
 }
@@ -235,6 +249,20 @@ fn response_propagates_validated_rate_limit_headers() {
     assert_eq!(rate_limit.limit(), 3600);
     assert_eq!(rate_limit.remaining(), 3599);
     assert_eq!(rate_limit.reset_epoch_seconds(), 42);
+    assert_eq!(
+        response
+            .headers()
+            .get("ratelimit-remaining")
+            .map(|header| header.value()),
+        Some(b"3599".as_slice())
+    );
+    assert_eq!(
+        response
+            .headers()
+            .get("content-type")
+            .map(|header| header.value()),
+        Some(b"application/json; charset=utf-8".as_slice())
+    );
 }
 
 #[test]
@@ -283,7 +311,7 @@ fn duplicate_rate_limit_headers_fail_closed() {
     let mut output = [0xa5_u8; 8];
     assert!(matches!(
         client.send(TransportRequest::new(Method::Get, target), &mut output),
-        Err(TransportError::InvalidRateLimitHeaders)
+        Err(TransportError::InvalidResponseHeaders)
     ));
     assert_eq!(output, [0_u8; 8]);
 }

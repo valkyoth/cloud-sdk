@@ -64,6 +64,22 @@ fn prepares_global_actions_and_catalog_gets() {
         Some(b"id=7".as_slice())
     );
     assert_eq!(prepared.transport_request().body(), b"");
+    assert_eq!(prepared.transport_request().headers().as_slice().len(), 1);
+    assert_eq!(
+        prepared
+            .transport_request()
+            .headers()
+            .get("accept")
+            .map(|header| header.value().as_str()),
+        Some("application/json")
+    );
+    assert!(
+        prepared
+            .transport_request()
+            .headers()
+            .get("content-type")
+            .is_none()
+    );
     assert_eq!(prepared.metadata().impact(), OperationImpact::ReadOnly);
     assert_eq!(
         prepared.response_policy().success_statuses(),
@@ -161,6 +177,23 @@ fn prepares_exact_json_and_clears_failed_body_storage() {
         "/zones/11/actions/change_protection"
     );
     assert_eq!(prepared.transport_request().body(), br#"{"delete":true}"#);
+    assert_eq!(prepared.transport_request().headers().as_slice().len(), 2);
+    assert_eq!(
+        prepared
+            .transport_request()
+            .headers()
+            .get("accept")
+            .map(|header| header.value().as_str()),
+        Some("application/json")
+    );
+    assert_eq!(
+        prepared
+            .transport_request()
+            .headers()
+            .get("content-type")
+            .map(|header| header.value().as_str()),
+        Some("application/json")
+    );
 
     let mut short_target = [0xA5_u8; 64];
     let mut short_body = [0x5A_u8; 4];

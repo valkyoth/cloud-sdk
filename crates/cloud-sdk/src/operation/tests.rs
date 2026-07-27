@@ -294,6 +294,11 @@ enum ExamplePrepareError {
 
 struct ExampleOperation;
 
+const EXAMPLE_REQUEST_HEADERS: [crate::transport::RequestHeader<'static>; 1] =
+    [crate::transport::RequestHeader::content_type(
+        crate::transport::ContentType::JSON,
+    )];
+
 impl PrepareOperation for ExampleOperation {
     type Error = ExamplePrepareError;
 
@@ -312,9 +317,11 @@ impl PrepareOperation for ExampleOperation {
             .get_mut(..2)
             .ok_or(ExamplePrepareError::Buffer)?;
         body.copy_from_slice(b"{}");
+        let headers = crate::transport::RequestHeaders::new(&EXAMPLE_REQUEST_HEADERS)
+            .map_err(|_| ExamplePrepareError::Invalid)?;
         let request = TransportRequest::new(Method::Post, target)
             .with_body(body)
-            .with_content_type(crate::transport::ContentType::JSON);
+            .with_headers(headers);
         let metadata = OperationMetadata::new(
             OperationImpact::Mutation,
             RequestSemantics::Idempotent,

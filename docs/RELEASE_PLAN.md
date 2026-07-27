@@ -1580,6 +1580,8 @@ Stop gate: `v0.35.0 implementation stop reached. Run pentest for this exact comm
 
 ### v0.36.0 - Bounded HTTP Header Model
 
+Status: implementation complete; pentest required.
+
 Goal: represent complete provider requests without adapter-injected policy.
 
 Deliverables: bounded ordered names/values, sensitivity markers, atomic encoding, typed common headers, and bounded response metadata; reserve `Host`, `Content-Length`, `Transfer-Encoding`, hop-by-hop, proxy, and `Authorization` ownership; bind Host/SNI to `EndpointIdentity`; enforce per-header, header-count, and aggregate-byte request/response limits.

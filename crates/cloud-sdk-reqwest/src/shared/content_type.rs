@@ -1,20 +1,14 @@
-use cloud_sdk::transport::ResponseContentType;
-use reqwest::header::{CONTENT_TYPE, HeaderMap};
+use cloud_sdk::transport::{ResponseContentType, ResponseHeaders};
 
 use super::TransportError;
 
 pub(crate) fn parse_response_content_type(
-    headers: &HeaderMap,
+    headers: &ResponseHeaders,
 ) -> Result<Option<ResponseContentType>, TransportError> {
-    let mut values = headers.get_all(CONTENT_TYPE).iter();
-    let Some(value) = values.next() else {
+    let Some(value) = headers.get("content-type") else {
         return Ok(None);
     };
-    if values.next().is_some() {
-        return Err(TransportError::InvalidResponseContentType);
-    }
-    let value = value
-        .to_str()
+    let value = core::str::from_utf8(value.value())
         .map_err(|_| TransportError::InvalidResponseContentType)?;
     ResponseContentType::new(value)
         .map(Some)
@@ -23,20 +17,24 @@ pub(crate) fn parse_response_content_type(
 
 #[cfg(test)]
 mod tests {
-    use reqwest::header::{CONTENT_TYPE, HeaderMap, HeaderValue};
+    use cloud_sdk::transport::{HeaderSensitivity, ResponseHeaders};
 
     use super::parse_response_content_type;
     use crate::shared::TransportError;
 
     #[test]
     fn accepts_absent_or_one_valid_content_type() {
-        let headers = HeaderMap::new();
+        let headers = ResponseHeaders::new();
         assert_eq!(parse_response_content_type(&headers), Ok(None));
 
-        let mut headers = HeaderMap::new();
-        headers.insert(
-            CONTENT_TYPE,
-            HeaderValue::from_static("application/json; charset=utf-8"),
+        let mut headers = ResponseHeaders::new();
+        assert_eq!(
+            headers.try_push(
+                "content-type",
+                b"application/json; charset=utf-8",
+                HeaderSensitivity::Public,
+            ),
+            Ok(())
         );
         let parsed = parse_response_content_type(&headers);
         assert!(parsed.is_ok());
@@ -47,18 +45,14 @@ mod tests {
 
     #[test]
     fn rejects_duplicate_or_malformed_content_types() {
-        let mut headers = HeaderMap::new();
-        headers.append(CONTENT_TYPE, HeaderValue::from_static("application/json"));
-        headers.append(CONTENT_TYPE, HeaderValue::from_static("text/plain"));
+        let mut headers = ResponseHeaders::new();
         assert_eq!(
-            parse_response_content_type(&headers),
-            Err(TransportError::InvalidResponseContentType)
-        );
-
-        let mut headers = HeaderMap::new();
-        headers.insert(
-            CONTENT_TYPE,
-            HeaderValue::from_static("application/json; charset"),
+            headers.try_push(
+                "content-type",
+                b"application/json; charset",
+                HeaderSensitivity::Public,
+            ),
+            Ok(())
         );
         assert_eq!(
             parse_response_content_type(&headers),

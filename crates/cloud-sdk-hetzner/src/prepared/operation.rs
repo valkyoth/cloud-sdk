@@ -8,7 +8,10 @@ use cloud_sdk::operation::{
     PreparationStorage, PrepareOperation, PreparedRequest, ProviderService, RequestSemantics,
     ResponseBodyPolicy, ResponsePolicy, RetryEligibility,
 };
-use cloud_sdk::transport::{ContentType, MediaType, RequestTarget, StatusCode, TransportRequest};
+use cloud_sdk::transport::{
+    ContentType, MediaType, RequestHeader, RequestHeaders, RequestTarget, StatusCode,
+    TransportRequest,
+};
 
 use crate::endpoint::official_endpoint_policy;
 use crate::identity::{CloudService, StorageService};
@@ -21,6 +24,11 @@ const STATUS_OK: &[StatusCode] = &[StatusCode::OK];
 const STATUS_CREATED: &[StatusCode] = &[StatusCode::CREATED];
 const STATUS_NO_CONTENT: &[StatusCode] = &[StatusCode::NO_CONTENT];
 const MAX_JSON_RESPONSE_BYTES: usize = 8_388_608;
+const ACCEPT_JSON_HEADERS: [RequestHeader<'static>; 1] = [RequestHeader::accept(MediaType::JSON)];
+const JSON_REQUEST_HEADERS: [RequestHeader<'static>; 2] = [
+    RequestHeader::accept(MediaType::JSON),
+    RequestHeader::content_type(ContentType::JSON),
+];
 
 /// Request components admitted by one endpoint.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -220,11 +228,16 @@ where
         .and_then(|bytes| core::str::from_utf8(bytes).ok())
         .ok_or(HetznerPreparationError::Path)?;
     let target = RequestTarget::new(target_text).map_err(HetznerPreparationError::InvalidTarget)?;
-    let mut request = TransportRequest::new(endpoint.method(), target);
+    let header_entries = if body_bytes.is_empty() {
+        ACCEPT_JSON_HEADERS.as_slice()
+    } else {
+        JSON_REQUEST_HEADERS.as_slice()
+    };
+    let headers =
+        RequestHeaders::new(header_entries).map_err(HetznerPreparationError::InvalidHeaders)?;
+    let mut request = TransportRequest::new(endpoint.method(), target).with_headers(headers);
     if !body_bytes.is_empty() {
-        request = request
-            .with_body(body_bytes)
-            .with_content_type(ContentType::JSON);
+        request = request.with_body(body_bytes);
     }
     let operation_id = OperationId::new(endpoint.operation_key())
         .map_err(HetznerPreparationError::InvalidOperationId)?;

@@ -4,6 +4,7 @@ use core::fmt;
 
 use cloud_sdk::Method;
 use cloud_sdk::operation::{OperationMetadata, PreparedRequest, ProviderService, ResponsePolicy};
+use cloud_sdk::transport::HeaderSensitivity;
 
 /// Non-secret record of one prepared request for policy assertions.
 #[derive(Clone, Copy, Eq, PartialEq)]
@@ -12,6 +13,8 @@ pub struct PreparedRequestRecord<'endpoint> {
     target_len: usize,
     body_len: usize,
     has_request_content_type: bool,
+    header_count: usize,
+    sensitive_header_count: usize,
     service: ProviderService<'endpoint>,
     metadata: OperationMetadata,
     response_policy: ResponsePolicy,
@@ -20,13 +23,20 @@ pub struct PreparedRequestRecord<'endpoint> {
 impl<'endpoint> PreparedRequestRecord<'endpoint> {
     /// Captures request shape and complete policy without copying target or body bytes.
     #[must_use]
-    pub const fn capture(prepared: PreparedRequest<'endpoint>) -> Self {
+    pub fn capture(prepared: PreparedRequest<'endpoint>) -> Self {
         let request = prepared.transport_request();
         Self {
             method: request.method(),
             target_len: request.target().len(),
             body_len: request.body().len(),
-            has_request_content_type: request.content_type().is_some(),
+            has_request_content_type: request.headers().get("content-type").is_some(),
+            header_count: request.headers().as_slice().len(),
+            sensitive_header_count: request
+                .headers()
+                .as_slice()
+                .iter()
+                .filter(|header| matches!(header.sensitivity(), HeaderSensitivity::Sensitive))
+                .count(),
             service: prepared.service(),
             metadata: prepared.metadata(),
             response_policy: prepared.response_policy(),
@@ -55,6 +65,18 @@ impl<'endpoint> PreparedRequestRecord<'endpoint> {
     #[must_use]
     pub const fn has_request_content_type(self) -> bool {
         self.has_request_content_type
+    }
+
+    /// Returns the request-header count without exposing values.
+    #[must_use]
+    pub const fn header_count(self) -> usize {
+        self.header_count
+    }
+
+    /// Returns the number of headers marked sensitive.
+    #[must_use]
+    pub const fn sensitive_header_count(self) -> usize {
+        self.sensitive_header_count
     }
 
     /// Returns the bound provider service and endpoint.
@@ -86,6 +108,8 @@ impl fmt::Debug for PreparedRequestRecord<'_> {
             .field("body_len", &self.body_len)
             .field("body", &"[redacted]")
             .field("has_request_content_type", &self.has_request_content_type)
+            .field("header_count", &self.header_count)
+            .field("sensitive_header_count", &self.sensitive_header_count)
             .field("service", &self.service)
             .field("metadata", &self.metadata)
             .field("response_policy", &self.response_policy)

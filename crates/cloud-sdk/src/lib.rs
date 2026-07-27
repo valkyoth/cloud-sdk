@@ -44,7 +44,7 @@ mod tests {
     use crate::pagination::PaginationError;
     use crate::rate_limit::RateLimitError;
     use crate::transport::{
-        ContentTypeError, EndpointIdentityError, RequestPathError, RequestTargetError,
+        ContentTypeError, EndpointIdentityError, HeaderError, RequestPathError, RequestTargetError,
     };
     use core::fmt::{self, Write};
 
@@ -69,6 +69,7 @@ mod tests {
         assert_error::<PaginationError>();
         assert_error::<RateLimitError>();
         assert_error::<ContentTypeError>();
+        assert_error::<HeaderError>();
         assert_error::<EndpointIdentityError>();
         assert_error::<RequestTargetError>();
         assert_error::<MethodError>();
@@ -81,6 +82,7 @@ mod tests {
         assert_display(PaginationError::PageZero, "page number must be nonzero");
         assert_display(RateLimitError::LimitZero, "rate limit must be nonzero");
         assert_display(ContentTypeError::Empty, "content type is empty");
+        assert_display(HeaderError::DuplicateName, "HTTP header name is duplicated");
         assert_display(
             EndpointIdentityError::UnboundTransport,
             "transport endpoint identity is unbound",

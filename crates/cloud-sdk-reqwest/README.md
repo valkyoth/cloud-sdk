@@ -38,8 +38,8 @@ provider without adding transport dependencies to provider crates.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.35.0"
-cloud-sdk-reqwest = { version = "0.23.0", features = ["blocking-rustls"] }
+cloud-sdk = "0.36.0"
+cloud-sdk-reqwest = { version = "0.24.0", features = ["blocking-rustls"] }
 ```
 
 The examples use Hetzner as a concrete endpoint, but the adapter contains no
@@ -63,6 +63,9 @@ slashes, or dot segments.
 Request paths and queries are validated once by `cloud-sdk`; this adapter
 preserves their exact bytes and does not apply a second encoding dialect. See
 the [v0.35 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.35.0.md).
+Request headers are now complete bounded core values rather than adapter
+defaults. Response headers are retained in bounded owned metadata. See the
+[v0.36 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.36.0.md).
 
 ## Blocking Example
 
@@ -105,9 +108,10 @@ assert!(response.status().is_success());
 # fn main() {}
 ```
 
-Responses retain one validated, bounded `Content-Type` value for prepared
-response policy. Missing content type remains explicit; malformed, non-textual,
-or duplicate values fail closed before response bytes are returned.
+Responses retain complete bounded header metadata plus one validated
+`Content-Type` value for prepared response policy. Duplicate names, controls,
+and per-value, count, or aggregate overflow fail closed before body bytes are
+returned.
 
 Both adapters implement `ResponseStorageSanitizer` through
 `cloud-sdk-sanitization`. Prepared execution therefore volatile-clears the
@@ -123,8 +127,8 @@ compiled into `webpki-roots`:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.35.0"
-cloud-sdk-reqwest = { version = "0.23.0", features = ["blocking-rustls-webpki-roots"] }
+cloud-sdk = "0.36.0"
+cloud-sdk-reqwest = { version = "0.24.0", features = ["blocking-rustls-webpki-roots"] }
 ```
 
 The blocking API is identical to the example above. The custom rustls client
@@ -140,8 +144,8 @@ Use the same blocking API with the dedicated feature:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.35.0"
-cloud-sdk-reqwest = { version = "0.23.0", features = ["blocking-rustls-fips"] }
+cloud-sdk = "0.36.0"
+cloud-sdk-reqwest = { version = "0.24.0", features = ["blocking-rustls-fips"] }
 rustls = "=0.23.42"
 ```
 
@@ -230,14 +234,21 @@ assert!(response.status().is_success());
 For a non-empty request body, set an explicit validated content type:
 
 ```rust
-use cloud_sdk::transport::{ContentType, TransportRequest};
+use cloud_sdk::transport::{
+    ContentType, MediaType, RequestHeader, RequestHeaders, TransportRequest,
+};
 # use cloud_sdk::{Method, transport::RequestTarget};
 # let Ok(target) = RequestTarget::new("/servers") else { return };
 
+let entries = [
+    RequestHeader::accept(MediaType::JSON),
+    RequestHeader::content_type(ContentType::JSON),
+];
+let Ok(headers) = RequestHeaders::new(&entries) else { return };
 let request = TransportRequest::new(Method::Post, target)
-    .with_body(br#"{"name":"example"}"#)
-    .with_content_type(ContentType::JSON);
-assert_eq!(request.content_type(), Some(ContentType::JSON));
+    .with_headers(headers)
+    .with_body(br#"{"name":"example"}"#);
+assert!(request.headers().get("content-type").is_some());
 ```
 
 ## Shared Clients And Credential Rotation

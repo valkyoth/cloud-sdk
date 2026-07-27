@@ -1,5 +1,5 @@
 use cloud_sdk::rate_limit::RateLimit;
-use reqwest::header::{HeaderMap, HeaderValue};
+use cloud_sdk::transport::ResponseHeaders;
 
 use super::TransportError;
 
@@ -7,10 +7,12 @@ const LIMIT: &str = "ratelimit-limit";
 const REMAINING: &str = "ratelimit-remaining";
 const RESET: &str = "ratelimit-reset";
 
-pub(crate) fn parse_rate_limit(headers: &HeaderMap) -> Result<Option<RateLimit>, TransportError> {
-    let limit = exactly_one(headers, LIMIT)?;
-    let remaining = exactly_one(headers, REMAINING)?;
-    let reset = exactly_one(headers, RESET)?;
+pub(crate) fn parse_rate_limit(
+    headers: &ResponseHeaders,
+) -> Result<Option<RateLimit>, TransportError> {
+    let limit = headers.get(LIMIT);
+    let remaining = headers.get(REMAINING);
+    let reset = headers.get(RESET);
     if limit.is_none() && remaining.is_none() && reset.is_none() {
         return Ok(None);
     }
@@ -22,20 +24,8 @@ pub(crate) fn parse_rate_limit(headers: &HeaderMap) -> Result<Option<RateLimit>,
         .map_err(|_| TransportError::InvalidRateLimitHeaders)
 }
 
-fn exactly_one<'a>(
-    headers: &'a HeaderMap,
-    name: &'static str,
-) -> Result<Option<&'a HeaderValue>, TransportError> {
-    let mut values = headers.get_all(name).iter();
-    let first = values.next();
-    if values.next().is_some() {
-        return Err(TransportError::InvalidRateLimitHeaders);
-    }
-    Ok(first)
-}
-
-fn parse_decimal(value: &HeaderValue) -> Result<u64, TransportError> {
-    let bytes = value.as_bytes();
+fn parse_decimal(value: cloud_sdk::transport::ResponseHeader<'_>) -> Result<u64, TransportError> {
+    let bytes = value.value();
     if bytes.is_empty() {
         return Err(TransportError::InvalidRateLimitHeaders);
     }
@@ -56,11 +46,11 @@ fn parse_decimal(value: &HeaderValue) -> Result<u64, TransportError> {
 mod tests {
     use super::{LIMIT, REMAINING, RESET, parse_rate_limit};
     use crate::shared::TransportError;
-    use reqwest::header::{HeaderMap, HeaderValue};
+    use cloud_sdk::transport::{HeaderSensitivity, ResponseHeaders};
 
     #[test]
     fn accepts_absent_or_coherent_headers() {
-        assert_eq!(parse_rate_limit(&HeaderMap::new()), Ok(None));
+        assert_eq!(parse_rate_limit(&ResponseHeaders::new()), Ok(None));
         let headers = headers("3600", "3599", "42");
         let parsed = parse_rate_limit(&headers);
         assert!(parsed.is_ok());
@@ -74,8 +64,11 @@ mod tests {
 
     #[test]
     fn rejects_partial_nondecimal_overflow_and_incoherent_headers() {
-        let mut partial = HeaderMap::new();
-        partial.insert(LIMIT, HeaderValue::from_static("3600"));
+        let mut partial = ResponseHeaders::new();
+        assert_eq!(
+            partial.try_push(LIMIT, b"3600", HeaderSensitivity::Public),
+            Ok(())
+        );
         assert_eq!(
             parse_rate_limit(&partial),
             Err(TransportError::InvalidRateLimitHeaders)
@@ -93,29 +86,14 @@ mod tests {
         }
     }
 
-    #[test]
-    fn rejects_identical_and_conflicting_duplicate_headers() {
-        for (name, identical, conflicting) in [
-            (LIMIT, "3600", "7200"),
-            (REMAINING, "3599", "1"),
-            (RESET, "42", "84"),
-        ] {
-            for duplicate in [identical, conflicting] {
-                let mut values = headers("3600", "3599", "42");
-                values.append(name, HeaderValue::from_static(duplicate));
-                assert_eq!(
-                    parse_rate_limit(&values),
-                    Err(TransportError::InvalidRateLimitHeaders)
-                );
-            }
+    fn headers(limit: &str, remaining: &str, reset: &str) -> ResponseHeaders {
+        let mut headers = ResponseHeaders::new();
+        for (name, value) in [(LIMIT, limit), (REMAINING, remaining), (RESET, reset)] {
+            assert_eq!(
+                headers.try_push(name, value.as_bytes(), HeaderSensitivity::Public),
+                Ok(())
+            );
         }
-    }
-
-    fn headers(limit: &'static str, remaining: &'static str, reset: &'static str) -> HeaderMap {
-        let mut headers = HeaderMap::new();
-        headers.insert(LIMIT, HeaderValue::from_static(limit));
-        headers.insert(REMAINING, HeaderValue::from_static(remaining));
-        headers.insert(RESET, HeaderValue::from_static(reset));
         headers
     }
 }

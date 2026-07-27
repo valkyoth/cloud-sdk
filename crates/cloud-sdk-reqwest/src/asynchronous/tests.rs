@@ -3,7 +3,8 @@ use std::time::Duration;
 
 use cloud_sdk::Method;
 use cloud_sdk::transport::{
-    AsyncTransport, ContentType, RequestTarget, ResponseStorageSanitizer, TransportRequest,
+    AsyncTransport, ContentType, RequestHeader, RequestHeaders, RequestTarget,
+    ResponseStorageSanitizer, TransportRequest,
 };
 
 use super::{
@@ -65,9 +66,20 @@ fn async_client_sends_exact_headers_target_and_body_once() {
         let Ok(target) = RequestTarget::new("/servers?name=test%20server") else {
             return;
         };
+        let Ok(sensitive) = RequestHeader::sensitive("x-test-secret", "redacted-value") else {
+            return;
+        };
+        let entries = [
+            RequestHeader::accept(cloud_sdk::transport::MediaType::JSON),
+            RequestHeader::content_type(ContentType::JSON),
+            sensitive,
+        ];
+        let Ok(headers) = RequestHeaders::new(&entries) else {
+            return;
+        };
         let request = TransportRequest::new(Method::Post, target)
             .with_body(br#"{"name":"server"}"#)
-            .with_content_type(ContentType::JSON);
+            .with_headers(headers);
         let mut output = [0xa5_u8; 32];
         let response = AsyncTransport::send(&client, request, &mut output).await;
         assert!(response.is_ok());
@@ -83,6 +95,9 @@ fn async_client_sends_exact_headers_target_and_body_once() {
             assert!(wire.starts_with("post /v1/servers?name=test%20server http/1.1\r\n"));
             assert!(wire.contains("authorization: bearer test-token\r\n"));
             assert!(wire.contains("user-agent: cloud-sdk-test/0.18\r\n"));
+            assert!(wire.contains("accept: application/json\r\n"));
+            assert!(wire.contains("content-type: application/json\r\n"));
+            assert!(wire.contains("x-test-secret: redacted-value\r\n"));
             assert!(wire.contains("content-type: application/json\r\n"));
             assert!(wire.ends_with(r#"{"name":"server"}"#));
         }
@@ -217,6 +232,20 @@ fn async_response_propagates_validated_rate_limit_headers() {
         assert_eq!(rate_limit.limit(), 3600);
         assert_eq!(rate_limit.remaining(), 3599);
         assert_eq!(rate_limit.reset_epoch_seconds(), 42);
+        assert_eq!(
+            response
+                .headers()
+                .get("ratelimit-remaining")
+                .map(|header| header.value()),
+            Some(b"3599".as_slice())
+        );
+        assert_eq!(
+            response
+                .headers()
+                .get("content-type")
+                .map(|header| header.value()),
+            Some(b"application/json; charset=utf-8".as_slice())
+        );
     });
 }
 
@@ -226,12 +255,18 @@ fn async_malformed_or_duplicate_response_content_type_fails_closed() {
         let Ok(target) = RequestTarget::new("/servers") else {
             return;
         };
-        for headers in [
-            &[("Content-Type", "application/json; charset")][..],
-            &[
-                ("Content-Type", "application/json"),
-                ("Content-Type", "text/plain"),
-            ][..],
+        for (headers, expected) in [
+            (
+                &[("Content-Type", "application/json; charset")][..],
+                TransportError::InvalidResponseContentType,
+            ),
+            (
+                &[
+                    ("Content-Type", "application/json"),
+                    ("Content-Type", "text/plain"),
+                ][..],
+                TransportError::InvalidResponseHeaders,
+            ),
         ] {
             let server = spawn("200 OK", headers, b"secret", Duration::ZERO);
             let Ok(server) = server else { return };
@@ -243,7 +278,7 @@ fn async_malformed_or_duplicate_response_content_type_fails_closed() {
                 client
                     .send(TransportRequest::new(Method::Get, target), &mut output)
                     .await,
-                Err(TransportError::InvalidResponseContentType)
+                Err(expected)
             );
             assert_eq!(output, [0_u8; 8]);
         }
@@ -280,7 +315,7 @@ fn async_duplicate_rate_limit_headers_fail_closed() {
         .await;
         assert!(matches!(
             result,
-            Err(TransportError::InvalidRateLimitHeaders)
+            Err(TransportError::InvalidResponseHeaders)
         ));
         assert_eq!(output, [0_u8; 8]);
     });

@@ -5,9 +5,9 @@ use core::sync::atomic::{AtomicUsize, Ordering};
 
 use cloud_sdk::Method;
 use cloud_sdk::transport::{
-    AsyncTransport, BlockingTransport, BoundTransport, ContentType, EndpointIdentity,
-    EndpointIdentityError, RequestTarget, ResponseContentType, ResponseStorageSanitizer,
-    TransportRequest, TransportResponse,
+    AsyncTransport, BlockingTransport, BoundTransport, EndpointIdentity, EndpointIdentityError,
+    HeaderSensitivity, RequestHeaders, RequestTarget, ResponseContentType, ResponseHeaders,
+    ResponseStorageSanitizer, TransportRequest, TransportResponse,
 };
 
 use crate::{FixtureBodyError, ResponseFixture};
@@ -18,7 +18,7 @@ pub struct ExpectedRequest<'a> {
     method: Method,
     target: RequestTarget<'a>,
     body: &'a [u8],
-    content_type: Option<ContentType<'a>>,
+    headers: RequestHeaders<'a>,
 }
 
 impl<'a> ExpectedRequest<'a> {
@@ -29,7 +29,7 @@ impl<'a> ExpectedRequest<'a> {
             method,
             target,
             body: &[],
-            content_type: None,
+            headers: RequestHeaders::EMPTY,
         }
     }
 
@@ -40,10 +40,10 @@ impl<'a> ExpectedRequest<'a> {
         self
     }
 
-    /// Adds the exact expected request content type.
+    /// Adds the exact expected ordered request headers.
     #[must_use]
-    pub const fn with_content_type(mut self, content_type: ContentType<'a>) -> Self {
-        self.content_type = Some(content_type);
+    pub const fn with_headers(mut self, headers: RequestHeaders<'a>) -> Self {
+        self.headers = headers;
         self
     }
 
@@ -59,8 +59,8 @@ impl<'a> ExpectedRequest<'a> {
         self.body
     }
 
-    const fn content_type(self) -> Option<ContentType<'a>> {
-        self.content_type
+    const fn headers(self) -> RequestHeaders<'a> {
+        self.headers
     }
 }
 
@@ -71,7 +71,7 @@ impl fmt::Debug for ExpectedRequest<'_> {
             .field("method", &self.method)
             .field("target", &"[redacted]")
             .field("body", &"[redacted]")
-            .field("content_type", &self.content_type)
+            .field("headers", &self.headers)
             .finish()
     }
 }
@@ -102,8 +102,8 @@ pub enum MockError {
     TargetMismatch,
     /// Request body differs from the next expectation.
     BodyMismatch,
-    /// Request content type differs from the next expectation.
-    ContentTypeMismatch,
+    /// Request headers differ from the next expectation.
+    HeadersMismatch,
     /// Caller response buffer cannot hold the complete fixture body.
     ResponseBufferTooSmall,
     /// Internal cursor arithmetic failed closed.
@@ -119,7 +119,7 @@ impl_static_error!(MockError,
     Self::MethodMismatch => "mock request method differs from expectation",
     Self::TargetMismatch => "mock request target differs from expectation",
     Self::BodyMismatch => "mock request body differs from expectation",
-    Self::ContentTypeMismatch => "mock request content type differs from expectation",
+    Self::HeadersMismatch => "mock request headers differ from expectation",
     Self::ResponseBufferTooSmall => "mock response buffer is too small",
     Self::CursorOverflow => "mock transport cursor overflowed",
     Self::ConcurrentRequest => "mock transport cursor changed concurrently",
@@ -181,8 +181,8 @@ impl<'a> MockTransport<'a> {
         if request.body() != exchange.request.body() {
             return Err(MockError::BodyMismatch);
         }
-        if request.content_type() != exchange.request.content_type() {
-            return Err(MockError::ContentTypeMismatch);
+        if request.headers() != exchange.request.headers() {
+            return Err(MockError::HeadersMismatch);
         }
         let next_cursor = cursor.checked_add(1).ok_or(MockError::CursorOverflow)?;
         let content_type = exchange
@@ -197,6 +197,16 @@ impl<'a> MockTransport<'a> {
             .map(|value| value.into_rate_limit())
             .transpose()
             .map_err(|_| MockError::InvalidFixtureMetadata)?;
+        let mut response_headers = exchange.response.headers();
+        if let Some(value) = exchange.response.content_type() {
+            response_headers
+                .try_push("content-type", value.as_bytes(), HeaderSensitivity::Public)
+                .map_err(|_| MockError::InvalidFixtureMetadata)?;
+        }
+        if let Some(value) = rate_limit {
+            push_rate_limit_headers(&mut response_headers, value)
+                .map_err(|_| MockError::InvalidFixtureMetadata)?;
+        }
         let body_len =
             exchange
                 .response
@@ -210,7 +220,8 @@ impl<'a> MockTransport<'a> {
         let initialized = response_body
             .get(..body_len)
             .ok_or(MockError::ResponseBufferTooSmall)?;
-        let response = TransportResponse::new(exchange.response.status(), initialized);
+        let response = TransportResponse::new(exchange.response.status(), initialized)
+            .with_headers(response_headers);
         let response = content_type.map_or(response, |value| response.with_content_type(value));
         let response = rate_limit.map_or(response, |value| response.with_rate_limit(value));
         self.cursor
@@ -218,6 +229,39 @@ impl<'a> MockTransport<'a> {
             .map_err(|_| MockError::ConcurrentRequest)?;
         Ok(response)
     }
+}
+
+fn push_rate_limit_headers(
+    headers: &mut ResponseHeaders,
+    rate_limit: cloud_sdk::rate_limit::RateLimit,
+) -> Result<(), ()> {
+    let mut storage = [0_u8; 20];
+    for (name, value) in [
+        ("ratelimit-limit", rate_limit.limit()),
+        ("ratelimit-remaining", rate_limit.remaining()),
+        ("ratelimit-reset", rate_limit.reset_epoch_seconds()),
+    ] {
+        let text = write_decimal(value, &mut storage).ok_or(())?;
+        headers
+            .try_push(name, text.as_bytes(), HeaderSensitivity::Public)
+            .map_err(|_| ())?;
+    }
+    Ok(())
+}
+
+fn write_decimal(value: u64, output: &mut [u8; 20]) -> Option<&str> {
+    let mut value = value;
+    let mut cursor = output.len();
+    loop {
+        cursor = cursor.checked_sub(1)?;
+        let digit = u8::try_from(value % 10).ok()?;
+        *output.get_mut(cursor)? = b'0'.checked_add(digit)?;
+        value /= 10;
+        if value == 0 {
+            break;
+        }
+    }
+    core::str::from_utf8(output.get(cursor..)?).ok()
 }
 
 impl BlockingTransport for MockTransport<'_> {

@@ -3,6 +3,7 @@
 mod asynchronous;
 mod content_type;
 mod endpoint;
+mod header;
 mod request_target;
 
 pub use asynchronous::AsyncTransport;
@@ -14,6 +15,12 @@ pub use endpoint::{
     EndpointIdentityError, EndpointPolicy, EndpointPolicyError, EndpointPolicyKind, EndpointScheme,
     MAX_ENDPOINT_BASE_PATH_BYTES, MAX_ENDPOINT_HOST_BYTES, MAX_ENDPOINT_REGION_BYTES,
     MAX_OFFICIAL_ENDPOINTS, RegionEndpoint,
+};
+pub use header::{
+    HeaderError, HeaderName, HeaderSensitivity, HeaderValue, MAX_HEADER_NAME_BYTES,
+    MAX_HEADER_VALUE_BYTES, MAX_REQUEST_HEADER_BYTES, MAX_REQUEST_HEADERS,
+    MAX_RESPONSE_HEADER_BYTES, MAX_RESPONSE_HEADERS, RequestHeader, RequestHeaders, ResponseHeader,
+    ResponseHeaders,
 };
 pub use request_target::{
     CanonicalQuery, FormQuery, MAX_REQUEST_TARGET_BYTES, QueryPair, QueryPairs, RequestPath,
@@ -44,7 +51,7 @@ pub struct TransportRequest<'a> {
     method: Method,
     target: RequestTarget<'a>,
     body: &'a [u8],
-    content_type: Option<ContentType<'a>>,
+    headers: RequestHeaders<'a>,
 }
 
 impl<'a> TransportRequest<'a> {
@@ -55,7 +62,7 @@ impl<'a> TransportRequest<'a> {
             method,
             target,
             body: &[],
-            content_type: None,
+            headers: RequestHeaders::EMPTY,
         }
     }
 
@@ -66,10 +73,10 @@ impl<'a> TransportRequest<'a> {
         self
     }
 
-    /// Adds an explicit content type for the borrowed request body.
+    /// Adds a complete validated request-header block.
     #[must_use]
-    pub const fn with_content_type(mut self, content_type: ContentType<'a>) -> Self {
-        self.content_type = Some(content_type);
+    pub const fn with_headers(mut self, headers: RequestHeaders<'a>) -> Self {
+        self.headers = headers;
         self
     }
 
@@ -91,10 +98,10 @@ impl<'a> TransportRequest<'a> {
         self.body
     }
 
-    /// Returns the explicit request-body content type, when configured.
+    /// Returns the complete ordered request-header block.
     #[must_use]
-    pub const fn content_type(self) -> Option<ContentType<'a>> {
-        self.content_type
+    pub const fn headers(self) -> RequestHeaders<'a> {
+        self.headers
     }
 }
 
@@ -105,7 +112,7 @@ impl fmt::Debug for TransportRequest<'_> {
             .field("method", &self.method)
             .field("target", &self.target)
             .field("body", &"[redacted]")
-            .field("content_type", &self.content_type)
+            .field("headers", &self.headers)
             .finish()
     }
 }
@@ -171,6 +178,7 @@ pub struct TransportResponse<'buffer> {
     body: &'buffer [u8],
     content_type: Option<ResponseContentType>,
     rate_limit: Option<RateLimit>,
+    headers: ResponseHeaders,
 }
 
 impl<'buffer> TransportResponse<'buffer> {
@@ -182,6 +190,7 @@ impl<'buffer> TransportResponse<'buffer> {
             body,
             content_type: None,
             rate_limit: None,
+            headers: ResponseHeaders::new(),
         }
     }
 
@@ -196,6 +205,13 @@ impl<'buffer> TransportResponse<'buffer> {
     #[must_use]
     pub const fn with_rate_limit(mut self, rate_limit: RateLimit) -> Self {
         self.rate_limit = Some(rate_limit);
+        self
+    }
+
+    /// Adds complete bounded response-header metadata.
+    #[must_use]
+    pub const fn with_headers(mut self, headers: ResponseHeaders) -> Self {
+        self.headers = headers;
         self
     }
 
@@ -222,6 +238,12 @@ impl<'buffer> TransportResponse<'buffer> {
     pub const fn rate_limit(&self) -> Option<RateLimit> {
         self.rate_limit
     }
+
+    /// Returns complete bounded response-header metadata.
+    #[must_use]
+    pub const fn headers(&self) -> &ResponseHeaders {
+        &self.headers
+    }
 }
 
 impl fmt::Debug for TransportResponse<'_> {
@@ -233,6 +255,7 @@ impl fmt::Debug for TransportResponse<'_> {
             .field("body", &"[redacted]")
             .field("content_type", &self.content_type)
             .field("rate_limit", &self.rate_limit)
+            .field("headers", &self.headers)
             .finish()
     }
 }

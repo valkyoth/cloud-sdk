@@ -3,7 +3,7 @@
 use cloud_sdk::operation::{
     OperationIdError, OperationMetadataError, ResponsePolicyValidationError,
 };
-use cloud_sdk::transport::RequestTargetError;
+use cloud_sdk::transport::{HeaderError, RequestTargetError};
 
 use crate::endpoint::OfficialEndpointError;
 
@@ -30,6 +30,8 @@ pub enum HetznerPreparationError {
     InvalidOperationId(OperationIdError),
     /// The complete origin-form target failed provider-neutral validation.
     InvalidTarget(RequestTargetError),
+    /// Source-locked request headers failed provider-neutral validation.
+    InvalidHeaders(HeaderError),
     /// The canonical official endpoint identity was invalid.
     InvalidOfficialEndpoint(OfficialEndpointError),
     /// Source-locked operation metadata was internally inconsistent.
@@ -51,6 +53,7 @@ impl core::fmt::Display for HetznerPreparationError {
             Self::OperationMismatch => "Hetzner request component belongs to another operation",
             Self::InvalidOperationId(_) => "Hetzner operation identifier is invalid",
             Self::InvalidTarget(_) => "Hetzner request target is invalid",
+            Self::InvalidHeaders(_) => "Hetzner request headers are invalid",
             Self::InvalidOfficialEndpoint(_) => "official Hetzner endpoint is invalid",
             Self::InvalidMetadata(_) => "Hetzner operation metadata is invalid",
             Self::InvalidResponsePolicy(_) => "Hetzner response policy is invalid",
@@ -62,6 +65,7 @@ impl core::error::Error for HetznerPreparationError {
     fn source(&self) -> Option<&(dyn core::error::Error + 'static)> {
         match self {
             Self::InvalidTarget(error) => Some(error),
+            Self::InvalidHeaders(error) => Some(error),
             Self::InvalidOperationId(error) => Some(error),
             Self::InvalidOfficialEndpoint(error) => Some(error),
             Self::InvalidMetadata(error) => Some(error),

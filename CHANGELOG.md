@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.36.0 - 2026-07-27
+
+- Added bounded ordered request headers with explicit sensitivity,
+  case-insensitive duplicate rejection, and atomic field-line encoding.
+- Reserved caller ownership of Host, framing, authorization, proxy, and
+  hop-by-hop fields.
+- Added fixed-capacity bounded response metadata with redacted diagnostics.
+- Moved Hetzner Accept and Content-Type policy into prepared requests.
+- Updated blocking, async, and testkit transports for exact header forwarding,
+  capture, matching, and typed metadata derivation.
+
 ## 0.35.0 - 2026-07-27
 
 - Separated canonical origin-form paths from explicit absent, canonical, and

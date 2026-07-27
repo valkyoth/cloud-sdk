@@ -1,7 +1,7 @@
 # Crate Version Matrix
 
-Status: `v0.34.0` is tagged. `v0.35.0` canonical request-target implementation,
-pentest, and final retest are complete; local and GitHub release checks remain.
+Status: `v0.35.0` is tagged. `v0.36.0` bounded HTTP header implementation is
+complete; pentest is required before final release checks.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
@@ -544,6 +544,20 @@ states without allocation.
 | `cloud-sdk-reqwest` | `0.22.0` | `0.23.0` | `code` | Yes | Remove divergent target validation and preserve exact core-admitted bytes. |
 | `cloud-sdk-sanitization` | `0.15.2` | `0.15.3` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.35 facade line. |
 | `cloud-sdk-testkit` | `0.19.0` | `0.20.0` | `code` | Yes | Match exact query presence and encoding dialect in deterministic mocks. |
+
+## v0.36.0 Tracking Table
+
+`v0.36.0` adds bounded ordered request headers, fixed-capacity response
+metadata, explicit provider header policy, and exact adapter/testkit
+conformance.
+
+| Crate | Published | Planned | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.35.0` | `0.36.0` | `code` | Yes | Add bounded names, values, blocks, sensitivity, atomic encoding, and response metadata. |
+| `cloud-sdk-hetzner` | `0.28.0` | `0.29.0` | `code` | Yes | Put JSON Accept and Content-Type policy into prepared requests. |
+| `cloud-sdk-reqwest` | `0.23.0` | `0.24.0` | `code` | Yes | Forward exact request headers and capture bounded response metadata. |
+| `cloud-sdk-sanitization` | `0.15.3` | `0.15.4` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.36 facade line. |
+| `cloud-sdk-testkit` | `0.20.0` | `0.21.0` | `code` | Yes | Match exact request headers and model bounded response metadata. |
 
 ## Planned Milestone Ownership
 

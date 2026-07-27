@@ -8,21 +8,21 @@ usable in `no_std` environments.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.35.0"
+cloud-sdk = "0.36.0"
 ```
 
 Provider-specific request models are separate dependencies. For Hetzner:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.35.0"
-cloud-sdk-hetzner = "0.28.0"
+cloud-sdk = "0.36.0"
+cloud-sdk-hetzner = "0.29.0"
 ```
 
 ## Build A Transport Request
 
 The provider-neutral request contract carries a validated origin-form target,
-method, optional body, and optional content type:
+method, bounded ordered headers, and an optional body:
 
 ```rust
 use cloud_sdk::Method;
@@ -62,6 +62,25 @@ for spaces; provider-specific form semantics use `FormQuery`. See
 [`MIGRATION_0.35.0.md`](MIGRATION_0.35.0.md).
 Only `output[..target.len()]` is initialized; never consume the untouched
 scratch-buffer tail, which may contain bytes from an earlier use.
+
+Headers are explicit provider policy rather than transport defaults:
+
+```rust
+use cloud_sdk::transport::{
+    ContentType, MediaType, RequestHeader, RequestHeaders,
+};
+
+let entries = [
+    RequestHeader::accept(MediaType::JSON),
+    RequestHeader::content_type(ContentType::JSON),
+];
+let headers = RequestHeaders::new(&entries)?;
+assert_eq!(headers.as_slice().len(), 2);
+# Ok::<(), cloud_sdk::transport::HeaderError>(())
+```
+
+See [`MIGRATION_0.36.0.md`](MIGRATION_0.36.0.md) for reserved ownership,
+duplicate handling, limits, response metadata, and adapter changes.
 
 Provider crates can use `Method::extension("PURGE")` for a finite static
 extension. Extensions are bounded uppercase HTTP tokens; known aliases,

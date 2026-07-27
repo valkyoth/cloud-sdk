@@ -38,8 +38,8 @@ boundaries.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.35.0"
-cloud-sdk-hetzner = "0.28.0"
+cloud-sdk = "0.36.0"
+cloud-sdk-hetzner = "0.29.0"
 ```
 
 ## Features
@@ -97,11 +97,16 @@ let mut target = [0_u8; 128];
 let mut body = [0_u8; 512];
 let prepared = operation.prepare(PreparationStorage::new(&mut target, &mut body))?;
 assert_eq!(prepared.transport_request().target().as_str(), "/load_balancers");
+assert_eq!(
+    prepared.transport_request().headers().get("accept")
+        .map(|header| header.value().as_str()),
+    Some("application/json"),
+);
 # Ok::<(), Box<dyn core::error::Error>>(())
 ```
 
 Secret-bearing operations need successful-path cleanup after transport use.
-Add `cloud-sdk-sanitization = "0.15.3"` and guard the complete body buffer:
+Add `cloud-sdk-sanitization = "0.15.4"` and guard the complete body buffer:
 
 ```rust
 use cloud_sdk::operation::{PreparationStorage, PrepareOperation};
@@ -188,6 +193,8 @@ Endpoint trust-policy migration is listed in the
 [v0.34 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.34.0.md).
 Canonical request-target migration is listed in the
 [v0.35 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.35.0.md).
+Prepared request-header migration is listed in the
+[v0.36 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.36.0.md).
 
 ## Optional Serde Boundary
 
@@ -195,7 +202,7 @@ Enable Serde explicitly; it is never part of the default graph:
 
 ```toml
 [dependencies]
-cloud-sdk-hetzner = { version = "0.28.0", features = ["serde"] }
+cloud-sdk-hetzner = { version = "0.29.0", features = ["serde"] }
 ```
 
 The feature admits serde_json with `default-features = false` and `alloc` only

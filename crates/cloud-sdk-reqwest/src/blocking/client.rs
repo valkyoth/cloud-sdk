@@ -9,12 +9,12 @@ use cloud_sdk::transport::{
 };
 use cloud_sdk_sanitization::{SecretBuffer, sanitize_bytes};
 use reqwest::blocking::{Body, Client};
-use reqwest::header::{ACCEPT, AUTHORIZATION, CONTENT_TYPE, HeaderValue};
+use reqwest::header::{AUTHORIZATION, HeaderName, HeaderValue};
 
 use super::body::{ReadBodyError, SanitizedRequestBody, read_bounded};
 use crate::shared::{
     BearerToken, CredentialStateError, CredentialStore, HttpsEndpoint, TokenRotationError,
-    TransportError, parse_rate_limit, parse_response_content_type,
+    TransportError, capture_response_headers, parse_rate_limit, parse_response_content_type,
 };
 
 /// Hardened provider-neutral reqwest blocking transport.
@@ -84,14 +84,20 @@ impl BlockingClient {
         let mut outbound = self
             .client
             .request(method, url)
-            .header(AUTHORIZATION, authorization)
-            .header(ACCEPT, HeaderValue::from_static("application/json"));
+            .header(AUTHORIZATION, authorization);
 
-        if let Some(content_type) = request.content_type() {
-            let value = HeaderValue::from_str(content_type.as_str())
+        for header in request.headers().as_slice() {
+            let name = HeaderName::from_bytes(header.name().as_str().as_bytes())
                 .map_err(|_| TransportError::HeaderRejected)?;
-            outbound = outbound.header(CONTENT_TYPE, value);
-        } else if !request.body().is_empty() {
+            let mut value = HeaderValue::from_str(header.value().as_str())
+                .map_err(|_| TransportError::HeaderRejected)?;
+            value.set_sensitive(matches!(
+                header.sensitivity(),
+                cloud_sdk::transport::HeaderSensitivity::Sensitive
+            ));
+            outbound = outbound.header(name, value);
+        }
+        if !request.body().is_empty() && request.headers().get("content-type").is_none() {
             return Err(TransportError::MissingContentType);
         }
 
@@ -107,6 +113,7 @@ impl BlockingClient {
         self.endpoint
             .verify_origin(response.url())
             .map_err(|_| TransportError::ResponseOriginChanged)?;
+        let headers = capture_response_headers(response.headers())?;
         if response.content_length().is_some_and(|length| {
             u64::try_from(response_body.len()).map_or(true, |cap| length > cap)
         }) {
@@ -114,13 +121,13 @@ impl BlockingClient {
         }
         let status =
             StatusCode::new(response.status().as_u16()).ok_or(TransportError::InvalidStatus)?;
-        let rate_limit = parse_rate_limit(response.headers())?;
-        let content_type = parse_response_content_type(response.headers())?;
+        let rate_limit = parse_rate_limit(&headers)?;
+        let content_type = parse_response_content_type(&headers)?;
         let body_len = read_response(&mut response, response_body)?;
         let initialized = response_body
             .get(..body_len)
             .ok_or(TransportError::ResponseReadFailed)?;
-        let response = TransportResponse::new(status, initialized);
+        let response = TransportResponse::new(status, initialized).with_headers(headers);
         let response = content_type.map_or(response, |value| response.with_content_type(value));
         drop(token_snapshot);
         Ok(rate_limit.map_or(response, |value| response.with_rate_limit(value)))

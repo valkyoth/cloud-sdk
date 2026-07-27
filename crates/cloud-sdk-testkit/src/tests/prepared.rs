@@ -8,7 +8,7 @@ use cloud_sdk::operation::{
 };
 use cloud_sdk::transport::{
     ContentType, EndpointIdentity, EndpointIdentityError, EndpointPolicy, EndpointScheme,
-    MediaType, RequestTarget, StatusCode, TransportRequest,
+    MediaType, RequestHeader, RequestHeaders, RequestTarget, StatusCode, TransportRequest,
 };
 use cloud_sdk::{
     Method, ProviderId, ProviderMarker, ServiceId, ServiceMarker, provider_id, service_id,
@@ -21,6 +21,8 @@ use crate::{
 
 static OK_STATUS: [StatusCode; 1] = [StatusCode::OK];
 static JSON_MEDIA: [MediaType<'static>; 1] = [MediaType::JSON];
+static JSON_REQUEST_HEADERS: [RequestHeader<'static>; 1] =
+    [RequestHeader::content_type(ContentType::JSON)];
 
 enum ExampleProvider {}
 
@@ -45,6 +47,8 @@ fn prepared_records_capture_policy_and_redact_request_values() {
     assert_eq!(record.target_len(), 8);
     assert_eq!(record.body_len(), 2);
     assert!(record.has_request_content_type());
+    assert_eq!(record.header_count(), 1);
+    assert_eq!(record.sensitive_header_count(), 0);
     assert_eq!(record.service().provider_id(), ExampleProvider::ID);
     assert_eq!(record.service().service_id(), ComputeService::ID);
     assert_eq!(record.metadata().impact(), OperationImpact::Mutation);
@@ -223,7 +227,7 @@ fn mock_rejects_unbound_endpoints_request_media_mismatch_and_invalid_fixture_med
     assert_eq!(
         prepared.execute_blocking(&mock, &mut output),
         Err(PreparedExecutionError::Transport(
-            MockError::ContentTypeMismatch
+            MockError::HeadersMismatch
         ))
     );
     assert_eq!(mock.remaining(), 1);
@@ -250,9 +254,10 @@ fn mock_rejects_unbound_endpoints_request_media_mismatch_and_invalid_fixture_med
 
 fn prepared_request(max_body_bytes: usize) -> Result<PreparedRequest<'static>, ()> {
     let target = RequestTarget::new("/servers").map_err(|_| ())?;
+    let headers = RequestHeaders::new(&JSON_REQUEST_HEADERS).map_err(|_| ())?;
     let request = TransportRequest::new(Method::Post, target)
         .with_body(b"{}")
-        .with_content_type(ContentType::JSON);
+        .with_headers(headers);
     let metadata = OperationMetadata::new(
         OperationImpact::Mutation,
         RequestSemantics::Idempotent,
@@ -278,9 +283,10 @@ fn prepared_request(max_body_bytes: usize) -> Result<PreparedRequest<'static>, (
 
 fn expected_request() -> Result<ExpectedRequest<'static>, ()> {
     let target = RequestTarget::new("/servers").map_err(|_| ())?;
+    let headers = RequestHeaders::new(&JSON_REQUEST_HEADERS).map_err(|_| ())?;
     Ok(ExpectedRequest::new(Method::Post, target)
         .with_body(b"{}")
-        .with_content_type(ContentType::JSON))
+        .with_headers(headers))
 }
 
 fn successful_exchange() -> Result<MockExchange<'static>, ()> {

@@ -12,12 +12,18 @@ fn malformed_or_duplicate_response_content_type_fails_closed() {
     let Ok(target) = RequestTarget::new("/servers") else {
         return;
     };
-    for headers in [
-        &[("Content-Type", "application/json; charset")][..],
-        &[
-            ("Content-Type", "application/json"),
-            ("Content-Type", "text/plain"),
-        ][..],
+    for (headers, expected) in [
+        (
+            &[("Content-Type", "application/json; charset")][..],
+            TransportError::InvalidResponseContentType,
+        ),
+        (
+            &[
+                ("Content-Type", "application/json"),
+                ("Content-Type", "text/plain"),
+            ][..],
+            TransportError::InvalidResponseHeaders,
+        ),
     ] {
         let server = spawn("200 OK", headers, b"secret", Duration::ZERO);
         let Ok(server) = server else { return };
@@ -27,7 +33,7 @@ fn malformed_or_duplicate_response_content_type_fails_closed() {
         let mut output = [0xa5_u8; 8];
         assert_eq!(
             client.send(TransportRequest::new(Method::Get, target), &mut output),
-            Err(TransportError::InvalidResponseContentType)
+            Err(expected)
         );
         assert_eq!(output, [0_u8; 8]);
     }

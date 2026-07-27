@@ -1,38 +1,38 @@
 [release]
-version = "0.35.0"
+version = "0.36.0"
 policy = "independent"
 
 [crates."cloud-sdk"]
-previous_version = "0.34.0"
-version = "0.35.0"
+previous_version = "0.35.0"
+version = "0.36.0"
 change = "code"
 publish = true
-reason = "Add separated canonical request path and query components."
+reason = "Add bounded ordered request and response header contracts."
 
 [crates."cloud-sdk-hetzner"]
-previous_version = "0.27.0"
-version = "0.28.0"
+previous_version = "0.28.0"
+version = "0.29.0"
 change = "code"
 publish = true
-reason = "Align provider paths and prepared queries with canonical core targets."
+reason = "Move Hetzner Accept and Content-Type policy into prepared requests."
 
 [crates."cloud-sdk-reqwest"]
-previous_version = "0.22.0"
-version = "0.23.0"
+previous_version = "0.23.0"
+version = "0.24.0"
 change = "code"
 publish = true
-reason = "Consume canonical core targets without a divergent adapter validator."
+reason = "Forward admitted request headers and retain bounded response metadata."
 
 [crates."cloud-sdk-sanitization"]
-previous_version = "0.15.2"
-version = "0.15.3"
+previous_version = "0.15.3"
+version = "0.15.4"
 change = "dependency"
 publish = true
-reason = "Update the cloud-sdk dependency to the v0.35 facade line."
+reason = "Update the cloud-sdk dependency to the v0.36 facade line."
 
 [crates."cloud-sdk-testkit"]
-previous_version = "0.19.0"
-version = "0.20.0"
+previous_version = "0.20.0"
+version = "0.21.0"
 change = "code"
 publish = true
-reason = "Match exact query presence and encoding dialect in mock requests."
+reason = "Match exact request headers and complete bounded response metadata."

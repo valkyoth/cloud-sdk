@@ -18,6 +18,7 @@ mod content_type;
 mod credentials;
 mod endpoint;
 mod error;
+mod headers;
 mod rate_limit;
 
 pub use auth::{BearerToken, BearerTokenError, MAX_BEARER_TOKEN_BYTES};
@@ -28,6 +29,7 @@ pub(crate) use credentials::CredentialStore;
 pub use credentials::{CredentialStateError, TokenRotationError};
 pub use endpoint::{EndpointError, HttpsEndpoint, MAX_CONFIGURED_ENDPOINT_BYTES};
 pub use error::{BuildError, TransportError};
+pub(crate) use headers::capture_response_headers;
 pub(crate) use rate_limit::parse_rate_limit;
 
 #[cfg(test)]

@@ -1,6 +1,6 @@
 //! Deterministic response fixture builders.
 
-use cloud_sdk::transport::StatusCode;
+use cloud_sdk::transport::{ResponseHeaders, StatusCode};
 
 use crate::{ActionFixture, FixtureBody, PaginationFixture, RateLimitFixture};
 
@@ -40,6 +40,7 @@ pub struct ResponseFixture<'a> {
     action: Option<ActionFixture>,
     rate_limit: Option<RateLimitFixture>,
     content_type: Option<&'a str>,
+    headers: ResponseHeaders,
 }
 
 impl<'a> ResponseFixture<'a> {
@@ -87,6 +88,13 @@ impl<'a> ResponseFixture<'a> {
         self
     }
 
+    /// Adds complete prevalidated response-header metadata.
+    #[must_use]
+    pub const fn with_headers(mut self, headers: ResponseHeaders) -> Self {
+        self.headers = headers;
+        self
+    }
+
     /// Creates a client or server error response.
     pub const fn error(
         status: StatusCode,
@@ -107,6 +115,7 @@ impl<'a> ResponseFixture<'a> {
             action: None,
             rate_limit: None,
             content_type: None,
+            headers: ResponseHeaders::new(),
         }
     }
 
@@ -150,5 +159,11 @@ impl<'a> ResponseFixture<'a> {
     #[must_use]
     pub const fn content_type(self) -> Option<&'a str> {
         self.content_type
+    }
+
+    /// Returns complete prevalidated response-header metadata.
+    #[must_use]
+    pub const fn headers(self) -> ResponseHeaders {
+        self.headers
     }
 }

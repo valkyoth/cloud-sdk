@@ -73,13 +73,20 @@ fn transport_request_debug_redacts_target_and_body() {
         let content_type = ContentType::new("application/x-private; token=secret-content");
         assert!(content_type.is_ok());
         let request = TransportRequest::new(Method::Post, target).with_body(b"secret-body");
-        let request = content_type.map_or(request, |value| request.with_content_type(value));
-        let mut debug = DebugBuffer::new();
-        assert!(write!(&mut debug, "{request:?}").is_ok());
-        let debug = debug.as_str();
-        assert!(debug.contains("[redacted]"));
-        assert!(!debug.contains("secret"));
-        assert!(!debug.contains("application/x-private"));
+        if let Ok(content_type) = content_type {
+            let entries = [super::RequestHeader::content_type(content_type)];
+            let headers = super::RequestHeaders::new(&entries);
+            assert!(headers.is_ok());
+            if let Ok(headers) = headers {
+                let request = request.with_headers(headers);
+                let mut debug = DebugBuffer::new();
+                assert!(write!(&mut debug, "{request:?}").is_ok());
+                let debug = debug.as_str();
+                assert!(debug.contains("[redacted]"));
+                assert!(!debug.contains("secret"));
+                assert!(!debug.contains("application/x-private"));
+            }
+        }
     }
 }
 
@@ -111,13 +118,23 @@ fn content_types_are_bounded_and_header_safe() {
 }
 
 #[test]
-fn transport_requests_preserve_explicit_content_type() {
+fn transport_requests_preserve_explicit_headers() {
     let target = RequestTarget::new("/servers");
     if let Ok(target) = target {
-        let request = TransportRequest::new(Method::Post, target)
-            .with_body(b"{}")
-            .with_content_type(ContentType::JSON);
-        assert_eq!(request.content_type(), Some(ContentType::JSON));
+        let entries = [super::RequestHeader::content_type(ContentType::JSON)];
+        let headers = super::RequestHeaders::new(&entries);
+        assert!(headers.is_ok());
+        let request = TransportRequest::new(Method::Post, target).with_body(b"{}");
+        if let Ok(headers) = headers {
+            let request = request.with_headers(headers);
+            assert_eq!(
+                request
+                    .headers()
+                    .get("content-type")
+                    .map(|header| header.value().as_str()),
+                Some("application/json")
+            );
+        }
     }
 }
 
@@ -233,14 +250,14 @@ fn non_sync_transports_remain_usable_sequentially() {
 }
 
 struct DebugBuffer {
-    bytes: [u8; 256],
+    bytes: [u8; 512],
     len: usize,
 }
 
 impl DebugBuffer {
     const fn new() -> Self {
         Self {
-            bytes: [0; 256],
+            bytes: [0; 512],
             len: 0,
         }
     }

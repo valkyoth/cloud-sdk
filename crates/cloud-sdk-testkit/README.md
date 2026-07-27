@@ -34,8 +34,8 @@ and runtime-free.
 
 ```toml
 [dev-dependencies]
-cloud-sdk = "0.35.0"
-cloud-sdk-testkit = "0.20.0"
+cloud-sdk = "0.36.0"
+cloud-sdk-testkit = "0.21.0"
 ```
 
 ## Mock Transport
@@ -102,18 +102,19 @@ assert_eq!(response.body(), br#"{"id":42}"#);
 # fn main() {}
 ```
 
-Each exchange is consumed only after the request matches and the complete
-response body fits. Method, target, body, exhaustion, and response-capacity
-failures are distinct and payload-free. Debug output redacts request targets,
-request bodies, and response bodies.
+Each exchange is consumed only after method, target, ordered headers, body,
+and complete response capacity match. Failures are distinct and payload-free.
+Debug output redacts request targets, header values, request bodies, and
+response bodies.
 
 ## Prepared Request Assertions
 
 Bind `MockTransport` with `with_endpoint` before executing a
 `PreparedRequest`. Endpoint mismatches fail before an exchange is consumed.
-`ExpectedRequest::with_content_type` checks the exact request header, while
-`ResponseFixture::with_content_type` models missing, accepted, unexpected, or
-malformed response metadata.
+`ExpectedRequest::with_headers` checks the exact ordered request-header block.
+`ResponseFixture::with_headers` adds complete bounded raw metadata, while
+`with_content_type` models missing, accepted, unexpected, or malformed typed
+content metadata.
 
 The mock implements `ResponseStorageSanitizer` deterministically, so prepared
 tests can assert that the complete caller buffer is cleared even when endpoint
