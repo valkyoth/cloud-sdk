@@ -49,6 +49,18 @@ Crates.io also lists `rustls 0.24.0-dev.1`; it is a prerelease and does not
 replace the latest stable `0.23.42` line. Pinned cargo-deny, cargo-audit,
 cargo-sbom, and cargo-fuzz versions also match crates.io.
 
+The workflow and fuzz-tooling review also confirmed:
+
+| Tool | Version | Evidence |
+| --- | --- | --- |
+| `actions/checkout` | `v7.0.1` | Signed release commit `3d3c42e5aac5ba805825da76410c181273ba90b1` |
+| Rust nightly | `nightly-2026-07-26` | Isolated fuzz-only toolchain reported current by rustup |
+
+Every workflow checkout is pinned to the immutable release commit. Dependabot
+continues to monitor the Cargo and GitHub Actions ecosystems. Dry-run updates
+for the workspace, fuzz package, prepared-coverage tool, and reqwest
+feature-unification fixture found no newer compatible locked packages.
+
 ## Required Verification
 
 - `scripts/check_request_targets.sh`

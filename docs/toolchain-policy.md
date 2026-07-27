@@ -21,7 +21,7 @@ Compatibility must be maintained for:
 runs each version as an independent fail-fast-disabled matrix job so one failure
 does not hide results from the remaining supported compilers.
 
-Pinned release tools, checked against crates.io on 2026-07-20:
+Pinned release tools, checked against crates.io on 2026-07-27:
 
 | Tool | Version |
 | --- | --- |
@@ -31,7 +31,7 @@ Pinned release tools, checked against crates.io on 2026-07-20:
 | `cargo-fuzz` | `0.13.2` |
 
 The non-published fuzz harness separately pins
-`nightly-2026-07-20` and `libfuzzer-sys 0.4.13`. Nightly is never used to
+`nightly-2026-07-26` and `libfuzzer-sys 0.4.13`. Nightly is never used to
 compile or test the supported published-crate matrix.
 
 SBOM freshness checks also require `jq` `1.6` or newer. CI uses the runner's

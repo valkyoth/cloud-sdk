@@ -33,6 +33,8 @@ caller-buffer assembly preserves exact wire bytes without allocation.
 - Required reqwest URL composition to preserve exact admitted target bytes.
 - Made testkit distinguish query presence and encoding dialect.
 - Expanded the request-target fuzz harness and added a cross-adapter gate.
+- Updated the immutable `actions/checkout` pin to signed release `v7.0.1` and
+  the isolated fuzz toolchain to `nightly-2026-07-26`.
 
 ## Versions
 

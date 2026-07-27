@@ -12,6 +12,8 @@
   slash, fragment, backslash, and raw non-ASCII rejection into core.
 - Removed reqwest's divergent target validator and added cross-adapter,
   provider, testkit, and fuzz conformance coverage.
+- Updated `actions/checkout` to the immutable `v7.0.1` release commit and the
+  isolated fuzz toolchain to `nightly-2026-07-26`.
 
 ## 0.34.0 - 2026-07-26
 
