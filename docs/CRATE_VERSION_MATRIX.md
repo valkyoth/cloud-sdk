@@ -1,7 +1,7 @@
 # Crate Version Matrix
 
-Status: `v0.34.0` is tagged. `v0.35.0` canonical request-target implementation
-is complete; pentest is required before final release checks.
+Status: `v0.34.0` is tagged. `v0.35.0` canonical request-target implementation,
+pentest, and final retest are complete; local and GitHub release checks remain.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared

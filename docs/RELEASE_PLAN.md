@@ -1560,7 +1560,7 @@ Stop gate: `v0.34.0 implementation stop reached. Run pentest for this exact comm
 
 ### v0.35.0 - Canonical Path And Query Separation
 
-Status: implementation complete; pentest required.
+Status: release candidate; pentest and final retest passed.
 
 Goal: give every transport the same request-target security meaning.
 

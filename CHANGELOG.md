@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.35.0 - Unreleased
+## 0.35.0 - 2026-07-27
 
 - Separated canonical origin-form paths from explicit absent, canonical, and
   form query states.

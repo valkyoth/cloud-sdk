@@ -7,8 +7,8 @@ Hetzner path admission, reqwest composition, testkit matching, and fuzzing.
 
 ## Decision
 
-The v0.35 request-target API is ready for independent security review with
-these boundaries:
+The v0.35 request-target API is accepted after exact-commit pentest and final
+retest with these boundaries:
 
 - `RequestPath`, `CanonicalQuery`, and `FormQuery` are borrowed,
   allocation-free, `no_std`, bounded values.
