@@ -1,6 +1,7 @@
 use cloud_sdk::transport::{
-    EndpointIdentity, EndpointPolicy, EndpointScheme, MAX_ENDPOINT_BASE_PATH_BYTES,
-    MAX_ENDPOINT_HOST_BYTES, RequestTarget,
+    CanonicalQuery, EndpointIdentity, EndpointPolicy, EndpointScheme, FormQuery,
+    MAX_ENDPOINT_BASE_PATH_BYTES, MAX_ENDPOINT_HOST_BYTES, RequestPath, RequestQuery,
+    RequestTarget,
 };
 
 use super::{EndpointError, HttpsEndpoint, custom_endpoint};
@@ -30,6 +31,59 @@ fn exact_composite_endpoint_limit_is_accepted() {
         custom_endpoint(&oversized),
         Err(EndpointError::InputTooLong)
     ));
+}
+
+#[test]
+fn canonical_request_targets_preserve_exact_wire_bytes() {
+    let endpoint = custom_endpoint("https://api.example.test/v1");
+    let path = RequestPath::new("/resources");
+    assert!(endpoint.is_ok() && path.is_ok());
+    let (Ok(endpoint), Ok(path)) = (endpoint, path) else {
+        return;
+    };
+
+    let mut empty_output = [0_u8; 16];
+    let empty_query = CanonicalQuery::new("");
+    assert!(empty_query.is_ok());
+    let Ok(empty_query) = empty_query else {
+        return;
+    };
+    let empty_target = RequestTarget::assemble(
+        path,
+        RequestQuery::Canonical(empty_query),
+        &mut empty_output,
+    );
+    assert!(empty_target.is_ok());
+    let Ok(empty_target) = empty_target else {
+        return;
+    };
+    assert_eq!(
+        endpoint
+            .compose(empty_target)
+            .as_ref()
+            .map(reqwest::Url::as_str),
+        Ok("https://api.example.test/v1/resources?")
+    );
+
+    let mut form_output = [0_u8; 48];
+    let form_query = FormQuery::new("name=test+server");
+    assert!(form_query.is_ok());
+    let Ok(form_query) = form_query else {
+        return;
+    };
+    let form_target =
+        RequestTarget::assemble(path, RequestQuery::Form(form_query), &mut form_output);
+    assert!(form_target.is_ok());
+    let Ok(form_target) = form_target else {
+        return;
+    };
+    assert_eq!(
+        endpoint
+            .compose(form_target)
+            .as_ref()
+            .map(reqwest::Url::as_str),
+        Ok("https://api.example.test/v1/resources?name=test+server")
+    );
 }
 
 #[test]

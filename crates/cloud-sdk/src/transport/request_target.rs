@@ -293,8 +293,8 @@ impl<'a> Iterator for QueryPairs<'a> {
 #[derive(Clone, Copy, Eq, PartialEq)]
 pub struct RequestTarget<'a> {
     value: &'a str,
-    path_len: usize,
-    dialect: Option<QueryDialect>,
+    path: RequestPath<'a>,
+    query: RequestQuery<'a>,
 }
 
 impl<'a> RequestTarget<'a> {
@@ -318,11 +318,7 @@ impl<'a> RequestTarget<'a> {
                 RequestQuery::Absent,
             ),
         };
-        Ok(Self {
-            value,
-            path_len: path.as_str().len(),
-            dialect: query.dialect(),
-        })
+        Ok(Self { value, path, query })
     }
 
     /// Atomically writes validated components into caller-owned storage.
@@ -350,17 +346,37 @@ impl<'a> RequestTarget<'a> {
         path_output.copy_from_slice(path.as_str().as_bytes());
         if query.is_present() {
             let (delimiter, query_output) = suffix.split_at_mut(1);
-            delimiter[0] = b'?';
+            let delimiter = delimiter
+                .first_mut()
+                .ok_or(RequestTargetError::OutputTooSmall)?;
+            *delimiter = b'?';
             if let Some(query) = query.as_borrowed_str() {
                 query_output.copy_from_slice(query.as_bytes());
             }
         }
         let value = core::str::from_utf8(target).map_err(|_| RequestTargetError::OutputTooSmall)?;
-        Ok(RequestTarget {
-            value,
-            path_len,
-            dialect: query.dialect(),
-        })
+        let path_value = value
+            .get(..path_len)
+            .ok_or(RequestTargetError::OutputTooSmall)?;
+        let path = RequestPath(path_value);
+        let query = match query {
+            RequestQuery::Absent => RequestQuery::Absent,
+            RequestQuery::Canonical(_) => {
+                let query_start = path_len.checked_add(1).ok_or(RequestTargetError::TooLong)?;
+                let query_value = value
+                    .get(query_start..)
+                    .ok_or(RequestTargetError::OutputTooSmall)?;
+                RequestQuery::Canonical(CanonicalQuery(query_value))
+            }
+            RequestQuery::Form(_) => {
+                let query_start = path_len.checked_add(1).ok_or(RequestTargetError::TooLong)?;
+                let query_value = value
+                    .get(query_start..)
+                    .ok_or(RequestTargetError::OutputTooSmall)?;
+                RequestQuery::Form(FormQuery(query_value))
+            }
+        };
+        Ok(RequestTarget { value, path, query })
     }
 
     /// Returns the exact validated request target.
@@ -371,21 +387,14 @@ impl<'a> RequestTarget<'a> {
 
     /// Returns the validated path component.
     #[must_use]
-    pub fn path(self) -> RequestPath<'a> {
-        RequestPath(&self.value[..self.path_len])
+    pub const fn path(self) -> RequestPath<'a> {
+        self.path
     }
 
     /// Returns the explicit query state and dialect.
     #[must_use]
-    pub fn query(self) -> RequestQuery<'a> {
-        let Some(dialect) = self.dialect else {
-            return RequestQuery::Absent;
-        };
-        let query = &self.value[self.path_len + 1..];
-        match dialect {
-            QueryDialect::Canonical => RequestQuery::Canonical(CanonicalQuery(query)),
-            QueryDialect::Form => RequestQuery::Form(FormQuery(query)),
-        }
+    pub const fn query(self) -> RequestQuery<'a> {
+        self.query
     }
 
     /// Returns the exact final query bytes for signing or fingerprinting.
@@ -414,14 +423,6 @@ impl fmt::Debug for RequestTarget<'_> {
 }
 
 impl<'a> RequestQuery<'a> {
-    const fn dialect(self) -> Option<QueryDialect> {
-        match self {
-            Self::Absent => None,
-            Self::Canonical(_) => Some(QueryDialect::Canonical),
-            Self::Form(_) => Some(QueryDialect::Form),
-        }
-    }
-
     const fn as_borrowed_str(self) -> Option<&'a str> {
         match self {
             Self::Absent => None,

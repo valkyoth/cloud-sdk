@@ -64,13 +64,19 @@ fn validate_component_bytes(
 ) -> Result<(), RequestPathError> {
     let mut index = 0;
     while index < bytes.len() {
-        let byte = bytes[index];
+        let byte = *bytes.get(index).ok_or(RequestPathError::InvalidByte)?;
         if byte == b'%' {
+            let high_index = index
+                .checked_add(1)
+                .ok_or(RequestPathError::InvalidPercentTriplet)?;
+            let low_index = index
+                .checked_add(2)
+                .ok_or(RequestPathError::InvalidPercentTriplet)?;
             let high = *bytes
-                .get(index + 1)
+                .get(high_index)
                 .ok_or(RequestPathError::InvalidPercentTriplet)?;
             let low = *bytes
-                .get(index + 2)
+                .get(low_index)
                 .ok_or(RequestPathError::InvalidPercentTriplet)?;
             if decode_hex_case_insensitive(high).is_none()
                 || decode_hex_case_insensitive(low).is_none()
@@ -81,10 +87,13 @@ fn validate_component_bytes(
                 return Err(RequestPathError::LowercasePercentHex);
             }
             let decoded = decode_hex(high)
-                .and_then(|high| decode_hex(low).map(|low| high * 16 + low))
+                .and_then(|high| high.checked_mul(16))
+                .and_then(|high| decode_hex(low).and_then(|low| high.checked_add(low)))
                 .ok_or(RequestPathError::InvalidPercentTriplet)?;
             validate_encoded(decoded, component)?;
-            index += 3;
+            index = index
+                .checked_add(3)
+                .ok_or(RequestPathError::InvalidPercentTriplet)?;
             continue;
         }
         let valid = match component {
@@ -96,7 +105,7 @@ fn validate_component_bytes(
         if !valid {
             return Err(RequestPathError::InvalidByte);
         }
-        index += 1;
+        index = index.checked_add(1).ok_or(RequestPathError::InvalidByte)?;
     }
     Ok(())
 }
@@ -153,17 +162,26 @@ const fn is_unreserved(byte: u8) -> bool {
 
 const fn decode_hex_case_insensitive(byte: u8) -> Option<u8> {
     match byte {
-        b'0'..=b'9' => Some(byte - b'0'),
-        b'A'..=b'F' => Some(byte - b'A' + 10),
-        b'a'..=b'f' => Some(byte - b'a' + 10),
+        b'0'..=b'9' => byte.checked_sub(b'0'),
+        b'A'..=b'F' => match byte.checked_sub(b'A') {
+            Some(value) => value.checked_add(10),
+            None => None,
+        },
+        b'a'..=b'f' => match byte.checked_sub(b'a') {
+            Some(value) => value.checked_add(10),
+            None => None,
+        },
         _ => None,
     }
 }
 
 const fn decode_hex(byte: u8) -> Option<u8> {
     match byte {
-        b'0'..=b'9' => Some(byte - b'0'),
-        b'A'..=b'F' => Some(byte - b'A' + 10),
+        b'0'..=b'9' => byte.checked_sub(b'0'),
+        b'A'..=b'F' => match byte.checked_sub(b'A') {
+            Some(value) => value.checked_add(10),
+            None => None,
+        },
         _ => None,
     }
 }

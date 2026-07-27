@@ -1,7 +1,8 @@
 use alloc::format;
 use cloud_sdk::Method;
 use cloud_sdk::transport::{
-    AsyncTransport, BlockingTransport, RequestTarget, StatusCode, TransportRequest,
+    AsyncTransport, BlockingTransport, CanonicalQuery, FormQuery, RequestPath, RequestQuery,
+    RequestTarget, StatusCode, TransportRequest,
 };
 use core::future::Future;
 use core::task::{Context, Poll, Waker};
@@ -150,6 +151,55 @@ fn mock_transport_is_ordered_fail_closed_and_non_consuming_on_mismatch() {
             Err(MockError::Exhausted)
         ));
     }
+}
+
+#[test]
+fn mock_transport_distinguishes_query_presence_and_dialect() {
+    let path = RequestPath::new("/resources");
+    let canonical = CanonicalQuery::new("name=test");
+    let form = FormQuery::new("name=test");
+    assert!(path.is_ok() && canonical.is_ok() && form.is_ok());
+    let (Ok(path), Ok(canonical), Ok(form)) = (path, canonical, form) else {
+        return;
+    };
+    let mut canonical_output = [0_u8; 32];
+    let mut form_output = [0_u8; 32];
+    let canonical_target = RequestTarget::assemble(
+        path,
+        RequestQuery::Canonical(canonical),
+        &mut canonical_output,
+    );
+    let form_target = RequestTarget::assemble(path, RequestQuery::Form(form), &mut form_output);
+    let body = FixtureBody::new(b"ok");
+    assert!(canonical_target.is_ok() && form_target.is_ok() && body.is_ok());
+    let (Ok(canonical_target), Ok(form_target), Ok(body)) = (canonical_target, form_target, body)
+    else {
+        return;
+    };
+    let exchanges = [MockExchange::new(
+        ExpectedRequest::new(Method::Get, canonical_target),
+        ResponseFixture::success(body),
+    )];
+    let transport = MockTransport::new(&exchanges);
+    let mut response = [0_u8; 2];
+
+    assert_eq!(
+        BlockingTransport::send(
+            &transport,
+            TransportRequest::new(Method::Get, form_target),
+            &mut response,
+        ),
+        Err(MockError::TargetMismatch)
+    );
+    assert_eq!(transport.remaining(), 1);
+    assert!(
+        BlockingTransport::send(
+            &transport,
+            TransportRequest::new(Method::Get, canonical_target),
+            &mut response,
+        )
+        .is_ok()
+    );
 }
 
 #[test]

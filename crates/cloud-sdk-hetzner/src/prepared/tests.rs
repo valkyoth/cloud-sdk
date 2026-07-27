@@ -48,13 +48,16 @@ fn prepares_global_actions_and_catalog_gets() {
         prepared.transport_request().target().as_str(),
         "/actions?id=7"
     );
-    assert_eq!(
-        prepared.transport_request().target().path(),
-        RequestPath::new("/actions").expect("canonical path")
-    );
+    let path = RequestPath::new("/actions");
+    let query = CanonicalQuery::new("id=7");
+    assert!(path.is_ok() && query.is_ok());
+    let (Ok(path), Ok(query)) = (path, query) else {
+        return;
+    };
+    assert_eq!(prepared.transport_request().target().path(), path);
     assert_eq!(
         prepared.transport_request().target().query(),
-        RequestQuery::Canonical(CanonicalQuery::new("id=7").expect("canonical query"))
+        RequestQuery::Canonical(query)
     );
     assert_eq!(
         prepared.transport_request().target().query_bytes(),
