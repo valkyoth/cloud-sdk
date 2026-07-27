@@ -120,8 +120,8 @@ Portable and native platform evidence is documented in
 
 ```toml
 [dependencies]
-cloud-sdk = "0.34.0"
-cloud-sdk-hetzner = "0.27.0"
+cloud-sdk = "0.35.0"
+cloud-sdk-hetzner = "0.28.0"
 ```
 
 ## cloud-sdk Features
@@ -149,6 +149,7 @@ visible. Applications should enable only the features they use.
 - [Migrating to v0.32](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.32.0.md)
 - [Migrating to v0.33](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.33.0.md)
 - [Migrating to v0.34](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.34.0.md)
+- [Migrating to v0.35](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.35.0.md)
 - [Deprecated endpoint policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/DEPRECATED_ENDPOINT_POLICY.md)
 
 ## Provider-Neutral Quickstart
@@ -166,6 +167,31 @@ assert_eq!(request.method(), Method::Get);
 assert_eq!(request.target().as_str(), "/resources?page=1");
 assert!(request.body().is_empty());
 ```
+
+Build separate components when query presence or dialect is security-relevant:
+
+```rust
+use cloud_sdk::transport::{
+    CanonicalQuery, RequestPath, RequestQuery, RequestTarget,
+};
+
+let path = RequestPath::new("/resources")?;
+let query = CanonicalQuery::new("name=test%20service&page=1")?;
+let mut storage = [0_u8; 128];
+let target = RequestTarget::assemble(
+    path,
+    RequestQuery::Canonical(query),
+    &mut storage,
+)?;
+
+assert_eq!(target.path(), path);
+assert_eq!(target.query_bytes(), Some(query.as_str().as_bytes()));
+# Ok::<(), Box<dyn core::error::Error>>(())
+```
+
+`RequestQuery::Absent` differs from a present empty query. Canonical spaces use
+`%20`; form-style `+` is admitted only through the separate `FormQuery` type.
+Pair iteration preserves exact order, duplicate keys, and `key` versus `key=`.
 
 Known methods include GET, POST, PUT, DELETE, PATCH, HEAD, and origin-form
 OPTIONS. Provider crates can define a finite extension without changing core:
@@ -294,8 +320,8 @@ still performs no automatic retry or scheduling.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.34.0"
-cloud-sdk-reqwest = { version = "0.22.0", features = ["blocking-rustls"] }
+cloud-sdk = "0.35.0"
+cloud-sdk-reqwest = { version = "0.23.0", features = ["blocking-rustls"] }
 ```
 
 The production builder is HTTPS-only, requires explicit bounded timeouts and a
@@ -318,8 +344,8 @@ when deterministic public WebPKI roots are required:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.34.0"
-cloud-sdk-reqwest = { version = "0.22.0", features = ["blocking-rustls-webpki-roots"] }
+cloud-sdk = "0.35.0"
+cloud-sdk-reqwest = { version = "0.23.0", features = ["blocking-rustls-webpki-roots"] }
 ```
 
 The blocking API is unchanged. This feature excludes host-added enterprise
@@ -335,8 +361,8 @@ feature instead of relying on dependency feature unification:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.34.0"
-cloud-sdk-reqwest = { version = "0.22.0", features = ["blocking-rustls-fips"] }
+cloud-sdk = "0.35.0"
+cloud-sdk-reqwest = { version = "0.23.0", features = ["blocking-rustls-fips"] }
 ```
 
 Client construction explicitly selects rustls' AWS-LC FIPS provider and fails
@@ -354,8 +380,8 @@ example is in the
 
 ```toml
 [dependencies]
-cloud-sdk = "0.34.0"
-cloud-sdk-reqwest = { version = "0.22.0", features = ["async-rustls"] }
+cloud-sdk = "0.35.0"
+cloud-sdk-reqwest = { version = "0.23.0", features = ["async-rustls"] }
 ```
 
 The async adapter requires an active Tokio executor because reqwest uses Tokio

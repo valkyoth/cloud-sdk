@@ -1560,11 +1560,21 @@ Stop gate: `v0.34.0 implementation stop reached. Run pentest for this exact comm
 
 ### v0.35.0 - Canonical Path And Query Separation
 
+Status: implementation complete; pentest required.
+
 Goal: give every transport the same request-target security meaning.
 
 Deliverables: separate validated path/query components; distinct absent and present-empty query states; stable pair ordering with duplicate-key preservation; distinct missing and empty values; uppercase percent hex; `%20` for query spaces while `+` remains a separate provider-dialect type; rejection of pre-encoded fragments; exact final query bytes reused by signing and request fingerprints; core rejection of malformed percent triplets, encoded separators/controls, dot segments, doubled slashes, fragments, backslashes, non-ASCII, and ambiguous assembly.
 
 Verification: absent/empty/missing/empty-value/duplicate/order/hex-case/space/pre-encoded vectors, signing/fingerprint byte identity, cross-adapter corpus, fuzzing, atomic assembly tests, and `scripts/release_0_35_gate.sh`.
+
+Exit criteria: core is the only request-target validation authority; paths and
+queries remain separately inspectable after assembly; exact query bytes,
+presence, pair order, duplicates, and value presence survive core, provider,
+reqwest, and testkit boundaries; form encoding cannot enter the canonical
+query type; malformed or ambiguous targets fail before transport I/O; all
+affected crates, docs, fuzzing, and migration evidence agree; and the
+implementation commit has passed independent security review.
 
 Stop gate: `v0.35.0 implementation stop reached. Run pentest for this exact commit.`
 

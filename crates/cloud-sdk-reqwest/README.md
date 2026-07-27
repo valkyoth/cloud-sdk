@@ -38,8 +38,8 @@ provider without adding transport dependencies to provider crates.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.34.0"
-cloud-sdk-reqwest = { version = "0.22.0", features = ["blocking-rustls"] }
+cloud-sdk = "0.35.0"
+cloud-sdk-reqwest = { version = "0.23.0", features = ["blocking-rustls"] }
 ```
 
 The examples use Hetzner as a concrete endpoint, but the adapter contains no
@@ -60,6 +60,9 @@ Raw endpoint input is bounded by `MAX_CONFIGURED_ENDPOINT_BYTES` before URL
 parsing. Base paths must already be exact printable ASCII and cannot contain
 backslashes, percent escapes, controls, whitespace, non-ASCII bytes, repeated
 slashes, or dot segments.
+Request paths and queries are validated once by `cloud-sdk`; this adapter
+preserves their exact bytes and does not apply a second encoding dialect. See
+the [v0.35 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.35.0.md).
 
 ## Blocking Example
 
@@ -120,8 +123,8 @@ compiled into `webpki-roots`:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.34.0"
-cloud-sdk-reqwest = { version = "0.22.0", features = ["blocking-rustls-webpki-roots"] }
+cloud-sdk = "0.35.0"
+cloud-sdk-reqwest = { version = "0.23.0", features = ["blocking-rustls-webpki-roots"] }
 ```
 
 The blocking API is identical to the example above. The custom rustls client
@@ -137,8 +140,8 @@ Use the same blocking API with the dedicated feature:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.34.0"
-cloud-sdk-reqwest = { version = "0.22.0", features = ["blocking-rustls-fips"] }
+cloud-sdk = "0.35.0"
+cloud-sdk-reqwest = { version = "0.23.0", features = ["blocking-rustls-fips"] }
 rustls = "=0.23.42"
 ```
 

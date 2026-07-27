@@ -38,8 +38,8 @@ boundaries.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.34.0"
-cloud-sdk-hetzner = "0.27.0"
+cloud-sdk = "0.35.0"
+cloud-sdk-hetzner = "0.28.0"
 ```
 
 ## Features
@@ -101,7 +101,7 @@ assert_eq!(prepared.transport_request().target().as_str(), "/load_balancers");
 ```
 
 Secret-bearing operations need successful-path cleanup after transport use.
-Add `cloud-sdk-sanitization = "0.15.2"` and guard the complete body buffer:
+Add `cloud-sdk-sanitization = "0.15.3"` and guard the complete body buffer:
 
 ```rust
 use cloud_sdk::operation::{PreparationStorage, PrepareOperation};
@@ -186,6 +186,8 @@ in the
 [v0.33 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.33.0.md).
 Endpoint trust-policy migration is listed in the
 [v0.34 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.34.0.md).
+Canonical request-target migration is listed in the
+[v0.35 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.35.0.md).
 
 ## Optional Serde Boundary
 
@@ -193,7 +195,7 @@ Enable Serde explicitly; it is never part of the default graph:
 
 ```toml
 [dependencies]
-cloud-sdk-hetzner = { version = "0.27.0", features = ["serde"] }
+cloud-sdk-hetzner = { version = "0.28.0", features = ["serde"] }
 ```
 
 The feature admits serde_json with `default-features = false` and `alloc` only

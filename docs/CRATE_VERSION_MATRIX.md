@@ -1,8 +1,7 @@
 # Crate Version Matrix
 
-Status: `v0.33.0` is tagged. `v0.34.0` endpoint-policy implementation,
-pentest, final retest, and local release checks are complete; GitHub checks
-remain before tagging.
+Status: `v0.34.0` is tagged. `v0.35.0` canonical request-target implementation
+is complete; pentest is required before final release checks.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
@@ -531,6 +530,20 @@ destinations require an explicit trusted-operator acknowledgement.
 | `cloud-sdk-reqwest` | `0.21.0` | `0.22.0` | `code` | Yes | Require provider policy or explicit custom acknowledgement and reject ambiguous raw authorities before URL normalization. |
 | `cloud-sdk-sanitization` | `0.15.1` | `0.15.2` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.34 facade line. |
 | `cloud-sdk-testkit` | `0.18.4` | `0.19.0` | `code` | Yes | Preserve non-static endpoint policy lifetimes in prepared-request records and policy matching tests. |
+
+## v0.35.0 Tracking Table
+
+`v0.35.0` makes core the single request-target validation authority and
+separates canonical paths from explicit absent, canonical, and form query
+states without allocation.
+
+| Crate | Published | Planned | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.34.0` | `0.35.0` | `code` | Yes | Add canonical path/query types, exact query views, pair iteration, and transactional assembly. |
+| `cloud-sdk-hetzner` | `0.27.0` | `0.28.0` | `code` | Yes | Align provider paths and prepared query evidence with the canonical core contract. |
+| `cloud-sdk-reqwest` | `0.22.0` | `0.23.0` | `code` | Yes | Remove divergent target validation and preserve exact core-admitted bytes. |
+| `cloud-sdk-sanitization` | `0.15.2` | `0.15.3` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.35 facade line. |
+| `cloud-sdk-testkit` | `0.19.0` | `0.20.0` | `code` | Yes | Match exact query presence and encoding dialect in deterministic mocks. |
 
 ## Planned Milestone Ownership
 

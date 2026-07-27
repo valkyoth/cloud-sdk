@@ -19,6 +19,7 @@ fn validates_canonical_paths() {
     for accepted in [
         "/",
         "/servers/42",
+        "/servers/",
         "/zones/example.com/rrsets/%40/AAAA",
         "/zones/example.com/rrsets/%2A.apps/TXT",
     ] {

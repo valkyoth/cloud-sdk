@@ -1,6 +1,28 @@
 # Changelog
 
-## 0.33.0 - Unreleased
+## 0.35.0 - Unreleased
+
+- Separated canonical origin-form paths from explicit absent, canonical, and
+  form query states.
+- Added allocation-free query-pair iteration that preserves order, duplicate
+  keys, and missing versus empty values.
+- Added transactional caller-buffer request-target assembly and exact query
+  byte access for later signing and fingerprint domains.
+- Moved malformed percent, hidden separator/control, dot-segment, repeated
+  slash, fragment, backslash, and raw non-ASCII rejection into core.
+- Removed reqwest's divergent target validator and added cross-adapter,
+  provider, testkit, and fuzz conformance coverage.
+
+## 0.34.0 - 2026-07-26
+
+- Added provider-owned fixed, finite official-set, regional, and explicitly
+  acknowledged custom endpoint policies.
+- Canonicalized DNS, IPv4, and bracketed IPv6 identities and rejected
+  ambiguous authorities before URL parsing.
+- Bound prepared execution, Hetzner official destinations, reqwest endpoint
+  construction, and testkit records to the same endpoint policy.
+
+## 0.33.0 - 2026-07-26
 
 - Replaced the closed HTTP method enum with bounded canonical known and
   provider extension methods.

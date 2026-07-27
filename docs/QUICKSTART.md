@@ -8,15 +8,15 @@ usable in `no_std` environments.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.34.0"
+cloud-sdk = "0.35.0"
 ```
 
 Provider-specific request models are separate dependencies. For Hetzner:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.34.0"
-cloud-sdk-hetzner = "0.27.0"
+cloud-sdk = "0.35.0"
+cloud-sdk-hetzner = "0.28.0"
 ```
 
 ## Build A Transport Request
@@ -34,6 +34,32 @@ let request = TransportRequest::new(Method::Get, target);
 assert_eq!(request.target().as_str(), "/servers?page=1");
 # Ok::<(), cloud_sdk::transport::RequestTargetError>(())
 ```
+
+When query presence or encoding dialect matters, assemble validated components
+explicitly:
+
+```rust
+use cloud_sdk::transport::{
+    CanonicalQuery, RequestPath, RequestQuery, RequestTarget,
+};
+
+let path = RequestPath::new("/servers")?;
+let query = CanonicalQuery::new("name=test%20server&page=1")?;
+let mut storage = [0_u8; 128];
+let target = RequestTarget::assemble(
+    path,
+    RequestQuery::Canonical(query),
+    &mut storage,
+)?;
+
+assert_eq!(target.path(), path);
+assert_eq!(target.query_bytes(), Some(query.as_str().as_bytes()));
+# Ok::<(), Box<dyn core::error::Error>>(())
+```
+
+Absent and present-empty queries are distinct. `CanonicalQuery` requires `%20`
+for spaces; provider-specific form semantics use `FormQuery`. See
+[`MIGRATION_0.35.0.md`](MIGRATION_0.35.0.md).
 
 Provider crates can use `Method::extension("PURGE")` for a finite static
 extension. Extensions are bounded uppercase HTTP tokens; known aliases,

@@ -1,38 +1,38 @@
 [release]
-version = "0.34.0"
+version = "0.35.0"
 policy = "independent"
 
 [crates."cloud-sdk"]
-previous_version = "0.33.0"
-version = "0.34.0"
+previous_version = "0.34.0"
+version = "0.35.0"
 change = "code"
 publish = true
-reason = "Add provider-owned endpoint policy algebra and canonical authority identities."
+reason = "Add separated canonical request path and query components."
 
 [crates."cloud-sdk-hetzner"]
-previous_version = "0.26.0"
-version = "0.27.0"
+previous_version = "0.27.0"
+version = "0.28.0"
 change = "code"
 publish = true
-reason = "Own official fixed and finite endpoint policies for prepared Hetzner operations."
+reason = "Align provider paths and prepared queries with canonical core targets."
 
 [crates."cloud-sdk-reqwest"]
-previous_version = "0.21.0"
-version = "0.22.0"
+previous_version = "0.22.0"
+version = "0.23.0"
 change = "code"
 publish = true
-reason = "Require provider policy or explicit acknowledgement for credential destinations."
+reason = "Consume canonical core targets without a divergent adapter validator."
 
 [crates."cloud-sdk-sanitization"]
-previous_version = "0.15.1"
-version = "0.15.2"
+previous_version = "0.15.2"
+version = "0.15.3"
 change = "dependency"
 publish = true
-reason = "Update the cloud-sdk dependency to the v0.34 facade line."
+reason = "Update the cloud-sdk dependency to the v0.35 facade line."
 
 [crates."cloud-sdk-testkit"]
-previous_version = "0.18.4"
-version = "0.19.0"
+previous_version = "0.19.0"
+version = "0.20.0"
 change = "code"
 publish = true
-reason = "Record non-static endpoint policies and verify prepared policy matching."
+reason = "Match exact query presence and encoding dialect in mock requests."

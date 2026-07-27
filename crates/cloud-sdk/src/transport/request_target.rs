@@ -20,7 +20,7 @@ pub enum RequestPathError {
     TooLong,
     /// A raw byte is outside the admitted ASCII path grammar.
     InvalidByte,
-    /// Empty path segments are forbidden.
+    /// Adjacent `/` separators are forbidden.
     DoubledSlash,
     /// `.` and `..` segments are forbidden.
     DotSegment,
@@ -196,15 +196,6 @@ impl fmt::Debug for FormQuery<'_> {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter.write_str("FormQuery([redacted])")
     }
-}
-
-/// Query encoding dialect.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum QueryDialect {
-    /// RFC 3986-style canonical query encoding.
-    Canonical,
-    /// Provider-specific form encoding where `+` represents space.
-    Form,
 }
 
 /// Explicit request query state.

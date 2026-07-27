@@ -16,9 +16,8 @@ pub use endpoint::{
     MAX_OFFICIAL_ENDPOINTS, RegionEndpoint,
 };
 pub use request_target::{
-    CanonicalQuery, FormQuery, MAX_REQUEST_TARGET_BYTES, QueryDialect, QueryPair, QueryPairs,
-    RequestPath, RequestPathError, RequestQuery, RequestTarget, RequestTargetError,
-    StructuredQueryError,
+    CanonicalQuery, FormQuery, MAX_REQUEST_TARGET_BYTES, QueryPair, QueryPairs, RequestPath,
+    RequestPathError, RequestQuery, RequestTarget, RequestTargetError, StructuredQueryError,
 };
 
 use core::fmt;

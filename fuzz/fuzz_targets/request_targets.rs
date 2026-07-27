@@ -29,7 +29,10 @@ fuzz_target!(|data: &[u8]| {
         let request = cloud_sdk::transport::TransportRequest::new(Method::Get, target);
         assert_eq!(request.target().as_str(), path);
         assert!(target.path().as_str().len() <= target.len());
-        assert_eq!(target.query_bytes(), target.query().as_str().map(str::as_bytes));
+        assert_eq!(
+            target.query_bytes(),
+            target.query().as_str().map(str::as_bytes)
+        );
     }
 
     if let Ok(path) = RequestPath::new(path) {
