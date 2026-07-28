@@ -26,12 +26,24 @@ The standard constructor no longer accepts a sanitizer:
 ```rust
 use cloud_sdk::transport::ResponseBuffer;
 
-let mut storage = [0_u8; 4_096];
-let capacity = storage.len();
-let response = ResponseBuffer::new(&mut storage, capacity);
+let mut body_storage = [0_u8; 4_096];
+let mut header_storage =
+    [0_u8; cloud_sdk::transport::MAX_RESPONSE_HEADER_BYTES];
+let capacity = body_storage.len();
+let response =
+    ResponseBuffer::new(&mut body_storage, capacity, &mut header_storage);
 drop(response);
-assert_eq!(storage, [0_u8; 4_096]);
+assert_eq!(body_storage, [0_u8; 4_096]);
+assert_eq!(
+    header_storage,
+    [0_u8; cloud_sdk::transport::MAX_RESPONSE_HEADER_BYTES],
+);
 ```
+
+The separate header destination is mandatory. Sensitive header bytes remain at
+a stable caller-owned address for the complete response lifecycle rather than
+moving inside a by-value metadata object. `PreparedRequest::execute_blocking`
+and `execute_async` likewise require body and header destinations.
 
 Use `ResponseBuffer::with_additive_sanitizer` only when the deployment has an
 additional platform operation. Core clears before the hook and a drop guard
@@ -70,15 +82,24 @@ does so for every provider error.
 
 ## Retaining Request Identifiers
 
-For a `Retain` operation, call `CheckedResponseGuard::retain_metadata` with an
-explicit byte limit. The source is cleared immediately on successful or
-rejected transfer. The returned `RetainedResponseMetadata` is neither `Copy`
-nor `Clone`, provides only closure-scoped access, and clears its fixed storage
-on drop.
+For a `Retain` operation, call
+`CheckedResponseGuard::retain_metadata_into` with caller-owned destination
+storage and an explicit byte limit. The request ID copies directly from its
+stable header destination into the stable retention destination, then the
+source clears immediately on successful or rejected transfer. The returned
+`RetainedResponseMetadata<'_>` is neither `Copy` nor `Clone`, provides only
+closure-scoped access, and clears the complete destination on drop.
 
-`ResponseMetadata`, `ResponseHeaders`, and `ResponseContentType` are also no
-longer implicitly copyable. Transport tests that deliberately need a second
-metadata owner must call the explicit bounded `retain_copy` methods.
+`ResponseHeaders` is no longer implicitly copyable. `ResponseMetadata`
+contains only interpreted non-sensitive scalar values. Transports populate
+headers through `ResponseWriter::headers_mut`; `ResponseContentType<'_>` is a
+borrowed validated view over those stable bytes. Tests that deliberately need
+a second header owner must supply another caller buffer to
+`ResponseHeaders::retain_copy_into`.
+
+The strict Hetzner JSON parser now also protects object-key allocations.
+Unknown field names are wiped on drop just like string values; this matters
+because extension keys can contain tenant-controlled text even when ignored.
 
 ## Decoder Workspace
 

@@ -10,8 +10,8 @@ use super::{
 };
 use crate::transport::{
     AsyncTransport, BlockingTransport, BoundTransport, EndpointIdentity, EndpointIdentityError,
-    EndpointPolicy, EndpointScheme, MediaType, RequestTarget, ResponseContentType,
-    ResponseMetadata, ResponseWriter, StatusCode, TransportRequest,
+    EndpointPolicy, EndpointScheme, MediaType, RequestTarget, ResponseMetadata, ResponseWriter,
+    StatusCode, TransportRequest,
 };
 use crate::{
     Method, ProviderId, ProviderMarker, ServiceId, ServiceMarker, provider_id, service_id,
@@ -174,7 +174,12 @@ fn prepared_blocking_execution_checks_endpoint_and_lends_only_policy_capacity() 
     };
     let transport = RecordingTransport::new(official);
     let mut response_storage = [0xA5_u8; 64];
-    let response = prepared.execute_blocking(&transport, &mut response_storage);
+    let mut response_header_storage = [0xA5_u8; 8192];
+    let response = prepared.execute_blocking(
+        &transport,
+        &mut response_storage,
+        &mut response_header_storage,
+    );
     assert!(
         response
             .is_ok_and(|response| { response.with_borrowed(|checked| checked.body() == b"{}") })
@@ -186,7 +191,11 @@ fn prepared_blocking_execution_checks_endpoint_and_lends_only_policy_capacity() 
     let Ok(other) = other_endpoint() else { return };
     let mismatched = RecordingTransport::new(other);
     response_storage.fill(0xA5);
-    let response = prepared.execute_blocking(&mismatched, &mut response_storage);
+    let response = prepared.execute_blocking(
+        &mismatched,
+        &mut response_storage,
+        &mut response_header_storage,
+    );
     assert!(matches!(
         response,
         Err(PreparedExecutionError::EndpointMismatch)
@@ -209,8 +218,13 @@ fn prepared_async_execution_uses_the_same_endpoint_and_response_policy() {
     };
     let transport = RecordingTransport::new(official);
     let mut response_storage = [0xA5_u8; 64];
+    let mut response_header_storage = [0xA5_u8; 8192];
     {
-        let future = prepared.execute_async(&transport, &mut response_storage);
+        let future = prepared.execute_async(
+            &transport,
+            &mut response_storage,
+            &mut response_header_storage,
+        );
         let mut future = core::pin::pin!(future);
         let waker = Waker::noop();
         let mut context = Context::from_waker(waker);
@@ -315,13 +329,17 @@ impl RecordingTransport {
             .get_mut(..2)
             .ok_or(())?;
         output.copy_from_slice(b"{}");
-        let content_type = ResponseContentType::new("application/json").map_err(|_| ())?;
         response
-            .commit(
-                StatusCode::OK,
-                2,
-                ResponseMetadata::EMPTY.with_content_type(content_type),
+            .headers_mut()
+            .map_err(|_| ())?
+            .try_push(
+                "content-type",
+                b"application/json",
+                crate::transport::HeaderSensitivity::Public,
             )
+            .map_err(|_| ())?;
+        response
+            .commit(StatusCode::OK, 2, ResponseMetadata::EMPTY)
             .map_err(|_| ())
     }
 }

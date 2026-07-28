@@ -1,9 +1,8 @@
-use std::vec::Vec;
+use std::{string::String, vec::Vec};
 
 use cloud_sdk::rate_limit::RateLimit;
 use cloud_sdk::transport::{
-    BlockingTransport, ResponseBuffer, ResponseContentType, ResponseHeaders, StatusCode,
-    TransportRequest, TransportResponse,
+    BlockingTransport, ResponseBuffer, StatusCode, TransportRequest, TransportResponse,
 };
 
 use super::super::{BlockingClient, TransportError};
@@ -11,21 +10,29 @@ use super::super::{BlockingClient, TransportError};
 pub(super) struct CapturedResponse {
     status: StatusCode,
     body: Vec<u8>,
-    content_type: Option<ResponseContentType>,
+    content_type: Option<String>,
     rate_limit: Option<RateLimit>,
-    headers: ResponseHeaders,
+    rate_limit_remaining: Option<Vec<u8>>,
+    content_type_header: Option<Vec<u8>>,
 }
 
 impl CapturedResponse {
-    fn capture(response: TransportResponse<'_>) -> Self {
+    fn capture(response: TransportResponse<'_, '_>) -> Self {
         Self {
             status: response.status(),
             body: response.body().to_vec(),
             content_type: response
                 .content_type()
-                .map(ResponseContentType::retain_copy),
+                .map(|content_type| String::from(content_type.as_str())),
             rate_limit: response.rate_limit(),
-            headers: response.headers().retain_copy(),
+            rate_limit_remaining: response
+                .headers()
+                .get("ratelimit-remaining")
+                .map(|header| header.value().to_vec()),
+            content_type_header: response
+                .headers()
+                .get("content-type")
+                .map(|header| header.value().to_vec()),
         }
     }
 
@@ -37,16 +44,20 @@ impl CapturedResponse {
         &self.body
     }
 
-    pub(super) const fn content_type(&self) -> Option<&ResponseContentType> {
-        self.content_type.as_ref()
+    pub(super) fn content_type(&self) -> Option<&str> {
+        self.content_type.as_deref()
     }
 
     pub(super) const fn rate_limit(&self) -> Option<RateLimit> {
         self.rate_limit
     }
 
-    pub(super) const fn headers(&self) -> &ResponseHeaders {
-        &self.headers
+    pub(super) fn rate_limit_remaining_header(&self) -> Option<&[u8]> {
+        self.rate_limit_remaining.as_deref()
+    }
+
+    pub(super) fn content_type_header(&self) -> Option<&[u8]> {
+        self.content_type_header.as_deref()
     }
 }
 
@@ -56,7 +67,8 @@ pub(super) fn send_test(
     output: &mut [u8],
 ) -> Result<CapturedResponse, TransportError> {
     let capacity = output.len();
-    let mut response = ResponseBuffer::new(output, capacity);
+    let mut headers = [0_u8; 8192];
+    let mut response = ResponseBuffer::new(output, capacity, &mut headers);
     BlockingTransport::send(client, request, response.writer())?;
     response
         .with_response(CapturedResponse::capture)

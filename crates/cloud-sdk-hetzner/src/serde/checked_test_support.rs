@@ -7,8 +7,7 @@ use cloud_sdk::operation::{
 };
 use cloud_sdk::transport::{
     EndpointIdentity, EndpointPolicy, EndpointScheme, HeaderSensitivity, MediaType, RequestTarget,
-    ResponseBuffer, ResponseContentType, ResponseHeaders, ResponseMetadata, StatusCode,
-    TransportRequest,
+    ResponseBuffer, ResponseMetadata, StatusCode, TransportRequest,
 };
 use cloud_sdk::{Method, ServiceId};
 
@@ -116,7 +115,7 @@ pub(super) fn decode_response(
     prepared: PreparedRequest<'_>,
     fixture: TestResponse<'_>,
 ) -> Result<CheckedHetznerResponse, HetznerDecodeError> {
-    decode_response_with_headers(prepared, fixture, ResponseHeaders::new())
+    decode_response_with_request_id_value(prepared, fixture, None)
 }
 
 pub(super) fn decode_response_with_request_id(
@@ -124,42 +123,46 @@ pub(super) fn decode_response_with_request_id(
     fixture: TestResponse<'_>,
     request_id: &[u8],
 ) -> Result<CheckedHetznerResponse, HetznerDecodeError> {
-    let mut headers = ResponseHeaders::new();
-    headers
-        .try_push("x-request-id", request_id, HeaderSensitivity::Sensitive)
-        .map_err(|_| HetznerDecodeError::MalformedPayload)?;
-    decode_response_with_headers(prepared, fixture, headers)
+    decode_response_with_request_id_value(prepared, fixture, Some(request_id))
 }
 
-fn decode_response_with_headers(
+fn decode_response_with_request_id_value(
     prepared: PreparedRequest<'_>,
     fixture: TestResponse<'_>,
-    headers: ResponseHeaders,
+    request_id: Option<&[u8]>,
 ) -> Result<CheckedHetznerResponse, HetznerDecodeError> {
     let mut storage = vec![0_u8; fixture.body.len()];
+    let mut header_storage = [0_u8; 8192];
     let capacity = storage.len();
-    let mut response = ResponseBuffer::new(&mut storage, capacity);
+    let mut response = ResponseBuffer::new(&mut storage, capacity, &mut header_storage);
+    if let Some(request_id) = request_id {
+        response
+            .writer()
+            .headers_mut()
+            .map_err(HetznerDecodeError::ResponseWriter)?
+            .try_push("x-request-id", request_id, HeaderSensitivity::Sensitive)
+            .map_err(|_| HetznerDecodeError::MalformedPayload)?;
+    }
+    if fixture.json {
+        response
+            .writer()
+            .headers_mut()
+            .map_err(HetznerDecodeError::ResponseWriter)?
+            .try_push(
+                "content-type",
+                b"application/json; charset=utf-8",
+                HeaderSensitivity::Public,
+            )
+            .map_err(|_| HetznerDecodeError::MalformedPayload)?;
+    }
     response
         .writer()
         .body_mut()
         .map_err(HetznerDecodeError::ResponseWriter)?
         .copy_from_slice(fixture.body);
-    let metadata = if fixture.json {
-        ResponseMetadata::EMPTY
-            .with_headers(headers)
-            .with_content_type(json_content_type())
-    } else {
-        ResponseMetadata::EMPTY.with_headers(headers)
-    };
     response
         .writer()
-        .commit(fixture.status, fixture.body.len(), metadata)
+        .commit(fixture.status, fixture.body.len(), ResponseMetadata::EMPTY)
         .map_err(HetznerDecodeError::ResponseWriter)?;
     decode_checked_response(prepared, response)
-}
-
-fn json_content_type() -> ResponseContentType {
-    let content_type = ResponseContentType::new("application/json; charset=utf-8");
-    assert!(content_type.is_ok());
-    content_type.unwrap_or_else(|_| unreachable!())
 }

@@ -9,9 +9,9 @@ use cloud_sdk::operation::{
     ContentTypePolicy, RequestIdPolicy, ResponseBodyPolicy, ResponsePolicy, ResponsePolicyError,
 };
 use cloud_sdk::transport::{
-    AsyncTransport, BlockingTransport, MediaType, RequestTarget, ResponseBuffer,
-    ResponseContentType, ResponseMetadata, ResponseStorageSanitizer, ResponseWriter,
-    ResponseWriterError, StatusCode, TransportRequest,
+    AsyncTransport, BlockingTransport, HeaderSensitivity, MediaType, RequestTarget, ResponseBuffer,
+    ResponseMetadata, ResponseStorageSanitizer, ResponseWriter, ResponseWriterError, StatusCode,
+    TransportRequest,
 };
 
 static OK: [StatusCode; 1] = [StatusCode::OK];
@@ -21,8 +21,10 @@ static JSON: [MediaType<'static>; 1] = [MediaType::JSON];
 fn writer_rejects_forged_lengths_duplicate_commits_and_post_commit_writes() {
     let sanitizer = CountingSanitizer::new();
     let mut storage = [0xa5_u8; 16];
+    let mut headers = [0xa5_u8; 8192];
     {
-        let mut response = ResponseBuffer::with_additive_sanitizer(&mut storage, 4, &sanitizer);
+        let mut response =
+            ResponseBuffer::with_additive_sanitizer(&mut storage, 4, &mut headers, &sanitizer);
         assert_eq!(response.writer().body_capacity(), 4);
         assert_eq!(
             response
@@ -50,6 +52,7 @@ fn writer_rejects_forged_lengths_duplicate_commits_and_post_commit_writes() {
         );
     }
     assert_eq!(storage, [0_u8; 16]);
+    assert_eq!(headers, [0_u8; 8192]);
     assert_eq!(sanitizer.calls(), 2);
 }
 
@@ -57,11 +60,12 @@ fn writer_rejects_forged_lengths_duplicate_commits_and_post_commit_writes() {
 fn uncommitted_response_fails_closed_and_clears_complete_storage() {
     let sanitizer = CountingSanitizer::new();
     let mut storage = [0xa5_u8; 16];
+    let mut headers = [0xa5_u8; 8192];
     let policy = json_policy(8);
     assert!(policy.is_ok());
     let Ok(policy) = policy else { return };
     let result = policy.validate(
-        ResponseBuffer::with_additive_sanitizer(&mut storage, 8, &sanitizer),
+        ResponseBuffer::with_additive_sanitizer(&mut storage, 8, &mut headers, &sanitizer),
         RequestIdPolicy::Discard,
     );
     assert!(matches!(
@@ -70,6 +74,7 @@ fn uncommitted_response_fails_closed_and_clears_complete_storage() {
     ));
     drop(result);
     assert_eq!(storage, [0_u8; 16]);
+    assert_eq!(headers, [0_u8; 8192]);
     assert_eq!(sanitizer.calls(), 2);
 }
 
@@ -77,7 +82,9 @@ fn uncommitted_response_fails_closed_and_clears_complete_storage() {
 fn owned_decode_clears_before_return_and_borrow_is_guard_scoped() -> Result<(), &'static str> {
     let sanitizer = CountingSanitizer::new();
     let mut storage = [0xa5_u8; 16];
-    let mut response = ResponseBuffer::with_additive_sanitizer(&mut storage, 8, &sanitizer);
+    let mut headers = [0xa5_u8; 8192];
+    let mut response =
+        ResponseBuffer::with_additive_sanitizer(&mut storage, 8, &mut headers, &sanitizer);
     let output = response
         .writer()
         .body_mut()
@@ -86,14 +93,19 @@ fn owned_decode_clears_before_return_and_borrow_is_guard_scoped() -> Result<(), 
         .get_mut(..2)
         .ok_or("response body was too small")?
         .copy_from_slice(b"{}");
-    let content_type = json_content_type().ok_or("content type was invalid")?;
     response
         .writer()
-        .commit(
-            StatusCode::OK,
-            2,
-            ResponseMetadata::EMPTY.with_content_type(content_type),
+        .headers_mut()
+        .map_err(|_| "response headers were unavailable")?
+        .try_push(
+            "content-type",
+            b"application/json",
+            HeaderSensitivity::Public,
         )
+        .map_err(|_| "content type was invalid")?;
+    response
+        .writer()
+        .commit(StatusCode::OK, 2, ResponseMetadata::EMPTY)
         .map_err(|_| "response commitment failed")?;
     let policy = json_policy(8).map_err(|_| "response policy was invalid")?;
     let checked = policy
@@ -104,6 +116,7 @@ fn owned_decode_clears_before_return_and_borrow_is_guard_scoped() -> Result<(), 
     assert_eq!(decoded, 2);
     assert_eq!(sanitizer.calls(), 2);
     assert_eq!(storage, [0_u8; 16]);
+    assert_eq!(headers, [0_u8; 8192]);
     Ok(())
 }
 
@@ -117,9 +130,14 @@ fn blocking_and_async_transports_share_the_same_sealed_writer_contract() {
     let Some(request) = request else { return };
 
     let mut blocking_storage = [0xa5_u8; 8];
+    let mut blocking_headers = [0xa5_u8; 8192];
     {
-        let mut response =
-            ResponseBuffer::with_additive_sanitizer(&mut blocking_storage, 8, &transport);
+        let mut response = ResponseBuffer::with_additive_sanitizer(
+            &mut blocking_storage,
+            8,
+            &mut blocking_headers,
+            &transport,
+        );
         assert!(BlockingTransport::send(&transport, request, response.writer()).is_ok());
         assert!(
             response
@@ -128,11 +146,17 @@ fn blocking_and_async_transports_share_the_same_sealed_writer_contract() {
         );
     }
     assert_eq!(blocking_storage, [0_u8; 8]);
+    assert_eq!(blocking_headers, [0_u8; 8192]);
 
     let mut async_storage = [0xa5_u8; 8];
+    let mut async_headers = [0xa5_u8; 8192];
     {
-        let mut response =
-            ResponseBuffer::with_additive_sanitizer(&mut async_storage, 8, &transport);
+        let mut response = ResponseBuffer::with_additive_sanitizer(
+            &mut async_storage,
+            8,
+            &mut async_headers,
+            &transport,
+        );
         {
             let future = AsyncTransport::send(&transport, request, response.writer());
             let mut future = core::pin::pin!(future);
@@ -149,6 +173,7 @@ fn blocking_and_async_transports_share_the_same_sealed_writer_contract() {
         );
     }
     assert_eq!(async_storage, [0_u8; 8]);
+    assert_eq!(async_headers, [0_u8; 8192]);
     assert_eq!(transport.sanitizer.calls(), 4);
 }
 
@@ -161,10 +186,6 @@ fn json_policy(
         ResponseBodyPolicy::Required,
         max_body_bytes,
     )
-}
-
-fn json_content_type() -> Option<ResponseContentType> {
-    ResponseContentType::new("application/json").ok()
 }
 
 fn test_request() -> Option<TransportRequest<'static>> {
@@ -206,13 +227,15 @@ impl ExampleTransport {
             .get_mut(..2)
             .ok_or(ResponseWriterError::InitializedLengthTooLarge)?;
         output.copy_from_slice(b"{}");
-        let content_type =
-            json_content_type().ok_or(ResponseWriterError::InitializedLengthTooLarge)?;
-        response.commit(
-            StatusCode::OK,
-            2,
-            ResponseMetadata::EMPTY.with_content_type(content_type),
-        )
+        response
+            .headers_mut()?
+            .try_push(
+                "content-type",
+                b"application/json",
+                HeaderSensitivity::Public,
+            )
+            .map_err(|_| ResponseWriterError::InitializedLengthTooLarge)?;
+        response.commit(StatusCode::OK, 2, ResponseMetadata::EMPTY)
     }
 }
 

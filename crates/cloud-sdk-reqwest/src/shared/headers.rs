@@ -14,15 +14,15 @@ const REVIEWED_PUBLIC_RESPONSE_HEADERS: &[&str] = &[
 
 pub(crate) fn capture_response_headers(
     source: &HeaderMap,
-) -> Result<ResponseHeaders, TransportError> {
-    let mut captured = ResponseHeaders::new();
+    captured: &mut ResponseHeaders<'_>,
+) -> Result<(), TransportError> {
     for (name, value) in source {
         let sensitivity = response_sensitivity(name.as_str(), value);
         captured
             .try_push(name.as_str(), value.as_bytes(), sensitivity)
             .map_err(|_| TransportError::InvalidResponseHeaders)?;
     }
-    Ok(captured)
+    Ok(())
 }
 
 fn response_sensitivity(name: &str, value: &HeaderValue) -> HeaderSensitivity {
@@ -52,13 +52,15 @@ mod tests {
         source.insert("x-api-key", HeaderValue::from_static("secret-key"));
         source.insert("authorization", HeaderValue::from_static("Bearer secret"));
         source.insert("set-cookie", HeaderValue::from_static("secret=1"));
-        let captured = capture_response_headers(&source);
+        let mut storage = [0_u8; cloud_sdk::transport::MAX_RESPONSE_HEADER_BYTES];
+        let mut headers = cloud_sdk::transport::ResponseHeaders::new(&mut storage);
+        let captured = capture_response_headers(&source, &mut headers);
         assert!(captured.is_ok());
-        if let Ok(captured) = captured {
-            assert_eq!(captured.len(), 4);
+        if captured.is_ok() {
+            assert_eq!(headers.len(), 4);
             for name in ["x-request-id", "x-api-key", "authorization", "set-cookie"] {
                 assert_eq!(
-                    captured.get(name).map(|header| header.sensitivity()),
+                    headers.get(name).map(|header| header.sensitivity()),
                     Some(HeaderSensitivity::Sensitive)
                 );
             }
@@ -70,11 +72,13 @@ mod tests {
         for name in super::REVIEWED_PUBLIC_RESPONSE_HEADERS {
             let mut source = HeaderMap::new();
             source.insert(*name, HeaderValue::from_static("1"));
-            let captured = capture_response_headers(&source);
+            let mut storage = [0_u8; cloud_sdk::transport::MAX_RESPONSE_HEADER_BYTES];
+            let mut headers = cloud_sdk::transport::ResponseHeaders::new(&mut storage);
+            let captured = capture_response_headers(&source, &mut headers);
             assert!(captured.is_ok());
-            if let Ok(captured) = captured {
+            if captured.is_ok() {
                 assert_eq!(
-                    captured.get(name).map(|header| header.sensitivity()),
+                    headers.get(name).map(|header| header.sensitivity()),
                     Some(HeaderSensitivity::Public)
                 );
             }
@@ -88,11 +92,13 @@ mod tests {
         value.set_sensitive(true);
         source.insert("content-type", value);
 
-        let captured = capture_response_headers(&source);
+        let mut storage = [0_u8; cloud_sdk::transport::MAX_RESPONSE_HEADER_BYTES];
+        let mut headers = cloud_sdk::transport::ResponseHeaders::new(&mut storage);
+        let captured = capture_response_headers(&source, &mut headers);
         assert!(captured.is_ok());
-        if let Ok(captured) = captured {
+        if captured.is_ok() {
             assert_eq!(
-                captured
+                headers
                     .get("content-type")
                     .map(|header| header.sensitivity()),
                 Some(HeaderSensitivity::Sensitive)
@@ -109,8 +115,10 @@ mod tests {
                 "x-test",
                 HeaderValue::from_str(duplicate).unwrap_or(HeaderValue::from_static("invalid")),
             );
+            let mut storage = [0_u8; cloud_sdk::transport::MAX_RESPONSE_HEADER_BYTES];
+            let mut headers = cloud_sdk::transport::ResponseHeaders::new(&mut storage);
             assert!(matches!(
-                capture_response_headers(&source),
+                capture_response_headers(&source, &mut headers),
                 Err(TransportError::InvalidResponseHeaders)
             ));
         }

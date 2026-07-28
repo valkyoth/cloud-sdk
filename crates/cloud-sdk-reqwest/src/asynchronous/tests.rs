@@ -6,8 +6,7 @@ use cloud_sdk::Method;
 use cloud_sdk::rate_limit::RateLimit;
 use cloud_sdk::transport::{
     AsyncTransport, ContentType, RequestHeader, RequestHeaders, RequestTarget, ResponseBuffer,
-    ResponseContentType, ResponseHeaders, ResponseStorageSanitizer, StatusCode, TransportRequest,
-    TransportResponse,
+    ResponseStorageSanitizer, StatusCode, TransportRequest, TransportResponse,
 };
 
 use super::{
@@ -56,21 +55,29 @@ fn build_loopback(endpoint: &str) -> Option<AsyncClient> {
 struct CapturedResponse {
     status: StatusCode,
     body: Vec<u8>,
-    content_type: Option<ResponseContentType>,
+    content_type: Option<String>,
     rate_limit: Option<RateLimit>,
-    headers: ResponseHeaders,
+    rate_limit_remaining: Option<Vec<u8>>,
+    content_type_header: Option<Vec<u8>>,
 }
 
 impl CapturedResponse {
-    fn capture(response: TransportResponse<'_>) -> Self {
+    fn capture(response: TransportResponse<'_, '_>) -> Self {
         Self {
             status: response.status(),
             body: response.body().to_vec(),
             content_type: response
                 .content_type()
-                .map(ResponseContentType::retain_copy),
+                .map(|content_type| String::from(content_type.as_str())),
             rate_limit: response.rate_limit(),
-            headers: response.headers().retain_copy(),
+            rate_limit_remaining: response
+                .headers()
+                .get("ratelimit-remaining")
+                .map(|header| header.value().to_vec()),
+            content_type_header: response
+                .headers()
+                .get("content-type")
+                .map(|header| header.value().to_vec()),
         }
     }
 
@@ -82,16 +89,20 @@ impl CapturedResponse {
         &self.body
     }
 
-    const fn content_type(&self) -> Option<&ResponseContentType> {
-        self.content_type.as_ref()
+    fn content_type(&self) -> Option<&str> {
+        self.content_type.as_deref()
     }
 
     const fn rate_limit(&self) -> Option<RateLimit> {
         self.rate_limit
     }
 
-    const fn headers(&self) -> &ResponseHeaders {
-        &self.headers
+    fn rate_limit_remaining_header(&self) -> Option<&[u8]> {
+        self.rate_limit_remaining.as_deref()
+    }
+
+    fn content_type_header(&self) -> Option<&[u8]> {
+        self.content_type_header.as_deref()
     }
 }
 
@@ -101,7 +112,8 @@ async fn send_test(
     output: &mut [u8],
 ) -> Result<CapturedResponse, TransportError> {
     let capacity = output.len();
-    let mut response = ResponseBuffer::new(output, capacity);
+    let mut headers = [0_u8; 8192];
+    let mut response = ResponseBuffer::new(output, capacity, &mut headers);
     AsyncTransport::send(client, request, response.writer()).await?;
     response
         .with_response(CapturedResponse::capture)
@@ -282,7 +294,7 @@ fn async_response_propagates_validated_rate_limit_headers() {
         let Some(content_type) = response.content_type() else {
             return;
         };
-        assert_eq!(content_type.as_str(), "application/json; charset=utf-8");
+        assert_eq!(content_type, "application/json; charset=utf-8");
         let Some(rate_limit) = response.rate_limit() else {
             return;
         };
@@ -290,17 +302,11 @@ fn async_response_propagates_validated_rate_limit_headers() {
         assert_eq!(rate_limit.remaining(), 3599);
         assert_eq!(rate_limit.reset_epoch_seconds(), 42);
         assert_eq!(
-            response
-                .headers()
-                .get("ratelimit-remaining")
-                .map(|header| header.value()),
+            response.rate_limit_remaining_header(),
             Some(b"3599".as_slice())
         );
         assert_eq!(
-            response
-                .headers()
-                .get("content-type")
-                .map(|header| header.value()),
+            response.content_type_header(),
             Some(b"application/json; charset=utf-8".as_slice())
         );
     });
@@ -451,8 +457,9 @@ fn caller_cancellation_after_partial_body_never_exposes_response() {
             return;
         };
         let mut output = [0xa5_u8; 32];
+        let mut headers = [0xa5_u8; 8192];
         {
-            let mut response = ResponseBuffer::new(&mut output, 32);
+            let mut response = ResponseBuffer::new(&mut output, 32, &mut headers);
             let future = AsyncTransport::send(
                 &client,
                 TransportRequest::new(Method::Get, target),
@@ -462,6 +469,7 @@ fn caller_cancellation_after_partial_body_never_exposes_response() {
             assert!(result.is_err(), "unexpected early completion: {result:?}");
         }
         assert_eq!(output, [0_u8; 32]);
+        assert_eq!(headers, [0_u8; 8192]);
     });
 }
 

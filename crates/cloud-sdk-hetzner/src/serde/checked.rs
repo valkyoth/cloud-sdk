@@ -204,7 +204,7 @@ pub fn decode_response(
 }
 
 fn decode_provider_error(
-    response: TransportResponse<'_>,
+    response: TransportResponse<'_, '_>,
     workspace: &mut ResponseDecodeWorkspace,
 ) -> Result<HetznerApiError, HetznerDecodeError> {
     if response.body().is_empty() {

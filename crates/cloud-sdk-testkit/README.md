@@ -62,7 +62,9 @@ let exchanges = [MockExchange::new(
 let transport = MockTransport::new(&exchanges);
 let mut output = [0_u8; 64];
 let output_capacity = output.len();
-let mut response = ResponseBuffer::new(&mut output, output_capacity);
+let mut response_headers = [0_u8; cloud_sdk::transport::MAX_RESPONSE_HEADER_BYTES];
+let mut response =
+    ResponseBuffer::new(&mut output, output_capacity, &mut response_headers);
 
 if transport
     .send(
@@ -105,7 +107,9 @@ let exchanges = [MockExchange::new(
 let transport = MockTransport::new(&exchanges);
 let mut output = [0_u8; 32];
 let output_capacity = output.len();
-let mut response = ResponseBuffer::new(&mut output, output_capacity);
+let mut response_headers = [0_u8; cloud_sdk::transport::MAX_RESPONSE_HEADER_BYTES];
+let mut response =
+    ResponseBuffer::new(&mut output, output_capacity, &mut response_headers);
 if AsyncTransport::send(
     &transport,
     TransportRequest::new(Method::Get, target),

@@ -3,8 +3,9 @@
 use alloc::collections::BTreeMap;
 use alloc::string::String;
 use alloc::vec::Vec;
+use core::borrow::Borrow;
 
-use cloud_sdk_sanitization::SecretString;
+use cloud_sdk_sanitization::{SecretString, sanitize_string};
 
 mod parser;
 
@@ -13,7 +14,36 @@ pub(super) const MAX_JSON_CONTAINER_ENTRIES: usize = 4096;
 pub(super) const MAX_JSON_NODES: usize = 65_536;
 pub(super) const MAX_JSON_STRING_BYTES: usize = 1_048_576;
 
-pub(super) type Map = BTreeMap<String, Value>;
+pub(super) type Map = BTreeMap<ProtectedKey, Value>;
+
+#[derive(Eq, Ord, PartialEq, PartialOrd)]
+pub(super) struct ProtectedKey(String);
+
+impl ProtectedKey {
+    pub(super) fn with_capacity(capacity: usize) -> Self {
+        Self(String::with_capacity(capacity))
+    }
+
+    pub(super) fn push_str(&mut self, value: &str) {
+        self.0.push_str(value);
+    }
+
+    pub(super) fn as_str(&self) -> &str {
+        &self.0
+    }
+}
+
+impl Borrow<str> for ProtectedKey {
+    fn borrow(&self) -> &str {
+        &self.0
+    }
+}
+
+impl Drop for ProtectedKey {
+    fn drop(&mut self) {
+        sanitize_string(&mut self.0);
+    }
+}
 
 pub(super) enum Number {
     Unsigned(u64),
@@ -110,9 +140,10 @@ pub(super) fn parse_with_scratch(
 
 #[cfg(test)]
 mod tests {
-    use super::{MAX_JSON_DEPTH, MAX_JSON_NODES, Value, parse};
+    use super::{MAX_JSON_DEPTH, MAX_JSON_NODES, ProtectedKey, Value, parse};
     use alloc::format;
     use alloc::string::String;
+    use cloud_sdk_sanitization::sanitize_string;
 
     #[test]
     fn rejects_duplicates_trailing_documents_and_excessive_depth() {
@@ -217,5 +248,15 @@ mod tests {
         ] {
             assert!(parse(invalid).is_err());
         }
+    }
+
+    #[test]
+    fn object_keys_use_capacity_wiping_storage() {
+        let mut key = ProtectedKey::with_capacity(32);
+        key.push_str("potentially sensitive key");
+        assert_eq!(key.0.capacity(), 32);
+        sanitize_string(&mut key.0);
+        assert!(key.0.is_empty());
+        assert_eq!(key.0.capacity(), 32);
     }
 }

@@ -210,12 +210,16 @@ impl<'request> PreparedRequest<'request> {
         self,
         transport: &T,
         response_storage: &'buffer mut [u8],
+        response_header_storage: &'buffer mut [u8],
     ) -> Result<CheckedResponseGuard<'buffer>, PreparedExecutionError<T::Error>>
     where
         T: BlockingTransport + BoundTransport,
     {
-        let mut response =
-            ResponseBuffer::new(response_storage, self.response_policy.max_body_bytes());
+        let mut response = ResponseBuffer::new(
+            response_storage,
+            self.response_policy.max_body_bytes(),
+            response_header_storage,
+        );
         self.verify_endpoint(transport)
             .map_err(map_endpoint_error)?;
         transport
@@ -231,13 +235,17 @@ impl<'request> PreparedRequest<'request> {
         &'transport self,
         transport: &'transport T,
         response_storage: &'buffer mut [u8],
+        response_header_storage: &'buffer mut [u8],
     ) -> Result<CheckedResponseGuard<'buffer>, PreparedExecutionError<T::Error>>
     where
         T: AsyncTransport + BoundTransport,
         'request: 'transport,
     {
-        let mut response =
-            ResponseBuffer::new(response_storage, self.response_policy.max_body_bytes());
+        let mut response = ResponseBuffer::new(
+            response_storage,
+            self.response_policy.max_body_bytes(),
+            response_header_storage,
+        );
         self.verify_endpoint(transport)
             .map_err(map_endpoint_error)?;
         transport

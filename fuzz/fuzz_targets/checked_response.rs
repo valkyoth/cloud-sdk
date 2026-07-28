@@ -7,8 +7,8 @@ use cloud_sdk::operation::{
     ResponsePolicy, RetryEligibility,
 };
 use cloud_sdk::transport::{
-    EndpointIdentity, EndpointPolicy, EndpointScheme, MediaType, RequestTarget, ResponseBuffer,
-    ResponseContentType, ResponseMetadata, StatusCode, TransportRequest,
+    EndpointIdentity, EndpointPolicy, EndpointScheme, HeaderSensitivity, MediaType, RequestTarget,
+    ResponseBuffer, ResponseMetadata, StatusCode, TransportRequest,
 };
 use cloud_sdk_hetzner::CloudService;
 use cloud_sdk_hetzner::serde::decode_response;
@@ -95,27 +95,45 @@ fuzz_target!(|data: &[u8]| {
     } else {
         &data[2..]
     };
-    let mut metadata = ResponseMetadata::EMPTY;
-    if data[1] % 3 != 2 {
-        let value = if data[1] % 3 == 0 {
+    let content_type = if data[1] % 3 != 2 {
+        Some(if data[1] % 3 == 0 {
             "application/json; charset=utf-8"
         } else {
             "text/plain"
-        };
-        if let Ok(content_type) = ResponseContentType::new(value) {
-            metadata = metadata.with_content_type(content_type);
-        }
-    }
+        })
+    } else {
+        None
+    };
     let mut response_storage = body.to_vec();
     let capacity = response_storage.len();
-    let mut response = ResponseBuffer::new(&mut response_storage, capacity);
+    let mut response_header_storage = [0_u8; 8192];
+    let mut response = ResponseBuffer::new(
+        &mut response_storage,
+        capacity,
+        &mut response_header_storage,
+    );
+    if let Some(content_type) = content_type {
+        let Ok(headers) = response.writer().headers_mut() else {
+            return;
+        };
+        if headers
+            .try_push(
+                "content-type",
+                content_type.as_bytes(),
+                HeaderSensitivity::Public,
+            )
+            .is_err()
+        {
+            return;
+        }
+    }
     let Ok(output) = response.writer().body_mut() else {
         return;
     };
     output.copy_from_slice(body);
     if response
         .writer()
-        .commit(status, body.len(), metadata)
+        .commit(status, body.len(), ResponseMetadata::EMPTY)
         .is_err()
     {
         return;

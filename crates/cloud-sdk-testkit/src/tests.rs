@@ -168,7 +168,8 @@ fn mock_rejects_precommitted_writer_without_consuming_exchange() {
     )];
     let transport = MockTransport::new(&exchanges);
     let mut output = [0xa5_u8; 32];
-    let mut response = ResponseBuffer::new(&mut output, 32);
+    let mut headers = [0xa5_u8; 8192];
+    let mut response = ResponseBuffer::new(&mut output, 32, &mut headers);
     assert!(
         response
             .writer()
@@ -324,7 +325,8 @@ fn async_mock_transport_matches_blocking_behavior_without_an_executor() {
         )];
         let transport = MockTransport::new(&exchanges);
         let mut output = [0_u8; 32];
-        let mut response_buffer = ResponseBuffer::new(&mut output, 32);
+        let mut headers = [0_u8; 8192];
+        let mut response_buffer = ResponseBuffer::new(&mut output, 32, &mut headers);
         {
             let future = AsyncTransport::send(
                 &transport,
@@ -357,8 +359,9 @@ fn dropping_unpolled_async_mock_does_not_consume_or_write() {
         )];
         let transport = MockTransport::new(&exchanges);
         let mut output = [0xa5_u8; 16];
+        let mut headers = [0xa5_u8; 8192];
         {
-            let mut response_buffer = ResponseBuffer::new(&mut output, 16);
+            let mut response_buffer = ResponseBuffer::new(&mut output, 16, &mut headers);
             let future = AsyncTransport::send(
                 &transport,
                 TransportRequest::new(Method::Get, target),
@@ -423,10 +426,11 @@ fn inspect_blocking<R>(
     transport: &MockTransport<'_>,
     request: TransportRequest<'_>,
     storage: &mut [u8],
-    inspect: impl for<'response> FnOnce(TransportResponse<'response>) -> R,
+    inspect: impl for<'response> FnOnce(TransportResponse<'response, '_>) -> R,
 ) -> Result<R, MockError> {
     let capacity = storage.len();
-    let mut response = ResponseBuffer::new(storage, capacity);
+    let mut headers = [0_u8; 8192];
+    let mut response = ResponseBuffer::new(storage, capacity, &mut headers);
     BlockingTransport::send(transport, request, response.writer())?;
     response
         .with_response(inspect)

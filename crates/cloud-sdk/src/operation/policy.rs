@@ -5,9 +5,8 @@ use core::fmt;
 use super::RequestIdPolicy;
 use crate::rate_limit::RateLimit;
 use crate::transport::{
-    MediaType, ResponseBuffer, ResponseContentType, ResponseDecodeWorkspace, ResponseMetadata,
-    ResponseWriterError, RetainedMetadataError, RetainedResponseMetadata, StatusCode,
-    TransportResponse,
+    MediaType, ResponseBuffer, ResponseContentType, ResponseDecodeWorkspace, ResponseWriterError,
+    RetainedMetadataError, RetainedResponseMetadata, StatusCode, TransportResponse,
 };
 
 /// Expected response-body shape.
@@ -192,7 +191,7 @@ impl ResponsePolicy {
 
     fn validate_view(
         self,
-        response: TransportResponse<'_>,
+        response: TransportResponse<'_, '_>,
         request_id_policy: RequestIdPolicy,
     ) -> Result<CheckedResponseSnapshot, ResponsePolicyError> {
         if !self.success_statuses.contains(&response.status()) {
@@ -235,13 +234,13 @@ pub(crate) fn apply_request_id_policy(
 pub struct CheckedResponse<'body> {
     status: StatusCode,
     body: &'body [u8],
-    content_type: Option<&'body ResponseContentType>,
+    content_type: Option<ResponseContentType<'body>>,
     rate_limit: Option<RateLimit>,
     request_id: Option<&'body [u8]>,
     request_id_policy: RequestIdPolicy,
 }
 
-impl CheckedResponse<'_> {
+impl<'body> CheckedResponse<'body> {
     /// Returns the checked status code.
     #[must_use]
     pub const fn status(&self) -> StatusCode {
@@ -256,7 +255,7 @@ impl CheckedResponse<'_> {
 
     /// Returns the checked response content type when supplied.
     #[must_use]
-    pub const fn content_type(&self) -> Option<&ResponseContentType> {
+    pub const fn content_type(&self) -> Option<ResponseContentType<'body>> {
         self.content_type
     }
 
@@ -305,11 +304,11 @@ impl CheckedResponseGuard<'_> {
 
     /// Returns the checked response content type when supplied.
     #[must_use]
-    pub fn content_type(&self) -> Option<&ResponseContentType> {
+    pub fn content_type(&self) -> Option<ResponseContentType<'_>> {
         self.writer
-            .metadata()
+            .response()
             .ok()
-            .and_then(ResponseMetadata::content_type)
+            .and_then(|response| response.content_type())
     }
 
     /// Returns validated rate-limit metadata when supplied.
@@ -365,17 +364,15 @@ impl CheckedResponseGuard<'_> {
     }
 
     /// Atomically moves a retainable request ID into another cleanup owner.
-    pub fn retain_metadata(
+    pub fn retain_metadata_into<'destination>(
         &mut self,
+        destination: &'destination mut [u8],
         request_id_limit: usize,
-    ) -> Result<RetainedResponseMetadata, RetainedMetadataError> {
+    ) -> Result<RetainedResponseMetadata<'destination>, RetainedMetadataError> {
         if self.snapshot.request_id_policy != RequestIdPolicy::Retain {
             return Err(RetainedMetadataError::RetentionForbidden);
         }
-        self.writer
-            .metadata_mut()
-            .map_err(|_| RetainedMetadataError::RetentionForbidden)?
-            .retain_request_id(request_id_limit)
+        self.writer.retain_request_id(destination, request_id_limit)
     }
 
     fn checked_response(&self) -> CheckedResponse<'_> {
@@ -415,13 +412,15 @@ fn checked_response<'response>(
     writer: &'response ResponseBuffer<'_>,
     snapshot: CheckedResponseSnapshot,
 ) -> CheckedResponse<'response> {
-    let metadata = writer.metadata().ok();
     CheckedResponse {
         status: snapshot.status,
         body: writer.initialized_body(snapshot.body_len),
-        content_type: metadata.and_then(ResponseMetadata::content_type),
+        content_type: writer
+            .response()
+            .ok()
+            .and_then(|response| response.content_type()),
         rate_limit: snapshot.rate_limit,
-        request_id: metadata.and_then(ResponseMetadata::request_id),
+        request_id: writer.request_id(),
         request_id_policy: snapshot.request_id_policy,
     }
 }
@@ -465,7 +464,7 @@ fn validate_media_types(policy: ContentTypePolicy) -> Result<(), ResponsePolicyV
 
 fn validate_content_type(
     policy: ContentTypePolicy,
-    actual: Option<&ResponseContentType>,
+    actual: Option<ResponseContentType<'_>>,
 ) -> Result<(), ResponsePolicyError> {
     match (policy, actual) {
         (ContentTypePolicy::Required(_), None) => Err(ResponsePolicyError::MissingContentType),

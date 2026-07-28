@@ -5,6 +5,9 @@
 extern crate std;
 
 #[cfg(feature = "alloc")]
+extern crate alloc;
+
+#[cfg(feature = "alloc")]
 pub use sanitization::SecretString;
 
 /// Volatile-clears an ordinary caller-owned byte buffer.
@@ -23,6 +26,13 @@ pub fn sanitize_bytes(bytes: &mut [u8]) {
 #[inline]
 pub fn sanitize_value<T: sanitization::SecureSanitize + ?Sized>(value: &mut T) {
     sanitization::SecureSanitize::secure_sanitize(value);
+}
+
+/// Volatile-clears an owned UTF-8 allocation's complete capacity.
+#[cfg(feature = "alloc")]
+#[inline]
+pub fn sanitize_string(value: &mut alloc::string::String) {
+    sanitization::wipe::string(value);
 }
 
 /// Caller-owned byte buffer that is volatile-cleared when dropped.
@@ -73,6 +83,8 @@ mod tests {
 
     #[cfg(feature = "alloc")]
     use super::SecretString;
+    #[cfg(feature = "alloc")]
+    use super::sanitize_string;
     use super::{SecretBuffer, sanitize_bytes, sanitize_value};
 
     #[test]
@@ -87,6 +99,16 @@ mod tests {
         let mut value = usize::MAX;
         sanitize_value(&mut value);
         assert_eq!(value, 0);
+    }
+
+    #[cfg(feature = "alloc")]
+    #[test]
+    fn owned_string_sanitization_clears_length_and_complete_capacity() {
+        let mut value = alloc::string::String::with_capacity(32);
+        value.push_str("sensitive key");
+        sanitize_string(&mut value);
+        assert!(value.is_empty());
+        assert_eq!(value.capacity(), 32);
     }
 
     #[test]

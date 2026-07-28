@@ -2,9 +2,9 @@ use cloud_sdk::transport::{ResponseContentType, ResponseHeaders};
 
 use super::TransportError;
 
-pub(crate) fn parse_response_content_type(
-    headers: &ResponseHeaders,
-) -> Result<Option<ResponseContentType>, TransportError> {
+pub(crate) fn parse_response_content_type<'headers>(
+    headers: &'headers ResponseHeaders<'_>,
+) -> Result<Option<ResponseContentType<'headers>>, TransportError> {
     let Some(value) = headers.get("content-type") else {
         return Ok(None);
     };
@@ -24,10 +24,12 @@ mod tests {
 
     #[test]
     fn accepts_absent_or_one_valid_content_type() {
-        let headers = ResponseHeaders::new();
+        let mut absent_storage = [0_u8; 8192];
+        let headers = ResponseHeaders::new(&mut absent_storage);
         assert_eq!(parse_response_content_type(&headers), Ok(None));
 
-        let mut headers = ResponseHeaders::new();
+        let mut storage = [0_u8; 8192];
+        let mut headers = ResponseHeaders::new(&mut storage);
         assert_eq!(
             headers.try_push(
                 "content-type",
@@ -45,7 +47,8 @@ mod tests {
 
     #[test]
     fn rejects_duplicate_or_malformed_content_types() {
-        let mut headers = ResponseHeaders::new();
+        let mut storage = [0_u8; 8192];
+        let mut headers = ResponseHeaders::new(&mut storage);
         assert_eq!(
             headers.try_push(
                 "content-type",

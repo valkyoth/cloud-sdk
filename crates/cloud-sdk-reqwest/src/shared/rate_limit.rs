@@ -50,8 +50,13 @@ mod tests {
 
     #[test]
     fn accepts_absent_or_coherent_headers() {
-        assert_eq!(parse_rate_limit(&ResponseHeaders::new()), Ok(None));
-        let headers = headers("3600", "3599", "42");
+        let mut empty_storage = [0_u8; 8192];
+        assert_eq!(
+            parse_rate_limit(&ResponseHeaders::new(&mut empty_storage)),
+            Ok(None)
+        );
+        let mut storage = [0_u8; 8192];
+        let headers = headers(&mut storage, "3600", "3599", "42");
         let parsed = parse_rate_limit(&headers);
         assert!(parsed.is_ok());
         let Some(rate_limit) = parsed.ok().flatten() else {
@@ -64,7 +69,8 @@ mod tests {
 
     #[test]
     fn rejects_partial_nondecimal_overflow_and_incoherent_headers() {
-        let mut partial = ResponseHeaders::new();
+        let mut partial_storage = [0_u8; 8192];
+        let mut partial = ResponseHeaders::new(&mut partial_storage);
         assert_eq!(
             partial.try_push(LIMIT, b"3600", HeaderSensitivity::Public),
             Ok(())
@@ -79,15 +85,21 @@ mod tests {
             ("0", "0", "42"),
             ("18446744073709551616", "1", "42"),
         ] {
+            let mut storage = [0_u8; 8192];
             assert_eq!(
-                parse_rate_limit(&headers(values.0, values.1, values.2)),
+                parse_rate_limit(&headers(&mut storage, values.0, values.1, values.2)),
                 Err(TransportError::InvalidRateLimitHeaders)
             );
         }
     }
 
-    fn headers(limit: &str, remaining: &str, reset: &str) -> ResponseHeaders {
-        let mut headers = ResponseHeaders::new();
+    fn headers<'a>(
+        storage: &'a mut [u8],
+        limit: &str,
+        remaining: &str,
+        reset: &str,
+    ) -> ResponseHeaders<'a> {
+        let mut headers = ResponseHeaders::new(storage);
         for (name, value) in [(LIMIT, limit), (REMAINING, remaining), (RESET, reset)] {
             assert_eq!(
                 headers.try_push(name, value.as_bytes(), HeaderSensitivity::Public),

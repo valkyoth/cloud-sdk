@@ -1,6 +1,5 @@
 //! Direct bounded JSON parser for checked response admission.
 
-use alloc::string::String;
 use alloc::vec::Vec;
 use core::str;
 
@@ -8,7 +7,7 @@ use cloud_sdk_sanitization::{SecretString, sanitize_bytes};
 
 use super::{
     MAX_JSON_CONTAINER_ENTRIES, MAX_JSON_DEPTH, MAX_JSON_NODES, MAX_JSON_STRING_BYTES, Map, Number,
-    Value,
+    ProtectedKey, Value,
 };
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -163,9 +162,9 @@ impl Parser<'_> {
         Ok(output)
     }
 
-    fn parse_key(&mut self) -> Result<String, JsonError> {
+    fn parse_key(&mut self) -> Result<ProtectedKey, JsonError> {
         let scan = scan_string(self.input, self.position)?;
-        let mut output = String::with_capacity(scan.decoded_len);
+        let mut output = ProtectedKey::with_capacity(scan.decoded_len);
         decode_string(
             self.input,
             self.position,

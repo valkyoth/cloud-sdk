@@ -152,10 +152,29 @@ fn transport_response_borrows_body_propagates_metadata_and_redacts_debug() {
     let output = b"secret-response-trailing-capacity";
     let body = output.get(..15).unwrap_or_default();
     let rate_limit = RateLimit::new(3600, 3599, 42).ok();
-    let content_type = ResponseContentType::new("application/private; token=secret-content").ok();
-    let expected_content_type = content_type.as_ref().map(ResponseContentType::retain_copy);
     let mut storage = *output;
-    let mut buffer = ResponseBuffer::with_additive_sanitizer(&mut storage, 15, &FillSanitizer);
+    let mut header_storage = [0_u8; 8192];
+    let mut buffer = ResponseBuffer::with_additive_sanitizer(
+        &mut storage,
+        15,
+        &mut header_storage,
+        &FillSanitizer,
+    );
+    assert!(
+        buffer
+            .writer()
+            .headers_mut()
+            .and_then(|headers| {
+                headers
+                    .try_push(
+                        "content-type",
+                        b"application/private; token=secret-content",
+                        super::HeaderSensitivity::Sensitive,
+                    )
+                    .map_err(|_| super::ResponseWriterError::InitializedLengthTooLarge)
+            })
+            .is_ok()
+    );
     assert!(
         buffer
             .writer()
@@ -166,9 +185,6 @@ fn transport_response_borrows_body_propagates_metadata_and_redacts_debug() {
     let mut metadata = ResponseMetadata::EMPTY;
     if let Some(value) = rate_limit {
         metadata = metadata.with_rate_limit(value);
-    }
-    if let Some(value) = content_type {
-        metadata = metadata.with_content_type(value);
     }
     assert!(
         buffer
@@ -183,7 +199,10 @@ fn transport_response_borrows_body_propagates_metadata_and_redacts_debug() {
                 assert_eq!(response.status(), StatusCode::OK);
                 assert_eq!(response.body(), b"secret-response");
                 assert_eq!(response.rate_limit(), rate_limit);
-                assert_eq!(response.content_type(), expected_content_type.as_ref());
+                assert_eq!(
+                    response.content_type().map(ResponseContentType::as_str),
+                    Some("application/private; token=secret-content")
+                );
                 write!(&mut debug, "{response:?}")
             })
             .is_ok_and(|result| result.is_ok())
@@ -262,7 +281,8 @@ fn non_sync_transports_remain_usable_sequentially() {
         calls: Cell::new(0),
     };
     let mut blocking_output = [0_u8; 2];
-    let mut blocking_response = ResponseBuffer::new(&mut blocking_output, 2);
+    let mut blocking_headers = [0_u8; 8192];
+    let mut blocking_response = ResponseBuffer::new(&mut blocking_output, 2, &mut blocking_headers);
     assert!(blocking.send(request, blocking_response.writer()).is_ok());
     assert!(
         blocking_response
@@ -275,7 +295,8 @@ fn non_sync_transports_remain_usable_sequentially() {
         _not_sync: Cell::new(()),
     };
     let mut async_output = [0_u8; 2];
-    let mut async_response = ResponseBuffer::new(&mut async_output, 2);
+    let mut async_headers = [0_u8; 8192];
+    let mut async_response = ResponseBuffer::new(&mut async_output, 2, &mut async_headers);
     {
         let future = AsyncTransport::send(&asynchronous, request, async_response.writer());
         let mut future = core::pin::pin!(future);

@@ -125,9 +125,14 @@ impl AsyncClient {
         let status =
             StatusCode::new(response.status().as_u16()).ok_or(TransportError::InvalidStatus)?;
         let buffered = read_response(&mut response, response_writer.body_capacity()).await?;
-        let headers = capture_response_headers(response.headers())?;
-        let rate_limit = parse_rate_limit(&headers)?;
-        let content_type = parse_response_content_type(&headers)?;
+        capture_response_headers(
+            response.headers(),
+            response_writer
+                .headers_mut()
+                .map_err(|_| TransportError::ResponseCommitFailed)?,
+        )?;
+        let rate_limit = parse_rate_limit(response_writer.headers())?;
+        parse_response_content_type(response_writer.headers())?;
         let body_len = buffered.len();
         let initialized = response_writer
             .body_mut()
@@ -135,10 +140,7 @@ impl AsyncClient {
             .get_mut(..body_len)
             .ok_or(TransportError::ResponseReadFailed)?;
         initialized.copy_from_slice(buffered.as_ref());
-        let mut metadata = ResponseMetadata::EMPTY.with_headers(headers);
-        if let Some(value) = content_type {
-            metadata = metadata.with_content_type(value);
-        }
+        let mut metadata = ResponseMetadata::EMPTY;
         if let Some(value) = rate_limit {
             metadata = metadata.with_rate_limit(value);
         }

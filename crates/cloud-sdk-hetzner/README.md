@@ -264,8 +264,8 @@ example adds a platform hook; core cleanup remains mandatory without one:
 # fn main() -> Result<(), Box<dyn core::error::Error>> {
 use cloud_sdk::operation::{PreparationStorage, PrepareOperation};
 use cloud_sdk::transport::{
-    ResponseBuffer, ResponseContentType, ResponseMetadata,
-    ResponseStorageSanitizer, StatusCode,
+    HeaderSensitivity, ResponseBuffer, ResponseMetadata, ResponseStorageSanitizer,
+    StatusCode,
 };
 use cloud_sdk_hetzner::cloud::servers::{ServerEndpoint, ServerId};
 use cloud_sdk_hetzner::serde::{HetznerSuccess, decode_response};
@@ -276,19 +276,28 @@ let mut body = [];
 let prepared = endpoint.prepare(PreparationStorage::new(&mut target, &mut body))?;
 let response_body = br#"{"server":{"id":42,"name":"web-1","status":"running"}}"#;
 let mut response_storage = [0_u8; 128];
-let mut response =
-    ResponseBuffer::with_additive_sanitizer(&mut response_storage, 128, &Sanitizer);
+let mut response_header_storage =
+    [0_u8; cloud_sdk::transport::MAX_RESPONSE_HEADER_BYTES];
+let mut response = ResponseBuffer::with_additive_sanitizer(
+    &mut response_storage,
+    128,
+    &mut response_header_storage,
+    &Sanitizer,
+);
 let output = response.writer().body_mut()?;
 let output = output
     .get_mut(..response_body.len())
     .ok_or("response buffer is too small")?;
 output.copy_from_slice(response_body);
+response.writer().headers_mut()?.try_push(
+    "content-type",
+    b"application/json",
+    HeaderSensitivity::Public,
+)?;
 response.writer().commit(
     StatusCode::OK,
     response_body.len(),
-    ResponseMetadata::EMPTY.with_content_type(
-        ResponseContentType::new("application/json")?,
-    ),
+    ResponseMetadata::EMPTY,
 )?;
 let decoded = decode_response(prepared, response)?;
 

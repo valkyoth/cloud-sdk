@@ -245,7 +245,7 @@ pub(crate) fn parse_metrics(value: &Value) -> Result<Metrics, ResponseModelError
     }
     let mut series = Vec::with_capacity(time_series.len());
     for (name, value) in time_series {
-        let name = checked_text(name, 256)?;
+        let name = checked_text(name.as_str(), 256)?;
         let series_fields = object(value)?;
         let values = required(series_fields, "values")?
             .as_array()

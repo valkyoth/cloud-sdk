@@ -100,12 +100,14 @@
   prefix; they commit status, bounded metadata, and a checked initialized
   length but cannot substitute external or static response bytes;
 - a cleanup-owning response guard uses one audited volatile primitive to clear
-  the complete caller buffer before admission and on every ordinary exit;
-  temporary headers, request identifiers, cursor/link staging, and decoder
-  scratch have the same cleanup owner; borrowed decoding cannot escape;
+  the complete caller body and header buffers before admission and on every
+  ordinary exit; temporary headers, request identifiers, cursor/link staging,
+  and decoder scratch have the same cleanup owner; borrowed decoding cannot
+  escape;
 - provider operation metadata explicitly retains, protects, or discards
-  request identifiers; retained values move into distinct non-`Copy`
-  cleanup-owning storage and failed transfer clears source and destination;
+  request identifiers; sensitive bytes remain in stable caller-owned storage,
+  explicit retention copies directly into another stable caller destination,
+  and failed transfer clears source and destination;
 - optional platform sanitizers are additive between mandatory core clears, so
   a no-op, recontaminating, or panicking hook cannot weaken the final clear;
 - optional production blocking and async transports require exact HTTPS

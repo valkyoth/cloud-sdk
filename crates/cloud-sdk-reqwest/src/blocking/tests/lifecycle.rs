@@ -54,7 +54,8 @@ fn blocking_precommitted_writer_fails_before_network_access() {
         return;
     };
     let mut output = [0xa5_u8; 8];
-    let mut response = ResponseBuffer::new(&mut output, 8);
+    let mut headers = [0xa5_u8; 8192];
+    let mut response = ResponseBuffer::new(&mut output, 8, &mut headers);
     assert!(
         response
             .writer()

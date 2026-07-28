@@ -5,6 +5,9 @@ cleanup=crates/cloud-sdk/src/transport/cleanup.rs
 response=crates/cloud-sdk/src/transport/response.rs
 retained=crates/cloud-sdk/src/transport/retained.rs
 workspace=crates/cloud-sdk/src/transport/workspace.rs
+headers=crates/cloud-sdk/src/transport/header/response.rs
+content_type=crates/cloud-sdk/src/transport/content_type.rs
+strict_json=crates/cloud-sdk-hetzner/src/serde/strict_json.rs
 
 if find crates fuzz/fuzz_targets -type f -name '*.rs' -exec \
     grep -HnE '\.fill\(0(_u8)?\)' {} +; then
@@ -24,6 +27,8 @@ done
 
 for required in \
     'pub fn with_additive_sanitizer' \
+    'headers: ResponseHeaders<' \
+    'ResponseHeaders::new(header_storage)' \
     'sanitize_response_storage(self.writer.storage, self.additive)'; do
     if ! grep -Fq "$required" "$response"; then
         echo "response cleanup: missing response owner contract $required" >&2
@@ -33,10 +38,38 @@ done
 
 for required in \
     'pub struct RetainedResponseMetadata' \
-    'sanitize_bytes(&mut self.request_id)' \
+    "request_id: SecretBuffer<'storage>" \
     'sanitize_value(&mut self.request_id_len)'; do
     if ! grep -Fq "$required" "$retained"; then
         echo "response cleanup: missing retained-state contract $required" >&2
+        exit 1
+    fi
+done
+
+if grep -Eq 'bytes: \[u8;|request_id: \[u8;' "$headers" "$retained"; then
+    echo "response cleanup: sensitive response bytes use movable fixed arrays" >&2
+    exit 1
+fi
+
+for required in \
+    "pub struct ResponseContentType<'a>" \
+    "value: ContentType<'a>"; do
+    if ! grep -Fq "$required" "$content_type"; then
+        echo "response cleanup: response content type is not a borrowed stable view" >&2
+        exit 1
+    fi
+done
+
+if grep -Fq 'content_type: Option<ResponseContentType' "$response"; then
+    echo "response cleanup: movable response metadata retains content-type bytes" >&2
+    exit 1
+fi
+
+for required in \
+    'struct ProtectedKey(String)' \
+    'sanitize_string(&mut self.0)'; do
+    if ! grep -Fq "$required" "$strict_json"; then
+        echo "response cleanup: missing protected JSON-key contract $required" >&2
         exit 1
     fi
 done
@@ -56,7 +89,7 @@ for required in \
     'RequestIdPolicy::Retain' \
     'RequestIdPolicy::Protected' \
     'RequestIdPolicy::Discard' \
-    'pub fn retain_metadata'; do
+    'pub fn retain_metadata_into'; do
     if ! grep -R -Fq "$required" crates/cloud-sdk/src/operation; then
         echo "response cleanup: missing request-ID policy contract $required" >&2
         exit 1
@@ -67,6 +100,8 @@ cargo test --locked -p cloud-sdk --all-features --test response_cleanup
 cargo test --locked -p cloud-sdk --all-features transport::retained
 cargo test --locked -p cloud-sdk --all-features transport::workspace
 cargo test --locked -p cloud-sdk-hetzner --all-features serde::checked
+cargo test --locked -p cloud-sdk-hetzner --all-features \
+    serde::strict_json::tests::object_keys_use_capacity_wiping_storage
 cargo check --locked --manifest-path fuzz/Cargo.toml --bin checked_response
 
 echo "mandatory response cleanup checks passed."

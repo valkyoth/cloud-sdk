@@ -38,13 +38,19 @@ for required in \
     fi
 done
 
-if ! grep -Fq 'capture_response_headers(response.headers())' \
+for client in \
     crates/cloud-sdk-reqwest/src/blocking/client.rs \
-    || ! grep -Fq 'capture_response_headers(response.headers())' \
-        crates/cloud-sdk-reqwest/src/asynchronous/client.rs; then
-    echo "header model: adapter response capture is incomplete" >&2
-    exit 1
-fi
+    crates/cloud-sdk-reqwest/src/asynchronous/client.rs; do
+    for required in \
+        'capture_response_headers(' \
+        'response_writer' \
+        '.headers_mut()'; do
+        if ! grep -Fq "$required" "$client"; then
+            echo "header model: adapter response capture is incomplete in $client" >&2
+            exit 1
+        fi
+    done
+done
 
 cargo test -p cloud-sdk transport::header
 cargo test -p cloud-sdk transport::content_type

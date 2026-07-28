@@ -8,11 +8,12 @@ migration.
 
 ## Decision
 
-Core now owns the baseline cleanup guarantee. `ResponseBuffer::new` always
-volatile-clears the complete caller storage at admission and drop through
-`cloud-sdk-sanitization`. `ResponseStorageSanitizer` remains public only as an
-additive platform hook selected with `with_additive_sanitizer`; it cannot
-replace either mandatory clear.
+Core now owns the baseline cleanup guarantee. `ResponseBuffer::new` accepts
+distinct caller-owned body and header destinations and volatile-clears both at
+admission and drop through `cloud-sdk-sanitization`.
+`ResponseStorageSanitizer` remains public only as an additive body-storage
+platform hook selected with `with_additive_sanitizer`; it cannot replace
+either mandatory clear.
 
 The additive hook runs between two mandatory clears. A private final-clear drop
 guard covers normal return and unwind from the hook. This design prevents a
@@ -22,21 +23,25 @@ no-op or faulty hook from weakening core's guarantee.
 
 `CheckedResponseGuard` owns:
 
-- complete caller response storage;
-- bounded response headers and content type;
-- protected request-identifier storage;
+- complete caller response body and header storage;
+- bounded response-header ranges and content type;
+- a scalar locator for a protected request identifier in stable header storage;
 - fixed decoder scratch;
 - cursor staging;
 - provider-link staging.
 
-Every byte-bearing owner is non-`Copy` and clears on drop. Response headers and
-content type offer deliberately named `retain_copy` methods only where a
-transport test or adapter needs a distinct cleanup owner.
+Every byte-bearing owner is non-`Copy` and clears on drop. Header and retained
+request-ID bytes never live in by-value arrays: they remain in caller-owned
+storage while only non-secret pointers, lengths, and ranges may move.
+Response headers offer a deliberately named copy operation only where a test
+or adapter supplies a distinct cleanup destination. Response content type is
+a borrowed validated view over stable header bytes.
 
 `RetainedResponseMetadata` is non-`Copy`, non-`Clone`, redacted, and
-closure-accessed. Transfer from protected response metadata clears the source
-on success and failure. Any partially initialized destination remains a local
-cleanup owner and drops before an error escapes.
+closure-accessed. It wraps caller-owned destination storage. Transfer copies
+directly from stable protected header storage, then clears the source on
+success and failure. Any partially initialized destination remains under its
+cleanup owner before an error escapes.
 
 ## Request-Identifier Policy
 
@@ -47,7 +52,9 @@ checked guard, or permits explicit bounded transfer.
 
 The same metadata admission runs before both successful response validation
 and provider-error decoding. Extraction removes the complete field from the
-bounded header table and compacts all byte/range/length bookkeeping.
+visible bounded header table without moving its sensitive bytes. Those bytes
+remain at their stable caller-owned address until policy discards them,
+retention transfers and clears them, or the response guard drops.
 
 All current Hetzner operations use `Protected`; they expose identifiers only
 through guard-scoped closure access. Future operations must make a deliberate
@@ -61,15 +68,22 @@ and drops the full guard before returning its owned result. The existing
 uses the guard-owned scratch for direct JSON parsing, while independently
 decoded provider-error paths create a separate cleanup owner.
 
+The strict JSON tree stores object keys in capacity-wiping protected strings.
+Both recognized and ignored extension keys clear their complete allocation on
+drop.
+
 ## Compatibility
 
 This is an intentional pre-1.0 breaking release:
 
-- `ResponseBuffer::new` takes only storage and body limit;
+- `ResponseBuffer::new` takes body storage, body limit, and header storage;
 - additive cleanup uses `with_additive_sanitizer`;
+- prepared blocking and async execution take separate response-header storage;
 - `OperationMetadata::new` requires request-ID policy;
 - `ResponsePolicy::validate` requires request-ID policy;
-- response metadata, headers, and content type are not implicitly copied;
+- response metadata contains only non-sensitive scalars, headers are not
+  implicitly copied, and response content type is borrowed from them;
+- retained metadata requires caller-owned destination storage;
 - checked decoders may use the new workspace-aware owned decode method.
 
 See [`MIGRATION_0.38.0.md`](MIGRATION_0.38.0.md).

@@ -256,7 +256,7 @@ fn response_propagates_validated_rate_limit_headers() {
     let Some(content_type) = response.content_type() else {
         return;
     };
-    assert_eq!(content_type.as_str(), "application/json; charset=utf-8");
+    assert_eq!(content_type, "application/json; charset=utf-8");
     let Some(rate_limit) = response.rate_limit() else {
         return;
     };
@@ -264,17 +264,11 @@ fn response_propagates_validated_rate_limit_headers() {
     assert_eq!(rate_limit.remaining(), 3599);
     assert_eq!(rate_limit.reset_epoch_seconds(), 42);
     assert_eq!(
-        response
-            .headers()
-            .get("ratelimit-remaining")
-            .map(|header| header.value()),
+        response.rate_limit_remaining_header(),
         Some(b"3599".as_slice())
     );
     assert_eq!(
-        response
-            .headers()
-            .get("content-type")
-            .map(|header| header.value()),
+        response.content_type_header(),
         Some(b"application/json; charset=utf-8".as_slice())
     );
 }

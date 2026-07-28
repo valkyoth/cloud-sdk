@@ -9,8 +9,8 @@ use cloud_sdk::operation::{
     ResponsePolicyError,
 };
 use cloud_sdk::transport::{
-    HeaderSensitivity, MediaType, ResponseBuffer, ResponseContentType, ResponseHeaders,
-    ResponseMetadata, ResponseStorageSanitizer, RetainedMetadataError, StatusCode,
+    HeaderSensitivity, MediaType, ResponseBuffer, ResponseMetadata, ResponseStorageSanitizer,
+    RetainedMetadataError, StatusCode,
 };
 
 static OK: [StatusCode; 1] = [StatusCode::OK];
@@ -19,24 +19,30 @@ static JSON: [MediaType<'static>; 1] = [MediaType::JSON];
 #[test]
 fn every_request_id_policy_has_an_explicit_lifecycle() -> Result<(), &'static str> {
     let mut protected_storage = [0xa5_u8; 32];
+    let mut protected_headers = [0xa5_u8; 8192];
     let mut protected = checked_with_request_id(
         &mut protected_storage,
+        &mut protected_headers,
         RequestIdPolicy::Protected,
         b"protected-id",
     )?;
     assert!(protected.with_borrowed(|view| {
         view.with_request_id(|request_id| request_id == Some(b"protected-id".as_slice()))
     }));
+    let mut forbidden_retention = [0xa5_u8; 64];
     assert!(matches!(
-        protected.retain_metadata(64),
+        protected.retain_metadata_into(&mut forbidden_retention, 64),
         Err(RetainedMetadataError::RetentionForbidden)
     ));
     drop(protected);
     assert_eq!(protected_storage, [0_u8; 32]);
+    assert_eq!(protected_headers, [0_u8; 8192]);
 
     let mut discarded_storage = [0xa5_u8; 32];
+    let mut discarded_headers = [0xa5_u8; 8192];
     let discarded = checked_with_request_id(
         &mut discarded_storage,
+        &mut discarded_headers,
         RequestIdPolicy::Discard,
         b"discarded-id",
     )?;
@@ -45,15 +51,20 @@ fn every_request_id_policy_has_an_explicit_lifecycle() -> Result<(), &'static st
     );
     drop(discarded);
     assert_eq!(discarded_storage, [0_u8; 32]);
+    assert_eq!(discarded_headers, [0_u8; 8192]);
 
-    let mut retained_storage = [0xa5_u8; 32];
+    let mut retained_body = [0xa5_u8; 32];
+    let mut retained_headers = [0xa5_u8; 8192];
     let mut retained_guard = checked_with_request_id(
-        &mut retained_storage,
+        &mut retained_body,
+        &mut retained_headers,
         RequestIdPolicy::Retain,
         b"retained-id",
     )?;
+    let mut retained_storage = [0xa5_u8; 64];
+    let retained_pointer = retained_storage.as_ptr();
     let retained = retained_guard
-        .retain_metadata(64)
+        .retain_metadata_into(&mut retained_storage, 64)
         .map_err(|_| "retainable request ID did not transfer")?;
     assert!(
         retained_guard
@@ -62,18 +73,30 @@ fn every_request_id_policy_has_an_explicit_lifecycle() -> Result<(), &'static st
     assert!(
         retained.with_request_id(|request_id| { request_id == Some(b"retained-id".as_slice()) })
     );
+    assert!(retained.with_request_id(|request_id| {
+        request_id.is_some_and(|request_id| request_id.as_ptr() == retained_pointer)
+    }));
     drop(retained_guard);
-    assert_eq!(retained_storage, [0_u8; 32]);
+    assert_eq!(retained_body, [0_u8; 32]);
+    assert_eq!(retained_headers, [0_u8; 8192]);
     drop(retained);
+    assert_eq!(retained_storage, [0_u8; 64]);
     Ok(())
 }
 
 #[test]
 fn rejected_retention_clears_the_source_and_invalid_ids_fail_closed() -> Result<(), &'static str> {
     let mut storage = [0xa5_u8; 32];
-    let mut checked = checked_with_request_id(&mut storage, RequestIdPolicy::Retain, b"too-long")?;
+    let mut headers = [0xa5_u8; 8192];
+    let mut checked = checked_with_request_id(
+        &mut storage,
+        &mut headers,
+        RequestIdPolicy::Retain,
+        b"too-long",
+    )?;
+    let mut retention = [0xa5_u8; 64];
     assert!(matches!(
-        checked.retain_metadata(3),
+        checked.retain_metadata_into(&mut retention, 3),
         Err(RetainedMetadataError::RetentionLimitExceeded)
     ));
     assert!(
@@ -81,15 +104,23 @@ fn rejected_retention_clears_the_source_and_invalid_ids_fail_closed() -> Result<
     );
     drop(checked);
     assert_eq!(storage, [0_u8; 32]);
+    assert_eq!(headers, [0_u8; 8192]);
 
     let mut invalid_storage = [0xa5_u8; 32];
-    let invalid = checked_with_request_id(&mut invalid_storage, RequestIdPolicy::Protected, b"");
+    let mut invalid_headers = [0xa5_u8; 8192];
+    let invalid = checked_with_request_id(
+        &mut invalid_storage,
+        &mut invalid_headers,
+        RequestIdPolicy::Protected,
+        b"",
+    );
     assert!(matches!(
         invalid,
         Err("response policy rejected request identifier")
     ));
     drop(invalid);
     assert_eq!(invalid_storage, [0_u8; 32]);
+    assert_eq!(invalid_headers, [0_u8; 8192]);
     Ok(())
 }
 
@@ -100,43 +131,64 @@ fn mandatory_clear_survives_noop_and_recontaminating_hooks() {
         &RecontaminatingHook as &dyn ResponseStorageSanitizer,
     ] {
         let mut storage = [0xa5_u8; 32];
+        let mut headers = [0xa5_u8; 8192];
         {
-            let mut response = ResponseBuffer::with_additive_sanitizer(&mut storage, 16, hook);
+            let mut response =
+                ResponseBuffer::with_additive_sanitizer(&mut storage, 16, &mut headers, hook);
             if let Ok(body) = response.writer().body_mut() {
                 body.fill(0x42);
             }
         }
         assert_eq!(storage, [0_u8; 32]);
+        assert_eq!(headers, [0_u8; 8192]);
     }
 }
 
 #[test]
 fn mandatory_final_clear_runs_when_an_additive_hook_panics() {
     let mut admission_storage = [0xa5_u8; 32];
+    let mut admission_headers = [0xa5_u8; 8192];
     let admission_unwind = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-        let _response =
-            ResponseBuffer::with_additive_sanitizer(&mut admission_storage, 16, &PanickingHook);
+        let _response = ResponseBuffer::with_additive_sanitizer(
+            &mut admission_storage,
+            16,
+            &mut admission_headers,
+            &PanickingHook,
+        );
     }));
     assert!(admission_unwind.is_err());
     assert_eq!(admission_storage, [0_u8; 32]);
+    assert_eq!(admission_headers, [0_u8; 8192]);
 
     let hook = PanicOnDropHook {
         admitted: Cell::new(false),
     };
     let mut drop_storage = [0xa5_u8; 32];
+    let mut drop_headers = [0xa5_u8; 8192];
     let drop_unwind = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-        let response = ResponseBuffer::with_additive_sanitizer(&mut drop_storage, 16, &hook);
+        let response = ResponseBuffer::with_additive_sanitizer(
+            &mut drop_storage,
+            16,
+            &mut drop_headers,
+            &hook,
+        );
         drop(response);
     }));
     assert!(drop_unwind.is_err());
     assert_eq!(drop_storage, [0_u8; 32]);
+    assert_eq!(drop_headers, [0_u8; 8192]);
 }
 
 #[test]
 fn dirty_decode_workspace_clears_on_error_and_panic_unwind() -> Result<(), &'static str> {
     let mut success_storage = [0xa5_u8; 32];
-    let checked =
-        checked_with_request_id(&mut success_storage, RequestIdPolicy::Discard, b"ignored")?;
+    let mut success_headers = [0xa5_u8; 8192];
+    let checked = checked_with_request_id(
+        &mut success_storage,
+        &mut success_headers,
+        RequestIdPolicy::Discard,
+        b"ignored",
+    )?;
     let decoded = checked.decode_owned_with_workspace(|_response, workspace| {
         workspace.decoder_scratch_mut().fill(0x01);
         workspace.cursor_scratch_mut().fill(0x02);
@@ -147,8 +199,13 @@ fn dirty_decode_workspace_clears_on_error_and_panic_unwind() -> Result<(), &'sta
     assert_eq!(success_storage, [0_u8; 32]);
 
     let mut error_storage = [0xa5_u8; 32];
-    let checked =
-        checked_with_request_id(&mut error_storage, RequestIdPolicy::Discard, b"ignored")?;
+    let mut error_headers = [0xa5_u8; 8192];
+    let checked = checked_with_request_id(
+        &mut error_storage,
+        &mut error_headers,
+        RequestIdPolicy::Discard,
+        b"ignored",
+    )?;
     let decoded = checked.decode_owned_with_workspace(|_response, workspace| {
         workspace.decoder_scratch_mut().fill(0x11);
         workspace.cursor_scratch_mut().fill(0x22);
@@ -159,8 +216,13 @@ fn dirty_decode_workspace_clears_on_error_and_panic_unwind() -> Result<(), &'sta
     assert_eq!(error_storage, [0_u8; 32]);
 
     let mut panic_storage = [0xa5_u8; 32];
-    let checked =
-        checked_with_request_id(&mut panic_storage, RequestIdPolicy::Discard, b"ignored")?;
+    let mut panic_headers = [0xa5_u8; 8192];
+    let checked = checked_with_request_id(
+        &mut panic_storage,
+        &mut panic_headers,
+        RequestIdPolicy::Discard,
+        b"ignored",
+    )?;
     let unwind = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
         let _: Result<(), ()> = checked.decode_owned_with_workspace(|_response, workspace| {
             workspace.decoder_scratch_mut().fill(0x44);
@@ -175,8 +237,9 @@ fn dirty_decode_workspace_clears_on_error_and_panic_unwind() -> Result<(), &'sta
 #[test]
 fn dropping_a_pending_future_clears_its_owned_response_buffer() {
     let mut storage = [0xa5_u8; 32];
+    let mut headers = [0xa5_u8; 8192];
     {
-        let mut future = core::pin::pin!(pending_response(&mut storage));
+        let mut future = core::pin::pin!(pending_response(&mut storage, &mut headers));
         let mut context = Context::from_waker(Waker::noop());
         assert!(matches!(
             Future::poll(future.as_mut(), &mut context),
@@ -184,10 +247,11 @@ fn dropping_a_pending_future_clears_its_owned_response_buffer() {
         ));
     }
     assert_eq!(storage, [0_u8; 32]);
+    assert_eq!(headers, [0_u8; 8192]);
 }
 
-async fn pending_response(storage: &mut [u8]) {
-    let mut response = ResponseBuffer::new(storage, 16);
+async fn pending_response(storage: &mut [u8], header_storage: &mut [u8]) {
+    let mut response = ResponseBuffer::new(storage, 16, header_storage);
     if let Ok(body) = response.writer().body_mut() {
         body.fill(0x5a);
     }
@@ -196,16 +260,27 @@ async fn pending_response(storage: &mut [u8]) {
 
 fn checked_with_request_id<'a>(
     storage: &'a mut [u8],
+    header_storage: &'a mut [u8],
     request_id_policy: RequestIdPolicy,
     request_id: &[u8],
 ) -> Result<CheckedResponseGuard<'a>, &'static str> {
-    let mut headers = ResponseHeaders::new();
-    headers
-        .try_push("x-request-id", request_id, HeaderSensitivity::Sensitive)
-        .map_err(|_| "request identifier header was invalid")?;
-    let content_type =
-        ResponseContentType::new("application/json").map_err(|_| "content type was invalid")?;
-    let mut response = ResponseBuffer::new(storage, 16);
+    let mut response = ResponseBuffer::new(storage, 16, header_storage);
+    {
+        let headers = response
+            .writer()
+            .headers_mut()
+            .map_err(|_| "response headers were unavailable")?;
+        headers
+            .try_push("x-request-id", request_id, HeaderSensitivity::Sensitive)
+            .map_err(|_| "request identifier header was invalid")?;
+        headers
+            .try_push(
+                "content-type",
+                b"application/json",
+                HeaderSensitivity::Public,
+            )
+            .map_err(|_| "content type header was invalid")?;
+    }
     response
         .writer()
         .body_mut()
@@ -215,13 +290,7 @@ fn checked_with_request_id<'a>(
         .copy_from_slice(b"{}");
     response
         .writer()
-        .commit(
-            StatusCode::OK,
-            2,
-            ResponseMetadata::EMPTY
-                .with_headers(headers)
-                .with_content_type(content_type),
-        )
+        .commit(StatusCode::OK, 2, ResponseMetadata::EMPTY)
         .map_err(|_| "response commitment failed")?;
     json_policy()
         .validate(response, request_id_policy)

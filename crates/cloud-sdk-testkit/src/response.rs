@@ -40,7 +40,7 @@ pub struct ResponseFixture<'a> {
     action: Option<ActionFixture>,
     rate_limit: Option<RateLimitFixture>,
     content_type: Option<&'a str>,
-    headers: ResponseHeaders,
+    headers: Option<ResponseHeaders<'a>>,
 }
 
 impl<'a> ResponseFixture<'a> {
@@ -90,8 +90,8 @@ impl<'a> ResponseFixture<'a> {
 
     /// Adds complete prevalidated response-header metadata.
     #[must_use]
-    pub fn with_headers(mut self, headers: ResponseHeaders) -> Self {
-        self.headers = headers;
+    pub fn with_headers(mut self, headers: ResponseHeaders<'a>) -> Self {
+        self.headers = Some(headers);
         self
     }
 
@@ -115,7 +115,7 @@ impl<'a> ResponseFixture<'a> {
             action: None,
             rate_limit: None,
             content_type: None,
-            headers: ResponseHeaders::new(),
+            headers: None,
         }
     }
 
@@ -163,7 +163,7 @@ impl<'a> ResponseFixture<'a> {
 
     /// Returns complete prevalidated response-header metadata.
     #[must_use]
-    pub fn headers(&self) -> ResponseHeaders {
-        self.headers.retain_copy()
+    pub const fn headers(&self) -> Option<&ResponseHeaders<'a>> {
+        self.headers.as_ref()
     }
 }

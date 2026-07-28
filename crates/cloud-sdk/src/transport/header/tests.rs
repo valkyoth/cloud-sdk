@@ -183,7 +183,8 @@ fn all_request_capacity_boundaries_are_enforced() {
 
 #[test]
 fn response_headers_are_owned_bounded_ordered_and_redacted() {
-    let mut headers = ResponseHeaders::new();
+    let mut storage = [0_u8; MAX_RESPONSE_HEADER_BYTES];
+    let mut headers = ResponseHeaders::new(&mut storage);
     assert_eq!(
         headers.try_push(
             "content-type",
@@ -209,7 +210,10 @@ fn response_headers_are_owned_bounded_ordered_and_redacted() {
     assert!(write!(&mut debug, "{:?}", headers.get("set-cookie")).is_ok());
     assert!(!debug.as_str().contains("secret=1"));
 
-    let snapshot = headers.retain_copy();
+    let mut snapshot_storage = [0_u8; MAX_RESPONSE_HEADER_BYTES];
+    let snapshot = headers
+        .retain_copy_into(&mut snapshot_storage)
+        .unwrap_or_else(|_| unreachable!());
     assert_eq!(
         headers.try_push("CONTENT-TYPE", b"text/plain", HeaderSensitivity::Public),
         Err(HeaderError::DuplicateName)
@@ -224,7 +228,8 @@ fn response_headers_are_owned_bounded_ordered_and_redacted() {
 
 #[test]
 fn response_count_and_aggregate_limits_fail_atomically() {
-    let mut count = ResponseHeaders::new();
+    let mut count_storage = [0_u8; MAX_RESPONSE_HEADER_BYTES];
+    let mut count = ResponseHeaders::new(&mut count_storage);
     for index in 0..MAX_RESPONSE_HEADERS {
         let names = [
             "x-00", "x-01", "x-02", "x-03", "x-04", "x-05", "x-06", "x-07", "x-08", "x-09", "x-10",
@@ -234,14 +239,18 @@ fn response_count_and_aggregate_limits_fail_atomically() {
         let name = names.get(index).copied().unwrap_or_default();
         assert_eq!(count.try_push(name, b"", HeaderSensitivity::Public), Ok(()));
     }
-    let snapshot = count.retain_copy();
+    let mut count_snapshot_storage = [0_u8; MAX_RESPONSE_HEADER_BYTES];
+    let snapshot = count
+        .retain_copy_into(&mut count_snapshot_storage)
+        .unwrap_or_else(|_| unreachable!());
     assert_eq!(
         count.try_push("x-over", b"", HeaderSensitivity::Public),
         Err(HeaderError::TooManyHeaders)
     );
     assert_response_headers_match(&count, &snapshot);
 
-    let mut aggregate = ResponseHeaders::new();
+    let mut aggregate_storage = [0_u8; MAX_RESPONSE_HEADER_BYTES];
+    let mut aggregate = ResponseHeaders::new(&mut aggregate_storage);
     let value = [b'x'; MAX_HEADER_VALUE_BYTES];
     for index in 0..8 {
         let names = ["x-0", "x-1", "x-2", "x-3", "x-4", "x-5", "x-6", "x-7"];
@@ -251,7 +260,10 @@ fn response_count_and_aggregate_limits_fail_atomically() {
             assert_eq!(result, Ok(()));
         }
     }
-    let snapshot = aggregate.retain_copy();
+    let mut aggregate_snapshot_storage = [0_u8; MAX_RESPONSE_HEADER_BYTES];
+    let snapshot = aggregate
+        .retain_copy_into(&mut aggregate_snapshot_storage)
+        .unwrap_or_else(|_| unreachable!());
     assert_eq!(
         aggregate.try_push("x-over", &value, HeaderSensitivity::Public),
         Err(HeaderError::AggregateTooLarge)
@@ -266,7 +278,8 @@ fn exact_name_and_value_bounds_are_admitted() {
     assert!(RequestHeader::new(&name, &value).is_ok());
     assert!(HeaderValue::new("").is_ok());
 
-    let mut response = ResponseHeaders::new();
+    let mut storage = [0_u8; MAX_RESPONSE_HEADER_BYTES];
+    let mut response = ResponseHeaders::new(&mut storage);
     assert_eq!(
         response.try_push(&name, value.as_bytes(), HeaderSensitivity::Public),
         Ok(())
@@ -339,7 +352,8 @@ fn exact_aggregate_request_and_response_boundaries_are_admitted() {
         Ok(MAX_REQUEST_HEADER_BYTES)
     );
 
-    let mut response = ResponseHeaders::new();
+    let mut storage = [0_u8; MAX_RESPONSE_HEADER_BYTES];
+    let mut response = ResponseHeaders::new(&mut storage);
     for name in names {
         assert_eq!(
             response.try_push(name, full.as_bytes(), HeaderSensitivity::Public),
@@ -360,7 +374,10 @@ fn exact_aggregate_request_and_response_boundaries_are_admitted() {
         Ok(())
     );
     assert_eq!(response.encoded_len(), MAX_RESPONSE_HEADER_BYTES);
-    let snapshot = response.retain_copy();
+    let mut snapshot_storage = [0_u8; MAX_RESPONSE_HEADER_BYTES];
+    let snapshot = response
+        .retain_copy_into(&mut snapshot_storage)
+        .unwrap_or_else(|_| unreachable!());
     assert_eq!(
         response.try_push("x-over", b"", HeaderSensitivity::Public),
         Err(HeaderError::AggregateTooLarge)
@@ -368,7 +385,7 @@ fn exact_aggregate_request_and_response_boundaries_are_admitted() {
     assert_response_headers_match(&response, &snapshot);
 }
 
-fn assert_response_headers_match(actual: &ResponseHeaders, expected: &ResponseHeaders) {
+fn assert_response_headers_match(actual: &ResponseHeaders<'_>, expected: &ResponseHeaders<'_>) {
     assert_eq!(actual.len(), expected.len());
     assert_eq!(actual.encoded_len(), expected.encoded_len());
     for (actual, expected) in actual.iter().zip(expected.iter()) {

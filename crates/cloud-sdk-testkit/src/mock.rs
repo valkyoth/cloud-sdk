@@ -191,7 +191,7 @@ impl<'a> MockTransport<'a> {
             return Err(MockError::HeadersMismatch);
         }
         let next_cursor = cursor.checked_add(1).ok_or(MockError::CursorOverflow)?;
-        let content_type = exchange
+        let _content_type = exchange
             .response
             .content_type()
             .map(ResponseContentType::new)
@@ -203,15 +203,26 @@ impl<'a> MockTransport<'a> {
             .map(|value| value.into_rate_limit())
             .transpose()
             .map_err(|_| MockError::InvalidFixtureMetadata)?;
-        let mut response_headers = exchange.response.headers();
-        if let Some(value) = exchange.response.content_type() {
-            response_headers
-                .try_push("content-type", value.as_bytes(), HeaderSensitivity::Public)
-                .map_err(|_| MockError::InvalidFixtureMetadata)?;
-        }
-        if let Some(value) = rate_limit {
-            push_rate_limit_headers(&mut response_headers, value)
-                .map_err(|_| MockError::InvalidFixtureMetadata)?;
+        {
+            let response_headers = response
+                .headers_mut()
+                .map_err(|_| MockError::ResponseWriterRejected)?;
+            if let Some(source) = exchange.response.headers() {
+                for header in source.iter() {
+                    response_headers
+                        .try_push(header.name(), header.value(), header.sensitivity())
+                        .map_err(|_| MockError::InvalidFixtureMetadata)?;
+                }
+            }
+            if let Some(value) = exchange.response.content_type() {
+                response_headers
+                    .try_push("content-type", value.as_bytes(), HeaderSensitivity::Public)
+                    .map_err(|_| MockError::InvalidFixtureMetadata)?;
+            }
+            if let Some(value) = rate_limit {
+                push_rate_limit_headers(response_headers, value)
+                    .map_err(|_| MockError::InvalidFixtureMetadata)?;
+            }
         }
         let body_len = exchange
             .response
@@ -226,10 +237,7 @@ impl<'a> MockTransport<'a> {
                     MockError::ResponseBufferTooSmall
                 }
             })?;
-        let mut metadata = ResponseMetadata::EMPTY.with_headers(response_headers);
-        if let Some(value) = content_type {
-            metadata = metadata.with_content_type(value);
-        }
+        let mut metadata = ResponseMetadata::EMPTY;
         if let Some(value) = rate_limit {
             metadata = metadata.with_rate_limit(value);
         }

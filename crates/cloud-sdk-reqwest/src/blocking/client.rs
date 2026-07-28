@@ -115,7 +115,12 @@ impl BlockingClient {
         self.endpoint
             .verify_origin(response.url())
             .map_err(|_| TransportError::ResponseOriginChanged)?;
-        let headers = capture_response_headers(response.headers())?;
+        capture_response_headers(
+            response.headers(),
+            response_writer
+                .headers_mut()
+                .map_err(|_| TransportError::ResponseCommitFailed)?,
+        )?;
         if response.content_length().is_some_and(|length| {
             u64::try_from(response_writer.body_capacity()).map_or(true, |cap| length > cap)
         }) {
@@ -123,18 +128,15 @@ impl BlockingClient {
         }
         let status =
             StatusCode::new(response.status().as_u16()).ok_or(TransportError::InvalidStatus)?;
-        let rate_limit = parse_rate_limit(&headers)?;
-        let content_type = parse_response_content_type(&headers)?;
+        let rate_limit = parse_rate_limit(response_writer.headers())?;
+        parse_response_content_type(response_writer.headers())?;
         let body_len = read_response(
             &mut response,
             response_writer
                 .body_mut()
                 .map_err(|_| TransportError::ResponseCommitFailed)?,
         )?;
-        let mut metadata = ResponseMetadata::EMPTY.with_headers(headers);
-        if let Some(value) = content_type {
-            metadata = metadata.with_content_type(value);
-        }
+        let mut metadata = ResponseMetadata::EMPTY;
         if let Some(value) = rate_limit {
             metadata = metadata.with_rate_limit(value);
         }

@@ -82,14 +82,16 @@ fn bound_mock_executes_prepared_requests_for_blocking_and_async_contracts() {
     let mock = MockTransport::new(&exchanges).with_endpoint(endpoint);
 
     let mut blocking_output = [0_u8; 32];
-    let blocking = prepared.execute_blocking(&mock, &mut blocking_output);
+    let mut blocking_headers = [0_u8; 8192];
+    let blocking = prepared.execute_blocking(&mock, &mut blocking_output, &mut blocking_headers);
     assert!(
         blocking
             .is_ok_and(|response| { response.with_borrowed(|checked| checked.body() == b"{}") })
     );
 
     let mut async_output = [0_u8; 32];
-    let future = prepared.execute_async(&mock, &mut async_output);
+    let mut async_headers = [0_u8; 8192];
+    let future = prepared.execute_async(&mock, &mut async_output, &mut async_headers);
     let mut future = core::pin::pin!(future);
     let waker = Waker::noop();
     let mut context = Context::from_waker(waker);
@@ -121,8 +123,9 @@ fn mock_models_endpoint_status_content_type_and_empty_body_failures() {
     let exchanges = [MockExchange::new(expected, success)];
     let wrong_endpoint = MockTransport::new(&exchanges).with_endpoint(other);
     let mut output = [0_u8; 16];
+    let mut response_headers = [0_u8; 8192];
     assert!(matches!(
-        prepared.execute_blocking(&wrong_endpoint, &mut output),
+        prepared.execute_blocking(&wrong_endpoint, &mut output, &mut response_headers),
         Err(PreparedExecutionError::EndpointMismatch)
     ));
     assert_eq!(wrong_endpoint.remaining(), 1);
@@ -136,7 +139,7 @@ fn mock_models_endpoint_status_content_type_and_empty_body_failures() {
         )];
         let mock = MockTransport::new(&exchanges).with_endpoint(endpoint);
         assert!(matches!(
-            prepared.execute_blocking(&mock, &mut output),
+            prepared.execute_blocking(&mock, &mut output, &mut response_headers),
             Err(PreparedExecutionError::ResponsePolicy(
                 ResponsePolicyError::UnexpectedStatus
             ))
@@ -160,7 +163,7 @@ fn mock_models_endpoint_status_content_type_and_empty_body_failures() {
         let exchanges = [MockExchange::new(expected, fixture)];
         let mock = MockTransport::new(&exchanges).with_endpoint(endpoint);
         assert!(matches!(
-            prepared.execute_blocking(&mock, &mut output),
+            prepared.execute_blocking(&mock, &mut output, &mut response_headers),
             Err(PreparedExecutionError::ResponsePolicy(error))
                 if error == expected_error
         ));
@@ -183,8 +186,9 @@ fn mock_models_oversized_responses_and_retry_classification_mistakes() {
     let exchanges = [MockExchange::new(expected, fixture)];
     let mock = MockTransport::new(&exchanges).with_endpoint(endpoint);
     let mut output = [0_u8; 64];
+    let mut response_headers = [0_u8; 8192];
     assert!(matches!(
-        prepared.execute_blocking(&mock, &mut output),
+        prepared.execute_blocking(&mock, &mut output, &mut response_headers),
         Err(PreparedExecutionError::Transport(
             MockError::ResponseBufferTooSmall
         ))
@@ -211,8 +215,9 @@ fn mock_rejects_unbound_endpoints_request_media_mismatch_and_invalid_fixture_med
     let exchanges = [exchange];
     let unbound = MockTransport::new(&exchanges);
     let mut output = [0xA5_u8; 16];
+    let mut response_headers = [0xA5_u8; 8192];
     assert!(matches!(
-        prepared.execute_blocking(&unbound, &mut output),
+        prepared.execute_blocking(&unbound, &mut output, &mut response_headers),
         Err(PreparedExecutionError::EndpointIdentity(
             EndpointIdentityError::UnboundTransport
         ))
@@ -234,7 +239,7 @@ fn mock_rejects_unbound_endpoints_request_media_mismatch_and_invalid_fixture_med
     )];
     let mock = MockTransport::new(&exchanges).with_endpoint(endpoint);
     assert!(matches!(
-        prepared.execute_blocking(&mock, &mut output),
+        prepared.execute_blocking(&mock, &mut output, &mut response_headers),
         Err(PreparedExecutionError::Transport(
             MockError::HeadersMismatch
         ))
@@ -251,7 +256,7 @@ fn mock_rejects_unbound_endpoints_request_media_mismatch_and_invalid_fixture_med
         let mock = MockTransport::new(&exchanges).with_endpoint(endpoint);
         output.fill(0xA5);
         assert!(matches!(
-            prepared.execute_blocking(&mock, &mut output),
+            prepared.execute_blocking(&mock, &mut output, &mut response_headers),
             Err(PreparedExecutionError::Transport(
                 MockError::InvalidFixtureMetadata
             ))

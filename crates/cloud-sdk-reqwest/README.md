@@ -107,8 +107,12 @@ let Ok(target) = RequestTarget::new("/servers?page=1") else { return };
 let request = TransportRequest::new(Method::Get, target);
 let mut response_body = [0_u8; 65_536];
 let response_capacity = response_body.len();
-let mut response =
-    ResponseBuffer::new(&mut response_body, response_capacity);
+let mut response_headers = [0_u8; cloud_sdk::transport::MAX_RESPONSE_HEADER_BYTES];
+let mut response = ResponseBuffer::new(
+    &mut response_body,
+    response_capacity,
+    &mut response_headers,
+);
 if client.send(request, response.writer()).is_err() {
     return;
 }
@@ -241,8 +245,12 @@ let Ok(target) = RequestTarget::new("/servers?page=1") else { return };
 let request = TransportRequest::new(Method::Get, target);
 let mut response_body = [0_u8; 65_536];
 let response_capacity = response_body.len();
-let mut response =
-    ResponseBuffer::new(&mut response_body, response_capacity);
+let mut response_headers = [0_u8; cloud_sdk::transport::MAX_RESPONSE_HEADER_BYTES];
+let mut response = ResponseBuffer::new(
+    &mut response_body,
+    response_capacity,
+    &mut response_headers,
+);
 if AsyncTransport::send(&client, request, response.writer())
     .await
     .is_err()

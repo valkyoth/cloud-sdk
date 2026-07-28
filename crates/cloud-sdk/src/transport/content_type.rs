@@ -111,91 +111,38 @@ impl<'a> MediaType<'a> {
     }
 }
 
-/// Owned, bounded content type captured from an HTTP response.
-#[derive(Eq, PartialEq)]
-pub struct ResponseContentType {
-    bytes: [u8; MAX_CONTENT_TYPE_BYTES],
-    len: usize,
-    essence_len: usize,
+/// Borrowed, validated content type captured in stable response-header storage.
+#[derive(Clone, Copy, Eq, PartialEq)]
+pub struct ResponseContentType<'a> {
+    value: ContentType<'a>,
 }
 
-impl ResponseContentType {
-    /// Validates and copies one response header value into bounded storage.
-    pub fn new(value: &str) -> Result<Self, ContentTypeError> {
-        let validated = ContentType::new(value)?;
-        let mut bytes = [0_u8; MAX_CONTENT_TYPE_BYTES];
-        let target = bytes
-            .get_mut(..value.len())
-            .ok_or(ContentTypeError::TooLong)?;
-        target.copy_from_slice(value.as_bytes());
-        Ok(Self {
-            bytes,
-            len: value.len(),
-            essence_len: validated.essence_len,
-        })
+impl<'a> ResponseContentType<'a> {
+    /// Validates one response header value without copying it.
+    pub fn new(value: &'a str) -> Result<Self, ContentTypeError> {
+        ContentType::new(value).map(|value| Self { value })
     }
 
     /// Returns the complete validated header value.
     #[must_use]
-    pub fn as_str(&self) -> &str {
-        core::str::from_utf8(self.bytes.get(..self.len).unwrap_or_default()).unwrap_or_default()
+    pub const fn as_str(self) -> &'a str {
+        self.value.as_str()
     }
 
     /// Returns the validated borrowed view.
     #[must_use]
-    pub fn as_content_type(&self) -> ContentType<'_> {
-        ContentType {
-            value: self.as_str(),
-            essence_len: self.essence_len,
-        }
+    pub const fn as_content_type(self) -> ContentType<'a> {
+        self.value
     }
 
     /// Reports whether this response has the supplied media-type essence.
     #[must_use]
-    pub fn matches(&self, media_type: MediaType<'_>) -> bool {
+    pub fn matches(self, media_type: MediaType<'_>) -> bool {
         self.as_content_type().matches(media_type)
     }
-
-    /// Creates a deliberate second cleanup-owning copy.
-    #[must_use]
-    pub fn retain_copy(&self) -> Self {
-        Self {
-            bytes: self.bytes,
-            len: self.len,
-            essence_len: self.essence_len,
-        }
-    }
-
-    fn clear(&mut self) {
-        cloud_sdk_sanitization::sanitize_bytes(&mut self.bytes);
-        cloud_sdk_sanitization::sanitize_value(&mut self.len);
-        cloud_sdk_sanitization::sanitize_value(&mut self.essence_len);
-    }
 }
 
-impl Drop for ResponseContentType {
-    fn drop(&mut self) {
-        self.clear();
-    }
-}
-
-#[cfg(test)]
-mod cleanup_tests {
-    use super::ResponseContentType;
-
-    #[test]
-    fn complete_content_type_storage_and_lengths_clear() {
-        let Ok(mut content_type) = ResponseContentType::new("application/json; charset=utf-8")
-        else {
-            return;
-        };
-        content_type.clear();
-        assert!(content_type.bytes.iter().all(|byte| *byte == 0));
-        assert_eq!((content_type.len, content_type.essence_len), (0, 0));
-    }
-}
-
-impl fmt::Debug for ResponseContentType {
+impl fmt::Debug for ResponseContentType<'_> {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter.write_str("ResponseContentType([redacted])")
     }
@@ -338,7 +285,7 @@ mod tests {
     }
 
     #[test]
-    fn response_content_types_are_owned_bounded_and_match_by_essence() {
+    fn response_content_types_are_borrowed_bounded_and_match_by_essence() {
         let response = ResponseContentType::new("Application/JSON; charset=utf-8");
         assert!(response.is_ok());
         if let Ok(response) = response {

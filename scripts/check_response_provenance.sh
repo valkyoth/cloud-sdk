@@ -69,7 +69,8 @@ if cargo check --quiet --manifest-path "$privacy_dir/Cargo.toml" \
     echo "response provenance: external response construction compiled" >&2
     exit 1
 fi
-if ! grep -Fq 'error[E0451]' "$privacy_dir/stderr"; then
+if ! grep -Fq 'error[E0451]' "$privacy_dir/stderr" \
+    && ! grep -Fq 'due to private fields' "$privacy_dir/stderr"; then
     echo "response provenance: privacy fixture did not fail on private fields" >&2
     cat "$privacy_dir/stderr" >&2
     exit 1

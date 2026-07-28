@@ -1,6 +1,6 @@
 use core::fmt;
 
-use cloud_sdk_sanitization::{sanitize_bytes, sanitize_value};
+use cloud_sdk_sanitization::{SecretBuffer, sanitize_bytes, sanitize_value};
 
 use super::{
     HeaderError, HeaderSensitivity, MAX_RESPONSE_HEADER_BYTES, MAX_RESPONSE_HEADERS,
@@ -33,7 +33,8 @@ const EMPTY_RANGE: HeaderRange = HeaderRange {
 /// ```compile_fail
 /// use cloud_sdk::transport::{HeaderSensitivity, ResponseHeaders};
 ///
-/// let mut headers = ResponseHeaders::new();
+/// let mut storage = [0_u8; 4096];
+/// let mut headers = ResponseHeaders::new(&mut storage);
 /// headers.try_push("x-secret", b"secret", HeaderSensitivity::Sensitive).unwrap();
 /// let header = headers.get("x-secret").unwrap();
 /// let _ = header == header;
@@ -76,7 +77,7 @@ impl fmt::Debug for ResponseHeader<'_> {
     }
 }
 
-/// Owned fixed-capacity response-header metadata.
+/// Caller-storage-backed fixed-capacity response-header metadata.
 ///
 /// Ordinary equality is intentionally unavailable because retained values may
 /// be sensitive.
@@ -84,23 +85,25 @@ impl fmt::Debug for ResponseHeader<'_> {
 /// ```compile_fail
 /// use cloud_sdk::transport::ResponseHeaders;
 ///
-/// let headers = ResponseHeaders::new();
+/// let mut storage = [0_u8; 4096];
+/// let headers = ResponseHeaders::new(&mut storage);
 /// let _ = headers == headers;
 /// ```
-pub struct ResponseHeaders {
-    bytes: [u8; MAX_RESPONSE_HEADER_BYTES],
+pub struct ResponseHeaders<'storage> {
+    bytes: SecretBuffer<'storage>,
     ranges: [HeaderRange; MAX_RESPONSE_HEADERS],
     bytes_len: usize,
     count: usize,
     encoded_len: usize,
 }
 
-impl ResponseHeaders {
+impl<'storage> ResponseHeaders<'storage> {
     /// Creates an empty response-header collection.
     #[must_use]
-    pub const fn new() -> Self {
+    pub fn new(storage: &'storage mut [u8]) -> Self {
+        sanitize_bytes(storage);
         Self {
-            bytes: [0; MAX_RESPONSE_HEADER_BYTES],
+            bytes: SecretBuffer::new(storage),
             ranges: [EMPTY_RANGE; MAX_RESPONSE_HEADERS],
             bytes_len: 0,
             count: 0,
@@ -166,6 +169,7 @@ impl ResponseHeaders {
             .ok_or(HeaderError::TooManyHeaders)?;
         let region = self
             .bytes
+            .as_mut_slice()
             .get_mut(self.bytes_len..end)
             .ok_or(HeaderError::AggregateTooLarge)?;
         let (name_out, value_out) = region.split_at_mut(name.len());
@@ -212,23 +216,22 @@ impl ResponseHeaders {
             .find(|header| header.name.eq_ignore_ascii_case(name))
     }
 
-    /// Creates a deliberate second cleanup-owning copy for retained test or
-    /// diagnostic state.
+    /// Creates a deliberate second cleanup-owning copy in caller storage.
     ///
     /// Both the source and returned collection independently clear their
-    /// complete fixed storage on drop.
-    #[must_use]
-    pub fn retain_copy(&self) -> Self {
-        let mut retained = Self::new();
-        retained.bytes.copy_from_slice(&self.bytes);
-        retained.ranges.copy_from_slice(&self.ranges);
-        retained.bytes_len = self.bytes_len;
-        retained.count = self.count;
-        retained.encoded_len = self.encoded_len;
-        retained
+    /// complete caller-owned storage on drop.
+    pub fn retain_copy_into<'destination>(
+        &self,
+        destination: &'destination mut [u8],
+    ) -> Result<ResponseHeaders<'destination>, HeaderError> {
+        let mut retained = ResponseHeaders::new(destination);
+        for header in self.iter() {
+            retained.try_push(header.name(), header.value(), header.sensitivity())?;
+        }
+        Ok(retained)
     }
 
-    pub(crate) fn take_request_id(
+    pub(crate) fn hide_request_id(
         &mut self,
     ) -> Result<Option<ProtectedRequestId>, RetainedMetadataError> {
         let found = self
@@ -245,37 +248,31 @@ impl ResponseHeaders {
         let Some((index, range)) = found else {
             return Ok(None);
         };
-        let start = usize::from(range.value_start);
-        let end = start
-            .checked_add(usize::from(range.value_len))
-            .ok_or(RetainedMetadataError::RequestIdTooLong)?;
-        let source = self
-            .bytes
-            .get_mut(start..end)
-            .ok_or(RetainedMetadataError::RequestIdTooLong)?;
-        let protected = ProtectedRequestId::take_from(source)?;
+        let protected = ProtectedRequestId::new(range.value_start, range.value_len)?;
         self.remove(index, range)?;
         Ok(Some(protected))
     }
 
+    pub(crate) fn protected_value(&self, request_id: ProtectedRequestId) -> Option<&[u8]> {
+        let start = usize::from(request_id.start());
+        let end = start.checked_add(usize::from(request_id.len()))?;
+        self.bytes.as_slice().get(start..end)
+    }
+
+    pub(crate) fn clear_protected(&mut self, request_id: ProtectedRequestId) {
+        let start = usize::from(request_id.start());
+        let end = start.saturating_add(usize::from(request_id.len()));
+        sanitize_bytes(
+            self.bytes
+                .as_mut_slice()
+                .get_mut(start..end)
+                .unwrap_or_default(),
+        );
+    }
+
     fn remove(&mut self, index: usize, range: HeaderRange) -> Result<(), RetainedMetadataError> {
-        let name_start = usize::from(range.name_start);
         let name_len = usize::from(range.name_len);
-        let value_start = usize::from(range.value_start);
         let value_len = usize::from(range.value_len);
-        if name_start.checked_add(name_len) != Some(value_start) {
-            return Err(RetainedMetadataError::RequestIdTooLong);
-        }
-        let value_end = value_start
-            .checked_add(value_len)
-            .ok_or(RetainedMetadataError::RequestIdTooLong)?;
-        let removed_len = value_end
-            .checked_sub(name_start)
-            .ok_or(RetainedMetadataError::RequestIdTooLong)?;
-        let new_bytes_len = self
-            .bytes_len
-            .checked_sub(removed_len)
-            .ok_or(RetainedMetadataError::RequestIdTooLong)?;
         let removed_encoded_len = name_len
             .checked_add(value_len)
             .and_then(|length| length.checked_add(4))
@@ -288,51 +285,20 @@ impl ResponseHeaders {
             .count
             .checked_sub(1)
             .ok_or(RetainedMetadataError::RequestIdTooLong)?;
-        let shift =
-            u16::try_from(removed_len).map_err(|_| RetainedMetadataError::RequestIdTooLong)?;
         let tail_start = index
             .checked_add(1)
             .ok_or(RetainedMetadataError::RequestIdTooLong)?;
-        let tail = self
-            .ranges
-            .get(tail_start..self.count)
-            .ok_or(RetainedMetadataError::RequestIdTooLong)?;
-        if value_end > self.bytes_len
-            || tail.iter().any(|entry| {
-                entry.name_start.checked_sub(shift).is_none()
-                    || entry.value_start.checked_sub(shift).is_none()
-            })
-        {
-            return Err(RetainedMetadataError::RequestIdTooLong);
-        }
-
-        self.bytes
-            .copy_within(value_end..self.bytes_len, name_start);
-        sanitize_bytes(
-            self.bytes
-                .get_mut(new_bytes_len..self.bytes_len)
-                .unwrap_or_default(),
-        );
-        for entry in self
-            .ranges
-            .get_mut(tail_start..self.count)
-            .unwrap_or_default()
-        {
-            entry.name_start = entry.name_start.saturating_sub(shift);
-            entry.value_start = entry.value_start.saturating_sub(shift);
-        }
         self.ranges.copy_within(tail_start..self.count, index);
         if let Some(last) = self.ranges.get_mut(new_count) {
             clear_range(last);
         }
-        self.bytes_len = new_bytes_len;
         self.count = new_count;
         self.encoded_len = new_encoded_len;
         Ok(())
     }
 
     fn clear(&mut self) {
-        sanitize_bytes(&mut self.bytes);
+        sanitize_bytes(self.bytes.as_mut_slice());
         for range in &mut self.ranges {
             clear_range(range);
         }
@@ -348,9 +314,10 @@ impl ResponseHeaders {
         let value_end = value_start.checked_add(usize::from(range.value_len))?;
         let name = self
             .bytes
+            .as_slice()
             .get(name_start..name_end)
             .and_then(|bytes| core::str::from_utf8(bytes).ok())?;
-        let value = self.bytes.get(value_start..value_end)?;
+        let value = self.bytes.as_slice().get(value_start..value_end)?;
         Some(ResponseHeader {
             name,
             value,
@@ -367,19 +334,13 @@ fn clear_range(range: &mut HeaderRange) {
     range.sensitivity = HeaderSensitivity::Public;
 }
 
-impl Default for ResponseHeaders {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-impl Drop for ResponseHeaders {
+impl Drop for ResponseHeaders<'_> {
     fn drop(&mut self) {
         self.clear();
     }
 }
 
-impl fmt::Debug for ResponseHeaders {
+impl fmt::Debug for ResponseHeaders<'_> {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter
             .debug_struct("ResponseHeaders")
@@ -396,7 +357,8 @@ mod cleanup_tests {
 
     #[test]
     fn complete_header_storage_and_ranges_clear() {
-        let mut headers = ResponseHeaders::new();
+        let mut storage = [0xa5_u8; 128];
+        let mut headers = ResponseHeaders::new(&mut storage);
         assert!(
             headers
                 .try_push(
@@ -407,7 +369,7 @@ mod cleanup_tests {
                 .is_ok()
         );
         headers.clear();
-        assert!(headers.bytes.iter().all(|byte| *byte == 0));
+        assert!(headers.bytes.as_slice().iter().all(|byte| *byte == 0));
         assert!(headers.ranges.iter().all(|range| {
             range.name_start == 0
                 && range.name_len == 0
@@ -422,8 +384,9 @@ mod cleanup_tests {
     }
 
     #[test]
-    fn taking_request_id_compacts_the_complete_header_table() {
-        let mut headers = ResponseHeaders::new();
+    fn hiding_request_id_preserves_stable_storage_and_removes_visibility() {
+        let mut storage = [0xa5_u8; 128];
+        let mut headers = ResponseHeaders::new(&mut storage);
         assert!(
             headers
                 .try_push("date", b"1", HeaderSensitivity::Public)
@@ -444,7 +407,8 @@ mod cleanup_tests {
                 .is_ok()
         );
 
-        let protected = headers.take_request_id();
+        let pointer = headers.bytes.as_slice().as_ptr();
+        let protected = headers.hide_request_id();
         assert!(matches!(protected, Ok(Some(_))));
         assert_eq!(headers.len(), 2);
         assert_eq!(headers.encoded_len(), 23);
@@ -461,18 +425,33 @@ mod cleanup_tests {
                 .is_some_and(|header| { header.name() == "x-public" && header.value() == b"ok" })
         );
         assert!(retained.next().is_none());
-        assert_eq!(headers.bytes_len, 15);
+        drop(retained);
+        assert_eq!(headers.bytes.as_slice().as_ptr(), pointer);
+        assert_eq!(headers.bytes_len, 39);
+        let Ok(Some(protected)) = protected else {
+            return;
+        };
+        let mut snapshot_storage = [0xa5_u8; 128];
+        let Ok(snapshot) = headers.retain_copy_into(&mut snapshot_storage) else {
+            return;
+        };
+        assert_eq!(snapshot.len(), 2);
         assert!(
-            headers
+            snapshot
                 .bytes
-                .get(headers.bytes_len..)
-                .unwrap_or_default()
-                .iter()
-                .all(|byte| *byte == 0)
+                .as_slice()
+                .windows(b"sensitive-id".len())
+                .all(|window| window != b"sensitive-id")
         );
+        assert_eq!(
+            headers.protected_value(protected),
+            Some(b"sensitive-id".as_slice())
+        );
+        headers.clear_protected(protected);
         assert!(
             headers
                 .bytes
+                .as_slice()
                 .windows(b"sensitive-id".len())
                 .all(|window| window != b"sensitive-id")
         );

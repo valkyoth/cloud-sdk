@@ -24,7 +24,8 @@ baseline sanitizer.
 ## Complete Workspace
 
 - Added fixed cleanup-owning decoder, cursor, and provider-link scratch.
-- Made response headers, content type, metadata, and commits non-`Copy`.
+- Made response headers non-`Copy`, reduced response metadata to non-sensitive
+  scalars, and made content type a borrowed validated header view.
 - Migrated Hetzner direct JSON decoding to guard-owned scratch.
 - Cleared complete caller storage and staging on success, rejection, decode
   error, cancellation, and unwind where supported.
@@ -37,8 +38,19 @@ baseline sanitizer.
 - Added atomic transfer with immediate source cleanup on success or rejection.
 - Classified every current Hetzner operation as protected.
 - Applied request-ID policy before both success and provider-error decoding.
-- Removed extracted request IDs from the bounded header table and compacted
-  its complete byte, range, count, and encoded-length state.
+- Removed extracted request IDs from the visible bounded header table while
+  retaining their bytes at a stable caller-owned address until policy clears
+  or transfers them.
+- Replaced movable fixed byte arrays with caller-owned header and retention
+  destinations; by-value response state now carries only non-secret locators
+  and bookkeeping.
+
+## Protected JSON Keys
+
+- Replaced ordinary strict-parser object-key strings with a protected key
+  wrapper.
+- Wipe complete key allocation capacity on drop, including ignored extension
+  field names and parse-failure paths.
 
 ## Dependency Direction
 
