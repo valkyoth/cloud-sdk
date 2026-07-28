@@ -31,8 +31,8 @@ RETIRED_PACKAGES = frozenset(
 )
 
 PUBLISH_ORDER = (
-    "cloud-sdk",
     "cloud-sdk-sanitization",
+    "cloud-sdk",
     "cloud-sdk-reqwest",
     "cloud-sdk-testkit",
     "cloud-sdk-hetzner",

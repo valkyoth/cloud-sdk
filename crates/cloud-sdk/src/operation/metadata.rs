@@ -40,6 +40,17 @@ pub enum CostIntent {
     MayIncurCost,
 }
 
+/// Lifecycle policy for provider request identifiers.
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub enum RequestIdPolicy {
+    /// The identifier may move into a cleanup-owning retained metadata value.
+    Retain,
+    /// The identifier may be inspected only while the checked guard owns it.
+    Protected,
+    /// The identifier is cleared during response-policy admission.
+    Discard,
+}
+
 /// Incoherent operation metadata.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum OperationMetadataError {
@@ -70,6 +81,7 @@ pub struct OperationMetadata {
     semantics: RequestSemantics,
     retry: RetryEligibility,
     cost: CostIntent,
+    request_id: RequestIdPolicy,
 }
 
 impl OperationMetadata {
@@ -79,6 +91,7 @@ impl OperationMetadata {
         semantics: RequestSemantics,
         retry: RetryEligibility,
         cost: CostIntent,
+        request_id: RequestIdPolicy,
     ) -> Result<Self, OperationMetadataError> {
         match (impact, semantics, retry) {
             (OperationImpact::ReadOnly, semantics, _)
@@ -103,6 +116,7 @@ impl OperationMetadata {
             semantics,
             retry,
             cost,
+            request_id,
         })
     }
 
@@ -128,5 +142,11 @@ impl OperationMetadata {
     #[must_use]
     pub const fn cost_intent(self) -> CostIntent {
         self.cost
+    }
+
+    /// Returns the provider request-identifier lifecycle policy.
+    #[must_use]
+    pub const fn request_id_policy(self) -> RequestIdPolicy {
+        self.request_id
     }
 }

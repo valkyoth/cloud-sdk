@@ -1,7 +1,7 @@
 # Sanitization Dependency Admission
 
-Status: admitted only through `cloud-sdk-sanitization` with default features
-disabled.
+Status: admitted only through the mandatory `cloud-sdk-sanitization` boundary
+with default features disabled.
 
 Checked: 2026-07-26.
 
@@ -16,13 +16,15 @@ The dependency is the first-party crate published from
 and `no_std`, and has no runtime dependencies with default features disabled.
 The upstream default `asm-compare` feature is deliberately not admitted.
 
-`cloud-sdk-sanitization` exposes a narrow `sanitize_bytes` function, a borrowed
-`SecretBuffer` guard, and the reviewed opt-in allocation-backed
+`cloud-sdk-sanitization` exposes narrow `sanitize_bytes` and `sanitize_value`
+functions, a borrowed `SecretBuffer` guard, and the reviewed opt-in allocation-backed
 `sanitization::SecretString`.
-Provider crates remain independent of the implementation by default, and the
-default `cloud-sdk` and `cloud-sdk-hetzner` graphs remain unchanged. The
-Hetzner `serde` feature enables the allocation-backed boundary so decoded
-secret strings can be cleared when their owned storage is dropped.
+Since v0.38, the provider-neutral core depends on this boundary so response
+cleanup cannot be delegated to an untrusted transport implementation. The
+default `cloud-sdk` and provider graphs therefore contain only the two
+first-party boundary crates plus `sanitization`; they remain allocation-free
+and `no_std`. The Hetzner `serde` feature additionally enables alloc-backed
+secret strings.
 
 ## Security Boundary
 
@@ -57,6 +59,8 @@ The release-specific evidence and Cargo checksum are recorded in
 ## Verification
 
 `scripts/check_sanitization_boundary.sh` verifies the exact admitted version,
-absence of optional interoperability dependencies, isolation from facade and
-provider default graphs, the bounded allocation feature relationship, package
-compilation, and guard behavior tests.
+the one-way `cloud-sdk-sanitization -> sanitization` dependency, mandatory
+core/provider inclusion, absence of optional interoperability dependencies,
+the bounded allocation feature relationship, package compilation, and guard
+behavior tests. `scripts/check_response_cleanup.sh` rejects ordinary
+first-party zero fills and exercises the complete response lifecycle.

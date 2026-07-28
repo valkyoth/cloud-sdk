@@ -3,8 +3,8 @@ use core::task::{Context, Poll, Waker};
 
 use cloud_sdk::operation::{
     ContentTypePolicy, CostIntent, OperationImpact, OperationMetadata, PreparedExecutionError,
-    PreparedRequest, ProviderService, RequestSemantics, ResponseBodyPolicy, ResponsePolicy,
-    ResponsePolicyError, RetryEligibility,
+    PreparedRequest, ProviderService, RequestIdPolicy, RequestSemantics, ResponseBodyPolicy,
+    ResponsePolicy, ResponsePolicyError, RetryEligibility,
 };
 use cloud_sdk::transport::{
     ContentType, EndpointIdentity, EndpointIdentityError, EndpointPolicy, EndpointScheme,
@@ -67,13 +67,18 @@ fn prepared_records_capture_policy_and_redact_request_values() {
 #[test]
 fn bound_mock_executes_prepared_requests_for_blocking_and_async_contracts() {
     let prepared = prepared_request(16);
-    let exchange = successful_exchange();
+    let first_exchange = successful_exchange();
+    let second_exchange = successful_exchange();
     let endpoint = official_endpoint();
-    assert!(prepared.is_ok() && exchange.is_ok() && endpoint.is_ok());
-    let (Ok(prepared), Ok(exchange), Ok(endpoint)) = (prepared, exchange, endpoint) else {
+    assert!(
+        prepared.is_ok() && first_exchange.is_ok() && second_exchange.is_ok() && endpoint.is_ok()
+    );
+    let (Ok(prepared), Ok(first_exchange), Ok(second_exchange), Ok(endpoint)) =
+        (prepared, first_exchange, second_exchange, endpoint)
+    else {
         return;
     };
-    let exchanges = [exchange, exchange];
+    let exchanges = [first_exchange, second_exchange];
     let mock = MockTransport::new(&exchanges).with_endpoint(endpoint);
 
     let mut blocking_output = [0_u8; 32];
@@ -267,6 +272,7 @@ fn prepared_request(max_body_bytes: usize) -> Result<PreparedRequest<'static>, (
         RequestSemantics::Idempotent,
         RetryEligibility::ExplicitPolicy,
         CostIntent::MayIncurCost,
+        RequestIdPolicy::Protected,
     )
     .map_err(|_| ())?;
     let response_policy = ResponsePolicy::new(

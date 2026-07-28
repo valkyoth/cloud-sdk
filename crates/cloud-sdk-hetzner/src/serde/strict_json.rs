@@ -96,8 +96,16 @@ impl Value {
     }
 }
 
+#[cfg(test)]
 pub(super) fn parse(bytes: &[u8]) -> Result<Value, parser::JsonError> {
     parser::parse(bytes)
+}
+
+pub(super) fn parse_with_scratch(
+    bytes: &[u8],
+    scratch: &mut [u8],
+) -> Result<Value, parser::JsonError> {
+    parser::parse_with_scratch(bytes, scratch)
 }
 
 #[cfg(test)]

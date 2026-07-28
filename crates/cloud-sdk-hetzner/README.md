@@ -38,8 +38,8 @@ boundaries.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.37.0"
-cloud-sdk-hetzner = "0.30.0"
+cloud-sdk = "0.38.0"
+cloud-sdk-hetzner = "0.31.0"
 ```
 
 ## Features
@@ -106,7 +106,7 @@ assert_eq!(
 ```
 
 Secret-bearing operations need successful-path cleanup after transport use.
-Add `cloud-sdk-sanitization = "0.15.5"` and guard the complete body buffer:
+Add `cloud-sdk-sanitization = "0.16.0"` and guard the complete body buffer:
 
 ```rust
 use cloud_sdk::operation::{PreparationStorage, PrepareOperation};
@@ -197,6 +197,8 @@ Prepared request-header migration is listed in the
 [v0.36 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.36.0.md).
 Response provenance migration is listed in the
 [v0.37 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.37.0.md).
+Mandatory response cleanup migration is listed in the
+[v0.38 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.38.0.md).
 
 ## Optional Serde Boundary
 
@@ -204,7 +206,7 @@ Enable Serde explicitly; it is never part of the default graph:
 
 ```toml
 [dependencies]
-cloud-sdk-hetzner = { version = "0.30.0", features = ["serde"] }
+cloud-sdk-hetzner = { version = "0.31.0", features = ["serde"] }
 ```
 
 The feature admits serde_json with `default-features = false` and `alloc` only
@@ -254,7 +256,8 @@ if let Ok(json) = json {
 # fn main() {}
 ```
 
-Decode only through the prepared request that produced the response:
+Decode only through the prepared request that produced the response. This
+example adds a platform hook; core cleanup remains mandatory without one:
 
 ```rust
 # #[cfg(feature = "serde")]
@@ -273,7 +276,8 @@ let mut body = [];
 let prepared = endpoint.prepare(PreparationStorage::new(&mut target, &mut body))?;
 let response_body = br#"{"server":{"id":42,"name":"web-1","status":"running"}}"#;
 let mut response_storage = [0_u8; 128];
-let mut response = ResponseBuffer::new(&mut response_storage, 128, &Sanitizer);
+let mut response =
+    ResponseBuffer::with_additive_sanitizer(&mut response_storage, 128, &Sanitizer);
 let output = response.writer().body_mut()?;
 let output = output
     .get_mut(..response_body.len())

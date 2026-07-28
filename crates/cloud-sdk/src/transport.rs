@@ -1,13 +1,17 @@
 //! Provider-neutral blocking and asynchronous transport contracts.
 
 mod asynchronous;
+mod cleanup;
 mod content_type;
 mod endpoint;
 mod header;
 mod request_target;
 mod response;
+mod retained;
+mod workspace;
 
 pub use asynchronous::AsyncTransport;
+pub use cleanup::ResponseStorageSanitizer;
 pub use content_type::{
     ContentType, ContentTypeError, MAX_CONTENT_TYPE_BYTES, MediaType, ResponseContentType,
 };
@@ -30,23 +34,15 @@ pub use request_target::{
 pub use response::{
     ResponseBuffer, ResponseMetadata, ResponseWriter, ResponseWriterError, TransportResponse,
 };
+pub use retained::{MAX_REQUEST_ID_BYTES, RetainedMetadataError, RetainedResponseMetadata};
+pub use workspace::{
+    RESPONSE_CURSOR_SCRATCH_BYTES, RESPONSE_DECODER_SCRATCH_BYTES,
+    RESPONSE_PROVIDER_LINK_SCRATCH_BYTES, ResponseDecodeWorkspace,
+};
 
 use core::fmt;
 
 use crate::Method;
-
-/// Explicit cleanup contract for caller-owned response storage.
-///
-/// Prepared execution invokes this for the complete supplied buffer before
-/// endpoint verification or response-capacity admission. Production
-/// implementations must use a cleanup primitive that cannot be removed as a
-/// dead store. This remains separate from [`BlockingTransport`] and
-/// [`AsyncTransport`] so direct transport implementations cannot silently
-/// acquire a weaker cleanup promise.
-pub trait ResponseStorageSanitizer {
-    /// Clears the complete caller-owned response buffer.
-    fn sanitize_response_storage(&self, response_storage: &mut [u8]);
-}
 
 /// Provider-neutral request passed to a blocking transport.
 #[derive(Clone, Copy)]

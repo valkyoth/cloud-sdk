@@ -209,7 +209,7 @@ fn response_headers_are_owned_bounded_ordered_and_redacted() {
     assert!(write!(&mut debug, "{:?}", headers.get("set-cookie")).is_ok());
     assert!(!debug.as_str().contains("secret=1"));
 
-    let snapshot = headers;
+    let snapshot = headers.retain_copy();
     assert_eq!(
         headers.try_push("CONTENT-TYPE", b"text/plain", HeaderSensitivity::Public),
         Err(HeaderError::DuplicateName)
@@ -234,7 +234,7 @@ fn response_count_and_aggregate_limits_fail_atomically() {
         let name = names.get(index).copied().unwrap_or_default();
         assert_eq!(count.try_push(name, b"", HeaderSensitivity::Public), Ok(()));
     }
-    let snapshot = count;
+    let snapshot = count.retain_copy();
     assert_eq!(
         count.try_push("x-over", b"", HeaderSensitivity::Public),
         Err(HeaderError::TooManyHeaders)
@@ -251,7 +251,7 @@ fn response_count_and_aggregate_limits_fail_atomically() {
             assert_eq!(result, Ok(()));
         }
     }
-    let snapshot = aggregate;
+    let snapshot = aggregate.retain_copy();
     assert_eq!(
         aggregate.try_push("x-over", &value, HeaderSensitivity::Public),
         Err(HeaderError::AggregateTooLarge)
@@ -360,7 +360,7 @@ fn exact_aggregate_request_and_response_boundaries_are_admitted() {
         Ok(())
     );
     assert_eq!(response.encoded_len(), MAX_RESPONSE_HEADER_BYTES);
-    let snapshot = response;
+    let snapshot = response.retain_copy();
     assert_eq!(
         response.try_push("x-over", b"", HeaderSensitivity::Public),
         Err(HeaderError::AggregateTooLarge)
@@ -396,7 +396,7 @@ impl DebugBuffer {
     }
 
     fn clear(&mut self) {
-        self.bytes.fill(0);
+        cloud_sdk_sanitization::sanitize_bytes(&mut self.bytes);
         self.len = 0;
     }
 }

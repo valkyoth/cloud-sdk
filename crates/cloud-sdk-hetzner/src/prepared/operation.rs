@@ -5,8 +5,8 @@ use core::marker::PhantomData;
 use cloud_sdk::Method;
 use cloud_sdk::operation::{
     ContentTypePolicy, CostIntent, OperationId, OperationImpact, OperationMetadata,
-    PreparationStorage, PrepareOperation, PreparedRequest, ProviderService, RequestSemantics,
-    ResponseBodyPolicy, ResponsePolicy, RetryEligibility,
+    PreparationStorage, PrepareOperation, PreparedRequest, ProviderService, RequestIdPolicy,
+    RequestSemantics, ResponseBodyPolicy, ResponsePolicy, RetryEligibility,
 };
 use cloud_sdk::transport::{
     ContentType, MediaType, RequestHeader, RequestHeaders, RequestTarget, StatusCode,
@@ -195,8 +195,8 @@ where
     B: BodyWire,
 {
     let (target_storage, body_storage) = storage.into_parts();
-    target_storage.fill(0);
-    body_storage.fill(0);
+    cloud_sdk_sanitization::sanitize_bytes(target_storage);
+    cloud_sdk_sanitization::sanitize_bytes(body_storage);
     let metadata = endpoint.metadata()?;
     let policy = response_policy(endpoint.response_profile())?;
     let service = provider_service(endpoint.api_base_url())?;
@@ -205,19 +205,19 @@ where
         match write_components(endpoint, query, body, target_storage, body_storage) {
             Ok(lengths) => lengths,
             Err(error) => {
-                target_storage.fill(0);
-                body_storage.fill(0);
+                cloud_sdk_sanitization::sanitize_bytes(target_storage);
+                cloud_sdk_sanitization::sanitize_bytes(body_storage);
                 return Err(error);
             }
         };
     if body_len > body_storage.len() {
-        target_storage.fill(0);
-        body_storage.fill(0);
+        cloud_sdk_sanitization::sanitize_bytes(target_storage);
+        cloud_sdk_sanitization::sanitize_bytes(body_storage);
         return Err(HetznerPreparationError::Body);
     }
     if let Err(error) = validate_target_storage(target_storage, target_len) {
-        target_storage.fill(0);
-        body_storage.fill(0);
+        cloud_sdk_sanitization::sanitize_bytes(target_storage);
+        cloud_sdk_sanitization::sanitize_bytes(body_storage);
         return Err(error);
     }
     let body_bytes = body_storage
@@ -382,7 +382,7 @@ pub(crate) fn operation_metadata(
             RetryEligibility::Never,
         ),
     };
-    OperationMetadata::new(impact, semantics, retry, cost)
+    OperationMetadata::new(impact, semantics, retry, cost, RequestIdPolicy::Protected)
         .map_err(HetznerPreparationError::InvalidMetadata)
 }
 

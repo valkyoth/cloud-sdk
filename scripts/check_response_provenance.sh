@@ -16,7 +16,7 @@ for required in \
     'pub struct TransportResponse' \
     'fn from_commit' \
     "inspect: impl for<'response> FnOnce(TransportResponse" \
-    'sanitize_response_storage(self.writer.storage)'; do
+    'sanitize_response_storage(self.writer.storage,'; do
     if ! grep -Fq "$required" "$response_model"; then
         echo "response provenance: missing response contract $required" >&2
         exit 1
@@ -81,6 +81,7 @@ if grep -Fq 'error[E0063]' "$privacy_dir/stderr"; then
 fi
 
 cargo test --locked -p cloud-sdk --all-features --test response_provenance
+cargo test --locked -p cloud-sdk --all-features --test response_cleanup
 cargo test --locked -p cloud-sdk --doc
 cargo test --locked -p cloud-sdk-testkit --all-features
 cargo test --locked -p cloud-sdk-reqwest --all-features lifecycle

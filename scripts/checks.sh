@@ -21,6 +21,7 @@ scripts/check_http_method_domain.sh
 scripts/check_request_targets.sh
 scripts/check_header_model.sh
 scripts/check_response_provenance.sh
+scripts/check_response_cleanup.sh
 scripts/check-provider-capabilities.py
 scripts/test-provider-capabilities.py
 scripts/check-custom-endpoint-docs.py
@@ -59,15 +60,15 @@ scripts/test-prepared-operation-coverage.py
 scripts/release_crates.py --check
 scripts/test-release-crates.py
 scripts/test-release-state.py
-cargo package -p cloud-sdk --allow-dirty
+cargo package -p cloud-sdk --allow-dirty \
+    --config 'patch.crates-io.cloud-sdk-sanitization.path="crates/cloud-sdk-sanitization"'
 cargo package -p cloud-sdk-hetzner --allow-dirty --features serde \
     --config 'patch.crates-io.cloud-sdk.path="crates/cloud-sdk"' \
     --config 'patch.crates-io.cloud-sdk-reqwest.path="crates/cloud-sdk-reqwest"' \
     --config 'patch.crates-io.cloud-sdk-sanitization.path="crates/cloud-sdk-sanitization"' \
     --config 'patch.crates-io.cloud-sdk-testkit.path="crates/cloud-sdk-testkit"'
 CARGO_TARGET_DIR=/dev/null scripts/check_packaged_reqwest_tests.sh
-cargo package -p cloud-sdk-sanitization --allow-dirty \
-    --config 'patch.crates-io.cloud-sdk.path="crates/cloud-sdk"'
+cargo package -p cloud-sdk-sanitization --allow-dirty
 cargo package -p cloud-sdk-testkit --allow-dirty \
     --config 'patch.crates-io.cloud-sdk.path="crates/cloud-sdk"'
 cargo clippy --workspace --all-targets --all-features -- -D warnings

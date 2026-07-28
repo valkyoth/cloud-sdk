@@ -2,8 +2,8 @@
 
 use cloud_sdk::operation::{
     ContentTypePolicy, CostIntent, OperationImpact, OperationMetadata, PreparationStorage,
-    PrepareOperation, PreparedRequest, ProviderService, RequestSemantics, ResponseBodyPolicy,
-    ResponsePolicy, RetryEligibility,
+    PrepareOperation, PreparedRequest, ProviderService, RequestIdPolicy, RequestSemantics,
+    ResponseBodyPolicy, ResponsePolicy, RetryEligibility,
 };
 use cloud_sdk::transport::{
     EndpointIdentity, EndpointPolicy, EndpointScheme, MediaType, RequestTarget, StatusCode,
@@ -60,6 +60,7 @@ impl PrepareOperation for ListResources {
             RequestSemantics::Safe,
             RetryEligibility::ExplicitPolicy,
             CostIntent::NoKnownCost,
+            RequestIdPolicy::Protected,
         )
         .map_err(|_| PrepareError::InvalidMetadata)?;
         let response_policy = ResponsePolicy::new(

@@ -6,7 +6,7 @@ use core::fmt;
 use cloud_sdk::operation::{PreparedRequest, ResponsePolicyError};
 use cloud_sdk::rate_limit::RateLimit;
 use cloud_sdk::transport::{
-    MediaType, ResponseBuffer, ResponseStorageSanitizer, ResponseWriterError, TransportResponse,
+    MediaType, ResponseBuffer, ResponseDecodeWorkspace, ResponseWriterError, TransportResponse,
 };
 
 use super::binding::{ResponseBinding, ResponseShape, find};
@@ -148,13 +148,10 @@ impl CheckedHetznerResponse {
 }
 
 /// Decodes one transport response through its exact prepared operation policy.
-pub fn decode_response<S>(
+pub fn decode_response(
     prepared: PreparedRequest<'_>,
-    response: ResponseBuffer<'_, '_, S>,
-) -> Result<CheckedHetznerResponse, HetznerDecodeError>
-where
-    S: ResponseStorageSanitizer + ?Sized,
-{
+    response: ResponseBuffer<'_>,
+) -> Result<CheckedHetznerResponse, HetznerDecodeError> {
     let operation = prepared
         .operation_id()
         .ok_or(HetznerDecodeError::MissingOperationId)?;
@@ -167,8 +164,9 @@ where
         .with_response(|view| view.status())
         .map_err(HetznerDecodeError::ResponseWriter)?;
     if status.is_error() {
+        let mut workspace = ResponseDecodeWorkspace::new_for_provider();
         let decoded = response
-            .with_response(decode_provider_error)
+            .with_response(|response| decode_provider_error(response, &mut workspace))
             .map_err(HetznerDecodeError::ResponseWriter)?;
         drop(response);
         return match decoded {
@@ -179,7 +177,7 @@ where
     let checked = prepared
         .validate_response(response)
         .map_err(HetznerDecodeError::ResponsePolicy)?;
-    checked.decode_owned(|checked| {
+    checked.decode_owned_with_workspace(|checked, workspace| {
         if checked.status().get() != binding.status {
             return Err(HetznerDecodeError::ResponsePolicy(
                 ResponsePolicyError::UnexpectedStatus,
@@ -190,8 +188,9 @@ where
         } else {
             let bytes =
                 ResponseBytes::new(checked.body()).map_err(HetznerDecodeError::ResponseSize)?;
-            let mut value = strict_json::parse(bytes.as_slice())
-                .map_err(|_| HetznerDecodeError::MalformedPayload)?;
+            let mut value =
+                strict_json::parse_with_scratch(bytes.as_slice(), workspace.decoder_scratch_mut())
+                    .map_err(|_| HetznerDecodeError::MalformedPayload)?;
             decode_success(binding, &mut value).map_err(HetznerDecodeError::Model)?
         };
         Ok(CheckedHetznerResponse {
@@ -203,6 +202,7 @@ where
 
 fn decode_provider_error(
     response: TransportResponse<'_>,
+    workspace: &mut ResponseDecodeWorkspace,
 ) -> Result<HetznerApiError, HetznerDecodeError> {
     if response.body().is_empty() {
         return Err(HetznerDecodeError::MissingErrorBody);
@@ -219,7 +219,8 @@ fn decode_provider_error(
         return Err(HetznerDecodeError::ErrorContentType);
     }
     let mut value =
-        strict_json::parse(response.body()).map_err(|_| HetznerDecodeError::MalformedPayload)?;
+        strict_json::parse_with_scratch(response.body(), workspace.decoder_scratch_mut())
+            .map_err(|_| HetznerDecodeError::MalformedPayload)?;
     let envelope = object_mut(&mut value).map_err(HetznerDecodeError::Model)?;
     let error = object_mut(required_mut(envelope, "error").map_err(HetznerDecodeError::Model)?)
         .map_err(HetznerDecodeError::Model)?;

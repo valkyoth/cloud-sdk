@@ -7,7 +7,7 @@ use crate::operation::{
 };
 use crate::transport::{
     AsyncTransport, BlockingTransport, BoundTransport, EndpointIdentityError, EndpointPolicy,
-    ResponseBuffer, ResponseStorageSanitizer, TransportRequest,
+    ResponseBuffer, TransportRequest,
 };
 use crate::{ProviderId, ProviderMarker, ServiceId, ServiceMarker};
 
@@ -185,37 +185,32 @@ impl<'request> PreparedRequest<'request> {
     }
 
     /// Applies the complete prepared response policy without executing transport.
-    pub fn validate_response<'buffer, 'sanitizer, S>(
+    pub fn validate_response<'buffer>(
         self,
-        response: ResponseBuffer<'buffer, 'sanitizer, S>,
-    ) -> Result<CheckedResponseGuard<'buffer, 'sanitizer, S>, ResponsePolicyError>
-    where
-        S: ResponseStorageSanitizer + ?Sized,
-    {
-        self.response_policy.validate(response)
+        response: ResponseBuffer<'buffer>,
+    ) -> Result<CheckedResponseGuard<'buffer>, ResponsePolicyError> {
+        self.response_policy
+            .validate(response, self.metadata.request_id_policy())
     }
 
     /// Verifies endpoint identity, executes once, and validates the response.
-    pub fn execute_blocking<'transport, 'buffer, T>(
+    pub fn execute_blocking<'buffer, T>(
         self,
-        transport: &'transport T,
+        transport: &T,
         response_storage: &'buffer mut [u8],
-    ) -> Result<CheckedResponseGuard<'buffer, 'transport, T>, PreparedExecutionError<T::Error>>
+    ) -> Result<CheckedResponseGuard<'buffer>, PreparedExecutionError<T::Error>>
     where
-        T: BlockingTransport + BoundTransport + ResponseStorageSanitizer,
+        T: BlockingTransport + BoundTransport,
     {
-        let mut response = ResponseBuffer::new(
-            response_storage,
-            self.response_policy.max_body_bytes(),
-            transport,
-        );
+        let mut response =
+            ResponseBuffer::new(response_storage, self.response_policy.max_body_bytes());
         self.verify_endpoint(transport)
             .map_err(map_endpoint_error)?;
         transport
             .send(self.request, response.writer())
             .map_err(PreparedExecutionError::Transport)?;
         self.response_policy
-            .validate(response)
+            .validate(response, self.metadata.request_id_policy())
             .map_err(PreparedExecutionError::ResponsePolicy)
     }
 
@@ -224,16 +219,13 @@ impl<'request> PreparedRequest<'request> {
         &'transport self,
         transport: &'transport T,
         response_storage: &'buffer mut [u8],
-    ) -> Result<CheckedResponseGuard<'buffer, 'transport, T>, PreparedExecutionError<T::Error>>
+    ) -> Result<CheckedResponseGuard<'buffer>, PreparedExecutionError<T::Error>>
     where
-        T: AsyncTransport + BoundTransport + ResponseStorageSanitizer,
+        T: AsyncTransport + BoundTransport,
         'request: 'transport,
     {
-        let mut response = ResponseBuffer::new(
-            response_storage,
-            self.response_policy.max_body_bytes(),
-            transport,
-        );
+        let mut response =
+            ResponseBuffer::new(response_storage, self.response_policy.max_body_bytes());
         self.verify_endpoint(transport)
             .map_err(map_endpoint_error)?;
         transport
@@ -241,7 +233,7 @@ impl<'request> PreparedRequest<'request> {
             .await
             .map_err(PreparedExecutionError::Transport)?;
         self.response_policy
-            .validate(response)
+            .validate(response, self.metadata.request_id_policy())
             .map_err(PreparedExecutionError::ResponsePolicy)
     }
 

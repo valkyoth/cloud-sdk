@@ -6,6 +6,10 @@ if ! printf '%s\n' "$boundary_tree" | grep -Fq 'sanitization v2.0.3'; then
     echo "sanitization boundary: admitted sanitization version is missing" >&2
     exit 1
 fi
+if printf '%s\n' "$boundary_tree" | grep -Fq 'cloud-sdk v'; then
+    echo "sanitization boundary: provider-neutral cleanup depends on cloud-sdk" >&2
+    exit 1
+fi
 if printf '%s\n' "$boundary_tree" | grep -Eq '(^|[[:space:]])(zeroize|subtle) v'; then
     echo "sanitization boundary: optional interoperability dependency entered graph" >&2
     exit 1
@@ -20,8 +24,8 @@ alloc_tree=$(
     cargo tree -p cloud-sdk-sanitization --no-default-features \
         --features alloc --edges normal
 )
-if ! printf '%s\n' "$alloc_tree" | grep -Fq 'cloud-sdk v'; then
-    echo "sanitization boundary: alloc feature did not enable cloud-sdk allocation support" >&2
+if printf '%s\n' "$alloc_tree" | grep -Fq 'cloud-sdk v'; then
+    echo "sanitization boundary: alloc feature depends on cloud-sdk" >&2
     exit 1
 fi
 if printf '%s\n' "$alloc_tree" | grep -Eq '(^|[[:space:]])(zeroize|subtle) v'; then
@@ -46,8 +50,14 @@ fi
 
 for package in cloud-sdk cloud-sdk-hetzner; do
     default_tree=$(cargo tree -p "$package" --no-default-features --edges normal)
-    if printf '%s\n' "$default_tree" | grep -Eq '(^|[[:space:]])sanitization v'; then
-        echo "sanitization boundary: dependency entered $package default graph" >&2
+    if ! printf '%s\n' "$default_tree" |
+        grep -Fq 'cloud-sdk-sanitization v0.16.0'; then
+        echo "sanitization boundary: mandatory cleanup is missing from $package" >&2
+        exit 1
+    fi
+    if ! printf '%s\n' "$default_tree" |
+        grep -Fq 'sanitization v2.0.3'; then
+        echo "sanitization boundary: audited primitive is missing from $package" >&2
         exit 1
     fi
 done
@@ -67,5 +77,4 @@ if printf '%s\n' "$hetzner_serde_tree" | grep -Eq '(^|[[:space:]])(zeroize|subtl
 fi
 
 cargo test -p cloud-sdk-sanitization --all-features
-cargo package -p cloud-sdk-sanitization --allow-dirty --no-verify \
-    --config 'patch.crates-io.cloud-sdk.path="crates/cloud-sdk"' >/dev/null
+cargo package -p cloud-sdk-sanitization --allow-dirty --no-verify >/dev/null

@@ -66,9 +66,11 @@ impl CapturedResponse {
         Self {
             status: response.status(),
             body: response.body().to_vec(),
-            content_type: response.content_type(),
+            content_type: response
+                .content_type()
+                .map(ResponseContentType::retain_copy),
             rate_limit: response.rate_limit(),
-            headers: *response.headers(),
+            headers: response.headers().retain_copy(),
         }
     }
 
@@ -80,8 +82,8 @@ impl CapturedResponse {
         &self.body
     }
 
-    const fn content_type(&self) -> Option<ResponseContentType> {
-        self.content_type
+    const fn content_type(&self) -> Option<&ResponseContentType> {
+        self.content_type.as_ref()
     }
 
     const fn rate_limit(&self) -> Option<RateLimit> {
@@ -99,7 +101,7 @@ async fn send_test(
     output: &mut [u8],
 ) -> Result<CapturedResponse, TransportError> {
     let capacity = output.len();
-    let mut response = ResponseBuffer::new(output, capacity, client);
+    let mut response = ResponseBuffer::new(output, capacity);
     AsyncTransport::send(client, request, response.writer()).await?;
     response
         .with_response(CapturedResponse::capture)
@@ -450,7 +452,7 @@ fn caller_cancellation_after_partial_body_never_exposes_response() {
         };
         let mut output = [0xa5_u8; 32];
         {
-            let mut response = ResponseBuffer::new(&mut output, 32, &client);
+            let mut response = ResponseBuffer::new(&mut output, 32);
             let future = AsyncTransport::send(
                 &client,
                 TransportRequest::new(Method::Get, target),

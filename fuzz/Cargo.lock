@@ -28,7 +28,10 @@ checksum = "9330f8b2ff13f34540b44e946ef35111825727b38d33286ef986142615121801"
 
 [[package]]
 name = "cloud-sdk"
-version = "0.37.0"
+version = "0.38.0"
+dependencies = [
+ "cloud-sdk-sanitization",
+]
 
 [[package]]
 name = "cloud-sdk-fuzz"
@@ -42,7 +45,7 @@ dependencies = [
 
 [[package]]
 name = "cloud-sdk-hetzner"
-version = "0.30.0"
+version = "0.31.0"
 dependencies = [
  "cloud-sdk",
  "cloud-sdk-sanitization",
@@ -52,9 +55,8 @@ dependencies = [
 
 [[package]]
 name = "cloud-sdk-sanitization"
-version = "0.15.5"
+version = "0.16.0"
 dependencies = [
- "cloud-sdk",
  "sanitization",
 ]
 

@@ -5,13 +5,13 @@ use core::task::{Context, Poll, Waker};
 use super::{
     ContentTypePolicy, CostIntent, OperationImpact, OperationMetadata, OperationMetadataError,
     PreparationStorage, PrepareOperation, PreparedExecutionError, PreparedRequest, ProviderService,
-    RequestSemantics, ResponseBodyPolicy, ResponsePolicy, ResponsePolicyValidationError,
-    RetryEligibility,
+    RequestIdPolicy, RequestSemantics, ResponseBodyPolicy, ResponsePolicy,
+    ResponsePolicyValidationError, RetryEligibility,
 };
 use crate::transport::{
     AsyncTransport, BlockingTransport, BoundTransport, EndpointIdentity, EndpointIdentityError,
     EndpointPolicy, EndpointScheme, MediaType, RequestTarget, ResponseContentType,
-    ResponseMetadata, ResponseStorageSanitizer, ResponseWriter, StatusCode, TransportRequest,
+    ResponseMetadata, ResponseWriter, StatusCode, TransportRequest,
 };
 use crate::{
     Method, ProviderId, ProviderMarker, ServiceId, ServiceMarker, provider_id, service_id,
@@ -41,6 +41,7 @@ fn operation_metadata_rejects_privilege_escalating_combinations() {
             RequestSemantics::Idempotent,
             RetryEligibility::Never,
             CostIntent::NoKnownCost,
+            RequestIdPolicy::Discard,
         ),
         Err(OperationMetadataError::ReadOnlyMustBeSafe)
     );
@@ -51,6 +52,7 @@ fn operation_metadata_rejects_privilege_escalating_combinations() {
                 RequestSemantics::Safe,
                 RetryEligibility::Never,
                 CostIntent::NoKnownCost,
+                RequestIdPolicy::Discard,
             ),
             Err(OperationMetadataError::StateChangeCannotBeSafe)
         );
@@ -61,6 +63,7 @@ fn operation_metadata_rejects_privilege_escalating_combinations() {
             RequestSemantics::NonIdempotent,
             RetryEligibility::ExplicitPolicy,
             CostIntent::MayIncurCost,
+            RequestIdPolicy::Discard,
         ),
         Err(OperationMetadataError::NonIdempotentRetry)
     );
@@ -178,7 +181,6 @@ fn prepared_blocking_execution_checks_endpoint_and_lends_only_policy_capacity() 
     );
     assert_eq!(transport.calls.load(Ordering::Acquire), 1);
     assert_eq!(transport.last_capacity.load(Ordering::Acquire), 16);
-    assert_eq!(transport.sanitized_capacity.load(Ordering::Acquire), 64);
     assert_eq!(response_storage.get(2..), Some([0_u8; 62].as_slice()));
 
     let Ok(other) = other_endpoint() else { return };
@@ -191,7 +193,6 @@ fn prepared_blocking_execution_checks_endpoint_and_lends_only_policy_capacity() 
     ));
     drop(response);
     assert_eq!(mismatched.calls.load(Ordering::Acquire), 0);
-    assert_eq!(mismatched.sanitized_capacity.load(Ordering::Acquire), 64);
     assert_eq!(response_storage, [0_u8; 64]);
 }
 
@@ -221,7 +222,6 @@ fn prepared_async_execution_uses_the_same_endpoint_and_response_policy() {
     }
     assert_eq!(transport.calls.load(Ordering::Acquire), 1);
     assert_eq!(transport.last_capacity.load(Ordering::Acquire), 16);
-    assert_eq!(transport.sanitized_capacity.load(Ordering::Acquire), 64);
     assert_eq!(response_storage.get(2..), Some([0_u8; 62].as_slice()));
 }
 
@@ -276,6 +276,7 @@ impl PrepareOperation for ExampleOperation {
             RequestSemantics::Idempotent,
             RetryEligibility::ExplicitPolicy,
             CostIntent::MayIncurCost,
+            RequestIdPolicy::Protected,
         )
         .map_err(|_| ExamplePrepareError::Invalid)?;
         let policy = json_response_policy(16).map_err(|_| ExamplePrepareError::Invalid)?;
@@ -293,7 +294,6 @@ struct RecordingTransport {
     endpoint: EndpointIdentity<'static>,
     calls: AtomicUsize,
     last_capacity: AtomicUsize,
-    sanitized_capacity: AtomicUsize,
 }
 
 impl RecordingTransport {
@@ -302,7 +302,6 @@ impl RecordingTransport {
             endpoint,
             calls: AtomicUsize::new(0),
             last_capacity: AtomicUsize::new(0),
-            sanitized_capacity: AtomicUsize::new(0),
         }
     }
 
@@ -330,14 +329,6 @@ impl RecordingTransport {
 impl BoundTransport for RecordingTransport {
     fn endpoint_identity(&self) -> Result<EndpointIdentity<'_>, EndpointIdentityError> {
         Ok(self.endpoint)
-    }
-}
-
-impl ResponseStorageSanitizer for RecordingTransport {
-    fn sanitize_response_storage(&self, response_storage: &mut [u8]) {
-        self.sanitized_capacity
-            .store(response_storage.len(), Ordering::Release);
-        response_storage.fill(0);
     }
 }
 
@@ -375,6 +366,7 @@ fn read_only_metadata() -> Result<OperationMetadata, OperationMetadataError> {
         RequestSemantics::Safe,
         RetryEligibility::ExplicitPolicy,
         CostIntent::NoKnownCost,
+        RequestIdPolicy::Protected,
     )
 }
 

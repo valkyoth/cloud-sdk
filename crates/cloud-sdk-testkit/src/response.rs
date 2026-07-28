@@ -31,7 +31,7 @@ impl_static_error!(ResponseFixtureError,
 );
 
 /// Provider-neutral response body plus optional interpreted metadata.
-#[derive(Clone, Copy, Debug)]
+#[derive(Debug)]
 pub struct ResponseFixture<'a> {
     kind: FixtureKind,
     status: StatusCode,
@@ -90,7 +90,7 @@ impl<'a> ResponseFixture<'a> {
 
     /// Adds complete prevalidated response-header metadata.
     #[must_use]
-    pub const fn with_headers(mut self, headers: ResponseHeaders) -> Self {
+    pub fn with_headers(mut self, headers: ResponseHeaders) -> Self {
         self.headers = headers;
         self
     }
@@ -121,49 +121,49 @@ impl<'a> ResponseFixture<'a> {
 
     /// Returns the fixture category.
     #[must_use]
-    pub const fn kind(self) -> FixtureKind {
+    pub const fn kind(&self) -> FixtureKind {
         self.kind
     }
 
     /// Returns the response status.
     #[must_use]
-    pub const fn status(self) -> StatusCode {
+    pub const fn status(&self) -> StatusCode {
         self.status
     }
 
     /// Returns the response body source.
     #[must_use]
-    pub const fn body(self) -> FixtureBody<'a> {
+    pub const fn body(&self) -> FixtureBody<'a> {
         self.body
     }
 
     /// Returns pagination metadata when present.
     #[must_use]
-    pub const fn pagination(self) -> Option<PaginationFixture> {
+    pub const fn pagination(&self) -> Option<PaginationFixture> {
         self.pagination
     }
 
     /// Returns action metadata when present.
     #[must_use]
-    pub const fn action_metadata(self) -> Option<ActionFixture> {
+    pub const fn action_metadata(&self) -> Option<ActionFixture> {
         self.action
     }
 
     /// Returns rate-limit metadata when present.
     #[must_use]
-    pub const fn rate_limit(self) -> Option<RateLimitFixture> {
+    pub const fn rate_limit(&self) -> Option<RateLimitFixture> {
         self.rate_limit
     }
 
     /// Returns the response content type when configured.
     #[must_use]
-    pub const fn content_type(self) -> Option<&'a str> {
+    pub const fn content_type(&self) -> Option<&'a str> {
         self.content_type
     }
 
     /// Returns complete prevalidated response-header metadata.
     #[must_use]
-    pub const fn headers(self) -> ResponseHeaders {
-        self.headers
+    pub fn headers(&self) -> ResponseHeaders {
+        self.headers.retain_copy()
     }
 }

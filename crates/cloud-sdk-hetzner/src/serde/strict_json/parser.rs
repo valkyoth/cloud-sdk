@@ -23,11 +23,24 @@ pub(crate) enum JsonError {
     StringLimit,
 }
 
+#[cfg(test)]
 pub(super) fn parse(input: &[u8]) -> Result<Value, JsonError> {
+    let mut scratch = [0_u8; 4];
+    let result = parse_with_scratch(input, &mut scratch);
+    sanitize_bytes(&mut scratch);
+    result
+}
+
+pub(super) fn parse_with_scratch(input: &[u8], scratch: &mut [u8]) -> Result<Value, JsonError> {
+    let scratch = scratch
+        .get_mut(..4)
+        .and_then(|bytes| <&mut [u8; 4]>::try_from(bytes).ok())
+        .ok_or(JsonError::StringLimit)?;
     let mut parser = Parser {
         input,
         position: 0,
         nodes: 0,
+        scratch,
     };
     parser.skip_whitespace();
     let value = parser.parse_value(0)?;
@@ -42,6 +55,7 @@ struct Parser<'a> {
     input: &'a [u8],
     position: usize,
     nodes: usize,
+    scratch: &'a mut [u8; 4],
 }
 
 impl Parser<'_> {
@@ -136,9 +150,15 @@ impl Parser<'_> {
     fn parse_secret_string(&mut self) -> Result<SecretString, JsonError> {
         let scan = scan_string(self.input, self.position)?;
         let mut output = SecretString::with_capacity(scan.decoded_len);
-        decode_string(self.input, self.position, scan.end, |fragment| {
-            output.push_str(fragment);
-        })?;
+        decode_string(
+            self.input,
+            self.position,
+            scan.end,
+            self.scratch,
+            |fragment| {
+                output.push_str(fragment);
+            },
+        )?;
         self.position = scan.end;
         Ok(output)
     }
@@ -146,9 +166,15 @@ impl Parser<'_> {
     fn parse_key(&mut self) -> Result<String, JsonError> {
         let scan = scan_string(self.input, self.position)?;
         let mut output = String::with_capacity(scan.decoded_len);
-        decode_string(self.input, self.position, scan.end, |fragment| {
-            output.push_str(fragment);
-        })?;
+        decode_string(
+            self.input,
+            self.position,
+            scan.end,
+            self.scratch,
+            |fragment| {
+                output.push_str(fragment);
+            },
+        )?;
         self.position = scan.end;
         Ok(output)
     }
@@ -302,6 +328,7 @@ fn decode_string(
     input: &[u8],
     start: usize,
     end: usize,
+    scratch: &mut [u8; 4],
     mut push: impl FnMut(&str),
 ) -> Result<(), JsonError> {
     let mut position = start.saturating_add(1);
@@ -327,10 +354,9 @@ fn decode_string(
         push(fragment);
         if position < content_end {
             let (character, next) = escaped_character(input, position)?;
-            let mut encoded = [0_u8; 4];
-            let text = character.encode_utf8(&mut encoded);
+            let text = character.encode_utf8(scratch);
             push(text);
-            sanitize_bytes(&mut encoded);
+            sanitize_bytes(scratch);
             position = next;
         }
     }

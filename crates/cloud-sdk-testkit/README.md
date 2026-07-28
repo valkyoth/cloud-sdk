@@ -34,8 +34,8 @@ and runtime-free.
 
 ```toml
 [dev-dependencies]
-cloud-sdk = "0.37.0"
-cloud-sdk-testkit = "0.22.0"
+cloud-sdk = "0.38.0"
+cloud-sdk-testkit = "0.23.0"
 ```
 
 ## Mock Transport
@@ -62,7 +62,7 @@ let exchanges = [MockExchange::new(
 let transport = MockTransport::new(&exchanges);
 let mut output = [0_u8; 64];
 let output_capacity = output.len();
-let mut response = ResponseBuffer::new(&mut output, output_capacity, &transport);
+let mut response = ResponseBuffer::new(&mut output, output_capacity);
 
 if transport
     .send(
@@ -105,7 +105,7 @@ let exchanges = [MockExchange::new(
 let transport = MockTransport::new(&exchanges);
 let mut output = [0_u8; 32];
 let output_capacity = output.len();
-let mut response = ResponseBuffer::new(&mut output, output_capacity, &transport);
+let mut response = ResponseBuffer::new(&mut output, output_capacity);
 if AsyncTransport::send(
     &transport,
     TransportRequest::new(Method::Get, target),
@@ -138,9 +138,10 @@ Bind `MockTransport` with `with_endpoint` before executing a
 `with_content_type` models missing, accepted, unexpected, or malformed typed
 content metadata.
 
-The mock implements `ResponseStorageSanitizer` deterministically, so prepared
-tests can assert that the complete caller buffer is cleared even when endpoint
-or fixture validation fails before a response is returned.
+Core clears the complete caller buffer independently of the mock, so prepared
+tests can assert cleanup even when endpoint or fixture validation fails before
+a response is returned. The mock's sanitizer implementation remains available
+only for tests that deliberately exercise the additive hook.
 
 `PreparedRequestRecord::capture` records method, redacted target/body lengths,
 provider service and endpoint policy, complete operation metadata, and response policy without

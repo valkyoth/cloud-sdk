@@ -6,8 +6,8 @@ mod policy;
 mod prepared;
 
 pub use metadata::{
-    CostIntent, OperationImpact, OperationMetadata, OperationMetadataError, RequestSemantics,
-    RetryEligibility,
+    CostIntent, OperationImpact, OperationMetadata, OperationMetadataError, RequestIdPolicy,
+    RequestSemantics, RetryEligibility,
 };
 pub use operation_id::{OperationId, OperationIdError};
 pub use policy::{

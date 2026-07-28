@@ -2,12 +2,12 @@ use alloc::vec;
 
 use cloud_sdk::operation::{
     ContentTypePolicy, CostIntent, OperationId, OperationImpact, OperationMetadata,
-    PreparedRequest, ProviderService, RequestSemantics, ResponseBodyPolicy, ResponsePolicy,
-    RetryEligibility,
+    PreparedRequest, ProviderService, RequestIdPolicy, RequestSemantics, ResponseBodyPolicy,
+    ResponsePolicy, RetryEligibility,
 };
 use cloud_sdk::transport::{
     EndpointIdentity, EndpointPolicy, EndpointScheme, MediaType, RequestTarget, ResponseBuffer,
-    ResponseContentType, ResponseMetadata, ResponseStorageSanitizer, StatusCode, TransportRequest,
+    ResponseContentType, ResponseMetadata, StatusCode, TransportRequest,
 };
 use cloud_sdk::{Method, ServiceId};
 
@@ -56,6 +56,7 @@ pub(super) fn prepared(
         RequestSemantics::Safe,
         RetryEligibility::ExplicitPolicy,
         CostIntent::NoKnownCost,
+        RequestIdPolicy::Protected,
     );
     assert!(metadata.is_ok());
     let endpoint = EndpointIdentity::new(
@@ -116,7 +117,7 @@ pub(super) fn decode_response(
 ) -> Result<CheckedHetznerResponse, HetznerDecodeError> {
     let mut storage = vec![0_u8; fixture.body.len()];
     let capacity = storage.len();
-    let mut response = ResponseBuffer::new(&mut storage, capacity, &TestSanitizer);
+    let mut response = ResponseBuffer::new(&mut storage, capacity);
     response
         .writer()
         .body_mut()
@@ -138,12 +139,4 @@ fn json_content_type() -> ResponseContentType {
     let content_type = ResponseContentType::new("application/json; charset=utf-8");
     assert!(content_type.is_ok());
     content_type.unwrap_or_else(|_| unreachable!())
-}
-
-struct TestSanitizer;
-
-impl ResponseStorageSanitizer for TestSanitizer {
-    fn sanitize_response_storage(&self, response_storage: &mut [u8]) {
-        response_storage.fill(0);
-    }
 }

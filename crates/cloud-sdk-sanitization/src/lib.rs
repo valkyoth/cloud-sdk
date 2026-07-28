@@ -16,6 +16,15 @@ pub fn sanitize_bytes(bytes: &mut [u8]) {
     sanitization::wipe::bytes(bytes);
 }
 
+/// Volatile-clears one value through its reviewed field-wise sanitizer.
+///
+/// This is intended for fixed scalar bookkeeping and aggregates whose
+/// `SecureSanitize` implementation has been explicitly reviewed.
+#[inline]
+pub fn sanitize_value<T: sanitization::SecureSanitize + ?Sized>(value: &mut T) {
+    sanitization::SecureSanitize::secure_sanitize(value);
+}
+
 /// Caller-owned byte buffer that is volatile-cleared when dropped.
 ///
 /// The full borrowed slice is cleared on success, error, or early return. This
@@ -64,13 +73,20 @@ mod tests {
 
     #[cfg(feature = "alloc")]
     use super::SecretString;
-    use super::{SecretBuffer, sanitize_bytes};
+    use super::{SecretBuffer, sanitize_bytes, sanitize_value};
 
     #[test]
     fn explicit_sanitization_clears_every_byte() {
         let mut bytes = [0xa5_u8; 8];
         sanitize_bytes(&mut bytes);
         assert_eq!(bytes, [0; 8]);
+    }
+
+    #[test]
+    fn scalar_sanitization_uses_the_same_audited_boundary() {
+        let mut value = usize::MAX;
+        sanitize_value(&mut value);
+        assert_eq!(value, 0);
     }
 
     #[test]

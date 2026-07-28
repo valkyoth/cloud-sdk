@@ -38,8 +38,8 @@ provider without adding transport dependencies to provider crates.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.37.0"
-cloud-sdk-reqwest = { version = "0.25.0", features = ["blocking-rustls"] }
+cloud-sdk = "0.38.0"
+cloud-sdk-reqwest = { version = "0.26.0", features = ["blocking-rustls"] }
 ```
 
 The examples use Hetzner as a concrete endpoint, but the adapter contains no
@@ -68,6 +68,8 @@ defaults. Response headers are retained in bounded owned metadata. See the
 [v0.36 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.36.0.md).
 Response provenance migration is listed in the
 [v0.37 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.37.0.md).
+Mandatory response cleanup migration is listed in the
+[v0.38 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.38.0.md).
 
 ## Blocking Example
 
@@ -106,7 +108,7 @@ let request = TransportRequest::new(Method::Get, target);
 let mut response_body = [0_u8; 65_536];
 let response_capacity = response_body.len();
 let mut response =
-    ResponseBuffer::new(&mut response_body, response_capacity, &client);
+    ResponseBuffer::new(&mut response_body, response_capacity);
 if client.send(request, response.writer()).is_err() {
     return;
 }
@@ -126,12 +128,11 @@ returned. Incoming sensitivity already marked by reqwest is preserved. Unknown
 fields default to sensitive; only Content-Type, Content-Length, Date, and the
 three typed rate-limit fields are classified as reviewed public metadata.
 
-Both adapters implement `ResponseStorageSanitizer` through
-`cloud-sdk-sanitization`. Prepared execution therefore volatile-clears the
-complete caller buffer before endpoint checks and before lending the smaller
-operation-admitted response window. Direct transport sends retain the same
-cleanup obligation in `ResponseBuffer` while lending only its sealed writer to
-`send`.
+Core volatile-clears the complete caller buffer before endpoint checks and
+before lending the smaller operation-admitted response window. Both adapters
+also implement `ResponseStorageSanitizer` through `cloud-sdk-sanitization` as
+an optional additive hook. Direct transport sends retain the mandatory cleanup
+owner in `ResponseBuffer` while lending only its sealed writer to `send`.
 
 ## Deterministic Root Snapshot
 
@@ -141,8 +142,8 @@ compiled into `webpki-roots`:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.37.0"
-cloud-sdk-reqwest = { version = "0.25.0", features = ["blocking-rustls-webpki-roots"] }
+cloud-sdk = "0.38.0"
+cloud-sdk-reqwest = { version = "0.26.0", features = ["blocking-rustls-webpki-roots"] }
 ```
 
 The blocking API is identical to the example above. The custom rustls client
@@ -158,8 +159,8 @@ Use the same blocking API with the dedicated feature:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.37.0"
-cloud-sdk-reqwest = { version = "0.25.0", features = ["blocking-rustls-fips"] }
+cloud-sdk = "0.38.0"
+cloud-sdk-reqwest = { version = "0.26.0", features = ["blocking-rustls-fips"] }
 rustls = "=0.23.42"
 ```
 
@@ -241,7 +242,7 @@ let request = TransportRequest::new(Method::Get, target);
 let mut response_body = [0_u8; 65_536];
 let response_capacity = response_body.len();
 let mut response =
-    ResponseBuffer::new(&mut response_body, response_capacity, &client);
+    ResponseBuffer::new(&mut response_body, response_capacity);
 if AsyncTransport::send(&client, request, response.writer())
     .await
     .is_err()

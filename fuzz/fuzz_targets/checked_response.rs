@@ -3,12 +3,12 @@
 use cloud_sdk::Method;
 use cloud_sdk::operation::{
     ContentTypePolicy, CostIntent, OperationId, OperationImpact, OperationMetadata,
-    PreparedRequest, ProviderService, RequestSemantics, ResponseBodyPolicy, ResponsePolicy,
-    RetryEligibility,
+    PreparedRequest, ProviderService, RequestIdPolicy, RequestSemantics, ResponseBodyPolicy,
+    ResponsePolicy, RetryEligibility,
 };
 use cloud_sdk::transport::{
     EndpointIdentity, EndpointPolicy, EndpointScheme, MediaType, RequestTarget, ResponseBuffer,
-    ResponseContentType, ResponseMetadata, ResponseStorageSanitizer, StatusCode, TransportRequest,
+    ResponseContentType, ResponseMetadata, StatusCode, TransportRequest,
 };
 use cloud_sdk_hetzner::CloudService;
 use cloud_sdk_hetzner::serde::decode_response;
@@ -26,6 +26,7 @@ fn prepared() -> Option<PreparedRequest<'static>> {
         RequestSemantics::Safe,
         RetryEligibility::ExplicitPolicy,
         CostIntent::NoKnownCost,
+        RequestIdPolicy::Protected,
     )
     .ok()?;
     let policy = ResponsePolicy::new(
@@ -107,7 +108,7 @@ fuzz_target!(|data: &[u8]| {
     }
     let mut response_storage = body.to_vec();
     let capacity = response_storage.len();
-    let mut response = ResponseBuffer::new(&mut response_storage, capacity, &FuzzSanitizer);
+    let mut response = ResponseBuffer::new(&mut response_storage, capacity);
     let Ok(output) = response.writer().body_mut() else {
         return;
     };
@@ -121,11 +122,3 @@ fuzz_target!(|data: &[u8]| {
     }
     let _ = decode_response(prepared, response);
 });
-
-struct FuzzSanitizer;
-
-impl ResponseStorageSanitizer for FuzzSanitizer {
-    fn sanitize_response_storage(&self, response_storage: &mut [u8]) {
-        response_storage.fill(0);
-    }
-}

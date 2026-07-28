@@ -64,7 +64,7 @@ fn read_only_catalog_smoke() -> Result<(), LiveSmokeError> {
     let endpoint = HttpsEndpoint::new_with_policy(CLOUD_API_BASE_URL, policy)
         .map_err(LiveSmokeError::Endpoint)?;
     let user_agent =
-        UserAgent::new("cloud-sdk-live-smoke/0.37.0").map_err(LiveSmokeError::UserAgent)?;
+        UserAgent::new("cloud-sdk-live-smoke/0.38.0").map_err(LiveSmokeError::UserAgent)?;
     let timeouts = RequestTimeouts::new(Duration::from_secs(30), Duration::from_secs(10))
         .map_err(LiveSmokeError::Timeout)?;
     let client = BlockingClientBuilder::new(endpoint, token, user_agent, timeouts)

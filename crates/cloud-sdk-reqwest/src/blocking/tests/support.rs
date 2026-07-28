@@ -21,9 +21,11 @@ impl CapturedResponse {
         Self {
             status: response.status(),
             body: response.body().to_vec(),
-            content_type: response.content_type(),
+            content_type: response
+                .content_type()
+                .map(ResponseContentType::retain_copy),
             rate_limit: response.rate_limit(),
-            headers: *response.headers(),
+            headers: response.headers().retain_copy(),
         }
     }
 
@@ -35,8 +37,8 @@ impl CapturedResponse {
         &self.body
     }
 
-    pub(super) const fn content_type(&self) -> Option<ResponseContentType> {
-        self.content_type
+    pub(super) const fn content_type(&self) -> Option<&ResponseContentType> {
+        self.content_type.as_ref()
     }
 
     pub(super) const fn rate_limit(&self) -> Option<RateLimit> {
@@ -54,7 +56,7 @@ pub(super) fn send_test(
     output: &mut [u8],
 ) -> Result<CapturedResponse, TransportError> {
     let capacity = output.len();
-    let mut response = ResponseBuffer::new(output, capacity, client);
+    let mut response = ResponseBuffer::new(output, capacity);
     BlockingTransport::send(client, request, response.writer())?;
     response
         .with_response(CapturedResponse::capture)

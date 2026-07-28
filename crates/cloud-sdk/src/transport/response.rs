@@ -2,16 +2,22 @@
 
 use core::fmt;
 
+use crate::operation::RequestIdPolicy;
 use crate::rate_limit::RateLimit;
 
+use super::cleanup::sanitize_response_storage;
+use super::retained::{ProtectedRequestId, RetainedMetadataError, RetainedResponseMetadata};
 use super::{ResponseContentType, ResponseHeaders, ResponseStorageSanitizer, StatusCode};
 
 /// Bounded response metadata captured by a transport.
-#[derive(Clone, Copy, Debug)]
+///
+/// This type is intentionally neither `Copy` nor `Clone`. Header values and
+/// protected request identifiers remain under one cleanup owner.
 pub struct ResponseMetadata {
     content_type: Option<ResponseContentType>,
     rate_limit: Option<RateLimit>,
     headers: ResponseHeaders,
+    request_id: Option<ProtectedRequestId>,
 }
 
 impl ResponseMetadata {
@@ -20,27 +26,86 @@ impl ResponseMetadata {
         content_type: None,
         rate_limit: None,
         headers: ResponseHeaders::new(),
+        request_id: None,
     };
 
     /// Adds a validated response content type.
     #[must_use]
-    pub const fn with_content_type(mut self, content_type: ResponseContentType) -> Self {
+    pub fn with_content_type(mut self, content_type: ResponseContentType) -> Self {
         self.content_type = Some(content_type);
         self
     }
 
     /// Adds validated rate-limit metadata.
     #[must_use]
-    pub const fn with_rate_limit(mut self, rate_limit: RateLimit) -> Self {
+    pub fn with_rate_limit(mut self, rate_limit: RateLimit) -> Self {
         self.rate_limit = Some(rate_limit);
         self
     }
 
     /// Adds complete bounded response headers.
     #[must_use]
-    pub const fn with_headers(mut self, headers: ResponseHeaders) -> Self {
+    pub fn with_headers(mut self, headers: ResponseHeaders) -> Self {
         self.headers = headers;
         self
+    }
+
+    pub(crate) fn apply_request_id_policy(
+        &mut self,
+        policy: RequestIdPolicy,
+    ) -> Result<(), RetainedMetadataError> {
+        let request_id = self.headers.take_request_id()?;
+        match policy {
+            RequestIdPolicy::Discard => drop(request_id),
+            RequestIdPolicy::Protected | RequestIdPolicy::Retain => {
+                self.request_id = request_id;
+            }
+        }
+        Ok(())
+    }
+
+    pub(crate) fn content_type(&self) -> Option<&ResponseContentType> {
+        self.content_type.as_ref()
+    }
+
+    pub(crate) const fn rate_limit(&self) -> Option<RateLimit> {
+        self.rate_limit
+    }
+
+    pub(crate) const fn headers(&self) -> &ResponseHeaders {
+        &self.headers
+    }
+
+    pub(crate) fn with_request_id<R>(&self, inspect: impl FnOnce(Option<&[u8]>) -> R) -> R {
+        inspect(self.request_id.as_ref().map(ProtectedRequestId::as_bytes))
+    }
+
+    pub(crate) fn request_id(&self) -> Option<&[u8]> {
+        self.request_id.as_ref().map(ProtectedRequestId::as_bytes)
+    }
+
+    pub(crate) fn retain_request_id(
+        &mut self,
+        retention_limit: usize,
+    ) -> Result<RetainedResponseMetadata, RetainedMetadataError> {
+        let result = match self.request_id.as_mut() {
+            Some(request_id) => request_id.transfer(retention_limit),
+            None => Ok(RetainedResponseMetadata::empty_for_core()),
+        };
+        self.request_id = None;
+        result
+    }
+}
+
+impl fmt::Debug for ResponseMetadata {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("ResponseMetadata")
+            .field("content_type", &self.content_type)
+            .field("rate_limit", &self.rate_limit)
+            .field("headers", &self.headers)
+            .field("request_id", &"[redacted]")
+            .finish()
     }
 }
 
@@ -61,7 +126,6 @@ impl_static_error!(ResponseWriterError,
     Self::InitializedLengthTooLarge => "response length exceeds admitted storage",
 );
 
-#[derive(Clone, Copy, Debug)]
 struct ResponseCommit {
     status: StatusCode,
     initialized_len: usize,
@@ -123,12 +187,29 @@ impl ResponseWriter<'_> {
     }
 
     fn response(&self) -> Result<TransportResponse<'_>, ResponseWriterError> {
-        let commit = self.commit.ok_or(ResponseWriterError::NotCommitted)?;
+        let commit = self
+            .commit
+            .as_ref()
+            .ok_or(ResponseWriterError::NotCommitted)?;
         let body = self
             .storage
             .get(..commit.initialized_len)
             .ok_or(ResponseWriterError::InitializedLengthTooLarge)?;
         Ok(TransportResponse::from_commit(commit, body))
+    }
+
+    fn metadata_mut(&mut self) -> Result<&mut ResponseMetadata, ResponseWriterError> {
+        self.commit
+            .as_mut()
+            .map(|commit| &mut commit.metadata)
+            .ok_or(ResponseWriterError::NotCommitted)
+    }
+
+    fn metadata(&self) -> Result<&ResponseMetadata, ResponseWriterError> {
+        self.commit
+            .as_ref()
+            .map(|commit| &commit.metadata)
+            .ok_or(ResponseWriterError::NotCommitted)
     }
 
     fn initialized_body(&self, initialized_len: usize) -> &[u8] {
@@ -150,33 +231,44 @@ impl fmt::Debug for ResponseWriter<'_> {
 
 /// Cleanup-owning admission guard around one sealed [`ResponseWriter`].
 ///
-/// The complete original storage is sanitized before admission and again when
-/// this guard is dropped, including bytes outside the admitted prefix.
-pub struct ResponseBuffer<'buffer, 'sanitizer, S: ResponseStorageSanitizer + ?Sized> {
+/// Core volatile-clears the complete original storage before admission and on
+/// drop. [`Self::with_additive_sanitizer`] can add a platform operation without
+/// replacing either mandatory clear.
+pub struct ResponseBuffer<'buffer> {
     writer: ResponseWriter<'buffer>,
-    sanitizer: &'sanitizer S,
+    additive: Option<&'buffer dyn ResponseStorageSanitizer>,
 }
 
-impl<'buffer, 'sanitizer, S> ResponseBuffer<'buffer, 'sanitizer, S>
-where
-    S: ResponseStorageSanitizer + ?Sized,
-{
-    /// Admits at most `max_body_bytes` from caller storage and clears all
-    /// supplied storage before transport use.
+impl<'buffer> ResponseBuffer<'buffer> {
+    /// Admits at most `max_body_bytes` and clears all supplied storage.
     #[must_use]
-    pub fn new(
+    pub fn new(storage: &'buffer mut [u8], max_body_bytes: usize) -> Self {
+        Self::construct(storage, max_body_bytes, None)
+    }
+
+    /// Adds a platform cleanup hook between mandatory core clears.
+    #[must_use]
+    pub fn with_additive_sanitizer(
         storage: &'buffer mut [u8],
         max_body_bytes: usize,
-        sanitizer: &'sanitizer S,
+        additive: &'buffer dyn ResponseStorageSanitizer,
     ) -> Self {
-        sanitizer.sanitize_response_storage(storage);
+        Self::construct(storage, max_body_bytes, Some(additive))
+    }
+
+    fn construct(
+        storage: &'buffer mut [u8],
+        max_body_bytes: usize,
+        additive: Option<&'buffer dyn ResponseStorageSanitizer>,
+    ) -> Self {
+        sanitize_response_storage(storage, additive);
         Self {
             writer: ResponseWriter {
                 admitted_len: core::cmp::min(storage.len(), max_body_bytes),
                 storage,
                 commit: None,
             },
-            sanitizer,
+            additive,
         }
     }
 
@@ -186,8 +278,7 @@ where
         &mut self.writer
     }
 
-    /// Inspects a committed response without allowing its body borrow to
-    /// escape the closure.
+    /// Inspects a committed response without allowing its body to escape.
     pub fn with_response<R>(
         &self,
         inspect: impl for<'response> FnOnce(TransportResponse<'response>) -> R,
@@ -200,69 +291,72 @@ where
         self.writer.response()
     }
 
+    pub(crate) fn apply_request_id_policy(
+        &mut self,
+        policy: RequestIdPolicy,
+    ) -> Result<(), RetainedMetadataError> {
+        self.writer
+            .metadata_mut()
+            .map_err(|_| RetainedMetadataError::RetentionForbidden)?
+            .apply_request_id_policy(policy)
+    }
+
+    pub(crate) fn metadata(&self) -> Result<&ResponseMetadata, ResponseWriterError> {
+        self.writer.metadata()
+    }
+
+    pub(crate) fn metadata_mut(&mut self) -> Result<&mut ResponseMetadata, ResponseWriterError> {
+        self.writer.metadata_mut()
+    }
+
     pub(crate) fn initialized_body(&self, initialized_len: usize) -> &[u8] {
         self.writer.initialized_body(initialized_len)
     }
 }
 
-impl<S> fmt::Debug for ResponseBuffer<'_, '_, S>
-where
-    S: ResponseStorageSanitizer + ?Sized,
-{
+impl fmt::Debug for ResponseBuffer<'_> {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter
             .debug_struct("ResponseBuffer")
             .field("writer", &self.writer)
+            .field("additive", &self.additive.is_some())
             .finish()
     }
 }
 
-impl<S> Drop for ResponseBuffer<'_, '_, S>
-where
-    S: ResponseStorageSanitizer + ?Sized,
-{
+impl Drop for ResponseBuffer<'_> {
     fn drop(&mut self) {
-        self.sanitizer
-            .sanitize_response_storage(self.writer.storage);
+        sanitize_response_storage(self.writer.storage, self.additive);
     }
 }
 
-/// Borrowed view of response bytes committed from an admitted writer.
+/// Borrowed view committed from an admitted writer.
 ///
 /// Safe callers cannot construct a response from unrelated storage.
 ///
 /// ```compile_fail
-/// use cloud_sdk::rate_limit::RateLimit;
-/// use cloud_sdk::transport::{
-///     ResponseContentType, ResponseHeaders, StatusCode, TransportResponse,
-/// };
+/// use cloud_sdk::transport::{StatusCode, TransportResponse};
 ///
 /// let external = b"unadmitted";
 /// let _ = TransportResponse {
 ///     status: StatusCode::OK,
 ///     body: external,
-///     content_type: None::<ResponseContentType>,
-///     rate_limit: None::<RateLimit>,
-///     headers: ResponseHeaders::new(),
+///     metadata: unreachable!(),
 /// };
 /// ```
 #[derive(Clone, Copy)]
-pub struct TransportResponse<'buffer> {
+pub struct TransportResponse<'response> {
     status: StatusCode,
-    body: &'buffer [u8],
-    content_type: Option<ResponseContentType>,
-    rate_limit: Option<RateLimit>,
-    headers: ResponseHeaders,
+    body: &'response [u8],
+    metadata: &'response ResponseMetadata,
 }
 
-impl<'buffer> TransportResponse<'buffer> {
-    const fn from_commit(commit: ResponseCommit, body: &'buffer [u8]) -> Self {
+impl<'response> TransportResponse<'response> {
+    fn from_commit(commit: &'response ResponseCommit, body: &'response [u8]) -> Self {
         Self {
             status: commit.status,
             body,
-            content_type: commit.metadata.content_type,
-            rate_limit: commit.metadata.rate_limit,
-            headers: commit.metadata.headers,
+            metadata: &commit.metadata,
         }
     }
 
@@ -272,28 +366,33 @@ impl<'buffer> TransportResponse<'buffer> {
         self.status
     }
 
-    /// Returns the initialized response body bytes.
+    /// Returns initialized response body bytes.
     #[must_use]
-    pub const fn body(&self) -> &'buffer [u8] {
+    pub const fn body(&self) -> &'response [u8] {
         self.body
     }
 
     /// Returns the validated response content type when supplied.
     #[must_use]
-    pub const fn content_type(&self) -> Option<ResponseContentType> {
-        self.content_type
+    pub fn content_type(&self) -> Option<&'response ResponseContentType> {
+        self.metadata.content_type()
     }
 
     /// Returns validated rate-limit metadata when supplied.
     #[must_use]
     pub const fn rate_limit(&self) -> Option<RateLimit> {
-        self.rate_limit
+        self.metadata.rate_limit()
     }
 
     /// Returns complete bounded response-header metadata.
     #[must_use]
-    pub const fn headers(&self) -> &ResponseHeaders {
-        &self.headers
+    pub const fn headers(&self) -> &'response ResponseHeaders {
+        self.metadata.headers()
+    }
+
+    /// Runs a closure with a protected provider request identifier.
+    pub fn with_request_id<R>(&self, inspect: impl FnOnce(Option<&[u8]>) -> R) -> R {
+        self.metadata.with_request_id(inspect)
     }
 }
 
@@ -304,9 +403,7 @@ impl fmt::Debug for TransportResponse<'_> {
             .field("status", &self.status)
             .field("body_len", &self.body.len())
             .field("body", &"[redacted]")
-            .field("content_type", &self.content_type)
-            .field("rate_limit", &self.rate_limit)
-            .field("headers", &self.headers)
+            .field("metadata", &self.metadata)
             .finish()
     }
 }

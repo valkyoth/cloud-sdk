@@ -2,9 +2,11 @@
 
 use core::fmt;
 
+use super::RequestIdPolicy;
 use crate::rate_limit::RateLimit;
 use crate::transport::{
-    MediaType, ResponseBuffer, ResponseContentType, ResponseWriterError, StatusCode,
+    MediaType, ResponseBuffer, ResponseContentType, ResponseDecodeWorkspace, ResponseMetadata,
+    ResponseWriterError, RetainedMetadataError, RetainedResponseMetadata, StatusCode,
     TransportResponse,
 };
 
@@ -84,6 +86,8 @@ pub enum ResponsePolicyError {
     ForbiddenContentType,
     /// The response writer was not successfully committed.
     UncommittedResponse,
+    /// A present provider request identifier violated its bounded policy.
+    InvalidRequestId,
 }
 
 impl_static_error!(ResponsePolicyError,
@@ -95,6 +99,7 @@ impl_static_error!(ResponsePolicyError,
     Self::UnexpectedContentType => "response content type is not accepted",
     Self::ForbiddenContentType => "response content type is forbidden",
     Self::UncommittedResponse => "response writer is not committed",
+    Self::InvalidRequestId => "response request identifier is invalid",
 );
 
 /// Complete checked-response policy.
@@ -168,23 +173,30 @@ impl ResponsePolicy {
     }
 
     /// Checks status, initialized length, body shape, and content type.
-    pub fn validate<'buffer, 'sanitizer, S>(
+    pub fn validate<'buffer>(
         self,
-        writer: ResponseBuffer<'buffer, 'sanitizer, S>,
-    ) -> Result<CheckedResponseGuard<'buffer, 'sanitizer, S>, ResponsePolicyError>
-    where
-        S: crate::transport::ResponseStorageSanitizer + ?Sized,
-    {
+        mut writer: ResponseBuffer<'buffer>,
+        request_id_policy: RequestIdPolicy,
+    ) -> Result<CheckedResponseGuard<'buffer>, ResponsePolicyError> {
+        writer.response().map_err(map_writer_error)?;
+        writer
+            .apply_request_id_policy(request_id_policy)
+            .map_err(|_| ResponsePolicyError::InvalidRequestId)?;
         let snapshot = {
             let response = writer.response().map_err(map_writer_error)?;
-            self.validate_view(response)?
+            self.validate_view(response, request_id_policy)?
         };
-        Ok(CheckedResponseGuard { writer, snapshot })
+        Ok(CheckedResponseGuard {
+            writer,
+            snapshot,
+            workspace: ResponseDecodeWorkspace::new(),
+        })
     }
 
     fn validate_view(
         self,
         response: TransportResponse<'_>,
+        request_id_policy: RequestIdPolicy,
     ) -> Result<CheckedResponseSnapshot, ResponsePolicyError> {
         if !self.success_statuses.contains(&response.status()) {
             return Err(ResponsePolicyError::UnexpectedStatus);
@@ -205,8 +217,8 @@ impl ResponsePolicy {
         Ok(CheckedResponseSnapshot {
             status: response.status(),
             body_len: response.body().len(),
-            content_type: response.content_type(),
             rate_limit: response.rate_limit(),
+            request_id_policy,
         })
     }
 }
@@ -216,8 +228,10 @@ impl ResponsePolicy {
 pub struct CheckedResponse<'body> {
     status: StatusCode,
     body: &'body [u8],
-    content_type: Option<ResponseContentType>,
+    content_type: Option<&'body ResponseContentType>,
     rate_limit: Option<RateLimit>,
+    request_id: Option<&'body [u8]>,
+    request_id_policy: RequestIdPolicy,
 }
 
 impl CheckedResponse<'_> {
@@ -235,7 +249,7 @@ impl CheckedResponse<'_> {
 
     /// Returns the checked response content type when supplied.
     #[must_use]
-    pub const fn content_type(&self) -> Option<ResponseContentType> {
+    pub const fn content_type(&self) -> Option<&ResponseContentType> {
         self.content_type
     }
 
@@ -244,33 +258,38 @@ impl CheckedResponse<'_> {
     pub const fn rate_limit(&self) -> Option<RateLimit> {
         self.rate_limit
     }
+
+    /// Returns the request-identifier lifecycle policy.
+    #[must_use]
+    pub const fn request_id_policy(&self) -> RequestIdPolicy {
+        self.request_id_policy
+    }
+
+    /// Runs a closure with the protected request identifier when retained.
+    pub fn with_request_id<R>(&self, inspect: impl FnOnce(Option<&[u8]>) -> R) -> R {
+        inspect(self.request_id)
+    }
 }
 
 #[derive(Clone, Copy)]
 struct CheckedResponseSnapshot {
     status: StatusCode,
     body_len: usize,
-    content_type: Option<ResponseContentType>,
     rate_limit: Option<RateLimit>,
+    request_id_policy: RequestIdPolicy,
 }
 
 /// Policy-checked response that owns cleanup of its caller storage.
 ///
 /// Borrowed access is closure-scoped. [`Self::decode_owned`] clears the
 /// complete response storage before returning the owned decoded result.
-pub struct CheckedResponseGuard<
-    'buffer,
-    'sanitizer,
-    S: crate::transport::ResponseStorageSanitizer + ?Sized,
-> {
-    writer: ResponseBuffer<'buffer, 'sanitizer, S>,
+pub struct CheckedResponseGuard<'buffer> {
+    writer: ResponseBuffer<'buffer>,
     snapshot: CheckedResponseSnapshot,
+    workspace: ResponseDecodeWorkspace,
 }
 
-impl<S> CheckedResponseGuard<'_, '_, S>
-where
-    S: crate::transport::ResponseStorageSanitizer + ?Sized,
-{
+impl CheckedResponseGuard<'_> {
     /// Returns the checked status code.
     #[must_use]
     pub const fn status(&self) -> StatusCode {
@@ -279,8 +298,11 @@ where
 
     /// Returns the checked response content type when supplied.
     #[must_use]
-    pub const fn content_type(&self) -> Option<ResponseContentType> {
-        self.snapshot.content_type
+    pub fn content_type(&self) -> Option<&ResponseContentType> {
+        self.writer
+            .metadata()
+            .ok()
+            .and_then(ResponseMetadata::content_type)
     }
 
     /// Returns validated rate-limit metadata when supplied.
@@ -293,14 +315,9 @@ where
     ///
     /// ```compile_fail
     /// use cloud_sdk::operation::CheckedResponseGuard;
-    /// use cloud_sdk::transport::ResponseStorageSanitizer;
-    ///
-    /// fn escape<'guard, S>(
-    ///     guard: &'guard CheckedResponseGuard<'_, '_, S>,
-    /// ) -> &'guard [u8]
-    /// where
-    ///     S: ResponseStorageSanitizer + ?Sized,
-    /// {
+    /// fn escape<'guard>(
+    ///     guard: &'guard CheckedResponseGuard<'_>,
+    /// ) -> &'guard [u8] {
     ///     guard.with_borrowed(|response| response.body())
     /// }
     /// ```
@@ -316,25 +333,50 @@ where
         self,
         decode: impl for<'response> FnOnce(CheckedResponse<'response>) -> Result<R, E>,
     ) -> Result<R, E> {
-        let result = decode(self.checked_response());
+        self.decode_owned_with_workspace(|response, _workspace| decode(response))
+    }
+
+    /// Decodes with guard-owned scratch, then clears the complete workspace.
+    pub fn decode_owned_with_workspace<R, E>(
+        mut self,
+        decode: impl for<'response> FnOnce(
+            CheckedResponse<'response>,
+            &mut ResponseDecodeWorkspace,
+        ) -> Result<R, E>,
+    ) -> Result<R, E> {
+        let result = {
+            let Self {
+                writer,
+                snapshot,
+                workspace,
+            } = &mut self;
+            let response = checked_response(writer, *snapshot);
+            decode(response, workspace)
+        };
         drop(self);
         result
     }
 
-    fn checked_response(&self) -> CheckedResponse<'_> {
-        CheckedResponse {
-            status: self.snapshot.status,
-            body: self.writer.initialized_body(self.snapshot.body_len),
-            content_type: self.snapshot.content_type,
-            rate_limit: self.snapshot.rate_limit,
+    /// Atomically moves a retainable request ID into another cleanup owner.
+    pub fn retain_metadata(
+        &mut self,
+        request_id_limit: usize,
+    ) -> Result<RetainedResponseMetadata, RetainedMetadataError> {
+        if self.snapshot.request_id_policy != RequestIdPolicy::Retain {
+            return Err(RetainedMetadataError::RetentionForbidden);
         }
+        self.writer
+            .metadata_mut()
+            .map_err(|_| RetainedMetadataError::RetentionForbidden)?
+            .retain_request_id(request_id_limit)
+    }
+
+    fn checked_response(&self) -> CheckedResponse<'_> {
+        checked_response(&self.writer, self.snapshot)
     }
 }
 
-impl<S> fmt::Debug for CheckedResponseGuard<'_, '_, S>
-where
-    S: crate::transport::ResponseStorageSanitizer + ?Sized,
-{
+impl fmt::Debug for CheckedResponseGuard<'_> {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter
             .debug_struct("CheckedResponseGuard")
@@ -343,6 +385,7 @@ where
             .field("body", &"[redacted]")
             .field("content_type", &self.content_type())
             .field("rate_limit", &self.rate_limit())
+            .field("request_id", &"[redacted]")
             .finish()
     }
 }
@@ -356,7 +399,23 @@ impl fmt::Debug for CheckedResponse<'_> {
             .field("body", &"[redacted]")
             .field("content_type", &self.content_type())
             .field("rate_limit", &self.rate_limit())
+            .field("request_id", &"[redacted]")
             .finish()
+    }
+}
+
+fn checked_response<'response>(
+    writer: &'response ResponseBuffer<'_>,
+    snapshot: CheckedResponseSnapshot,
+) -> CheckedResponse<'response> {
+    let metadata = writer.metadata().ok();
+    CheckedResponse {
+        status: snapshot.status,
+        body: writer.initialized_body(snapshot.body_len),
+        content_type: metadata.and_then(ResponseMetadata::content_type),
+        rate_limit: snapshot.rate_limit,
+        request_id: metadata.and_then(ResponseMetadata::request_id),
+        request_id_policy: snapshot.request_id_policy,
     }
 }
 
@@ -399,7 +458,7 @@ fn validate_media_types(policy: ContentTypePolicy) -> Result<(), ResponsePolicyV
 
 fn validate_content_type(
     policy: ContentTypePolicy,
-    actual: Option<ResponseContentType>,
+    actual: Option<&ResponseContentType>,
 ) -> Result<(), ResponsePolicyError> {
     match (policy, actual) {
         (ContentTypePolicy::Required(_), None) => Err(ResponsePolicyError::MissingContentType),

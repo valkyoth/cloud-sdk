@@ -112,7 +112,7 @@ impl<'a> MediaType<'a> {
 }
 
 /// Owned, bounded content type captured from an HTTP response.
-#[derive(Clone, Copy, Eq, PartialEq)]
+#[derive(Eq, PartialEq)]
 pub struct ResponseContentType {
     bytes: [u8; MAX_CONTENT_TYPE_BYTES],
     len: usize,
@@ -154,6 +154,44 @@ impl ResponseContentType {
     #[must_use]
     pub fn matches(&self, media_type: MediaType<'_>) -> bool {
         self.as_content_type().matches(media_type)
+    }
+
+    /// Creates a deliberate second cleanup-owning copy.
+    #[must_use]
+    pub fn retain_copy(&self) -> Self {
+        Self {
+            bytes: self.bytes,
+            len: self.len,
+            essence_len: self.essence_len,
+        }
+    }
+
+    fn clear(&mut self) {
+        cloud_sdk_sanitization::sanitize_bytes(&mut self.bytes);
+        cloud_sdk_sanitization::sanitize_value(&mut self.len);
+        cloud_sdk_sanitization::sanitize_value(&mut self.essence_len);
+    }
+}
+
+impl Drop for ResponseContentType {
+    fn drop(&mut self) {
+        self.clear();
+    }
+}
+
+#[cfg(test)]
+mod cleanup_tests {
+    use super::ResponseContentType;
+
+    #[test]
+    fn complete_content_type_storage_and_lengths_clear() {
+        let Ok(mut content_type) = ResponseContentType::new("application/json; charset=utf-8")
+        else {
+            return;
+        };
+        content_type.clear();
+        assert!(content_type.bytes.iter().all(|byte| *byte == 0));
+        assert_eq!((content_type.len, content_type.essence_len), (0, 0));
     }
 }
 

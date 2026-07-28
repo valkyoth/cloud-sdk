@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.38.0 - Unreleased
+
+- Made complete response-buffer and checked-workspace volatile cleanup a
+  mandatory core property.
+- Added additive platform cleanup hooks that cannot replace the final core
+  clear.
+- Added explicit request-ID retain, protected, and discard operation policies
+  plus bounded non-Copy retained metadata.
+- Added cleanup-owning decoder, cursor, and provider-link scratch storage.
+- Migrated Hetzner decoding, reqwest adapters, testkit, examples, fuzzing, and
+  release automation to the new ownership contract.
+- Inverted the first-party dependency so `cloud-sdk` consumes
+  `cloud-sdk-sanitization`, and corrected crates.io publication order.
+
 ## 0.37.0 - 2026-07-28
 
 - Replaced transport-created responses with a sealed response writer tied to

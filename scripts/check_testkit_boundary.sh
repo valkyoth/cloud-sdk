@@ -2,17 +2,17 @@
 set -eu
 
 default_tree=$(cargo tree -p cloud-sdk-testkit --no-default-features --edges normal,build)
-if ! printf '%s\n' "$default_tree" | grep -Fq 'cloud-sdk v0.37.0'; then
-    echo "testkit boundary: cloud-sdk v0.37.0 is missing" >&2
+if ! printf '%s\n' "$default_tree" | grep -Fq 'cloud-sdk v0.38.0'; then
+    echo "testkit boundary: cloud-sdk v0.38.0 is missing" >&2
     exit 1
 fi
 if printf '%s\n' "$default_tree" | grep -Eq \
-    'cloud-sdk-(hetzner|reqwest|sanitization)|reqwest|hyper|tokio|async-std|smol|rustls|native-tls|openssl|serde|mio|socket'; then
+    'cloud-sdk-(hetzner|reqwest)|reqwest|hyper|tokio|async-std|smol|rustls|native-tls|openssl|serde|mio|socket'; then
     echo "testkit boundary: forbidden provider, network, TLS, runtime, or parser dependency" >&2
     printf '%s\n' "$default_tree" >&2
     exit 1
 fi
-if [ "$(printf '%s\n' "$default_tree" | wc -l)" -ne 2 ]; then
+if [ "$(printf '%s\n' "$default_tree" | wc -l)" -ne 4 ]; then
     echo "testkit boundary: unexpected default dependency entered graph" >&2
     printf '%s\n' "$default_tree" >&2
     exit 1

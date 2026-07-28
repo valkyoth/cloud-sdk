@@ -30,6 +30,11 @@ The first-party `sanitization` `2.0.3` crate is admitted only through
 runtime dependencies. The decision and limits are recorded in
 [`dependency-admission-sanitization.md`](dependency-admission-sanitization.md),
 and `scripts/check_sanitization_boundary.sh` enforces graph isolation.
+Since v0.38, `cloud-sdk-sanitization` is published before and is a mandatory
+dependency of `cloud-sdk`; this puts all first-party core cleanup behind the
+single audited primitive while preserving a `no_std`, allocation-free default
+graph. Provider, testkit, and transport boundaries receive it through core;
+features still gate owned secret storage and transport implementations.
 The v0.32 major-version review is recorded in
 [`DEPENDENCY_REVIEW_0.32.0.md`](DEPENDENCY_REVIEW_0.32.0.md).
 The v0.33 no-external-change freshness review is recorded in

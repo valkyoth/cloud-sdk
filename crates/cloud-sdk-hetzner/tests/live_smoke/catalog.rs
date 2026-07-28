@@ -97,7 +97,7 @@ impl CatalogProbe {
 
         let mut response_storage = vec![0_u8; MAX_RESPONSE_BYTES];
         let mut guarded = SecretBuffer::new(response_storage.as_mut_slice());
-        let mut response = ResponseBuffer::new(guarded.as_mut_slice(), MAX_RESPONSE_BYTES, client);
+        let mut response = ResponseBuffer::new(guarded.as_mut_slice(), MAX_RESPONSE_BYTES);
         client
             .send(request, response.writer())
             .map_err(|error| ProbeFailure::new(self.name, ProbeError::Transport(error)))?;

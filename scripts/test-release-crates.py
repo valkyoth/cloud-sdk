@@ -58,8 +58,8 @@ def base_packages() -> dict[str, dict]:
         {"name": "cloud-sdk"},
         {"name": "cloud-sdk-sanitization"},
     ]
+    packages["cloud-sdk"]["dependencies"] = [{"name": "cloud-sdk-sanitization"}]
     packages["cloud-sdk-reqwest"]["dependencies"] = [{"name": "cloud-sdk"}]
-    packages["cloud-sdk-sanitization"]["dependencies"] = [{"name": "cloud-sdk"}]
     packages["cloud-sdk-testkit"]["dependencies"] = [{"name": "cloud-sdk"}]
     return packages
 

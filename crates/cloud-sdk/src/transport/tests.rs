@@ -153,8 +153,9 @@ fn transport_response_borrows_body_propagates_metadata_and_redacts_debug() {
     let body = output.get(..15).unwrap_or_default();
     let rate_limit = RateLimit::new(3600, 3599, 42).ok();
     let content_type = ResponseContentType::new("application/private; token=secret-content").ok();
+    let expected_content_type = content_type.as_ref().map(ResponseContentType::retain_copy);
     let mut storage = *output;
-    let mut buffer = ResponseBuffer::new(&mut storage, 15, &FillSanitizer);
+    let mut buffer = ResponseBuffer::with_additive_sanitizer(&mut storage, 15, &FillSanitizer);
     assert!(
         buffer
             .writer()
@@ -162,10 +163,13 @@ fn transport_response_borrows_body_propagates_metadata_and_redacts_debug() {
             .map(|initialized| initialized.copy_from_slice(body))
             .is_ok()
     );
-    let metadata = rate_limit.map_or(ResponseMetadata::EMPTY, |value| {
-        ResponseMetadata::EMPTY.with_rate_limit(value)
-    });
-    let metadata = content_type.map_or(metadata, |value| metadata.with_content_type(value));
+    let mut metadata = ResponseMetadata::EMPTY;
+    if let Some(value) = rate_limit {
+        metadata = metadata.with_rate_limit(value);
+    }
+    if let Some(value) = content_type {
+        metadata = metadata.with_content_type(value);
+    }
     assert!(
         buffer
             .writer()
@@ -179,7 +183,7 @@ fn transport_response_borrows_body_propagates_metadata_and_redacts_debug() {
                 assert_eq!(response.status(), StatusCode::OK);
                 assert_eq!(response.body(), b"secret-response");
                 assert_eq!(response.rate_limit(), rate_limit);
-                assert_eq!(response.content_type(), content_type);
+                assert_eq!(response.content_type(), expected_content_type.as_ref());
                 write!(&mut debug, "{response:?}")
             })
             .is_ok_and(|result| result.is_ok())
@@ -248,18 +252,6 @@ impl AsyncTransport for SequentialAsyncTransport {
     }
 }
 
-impl ResponseStorageSanitizer for SequentialBlockingTransport {
-    fn sanitize_response_storage(&self, response_storage: &mut [u8]) {
-        response_storage.fill(0);
-    }
-}
-
-impl ResponseStorageSanitizer for SequentialAsyncTransport {
-    fn sanitize_response_storage(&self, response_storage: &mut [u8]) {
-        response_storage.fill(0);
-    }
-}
-
 #[test]
 fn non_sync_transports_remain_usable_sequentially() {
     let Ok(target) = RequestTarget::new("/sequential") else {
@@ -270,7 +262,7 @@ fn non_sync_transports_remain_usable_sequentially() {
         calls: Cell::new(0),
     };
     let mut blocking_output = [0_u8; 2];
-    let mut blocking_response = ResponseBuffer::new(&mut blocking_output, 2, &blocking);
+    let mut blocking_response = ResponseBuffer::new(&mut blocking_output, 2);
     assert!(blocking.send(request, blocking_response.writer()).is_ok());
     assert!(
         blocking_response
@@ -283,7 +275,7 @@ fn non_sync_transports_remain_usable_sequentially() {
         _not_sync: Cell::new(()),
     };
     let mut async_output = [0_u8; 2];
-    let mut async_response = ResponseBuffer::new(&mut async_output, 2, &asynchronous);
+    let mut async_response = ResponseBuffer::new(&mut async_output, 2);
     {
         let future = AsyncTransport::send(&asynchronous, request, async_response.writer());
         let mut future = core::pin::pin!(future);
@@ -302,9 +294,7 @@ fn non_sync_transports_remain_usable_sequentially() {
 struct FillSanitizer;
 
 impl ResponseStorageSanitizer for FillSanitizer {
-    fn sanitize_response_storage(&self, response_storage: &mut [u8]) {
-        response_storage.fill(0);
-    }
+    fn sanitize_response_storage(&self, _response_storage: &mut [u8]) {}
 }
 
 struct DebugBuffer {

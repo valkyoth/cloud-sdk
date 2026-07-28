@@ -8,15 +8,15 @@ usable in `no_std` environments.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.37.0"
+cloud-sdk = "0.38.0"
 ```
 
 Provider-specific request models are separate dependencies. For Hetzner:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.37.0"
-cloud-sdk-hetzner = "0.30.0"
+cloud-sdk = "0.38.0"
+cloud-sdk-hetzner = "0.31.0"
 ```
 
 ## Build A Transport Request
@@ -81,8 +81,9 @@ assert_eq!(headers.as_slice().len(), 2);
 
 See [`MIGRATION_0.36.0.md`](MIGRATION_0.36.0.md) for reserved ownership,
 duplicate handling, limits, response metadata, and adapter changes.
-See [`MIGRATION_0.37.0.md`](MIGRATION_0.37.0.md) for response-buffer
-provenance, sealed response admission, and cleanup-owning checked guards.
+See [`MIGRATION_0.38.0.md`](MIGRATION_0.38.0.md) for mandatory response
+cleanup, protected request identifiers, and complete checked decode workspace
+ownership.
 
 Provider crates can use `Method::extension("PURGE")` for a finite static
 extension. Extensions are bounded uppercase HTTP tokens; known aliases,
@@ -175,13 +176,15 @@ and maximum response length.
 
 `PreparedRequest::execute_blocking` and `execute_async` verify endpoint policy
 before sending and lend no more than the policy's admitted response capacity
-through a sealed `ResponseWriter`. The transport must also implement
-`ResponseStorageSanitizer`; a cleanup-owning `ResponseBuffer` clears the
-complete caller buffer before admission and on every exit. They return
+through a sealed `ResponseWriter`. A cleanup-owning `ResponseBuffer`
+volatile-clears the complete caller buffer before admission and on every exit;
+an optional `ResponseStorageSanitizer` can add platform cleanup without
+replacing the mandatory core clear. They return
 `CheckedResponseGuard` only after status, body shape, initialized length, and
 validated response content type pass. Borrowed decoding is closure-scoped;
-owned decoding clears storage before returning. Execution never retries,
-sleeps, schedules work, or selects a clock.
+owned decoding clears body, temporary metadata, request identifiers, cursor or
+provider-link staging, and decoder scratch before returning. Execution never
+retries, sleeps, schedules work, or selects a clock.
 
 ## Continue
 

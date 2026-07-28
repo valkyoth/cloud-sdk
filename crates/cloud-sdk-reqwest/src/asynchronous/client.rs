@@ -135,9 +135,13 @@ impl AsyncClient {
             .get_mut(..body_len)
             .ok_or(TransportError::ResponseReadFailed)?;
         initialized.copy_from_slice(buffered.as_ref());
-        let metadata = ResponseMetadata::EMPTY.with_headers(headers);
-        let metadata = content_type.map_or(metadata, |value| metadata.with_content_type(value));
-        let metadata = rate_limit.map_or(metadata, |value| metadata.with_rate_limit(value));
+        let mut metadata = ResponseMetadata::EMPTY.with_headers(headers);
+        if let Some(value) = content_type {
+            metadata = metadata.with_content_type(value);
+        }
+        if let Some(value) = rate_limit {
+            metadata = metadata.with_rate_limit(value);
+        }
         drop(token_snapshot);
         response_writer
             .commit(status, body_len, metadata)

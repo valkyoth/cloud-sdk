@@ -16,7 +16,8 @@ fn main() -> Result<(), Box<dyn core::error::Error>> {
 
     let response_body = br#"{"server":{"id":42,"name":"web-1","status":"running"}}"#;
     let mut response_storage = [0_u8; 128];
-    let mut response = ResponseBuffer::new(&mut response_storage, 128, &Sanitizer);
+    let mut response =
+        ResponseBuffer::with_additive_sanitizer(&mut response_storage, 128, &Sanitizer);
     let output = response
         .writer()
         .body_mut()?

@@ -7,7 +7,7 @@ use cloud_sdk::Method;
 use cloud_sdk::transport::{
     AsyncTransport, BlockingTransport, BoundTransport, EndpointIdentity, EndpointIdentityError,
     HeaderSensitivity, RequestHeaders, RequestTarget, ResponseContentType, ResponseHeaders,
-    ResponseMetadata, ResponseStorageSanitizer, ResponseWriter, TransportRequest,
+    ResponseMetadata, ResponseWriter, TransportRequest,
 };
 
 use crate::{FixtureBodyError, ResponseFixture};
@@ -77,7 +77,7 @@ impl fmt::Debug for ExpectedRequest<'_> {
 }
 
 /// One expected request and deterministic response.
-#[derive(Clone, Copy, Debug)]
+#[derive(Debug)]
 pub struct MockExchange<'a> {
     request: ExpectedRequest<'a>,
     response: ResponseFixture<'a>,
@@ -226,9 +226,13 @@ impl<'a> MockTransport<'a> {
                     MockError::ResponseBufferTooSmall
                 }
             })?;
-        let metadata = ResponseMetadata::EMPTY.with_headers(response_headers);
-        let metadata = content_type.map_or(metadata, |value| metadata.with_content_type(value));
-        let metadata = rate_limit.map_or(metadata, |value| metadata.with_rate_limit(value));
+        let mut metadata = ResponseMetadata::EMPTY.with_headers(response_headers);
+        if let Some(value) = content_type {
+            metadata = metadata.with_content_type(value);
+        }
+        if let Some(value) = rate_limit {
+            metadata = metadata.with_rate_limit(value);
+        }
         self.cursor
             .compare_exchange(cursor, next_cursor, Ordering::AcqRel, Ordering::Acquire)
             .map_err(|_| MockError::ConcurrentRequest)?;
@@ -307,12 +311,6 @@ impl AsyncTransport for MockTransport<'_> {
         'request: 'writer,
     {
         self.send_inner(request, response)
-    }
-}
-
-impl ResponseStorageSanitizer for MockTransport<'_> {
-    fn sanitize_response_storage(&self, response_storage: &mut [u8]) {
-        response_storage.fill(0);
     }
 }
 

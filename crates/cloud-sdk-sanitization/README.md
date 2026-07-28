@@ -1,5 +1,5 @@
 <p align="center">
-  <b>optional provider-neutral sanitization boundary for cloud-sdk.</b><br>
+  <b>provider-neutral mandatory cleanup and optional secret storage for cloud-sdk.</b><br>
   Provider crates, explicit API domains, security-first release gates, and transport-free core types.
 </p>
 
@@ -25,12 +25,12 @@
 
 # cloud-sdk-sanitization
 
-Optional provider-neutral secret-handling boundary for the main
+Provider-neutral cleanup and secret-handling boundary for the main
 [`cloud-sdk`](https://github.com/valkyoth/cloud-sdk) workspace and
 [`cloud-sdk`](https://crates.io/crates/cloud-sdk) crate.
 
-This crate provides reusable caller-owned buffer sanitization outside the
-default no_std SDK and provider crates. It delegates volatile clearing to the
+This crate provides the mandatory volatile cleanup primitive used by the
+default `no_std` SDK plus reusable caller-owned guards. It delegates clearing to the
 independently reviewed [`sanitization`](https://crates.io/crates/sanitization)
 crate with default features disabled.
 
@@ -38,8 +38,8 @@ crate with default features disabled.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.37.0"
-cloud-sdk-sanitization = "0.15.5"
+cloud-sdk = "0.38.0"
+cloud-sdk-sanitization = "0.16.0"
 ```
 
 ## Example
@@ -96,8 +96,8 @@ keeps its default features disabled in every configuration.
 `SecretBuffer` volatile-clears its entire borrowed slice on drop, including
 after early returns and unwind where unwind exists. `SecretString` clears its
 full owned allocation capacity on drop and clears old allocations before
-growth. `sanitize_bytes` provides the same reviewed primitive for explicit
-cleanup.
+growth. `sanitize_bytes` provides the reviewed byte primitive used by core;
+`sanitize_value` applies the same boundary to scalar lifecycle state.
 
 These helpers do not clear immutable source strings or copies made by
 transports, operating systems, crash handlers, swap, remote services, or other

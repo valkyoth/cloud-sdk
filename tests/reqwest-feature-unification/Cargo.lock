@@ -174,11 +174,14 @@ dependencies = [
 
 [[package]]
 name = "cloud-sdk"
-version = "0.37.0"
+version = "0.38.0"
+dependencies = [
+ "cloud-sdk-sanitization",
+]
 
 [[package]]
 name = "cloud-sdk-reqwest"
-version = "0.25.0"
+version = "0.26.0"
 dependencies = [
  "aws-lc-fips-sys",
  "aws-lc-rs",
@@ -204,9 +207,8 @@ dependencies = [
 
 [[package]]
 name = "cloud-sdk-sanitization"
-version = "0.15.5"
+version = "0.16.0"
 dependencies = [
- "cloud-sdk",
  "sanitization",
 ]
 

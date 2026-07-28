@@ -25,6 +25,8 @@
 - password, certificate, API error, or SSH key redaction failures;
 - secret remnants in caller-owned request buffers or variable-time secret
   comparisons;
+- response identifiers, headers, cursor/link staging, or decoder scratch
+  surviving response-policy and decode lifetimes;
 - unsafe JSON interpolation, oversized request bodies, duplicate response
   fields, or deserialization around validated constructors;
 - API drift from Hetzner documentation;
@@ -97,9 +99,15 @@
 - transports receive only a sealed writer over the admitted caller-owned
   prefix; they commit status, bounded metadata, and a checked initialized
   length but cannot substitute external or static response bytes;
-- a cleanup-owning response guard sanitizes the complete caller buffer before
-  admission and on every exit; borrowed decoding cannot escape the guard and
-  owned decoding clears before returning;
+- a cleanup-owning response guard uses one audited volatile primitive to clear
+  the complete caller buffer before admission and on every ordinary exit;
+  temporary headers, request identifiers, cursor/link staging, and decoder
+  scratch have the same cleanup owner; borrowed decoding cannot escape;
+- provider operation metadata explicitly retains, protects, or discards
+  request identifiers; retained values move into distinct non-`Copy`
+  cleanup-owning storage and failed transfer clears source and destination;
+- optional platform sanitizers are additive between mandatory core clears, so
+  a no-op, recontaminating, or panicking hook cannot weaken the final clear;
 - optional production blocking and async transports require exact HTTPS
   authority, rustls with TLS 1.2 minimum, explicit bounded timeouts, no
   redirects, retries, proxies, referers, or decompression, and caller-bounded
@@ -161,3 +169,7 @@
   generated corpora/artifacts, bounds smoke inputs and time, and compiles under
   a separately pinned nightly without changing stable crate support;
 - pentest report before every tag.
+
+Cleanup does not cover process abort, `mem::forget` or deliberately leaked
+guards, immutable/external copies, TLS and allocator internals, kernel/device
+buffers, swap, crash dumps, or remote systems.

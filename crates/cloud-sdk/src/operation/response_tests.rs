@@ -1,7 +1,8 @@
-use super::{ContentTypePolicy, ResponseBodyPolicy, ResponsePolicy, ResponsePolicyError};
+use super::{
+    ContentTypePolicy, RequestIdPolicy, ResponseBodyPolicy, ResponsePolicy, ResponsePolicyError,
+};
 use crate::transport::{
-    MediaType, ResponseBuffer, ResponseContentType, ResponseMetadata, ResponseStorageSanitizer,
-    StatusCode,
+    MediaType, ResponseBuffer, ResponseContentType, ResponseMetadata, StatusCode,
 };
 
 static OK_STATUS: [StatusCode; 1] = [StatusCode::OK];
@@ -51,7 +52,7 @@ fn response_policy_classifies_every_rejection_before_decoding() {
             required,
             StatusCode::OK,
             b"{}",
-            ResponseMetadata::EMPTY.with_content_type(json),
+            ResponseMetadata::EMPTY.with_content_type(json.retain_copy()),
         ),
         Ok(2)
     );
@@ -98,7 +99,7 @@ fn validate_fixture(
     metadata: ResponseMetadata,
 ) -> Result<usize, ResponsePolicyError> {
     let mut storage = [0_u8; 32];
-    let mut response = ResponseBuffer::new(&mut storage, 32, &FixtureSanitizer);
+    let mut response = ResponseBuffer::new(&mut storage, 32);
     let output = response
         .writer()
         .body_mut()
@@ -112,14 +113,6 @@ fn validate_fixture(
         .commit(status, body.len(), metadata)
         .map_err(|_| ResponsePolicyError::UncommittedResponse)?;
     policy
-        .validate(response)
+        .validate(response, RequestIdPolicy::Discard)
         .map(|checked| checked.with_borrowed(|view| view.body().len()))
-}
-
-struct FixtureSanitizer;
-
-impl ResponseStorageSanitizer for FixtureSanitizer {
-    fn sanitize_response_storage(&self, response_storage: &mut [u8]) {
-        response_storage.fill(0);
-    }
 }

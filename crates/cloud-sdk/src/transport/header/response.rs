@@ -1,9 +1,12 @@
 use core::fmt;
 
+use cloud_sdk_sanitization::{sanitize_bytes, sanitize_value};
+
 use super::{
     HeaderError, HeaderSensitivity, MAX_RESPONSE_HEADER_BYTES, MAX_RESPONSE_HEADERS,
     encoded_line_len, validate_name, validate_response_value,
 };
+use crate::transport::retained::{ProtectedRequestId, RetainedMetadataError};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 struct HeaderRange {
@@ -84,7 +87,6 @@ impl fmt::Debug for ResponseHeader<'_> {
 /// let headers = ResponseHeaders::new();
 /// let _ = headers == headers;
 /// ```
-#[derive(Clone, Copy)]
 pub struct ResponseHeaders {
     bytes: [u8; MAX_RESPONSE_HEADER_BYTES],
     ranges: [HeaderRange; MAX_RESPONSE_HEADERS],
@@ -210,6 +212,63 @@ impl ResponseHeaders {
             .find(|header| header.name.eq_ignore_ascii_case(name))
     }
 
+    /// Creates a deliberate second cleanup-owning copy for retained test or
+    /// diagnostic state.
+    ///
+    /// Both the source and returned collection independently clear their
+    /// complete fixed storage on drop.
+    #[must_use]
+    pub fn retain_copy(&self) -> Self {
+        let mut retained = Self::new();
+        retained.bytes.copy_from_slice(&self.bytes);
+        retained.ranges.copy_from_slice(&self.ranges);
+        retained.bytes_len = self.bytes_len;
+        retained.count = self.count;
+        retained.encoded_len = self.encoded_len;
+        retained
+    }
+
+    pub(crate) fn take_request_id(
+        &mut self,
+    ) -> Result<Option<ProtectedRequestId>, RetainedMetadataError> {
+        let range = self
+            .ranges
+            .get(..self.count)
+            .unwrap_or_default()
+            .iter()
+            .copied()
+            .find(|range| {
+                self.view(*range)
+                    .is_some_and(|header| header.name.eq_ignore_ascii_case("x-request-id"))
+            });
+        let Some(range) = range else {
+            return Ok(None);
+        };
+        let start = usize::from(range.value_start);
+        let end = start
+            .checked_add(usize::from(range.value_len))
+            .ok_or(RetainedMetadataError::RequestIdTooLong)?;
+        let source = self
+            .bytes
+            .get_mut(start..end)
+            .ok_or(RetainedMetadataError::RequestIdTooLong)?;
+        ProtectedRequestId::take_from(source).map(Some)
+    }
+
+    fn clear(&mut self) {
+        sanitize_bytes(&mut self.bytes);
+        for range in &mut self.ranges {
+            sanitize_value(&mut range.name_start);
+            sanitize_value(&mut range.name_len);
+            sanitize_value(&mut range.value_start);
+            sanitize_value(&mut range.value_len);
+            range.sensitivity = HeaderSensitivity::Public;
+        }
+        sanitize_value(&mut self.bytes_len);
+        sanitize_value(&mut self.count);
+        sanitize_value(&mut self.encoded_len);
+    }
+
     fn view(&self, range: HeaderRange) -> Option<ResponseHeader<'_>> {
         let name_start = usize::from(range.name_start);
         let name_end = name_start.checked_add(usize::from(range.name_len))?;
@@ -234,6 +293,12 @@ impl Default for ResponseHeaders {
     }
 }
 
+impl Drop for ResponseHeaders {
+    fn drop(&mut self) {
+        self.clear();
+    }
+}
+
 impl fmt::Debug for ResponseHeaders {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter
@@ -242,5 +307,37 @@ impl fmt::Debug for ResponseHeaders {
             .field("encoded_len", &self.encoded_len)
             .field("values", &"[redacted]")
             .finish()
+    }
+}
+
+#[cfg(test)]
+mod cleanup_tests {
+    use super::{HeaderSensitivity, ResponseHeaders};
+
+    #[test]
+    fn complete_header_storage_and_ranges_clear() {
+        let mut headers = ResponseHeaders::new();
+        assert!(
+            headers
+                .try_push(
+                    "x-request-id",
+                    b"sensitive-id",
+                    HeaderSensitivity::Sensitive
+                )
+                .is_ok()
+        );
+        headers.clear();
+        assert!(headers.bytes.iter().all(|byte| *byte == 0));
+        assert!(headers.ranges.iter().all(|range| {
+            range.name_start == 0
+                && range.name_len == 0
+                && range.value_start == 0
+                && range.value_len == 0
+                && range.sensitivity == HeaderSensitivity::Public
+        }));
+        assert_eq!(
+            (headers.bytes_len, headers.count, headers.encoded_len),
+            (0, 0, 0)
+        );
     }
 }

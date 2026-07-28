@@ -5,17 +5,17 @@ set -eu
 
 default_tree=$(cargo tree -p cloud-sdk-reqwest --no-default-features --edges normal)
 default_dependencies=$(printf '%s\n' "$default_tree" | sed '1d')
-if ! printf '%s\n' "$default_tree" | grep -Fq 'cloud-sdk v0.37.0'; then
-    echo "reqwest boundary: cloud-sdk v0.37.0 is missing" >&2
+if ! printf '%s\n' "$default_tree" | grep -Fq 'cloud-sdk v0.38.0'; then
+    echo "reqwest boundary: cloud-sdk v0.38.0 is missing" >&2
     exit 1
 fi
 if printf '%s\n' "$default_dependencies" | grep -Eq \
-    'reqwest|hyper|tokio|rustls|native-tls|openssl|cloud-sdk-sanitization|sanitization'; then
-    echo "reqwest boundary: transport or sanitization entered the default graph" >&2
+    'reqwest|hyper|tokio|rustls|native-tls|openssl'; then
+    echo "reqwest boundary: transport entered the default graph" >&2
     printf '%s\n' "$default_tree" >&2
     exit 1
 fi
-if [ "$(printf '%s\n' "$default_tree" | wc -l)" -ne 2 ]; then
+if [ "$(printf '%s\n' "$default_tree" | wc -l)" -ne 4 ]; then
     echo "reqwest boundary: unexpected default dependency entered graph" >&2
     printf '%s\n' "$default_tree" >&2
     exit 1
@@ -24,8 +24,8 @@ fi
 std_tree=$(cargo tree -p cloud-sdk-reqwest --no-default-features --features std --edges normal)
 std_dependencies=$(printf '%s\n' "$std_tree" | sed '1d')
 if printf '%s\n' "$std_dependencies" | grep -Eq \
-    'reqwest|hyper|tokio|rustls|native-tls|openssl|cloud-sdk-sanitization|sanitization'; then
-    echo "reqwest boundary: transport or sanitization entered the std-only graph" >&2
+    'reqwest|hyper|tokio|rustls|native-tls|openssl'; then
+    echo "reqwest boundary: transport entered the std-only graph" >&2
     printf '%s\n' "$std_tree" >&2
     exit 1
 fi
@@ -34,7 +34,7 @@ blocking_tree=$(cargo tree -p cloud-sdk-reqwest --no-default-features \
     --features blocking-rustls --edges normal)
 for dependency in \
     'reqwest v0.13.4' \
-    'cloud-sdk-sanitization v0.15.5' \
+    'cloud-sdk-sanitization v0.16.0' \
     'sanitization v2.0.3' \
     'rustls v0.23.42'; do
     if ! printf '%s\n' "$blocking_tree" | grep -Fq "$dependency"; then
@@ -55,7 +55,7 @@ for dependency in \
     'bytes v1.12.1' \
     'reqwest v0.13.4' \
     'tokio v1.53.1' \
-    'cloud-sdk-sanitization v0.15.5' \
+    'cloud-sdk-sanitization v0.16.0' \
     'sanitization v2.0.3' \
     'rustls v0.23.42'; do
     if ! printf '%s\n' "$async_tree" | grep -Fq "$dependency"; then

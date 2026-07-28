@@ -168,7 +168,7 @@ fn mock_rejects_precommitted_writer_without_consuming_exchange() {
     )];
     let transport = MockTransport::new(&exchanges);
     let mut output = [0xa5_u8; 32];
-    let mut response = ResponseBuffer::new(&mut output, 32, &transport);
+    let mut response = ResponseBuffer::new(&mut output, 32);
     assert!(
         response
             .writer()
@@ -324,7 +324,7 @@ fn async_mock_transport_matches_blocking_behavior_without_an_executor() {
         )];
         let transport = MockTransport::new(&exchanges);
         let mut output = [0_u8; 32];
-        let mut response_buffer = ResponseBuffer::new(&mut output, 32, &transport);
+        let mut response_buffer = ResponseBuffer::new(&mut output, 32);
         {
             let future = AsyncTransport::send(
                 &transport,
@@ -358,7 +358,7 @@ fn dropping_unpolled_async_mock_does_not_consume_or_write() {
         let transport = MockTransport::new(&exchanges);
         let mut output = [0xa5_u8; 16];
         {
-            let mut response_buffer = ResponseBuffer::new(&mut output, 16, &transport);
+            let mut response_buffer = ResponseBuffer::new(&mut output, 16);
             let future = AsyncTransport::send(
                 &transport,
                 TransportRequest::new(Method::Get, target),
@@ -383,6 +383,7 @@ fn mock_transport_distinguishes_target_and_body_mismatches_without_leaking_debug
             ExpectedRequest::new(Method::Post, expected_target).with_body(b"expected-secret"),
             ResponseFixture::success(response_body),
         );
+        let debug = format!("{exchange:?}");
         let exchanges = [exchange];
         let transport = MockTransport::new(&exchanges);
         let mut output = [0_u8; 32];
@@ -405,7 +406,6 @@ fn mock_transport_distinguishes_target_and_body_mismatches_without_leaking_debug
         ));
         assert_eq!(transport.remaining(), 1);
 
-        let debug = format!("{exchange:?}");
         assert!(debug.contains("[redacted]"));
         assert!(!debug.contains("secret"));
     }
@@ -426,7 +426,7 @@ fn inspect_blocking<R>(
     inspect: impl for<'response> FnOnce(TransportResponse<'response>) -> R,
 ) -> Result<R, MockError> {
     let capacity = storage.len();
-    let mut response = ResponseBuffer::new(storage, capacity, transport);
+    let mut response = ResponseBuffer::new(storage, capacity);
     BlockingTransport::send(transport, request, response.writer())?;
     response
         .with_response(inspect)

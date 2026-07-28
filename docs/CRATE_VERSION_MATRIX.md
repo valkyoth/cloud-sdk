@@ -1,7 +1,7 @@
 # Crate Version Matrix
 
-Status: `v0.36.0` is tagged. `v0.37.0` response-buffer provenance has passed
-pentest and final retest; local and GitHub release checks remain before tagging.
+Status: `v0.37.0` is tagged. `v0.38.0` mandatory response cleanup has reached
+its implementation stop and requires pentest.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
@@ -572,6 +572,20 @@ guard-scoped checked decoding.
 | `cloud-sdk-reqwest` | `0.24.0` | `0.25.0` | `code` | Yes | Commit blocking and async responses only through the admitted sealed writer. |
 | `cloud-sdk-sanitization` | `0.15.4` | `0.15.5` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.37 facade line. |
 | `cloud-sdk-testkit` | `0.21.0` | `0.22.0` | `code` | Yes | Produce deterministic fixtures through the same sealed writer and commitment contract. |
+
+## v0.38.0 Tracking Table
+
+`v0.38.0` makes response cleanup mandatory through one audited
+provider-neutral primitive, owns the complete checked decode workspace, and
+adds explicit request-identifier retention policy.
+
+| Crate | Published | Planned | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk-sanitization` | `0.15.5` | `0.16.0` | `code` | Yes | Invert the core dependency and expose byte and scalar cleanup through the admitted primitive. |
+| `cloud-sdk` | `0.37.0` | `0.38.0` | `code` | Yes | Mandate full response/workspace cleanup and add protected retained metadata. |
+| `cloud-sdk-hetzner` | `0.30.0` | `0.31.0` | `code` | Yes | Decode with guard-owned scratch and protected request identifiers. |
+| `cloud-sdk-reqwest` | `0.25.0` | `0.26.0` | `code` | Yes | Transfer non-Copy metadata into core cleanup owners and retain additive hooks. |
+| `cloud-sdk-testkit` | `0.22.0` | `0.23.0` | `code` | Yes | Exercise non-Copy fixtures and mandatory cleanup paths. |
 
 ## Planned Milestone Ownership
 

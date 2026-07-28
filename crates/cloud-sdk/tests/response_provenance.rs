@@ -6,7 +6,7 @@ use core::task::{Context, Poll, Waker};
 
 use cloud_sdk::Method;
 use cloud_sdk::operation::{
-    ContentTypePolicy, ResponseBodyPolicy, ResponsePolicy, ResponsePolicyError,
+    ContentTypePolicy, RequestIdPolicy, ResponseBodyPolicy, ResponsePolicy, ResponsePolicyError,
 };
 use cloud_sdk::transport::{
     AsyncTransport, BlockingTransport, MediaType, RequestTarget, ResponseBuffer,
@@ -22,7 +22,7 @@ fn writer_rejects_forged_lengths_duplicate_commits_and_post_commit_writes() {
     let sanitizer = CountingSanitizer::new();
     let mut storage = [0xa5_u8; 16];
     {
-        let mut response = ResponseBuffer::new(&mut storage, 4, &sanitizer);
+        let mut response = ResponseBuffer::with_additive_sanitizer(&mut storage, 4, &sanitizer);
         assert_eq!(response.writer().body_capacity(), 4);
         assert_eq!(
             response
@@ -60,7 +60,10 @@ fn uncommitted_response_fails_closed_and_clears_complete_storage() {
     let policy = json_policy(8);
     assert!(policy.is_ok());
     let Ok(policy) = policy else { return };
-    let result = policy.validate(ResponseBuffer::new(&mut storage, 8, &sanitizer));
+    let result = policy.validate(
+        ResponseBuffer::with_additive_sanitizer(&mut storage, 8, &sanitizer),
+        RequestIdPolicy::Discard,
+    );
     assert!(matches!(
         result,
         Err(ResponsePolicyError::UncommittedResponse)
@@ -74,7 +77,7 @@ fn uncommitted_response_fails_closed_and_clears_complete_storage() {
 fn owned_decode_clears_before_return_and_borrow_is_guard_scoped() -> Result<(), &'static str> {
     let sanitizer = CountingSanitizer::new();
     let mut storage = [0xa5_u8; 16];
-    let mut response = ResponseBuffer::new(&mut storage, 8, &sanitizer);
+    let mut response = ResponseBuffer::with_additive_sanitizer(&mut storage, 8, &sanitizer);
     let output = response
         .writer()
         .body_mut()
@@ -94,7 +97,7 @@ fn owned_decode_clears_before_return_and_borrow_is_guard_scoped() -> Result<(), 
         .map_err(|_| "response commitment failed")?;
     let policy = json_policy(8).map_err(|_| "response policy was invalid")?;
     let checked = policy
-        .validate(response)
+        .validate(response, RequestIdPolicy::Protected)
         .map_err(|_| "response policy rejected fixture")?;
     assert!(checked.with_borrowed(|view| view.body() == b"{}"));
     let decoded = checked.decode_owned(|view| Ok::<usize, &'static str>(view.body().len()))?;
@@ -115,7 +118,8 @@ fn blocking_and_async_transports_share_the_same_sealed_writer_contract() {
 
     let mut blocking_storage = [0xa5_u8; 8];
     {
-        let mut response = ResponseBuffer::new(&mut blocking_storage, 8, &transport);
+        let mut response =
+            ResponseBuffer::with_additive_sanitizer(&mut blocking_storage, 8, &transport);
         assert!(BlockingTransport::send(&transport, request, response.writer()).is_ok());
         assert!(
             response
@@ -127,7 +131,8 @@ fn blocking_and_async_transports_share_the_same_sealed_writer_contract() {
 
     let mut async_storage = [0xa5_u8; 8];
     {
-        let mut response = ResponseBuffer::new(&mut async_storage, 8, &transport);
+        let mut response =
+            ResponseBuffer::with_additive_sanitizer(&mut async_storage, 8, &transport);
         {
             let future = AsyncTransport::send(&transport, request, response.writer());
             let mut future = core::pin::pin!(future);
@@ -185,9 +190,8 @@ impl CountingSanitizer {
 }
 
 impl ResponseStorageSanitizer for CountingSanitizer {
-    fn sanitize_response_storage(&self, response_storage: &mut [u8]) {
+    fn sanitize_response_storage(&self, _response_storage: &mut [u8]) {
         self.calls.fetch_add(1, Ordering::AcqRel);
-        response_storage.fill(0);
     }
 }
 

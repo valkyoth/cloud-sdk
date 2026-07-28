@@ -10,7 +10,7 @@ Checked: 2026-07-26.
 | --- | --- | --- | --- | --- |
 | `serde` | `1.0.229` | optional normal dependency | MIT OR Apache-2.0 | disabled |
 | `serde_json` | `1.0.151` | optional request/envelope Serde implementation and test parser | MIT OR Apache-2.0 | disabled; `alloc` only |
-| `cloud-sdk-sanitization` | `0.15.4` | optional first-party owned secret cleanup | MIT OR Apache-2.0 | disabled; `alloc` only |
+| `cloud-sdk-sanitization` | `0.16.0` | mandatory byte cleanup plus opt-in owned secret cleanup | MIT OR Apache-2.0 | disabled; `alloc` only |
 | `sanitization` | `2.0.3` | transitive volatile byte cleanup | MIT OR Apache-2.0 | disabled |
 
 Serde and serde_json are sourced from crates.io and maintained by the Serde
@@ -22,8 +22,8 @@ project at <https://github.com/serde-rs/serde> and
 The provider's `serde` feature enables its existing `alloc` boundary, Serde's
 `alloc` and `derive` features, serde_json's `alloc` implementation for public
 request/envelope APIs, and the first-party sanitization crate's `alloc` storage.
-None enables `std`. The workspace's default graph remains the two local crates
-`cloud-sdk-hetzner` and `cloud-sdk`, with no third-party normal dependency.
+None enables `std`. The provider's default graph contains the provider, core,
+first-party cleanup boundary, and admitted `sanitization` primitive only.
 
 Checked response admission uses a private direct parser because serde_json's
 escaped-string scratch allocation cannot be inspected or cleared. The parser
@@ -73,8 +73,9 @@ an ordinary decoded heap scratch copy before duplicate, trailing-document,
 required-field, or resource/action validation can fail. Composite secrets,
 zonefiles, and redacted error messages move that same allocation into their
 public sensitive wrappers. Caller-owned transport response storage is admitted
-through `ResponseBuffer` and cleared by its supplied sanitizer before
-transport use and when the cleanup-owning guard drops.
+through `ResponseBuffer` and cleared by the mandatory core primitive before
+transport use and when the cleanup-owning guard drops. The same guard owns the
+direct parser scratch storage.
 
 ## Alternatives Considered
 

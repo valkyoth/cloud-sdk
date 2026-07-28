@@ -77,7 +77,7 @@ full-fidelity Hetzner vertical slices before the neutral API freeze.
 | MSRV | Rust `1.90.0` |
 | Pinned toolchain | Rust `1.97.1` |
 | Default target | `no_std` |
-| Default runtime dependencies | none in `cloud-sdk`; provider crates remain transport-free by default |
+| Default runtime dependencies | only the first-party cleanup boundary and admitted `sanitization` primitive; provider crates remain transport-free |
 | Unsafe policy | first-party crates use `#![forbid(unsafe_code)]` |
 | Default features | empty |
 | Network defaults | none |
@@ -120,8 +120,8 @@ Portable and native platform evidence is documented in
 
 ```toml
 [dependencies]
-cloud-sdk = "0.37.0"
-cloud-sdk-hetzner = "0.30.0"
+cloud-sdk = "0.38.0"
+cloud-sdk-hetzner = "0.31.0"
 ```
 
 ## cloud-sdk Features
@@ -152,6 +152,7 @@ visible. Applications should enable only the features they use.
 - [Migrating to v0.35](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.35.0.md)
 - [Migrating to v0.36](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.36.0.md)
 - [Migrating to v0.37](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.37.0.md)
+- [Migrating to v0.38](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.38.0.md)
 - [Deprecated endpoint policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/DEPRECATED_ENDPOINT_POLICY.md)
 
 ## Provider-Neutral Quickstart
@@ -319,8 +320,8 @@ cost, endpoint, and response rules without selecting a transport:
 
 ```rust
 use cloud_sdk::operation::{
-    CostIntent, OperationImpact, OperationMetadata, RequestSemantics,
-    RetryEligibility,
+    CostIntent, OperationImpact, OperationMetadata, RequestIdPolicy,
+    RequestSemantics, RetryEligibility,
 };
 
 # fn main() -> Result<(), cloud_sdk::operation::OperationMetadataError> {
@@ -329,6 +330,7 @@ let metadata = OperationMetadata::new(
     RequestSemantics::Idempotent,
     RetryEligibility::ExplicitPolicy,
     CostIntent::MayIncurCost,
+    RequestIdPolicy::Protected,
 )?;
 
 assert_eq!(metadata.impact(), OperationImpact::Mutation);
@@ -345,17 +347,19 @@ storage and returns one `PreparedRequest`. Blocking and async execution verify
 the provider-owned endpoint policy before sending, lend only the response policy's admitted
 capacity through a sealed `ResponseWriter`, and return a
 `CheckedResponseGuard` only after status, body, and content type pass. The
-guard owns cleanup of the complete caller buffer; borrowed decoding is
-closure-scoped and owned decoding clears storage before returning. Prepared
-transports must implement `ResponseStorageSanitizer`. The SDK still performs
-no automatic retry or scheduling.
+guard owns mandatory volatile cleanup of the complete caller buffer plus its
+header, request-ID, cursor/link, and decoder-scratch workspace; borrowed
+decoding is closure-scoped and owned decoding clears storage before returning.
+Optional `ResponseStorageSanitizer` implementations may add platform cleanup,
+but cannot replace or weaken the core clear. The SDK still performs no
+automatic retry or scheduling.
 
 ## Optional Blocking Transport
 
 ```toml
 [dependencies]
-cloud-sdk = "0.37.0"
-cloud-sdk-reqwest = { version = "0.25.0", features = ["blocking-rustls"] }
+cloud-sdk = "0.38.0"
+cloud-sdk-reqwest = { version = "0.26.0", features = ["blocking-rustls"] }
 ```
 
 The production builder is HTTPS-only, requires explicit bounded timeouts and a
@@ -378,8 +382,8 @@ when deterministic public WebPKI roots are required:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.37.0"
-cloud-sdk-reqwest = { version = "0.25.0", features = ["blocking-rustls-webpki-roots"] }
+cloud-sdk = "0.38.0"
+cloud-sdk-reqwest = { version = "0.26.0", features = ["blocking-rustls-webpki-roots"] }
 ```
 
 The blocking API is unchanged. This feature excludes host-added enterprise
@@ -395,8 +399,8 @@ feature instead of relying on dependency feature unification:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.37.0"
-cloud-sdk-reqwest = { version = "0.25.0", features = ["blocking-rustls-fips"] }
+cloud-sdk = "0.38.0"
+cloud-sdk-reqwest = { version = "0.26.0", features = ["blocking-rustls-fips"] }
 ```
 
 Client construction explicitly selects rustls' AWS-LC FIPS provider and fails
@@ -414,8 +418,8 @@ example is in the
 
 ```toml
 [dependencies]
-cloud-sdk = "0.37.0"
-cloud-sdk-reqwest = { version = "0.25.0", features = ["async-rustls"] }
+cloud-sdk = "0.38.0"
+cloud-sdk-reqwest = { version = "0.26.0", features = ["async-rustls"] }
 ```
 
 The async adapter requires an active Tokio executor because reqwest uses Tokio
@@ -553,7 +557,7 @@ assert_eq!(value, Some("\"line\\n\\\"quoted\\\"\""));
 | [`cloud-sdk-hetzner`](https://crates.io/crates/cloud-sdk-hetzner) | no | Hetzner provider APIs and provider-specific documentation. |
 | [`cloud-sdk-reqwest`](https://crates.io/crates/cloud-sdk-reqwest) | no | Provider-neutral optional blocking and async reqwest/rustls transports; transport-free by default. |
 | [`cloud-sdk-testkit`](https://crates.io/crates/cloud-sdk-testkit) | no | Provider-neutral blocking/async mock transport, prepared-request records, response fixtures, and adversarial corpus. |
-| [`cloud-sdk-sanitization`](https://crates.io/crates/cloud-sdk-sanitization) | no | Provider-neutral volatile caller-buffer cleanup plus optional owned UTF-8 secret storage. |
+| [`cloud-sdk-sanitization`](https://crates.io/crates/cloud-sdk-sanitization) | no | Provider-neutral mandatory volatile cleanup primitive plus optional owned UTF-8 secret storage. |
 
 Each provider has one primary crate for its APIs and documentation. Reusable
 transport, testing, and secret-handling capabilities remain provider-neutral.
