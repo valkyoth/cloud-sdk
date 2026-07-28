@@ -150,7 +150,7 @@ impl CheckedHetznerResponse {
 /// Decodes one transport response through its exact prepared operation policy.
 pub fn decode_response(
     prepared: PreparedRequest<'_>,
-    response: ResponseBuffer<'_>,
+    mut response: ResponseBuffer<'_>,
 ) -> Result<CheckedHetznerResponse, HetznerDecodeError> {
     let operation = prepared
         .operation_id()
@@ -164,6 +164,9 @@ pub fn decode_response(
         .with_response(|view| view.status())
         .map_err(HetznerDecodeError::ResponseWriter)?;
     if status.is_error() {
+        prepared
+            .apply_response_metadata_policy(&mut response)
+            .map_err(HetznerDecodeError::ResponsePolicy)?;
         let mut workspace = ResponseDecodeWorkspace::new_for_provider();
         let decoded = response
             .with_response(|response| decode_provider_error(response, &mut workspace))

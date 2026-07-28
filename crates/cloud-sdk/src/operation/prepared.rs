@@ -193,6 +193,18 @@ impl<'request> PreparedRequest<'request> {
             .validate(response, self.metadata.request_id_policy())
     }
 
+    /// Applies operation-owned metadata policy before provider error decoding.
+    ///
+    /// This is the error-status counterpart to [`Self::validate_response`].
+    /// It extracts and protects, discards, or admits retention of the provider
+    /// request identifier without applying success-status or body policy.
+    pub fn apply_response_metadata_policy(
+        self,
+        response: &mut ResponseBuffer<'_>,
+    ) -> Result<(), ResponsePolicyError> {
+        super::policy::apply_request_id_policy(response, self.metadata.request_id_policy())
+    }
+
     /// Verifies endpoint identity, executes once, and validates the response.
     pub fn execute_blocking<'buffer, T>(
         self,

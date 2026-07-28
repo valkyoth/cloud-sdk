@@ -231,17 +231,18 @@ impl ResponseHeaders {
     pub(crate) fn take_request_id(
         &mut self,
     ) -> Result<Option<ProtectedRequestId>, RetainedMetadataError> {
-        let range = self
+        let found = self
             .ranges
             .get(..self.count)
             .unwrap_or_default()
             .iter()
             .copied()
-            .find(|range| {
+            .enumerate()
+            .find(|(_, range)| {
                 self.view(*range)
                     .is_some_and(|header| header.name.eq_ignore_ascii_case("x-request-id"))
             });
-        let Some(range) = range else {
+        let Some((index, range)) = found else {
             return Ok(None);
         };
         let start = usize::from(range.value_start);
@@ -252,17 +253,88 @@ impl ResponseHeaders {
             .bytes
             .get_mut(start..end)
             .ok_or(RetainedMetadataError::RequestIdTooLong)?;
-        ProtectedRequestId::take_from(source).map(Some)
+        let protected = ProtectedRequestId::take_from(source)?;
+        self.remove(index, range)?;
+        Ok(Some(protected))
+    }
+
+    fn remove(&mut self, index: usize, range: HeaderRange) -> Result<(), RetainedMetadataError> {
+        let name_start = usize::from(range.name_start);
+        let name_len = usize::from(range.name_len);
+        let value_start = usize::from(range.value_start);
+        let value_len = usize::from(range.value_len);
+        if name_start.checked_add(name_len) != Some(value_start) {
+            return Err(RetainedMetadataError::RequestIdTooLong);
+        }
+        let value_end = value_start
+            .checked_add(value_len)
+            .ok_or(RetainedMetadataError::RequestIdTooLong)?;
+        let removed_len = value_end
+            .checked_sub(name_start)
+            .ok_or(RetainedMetadataError::RequestIdTooLong)?;
+        let new_bytes_len = self
+            .bytes_len
+            .checked_sub(removed_len)
+            .ok_or(RetainedMetadataError::RequestIdTooLong)?;
+        let removed_encoded_len = name_len
+            .checked_add(value_len)
+            .and_then(|length| length.checked_add(4))
+            .ok_or(RetainedMetadataError::RequestIdTooLong)?;
+        let new_encoded_len = self
+            .encoded_len
+            .checked_sub(removed_encoded_len)
+            .ok_or(RetainedMetadataError::RequestIdTooLong)?;
+        let new_count = self
+            .count
+            .checked_sub(1)
+            .ok_or(RetainedMetadataError::RequestIdTooLong)?;
+        let shift =
+            u16::try_from(removed_len).map_err(|_| RetainedMetadataError::RequestIdTooLong)?;
+        let tail_start = index
+            .checked_add(1)
+            .ok_or(RetainedMetadataError::RequestIdTooLong)?;
+        let tail = self
+            .ranges
+            .get(tail_start..self.count)
+            .ok_or(RetainedMetadataError::RequestIdTooLong)?;
+        if value_end > self.bytes_len
+            || tail.iter().any(|entry| {
+                entry.name_start.checked_sub(shift).is_none()
+                    || entry.value_start.checked_sub(shift).is_none()
+            })
+        {
+            return Err(RetainedMetadataError::RequestIdTooLong);
+        }
+
+        self.bytes
+            .copy_within(value_end..self.bytes_len, name_start);
+        sanitize_bytes(
+            self.bytes
+                .get_mut(new_bytes_len..self.bytes_len)
+                .unwrap_or_default(),
+        );
+        for entry in self
+            .ranges
+            .get_mut(tail_start..self.count)
+            .unwrap_or_default()
+        {
+            entry.name_start = entry.name_start.saturating_sub(shift);
+            entry.value_start = entry.value_start.saturating_sub(shift);
+        }
+        self.ranges.copy_within(tail_start..self.count, index);
+        if let Some(last) = self.ranges.get_mut(new_count) {
+            clear_range(last);
+        }
+        self.bytes_len = new_bytes_len;
+        self.count = new_count;
+        self.encoded_len = new_encoded_len;
+        Ok(())
     }
 
     fn clear(&mut self) {
         sanitize_bytes(&mut self.bytes);
         for range in &mut self.ranges {
-            sanitize_value(&mut range.name_start);
-            sanitize_value(&mut range.name_len);
-            sanitize_value(&mut range.value_start);
-            sanitize_value(&mut range.value_len);
-            range.sensitivity = HeaderSensitivity::Public;
+            clear_range(range);
         }
         sanitize_value(&mut self.bytes_len);
         sanitize_value(&mut self.count);
@@ -285,6 +357,14 @@ impl ResponseHeaders {
             sensitivity: range.sensitivity,
         })
     }
+}
+
+fn clear_range(range: &mut HeaderRange) {
+    sanitize_value(&mut range.name_start);
+    sanitize_value(&mut range.name_len);
+    sanitize_value(&mut range.value_start);
+    sanitize_value(&mut range.value_len);
+    range.sensitivity = HeaderSensitivity::Public;
 }
 
 impl Default for ResponseHeaders {
@@ -338,6 +418,63 @@ mod cleanup_tests {
         assert_eq!(
             (headers.bytes_len, headers.count, headers.encoded_len),
             (0, 0, 0)
+        );
+    }
+
+    #[test]
+    fn taking_request_id_compacts_the_complete_header_table() {
+        let mut headers = ResponseHeaders::new();
+        assert!(
+            headers
+                .try_push("date", b"1", HeaderSensitivity::Public)
+                .is_ok()
+        );
+        assert!(
+            headers
+                .try_push(
+                    "x-request-id",
+                    b"sensitive-id",
+                    HeaderSensitivity::Sensitive
+                )
+                .is_ok()
+        );
+        assert!(
+            headers
+                .try_push("x-public", b"ok", HeaderSensitivity::Public)
+                .is_ok()
+        );
+
+        let protected = headers.take_request_id();
+        assert!(matches!(protected, Ok(Some(_))));
+        assert_eq!(headers.len(), 2);
+        assert_eq!(headers.encoded_len(), 23);
+        assert!(headers.get("x-request-id").is_none());
+        let mut retained = headers.iter();
+        assert!(
+            retained
+                .next()
+                .is_some_and(|header| { header.name() == "date" && header.value() == b"1" })
+        );
+        assert!(
+            retained
+                .next()
+                .is_some_and(|header| { header.name() == "x-public" && header.value() == b"ok" })
+        );
+        assert!(retained.next().is_none());
+        assert_eq!(headers.bytes_len, 15);
+        assert!(
+            headers
+                .bytes
+                .get(headers.bytes_len..)
+                .unwrap_or_default()
+                .iter()
+                .all(|byte| *byte == 0)
+        );
+        assert!(
+            headers
+                .bytes
+                .windows(b"sensitive-id".len())
+                .all(|window| window != b"sensitive-id")
         );
     }
 }

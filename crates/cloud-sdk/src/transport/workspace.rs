@@ -48,12 +48,18 @@ impl ResponseDecodeWorkspace {
         &mut self.decoder
     }
 
-    /// Returns cursor staging storage.
+    /// Returns reserved cursor staging for the bounded pagination strategies.
+    ///
+    /// v0.38 establishes cleanup ownership; the first consumer is planned for
+    /// the v0.44 pagination strategy family.
     pub fn cursor_scratch_mut(&mut self) -> &mut [u8] {
         &mut self.cursor
     }
 
-    /// Returns provider-link staging storage.
+    /// Returns reserved provider-link staging for validated continuation links.
+    ///
+    /// v0.38 establishes cleanup ownership; the first consumer is planned for
+    /// the v0.44 pagination strategy family.
     pub fn provider_link_scratch_mut(&mut self) -> &mut [u8] {
         &mut self.provider_link
     }

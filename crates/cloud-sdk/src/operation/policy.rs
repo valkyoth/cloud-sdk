@@ -178,10 +178,7 @@ impl ResponsePolicy {
         mut writer: ResponseBuffer<'buffer>,
         request_id_policy: RequestIdPolicy,
     ) -> Result<CheckedResponseGuard<'buffer>, ResponsePolicyError> {
-        writer.response().map_err(map_writer_error)?;
-        writer
-            .apply_request_id_policy(request_id_policy)
-            .map_err(|_| ResponsePolicyError::InvalidRequestId)?;
+        apply_request_id_policy(&mut writer, request_id_policy)?;
         let snapshot = {
             let response = writer.response().map_err(map_writer_error)?;
             self.validate_view(response, request_id_policy)?
@@ -221,6 +218,16 @@ impl ResponsePolicy {
             request_id_policy,
         })
     }
+}
+
+pub(crate) fn apply_request_id_policy(
+    writer: &mut ResponseBuffer<'_>,
+    request_id_policy: RequestIdPolicy,
+) -> Result<(), ResponsePolicyError> {
+    writer.response().map_err(map_writer_error)?;
+    writer
+        .apply_request_id_policy(request_id_policy)
+        .map_err(|_| ResponsePolicyError::InvalidRequestId)
 }
 
 /// Response that passed one operation's complete provider-neutral policy.

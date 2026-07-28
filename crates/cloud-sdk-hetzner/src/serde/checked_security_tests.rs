@@ -2,9 +2,12 @@
 
 use alloc::string::String;
 
+use cloud_sdk::operation::ResponsePolicyError;
 use cloud_sdk::transport::StatusCode;
 
-use super::checked_test_support::{decode_response, prepared, response};
+use super::checked_test_support::{
+    decode_response, decode_response_with_request_id, prepared, response,
+};
 use super::strict_json::MAX_JSON_NODES;
 use super::{HetznerDecodeError, HetznerSuccess};
 use crate::identity::CLOUD_SERVICE_ID;
@@ -86,4 +89,22 @@ fn escaped_provider_and_action_errors_remain_in_protected_models() -> Result<(),
         Ok(true)
     );
     Ok(())
+}
+
+#[test]
+fn provider_errors_apply_the_operation_request_id_policy() {
+    let decoded = decode_response_with_request_id(
+        prepared("get_server", CLOUD_SERVICE_ID, StatusCode::OK),
+        response(
+            StatusCode::TOO_MANY_REQUESTS,
+            br#"{"error":{"code":"rate_limit_exceeded","message":"slow down"}}"#,
+        ),
+        b"",
+    );
+    assert_eq!(
+        decoded,
+        Err(HetznerDecodeError::ResponsePolicy(
+            ResponsePolicyError::InvalidRequestId
+        ))
+    );
 }

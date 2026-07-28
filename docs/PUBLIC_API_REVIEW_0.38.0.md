@@ -45,6 +45,10 @@ Every `OperationMetadata` now selects `RequestIdPolicy::Retain`,
 bounded sensitive header storage and either clears it, keeps it under the
 checked guard, or permits explicit bounded transfer.
 
+The same metadata admission runs before both successful response validation
+and provider-error decoding. Extraction removes the complete field from the
+bounded header table and compacts all byte/range/length bookkeeping.
+
 All current Hetzner operations use `Protected`; they expose identifiers only
 through guard-scoped closure access. Future operations must make a deliberate
 retention decision rather than receiving a permissive default.

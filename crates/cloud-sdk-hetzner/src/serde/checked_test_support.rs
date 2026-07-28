@@ -6,8 +6,9 @@ use cloud_sdk::operation::{
     ResponsePolicy, RetryEligibility,
 };
 use cloud_sdk::transport::{
-    EndpointIdentity, EndpointPolicy, EndpointScheme, MediaType, RequestTarget, ResponseBuffer,
-    ResponseContentType, ResponseMetadata, StatusCode, TransportRequest,
+    EndpointIdentity, EndpointPolicy, EndpointScheme, HeaderSensitivity, MediaType, RequestTarget,
+    ResponseBuffer, ResponseContentType, ResponseHeaders, ResponseMetadata, StatusCode,
+    TransportRequest,
 };
 use cloud_sdk::{Method, ServiceId};
 
@@ -115,6 +116,26 @@ pub(super) fn decode_response(
     prepared: PreparedRequest<'_>,
     fixture: TestResponse<'_>,
 ) -> Result<CheckedHetznerResponse, HetznerDecodeError> {
+    decode_response_with_headers(prepared, fixture, ResponseHeaders::new())
+}
+
+pub(super) fn decode_response_with_request_id(
+    prepared: PreparedRequest<'_>,
+    fixture: TestResponse<'_>,
+    request_id: &[u8],
+) -> Result<CheckedHetznerResponse, HetznerDecodeError> {
+    let mut headers = ResponseHeaders::new();
+    headers
+        .try_push("x-request-id", request_id, HeaderSensitivity::Sensitive)
+        .map_err(|_| HetznerDecodeError::MalformedPayload)?;
+    decode_response_with_headers(prepared, fixture, headers)
+}
+
+fn decode_response_with_headers(
+    prepared: PreparedRequest<'_>,
+    fixture: TestResponse<'_>,
+    headers: ResponseHeaders,
+) -> Result<CheckedHetznerResponse, HetznerDecodeError> {
     let mut storage = vec![0_u8; fixture.body.len()];
     let capacity = storage.len();
     let mut response = ResponseBuffer::new(&mut storage, capacity);
@@ -124,9 +145,11 @@ pub(super) fn decode_response(
         .map_err(HetznerDecodeError::ResponseWriter)?
         .copy_from_slice(fixture.body);
     let metadata = if fixture.json {
-        ResponseMetadata::EMPTY.with_content_type(json_content_type())
-    } else {
         ResponseMetadata::EMPTY
+            .with_headers(headers)
+            .with_content_type(json_content_type())
+    } else {
+        ResponseMetadata::EMPTY.with_headers(headers)
     };
     response
         .writer()

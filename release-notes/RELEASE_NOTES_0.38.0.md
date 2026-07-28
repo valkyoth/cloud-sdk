@@ -36,6 +36,9 @@ baseline sanitizer.
 - Added non-`Copy`, non-`Clone`, redacted retained metadata.
 - Added atomic transfer with immediate source cleanup on success or rejection.
 - Classified every current Hetzner operation as protected.
+- Applied request-ID policy before both success and provider-error decoding.
+- Removed extracted request IDs from the bounded header table and compacted
+  its complete byte, range, count, and encoded-length state.
 
 ## Dependency Direction
 

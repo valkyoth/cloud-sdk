@@ -63,7 +63,10 @@ let metadata = OperationMetadata::new(
 - `Discard` clears the identifier during policy admission.
 
 `ResponsePolicy::validate` therefore also receives the operation's request-ID
-policy. Prepared execution supplies it automatically.
+policy. Prepared execution supplies it automatically. Provider decoders must
+call `PreparedRequest::apply_response_metadata_policy` before decoding an
+error-status response that bypasses the success policy; the Hetzner decoder
+does so for every provider error.
 
 ## Retaining Request Identifiers
 
@@ -83,6 +86,10 @@ metadata owner must call the explicit bounded `retain_copy` methods.
 `ResponseDecodeWorkspace` to provider decoders. It contains fixed decoder,
 cursor, and provider-link staging arrays. The Hetzner direct parser now uses
 this scratch rather than independent ordinary local storage.
+
+The cursor and provider-link regions reserve the cleanup contract for the
+v0.44 bounded pagination strategy family. They are not continuation parsers in
+v0.38 and carry no length or validity state yet.
 
 The existing `decode_owned` method remains available when no workspace access
 is needed. Both methods drop the complete body, metadata, identifier, and
