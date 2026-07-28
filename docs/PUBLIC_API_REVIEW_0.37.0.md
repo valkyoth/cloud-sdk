@@ -17,6 +17,8 @@ bounded metadata, and initialized length exactly once.
 decoders, test helpers, and callers need common inspection. Its fields and
 constructor are private. Core creates it only from writer commitment and the
 same admitted storage.
+The external-caller regression fixture supplies every field and must fail with
+the private-field diagnostic, not a missing-field diagnostic.
 
 ## Ownership And Lifetimes
 

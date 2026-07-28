@@ -232,12 +232,18 @@ where
 /// Safe callers cannot construct a response from unrelated storage.
 ///
 /// ```compile_fail
-/// use cloud_sdk::transport::{StatusCode, TransportResponse};
+/// use cloud_sdk::rate_limit::RateLimit;
+/// use cloud_sdk::transport::{
+///     ResponseContentType, ResponseHeaders, StatusCode, TransportResponse,
+/// };
 ///
 /// let external = b"unadmitted";
 /// let _ = TransportResponse {
 ///     status: StatusCode::OK,
 ///     body: external,
+///     content_type: None::<ResponseContentType>,
+///     rate_limit: None::<RateLimit>,
+///     headers: ResponseHeaders::new(),
 /// };
 /// ```
 #[derive(Clone, Copy)]

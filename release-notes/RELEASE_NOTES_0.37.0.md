@@ -40,6 +40,8 @@ decoding.
 - Migrated all 208 Hetzner checked-operation response bindings.
 - Migrated live smoke, public examples, doctests, and checked-response fuzzing.
 - Added adversarial provenance, cleanup, parity, and compile-fail tests.
+- Bound the external-construction fixture to the compiler's private-field
+  diagnostic and rejected unrelated missing-field failures.
 
 ## Versions
 

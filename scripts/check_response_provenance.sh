@@ -2,6 +2,7 @@
 set -eu
 
 response_model=crates/cloud-sdk/src/transport/response.rs
+privacy_fixture=crates/cloud-sdk/tests/ui/transport_response_private.rs
 
 if grep -R -n --include='*.rs' 'TransportResponse::new' \
     crates fuzz/fuzz_targets; then
@@ -45,6 +46,39 @@ for adapter in \
         exit 1
     fi
 done
+
+privacy_dir="$(mktemp -d)"
+trap 'rm -rf "$privacy_dir"' EXIT HUP INT TERM
+mkdir -p "$privacy_dir/src"
+cp "$privacy_fixture" "$privacy_dir/src/main.rs"
+printf '%s\n' \
+    '[package]' \
+    'name = "transport-response-privacy-check"' \
+    'version = "0.0.0"' \
+    'edition = "2024"' \
+    'publish = false' \
+    '' \
+    '[workspace]' \
+    '' \
+    '[dependencies]' \
+    "cloud-sdk = { path = \"$(pwd)/crates/cloud-sdk\" }" \
+    >"$privacy_dir/Cargo.toml"
+
+if cargo check --quiet --manifest-path "$privacy_dir/Cargo.toml" \
+    >"$privacy_dir/stdout" 2>"$privacy_dir/stderr"; then
+    echo "response provenance: external response construction compiled" >&2
+    exit 1
+fi
+if ! grep -Fq 'error[E0451]' "$privacy_dir/stderr"; then
+    echo "response provenance: privacy fixture did not fail on private fields" >&2
+    cat "$privacy_dir/stderr" >&2
+    exit 1
+fi
+if grep -Fq 'error[E0063]' "$privacy_dir/stderr"; then
+    echo "response provenance: privacy fixture is missing response fields" >&2
+    cat "$privacy_dir/stderr" >&2
+    exit 1
+fi
 
 cargo test --locked -p cloud-sdk --all-features --test response_provenance
 cargo test --locked -p cloud-sdk --doc

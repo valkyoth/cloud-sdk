@@ -14,6 +14,8 @@
   checked decoding, examples, live smoke, and fuzzing to the new contract.
 - Added adversarial response-provenance, complete-storage cleanup,
   blocking/async parity, and compile-fail lifetime coverage.
+- Bound the response-construction compile-fail check to the private-field
+  diagnostic instead of accepting an unrelated missing-field failure.
 
 ## 0.36.0 - 2026-07-27
 
