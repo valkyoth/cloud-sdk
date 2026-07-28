@@ -1,6 +1,9 @@
 #!/usr/bin/env sh
 set -eu
 
+response=crates/cloud-sdk/src/transport/response.rs
+policy=crates/cloud-sdk/src/operation/policy.rs
+
 if grep -R -n --include='*.rs' \
     '\.header(ACCEPT\|\.header(CONTENT_TYPE' \
     crates/cloud-sdk-reqwest/src/blocking \
@@ -38,6 +41,15 @@ for required in \
     fi
 done
 
+for required in \
+    "Result<Option<ResponseContentType<'response>>, super::ContentTypeError>" \
+    'map_err(|_| ResponsePolicyError::InvalidContentType)'; do
+    if ! grep -Fq "$required" "$response" "$policy"; then
+        echo "header model: malformed response content type can collapse to absence" >&2
+        exit 1
+    fi
+done
+
 for client in \
     crates/cloud-sdk-reqwest/src/blocking/client.rs \
     crates/cloud-sdk-reqwest/src/asynchronous/client.rs; do
@@ -54,6 +66,7 @@ done
 
 cargo test -p cloud-sdk transport::header
 cargo test -p cloud-sdk transport::content_type
+cargo test -p cloud-sdk operation::response_tests
 cargo test -p cloud-sdk --doc
 cargo test -p cloud-sdk-hetzner prepared::
 cargo test -p cloud-sdk-testkit --all-features

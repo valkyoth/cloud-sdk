@@ -23,6 +23,8 @@ impl CapturedResponse {
             body: response.body().to_vec(),
             content_type: response
                 .content_type()
+                .ok()
+                .flatten()
                 .map(|content_type| String::from(content_type.as_str())),
             rate_limit: response.rate_limit(),
             rate_limit_remaining: response

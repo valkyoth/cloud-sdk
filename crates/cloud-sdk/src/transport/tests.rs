@@ -200,7 +200,11 @@ fn transport_response_borrows_body_propagates_metadata_and_redacts_debug() {
                 assert_eq!(response.body(), b"secret-response");
                 assert_eq!(response.rate_limit(), rate_limit);
                 assert_eq!(
-                    response.content_type().map(ResponseContentType::as_str),
+                    response
+                        .content_type()
+                        .ok()
+                        .flatten()
+                        .map(ResponseContentType::as_str),
                     Some("application/private; token=secret-content")
                 );
                 write!(&mut debug, "{response:?}")

@@ -37,6 +37,13 @@ Response headers offer a deliberately named copy operation only where a test
 or adapter supplies a distinct cleanup destination. Response content type is
 a borrowed validated view over stable header bytes.
 
+Raw transport responses preserve absent versus malformed content types:
+`TransportResponse::content_type` returns `Ok(None)` only when the header is
+absent. Core response policy maps every present parse failure to the
+payload-free `InvalidContentType` rejection before provider decoding. Custom
+transports therefore cannot bypass `Optional` or `Forbidden` policy by
+committing malformed syntax or invalid UTF-8.
+
 `RetainedResponseMetadata` is non-`Copy`, non-`Clone`, redacted, and
 closure-accessed. It wraps caller-owned destination storage. Transfer copies
 directly from stable protected header storage, then clears the source on
@@ -83,6 +90,7 @@ This is an intentional pre-1.0 breaking release:
 - `ResponsePolicy::validate` requires request-ID policy;
 - response metadata contains only non-sensitive scalars, headers are not
   implicitly copied, and response content type is borrowed from them;
+- raw response content-type access distinguishes absence from malformed input;
 - retained metadata requires caller-owned destination storage;
 - checked decoders may use the new workspace-aware owned decode method.
 

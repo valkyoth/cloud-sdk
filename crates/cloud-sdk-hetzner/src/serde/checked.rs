@@ -217,6 +217,7 @@ fn decode_provider_error(
     }
     let content_type = response
         .content_type()
+        .map_err(|_| HetznerDecodeError::ErrorContentType)?
         .ok_or(HetznerDecodeError::ErrorContentType)?;
     if !content_type.matches(MediaType::JSON) {
         return Err(HetznerDecodeError::ErrorContentType);

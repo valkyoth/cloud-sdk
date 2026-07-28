@@ -1,8 +1,10 @@
 use super::{
     ContentTypePolicy, RequestIdPolicy, ResponseBodyPolicy, ResponsePolicy, ResponsePolicyError,
 };
+use crate::Method;
 use crate::transport::{
-    HeaderSensitivity, MediaType, ResponseBuffer, ResponseMetadata, StatusCode,
+    BlockingTransport, HeaderSensitivity, MediaType, RequestTarget, ResponseBuffer,
+    ResponseMetadata, ResponseWriter, StatusCode, TransportRequest,
 };
 
 static OK_STATUS: [StatusCode; 1] = [StatusCode::OK];
@@ -31,7 +33,7 @@ fn response_policy_classifies_every_rejection_before_decoding() {
         Err(ResponsePolicyError::MissingContentType)
     ));
     assert!(matches!(
-        validate_fixture(required, StatusCode::OK, b"{}", Some("text/plain")),
+        validate_fixture(required, StatusCode::OK, b"{}", Some(b"text/plain")),
         Err(ResponsePolicyError::UnexpectedContentType)
     ));
     assert_eq!(
@@ -39,7 +41,7 @@ fn response_policy_classifies_every_rejection_before_decoding() {
             required,
             StatusCode::OK,
             b"{}",
-            Some("application/json; charset=utf-8"),
+            Some(b"application/json; charset=utf-8"),
         ),
         Ok(2)
     );
@@ -57,9 +59,37 @@ fn response_policy_classifies_every_rejection_before_decoding() {
             Err(ResponsePolicyError::ForbiddenBody)
         ));
         assert!(matches!(
-            validate_fixture(forbidden, StatusCode::OK, b"", Some("application/json")),
+            validate_fixture(forbidden, StatusCode::OK, b"", Some(b"application/json")),
             Err(ResponsePolicyError::ForbiddenContentType)
         ));
+        for malformed in [
+            b"application/json; charset".as_slice(),
+            b"application/json\xff".as_slice(),
+        ] {
+            assert!(matches!(
+                validate_fixture(forbidden, StatusCode::OK, b"", Some(malformed)),
+                Err(ResponsePolicyError::InvalidContentType)
+            ));
+        }
+    }
+
+    let optional = ResponsePolicy::new(
+        &OK_STATUS,
+        ContentTypePolicy::Optional(&JSON_MEDIA),
+        ResponseBodyPolicy::Optional,
+        4,
+    );
+    assert!(optional.is_ok());
+    if let Ok(optional) = optional {
+        for malformed in [
+            b"application/json; charset".as_slice(),
+            b"application/json\xff".as_slice(),
+        ] {
+            assert!(matches!(
+                validate_fixture(optional, StatusCode::OK, b"{}", Some(malformed)),
+                Err(ResponsePolicyError::InvalidContentType)
+            ));
+        }
     }
 }
 
@@ -78,36 +108,57 @@ fn validate_fixture(
     policy: ResponsePolicy,
     status: StatusCode,
     body: &[u8],
-    content_type: Option<&str>,
+    content_type: Option<&[u8]>,
 ) -> Result<usize, ResponsePolicyError> {
     let mut storage = [0_u8; 32];
     let mut header_storage = [0_u8; 8192];
     let mut response = ResponseBuffer::new(&mut storage, 32, &mut header_storage);
-    if let Some(content_type) = content_type {
-        response
-            .writer()
-            .headers_mut()
-            .map_err(|_| ResponsePolicyError::UncommittedResponse)?
-            .try_push(
-                "content-type",
-                content_type.as_bytes(),
-                HeaderSensitivity::Public,
-            )
-            .map_err(|_| ResponsePolicyError::UnexpectedContentType)?;
-    }
-    let output = response
-        .writer()
-        .body_mut()
-        .map_err(|_| ResponsePolicyError::UncommittedResponse)?;
-    let initialized = output
-        .get_mut(..body.len())
-        .ok_or(ResponsePolicyError::BodyTooLarge)?;
-    initialized.copy_from_slice(body);
-    response
-        .writer()
-        .commit(status, body.len(), ResponseMetadata::EMPTY)
-        .map_err(|_| ResponsePolicyError::UncommittedResponse)?;
+    let target = RequestTarget::new("/").map_err(|_| ResponsePolicyError::UncommittedResponse)?;
+    let transport = FixtureTransport {
+        status,
+        body,
+        content_type,
+    };
+    BlockingTransport::send(
+        &transport,
+        TransportRequest::new(Method::Get, target),
+        response.writer(),
+    )
+    .map_err(|_| ResponsePolicyError::UncommittedResponse)?;
     policy
         .validate(response, RequestIdPolicy::Discard)
         .map(|checked| checked.with_borrowed(|view| view.body().len()))
+}
+
+struct FixtureTransport<'a> {
+    status: StatusCode,
+    body: &'a [u8],
+    content_type: Option<&'a [u8]>,
+}
+
+impl BlockingTransport for FixtureTransport<'_> {
+    type Error = ();
+
+    fn send(
+        &self,
+        _request: TransportRequest<'_>,
+        response: &mut ResponseWriter<'_>,
+    ) -> Result<(), Self::Error> {
+        if let Some(content_type) = self.content_type {
+            response
+                .headers_mut()
+                .map_err(|_| ())?
+                .try_push("content-type", content_type, HeaderSensitivity::Public)
+                .map_err(|_| ())?;
+        }
+        response
+            .body_mut()
+            .map_err(|_| ())?
+            .get_mut(..self.body.len())
+            .ok_or(())?
+            .copy_from_slice(self.body);
+        response
+            .commit(self.status, self.body.len(), ResponseMetadata::EMPTY)
+            .map_err(|_| ())
+    }
 }

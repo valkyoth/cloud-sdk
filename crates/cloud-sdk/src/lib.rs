@@ -106,6 +106,10 @@ mod tests {
             "response content type is not accepted",
         );
         assert_display(
+            ResponsePolicyError::InvalidContentType,
+            "response content type is invalid",
+        );
+        assert_display(
             ResponsePolicyValidationError::MissingSuccessStatus,
             "response policy has no success status",
         );

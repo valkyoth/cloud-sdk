@@ -97,6 +97,14 @@ borrowed validated view over those stable bytes. Tests that deliberately need
 a second header owner must supply another caller buffer to
 `ResponseHeaders::retain_copy_into`.
 
+`TransportResponse::content_type` now returns
+`Result<Option<ResponseContentType<'_>>, ContentTypeError>`. `Ok(None)` means
+the header is absent; a present invalid UTF-8 or malformed value returns
+`Err`. Custom transports only capture raw bounded headers. Core
+`ResponsePolicy` performs this validation and rejects malformed values with
+`ResponsePolicyError::InvalidContentType` under every content-type policy,
+including `Optional` and `Forbidden`.
+
 The strict Hetzner JSON parser now also protects object-key allocations.
 Unknown field names are wiped on drop just like string values; this matters
 because extension keys can contain tenant-controlled text even when ignored.

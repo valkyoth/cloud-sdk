@@ -52,6 +52,15 @@ baseline sanitizer.
 - Wipe complete key allocation capacity on drop, including ignored extension
   field names and parse-failure paths.
 
+## Content-Type Enforcement
+
+- Changed raw response content-type access to distinguish absent from invalid.
+- Added payload-free `ResponsePolicyError::InvalidContentType`.
+- Made core reject malformed syntax and invalid UTF-8 under required, optional,
+  and forbidden policies, independent of transport implementation.
+- Added regressions for custom-writer responses so adapter validation cannot
+  become a hidden security prerequisite.
+
 ## Dependency Direction
 
 `cloud-sdk` now depends on `cloud-sdk-sanitization`, which depends only on the

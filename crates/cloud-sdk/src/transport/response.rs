@@ -367,11 +367,17 @@ impl<'response, 'storage> TransportResponse<'response, 'storage> {
     }
 
     /// Returns the validated response content type when supplied.
-    #[must_use]
-    pub fn content_type(&self) -> Option<ResponseContentType<'response>> {
-        let header = self.headers.get("content-type")?;
-        let value = core::str::from_utf8(header.value()).ok()?;
-        ResponseContentType::new(value).ok()
+    ///
+    /// A present malformed value is an error, never an absent header.
+    pub fn content_type(
+        &self,
+    ) -> Result<Option<ResponseContentType<'response>>, super::ContentTypeError> {
+        let Some(header) = self.headers.get("content-type") else {
+            return Ok(None);
+        };
+        let value =
+            core::str::from_utf8(header.value()).map_err(|_| super::ContentTypeError::Invalid)?;
+        ResponseContentType::new(value).map(Some)
     }
 
     /// Returns validated rate-limit metadata when supplied.

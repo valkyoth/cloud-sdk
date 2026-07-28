@@ -79,6 +79,8 @@ pub enum ResponsePolicyError {
     ForbiddenBody,
     /// A required response content type is absent.
     MissingContentType,
+    /// A present response content type is malformed.
+    InvalidContentType,
     /// The supplied content type is not accepted.
     UnexpectedContentType,
     /// A content type was supplied when forbidden.
@@ -95,6 +97,7 @@ impl_static_error!(ResponsePolicyError,
     Self::MissingBody => "required response body is missing",
     Self::ForbiddenBody => "response body is forbidden",
     Self::MissingContentType => "required response content type is missing",
+    Self::InvalidContentType => "response content type is invalid",
     Self::UnexpectedContentType => "response content type is not accepted",
     Self::ForbiddenContentType => "response content type is forbidden",
     Self::UncommittedResponse => "response writer is not committed",
@@ -152,13 +155,11 @@ impl ResponsePolicy {
     pub const fn success_statuses(self) -> &'static [StatusCode] {
         self.success_statuses
     }
-
     /// Returns response content-type policy.
     #[must_use]
     pub const fn content_type_policy(self) -> ContentTypePolicy {
         self.content_type
     }
-
     /// Returns response-body policy.
     #[must_use]
     pub const fn body_policy(self) -> ResponseBodyPolicy {
@@ -209,7 +210,10 @@ impl ResponsePolicy {
         if matches!(self.body, ResponseBodyPolicy::Required) && response.body().is_empty() {
             return Err(ResponsePolicyError::MissingBody);
         }
-        validate_content_type(self.content_type, response.content_type())?;
+        let content_type = response
+            .content_type()
+            .map_err(|_| ResponsePolicyError::InvalidContentType)?;
+        validate_content_type(self.content_type, content_type)?;
         Ok(CheckedResponseSnapshot {
             status: response.status(),
             body_len: response.body().len(),
@@ -308,7 +312,7 @@ impl CheckedResponseGuard<'_> {
         self.writer
             .response()
             .ok()
-            .and_then(|response| response.content_type())
+            .and_then(|response| response.content_type().ok().flatten())
     }
 
     /// Returns validated rate-limit metadata when supplied.
@@ -418,7 +422,7 @@ fn checked_response<'response>(
         content_type: writer
             .response()
             .ok()
-            .and_then(|response| response.content_type()),
+            .and_then(|response| response.content_type().ok().flatten()),
         rate_limit: snapshot.rate_limit,
         request_id: writer.request_id(),
         request_id_policy: snapshot.request_id_policy,
@@ -485,7 +489,6 @@ fn validate_content_type(
         }
     }
 }
-
 const fn map_writer_error(error: ResponseWriterError) -> ResponsePolicyError {
     match error {
         ResponseWriterError::NotCommitted

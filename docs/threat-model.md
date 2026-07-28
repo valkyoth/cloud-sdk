@@ -99,6 +99,9 @@
 - transports receive only a sealed writer over the admitted caller-owned
   prefix; they commit status, bounded metadata, and a checked initialized
   length but cannot substitute external or static response bytes;
+- core distinguishes absent response content type from malformed syntax or
+  invalid UTF-8 and rejects every present parse failure before provider
+  decoding, including under optional and forbidden policies;
 - a cleanup-owning response guard uses one audited volatile primitive to clear
   the complete caller body and header buffers before admission and on every
   ordinary exit; temporary headers, request identifiers, cursor/link staging,
