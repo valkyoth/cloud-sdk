@@ -1,7 +1,7 @@
 # Crate Version Matrix
 
-Status: `v0.37.0` is tagged. `v0.38.0` mandatory response cleanup has reached
-its implementation stop and requires pentest.
+Status: `v0.37.0` is tagged. `v0.38.0` mandatory response cleanup passed
+pentest and final retest; local and GitHub release checks remain before tagging.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared

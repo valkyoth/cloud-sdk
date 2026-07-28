@@ -1,8 +1,9 @@
 # cloud-sdk 0.38.0 Release Notes
 
-Status: implementation stop reached; pentest required before release.
+Status: release candidate; pentest and final retest passed. Local and GitHub
+release checks remain required before tagging.
 
-Release date: pending
+Release date: 2026-07-28
 
 ## Overview
 
@@ -89,6 +90,19 @@ No external package was added or upgraded.
 - default, no_std, all-feature, clippy, doctest, package, deny, audit, platform,
   MSRV, fuzz, and SBOM gates
 
+## Pentest
+
+The v0.38 pentest findings covered request-ID policy on provider-error paths,
+movable sensitive response storage, unprotected strict-JSON object keys, and a
+fail-open absent-versus-malformed content-type distinction. All findings were
+remediated with stable caller-owned cleanup storage, complete operation policy
+admission, protected key allocations, and core fail-closed content-type
+validation.
+
+The final retest passed commit
+`8797d00452306da938a00915d3f9b4989db8c000`. See the
+[`v0.38.0` pentest report](../security/pentest/v0.38.0.md).
+
 ## Guarantee Limits
 
 Cleanup does not cover process abort, `mem::forget` or deliberately leaked
@@ -105,5 +119,6 @@ See [`docs/MIGRATION_0.38.0.md`](../docs/MIGRATION_0.38.0.md),
 ## Release Gate
 
 ```text
-v0.38.0 implementation stop reached. Run pentest for this exact commit.
+v0.38.0 pentest stop passed. Tag only after the clean local release gate and
+GitHub checks pass on the final release commit.
 ```
