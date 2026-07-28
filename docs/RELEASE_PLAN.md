@@ -1592,7 +1592,7 @@ Stop gate: `v0.36.0 implementation stop reached. Run pentest for this exact comm
 
 ### v0.37.0 - Response Buffer Provenance
 
-Status: implementation complete; pentest required.
+Status: implementation complete; pentest and final retest passed.
 
 Goal: make it impossible for a transport to return bytes outside the admitted caller buffer.
 

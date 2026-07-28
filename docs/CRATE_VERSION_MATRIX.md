@@ -1,7 +1,7 @@
 # Crate Version Matrix
 
-Status: `v0.36.0` is tagged. `v0.37.0` response-buffer provenance
-implementation is complete; pentest is required before release.
+Status: `v0.36.0` is tagged. `v0.37.0` response-buffer provenance has passed
+pentest and final retest; local and GitHub release checks remain before tagging.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared

@@ -1,8 +1,9 @@
 # cloud-sdk 0.37.0 Release Notes
 
-Status: implementation complete; pentest required before release.
+Status: release candidate; pentest and final retest passed. Local and GitHub
+release checks remain required before tagging.
 
-Release date: pending
+Release date: 2026-07-28
 
 ## Overview
 
@@ -70,7 +71,15 @@ transfer, and stronger platform lifecycle evidence.
 
 ## Pentest
 
-Pending independent review of the exact implementation commit.
+The v0.37 pentest found one Low verification gap: the response-construction
+compile-fail example could fail because fields were missing before field
+privacy was tested. The fixture now supplies every field, and the provenance
+gate requires the private-field diagnostic while rejecting missing-field
+failures.
+
+The final retest passed commit
+`07a78481d78279bb95f0ca9d02ed3d6da170cea9`. See the
+[`v0.37.0` pentest report](../security/pentest/v0.37.0.md).
 
 ## Migration
 
@@ -81,5 +90,6 @@ See [`docs/MIGRATION_0.37.0.md`](../docs/MIGRATION_0.37.0.md),
 ## Release Gate
 
 ```text
-v0.37.0 implementation stop reached. Run pentest for this exact commit.
+v0.37.0 pentest stop passed. Tag only after the clean local release gate and
+GitHub checks pass on the final release commit.
 ```
