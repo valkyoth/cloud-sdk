@@ -2,7 +2,7 @@ use std::string::String;
 use std::time::Duration;
 
 use cloud_sdk::Method;
-use cloud_sdk::transport::{BlockingTransport, RequestTarget, TransportRequest};
+use cloud_sdk::transport::{RequestTarget, TransportRequest};
 
 use crate::test_server::spawn;
 
@@ -32,7 +32,8 @@ fn blocking_client_sends_complete_method_domain_exactly() {
             unreachable!("successful target assertion guarantees a request target")
         };
         let mut output = [0_u8; 1];
-        let response = client.send(TransportRequest::new(method, target), &mut output);
+        let response =
+            super::send_test(&client, TransportRequest::new(method, target), &mut output);
         assert!(response.is_ok());
 
         let recorded = server.request.recv_timeout(Duration::from_secs(2));

@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.37.0 - 2026-07-28
+
+- Replaced transport-created responses with a sealed response writer tied to
+  one admitted caller-buffer prefix.
+- Added cleanup-owning response and checked-response guards with
+  closure-scoped borrowed decoding.
+- Required explicit, single status/length/metadata commitment and rejected
+  forged lengths, duplicate commitment, post-commit writes, and missing
+  commitment.
+- Rejected precommitted writers before adapter I/O or mock cursor movement.
+- Migrated blocking, async, reqwest, testkit, prepared execution, Hetzner
+  checked decoding, examples, live smoke, and fuzzing to the new contract.
+- Added adversarial response-provenance, complete-storage cleanup,
+  blocking/async parity, and compile-fail lifetime coverage.
+
 ## 0.36.0 - 2026-07-27
 
 - Added bounded ordered request headers with explicit sensitivity,

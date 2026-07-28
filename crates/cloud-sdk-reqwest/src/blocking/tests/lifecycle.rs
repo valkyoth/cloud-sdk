@@ -3,7 +3,8 @@ use std::time::Duration;
 
 use cloud_sdk::Method;
 use cloud_sdk::transport::{
-    BlockingTransport, BoundTransport, RequestTarget, ResponseStorageSanitizer, TransportRequest,
+    BlockingTransport, BoundTransport, RequestTarget, ResponseBuffer, ResponseMetadata,
+    ResponseStorageSanitizer, StatusCode, TransportRequest,
 };
 use cloud_sdk_sanitization::SecretBuffer;
 
@@ -42,6 +43,32 @@ fn blocking_client_is_clone_send_sync_and_endpoint_bound() {
         assert!(client.rotate_bearer_token(replacement).is_ok());
     }
     assert_eq!(client.endpoint_identity(), before);
+}
+
+#[test]
+fn blocking_precommitted_writer_fails_before_network_access() {
+    let Some(client) = build_loopback("http://127.0.0.1:1/v1") else {
+        return;
+    };
+    let Ok(target) = RequestTarget::new("/precommitted") else {
+        return;
+    };
+    let mut output = [0xa5_u8; 8];
+    let mut response = ResponseBuffer::new(&mut output, 8, &client);
+    assert!(
+        response
+            .writer()
+            .commit(StatusCode::OK, 0, ResponseMetadata::EMPTY)
+            .is_ok()
+    );
+    assert_eq!(
+        BlockingTransport::send(
+            &client,
+            TransportRequest::new(Method::Get, target),
+            response.writer(),
+        ),
+        Err(super::super::TransportError::ResponseCommitFailed)
+    );
 }
 
 #[test]
@@ -119,7 +146,11 @@ fn blocking_guarded_rotation_clears_source_and_is_shared_by_clones() {
 
 fn send_once(client: &super::super::BlockingClient, target: RequestTarget<'_>) -> bool {
     let mut output = [0xa5_u8; 8];
-    let response = client.send(TransportRequest::new(Method::Get, target), &mut output);
+    let response = super::send_test(
+        client,
+        TransportRequest::new(Method::Get, target),
+        &mut output,
+    );
     response.is_ok_and(|response| response.status().is_success() && response.body() == b"ok")
 }
 

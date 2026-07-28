@@ -1,101 +1,11 @@
 use alloc::format;
 use alloc::string::String;
 
-use cloud_sdk::operation::{
-    ContentTypePolicy, CostIntent, OperationId, OperationImpact, OperationMetadata,
-    PreparedRequest, ProviderService, RequestSemantics, ResponseBodyPolicy, ResponsePolicy,
-    RetryEligibility,
-};
-use cloud_sdk::transport::{
-    EndpointIdentity, EndpointPolicy, EndpointScheme, MediaType, RequestTarget,
-    ResponseContentType, StatusCode, TransportRequest,
-};
-use cloud_sdk::{Method, ServiceId};
+use cloud_sdk::transport::StatusCode;
 
-use super::{HetznerDecodeError, HetznerSuccess, ResourceKind, decode_response};
-use crate::identity::{CLOUD_SERVICE_ID, CloudService, STORAGE_SERVICE_ID, StorageService};
-
-const JSON: &[MediaType<'static>] = &[MediaType::JSON];
-const OK: &[StatusCode] = &[StatusCode::OK];
-const CREATED: &[StatusCode] = &[StatusCode::CREATED];
-const NO_CONTENT: &[StatusCode] = &[StatusCode::NO_CONTENT];
-
-pub(super) fn prepared(
-    operation: &'static str,
-    service_id: ServiceId,
-    status: StatusCode,
-) -> PreparedRequest<'static> {
-    let target = RequestTarget::new("/test");
-    assert!(target.is_ok());
-    let statuses = if status == StatusCode::OK {
-        OK
-    } else if status == StatusCode::CREATED {
-        CREATED
-    } else {
-        NO_CONTENT
-    };
-    let empty = status == StatusCode::NO_CONTENT;
-    let policy = ResponsePolicy::new(
-        statuses,
-        if empty {
-            ContentTypePolicy::Forbidden
-        } else {
-            ContentTypePolicy::Required(JSON)
-        },
-        if empty {
-            ResponseBodyPolicy::Forbidden
-        } else {
-            ResponseBodyPolicy::Required
-        },
-        if empty { 0 } else { 8_388_608 },
-    );
-    assert!(policy.is_ok());
-    let metadata = OperationMetadata::new(
-        OperationImpact::ReadOnly,
-        RequestSemantics::Safe,
-        RetryEligibility::ExplicitPolicy,
-        CostIntent::NoKnownCost,
-    );
-    assert!(metadata.is_ok());
-    let endpoint = EndpointIdentity::new(
-        EndpointScheme::Https,
-        if service_id == STORAGE_SERVICE_ID {
-            "api.hetzner.com"
-        } else {
-            "api.hetzner.cloud"
-        },
-        443,
-        "/v1",
-    );
-    assert!(endpoint.is_ok());
-    let operation_id = OperationId::new(operation);
-    assert!(operation_id.is_ok());
-    PreparedRequest::new(
-        TransportRequest::new(Method::Get, target.unwrap_or_else(|_| unreachable!())),
-        if service_id == STORAGE_SERVICE_ID {
-            ProviderService::from_marker::<StorageService>(EndpointPolicy::fixed(
-                endpoint.unwrap_or_else(|_| unreachable!()),
-            ))
-        } else {
-            ProviderService::from_marker::<CloudService>(EndpointPolicy::fixed(
-                endpoint.unwrap_or_else(|_| unreachable!()),
-            ))
-        },
-        metadata.unwrap_or_else(|_| unreachable!()),
-        policy.unwrap_or_else(|_| unreachable!()),
-    )
-    .with_operation_id(operation_id.unwrap_or_else(|_| unreachable!()))
-}
-
-pub(super) fn response(
-    status: StatusCode,
-    body: &[u8],
-) -> cloud_sdk::transport::TransportResponse<'_> {
-    let content_type = ResponseContentType::new("application/json; charset=utf-8");
-    assert!(content_type.is_ok());
-    cloud_sdk::transport::TransportResponse::new(status, body)
-        .with_content_type(content_type.unwrap_or_else(|_| unreachable!()))
-}
+use super::checked_test_support::{decode_response, empty_response, prepared, response};
+use super::{HetznerDecodeError, HetznerSuccess, ResourceKind};
+use crate::identity::{CLOUD_SERVICE_ID, STORAGE_SERVICE_ID};
 
 fn action() -> &'static str {
     r#"{"id":42,"command":"poweron_server","status":"running","progress":10,"started":"2026-07-16T00:00:00Z","finished":null,"resources":[{"id":7,"type":"server"}],"error":null}"#
@@ -235,7 +145,7 @@ fn decodes_composite_special_empty_and_storage_families() {
         )
         .is_ok()
     );
-    let empty = cloud_sdk::transport::TransportResponse::new(StatusCode::NO_CONTENT, b"");
+    let empty = empty_response(StatusCode::NO_CONTENT);
     assert!(
         decode_response(
             prepared(
@@ -344,7 +254,7 @@ fn every_source_locked_operation_decodes_its_minimal_success_envelope() {
         };
         let body = minimal_body(shape, root, required);
         let response = if status == StatusCode::NO_CONTENT {
-            cloud_sdk::transport::TransportResponse::new(status, b"")
+            empty_response(status)
         } else {
             response(status, body.as_bytes())
         };

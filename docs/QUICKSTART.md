@@ -8,15 +8,15 @@ usable in `no_std` environments.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.36.0"
+cloud-sdk = "0.37.0"
 ```
 
 Provider-specific request models are separate dependencies. For Hetzner:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.36.0"
-cloud-sdk-hetzner = "0.29.0"
+cloud-sdk = "0.37.0"
+cloud-sdk-hetzner = "0.30.0"
 ```
 
 ## Build A Transport Request
@@ -81,6 +81,8 @@ assert_eq!(headers.as_slice().len(), 2);
 
 See [`MIGRATION_0.36.0.md`](MIGRATION_0.36.0.md) for reserved ownership,
 duplicate handling, limits, response metadata, and adapter changes.
+See [`MIGRATION_0.37.0.md`](MIGRATION_0.37.0.md) for response-buffer
+provenance, sealed response admission, and cleanup-owning checked guards.
 
 Provider crates can use `Method::extension("PURGE")` for a finite static
 extension. Extensions are bounded uppercase HTTP tokens; known aliases,
@@ -172,12 +174,14 @@ retry eligibility, cost intent, accepted statuses and media types, body shape,
 and maximum response length.
 
 `PreparedRequest::execute_blocking` and `execute_async` verify endpoint policy
-before sending and lend no more than the policy's admitted response capacity.
-The transport must also implement `ResponseStorageSanitizer`; the complete
-caller buffer is cleared before endpoint verification or capacity truncation.
-They return `CheckedResponse` only after status, body shape, initialized length,
-and validated response content type pass. They execute once and never retry,
-sleep, schedule work, or select a clock.
+before sending and lend no more than the policy's admitted response capacity
+through a sealed `ResponseWriter`. The transport must also implement
+`ResponseStorageSanitizer`; a cleanup-owning `ResponseBuffer` clears the
+complete caller buffer before admission and on every exit. They return
+`CheckedResponseGuard` only after status, body shape, initialized length, and
+validated response content type pass. Borrowed decoding is closure-scoped;
+owned decoding clears storage before returning. Execution never retries,
+sleeps, schedules work, or selects a clock.
 
 ## Continue
 

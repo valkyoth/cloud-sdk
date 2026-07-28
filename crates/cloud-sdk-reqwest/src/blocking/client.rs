@@ -4,8 +4,8 @@ use std::sync::Arc;
 
 use cloud_sdk::Method;
 use cloud_sdk::transport::{
-    BlockingTransport, BoundTransport, EndpointIdentity, EndpointIdentityError,
-    ResponseStorageSanitizer, StatusCode, TransportRequest, TransportResponse,
+    BlockingTransport, BoundTransport, EndpointIdentity, EndpointIdentityError, ResponseMetadata,
+    ResponseStorageSanitizer, ResponseWriter, StatusCode, TransportRequest,
 };
 use cloud_sdk_sanitization::{SecretBuffer, sanitize_bytes};
 use reqwest::blocking::{Body, Client};
@@ -63,12 +63,14 @@ impl BlockingClient {
         self.credentials.rotate_from_secret_buffer(source)
     }
 
-    fn send_inner<'buffer>(
+    fn send_inner(
         &self,
         request: TransportRequest<'_>,
-        response_body: &'buffer mut [u8],
-    ) -> Result<TransportResponse<'buffer>, TransportError> {
-        sanitize_bytes(response_body);
+        response_writer: &mut ResponseWriter<'_>,
+    ) -> Result<(), TransportError> {
+        if response_writer.is_committed() {
+            return Err(TransportError::ResponseCommitFailed);
+        }
         let url = self
             .endpoint
             .compose(request.target())
@@ -115,7 +117,7 @@ impl BlockingClient {
             .map_err(|_| TransportError::ResponseOriginChanged)?;
         let headers = capture_response_headers(response.headers())?;
         if response.content_length().is_some_and(|length| {
-            u64::try_from(response_body.len()).map_or(true, |cap| length > cap)
+            u64::try_from(response_writer.body_capacity()).map_or(true, |cap| length > cap)
         }) {
             return Err(TransportError::ResponseTooLarge);
         }
@@ -123,26 +125,31 @@ impl BlockingClient {
             StatusCode::new(response.status().as_u16()).ok_or(TransportError::InvalidStatus)?;
         let rate_limit = parse_rate_limit(&headers)?;
         let content_type = parse_response_content_type(&headers)?;
-        let body_len = read_response(&mut response, response_body)?;
-        let initialized = response_body
-            .get(..body_len)
-            .ok_or(TransportError::ResponseReadFailed)?;
-        let response = TransportResponse::new(status, initialized).with_headers(headers);
-        let response = content_type.map_or(response, |value| response.with_content_type(value));
+        let body_len = read_response(
+            &mut response,
+            response_writer
+                .body_mut()
+                .map_err(|_| TransportError::ResponseCommitFailed)?,
+        )?;
+        let metadata = ResponseMetadata::EMPTY.with_headers(headers);
+        let metadata = content_type.map_or(metadata, |value| metadata.with_content_type(value));
+        let metadata = rate_limit.map_or(metadata, |value| metadata.with_rate_limit(value));
         drop(token_snapshot);
-        Ok(rate_limit.map_or(response, |value| response.with_rate_limit(value)))
+        response_writer
+            .commit(status, body_len, metadata)
+            .map_err(|_| TransportError::ResponseCommitFailed)
     }
 }
 
 impl BlockingTransport for BlockingClient {
     type Error = TransportError;
 
-    fn send<'buffer>(
+    fn send(
         &self,
         request: TransportRequest<'_>,
-        response_body: &'buffer mut [u8],
-    ) -> Result<TransportResponse<'buffer>, Self::Error> {
-        self.send_inner(request, response_body)
+        response: &mut ResponseWriter<'_>,
+    ) -> Result<(), Self::Error> {
+        self.send_inner(request, response)
     }
 }
 

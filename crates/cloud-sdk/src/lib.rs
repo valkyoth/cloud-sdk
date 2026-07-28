@@ -45,6 +45,7 @@ mod tests {
     use crate::rate_limit::RateLimitError;
     use crate::transport::{
         ContentTypeError, EndpointIdentityError, HeaderError, RequestPathError, RequestTargetError,
+        ResponseWriterError,
     };
     use core::fmt::{self, Write};
 
@@ -78,6 +79,7 @@ mod tests {
         assert_error::<ResponsePolicyError>();
         assert_error::<ResponsePolicyValidationError>();
         assert_error::<PreparedExecutionError<()>>();
+        assert_error::<ResponseWriterError>();
 
         assert_display(PaginationError::PageZero, "page number must be nonzero");
         assert_display(RateLimitError::LimitZero, "rate limit must be nonzero");
@@ -110,6 +112,10 @@ mod tests {
         assert_display(
             PreparedExecutionError::<()>::Transport(()),
             "prepared request transport failed",
+        );
+        assert_display(
+            ResponseWriterError::AlreadyCommitted,
+            "response writer is already committed",
         );
         assert_display(
             ActionPollError::Policy("sentinel-secret"),

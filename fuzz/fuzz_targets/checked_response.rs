@@ -7,8 +7,8 @@ use cloud_sdk::operation::{
     RetryEligibility,
 };
 use cloud_sdk::transport::{
-    EndpointIdentity, EndpointPolicy, EndpointScheme, MediaType, RequestTarget,
-    ResponseContentType, StatusCode, TransportRequest, TransportResponse,
+    EndpointIdentity, EndpointPolicy, EndpointScheme, MediaType, RequestTarget, ResponseBuffer,
+    ResponseContentType, ResponseMetadata, ResponseStorageSanitizer, StatusCode, TransportRequest,
 };
 use cloud_sdk_hetzner::CloudService;
 use cloud_sdk_hetzner::serde::decode_response;
@@ -94,7 +94,7 @@ fuzz_target!(|data: &[u8]| {
     } else {
         &data[2..]
     };
-    let mut response = TransportResponse::new(status, body);
+    let mut metadata = ResponseMetadata::EMPTY;
     if data[1] % 3 != 2 {
         let value = if data[1] % 3 == 0 {
             "application/json; charset=utf-8"
@@ -102,8 +102,30 @@ fuzz_target!(|data: &[u8]| {
             "text/plain"
         };
         if let Ok(content_type) = ResponseContentType::new(value) {
-            response = response.with_content_type(content_type);
+            metadata = metadata.with_content_type(content_type);
         }
+    }
+    let mut response_storage = body.to_vec();
+    let capacity = response_storage.len();
+    let mut response = ResponseBuffer::new(&mut response_storage, capacity, &FuzzSanitizer);
+    let Ok(output) = response.writer().body_mut() else {
+        return;
+    };
+    output.copy_from_slice(body);
+    if response
+        .writer()
+        .commit(status, body.len(), metadata)
+        .is_err()
+    {
+        return;
     }
     let _ = decode_response(prepared, response);
 });
+
+struct FuzzSanitizer;
+
+impl ResponseStorageSanitizer for FuzzSanitizer {
+    fn sanitize_response_storage(&self, response_storage: &mut [u8]) {
+        response_storage.fill(0);
+    }
+}

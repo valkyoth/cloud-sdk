@@ -1,8 +1,7 @@
 # Crate Version Matrix
 
-Status: `v0.35.0` is tagged. `v0.36.0` bounded HTTP header implementation,
-pentest, and final retest are complete; local and GitHub release checks remain
-required before tagging.
+Status: `v0.36.0` is tagged. `v0.37.0` response-buffer provenance
+implementation is complete; pentest is required before release.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
@@ -559,6 +558,20 @@ conformance.
 | `cloud-sdk-reqwest` | `0.23.0` | `0.24.0` | `code` | Yes | Forward exact request headers and capture bounded response metadata. |
 | `cloud-sdk-sanitization` | `0.15.3` | `0.15.4` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.36 facade line. |
 | `cloud-sdk-testkit` | `0.20.0` | `0.21.0` | `code` | Yes | Match exact request headers and model bounded response metadata. |
+
+## v0.37.0 Tracking Table
+
+`v0.37.0` makes response provenance structural through a cleanup-owning
+caller buffer, sealed transport writer, core-only response views, and
+guard-scoped checked decoding.
+
+| Crate | Published | Planned | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.36.0` | `0.37.0` | `code` | Yes | Add sealed response admission, commitment, cleanup ownership, and checked guard lifetimes. |
+| `cloud-sdk-hetzner` | `0.29.0` | `0.30.0` | `code` | Yes | Consume cleanup-owning response buffers in all checked success and provider-error decoding. |
+| `cloud-sdk-reqwest` | `0.24.0` | `0.25.0` | `code` | Yes | Commit blocking and async responses only through the admitted sealed writer. |
+| `cloud-sdk-sanitization` | `0.15.4` | `0.15.5` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.37 facade line. |
+| `cloud-sdk-testkit` | `0.21.0` | `0.22.0` | `code` | Yes | Produce deterministic fixtures through the same sealed writer and commitment contract. |
 
 ## Planned Milestone Ownership
 

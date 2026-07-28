@@ -16,8 +16,7 @@ use rustls::pki_types::{CertificateDer, CertificateRevocationListDer};
 
 use cloud_sdk::Method;
 use cloud_sdk::transport::{
-    BlockingTransport, ContentType, RequestHeader, RequestHeaders, RequestTarget, StatusCode,
-    TransportRequest,
+    ContentType, RequestHeader, RequestHeaders, RequestTarget, StatusCode, TransportRequest,
 };
 
 use super::body::{ReadBodyError, read_bounded};
@@ -33,6 +32,9 @@ mod endpoint_policy;
 mod lifecycle;
 mod method_domain;
 mod response_content_type;
+mod support;
+
+use support::send_test;
 
 fn test_timeouts() -> Option<RequestTimeouts> {
     RequestTimeouts::new(Duration::from_secs(2), Duration::from_secs(1)).ok()
@@ -158,7 +160,7 @@ fn blocking_client_sends_exact_headers_target_and_body_once() {
         .with_body(br#"{"name":"server"}"#)
         .with_headers(headers);
     let mut output = [0xa5_u8; 32];
-    let response = client.send(request, &mut output);
+    let response = send_test(&client, request, &mut output);
     assert!(response.is_ok());
     if let Ok(response) = response {
         assert_eq!(response.status().get(), 503);
@@ -195,7 +197,11 @@ fn redirects_are_returned_and_oversized_bodies_are_cleared() {
         return;
     };
     let mut output = [0_u8; 16];
-    let response = client.send(TransportRequest::new(Method::Get, target), &mut output);
+    let response = send_test(
+        &client,
+        TransportRequest::new(Method::Get, target),
+        &mut output,
+    );
     assert!(response.is_ok());
     if let Ok(response) = response {
         assert_eq!(response.status().get(), 302);
@@ -209,7 +215,11 @@ fn redirects_are_returned_and_oversized_bodies_are_cleared() {
     };
     let mut short = [0xa5_u8; 4];
     assert!(matches!(
-        client.send(TransportRequest::new(Method::Get, target), &mut short),
+        send_test(
+            &client,
+            TransportRequest::new(Method::Get, target),
+            &mut short,
+        ),
         Err(TransportError::ResponseTooLarge)
     ));
     assert_eq!(short, [0_u8; 4]);
@@ -236,7 +246,11 @@ fn response_propagates_validated_rate_limit_headers() {
         return;
     };
     let mut output = [0_u8; 8];
-    let response = client.send(TransportRequest::new(Method::Get, target), &mut output);
+    let response = send_test(
+        &client,
+        TransportRequest::new(Method::Get, target),
+        &mut output,
+    );
     assert!(response.is_ok());
     let Ok(response) = response else { return };
     let Some(content_type) = response.content_type() else {
@@ -282,7 +296,11 @@ fn incomplete_rate_limit_headers_fail_closed() {
     };
     let mut output = [0xa5_u8; 8];
     assert!(matches!(
-        client.send(TransportRequest::new(Method::Get, target), &mut output),
+        send_test(
+            &client,
+            TransportRequest::new(Method::Get, target),
+            &mut output,
+        ),
         Err(TransportError::InvalidRateLimitHeaders)
     ));
     assert_eq!(output, [0_u8; 8]);
@@ -310,7 +328,11 @@ fn duplicate_rate_limit_headers_fail_closed() {
     };
     let mut output = [0xa5_u8; 8];
     assert!(matches!(
-        client.send(TransportRequest::new(Method::Get, target), &mut output),
+        send_test(
+            &client,
+            TransportRequest::new(Method::Get, target),
+            &mut output,
+        ),
         Err(TransportError::InvalidResponseHeaders)
     ));
     assert_eq!(output, [0_u8; 8]);
@@ -326,7 +348,8 @@ fn nonempty_body_requires_content_type_before_network_access() {
     };
     let mut output = [0xa5_u8; 8];
     assert!(matches!(
-        client.send(
+        send_test(
+            &client,
             TransportRequest::new(Method::Post, target).with_body(b"{}"),
             &mut output,
         ),
@@ -356,7 +379,11 @@ fn response_timeout_is_payload_free_and_clears_output() {
     };
     let mut output = [0xa5_u8; 8];
     assert!(matches!(
-        client.send(TransportRequest::new(Method::Get, target), &mut output),
+        send_test(
+            &client,
+            TransportRequest::new(Method::Get, target),
+            &mut output,
+        ),
         Err(TransportError::TimedOut)
     ));
     assert_eq!(output, [0_u8; 8]);

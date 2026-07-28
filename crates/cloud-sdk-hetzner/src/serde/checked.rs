@@ -5,7 +5,9 @@ use core::fmt;
 
 use cloud_sdk::operation::{PreparedRequest, ResponsePolicyError};
 use cloud_sdk::rate_limit::RateLimit;
-use cloud_sdk::transport::{MediaType, TransportResponse};
+use cloud_sdk::transport::{
+    MediaType, ResponseBuffer, ResponseStorageSanitizer, ResponseWriterError, TransportResponse,
+};
 
 use super::binding::{ResponseBinding, ResponseShape, find};
 use super::models::{
@@ -71,6 +73,8 @@ pub enum HetznerDecodeError {
     ServiceMismatch,
     /// The response failed the prepared success policy.
     ResponsePolicy(ResponsePolicyError),
+    /// The response writer was not committed through the admitted buffer.
+    ResponseWriter(ResponseWriterError),
     /// The response exceeds the parser boundary.
     ResponseSize(ResponseSizeError),
     /// An error status omitted or supplied an invalid JSON content type.
@@ -92,6 +96,7 @@ impl fmt::Display for HetznerDecodeError {
             Self::UnknownOperation => "prepared request operation is not source-locked",
             Self::ServiceMismatch => "prepared request service does not match the operation",
             Self::ResponsePolicy(_) => "Hetzner success response failed its prepared policy",
+            Self::ResponseWriter(_) => "Hetzner response writer state is invalid",
             Self::ResponseSize(_) => "Hetzner response exceeds the parser size limit",
             Self::ErrorContentType => "Hetzner error response content type is invalid",
             Self::MissingErrorBody => "Hetzner error response body is missing",
@@ -106,6 +111,7 @@ impl core::error::Error for HetznerDecodeError {
     fn source(&self) -> Option<&(dyn core::error::Error + 'static)> {
         match self {
             Self::ResponsePolicy(error) => Some(error),
+            Self::ResponseWriter(error) => Some(error),
             Self::ResponseSize(error) => Some(error),
             Self::Model(error) => Some(error),
             Self::Provider(error) => Some(error),
@@ -142,10 +148,13 @@ impl CheckedHetznerResponse {
 }
 
 /// Decodes one transport response through its exact prepared operation policy.
-pub fn decode_response(
+pub fn decode_response<S>(
     prepared: PreparedRequest<'_>,
-    response: TransportResponse<'_>,
-) -> Result<CheckedHetznerResponse, HetznerDecodeError> {
+    response: ResponseBuffer<'_, '_, S>,
+) -> Result<CheckedHetznerResponse, HetznerDecodeError>
+where
+    S: ResponseStorageSanitizer + ?Sized,
+{
     let operation = prepared
         .operation_id()
         .ok_or(HetznerDecodeError::MissingOperationId)?;
@@ -154,8 +163,15 @@ pub fn decode_response(
     if service.provider_id() != HETZNER_PROVIDER_ID || service.service_id() != binding.service_id {
         return Err(HetznerDecodeError::ServiceMismatch);
     }
-    if response.status().is_error() {
-        return match decode_provider_error(response) {
+    let status = response
+        .with_response(|view| view.status())
+        .map_err(HetznerDecodeError::ResponseWriter)?;
+    if status.is_error() {
+        let decoded = response
+            .with_response(decode_provider_error)
+            .map_err(HetznerDecodeError::ResponseWriter)?;
+        drop(response);
+        return match decoded {
             Ok(error) => Err(HetznerDecodeError::Provider(error)),
             Err(error) => Err(error),
         };
@@ -163,22 +179,25 @@ pub fn decode_response(
     let checked = prepared
         .validate_response(response)
         .map_err(HetznerDecodeError::ResponsePolicy)?;
-    if checked.status().get() != binding.status {
-        return Err(HetznerDecodeError::ResponsePolicy(
-            ResponsePolicyError::UnexpectedStatus,
-        ));
-    }
-    let success = if binding.shape == ResponseShape::Empty {
-        HetznerSuccess::Empty
-    } else {
-        let bytes = ResponseBytes::new(checked.body()).map_err(HetznerDecodeError::ResponseSize)?;
-        let mut value = strict_json::parse(bytes.as_slice())
-            .map_err(|_| HetznerDecodeError::MalformedPayload)?;
-        decode_success(binding, &mut value).map_err(HetznerDecodeError::Model)?
-    };
-    Ok(CheckedHetznerResponse {
-        success,
-        rate_limit: checked.rate_limit(),
+    checked.decode_owned(|checked| {
+        if checked.status().get() != binding.status {
+            return Err(HetznerDecodeError::ResponsePolicy(
+                ResponsePolicyError::UnexpectedStatus,
+            ));
+        }
+        let success = if binding.shape == ResponseShape::Empty {
+            HetznerSuccess::Empty
+        } else {
+            let bytes =
+                ResponseBytes::new(checked.body()).map_err(HetznerDecodeError::ResponseSize)?;
+            let mut value = strict_json::parse(bytes.as_slice())
+                .map_err(|_| HetznerDecodeError::MalformedPayload)?;
+            decode_success(binding, &mut value).map_err(HetznerDecodeError::Model)?
+        };
+        Ok(CheckedHetznerResponse {
+            success,
+            rate_limit: checked.rate_limit(),
+        })
     })
 }
 

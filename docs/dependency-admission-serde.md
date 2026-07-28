@@ -72,8 +72,9 @@ values, including escaped values, enter volatile-clearing owned storage without
 an ordinary decoded heap scratch copy before duplicate, trailing-document,
 required-field, or resource/action validation can fail. Composite secrets,
 zonefiles, and redacted error messages move that same allocation into their
-public sensitive wrappers. Caller-owned transport response storage remains an
-explicit cleanup boundary.
+public sensitive wrappers. Caller-owned transport response storage is admitted
+through `ResponseBuffer` and cleared by its supplied sanitizer before
+transport use and when the cleanup-owning guard drops.
 
 ## Alternatives Considered
 

@@ -35,6 +35,8 @@ mod adversarial_tests;
 #[cfg(test)]
 mod checked_security_tests;
 #[cfg(test)]
+mod checked_test_support;
+#[cfg(test)]
 mod checked_tests;
 #[cfg(test)]
 mod tests;

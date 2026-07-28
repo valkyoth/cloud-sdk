@@ -34,6 +34,10 @@ lend at most the configured response capacity, and return `CheckedResponse`
 only after expected status, body policy, body limit, and content-type policy
 pass.
 
+This section describes the v0.29 API. As of v0.37, transports receive a sealed
+`ResponseWriter` and prepared execution returns a cleanup-owning
+`CheckedResponseGuard`. See [`MIGRATION_0.37.0.md`](MIGRATION_0.37.0.md).
+
 Prepared transports must additionally implement `ResponseStorageSanitizer`.
 Execution invokes it for the complete caller-owned response buffer before
 endpoint verification and before lending the smaller admitted slice to
@@ -46,6 +50,9 @@ response in the unused tail.
 Custom transports should validate and attach one bounded response content type
 with `with_content_type`. Missing metadata remains `None`; malformed metadata
 must be a transport error rather than an unchecked value.
+
+As of v0.37, custom transports commit this metadata through
+`ResponseWriter::commit`; they cannot construct `TransportResponse` directly.
 
 ## Reqwest Behavior
 

@@ -1,6 +1,7 @@
 use super::{
     ContentType, ContentTypeError, RequestPathError, RequestTarget, RequestTargetError,
-    ResponseContentType, StatusCode, TransportRequest, TransportResponse,
+    ResponseBuffer, ResponseContentType, ResponseMetadata, ResponseStorageSanitizer,
+    ResponseWriter, StatusCode, TransportRequest,
 };
 use crate::Method;
 use crate::rate_limit::RateLimit;
@@ -152,18 +153,37 @@ fn transport_response_borrows_body_propagates_metadata_and_redacts_debug() {
     let body = output.get(..15).unwrap_or_default();
     let rate_limit = RateLimit::new(3600, 3599, 42).ok();
     let content_type = ResponseContentType::new("application/private; token=secret-content").ok();
-    let response = rate_limit.map_or(TransportResponse::new(StatusCode::OK, body), |rate_limit| {
-        TransportResponse::new(StatusCode::OK, body).with_rate_limit(rate_limit)
+    let mut storage = *output;
+    let mut buffer = ResponseBuffer::new(&mut storage, 15, &FillSanitizer);
+    assert!(
+        buffer
+            .writer()
+            .body_mut()
+            .map(|initialized| initialized.copy_from_slice(body))
+            .is_ok()
+    );
+    let metadata = rate_limit.map_or(ResponseMetadata::EMPTY, |value| {
+        ResponseMetadata::EMPTY.with_rate_limit(value)
     });
-    let response = content_type.map_or(response, |value| response.with_content_type(value));
-
-    assert_eq!(response.status(), StatusCode::OK);
-    assert_eq!(response.body(), b"secret-response");
-    assert_eq!(response.rate_limit(), rate_limit);
-    assert_eq!(response.content_type(), content_type);
-
+    let metadata = content_type.map_or(metadata, |value| metadata.with_content_type(value));
+    assert!(
+        buffer
+            .writer()
+            .commit(StatusCode::OK, body.len(), metadata)
+            .is_ok()
+    );
     let mut debug = DebugBuffer::new();
-    assert!(write!(&mut debug, "{response:?}").is_ok());
+    assert!(
+        buffer
+            .with_response(|response| {
+                assert_eq!(response.status(), StatusCode::OK);
+                assert_eq!(response.body(), b"secret-response");
+                assert_eq!(response.rate_limit(), rate_limit);
+                assert_eq!(response.content_type(), content_type);
+                write!(&mut debug, "{response:?}")
+            })
+            .is_ok_and(|result| result.is_ok())
+    );
     let debug = debug.as_str();
     assert!(debug.contains("body_len: 15"));
     assert!(debug.contains("[redacted]"));
@@ -178,17 +198,21 @@ struct SequentialBlockingTransport {
 impl BlockingTransport for SequentialBlockingTransport {
     type Error = ();
 
-    fn send<'buffer>(
+    fn send(
         &self,
         _request: TransportRequest<'_>,
-        response_body: &'buffer mut [u8],
-    ) -> Result<TransportResponse<'buffer>, Self::Error> {
+        response: &mut ResponseWriter<'_>,
+    ) -> Result<(), Self::Error> {
         self.calls.set(self.calls.get().saturating_add(1));
-        let Some(output) = response_body.get_mut(..2) else {
-            return Err(());
-        };
+        let output = response
+            .body_mut()
+            .map_err(|_| ())?
+            .get_mut(..2)
+            .ok_or(())?;
         output.copy_from_slice(b"ok");
-        Ok(TransportResponse::new(StatusCode::OK, output))
+        response
+            .commit(StatusCode::OK, 2, ResponseMetadata::EMPTY)
+            .map_err(|_| ())
     }
 }
 
@@ -201,22 +225,38 @@ impl AsyncTransport for SequentialAsyncTransport {
 
     // Avoid capturing the deliberately non-Sync receiver in the Send future.
     #[allow(clippy::manual_async_fn)]
-    fn send<'transport, 'request, 'buffer>(
+    fn send<'transport, 'request, 'writer>(
         &'transport self,
         _request: TransportRequest<'request>,
-        response_body: &'buffer mut [u8],
-    ) -> impl Future<Output = Result<TransportResponse<'buffer>, Self::Error>> + Send + 'transport
+        response: &'writer mut ResponseWriter<'_>,
+    ) -> impl Future<Output = Result<(), Self::Error>> + Send + 'writer
     where
-        'request: 'transport,
-        'buffer: 'transport,
+        'transport: 'writer,
+        'request: 'writer,
     {
         async move {
-            let Some(output) = response_body.get_mut(..2) else {
-                return Err(());
-            };
+            let output = response
+                .body_mut()
+                .map_err(|_| ())?
+                .get_mut(..2)
+                .ok_or(())?;
             output.copy_from_slice(b"ok");
-            Ok(TransportResponse::new(StatusCode::OK, output))
+            response
+                .commit(StatusCode::OK, 2, ResponseMetadata::EMPTY)
+                .map_err(|_| ())
         }
+    }
+}
+
+impl ResponseStorageSanitizer for SequentialBlockingTransport {
+    fn sanitize_response_storage(&self, response_storage: &mut [u8]) {
+        response_storage.fill(0);
+    }
+}
+
+impl ResponseStorageSanitizer for SequentialAsyncTransport {
+    fn sanitize_response_storage(&self, response_storage: &mut [u8]) {
+        response_storage.fill(0);
     }
 }
 
@@ -230,22 +270,40 @@ fn non_sync_transports_remain_usable_sequentially() {
         calls: Cell::new(0),
     };
     let mut blocking_output = [0_u8; 2];
-    let response = blocking.send(request, &mut blocking_output);
-    assert!(response.is_ok_and(|response| response.body() == b"ok"));
+    let mut blocking_response = ResponseBuffer::new(&mut blocking_output, 2, &blocking);
+    assert!(blocking.send(request, blocking_response.writer()).is_ok());
+    assert!(
+        blocking_response
+            .with_response(|response| response.body() == b"ok")
+            .is_ok_and(core::convert::identity)
+    );
     assert_eq!(blocking.calls.get(), 1);
 
     let asynchronous = SequentialAsyncTransport {
         _not_sync: Cell::new(()),
     };
     let mut async_output = [0_u8; 2];
-    let future = AsyncTransport::send(&asynchronous, request, &mut async_output);
-    let mut future = core::pin::pin!(future);
-    let waker = Waker::noop();
-    let mut context = Context::from_waker(waker);
-    let response = Future::poll(future.as_mut(), &mut context);
-    assert!(matches!(response, Poll::Ready(Ok(_))));
-    if let Poll::Ready(Ok(response)) = response {
-        assert_eq!(response.body(), b"ok");
+    let mut async_response = ResponseBuffer::new(&mut async_output, 2, &asynchronous);
+    {
+        let future = AsyncTransport::send(&asynchronous, request, async_response.writer());
+        let mut future = core::pin::pin!(future);
+        let waker = Waker::noop();
+        let mut context = Context::from_waker(waker);
+        let response = Future::poll(future.as_mut(), &mut context);
+        assert!(matches!(response, Poll::Ready(Ok(_))));
+    }
+    assert!(
+        async_response
+            .with_response(|response| response.body() == b"ok")
+            .is_ok_and(core::convert::identity)
+    );
+}
+
+struct FillSanitizer;
+
+impl ResponseStorageSanitizer for FillSanitizer {
+    fn sanitize_response_storage(&self, response_storage: &mut [u8]) {
+        response_storage.fill(0);
     }
 }
 

@@ -3,11 +3,11 @@
 use core::fmt;
 
 use crate::operation::{
-    CheckedResponse, OperationId, OperationMetadata, ResponsePolicy, ResponsePolicyError,
+    CheckedResponseGuard, OperationId, OperationMetadata, ResponsePolicy, ResponsePolicyError,
 };
 use crate::transport::{
     AsyncTransport, BlockingTransport, BoundTransport, EndpointIdentityError, EndpointPolicy,
-    ResponseStorageSanitizer, TransportRequest,
+    ResponseBuffer, ResponseStorageSanitizer, TransportRequest,
 };
 use crate::{ProviderId, ProviderMarker, ServiceId, ServiceMarker};
 
@@ -185,28 +185,34 @@ impl<'request> PreparedRequest<'request> {
     }
 
     /// Applies the complete prepared response policy without executing transport.
-    pub fn validate_response<'buffer>(
+    pub fn validate_response<'buffer, 'sanitizer, S>(
         self,
-        response: crate::transport::TransportResponse<'buffer>,
-    ) -> Result<CheckedResponse<'buffer>, ResponsePolicyError> {
+        response: ResponseBuffer<'buffer, 'sanitizer, S>,
+    ) -> Result<CheckedResponseGuard<'buffer, 'sanitizer, S>, ResponsePolicyError>
+    where
+        S: ResponseStorageSanitizer + ?Sized,
+    {
         self.response_policy.validate(response)
     }
 
     /// Verifies endpoint identity, executes once, and validates the response.
-    pub fn execute_blocking<'buffer, T>(
+    pub fn execute_blocking<'transport, 'buffer, T>(
         self,
-        transport: &T,
+        transport: &'transport T,
         response_storage: &'buffer mut [u8],
-    ) -> Result<CheckedResponse<'buffer>, PreparedExecutionError<T::Error>>
+    ) -> Result<CheckedResponseGuard<'buffer, 'transport, T>, PreparedExecutionError<T::Error>>
     where
         T: BlockingTransport + BoundTransport + ResponseStorageSanitizer,
     {
-        transport.sanitize_response_storage(response_storage);
+        let mut response = ResponseBuffer::new(
+            response_storage,
+            self.response_policy.max_body_bytes(),
+            transport,
+        );
         self.verify_endpoint(transport)
             .map_err(map_endpoint_error)?;
-        let admitted = self.admit_response_storage(response_storage)?;
-        let response = transport
-            .send(self.request, admitted)
+        transport
+            .send(self.request, response.writer())
             .map_err(PreparedExecutionError::Transport)?;
         self.response_policy
             .validate(response)
@@ -218,18 +224,20 @@ impl<'request> PreparedRequest<'request> {
         &'transport self,
         transport: &'transport T,
         response_storage: &'buffer mut [u8],
-    ) -> Result<CheckedResponse<'buffer>, PreparedExecutionError<T::Error>>
+    ) -> Result<CheckedResponseGuard<'buffer, 'transport, T>, PreparedExecutionError<T::Error>>
     where
         T: AsyncTransport + BoundTransport + ResponseStorageSanitizer,
         'request: 'transport,
-        'buffer: 'transport,
     {
-        transport.sanitize_response_storage(response_storage);
+        let mut response = ResponseBuffer::new(
+            response_storage,
+            self.response_policy.max_body_bytes(),
+            transport,
+        );
         self.verify_endpoint(transport)
             .map_err(map_endpoint_error)?;
-        let admitted = self.admit_response_storage(response_storage)?;
-        let response = transport
-            .send(self.request, admitted)
+        transport
+            .send(self.request, response.writer())
             .await
             .map_err(PreparedExecutionError::Transport)?;
         self.response_policy
@@ -248,16 +256,6 @@ impl<'request> PreparedRequest<'request> {
             .endpoint_policy
             .verify(actual)
             .map_err(|_| EndpointCheckError::Mismatch)
-    }
-
-    fn admit_response_storage<E>(
-        self,
-        storage: &mut [u8],
-    ) -> Result<&mut [u8], PreparedExecutionError<E>> {
-        let admitted_len = core::cmp::min(storage.len(), self.response_policy.max_body_bytes());
-        storage
-            .get_mut(..admitted_len)
-            .ok_or(PreparedExecutionError::ResponseStorageUnavailable)
     }
 }
 
@@ -281,8 +279,6 @@ pub enum PreparedExecutionError<E> {
     EndpointIdentity(EndpointIdentityError),
     /// The bound endpoint differs from the prepared provider service.
     EndpointMismatch,
-    /// Response storage could not be structurally limited.
-    ResponseStorageUnavailable,
     /// The concrete transport failed.
     Transport(E),
     /// The response failed provider-neutral policy.
@@ -297,7 +293,6 @@ impl<E> fmt::Debug for PreparedExecutionError<E> {
                 .field(error)
                 .finish(),
             Self::EndpointMismatch => formatter.write_str("EndpointMismatch"),
-            Self::ResponseStorageUnavailable => formatter.write_str("ResponseStorageUnavailable"),
             Self::Transport(_) => formatter.write_str("Transport([redacted])"),
             Self::ResponsePolicy(error) => formatter
                 .debug_tuple("ResponsePolicy")
@@ -312,7 +307,6 @@ impl<E> fmt::Display for PreparedExecutionError<E> {
         formatter.write_str(match self {
             Self::EndpointIdentity(_) => "transport endpoint identity is invalid",
             Self::EndpointMismatch => "transport endpoint differs from prepared service",
-            Self::ResponseStorageUnavailable => "response storage is unavailable",
             Self::Transport(_) => "prepared request transport failed",
             Self::ResponsePolicy(_) => "prepared response policy failed",
         })

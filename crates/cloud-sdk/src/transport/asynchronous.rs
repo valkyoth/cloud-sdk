@@ -2,7 +2,7 @@
 
 use core::future::Future;
 
-use super::{TransportRequest, TransportResponse};
+use super::{ResponseWriter, TransportRequest};
 
 /// Asynchronous transport over caller-owned request and response buffers.
 ///
@@ -16,7 +16,7 @@ use super::{TransportRequest, TransportResponse};
 ///
 /// Implementations must treat cancellation as an error path: dropping the
 /// returned future must not expose a partially initialized response as a
-/// successful [`TransportResponse`]. Implementations handling secret response
+/// successful response. Implementations handling secret response
 /// data should also clear temporary owned storage when the future is dropped.
 pub trait AsyncTransport {
     /// Transport-specific failure.
@@ -24,12 +24,12 @@ pub trait AsyncTransport {
 
     /// Sends one request and initializes the complete response body in the
     /// caller buffer.
-    fn send<'transport, 'request, 'buffer>(
+    fn send<'transport, 'request, 'writer>(
         &'transport self,
         request: TransportRequest<'request>,
-        response_body: &'buffer mut [u8],
-    ) -> impl Future<Output = Result<TransportResponse<'buffer>, Self::Error>> + Send + 'transport
+        response: &'writer mut ResponseWriter<'_>,
+    ) -> impl Future<Output = Result<(), Self::Error>> + Send + 'writer
     where
-        'request: 'transport,
-        'buffer: 'transport;
+        'transport: 'writer,
+        'request: 'writer;
 }

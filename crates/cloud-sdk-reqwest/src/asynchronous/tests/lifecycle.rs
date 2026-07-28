@@ -4,7 +4,10 @@ use std::string::String;
 use std::time::Duration;
 
 use cloud_sdk::Method;
-use cloud_sdk::transport::{AsyncTransport, BoundTransport, RequestTarget, TransportRequest};
+use cloud_sdk::transport::{
+    AsyncTransport, BoundTransport, RequestTarget, ResponseBuffer, ResponseMetadata, StatusCode,
+    TransportRequest,
+};
 
 use super::{BearerToken, build_loopback, run_async_test};
 use crate::test_server::{spawn_concurrent_pair, spawn_sequence_with_first_delay};
@@ -36,16 +39,46 @@ fn async_send_future_stays_within_explicit_state_budget() {
         return;
     };
     let mut output = [0_u8; 1];
+    let mut response = ResponseBuffer::new(&mut output, 1, &client);
     let future = AsyncTransport::send(
         &client,
         TransportRequest::new(Method::Get, target),
-        &mut output,
+        response.writer(),
     );
     let future_bytes = core::mem::size_of_val(&future);
     assert!(
         future_bytes <= 2_048,
         "async send future exceeds the 2 KiB state budget: {future_bytes} bytes"
     );
+}
+
+#[test]
+fn async_precommitted_writer_fails_before_network_access() {
+    run_async_test(async {
+        let Some(client) = build_loopback("http://127.0.0.1:1/v1") else {
+            return;
+        };
+        let Ok(target) = RequestTarget::new("/precommitted") else {
+            return;
+        };
+        let mut output = [0xa5_u8; 8];
+        let mut response = ResponseBuffer::new(&mut output, 8, &client);
+        assert!(
+            response
+                .writer()
+                .commit(StatusCode::OK, 0, ResponseMetadata::EMPTY)
+                .is_ok()
+        );
+        assert_eq!(
+            AsyncTransport::send(
+                &client,
+                TransportRequest::new(Method::Get, target),
+                response.writer(),
+            )
+            .await,
+            Err(super::super::TransportError::ResponseCommitFailed)
+        );
+    });
 }
 
 #[test]
@@ -141,7 +174,7 @@ fn async_rotation_does_not_change_an_in_flight_token_snapshot() {
 
 async fn send_once(client: &super::super::AsyncClient, target: RequestTarget<'_>) -> bool {
     let mut output = [0xa5_u8; 8];
-    let response = AsyncTransport::send(
+    let response = super::send_test(
         client,
         TransportRequest::new(Method::Get, target),
         &mut output,

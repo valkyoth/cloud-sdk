@@ -94,11 +94,12 @@
   writes, payload-free errors, and redacted request/response diagnostics;
 - origin-form targets reject scheme-relative prefixes, backslashes, fragments,
   controls, spaces, and non-ASCII before an adapter can attach credentials;
-- transport responses borrow only the initialized slice of the caller-owned
-  buffer instead of trusting an independently reported numeric length;
-- prepared transports explicitly sanitize the complete caller response buffer
-  before endpoint verification and before the operation admits a smaller
-  response window; reqwest uses the reviewed volatile sanitization boundary;
+- transports receive only a sealed writer over the admitted caller-owned
+  prefix; they commit status, bounded metadata, and a checked initialized
+  length but cannot substitute external or static response bytes;
+- a cleanup-owning response guard sanitizes the complete caller buffer before
+  admission and on every exit; borrowed decoding cannot escape the guard and
+  owned decoding clears before returning;
 - optional production blocking and async transports require exact HTTPS
   authority, rustls with TLS 1.2 minimum, explicit bounded timeouts, no
   redirects, retries, proxies, referers, or decompression, and caller-bounded

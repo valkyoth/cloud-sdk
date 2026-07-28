@@ -7,7 +7,7 @@ use cloud_sdk::Method;
 use cloud_sdk::transport::{
     AsyncTransport, BlockingTransport, BoundTransport, EndpointIdentity, EndpointIdentityError,
     HeaderSensitivity, RequestHeaders, RequestTarget, ResponseContentType, ResponseHeaders,
-    ResponseStorageSanitizer, TransportRequest, TransportResponse,
+    ResponseMetadata, ResponseStorageSanitizer, ResponseWriter, TransportRequest,
 };
 
 use crate::{FixtureBodyError, ResponseFixture};
@@ -112,6 +112,8 @@ pub enum MockError {
     ConcurrentRequest,
     /// Fixture metadata could not be represented by the core transport.
     InvalidFixtureMetadata,
+    /// The core response writer rejected fixture output.
+    ResponseWriterRejected,
 }
 
 impl_static_error!(MockError,
@@ -124,6 +126,7 @@ impl_static_error!(MockError,
     Self::CursorOverflow => "mock transport cursor overflowed",
     Self::ConcurrentRequest => "mock transport cursor changed concurrently",
     Self::InvalidFixtureMetadata => "mock fixture metadata is invalid",
+    Self::ResponseWriterRejected => "mock response writer rejected output",
 );
 
 /// Ordered no-allocation mock implementation of [`BlockingTransport`].
@@ -165,11 +168,14 @@ impl<'a> MockTransport<'a> {
         self.remaining() == 0
     }
 
-    fn send_inner<'buffer>(
+    fn send_inner(
         &self,
         request: TransportRequest<'_>,
-        response_body: &'buffer mut [u8],
-    ) -> Result<TransportResponse<'buffer>, MockError> {
+        response: &mut ResponseWriter<'_>,
+    ) -> Result<(), MockError> {
+        if response.is_committed() {
+            return Err(MockError::ResponseWriterRejected);
+        }
         let cursor = self.cursor.load(Ordering::Acquire);
         let exchange = self.exchanges.get(cursor).ok_or(MockError::Exhausted)?;
         if request.method() != exchange.request.method() {
@@ -207,27 +213,28 @@ impl<'a> MockTransport<'a> {
             push_rate_limit_headers(&mut response_headers, value)
                 .map_err(|_| MockError::InvalidFixtureMetadata)?;
         }
-        let body_len =
-            exchange
-                .response
-                .body()
-                .write_to(response_body)
-                .map_err(|error| match error {
-                    FixtureBodyError::OutputTooSmall | FixtureBodyError::TooLarge => {
-                        MockError::ResponseBufferTooSmall
-                    }
-                })?;
-        let initialized = response_body
-            .get(..body_len)
-            .ok_or(MockError::ResponseBufferTooSmall)?;
-        let response = TransportResponse::new(exchange.response.status(), initialized)
-            .with_headers(response_headers);
-        let response = content_type.map_or(response, |value| response.with_content_type(value));
-        let response = rate_limit.map_or(response, |value| response.with_rate_limit(value));
+        let body_len = exchange
+            .response
+            .body()
+            .write_to(
+                response
+                    .body_mut()
+                    .map_err(|_| MockError::ResponseWriterRejected)?,
+            )
+            .map_err(|error| match error {
+                FixtureBodyError::OutputTooSmall | FixtureBodyError::TooLarge => {
+                    MockError::ResponseBufferTooSmall
+                }
+            })?;
+        let metadata = ResponseMetadata::EMPTY.with_headers(response_headers);
+        let metadata = content_type.map_or(metadata, |value| metadata.with_content_type(value));
+        let metadata = rate_limit.map_or(metadata, |value| metadata.with_rate_limit(value));
         self.cursor
             .compare_exchange(cursor, next_cursor, Ordering::AcqRel, Ordering::Acquire)
             .map_err(|_| MockError::ConcurrentRequest)?;
-        Ok(response)
+        response
+            .commit(exchange.response.status(), body_len, metadata)
+            .map_err(|_| MockError::ResponseWriterRejected)
     }
 }
 
@@ -278,28 +285,28 @@ fn write_decimal(value: u64, output: &mut [u8; 20]) -> Option<&str> {
 impl BlockingTransport for MockTransport<'_> {
     type Error = MockError;
 
-    fn send<'buffer>(
+    fn send(
         &self,
         request: TransportRequest<'_>,
-        response_body: &'buffer mut [u8],
-    ) -> Result<TransportResponse<'buffer>, Self::Error> {
-        self.send_inner(request, response_body)
+        response: &mut ResponseWriter<'_>,
+    ) -> Result<(), Self::Error> {
+        self.send_inner(request, response)
     }
 }
 
 impl AsyncTransport for MockTransport<'_> {
     type Error = MockError;
 
-    async fn send<'transport, 'request, 'buffer>(
+    async fn send<'transport, 'request, 'writer>(
         &'transport self,
         request: TransportRequest<'request>,
-        response_body: &'buffer mut [u8],
-    ) -> Result<TransportResponse<'buffer>, Self::Error>
+        response: &'writer mut ResponseWriter<'_>,
+    ) -> Result<(), Self::Error>
     where
-        'request: 'transport,
-        'buffer: 'transport,
+        'transport: 'writer,
+        'request: 'writer,
     {
-        self.send_inner(request, response_body)
+        self.send_inner(request, response)
     }
 }
 

@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use cloud_sdk::Method;
-use cloud_sdk::transport::{BlockingTransport, RequestTarget, TransportRequest};
+use cloud_sdk::transport::{RequestTarget, TransportRequest};
 
 use super::build_loopback;
 use crate::shared::TransportError;
@@ -32,7 +32,11 @@ fn malformed_or_duplicate_response_content_type_fails_closed() {
         };
         let mut output = [0xa5_u8; 8];
         assert!(matches!(
-            client.send(TransportRequest::new(Method::Get, target), &mut output),
+            super::send_test(
+                &client,
+                TransportRequest::new(Method::Get, target),
+                &mut output,
+            ),
             Err(error) if error == expected
         ));
         assert_eq!(output, [0_u8; 8]);

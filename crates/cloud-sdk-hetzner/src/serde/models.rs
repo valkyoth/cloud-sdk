@@ -112,7 +112,7 @@ impl CompositeResult {
         &self.actions
     }
 
-    /// Returns sensitive output fields. Callers must clear the response buffer.
+    /// Returns sensitive output fields held in protected owned storage.
     #[must_use]
     pub fn secrets(&self) -> &[NamedSensitiveText] {
         &self.secrets

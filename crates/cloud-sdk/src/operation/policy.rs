@@ -3,7 +3,10 @@
 use core::fmt;
 
 use crate::rate_limit::RateLimit;
-use crate::transport::{MediaType, ResponseContentType, StatusCode, TransportResponse};
+use crate::transport::{
+    MediaType, ResponseBuffer, ResponseContentType, ResponseWriterError, StatusCode,
+    TransportResponse,
+};
 
 /// Expected response-body shape.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
@@ -79,6 +82,8 @@ pub enum ResponsePolicyError {
     UnexpectedContentType,
     /// A content type was supplied when forbidden.
     ForbiddenContentType,
+    /// The response writer was not successfully committed.
+    UncommittedResponse,
 }
 
 impl_static_error!(ResponsePolicyError,
@@ -89,6 +94,7 @@ impl_static_error!(ResponsePolicyError,
     Self::MissingContentType => "required response content type is missing",
     Self::UnexpectedContentType => "response content type is not accepted",
     Self::ForbiddenContentType => "response content type is forbidden",
+    Self::UncommittedResponse => "response writer is not committed",
 );
 
 /// Complete checked-response policy.
@@ -162,10 +168,24 @@ impl ResponsePolicy {
     }
 
     /// Checks status, initialized length, body shape, and content type.
-    pub fn validate<'body>(
+    pub fn validate<'buffer, 'sanitizer, S>(
         self,
-        response: TransportResponse<'body>,
-    ) -> Result<CheckedResponse<'body>, ResponsePolicyError> {
+        writer: ResponseBuffer<'buffer, 'sanitizer, S>,
+    ) -> Result<CheckedResponseGuard<'buffer, 'sanitizer, S>, ResponsePolicyError>
+    where
+        S: crate::transport::ResponseStorageSanitizer + ?Sized,
+    {
+        let snapshot = {
+            let response = writer.response().map_err(map_writer_error)?;
+            self.validate_view(response)?
+        };
+        Ok(CheckedResponseGuard { writer, snapshot })
+    }
+
+    fn validate_view(
+        self,
+        response: TransportResponse<'_>,
+    ) -> Result<CheckedResponseSnapshot, ResponsePolicyError> {
         if !self.success_statuses.contains(&response.status()) {
             return Err(ResponsePolicyError::UnexpectedStatus);
         }
@@ -182,39 +202,148 @@ impl ResponsePolicy {
             return Err(ResponsePolicyError::MissingBody);
         }
         validate_content_type(self.content_type, response.content_type())?;
-        Ok(CheckedResponse { response })
+        Ok(CheckedResponseSnapshot {
+            status: response.status(),
+            body_len: response.body().len(),
+            content_type: response.content_type(),
+            rate_limit: response.rate_limit(),
+        })
     }
 }
 
 /// Response that passed one operation's complete provider-neutral policy.
 #[derive(Clone, Copy)]
 pub struct CheckedResponse<'body> {
-    response: TransportResponse<'body>,
+    status: StatusCode,
+    body: &'body [u8],
+    content_type: Option<ResponseContentType>,
+    rate_limit: Option<RateLimit>,
 }
 
 impl CheckedResponse<'_> {
     /// Returns the checked status code.
     #[must_use]
     pub const fn status(&self) -> StatusCode {
-        self.response.status()
+        self.status
     }
 
     /// Returns the checked initialized response body.
     #[must_use]
     pub const fn body(&self) -> &[u8] {
-        self.response.body()
+        self.body
     }
 
     /// Returns the checked response content type when supplied.
     #[must_use]
     pub const fn content_type(&self) -> Option<ResponseContentType> {
-        self.response.content_type()
+        self.content_type
     }
 
     /// Returns validated rate-limit metadata when supplied.
     #[must_use]
     pub const fn rate_limit(&self) -> Option<RateLimit> {
-        self.response.rate_limit()
+        self.rate_limit
+    }
+}
+
+#[derive(Clone, Copy)]
+struct CheckedResponseSnapshot {
+    status: StatusCode,
+    body_len: usize,
+    content_type: Option<ResponseContentType>,
+    rate_limit: Option<RateLimit>,
+}
+
+/// Policy-checked response that owns cleanup of its caller storage.
+///
+/// Borrowed access is closure-scoped. [`Self::decode_owned`] clears the
+/// complete response storage before returning the owned decoded result.
+pub struct CheckedResponseGuard<
+    'buffer,
+    'sanitizer,
+    S: crate::transport::ResponseStorageSanitizer + ?Sized,
+> {
+    writer: ResponseBuffer<'buffer, 'sanitizer, S>,
+    snapshot: CheckedResponseSnapshot,
+}
+
+impl<S> CheckedResponseGuard<'_, '_, S>
+where
+    S: crate::transport::ResponseStorageSanitizer + ?Sized,
+{
+    /// Returns the checked status code.
+    #[must_use]
+    pub const fn status(&self) -> StatusCode {
+        self.snapshot.status
+    }
+
+    /// Returns the checked response content type when supplied.
+    #[must_use]
+    pub const fn content_type(&self) -> Option<ResponseContentType> {
+        self.snapshot.content_type
+    }
+
+    /// Returns validated rate-limit metadata when supplied.
+    #[must_use]
+    pub const fn rate_limit(&self) -> Option<RateLimit> {
+        self.snapshot.rate_limit
+    }
+
+    /// Runs a closure with a checked response borrow that cannot escape.
+    ///
+    /// ```compile_fail
+    /// use cloud_sdk::operation::CheckedResponseGuard;
+    /// use cloud_sdk::transport::ResponseStorageSanitizer;
+    ///
+    /// fn escape<'guard, S>(
+    ///     guard: &'guard CheckedResponseGuard<'_, '_, S>,
+    /// ) -> &'guard [u8]
+    /// where
+    ///     S: ResponseStorageSanitizer + ?Sized,
+    /// {
+    ///     guard.with_borrowed(|response| response.body())
+    /// }
+    /// ```
+    pub fn with_borrowed<R>(
+        &self,
+        inspect: impl for<'response> FnOnce(CheckedResponse<'response>) -> R,
+    ) -> R {
+        inspect(self.checked_response())
+    }
+
+    /// Decodes an owned value, clears all response storage, and then returns.
+    pub fn decode_owned<R, E>(
+        self,
+        decode: impl for<'response> FnOnce(CheckedResponse<'response>) -> Result<R, E>,
+    ) -> Result<R, E> {
+        let result = decode(self.checked_response());
+        drop(self);
+        result
+    }
+
+    fn checked_response(&self) -> CheckedResponse<'_> {
+        CheckedResponse {
+            status: self.snapshot.status,
+            body: self.writer.initialized_body(self.snapshot.body_len),
+            content_type: self.snapshot.content_type,
+            rate_limit: self.snapshot.rate_limit,
+        }
+    }
+}
+
+impl<S> fmt::Debug for CheckedResponseGuard<'_, '_, S>
+where
+    S: crate::transport::ResponseStorageSanitizer + ?Sized,
+{
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("CheckedResponseGuard")
+            .field("status", &self.status())
+            .field("body_len", &self.snapshot.body_len)
+            .field("body", &"[redacted]")
+            .field("content_type", &self.content_type())
+            .field("rate_limit", &self.rate_limit())
+            .finish()
     }
 }
 
@@ -288,6 +417,16 @@ fn validate_content_type(
             } else {
                 Err(ResponsePolicyError::UnexpectedContentType)
             }
+        }
+    }
+}
+
+const fn map_writer_error(error: ResponseWriterError) -> ResponsePolicyError {
+    match error {
+        ResponseWriterError::NotCommitted
+        | ResponseWriterError::AlreadyCommitted
+        | ResponseWriterError::InitializedLengthTooLarge => {
+            ResponsePolicyError::UncommittedResponse
         }
     }
 }

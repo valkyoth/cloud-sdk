@@ -5,6 +5,7 @@ mod content_type;
 mod endpoint;
 mod header;
 mod request_target;
+mod response;
 
 pub use asynchronous::AsyncTransport;
 pub use content_type::{
@@ -26,11 +27,13 @@ pub use request_target::{
     CanonicalQuery, FormQuery, MAX_REQUEST_TARGET_BYTES, QueryPair, QueryPairs, RequestPath,
     RequestPathError, RequestQuery, RequestTarget, RequestTargetError, StructuredQueryError,
 };
+pub use response::{
+    ResponseBuffer, ResponseMetadata, ResponseWriter, ResponseWriterError, TransportResponse,
+};
 
 use core::fmt;
 
 use crate::Method;
-use crate::rate_limit::RateLimit;
 
 /// Explicit cleanup contract for caller-owned response storage.
 ///
@@ -161,105 +164,6 @@ impl StatusCode {
     }
 }
 
-/// Response returned after a transport initializes part of a caller buffer.
-///
-/// The body is structurally bounded by the borrowed initialized slice. A
-/// transport cannot report a numeric length independently of the caller's
-/// response buffer.
-///
-/// ```compile_fail
-/// use cloud_sdk::transport::{StatusCode, TransportResponse};
-///
-/// let _ = TransportResponse::new(StatusCode::OK, 1024_usize);
-/// ```
-#[derive(Clone, Copy)]
-pub struct TransportResponse<'buffer> {
-    status: StatusCode,
-    body: &'buffer [u8],
-    content_type: Option<ResponseContentType>,
-    rate_limit: Option<RateLimit>,
-    headers: ResponseHeaders,
-}
-
-impl<'buffer> TransportResponse<'buffer> {
-    /// Creates a response over the initialized body bytes.
-    #[must_use]
-    pub const fn new(status: StatusCode, body: &'buffer [u8]) -> Self {
-        Self {
-            status,
-            body,
-            content_type: None,
-            rate_limit: None,
-            headers: ResponseHeaders::new(),
-        }
-    }
-
-    /// Adds a validated response content type captured by the transport.
-    #[must_use]
-    pub const fn with_content_type(mut self, content_type: ResponseContentType) -> Self {
-        self.content_type = Some(content_type);
-        self
-    }
-
-    /// Adds validated rate-limit metadata captured by the transport.
-    #[must_use]
-    pub const fn with_rate_limit(mut self, rate_limit: RateLimit) -> Self {
-        self.rate_limit = Some(rate_limit);
-        self
-    }
-
-    /// Adds complete bounded response-header metadata.
-    #[must_use]
-    pub const fn with_headers(mut self, headers: ResponseHeaders) -> Self {
-        self.headers = headers;
-        self
-    }
-
-    /// Returns the status code.
-    #[must_use]
-    pub const fn status(&self) -> StatusCode {
-        self.status
-    }
-
-    /// Returns the initialized response body bytes.
-    #[must_use]
-    pub const fn body(&self) -> &'buffer [u8] {
-        self.body
-    }
-
-    /// Returns the validated response content type when supplied.
-    #[must_use]
-    pub const fn content_type(&self) -> Option<ResponseContentType> {
-        self.content_type
-    }
-
-    /// Returns validated rate-limit metadata when the response supplied it.
-    #[must_use]
-    pub const fn rate_limit(&self) -> Option<RateLimit> {
-        self.rate_limit
-    }
-
-    /// Returns complete bounded response-header metadata.
-    #[must_use]
-    pub const fn headers(&self) -> &ResponseHeaders {
-        &self.headers
-    }
-}
-
-impl fmt::Debug for TransportResponse<'_> {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        formatter
-            .debug_struct("TransportResponse")
-            .field("status", &self.status)
-            .field("body_len", &self.body.len())
-            .field("body", &"[redacted]")
-            .field("content_type", &self.content_type)
-            .field("rate_limit", &self.rate_limit)
-            .field("headers", &self.headers)
-            .finish()
-    }
-}
-
 /// Synchronous transport over caller-owned request and response buffers.
 ///
 /// Authentication, base URLs, headers, timeouts, TLS, and retry policy belong
@@ -273,11 +177,11 @@ pub trait BlockingTransport {
     type Error;
 
     /// Sends one request and writes the response body into the caller buffer.
-    fn send<'buffer>(
+    fn send(
         &self,
         request: TransportRequest<'_>,
-        response_body: &'buffer mut [u8],
-    ) -> Result<TransportResponse<'buffer>, Self::Error>;
+        response: &mut ResponseWriter<'_>,
+    ) -> Result<(), Self::Error>;
 }
 
 #[cfg(test)]

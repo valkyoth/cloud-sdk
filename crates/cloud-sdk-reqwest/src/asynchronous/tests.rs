@@ -1,10 +1,13 @@
 use std::string::String;
 use std::time::Duration;
+use std::vec::Vec;
 
 use cloud_sdk::Method;
+use cloud_sdk::rate_limit::RateLimit;
 use cloud_sdk::transport::{
-    AsyncTransport, ContentType, RequestHeader, RequestHeaders, RequestTarget,
-    ResponseStorageSanitizer, TransportRequest,
+    AsyncTransport, ContentType, RequestHeader, RequestHeaders, RequestTarget, ResponseBuffer,
+    ResponseContentType, ResponseHeaders, ResponseStorageSanitizer, StatusCode, TransportRequest,
+    TransportResponse,
 };
 
 use super::{
@@ -50,6 +53,59 @@ fn build_loopback(endpoint: &str) -> Option<AsyncClient> {
         .ok()
 }
 
+struct CapturedResponse {
+    status: StatusCode,
+    body: Vec<u8>,
+    content_type: Option<ResponseContentType>,
+    rate_limit: Option<RateLimit>,
+    headers: ResponseHeaders,
+}
+
+impl CapturedResponse {
+    fn capture(response: TransportResponse<'_>) -> Self {
+        Self {
+            status: response.status(),
+            body: response.body().to_vec(),
+            content_type: response.content_type(),
+            rate_limit: response.rate_limit(),
+            headers: *response.headers(),
+        }
+    }
+
+    const fn status(&self) -> StatusCode {
+        self.status
+    }
+
+    fn body(&self) -> &[u8] {
+        &self.body
+    }
+
+    const fn content_type(&self) -> Option<ResponseContentType> {
+        self.content_type
+    }
+
+    const fn rate_limit(&self) -> Option<RateLimit> {
+        self.rate_limit
+    }
+
+    const fn headers(&self) -> &ResponseHeaders {
+        &self.headers
+    }
+}
+
+async fn send_test(
+    client: &AsyncClient,
+    request: TransportRequest<'_>,
+    output: &mut [u8],
+) -> Result<CapturedResponse, TransportError> {
+    let capacity = output.len();
+    let mut response = ResponseBuffer::new(output, capacity, client);
+    AsyncTransport::send(client, request, response.writer()).await?;
+    response
+        .with_response(CapturedResponse::capture)
+        .map_err(|_| TransportError::ResponseCommitFailed)
+}
+
 #[test]
 fn async_client_sends_exact_headers_target_and_body_once() {
     run_async_test(async {
@@ -81,7 +137,7 @@ fn async_client_sends_exact_headers_target_and_body_once() {
             .with_body(br#"{"name":"server"}"#)
             .with_headers(headers);
         let mut output = [0xa5_u8; 32];
-        let response = AsyncTransport::send(&client, request, &mut output).await;
+        let response = send_test(&client, request, &mut output).await;
         assert!(response.is_ok());
         if let Ok(response) = response {
             assert_eq!(response.status().get(), 503);
@@ -130,8 +186,7 @@ fn async_client_sends_complete_method_domain_exactly() {
             };
             let mut output = [0_u8; 1];
             let response =
-                AsyncTransport::send(&client, TransportRequest::new(method, target), &mut output)
-                    .await;
+                send_test(&client, TransportRequest::new(method, target), &mut output).await;
             assert!(response.is_ok());
 
             let recorded = server.request.recv_timeout(Duration::from_secs(2));
@@ -163,7 +218,7 @@ fn async_redirect_is_not_followed_and_oversized_body_is_rejected() {
             return;
         };
         let mut output = [0_u8; 16];
-        let response = AsyncTransport::send(
+        let response = send_test(
             &client,
             TransportRequest::new(Method::Get, target),
             &mut output,
@@ -181,7 +236,7 @@ fn async_redirect_is_not_followed_and_oversized_body_is_rejected() {
             return;
         };
         let mut short = [0xa5_u8; 4];
-        let result = AsyncTransport::send(
+        let result = send_test(
             &client,
             TransportRequest::new(Method::Get, target),
             &mut short,
@@ -214,7 +269,7 @@ fn async_response_propagates_validated_rate_limit_headers() {
             return;
         };
         let mut output = [0_u8; 8];
-        let response = AsyncTransport::send(
+        let response = send_test(
             &client,
             TransportRequest::new(Method::Get, target),
             &mut output,
@@ -275,9 +330,12 @@ fn async_malformed_or_duplicate_response_content_type_fails_closed() {
             };
             let mut output = [0xa5_u8; 8];
             assert!(matches!(
-                client
-                    .send(TransportRequest::new(Method::Get, target), &mut output)
-                    .await,
+                send_test(
+                    &client,
+                    TransportRequest::new(Method::Get, target),
+                    &mut output,
+                )
+                .await,
                 Err(error) if error == expected
             ));
             assert_eq!(output, [0_u8; 8]);
@@ -307,7 +365,7 @@ fn async_duplicate_rate_limit_headers_fail_closed() {
             return;
         };
         let mut output = [0xa5_u8; 8];
-        let result = AsyncTransport::send(
+        let result = send_test(
             &client,
             TransportRequest::new(Method::Get, target),
             &mut output,
@@ -331,7 +389,7 @@ fn missing_content_type_fails_before_network_access() {
             return;
         };
         let mut output = [0xa5_u8; 8];
-        let result = AsyncTransport::send(
+        let result = send_test(
             &client,
             TransportRequest::new(Method::Post, target).with_body(b"{}"),
             &mut output,
@@ -363,7 +421,7 @@ fn internal_timeout_is_payload_free_and_clears_output() {
             return;
         };
         let mut output = [0xa5_u8; 8];
-        let result = AsyncTransport::send(
+        let result = send_test(
             &client,
             TransportRequest::new(Method::Get, target),
             &mut output,
@@ -391,13 +449,16 @@ fn caller_cancellation_after_partial_body_never_exposes_response() {
             return;
         };
         let mut output = [0xa5_u8; 32];
-        let future = AsyncTransport::send(
-            &client,
-            TransportRequest::new(Method::Get, target),
-            &mut output,
-        );
-        let result = tokio::time::timeout(Duration::from_millis(100), future).await;
-        assert!(result.is_err(), "unexpected early completion: {result:?}");
+        {
+            let mut response = ResponseBuffer::new(&mut output, 32, &client);
+            let future = AsyncTransport::send(
+                &client,
+                TransportRequest::new(Method::Get, target),
+                response.writer(),
+            );
+            let result = tokio::time::timeout(Duration::from_millis(100), future).await;
+            assert!(result.is_err(), "unexpected early completion: {result:?}");
+        }
         assert_eq!(output, [0_u8; 32]);
     });
 }

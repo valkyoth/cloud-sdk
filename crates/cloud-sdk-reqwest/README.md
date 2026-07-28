@@ -38,8 +38,8 @@ provider without adding transport dependencies to provider crates.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.36.0"
-cloud-sdk-reqwest = { version = "0.24.0", features = ["blocking-rustls"] }
+cloud-sdk = "0.37.0"
+cloud-sdk-reqwest = { version = "0.25.0", features = ["blocking-rustls"] }
 ```
 
 The examples use Hetzner as a concrete endpoint, but the adapter contains no
@@ -66,6 +66,8 @@ the [v0.35 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs
 Request headers are now complete bounded core values rather than adapter
 defaults. Response headers are retained in bounded owned metadata. See the
 [v0.36 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.36.0.md).
+Response provenance migration is listed in the
+[v0.37 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.37.0.md).
 
 ## Blocking Example
 
@@ -75,7 +77,9 @@ defaults. Response headers are retained in bounded owned metadata. See the
 use std::time::Duration;
 
 use cloud_sdk::Method;
-use cloud_sdk::transport::{BlockingTransport, RequestTarget, TransportRequest};
+use cloud_sdk::transport::{
+    BlockingTransport, RequestTarget, ResponseBuffer, TransportRequest,
+};
 use cloud_sdk_reqwest::blocking::{
     BearerToken, BlockingClientBuilder, CustomEndpointAcknowledgement,
     HttpsEndpoint, RequestTimeouts, UserAgent,
@@ -100,9 +104,16 @@ else { return };
 let Ok(target) = RequestTarget::new("/servers?page=1") else { return };
 let request = TransportRequest::new(Method::Get, target);
 let mut response_body = [0_u8; 65_536];
-let Ok(response) = client.send(request, &mut response_body) else { return };
+let response_capacity = response_body.len();
+let mut response =
+    ResponseBuffer::new(&mut response_body, response_capacity, &client);
+if client.send(request, response.writer()).is_err() {
+    return;
+}
 
-assert!(response.status().is_success());
+assert!(response
+    .with_response(|view| view.status().is_success())
+    .is_ok_and(core::convert::identity));
 # }
 # #[cfg(not(feature = "blocking-rustls"))]
 # fn main() {}
@@ -118,8 +129,9 @@ three typed rate-limit fields are classified as reviewed public metadata.
 Both adapters implement `ResponseStorageSanitizer` through
 `cloud-sdk-sanitization`. Prepared execution therefore volatile-clears the
 complete caller buffer before endpoint checks and before lending the smaller
-operation-admitted response window. Direct transport sends continue clearing
-the complete slice passed to `send`.
+operation-admitted response window. Direct transport sends retain the same
+cleanup obligation in `ResponseBuffer` while lending only its sealed writer to
+`send`.
 
 ## Deterministic Root Snapshot
 
@@ -129,8 +141,8 @@ compiled into `webpki-roots`:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.36.0"
-cloud-sdk-reqwest = { version = "0.24.0", features = ["blocking-rustls-webpki-roots"] }
+cloud-sdk = "0.37.0"
+cloud-sdk-reqwest = { version = "0.25.0", features = ["blocking-rustls-webpki-roots"] }
 ```
 
 The blocking API is identical to the example above. The custom rustls client
@@ -146,8 +158,8 @@ Use the same blocking API with the dedicated feature:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.36.0"
-cloud-sdk-reqwest = { version = "0.24.0", features = ["blocking-rustls-fips"] }
+cloud-sdk = "0.37.0"
+cloud-sdk-reqwest = { version = "0.25.0", features = ["blocking-rustls-fips"] }
 rustls = "=0.23.42"
 ```
 
@@ -200,7 +212,9 @@ create or own a runtime. Call it from an active Tokio executor:
 use std::time::Duration;
 
 use cloud_sdk::Method;
-use cloud_sdk::transport::{AsyncTransport, RequestTarget, TransportRequest};
+use cloud_sdk::transport::{
+    AsyncTransport, RequestTarget, ResponseBuffer, TransportRequest,
+};
 use cloud_sdk_reqwest::asynchronous::{
     AsyncClientBuilder, BearerToken, CustomEndpointAcknowledgement,
     HttpsEndpoint, RequestTimeouts, UserAgent,
@@ -225,10 +239,19 @@ else { return };
 let Ok(target) = RequestTarget::new("/servers?page=1") else { return };
 let request = TransportRequest::new(Method::Get, target);
 let mut response_body = [0_u8; 65_536];
-let Ok(response) = AsyncTransport::send(&client, request, &mut response_body).await
-else { return };
+let response_capacity = response_body.len();
+let mut response =
+    ResponseBuffer::new(&mut response_body, response_capacity, &client);
+if AsyncTransport::send(&client, request, response.writer())
+    .await
+    .is_err()
+{
+    return;
+}
 
-assert!(response.status().is_success());
+assert!(response
+    .with_response(|view| view.status().is_success())
+    .is_ok_and(core::convert::identity));
 # }
 # fn main() {}
 ```

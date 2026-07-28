@@ -34,15 +34,17 @@ and runtime-free.
 
 ```toml
 [dev-dependencies]
-cloud-sdk = "0.36.0"
-cloud-sdk-testkit = "0.21.0"
+cloud-sdk = "0.37.0"
+cloud-sdk-testkit = "0.22.0"
 ```
 
 ## Mock Transport
 
 ```rust
 use cloud_sdk::Method;
-use cloud_sdk::transport::{BlockingTransport, RequestTarget, TransportRequest};
+use cloud_sdk::transport::{
+    BlockingTransport, RequestTarget, ResponseBuffer, TransportRequest,
+};
 use cloud_sdk_testkit::{
     ExpectedRequest, FixtureBody, MockExchange, MockTransport, ResponseFixture,
 };
@@ -59,16 +61,25 @@ let exchanges = [MockExchange::new(
 )];
 let transport = MockTransport::new(&exchanges);
 let mut output = [0_u8; 64];
+let output_capacity = output.len();
+let mut response = ResponseBuffer::new(&mut output, output_capacity, &transport);
 
-let Ok(response) = transport.send(
-    TransportRequest::new(Method::Get, target),
-    &mut output,
-) else {
+if transport
+    .send(
+        TransportRequest::new(Method::Get, target),
+        response.writer(),
+    )
+    .is_err()
+{
     return;
-};
+}
 
-assert_eq!(response.status().get(), 200);
-assert_eq!(response.body(), br#"{"resources":[]}"#);
+assert!(response
+    .with_response(|view| {
+        view.status().get() == 200
+            && view.body() == br#"{"resources":[]}"#
+    })
+    .is_ok_and(core::convert::identity));
 assert!(transport.is_complete());
 ```
 
@@ -78,7 +89,9 @@ runtime dependency:
 ```rust,no_run
 # async fn example() {
 use cloud_sdk::Method;
-use cloud_sdk::transport::{AsyncTransport, RequestTarget, TransportRequest};
+use cloud_sdk::transport::{
+    AsyncTransport, RequestTarget, ResponseBuffer, TransportRequest,
+};
 use cloud_sdk_testkit::{
     ExpectedRequest, FixtureBody, MockExchange, MockTransport, ResponseFixture,
 };
@@ -91,13 +104,22 @@ let exchanges = [MockExchange::new(
 )];
 let transport = MockTransport::new(&exchanges);
 let mut output = [0_u8; 32];
-let Ok(response) = AsyncTransport::send(
+let output_capacity = output.len();
+let mut response = ResponseBuffer::new(&mut output, output_capacity, &transport);
+if AsyncTransport::send(
     &transport,
     TransportRequest::new(Method::Get, target),
-    &mut output,
-).await else { return };
+    response.writer(),
+)
+.await
+.is_err()
+{
+    return;
+}
 
-assert_eq!(response.body(), br#"{"id":42}"#);
+assert!(response
+    .with_response(|view| view.body() == br#"{"id":42}"#)
+    .is_ok_and(core::convert::identity));
 # }
 # fn main() {}
 ```

@@ -20,6 +20,7 @@ scripts/check_provider_identities.sh
 scripts/check_http_method_domain.sh
 scripts/check_request_targets.sh
 scripts/check_header_model.sh
+scripts/check_response_provenance.sh
 scripts/check-provider-capabilities.py
 scripts/test-provider-capabilities.py
 scripts/check-custom-endpoint-docs.py

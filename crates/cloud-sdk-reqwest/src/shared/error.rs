@@ -70,6 +70,8 @@ pub enum TransportError {
     ResponseTooLarge,
     /// Reading the response body failed.
     ResponseReadFailed,
+    /// The admitted core response writer rejected the completed response.
+    ResponseCommitFailed,
     /// The final response origin differed from the configured endpoint.
     ResponseOriginChanged,
 }
@@ -92,5 +94,6 @@ impl_static_error!(TransportError,
     Self::InvalidResponseHeaders => "response headers are invalid",
     Self::ResponseTooLarge => "response body exceeds the caller limit",
     Self::ResponseReadFailed => "response body read failed",
+    Self::ResponseCommitFailed => "response commitment failed",
     Self::ResponseOriginChanged => "response origin changed",
 );

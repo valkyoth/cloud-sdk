@@ -38,8 +38,8 @@ boundaries.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.36.0"
-cloud-sdk-hetzner = "0.29.0"
+cloud-sdk = "0.37.0"
+cloud-sdk-hetzner = "0.30.0"
 ```
 
 ## Features
@@ -106,7 +106,7 @@ assert_eq!(
 ```
 
 Secret-bearing operations need successful-path cleanup after transport use.
-Add `cloud-sdk-sanitization = "0.15.4"` and guard the complete body buffer:
+Add `cloud-sdk-sanitization = "0.15.5"` and guard the complete body buffer:
 
 ```rust
 use cloud_sdk::operation::{PreparationStorage, PrepareOperation};
@@ -195,6 +195,8 @@ Canonical request-target migration is listed in the
 [v0.35 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.35.0.md).
 Prepared request-header migration is listed in the
 [v0.36 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.36.0.md).
+Response provenance migration is listed in the
+[v0.37 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.37.0.md).
 
 ## Optional Serde Boundary
 
@@ -202,16 +204,17 @@ Enable Serde explicitly; it is never part of the default graph:
 
 ```toml
 [dependencies]
-cloud-sdk-hetzner = { version = "0.29.0", features = ["serde"] }
+cloud-sdk-hetzner = { version = "0.30.0", features = ["serde"] }
 ```
 
 The feature admits serde_json with `default-features = false` and `alloc` only
 for the public Serde request/envelope APIs. Checked responses use a private
 direct parser that never routes decoded string values through serde_json heap
-scratch storage. The decoder consumes a `TransportResponse` together with its
-exact `PreparedRequest`, applies the prepared status/content-type/body policy,
-rejects duplicate or malformed JSON, and returns validated typed success or API
-errors.
+scratch storage. The decoder consumes a cleanup-owning `ResponseBuffer`
+together with its exact `PreparedRequest`, applies the prepared
+status/content-type/body policy, rejects duplicate or malformed JSON, and
+returns validated typed success or API errors only after response storage is
+cleared.
 Resource responses currently expose validated identity and common state fields;
 provider-complete resource field models remain planned before `1.0.0`. The
 bounded parser tree and its volatile-clearing string storage remain private:
@@ -257,7 +260,10 @@ Decode only through the prepared request that produced the response:
 # #[cfg(feature = "serde")]
 # fn main() -> Result<(), Box<dyn core::error::Error>> {
 use cloud_sdk::operation::{PreparationStorage, PrepareOperation};
-use cloud_sdk::transport::{ResponseContentType, StatusCode, TransportResponse};
+use cloud_sdk::transport::{
+    ResponseBuffer, ResponseContentType, ResponseMetadata,
+    ResponseStorageSanitizer, StatusCode,
+};
 use cloud_sdk_hetzner::cloud::servers::{ServerEndpoint, ServerId};
 use cloud_sdk_hetzner::serde::{HetznerSuccess, decode_response};
 
@@ -266,15 +272,33 @@ let mut target = [0_u8; 64];
 let mut body = [];
 let prepared = endpoint.prepare(PreparationStorage::new(&mut target, &mut body))?;
 let response_body = br#"{"server":{"id":42,"name":"web-1","status":"running"}}"#;
-let content_type = ResponseContentType::new("application/json")?;
-let response = TransportResponse::new(StatusCode::OK, response_body)
-    .with_content_type(content_type);
+let mut response_storage = [0_u8; 128];
+let mut response = ResponseBuffer::new(&mut response_storage, 128, &Sanitizer);
+let output = response.writer().body_mut()?;
+let output = output
+    .get_mut(..response_body.len())
+    .ok_or("response buffer is too small")?;
+output.copy_from_slice(response_body);
+response.writer().commit(
+    StatusCode::OK,
+    response_body.len(),
+    ResponseMetadata::EMPTY.with_content_type(
+        ResponseContentType::new("application/json")?,
+    ),
+)?;
 let decoded = decode_response(prepared, response)?;
 
 let HetznerSuccess::Resource(server) = decoded.success() else {
     return Err("unexpected response family".into());
 };
 assert_eq!(server.name(), Some("web-1"));
+
+struct Sanitizer;
+impl ResponseStorageSanitizer for Sanitizer {
+    fn sanitize_response_storage(&self, storage: &mut [u8]) {
+        cloud_sdk_sanitization::sanitize_bytes(storage);
+    }
+}
 # Ok(())
 # }
 # #[cfg(not(feature = "serde"))]
@@ -290,8 +314,8 @@ from the first decoded byte, including escaped strings and parser/model error
 paths. Provider and action error messages use the same protected closure-access
 model. A shared 65,536-node budget bounds aggregate JSON structure allocation.
 Cloned response models share the protected allocation, which is cleared after
-the final clone drops. Callers still own and must clear the original transport
-response buffer.
+the final clone drops. `ResponseBuffer` clears the complete original transport
+storage before decoding returns.
 
 ## RRSet Request Example
 
@@ -423,9 +447,10 @@ assert_eq!(metadata.total_entries(), Some(1));
 # fn main() {}
 ```
 
-Pass `TransportResponse::rate_limit()` as the final `observe` argument when a
-real or mock transport supplies it. The caller remains responsible for
-decoding the resource array and reporting its exact entry count.
+Pass the rate-limit value exposed inside `ResponseBuffer::with_response` as the
+final `observe` argument when a real or mock transport supplies it. The caller
+remains responsible for decoding the resource array and reporting its exact
+entry count.
 
 ## Action Polling Example
 

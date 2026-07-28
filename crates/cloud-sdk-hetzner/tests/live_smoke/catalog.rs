@@ -2,7 +2,8 @@ use core::{fmt, str};
 
 use cloud_sdk::Method;
 use cloud_sdk::transport::{
-    BlockingTransport, RequestTarget, RequestTargetError, StatusCode, TransportRequest,
+    BlockingTransport, RequestTarget, RequestTargetError, ResponseBuffer, StatusCode,
+    TransportRequest,
 };
 use cloud_sdk_hetzner::cloud::catalog::{
     CatalogListEndpoint, CatalogListRequest, CatalogRequestError, CatalogSingletonEndpoint,
@@ -96,16 +97,23 @@ impl CatalogProbe {
 
         let mut response_storage = vec![0_u8; MAX_RESPONSE_BYTES];
         let mut guarded = SecretBuffer::new(response_storage.as_mut_slice());
-        let response = client
-            .send(request, guarded.as_mut_slice())
+        let mut response = ResponseBuffer::new(guarded.as_mut_slice(), MAX_RESPONSE_BYTES, client);
+        client
+            .send(request, response.writer())
             .map_err(|error| ProbeFailure::new(self.name, ProbeError::Transport(error)))?;
-        if response.status() != StatusCode::OK {
-            return Err(ProbeFailure::new(
-                self.name,
-                ProbeError::UnexpectedStatus(response.status().get()),
-            ));
-        }
-        self.validate_body(response.body())
+        response
+            .with_response(|view| {
+                if view.status() != StatusCode::OK {
+                    return Err(ProbeError::UnexpectedStatus(view.status().get()));
+                }
+                self.validate_body(view.body())
+            })
+            .map_err(|_| {
+                ProbeFailure::new(
+                    self.name,
+                    ProbeError::Transport(TransportError::ResponseCommitFailed),
+                )
+            })?
             .map_err(|kind| ProbeFailure::new(self.name, kind))
     }
 

@@ -4,9 +4,9 @@ use alloc::string::String;
 
 use cloud_sdk::transport::StatusCode;
 
-use super::checked_tests::{prepared, response};
+use super::checked_test_support::{decode_response, prepared, response};
 use super::strict_json::MAX_JSON_NODES;
-use super::{HetznerDecodeError, HetznerSuccess, decode_response};
+use super::{HetznerDecodeError, HetznerSuccess};
 use crate::identity::CLOUD_SERVICE_ID;
 
 #[test]

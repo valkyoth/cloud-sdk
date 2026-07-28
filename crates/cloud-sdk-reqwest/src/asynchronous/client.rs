@@ -3,8 +3,8 @@ use std::sync::Arc;
 
 use cloud_sdk::Method;
 use cloud_sdk::transport::{
-    AsyncTransport, BoundTransport, EndpointIdentity, EndpointIdentityError,
-    ResponseStorageSanitizer, StatusCode, TransportRequest, TransportResponse,
+    AsyncTransport, BoundTransport, EndpointIdentity, EndpointIdentityError, ResponseMetadata,
+    ResponseStorageSanitizer, ResponseWriter, StatusCode, TransportRequest,
 };
 use cloud_sdk_sanitization::{SecretBuffer, sanitize_bytes};
 use reqwest::header::{AUTHORIZATION, HeaderName, HeaderValue};
@@ -66,12 +66,14 @@ impl AsyncClient {
         self.credentials.rotate_from_secret_buffer(source)
     }
 
-    async fn send_inner<'buffer>(
+    async fn send_inner(
         &self,
         request: TransportRequest<'_>,
-        response_body: &'buffer mut [u8],
-    ) -> Result<TransportResponse<'buffer>, TransportError> {
-        sanitize_bytes(response_body);
+        response_writer: &mut ResponseWriter<'_>,
+    ) -> Result<(), TransportError> {
+        if response_writer.is_committed() {
+            return Err(TransportError::ResponseCommitFailed);
+        }
         let url = self
             .endpoint
             .compose(request.target())
@@ -116,41 +118,46 @@ impl AsyncClient {
             .verify_origin(response.url())
             .map_err(|_| TransportError::ResponseOriginChanged)?;
         if response.content_length().is_some_and(|length| {
-            u64::try_from(response_body.len()).map_or(true, |cap| length > cap)
+            u64::try_from(response_writer.body_capacity()).map_or(true, |cap| length > cap)
         }) {
             return Err(TransportError::ResponseTooLarge);
         }
         let status =
             StatusCode::new(response.status().as_u16()).ok_or(TransportError::InvalidStatus)?;
-        let buffered = read_response(&mut response, response_body.len()).await?;
+        let buffered = read_response(&mut response, response_writer.body_capacity()).await?;
         let headers = capture_response_headers(response.headers())?;
         let rate_limit = parse_rate_limit(&headers)?;
         let content_type = parse_response_content_type(&headers)?;
         let body_len = buffered.len();
-        let initialized = response_body
+        let initialized = response_writer
+            .body_mut()
+            .map_err(|_| TransportError::ResponseCommitFailed)?
             .get_mut(..body_len)
             .ok_or(TransportError::ResponseReadFailed)?;
         initialized.copy_from_slice(buffered.as_ref());
-        let response = TransportResponse::new(status, initialized).with_headers(headers);
-        let response = content_type.map_or(response, |value| response.with_content_type(value));
+        let metadata = ResponseMetadata::EMPTY.with_headers(headers);
+        let metadata = content_type.map_or(metadata, |value| metadata.with_content_type(value));
+        let metadata = rate_limit.map_or(metadata, |value| metadata.with_rate_limit(value));
         drop(token_snapshot);
-        Ok(rate_limit.map_or(response, |value| response.with_rate_limit(value)))
+        response_writer
+            .commit(status, body_len, metadata)
+            .map_err(|_| TransportError::ResponseCommitFailed)
     }
 }
 
 impl AsyncTransport for AsyncClient {
     type Error = TransportError;
 
-    async fn send<'transport, 'request, 'buffer>(
+    async fn send<'transport, 'request, 'writer>(
         &'transport self,
         request: TransportRequest<'request>,
-        response_body: &'buffer mut [u8],
-    ) -> Result<TransportResponse<'buffer>, Self::Error>
+        response: &'writer mut ResponseWriter<'_>,
+    ) -> Result<(), Self::Error>
     where
-        'request: 'transport,
-        'buffer: 'transport,
+        'transport: 'writer,
+        'request: 'writer,
     {
-        self.send_inner(request, response_body).await
+        self.send_inner(request, response).await
     }
 }
 

@@ -5,13 +5,13 @@ use core::task::{Context, Poll, Waker};
 use super::{
     ContentTypePolicy, CostIntent, OperationImpact, OperationMetadata, OperationMetadataError,
     PreparationStorage, PrepareOperation, PreparedExecutionError, PreparedRequest, ProviderService,
-    RequestSemantics, ResponseBodyPolicy, ResponsePolicy, ResponsePolicyError,
-    ResponsePolicyValidationError, RetryEligibility,
+    RequestSemantics, ResponseBodyPolicy, ResponsePolicy, ResponsePolicyValidationError,
+    RetryEligibility,
 };
 use crate::transport::{
     AsyncTransport, BlockingTransport, BoundTransport, EndpointIdentity, EndpointIdentityError,
     EndpointPolicy, EndpointScheme, MediaType, RequestTarget, ResponseContentType,
-    ResponseStorageSanitizer, StatusCode, TransportRequest, TransportResponse,
+    ResponseMetadata, ResponseStorageSanitizer, ResponseWriter, StatusCode, TransportRequest,
 };
 use crate::{
     Method, ProviderId, ProviderMarker, ServiceId, ServiceMarker, provider_id, service_id,
@@ -158,64 +158,6 @@ fn response_policy_requires_complete_coherent_configuration() {
 }
 
 #[test]
-fn response_policy_classifies_every_rejection_before_decoding() {
-    let required = json_response_policy(4);
-    assert!(required.is_ok());
-    let Ok(required) = required else { return };
-    let json = ResponseContentType::new("application/json; charset=utf-8");
-    assert!(json.is_ok());
-    let Ok(json) = json else { return };
-
-    let status = StatusCode::new(201).unwrap_or(StatusCode::OK);
-    assert!(matches!(
-        required.validate(TransportResponse::new(status, b"{}")),
-        Err(ResponsePolicyError::UnexpectedStatus)
-    ));
-    assert!(matches!(
-        required.validate(TransportResponse::new(StatusCode::OK, b"12345")),
-        Err(ResponsePolicyError::BodyTooLarge)
-    ));
-    assert!(matches!(
-        required.validate(TransportResponse::new(StatusCode::OK, b"")),
-        Err(ResponsePolicyError::MissingBody)
-    ));
-    assert!(matches!(
-        required.validate(TransportResponse::new(StatusCode::OK, b"{}")),
-        Err(ResponsePolicyError::MissingContentType)
-    ));
-    let text = ResponseContentType::new("text/plain");
-    assert!(text.is_ok());
-    if let Ok(text) = text {
-        assert!(matches!(
-            required
-                .validate(TransportResponse::new(StatusCode::OK, b"{}").with_content_type(text)),
-            Err(ResponsePolicyError::UnexpectedContentType)
-        ));
-    }
-    let checked =
-        required.validate(TransportResponse::new(StatusCode::OK, b"{}").with_content_type(json));
-    assert!(checked.is_ok_and(|response| response.body() == b"{}"));
-
-    let forbidden = ResponsePolicy::new(
-        &OK_STATUS,
-        ContentTypePolicy::Forbidden,
-        ResponseBodyPolicy::Forbidden,
-        0,
-    );
-    assert!(forbidden.is_ok());
-    if let Ok(forbidden) = forbidden {
-        assert!(matches!(
-            forbidden.validate(TransportResponse::new(StatusCode::OK, b"x")),
-            Err(ResponsePolicyError::ForbiddenBody)
-        ));
-        assert!(matches!(
-            forbidden.validate(TransportResponse::new(StatusCode::OK, b"").with_content_type(json)),
-            Err(ResponsePolicyError::ForbiddenContentType)
-        ));
-    }
-}
-
-#[test]
 fn prepared_blocking_execution_checks_endpoint_and_lends_only_policy_capacity() {
     let operation = ExampleOperation;
     let mut target = [0_u8; 32];
@@ -230,7 +172,10 @@ fn prepared_blocking_execution_checks_endpoint_and_lends_only_policy_capacity() 
     let transport = RecordingTransport::new(official);
     let mut response_storage = [0xA5_u8; 64];
     let response = prepared.execute_blocking(&transport, &mut response_storage);
-    assert!(response.is_ok_and(|response| response.body() == b"{}"));
+    assert!(
+        response
+            .is_ok_and(|response| { response.with_borrowed(|checked| checked.body() == b"{}") })
+    );
     assert_eq!(transport.calls.load(Ordering::Acquire), 1);
     assert_eq!(transport.last_capacity.load(Ordering::Acquire), 16);
     assert_eq!(transport.sanitized_capacity.load(Ordering::Acquire), 64);
@@ -244,6 +189,7 @@ fn prepared_blocking_execution_checks_endpoint_and_lends_only_policy_capacity() 
         response,
         Err(PreparedExecutionError::EndpointMismatch)
     ));
+    drop(response);
     assert_eq!(mismatched.calls.load(Ordering::Acquire), 0);
     assert_eq!(mismatched.sanitized_capacity.load(Ordering::Acquire), 64);
     assert_eq!(response_storage, [0_u8; 64]);
@@ -270,7 +216,7 @@ fn prepared_async_execution_uses_the_same_endpoint_and_response_policy() {
         let response = Future::poll(future.as_mut(), &mut context);
         assert!(matches!(response, Poll::Ready(Ok(_))));
         if let Poll::Ready(Ok(response)) = response {
-            assert_eq!(response.body(), b"{}");
+            assert!(response.with_borrowed(|checked| checked.body() == b"{}"));
         }
     }
     assert_eq!(transport.calls.load(Ordering::Acquire), 1);
@@ -360,17 +306,24 @@ impl RecordingTransport {
         }
     }
 
-    fn send_inner<'buffer>(
-        &self,
-        response_body: &'buffer mut [u8],
-    ) -> Result<TransportResponse<'buffer>, ()> {
+    fn send_inner(&self, response: &mut ResponseWriter<'_>) -> Result<(), ()> {
         self.calls.fetch_add(1, Ordering::AcqRel);
         self.last_capacity
-            .store(response_body.len(), Ordering::Release);
-        let output = response_body.get_mut(..2).ok_or(())?;
+            .store(response.body_capacity(), Ordering::Release);
+        let output = response
+            .body_mut()
+            .map_err(|_| ())?
+            .get_mut(..2)
+            .ok_or(())?;
         output.copy_from_slice(b"{}");
         let content_type = ResponseContentType::new("application/json").map_err(|_| ())?;
-        Ok(TransportResponse::new(StatusCode::OK, output).with_content_type(content_type))
+        response
+            .commit(
+                StatusCode::OK,
+                2,
+                ResponseMetadata::EMPTY.with_content_type(content_type),
+            )
+            .map_err(|_| ())
     }
 }
 
@@ -391,28 +344,28 @@ impl ResponseStorageSanitizer for RecordingTransport {
 impl BlockingTransport for RecordingTransport {
     type Error = ();
 
-    fn send<'buffer>(
+    fn send(
         &self,
         _request: TransportRequest<'_>,
-        response_body: &'buffer mut [u8],
-    ) -> Result<TransportResponse<'buffer>, Self::Error> {
-        self.send_inner(response_body)
+        response: &mut ResponseWriter<'_>,
+    ) -> Result<(), Self::Error> {
+        self.send_inner(response)
     }
 }
 
 impl AsyncTransport for RecordingTransport {
     type Error = ();
 
-    async fn send<'transport, 'request, 'buffer>(
+    async fn send<'transport, 'request, 'writer>(
         &'transport self,
         _request: TransportRequest<'request>,
-        response_body: &'buffer mut [u8],
-    ) -> Result<TransportResponse<'buffer>, Self::Error>
+        response: &'writer mut ResponseWriter<'_>,
+    ) -> Result<(), Self::Error>
     where
-        'request: 'transport,
-        'buffer: 'transport,
+        'transport: 'writer,
+        'request: 'writer,
     {
-        self.send_inner(response_body)
+        self.send_inner(response)
     }
 }
 

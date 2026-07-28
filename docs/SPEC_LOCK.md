@@ -194,8 +194,9 @@ The official response metadata uses the complete `RateLimit-Limit`,
 `RateLimit-Remaining`, and `RateLimit-Reset` header set. Reqwest adapters parse
 only unsigned decimal values, require each of the three headers exactly once
 when any is present, reject duplicates, zero limits, and remaining values above
-the limit, and expose the result through `TransportResponse`. They do not infer
-a retry delay or automatically replay a request.
+the limit, and commit the result through the sealed response writer. Core
+exposes it only as a guard-scoped response view. Adapters do not infer a retry
+delay or automatically replay a request.
 
 ## v0.19.0 Live Smoke Policy
 

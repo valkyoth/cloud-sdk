@@ -23,6 +23,11 @@ transport's `TransportResponse` to `serde::decode_response`. The decoder:
 - returns `HetznerSuccess` for successful responses or a redacted typed
   `HetznerApiError` for provider error statuses.
 
+This section describes the v0.31 API. As of v0.37,
+`serde::decode_response` consumes the cleanup-owning `ResponseBuffer`; the
+transport cannot construct a response from unrelated storage. See
+[`MIGRATION_0.37.0.md`](MIGRATION_0.37.0.md).
+
 Resource success values expose validated common identity and state fields in
 this release. Provider-complete field models remain planned before `1.0.0`.
 
@@ -61,6 +66,8 @@ Strings later discarded by duplicate, trailing-document, required-field, or
 model-validation errors are therefore cleared. Sensitive public models move
 that existing allocation without another plaintext copy. Cloning a response
 shares the protected allocation rather than copying plaintext; the allocation
-is cleared after the final clone drops. The SDK does not clear caller-owned
-transport response storage; sanitize that complete buffer after the decoded
-value is no longer needed.
+is cleared after the final clone drops. As of v0.37, `ResponseBuffer` clears
+complete caller-owned transport response storage through its supplied
+sanitizer before use and on every ordinary drop path. v0.38 is assigned the
+stronger audited non-elidable cleanup primitive and retained-sensitive-metadata
+lifecycle.

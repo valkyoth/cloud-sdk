@@ -78,7 +78,10 @@ fn bound_mock_executes_prepared_requests_for_blocking_and_async_contracts() {
 
     let mut blocking_output = [0_u8; 32];
     let blocking = prepared.execute_blocking(&mock, &mut blocking_output);
-    assert!(blocking.is_ok_and(|response| response.body() == b"{}"));
+    assert!(
+        blocking
+            .is_ok_and(|response| { response.with_borrowed(|checked| checked.body() == b"{}") })
+    );
 
     let mut async_output = [0_u8; 32];
     let future = prepared.execute_async(&mock, &mut async_output);

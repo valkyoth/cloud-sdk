@@ -1592,11 +1592,21 @@ Stop gate: `v0.36.0 implementation stop reached. Run pentest for this exact comm
 
 ### v0.37.0 - Response Buffer Provenance
 
+Status: implementation complete; pentest required.
+
 Goal: make it impossible for a transport to return bytes outside the admitted caller buffer.
 
-Deliverables: one sealed `ResponseWriter<'buffer>` model with exclusive admitted-buffer access. Transports may write bytes and commit only status, bounded metadata, and initialized length; core validates the length, constructs the response slice internally, and returns a cleanup-owning `CheckedResponseGuard`. Owned decoding clears before return; borrowed decoding is closure-scoped and cannot outlive the guard.
+Deliverables: a cleanup-owning `ResponseBuffer` lends one sealed `ResponseWriter<'buffer>` with exclusive admitted-prefix access. Transports may write bytes and commit only status, bounded metadata, and initialized length; core validates the length, constructs response views internally, and returns a cleanup-owning `CheckedResponseGuard`. The split owner/writer model preserves sequential non-`Sync` asynchronous transports without lending the sanitizer across suspension. Owned decoding clears before return; borrowed decoding is closure-scoped and cannot outlive the guard.
 
 Verification: malicious safe transports attempting static/external/oversized bodies or forged lengths, escaping-borrow compile-fail cases, owned/borrowed decode cleanup, blocking/async parity, and `scripts/release_0_37_gate.sh`.
+
+Exit criteria: safe transports cannot construct or substitute response body
+provenance; all blocking, async, reqwest, testkit, prepared execution, and
+Hetzner decoding paths use the sealed writer; uncommitted, oversized, duplicate,
+and post-commit states fail closed; policy rejection and owned decoding clear
+the complete caller storage through its supplied sanitizer; borrowed response
+bytes cannot escape their guard; docs and fuzzing match the new contract; and
+the implementation commit has passed independent security review.
 
 Stop gate: `v0.37.0 implementation stop reached. Run pentest for this exact commit.`
 

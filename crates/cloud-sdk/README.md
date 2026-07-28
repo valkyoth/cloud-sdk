@@ -120,8 +120,8 @@ Portable and native platform evidence is documented in
 
 ```toml
 [dependencies]
-cloud-sdk = "0.36.0"
-cloud-sdk-hetzner = "0.29.0"
+cloud-sdk = "0.37.0"
+cloud-sdk-hetzner = "0.30.0"
 ```
 
 ## cloud-sdk Features
@@ -151,6 +151,7 @@ visible. Applications should enable only the features they use.
 - [Migrating to v0.34](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.34.0.md)
 - [Migrating to v0.35](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.35.0.md)
 - [Migrating to v0.36](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.36.0.md)
+- [Migrating to v0.37](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.37.0.md)
 - [Deprecated endpoint policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/DEPRECATED_ENDPOINT_POLICY.md)
 
 ## Provider-Neutral Quickstart
@@ -342,18 +343,19 @@ assert_eq!(
 `PrepareOperation` writes a validated target and body into caller-owned
 storage and returns one `PreparedRequest`. Blocking and async execution verify
 the provider-owned endpoint policy before sending, lend only the response policy's admitted
-capacity, and return `CheckedResponse` only after status, body, and content type
-pass. Prepared transports must implement `ResponseStorageSanitizer`; execution
-clears the complete caller buffer before endpoint checks so a smaller policy
-cannot leave bytes from an earlier larger response in the unused tail. The SDK
-still performs no automatic retry or scheduling.
+capacity through a sealed `ResponseWriter`, and return a
+`CheckedResponseGuard` only after status, body, and content type pass. The
+guard owns cleanup of the complete caller buffer; borrowed decoding is
+closure-scoped and owned decoding clears storage before returning. Prepared
+transports must implement `ResponseStorageSanitizer`. The SDK still performs
+no automatic retry or scheduling.
 
 ## Optional Blocking Transport
 
 ```toml
 [dependencies]
-cloud-sdk = "0.36.0"
-cloud-sdk-reqwest = { version = "0.24.0", features = ["blocking-rustls"] }
+cloud-sdk = "0.37.0"
+cloud-sdk-reqwest = { version = "0.25.0", features = ["blocking-rustls"] }
 ```
 
 The production builder is HTTPS-only, requires explicit bounded timeouts and a
@@ -376,8 +378,8 @@ when deterministic public WebPKI roots are required:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.36.0"
-cloud-sdk-reqwest = { version = "0.24.0", features = ["blocking-rustls-webpki-roots"] }
+cloud-sdk = "0.37.0"
+cloud-sdk-reqwest = { version = "0.25.0", features = ["blocking-rustls-webpki-roots"] }
 ```
 
 The blocking API is unchanged. This feature excludes host-added enterprise
@@ -393,8 +395,8 @@ feature instead of relying on dependency feature unification:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.36.0"
-cloud-sdk-reqwest = { version = "0.24.0", features = ["blocking-rustls-fips"] }
+cloud-sdk = "0.37.0"
+cloud-sdk-reqwest = { version = "0.25.0", features = ["blocking-rustls-fips"] }
 ```
 
 Client construction explicitly selects rustls' AWS-LC FIPS provider and fails
@@ -412,8 +414,8 @@ example is in the
 
 ```toml
 [dependencies]
-cloud-sdk = "0.36.0"
-cloud-sdk-reqwest = { version = "0.24.0", features = ["async-rustls"] }
+cloud-sdk = "0.37.0"
+cloud-sdk-reqwest = { version = "0.25.0", features = ["async-rustls"] }
 ```
 
 The async adapter requires an active Tokio executor because reqwest uses Tokio
