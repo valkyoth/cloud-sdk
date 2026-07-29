@@ -1634,7 +1634,7 @@ Stop gate: `v0.39.0 implementation stop reached. Run pentest for this exact comm
 
 ### v0.40.0 - Raw Bounded HTTP Executor
 
-Status: implementation stop reached; pentest required.
+Status: release candidate; pentest and final retest passed.
 
 Goal: make transports execute complete validated HTTP requests without provider policy.
 

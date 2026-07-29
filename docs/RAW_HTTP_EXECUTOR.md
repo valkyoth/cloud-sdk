@@ -1,6 +1,6 @@
 # Raw Bounded HTTP Executor
 
-Status: implemented for the v0.40.0 pentest stop.
+Status: implemented; the v0.40.0 pentest and final retest passed.
 
 The raw executor is the provider-neutral wire boundary beneath later
 authentication and typed client policy. It accepts one validated

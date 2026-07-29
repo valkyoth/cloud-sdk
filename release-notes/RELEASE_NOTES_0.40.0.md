@@ -1,8 +1,9 @@
 # cloud-sdk 0.40.0 Release Notes
 
-Status: implementation stop reached; pentest required before tagging.
+Status: release candidate; pentest and final retest passed. Local and GitHub
+release checks remain required before tagging.
 
-Release date: pending
+Release date: 2026-07-29
 
 ## Overview
 
@@ -73,8 +74,20 @@ authentication or retry behavior.
 - [`docs/PUBLIC_API_REVIEW_0.40.0.md`](../docs/PUBLIC_API_REVIEW_0.40.0.md)
 - [`docs/DEPENDENCY_REVIEW_0.40.0.md`](../docs/DEPENDENCY_REVIEW_0.40.0.md)
 
+## Pentest
+
+The v0.40 pentest findings covered prompt informational-response rejection,
+production wire-parser fuzzing, transactional response cleanup, request-copy
+allocation bounds, exact wire-limit coverage, and precise delivery and
+dependency documentation. All findings were remediated and regression-tested.
+
+The final retest passed commit
+`ba0a60f2e9377300f7761f9429a73e0e25124213`. See the
+[`v0.40.0` pentest report](../security/pentest/v0.40.0.md).
+
 ## Release Gate
 
 ```text
-v0.40.0 implementation stop reached. Run pentest for this exact commit.
+v0.40.0 pentest stop passed. Tag only after the clean local release gate and
+GitHub checks pass on the final release commit.
 ```

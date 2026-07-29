@@ -1,7 +1,7 @@
 # Crate Version Matrix
 
-Status: `v0.39.0` is tagged. `v0.40.0` raw bounded HTTP execution reached its
-implementation stop; pentest is required before release.
+Status: `v0.39.0` is tagged. `v0.40.0` raw bounded HTTP execution is a release
+candidate; pentest and final retest passed.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
