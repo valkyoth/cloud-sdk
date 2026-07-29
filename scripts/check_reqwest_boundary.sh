@@ -5,8 +5,8 @@ set -eu
 
 default_tree=$(cargo tree -p cloud-sdk-reqwest --no-default-features --edges normal)
 default_dependencies=$(printf '%s\n' "$default_tree" | sed '1d')
-if ! printf '%s\n' "$default_tree" | grep -Fq 'cloud-sdk v0.38.0'; then
-    echo "reqwest boundary: cloud-sdk v0.38.0 is missing" >&2
+if ! printf '%s\n' "$default_tree" | grep -Fq 'cloud-sdk v0.39.0'; then
+    echo "reqwest boundary: cloud-sdk v0.39.0 is missing" >&2
     exit 1
 fi
 if printf '%s\n' "$default_dependencies" | grep -Eq \

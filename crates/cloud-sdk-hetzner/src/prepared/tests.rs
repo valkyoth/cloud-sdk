@@ -1,4 +1,6 @@
-use cloud_sdk::operation::{CostIntent, OperationImpact, PreparationStorage, PrepareOperation};
+use cloud_sdk::operation::{
+    CostIntent, OperationImpact, PreparationStorage, PreparationStorageGuard, PrepareOperation,
+};
 use cloud_sdk::transport::{
     CanonicalQuery, EndpointIdentity, EndpointScheme, RequestPath, RequestQuery, StatusCode,
 };
@@ -127,6 +129,29 @@ fn insufficient_target_storage_never_exposes_partial_bytes() {
     ));
     assert_eq!(target, [0; 4]);
     assert_eq!(body, [0; 4]);
+}
+
+#[test]
+fn cleanup_guard_retains_storage_until_transport_use_then_clears_all_bytes() {
+    let id = ActionId::new(42);
+    assert!(id.is_some());
+    let Some(id) = id else { return };
+    let mut target = [0xA5_u8; 32];
+    let mut body = [0x5A_u8; 16];
+    {
+        let mut storage = PreparationStorageGuard::new(&mut target, &mut body);
+        {
+            let prepared = storage.prepare(&ActionEndpoint::Get(id));
+            assert!(prepared.is_ok());
+            let Ok(prepared) = prepared else { return };
+            assert_eq!(
+                prepared.transport_request().target().as_str(),
+                "/actions/42"
+            );
+        }
+    }
+    assert_eq!(target, [0; 32]);
+    assert_eq!(body, [0; 16]);
 }
 
 #[test]

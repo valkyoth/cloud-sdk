@@ -1,7 +1,7 @@
 # Crate Version Matrix
 
-Status: `v0.37.0` is tagged. `v0.38.0` mandatory response cleanup passed
-pentest and final retest; local and GitHub release checks remain before tagging.
+Status: `v0.38.0` is tagged. `v0.39.0` transactional request encoding is at
+the implementation stop; pentest is required before release readiness.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
@@ -586,6 +586,19 @@ adds explicit request-identifier retention policy.
 | `cloud-sdk-hetzner` | `0.30.0` | `0.31.0` | `code` | Yes | Decode with guard-owned scratch and protected request identifiers. |
 | `cloud-sdk-reqwest` | `0.25.0` | `0.26.0` | `code` | Yes | Transfer non-Copy metadata into core cleanup owners and retain additive hooks. |
 | `cloud-sdk-testkit` | `0.22.0` | `0.23.0` | `code` | Yes | Exercise non-Copy fixtures and mandatory cleanup paths. |
+
+## v0.39.0 Tracking Table
+
+`v0.39.0` makes fixed-buffer request encoding transactional and adds bounded,
+cleanup-owning request preparation storage profiles.
+
+| Crate | Published | Planned | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.38.0` | `0.39.0` | `code` | Yes | Add immutable snapshot encoding, exact replay verification, cleanup guards, and named capacity profiles. |
+| `cloud-sdk-hetzner` | `0.31.0` | `0.32.0` | `code` | Yes | Migrate complete paths, queries, and JSON bodies to transactional encoding. |
+| `cloud-sdk-reqwest` | `0.26.0` | `0.26.1` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.39 facade line. |
+| `cloud-sdk-sanitization` | `0.16.0` | `0.16.0` | `unchanged` | No | No code, dependency, or package metadata changes. |
+| `cloud-sdk-testkit` | `0.23.0` | `0.23.1` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.39 facade line. |
 
 ## Planned Milestone Ownership
 

@@ -273,12 +273,17 @@ mod tests {
 
     #[test]
     fn reports_too_small_percent_encoding_buffer() {
-        let mut output = [0xA5_u8; 2];
-        assert_eq!(
-            write_percent_encoded_component(" ", &mut output),
-            Err(QueryError::EncodeBufferTooSmall)
-        );
-        assert_eq!(output, [0xA5; 2]);
+        for capacity in 0..3 {
+            let mut output = [0xA5_u8; 3];
+            assert_eq!(
+                write_percent_encoded_component(
+                    " ",
+                    output.get_mut(..capacity).unwrap_or_default()
+                ),
+                Err(QueryError::EncodeBufferTooSmall)
+            );
+            assert_eq!(output, [0xA5; 3]);
+        }
     }
 
     #[test]

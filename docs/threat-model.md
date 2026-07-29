@@ -90,6 +90,12 @@
   Storage Box passwords, private keys, or containing request types;
 - structural RRSet names/types, explicit TTL intent, bounded unique record
   mutations, and atomic JSON-string output;
+- request paths, queries, and JSON bodies use immutable snapshot
+  measure/write/verify encoding with checked arithmetic and aggregate caps;
+  undersized output is unchanged and observed pass drift clears the exact
+  admitted destination;
+- guarded preparation storage keeps target and body cleanup ownership alive
+  through transport use and clears both complete caller regions on drop;
 - checked Serde request wrappers, aggregate body limits, private response wire
   models, post-parse validation, and default dependency-graph isolation;
 - no_std mock transport with borrowed expectations, atomic bounded fixture

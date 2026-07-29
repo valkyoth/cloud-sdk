@@ -104,8 +104,12 @@ fn check_certificate_path(endpoint: CertificateActionEndpoint, capacity: usize) 
 }
 
 fn check_written<E>(result: Result<usize, E>, output: &[u8], path: bool) {
-    let Ok(len) = result else {
-        return;
+    let len = match result {
+        Ok(len) => len,
+        Err(_) => {
+            assert!(output.iter().all(|byte| *byte == 0xa5));
+            return;
+        }
     };
     assert!(len <= output.len());
     let Some(written) = output.get(..len) else {

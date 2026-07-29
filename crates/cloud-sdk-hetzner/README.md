@@ -38,8 +38,8 @@ boundaries.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.38.0"
-cloud-sdk-hetzner = "0.31.0"
+cloud-sdk = "0.39.0"
+cloud-sdk-hetzner = "0.32.0"
 ```
 
 ## Features
@@ -106,16 +106,14 @@ assert_eq!(
 ```
 
 Secret-bearing operations need successful-path cleanup after transport use.
-Add `cloud-sdk-sanitization = "0.16.0"` and guard the complete body buffer:
+Guard both complete preparation buffers through the core API:
 
 ```rust
-use cloud_sdk::operation::{PreparationStorage, PrepareOperation};
+use cloud_sdk::operation::{PreparationStorageGuard, PrepareOperation};
 use cloud_sdk_hetzner::storage::storage_boxes::{
     StorageBoxCreateRequest, StorageBoxLocation, StorageBoxName,
     StorageBoxPassword, StorageBoxTypeRef,
 };
-use cloud_sdk_sanitization::SecretBuffer;
-
 let name = StorageBoxName::new("backup")?;
 let location = StorageBoxLocation::new("fsn1")?;
 let box_type = StorageBoxTypeRef::new("bx20")?;
@@ -124,14 +122,12 @@ let operation = StorageBoxCreateRequest::new(name, location, box_type, password)
 let mut target = [0_u8; 128];
 let mut body_bytes = [0_u8; 512];
 {
-    let mut body = SecretBuffer::new(&mut body_bytes);
-    let prepared = operation.prepare(PreparationStorage::new(
-        &mut target,
-        body.as_mut_slice(),
-    ))?;
+    let mut storage = PreparationStorageGuard::new(&mut target, &mut body_bytes);
+    let prepared = storage.prepare(&operation)?;
     assert!(!prepared.transport_request().body().is_empty());
-    // Send while `prepared` borrows the guarded body, then leave this scope.
+    // Send while `prepared` borrows `storage`, then leave this scope.
 }
+assert!(target.iter().all(|byte| *byte == 0));
 assert!(body_bytes.iter().all(|byte| *byte == 0));
 # Ok::<(), Box<dyn core::error::Error>>(())
 ```
@@ -199,6 +195,8 @@ Response provenance migration is listed in the
 [v0.37 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.37.0.md).
 Mandatory response cleanup migration is listed in the
 [v0.38 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.38.0.md).
+Transactional request encoding and preparation cleanup are listed in the
+[v0.39 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.39.0.md).
 
 ## Optional Serde Boundary
 

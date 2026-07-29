@@ -8,15 +8,15 @@ usable in `no_std` environments.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.38.0"
+cloud-sdk = "0.39.0"
 ```
 
 Provider-specific request models are separate dependencies. For Hetzner:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.38.0"
-cloud-sdk-hetzner = "0.31.0"
+cloud-sdk = "0.39.0"
+cloud-sdk-hetzner = "0.32.0"
 ```
 
 ## Build A Transport Request
@@ -84,6 +84,32 @@ duplicate handling, limits, response metadata, and adapter changes.
 See [`MIGRATION_0.38.0.md`](MIGRATION_0.38.0.md) for mandatory response
 cleanup, protected request identifiers, and complete checked decode workspace
 ownership.
+See [`MIGRATION_0.39.0.md`](MIGRATION_0.39.0.md) for transactional request
+encoding, guarded preparation storage, and named capacity profiles.
+
+## Guard Preparation Storage
+
+`PreparationStorageGuard` keeps both complete request buffers under one
+volatile-clearing owner. A returned prepared request borrows the guard, so it
+cannot safely outlive cleanup ownership:
+
+```rust
+use cloud_sdk::operation::PreparationStorageGuard;
+
+let mut target = [0_u8; 1024];
+let mut body = [0_u8; 16 * 1024];
+{
+    let storage = PreparationStorageGuard::new(&mut target, &mut body);
+    assert_eq!(storage.capacities(), (1024, 16 * 1024));
+}
+assert!(target.iter().all(|byte| *byte == 0));
+assert!(body.iter().all(|byte| *byte == 0));
+```
+
+Use `PreparationCapacityProfile::EMBEDDED`, `DEFAULT`, or `LARGE` to validate
+caller storage. With the opt-in `alloc` feature,
+`OwnedPreparationStorage::try_for_profile` allocates the same bounded regions
+fallibly. No allocation is introduced by default.
 
 Provider crates can use `Method::extension("PURGE")` for a finite static
 extension. Extensions are bounded uppercase HTTP tokens; known aliases,

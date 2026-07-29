@@ -1,6 +1,8 @@
 #![no_main]
 
-use cloud_sdk::buffer::{write_json_string, write_percent_encoded, write_u64};
+use cloud_sdk::buffer::{
+    encode_snapshot_bounded, write_json_string, write_percent_encoded, write_u64,
+};
 use libfuzzer_sys::fuzz_target;
 
 #[derive(Clone, Copy)]
@@ -45,6 +47,24 @@ fuzz_target!(|data: &[u8]| {
     assert!(result.is_ok());
     assert!(encoded_len <= encoded.len());
     assert!(encoded[..encoded_len].iter().all(u8::is_ascii));
+
+    let bounded_capacity = capacity.min(encoded_capacity);
+    let mut transactional = vec![0xa5_u8; bounded_capacity];
+    let before = transactional.clone();
+    let result = encode_snapshot_bounded(
+        text,
+        &mut transactional,
+        8_192,
+        TooSmall,
+        |text, encoder| encoder.percent_encoded(text),
+    );
+    match result {
+        Ok(len) => {
+            assert_eq!(len, encoded_len);
+            assert_eq!(transactional.get(..len), encoded.get(..encoded_len));
+        }
+        Err(_) => assert_eq!(transactional, before),
+    }
 });
 
 fn read_u64(data: &[u8]) -> u64 {

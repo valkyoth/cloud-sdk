@@ -120,8 +120,8 @@ Portable and native platform evidence is documented in
 
 ```toml
 [dependencies]
-cloud-sdk = "0.38.0"
-cloud-sdk-hetzner = "0.31.0"
+cloud-sdk = "0.39.0"
+cloud-sdk-hetzner = "0.32.0"
 ```
 
 ## cloud-sdk Features
@@ -153,6 +153,7 @@ visible. Applications should enable only the features they use.
 - [Migrating to v0.36](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.36.0.md)
 - [Migrating to v0.37](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.37.0.md)
 - [Migrating to v0.38](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.38.0.md)
+- [Migrating to v0.39](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.39.0.md)
 - [Deprecated endpoint policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/DEPRECATED_ENDPOINT_POLICY.md)
 
 ## Provider-Neutral Quickstart
@@ -354,12 +355,20 @@ Optional `ResponseStorageSanitizer` implementations may add platform cleanup,
 but cannot replace or weaken the core clear. The SDK still performs no
 automatic retry or scheduling.
 
+Use `PreparationStorageGuard` when request buffers may contain secrets. The
+prepared request borrows the guard, so safe Rust keeps cleanup ownership alive
+through transport use; dropping the guard volatile-clears both complete
+buffers, including unused tails. Named `EMBEDDED`, `DEFAULT`, and `LARGE`
+capacity profiles make storage policy explicit. Enabling `alloc` adds
+fallible `OwnedPreparationStorage` convenience without changing the default
+allocation-free graph.
+
 ## Optional Blocking Transport
 
 ```toml
 [dependencies]
-cloud-sdk = "0.38.0"
-cloud-sdk-reqwest = { version = "0.26.0", features = ["blocking-rustls"] }
+cloud-sdk = "0.39.0"
+cloud-sdk-reqwest = { version = "0.26.1", features = ["blocking-rustls"] }
 ```
 
 The production builder is HTTPS-only, requires explicit bounded timeouts and a
@@ -382,8 +391,8 @@ when deterministic public WebPKI roots are required:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.38.0"
-cloud-sdk-reqwest = { version = "0.26.0", features = ["blocking-rustls-webpki-roots"] }
+cloud-sdk = "0.39.0"
+cloud-sdk-reqwest = { version = "0.26.1", features = ["blocking-rustls-webpki-roots"] }
 ```
 
 The blocking API is unchanged. This feature excludes host-added enterprise
@@ -399,8 +408,8 @@ feature instead of relying on dependency feature unification:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.38.0"
-cloud-sdk-reqwest = { version = "0.26.0", features = ["blocking-rustls-fips"] }
+cloud-sdk = "0.39.0"
+cloud-sdk-reqwest = { version = "0.26.1", features = ["blocking-rustls-fips"] }
 ```
 
 Client construction explicitly selects rustls' AWS-LC FIPS provider and fails
@@ -418,8 +427,8 @@ example is in the
 
 ```toml
 [dependencies]
-cloud-sdk = "0.38.0"
-cloud-sdk-reqwest = { version = "0.26.0", features = ["async-rustls"] }
+cloud-sdk = "0.39.0"
+cloud-sdk-reqwest = { version = "0.26.1", features = ["async-rustls"] }
 ```
 
 The async adapter requires an active Tokio executor because reqwest uses Tokio

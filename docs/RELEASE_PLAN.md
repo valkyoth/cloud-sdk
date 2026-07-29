@@ -1622,11 +1622,13 @@ Stop gate: `v0.38.0 implementation stop reached. Run pentest for this exact comm
 
 ### v0.39.0 - Atomic Encoders And Capacity Profiles
 
+Status: implementation stop reached; pentest required.
+
 Goal: eliminate partial writes, state drift, and secret tails.
 
 Deliverables: checked arithmetic inside every `encoded_len`; exact preflight/write equivalence; an immutable snapshot or exact generation/version-checked input across both passes. If digest comparison is required because exact bounded comparison is impossible, it follows the collision-resistant, versioned, domain-separated rules from `v0.46.0` and never uses ordinary `Hash` or another non-cryptographic digest. Include transactional cursors, aggregate caps, exact sensitive subslices, preparation cleanup guards, request-side ownership/cleanup contracts, and embedded/default/large storage profiles with optional alloc convenience.
 
-Verification: arithmetic boundaries, preflight/write differential tests, generation/version and snapshot mismatch, version/domain-separated collision-resistant digest vectors, non-cryptographic hash prohibition, mutated/nondeterministic two-pass input rejection, every undersized capacity, unchanged-storage assertions, secret-tail cleanup, allocation failure, fuzzing, and `scripts/release_0_39_gate.sh`.
+Verification: arithmetic boundaries, preflight/write differential tests, generation/version and snapshot mismatch, exact bounded comparison evidence, non-cryptographic hash prohibition, mutated/nondeterministic multi-pass input rejection, every undersized capacity, unchanged-storage assertions, secret-tail cleanup, allocation failure, fuzzing, and `scripts/release_0_39_gate.sh`. Digest vectors are required only if exact comparison is impossible; the v0.39 implementation uses exact comparison and no digest.
 
 Stop gate: `v0.39.0 implementation stop reached. Run pentest for this exact commit.`
 

@@ -1,38 +1,38 @@
 [release]
-version = "0.38.0"
+version = "0.39.0"
 policy = "independent"
 
 [crates."cloud-sdk"]
-previous_version = "0.37.0"
-version = "0.38.0"
+previous_version = "0.38.0"
+version = "0.39.0"
 change = "code"
 publish = true
-reason = "Make response cleanup mandatory and own all checked decode workspace."
+reason = "Add transactional snapshot encoders and guarded capacity profiles."
 
 [crates."cloud-sdk-hetzner"]
-previous_version = "0.30.0"
-version = "0.31.0"
+previous_version = "0.31.0"
+version = "0.32.0"
 change = "code"
 publish = true
-reason = "Use core-owned decoder scratch and mandatory response cleanup."
+reason = "Migrate request paths, queries, and JSON bodies to atomic encoding."
 
 [crates."cloud-sdk-reqwest"]
-previous_version = "0.25.0"
-version = "0.26.0"
-change = "code"
+previous_version = "0.26.0"
+version = "0.26.1"
+change = "dependency"
 publish = true
-reason = "Transfer non-Copy response metadata into mandatory cleanup owners."
+reason = "Update the cloud-sdk dependency to the v0.39 facade line."
 
 [crates."cloud-sdk-sanitization"]
-previous_version = "0.15.5"
+previous_version = "0.16.0"
 version = "0.16.0"
-change = "code"
-publish = true
-reason = "Invert the cleanup dependency and expose the audited scalar sanitizer."
+change = "unchanged"
+publish = false
+reason = "No code, dependency, or package metadata changes."
 
 [crates."cloud-sdk-testkit"]
-previous_version = "0.22.0"
-version = "0.23.0"
-change = "code"
+previous_version = "0.23.0"
+version = "0.23.1"
+change = "dependency"
 publish = true
-reason = "Move fixtures through non-Copy metadata and mandatory response cleanup."
+reason = "Update the cloud-sdk dependency to the v0.39 facade line."

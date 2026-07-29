@@ -187,6 +187,14 @@ impl<'output, E: Copy> SnapshotEncoder<'output, E> {
 /// unchanged. A final compare-only pass checks every emitted byte exactly. If
 /// either later pass violates the measured contract, the exact admitted
 /// destination is cleared before the error is returned.
+///
+/// # Snapshot contract
+///
+/// The snapshot and values it references must remain immutable for the whole
+/// call. Do not read clocks, random sources, globals, atomics, cells, or other
+/// interior-mutable state from `encode`. Exact replay detects observable
+/// drift, but it is not an authorization mechanism for a deliberately
+/// stateful encoder.
 pub fn encode_snapshot<S: Copy, E: Copy>(
     snapshot: S,
     output: &mut [u8],
@@ -220,6 +228,7 @@ pub fn measure_snapshot_bounded<S: Copy, E: Copy>(
 /// Encodes one immutable snapshot under an aggregate byte cap.
 ///
 /// Capacity and aggregate-limit failures occur before the output is modified.
+/// The [`encode_snapshot`] snapshot contract also applies.
 pub fn encode_snapshot_bounded<S: Copy, E: Copy>(
     snapshot: S,
     output: &mut [u8],
@@ -252,8 +261,6 @@ pub fn encode_snapshot_bounded<S: Copy, E: Copy>(
 
 #[cfg(test)]
 mod tests {
-    extern crate std;
-
     use core::sync::atomic::{AtomicUsize, Ordering};
 
     use super::{SnapshotEncoder, encode_snapshot, encode_snapshot_bounded};

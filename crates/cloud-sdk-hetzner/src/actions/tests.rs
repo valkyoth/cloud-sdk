@@ -93,14 +93,24 @@ fn global_action_paths_and_queries_fail_closed_on_small_buffers() -> Result<(), 
 {
     let id = ActionId::new(42).ok_or(ActionRequestError::EmptyActionIds)?;
     let request = ActionListRequest::try_new(core::slice::from_ref(&id))?;
+    let path_len = b"/actions/42".len();
+    for capacity in 0..path_len {
+        let mut output = [0xA5_u8; 11];
+        assert_eq!(
+            ActionEndpoint::Get(id).write_path(output.get_mut(..capacity).unwrap_or_default()),
+            Err(ActionRequestError::PathBufferTooSmall)
+        );
+        assert_eq!(output, [0xA5; 11]);
+    }
 
-    assert_eq!(
-        ActionEndpoint::Get(id).write_path(&mut [0_u8; 10]),
-        Err(ActionRequestError::PathBufferTooSmall)
-    );
-    assert_eq!(
-        request.write_query(&mut [0_u8; 4]),
-        Err(ActionRequestError::QueryBufferTooSmall)
-    );
+    let query_len = b"id=42".len();
+    for capacity in 0..query_len {
+        let mut output = [0x5A_u8; 5];
+        assert_eq!(
+            request.write_query(output.get_mut(..capacity).unwrap_or_default()),
+            Err(ActionRequestError::QueryBufferTooSmall)
+        );
+        assert_eq!(output, [0x5A; 5]);
+    }
     Ok(())
 }
