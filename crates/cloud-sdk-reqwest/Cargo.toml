@@ -1,7 +1,7 @@
 [package]
 name = "cloud-sdk-reqwest"
 description = "Optional provider-neutral reqwest transport boundary for cloud-sdk."
-version = "0.26.1"
+version = "0.27.0"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -17,45 +17,131 @@ default = []
 std = ["cloud-sdk/std", "cloud-sdk-sanitization?/std"]
 blocking-rustls = [
     "std",
+    "dep:bytes",
     "dep:cloud-sdk-sanitization",
+    "dep:http",
+    "dep:http-body-util",
+    "dep:hyper",
+    "dep:hyper-rustls",
+    "dep:hyper-util",
     "dep:reqwest",
+    "dep:rustls",
+    "dep:rustls-platform-verifier",
+    "dep:tokio",
+    "hyper/client",
+    "hyper/http1",
+    "hyper-rustls/aws-lc-rs",
+    "hyper-rustls/http1",
+    "hyper-rustls/rustls-platform-verifier",
+    "hyper-rustls/tls12",
+    "hyper-util/client-legacy",
+    "hyper-util/http1",
+    "hyper-util/tokio",
     "reqwest/blocking",
     "reqwest/rustls",
+    "rustls/aws_lc_rs",
+    "rustls/std",
+    "rustls/tls12",
+    "tokio/net",
+    "tokio/rt",
+    "tokio/time",
 ]
 blocking-rustls-webpki-roots = [
     "std",
     "dep:aws-lc-rs",
+    "dep:bytes",
     "dep:cloud-sdk-sanitization",
+    "dep:http",
+    "dep:http-body-util",
+    "dep:hyper",
+    "dep:hyper-rustls",
+    "dep:hyper-util",
     "dep:reqwest",
     "dep:rustls",
+    "dep:rustls-platform-verifier",
+    "dep:tokio",
     "dep:webpki-roots",
+    "hyper/client",
+    "hyper/http1",
+    "hyper-rustls/aws-lc-rs",
+    "hyper-rustls/http1",
+    "hyper-rustls/rustls-platform-verifier",
+    "hyper-rustls/tls12",
+    "hyper-util/client-legacy",
+    "hyper-util/http1",
+    "hyper-util/tokio",
     "reqwest/blocking",
     "reqwest/rustls-no-provider",
     "rustls/aws_lc_rs",
     "rustls/std",
     "rustls/tls12",
+    "tokio/net",
+    "tokio/rt",
+    "tokio/time",
 ]
 blocking-rustls-fips = [
     "std",
     "dep:aws-lc-fips-sys",
     "dep:aws-lc-rs",
     "dep:aws-lc-sys",
+    "dep:bytes",
     "dep:cloud-sdk-sanitization",
+    "dep:http",
+    "dep:http-body-util",
+    "dep:hyper",
+    "dep:hyper-rustls",
+    "dep:hyper-util",
     "dep:reqwest",
     "dep:rustls",
     "dep:rustls-platform-verifier",
+    "dep:tokio",
+    "hyper/client",
+    "hyper/http1",
+    "hyper-rustls/aws-lc-rs",
+    "hyper-rustls/http1",
+    "hyper-rustls/rustls-platform-verifier",
+    "hyper-rustls/tls12",
+    "hyper-util/client-legacy",
+    "hyper-util/http1",
+    "hyper-util/tokio",
     "reqwest/blocking",
     "reqwest/rustls-no-provider",
     "rustls/fips",
     "rustls/std",
     "rustls/tls12",
+    "tokio/net",
+    "tokio/rt",
+    "tokio/time",
 ]
 async-rustls = [
     "std",
     "dep:bytes",
     "dep:cloud-sdk-sanitization",
+    "dep:http",
+    "dep:http-body-util",
+    "dep:hyper",
+    "dep:hyper-rustls",
+    "dep:hyper-util",
     "dep:reqwest",
+    "dep:rustls",
+    "dep:rustls-platform-verifier",
+    "dep:tokio",
+    "hyper/client",
+    "hyper/http1",
+    "hyper-rustls/aws-lc-rs",
+    "hyper-rustls/http1",
+    "hyper-rustls/rustls-platform-verifier",
+    "hyper-rustls/tls12",
+    "hyper-util/client-legacy",
+    "hyper-util/http1",
+    "hyper-util/tokio",
     "reqwest/rustls",
+    "rustls/aws_lc_rs",
+    "rustls/std",
+    "rustls/tls12",
+    "tokio/net",
+    "tokio/rt",
+    "tokio/time",
 ]
 
 [dependencies]
@@ -65,9 +151,15 @@ aws-lc-sys = { workspace = true, optional = true }
 bytes = { workspace = true, optional = true }
 cloud-sdk.workspace = true
 cloud-sdk-sanitization = { workspace = true, optional = true }
+http = { workspace = true, optional = true }
+http-body-util = { workspace = true, optional = true }
+hyper = { workspace = true, optional = true }
+hyper-rustls = { workspace = true, optional = true }
+hyper-util = { workspace = true, optional = true }
 reqwest = { workspace = true, optional = true }
 rustls = { workspace = true, optional = true }
 rustls-platform-verifier = { workspace = true, optional = true }
+tokio = { workspace = true, optional = true }
 webpki-roots = { workspace = true, optional = true }
 
 [dev-dependencies]

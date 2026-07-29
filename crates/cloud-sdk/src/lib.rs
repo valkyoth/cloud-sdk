@@ -47,8 +47,9 @@ mod tests {
     use crate::pagination::PaginationError;
     use crate::rate_limit::RateLimitError;
     use crate::transport::{
-        ContentTypeError, EndpointIdentityError, HeaderError, RequestPathError, RequestTargetError,
-        ResponseWriterError,
+        ContentTypeError, EndpointIdentityError, HeaderError, InformationalResponseError,
+        RawResponsePolicyError, RequestPathError, RequestTargetError, ResponseWriterError,
+        TransportFailure,
     };
     use core::fmt::{self, Write};
 
@@ -83,6 +84,9 @@ mod tests {
         assert_error::<ResponsePolicyValidationError>();
         assert_error::<PreparedExecutionError<()>>();
         assert_error::<ResponseWriterError>();
+        assert_error::<RawResponsePolicyError>();
+        assert_error::<InformationalResponseError>();
+        assert_error::<TransportFailure<()>>();
 
         assert_display(PaginationError::PageZero, "page number must be nonzero");
         assert_display(RateLimitError::LimitZero, "rate limit must be nonzero");
@@ -123,6 +127,18 @@ mod tests {
         assert_display(
             ResponseWriterError::AlreadyCommitted,
             "response writer is already committed",
+        );
+        assert_display(
+            RawResponsePolicyError::UnsafeAdmittedHeader,
+            "an unsafe response header was admitted",
+        );
+        assert_display(
+            InformationalResponseError::SwitchingProtocols,
+            "switching protocols is forbidden",
+        );
+        assert_display(
+            TransportFailure::unknown("sentinel-secret"),
+            "transport failed with uncertain delivery",
         );
         assert_display(
             ActionPollError::Policy("sentinel-secret"),

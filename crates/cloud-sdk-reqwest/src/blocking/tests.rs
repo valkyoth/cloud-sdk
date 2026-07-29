@@ -31,6 +31,7 @@ use crate::test_server::spawn;
 mod endpoint_policy;
 mod lifecycle;
 mod method_domain;
+mod raw_executor;
 mod response_content_type;
 mod support;
 

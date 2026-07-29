@@ -1,6 +1,10 @@
 /// Client construction failure.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum BuildError {
+    /// Rustls could not enable its safe protocol-version set.
+    ProtocolConfigurationFailed,
+    /// The operating-system trust verifier could not be configured.
+    PlatformVerifierConfigurationFailed,
     /// FIPS transport construction omitted its required trust and revocation policy.
     FipsTlsPolicyRequired,
     /// The FIPS trust policy contained no trust anchors.
@@ -22,6 +26,8 @@ pub enum BuildError {
 }
 
 impl_static_error!(BuildError,
+    Self::ProtocolConfigurationFailed => "TLS protocol configuration failed",
+    Self::PlatformVerifierConfigurationFailed => "platform verifier configuration failed",
     Self::FipsTlsPolicyRequired => "FIPS TLS policy is required",
     Self::FipsTrustRootsRequired => "FIPS trust roots are required",
     Self::FipsCertificateRevocationListsRequired => "FIPS revocation lists are required",

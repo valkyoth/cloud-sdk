@@ -3,8 +3,10 @@
 mod asynchronous;
 mod cleanup;
 mod content_type;
+mod delivery;
 mod endpoint;
 mod header;
+mod raw;
 mod request_target;
 mod response;
 mod retained;
@@ -15,6 +17,7 @@ pub use cleanup::ResponseStorageSanitizer;
 pub use content_type::{
     ContentType, ContentTypeError, MAX_CONTENT_TYPE_BYTES, MediaType, ResponseContentType,
 };
+pub use delivery::{DeliveryPhase, TransportFailure};
 pub use endpoint::{
     AcknowledgedCustomEndpoint, BoundTransport, CustomEndpointAcknowledgement, EndpointIdentity,
     EndpointIdentityError, EndpointPolicy, EndpointPolicyError, EndpointPolicyKind, EndpointScheme,
@@ -26,6 +29,12 @@ pub use header::{
     MAX_HEADER_VALUE_BYTES, MAX_REQUEST_HEADER_BYTES, MAX_REQUEST_HEADERS,
     MAX_RESPONSE_HEADER_BYTES, MAX_RESPONSE_HEADERS, RequestHeader, RequestHeaders, ResponseHeader,
     ResponseHeaders,
+};
+pub use raw::{
+    AsyncRawHttpExecutor, BlockingRawHttpExecutor, InformationalResponseError,
+    InformationalResponseTracker, MAX_INFORMATIONAL_RESPONSES, MAX_RAW_RESPONSE_BODY_BYTES,
+    MAX_RESPONSE_CHUNKS, RawResponsePolicy, RawResponsePolicyError, ResponseMediaPolicy,
+    TrailerPolicy,
 };
 pub use request_target::{
     CanonicalQuery, FormQuery, MAX_REQUEST_TARGET_BYTES, QueryPair, QueryPairs, RequestPath,

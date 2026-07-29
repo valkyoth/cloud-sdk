@@ -8,6 +8,12 @@ use reqwest::blocking::Client;
 use reqwest::blocking::ClientBuilder;
 use reqwest::redirect::Policy;
 use reqwest::tls::Version;
+use rustls::ClientConfig;
+#[cfg(any(
+    feature = "blocking-rustls-fips",
+    feature = "blocking-rustls-webpki-roots"
+))]
+use rustls::RootCertStore;
 #[cfg(feature = "blocking-rustls-fips")]
 use rustls::client::WebPkiServerVerifier;
 #[cfg(feature = "blocking-rustls-fips")]
@@ -18,18 +24,20 @@ use rustls::pki_types::CertificateRevocationListDer;
     feature = "blocking-rustls-fips",
     feature = "blocking-rustls-webpki-roots"
 ))]
-use rustls::{ClientConfig, RootCertStore};
-#[cfg(any(
-    feature = "blocking-rustls-fips",
-    feature = "blocking-rustls-webpki-roots"
-))]
 use std::sync::Arc;
 #[cfg(feature = "blocking-rustls-fips")]
 use std::vec::Vec;
 
-use crate::shared::{BearerToken, BuildError, HttpsEndpoint, RequestTimeouts, UserAgent};
+#[cfg(all(
+    not(feature = "blocking-rustls-fips"),
+    not(feature = "blocking-rustls-webpki-roots")
+))]
+use crate::shared::platform_client_config;
+use crate::shared::{
+    BearerToken, BuildError, HttpsEndpoint, RawHyperClient, RequestTimeouts, UserAgent,
+};
 
-use super::BlockingClient;
+use super::{BlockingClient, RawBlockingClient};
 
 /// Deployment-managed trust anchors and complete CRLs for FIPS TLS.
 #[cfg(feature = "blocking-rustls-fips")]
@@ -81,6 +89,15 @@ pub struct BlockingClientBuilder {
     fips_tls_policy: Option<FipsTlsPolicy>,
 }
 
+/// Builder for a raw client with no credential, provider, media, or retry policy.
+pub struct RawBlockingClientBuilder {
+    endpoint: HttpsEndpoint,
+    user_agent: UserAgent,
+    timeouts: RequestTimeouts,
+    #[cfg(feature = "blocking-rustls-fips")]
+    fips_tls_policy: Option<FipsTlsPolicy>,
+}
+
 impl BlockingClientBuilder {
     /// Creates a complete blocking-client configuration.
     #[must_use]
@@ -114,12 +131,72 @@ impl BlockingClientBuilder {
     }
 
     fn build_inner(self, https_only: bool) -> Result<BlockingClient, BuildError> {
-        let client = configured_client(&self, https_only)?;
+        let settings = ClientSettings {
+            user_agent: &self.user_agent,
+            timeouts: self.timeouts,
+            #[cfg(feature = "blocking-rustls-fips")]
+            fips_tls_policy: self.fips_tls_policy.as_ref(),
+        };
+        let client = configured_client(settings, https_only)?;
         Ok(BlockingClient::new(client, self.endpoint, self.token))
     }
 
     #[cfg(test)]
     pub(super) fn build_for_loopback(self) -> Result<BlockingClient, BuildError> {
+        self.build_inner(false)
+    }
+}
+
+impl RawBlockingClientBuilder {
+    /// Creates a complete raw blocking configuration without credentials.
+    #[must_use]
+    pub const fn new(
+        endpoint: HttpsEndpoint,
+        user_agent: UserAgent,
+        timeouts: RequestTimeouts,
+    ) -> Self {
+        Self {
+            endpoint,
+            user_agent,
+            timeouts,
+            #[cfg(feature = "blocking-rustls-fips")]
+            fips_tls_policy: None,
+        }
+    }
+
+    /// Supplies mandatory deployment-managed roots and CRLs for FIPS TLS.
+    #[cfg(feature = "blocking-rustls-fips")]
+    #[must_use]
+    pub fn with_fips_tls_policy(mut self, policy: FipsTlsPolicy) -> Self {
+        self.fips_tls_policy = Some(policy);
+        self
+    }
+
+    /// Builds an HTTPS-only executor with no implicit authorization.
+    pub fn build(self) -> Result<RawBlockingClient, BuildError> {
+        self.build_inner(true)
+    }
+
+    fn build_inner(self, https_only: bool) -> Result<RawBlockingClient, BuildError> {
+        let settings = ClientSettings {
+            user_agent: &self.user_agent,
+            timeouts: self.timeouts,
+            #[cfg(feature = "blocking-rustls-fips")]
+            fips_tls_policy: self.fips_tls_policy.as_ref(),
+        };
+        let tls_config = raw_tls_config(settings)?;
+        let client = RawHyperClient::new(
+            self.endpoint.clone(),
+            &self.user_agent,
+            self.timeouts,
+            tls_config,
+            https_only,
+        )?;
+        Ok(RawBlockingClient::new(client, self.endpoint))
+    }
+
+    #[cfg(test)]
+    pub(super) fn build_for_loopback(self) -> Result<RawBlockingClient, BuildError> {
         self.build_inner(false)
     }
 }
@@ -138,11 +215,29 @@ impl fmt::Debug for BlockingClientBuilder {
     }
 }
 
-fn configured_client(
-    configuration: &BlockingClientBuilder,
-    https_only: bool,
-) -> Result<Client, BuildError> {
-    configured_tls_builder(configuration)?
+impl fmt::Debug for RawBlockingClientBuilder {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let mut debug = formatter.debug_struct("RawBlockingClientBuilder");
+        debug
+            .field("endpoint", &"[redacted]")
+            .field("user_agent", &self.user_agent)
+            .field("timeouts", &self.timeouts);
+        #[cfg(feature = "blocking-rustls-fips")]
+        debug.field("fips_tls_policy", &self.fips_tls_policy);
+        debug.finish()
+    }
+}
+
+#[derive(Clone, Copy)]
+struct ClientSettings<'a> {
+    user_agent: &'a UserAgent,
+    timeouts: RequestTimeouts,
+    #[cfg(feature = "blocking-rustls-fips")]
+    fips_tls_policy: Option<&'a FipsTlsPolicy>,
+}
+
+fn configured_client(settings: ClientSettings<'_>, https_only: bool) -> Result<Client, BuildError> {
+    configured_tls_builder(settings)?
         .https_only(https_only)
         .http1_only()
         .no_hickory_dns()
@@ -155,10 +250,10 @@ fn configured_client(
         .no_brotli()
         .no_zstd()
         .no_deflate()
-        .timeout(configuration.timeouts.total())
-        .connect_timeout(configuration.timeouts.connect())
+        .timeout(settings.timeouts.total())
+        .connect_timeout(settings.timeouts.connect())
         .connection_verbose(false)
-        .user_agent(configuration.user_agent.value.clone())
+        .user_agent(settings.user_agent.value.clone())
         .build()
         .map_err(|_| BuildError::ClientBuildFailed)
 }
@@ -167,8 +262,32 @@ fn configured_client(
     not(feature = "blocking-rustls-fips"),
     not(feature = "blocking-rustls-webpki-roots")
 ))]
+fn raw_tls_config(_settings: ClientSettings<'_>) -> Result<ClientConfig, BuildError> {
+    platform_client_config()
+}
+
+#[cfg(all(
+    not(feature = "blocking-rustls-fips"),
+    feature = "blocking-rustls-webpki-roots"
+))]
+fn raw_tls_config(_settings: ClientSettings<'_>) -> Result<ClientConfig, BuildError> {
+    webpki_roots_client_config()
+}
+
+#[cfg(feature = "blocking-rustls-fips")]
+fn raw_tls_config(settings: ClientSettings<'_>) -> Result<ClientConfig, BuildError> {
+    let policy = settings
+        .fips_tls_policy
+        .ok_or(BuildError::FipsTlsPolicyRequired)?;
+    fips_client_config(policy)
+}
+
+#[cfg(all(
+    not(feature = "blocking-rustls-fips"),
+    not(feature = "blocking-rustls-webpki-roots")
+))]
 fn configured_tls_builder(
-    _configuration: &BlockingClientBuilder,
+    _settings: ClientSettings<'_>,
 ) -> Result<reqwest::blocking::ClientBuilder, BuildError> {
     Ok(Client::builder().tls_backend_rustls())
 }
@@ -177,9 +296,7 @@ fn configured_tls_builder(
     not(feature = "blocking-rustls-fips"),
     feature = "blocking-rustls-webpki-roots"
 ))]
-fn configured_tls_builder(
-    _configuration: &BlockingClientBuilder,
-) -> Result<ClientBuilder, BuildError> {
+fn configured_tls_builder(_settings: ClientSettings<'_>) -> Result<ClientBuilder, BuildError> {
     let config = webpki_roots_client_config()?;
     Ok(Client::builder().tls_backend_preconfigured(config))
 }
@@ -210,12 +327,9 @@ pub(super) fn test_webpki_roots_configuration() -> Result<(usize, bool), BuildEr
 }
 
 #[cfg(feature = "blocking-rustls-fips")]
-fn configured_tls_builder(
-    configuration: &BlockingClientBuilder,
-) -> Result<ClientBuilder, BuildError> {
-    let policy = configuration
+fn configured_tls_builder(settings: ClientSettings<'_>) -> Result<ClientBuilder, BuildError> {
+    let policy = settings
         .fips_tls_policy
-        .as_ref()
         .ok_or(BuildError::FipsTlsPolicyRequired)?;
     let config = fips_client_config(policy)?;
     Ok(Client::builder().tls_backend_preconfigured(config))

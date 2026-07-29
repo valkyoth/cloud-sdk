@@ -234,6 +234,7 @@ fn is_reserved_request_name(name: HeaderName<'_>) -> bool {
         "trailer",
         "transfer-encoding",
         "upgrade",
+        "user-agent",
     ];
     RESERVED
         .iter()

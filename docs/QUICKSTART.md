@@ -8,15 +8,15 @@ usable in `no_std` environments.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.39.0"
+cloud-sdk = "0.40.0"
 ```
 
 Provider-specific request models are separate dependencies. For Hetzner:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.39.0"
-cloud-sdk-hetzner = "0.32.0"
+cloud-sdk = "0.40.0"
+cloud-sdk-hetzner = "0.32.1"
 ```
 
 ## Build A Transport Request
@@ -86,6 +86,8 @@ cleanup, protected request identifiers, and complete checked decode workspace
 ownership.
 See [`MIGRATION_0.39.0.md`](MIGRATION_0.39.0.md) for transactional request
 encoding, guarded preparation storage, and named capacity profiles.
+See [`MIGRATION_0.40.0.md`](MIGRATION_0.40.0.md) for raw bounded HTTP
+execution, delivery phases, and response-wire policy.
 
 ## Guard Preparation Storage
 
@@ -178,6 +180,11 @@ sent. See [`MIGRATION_0.34.0.md`](MIGRATION_0.34.0.md).
 - Enable `cloud-sdk-reqwest/blocking-rustls`,
   `blocking-rustls-webpki-roots`, `blocking-rustls-fips`, or `async-rustls`
   when the supported native reqwest boundary fits the target.
+
+The reqwest crate also exposes credential-free `RawBlockingClient` and
+`RawAsyncClient` executors. They consume an explicit `RawResponsePolicy`,
+retain only admitted response headers, and return delivery-phased failures.
+See [`RAW_HTTP_EXECUTOR.md`](RAW_HTTP_EXECUTOR.md).
 
 Both transport traits send through `&self`. Thread-safe implementations can be
 shared under caller-selected concurrency limits without a mutex held across I/O

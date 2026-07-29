@@ -120,8 +120,8 @@ Portable and native platform evidence is documented in
 
 ```toml
 [dependencies]
-cloud-sdk = "0.39.0"
-cloud-sdk-hetzner = "0.32.0"
+cloud-sdk = "0.40.0"
+cloud-sdk-hetzner = "0.32.1"
 ```
 
 ## cloud-sdk Features
@@ -141,6 +141,7 @@ visible. Applications should enable only the features they use.
 - [Hetzner workflow examples](https://github.com/valkyoth/cloud-sdk/blob/main/docs/HETZNER_EXAMPLES.md)
 - [Hetzner live smoke testing](https://github.com/valkyoth/cloud-sdk/blob/main/docs/LIVE_SMOKE_TESTING.md)
 - [Security recipes](https://github.com/valkyoth/cloud-sdk/blob/main/docs/SECURITY_RECIPES.md)
+- [Raw bounded HTTP executor](https://github.com/valkyoth/cloud-sdk/blob/main/docs/RAW_HTTP_EXECUTOR.md)
 - [Release runbook](https://github.com/valkyoth/cloud-sdk/blob/main/docs/RELEASE_RUNBOOK.md)
 - [Versioning and error policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/VERSIONING_POLICY.md)
 - [Migrating to v0.29](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.29.0.md)
@@ -154,6 +155,7 @@ visible. Applications should enable only the features they use.
 - [Migrating to v0.37](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.37.0.md)
 - [Migrating to v0.38](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.38.0.md)
 - [Migrating to v0.39](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.39.0.md)
+- [Migrating to v0.40](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.40.0.md)
 - [Deprecated endpoint policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/DEPRECATED_ENDPOINT_POLICY.md)
 
 ## Provider-Neutral Quickstart
@@ -367,8 +369,8 @@ without changing the default allocation-free graph.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.39.0"
-cloud-sdk-reqwest = { version = "0.26.1", features = ["blocking-rustls"] }
+cloud-sdk = "0.40.0"
+cloud-sdk-reqwest = { version = "0.27.0", features = ["blocking-rustls"] }
 ```
 
 The production builder is HTTPS-only, requires explicit bounded timeouts and a
@@ -391,8 +393,8 @@ when deterministic public WebPKI roots are required:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.39.0"
-cloud-sdk-reqwest = { version = "0.26.1", features = ["blocking-rustls-webpki-roots"] }
+cloud-sdk = "0.40.0"
+cloud-sdk-reqwest = { version = "0.27.0", features = ["blocking-rustls-webpki-roots"] }
 ```
 
 The blocking API is unchanged. This feature excludes host-added enterprise
@@ -408,8 +410,8 @@ feature instead of relying on dependency feature unification:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.39.0"
-cloud-sdk-reqwest = { version = "0.26.1", features = ["blocking-rustls-fips"] }
+cloud-sdk = "0.40.0"
+cloud-sdk-reqwest = { version = "0.27.0", features = ["blocking-rustls-fips"] }
 ```
 
 Client construction explicitly selects rustls' AWS-LC FIPS provider and fails
@@ -427,8 +429,8 @@ example is in the
 
 ```toml
 [dependencies]
-cloud-sdk = "0.39.0"
-cloud-sdk-reqwest = { version = "0.26.1", features = ["async-rustls"] }
+cloud-sdk = "0.40.0"
+cloud-sdk-reqwest = { version = "0.27.0", features = ["async-rustls"] }
 ```
 
 The async adapter requires an active Tokio executor because reqwest uses Tokio

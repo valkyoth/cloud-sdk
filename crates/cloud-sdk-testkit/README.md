@@ -34,8 +34,8 @@ and runtime-free.
 
 ```toml
 [dev-dependencies]
-cloud-sdk = "0.39.0"
-cloud-sdk-testkit = "0.23.1"
+cloud-sdk = "0.40.0"
+cloud-sdk-testkit = "0.24.0"
 ```
 
 ## Mock Transport
@@ -126,6 +126,19 @@ assert!(response
     .is_ok_and(core::convert::identity));
 # }
 # fn main() {}
+```
+
+## Raw Delivery Faults
+
+`RawFaultExecutor` injects a deterministic `NotSent`, `PossiblySent`,
+`ResponseStarted`, or unknown-delivery failure into both raw executor traits.
+Unknown delivery deliberately becomes `PossiblySent`:
+
+```rust,no_run
+use cloud_sdk_testkit::{RawFault, RawFaultExecutor};
+
+let executor = RawFaultExecutor::new(RawFault::Unknown);
+assert_eq!(executor, RawFaultExecutor::new(RawFault::Unknown));
 ```
 
 Each exchange is consumed only after method, target, ordered headers, body,

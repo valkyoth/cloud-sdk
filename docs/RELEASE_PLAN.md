@@ -1634,6 +1634,8 @@ Stop gate: `v0.39.0 implementation stop reached. Run pentest for this exact comm
 
 ### v0.40.0 - Raw Bounded HTTP Executor
 
+Status: implementation stop reached; pentest required.
+
 Goal: make transports execute complete validated HTTP requests without provider policy.
 
 Deliverables: method/target/header/body execution through `ResponseWriter`; conservative delivery phase (`NotSent`, `PossiblySent`, `ResponseStarted`) with unknown mapped to `PossiblySent`; a bounded informational-response count and final-response selection; rejection of 101; HEAD and forbidden-body rules for 204/304; wire-level header count/byte limits before unbounded accumulation; actual streamed-byte enforcement when `Content-Length` is absent, false, or oversized; separate success/error body caps and media policies; duplicate response-head rejection; explicit trailer policy; unknown response headers dropped unless admitted by the operation; cookies and transient sensitive headers redacted and cleared; documented upper bounds for unavoidable HTTP/TLS buffers and a precise distinction between caller-buffer and complete process-allocation guarantees; adapter-owned request body/header/staging cleanup on every ordinary exit; and removal of implicit auth, JSON Accept, redirects, proxies, content decoding, retries, and cross-origin forwarding.

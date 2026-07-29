@@ -47,6 +47,29 @@ pub(super) fn spawn(
     Ok(TestServer { endpoint, request })
 }
 
+pub(super) fn spawn_raw_response(response: &[u8]) -> Result<TestServer, std::io::Error> {
+    let listener = TcpListener::bind("127.0.0.1:0")?;
+    let address = listener.local_addr()?;
+    let endpoint = format!("http://{address}/v1");
+    let (sender, request) = channel();
+    let response = response.to_vec();
+
+    thread::spawn(move || {
+        let Ok((mut stream, _)) = listener.accept() else {
+            return;
+        };
+        let _ = stream.set_read_timeout(Some(Duration::from_secs(2)));
+        let Ok(bytes) = read_request(&mut stream) else {
+            return;
+        };
+        let _ = sender.send(RecordedRequest { bytes });
+        let _ = stream.write_all(&response);
+        let _ = stream.flush();
+    });
+
+    Ok(TestServer { endpoint, request })
+}
+
 pub(super) fn spawn_concurrent_pair(
     status: &str,
     body: &[u8],

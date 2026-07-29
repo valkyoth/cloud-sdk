@@ -11,10 +11,11 @@ use core::task::{Context, Poll, Waker};
 use crate::{
     ActionFixture, ActionState, AdversarialKind, ExpectedRequest, FixtureBody, FixtureBodyError,
     FixtureKind, FixtureMetadataError, MockError, MockExchange, MockTransport, PaginationFixture,
-    RateLimitFixture, ResponseFixture, ResponseFixtureError, adversarial_corpus,
+    RateLimitFixture, RawFaultError, ResponseFixture, ResponseFixtureError, adversarial_corpus,
 };
 
 mod prepared;
+mod raw_fault;
 
 #[test]
 fn public_errors_implement_payload_free_core_error() {
@@ -23,6 +24,7 @@ fn public_errors_implement_payload_free_core_error() {
     assert_error::<FixtureBodyError>();
     assert_error::<FixtureMetadataError>();
     assert_error::<MockError>();
+    assert_error::<RawFaultError>();
     assert_error::<ResponseFixtureError>();
     assert_eq!(
         format!("{}", FixtureBodyError::TooLarge),
@@ -36,6 +38,7 @@ fn public_errors_implement_payload_free_core_error() {
         format!("{}", MockError::TargetMismatch),
         "mock request target differs from expectation"
     );
+    assert_eq!(format!("{RawFaultError}"), "injected raw transport fault");
     assert_eq!(
         format!("{}", ResponseFixtureError::NonErrorStatus),
         "error fixture requires an HTTP error status"

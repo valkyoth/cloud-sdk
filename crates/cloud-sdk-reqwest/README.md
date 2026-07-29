@@ -38,8 +38,8 @@ provider without adding transport dependencies to provider crates.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.39.0"
-cloud-sdk-reqwest = { version = "0.26.1", features = ["blocking-rustls"] }
+cloud-sdk = "0.40.0"
+cloud-sdk-reqwest = { version = "0.27.0", features = ["blocking-rustls"] }
 ```
 
 The examples use Hetzner as a concrete endpoint, but the adapter contains no
@@ -70,6 +70,75 @@ Response provenance migration is listed in the
 [v0.37 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.37.0.md).
 Mandatory response cleanup migration is listed in the
 [v0.38 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.38.0.md).
+Raw bounded execution and delivery-phase migration are listed in the
+[v0.40 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.40.0.md).
+
+## Raw Blocking Executor
+
+Use the raw executor below provider authentication and typed client policy. It
+sends no bearer token or JSON `Accept`, performs no retry, and retains only
+response headers admitted by `RawResponsePolicy`:
+
+```rust,no_run
+# #[cfg(feature = "blocking-rustls")]
+# fn main() {
+use std::time::Duration;
+
+use cloud_sdk::Method;
+use cloud_sdk::transport::{
+    BlockingRawHttpExecutor, EndpointIdentity, EndpointPolicy, EndpointScheme,
+    MediaType, RawResponsePolicy, RequestTarget, ResponseBuffer,
+    ResponseMediaPolicy, TransportRequest,
+};
+use cloud_sdk_reqwest::blocking::{
+    HttpsEndpoint, RawBlockingClientBuilder, RequestTimeouts, UserAgent,
+};
+
+let Ok(identity) =
+    EndpointIdentity::new(EndpointScheme::Https, "api.example.com", 443, "/v1")
+else { return };
+let policy = EndpointPolicy::fixed(identity);
+let Ok(endpoint) =
+    HttpsEndpoint::new_with_policy("https://api.example.com/v1", policy)
+else { return };
+let Ok(user_agent) = UserAgent::new("my-service/1.0") else { return };
+let Ok(timeouts) = RequestTimeouts::new(
+    Duration::from_secs(30),
+    Duration::from_secs(10),
+) else { return };
+let Ok(client) =
+    RawBlockingClientBuilder::new(endpoint, user_agent, timeouts).build()
+else { return };
+let Ok(policy) = RawResponsePolicy::new(
+    65_536,
+    16_384,
+    ResponseMediaPolicy::Required(&[MediaType::JSON]),
+    ResponseMediaPolicy::Optional(&[MediaType::JSON]),
+    &[],
+    2,
+) else { return };
+let Ok(target) = RequestTarget::new("/resources") else { return };
+let mut body = [0_u8; 65_536];
+let body_capacity = body.len();
+let mut headers = [0_u8; cloud_sdk::transport::MAX_RESPONSE_HEADER_BYTES];
+let mut response = ResponseBuffer::new(&mut body, body_capacity, &mut headers);
+
+if client.execute(
+    TransportRequest::new(Method::Get, target),
+    policy,
+    response.writer(),
+).is_err() {
+    return;
+}
+# }
+# #[cfg(not(feature = "blocking-rustls"))]
+# fn main() {}
+```
+
+`RawAsyncClientBuilder` implements the same policy through
+`AsyncRawHttpExecutor`. Blocking, async, deterministic-root, and FIPS raw
+clients share one bounded HTTP/1 engine. See the complete
+[wire and allocation contract](https://github.com/valkyoth/cloud-sdk/blob/main/docs/RAW_HTTP_EXECUTOR.md).
 
 ## Blocking Example
 
@@ -146,8 +215,8 @@ compiled into `webpki-roots`:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.39.0"
-cloud-sdk-reqwest = { version = "0.26.1", features = ["blocking-rustls-webpki-roots"] }
+cloud-sdk = "0.40.0"
+cloud-sdk-reqwest = { version = "0.27.0", features = ["blocking-rustls-webpki-roots"] }
 ```
 
 The blocking API is identical to the example above. The custom rustls client
@@ -163,8 +232,8 @@ Use the same blocking API with the dedicated feature:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.39.0"
-cloud-sdk-reqwest = { version = "0.26.1", features = ["blocking-rustls-fips"] }
+cloud-sdk = "0.40.0"
+cloud-sdk-reqwest = { version = "0.27.0", features = ["blocking-rustls-fips"] }
 rustls = "=0.23.42"
 ```
 

@@ -1,6 +1,25 @@
 # Changelog
 
-## 0.38.0 - Unreleased
+## 0.40.0 - Unreleased
+
+- Added credential-free blocking and async raw HTTP executor contracts.
+- Added conservative delivery phases, bounded informational responses, explicit
+  response media/body policy, trailer rejection, and no-body semantics.
+- Added one bounded Hyper HTTP/1 engine for ordinary, deterministic-root, and
+  FIPS reqwest adapter modes.
+- Added cleanup-owning request header/body staging and direct caller-buffer
+  response frame writes.
+- Added provider-neutral raw delivery fault injection and hostile wire tests.
+
+## 0.39.0 - 2026-07-29
+
+- Made fixed-buffer request encoding transactional through immutable snapshots,
+  exact replay verification, and checked arithmetic.
+- Added cleanup-owning preparation storage with embedded, default, and large
+  capacity profiles.
+- Migrated all current Hetzner paths, queries, and JSON request bodies.
+
+## 0.38.0 - 2026-07-28
 
 - Made complete response-buffer and checked-workspace volatile cleanup a
   mandatory core property.

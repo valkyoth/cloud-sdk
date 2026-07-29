@@ -16,6 +16,7 @@ use super::{
 use crate::test_server::{spawn, spawn_split};
 
 mod lifecycle;
+mod raw_executor;
 
 fn run_async_test(future: impl core::future::Future<Output = ()>) {
     let runtime = tokio::runtime::Builder::new_current_thread()

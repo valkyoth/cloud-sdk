@@ -23,6 +23,7 @@ scripts/check_header_model.sh
 scripts/check_response_provenance.sh
 scripts/check_response_cleanup.sh
 scripts/check_atomic_encoders.sh
+scripts/check_raw_http_executor.sh
 scripts/check-provider-capabilities.py
 scripts/test-provider-capabilities.py
 scripts/check-custom-endpoint-docs.py

@@ -174,14 +174,14 @@ dependencies = [
 
 [[package]]
 name = "cloud-sdk"
-version = "0.39.0"
+version = "0.40.0"
 dependencies = [
  "cloud-sdk-sanitization",
 ]
 
 [[package]]
 name = "cloud-sdk-reqwest"
-version = "0.26.1"
+version = "0.27.0"
 dependencies = [
  "aws-lc-fips-sys",
  "aws-lc-rs",
@@ -189,9 +189,15 @@ dependencies = [
  "bytes",
  "cloud-sdk",
  "cloud-sdk-sanitization",
+ "http",
+ "http-body-util",
+ "hyper",
+ "hyper-rustls",
+ "hyper-util",
  "reqwest",
  "rustls",
  "rustls-platform-verifier",
+ "tokio",
  "webpki-roots",
 ]
 
@@ -617,6 +623,7 @@ dependencies = [
  "hyper",
  "hyper-util",
  "rustls",
+ "rustls-platform-verifier",
  "tokio",
  "tokio-rustls",
  "tower-service",

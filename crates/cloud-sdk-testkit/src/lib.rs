@@ -25,6 +25,7 @@ mod body;
 mod metadata;
 mod mock;
 mod prepared;
+mod raw_fault;
 mod response;
 
 pub use adversarial::{
@@ -36,6 +37,7 @@ pub use metadata::{
 };
 pub use mock::{ExpectedRequest, MockError, MockExchange, MockTransport};
 pub use prepared::PreparedRequestRecord;
+pub use raw_fault::{RawFault, RawFaultError, RawFaultExecutor};
 pub use response::{FixtureKind, ResponseFixture, ResponseFixtureError};
 
 #[cfg(test)]
