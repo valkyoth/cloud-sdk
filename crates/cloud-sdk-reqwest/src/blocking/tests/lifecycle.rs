@@ -56,12 +56,16 @@ fn blocking_precommitted_writer_fails_before_network_access() {
     let mut output = [0xa5_u8; 8];
     let mut headers = [0xa5_u8; 8192];
     let mut response = ResponseBuffer::new(&mut output, 8, &mut headers);
+    let mut attempt = response
+        .writer()
+        .begin_attempt()
+        .unwrap_or_else(|_| unreachable!());
     assert!(
-        response
-            .writer()
+        attempt
             .commit(StatusCode::OK, 0, ResponseMetadata::EMPTY)
             .is_ok()
     );
+    drop(attempt);
     assert_eq!(
         BlockingTransport::send(
             &client,

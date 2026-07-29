@@ -1,1 +1,2 @@
 vendor/** linguist-vendored
+fuzz/seeds/raw_http1_wire/** binary

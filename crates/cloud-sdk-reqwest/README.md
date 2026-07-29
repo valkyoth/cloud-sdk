@@ -427,7 +427,9 @@ rejected input leaves the active credential unchanged.
 - Caller-sized response buffers with overflow detection and cleanup.
 - Transactional response attempts clear partial caller body/header state on
   error, timeout, unwind, or async cancellation before writer reuse.
-- Raw request-body staging rejects inputs above 8 MiB before allocation.
+- First-party raw reqwest request-body staging rejects inputs above 8 MiB
+  before allocation. The provider-neutral raw executor traits do not impose
+  this adapter-local ceiling on third-party implementations.
 - Strict all-or-none decimal parsing and propagation of exactly one
   `RateLimit-Limit`, `RateLimit-Remaining`, and `RateLimit-Reset` response
   header; duplicates fail closed.

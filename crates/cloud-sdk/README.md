@@ -352,8 +352,9 @@ capacity through a sealed `ResponseWriter`, and return a
 `CheckedResponseGuard` only after status, body, and content type pass. The
 provided transports wrap each writer use in a transactional `ResponseAttempt`;
 failed, timed-out, unwound, or cancelled attempts clear complete body and
-header storage before reuse. Custom transports should acquire the same guard
-through `ResponseWriter::begin_attempt`. The checked response guard owns
+header storage before reuse. Custom transports must acquire the same guard
+through `ResponseWriter::begin_attempt`; mutation and commitment are not
+available directly on `ResponseWriter`. The checked response guard owns
 mandatory volatile cleanup of the complete caller buffer plus its
 header, request-ID, cursor/link, and decoder-scratch workspace; borrowed
 decoding is closure-scoped and owned decoding clears storage before returning.

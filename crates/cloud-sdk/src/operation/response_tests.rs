@@ -144,20 +144,21 @@ impl BlockingTransport for FixtureTransport<'_> {
         _request: TransportRequest<'_>,
         response: &mut ResponseWriter<'_>,
     ) -> Result<(), Self::Error> {
+        let mut attempt = response.begin_attempt().map_err(|_| ())?;
         if let Some(content_type) = self.content_type {
-            response
+            attempt
                 .headers_mut()
                 .map_err(|_| ())?
                 .try_push("content-type", content_type, HeaderSensitivity::Public)
                 .map_err(|_| ())?;
         }
-        response
+        attempt
             .body_mut()
             .map_err(|_| ())?
             .get_mut(..self.body.len())
             .ok_or(())?
             .copy_from_slice(self.body);
-        response
+        attempt
             .commit(self.status, self.body.len(), ResponseMetadata::EMPTY)
             .map_err(|_| ())
     }

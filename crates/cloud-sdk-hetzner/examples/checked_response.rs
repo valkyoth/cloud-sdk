@@ -23,20 +23,19 @@ fn main() -> Result<(), Box<dyn core::error::Error>> {
         &mut response_header_storage,
         &Sanitizer,
     );
-    let output = response
-        .writer()
+    let mut attempt = response.writer().begin_attempt()?;
+    let output = attempt
         .body_mut()?
         .get_mut(..response_body.len())
         .ok_or("response buffer is too small")?;
     output.copy_from_slice(response_body);
-    response.writer().headers_mut()?.try_push(
+    attempt.headers_mut()?.try_push(
         "content-type",
         b"application/json",
         HeaderSensitivity::Public,
     )?;
-    response
-        .writer()
-        .commit(StatusCode::OK, response_body.len(), ResponseMetadata::EMPTY)?;
+    attempt.commit(StatusCode::OK, response_body.len(), ResponseMetadata::EMPTY)?;
+    drop(attempt);
     let decoded = decode_response(prepared, response)?;
 
     let HetznerSuccess::Resource(server) = decoded.success() else {

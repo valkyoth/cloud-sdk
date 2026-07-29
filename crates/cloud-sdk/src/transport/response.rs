@@ -1,9 +1,8 @@
 //! Sealed response-buffer admission, commitment, and cleanup.
 
-use core::fmt;
-
 use crate::operation::RequestIdPolicy;
 use crate::rate_limit::RateLimit;
+use core::fmt;
 
 use super::cleanup::sanitize_response_storage;
 use super::retained::{ProtectedRequestId, RetainedMetadataError, RetainedResponseMetadata};
@@ -57,7 +56,14 @@ struct ResponseCommit {
 /// Exclusive transport access to one admitted caller-owned response prefix.
 ///
 /// This handle is only obtainable from [`ResponseBuffer::writer`]. It cannot
-/// substitute an external or static body slice.
+/// substitute an external or static body slice. Response mutation and
+/// commitment require a cleanup-owning [`ResponseAttempt`].
+///
+/// ```compile_fail
+/// use cloud_sdk::transport::{ResponseWriter, ResponseWriterError};
+/// fn bypass_attempt(writer: &mut ResponseWriter<'_>) -> Result<(), ResponseWriterError>
+/// { writer.body_mut()?.fill(0x5a); Ok(()) }
+/// ```
 pub struct ResponseWriter<'buffer> {
     storage: &'buffer mut [u8],
     admitted_len: usize,
@@ -89,7 +95,7 @@ impl<'buffer> ResponseWriter<'buffer> {
     }
 
     /// Returns exclusive access to the admitted prefix before commitment.
-    pub fn body_mut(&mut self) -> Result<&mut [u8], ResponseWriterError> {
+    fn body_mut(&mut self) -> Result<&mut [u8], ResponseWriterError> {
         if self.commit.is_some() {
             return Err(ResponseWriterError::AlreadyCommitted);
         }
@@ -99,7 +105,7 @@ impl<'buffer> ResponseWriter<'buffer> {
     }
 
     /// Returns stable caller-owned response-header storage before commitment.
-    pub fn headers_mut(&mut self) -> Result<&mut ResponseHeaders<'buffer>, ResponseWriterError> {
+    fn headers_mut(&mut self) -> Result<&mut ResponseHeaders<'buffer>, ResponseWriterError> {
         if self.commit.is_some() {
             return Err(ResponseWriterError::AlreadyCommitted);
         }
@@ -112,7 +118,7 @@ impl<'buffer> ResponseWriter<'buffer> {
     }
 
     /// Commits status, initialized length, and bounded metadata exactly once.
-    pub fn commit(
+    fn commit(
         &mut self,
         status: StatusCode,
         initialized_len: usize,

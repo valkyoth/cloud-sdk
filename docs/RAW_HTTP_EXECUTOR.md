@@ -11,8 +11,10 @@ decompression, retries, or cross-origin forwarding.
 ## Guarantees
 
 - `TransportFailure` reports `NotSent`, `PossiblySent`, or `ResponseStarted`.
+  `ResponseStarted` means any informational or final head was observed.
   Unknown send state always maps to `PossiblySent`.
-- HTTP/1 response heads are bounded to 100 fields and a 64 KiB parser buffer.
+- HTTP/1 response heads are bounded to 100 fields, 64 KiB of encoded
+  name/value field bytes, and a 64 KiB pinned Hyper parser buffer.
 - At most eight informational responses may be admitted by core policy.
   `101 Switching Protocols` is always rejected. The adapter cancels the
   in-flight request as soon as either condition is observed.
@@ -28,15 +30,20 @@ decompression, retries, or cross-origin forwarding.
 - Only operation-admitted response headers enter caller storage. Authentication,
   cookie, framing, proxy, and upgrade headers cannot be admitted.
 - Request body and header-value staging allocations use cleanup-owning byte
-  storage backed by `cloud-sdk-sanitization`. Request bodies are rejected
-  before allocation above the 8 MiB large preparation profile.
+  storage backed by `cloud-sdk-sanitization`. The first-party raw reqwest
+  adapters reject request bodies before allocation above the 8 MiB large
+  preparation profile. The provider-neutral raw traits do not impose this
+  adapter-local limit on external executors.
 - Every execution uses core's `ResponseAttempt`; failed, timed-out, unwound, or
   cancelled attempts clear complete caller body and header storage before it
-  can be reused.
+  can be reused. `ResponseWriter` exposes no direct mutation or commit bypass.
 - The isolated `raw_response_parser` target fuzzes the post-parse response-head
   validator and streamed-body budget. The separate `raw_http1_wire` target
   feeds arbitrary bytes through Hyper's HTTP/1 parser, informational callback,
-  frame stream, and the same production validator/body consumer.
+  frame stream, and the same production validator/body consumer. Its 66,560
+  byte input budget reaches the encoded-head limit and limit-plus-one case;
+  canonical seeds cover 101, informational overflow, framing conflicts,
+  trailers, truncation, and excessive header counts.
 
 ## Allocation Boundary
 
@@ -49,7 +56,8 @@ The opt-in reqwest adapter uses pinned Hyper HTTP/1 parsing with:
 | Resource | Bound |
 | --- | ---: |
 | Response fields | 100 |
-| HTTP/1 response-head parser buffer | 65,536 bytes |
+| Encoded response-header fields | 65,536 bytes |
+| Pinned Hyper HTTP/1 parser buffer | 65,536 bytes |
 | Informational responses | 8 |
 | Response data frames | 4,096 |
 | Adapter-owned request-body copy | 8,388,608 bytes |
@@ -68,5 +76,7 @@ Request targets and provider policy must already be validated. Callers must not
 retry mutations from `PossiblySent` or `ResponseStarted` without a later
 operation-specific idempotency or reconciliation policy.
 
-The raw executor intentionally has no credential input. Bearer and Basic
+The raw executor intentionally has no credential input. The 8 MiB request-copy
+limit is a first-party `cloud-sdk-reqwest` guarantee, not a core raw-trait
+guarantee. Bearer and Basic
 authentication policy are separate v0.41.0 and v0.42.0 milestones.

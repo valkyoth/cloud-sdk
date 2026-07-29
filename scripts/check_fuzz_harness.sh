@@ -72,8 +72,12 @@ case "$mode" in
         corpus="${temporary}/${target}"
         mkdir "$corpus"
         cp -R "fuzz/seeds/${target}/." "$corpus"
+        max_len=16384
+        if [ "$target" = raw_http1_wire ]; then
+            max_len=66560
+        fi
         cargo "+${toolchain}" fuzz run "$target" "$corpus" -- \
-            -runs=64 -max_len=16384 -timeout=10
+            -runs=64 "-max_len=${max_len}" -timeout=10
     done
     ;;
 *)

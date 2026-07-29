@@ -25,18 +25,24 @@ authentication or retry behavior.
   failures, with unknown state mapped to `PossiblySent`.
 - Added core cleanup-owning response attempts so failure, timeout, unwind, and
   async cancellation cannot contaminate later writer reuse.
+- Made body/header mutation and commitment available only through
+  `ResponseAttempt`; compile-fail coverage prevents external transport bypass.
+- Defined `ResponseStarted` as any observed informational or final head.
 
 ## Reqwest Adapter
 
 - Added credential-free blocking and async raw clients.
 - Shared one Hyper HTTP/1 engine across ordinary, deterministic-root, and FIPS
   modes.
-- Bounded response heads to 100 fields and a 64 KiB parser buffer.
+- Bounded response heads to 100 fields, 64 KiB of encoded field bytes, and a
+  64 KiB pinned Hyper parser buffer.
 - Counted actual response data frames and bytes directly into caller storage.
 - Rejected declared and observed trailers.
 - Disabled idle pooling and automatic canceled-request retries.
 - Staged request body and header values in cleanup-owning allocations.
-- Rejected raw request bodies above 8 MiB before adapter-owned allocation.
+- Rejected raw request bodies above 8 MiB before first-party reqwest
+  adapter-owned allocation and documented that scope separately from raw
+  traits.
 - Retained explicit total/connect deadlines and TLS trust policy.
 
 ## Testkit
@@ -45,6 +51,8 @@ authentication or retry behavior.
 - Added blocking and async interim-response tests.
 - Added isolated fuzz targets for post-parse response validation/body
   accounting and the actual in-memory Hyper HTTP/1 wire state machine.
+- Gave wire fuzzing a 66,560-byte target-specific input cap, canonical CRLF
+  parser-state seeds, and below/exact/plus-one encoded-head regressions.
 - Added 101, trailer, duplicate, missing-length overflow, HEAD, 204, media,
   unknown-header, cookie, and authentication-confusion fixtures.
 

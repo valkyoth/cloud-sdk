@@ -173,12 +173,16 @@ fn mock_rejects_precommitted_writer_without_consuming_exchange() {
     let mut output = [0xa5_u8; 32];
     let mut headers = [0xa5_u8; 8192];
     let mut response = ResponseBuffer::new(&mut output, 32, &mut headers);
+    let mut attempt = response
+        .writer()
+        .begin_attempt()
+        .unwrap_or_else(|_| unreachable!());
     assert!(
-        response
-            .writer()
+        attempt
             .commit(StatusCode::OK, 0, ResponseMetadata::EMPTY)
             .is_ok()
     );
+    drop(attempt);
     assert_eq!(
         BlockingTransport::send(
             &transport,

@@ -11,6 +11,8 @@ use super::{run_async_test, test_timeouts};
 use crate::asynchronous::{RawAsyncClient, RawAsyncClientBuilder, RawHttpError, UserAgent};
 use crate::test_server::{spawn, spawn_concurrent_pair, spawn_raw_response, spawn_raw_split};
 
+mod request_body;
+
 fn build_raw_loopback(endpoint: &str) -> Option<RawAsyncClient> {
     let endpoint = crate::asynchronous::HttpsEndpoint::local_http(endpoint).ok()?;
     let user_agent = UserAgent::new("cloud-sdk-raw-test/0.40").ok()?;
@@ -97,9 +99,12 @@ Content-Length: 6\r\nConnection: close\r\n\r\nsec";
         .await;
         assert!(cancelled.is_err());
         assert!(response.writer().headers().is_empty());
+        let mut attempt = response
+            .writer()
+            .begin_attempt()
+            .unwrap_or_else(|_| unreachable!());
         assert!(
-            response
-                .writer()
+            attempt
                 .body_mut()
                 .is_ok_and(|output| output.iter().all(|byte| *byte == 0))
         );

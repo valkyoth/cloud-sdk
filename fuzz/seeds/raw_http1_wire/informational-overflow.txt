@@ -1,0 +1,30 @@
+HTTP/1.1 103 Early Hints
+Link: </a>; rel=preload
+
+HTTP/1.1 103 Early Hints
+Link: </b>; rel=preload
+
+HTTP/1.1 103 Early Hints
+Link: </c>; rel=preload
+
+HTTP/1.1 103 Early Hints
+Link: </d>; rel=preload
+
+HTTP/1.1 103 Early Hints
+Link: </e>; rel=preload
+
+HTTP/1.1 103 Early Hints
+Link: </f>; rel=preload
+
+HTTP/1.1 103 Early Hints
+Link: </g>; rel=preload
+
+HTTP/1.1 103 Early Hints
+Link: </h>; rel=preload
+
+HTTP/1.1 103 Early Hints
+Link: </i>; rel=preload
+
+HTTP/1.1 200 OK
+Content-Length: 0
+

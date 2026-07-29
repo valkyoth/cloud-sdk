@@ -9,7 +9,7 @@ pub enum DeliveryPhase {
     NotSent,
     /// Some request bytes may have reached the peer.
     PossiblySent,
-    /// A final response head was received before later processing failed.
+    /// Any informational or final response head was observed from the peer.
     ResponseStarted,
 }
 
@@ -42,7 +42,7 @@ impl<E> TransportFailure<E> {
         }
     }
 
-    /// Records a failure after a final response head was received.
+    /// Records a failure after any response head was observed.
     #[must_use]
     pub const fn response_started(error: E) -> Self {
         Self {

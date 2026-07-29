@@ -3,6 +3,7 @@ set -eu
 
 response_model=crates/cloud-sdk/src/transport/response.rs
 privacy_fixture=crates/cloud-sdk/tests/ui/transport_response_private.rs
+attempt_fixture=crates/cloud-sdk/tests/ui/response_writer_attempt_required.rs
 
 if grep -R -n --include='*.rs' 'TransportResponse::new' \
     crates fuzz/fuzz_targets; then
@@ -13,6 +14,8 @@ fi
 for required in \
     'pub struct ResponseBuffer' \
     'pub struct ResponseWriter' \
+    'pub struct ResponseAttempt' \
+    'fn bypass_attempt' \
     'pub struct TransportResponse' \
     'fn from_commit' \
     "inspect: impl for<'response> FnOnce(TransportResponse" \
@@ -43,6 +46,10 @@ for adapter in \
     fi
     if ! grep -Fq '.is_committed()' "$adapter"; then
         echo "response provenance: precommitted writer check missing from $adapter" >&2
+        exit 1
+    fi
+    if ! grep -Fq '.begin_attempt()' "$adapter"; then
+        echo "response provenance: response attempt missing from $adapter" >&2
         exit 1
     fi
 done
@@ -77,6 +84,20 @@ if ! grep -Fq 'error[E0451]' "$privacy_dir/stderr" \
 fi
 if grep -Fq 'error[E0063]' "$privacy_dir/stderr"; then
     echo "response provenance: privacy fixture is missing response fields" >&2
+    cat "$privacy_dir/stderr" >&2
+    exit 1
+fi
+
+cp "$attempt_fixture" "$privacy_dir/src/main.rs"
+if cargo check --quiet --manifest-path "$privacy_dir/Cargo.toml" \
+    >"$privacy_dir/stdout" 2>"$privacy_dir/stderr"; then
+    echo "response provenance: direct external writer mutation compiled" >&2
+    exit 1
+fi
+if ! grep -Fq 'method `body_mut` is private' "$privacy_dir/stderr" \
+    || ! grep -Fq 'method `headers_mut` is private' "$privacy_dir/stderr" \
+    || ! grep -Fq 'method `commit` is private' "$privacy_dir/stderr"; then
+    echo "response provenance: writer privacy fixture failed for another reason" >&2
     cat "$privacy_dir/stderr" >&2
     exit 1
 fi

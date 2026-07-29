@@ -70,8 +70,10 @@ cargo +nightly-2026-07-26 fuzz run "$target" "$corpus" -- \
 ```
 
 Targets perform no network, filesystem, environment, credential, or provider
-operations. The 16 KiB libFuzzer input ceiling is complemented by deterministic
-tests for the 8 MiB response boundary and exact oversized model fields.
+operations. Most targets use a 16 KiB input ceiling. `raw_http1_wire` uses
+`-max_len=66560` so mutations can cross the 64 KiB encoded response-head
+boundary. Deterministic tests cover its below/exact/plus-one cases, the 8 MiB
+body boundaries, and exact oversized model fields.
 
 ## Crash Reproduction
 

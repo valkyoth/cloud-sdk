@@ -112,8 +112,11 @@ fuzz_target!(|data: &[u8]| {
         capacity,
         &mut response_header_storage,
     );
+    let Ok(mut attempt) = response.writer().begin_attempt() else {
+        return;
+    };
     if let Some(content_type) = content_type {
-        let Ok(headers) = response.writer().headers_mut() else {
+        let Ok(headers) = attempt.headers_mut() else {
             return;
         };
         if headers
@@ -127,16 +130,16 @@ fuzz_target!(|data: &[u8]| {
             return;
         }
     }
-    let Ok(output) = response.writer().body_mut() else {
+    let Ok(output) = attempt.body_mut() else {
         return;
     };
     output.copy_from_slice(body);
-    if response
-        .writer()
+    if attempt
         .commit(status, body.len(), ResponseMetadata::EMPTY)
         .is_err()
     {
         return;
     }
+    drop(attempt);
     let _ = decode_response(prepared, response);
 });

@@ -22,15 +22,19 @@ validated `TransportRequest` through caller-owned `ResponseWriter` storage.
 rules, admitted response headers, and an informational-response limit.
 Trailers and `101 Switching Protocols` are always rejected.
 
-Transport implementations should begin every write through
+Transport implementations must begin every write through
 `ResponseWriter::begin_attempt`. The returned `ResponseAttempt` clears stale
 uncommitted state before use and clears complete body/header storage when an
-error, timeout, unwind, or future cancellation drops it without a commit. All
-first-party reqwest transports and the testkit mock use this guard.
+error, timeout, unwind, or future cancellation drops it without a commit.
+`ResponseWriter` no longer exposes direct body/header mutation or commitment,
+so external transports cannot bypass this contract. All first-party reqwest
+transports and the testkit mock use this guard.
 
 Raw reqwest request bodies are copied only after checking
 `MAX_RAW_REQUEST_BODY_BYTES` (8 MiB). Larger requests fail as
-`RawHttpError::RequestBodyTooLarge` in the `NotSent` phase.
+`RawHttpError::RequestBodyTooLarge` in the `NotSent` phase. This is a
+first-party reqwest adapter limit; the provider-neutral raw executor traits do
+not impose a request-body ceiling on external implementations.
 
 `cloud-sdk-reqwest` provides `RawBlockingClientBuilder` and
 `RawAsyncClientBuilder`. These builders take no bearer token. They do not add
@@ -45,7 +49,8 @@ Raw adapter failures are `TransportFailure<RawHttpError>`. Check
 
 - `NotSent` proves failure before request delivery.
 - `PossiblySent` means request bytes may have reached the peer.
-- `ResponseStarted` means a response head was observed.
+- `ResponseStarted` means any informational or final response head was
+  observed.
 
 Unknown state is deliberately represented as `PossiblySent`. v0.40 does not
 provide automatic retry or mutation reconciliation.

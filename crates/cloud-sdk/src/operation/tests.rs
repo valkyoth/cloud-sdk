@@ -323,13 +323,10 @@ impl RecordingTransport {
         self.calls.fetch_add(1, Ordering::AcqRel);
         self.last_capacity
             .store(response.body_capacity(), Ordering::Release);
-        let output = response
-            .body_mut()
-            .map_err(|_| ())?
-            .get_mut(..2)
-            .ok_or(())?;
+        let mut attempt = response.begin_attempt().map_err(|_| ())?;
+        let output = attempt.body_mut().map_err(|_| ())?.get_mut(..2).ok_or(())?;
         output.copy_from_slice(b"{}");
-        response
+        attempt
             .headers_mut()
             .map_err(|_| ())?
             .try_push(
@@ -338,7 +335,7 @@ impl RecordingTransport {
                 crate::transport::HeaderSensitivity::Public,
             )
             .map_err(|_| ())?;
-        response
+        attempt
             .commit(StatusCode::OK, 2, ResponseMetadata::EMPTY)
             .map_err(|_| ())
     }

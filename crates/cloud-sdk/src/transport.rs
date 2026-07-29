@@ -184,8 +184,8 @@ pub trait BlockingTransport {
 
     /// Sends one request and writes the response body into the caller buffer.
     ///
-    /// Implementations should use [`ResponseWriter::begin_attempt`] so failed
-    /// operations cannot leave reusable response state dirty.
+    /// Implementations must use [`ResponseWriter::begin_attempt`]. Response
+    /// mutation and commitment are available only through the returned guard.
     fn send(
         &self,
         request: TransportRequest<'_>,

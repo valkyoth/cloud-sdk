@@ -135,17 +135,19 @@ fn decode_response_with_request_id_value(
     let mut header_storage = [0_u8; 8192];
     let capacity = storage.len();
     let mut response = ResponseBuffer::new(&mut storage, capacity, &mut header_storage);
+    let mut attempt = response
+        .writer()
+        .begin_attempt()
+        .map_err(HetznerDecodeError::ResponseWriter)?;
     if let Some(request_id) = request_id {
-        response
-            .writer()
+        attempt
             .headers_mut()
             .map_err(HetznerDecodeError::ResponseWriter)?
             .try_push("x-request-id", request_id, HeaderSensitivity::Sensitive)
             .map_err(|_| HetznerDecodeError::MalformedPayload)?;
     }
     if fixture.json {
-        response
-            .writer()
+        attempt
             .headers_mut()
             .map_err(HetznerDecodeError::ResponseWriter)?
             .try_push(
@@ -155,14 +157,13 @@ fn decode_response_with_request_id_value(
             )
             .map_err(|_| HetznerDecodeError::MalformedPayload)?;
     }
-    response
-        .writer()
+    attempt
         .body_mut()
         .map_err(HetznerDecodeError::ResponseWriter)?
         .copy_from_slice(fixture.body);
-    response
-        .writer()
+    attempt
         .commit(fixture.status, fixture.body.len(), ResponseMetadata::EMPTY)
         .map_err(HetznerDecodeError::ResponseWriter)?;
+    drop(attempt);
     decode_checked_response(prepared, response)
 }

@@ -286,21 +286,24 @@ let mut response = ResponseBuffer::with_additive_sanitizer(
     &mut response_header_storage,
     &Sanitizer,
 );
-let output = response.writer().body_mut()?;
-let output = output
-    .get_mut(..response_body.len())
-    .ok_or("response buffer is too small")?;
-output.copy_from_slice(response_body);
-response.writer().headers_mut()?.try_push(
-    "content-type",
-    b"application/json",
-    HeaderSensitivity::Public,
-)?;
-response.writer().commit(
-    StatusCode::OK,
-    response_body.len(),
-    ResponseMetadata::EMPTY,
-)?;
+{
+    let mut attempt = response.writer().begin_attempt()?;
+    let output = attempt.body_mut()?;
+    let output = output
+        .get_mut(..response_body.len())
+        .ok_or("response buffer is too small")?;
+    output.copy_from_slice(response_body);
+    attempt.headers_mut()?.try_push(
+        "content-type",
+        b"application/json",
+        HeaderSensitivity::Public,
+    )?;
+    attempt.commit(
+        StatusCode::OK,
+        response_body.len(),
+        ResponseMetadata::EMPTY,
+    )?;
+}
 let decoded = decode_response(prepared, response)?;
 
 let HetznerSuccess::Resource(server) = decoded.success() else {

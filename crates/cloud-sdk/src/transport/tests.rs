@@ -160,9 +160,12 @@ fn transport_response_borrows_body_propagates_metadata_and_redacts_debug() {
         &mut header_storage,
         &FillSanitizer,
     );
+    let mut attempt = buffer
+        .writer()
+        .begin_attempt()
+        .unwrap_or_else(|_| unreachable!());
     assert!(
-        buffer
-            .writer()
+        attempt
             .headers_mut()
             .and_then(|headers| {
                 headers
@@ -176,8 +179,7 @@ fn transport_response_borrows_body_propagates_metadata_and_redacts_debug() {
             .is_ok()
     );
     assert!(
-        buffer
-            .writer()
+        attempt
             .body_mut()
             .map(|initialized| initialized.copy_from_slice(body))
             .is_ok()
@@ -186,12 +188,8 @@ fn transport_response_borrows_body_propagates_metadata_and_redacts_debug() {
     if let Some(value) = rate_limit {
         metadata = metadata.with_rate_limit(value);
     }
-    assert!(
-        buffer
-            .writer()
-            .commit(StatusCode::OK, body.len(), metadata)
-            .is_ok()
-    );
+    assert!(attempt.commit(StatusCode::OK, body.len(), metadata).is_ok());
+    drop(attempt);
     let mut debug = DebugBuffer::new();
     assert!(
         buffer
@@ -231,13 +229,10 @@ impl BlockingTransport for SequentialBlockingTransport {
         response: &mut ResponseWriter<'_>,
     ) -> Result<(), Self::Error> {
         self.calls.set(self.calls.get().saturating_add(1));
-        let output = response
-            .body_mut()
-            .map_err(|_| ())?
-            .get_mut(..2)
-            .ok_or(())?;
+        let mut attempt = response.begin_attempt().map_err(|_| ())?;
+        let output = attempt.body_mut().map_err(|_| ())?.get_mut(..2).ok_or(())?;
         output.copy_from_slice(b"ok");
-        response
+        attempt
             .commit(StatusCode::OK, 2, ResponseMetadata::EMPTY)
             .map_err(|_| ())
     }
@@ -262,13 +257,10 @@ impl AsyncTransport for SequentialAsyncTransport {
         'request: 'writer,
     {
         async move {
-            let output = response
-                .body_mut()
-                .map_err(|_| ())?
-                .get_mut(..2)
-                .ok_or(())?;
+            let mut attempt = response.begin_attempt().map_err(|_| ())?;
+            let output = attempt.body_mut().map_err(|_| ())?.get_mut(..2).ok_or(())?;
             output.copy_from_slice(b"ok");
-            response
+            attempt
                 .commit(StatusCode::OK, 2, ResponseMetadata::EMPTY)
                 .map_err(|_| ())
         }

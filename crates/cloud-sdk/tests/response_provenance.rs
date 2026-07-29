@@ -26,28 +26,31 @@ fn writer_rejects_forged_lengths_duplicate_commits_and_post_commit_writes() {
         let mut response =
             ResponseBuffer::with_additive_sanitizer(&mut storage, 4, &mut headers, &sanitizer);
         assert_eq!(response.writer().body_capacity(), 4);
+        let mut attempt = response
+            .writer()
+            .begin_attempt()
+            .unwrap_or_else(|_| unreachable!());
         assert_eq!(
-            response
-                .writer()
-                .commit(StatusCode::OK, 5, ResponseMetadata::EMPTY),
+            attempt.commit(StatusCode::OK, 5, ResponseMetadata::EMPTY),
             Err(ResponseWriterError::InitializedLengthTooLarge)
         );
-        assert!(!response.writer().is_committed());
-        assert!(response.writer().body_mut().is_ok());
+        assert!(attempt.body_mut().is_ok());
         assert_eq!(
-            response
-                .writer()
-                .commit(StatusCode::OK, 0, ResponseMetadata::EMPTY),
+            attempt.commit(StatusCode::OK, 0, ResponseMetadata::EMPTY),
             Ok(())
         );
         assert_eq!(
-            response.writer().body_mut().map(|body| body.len()),
+            attempt.body_mut().map(|body| body.len()),
             Err(ResponseWriterError::AlreadyCommitted)
         );
         assert_eq!(
-            response
-                .writer()
-                .commit(StatusCode::OK, 0, ResponseMetadata::EMPTY),
+            attempt.commit(StatusCode::OK, 0, ResponseMetadata::EMPTY),
+            Err(ResponseWriterError::AlreadyCommitted)
+        );
+        drop(attempt);
+        assert!(response.writer().is_committed());
+        assert_eq!(
+            response.writer().begin_attempt().map(|_| ()),
             Err(ResponseWriterError::AlreadyCommitted)
         );
     }
@@ -83,29 +86,11 @@ fn response_attempt_clears_failed_state_before_reuse() -> Result<(), &'static st
     let mut storage = [0xa5_u8; 16];
     let mut headers = [0xa5_u8; 8192];
     let mut response = ResponseBuffer::new(&mut storage, 8, &mut headers);
-    response
-        .writer()
-        .body_mut()
-        .map_err(|_| "body unavailable")?
-        .fill(0x5a);
-    response
-        .writer()
-        .headers_mut()
-        .map_err(|_| "headers unavailable")?
-        .try_push("x-request-id", b"stale", HeaderSensitivity::Sensitive)
-        .map_err(|_| "header rejected")?;
-
     {
         let mut attempt = response
             .writer()
             .begin_attempt()
             .map_err(|_| "attempt rejected")?;
-        assert!(
-            attempt
-                .body_mut()
-                .is_ok_and(|body| body.iter().all(|byte| *byte == 0))
-        );
-        assert!(attempt.headers().is_empty());
         attempt
             .body_mut()
             .map_err(|_| "attempt body unavailable")?
@@ -116,18 +101,16 @@ fn response_attempt_clears_failed_state_before_reuse() -> Result<(), &'static st
             .try_push("x-request-id", b"partial", HeaderSensitivity::Sensitive)
             .map_err(|_| "attempt header rejected")?;
     }
-    assert!(
-        response
-            .writer()
-            .body_mut()
-            .is_ok_and(|body| body.iter().all(|byte| *byte == 0))
-    );
-    assert!(response.writer().headers().is_empty());
-
     let mut attempt = response
         .writer()
         .begin_attempt()
         .map_err(|_| "second attempt rejected")?;
+    assert!(
+        attempt
+            .body_mut()
+            .is_ok_and(|body| body.iter().all(|byte| *byte == 0))
+    );
+    assert!(attempt.headers().is_empty());
     attempt
         .commit(StatusCode::OK, 0, ResponseMetadata::EMPTY)
         .map_err(|_| "second attempt commit failed")?;
@@ -154,13 +137,16 @@ fn cancelling_response_attempt_clears_reusable_state() {
             Poll::Pending
         ));
     }
+    let mut attempt = response
+        .writer()
+        .begin_attempt()
+        .unwrap_or_else(|_| unreachable!());
     assert!(
-        response
-            .writer()
+        attempt
             .body_mut()
             .is_ok_and(|body| body.iter().all(|byte| *byte == 0))
     );
-    assert!(response.writer().headers().is_empty());
+    assert!(attempt.headers().is_empty());
 }
 
 async fn pending_dirty_attempt(response: &mut ResponseWriter<'_>) {
@@ -183,28 +169,30 @@ fn owned_decode_clears_before_return_and_borrow_is_guard_scoped() -> Result<(), 
     let mut headers = [0xa5_u8; 8192];
     let mut response =
         ResponseBuffer::with_additive_sanitizer(&mut storage, 8, &mut headers, &sanitizer);
-    let output = response
-        .writer()
-        .body_mut()
-        .map_err(|_| "response body was unavailable")?;
-    output
-        .get_mut(..2)
-        .ok_or("response body was too small")?
-        .copy_from_slice(b"{}");
-    response
-        .writer()
-        .headers_mut()
-        .map_err(|_| "response headers were unavailable")?
-        .try_push(
-            "content-type",
-            b"application/json",
-            HeaderSensitivity::Public,
-        )
-        .map_err(|_| "content type was invalid")?;
-    response
-        .writer()
-        .commit(StatusCode::OK, 2, ResponseMetadata::EMPTY)
-        .map_err(|_| "response commitment failed")?;
+    {
+        let mut attempt = response
+            .writer()
+            .begin_attempt()
+            .map_err(|_| "response attempt was unavailable")?;
+        attempt
+            .body_mut()
+            .map_err(|_| "response body was unavailable")?
+            .get_mut(..2)
+            .ok_or("response body was too small")?
+            .copy_from_slice(b"{}");
+        attempt
+            .headers_mut()
+            .map_err(|_| "response headers were unavailable")?
+            .try_push(
+                "content-type",
+                b"application/json",
+                HeaderSensitivity::Public,
+            )
+            .map_err(|_| "content type was invalid")?;
+        attempt
+            .commit(StatusCode::OK, 2, ResponseMetadata::EMPTY)
+            .map_err(|_| "response commitment failed")?;
+    }
     let policy = json_policy(8).map_err(|_| "response policy was invalid")?;
     let checked = policy
         .validate(response, RequestIdPolicy::Protected)
@@ -320,12 +308,13 @@ struct ExampleTransport {
 
 impl ExampleTransport {
     fn send_inner(response: &mut ResponseWriter<'_>) -> Result<(), ResponseWriterError> {
-        let output = response
+        let mut attempt = response.begin_attempt()?;
+        let output = attempt
             .body_mut()?
             .get_mut(..2)
             .ok_or(ResponseWriterError::InitializedLengthTooLarge)?;
         output.copy_from_slice(b"{}");
-        response
+        attempt
             .headers_mut()?
             .try_push(
                 "content-type",
@@ -333,7 +322,7 @@ impl ExampleTransport {
                 HeaderSensitivity::Public,
             )
             .map_err(|_| ResponseWriterError::InitializedLengthTooLarge)?;
-        response.commit(StatusCode::OK, 2, ResponseMetadata::EMPTY)
+        attempt.commit(StatusCode::OK, 2, ResponseMetadata::EMPTY)
     }
 }
 

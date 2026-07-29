@@ -135,7 +135,9 @@ fn mandatory_clear_survives_noop_and_recontaminating_hooks() {
         {
             let mut response =
                 ResponseBuffer::with_additive_sanitizer(&mut storage, 16, &mut headers, hook);
-            if let Ok(body) = response.writer().body_mut() {
+            if let Ok(mut attempt) = response.writer().begin_attempt()
+                && let Ok(body) = attempt.body_mut()
+            {
                 body.fill(0x42);
             }
         }
@@ -177,6 +179,40 @@ fn mandatory_final_clear_runs_when_an_additive_hook_panics() {
     assert!(drop_unwind.is_err());
     assert_eq!(drop_storage, [0_u8; 32]);
     assert_eq!(drop_headers, [0_u8; 8192]);
+}
+
+#[test]
+fn panic_unwind_clears_response_attempt_state() {
+    let mut storage = [0xa5_u8; 16];
+    let mut headers = [0xa5_u8; 8192];
+    let mut response = ResponseBuffer::new(&mut storage, 8, &mut headers);
+    let unwind = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        let mut attempt = response
+            .writer()
+            .begin_attempt()
+            .unwrap_or_else(|_| unreachable!());
+        attempt
+            .body_mut()
+            .unwrap_or_else(|_| unreachable!())
+            .fill(0x5a);
+        attempt
+            .headers_mut()
+            .unwrap_or_else(|_| unreachable!())
+            .try_push("x-request-id", b"partial", HeaderSensitivity::Sensitive)
+            .unwrap_or_else(|_| unreachable!());
+        std::panic::resume_unwind(std::boxed::Box::new("intentional response-attempt unwind"));
+    }));
+    assert!(unwind.is_err());
+    let mut attempt = response
+        .writer()
+        .begin_attempt()
+        .unwrap_or_else(|_| unreachable!());
+    assert!(
+        attempt
+            .body_mut()
+            .is_ok_and(|body| body.iter().all(|byte| *byte == 0))
+    );
+    assert!(attempt.headers().is_empty());
 }
 
 #[test]
@@ -252,10 +288,12 @@ fn dropping_a_pending_future_clears_its_owned_response_buffer() {
 
 async fn pending_response(storage: &mut [u8], header_storage: &mut [u8]) {
     let mut response = ResponseBuffer::new(storage, 16, header_storage);
-    if let Ok(body) = response.writer().body_mut() {
-        body.fill(0x5a);
+    if let Ok(mut attempt) = response.writer().begin_attempt() {
+        if let Ok(body) = attempt.body_mut() {
+            body.fill(0x5a);
+        }
+        pending::<()>().await;
     }
-    pending::<()>().await;
 }
 
 fn checked_with_request_id<'a>(
@@ -266,8 +304,11 @@ fn checked_with_request_id<'a>(
 ) -> Result<CheckedResponseGuard<'a>, &'static str> {
     let mut response = ResponseBuffer::new(storage, 16, header_storage);
     {
-        let headers = response
+        let mut attempt = response
             .writer()
+            .begin_attempt()
+            .map_err(|_| "response attempt was unavailable")?;
+        let headers = attempt
             .headers_mut()
             .map_err(|_| "response headers were unavailable")?;
         headers
@@ -280,18 +321,16 @@ fn checked_with_request_id<'a>(
                 HeaderSensitivity::Public,
             )
             .map_err(|_| "content type header was invalid")?;
+        attempt
+            .body_mut()
+            .map_err(|_| "response body was unavailable")?
+            .get_mut(..2)
+            .ok_or("response body was too small")?
+            .copy_from_slice(b"{}");
+        attempt
+            .commit(StatusCode::OK, 2, ResponseMetadata::EMPTY)
+            .map_err(|_| "response commitment failed")?;
     }
-    response
-        .writer()
-        .body_mut()
-        .map_err(|_| "response body was unavailable")?
-        .get_mut(..2)
-        .ok_or("response body was too small")?
-        .copy_from_slice(b"{}");
-    response
-        .writer()
-        .commit(StatusCode::OK, 2, ResponseMetadata::EMPTY)
-        .map_err(|_| "response commitment failed")?;
     json_policy()
         .validate(response, request_id_policy)
         .map_err(|error| match error {
