@@ -1,5 +1,43 @@
 //! no_std fixed-buffer writing helpers for provider crates.
 
+mod encoder;
+
+pub use encoder::{
+    SnapshotEncoder, encode_snapshot, encode_snapshot_bounded, measure_snapshot,
+    measure_snapshot_bounded,
+};
+
+/// Returns the base-10 encoded length of an unsigned integer.
+#[must_use]
+pub const fn u64_encoded_len(mut value: u64) -> usize {
+    let mut len = 1_usize;
+    while value >= 10 {
+        value /= 10;
+        len = len.saturating_add(1);
+    }
+    len
+}
+
+/// Returns the checked percent-encoded length of one component.
+pub fn percent_encoded_len<E: Copy>(value: &str, error: E) -> Result<usize, E> {
+    let mut len = 0_usize;
+    for byte in value.bytes() {
+        let width = if is_unreserved(byte) { 1 } else { 3 };
+        len = len.checked_add(width).ok_or(error)?;
+    }
+    Ok(len)
+}
+
+/// Returns the checked length of JSON string contents after escaping.
+pub fn json_string_escaped_len<E: Copy>(value: &str, error: E) -> Result<usize, E> {
+    json_escaped_len(value, error)
+}
+
+/// Returns the checked encoded length of a complete JSON string.
+pub fn json_string_len<E: Copy>(value: &str, error: E) -> Result<usize, E> {
+    json_escaped_len(value, error)?.checked_add(2).ok_or(error)
+}
+
 /// Writes one byte into a caller-owned buffer.
 pub fn write_byte<E: Copy>(
     output: &mut [u8],
@@ -7,9 +45,10 @@ pub fn write_byte<E: Copy>(
     byte: u8,
     error: E,
 ) -> Result<(), E> {
+    let next = len.checked_add(1).ok_or(error)?;
     let slot = output.get_mut(*len).ok_or(error)?;
     *slot = byte;
-    *len = len.checked_add(1).ok_or(error)?;
+    *len = next;
     Ok(())
 }
 
@@ -20,9 +59,10 @@ pub fn write_str<E: Copy>(
     value: &str,
     error: E,
 ) -> Result<(), E> {
-    for byte in value.bytes() {
-        write_byte(output, len, byte, error)?;
-    }
+    let end = len.checked_add(value.len()).ok_or(error)?;
+    let target = output.get_mut(*len..end).ok_or(error)?;
+    target.copy_from_slice(value.as_bytes());
+    *len = end;
     Ok(())
 }
 
@@ -33,6 +73,8 @@ pub fn write_u64<E: Copy>(
     mut value: u64,
     error: E,
 ) -> Result<(), E> {
+    let required = u64_encoded_len(value);
+    ensure_capacity(output, *len, required, error)?;
     if value == 0 {
         return write_byte(output, len, b'0', error);
     }
@@ -61,6 +103,8 @@ pub fn write_percent_encoded<E: Copy>(
     value: &str,
     error: E,
 ) -> Result<(), E> {
+    let required = percent_encoded_len(value, error)?;
+    ensure_capacity(output, *len, required, error)?;
     for byte in value.bytes() {
         if is_unreserved(byte) {
             write_byte(output, len, byte, error)?;
@@ -107,8 +151,7 @@ pub fn write_json_string<E: Copy>(
     value: &str,
     error: E,
 ) -> Result<(), E> {
-    let escaped = json_escaped_len(value, error)?;
-    let required = escaped.checked_add(2).ok_or(error)?;
+    let required = json_string_len(value, error)?;
     ensure_capacity(output, *len, required, error)?;
     write_byte(output, len, b'"', error)?;
     write_json_string_escaped(output, len, value, error)?;
@@ -183,11 +226,11 @@ pub fn write_query_u64<E: Copy>(
     write_u64(output, len, value, error)
 }
 
-const fn is_unreserved(byte: u8) -> bool {
+pub(super) const fn is_unreserved(byte: u8) -> bool {
     matches!(byte, b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'.' | b'_' | b'~')
 }
 
-const fn hex_digit(nibble: u8) -> u8 {
+pub(super) const fn hex_digit(nibble: u8) -> u8 {
     match nibble {
         0 => b'0',
         1 => b'1',

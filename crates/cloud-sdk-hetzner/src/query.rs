@@ -1,5 +1,8 @@
 //! Bounded query parameter domains.
 
+use cloud_sdk::buffer::{self, SnapshotEncoder};
+use cloud_sdk::transport::MAX_REQUEST_TARGET_BYTES;
+
 /// Maximum query key length admitted by the SDK policy.
 pub const MAX_QUERY_KEY_BYTES: usize = 64;
 
@@ -134,19 +137,23 @@ impl<'a, const N: usize> QueryBuilder<'a, N> {
 
     /// Writes a percent-encoded query string into a caller-owned buffer.
     pub fn write_percent_encoded(&self, output: &mut [u8]) -> Result<usize, QueryError> {
-        let mut len = 0;
-        let mut first = true;
-        for param in self.iter() {
-            if first {
-                first = false;
-            } else {
-                write_byte(output, &mut len, b'&')?;
-            }
-            append_percent_encoded_component(param.key(), output, &mut len)?;
-            write_byte(output, &mut len, b'=')?;
-            append_percent_encoded_component(param.value(), output, &mut len)?;
-        }
-        Ok(len)
+        buffer::encode_snapshot_bounded(
+            self,
+            output,
+            MAX_REQUEST_TARGET_BYTES,
+            QueryError::EncodeBufferTooSmall,
+            encode_query_builder,
+        )
+    }
+
+    /// Returns the exact checked percent-encoded query length.
+    pub fn encoded_len(&self) -> Result<usize, QueryError> {
+        buffer::measure_snapshot_bounded(
+            self,
+            MAX_REQUEST_TARGET_BYTES,
+            QueryError::EncodeBufferTooSmall,
+            encode_query_builder,
+        )
     }
 
     fn last(&self) -> Option<QueryParam<'a>> {
@@ -176,38 +183,23 @@ pub fn write_percent_encoded_component(
     value: &str,
     output: &mut [u8],
 ) -> Result<usize, QueryError> {
-    let mut len = 0;
-    append_percent_encoded_component(value, output, &mut len)?;
-    Ok(len)
+    buffer::encode_snapshot_bounded(
+        value,
+        output,
+        MAX_REQUEST_TARGET_BYTES,
+        QueryError::EncodeBufferTooSmall,
+        |value, encoder| encoder.percent_encoded(value),
+    )
 }
 
-fn append_percent_encoded_component(
-    value: &str,
-    output: &mut [u8],
-    len: &mut usize,
+fn encode_query_builder<const N: usize>(
+    query: &QueryBuilder<'_, N>,
+    encoder: &mut SnapshotEncoder<'_, QueryError>,
 ) -> Result<(), QueryError> {
-    for byte in value.bytes() {
-        if is_unreserved(byte) {
-            write_byte(output, len, byte)?;
-        } else {
-            write_byte(output, len, b'%')?;
-            write_byte(output, len, hex_digit(byte >> 4))?;
-            write_byte(output, len, hex_digit(byte & 0x0f))?;
-        }
+    let mut first = true;
+    for param in query.iter() {
+        encoder.query_pair(&mut first, param.key(), param.value())?;
     }
-    Ok(())
-}
-
-fn write_byte(output: &mut [u8], len: &mut usize, byte: u8) -> Result<(), QueryError> {
-    let slot = match output.get_mut(*len) {
-        Some(slot) => slot,
-        None => return Err(QueryError::EncodeBufferTooSmall),
-    };
-    *slot = byte;
-    *len = match len.checked_add(1) {
-        Some(next) => next,
-        None => return Err(QueryError::EncodeBufferTooSmall),
-    };
     Ok(())
 }
 
@@ -222,27 +214,6 @@ fn has_control_byte(value: &str) -> bool {
 
 const fn is_unreserved(byte: u8) -> bool {
     matches!(byte, b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'.' | b'_' | b'~')
-}
-
-const fn hex_digit(nibble: u8) -> u8 {
-    match nibble {
-        0 => b'0',
-        1 => b'1',
-        2 => b'2',
-        3 => b'3',
-        4 => b'4',
-        5 => b'5',
-        6 => b'6',
-        7 => b'7',
-        8 => b'8',
-        9 => b'9',
-        10 => b'A',
-        11 => b'B',
-        12 => b'C',
-        13 => b'D',
-        14 => b'E',
-        _ => b'F',
-    }
 }
 
 #[cfg(test)]
@@ -290,6 +261,7 @@ mod tests {
         }
         let mut output = [0u8; 128];
         assert_eq!(query.write_percent_encoded(&mut output), Ok(62));
+        assert_eq!(query.encoded_len(), Ok(62));
         let encoded = output
             .get(..62)
             .and_then(|bytes| core::str::from_utf8(bytes).ok());
@@ -301,11 +273,12 @@ mod tests {
 
     #[test]
     fn reports_too_small_percent_encoding_buffer() {
-        let mut output = [0u8; 2];
+        let mut output = [0xA5_u8; 2];
         assert_eq!(
             write_percent_encoded_component(" ", &mut output),
             Err(QueryError::EncodeBufferTooSmall)
         );
+        assert_eq!(output, [0xA5; 2]);
     }
 
     #[test]
