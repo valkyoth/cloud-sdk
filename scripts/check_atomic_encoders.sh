@@ -16,7 +16,8 @@ require_text crates/cloud-sdk/src/buffer/encoder.rs \
     "let required = measure_snapshot_bounded"
 require_text crates/cloud-sdk/src/buffer/encoder.rs \
     "SnapshotEncoder::verifying"
-require_text crates/cloud-sdk/src/buffer/encoder.rs "sanitize_bytes(target)"
+require_text crates/cloud-sdk/src/buffer/encoder.rs "struct EncodeRollback"
+require_text crates/cloud-sdk/src/buffer/encoder.rs "sanitize_bytes(self.target)"
 require_text crates/cloud-sdk/src/operation/storage.rs \
     "pub struct PreparationStorageGuard"
 require_text crates/cloud-sdk/src/operation/storage.rs \
@@ -33,6 +34,7 @@ fi
 
 cargo test -p cloud-sdk --all-features operation::storage::tests
 cargo test -p cloud-sdk buffer::encoder::tests
+cargo test -p cloud-sdk --test encoder_cleanup
 cargo test -p cloud-sdk-hetzner --all-features \
     actions::tests::global_action_paths_and_queries_fail_closed_on_small_buffers
 cargo test -p cloud-sdk-hetzner --all-features \

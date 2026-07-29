@@ -15,8 +15,9 @@ is required.
 
 Capacity and aggregate-limit rejection occurs before destination mutation.
 When later pass behavior differs, only the exact measured destination is
-volatile-cleared. Arithmetic in variable-length measurements uses checked
-addition.
+volatile-cleared. An armed rollback owner clears that same exact prefix during
+panic unwinding from the write or verification callback. Arithmetic in
+variable-length measurements uses checked addition.
 
 ## Preparation Ownership
 
@@ -27,6 +28,10 @@ is usable. Every preparation attempt clears complete target and body buffers
 before reuse, and dropping the guard performs the same cleanup. This includes
 unused tails and prevents a shorter later request from retaining bytes from a
 longer earlier request.
+
+Profile construction establishes both cleanup guards before validating
+capacities. Target- or body-capacity rejection therefore clears both complete
+caller buffers before returning.
 
 `PreparationStorage::new` remains as the low-level contract for callers with
 their own cleanup owner. This preserves provider integrations while making the

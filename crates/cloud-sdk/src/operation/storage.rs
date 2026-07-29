@@ -109,8 +109,10 @@ impl<'storage> PreparationStorageGuard<'storage> {
         body: &'storage mut [u8],
         profile: PreparationCapacityProfile,
     ) -> Result<Self, PreparationCapacityError> {
-        profile.validate(target.len(), body.len())?;
-        Ok(Self::new(target, body))
+        let guard = Self::new(target, body);
+        let (target_bytes, body_bytes) = guard.capacities();
+        profile.validate(target_bytes, body_bytes)?;
+        Ok(guard)
     }
 
     /// Prepares one operation while retaining cleanup ownership.
@@ -286,6 +288,35 @@ mod tests {
 
         assert!(matches!(guard.prepare(&ContaminateStorage), Err(())));
         assert!(matches!(guard.prepare(&AssertCleared), Err(())));
+    }
+
+    #[test]
+    fn profile_validation_failures_clear_both_complete_buffers() {
+        let mut short_target = [0xA5_u8; 8];
+        let mut target_failure_body = [0x5A_u8; 16];
+        assert!(matches!(
+            PreparationStorageGuard::for_profile(
+                &mut short_target,
+                &mut target_failure_body,
+                PreparationCapacityProfile::DEFAULT,
+            ),
+            Err(PreparationCapacityError::TargetTooSmall)
+        ));
+        assert_eq!(short_target, [0; 8]);
+        assert_eq!(target_failure_body, [0; 16]);
+
+        let mut target = [0xA5_u8; crate::transport::MAX_REQUEST_TARGET_BYTES];
+        let mut short_body = [0x5A_u8; 16];
+        assert!(matches!(
+            PreparationStorageGuard::for_profile(
+                &mut target,
+                &mut short_body,
+                PreparationCapacityProfile::DEFAULT,
+            ),
+            Err(PreparationCapacityError::BodyTooSmall)
+        ));
+        assert!(target.iter().all(|byte| *byte == 0));
+        assert_eq!(short_body, [0; 16]);
     }
 
     #[cfg(feature = "alloc")]

@@ -20,6 +20,32 @@ enum Destination<'output> {
     Verify(&'output [u8]),
 }
 
+struct EncodeRollback<'output> {
+    target: &'output mut [u8],
+    armed: bool,
+}
+
+impl EncodeRollback<'_> {
+    fn new(target: &mut [u8]) -> EncodeRollback<'_> {
+        EncodeRollback {
+            target,
+            armed: true,
+        }
+    }
+
+    fn disarm(&mut self) {
+        self.armed = false;
+    }
+}
+
+impl Drop for EncodeRollback<'_> {
+    fn drop(&mut self) {
+        if self.armed {
+            sanitize_bytes(self.target);
+        }
+    }
+}
+
 impl<'output, E: Copy> SnapshotEncoder<'output, E> {
     fn measuring(max_len: usize, error: E) -> Self {
         Self {
@@ -185,8 +211,9 @@ impl<'output, E: Copy> SnapshotEncoder<'output, E> {
 /// `encode` is a function pointer, not a capturing closure. Both passes
 /// therefore receive only the same by-value snapshot. An undersized output is
 /// unchanged. A final compare-only pass checks every emitted byte exactly. If
-/// either later pass violates the measured contract, the exact admitted
-/// destination is cleared before the error is returned.
+/// either later pass violates the measured contract or unwinds, the exact
+/// admitted destination is cleared before the error or unwind leaves this
+/// function.
 ///
 /// # Snapshot contract
 ///
@@ -238,24 +265,24 @@ pub fn encode_snapshot_bounded<S: Copy, E: Copy>(
 ) -> Result<usize, E> {
     let required = measure_snapshot_bounded(snapshot, max_len, error, encode)?;
     let target = output.get_mut(..required).ok_or(error)?;
+    let mut rollback = EncodeRollback::new(target);
 
     let write_matches = {
-        let mut writer = SnapshotEncoder::writing(target, max_len, error);
+        let mut writer = SnapshotEncoder::writing(&mut *rollback.target, max_len, error);
         encode(snapshot, &mut writer).is_ok() && writer.len() == required
     };
     if !write_matches {
-        sanitize_bytes(target);
         return Err(error);
     }
 
     let verify_matches = {
-        let mut verifier = SnapshotEncoder::verifying(target, max_len, error);
+        let mut verifier = SnapshotEncoder::verifying(&*rollback.target, max_len, error);
         encode(snapshot, &mut verifier).is_ok() && verifier.len() == required
     };
     if !verify_matches {
-        sanitize_bytes(target);
         return Err(error);
     }
+    rollback.disarm();
     Ok(required)
 }
 

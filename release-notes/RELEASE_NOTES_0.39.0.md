@@ -18,7 +18,8 @@ adds cleanup-owning request preparation storage and named bounded profiles.
   passes.
 - Used checked arithmetic and explicit aggregate limits.
 - Left every undersized destination byte-for-byte unchanged.
-- Cleared only the exact admitted prefix if a later pass drifts.
+- Cleared only the exact admitted prefix if a later pass drifts, fails, or
+  unwinds.
 - Compared bounded output directly without `Hash` or another digest.
 - Made legacy single-value percent, integer, and JSON writes individually
   atomic.
@@ -41,6 +42,8 @@ adds cleanup-owning request preparation storage and named bounded profiles.
 - Bound prepared-request lifetime to cleanup ownership.
 - Cleared complete target and body storage before every preparation attempt so
   reused buffers cannot retain a longer earlier request in their tails.
+- Established cleanup ownership before profile validation so rejected
+  capacities clear both complete buffers.
 - Added `EMBEDDED`, `DEFAULT`, and `LARGE` capacity profiles.
 - Added opt-in fallible `OwnedPreparationStorage` under `alloc`.
 - Kept the default graph allocation-free, transport-free, and `no_std`.

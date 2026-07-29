@@ -21,6 +21,8 @@ noncapturing encoder callback. It measures with checked arithmetic, rejects an
 aggregate-cap or output-capacity failure before writing, emits into the exact
 admitted prefix, then performs a compare-only replay. Any write or replay
 mismatch clears that exact prefix before returning the caller-selected error.
+An armed cleanup owner also clears the prefix if either callback unwinds. A
+process abort remains outside the cleanup guarantee.
 
 Provider request builders now use this path for complete endpoint paths,
 queries, and JSON bodies. Existing high-level Hetzner request methods retain
@@ -64,6 +66,10 @@ buffers before lending them to the operation. Reusing a guard therefore does
 not leave a longer earlier request in the unused tail of a shorter later
 request. The prepared request must still finish transport use before another
 call can borrow the guard.
+
+`PreparationStorageGuard::for_profile` establishes cleanup ownership before
+capacity validation. If either profile capacity is rejected, both complete
+caller buffers are cleared before the error returns.
 
 As part of the transactional migration, internal static-path writers now
 validate their complete output with `EndpointPath`. Current callers use static
