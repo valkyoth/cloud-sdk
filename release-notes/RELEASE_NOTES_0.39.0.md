@@ -27,6 +27,8 @@ adds cleanup-owning request preparation storage and named bounded profiles.
 
 - Migrated complete Hetzner Cloud, DNS, security, Storage Box, catalog,
   server, action, and shared query paths.
+- Intentionally validated complete static-path output to keep future dynamic
+  helper call sites inside the canonical path boundary.
 - Migrated prepared JSON bodies behind a sealed sensitive-string interface.
 - Removed duplicated mutable query cursors and shared one generic no_std
   encoder.
@@ -37,6 +39,8 @@ adds cleanup-owning request preparation storage and named bounded profiles.
 - Added non-`Copy` `PreparationStorageGuard` over complete target and body
   buffers.
 - Bound prepared-request lifetime to cleanup ownership.
+- Cleared complete target and body storage before every preparation attempt so
+  reused buffers cannot retain a longer earlier request in their tails.
 - Added `EMBEDDED`, `DEFAULT`, and `LARGE` capacity profiles.
 - Added opt-in fallible `OwnedPreparationStorage` under `alloc`.
 - Kept the default graph allocation-free, transport-free, and `no_std`.

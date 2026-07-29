@@ -2,7 +2,7 @@
 
 use core::fmt;
 
-use cloud_sdk_sanitization::SecretBuffer;
+use cloud_sdk_sanitization::{SecretBuffer, sanitize_bytes};
 
 use super::{PreparationStorage, PrepareOperation, PreparedRequest};
 use crate::transport::MAX_REQUEST_TARGET_BYTES;
@@ -85,8 +85,9 @@ impl_static_error!(PreparationCapacityError,
 ///
 /// A prepared request borrows this guard through [`Self::prepare`], so safe
 /// Rust prevents the guard from being dropped before transport use completes.
-/// Dropping the guard volatile-clears both complete borrowed buffers, including
-/// unused tails.
+/// Each preparation attempt first volatile-clears both complete borrowed
+/// buffers, including residue from a previous request. Dropping the guard
+/// performs the same complete cleanup.
 pub struct PreparationStorageGuard<'storage> {
     target: SecretBuffer<'storage>,
     body: SecretBuffer<'storage>,
@@ -113,6 +114,10 @@ impl<'storage> PreparationStorageGuard<'storage> {
     }
 
     /// Prepares one operation while retaining cleanup ownership.
+    ///
+    /// Both complete buffers are volatile-cleared before each attempt. Reusing
+    /// one guard therefore does not retain bytes from an earlier request in an
+    /// unused tail.
     pub fn prepare<'guard, O>(
         &'guard mut self,
         operation: &O,
@@ -120,6 +125,8 @@ impl<'storage> PreparationStorageGuard<'storage> {
     where
         O: PrepareOperation,
     {
+        sanitize_bytes(self.target.as_mut_slice());
+        sanitize_bytes(self.body.as_mut_slice());
         operation.prepare(PreparationStorage::new(
             self.target.as_mut_slice(),
             self.body.as_mut_slice(),
@@ -207,7 +214,41 @@ fn allocate_zeroed(len: usize) -> Result<alloc::boxed::Box<[u8]>, PreparationCap
 
 #[cfg(test)]
 mod tests {
+    use crate::operation::{PreparationStorage, PrepareOperation, PreparedRequest};
+
     use super::{PreparationCapacityError, PreparationCapacityProfile, PreparationStorageGuard};
+
+    struct ContaminateStorage;
+
+    impl PrepareOperation for ContaminateStorage {
+        type Error = ();
+
+        fn prepare<'storage>(
+            &self,
+            storage: PreparationStorage<'storage>,
+        ) -> Result<PreparedRequest<'storage>, Self::Error> {
+            let (target, body) = storage.into_parts();
+            target.fill(0xA5);
+            body.fill(0x5A);
+            Err(())
+        }
+    }
+
+    struct AssertCleared;
+
+    impl PrepareOperation for AssertCleared {
+        type Error = ();
+
+        fn prepare<'storage>(
+            &self,
+            storage: PreparationStorage<'storage>,
+        ) -> Result<PreparedRequest<'storage>, Self::Error> {
+            let (target, body) = storage.into_parts();
+            assert!(target.iter().all(|byte| *byte == 0));
+            assert!(body.iter().all(|byte| *byte == 0));
+            Err(())
+        }
+    }
 
     #[test]
     fn profiles_are_bounded_and_validate_both_regions() {
@@ -235,6 +276,16 @@ mod tests {
         }
         assert_eq!(target, [0; 8]);
         assert_eq!(body, [0; 16]);
+    }
+
+    #[test]
+    fn every_preparation_attempt_clears_complete_reused_storage_first() {
+        let mut target = [0_u8; 8];
+        let mut body = [0_u8; 16];
+        let mut guard = PreparationStorageGuard::new(&mut target, &mut body);
+
+        assert!(matches!(guard.prepare(&ContaminateStorage), Err(())));
+        assert!(matches!(guard.prepare(&AssertCleared), Err(())));
     }
 
     #[cfg(feature = "alloc")]

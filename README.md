@@ -357,11 +357,11 @@ automatic retry or scheduling.
 
 Use `PreparationStorageGuard` when request buffers may contain secrets. The
 prepared request borrows the guard, so safe Rust keeps cleanup ownership alive
-through transport use; dropping the guard volatile-clears both complete
-buffers, including unused tails. Named `EMBEDDED`, `DEFAULT`, and `LARGE`
-capacity profiles make storage policy explicit. Enabling `alloc` adds
-fallible `OwnedPreparationStorage` convenience without changing the default
-allocation-free graph.
+through transport use. Every preparation attempt and the guard's drop
+volatile-clear both complete buffers, including unused tails. Named
+`EMBEDDED`, `DEFAULT`, and `LARGE` capacity profiles make storage policy
+explicit. Enabling `alloc` adds fallible `OwnedPreparationStorage` convenience
+without changing the default allocation-free graph.
 
 ## Optional Blocking Transport
 

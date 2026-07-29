@@ -23,8 +23,10 @@ addition.
 `PreparationStorageGuard` owns two `SecretBuffer` guards. Its `prepare` method
 returns a `PreparedRequest` whose lifetime is tied to the mutable guard borrow.
 Safe Rust therefore prevents cleanup ownership from ending while the request
-is usable. Dropping the guard clears complete target and body buffers,
-including tails.
+is usable. Every preparation attempt clears complete target and body buffers
+before reuse, and dropping the guard performs the same cleanup. This includes
+unused tails and prevents a shorter later request from retaining bytes from a
+longer earlier request.
 
 `PreparationStorage::new` remains as the low-level contract for callers with
 their own cleanup owner. This preserves provider integrations while making the
@@ -43,6 +45,8 @@ public constructor.
 This is additive in `cloud-sdk`. Hetzner request methods preserve their public
 signatures and error enums while changing failure semantics so undersized
 destinations remain unchanged. Obsolete internal mutable query cursors were
-removed; they were not public crate API.
+removed; they were not public crate API. Internal static-path writers now
+validate their complete result through `EndpointPath`; this is intentional
+defense in depth for any future non-literal call site.
 
 See [`MIGRATION_0.39.0.md`](MIGRATION_0.39.0.md).

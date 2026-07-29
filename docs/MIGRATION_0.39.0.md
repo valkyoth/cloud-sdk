@@ -59,6 +59,17 @@ assert!(body.iter().all(|byte| *byte == 0));
 cleanup lifecycle. Plain slices are still not cleared automatically after a
 successful preparation.
 
+Each `PreparationStorageGuard::prepare` call volatile-clears both complete
+buffers before lending them to the operation. Reusing a guard therefore does
+not leave a longer earlier request in the unused tail of a shorter later
+request. The prepared request must still finish transport use before another
+call can borrow the guard.
+
+As part of the transactional migration, internal static-path writers now
+validate their complete output with `EndpointPath`. Current callers use static
+literals, but retaining this validation prevents a future dynamic call site
+from turning the helper into a path-injection boundary.
+
 ## Capacity Profiles
 
 `PreparationCapacityProfile` provides:

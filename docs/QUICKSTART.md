@@ -91,7 +91,8 @@ encoding, guarded preparation storage, and named capacity profiles.
 
 `PreparationStorageGuard` keeps both complete request buffers under one
 volatile-clearing owner. A returned prepared request borrows the guard, so it
-cannot safely outlive cleanup ownership:
+cannot safely outlive cleanup ownership. Each preparation attempt clears both
+complete buffers before reuse, and dropping the guard clears them again:
 
 ```rust
 use cloud_sdk::operation::PreparationStorageGuard;

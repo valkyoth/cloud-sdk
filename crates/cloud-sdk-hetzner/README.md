@@ -132,6 +132,10 @@ assert!(body_bytes.iter().all(|byte| *byte == 0));
 # Ok::<(), Box<dyn core::error::Error>>(())
 ```
 
+Every `prepare` call clears the guard's complete target and body buffers before
+writing. Reusing the guard cannot retain a longer earlier request in the tail
+of a shorter later request.
+
 Use `official_endpoint_policy(expected_base)` with a policy-aware transport
 constructor. Prepared operations carry that same provider-owned fixed policy.
 For an existing custom transport, `verify_official_endpoint` fails closed
