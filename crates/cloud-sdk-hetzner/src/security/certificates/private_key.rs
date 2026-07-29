@@ -48,6 +48,18 @@ impl core::fmt::Debug for PrivateKeyPem<'_> {
     }
 }
 
+impl crate::prepared::SensitiveJsonString for PrivateKeyPem<'_> {
+    fn encode_json(
+        self,
+        encoder: &mut cloud_sdk::buffer::SnapshotEncoder<
+            '_,
+            crate::prepared::HetznerPreparationError,
+        >,
+    ) -> Result<(), crate::prepared::HetznerPreparationError> {
+        encoder.json_string(self.value.as_str())
+    }
+}
+
 /// Creates a validated private key PEM value.
 pub fn private_key_pem(value: &str) -> Result<PrivateKeyPem<'_>, SecurityRequestError> {
     if value.contains("-----BEGIN PRIVATE KEY-----") {

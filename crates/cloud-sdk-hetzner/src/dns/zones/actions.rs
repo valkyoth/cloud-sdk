@@ -4,7 +4,7 @@ use cloud_sdk::{Method, buffer};
 
 use crate::EndpointGroup;
 use crate::actions::ActionStatus;
-use crate::cloud::shared::{CloudQueryWriter, CloudRequestError, write_static_path};
+use crate::cloud::shared::{CloudRequestError, encode_query, write_static_path};
 use crate::pagination::{Page, PerPage, SortDirection};
 use crate::request::{ApiBaseUrl, EndpointPath};
 
@@ -156,23 +156,24 @@ impl ZoneActionListRequest {
         if self.id.is_some() && !matches!(endpoint, ZoneActionEndpoint::ListAll) {
             return Err(ZoneRequestError::InvalidActionFilter);
         }
-        let mut writer = CloudQueryWriter::new(output);
-        if let Some(id) = self.id {
-            writer.u64_pair("id", id.get())?;
-        }
-        if let Some(page) = self.page {
-            writer.u64_pair("page", page.get())?;
-        }
-        if let Some(per_page) = self.per_page {
-            writer.u64_pair("per_page", u64::from(per_page.get()))?;
-        }
-        if let Some((field, direction)) = self.sort {
-            writer.pair("sort", action_sort_value(field, direction))?;
-        }
-        if let Some(status) = self.status {
-            writer.pair("status", status.as_api_str())?;
-        }
-        Ok(writer.len())
+        Ok(encode_query(output, |writer, first| {
+            if let Some(id) = self.id {
+                writer.query_u64(first, "id", id.get())?;
+            }
+            if let Some(page) = self.page {
+                writer.query_u64(first, "page", page.get())?;
+            }
+            if let Some(per_page) = self.per_page {
+                writer.query_u64(first, "per_page", u64::from(per_page.get()))?;
+            }
+            if let Some((field, direction)) = self.sort {
+                writer.query_pair(first, "sort", action_sort_value(field, direction))?;
+            }
+            if let Some(status) = self.status {
+                writer.query_pair(first, "status", status.as_api_str())?;
+            }
+            Ok(())
+        })?)
     }
 }
 

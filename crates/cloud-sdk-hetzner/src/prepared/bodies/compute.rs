@@ -86,16 +86,14 @@ fn write_server_create(
         }
         writer.field_string(first, "server_type", request.server_type.as_str())?;
         if let Some(user_data) = request.user_data {
-            writer.field_sensitive(first, "user_data", |output| {
-                user_data.write_json_string(output)
-            })?;
+            writer.field_sensitive(first, "user_data", user_data)?;
         }
         Ok(())
     })
 }
 
 fn write_public_net(
-    writer: &mut JsonWriter<'_>,
+    writer: &mut JsonWriter<'_, '_>,
     first: &mut bool,
     public_net: ServerPublicNet,
 ) -> Result<(), HetznerPreparationError> {
@@ -110,7 +108,7 @@ fn write_public_net(
 }
 
 fn write_primary_ip(
-    writer: &mut JsonWriter<'_>,
+    writer: &mut JsonWriter<'_, '_>,
     first: &mut bool,
     name: &str,
     value: PrimaryIpSelection,
@@ -209,9 +207,7 @@ fn write_server_action(
         ServerActionRequest::Rebuild { image, user_data } => {
             writer.field_string(first, "image", image.as_str())?;
             if let Some(user_data) = user_data {
-                writer.field_sensitive(first, "user_data", |output| {
-                    user_data.write_json_string(output)
-                })?;
+                writer.field_sensitive(first, "user_data", user_data)?;
             }
             Ok(())
         }
@@ -334,14 +330,9 @@ fn write_volume_resize(
 
 fn object<F>(output: &mut [u8], write: F) -> Result<usize, HetznerPreparationError>
 where
-    F: FnOnce(&mut JsonWriter<'_>, &mut bool) -> Result<(), HetznerPreparationError>,
+    F: Copy + Fn(&mut JsonWriter<'_, '_>, &mut bool) -> Result<(), HetznerPreparationError>,
 {
-    let mut writer = JsonWriter::new(output);
-    writer.begin_object()?;
-    let mut first = true;
-    write(&mut writer, &mut first)?;
-    writer.end_object()?;
-    Ok(writer.len())
+    crate::prepared::encode_object(output, write)
 }
 
 fn write_optional_text_labels(

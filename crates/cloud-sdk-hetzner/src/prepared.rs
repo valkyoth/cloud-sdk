@@ -9,7 +9,7 @@ mod operation;
 pub use error::HetznerPreparationError;
 pub use operation::{HetznerPreparedOperation, NoBody, NoQuery};
 
-pub(crate) use json::JsonWriter;
+pub(crate) use json::{JsonWriter, SensitiveJsonString, encode_object};
 pub(crate) use operation::{BodyWire, EndpointWire, QueryWire, RequestShape, ResponseProfile};
 
 #[cfg(test)]

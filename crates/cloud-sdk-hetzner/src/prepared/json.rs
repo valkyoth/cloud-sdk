@@ -1,6 +1,6 @@
 //! Allocation-free JSON request-body writing.
 
-use cloud_sdk::buffer;
+use cloud_sdk::buffer::{self, SnapshotEncoder};
 
 use crate::cloud::shared::CloudLabels;
 use crate::labels::{LabelKey, LabelValue};
@@ -9,19 +9,53 @@ use super::HetznerPreparationError;
 
 const BODY_ERROR: HetznerPreparationError = HetznerPreparationError::Body;
 
-/// Small JSON token writer over one caller-owned output buffer.
-pub(crate) struct JsonWriter<'a> {
-    output: &'a mut [u8],
-    len: usize,
+/// Maximum encoded JSON request body admitted by preparation.
+pub(crate) const MAX_JSON_REQUEST_BYTES: usize = 8_388_608;
+
+/// Secret text that can only emit one correctly escaped JSON string.
+pub(crate) trait SensitiveJsonString: Copy {
+    fn encode_json(
+        self,
+        encoder: &mut SnapshotEncoder<'_, HetznerPreparationError>,
+    ) -> Result<(), HetznerPreparationError>;
 }
 
-impl<'a> JsonWriter<'a> {
-    pub(crate) fn new(output: &'a mut [u8]) -> Self {
-        Self { output, len: 0 }
-    }
+pub(crate) fn encode_object<F>(
+    output: &mut [u8],
+    write: F,
+) -> Result<usize, HetznerPreparationError>
+where
+    F: Copy
+        + for<'encoder, 'output> Fn(
+            &mut JsonWriter<'encoder, 'output>,
+            &mut bool,
+        ) -> Result<(), HetznerPreparationError>,
+{
+    buffer::encode_snapshot_bounded(
+        write,
+        output,
+        MAX_JSON_REQUEST_BYTES,
+        BODY_ERROR,
+        |write, encoder| {
+            let mut writer = JsonWriter::new(encoder);
+            writer.begin_object()?;
+            let mut first = true;
+            write(&mut writer, &mut first)?;
+            writer.end_object()
+        },
+    )
+}
 
-    pub(crate) const fn len(&self) -> usize {
-        self.len
+/// Small JSON token writer over one caller-owned output buffer.
+pub(crate) struct JsonWriter<'encoder, 'output> {
+    encoder: &'encoder mut SnapshotEncoder<'output, HetznerPreparationError>,
+}
+
+impl<'encoder, 'output> JsonWriter<'encoder, 'output> {
+    pub(crate) fn new(
+        encoder: &'encoder mut SnapshotEncoder<'output, HetznerPreparationError>,
+    ) -> Self {
+        Self { encoder }
     }
 
     pub(crate) fn begin_object(&mut self) -> Result<(), HetznerPreparationError> {
@@ -55,11 +89,11 @@ impl<'a> JsonWriter<'a> {
     }
 
     pub(crate) fn string(&mut self, value: &str) -> Result<(), HetznerPreparationError> {
-        buffer::write_json_string(self.output, &mut self.len, value, BODY_ERROR)
+        self.encoder.json_string(value)
     }
 
     pub(crate) fn u64(&mut self, value: u64) -> Result<(), HetznerPreparationError> {
-        buffer::write_u64(self.output, &mut self.len, value, BODY_ERROR)
+        self.encoder.u64(value)
     }
 
     pub(crate) fn bool(&mut self, value: bool) -> Result<(), HetznerPreparationError> {
@@ -109,29 +143,14 @@ impl<'a> JsonWriter<'a> {
         self.null()
     }
 
-    pub(crate) fn field_sensitive<F, E>(
+    pub(crate) fn field_sensitive<T: SensitiveJsonString>(
         &mut self,
         first: &mut bool,
         name: &str,
-        write: F,
-    ) -> Result<(), HetznerPreparationError>
-    where
-        F: FnOnce(&mut [u8]) -> Result<usize, E>,
-    {
+        value: T,
+    ) -> Result<(), HetznerPreparationError> {
         self.field(first, name)?;
-        let remaining = self
-            .output
-            .get_mut(self.len..)
-            .ok_or(HetznerPreparationError::Body)?;
-        let written = write(remaining).map_err(|_| HetznerPreparationError::Body)?;
-        remaining
-            .get(..written)
-            .ok_or(HetznerPreparationError::Body)?;
-        self.len = self
-            .len
-            .checked_add(written)
-            .ok_or(HetznerPreparationError::Body)?;
-        Ok(())
+        value.encode_json(self.encoder)
     }
 
     pub(crate) fn field_labels(
@@ -168,10 +187,10 @@ impl<'a> JsonWriter<'a> {
     }
 
     fn byte(&mut self, value: u8) -> Result<(), HetznerPreparationError> {
-        buffer::write_byte(self.output, &mut self.len, value, BODY_ERROR)
+        self.encoder.byte(value)
     }
 
     fn raw(&mut self, value: &str) -> Result<(), HetznerPreparationError> {
-        buffer::write_str(self.output, &mut self.len, value, BODY_ERROR)
+        self.encoder.string(value)
     }
 }

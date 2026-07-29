@@ -8,7 +8,7 @@ use crate::pagination::{Page, PerPage, SortDirection};
 use crate::request::{ApiBaseUrl, EndpointPath};
 
 use super::shared::{
-    CloudLabels, CloudName, CloudQueryWriter, CloudRequestError, CloudResourceId, CloudText,
+    CloudLabels, CloudName, CloudRequestError, CloudResourceId, CloudText, encode_query,
     static_path, write_id_path, write_static_path,
 };
 
@@ -180,23 +180,24 @@ impl ImageListRequest {
 
     /// Writes the query string into a caller-owned buffer.
     pub fn write_query(self, output: &mut [u8]) -> Result<usize, ImageRequestError> {
-        let mut writer = CloudQueryWriter::new(output);
-        if let Some(id) = self.bound_to {
-            writer.u64_pair("bound_to", id.get())?;
-        }
-        if let Some(page) = self.page {
-            writer.u64_pair("page", page.get())?;
-        }
-        if let Some(per_page) = self.per_page {
-            writer.u64_pair("per_page", u64::from(per_page.get()))?;
-        }
-        if let Some((field, direction)) = self.sort {
-            writer.pair("sort", image_sort_value(field, direction))?;
-        }
-        if let Some(image_type) = self.image_type {
-            writer.pair("type", image_type.as_api_str())?;
-        }
-        Ok(writer.len())
+        encode_query(output, |writer, first| {
+            if let Some(id) = self.bound_to {
+                writer.query_u64(first, "bound_to", id.get())?;
+            }
+            if let Some(page) = self.page {
+                writer.query_u64(first, "page", page.get())?;
+            }
+            if let Some(per_page) = self.per_page {
+                writer.query_u64(first, "per_page", u64::from(per_page.get()))?;
+            }
+            if let Some((field, direction)) = self.sort {
+                writer.query_pair(first, "sort", image_sort_value(field, direction))?;
+            }
+            if let Some(image_type) = self.image_type {
+                writer.query_pair(first, "type", image_type.as_api_str())?;
+            }
+            Ok(())
+        })
     }
 }
 

@@ -24,9 +24,7 @@ fn write_certificate_create(
                 private_key,
             } => {
                 writer.field_string(first, "certificate", certificate.as_str())?;
-                writer.field_sensitive(first, "private_key", |output| {
-                    private_key.write_json_string(output)
-                })?;
+                writer.field_sensitive(first, "private_key", private_key)?;
             }
             CertificateCreateMode::Managed { domain_names } => {
                 writer.field(first, "domain_names")?;
@@ -98,18 +96,13 @@ fn write_ssh_update(
 
 fn object<F>(output: &mut [u8], write: F) -> Result<usize, HetznerPreparationError>
 where
-    F: FnOnce(&mut JsonWriter<'_>, &mut bool) -> Result<(), HetznerPreparationError>,
+    F: Copy + Fn(&mut JsonWriter<'_, '_>, &mut bool) -> Result<(), HetznerPreparationError>,
 {
-    let mut writer = JsonWriter::new(output);
-    writer.begin_object()?;
-    let mut first = true;
-    write(&mut writer, &mut first)?;
-    writer.end_object()?;
-    Ok(writer.len())
+    crate::prepared::encode_object(output, write)
 }
 
 fn write_labels(
-    writer: &mut JsonWriter<'_>,
+    writer: &mut JsonWriter<'_, '_>,
     first: &mut bool,
     labels: SecurityLabels<'_>,
 ) -> Result<(), HetznerPreparationError> {

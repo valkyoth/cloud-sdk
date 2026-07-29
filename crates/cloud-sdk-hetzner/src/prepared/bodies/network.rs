@@ -170,7 +170,7 @@ fn write_route_request(
 }
 
 fn write_route(
-    writer: &mut JsonWriter<'_>,
+    writer: &mut JsonWriter<'_, '_>,
     route: NetworkRoute<'_>,
 ) -> Result<(), HetznerPreparationError> {
     writer.begin_object()?;
@@ -179,7 +179,7 @@ fn write_route(
 }
 
 fn write_route_fields(
-    writer: &mut JsonWriter<'_>,
+    writer: &mut JsonWriter<'_, '_>,
     route: NetworkRoute<'_>,
 ) -> Result<(), HetznerPreparationError> {
     let mut first = true;
@@ -197,7 +197,7 @@ fn write_subnet_request(
 }
 
 fn write_subnet(
-    writer: &mut JsonWriter<'_>,
+    writer: &mut JsonWriter<'_, '_>,
     subnet: NetworkSubnet<'_>,
 ) -> Result<(), HetznerPreparationError> {
     writer.begin_object()?;
@@ -206,7 +206,7 @@ fn write_subnet(
 }
 
 fn write_subnet_fields(
-    writer: &mut JsonWriter<'_>,
+    writer: &mut JsonWriter<'_, '_>,
     subnet: NetworkSubnet<'_>,
 ) -> Result<(), HetznerPreparationError> {
     let mut first = true;
@@ -379,14 +379,9 @@ fn write_primary_protection(
 
 fn object<F>(output: &mut [u8], write: F) -> Result<usize, HetznerPreparationError>
 where
-    F: FnOnce(&mut JsonWriter<'_>, &mut bool) -> Result<(), HetznerPreparationError>,
+    F: Copy + Fn(&mut JsonWriter<'_, '_>, &mut bool) -> Result<(), HetznerPreparationError>,
 {
-    let mut writer = JsonWriter::new(output);
-    writer.begin_object()?;
-    let mut first = true;
-    write(&mut writer, &mut first)?;
-    writer.end_object()?;
-    Ok(writer.len())
+    crate::prepared::encode_object(output, write)
 }
 
 fn write_resource_update(
@@ -410,7 +405,7 @@ fn write_resource_update(
 }
 
 fn write_dns_ptr(
-    writer: &mut JsonWriter<'_>,
+    writer: &mut JsonWriter<'_, '_>,
     first: &mut bool,
     value: Option<&str>,
 ) -> Result<(), HetznerPreparationError> {

@@ -89,7 +89,7 @@ fn write_set_rules(
 }
 
 fn write_resources_field(
-    writer: &mut JsonWriter<'_>,
+    writer: &mut JsonWriter<'_, '_>,
     first: &mut bool,
     name: &str,
     resources: &[FirewallResource<'_>],
@@ -105,7 +105,7 @@ fn write_resources_field(
 }
 
 fn write_resource(
-    writer: &mut JsonWriter<'_>,
+    writer: &mut JsonWriter<'_, '_>,
     resource: FirewallResource<'_>,
 ) -> Result<(), HetznerPreparationError> {
     writer.begin_object()?;
@@ -132,7 +132,7 @@ fn write_resource(
 }
 
 fn write_rules_field(
-    writer: &mut JsonWriter<'_>,
+    writer: &mut JsonWriter<'_, '_>,
     first: &mut bool,
     rules: FirewallRuleSet<'_>,
 ) -> Result<(), HetznerPreparationError> {
@@ -147,7 +147,7 @@ fn write_rules_field(
 }
 
 fn write_rule(
-    writer: &mut JsonWriter<'_>,
+    writer: &mut JsonWriter<'_, '_>,
     rule: FirewallRule<'_>,
 ) -> Result<(), HetznerPreparationError> {
     writer.begin_object()?;
@@ -173,7 +173,7 @@ fn write_rule(
 }
 
 fn write_cidrs(
-    writer: &mut JsonWriter<'_>,
+    writer: &mut JsonWriter<'_, '_>,
     first: &mut bool,
     name: &str,
     cidrs: &[crate::cloud::ip::IpCidr<'_>],
@@ -190,14 +190,9 @@ fn write_cidrs(
 
 fn object<F>(output: &mut [u8], write: F) -> Result<usize, HetznerPreparationError>
 where
-    F: FnOnce(&mut JsonWriter<'_>, &mut bool) -> Result<(), HetznerPreparationError>,
+    F: Copy + Fn(&mut JsonWriter<'_, '_>, &mut bool) -> Result<(), HetznerPreparationError>,
 {
-    let mut writer = JsonWriter::new(output);
-    writer.begin_object()?;
-    let mut first = true;
-    write(&mut writer, &mut first)?;
-    writer.end_object()?;
-    Ok(writer.len())
+    crate::prepared::encode_object(output, write)
 }
 
 const fn protocol(value: FirewallProtocol) -> &'static str {

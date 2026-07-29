@@ -3,7 +3,7 @@
 use cloud_sdk::Method;
 
 use crate::EndpointGroup;
-use crate::cloud::shared::{CloudQueryWriter, write_static_path};
+use crate::cloud::shared::{encode_query, write_static_path};
 use crate::labels::LabelSelector;
 use crate::pagination::{Page, PerPage, SortDirection};
 use crate::request::ApiBaseUrl;
@@ -141,26 +141,27 @@ impl<'a> ZoneListRequest<'a> {
 
     /// Writes a deterministic query string.
     pub fn write_query(self, output: &mut [u8]) -> Result<usize, ZoneRequestError> {
-        let mut writer = CloudQueryWriter::new(output);
-        if let Some(selector) = self.label_selector {
-            writer.pair("label_selector", selector.as_str())?;
-        }
-        if let Some(mode) = self.mode {
-            writer.pair("mode", mode.as_api_str())?;
-        }
-        if let Some(name) = self.name {
-            writer.pair("name", name.as_str())?;
-        }
-        if let Some(page) = self.page {
-            writer.u64_pair("page", page.get())?;
-        }
-        if let Some(per_page) = self.per_page {
-            writer.u64_pair("per_page", u64::from(per_page.get()))?;
-        }
-        if let Some((field, direction)) = self.sort {
-            writer.pair("sort", zone_sort_value(field, direction))?;
-        }
-        Ok(writer.len())
+        Ok(encode_query(output, |writer, first| {
+            if let Some(selector) = self.label_selector {
+                writer.query_pair(first, "label_selector", selector.as_str())?;
+            }
+            if let Some(mode) = self.mode {
+                writer.query_pair(first, "mode", mode.as_api_str())?;
+            }
+            if let Some(name) = self.name {
+                writer.query_pair(first, "name", name.as_str())?;
+            }
+            if let Some(page) = self.page {
+                writer.query_u64(first, "page", page.get())?;
+            }
+            if let Some(per_page) = self.per_page {
+                writer.query_u64(first, "per_page", u64::from(per_page.get()))?;
+            }
+            if let Some((field, direction)) = self.sort {
+                writer.query_pair(first, "sort", zone_sort_value(field, direction))?;
+            }
+            Ok(())
+        })?)
     }
 }
 

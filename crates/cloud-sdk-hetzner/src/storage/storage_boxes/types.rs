@@ -153,6 +153,18 @@ impl fmt::Debug for StorageBoxPassword<'_> {
     }
 }
 
+impl crate::prepared::SensitiveJsonString for StorageBoxPassword<'_> {
+    fn encode_json(
+        self,
+        encoder: &mut cloud_sdk::buffer::SnapshotEncoder<
+            '_,
+            crate::prepared::HetznerPreparationError,
+        >,
+    ) -> Result<(), crate::prepared::HetznerPreparationError> {
+        encoder.json_string(self.value)
+    }
+}
+
 /// Storage Box subaccount home directory.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct StorageBoxHomeDirectory<'a> {

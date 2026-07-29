@@ -225,6 +225,18 @@ impl fmt::Debug for ZoneFile<'_> {
     }
 }
 
+impl crate::prepared::SensitiveJsonString for ZoneFile<'_> {
+    fn encode_json(
+        self,
+        encoder: &mut cloud_sdk::buffer::SnapshotEncoder<
+            '_,
+            crate::prepared::HetznerPreparationError,
+        >,
+    ) -> Result<(), crate::prepared::HetznerPreparationError> {
+        encoder.json_string(self.0)
+    }
+}
+
 /// Public primary nameserver used by a secondary zone.
 ///
 /// Ordinary equality is unavailable because this value can contain TSIG

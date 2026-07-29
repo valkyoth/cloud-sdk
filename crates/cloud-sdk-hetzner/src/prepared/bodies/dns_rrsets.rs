@@ -105,18 +105,13 @@ fn write_update_records(
 
 fn object<F>(output: &mut [u8], write: F) -> Result<usize, HetznerPreparationError>
 where
-    F: FnOnce(&mut JsonWriter<'_>, &mut bool) -> Result<(), HetznerPreparationError>,
+    F: Copy + Fn(&mut JsonWriter<'_, '_>, &mut bool) -> Result<(), HetznerPreparationError>,
 {
-    let mut writer = JsonWriter::new(output);
-    writer.begin_object()?;
-    let mut first = true;
-    write(&mut writer, &mut first)?;
-    writer.end_object()?;
-    Ok(writer.len())
+    crate::prepared::encode_object(output, write)
 }
 
 fn write_ttl_field(
-    writer: &mut JsonWriter<'_>,
+    writer: &mut JsonWriter<'_, '_>,
     first: &mut bool,
     ttl: RrsetTtl,
 ) -> Result<(), HetznerPreparationError> {
@@ -127,7 +122,7 @@ fn write_ttl_field(
 }
 
 fn write_records_field(
-    writer: &mut JsonWriter<'_>,
+    writer: &mut JsonWriter<'_, '_>,
     first: &mut bool,
     records: Records<'_>,
 ) -> Result<(), HetznerPreparationError> {
@@ -142,24 +137,20 @@ fn write_records_field(
 }
 
 fn write_record(
-    writer: &mut JsonWriter<'_>,
+    writer: &mut JsonWriter<'_, '_>,
     record: Record<'_>,
 ) -> Result<(), HetznerPreparationError> {
     writer.begin_object()?;
     let mut first = true;
-    writer.field_sensitive(&mut first, "value", |output| {
-        record.value().write_json_string(output)
-    })?;
+    writer.field_sensitive(&mut first, "value", record.value())?;
     if let Some(comment) = record.comment() {
-        writer.field_sensitive(&mut first, "comment", |output| {
-            comment.write_json_string(output)
-        })?;
+        writer.field_sensitive(&mut first, "comment", comment)?;
     }
     writer.end_object()
 }
 
 fn write_updates_field(
-    writer: &mut JsonWriter<'_>,
+    writer: &mut JsonWriter<'_, '_>,
     first: &mut bool,
     records: RecordUpdates<'_>,
 ) -> Result<(), HetznerPreparationError> {
@@ -174,16 +165,12 @@ fn write_updates_field(
 }
 
 fn write_record_update(
-    writer: &mut JsonWriter<'_>,
+    writer: &mut JsonWriter<'_, '_>,
     record: RecordUpdate<'_>,
 ) -> Result<(), HetznerPreparationError> {
     writer.begin_object()?;
     let mut first = true;
-    writer.field_sensitive(&mut first, "value", |output| {
-        record.value().write_json_string(output)
-    })?;
-    writer.field_sensitive(&mut first, "comment", |output| {
-        record.comment().write_json_string(output)
-    })?;
+    writer.field_sensitive(&mut first, "value", record.value())?;
+    writer.field_sensitive(&mut first, "comment", record.comment())?;
     writer.end_object()
 }

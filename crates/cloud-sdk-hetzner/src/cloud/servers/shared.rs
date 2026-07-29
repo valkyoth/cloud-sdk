@@ -209,6 +209,18 @@ impl fmt::Debug for UserData<'_> {
     }
 }
 
+impl crate::prepared::SensitiveJsonString for UserData<'_> {
+    fn encode_json(
+        self,
+        encoder: &mut cloud_sdk::buffer::SnapshotEncoder<
+            '_,
+            crate::prepared::HetznerPreparationError,
+        >,
+    ) -> Result<(), crate::prepared::HetznerPreparationError> {
+        encoder.json_string(self.value)
+    }
+}
+
 /// RFC3339 timestamp string.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct TimestampValue<'a> {

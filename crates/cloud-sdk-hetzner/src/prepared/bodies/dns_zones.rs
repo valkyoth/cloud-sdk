@@ -31,9 +31,7 @@ fn write_create(
             writer.field_u64(first, "ttl", u64::from(ttl.get()))?;
         }
         if let Some(zonefile) = request.zonefile() {
-            writer.field_sensitive(first, "zonefile", |output| {
-                zonefile.write_json_string(output)
-            })?;
+            writer.field_sensitive(first, "zonefile", zonefile)?;
         }
         Ok(())
     })
@@ -83,26 +81,19 @@ fn write_zonefile_import(
     output: &mut [u8],
 ) -> Result<usize, HetznerPreparationError> {
     object(output, |writer, first| {
-        writer.field_sensitive(first, "zonefile", |output| {
-            request.zonefile().write_json_string(output)
-        })
+        writer.field_sensitive(first, "zonefile", request.zonefile())
     })
 }
 
 fn object<F>(output: &mut [u8], write: F) -> Result<usize, HetznerPreparationError>
 where
-    F: FnOnce(&mut JsonWriter<'_>, &mut bool) -> Result<(), HetznerPreparationError>,
+    F: Copy + Fn(&mut JsonWriter<'_, '_>, &mut bool) -> Result<(), HetznerPreparationError>,
 {
-    let mut writer = JsonWriter::new(output);
-    writer.begin_object()?;
-    let mut first = true;
-    write(&mut writer, &mut first)?;
-    writer.end_object()?;
-    Ok(writer.len())
+    crate::prepared::encode_object(output, write)
 }
 
 fn write_nameservers_field(
-    writer: &mut JsonWriter<'_>,
+    writer: &mut JsonWriter<'_, '_>,
     first: &mut bool,
     nameservers: PrimaryNameservers<'_>,
 ) -> Result<(), HetznerPreparationError> {
@@ -117,7 +108,7 @@ fn write_nameservers_field(
 }
 
 fn write_nameserver(
-    writer: &mut JsonWriter<'_>,
+    writer: &mut JsonWriter<'_, '_>,
     nameserver: PrimaryNameserver<'_>,
 ) -> Result<(), HetznerPreparationError> {
     writer.begin_object()?;
@@ -131,12 +122,10 @@ fn write_nameserver(
 }
 
 fn write_tsig(
-    writer: &mut JsonWriter<'_>,
+    writer: &mut JsonWriter<'_, '_>,
     first: &mut bool,
     tsig: TsigCredentials<'_>,
 ) -> Result<(), HetznerPreparationError> {
     writer.field_string(first, "tsig_algorithm", tsig.algorithm().as_api_str())?;
-    writer.field_sensitive(first, "tsig_key", |output| {
-        tsig.key().write_json_string(output)
-    })
+    writer.field_sensitive(first, "tsig_key", tsig.key())
 }

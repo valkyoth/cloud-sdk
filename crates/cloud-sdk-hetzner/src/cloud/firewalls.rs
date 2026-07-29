@@ -8,7 +8,7 @@ use crate::pagination::{Page, PerPage, SortDirection};
 use crate::request::ApiBaseUrl;
 
 use super::shared::{
-    CloudLabels, CloudName, CloudQueryWriter, CloudRequestError, CloudResourceId, write_id_path,
+    CloudLabels, CloudName, CloudRequestError, CloudResourceId, encode_query, write_id_path,
     write_static_path,
 };
 
@@ -154,23 +154,24 @@ impl<'a> FirewallListRequest<'a> {
 
     /// Writes the query string into a caller-owned buffer.
     pub fn write_query(self, output: &mut [u8]) -> Result<usize, FirewallRequestError> {
-        let mut writer = CloudQueryWriter::new(output);
-        if let Some(selector) = self.label_selector {
-            writer.pair("label_selector", selector.as_str())?;
-        }
-        if let Some(name) = self.name {
-            writer.pair("name", name.as_str())?;
-        }
-        if let Some(page) = self.page {
-            writer.u64_pair("page", page.get())?;
-        }
-        if let Some(per_page) = self.per_page {
-            writer.u64_pair("per_page", u64::from(per_page.get()))?;
-        }
-        if let Some((field, direction)) = self.sort {
-            writer.pair("sort", firewall_sort_value(field, direction))?;
-        }
-        Ok(writer.len())
+        encode_query(output, |writer, first| {
+            if let Some(selector) = self.label_selector {
+                writer.query_pair(first, "label_selector", selector.as_str())?;
+            }
+            if let Some(name) = self.name {
+                writer.query_pair(first, "name", name.as_str())?;
+            }
+            if let Some(page) = self.page {
+                writer.query_u64(first, "page", page.get())?;
+            }
+            if let Some(per_page) = self.per_page {
+                writer.query_u64(first, "per_page", u64::from(per_page.get()))?;
+            }
+            if let Some((field, direction)) = self.sort {
+                writer.query_pair(first, "sort", firewall_sort_value(field, direction))?;
+            }
+            Ok(())
+        })
     }
 }
 

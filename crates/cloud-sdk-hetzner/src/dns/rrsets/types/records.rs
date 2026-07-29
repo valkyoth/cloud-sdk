@@ -53,6 +53,18 @@ impl fmt::Debug for RecordValue<'_> {
     }
 }
 
+impl crate::prepared::SensitiveJsonString for RecordValue<'_> {
+    fn encode_json(
+        self,
+        encoder: &mut cloud_sdk::buffer::SnapshotEncoder<
+            '_,
+            crate::prepared::HetznerPreparationError,
+        >,
+    ) -> Result<(), crate::prepared::HetznerPreparationError> {
+        encoder.json_string(self.0)
+    }
+}
+
 /// Bounded DNS record comment.
 #[derive(Clone, Copy, Eq, PartialEq)]
 pub struct RecordComment<'a>(&'a str);
@@ -90,6 +102,18 @@ impl ::serde::Serialize for RecordComment<'_> {
 impl fmt::Debug for RecordComment<'_> {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter.write_str("RecordComment([redacted])")
+    }
+}
+
+impl crate::prepared::SensitiveJsonString for RecordComment<'_> {
+    fn encode_json(
+        self,
+        encoder: &mut cloud_sdk::buffer::SnapshotEncoder<
+            '_,
+            crate::prepared::HetznerPreparationError,
+        >,
+    ) -> Result<(), crate::prepared::HetznerPreparationError> {
+        encoder.json_string(self.0)
     }
 }
 

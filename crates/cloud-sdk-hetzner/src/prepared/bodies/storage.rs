@@ -84,9 +84,7 @@ fn write_create(
         }
         writer.field_string(first, "location", request.location.as_str())?;
         writer.field_string(first, "name", request.name.as_str())?;
-        writer.field_sensitive(first, "password", |output| {
-            request.password.write_json_string(output)
-        })?;
+        writer.field_sensitive(first, "password", request.password)?;
         if let Some(keys) = request.ssh_keys {
             writer.field(first, "ssh_keys")?;
             writer.begin_array()?;
@@ -156,9 +154,7 @@ fn write_subaccount_create(
         if let Some(value) = request.name {
             writer.field_string(first, "name", value.as_str())?;
         }
-        writer.field_sensitive(first, "password", |output| {
-            request.password.write_json_string(output)
-        })
+        writer.field_sensitive(first, "password", request.password)
     })
 }
 
@@ -201,9 +197,7 @@ fn write_password(
     output: &mut [u8],
 ) -> Result<usize, HetznerPreparationError> {
     object(output, |writer, first| {
-        writer.field_sensitive(first, "password", |output| {
-            request.password().write_json_string(output)
-        })
+        writer.field_sensitive(first, "password", request.password())
     })
 }
 
@@ -267,7 +261,7 @@ fn write_home_directory(
 }
 
 fn write_access_settings(
-    writer: &mut JsonWriter<'_>,
+    writer: &mut JsonWriter<'_, '_>,
     request: StorageBoxAccessSettingsRequest,
 ) -> Result<(), HetznerPreparationError> {
     writer.begin_object()?;
@@ -276,7 +270,7 @@ fn write_access_settings(
 }
 
 fn write_access_settings_fields(
-    writer: &mut JsonWriter<'_>,
+    writer: &mut JsonWriter<'_, '_>,
     request: StorageBoxAccessSettingsRequest,
 ) -> Result<(), HetznerPreparationError> {
     let mut first = true;
@@ -299,7 +293,7 @@ fn write_access_settings_fields(
 }
 
 fn write_subaccount_access(
-    writer: &mut JsonWriter<'_>,
+    writer: &mut JsonWriter<'_, '_>,
     request: StorageBoxSubaccountAccessSettingsRequest,
 ) -> Result<(), HetznerPreparationError> {
     writer.begin_object()?;
@@ -308,7 +302,7 @@ fn write_subaccount_access(
 }
 
 fn write_subaccount_access_fields(
-    writer: &mut JsonWriter<'_>,
+    writer: &mut JsonWriter<'_, '_>,
     request: StorageBoxSubaccountAccessSettingsRequest,
 ) -> Result<(), HetznerPreparationError> {
     let mut first = true;
@@ -352,12 +346,7 @@ fn write_optional_resource(
 
 fn object<F>(output: &mut [u8], write: F) -> Result<usize, HetznerPreparationError>
 where
-    F: FnOnce(&mut JsonWriter<'_>, &mut bool) -> Result<(), HetznerPreparationError>,
+    F: Copy + Fn(&mut JsonWriter<'_, '_>, &mut bool) -> Result<(), HetznerPreparationError>,
 {
-    let mut writer = JsonWriter::new(output);
-    writer.begin_object()?;
-    let mut first = true;
-    write(&mut writer, &mut first)?;
-    writer.end_object()?;
-    Ok(writer.len())
+    crate::prepared::encode_object(output, write)
 }

@@ -282,7 +282,7 @@ fn write_remove_target(
 }
 
 fn write_service(
-    writer: &mut JsonWriter<'_>,
+    writer: &mut JsonWriter<'_, '_>,
     service: LoadBalancerService<'_>,
 ) -> Result<(), HetznerPreparationError> {
     writer.begin_object()?;
@@ -291,7 +291,7 @@ fn write_service(
 }
 
 fn write_service_fields(
-    writer: &mut JsonWriter<'_>,
+    writer: &mut JsonWriter<'_, '_>,
     service: LoadBalancerService<'_>,
 ) -> Result<(), HetznerPreparationError> {
     let mut first = true;
@@ -312,7 +312,7 @@ fn write_service_fields(
 }
 
 fn write_protocol(
-    writer: &mut JsonWriter<'_>,
+    writer: &mut JsonWriter<'_, '_>,
     first: &mut bool,
     protocol: LoadBalancerServiceProtocol<'_>,
 ) -> Result<(), HetznerPreparationError> {
@@ -330,7 +330,7 @@ fn write_protocol(
 }
 
 fn write_http_field(
-    writer: &mut JsonWriter<'_>,
+    writer: &mut JsonWriter<'_, '_>,
     first: &mut bool,
     config: HttpServiceConfig<'_>,
     https: Option<HttpsServiceConfig<'_>>,
@@ -365,7 +365,7 @@ fn write_http_field(
 }
 
 fn write_health_check(
-    writer: &mut JsonWriter<'_>,
+    writer: &mut JsonWriter<'_, '_>,
     health_check: LoadBalancerHealthCheck<'_>,
 ) -> Result<(), HetznerPreparationError> {
     writer.begin_object()?;
@@ -386,7 +386,7 @@ fn write_health_check(
 }
 
 fn write_health_http(
-    writer: &mut JsonWriter<'_>,
+    writer: &mut JsonWriter<'_, '_>,
     first: &mut bool,
     http: HttpHealthCheck<'_>,
 ) -> Result<(), HetznerPreparationError> {
@@ -416,7 +416,7 @@ fn write_health_http(
 }
 
 fn write_target(
-    writer: &mut JsonWriter<'_>,
+    writer: &mut JsonWriter<'_, '_>,
     target: LoadBalancerTarget<'_>,
     use_private_ip: Option<bool>,
 ) -> Result<(), HetznerPreparationError> {
@@ -426,7 +426,7 @@ fn write_target(
 }
 
 fn write_target_fields(
-    writer: &mut JsonWriter<'_>,
+    writer: &mut JsonWriter<'_, '_>,
     target: LoadBalancerTarget<'_>,
     use_private_ip: Option<bool>,
 ) -> Result<(), HetznerPreparationError> {
@@ -467,7 +467,7 @@ fn write_target_fields(
 }
 
 fn write_algorithm_field(
-    writer: &mut JsonWriter<'_>,
+    writer: &mut JsonWriter<'_, '_>,
     first: &mut bool,
     algorithm: &str,
 ) -> Result<(), HetznerPreparationError> {
@@ -480,12 +480,7 @@ fn write_algorithm_field(
 
 fn object<F>(output: &mut [u8], write: F) -> Result<usize, HetznerPreparationError>
 where
-    F: FnOnce(&mut JsonWriter<'_>, &mut bool) -> Result<(), HetznerPreparationError>,
+    F: Copy + Fn(&mut JsonWriter<'_, '_>, &mut bool) -> Result<(), HetznerPreparationError>,
 {
-    let mut writer = JsonWriter::new(output);
-    writer.begin_object()?;
-    let mut first = true;
-    write(&mut writer, &mut first)?;
-    writer.end_object()?;
-    Ok(writer.len())
+    crate::prepared::encode_object(output, write)
 }

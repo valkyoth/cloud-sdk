@@ -92,6 +92,18 @@ impl fmt::Debug for TsigKey<'_> {
     }
 }
 
+impl crate::prepared::SensitiveJsonString for TsigKey<'_> {
+    fn encode_json(
+        self,
+        encoder: &mut cloud_sdk::buffer::SnapshotEncoder<
+            '_,
+            crate::prepared::HetznerPreparationError,
+        >,
+    ) -> Result<(), crate::prepared::HetznerPreparationError> {
+        encoder.json_string(self.0)
+    }
+}
+
 /// Coherent TSIG credentials without ordinary equality.
 ///
 /// ```compile_fail

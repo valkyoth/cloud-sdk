@@ -1,6 +1,6 @@
 //! Load Balancer metrics query models.
 
-use crate::cloud::shared::CloudQueryWriter;
+use crate::cloud::shared::encode_query;
 
 use super::{LoadBalancerEndpoint, LoadBalancerId, LoadBalancerRequestError};
 
@@ -200,14 +200,15 @@ impl<'a> LoadBalancerMetricsRequest<'a> {
 
     /// Writes the deterministic query string.
     pub fn write_query(self, output: &mut [u8]) -> Result<usize, LoadBalancerRequestError> {
-        let mut writer = CloudQueryWriter::new(output);
-        writer.pair("end", self.end.as_str())?;
-        if let Some(step) = self.step {
-            writer.u64_pair("step", u64::from(step.get()))?;
-        }
-        writer.pair("start", self.start.as_str())?;
-        writer.pair("type", self.metric_types.as_api_str())?;
-        Ok(writer.len())
+        Ok(encode_query(output, |writer, first| {
+            writer.query_pair(first, "end", self.end.as_str())?;
+            if let Some(step) = self.step {
+                writer.query_u64(first, "step", u64::from(step.get()))?;
+            }
+            writer.query_pair(first, "start", self.start.as_str())?;
+            writer.query_pair(first, "type", self.metric_types.as_api_str())?;
+            Ok(())
+        })?)
     }
 }
 

@@ -1,6 +1,7 @@
 //! Shared Cloud request helpers.
 
-use cloud_sdk::buffer;
+use cloud_sdk::buffer::{self, SnapshotEncoder};
+use cloud_sdk::transport::MAX_REQUEST_TARGET_BYTES;
 
 use crate::labels::{LabelError, LabelKey, LabelValue};
 use crate::request::{EndpointPath, EndpointPathError};
@@ -152,58 +153,25 @@ impl ::serde::Serialize for CloudLabels<'_> {
     }
 }
 
-/// Small deterministic query writer.
-pub struct CloudQueryWriter<'a> {
-    output: &'a mut [u8],
-    len: usize,
-    first: bool,
-}
-
-impl<'a> CloudQueryWriter<'a> {
-    /// Creates a query writer.
-    pub fn new(output: &'a mut [u8]) -> Self {
-        Self {
-            output,
-            len: 0,
-            first: true,
-        }
-    }
-
-    /// Writes a key/value pair.
-    pub fn pair(&mut self, key: &str, value: &str) -> Result<(), CloudRequestError> {
-        buffer::write_query_pair(
-            self.output,
-            &mut self.len,
-            &mut self.first,
-            key,
-            value,
-            CloudRequestError::QueryBufferTooSmall,
-        )
-    }
-
-    /// Writes a key/u64 pair.
-    pub fn u64_pair(&mut self, key: &str, value: u64) -> Result<(), CloudRequestError> {
-        buffer::write_query_u64(
-            self.output,
-            &mut self.len,
-            &mut self.first,
-            key,
-            value,
-            CloudRequestError::QueryBufferTooSmall,
-        )
-    }
-
-    /// Returns the bytes written.
-    #[must_use]
-    pub const fn len(&self) -> usize {
-        self.len
-    }
-
-    /// Returns true when no bytes were written.
-    #[must_use]
-    pub const fn is_empty(&self) -> bool {
-        self.len == 0
-    }
+/// Atomically encodes one immutable Cloud query snapshot.
+pub(crate) fn encode_query<F>(output: &mut [u8], encode: F) -> Result<usize, CloudRequestError>
+where
+    F: Copy
+        + for<'encoder> Fn(
+            &mut SnapshotEncoder<'encoder, CloudRequestError>,
+            &mut bool,
+        ) -> Result<(), CloudRequestError>,
+{
+    buffer::encode_snapshot_bounded(
+        encode,
+        output,
+        MAX_REQUEST_TARGET_BYTES,
+        CloudRequestError::QueryBufferTooSmall,
+        |encode, encoder| {
+            let mut first = true;
+            encode(encoder, &mut first)
+        },
+    )
 }
 
 /// Writes a static endpoint path.
@@ -213,15 +181,14 @@ pub fn static_path(value: &'static str) -> Result<EndpointPath<'static>, CloudRe
 
 /// Writes a static endpoint path into a caller-owned buffer.
 pub fn write_static_path(output: &mut [u8], value: &str) -> Result<usize, CloudRequestError> {
-    let mut len = 0;
-    buffer::write_str(
-        output,
-        &mut len,
+    EndpointPath::new(value).map_err(CloudRequestError::InvalidPath)?;
+    buffer::encode_snapshot_bounded(
         value,
+        output,
+        crate::request::MAX_ENDPOINT_PATH_BYTES,
         CloudRequestError::PathBufferTooSmall,
-    )?;
-    validate_written_path(output, len)?;
-    Ok(len)
+        |value, encoder| encoder.string(value),
+    )
 }
 
 /// Writes `{prefix}{id}{suffix}` into a caller-owned path buffer.
@@ -231,26 +198,23 @@ pub fn write_id_path(
     id: CloudResourceId,
     suffix: &str,
 ) -> Result<usize, CloudRequestError> {
-    let mut len = 0;
-    buffer::write_str(
+    let len = buffer::encode_snapshot_bounded(
+        (prefix, id, suffix),
         output,
-        &mut len,
-        prefix,
+        crate::request::MAX_ENDPOINT_PATH_BYTES,
         CloudRequestError::PathBufferTooSmall,
+        |(prefix, id, suffix), encoder| {
+            encoder.string(prefix)?;
+            encoder.u64(id.get())?;
+            encoder.string(suffix)
+        },
     )?;
-    buffer::write_u64(
-        output,
-        &mut len,
-        id.get(),
-        CloudRequestError::PathBufferTooSmall,
-    )?;
-    buffer::write_str(
-        output,
-        &mut len,
-        suffix,
-        CloudRequestError::PathBufferTooSmall,
-    )?;
-    validate_written_path(output, len)?;
+    if let Err(error) = validate_written_path(output, len) {
+        if let Some(target) = output.get_mut(..len) {
+            cloud_sdk_sanitization::sanitize_bytes(target);
+        }
+        return Err(error);
+    }
     Ok(len)
 }
 

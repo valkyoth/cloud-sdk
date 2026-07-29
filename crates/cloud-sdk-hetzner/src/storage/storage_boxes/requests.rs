@@ -1,7 +1,7 @@
 //! Storage Box request marker structs and query builders.
 
 use crate::actions::{ActionId, ActionStatus};
-use crate::cloud::shared::CloudQueryWriter;
+use crate::cloud::shared::encode_query;
 use crate::labels::LabelSelector;
 use crate::pagination::{Page, PerPage, SortDirection};
 
@@ -70,23 +70,24 @@ impl<'a> StorageBoxListRequest<'a> {
 
     /// Writes the query string into a caller-owned buffer.
     pub fn write_query(self, output: &mut [u8]) -> Result<usize, StorageBoxRequestError> {
-        let mut writer = CloudQueryWriter::new(output);
-        if let Some(selector) = self.label_selector {
-            writer.pair("label_selector", selector.as_str())?;
-        }
-        if let Some(name) = self.name {
-            writer.pair("name", name.as_str())?;
-        }
-        if let Some(page) = self.page {
-            writer.u64_pair("page", page.get())?;
-        }
-        if let Some(per_page) = self.per_page {
-            writer.u64_pair("per_page", u64::from(per_page.get()))?;
-        }
-        if let Some((field, direction)) = self.sort {
-            writer.pair("sort", storage_box_sort(field, direction))?;
-        }
-        Ok(writer.len())
+        encode_query(output, |writer, first| {
+            if let Some(selector) = self.label_selector {
+                writer.query_pair(first, "label_selector", selector.as_str())?;
+            }
+            if let Some(name) = self.name {
+                writer.query_pair(first, "name", name.as_str())?;
+            }
+            if let Some(page) = self.page {
+                writer.query_u64(first, "page", page.get())?;
+            }
+            if let Some(per_page) = self.per_page {
+                writer.query_u64(first, "per_page", u64::from(per_page.get()))?;
+            }
+            if let Some((field, direction)) = self.sort {
+                writer.query_pair(first, "sort", storage_box_sort(field, direction))?;
+            }
+            Ok(())
+        })
     }
 }
 
@@ -138,17 +139,18 @@ impl<'a> StorageBoxTypeListRequest<'a> {
 
     /// Writes the query string into a caller-owned buffer.
     pub fn write_query(self, output: &mut [u8]) -> Result<usize, StorageBoxRequestError> {
-        let mut writer = CloudQueryWriter::new(output);
-        if let Some(name) = self.name {
-            writer.pair("name", name.as_str())?;
-        }
-        if let Some(page) = self.page {
-            writer.u64_pair("page", page.get())?;
-        }
-        if let Some(per_page) = self.per_page {
-            writer.u64_pair("per_page", u64::from(per_page.get()))?;
-        }
-        Ok(writer.len())
+        encode_query(output, |writer, first| {
+            if let Some(name) = self.name {
+                writer.query_pair(first, "name", name.as_str())?;
+            }
+            if let Some(page) = self.page {
+                writer.query_u64(first, "page", page.get())?;
+            }
+            if let Some(per_page) = self.per_page {
+                writer.query_u64(first, "per_page", u64::from(per_page.get()))?;
+            }
+            Ok(())
+        })
     }
 }
 
@@ -222,23 +224,24 @@ impl StorageBoxActionListRequest {
 
     /// Writes the query string into a caller-owned buffer.
     pub fn write_query(self, output: &mut [u8]) -> Result<usize, StorageBoxRequestError> {
-        let mut writer = CloudQueryWriter::new(output);
-        if let Some(id) = self.action_id {
-            writer.u64_pair("id", id.get())?;
-        }
-        if let Some(page) = self.page {
-            writer.u64_pair("page", page.get())?;
-        }
-        if let Some(per_page) = self.per_page {
-            writer.u64_pair("per_page", u64::from(per_page.get()))?;
-        }
-        if let Some((field, direction)) = self.sort {
-            writer.pair("sort", action_sort(field, direction))?;
-        }
-        if let Some(status) = self.status {
-            writer.pair("status", status.as_api_str())?;
-        }
-        Ok(writer.len())
+        encode_query(output, |writer, first| {
+            if let Some(id) = self.action_id {
+                writer.query_u64(first, "id", id.get())?;
+            }
+            if let Some(page) = self.page {
+                writer.query_u64(first, "page", page.get())?;
+            }
+            if let Some(per_page) = self.per_page {
+                writer.query_u64(first, "per_page", u64::from(per_page.get()))?;
+            }
+            if let Some((field, direction)) = self.sort {
+                writer.query_pair(first, "sort", action_sort(field, direction))?;
+            }
+            if let Some(status) = self.status {
+                writer.query_pair(first, "status", status.as_api_str())?;
+            }
+            Ok(())
+        })
     }
 }
 
@@ -303,20 +306,21 @@ impl<'a> StorageBoxSnapshotListRequest<'a> {
 
     /// Writes the query string into a caller-owned buffer.
     pub fn write_query(self, output: &mut [u8]) -> Result<usize, StorageBoxRequestError> {
-        let mut writer = CloudQueryWriter::new(output);
-        if let Some(value) = self.is_automatic {
-            writer.pair("is_automatic", bool_str(value))?;
-        }
-        if let Some(selector) = self.label_selector {
-            writer.pair("label_selector", selector.as_str())?;
-        }
-        if let Some(name) = self.name {
-            writer.pair("name", name.as_str())?;
-        }
-        if let Some((field, direction)) = self.sort {
-            writer.pair("sort", snapshot_sort(field, direction))?;
-        }
-        Ok(writer.len())
+        encode_query(output, |writer, first| {
+            if let Some(value) = self.is_automatic {
+                writer.query_pair(first, "is_automatic", bool_str(value))?;
+            }
+            if let Some(selector) = self.label_selector {
+                writer.query_pair(first, "label_selector", selector.as_str())?;
+            }
+            if let Some(name) = self.name {
+                writer.query_pair(first, "name", name.as_str())?;
+            }
+            if let Some((field, direction)) = self.sort {
+                writer.query_pair(first, "sort", snapshot_sort(field, direction))?;
+            }
+            Ok(())
+        })
     }
 }
 
@@ -381,20 +385,21 @@ impl<'a> StorageBoxSubaccountListRequest<'a> {
 
     /// Writes the query string into a caller-owned buffer.
     pub fn write_query(self, output: &mut [u8]) -> Result<usize, StorageBoxRequestError> {
-        let mut writer = CloudQueryWriter::new(output);
-        if let Some(selector) = self.label_selector {
-            writer.pair("label_selector", selector.as_str())?;
-        }
-        if let Some(name) = self.name {
-            writer.pair("name", name.as_str())?;
-        }
-        if let Some((field, direction)) = self.sort {
-            writer.pair("sort", subaccount_sort(field, direction))?;
-        }
-        if let Some(username) = self.username {
-            writer.pair("username", username.as_str())?;
-        }
-        Ok(writer.len())
+        encode_query(output, |writer, first| {
+            if let Some(selector) = self.label_selector {
+                writer.query_pair(first, "label_selector", selector.as_str())?;
+            }
+            if let Some(name) = self.name {
+                writer.query_pair(first, "name", name.as_str())?;
+            }
+            if let Some((field, direction)) = self.sort {
+                writer.query_pair(first, "sort", subaccount_sort(field, direction))?;
+            }
+            if let Some(username) = self.username {
+                writer.query_pair(first, "username", username.as_str())?;
+            }
+            Ok(())
+        })
     }
 }
 
