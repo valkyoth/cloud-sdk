@@ -41,7 +41,8 @@ pub use request_target::{
     RequestPathError, RequestQuery, RequestTarget, RequestTargetError, StructuredQueryError,
 };
 pub use response::{
-    ResponseBuffer, ResponseMetadata, ResponseWriter, ResponseWriterError, TransportResponse,
+    ResponseAttempt, ResponseBuffer, ResponseMetadata, ResponseWriter, ResponseWriterError,
+    TransportResponse,
 };
 pub use retained::{MAX_REQUEST_ID_BYTES, RetainedMetadataError, RetainedResponseMetadata};
 pub use workspace::{
@@ -182,6 +183,9 @@ pub trait BlockingTransport {
     type Error;
 
     /// Sends one request and writes the response body into the caller buffer.
+    ///
+    /// Implementations should use [`ResponseWriter::begin_attempt`] so failed
+    /// operations cannot leave reusable response state dirty.
     fn send(
         &self,
         request: TransportRequest<'_>,

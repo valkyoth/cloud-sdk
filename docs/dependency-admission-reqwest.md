@@ -102,14 +102,18 @@ and testkit do not depend on Tokio. The concrete async reqwest adapter requires
 callers to poll requests from an active Tokio executor; it does not create,
 install, or own a runtime.
 
-`fuzzing` enables the blocking graph solely so libFuzzer can invoke the exact
-production raw response parser. It adds no dependency outside that reviewed
-graph and is not intended for applications.
+`fuzzing` enables the blocking graph solely so libFuzzer can invoke the
+production post-parse validator and an in-memory Hyper HTTP/1 wire parser. It
+adds no dependency outside that reviewed graph and is not intended for
+applications.
 
 Reqwest default features are disabled. Native TLS, cookies, JSON, multipart,
-SOCKS, system proxy discovery, redirects, retries, referer generation, and
-response decompression are not admitted. HTTP/2 and Hickory DNS are also absent
-from both production feature graphs. A
+SOCKS, retries, referer generation, and response decompression are not
+admitted. HTTP/2 and Hickory DNS are also absent from both production feature
+graphs. Reqwest's implementation still compiles proxy- and redirect-capable
+transitive modules; production builders call `no_proxy()` and select
+`Policy::none()`, so proxy discovery/use and redirect execution remain disabled
+at runtime. A
 separate locked, non-published test fixture deliberately enables both on the
 same reqwest instance and builds both adapters to exercise Cargo feature
 unification against the runtime overrides. Its local `cloud-sdk-reqwest`

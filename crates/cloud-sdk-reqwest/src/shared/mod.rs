@@ -24,6 +24,8 @@ mod raw;
 #[cfg(feature = "fuzzing")]
 mod raw_fuzz;
 mod raw_hyper;
+#[cfg(feature = "fuzzing")]
+mod raw_wire_fuzz;
 
 pub use auth::{BearerToken, BearerTokenError, MAX_BEARER_TOKEN_BYTES};
 pub use cloud_sdk::transport::CustomEndpointAcknowledgement;
@@ -37,7 +39,8 @@ pub(crate) use headers::capture_response_headers;
 pub(crate) use rate_limit::parse_rate_limit;
 pub(crate) use raw::inspect_response_head;
 pub use raw::{
-    MAX_UPSTREAM_HTTP1_HEAD_BYTES, MAX_UPSTREAM_HTTP1_HEADERS, RawHttpError, RawTransportFailure,
+    MAX_RAW_REQUEST_BODY_BYTES, MAX_UPSTREAM_HTTP1_HEAD_BYTES, MAX_UPSTREAM_HTTP1_HEADERS,
+    RawHttpError, RawTransportFailure,
 };
 #[cfg(feature = "fuzzing")]
 pub use raw_fuzz::fuzz_raw_response_parser;
@@ -51,6 +54,8 @@ pub(crate) use raw_hyper::RawHyperClient;
     )
 ))]
 pub(crate) use raw_hyper::platform_client_config;
+#[cfg(feature = "fuzzing")]
+pub use raw_wire_fuzz::fuzz_raw_http1_wire;
 
 #[cfg(test)]
 mod error_tests {

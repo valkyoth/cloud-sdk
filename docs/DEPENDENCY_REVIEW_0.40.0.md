@@ -33,15 +33,19 @@ prerelease and is not selected.
 ## Boundary
 
 - Default, `std`-only, provider, and testkit graphs remain network-free.
-- HTTP/2, compression, proxy, cookie, JSON, multipart, SOCKS, and Hickory DNS
-  features remain absent from production adapter graphs.
+- HTTP/2, compression, cookie, JSON, multipart, SOCKS, and Hickory DNS features
+  remain absent from production adapter graphs. Reqwest still compiles
+  proxy/redirect-capable transitive modules (`hyper-util/client-proxy` and
+  `tower-http/follow-redirect`); production builders disable proxy discovery
+  and redirect execution at runtime.
 - Raw HTTP uses HTTP/1 only, no idle connection pool, no automatic canceled
   request retry, explicit total/connect timeouts, and the selected TLS trust
   policy.
 - FIPS raw execution receives the same explicitly validated roots, complete
   CRLs, provider, and client configuration as the existing FIPS adapter.
 - The `fuzzing` feature is isolated to the fuzz workspace and reuses the
-  blocking graph only to expose the exact production raw parser to libFuzzer.
+  blocking graph only to expose the production post-parse validator and an
+  in-memory Hyper HTTP/1 wire/state-machine harness to libFuzzer.
 
 ## Required Verification
 

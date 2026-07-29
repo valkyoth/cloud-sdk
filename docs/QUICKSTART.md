@@ -212,6 +212,10 @@ and maximum response length.
 before sending and lend no more than the policy's admitted response capacity
 through a sealed `ResponseWriter`. A cleanup-owning `ResponseBuffer`
 volatile-clears the complete caller buffer before admission and on every exit;
+provided transports additionally acquire a transactional `ResponseAttempt`
+that clears uncommitted body and header state on failure, unwind, timeout, or
+async cancellation before writer reuse. Custom transports should call
+`ResponseWriter::begin_attempt`.
 an optional `ResponseStorageSanitizer` can add platform cleanup without
 replacing the mandatory core clear. They return
 `CheckedResponseGuard` only after status, body shape, initialized length, and

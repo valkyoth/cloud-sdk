@@ -74,6 +74,9 @@ impl AsyncClient {
         if response_writer.is_committed() {
             return Err(TransportError::ResponseCommitFailed);
         }
+        let mut response_writer = response_writer
+            .begin_attempt()
+            .map_err(|_| TransportError::ResponseCommitFailed)?;
         let url = self
             .endpoint
             .compose(request.target())

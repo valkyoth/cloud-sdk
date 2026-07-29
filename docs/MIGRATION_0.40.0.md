@@ -22,6 +22,16 @@ validated `TransportRequest` through caller-owned `ResponseWriter` storage.
 rules, admitted response headers, and an informational-response limit.
 Trailers and `101 Switching Protocols` are always rejected.
 
+Transport implementations should begin every write through
+`ResponseWriter::begin_attempt`. The returned `ResponseAttempt` clears stale
+uncommitted state before use and clears complete body/header storage when an
+error, timeout, unwind, or future cancellation drops it without a commit. All
+first-party reqwest transports and the testkit mock use this guard.
+
+Raw reqwest request bodies are copied only after checking
+`MAX_RAW_REQUEST_BODY_BYTES` (8 MiB). Larger requests fail as
+`RawHttpError::RequestBodyTooLarge` in the `NotSent` phase.
+
 `cloud-sdk-reqwest` provides `RawBlockingClientBuilder` and
 `RawAsyncClientBuilder`. These builders take no bearer token. They do not add
 authorization, JSON `Accept`, redirects, proxies, decompression, or retries.

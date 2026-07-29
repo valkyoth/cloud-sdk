@@ -297,7 +297,7 @@ impl<'storage> ResponseHeaders<'storage> {
         Ok(())
     }
 
-    fn clear(&mut self) {
+    pub(crate) fn clear(&mut self) {
         sanitize_bytes(self.bytes.as_mut_slice());
         for range in &mut self.ranges {
             clear_range(range);

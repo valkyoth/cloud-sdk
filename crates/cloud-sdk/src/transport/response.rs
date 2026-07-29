@@ -67,6 +67,21 @@ pub struct ResponseWriter<'buffer> {
 }
 
 impl<'buffer> ResponseWriter<'buffer> {
+    /// Starts one transactional transport attempt.
+    ///
+    /// Any residue from an earlier uncommitted attempt is cleared first. The
+    /// returned guard clears body and header storage unless it commits.
+    pub fn begin_attempt(&mut self) -> Result<ResponseAttempt<'_, 'buffer>, ResponseWriterError> {
+        if self.commit.is_some() {
+            return Err(ResponseWriterError::AlreadyCommitted);
+        }
+        self.clear_uncommitted();
+        Ok(ResponseAttempt {
+            writer: self,
+            completed: false,
+        })
+    }
+
     /// Returns the admitted response-body capacity.
     #[must_use]
     pub const fn body_capacity(&self) -> usize {
@@ -92,7 +107,7 @@ impl<'buffer> ResponseWriter<'buffer> {
     }
 
     /// Returns the response headers captured so far.
-    pub fn headers(&self) -> &ResponseHeaders<'buffer> {
+    pub const fn headers(&self) -> &ResponseHeaders<'buffer> {
         &self.headers
     }
 
@@ -190,6 +205,14 @@ impl<'buffer> ResponseWriter<'buffer> {
     fn initialized_body(&self, initialized_len: usize) -> &[u8] {
         self.storage.get(..initialized_len).unwrap_or_default()
     }
+
+    fn clear_uncommitted(&mut self) {
+        if self.commit.is_none() {
+            sanitize_response_storage(self.storage, None);
+            self.headers.clear();
+            self.request_id = None;
+        }
+    }
 }
 
 impl fmt::Debug for ResponseWriter<'_> {
@@ -201,6 +224,60 @@ impl fmt::Debug for ResponseWriter<'_> {
             .field("committed", &self.commit.is_some())
             .field("body", &"[redacted]")
             .finish()
+    }
+}
+
+/// Cleanup-owning transaction around one response write attempt.
+///
+/// Transport implementations should acquire this guard before touching the
+/// response writer. Dropping an uncommitted guard, including during panic
+/// unwind or future cancellation, clears the complete body and header storage.
+pub struct ResponseAttempt<'writer, 'buffer> {
+    writer: &'writer mut ResponseWriter<'buffer>,
+    completed: bool,
+}
+
+impl<'buffer> ResponseAttempt<'_, 'buffer> {
+    /// Returns the admitted response-body capacity.
+    #[must_use]
+    pub const fn body_capacity(&self) -> usize {
+        self.writer.body_capacity()
+    }
+
+    /// Returns exclusive access to the admitted response-body prefix.
+    pub fn body_mut(&mut self) -> Result<&mut [u8], ResponseWriterError> {
+        self.writer.body_mut()
+    }
+
+    /// Returns mutable caller-owned response-header storage.
+    pub fn headers_mut(&mut self) -> Result<&mut ResponseHeaders<'buffer>, ResponseWriterError> {
+        self.writer.headers_mut()
+    }
+
+    /// Returns response headers captured by this attempt.
+    #[must_use]
+    pub const fn headers(&self) -> &ResponseHeaders<'buffer> {
+        self.writer.headers()
+    }
+
+    /// Commits this attempt exactly once.
+    pub fn commit(
+        &mut self,
+        status: StatusCode,
+        initialized_len: usize,
+        metadata: ResponseMetadata,
+    ) -> Result<(), ResponseWriterError> {
+        self.writer.commit(status, initialized_len, metadata)?;
+        self.completed = true;
+        Ok(())
+    }
+}
+
+impl Drop for ResponseAttempt<'_, '_> {
+    fn drop(&mut self) {
+        if !self.completed {
+            self.writer.clear_uncommitted();
+        }
     }
 }
 

@@ -83,3 +83,10 @@ path = "fuzz_targets/raw_response_parser.rs"
 test = false
 doc = false
 bench = false
+
+[[bin]]
+name = "raw_http1_wire"
+path = "fuzz_targets/raw_http1_wire.rs"
+test = false
+doc = false
+bench = false

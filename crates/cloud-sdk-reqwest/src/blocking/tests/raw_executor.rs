@@ -3,14 +3,18 @@ use std::time::Duration;
 
 use cloud_sdk::Method;
 use cloud_sdk::transport::{
-    BlockingRawHttpExecutor, DeliveryPhase, HeaderName, MediaType, RawResponsePolicy,
-    ResponseBuffer, ResponseMediaPolicy, StatusCode, TransportRequest,
+    BlockingRawHttpExecutor, ContentType, DeliveryPhase, HeaderName, MediaType, RawResponsePolicy,
+    RequestHeader, RequestHeaders, ResponseBuffer, ResponseMediaPolicy, StatusCode,
+    TransportRequest,
 };
 
 use super::{custom_endpoint, test_timeouts};
 #[cfg(feature = "blocking-rustls-fips")]
 use crate::blocking::tests::fips_tls_policy;
-use crate::blocking::{RawBlockingClient, RawBlockingClientBuilder, RawHttpError, UserAgent};
+use crate::blocking::{
+    MAX_RAW_REQUEST_BODY_BYTES, RawBlockingClient, RawBlockingClientBuilder, RawHttpError,
+    UserAgent,
+};
 use crate::test_server::{spawn, spawn_concurrent_pair, spawn_raw_response};
 
 fn build_raw_loopback(endpoint: &str) -> Option<RawBlockingClient> {
@@ -158,6 +162,39 @@ fn raw_blocking_connect_failure_is_not_sent() {
     assert!(matches!(
         failure,
         Err(error) if error.phase() == DeliveryPhase::NotSent
+    ));
+}
+
+#[test]
+fn raw_blocking_rejects_oversized_request_body_before_network_access() {
+    let Some(client) = build_raw_loopback("http://127.0.0.1:9/v1") else {
+        return;
+    };
+    let Ok(target) = cloud_sdk::transport::RequestTarget::new("/servers") else {
+        return;
+    };
+    let content_type = [RequestHeader::content_type(ContentType::JSON)];
+    let Ok(headers) = RequestHeaders::new(&content_type) else {
+        return;
+    };
+    let oversized = std::vec![0x5a; MAX_RAW_REQUEST_BODY_BYTES.saturating_add(1)];
+    let Some(policy) = json_policy(&[]) else {
+        return;
+    };
+    let mut body = [0xa5_u8; 16];
+    let mut header_storage = [0xa5_u8; 128];
+    let mut response = ResponseBuffer::new(&mut body, 16, &mut header_storage);
+    assert!(matches!(
+        client.execute(
+            TransportRequest::new(Method::Post, target)
+                .with_headers(headers)
+                .with_body(&oversized),
+            policy,
+            response.writer(),
+        ),
+        Err(error)
+            if error.phase() == DeliveryPhase::NotSent
+                && error.error() == &RawHttpError::RequestBodyTooLarge
     ));
 }
 

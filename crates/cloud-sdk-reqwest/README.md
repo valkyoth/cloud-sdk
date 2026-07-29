@@ -411,8 +411,9 @@ rejected input leaves the active credential unchanged.
 - Explicit validated user agent and bounded bearer token.
 - HTTP/1 and the system resolver are forced even under downstream reqwest
   HTTP/2 or Hickory DNS feature unification.
-- No redirects, automatic retries, proxies, referer generation, or response
-  decompression.
+- No runtime redirects, automatic retries, proxy discovery/use, referer
+  generation, or response decompression. Reqwest still compiles related
+  proxy/redirect-capable transitive modules.
 - Exact scheme, host, port, and base-path preservation after target composition.
 - Rejection of userinfo, Unicode or percent-encoded hosts, trailing DNS dots,
   IPv6 zones, unbracketed IPv6, and non-canonical DNS/port forms before URL
@@ -424,6 +425,9 @@ rejected input leaves the active credential unchanged.
 - Atomic token rotation with in-flight snapshots and source-clearing mutable or
   guarded constructors.
 - Caller-sized response buffers with overflow detection and cleanup.
+- Transactional response attempts clear partial caller body/header state on
+  error, timeout, unwind, or async cancellation before writer reuse.
+- Raw request-body staging rejects inputs above 8 MiB before allocation.
 - Strict all-or-none decimal parsing and propagation of exactly one
   `RateLimit-Limit`, `RateLimit-Remaining`, and `RateLimit-Reset` response
   header; duplicates fail closed.
@@ -447,7 +451,7 @@ the source can be cleared.
 | `blocking-rustls-webpki-roots` | no | Enables the blocking adapter with a deterministic reviewed Mozilla root snapshot. |
 | `blocking-rustls-fips` | no | Enables the blocking adapter with runtime-verified AWS-LC FIPS plus mandatory deployment roots and CRLs. |
 | `async-rustls` | no | Enables the hardened async reqwest/rustls adapter; callers provide an active Tokio runtime. |
-| `fuzzing` | no | Internal fuzz adapter for the production raw response parser; not intended for applications. |
+| `fuzzing` | no | Internal post-parse validator and Hyper HTTP/1 wire fuzz adapters; not intended for applications. |
 
 Reqwest's default features are disabled. The complete dependency and security
 decision is recorded in

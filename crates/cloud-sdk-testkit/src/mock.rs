@@ -176,6 +176,9 @@ impl<'a> MockTransport<'a> {
         if response.is_committed() {
             return Err(MockError::ResponseWriterRejected);
         }
+        let mut response = response
+            .begin_attempt()
+            .map_err(|_| MockError::ResponseWriterRejected)?;
         let cursor = self.cursor.load(Ordering::Acquire);
         let exchange = self.exchanges.get(cursor).ok_or(MockError::Exhausted)?;
         if request.method() != exchange.request.method() {

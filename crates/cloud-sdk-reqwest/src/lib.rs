@@ -14,7 +14,7 @@ mod shared;
 
 #[cfg(feature = "fuzzing")]
 #[doc(hidden)]
-pub use shared::fuzz_raw_response_parser;
+pub use shared::{fuzz_raw_http1_wire, fuzz_raw_response_parser};
 
 #[cfg(any(
     feature = "blocking-rustls",

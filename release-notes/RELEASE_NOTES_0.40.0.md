@@ -23,6 +23,8 @@ authentication or retry behavior.
   framing, proxy, and upgrade metadata admission.
 - Added payload-redacting `NotSent`, `PossiblySent`, and `ResponseStarted`
   failures, with unknown state mapped to `PossiblySent`.
+- Added core cleanup-owning response attempts so failure, timeout, unwind, and
+  async cancellation cannot contaminate later writer reuse.
 
 ## Reqwest Adapter
 
@@ -34,14 +36,15 @@ authentication or retry behavior.
 - Rejected declared and observed trailers.
 - Disabled idle pooling and automatic canceled-request retries.
 - Staged request body and header values in cleanup-owning allocations.
+- Rejected raw request bodies above 8 MiB before adapter-owned allocation.
 - Retained explicit total/connect deadlines and TLS trust policy.
 
 ## Testkit
 
 - Added deterministic raw executor faults for every delivery phase.
 - Added blocking and async interim-response tests.
-- Added an isolated fuzz target for production response-head parsing and
-  streamed-body accounting.
+- Added isolated fuzz targets for post-parse response validation/body
+  accounting and the actual in-memory Hyper HTTP/1 wire state machine.
 - Added 101, trailer, duplicate, missing-length overflow, HEAD, 204, media,
   unknown-header, cookie, and authentication-confusion fixtures.
 

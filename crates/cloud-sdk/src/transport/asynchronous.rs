@@ -24,6 +24,9 @@ pub trait AsyncTransport {
 
     /// Sends one request and initializes the complete response body in the
     /// caller buffer.
+    ///
+    /// Implementations should use [`ResponseWriter::begin_attempt`] so failed
+    /// and cancelled operations cannot leave reusable response state dirty.
     fn send<'transport, 'request, 'writer>(
         &'transport self,
         request: TransportRequest<'request>,

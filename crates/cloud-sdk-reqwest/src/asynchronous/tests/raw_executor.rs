@@ -70,6 +70,43 @@ fn raw_async_streams_directly_into_the_caller_buffer() {
 }
 
 #[test]
+fn raw_async_cancellation_clears_partial_body_and_headers() {
+    run_async_test(async {
+        let first = b"HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\
+Content-Length: 6\r\nConnection: close\r\n\r\nsec";
+        let server = spawn_raw_split(first, b"ret", Duration::from_millis(1_000));
+        let Ok(server) = server else { return };
+        let Some(client) = build_raw_loopback(&server.endpoint) else {
+            return;
+        };
+        let Ok(target) = cloud_sdk::transport::RequestTarget::new("/servers") else {
+            return;
+        };
+        let Some(policy) = policy(2) else { return };
+        let mut body = [0xa5_u8; 16];
+        let mut header_storage = [0xa5_u8; 128];
+        let mut response = ResponseBuffer::new(&mut body, 16, &mut header_storage);
+        let cancelled = tokio::time::timeout(
+            Duration::from_millis(100),
+            client.execute(
+                TransportRequest::new(Method::Get, target),
+                policy,
+                response.writer(),
+            ),
+        )
+        .await;
+        assert!(cancelled.is_err());
+        assert!(response.writer().headers().is_empty());
+        assert!(
+            response
+                .writer()
+                .body_mut()
+                .is_ok_and(|output| output.iter().all(|byte| *byte == 0))
+        );
+    });
+}
+
+#[test]
 fn raw_async_enforces_the_informational_response_limit() {
     run_async_test(async {
         let wire = b"HTTP/1.1 103 Early Hints\r\nLink: </a>\r\n\r\n\

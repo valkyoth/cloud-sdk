@@ -10,6 +10,8 @@ use reqwest::header::{CONTENT_LENGTH, CONTENT_TYPE, HeaderMap, TRAILER};
 pub const MAX_UPSTREAM_HTTP1_HEADERS: usize = 100;
 /// Maximum pinned Hyper HTTP/1 read buffer before a head-too-large failure.
 pub const MAX_UPSTREAM_HTTP1_HEAD_BYTES: usize = 64 * 1024;
+/// Maximum request body copied into raw adapter-owned staging.
+pub const MAX_RAW_REQUEST_BODY_BYTES: usize = cloud_sdk::operation::LARGE_BODY_BYTES;
 
 /// Payload-free raw HTTP execution failure.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]

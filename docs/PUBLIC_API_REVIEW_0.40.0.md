@@ -9,7 +9,11 @@ Scope: delivery-phased raw HTTP execution and response-wire admission.
 Core adds `BlockingRawHttpExecutor`, `AsyncRawHttpExecutor`,
 `RawResponsePolicy`, `ResponseMediaPolicy`, `TrailerPolicy`,
 `InformationalResponseTracker`, `DeliveryPhase`, and
-`TransportFailure<E>`. All types are provider-neutral and remain `no_std`.
+`TransportFailure<E>`. Pentest remediation also adds `ResponseAttempt`, a
+provider-neutral `no_std` guard obtained through
+`ResponseWriter::begin_attempt`. It clears prior uncommitted residue on entry
+and clears complete body/header storage when dropped without a commit.
+All types remain provider-neutral and `no_std`.
 The traits receive already validated request and response policy values; they
 do not own authentication, retry, scheduling, or provider decoding.
 
@@ -20,19 +24,20 @@ formats only static phase text and redacts its adapter error from `Debug`.
 
 `cloud-sdk-reqwest` adds `RawBlockingClientBuilder`,
 `RawAsyncClientBuilder`, `RawBlockingClient`, `RawAsyncClient`,
-`RawHttpError`, and pinned wire-limit constants. Raw builders have no
-credential argument. Blocking, async, deterministic-root, and FIPS builds use
-one internal Hyper HTTP/1 engine.
+`RawHttpError`, `MAX_RAW_REQUEST_BODY_BYTES`, and pinned wire-limit constants.
+Raw builders have no credential argument. Blocking, async, deterministic-root,
+and FIPS builds use one internal Hyper HTTP/1 engine.
 
-The engine directly writes admitted data frames into `ResponseWriter`, rejects
+The engine writes admitted data frames through `ResponseAttempt`, rejects
 observed trailers and upgrades, disables idle pooling and hidden request
-retries, and stages request bodies and header values in cleanup-owning
-allocations.
+retries, caps request-body copies at 8 MiB before allocation, and stages request
+bodies and header values in cleanup-owning allocations.
 
-The opt-in `fuzzing` feature exposes one doc-hidden, assertion-only entry point
-for the isolated fuzz workspace. It accepts arbitrary bytes, returns no parsed
-or sensitive data, and reuses the exact production head validator and body
-budget. Applications do not need this feature.
+The opt-in `fuzzing` feature exposes two doc-hidden, assertion-only entry points
+for the isolated fuzz workspace. One drives the production post-parse head
+validator and body budget; the other feeds arbitrary bytes through an in-memory
+Hyper HTTP/1 connection and the same response processing. Neither returns
+parsed or sensitive data. Applications do not need this feature.
 
 ## Testkit API
 

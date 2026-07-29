@@ -216,6 +216,9 @@ pub trait BlockingRawHttpExecutor {
     type Error;
 
     /// Executes exactly once without implicit authentication or retries.
+    ///
+    /// Implementations should use [`ResponseWriter::begin_attempt`] to make
+    /// partial response writes transactional.
     fn execute(
         &self,
         request: TransportRequest<'_>,
@@ -230,6 +233,9 @@ pub trait AsyncRawHttpExecutor {
     type Error;
 
     /// Executes exactly once without implicit authentication or retries.
+    ///
+    /// Implementations should use [`ResponseWriter::begin_attempt`] to make
+    /// partial response writes transactional across future cancellation.
     fn execute<'executor, 'request, 'policy, 'writer>(
         &'executor self,
         request: TransportRequest<'request>,

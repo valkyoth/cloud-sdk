@@ -1,6 +1,6 @@
 //! Adversarial response provenance and cleanup contract tests.
 
-use core::future::Future;
+use core::future::{Future, pending};
 use core::sync::atomic::{AtomicUsize, Ordering};
 use core::task::{Context, Poll, Waker};
 
@@ -76,6 +76,104 @@ fn uncommitted_response_fails_closed_and_clears_complete_storage() {
     assert_eq!(storage, [0_u8; 16]);
     assert_eq!(headers, [0_u8; 8192]);
     assert_eq!(sanitizer.calls(), 2);
+}
+
+#[test]
+fn response_attempt_clears_failed_state_before_reuse() -> Result<(), &'static str> {
+    let mut storage = [0xa5_u8; 16];
+    let mut headers = [0xa5_u8; 8192];
+    let mut response = ResponseBuffer::new(&mut storage, 8, &mut headers);
+    response
+        .writer()
+        .body_mut()
+        .map_err(|_| "body unavailable")?
+        .fill(0x5a);
+    response
+        .writer()
+        .headers_mut()
+        .map_err(|_| "headers unavailable")?
+        .try_push("x-request-id", b"stale", HeaderSensitivity::Sensitive)
+        .map_err(|_| "header rejected")?;
+
+    {
+        let mut attempt = response
+            .writer()
+            .begin_attempt()
+            .map_err(|_| "attempt rejected")?;
+        assert!(
+            attempt
+                .body_mut()
+                .is_ok_and(|body| body.iter().all(|byte| *byte == 0))
+        );
+        assert!(attempt.headers().is_empty());
+        attempt
+            .body_mut()
+            .map_err(|_| "attempt body unavailable")?
+            .fill(0x42);
+        attempt
+            .headers_mut()
+            .map_err(|_| "attempt headers unavailable")?
+            .try_push("x-request-id", b"partial", HeaderSensitivity::Sensitive)
+            .map_err(|_| "attempt header rejected")?;
+    }
+    assert!(
+        response
+            .writer()
+            .body_mut()
+            .is_ok_and(|body| body.iter().all(|byte| *byte == 0))
+    );
+    assert!(response.writer().headers().is_empty());
+
+    let mut attempt = response
+        .writer()
+        .begin_attempt()
+        .map_err(|_| "second attempt rejected")?;
+    attempt
+        .commit(StatusCode::OK, 0, ResponseMetadata::EMPTY)
+        .map_err(|_| "second attempt commit failed")?;
+    drop(attempt);
+    assert!(
+        response
+            .with_response(|view| view.body().is_empty() && view.headers().is_empty())
+            .is_ok_and(core::convert::identity)
+    );
+    Ok(())
+}
+
+#[test]
+fn cancelling_response_attempt_clears_reusable_state() {
+    let mut storage = [0xa5_u8; 16];
+    let mut headers = [0xa5_u8; 8192];
+    let mut response = ResponseBuffer::new(&mut storage, 8, &mut headers);
+    {
+        let future = pending_dirty_attempt(response.writer());
+        let mut future = core::pin::pin!(future);
+        let mut context = Context::from_waker(Waker::noop());
+        assert!(matches!(
+            Future::poll(future.as_mut(), &mut context),
+            Poll::Pending
+        ));
+    }
+    assert!(
+        response
+            .writer()
+            .body_mut()
+            .is_ok_and(|body| body.iter().all(|byte| *byte == 0))
+    );
+    assert!(response.writer().headers().is_empty());
+}
+
+async fn pending_dirty_attempt(response: &mut ResponseWriter<'_>) {
+    let Ok(mut attempt) = response.begin_attempt() else {
+        return;
+    };
+    if let Ok(body) = attempt.body_mut() {
+        body.fill(0x5a);
+    }
+    if let Ok(headers) = attempt.headers_mut() {
+        let _ = headers.try_push("x-request-id", b"partial", HeaderSensitivity::Sensitive);
+    }
+    pending::<()>().await;
 }
 
 #[test]

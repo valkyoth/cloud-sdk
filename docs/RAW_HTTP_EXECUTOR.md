@@ -28,9 +28,15 @@ decompression, retries, or cross-origin forwarding.
 - Only operation-admitted response headers enter caller storage. Authentication,
   cookie, framing, proxy, and upgrade headers cannot be admitted.
 - Request body and header-value staging allocations use cleanup-owning byte
-  storage backed by `cloud-sdk-sanitization`.
-- The isolated `raw_response_parser` fuzz target drives the production
-  response-head validator and streamed-body budget with arbitrary input.
+  storage backed by `cloud-sdk-sanitization`. Request bodies are rejected
+  before allocation above the 8 MiB large preparation profile.
+- Every execution uses core's `ResponseAttempt`; failed, timed-out, unwound, or
+  cancelled attempts clear complete caller body and header storage before it
+  can be reused.
+- The isolated `raw_response_parser` target fuzzes the post-parse response-head
+  validator and streamed-body budget. The separate `raw_http1_wire` target
+  feeds arbitrary bytes through Hyper's HTTP/1 parser, informational callback,
+  frame stream, and the same production validator/body consumer.
 
 ## Allocation Boundary
 
@@ -46,6 +52,7 @@ The opt-in reqwest adapter uses pinned Hyper HTTP/1 parsing with:
 | HTTP/1 response-head parser buffer | 65,536 bytes |
 | Informational responses | 8 |
 | Response data frames | 4,096 |
+| Adapter-owned request-body copy | 8,388,608 bytes |
 | Buffered response body policy | 67,108,864 bytes |
 
 TLS records, DNS resolution, socket buffers, task/runtime state, and upstream

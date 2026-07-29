@@ -7,8 +7,8 @@ use std::vec::Vec;
 use bytes::Bytes;
 use cloud_sdk::Method;
 use cloud_sdk::transport::{
-    RawResponsePolicy, ResponseMetadata, ResponseWriter, StatusCode, TransportFailure,
-    TransportRequest,
+    RawResponsePolicy, ResponseAttempt, ResponseMetadata, ResponseWriter, StatusCode,
+    TransportFailure, TransportRequest,
 };
 use cloud_sdk_sanitization::sanitize_bytes;
 use http::header::{HeaderName, HeaderValue, USER_AGENT};
@@ -38,7 +38,7 @@ use super::{
 
 type HttpClient = Client<HttpsConnector<HttpConnector>, Full<Bytes>>;
 
-struct ResponseState {
+pub(super) struct ResponseState {
     informational_limit: u8,
     informational_count: AtomicU8,
     informational_rejection: AtomicU8,
@@ -47,7 +47,7 @@ struct ResponseState {
 }
 
 impl ResponseState {
-    const fn new(informational_limit: u8) -> Self {
+    pub(super) const fn new(informational_limit: u8) -> Self {
         Self {
             informational_limit,
             informational_count: AtomicU8::new(0),
@@ -57,7 +57,7 @@ impl ResponseState {
         }
     }
 
-    fn observe_informational(&self, status: u16) {
+    pub(super) fn observe_informational(&self, status: u16) {
         if status == 101 {
             self.reject_informational(2);
             return;
@@ -94,7 +94,7 @@ impl ResponseState {
         }
     }
 
-    fn informational_rejection(&self) -> Option<RawHttpError> {
+    pub(super) fn informational_rejection(&self) -> Option<RawHttpError> {
         match self.informational_rejection.load(Ordering::Acquire) {
             1 => Some(RawHttpError::TooManyInformationalResponses),
             2 => Some(RawHttpError::SwitchingProtocols),
@@ -181,6 +181,9 @@ impl RawHyperClient {
                 RawHttpError::ResponseAlreadyCommitted,
             ));
         }
+        let mut attempt = response_writer
+            .begin_attempt()
+            .map_err(|_| TransportFailure::not_sent(RawHttpError::ResponseAlreadyCommitted))?;
         let method = request.method();
         let request = self.prepare_request(request)?;
         let state = Arc::new(ResponseState::new(policy.informational_limit()));
@@ -189,8 +192,7 @@ impl RawHyperClient {
         hyper::ext::on_informational(&mut request, move |head| {
             observer.observe_informational(head.status().as_u16());
         });
-        let operation =
-            self.execute_timed(method, request, policy, response_writer, state.as_ref());
+        let operation = self.execute_timed(method, request, policy, &mut attempt, state.as_ref());
         match tokio::time::timeout(self.timeouts.total(), operation).await {
             Ok(result) => result,
             Err(_) if state.response_started() => {
@@ -204,6 +206,7 @@ impl RawHyperClient {
         &self,
         request: TransportRequest<'_>,
     ) -> Result<http::Request<Full<Bytes>>, RawTransportFailure> {
+        validate_request_body_len(request.body()).map_err(TransportFailure::not_sent)?;
         let url = self
             .endpoint
             .compose(request.target())
@@ -241,9 +244,7 @@ impl RawHyperClient {
         let body = if request.body().is_empty() {
             Bytes::new()
         } else {
-            SanitizedBody::copy_from(request.body())
-                .map_err(|_| TransportFailure::not_sent(RawHttpError::RequestBodyAllocationFailed))?
-                .into_bytes()
+            stage_request_body(request.body()).map_err(TransportFailure::not_sent)?
         };
         builder
             .body(Full::new(body))
@@ -255,7 +256,7 @@ impl RawHyperClient {
         method: Method,
         request: http::Request<Full<Bytes>>,
         policy: RawResponsePolicy<'_>,
-        response_writer: &mut ResponseWriter<'_>,
+        response_writer: &mut ResponseAttempt<'_, '_>,
         state: &ResponseState,
     ) -> Result<(), RawTransportFailure> {
         let mut request = core::pin::pin!(self.client.request(request));
@@ -320,9 +321,9 @@ pub(crate) fn platform_client_config() -> Result<ClientConfig, BuildError> {
         .with_no_client_auth())
 }
 
-async fn read_bounded_body(
+pub(super) async fn read_bounded_body(
     mut body: Incoming,
-    writer: &mut ResponseWriter<'_>,
+    writer: &mut ResponseAttempt<'_, '_>,
     limit: usize,
 ) -> Result<usize, RawTransportFailure> {
     let mut budget = ResponseBodyBudget::new(limit);
@@ -378,5 +379,39 @@ impl AsRef<[u8]> for SanitizedBody {
 impl Drop for SanitizedBody {
     fn drop(&mut self) {
         sanitize_bytes(&mut self.bytes);
+    }
+}
+
+fn validate_request_body_len(source: &[u8]) -> Result<(), RawHttpError> {
+    if source.len() > super::MAX_RAW_REQUEST_BODY_BYTES {
+        Err(RawHttpError::RequestBodyTooLarge)
+    } else {
+        Ok(())
+    }
+}
+
+fn stage_request_body(source: &[u8]) -> Result<Bytes, RawHttpError> {
+    validate_request_body_len(source)?;
+    SanitizedBody::copy_from(source)
+        .map(SanitizedBody::into_bytes)
+        .map_err(|()| RawHttpError::RequestBodyAllocationFailed)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{stage_request_body, validate_request_body_len};
+    use crate::shared::{MAX_RAW_REQUEST_BODY_BYTES, RawHttpError};
+
+    #[test]
+    fn raw_request_body_bound_accepts_exact_and_rejects_plus_one() {
+        let exact = std::vec![0x5a; MAX_RAW_REQUEST_BODY_BYTES];
+        let staged = stage_request_body(&exact);
+        assert!(staged.is_ok_and(|body| body.len() == MAX_RAW_REQUEST_BODY_BYTES));
+
+        let oversized = std::vec![0x5a; MAX_RAW_REQUEST_BODY_BYTES.saturating_add(1)];
+        assert_eq!(
+            validate_request_body_len(&oversized),
+            Err(RawHttpError::RequestBodyTooLarge)
+        );
     }
 }
