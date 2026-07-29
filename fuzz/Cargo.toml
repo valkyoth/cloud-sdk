@@ -10,6 +10,7 @@ cargo-fuzz = true
 [dependencies]
 cloud-sdk = { path = "../crates/cloud-sdk" }
 cloud-sdk-hetzner = { path = "../crates/cloud-sdk-hetzner", features = ["serde"] }
+cloud-sdk-reqwest = { path = "../crates/cloud-sdk-reqwest", default-features = false, features = ["fuzzing"] }
 libfuzzer-sys = "0.4.13"
 serde_json = "1.0.151"
 
@@ -72,6 +73,13 @@ bench = false
 [[bin]]
 name = "checked_response"
 path = "fuzz_targets/checked_response.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "raw_response_parser"
+path = "fuzz_targets/raw_response_parser.rs"
 test = false
 doc = false
 bench = false

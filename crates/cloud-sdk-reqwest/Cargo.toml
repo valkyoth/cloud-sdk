@@ -44,6 +44,7 @@ blocking-rustls = [
     "rustls/tls12",
     "tokio/net",
     "tokio/rt",
+    "tokio/sync",
     "tokio/time",
 ]
 blocking-rustls-webpki-roots = [
@@ -77,6 +78,7 @@ blocking-rustls-webpki-roots = [
     "rustls/tls12",
     "tokio/net",
     "tokio/rt",
+    "tokio/sync",
     "tokio/time",
 ]
 blocking-rustls-fips = [
@@ -111,6 +113,7 @@ blocking-rustls-fips = [
     "rustls/tls12",
     "tokio/net",
     "tokio/rt",
+    "tokio/sync",
     "tokio/time",
 ]
 async-rustls = [
@@ -141,8 +144,10 @@ async-rustls = [
     "rustls/tls12",
     "tokio/net",
     "tokio/rt",
+    "tokio/sync",
     "tokio/time",
 ]
+fuzzing = ["blocking-rustls"]
 
 [dependencies]
 aws-lc-fips-sys = { workspace = true, optional = true }

@@ -9,7 +9,7 @@ use cloud_sdk::transport::{
 
 use super::{run_async_test, test_timeouts};
 use crate::asynchronous::{RawAsyncClient, RawAsyncClientBuilder, RawHttpError, UserAgent};
-use crate::test_server::{spawn, spawn_concurrent_pair, spawn_raw_response};
+use crate::test_server::{spawn, spawn_concurrent_pair, spawn_raw_response, spawn_raw_split};
 
 fn build_raw_loopback(endpoint: &str) -> Option<RawAsyncClient> {
     let endpoint = crate::asynchronous::HttpsEndpoint::local_http(endpoint).ok()?;
@@ -97,6 +97,43 @@ HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: 2\r\nConnec
         assert!(matches!(
             failure,
             Err(error)
+                if error.phase() == DeliveryPhase::ResponseStarted
+                    && error.error() == &RawHttpError::TooManyInformationalResponses
+        ));
+    });
+}
+
+#[test]
+fn raw_async_aborts_before_a_rejected_informational_stream_finishes() {
+    run_async_test(async {
+        let informational = b"HTTP/1.1 103 Early Hints\r\nLink: </a>\r\n\r\n\
+HTTP/1.1 103 Early Hints\r\nLink: </b>\r\n\r\n";
+        let final_response = b"HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\
+Content-Length: 2\r\nConnection: close\r\n\r\n{}";
+        let server = spawn_raw_split(informational, final_response, Duration::from_millis(1_500));
+        let Ok(server) = server else { return };
+        let Some(client) = build_raw_loopback(&server.endpoint) else {
+            return;
+        };
+        let Ok(target) = cloud_sdk::transport::RequestTarget::new("/servers") else {
+            return;
+        };
+        let Some(policy) = policy(1) else { return };
+        let mut body = [0xa5_u8; 16];
+        let mut header_storage = [0xa5_u8; 128];
+        let mut response = ResponseBuffer::new(&mut body, 16, &mut header_storage);
+        let result = tokio::time::timeout(
+            Duration::from_millis(750),
+            client.execute(
+                TransportRequest::new(Method::Get, target),
+                policy,
+                response.writer(),
+            ),
+        )
+        .await;
+        assert!(matches!(
+            result,
+            Ok(Err(error))
                 if error.phase() == DeliveryPhase::ResponseStarted
                     && error.error() == &RawHttpError::TooManyInformationalResponses
         ));

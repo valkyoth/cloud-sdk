@@ -29,6 +29,11 @@ observed trailers and upgrades, disables idle pooling and hidden request
 retries, and stages request bodies and header values in cleanup-owning
 allocations.
 
+The opt-in `fuzzing` feature exposes one doc-hidden, assertion-only entry point
+for the isolated fuzz workspace. It accepts arbitrary bytes, returns no parsed
+or sensitive data, and reuses the exact production head validator and body
+budget. Applications do not need this feature.
+
 ## Testkit API
 
 `cloud-sdk-testkit` adds `RawFault`, `RawFaultError`, and

@@ -447,6 +447,7 @@ the source can be cleared.
 | `blocking-rustls-webpki-roots` | no | Enables the blocking adapter with a deterministic reviewed Mozilla root snapshot. |
 | `blocking-rustls-fips` | no | Enables the blocking adapter with runtime-verified AWS-LC FIPS plus mandatory deployment roots and CRLs. |
 | `async-rustls` | no | Enables the hardened async reqwest/rustls adapter; callers provide an active Tokio runtime. |
+| `fuzzing` | no | Internal fuzz adapter for the production raw response parser; not intended for applications. |
 
 Reqwest's default features are disabled. The complete dependency and security
 decision is recorded in

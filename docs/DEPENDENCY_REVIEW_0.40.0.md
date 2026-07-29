@@ -21,7 +21,7 @@ present in the admitted reqwest/rustls graph.
 | `hyper` | `1.11.0` | HTTP/1 protocol implementation |
 | `hyper-rustls` | `0.27.9` | rustls HTTPS connector |
 | `hyper-util` | `0.1.20` | client, connector, and Tokio runtime adapters |
-| `tokio` | `1.53.1` | opt-in async execution and private blocking raw runtime |
+| `tokio` | `1.53.1` | opt-in async execution, notification, and private blocking raw runtime |
 
 Exact reqwest, rustls, AWS-LC, roots, cleanup, and tooling versions remain
 recorded in the lockfile, SBOM, and their dedicated admission documents.
@@ -40,6 +40,8 @@ prerelease and is not selected.
   policy.
 - FIPS raw execution receives the same explicitly validated roots, complete
   CRLs, provider, and client configuration as the existing FIPS adapter.
+- The `fuzzing` feature is isolated to the fuzz workspace and reuses the
+  blocking graph only to expose the exact production raw parser to libFuzzer.
 
 ## Required Verification
 

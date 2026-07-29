@@ -21,6 +21,8 @@ mod error;
 mod headers;
 mod rate_limit;
 mod raw;
+#[cfg(feature = "fuzzing")]
+mod raw_fuzz;
 mod raw_hyper;
 
 pub use auth::{BearerToken, BearerTokenError, MAX_BEARER_TOKEN_BYTES};
@@ -37,6 +39,8 @@ pub(crate) use raw::inspect_response_head;
 pub use raw::{
     MAX_UPSTREAM_HTTP1_HEAD_BYTES, MAX_UPSTREAM_HTTP1_HEADERS, RawHttpError, RawTransportFailure,
 };
+#[cfg(feature = "fuzzing")]
+pub use raw_fuzz::fuzz_raw_response_parser;
 pub(crate) use raw_hyper::RawHyperClient;
 #[cfg(any(
     feature = "async-rustls",

@@ -3,7 +3,8 @@
 Status: admitted only through `cloud-sdk-reqwest/blocking-rustls`,
 `cloud-sdk-reqwest/blocking-rustls-webpki-roots`,
 `cloud-sdk-reqwest/blocking-rustls-fips`, and `cloud-sdk-reqwest/async-rustls`,
-with reqwest default features disabled.
+with reqwest default features disabled. The internal `fuzzing` feature aliases
+`blocking-rustls` only for the isolated fuzz workspace.
 
 Checked: 2026-07-29.
 
@@ -100,6 +101,10 @@ It deliberately does not enable `reqwest/blocking`. The core async contract
 and testkit do not depend on Tokio. The concrete async reqwest adapter requires
 callers to poll requests from an active Tokio executor; it does not create,
 install, or own a runtime.
+
+`fuzzing` enables the blocking graph solely so libFuzzer can invoke the exact
+production raw response parser. It adds no dependency outside that reviewed
+graph and is not intended for applications.
 
 Reqwest default features are disabled. Native TLS, cookies, JSON, multipart,
 SOCKS, system proxy discovery, redirects, retries, referer generation, and

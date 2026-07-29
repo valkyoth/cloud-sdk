@@ -14,7 +14,8 @@ decompression, retries, or cross-origin forwarding.
   Unknown send state always maps to `PossiblySent`.
 - HTTP/1 response heads are bounded to 100 fields and a 64 KiB parser buffer.
 - At most eight informational responses may be admitted by core policy.
-  `101 Switching Protocols` is always rejected.
+  `101 Switching Protocols` is always rejected. The adapter cancels the
+  in-flight request as soon as either condition is observed.
 - Duplicate response fields, declared trailers, and observed trailer frames are
   rejected.
 - Success and error responses have independent media and body limits.
@@ -28,6 +29,8 @@ decompression, retries, or cross-origin forwarding.
   cookie, framing, proxy, and upgrade headers cannot be admitted.
 - Request body and header-value staging allocations use cleanup-owning byte
   storage backed by `cloud-sdk-sanitization`.
+- The isolated `raw_response_parser` fuzz target drives the production
+  response-head validator and streamed-body budget with arbitrary input.
 
 ## Allocation Boundary
 

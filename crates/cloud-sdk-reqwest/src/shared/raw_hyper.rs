@@ -1,3 +1,5 @@
+use core::future::{Future, poll_fn};
+use core::task::Poll;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, AtomicU8, Ordering};
 use std::vec::Vec;
@@ -5,8 +7,8 @@ use std::vec::Vec;
 use bytes::Bytes;
 use cloud_sdk::Method;
 use cloud_sdk::transport::{
-    MAX_RESPONSE_CHUNKS, RawResponsePolicy, ResponseMetadata, ResponseWriter, StatusCode,
-    TransportFailure, TransportRequest,
+    RawResponsePolicy, ResponseMetadata, ResponseWriter, StatusCode, TransportFailure,
+    TransportRequest,
 };
 use cloud_sdk_sanitization::sanitize_bytes;
 use http::header::{HeaderName, HeaderValue, USER_AGENT};
@@ -26,7 +28,9 @@ use hyper_util::client::legacy::Client;
 use hyper_util::client::legacy::connect::HttpConnector;
 use hyper_util::rt::{TokioExecutor, TokioTimer};
 use rustls::ClientConfig;
+use tokio::sync::Notify;
 
+use super::raw::ResponseBodyBudget;
 use super::{
     BuildError, HttpsEndpoint, RawHttpError, RawTransportFailure, RequestTimeouts, UserAgent,
     inspect_response_head,
@@ -37,7 +41,8 @@ type HttpClient = Client<HttpsConnector<HttpConnector>, Full<Bytes>>;
 struct ResponseState {
     informational_limit: u8,
     informational_count: AtomicU8,
-    informational_rejected: AtomicBool,
+    informational_rejection: AtomicU8,
+    rejection_notification: Notify,
     final_started: AtomicBool,
 }
 
@@ -46,29 +51,71 @@ impl ResponseState {
         Self {
             informational_limit,
             informational_count: AtomicU8::new(0),
-            informational_rejected: AtomicBool::new(false),
+            informational_rejection: AtomicU8::new(0),
+            rejection_notification: Notify::const_new(),
             final_started: AtomicBool::new(false),
         }
     }
 
     fn observe_informational(&self, status: u16) {
         if status == 101 {
-            self.informational_rejected.store(true, Ordering::Release);
+            self.reject_informational(2);
             return;
         }
-        let previous =
-            self.informational_count
-                .fetch_update(Ordering::AcqRel, Ordering::Acquire, |value| {
-                    value.checked_add(1)
-                });
-        if previous.is_err() || previous.is_ok_and(|value| value >= self.informational_limit) {
-            self.informational_rejected.store(true, Ordering::Release);
+        let previous = self.increment_informational_count();
+        if previous.is_none() || previous.is_some_and(|value| value >= self.informational_limit) {
+            self.reject_informational(1);
+        }
+    }
+
+    fn increment_informational_count(&self) -> Option<u8> {
+        let mut current = self.informational_count.load(Ordering::Acquire);
+        loop {
+            let next = current.checked_add(1)?;
+            match self.informational_count.compare_exchange_weak(
+                current,
+                next,
+                Ordering::AcqRel,
+                Ordering::Acquire,
+            ) {
+                Ok(previous) => return Some(previous),
+                Err(observed) => current = observed,
+            }
+        }
+    }
+
+    fn reject_informational(&self, reason: u8) {
+        if self
+            .informational_rejection
+            .compare_exchange(0, reason, Ordering::AcqRel, Ordering::Acquire)
+            .is_ok()
+        {
+            self.rejection_notification.notify_one();
+        }
+    }
+
+    fn informational_rejection(&self) -> Option<RawHttpError> {
+        match self.informational_rejection.load(Ordering::Acquire) {
+            1 => Some(RawHttpError::TooManyInformationalResponses),
+            2 => Some(RawHttpError::SwitchingProtocols),
+            _ => None,
+        }
+    }
+
+    async fn wait_for_informational_rejection(&self) -> RawHttpError {
+        loop {
+            let notified = self.rejection_notification.notified();
+            if let Some(error) = self.informational_rejection() {
+                return error;
+            }
+            notified.await;
         }
     }
 
     fn response_started(&self) -> bool {
         self.final_started.load(Ordering::Acquire)
             || self.informational_count.load(Ordering::Acquire) != 0
+            || self.informational_rejection.load(Ordering::Acquire) != 0
     }
 }
 
@@ -211,21 +258,26 @@ impl RawHyperClient {
         response_writer: &mut ResponseWriter<'_>,
         state: &ResponseState,
     ) -> Result<(), RawTransportFailure> {
-        let response = self.client.request(request).await.map_err(|error| {
-            if state.response_started() {
-                TransportFailure::response_started(RawHttpError::RequestFailed)
-            } else if error.is_connect() {
-                TransportFailure::not_sent(RawHttpError::ConnectFailed)
-            } else {
-                TransportFailure::possibly_sent(RawHttpError::RequestFailed)
+        let mut request = core::pin::pin!(self.client.request(request));
+        let mut rejection = core::pin::pin!(state.wait_for_informational_rejection());
+        let response = poll_fn(|context| {
+            if let Poll::Ready(error) = rejection.as_mut().poll(context) {
+                return Poll::Ready(Err(TransportFailure::response_started(error)));
             }
-        })?;
+            request.as_mut().poll(context).map(|result| {
+                result.map_err(|error| {
+                    if state.response_started() {
+                        TransportFailure::response_started(RawHttpError::RequestFailed)
+                    } else if error.is_connect() {
+                        TransportFailure::not_sent(RawHttpError::ConnectFailed)
+                    } else {
+                        TransportFailure::possibly_sent(RawHttpError::RequestFailed)
+                    }
+                })
+            })
+        })
+        .await?;
         state.final_started.store(true, Ordering::Release);
-        if state.informational_rejected.load(Ordering::Acquire) {
-            return Err(TransportFailure::response_started(
-                RawHttpError::TooManyInformationalResponses,
-            ));
-        }
         let status = StatusCode::new(response.status().as_u16())
             .ok_or_else(|| TransportFailure::response_started(RawHttpError::InvalidStatus))?;
         let writer_capacity = response_writer.body_capacity();
@@ -273,8 +325,7 @@ async fn read_bounded_body(
     writer: &mut ResponseWriter<'_>,
     limit: usize,
 ) -> Result<usize, RawTransportFailure> {
-    let mut len = 0_usize;
-    let mut chunks = 0_usize;
+    let mut budget = ResponseBodyBudget::new(limit);
     while let Some(frame) = body.frame().await {
         let frame = frame
             .map_err(|_| TransportFailure::response_started(RawHttpError::ResponseReadFailed))?;
@@ -287,32 +338,18 @@ async fn read_bounded_body(
             }
             Err(_) => continue,
         };
-        chunks = chunks.checked_add(1).ok_or_else(|| {
-            TransportFailure::response_started(RawHttpError::ResponseChunkLimitExceeded)
-        })?;
-        if chunks > MAX_RESPONSE_CHUNKS {
-            return Err(TransportFailure::response_started(
-                RawHttpError::ResponseChunkLimitExceeded,
-            ));
-        }
-        let end = len
-            .checked_add(data.len())
-            .ok_or_else(|| TransportFailure::response_started(RawHttpError::ResponseTooLarge))?;
-        if end > limit {
-            return Err(TransportFailure::response_started(
-                RawHttpError::ResponseTooLarge,
-            ));
-        }
+        let range = budget
+            .observe(data.len())
+            .map_err(TransportFailure::response_started)?;
         let output = writer
             .body_mut()
             .map_err(|_| TransportFailure::response_started(RawHttpError::ResponseCommitFailed))?;
         output
-            .get_mut(len..end)
+            .get_mut(range)
             .ok_or_else(|| TransportFailure::response_started(RawHttpError::ResponseTooLarge))?
             .copy_from_slice(&data);
-        len = end;
     }
-    Ok(len)
+    Ok(budget.len())
 }
 
 struct SanitizedBody {

@@ -12,6 +12,10 @@ extern crate std;
 ))]
 mod shared;
 
+#[cfg(feature = "fuzzing")]
+#[doc(hidden)]
+pub use shared::fuzz_raw_response_parser;
+
 #[cfg(any(
     feature = "blocking-rustls",
     feature = "blocking-rustls-webpki-roots",

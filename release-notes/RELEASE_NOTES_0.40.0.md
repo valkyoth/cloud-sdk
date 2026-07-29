@@ -16,6 +16,8 @@ authentication or retry behavior.
 - Added blocking and executor-neutral async raw executor traits.
 - Added separate success/error body limits and media policies.
 - Added bounded informational-response tracking and rejected HTTP 101.
+- Canceled in-flight requests immediately when informational-response policy
+  is exceeded, without waiting for a final head or total timeout.
 - Defined HEAD, 204, 304, duplicate-header, media, and trailer behavior.
 - Dropped all unadmitted response headers and forbade credential, cookie,
   framing, proxy, and upgrade metadata admission.
@@ -38,6 +40,8 @@ authentication or retry behavior.
 
 - Added deterministic raw executor faults for every delivery phase.
 - Added blocking and async interim-response tests.
+- Added an isolated fuzz target for production response-head parsing and
+  streamed-body accounting.
 - Added 101, trailer, duplicate, missing-length overflow, HEAD, 204, media,
   unknown-header, cookie, and authentication-confusion fixtures.
 

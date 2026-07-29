@@ -3,6 +3,7 @@ use cloud_sdk::transport::{
     ContentType, HeaderSensitivity, RawResponsePolicy, ResponseHeaders, ResponseMediaPolicy,
     StatusCode, TrailerPolicy, TransportFailure,
 };
+use core::ops::Range;
 use reqwest::header::{CONTENT_LENGTH, CONTENT_TYPE, HeaderMap, TRAILER};
 
 /// Maximum response-header fields parsed by pinned Hyper HTTP/1.
@@ -113,6 +114,46 @@ impl_static_error!(RawHttpError,
 
 /// Delivery-phased raw reqwest failure.
 pub type RawTransportFailure = TransportFailure<RawHttpError>;
+
+pub(crate) struct ResponseBodyBudget {
+    limit: usize,
+    len: usize,
+    chunks: usize,
+}
+
+impl ResponseBodyBudget {
+    pub(crate) const fn new(limit: usize) -> Self {
+        Self {
+            limit,
+            len: 0,
+            chunks: 0,
+        }
+    }
+
+    pub(crate) fn observe(&mut self, bytes: usize) -> Result<Range<usize>, RawHttpError> {
+        self.chunks = self
+            .chunks
+            .checked_add(1)
+            .ok_or(RawHttpError::ResponseChunkLimitExceeded)?;
+        if self.chunks > cloud_sdk::transport::MAX_RESPONSE_CHUNKS {
+            return Err(RawHttpError::ResponseChunkLimitExceeded);
+        }
+        let end = self
+            .len
+            .checked_add(bytes)
+            .ok_or(RawHttpError::ResponseTooLarge)?;
+        if end > self.limit {
+            return Err(RawHttpError::ResponseTooLarge);
+        }
+        let range = self.len..end;
+        self.len = end;
+        Ok(range)
+    }
+
+    pub(crate) const fn len(&self) -> usize {
+        self.len
+    }
+}
 
 pub(crate) fn inspect_response_head(
     method: Method,
