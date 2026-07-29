@@ -1622,7 +1622,7 @@ Stop gate: `v0.38.0 implementation stop reached. Run pentest for this exact comm
 
 ### v0.39.0 - Atomic Encoders And Capacity Profiles
 
-Status: implementation stop reached; pentest required.
+Status: release candidate; pentest and final retest passed.
 
 Goal: eliminate partial writes, state drift, and secret tails.
 

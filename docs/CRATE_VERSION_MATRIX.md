@@ -1,7 +1,7 @@
 # Crate Version Matrix
 
-Status: `v0.38.0` is tagged. `v0.39.0` transactional request encoding is at
-the implementation stop; pentest is required before release readiness.
+Status: `v0.38.0` is tagged. `v0.39.0` transactional request encoding passed
+pentest and final retest; local and GitHub release checks remain before tagging.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared

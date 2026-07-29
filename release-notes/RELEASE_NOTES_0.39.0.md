@@ -1,9 +1,9 @@
 # cloud-sdk 0.39.0 Release Notes
 
-Status: implementation stop reached; pentest and final release checks are
-required before tagging.
+Status: release candidate; pentest and final retest passed. Local and GitHub
+release checks remain required before tagging.
 
-Release date: pending
+Release date: 2026-07-29
 
 ## Overview
 
@@ -61,7 +61,8 @@ adds cleanup-owning request preparation storage and named bounded profiles.
 ## Verification
 
 - Core arithmetic, exact replay, drift cleanup, aggregate-cap, every
-  undersized-capacity, guard cleanup, and allocation-failure tests
+  undersized-capacity, panic-unwind rollback, guard reuse, profile rejection,
+  and allocation-failure tests
 - Hetzner path/query/body atomicity and preparation cleanup tests
 - Fuzzed buffer and provider request writers with unchanged-on-error checks
 - `scripts/check_atomic_encoders.sh`
@@ -82,10 +83,19 @@ See [`docs/MIGRATION_0.39.0.md`](../docs/MIGRATION_0.39.0.md) and
 
 ## Pentest
 
-Pending for the exact implementation-stop commit.
+The v0.39 pentest findings covered residual secret tails when preparation
+guards were reused, panic-unwind cleanup in public snapshot callbacks, and
+cleanup ownership during profile rejection. All findings were remediated with
+per-attempt complete-buffer clearing, an armed exact-prefix rollback owner,
+and guard construction before capacity validation.
+
+The final retest passed commit
+`63b617903ef4e3303f05397f7c9b52df7251e389`. See the
+[`v0.39.0` pentest report](../security/pentest/v0.39.0.md).
 
 ## Release Gate
 
 ```text
-v0.39.0 implementation stop reached. Run pentest for this exact commit.
+v0.39.0 pentest stop passed. Tag only after the clean local release gate and
+GitHub checks pass on the final release commit.
 ```
