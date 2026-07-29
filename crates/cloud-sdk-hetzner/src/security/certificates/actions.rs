@@ -7,7 +7,7 @@ use crate::EndpointGroup;
 use crate::actions::{ActionId, ActionStatus};
 use crate::pagination::{Page, PerPage, SortDirection};
 use crate::request::{ApiBaseUrl, EndpointPath};
-use crate::security::shared::{write_id_path, write_query_pair, write_query_u64};
+use crate::security::shared::{encode_security_query, write_id_path};
 
 /// Maximum repeated action IDs admitted by one certificate action query.
 pub const MAX_CERTIFICATE_ACTION_IDS: usize = 128;
@@ -281,47 +281,35 @@ fn write_list_query(
     sorts: &[(CertificateActionSortField, SortDirection)],
     statuses: &[ActionStatus],
 ) -> Result<usize, SecurityRequestError> {
-    let mut len = 0;
-    let mut first = true;
-    for id in action_ids {
-        write_query_u64(output, &mut len, &mut first, "id", id.get())?;
-    }
-    if let Some(page) = page {
-        write_query_u64(output, &mut len, &mut first, "page", page.get())?;
-    }
-    if let Some(per_page) = per_page {
-        write_query_u64(
-            output,
-            &mut len,
-            &mut first,
-            "per_page",
-            u64::from(per_page.get()),
-        )?;
-    }
-    for (field, direction) in sorts {
-        write_query_pair(
-            output,
-            &mut len,
-            &mut first,
-            "sort",
-            sort_value(*field, *direction),
-        )?;
-    }
-    for status in statuses {
-        write_query_pair(output, &mut len, &mut first, "status", status.as_api_str())?;
-    }
-    Ok(len)
+    encode_security_query(output, move |encoder, first| {
+        for id in action_ids {
+            encoder.query_u64(first, "id", id.get())?;
+        }
+        if let Some(page) = page {
+            encoder.query_u64(first, "page", page.get())?;
+        }
+        if let Some(per_page) = per_page {
+            encoder.query_u64(first, "per_page", u64::from(per_page.get()))?;
+        }
+        for (field, direction) in sorts {
+            encoder.query_pair(first, "sort", sort_value(*field, *direction))?;
+        }
+        for status in statuses {
+            encoder.query_pair(first, "status", status.as_api_str())?;
+        }
+        Ok(())
+    })
 }
 
 fn write_static_path(output: &mut [u8], path: &str) -> Result<usize, SecurityRequestError> {
-    let mut len = 0;
-    buffer::write_str(
-        output,
-        &mut len,
+    let len = buffer::encode_snapshot_bounded(
         path,
+        output,
+        crate::request::MAX_ENDPOINT_PATH_BYTES,
         SecurityRequestError::PathBufferTooSmall,
+        |path, encoder| encoder.string(path),
     )?;
-    validate_written_path(output, len)?;
+    validate_or_clear_path(output, len)?;
     Ok(len)
 }
 
@@ -330,29 +318,31 @@ fn write_action_id_path(
     prefix: &str,
     id: ActionId,
 ) -> Result<usize, SecurityRequestError> {
-    let mut len = 0;
-    buffer::write_str(
+    let len = buffer::encode_snapshot_bounded(
+        (prefix, id),
         output,
-        &mut len,
-        prefix,
+        crate::request::MAX_ENDPOINT_PATH_BYTES,
         SecurityRequestError::PathBufferTooSmall,
+        |(prefix, id), encoder| {
+            encoder.string(prefix)?;
+            encoder.u64(id.get())
+        },
     )?;
-    buffer::write_u64(
-        output,
-        &mut len,
-        id.get(),
-        SecurityRequestError::PathBufferTooSmall,
-    )?;
-    validate_written_path(output, len)?;
+    validate_or_clear_path(output, len)?;
     Ok(len)
 }
 
-fn validate_written_path(output: &[u8], len: usize) -> Result<(), SecurityRequestError> {
+fn validate_or_clear_path(output: &mut [u8], len: usize) -> Result<(), SecurityRequestError> {
     let bytes = output
         .get(..len)
         .ok_or(SecurityRequestError::PathBufferTooSmall)?;
     let path = core::str::from_utf8(bytes).map_err(|_| SecurityRequestError::PathEncodingFailed)?;
-    EndpointPath::new(path).map_err(SecurityRequestError::InvalidPath)?;
+    if let Err(error) = EndpointPath::new(path).map_err(SecurityRequestError::InvalidPath) {
+        if let Some(path) = output.get_mut(..len) {
+            cloud_sdk_sanitization::sanitize_bytes(path);
+        }
+        return Err(error);
+    }
     Ok(())
 }
 

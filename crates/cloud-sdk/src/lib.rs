@@ -4,6 +4,9 @@
 #[cfg(feature = "std")]
 extern crate std;
 
+#[cfg(feature = "alloc")]
+extern crate alloc;
+
 macro_rules! impl_static_error {
     ($error:ty, $($pattern:pat => $message:literal),+ $(,)?) => {
         impl core::fmt::Display for $error {

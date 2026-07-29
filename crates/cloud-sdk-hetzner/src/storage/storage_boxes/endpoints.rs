@@ -5,7 +5,7 @@ use cloud_sdk::{Method, buffer};
 use crate::EndpointGroup;
 use crate::actions::ActionId;
 use crate::cloud::shared::{CloudRequestError, write_id_path, write_static_path};
-use crate::request::{ApiBaseUrl, EndpointPath};
+use crate::request::{ApiBaseUrl, EndpointPath, MAX_ENDPOINT_PATH_BYTES};
 
 use super::types::{
     StorageBoxId, StorageBoxRequestError, StorageBoxSnapshotId, StorageBoxSubaccountId,
@@ -383,26 +383,18 @@ fn write_action_path(
     id: ActionId,
     suffix: &str,
 ) -> Result<usize, StorageBoxRequestError> {
-    let mut len = 0;
-    buffer::write_str(
+    let len = buffer::encode_snapshot_bounded(
+        (prefix, id, suffix),
         output,
-        &mut len,
-        prefix,
+        MAX_ENDPOINT_PATH_BYTES,
         CloudRequestError::PathBufferTooSmall,
+        |(prefix, id, suffix), encoder| {
+            encoder.string(prefix)?;
+            encoder.u64(id.get())?;
+            encoder.string(suffix)
+        },
     )?;
-    buffer::write_u64(
-        output,
-        &mut len,
-        id.get(),
-        CloudRequestError::PathBufferTooSmall,
-    )?;
-    buffer::write_str(
-        output,
-        &mut len,
-        suffix,
-        CloudRequestError::PathBufferTooSmall,
-    )?;
-    validate_written_path(output, len)?;
+    validate_or_clear_path(output, len)?;
     Ok(len)
 }
 
@@ -414,46 +406,33 @@ fn write_two_id_path(
     second: StorageBoxId,
     suffix: &str,
 ) -> Result<usize, StorageBoxRequestError> {
-    let mut len = 0;
-    buffer::write_str(
+    let len = buffer::encode_snapshot_bounded(
+        (prefix, first, middle, second, suffix),
         output,
-        &mut len,
-        prefix,
+        MAX_ENDPOINT_PATH_BYTES,
         CloudRequestError::PathBufferTooSmall,
+        |(prefix, first, middle, second, suffix), encoder| {
+            encoder.string(prefix)?;
+            encoder.u64(first.get())?;
+            encoder.string(middle)?;
+            encoder.u64(second.get())?;
+            encoder.string(suffix)
+        },
     )?;
-    buffer::write_u64(
-        output,
-        &mut len,
-        first.get(),
-        CloudRequestError::PathBufferTooSmall,
-    )?;
-    buffer::write_str(
-        output,
-        &mut len,
-        middle,
-        CloudRequestError::PathBufferTooSmall,
-    )?;
-    buffer::write_u64(
-        output,
-        &mut len,
-        second.get(),
-        CloudRequestError::PathBufferTooSmall,
-    )?;
-    buffer::write_str(
-        output,
-        &mut len,
-        suffix,
-        CloudRequestError::PathBufferTooSmall,
-    )?;
-    validate_written_path(output, len)?;
+    validate_or_clear_path(output, len)?;
     Ok(len)
 }
 
-fn validate_written_path(output: &[u8], len: usize) -> Result<(), StorageBoxRequestError> {
+fn validate_or_clear_path(output: &mut [u8], len: usize) -> Result<(), StorageBoxRequestError> {
     let bytes = output
         .get(..len)
         .ok_or(CloudRequestError::PathBufferTooSmall)?;
     let path = core::str::from_utf8(bytes).map_err(|_| CloudRequestError::PathEncodingFailed)?;
-    EndpointPath::new(path).map_err(CloudRequestError::InvalidPath)?;
+    if let Err(error) = EndpointPath::new(path).map_err(CloudRequestError::InvalidPath) {
+        if let Some(path) = output.get_mut(..len) {
+            cloud_sdk_sanitization::sanitize_bytes(path);
+        }
+        return Err(error);
+    }
     Ok(())
 }

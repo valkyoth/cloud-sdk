@@ -3,6 +3,8 @@
 use core::fmt;
 
 use cloud_sdk::buffer;
+use cloud_sdk::buffer::SnapshotEncoder;
+use cloud_sdk::transport::MAX_REQUEST_TARGET_BYTES;
 
 use crate::request::{EndpointPath, EndpointPathError};
 
@@ -258,40 +260,6 @@ impl<'a> TimestampValue<'a> {
     }
 }
 
-/// Small deterministic query writer.
-pub struct ServerQueryError<'a> {
-    output: &'a mut [u8],
-    len: usize,
-    first: bool,
-}
-
-impl<'a> ServerQueryError<'a> {
-    /// Creates a query writer.
-    pub fn new(output: &'a mut [u8]) -> Self {
-        Self {
-            output,
-            len: 0,
-            first: true,
-        }
-    }
-
-    /// Writes a key/value pair.
-    pub fn pair(&mut self, key: &str, value: &str) -> Result<(), ServerRequestError> {
-        write_query_pair(self.output, &mut self.len, &mut self.first, key, value)
-    }
-
-    /// Writes a key/u64 pair.
-    pub fn u64_pair(&mut self, key: &str, value: u64) -> Result<(), ServerRequestError> {
-        write_query_u64(self.output, &mut self.len, &mut self.first, key, value)
-    }
-
-    /// Returns written length.
-    #[must_use]
-    pub const fn len(&self) -> usize {
-        self.len
-    }
-}
-
 /// Returns a static path.
 pub fn static_path(value: &'static str) -> Result<EndpointPath<'static>, ServerRequestError> {
     EndpointPath::new(value).map_err(ServerRequestError::InvalidPath)
@@ -299,12 +267,14 @@ pub fn static_path(value: &'static str) -> Result<EndpointPath<'static>, ServerR
 
 /// Writes a static path.
 pub fn write_static_path(output: &mut [u8], value: &str) -> Result<usize, ServerRequestError> {
-    let bytes = value.as_bytes();
-    let target = output
-        .get_mut(..bytes.len())
-        .ok_or(ServerRequestError::PathBufferTooSmall)?;
-    target.copy_from_slice(bytes);
-    Ok(bytes.len())
+    EndpointPath::new(value).map_err(ServerRequestError::InvalidPath)?;
+    buffer::encode_snapshot_bounded(
+        value,
+        output,
+        crate::request::MAX_ENDPOINT_PATH_BYTES,
+        ServerRequestError::PathBufferTooSmall,
+        |value, encoder| encoder.string(value),
+    )
 }
 
 /// Writes `{prefix}{id}{suffix}` into a caller-owned path buffer.
@@ -314,62 +284,47 @@ pub fn write_id_path(
     id: ResourceId,
     suffix: &str,
 ) -> Result<usize, ServerRequestError> {
-    let mut len = 0;
-    buffer::write_str(
+    let len = buffer::encode_snapshot_bounded(
+        (prefix, id, suffix),
         output,
-        &mut len,
-        prefix,
+        crate::request::MAX_ENDPOINT_PATH_BYTES,
         ServerRequestError::PathBufferTooSmall,
+        |(prefix, id, suffix), encoder| {
+            encoder.string(prefix)?;
+            encoder.u64(id.get())?;
+            encoder.string(suffix)
+        },
     )?;
-    buffer::write_u64(
-        output,
-        &mut len,
-        id.get(),
-        ServerRequestError::PathBufferTooSmall,
-    )?;
-    buffer::write_str(
-        output,
-        &mut len,
-        suffix,
-        ServerRequestError::PathBufferTooSmall,
-    )?;
-    validate_written_path(output, len)?;
+    if let Err(error) = validate_written_path(output, len) {
+        if let Some(target) = output.get_mut(..len) {
+            cloud_sdk_sanitization::sanitize_bytes(target);
+        }
+        return Err(error);
+    }
     Ok(len)
 }
 
-/// Writes a query key/value pair.
-pub fn write_query_pair(
+/// Atomically encodes one immutable server query snapshot.
+pub(crate) fn encode_server_query<F>(
     output: &mut [u8],
-    len: &mut usize,
-    first: &mut bool,
-    key: &str,
-    value: &str,
-) -> Result<(), ServerRequestError> {
-    buffer::write_query_pair(
+    encode: F,
+) -> Result<usize, ServerRequestError>
+where
+    F: Copy
+        + for<'encoder> Fn(
+            &mut SnapshotEncoder<'encoder, ServerRequestError>,
+            &mut bool,
+        ) -> Result<(), ServerRequestError>,
+{
+    buffer::encode_snapshot_bounded(
+        encode,
         output,
-        len,
-        first,
-        key,
-        value,
+        MAX_REQUEST_TARGET_BYTES,
         ServerRequestError::QueryBufferTooSmall,
-    )
-}
-
-/// Writes a query key/u64 pair.
-pub fn write_query_u64(
-    output: &mut [u8],
-    len: &mut usize,
-    first: &mut bool,
-    key: &str,
-    value: u64,
-) -> Result<(), ServerRequestError> {
-    buffer::write_query_u64(
-        output,
-        len,
-        first,
-        key,
-        value,
-        ServerRequestError::QueryBufferTooSmall,
+        |encode, encoder| {
+            let mut first = true;
+            encode(encoder, &mut first)
+        },
     )
 }
 

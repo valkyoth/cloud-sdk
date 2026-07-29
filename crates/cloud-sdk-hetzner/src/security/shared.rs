@@ -2,7 +2,8 @@
 
 use core::fmt;
 
-use cloud_sdk::buffer;
+use cloud_sdk::buffer::{self, SnapshotEncoder};
+use cloud_sdk::transport::MAX_REQUEST_TARGET_BYTES;
 
 use crate::labels::{LabelError, LabelKey, LabelValue};
 use crate::request::{EndpointPath, EndpointPathError};
@@ -295,62 +296,47 @@ pub fn write_id_path(
     id: SecurityId,
     suffix: &str,
 ) -> Result<usize, SecurityRequestError> {
-    let mut len = 0;
-    buffer::write_str(
+    let len = buffer::encode_snapshot_bounded(
+        (prefix, id, suffix),
         output,
-        &mut len,
-        prefix,
+        crate::request::MAX_ENDPOINT_PATH_BYTES,
         SecurityRequestError::PathBufferTooSmall,
+        |(prefix, id, suffix), encoder| {
+            encoder.string(prefix)?;
+            encoder.u64(id.get())?;
+            encoder.string(suffix)
+        },
     )?;
-    buffer::write_u64(
-        output,
-        &mut len,
-        id.get(),
-        SecurityRequestError::PathBufferTooSmall,
-    )?;
-    buffer::write_str(
-        output,
-        &mut len,
-        suffix,
-        SecurityRequestError::PathBufferTooSmall,
-    )?;
-    validate_written_path(output, len)?;
+    if let Err(error) = validate_written_path(output, len) {
+        if let Some(target) = output.get_mut(..len) {
+            cloud_sdk_sanitization::sanitize_bytes(target);
+        }
+        return Err(error);
+    }
     Ok(len)
 }
 
-/// Writes a query key/value pair with percent-encoded value.
-pub fn write_query_pair(
+/// Atomically encodes one immutable security query snapshot.
+pub(crate) fn encode_security_query<F>(
     output: &mut [u8],
-    len: &mut usize,
-    first: &mut bool,
-    key: &str,
-    value: &str,
-) -> Result<(), SecurityRequestError> {
-    buffer::write_query_pair(
+    encode: F,
+) -> Result<usize, SecurityRequestError>
+where
+    F: Copy
+        + for<'encoder> Fn(
+            &mut SnapshotEncoder<'encoder, SecurityRequestError>,
+            &mut bool,
+        ) -> Result<(), SecurityRequestError>,
+{
+    buffer::encode_snapshot_bounded(
+        encode,
         output,
-        len,
-        first,
-        key,
-        value,
+        MAX_REQUEST_TARGET_BYTES,
         SecurityRequestError::QueryBufferTooSmall,
-    )
-}
-
-/// Writes a query key/u64 pair.
-pub fn write_query_u64(
-    output: &mut [u8],
-    len: &mut usize,
-    first: &mut bool,
-    key: &str,
-    value: u64,
-) -> Result<(), SecurityRequestError> {
-    buffer::write_query_u64(
-        output,
-        len,
-        first,
-        key,
-        value,
-        SecurityRequestError::QueryBufferTooSmall,
+        |encode, encoder| {
+            let mut first = true;
+            encode(encoder, &mut first)
+        },
     )
 }
 

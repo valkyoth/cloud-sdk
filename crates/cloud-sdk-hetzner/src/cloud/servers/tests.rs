@@ -163,9 +163,10 @@ fn server_timestamp_validation_is_fixed_width_and_digit_only() {
 #[test]
 fn server_query_writer_serializes_zero_without_silent_empty_value() {
     let mut output = [0u8; 16];
-    let mut writer = super::shared::ServerQueryError::new(&mut output);
-    assert!(writer.u64_pair("n", 0).is_ok());
-    assert_eq!(writer.len(), 3);
+    let written = super::shared::encode_server_query(&mut output, |encoder, first| {
+        encoder.query_u64(first, "n", 0)
+    });
+    assert_eq!(written, Ok(3));
     let query = output
         .get(..3)
         .and_then(|bytes| core::str::from_utf8(bytes).ok());

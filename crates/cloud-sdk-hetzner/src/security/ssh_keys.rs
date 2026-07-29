@@ -7,7 +7,7 @@ use crate::labels::LabelSelector;
 use crate::pagination::{Page, PerPage, SortDirection};
 use crate::request::{ApiBaseUrl, EndpointPath};
 use crate::security::shared::{
-    MAX_SSH_FINGERPRINT_BYTES, static_path, write_id_path, write_query_pair, write_query_u64,
+    MAX_SSH_FINGERPRINT_BYTES, encode_security_query, static_path, write_id_path,
 };
 
 /// SSH key endpoint groups.
@@ -182,45 +182,27 @@ impl<'a> SshKeyListRequest<'a> {
 
     /// Writes the query string into a caller-owned buffer.
     pub fn write_query(self, output: &mut [u8]) -> Result<usize, SecurityRequestError> {
-        let mut len = 0;
-        let mut first = true;
-        if let Some(fingerprint) = self.fingerprint {
-            write_query_pair(output, &mut len, &mut first, "fingerprint", fingerprint)?;
-        }
-        if let Some(selector) = self.label_selector {
-            write_query_pair(
-                output,
-                &mut len,
-                &mut first,
-                "label_selector",
-                selector.as_str(),
-            )?;
-        }
-        if let Some(name) = self.name {
-            write_query_pair(output, &mut len, &mut first, "name", name.as_str())?;
-        }
-        if let Some(page) = self.page {
-            write_query_u64(output, &mut len, &mut first, "page", page.get())?;
-        }
-        if let Some(per_page) = self.per_page {
-            write_query_u64(
-                output,
-                &mut len,
-                &mut first,
-                "per_page",
-                u64::from(per_page.get()),
-            )?;
-        }
-        if let Some((field, direction)) = self.sort {
-            write_query_pair(
-                output,
-                &mut len,
-                &mut first,
-                "sort",
-                sort_value(field, direction),
-            )?;
-        }
-        Ok(len)
+        encode_security_query(output, move |encoder, first| {
+            if let Some(fingerprint) = self.fingerprint {
+                encoder.query_pair(first, "fingerprint", fingerprint)?;
+            }
+            if let Some(selector) = self.label_selector {
+                encoder.query_pair(first, "label_selector", selector.as_str())?;
+            }
+            if let Some(name) = self.name {
+                encoder.query_pair(first, "name", name.as_str())?;
+            }
+            if let Some(page) = self.page {
+                encoder.query_u64(first, "page", page.get())?;
+            }
+            if let Some(per_page) = self.per_page {
+                encoder.query_u64(first, "per_page", u64::from(per_page.get()))?;
+            }
+            if let Some((field, direction)) = self.sort {
+                encoder.query_pair(first, "sort", sort_value(field, direction))?;
+            }
+            Ok(())
+        })
     }
 }
 

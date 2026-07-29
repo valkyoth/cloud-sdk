@@ -312,18 +312,15 @@ fn action_path(
 }
 
 fn write_action_id_path(output: &mut [u8], id: ZoneActionId) -> Result<usize, ZoneRequestError> {
-    let mut len = 0;
-    buffer::write_str(
+    let len = buffer::encode_snapshot_bounded(
+        id,
         output,
-        &mut len,
-        "/zones/actions/",
+        crate::request::MAX_ENDPOINT_PATH_BYTES,
         CloudRequestError::PathBufferTooSmall,
-    )?;
-    buffer::write_u64(
-        output,
-        &mut len,
-        id.get(),
-        CloudRequestError::PathBufferTooSmall,
+        |id, encoder| {
+            encoder.string("/zones/actions/")?;
+            encoder.u64(id.get())
+        },
     )?;
     let path = core::str::from_utf8(
         output
@@ -331,7 +328,12 @@ fn write_action_id_path(output: &mut [u8], id: ZoneActionId) -> Result<usize, Zo
             .ok_or(CloudRequestError::PathBufferTooSmall)?,
     )
     .map_err(|_| CloudRequestError::PathEncodingFailed)?;
-    EndpointPath::new(path).map_err(CloudRequestError::InvalidPath)?;
+    if let Err(error) = EndpointPath::new(path).map_err(CloudRequestError::InvalidPath) {
+        if let Some(path) = output.get_mut(..len) {
+            cloud_sdk_sanitization::sanitize_bytes(path);
+        }
+        return Err(error.into());
+    }
     Ok(len)
 }
 

@@ -14,7 +14,7 @@ use cloud_sdk::buffer;
 
 use crate::cloud::public_ip::{invalid_public_v4, invalid_public_v6};
 use crate::cloud::shared::{CloudLabels, CloudRequestError, CloudResourceId};
-use crate::request::EndpointPath;
+use crate::request::{EndpointPath, MAX_ENDPOINT_PATH_BYTES};
 
 /// Maximum zone-file bytes admitted by this SDK boundary.
 pub const MAX_ZONE_FILE_BYTES: usize = 1024 * 1024;
@@ -341,32 +341,19 @@ pub(crate) fn write_zone_path(
     zone: ZoneReference<'_>,
     suffix: &str,
 ) -> Result<usize, ZoneRequestError> {
-    let mut len = 0;
-    buffer::write_str(
+    let len = buffer::encode_snapshot_bounded(
+        (zone, suffix),
         output,
-        &mut len,
-        "/zones/",
+        MAX_ENDPOINT_PATH_BYTES,
         CloudRequestError::PathBufferTooSmall,
-    )?;
-    match zone {
-        ZoneReference::Id(id) => buffer::write_u64(
-            output,
-            &mut len,
-            id.get(),
-            CloudRequestError::PathBufferTooSmall,
-        )?,
-        ZoneReference::Name(name) => buffer::write_str(
-            output,
-            &mut len,
-            name.as_str(),
-            CloudRequestError::PathBufferTooSmall,
-        )?,
-    }
-    buffer::write_str(
-        output,
-        &mut len,
-        suffix,
-        CloudRequestError::PathBufferTooSmall,
+        |(zone, suffix), encoder| {
+            encoder.string("/zones/")?;
+            match zone {
+                ZoneReference::Id(id) => encoder.u64(id.get())?,
+                ZoneReference::Name(name) => encoder.string(name.as_str())?,
+            }
+            encoder.string(suffix)
+        },
     )?;
     let path = core::str::from_utf8(
         output
@@ -374,6 +361,11 @@ pub(crate) fn write_zone_path(
             .ok_or(CloudRequestError::PathBufferTooSmall)?,
     )
     .map_err(|_| CloudRequestError::PathEncodingFailed)?;
-    EndpointPath::new(path).map_err(CloudRequestError::InvalidPath)?;
+    if let Err(error) = EndpointPath::new(path).map_err(CloudRequestError::InvalidPath) {
+        if let Some(path) = output.get_mut(..len) {
+            cloud_sdk_sanitization::sanitize_bytes(path);
+        }
+        return Err(error.into());
+    }
     Ok(len)
 }

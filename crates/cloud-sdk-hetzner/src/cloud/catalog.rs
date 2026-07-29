@@ -1,10 +1,12 @@
 //! Read-only Cloud catalog request domains.
 
-use cloud_sdk::Method;
+use cloud_sdk::transport::MAX_REQUEST_TARGET_BYTES;
+use cloud_sdk::{Method, buffer};
+use cloud_sdk_sanitization::sanitize_bytes;
 
 use crate::EndpointGroup;
 use crate::pagination::{Page, PerPage, Sort, SortDirection};
-use crate::request::{ApiBaseUrl, EndpointPath, EndpointPathError};
+use crate::request::{ApiBaseUrl, EndpointPath, EndpointPathError, MAX_ENDPOINT_PATH_BYTES};
 
 /// Error returned while building catalog request components.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -169,10 +171,17 @@ impl CatalogGetEndpoint {
 
     /// Writes the source-locked get path into a caller-owned buffer.
     pub fn write_path(self, output: &mut [u8]) -> Result<usize, CatalogRequestError> {
-        let mut len = 0;
-        write_path_str(output, &mut len, self.path_prefix())?;
-        write_path_u64(output, &mut len, self.id().get())?;
-        validate_written_path(output, len)?;
+        let len = buffer::encode_snapshot_bounded(
+            self,
+            output,
+            MAX_ENDPOINT_PATH_BYTES,
+            CatalogRequestError::PathBufferTooSmall,
+            |endpoint, encoder| {
+                encoder.string(endpoint.path_prefix())?;
+                encoder.u64(endpoint.id().get())
+            },
+        )?;
+        validate_or_clear_path(output, len)?;
         Ok(len)
     }
 
@@ -291,175 +300,42 @@ impl<'a> CatalogListRequest<'a> {
 
     /// Writes the query string into a caller-owned buffer.
     pub fn write_query(self, output: &mut [u8]) -> Result<usize, CatalogRequestError> {
-        let mut len = 0;
-        let mut first = true;
-        if let CatalogListEndpoint::PublicImages(kind) = self.endpoint {
-            write_pair(output, &mut len, &mut first, "type", kind.as_api_str())?;
+        buffer::encode_snapshot_bounded(
+            self,
+            output,
+            MAX_REQUEST_TARGET_BYTES,
+            CatalogRequestError::QueryBufferTooSmall,
+            |request, encoder| {
+                let mut first = true;
+                if let CatalogListEndpoint::PublicImages(kind) = request.endpoint {
+                    encoder.query_pair(&mut first, "type", kind.as_api_str())?;
+                }
+                if let Some(page) = request.page {
+                    encoder.query_u64(&mut first, "page", page.get())?;
+                }
+                if let Some(per_page) = request.per_page {
+                    encoder.query_u64(&mut first, "per_page", u64::from(per_page.get()))?;
+                }
+                if let Some(sort) = request.sort {
+                    encoder.query_separator(&mut first)?;
+                    encoder.string("sort=")?;
+                    encoder.percent_encoded(sort.key().as_str())?;
+                    encoder.string("%3A")?;
+                    encoder.percent_encoded(sort_direction_str(sort.direction()))?;
+                }
+                Ok(())
+            },
+        )
+    }
+}
+
+fn validate_or_clear_path(output: &mut [u8], len: usize) -> Result<(), CatalogRequestError> {
+    if let Err(error) = validate_written_path(output, len) {
+        if let Some(path) = output.get_mut(..len) {
+            sanitize_bytes(path);
         }
-        if let Some(page) = self.page {
-            write_pair_u64(output, &mut len, &mut first, "page", page.get())?;
-        }
-        if let Some(per_page) = self.per_page {
-            write_pair_u64(
-                output,
-                &mut len,
-                &mut first,
-                "per_page",
-                u64::from(per_page.get()),
-            )?;
-        }
-        if let Some(sort) = self.sort {
-            write_sort_pair(output, &mut len, &mut first, sort)?;
-        }
-        Ok(len)
+        return Err(error);
     }
-}
-
-fn write_pair(
-    output: &mut [u8],
-    len: &mut usize,
-    first: &mut bool,
-    key: &str,
-    value: &str,
-) -> Result<(), CatalogRequestError> {
-    write_separator(output, len, first)?;
-    write_str(output, len, key)?;
-    write_query_byte(output, len, b'=')?;
-    write_str(output, len, value)
-}
-
-fn write_pair_u64(
-    output: &mut [u8],
-    len: &mut usize,
-    first: &mut bool,
-    key: &str,
-    value: u64,
-) -> Result<(), CatalogRequestError> {
-    write_separator(output, len, first)?;
-    write_str(output, len, key)?;
-    write_query_byte(output, len, b'=')?;
-    write_u64(output, len, value)
-}
-
-fn write_sort_pair(
-    output: &mut [u8],
-    len: &mut usize,
-    first: &mut bool,
-    sort: Sort<'_>,
-) -> Result<(), CatalogRequestError> {
-    write_separator(output, len, first)?;
-    write_str(output, len, "sort=")?;
-    write_str(output, len, sort.key().as_str())?;
-    write_str(output, len, "%3A")?;
-    write_str(output, len, sort_direction_str(sort.direction()))
-}
-
-fn write_separator(
-    output: &mut [u8],
-    len: &mut usize,
-    first: &mut bool,
-) -> Result<(), CatalogRequestError> {
-    if *first {
-        *first = false;
-        return Ok(());
-    }
-    write_query_byte(output, len, b'&')
-}
-
-fn write_str(output: &mut [u8], len: &mut usize, value: &str) -> Result<(), CatalogRequestError> {
-    for byte in value.bytes() {
-        write_query_byte(output, len, byte)?;
-    }
-    Ok(())
-}
-
-fn write_u64(output: &mut [u8], len: &mut usize, value: u64) -> Result<(), CatalogRequestError> {
-    write_u64_with_error(output, len, value, CatalogRequestError::QueryBufferTooSmall)
-}
-
-fn write_path_str(
-    output: &mut [u8],
-    len: &mut usize,
-    value: &str,
-) -> Result<(), CatalogRequestError> {
-    for byte in value.bytes() {
-        write_path_byte(output, len, byte)?;
-    }
-    Ok(())
-}
-
-fn write_path_u64(
-    output: &mut [u8],
-    len: &mut usize,
-    value: u64,
-) -> Result<(), CatalogRequestError> {
-    write_u64_with_error(output, len, value, CatalogRequestError::PathBufferTooSmall)
-}
-
-fn write_u64_with_error(
-    output: &mut [u8],
-    len: &mut usize,
-    mut value: u64,
-    buffer_error: CatalogRequestError,
-) -> Result<(), CatalogRequestError> {
-    if value == 0 {
-        return write_byte(output, len, b'0', buffer_error);
-    }
-
-    let mut digits = [0u8; 20];
-    let mut cursor = digits.len();
-    while value != 0 {
-        cursor = match cursor.checked_sub(1) {
-            Some(next) => next,
-            None => return Err(CatalogRequestError::NumberEncodingFailed),
-        };
-        let remainder = value % 10;
-        let digit =
-            u8::try_from(remainder).map_err(|_| CatalogRequestError::NumberEncodingFailed)?;
-        let byte = b'0'
-            .checked_add(digit)
-            .ok_or(CatalogRequestError::NumberEncodingFailed)?;
-        let slot = digits
-            .get_mut(cursor)
-            .ok_or(CatalogRequestError::NumberEncodingFailed)?;
-        *slot = byte;
-        value /= 10;
-    }
-
-    let encoded = digits
-        .get(cursor..)
-        .ok_or(CatalogRequestError::NumberEncodingFailed)?;
-    for byte in encoded {
-        write_byte(output, len, *byte, buffer_error)?;
-    }
-    Ok(())
-}
-
-fn write_path_byte(
-    output: &mut [u8],
-    len: &mut usize,
-    byte: u8,
-) -> Result<(), CatalogRequestError> {
-    write_byte(output, len, byte, CatalogRequestError::PathBufferTooSmall)
-}
-
-fn write_query_byte(
-    output: &mut [u8],
-    len: &mut usize,
-    byte: u8,
-) -> Result<(), CatalogRequestError> {
-    write_byte(output, len, byte, CatalogRequestError::QueryBufferTooSmall)
-}
-
-fn write_byte(
-    output: &mut [u8],
-    len: &mut usize,
-    byte: u8,
-    buffer_error: CatalogRequestError,
-) -> Result<(), CatalogRequestError> {
-    let slot = output.get_mut(*len).ok_or(buffer_error)?;
-    *slot = byte;
-    *len = len.checked_add(1).ok_or(buffer_error)?;
     Ok(())
 }
 

@@ -1,9 +1,10 @@
 //! Cross-resource action domains and request models.
 
+use cloud_sdk::transport::MAX_REQUEST_TARGET_BYTES;
 use cloud_sdk::{Method, buffer};
 
 use crate::EndpointGroup;
-use crate::request::{ApiBaseUrl, EndpointPath, EndpointPathError};
+use crate::request::{ApiBaseUrl, EndpointPath, EndpointPathError, MAX_ENDPOINT_PATH_BYTES};
 
 /// Largest action identifier admitted by the source-locked API schema.
 ///
@@ -143,28 +144,21 @@ impl ActionEndpoint {
 
     /// Writes the endpoint path into a caller-owned buffer.
     pub fn write_path(self, output: &mut [u8]) -> Result<usize, ActionRequestError> {
-        let mut len = 0;
-        buffer::write_str(
+        let len = buffer::encode_snapshot_bounded(
+            self,
             output,
-            &mut len,
-            "/actions",
+            MAX_ENDPOINT_PATH_BYTES,
             ActionRequestError::PathBufferTooSmall,
+            |endpoint, encoder| {
+                encoder.string("/actions")?;
+                if let ActionEndpoint::Get(id) = endpoint {
+                    encoder.byte(b'/')?;
+                    encoder.u64(id.get())?;
+                }
+                Ok(())
+            },
         )?;
-        if let Self::Get(id) = self {
-            buffer::write_byte(
-                output,
-                &mut len,
-                b'/',
-                ActionRequestError::PathBufferTooSmall,
-            )?;
-            buffer::write_u64(
-                output,
-                &mut len,
-                id.get(),
-                ActionRequestError::PathBufferTooSmall,
-            )?;
-        }
-        validate_written_path(output, len)?;
+        validate_or_clear_path(output, len)?;
         Ok(len)
     }
 }
@@ -201,28 +195,33 @@ impl<'a> ActionListRequest<'a> {
 
     /// Writes repeated `id` query parameters in caller order.
     pub fn write_query(self, output: &mut [u8]) -> Result<usize, ActionRequestError> {
-        let mut len = 0;
-        let mut first = true;
-        for id in self.ids {
-            buffer::write_query_u64(
-                output,
-                &mut len,
-                &mut first,
-                "id",
-                id.get(),
-                ActionRequestError::QueryBufferTooSmall,
-            )?;
-        }
-        Ok(len)
+        buffer::encode_snapshot_bounded(
+            self,
+            output,
+            MAX_REQUEST_TARGET_BYTES,
+            ActionRequestError::QueryBufferTooSmall,
+            |request, encoder| {
+                let mut first = true;
+                for id in request.ids {
+                    encoder.query_u64(&mut first, "id", id.get())?;
+                }
+                Ok(())
+            },
+        )
     }
 }
 
-fn validate_written_path(output: &[u8], len: usize) -> Result<(), ActionRequestError> {
+fn validate_or_clear_path(output: &mut [u8], len: usize) -> Result<(), ActionRequestError> {
     let bytes = output
         .get(..len)
         .ok_or(ActionRequestError::PathBufferTooSmall)?;
     let path = core::str::from_utf8(bytes).map_err(|_| ActionRequestError::PathEncodingFailed)?;
-    EndpointPath::new(path).map_err(ActionRequestError::InvalidPath)?;
+    if let Err(error) = EndpointPath::new(path).map_err(ActionRequestError::InvalidPath) {
+        if let Some(path) = output.get_mut(..len) {
+            cloud_sdk_sanitization::sanitize_bytes(path);
+        }
+        return Err(error);
+    }
     Ok(())
 }
 

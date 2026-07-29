@@ -4,6 +4,7 @@ mod metadata;
 mod operation_id;
 mod policy;
 mod prepared;
+mod storage;
 
 pub use metadata::{
     CostIntent, OperationImpact, OperationMetadata, OperationMetadataError, RequestIdPolicy,
@@ -16,6 +17,12 @@ pub use policy::{
 };
 pub use prepared::{
     PreparationStorage, PrepareOperation, PreparedExecutionError, PreparedRequest, ProviderService,
+};
+#[cfg(feature = "alloc")]
+pub use storage::OwnedPreparationStorage;
+pub use storage::{
+    DEFAULT_BODY_BYTES, EMBEDDED_BODY_BYTES, LARGE_BODY_BYTES, PreparationCapacityError,
+    PreparationCapacityProfile, PreparationStorageGuard,
 };
 
 #[cfg(test)]

@@ -161,7 +161,8 @@ impl<'output, E: Copy> SnapshotEncoder<'output, E> {
         self.u64(value)
     }
 
-    fn query_separator(&mut self, first: &mut bool) -> Result<(), E> {
+    /// Appends `&` unless this is the first query pair.
+    pub fn query_separator(&mut self, first: &mut bool) -> Result<(), E> {
         if *first {
             *first = false;
             Ok(())

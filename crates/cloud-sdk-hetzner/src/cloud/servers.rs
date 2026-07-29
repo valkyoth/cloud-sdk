@@ -11,7 +11,7 @@ use crate::labels::LabelSelector;
 use crate::pagination::{Page, PerPage, SortDirection};
 use crate::request::{ApiBaseUrl, EndpointPath};
 
-use self::shared::{ResourceId, ServerQueryError, static_path, write_id_path, write_query_pair};
+use self::shared::{ResourceId, encode_server_query, static_path, write_id_path};
 
 /// Server endpoint groups.
 pub const ENDPOINT_GROUPS: &[EndpointGroup] = &[
@@ -224,26 +224,27 @@ impl<'a> ServerListRequest<'a> {
 
     /// Writes the query string into a caller-owned buffer.
     pub fn write_query(self, output: &mut [u8]) -> Result<usize, ServerRequestError> {
-        let mut writer = ServerQueryError::new(output);
-        if let Some(selector) = self.label_selector {
-            writer.pair("label_selector", selector.as_str())?;
-        }
-        if let Some(name) = self.name {
-            writer.pair("name", name.as_str())?;
-        }
-        if let Some(page) = self.page {
-            writer.u64_pair("page", page.get())?;
-        }
-        if let Some(per_page) = self.per_page {
-            writer.u64_pair("per_page", u64::from(per_page.get()))?;
-        }
-        if let Some((field, direction)) = self.sort {
-            writer.pair("sort", sort_value(field, direction))?;
-        }
-        if let Some(status) = self.status {
-            writer.pair("status", status.as_api_str())?;
-        }
-        Ok(writer.len())
+        encode_server_query(output, |writer, first| {
+            if let Some(selector) = self.label_selector {
+                writer.query_pair(first, "label_selector", selector.as_str())?;
+            }
+            if let Some(name) = self.name {
+                writer.query_pair(first, "name", name.as_str())?;
+            }
+            if let Some(page) = self.page {
+                writer.query_u64(first, "page", page.get())?;
+            }
+            if let Some(per_page) = self.per_page {
+                writer.query_u64(first, "per_page", u64::from(per_page.get()))?;
+            }
+            if let Some((field, direction)) = self.sort {
+                writer.query_pair(first, "sort", sort_value(field, direction))?;
+            }
+            if let Some(status) = self.status {
+                writer.query_pair(first, "status", status.as_api_str())?;
+            }
+            Ok(())
+        })
     }
 }
 
@@ -455,21 +456,14 @@ impl<'a> ServerMetricsRequest<'a> {
 
     /// Writes the query string into a caller-owned buffer.
     pub fn write_query(self, output: &mut [u8]) -> Result<usize, ServerRequestError> {
-        let mut len = 0;
-        let mut first = true;
-        write_query_pair(output, &mut len, &mut first, "end", self.end.as_str())?;
-        if let Some(step) = self.step {
-            write_query_pair(output, &mut len, &mut first, "step", step.as_str())?;
-        }
-        write_query_pair(output, &mut len, &mut first, "start", self.start.as_str())?;
-        write_query_pair(
-            output,
-            &mut len,
-            &mut first,
-            "type",
-            self.metric_type.as_api_str(),
-        )?;
-        Ok(len)
+        encode_server_query(output, |writer, first| {
+            writer.query_pair(first, "end", self.end.as_str())?;
+            if let Some(step) = self.step {
+                writer.query_pair(first, "step", step.as_str())?;
+            }
+            writer.query_pair(first, "start", self.start.as_str())?;
+            writer.query_pair(first, "type", self.metric_type.as_api_str())
+        })
     }
 }
 
