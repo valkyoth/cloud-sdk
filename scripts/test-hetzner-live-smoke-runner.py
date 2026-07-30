@@ -46,6 +46,23 @@ def valid_manifest() -> bytes:
     )
 
 
+def has_trusted_directory_chain(path: Path) -> bool:
+    current = path.parent
+    while True:
+        metadata = os.lstat(current)
+        mode = stat.S_IMODE(metadata.st_mode)
+        if (
+            not stat.S_ISDIR(metadata.st_mode)
+            or metadata.st_uid != 0
+            or metadata.st_gid != 0
+            or mode & 0o022 != 0
+        ):
+            return False
+        if current == current.parent:
+            return True
+        current = current.parent
+
+
 def test_manifest(runner) -> None:
     descriptor = descriptor_for(valid_manifest())
     try:
@@ -87,12 +104,19 @@ def test_ownership(runner) -> None:
 
     trusted = Path("/usr/bin/true")
     metadata = trusted.stat()
+    expected_trusted = (
+        has_trusted_directory_chain(trusted)
+        and stat.S_ISREG(metadata.st_mode)
+        and metadata.st_uid == 0
+        and metadata.st_gid == 0
+        and metadata.st_nlink == 1
+    )
     try:
         descriptor = runner.open_root_owned_file(trusted, stat.S_IMODE(metadata.st_mode))
     except runner.RunnerError:
-        assert metadata.st_uid != 0
+        assert not expected_trusted
     else:
-        assert metadata.st_uid == 0
+        assert expected_trusted
         os.close(descriptor)
 
 
