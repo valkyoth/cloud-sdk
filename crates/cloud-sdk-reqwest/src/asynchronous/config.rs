@@ -5,7 +5,7 @@ use reqwest::redirect::Policy;
 use reqwest::tls::Version;
 
 use crate::shared::{
-    BearerToken, BuildError, HttpsEndpoint, RawHyperClient, RequestTimeouts, UserAgent,
+    BearerCredential, BuildError, HttpsEndpoint, RawHyperClient, RequestTimeouts, UserAgent,
     platform_client_config,
 };
 
@@ -15,7 +15,7 @@ use super::{AsyncClient, RawAsyncClient};
 /// dimensions before an asynchronous client can be constructed.
 pub struct AsyncClientBuilder {
     endpoint: HttpsEndpoint,
-    token: BearerToken,
+    credential: BearerCredential,
     user_agent: UserAgent,
     timeouts: RequestTimeouts,
 }
@@ -32,13 +32,13 @@ impl AsyncClientBuilder {
     #[must_use]
     pub const fn new(
         endpoint: HttpsEndpoint,
-        token: BearerToken,
+        credential: BearerCredential,
         user_agent: UserAgent,
         timeouts: RequestTimeouts,
     ) -> Self {
         Self {
             endpoint,
-            token,
+            credential,
             user_agent,
             timeouts,
         }
@@ -55,7 +55,12 @@ impl AsyncClientBuilder {
 
     fn build_inner(self, https_only: bool) -> Result<AsyncClient, BuildError> {
         let client = configured_client(&self.user_agent, self.timeouts, https_only)?;
-        Ok(AsyncClient::new(client, self.endpoint, self.token))
+        Ok(AsyncClient::new(
+            client,
+            self.endpoint,
+            self.credential,
+            !https_only,
+        ))
     }
 
     #[cfg(test)]
@@ -107,7 +112,7 @@ impl fmt::Debug for AsyncClientBuilder {
         formatter
             .debug_struct("AsyncClientBuilder")
             .field("endpoint", &"[redacted]")
-            .field("token", &"[redacted]")
+            .field("credential", &"[redacted]")
             .field("user_agent", &self.user_agent)
             .field("timeouts", &self.timeouts)
             .finish()

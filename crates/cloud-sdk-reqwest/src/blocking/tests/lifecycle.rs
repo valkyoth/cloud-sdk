@@ -2,13 +2,14 @@ use std::string::String;
 use std::time::Duration;
 
 use cloud_sdk::Method;
+use cloud_sdk::authentication::BlockingAuthenticatedTransport;
 use cloud_sdk::transport::{
-    BlockingTransport, BoundTransport, RequestTarget, ResponseBuffer, ResponseMetadata,
-    ResponseStorageSanitizer, StatusCode, TransportRequest,
+    BoundTransport, RequestTarget, ResponseBuffer, ResponseMetadata, ResponseStorageSanitizer,
+    StatusCode, TransportRequest,
 };
 use cloud_sdk_sanitization::SecretBuffer;
 
-use super::{BearerToken, build_loopback};
+use super::{BearerToken, authenticated, build_loopback};
 use crate::test_server::{spawn_concurrent_pair, spawn_sequence_with_first_delay};
 
 #[test]
@@ -67,9 +68,9 @@ fn blocking_precommitted_writer_fails_before_network_access() {
     );
     drop(attempt);
     assert_eq!(
-        BlockingTransport::send(
+        BlockingAuthenticatedTransport::send_authenticated(
             &client,
-            TransportRequest::new(Method::Get, target),
+            authenticated(TransportRequest::new(Method::Get, target)),
             response.writer(),
         ),
         Err(super::super::TransportError::ResponseCommitFailed)

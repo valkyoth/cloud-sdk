@@ -1,6 +1,7 @@
 use core::fmt;
 use std::sync::{Arc, RwLock};
 
+use cloud_sdk::authentication::{CredentialGeneration, CredentialGenerationError, RefreshHandoff};
 use cloud_sdk_sanitization::SecretBuffer;
 
 use super::{BearerToken, BearerTokenError};
@@ -8,7 +9,7 @@ use super::{BearerToken, BearerTokenError};
 /// Credential-state access failure.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum CredentialStateError {
-    /// The short-lived credential-state lock was poisoned by a panic.
+    /// The short-lived credential-state lock could not be recovered.
     Unavailable,
 }
 
@@ -16,13 +17,29 @@ impl_static_error!(CredentialStateError,
     Self::Unavailable => "credential state is unavailable",
 );
 
+/// Validated token rotation failure.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum CredentialUpdateError {
+    /// The credential state could not be changed.
+    StateUnavailable,
+    /// The monotonic credential generation cannot advance.
+    GenerationExhausted,
+}
+
+impl_static_error!(CredentialUpdateError,
+    Self::StateUnavailable => "credential state is unavailable",
+    Self::GenerationExhausted => "credential generation is exhausted",
+);
+
 /// Bearer-token validation or rotation failure.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum TokenRotationError {
     /// The replacement bearer token was rejected before state changed.
     TokenRejected(BearerTokenError),
-    /// The credential state could not be read or changed.
+    /// The credential state could not be changed.
     StateUnavailable,
+    /// The monotonic credential generation cannot advance.
+    GenerationExhausted,
 }
 
 impl fmt::Display for TokenRotationError {
@@ -30,6 +47,7 @@ impl fmt::Display for TokenRotationError {
         formatter.write_str(match self {
             Self::TokenRejected(_) => "replacement bearer token was rejected",
             Self::StateUnavailable => "credential state is unavailable",
+            Self::GenerationExhausted => "credential generation is exhausted",
         })
     }
 }
@@ -38,23 +56,113 @@ impl core::error::Error for TokenRotationError {
     fn source(&self) -> Option<&(dyn core::error::Error + 'static)> {
         match self {
             Self::TokenRejected(error) => Some(error),
-            Self::StateUnavailable => None,
+            Self::StateUnavailable | Self::GenerationExhausted => None,
         }
     }
 }
 
+/// Compare-and-swap bearer refresh failure.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum TokenRefreshError {
+    /// The replacement bearer token was rejected before state changed.
+    TokenRejected(BearerTokenError),
+    /// A newer rotation or refresh superseded this handoff.
+    StaleGeneration,
+    /// The credential state could not be changed.
+    StateUnavailable,
+    /// The monotonic credential generation cannot advance.
+    GenerationExhausted,
+}
+
+impl fmt::Display for TokenRefreshError {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.write_str(match self {
+            Self::TokenRejected(_) => "refreshed bearer token was rejected",
+            Self::StaleGeneration => "credential refresh generation is stale",
+            Self::StateUnavailable => "credential state is unavailable",
+            Self::GenerationExhausted => "credential generation is exhausted",
+        })
+    }
+}
+
+impl core::error::Error for TokenRefreshError {
+    fn source(&self) -> Option<&(dyn core::error::Error + 'static)> {
+        match self {
+            Self::TokenRejected(error) => Some(error),
+            Self::StaleGeneration | Self::StateUnavailable | Self::GenerationExhausted => None,
+        }
+    }
+}
+
+struct VersionedToken {
+    generation: CredentialGeneration,
+    token: BearerToken,
+}
+
+/// Redacted snapshot metadata for an in-flight credential generation.
+///
+/// The internal token remains alive until this snapshot and all transport
+/// copies are dropped, but no secret bytes are exposed through this API.
+pub struct BearerCredentialSnapshot {
+    current: Arc<VersionedToken>,
+}
+
+impl BearerCredentialSnapshot {
+    /// Returns the immutable generation captured by this snapshot.
+    #[must_use]
+    pub fn generation(&self) -> CredentialGeneration {
+        self.current.generation
+    }
+
+    /// Creates a refresh handoff tied to this exact snapshot generation.
+    #[must_use]
+    pub fn refresh_handoff(&self) -> RefreshHandoff {
+        self.generation().refresh_handoff()
+    }
+
+    pub(crate) fn header_value(&self) -> Result<reqwest::header::HeaderValue, ()> {
+        self.current.token.header_value()
+    }
+
+    #[cfg(test)]
+    pub(crate) fn owned_bytes(&self) -> &[u8] {
+        self.current.token.owned_bytes()
+    }
+}
+
+impl Clone for BearerCredentialSnapshot {
+    fn clone(&self) -> Self {
+        Self {
+            current: Arc::clone(&self.current),
+        }
+    }
+}
+
+impl fmt::Debug for BearerCredentialSnapshot {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("BearerCredentialSnapshot")
+            .field("generation", &self.generation())
+            .field("credential", &"[redacted]")
+            .finish()
+    }
+}
+
 pub(crate) struct CredentialStore {
-    current: RwLock<Arc<BearerToken>>,
+    current: RwLock<Arc<VersionedToken>>,
 }
 
 impl CredentialStore {
     pub(crate) fn new(token: BearerToken) -> Self {
         Self {
-            current: RwLock::new(Arc::new(token)),
+            current: RwLock::new(Arc::new(VersionedToken {
+                generation: CredentialGeneration::INITIAL,
+                token,
+            })),
         }
     }
 
-    pub(crate) fn snapshot(&self) -> Result<Arc<BearerToken>, CredentialStateError> {
+    pub(crate) fn snapshot(&self) -> Result<BearerCredentialSnapshot, CredentialStateError> {
         let current = match self.current.read() {
             Ok(current) => current,
             Err(poisoned) => {
@@ -62,11 +170,38 @@ impl CredentialStore {
                 poisoned.into_inner()
             }
         };
-        Ok(Arc::clone(&current))
+        Ok(BearerCredentialSnapshot {
+            current: Arc::clone(&current),
+        })
     }
 
-    pub(crate) fn rotate(&self, token: BearerToken) -> Result<(), CredentialStateError> {
-        let replacement = Arc::new(token);
+    pub(crate) fn rotate(
+        &self,
+        token: BearerToken,
+    ) -> Result<CredentialGeneration, CredentialUpdateError> {
+        self.replace_if(None, token).map_err(|error| match error {
+            ReplaceError::StaleGeneration => CredentialUpdateError::StateUnavailable,
+            ReplaceError::GenerationExhausted => CredentialUpdateError::GenerationExhausted,
+        })
+    }
+
+    pub(crate) fn refresh(
+        &self,
+        handoff: RefreshHandoff,
+        token: BearerToken,
+    ) -> Result<CredentialGeneration, TokenRefreshError> {
+        self.replace_if(Some(handoff), token)
+            .map_err(|error| match error {
+                ReplaceError::StaleGeneration => TokenRefreshError::StaleGeneration,
+                ReplaceError::GenerationExhausted => TokenRefreshError::GenerationExhausted,
+            })
+    }
+
+    fn replace_if(
+        &self,
+        handoff: Option<RefreshHandoff>,
+        token: BearerToken,
+    ) -> Result<CredentialGeneration, ReplaceError> {
         let retired = {
             let mut current = match self.current.write() {
                 Ok(current) => current,
@@ -75,30 +210,63 @@ impl CredentialStore {
                     poisoned.into_inner()
                 }
             };
-            core::mem::replace(&mut *current, replacement)
+            if handoff.is_some_and(|value| value.expected_generation() != current.generation) {
+                return Err(ReplaceError::StaleGeneration);
+            }
+            let generation = current.generation.checked_next().map_err(
+                |CredentialGenerationError::Exhausted| ReplaceError::GenerationExhausted,
+            )?;
+            let replacement = Arc::new(VersionedToken { generation, token });
+            (core::mem::replace(&mut *current, replacement), generation)
         };
+        let (retired, generation) = retired;
         drop(retired);
-        Ok(())
+        Ok(generation)
     }
 
     pub(crate) fn rotate_from_mut_bytes(
         &self,
         source: &mut [u8],
-    ) -> Result<(), TokenRotationError> {
+    ) -> Result<CredentialGeneration, TokenRotationError> {
         let token =
             BearerToken::from_mut_bytes(source).map_err(TokenRotationError::TokenRejected)?;
-        self.rotate(token)
-            .map_err(|_| TokenRotationError::StateUnavailable)
+        self.rotate(token).map_err(map_rotation_update)
     }
 
     pub(crate) fn rotate_from_secret_buffer(
         &self,
         source: SecretBuffer<'_>,
-    ) -> Result<(), TokenRotationError> {
+    ) -> Result<CredentialGeneration, TokenRotationError> {
         let token =
             BearerToken::from_secret_buffer(source).map_err(TokenRotationError::TokenRejected)?;
-        self.rotate(token)
-            .map_err(|_| TokenRotationError::StateUnavailable)
+        self.rotate(token).map_err(map_rotation_update)
+    }
+
+    pub(crate) fn refresh_from_mut_bytes(
+        &self,
+        handoff: RefreshHandoff,
+        source: &mut [u8],
+    ) -> Result<CredentialGeneration, TokenRefreshError> {
+        let token =
+            BearerToken::from_mut_bytes(source).map_err(TokenRefreshError::TokenRejected)?;
+        self.refresh(handoff, token)
+    }
+
+    pub(crate) fn refresh_from_secret_buffer(
+        &self,
+        handoff: RefreshHandoff,
+        source: SecretBuffer<'_>,
+    ) -> Result<CredentialGeneration, TokenRefreshError> {
+        let token =
+            BearerToken::from_secret_buffer(source).map_err(TokenRefreshError::TokenRejected)?;
+        self.refresh(handoff, token)
+    }
+}
+
+fn map_rotation_update(error: CredentialUpdateError) -> TokenRotationError {
+    match error {
+        CredentialUpdateError::StateUnavailable => TokenRotationError::StateUnavailable,
+        CredentialUpdateError::GenerationExhausted => TokenRotationError::GenerationExhausted,
     }
 }
 
@@ -108,116 +276,11 @@ impl fmt::Debug for CredentialStore {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use std::boxed::Box;
-    use std::panic::{AssertUnwindSafe, catch_unwind, resume_unwind};
-    use std::sync::{
-        Arc,
-        atomic::{AtomicUsize, Ordering},
-    };
-
-    use cloud_sdk_sanitization::SecretBuffer;
-
-    use super::{BearerToken, CredentialStore, TokenRotationError};
-
-    #[test]
-    fn mutable_and_guarded_sources_clear_on_success_and_failure() {
-        let mut valid = *b"replacement";
-        let token = BearerToken::from_mut_bytes(&mut valid);
-        assert!(token.is_ok());
-        assert_eq!(valid, [0; 11]);
-
-        let mut invalid = *b"bad token";
-        assert!(BearerToken::from_mut_bytes(&mut invalid).is_err());
-        assert_eq!(invalid, [0; 9]);
-
-        let mut guarded = *b"guarded-token";
-        let token = BearerToken::from_secret_buffer(SecretBuffer::new(&mut guarded));
-        assert!(token.is_ok());
-        assert_eq!(guarded, [0; 13]);
-    }
-
-    #[test]
-    fn rejected_rotation_preserves_the_active_token_and_clears_input() {
-        let Ok(active) = BearerToken::new("active-token") else {
-            return;
-        };
-        let store = CredentialStore::new(active);
-        let mut rejected = *b"bad token";
-        assert!(matches!(
-            store.rotate_from_mut_bytes(&mut rejected),
-            Err(TokenRotationError::TokenRejected(_))
-        ));
-        assert_eq!(rejected, [0; 9]);
-        let snapshot = store.snapshot();
-        assert!(snapshot.is_ok());
-        if let Ok(snapshot) = snapshot {
-            assert_eq!(snapshot.owned_bytes(), b"Bearer active-token");
-        }
-    }
-
-    #[test]
-    fn retired_token_drops_only_after_the_last_in_flight_snapshot() {
-        let drops = Arc::new(AtomicUsize::new(0));
-        let active = BearerToken::with_drop_probe("old-token", Arc::clone(&drops));
-        let Ok(active) = active else { return };
-        let store = CredentialStore::new(active);
-        let old_snapshot = store.snapshot();
-        let Ok(old_snapshot) = old_snapshot else {
-            return;
-        };
-        let Ok(replacement) = BearerToken::new("new-token") else {
-            return;
-        };
-
-        assert!(store.rotate(replacement).is_ok());
-        assert_eq!(drops.load(Ordering::SeqCst), 0);
-        assert_eq!(old_snapshot.owned_bytes(), b"Bearer old-token");
-        let new_snapshot = store.snapshot();
-        assert!(new_snapshot.is_ok());
-        if let Ok(new_snapshot) = new_snapshot {
-            assert_eq!(new_snapshot.owned_bytes(), b"Bearer new-token");
-        }
-        drop(old_snapshot);
-        assert_eq!(drops.load(Ordering::SeqCst), 1);
-    }
-
-    #[test]
-    fn poisoned_state_recovers_for_snapshots_and_rotations() {
-        let Ok(active) = BearerToken::new("active-token") else {
-            return;
-        };
-        let store = CredentialStore::new(active);
-
-        poison_state(&store);
-        let snapshot = store.snapshot();
-        assert!(snapshot.is_ok());
-        assert!(!store.current.is_poisoned());
-        if let Ok(snapshot) = snapshot {
-            assert_eq!(snapshot.owned_bytes(), b"Bearer active-token");
-        }
-
-        poison_state(&store);
-        let Ok(replacement) = BearerToken::new("replacement-token") else {
-            return;
-        };
-        assert!(store.rotate(replacement).is_ok());
-        assert!(!store.current.is_poisoned());
-        let snapshot = store.snapshot();
-        assert!(snapshot.is_ok());
-        if let Ok(snapshot) = snapshot {
-            assert_eq!(snapshot.owned_bytes(), b"Bearer replacement-token");
-        }
-    }
-
-    fn poison_state(store: &CredentialStore) {
-        let result = catch_unwind(AssertUnwindSafe(|| {
-            let guard = store.current.write();
-            let Ok(_guard) = guard else { return };
-            resume_unwind(Box::new(()));
-        }));
-        assert!(result.is_err());
-        assert!(store.current.is_poisoned());
-    }
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum ReplaceError {
+    StaleGeneration,
+    GenerationExhausted,
 }
+
+#[cfg(test)]
+mod tests;

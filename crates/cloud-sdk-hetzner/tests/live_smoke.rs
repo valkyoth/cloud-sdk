@@ -9,11 +9,13 @@ mod config;
 
 use std::time::Duration;
 
+use cloud_sdk::authentication::{AuthenticationScopePolicy, ScopeRequirement};
 use cloud_sdk_hetzner::official_endpoint_policy;
 use cloud_sdk_hetzner::request::{ApiBaseUrl, CLOUD_API_BASE_URL};
+use cloud_sdk_hetzner::{CLOUD_SERVICE_ID, HETZNER_PROVIDER_ID};
 use cloud_sdk_reqwest::blocking::{
-    BlockingClientBuilder, BuildError, EndpointError, HttpsEndpoint, RequestTimeouts, TimeoutError,
-    UserAgent, UserAgentError,
+    BearerCredential, BearerCredentialScope, BlockingClientBuilder, BuildError, EndpointError,
+    HttpsEndpoint, RequestTimeouts, TimeoutError, UserAgent, UserAgentError,
 };
 
 use catalog::{PROBES, ProbeFailure};
@@ -63,16 +65,33 @@ fn read_only_catalog_smoke() -> Result<(), LiveSmokeError> {
         .map_err(|_| LiveSmokeError::Endpoint(EndpointError::PolicyRejected))?;
     let endpoint = HttpsEndpoint::new_with_policy(CLOUD_API_BASE_URL, policy)
         .map_err(LiveSmokeError::Endpoint)?;
+    let policy_endpoint = endpoint.clone();
+    let endpoint_identity = policy_endpoint
+        .identity()
+        .map_err(|_| LiveSmokeError::Endpoint(EndpointError::IdentityRejected))?;
+    let credential_scope = BearerCredentialScope::unscoped()
+        .with_provider(HETZNER_PROVIDER_ID)
+        .with_service(CLOUD_SERVICE_ID)
+        .with_endpoint(endpoint.clone());
+    let credential = BearerCredential::new(token, credential_scope);
+    let authentication_policy = AuthenticationScopePolicy::new(
+        ScopeRequirement::Required(HETZNER_PROVIDER_ID),
+        ScopeRequirement::Required(CLOUD_SERVICE_ID),
+        ScopeRequirement::Required(endpoint_identity),
+        ScopeRequirement::Forbidden,
+        ScopeRequirement::Forbidden,
+        ScopeRequirement::Forbidden,
+    );
     let user_agent =
         UserAgent::new("cloud-sdk-live-smoke/0.38.0").map_err(LiveSmokeError::UserAgent)?;
     let timeouts = RequestTimeouts::new(Duration::from_secs(30), Duration::from_secs(10))
         .map_err(LiveSmokeError::Timeout)?;
-    let client = BlockingClientBuilder::new(endpoint, token, user_agent, timeouts)
+    let client = BlockingClientBuilder::new(endpoint, credential, user_agent, timeouts)
         .build()
         .map_err(LiveSmokeError::Client)?;
 
     for probe in PROBES {
-        probe.run(&client)?;
+        probe.run(&client, authentication_policy)?;
         println!("live smoke: {} passed", probe.name());
     }
     Ok(())

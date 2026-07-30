@@ -1,9 +1,11 @@
 use core::{fmt, str};
 
 use cloud_sdk::Method;
+use cloud_sdk::authentication::{
+    AuthenticatedRequest, AuthenticationScopePolicy, BlockingAuthenticatedTransport,
+};
 use cloud_sdk::transport::{
-    BlockingTransport, RequestTarget, RequestTargetError, ResponseBuffer, StatusCode,
-    TransportRequest,
+    RequestTarget, RequestTargetError, ResponseBuffer, StatusCode, TransportRequest,
 };
 use cloud_sdk_hetzner::cloud::catalog::{
     CatalogListEndpoint, CatalogListRequest, CatalogRequestError, CatalogSingletonEndpoint,
@@ -81,7 +83,11 @@ impl CatalogProbe {
         self.name
     }
 
-    pub(super) fn run(self, client: &BlockingClient) -> Result<(), ProbeFailure> {
+    pub(super) fn run(
+        self,
+        client: &BlockingClient,
+        authentication_policy: AuthenticationScopePolicy<'_>,
+    ) -> Result<(), ProbeFailure> {
         let mut target_bytes = [0_u8; MAX_TARGET_BYTES];
         let target_len = self
             .write_target(&mut target_bytes)
@@ -93,7 +99,10 @@ impl CatalogProbe {
             .map_err(|_| ProbeFailure::new(self.name, ProbeError::TargetEncoding))?;
         let target = RequestTarget::new(target_text)
             .map_err(|error| ProbeFailure::new(self.name, ProbeError::Target(error)))?;
-        let request = TransportRequest::new(Method::Get, target);
+        let request = AuthenticatedRequest::new(
+            TransportRequest::new(Method::Get, target),
+            authentication_policy,
+        );
 
         let mut response_storage = vec![0_u8; MAX_RESPONSE_BYTES];
         let mut guarded = SecretBuffer::new(response_storage.as_mut_slice());
@@ -104,7 +113,7 @@ impl CatalogProbe {
             &mut response_header_storage,
         );
         client
-            .send(request, response.writer())
+            .send_authenticated(request, response.writer())
             .map_err(|error| ProbeFailure::new(self.name, ProbeError::Transport(error)))?;
         response
             .with_response(|view| {

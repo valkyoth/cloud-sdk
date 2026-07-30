@@ -22,6 +22,7 @@ macro_rules! impl_static_error {
 }
 
 pub mod action_polling;
+pub mod authentication;
 pub mod buffer;
 mod identity;
 mod method;
@@ -40,6 +41,9 @@ pub use method::{MAX_METHOD_BYTES, Method, MethodError};
 mod tests {
     use super::{Method, MethodError, ProviderId, ServiceId};
     use crate::action_polling::ActionPollError;
+    use crate::authentication::{
+        AuthenticationScopeError, CredentialGenerationError, ScopeValueError,
+    };
     use crate::operation::{
         OperationMetadataError, PreparedExecutionError, ResponsePolicyError,
         ResponsePolicyValidationError,
@@ -72,6 +76,9 @@ mod tests {
         fn assert_error<E: core::error::Error>() {}
 
         assert_error::<PaginationError>();
+        assert_error::<AuthenticationScopeError>();
+        assert_error::<CredentialGenerationError>();
+        assert_error::<ScopeValueError>();
         assert_error::<RateLimitError>();
         assert_error::<ContentTypeError>();
         assert_error::<HeaderError>();

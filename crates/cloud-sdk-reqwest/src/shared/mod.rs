@@ -13,6 +13,7 @@ macro_rules! impl_static_error {
 }
 
 mod auth;
+mod authentication;
 mod config;
 mod content_type;
 mod credentials;
@@ -26,13 +27,18 @@ mod raw_fuzz;
 mod raw_hyper;
 #[cfg(feature = "fuzzing")]
 mod raw_wire_fuzz;
+mod scope;
 
 pub use auth::{BearerToken, BearerTokenError, MAX_BEARER_TOKEN_BYTES};
+pub(crate) use authentication::{AuthenticationValidationError, validate_bearer_authentication};
 pub use cloud_sdk::transport::CustomEndpointAcknowledgement;
 pub use config::{MAX_TIMEOUT_SECONDS, RequestTimeouts, TimeoutError, UserAgent, UserAgentError};
 pub(crate) use content_type::parse_response_content_type;
 pub(crate) use credentials::CredentialStore;
-pub use credentials::{CredentialStateError, TokenRotationError};
+pub use credentials::{
+    BearerCredentialSnapshot, CredentialStateError, CredentialUpdateError, TokenRefreshError,
+    TokenRotationError,
+};
 pub use endpoint::{EndpointError, HttpsEndpoint, MAX_CONFIGURED_ENDPOINT_BYTES};
 pub use error::{BuildError, TransportError};
 pub(crate) use headers::capture_response_headers;
@@ -56,12 +62,14 @@ pub(crate) use raw_hyper::RawHyperClient;
 pub(crate) use raw_hyper::platform_client_config;
 #[cfg(feature = "fuzzing")]
 pub use raw_wire_fuzz::fuzz_raw_http1_wire;
+pub use scope::{BearerCredential, BearerCredentialScope, BearerCredentialScopeError};
 
 #[cfg(test)]
 mod error_tests {
     use super::{
-        BearerTokenError, BuildError, CredentialStateError, EndpointError, RawHttpError,
-        RawTransportFailure, TimeoutError, TokenRotationError, TransportError, UserAgentError,
+        BearerCredentialScopeError, BearerTokenError, BuildError, CredentialStateError,
+        CredentialUpdateError, EndpointError, RawHttpError, RawTransportFailure, TimeoutError,
+        TokenRefreshError, TokenRotationError, TransportError, UserAgentError,
     };
     use std::string::ToString;
 
@@ -70,11 +78,14 @@ mod error_tests {
         fn assert_error<E: core::error::Error>() {}
 
         assert_error::<BearerTokenError>();
+        assert_error::<BearerCredentialScopeError>();
         assert_error::<BuildError>();
         assert_error::<CredentialStateError>();
+        assert_error::<CredentialUpdateError>();
         assert_error::<EndpointError>();
         assert_error::<TimeoutError>();
         assert_error::<TokenRotationError>();
+        assert_error::<TokenRefreshError>();
         assert_error::<TransportError>();
         assert_error::<UserAgentError>();
         assert_error::<RawHttpError>();

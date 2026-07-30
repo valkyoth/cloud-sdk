@@ -1,5 +1,6 @@
 use core::fmt;
 
+use bytes::Bytes;
 use cloud_sdk_sanitization::{SecretBuffer, sanitize_bytes};
 use reqwest::header::HeaderValue;
 #[cfg(test)]
@@ -41,6 +42,8 @@ pub struct BearerToken {
     authorization: Vec<u8>,
     #[cfg(test)]
     drop_probe: Option<Arc<AtomicUsize>>,
+    #[cfg(test)]
+    header_drop_probe: Option<Arc<AtomicUsize>>,
 }
 
 impl BearerToken {
@@ -93,11 +96,23 @@ impl BearerToken {
             authorization,
             #[cfg(test)]
             drop_probe: None,
+            #[cfg(test)]
+            header_drop_probe: None,
         })
     }
 
     pub(crate) fn header_value(&self) -> Result<HeaderValue, ()> {
-        let mut value = HeaderValue::from_bytes(&self.authorization).map_err(|_| ())?;
+        let mut bytes = Vec::new();
+        bytes
+            .try_reserve_exact(self.authorization.len())
+            .map_err(|_| ())?;
+        bytes.extend_from_slice(&self.authorization);
+        let owner = SanitizedHeaderValue {
+            bytes,
+            #[cfg(test)]
+            drop_probe: self.header_drop_probe.clone(),
+        };
+        let mut value = HeaderValue::from_maybe_shared(Bytes::from_owner(owner)).map_err(|_| ())?;
         value.set_sensitive(true);
         Ok(value)
     }
@@ -114,6 +129,16 @@ impl BearerToken {
     ) -> Result<Self, BearerTokenError> {
         let mut value = Self::new(token)?;
         value.drop_probe = Some(probe);
+        Ok(value)
+    }
+
+    #[cfg(test)]
+    pub(crate) fn with_header_drop_probe(
+        token: &str,
+        probe: Arc<AtomicUsize>,
+    ) -> Result<Self, BearerTokenError> {
+        let mut value = Self::new(token)?;
+        value.header_drop_probe = Some(probe);
         Ok(value)
     }
 }
@@ -136,4 +161,26 @@ impl fmt::Debug for BearerToken {
 
 const fn is_bearer_byte(byte: u8) -> bool {
     byte.is_ascii_alphanumeric() || matches!(byte, b'-' | b'.' | b'_' | b'~' | b'+' | b'/')
+}
+
+struct SanitizedHeaderValue {
+    bytes: Vec<u8>,
+    #[cfg(test)]
+    drop_probe: Option<Arc<AtomicUsize>>,
+}
+
+impl AsRef<[u8]> for SanitizedHeaderValue {
+    fn as_ref(&self) -> &[u8] {
+        &self.bytes
+    }
+}
+
+impl Drop for SanitizedHeaderValue {
+    fn drop(&mut self) {
+        sanitize_bytes(&mut self.bytes);
+        #[cfg(test)]
+        if let Some(probe) = &self.drop_probe {
+            probe.fetch_add(1, Ordering::SeqCst);
+        }
+    }
 }

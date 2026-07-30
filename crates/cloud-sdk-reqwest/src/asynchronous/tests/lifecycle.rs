@@ -4,12 +4,12 @@ use std::string::String;
 use std::time::Duration;
 
 use cloud_sdk::Method;
+use cloud_sdk::authentication::AsyncAuthenticatedTransport;
 use cloud_sdk::transport::{
-    AsyncTransport, BoundTransport, RequestTarget, ResponseBuffer, ResponseMetadata, StatusCode,
-    TransportRequest,
+    BoundTransport, RequestTarget, ResponseBuffer, ResponseMetadata, StatusCode, TransportRequest,
 };
 
-use super::{BearerToken, build_loopback, run_async_test};
+use super::{BearerToken, authenticated, build_loopback, run_async_test};
 use crate::test_server::{spawn_concurrent_pair, spawn_sequence_with_first_delay};
 
 #[test]
@@ -41,9 +41,9 @@ fn async_send_future_stays_within_explicit_state_budget() {
     let mut output = [0_u8; 1];
     let mut headers = [0_u8; 8192];
     let mut response = ResponseBuffer::new(&mut output, 1, &mut headers);
-    let future = AsyncTransport::send(
+    let future = AsyncAuthenticatedTransport::send_authenticated(
         &client,
-        TransportRequest::new(Method::Get, target),
+        authenticated(TransportRequest::new(Method::Get, target)),
         response.writer(),
     );
     let future_bytes = core::mem::size_of_val(&future);
@@ -76,9 +76,9 @@ fn async_precommitted_writer_fails_before_network_access() {
         );
         drop(attempt);
         assert_eq!(
-            AsyncTransport::send(
+            AsyncAuthenticatedTransport::send_authenticated(
                 &client,
-                TransportRequest::new(Method::Get, target),
+                authenticated(TransportRequest::new(Method::Get, target)),
                 response.writer(),
             )
             .await,

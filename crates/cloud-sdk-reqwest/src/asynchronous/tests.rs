@@ -3,18 +3,22 @@ use std::time::Duration;
 use std::vec::Vec;
 
 use cloud_sdk::Method;
+use cloud_sdk::authentication::{
+    AsyncAuthenticatedTransport, AuthenticatedRequest, AuthenticationScopePolicy, ScopeRequirement,
+};
 use cloud_sdk::rate_limit::RateLimit;
 use cloud_sdk::transport::{
-    AsyncTransport, ContentType, RequestHeader, RequestHeaders, RequestTarget, ResponseBuffer,
+    ContentType, RequestHeader, RequestHeaders, RequestTarget, ResponseBuffer,
     ResponseStorageSanitizer, StatusCode, TransportRequest, TransportResponse,
 };
 
 use super::{
-    AsyncClient, AsyncClientBuilder, BearerToken, CustomEndpointAcknowledgement, HttpsEndpoint,
-    RequestTimeouts, TransportError, UserAgent,
+    AsyncClient, AsyncClientBuilder, BearerCredential, BearerCredentialScope, BearerToken,
+    HttpsEndpoint, RequestTimeouts, TransportError, UserAgent,
 };
 use crate::test_server::{spawn, spawn_split};
 
+mod authentication_policy;
 mod lifecycle;
 mod raw_executor;
 
@@ -48,9 +52,28 @@ fn build_loopback(endpoint: &str) -> Option<AsyncClient> {
     let token = BearerToken::new("test-token").ok()?;
     let user_agent = UserAgent::new("cloud-sdk-test/0.18").ok()?;
     let timeouts = test_timeouts()?;
-    AsyncClientBuilder::new(endpoint, token, user_agent, timeouts)
+    AsyncClientBuilder::new(endpoint, test_credential(token), user_agent, timeouts)
         .build_for_loopback()
         .ok()
+}
+
+fn test_credential(token: BearerToken) -> BearerCredential {
+    BearerCredential::new(token, BearerCredentialScope::unscoped())
+}
+
+fn authenticated(request: TransportRequest<'_>) -> AuthenticatedRequest<'_, 'static> {
+    AuthenticatedRequest::new(request, test_authentication_policy())
+}
+
+const fn test_authentication_policy() -> AuthenticationScopePolicy<'static> {
+    AuthenticationScopePolicy::new(
+        ScopeRequirement::Forbidden,
+        ScopeRequirement::Forbidden,
+        ScopeRequirement::Forbidden,
+        ScopeRequirement::Forbidden,
+        ScopeRequirement::Forbidden,
+        ScopeRequirement::Forbidden,
+    )
 }
 
 struct CapturedResponse {
@@ -117,7 +140,12 @@ async fn send_test(
     let capacity = output.len();
     let mut headers = [0_u8; 8192];
     let mut response = ResponseBuffer::new(output, capacity, &mut headers);
-    AsyncTransport::send(client, request, response.writer()).await?;
+    AsyncAuthenticatedTransport::send_authenticated(
+        client,
+        authenticated(request),
+        response.writer(),
+    )
+    .await?;
     response
         .with_response(CapturedResponse::capture)
         .map_err(|_| TransportError::ResponseCommitFailed)
@@ -391,27 +419,6 @@ fn async_duplicate_rate_limit_headers_fail_closed() {
 }
 
 #[test]
-fn missing_content_type_fails_before_network_access() {
-    run_async_test(async {
-        let Some(client) = build_loopback("http://127.0.0.1:9/v1") else {
-            return;
-        };
-        let Ok(target) = RequestTarget::new("/servers") else {
-            return;
-        };
-        let mut output = [0xa5_u8; 8];
-        let result = send_test(
-            &client,
-            TransportRequest::new(Method::Post, target).with_body(b"{}"),
-            &mut output,
-        )
-        .await;
-        assert!(matches!(result, Err(TransportError::MissingContentType)));
-        assert_eq!(output, [0_u8; 8]);
-    });
-}
-
-#[test]
 fn internal_timeout_is_payload_free_and_clears_output() {
     run_async_test(async {
         let server = spawn("200 OK", &[], b"late", Duration::from_millis(100));
@@ -426,7 +433,8 @@ fn internal_timeout_is_payload_free_and_clears_output() {
             return;
         };
         let client =
-            AsyncClientBuilder::new(endpoint, token, user_agent, timeouts).build_for_loopback();
+            AsyncClientBuilder::new(endpoint, test_credential(token), user_agent, timeouts)
+                .build_for_loopback();
         let Ok(client) = client else { return };
         let Ok(target) = RequestTarget::new("/slow") else {
             return;
@@ -463,9 +471,9 @@ fn caller_cancellation_after_partial_body_never_exposes_response() {
         let mut headers = [0xa5_u8; 8192];
         {
             let mut response = ResponseBuffer::new(&mut output, 32, &mut headers);
-            let future = AsyncTransport::send(
+            let future = AsyncAuthenticatedTransport::send_authenticated(
                 &client,
-                TransportRequest::new(Method::Get, target),
+                authenticated(TransportRequest::new(Method::Get, target)),
                 response.writer(),
             );
             let result = tokio::time::timeout(Duration::from_millis(100), future).await;
@@ -474,25 +482,4 @@ fn caller_cancellation_after_partial_body_never_exposes_response() {
         assert_eq!(output, [0_u8; 32]);
         assert_eq!(headers, [0_u8; 8192]);
     });
-}
-
-#[test]
-fn async_client_debug_redacts_endpoint_and_token() {
-    let endpoint = HttpsEndpoint::new_custom(
-        "https://api.example.test/v1",
-        CustomEndpointAcknowledgement::trusted_operator_configuration(),
-    );
-    let token = BearerToken::new("secret-token");
-    let user_agent = UserAgent::new("cloud-sdk-test/0.18");
-    let timeouts = test_timeouts();
-    let (Ok(endpoint), Ok(token), Ok(user_agent), Some(timeouts)) =
-        (endpoint, token, user_agent, timeouts)
-    else {
-        return;
-    };
-    let builder = AsyncClientBuilder::new(endpoint, token, user_agent, timeouts);
-    let debug = std::format!("{builder:?}");
-    assert!(debug.contains("[redacted]"));
-    assert!(!debug.contains("secret-token"));
-    assert!(!debug.contains("api.example.test"));
 }

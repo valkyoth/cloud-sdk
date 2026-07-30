@@ -5,13 +5,16 @@ mod tests {
     use std::time::Duration;
 
     use cloud_sdk_reqwest::asynchronous::{
-        AsyncClientBuilder, BearerToken as AsyncBearerToken,
+        AsyncClientBuilder, BearerCredential as AsyncBearerCredential,
+        BearerCredentialScope as AsyncBearerCredentialScope,
+        BearerToken as AsyncBearerToken,
         CustomEndpointAcknowledgement as AsyncCustomEndpointAcknowledgement,
         HttpsEndpoint as AsyncHttpsEndpoint, RequestTimeouts as AsyncRequestTimeouts,
         UserAgent as AsyncUserAgent,
     };
     use cloud_sdk_reqwest::blocking::{
-        BearerToken, BlockingClientBuilder, CustomEndpointAcknowledgement, FipsTlsPolicy,
+        BearerCredential, BearerCredentialScope, BearerToken,
+        BlockingClientBuilder, CustomEndpointAcknowledgement, FipsTlsPolicy,
         HttpsEndpoint, RequestTimeouts, UserAgent,
     };
     use rustls::RootCertStore;
@@ -52,7 +55,12 @@ mod tests {
                 return;
             };
             assert!(
-                BlockingClientBuilder::new(endpoint, token, user_agent, timeouts)
+                BlockingClientBuilder::new(
+                    endpoint,
+                    BearerCredential::new(token, BearerCredentialScope::unscoped()),
+                    user_agent,
+                    timeouts,
+                )
                     .with_fips_tls_policy(policy)
                     .build()
                     .is_ok()
@@ -82,7 +90,15 @@ mod tests {
                     (endpoint, token, user_agent, timeouts)
                 {
                     assert!(
-                        AsyncClientBuilder::new(endpoint, token, user_agent, timeouts)
+                        AsyncClientBuilder::new(
+                            endpoint,
+                            AsyncBearerCredential::new(
+                                token,
+                                AsyncBearerCredentialScope::unscoped(),
+                            ),
+                            user_agent,
+                            timeouts,
+                        )
                             .build()
                             .is_ok()
                     );

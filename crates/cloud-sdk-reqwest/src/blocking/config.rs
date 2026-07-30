@@ -34,7 +34,7 @@ use std::vec::Vec;
 ))]
 use crate::shared::platform_client_config;
 use crate::shared::{
-    BearerToken, BuildError, HttpsEndpoint, RawHyperClient, RequestTimeouts, UserAgent,
+    BearerCredential, BuildError, HttpsEndpoint, RawHyperClient, RequestTimeouts, UserAgent,
 };
 
 use super::{BlockingClient, RawBlockingClient};
@@ -82,7 +82,7 @@ impl fmt::Debug for FipsTlsPolicy {
 /// dimensions before a client can be constructed.
 pub struct BlockingClientBuilder {
     endpoint: HttpsEndpoint,
-    token: BearerToken,
+    credential: BearerCredential,
     user_agent: UserAgent,
     timeouts: RequestTimeouts,
     #[cfg(feature = "blocking-rustls-fips")]
@@ -103,13 +103,13 @@ impl BlockingClientBuilder {
     #[must_use]
     pub const fn new(
         endpoint: HttpsEndpoint,
-        token: BearerToken,
+        credential: BearerCredential,
         user_agent: UserAgent,
         timeouts: RequestTimeouts,
     ) -> Self {
         Self {
             endpoint,
-            token,
+            credential,
             user_agent,
             timeouts,
             #[cfg(feature = "blocking-rustls-fips")]
@@ -138,7 +138,12 @@ impl BlockingClientBuilder {
             fips_tls_policy: self.fips_tls_policy.as_ref(),
         };
         let client = configured_client(settings, https_only)?;
-        Ok(BlockingClient::new(client, self.endpoint, self.token))
+        Ok(BlockingClient::new(
+            client,
+            self.endpoint,
+            self.credential,
+            !https_only,
+        ))
     }
 
     #[cfg(test)]
@@ -206,7 +211,7 @@ impl fmt::Debug for BlockingClientBuilder {
         let mut debug = formatter.debug_struct("BlockingClientBuilder");
         debug
             .field("endpoint", &"[redacted]")
-            .field("token", &"[redacted]")
+            .field("credential", &"[redacted]")
             .field("user_agent", &self.user_agent)
             .field("timeouts", &self.timeouts);
         #[cfg(feature = "blocking-rustls-fips")]

@@ -147,13 +147,18 @@ clients share one bounded HTTP/1 engine. See the complete
 # fn main() {
 use std::time::Duration;
 
-use cloud_sdk::Method;
+use cloud_sdk::{Method, ProviderId, ServiceId};
+use cloud_sdk::authentication::{
+    AuthenticatedRequest, AuthenticationScopePolicy,
+    BlockingAuthenticatedTransport, ScopeRequirement,
+};
 use cloud_sdk::transport::{
-    BlockingTransport, RequestTarget, ResponseBuffer, TransportRequest,
+    RequestTarget, ResponseBuffer, TransportRequest,
 };
 use cloud_sdk_reqwest::blocking::{
-    BearerToken, BlockingClientBuilder, CustomEndpointAcknowledgement,
-    HttpsEndpoint, RequestTimeouts, UserAgent,
+    BearerCredential, BearerCredentialScope, BearerToken,
+    BlockingClientBuilder, CustomEndpointAcknowledgement, HttpsEndpoint,
+    RequestTimeouts, UserAgent,
 };
 
 // Custom endpoints are bearer-token destinations. Keep this value in trusted
@@ -163,17 +168,38 @@ let acknowledgement =
 let Ok(endpoint) =
     HttpsEndpoint::new_custom("https://api.hetzner.cloud/v1", acknowledgement)
 else { return };
+let Ok(provider) = ProviderId::new("hetzner") else { return };
+let Ok(service) = ServiceId::new("cloud") else { return };
+let policy_endpoint = endpoint.clone();
+let Ok(endpoint_identity) = policy_endpoint.identity() else { return };
 let Ok(token) = BearerToken::new("replace-with-scoped-token") else { return };
+let credential_scope = BearerCredentialScope::unscoped()
+    .with_provider(provider)
+    .with_service(service)
+    .with_endpoint(endpoint.clone());
+let credential = BearerCredential::new(token, credential_scope);
+let authentication_policy = AuthenticationScopePolicy::new(
+    ScopeRequirement::Required(provider),
+    ScopeRequirement::Required(service),
+    ScopeRequirement::Required(endpoint_identity),
+    ScopeRequirement::Forbidden,
+    ScopeRequirement::Forbidden,
+    ScopeRequirement::Forbidden,
+);
 let Ok(user_agent) = UserAgent::new("my-service/1.0") else { return };
 let Ok(timeouts) = RequestTimeouts::new(
     Duration::from_secs(30),
     Duration::from_secs(10),
 ) else { return };
-let Ok(client) = BlockingClientBuilder::new(endpoint, token, user_agent, timeouts).build()
+let Ok(client) =
+    BlockingClientBuilder::new(endpoint, credential, user_agent, timeouts).build()
 else { return };
 
 let Ok(target) = RequestTarget::new("/servers?page=1") else { return };
-let request = TransportRequest::new(Method::Get, target);
+let request = AuthenticatedRequest::new(
+    TransportRequest::new(Method::Get, target),
+    authentication_policy,
+);
 let mut response_body = [0_u8; 65_536];
 let response_capacity = response_body.len();
 let mut response_headers = [0_u8; cloud_sdk::transport::MAX_RESPONSE_HEADER_BYTES];
@@ -182,7 +208,7 @@ let mut response = ResponseBuffer::new(
     response_capacity,
     &mut response_headers,
 );
-if client.send(request, response.writer()).is_err() {
+if client.send_authenticated(request, response.writer()).is_err() {
     return;
 }
 
@@ -285,13 +311,16 @@ create or own a runtime. Call it from an active Tokio executor:
 # async fn example() {
 use std::time::Duration;
 
-use cloud_sdk::Method;
-use cloud_sdk::transport::{
-    AsyncTransport, RequestTarget, ResponseBuffer, TransportRequest,
+use cloud_sdk::{Method, ProviderId, ServiceId};
+use cloud_sdk::authentication::{
+    AsyncAuthenticatedTransport, AuthenticatedRequest,
+    AuthenticationScopePolicy, ScopeRequirement,
 };
+use cloud_sdk::transport::{RequestTarget, ResponseBuffer, TransportRequest};
 use cloud_sdk_reqwest::asynchronous::{
-    AsyncClientBuilder, BearerToken, CustomEndpointAcknowledgement,
-    HttpsEndpoint, RequestTimeouts, UserAgent,
+    AsyncClientBuilder, BearerCredential, BearerCredentialScope,
+    BearerToken, CustomEndpointAcknowledgement, HttpsEndpoint,
+    RequestTimeouts, UserAgent,
 };
 
 // Custom endpoints are bearer-token destinations. Keep this value in trusted
@@ -301,17 +330,38 @@ let acknowledgement =
 let Ok(endpoint) =
     HttpsEndpoint::new_custom("https://api.hetzner.cloud/v1", acknowledgement)
 else { return };
+let Ok(provider) = ProviderId::new("hetzner") else { return };
+let Ok(service) = ServiceId::new("cloud") else { return };
+let policy_endpoint = endpoint.clone();
+let Ok(endpoint_identity) = policy_endpoint.identity() else { return };
 let Ok(token) = BearerToken::new("replace-with-scoped-token") else { return };
+let credential_scope = BearerCredentialScope::unscoped()
+    .with_provider(provider)
+    .with_service(service)
+    .with_endpoint(endpoint.clone());
+let credential = BearerCredential::new(token, credential_scope);
+let authentication_policy = AuthenticationScopePolicy::new(
+    ScopeRequirement::Required(provider),
+    ScopeRequirement::Required(service),
+    ScopeRequirement::Required(endpoint_identity),
+    ScopeRequirement::Forbidden,
+    ScopeRequirement::Forbidden,
+    ScopeRequirement::Forbidden,
+);
 let Ok(user_agent) = UserAgent::new("my-service/1.0") else { return };
 let Ok(timeouts) = RequestTimeouts::new(
     Duration::from_secs(30),
     Duration::from_secs(10),
 ) else { return };
-let Ok(client) = AsyncClientBuilder::new(endpoint, token, user_agent, timeouts).build()
+let Ok(client) =
+    AsyncClientBuilder::new(endpoint, credential, user_agent, timeouts).build()
 else { return };
 
 let Ok(target) = RequestTarget::new("/servers?page=1") else { return };
-let request = TransportRequest::new(Method::Get, target);
+let request = AuthenticatedRequest::new(
+    TransportRequest::new(Method::Get, target),
+    authentication_policy,
+);
 let mut response_body = [0_u8; 65_536];
 let response_capacity = response_body.len();
 let mut response_headers = [0_u8; cloud_sdk::transport::MAX_RESPONSE_HEADER_BYTES];
@@ -320,7 +370,11 @@ let mut response = ResponseBuffer::new(
     response_capacity,
     &mut response_headers,
 );
-if AsyncTransport::send(&client, request, response.writer())
+if AsyncAuthenticatedTransport::send_authenticated(
+    &client,
+    request,
+    response.writer(),
+)
     .await
     .is_err()
 {
@@ -362,11 +416,13 @@ and response buffer remains caller-owned. The SDK does not create tasks,
 queues, semaphores, retries, sleeps, or an executor; callers must bound their
 own blocking threads or async task sets.
 
-Both core transport traits send through `&self`. A request takes a short-lived
-token snapshot before I/O and releases the credential lock before network work
-or `.await`. Rotation changes the token for newly started requests atomically;
-an in-flight request keeps its previous snapshot, and retired adapter-owned
-storage is sanitized after its last snapshot is dropped.
+Both authenticated transport traits send through `&self` and require a complete
+provider or operation-owned authentication policy. Scope validation completes
+before header construction. A successful request then takes a short-lived token
+snapshot and releases the credential lock before network work or `.await`.
+Rotation changes the token for newly started requests atomically; an in-flight
+request keeps its previous snapshot, and retired adapter-owned token and header
+storage is sanitized after its last owner is dropped.
 
 ```rust,no_run
 # #[cfg(feature = "blocking-rustls")]
@@ -385,6 +441,14 @@ let mut replacement = *b"replace-with-scoped-token";
 let result = client.rotate_bearer_token_from_mut_bytes(&mut replacement);
 assert!(result.is_ok());
 assert!(replacement.iter().all(|byte| *byte == 0));
+
+let Ok(snapshot) = client.credential_snapshot() else { return };
+let handoff = snapshot.refresh_handoff();
+let mut refreshed = *b"new-refreshed-token";
+let refreshed_generation =
+    client.refresh_bearer_token_from_mut_bytes(handoff, &mut refreshed);
+assert!(refreshed_generation.is_ok());
+assert!(refreshed.iter().all(|byte| *byte == 0));
 # }
 # fn main() {}
 ```
@@ -397,6 +461,12 @@ every return path. The compatibility `BearerToken::new(&str)` constructor
 cannot clear its immutable source. Construct a replacement before calling
 `rotate_bearer_token`, or use one of the source-clearing rotation methods;
 rejected input leaves the active credential unchanged.
+
+Refresh uses compare-and-swap generation handoffs. If rotation or another
+refresh wins while an external acquisition is in progress, the stale refresh
+is rejected and cannot overwrite the newer token. The SDK supplies no clock,
+expiry decision, acquisition future, executor, or secret store; callers own
+those policies and pass only the resulting token and captured handoff.
 
 ## Enforced Policy
 

@@ -1,8 +1,8 @@
 use std::time::Duration;
 
 use super::{
-    BearerToken, BlockingClientBuilder, CustomEndpointAcknowledgement, HttpsEndpoint,
-    RequestTimeouts, UserAgent,
+    BearerCredential, BearerCredentialScope, BearerToken, BlockingClientBuilder,
+    CustomEndpointAcknowledgement, HttpsEndpoint, RequestTimeouts, UserAgent,
 };
 
 #[test]
@@ -26,8 +26,13 @@ fn deterministic_root_client_builds_without_platform_state() {
         return;
     };
     assert!(
-        BlockingClientBuilder::new(endpoint, token, user_agent, timeouts)
-            .build()
-            .is_ok()
+        BlockingClientBuilder::new(
+            endpoint,
+            BearerCredential::new(token, BearerCredentialScope::unscoped()),
+            user_agent,
+            timeouts,
+        )
+        .build()
+        .is_ok()
     );
 }

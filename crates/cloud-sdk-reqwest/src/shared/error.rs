@@ -44,6 +44,12 @@ impl_static_error!(BuildError,
 pub enum TransportError {
     /// The shared credential state could not be read safely.
     CredentialStateUnavailable,
+    /// Authentication was attempted against a non-HTTPS endpoint.
+    InsecureAuthenticationEndpoint,
+    /// The operation authentication endpoint differs from the configured endpoint.
+    AuthenticationEndpointMismatch,
+    /// The credential scope failed provider or operation policy.
+    AuthenticationScopeRejected,
     /// The target could not be composed without parsing or normalization.
     TargetRejected,
     /// The validated SDK method could not be represented by the HTTP implementation.
@@ -84,6 +90,9 @@ pub enum TransportError {
 
 impl_static_error!(TransportError,
     Self::CredentialStateUnavailable => "credential state is unavailable",
+    Self::InsecureAuthenticationEndpoint => "authenticated transport endpoint is not HTTPS",
+    Self::AuthenticationEndpointMismatch => "authentication endpoint differs from transport endpoint",
+    Self::AuthenticationScopeRejected => "bearer credential scope was rejected",
     Self::TargetRejected => "request target was rejected",
     Self::MethodRejected => "request method was rejected",
     Self::MissingContentType => "request body content type is missing",

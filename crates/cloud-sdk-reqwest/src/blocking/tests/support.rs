@@ -1,11 +1,11 @@
 use std::{string::String, vec::Vec};
 
+use cloud_sdk::authentication::BlockingAuthenticatedTransport;
 use cloud_sdk::rate_limit::RateLimit;
-use cloud_sdk::transport::{
-    BlockingTransport, ResponseBuffer, StatusCode, TransportRequest, TransportResponse,
-};
+use cloud_sdk::transport::{ResponseBuffer, StatusCode, TransportRequest, TransportResponse};
 
 use super::super::{BlockingClient, TransportError};
+use super::authenticated;
 
 pub(super) struct CapturedResponse {
     status: StatusCode,
@@ -71,7 +71,11 @@ pub(super) fn send_test(
     let capacity = output.len();
     let mut headers = [0_u8; 8192];
     let mut response = ResponseBuffer::new(output, capacity, &mut headers);
-    BlockingTransport::send(client, request, response.writer())?;
+    BlockingAuthenticatedTransport::send_authenticated(
+        client,
+        authenticated(request),
+        response.writer(),
+    )?;
     response
         .with_response(CapturedResponse::capture)
         .map_err(|_| TransportError::ResponseCommitFailed)
