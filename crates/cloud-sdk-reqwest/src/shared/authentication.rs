@@ -1,5 +1,6 @@
 use cloud_sdk::authentication::{AuthenticationScopePolicy, ScopeRequirement};
 use cloud_sdk::transport::{EndpointIdentity, EndpointScheme};
+use std::net::IpAddr;
 
 use super::BearerCredentialScope;
 
@@ -16,7 +17,11 @@ pub(crate) fn validate_bearer_authentication<'a>(
     policy: AuthenticationScopePolicy<'a>,
     allow_insecure_loopback: bool,
 ) -> Result<(), AuthenticationValidationError> {
-    if endpoint.scheme() != EndpointScheme::Https && !allow_insecure_loopback {
+    let secure_destination = endpoint.scheme() == EndpointScheme::Https;
+    let admitted_test_loopback = allow_insecure_loopback
+        && endpoint.scheme() == EndpointScheme::Http
+        && is_numeric_loopback(endpoint.host());
+    if !secure_destination && !admitted_test_loopback {
         return Err(AuthenticationValidationError::InsecureEndpoint);
     }
     match policy.endpoint_requirement() {
@@ -35,6 +40,14 @@ pub(crate) fn validate_bearer_authentication<'a>(
     policy
         .validate(credential_scope)
         .map_err(|_| AuthenticationValidationError::ScopeRejected)
+}
+
+fn is_numeric_loopback(host: &str) -> bool {
+    let address = host
+        .strip_prefix('[')
+        .and_then(|value| value.strip_suffix(']'))
+        .unwrap_or(host);
+    address.parse::<IpAddr>().is_ok_and(|ip| ip.is_loopback())
 }
 
 #[cfg(test)]
@@ -69,6 +82,17 @@ mod tests {
             ScopeRequirement::Required(provider()),
             ScopeRequirement::Required(service()),
             ScopeRequirement::Required(endpoint),
+            ScopeRequirement::Forbidden,
+            ScopeRequirement::Forbidden,
+            ScopeRequirement::Forbidden,
+        )
+    }
+
+    fn unscoped_policy() -> AuthenticationScopePolicy<'static> {
+        AuthenticationScopePolicy::new(
+            ScopeRequirement::Forbidden,
+            ScopeRequirement::Forbidden,
+            ScopeRequirement::Forbidden,
             ScopeRequirement::Forbidden,
             ScopeRequirement::Forbidden,
             ScopeRequirement::Forbidden,
@@ -151,5 +175,37 @@ mod tests {
             ),
             Err(AuthenticationValidationError::InsecureEndpoint)
         );
+    }
+
+    #[test]
+    fn test_exception_admits_only_numeric_http_loopback_destinations() {
+        let credential = BearerCredentialScope::unscoped();
+        for host in ["127.0.0.1", "[::1]"] {
+            let identity = cloud_sdk::transport::EndpointIdentity::new(
+                cloud_sdk::transport::EndpointScheme::Http,
+                host,
+                3000,
+                "/v1",
+            )
+            .unwrap_or_else(|_| unreachable!());
+            assert_eq!(
+                validate_bearer_authentication(identity, &credential, unscoped_policy(), true,),
+                Ok(())
+            );
+        }
+
+        for host in ["192.0.2.1", "localhost", "api.example.test"] {
+            let identity = cloud_sdk::transport::EndpointIdentity::new(
+                cloud_sdk::transport::EndpointScheme::Http,
+                host,
+                3000,
+                "/v1",
+            )
+            .unwrap_or_else(|_| unreachable!());
+            assert_eq!(
+                validate_bearer_authentication(identity, &credential, unscoped_policy(), true,),
+                Err(AuthenticationValidationError::InsecureEndpoint)
+            );
+        }
     }
 }

@@ -179,10 +179,14 @@ impl CredentialStore {
         &self,
         token: BearerToken,
     ) -> Result<CredentialGeneration, CredentialUpdateError> {
-        self.replace_if(None, token).map_err(|error| match error {
-            ReplaceError::StaleGeneration => CredentialUpdateError::StateUnavailable,
-            ReplaceError::GenerationExhausted => CredentialUpdateError::GenerationExhausted,
-        })
+        let retired = {
+            let mut current = self.write_current();
+            replace_current(&mut current, token)
+                .map_err(|_| CredentialUpdateError::GenerationExhausted)?
+        };
+        let (retired, generation) = retired;
+        drop(retired);
+        Ok(generation)
     }
 
     pub(crate) fn refresh(
@@ -190,38 +194,27 @@ impl CredentialStore {
         handoff: RefreshHandoff,
         token: BearerToken,
     ) -> Result<CredentialGeneration, TokenRefreshError> {
-        self.replace_if(Some(handoff), token)
-            .map_err(|error| match error {
-                ReplaceError::StaleGeneration => TokenRefreshError::StaleGeneration,
-                ReplaceError::GenerationExhausted => TokenRefreshError::GenerationExhausted,
-            })
-    }
-
-    fn replace_if(
-        &self,
-        handoff: Option<RefreshHandoff>,
-        token: BearerToken,
-    ) -> Result<CredentialGeneration, ReplaceError> {
         let retired = {
-            let mut current = match self.current.write() {
-                Ok(current) => current,
-                Err(poisoned) => {
-                    self.current.clear_poison();
-                    poisoned.into_inner()
-                }
-            };
-            if handoff.is_some_and(|value| value.expected_generation() != current.generation) {
-                return Err(ReplaceError::StaleGeneration);
+            let mut current = self.write_current();
+            if handoff.expected_generation() != current.generation {
+                return Err(TokenRefreshError::StaleGeneration);
             }
-            let generation = current.generation.checked_next().map_err(
-                |CredentialGenerationError::Exhausted| ReplaceError::GenerationExhausted,
-            )?;
-            let replacement = Arc::new(VersionedToken { generation, token });
-            (core::mem::replace(&mut *current, replacement), generation)
+            replace_current(&mut current, token)
+                .map_err(|_| TokenRefreshError::GenerationExhausted)?
         };
         let (retired, generation) = retired;
         drop(retired);
         Ok(generation)
+    }
+
+    fn write_current(&self) -> std::sync::RwLockWriteGuard<'_, Arc<VersionedToken>> {
+        match self.current.write() {
+            Ok(current) => current,
+            Err(poisoned) => {
+                self.current.clear_poison();
+                poisoned.into_inner()
+            }
+        }
     }
 
     pub(crate) fn rotate_from_mut_bytes(
@@ -276,10 +269,13 @@ impl fmt::Debug for CredentialStore {
     }
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-enum ReplaceError {
-    StaleGeneration,
-    GenerationExhausted,
+fn replace_current(
+    current: &mut Arc<VersionedToken>,
+    token: BearerToken,
+) -> Result<(Arc<VersionedToken>, CredentialGeneration), CredentialGenerationError> {
+    let generation = current.generation.checked_next()?;
+    let replacement = Arc::new(VersionedToken { generation, token });
+    Ok((core::mem::replace(current, replacement), generation))
 }
 
 #[cfg(test)]
