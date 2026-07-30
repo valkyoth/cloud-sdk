@@ -1,6 +1,6 @@
 # Canonical Signing Input Policy
 
-Status: v0.42.0 implementation stop; pentest required.
+Status: v0.42.0 release candidate; pentest and final retest passed.
 
 ## Boundary
 

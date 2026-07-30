@@ -1,6 +1,6 @@
 # Authentication Policy
 
-Status: v0.42.0 implementation stop; pentest required.
+Status: v0.42.0 release candidate; pentest and final retest passed.
 
 The authentication layer is separate from credential-free raw HTTP execution. Core
 defines scope, generation, and authenticated transport contracts without

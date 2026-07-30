@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.42.0 - Unreleased
+## 0.42.0 - 2026-07-30
 
 - Added type-separated bounded Basic credentials and blocking/async
   authenticated reqwest clients.

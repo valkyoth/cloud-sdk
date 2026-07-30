@@ -1,8 +1,9 @@
 # cloud-sdk 0.42.0 Release Notes
 
-Status: implementation stop reached; pentest required.
+Status: release candidate; pentest and final retest passed. Local and GitHub
+release checks remain required before tagging.
 
-Release date: pending
+Release date: 2026-07-30
 
 ## Overview
 
@@ -80,8 +81,21 @@ default and std-only graphs.
 - [`docs/PUBLIC_API_REVIEW_0.42.0.md`](../docs/PUBLIC_API_REVIEW_0.42.0.md)
 - [`docs/DEPENDENCY_REVIEW_0.42.0.md`](../docs/DEPENDENCY_REVIEW_0.42.0.md)
 
+## Pentest
+
+The iterative v0.42 pentest reviewed Basic authorization ownership and
+cleanup, canonical signing domain separation, exact request/body coupling,
+algorithm binding, endpoint identity canonicalization, signer output
+validation, transactional cleanup, and regression-test integrity. Findings
+were remediated and regression-tested.
+
+The final retest passed commit
+`faeb5d01c0d7c9fac717beeb743f5ddf4170a680`. See the
+[`v0.42.0` pentest report](../security/pentest/v0.42.0.md).
+
 ## Release Gate
 
 ```text
-v0.42.0 implementation stop reached. Run pentest for this exact commit.
+v0.42.0 pentest stop passed. Tag only after the clean local release gate and
+GitHub checks pass on the final release commit.
 ```

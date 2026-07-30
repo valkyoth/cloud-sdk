@@ -1,7 +1,7 @@
 # Crate Version Matrix
 
 Status: `v0.41.0` is tagged. `v0.42.0` Basic authentication and canonical
-signing input policy is at implementation stop; pentest is required.
+signing input policy is a release candidate; pentest and final retest passed.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared

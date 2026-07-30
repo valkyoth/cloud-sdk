@@ -1658,7 +1658,7 @@ Stop gate: `v0.41.0 implementation stop reached. Run pentest for this exact comm
 
 ### v0.42.0 - Basic And Signing Input Policies
 
-Status: implementation stop reached; pentest required.
+Status: release candidate; pentest and final retest passed.
 
 Goal: support non-bearer providers without embedding provider signing in transports.
 
