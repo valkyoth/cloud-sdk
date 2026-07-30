@@ -1,27 +1,27 @@
 [release]
-version = "0.41.0"
+version = "0.42.0"
 policy = "independent"
 
 [crates."cloud-sdk"]
-previous_version = "0.40.0"
-version = "0.41.0"
+previous_version = "0.41.0"
+version = "0.42.0"
 change = "code"
 publish = true
-reason = "Add provider-neutral bearer authentication scope and generation contracts."
+reason = "Add bounded provider-neutral canonical signing input contracts."
 
 [crates."cloud-sdk-hetzner"]
-previous_version = "0.32.1"
-version = "0.32.2"
+previous_version = "0.32.2"
+version = "0.32.3"
 change = "dependency"
 publish = true
-reason = "Update the cloud-sdk dependency to the v0.41 facade line."
+reason = "Update the cloud-sdk dependency to the v0.42 facade line."
 
 [crates."cloud-sdk-reqwest"]
-previous_version = "0.27.0"
-version = "0.28.0"
+previous_version = "0.28.0"
+version = "0.29.0"
 change = "code"
 publish = true
-reason = "Add scoped bearer authentication, generation-safe refresh, and secret cleanup."
+reason = "Add scoped Basic credentials and blocking and async authenticated clients."
 
 [crates."cloud-sdk-sanitization"]
 previous_version = "0.16.0"
@@ -31,8 +31,8 @@ publish = false
 reason = "No code, dependency, or package metadata changes."
 
 [crates."cloud-sdk-testkit"]
-previous_version = "0.24.0"
-version = "0.24.1"
+previous_version = "0.24.1"
+version = "0.24.2"
 change = "dependency"
 publish = true
-reason = "Update the cloud-sdk dependency to the v0.41 facade line."
+reason = "Update the cloud-sdk dependency to the v0.42 facade line."

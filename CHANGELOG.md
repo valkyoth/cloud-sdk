@@ -1,6 +1,21 @@
 # Changelog
 
-## 0.41.0 - Unreleased
+## 0.42.0 - Unreleased
+
+- Added type-separated bounded Basic credentials and blocking/async
+  authenticated reqwest clients.
+- Applied complete provider, service, endpoint, audience, account, and tenant
+  scope policy to Basic authorization before header or network work.
+- Added cleanup ownership for mutable sources, Basic intermediates, encoded
+  authorization storage, and header copies.
+- Added versioned bounded canonical signing inputs with caller-owned hashing,
+  signing, nonce, time, keys, and algorithms.
+- Added a credential-free Robot wire source lock covering repeated forms,
+  errors, quotas, maintenance, lockout policy, and empty success bodies.
+- Admitted exact optional `base64-ng 1.3.9` only in explicit transport
+  feature graphs.
+
+## 0.41.0 - 2026-07-30
 
 - Added provider-neutral bearer authentication scope and mandatory
   authenticated transport contracts.

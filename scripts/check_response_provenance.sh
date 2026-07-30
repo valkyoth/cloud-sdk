@@ -38,18 +38,30 @@ done
 
 for adapter in \
     crates/cloud-sdk-reqwest/src/blocking/client.rs \
-    crates/cloud-sdk-reqwest/src/asynchronous/client.rs \
-    crates/cloud-sdk-testkit/src/mock.rs; do
+    crates/cloud-sdk-reqwest/src/asynchronous/client.rs; do
     if ! grep -Fq '.commit(' "$adapter"; then
         echo "response provenance: writer commit missing from $adapter" >&2
         exit 1
     fi
-    if ! grep -Fq '.is_committed()' "$adapter"; then
-        echo "response provenance: precommitted writer check missing from $adapter" >&2
-        exit 1
-    fi
     if ! grep -Fq '.begin_attempt()' "$adapter"; then
         echo "response provenance: response attempt missing from $adapter" >&2
+        exit 1
+    fi
+done
+
+mock=crates/cloud-sdk-testkit/src/mock.rs
+for required in '.commit(' '.is_committed()' '.begin_attempt()'; do
+    if ! grep -Fq "$required" "$mock"; then
+        echo "response provenance: missing $required from $mock" >&2
+        exit 1
+    fi
+done
+
+for regression in \
+    crates/cloud-sdk-reqwest/src/blocking/tests/lifecycle.rs \
+    crates/cloud-sdk-reqwest/src/asynchronous/tests/lifecycle.rs; do
+    if ! grep -Fq 'precommitted_writer_fails_before_network_access' "$regression"; then
+        echo "response provenance: precommitted regression missing from $regression" >&2
         exit 1
     fi
 done

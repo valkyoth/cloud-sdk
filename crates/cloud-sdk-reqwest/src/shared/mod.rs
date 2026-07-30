@@ -83,10 +83,10 @@ pub(crate) use secret_header::sensitive_header_value_with_probe;
 #[cfg(test)]
 mod error_tests {
     use super::{
-        BasicCredentialError, BasicPasswordError, BasicUsernameError, BearerCredentialScopeError,
-        BearerTokenError, BuildError, CredentialStateError, CredentialUpdateError, EndpointError,
-        RawHttpError, RawTransportFailure, TimeoutError, TokenRefreshError, TokenRotationError,
-        TransportError, UserAgentError,
+        BasicCredentialError, BasicCredentialScopeError, BasicPasswordError, BasicUsernameError,
+        BearerCredentialScopeError, BearerTokenError, BuildError, CredentialStateError,
+        CredentialUpdateError, EndpointError, RawHttpError, RawTransportFailure, TimeoutError,
+        TokenRefreshError, TokenRotationError, TransportError, UserAgentError,
     };
     use std::string::ToString;
 
@@ -98,6 +98,7 @@ mod error_tests {
         assert_error::<BasicUsernameError>();
         assert_error::<BasicPasswordError>();
         assert_error::<BasicCredentialError>();
+        assert_error::<BasicCredentialScopeError>();
         assert_error::<BearerCredentialScopeError>();
         assert_error::<BuildError>();
         assert_error::<CredentialStateError>();

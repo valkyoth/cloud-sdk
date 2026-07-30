@@ -120,8 +120,8 @@ Portable and native platform evidence is documented in
 
 ```toml
 [dependencies]
-cloud-sdk = "0.41.0"
-cloud-sdk-hetzner = "0.32.2"
+cloud-sdk = "0.42.0"
+cloud-sdk-hetzner = "0.32.3"
 ```
 
 ## cloud-sdk Features
@@ -142,7 +142,9 @@ visible. Applications should enable only the features they use.
 - [Hetzner live smoke testing](https://github.com/valkyoth/cloud-sdk/blob/main/docs/LIVE_SMOKE_TESTING.md)
 - [Security recipes](https://github.com/valkyoth/cloud-sdk/blob/main/docs/SECURITY_RECIPES.md)
 - [Raw bounded HTTP executor](https://github.com/valkyoth/cloud-sdk/blob/main/docs/RAW_HTTP_EXECUTOR.md)
-- [Bearer authentication policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/AUTHENTICATION_POLICY.md)
+- [Bearer and Basic authentication policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/AUTHENTICATION_POLICY.md)
+- [Canonical signing input policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/SIGNING_INPUT_POLICY.md)
+- [Robot wire source lock](https://github.com/valkyoth/cloud-sdk/blob/main/docs/ROBOT_WIRE_SOURCE_LOCK.md)
 - [Release runbook](https://github.com/valkyoth/cloud-sdk/blob/main/docs/RELEASE_RUNBOOK.md)
 - [Versioning and error policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/VERSIONING_POLICY.md)
 - [Migrating to v0.29](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.29.0.md)
@@ -158,6 +160,7 @@ visible. Applications should enable only the features they use.
 - [Migrating to v0.39](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.39.0.md)
 - [Migrating to v0.40](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.40.0.md)
 - [Migrating to v0.41](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.41.0.md)
+- [Migrating to v0.42](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.42.0.md)
 - [Deprecated endpoint policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/DEPRECATED_ENDPOINT_POLICY.md)
 
 ## Provider-Neutral Quickstart
@@ -251,6 +254,44 @@ and cannot alias known methods. CONNECT, TRACE, `OPTIONS *`, protocol upgrade,
 and tunnelling are outside the current transport contract. Retry, destructive,
 and cost behavior always comes from explicit operation metadata, never the
 method.
+
+### Canonical Signing Inputs
+
+Provider signing policy can bind exact request bytes without making core own a
+clock, nonce generator, key, or algorithm:
+
+```rust
+use cloud_sdk::{Method};
+use cloud_sdk::authentication::{
+    CanonicalSigningInput, SigningBodyDigest, SigningHeaders, SigningNonce,
+    UnixTime,
+};
+use cloud_sdk::transport::{RequestHeaders, RequestTarget, TransportRequest};
+
+let target = RequestTarget::new("/resources?page=1")?;
+let entries = [];
+let headers = RequestHeaders::new(&entries)?;
+let request =
+    TransportRequest::new(Method::Get, target).with_headers(headers);
+let digest = SigningBodyDigest::new(&[0_u8; 32])?;
+let nonce = SigningNonce::new(b"caller-generated-nonce")?;
+let selected = SigningHeaders::new(&entries)?;
+let mut storage = [0_u8; 512];
+let canonical = CanonicalSigningInput::new(
+    request,
+    selected,
+    digest,
+    nonce,
+    UnixTime::from_seconds(1_700_000_000),
+    &mut storage,
+)?;
+
+assert!(canonical.as_bytes().starts_with(b"cloud-sdk-signing-v1\0"));
+# Ok::<(), Box<dyn core::error::Error>>(())
+```
+
+The cleanup-owning view clears the complete storage buffer on drop. Provider
+code must select hashing, signing, replay, nonce, timestamp, and key policy.
 
 ### Provider-Owned Identity
 
@@ -376,21 +417,21 @@ without changing the default allocation-free graph.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.41.0"
-cloud-sdk-reqwest = { version = "0.28.0", features = ["blocking-rustls"] }
+cloud-sdk = "0.42.0"
+cloud-sdk-reqwest = { version = "0.29.0", features = ["blocking-rustls"] }
 ```
 
 The production builder is HTTPS-only, requires explicit bounded timeouts and a
 user agent, uses rustls with TLS 1.2 minimum, and disables redirects, retries,
 proxies, referer generation, and response decompression. It forces HTTP/1 and
 the system resolver even if another dependency enables reqwest HTTP/2 or
-Hickory DNS. The caller owns token generation, scope, rotation, revocation,
-and cleanup of immutable secret sources. Mutable and guarded token constructors
-clear their complete source buffers. Cloneable clients support caller-bounded
-concurrency and atomic rotation without holding credential locks across I/O.
-Every authenticated send requires complete provider or operation-owned scope;
-see the
-[bearer authentication policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/AUTHENTICATION_POLICY.md).
+Hickory DNS. The caller owns credential generation, scope, rotation,
+revocation, and cleanup of immutable secret sources. Mutable and guarded
+constructors clear their complete source buffers. Type-separated bearer and
+Basic clients support caller-bounded concurrency. Bearer clients additionally
+support atomic rotation without holding credential locks across I/O. Every
+authenticated send requires complete provider or operation-owned scope; see
+the [authentication policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/AUTHENTICATION_POLICY.md).
 
 See the complete, compile-checked
 [`cloud-sdk-reqwest` blocking example](https://docs.rs/cloud-sdk-reqwest/latest/cloud_sdk_reqwest/#blocking-example)
@@ -403,8 +444,8 @@ when deterministic public WebPKI roots are required:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.41.0"
-cloud-sdk-reqwest = { version = "0.28.0", features = ["blocking-rustls-webpki-roots"] }
+cloud-sdk = "0.42.0"
+cloud-sdk-reqwest = { version = "0.29.0", features = ["blocking-rustls-webpki-roots"] }
 ```
 
 The blocking API is unchanged. This feature excludes host-added enterprise
@@ -420,8 +461,8 @@ feature instead of relying on dependency feature unification:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.41.0"
-cloud-sdk-reqwest = { version = "0.28.0", features = ["blocking-rustls-fips"] }
+cloud-sdk = "0.42.0"
+cloud-sdk-reqwest = { version = "0.29.0", features = ["blocking-rustls-fips"] }
 ```
 
 Client construction explicitly selects rustls' AWS-LC FIPS provider and fails
@@ -439,8 +480,8 @@ example is in the
 
 ```toml
 [dependencies]
-cloud-sdk = "0.41.0"
-cloud-sdk-reqwest = { version = "0.28.0", features = ["async-rustls"] }
+cloud-sdk = "0.42.0"
+cloud-sdk-reqwest = { version = "0.29.0", features = ["async-rustls"] }
 ```
 
 The async adapter requires an active Tokio executor because reqwest uses Tokio

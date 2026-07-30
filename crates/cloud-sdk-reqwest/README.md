@@ -38,8 +38,8 @@ provider without adding transport dependencies to provider crates.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.41.0"
-cloud-sdk-reqwest = { version = "0.28.0", features = ["blocking-rustls"] }
+cloud-sdk = "0.42.0"
+cloud-sdk-reqwest = { version = "0.29.0", features = ["blocking-rustls"] }
 ```
 
 The examples use Hetzner as a concrete endpoint, but the adapter contains no
@@ -54,7 +54,7 @@ Endpoint trust construction changed in v0.34. Prefer
 `HttpsEndpoint::new_with_policy` with a provider-owned fixed, official-set, or
 regional policy. `new_custom` now requires
 `CustomEndpointAcknowledgement::trusted_operator_configuration()` so a custom
-bearer-token destination cannot be selected accidentally. See the
+credential destination cannot be selected accidentally. See the
 [v0.34 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.34.0.md).
 Raw endpoint input is bounded by `MAX_CONFIGURED_ENDPOINT_BYTES` before URL
 parsing. Base paths must already be exact printable ASCII and cannot contain
@@ -74,6 +74,8 @@ Raw bounded execution and delivery-phase migration are listed in the
 [v0.40 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.40.0.md).
 Mandatory bearer scope, rotation, and refresh migration are listed in the
 [v0.41 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.41.0.md).
+Basic credential and client additions are listed in the
+[v0.42 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.42.0.md).
 
 ## Raw Blocking Executor
 
@@ -163,7 +165,7 @@ use cloud_sdk_reqwest::blocking::{
     RequestTimeouts, UserAgent,
 };
 
-// Custom endpoints are bearer-token destinations. Keep this value in trusted
+// Custom endpoints are credential destinations. Keep this value in trusted
 // operator configuration; never accept it from tenant-controlled input.
 let acknowledgement =
     CustomEndpointAcknowledgement::trusted_operator_configuration();
@@ -220,6 +222,59 @@ assert!(response
 # fn main() {}
 ```
 
+### Basic Authentication
+
+Basic credentials use separate types and builders, but every send uses the
+same mandatory `AuthenticatedRequest` scope policy as the bearer example:
+
+```rust,no_run
+# #[cfg(feature = "blocking-rustls")]
+# fn main() {
+use std::time::Duration;
+
+use cloud_sdk::{ProviderId, ServiceId};
+use cloud_sdk_reqwest::blocking::{
+    BasicCredential, BasicCredentialScope, BasicPassword, BasicUsername,
+    BlockingBasicClientBuilder, CustomEndpointAcknowledgement, HttpsEndpoint,
+    RequestTimeouts, UserAgent,
+};
+
+// Custom endpoints are credential destinations. Keep this value in trusted
+// operator configuration; never accept it from tenant-controlled input.
+let acknowledgement =
+    CustomEndpointAcknowledgement::trusted_operator_configuration();
+let Ok(endpoint) = HttpsEndpoint::new_custom(
+    "https://robot-ws.your-server.de",
+    acknowledgement,
+) else { return };
+let Ok(provider) = ProviderId::new("hetzner") else { return };
+let Ok(service) = ServiceId::new("robot") else { return };
+let Ok(username) = BasicUsername::new("webservice-user") else { return };
+let Ok(password) = BasicPassword::new("replace-with-secret") else { return };
+let scope = BasicCredentialScope::new(provider, service, endpoint.clone());
+let Ok(credential) = BasicCredential::new(username, password, scope) else {
+    return;
+};
+let Ok(user_agent) = UserAgent::new("my-service/1.0") else { return };
+let Ok(timeouts) = RequestTimeouts::new(
+    Duration::from_secs(30),
+    Duration::from_secs(10),
+) else { return };
+let Ok(_client) =
+    BlockingBasicClientBuilder::new(endpoint, credential, user_agent, timeouts)
+        .build()
+else { return };
+# }
+# #[cfg(not(feature = "blocking-rustls"))]
+# fn main() {}
+```
+
+Prefer mutable-byte or guarded-buffer constructors so caller-owned credential
+sources can be cleared. Robot authentication rejection can block the source IP
+after repeated failed logins; this example constructs a client but performs no
+request. Robot operation clients and lockout-aware credential attempts remain
+later pre-1.0 milestones.
+
 Responses retain complete bounded header metadata plus one validated
 `Content-Type` value for prepared response policy. Duplicate names, controls,
 and per-value, count, or aggregate overflow fail closed before body bytes are
@@ -241,8 +296,8 @@ compiled into `webpki-roots`:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.41.0"
-cloud-sdk-reqwest = { version = "0.28.0", features = ["blocking-rustls-webpki-roots"] }
+cloud-sdk = "0.42.0"
+cloud-sdk-reqwest = { version = "0.29.0", features = ["blocking-rustls-webpki-roots"] }
 ```
 
 The blocking API is identical to the example above. The custom rustls client
@@ -258,8 +313,8 @@ Use the same blocking API with the dedicated feature:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.41.0"
-cloud-sdk-reqwest = { version = "0.28.0", features = ["blocking-rustls-fips"] }
+cloud-sdk = "0.42.0"
+cloud-sdk-reqwest = { version = "0.29.0", features = ["blocking-rustls-fips"] }
 rustls = "=0.23.42"
 ```
 
@@ -323,7 +378,7 @@ use cloud_sdk_reqwest::asynchronous::{
     RequestTimeouts, UserAgent,
 };
 
-// Custom endpoints are bearer-token destinations. Keep this value in trusted
+// Custom endpoints are credential destinations. Keep this value in trusted
 // operator configuration; never accept it from tenant-controlled input.
 let acknowledgement =
     CustomEndpointAcknowledgement::trusted_operator_configuration();
@@ -478,7 +533,8 @@ captured handoff.
   transports, deterministic Mozilla roots for the snapshot feature, and
   mandatory deployment roots plus CRLs for FIPS.
 - Explicit total and connect timeouts, each nonzero and at most 300 seconds.
-- Explicit validated user agent and bounded bearer token.
+- Explicit validated user agent and bounded, type-separated bearer or Basic
+  credential.
 - HTTP/1 and the system resolver are forced even under downstream reqwest
   HTTP/2 or Hickory DNS feature unification.
 - No runtime redirects, automatic retries, proxy discovery/use, referer
@@ -507,11 +563,11 @@ captured handoff.
   after complete success; cancellation leaves the caller buffer cleared.
 - Payload-free errors and redacted client, token, target, and body diagnostics.
 
-`BearerToken` clears its adapter-owned authorization bytes through
-`cloud-sdk-sanitization`. Rotation cannot clear authorization copies already
-owned by reqwest, TLS, the operating system, or remote services. Keep tokens
-scoped, rotate and revoke them, and use mutable or guarded ingestion whenever
-the source can be cleared.
+Bearer and Basic adapter-owned authorization bytes clear through
+`cloud-sdk-sanitization`. Rotation or drop cannot clear copies already owned
+by reqwest, TLS, the operating system, or remote services. Keep credentials
+scoped, rotate or replace and revoke them according to provider policy, and
+use mutable or guarded ingestion whenever the source can be cleared.
 
 ## Features
 
@@ -519,10 +575,10 @@ the source can be cleared.
 | --- | --- | --- |
 | `default` | yes | Empty; keeps the crate transport-free and `no_std`. |
 | `std` | no | Enables only std support in first-party boundary crates. |
-| `blocking-rustls` | no | Enables the hardened blocking reqwest/rustls adapter and sanitization boundary. |
-| `blocking-rustls-webpki-roots` | no | Enables the blocking adapter with a deterministic reviewed Mozilla root snapshot. |
-| `blocking-rustls-fips` | no | Enables the blocking adapter with runtime-verified AWS-LC FIPS plus mandatory deployment roots and CRLs. |
-| `async-rustls` | no | Enables the hardened async reqwest/rustls adapter; callers provide an active Tokio runtime. |
+| `blocking-rustls` | no | Enables hardened blocking bearer/Basic reqwest/rustls adapters, Base64 encoding, and sanitization. |
+| `blocking-rustls-webpki-roots` | no | Enables blocking bearer/Basic adapters with a deterministic reviewed Mozilla root snapshot. |
+| `blocking-rustls-fips` | no | Enables blocking bearer/Basic adapters with runtime-verified AWS-LC FIPS plus mandatory deployment roots and CRLs. |
+| `async-rustls` | no | Enables hardened async bearer/Basic reqwest/rustls adapters; callers provide an active Tokio runtime. |
 | `fuzzing` | no | Internal post-parse validator and Hyper HTTP/1 wire fuzz adapters; not intended for applications. |
 
 Reqwest's default features are disabled. The complete dependency and security

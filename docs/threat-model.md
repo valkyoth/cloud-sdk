@@ -133,11 +133,19 @@
   retired adapter-owned storage after the last snapshot;
 - mutable and guarded token ingestion clears the complete source on success or
   rejection, while rejected rotation leaves the active token unchanged;
-- bearer credentials bind to immutable provider, service, normalized HTTPS
+- bearer and Basic credentials bind to immutable provider, service, normalized HTTPS
   endpoint, audience, account, and tenant scope; provider or operation policy
   explicitly requires, permits, or forbids every field before authorization
   header construction, and authenticated clients expose no policy-free
   transport implementation;
+- Basic credentials reject ambiguous username delimiters, controls,
+  non-ASCII input, and individual or aggregate overflow; mutable sources,
+  intermediate `user:password` bytes, encoded storage, and header copies have
+  cleanup ownership;
+- canonical signing input is versioned, length-framed, bounded, and tied to
+  exact target and selected request headers; providers and callers retain
+  ownership of algorithms, hashes, keys, clocks, nonces, replay state, and
+  signer output cleanup;
 - credential generations advance without wrapping; external refresh receives
   an opaque compare-and-swap handoff so stale completion cannot replace newer
   state, while acquisition, expiry, clocks, tasks, and secret stores remain
@@ -159,7 +167,7 @@
   reqwest adapter requires caller-provided Tokio execution;
 - async response data stays in caller-bounded sanitized temporary storage and
   reaches the cleared caller buffer only after complete success;
-- adapter-owned bearer, authorization-header, request-body, and async response
+- adapter-owned bearer, Basic, authorization-header, request-body, and async response
   allocations are redacted or cleared through the provider-neutral
   sanitization boundary;
 - rate-limit headers are parsed as a strict all-or-none decimal set, each field

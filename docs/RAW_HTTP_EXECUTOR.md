@@ -78,6 +78,7 @@ operation-specific idempotency or reconciliation policy.
 
 The raw executor intentionally has no credential input. The 8 MiB request-copy
 limit is a first-party `cloud-sdk-reqwest` guarantee, not a core raw-trait
-guarantee. Bearer authentication policy is implemented separately in v0.41.0;
-see [`AUTHENTICATION_POLICY.md`](AUTHENTICATION_POLICY.md). Basic
-authentication and canonical signing inputs remain the v0.42.0 milestone.
+guarantee. Bearer and Basic authentication policy are implemented separately;
+see [`AUTHENTICATION_POLICY.md`](AUTHENTICATION_POLICY.md). Canonical signing
+inputs are documented in
+[`SIGNING_INPUT_POLICY.md`](SIGNING_INPUT_POLICY.md).

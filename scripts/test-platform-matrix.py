@@ -18,7 +18,7 @@ def fake_environment(
     directory: Path,
     *,
     installed: str = "x86_64-unknown-linux-gnu",
-    tree: str = "cloud-sdk v0.41.0\ncloud-sdk-hetzner v0.32.2\n",
+    tree: str = "cloud-sdk v0.42.0\ncloud-sdk-hetzner v0.32.3\n",
 ) -> tuple[dict[str, str], Path]:
     fake_bin = directory / "bin"
     fake_bin.mkdir()
@@ -153,7 +153,7 @@ def test_default_dependency_boundary() -> None:
         environment, log = fake_environment(
             directory,
             tree=(
-                "cloud-sdk v0.41.0\n"
+                "cloud-sdk v0.42.0\n"
                 "sanitization v2.0.3\n"
                 "ureq v3.1.2\n"
                 "curl v0.4.49\n"

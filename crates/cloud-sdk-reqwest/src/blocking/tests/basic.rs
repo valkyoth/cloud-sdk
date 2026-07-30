@@ -78,8 +78,8 @@ fn blocking_basic_client_sends_exact_authorization_and_target() {
     let Ok(target) = RequestTarget::new("/server/321") else {
         return;
     };
-    let mut body = [0_u8; 8];
-    let mut headers = [0_u8; 512];
+    let mut body = [0xa5_u8; 8];
+    let mut headers = [0xa5_u8; 512];
     let mut response = ResponseBuffer::new(&mut body, 8, &mut headers);
     let result = BlockingAuthenticatedTransport::send_authenticated(
         &client,
@@ -153,4 +153,7 @@ fn blocking_basic_client_rejects_incomplete_scope_before_network() {
         ),
         Err(TransportError::AuthenticationScopeRejected)
     );
+    drop(response);
+    assert_eq!(body, [0_u8; 8]);
+    assert_eq!(headers, [0_u8; 512]);
 }

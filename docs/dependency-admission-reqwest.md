@@ -6,13 +6,14 @@ Status: admitted only through `cloud-sdk-reqwest/blocking-rustls`,
 with reqwest default features disabled. The internal `fuzzing` feature aliases
 `blocking-rustls` only for the isolated fuzz workspace.
 
-Checked: 2026-07-29.
+Checked: 2026-07-30.
 
 ## Decision
 
 | Crate | Version | Role | Default features |
 | --- | --- | --- | --- |
 | `reqwest` | `0.13.4` | blocking/async HTTP client and URL/header types | disabled |
+| `base64-ng` | `1.3.9` | bounded RFC 4648 Basic authorization encoding | disabled |
 | `bytes` | `1.12.1` | sanitized owned async request-body handoff | disabled |
 | `http` | `1.5.0` | raw request and response-head representation | disabled |
 | `http-body-util` | `0.1.4` | raw body ownership and response-frame access | disabled |
@@ -65,6 +66,7 @@ The crate remains no_std and transport-free by default. Its `std` feature also
 does not admit reqwest. `blocking-rustls` enables:
 
 - `std`;
+- `base64-ng`;
 - `cloud-sdk-sanitization`;
 - `reqwest/blocking`;
 - `reqwest/rustls`.
@@ -90,6 +92,7 @@ are not provided by this mode.
 `async-rustls` enables:
 
 - `std`;
+- `base64-ng`;
 - `bytes`;
 - `cloud-sdk-sanitization`;
 - `reqwest/rustls`.
@@ -117,7 +120,7 @@ at runtime. A
 separate locked, non-published test fixture deliberately enables both on the
 same reqwest instance and builds both adapters to exercise Cargo feature
 unification against the runtime overrides. Its local `cloud-sdk-reqwest`
-dependency is pinned exactly to `0.28.0` and enables the standard, FIPS, and
+dependency is pinned exactly to `0.29.0` and enables the standard, FIPS, and
 async transport features, proving the explicit FIPS configuration wins under
 additive feature unification. The deterministic-root boundary separately
 compiles both its standard combination and its combination with FIPS.

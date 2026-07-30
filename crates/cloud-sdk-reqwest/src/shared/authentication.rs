@@ -139,8 +139,11 @@ mod tests {
     use cloud_sdk::transport::CustomEndpointAcknowledgement;
     use cloud_sdk::{ProviderId, ServiceId};
 
-    use super::{AuthenticationValidationError, validate_bearer_authentication};
-    use crate::shared::{BearerCredentialScope, HttpsEndpoint};
+    use super::{
+        AuthenticationValidationError, validate_basic_authentication,
+        validate_bearer_authentication,
+    };
+    use crate::shared::{BasicCredentialScope, BearerCredentialScope, HttpsEndpoint};
 
     fn endpoint(value: &str) -> HttpsEndpoint {
         HttpsEndpoint::new_custom(
@@ -185,6 +188,54 @@ mod tests {
             validate_bearer_authentication(identity, &credential_scope, policy(identity), false,),
             Ok(())
         );
+    }
+
+    #[test]
+    fn basic_uses_the_same_complete_extended_scope_policy() {
+        let configured = endpoint("https://robot.example.test");
+        let identity = configured.identity().unwrap_or_else(|_| unreachable!());
+        let populated = BasicCredentialScope::new(provider(), service(), configured.clone())
+            .try_with_audience("actual-audience")
+            .and_then(|scope| scope.try_with_account("actual-account"))
+            .and_then(|scope| scope.try_with_tenant("actual-tenant"))
+            .unwrap_or_else(|_| unreachable!());
+        let accepted = AuthenticationScopePolicy::new(
+            ScopeRequirement::Required(provider()),
+            ScopeRequirement::Required(service()),
+            ScopeRequirement::Required(identity),
+            ScopeRequirement::Required(value("actual-audience")),
+            ScopeRequirement::Optional(value("actual-account")),
+            ScopeRequirement::Required(value("actual-tenant")),
+        );
+        assert_eq!(
+            validate_basic_authentication(identity, &populated, accepted, false),
+            Ok(())
+        );
+
+        let rejected = [
+            AuthenticationScopePolicy::new(
+                ScopeRequirement::Required(provider()),
+                ScopeRequirement::Required(service()),
+                ScopeRequirement::Required(identity),
+                ScopeRequirement::Required(value("other-audience")),
+                ScopeRequirement::Optional(value("actual-account")),
+                ScopeRequirement::Required(value("actual-tenant")),
+            ),
+            AuthenticationScopePolicy::new(
+                ScopeRequirement::Required(provider()),
+                ScopeRequirement::Required(service()),
+                ScopeRequirement::Required(identity),
+                ScopeRequirement::Optional(value("actual-audience")),
+                ScopeRequirement::Forbidden,
+                ScopeRequirement::Optional(value("actual-tenant")),
+            ),
+        ];
+        for policy in rejected {
+            assert_eq!(
+                validate_basic_authentication(identity, &populated, policy, false),
+                Err(AuthenticationValidationError::ScopeRejected)
+            );
+        }
     }
 
     #[test]

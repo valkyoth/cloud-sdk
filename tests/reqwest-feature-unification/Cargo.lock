@@ -80,6 +80,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "72b3254f16251a8381aa12e40e3c4d2f0199f8c6508fbecb9d91f575e0fbb8c6"
 
 [[package]]
+name = "base64-ng"
+version = "1.3.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1b8a8323341659decbfed54fbe89805337845c7f0ab847fd59ffd3b7239eda9a"
+
+[[package]]
 name = "bindgen"
 version = "0.72.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -174,18 +180,19 @@ dependencies = [
 
 [[package]]
 name = "cloud-sdk"
-version = "0.41.0"
+version = "0.42.0"
 dependencies = [
  "cloud-sdk-sanitization",
 ]
 
 [[package]]
 name = "cloud-sdk-reqwest"
-version = "0.28.0"
+version = "0.29.0"
 dependencies = [
  "aws-lc-fips-sys",
  "aws-lc-rs",
  "aws-lc-sys",
+ "base64-ng",
  "bytes",
  "cloud-sdk",
  "cloud-sdk-sanitization",

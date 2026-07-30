@@ -9,7 +9,7 @@ use cloud_sdk::transport::{BoundTransport, RequestTarget, ResponseBuffer, Transp
 
 use super::super::{
     AsyncBasicClient, AsyncBasicClientBuilder, BasicCredential, BasicCredentialScope,
-    BasicPassword, BasicUsername, BuildError, HttpsEndpoint, UserAgent,
+    BasicPassword, BasicUsername, BuildError, HttpsEndpoint, TransportError, UserAgent,
 };
 use super::{run_async_test, test_timeouts};
 use crate::test_server::spawn;
@@ -118,4 +118,44 @@ fn asynchronous_basic_builder_rejects_a_different_credential_endpoint() {
             .build_for_loopback(),
         Err(BuildError::CredentialEndpointMismatch)
     ));
+}
+
+#[test]
+fn asynchronous_basic_scope_rejection_clears_response_storage() {
+    run_async_test(async {
+        let Some(client) = build_loopback("http://127.0.0.1:1/v1") else {
+            return;
+        };
+        let Ok(endpoint) = client.endpoint_identity() else {
+            return;
+        };
+        let Ok(target) = RequestTarget::new("/server") else {
+            return;
+        };
+        let policy = AuthenticationScopePolicy::new(
+            ScopeRequirement::Optional(cloud_sdk::provider_id!("hetzner")),
+            ScopeRequirement::Required(cloud_sdk::service_id!("robot")),
+            ScopeRequirement::Required(endpoint),
+            ScopeRequirement::Forbidden,
+            ScopeRequirement::Forbidden,
+            ScopeRequirement::Forbidden,
+        );
+        let authenticated =
+            AuthenticatedRequest::new(TransportRequest::new(Method::Get, target), policy);
+        let mut body = [0xa5_u8; 8];
+        let mut headers = [0xa5_u8; 512];
+        let mut response = ResponseBuffer::new(&mut body, 8, &mut headers);
+        assert_eq!(
+            AsyncAuthenticatedTransport::send_authenticated(
+                &client,
+                authenticated,
+                response.writer(),
+            )
+            .await,
+            Err(TransportError::AuthenticationScopeRejected)
+        );
+        drop(response);
+        assert_eq!(body, [0_u8; 8]);
+        assert_eq!(headers, [0_u8; 512]);
+    });
 }

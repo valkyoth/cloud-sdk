@@ -1560,7 +1560,7 @@ Stop gate: `v0.34.0 implementation stop reached. Run pentest for this exact comm
 
 ### v0.35.0 - Canonical Path And Query Separation
 
-Status: release candidate; pentest and final retest passed.
+Status: tagged.
 
 Goal: give every transport the same request-target security meaning.
 
@@ -1646,7 +1646,7 @@ Stop gate: `v0.40.0 implementation stop reached. Run pentest for this exact comm
 
 ### v0.41.0 - Bearer Authentication Policy
 
-Status: release candidate; pentest and final retest passed.
+Status: tagged.
 
 Goal: provide reusable bearer auth outside neutral execution.
 
@@ -1657,6 +1657,8 @@ Verification: every provider/service/endpoint/audience/account/tenant required/o
 Stop gate: `v0.41.0 implementation stop reached. Run pentest for this exact commit.`
 
 ### v0.42.0 - Basic And Signing Input Policies
+
+Status: implementation stop reached; pentest required.
 
 Goal: support non-bearer providers without embedding provider signing in transports.
 

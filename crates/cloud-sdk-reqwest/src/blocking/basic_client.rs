@@ -45,6 +45,9 @@ impl BlockingBasicClient {
         authenticated: AuthenticatedRequest<'_, '_>,
         response: &mut ResponseWriter<'_>,
     ) -> Result<(), TransportError> {
+        let mut response_attempt = response
+            .begin_attempt()
+            .map_err(|_| TransportError::ResponseCommitFailed)?;
         let endpoint = self
             .endpoint
             .identity()
@@ -65,7 +68,7 @@ impl BlockingBasicClient {
             &self.endpoint,
             authorization,
             authenticated,
-            response,
+            &mut response_attempt,
         )
     }
 }

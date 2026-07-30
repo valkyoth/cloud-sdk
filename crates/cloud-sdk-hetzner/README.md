@@ -38,8 +38,8 @@ boundaries.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.41.0"
-cloud-sdk-hetzner = "0.32.2"
+cloud-sdk = "0.42.0"
+cloud-sdk-hetzner = "0.32.3"
 ```
 
 ## Features
@@ -203,6 +203,8 @@ Transactional request encoding and preparation cleanup are listed in the
 [v0.39 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.39.0.md).
 Bearer authentication scope and generation-safe refresh are listed in the
 [v0.41 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.41.0.md).
+Basic authentication and canonical signing input additions are listed in the
+[v0.42 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.42.0.md).
 
 ## Optional Serde Boundary
 
@@ -210,7 +212,7 @@ Enable Serde explicitly; it is never part of the default graph:
 
 ```toml
 [dependencies]
-cloud-sdk-hetzner = { version = "0.32.2", features = ["serde"] }
+cloud-sdk-hetzner = { version = "0.32.3", features = ["serde"] }
 ```
 
 The feature admits serde_json with `default-features = false` and `alloc` only

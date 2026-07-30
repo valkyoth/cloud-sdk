@@ -5,8 +5,8 @@ set -eu
 
 default_tree=$(cargo tree -p cloud-sdk-reqwest --no-default-features --edges normal)
 default_dependencies=$(printf '%s\n' "$default_tree" | sed '1d')
-if ! printf '%s\n' "$default_tree" | grep -Fq 'cloud-sdk v0.41.0'; then
-    echo "reqwest boundary: cloud-sdk v0.41.0 is missing" >&2
+if ! printf '%s\n' "$default_tree" | grep -Fq 'cloud-sdk v0.42.0'; then
+    echo "reqwest boundary: cloud-sdk v0.42.0 is missing" >&2
     exit 1
 fi
 if printf '%s\n' "$default_dependencies" | grep -Eq \
@@ -34,6 +34,7 @@ blocking_tree=$(cargo tree -p cloud-sdk-reqwest --no-default-features \
     --features blocking-rustls --edges normal)
 for dependency in \
     'http v1.5.0' \
+    'base64-ng v1.3.9' \
     'http-body-util v0.1.4' \
     'hyper v1.11.0' \
     'hyper-rustls v0.27.9' \
@@ -58,6 +59,7 @@ async_tree=$(cargo tree -p cloud-sdk-reqwest --no-default-features \
     --features async-rustls --edges normal)
 for dependency in \
     'bytes v1.12.1' \
+    'base64-ng v1.3.9' \
     'http-body-util v0.1.4' \
     'hyper v1.11.0' \
     'hyper-rustls v0.27.9' \

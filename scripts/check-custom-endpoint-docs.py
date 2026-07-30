@@ -13,11 +13,11 @@ def validate(readme: Path) -> None:
     text = readme.read_text(encoding="utf-8")
     lines = text.splitlines()
     examples = [index for index, line in enumerate(lines) if "HttpsEndpoint::new_custom(" in line]
-    if len(examples) != 2:
-        raise ValueError("blocking and async examples must each construct one custom endpoint")
+    if len(examples) < 2:
+        raise ValueError("blocking and async examples must construct custom endpoints")
     for index in examples:
         context = "\n".join(lines[max(0, index - 8) : index + 2])
-        if "bearer-token destination" not in context or "tenant-controlled input" not in context:
+        if "credential destination" not in context or "tenant-controlled input" not in context:
             raise ValueError("custom endpoint example lacks an adjacent credential warning")
         if "trusted_operator_configuration" not in context:
             raise ValueError("custom endpoint example lacks explicit operator acknowledgement")

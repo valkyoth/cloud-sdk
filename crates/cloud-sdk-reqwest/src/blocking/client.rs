@@ -7,7 +7,7 @@ use cloud_sdk::authentication::{
     AuthenticatedRequest, BlockingAuthenticatedTransport, CredentialGeneration,
 };
 use cloud_sdk::transport::{
-    BoundTransport, EndpointIdentity, EndpointIdentityError, ResponseMetadata,
+    BoundTransport, EndpointIdentity, EndpointIdentityError, ResponseAttempt, ResponseMetadata,
     ResponseStorageSanitizer, ResponseWriter, StatusCode,
 };
 use cloud_sdk_sanitization::{SecretBuffer, sanitize_bytes};
@@ -113,6 +113,9 @@ impl BlockingClient {
         authenticated: AuthenticatedRequest<'_, '_>,
         response_writer: &mut ResponseWriter<'_>,
     ) -> Result<(), TransportError> {
+        let mut response_attempt = response_writer
+            .begin_attempt()
+            .map_err(|_| TransportError::ResponseCommitFailed)?;
         let endpoint_identity = self
             .endpoint
             .identity()
@@ -137,7 +140,7 @@ impl BlockingClient {
             &self.endpoint,
             authorization,
             authenticated,
-            response_writer,
+            &mut response_attempt,
         )
     }
 }
@@ -147,14 +150,8 @@ pub(super) fn execute(
     endpoint: &HttpsEndpoint,
     authorization: HeaderValue,
     authenticated: AuthenticatedRequest<'_, '_>,
-    response_writer: &mut ResponseWriter<'_>,
+    response_writer: &mut ResponseAttempt<'_, '_>,
 ) -> Result<(), TransportError> {
-    if response_writer.is_committed() {
-        return Err(TransportError::ResponseCommitFailed);
-    }
-    let mut response_writer = response_writer
-        .begin_attempt()
-        .map_err(|_| TransportError::ResponseCommitFailed)?;
     let request = authenticated.transport_request();
     let url = endpoint
         .compose(request.target())

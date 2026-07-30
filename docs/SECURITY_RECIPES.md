@@ -23,6 +23,13 @@ security controls.
   credential atomically, in-flight requests retain their prior snapshot, and
   retired adapter-owned storage is cleared after its last snapshot. Revoke the
   old provider credential after the application's in-flight window closes.
+- For Basic authentication, prefer `BasicUsername::from_mut_bytes`,
+  `BasicPassword::from_mut_bytes`, or guarded-buffer constructors. The adapter
+  clears owned intermediate and encoded bytes, but cannot clear immutable
+  caller strings or copies retained below reqwest.
+- Never probe Robot with intentionally invalid credentials. Three failed
+  logins can block the source IP for ten minutes. Robot operation clients will
+  add lockout-aware attempt policy in a later milestone.
 
 ## Concurrency
 
@@ -46,6 +53,14 @@ tokens, authorization headers, request or response bodies, complete request
 targets, DNS secrets, cloud-init data, private keys, passwords, or provider
 resource identifiers. Treat `Debug` output as untrusted unless its type
 explicitly documents redaction.
+
+## Signing
+
+Provider signing code must supply an approved body hash, signing algorithm,
+key source, cryptographically secure nonce, trustworthy clock, replay policy,
+and signer-output cleanup. `CanonicalSigningInput` only produces and clears
+the exact versioned bounded bytes. Never reuse a nonce in a provider context
+that requires uniqueness, and never log canonical input or signature bytes.
 
 ## Timeouts
 

@@ -294,11 +294,11 @@ operations deferred.
 
 ## Pre-1.0 Robot Webservice
 
-Robot Webservice is required for the full Hetzner 1.0 SDK. It will be tracked
+Robot Webservice is required for the full Hetzner 1.0 SDK. It is tracked
 in a separate source-locked Robot matrix because it uses a different base URL,
 authentication model, request encoding, and resource set. The current official
 reference documents 105 operation headings. `v0.42.0` source-locks only the
-wire protocol and exercises credential-free read, form-mutation, error, quota,
+wire protocol and includes credential-free read, form-mutation, error, quota,
 maintenance, and empty-body fixtures before neutral freeze. The `v0.74.0`
 complete source-lock pass must confirm the expected 89 active operations after
 excluding all 16 deprecated Robot Storage Box operations.

@@ -19,6 +19,15 @@ if printf '%s\n' "$default_tree" | grep -Eq '^base64-ng v'; then
     exit 1
 fi
 
+std_tree="$(
+    cargo tree --locked -p cloud-sdk-reqwest --no-default-features \
+        --features std --edges normal --prefix none
+)"
+if printf '%s\n' "$std_tree" | grep -Eq '^base64-ng v'; then
+    echo "Basic/signing: base64-ng entered the std-only reqwest graph" >&2
+    exit 1
+fi
+
 manifest='crates/cloud-sdk-reqwest/Cargo.toml'
 grep -Fq 'base64-ng = { workspace = true, optional = true }' "$manifest"
 grep -Fq '"dep:base64-ng"' "$manifest"

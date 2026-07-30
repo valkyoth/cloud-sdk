@@ -77,7 +77,7 @@ stops until the difference is documented and versioned.
 
 The Robot Webservice source is <https://robot.hetzner.com/doc/webservice/en.html>.
 Robot is part of the 1.0 Hetzner claim. A narrow wire-protocol source lock and
-credential-free conformance fixture land in `v0.42.0` before neutral freeze
+credential-free conformance fixture are locked in `v0.42.0` before neutral freeze
 because Robot uses a different base URL, HTTP Basic Auth, repeated form fields,
 errors, quotas, maintenance responses, and empty bodies. The complete active
 operation inventory is source-locked separately in `v0.74.0` before Robot

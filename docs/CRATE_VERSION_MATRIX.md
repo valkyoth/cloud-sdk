@@ -1,8 +1,7 @@
 # Crate Version Matrix
 
-Status: `v0.40.0` is tagged. `v0.41.0` bearer authentication policy is a
-release candidate after a green pentest and final retest; local and GitHub
-release checks remain required before tagging.
+Status: `v0.41.0` is tagged. `v0.42.0` Basic authentication and canonical
+signing input policy is at implementation stop; pentest is required.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
@@ -626,6 +625,19 @@ generation-safe rotation and refresh, and cleanup-owned adapter headers.
 | `cloud-sdk-reqwest` | `0.27.0` | `0.28.0` | `code` | Yes | Add immutable bearer scope, policy-required sends, atomic rotation, CAS refresh, and cleanup-owned authorization values. |
 | `cloud-sdk-sanitization` | `0.16.0` | `0.16.0` | `unchanged` | No | No code, dependency, or package metadata changes. |
 | `cloud-sdk-testkit` | `0.24.0` | `0.24.1` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.41 facade line. |
+
+## v0.42.0 Tracking Table
+
+`v0.42.0` adds type-separated Basic authentication transports, bounded
+canonical signing inputs, and a narrow credential-free Robot wire source lock.
+
+| Crate | Published | Planned | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.41.0` | `0.42.0` | `code` | Yes | Add versioned bounded canonical signing input and caller-supplied hashing/signing contracts. |
+| `cloud-sdk-hetzner` | `0.32.2` | `0.32.3` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.42 facade line; the Robot fixture remains excluded repository evidence. |
+| `cloud-sdk-reqwest` | `0.28.0` | `0.29.0` | `code` | Yes | Add bounded Basic credentials and scoped blocking/async authenticated clients. |
+| `cloud-sdk-sanitization` | `0.16.0` | `0.16.0` | `unchanged` | No | No code, dependency, or package metadata changes. |
+| `cloud-sdk-testkit` | `0.24.1` | `0.24.2` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.42 facade line. |
 
 ## Planned Milestone Ownership
 

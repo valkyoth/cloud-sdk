@@ -17,7 +17,6 @@ for contract in \
 done
 
 for contract in \
-    'pub struct BearerCredentialScope' \
     'pub struct BearerCredential' \
     'pub struct BearerCredentialSnapshot' \
     'pub struct BearerRefreshHandoff' \
@@ -27,6 +26,12 @@ for contract in \
         exit 1
     fi
 done
+
+if ! grep -Fq 'define_scope!(BearerCredentialScope, "BearerCredentialScope")' \
+    crates/cloud-sdk-reqwest/src/shared/scope.rs; then
+    echo "bearer authentication: missing adapter contract BearerCredentialScope" >&2
+    exit 1
+fi
 
 if grep -R -Fq 'BearerCredentialScope::unscoped' \
     crates/cloud-sdk-reqwest crates/cloud-sdk-hetzner/tests; then
@@ -71,9 +76,9 @@ if ! grep -Fq 'validate_bearer_authentication(' \
 fi
 
 if ! grep -Fq 'Bytes::from_owner(owner)' \
-    crates/cloud-sdk-reqwest/src/shared/auth.rs \
+    crates/cloud-sdk-reqwest/src/shared/secret_header.rs \
     || ! grep -Fq 'sanitize_bytes(&mut self.bytes)' \
-        crates/cloud-sdk-reqwest/src/shared/auth.rs; then
+        crates/cloud-sdk-reqwest/src/shared/secret_header.rs; then
     echo "bearer authentication: authorization header lacks cleanup ownership" >&2
     exit 1
 fi
