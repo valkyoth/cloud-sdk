@@ -43,7 +43,7 @@ fn async_send_future_stays_within_explicit_state_budget() {
     let mut response = ResponseBuffer::new(&mut output, 1, &mut headers);
     let future = AsyncAuthenticatedTransport::send_authenticated(
         &client,
-        authenticated(TransportRequest::new(Method::Get, target)),
+        authenticated(&client, TransportRequest::new(Method::Get, target)),
         response.writer(),
     );
     let future_bytes = core::mem::size_of_val(&future);
@@ -78,7 +78,7 @@ fn async_precommitted_writer_fails_before_network_access() {
         assert_eq!(
             AsyncAuthenticatedTransport::send_authenticated(
                 &client,
-                authenticated(TransportRequest::new(Method::Get, target)),
+                authenticated(&client, TransportRequest::new(Method::Get, target)),
                 response.writer(),
             )
             .await,

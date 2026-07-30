@@ -20,9 +20,11 @@ executor, retry, filesystem, or secret store.
 
 `cloud-sdk-reqwest` adds `BearerCredential`, immutable
 `BearerCredentialScope`, redacted `BearerCredentialSnapshot`, generation-safe
-rotation, and compare-and-swap refresh. Blocking and async builders require the
-scoped credential. Authenticated sends require a complete policy and validate
-it before token snapshot or header construction.
+rotation, and lineage-bound `BearerRefreshHandoff` compare-and-swap refresh.
+Blocking and async builders require a provider/service/endpoint-bound
+credential and reject configured endpoint mismatch. Authenticated sends
+require exact `Required` rules for those three base identities and validate
+them before token snapshot or header construction.
 
 Authenticated clients no longer implement `BlockingTransport` or
 `AsyncTransport`. This breaking change closes the policy-bypass path. Raw
@@ -40,7 +42,7 @@ Callers must:
 2. wrap each request in `AuthenticatedRequest` with provider or
    operation-owned requirements;
 3. invoke the authenticated transport trait;
-4. use a generation handoff for external refresh completion.
+4. use a store-bound generation handoff for external refresh completion.
 
 See [`MIGRATION_0.41.0.md`](MIGRATION_0.41.0.md) and
 [`AUTHENTICATION_POLICY.md`](AUTHENTICATION_POLICY.md).

@@ -42,9 +42,10 @@
 - secret copies retained in adapter-owned allocation after request completion;
 - credential rotation races applying a partial token, changing an in-flight
   request, holding a secret lock across I/O, or retaining retired token storage;
-- unscoped credentials or incomplete provider policy allowing a token to cross
-  provider, service, endpoint, audience, account, or tenant boundaries;
-- slow credential refresh overwriting a newer rotation or successful refresh;
+- downgraded or incomplete provider policy allowing a token to cross provider,
+  service, endpoint, audience, account, or tenant boundaries;
+- slow or foreign-store credential refresh overwriting another lifecycle, a
+  newer rotation, or a successful refresh;
 - custom endpoint drift sending valid credentials to a changed host, subdomain,
   port, scheme, or base path;
 - compromised or attacker-extended host trust stores silently validating a

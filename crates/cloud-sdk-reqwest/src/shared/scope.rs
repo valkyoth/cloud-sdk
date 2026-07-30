@@ -41,50 +41,26 @@ impl core::error::Error for BearerCredentialScopeError {
 ///
 /// Rotation and refresh replace only the token. They cannot change this scope.
 pub struct BearerCredentialScope {
-    provider: Option<ProviderId>,
-    service: Option<ServiceId>,
-    endpoint: Option<HttpsEndpoint>,
+    provider: ProviderId,
+    service: ServiceId,
+    endpoint: HttpsEndpoint,
     audience: Option<String>,
     account: Option<String>,
     tenant: Option<String>,
 }
 
 impl BearerCredentialScope {
-    /// Creates an unscoped credential.
-    ///
-    /// Provider policies with required fields reject this scope before an
-    /// authorization header is constructed.
+    /// Binds a credential to one provider, service, and transport endpoint.
     #[must_use]
-    pub const fn unscoped() -> Self {
+    pub const fn new(provider: ProviderId, service: ServiceId, endpoint: HttpsEndpoint) -> Self {
         Self {
-            provider: None,
-            service: None,
-            endpoint: None,
+            provider,
+            service,
+            endpoint,
             audience: None,
             account: None,
             tenant: None,
         }
-    }
-
-    /// Binds a provider namespace.
-    #[must_use]
-    pub const fn with_provider(mut self, value: ProviderId) -> Self {
-        self.provider = Some(value);
-        self
-    }
-
-    /// Binds a provider-owned service namespace.
-    #[must_use]
-    pub const fn with_service(mut self, value: ServiceId) -> Self {
-        self.service = Some(value);
-        self
-    }
-
-    /// Binds a normalized credential endpoint.
-    #[must_use]
-    pub fn with_endpoint(mut self, value: HttpsEndpoint) -> Self {
-        self.endpoint = Some(value);
-        self
     }
 
     /// Binds a provider-owned audience.
@@ -106,20 +82,10 @@ impl BearerCredentialScope {
     }
 
     pub(crate) fn borrowed(&self) -> Result<AuthenticationScope<'_>, BearerCredentialScopeError> {
-        let mut scope = AuthenticationScope::unscoped();
-        if let Some(value) = self.provider {
-            scope = scope.with_provider(value);
-        }
-        if let Some(value) = self.service {
-            scope = scope.with_service(value);
-        }
-        if let Some(value) = &self.endpoint {
-            scope = scope.with_endpoint(
-                value
-                    .identity()
-                    .map_err(|_| BearerCredentialScopeError::EndpointIdentityRejected)?,
-            );
-        }
+        let mut scope = AuthenticationScope::unscoped()
+            .with_provider(self.provider)
+            .with_service(self.service)
+            .with_endpoint(self.endpoint_identity()?);
         if let Some(value) = self.audience.as_deref() {
             scope = scope.with_audience(
                 ScopeValue::new(value).map_err(BearerCredentialScopeError::ValueRejected)?,
@@ -137,6 +103,29 @@ impl BearerCredentialScope {
         }
         Ok(scope)
     }
+
+    pub(crate) const fn provider(&self) -> ProviderId {
+        self.provider
+    }
+
+    pub(crate) const fn service(&self) -> ServiceId {
+        self.service
+    }
+
+    pub(crate) fn endpoint_identity(
+        &self,
+    ) -> Result<cloud_sdk::transport::EndpointIdentity<'_>, BearerCredentialScopeError> {
+        self.endpoint
+            .identity()
+            .map_err(|_| BearerCredentialScopeError::EndpointIdentityRejected)
+    }
+
+    pub(crate) fn matches_endpoint(&self, endpoint: &HttpsEndpoint) -> bool {
+        self.endpoint_identity()
+            .ok()
+            .zip(endpoint.identity().ok())
+            .is_some_and(|(credential, configured)| credential == configured)
+    }
 }
 
 impl fmt::Debug for BearerCredentialScope {
@@ -145,7 +134,7 @@ impl fmt::Debug for BearerCredentialScope {
             .debug_struct("BearerCredentialScope")
             .field("provider", &self.provider)
             .field("service", &self.service)
-            .field("endpoint", &self.endpoint.as_ref().map(|_| "[redacted]"))
+            .field("endpoint", &"[redacted]")
             .field("audience", &self.audience.as_ref().map(|_| "[redacted]"))
             .field("account", &self.account.as_ref().map(|_| "[redacted]"))
             .field("tenant", &self.tenant.as_ref().map(|_| "[redacted]"))
@@ -200,10 +189,7 @@ mod tests {
             CustomEndpointAcknowledgement::trusted_operator_configuration(),
         )
         .unwrap_or_else(|_| unreachable!());
-        let scope = BearerCredentialScope::unscoped()
-            .with_provider(provider)
-            .with_service(service)
-            .with_endpoint(endpoint)
+        let scope = BearerCredentialScope::new(provider, service, endpoint)
             .try_with_audience("secret-audience")
             .and_then(|scope| scope.try_with_account("secret-account"))
             .and_then(|scope| scope.try_with_tenant("secret-tenant"));
@@ -220,7 +206,15 @@ mod tests {
 
     #[test]
     fn invalid_scope_value_does_not_create_partial_owned_scope() {
-        let result = BearerCredentialScope::unscoped().try_with_audience("contains space");
+        let provider = ProviderId::new("example").unwrap_or_else(|_| unreachable!());
+        let service = ServiceId::new("compute").unwrap_or_else(|_| unreachable!());
+        let endpoint = HttpsEndpoint::new_custom(
+            "https://api.example.test/v1",
+            CustomEndpointAcknowledgement::trusted_operator_configuration(),
+        )
+        .unwrap_or_else(|_| unreachable!());
+        let result = BearerCredentialScope::new(provider, service, endpoint)
+            .try_with_audience("contains space");
         assert!(matches!(
             result,
             Err(BearerCredentialScopeError::ValueRejected(

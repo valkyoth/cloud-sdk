@@ -39,14 +39,17 @@ reqwest adapter owns a bearer credential.
 
 Required fields must be present and exactly equal. Optional fields may be
 absent, but supplied values must equal policy. Forbidden fields must be absent.
-Every mismatch fails before token snapshot or authorization-header
-construction. An unscoped credential therefore cannot bypass a provider or
-operation that requires scope.
+The reqwest bearer adapter narrows this general core contract: provider,
+service, and endpoint are mandatory in `BearerCredentialScope`, and the
+request policy must mark all three `Required` with exact values. Optional or
+forbidden base-identity rules fail closed before token snapshot or
+authorization-header construction.
 
-Endpoint rules are HTTPS-only. The adapter additionally requires the policy
-endpoint to equal its configured endpoint identity. Custom endpoint values are
-trusted operator configuration and must never originate from tenant-controlled
-input.
+Endpoint rules are HTTPS-only. Client construction requires the credential
+endpoint to equal the configured endpoint, and every send independently
+requires both the credential endpoint and required policy endpoint to equal
+the configured identity. Custom endpoint values are trusted operator
+configuration and must never originate from tenant-controlled input.
 
 Provider-owned audience, account, and tenant values are bounded to 512 visible
 ASCII bytes without whitespace or backslash and are redacted from diagnostics.
@@ -61,13 +64,15 @@ atomically installs a new token and advances the generation. Requests take an
 network I/O or `.await`; in-flight requests continue with their original
 snapshot.
 
-External refresh logic captures a `RefreshHandoff` from a snapshot before
-acquisition. Installation is compare-and-swap:
+External refresh logic captures a `BearerRefreshHandoff` from a snapshot
+before acquisition. The adapter binds this handoff to one credential-store
+lineage in addition to the core generation. Installation is compare-and-swap:
 
-1. capture the current generation;
+1. capture the current generation and opaque store lineage;
 2. acquire a replacement outside the SDK;
 3. submit the replacement with the captured handoff;
-4. reject it as stale if rotation or another refresh already advanced state.
+4. reject a foreign lineage before comparing generations;
+5. reject it as stale if rotation or another refresh already advanced state.
 
 Generations never wrap. The SDK supplies no refresh task, clock, expiry
 decision, queue, retry, or token source.
@@ -101,12 +106,12 @@ delivery phase and idempotency before any retry decision.
 The release checks cover:
 
 - every required, optional, forbidden, omitted, supplied, and mismatched field;
-- unscoped bypass and HTTP/custom-endpoint confusion;
+- base-identity downgrade, HTTP, custom-endpoint, and configured-scope confusion;
 - scope validation before header and network activity;
 - blocking and async parity;
 - mutable and guarded source cleanup on success and rejection;
 - in-flight snapshots and retired-token cleanup;
-- sequential and concurrent stale refresh races;
+- foreign-store, sequential, and concurrent stale refresh races;
 - poisoned lock recovery and generation exhaustion;
 - cleanup-owned header copies and redacted diagnostics.
 

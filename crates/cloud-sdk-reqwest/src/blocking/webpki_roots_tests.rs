@@ -27,8 +27,15 @@ fn deterministic_root_client_builds_without_platform_state() {
     };
     assert!(
         BlockingClientBuilder::new(
-            endpoint,
-            BearerCredential::new(token, BearerCredentialScope::unscoped()),
+            endpoint.clone(),
+            BearerCredential::new(
+                token,
+                BearerCredentialScope::new(
+                    cloud_sdk::provider_id!("example"),
+                    cloud_sdk::service_id!("compute"),
+                    endpoint,
+                ),
+            ),
             user_agent,
             timeouts,
         )

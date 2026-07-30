@@ -4,7 +4,7 @@ use std::sync::Arc;
 
 use cloud_sdk::Method;
 use cloud_sdk::authentication::{
-    AuthenticatedRequest, BlockingAuthenticatedTransport, CredentialGeneration, RefreshHandoff,
+    AuthenticatedRequest, BlockingAuthenticatedTransport, CredentialGeneration,
 };
 use cloud_sdk::transport::{
     BoundTransport, EndpointIdentity, EndpointIdentityError, ResponseMetadata,
@@ -17,9 +17,9 @@ use reqwest::header::{AUTHORIZATION, HeaderName, HeaderValue};
 use super::body::{ReadBodyError, SanitizedRequestBody, read_bounded};
 use crate::shared::{
     AuthenticationValidationError, BearerCredential, BearerCredentialScope,
-    BearerCredentialSnapshot, BearerToken, CredentialStateError, CredentialStore,
-    CredentialUpdateError, HttpsEndpoint, TokenRefreshError, TokenRotationError, TransportError,
-    capture_response_headers, parse_rate_limit, parse_response_content_type,
+    BearerCredentialSnapshot, BearerRefreshHandoff, BearerToken, CredentialStateError,
+    CredentialStore, CredentialUpdateError, HttpsEndpoint, TokenRefreshError, TokenRotationError,
+    TransportError, capture_response_headers, parse_rate_limit, parse_response_content_type,
     validate_bearer_authentication,
 };
 
@@ -84,7 +84,7 @@ impl BlockingClient {
     /// Installs a refresh only if its captured generation is still current.
     pub fn refresh_bearer_token(
         &self,
-        handoff: RefreshHandoff,
+        handoff: BearerRefreshHandoff,
         replacement: BearerToken,
     ) -> Result<CredentialGeneration, TokenRefreshError> {
         self.credentials.refresh(handoff, replacement)
@@ -93,7 +93,7 @@ impl BlockingClient {
     /// Validates refreshed mutable bytes, clears them, and rejects stale work.
     pub fn refresh_bearer_token_from_mut_bytes(
         &self,
-        handoff: RefreshHandoff,
+        handoff: BearerRefreshHandoff,
         source: &mut [u8],
     ) -> Result<CredentialGeneration, TokenRefreshError> {
         self.credentials.refresh_from_mut_bytes(handoff, source)
@@ -102,7 +102,7 @@ impl BlockingClient {
     /// Consumes guarded refreshed storage and rejects stale work.
     pub fn refresh_bearer_token_from_secret_buffer(
         &self,
-        handoff: RefreshHandoff,
+        handoff: BearerRefreshHandoff,
         source: SecretBuffer<'_>,
     ) -> Result<CredentialGeneration, TokenRefreshError> {
         self.credentials.refresh_from_secret_buffer(handoff, source)
@@ -248,6 +248,9 @@ fn map_authentication_error(error: AuthenticationValidationError) -> TransportEr
         }
         AuthenticationValidationError::EndpointMismatch => {
             TransportError::AuthenticationEndpointMismatch
+        }
+        AuthenticationValidationError::IncompletePolicy => {
+            TransportError::AuthenticationScopeRejected
         }
         AuthenticationValidationError::ScopeRejected => TransportError::AuthenticationScopeRejected,
     }

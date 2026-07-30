@@ -211,7 +211,10 @@ impl HttpsEndpoint {
         let endpoint = Self::new_inner(value, false)?;
         if endpoint.base.scheme() != "http"
             || !endpoint.base.host().is_some_and(|host| {
-                host.to_string()
+                let text = host.to_string();
+                text.strip_prefix('[')
+                    .and_then(|value| value.strip_suffix(']'))
+                    .unwrap_or(&text)
                     .parse::<std::net::IpAddr>()
                     .is_ok_and(|ip| ip.is_loopback())
             })

@@ -54,6 +54,9 @@ impl AsyncClientBuilder {
     }
 
     fn build_inner(self, https_only: bool) -> Result<AsyncClient, BuildError> {
+        if !self.credential.scope.matches_endpoint(&self.endpoint) {
+            return Err(BuildError::CredentialEndpointMismatch);
+        }
         let client = configured_client(&self.user_agent, self.timeouts, https_only)?;
         Ok(AsyncClient::new(
             client,

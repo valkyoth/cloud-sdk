@@ -132,6 +132,18 @@ impl<'a> AuthenticationScopePolicy<'a> {
         }
     }
 
+    /// Returns the provider rule for adapter identity verification.
+    #[must_use]
+    pub const fn provider_requirement(self) -> ScopeRequirement<ProviderId> {
+        self.provider
+    }
+
+    /// Returns the service rule for adapter identity verification.
+    #[must_use]
+    pub const fn service_requirement(self) -> ScopeRequirement<ServiceId> {
+        self.service
+    }
+
     /// Returns the endpoint rule for adapter destination verification.
     #[must_use]
     pub const fn endpoint_requirement(self) -> ScopeRequirement<EndpointIdentity<'a>> {

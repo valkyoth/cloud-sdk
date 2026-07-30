@@ -73,12 +73,16 @@ impl BearerToken {
         if token.len() > MAX_BEARER_TOKEN_BYTES {
             return Err(BearerTokenError::TooLong);
         }
+        let mut saw_token_byte = false;
         let mut padding = false;
         for byte in token.iter().copied() {
-            if byte == b'=' {
-                padding = true;
-            } else if padding || !is_bearer_byte(byte) {
-                return Err(BearerTokenError::InvalidByte);
+            match byte {
+                b'=' if saw_token_byte => padding = true,
+                b'=' => return Err(BearerTokenError::InvalidByte),
+                _ if padding || !is_bearer_byte(byte) => {
+                    return Err(BearerTokenError::InvalidByte);
+                }
+                _ => saw_token_byte = true,
             }
         }
 

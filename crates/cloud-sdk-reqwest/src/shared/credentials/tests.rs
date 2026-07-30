@@ -103,6 +103,41 @@ fn stale_refresh_cannot_overwrite_newer_rotation() {
 }
 
 #[test]
+fn refresh_handoff_cannot_cross_credential_store_lineages() {
+    let Ok(first_token) = BearerToken::new("first-token") else {
+        return;
+    };
+    let Ok(second_token) = BearerToken::new("second-token") else {
+        return;
+    };
+    let first = CredentialStore::new(first_token);
+    let second = CredentialStore::new(second_token);
+    let Ok(first_snapshot) = first.snapshot() else {
+        return;
+    };
+    let drops = Arc::new(AtomicUsize::new(0));
+    let Ok(replacement) = BearerToken::with_drop_probe("foreign-replacement", Arc::clone(&drops))
+    else {
+        return;
+    };
+
+    assert_eq!(
+        second.refresh(first_snapshot.refresh_handoff(), replacement),
+        Err(TokenRefreshError::CredentialMismatch)
+    );
+    assert_eq!(
+        second.snapshot().map(|value| value.generation().get()),
+        Ok(1)
+    );
+    assert_eq!(drops.load(Ordering::SeqCst), 1);
+    let current = second.snapshot();
+    assert!(current.is_ok());
+    if let Ok(current) = current {
+        assert_eq!(current.owned_bytes(), b"Bearer second-token");
+    }
+}
+
+#[test]
 fn competing_refreshes_allow_exactly_one_generation_transition() {
     let Ok(active) = BearerToken::new("active-token") else {
         return;
@@ -118,7 +153,9 @@ fn competing_refreshes_allow_exactly_one_generation_transition() {
         return;
     };
     assert_eq!(
-        store.refresh(handoff, first).map(|value| value.get()),
+        store
+            .refresh(handoff.clone(), first)
+            .map(|value| value.get()),
         Ok(2)
     );
     assert_eq!(
@@ -143,10 +180,11 @@ fn concurrent_refresh_race_allows_exactly_one_winner() {
     std::thread::scope(|scope| {
         let first_store = Arc::clone(&store);
         let first_barrier = Arc::clone(&barrier);
+        let first_handoff = handoff.clone();
         let first = scope.spawn(move || {
             first_barrier.wait();
             match BearerToken::new("first-refresh") {
-                Ok(token) => first_store.refresh(handoff, token),
+                Ok(token) => first_store.refresh(first_handoff, token),
                 Err(error) => Err(TokenRefreshError::TokenRejected(error)),
             }
         });

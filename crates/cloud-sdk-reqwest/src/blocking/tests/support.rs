@@ -1,11 +1,53 @@
 use std::{string::String, vec::Vec};
 
-use cloud_sdk::authentication::BlockingAuthenticatedTransport;
+use cloud_sdk::authentication::{
+    AuthenticatedRequest, AuthenticationScopePolicy, BlockingAuthenticatedTransport,
+    ScopeRequirement,
+};
 use cloud_sdk::rate_limit::RateLimit;
-use cloud_sdk::transport::{ResponseBuffer, StatusCode, TransportRequest, TransportResponse};
+use cloud_sdk::transport::{
+    BoundTransport, EndpointIdentity, ResponseBuffer, StatusCode, TransportRequest,
+    TransportResponse,
+};
 
-use super::super::{BlockingClient, TransportError};
-use super::authenticated;
+use super::super::{
+    BearerCredential, BearerCredentialScope, BearerToken, BlockingClient, HttpsEndpoint,
+    TransportError,
+};
+
+pub(super) fn test_credential(token: BearerToken, endpoint: &HttpsEndpoint) -> BearerCredential {
+    BearerCredential::new(
+        token,
+        BearerCredentialScope::new(
+            cloud_sdk::provider_id!("example"),
+            cloud_sdk::service_id!("compute"),
+            endpoint.clone(),
+        ),
+    )
+}
+
+pub(super) fn authenticated<'request, 'endpoint>(
+    client: &'endpoint BlockingClient,
+    request: TransportRequest<'request>,
+) -> AuthenticatedRequest<'request, 'endpoint> {
+    let endpoint = client
+        .endpoint_identity()
+        .unwrap_or_else(|_| unreachable!());
+    AuthenticatedRequest::new(request, test_authentication_policy(endpoint))
+}
+
+const fn test_authentication_policy(
+    endpoint: EndpointIdentity<'_>,
+) -> AuthenticationScopePolicy<'_> {
+    AuthenticationScopePolicy::new(
+        ScopeRequirement::Required(cloud_sdk::provider_id!("example")),
+        ScopeRequirement::Required(cloud_sdk::service_id!("compute")),
+        ScopeRequirement::Required(endpoint),
+        ScopeRequirement::Forbidden,
+        ScopeRequirement::Forbidden,
+        ScopeRequirement::Forbidden,
+    )
+}
 
 pub(super) struct CapturedResponse {
     status: StatusCode,
@@ -73,7 +115,7 @@ pub(super) fn send_test(
     let mut response = ResponseBuffer::new(output, capacity, &mut headers);
     BlockingAuthenticatedTransport::send_authenticated(
         client,
-        authenticated(request),
+        authenticated(client, request),
         response.writer(),
     )?;
     response

@@ -3,9 +3,7 @@ use std::time::Duration;
 use std::vec::Vec;
 
 use cloud_sdk::Method;
-use cloud_sdk::authentication::{
-    AsyncAuthenticatedTransport, AuthenticatedRequest, AuthenticationScopePolicy, ScopeRequirement,
-};
+use cloud_sdk::authentication::AsyncAuthenticatedTransport;
 use cloud_sdk::rate_limit::RateLimit;
 use cloud_sdk::transport::{
     ContentType, RequestHeader, RequestHeaders, RequestTarget, ResponseBuffer,
@@ -13,14 +11,17 @@ use cloud_sdk::transport::{
 };
 
 use super::{
-    AsyncClient, AsyncClientBuilder, BearerCredential, BearerCredentialScope, BearerToken,
-    HttpsEndpoint, RequestTimeouts, TransportError, UserAgent,
+    AsyncClient, AsyncClientBuilder, BearerToken, HttpsEndpoint, RequestTimeouts, TransportError,
+    UserAgent,
 };
 use crate::test_server::{spawn, spawn_split};
 
 mod authentication_policy;
 mod lifecycle;
 mod raw_executor;
+mod support;
+
+use support::{authenticated, test_credential};
 
 fn run_async_test(future: impl core::future::Future<Output = ()>) {
     let runtime = tokio::runtime::Builder::new_current_thread()
@@ -52,28 +53,10 @@ fn build_loopback(endpoint: &str) -> Option<AsyncClient> {
     let token = BearerToken::new("test-token").ok()?;
     let user_agent = UserAgent::new("cloud-sdk-test/0.18").ok()?;
     let timeouts = test_timeouts()?;
-    AsyncClientBuilder::new(endpoint, test_credential(token), user_agent, timeouts)
+    let credential = test_credential(token, &endpoint);
+    AsyncClientBuilder::new(endpoint, credential, user_agent, timeouts)
         .build_for_loopback()
         .ok()
-}
-
-fn test_credential(token: BearerToken) -> BearerCredential {
-    BearerCredential::new(token, BearerCredentialScope::unscoped())
-}
-
-fn authenticated(request: TransportRequest<'_>) -> AuthenticatedRequest<'_, 'static> {
-    AuthenticatedRequest::new(request, test_authentication_policy())
-}
-
-const fn test_authentication_policy() -> AuthenticationScopePolicy<'static> {
-    AuthenticationScopePolicy::new(
-        ScopeRequirement::Forbidden,
-        ScopeRequirement::Forbidden,
-        ScopeRequirement::Forbidden,
-        ScopeRequirement::Forbidden,
-        ScopeRequirement::Forbidden,
-        ScopeRequirement::Forbidden,
-    )
 }
 
 struct CapturedResponse {
@@ -142,7 +125,7 @@ async fn send_test(
     let mut response = ResponseBuffer::new(output, capacity, &mut headers);
     AsyncAuthenticatedTransport::send_authenticated(
         client,
-        authenticated(request),
+        authenticated(client, request),
         response.writer(),
     )
     .await?;
@@ -432,9 +415,9 @@ fn internal_timeout_is_payload_free_and_clears_output() {
         else {
             return;
         };
-        let client =
-            AsyncClientBuilder::new(endpoint, test_credential(token), user_agent, timeouts)
-                .build_for_loopback();
+        let credential = test_credential(token, &endpoint);
+        let client = AsyncClientBuilder::new(endpoint, credential, user_agent, timeouts)
+            .build_for_loopback();
         let Ok(client) = client else { return };
         let Ok(target) = RequestTarget::new("/slow") else {
             return;
@@ -473,7 +456,7 @@ fn caller_cancellation_after_partial_body_never_exposes_response() {
             let mut response = ResponseBuffer::new(&mut output, 32, &mut headers);
             let future = AsyncAuthenticatedTransport::send_authenticated(
                 &client,
-                authenticated(TransportRequest::new(Method::Get, target)),
+                authenticated(&client, TransportRequest::new(Method::Get, target)),
                 response.writer(),
             );
             let result = tokio::time::timeout(Duration::from_millis(100), future).await;

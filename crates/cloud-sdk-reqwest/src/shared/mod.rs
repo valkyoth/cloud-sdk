@@ -36,8 +36,8 @@ pub use config::{MAX_TIMEOUT_SECONDS, RequestTimeouts, TimeoutError, UserAgent, 
 pub(crate) use content_type::parse_response_content_type;
 pub(crate) use credentials::CredentialStore;
 pub use credentials::{
-    BearerCredentialSnapshot, CredentialStateError, CredentialUpdateError, TokenRefreshError,
-    TokenRotationError,
+    BearerCredentialSnapshot, BearerRefreshHandoff, CredentialStateError, CredentialUpdateError,
+    TokenRefreshError, TokenRotationError,
 };
 pub use endpoint::{EndpointError, HttpsEndpoint, MAX_CONFIGURED_ENDPOINT_BYTES};
 pub use error::{BuildError, TransportError};

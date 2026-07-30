@@ -70,7 +70,7 @@ fn blocking_precommitted_writer_fails_before_network_access() {
     assert_eq!(
         BlockingAuthenticatedTransport::send_authenticated(
             &client,
-            authenticated(TransportRequest::new(Method::Get, target)),
+            authenticated(&client, TransportRequest::new(Method::Get, target)),
             response.writer(),
         ),
         Err(super::super::TransportError::ResponseCommitFailed)

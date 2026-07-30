@@ -69,10 +69,8 @@ fn read_only_catalog_smoke() -> Result<(), LiveSmokeError> {
     let endpoint_identity = policy_endpoint
         .identity()
         .map_err(|_| LiveSmokeError::Endpoint(EndpointError::IdentityRejected))?;
-    let credential_scope = BearerCredentialScope::unscoped()
-        .with_provider(HETZNER_PROVIDER_ID)
-        .with_service(CLOUD_SERVICE_ID)
-        .with_endpoint(endpoint.clone());
+    let credential_scope =
+        BearerCredentialScope::new(HETZNER_PROVIDER_ID, CLOUD_SERVICE_ID, endpoint.clone());
     let credential = BearerCredential::new(token, credential_scope);
     let authentication_policy = AuthenticationScopePolicy::new(
         ScopeRequirement::Required(HETZNER_PROVIDER_ID),

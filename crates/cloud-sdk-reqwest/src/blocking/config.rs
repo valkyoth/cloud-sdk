@@ -131,6 +131,9 @@ impl BlockingClientBuilder {
     }
 
     fn build_inner(self, https_only: bool) -> Result<BlockingClient, BuildError> {
+        if !self.credential.scope.matches_endpoint(&self.endpoint) {
+            return Err(BuildError::CredentialEndpointMismatch);
+        }
         let settings = ClientSettings {
             user_agent: &self.user_agent,
             timeouts: self.timeouts,

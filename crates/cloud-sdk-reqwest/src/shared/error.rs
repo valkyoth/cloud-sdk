@@ -23,6 +23,8 @@ pub enum BuildError {
     WebPkiRootsProtocolConfigurationFailed,
     /// Reqwest rejected the fixed hardened client configuration.
     ClientBuildFailed,
+    /// The bearer credential is bound to a different transport endpoint.
+    CredentialEndpointMismatch,
 }
 
 impl_static_error!(BuildError,
@@ -37,6 +39,7 @@ impl_static_error!(BuildError,
     Self::FipsClientConfigurationRejected => "TLS client did not report FIPS operation",
     Self::WebPkiRootsProtocolConfigurationFailed => "web PKI protocol configuration failed",
     Self::ClientBuildFailed => "HTTP client construction failed",
+    Self::CredentialEndpointMismatch => "credential endpoint differs from transport endpoint",
 );
 
 /// Payload-free transport failure.

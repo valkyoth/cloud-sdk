@@ -175,10 +175,8 @@ let Ok(service) = ServiceId::new("cloud") else { return };
 let policy_endpoint = endpoint.clone();
 let Ok(endpoint_identity) = policy_endpoint.identity() else { return };
 let Ok(token) = BearerToken::new("replace-with-scoped-token") else { return };
-let credential_scope = BearerCredentialScope::unscoped()
-    .with_provider(provider)
-    .with_service(service)
-    .with_endpoint(endpoint.clone());
+let credential_scope =
+    BearerCredentialScope::new(provider, service, endpoint.clone());
 let credential = BearerCredential::new(token, credential_scope);
 let authentication_policy = AuthenticationScopePolicy::new(
     ScopeRequirement::Required(provider),
@@ -337,10 +335,8 @@ let Ok(service) = ServiceId::new("cloud") else { return };
 let policy_endpoint = endpoint.clone();
 let Ok(endpoint_identity) = policy_endpoint.identity() else { return };
 let Ok(token) = BearerToken::new("replace-with-scoped-token") else { return };
-let credential_scope = BearerCredentialScope::unscoped()
-    .with_provider(provider)
-    .with_service(service)
-    .with_endpoint(endpoint.clone());
+let credential_scope =
+    BearerCredentialScope::new(provider, service, endpoint.clone());
 let credential = BearerCredential::new(token, credential_scope);
 let authentication_policy = AuthenticationScopePolicy::new(
     ScopeRequirement::Required(provider),
@@ -464,11 +460,13 @@ cannot clear its immutable source. Construct a replacement before calling
 `rotate_bearer_token`, or use one of the source-clearing rotation methods;
 rejected input leaves the active credential unchanged.
 
-Refresh uses compare-and-swap generation handoffs. If rotation or another
-refresh wins while an external acquisition is in progress, the stale refresh
-is rejected and cannot overwrite the newer token. The SDK supplies no clock,
-expiry decision, acquisition future, executor, or secret store; callers own
-those policies and pass only the resulting token and captured handoff.
+Refresh uses lineage-bound compare-and-swap handoffs. A handoff from another
+client is rejected even when both clients have the same generation. If
+rotation or another refresh wins while external acquisition is in progress,
+the stale refresh is rejected and cannot overwrite the newer token. The SDK
+supplies no clock, expiry decision, acquisition future, executor, or secret
+store; callers own those policies and pass only the resulting token and
+captured handoff.
 
 ## Enforced Policy
 

@@ -16,9 +16,11 @@ and external refresh use generation-safe state transitions.
 
 - Added explicit required, optional, or forbidden policy for provider,
   service, endpoint, audience, account, and tenant.
-- Required exact HTTPS endpoint identity before authorization construction.
-- Rejected unscoped credentials, omitted required fields, supplied forbidden
-  fields, and mismatches before network or header work.
+- Made provider, service, and endpoint mandatory bearer-credential bindings.
+- Required exact `Required` policy rules for all three base identities before
+  authorization construction.
+- Rejected configured credential endpoint mismatch, downgraded base rules,
+  supplied forbidden fields, and mismatches before network or header work.
 - Added mandatory authenticated blocking and executor-neutral async transport
   traits.
 - Kept raw HTTP execution credential-free.
@@ -26,12 +28,15 @@ and external refresh use generation-safe state transitions.
 ## Credential Lifecycle
 
 - Added immutable owned credential scope.
-- Added monotonic generations and compare-and-swap refresh handoffs.
-- Rejected stale refresh completion after a newer rotation or refresh.
+- Added monotonic generations and lineage-bound compare-and-swap refresh
+  handoffs.
+- Rejected foreign-store handoffs and stale refresh completion after a newer
+  rotation or refresh.
 - Preserved old token snapshots only for in-flight requests.
 - Recovered poisoned credential state without holding locks across I/O or
   `.await`.
 - Cleared mutable and guarded token sources on success and rejection.
+- Rejected padding-only and leading-padding bearer values.
 - Added cleanup-owned authorization header values and retired-token cleanup.
 - Kept token acquisition, clocks, expiry, tasks, queues, retries, and secret
   stores outside the SDK.

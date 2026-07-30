@@ -86,7 +86,8 @@ fn async_builder_debug_redacts_endpoint_scope_and_token() {
     else {
         return;
     };
-    let builder = AsyncClientBuilder::new(endpoint, test_credential(token), user_agent, timeouts);
+    let credential = test_credential(token, &endpoint);
+    let builder = AsyncClientBuilder::new(endpoint, credential, user_agent, timeouts);
     let debug = std::format!("{builder:?}");
     assert!(debug.contains("[redacted]"));
     assert!(!debug.contains("secret-token"));

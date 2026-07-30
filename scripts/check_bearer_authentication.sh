@@ -20,12 +20,25 @@ for contract in \
     'pub struct BearerCredentialScope' \
     'pub struct BearerCredential' \
     'pub struct BearerCredentialSnapshot' \
+    'pub struct BearerRefreshHandoff' \
     'pub enum TokenRefreshError'; do
     if ! grep -R -Fq "$contract" crates/cloud-sdk-reqwest/src; then
         echo "bearer authentication: missing adapter contract $contract" >&2
         exit 1
     fi
 done
+
+if grep -R -Fq 'BearerCredentialScope::unscoped' \
+    crates/cloud-sdk-reqwest crates/cloud-sdk-hetzner/tests; then
+    echo "bearer authentication: adapter still permits an unscoped credential" >&2
+    exit 1
+fi
+
+if ! grep -Fq 'CredentialMismatch' \
+    crates/cloud-sdk-reqwest/src/shared/credentials.rs; then
+    echo "bearer authentication: refresh handoffs lack store-lineage rejection" >&2
+    exit 1
+fi
 
 if grep -R -Eq \
     'impl (BlockingTransport|AsyncTransport) for (BlockingClient|AsyncClient)' \

@@ -14,18 +14,14 @@ use rustls::pki_types::pem::PemObject;
 use rustls::pki_types::{CertificateDer, CertificateRevocationListDer};
 
 use cloud_sdk::Method;
-use cloud_sdk::authentication::{
-    AuthenticatedRequest, AuthenticationScopePolicy, ScopeRequirement,
-};
 use cloud_sdk::transport::{
     ContentType, RequestHeader, RequestHeaders, RequestTarget, StatusCode, TransportRequest,
 };
 
 use super::body::{ReadBodyError, read_bounded};
 use super::{
-    BearerCredential, BearerCredentialScope, BearerToken, BlockingClientBuilder,
-    CustomEndpointAcknowledgement, EndpointError, HttpsEndpoint, RequestTimeouts, TimeoutError,
-    TransportError, UserAgent,
+    BearerToken, BlockingClientBuilder, CustomEndpointAcknowledgement, EndpointError,
+    HttpsEndpoint, RequestTimeouts, TimeoutError, TransportError, UserAgent,
 };
 #[cfg(feature = "blocking-rustls-fips")]
 use super::{BuildError, FipsTlsPolicy};
@@ -39,7 +35,7 @@ mod raw_executor;
 mod response_content_type;
 mod support;
 
-use support::send_test;
+use support::{authenticated, send_test, test_credential};
 
 fn test_timeouts() -> Option<RequestTimeouts> {
     RequestTimeouts::new(Duration::from_secs(2), Duration::from_secs(1)).ok()
@@ -57,30 +53,11 @@ fn build_loopback(endpoint: &str) -> Option<super::BlockingClient> {
     let token = BearerToken::new("test-token").ok()?;
     let user_agent = UserAgent::new("cloud-sdk-test/0.18").ok()?;
     let timeouts = test_timeouts()?;
-    let builder =
-        BlockingClientBuilder::new(endpoint, test_credential(token), user_agent, timeouts);
+    let credential = test_credential(token, &endpoint);
+    let builder = BlockingClientBuilder::new(endpoint, credential, user_agent, timeouts);
     #[cfg(feature = "blocking-rustls-fips")]
     let builder = builder.with_fips_tls_policy(fips_tls_policy()?);
     builder.build_for_loopback().ok()
-}
-
-fn test_credential(token: BearerToken) -> BearerCredential {
-    BearerCredential::new(token, BearerCredentialScope::unscoped())
-}
-
-fn authenticated(request: TransportRequest<'_>) -> AuthenticatedRequest<'_, 'static> {
-    AuthenticatedRequest::new(request, test_authentication_policy())
-}
-
-const fn test_authentication_policy() -> AuthenticationScopePolicy<'static> {
-    AuthenticationScopePolicy::new(
-        ScopeRequirement::Forbidden,
-        ScopeRequirement::Forbidden,
-        ScopeRequirement::Forbidden,
-        ScopeRequirement::Forbidden,
-        ScopeRequirement::Forbidden,
-        ScopeRequirement::Forbidden,
-    )
 }
 
 #[cfg(feature = "blocking-rustls-fips")]
@@ -364,8 +341,9 @@ fn response_timeout_is_payload_free_and_clears_output() {
     else {
         return;
     };
-    let client = BlockingClientBuilder::new(endpoint, test_credential(token), user_agent, timeouts)
-        .build_for_loopback();
+    let credential = test_credential(token, &endpoint);
+    let client =
+        BlockingClientBuilder::new(endpoint, credential, user_agent, timeouts).build_for_loopback();
     let Ok(client) = client else { return };
     let Ok(target) = RequestTarget::new("/slow") else {
         return;
@@ -441,7 +419,13 @@ fn fips_client_builder_requires_an_explicit_tls_policy() {
         return;
     };
     assert!(matches!(
-        BlockingClientBuilder::new(endpoint, test_credential(token), user_agent, timeouts,).build(),
+        BlockingClientBuilder::new(
+            endpoint.clone(),
+            test_credential(token, &endpoint),
+            user_agent,
+            timeouts,
+        )
+        .build(),
         Err(BuildError::FipsTlsPolicyRequired)
     ));
 }
