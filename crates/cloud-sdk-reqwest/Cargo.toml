@@ -14,7 +14,7 @@ all-features = true
 
 [features]
 default = []
-std = ["cloud-sdk/std", "cloud-sdk-sanitization?/std"]
+std = ["cloud-sdk/std", "cloud-sdk-sanitization?/std", "dep:base64-ng"]
 blocking-rustls = [
     "std",
     "dep:bytes",
@@ -153,6 +153,7 @@ fuzzing = ["blocking-rustls", "tokio/io-util"]
 aws-lc-fips-sys = { workspace = true, optional = true }
 aws-lc-rs = { workspace = true, optional = true }
 aws-lc-sys = { workspace = true, optional = true }
+base64-ng = { workspace = true, optional = true }
 bytes = { workspace = true, optional = true }
 cloud-sdk.workspace = true
 cloud-sdk-sanitization = { workspace = true, optional = true }

@@ -1,0 +1,114 @@
+{
+  "schema_version": 1,
+  "source": {
+    "retrieved": "2026-07-30",
+    "url": "https://robot.hetzner.com/doc/webservice/en.html",
+    "sha256": "4b396790acc449f47b2b3b893f8eff759c0c25196dc38b1e5e92a12c9704771a"
+  },
+  "protocol": {
+    "base_url": "https://robot-ws.your-server.de",
+    "authentication": "basic",
+    "https_only": true,
+    "post_content_type": "application/x-www-form-urlencoded",
+    "response_content_type": "application/json",
+    "success_statuses": [
+      200,
+      201
+    ],
+    "authentication_rejection_status": 401,
+    "failed_login_limit": 3,
+    "source_ip_lockout_seconds": 600,
+    "quota_status": 403,
+    "quota_code": "RATE_LIMIT_EXCEEDED",
+    "maintenance_status": 503
+  },
+  "requests": [
+    {
+      "name": "single-server-read",
+      "execute": false,
+      "method": "GET",
+      "target": "/server/321",
+      "headers": {
+        "accept": "application/json"
+      },
+      "body": ""
+    },
+    {
+      "name": "repeated-vswitch-server-mutation",
+      "execute": false,
+      "method": "POST",
+      "target": "/vswitch/4321/server",
+      "headers": {
+        "accept": "application/json",
+        "content-type": "application/x-www-form-urlencoded"
+      },
+      "body": "server%5B%5D=123.123.123.123&server%5B%5D=123.123.123.124"
+    }
+  ],
+  "responses": [
+    {
+      "name": "single-server-success",
+      "status": 200,
+      "body": {
+        "server": {
+          "server_ip": "123.123.123.123",
+          "server_number": 321
+        }
+      }
+    },
+    {
+      "name": "general-error",
+      "status": 404,
+      "body": {
+        "error": {
+          "status": 404,
+          "code": "SERVER_NOT_FOUND",
+          "message": "server not found"
+        }
+      }
+    },
+    {
+      "name": "invalid-input-error",
+      "status": 400,
+      "body": {
+        "error": {
+          "status": 400,
+          "code": "INVALID_INPUT",
+          "message": "invalid input",
+          "missing": [
+            "server"
+          ],
+          "invalid": null
+        }
+      }
+    },
+    {
+      "name": "authentication-rejection",
+      "status": 401,
+      "body": null
+    },
+    {
+      "name": "quota-error",
+      "status": 403,
+      "body": {
+        "error": {
+          "status": 403,
+          "code": "RATE_LIMIT_EXCEEDED",
+          "message": "rate limit exceeded",
+          "max_request": 100,
+          "interval": 3600
+        }
+      }
+    },
+    {
+      "name": "maintenance",
+      "status": 503,
+      "body": null
+    },
+    {
+      "name": "empty-success",
+      "status": 200,
+      "body": ""
+    }
+  ]
+}

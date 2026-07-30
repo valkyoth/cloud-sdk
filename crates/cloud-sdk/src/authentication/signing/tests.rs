@@ -1,5 +1,5 @@
 use core::cell::Cell;
-use std::format;
+use core::fmt::{self, Write};
 
 use crate::Method;
 use crate::transport::{
@@ -11,6 +11,40 @@ use super::{
     MAX_SIGNING_NONCE_BYTES, RequestBodyHasher, RequestSigner, SigningBodyDigest, SigningHeaders,
     SigningInputError, SigningNonce, SigningValueError, UnixTime,
 };
+
+struct DebugBuffer {
+    bytes: [u8; 64],
+    len: usize,
+}
+
+impl DebugBuffer {
+    const fn new() -> Self {
+        Self {
+            bytes: [0; 64],
+            len: 0,
+        }
+    }
+
+    fn as_str(&self) -> &str {
+        core::str::from_utf8(self.bytes.get(..self.len).unwrap_or_default()).unwrap_or_default()
+    }
+}
+
+impl Write for DebugBuffer {
+    fn write_str(&mut self, value: &str) -> fmt::Result {
+        let end = self.len.checked_add(value.len()).ok_or(fmt::Error)?;
+        let output = self.bytes.get_mut(self.len..end).ok_or(fmt::Error)?;
+        output.copy_from_slice(value.as_bytes());
+        self.len = end;
+        Ok(())
+    }
+}
+
+fn debug_text(value: &impl fmt::Debug) -> DebugBuffer {
+    let mut output = DebugBuffer::new();
+    let _ = write!(&mut output, "{value:?}");
+    output
+}
 
 fn request<'a>(
     target: &'a str,
@@ -42,8 +76,11 @@ fn digest_and_nonce_are_nonempty_bounded_and_redacted() {
     let nonce = SigningNonce::new(b"secret-nonce");
     assert!(digest.is_ok() && nonce.is_ok());
     if let (Ok(digest), Ok(nonce)) = (digest, nonce) {
-        assert_eq!(format!("{digest:?}"), "SigningBodyDigest([redacted])");
-        assert_eq!(format!("{nonce:?}"), "SigningNonce([redacted])");
+        assert_eq!(
+            debug_text(&digest).as_str(),
+            "SigningBodyDigest([redacted])"
+        );
+        assert_eq!(debug_text(&nonce).as_str(), "SigningNonce([redacted])");
     }
 }
 
@@ -152,7 +189,7 @@ fn canonical_vector_is_versioned_length_framed_and_case_normalized() {
             ]
             .concat();
             assert_eq!(canonical.as_bytes(), expected);
-            assert!(!format!("{canonical:?}").contains("nonce-1"));
+            assert!(!debug_text(&canonical).as_str().contains("nonce-1"));
         }
     }
     assert_eq!(output, [0_u8; 512]);
@@ -327,8 +364,7 @@ fn sensitive_selected_headers_remain_redacted() {
     let headers = SigningHeaders::new(&entries);
     assert!(headers.is_ok());
     if let Ok(headers) = headers {
-        let debug = format!("{headers:?}");
-        assert!(!debug.contains("secret-value"));
+        assert!(!debug_text(&headers).as_str().contains("secret-value"));
         let Ok(digest) = SigningBodyDigest::new(b"digest") else {
             return;
         };

@@ -2,7 +2,7 @@ use cloud_sdk::authentication::{AuthenticationScopePolicy, ScopeRequirement};
 use cloud_sdk::transport::{EndpointIdentity, EndpointScheme};
 use std::net::IpAddr;
 
-use super::BearerCredentialScope;
+use super::{BasicCredentialScope, BearerCredentialScope, CredentialScopeView};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub(crate) enum AuthenticationValidationError {
@@ -12,9 +12,44 @@ pub(crate) enum AuthenticationValidationError {
     ScopeRejected,
 }
 
+pub(crate) fn map_authentication_error(
+    error: AuthenticationValidationError,
+) -> super::TransportError {
+    match error {
+        AuthenticationValidationError::InsecureEndpoint => {
+            super::TransportError::InsecureAuthenticationEndpoint
+        }
+        AuthenticationValidationError::EndpointMismatch => {
+            super::TransportError::AuthenticationEndpointMismatch
+        }
+        AuthenticationValidationError::IncompletePolicy
+        | AuthenticationValidationError::ScopeRejected => {
+            super::TransportError::AuthenticationScopeRejected
+        }
+    }
+}
+
 pub(crate) fn validate_bearer_authentication<'a>(
     endpoint: EndpointIdentity<'a>,
     scope: &'a BearerCredentialScope,
+    policy: AuthenticationScopePolicy<'a>,
+    allow_insecure_loopback: bool,
+) -> Result<(), AuthenticationValidationError> {
+    validate_authentication(endpoint, scope, policy, allow_insecure_loopback)
+}
+
+pub(crate) fn validate_basic_authentication<'a>(
+    endpoint: EndpointIdentity<'a>,
+    scope: &'a BasicCredentialScope,
+    policy: AuthenticationScopePolicy<'a>,
+    allow_insecure_loopback: bool,
+) -> Result<(), AuthenticationValidationError> {
+    validate_authentication(endpoint, scope, policy, allow_insecure_loopback)
+}
+
+fn validate_authentication<'a, S: CredentialScopeView>(
+    endpoint: EndpointIdentity<'a>,
+    scope: &'a S,
     policy: AuthenticationScopePolicy<'a>,
     allow_insecure_loopback: bool,
 ) -> Result<(), AuthenticationValidationError> {
@@ -62,9 +97,9 @@ pub(crate) fn validate_bearer_authentication<'a>(
         .map_err(|_| AuthenticationValidationError::ScopeRejected)
 }
 
-fn validate_test_loopback_scope<'a>(
+fn validate_test_loopback_scope<'a, S: CredentialScopeView>(
     endpoint: EndpointIdentity<'a>,
-    scope: &'a BearerCredentialScope,
+    scope: &'a S,
     policy: AuthenticationScopePolicy<'a>,
 ) -> Result<(), AuthenticationValidationError> {
     let projected_endpoint = EndpointIdentity::new(

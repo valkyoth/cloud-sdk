@@ -2,13 +2,14 @@ use core::fmt;
 use std::string::String;
 
 use cloud_sdk::authentication::{AuthenticationScope, ScopeValue, ScopeValueError};
+use cloud_sdk::transport::EndpointIdentity;
 use cloud_sdk::{ProviderId, ServiceId};
 
 use super::{BearerToken, HttpsEndpoint};
 
 /// Owned authentication-scope construction failure.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum BearerCredentialScopeError {
+pub enum CredentialScopeError {
     /// A provider-owned scope value failed core validation.
     ValueRejected(ScopeValueError),
     /// Adapter-owned scope storage could not be allocated.
@@ -17,30 +18,31 @@ pub enum BearerCredentialScopeError {
     EndpointIdentityRejected,
 }
 
-impl fmt::Display for BearerCredentialScopeError {
+impl fmt::Display for CredentialScopeError {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter.write_str(match self {
-            Self::ValueRejected(_) => "bearer credential scope value was rejected",
-            Self::AllocationFailed => "bearer credential scope allocation failed",
-            Self::EndpointIdentityRejected => "bearer credential endpoint identity was rejected",
+            Self::ValueRejected(_) => "credential scope value was rejected",
+            Self::AllocationFailed => "credential scope allocation failed",
+            Self::EndpointIdentityRejected => "credential endpoint identity was rejected",
         })
     }
 }
 
-impl core::error::Error for BearerCredentialScopeError {
+impl core::error::Error for CredentialScopeError {
     fn source(&self) -> Option<&(dyn core::error::Error + 'static)> {
         match self {
             Self::ValueRejected(error) => Some(error),
-            Self::AllocationFailed => None,
-            Self::EndpointIdentityRejected => None,
+            Self::AllocationFailed | Self::EndpointIdentityRejected => None,
         }
     }
 }
 
-/// Immutable owned scope attached to one bearer-credential lifecycle.
-///
-/// Rotation and refresh replace only the token. They cannot change this scope.
-pub struct BearerCredentialScope {
+/// Compatibility name for bearer-scope construction failures.
+pub type BearerCredentialScopeError = CredentialScopeError;
+/// Basic-scope construction failure.
+pub type BasicCredentialScopeError = CredentialScopeError;
+
+struct OwnedCredentialScope {
     provider: ProviderId,
     service: ServiceId,
     endpoint: HttpsEndpoint,
@@ -49,10 +51,8 @@ pub struct BearerCredentialScope {
     tenant: Option<String>,
 }
 
-impl BearerCredentialScope {
-    /// Binds a credential to one provider, service, and transport endpoint.
-    #[must_use]
-    pub const fn new(provider: ProviderId, service: ServiceId, endpoint: HttpsEndpoint) -> Self {
+impl OwnedCredentialScope {
+    const fn new(provider: ProviderId, service: ServiceId, endpoint: HttpsEndpoint) -> Self {
         Self {
             provider,
             service,
@@ -63,71 +63,56 @@ impl BearerCredentialScope {
         }
     }
 
-    /// Binds a provider-owned audience.
-    pub fn try_with_audience(mut self, value: &str) -> Result<Self, BearerCredentialScopeError> {
+    fn try_with_audience(mut self, value: &str) -> Result<Self, CredentialScopeError> {
         self.audience = Some(copy_scope_value(value)?);
         Ok(self)
     }
 
-    /// Binds a provider-owned account.
-    pub fn try_with_account(mut self, value: &str) -> Result<Self, BearerCredentialScopeError> {
+    fn try_with_account(mut self, value: &str) -> Result<Self, CredentialScopeError> {
         self.account = Some(copy_scope_value(value)?);
         Ok(self)
     }
 
-    /// Binds a provider-owned tenant.
-    pub fn try_with_tenant(mut self, value: &str) -> Result<Self, BearerCredentialScopeError> {
+    fn try_with_tenant(mut self, value: &str) -> Result<Self, CredentialScopeError> {
         self.tenant = Some(copy_scope_value(value)?);
         Ok(self)
     }
 
-    pub(crate) fn borrowed(&self) -> Result<AuthenticationScope<'_>, BearerCredentialScopeError> {
+    fn borrowed(&self) -> Result<AuthenticationScope<'_>, CredentialScopeError> {
         self.borrowed_with_endpoint(self.endpoint_identity()?)
     }
 
-    pub(crate) fn borrowed_with_endpoint<'a>(
+    fn borrowed_with_endpoint<'a>(
         &'a self,
-        endpoint: cloud_sdk::transport::EndpointIdentity<'a>,
-    ) -> Result<AuthenticationScope<'a>, BearerCredentialScopeError> {
+        endpoint: EndpointIdentity<'a>,
+    ) -> Result<AuthenticationScope<'a>, CredentialScopeError> {
         let mut scope = AuthenticationScope::unscoped()
             .with_provider(self.provider)
             .with_service(self.service)
             .with_endpoint(endpoint);
         if let Some(value) = self.audience.as_deref() {
             scope = scope.with_audience(
-                ScopeValue::new(value).map_err(BearerCredentialScopeError::ValueRejected)?,
+                ScopeValue::new(value).map_err(CredentialScopeError::ValueRejected)?,
             );
         }
         if let Some(value) = self.account.as_deref() {
-            scope = scope.with_account(
-                ScopeValue::new(value).map_err(BearerCredentialScopeError::ValueRejected)?,
-            );
+            scope = scope
+                .with_account(ScopeValue::new(value).map_err(CredentialScopeError::ValueRejected)?);
         }
         if let Some(value) = self.tenant.as_deref() {
-            scope = scope.with_tenant(
-                ScopeValue::new(value).map_err(BearerCredentialScopeError::ValueRejected)?,
-            );
+            scope = scope
+                .with_tenant(ScopeValue::new(value).map_err(CredentialScopeError::ValueRejected)?);
         }
         Ok(scope)
     }
 
-    pub(crate) const fn provider(&self) -> ProviderId {
-        self.provider
-    }
-
-    pub(crate) const fn service(&self) -> ServiceId {
-        self.service
-    }
-
-    pub(crate) fn endpoint_identity(
-        &self,
-    ) -> Result<cloud_sdk::transport::EndpointIdentity<'_>, BearerCredentialScopeError> {
+    fn endpoint_identity(&self) -> Result<EndpointIdentity<'_>, CredentialScopeError> {
         self.endpoint
             .identity()
-            .map_err(|_| BearerCredentialScopeError::EndpointIdentityRejected)
+            .map_err(|_| CredentialScopeError::EndpointIdentityRejected)
     }
 
-    pub(crate) fn matches_endpoint(&self, endpoint: &HttpsEndpoint) -> bool {
+    fn matches_endpoint(&self, endpoint: &HttpsEndpoint) -> bool {
         self.endpoint_identity()
             .ok()
             .zip(endpoint.identity().ok())
@@ -135,19 +120,134 @@ impl BearerCredentialScope {
     }
 }
 
-impl fmt::Debug for BearerCredentialScope {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        formatter
-            .debug_struct("BearerCredentialScope")
-            .field("provider", &self.provider)
-            .field("service", &self.service)
-            .field("endpoint", &"[redacted]")
-            .field("audience", &self.audience.as_ref().map(|_| "[redacted]"))
-            .field("account", &self.account.as_ref().map(|_| "[redacted]"))
-            .field("tenant", &self.tenant.as_ref().map(|_| "[redacted]"))
-            .finish()
-    }
+pub(crate) trait CredentialScopeView {
+    fn provider(&self) -> ProviderId;
+    fn service(&self) -> ServiceId;
+    fn endpoint_identity(&self) -> Result<EndpointIdentity<'_>, CredentialScopeError>;
+    fn borrowed(&self) -> Result<AuthenticationScope<'_>, CredentialScopeError>;
+    fn borrowed_with_endpoint<'a>(
+        &'a self,
+        endpoint: EndpointIdentity<'a>,
+    ) -> Result<AuthenticationScope<'a>, CredentialScopeError>;
 }
+
+macro_rules! define_scope {
+    ($name:ident, $label:literal) => {
+        /// Immutable owned scope attached to one credential lifecycle.
+        pub struct $name {
+            inner: OwnedCredentialScope,
+        }
+
+        impl $name {
+            /// Binds a credential to one provider, service, and transport endpoint.
+            #[must_use]
+            pub const fn new(
+                provider: ProviderId,
+                service: ServiceId,
+                endpoint: HttpsEndpoint,
+            ) -> Self {
+                Self {
+                    inner: OwnedCredentialScope::new(provider, service, endpoint),
+                }
+            }
+
+            /// Binds a provider-owned audience.
+            pub fn try_with_audience(mut self, value: &str) -> Result<Self, CredentialScopeError> {
+                self.inner = self.inner.try_with_audience(value)?;
+                Ok(self)
+            }
+
+            /// Binds a provider-owned account.
+            pub fn try_with_account(mut self, value: &str) -> Result<Self, CredentialScopeError> {
+                self.inner = self.inner.try_with_account(value)?;
+                Ok(self)
+            }
+
+            /// Binds a provider-owned tenant.
+            pub fn try_with_tenant(mut self, value: &str) -> Result<Self, CredentialScopeError> {
+                self.inner = self.inner.try_with_tenant(value)?;
+                Ok(self)
+            }
+
+            pub(crate) const fn provider(&self) -> ProviderId {
+                self.inner.provider
+            }
+
+            pub(crate) const fn service(&self) -> ServiceId {
+                self.inner.service
+            }
+
+            pub(crate) fn endpoint_identity(
+                &self,
+            ) -> Result<EndpointIdentity<'_>, CredentialScopeError> {
+                self.inner.endpoint_identity()
+            }
+
+            pub(crate) fn borrowed(&self) -> Result<AuthenticationScope<'_>, CredentialScopeError> {
+                self.inner.borrowed()
+            }
+
+            pub(crate) fn borrowed_with_endpoint<'a>(
+                &'a self,
+                endpoint: EndpointIdentity<'a>,
+            ) -> Result<AuthenticationScope<'a>, CredentialScopeError> {
+                self.inner.borrowed_with_endpoint(endpoint)
+            }
+
+            pub(crate) fn matches_endpoint(&self, endpoint: &HttpsEndpoint) -> bool {
+                self.inner.matches_endpoint(endpoint)
+            }
+        }
+
+        impl CredentialScopeView for $name {
+            fn provider(&self) -> ProviderId {
+                self.provider()
+            }
+
+            fn service(&self) -> ServiceId {
+                self.service()
+            }
+
+            fn endpoint_identity(&self) -> Result<EndpointIdentity<'_>, CredentialScopeError> {
+                self.endpoint_identity()
+            }
+
+            fn borrowed(&self) -> Result<AuthenticationScope<'_>, CredentialScopeError> {
+                self.borrowed()
+            }
+
+            fn borrowed_with_endpoint<'a>(
+                &'a self,
+                endpoint: EndpointIdentity<'a>,
+            ) -> Result<AuthenticationScope<'a>, CredentialScopeError> {
+                self.borrowed_with_endpoint(endpoint)
+            }
+        }
+
+        impl fmt::Debug for $name {
+            fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+                formatter
+                    .debug_struct($label)
+                    .field("provider", &self.inner.provider)
+                    .field("service", &self.inner.service)
+                    .field("endpoint", &"[redacted]")
+                    .field(
+                        "audience",
+                        &self.inner.audience.as_ref().map(|_| "[redacted]"),
+                    )
+                    .field(
+                        "account",
+                        &self.inner.account.as_ref().map(|_| "[redacted]"),
+                    )
+                    .field("tenant", &self.inner.tenant.as_ref().map(|_| "[redacted]"))
+                    .finish()
+            }
+        }
+    };
+}
+
+define_scope!(BearerCredentialScope, "BearerCredentialScope");
+define_scope!(BasicCredentialScope, "BasicCredentialScope");
 
 /// Initial bearer token and its immutable authentication scope.
 pub struct BearerCredential {
@@ -169,12 +269,12 @@ impl fmt::Debug for BearerCredential {
     }
 }
 
-fn copy_scope_value(value: &str) -> Result<String, BearerCredentialScopeError> {
-    ScopeValue::new(value).map_err(BearerCredentialScopeError::ValueRejected)?;
+fn copy_scope_value(value: &str) -> Result<String, CredentialScopeError> {
+    ScopeValue::new(value).map_err(CredentialScopeError::ValueRejected)?;
     let mut owned = String::new();
     owned
         .try_reserve_exact(value.len())
-        .map_err(|_| BearerCredentialScopeError::AllocationFailed)?;
+        .map_err(|_| CredentialScopeError::AllocationFailed)?;
     owned.push_str(value);
     Ok(owned)
 }
@@ -184,7 +284,7 @@ mod tests {
     use cloud_sdk::transport::CustomEndpointAcknowledgement;
     use cloud_sdk::{ProviderId, ServiceId};
 
-    use super::{BearerCredentialScope, BearerCredentialScopeError, ScopeValueError};
+    use super::{BasicCredentialScope, CredentialScopeError, ScopeValueError};
     use crate::shared::HttpsEndpoint;
 
     #[test]
@@ -196,7 +296,7 @@ mod tests {
             CustomEndpointAcknowledgement::trusted_operator_configuration(),
         )
         .unwrap_or_else(|_| unreachable!());
-        let scope = BearerCredentialScope::new(provider, service, endpoint)
+        let scope = BasicCredentialScope::new(provider, service, endpoint)
             .try_with_audience("secret-audience")
             .and_then(|scope| scope.try_with_account("secret-account"))
             .and_then(|scope| scope.try_with_tenant("secret-tenant"));
@@ -220,11 +320,11 @@ mod tests {
             CustomEndpointAcknowledgement::trusted_operator_configuration(),
         )
         .unwrap_or_else(|_| unreachable!());
-        let result = BearerCredentialScope::new(provider, service, endpoint)
-            .try_with_audience("contains space");
+        let result =
+            BasicCredentialScope::new(provider, service, endpoint).try_with_audience("has space");
         assert!(matches!(
             result,
-            Err(BearerCredentialScopeError::ValueRejected(
+            Err(CredentialScopeError::ValueRejected(
                 ScopeValueError::InvalidByte
             ))
         ));

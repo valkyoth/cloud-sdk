@@ -133,7 +133,7 @@ impl fmt::Debug for RawAsyncClientBuilder {
     }
 }
 
-fn configured_client(
+pub(super) fn configured_client(
     user_agent: &UserAgent,
     timeouts: RequestTimeouts,
     https_only: bool,

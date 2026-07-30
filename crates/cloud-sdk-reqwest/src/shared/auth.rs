@@ -1,6 +1,5 @@
 use core::fmt;
 
-use bytes::Bytes;
 use cloud_sdk_sanitization::{SecretBuffer, sanitize_bytes};
 use reqwest::header::HeaderValue;
 #[cfg(test)]
@@ -10,6 +9,10 @@ use std::sync::{
 };
 use std::vec::Vec;
 
+#[cfg(not(test))]
+use super::sensitive_header_value;
+#[cfg(test)]
+use super::sensitive_header_value_with_probe;
 /// Maximum bearer-token length accepted by the adapter.
 pub const MAX_BEARER_TOKEN_BYTES: usize = 4096;
 
@@ -105,20 +108,14 @@ impl BearerToken {
         })
     }
 
+    #[cfg(not(test))]
     pub(crate) fn header_value(&self) -> Result<HeaderValue, ()> {
-        let mut bytes = Vec::new();
-        bytes
-            .try_reserve_exact(self.authorization.len())
-            .map_err(|_| ())?;
-        bytes.extend_from_slice(&self.authorization);
-        let owner = SanitizedHeaderValue {
-            bytes,
-            #[cfg(test)]
-            drop_probe: self.header_drop_probe.clone(),
-        };
-        let mut value = HeaderValue::from_maybe_shared(Bytes::from_owner(owner)).map_err(|_| ())?;
-        value.set_sensitive(true);
-        Ok(value)
+        sensitive_header_value(&self.authorization)
+    }
+
+    #[cfg(test)]
+    pub(crate) fn header_value(&self) -> Result<HeaderValue, ()> {
+        sensitive_header_value_with_probe(&self.authorization, self.header_drop_probe.clone())
     }
 
     #[cfg(test)]
@@ -165,26 +162,4 @@ impl fmt::Debug for BearerToken {
 
 const fn is_bearer_byte(byte: u8) -> bool {
     byte.is_ascii_alphanumeric() || matches!(byte, b'-' | b'.' | b'_' | b'~' | b'+' | b'/')
-}
-
-struct SanitizedHeaderValue {
-    bytes: Vec<u8>,
-    #[cfg(test)]
-    drop_probe: Option<Arc<AtomicUsize>>,
-}
-
-impl AsRef<[u8]> for SanitizedHeaderValue {
-    fn as_ref(&self) -> &[u8] {
-        &self.bytes
-    }
-}
-
-impl Drop for SanitizedHeaderValue {
-    fn drop(&mut self) {
-        sanitize_bytes(&mut self.bytes);
-        #[cfg(test)]
-        if let Some(probe) = &self.drop_probe {
-            probe.fetch_add(1, Ordering::SeqCst);
-        }
-    }
 }

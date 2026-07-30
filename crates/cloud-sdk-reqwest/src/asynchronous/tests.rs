@@ -17,6 +17,7 @@ use super::{
 use crate::test_server::{spawn, spawn_split};
 
 mod authentication_policy;
+mod basic;
 mod lifecycle;
 mod raw_executor;
 mod support;

@@ -28,6 +28,7 @@ use super::{BuildError, FipsTlsPolicy};
 use crate::test_server::spawn;
 
 mod authentication_policy;
+mod basic;
 mod endpoint_policy;
 mod lifecycle;
 mod method_domain;

@@ -237,14 +237,17 @@ impl fmt::Debug for RawBlockingClientBuilder {
 }
 
 #[derive(Clone, Copy)]
-struct ClientSettings<'a> {
-    user_agent: &'a UserAgent,
-    timeouts: RequestTimeouts,
+pub(super) struct ClientSettings<'a> {
+    pub(super) user_agent: &'a UserAgent,
+    pub(super) timeouts: RequestTimeouts,
     #[cfg(feature = "blocking-rustls-fips")]
-    fips_tls_policy: Option<&'a FipsTlsPolicy>,
+    pub(super) fips_tls_policy: Option<&'a FipsTlsPolicy>,
 }
 
-fn configured_client(settings: ClientSettings<'_>, https_only: bool) -> Result<Client, BuildError> {
+pub(super) fn configured_client(
+    settings: ClientSettings<'_>,
+    https_only: bool,
+) -> Result<Client, BuildError> {
     configured_tls_builder(settings)?
         .https_only(https_only)
         .http1_only()

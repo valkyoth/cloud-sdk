@@ -262,16 +262,17 @@ reviewed seeds. Longer campaigns and crash minimization remain explicit local
 operations. Every confirmed defect must become a deterministic regression test
 in the owning published crate before release.
 
-## Pending Pre-1.0 Scope
+## v0.42.0 Robot Wire Policy
 
 Robot Webservice is required for the full Hetzner 1.0 SDK. Its source
-reference is:
+reference and narrow protocol fixture are locked in
+[`ROBOT_WIRE_SOURCE_LOCK.md`](ROBOT_WIRE_SOURCE_LOCK.md).
 
-- <https://robot.hetzner.com/doc/webservice/en.html>
-
-`v0.42.0` must pin the Robot wire protocol and exercise credential-free
-conformance fixtures before neutral freeze. `v0.74.0` then pins the complete
-operation inventory before any Robot operation is implemented. The complete
-lock must distinguish active operations from deprecated alternatives and
-exclude the deprecated Robot Storage Box family, whose supported replacement
-is already tracked by the Console Storage Box source.
+The lock covers Basic authentication, HTTPS, form POST bodies, repeated fields,
+JSON/error/quota/maintenance distinctions, lockout policy, and empty success
+bodies. It contains no credentials and does not implement or claim Robot
+operations. `v0.74.0` still pins the complete operation inventory before any
+Robot operation is implemented. That complete lock must distinguish active
+operations from deprecated alternatives and exclude the deprecated Robot
+Storage Box family, whose supported replacement is already tracked by the
+Console Storage Box source.
