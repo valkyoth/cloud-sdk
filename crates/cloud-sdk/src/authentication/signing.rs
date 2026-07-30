@@ -5,7 +5,21 @@ use core::fmt;
 use cloud_sdk_sanitization::sanitize_bytes;
 
 use crate::buffer::{SnapshotEncoder, encode_snapshot_bounded, measure_snapshot_bounded};
-use crate::transport::{RequestHeader, TransportRequest};
+use crate::transport::{EndpointScheme, RequestHeader, TransportRequest};
+
+use super::ScopeValue;
+
+mod build;
+mod context;
+mod output;
+
+pub use build::SigningBuildError;
+use build::{DigestScratch, SigningBodyDigest};
+pub use context::{
+    MAX_SIGNING_ALGORITHM_BYTES, MAX_SIGNING_KEY_ID_BYTES, SigningAlgorithm, SigningContext,
+    SigningContextValueError, SigningKeyId,
+};
+pub use output::{RequestSigner, SignedRequest, SigningOutputError};
 
 /// Maximum request-body digest bytes accepted by the canonical format.
 pub const MAX_SIGNING_BODY_DIGEST_BYTES: usize = 128;
@@ -16,7 +30,7 @@ pub const MAX_SIGNING_HEADERS: usize = 32;
 /// Maximum complete canonical signing-input bytes.
 pub const MAX_CANONICAL_SIGNING_INPUT_BYTES: usize = 12_288;
 
-const SIGNING_DOMAIN: &[u8] = b"cloud-sdk-signing-v1\0";
+const SIGNING_DOMAIN: &[u8] = b"cloud-sdk-signing-v2\0";
 
 /// Bounded signing value validation failure.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -31,30 +45,6 @@ impl_static_error!(SigningValueError,
     Self::Empty => "signing value is empty",
     Self::TooLong => "signing value exceeds the length limit",
 );
-
-/// Borrowed request-body digest produced by caller-selected hashing.
-#[derive(Clone, Copy, Eq, PartialEq)]
-pub struct SigningBodyDigest<'a>(&'a [u8]);
-
-impl<'a> SigningBodyDigest<'a> {
-    /// Validates a caller-produced request-body digest.
-    pub fn new(value: &'a [u8]) -> Result<Self, SigningValueError> {
-        validate_bounded(value, MAX_SIGNING_BODY_DIGEST_BYTES)?;
-        Ok(Self(value))
-    }
-
-    /// Returns the exact digest bytes.
-    #[must_use]
-    pub const fn as_bytes(self) -> &'a [u8] {
-        self.0
-    }
-}
-
-impl fmt::Debug for SigningBodyDigest<'_> {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        formatter.write_str("SigningBodyDigest([redacted])")
-    }
-}
 
 /// Borrowed caller-provided nonce.
 #[derive(Clone, Copy, Eq, PartialEq)]
@@ -95,6 +85,39 @@ impl UnixTime {
     #[must_use]
     pub const fn as_seconds(self) -> u64 {
         self.0
+    }
+}
+
+/// Caller-owned nonce and observed time bound into one anti-replay context.
+#[derive(Clone, Copy)]
+pub struct SigningFreshness<'a> {
+    nonce: SigningNonce<'a>,
+    time: UnixTime,
+}
+
+impl<'a> SigningFreshness<'a> {
+    /// Combines caller-provided freshness values without acquiring either.
+    #[must_use]
+    pub const fn new(nonce: SigningNonce<'a>, time: UnixTime) -> Self {
+        Self { nonce, time }
+    }
+
+    const fn nonce(self) -> SigningNonce<'a> {
+        self.nonce
+    }
+
+    const fn time(self) -> UnixTime {
+        self.time
+    }
+}
+
+impl fmt::Debug for SigningFreshness<'_> {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("SigningFreshness")
+            .field("nonce", &"[redacted]")
+            .field("time", &self.time)
+            .finish()
     }
 }
 
@@ -179,47 +202,53 @@ pub trait RequestBodyHasher {
     fn hash_body(&self, body: &[u8], output: &mut [u8]) -> Result<usize, Self::Error>;
 }
 
-/// Caller-provided request-signing implementation.
-pub trait RequestSigner {
-    /// Signing failure.
-    type Error;
-
-    /// Signs the exact versioned canonical input into caller-owned output.
-    fn sign(&self, input: &[u8], output: &mut [u8]) -> Result<usize, Self::Error>;
-}
-
-/// Cleanup-owning canonical request-signing input.
-pub struct CanonicalSigningInput<'a> {
-    storage: &'a mut [u8],
+/// Cleanup-owning canonical input that retains the exact hashed request.
+pub struct CanonicalSigningInput<'storage, 'request> {
+    request: TransportRequest<'request>,
+    context: SigningContext<'request>,
+    storage: &'storage mut [u8],
     len: usize,
 }
 
-impl<'a> CanonicalSigningInput<'a> {
-    /// Builds a versioned canonical input without acquiring time or randomness.
-    pub fn new(
-        request: TransportRequest<'_>,
+impl<'storage, 'request> CanonicalSigningInput<'storage, 'request> {
+    /// Hashes the exact request body and builds a security-domain-bound input.
+    pub fn new_hashed<H: RequestBodyHasher + ?Sized>(
+        request: TransportRequest<'request>,
+        context: SigningContext<'request>,
         selected_headers: SigningHeaders<'_>,
-        body_digest: SigningBodyDigest<'_>,
-        nonce: SigningNonce<'_>,
-        time: UnixTime,
-        output: &'a mut [u8],
-    ) -> Result<Self, SigningInputError> {
-        validate_selected_headers(request, selected_headers)?;
+        freshness: SigningFreshness<'_>,
+        hasher: &H,
+        digest_storage: &mut [u8],
+        output: &'storage mut [u8],
+    ) -> Result<Self, SigningBuildError<H::Error>> {
+        let mut digest_storage = DigestScratch::new(digest_storage);
+        validate_selected_headers(request, selected_headers).map_err(SigningBuildError::Input)?;
+        let digest_len = hasher
+            .hash_body(request.body(), digest_storage.as_mut())
+            .map_err(SigningBuildError::Hasher)?;
+        let digest_bytes = digest_storage
+            .as_slice()
+            .get(..digest_len)
+            .ok_or(SigningBuildError::Digest(SigningValueError::TooLong))?;
+        let body_digest =
+            SigningBodyDigest::new(digest_bytes).map_err(SigningBuildError::Digest)?;
         let snapshot = SigningSnapshot {
             request,
+            context,
             selected_headers,
             body_digest,
-            nonce,
-            time,
+            nonce: freshness.nonce(),
+            time: freshness.time(),
         };
         let required = measure_snapshot_bounded(
             snapshot,
             MAX_CANONICAL_SIGNING_INPUT_BYTES,
             SigningInputError::InputTooLarge,
             encode_signing_snapshot,
-        )?;
+        )
+        .map_err(SigningBuildError::Input)?;
         if output.len() < required {
-            return Err(SigningInputError::OutputTooSmall);
+            return Err(SigningBuildError::Input(SigningInputError::OutputTooSmall));
         }
         let len = encode_snapshot_bounded(
             snapshot,
@@ -227,8 +256,11 @@ impl<'a> CanonicalSigningInput<'a> {
             MAX_CANONICAL_SIGNING_INPUT_BYTES,
             SigningInputError::SnapshotChanged,
             encode_signing_snapshot,
-        )?;
+        )
+        .map_err(SigningBuildError::Input)?;
         Ok(Self {
+            request,
+            context,
             storage: output,
             len,
         })
@@ -240,17 +272,32 @@ impl<'a> CanonicalSigningInput<'a> {
         self.storage.get(..self.len).unwrap_or_default()
     }
 
-    /// Invokes a caller-provided signer over the exact canonical bytes.
-    pub fn sign_with<S: RequestSigner>(
-        &self,
+    /// Returns the exact request retained by the canonical snapshot.
+    #[must_use]
+    pub const fn request(&self) -> TransportRequest<'request> {
+        self.request
+    }
+
+    /// Returns the exact security domain retained by the canonical snapshot.
+    #[must_use]
+    pub const fn context(&self) -> SigningContext<'request> {
+        self.context
+    }
+
+    /// Signs and returns the exact request with cleanup-owning bounded output.
+    pub fn sign_into<'signature, S: RequestSigner>(
+        self,
         signer: &S,
-        output: &mut [u8],
-    ) -> Result<usize, S::Error> {
-        signer.sign(self.as_bytes(), output)
+        output: &'signature mut [u8],
+    ) -> Result<SignedRequest<'signature, 'request>, SigningOutputError<S::Error>> {
+        let result =
+            SignedRequest::sign(self.request, self.context, self.as_bytes(), signer, output);
+        drop(self);
+        result
     }
 }
 
-impl fmt::Debug for CanonicalSigningInput<'_> {
+impl fmt::Debug for CanonicalSigningInput<'_, '_> {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter
             .debug_struct("CanonicalSigningInput")
@@ -260,18 +307,19 @@ impl fmt::Debug for CanonicalSigningInput<'_> {
     }
 }
 
-impl Drop for CanonicalSigningInput<'_> {
+impl Drop for CanonicalSigningInput<'_, '_> {
     fn drop(&mut self) {
         sanitize_bytes(self.storage);
     }
 }
 
 #[derive(Clone, Copy)]
-struct SigningSnapshot<'a> {
-    request: TransportRequest<'a>,
-    selected_headers: SigningHeaders<'a>,
-    body_digest: SigningBodyDigest<'a>,
-    nonce: SigningNonce<'a>,
+struct SigningSnapshot<'request, 'context, 'headers, 'digest, 'nonce> {
+    request: TransportRequest<'request>,
+    context: SigningContext<'context>,
+    selected_headers: SigningHeaders<'headers>,
+    body_digest: SigningBodyDigest<'digest>,
+    nonce: SigningNonce<'nonce>,
     time: UnixTime,
 }
 
@@ -303,10 +351,26 @@ fn validate_selected_headers(
 }
 
 fn encode_signing_snapshot(
-    snapshot: SigningSnapshot<'_>,
+    snapshot: SigningSnapshot<'_, '_, '_, '_, '_>,
     encoder: &mut SnapshotEncoder<'_, SigningInputError>,
 ) -> Result<(), SigningInputError> {
     encoder.bytes(SIGNING_DOMAIN)?;
+    encode_u8_len(encoder, snapshot.context.provider().as_str().as_bytes())?;
+    encode_u8_len(encoder, snapshot.context.service().as_str().as_bytes())?;
+    let endpoint = snapshot.context.endpoint();
+    let scheme = match endpoint.scheme() {
+        EndpointScheme::Http => b"http".as_slice(),
+        EndpointScheme::Https => b"https".as_slice(),
+    };
+    encode_u8_len(encoder, scheme)?;
+    encode_u16_len(encoder, endpoint.host().as_bytes())?;
+    encoder.bytes(&endpoint.effective_port().to_be_bytes())?;
+    encode_u16_len(encoder, endpoint.base_path().as_bytes())?;
+    encode_optional_scope(encoder, snapshot.context.audience())?;
+    encode_optional_scope(encoder, snapshot.context.account())?;
+    encode_optional_scope(encoder, snapshot.context.tenant())?;
+    encode_u16_len(encoder, snapshot.context.key_id().as_str().as_bytes())?;
+    encode_u16_len(encoder, snapshot.context.algorithm().as_str().as_bytes())?;
     encode_u8_len(encoder, snapshot.request.method().as_str().as_bytes())?;
     encode_u16_len(encoder, snapshot.request.target().as_str().as_bytes())?;
     let count = u8::try_from(snapshot.selected_headers.as_slice().len())
@@ -319,6 +383,19 @@ fn encode_signing_snapshot(
     encode_u8_len(encoder, snapshot.body_digest.as_bytes())?;
     encode_u16_len(encoder, snapshot.nonce.as_bytes())?;
     encoder.bytes(&snapshot.time.as_seconds().to_be_bytes())
+}
+
+fn encode_optional_scope(
+    encoder: &mut SnapshotEncoder<'_, SigningInputError>,
+    value: Option<ScopeValue<'_>>,
+) -> Result<(), SigningInputError> {
+    match value {
+        Some(value) => {
+            encoder.byte(1)?;
+            encode_u16_len(encoder, value.as_str().as_bytes())
+        }
+        None => encoder.byte(0),
+    }
 }
 
 fn encode_lowercase_name(

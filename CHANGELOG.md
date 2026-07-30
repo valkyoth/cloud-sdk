@@ -8,8 +8,9 @@
   scope policy to Basic authorization before header or network work.
 - Added cleanup ownership for mutable sources, Basic intermediates, encoded
   authorization storage, and header copies.
-- Added versioned bounded canonical signing inputs with caller-owned hashing,
-  signing, nonce, time, keys, and algorithms.
+- Added v2 bounded canonical signing inputs binding complete security context,
+  internally coupled exact-body hashing, retained requests, and validated
+  cleanup-owning signatures while keeping cryptography caller-owned.
 - Added a credential-free Robot wire source lock covering repeated forms,
   errors, quotas, maintenance, lockout policy, and empty success bodies.
 - Admitted exact optional `base64-ng 1.3.9` only in explicit transport

@@ -28,11 +28,15 @@ provider-neutral API freeze.
 
 ## Signing Inputs
 
-- Added versioned, length-framed canonical request bytes.
-- Bound exact method, final target, ordered selected headers, body digest,
-  nonce, and caller-observed time.
+- Added v2 length-framed canonical request bytes; no v1 constructor remains.
+- Bound provider, service, normalized scheme/host/port/base path, optional
+  audience/account/tenant, key ID, and algorithm.
+- Bound exact method, final target, ordered selected headers, an internally
+  produced digest of the retained exact request body, nonce, and caller time.
 - Added caller-supplied hashing and signing traits.
-- Added transactional bounded output and complete drop-time cleanup.
+- Added validated `SignedRequest` output that retains the exact signed request.
+- Added transactional bounded output and complete digest, canonical-input, and
+  signature cleanup on errors, invalid lengths, unwind, and drop.
 - Added no clock, randomness, algorithm, key, filesystem, or key-store
   dependency.
 

@@ -3,6 +3,48 @@ set -eu
 
 cargo check -p cloud-sdk --no-default-features
 cargo test -p cloud-sdk --no-default-features authentication::signing
+cargo test -p cloud-sdk --features std authentication::signing
+
+signing='crates/cloud-sdk/src/authentication/signing.rs'
+for contract in \
+    'cloud-sdk-signing-v2\0' \
+    'pub fn new_hashed' \
+    'pub fn sign_into' \
+    'pub struct SigningFreshness'; do
+    if ! grep -Fq "$contract" "$signing"; then
+        echo "Basic/signing: missing v2 signing contract $contract" >&2
+        exit 1
+    fi
+done
+for forbidden in \
+    'cloud-sdk-signing-v1' \
+    'pub struct SigningBodyDigest' \
+    'pub fn sign_with'; do
+    if grep -R -Fq "$forbidden" crates/cloud-sdk/src; then
+        echo "Basic/signing: insecure or obsolete signing contract remains: $forbidden" >&2
+        exit 1
+    fi
+done
+context_source='crates/cloud-sdk/src/authentication/signing/context.rs'
+if ! grep -Fq 'pub struct SigningContext' "$context_source"; then
+    echo "Basic/signing: missing signing-context contract SigningContext" >&2
+    exit 1
+fi
+for contract in SigningKeyId SigningAlgorithm; do
+    if ! grep -Fq "    $contract," "$context_source"; then
+        echo "Basic/signing: missing generated signing-context contract $contract" >&2
+        exit 1
+    fi
+done
+for contract in \
+    'pub struct SignedRequest' \
+    'pub enum SigningOutputError'; do
+    if ! grep -Fq "$contract" \
+        crates/cloud-sdk/src/authentication/signing/output.rs; then
+        echo "Basic/signing: missing signing-output contract $contract" >&2
+        exit 1
+    fi
+done
 
 cargo test -p cloud-sdk-reqwest --no-default-features \
     --features blocking-rustls basic

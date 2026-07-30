@@ -7,16 +7,24 @@ wire source lock.
 
 ## Core API
 
-`cloud-sdk::authentication` adds bounded borrowed `SigningBodyDigest` and
-`SigningNonce` values, caller-owned `UnixTime`, ordered `SigningHeaders`,
-cleanup-owning `CanonicalSigningInput`, and caller-implemented
-`RequestBodyHasher` and `RequestSigner` traits.
+`cloud-sdk::authentication` adds bounded `SigningKeyId`, `SigningAlgorithm`,
+`SigningNonce`, and `SigningFreshness` values; complete `SigningContext`;
+ordered `SigningHeaders`; cleanup-owning `CanonicalSigningInput`; validated
+cleanup-owning `SignedRequest`; and caller-implemented `RequestBodyHasher` and
+`RequestSigner` traits.
 
-The canonical bytes are versioned and length-framed. Construction verifies
-that every selected header exactly matches the request and fails
-transactionally when output is too small or the replayed snapshot changes.
-Core remains allocation-free and `no_std`; it acquires no key, clock,
-randomness, filesystem, signer, hasher, or replay state.
+The v2 canonical bytes bind provider, service, normalized endpoint scheme,
+host, effective port, base path, optional audience/account/tenant presence,
+key ID, algorithm, exact method and target, selected headers, internally
+produced exact-body digest, nonce, and time. There is no public detached digest
+constructor or unchecked signer-output helper.
+
+Construction verifies every selected header, hashes `request.body()` inside
+the transaction, retains the exact request borrow, and clears digest scratch.
+Signing consumes the canonical object, rejects zero or out-of-bounds lengths,
+retains the same request, and clears output on all failure paths or drop. Core
+remains allocation-free and `no_std`; it acquires no key, clock, randomness,
+filesystem, signer, hasher, or replay state.
 
 ## Adapter API
 

@@ -31,8 +31,27 @@ for root in crates/*/src/lib.rs; do
     fi
 done
 
+for source in \
+    crates/cloud-sdk/src/authentication/signing/tests.rs \
+    crates/cloud-sdk/src/authentication/signing/tests/output.rs
+do
+    if ! awk '
+        /^#\[cfg\(feature = "std"\)\]$/ { guarded = 1; next }
+        /^use crate::std as test_std;$/ {
+            if (guarded) found = 1
+            else bad = 1
+        }
+        { guarded = 0 }
+        END { exit bad || !found }
+    ' "$source"; then
+        echo "modularity policy: signing test std alias lost feature guard: $source" >&2
+        status=1
+    fi
+done
+
 if grep -RInE '(^|[^A-Za-z0-9_])std([[:space:]]*::|[[:space:]]+as|[[:space:]]*\{|[[:space:]]*;)' crates --include='*.rs' |
     grep -Ev '^[^:]+:[0-9]+:extern crate std;' |
+    grep -Ev '^[^:]+:[0-9]+:use crate::std as test_std;$' |
     grep -Ev '^[^:]+:[0-9]+:[[:space:]]*(//|///|//!|/\*)' |
     grep -Ev '^crates/cloud-sdk-reqwest/src/(asynchronous|blocking|shared)/' |
     grep -Ev '^crates/cloud-sdk-reqwest/src/test_server.rs:' |

@@ -142,10 +142,12 @@
   non-ASCII input, and individual or aggregate overflow; mutable sources,
   intermediate `user:password` bytes, encoded storage, and header copies have
   cleanup ownership;
-- canonical signing input is versioned, length-framed, bounded, and tied to
-  exact target and selected request headers; providers and callers retain
-  ownership of algorithms, hashes, keys, clocks, nonces, replay state, and
-  signer output cleanup;
+- v2 canonical signing input length-frames provider, service, normalized
+  endpoint, optional scope, key ID, algorithm, exact target, and selected
+  headers; construction hashes and retains the exact request body, while
+  validated signed output retains the same request and clears on failure,
+  unwind, or drop; providers and callers retain algorithms, keys, clocks,
+  nonces, replay state, and verifier policy;
 - credential generations advance without wrapping; external refresh receives
   an opaque compare-and-swap handoff so stale completion cannot replace newer
   state, while acquisition, expiry, clocks, tasks, and secret stores remain

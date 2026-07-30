@@ -58,9 +58,13 @@ explicitly documents redaction.
 
 Provider signing code must supply an approved body hash, signing algorithm,
 key source, cryptographically secure nonce, trustworthy clock, replay policy,
-and signer-output cleanup. `CanonicalSigningInput` only produces and clears
-the exact versioned bounded bytes. Never reuse a nonce in a provider context
-that requires uniqueness, and never log canonical input or signature bytes.
+and verifier policy. Construct a complete `SigningContext` for the provider,
+service, endpoint, scope, key ID, and algorithm. `new_hashed` hashes and
+retains the exact request; never accept a detached digest. Pass the resulting
+canonical object directly to `sign_into`, then pass its `SignedRequest` to the
+provider integration without reconstructing the request. Never reuse a nonce
+in a context that requires uniqueness, and never log canonical input or
+signature bytes.
 
 ## Timeouts
 

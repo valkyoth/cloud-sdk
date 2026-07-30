@@ -1,26 +1,34 @@
-use core::cell::Cell;
 use core::fmt::{self, Write};
 
-use crate::Method;
+#[cfg(feature = "std")]
+use crate::std as test_std;
 use crate::transport::{
-    ContentType, HeaderSensitivity, RequestHeader, RequestHeaders, RequestTarget, TransportRequest,
+    ContentType, EndpointIdentity, EndpointScheme, HeaderSensitivity, RequestHeader,
+    RequestHeaders, RequestTarget, TransportRequest,
 };
+use crate::{Method, ProviderId, ServiceId};
 
 use super::{
-    CanonicalSigningInput, MAX_CANONICAL_SIGNING_INPUT_BYTES, MAX_SIGNING_BODY_DIGEST_BYTES,
-    MAX_SIGNING_NONCE_BYTES, RequestBodyHasher, RequestSigner, SigningBodyDigest, SigningHeaders,
-    SigningInputError, SigningNonce, SigningValueError, UnixTime,
+    CanonicalSigningInput, MAX_CANONICAL_SIGNING_INPUT_BYTES, MAX_SIGNING_ALGORITHM_BYTES,
+    MAX_SIGNING_BODY_DIGEST_BYTES, MAX_SIGNING_KEY_ID_BYTES, MAX_SIGNING_NONCE_BYTES,
+    RequestBodyHasher, SigningAlgorithm, SigningBuildError, SigningContext,
+    SigningContextValueError, SigningFreshness, SigningHeaders, SigningInputError, SigningKeyId,
+    SigningNonce, SigningValueError, UnixTime,
 };
+use crate::authentication::ScopeValue;
+
+mod context_domain;
+mod output;
 
 struct DebugBuffer {
-    bytes: [u8; 64],
+    bytes: [u8; 128],
     len: usize,
 }
 
 impl DebugBuffer {
     const fn new() -> Self {
         Self {
-            bytes: [0; 64],
+            bytes: [0; 128],
             len: 0,
         }
     }
@@ -60,28 +68,120 @@ fn request<'a>(
     )
 }
 
+fn context<'a>(
+    service: &'static str,
+    host: &'a str,
+    key_id: &'a str,
+    algorithm: &'a str,
+) -> Option<SigningContext<'a>> {
+    let provider = ProviderId::new("hetzner").ok()?;
+    let service = ServiceId::new(service).ok()?;
+    let endpoint = EndpointIdentity::new(EndpointScheme::Https, host, 443, "/api").ok()?;
+    let key_id = SigningKeyId::new(key_id).ok()?;
+    let algorithm = SigningAlgorithm::new(algorithm).ok()?;
+    Some(SigningContext::new(
+        provider, service, endpoint, key_id, algorithm,
+    ))
+}
+
+struct BodyHasher;
+
+impl RequestBodyHasher for BodyHasher {
+    type Error = ();
+
+    fn hash_body(&self, body: &[u8], output: &mut [u8]) -> Result<usize, Self::Error> {
+        let len = body.len().checked_add(1).ok_or(())?;
+        let target = output.get_mut(..len).ok_or(())?;
+        let Some(prefix) = target.first_mut() else {
+            return Err(());
+        };
+        *prefix = u8::try_from(body.len()).map_err(|_| ())?;
+        let remainder = target.get_mut(1..).ok_or(())?;
+        remainder.copy_from_slice(body);
+        Ok(len)
+    }
+}
+
+struct FailingHasher;
+
+impl RequestBodyHasher for FailingHasher {
+    type Error = ();
+
+    fn hash_body(&self, _body: &[u8], output: &mut [u8]) -> Result<usize, Self::Error> {
+        output.fill(0xa5);
+        Err(())
+    }
+}
+
+struct LengthHasher(usize);
+
+impl RequestBodyHasher for LengthHasher {
+    type Error = ();
+
+    fn hash_body(&self, _body: &[u8], output: &mut [u8]) -> Result<usize, Self::Error> {
+        output.fill(0xa5);
+        Ok(self.0)
+    }
+}
+
+#[cfg(feature = "std")]
+struct PanickingHasher;
+
+#[cfg(feature = "std")]
+impl RequestBodyHasher for PanickingHasher {
+    type Error = ();
+
+    fn hash_body(&self, _body: &[u8], output: &mut [u8]) -> Result<usize, Self::Error> {
+        output.fill(0xa5);
+        test_std::panic::resume_unwind(test_std::boxed::Box::new(()))
+    }
+}
+
+fn canonical<'output, 'request>(
+    request: TransportRequest<'request>,
+    context: SigningContext<'request>,
+    headers: SigningHeaders<'_>,
+    digest: &mut [u8],
+    output: &'output mut [u8],
+) -> Result<CanonicalSigningInput<'output, 'request>, SigningBuildError<()>> {
+    let nonce = SigningNonce::new(b"nonce").unwrap_or_else(|_| unreachable!());
+    let freshness = SigningFreshness::new(nonce, UnixTime::from_seconds(42));
+    CanonicalSigningInput::new_hashed(
+        request,
+        context,
+        headers,
+        freshness,
+        &BodyHasher,
+        digest,
+        output,
+    )
+}
+
 #[test]
-fn digest_and_nonce_are_nonempty_bounded_and_redacted() {
-    assert_eq!(SigningBodyDigest::new(&[]), Err(SigningValueError::Empty));
+fn context_and_nonce_values_are_bounded_and_redacted() {
     assert_eq!(SigningNonce::new(&[]), Err(SigningValueError::Empty));
-    assert_eq!(
-        SigningBodyDigest::new(&[0; MAX_SIGNING_BODY_DIGEST_BYTES + 1]),
-        Err(SigningValueError::TooLong)
-    );
     assert_eq!(
         SigningNonce::new(&[0; MAX_SIGNING_NONCE_BYTES + 1]),
         Err(SigningValueError::TooLong)
     );
-    let digest = SigningBodyDigest::new(b"secret-digest");
-    let nonce = SigningNonce::new(b"secret-nonce");
-    assert!(digest.is_ok() && nonce.is_ok());
-    if let (Ok(digest), Ok(nonce)) = (digest, nonce) {
-        assert_eq!(
-            debug_text(&digest).as_str(),
-            "SigningBodyDigest([redacted])"
-        );
-        assert_eq!(debug_text(&nonce).as_str(), "SigningNonce([redacted])");
-    }
+    assert!(matches!(
+        SigningKeyId::new("has space"),
+        Err(SigningContextValueError::InvalidByte)
+    ));
+    assert!(matches!(
+        SigningKeyId::new(&"a".repeat(MAX_SIGNING_KEY_ID_BYTES + 1)),
+        Err(SigningContextValueError::TooLong)
+    ));
+    assert!(matches!(
+        SigningAlgorithm::new(&"a".repeat(MAX_SIGNING_ALGORITHM_BYTES + 1)),
+        Err(SigningContextValueError::TooLong)
+    ));
+    let Some(context) = context("robot", "robot.example.test", "secret-key", "hmac-sha256") else {
+        return;
+    };
+    let debug = debug_text(&context);
+    assert!(debug.as_str().contains("[redacted]"));
+    assert!(!debug.as_str().contains("secret-key"));
 }
 
 #[test]
@@ -93,155 +193,179 @@ fn selected_headers_must_be_sorted_unique_and_match_the_request() {
     };
     let ordered = [first, second];
     assert!(SigningHeaders::new(&ordered).is_ok());
-    let reversed = [second, first];
-    assert_eq!(
-        SigningHeaders::new(&reversed).map(|_| ()),
+    assert!(matches!(
+        SigningHeaders::new(&[second, first]),
         Err(SigningInputError::HeaderOrder)
-    );
-    let duplicate = [first, first];
-    assert_eq!(
-        SigningHeaders::new(&duplicate).map(|_| ()),
+    ));
+    assert!(matches!(
+        SigningHeaders::new(&[first, first]),
         Err(SigningInputError::HeaderOrder)
-    );
-
+    ));
     let Some(request) = request("/objects", &ordered, b"{}") else {
         return;
     };
-    let changed = [RequestHeader::new("accept", "text/plain").ok()];
-    let Some(changed) = changed[0] else {
+    let Ok(changed) = RequestHeader::new("accept", "text/plain") else {
         return;
     };
     let changed = [changed];
-    let Some(digest) = SigningBodyDigest::new(b"digest").ok() else {
+    let Some(context) = context("robot", "robot.example.test", "key-1", "hmac-sha256") else {
         return;
     };
-    let Some(nonce) = SigningNonce::new(b"nonce").ok() else {
-        return;
-    };
+    let mut digest = [0xa5_u8; MAX_SIGNING_BODY_DIGEST_BYTES];
     let mut output = [0xa5_u8; 512];
-    assert_eq!(
-        CanonicalSigningInput::new(
+    assert!(matches!(
+        canonical(
             request,
+            context,
             SigningHeaders::new(&changed).unwrap_or_else(|_| unreachable!()),
-            digest,
-            nonce,
-            UnixTime::from_seconds(42),
+            &mut digest,
             &mut output,
-        )
-        .map(|_| ()),
-        Err(SigningInputError::HeaderMismatch)
-    );
+        ),
+        Err(SigningBuildError::Input(SigningInputError::HeaderMismatch))
+    ));
+    assert_eq!(digest, [0_u8; MAX_SIGNING_BODY_DIGEST_BYTES]);
+    assert_eq!(output, [0xa5_u8; 512]);
 }
 
 #[test]
-fn canonical_vector_is_versioned_length_framed_and_case_normalized() {
+fn canonical_v2_vector_binds_complete_security_domain() {
     let accept = RequestHeader::new("Accept", "application/json");
     let content_type = RequestHeader::content_type(ContentType::JSON);
     let (Ok(accept), content_type) = (accept, content_type) else {
         return;
     };
     let entries = [accept, content_type];
-    let selected_entries = [accept, content_type];
     let Some(request) = request("/objects?limit=2", &entries, b"{}") else {
         return;
     };
-    let Ok(selected) = SigningHeaders::new(&selected_entries) else {
+    let Some(context) = context("robot", "robot.example.test", "key-1", "hmac-sha256") else {
         return;
     };
-    let Ok(digest) = SigningBodyDigest::new(&[0xde, 0xad, 0xbe, 0xef]) else {
+    let Some(audience) = ScopeValue::new("aud").ok() else {
         return;
     };
-    let Ok(nonce) = SigningNonce::new(b"nonce-1") else {
+    let Some(tenant) = ScopeValue::new("tenant").ok() else {
         return;
     };
+    let context = context.with_audience(audience).with_tenant(tenant);
+    let mut digest = [0xa5_u8; MAX_SIGNING_BODY_DIGEST_BYTES];
     let mut output = [0xa5_u8; 512];
     {
-        let canonical = CanonicalSigningInput::new(
+        let result = canonical(
             request,
-            selected,
-            digest,
-            nonce,
-            UnixTime::from_seconds(1_700_000_000),
+            context,
+            SigningHeaders::new(&entries).unwrap_or_else(|_| unreachable!()),
+            &mut digest,
             &mut output,
         );
-        assert!(canonical.is_ok());
-        if let Ok(canonical) = canonical {
-            let expected = [
-                b"cloud-sdk-signing-v1\0".as_slice(),
-                &[4],
-                b"POST",
-                &[0, 16],
-                b"/objects?limit=2",
-                &[2],
-                &[6],
-                b"accept",
-                &[0, 16],
-                b"application/json",
-                &[12],
-                b"content-type",
-                &[0, 16],
-                b"application/json",
-                &[4],
-                &[0xde, 0xad, 0xbe, 0xef],
-                &[0, 7],
-                b"nonce-1",
-                &1_700_000_000_u64.to_be_bytes(),
-            ]
-            .concat();
-            assert_eq!(canonical.as_bytes(), expected);
-            assert!(!debug_text(&canonical).as_str().contains("nonce-1"));
-        }
+        let Ok(canonical) = result else { return };
+        let expected = [
+            b"cloud-sdk-signing-v2\0".as_slice(),
+            &[7],
+            b"hetzner",
+            &[5],
+            b"robot",
+            &[5],
+            b"https",
+            &[0, 18],
+            b"robot.example.test",
+            &443_u16.to_be_bytes(),
+            &[0, 4],
+            b"/api",
+            &[1, 0, 3],
+            b"aud",
+            &[0],
+            &[1, 0, 6],
+            b"tenant",
+            &[0, 5],
+            b"key-1",
+            &[0, 11],
+            b"hmac-sha256",
+            &[4],
+            b"POST",
+            &[0, 16],
+            b"/objects?limit=2",
+            &[2, 6],
+            b"accept",
+            &[0, 16],
+            b"application/json",
+            &[12],
+            b"content-type",
+            &[0, 16],
+            b"application/json",
+            &[3, 2],
+            b"{}",
+            &[0, 5],
+            b"nonce",
+            &42_u64.to_be_bytes(),
+        ]
+        .concat();
+        assert_eq!(canonical.as_bytes(), expected);
+        assert_eq!(canonical.request().body(), b"{}");
     }
+    assert_eq!(digest, [0_u8; MAX_SIGNING_BODY_DIGEST_BYTES]);
     assert_eq!(output, [0_u8; 512]);
 }
 
 #[test]
-fn nonce_and_time_changes_produce_distinct_replay_inputs() {
+fn body_hashing_is_coupled_and_scratch_always_clears() {
     let entries = [RequestHeader::content_type(ContentType::JSON)];
-    let Some(request) = request("/objects", &entries, b"{}") else {
+    let Some(request) = request("/objects", &entries, b"exact-body") else {
         return;
     };
     let Ok(headers) = SigningHeaders::new(&entries) else {
         return;
     };
-    let Ok(digest) = SigningBodyDigest::new(b"digest") else {
+    let Some(context) = context("robot", "robot.example.test", "key-1", "hmac-sha256") else {
         return;
     };
-    let mut captured = [[0_u8; 256]; 3];
-    let contexts = [
-        (b"nonce-a".as_slice(), 10_u64),
-        (b"nonce-b".as_slice(), 10_u64),
-        (b"nonce-a".as_slice(), 11_u64),
-    ];
-    for ((nonce, time), destination) in contexts.into_iter().zip(captured.iter_mut()) {
-        let Ok(nonce) = SigningNonce::new(nonce) else {
-            return;
-        };
-        let mut output = [0_u8; 256];
-        let result = CanonicalSigningInput::new(
+    let nonce = SigningNonce::new(b"nonce").unwrap_or_else(|_| unreachable!());
+    let freshness = SigningFreshness::new(nonce, UnixTime::from_seconds(42));
+    for hasher in [
+        &FailingHasher as &dyn RequestBodyHasher<Error = ()>,
+        &LengthHasher(0),
+        &LengthHasher(MAX_SIGNING_BODY_DIGEST_BYTES + 1),
+    ] {
+        let mut digest = [0xa5_u8; MAX_SIGNING_BODY_DIGEST_BYTES];
+        let mut output = [0xa5_u8; 512];
+        let result = CanonicalSigningInput::new_hashed(
             request,
+            context,
             headers,
-            digest,
-            nonce,
-            UnixTime::from_seconds(time),
+            freshness,
+            hasher,
+            &mut digest,
             &mut output,
         );
-        assert!(result.is_ok());
-        if let Ok(canonical) = result {
-            let source = canonical.as_bytes();
-            let Some(target) = destination.get_mut(..source.len()) else {
-                return;
-            };
-            target.copy_from_slice(source);
-        }
+        assert!(result.is_err());
+        drop(result);
+        assert_eq!(digest, [0_u8; MAX_SIGNING_BODY_DIGEST_BYTES]);
+        assert_eq!(output, [0xa5_u8; 512]);
     }
-    let [first, second, third] = captured;
-    assert_ne!(first, second);
-    assert_ne!(first, third);
+
+    #[cfg(feature = "std")]
+    {
+        let mut digest = [0xa5_u8; MAX_SIGNING_BODY_DIGEST_BYTES];
+        let mut output = [0xa5_u8; 512];
+        let unwind = test_std::panic::catch_unwind(test_std::panic::AssertUnwindSafe(|| {
+            let _ = CanonicalSigningInput::new_hashed(
+                request,
+                context,
+                headers,
+                freshness,
+                &PanickingHasher,
+                &mut digest,
+                &mut output,
+            );
+        }));
+        assert!(unwind.is_err());
+        assert_eq!(digest, [0_u8; MAX_SIGNING_BODY_DIGEST_BYTES]);
+        assert_eq!(output, [0xa5_u8; 512]);
+    }
 }
 
 #[test]
-fn every_undersized_output_is_unchanged_and_success_clears_on_drop() {
+fn every_undersized_input_is_unchanged_and_digest_is_cleared() {
     let entries = [RequestHeader::content_type(ContentType::JSON)];
     let Some(request) = request("/objects", &entries, b"{}") else {
         return;
@@ -249,21 +373,18 @@ fn every_undersized_output_is_unchanged_and_success_clears_on_drop() {
     let Ok(headers) = SigningHeaders::new(&entries) else {
         return;
     };
-    let Ok(digest) = SigningBodyDigest::new(b"digest") else {
+    let Some(context) = context("robot", "robot.example.test", "key-1", "hmac-sha256") else {
         return;
     };
-    let Ok(nonce) = SigningNonce::new(b"nonce") else {
-        return;
-    };
-    for capacity in 0..96 {
-        let mut output = [0xa5_u8; 96];
+    for capacity in 0..256 {
+        let mut digest = [0xa5_u8; MAX_SIGNING_BODY_DIGEST_BYTES];
+        let mut output = [0xa5_u8; 256];
         let succeeded = {
-            let result = CanonicalSigningInput::new(
+            let result = canonical(
                 request,
+                context,
                 headers,
-                digest,
-                nonce,
-                UnixTime::from_seconds(42),
+                &mut digest,
                 output.get_mut(..capacity).unwrap_or_default(),
             );
             match result {
@@ -271,117 +392,32 @@ fn every_undersized_output_is_unchanged_and_success_clears_on_drop() {
                     drop(value);
                     true
                 }
-                Err(error) => {
-                    assert_eq!(error, SigningInputError::OutputTooSmall);
-                    false
-                }
+                Err(SigningBuildError::Input(SigningInputError::OutputTooSmall)) => false,
+                Err(_) => return,
             }
         };
+        assert_eq!(digest, [0_u8; MAX_SIGNING_BODY_DIGEST_BYTES]);
         if succeeded {
             assert!(
                 output
                     .get(..capacity)
-                    .is_some_and(|bytes| bytes.iter().all(|b| *b == 0))
+                    .is_some_and(|bytes| bytes.iter().all(|byte| *byte == 0))
             );
             break;
         }
-        assert_eq!(output, [0xa5; 96]);
-    }
-}
-
-struct FixedHasher;
-
-impl RequestBodyHasher for FixedHasher {
-    type Error = ();
-
-    fn hash_body(&self, body: &[u8], output: &mut [u8]) -> Result<usize, Self::Error> {
-        let target = output.get_mut(..body.len()).ok_or(())?;
-        target.copy_from_slice(body);
-        Ok(body.len())
-    }
-}
-
-struct CountingSigner<'a>(&'a Cell<usize>);
-
-impl RequestSigner for CountingSigner<'_> {
-    type Error = ();
-
-    fn sign(&self, input: &[u8], output: &mut [u8]) -> Result<usize, Self::Error> {
-        self.0.set(self.0.get().saturating_add(1));
-        let target = output.get_mut(..input.len()).ok_or(())?;
-        target.copy_from_slice(input);
-        Ok(input.len())
-    }
-}
-
-#[test]
-fn hashing_and_signing_are_entirely_caller_supplied() {
-    let mut digest_output = [0_u8; 8];
-    assert_eq!(FixedHasher.hash_body(b"body", &mut digest_output), Ok(4));
-    let entries = [RequestHeader::content_type(ContentType::JSON)];
-    let Some(request) = request("/objects", &entries, b"body") else {
-        return;
-    };
-    let Ok(headers) = SigningHeaders::new(&entries) else {
-        return;
-    };
-    let Ok(digest) = SigningBodyDigest::new(&digest_output[..4]) else {
-        return;
-    };
-    let Ok(nonce) = SigningNonce::new(b"nonce") else {
-        return;
-    };
-    let mut input = [0_u8; MAX_CANONICAL_SIGNING_INPUT_BYTES];
-    let result = CanonicalSigningInput::new(
-        request,
-        headers,
-        digest,
-        nonce,
-        UnixTime::from_seconds(42),
-        &mut input,
-    );
-    assert!(result.is_ok());
-    if let Ok(canonical) = result {
-        let calls = Cell::new(0);
-        let signer = CountingSigner(&calls);
-        let mut signature = [0_u8; MAX_CANONICAL_SIGNING_INPUT_BYTES];
-        assert!(canonical.sign_with(&signer, &mut signature).is_ok());
-        assert_eq!(calls.get(), 1);
+        assert_eq!(output, [0xa5_u8; 256]);
     }
 }
 
 #[test]
 fn sensitive_selected_headers_remain_redacted() {
-    let secret = RequestHeader::sensitive("x-signing-secret", "secret-value");
-    let Ok(secret) = secret else {
+    let Ok(secret) = RequestHeader::sensitive("x-signing-secret", "secret-value") else {
         return;
     };
     assert_eq!(secret.sensitivity(), HeaderSensitivity::Sensitive);
     let entries = [secret];
-    let Some(request) = request("/objects", &entries, b"") else {
+    let Ok(headers) = SigningHeaders::new(&entries) else {
         return;
     };
-    let headers = SigningHeaders::new(&entries);
-    assert!(headers.is_ok());
-    if let Ok(headers) = headers {
-        assert!(!debug_text(&headers).as_str().contains("secret-value"));
-        let Ok(digest) = SigningBodyDigest::new(b"digest") else {
-            return;
-        };
-        let Ok(nonce) = SigningNonce::new(b"nonce") else {
-            return;
-        };
-        let mut output = [0_u8; 256];
-        assert!(
-            CanonicalSigningInput::new(
-                request,
-                headers,
-                digest,
-                nonce,
-                UnixTime::from_seconds(42),
-                &mut output,
-            )
-            .is_ok()
-        );
-    }
+    assert!(!debug_text(&headers).as_str().contains("secret-value"));
 }

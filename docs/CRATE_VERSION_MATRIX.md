@@ -633,7 +633,7 @@ canonical signing inputs, and a narrow credential-free Robot wire source lock.
 
 | Crate | Published | Planned | Change | Publish | Reason |
 | --- | --- | --- | --- | --- | --- |
-| `cloud-sdk` | `0.41.0` | `0.42.0` | `code` | Yes | Add versioned bounded canonical signing input and caller-supplied hashing/signing contracts. |
+| `cloud-sdk` | `0.41.0` | `0.42.0` | `code` | Yes | Add context-bound v2 canonical signing, internally coupled body hashing, retained requests, and validated signed output. |
 | `cloud-sdk-hetzner` | `0.32.2` | `0.32.3` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.42 facade line; the Robot fixture remains excluded repository evidence. |
 | `cloud-sdk-reqwest` | `0.28.0` | `0.29.0` | `code` | Yes | Add bounded Basic credentials and scoped blocking/async authenticated clients. |
 | `cloud-sdk-sanitization` | `0.16.0` | `0.16.0` | `unchanged` | No | No code, dependency, or package metadata changes. |

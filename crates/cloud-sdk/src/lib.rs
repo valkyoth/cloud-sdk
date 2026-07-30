@@ -42,7 +42,8 @@ mod tests {
     use super::{Method, MethodError, ProviderId, ServiceId};
     use crate::action_polling::ActionPollError;
     use crate::authentication::{
-        AuthenticationScopeError, CredentialGenerationError, ScopeValueError,
+        AuthenticationScopeError, CredentialGenerationError, ScopeValueError, SigningBuildError,
+        SigningContextValueError, SigningInputError, SigningOutputError, SigningValueError,
     };
     use crate::operation::{
         OperationMetadataError, PreparedExecutionError, ResponsePolicyError,
@@ -79,6 +80,11 @@ mod tests {
         assert_error::<AuthenticationScopeError>();
         assert_error::<CredentialGenerationError>();
         assert_error::<ScopeValueError>();
+        assert_error::<SigningValueError>();
+        assert_error::<SigningContextValueError>();
+        assert_error::<SigningInputError>();
+        assert_error::<SigningBuildError<core::convert::Infallible>>();
+        assert_error::<SigningOutputError<core::convert::Infallible>>();
         assert_error::<RateLimitError>();
         assert_error::<ContentTypeError>();
         assert_error::<HeaderError>();

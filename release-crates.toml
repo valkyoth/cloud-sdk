@@ -7,7 +7,7 @@ previous_version = "0.41.0"
 version = "0.42.0"
 change = "code"
 publish = true
-reason = "Add bounded provider-neutral canonical signing input contracts."
+reason = "Add context-bound v2 canonical signing and validated signed-request contracts."
 
 [crates."cloud-sdk-hetzner"]
 previous_version = "0.32.2"

@@ -261,37 +261,62 @@ Provider signing policy can bind exact request bytes without making core own a
 clock, nonce generator, key, or algorithm:
 
 ```rust
-use cloud_sdk::{Method};
 use cloud_sdk::authentication::{
-    CanonicalSigningInput, SigningBodyDigest, SigningHeaders, SigningNonce,
-    UnixTime,
+    CanonicalSigningInput, RequestBodyHasher, SigningAlgorithm, SigningContext,
+    SigningFreshness, SigningHeaders, SigningKeyId, SigningNonce, UnixTime,
 };
-use cloud_sdk::transport::{RequestHeaders, RequestTarget, TransportRequest};
+use cloud_sdk::transport::{
+    EndpointIdentity, EndpointScheme, RequestHeaders, RequestTarget,
+    TransportRequest,
+};
+use cloud_sdk::{Method, ProviderId, ServiceId};
 
-let target = RequestTarget::new("/resources?page=1")?;
-let entries = [];
-let headers = RequestHeaders::new(&entries)?;
-let request =
-    TransportRequest::new(Method::Get, target).with_headers(headers);
-let digest = SigningBodyDigest::new(&[0_u8; 32])?;
-let nonce = SigningNonce::new(b"caller-generated-nonce")?;
-let selected = SigningHeaders::new(&entries)?;
-let mut storage = [0_u8; 512];
-let canonical = CanonicalSigningInput::new(
-    request,
-    selected,
-    digest,
-    nonce,
-    UnixTime::from_seconds(1_700_000_000),
-    &mut storage,
-)?;
+fn prepare<H: RequestBodyHasher>(hasher: &H) {
+    let Ok(target) = RequestTarget::new("/resources?page=1") else { return };
+    let entries = [];
+    let Ok(headers) = RequestHeaders::new(&entries) else { return };
+    let request =
+        TransportRequest::new(Method::Get, target).with_headers(headers);
+    let Ok(endpoint) = EndpointIdentity::new(
+        EndpointScheme::Https,
+        "api.example.test",
+        443,
+        "/v1",
+    ) else { return };
+    let Ok(provider) = ProviderId::new("example") else { return };
+    let Ok(service) = ServiceId::new("compute") else { return };
+    let Ok(key_id) = SigningKeyId::new("production-key-1") else { return };
+    let Ok(algorithm) = SigningAlgorithm::new("provider-algorithm") else {
+        return;
+    };
+    let context =
+        SigningContext::new(provider, service, endpoint, key_id, algorithm);
+    let Ok(nonce) = SigningNonce::new(b"caller-generated-nonce") else {
+        return;
+    };
+    let freshness =
+        SigningFreshness::new(nonce, UnixTime::from_seconds(1_700_000_000));
+    let Ok(selected) = SigningHeaders::new(&entries) else { return };
+    let mut digest = [0_u8; 128];
+    let mut storage = [0_u8; 1024];
+    let Ok(canonical) = CanonicalSigningInput::new_hashed(
+        request,
+        context,
+        selected,
+        freshness,
+        hasher,
+        &mut digest,
+        &mut storage,
+    ) else { return };
 
-assert!(canonical.as_bytes().starts_with(b"cloud-sdk-signing-v1\0"));
-# Ok::<(), Box<dyn core::error::Error>>(())
+    assert!(canonical.as_bytes().starts_with(b"cloud-sdk-signing-v2\0"));
+}
 ```
 
-The cleanup-owning view clears the complete storage buffer on drop. Provider
-code must select hashing, signing, replay, nonce, timestamp, and key policy.
+The constructor hashes the retained request body and clears digest scratch.
+Signing returns a bounded `SignedRequest` that retains the same request and
+clears signature storage on drop. Provider code must still select reviewed
+hashing, signing, replay, nonce, timestamp, key, and verification policy.
 
 ### Provider-Owned Identity
 

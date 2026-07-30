@@ -42,11 +42,21 @@ must be exact `Required` values on every send.
 
 ## Canonical Signing Inputs
 
-Core adds `SigningBodyDigest`, `SigningNonce`, `UnixTime`, `SigningHeaders`,
-`CanonicalSigningInput`, `RequestBodyHasher`, and `RequestSigner`.
-`CanonicalSigningInput` uses a versioned length-framed format over the exact
-method, target, selected ordered headers, caller-produced body digest, nonce,
-and time. It owns caller-buffer cleanup until drop.
+Core adds `SigningContext`, `SigningKeyId`, `SigningAlgorithm`,
+`SigningNonce`, `SigningFreshness`, `UnixTime`, `SigningHeaders`,
+`CanonicalSigningInput`, `RequestBodyHasher`, `RequestSigner`, and
+`SignedRequest`.
+
+`CanonicalSigningInput::new_hashed` uses the v2 length-framed format. It binds
+provider, service, normalized endpoint identity, optional audience/account/
+tenant scope, key ID, algorithm, exact method and target, selected ordered
+headers, an internally produced digest of the retained request body, nonce,
+and time. No public arbitrary-digest constructor exists.
+
+`sign_into` consumes the canonical object, validates signer output, and returns
+a cleanup-owning `SignedRequest` retaining the exact signed
+`TransportRequest`. Replace any code written against the unpublished v1
+candidate API; v1 bytes are intentionally not accepted or produced.
 
 The SDK intentionally supplies no hash algorithm, signature algorithm, key,
 clock, random source, replay cache, filesystem, or key store. Provider crates
