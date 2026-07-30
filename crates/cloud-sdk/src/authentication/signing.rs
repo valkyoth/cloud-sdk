@@ -5,7 +5,7 @@ use core::fmt;
 use cloud_sdk_sanitization::sanitize_bytes;
 
 use crate::buffer::{SnapshotEncoder, encode_snapshot_bounded, measure_snapshot_bounded};
-use crate::transport::{EndpointScheme, RequestHeader, TransportRequest};
+use crate::transport::{CanonicalHost, EndpointScheme, RequestHeader, TransportRequest};
 
 use super::ScopeValue;
 
@@ -16,8 +16,9 @@ mod output;
 pub use build::SigningBuildError;
 use build::{DigestScratch, SigningBodyDigest};
 pub use context::{
-    MAX_SIGNING_ALGORITHM_BYTES, MAX_SIGNING_KEY_ID_BYTES, SigningAlgorithm, SigningContext,
-    SigningContextValueError, SigningKeyId,
+    MAX_SIGNING_ALGORITHM_BYTES, MAX_SIGNING_DIGEST_ALGORITHM_BYTES, MAX_SIGNING_KEY_ID_BYTES,
+    SigningAlgorithm, SigningContext, SigningContextValueError, SigningDigestAlgorithm,
+    SigningKeyId,
 };
 pub use output::{RequestSigner, SignedRequest, SigningOutputError};
 
@@ -198,6 +199,9 @@ pub trait RequestBodyHasher {
     /// Hashing failure.
     type Error;
 
+    /// Returns the exact digest algorithm implemented by this hasher.
+    fn digest_algorithm(&self) -> SigningDigestAlgorithm<'_>;
+
     /// Hashes the exact request body into caller-owned output.
     fn hash_body(&self, body: &[u8], output: &mut [u8]) -> Result<usize, Self::Error>;
 }
@@ -223,6 +227,9 @@ impl<'storage, 'request> CanonicalSigningInput<'storage, 'request> {
     ) -> Result<Self, SigningBuildError<H::Error>> {
         let mut digest_storage = DigestScratch::new(digest_storage);
         validate_selected_headers(request, selected_headers).map_err(SigningBuildError::Input)?;
+        if hasher.digest_algorithm() != context.digest_algorithm() {
+            return Err(SigningBuildError::DigestAlgorithmMismatch);
+        }
         let digest_len = hasher
             .hash_body(request.body(), digest_storage.as_mut())
             .map_err(SigningBuildError::Hasher)?;
@@ -363,14 +370,21 @@ fn encode_signing_snapshot(
         EndpointScheme::Https => b"https".as_slice(),
     };
     encode_u8_len(encoder, scheme)?;
-    encode_u16_len(encoder, endpoint.host().as_bytes())?;
+    encode_canonical_host(encoder, endpoint.canonical_host())?;
     encoder.bytes(&endpoint.effective_port().to_be_bytes())?;
     encode_u16_len(encoder, endpoint.base_path().as_bytes())?;
     encode_optional_scope(encoder, snapshot.context.audience())?;
     encode_optional_scope(encoder, snapshot.context.account())?;
     encode_optional_scope(encoder, snapshot.context.tenant())?;
     encode_u16_len(encoder, snapshot.context.key_id().as_str().as_bytes())?;
-    encode_u16_len(encoder, snapshot.context.algorithm().as_str().as_bytes())?;
+    encode_u16_len(
+        encoder,
+        snapshot.context.digest_algorithm().as_str().as_bytes(),
+    )?;
+    encode_u16_len(
+        encoder,
+        snapshot.context.signature_algorithm().as_str().as_bytes(),
+    )?;
     encode_u8_len(encoder, snapshot.request.method().as_str().as_bytes())?;
     encode_u16_len(encoder, snapshot.request.target().as_str().as_bytes())?;
     let count = u8::try_from(snapshot.selected_headers.as_slice().len())
@@ -383,6 +397,26 @@ fn encode_signing_snapshot(
     encode_u8_len(encoder, snapshot.body_digest.as_bytes())?;
     encode_u16_len(encoder, snapshot.nonce.as_bytes())?;
     encoder.bytes(&snapshot.time.as_seconds().to_be_bytes())
+}
+
+fn encode_canonical_host(
+    encoder: &mut SnapshotEncoder<'_, SigningInputError>,
+    host: CanonicalHost<'_>,
+) -> Result<(), SigningInputError> {
+    match host {
+        CanonicalHost::Dns(value) => {
+            encoder.byte(0)?;
+            encode_u16_len(encoder, value.as_bytes())
+        }
+        CanonicalHost::Ipv4(octets) => {
+            encoder.byte(1)?;
+            encoder.bytes(&octets)
+        }
+        CanonicalHost::Ipv6(octets) => {
+            encoder.byte(2)?;
+            encoder.bytes(&octets)
+        }
+    }
 }
 
 fn encode_optional_scope(

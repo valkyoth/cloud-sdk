@@ -13,10 +13,11 @@ pub use policy::{
 };
 pub use signing::{
     CanonicalSigningInput, MAX_CANONICAL_SIGNING_INPUT_BYTES, MAX_SIGNING_ALGORITHM_BYTES,
-    MAX_SIGNING_BODY_DIGEST_BYTES, MAX_SIGNING_HEADERS, MAX_SIGNING_KEY_ID_BYTES,
-    MAX_SIGNING_NONCE_BYTES, RequestBodyHasher, RequestSigner, SignedRequest, SigningAlgorithm,
-    SigningBuildError, SigningContext, SigningContextValueError, SigningFreshness, SigningHeaders,
-    SigningInputError, SigningKeyId, SigningNonce, SigningOutputError, SigningValueError, UnixTime,
+    MAX_SIGNING_BODY_DIGEST_BYTES, MAX_SIGNING_DIGEST_ALGORITHM_BYTES, MAX_SIGNING_HEADERS,
+    MAX_SIGNING_KEY_ID_BYTES, MAX_SIGNING_NONCE_BYTES, RequestBodyHasher, RequestSigner,
+    SignedRequest, SigningAlgorithm, SigningBuildError, SigningContext, SigningContextValueError,
+    SigningDigestAlgorithm, SigningFreshness, SigningHeaders, SigningInputError, SigningKeyId,
+    SigningNonce, SigningOutputError, SigningValueError, UnixTime,
 };
 pub use transport::{
     AsyncAuthenticatedTransport, AuthenticatedRequest, BlockingAuthenticatedTransport,

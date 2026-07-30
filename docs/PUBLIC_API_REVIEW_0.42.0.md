@@ -7,19 +7,23 @@ wire source lock.
 
 ## Core API
 
-`cloud-sdk::authentication` adds bounded `SigningKeyId`, `SigningAlgorithm`,
-`SigningNonce`, and `SigningFreshness` values; complete `SigningContext`;
-ordered `SigningHeaders`; cleanup-owning `CanonicalSigningInput`; validated
+`cloud-sdk::authentication` adds bounded `SigningKeyId`,
+`SigningDigestAlgorithm`, `SigningAlgorithm`, `SigningNonce`, and
+`SigningFreshness` values; complete `SigningContext`; ordered
+`SigningHeaders`; cleanup-owning `CanonicalSigningInput`; validated
 cleanup-owning `SignedRequest`; and caller-implemented `RequestBodyHasher` and
 `RequestSigner` traits.
 
 The v2 canonical bytes bind provider, service, normalized endpoint scheme,
-host, effective port, base path, optional audience/account/tenant presence,
-key ID, algorithm, exact method and target, selected headers, internally
-produced exact-body digest, nonce, and time. There is no public detached digest
-constructor or unchecked signer-output helper.
+tagged canonical host identity, effective port, base path, optional
+audience/account/tenant presence, key ID, digest algorithm, signature
+algorithm, exact method and target, selected headers, internally produced
+exact-body digest, nonce, and time. Equivalent IPv6 spellings have one
+canonical representation. There is no public detached digest constructor or
+unchecked signer-output helper.
 
-Construction verifies every selected header, hashes `request.body()` inside
+Construction verifies every selected header, requires the hasher's reported
+digest algorithm to match the signed context, hashes `request.body()` inside
 the transaction, retains the exact request borrow, and clears digest scratch.
 Signing consumes the canonical object, rejects zero or out-of-bounds lengths,
 retains the same request, and clears output on all failure paths or drop. Core

@@ -10,15 +10,16 @@ use crate::{Method, ProviderId, ServiceId};
 
 use super::{
     CanonicalSigningInput, MAX_CANONICAL_SIGNING_INPUT_BYTES, MAX_SIGNING_ALGORITHM_BYTES,
-    MAX_SIGNING_BODY_DIGEST_BYTES, MAX_SIGNING_KEY_ID_BYTES, MAX_SIGNING_NONCE_BYTES,
-    RequestBodyHasher, SigningAlgorithm, SigningBuildError, SigningContext,
-    SigningContextValueError, SigningFreshness, SigningHeaders, SigningInputError, SigningKeyId,
-    SigningNonce, SigningValueError, UnixTime,
+    MAX_SIGNING_BODY_DIGEST_BYTES, MAX_SIGNING_DIGEST_ALGORITHM_BYTES, MAX_SIGNING_KEY_ID_BYTES,
+    MAX_SIGNING_NONCE_BYTES, RequestBodyHasher, SigningAlgorithm, SigningBuildError,
+    SigningContext, SigningContextValueError, SigningDigestAlgorithm, SigningFreshness,
+    SigningHeaders, SigningInputError, SigningKeyId, SigningNonce, SigningValueError, UnixTime,
 };
 use crate::authentication::ScopeValue;
 
 mod context_domain;
 mod output;
+mod request_domain;
 
 struct DebugBuffer {
     bytes: [u8; 128],
@@ -78,9 +79,15 @@ fn context<'a>(
     let service = ServiceId::new(service).ok()?;
     let endpoint = EndpointIdentity::new(EndpointScheme::Https, host, 443, "/api").ok()?;
     let key_id = SigningKeyId::new(key_id).ok()?;
-    let algorithm = SigningAlgorithm::new(algorithm).ok()?;
+    let digest_algorithm = SigningDigestAlgorithm::new("body-sha256").ok()?;
+    let signature_algorithm = SigningAlgorithm::new(algorithm).ok()?;
     Some(SigningContext::new(
-        provider, service, endpoint, key_id, algorithm,
+        provider,
+        service,
+        endpoint,
+        key_id,
+        digest_algorithm,
+        signature_algorithm,
     ))
 }
 
@@ -88,6 +95,10 @@ struct BodyHasher;
 
 impl RequestBodyHasher for BodyHasher {
     type Error = ();
+
+    fn digest_algorithm(&self) -> SigningDigestAlgorithm<'_> {
+        SigningDigestAlgorithm::new("body-sha256").unwrap_or_else(|_| unreachable!())
+    }
 
     fn hash_body(&self, body: &[u8], output: &mut [u8]) -> Result<usize, Self::Error> {
         let len = body.len().checked_add(1).ok_or(())?;
@@ -107,6 +118,10 @@ struct FailingHasher;
 impl RequestBodyHasher for FailingHasher {
     type Error = ();
 
+    fn digest_algorithm(&self) -> SigningDigestAlgorithm<'_> {
+        SigningDigestAlgorithm::new("body-sha256").unwrap_or_else(|_| unreachable!())
+    }
+
     fn hash_body(&self, _body: &[u8], output: &mut [u8]) -> Result<usize, Self::Error> {
         output.fill(0xa5);
         Err(())
@@ -118,9 +133,27 @@ struct LengthHasher(usize);
 impl RequestBodyHasher for LengthHasher {
     type Error = ();
 
+    fn digest_algorithm(&self) -> SigningDigestAlgorithm<'_> {
+        SigningDigestAlgorithm::new("body-sha256").unwrap_or_else(|_| unreachable!())
+    }
+
     fn hash_body(&self, _body: &[u8], output: &mut [u8]) -> Result<usize, Self::Error> {
         output.fill(0xa5);
         Ok(self.0)
+    }
+}
+
+struct MismatchedHasher;
+
+impl RequestBodyHasher for MismatchedHasher {
+    type Error = ();
+
+    fn digest_algorithm(&self) -> SigningDigestAlgorithm<'_> {
+        SigningDigestAlgorithm::new("body-sha512").unwrap_or_else(|_| unreachable!())
+    }
+
+    fn hash_body(&self, _body: &[u8], _output: &mut [u8]) -> Result<usize, Self::Error> {
+        Ok(1)
     }
 }
 
@@ -130,6 +163,10 @@ struct PanickingHasher;
 #[cfg(feature = "std")]
 impl RequestBodyHasher for PanickingHasher {
     type Error = ();
+
+    fn digest_algorithm(&self) -> SigningDigestAlgorithm<'_> {
+        SigningDigestAlgorithm::new("body-sha256").unwrap_or_else(|_| unreachable!())
+    }
 
     fn hash_body(&self, _body: &[u8], output: &mut [u8]) -> Result<usize, Self::Error> {
         output.fill(0xa5);
@@ -170,6 +207,10 @@ fn context_and_nonce_values_are_bounded_and_redacted() {
     ));
     assert!(matches!(
         SigningKeyId::new(&"a".repeat(MAX_SIGNING_KEY_ID_BYTES + 1)),
+        Err(SigningContextValueError::TooLong)
+    ));
+    assert!(matches!(
+        SigningDigestAlgorithm::new(&"a".repeat(MAX_SIGNING_DIGEST_ALGORITHM_BYTES + 1)),
         Err(SigningContextValueError::TooLong)
     ));
     assert!(matches!(
@@ -267,6 +308,7 @@ fn canonical_v2_vector_binds_complete_security_domain() {
             b"robot",
             &[5],
             b"https",
+            &[0],
             &[0, 18],
             b"robot.example.test",
             &443_u16.to_be_bytes(),
@@ -279,6 +321,8 @@ fn canonical_v2_vector_binds_complete_security_domain() {
             b"tenant",
             &[0, 5],
             b"key-1",
+            &[0, 11],
+            b"body-sha256",
             &[0, 11],
             b"hmac-sha256",
             &[4],
@@ -322,6 +366,7 @@ fn body_hashing_is_coupled_and_scratch_always_clears() {
     let nonce = SigningNonce::new(b"nonce").unwrap_or_else(|_| unreachable!());
     let freshness = SigningFreshness::new(nonce, UnixTime::from_seconds(42));
     for hasher in [
+        &MismatchedHasher as &dyn RequestBodyHasher<Error = ()>,
         &FailingHasher as &dyn RequestBodyHasher<Error = ()>,
         &LengthHasher(0),
         &LengthHasher(MAX_SIGNING_BODY_DIGEST_BYTES + 1),

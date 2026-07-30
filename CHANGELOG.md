@@ -9,7 +9,8 @@
 - Added cleanup ownership for mutable sources, Basic intermediates, encoded
   authorization storage, and header copies.
 - Added v2 bounded canonical signing inputs binding complete security context,
-  internally coupled exact-body hashing, retained requests, and validated
+  tagged canonical endpoint hosts, distinct digest/signature algorithms,
+  algorithm-checked exact-body hashing, retained requests, and validated
   cleanup-owning signatures while keeping cryptography caller-owned.
 - Added a credential-free Robot wire source lock covering repeated forms,
   errors, quotas, maintenance, lockout policy, and empty success bodies.

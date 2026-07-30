@@ -7,6 +7,8 @@ use super::super::ScopeValue;
 
 /// Maximum bytes in a signing key identifier.
 pub const MAX_SIGNING_KEY_ID_BYTES: usize = 256;
+/// Maximum bytes in a body-digest algorithm identifier.
+pub const MAX_SIGNING_DIGEST_ALGORITHM_BYTES: usize = 128;
 /// Maximum bytes in a signing algorithm identifier.
 pub const MAX_SIGNING_ALGORITHM_BYTES: usize = 128;
 
@@ -61,6 +63,11 @@ define_context_value!(
     "Borrowed provider-owned signing key identifier."
 );
 define_context_value!(
+    SigningDigestAlgorithm,
+    MAX_SIGNING_DIGEST_ALGORITHM_BYTES,
+    "Borrowed provider-owned request-body digest algorithm identifier."
+);
+define_context_value!(
     SigningAlgorithm,
     MAX_SIGNING_ALGORITHM_BYTES,
     "Borrowed provider-owned signature algorithm identifier."
@@ -76,7 +83,8 @@ pub struct SigningContext<'a> {
     account: Option<ScopeValue<'a>>,
     tenant: Option<ScopeValue<'a>>,
     key_id: SigningKeyId<'a>,
-    algorithm: SigningAlgorithm<'a>,
+    digest_algorithm: SigningDigestAlgorithm<'a>,
+    signature_algorithm: SigningAlgorithm<'a>,
 }
 
 impl<'a> SigningContext<'a> {
@@ -87,7 +95,8 @@ impl<'a> SigningContext<'a> {
         service: ServiceId,
         endpoint: EndpointIdentity<'a>,
         key_id: SigningKeyId<'a>,
-        algorithm: SigningAlgorithm<'a>,
+        digest_algorithm: SigningDigestAlgorithm<'a>,
+        signature_algorithm: SigningAlgorithm<'a>,
     ) -> Self {
         Self {
             provider,
@@ -97,7 +106,8 @@ impl<'a> SigningContext<'a> {
             account: None,
             tenant: None,
             key_id,
-            algorithm,
+            digest_algorithm,
+            signature_algorithm,
         }
     }
 
@@ -164,10 +174,16 @@ impl<'a> SigningContext<'a> {
         self.key_id
     }
 
+    /// Returns the bound request-body digest algorithm identifier.
+    #[must_use]
+    pub const fn digest_algorithm(self) -> SigningDigestAlgorithm<'a> {
+        self.digest_algorithm
+    }
+
     /// Returns the bound signature algorithm identifier.
     #[must_use]
-    pub const fn algorithm(self) -> SigningAlgorithm<'a> {
-        self.algorithm
+    pub const fn signature_algorithm(self) -> SigningAlgorithm<'a> {
+        self.signature_algorithm
     }
 }
 
@@ -182,7 +198,8 @@ impl fmt::Debug for SigningContext<'_> {
             .field("account", &self.account.map(|_| "[redacted]"))
             .field("tenant", &self.tenant.map(|_| "[redacted]"))
             .field("key_id", &"[redacted]")
-            .field("algorithm", &"[redacted]")
+            .field("digest_algorithm", &"[redacted]")
+            .field("signature_algorithm", &"[redacted]")
             .finish()
     }
 }

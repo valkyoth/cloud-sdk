@@ -29,10 +29,14 @@ provider-neutral API freeze.
 ## Signing Inputs
 
 - Added v2 length-framed canonical request bytes; no v1 constructor remains.
-- Bound provider, service, normalized scheme/host/port/base path, optional
-  audience/account/tenant, key ID, and algorithm.
+- Bound provider, service, normalized scheme/tagged canonical
+  host/port/base path, optional audience/account/tenant, key ID, digest
+  algorithm, and signature algorithm.
+- Made equivalent IPv6 spellings produce one canonical representation.
 - Bound exact method, final target, ordered selected headers, an internally
   produced digest of the retained exact request body, nonce, and caller time.
+- Required each body hasher to report its algorithm and rejected a mismatch
+  with the signed context before hashing.
 - Added caller-supplied hashing and signing traits.
 - Added validated `SignedRequest` output that retains the exact signed request.
 - Added transactional bounded output and complete digest, canonical-input, and

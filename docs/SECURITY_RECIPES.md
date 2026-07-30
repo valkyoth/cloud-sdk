@@ -56,15 +56,16 @@ explicitly documents redaction.
 
 ## Signing
 
-Provider signing code must supply an approved body hash, signing algorithm,
-key source, cryptographically secure nonce, trustworthy clock, replay policy,
-and verifier policy. Construct a complete `SigningContext` for the provider,
-service, endpoint, scope, key ID, and algorithm. `new_hashed` hashes and
-retains the exact request; never accept a detached digest. Pass the resulting
-canonical object directly to `sign_into`, then pass its `SignedRequest` to the
-provider integration without reconstructing the request. Never reuse a nonce
-in a context that requires uniqueness, and never log canonical input or
-signature bytes.
+Provider signing code must supply approved body-digest and signature
+algorithms, a key source, cryptographically secure nonce, trustworthy clock,
+replay policy, and verifier policy. Construct a complete `SigningContext` for
+the provider, service, endpoint, scope, key ID, digest algorithm, and signature
+algorithm. `new_hashed` hashes and retains the exact request; never accept a
+detached digest or bypass its hasher/context algorithm match. Pass the
+resulting canonical object directly to `sign_into`, then pass its
+`SignedRequest` to the provider integration without reconstructing the
+request. Never reuse a nonce in a context that requires uniqueness, and never
+log canonical input or signature bytes.
 
 ## Timeouts
 

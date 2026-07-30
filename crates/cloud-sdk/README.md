@@ -263,7 +263,8 @@ clock, nonce generator, key, or algorithm:
 ```rust
 use cloud_sdk::authentication::{
     CanonicalSigningInput, RequestBodyHasher, SigningAlgorithm, SigningContext,
-    SigningFreshness, SigningHeaders, SigningKeyId, SigningNonce, UnixTime,
+    SigningDigestAlgorithm, SigningFreshness, SigningHeaders, SigningKeyId,
+    SigningNonce, UnixTime,
 };
 use cloud_sdk::transport::{
     EndpointIdentity, EndpointScheme, RequestHeaders, RequestTarget,
@@ -286,11 +287,20 @@ fn prepare<H: RequestBodyHasher>(hasher: &H) {
     let Ok(provider) = ProviderId::new("example") else { return };
     let Ok(service) = ServiceId::new("compute") else { return };
     let Ok(key_id) = SigningKeyId::new("production-key-1") else { return };
+    let Ok(digest_algorithm) = SigningDigestAlgorithm::new("sha256") else {
+        return;
+    };
     let Ok(algorithm) = SigningAlgorithm::new("provider-algorithm") else {
         return;
     };
-    let context =
-        SigningContext::new(provider, service, endpoint, key_id, algorithm);
+    let context = SigningContext::new(
+        provider,
+        service,
+        endpoint,
+        key_id,
+        digest_algorithm,
+        algorithm,
+    );
     let Ok(nonce) = SigningNonce::new(b"caller-generated-nonce") else {
         return;
     };
@@ -316,7 +326,7 @@ fn prepare<H: RequestBodyHasher>(hasher: &H) {
 The constructor hashes the retained request body and clears digest scratch.
 Signing returns a bounded `SignedRequest` that retains the same request and
 clears signature storage on drop. Provider code must still select reviewed
-hashing, signing, replay, nonce, timestamp, key, and verification policy.
+digest, signing, replay, nonce, timestamp, key, and verification policy.
 
 ### Provider-Owned Identity
 

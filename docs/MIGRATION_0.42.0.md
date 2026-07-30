@@ -42,16 +42,22 @@ must be exact `Required` values on every send.
 
 ## Canonical Signing Inputs
 
-Core adds `SigningContext`, `SigningKeyId`, `SigningAlgorithm`,
-`SigningNonce`, `SigningFreshness`, `UnixTime`, `SigningHeaders`,
-`CanonicalSigningInput`, `RequestBodyHasher`, `RequestSigner`, and
-`SignedRequest`.
+Core adds `SigningContext`, `SigningKeyId`, `SigningDigestAlgorithm`,
+`SigningAlgorithm`, `SigningNonce`, `SigningFreshness`, `UnixTime`,
+`SigningHeaders`, `CanonicalSigningInput`, `RequestBodyHasher`,
+`RequestSigner`, and `SignedRequest`.
 
 `CanonicalSigningInput::new_hashed` uses the v2 length-framed format. It binds
-provider, service, normalized endpoint identity, optional audience/account/
-tenant scope, key ID, algorithm, exact method and target, selected ordered
-headers, an internally produced digest of the retained request body, nonce,
-and time. No public arbitrary-digest constructor exists.
+provider, service, normalized endpoint identity with tagged canonical host
+bytes, optional audience/account/tenant scope, key ID, distinct digest and
+signature algorithms, exact method and target, selected ordered headers, an
+internally produced digest of the retained request body, nonce, and time.
+Equivalent IPv6 spellings produce the same bytes. No public arbitrary-digest
+constructor exists.
+
+`RequestBodyHasher::digest_algorithm` must return the algorithm implemented by
+the hasher. Construction rejects a mismatch with the
+`SigningDigestAlgorithm` bound into `SigningContext` before hashing.
 
 `sign_into` consumes the canonical object, validates signer output, and returns
 a cleanup-owning `SignedRequest` retaining the exact signed

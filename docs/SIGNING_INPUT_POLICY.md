@@ -21,12 +21,16 @@ not exposed. Fields are encoded in this order:
 
 1. provider and service IDs, each with an unsigned 8-bit byte length;
 2. endpoint scheme with an unsigned 8-bit byte length;
-3. normalized host with an unsigned 16-bit big-endian byte length;
+3. canonical host identity as a one-byte type tag followed by its payload:
+   DNS tag `0` plus an unsigned 16-bit length and canonical A-label bytes,
+   IPv4 tag `1` plus four address octets, or IPv6 tag `2` plus sixteen address
+   octets;
 4. effective port as unsigned 16-bit big-endian;
 5. normalized endpoint base path with an unsigned 16-bit byte length;
 6. audience, account, and tenant, each as an explicit absent byte or a present
    byte followed by an unsigned 16-bit length and exact value;
-7. key ID and algorithm, each with an unsigned 16-bit byte length;
+7. key ID, body-digest algorithm, and signature algorithm, each with an
+   unsigned 16-bit byte length;
 8. method with an unsigned 8-bit byte length;
 9. exact request target with an unsigned 16-bit big-endian byte length;
 10. selected-header count as an unsigned 8-bit value;
@@ -36,17 +40,24 @@ not exposed. Fields are encoded in this order:
 13. caller-produced nonce with a 16-bit big-endian length;
 14. caller-observed Unix seconds as unsigned 64-bit big-endian.
 
-The context uses `ProviderId`, `ServiceId`, and `EndpointIdentity`; scheme,
-canonical host, effective port, and normalized base path therefore have the
-same meaning as credential binding. `SigningKeyId` and `SigningAlgorithm` are
-required bounded visible-ASCII values. Every context field is length-framed
-or fixed-width, and optional scope presence is unambiguous.
+The context uses `ProviderId`, `ServiceId`, and `EndpointIdentity`. Scheme,
+canonical host identity, effective port, and normalized base path therefore
+have the same meaning as credential binding. Equivalent IPv6 spellings encode
+the same parsed 128-bit identity. DNS, IPv4, and IPv6 cannot alias because the
+host type is explicit.
+
+`SigningKeyId`, `SigningDigestAlgorithm`, and `SigningAlgorithm` are required
+bounded visible-ASCII values. Digest and signature algorithms are separate so
+one cannot be changed while retaining the same canonical security context.
+Every context field is length-framed or fixed-width, and optional scope
+presence is unambiguous.
 
 `CanonicalSigningInput::new_hashed` invokes the caller-selected
-`RequestBodyHasher` over `request.body()` inside construction. There is no
-public arbitrary-digest constructor. The canonical object retains that exact
-`TransportRequest`, preventing safe mutation of its borrowed body while the
-object exists.
+`RequestBodyHasher` over `request.body()` inside construction. The hasher must
+report the same bounded digest algorithm as `SigningContext`; a mismatch fails
+before hashing. There is no public arbitrary-digest constructor. The canonical
+object retains that exact `TransportRequest`, preventing safe mutation of its
+borrowed body while the object exists.
 
 Selected headers must be strictly ordered and unique by validated canonical
 name. Every selected name, value, and sensitivity classification must exactly
@@ -68,21 +79,22 @@ request beside a detached signature.
 
 ## Bounds And Cleanup
 
-Digest bytes are capped at 128, nonce bytes at 256, key IDs at 256,
-algorithms at 128, selected headers at 32, and the complete canonical input at
-12,288 bytes. Construction measures and replays the immutable snapshot
-transactionally. An undersized canonical output remains unchanged.
+Digest bytes are capped at 128, nonce bytes at 256, key IDs at 256, digest and
+signature algorithm identifiers at 128 each, selected headers at 32, and the
+complete canonical input at 12,288 bytes. Construction measures and replays
+the immutable snapshot transactionally. An undersized canonical output
+remains unchanged.
 
 `CanonicalSigningInput` borrows caller storage and clears the complete buffer
 on drop. Digest scratch clears on success, error, and panic unwind.
 `SignedRequest` owns signature-buffer cleanup. Debug output exposes no digest,
-nonce, scope value, key ID, algorithm, canonical bytes, request body, or
-signature bytes.
+nonce, scope value, key ID, digest or signature algorithm, canonical bytes,
+request body, or signature bytes.
 
 ## Verification
 
-`scripts/check_basic_and_signing.sh` covers an exact v2 vector, independent
-changes to every security-domain field, ordering, mismatches, exact-body
-hashing, retained request identity, invalid hasher/signer lengths, signer and
-hasher failures, panic unwind, every undersized output, redaction, and
-complete cleanup.
+`scripts/check_basic_and_signing.sh` covers an exact v2 vector, equivalent IPv6
+spellings, independent changes to every context, request, and freshness field,
+ordering, mismatches, exact-body hashing, retained request identity, invalid
+hasher/signer lengths, signer and hasher failures, panic unwind, every
+undersized output, redaction, and complete cleanup.

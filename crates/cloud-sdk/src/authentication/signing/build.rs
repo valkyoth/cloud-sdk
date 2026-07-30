@@ -31,6 +31,8 @@ impl fmt::Debug for SigningBodyDigest<'_> {
 
 /// Body hashing and canonical signing-input construction failure.
 pub enum SigningBuildError<E> {
+    /// The hasher and signed context declare different digest algorithms.
+    DigestAlgorithmMismatch,
     /// The caller-provided body hasher rejected the exact request body.
     Hasher(E),
     /// The hasher returned an empty or out-of-bounds digest.
@@ -42,6 +44,7 @@ pub enum SigningBuildError<E> {
 impl<E> fmt::Debug for SigningBuildError<E> {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter.write_str(match self {
+            Self::DigestAlgorithmMismatch => "SigningBuildError::DigestAlgorithmMismatch",
             Self::Hasher(_) => "SigningBuildError::Hasher([redacted])",
             Self::Digest(_) => "SigningBuildError::Digest",
             Self::Input(_) => "SigningBuildError::Input",
@@ -52,6 +55,9 @@ impl<E> fmt::Debug for SigningBuildError<E> {
 impl<E> fmt::Display for SigningBuildError<E> {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter.write_str(match self {
+            Self::DigestAlgorithmMismatch => {
+                "request body hasher does not match the signed digest algorithm"
+            }
             Self::Hasher(_) => "request body hashing failed",
             Self::Digest(_) => "request body hasher returned an invalid digest length",
             Self::Input(_) => "canonical signing input construction failed",
@@ -68,6 +74,7 @@ where
             Self::Hasher(error) => Some(error),
             Self::Digest(error) => Some(error),
             Self::Input(error) => Some(error),
+            Self::DigestAlgorithmMismatch => None,
         }
     }
 }

@@ -143,11 +143,13 @@
   intermediate `user:password` bytes, encoded storage, and header copies have
   cleanup ownership;
 - v2 canonical signing input length-frames provider, service, normalized
-  endpoint, optional scope, key ID, algorithm, exact target, and selected
-  headers; construction hashes and retains the exact request body, while
-  validated signed output retains the same request and clears on failure,
-  unwind, or drop; providers and callers retain algorithms, keys, clocks,
-  nonces, replay state, and verifier policy;
+  endpoint with tagged canonical host identity, optional scope, key ID,
+  distinct digest and signature algorithms, exact method/target, and selected
+  headers; equivalent IPv6 spellings encode identically; construction rejects
+  a hasher/context digest-algorithm mismatch, then hashes and retains the exact
+  request body, while validated signed output retains the same request and
+  clears on failure, unwind, or drop; providers and callers retain algorithm
+  implementations, keys, clocks, nonces, replay state, and verifier policy;
 - credential generations advance without wrapping; external refresh receives
   an opaque compare-and-swap handoff so stale completion cannot replace newer
   state, while acquisition, expiry, clocks, tasks, and secret stores remain

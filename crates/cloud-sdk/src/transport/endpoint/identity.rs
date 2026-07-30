@@ -51,7 +51,7 @@ pub enum EndpointScheme {
 }
 
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-enum CanonicalHost<'a> {
+pub(crate) enum CanonicalHost<'a> {
     Dns(&'a str),
     Ipv4([u8; 4]),
     Ipv6([u8; 16]),
@@ -104,6 +104,12 @@ impl<'a> EndpointIdentity<'a> {
     #[must_use]
     pub const fn host(self) -> &'a str {
         self.host
+    }
+
+    /// Returns the parsed identity used by equality, hashing, and signing.
+    #[must_use]
+    pub(crate) const fn canonical_host(self) -> CanonicalHost<'a> {
+        self.canonical_host
     }
 
     /// Returns the effective port, including the scheme default when omitted.

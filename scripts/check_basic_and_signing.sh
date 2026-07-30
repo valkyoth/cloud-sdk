@@ -8,6 +8,9 @@ cargo test -p cloud-sdk --features std authentication::signing
 signing='crates/cloud-sdk/src/authentication/signing.rs'
 for contract in \
     'cloud-sdk-signing-v2\0' \
+    'fn encode_canonical_host' \
+    'endpoint.canonical_host()' \
+    'fn digest_algorithm(&self)' \
     'pub fn new_hashed' \
     'pub fn sign_into' \
     'pub struct SigningFreshness'; do
@@ -16,6 +19,10 @@ for contract in \
         exit 1
     fi
 done
+if grep -Fq 'endpoint.host().as_bytes()' "$signing"; then
+    echo "Basic/signing: presentation host entered canonical signing bytes" >&2
+    exit 1
+fi
 for forbidden in \
     'cloud-sdk-signing-v1' \
     'pub struct SigningBodyDigest' \
@@ -30,7 +37,7 @@ if ! grep -Fq 'pub struct SigningContext' "$context_source"; then
     echo "Basic/signing: missing signing-context contract SigningContext" >&2
     exit 1
 fi
-for contract in SigningKeyId SigningAlgorithm; do
+for contract in SigningKeyId SigningDigestAlgorithm SigningAlgorithm; do
     if ! grep -Fq "    $contract," "$context_source"; then
         echo "Basic/signing: missing generated signing-context contract $contract" >&2
         exit 1
