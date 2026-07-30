@@ -82,10 +82,17 @@ impl BearerCredentialScope {
     }
 
     pub(crate) fn borrowed(&self) -> Result<AuthenticationScope<'_>, BearerCredentialScopeError> {
+        self.borrowed_with_endpoint(self.endpoint_identity()?)
+    }
+
+    pub(crate) fn borrowed_with_endpoint<'a>(
+        &'a self,
+        endpoint: cloud_sdk::transport::EndpointIdentity<'a>,
+    ) -> Result<AuthenticationScope<'a>, BearerCredentialScopeError> {
         let mut scope = AuthenticationScope::unscoped()
             .with_provider(self.provider)
             .with_service(self.service)
-            .with_endpoint(self.endpoint_identity()?);
+            .with_endpoint(endpoint);
         if let Some(value) = self.audience.as_deref() {
             scope = scope.with_audience(
                 ScopeValue::new(value).map_err(BearerCredentialScopeError::ValueRejected)?,

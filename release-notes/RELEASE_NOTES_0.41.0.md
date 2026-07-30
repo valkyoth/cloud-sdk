@@ -21,6 +21,8 @@ and external refresh use generation-safe state transitions.
   authorization construction.
 - Rejected configured credential endpoint mismatch, downgraded base rules,
   supplied forbidden fields, and mismatches before network or header work.
+- Applied complete scope validation to the test-only numeric HTTP loopback
+  harness instead of bypassing audience, account, and tenant rules.
 - Added mandatory authenticated blocking and executor-neutral async transport
   traits.
 - Kept raw HTTP execution credential-free.

@@ -50,6 +50,9 @@ endpoint to equal the configured endpoint, and every send independently
 requires both the credential endpoint and required policy endpoint to equal
 the configured identity. Custom endpoint values are trusted operator
 configuration and must never originate from tenant-controlled input.
+The test-only numeric HTTP loopback harness projects only the admitted
+transport scheme to HTTPS before invoking the same complete core scope
+validator; it does not bypass audience, account, or tenant requirements.
 
 Provider-owned audience, account, and tenant values are bounded to 512 visible
 ASCII bytes without whitespace or backslash and are redacted from diagnostics.

@@ -40,6 +40,12 @@ if ! grep -Fq 'CredentialMismatch' \
     exit 1
 fi
 
+if ! grep -Fq 'validate_test_loopback_scope' \
+    crates/cloud-sdk-reqwest/src/shared/authentication.rs; then
+    echo "bearer authentication: test loopback bypasses complete scope validation" >&2
+    exit 1
+fi
+
 if grep -R -Eq \
     'impl (BlockingTransport|AsyncTransport) for (BlockingClient|AsyncClient)' \
     crates/cloud-sdk-reqwest/src; then

@@ -55,10 +55,38 @@ pub(crate) fn validate_bearer_authentication<'a>(
         .borrowed()
         .map_err(|_| AuthenticationValidationError::ScopeRejected)?;
     if admitted_test_loopback {
-        return Ok(());
+        return validate_test_loopback_scope(endpoint, scope, policy);
     }
     policy
         .validate(credential_scope)
+        .map_err(|_| AuthenticationValidationError::ScopeRejected)
+}
+
+fn validate_test_loopback_scope<'a>(
+    endpoint: EndpointIdentity<'a>,
+    scope: &'a BearerCredentialScope,
+    policy: AuthenticationScopePolicy<'a>,
+) -> Result<(), AuthenticationValidationError> {
+    let projected_endpoint = EndpointIdentity::new(
+        EndpointScheme::Https,
+        endpoint.host(),
+        endpoint.effective_port(),
+        endpoint.base_path(),
+    )
+    .map_err(|_| AuthenticationValidationError::ScopeRejected)?;
+    let projected_policy = AuthenticationScopePolicy::new(
+        ScopeRequirement::Required(scope.provider()),
+        ScopeRequirement::Required(scope.service()),
+        ScopeRequirement::Required(projected_endpoint),
+        policy.audience_requirement(),
+        policy.account_requirement(),
+        policy.tenant_requirement(),
+    );
+    let projected_scope = scope
+        .borrowed_with_endpoint(projected_endpoint)
+        .map_err(|_| AuthenticationValidationError::ScopeRejected)?;
+    projected_policy
+        .validate(projected_scope)
         .map_err(|_| AuthenticationValidationError::ScopeRejected)
 }
 
@@ -72,7 +100,7 @@ fn is_numeric_loopback(host: &str) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use cloud_sdk::authentication::{AuthenticationScopePolicy, ScopeRequirement};
+    use cloud_sdk::authentication::{AuthenticationScopePolicy, ScopeRequirement, ScopeValue};
     use cloud_sdk::transport::CustomEndpointAcknowledgement;
     use cloud_sdk::{ProviderId, ServiceId};
 
@@ -106,6 +134,10 @@ mod tests {
             ScopeRequirement::Forbidden,
             ScopeRequirement::Forbidden,
         )
+    }
+
+    fn value(text: &'static str) -> ScopeValue<'static> {
+        ScopeValue::new(text).unwrap_or_else(|_| unreachable!())
     }
 
     #[test]
@@ -218,5 +250,63 @@ mod tests {
                 Err(AuthenticationValidationError::InsecureEndpoint)
             );
         }
+    }
+
+    #[test]
+    fn test_loopback_exception_still_validates_every_extended_scope_field() {
+        let configured = HttpsEndpoint::local_http("http://127.0.0.1:3000/v1")
+            .unwrap_or_else(|_| unreachable!());
+        let identity = configured.identity().unwrap_or_else(|_| unreachable!());
+        let populated = BearerCredentialScope::new(provider(), service(), configured.clone())
+            .try_with_audience("actual-audience")
+            .and_then(|scope| scope.try_with_account("actual-account"))
+            .and_then(|scope| scope.try_with_tenant("actual-tenant"))
+            .unwrap_or_else(|_| unreachable!());
+        let rejected = [
+            AuthenticationScopePolicy::new(
+                ScopeRequirement::Required(provider()),
+                ScopeRequirement::Required(service()),
+                ScopeRequirement::Required(identity),
+                ScopeRequirement::Required(value("other-audience")),
+                ScopeRequirement::Optional(value("actual-account")),
+                ScopeRequirement::Optional(value("actual-tenant")),
+            ),
+            AuthenticationScopePolicy::new(
+                ScopeRequirement::Required(provider()),
+                ScopeRequirement::Required(service()),
+                ScopeRequirement::Required(identity),
+                ScopeRequirement::Optional(value("actual-audience")),
+                ScopeRequirement::Forbidden,
+                ScopeRequirement::Optional(value("actual-tenant")),
+            ),
+            AuthenticationScopePolicy::new(
+                ScopeRequirement::Required(provider()),
+                ScopeRequirement::Required(service()),
+                ScopeRequirement::Required(identity),
+                ScopeRequirement::Optional(value("actual-audience")),
+                ScopeRequirement::Optional(value("actual-account")),
+                ScopeRequirement::Required(value("other-tenant")),
+            ),
+        ];
+        for policy in rejected {
+            assert_eq!(
+                validate_bearer_authentication(identity, &populated, policy, true),
+                Err(AuthenticationValidationError::ScopeRejected)
+            );
+        }
+
+        let missing = BearerCredentialScope::new(provider(), service(), configured.clone());
+        let required = AuthenticationScopePolicy::new(
+            ScopeRequirement::Required(provider()),
+            ScopeRequirement::Required(service()),
+            ScopeRequirement::Required(identity),
+            ScopeRequirement::Required(value("audience")),
+            ScopeRequirement::Required(value("account")),
+            ScopeRequirement::Required(value("tenant")),
+        );
+        assert_eq!(
+            validate_bearer_authentication(identity, &missing, required, true),
+            Err(AuthenticationValidationError::ScopeRejected)
+        );
     }
 }

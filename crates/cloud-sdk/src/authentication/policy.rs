@@ -150,6 +150,24 @@ impl<'a> AuthenticationScopePolicy<'a> {
         self.endpoint
     }
 
+    /// Returns the audience rule for adapter identity verification.
+    #[must_use]
+    pub const fn audience_requirement(self) -> ScopeRequirement<ScopeValue<'a>> {
+        self.audience
+    }
+
+    /// Returns the account rule for adapter identity verification.
+    #[must_use]
+    pub const fn account_requirement(self) -> ScopeRequirement<ScopeValue<'a>> {
+        self.account
+    }
+
+    /// Returns the tenant rule for adapter identity verification.
+    #[must_use]
+    pub const fn tenant_requirement(self) -> ScopeRequirement<ScopeValue<'a>> {
+        self.tenant
+    }
+
     /// Validates one credential scope before authorization-header construction.
     pub fn validate(self, scope: AuthenticationScope<'a>) -> Result<(), AuthenticationScopeError> {
         validate_endpoint_security(self.endpoint)?;
