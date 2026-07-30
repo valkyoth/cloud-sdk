@@ -1,6 +1,6 @@
 # Bearer Authentication Policy
 
-Status: v0.41.0 implementation stop reached; pentest required.
+Status: v0.41.0 implementation complete; pentest and final retest passed.
 
 The bearer layer is separate from credential-free raw HTTP execution. Core
 defines scope, generation, and authenticated transport contracts without

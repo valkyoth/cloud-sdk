@@ -1646,7 +1646,7 @@ Stop gate: `v0.40.0 implementation stop reached. Run pentest for this exact comm
 
 ### v0.41.0 - Bearer Authentication Policy
 
-Status: implementation stop reached; pentest required.
+Status: release candidate; pentest and final retest passed.
 
 Goal: provide reusable bearer auth outside neutral execution.
 

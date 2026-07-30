@@ -1,9 +1,9 @@
 # cloud-sdk 0.41.0 Release Notes
 
-Status: implementation stop reached; pentest required before release
-candidate status.
+Status: release candidate; pentest and final retest passed. Local and GitHub
+release checks remain required before tagging.
 
-Release date: unreleased
+Release date: 2026-07-30
 
 ## Overview
 
@@ -64,12 +64,19 @@ and external refresh use generation-safe state transitions.
 
 ## Pentest
 
-Pentest evidence is pending. Tagging is forbidden until the implementation
-commit is reviewed, findings are resolved and retested where applicable, and
-`security/pentest/v0.41.0.md` records `Status: PASS`.
+The v0.41 pentest findings covered the HTTP loopback test boundary,
+credential-store refresh lineage, mandatory provider/service/endpoint
+binding, bearer padding grammar, refresh state separation, and complete
+extended-scope validation. All findings were remediated and
+regression-tested.
+
+The final retest passed commit
+`302837f05282e1d5d8bf12c1a960d1620c59dfc3`. See the
+[`v0.41.0` pentest report](../security/pentest/v0.41.0.md).
 
 ## Release Gate
 
 ```text
-v0.41.0 implementation stop reached. Run pentest for this exact commit.
+v0.41.0 pentest stop passed. Tag only after the clean local release gate and
+GitHub checks pass on the final release commit.
 ```

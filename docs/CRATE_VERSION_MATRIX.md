@@ -1,7 +1,8 @@
 # Crate Version Matrix
 
-Status: `v0.40.0` is tagged. `v0.41.0` bearer authentication policy reached
-its implementation stop and requires pentesting.
+Status: `v0.40.0` is tagged. `v0.41.0` bearer authentication policy is a
+release candidate after a green pentest and final retest; local and GitHub
+release checks remain required before tagging.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
