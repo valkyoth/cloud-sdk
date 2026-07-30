@@ -6,6 +6,41 @@ use super::{
 use crate::transport::{EndpointIdentity, EndpointScheme};
 use crate::{ProviderId, ServiceId};
 
+struct FormatBuffer {
+    bytes: [u8; 128],
+    len: usize,
+}
+
+impl FormatBuffer {
+    const fn new() -> Self {
+        Self {
+            bytes: [0; 128],
+            len: 0,
+        }
+    }
+
+    fn as_str(&self) -> &str {
+        let Some(bytes) = self.bytes.get(..self.len) else {
+            return "";
+        };
+        core::str::from_utf8(bytes).unwrap_or("")
+    }
+}
+
+impl core::fmt::Write for FormatBuffer {
+    fn write_str(&mut self, value: &str) -> core::fmt::Result {
+        let Some(end) = self.len.checked_add(value.len()) else {
+            return Err(core::fmt::Error);
+        };
+        let Some(output) = self.bytes.get_mut(self.len..end) else {
+            return Err(core::fmt::Error);
+        };
+        output.copy_from_slice(value.as_bytes());
+        self.len = end;
+        Ok(())
+    }
+}
+
 fn provider() -> ProviderId {
     ProviderId::new("example").unwrap_or_else(|_| unreachable!())
 }
@@ -59,7 +94,9 @@ fn scope_values_are_bounded_validated_and_redacted() {
     let accepted = ScopeValue::new("urn:example:tenant/a?b=c");
     assert!(accepted.is_ok());
     if let Ok(accepted) = accepted {
-        let debug = std::format!("{accepted:?}");
+        let mut debug = FormatBuffer::new();
+        assert!(core::fmt::write(&mut debug, format_args!("{accepted:?}")).is_ok());
+        let debug = debug.as_str();
         assert!(debug.contains("[redacted]"));
         assert!(!debug.contains("tenant"));
     }

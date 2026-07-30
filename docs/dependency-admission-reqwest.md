@@ -14,7 +14,7 @@ Checked: 2026-07-29.
 | --- | --- | --- | --- |
 | `reqwest` | `0.13.4` | blocking/async HTTP client and URL/header types | disabled |
 | `bytes` | `1.12.1` | sanitized owned async request-body handoff | disabled |
-| `http` | `1.4.2` | raw request and response-head representation | disabled |
+| `http` | `1.5.0` | raw request and response-head representation | disabled |
 | `http-body-util` | `0.1.4` | raw body ownership and response-frame access | disabled |
 | `hyper` | `1.11.0` | bounded raw HTTP/1 implementation | disabled |
 | `hyper-rustls` | `0.27.9` | raw rustls HTTPS connector | disabled |
@@ -117,7 +117,7 @@ at runtime. A
 separate locked, non-published test fixture deliberately enables both on the
 same reqwest instance and builds both adapters to exercise Cargo feature
 unification against the runtime overrides. Its local `cloud-sdk-reqwest`
-dependency is pinned exactly to `0.27.0` and enables the standard, FIPS, and
+dependency is pinned exactly to `0.28.0` and enables the standard, FIPS, and
 async transport features, proving the explicit FIPS configuration wins under
 additive feature unification. The deterministic-root boundary separately
 compiles both its standard combination and its combination with FIPS.

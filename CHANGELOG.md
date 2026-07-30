@@ -1,6 +1,19 @@
 # Changelog
 
-## 0.40.0 - Unreleased
+## 0.41.0 - Unreleased
+
+- Added provider-neutral bearer authentication scope and mandatory
+  authenticated transport contracts.
+- Bound credentials to explicit provider, service, endpoint, audience,
+  account, and tenant policy before authorization-header construction.
+- Added immutable credential scope, atomic token rotation, monotonic
+  generations, compare-and-swap refresh, and in-flight snapshots.
+- Added source-clearing mutable and guarded ingestion plus cleanup-owned
+  adapter header values.
+- Removed the authenticated reqwest clients from credential-free transport
+  traits so callers cannot bypass operation authentication policy.
+
+## 0.40.0 - 2026-07-29
 
 - Added credential-free blocking and async raw HTTP executor contracts.
 - Added conservative delivery phases, bounded informational responses, explicit

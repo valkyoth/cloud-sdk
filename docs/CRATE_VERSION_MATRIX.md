@@ -1,7 +1,7 @@
 # Crate Version Matrix
 
-Status: `v0.39.0` is tagged. `v0.40.0` raw bounded HTTP execution is a release
-candidate; pentest and final retest passed.
+Status: `v0.40.0` is tagged. `v0.41.0` bearer authentication policy reached
+its implementation stop and requires pentesting.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
@@ -612,6 +612,19 @@ delivery phases, and deterministic send-phase fault injection.
 | `cloud-sdk-reqwest` | `0.26.1` | `0.27.0` | `code` | Yes | Add one shared bounded Hyper engine for raw blocking, async, deterministic-root, and FIPS execution. |
 | `cloud-sdk-sanitization` | `0.16.0` | `0.16.0` | `unchanged` | No | No code, dependency, or package metadata changes. |
 | `cloud-sdk-testkit` | `0.23.1` | `0.24.0` | `code` | Yes | Add deterministic raw delivery-phase fault injection. |
+
+## v0.41.0 Tracking Table
+
+`v0.41.0` adds mandatory provider or operation-owned bearer scope policy,
+generation-safe rotation and refresh, and cleanup-owned adapter headers.
+
+| Crate | Published | Planned | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.40.0` | `0.41.0` | `code` | Yes | Add provider-neutral authentication scope, generation, refresh-handoff, and authenticated transport contracts. |
+| `cloud-sdk-hetzner` | `0.32.1` | `0.32.2` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.41 facade line; live smoke adopts mandatory scope policy only in tests. |
+| `cloud-sdk-reqwest` | `0.27.0` | `0.28.0` | `code` | Yes | Add immutable bearer scope, policy-required sends, atomic rotation, CAS refresh, and cleanup-owned authorization values. |
+| `cloud-sdk-sanitization` | `0.16.0` | `0.16.0` | `unchanged` | No | No code, dependency, or package metadata changes. |
+| `cloud-sdk-testkit` | `0.24.0` | `0.24.1` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.41 facade line. |
 
 ## Planned Milestone Ownership
 

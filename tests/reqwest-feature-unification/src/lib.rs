@@ -6,16 +6,14 @@ mod tests {
 
     use cloud_sdk_reqwest::asynchronous::{
         AsyncClientBuilder, BearerCredential as AsyncBearerCredential,
-        BearerCredentialScope as AsyncBearerCredentialScope,
-        BearerToken as AsyncBearerToken,
+        BearerCredentialScope as AsyncBearerCredentialScope, BearerToken as AsyncBearerToken,
         CustomEndpointAcknowledgement as AsyncCustomEndpointAcknowledgement,
         HttpsEndpoint as AsyncHttpsEndpoint, RequestTimeouts as AsyncRequestTimeouts,
         UserAgent as AsyncUserAgent,
     };
     use cloud_sdk_reqwest::blocking::{
-        BearerCredential, BearerCredentialScope, BearerToken,
-        BlockingClientBuilder, CustomEndpointAcknowledgement, FipsTlsPolicy,
-        HttpsEndpoint, RequestTimeouts, UserAgent,
+        BearerCredential, BearerCredentialScope, BearerToken, BlockingClientBuilder,
+        CustomEndpointAcknowledgement, FipsTlsPolicy, HttpsEndpoint, RequestTimeouts, UserAgent,
     };
     use rustls::RootCertStore;
     use rustls::pki_types::pem::PemObject;
@@ -61,9 +59,9 @@ mod tests {
                     user_agent,
                     timeouts,
                 )
-                    .with_fips_tls_policy(policy)
-                    .build()
-                    .is_ok()
+                .with_fips_tls_policy(policy)
+                .build()
+                .is_ok()
             );
         }
     }
@@ -99,8 +97,8 @@ mod tests {
                             user_agent,
                             timeouts,
                         )
-                            .build()
-                            .is_ok()
+                        .build()
+                        .is_ok()
                     );
                 }
             });

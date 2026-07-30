@@ -1,0 +1,68 @@
+# cloud-sdk 0.41.0 Release Notes
+
+Status: implementation stop reached; pentest required before release
+candidate status.
+
+Release date: unreleased
+
+## Overview
+
+v0.41 adds a provider-neutral bearer authentication policy above the
+credential-free raw HTTP executor. Credentials are immutably scoped, every
+authenticated send requires provider or operation policy, and token rotation
+and external refresh use generation-safe state transitions.
+
+## Authentication Policy
+
+- Added explicit required, optional, or forbidden policy for provider,
+  service, endpoint, audience, account, and tenant.
+- Required exact HTTPS endpoint identity before authorization construction.
+- Rejected unscoped credentials, omitted required fields, supplied forbidden
+  fields, and mismatches before network or header work.
+- Added mandatory authenticated blocking and executor-neutral async transport
+  traits.
+- Kept raw HTTP execution credential-free.
+
+## Credential Lifecycle
+
+- Added immutable owned credential scope.
+- Added monotonic generations and compare-and-swap refresh handoffs.
+- Rejected stale refresh completion after a newer rotation or refresh.
+- Preserved old token snapshots only for in-flight requests.
+- Recovered poisoned credential state without holding locks across I/O or
+  `.await`.
+- Cleared mutable and guarded token sources on success and rejection.
+- Added cleanup-owned authorization header values and retired-token cleanup.
+- Kept token acquisition, clocks, expiry, tasks, queues, retries, and secret
+  stores outside the SDK.
+- Updated the optional `http` boundary to `1.5.0`, including upstream URI
+  maximum-length enforcement, without admitting its new method automatically.
+
+## Versions
+
+| Crate | Version | Change |
+| --- | --- | --- |
+| `cloud-sdk` | `0.41.0` | authentication scope, generation, and transport contracts |
+| `cloud-sdk-hetzner` | `0.32.2` | dependency-only core range update |
+| `cloud-sdk-reqwest` | `0.28.0` | scoped bearer lifecycle and authenticated adapters |
+| `cloud-sdk-sanitization` | `0.16.0` | unchanged; not published |
+| `cloud-sdk-testkit` | `0.24.1` | dependency-only core range update |
+
+## Documentation
+
+- [`docs/AUTHENTICATION_POLICY.md`](../docs/AUTHENTICATION_POLICY.md)
+- [`docs/MIGRATION_0.41.0.md`](../docs/MIGRATION_0.41.0.md)
+- [`docs/PUBLIC_API_REVIEW_0.41.0.md`](../docs/PUBLIC_API_REVIEW_0.41.0.md)
+- [`docs/DEPENDENCY_REVIEW_0.41.0.md`](../docs/DEPENDENCY_REVIEW_0.41.0.md)
+
+## Pentest
+
+Pentest evidence is pending. Tagging is forbidden until the implementation
+commit is reviewed, findings are resolved and retested where applicable, and
+`security/pentest/v0.41.0.md` records `Status: PASS`.
+
+## Release Gate
+
+```text
+v0.41.0 implementation stop reached. Run pentest for this exact commit.
+```

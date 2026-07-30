@@ -1646,6 +1646,8 @@ Stop gate: `v0.40.0 implementation stop reached. Run pentest for this exact comm
 
 ### v0.41.0 - Bearer Authentication Policy
 
+Status: implementation stop reached; pentest required.
+
 Goal: provide reusable bearer auth outside neutral execution.
 
 Deliverables: HTTPS and exactly one owner of `Authorization`; immutable authentication scope binds provider, service, endpoint identity, and bounded/redacted provider-owned audience/account/tenant fields so credentials cannot cross same-authority boundaries. A provider/operation-owned policy marks each scope field `Required`, `Optional`, or `Forbidden`; omitted required fields, supplied forbidden fields, and every mismatch fail before header construction, so constructing an unscoped credential cannot bypass a required binding. Include mutable/guarded ingestion, atomic rotation, credential generations and compare-and-swap refresh so a slow refresh cannot overwrite a newer token, in-flight snapshots, executor-neutral snapshot/refresh handoff for expiring credentials, redaction, retired-token and adapter-header cleanup, and no acquisition, clock, executor, or secret store in core.

@@ -24,6 +24,7 @@ scripts/check_response_provenance.sh
 scripts/check_response_cleanup.sh
 scripts/check_atomic_encoders.sh
 scripts/check_raw_http_executor.sh
+scripts/check_bearer_authentication.sh
 scripts/check-provider-capabilities.py
 scripts/test-provider-capabilities.py
 scripts/check-custom-endpoint-docs.py

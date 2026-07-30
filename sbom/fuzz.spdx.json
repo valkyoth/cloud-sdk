@@ -1,21 +1,21 @@
 {
   "SPDXID": "SPDXRef-DOCUMENT",
   "creationInfo": {
-    "created": "2026-07-29T13:07:10Z",
+    "created": "2026-07-30T07:04:09Z",
     "creators": [
       "Tool: cargo-sbom-v0.10.0",
       "Tool: cloud-sdk-complete-spdx-v1"
     ]
   },
   "dataLicense": "CC0-1.0",
-  "documentNamespace": "https://spdx.org/spdxdocs/fuzz-77f8f632-51bd-40f7-95e0-fe0422280895",
+  "documentNamespace": "https://spdx.org/spdxdocs/fuzz-dc780242-6299-49d1-b267-b52cefbd5c76",
   "files": [
     {
       "SPDXID": "SPDXRef-File-action_polling",
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "e7f21c28b6210f5e301c1ffd967fcc5dccdde6c2"
+          "checksumValue": "ac14e175ead616c15b4a3a233ea99c1d6868b690"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -29,7 +29,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "e7f21c28b6210f5e301c1ffd967fcc5dccdde6c2"
+          "checksumValue": "ac14e175ead616c15b4a3a233ea99c1d6868b690"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -43,7 +43,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "e7f21c28b6210f5e301c1ffd967fcc5dccdde6c2"
+          "checksumValue": "ac14e175ead616c15b4a3a233ea99c1d6868b690"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -57,7 +57,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "e7f21c28b6210f5e301c1ffd967fcc5dccdde6c2"
+          "checksumValue": "ac14e175ead616c15b4a3a233ea99c1d6868b690"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -71,7 +71,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "e7f21c28b6210f5e301c1ffd967fcc5dccdde6c2"
+          "checksumValue": "ac14e175ead616c15b4a3a233ea99c1d6868b690"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -85,7 +85,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "e7f21c28b6210f5e301c1ffd967fcc5dccdde6c2"
+          "checksumValue": "ac14e175ead616c15b4a3a233ea99c1d6868b690"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -99,7 +99,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "e7f21c28b6210f5e301c1ffd967fcc5dccdde6c2"
+          "checksumValue": "ac14e175ead616c15b4a3a233ea99c1d6868b690"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -113,7 +113,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "e7f21c28b6210f5e301c1ffd967fcc5dccdde6c2"
+          "checksumValue": "ac14e175ead616c15b4a3a233ea99c1d6868b690"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -127,7 +127,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "e7f21c28b6210f5e301c1ffd967fcc5dccdde6c2"
+          "checksumValue": "ac14e175ead616c15b4a3a233ea99c1d6868b690"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -141,7 +141,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "e7f21c28b6210f5e301c1ffd967fcc5dccdde6c2"
+          "checksumValue": "ac14e175ead616c15b4a3a233ea99c1d6868b690"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -155,7 +155,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "e7f21c28b6210f5e301c1ffd967fcc5dccdde6c2"
+          "checksumValue": "ac14e175ead616c15b4a3a233ea99c1d6868b690"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -364,14 +364,14 @@
       "versionInfo": "0.10.1"
     },
     {
-      "SPDXID": "SPDXRef-Package-cloud-sdk-0.40.0",
+      "SPDXID": "SPDXRef-Package-cloud-sdk-0.41.0",
       "description": "no_std-first provider-neutral cloud SDK foundations.",
       "downloadLocation": "NONE",
       "homepage": "https://github.com/valkyoth/cloud-sdk",
       "licenseConcluded": "MIT OR Apache-2.0",
       "licenseDeclared": "MIT OR Apache-2.0",
       "name": "cloud-sdk",
-      "versionInfo": "0.40.0"
+      "versionInfo": "0.41.0"
     },
     {
       "SPDXID": "SPDXRef-Package-cloud-sdk-fuzz-0.0.0",
@@ -381,24 +381,24 @@
       "versionInfo": "0.0.0"
     },
     {
-      "SPDXID": "SPDXRef-Package-cloud-sdk-hetzner-0.32.1",
+      "SPDXID": "SPDXRef-Package-cloud-sdk-hetzner-0.32.2",
       "description": "no_std-first Hetzner provider crate for cloud-sdk.",
       "downloadLocation": "NONE",
       "homepage": "https://github.com/valkyoth/cloud-sdk",
       "licenseConcluded": "MIT OR Apache-2.0",
       "licenseDeclared": "MIT OR Apache-2.0",
       "name": "cloud-sdk-hetzner",
-      "versionInfo": "0.32.1"
+      "versionInfo": "0.32.2"
     },
     {
-      "SPDXID": "SPDXRef-Package-cloud-sdk-reqwest-0.27.0",
+      "SPDXID": "SPDXRef-Package-cloud-sdk-reqwest-0.28.0",
       "description": "Optional provider-neutral reqwest transport boundary for cloud-sdk.",
       "downloadLocation": "NONE",
       "homepage": "https://github.com/valkyoth/cloud-sdk",
       "licenseConcluded": "MIT OR Apache-2.0",
       "licenseDeclared": "MIT OR Apache-2.0",
       "name": "cloud-sdk-reqwest",
-      "versionInfo": "0.27.0"
+      "versionInfo": "0.28.0"
     },
     {
       "SPDXID": "SPDXRef-Package-cloud-sdk-sanitization-0.16.0",
@@ -710,20 +710,20 @@
       "versionInfo": "0.4.3"
     },
     {
-      "SPDXID": "SPDXRef-Package-http-1.4.2",
+      "SPDXID": "SPDXRef-Package-http-1.5.0",
       "description": "A set of types for representing HTTP requests and responses.\n",
       "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
-          "referenceLocator": "pkg:cargo/http@1.4.2",
+          "referenceLocator": "pkg:cargo/http@1.5.0",
           "referenceType": "purl"
         }
       ],
       "licenseConcluded": "MIT OR Apache-2.0",
       "licenseDeclared": "MIT OR Apache-2.0",
       "name": "http",
-      "versionInfo": "1.4.2"
+      "versionInfo": "1.5.0"
     },
     {
       "SPDXID": "SPDXRef-Package-http-body-1.1.0",
@@ -3069,24 +3069,24 @@
       "relatedSpdxElement": "SPDXRef-Package-rand--core-0.10.1"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-0.40.0",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-0.41.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-sanitization-0.16.0"
     },
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-fuzz-0.0.0",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-0.40.0"
+      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-0.41.0"
     },
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-fuzz-0.0.0",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-hetzner-0.32.1"
+      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-hetzner-0.32.2"
     },
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-fuzz-0.0.0",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-reqwest-0.27.0"
+      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-reqwest-0.28.0"
     },
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-fuzz-0.0.0",
@@ -3099,82 +3099,82 @@
       "relatedSpdxElement": "SPDXRef-Package-serde--json-1.0.151"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-hetzner-0.32.1",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-hetzner-0.32.2",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-0.40.0"
+      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-0.41.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-hetzner-0.32.1",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-hetzner-0.32.2",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-sanitization-0.16.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-hetzner-0.32.1",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-hetzner-0.32.2",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-serde--json-1.0.151"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-hetzner-0.32.1",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-hetzner-0.32.2",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-serde-1.0.229"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.27.0",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.28.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-bytes-1.12.1"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.27.0",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.28.0",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-0.40.0"
+      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-0.41.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.27.0",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.28.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-sanitization-0.16.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.27.0",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.28.0",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-http-1.4.2"
+      "relatedSpdxElement": "SPDXRef-Package-http-1.5.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.27.0",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.28.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-http-body-util-0.1.4"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.27.0",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.28.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-hyper-1.11.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.27.0",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.28.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-hyper-rustls-0.27.9"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.27.0",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.28.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-hyper-util-0.1.20"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.27.0",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.28.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-reqwest-0.13.4"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.27.0",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.28.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-rustls-0.23.42"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.27.0",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.28.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-rustls-platform-verifier-0.7.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.27.0",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.28.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-tokio-1.53.1"
     },
@@ -3349,12 +3349,12 @@
       "relatedSpdxElement": "SPDXRef-Package-wasm-bindgen-0.2.126"
     },
     {
-      "spdxElementId": "SPDXRef-Package-http-1.4.2",
+      "spdxElementId": "SPDXRef-Package-http-1.5.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-bytes-1.12.1"
     },
     {
-      "spdxElementId": "SPDXRef-Package-http-1.4.2",
+      "spdxElementId": "SPDXRef-Package-http-1.5.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-itoa-1.0.18"
     },
@@ -3366,7 +3366,7 @@
     {
       "spdxElementId": "SPDXRef-Package-http-body-1.1.0",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-http-1.4.2"
+      "relatedSpdxElement": "SPDXRef-Package-http-1.5.0"
     },
     {
       "spdxElementId": "SPDXRef-Package-http-body-util-0.1.4",
@@ -3381,7 +3381,7 @@
     {
       "spdxElementId": "SPDXRef-Package-http-body-util-0.1.4",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-http-1.4.2"
+      "relatedSpdxElement": "SPDXRef-Package-http-1.5.0"
     },
     {
       "spdxElementId": "SPDXRef-Package-http-body-util-0.1.4",
@@ -3416,7 +3416,7 @@
     {
       "spdxElementId": "SPDXRef-Package-hyper-1.11.0",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-http-1.4.2"
+      "relatedSpdxElement": "SPDXRef-Package-http-1.5.0"
     },
     {
       "spdxElementId": "SPDXRef-Package-hyper-1.11.0",
@@ -3456,7 +3456,7 @@
     {
       "spdxElementId": "SPDXRef-Package-hyper-rustls-0.27.9",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-http-1.4.2"
+      "relatedSpdxElement": "SPDXRef-Package-http-1.5.0"
     },
     {
       "spdxElementId": "SPDXRef-Package-hyper-rustls-0.27.9",
@@ -3516,7 +3516,7 @@
     {
       "spdxElementId": "SPDXRef-Package-hyper-util-0.1.20",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-http-1.4.2"
+      "relatedSpdxElement": "SPDXRef-Package-http-1.5.0"
     },
     {
       "spdxElementId": "SPDXRef-Package-hyper-util-0.1.20",
@@ -4111,7 +4111,7 @@
     {
       "spdxElementId": "SPDXRef-Package-reqwest-0.13.4",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-http-1.4.2"
+      "relatedSpdxElement": "SPDXRef-Package-http-1.5.0"
     },
     {
       "spdxElementId": "SPDXRef-Package-reqwest-0.13.4",
@@ -4721,7 +4721,7 @@
     {
       "spdxElementId": "SPDXRef-Package-tower-http-0.6.11",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-http-1.4.2"
+      "relatedSpdxElement": "SPDXRef-Package-http-1.5.0"
     },
     {
       "spdxElementId": "SPDXRef-Package-tower-http-0.6.11",

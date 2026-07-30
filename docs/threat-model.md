@@ -42,6 +42,9 @@
 - secret copies retained in adapter-owned allocation after request completion;
 - credential rotation races applying a partial token, changing an in-flight
   request, holding a secret lock across I/O, or retaining retired token storage;
+- unscoped credentials or incomplete provider policy allowing a token to cross
+  provider, service, endpoint, audience, account, or tenant boundaries;
+- slow credential refresh overwriting a newer rotation or successful refresh;
 - custom endpoint drift sending valid credentials to a changed host, subdomain,
   port, scheme, or base path;
 - compromised or attacker-extended host trust stores silently validating a
@@ -129,6 +132,15 @@
   retired adapter-owned storage after the last snapshot;
 - mutable and guarded token ingestion clears the complete source on success or
   rejection, while rejected rotation leaves the active token unchanged;
+- bearer credentials bind to immutable provider, service, normalized HTTPS
+  endpoint, audience, account, and tenant scope; provider or operation policy
+  explicitly requires, permits, or forbids every field before authorization
+  header construction, and authenticated clients expose no policy-free
+  transport implementation;
+- credential generations advance without wrapping; external refresh receives
+  an opaque compare-and-swap handoff so stale completion cannot replace newer
+  state, while acquisition, expiry, clocks, tasks, and secret stores remain
+  caller-owned;
 - credential-bound transports report immutable normalized endpoint identity so
   the Hetzner provider can verify exact scheme, host, effective port, and base
   path for both official v1 API families before execution;
@@ -146,8 +158,9 @@
   reqwest adapter requires caller-provided Tokio execution;
 - async response data stays in caller-bounded sanitized temporary storage and
   reaches the cleared caller buffer only after complete success;
-- adapter-owned bearer, request-body, and async response allocations are
-  redacted or cleared through the provider-neutral sanitization boundary;
+- adapter-owned bearer, authorization-header, request-body, and async response
+  allocations are redacted or cleared through the provider-neutral
+  sanitization boundary;
 - rate-limit headers are parsed as a strict all-or-none decimal set, each field
   must occur exactly once, and values are validated before metadata is exposed;
 - pagination requires a caller-selected hard page limit, exact expected-page

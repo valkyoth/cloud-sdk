@@ -1,27 +1,27 @@
 [release]
-version = "0.40.0"
+version = "0.41.0"
 policy = "independent"
 
 [crates."cloud-sdk"]
-previous_version = "0.39.0"
-version = "0.40.0"
+previous_version = "0.40.0"
+version = "0.41.0"
 change = "code"
 publish = true
-reason = "Add delivery-phased raw HTTP execution and bounded response-wire policy."
+reason = "Add provider-neutral bearer authentication scope and generation contracts."
 
 [crates."cloud-sdk-hetzner"]
-previous_version = "0.32.0"
-version = "0.32.1"
+previous_version = "0.32.1"
+version = "0.32.2"
 change = "dependency"
 publish = true
-reason = "Update the cloud-sdk dependency to the v0.40 facade line."
+reason = "Update the cloud-sdk dependency to the v0.41 facade line."
 
 [crates."cloud-sdk-reqwest"]
-previous_version = "0.26.1"
-version = "0.27.0"
+previous_version = "0.27.0"
+version = "0.28.0"
 change = "code"
 publish = true
-reason = "Add raw blocking, async, deterministic-root, and FIPS HTTP executors."
+reason = "Add scoped bearer authentication, generation-safe refresh, and secret cleanup."
 
 [crates."cloud-sdk-sanitization"]
 previous_version = "0.16.0"
@@ -31,8 +31,8 @@ publish = false
 reason = "No code, dependency, or package metadata changes."
 
 [crates."cloud-sdk-testkit"]
-previous_version = "0.23.1"
-version = "0.24.0"
-change = "code"
+previous_version = "0.24.0"
+version = "0.24.1"
+change = "dependency"
 publish = true
-reason = "Add deterministic delivery-phase fault injection for raw executors."
+reason = "Update the cloud-sdk dependency to the v0.41 facade line."
