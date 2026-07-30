@@ -58,7 +58,9 @@ fn capture(parts: RequestParts) -> Option<([u8; 512], usize)> {
 
 #[test]
 fn every_request_and_freshness_field_changes_the_canonical_input() {
-    let Some(base) = capture(BASE) else { return };
+    let Some(base) = capture(BASE) else {
+        unreachable!("baseline request must construct");
+    };
     let changed = [
         RequestParts {
             method: Method::Get,
@@ -84,7 +86,7 @@ fn every_request_and_freshness_field_changes_the_canonical_input() {
     ];
     for candidate in changed {
         let Some(candidate) = capture(candidate) else {
-            return;
+            unreachable!("changed request must construct");
         };
         assert_ne!(base, candidate);
     }

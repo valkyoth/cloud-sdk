@@ -1,11 +1,27 @@
 use crate::authentication::{
-    ScopeValue, SigningAlgorithm, SigningContext, SigningDigestAlgorithm, SigningHeaders,
-    SigningKeyId,
+    RequestBodyHasher, ScopeValue, SigningAlgorithm, SigningContext, SigningDigestAlgorithm,
+    SigningHeaders, SigningKeyId,
 };
 use crate::transport::{ContentType, EndpointIdentity, EndpointScheme, RequestHeader};
 use crate::{ProviderId, ServiceId};
 
-use super::{MAX_SIGNING_BODY_DIGEST_BYTES, canonical, request};
+use super::{MAX_SIGNING_BODY_DIGEST_BYTES, canonical_with_hasher, request};
+
+struct NamedHasher(&'static str);
+
+impl RequestBodyHasher for NamedHasher {
+    type Error = ();
+
+    fn digest_algorithm(&self) -> SigningDigestAlgorithm<'_> {
+        SigningDigestAlgorithm::new(self.0).unwrap_or_else(|_| unreachable!())
+    }
+
+    fn hash_body(&self, _body: &[u8], output: &mut [u8]) -> Result<usize, Self::Error> {
+        let byte = output.first_mut().ok_or(())?;
+        *byte = 0x42;
+        Ok(1)
+    }
+}
 
 #[derive(Clone, Copy)]
 struct ContextParts {
@@ -70,10 +86,10 @@ fn signing_context(parts: ContextParts) -> Option<SigningContext<'static>> {
 fn every_security_domain_field_changes_the_canonical_input() {
     let entries = [RequestHeader::content_type(ContentType::JSON)];
     let Some(request) = request("/objects", &entries, b"{}") else {
-        return;
+        unreachable!("valid transport request must construct");
     };
     let Ok(headers) = SigningHeaders::new(&entries) else {
-        return;
+        unreachable!("valid signing headers must construct");
     };
     let contexts = [
         BASE,
@@ -126,16 +142,19 @@ fn every_security_domain_field_changes_the_canonical_input() {
     let mut captured = [[0_u8; 512]; 13];
     for (parts, destination) in contexts.into_iter().zip(captured.iter_mut()) {
         let Some(context) = signing_context(parts) else {
-            return;
+            unreachable!("valid signing context must construct");
         };
         let mut digest = [0_u8; MAX_SIGNING_BODY_DIGEST_BYTES];
         let mut output = [0_u8; 512];
-        let Ok(canonical) = canonical(request, context, headers, &mut digest, &mut output) else {
-            return;
+        let hasher = NamedHasher(parts.digest_algorithm);
+        let Ok(canonical) =
+            canonical_with_hasher(request, context, headers, &hasher, &mut digest, &mut output)
+        else {
+            unreachable!("canonical signing input must construct");
         };
         let source = canonical.as_bytes();
         let Some(target) = destination.get_mut(..source.len()) else {
-            return;
+            unreachable!("capture buffer must fit canonical signing input");
         };
         target.copy_from_slice(source);
     }
@@ -159,38 +178,40 @@ fn equivalent_ipv6_endpoint_spellings_have_one_canonical_input() {
     let (Some(compact_context), Some(expanded_context)) =
         (signing_context(compact), signing_context(expanded))
     else {
-        return;
+        unreachable!("equivalent IPv6 contexts must construct");
     };
     assert_eq!(compact_context.endpoint(), expanded_context.endpoint());
 
     let entries = [RequestHeader::content_type(ContentType::JSON)];
     let Some(request) = request("/objects", &entries, b"{}") else {
-        return;
+        unreachable!("valid transport request must construct");
     };
     let Ok(headers) = SigningHeaders::new(&entries) else {
-        return;
+        unreachable!("valid signing headers must construct");
     };
     let mut compact_digest = [0_u8; MAX_SIGNING_BODY_DIGEST_BYTES];
     let mut expanded_digest = [0_u8; MAX_SIGNING_BODY_DIGEST_BYTES];
     let mut compact_output = [0_u8; 512];
     let mut expanded_output = [0_u8; 512];
-    let Ok(compact_canonical) = canonical(
+    let Ok(compact_canonical) = canonical_with_hasher(
         request,
         compact_context,
         headers,
+        &NamedHasher(BASE.digest_algorithm),
         &mut compact_digest,
         &mut compact_output,
     ) else {
-        return;
+        unreachable!("compact IPv6 canonical input must construct");
     };
-    let Ok(expanded_canonical) = canonical(
+    let Ok(expanded_canonical) = canonical_with_hasher(
         request,
         expanded_context,
         headers,
+        &NamedHasher(BASE.digest_algorithm),
         &mut expanded_digest,
         &mut expanded_output,
     ) else {
-        return;
+        unreachable!("expanded IPv6 canonical input must construct");
     };
     assert_eq!(compact_canonical.as_bytes(), expanded_canonical.as_bytes());
     let canonical_host = [

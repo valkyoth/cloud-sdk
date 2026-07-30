@@ -51,24 +51,24 @@ impl RequestSigner for PanickingSigner {
 fn signer_output_is_validated_retains_request_and_clears() {
     let entries = [RequestHeader::content_type(ContentType::JSON)];
     let Some(request) = request("/objects", &entries, b"exact-body") else {
-        return;
+        unreachable!("valid transport request must construct");
     };
     let Ok(headers) = SigningHeaders::new(&entries) else {
-        return;
+        unreachable!("valid signing headers must construct");
     };
     let Some(context) = context("robot", "robot.example.test", "key-1", "hmac-sha256") else {
-        return;
+        unreachable!("valid signing context must construct");
     };
     let mut digest = [0_u8; MAX_SIGNING_BODY_DIGEST_BYTES];
     let mut input = [0_u8; MAX_CANONICAL_SIGNING_INPUT_BYTES];
     let Ok(canonical) = canonical(request, context, headers, &mut digest, &mut input) else {
-        return;
+        unreachable!("canonical signing input must construct");
     };
     let calls = Cell::new(0);
     let mut signature = [0xa5_u8; 16];
     {
         let Ok(signed) = canonical.sign_into(&FixedSigner(&calls), &mut signature) else {
-            return;
+            unreachable!("fixed signer must produce a valid signature");
         };
         assert_eq!(signed.request().body(), b"exact-body");
         assert_eq!(signed.context().service().as_str(), "robot");
@@ -85,18 +85,18 @@ fn signer_failures_and_invalid_lengths_clear_complete_output() {
     for result in [Err(()), Ok(0), Ok(17)] {
         let entries = [RequestHeader::content_type(ContentType::JSON)];
         let Some(request) = request("/objects", &entries, b"body") else {
-            return;
+            unreachable!("valid transport request must construct");
         };
         let Ok(headers) = SigningHeaders::new(&entries) else {
-            return;
+            unreachable!("valid signing headers must construct");
         };
         let Some(context) = context("robot", "robot.example.test", "key-1", "hmac-sha256") else {
-            return;
+            unreachable!("valid signing context must construct");
         };
         let mut digest = [0_u8; MAX_SIGNING_BODY_DIGEST_BYTES];
         let mut input = [0_u8; MAX_CANONICAL_SIGNING_INPUT_BYTES];
         let Ok(canonical) = canonical(request, context, headers, &mut digest, &mut input) else {
-            return;
+            unreachable!("canonical signing input must construct");
         };
         let mut signature = [0xff_u8; 16];
         let error = canonical.sign_into(&LengthSigner(result), &mut signature);
@@ -116,18 +116,18 @@ fn signer_failures_and_invalid_lengths_clear_complete_output() {
 fn signer_panic_clears_signature_and_canonical_input() {
     let entries = [RequestHeader::content_type(ContentType::JSON)];
     let Some(request) = request("/objects", &entries, b"body") else {
-        return;
+        unreachable!("valid transport request must construct");
     };
     let Ok(headers) = SigningHeaders::new(&entries) else {
-        return;
+        unreachable!("valid signing headers must construct");
     };
     let Some(context) = context("robot", "robot.example.test", "key-1", "hmac-sha256") else {
-        return;
+        unreachable!("valid signing context must construct");
     };
     let mut digest = [0_u8; MAX_SIGNING_BODY_DIGEST_BYTES];
     let mut input = [0_u8; MAX_CANONICAL_SIGNING_INPUT_BYTES];
     let Ok(canonical) = canonical(request, context, headers, &mut digest, &mut input) else {
-        return;
+        unreachable!("canonical signing input must construct");
     };
     let mut signature = [0xff_u8; 16];
     let unwind = test_std::panic::catch_unwind(test_std::panic::AssertUnwindSafe(|| {

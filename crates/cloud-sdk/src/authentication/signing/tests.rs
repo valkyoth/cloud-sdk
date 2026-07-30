@@ -181,17 +181,20 @@ fn canonical<'output, 'request>(
     digest: &mut [u8],
     output: &'output mut [u8],
 ) -> Result<CanonicalSigningInput<'output, 'request>, SigningBuildError<()>> {
+    canonical_with_hasher(request, context, headers, &BodyHasher, digest, output)
+}
+
+fn canonical_with_hasher<'output, 'request>(
+    request: TransportRequest<'request>,
+    context: SigningContext<'request>,
+    headers: SigningHeaders<'_>,
+    hasher: &dyn RequestBodyHasher<Error = ()>,
+    digest: &mut [u8],
+    output: &'output mut [u8],
+) -> Result<CanonicalSigningInput<'output, 'request>, SigningBuildError<()>> {
     let nonce = SigningNonce::new(b"nonce").unwrap_or_else(|_| unreachable!());
     let freshness = SigningFreshness::new(nonce, UnixTime::from_seconds(42));
-    CanonicalSigningInput::new_hashed(
-        request,
-        context,
-        headers,
-        freshness,
-        &BodyHasher,
-        digest,
-        output,
-    )
+    CanonicalSigningInput::new_hashed(request, context, headers, freshness, hasher, digest, output)
 }
 
 #[test]
@@ -218,7 +221,7 @@ fn context_and_nonce_values_are_bounded_and_redacted() {
         Err(SigningContextValueError::TooLong)
     ));
     let Some(context) = context("robot", "robot.example.test", "secret-key", "hmac-sha256") else {
-        return;
+        unreachable!("valid signing context must construct");
     };
     let debug = debug_text(&context);
     assert!(debug.as_str().contains("[redacted]"));
@@ -230,7 +233,7 @@ fn selected_headers_must_be_sorted_unique_and_match_the_request() {
     let first = RequestHeader::new("accept", "application/json");
     let second = RequestHeader::content_type(ContentType::JSON);
     let (Ok(first), second) = (first, second) else {
-        return;
+        unreachable!("valid request headers must construct");
     };
     let ordered = [first, second];
     assert!(SigningHeaders::new(&ordered).is_ok());
@@ -243,14 +246,14 @@ fn selected_headers_must_be_sorted_unique_and_match_the_request() {
         Err(SigningInputError::HeaderOrder)
     ));
     let Some(request) = request("/objects", &ordered, b"{}") else {
-        return;
+        unreachable!("valid transport request must construct");
     };
     let Ok(changed) = RequestHeader::new("accept", "text/plain") else {
-        return;
+        unreachable!("valid changed header must construct");
     };
     let changed = [changed];
     let Some(context) = context("robot", "robot.example.test", "key-1", "hmac-sha256") else {
-        return;
+        unreachable!("valid signing context must construct");
     };
     let mut digest = [0xa5_u8; MAX_SIGNING_BODY_DIGEST_BYTES];
     let mut output = [0xa5_u8; 512];
@@ -273,20 +276,20 @@ fn canonical_v2_vector_binds_complete_security_domain() {
     let accept = RequestHeader::new("Accept", "application/json");
     let content_type = RequestHeader::content_type(ContentType::JSON);
     let (Ok(accept), content_type) = (accept, content_type) else {
-        return;
+        unreachable!("valid request headers must construct");
     };
     let entries = [accept, content_type];
     let Some(request) = request("/objects?limit=2", &entries, b"{}") else {
-        return;
+        unreachable!("valid transport request must construct");
     };
     let Some(context) = context("robot", "robot.example.test", "key-1", "hmac-sha256") else {
-        return;
+        unreachable!("valid signing context must construct");
     };
     let Some(audience) = ScopeValue::new("aud").ok() else {
-        return;
+        unreachable!("valid audience must construct");
     };
     let Some(tenant) = ScopeValue::new("tenant").ok() else {
-        return;
+        unreachable!("valid tenant must construct");
     };
     let context = context.with_audience(audience).with_tenant(tenant);
     let mut digest = [0xa5_u8; MAX_SIGNING_BODY_DIGEST_BYTES];
@@ -299,7 +302,9 @@ fn canonical_v2_vector_binds_complete_security_domain() {
             &mut digest,
             &mut output,
         );
-        let Ok(canonical) = result else { return };
+        let Ok(canonical) = result else {
+            unreachable!("canonical signing input must construct");
+        };
         let expected = [
             b"cloud-sdk-signing-v2\0".as_slice(),
             &[7],
@@ -355,13 +360,13 @@ fn canonical_v2_vector_binds_complete_security_domain() {
 fn body_hashing_is_coupled_and_scratch_always_clears() {
     let entries = [RequestHeader::content_type(ContentType::JSON)];
     let Some(request) = request("/objects", &entries, b"exact-body") else {
-        return;
+        unreachable!("valid transport request must construct");
     };
     let Ok(headers) = SigningHeaders::new(&entries) else {
-        return;
+        unreachable!("valid signing headers must construct");
     };
     let Some(context) = context("robot", "robot.example.test", "key-1", "hmac-sha256") else {
-        return;
+        unreachable!("valid signing context must construct");
     };
     let nonce = SigningNonce::new(b"nonce").unwrap_or_else(|_| unreachable!());
     let freshness = SigningFreshness::new(nonce, UnixTime::from_seconds(42));
@@ -413,13 +418,13 @@ fn body_hashing_is_coupled_and_scratch_always_clears() {
 fn every_undersized_input_is_unchanged_and_digest_is_cleared() {
     let entries = [RequestHeader::content_type(ContentType::JSON)];
     let Some(request) = request("/objects", &entries, b"{}") else {
-        return;
+        unreachable!("valid transport request must construct");
     };
     let Ok(headers) = SigningHeaders::new(&entries) else {
-        return;
+        unreachable!("valid signing headers must construct");
     };
     let Some(context) = context("robot", "robot.example.test", "key-1", "hmac-sha256") else {
-        return;
+        unreachable!("valid signing context must construct");
     };
     for capacity in 0..256 {
         let mut digest = [0xa5_u8; MAX_SIGNING_BODY_DIGEST_BYTES];
@@ -438,7 +443,7 @@ fn every_undersized_input_is_unchanged_and_digest_is_cleared() {
                     true
                 }
                 Err(SigningBuildError::Input(SigningInputError::OutputTooSmall)) => false,
-                Err(_) => return,
+                Err(error) => unreachable!("unexpected canonicalization error: {error:?}"),
             }
         };
         assert_eq!(digest, [0_u8; MAX_SIGNING_BODY_DIGEST_BYTES]);
@@ -457,12 +462,12 @@ fn every_undersized_input_is_unchanged_and_digest_is_cleared() {
 #[test]
 fn sensitive_selected_headers_remain_redacted() {
     let Ok(secret) = RequestHeader::sensitive("x-signing-secret", "secret-value") else {
-        return;
+        unreachable!("valid sensitive header must construct");
     };
     assert_eq!(secret.sensitivity(), HeaderSensitivity::Sensitive);
     let entries = [secret];
     let Ok(headers) = SigningHeaders::new(&entries) else {
-        return;
+        unreachable!("valid signing headers must construct");
     };
     assert!(!debug_text(&headers).as_str().contains("secret-value"));
 }
