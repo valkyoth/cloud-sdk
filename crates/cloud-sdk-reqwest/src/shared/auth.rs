@@ -9,7 +9,6 @@ use std::sync::{
 };
 use std::vec::Vec;
 
-#[cfg(not(test))]
 use super::sensitive_header_value;
 #[cfg(test)]
 use super::sensitive_header_value_with_probe;
@@ -108,13 +107,12 @@ impl BearerToken {
         })
     }
 
-    #[cfg(not(test))]
     pub(crate) fn header_value(&self) -> Result<HeaderValue, ()> {
         sensitive_header_value(&self.authorization)
     }
 
     #[cfg(test)]
-    pub(crate) fn header_value(&self) -> Result<HeaderValue, ()> {
+    pub(crate) fn header_value_with_drop_probe(&self) -> Result<HeaderValue, ()> {
         sensitive_header_value_with_probe(&self.authorization, self.header_drop_probe.clone())
     }
 

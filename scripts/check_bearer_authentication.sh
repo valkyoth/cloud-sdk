@@ -83,6 +83,16 @@ if ! grep -Fq 'Bytes::from_owner(owner)' \
     exit 1
 fi
 
+header_method='pub(crate) fn header_value(&self) -> Result<HeaderValue, ()>'
+if [ "$(grep -Fc "$header_method" crates/cloud-sdk-reqwest/src/shared/auth.rs)" -ne 1 ] \
+    || ! grep -A2 -F "$header_method" crates/cloud-sdk-reqwest/src/shared/auth.rs \
+        | grep -Fq 'sensitive_header_value(&self.authorization)' \
+    || ! grep -Fq 'let header = token.header_value();' \
+        crates/cloud-sdk-reqwest/src/blocking/tests/authentication_policy.rs; then
+    echo "bearer authentication: production header wrapper lacks direct test coverage" >&2
+    exit 1
+fi
+
 cargo check -p cloud-sdk --no-default-features
 cargo test -p cloud-sdk --features std authentication
 cargo test -p cloud-sdk-reqwest --no-default-features \

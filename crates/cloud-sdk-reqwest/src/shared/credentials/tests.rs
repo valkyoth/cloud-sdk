@@ -275,7 +275,7 @@ fn header_copy_has_cleanup_owner_and_redacted_snapshot() {
     let Ok(snapshot) = store.snapshot() else {
         return;
     };
-    let header = snapshot.header_value();
+    let header = snapshot.header_value_with_drop_probe();
     assert!(header.is_ok());
     assert_eq!(drops.load(Ordering::SeqCst), 0);
     drop(header);

@@ -165,6 +165,11 @@ impl BearerCredentialSnapshot {
     }
 
     #[cfg(test)]
+    pub(crate) fn header_value_with_drop_probe(&self) -> Result<reqwest::header::HeaderValue, ()> {
+        self.current.token.header_value_with_drop_probe()
+    }
+
+    #[cfg(test)]
     pub(crate) fn owned_bytes(&self) -> &[u8] {
         self.current.token.owned_bytes()
     }
