@@ -1,8 +1,9 @@
 # cloud-sdk 0.43.0 Release Notes
 
-Status: implementation stop reached; pentest required before release.
+Status: release candidate; pentest and final retest passed. Local and GitHub
+release checks remain required before tagging.
 
-Release date: unreleased
+Release date: 2026-07-31
 
 ## Overview
 
@@ -70,11 +71,15 @@ with no compatibility fallback.
 Initial review found request-ID/quota admission gaps and a final-response race
 in informational rejection. These are remediated with cross-policy validation,
 complete Hetzner header admission, protected metadata regressions, and a
-multithreaded race regression. Retest is required; final evidence will be
-recorded in `security/pentest/v0.43.0.md`.
+multithreaded race regression.
+
+The final retest passed commit
+`ce5d0b4ba143664ecf6e6f17e7ac88df0e4e2551`. See the
+[`v0.43.0` pentest report](../security/pentest/v0.43.0.md).
 
 ## Release Gate
 
 ```text
-v0.43.0 implementation stop reached. Run pentest for this exact commit.
+v0.43.0 pentest stop passed. Tag only after the clean local release gate and
+GitHub checks pass on the final release commit.
 ```

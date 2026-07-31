@@ -1670,7 +1670,7 @@ Stop gate: `v0.42.0 implementation stop reached. Run pentest for this exact comm
 
 ### v0.43.0 - Existing Hetzner Wire Migration
 
-Status: implementation stop reached; pentest required.
+Status: release candidate; pentest and final retest passed.
 
 Goal: move every current Hetzner operation onto the neutral wire kernel.
 

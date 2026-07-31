@@ -1,7 +1,7 @@
 # Authentication Policy
 
-Status: v0.43 prepared authenticated raw-wire migration implemented; pentest
-required.
+Status: v0.43 prepared authenticated raw-wire migration is a release
+candidate; pentest and final retest passed.
 
 The authentication layer is separate from credential-free raw HTTP execution. Core
 defines scope, generation, and authenticated transport contracts without

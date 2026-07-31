@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.43.0 - 2026-07-31
+
+- Required every prepared request to carry complete authentication-scope and
+  raw-response policy.
+- Migrated all 208 active Hetzner operations to exact service, endpoint,
+  authentication, bounded response, and cleanup policy without a compatibility
+  fallback.
+- Routed bearer and Basic reqwest clients through the shared bounded raw Hyper
+  engine with conservative delivery phases.
+- Added authenticated prepared execution and complete policy records to the
+  testkit.
+- Enforced request-ID admission across prepared metadata and raw transport,
+  retained complete Hetzner quota metadata, and closed the async
+  informational-response completion race.
+
 ## 0.42.0 - 2026-07-30
 
 - Added type-separated bounded Basic credentials and blocking/async
