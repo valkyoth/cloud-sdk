@@ -1,16 +1,82 @@
 use super::super::{PaginationError, PaginationLimits, ProviderLinkBinding, ValidatedProviderLink};
 use super::assert_redacted;
+use core::future::Future;
+use core::sync::atomic::{AtomicU32, Ordering};
+use core::task::{Context, Poll, Waker};
+
 use crate::Method;
+use crate::authentication::{
+    AsyncAuthenticatedTransport, AuthenticatedRequest, AuthenticationScopePolicy,
+    BlockingAuthenticatedTransport, ScopeRequirement,
+};
 use crate::operation::OperationId;
 use crate::transport::{
-    BoundTransport, EndpointIdentity, EndpointIdentityError, EndpointScheme, RequestPath,
+    BoundTransport, EndpointIdentity, EndpointIdentityError, EndpointScheme, RawResponsePolicy,
+    RequestPath, RequestTarget, ResponseBuffer, ResponseMediaPolicy, ResponseWriter,
 };
 
-struct TestTransport(EndpointIdentity<'static>);
+struct TestTransport {
+    endpoint: EndpointIdentity<'static>,
+    expected_target: &'static str,
+    calls: AtomicU32,
+}
 
 impl BoundTransport for TestTransport {
     fn endpoint_identity(&self) -> Result<EndpointIdentity<'_>, EndpointIdentityError> {
-        Ok(self.0)
+        Ok(self.endpoint)
+    }
+}
+
+impl TestTransport {
+    fn record(&self, request: AuthenticatedRequest<'_, '_>) {
+        let target = request.transport_request().target();
+        assert_eq!(target.as_str(), self.expected_target);
+        assert!(matches!(
+            target.query(),
+            crate::transport::RequestQuery::ProviderLink(_)
+        ));
+        let mut output = [0xa5_u8; 128];
+        assert_eq!(
+            RequestTarget::assemble(
+                RequestPath::new("/v2/account").unwrap_or_else(|_| unreachable!()),
+                target.query(),
+                &mut output,
+            ),
+            Err(crate::transport::RequestTargetError::ProviderLinkQueryCannotAssemble)
+        );
+        assert_eq!(output, [0xa5; 128]);
+        self.calls.fetch_add(1, Ordering::Relaxed);
+    }
+}
+
+impl BlockingAuthenticatedTransport for TestTransport {
+    type Error = ();
+
+    fn send_authenticated(
+        &self,
+        request: AuthenticatedRequest<'_, '_>,
+        _response: &mut ResponseWriter<'_>,
+    ) -> Result<(), Self::Error> {
+        self.record(request);
+        Ok(())
+    }
+}
+
+impl AsyncAuthenticatedTransport for TestTransport {
+    type Error = ();
+
+    async fn send_authenticated<'transport, 'request, 'policy, 'writer>(
+        &'transport self,
+        request: AuthenticatedRequest<'request, 'policy>,
+        _response: &'writer mut ResponseWriter<'_>,
+    ) -> Result<(), Self::Error>
+    where
+        'transport: 'writer,
+        'request: 'writer,
+        'policy: 'writer,
+    {
+        self.record(request);
+        Ok(())
     }
 }
 
@@ -19,6 +85,18 @@ struct UnboundTransport;
 impl BoundTransport for UnboundTransport {
     fn endpoint_identity(&self) -> Result<EndpointIdentity<'_>, EndpointIdentityError> {
         Err(EndpointIdentityError::UnboundTransport)
+    }
+}
+
+impl BlockingAuthenticatedTransport for UnboundTransport {
+    type Error = ();
+
+    fn send_authenticated(
+        &self,
+        _request: AuthenticatedRequest<'_, '_>,
+        _response: &mut ResponseWriter<'_>,
+    ) -> Result<(), Self::Error> {
+        unreachable!()
     }
 }
 
@@ -37,12 +115,39 @@ fn endpoint() -> EndpointIdentity<'static> {
         .unwrap_or_else(|_| unreachable!())
 }
 
-fn transport() -> TestTransport {
-    TestTransport(endpoint())
+fn transport(expected_target: &'static str) -> TestTransport {
+    TestTransport {
+        endpoint: endpoint(),
+        expected_target,
+        calls: AtomicU32::new(0),
+    }
 }
 
 fn limits() -> PaginationLimits {
     PaginationLimits::new(8, 1_000, 512).unwrap_or_else(|_| unreachable!())
+}
+
+fn authentication() -> AuthenticationScopePolicy<'static> {
+    AuthenticationScopePolicy::new(
+        ScopeRequirement::Forbidden,
+        ScopeRequirement::Forbidden,
+        ScopeRequirement::Forbidden,
+        ScopeRequirement::Forbidden,
+        ScopeRequirement::Forbidden,
+        ScopeRequirement::Forbidden,
+    )
+}
+
+fn response_policy() -> RawResponsePolicy<'static> {
+    RawResponsePolicy::new(
+        0,
+        0,
+        ResponseMediaPolicy::Forbidden,
+        ResponseMediaPolicy::Forbidden,
+        &[],
+        0,
+    )
+    .unwrap_or_else(|_| unreachable!())
 }
 
 #[test]
@@ -51,34 +156,24 @@ fn digitalocean_absolute_link_preserves_raw_query_order_duplicates_and_percent_e
     let mut source =
         *b"https://api.digitalocean.com/v2/droplets?tag_name=a%2fb&filter=a+b==&raw=%41&page=2&page=3";
     let mut storage = [0xa5_u8; 128];
+    let transport = transport(expected);
+    let mut response_storage = [];
+    let mut header_storage = [];
+    let mut response = ResponseBuffer::new(&mut response_storage, 0, &mut header_storage);
     {
         let link =
             ValidatedProviderLink::transfer_from(&mut source, &mut storage, binding(), limits())
                 .unwrap_or_else(|_| unreachable!());
-        let observed = link.with_bound_request(
-            &transport(),
+        let observed = link.execute_blocking(
+            &transport,
             Method::Get,
             operation("list_droplets"),
-            |request| {
-                let target = request.target();
-                assert!(matches!(
-                    target.query(),
-                    crate::transport::RequestQuery::ProviderLink(_)
-                ));
-                let mut output = [0xa5_u8; 128];
-                assert_eq!(
-                    crate::transport::RequestTarget::assemble(
-                        RequestPath::new("/v2/account").unwrap_or_else(|_| unreachable!()),
-                        target.query(),
-                        &mut output,
-                    ),
-                    Err(crate::transport::RequestTargetError::ProviderLinkQueryCannotAssemble)
-                );
-                assert_eq!(output, [0xa5; 128]);
-                target.as_str() == expected
-            },
+            authentication(),
+            response_policy(),
+            response.writer(),
         );
-        assert_eq!(observed, Ok(true));
+        assert_eq!(observed, Ok(Ok(())));
+        assert_eq!(transport.calls.load(Ordering::Relaxed), 1);
         assert_redacted(&link);
     }
     assert!(source.iter().all(|byte| *byte == 0));
@@ -91,33 +186,44 @@ fn origin_form_link_remains_operation_bound() {
     let mut storage = [0_u8; 64];
     let link = ValidatedProviderLink::transfer_from(&mut source, &mut storage, binding(), limits())
         .unwrap_or_else(|_| unreachable!());
-    assert!(
-        link.with_bound_request(
-            &transport(),
+    let transport = transport("/v2/droplets?page=2&per_page=20");
+    let mut response_storage = [];
+    let mut header_storage = [];
+    let mut response = ResponseBuffer::new(&mut response_storage, 0, &mut header_storage);
+    assert_eq!(
+        link.execute_blocking(
+            &transport,
             Method::Get,
             operation("list_droplets"),
-            |_| true,
-        )
-        .is_ok()
+            authentication(),
+            response_policy(),
+            response.writer(),
+        ),
+        Ok(Ok(()))
     );
     assert_eq!(
-        link.with_bound_request(
-            &transport(),
+        link.execute_blocking(
+            &transport,
             Method::Post,
             operation("list_droplets"),
-            |_| true,
+            authentication(),
+            response_policy(),
+            response.writer(),
         ),
         Err(PaginationError::ProviderLinkMethodChanged)
     );
     assert_eq!(
-        link.with_bound_request(
-            &transport(),
+        link.execute_blocking(
+            &transport,
             Method::Get,
             operation("delete_droplet"),
-            |_| true,
+            authentication(),
+            response_policy(),
+            response.writer(),
         ),
         Err(PaginationError::ProviderLinkOperationChanged)
     );
+    assert_eq!(transport.calls.load(Ordering::Relaxed), 1);
 }
 
 #[test]
@@ -128,25 +234,62 @@ fn rejects_use_through_a_different_bound_transport_endpoint() {
         .unwrap_or_else(|_| unreachable!());
     let other = EndpointIdentity::new(EndpointScheme::Https, "api.example.com", 443, "/v2")
         .unwrap_or_else(|_| unreachable!());
+    let other = TestTransport {
+        endpoint: other,
+        expected_target: "/v2/droplets?page=2",
+        calls: AtomicU32::new(0),
+    };
+    let mut response_storage = [];
+    let mut header_storage = [];
+    let mut response = ResponseBuffer::new(&mut response_storage, 0, &mut header_storage);
 
     assert_eq!(
-        link.with_bound_request(
-            &TestTransport(other),
+        link.execute_blocking(
+            &other,
             Method::Get,
             operation("list_droplets"),
-            |_| true,
+            authentication(),
+            response_policy(),
+            response.writer(),
         ),
         Err(PaginationError::ProviderLinkAuthorityChanged)
     );
+    assert_eq!(other.calls.load(Ordering::Relaxed), 0);
     assert_eq!(
-        link.with_bound_request(
+        link.execute_blocking(
             &UnboundTransport,
             Method::Get,
             operation("list_droplets"),
-            |_| true,
+            authentication(),
+            response_policy(),
+            response.writer(),
         ),
         Err(PaginationError::ProviderLinkAuthorityChanged)
     );
+}
+
+#[test]
+fn async_execution_couples_endpoint_validation_and_dispatch() {
+    let mut source = *b"/v2/droplets?page=2";
+    let mut storage = [0_u8; 64];
+    let link = ValidatedProviderLink::transfer_from(&mut source, &mut storage, binding(), limits())
+        .unwrap_or_else(|_| unreachable!());
+    let transport = transport("/v2/droplets?page=2");
+    let mut response_storage = [];
+    let mut header_storage = [];
+    let mut response = ResponseBuffer::new(&mut response_storage, 0, &mut header_storage);
+    let mut future = core::pin::pin!(link.execute_async(
+        &transport,
+        Method::Get,
+        operation("list_droplets"),
+        authentication(),
+        response_policy(),
+        response.writer(),
+    ));
+    let mut context = Context::from_waker(Waker::noop());
+
+    assert_eq!(future.as_mut().poll(&mut context), Poll::Ready(Ok(Ok(()))));
+    assert_eq!(transport.calls.load(Ordering::Relaxed), 1);
 }
 
 #[test]

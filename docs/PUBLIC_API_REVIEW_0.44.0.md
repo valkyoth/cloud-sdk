@@ -21,8 +21,9 @@ counts, rate-limit metadata, and progress.
 add bounded opaque state and fail-closed cycle/collision handling.
 `ValidatedProviderLink` and `ProviderLinkBinding` bind raw continuation links
 to one endpoint, method, operation, and exact path. Link use requires the
-actual `BoundTransport`; its endpoint is compared with the retained identity
-before a closure-scoped request is reconstructed.
+same `BoundTransport` object that performs blocking or asynchronous
+authenticated execution. Its endpoint is compared with the retained identity
+before dispatch, and no callback can redirect the reconstructed request.
 
 `ProviderLinkQuery` is observable through `RequestQuery::ProviderLink` but has
 no public constructor. `RequestTarget::assemble` rejects it, preserving the
@@ -46,3 +47,5 @@ query bytes without decoding or re-encoding and reject authority, scheme,
 userinfo, fragment, path, method, and operation changes. Reuse through an
 unbound or different transport endpoint also fails closed. Snapshot state is
 committed only after all admission checks succeed and is cleared on drop.
+Deterministic tests prove rejected transports are never invoked and both
+blocking and async dispatch use the endpoint-checked object.

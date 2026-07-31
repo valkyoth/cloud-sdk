@@ -56,6 +56,7 @@ require_fuzz_tooling() {
 }
 
 check_layout
+cargo test --locked --manifest-path fuzz/Cargo.toml --test provider_link_seeds
 
 case "$mode" in
 --metadata)

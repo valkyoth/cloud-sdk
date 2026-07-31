@@ -26,7 +26,7 @@ from publication.
 - default and all-feature `no_std` checks;
 - pagination strategy, cleanup, compile-fail, DigitalOcean fixture, and fuzz
   checks, including dedicated offset, opaque-state, cursor-history, and raw
-  provider-link parser targets;
+  provider-link parser targets plus a deterministic positive-seed preflight;
 - workspace tests, Clippy, docs, package, platform, MSRV, SBOM, Cargo Deny,
   and RustSec checks;
 - `scripts/check_pagination_strategies.sh`;

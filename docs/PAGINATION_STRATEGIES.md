@@ -83,11 +83,13 @@ percent triplets. The resulting `ProviderLinkQuery` has no public constructor
 and `RequestTarget::assemble` rejects it, so it cannot be mixed with another
 path or a structured query builder.
 
-At use time, call `ValidatedProviderLink::with_bound_request` with the actual
-`BoundTransport` selected for execution. The link retains its admitted
-endpoint identity and rejects an unbound transport or a different endpoint
-before reconstructing the request. The closure-scoped request must be sent
-through that same supplied transport.
+At use time, call `ValidatedProviderLink::execute_blocking` or
+`ValidatedProviderLink::execute_async`. Both methods require one object that
+implements `BoundTransport` and the matching authenticated transport trait.
+The link retains its admitted endpoint identity, rejects an unbound or
+different endpoint, constructs the authenticated request, and dispatches it
+through that same object. No public callback or free-standing request separates
+the destination check from execution.
 
 Absolute links are accepted only when their normalized authority equals the
 bound endpoint. Custom endpoints must still come from trusted operator

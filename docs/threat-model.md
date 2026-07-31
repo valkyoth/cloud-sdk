@@ -184,8 +184,9 @@
   snapshot policy explicit, retains exact bounded snapshot identities, and
   keeps progression transactional; clears non-Copy opaque state on drop;
   fails closed on exact cursor cycles and digest collisions; and binds raw
-  provider links to the endpoint, method, operation, and exact path, rechecking
-  the actual bound transport before use without structured-query recomposition;
+  provider links to the endpoint, method, operation, and exact path, coupling
+  endpoint verification and authenticated dispatch through one transport
+  object without a redirectable callback or structured-query recomposition;
 - release drift fetches require exact non-redirecting HTTPS URLs under the
   default validating TLS context, bounded downloads, and pinned digest
   verification before parsing;

@@ -3,9 +3,14 @@ use core::fmt;
 use cloud_sdk_sanitization::{SecretBuffer, sanitize_bytes, sanitize_value};
 
 use crate::Method;
+use crate::authentication::{
+    AsyncAuthenticatedTransport, AuthenticatedRequest, AuthenticationScopePolicy,
+    BlockingAuthenticatedTransport,
+};
 use crate::operation::OperationId;
 use crate::transport::{
-    BoundTransport, EndpointIdentity, EndpointScheme, RequestPath, RequestTarget, TransportRequest,
+    BoundTransport, EndpointIdentity, EndpointScheme, RawResponsePolicy, RequestPath,
+    RequestTarget, ResponseWriter, TransportRequest,
 };
 
 use super::{PaginationError, PaginationLimits};
@@ -121,19 +126,64 @@ impl<'storage, 'endpoint> ValidatedProviderLink<'storage, 'endpoint> {
         })
     }
 
-    /// Runs a closure with a request only when endpoint, method, and operation match.
+    /// Validates and executes one authenticated blocking continuation request.
     ///
-    /// The request target borrows cleanup-owning link storage and cannot outlive
-    /// this call. The supplied transport must be the transport selected for
-    /// execution; its immutable endpoint identity is checked before the target
-    /// is reconstructed.
-    pub fn with_bound_request<T: BoundTransport, R>(
+    /// Endpoint verification and execution use the same transport object, so
+    /// callers cannot separate the destination check from request dispatch.
+    pub fn execute_blocking<T>(
         &self,
         transport: &T,
         method: Method,
         operation: OperationId,
-        inspect: impl FnOnce(TransportRequest<'_>) -> R,
-    ) -> Result<R, PaginationError> {
+        authentication: AuthenticationScopePolicy<'_>,
+        response_policy: RawResponsePolicy<'_>,
+        response: &mut ResponseWriter<'_>,
+    ) -> Result<Result<(), T::Error>, PaginationError>
+    where
+        T: BoundTransport + BlockingAuthenticatedTransport,
+    {
+        let request = self.request_for(transport, method, operation)?;
+        Ok(transport.send_authenticated(
+            AuthenticatedRequest::new(request, authentication, response_policy),
+            response,
+        ))
+    }
+
+    /// Validates and executes one authenticated asynchronous continuation request.
+    ///
+    /// Endpoint verification and execution use the same transport object. The
+    /// returned future remains executor-neutral and borrows the link state until
+    /// the transport attempt completes or is cancelled.
+    pub async fn execute_async<'transport, 'request, 'policy, 'writer, T>(
+        &'request self,
+        transport: &'transport T,
+        method: Method,
+        operation: OperationId,
+        authentication: AuthenticationScopePolicy<'policy>,
+        response_policy: RawResponsePolicy<'policy>,
+        response: &'writer mut ResponseWriter<'_>,
+    ) -> Result<Result<(), T::Error>, PaginationError>
+    where
+        T: BoundTransport + AsyncAuthenticatedTransport,
+        'transport: 'writer,
+        'request: 'writer,
+        'policy: 'writer,
+    {
+        let request = self.request_for(transport, method, operation)?;
+        Ok(transport
+            .send_authenticated(
+                AuthenticatedRequest::new(request, authentication, response_policy),
+                response,
+            )
+            .await)
+    }
+
+    fn request_for<'request, T: BoundTransport>(
+        &'request self,
+        transport: &T,
+        method: Method,
+        operation: OperationId,
+    ) -> Result<TransportRequest<'request>, PaginationError> {
         let actual = transport
             .endpoint_identity()
             .map_err(|_| PaginationError::ProviderLinkAuthorityChanged)?;
@@ -155,7 +205,7 @@ impl<'storage, 'endpoint> ValidatedProviderLink<'storage, 'endpoint> {
             core::str::from_utf8(bytes).map_err(|_| PaginationError::InvalidProviderLink)?;
         let target = RequestTarget::from_provider_link(value)
             .map_err(|_| PaginationError::InvalidProviderLink)?;
-        Ok(inspect(TransportRequest::new(method, target)))
+        Ok(TransportRequest::new(method, target))
     }
 }
 

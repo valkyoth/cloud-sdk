@@ -24,7 +24,9 @@ done
 for required in \
     'RequestTarget::from_provider_link' \
     'endpoint: EndpointIdentity' \
-    'with_bound_request' \
+    'execute_blocking' \
+    'execute_async' \
+    'send_authenticated' \
     'endpoint_identity()' \
     'ProviderLinkMethodChanged' \
     'ProviderLinkOperationChanged' \

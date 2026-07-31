@@ -51,10 +51,11 @@ cycle opaque cursor values.
 Do not parse a provider next link into `CanonicalQuery` or `FormQuery`.
 Construct a `ProviderLinkBinding` from the original endpoint, method,
 operation ID, and exact path, then use `ValidatedProviderLink::transfer_from`.
-The validated link retains the endpoint and creates a closure-scoped request
-through `with_bound_request` only when the actual supplied `BoundTransport`,
-method, and operation still match. Execute the request through that same
-transport.
+The validated link retains the endpoint. Use `execute_blocking` or
+`execute_async` with a transport implementing both `BoundTransport` and the
+matching authenticated transport trait. Endpoint, method, and operation checks
+are inseparable from dispatch through that exact object; the former public
+callback gateway is not available.
 
 Provider-link queries are represented by `RequestQuery::ProviderLink`. The
 variant can be observed but not constructed directly, and
