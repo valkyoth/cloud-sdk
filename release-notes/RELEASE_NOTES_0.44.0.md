@@ -21,11 +21,15 @@ into explicit provider-neutral strategies with shared hard budgets.
 - Added operation-bound absolute and origin-form provider next links that
   retain the admitted endpoint and couple its check to authenticated blocking
   or async execution through the same transport object.
+- Flattened provider-link validation and transport failures into one error and
+  redacted transport payloads from diagnostics.
 - Preserved raw link query ordering, duplicates, plus signs, separators, and
   percent encoding without decode or re-encode.
 - Prevented provider-link queries from entering structured target assembly.
 - Added dedicated offset, opaque-state, cursor-history, and provider-link
   parser fuzz coverage with deterministic positive-seed validation.
+- Tightened the provider-identity gate so it rejects only closed identity
+  taxonomies, not unrelated public error enums with a `Provider` prefix.
 - Migrated Hetzner pagination metadata to `NumberedPageMetadata`.
 
 ## Versions

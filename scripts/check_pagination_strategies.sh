@@ -26,6 +26,8 @@ for required in \
     'endpoint: EndpointIdentity' \
     'execute_blocking' \
     'execute_async' \
+    'ProviderLinkExecutionError' \
+    'Transport([redacted])' \
     'send_authenticated' \
     'endpoint_identity()' \
     'ProviderLinkMethodChanged' \

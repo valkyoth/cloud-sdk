@@ -11,8 +11,12 @@
 - Added raw provider-link preservation bound to endpoint, method, operation,
   and exact path, with endpoint checks inseparable from authenticated blocking
   or async dispatch and no structured-query recomposition.
+- Flattened provider-link validation and transport failures into one
+  payload-redacting execution error.
 - Added dedicated offset, opaque-state, cursor-history, and provider-link
   parser fuzz coverage with deterministic positive-seed validation.
+- Narrowed the provider-identity gate to closed taxonomy enum names and added
+  a regression for unrelated provider-prefixed public errors.
 - Migrated Hetzner pagination metadata to the numbered strategy contract.
 
 ## 0.43.0 - 2026-07-31

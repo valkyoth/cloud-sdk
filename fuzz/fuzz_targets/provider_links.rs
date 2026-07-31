@@ -7,7 +7,8 @@ use cloud_sdk::authentication::{
 };
 use cloud_sdk::operation::OperationId;
 use cloud_sdk::pagination::{
-    PaginationError, PaginationLimits, ProviderLinkBinding, ValidatedProviderLink,
+    PaginationError, PaginationLimits, ProviderLinkBinding, ProviderLinkExecutionError,
+    ValidatedProviderLink,
 };
 use cloud_sdk::transport::{
     BoundTransport, EndpointIdentity, EndpointIdentityError, EndpointScheme, RawResponsePolicy,
@@ -94,7 +95,7 @@ fuzz_target!(|data: &[u8]| {
                         response_policy(),
                         response.writer(),
                     ),
-                    Ok(Ok(()))
+                    Ok(())
                 );
                 assert_eq!(
                     link.execute_blocking(
@@ -105,7 +106,9 @@ fuzz_target!(|data: &[u8]| {
                         response_policy(),
                         response.writer(),
                     ),
-                    Err(PaginationError::ProviderLinkAuthorityChanged)
+                    Err(ProviderLinkExecutionError::Pagination(
+                        PaginationError::ProviderLinkAuthorityChanged
+                    ))
                 );
                 drop(link);
             }

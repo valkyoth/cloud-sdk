@@ -54,6 +54,38 @@ impl fmt::Debug for ProviderLinkBinding<'_> {
     }
 }
 
+/// Provider-link validation or authenticated transport failure.
+///
+/// Transport details remain available through pattern matching but are always
+/// redacted from `Debug` and `Display` diagnostics.
+#[derive(Clone, Copy, Eq, PartialEq)]
+pub enum ProviderLinkExecutionError<E> {
+    /// Link state, endpoint, method, or operation validation failed.
+    Pagination(PaginationError),
+    /// The endpoint-verified authenticated transport failed.
+    Transport(E),
+}
+
+impl<E> fmt::Debug for ProviderLinkExecutionError<E> {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Pagination(error) => formatter.debug_tuple("Pagination").field(error).finish(),
+            Self::Transport(_) => formatter.write_str("Transport([redacted])"),
+        }
+    }
+}
+
+impl<E> fmt::Display for ProviderLinkExecutionError<E> {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.write_str(match self {
+            Self::Pagination(_) => "provider pagination link validation failed",
+            Self::Transport(_) => "provider pagination link transport failed",
+        })
+    }
+}
+
+impl<E: fmt::Debug> core::error::Error for ProviderLinkExecutionError<E> {}
+
 /// Cleanup-owning operation-bound provider pagination link.
 ///
 /// Exact validated origin-form path/query bytes are copied without decoding,
@@ -138,15 +170,19 @@ impl<'storage, 'endpoint> ValidatedProviderLink<'storage, 'endpoint> {
         authentication: AuthenticationScopePolicy<'_>,
         response_policy: RawResponsePolicy<'_>,
         response: &mut ResponseWriter<'_>,
-    ) -> Result<Result<(), T::Error>, PaginationError>
+    ) -> Result<(), ProviderLinkExecutionError<T::Error>>
     where
         T: BoundTransport + BlockingAuthenticatedTransport,
     {
-        let request = self.request_for(transport, method, operation)?;
-        Ok(transport.send_authenticated(
-            AuthenticatedRequest::new(request, authentication, response_policy),
-            response,
-        ))
+        let request = self
+            .request_for(transport, method, operation)
+            .map_err(ProviderLinkExecutionError::Pagination)?;
+        transport
+            .send_authenticated(
+                AuthenticatedRequest::new(request, authentication, response_policy),
+                response,
+            )
+            .map_err(ProviderLinkExecutionError::Transport)
     }
 
     /// Validates and executes one authenticated asynchronous continuation request.
@@ -162,20 +198,23 @@ impl<'storage, 'endpoint> ValidatedProviderLink<'storage, 'endpoint> {
         authentication: AuthenticationScopePolicy<'policy>,
         response_policy: RawResponsePolicy<'policy>,
         response: &'writer mut ResponseWriter<'_>,
-    ) -> Result<Result<(), T::Error>, PaginationError>
+    ) -> Result<(), ProviderLinkExecutionError<T::Error>>
     where
         T: BoundTransport + AsyncAuthenticatedTransport,
         'transport: 'writer,
         'request: 'writer,
         'policy: 'writer,
     {
-        let request = self.request_for(transport, method, operation)?;
-        Ok(transport
+        let request = self
+            .request_for(transport, method, operation)
+            .map_err(ProviderLinkExecutionError::Pagination)?;
+        transport
             .send_authenticated(
                 AuthenticatedRequest::new(request, authentication, response_policy),
                 response,
             )
-            .await)
+            .await
+            .map_err(ProviderLinkExecutionError::Transport)
     }
 
     fn request_for<'request, T: BoundTransport>(

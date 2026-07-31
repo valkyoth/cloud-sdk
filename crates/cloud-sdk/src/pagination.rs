@@ -10,7 +10,7 @@ pub use budget::{
     MAX_SNAPSHOT_ID_BYTES, PaginationBudget, PaginationLimits, PaginationProgress, SnapshotId,
     SnapshotPolicy,
 };
-pub use link::{ProviderLinkBinding, ValidatedProviderLink};
+pub use link::{ProviderLinkBinding, ProviderLinkExecutionError, ValidatedProviderLink};
 pub use numbered::{NumberedPageBoundary, NumberedPageMetadata, NumberedPagination, PageNumber};
 pub use offset::{OffsetPageBoundary, OffsetPageMetadata, OffsetPagination};
 pub use opaque::{

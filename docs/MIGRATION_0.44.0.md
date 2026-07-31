@@ -57,6 +57,10 @@ matching authenticated transport trait. Endpoint, method, and operation checks
 are inseparable from dispatch through that exact object; the former public
 callback gateway is not available.
 
+Execution returns `Result<(), ProviderLinkExecutionError<T::Error>>`, not a
+nested result. Match `Pagination` and `Transport` when recovery differs;
+transport diagnostics are redacted by the wrapper.
+
 Provider-link queries are represented by `RequestQuery::ProviderLink`. The
 variant can be observed but not constructed directly, and
 `RequestTarget::assemble` returns

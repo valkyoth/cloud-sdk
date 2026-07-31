@@ -187,6 +187,8 @@
   provider links to the endpoint, method, operation, and exact path, coupling
   endpoint verification and authenticated dispatch through one transport
   object without a redirectable callback or structured-query recomposition;
+  validation and transport failures share one flattened error result, with
+  transport details redacted from diagnostics;
 - release drift fetches require exact non-redirecting HTTPS URLs under the
   default validating TLS context, bounded downloads, and pinned digest
   verification before parsing;

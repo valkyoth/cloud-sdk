@@ -1,5 +1,9 @@
-use super::super::{PaginationError, PaginationLimits, ProviderLinkBinding, ValidatedProviderLink};
-use super::assert_redacted;
+use super::super::{
+    PaginationError, PaginationLimits, ProviderLinkBinding, ProviderLinkExecutionError,
+    ValidatedProviderLink,
+};
+use super::{DebugBuffer, assert_redacted};
+use core::fmt::Write;
 use core::future::Future;
 use core::sync::atomic::{AtomicU32, Ordering};
 use core::task::{Context, Poll, Waker};
@@ -18,6 +22,7 @@ use crate::transport::{
 struct TestTransport {
     endpoint: EndpointIdentity<'static>,
     expected_target: &'static str,
+    fail: bool,
     calls: AtomicU32,
 }
 
@@ -50,7 +55,7 @@ impl TestTransport {
 }
 
 impl BlockingAuthenticatedTransport for TestTransport {
-    type Error = ();
+    type Error = &'static str;
 
     fn send_authenticated(
         &self,
@@ -58,12 +63,16 @@ impl BlockingAuthenticatedTransport for TestTransport {
         _response: &mut ResponseWriter<'_>,
     ) -> Result<(), Self::Error> {
         self.record(request);
-        Ok(())
+        if self.fail {
+            Err("secret transport detail")
+        } else {
+            Ok(())
+        }
     }
 }
 
 impl AsyncAuthenticatedTransport for TestTransport {
-    type Error = ();
+    type Error = &'static str;
 
     async fn send_authenticated<'transport, 'request, 'policy, 'writer>(
         &'transport self,
@@ -76,7 +85,11 @@ impl AsyncAuthenticatedTransport for TestTransport {
         'policy: 'writer,
     {
         self.record(request);
-        Ok(())
+        if self.fail {
+            Err("secret transport detail")
+        } else {
+            Ok(())
+        }
     }
 }
 
@@ -119,6 +132,7 @@ fn transport(expected_target: &'static str) -> TestTransport {
     TestTransport {
         endpoint: endpoint(),
         expected_target,
+        fail: false,
         calls: AtomicU32::new(0),
     }
 }
@@ -172,7 +186,7 @@ fn digitalocean_absolute_link_preserves_raw_query_order_duplicates_and_percent_e
             response_policy(),
             response.writer(),
         );
-        assert_eq!(observed, Ok(Ok(())));
+        assert_eq!(observed, Ok(()));
         assert_eq!(transport.calls.load(Ordering::Relaxed), 1);
         assert_redacted(&link);
     }
@@ -199,7 +213,7 @@ fn origin_form_link_remains_operation_bound() {
             response_policy(),
             response.writer(),
         ),
-        Ok(Ok(()))
+        Ok(())
     );
     assert_eq!(
         link.execute_blocking(
@@ -210,7 +224,9 @@ fn origin_form_link_remains_operation_bound() {
             response_policy(),
             response.writer(),
         ),
-        Err(PaginationError::ProviderLinkMethodChanged)
+        Err(ProviderLinkExecutionError::Pagination(
+            PaginationError::ProviderLinkMethodChanged
+        ))
     );
     assert_eq!(
         link.execute_blocking(
@@ -221,7 +237,9 @@ fn origin_form_link_remains_operation_bound() {
             response_policy(),
             response.writer(),
         ),
-        Err(PaginationError::ProviderLinkOperationChanged)
+        Err(ProviderLinkExecutionError::Pagination(
+            PaginationError::ProviderLinkOperationChanged
+        ))
     );
     assert_eq!(transport.calls.load(Ordering::Relaxed), 1);
 }
@@ -237,6 +255,7 @@ fn rejects_use_through_a_different_bound_transport_endpoint() {
     let other = TestTransport {
         endpoint: other,
         expected_target: "/v2/droplets?page=2",
+        fail: false,
         calls: AtomicU32::new(0),
     };
     let mut response_storage = [];
@@ -252,7 +271,9 @@ fn rejects_use_through_a_different_bound_transport_endpoint() {
             response_policy(),
             response.writer(),
         ),
-        Err(PaginationError::ProviderLinkAuthorityChanged)
+        Err(ProviderLinkExecutionError::Pagination(
+            PaginationError::ProviderLinkAuthorityChanged
+        ))
     );
     assert_eq!(other.calls.load(Ordering::Relaxed), 0);
     assert_eq!(
@@ -264,7 +285,9 @@ fn rejects_use_through_a_different_bound_transport_endpoint() {
             response_policy(),
             response.writer(),
         ),
-        Err(PaginationError::ProviderLinkAuthorityChanged)
+        Err(ProviderLinkExecutionError::Pagination(
+            PaginationError::ProviderLinkAuthorityChanged
+        ))
     );
 }
 
@@ -288,8 +311,52 @@ fn async_execution_couples_endpoint_validation_and_dispatch() {
     ));
     let mut context = Context::from_waker(Waker::noop());
 
-    assert_eq!(future.as_mut().poll(&mut context), Poll::Ready(Ok(Ok(()))));
+    assert_eq!(future.as_mut().poll(&mut context), Poll::Ready(Ok(())));
     assert_eq!(transport.calls.load(Ordering::Relaxed), 1);
+}
+
+#[test]
+fn execution_errors_flatten_and_redact_transport_details() {
+    let mut source = *b"/v2/droplets?page=2";
+    let mut storage = [0_u8; 64];
+    let link = ValidatedProviderLink::transfer_from(&mut source, &mut storage, binding(), limits())
+        .unwrap_or_else(|_| unreachable!());
+    let transport = TestTransport {
+        endpoint: endpoint(),
+        expected_target: "/v2/droplets?page=2",
+        fail: true,
+        calls: AtomicU32::new(0),
+    };
+    let mut response_storage = [];
+    let mut header_storage = [];
+    let mut response = ResponseBuffer::new(&mut response_storage, 0, &mut header_storage);
+    let result = link.execute_blocking(
+        &transport,
+        Method::Get,
+        operation("list_droplets"),
+        authentication(),
+        response_policy(),
+        response.writer(),
+    );
+
+    assert_eq!(
+        result,
+        Err(ProviderLinkExecutionError::Transport(
+            "secret transport detail"
+        ))
+    );
+    assert!(result.is_err());
+    let error = result.err().unwrap_or_else(|| unreachable!());
+    let mut debug = DebugBuffer::new();
+    assert!(write!(&mut debug, "{error:?}").is_ok());
+    assert_eq!(debug.as_str(), "Transport([redacted])");
+    let mut display = DebugBuffer::new();
+    assert!(write!(&mut display, "{error}").is_ok());
+    assert_eq!(
+        display.as_str(),
+        "provider pagination link transport failed"
+    );
+    let _: &dyn core::error::Error = &error;
 }
 
 #[test]

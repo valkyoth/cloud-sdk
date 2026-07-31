@@ -26,7 +26,11 @@ def fixture(directory: Path) -> tuple[dict[str, str], Path, Path]:
     hetzner = directory / "crates" / "cloud-sdk-hetzner" / "src"
     core.mkdir(parents=True)
     hetzner.mkdir(parents=True)
-    (core / "lib.rs").write_text("pub struct ProviderId;\n", encoding="ascii")
+    (core / "lib.rs").write_text(
+        "pub struct ProviderId;\n"
+        "pub enum ProviderLinkExecutionError<E> { Transport(E) }\n",
+        encoding="ascii",
+    )
     identity = hetzner / "identity.rs"
     identity.write_text(
         "".join(f"pub const {name}: &str = \"test\";\n" for name in IDENTITIES),

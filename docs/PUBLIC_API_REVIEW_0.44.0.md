@@ -24,6 +24,8 @@ to one endpoint, method, operation, and exact path. Link use requires the
 same `BoundTransport` object that performs blocking or asynchronous
 authenticated execution. Its endpoint is compared with the retained identity
 before dispatch, and no callback can redirect the reconstructed request.
+`ProviderLinkExecutionError<E>` flattens validation and transport failures;
+transport payloads remain matchable but are redacted from diagnostics.
 
 `ProviderLinkQuery` is observable through `RequestQuery::ProviderLink` but has
 no public constructor. `RequestTarget::assemble` rejects it, preserving the
@@ -48,4 +50,6 @@ userinfo, fragment, path, method, and operation changes. Reuse through an
 unbound or different transport endpoint also fails closed. Snapshot state is
 committed only after all admission checks succeed and is cleared on drop.
 Deterministic tests prove rejected transports are never invoked and both
-blocking and async dispatch use the endpoint-checked object.
+blocking and async dispatch use the endpoint-checked object. Transport failures
+return outer `Err`, implement `core::error::Error`, and never expose their
+payload through `Debug` or `Display`.

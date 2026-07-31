@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 set -eu
 
-if grep -R -n -E 'pub enum (Provider|ApiFamily)' crates/cloud-sdk/src; then
+if grep -R -n -E 'pub enum (Provider|ApiFamily)([[:space:]<{]|$)' crates/cloud-sdk/src; then
     echo "provider identities: closed core provider taxonomy returned" >&2
     exit 1
 fi

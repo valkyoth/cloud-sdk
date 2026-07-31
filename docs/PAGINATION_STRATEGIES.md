@@ -91,6 +91,12 @@ different endpoint, constructs the authenticated request, and dispatches it
 through that same object. No public callback or free-standing request separates
 the destination check from execution.
 
+Both methods return one flattened `Result<(), ProviderLinkExecutionError<E>>`.
+Validation failures remain payload-free `Pagination` variants; transport
+failures are `Transport` variants whose `Debug` and `Display` output never
+contains the transport payload. Callers must handle the result before advancing
+pagination state.
+
 Absolute links are accepted only when their normalized authority equals the
 bound endpoint. Custom endpoints must still come from trusted operator
 configuration and must never be selected from tenant-controlled input.
