@@ -1,7 +1,7 @@
 # Crate Version Matrix
 
-Status: `v0.42.0` is tagged. `v0.43.0` is a release candidate; pentest and
-final retest passed.
+Status: `v0.43.0` is tagged. `v0.44.0` implementation stop is reached;
+pentest is required.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
@@ -652,6 +652,19 @@ operations.
 | `cloud-sdk-reqwest` | `0.29.0` | `0.30.0` | `code` | Yes | Route bearer and Basic clients through the bounded raw Hyper engine while preserving conservative delivery phase. |
 | `cloud-sdk-sanitization` | `0.16.0` | `0.16.0` | `unchanged` | No | No code, dependency, or package metadata changes. |
 | `cloud-sdk-testkit` | `0.24.2` | `0.25.0` | `code` | Yes | Execute authenticated prepared requests and expose complete authentication and raw-response policy records. |
+
+## v0.44.0 Tracking Table
+
+`v0.44.0` separates provider-neutral pagination strategies and prevents raw
+provider links from entering structured request-target assembly.
+
+| Crate | Published | Planned | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.43.0` | `0.44.0` | `code` | Yes | Add bounded numbered, offset, cursor, marker, and operation-bound raw-link pagination strategies. |
+| `cloud-sdk-hetzner` | `0.33.0` | `0.34.0` | `code` | Yes | Migrate Hetzner pagination metadata to the numbered strategy contract. |
+| `cloud-sdk-reqwest` | `0.30.0` | `0.30.1` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.44 facade line. |
+| `cloud-sdk-sanitization` | `0.16.0` | `0.16.0` | `unchanged` | No | No code, dependency, or package metadata changes. |
+| `cloud-sdk-testkit` | `0.25.0` | `0.25.1` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.44 facade line. |
 
 ## Planned Milestone Ownership
 

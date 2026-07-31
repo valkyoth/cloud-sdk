@@ -38,8 +38,9 @@ pub use raw::{
     TrailerPolicy,
 };
 pub use request_target::{
-    CanonicalQuery, FormQuery, MAX_REQUEST_TARGET_BYTES, QueryPair, QueryPairs, RequestPath,
-    RequestPathError, RequestQuery, RequestTarget, RequestTargetError, StructuredQueryError,
+    CanonicalQuery, FormQuery, MAX_REQUEST_TARGET_BYTES, ProviderLinkQuery, QueryPair, QueryPairs,
+    RequestPath, RequestPathError, RequestQuery, RequestTarget, RequestTargetError,
+    StructuredQueryError,
 };
 pub use response::{
     ResponseAttempt, ResponseBuffer, ResponseMetadata, ResponseWriter, ResponseWriterError,

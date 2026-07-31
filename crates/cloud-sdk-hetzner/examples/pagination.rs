@@ -1,6 +1,8 @@
 //! Decodes and validates one Hetzner pagination envelope.
 
-use cloud_sdk::pagination::{PageLimit, PageNumber, PaginationCursor};
+use cloud_sdk::pagination::{
+    NumberedPagination, PageNumber, PaginationBudget, PaginationLimits, SnapshotPolicy,
+};
 use cloud_sdk_hetzner::serde::PaginationEnvelope;
 
 fn main() {
@@ -22,14 +24,16 @@ fn main() {
     let Ok(first) = PageNumber::new(1) else {
         return;
     };
-    let Ok(limit) = PageLimit::new(10) else {
+    let Ok(limits) = PaginationLimits::new(2, 50, 128) else {
         return;
     };
-    let Ok(mut cursor) = PaginationCursor::new(first, u64::from(metadata.per_page().get()), limit)
+    let budget = PaginationBudget::new(limits, SnapshotPolicy::Forbidden);
+    let Ok(mut pagination) =
+        NumberedPagination::new(first, u64::from(metadata.per_page().get()), budget)
     else {
         return;
     };
-    let Ok(boundary) = cursor.observe(metadata.as_core(), 1, None) else {
+    let Ok(boundary) = pagination.observe(metadata.as_core(), 1, None, None) else {
         return;
     };
 

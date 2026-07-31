@@ -38,8 +38,8 @@ boundaries.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.43.0"
-cloud-sdk-hetzner = "0.33.0"
+cloud-sdk = "0.44.0"
+cloud-sdk-hetzner = "0.34.0"
 ```
 
 ## Features
@@ -208,6 +208,9 @@ Basic authentication and canonical signing input additions are listed in the
 [v0.42 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.42.0.md).
 The authenticated raw-wire migration is listed in the
 [v0.43 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.43.0.md).
+The numbered pagination migration and provider-neutral strategy family are
+listed in the
+[v0.44 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.44.0.md).
 
 ## Optional Serde Boundary
 
@@ -215,7 +218,7 @@ Enable Serde explicitly; it is never part of the default graph:
 
 ```toml
 [dependencies]
-cloud-sdk-hetzner = { version = "0.33.0", features = ["serde"] }
+cloud-sdk-hetzner = { version = "0.34.0", features = ["serde"] }
 ```
 
 The feature admits serde_json with `default-features = false` and `alloc` only
@@ -434,7 +437,9 @@ Hetzner list response while ignoring the resource-specific fields:
 ```rust
 # #[cfg(feature = "serde")]
 # fn main() {
-use cloud_sdk::pagination::{PageLimit, PaginationCursor};
+use cloud_sdk::pagination::{
+    NumberedPagination, PaginationBudget, PaginationLimits, SnapshotPolicy,
+};
 use cloud_sdk_hetzner::serde::PaginationEnvelope;
 
 let body = br#"{
@@ -452,16 +457,17 @@ let Ok(envelope) = serde_json::from_slice::<PaginationEnvelope>(body) else {
     return;
 };
 let metadata = envelope.pagination();
-let Ok(limit) = PageLimit::new(10) else { return };
+let Ok(limits) = PaginationLimits::new(2, 50, 128) else { return };
 let Ok(first) = cloud_sdk::pagination::PageNumber::new(1) else { return };
-let Ok(mut cursor) = PaginationCursor::new(
+let budget = PaginationBudget::new(limits, SnapshotPolicy::Forbidden);
+let Ok(mut pagination) = NumberedPagination::new(
     first,
     u64::from(metadata.per_page().get()),
-    limit,
+    budget,
 ) else {
     return;
 };
-let Ok(boundary) = cursor.observe(metadata.as_core(), 1, None) else {
+let Ok(boundary) = pagination.observe(metadata.as_core(), 1, None, None) else {
     return;
 };
 
@@ -472,10 +478,12 @@ assert_eq!(metadata.total_entries(), Some(1));
 # fn main() {}
 ```
 
-Pass the rate-limit value exposed inside `ResponseBuffer::with_response` as the
-final `observe` argument when a real or mock transport supplies it. The caller
-remains responsible for decoding the resource array and reporting its exact
-entry count.
+Pass the rate-limit and optional snapshot values exposed by the checked decode
+boundary as the third and fourth `observe` arguments. The caller remains
+responsible for decoding the resource array and reporting its exact entry
+count. See the provider-neutral
+[pagination guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/PAGINATION_STRATEGIES.md)
+for cursor, offset, marker, and provider-link strategies.
 
 ## Action Polling Example
 

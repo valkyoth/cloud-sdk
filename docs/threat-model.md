@@ -66,6 +66,9 @@
   incomplete resource traversal;
 - page-size, total-entry, or last-page changes combining different pagination
   snapshots and silently skipping resources;
+- opaque cursor cycles or digest collisions bypassing traversal limits;
+- provider next links changing scheme, authority, path, method, operation, or
+  raw query semantics and sending a request outside the original boundary;
 - zero-delay action policies causing busy polling, or terminal provider errors
   being discarded;
 - live-test credentials leaking through shell history, environment dumps,
@@ -176,11 +179,12 @@
   sanitization boundary;
 - rate-limit headers are parsed as a strict all-or-none decimal set, each field
   must occur exactly once, and values are validated before metadata is exposed;
-- pagination requires a caller-selected hard page limit, exact expected-page
-  transitions, adjacent advertised navigation, known-last terminal coherence,
-  caller-bound page size, first-response total/last snapshot, bounded entry
-  counts, total-entry reconciliation, nonempty continuation pages, and
-  provider-validated navigation; snapshot changes require a new traversal;
+- pagination separates numbered, offset, cursor, marker, and provider-link
+  state; requires hard request, item, state, and history budgets; keeps
+  snapshot policy explicit and progression transactional; clears non-Copy
+  opaque state on drop; fails closed on exact cursor cycles and digest
+  collisions; and binds raw provider links to the endpoint, method, operation,
+  and exact path without structured-query recomposition;
 - release drift fetches require exact non-redirecting HTTPS URLs under the
   default validating TLS context, bounded downloads, and pinned digest
   verification before parsing;

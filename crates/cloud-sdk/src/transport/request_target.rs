@@ -2,9 +2,11 @@
 
 use core::fmt;
 
+mod provider_link;
 mod validation;
 
-use validation::{validate_path, validate_query};
+pub use provider_link::ProviderLinkQuery;
+use validation::{validate_path, validate_provider_link_query, validate_query};
 
 /// Maximum origin-form request-target length admitted by the core contract.
 pub const MAX_REQUEST_TARGET_BYTES: usize = 8192;
@@ -99,6 +101,10 @@ pub enum RequestTargetError {
     TooLong,
     /// Caller-owned output cannot hold the complete target.
     OutputTooSmall,
+    /// A provider-supplied link query was malformed.
+    InvalidProviderLinkQuery,
+    /// A provider-link query cannot be combined with structured components.
+    ProviderLinkQueryCannotAssemble,
 }
 
 impl fmt::Display for RequestTargetError {
@@ -108,6 +114,10 @@ impl fmt::Display for RequestTargetError {
             Self::Query(error) => write!(formatter, "invalid request query: {error}"),
             Self::TooLong => formatter.write_str("request target exceeds the length limit"),
             Self::OutputTooSmall => formatter.write_str("request target output is too small"),
+            Self::InvalidProviderLinkQuery => formatter.write_str("provider link query is invalid"),
+            Self::ProviderLinkQueryCannotAssemble => {
+                formatter.write_str("provider link query cannot be assembled")
+            }
         }
     }
 }
@@ -207,6 +217,8 @@ pub enum RequestQuery<'a> {
     Canonical(CanonicalQuery<'a>),
     /// A form-style query is present; its value may be empty.
     Form(FormQuery<'a>),
+    /// An inseparable raw query from a validated provider pagination link.
+    ProviderLink(ProviderLinkQuery<'a>),
 }
 
 impl<'a> RequestQuery<'a> {
@@ -223,6 +235,7 @@ impl<'a> RequestQuery<'a> {
             Self::Absent => None,
             Self::Canonical(query) => Some(query.as_str()),
             Self::Form(query) => Some(query.as_str()),
+            Self::ProviderLink(query) => Some(query.as_str()),
         }
     }
 }
@@ -337,6 +350,9 @@ impl<'a> RequestTarget<'a> {
         query: RequestQuery<'_>,
         output: &'output mut [u8],
     ) -> Result<RequestTarget<'output>, RequestTargetError> {
+        if matches!(query, RequestQuery::ProviderLink(_)) {
+            return Err(RequestTargetError::ProviderLinkQueryCannotAssemble);
+        }
         let query_len = query.as_borrowed_str().map_or(0, str::len);
         let delimiter_len = usize::from(query.is_present());
         let len = path
@@ -385,6 +401,9 @@ impl<'a> RequestTarget<'a> {
                     .ok_or(RequestTargetError::OutputTooSmall)?;
                 RequestQuery::Form(FormQuery(query_value))
             }
+            RequestQuery::ProviderLink(_) => {
+                return Err(RequestTargetError::ProviderLinkQueryCannotAssemble);
+            }
         };
         Ok(RequestTarget { value, path, query })
     }
@@ -424,6 +443,27 @@ impl<'a> RequestTarget<'a> {
     pub const fn is_empty(self) -> bool {
         false
     }
+
+    pub(crate) fn from_provider_link(value: &'a str) -> Result<Self, RequestTargetError> {
+        if value.len() > MAX_REQUEST_TARGET_BYTES {
+            return Err(RequestTargetError::TooLong);
+        }
+        let (path, query) = match value.split_once('?') {
+            Some((path, query)) => {
+                validate_provider_link_query(query)
+                    .map_err(|()| RequestTargetError::InvalidProviderLinkQuery)?;
+                (
+                    RequestPath::new(path).map_err(RequestTargetError::Path)?,
+                    RequestQuery::ProviderLink(ProviderLinkQuery(query)),
+                )
+            }
+            None => (
+                RequestPath::new(value).map_err(RequestTargetError::Path)?,
+                RequestQuery::Absent,
+            ),
+        };
+        Ok(Self { value, path, query })
+    }
 }
 
 impl fmt::Debug for RequestTarget<'_> {
@@ -438,6 +478,7 @@ impl<'a> RequestQuery<'a> {
             Self::Absent => None,
             Self::Canonical(query) => Some(query.as_str()),
             Self::Form(query) => Some(query.as_str()),
+            Self::ProviderLink(query) => Some(query.as_str()),
         }
     }
 }

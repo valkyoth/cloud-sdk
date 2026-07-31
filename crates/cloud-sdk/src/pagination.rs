@@ -1,341 +1,127 @@
-//! Explicit provider-neutral pagination state.
+//! Explicit provider-neutral pagination strategy state.
 
-use crate::rate_limit::RateLimit;
+mod budget;
+mod link;
+mod numbered;
+mod offset;
+mod opaque;
+
+pub use budget::{
+    PaginationBudget, PaginationLimits, PaginationProgress, SnapshotId, SnapshotPolicy,
+};
+pub use link::{ProviderLinkBinding, ValidatedProviderLink};
+pub use numbered::{NumberedPageBoundary, NumberedPageMetadata, NumberedPagination, PageNumber};
+pub use offset::{OffsetPageBoundary, OffsetPageMetadata, OffsetPagination};
+pub use opaque::{
+    CursorDigest, CursorHistory, MAX_OPAQUE_STATE_BYTES, PaginationCursor, PaginationMarker,
+};
 
 /// Pagination validation or transition error.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum PaginationError {
-    /// Page numbers are one-based.
+    /// A required numeric bound was zero.
+    ZeroLimit,
+    /// An opaque state bound exceeds the SDK hard limit.
+    StateLimitTooLarge,
+    /// A page number was zero.
     PageZero,
-    /// Per-page values are one-based.
-    PerPageZero,
-    /// The caller-selected page limit must be nonzero.
-    PageLimitZero,
-    /// The previous-page link is not immediately before the current page.
+    /// A page size was zero.
+    PageSizeZero,
+    /// Previous-page metadata was not immediately before the current page.
     InvalidPreviousPage,
-    /// The next-page link is not immediately after the current page.
+    /// Next-page metadata was not immediately after the current page.
     InvalidNextPage,
-    /// The last page contradicts the current page or continuation state.
+    /// Last-page metadata contradicted the continuation state.
     InvalidLastPage,
-    /// The response page differs from the page the cursor requested.
-    UnexpectedPage,
-    /// A non-terminal empty page advertised another page.
-    EmptyPageWithNextPage,
-    /// The decoded entry count contradicts page or total-entry metadata.
+    /// A response did not match the requested page or offset.
+    UnexpectedPosition,
+    /// A nonterminal response contained no entries.
+    EmptyPageWithContinuation,
+    /// Entry count or total metadata was incoherent.
     InvalidEntryCount,
-    /// Response page size differs from the caller-bound request size.
+    /// Provider page size changed during one traversal.
     PageSizeChanged,
-    /// Total entries or last page changed during one traversal.
+    /// Stable provider traversal metadata changed.
     TraversalChanged,
-    /// Advancing would exceed the caller-selected page limit.
-    PageLimitExceeded,
-    /// The cursor already reached its terminal page.
+    /// A continuation would exceed the request budget.
+    RequestBudgetExceeded,
+    /// Accepted entries would exceed the item budget.
+    ItemBudgetExceeded,
+    /// A required provider snapshot identifier was omitted.
+    SnapshotRequired,
+    /// A provider snapshot identifier was supplied when forbidden.
+    SnapshotForbidden,
+    /// Snapshot presence or value changed during one traversal.
+    SnapshotChanged,
+    /// The traversal has no continuation.
     Complete,
+    /// Opaque continuation state was omitted or empty.
+    MissingState,
+    /// Opaque continuation state exceeds its caller-selected limit.
+    StateTooLong,
+    /// Caller-owned destination storage is too small.
+    OutputTooSmall,
+    /// Cursor history has no remaining entry or byte budget.
+    HistoryBudgetExceeded,
+    /// A cursor repeated an earlier exact value.
+    CursorCycle,
+    /// One digest identified two distinct cursor values.
+    CursorDigestCollision,
+    /// One cursor value was supplied with different digests.
+    CursorDigestChanged,
+    /// A provider link was not valid UTF-8 or request-target syntax.
+    InvalidProviderLink,
+    /// A provider link changed the bound network scheme.
+    ProviderLinkSchemeChanged,
+    /// A provider link changed the bound authority.
+    ProviderLinkAuthorityChanged,
+    /// A provider link contained user information.
+    ProviderLinkUserinfo,
+    /// A provider link contained a fragment.
+    ProviderLinkFragment,
+    /// A provider link changed the bound operation path.
+    ProviderLinkPathChanged,
+    /// A provider link was used with another HTTP method.
+    ProviderLinkMethodChanged,
+    /// A provider link was used with another operation identifier.
+    ProviderLinkOperationChanged,
 }
 
 impl_static_error!(PaginationError,
+    Self::ZeroLimit => "pagination limits must be nonzero",
+    Self::StateLimitTooLarge => "opaque pagination state limit exceeds the hard limit",
     Self::PageZero => "page number must be nonzero",
-    Self::PerPageZero => "page size must be nonzero",
-    Self::PageLimitZero => "page limit must be nonzero",
+    Self::PageSizeZero => "page size must be nonzero",
     Self::InvalidPreviousPage => "previous-page metadata is invalid",
     Self::InvalidNextPage => "next-page metadata is invalid",
     Self::InvalidLastPage => "last-page metadata is invalid",
-    Self::UnexpectedPage => "response page differs from requested page",
-    Self::EmptyPageWithNextPage => "nonterminal response page is empty",
+    Self::UnexpectedPosition => "response position differs from the requested position",
+    Self::EmptyPageWithContinuation => "nonterminal response page is empty",
     Self::InvalidEntryCount => "response entry count is invalid",
     Self::PageSizeChanged => "response page size changed during traversal",
     Self::TraversalChanged => "pagination metadata changed during traversal",
-    Self::PageLimitExceeded => "pagination page limit was exceeded",
+    Self::RequestBudgetExceeded => "pagination request budget was exceeded",
+    Self::ItemBudgetExceeded => "pagination item budget was exceeded",
+    Self::SnapshotRequired => "provider snapshot identifier is required",
+    Self::SnapshotForbidden => "provider snapshot identifier is forbidden",
+    Self::SnapshotChanged => "provider snapshot identifier changed during traversal",
     Self::Complete => "pagination traversal is complete",
+    Self::MissingState => "opaque pagination state is missing",
+    Self::StateTooLong => "opaque pagination state exceeds the selected limit",
+    Self::OutputTooSmall => "pagination state output is too small",
+    Self::HistoryBudgetExceeded => "cursor history budget was exceeded",
+    Self::CursorCycle => "pagination cursor cycle was detected",
+    Self::CursorDigestCollision => "pagination cursor digest collision was detected",
+    Self::CursorDigestChanged => "pagination cursor digest changed for the same state",
+    Self::InvalidProviderLink => "provider pagination link is invalid",
+    Self::ProviderLinkSchemeChanged => "provider pagination link changed scheme",
+    Self::ProviderLinkAuthorityChanged => "provider pagination link changed authority",
+    Self::ProviderLinkUserinfo => "provider pagination link contains user information",
+    Self::ProviderLinkFragment => "provider pagination link contains a fragment",
+    Self::ProviderLinkPathChanged => "provider pagination link changed operation path",
+    Self::ProviderLinkMethodChanged => "provider pagination link changed HTTP method",
+    Self::ProviderLinkOperationChanged => "provider pagination link changed operation",
 );
-
-/// One-based provider-neutral page number.
-#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-pub struct PageNumber(u64);
-
-impl PageNumber {
-    /// Creates a one-based page number.
-    pub const fn new(value: u64) -> Result<Self, PaginationError> {
-        if value == 0 {
-            return Err(PaginationError::PageZero);
-        }
-        Ok(Self(value))
-    }
-
-    /// Returns the raw page number.
-    #[must_use]
-    pub const fn get(self) -> u64 {
-        self.0
-    }
-}
-
-/// Nonzero limit on pages admitted by one cursor.
-#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-pub struct PageLimit(u32);
-
-impl PageLimit {
-    /// Creates a nonzero page limit.
-    pub const fn new(value: u32) -> Result<Self, PaginationError> {
-        if value == 0 {
-            return Err(PaginationError::PageLimitZero);
-        }
-        Ok(Self(value))
-    }
-
-    /// Returns the maximum number of pages.
-    #[must_use]
-    pub const fn get(self) -> u32 {
-        self.0
-    }
-}
-
-/// Validated metadata from one paginated provider response.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct PageMetadata {
-    page: PageNumber,
-    per_page: u64,
-    previous_page: Option<PageNumber>,
-    next_page: Option<PageNumber>,
-    last_page: Option<PageNumber>,
-    total_entries: Option<u64>,
-}
-
-impl PageMetadata {
-    /// Creates coherent page navigation metadata.
-    pub const fn new(
-        page: PageNumber,
-        per_page: u64,
-        previous_page: Option<PageNumber>,
-        next_page: Option<PageNumber>,
-        last_page: Option<PageNumber>,
-        total_entries: Option<u64>,
-    ) -> Result<Self, PaginationError> {
-        if per_page == 0 {
-            return Err(PaginationError::PerPageZero);
-        }
-        if let Some(previous) = previous_page {
-            let Some(expected) = page.0.checked_sub(1) else {
-                return Err(PaginationError::InvalidPreviousPage);
-            };
-            if previous.0 != expected {
-                return Err(PaginationError::InvalidPreviousPage);
-            }
-        }
-        if let Some(next) = next_page {
-            let Some(expected) = page.0.checked_add(1) else {
-                return Err(PaginationError::InvalidNextPage);
-            };
-            if next.0 != expected {
-                return Err(PaginationError::InvalidNextPage);
-            }
-        }
-        if let Some(last) = last_page {
-            if last.0 < page.0 {
-                return Err(PaginationError::InvalidLastPage);
-            }
-            if (page.0 < last.0) != next_page.is_some() {
-                return Err(PaginationError::InvalidLastPage);
-            }
-            if let Some(next) = next_page
-                && next.0 > last.0
-            {
-                return Err(PaginationError::InvalidLastPage);
-            }
-        }
-        Ok(Self {
-            page,
-            per_page,
-            previous_page,
-            next_page,
-            last_page,
-            total_entries,
-        })
-    }
-
-    /// Returns the current page.
-    #[must_use]
-    pub const fn page(self) -> PageNumber {
-        self.page
-    }
-
-    /// Returns the requested maximum entries per page.
-    #[must_use]
-    pub const fn per_page(self) -> u64 {
-        self.per_page
-    }
-
-    /// Returns the previous page when advertised.
-    #[must_use]
-    pub const fn previous_page(self) -> Option<PageNumber> {
-        self.previous_page
-    }
-
-    /// Returns the next page when advertised.
-    #[must_use]
-    pub const fn next_page(self) -> Option<PageNumber> {
-        self.next_page
-    }
-
-    /// Returns the final page when known.
-    #[must_use]
-    pub const fn last_page(self) -> Option<PageNumber> {
-        self.last_page
-    }
-
-    /// Returns the total matching entries when known.
-    #[must_use]
-    pub const fn total_entries(self) -> Option<u64> {
-        self.total_entries
-    }
-}
-
-/// Accepted page boundary returned to a caller.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct PageBoundary {
-    metadata: PageMetadata,
-    entries: usize,
-    rate_limit: Option<RateLimit>,
-}
-
-impl PageBoundary {
-    /// Returns the validated provider metadata.
-    #[must_use]
-    pub const fn metadata(self) -> PageMetadata {
-        self.metadata
-    }
-
-    /// Returns the entries decoded from this page.
-    #[must_use]
-    pub const fn entries(self) -> usize {
-        self.entries
-    }
-
-    /// Returns rate-limit metadata from this response when supplied.
-    #[must_use]
-    pub const fn rate_limit(self) -> Option<RateLimit> {
-        self.rate_limit
-    }
-
-    /// Reports whether this page ended iteration.
-    #[must_use]
-    pub const fn is_terminal(self) -> bool {
-        self.metadata.next_page.is_none()
-    }
-}
-
-/// Bounded explicit cursor that locks page size and traversal metadata.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct PaginationCursor {
-    next_page: Option<PageNumber>,
-    pages_seen: u32,
-    limit: PageLimit,
-    expected_per_page: u64,
-    expected_total_entries: Option<u64>,
-    expected_last_page: Option<PageNumber>,
-}
-
-impl PaginationCursor {
-    /// Starts a cursor with caller-bound page size and hard page limit.
-    pub const fn new(
-        first_page: PageNumber,
-        expected_per_page: u64,
-        limit: PageLimit,
-    ) -> Result<Self, PaginationError> {
-        if expected_per_page == 0 {
-            return Err(PaginationError::PerPageZero);
-        }
-        Ok(Self {
-            next_page: Some(first_page),
-            pages_seen: 0,
-            limit,
-            expected_per_page,
-            expected_total_entries: None,
-            expected_last_page: None,
-        })
-    }
-
-    /// Returns the page the caller must request next.
-    pub const fn next_page(self) -> Result<PageNumber, PaginationError> {
-        match self.next_page {
-            Some(page) => Ok(page),
-            None => Err(PaginationError::Complete),
-        }
-    }
-
-    /// Returns the number of accepted pages.
-    #[must_use]
-    pub const fn pages_seen(self) -> u32 {
-        self.pages_seen
-    }
-
-    /// Validates locked traversal metadata and decoded entries, then records the page.
-    pub fn observe(
-        &mut self,
-        metadata: PageMetadata,
-        entries: usize,
-        rate_limit: Option<RateLimit>,
-    ) -> Result<PageBoundary, PaginationError> {
-        let expected = match self.next_page {
-            Some(page) => page,
-            None => return Err(PaginationError::Complete),
-        };
-        if metadata.page.0 != expected.0 {
-            return Err(PaginationError::UnexpectedPage);
-        }
-        if metadata.per_page != self.expected_per_page {
-            return Err(PaginationError::PageSizeChanged);
-        }
-        if self.pages_seen != 0
-            && (metadata.total_entries != self.expected_total_entries
-                || metadata.last_page != self.expected_last_page)
-        {
-            return Err(PaginationError::TraversalChanged);
-        }
-        let entry_count = u64::try_from(entries).map_err(|_| PaginationError::InvalidEntryCount)?;
-        if entry_count > metadata.per_page {
-            return Err(PaginationError::InvalidEntryCount);
-        }
-        if let Some(total) = metadata.total_entries {
-            let page_offset = metadata
-                .page
-                .0
-                .checked_sub(1)
-                .and_then(|page| page.checked_mul(metadata.per_page))
-                .ok_or(PaginationError::InvalidEntryCount)?;
-            let expected_entries = total.saturating_sub(page_offset).min(metadata.per_page);
-            let expected_continuation = total
-                > page_offset
-                    .checked_add(entry_count)
-                    .ok_or(PaginationError::InvalidEntryCount)?;
-            if entry_count != expected_entries
-                || expected_continuation != metadata.next_page.is_some()
-            {
-                return Err(PaginationError::InvalidEntryCount);
-            }
-        }
-        if entries == 0 && metadata.next_page.is_some() {
-            return Err(PaginationError::EmptyPageWithNextPage);
-        }
-        let pages_seen = match self.pages_seen.checked_add(1) {
-            Some(value) => value,
-            None => return Err(PaginationError::PageLimitExceeded),
-        };
-        if metadata.next_page.is_some() && pages_seen >= self.limit.0 {
-            return Err(PaginationError::PageLimitExceeded);
-        }
-        self.pages_seen = pages_seen;
-        self.next_page = metadata.next_page;
-        if pages_seen == 1 {
-            self.expected_total_entries = metadata.total_entries;
-            self.expected_last_page = metadata.last_page;
-        }
-        Ok(PageBoundary {
-            metadata,
-            entries,
-            rate_limit,
-        })
-    }
-}
 
 #[cfg(test)]
 mod tests;

@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.44.0 - Unreleased
+
+- Added distinct bounded numbered, offset, cursor, marker, and provider-link
+  pagination strategies.
+- Added transactional request, item, opaque-state, and snapshot budgets.
+- Added cleanup-owning opaque state and fail-closed cursor cycle/collision
+  detection.
+- Added raw provider-link preservation bound to endpoint, method, operation,
+  and exact path, with no structured-query recomposition.
+- Migrated Hetzner pagination metadata to the numbered strategy contract.
+
 ## 0.43.0 - 2026-07-31
 
 - Required every prepared request to carry complete authentication-scope and

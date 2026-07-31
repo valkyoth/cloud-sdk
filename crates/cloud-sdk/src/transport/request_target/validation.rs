@@ -51,6 +51,34 @@ pub(super) fn validate_query(value: &str, allow_plus: bool) -> Result<(), Struct
         .map_err(query_component_error)
 }
 
+pub(super) fn validate_provider_link_query(value: &str) -> Result<(), ()> {
+    let bytes = value.as_bytes();
+    let mut index = 0;
+    while index < bytes.len() {
+        let byte = *bytes.get(index).ok_or(())?;
+        if byte == b'%' {
+            let high = *bytes.get(index.checked_add(1).ok_or(())?).ok_or(())?;
+            let low = *bytes.get(index.checked_add(2).ok_or(())?).ok_or(())?;
+            let decoded = decode_hex_case_insensitive(high)
+                .and_then(|high| high.checked_mul(16))
+                .and_then(|high| {
+                    decode_hex_case_insensitive(low).and_then(|low| high.checked_add(low))
+                })
+                .ok_or(())?;
+            if decoded < 0x20 || decoded == 0x7f || matches!(decoded, b'#' | b'\\') {
+                return Err(());
+            }
+            index = index.checked_add(3).ok_or(())?;
+            continue;
+        }
+        if !is_provider_link_query_byte(byte) {
+            return Err(());
+        }
+        index = index.checked_add(1).ok_or(())?;
+    }
+    Ok(())
+}
+
 #[derive(Clone, Copy)]
 enum Component {
     Path,
@@ -158,6 +186,27 @@ const fn is_path_byte(byte: u8) -> bool {
 
 const fn is_unreserved(byte: u8) -> bool {
     matches!(byte, b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'.' | b'_' | b'~')
+}
+
+const fn is_provider_link_query_byte(byte: u8) -> bool {
+    is_unreserved(byte)
+        || matches!(
+            byte,
+            b'!' | b'$'
+                | b'&'
+                | b'\''
+                | b'('
+                | b')'
+                | b'*'
+                | b'+'
+                | b','
+                | b';'
+                | b'='
+                | b':'
+                | b'@'
+                | b'/'
+                | b'?'
+        )
 }
 
 const fn decode_hex_case_insensitive(byte: u8) -> Option<u8> {

@@ -19,6 +19,7 @@ scripts/test-provider-identities.py
 scripts/check_provider_identities.sh
 scripts/check_http_method_domain.sh
 scripts/check_request_targets.sh
+scripts/check_pagination_strategies.sh
 scripts/check_header_model.sh
 scripts/check_response_provenance.sh
 scripts/check_response_cleanup.sh

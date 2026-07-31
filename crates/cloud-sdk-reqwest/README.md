@@ -38,8 +38,8 @@ provider without adding transport dependencies to provider crates.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.43.0"
-cloud-sdk-reqwest = { version = "0.30.0", features = ["blocking-rustls"] }
+cloud-sdk = "0.44.0"
+cloud-sdk-reqwest = { version = "0.30.1", features = ["blocking-rustls"] }
 ```
 
 The examples use Hetzner as a concrete endpoint, but the adapter contains no
@@ -309,8 +309,8 @@ compiled into `webpki-roots`:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.43.0"
-cloud-sdk-reqwest = { version = "0.30.0", features = ["blocking-rustls-webpki-roots"] }
+cloud-sdk = "0.44.0"
+cloud-sdk-reqwest = { version = "0.30.1", features = ["blocking-rustls-webpki-roots"] }
 ```
 
 The blocking API is identical to the example above. The custom rustls client
@@ -326,8 +326,8 @@ Use the same blocking API with the dedicated feature:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.43.0"
-cloud-sdk-reqwest = { version = "0.30.0", features = ["blocking-rustls-fips"] }
+cloud-sdk = "0.44.0"
+cloud-sdk-reqwest = { version = "0.30.1", features = ["blocking-rustls-fips"] }
 rustls = "=0.23.42"
 ```
 

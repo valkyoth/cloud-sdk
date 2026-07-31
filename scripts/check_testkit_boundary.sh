@@ -1,9 +1,14 @@
 #!/usr/bin/env sh
 set -eu
 
+sdk_version=$(awk -F '"' '/^version = "/ { print $2; exit }' Cargo.toml)
+if [ -z "$sdk_version" ]; then
+    echo "testkit boundary: workspace version is missing" >&2
+    exit 1
+fi
 default_tree=$(cargo tree -p cloud-sdk-testkit --no-default-features --edges normal,build)
-if ! printf '%s\n' "$default_tree" | grep -Fq 'cloud-sdk v0.43.0'; then
-    echo "testkit boundary: cloud-sdk v0.43.0 is missing" >&2
+if ! printf '%s\n' "$default_tree" | grep -Fq "cloud-sdk v${sdk_version}"; then
+    echo "testkit boundary: cloud-sdk v${sdk_version} is missing" >&2
     exit 1
 fi
 if printf '%s\n' "$default_tree" | grep -Eq \

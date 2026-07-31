@@ -1,6 +1,6 @@
 //! Pagination domains.
 
-use cloud_sdk::pagination::PageMetadata;
+use cloud_sdk::pagination::NumberedPageMetadata;
 
 /// Default page size documented by the Hetzner API.
 pub const DEFAULT_PER_PAGE: u16 = 25;
@@ -86,7 +86,7 @@ pub struct PaginationMetadata {
     next_page: Option<Page>,
     last_page: Option<Page>,
     total_entries: Option<u64>,
-    core: PageMetadata,
+    core: NumberedPageMetadata,
 }
 
 impl PaginationMetadata {
@@ -103,7 +103,7 @@ impl PaginationMetadata {
         let previous = previous_page.map(to_core_page).transpose()?;
         let next = next_page.map(to_core_page).transpose()?;
         let last = last_page.map(to_core_page).transpose()?;
-        let core = PageMetadata::new(
+        let core = NumberedPageMetadata::new(
             page_number,
             u64::from(per_page.get()),
             previous,
@@ -159,9 +159,9 @@ impl PaginationMetadata {
         self.total_entries
     }
 
-    /// Returns provider-neutral metadata for the core pagination cursor.
+    /// Returns provider-neutral metadata for the numbered-page strategy.
     #[must_use]
-    pub const fn as_core(self) -> PageMetadata {
+    pub const fn as_core(self) -> NumberedPageMetadata {
         self.core
     }
 }

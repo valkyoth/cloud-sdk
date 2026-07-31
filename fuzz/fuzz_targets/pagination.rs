@@ -1,16 +1,24 @@
 #![no_main]
 
-use cloud_sdk::pagination::{PageLimit, PageMetadata, PageNumber, PaginationCursor};
+use cloud_sdk::pagination::{
+    NumberedPageMetadata, NumberedPagination, PageNumber, PaginationBudget, PaginationLimits,
+    SnapshotPolicy,
+};
 use libfuzzer_sys::fuzz_target;
 
 fuzz_target!(|data: &[u8]| {
     let first = page(data.first().copied().unwrap_or(0));
     let per_page = u64::from(data.get(1).copied().unwrap_or(0)).saturating_add(1);
-    let limit = PageLimit::new(u32::from(data.get(2).copied().unwrap_or(0) % 16) + 1);
-    let (Ok(first), Ok(limit)) = (first, limit) else {
+    let limits = PaginationLimits::new(
+        u32::from(data.get(2).copied().unwrap_or(0) % 16) + 1,
+        16_384,
+        256,
+    );
+    let (Ok(first), Ok(limits)) = (first, limits) else {
         return;
     };
-    let Ok(mut cursor) = PaginationCursor::new(first, per_page, limit) else {
+    let budget = PaginationBudget::new(limits, SnapshotPolicy::Forbidden);
+    let Ok(mut cursor) = NumberedPagination::new(first, per_page, budget) else {
         return;
     };
 
@@ -28,14 +36,18 @@ fuzz_target!(|data: &[u8]| {
         let (Ok(previous), Ok(next), Ok(last)) = (previous, next, last) else {
             continue;
         };
-        let Ok(metadata) = PageMetadata::new(current, per_page, previous, next, last, total) else {
+        let Ok(metadata) =
+            NumberedPageMetadata::new(current, per_page, previous, next, last, total)
+        else {
             continue;
         };
 
-        let before = cursor;
-        let result = cursor.observe(metadata, entries, None);
+        let before_page = cursor.next_page();
+        let before_progress = cursor.progress();
+        let result = cursor.observe(metadata, entries, None, None);
         if result.is_err() {
-            assert_eq!(cursor, before);
+            assert_eq!(cursor.next_page(), before_page);
+            assert_eq!(cursor.progress(), before_progress);
         }
     }
 });

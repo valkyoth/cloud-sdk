@@ -120,8 +120,8 @@ Portable and native platform evidence is documented in
 
 ```toml
 [dependencies]
-cloud-sdk = "0.43.0"
-cloud-sdk-hetzner = "0.33.0"
+cloud-sdk = "0.44.0"
+cloud-sdk-hetzner = "0.34.0"
 ```
 
 ## cloud-sdk Features
@@ -145,6 +145,7 @@ visible. Applications should enable only the features they use.
 - [Bearer and Basic authentication policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/AUTHENTICATION_POLICY.md)
 - [Canonical signing input policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/SIGNING_INPUT_POLICY.md)
 - [Robot wire source lock](https://github.com/valkyoth/cloud-sdk/blob/main/docs/ROBOT_WIRE_SOURCE_LOCK.md)
+- [Pagination strategies](https://github.com/valkyoth/cloud-sdk/blob/main/docs/PAGINATION_STRATEGIES.md)
 - [Release runbook](https://github.com/valkyoth/cloud-sdk/blob/main/docs/RELEASE_RUNBOOK.md)
 - [Versioning and error policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/VERSIONING_POLICY.md)
 - [Migrating to v0.29](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.29.0.md)
@@ -162,6 +163,7 @@ visible. Applications should enable only the features they use.
 - [Migrating to v0.41](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.41.0.md)
 - [Migrating to v0.42](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.42.0.md)
 - [Migrating to v0.43](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.43.0.md)
+- [Migrating to v0.44](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.44.0.md)
 - [Deprecated endpoint policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/DEPRECATED_ENDPOINT_POLICY.md)
 
 ## Provider-Neutral Quickstart
@@ -453,8 +455,8 @@ without changing the default allocation-free graph.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.43.0"
-cloud-sdk-reqwest = { version = "0.30.0", features = ["blocking-rustls"] }
+cloud-sdk = "0.44.0"
+cloud-sdk-reqwest = { version = "0.30.1", features = ["blocking-rustls"] }
 ```
 
 The production builder is HTTPS-only, requires explicit bounded timeouts and a
@@ -480,8 +482,8 @@ when deterministic public WebPKI roots are required:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.43.0"
-cloud-sdk-reqwest = { version = "0.30.0", features = ["blocking-rustls-webpki-roots"] }
+cloud-sdk = "0.44.0"
+cloud-sdk-reqwest = { version = "0.30.1", features = ["blocking-rustls-webpki-roots"] }
 ```
 
 The blocking API is unchanged. This feature excludes host-added enterprise
@@ -497,8 +499,8 @@ feature instead of relying on dependency feature unification:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.43.0"
-cloud-sdk-reqwest = { version = "0.30.0", features = ["blocking-rustls-fips"] }
+cloud-sdk = "0.44.0"
+cloud-sdk-reqwest = { version = "0.30.1", features = ["blocking-rustls-fips"] }
 ```
 
 Client construction explicitly selects rustls' AWS-LC FIPS provider and fails
@@ -516,8 +518,8 @@ example is in the
 
 ```toml
 [dependencies]
-cloud-sdk = "0.43.0"
-cloud-sdk-reqwest = { version = "0.30.0", features = ["async-rustls"] }
+cloud-sdk = "0.44.0"
+cloud-sdk-reqwest = { version = "0.30.1", features = ["async-rustls"] }
 ```
 
 The async adapter requires an active Tokio executor because reqwest uses Tokio
@@ -530,21 +532,23 @@ See the complete, compile-checked
 [`cloud-sdk-reqwest` async example](https://docs.rs/cloud-sdk-reqwest/latest/cloud_sdk_reqwest/#async-example)
 for client construction and request execution.
 
-## Pagination Cursor Example
+## Numbered Pagination Example
 
 ```rust
 use cloud_sdk::pagination::{
-    PageLimit, PageMetadata, PageNumber, PaginationCursor,
+    NumberedPageMetadata, NumberedPagination, PageNumber, PaginationBudget,
+    PaginationLimits, SnapshotPolicy,
 };
 
 # fn main() -> Result<(), cloud_sdk::pagination::PaginationError> {
 let first = PageNumber::new(1)?;
 let second = PageNumber::new(2)?;
-let limit = PageLimit::new(10)?;
-let mut cursor = PaginationCursor::new(first, 25, limit)?;
+let limits = PaginationLimits::new(3, 30, 128)?;
+let budget = PaginationBudget::new(limits, SnapshotPolicy::Forbidden);
+let mut pagination = NumberedPagination::new(first, 25, budget)?;
 
-assert_eq!(cursor.next_page()?, first);
-let metadata = PageMetadata::new(
+assert_eq!(pagination.next_page()?, first);
+let metadata = NumberedPageMetadata::new(
     first,
     25,
     None,
@@ -552,20 +556,19 @@ let metadata = PageMetadata::new(
     Some(second),
     Some(30),
 )?;
-let boundary = cursor.observe(metadata, 25, None)?;
+let boundary = pagination.observe(metadata, 25, None, None)?;
 
 assert!(!boundary.is_terminal());
-assert_eq!(cursor.next_page()?, second);
+assert_eq!(pagination.next_page()?, second);
 # Ok(())
 # }
 ```
 
-The caller fetches and decodes each requested page, then passes only validated
-metadata and the decoded entry count to the cursor. Empty non-terminal pages,
-repeated pages, contradictory navigation, entries above `per_page`, mismatch
-with a supplied total, page-size or traversal-total changes, and the caller's
-hard page limit fail closed. Restart the traversal when provider metadata
-changes. Each accepted boundary preserves transport rate-limit metadata.
+The caller fetches and decodes each requested page, then passes validated
+metadata and the decoded entry count to the numbered strategy. Request, item,
+opaque-state, snapshot, and traversal metadata limits fail closed. Cursor,
+offset, marker, and operation-bound provider-link strategies are documented in
+the [pagination guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/PAGINATION_STRATEGIES.md).
 
 ## Action Polling Example
 

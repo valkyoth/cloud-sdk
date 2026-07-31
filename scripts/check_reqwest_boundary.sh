@@ -3,10 +3,15 @@ set -eu
 
 . scripts/enforce_bundled_aws_lc.sh
 
+sdk_version=$(awk -F '"' '/^version = "/ { print $2; exit }' Cargo.toml)
+if [ -z "$sdk_version" ]; then
+    echo "reqwest boundary: workspace version is missing" >&2
+    exit 1
+fi
 default_tree=$(cargo tree -p cloud-sdk-reqwest --no-default-features --edges normal)
 default_dependencies=$(printf '%s\n' "$default_tree" | sed '1d')
-if ! printf '%s\n' "$default_tree" | grep -Fq 'cloud-sdk v0.43.0'; then
-    echo "reqwest boundary: cloud-sdk v0.43.0 is missing" >&2
+if ! printf '%s\n' "$default_tree" | grep -Fq "cloud-sdk v${sdk_version}"; then
+    echo "reqwest boundary: cloud-sdk v${sdk_version} is missing" >&2
     exit 1
 fi
 if printf '%s\n' "$default_dependencies" | grep -Eq \
