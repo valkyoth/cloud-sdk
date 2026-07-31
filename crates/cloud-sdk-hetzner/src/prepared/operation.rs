@@ -5,19 +5,19 @@ use core::marker::PhantomData;
 use cloud_sdk::Method;
 use cloud_sdk::operation::{
     ContentTypePolicy, CostIntent, OperationId, OperationImpact, OperationMetadata,
-    PreparationStorage, PrepareOperation, PreparedRequest, ProviderService, RequestIdPolicy,
-    RequestSemantics, ResponseBodyPolicy, ResponsePolicy, RetryEligibility,
+    PreparationStorage, PrepareOperation, PreparedRequest, RequestIdPolicy, RequestSemantics,
+    ResponseBodyPolicy, ResponsePolicy, RetryEligibility,
 };
 use cloud_sdk::transport::{
     ContentType, MediaType, RequestHeader, RequestHeaders, RequestTarget, StatusCode,
     TransportRequest,
 };
 
-use crate::endpoint::official_endpoint_policy;
-use crate::identity::{CloudService, StorageService};
+use crate::endpoint::EndpointGroup;
 use crate::request::ApiBaseUrl;
 
 use super::HetznerPreparationError;
+use super::wire_policy::{authentication_policy, provider_service, raw_response_policy};
 
 const JSON_MEDIA: &[MediaType<'static>] = &[MediaType::JSON];
 const STATUS_OK: &[StatusCode] = &[StatusCode::OK];
@@ -60,6 +60,7 @@ pub(crate) enum OperationClass {
 pub(crate) trait EndpointWire: Copy {
     fn method(self) -> Method;
     fn api_base_url(self) -> ApiBaseUrl;
+    fn endpoint_group(self) -> EndpointGroup;
     fn write_path(self, output: &mut [u8]) -> Result<usize, HetznerPreparationError>;
     fn request_shape(self) -> RequestShape;
     fn response_profile(self) -> ResponseProfile;
@@ -198,8 +199,11 @@ where
     cloud_sdk_sanitization::sanitize_bytes(target_storage);
     cloud_sdk_sanitization::sanitize_bytes(body_storage);
     let metadata = endpoint.metadata()?;
-    let policy = response_policy(endpoint.response_profile())?;
-    let service = provider_service(endpoint.api_base_url())?;
+    let profile = endpoint.response_profile();
+    let policy = response_policy(profile)?;
+    let service = provider_service(endpoint.endpoint_group())?;
+    let authentication_policy = authentication_policy(service, endpoint.api_base_url())?;
+    let raw_response_policy = raw_response_policy(profile)?;
     validate_components(endpoint, query, body)?;
     let (target_len, body_len) =
         match write_components(endpoint, query, body, target_storage, body_storage) {
@@ -241,7 +245,15 @@ where
     }
     let operation_id = OperationId::new(endpoint.operation_key())
         .map_err(HetznerPreparationError::InvalidOperationId)?;
-    Ok(PreparedRequest::new(request, service, metadata, policy).with_operation_id(operation_id))
+    Ok(PreparedRequest::new(
+        request,
+        service,
+        metadata,
+        policy,
+        authentication_policy,
+        raw_response_policy,
+    )
+    .with_operation_id(operation_id))
 }
 
 fn validate_target_storage(storage: &[u8], len: usize) -> Result<(), HetznerPreparationError> {
@@ -317,15 +329,6 @@ where
     }
 }
 
-fn provider_service(base: ApiBaseUrl) -> Result<ProviderService<'static>, HetznerPreparationError> {
-    let policy =
-        official_endpoint_policy(base).map_err(HetznerPreparationError::InvalidOfficialEndpoint)?;
-    Ok(match base {
-        ApiBaseUrl::CloudV1 => ProviderService::from_marker::<CloudService>(policy),
-        ApiBaseUrl::HetznerV1 => ProviderService::from_marker::<StorageService>(policy),
-    })
-}
-
 fn response_policy(profile: ResponseProfile) -> Result<ResponsePolicy, HetznerPreparationError> {
     let (statuses, content_type, body, max) = match profile {
         ResponseProfile::JsonOk => (
@@ -390,14 +393,16 @@ pub(crate) fn operation_metadata(
 mod tests {
     use cloud_sdk::operation::{CostIntent, OperationImpact, RequestSemantics, RetryEligibility};
 
-    use super::{OperationClass, operation_metadata, provider_service};
+    use super::{OperationClass, operation_metadata};
+    use crate::EndpointGroup;
     use crate::endpoint::official_endpoint_policy;
-    use crate::request::ApiBaseUrl;
+    use crate::prepared::wire_policy::provider_service;
 
     #[test]
     fn prepared_services_use_the_canonical_official_policies() {
-        for base in [ApiBaseUrl::CloudV1, ApiBaseUrl::HetznerV1] {
-            let service = provider_service(base);
+        for group in [EndpointGroup::Servers, EndpointGroup::StorageBoxes] {
+            let base = group.api_base_url();
+            let service = provider_service(group);
             let official = official_endpoint_policy(base);
             assert!(service.is_ok() && official.is_ok());
             if let (Ok(service), Ok(official)) = (service, official) {

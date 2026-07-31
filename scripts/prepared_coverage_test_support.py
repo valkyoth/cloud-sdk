@@ -80,6 +80,19 @@ def assert_ambiguous_metadata_rejected(directory: Path) -> None:
         raise AssertionError("ambiguous library metadata was accepted")
 
 
+def assert_endpoint_group_definition_rejected(directory: Path) -> None:
+    method = (
+        "\n            fn endpoint_group(self) -> crate::EndpointGroup {\n"
+        "                <$type>::endpoint_group(self)\n            }\n\n"
+    )
+    result = run(
+        directory,
+        endpoint_definitions=ENDPOINT_DEFINITIONS.replace(method, ""),
+    )
+    assert result.returncode == 1, result
+    assert "endpoint_wire definition differs from its source lock" in result.stderr
+
+
 def assert_accepts_operation_mutations_rejected(directory: Path) -> None:
     """Reject compatibility methods detached from their canonical parameter."""
     for scrutinee in ('"write_test"', "self.operation_key()", "OTHER_VALUE"):

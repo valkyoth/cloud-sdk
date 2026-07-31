@@ -1,13 +1,15 @@
 use alloc::vec;
 
+use cloud_sdk::authentication::{AuthenticationScopePolicy, ScopeRequirement};
 use cloud_sdk::operation::{
     ContentTypePolicy, CostIntent, OperationId, OperationImpact, OperationMetadata,
     PreparedRequest, ProviderService, RequestIdPolicy, RequestSemantics, ResponseBodyPolicy,
     ResponsePolicy, RetryEligibility,
 };
 use cloud_sdk::transport::{
-    EndpointIdentity, EndpointPolicy, EndpointScheme, HeaderSensitivity, MediaType, RequestTarget,
-    ResponseBuffer, ResponseMetadata, StatusCode, TransportRequest,
+    EndpointIdentity, EndpointPolicy, EndpointScheme, HeaderName, HeaderSensitivity, MediaType,
+    RawResponsePolicy, RequestTarget, ResponseBuffer, ResponseMediaPolicy, ResponseMetadata,
+    StatusCode, TransportRequest,
 };
 use cloud_sdk::{Method, ServiceId};
 
@@ -72,19 +74,41 @@ pub(super) fn prepared(
     assert!(endpoint.is_ok());
     let operation_id = OperationId::new(operation);
     assert!(operation_id.is_ok());
+    let endpoint = endpoint.unwrap_or_else(|_| unreachable!());
+    let service = if service_id == STORAGE_SERVICE_ID {
+        ProviderService::from_marker::<StorageService>(EndpointPolicy::fixed(endpoint))
+    } else {
+        ProviderService::from_marker::<CloudService>(EndpointPolicy::fixed(endpoint))
+    };
+    let authentication_policy = AuthenticationScopePolicy::new(
+        ScopeRequirement::Required(service.provider_id()),
+        ScopeRequirement::Required(service.service_id()),
+        ScopeRequirement::Required(endpoint),
+        ScopeRequirement::Forbidden,
+        ScopeRequirement::Forbidden,
+        ScopeRequirement::Forbidden,
+    );
+    let content_type = HeaderName::new("content-type").unwrap_or_else(|_| unreachable!());
+    let raw_policy = RawResponsePolicy::new(
+        if empty { 0 } else { 8_388_608 },
+        8_388_608,
+        if empty {
+            ResponseMediaPolicy::Forbidden
+        } else {
+            ResponseMediaPolicy::Required(JSON)
+        },
+        ResponseMediaPolicy::Required(JSON),
+        &[content_type],
+        8,
+    )
+    .unwrap_or_else(|_| unreachable!());
     PreparedRequest::new(
         TransportRequest::new(Method::Get, target.unwrap_or_else(|_| unreachable!())),
-        if service_id == STORAGE_SERVICE_ID {
-            ProviderService::from_marker::<StorageService>(EndpointPolicy::fixed(
-                endpoint.unwrap_or_else(|_| unreachable!()),
-            ))
-        } else {
-            ProviderService::from_marker::<CloudService>(EndpointPolicy::fixed(
-                endpoint.unwrap_or_else(|_| unreachable!()),
-            ))
-        },
+        service,
         metadata.unwrap_or_else(|_| unreachable!()),
         policy.unwrap_or_else(|_| unreachable!()),
+        authentication_policy,
+        raw_policy,
     )
     .with_operation_id(operation_id.unwrap_or_else(|_| unreachable!()))
 }

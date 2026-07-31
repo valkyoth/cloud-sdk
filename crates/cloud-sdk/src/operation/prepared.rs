@@ -2,12 +2,16 @@
 
 use core::fmt;
 
+use crate::authentication::{
+    AsyncAuthenticatedTransport, AuthenticatedRequest, AuthenticationScopePolicy,
+    BlockingAuthenticatedTransport,
+};
 use crate::operation::{
     CheckedResponseGuard, OperationId, OperationMetadata, ResponsePolicy, ResponsePolicyError,
 };
 use crate::transport::{
-    AsyncTransport, BlockingTransport, BoundTransport, EndpointIdentityError, EndpointPolicy,
-    ResponseBuffer, TransportRequest,
+    BoundTransport, EndpointIdentityError, EndpointPolicy, RawResponsePolicy, ResponseBuffer,
+    TransportRequest,
 };
 use crate::{ProviderId, ProviderMarker, ServiceId, ServiceMarker};
 
@@ -126,6 +130,8 @@ pub struct PreparedRequest<'request> {
     service: ProviderService<'request>,
     metadata: OperationMetadata,
     response_policy: ResponsePolicy,
+    authentication_policy: AuthenticationScopePolicy<'request>,
+    raw_response_policy: RawResponsePolicy<'request>,
     operation_id: Option<OperationId>,
 }
 
@@ -137,12 +143,16 @@ impl<'request> PreparedRequest<'request> {
         service: ProviderService<'request>,
         metadata: OperationMetadata,
         response_policy: ResponsePolicy,
+        authentication_policy: AuthenticationScopePolicy<'request>,
+        raw_response_policy: RawResponsePolicy<'request>,
     ) -> Self {
         Self {
             request,
             service,
             metadata,
             response_policy,
+            authentication_policy,
+            raw_response_policy,
             operation_id: None,
         }
     }
@@ -176,6 +186,28 @@ impl<'request> PreparedRequest<'request> {
     #[must_use]
     pub const fn response_policy(self) -> ResponsePolicy {
         self.response_policy
+    }
+
+    /// Returns the complete provider-owned authentication-scope policy.
+    #[must_use]
+    pub const fn authentication_policy(self) -> AuthenticationScopePolicy<'request> {
+        self.authentication_policy
+    }
+
+    /// Returns the complete status-class raw response policy.
+    #[must_use]
+    pub const fn raw_response_policy(self) -> RawResponsePolicy<'request> {
+        self.raw_response_policy
+    }
+
+    /// Returns the request with its mandatory authentication and raw wire policy.
+    #[must_use]
+    pub const fn authenticated_request(self) -> AuthenticatedRequest<'request, 'request> {
+        AuthenticatedRequest::new(
+            self.request,
+            self.authentication_policy,
+            self.raw_response_policy,
+        )
     }
 
     /// Returns the provider operation identifier when one was bound.
@@ -213,17 +245,17 @@ impl<'request> PreparedRequest<'request> {
         response_header_storage: &'buffer mut [u8],
     ) -> Result<CheckedResponseGuard<'buffer>, PreparedExecutionError<T::Error>>
     where
-        T: BlockingTransport + BoundTransport,
+        T: BlockingAuthenticatedTransport + BoundTransport,
     {
         let mut response = ResponseBuffer::new(
             response_storage,
-            self.response_policy.max_body_bytes(),
+            self.raw_response_policy.max_body_bytes(),
             response_header_storage,
         );
         self.verify_endpoint(transport)
             .map_err(map_endpoint_error)?;
         transport
-            .send(self.request, response.writer())
+            .send_authenticated(self.authenticated_request(), response.writer())
             .map_err(PreparedExecutionError::Transport)?;
         self.response_policy
             .validate(response, self.metadata.request_id_policy())
@@ -238,18 +270,18 @@ impl<'request> PreparedRequest<'request> {
         response_header_storage: &'buffer mut [u8],
     ) -> Result<CheckedResponseGuard<'buffer>, PreparedExecutionError<T::Error>>
     where
-        T: AsyncTransport + BoundTransport,
+        T: AsyncAuthenticatedTransport + BoundTransport,
         'request: 'transport,
     {
         let mut response = ResponseBuffer::new(
             response_storage,
-            self.response_policy.max_body_bytes(),
+            self.raw_response_policy.max_body_bytes(),
             response_header_storage,
         );
         self.verify_endpoint(transport)
             .map_err(map_endpoint_error)?;
         transport
-            .send(self.request, response.writer())
+            .send_authenticated(self.authenticated_request(), response.writer())
             .await
             .map_err(PreparedExecutionError::Transport)?;
         self.response_policy
@@ -279,6 +311,8 @@ impl fmt::Debug for PreparedRequest<'_> {
             .field("service", &self.service)
             .field("metadata", &self.metadata)
             .field("response_policy", &self.response_policy)
+            .field("authentication_policy", &self.authentication_policy)
+            .field("raw_response_policy", &self.raw_response_policy)
             .field("operation_id", &self.operation_id)
             .finish()
     }

@@ -5,6 +5,7 @@ use cloud_sdk::transport::{
     RawResponsePolicy, ResponseStorageSanitizer, ResponseWriter, TransportRequest,
 };
 use cloud_sdk_sanitization::sanitize_bytes;
+use http::header::HeaderValue;
 
 use crate::shared::{HttpsEndpoint, RawHyperClient, RawTransportFailure};
 
@@ -18,6 +19,18 @@ pub struct RawAsyncClient {
 impl RawAsyncClient {
     pub(super) const fn new(inner: RawHyperClient, endpoint: HttpsEndpoint) -> Self {
         Self { inner, endpoint }
+    }
+
+    pub(crate) async fn execute_authenticated(
+        &self,
+        request: TransportRequest<'_>,
+        policy: RawResponsePolicy<'_>,
+        authorization: HeaderValue,
+        response_writer: &mut ResponseWriter<'_>,
+    ) -> Result<(), RawTransportFailure> {
+        self.inner
+            .execute_authenticated(request, policy, authorization, response_writer)
+            .await
     }
 }
 

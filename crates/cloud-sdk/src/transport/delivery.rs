@@ -74,6 +74,15 @@ impl<E> TransportFailure<E> {
     pub fn into_error(self) -> E {
         self.error
     }
+
+    /// Transforms the payload-free adapter error while preserving delivery state.
+    #[must_use]
+    pub fn map<F>(self, transform: impl FnOnce(E) -> F) -> TransportFailure<F> {
+        TransportFailure {
+            phase: self.phase,
+            error: transform(self.error),
+        }
+    }
 }
 
 impl<E: PartialEq> PartialEq for TransportFailure<E> {

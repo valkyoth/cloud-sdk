@@ -1,13 +1,10 @@
 use core::fmt;
 
-use reqwest::blocking::Client;
 #[cfg(any(
+    feature = "blocking-rustls",
     feature = "blocking-rustls-fips",
     feature = "blocking-rustls-webpki-roots"
 ))]
-use reqwest::blocking::ClientBuilder;
-use reqwest::redirect::Policy;
-use reqwest::tls::Version;
 use rustls::ClientConfig;
 #[cfg(any(
     feature = "blocking-rustls-fips",
@@ -135,12 +132,18 @@ impl BlockingClientBuilder {
             return Err(BuildError::CredentialEndpointMismatch);
         }
         let settings = ClientSettings {
-            user_agent: &self.user_agent,
             timeouts: self.timeouts,
             #[cfg(feature = "blocking-rustls-fips")]
             fips_tls_policy: self.fips_tls_policy.as_ref(),
+            #[cfg(not(feature = "blocking-rustls-fips"))]
+            _lifetime: core::marker::PhantomData,
         };
-        let client = configured_client(settings, https_only)?;
+        let client = configured_raw_client(
+            self.endpoint.clone(),
+            &self.user_agent,
+            settings,
+            https_only,
+        )?;
         Ok(BlockingClient::new(
             client,
             self.endpoint,
@@ -187,20 +190,13 @@ impl RawBlockingClientBuilder {
 
     fn build_inner(self, https_only: bool) -> Result<RawBlockingClient, BuildError> {
         let settings = ClientSettings {
-            user_agent: &self.user_agent,
             timeouts: self.timeouts,
             #[cfg(feature = "blocking-rustls-fips")]
             fips_tls_policy: self.fips_tls_policy.as_ref(),
+            #[cfg(not(feature = "blocking-rustls-fips"))]
+            _lifetime: core::marker::PhantomData,
         };
-        let tls_config = raw_tls_config(settings)?;
-        let client = RawHyperClient::new(
-            self.endpoint.clone(),
-            &self.user_agent,
-            self.timeouts,
-            tls_config,
-            https_only,
-        )?;
-        Ok(RawBlockingClient::new(client, self.endpoint))
+        configured_raw_client(self.endpoint, &self.user_agent, settings, https_only)
     }
 
     #[cfg(test)]
@@ -238,35 +234,28 @@ impl fmt::Debug for RawBlockingClientBuilder {
 
 #[derive(Clone, Copy)]
 pub(super) struct ClientSettings<'a> {
-    pub(super) user_agent: &'a UserAgent,
     pub(super) timeouts: RequestTimeouts,
     #[cfg(feature = "blocking-rustls-fips")]
     pub(super) fips_tls_policy: Option<&'a FipsTlsPolicy>,
+    #[cfg(not(feature = "blocking-rustls-fips"))]
+    pub(super) _lifetime: core::marker::PhantomData<&'a ()>,
 }
 
-pub(super) fn configured_client(
+pub(super) fn configured_raw_client(
+    endpoint: HttpsEndpoint,
+    user_agent: &UserAgent,
     settings: ClientSettings<'_>,
     https_only: bool,
-) -> Result<Client, BuildError> {
-    configured_tls_builder(settings)?
-        .https_only(https_only)
-        .http1_only()
-        .no_hickory_dns()
-        .min_tls_version(Version::TLS_1_2)
-        .redirect(Policy::none())
-        .retry(reqwest::retry::never())
-        .referer(false)
-        .no_proxy()
-        .no_gzip()
-        .no_brotli()
-        .no_zstd()
-        .no_deflate()
-        .timeout(settings.timeouts.total())
-        .connect_timeout(settings.timeouts.connect())
-        .connection_verbose(false)
-        .user_agent(settings.user_agent.value.clone())
-        .build()
-        .map_err(|_| BuildError::ClientBuildFailed)
+) -> Result<RawBlockingClient, BuildError> {
+    let tls_config = raw_tls_config(settings)?;
+    let client = RawHyperClient::new(
+        endpoint.clone(),
+        user_agent,
+        settings.timeouts,
+        tls_config,
+        https_only,
+    )?;
+    Ok(RawBlockingClient::new(client, endpoint))
 }
 
 #[cfg(all(
@@ -295,25 +284,6 @@ fn raw_tls_config(settings: ClientSettings<'_>) -> Result<ClientConfig, BuildErr
 
 #[cfg(all(
     not(feature = "blocking-rustls-fips"),
-    not(feature = "blocking-rustls-webpki-roots")
-))]
-fn configured_tls_builder(
-    _settings: ClientSettings<'_>,
-) -> Result<reqwest::blocking::ClientBuilder, BuildError> {
-    Ok(Client::builder().tls_backend_rustls())
-}
-
-#[cfg(all(
-    not(feature = "blocking-rustls-fips"),
-    feature = "blocking-rustls-webpki-roots"
-))]
-fn configured_tls_builder(_settings: ClientSettings<'_>) -> Result<ClientBuilder, BuildError> {
-    let config = webpki_roots_client_config()?;
-    Ok(Client::builder().tls_backend_preconfigured(config))
-}
-
-#[cfg(all(
-    not(feature = "blocking-rustls-fips"),
     feature = "blocking-rustls-webpki-roots"
 ))]
 fn webpki_roots_client_config() -> Result<ClientConfig, BuildError> {
@@ -335,15 +305,6 @@ fn webpki_roots_client_config() -> Result<ClientConfig, BuildError> {
 pub(super) fn test_webpki_roots_configuration() -> Result<(usize, bool), BuildError> {
     let config = webpki_roots_client_config()?;
     Ok((webpki_roots::TLS_SERVER_ROOTS.len(), config.fips()))
-}
-
-#[cfg(feature = "blocking-rustls-fips")]
-fn configured_tls_builder(settings: ClientSettings<'_>) -> Result<ClientBuilder, BuildError> {
-    let policy = settings
-        .fips_tls_policy
-        .ok_or(BuildError::FipsTlsPolicyRequired)?;
-    let config = fips_client_config(policy)?;
-    Ok(Client::builder().tls_backend_preconfigured(config))
 }
 
 #[cfg(feature = "blocking-rustls-fips")]

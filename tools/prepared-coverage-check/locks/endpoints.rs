@@ -33,6 +33,10 @@ macro_rules! endpoint_wire {
                 <$type>::api_base_url(self)
             }
 
+            fn endpoint_group(self) -> crate::EndpointGroup {
+                <$type>::endpoint_group(self)
+            }
+
             fn write_path(
                 self,
                 output: &mut [u8],

@@ -34,8 +34,8 @@ and runtime-free.
 
 ```toml
 [dev-dependencies]
-cloud-sdk = "0.42.0"
-cloud-sdk-testkit = "0.24.2"
+cloud-sdk = "0.43.0"
+cloud-sdk-testkit = "0.25.0"
 ```
 
 ## Mock Transport
@@ -161,9 +161,10 @@ a response is returned. The mock's sanitizer implementation remains available
 only for tests that deliberately exercise the additive hook.
 
 `PreparedRequestRecord::capture` records method, redacted target/body lengths,
-provider service and endpoint policy, complete operation metadata, and response policy without
-copying request values. Tests can therefore assert that mutations and
-destructive operations were not mislabeled as read-only, safe, or retryable.
+provider service and endpoint policy, complete operation metadata, checked
+response policy, authentication scope, and raw response policy without copying
+request values. Tests can therefore assert both safety classification and the
+complete authenticated wire contract.
 
 ## Fixture Builders
 

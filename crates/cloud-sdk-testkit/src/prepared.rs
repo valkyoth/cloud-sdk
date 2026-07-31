@@ -3,8 +3,9 @@
 use core::fmt;
 
 use cloud_sdk::Method;
+use cloud_sdk::authentication::AuthenticationScopePolicy;
 use cloud_sdk::operation::{OperationMetadata, PreparedRequest, ProviderService, ResponsePolicy};
-use cloud_sdk::transport::HeaderSensitivity;
+use cloud_sdk::transport::{HeaderSensitivity, RawResponsePolicy};
 
 /// Non-secret record of one prepared request for policy assertions.
 #[derive(Clone, Copy, Eq, PartialEq)]
@@ -18,6 +19,8 @@ pub struct PreparedRequestRecord<'endpoint> {
     service: ProviderService<'endpoint>,
     metadata: OperationMetadata,
     response_policy: ResponsePolicy,
+    authentication_policy: AuthenticationScopePolicy<'endpoint>,
+    raw_response_policy: RawResponsePolicy<'endpoint>,
 }
 
 impl<'endpoint> PreparedRequestRecord<'endpoint> {
@@ -40,6 +43,8 @@ impl<'endpoint> PreparedRequestRecord<'endpoint> {
             service: prepared.service(),
             metadata: prepared.metadata(),
             response_policy: prepared.response_policy(),
+            authentication_policy: prepared.authentication_policy(),
+            raw_response_policy: prepared.raw_response_policy(),
         }
     }
 
@@ -96,6 +101,18 @@ impl<'endpoint> PreparedRequestRecord<'endpoint> {
     pub const fn response_policy(self) -> ResponsePolicy {
         self.response_policy
     }
+
+    /// Returns the mandatory authentication-scope policy.
+    #[must_use]
+    pub const fn authentication_policy(self) -> AuthenticationScopePolicy<'endpoint> {
+        self.authentication_policy
+    }
+
+    /// Returns the status-class raw response policy.
+    #[must_use]
+    pub const fn raw_response_policy(self) -> RawResponsePolicy<'endpoint> {
+        self.raw_response_policy
+    }
 }
 
 impl fmt::Debug for PreparedRequestRecord<'_> {
@@ -113,6 +130,8 @@ impl fmt::Debug for PreparedRequestRecord<'_> {
             .field("service", &self.service)
             .field("metadata", &self.metadata)
             .field("response_policy", &self.response_policy)
+            .field("authentication_policy", &self.authentication_policy)
+            .field("raw_response_policy", &self.raw_response_policy)
             .finish()
     }
 }

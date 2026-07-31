@@ -1,34 +1,4 @@
-use std::io::{Cursor, Read, Result as IoResult};
-use std::vec::Vec;
-
-use cloud_sdk_sanitization::sanitize_bytes;
-
-pub(super) struct SanitizedRequestBody {
-    cursor: Cursor<Vec<u8>>,
-}
-
-impl SanitizedRequestBody {
-    pub(super) fn new(source: &[u8]) -> Result<Self, ()> {
-        let mut bytes = Vec::new();
-        bytes.try_reserve_exact(source.len()).map_err(|_| ())?;
-        bytes.extend_from_slice(source);
-        Ok(Self {
-            cursor: Cursor::new(bytes),
-        })
-    }
-}
-
-impl Read for SanitizedRequestBody {
-    fn read(&mut self, output: &mut [u8]) -> IoResult<usize> {
-        self.cursor.read(output)
-    }
-}
-
-impl Drop for SanitizedRequestBody {
-    fn drop(&mut self) {
-        sanitize_bytes(self.cursor.get_mut());
-    }
-}
+use std::io::Read;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub(super) enum ReadBodyError {

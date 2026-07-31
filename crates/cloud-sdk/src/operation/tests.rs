@@ -8,10 +8,14 @@ use super::{
     RequestIdPolicy, RequestSemantics, ResponseBodyPolicy, ResponsePolicy,
     ResponsePolicyValidationError, RetryEligibility,
 };
+use crate::authentication::{
+    AsyncAuthenticatedTransport, AuthenticatedRequest, AuthenticationScopePolicy,
+    BlockingAuthenticatedTransport, ScopeRequirement,
+};
 use crate::transport::{
-    AsyncTransport, BlockingTransport, BoundTransport, EndpointIdentity, EndpointIdentityError,
-    EndpointPolicy, EndpointScheme, MediaType, RequestTarget, ResponseMetadata, ResponseWriter,
-    StatusCode, TransportRequest,
+    BoundTransport, EndpointIdentity, EndpointIdentityError, EndpointPolicy, EndpointScheme,
+    HeaderName, MediaType, RawResponsePolicy, RequestTarget, ResponseMediaPolicy, ResponseMetadata,
+    ResponseWriter, StatusCode, TransportRequest,
 };
 use crate::{
     Method, ProviderId, ProviderMarker, ServiceId, ServiceMarker, provider_id, service_id,
@@ -295,11 +299,16 @@ impl PrepareOperation for ExampleOperation {
         .map_err(|_| ExamplePrepareError::Invalid)?;
         let policy = json_response_policy(16).map_err(|_| ExamplePrepareError::Invalid)?;
         let endpoint = official_endpoint().map_err(|_| ExamplePrepareError::Invalid)?;
+        let authentication_policy = example_authentication_policy(endpoint);
+        let raw_response_policy =
+            example_raw_response_policy(16).map_err(|_| ExamplePrepareError::Invalid)?;
         Ok(PreparedRequest::new(
             request,
             ProviderService::from_marker::<ComputeService>(EndpointPolicy::fixed(endpoint)),
             metadata,
             policy,
+            authentication_policy,
+            raw_response_policy,
         ))
     }
 }
@@ -347,32 +356,59 @@ impl BoundTransport for RecordingTransport {
     }
 }
 
-impl BlockingTransport for RecordingTransport {
+impl BlockingAuthenticatedTransport for RecordingTransport {
     type Error = ();
 
-    fn send(
+    fn send_authenticated(
         &self,
-        _request: TransportRequest<'_>,
+        _request: AuthenticatedRequest<'_, '_>,
         response: &mut ResponseWriter<'_>,
     ) -> Result<(), Self::Error> {
         self.send_inner(response)
     }
 }
 
-impl AsyncTransport for RecordingTransport {
+impl AsyncAuthenticatedTransport for RecordingTransport {
     type Error = ();
 
-    async fn send<'transport, 'request, 'writer>(
+    async fn send_authenticated<'transport, 'request, 'policy, 'writer>(
         &'transport self,
-        _request: TransportRequest<'request>,
+        _request: AuthenticatedRequest<'request, 'policy>,
         response: &'writer mut ResponseWriter<'_>,
     ) -> Result<(), Self::Error>
     where
         'transport: 'writer,
         'request: 'writer,
+        'policy: 'writer,
     {
         self.send_inner(response)
     }
+}
+
+const fn example_authentication_policy(
+    endpoint: EndpointIdentity<'static>,
+) -> AuthenticationScopePolicy<'static> {
+    AuthenticationScopePolicy::new(
+        ScopeRequirement::Required(ExampleProvider::ID),
+        ScopeRequirement::Required(ComputeService::ID),
+        ScopeRequirement::Required(endpoint),
+        ScopeRequirement::Forbidden,
+        ScopeRequirement::Forbidden,
+        ScopeRequirement::Forbidden,
+    )
+}
+
+fn example_raw_response_policy(max_body_bytes: usize) -> Result<RawResponsePolicy<'static>, ()> {
+    let content_type = HeaderName::new("content-type").map_err(|_| ())?;
+    RawResponsePolicy::new(
+        max_body_bytes,
+        max_body_bytes,
+        ResponseMediaPolicy::Required(&JSON_MEDIA),
+        ResponseMediaPolicy::Required(&JSON_MEDIA),
+        &[content_type],
+        8,
+    )
+    .map_err(|_| ())
 }
 
 fn read_only_metadata() -> Result<OperationMetadata, OperationMetadataError> {

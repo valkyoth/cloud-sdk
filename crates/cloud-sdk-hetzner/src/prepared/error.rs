@@ -3,7 +3,7 @@
 use cloud_sdk::operation::{
     OperationIdError, OperationMetadataError, ResponsePolicyValidationError,
 };
-use cloud_sdk::transport::{HeaderError, RequestTargetError};
+use cloud_sdk::transport::{HeaderError, RawResponsePolicyError, RequestTargetError};
 
 use crate::endpoint::OfficialEndpointError;
 
@@ -38,6 +38,8 @@ pub enum HetznerPreparationError {
     InvalidMetadata(OperationMetadataError),
     /// Source-locked response policy was internally inconsistent.
     InvalidResponsePolicy(ResponsePolicyValidationError),
+    /// Source-locked raw response-wire policy was internally inconsistent.
+    InvalidRawResponsePolicy(RawResponsePolicyError),
 }
 
 impl core::fmt::Display for HetznerPreparationError {
@@ -57,6 +59,7 @@ impl core::fmt::Display for HetznerPreparationError {
             Self::InvalidOfficialEndpoint(_) => "official Hetzner endpoint is invalid",
             Self::InvalidMetadata(_) => "Hetzner operation metadata is invalid",
             Self::InvalidResponsePolicy(_) => "Hetzner response policy is invalid",
+            Self::InvalidRawResponsePolicy(_) => "Hetzner raw response policy is invalid",
         })
     }
 }
@@ -70,6 +73,7 @@ impl core::error::Error for HetznerPreparationError {
             Self::InvalidOfficialEndpoint(error) => Some(error),
             Self::InvalidMetadata(error) => Some(error),
             Self::InvalidResponsePolicy(error) => Some(error),
+            Self::InvalidRawResponsePolicy(error) => Some(error),
             _ => None,
         }
     }

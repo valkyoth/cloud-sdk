@@ -1,12 +1,14 @@
 //! Prepares a complete provider-neutral operation without performing I/O.
 
+use cloud_sdk::authentication::{AuthenticationScopePolicy, ScopeRequirement};
 use cloud_sdk::operation::{
     ContentTypePolicy, CostIntent, OperationImpact, OperationMetadata, PreparationStorage,
     PrepareOperation, PreparedRequest, ProviderService, RequestIdPolicy, RequestSemantics,
     ResponseBodyPolicy, ResponsePolicy, RetryEligibility,
 };
 use cloud_sdk::transport::{
-    EndpointIdentity, EndpointPolicy, EndpointScheme, MediaType, RequestTarget, StatusCode,
+    EndpointIdentity, EndpointPolicy, EndpointScheme, HeaderName, MediaType, RawResponsePolicy,
+    RequestTarget, ResponseMediaPolicy, StatusCode,
 };
 use cloud_sdk::transport::{MAX_REQUEST_TARGET_BYTES, TransportRequest};
 use cloud_sdk::{
@@ -35,6 +37,7 @@ enum PrepareError {
     InvalidTarget,
     InvalidMetadata,
     InvalidResponsePolicy,
+    InvalidRawResponsePolicy,
     InvalidEndpoint,
 }
 
@@ -73,11 +76,32 @@ impl PrepareOperation for ListResources {
         let endpoint =
             EndpointIdentity::new(EndpointScheme::Https, "api.example.invalid", 443, "/v1")
                 .map_err(|_| PrepareError::InvalidEndpoint)?;
+        let authentication_policy = AuthenticationScopePolicy::new(
+            ScopeRequirement::Required(ExampleProvider::ID),
+            ScopeRequirement::Required(ComputeService::ID),
+            ScopeRequirement::Required(endpoint),
+            ScopeRequirement::Forbidden,
+            ScopeRequirement::Forbidden,
+            ScopeRequirement::Forbidden,
+        );
+        let content_type =
+            HeaderName::new("content-type").map_err(|_| PrepareError::InvalidRawResponsePolicy)?;
+        let raw_response_policy = RawResponsePolicy::new(
+            65_536,
+            65_536,
+            ResponseMediaPolicy::Required(&JSON_MEDIA),
+            ResponseMediaPolicy::Required(&JSON_MEDIA),
+            &[content_type],
+            8,
+        )
+        .map_err(|_| PrepareError::InvalidRawResponsePolicy)?;
         Ok(PreparedRequest::new(
             request,
             ProviderService::from_marker::<ComputeService>(EndpointPolicy::fixed(endpoint)),
             metadata,
             response_policy,
+            authentication_policy,
+            raw_response_policy,
         ))
     }
 }

@@ -1,7 +1,7 @@
 # Crate Version Matrix
 
-Status: `v0.41.0` is tagged. `v0.42.0` Basic authentication and canonical
-signing input policy is a release candidate; pentest and final retest passed.
+Status: `v0.42.0` is tagged. `v0.43.0` migrates every active Hetzner
+operation to the authenticated raw-wire path.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
@@ -638,6 +638,20 @@ canonical signing inputs, and a narrow credential-free Robot wire source lock.
 | `cloud-sdk-reqwest` | `0.28.0` | `0.29.0` | `code` | Yes | Add bounded Basic credentials and scoped blocking/async authenticated clients. |
 | `cloud-sdk-sanitization` | `0.16.0` | `0.16.0` | `unchanged` | No | No code, dependency, or package metadata changes. |
 | `cloud-sdk-testkit` | `0.24.1` | `0.24.2` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.42 facade line. |
+
+## v0.43.0 Tracking Table
+
+`v0.43.0` removes the compatibility gap between provider preparation,
+authentication, and the bounded raw HTTP executor for all active Hetzner
+operations.
+
+| Crate | Published | Planned | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.42.0` | `0.43.0` | `code` | Yes | Require complete authentication-scope and raw-response policies in every prepared request and authenticated execution. |
+| `cloud-sdk-hetzner` | `0.32.3` | `0.33.0` | `code` | Yes | Bind all 208 active operations to exact service, official endpoint, authentication, and raw response policy with one zero-fallback assembly path. |
+| `cloud-sdk-reqwest` | `0.29.0` | `0.30.0` | `code` | Yes | Route bearer and Basic clients through the bounded raw Hyper engine while preserving conservative delivery phase. |
+| `cloud-sdk-sanitization` | `0.16.0` | `0.16.0` | `unchanged` | No | No code, dependency, or package metadata changes. |
+| `cloud-sdk-testkit` | `0.24.2` | `0.25.0` | `code` | Yes | Execute authenticated prepared requests and expose complete authentication and raw-response policy records. |
 
 ## Planned Milestone Ownership
 

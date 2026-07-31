@@ -197,13 +197,15 @@ fn redirects_are_returned_and_oversized_bodies_are_cleared() {
             TransportRequest::new(Method::Get, target),
             &mut short,
         ),
-        Err(TransportError::ResponseTooLarge)
+        Err(TransportError::RawHttp(
+            super::RawHttpError::ResponseTooLarge
+        ))
     ));
     assert_eq!(short, [0_u8; 4]);
 }
 
 #[test]
-fn response_propagates_validated_rate_limit_headers() {
+fn response_retains_admitted_rate_limit_headers_without_transport_decoding() {
     let server = spawn(
         "200 OK",
         &[
@@ -234,12 +236,7 @@ fn response_propagates_validated_rate_limit_headers() {
         return;
     };
     assert_eq!(content_type, "application/json; charset=utf-8");
-    let Some(rate_limit) = response.rate_limit() else {
-        return;
-    };
-    assert_eq!(rate_limit.limit(), 3600);
-    assert_eq!(rate_limit.remaining(), 3599);
-    assert_eq!(rate_limit.reset_epoch_seconds(), 42);
+    assert_eq!(response.rate_limit(), None);
     assert_eq!(
         response.rate_limit_remaining_header(),
         Some(b"3599".as_slice())
@@ -251,7 +248,7 @@ fn response_propagates_validated_rate_limit_headers() {
 }
 
 #[test]
-fn incomplete_rate_limit_headers_fail_closed() {
+fn incomplete_rate_limit_headers_are_retained_for_provider_decoding() {
     let server = spawn(
         "200 OK",
         &[("RateLimit-Limit", "3600")],
@@ -266,15 +263,12 @@ fn incomplete_rate_limit_headers_fail_closed() {
         return;
     };
     let mut output = [0xa5_u8; 8];
-    assert!(matches!(
-        send_test(
-            &client,
-            TransportRequest::new(Method::Get, target),
-            &mut output,
-        ),
-        Err(TransportError::InvalidRateLimitHeaders)
-    ));
-    assert_eq!(output, [0_u8; 8]);
+    let response = send_test(
+        &client,
+        TransportRequest::new(Method::Get, target),
+        &mut output,
+    );
+    assert!(response.is_ok());
 }
 
 #[test]
@@ -304,7 +298,9 @@ fn duplicate_rate_limit_headers_fail_closed() {
             TransportRequest::new(Method::Get, target),
             &mut output,
         ),
-        Err(TransportError::InvalidResponseHeaders)
+        Err(TransportError::RawHttp(
+            super::RawHttpError::DuplicateResponseHeader
+        ))
     ));
     assert_eq!(output, [0_u8; 8]);
 }
@@ -324,7 +320,9 @@ fn nonempty_body_requires_content_type_before_network_access() {
             TransportRequest::new(Method::Post, target).with_body(b"{}"),
             &mut output,
         ),
-        Err(TransportError::MissingContentType)
+        Err(TransportError::RawHttp(
+            super::RawHttpError::MissingContentType
+        ))
     ));
     assert_eq!(output, [0_u8; 8]);
 }
@@ -356,7 +354,7 @@ fn response_timeout_is_payload_free_and_clears_output() {
             TransportRequest::new(Method::Get, target),
             &mut output,
         ),
-        Err(TransportError::TimedOut)
+        Err(TransportError::RawHttp(super::RawHttpError::TimedOut))
     ));
     assert_eq!(output, [0_u8; 8]);
 }

@@ -1,14 +1,16 @@
 #![no_main]
 
 use cloud_sdk::Method;
+use cloud_sdk::authentication::{AuthenticationScopePolicy, ScopeRequirement};
 use cloud_sdk::operation::{
     ContentTypePolicy, CostIntent, OperationId, OperationImpact, OperationMetadata,
     PreparedRequest, ProviderService, RequestIdPolicy, RequestSemantics, ResponseBodyPolicy,
     ResponsePolicy, RetryEligibility,
 };
 use cloud_sdk::transport::{
-    EndpointIdentity, EndpointPolicy, EndpointScheme, HeaderSensitivity, MediaType, RequestTarget,
-    ResponseBuffer, ResponseMetadata, StatusCode, TransportRequest,
+    EndpointIdentity, EndpointPolicy, EndpointScheme, HeaderName, HeaderSensitivity, MediaType,
+    RawResponsePolicy, RequestTarget, ResponseBuffer, ResponseMediaPolicy, ResponseMetadata,
+    StatusCode, TransportRequest,
 };
 use cloud_sdk_hetzner::CloudService;
 use cloud_sdk_hetzner::serde::decode_response;
@@ -37,12 +39,33 @@ fn prepared() -> Option<PreparedRequest<'static>> {
     )
     .ok()?;
     let operation = OperationId::new("get_server").ok()?;
+    let service = ProviderService::from_marker::<CloudService>(EndpointPolicy::fixed(endpoint));
+    let authentication_policy = AuthenticationScopePolicy::new(
+        ScopeRequirement::Required(service.provider_id()),
+        ScopeRequirement::Required(service.service_id()),
+        ScopeRequirement::Required(endpoint),
+        ScopeRequirement::Forbidden,
+        ScopeRequirement::Forbidden,
+        ScopeRequirement::Forbidden,
+    );
+    let content_type = HeaderName::new("content-type").ok()?;
+    let raw_policy = RawResponsePolicy::new(
+        8_388_608,
+        8_388_608,
+        ResponseMediaPolicy::Required(JSON),
+        ResponseMediaPolicy::Required(JSON),
+        &[content_type],
+        8,
+    )
+    .ok()?;
     Some(
         PreparedRequest::new(
             TransportRequest::new(Method::Get, target),
-            ProviderService::from_marker::<CloudService>(EndpointPolicy::fixed(endpoint)),
+            service,
             metadata,
             policy,
+            authentication_policy,
+            raw_policy,
         )
         .with_operation_id(operation),
     )

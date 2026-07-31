@@ -23,9 +23,11 @@ three dimensions are mandatory; audience, account, and tenant remain optional
 provider-owned additions. Client construction rejects a configured endpoint
 that differs from the credential endpoint.
 
-Every send uses `AuthenticatedRequest::new(request, policy)`. The policy must
-mark provider, service, and endpoint `Required` with exact values and state
-`Required`, `Optional`, or `Forbidden` for the remaining fields.
+Every send uses an `AuthenticatedRequest`. In v0.41 its constructor accepted
+the request and scope policy. v0.43 additionally requires a complete
+`RawResponsePolicy`; see [`MIGRATION_0.43.0.md`](MIGRATION_0.43.0.md). The
+scope policy must mark provider, service, and endpoint `Required` with exact
+values and state `Required`, `Optional`, or `Forbidden` for the remaining fields.
 Authenticated clients now implement `BlockingAuthenticatedTransport` or
 `AsyncAuthenticatedTransport`; they no longer implement the credential-free
 transport traits.
@@ -50,12 +52,11 @@ cannot clear caller-owned text.
 
 ## Hetzner Migration Boundary
 
-The v0.41 Hetzner live-smoke harness supplies exact provider, service, and
-official endpoint policy. The 208 prepared operations migrate to
-provider-owned policy construction on the complete new wire/authentication
-path in v0.43. Until then, application code using the authenticated adapter
-must construct the matching required policy explicitly; v0.41 does not
-describe that application-level assembly as provider-type-enforced.
+The v0.41 Hetzner live-smoke harness supplied exact provider, service, and
+official endpoint policy. v0.43 completed provider-owned policy construction
+and authenticated raw execution for all 208 prepared operations. This section
+describes the historical v0.41 boundary; current applications should follow
+the v0.43 migration guide.
 
 See [`AUTHENTICATION_POLICY.md`](AUTHENTICATION_POLICY.md) for the complete
 scope, lifecycle, cleanup, and non-guarantee contract.

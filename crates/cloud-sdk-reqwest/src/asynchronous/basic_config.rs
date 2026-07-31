@@ -3,7 +3,7 @@ use core::fmt;
 use crate::shared::{BasicCredential, BuildError, HttpsEndpoint, RequestTimeouts, UserAgent};
 
 use super::AsyncBasicClient;
-use super::config::configured_client;
+use super::config::configured_raw_client;
 
 /// Builder requiring a scoped Basic credential and complete transport limits.
 pub struct AsyncBasicClientBuilder {
@@ -39,7 +39,12 @@ impl AsyncBasicClientBuilder {
         if !self.credential.scope().matches_endpoint(&self.endpoint) {
             return Err(BuildError::CredentialEndpointMismatch);
         }
-        let client = configured_client(&self.user_agent, self.timeouts, https_only)?;
+        let client = configured_raw_client(
+            self.endpoint.clone(),
+            &self.user_agent,
+            self.timeouts,
+            https_only,
+        )?;
         Ok(AsyncBasicClient::new(
             client,
             self.endpoint,

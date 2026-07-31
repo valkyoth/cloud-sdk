@@ -34,11 +34,31 @@ for policy in \
 done
 
 if grep -Ei \
-    'authorization|bearer|redirect|proxy|decompress|retry::' \
+    'bearer|redirect|proxy|decompress|retry::' \
     crates/cloud-sdk-reqwest/src/shared/raw_hyper.rs; then
-    echo "raw HTTP executor: implicit auth, redirect, proxy, decoding, or retry entered raw engine" >&2
+    echo "raw HTTP executor: provider auth, redirect, proxy, decoding, or retry entered raw engine" >&2
     exit 1
 fi
+
+raw_engine=crates/cloud-sdk-reqwest/src/shared/raw_hyper.rs
+for required in \
+    'self.execute_inner(request, policy, None, response_writer)' \
+    'self.execute_inner(request, policy, Some(authorization), response_writer)' \
+    'authorization.set_sensitive(true)' \
+    'headers.insert(AUTHORIZATION, authorization)'; do
+    if ! grep -Fq "$required" "$raw_engine"; then
+        echo "raw HTTP executor: raw/authenticated ownership split is incomplete" >&2
+        exit 1
+    fi
+done
+for raw_client in \
+    crates/cloud-sdk-reqwest/src/blocking/raw.rs \
+    crates/cloud-sdk-reqwest/src/asynchronous/raw.rs; do
+    if ! grep -Fq '.execute(request, policy,' "$raw_client"; then
+        echo "raw HTTP executor: credential-free client does not use the no-auth entry" >&2
+        exit 1
+    fi
+done
 
 for feature in \
     blocking-rustls \

@@ -36,15 +36,18 @@ for transport in \
     fi
 done
 
+raw_engine=crates/cloud-sdk-reqwest/src/shared/raw_hyper.rs
+for required in '.begin_attempt()' '.commit(status, body_len'; do
+    if ! grep -Fq "$required" "$raw_engine"; then
+        echo "response provenance: shared raw engine is missing $required" >&2
+        exit 1
+    fi
+done
 for adapter in \
     crates/cloud-sdk-reqwest/src/blocking/client.rs \
     crates/cloud-sdk-reqwest/src/asynchronous/client.rs; do
-    if ! grep -Fq '.commit(' "$adapter"; then
-        echo "response provenance: writer commit missing from $adapter" >&2
-        exit 1
-    fi
-    if ! grep -Fq '.begin_attempt()' "$adapter"; then
-        echo "response provenance: response attempt missing from $adapter" >&2
+    if ! grep -Fq '.execute_authenticated(' "$adapter"; then
+        echo "response provenance: authenticated adapter bypasses shared attempt path" >&2
         exit 1
     fi
 done

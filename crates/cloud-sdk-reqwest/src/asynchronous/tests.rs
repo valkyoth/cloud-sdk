@@ -7,7 +7,7 @@ use cloud_sdk::authentication::AsyncAuthenticatedTransport;
 use cloud_sdk::rate_limit::RateLimit;
 use cloud_sdk::transport::{
     ContentType, RequestHeader, RequestHeaders, RequestTarget, ResponseBuffer,
-    ResponseStorageSanitizer, StatusCode, TransportRequest, TransportResponse,
+    ResponseStorageSanitizer, StatusCode, TransportFailure, TransportRequest, TransportResponse,
 };
 
 use super::{
@@ -129,7 +129,8 @@ async fn send_test(
         authenticated(client, request),
         response.writer(),
     )
-    .await?;
+    .await
+    .map_err(TransportFailure::into_error)?;
     response
         .with_response(CapturedResponse::capture)
         .map_err(|_| TransportError::ResponseCommitFailed)
@@ -271,13 +272,18 @@ fn async_redirect_is_not_followed_and_oversized_body_is_rejected() {
             &mut short,
         )
         .await;
-        assert!(matches!(result, Err(TransportError::ResponseTooLarge)));
+        assert!(matches!(
+            result,
+            Err(TransportError::RawHttp(
+                super::RawHttpError::ResponseTooLarge
+            ))
+        ));
         assert_eq!(short, [0_u8; 4]);
     });
 }
 
 #[test]
-fn async_response_propagates_validated_rate_limit_headers() {
+fn async_response_retains_admitted_rate_limit_headers_without_transport_decoding() {
     run_async_test(async {
         let server = spawn(
             "200 OK",
@@ -310,12 +316,7 @@ fn async_response_propagates_validated_rate_limit_headers() {
             return;
         };
         assert_eq!(content_type, "application/json; charset=utf-8");
-        let Some(rate_limit) = response.rate_limit() else {
-            return;
-        };
-        assert_eq!(rate_limit.limit(), 3600);
-        assert_eq!(rate_limit.remaining(), 3599);
-        assert_eq!(rate_limit.reset_epoch_seconds(), 42);
+        assert_eq!(response.rate_limit(), None);
         assert_eq!(
             response.rate_limit_remaining_header(),
             Some(b"3599".as_slice())
@@ -336,14 +337,14 @@ fn async_malformed_or_duplicate_response_content_type_fails_closed() {
         for (headers, expected) in [
             (
                 &[("Content-Type", "application/json; charset")][..],
-                TransportError::InvalidResponseContentType,
+                TransportError::RawHttp(super::RawHttpError::InvalidResponseContentType),
             ),
             (
                 &[
                     ("Content-Type", "application/json"),
                     ("Content-Type", "text/plain"),
                 ][..],
-                TransportError::InvalidResponseHeaders,
+                TransportError::RawHttp(super::RawHttpError::DuplicateResponseHeader),
             ),
         ] {
             let server = spawn("200 OK", headers, b"secret", Duration::ZERO);
@@ -396,7 +397,9 @@ fn async_duplicate_rate_limit_headers_fail_closed() {
         .await;
         assert!(matches!(
             result,
-            Err(TransportError::InvalidResponseHeaders)
+            Err(TransportError::RawHttp(
+                super::RawHttpError::DuplicateResponseHeader
+            ))
         ));
         assert_eq!(output, [0_u8; 8]);
     });
@@ -430,7 +433,10 @@ fn internal_timeout_is_payload_free_and_clears_output() {
             &mut output,
         )
         .await;
-        assert!(matches!(result, Err(TransportError::TimedOut)));
+        assert!(matches!(
+            result,
+            Err(TransportError::RawHttp(super::RawHttpError::TimedOut))
+        ));
         assert_eq!(output, [0_u8; 8]);
     });
 }

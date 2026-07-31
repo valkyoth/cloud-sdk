@@ -5,8 +5,8 @@ set -eu
 
 default_tree=$(cargo tree -p cloud-sdk-reqwest --no-default-features --edges normal)
 default_dependencies=$(printf '%s\n' "$default_tree" | sed '1d')
-if ! printf '%s\n' "$default_tree" | grep -Fq 'cloud-sdk v0.42.0'; then
-    echo "reqwest boundary: cloud-sdk v0.42.0 is missing" >&2
+if ! printf '%s\n' "$default_tree" | grep -Fq 'cloud-sdk v0.43.0'; then
+    echo "reqwest boundary: cloud-sdk v0.43.0 is missing" >&2
     exit 1
 fi
 if printf '%s\n' "$default_dependencies" | grep -Eq \
@@ -156,24 +156,36 @@ for config in \
     crates/cloud-sdk-reqwest/src/asynchronous/config.rs; do
 for policy in \
     '.build_inner(true)' \
-    '.tls_backend_rustls()' \
-    '.http1_only()' \
-    '.no_hickory_dns()' \
-    '.min_tls_version(Version::TLS_1_2)' \
-    '.redirect(Policy::none())' \
-    '.retry(reqwest::retry::never())' \
-    '.referer(false)' \
-    '.no_proxy()' \
-    '.no_gzip()' \
-    '.no_brotli()' \
-    '.no_zstd()' \
-    '.no_deflate()'; do
+    'configured_raw_client' \
+    'RawHyperClient::new'; do
     if ! grep -Fq "$policy" "$config"; then
         echo "reqwest boundary: required client policy $policy is missing from $config" >&2
         exit 1
     fi
 done
 done
+
+raw_engine=crates/cloud-sdk-reqwest/src/shared/raw_hyper.rs
+for policy in \
+    '.https_only()' \
+    '.enable_http1()' \
+    '.http1_max_headers(super::MAX_UPSTREAM_HTTP1_HEADERS)' \
+    '.http1_max_buf_size(super::MAX_UPSTREAM_HTTP1_HEAD_BYTES)' \
+    '.pool_max_idle_per_host(0)' \
+    '.retry_canceled_requests(false)' \
+    'execute_authenticated' \
+    'authorization.set_sensitive(true)'; do
+    if ! grep -Fq "$policy" "$raw_engine"; then
+        echo "reqwest boundary: required raw client policy $policy is missing" >&2
+        exit 1
+    fi
+done
+if grep -REn 'reqwest::(blocking::)?Client|Client::builder\(\)' \
+    crates/cloud-sdk-reqwest/src/blocking \
+    crates/cloud-sdk-reqwest/src/asynchronous; then
+    echo "reqwest boundary: legacy high-level reqwest execution re-entered authenticated clients" >&2
+    exit 1
+fi
 
 cargo check -p cloud-sdk-reqwest --no-default-features
 cargo check -p cloud-sdk-reqwest --no-default-features --features std

@@ -1,19 +1,17 @@
 use core::{fmt, str};
 
 use cloud_sdk::Method;
-use cloud_sdk::authentication::{
-    AuthenticatedRequest, AuthenticationScopePolicy, BlockingAuthenticatedTransport,
-};
-use cloud_sdk::transport::{
-    RequestTarget, RequestTargetError, ResponseBuffer, StatusCode, TransportRequest,
-};
+use cloud_sdk::authentication::BlockingAuthenticatedTransport;
+use cloud_sdk::operation::{PreparationStorage, PrepareOperation};
+use cloud_sdk::transport::{ResponseBuffer, StatusCode};
 use cloud_sdk_hetzner::cloud::catalog::{
     CatalogListEndpoint, CatalogListRequest, CatalogRequestError, CatalogSingletonEndpoint,
     PublicImageKind,
 };
 use cloud_sdk_hetzner::pagination::{PaginationError, PerPage};
+use cloud_sdk_hetzner::prepared::HetznerPreparationError;
 use cloud_sdk_hetzner::serde::PaginationEnvelope;
-use cloud_sdk_reqwest::blocking::{BlockingClient, TransportError};
+use cloud_sdk_reqwest::blocking::{AuthenticatedTransportFailure, BlockingClient};
 use cloud_sdk_sanitization::SecretBuffer;
 use serde_json::Value;
 
@@ -83,26 +81,22 @@ impl CatalogProbe {
         self.name
     }
 
-    pub(super) fn run(
-        self,
-        client: &BlockingClient,
-        authentication_policy: AuthenticationScopePolicy<'_>,
-    ) -> Result<(), ProbeFailure> {
+    pub(super) fn run(self, client: &BlockingClient) -> Result<(), ProbeFailure> {
         let mut target_bytes = [0_u8; MAX_TARGET_BYTES];
-        let target_len = self
-            .write_target(&mut target_bytes)
-            .map_err(|kind| ProbeFailure::new(self.name, kind))?;
-        let target_bytes = target_bytes
-            .get(..target_len)
-            .ok_or_else(|| ProbeFailure::new(self.name, ProbeError::TargetEncoding))?;
-        let target_text = str::from_utf8(target_bytes)
-            .map_err(|_| ProbeFailure::new(self.name, ProbeError::TargetEncoding))?;
-        let target = RequestTarget::new(target_text)
-            .map_err(|error| ProbeFailure::new(self.name, ProbeError::Target(error)))?;
-        let request = AuthenticatedRequest::new(
-            TransportRequest::new(Method::Get, target),
-            authentication_policy,
-        );
+        let mut body_bytes = [0_u8; 1];
+        let storage = PreparationStorage::new(&mut target_bytes, &mut body_bytes);
+        let prepared = match self.request {
+            ProbeRequest::List(endpoint) => {
+                let per_page = PerPage::new(1)
+                    .map_err(|error| ProbeFailure::new(self.name, ProbeError::Pagination(error)))?;
+                CatalogListRequest::new(endpoint)
+                    .with_per_page(per_page)
+                    .map_err(|error| ProbeFailure::new(self.name, ProbeError::Catalog(error)))?
+                    .prepare(storage)
+            }
+            ProbeRequest::Singleton(endpoint) => endpoint.prepare(storage),
+        }
+        .map_err(|error| ProbeFailure::new(self.name, ProbeError::Preparation(error)))?;
 
         let mut response_storage = vec![0_u8; MAX_RESPONSE_BYTES];
         let mut guarded = SecretBuffer::new(response_storage.as_mut_slice());
@@ -113,7 +107,7 @@ impl CatalogProbe {
             &mut response_header_storage,
         );
         client
-            .send_authenticated(request, response.writer())
+            .send_authenticated(prepared.authenticated_request(), response.writer())
             .map_err(|error| ProbeFailure::new(self.name, ProbeError::Transport(error)))?;
         response
             .with_response(|view| {
@@ -122,12 +116,7 @@ impl CatalogProbe {
                 }
                 self.validate_body(view.body())
             })
-            .map_err(|_| {
-                ProbeFailure::new(
-                    self.name,
-                    ProbeError::Transport(TransportError::ResponseCommitFailed),
-                )
-            })?
+            .map_err(|_| ProbeFailure::new(self.name, ProbeError::ResponseCommit))?
             .map_err(|kind| ProbeFailure::new(self.name, kind))
     }
 
@@ -198,10 +187,10 @@ fn append(output: &mut [u8], len: usize, value: &[u8]) -> Result<usize, ProbeErr
 enum ProbeError {
     Catalog(CatalogRequestError),
     Pagination(PaginationError),
-    Target(RequestTargetError),
-    Transport(TransportError),
+    Transport(AuthenticatedTransportFailure),
+    Preparation(HetznerPreparationError),
+    ResponseCommit,
     TargetTooSmall,
-    TargetEncoding,
     NonReadOnlyMethod,
     UnexpectedStatus(u16),
     InvalidJson,
@@ -216,20 +205,20 @@ impl fmt::Debug for ProbeError {
         match self {
             Self::Catalog(error) => formatter.debug_tuple("Catalog").field(error).finish(),
             Self::Pagination(error) => formatter.debug_tuple("Pagination").field(error).finish(),
-            Self::Target(error) => formatter.debug_tuple("Target").field(error).finish(),
             Self::Transport(error) => formatter.debug_tuple("Transport").field(error).finish(),
+            Self::Preparation(error) => formatter.debug_tuple("Preparation").field(error).finish(),
             Self::UnexpectedStatus(status) => formatter
                 .debug_tuple("UnexpectedStatus")
                 .field(status)
                 .finish(),
             Self::TargetTooSmall => formatter.write_str("TargetTooSmall"),
-            Self::TargetEncoding => formatter.write_str("TargetEncoding"),
             Self::NonReadOnlyMethod => formatter.write_str("NonReadOnlyMethod"),
             Self::InvalidJson => formatter.write_str("InvalidJson"),
             Self::InvalidEnvelope => formatter.write_str("InvalidEnvelope"),
             Self::MissingResource => formatter.write_str("MissingResource"),
             Self::InvalidResourceShape => formatter.write_str("InvalidResourceShape"),
             Self::InvalidPagination => formatter.write_str("InvalidPagination"),
+            Self::ResponseCommit => formatter.write_str("ResponseCommit"),
         }
     }
 }

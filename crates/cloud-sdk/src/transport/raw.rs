@@ -68,7 +68,8 @@ pub struct RawResponsePolicy<'a> {
     error_body_bytes: usize,
     success_media: ResponseMediaPolicy<'a>,
     error_media: ResponseMediaPolicy<'a>,
-    admitted_headers: &'a [HeaderName<'a>],
+    admitted_headers: [Option<HeaderName<'a>>; super::MAX_RESPONSE_HEADERS],
+    admitted_header_count: usize,
     informational_limit: u8,
     trailer_policy: TrailerPolicy,
 }
@@ -80,7 +81,7 @@ impl<'a> RawResponsePolicy<'a> {
         error_body_bytes: usize,
         success_media: ResponseMediaPolicy<'a>,
         error_media: ResponseMediaPolicy<'a>,
-        admitted_headers: &'a [HeaderName<'a>],
+        admitted_headers: &[HeaderName<'a>],
         informational_limit: u8,
     ) -> Result<Self, RawResponsePolicyError> {
         if success_body_bytes > MAX_RAW_RESPONSE_BODY_BYTES
@@ -99,12 +100,19 @@ impl<'a> RawResponsePolicy<'a> {
             return Err(RawResponsePolicyError::ForbiddenMediaHasBodyLimit);
         }
         validate_headers(admitted_headers)?;
+        let mut owned_headers = [None; super::MAX_RESPONSE_HEADERS];
+        for (index, header) in admitted_headers.iter().copied().enumerate() {
+            if let Some(slot) = owned_headers.get_mut(index) {
+                *slot = Some(header);
+            }
+        }
         Ok(Self {
             success_body_bytes,
             error_body_bytes,
             success_media,
             error_media,
-            admitted_headers,
+            admitted_headers: owned_headers,
+            admitted_header_count: admitted_headers.len(),
             informational_limit,
             trailer_policy: TrailerPolicy::Reject,
         })
@@ -114,6 +122,16 @@ impl<'a> RawResponsePolicy<'a> {
     #[must_use]
     pub const fn body_limit(self, status: StatusCode) -> usize {
         if status.is_success() {
+            self.success_body_bytes
+        } else {
+            self.error_body_bytes
+        }
+    }
+
+    /// Returns the larger status-class bound needed for caller response storage.
+    #[must_use]
+    pub const fn max_body_bytes(self) -> usize {
+        if self.success_body_bytes > self.error_body_bytes {
             self.success_body_bytes
         } else {
             self.error_body_bytes
@@ -135,6 +153,8 @@ impl<'a> RawResponsePolicy<'a> {
     pub fn admits_header(self, name: &str) -> bool {
         self.admitted_headers
             .iter()
+            .take(self.admitted_header_count)
+            .flatten()
             .any(|candidate| candidate.eq_ignore_ascii_case(name))
     }
 

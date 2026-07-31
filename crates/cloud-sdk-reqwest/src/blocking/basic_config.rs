@@ -5,7 +5,7 @@ use crate::shared::{BasicCredential, BuildError, HttpsEndpoint, RequestTimeouts,
 use super::BlockingBasicClient;
 #[cfg(feature = "blocking-rustls-fips")]
 use super::config::FipsTlsPolicy;
-use super::config::{ClientSettings, configured_client};
+use super::config::{ClientSettings, configured_raw_client};
 
 /// Builder requiring a scoped Basic credential and complete transport limits.
 pub struct BlockingBasicClientBuilder {
@@ -54,12 +54,18 @@ impl BlockingBasicClientBuilder {
             return Err(BuildError::CredentialEndpointMismatch);
         }
         let settings = ClientSettings {
-            user_agent: &self.user_agent,
             timeouts: self.timeouts,
             #[cfg(feature = "blocking-rustls-fips")]
             fips_tls_policy: self.fips_tls_policy.as_ref(),
+            #[cfg(not(feature = "blocking-rustls-fips"))]
+            _lifetime: core::marker::PhantomData,
         };
-        let client = configured_client(settings, https_only)?;
+        let client = configured_raw_client(
+            self.endpoint.clone(),
+            &self.user_agent,
+            settings,
+            https_only,
+        )?;
         Ok(BlockingBasicClient::new(
             client,
             self.endpoint,

@@ -117,6 +117,9 @@ impl_static_error!(RawHttpError,
 /// Delivery-phased raw reqwest failure.
 pub type RawTransportFailure = TransportFailure<RawHttpError>;
 
+/// Delivery-phased authenticated reqwest failure.
+pub type AuthenticatedTransportFailure = TransportFailure<super::TransportError>;
+
 pub(crate) struct ResponseBodyBudget {
     limit: usize,
     len: usize,

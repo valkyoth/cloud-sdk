@@ -38,8 +38,8 @@ boundaries.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.42.0"
-cloud-sdk-hetzner = "0.32.3"
+cloud-sdk = "0.43.0"
+cloud-sdk-hetzner = "0.33.0"
 ```
 
 ## Features
@@ -149,7 +149,8 @@ execution.
 The current release has complete prepared-request coverage for all 208
 source-locked non-deprecated Cloud, DNS, and Storage Box operations. Each
 prepared operation binds its method, target, bounded body, response policy,
-safety and retry classification, cost intent, and exact official endpoint.
+safety and retry classification, cost intent, exact provider service,
+authentication scope, raw response policy, and official endpoint.
 
 | Hetzner API area | Request models and path/query encoding |
 | --- | --- |
@@ -205,6 +206,8 @@ Bearer authentication scope and generation-safe refresh are listed in the
 [v0.41 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.41.0.md).
 Basic authentication and canonical signing input additions are listed in the
 [v0.42 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.42.0.md).
+The authenticated raw-wire migration is listed in the
+[v0.43 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.43.0.md).
 
 ## Optional Serde Boundary
 
@@ -212,7 +215,7 @@ Enable Serde explicitly; it is never part of the default graph:
 
 ```toml
 [dependencies]
-cloud-sdk-hetzner = { version = "0.32.3", features = ["serde"] }
+cloud-sdk-hetzner = { version = "0.33.0", features = ["serde"] }
 ```
 
 The feature admits serde_json with `default-features = false` and `alloc` only

@@ -89,6 +89,8 @@ pub enum TransportError {
     ResponseCommitFailed,
     /// The final response origin differed from the configured endpoint.
     ResponseOriginChanged,
+    /// The bounded raw HTTP executor rejected or failed the request.
+    RawHttp(RawHttpError),
 }
 
 impl_static_error!(TransportError,
@@ -114,4 +116,6 @@ impl_static_error!(TransportError,
     Self::ResponseReadFailed => "response body read failed",
     Self::ResponseCommitFailed => "response commitment failed",
     Self::ResponseOriginChanged => "response origin changed",
+    Self::RawHttp(_) => "bounded raw HTTP execution failed",
 );
+use super::RawHttpError;

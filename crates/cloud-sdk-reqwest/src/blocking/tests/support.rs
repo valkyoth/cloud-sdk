@@ -6,8 +6,8 @@ use cloud_sdk::authentication::{
 };
 use cloud_sdk::rate_limit::RateLimit;
 use cloud_sdk::transport::{
-    BoundTransport, EndpointIdentity, ResponseBuffer, StatusCode, TransportRequest,
-    TransportResponse,
+    BoundTransport, EndpointIdentity, HeaderName, MediaType, RawResponsePolicy, ResponseBuffer,
+    ResponseMediaPolicy, StatusCode, TransportRequest, TransportResponse,
 };
 
 use super::super::{
@@ -33,7 +33,30 @@ pub(super) fn authenticated<'request, 'endpoint>(
     let endpoint = client
         .endpoint_identity()
         .unwrap_or_else(|_| unreachable!());
-    AuthenticatedRequest::new(request, test_authentication_policy(endpoint))
+    AuthenticatedRequest::new(
+        request,
+        test_authentication_policy(endpoint),
+        test_raw_response_policy(),
+    )
+}
+
+pub(super) fn test_raw_response_policy() -> RawResponsePolicy<'static> {
+    let names = [
+        "content-type",
+        "ratelimit-limit",
+        "ratelimit-remaining",
+        "ratelimit-reset",
+    ];
+    let headers = names.map(|name| HeaderName::new(name).unwrap_or_else(|_| std::process::abort()));
+    RawResponsePolicy::new(
+        8192,
+        8192,
+        ResponseMediaPolicy::Optional(&[MediaType::JSON]),
+        ResponseMediaPolicy::Optional(&[MediaType::JSON]),
+        &headers,
+        8,
+    )
+    .unwrap_or_else(|_| std::process::abort())
 }
 
 const fn test_authentication_policy(
@@ -117,7 +140,8 @@ pub(super) fn send_test(
         client,
         authenticated(client, request),
         response.writer(),
-    )?;
+    )
+    .map_err(cloud_sdk::transport::TransportFailure::into_error)?;
     response
         .with_response(CapturedResponse::capture)
         .map_err(|_| TransportError::ResponseCommitFailed)

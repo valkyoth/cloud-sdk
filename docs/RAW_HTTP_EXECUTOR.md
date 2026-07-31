@@ -1,6 +1,7 @@
 # Raw Bounded HTTP Executor
 
-Status: implemented; the v0.40.0 pentest and final retest passed.
+Status: implemented; v0.43 routes prepared authenticated Hetzner execution
+through this boundary.
 
 The raw executor is the provider-neutral wire boundary beneath later
 authentication and typed client policy. It accepts one validated
@@ -76,9 +77,14 @@ Request targets and provider policy must already be validated. Callers must not
 retry mutations from `PossiblySent` or `ResponseStarted` without a later
 operation-specific idempotency or reconciliation policy.
 
-The raw executor intentionally has no credential input. The 8 MiB request-copy
-limit is a first-party `cloud-sdk-reqwest` guarantee, not a core raw-trait
-guarantee. Bearer and Basic authentication policy are implemented separately;
-see [`AUTHENTICATION_POLICY.md`](AUTHENTICATION_POLICY.md). Canonical signing
-inputs are documented in
+The credential-free raw traits intentionally have no credential input. The
+authenticated reqwest adapters use the same bounded engine but inject one
+transport-owned authorization field only after scope validation.
+`AuthenticatedRequest` carries the operation-owned `RawResponsePolicy`, so
+authenticated execution cannot infer or bypass wire limits.
+
+The 8 MiB request-copy limit is a first-party `cloud-sdk-reqwest` guarantee,
+not a core raw-trait guarantee. Bearer and Basic authentication policy are
+documented in [`AUTHENTICATION_POLICY.md`](AUTHENTICATION_POLICY.md).
+Canonical signing inputs are documented in
 [`SIGNING_INPUT_POLICY.md`](SIGNING_INPUT_POLICY.md).

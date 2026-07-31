@@ -4,22 +4,21 @@ use std::sync::Arc;
 use cloud_sdk::authentication::{AsyncAuthenticatedTransport, AuthenticatedRequest};
 use cloud_sdk::transport::{
     BoundTransport, EndpointIdentity, EndpointIdentityError, ResponseStorageSanitizer,
-    ResponseWriter,
+    ResponseWriter, TransportFailure,
 };
 use cloud_sdk_sanitization::sanitize_bytes;
-use reqwest::Client;
 
 use crate::shared::{
-    BasicCredential, HttpsEndpoint, TransportError, map_authentication_error,
-    validate_basic_authentication,
+    AuthenticatedTransportFailure, BasicCredential, HttpsEndpoint, TransportError,
+    map_authentication_error, validate_basic_authentication,
 };
 
-use super::client::execute;
+use super::RawAsyncClient;
 
 /// Hardened provider-neutral reqwest asynchronous Basic-auth transport.
 #[derive(Clone)]
 pub struct AsyncBasicClient {
-    client: Client,
+    client: RawAsyncClient,
     endpoint: HttpsEndpoint,
     credential: Arc<BasicCredential>,
     allow_insecure_loopback: bool,
@@ -27,7 +26,7 @@ pub struct AsyncBasicClient {
 
 impl AsyncBasicClient {
     pub(super) fn new(
-        client: Client,
+        client: RawAsyncClient,
         endpoint: HttpsEndpoint,
         credential: BasicCredential,
         allow_insecure_loopback: bool,
@@ -44,38 +43,35 @@ impl AsyncBasicClient {
         &self,
         authenticated: AuthenticatedRequest<'_, '_>,
         response: &mut ResponseWriter<'_>,
-    ) -> Result<(), TransportError> {
-        let mut response_attempt = response
-            .begin_attempt()
-            .map_err(|_| TransportError::ResponseCommitFailed)?;
-        let endpoint = self
-            .endpoint
-            .identity()
-            .map_err(|_| TransportError::AuthenticationEndpointMismatch)?;
+    ) -> Result<(), AuthenticatedTransportFailure> {
+        let endpoint = self.endpoint.identity().map_err(|_| {
+            TransportFailure::not_sent(TransportError::AuthenticationEndpointMismatch)
+        })?;
         validate_basic_authentication(
             endpoint,
             self.credential.scope(),
             authenticated.policy(),
             self.allow_insecure_loopback,
         )
-        .map_err(map_authentication_error)?;
+        .map_err(|error| TransportFailure::not_sent(map_authentication_error(error)))?;
         let authorization = self
             .credential
             .header_value()
-            .map_err(|_| TransportError::HeaderRejected)?;
-        execute(
-            &self.client,
-            &self.endpoint,
-            authorization,
-            authenticated,
-            &mut response_attempt,
-        )
-        .await
+            .map_err(|_| TransportFailure::not_sent(TransportError::HeaderRejected))?;
+        self.client
+            .execute_authenticated(
+                authenticated.transport_request(),
+                authenticated.response_policy(),
+                authorization,
+                response,
+            )
+            .await
+            .map_err(|failure| failure.map(TransportError::RawHttp))
     }
 }
 
 impl AsyncAuthenticatedTransport for AsyncBasicClient {
-    type Error = TransportError;
+    type Error = AuthenticatedTransportFailure;
 
     async fn send_authenticated<'transport, 'request, 'policy, 'writer>(
         &'transport self,

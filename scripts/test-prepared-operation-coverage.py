@@ -16,7 +16,7 @@ from prepared_coverage_test_support import (
     MANIFEST,
     ROOT,
     assert_accepts_operation_mutations_rejected,
-    assert_ambiguous_metadata_rejected,
+    assert_ambiguous_metadata_rejected, assert_endpoint_group_definition_rejected,
     run,
 )
 
@@ -452,6 +452,7 @@ def main() -> None:
         assert no_op_endpoint_definition.returncode == 1, no_op_endpoint_definition
         assert "differs from its source lock" in no_op_endpoint_definition.stderr
 
+        assert_endpoint_group_definition_rejected(directory)
         duplicate_body_definition = run(
             directory,
             body_definitions=BODY_DEFINITIONS + BODY_DEFINITIONS,
@@ -492,7 +493,7 @@ def main() -> None:
         assert duplicate.returncode == 1, duplicate
         assert "duplicate body operation" in duplicate.stderr
 
-    print("94 prepared-operation coverage tests passed.")
+    print("95 prepared-operation coverage tests passed.")
 
 
 if __name__ == "__main__":

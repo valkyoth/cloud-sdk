@@ -58,9 +58,11 @@ cargo clippy --manifest-path tools/prepared-coverage-check/Cargo.toml \
 cargo test --manifest-path tools/prepared-coverage-check/Cargo.toml --locked
 scripts/check_prepared_operation_coverage.py
 scripts/check_response_operation_coverage.py
+scripts/check_hetzner_wire_migration.py
 scripts/test-response-operation-coverage.py
 scripts/test-generate-response-operations.py
 scripts/test-prepared-operation-coverage.py
+scripts/test-hetzner-wire-migration.py
 scripts/release_crates.py --check
 scripts/test-release-crates.py
 scripts/test-release-state.py

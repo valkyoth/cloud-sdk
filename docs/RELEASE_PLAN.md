@@ -1658,7 +1658,7 @@ Stop gate: `v0.41.0 implementation stop reached. Run pentest for this exact comm
 
 ### v0.42.0 - Basic And Signing Input Policies
 
-Status: release candidate; pentest and final retest passed.
+Status: tagged.
 
 Goal: support non-bearer providers without embedding provider signing in transports.
 
@@ -1670,11 +1670,13 @@ Stop gate: `v0.42.0 implementation stop reached. Run pentest for this exact comm
 
 ### v0.43.0 - Existing Hetzner Wire Migration
 
+Status: implementation stop reached; pentest required.
+
 Goal: move every current Hetzner operation onto the neutral wire kernel.
 
-Deliverables: all 208 active operations use new identities, endpoint policy, canonical target, bounded headers, raw execution, provenance, and cleanup with no compatibility fallback.
+Deliverables: all 208 active operations use exact provider/service identities, official endpoint policy, canonical target, bounded request headers, provider-owned authentication scope, status-class raw response policy, authenticated raw execution, conservative delivery phase, response provenance, and cleanup with no compatibility fallback. Cloud, DNS, security, and Storage operations bind their own service marker rather than inheriting a base-URL-wide Cloud identity. Bearer and Basic adapters inject authorization only inside the shared raw Hyper engine after complete scope validation.
 
-Verification: zero-fallback coverage gate, all operation fixtures, adapters, live read-only smoke, and `scripts/release_0_43_gate.sh`.
+Verification: a machine-checked 208-operation zero-fallback migration gate, exact service/auth/raw-policy fixtures for every Hetzner API surface, blocking and async bearer/Basic adapter parity, delivery-phase and cleanup regressions, testkit policy capture, live read-only smoke through prepared authenticated requests, no_std/platform/MSRV/dependency/SBOM checks, and `scripts/release_0_43_gate.sh`.
 
 Stop gate: `v0.43.0 implementation stop reached. Run pentest for this exact commit.`
 

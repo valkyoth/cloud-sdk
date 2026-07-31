@@ -7,7 +7,7 @@ use crate::actions::{ActionEndpoint, ActionListRequest};
 use crate::cloud::catalog::{
     CatalogGetEndpoint, CatalogListEndpoint, CatalogListRequest, CatalogSingletonEndpoint,
 };
-use crate::request::ApiBaseUrl;
+use crate::{EndpointGroup, request::ApiBaseUrl};
 
 use super::operation::{OperationClass, operation_metadata};
 use super::{HetznerPreparationError, HetznerPreparedOperation, RequestShape, ResponseProfile};
@@ -19,6 +19,10 @@ impl crate::prepared::EndpointWire for ActionEndpoint {
 
     fn api_base_url(self) -> ApiBaseUrl {
         self.api_base_url()
+    }
+
+    fn endpoint_group(self) -> EndpointGroup {
+        self.endpoint_group()
     }
 
     fn write_path(self, output: &mut [u8]) -> Result<usize, HetznerPreparationError> {
@@ -91,6 +95,16 @@ impl crate::prepared::EndpointWire for CatalogListEndpoint {
         ApiBaseUrl::CloudV1
     }
 
+    fn endpoint_group(self) -> EndpointGroup {
+        match self {
+            Self::Locations => EndpointGroup::Locations,
+            Self::ServerTypes => EndpointGroup::ServerTypes,
+            Self::LoadBalancerTypes => EndpointGroup::LoadBalancerTypes,
+            Self::Isos => EndpointGroup::Isos,
+            Self::PublicImages(_) => EndpointGroup::Images,
+        }
+    }
+
     fn write_path(self, output: &mut [u8]) -> Result<usize, HetznerPreparationError> {
         let path = self.path().map_err(|_| HetznerPreparationError::Path)?;
         write_catalog_path(output, path.as_str())
@@ -128,6 +142,16 @@ impl crate::prepared::EndpointWire for CatalogGetEndpoint {
         ApiBaseUrl::CloudV1
     }
 
+    fn endpoint_group(self) -> EndpointGroup {
+        match self {
+            Self::Location(_) => EndpointGroup::Locations,
+            Self::ServerType(_) => EndpointGroup::ServerTypes,
+            Self::LoadBalancerType(_) => EndpointGroup::LoadBalancerTypes,
+            Self::Iso(_) => EndpointGroup::Isos,
+            Self::PublicImage(_) => EndpointGroup::Images,
+        }
+    }
+
     fn write_path(self, output: &mut [u8]) -> Result<usize, HetznerPreparationError> {
         self.write_path(output)
             .map_err(|_| HetznerPreparationError::Path)
@@ -163,6 +187,10 @@ impl crate::prepared::EndpointWire for CatalogSingletonEndpoint {
 
     fn api_base_url(self) -> ApiBaseUrl {
         ApiBaseUrl::CloudV1
+    }
+
+    fn endpoint_group(self) -> EndpointGroup {
+        EndpointGroup::Pricing
     }
 
     fn write_path(self, output: &mut [u8]) -> Result<usize, HetznerPreparationError> {
@@ -256,6 +284,10 @@ macro_rules! endpoint_wire {
 
             fn api_base_url(self) -> crate::request::ApiBaseUrl {
                 <$type>::api_base_url(self)
+            }
+
+            fn endpoint_group(self) -> crate::EndpointGroup {
+                <$type>::endpoint_group(self)
             }
 
             fn write_path(

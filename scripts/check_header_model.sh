@@ -50,18 +50,32 @@ for required in \
     fi
 done
 
+raw_parser=crates/cloud-sdk-reqwest/src/shared/raw.rs
+raw_engine=crates/cloud-sdk-reqwest/src/shared/raw_hyper.rs
+for required in \
+    'inspect_response_head(' \
+    'policy.admits_header(' \
+    '.try_push('; do
+    if ! grep -Fq "$required" "$raw_parser"; then
+        echo "header model: raw response admission is incomplete" >&2
+        exit 1
+    fi
+done
+for required in \
+    'response_writer.headers_mut()' \
+    'inspect_response_head('; do
+    if ! grep -Fq "$required" "$raw_engine"; then
+        echo "header model: raw adapter response capture is incomplete" >&2
+        exit 1
+    fi
+done
 for client in \
     crates/cloud-sdk-reqwest/src/blocking/client.rs \
     crates/cloud-sdk-reqwest/src/asynchronous/client.rs; do
-    for required in \
-        'capture_response_headers(' \
-        'response_writer' \
-        '.headers_mut()'; do
-        if ! grep -Fq "$required" "$client"; then
-            echo "header model: adapter response capture is incomplete in $client" >&2
-            exit 1
-        fi
-    done
+    if ! grep -Fq '.execute_authenticated(' "$client"; then
+        echo "header model: authenticated client bypasses raw capture in $client" >&2
+        exit 1
+    fi
 done
 
 cargo test -p cloud-sdk transport::header

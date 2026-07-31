@@ -1,32 +1,27 @@
 use core::fmt;
-use std::io::Read;
 use std::sync::Arc;
 
-use cloud_sdk::Method;
 use cloud_sdk::authentication::{
     AuthenticatedRequest, BlockingAuthenticatedTransport, CredentialGeneration,
 };
 use cloud_sdk::transport::{
-    BoundTransport, EndpointIdentity, EndpointIdentityError, ResponseAttempt, ResponseMetadata,
-    ResponseStorageSanitizer, ResponseWriter, StatusCode,
+    BoundTransport, EndpointIdentity, EndpointIdentityError, ResponseStorageSanitizer,
+    ResponseWriter, TransportFailure,
 };
 use cloud_sdk_sanitization::{SecretBuffer, sanitize_bytes};
-use reqwest::blocking::{Body, Client};
-use reqwest::header::{AUTHORIZATION, HeaderName, HeaderValue};
 
-use super::body::{ReadBodyError, SanitizedRequestBody, read_bounded};
+use super::RawBlockingClient;
 use crate::shared::{
-    BearerCredential, BearerCredentialScope, BearerCredentialSnapshot, BearerRefreshHandoff,
-    BearerToken, CredentialStateError, CredentialStore, CredentialUpdateError, HttpsEndpoint,
-    TokenRefreshError, TokenRotationError, TransportError, capture_response_headers,
-    map_authentication_error, parse_rate_limit, parse_response_content_type,
-    validate_bearer_authentication,
+    AuthenticatedTransportFailure, BearerCredential, BearerCredentialScope,
+    BearerCredentialSnapshot, BearerRefreshHandoff, BearerToken, CredentialStateError,
+    CredentialStore, CredentialUpdateError, HttpsEndpoint, TokenRefreshError, TokenRotationError,
+    TransportError, map_authentication_error, validate_bearer_authentication,
 };
 
 /// Hardened provider-neutral reqwest blocking bearer transport.
 #[derive(Clone)]
 pub struct BlockingClient {
-    client: Client,
+    client: RawBlockingClient,
     endpoint: HttpsEndpoint,
     scope: Arc<BearerCredentialScope>,
     credentials: Arc<CredentialStore>,
@@ -35,7 +30,7 @@ pub struct BlockingClient {
 
 impl BlockingClient {
     pub(super) fn new(
-        client: Client,
+        client: RawBlockingClient,
         endpoint: HttpsEndpoint,
         credential: BearerCredential,
         allow_insecure_loopback: bool,
@@ -112,113 +107,38 @@ impl BlockingClient {
         &self,
         authenticated: AuthenticatedRequest<'_, '_>,
         response_writer: &mut ResponseWriter<'_>,
-    ) -> Result<(), TransportError> {
-        let mut response_attempt = response_writer
-            .begin_attempt()
-            .map_err(|_| TransportError::ResponseCommitFailed)?;
-        let endpoint_identity = self
-            .endpoint
-            .identity()
-            .map_err(|_| TransportError::AuthenticationEndpointMismatch)?;
+    ) -> Result<(), AuthenticatedTransportFailure> {
+        let endpoint_identity = self.endpoint.identity().map_err(|_| {
+            TransportFailure::not_sent(TransportError::AuthenticationEndpointMismatch)
+        })?;
         validate_bearer_authentication(
             endpoint_identity,
             &self.scope,
             authenticated.policy(),
             self.allow_insecure_loopback,
         )
-        .map_err(map_authentication_error)?;
+        .map_err(|error| TransportFailure::not_sent(map_authentication_error(error)))?;
         let token_snapshot = self
             .credentials
             .snapshot()
-            .map_err(|_| TransportError::CredentialStateUnavailable)?;
+            .map_err(|_| TransportFailure::not_sent(TransportError::CredentialStateUnavailable))?;
         let authorization = token_snapshot
             .header_value()
-            .map_err(|_| TransportError::HeaderRejected)?;
+            .map_err(|_| TransportFailure::not_sent(TransportError::HeaderRejected))?;
         drop(token_snapshot);
-        execute(
-            &self.client,
-            &self.endpoint,
-            authorization,
-            authenticated,
-            &mut response_attempt,
-        )
+        self.client
+            .execute_authenticated(
+                authenticated.transport_request(),
+                authenticated.response_policy(),
+                authorization,
+                response_writer,
+            )
+            .map_err(|failure| failure.map(TransportError::RawHttp))
     }
-}
-
-pub(super) fn execute(
-    client: &Client,
-    endpoint: &HttpsEndpoint,
-    authorization: HeaderValue,
-    authenticated: AuthenticatedRequest<'_, '_>,
-    response_writer: &mut ResponseAttempt<'_, '_>,
-) -> Result<(), TransportError> {
-    let request = authenticated.transport_request();
-    let url = endpoint
-        .compose(request.target())
-        .map_err(|_| TransportError::TargetRejected)?;
-    let method = map_method(request.method())?;
-    let mut outbound = client
-        .request(method, url)
-        .header(AUTHORIZATION, authorization);
-
-    for header in request.headers().as_slice() {
-        let name = HeaderName::from_bytes(header.name().as_str().as_bytes())
-            .map_err(|_| TransportError::HeaderRejected)?;
-        let mut value = HeaderValue::from_str(header.value().as_str())
-            .map_err(|_| TransportError::HeaderRejected)?;
-        value.set_sensitive(matches!(
-            header.sensitivity(),
-            cloud_sdk::transport::HeaderSensitivity::Sensitive
-        ));
-        outbound = outbound.header(name, value);
-    }
-    if !request.body().is_empty() && request.headers().get("content-type").is_none() {
-        return Err(TransportError::MissingContentType);
-    }
-    if !request.body().is_empty() {
-        let body = SanitizedRequestBody::new(request.body())
-            .map_err(|_| TransportError::RequestBodyAllocationFailed)?;
-        let body_len =
-            u64::try_from(request.body().len()).map_err(|_| TransportError::RequestBodyTooLarge)?;
-        outbound = outbound.body(Body::sized(body, body_len));
-    }
-
-    let mut response = outbound.send().map_err(classify_reqwest_error)?;
-    endpoint
-        .verify_origin(response.url())
-        .map_err(|_| TransportError::ResponseOriginChanged)?;
-    capture_response_headers(
-        response.headers(),
-        response_writer
-            .headers_mut()
-            .map_err(|_| TransportError::ResponseCommitFailed)?,
-    )?;
-    if response.content_length().is_some_and(|length| {
-        u64::try_from(response_writer.body_capacity()).map_or(true, |cap| length > cap)
-    }) {
-        return Err(TransportError::ResponseTooLarge);
-    }
-    let status =
-        StatusCode::new(response.status().as_u16()).ok_or(TransportError::InvalidStatus)?;
-    let rate_limit = parse_rate_limit(response_writer.headers())?;
-    parse_response_content_type(response_writer.headers())?;
-    let body_len = read_response(
-        &mut response,
-        response_writer
-            .body_mut()
-            .map_err(|_| TransportError::ResponseCommitFailed)?,
-    )?;
-    let mut metadata = ResponseMetadata::EMPTY;
-    if let Some(value) = rate_limit {
-        metadata = metadata.with_rate_limit(value);
-    }
-    response_writer
-        .commit(status, body_len, metadata)
-        .map_err(|_| TransportError::ResponseCommitFailed)
 }
 
 impl BlockingAuthenticatedTransport for BlockingClient {
-    type Error = TransportError;
+    type Error = AuthenticatedTransportFailure;
 
     fn send_authenticated(
         &self,
@@ -249,33 +169,5 @@ impl fmt::Debug for BlockingClient {
             .field("scope", &"[redacted]")
             .field("credentials", &"[redacted]")
             .finish_non_exhaustive()
-    }
-}
-
-fn read_response(response: &mut impl Read, output: &mut [u8]) -> Result<usize, TransportError> {
-    match read_bounded(response, output) {
-        Ok(len) => Ok(len),
-        Err(error) => {
-            sanitize_bytes(output);
-            Err(match error {
-                ReadBodyError::TooLarge => TransportError::ResponseTooLarge,
-                ReadBodyError::ReadFailed => TransportError::ResponseReadFailed,
-            })
-        }
-    }
-}
-
-fn map_method(method: Method) -> Result<reqwest::Method, TransportError> {
-    reqwest::Method::from_bytes(method.as_str().as_bytes())
-        .map_err(|_| TransportError::MethodRejected)
-}
-
-fn classify_reqwest_error(error: reqwest::Error) -> TransportError {
-    if error.is_timeout() {
-        TransportError::TimedOut
-    } else if error.is_connect() {
-        TransportError::ConnectFailed
-    } else {
-        TransportError::RequestFailed
     }
 }

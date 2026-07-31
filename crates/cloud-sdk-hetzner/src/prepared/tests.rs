@@ -1,3 +1,4 @@
+use cloud_sdk::authentication::ScopeRequirement;
 use cloud_sdk::operation::{
     CostIntent, OperationImpact, PreparationStorage, PreparationStorageGuard, PrepareOperation,
 };
@@ -25,12 +26,69 @@ use crate::dns::rrsets::{RrsetActionEndpoint, RrsetName, RrsetReference, RrsetTy
 use crate::dns::zones::{
     ZoneActionEndpoint, ZoneActionListRequest, ZoneEndpoint, ZoneProtectionRequest, ZoneReference,
 };
+use crate::security::certificates::CertificateEndpoint;
 use crate::storage::storage_boxes::{
-    StorageBoxActionEndpoint, StorageBoxCreateRequest, StorageBoxListRequest, StorageBoxLocation,
-    StorageBoxName, StorageBoxPassword, StorageBoxSubaccountActionEndpoint, StorageBoxTypeRef,
+    StorageBoxActionEndpoint, StorageBoxCreateRequest, StorageBoxEndpoint, StorageBoxListRequest,
+    StorageBoxLocation, StorageBoxName, StorageBoxPassword, StorageBoxSubaccountActionEndpoint,
+    StorageBoxTypeRef,
+};
+use crate::{
+    CLOUD_SERVICE_ID, DNS_SERVICE_ID, HETZNER_PROVIDER_ID, SECURITY_SERVICE_ID, STORAGE_SERVICE_ID,
 };
 
 use super::{EndpointWire, HetznerPreparationError, HetznerPreparedOperation};
+
+#[test]
+fn every_surface_owns_exact_service_auth_and_raw_wire_policy() {
+    assert_wire_policy(
+        &ActionEndpoint::Get(ActionId::new(1).unwrap_or_else(|| unreachable!())),
+        CLOUD_SERVICE_ID,
+    );
+    assert_wire_policy(&ZoneEndpoint::List, DNS_SERVICE_ID);
+    assert_wire_policy(&CertificateEndpoint::List, SECURITY_SERVICE_ID);
+    assert_wire_policy(&StorageBoxEndpoint::List, STORAGE_SERVICE_ID);
+}
+
+fn assert_wire_policy<O>(operation: &O, expected_service: cloud_sdk::ServiceId)
+where
+    O: PrepareOperation<Error = HetznerPreparationError>,
+{
+    let mut target = [0_u8; 128];
+    let mut body = [0_u8; 8];
+    let prepared = operation.prepare(PreparationStorage::new(&mut target, &mut body));
+    assert!(prepared.is_ok());
+    let Ok(prepared) = prepared else { return };
+    let service = prepared.service();
+    assert_eq!(service.provider_id(), HETZNER_PROVIDER_ID);
+    assert_eq!(service.service_id(), expected_service);
+    let authentication = prepared.authentication_policy();
+    assert_eq!(
+        authentication.provider_requirement(),
+        ScopeRequirement::Required(HETZNER_PROVIDER_ID)
+    );
+    assert_eq!(
+        authentication.service_requirement(),
+        ScopeRequirement::Required(expected_service)
+    );
+    let ScopeRequirement::Required(endpoint) = authentication.endpoint_requirement() else {
+        unreachable!()
+    };
+    assert!(service.endpoint_policy().verify(endpoint).is_ok());
+    assert_eq!(
+        authentication.audience_requirement(),
+        ScopeRequirement::Forbidden
+    );
+    assert_eq!(
+        authentication.account_requirement(),
+        ScopeRequirement::Forbidden
+    );
+    assert_eq!(
+        authentication.tenant_requirement(),
+        ScopeRequirement::Forbidden
+    );
+    assert!(prepared.raw_response_policy().admits_header("content-type"));
+    assert_eq!(prepared.raw_response_policy().max_body_bytes(), 8_388_608);
+}
 
 #[test]
 fn prepares_global_actions_and_catalog_gets() {

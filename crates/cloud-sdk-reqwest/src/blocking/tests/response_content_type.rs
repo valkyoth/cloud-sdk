@@ -15,14 +15,14 @@ fn malformed_or_duplicate_response_content_type_fails_closed() {
     for (headers, expected) in [
         (
             &[("Content-Type", "application/json; charset")][..],
-            TransportError::InvalidResponseContentType,
+            TransportError::RawHttp(super::super::RawHttpError::InvalidResponseContentType),
         ),
         (
             &[
                 ("Content-Type", "application/json"),
                 ("Content-Type", "text/plain"),
             ][..],
-            TransportError::InvalidResponseHeaders,
+            TransportError::RawHttp(super::super::RawHttpError::DuplicateResponseHeader),
         ),
     ] {
         let server = spawn("200 OK", headers, b"secret", Duration::ZERO);

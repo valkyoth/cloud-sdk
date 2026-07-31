@@ -6,6 +6,7 @@ use cloud_sdk::transport::{
     TransportRequest,
 };
 use cloud_sdk_sanitization::sanitize_bytes;
+use http::header::HeaderValue;
 
 use crate::shared::{HttpsEndpoint, RawHttpError, RawHyperClient, RawTransportFailure};
 
@@ -37,6 +38,30 @@ impl RawBlockingClient {
             .build()
             .map_err(|_| TransportFailure::not_sent(RawHttpError::RuntimeInitializationFailed))?;
         runtime.block_on(self.inner.execute(request, policy, response_writer))
+    }
+
+    pub(crate) fn execute_authenticated(
+        &self,
+        request: TransportRequest<'_>,
+        policy: RawResponsePolicy<'_>,
+        authorization: HeaderValue,
+        response_writer: &mut ResponseWriter<'_>,
+    ) -> Result<(), RawTransportFailure> {
+        if tokio::runtime::Handle::try_current().is_ok() {
+            return Err(TransportFailure::not_sent(
+                RawHttpError::BlockingRuntimeContext,
+            ));
+        }
+        let runtime = tokio::runtime::Builder::new_current_thread()
+            .enable_all()
+            .build()
+            .map_err(|_| TransportFailure::not_sent(RawHttpError::RuntimeInitializationFailed))?;
+        runtime.block_on(self.inner.execute_authenticated(
+            request,
+            policy,
+            authorization,
+            response_writer,
+        ))
     }
 }
 

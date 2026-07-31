@@ -1,7 +1,7 @@
 use core::fmt;
 use core::future::Future;
 
-use crate::transport::{ResponseWriter, TransportRequest};
+use crate::transport::{RawResponsePolicy, ResponseWriter, TransportRequest};
 
 use super::AuthenticationScopePolicy;
 
@@ -10,6 +10,7 @@ use super::AuthenticationScopePolicy;
 pub struct AuthenticatedRequest<'request, 'policy> {
     request: TransportRequest<'request>,
     policy: AuthenticationScopePolicy<'policy>,
+    response_policy: RawResponsePolicy<'policy>,
 }
 
 impl<'request, 'policy> AuthenticatedRequest<'request, 'policy> {
@@ -18,8 +19,13 @@ impl<'request, 'policy> AuthenticatedRequest<'request, 'policy> {
     pub const fn new(
         request: TransportRequest<'request>,
         policy: AuthenticationScopePolicy<'policy>,
+        response_policy: RawResponsePolicy<'policy>,
     ) -> Self {
-        Self { request, policy }
+        Self {
+            request,
+            policy,
+            response_policy,
+        }
     }
 
     /// Returns the credential-free transport request.
@@ -33,6 +39,12 @@ impl<'request, 'policy> AuthenticatedRequest<'request, 'policy> {
     pub const fn policy(self) -> AuthenticationScopePolicy<'policy> {
         self.policy
     }
+
+    /// Returns the complete status-class raw response policy.
+    #[must_use]
+    pub const fn response_policy(self) -> RawResponsePolicy<'policy> {
+        self.response_policy
+    }
 }
 
 impl fmt::Debug for AuthenticatedRequest<'_, '_> {
@@ -41,6 +53,7 @@ impl fmt::Debug for AuthenticatedRequest<'_, '_> {
             .debug_struct("AuthenticatedRequest")
             .field("request", &self.request)
             .field("policy", &self.policy)
+            .field("response_policy", &self.response_policy)
             .finish()
     }
 }

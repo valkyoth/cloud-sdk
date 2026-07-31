@@ -73,7 +73,11 @@ fn blocking_precommitted_writer_fails_before_network_access() {
             authenticated(&client, TransportRequest::new(Method::Get, target)),
             response.writer(),
         ),
-        Err(super::super::TransportError::ResponseCommitFailed)
+        Err(cloud_sdk::transport::TransportFailure::not_sent(
+            super::super::TransportError::RawHttp(
+                super::super::RawHttpError::ResponseAlreadyCommitted
+            )
+        ))
     );
 }
 

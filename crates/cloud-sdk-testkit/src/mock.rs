@@ -4,6 +4,9 @@ use core::fmt;
 use core::sync::atomic::{AtomicUsize, Ordering};
 
 use cloud_sdk::Method;
+use cloud_sdk::authentication::{
+    AsyncAuthenticatedTransport, AuthenticatedRequest, BlockingAuthenticatedTransport,
+};
 use cloud_sdk::transport::{
     AsyncTransport, BlockingTransport, BoundTransport, EndpointIdentity, EndpointIdentityError,
     HeaderSensitivity, RequestHeaders, RequestTarget, ResponseContentType, ResponseHeaders,
@@ -309,6 +312,18 @@ impl BlockingTransport for MockTransport<'_> {
     }
 }
 
+impl BlockingAuthenticatedTransport for MockTransport<'_> {
+    type Error = MockError;
+
+    fn send_authenticated(
+        &self,
+        request: AuthenticatedRequest<'_, '_>,
+        response: &mut ResponseWriter<'_>,
+    ) -> Result<(), Self::Error> {
+        self.send_inner(request.transport_request(), response)
+    }
+}
+
 impl AsyncTransport for MockTransport<'_> {
     type Error = MockError;
 
@@ -322,6 +337,23 @@ impl AsyncTransport for MockTransport<'_> {
         'request: 'writer,
     {
         self.send_inner(request, response)
+    }
+}
+
+impl AsyncAuthenticatedTransport for MockTransport<'_> {
+    type Error = MockError;
+
+    async fn send_authenticated<'transport, 'request, 'policy, 'writer>(
+        &'transport self,
+        request: AuthenticatedRequest<'request, 'policy>,
+        response: &'writer mut ResponseWriter<'_>,
+    ) -> Result<(), Self::Error>
+    where
+        'transport: 'writer,
+        'request: 'writer,
+        'policy: 'writer,
+    {
+        self.send_inner(request.transport_request(), response)
     }
 }
 

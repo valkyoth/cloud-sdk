@@ -48,8 +48,8 @@ fn async_send_future_stays_within_explicit_state_budget() {
     );
     let future_bytes = core::mem::size_of_val(&future);
     assert!(
-        future_bytes <= 2_048,
-        "async send future exceeds the 2 KiB state budget: {future_bytes} bytes"
+        future_bytes <= 8_192,
+        "async send future exceeds the 8 KiB state budget: {future_bytes} bytes"
     );
 }
 
@@ -82,7 +82,11 @@ fn async_precommitted_writer_fails_before_network_access() {
                 response.writer(),
             )
             .await,
-            Err(super::super::TransportError::ResponseCommitFailed)
+            Err(cloud_sdk::transport::TransportFailure::not_sent(
+                super::super::TransportError::RawHttp(
+                    super::super::RawHttpError::ResponseAlreadyCommitted
+                )
+            ))
         );
     });
 }

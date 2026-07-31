@@ -1,6 +1,7 @@
 use core::future::Future;
 use core::task::{Context, Poll, Waker};
 
+use cloud_sdk::authentication::{AuthenticationScopePolicy, ScopeRequirement};
 use cloud_sdk::operation::{
     ContentTypePolicy, CostIntent, OperationImpact, OperationMetadata, PreparedExecutionError,
     PreparedRequest, ProviderService, RequestIdPolicy, RequestSemantics, ResponseBodyPolicy,
@@ -8,7 +9,8 @@ use cloud_sdk::operation::{
 };
 use cloud_sdk::transport::{
     ContentType, EndpointIdentity, EndpointIdentityError, EndpointPolicy, EndpointScheme,
-    MediaType, RequestHeader, RequestHeaders, RequestTarget, StatusCode, TransportRequest,
+    HeaderName, MediaType, RawResponsePolicy, RequestHeader, RequestHeaders, RequestTarget,
+    ResponseMediaPolicy, StatusCode, TransportRequest,
 };
 use cloud_sdk::{
     Method, ProviderId, ProviderMarker, ServiceId, ServiceMarker, provider_id, service_id,
@@ -57,6 +59,24 @@ fn prepared_records_capture_policy_and_redact_request_values() {
         RetryEligibility::ExplicitPolicy
     );
     assert_eq!(record.response_policy().max_body_bytes(), 16);
+    assert_eq!(
+        record.authentication_policy().provider_requirement(),
+        ScopeRequirement::Required(ExampleProvider::ID)
+    );
+    assert_eq!(
+        record.authentication_policy().service_requirement(),
+        ScopeRequirement::Required(ComputeService::ID)
+    );
+    assert!(matches!(
+        record.authentication_policy().endpoint_requirement(),
+        ScopeRequirement::Required(_)
+    ));
+    assert_eq!(
+        record.authentication_policy().audience_requirement(),
+        ScopeRequirement::Forbidden
+    );
+    assert_eq!(record.raw_response_policy().max_body_bytes(), 16);
+    assert!(record.raw_response_policy().admits_header("content-type"));
 
     let debug = alloc::format!("{record:?}");
     assert!(debug.contains("[redacted]"));
@@ -288,11 +308,31 @@ fn prepared_request(max_body_bytes: usize) -> Result<PreparedRequest<'static>, (
     )
     .map_err(|_| ())?;
     let endpoint = official_endpoint().map_err(|_| ())?;
+    let authentication_policy = AuthenticationScopePolicy::new(
+        ScopeRequirement::Required(ExampleProvider::ID),
+        ScopeRequirement::Required(ComputeService::ID),
+        ScopeRequirement::Required(endpoint),
+        ScopeRequirement::Forbidden,
+        ScopeRequirement::Forbidden,
+        ScopeRequirement::Forbidden,
+    );
+    let content_type = HeaderName::new("content-type").map_err(|_| ())?;
+    let raw_response_policy = RawResponsePolicy::new(
+        max_body_bytes,
+        max_body_bytes,
+        ResponseMediaPolicy::Required(&JSON_MEDIA),
+        ResponseMediaPolicy::Required(&JSON_MEDIA),
+        &[content_type],
+        8,
+    )
+    .map_err(|_| ())?;
     Ok(PreparedRequest::new(
         request,
         ProviderService::from_marker::<ComputeService>(EndpointPolicy::fixed(endpoint)),
         metadata,
         response_policy,
+        authentication_policy,
+        raw_response_policy,
     ))
 }
 

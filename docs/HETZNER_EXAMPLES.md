@@ -26,7 +26,8 @@ provider-owned contract:
 1. Validate provider-specific input and endpoint policy.
 2. Write the complete target and JSON body into caller-owned bounded buffers.
 3. Bind the provider-neutral request, official endpoint, operation metadata,
-   and response policy.
+   exact provider service, authentication scope, checked response policy, and
+   raw wire policy.
 4. Send only after the application has reviewed credentials, operation cost,
    timeout, retry, logging, and response-size policy.
 
@@ -36,7 +37,9 @@ and state fields; provider-complete resource field models remain scheduled
 before `1.0.0`. The crate does not yet provide a high-level client that also
 performs transport or chooses caller-owned storage automatically. That
 boundary is explicit so application code cannot silently inherit networking,
-retry, runtime, or secret-storage behavior.
+retry, runtime, or secret-storage behavior. Prepared execution itself has no
+legacy transport fallback: it requires an authenticated transport and sends
+the operation-owned raw response policy with the request.
 
 ## Mutation Safety
 

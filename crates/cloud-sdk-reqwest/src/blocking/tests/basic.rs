@@ -59,7 +59,11 @@ fn request<'a>(
         ScopeRequirement::Forbidden,
         ScopeRequirement::Forbidden,
     );
-    AuthenticatedRequest::new(TransportRequest::new(Method::Get, target), policy)
+    AuthenticatedRequest::new(
+        TransportRequest::new(Method::Get, target),
+        policy,
+        super::support::test_raw_response_policy(),
+    )
 }
 
 #[test]
@@ -140,8 +144,11 @@ fn blocking_basic_client_rejects_incomplete_scope_before_network() {
         ScopeRequirement::Forbidden,
         ScopeRequirement::Forbidden,
     );
-    let authenticated =
-        AuthenticatedRequest::new(TransportRequest::new(Method::Get, target), policy);
+    let authenticated = AuthenticatedRequest::new(
+        TransportRequest::new(Method::Get, target),
+        policy,
+        super::support::test_raw_response_policy(),
+    );
     let mut body = [0_u8; 8];
     let mut headers = [0_u8; 512];
     let mut response = ResponseBuffer::new(&mut body, 8, &mut headers);
@@ -151,7 +158,9 @@ fn blocking_basic_client_rejects_incomplete_scope_before_network() {
             authenticated,
             response.writer(),
         ),
-        Err(TransportError::AuthenticationScopeRejected)
+        Err(cloud_sdk::transport::TransportFailure::not_sent(
+            TransportError::AuthenticationScopeRejected
+        ))
     );
     drop(response);
     assert_eq!(body, [0_u8; 8]);

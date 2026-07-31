@@ -20,6 +20,12 @@ validate the expected top-level collection. Pricing must return its expected
 object. The endpoint is fixed to `https://api.hetzner.cloud/v1`; callers cannot
 redirect authenticated traffic to another origin.
 
+Since v0.43, each probe prepares the same provider-owned operation exposed to
+applications. The prepared request supplies exact Cloud service identity,
+official endpoint, required authentication scope, bounded raw response policy,
+and checked response policy to the authenticated raw adapter. The harness has
+no separate legacy request assembly path.
+
 Ordinary checks run all offline harness tests but leave the authenticated test
 ignored:
 

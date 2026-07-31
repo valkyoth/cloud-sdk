@@ -11,7 +11,7 @@ use cloud_sdk::transport::{
     TransportFailure, TransportRequest,
 };
 use cloud_sdk_sanitization::sanitize_bytes;
-use http::header::{HeaderName, HeaderValue, USER_AGENT};
+use http::header::{AUTHORIZATION, HeaderName, HeaderValue, USER_AGENT};
 use http_body_util::{BodyExt, Full};
 use hyper::body::Incoming;
 #[cfg(any(
@@ -176,6 +176,28 @@ impl RawHyperClient {
         policy: RawResponsePolicy<'_>,
         response_writer: &mut ResponseWriter<'_>,
     ) -> Result<(), RawTransportFailure> {
+        self.execute_inner(request, policy, None, response_writer)
+            .await
+    }
+
+    pub(crate) async fn execute_authenticated(
+        &self,
+        request: TransportRequest<'_>,
+        policy: RawResponsePolicy<'_>,
+        authorization: HeaderValue,
+        response_writer: &mut ResponseWriter<'_>,
+    ) -> Result<(), RawTransportFailure> {
+        self.execute_inner(request, policy, Some(authorization), response_writer)
+            .await
+    }
+
+    async fn execute_inner(
+        &self,
+        request: TransportRequest<'_>,
+        policy: RawResponsePolicy<'_>,
+        authorization: Option<HeaderValue>,
+        response_writer: &mut ResponseWriter<'_>,
+    ) -> Result<(), RawTransportFailure> {
         if response_writer.is_committed() {
             return Err(TransportFailure::not_sent(
                 RawHttpError::ResponseAlreadyCommitted,
@@ -185,7 +207,7 @@ impl RawHyperClient {
             .begin_attempt()
             .map_err(|_| TransportFailure::not_sent(RawHttpError::ResponseAlreadyCommitted))?;
         let method = request.method();
-        let request = self.prepare_request(request)?;
+        let request = self.prepare_request(request, authorization)?;
         let state = Arc::new(ResponseState::new(policy.informational_limit()));
         let observer = Arc::clone(&state);
         let mut request = request;
@@ -205,6 +227,7 @@ impl RawHyperClient {
     fn prepare_request(
         &self,
         request: TransportRequest<'_>,
+        authorization: Option<HeaderValue>,
     ) -> Result<http::Request<Full<Bytes>>, RawTransportFailure> {
         validate_request_body_len(request.body()).map_err(TransportFailure::not_sent)?;
         let url = self
@@ -221,6 +244,10 @@ impl RawHyperClient {
         let Some(headers) = builder.headers_mut() else {
             return Err(TransportFailure::not_sent(RawHttpError::RequestBuildFailed));
         };
+        if let Some(mut authorization) = authorization {
+            authorization.set_sensitive(true);
+            headers.insert(AUTHORIZATION, authorization);
+        }
         for header in request.headers().as_slice() {
             let name = HeaderName::from_bytes(header.name().as_str().as_bytes())
                 .map_err(|_| TransportFailure::not_sent(RawHttpError::HeaderRejected))?;

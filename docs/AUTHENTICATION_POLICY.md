@@ -1,6 +1,7 @@
 # Authentication Policy
 
-Status: v0.42.0 release candidate; pentest and final retest passed.
+Status: v0.43 prepared authenticated raw-wire migration implemented; pentest
+required.
 
 The authentication layer is separate from credential-free raw HTTP execution. Core
 defines scope, generation, and authenticated transport contracts without
@@ -22,6 +23,12 @@ Exactly one layer may construct `Authorization`:
 Use raw clients only below a separately reviewed authentication layer. Use
 `BlockingAuthenticatedTransport` or `AsyncAuthenticatedTransport` when the
 reqwest adapter owns a credential.
+
+Every `AuthenticatedRequest` also carries a complete `RawResponsePolicy`.
+Bearer and Basic clients validate scope, construct one sensitive authorization
+field, and then execute through the same bounded raw Hyper engine as the
+credential-free raw clients. There is no high-level reqwest compatibility
+fallback.
 
 ## Credential Scope
 
@@ -120,9 +127,11 @@ tokens according to provider policy.
 ## Failure And Retry
 
 Scope, endpoint, token-validation, stale-generation, and generation-exhaustion
-errors are payload-free. Scope failure occurs before network work. This layer
-does not retry. Later operation policy must combine authentication outcome with
-delivery phase and idempotency before any retry decision.
+errors are payload-free. Scope failure occurs in `NotSent` before network work.
+Once execution begins, authenticated adapter failures preserve `NotSent`,
+`PossiblySent`, or `ResponseStarted`. This layer does not retry. Operation
+policy must combine that delivery phase with idempotency before any retry
+decision.
 
 ## Verification
 

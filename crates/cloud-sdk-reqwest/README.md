@@ -38,8 +38,8 @@ provider without adding transport dependencies to provider crates.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.42.0"
-cloud-sdk-reqwest = { version = "0.29.0", features = ["blocking-rustls"] }
+cloud-sdk = "0.43.0"
+cloud-sdk-reqwest = { version = "0.30.0", features = ["blocking-rustls"] }
 ```
 
 The examples use Hetzner as a concrete endpoint, but the adapter contains no
@@ -76,6 +76,8 @@ Mandatory bearer scope, rotation, and refresh migration are listed in the
 [v0.41 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.41.0.md).
 Basic credential and client additions are listed in the
 [v0.42 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.42.0.md).
+Authenticated raw-wire execution and delivery-phase changes are listed in the
+[v0.43 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.43.0.md).
 
 ## Raw Blocking Executor
 
@@ -157,7 +159,8 @@ use cloud_sdk::authentication::{
     BlockingAuthenticatedTransport, ScopeRequirement,
 };
 use cloud_sdk::transport::{
-    RequestTarget, ResponseBuffer, TransportRequest,
+    HeaderName, MediaType, RawResponsePolicy, RequestTarget, ResponseBuffer,
+    ResponseMediaPolicy, TransportRequest,
 };
 use cloud_sdk_reqwest::blocking::{
     BearerCredential, BearerCredentialScope, BearerToken,
@@ -198,9 +201,19 @@ let Ok(client) =
 else { return };
 
 let Ok(target) = RequestTarget::new("/servers?page=1") else { return };
+let Ok(content_type) = HeaderName::new("content-type") else { return };
+let Ok(response_policy) = RawResponsePolicy::new(
+    65_536,
+    65_536,
+    ResponseMediaPolicy::Required(&[MediaType::JSON]),
+    ResponseMediaPolicy::Required(&[MediaType::JSON]),
+    &[content_type],
+    8,
+) else { return };
 let request = AuthenticatedRequest::new(
     TransportRequest::new(Method::Get, target),
     authentication_policy,
+    response_policy,
 );
 let mut response_body = [0_u8; 65_536];
 let response_capacity = response_body.len();
@@ -296,8 +309,8 @@ compiled into `webpki-roots`:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.42.0"
-cloud-sdk-reqwest = { version = "0.29.0", features = ["blocking-rustls-webpki-roots"] }
+cloud-sdk = "0.43.0"
+cloud-sdk-reqwest = { version = "0.30.0", features = ["blocking-rustls-webpki-roots"] }
 ```
 
 The blocking API is identical to the example above. The custom rustls client
@@ -313,8 +326,8 @@ Use the same blocking API with the dedicated feature:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.42.0"
-cloud-sdk-reqwest = { version = "0.29.0", features = ["blocking-rustls-fips"] }
+cloud-sdk = "0.43.0"
+cloud-sdk-reqwest = { version = "0.30.0", features = ["blocking-rustls-fips"] }
 rustls = "=0.23.42"
 ```
 
@@ -371,7 +384,10 @@ use cloud_sdk::authentication::{
     AsyncAuthenticatedTransport, AuthenticatedRequest,
     AuthenticationScopePolicy, ScopeRequirement,
 };
-use cloud_sdk::transport::{RequestTarget, ResponseBuffer, TransportRequest};
+use cloud_sdk::transport::{
+    HeaderName, MediaType, RawResponsePolicy, RequestTarget, ResponseBuffer,
+    ResponseMediaPolicy, TransportRequest,
+};
 use cloud_sdk_reqwest::asynchronous::{
     AsyncClientBuilder, BearerCredential, BearerCredentialScope,
     BearerToken, CustomEndpointAcknowledgement, HttpsEndpoint,
@@ -411,9 +427,19 @@ let Ok(client) =
 else { return };
 
 let Ok(target) = RequestTarget::new("/servers?page=1") else { return };
+let Ok(content_type) = HeaderName::new("content-type") else { return };
+let Ok(response_policy) = RawResponsePolicy::new(
+    65_536,
+    65_536,
+    ResponseMediaPolicy::Required(&[MediaType::JSON]),
+    ResponseMediaPolicy::Required(&[MediaType::JSON]),
+    &[content_type],
+    8,
+) else { return };
 let request = AuthenticatedRequest::new(
     TransportRequest::new(Method::Get, target),
     authentication_policy,
+    response_policy,
 );
 let mut response_body = [0_u8; 65_536];
 let response_capacity = response_body.len();
@@ -470,9 +496,11 @@ queues, semaphores, retries, sleeps, or an executor; callers must bound their
 own blocking threads or async task sets.
 
 Both authenticated transport traits send through `&self` and require a complete
-provider or operation-owned authentication policy. Scope validation completes
-before header construction. A successful request then takes a short-lived token
-snapshot and releases the credential lock before network work or `.await`.
+provider or operation-owned authentication policy plus raw response policy.
+Scope validation completes before header construction. A successful request
+then takes a short-lived token snapshot, releases the credential lock before
+network work or `.await`, and executes through the shared bounded raw Hyper
+engine. Failures retain their conservative delivery phase.
 Rotation changes the token for newly started requests atomically; an in-flight
 request keeps its previous snapshot, and retired adapter-owned token and header
 storage is sanitized after its last owner is dropped.

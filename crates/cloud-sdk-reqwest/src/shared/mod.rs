@@ -16,11 +16,14 @@ mod auth;
 mod authentication;
 mod basic;
 mod config;
+#[cfg(test)]
 mod content_type;
 mod credentials;
 mod endpoint;
 mod error;
+#[cfg(test)]
 mod headers;
+#[cfg(test)]
 mod rate_limit;
 mod raw;
 #[cfg(feature = "fuzzing")]
@@ -42,7 +45,6 @@ pub use basic::{
 };
 pub use cloud_sdk::transport::CustomEndpointAcknowledgement;
 pub use config::{MAX_TIMEOUT_SECONDS, RequestTimeouts, TimeoutError, UserAgent, UserAgentError};
-pub(crate) use content_type::parse_response_content_type;
 pub(crate) use credentials::CredentialStore;
 pub use credentials::{
     BearerCredentialSnapshot, BearerRefreshHandoff, CredentialStateError, CredentialUpdateError,
@@ -50,12 +52,10 @@ pub use credentials::{
 };
 pub use endpoint::{EndpointError, HttpsEndpoint, MAX_CONFIGURED_ENDPOINT_BYTES};
 pub use error::{BuildError, TransportError};
-pub(crate) use headers::capture_response_headers;
-pub(crate) use rate_limit::parse_rate_limit;
 pub(crate) use raw::inspect_response_head;
 pub use raw::{
-    MAX_RAW_REQUEST_BODY_BYTES, MAX_UPSTREAM_HTTP1_HEAD_BYTES, MAX_UPSTREAM_HTTP1_HEADERS,
-    RawHttpError, RawTransportFailure,
+    AuthenticatedTransportFailure, MAX_RAW_REQUEST_BODY_BYTES, MAX_UPSTREAM_HTTP1_HEAD_BYTES,
+    MAX_UPSTREAM_HTTP1_HEADERS, RawHttpError, RawTransportFailure,
 };
 #[cfg(feature = "fuzzing")]
 pub use raw_fuzz::fuzz_raw_response_parser;
