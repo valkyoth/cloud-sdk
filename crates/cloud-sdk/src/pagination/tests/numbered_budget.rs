@@ -69,7 +69,7 @@ fn request_and_item_budgets_fail_before_state_advances() {
 
 #[test]
 fn snapshot_omission_presence_and_drift_are_explicit_and_transactional() {
-    let snapshot = SnapshotId::new(7).ok();
+    let snapshot = SnapshotId::new(b"snapshot-7").ok();
     let mut required = PaginationBudget::new(limits(3, 100), SnapshotPolicy::Required);
     assert_eq!(
         required.admit(1, true, None),
@@ -78,7 +78,7 @@ fn snapshot_omission_presence_and_drift_are_explicit_and_transactional() {
     assert_eq!(required.progress().requests(), 0);
     assert!(required.admit(1, true, snapshot).is_ok());
     assert_eq!(
-        required.admit(1, false, SnapshotId::new(8).ok()),
+        required.admit(1, false, SnapshotId::new(b"snapshot-8").ok()),
         Err(PaginationError::SnapshotChanged)
     );
     assert_eq!(required.progress().requests(), 1);
@@ -94,6 +94,41 @@ fn snapshot_omission_presence_and_drift_are_explicit_and_transactional() {
     assert_eq!(
         optional.admit(1, false, snapshot),
         Err(PaginationError::SnapshotChanged)
+    );
+}
+
+#[test]
+fn snapshot_identity_uses_exact_bounded_bytes_without_hash_collisions() {
+    use super::super::MAX_SNAPSHOT_ID_BYTES;
+
+    assert_eq!(SnapshotId::new(b""), Err(PaginationError::SnapshotIdEmpty));
+    let exact = [b'x'; MAX_SNAPSHOT_ID_BYTES];
+    assert!(SnapshotId::new(&exact).is_ok());
+    let oversized = [b'x'; MAX_SNAPSHOT_ID_BYTES + 1];
+    assert_eq!(
+        SnapshotId::new(&oversized),
+        Err(PaginationError::SnapshotIdTooLong)
+    );
+
+    let first = b"same-prefix-snapshot-a";
+    let changed = b"same-prefix-snapshot-b";
+    let mut budget = PaginationBudget::new(limits(3, 10), SnapshotPolicy::Required);
+    assert!(budget.admit(1, true, SnapshotId::new(first).ok()).is_ok());
+    assert_eq!(
+        budget.admit(1, false, SnapshotId::new(changed).ok()),
+        Err(PaginationError::SnapshotChanged)
+    );
+    assert_eq!(budget.progress().requests(), 1);
+
+    let mut transactional = PaginationBudget::new(limits(1, 10), SnapshotPolicy::Required);
+    assert_eq!(
+        transactional.admit(1, true, SnapshotId::new(first).ok()),
+        Err(PaginationError::RequestBudgetExceeded)
+    );
+    assert!(
+        transactional
+            .admit(1, false, SnapshotId::new(changed).ok())
+            .is_ok()
     );
 }
 

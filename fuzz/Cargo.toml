@@ -50,6 +50,20 @@ doc = false
 bench = false
 
 [[bin]]
+name = "pagination_opaque"
+path = "fuzz_targets/pagination_opaque.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "provider_links"
+path = "fuzz_targets/provider_links.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
 name = "action_polling"
 path = "fuzz_targets/action_polling.rs"
 test = false

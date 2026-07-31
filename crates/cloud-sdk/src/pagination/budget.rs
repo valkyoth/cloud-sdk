@@ -1,6 +1,9 @@
-use cloud_sdk_sanitization::sanitize_value;
+use cloud_sdk_sanitization::{sanitize_bytes, sanitize_value};
 
 use super::{MAX_OPAQUE_STATE_BYTES, PaginationError};
+
+/// Maximum exact provider snapshot identity length.
+pub const MAX_SNAPSHOT_ID_BYTES: usize = 256;
 
 /// Hard traversal limits selected before the first request.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -51,25 +54,28 @@ impl PaginationLimits {
 
 /// Provider snapshot identifier supplied by a provider decoder.
 #[derive(Clone, Copy, Eq, Hash, Ord, PartialEq, PartialOrd)]
-pub struct SnapshotId(u64);
+pub struct SnapshotId<'a>(&'a [u8]);
 
-impl SnapshotId {
-    /// Creates an opaque nonzero snapshot identifier.
-    pub const fn new(value: u64) -> Result<Self, PaginationError> {
-        if value == 0 {
-            return Err(PaginationError::ZeroLimit);
+impl<'a> SnapshotId<'a> {
+    /// Creates a nonempty exact bounded snapshot identifier.
+    pub const fn new(value: &'a [u8]) -> Result<Self, PaginationError> {
+        if value.is_empty() {
+            return Err(PaginationError::SnapshotIdEmpty);
+        }
+        if value.len() > MAX_SNAPSHOT_ID_BYTES {
+            return Err(PaginationError::SnapshotIdTooLong);
         }
         Ok(Self(value))
     }
 
-    /// Returns the provider-decoder identifier.
+    /// Returns the exact provider-decoder identity bytes.
     #[must_use]
-    pub const fn get(self) -> u64 {
+    pub const fn as_bytes(self) -> &'a [u8] {
         self.0
     }
 }
 
-impl core::fmt::Debug for SnapshotId {
+impl core::fmt::Debug for SnapshotId<'_> {
     fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         formatter.write_str("SnapshotId([redacted])")
     }
@@ -119,7 +125,9 @@ impl PaginationProgress {
 pub struct PaginationBudget {
     limits: PaginationLimits,
     snapshot_policy: SnapshotPolicy,
-    snapshot: Option<SnapshotId>,
+    snapshot: [u8; MAX_SNAPSHOT_ID_BYTES],
+    snapshot_len: usize,
+    snapshot_present: bool,
     snapshot_initialized: bool,
     requests: u32,
     items: u64,
@@ -132,7 +140,9 @@ impl PaginationBudget {
         Self {
             limits,
             snapshot_policy,
-            snapshot: None,
+            snapshot: [0; MAX_SNAPSHOT_ID_BYTES],
+            snapshot_len: 0,
+            snapshot_present: false,
             snapshot_initialized: false,
             requests: 0,
             items: 0,
@@ -163,7 +173,7 @@ impl PaginationBudget {
         &mut self,
         entries: usize,
         has_continuation: bool,
-        snapshot: Option<SnapshotId>,
+        snapshot: Option<SnapshotId<'_>>,
     ) -> Result<PaginationProgress, PaginationError> {
         self.validate_snapshot(snapshot)?;
         let requests = self
@@ -183,16 +193,24 @@ impl PaginationBudget {
         if items > self.limits.max_items {
             return Err(PaginationError::ItemBudgetExceeded);
         }
-        self.requests = requests;
-        self.items = items;
         if !self.snapshot_initialized {
-            self.snapshot = snapshot;
+            if let Some(snapshot) = snapshot {
+                let bytes = snapshot.as_bytes();
+                self.snapshot
+                    .get_mut(..bytes.len())
+                    .ok_or(PaginationError::SnapshotIdTooLong)?
+                    .copy_from_slice(bytes);
+                self.snapshot_len = bytes.len();
+                self.snapshot_present = true;
+            }
             self.snapshot_initialized = true;
         }
+        self.requests = requests;
+        self.items = items;
         Ok(self.progress())
     }
 
-    fn validate_snapshot(&self, snapshot: Option<SnapshotId>) -> Result<(), PaginationError> {
+    fn validate_snapshot(&self, snapshot: Option<SnapshotId<'_>>) -> Result<(), PaginationError> {
         match self.snapshot_policy {
             SnapshotPolicy::Required if snapshot.is_none() => {
                 Err(PaginationError::SnapshotRequired)
@@ -200,20 +218,30 @@ impl PaginationBudget {
             SnapshotPolicy::Forbidden if snapshot.is_some() => {
                 Err(PaginationError::SnapshotForbidden)
             }
-            _ if self.snapshot_initialized && snapshot != self.snapshot => {
+            _ if self.snapshot_initialized && !self.snapshot_matches(snapshot) => {
                 Err(PaginationError::SnapshotChanged)
             }
             _ => Ok(()),
+        }
+    }
+
+    fn snapshot_matches(&self, snapshot: Option<SnapshotId<'_>>) -> bool {
+        match (self.snapshot_present, snapshot) {
+            (false, None) => true,
+            (true, Some(snapshot)) => self
+                .snapshot
+                .get(..self.snapshot_len)
+                .is_some_and(|stored| stored == snapshot.as_bytes()),
+            _ => false,
         }
     }
 }
 
 impl Drop for PaginationBudget {
     fn drop(&mut self) {
-        if let Some(snapshot) = &mut self.snapshot {
-            sanitize_value(&mut snapshot.0);
-        }
-        self.snapshot = None;
+        sanitize_bytes(&mut self.snapshot);
+        sanitize_value(&mut self.snapshot_len);
+        sanitize_value(&mut self.snapshot_present);
         sanitize_value(&mut self.snapshot_initialized);
         sanitize_value(&mut self.requests);
         sanitize_value(&mut self.items);

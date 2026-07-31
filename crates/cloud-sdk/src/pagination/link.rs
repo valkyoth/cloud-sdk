@@ -5,7 +5,7 @@ use cloud_sdk_sanitization::{SecretBuffer, sanitize_bytes, sanitize_value};
 use crate::Method;
 use crate::operation::OperationId;
 use crate::transport::{
-    EndpointIdentity, EndpointScheme, RequestPath, RequestTarget, TransportRequest,
+    BoundTransport, EndpointIdentity, EndpointScheme, RequestPath, RequestTarget, TransportRequest,
 };
 
 use super::{PaginationError, PaginationLimits};
@@ -58,25 +58,26 @@ impl fmt::Debug for ProviderLinkBinding<'_> {
 /// ```compile_fail
 /// use cloud_sdk::pagination::ValidatedProviderLink;
 /// fn require_copy<T: Copy>() {}
-/// require_copy::<ValidatedProviderLink<'static>>();
+/// require_copy::<ValidatedProviderLink<'static, 'static>>();
 /// ```
 ///
 /// ```compile_fail
 /// use cloud_sdk::pagination::ValidatedProviderLink;
 /// use cloud_sdk::transport::RequestQuery;
 ///
-/// fn into_structured<'a>(link: ValidatedProviderLink<'a>) -> RequestQuery<'a> {
+/// fn into_structured<'a>(link: ValidatedProviderLink<'a, 'a>) -> RequestQuery<'a> {
 ///     link.into()
 /// }
 /// ```
-pub struct ValidatedProviderLink<'storage> {
+pub struct ValidatedProviderLink<'storage, 'endpoint> {
     target: SecretBuffer<'storage>,
     target_len: usize,
+    endpoint: EndpointIdentity<'endpoint>,
     method: Method,
     operation: OperationId,
 }
 
-impl<'storage> ValidatedProviderLink<'storage> {
+impl<'storage, 'endpoint> ValidatedProviderLink<'storage, 'endpoint> {
     /// Atomically validates and transfers an absolute or origin-form link.
     ///
     /// Source and complete destination storage are cleared on every failure;
@@ -86,7 +87,7 @@ impl<'storage> ValidatedProviderLink<'storage> {
     pub fn transfer_from(
         source: &mut [u8],
         destination: &'storage mut [u8],
-        binding: ProviderLinkBinding<'_>,
+        binding: ProviderLinkBinding<'endpoint>,
         limits: PaginationLimits,
     ) -> Result<Self, PaginationError> {
         sanitize_bytes(destination);
@@ -114,21 +115,31 @@ impl<'storage> ValidatedProviderLink<'storage> {
         Ok(Self {
             target: destination,
             target_len: raw_target.len(),
+            endpoint: binding.endpoint,
             method: binding.method,
             operation: binding.operation,
         })
     }
 
-    /// Runs a closure with a request only when method and operation match.
+    /// Runs a closure with a request only when endpoint, method, and operation match.
     ///
-    /// The request target borrows cleanup-owning link storage and cannot
-    /// outlive this call.
-    pub fn with_request<R>(
+    /// The request target borrows cleanup-owning link storage and cannot outlive
+    /// this call. The supplied transport must be the transport selected for
+    /// execution; its immutable endpoint identity is checked before the target
+    /// is reconstructed.
+    pub fn with_bound_request<T: BoundTransport, R>(
         &self,
+        transport: &T,
         method: Method,
         operation: OperationId,
         inspect: impl FnOnce(TransportRequest<'_>) -> R,
     ) -> Result<R, PaginationError> {
+        let actual = transport
+            .endpoint_identity()
+            .map_err(|_| PaginationError::ProviderLinkAuthorityChanged)?;
+        if actual != self.endpoint {
+            return Err(PaginationError::ProviderLinkAuthorityChanged);
+        }
         if method != self.method {
             return Err(PaginationError::ProviderLinkMethodChanged);
         }
@@ -148,17 +159,18 @@ impl<'storage> ValidatedProviderLink<'storage> {
     }
 }
 
-impl Drop for ValidatedProviderLink<'_> {
+impl Drop for ValidatedProviderLink<'_, '_> {
     fn drop(&mut self) {
         sanitize_value(&mut self.target_len);
     }
 }
 
-impl fmt::Debug for ValidatedProviderLink<'_> {
+impl fmt::Debug for ValidatedProviderLink<'_, '_> {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter
             .debug_struct("ValidatedProviderLink")
             .field("target", &"[redacted]")
+            .field("endpoint", &self.endpoint)
             .field("method", &self.method)
             .field("operation", &self.operation)
             .finish()

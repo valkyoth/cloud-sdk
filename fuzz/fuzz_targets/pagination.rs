@@ -1,12 +1,17 @@
 #![no_main]
 
 use cloud_sdk::pagination::{
-    NumberedPageMetadata, NumberedPagination, PageNumber, PaginationBudget, PaginationLimits,
-    SnapshotPolicy,
+    NumberedPageMetadata, NumberedPagination, OffsetPageMetadata, OffsetPagination, PageNumber,
+    PaginationBudget, PaginationLimits, SnapshotPolicy,
 };
 use libfuzzer_sys::fuzz_target;
 
 fuzz_target!(|data: &[u8]| {
+    fuzz_numbered(data);
+    fuzz_offset(data);
+});
+
+fn fuzz_numbered(data: &[u8]) {
     let first = page(data.first().copied().unwrap_or(0));
     let per_page = u64::from(data.get(1).copied().unwrap_or(0)).saturating_add(1);
     let limits = PaginationLimits::new(
@@ -50,7 +55,53 @@ fuzz_target!(|data: &[u8]| {
             assert_eq!(cursor.progress(), before_progress);
         }
     }
-});
+}
+
+fn fuzz_offset(data: &[u8]) {
+    let page_size = u64::from(data.first().copied().unwrap_or(0)).saturating_add(1);
+    let requests = u32::from(data.get(1).copied().unwrap_or(0) % 16).saturating_add(1);
+    let Ok(limits) = PaginationLimits::new(requests, 16_384, 256) else {
+        return;
+    };
+    let budget = PaginationBudget::new(limits, SnapshotPolicy::Forbidden);
+    let Ok(mut pagination) = OffsetPagination::new(0, page_size, budget) else {
+        return;
+    };
+
+    for chunk in data.get(2..).unwrap_or_default().chunks(27).take(64) {
+        let offset = read_u64(chunk, 0);
+        let next = (chunk.get(24).copied().unwrap_or(0) & 1 != 0).then(|| read_u64(chunk, 8));
+        let total = (chunk.get(24).copied().unwrap_or(0) & 2 != 0).then(|| read_u64(chunk, 16));
+        let entries = usize::from(chunk.get(25).copied().unwrap_or(0));
+        let response_page_size = if chunk.get(26).copied().unwrap_or(0) & 1 == 0 {
+            page_size
+        } else {
+            page_size.saturating_add(1)
+        };
+        let Ok(metadata) = OffsetPageMetadata::new(offset, response_page_size, next, total) else {
+            continue;
+        };
+        let before_offset = pagination.next_offset();
+        let before_progress = pagination.progress();
+        if pagination.observe(metadata, entries, None, None).is_err() {
+            assert_eq!(pagination.next_offset(), before_offset);
+            assert_eq!(pagination.progress(), before_progress);
+        }
+    }
+}
+
+fn read_u64(data: &[u8], start: usize) -> u64 {
+    let Some(end) = start.checked_add(8) else {
+        return 0;
+    };
+    let Some(bytes) = data.get(start..end) else {
+        return 0;
+    };
+    let Ok(bytes) = <[u8; 8]>::try_from(bytes) else {
+        return 0;
+    };
+    u64::from_be_bytes(bytes)
+}
 
 fn page(value: u8) -> Result<PageNumber, cloud_sdk::pagination::PaginationError> {
     PageNumber::new(u64::from(value))

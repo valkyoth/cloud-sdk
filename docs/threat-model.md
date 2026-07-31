@@ -181,10 +181,11 @@
   must occur exactly once, and values are validated before metadata is exposed;
 - pagination separates numbered, offset, cursor, marker, and provider-link
   state; requires hard request, item, state, and history budgets; keeps
-  snapshot policy explicit and progression transactional; clears non-Copy
-  opaque state on drop; fails closed on exact cursor cycles and digest
-  collisions; and binds raw provider links to the endpoint, method, operation,
-  and exact path without structured-query recomposition;
+  snapshot policy explicit, retains exact bounded snapshot identities, and
+  keeps progression transactional; clears non-Copy opaque state on drop;
+  fails closed on exact cursor cycles and digest collisions; and binds raw
+  provider links to the endpoint, method, operation, and exact path, rechecking
+  the actual bound transport before use without structured-query recomposition;
 - release drift fetches require exact non-redirecting HTTPS URLs under the
   default validating TLS context, bounded downloads, and pinned digest
   verification before parsing;

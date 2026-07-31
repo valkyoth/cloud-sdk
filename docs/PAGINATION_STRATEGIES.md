@@ -21,6 +21,9 @@ let budget = PaginationBudget::new(limits, SnapshotPolicy::Optional);
 decoded cursor, marker, or provider-link response. A response that advertises
 a continuation is rejected when no request remains to follow it. Snapshot
 presence and value cannot change after the first accepted response.
+`SnapshotId` retains and compares the exact nonempty provider bytes, up to
+`MAX_SNAPSHOT_ID_BYTES`; callers must not truncate or hash UUIDs, ETags,
+version tokens, or other provider identities into a smaller value.
 
 ## Numbered Pages
 
@@ -79,6 +82,12 @@ query bytes, including ordering, duplicates, `+`, multiple `=`, and valid
 percent triplets. The resulting `ProviderLinkQuery` has no public constructor
 and `RequestTarget::assemble` rejects it, so it cannot be mixed with another
 path or a structured query builder.
+
+At use time, call `ValidatedProviderLink::with_bound_request` with the actual
+`BoundTransport` selected for execution. The link retains its admitted
+endpoint identity and rejects an unbound transport or a different endpoint
+before reconstructing the request. The closure-scoped request must be sent
+through that same supplied transport.
 
 Absolute links are accepted only when their normalized authority equals the
 bound endpoint. Custom endpoints must still come from trusted operator

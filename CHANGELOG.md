@@ -4,11 +4,14 @@
 
 - Added distinct bounded numbered, offset, cursor, marker, and provider-link
   pagination strategies.
-- Added transactional request, item, opaque-state, and snapshot budgets.
+- Added transactional request, item, opaque-state, and exact bounded snapshot
+  budgets without truncated or hashed snapshot identities.
 - Added cleanup-owning opaque state and fail-closed cursor cycle/collision
   detection.
-- Added raw provider-link preservation bound to endpoint, method, operation,
-  and exact path, with no structured-query recomposition.
+- Added raw provider-link preservation bound to the actual transport endpoint,
+  method, operation, and exact path, with no structured-query recomposition.
+- Added dedicated offset, opaque-state, cursor-history, and provider-link
+  parser fuzz coverage.
 - Migrated Hetzner pagination metadata to the numbered strategy contract.
 
 ## 0.43.0 - 2026-07-31

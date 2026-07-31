@@ -7,7 +7,8 @@ mod offset;
 mod opaque;
 
 pub use budget::{
-    PaginationBudget, PaginationLimits, PaginationProgress, SnapshotId, SnapshotPolicy,
+    MAX_SNAPSHOT_ID_BYTES, PaginationBudget, PaginationLimits, PaginationProgress, SnapshotId,
+    SnapshotPolicy,
 };
 pub use link::{ProviderLinkBinding, ValidatedProviderLink};
 pub use numbered::{NumberedPageBoundary, NumberedPageMetadata, NumberedPagination, PageNumber};
@@ -49,6 +50,10 @@ pub enum PaginationError {
     ItemBudgetExceeded,
     /// A required provider snapshot identifier was omitted.
     SnapshotRequired,
+    /// A provider snapshot identifier was empty.
+    SnapshotIdEmpty,
+    /// A provider snapshot identifier exceeded its exact-byte bound.
+    SnapshotIdTooLong,
     /// A provider snapshot identifier was supplied when forbidden.
     SnapshotForbidden,
     /// Snapshot presence or value changed during one traversal.
@@ -103,6 +108,8 @@ impl_static_error!(PaginationError,
     Self::RequestBudgetExceeded => "pagination request budget was exceeded",
     Self::ItemBudgetExceeded => "pagination item budget was exceeded",
     Self::SnapshotRequired => "provider snapshot identifier is required",
+    Self::SnapshotIdEmpty => "provider snapshot identifier is empty",
+    Self::SnapshotIdTooLong => "provider snapshot identifier exceeds the length limit",
     Self::SnapshotForbidden => "provider snapshot identifier is forbidden",
     Self::SnapshotChanged => "provider snapshot identifier changed during traversal",
     Self::Complete => "pagination traversal is complete",

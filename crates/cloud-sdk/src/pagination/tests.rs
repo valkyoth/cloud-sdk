@@ -12,14 +12,14 @@ fn assert_redacted(value: &impl fmt::Debug) {
 }
 
 struct DebugBuffer {
-    bytes: [u8; 128],
+    bytes: [u8; 256],
     len: usize,
 }
 
 impl DebugBuffer {
     const fn new() -> Self {
         Self {
-            bytes: [0; 128],
+            bytes: [0; 256],
             len: 0,
         }
     }

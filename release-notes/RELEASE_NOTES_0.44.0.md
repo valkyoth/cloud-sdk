@@ -11,16 +11,20 @@ into explicit provider-neutral strategies with shared hard budgets.
 
 ## Pagination
 
-- Added transactional request, item, state-size, and snapshot budgets.
+- Added transactional request, item, state-size, and exact bounded snapshot
+  budgets without truncated or hashed snapshot identities.
 - Added numbered and offset progression with drift and empty-continuation
   rejection.
 - Added cleanup-owning opaque cursor and marker state.
 - Added exact cursor history with cycle, digest-collision, and digest-change
   rejection.
-- Added operation-bound absolute and origin-form provider next links.
+- Added operation-bound absolute and origin-form provider next links that
+  retain the admitted endpoint and recheck the actual bound transport at use.
 - Preserved raw link query ordering, duplicates, plus signs, separators, and
   percent encoding without decode or re-encode.
 - Prevented provider-link queries from entering structured target assembly.
+- Added dedicated offset, opaque-state, cursor-history, and provider-link
+  parser fuzz coverage.
 - Migrated Hetzner pagination metadata to `NumberedPageMetadata`.
 
 ## Versions

@@ -2,17 +2,43 @@ use super::super::{PaginationError, PaginationLimits, ProviderLinkBinding, Valid
 use super::assert_redacted;
 use crate::Method;
 use crate::operation::OperationId;
-use crate::transport::{EndpointIdentity, EndpointScheme, RequestPath};
+use crate::transport::{
+    BoundTransport, EndpointIdentity, EndpointIdentityError, EndpointScheme, RequestPath,
+};
+
+struct TestTransport(EndpointIdentity<'static>);
+
+impl BoundTransport for TestTransport {
+    fn endpoint_identity(&self) -> Result<EndpointIdentity<'_>, EndpointIdentityError> {
+        Ok(self.0)
+    }
+}
+
+struct UnboundTransport;
+
+impl BoundTransport for UnboundTransport {
+    fn endpoint_identity(&self) -> Result<EndpointIdentity<'_>, EndpointIdentityError> {
+        Err(EndpointIdentityError::UnboundTransport)
+    }
+}
 
 fn operation(value: &'static str) -> OperationId {
     OperationId::new(value).unwrap_or_else(|_| unreachable!())
 }
 
 fn binding() -> ProviderLinkBinding<'static> {
-    let endpoint = EndpointIdentity::new(EndpointScheme::Https, "api.digitalocean.com", 443, "/v2")
-        .unwrap_or_else(|_| unreachable!());
+    let endpoint = endpoint();
     let path = RequestPath::new("/v2/droplets").unwrap_or_else(|_| unreachable!());
     ProviderLinkBinding::new(endpoint, Method::Get, operation("list_droplets"), path)
+}
+
+fn endpoint() -> EndpointIdentity<'static> {
+    EndpointIdentity::new(EndpointScheme::Https, "api.digitalocean.com", 443, "/v2")
+        .unwrap_or_else(|_| unreachable!())
+}
+
+fn transport() -> TestTransport {
+    TestTransport(endpoint())
 }
 
 fn limits() -> PaginationLimits {
@@ -29,24 +55,29 @@ fn digitalocean_absolute_link_preserves_raw_query_order_duplicates_and_percent_e
         let link =
             ValidatedProviderLink::transfer_from(&mut source, &mut storage, binding(), limits())
                 .unwrap_or_else(|_| unreachable!());
-        let observed = link.with_request(Method::Get, operation("list_droplets"), |request| {
-            let target = request.target();
-            assert!(matches!(
-                target.query(),
-                crate::transport::RequestQuery::ProviderLink(_)
-            ));
-            let mut output = [0xa5_u8; 128];
-            assert_eq!(
-                crate::transport::RequestTarget::assemble(
-                    RequestPath::new("/v2/account").unwrap_or_else(|_| unreachable!()),
+        let observed = link.with_bound_request(
+            &transport(),
+            Method::Get,
+            operation("list_droplets"),
+            |request| {
+                let target = request.target();
+                assert!(matches!(
                     target.query(),
-                    &mut output,
-                ),
-                Err(crate::transport::RequestTargetError::ProviderLinkQueryCannotAssemble)
-            );
-            assert_eq!(output, [0xa5; 128]);
-            target.as_str() == expected
-        });
+                    crate::transport::RequestQuery::ProviderLink(_)
+                ));
+                let mut output = [0xa5_u8; 128];
+                assert_eq!(
+                    crate::transport::RequestTarget::assemble(
+                        RequestPath::new("/v2/account").unwrap_or_else(|_| unreachable!()),
+                        target.query(),
+                        &mut output,
+                    ),
+                    Err(crate::transport::RequestTargetError::ProviderLinkQueryCannotAssemble)
+                );
+                assert_eq!(output, [0xa5; 128]);
+                target.as_str() == expected
+            },
+        );
         assert_eq!(observed, Ok(true));
         assert_redacted(&link);
     }
@@ -61,16 +92,60 @@ fn origin_form_link_remains_operation_bound() {
     let link = ValidatedProviderLink::transfer_from(&mut source, &mut storage, binding(), limits())
         .unwrap_or_else(|_| unreachable!());
     assert!(
-        link.with_request(Method::Get, operation("list_droplets"), |_| true)
-            .is_ok()
+        link.with_bound_request(
+            &transport(),
+            Method::Get,
+            operation("list_droplets"),
+            |_| true,
+        )
+        .is_ok()
     );
     assert_eq!(
-        link.with_request(Method::Post, operation("list_droplets"), |_| true),
+        link.with_bound_request(
+            &transport(),
+            Method::Post,
+            operation("list_droplets"),
+            |_| true,
+        ),
         Err(PaginationError::ProviderLinkMethodChanged)
     );
     assert_eq!(
-        link.with_request(Method::Get, operation("delete_droplet"), |_| true),
+        link.with_bound_request(
+            &transport(),
+            Method::Get,
+            operation("delete_droplet"),
+            |_| true,
+        ),
         Err(PaginationError::ProviderLinkOperationChanged)
+    );
+}
+
+#[test]
+fn rejects_use_through_a_different_bound_transport_endpoint() {
+    let mut source = *b"/v2/droplets?page=2";
+    let mut storage = [0_u8; 64];
+    let link = ValidatedProviderLink::transfer_from(&mut source, &mut storage, binding(), limits())
+        .unwrap_or_else(|_| unreachable!());
+    let other = EndpointIdentity::new(EndpointScheme::Https, "api.example.com", 443, "/v2")
+        .unwrap_or_else(|_| unreachable!());
+
+    assert_eq!(
+        link.with_bound_request(
+            &TestTransport(other),
+            Method::Get,
+            operation("list_droplets"),
+            |_| true,
+        ),
+        Err(PaginationError::ProviderLinkAuthorityChanged)
+    );
+    assert_eq!(
+        link.with_bound_request(
+            &UnboundTransport,
+            Method::Get,
+            operation("list_droplets"),
+            |_| true,
+        ),
+        Err(PaginationError::ProviderLinkAuthorityChanged)
     );
 }
 

@@ -212,7 +212,7 @@ impl NumberedPagination {
         metadata: NumberedPageMetadata,
         entries: usize,
         rate_limit: Option<RateLimit>,
-        snapshot: Option<SnapshotId>,
+        snapshot: Option<SnapshotId<'_>>,
     ) -> Result<NumberedPageBoundary, PaginationError> {
         let expected = self.next_page.ok_or(PaginationError::Complete)?;
         if metadata.page != expected {

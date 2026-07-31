@@ -23,6 +23,9 @@ done
 
 for required in \
     'RequestTarget::from_provider_link' \
+    'endpoint: EndpointIdentity' \
+    'with_bound_request' \
+    'endpoint_identity()' \
     'ProviderLinkMethodChanged' \
     'ProviderLinkOperationChanged' \
     'ProviderLinkPathChanged'; do
@@ -47,6 +50,9 @@ cargo test --locked -p cloud-sdk --all-features transport::request_target
 cargo test --locked -p cloud-sdk --doc
 cargo test --locked -p cloud-sdk-hetzner --all-features pagination
 cargo check --locked -p cloud-sdk --no-default-features
-cargo check --locked --manifest-path fuzz/Cargo.toml --bin pagination
+cargo check --locked --manifest-path fuzz/Cargo.toml \
+    --bin pagination \
+    --bin pagination_opaque \
+    --bin provider_links
 
 printf '%s\n' 'Pagination strategy, raw-link, cleanup, and no_std checks passed.'

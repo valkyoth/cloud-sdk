@@ -151,7 +151,7 @@ impl OffsetPagination {
         metadata: OffsetPageMetadata,
         entries: usize,
         rate_limit: Option<RateLimit>,
-        snapshot: Option<SnapshotId>,
+        snapshot: Option<SnapshotId<'_>>,
     ) -> Result<OffsetPageBoundary, PaginationError> {
         let expected = self.next_offset.ok_or(PaginationError::Complete)?;
         if metadata.offset != expected {
