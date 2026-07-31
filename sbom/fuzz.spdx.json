@@ -1,14 +1,14 @@
 {
   "SPDXID": "SPDXRef-DOCUMENT",
   "creationInfo": {
-    "created": "2026-07-31T10:38:53Z",
+    "created": "2026-07-31T13:20:58Z",
     "creators": [
       "Tool: cargo-sbom-v0.10.0",
       "Tool: cloud-sdk-complete-spdx-v1"
     ]
   },
   "dataLicense": "CC0-1.0",
-  "documentNamespace": "https://spdx.org/spdxdocs/fuzz-0ff638a8-abbc-46ce-b089-f3cdfbeb3e68",
+  "documentNamespace": "https://spdx.org/spdxdocs/fuzz-3552b19c-02ad-4e29-a2e7-405dc12e8d18",
   "files": [
     {
       "SPDXID": "SPDXRef-File-action_polling",
@@ -82,6 +82,34 @@
     },
     {
       "SPDXID": "SPDXRef-File-pagination",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "3bda48776f3825448c97bb49d6038d58c8d6f017"
+        }
+      ],
+      "fileName": "./Cargo.lock",
+      "fileTypes": [
+        "SOURCE",
+        "TEXT"
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-File-pagination_opaque",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "3bda48776f3825448c97bb49d6038d58c8d6f017"
+        }
+      ],
+      "fileName": "./Cargo.lock",
+      "fileTypes": [
+        "SOURCE",
+        "TEXT"
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-File-provider_links",
       "checksums": [
         {
           "algorithm": "SHA1",
@@ -2913,6 +2941,16 @@
     {
       "spdxElementId": "SPDXRef-DOCUMENT",
       "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-File-pagination_opaque"
+    },
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-File-provider_links"
+    },
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
       "relatedSpdxElement": "SPDXRef-File-raw_http1_wire"
     },
     {
@@ -2962,6 +3000,16 @@
     },
     {
       "spdxElementId": "SPDXRef-File-pagination",
+      "relationshipType": "GENERATED_FROM",
+      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-fuzz-0.0.0"
+    },
+    {
+      "spdxElementId": "SPDXRef-File-pagination_opaque",
+      "relationshipType": "GENERATED_FROM",
+      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-fuzz-0.0.0"
+    },
+    {
+      "spdxElementId": "SPDXRef-File-provider_links",
       "relationshipType": "GENERATED_FROM",
       "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-fuzz-0.0.0"
     },
