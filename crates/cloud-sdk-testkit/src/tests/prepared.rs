@@ -77,6 +77,7 @@ fn prepared_records_capture_policy_and_redact_request_values() {
     );
     assert_eq!(record.raw_response_policy().max_body_bytes(), 16);
     assert!(record.raw_response_policy().admits_header("content-type"));
+    assert!(record.raw_response_policy().admits_header("x-request-id"));
 
     let debug = alloc::format!("{record:?}");
     assert!(debug.contains("[redacted]"));
@@ -317,23 +318,25 @@ fn prepared_request(max_body_bytes: usize) -> Result<PreparedRequest<'static>, (
         ScopeRequirement::Forbidden,
     );
     let content_type = HeaderName::new("content-type").map_err(|_| ())?;
+    let request_id = HeaderName::new("x-request-id").map_err(|_| ())?;
     let raw_response_policy = RawResponsePolicy::new(
         max_body_bytes,
         max_body_bytes,
         ResponseMediaPolicy::Required(&JSON_MEDIA),
         ResponseMediaPolicy::Required(&JSON_MEDIA),
-        &[content_type],
+        &[content_type, request_id],
         8,
     )
     .map_err(|_| ())?;
-    Ok(PreparedRequest::new(
+    PreparedRequest::new(
         request,
         ProviderService::from_marker::<ComputeService>(EndpointPolicy::fixed(endpoint)),
         metadata,
         response_policy,
         authentication_policy,
         raw_response_policy,
-    ))
+    )
+    .map_err(|_| ())
 }
 
 fn expected_request() -> Result<ExpectedRequest<'static>, ()> {

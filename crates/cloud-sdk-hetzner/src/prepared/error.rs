@@ -1,7 +1,8 @@
 //! Payload-free preparation failures.
 
 use cloud_sdk::operation::{
-    OperationIdError, OperationMetadataError, ResponsePolicyValidationError,
+    OperationIdError, OperationMetadataError, PreparedRequestPolicyError,
+    ResponsePolicyValidationError,
 };
 use cloud_sdk::transport::{HeaderError, RawResponsePolicyError, RequestTargetError};
 
@@ -40,6 +41,8 @@ pub enum HetznerPreparationError {
     InvalidResponsePolicy(ResponsePolicyValidationError),
     /// Source-locked raw response-wire policy was internally inconsistent.
     InvalidRawResponsePolicy(RawResponsePolicyError),
+    /// Operation metadata and raw response admission were inconsistent.
+    InvalidPreparedPolicy(PreparedRequestPolicyError),
 }
 
 impl core::fmt::Display for HetznerPreparationError {
@@ -60,6 +63,7 @@ impl core::fmt::Display for HetznerPreparationError {
             Self::InvalidMetadata(_) => "Hetzner operation metadata is invalid",
             Self::InvalidResponsePolicy(_) => "Hetzner response policy is invalid",
             Self::InvalidRawResponsePolicy(_) => "Hetzner raw response policy is invalid",
+            Self::InvalidPreparedPolicy(_) => "Hetzner prepared policies are inconsistent",
         })
     }
 }
@@ -74,6 +78,7 @@ impl core::error::Error for HetznerPreparationError {
             Self::InvalidMetadata(error) => Some(error),
             Self::InvalidResponsePolicy(error) => Some(error),
             Self::InvalidRawResponsePolicy(error) => Some(error),
+            Self::InvalidPreparedPolicy(error) => Some(error),
             _ => None,
         }
     }

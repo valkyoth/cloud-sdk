@@ -146,6 +146,50 @@ HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: 2\r\nConnec
 }
 
 #[test]
+fn raw_async_rechecks_informational_rejection_after_final_response() {
+    let runtime = tokio::runtime::Builder::new_multi_thread()
+        .worker_threads(2)
+        .enable_all()
+        .build();
+    assert!(runtime.is_ok());
+    let Ok(runtime) = runtime else { return };
+    runtime.block_on(async {
+        for _ in 0..32 {
+            let wire = b"HTTP/1.1 103 Early Hints\r\nLink: </a>\r\n\r\n\
+HTTP/1.1 103 Early Hints\r\nLink: </b>\r\n\r\n\
+HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\
+Content-Length: 2\r\nConnection: close\r\n\r\n{}";
+            let server = spawn_raw_response(wire);
+            assert!(server.is_ok());
+            let Ok(server) = server else { return };
+            let client = build_raw_loopback(&server.endpoint);
+            assert!(client.is_some());
+            let Some(client) = client else { return };
+            let target = cloud_sdk::transport::RequestTarget::new("/servers");
+            assert!(target.is_ok());
+            let Ok(target) = target else { return };
+            let Some(policy) = policy(1) else { return };
+            let mut body = [0xa5_u8; 16];
+            let mut header_storage = [0xa5_u8; 128];
+            let mut response = ResponseBuffer::new(&mut body, 16, &mut header_storage);
+            let result = client
+                .execute(
+                    TransportRequest::new(Method::Get, target),
+                    policy,
+                    response.writer(),
+                )
+                .await;
+            assert!(matches!(
+                result,
+                Err(error)
+                    if error.phase() == DeliveryPhase::ResponseStarted
+                        && error.error() == &RawHttpError::TooManyInformationalResponses
+            ));
+        }
+    });
+}
+
+#[test]
 fn raw_async_aborts_before_a_rejected_informational_stream_finishes() {
     run_async_test(async {
         let informational = b"HTTP/1.1 103 Early Hints\r\nLink: </a>\r\n\r\n\

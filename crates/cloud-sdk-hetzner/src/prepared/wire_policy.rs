@@ -16,6 +16,13 @@ use super::{HetznerPreparationError, ResponseProfile};
 
 const JSON_MEDIA: &[MediaType<'static>] = &[MediaType::JSON];
 const MAX_JSON_RESPONSE_BYTES: usize = 8_388_608;
+const ADMITTED_RESPONSE_HEADERS: [&str; 5] = [
+    "content-type",
+    "x-request-id",
+    "ratelimit-limit",
+    "ratelimit-remaining",
+    "ratelimit-reset",
+];
 
 pub(super) fn provider_service(
     group: EndpointGroup,
@@ -49,8 +56,12 @@ pub(super) fn authentication_policy(
 pub(super) fn raw_response_policy(
     profile: ResponseProfile,
 ) -> Result<RawResponsePolicy<'static>, HetznerPreparationError> {
-    let content_type =
-        HeaderName::new("content-type").map_err(HetznerPreparationError::InvalidHeaders)?;
+    let mut admitted_headers = [HeaderName::new("content-type")
+        .map_err(HetznerPreparationError::InvalidHeaders)?;
+        ADMITTED_RESPONSE_HEADERS.len()];
+    for (slot, name) in admitted_headers.iter_mut().zip(ADMITTED_RESPONSE_HEADERS) {
+        *slot = HeaderName::new(name).map_err(HetznerPreparationError::InvalidHeaders)?;
+    }
     let (success_bytes, success_media) = match profile {
         ResponseProfile::JsonOk | ResponseProfile::JsonCreated => (
             MAX_JSON_RESPONSE_BYTES,
@@ -63,7 +74,7 @@ pub(super) fn raw_response_policy(
         MAX_JSON_RESPONSE_BYTES,
         success_media,
         ResponseMediaPolicy::Required(JSON_MEDIA),
-        &[content_type],
+        &admitted_headers,
         MAX_INFORMATIONAL_RESPONSES,
     )
     .map_err(HetznerPreparationError::InvalidRawResponsePolicy)

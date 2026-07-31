@@ -689,6 +689,12 @@ or downstream copies it does not own.
 
 ### Response Header Policy
 
+Every prepared Hetzner operation admits `content-type`, protected
+`x-request-id`, and the complete `ratelimit-limit`, `ratelimit-remaining`, and
+`ratelimit-reset` set. A protected request-ID policy without matching raw
+header admission fails during preparation. Quota decoding remains
+provider-owned; incomplete sets remain visible for strict rejection.
+
 The source-locked Hetzner API contracts consumed by this crate do not require
 repeated response fields. The transport therefore rejects every duplicate
 response-header name, including repeated `Set-Cookie`, rather than combining

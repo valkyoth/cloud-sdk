@@ -305,6 +305,9 @@ impl RawHyperClient {
             })
         })
         .await?;
+        if let Some(error) = state.informational_rejection() {
+            return Err(TransportFailure::response_started(error));
+        }
         state.final_started.store(true, Ordering::Release);
         let status = StatusCode::new(response.status().as_u16())
             .ok_or_else(|| TransportFailure::response_started(RawHttpError::InvalidStatus))?;

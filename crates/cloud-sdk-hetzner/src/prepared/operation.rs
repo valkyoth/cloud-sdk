@@ -245,7 +245,7 @@ where
     }
     let operation_id = OperationId::new(endpoint.operation_key())
         .map_err(HetznerPreparationError::InvalidOperationId)?;
-    Ok(PreparedRequest::new(
+    PreparedRequest::new(
         request,
         service,
         metadata,
@@ -253,7 +253,8 @@ where
         authentication_policy,
         raw_response_policy,
     )
-    .with_operation_id(operation_id))
+    .map(|prepared| prepared.with_operation_id(operation_id))
+    .map_err(HetznerPreparationError::InvalidPreparedPolicy)
 }
 
 fn validate_target_storage(storage: &[u8], len: usize) -> Result<(), HetznerPreparationError> {

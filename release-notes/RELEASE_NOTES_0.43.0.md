@@ -15,6 +15,8 @@ with no compatibility fallback.
 
 - Added mandatory authentication and raw response policies to
   `PreparedRequest`.
+- Made prepared construction fail when protected or retainable request IDs are
+  absent from raw header admission.
 - Required authenticated transports for prepared blocking and async execution.
 - Added an exact `authenticated_request` projection for adapter integration.
 - Made admitted raw response headers bounded and owned by the policy.
@@ -28,7 +30,8 @@ with no compatibility fallback.
   authentication scope.
 - Forbade unowned audience, account, and tenant scope.
 - Added independent success/error response bounds, exact media policy, admitted
-  content type, and bounded informational responses.
+  content type, protected request ID, complete quota metadata, and bounded
+  informational responses.
 - Migrated the live read-only smoke harness to prepared authenticated requests.
 - Added a machine-checked zero-fallback gate for all 208 active operations.
 
@@ -40,6 +43,8 @@ with no compatibility fallback.
 - Returned conservative `NotSent`, `PossiblySent`, or `ResponseStarted`
   failures from authenticated clients.
 - Retained operation-admitted quota headers for later provider decoding.
+- Rechecked informational rejection after final-response readiness to close the
+  multithreaded completion race.
 - Added authenticated mock execution and redacted auth/raw policy records.
 
 ## Versions
@@ -62,8 +67,11 @@ with no compatibility fallback.
 
 ## Pentest
 
-Pentest pending for the exact implementation-stop commit. Findings, fixes, and
-final retest evidence will be recorded in `security/pentest/v0.43.0.md`.
+Initial review found request-ID/quota admission gaps and a final-response race
+in informational rejection. These are remediated with cross-policy validation,
+complete Hetzner header admission, protected metadata regressions, and a
+multithreaded race regression. Retest is required; final evidence will be
+recorded in `security/pentest/v0.43.0.md`.
 
 ## Release Gate
 

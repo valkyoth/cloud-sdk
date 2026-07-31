@@ -16,7 +16,8 @@ pub use policy::{
     ResponsePolicyError, ResponsePolicyValidationError,
 };
 pub use prepared::{
-    PreparationStorage, PrepareOperation, PreparedExecutionError, PreparedRequest, ProviderService,
+    PreparationStorage, PrepareOperation, PreparedExecutionError, PreparedRequest,
+    PreparedRequestPolicyError, ProviderService,
 };
 #[cfg(feature = "alloc")]
 pub use storage::OwnedPreparationStorage;
@@ -25,6 +26,8 @@ pub use storage::{
     PreparationCapacityProfile, PreparationStorageGuard,
 };
 
+#[cfg(test)]
+mod prepared_policy_tests;
 #[cfg(test)]
 mod response_tests;
 #[cfg(test)]

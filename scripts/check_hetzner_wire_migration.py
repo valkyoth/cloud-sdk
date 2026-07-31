@@ -30,6 +30,8 @@ REQUIRED = {
     "core_prepared": [
         "authentication_policy: AuthenticationScopePolicy",
         "raw_response_policy: RawResponsePolicy",
+        "PreparedRequestPolicyError::MissingRequestIdHeader",
+        'raw_response_policy.admits_header("x-request-id")',
         "T: BlockingAuthenticatedTransport + BoundTransport",
         "T: AsyncAuthenticatedTransport + BoundTransport",
         ".send_authenticated(self.authenticated_request(), response.writer())",
@@ -61,6 +63,10 @@ REQUIRED = {
         "ScopeRequirement::Required(service.provider_id())",
         "ScopeRequirement::Required(service.service_id())",
         "ScopeRequirement::Required(endpoint)",
+        '"x-request-id"',
+        '"ratelimit-limit"',
+        '"ratelimit-remaining"',
+        '"ratelimit-reset"',
         "RawResponsePolicy::new(",
     ],
     "blocking_client": [
@@ -78,6 +84,11 @@ REQUIRED = {
     "raw_hyper": [
         "pub(crate) async fn execute_authenticated",
         "headers.insert(AUTHORIZATION, authorization)",
+        """        .await?;
+        if let Some(error) = state.informational_rejection() {
+            return Err(TransportFailure::response_started(error));
+        }
+        state.final_started.store(true, Ordering::Release);""",
     ],
     "live_smoke": [
         ".prepare(storage)",

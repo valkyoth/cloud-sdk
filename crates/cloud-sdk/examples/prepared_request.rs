@@ -86,23 +86,26 @@ impl PrepareOperation for ListResources {
         );
         let content_type =
             HeaderName::new("content-type").map_err(|_| PrepareError::InvalidRawResponsePolicy)?;
+        let request_id =
+            HeaderName::new("x-request-id").map_err(|_| PrepareError::InvalidRawResponsePolicy)?;
         let raw_response_policy = RawResponsePolicy::new(
             65_536,
             65_536,
             ResponseMediaPolicy::Required(&JSON_MEDIA),
             ResponseMediaPolicy::Required(&JSON_MEDIA),
-            &[content_type],
+            &[content_type, request_id],
             8,
         )
         .map_err(|_| PrepareError::InvalidRawResponsePolicy)?;
-        Ok(PreparedRequest::new(
+        PreparedRequest::new(
             request,
             ProviderService::from_marker::<ComputeService>(EndpointPolicy::fixed(endpoint)),
             metadata,
             response_policy,
             authentication_policy,
             raw_response_policy,
-        ))
+        )
+        .map_err(|_| PrepareError::InvalidRawResponsePolicy)
     }
 }
 

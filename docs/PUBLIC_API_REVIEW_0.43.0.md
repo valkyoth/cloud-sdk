@@ -8,11 +8,12 @@ authenticated bounded raw execution.
 ## Core API
 
 `PreparedRequest` now owns mandatory `AuthenticationScopePolicy` and
-`RawResponsePolicy` values. Its constructor accepts both policies, exposes
-them through accessors, and can produce the exact `AuthenticatedRequest`.
-Prepared blocking and async execution require authenticated transport traits.
-There is no compatibility path through `BlockingTransport` or
-`AsyncTransport`.
+`RawResponsePolicy` values. Its fallible constructor accepts both policies,
+rejects a protected or retainable request-ID lifecycle without raw
+`x-request-id` admission, exposes both policies through accessors, and can
+produce the exact `AuthenticatedRequest`. Prepared blocking and async execution
+require authenticated transport traits. There is no compatibility path through
+`BlockingTransport` or `AsyncTransport`.
 
 `AuthenticatedRequest::new` now requires the raw response policy. This removes
 adapter inference of response size, media, admitted headers, informational
@@ -30,8 +31,10 @@ Security, or Storage service identity and complete official endpoint,
 authentication, and raw response policy. The public prepared-operation types
 are retained; their `PrepareOperation` output is stricter.
 
-`HetznerPreparationError` adds `InvalidRawResponsePolicy`. Its display message
-is static and payload-free.
+`HetznerPreparationError` adds `InvalidRawResponsePolicy` and
+`InvalidPreparedPolicy`. Their display messages are static and payload-free.
+Every Hetzner operation admits content type, protected request ID, and the
+complete three-field quota set.
 
 ## Adapter API
 
@@ -43,6 +46,9 @@ Authenticated clients remain type-separated from credential-free raw clients.
 
 The removed async body staging module and legacy high-level reqwest send path
 were private.
+
+The raw async executor rechecks informational rejection after its final
+response future resolves, before accepting that response.
 
 ## Testkit API
 

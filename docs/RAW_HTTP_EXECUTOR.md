@@ -18,7 +18,8 @@ decompression, retries, or cross-origin forwarding.
   name/value field bytes, and a 64 KiB pinned Hyper parser buffer.
 - At most eight informational responses may be admitted by core policy.
   `101 Switching Protocols` is always rejected. The adapter cancels the
-  in-flight request as soon as either condition is observed.
+  in-flight request as soon as either condition is observed and rechecks the
+  rejection state after the final-response future resolves.
 - Duplicate response fields, declared trailers, and observed trailer frames are
   rejected.
 - Success and error responses have independent media and body limits.
@@ -30,6 +31,8 @@ decompression, retries, or cross-origin forwarding.
   `Content-Length` is rejected.
 - Only operation-admitted response headers enter caller storage. Authentication,
   cookie, framing, proxy, and upgrade headers cannot be admitted.
+- A prepared request whose metadata protects or retains request IDs must admit
+  `x-request-id`; construction otherwise fails before transport.
 - Request body and header-value staging allocations use cleanup-owning byte
   storage backed by `cloud-sdk-sanitization`. The first-party raw reqwest
   adapters reject request bodies before allocation above the 8 MiB large

@@ -14,4 +14,6 @@ pub(crate) use json::{JsonWriter, SensitiveJsonString, encode_object};
 pub(crate) use operation::{BodyWire, EndpointWire, QueryWire, RequestShape, ResponseProfile};
 
 #[cfg(test)]
+mod response_metadata_tests;
+#[cfg(test)]
 mod tests;

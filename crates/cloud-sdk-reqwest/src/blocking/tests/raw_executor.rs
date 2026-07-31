@@ -42,6 +42,10 @@ fn raw_blocking_sends_no_implicit_auth_or_json_accept() {
         "200 OK",
         &[
             ("Content-Type", "application/json"),
+            ("X-Request-Id", "request-123"),
+            ("RateLimit-Limit", "3600"),
+            ("RateLimit-Remaining", "3599"),
+            ("RateLimit-Reset", "1234567890"),
             ("X-Ignored", "secret"),
         ],
         b"{}",
@@ -57,7 +61,19 @@ fn raw_blocking_sends_no_implicit_auth_or_json_accept() {
     let Ok(content_type) = HeaderName::new("content-type") else {
         return;
     };
-    let admitted = [content_type];
+    let Ok(request_id) = HeaderName::new("x-request-id") else {
+        return;
+    };
+    let Ok(limit) = HeaderName::new("ratelimit-limit") else {
+        return;
+    };
+    let Ok(remaining) = HeaderName::new("ratelimit-remaining") else {
+        return;
+    };
+    let Ok(reset) = HeaderName::new("ratelimit-reset") else {
+        return;
+    };
+    let admitted = [content_type, request_id, limit, remaining, reset];
     let Some(policy) = json_policy(&admitted) else {
         return;
     };
@@ -76,6 +92,10 @@ fn raw_blocking_sends_no_implicit_auth_or_json_accept() {
                 value.status() == StatusCode::OK
                     && value.body() == b"{}"
                     && value.headers().get("content-type").is_some()
+                    && value.headers().get("x-request-id").is_some()
+                    && value.headers().get("ratelimit-limit").is_some()
+                    && value.headers().get("ratelimit-remaining").is_some()
+                    && value.headers().get("ratelimit-reset").is_some()
                     && value.headers().get("x-ignored").is_none()
             })
             .unwrap_or(false)
@@ -213,6 +233,14 @@ fn raw_blocking_rejects_duplicate_and_trailer_heads() {
                 ("Trailer", "x-checksum"),
             ][..],
             RawHttpError::ResponseTrailersRejected,
+        ),
+        (
+            &[
+                ("Content-Type", "application/json"),
+                ("RateLimit-Remaining", "2"),
+                ("RateLimit-Remaining", "1"),
+            ][..],
+            RawHttpError::DuplicateResponseHeader,
         ),
     ] {
         let server = spawn("200 OK", headers, b"{}", Duration::ZERO);

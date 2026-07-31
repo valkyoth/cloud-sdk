@@ -20,8 +20,11 @@ cloud-sdk-testkit = "0.25.0"
 ## Prepared Requests
 
 `PreparedRequest::new` now requires both an `AuthenticationScopePolicy` and a
-`RawResponsePolicy`. The provider owns these values; applications preparing
-custom operations must supply complete policies explicitly.
+`RawResponsePolicy` and returns `Result`. The provider owns these values;
+applications preparing custom operations must supply complete policies
+explicitly. A `Protected` or `Retain` request-ID lifecycle is rejected unless
+the raw policy admits `x-request-id`, preventing metadata policy from referring
+to a header that transport would discard.
 
 `PreparedRequest::execute_blocking` and `execute_async` now require
 `BlockingAuthenticatedTransport` and `AsyncAuthenticatedTransport`
@@ -36,7 +39,8 @@ All 208 active Hetzner operations bind:
 - forbidden audience, account, and tenant scope;
 - independent success and error body bounds;
 - required JSON media or forbidden no-content media;
-- admitted response headers and informational-response limit.
+- admitted `content-type`, `x-request-id`, and complete `ratelimit-*` response
+  metadata plus an informational-response limit.
 
 ## Authenticated Requests
 
@@ -66,7 +70,13 @@ retried from an ambiguous phase without an explicit policy.
 
 The transport retains only operation-admitted response headers. Provider quota
 decoding is intentionally not performed in the neutral adapter and remains a
-later provider-policy milestone.
+later provider-policy milestone. Hetzner policies retain all three quota fields
+so complete and incomplete sets remain available for strict provider decoding;
+duplicate fields are rejected at the raw HTTP boundary.
+
+The async raw engine rechecks informational rejection after the final response
+future becomes ready. A final response therefore cannot win a multithreaded
+runtime race against `101` or informational-count rejection.
 
 ## Testkit
 

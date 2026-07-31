@@ -302,14 +302,15 @@ impl PrepareOperation for ExampleOperation {
         let authentication_policy = example_authentication_policy(endpoint);
         let raw_response_policy =
             example_raw_response_policy(16).map_err(|_| ExamplePrepareError::Invalid)?;
-        Ok(PreparedRequest::new(
+        PreparedRequest::new(
             request,
             ProviderService::from_marker::<ComputeService>(EndpointPolicy::fixed(endpoint)),
             metadata,
             policy,
             authentication_policy,
             raw_response_policy,
-        ))
+        )
+        .map_err(|_| ExamplePrepareError::Invalid)
     }
 }
 
@@ -400,12 +401,13 @@ const fn example_authentication_policy(
 
 fn example_raw_response_policy(max_body_bytes: usize) -> Result<RawResponsePolicy<'static>, ()> {
     let content_type = HeaderName::new("content-type").map_err(|_| ())?;
+    let request_id = HeaderName::new("x-request-id").map_err(|_| ())?;
     RawResponsePolicy::new(
         max_body_bytes,
         max_body_bytes,
         ResponseMediaPolicy::Required(&JSON_MEDIA),
         ResponseMediaPolicy::Required(&JSON_MEDIA),
-        &[content_type],
+        &[content_type, request_id],
         8,
     )
     .map_err(|_| ())

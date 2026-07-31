@@ -43,8 +43,9 @@ impl AsyncClientBuilder {
     /// Builds a hardened HTTPS-only client.
     ///
     /// Sending requests requires an active Tokio executor because reqwest uses
-    /// Tokio internally. The core [`cloud_sdk::transport::AsyncTransport`]
-    /// contract remains executor-neutral.
+    /// Tokio internally. The core
+    /// [`cloud_sdk::authentication::AsyncAuthenticatedTransport`] contract
+    /// remains executor-neutral.
     pub fn build(self) -> Result<AsyncClient, BuildError> {
         self.build_inner(true)
     }

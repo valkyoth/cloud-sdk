@@ -59,6 +59,12 @@ def main() -> None:
                 "missing required wire control",
             ),
             (
+                "core_prepared",
+                'raw_response_policy.admits_header("x-request-id")',
+                'raw_response_policy.admits_header("content-type")',
+                "missing required wire control",
+            ),
+            (
                 "provider_operation",
                 "provider_service(endpoint.endpoint_group())",
                 "provider_service_from_base(endpoint.api_base_url())",
@@ -68,6 +74,12 @@ def main() -> None:
                 "provider_policy",
                 "ApiSurface::Dns => ProviderService::from_marker::<DnsService>",
                 "ApiSurface::Dns => ProviderService::from_marker::<CloudService>",
+                "missing required wire control",
+            ),
+            (
+                "provider_policy",
+                '"ratelimit-reset"',
+                '"x-ratelimit-reset"',
                 "missing required wire control",
             ),
             (
@@ -86,6 +98,12 @@ def main() -> None:
                 "raw_hyper",
                 "headers.insert(AUTHORIZATION, authorization)",
                 "drop(authorization)",
+                "missing required wire control",
+            ),
+            (
+                "raw_hyper",
+                "if let Some(error) = state.informational_rejection()",
+                "if let Some(error) = None",
                 "missing required wire control",
             ),
             (
@@ -110,7 +128,7 @@ def main() -> None:
         assert duplicate.returncode == 1, duplicate
         assert "exactly one wire assembly point" in duplicate.stderr
 
-    print("9 Hetzner wire-migration regression groups passed.")
+    print("12 Hetzner wire-migration regression groups passed.")
 
 
 if __name__ == "__main__":

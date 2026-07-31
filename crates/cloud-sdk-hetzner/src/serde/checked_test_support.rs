@@ -89,6 +89,7 @@ pub(super) fn prepared(
         ScopeRequirement::Forbidden,
     );
     let content_type = HeaderName::new("content-type").unwrap_or_else(|_| unreachable!());
+    let request_id = HeaderName::new("x-request-id").unwrap_or_else(|_| unreachable!());
     let raw_policy = RawResponsePolicy::new(
         if empty { 0 } else { 8_388_608 },
         8_388_608,
@@ -98,7 +99,7 @@ pub(super) fn prepared(
             ResponseMediaPolicy::Required(JSON)
         },
         ResponseMediaPolicy::Required(JSON),
-        &[content_type],
+        &[content_type, request_id],
         8,
     )
     .unwrap_or_else(|_| unreachable!());
@@ -110,6 +111,7 @@ pub(super) fn prepared(
         authentication_policy,
         raw_policy,
     )
+    .unwrap_or_else(|_| unreachable!())
     .with_operation_id(operation_id.unwrap_or_else(|_| unreachable!()))
 }
 

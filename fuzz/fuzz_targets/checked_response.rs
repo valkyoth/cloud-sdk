@@ -49,12 +49,13 @@ fn prepared() -> Option<PreparedRequest<'static>> {
         ScopeRequirement::Forbidden,
     );
     let content_type = HeaderName::new("content-type").ok()?;
+    let request_id = HeaderName::new("x-request-id").ok()?;
     let raw_policy = RawResponsePolicy::new(
         8_388_608,
         8_388_608,
         ResponseMediaPolicy::Required(JSON),
         ResponseMediaPolicy::Required(JSON),
-        &[content_type],
+        &[content_type, request_id],
         8,
     )
     .ok()?;
@@ -67,6 +68,7 @@ fn prepared() -> Option<PreparedRequest<'static>> {
             authentication_policy,
             raw_policy,
         )
+        .ok()?
         .with_operation_id(operation),
     )
 }

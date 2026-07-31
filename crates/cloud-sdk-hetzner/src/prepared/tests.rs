@@ -86,7 +86,15 @@ where
         authentication.tenant_requirement(),
         ScopeRequirement::Forbidden
     );
-    assert!(prepared.raw_response_policy().admits_header("content-type"));
+    for header in [
+        "content-type",
+        "x-request-id",
+        "ratelimit-limit",
+        "ratelimit-remaining",
+        "ratelimit-reset",
+    ] {
+        assert!(prepared.raw_response_policy().admits_header(header));
+    }
     assert_eq!(prepared.raw_response_policy().max_body_bytes(), 8_388_608);
 }
 

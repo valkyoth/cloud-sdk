@@ -299,7 +299,7 @@ mod tests {
 
     use super::{RawHttpError, inspect_response_head};
 
-    fn policy<'a>(headers: &'a [HeaderName<'a>]) -> Option<RawResponsePolicy<'a>> {
+    fn policy<'a>(headers: &[HeaderName<'a>]) -> Option<RawResponsePolicy<'a>> {
         RawResponsePolicy::new(
             8,
             4,
@@ -339,7 +339,41 @@ mod tests {
         assert!(captured.get("set-cookie").is_none());
         assert!(captured.get("x-unknown").is_none());
     }
-
+    #[test]
+    fn retains_incomplete_admitted_quota_metadata_for_provider_validation() {
+        let names = [
+            HeaderName::new("ratelimit-limit"),
+            HeaderName::new("ratelimit-remaining"),
+            HeaderName::new("ratelimit-reset"),
+        ];
+        let [Ok(limit), Ok(remaining), Ok(reset)] = names else {
+            return;
+        };
+        let Some(policy) = policy(&[limit, remaining, reset]) else {
+            return;
+        };
+        let mut source = HeaderMap::new();
+        source.insert("ratelimit-remaining", HeaderValue::from_static("7"));
+        let mut storage = [0_u8; 128];
+        let mut captured = ResponseHeaders::new(&mut storage);
+        let result = inspect_response_head(
+            cloud_sdk::Method::Get,
+            StatusCode::TOO_MANY_REQUESTS,
+            &source,
+            policy,
+            &mut captured,
+            16,
+        );
+        assert_eq!(result, Ok(4));
+        assert!(captured.get("ratelimit-limit").is_none());
+        assert_eq!(
+            captured
+                .get("ratelimit-remaining")
+                .map(|header| header.value()),
+            Some(b"7".as_slice())
+        );
+        assert!(captured.get("ratelimit-reset").is_none());
+    }
     #[test]
     fn rejects_duplicates_and_no_content_framing() {
         let Some(policy) = policy(&[]) else { return };
