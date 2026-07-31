@@ -84,7 +84,7 @@ impl<E> fmt::Display for ProviderLinkExecutionError<E> {
     }
 }
 
-impl<E: fmt::Debug> core::error::Error for ProviderLinkExecutionError<E> {}
+impl<E> core::error::Error for ProviderLinkExecutionError<E> {}
 
 /// Cleanup-owning operation-bound provider pagination link.
 ///

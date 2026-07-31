@@ -52,4 +52,5 @@ committed only after all admission checks succeed and is cleared on drop.
 Deterministic tests prove rejected transports are never invoked and both
 blocking and async dispatch use the endpoint-checked object. Transport failures
 return outer `Err`, implement `core::error::Error`, and never expose their
-payload through `Debug` or `Display`.
+payload through `Debug` or `Display`. The wrapper does not require the
+transport error itself to implement `Debug`.

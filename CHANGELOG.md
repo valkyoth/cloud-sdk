@@ -12,7 +12,7 @@
   and exact path, with endpoint checks inseparable from authenticated blocking
   or async dispatch and no structured-query recomposition.
 - Flattened provider-link validation and transport failures into one
-  payload-redacting execution error.
+  payload-redacting execution error that accepts non-`Debug` transport errors.
 - Added dedicated offset, opaque-state, cursor-history, and provider-link
   parser fuzz coverage with deterministic positive-seed validation.
 - Narrowed the provider-identity gate to closed taxonomy enum names and added

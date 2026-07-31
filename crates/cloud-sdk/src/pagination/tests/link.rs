@@ -360,6 +360,15 @@ fn execution_errors_flatten_and_redact_transport_details() {
 }
 
 #[test]
+fn execution_error_supports_non_debug_transport_errors() {
+    struct NonDebugTransportError;
+
+    fn require_error<T: core::error::Error>() {}
+
+    require_error::<ProviderLinkExecutionError<NonDebugTransportError>>();
+}
+
+#[test]
 fn rejects_scheme_authority_userinfo_fragment_and_operation_path_changes() {
     let cases: [(&[u8], PaginationError); 5] = [
         (

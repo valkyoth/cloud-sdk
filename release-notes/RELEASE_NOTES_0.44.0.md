@@ -22,7 +22,8 @@ into explicit provider-neutral strategies with shared hard budgets.
   retain the admitted endpoint and couple its check to authenticated blocking
   or async execution through the same transport object.
 - Flattened provider-link validation and transport failures into one error and
-  redacted transport payloads from diagnostics.
+  redacted transport payloads from diagnostics without requiring transport
+  errors to implement `Debug`.
 - Preserved raw link query ordering, duplicates, plus signs, separators, and
   percent encoding without decode or re-encode.
 - Prevented provider-link queries from entering structured target assembly.
