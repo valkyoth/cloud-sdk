@@ -1684,7 +1684,7 @@ Stop gate: `v0.43.0 implementation stop reached. Run pentest for this exact comm
 
 ### v0.44.0 - Pagination Strategy Family
 
-Status: implementation stop reached; pentest required.
+Status: release candidate; pentest and final retest passed.
 
 Goal: model numbered, cursor, offset, marker, and link pagination separately.
 

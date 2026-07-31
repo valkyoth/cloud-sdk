@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.44.0 - Unreleased
+## 0.44.0 - 2026-07-31
 
 - Added distinct bounded numbered, offset, cursor, marker, and provider-link
   pagination strategies.
