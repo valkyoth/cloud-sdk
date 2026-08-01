@@ -3,7 +3,10 @@ use alloc::string::String;
 
 use cloud_sdk::transport::StatusCode;
 
-use super::checked_test_support::{decode_response, empty_response, prepared, response};
+use super::checked_test_support::{
+    decode_response, decode_response_with_headers, decode_response_with_headers_at, empty_response,
+    prepared, response,
+};
 use super::{HetznerDecodeError, HetznerSuccess, ResourceKind};
 use crate::identity::{CLOUD_SERVICE_ID, STORAGE_SERVICE_ID};
 
@@ -213,6 +216,68 @@ fn returns_typed_redacted_provider_errors() {
             .map(|error| format!("{error:?}"))
             .is_some_and(|debug| !debug.contains("slow down"))
     );
+}
+
+#[test]
+fn checked_success_and_error_retain_provider_owned_quota() {
+    let headers = [
+        ("ratelimit-limit", b"3600".as_slice()),
+        ("ratelimit-remaining", b"0".as_slice()),
+        ("ratelimit-reset", b"42".as_slice()),
+        ("retry-after", b"10".as_slice()),
+    ];
+    let success = decode_response_with_headers(
+        prepared("get_server", CLOUD_SERVICE_ID, StatusCode::OK),
+        response(StatusCode::OK, br#"{"server":{"id":1}}"#),
+        &headers,
+    );
+    let Ok(success) = success else { return };
+    assert_eq!(success.quota().buckets().len(), 1);
+    assert_eq!(success.rate_limit().map(|value| value.remaining()), Some(0));
+    assert!(success.quota().retry_after().is_some());
+
+    let provider = decode_response_with_headers(
+        prepared("get_server", CLOUD_SERVICE_ID, StatusCode::OK),
+        response(
+            StatusCode::TOO_MANY_REQUESTS,
+            br#"{"error":{"code":"rate_limit_exceeded","message":"wait"}}"#,
+        ),
+        &headers,
+    );
+    let Err(HetznerDecodeError::Provider(provider)) = provider else {
+        return;
+    };
+    assert_eq!(provider.quota().buckets().len(), 1);
+    assert!(provider.quota().retry_after().is_some());
+}
+
+#[test]
+fn checked_decoder_rejects_partial_quota_before_payload_use() {
+    let decoded = decode_response_with_headers(
+        prepared("get_server", CLOUD_SERVICE_ID, StatusCode::OK),
+        response(StatusCode::OK, br#"{"server":{"id":1}}"#),
+        &[("ratelimit-limit", b"3600")],
+    );
+    assert!(matches!(decoded, Err(HetznerDecodeError::Quota(_))));
+}
+
+#[test]
+fn checked_clock_aware_decoder_resolves_obsolete_retry_date() {
+    let headers = [("retry-after", b"Sunday, 06-Nov-94 08:49:37 GMT".as_slice())];
+    let without_clock = decode_response_with_headers(
+        prepared("get_server", CLOUD_SERVICE_ID, StatusCode::OK),
+        response(StatusCode::OK, br#"{"server":{"id":1}}"#),
+        &headers,
+    );
+    assert!(matches!(without_clock, Err(HetznerDecodeError::Quota(_))));
+
+    let with_clock = decode_response_with_headers_at(
+        prepared("get_server", CLOUD_SERVICE_ID, StatusCode::OK),
+        response(StatusCode::OK, br#"{"server":{"id":1}}"#),
+        &headers,
+        cloud_sdk::rate_limit::WallClockTimestamp::new(1_767_225_600),
+    );
+    assert!(with_clock.is_ok());
 }
 
 #[test]

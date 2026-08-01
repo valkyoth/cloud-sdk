@@ -38,8 +38,8 @@ boundaries.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.44.0"
-cloud-sdk-hetzner = "0.34.0"
+cloud-sdk = "0.45.0"
+cloud-sdk-hetzner = "0.35.0"
 ```
 
 ## Features
@@ -211,6 +211,10 @@ The authenticated raw-wire migration is listed in the
 The numbered pagination migration and provider-neutral strategy family are
 listed in the
 [v0.44 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.44.0.md).
+Provider-owned quota decoding and pure delay policy are described in the
+[v0.45 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.45.0.md)
+and the
+[quota and retry guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/QUOTA_AND_RETRY.md).
 
 ## Optional Serde Boundary
 
@@ -218,7 +222,7 @@ Enable Serde explicitly; it is never part of the default graph:
 
 ```toml
 [dependencies]
-cloud-sdk-hetzner = { version = "0.34.0", features = ["serde"] }
+cloud-sdk-hetzner = { version = "0.35.0", features = ["serde"] }
 ```
 
 The feature admits serde_json with `default-features = false` and `alloc` only
@@ -478,12 +482,43 @@ assert_eq!(metadata.total_entries(), Some(1));
 # fn main() {}
 ```
 
-Pass the rate-limit and optional snapshot values exposed by the checked decode
-boundary as the third and fourth `observe` arguments. The caller remains
+Pass the legacy `rate_limit()` compatibility view and optional snapshot values
+exposed by the checked decode boundary as the third and fourth `observe`
+arguments. Retain `quota()` separately for multi-bucket and `Retry-After`
+policy. The caller remains
 responsible for decoding the resource array and reporting its exact entry
 count. See the provider-neutral
 [pagination guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/PAGINATION_STRATEGIES.md)
 for cursor, offset, marker, and provider-link strategies.
+
+## Quota And Retry Example
+
+Provider quota decoding is independent of transport and performs no retry or
+sleep:
+
+```rust
+use cloud_sdk::rate_limit::WallClockTimestamp;
+use cloud_sdk::transport::{HeaderSensitivity, ResponseHeaders};
+use cloud_sdk_hetzner::rate_limit::HetznerQuota;
+
+let mut storage = [0_u8; 8_192];
+let mut headers = ResponseHeaders::new(&mut storage);
+headers.try_push("ratelimit-limit", b"3600", HeaderSensitivity::Public)?;
+headers.try_push("ratelimit-remaining", b"0", HeaderSensitivity::Public)?;
+headers.try_push("ratelimit-reset", b"42", HeaderSensitivity::Public)?;
+headers.try_push("retry-after", b"10", HeaderSensitivity::Public)?;
+
+let quota = HetznerQuota::decode(&headers, WallClockTimestamp::new(1))?;
+assert_eq!(quota.buckets().len(), 1);
+assert!(quota.retry_after().is_some());
+# Ok::<(), Box<dyn core::error::Error>>(())
+```
+
+Choose stale-time, conflict, and maximum-delay policy with the provider-neutral
+types documented in the
+[quota guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/QUOTA_AND_RETRY.md).
+The caller still owns operation eligibility, attempt limits, clocks, deadlines,
+sleeping, and cancellation.
 
 ## Action Polling Example
 

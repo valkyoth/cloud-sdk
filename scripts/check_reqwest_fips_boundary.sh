@@ -12,7 +12,7 @@ fips_tree="$(
 
 for dependency in \
     'reqwest v0.13.4' \
-    'rustls v0.23.42' \
+    'rustls v0.23.43' \
     'rustls-platform-verifier v0.7.0' \
     'aws-lc-rs v1.17.3' \
     'aws-lc-sys v0.43.0' \

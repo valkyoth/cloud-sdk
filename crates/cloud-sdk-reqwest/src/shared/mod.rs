@@ -23,8 +23,6 @@ mod endpoint;
 mod error;
 #[cfg(test)]
 mod headers;
-#[cfg(test)]
-mod rate_limit;
 mod raw;
 #[cfg(feature = "fuzzing")]
 mod raw_fuzz;

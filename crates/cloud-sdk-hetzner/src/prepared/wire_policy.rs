@@ -16,12 +16,13 @@ use super::{HetznerPreparationError, ResponseProfile};
 
 const JSON_MEDIA: &[MediaType<'static>] = &[MediaType::JSON];
 const MAX_JSON_RESPONSE_BYTES: usize = 8_388_608;
-const ADMITTED_RESPONSE_HEADERS: [&str; 5] = [
+const ADMITTED_RESPONSE_HEADERS: [&str; 6] = [
     "content-type",
     "x-request-id",
     "ratelimit-limit",
     "ratelimit-remaining",
     "ratelimit-reset",
+    "retry-after",
 ];
 
 pub(super) fn provider_service(

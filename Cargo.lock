@@ -152,9 +152,9 @@ dependencies = [
 
 [[package]]
 name = "clang-sys"
-version = "1.8.1"
+version = "1.9.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0b023947811758c97c59bf9d1c188fd619ad4718dcaa767947df1cadb14f39f4"
+checksum = "157a8ba7b480713b56f4c09fd13fc3e0a22a5dfab8097ba61cbc5feef950788a"
 dependencies = [
  "glob",
  "libc",
@@ -163,14 +163,14 @@ dependencies = [
 
 [[package]]
 name = "cloud-sdk"
-version = "0.44.0"
+version = "0.45.0"
 dependencies = [
  "cloud-sdk-sanitization",
 ]
 
 [[package]]
 name = "cloud-sdk-hetzner"
-version = "0.34.0"
+version = "0.35.0"
 dependencies = [
  "cloud-sdk",
  "cloud-sdk-reqwest",
@@ -182,7 +182,7 @@ dependencies = [
 
 [[package]]
 name = "cloud-sdk-reqwest"
-version = "0.30.1"
+version = "0.31.0"
 dependencies = [
  "aws-lc-fips-sys",
  "aws-lc-rs",
@@ -212,7 +212,7 @@ dependencies = [
 
 [[package]]
 name = "cloud-sdk-testkit"
-version = "0.25.1"
+version = "0.25.2"
 dependencies = [
  "cloud-sdk",
 ]
@@ -263,13 +263,13 @@ dependencies = [
 
 [[package]]
 name = "displaydoc"
-version = "0.2.6"
+version = "0.2.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1ac70aa55017e108007fbaf5aa0f54b021c98f92ff8af59d42eda9da96e3dd4f"
+checksum = "c6232dd377dcc64799954cbd3a9bb882e9cdc1308ccd87b1c098f1fb2eaf82a8"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.119",
+ "syn 3.0.3",
 ]
 
 [[package]]
@@ -999,9 +999,9 @@ dependencies = [
 
 [[package]]
 name = "rustls"
-version = "0.23.42"
+version = "0.23.43"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3c54fcab019b409d04215d3a17cb438fd7fbf192ee61461f20f4fe18704bc138"
+checksum = "0283386ce02abc0151e1761d08802dfe86c173b0b494af5cbc086574e453da06"
 dependencies = [
  "aws-lc-rs",
  "once_cell",

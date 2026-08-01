@@ -50,7 +50,9 @@ mod tests {
         ResponsePolicyValidationError,
     };
     use crate::pagination::PaginationError;
-    use crate::rate_limit::RateLimitError;
+    use crate::rate_limit::{
+        DelayDecisionError, QuotaError, QuotaExtensionError, RateLimitError, RetryAfterError,
+    };
     use crate::transport::{
         ContentTypeError, EndpointIdentityError, HeaderError, InformationalResponseError,
         RawResponsePolicyError, RequestPathError, RequestTargetError, ResponseWriterError,
@@ -86,6 +88,10 @@ mod tests {
         assert_error::<SigningBuildError<core::convert::Infallible>>();
         assert_error::<SigningOutputError<core::convert::Infallible>>();
         assert_error::<RateLimitError>();
+        assert_error::<QuotaError>();
+        assert_error::<QuotaExtensionError>();
+        assert_error::<RetryAfterError>();
+        assert_error::<DelayDecisionError>();
         assert_error::<ContentTypeError>();
         assert_error::<HeaderError>();
         assert_error::<EndpointIdentityError>();

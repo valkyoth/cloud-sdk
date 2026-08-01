@@ -12,7 +12,7 @@ EXPECTED = {
     "aws-lc-rs": "=1.17.3",
     "aws-lc-sys": "=0.43.0",
     "reqwest": "=0.13.4",
-    "rustls": "=0.23.42",
+    "rustls": "=0.23.43",
     "rustls-platform-verifier": "=0.7.0",
 }
 

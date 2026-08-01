@@ -69,7 +69,7 @@ review are recorded in the original
 [`DEPENDENCY_REVIEW_2026-07-20.md`](DEPENDENCY_REVIEW_2026-07-20.md).
 
 The FIPS-mode boundary publishes exact requirements for reqwest `0.13.4`,
-rustls `0.23.42`, rustls-platform-verifier `0.7.0`, aws-lc-rs `1.17.3`,
+rustls `0.23.43`, rustls-platform-verifier `0.7.0`, aws-lc-rs `1.17.3`,
 aws-lc-fips-sys `0.13.16`, and aws-lc-sys `0.43.0`. Applications still own a
 reviewed complete lockfile or vendored source graph. Its explicit runtime
 verification, mandatory roots and CRLs, current validation-status limitation,

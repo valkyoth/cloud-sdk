@@ -50,6 +50,13 @@ doc = false
 bench = false
 
 [[bin]]
+name = "quota_retry"
+path = "fuzz_targets/quota_retry.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
 name = "pagination_opaque"
 path = "fuzz_targets/pagination_opaque.rs"
 test = false

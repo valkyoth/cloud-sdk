@@ -6,7 +6,7 @@ Status: admitted only through `cloud-sdk-reqwest/blocking-rustls`,
 with reqwest default features disabled. The internal `fuzzing` feature aliases
 `blocking-rustls` only for the isolated fuzz workspace.
 
-Checked: 2026-07-30.
+Checked: 2026-08-01.
 
 ## Decision
 
@@ -22,7 +22,7 @@ Checked: 2026-07-30.
 | `hyper-util` | `0.1.20` | raw client, connector, and Tokio adapters | disabled |
 | `tokio` | `1.53.1` | opt-in reqwest and raw executor runtime | disabled |
 | `url` | `2.5.8` | authority-preserving endpoint parsing | transitive |
-| `rustls` | `0.23.42` | TLS implementation | transitive |
+| `rustls` | `0.23.43` | TLS implementation | transitive |
 | `rustls-platform-verifier` | `0.7.0` | platform trust-store verification | transitive |
 | `webpki-roots` | `1.0.9` | deterministic Mozilla trust-root snapshot | disabled |
 | `aws-lc-rs` | `1.17.3` | rustls cryptographic provider | transitive |

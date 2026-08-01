@@ -1,4 +1,24 @@
-//! Provider-neutral rate-limit response metadata.
+//! Provider-neutral quota, rate-limit, and retry-delay domains.
+
+mod decision;
+mod extension;
+mod http_date;
+mod quota;
+mod time;
+
+pub use decision::{
+    DelayConflictPolicy, DelayDecision, DelayDecisionError, DelaySource, ExcessDelayPolicy,
+    PastTimestampPolicy, QuotaDelayPolicy, decide_delay,
+};
+pub use extension::{
+    MAX_QUOTA_EXTENSION_NAME_BYTES, MAX_QUOTA_EXTENSION_VALUE_BYTES, QuotaExtension,
+    QuotaExtensionError,
+};
+pub use quota::{
+    MAX_QUOTA_BUCKET_ID_BYTES, MAX_QUOTA_BUCKETS, MAX_QUOTA_EXTENSIONS_PER_BUCKET, QuotaBucket,
+    QuotaBucketId, QuotaBuckets, QuotaError, QuotaReset,
+};
+pub use time::{DelaySeconds, HttpDate, RetryAfter, RetryAfterError, WallClockTimestamp};
 
 /// Rate-limit metadata validation error.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -14,7 +34,10 @@ impl_static_error!(RateLimitError,
     Self::RemainingExceedsLimit => "remaining requests exceed the rate limit",
 );
 
-/// Validated rate-limit metadata returned by a transport.
+/// Legacy single-bucket rate-limit metadata.
+///
+/// New provider decoders should expose `QuotaBuckets` and use this type only
+/// as a compatibility view for APIs that publish one absolute-reset bucket.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct RateLimit {
     limit: u64,
@@ -62,7 +85,7 @@ impl RateLimit {
 }
 
 #[cfg(test)]
-mod tests {
+mod legacy_tests {
     use super::{RateLimit, RateLimitError};
 
     #[test]
@@ -84,3 +107,6 @@ mod tests {
         assert_eq!(rate_limit.reset_epoch_seconds(), 42);
     }
 }
+
+#[cfg(test)]
+mod tests;

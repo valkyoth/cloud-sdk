@@ -8,15 +8,15 @@ usable in `no_std` environments.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.44.0"
+cloud-sdk = "0.45.0"
 ```
 
 Provider-specific request models are separate dependencies. For Hetzner:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.44.0"
-cloud-sdk-hetzner = "0.34.0"
+cloud-sdk = "0.45.0"
+cloud-sdk-hetzner = "0.35.0"
 ```
 
 ## Build A Transport Request
@@ -97,6 +97,8 @@ authentication and raw-response policy, authenticated execution, and the
 complete Hetzner wire migration.
 See [`MIGRATION_0.44.0.md`](MIGRATION_0.44.0.md) for distinct numbered,
 offset, cursor, marker, and provider-link pagination strategies.
+See [`MIGRATION_0.45.0.md`](MIGRATION_0.45.0.md) for provider-owned quota
+decoding, exact `Retry-After`, and pure bounded delay decisions.
 
 ## Guard Preparation Storage
 

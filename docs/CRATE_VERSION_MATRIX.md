@@ -1,7 +1,7 @@
 # Crate Version Matrix
 
-Status: `v0.43.0` is tagged. `v0.44.0` is a release candidate; pentest and
-final retest passed.
+Status: `v0.44.0` is tagged. `v0.45.0` reached its implementation stop and
+requires pentest before release.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
@@ -665,6 +665,19 @@ provider links from entering structured request-target assembly.
 | `cloud-sdk-reqwest` | `0.30.0` | `0.30.1` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.44 facade line. |
 | `cloud-sdk-sanitization` | `0.16.0` | `0.16.0` | `unchanged` | No | No code, dependency, or package metadata changes. |
 | `cloud-sdk-testkit` | `0.25.0` | `0.25.1` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.44 facade line. |
+
+## v0.45.0 Tracking Table
+
+`v0.45.0` moves quota interpretation into provider crates and adds bounded
+multi-bucket state plus pure caller-controlled delay decisions.
+
+| Crate | Published | Planned | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.44.0` | `0.45.0` | `code` | Yes | Add bounded quota buckets, exact Retry-After parsing, and pure maximum-bound delay policy. |
+| `cloud-sdk-hetzner` | `0.34.0` | `0.35.0` | `code` | Yes | Decode complete Hetzner quota metadata and retain it on checked success and provider-error models. |
+| `cloud-sdk-reqwest` | `0.30.1` | `0.31.0` | `code` | Yes | Remove the obsolete provider-specific parser and transport error variant. |
+| `cloud-sdk-sanitization` | `0.16.0` | `0.16.0` | `unchanged` | No | No code, dependency, or package metadata changes. |
+| `cloud-sdk-testkit` | `0.25.1` | `0.25.2` | `dependency` | Yes | Update the `cloud-sdk` dependency to the v0.45 facade line. |
 
 ## Planned Milestone Ownership
 

@@ -1,21 +1,21 @@
 {
   "SPDXID": "SPDXRef-DOCUMENT",
   "creationInfo": {
-    "created": "2026-07-31T13:20:58Z",
+    "created": "2026-08-01T14:10:56Z",
     "creators": [
       "Tool: cargo-sbom-v0.10.0",
       "Tool: cloud-sdk-complete-spdx-v1"
     ]
   },
   "dataLicense": "CC0-1.0",
-  "documentNamespace": "https://spdx.org/spdxdocs/fuzz-3552b19c-02ad-4e29-a2e7-405dc12e8d18",
+  "documentNamespace": "https://spdx.org/spdxdocs/fuzz-f8f6f47b-3a35-4356-b8fd-2023b01bc90a",
   "files": [
     {
       "SPDXID": "SPDXRef-File-action_polling",
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "3bda48776f3825448c97bb49d6038d58c8d6f017"
+          "checksumValue": "a4973c6b07320ee395385e90dcb3d57f31bf1b07"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -29,7 +29,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "3bda48776f3825448c97bb49d6038d58c8d6f017"
+          "checksumValue": "a4973c6b07320ee395385e90dcb3d57f31bf1b07"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -43,7 +43,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "3bda48776f3825448c97bb49d6038d58c8d6f017"
+          "checksumValue": "a4973c6b07320ee395385e90dcb3d57f31bf1b07"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -57,7 +57,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "3bda48776f3825448c97bb49d6038d58c8d6f017"
+          "checksumValue": "a4973c6b07320ee395385e90dcb3d57f31bf1b07"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -71,7 +71,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "3bda48776f3825448c97bb49d6038d58c8d6f017"
+          "checksumValue": "a4973c6b07320ee395385e90dcb3d57f31bf1b07"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -85,7 +85,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "3bda48776f3825448c97bb49d6038d58c8d6f017"
+          "checksumValue": "a4973c6b07320ee395385e90dcb3d57f31bf1b07"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -99,7 +99,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "3bda48776f3825448c97bb49d6038d58c8d6f017"
+          "checksumValue": "a4973c6b07320ee395385e90dcb3d57f31bf1b07"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -113,7 +113,21 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "3bda48776f3825448c97bb49d6038d58c8d6f017"
+          "checksumValue": "a4973c6b07320ee395385e90dcb3d57f31bf1b07"
+        }
+      ],
+      "fileName": "./Cargo.lock",
+      "fileTypes": [
+        "SOURCE",
+        "TEXT"
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-File-quota_retry",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "a4973c6b07320ee395385e90dcb3d57f31bf1b07"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -127,7 +141,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "3bda48776f3825448c97bb49d6038d58c8d6f017"
+          "checksumValue": "a4973c6b07320ee395385e90dcb3d57f31bf1b07"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -141,7 +155,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "3bda48776f3825448c97bb49d6038d58c8d6f017"
+          "checksumValue": "a4973c6b07320ee395385e90dcb3d57f31bf1b07"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -155,7 +169,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "3bda48776f3825448c97bb49d6038d58c8d6f017"
+          "checksumValue": "a4973c6b07320ee395385e90dcb3d57f31bf1b07"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -169,7 +183,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "3bda48776f3825448c97bb49d6038d58c8d6f017"
+          "checksumValue": "a4973c6b07320ee395385e90dcb3d57f31bf1b07"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -183,7 +197,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "3bda48776f3825448c97bb49d6038d58c8d6f017"
+          "checksumValue": "a4973c6b07320ee395385e90dcb3d57f31bf1b07"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -409,14 +423,14 @@
       "versionInfo": "0.10.1"
     },
     {
-      "SPDXID": "SPDXRef-Package-cloud-sdk-0.44.0",
+      "SPDXID": "SPDXRef-Package-cloud-sdk-0.45.0",
       "description": "no_std-first provider-neutral cloud SDK foundations.",
       "downloadLocation": "NONE",
       "homepage": "https://github.com/valkyoth/cloud-sdk",
       "licenseConcluded": "MIT OR Apache-2.0",
       "licenseDeclared": "MIT OR Apache-2.0",
       "name": "cloud-sdk",
-      "versionInfo": "0.44.0"
+      "versionInfo": "0.45.0"
     },
     {
       "SPDXID": "SPDXRef-Package-cloud-sdk-fuzz-0.0.0",
@@ -426,24 +440,24 @@
       "versionInfo": "0.0.0"
     },
     {
-      "SPDXID": "SPDXRef-Package-cloud-sdk-hetzner-0.34.0",
+      "SPDXID": "SPDXRef-Package-cloud-sdk-hetzner-0.35.0",
       "description": "no_std-first Hetzner provider crate for cloud-sdk.",
       "downloadLocation": "NONE",
       "homepage": "https://github.com/valkyoth/cloud-sdk",
       "licenseConcluded": "MIT OR Apache-2.0",
       "licenseDeclared": "MIT OR Apache-2.0",
       "name": "cloud-sdk-hetzner",
-      "versionInfo": "0.34.0"
+      "versionInfo": "0.35.0"
     },
     {
-      "SPDXID": "SPDXRef-Package-cloud-sdk-reqwest-0.30.1",
+      "SPDXID": "SPDXRef-Package-cloud-sdk-reqwest-0.31.0",
       "description": "Optional provider-neutral reqwest transport boundary for cloud-sdk.",
       "downloadLocation": "NONE",
       "homepage": "https://github.com/valkyoth/cloud-sdk",
       "licenseConcluded": "MIT OR Apache-2.0",
       "licenseDeclared": "MIT OR Apache-2.0",
       "name": "cloud-sdk-reqwest",
-      "versionInfo": "0.30.1"
+      "versionInfo": "0.31.0"
     },
     {
       "SPDXID": "SPDXRef-Package-cloud-sdk-sanitization-0.16.0",
@@ -1576,13 +1590,13 @@
       "versionInfo": "2.1.3"
     },
     {
-      "SPDXID": "SPDXRef-Package-rustls-0.23.42",
+      "SPDXID": "SPDXRef-Package-rustls-0.23.43",
       "description": "Rustls is a modern TLS library written in Rust.",
       "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
-          "referenceLocator": "pkg:cargo/rustls@0.23.42",
+          "referenceLocator": "pkg:cargo/rustls@0.23.43",
           "referenceType": "purl"
         }
       ],
@@ -1590,7 +1604,7 @@
       "licenseConcluded": "Apache-2.0 OR ISC OR MIT",
       "licenseDeclared": "Apache-2.0 OR ISC OR MIT",
       "name": "rustls",
-      "versionInfo": "0.23.42"
+      "versionInfo": "0.23.43"
     },
     {
       "SPDXID": "SPDXRef-Package-rustls-native-certs-0.8.4",
@@ -2951,6 +2965,11 @@
     {
       "spdxElementId": "SPDXRef-DOCUMENT",
       "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-File-quota_retry"
+    },
+    {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
       "relatedSpdxElement": "SPDXRef-File-raw_http1_wire"
     },
     {
@@ -3010,6 +3029,11 @@
     },
     {
       "spdxElementId": "SPDXRef-File-provider_links",
+      "relationshipType": "GENERATED_FROM",
+      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-fuzz-0.0.0"
+    },
+    {
+      "spdxElementId": "SPDXRef-File-quota_retry",
       "relationshipType": "GENERATED_FROM",
       "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-fuzz-0.0.0"
     },
@@ -3134,24 +3158,24 @@
       "relatedSpdxElement": "SPDXRef-Package-rand--core-0.10.1"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-0.44.0",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-0.45.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-sanitization-0.16.0"
     },
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-fuzz-0.0.0",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-0.44.0"
+      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-0.45.0"
     },
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-fuzz-0.0.0",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-hetzner-0.34.0"
+      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-hetzner-0.35.0"
     },
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-fuzz-0.0.0",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-reqwest-0.30.1"
+      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-reqwest-0.31.0"
     },
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-fuzz-0.0.0",
@@ -3164,87 +3188,87 @@
       "relatedSpdxElement": "SPDXRef-Package-serde--json-1.0.151"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-hetzner-0.34.0",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-hetzner-0.35.0",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-0.44.0"
+      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-0.45.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-hetzner-0.34.0",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-hetzner-0.35.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-sanitization-0.16.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-hetzner-0.34.0",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-hetzner-0.35.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-serde--json-1.0.151"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-hetzner-0.34.0",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-hetzner-0.35.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-serde-1.0.229"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.30.1",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.31.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-base64-ng-1.3.9"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.30.1",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.31.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-bytes-1.12.1"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.30.1",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.31.0",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-0.44.0"
+      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-0.45.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.30.1",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.31.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-sanitization-0.16.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.30.1",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.31.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-http-1.5.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.30.1",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.31.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-http-body-util-0.1.4"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.30.1",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.31.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-hyper-1.11.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.30.1",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.31.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-hyper-rustls-0.27.9"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.30.1",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.31.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-hyper-util-0.1.20"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.30.1",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.31.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-reqwest-0.13.4"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.30.1",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.31.0",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-rustls-0.23.42"
+      "relatedSpdxElement": "SPDXRef-Package-rustls-0.23.43"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.30.1",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.31.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-rustls-platform-verifier-0.7.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.30.1",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.31.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-tokio-1.53.1"
     },
@@ -3541,7 +3565,7 @@
     {
       "spdxElementId": "SPDXRef-Package-hyper-rustls-0.27.9",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-rustls-0.23.42"
+      "relatedSpdxElement": "SPDXRef-Package-rustls-0.23.43"
     },
     {
       "spdxElementId": "SPDXRef-Package-hyper-rustls-0.27.9",
@@ -3996,7 +4020,7 @@
     {
       "spdxElementId": "SPDXRef-Package-quinn-0.11.11",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-rustls-0.23.42"
+      "relatedSpdxElement": "SPDXRef-Package-rustls-0.23.43"
     },
     {
       "spdxElementId": "SPDXRef-Package-quinn-0.11.11",
@@ -4066,7 +4090,7 @@
     {
       "spdxElementId": "SPDXRef-Package-quinn-proto-0.11.16",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-rustls-0.23.42"
+      "relatedSpdxElement": "SPDXRef-Package-rustls-0.23.43"
     },
     {
       "spdxElementId": "SPDXRef-Package-quinn-proto-0.11.16",
@@ -4236,7 +4260,7 @@
     {
       "spdxElementId": "SPDXRef-Package-reqwest-0.13.4",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-rustls-0.23.42"
+      "relatedSpdxElement": "SPDXRef-Package-rustls-0.23.43"
     },
     {
       "spdxElementId": "SPDXRef-Package-reqwest-0.13.4",
@@ -4344,32 +4368,32 @@
       "relatedSpdxElement": "SPDXRef-Package-semver-1.0.28"
     },
     {
-      "spdxElementId": "SPDXRef-Package-rustls-0.23.42",
+      "spdxElementId": "SPDXRef-Package-rustls-0.23.43",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-aws-lc-rs-1.17.3"
     },
     {
-      "spdxElementId": "SPDXRef-Package-rustls-0.23.42",
+      "spdxElementId": "SPDXRef-Package-rustls-0.23.43",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-once--cell-1.21.4"
     },
     {
-      "spdxElementId": "SPDXRef-Package-rustls-0.23.42",
+      "spdxElementId": "SPDXRef-Package-rustls-0.23.43",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-rustls-pki-types-1.15.1"
     },
     {
-      "spdxElementId": "SPDXRef-Package-rustls-0.23.42",
+      "spdxElementId": "SPDXRef-Package-rustls-0.23.43",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-rustls-webpki-0.103.13"
     },
     {
-      "spdxElementId": "SPDXRef-Package-rustls-0.23.42",
+      "spdxElementId": "SPDXRef-Package-rustls-0.23.43",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-subtle-2.6.1"
     },
     {
-      "spdxElementId": "SPDXRef-Package-rustls-0.23.42",
+      "spdxElementId": "SPDXRef-Package-rustls-0.23.43",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-zeroize-1.9.0"
     },
@@ -4431,7 +4455,7 @@
     {
       "spdxElementId": "SPDXRef-Package-rustls-platform-verifier-0.7.0",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-rustls-0.23.42"
+      "relatedSpdxElement": "SPDXRef-Package-rustls-0.23.43"
     },
     {
       "spdxElementId": "SPDXRef-Package-rustls-platform-verifier-0.7.0",
@@ -4731,7 +4755,7 @@
     {
       "spdxElementId": "SPDXRef-Package-tokio-rustls-0.26.4",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-rustls-0.23.42"
+      "relatedSpdxElement": "SPDXRef-Package-rustls-0.23.43"
     },
     {
       "spdxElementId": "SPDXRef-Package-tokio-rustls-0.26.4",

@@ -15,8 +15,10 @@ use cloud_sdk::{Method, ServiceId};
 
 use super::{
     CheckedHetznerResponse, HetznerDecodeError, decode_response as decode_checked_response,
+    decode_response_at as decode_checked_response_at,
 };
 use crate::identity::{CloudService, STORAGE_SERVICE_ID, StorageService};
+use cloud_sdk::rate_limit::WallClockTimestamp;
 
 const JSON: &[MediaType<'static>] = &[MediaType::JSON];
 const OK: &[StatusCode] = &[StatusCode::OK];
@@ -90,6 +92,10 @@ pub(super) fn prepared(
     );
     let content_type = HeaderName::new("content-type").unwrap_or_else(|_| unreachable!());
     let request_id = HeaderName::new("x-request-id").unwrap_or_else(|_| unreachable!());
+    let limit = HeaderName::new("ratelimit-limit").unwrap_or_else(|_| unreachable!());
+    let remaining = HeaderName::new("ratelimit-remaining").unwrap_or_else(|_| unreachable!());
+    let reset = HeaderName::new("ratelimit-reset").unwrap_or_else(|_| unreachable!());
+    let retry_after = HeaderName::new("retry-after").unwrap_or_else(|_| unreachable!());
     let raw_policy = RawResponsePolicy::new(
         if empty { 0 } else { 8_388_608 },
         8_388_608,
@@ -99,7 +105,14 @@ pub(super) fn prepared(
             ResponseMediaPolicy::Required(JSON)
         },
         ResponseMediaPolicy::Required(JSON),
-        &[content_type, request_id],
+        &[
+            content_type,
+            request_id,
+            limit,
+            remaining,
+            reset,
+            retry_after,
+        ],
         8,
     )
     .unwrap_or_else(|_| unreachable!());
@@ -141,7 +154,7 @@ pub(super) fn decode_response(
     prepared: PreparedRequest<'_>,
     fixture: TestResponse<'_>,
 ) -> Result<CheckedHetznerResponse, HetznerDecodeError> {
-    decode_response_with_request_id_value(prepared, fixture, None)
+    decode_response_with_metadata(prepared, fixture, None, &[], None)
 }
 
 pub(super) fn decode_response_with_request_id(
@@ -149,13 +162,32 @@ pub(super) fn decode_response_with_request_id(
     fixture: TestResponse<'_>,
     request_id: &[u8],
 ) -> Result<CheckedHetznerResponse, HetznerDecodeError> {
-    decode_response_with_request_id_value(prepared, fixture, Some(request_id))
+    decode_response_with_metadata(prepared, fixture, Some(request_id), &[], None)
 }
 
-fn decode_response_with_request_id_value(
+pub(super) fn decode_response_with_headers(
+    prepared: PreparedRequest<'_>,
+    fixture: TestResponse<'_>,
+    headers: &[(&str, &[u8])],
+) -> Result<CheckedHetznerResponse, HetznerDecodeError> {
+    decode_response_with_metadata(prepared, fixture, None, headers, None)
+}
+
+pub(super) fn decode_response_with_headers_at(
+    prepared: PreparedRequest<'_>,
+    fixture: TestResponse<'_>,
+    headers: &[(&str, &[u8])],
+    now: WallClockTimestamp,
+) -> Result<CheckedHetznerResponse, HetznerDecodeError> {
+    decode_response_with_metadata(prepared, fixture, None, headers, Some(now))
+}
+
+fn decode_response_with_metadata(
     prepared: PreparedRequest<'_>,
     fixture: TestResponse<'_>,
     request_id: Option<&[u8]>,
+    headers: &[(&str, &[u8])],
+    now: Option<WallClockTimestamp>,
 ) -> Result<CheckedHetznerResponse, HetznerDecodeError> {
     let mut storage = vec![0_u8; fixture.body.len()];
     let mut header_storage = [0_u8; 8192];
@@ -170,6 +202,13 @@ fn decode_response_with_request_id_value(
             .headers_mut()
             .map_err(HetznerDecodeError::ResponseWriter)?
             .try_push("x-request-id", request_id, HeaderSensitivity::Sensitive)
+            .map_err(|_| HetznerDecodeError::MalformedPayload)?;
+    }
+    for (name, value) in headers {
+        attempt
+            .headers_mut()
+            .map_err(HetznerDecodeError::ResponseWriter)?
+            .try_push(name, value, HeaderSensitivity::Public)
             .map_err(|_| HetznerDecodeError::MalformedPayload)?;
     }
     if fixture.json {
@@ -191,5 +230,8 @@ fn decode_response_with_request_id_value(
         .commit(fixture.status, fixture.body.len(), ResponseMetadata::EMPTY)
         .map_err(HetznerDecodeError::ResponseWriter)?;
     drop(attempt);
-    decode_checked_response(prepared, response)
+    match now {
+        Some(now) => decode_checked_response_at(prepared, response, now),
+        None => decode_checked_response(prepared, response),
+    }
 }

@@ -120,8 +120,8 @@ Portable and native platform evidence is documented in
 
 ```toml
 [dependencies]
-cloud-sdk = "0.44.0"
-cloud-sdk-hetzner = "0.34.0"
+cloud-sdk = "0.45.0"
+cloud-sdk-hetzner = "0.35.0"
 ```
 
 ## cloud-sdk Features
@@ -146,6 +146,7 @@ visible. Applications should enable only the features they use.
 - [Canonical signing input policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/SIGNING_INPUT_POLICY.md)
 - [Robot wire source lock](https://github.com/valkyoth/cloud-sdk/blob/main/docs/ROBOT_WIRE_SOURCE_LOCK.md)
 - [Pagination strategies](https://github.com/valkyoth/cloud-sdk/blob/main/docs/PAGINATION_STRATEGIES.md)
+- [Quota and retry policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/QUOTA_AND_RETRY.md)
 - [Release runbook](https://github.com/valkyoth/cloud-sdk/blob/main/docs/RELEASE_RUNBOOK.md)
 - [Versioning and error policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/VERSIONING_POLICY.md)
 - [Migrating to v0.29](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.29.0.md)
@@ -164,6 +165,7 @@ visible. Applications should enable only the features they use.
 - [Migrating to v0.42](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.42.0.md)
 - [Migrating to v0.43](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.43.0.md)
 - [Migrating to v0.44](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.44.0.md)
+- [Migrating to v0.45](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.45.0.md)
 - [Deprecated endpoint policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/DEPRECATED_ENDPOINT_POLICY.md)
 
 ## Provider-Neutral Quickstart
@@ -455,8 +457,8 @@ without changing the default allocation-free graph.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.44.0"
-cloud-sdk-reqwest = { version = "0.30.1", features = ["blocking-rustls"] }
+cloud-sdk = "0.45.0"
+cloud-sdk-reqwest = { version = "0.31.0", features = ["blocking-rustls"] }
 ```
 
 The production builder is HTTPS-only, requires explicit bounded timeouts and a
@@ -482,8 +484,8 @@ when deterministic public WebPKI roots are required:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.44.0"
-cloud-sdk-reqwest = { version = "0.30.1", features = ["blocking-rustls-webpki-roots"] }
+cloud-sdk = "0.45.0"
+cloud-sdk-reqwest = { version = "0.31.0", features = ["blocking-rustls-webpki-roots"] }
 ```
 
 The blocking API is unchanged. This feature excludes host-added enterprise
@@ -499,8 +501,8 @@ feature instead of relying on dependency feature unification:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.44.0"
-cloud-sdk-reqwest = { version = "0.30.1", features = ["blocking-rustls-fips"] }
+cloud-sdk = "0.45.0"
+cloud-sdk-reqwest = { version = "0.31.0", features = ["blocking-rustls-fips"] }
 ```
 
 Client construction explicitly selects rustls' AWS-LC FIPS provider and fails
@@ -518,8 +520,8 @@ example is in the
 
 ```toml
 [dependencies]
-cloud-sdk = "0.44.0"
-cloud-sdk-reqwest = { version = "0.30.1", features = ["async-rustls"] }
+cloud-sdk = "0.45.0"
+cloud-sdk-reqwest = { version = "0.31.0", features = ["async-rustls"] }
 ```
 
 The async adapter requires an active Tokio executor because reqwest uses Tokio
@@ -569,6 +571,46 @@ metadata and the decoded entry count to the numbered strategy. Request, item,
 opaque-state, snapshot, and traversal metadata limits fail closed. Cursor,
 offset, marker, and operation-bound provider-link strategies are documented in
 the [pagination guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/PAGINATION_STRATEGIES.md).
+
+## Quota Decision Example
+
+```rust
+use cloud_sdk::rate_limit::{
+    DelayConflictPolicy, DelaySeconds, ExcessDelayPolicy, PastTimestampPolicy,
+    QuotaBucket, QuotaBucketId, QuotaBuckets, QuotaDelayPolicy, QuotaReset,
+    WallClockTimestamp, decide_delay,
+};
+
+# fn main() -> Result<(), Box<dyn core::error::Error>> {
+let mut buckets = QuotaBuckets::new();
+let bucket = QuotaBucket::new(
+    QuotaBucketId::new(b"provider-hourly")?,
+    100,
+    0,
+    QuotaReset::After(DelaySeconds::new(30)),
+)?;
+buckets.try_push(bucket)?;
+let policy = QuotaDelayPolicy::new(
+    DelaySeconds::new(300),
+    PastTimestampPolicy::Reject,
+    ExcessDelayPolicy::Reject,
+    DelayConflictPolicy::RetryAfterPrecedence,
+);
+let decision = decide_delay(
+    &buckets,
+    None,
+    WallClockTimestamp::new(1_000),
+    None,
+    policy,
+)?;
+assert_eq!(decision.map(|value| value.delay().get()), Some(30));
+# Ok(())
+# }
+```
+
+The result is data only. The caller owns clocks, sleeping, retry eligibility,
+attempt counts, deadlines, and cancellation. See the
+[quota and retry guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/QUOTA_AND_RETRY.md).
 
 ## Action Polling Example
 

@@ -38,8 +38,8 @@ provider without adding transport dependencies to provider crates.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.44.0"
-cloud-sdk-reqwest = { version = "0.30.1", features = ["blocking-rustls"] }
+cloud-sdk = "0.45.0"
+cloud-sdk-reqwest = { version = "0.31.0", features = ["blocking-rustls"] }
 ```
 
 The examples use Hetzner as a concrete endpoint, but the adapter contains no
@@ -309,8 +309,8 @@ compiled into `webpki-roots`:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.44.0"
-cloud-sdk-reqwest = { version = "0.30.1", features = ["blocking-rustls-webpki-roots"] }
+cloud-sdk = "0.45.0"
+cloud-sdk-reqwest = { version = "0.31.0", features = ["blocking-rustls-webpki-roots"] }
 ```
 
 The blocking API is identical to the example above. The custom rustls client
@@ -326,9 +326,9 @@ Use the same blocking API with the dedicated feature:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.44.0"
-cloud-sdk-reqwest = { version = "0.30.1", features = ["blocking-rustls-fips"] }
-rustls = "=0.23.42"
+cloud-sdk = "0.45.0"
+cloud-sdk-reqwest = { version = "0.31.0", features = ["blocking-rustls-fips"] }
+rustls = "=0.23.43"
 ```
 
 ```rust,no_run
@@ -584,9 +584,8 @@ captured handoff.
 - First-party raw reqwest request-body staging rejects inputs above 8 MiB
   before allocation. The provider-neutral raw executor traits do not impose
   this adapter-local ceiling on third-party implementations.
-- Strict all-or-none decimal parsing and propagation of exactly one
-  `RateLimit-Limit`, `RateLimit-Remaining`, and `RateLimit-Reset` response
-  header; duplicates fail closed.
+- Bounded retention of provider-admitted quota and `Retry-After` headers;
+  duplicates fail closed and provider crates own semantic decoding.
 - Async responses are buffered within the caller's capacity and copied only
   after complete success; cancellation leaves the caller buffer cleared.
 - Payload-free errors and redacted client, token, target, and body diagnostics.

@@ -16,7 +16,10 @@ mod response;
 mod rrsets;
 mod strict_json;
 
-pub use checked::{CheckedHetznerResponse, HetznerApiError, HetznerDecodeError, decode_response};
+pub use checked::{
+    CheckedHetznerResponse, HetznerApiError, HetznerDecodeError, decode_response,
+    decode_response_at,
+};
 pub use models::{
     ActionResult, ActionResultError, ActionResultResource, CompositeResult, FolderList,
     HetznerSuccess, MetricPoint, MetricSeries, Metrics, NamedSensitiveText, Pricing, Resource,

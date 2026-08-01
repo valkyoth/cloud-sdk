@@ -47,7 +47,7 @@ for dependency in \
     'reqwest v0.13.4' \
     'cloud-sdk-sanitization v0.16.0' \
     'sanitization v2.0.3' \
-    'rustls v0.23.42'; do
+    'rustls v0.23.43'; do
     if ! printf '%s\n' "$blocking_tree" | grep -Fq "$dependency"; then
         echo "reqwest boundary: admitted dependency $dependency is missing" >&2
         exit 1
@@ -73,7 +73,7 @@ for dependency in \
     'tokio v1.53.1' \
     'cloud-sdk-sanitization v0.16.0' \
     'sanitization v2.0.3' \
-    'rustls v0.23.42'; do
+    'rustls v0.23.43'; do
     if ! printf '%s\n' "$async_tree" | grep -Fq "$dependency"; then
         echo "reqwest boundary: admitted async dependency $dependency is missing" >&2
         exit 1

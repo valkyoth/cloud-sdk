@@ -75,8 +75,6 @@ pub enum TransportError {
     RequestFailed,
     /// The response status is outside the core SDK's admitted HTTP range.
     InvalidStatus,
-    /// Rate-limit response headers were incomplete, non-decimal, or incoherent.
-    InvalidRateLimitHeaders,
     /// The response content type was duplicated, non-textual, or malformed.
     InvalidResponseContentType,
     /// Response headers exceeded bounds, contained controls, or were duplicated.
@@ -109,7 +107,6 @@ impl_static_error!(TransportError,
     Self::TimedOut => "request timed out",
     Self::RequestFailed => "request failed",
     Self::InvalidStatus => "response status is invalid",
-    Self::InvalidRateLimitHeaders => "rate-limit headers are invalid",
     Self::InvalidResponseContentType => "response content type is invalid",
     Self::InvalidResponseHeaders => "response headers are invalid",
     Self::ResponseTooLarge => "response body exceeds the caller limit",

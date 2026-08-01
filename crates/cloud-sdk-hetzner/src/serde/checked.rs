@@ -1,10 +1,11 @@
 //! Policy-bound checked Hetzner response decoding.
 
+use alloc::boxed::Box;
 use alloc::vec::Vec;
 use core::fmt;
 
 use cloud_sdk::operation::{PreparedRequest, ResponsePolicyError};
-use cloud_sdk::rate_limit::RateLimit;
+use cloud_sdk::rate_limit::{RateLimit, WallClockTimestamp};
 use cloud_sdk::transport::{
     MediaType, ResponseBuffer, ResponseDecodeWorkspace, ResponseWriterError, TransportResponse,
 };
@@ -19,6 +20,7 @@ use super::strict_json;
 use super::strict_json::{Map, Value};
 use super::{MAX_SERDE_RESPONSE_BYTES, ResponseBytes, ResponseSizeError};
 use crate::identity::HETZNER_PROVIDER_ID;
+use crate::rate_limit::{HetznerQuota, HetznerQuotaError};
 use crate::response::ApiErrorCode;
 
 /// Typed provider error returned by a checked operation response.
@@ -26,6 +28,7 @@ use crate::response::ApiErrorCode;
 pub struct HetznerApiError {
     code: ApiErrorCode,
     message: SensitiveText,
+    quota: Box<HetznerQuota>,
 }
 
 impl HetznerApiError {
@@ -42,6 +45,12 @@ impl HetznerApiError {
     ) -> Result<R, core::str::Utf8Error> {
         self.message.try_with_secret(inspect)
     }
+
+    /// Returns validated quota and retry metadata from the error response.
+    #[must_use]
+    pub fn quota(&self) -> &HetznerQuota {
+        &self.quota
+    }
 }
 
 impl fmt::Debug for HetznerApiError {
@@ -50,6 +59,7 @@ impl fmt::Debug for HetznerApiError {
             .debug_struct("HetznerApiError")
             .field("code", &self.code)
             .field("message", &"[redacted]")
+            .field("quota", &self.quota)
             .finish()
     }
 }
@@ -85,6 +95,8 @@ pub enum HetznerDecodeError {
     MalformedPayload,
     /// Parsed data failed a resource-specific model invariant.
     Model(ResponseModelError),
+    /// Provider quota or retry metadata was incomplete or invalid.
+    Quota(HetznerQuotaError),
     /// The provider returned a validated API error envelope.
     Provider(HetznerApiError),
 }
@@ -102,6 +114,7 @@ impl fmt::Display for HetznerDecodeError {
             Self::MissingErrorBody => "Hetzner error response body is missing",
             Self::MalformedPayload => "Hetzner response JSON is malformed",
             Self::Model(_) => "Hetzner response model validation failed",
+            Self::Quota(_) => "Hetzner quota response metadata is invalid",
             Self::Provider(_) => "Hetzner API returned a validated error response",
         })
     }
@@ -114,6 +127,7 @@ impl core::error::Error for HetznerDecodeError {
             Self::ResponseWriter(error) => Some(error),
             Self::ResponseSize(error) => Some(error),
             Self::Model(error) => Some(error),
+            Self::Quota(error) => Some(error),
             Self::Provider(error) => Some(error),
             _ => None,
         }
@@ -124,7 +138,7 @@ impl core::error::Error for HetznerDecodeError {
 #[derive(Clone, Debug, PartialEq)]
 pub struct CheckedHetznerResponse {
     success: HetznerSuccess,
-    rate_limit: Option<RateLimit>,
+    quota: Box<HetznerQuota>,
 }
 
 impl CheckedHetznerResponse {
@@ -134,10 +148,16 @@ impl CheckedHetznerResponse {
         &self.success
     }
 
-    /// Returns validated transport rate-limit metadata when supplied.
+    /// Returns validated provider-owned quota and retry metadata.
     #[must_use]
-    pub const fn rate_limit(&self) -> Option<RateLimit> {
-        self.rate_limit
+    pub fn quota(&self) -> &HetznerQuota {
+        &self.quota
+    }
+
+    /// Returns the legacy single-bucket rate-limit compatibility view.
+    #[must_use]
+    pub fn rate_limit(&self) -> Option<RateLimit> {
+        self.quota.rate_limit()
     }
 
     /// Consumes the wrapper and returns the typed success value.
@@ -150,7 +170,24 @@ impl CheckedHetznerResponse {
 /// Decodes one transport response through its exact prepared operation policy.
 pub fn decode_response(
     prepared: PreparedRequest<'_>,
+    response: ResponseBuffer<'_>,
+) -> Result<CheckedHetznerResponse, HetznerDecodeError> {
+    decode_response_with_clock(prepared, response, None)
+}
+
+/// Decodes one response with caller-supplied wall time for obsolete HTTP dates.
+pub fn decode_response_at(
+    prepared: PreparedRequest<'_>,
+    response: ResponseBuffer<'_>,
+    now: WallClockTimestamp,
+) -> Result<CheckedHetznerResponse, HetznerDecodeError> {
+    decode_response_with_clock(prepared, response, Some(now))
+}
+
+fn decode_response_with_clock(
+    prepared: PreparedRequest<'_>,
     mut response: ResponseBuffer<'_>,
+    now: Option<WallClockTimestamp>,
 ) -> Result<CheckedHetznerResponse, HetznerDecodeError> {
     let operation = prepared
         .operation_id()
@@ -160,6 +197,13 @@ pub fn decode_response(
     if service.provider_id() != HETZNER_PROVIDER_ID || service.service_id() != binding.service_id {
         return Err(HetznerDecodeError::ServiceMismatch);
     }
+    let quota = response
+        .with_response(|view| match now {
+            Some(now) => HetznerQuota::decode(view.headers(), now),
+            None => HetznerQuota::decode_without_clock(view.headers()),
+        })
+        .map_err(HetznerDecodeError::ResponseWriter)?
+        .map_err(HetznerDecodeError::Quota)?;
     let status = response
         .with_response(|view| view.status())
         .map_err(HetznerDecodeError::ResponseWriter)?;
@@ -169,7 +213,7 @@ pub fn decode_response(
             .map_err(HetznerDecodeError::ResponsePolicy)?;
         let mut workspace = ResponseDecodeWorkspace::new_for_provider();
         let decoded = response
-            .with_response(|response| decode_provider_error(response, &mut workspace))
+            .with_response(|response| decode_provider_error(response, &mut workspace, quota))
             .map_err(HetznerDecodeError::ResponseWriter)?;
         drop(response);
         return match decoded {
@@ -198,7 +242,7 @@ pub fn decode_response(
         };
         Ok(CheckedHetznerResponse {
             success,
-            rate_limit: checked.rate_limit(),
+            quota: Box::new(quota),
         })
     })
 }
@@ -206,6 +250,7 @@ pub fn decode_response(
 fn decode_provider_error(
     response: TransportResponse<'_, '_>,
     workspace: &mut ResponseDecodeWorkspace,
+    quota: HetznerQuota,
 ) -> Result<HetznerApiError, HetznerDecodeError> {
     if response.body().is_empty() {
         return Err(HetznerDecodeError::MissingErrorBody);
@@ -244,6 +289,7 @@ fn decode_provider_error(
     Ok(HetznerApiError {
         code: ApiErrorCode::from_api_str(&code),
         message,
+        quota: Box::new(quota),
     })
 }
 

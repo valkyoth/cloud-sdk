@@ -3,14 +3,14 @@
 Status: admitted only through the non-default
 `cloud-sdk-reqwest/blocking-rustls-fips` feature.
 
-Checked: 2026-07-20.
+Checked: 2026-08-01.
 
 ## Decision
 
 | Crate | Version | Role |
 | --- | --- | --- |
 | `reqwest` | `0.13.4` | blocking HTTP transport |
-| `rustls` | `0.23.42` | TLS configuration and FIPS status checks |
+| `rustls` | `0.23.43` | TLS configuration and FIPS status checks |
 | `rustls-platform-verifier` | `0.7.0` | reqwest graph dependency; not the FIPS verifier |
 | `aws-lc-rs` | `1.17.3` | rustls cryptographic provider |
 | `aws-lc-fips-sys` | `0.13.16` | AWS-LC-FIPS 3.x native module |
@@ -50,7 +50,7 @@ empty, malformed, unknown-status, or expired revocation policy fails closed.
 The FIPS path does not use Linux platform-verifier behavior that omits
 revocation checks.
 
-Rustls `0.23.42` implements its official `fips` feature by enabling both the
+Rustls `0.23.43` implements its official `fips` feature by enabling both the
 `aws-lc-rs/fips` backend and its ordinary `aws_lc_rs` feature. Cargo therefore
 compiles both `aws-lc-fips-sys` and `aws-lc-sys`; `aws-lc-rs` selects the FIPS
 FFI under the unified `fips` feature. The boundary checks this exact graph and
@@ -105,7 +105,7 @@ remains only until its parent dependencies can converge. See
 
 Primary upstream references:
 
-- <https://docs.rs/rustls/0.23.42/rustls/manual/_06_fips/>
+- <https://docs.rs/rustls/0.23.43/rustls/manual/_06_fips/>
 - <https://docs.rs/aws-lc-fips-sys/0.13.16/aws_lc_fips_sys/>
 - <https://aws.github.io/aws-lc-rs/requirements/index.html>
 - <https://aws.github.io/aws-lc-rs/platform_support.html>

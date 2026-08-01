@@ -1,27 +1,27 @@
 [release]
-version = "0.44.0"
+version = "0.45.0"
 policy = "independent"
 
 [crates."cloud-sdk"]
-previous_version = "0.43.0"
-version = "0.44.0"
+previous_version = "0.44.0"
+version = "0.45.0"
 change = "code"
 publish = true
-reason = "Add bounded numbered, offset, cursor, marker, and provider-link pagination strategies."
+reason = "Add bounded provider-neutral quota buckets, Retry-After parsing, and pure delay decisions."
 
 [crates."cloud-sdk-hetzner"]
-previous_version = "0.33.0"
-version = "0.34.0"
+previous_version = "0.34.0"
+version = "0.35.0"
 change = "code"
 publish = true
-reason = "Migrate Hetzner pagination metadata to the numbered strategy contract."
+reason = "Move Hetzner quota decoding into the provider and retain quota on checked success and error responses."
 
 [crates."cloud-sdk-reqwest"]
-previous_version = "0.30.0"
-version = "0.30.1"
-change = "dependency"
+previous_version = "0.30.1"
+version = "0.31.0"
+change = "code"
 publish = true
-reason = "Update the cloud-sdk dependency to the v0.44 facade line."
+reason = "Remove the obsolete transport-owned Hetzner-shaped rate-limit parser and error variant."
 
 [crates."cloud-sdk-sanitization"]
 previous_version = "0.16.0"
@@ -31,8 +31,8 @@ publish = false
 reason = "No code, dependency, or package metadata changes."
 
 [crates."cloud-sdk-testkit"]
-previous_version = "0.25.0"
-version = "0.25.1"
+previous_version = "0.25.1"
+version = "0.25.2"
 change = "dependency"
 publish = true
-reason = "Update the cloud-sdk dependency to the v0.44 facade line."
+reason = "Update the cloud-sdk dependency to the v0.45 facade line."

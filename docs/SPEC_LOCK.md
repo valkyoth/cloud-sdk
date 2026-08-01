@@ -191,12 +191,13 @@ executor. Terminal success or failure takes precedence over non-authoritative
 progress telemetry so the provider's final result is not discarded.
 
 The official response metadata uses the complete `RateLimit-Limit`,
-`RateLimit-Remaining`, and `RateLimit-Reset` header set. Reqwest adapters parse
-only unsigned decimal values, require each of the three headers exactly once
-when any is present, reject duplicates, zero limits, and remaining values above
-the limit, and commit the result through the sealed response writer. Core
-exposes it only as a guard-scoped response view. Adapters do not infer a retry
-delay or automatically replay a request.
+`RateLimit-Remaining`, and `RateLimit-Reset` header set. Transports retain only
+headers admitted by the prepared provider operation and reject duplicates.
+The Hetzner provider decoder requires the complete set when any member is
+present, accepts only bounded unsigned decimal values, and rejects zero limits
+or remaining values above the limit. Standard `Retry-After` is decoded beside
+provider quota with caller-supplied wall time. Core returns pure bounded delay
+decisions; no adapter infers a delay or replays a request.
 
 ## v0.19.0 Live Smoke Policy
 
