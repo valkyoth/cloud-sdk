@@ -1,8 +1,8 @@
 # cloud-sdk 0.45.0 Release Notes
 
-Status: implementation stop reached; pentest required.
+Status: release candidate; pentest and final retest passed.
 
-Release date: pending
+Release date: 2026-08-01
 
 ## Overview
 
@@ -63,11 +63,13 @@ provider-neutral quota and pure retry-delay policy.
 
 ## Pentest
 
-Pentest is required for the exact implementation-stop commit. Permanent
-evidence will be added at `security/pentest/v0.45.0.md` after final retest.
+The permanent [v0.45.0 pentest report](../security/pentest/v0.45.0.md) records
+the iterative review, completed remediation, and green final retest of commit
+`13b00163493dfef13a49189135f457592a9435cf`.
 
 ## Release Gate
 
 ```text
-v0.45.0 implementation stop reached. Run pentest for this exact commit.
+v0.45.0 release candidate. Tag only after the local release gate and GitHub
+checks pass on the final release commit.
 ```

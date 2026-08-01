@@ -1696,6 +1696,8 @@ Stop gate: `v0.44.0 implementation stop reached. Run pentest for this exact comm
 
 ### v0.45.0 - Provider Quota And Rate-Limit Strategies
 
+Status: release candidate; pentest and final retest passed.
+
 Goal: move quota decoding out of transports.
 
 Deliverables: provider-owned decoders and bounded multiple buckets; type-separated delta durations, absolute wall-clock reset timestamps, and HTTP-date `Retry-After`; explicit invalid/past timestamp handling; caller-imposed maximum delay; deterministic conflict policy between `Retry-After` and provider quota metadata; pure decision outputs only, with sleep and clock acquisition external; duplicate/partial-header policy and preserved informational extensions.
