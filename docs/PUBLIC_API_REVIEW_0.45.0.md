@@ -15,7 +15,8 @@ caller time for two-digit-year resolution.
 capacities, distinct bucket identities, coherent counts, multiple reset
 semantics, duplicate rejection, and bounded informational extensions.
 `QuotaExtension` retains exact visible-ASCII values while redacting values in
-diagnostics.
+diagnostics. It is deliberately non-`Copy` and volatile-clears its complete
+name, value, and length storage on drop.
 
 `QuotaDelayPolicy` and `decide_delay` add pure conflict, stale-time,
 clock-rollback, unknown-reset, and caller-maximum decisions. The API performs
@@ -40,13 +41,17 @@ meaning for the Hetzner single bucket are unchanged.
 `Copy`. Their read-only accessors take `&self`; callers must request an
 explicit `Clone` when they need a separate owned snapshot.
 
+`QuotaExtension` is also no longer `Copy`; callers must explicitly clone an
+extension when retaining more than one owned instance.
+
 ## Security Review
 
 All capacities and decimal arithmetic fail closed. Partial Hetzner header sets
 are errors; duplicates remain rejected by `ResponseHeaders`. Date parsing
 validates calendar bounds, leap years, leap seconds, weekday agreement,
-obsolete-year resolution, and numeric overflow. Past and rollback behavior is
-never implicit. Extensions are bounded and values are redacted. Delay output
+full-timestamp obsolete-year resolution, and numeric overflow. Past and
+rollback behavior is never implicit. Extensions are bounded, redacted, and
+cleared on drop. Delay output
 is bounded by caller policy and cannot trigger I/O or replay by itself. Large
 fixed-capacity aggregates are borrowed through decision and decode paths, and
 the optional owned response boundary boxes quota before branching into

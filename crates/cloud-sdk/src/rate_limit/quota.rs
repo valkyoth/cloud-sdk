@@ -101,7 +101,7 @@ impl QuotaBucket {
             limit,
             remaining,
             reset,
-            extensions: [None; MAX_QUOTA_EXTENSIONS_PER_BUCKET],
+            extensions: [const { None }; MAX_QUOTA_EXTENSIONS_PER_BUCKET],
             extension_len: 0,
         })
     }

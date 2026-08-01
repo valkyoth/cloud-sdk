@@ -32,7 +32,13 @@ provider-neutral quota and pure retry-delay policy.
   conflict, rollback, maximum, response-success, and response-error tests.
 - Made large fixed-capacity quota aggregates non-`Copy`, changed read-only
   accessors to borrow, and boxed quota before checked success/error branching.
+- Corrected RFC 850 two-digit-year resolution to compare the complete date and
+  time at the exact 50-year boundary.
+- Made redacted quota extensions non-`Copy` and volatile-cleared their complete
+  fixed-capacity storage on drop.
 - Added a quota-gate Clippy denial for large types passed by value.
+- Added a release check requiring the dependency review to inventory every
+  root lockfile package-version change against the previous release tag.
 - Added a dedicated quota, Retry-After, decision-policy, and provider-header
   fuzz target.
 

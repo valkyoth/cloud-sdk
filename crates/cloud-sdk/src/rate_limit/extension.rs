@@ -1,5 +1,7 @@
 use core::fmt;
 
+use cloud_sdk_sanitization::{sanitize_bytes, sanitize_value};
+
 /// Maximum exact-byte quota extension name length.
 pub const MAX_QUOTA_EXTENSION_NAME_BYTES: usize = 32;
 /// Maximum exact-byte quota extension value length.
@@ -9,7 +11,7 @@ pub const MAX_QUOTA_EXTENSION_VALUE_BYTES: usize = 64;
 ///
 /// Values are retained exactly but redacted from `Debug` because provider
 /// partition keys and policy parameters can disclose account structure.
-#[derive(Clone, Copy, Eq, PartialEq)]
+#[derive(Clone, Eq, PartialEq)]
 pub struct QuotaExtension {
     name: [u8; MAX_QUOTA_EXTENSION_NAME_BYTES],
     name_len: u8,
@@ -55,6 +57,19 @@ impl QuotaExtension {
         self.value
             .get(..usize::from(self.value_len))
             .unwrap_or_default()
+    }
+
+    fn clear(&mut self) {
+        sanitize_bytes(&mut self.name);
+        sanitize_bytes(&mut self.value);
+        sanitize_value(&mut self.name_len);
+        sanitize_value(&mut self.value_len);
+    }
+}
+
+impl Drop for QuotaExtension {
+    fn drop(&mut self) {
+        self.clear();
     }
 }
 
@@ -111,3 +126,24 @@ impl_static_error!(QuotaExtensionError,
     Self::ValueTooLong => "quota extension value exceeds its length limit",
     Self::InvalidByte => "quota extension contains an invalid byte",
 );
+
+#[cfg(test)]
+mod tests {
+    use super::QuotaExtension;
+
+    #[test]
+    fn explicit_cleanup_clears_complete_name_value_and_lengths() {
+        let extension = QuotaExtension::new(b"partition", b"account-42");
+        assert!(extension.is_ok());
+        let Ok(mut extension) = extension else {
+            return;
+        };
+
+        extension.clear();
+
+        assert!(extension.name.iter().all(|byte| *byte == 0));
+        assert!(extension.value.iter().all(|byte| *byte == 0));
+        assert_eq!(extension.name_len, 0);
+        assert_eq!(extension.value_len, 0);
+    }
+}

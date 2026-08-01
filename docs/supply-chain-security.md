@@ -39,6 +39,9 @@ The v0.32 major-version review is recorded in
 [`DEPENDENCY_REVIEW_0.32.0.md`](DEPENDENCY_REVIEW_0.32.0.md).
 The v0.33 no-external-change freshness review is recorded in
 [`DEPENDENCY_REVIEW_0.33.0.md`](DEPENDENCY_REVIEW_0.33.0.md).
+From v0.45 onward, `scripts/check_dependency_review.py` compares the root
+`Cargo.lock` with the previous release tag and fails unless every changed
+package version has an exact row in the versioned dependency review.
 The v0.34 endpoint-policy no-external-change review is recorded in
 [`DEPENDENCY_REVIEW_0.34.0.md`](DEPENDENCY_REVIEW_0.34.0.md).
 The v0.35 canonical request-target no-external-change review is recorded in

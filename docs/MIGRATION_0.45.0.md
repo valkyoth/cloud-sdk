@@ -29,6 +29,11 @@ Checked Hetzner responses now expose `quota()`. Typed provider errors expose
 the same metadata through `HetznerApiError::quota`. Existing `rate_limit()`
 accessors remain as single-bucket compatibility views.
 
+`QuotaBucket`, `QuotaBuckets`, `QuotaExtension`, and `HetznerQuota` are not
+`Copy`. Read-only accessors borrow these values. Use an explicit `Clone` only
+when a second owned snapshot is required; cloned extension storage is cleared
+independently when each owner is dropped.
+
 Use `decode_response_at` when an HTTP-date `Retry-After` can occur. The old
 `decode_response` remains valid for decimal delay-seconds and fixed-year HTTP
 dates, but rejects obsolete RFC 850 dates that require a current-year input.

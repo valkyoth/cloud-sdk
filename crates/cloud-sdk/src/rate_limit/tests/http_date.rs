@@ -61,3 +61,23 @@ fn rfc850_year_uses_the_required_fifty_year_window() {
         Ok(RetryAfter::HttpDate(HttpDate::new(784_111_777)))
     );
 }
+
+#[test]
+fn rfc850_year_uses_the_complete_fifty_year_timestamp_boundary() {
+    assert_eq!(
+        RetryAfter::parse(b"Tuesday, 31-Dec-75 23:59:59 GMT", NOW_2026),
+        Ok(RetryAfter::HttpDate(HttpDate::new(3_345_062_399)))
+    );
+    assert_eq!(
+        RetryAfter::parse(b"Wednesday, 01-Jan-76 00:00:00 GMT", NOW_2026),
+        Ok(RetryAfter::HttpDate(HttpDate::new(3_345_062_400)))
+    );
+    assert_eq!(
+        RetryAfter::parse(b"Thursday, 01-Jan-76 00:00:01 GMT", NOW_2026),
+        Ok(RetryAfter::HttpDate(HttpDate::new(189_302_401)))
+    );
+    assert_eq!(
+        RetryAfter::parse(b"Wednesday, 01-Jan-76 00:00:01 GMT", NOW_2026),
+        Err(RetryAfterError::WeekdayMismatch)
+    );
+}

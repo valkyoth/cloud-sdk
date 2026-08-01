@@ -69,7 +69,7 @@ fn preserves_bounded_extensions_with_redacted_debug() {
     let extension = QuotaExtension::new(b"partition-key", b"customer-42");
     assert!(extension.is_ok());
     let Ok(extension) = extension else { return };
-    assert_eq!(value.try_add_extension(extension), Ok(()));
+    assert_eq!(value.try_add_extension(extension.clone()), Ok(()));
     let retained = value.extensions().next();
     assert_eq!(
         retained.map(QuotaExtension::name),
