@@ -36,6 +36,10 @@ headers and does not interpret provider quota semantics.
 legacy compatibility view from provider-owned quota. Its return type and
 meaning for the Hetzner single bucket are unchanged.
 
+`QuotaBucket`, `QuotaBuckets`, and `HetznerQuota` are intentionally not
+`Copy`. Their read-only accessors take `&self`; callers must request an
+explicit `Clone` when they need a separate owned snapshot.
+
 ## Security Review
 
 All capacities and decimal arithmetic fail closed. Partial Hetzner header sets
@@ -43,4 +47,7 @@ are errors; duplicates remain rejected by `ResponseHeaders`. Date parsing
 validates calendar bounds, leap years, leap seconds, weekday agreement,
 obsolete-year resolution, and numeric overflow. Past and rollback behavior is
 never implicit. Extensions are bounded and values are redacted. Delay output
-is bounded by caller policy and cannot trigger I/O or replay by itself.
+is bounded by caller policy and cannot trigger I/O or replay by itself. Large
+fixed-capacity aggregates are borrowed through decision and decode paths, and
+the optional owned response boundary boxes quota before branching into
+success or provider-error decoding.

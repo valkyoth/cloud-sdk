@@ -19,6 +19,12 @@ Each bucket can preserve up to four bounded informational extensions. Values
 remain available as exact bytes but are redacted from `Debug` because provider
 partition keys can disclose account structure.
 
+The inline aggregate is deliberately not `Copy`: it can occupy several
+kilobytes at maximum capacity. Read-only accessors borrow buckets and quota
+sets, while callers can use an explicit `Clone` when a second owned snapshot
+is required. The optional owned Hetzner response decoder boxes quota once at
+its allocation boundary and moves that box through success or error decoding.
+
 `RetryAfter::parse` accepts decimal delay-seconds and all HTTP-date forms that
 RFC 9110 requires recipients to accept: IMF-fixdate, obsolete RFC 850, and
 obsolete asctime. The caller supplies wall time so the RFC 850 two-digit year

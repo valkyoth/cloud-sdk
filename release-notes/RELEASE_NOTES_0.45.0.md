@@ -30,6 +30,9 @@ provider-neutral quota and pure retry-delay policy.
   deterministic-root, FIPS, and feature-unification boundary checks.
 - Added focused boundary, duplicate, partial, unknown-state, multiple-bucket,
   conflict, rollback, maximum, response-success, and response-error tests.
+- Made large fixed-capacity quota aggregates non-`Copy`, changed read-only
+  accessors to borrow, and boxed quota before checked success/error branching.
+- Added a quota-gate Clippy denial for large types passed by value.
 - Added a dedicated quota, Retry-After, decision-policy, and provider-header
   fuzz target.
 

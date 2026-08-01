@@ -51,5 +51,7 @@ cargo test --locked -p cloud-sdk-hetzner --all-features checked_success_and_erro
 cargo check --locked -p cloud-sdk --no-default-features
 cargo check --locked -p cloud-sdk-hetzner --no-default-features
 cargo check --locked --manifest-path fuzz/Cargo.toml --bin quota_retry
+cargo clippy --locked -p cloud-sdk -p cloud-sdk-hetzner --lib --all-features -- \
+    -D warnings -D clippy::large_types_passed_by_value
 
 printf '%s\n' 'Quota strategy, provider ownership, checked response, and no_std checks passed.'

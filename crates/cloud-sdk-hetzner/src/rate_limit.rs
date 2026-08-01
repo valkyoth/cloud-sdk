@@ -19,7 +19,7 @@ const REMAINING_HEADER: &str = "ratelimit-remaining";
 const RESET_HEADER: &str = "ratelimit-reset";
 
 /// Provider-owned quota metadata from one Hetzner response.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct HetznerQuota {
     buckets: QuotaBuckets,
     retry_after: Option<RetryAfter>,
@@ -49,7 +49,7 @@ impl HetznerQuota {
 
     /// Returns the decoded standard retry instruction.
     #[must_use]
-    pub const fn retry_after(self) -> Option<RetryAfter> {
+    pub const fn retry_after(&self) -> Option<RetryAfter> {
         self.retry_after
     }
 
@@ -61,7 +61,7 @@ impl HetznerQuota {
 
     /// Returns the legacy single-bucket compatibility view.
     #[must_use]
-    pub fn rate_limit(self) -> Option<RateLimit> {
+    pub fn rate_limit(&self) -> Option<RateLimit> {
         let bucket = self.buckets.iter().next()?;
         let QuotaReset::At(reset) = bucket.reset() else {
             return None;

@@ -72,7 +72,7 @@ pub enum QuotaReset {
 }
 
 /// One coherent provider quota bucket.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct QuotaBucket {
     id: QuotaBucketId,
     limit: u64,
@@ -129,27 +129,27 @@ impl QuotaBucket {
 
     /// Returns the bucket identity.
     #[must_use]
-    pub const fn id(self) -> QuotaBucketId {
+    pub const fn id(&self) -> QuotaBucketId {
         self.id
     }
     /// Returns the request limit.
     #[must_use]
-    pub const fn limit(self) -> u64 {
+    pub const fn limit(&self) -> u64 {
         self.limit
     }
     /// Returns the remaining request count.
     #[must_use]
-    pub const fn remaining(self) -> u64 {
+    pub const fn remaining(&self) -> u64 {
         self.remaining
     }
     /// Returns the reset semantics.
     #[must_use]
-    pub const fn reset(self) -> QuotaReset {
+    pub const fn reset(&self) -> QuotaReset {
         self.reset
     }
     /// Reports whether this bucket is exhausted.
     #[must_use]
-    pub const fn is_exhausted(self) -> bool {
+    pub const fn is_exhausted(&self) -> bool {
         self.remaining == 0
     }
     /// Iterates retained informational extensions.
@@ -159,7 +159,20 @@ impl QuotaBucket {
 }
 
 /// Fixed-capacity set of distinct provider quota buckets.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+///
+/// The aggregate is deliberately not [`Copy`] because its bounded inline
+/// storage can be several kilobytes. Clone it only when a separate owned
+/// snapshot is required.
+///
+/// ```compile_fail
+/// use cloud_sdk::rate_limit::QuotaBuckets;
+///
+/// let buckets = QuotaBuckets::new();
+/// let moved = buckets;
+/// let _ = buckets.len();
+/// let _ = moved;
+/// ```
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct QuotaBuckets {
     buckets: [Option<QuotaBucket>; MAX_QUOTA_BUCKETS],
     len: u8,
@@ -170,7 +183,7 @@ impl QuotaBuckets {
     #[must_use]
     pub const fn new() -> Self {
         Self {
-            buckets: [None; MAX_QUOTA_BUCKETS],
+            buckets: [const { None }; MAX_QUOTA_BUCKETS],
             len: 0,
         }
     }

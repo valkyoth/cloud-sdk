@@ -248,7 +248,7 @@ impl<'storage, 'request> CanonicalSigningInput<'storage, 'request> {
             time: freshness.time(),
         };
         let required = measure_snapshot_bounded(
-            snapshot,
+            &snapshot,
             MAX_CANONICAL_SIGNING_INPUT_BYTES,
             SigningInputError::InputTooLarge,
             encode_signing_snapshot,
@@ -258,7 +258,7 @@ impl<'storage, 'request> CanonicalSigningInput<'storage, 'request> {
             return Err(SigningBuildError::Input(SigningInputError::OutputTooSmall));
         }
         let len = encode_snapshot_bounded(
-            snapshot,
+            &snapshot,
             output,
             MAX_CANONICAL_SIGNING_INPUT_BYTES,
             SigningInputError::SnapshotChanged,
@@ -266,8 +266,8 @@ impl<'storage, 'request> CanonicalSigningInput<'storage, 'request> {
         )
         .map_err(SigningBuildError::Input)?;
         Ok(Self {
-            request,
-            context,
+            request: snapshot.request,
+            context: snapshot.context,
             storage: output,
             len,
         })
@@ -320,7 +320,6 @@ impl Drop for CanonicalSigningInput<'_, '_> {
     }
 }
 
-#[derive(Clone, Copy)]
 struct SigningSnapshot<'request, 'context, 'headers, 'digest, 'nonce> {
     request: TransportRequest<'request>,
     context: SigningContext<'context>,
@@ -358,7 +357,7 @@ fn validate_selected_headers(
 }
 
 fn encode_signing_snapshot(
-    snapshot: SigningSnapshot<'_, '_, '_, '_, '_>,
+    snapshot: &SigningSnapshot<'_, '_, '_, '_, '_>,
     encoder: &mut SnapshotEncoder<'_, SigningInputError>,
 ) -> Result<(), SigningInputError> {
     encoder.bytes(SIGNING_DOMAIN)?;

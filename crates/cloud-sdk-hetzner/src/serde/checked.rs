@@ -184,6 +184,10 @@ pub fn decode_response_at(
     decode_response_with_clock(prepared, response, Some(now))
 }
 
+#[allow(
+    clippy::large_types_passed_by_value,
+    reason = "the public checked decoder intentionally consumes one complete prepared request"
+)]
 fn decode_response_with_clock(
     prepared: PreparedRequest<'_>,
     mut response: ResponseBuffer<'_>,
@@ -197,13 +201,15 @@ fn decode_response_with_clock(
     if service.provider_id() != HETZNER_PROVIDER_ID || service.service_id() != binding.service_id {
         return Err(HetznerDecodeError::ServiceMismatch);
     }
-    let quota = response
-        .with_response(|view| match now {
-            Some(now) => HetznerQuota::decode(view.headers(), now),
-            None => HetznerQuota::decode_without_clock(view.headers()),
-        })
-        .map_err(HetznerDecodeError::ResponseWriter)?
-        .map_err(HetznerDecodeError::Quota)?;
+    let quota = Box::new(
+        response
+            .with_response(|view| match now {
+                Some(now) => HetznerQuota::decode(view.headers(), now),
+                None => HetznerQuota::decode_without_clock(view.headers()),
+            })
+            .map_err(HetznerDecodeError::ResponseWriter)?
+            .map_err(HetznerDecodeError::Quota)?,
+    );
     let status = response
         .with_response(|view| view.status())
         .map_err(HetznerDecodeError::ResponseWriter)?;
@@ -240,17 +246,14 @@ fn decode_response_with_clock(
                     .map_err(|_| HetznerDecodeError::MalformedPayload)?;
             decode_success(binding, &mut value).map_err(HetznerDecodeError::Model)?
         };
-        Ok(CheckedHetznerResponse {
-            success,
-            quota: Box::new(quota),
-        })
+        Ok(CheckedHetznerResponse { success, quota })
     })
 }
 
 fn decode_provider_error(
     response: TransportResponse<'_, '_>,
     workspace: &mut ResponseDecodeWorkspace,
-    quota: HetznerQuota,
+    quota: Box<HetznerQuota>,
 ) -> Result<HetznerApiError, HetznerDecodeError> {
     if response.body().is_empty() {
         return Err(HetznerDecodeError::MissingErrorBody);
@@ -289,7 +292,7 @@ fn decode_provider_error(
     Ok(HetznerApiError {
         code: ApiErrorCode::from_api_str(&code),
         message,
-        quota: Box::new(quota),
+        quota,
     })
 }
 

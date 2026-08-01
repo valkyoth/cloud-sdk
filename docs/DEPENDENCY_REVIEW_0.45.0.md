@@ -15,8 +15,12 @@ runtime-free, clock-free, filesystem-free, and randomness-free.
 
 The optional Hetzner Serde decoder already uses `alloc`; it boxes retained
 quota beside owned checked success and provider-error models to keep public
-error sizes bounded. The provider-neutral quota types themselves do not
-allocate.
+error sizes bounded. Boxing occurs immediately after provider decoding, and
+the box moves directly through success and error decoding. The several-
+kilobyte fixed-capacity aggregates are deliberately not `Copy`; read-only
+accessors borrow them, and the quota gate denies Clippy's
+`large_types_passed_by_value` lint. The provider-neutral quota types
+themselves do not allocate.
 
 `cloud-sdk-hetzner 0.35.0` and `cloud-sdk-reqwest 0.31.0` are code releases.
 `cloud-sdk-testkit 0.25.2` is dependency-only. `cloud-sdk-sanitization 0.16.0`

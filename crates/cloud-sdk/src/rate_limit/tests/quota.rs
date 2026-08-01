@@ -14,6 +14,15 @@ fn bucket(id: &[u8], remaining: u64) -> Result<QuotaBucket, QuotaError> {
 }
 
 #[test]
+fn large_bucket_accessors_borrow_instead_of_copying_the_bucket() {
+    let _: fn(&QuotaBucket) -> QuotaBucketId = QuotaBucket::id;
+    let _: fn(&QuotaBucket) -> u64 = QuotaBucket::limit;
+    let _: fn(&QuotaBucket) -> u64 = QuotaBucket::remaining;
+    let _: fn(&QuotaBucket) -> QuotaReset = QuotaBucket::reset;
+    let _: fn(&QuotaBucket) -> bool = QuotaBucket::is_exhausted;
+}
+
+#[test]
 fn validates_bucket_invariants_and_distinct_ids() {
     let id = QuotaBucketId::new(b"project-hourly");
     assert!(id.is_ok());
