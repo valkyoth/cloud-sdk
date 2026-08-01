@@ -17,9 +17,13 @@ one explicit reset form:
 
 Each bucket can preserve up to four bounded informational extensions. Values
 remain available as exact bytes but are redacted from `Debug` because provider
-partition keys can disclose account structure. Extensions are non-`Copy` and
-volatile-clear their complete fixed-capacity name, value, and length storage
-on drop through `cloud-sdk-sanitization`.
+partition keys can disclose account structure. Extensions are informational
+metadata, not credential or secret storage. They are non-`Copy`, and the final
+live owner volatile-clears its complete fixed-capacity name, value, and length
+storage on drop through `cloud-sdk-sanitization`. This is best-effort defense
+in depth: ordinary Rust moves can leave stale inline bytes at prior locations,
+which are not dropped. Secret values require stable caller-owned or allocated
+cleanup storage rather than `QuotaExtension`.
 
 The inline aggregate is deliberately not `Copy`: it can occupy several
 kilobytes at maximum capacity. Read-only accessors borrow buckets and quota

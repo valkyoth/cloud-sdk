@@ -16,7 +16,9 @@ capacities, distinct bucket identities, coherent counts, multiple reset
 semantics, duplicate rejection, and bounded informational extensions.
 `QuotaExtension` retains exact visible-ASCII values while redacting values in
 diagnostics. It is deliberately non-`Copy` and volatile-clears its complete
-name, value, and length storage on drop.
+name, value, and length storage when the final live owner is dropped. This is
+best-effort cleanup for informational metadata, not a strong secret-storage
+guarantee: ordinary moves can leave stale inline bytes at prior locations.
 
 `QuotaDelayPolicy` and `decide_delay` add pure conflict, stale-time,
 clock-rollback, unknown-reset, and caller-maximum decisions. The API performs
@@ -51,8 +53,9 @@ are errors; duplicates remain rejected by `ResponseHeaders`. Date parsing
 validates calendar bounds, leap years, leap seconds, weekday agreement,
 full-timestamp obsolete-year resolution, and numeric overflow. Past and
 rollback behavior is never implicit. Extensions are bounded, redacted, and
-cleared on drop. Delay output
-is bounded by caller policy and cannot trigger I/O or replay by itself. Large
+best-effort cleared when the final owner is dropped; they are explicitly not a
+credential-storage boundary. Delay output is bounded by caller policy and
+cannot trigger I/O or replay by itself. Large
 fixed-capacity aggregates are borrowed through decision and decode paths, and
 the optional owned response boundary boxes quota before branching into
 success or provider-error decoding.

@@ -32,7 +32,10 @@ accessors remain as single-bucket compatibility views.
 `QuotaBucket`, `QuotaBuckets`, `QuotaExtension`, and `HetznerQuota` are not
 `Copy`. Read-only accessors borrow these values. Use an explicit `Clone` only
 when a second owned snapshot is required; cloned extension storage is cleared
-independently when each owner is dropped.
+independently when each final owner is dropped. Quota extensions are
+informational metadata, not secret storage: cleanup is best effort because
+ordinary moves can leave stale inline bytes. Keep credentials and secrets in
+stable cleanup-owning storage.
 
 Use `decode_response_at` when an HTTP-date `Retry-After` can occur. The old
 `decode_response` remains valid for decimal delay-seconds and fixed-year HTTP

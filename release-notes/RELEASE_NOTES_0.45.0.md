@@ -35,7 +35,9 @@ provider-neutral quota and pure retry-delay policy.
 - Corrected RFC 850 two-digit-year resolution to compare the complete date and
   time at the exact 50-year boundary.
 - Made redacted quota extensions non-`Copy` and volatile-cleared their complete
-  fixed-capacity storage on drop.
+  fixed-capacity storage when the final owner is dropped; documented that this
+  is best-effort cleanup for metadata and not stable secret storage across
+  moves.
 - Added a quota-gate Clippy denial for large types passed by value.
 - Added a release check requiring the dependency review to inventory every
   root lockfile package-version change against the previous release tag.

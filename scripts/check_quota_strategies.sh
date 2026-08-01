@@ -45,6 +45,16 @@ if grep -R -Eq 'parse_rate_limit|InvalidRateLimitHeaders' "$reqwest"; then
     exit 1
 fi
 
+for contract in \
+    'best-effort defense' \
+    'ordinary Rust moves can leave stale inline bytes' \
+    'Secret values require stable caller-owned'; do
+    if ! grep -Fq "$contract" docs/QUOTA_AND_RETRY.md; then
+        echo "quota strategies: missing extension cleanup boundary: $contract" >&2
+        exit 1
+    fi
+done
+
 cargo test --locked -p cloud-sdk --all-features rate_limit
 cargo test --locked -p cloud-sdk-hetzner --all-features rate_limit
 cargo test --locked -p cloud-sdk-hetzner --all-features checked_success_and_error_retain_provider_owned_quota

@@ -11,6 +11,9 @@ pub const MAX_QUOTA_EXTENSION_VALUE_BYTES: usize = 64;
 ///
 /// Values are retained exactly but redacted from `Debug` because provider
 /// partition keys and policy parameters can disclose account structure.
+/// They are metadata, not secret storage. Drop performs best-effort cleanup of
+/// the final live owner, but ordinary Rust moves can leave stale inline bytes.
+/// Credentials and other secrets require stable cleanup-owning storage.
 #[derive(Clone, Eq, PartialEq)]
 pub struct QuotaExtension {
     name: [u8; MAX_QUOTA_EXTENSION_NAME_BYTES],
@@ -20,7 +23,7 @@ pub struct QuotaExtension {
 }
 
 impl QuotaExtension {
-    /// Copies one visible-ASCII name and value into fixed-capacity storage.
+    /// Copies informational visible-ASCII metadata into fixed-capacity storage.
     pub fn new(name: &[u8], value: &[u8]) -> Result<Self, QuotaExtensionError> {
         validate(name, MAX_QUOTA_EXTENSION_NAME_BYTES, true)?;
         validate(value, MAX_QUOTA_EXTENSION_VALUE_BYTES, false)?;
