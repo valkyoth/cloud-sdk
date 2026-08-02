@@ -50,8 +50,7 @@ fuzz_target!(|data: &[u8]| {
         MonotonicDuration::new(elapsed),
     );
     let Ok(mut owner) = RetryController::new(
-        prepared,
-        fingerprint.as_ref(),
+        fingerprint.subject(),
         None,
         policy,
         MonotonicInstant::new(0),
@@ -64,12 +63,15 @@ fuzz_target!(|data: &[u8]| {
         2 => RetryEvent::Transport(DeliveryPhase::ResponseStarted),
         _ => RetryEvent::Response(StatusCode::TOO_MANY_REQUESTS),
     };
-    let _ = owner.decide_retry(
+    let decision = owner.decide_retry(
         event,
-        fingerprint.as_ref(),
+        fingerprint.subject(),
         MonotonicDuration::new(delay),
         MonotonicInstant::new(elapsed),
     );
+    if let Ok(cloud_sdk::retry::RetryDecision::Retry(permit)) = decision {
+        let _ = permit.authorize_execution(MonotonicInstant::new(elapsed));
+    }
 });
 
 fn prepared(body: &[u8]) -> Option<PreparedRequest<'_>> {

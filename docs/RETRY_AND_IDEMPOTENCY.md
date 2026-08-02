@@ -30,7 +30,8 @@ non-retryable even when a caller has an intent identifier.
 ## Canonical Fingerprint
 
 `build_canonical_fingerprint` writes a versioned, domain-separated binary
-format into caller storage. Length-prefixed fields bind:
+format into caller storage after proving that the prepared service policy
+admits the supplied endpoint. Length-prefixed fields bind:
 
 - provider, service, and operation identifiers;
 - method, endpoint scheme, canonical DNS/IPv4/IPv6 identity, effective port,
@@ -49,7 +50,13 @@ the intended provider operation.
 Canonical bytes are redacted, cannot be extracted through the public API, and
 the complete caller buffer is volatile-cleared when its guard drops. Use an
 exact fingerprint reference while the guard lives, or call
-`build_fingerprint_digest` with a reviewed `FingerprintHasher` implementation.
+`build_fingerprint_digest` with separate caller-owned digest output and a
+reviewed `FingerprintHasher` implementation. Digest output remains in that
+single borrowed location and is cleared when its guard drops.
+
+Both fingerprint guards construct a private-field `RetrySubject` that binds
+the exact prepared request to its fingerprint. The retry controller never
+accepts request policy and fingerprint identity as independent arguments.
 
 The admitted digest algorithm identifiers are SHA-256, SHA-384, SHA-512, and
 BLAKE3 with exact output lengths. The SDK rejects unknown algorithm identifiers
@@ -61,11 +68,12 @@ non-collision-resistant substitutes violate the contract.
 ## Fresh Intent Binding
 
 For every intentional mutation, obtain at least 16 fresh mutable bytes from a
-CSPRNG and construct `IdempotencyIntent`. Construction moves the bytes into
-fixed owned storage and clears the complete source buffer on success or
-failure. The owned copy clears on drop. The type rejects short, oversized, and
-all-zero values and is neither `Copy` nor `Clone`. It can validate shape but
-cannot prove entropy quality or global uniqueness.
+CSPRNG and construct `IdempotencyIntent`. A valid intent retains exclusive
+access to that one caller buffer and clears it on drop; no owned byte array is
+moved through intermediate stack locations. Invalid input is cleared before
+the constructor returns. The type rejects short, oversized, and all-zero
+values and is neither `Copy` nor `Clone`. It can validate shape but cannot
+prove entropy quality or global uniqueness.
 
 Move the intent into `IdempotencyBinding::bind(intent, fingerprint)`. This
 creates one local operation identity from fresh intent plus exact request
@@ -75,8 +83,8 @@ The binding is local policy evidence and is not automatically transmitted.
 
 ## Single Retry Owner
 
-Create one `RetryController` from the prepared request, its fingerprint, an
-optional binding, complete budgets, and a caller-observed monotonic start:
+Create one `RetryController` from a fingerprint guard's inseparable subject,
+an optional binding, complete budgets, and a caller-observed monotonic start:
 
 ```rust,ignore
 use cloud_sdk::retry::{
@@ -90,10 +98,9 @@ let policy = RetryPolicy::new(
     MonotonicDuration::new(120_000),
 );
 let intent = IdempotencyIntent::new(&mut csprng_bytes)?;
-let binding = IdempotencyBinding::bind(intent, fingerprint);
+let binding = IdempotencyBinding::bind(intent, fingerprint.as_ref());
 let mut retries = RetryController::new(
-    prepared,
-    fingerprint,
+    fingerprint.subject(),
     Some(binding),
     policy,
     MonotonicInstant::new(started_ticks),
@@ -106,11 +113,13 @@ prevents safe fan-out from that owner. Transports and adapters must continue to
 perform exactly one attempt per call; do not enable a second transport-owned
 retry layer.
 
-After the initial attempt, pass one conservative event, a newly rebuilt
-fingerprint, caller-selected backoff plus jitter, and a monotonic observation
-to `decide_retry`. A returned `RetryDecision::Retry` consumes the next attempt
-and charges the complete requested delay. A stop decision does not execute or
-sleep.
+After the initial attempt, pass one conservative event, a newly rebuilt retry
+subject, caller-selected backoff plus jitter, and a monotonic observation to
+`decide_retry`. A returned `RetryDecision::Retry(permit)` consumes the next
+attempt and charges the complete requested delay. Sleep outside the SDK, then
+consume `permit.authorize_execution(now_after_sleep)` immediately before
+transport. This second check returns only the exact prepared replay bound into
+the subject. A stop decision does not execute or sleep.
 
 Only `429` and `5xx` responses are transient at this neutral layer. Provider
 error decoding may impose stricter policy before calling the controller.
@@ -127,7 +136,9 @@ controller.
 
 - `MaxAttempts` is nonzero and includes the initial attempt.
 - Maximum cumulative delay charges requested backoff and jitter before retry.
-- Maximum elapsed time uses caller monotonic observations.
+- Maximum elapsed time covers current elapsed time plus the requested delay.
+- A one-use permit checks the hard elapsed budget again after sleeping and
+  accounts for scheduler or caller overhead before execution.
 - Arithmetic overflow fails closed.
 - A backward monotonic observation is an error and never extends a budget.
 - Zero delay is data, not permission to busy-loop beyond the attempt bound.

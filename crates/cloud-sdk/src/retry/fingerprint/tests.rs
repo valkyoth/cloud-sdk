@@ -17,10 +17,11 @@ use crate::{Method, ProviderId, ServiceId};
 
 mod sha256;
 use sha256::{Sha256, sha256};
+mod endpoint_policy_tests;
 
 static OK: [StatusCode; 1] = [StatusCode::OK];
 static JSON: [MediaType<'static>; 1] = [MediaType::JSON];
-static HEADERS: [RequestHeader<'static>; 1] = [RequestHeader::accept(MediaType::JSON)];
+pub(super) static HEADERS: [RequestHeader<'static>; 1] = [RequestHeader::accept(MediaType::JSON)];
 static OTHER_HEADERS: [RequestHeader<'static>; 1] =
     [RequestHeader::content_type(ContentType::JSON)];
 
@@ -187,11 +188,23 @@ fn every_provider_operation_and_wire_domain_change_is_distinct() {
     else {
         return;
     };
+    let Some(other_prepared) = fixture_parts_endpoint(
+        b"one",
+        "/servers?name=one",
+        Method::Post,
+        "list_servers",
+        "example",
+        "compute",
+        &HEADERS,
+        other_endpoint,
+    ) else {
+        return;
+    };
     assert!(!same_fingerprint(
         base,
         base_endpoint,
         FingerprintScope::Absent,
-        base,
+        other_prepared,
         other_endpoint,
         FingerprintScope::Absent,
     ));
@@ -228,16 +241,18 @@ fn digest_boundary_accepts_sha256_vector_and_rejects_wrong_length() {
     };
     let Some(endpoint) = endpoint() else { return };
     let mut scratch = [0xA5_u8; 512];
-    let digest = build_fingerprint_digest(
-        prepared,
-        endpoint,
-        FingerprintScope::Absent,
-        &mut scratch,
-        &Sha256,
-    );
-    assert!(digest.is_ok());
-    assert!(scratch.iter().all(|byte| *byte == 0));
-    if let Ok(digest) = digest {
+    let mut digest_output = [0xA5_u8; 64];
+    {
+        let digest = build_fingerprint_digest(
+            prepared,
+            endpoint,
+            FingerprintScope::Absent,
+            &mut scratch,
+            &mut digest_output,
+            &Sha256,
+        );
+        assert!(digest.is_ok());
+        let Ok(digest) = digest else { return };
         assert_eq!(digest.algorithm(), DigestAlgorithm::Sha256);
         let FingerprintRef(FingerprintKind::Digest { bytes, .. }) = digest.as_ref() else {
             return;
@@ -245,19 +260,38 @@ fn digest_boundary_accepts_sha256_vector_and_rejects_wrong_length() {
         assert_eq!(bytes.len(), 32);
         assert!(bytes.iter().any(|byte| *byte != 0));
     }
+    assert!(scratch.iter().all(|byte| *byte == 0));
+    assert!(digest_output.iter().all(|byte| *byte == 0));
 
+    digest_output.fill(0xA5);
     let error = build_fingerprint_digest(
         prepared,
         endpoint,
         FingerprintScope::Absent,
         &mut scratch,
+        &mut digest_output,
         &WrongLength,
     );
     assert!(matches!(
         error,
         Err(FingerprintBuildError::InvalidDigestLength)
     ));
+    drop(error);
     assert!(scratch.iter().all(|byte| *byte == 0));
+    assert!(digest_output.iter().all(|byte| *byte == 0));
+
+    let mut tiny_output = [0xA5_u8; 31];
+    let error = build_fingerprint_digest(
+        prepared,
+        endpoint,
+        FingerprintScope::Absent,
+        &mut scratch,
+        &mut tiny_output,
+        &Sha256,
+    );
+    assert!(matches!(error, Err(FingerprintBuildError::OutputTooSmall)));
+    drop(error);
+    assert!(tiny_output.iter().all(|byte| *byte == 0));
 }
 
 #[test]
@@ -274,33 +308,10 @@ fn insufficient_storage_fails_with_cleared_output() {
     assert!(storage.iter().all(|byte| *byte == 0));
 }
 
-#[test]
-fn equivalent_ipv6_endpoint_spellings_have_one_fingerprint_identity() {
-    let Some(prepared) = fixture(b"{}", "/servers") else {
-        return;
-    };
-    let compact = EndpointIdentity::new(EndpointScheme::Https, "[2001:db8::1]", 443, "/v1");
-    let expanded = EndpointIdentity::new(
-        EndpointScheme::Https,
-        "[2001:0db8:0000:0000:0000:0000:0000:0001]",
-        443,
-        "/v1",
-    );
-    let (Ok(compact), Ok(expanded)) = (compact, expanded) else {
-        return;
-    };
-    assert_eq!(compact, expanded);
-    assert!(same_fingerprint(
-        prepared,
-        compact,
-        FingerprintScope::Absent,
-        prepared,
-        expanded,
-        FingerprintScope::Absent,
-    ));
-}
-
-fn fixture(body: &'static [u8], target: &'static str) -> Option<PreparedRequest<'static>> {
+pub(super) fn fixture(
+    body: &'static [u8],
+    target: &'static str,
+) -> Option<PreparedRequest<'static>> {
     fixture_parts(
         body,
         target,
@@ -322,6 +333,22 @@ fn fixture_parts(
     headers: &'static [RequestHeader<'static>],
 ) -> Option<PreparedRequest<'static>> {
     let endpoint = endpoint()?;
+    fixture_parts_endpoint(
+        body, target, method, operation, provider, service, headers, endpoint,
+    )
+}
+
+#[allow(clippy::too_many_arguments)]
+pub(super) fn fixture_parts_endpoint(
+    body: &'static [u8],
+    target: &'static str,
+    method: Method,
+    operation: &'static str,
+    provider: &'static str,
+    service: &'static str,
+    headers: &'static [RequestHeader<'static>],
+    endpoint: EndpointIdentity<'static>,
+) -> Option<PreparedRequest<'static>> {
     let request = TransportRequest::new(method, RequestTarget::new(target).ok()?)
         .with_headers(RequestHeaders::new(headers).ok()?)
         .with_body(body);
@@ -374,7 +401,7 @@ fn fixture_parts(
     Some(prepared.with_operation_id(operation).with_replayable_body())
 }
 
-fn same_fingerprint(
+pub(super) fn same_fingerprint(
     first: PreparedRequest<'_>,
     first_endpoint: EndpointIdentity<'_>,
     first_scope: FingerprintScope<'_>,

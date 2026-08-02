@@ -9,12 +9,14 @@ adapter=crates/cloud-sdk-reqwest/src/shared/raw_hyper.rs
 for required in \
     'pub struct CanonicalFingerprint' \
     'pub struct FingerprintDigest' \
+    'pub struct RetrySubject' \
     'pub trait FingerprintHasher' \
     'pub struct IdempotencyIntent' \
     'pub struct IdempotencyBinding' \
     'pub struct MaxAttempts' \
     'pub struct RetryPolicy' \
     'pub struct RetryController' \
+    'pub struct RetryPermit' \
     'pub struct MonotonicInstant' \
     'pub struct MonotonicDuration'; do
     if ! grep -R -Fq "$required" "$core"; then
@@ -31,6 +33,9 @@ for required in \
     'sanitize_bytes(output)' \
     'canonical_host_field' \
     'sanitize_bytes(source)' \
+    'ConstantTimeEq' \
+    'authorize_execution' \
+    'EndpointNotAdmitted' \
     'CumulativeDelayOverflow' \
     'MonotonicRollback' \
     'DeliveryPhase::PossiblySent'; do

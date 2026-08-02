@@ -1,342 +1,479 @@
 use super::{
-    FingerprintRef, IdempotencyBinding, IdempotencyIntent, MaxAttempts, MonotonicDuration,
-    MonotonicInstant, RetryController, RetryDecision, RetryEvent, RetryPolicy, RetryPolicyError,
-    RetryStopReason,
+    FingerprintScope, IdempotencyBinding, IdempotencyIntent, MaxAttempts, MonotonicDuration,
+    MonotonicInstant, RetryController, RetryDecision, RetryEvent, RetryPermit, RetryPermitError,
+    RetryPolicy, RetryPolicyError, RetryStopReason, build_canonical_fingerprint,
 };
-use crate::operation::{
-    BodyReplayability, CostIntent, OperationImpact, OperationMetadata, RequestIdPolicy,
-    RequestSemantics, RetryEligibility,
-};
+use crate::operation::{BodyReplayability, OperationImpact, RequestSemantics, RetryEligibility};
 use crate::transport::{DeliveryPhase, StatusCode};
+
+mod fixture;
+mod permit_tests;
+use fixture::{endpoint, prepared};
 
 #[test]
 fn zero_attempt_policy_is_unrepresentable() {
     assert!(MaxAttempts::new(0).is_err());
     assert_eq!(MaxAttempts::new(1).map(MaxAttempts::get), Ok(1));
+    assert!(core::mem::size_of::<RetryPermit<'static, 'static>>() <= 128);
 }
 
 #[test]
 fn hard_attempt_and_cumulative_delay_budgets_stop_endless_transients() {
-    let fingerprint = FingerprintRef::test_exact(b"request-a");
-    let Some(metadata) = metadata(OperationImpact::ReadOnly) else {
+    let Some(prepared) = read_only("/servers") else {
+        return;
+    };
+    let Some(endpoint) = endpoint() else { return };
+    let mut storage = [0_u8; 512];
+    let Ok(fingerprint) =
+        build_canonical_fingerprint(prepared, endpoint, FingerprintScope::Absent, &mut storage)
+    else {
         return;
     };
     let Some(policy) = policy(3, 10, 100) else {
         return;
     };
-    let owner = RetryController::test_new(
-        metadata,
-        BodyReplayability::Replayable,
-        fingerprint,
+    let Ok(mut owner) = RetryController::new(
+        fingerprint.subject(),
         None,
         policy,
         MonotonicInstant::new(50),
+    ) else {
+        return;
+    };
+
+    let first = owner.decide_retry(
+        RetryEvent::Response(StatusCode::TOO_MANY_REQUESTS),
+        fingerprint.subject(),
+        MonotonicDuration::new(4),
+        MonotonicInstant::new(51),
     );
-    assert!(owner.is_ok());
-    let Ok(mut owner) = owner else { return };
+    assert!(matches!(&first, Ok(RetryDecision::Retry(_))));
+    let Ok(RetryDecision::Retry(first)) = first else {
+        return;
+    };
+    assert_eq!(first.attempt(), 2);
+    assert_eq!(first.delay().get(), 4);
+    let Ok(authorized) = first.authorize_execution(MonotonicInstant::new(55)) else {
+        return;
+    };
     assert_eq!(
+        authorized.transport_request().target().path().as_str(),
+        "/servers"
+    );
+
+    let second = owner.decide_retry(
+        RetryEvent::Response(StatusCode::new(503).unwrap_or(StatusCode::TOO_MANY_REQUESTS)),
+        fingerprint.subject(),
+        MonotonicDuration::new(6),
+        MonotonicInstant::new(52),
+    );
+    assert!(matches!(&second, Ok(RetryDecision::Retry(_))));
+    let Ok(RetryDecision::Retry(second)) = second else {
+        return;
+    };
+    assert_eq!(second.attempt(), 3);
+    assert_eq!(second.delay().get(), 6);
+
+    assert!(matches!(
         owner.decide_retry(
             RetryEvent::Response(StatusCode::TOO_MANY_REQUESTS),
-            fingerprint,
-            MonotonicDuration::new(4),
-            MonotonicInstant::new(51),
-        ),
-        Ok(RetryDecision::Retry {
-            attempt: 2,
-            delay: MonotonicDuration::new(4),
-        })
-    );
-    assert_eq!(
-        owner.decide_retry(
-            RetryEvent::Response(StatusCode::new(503).unwrap_or(StatusCode::TOO_MANY_REQUESTS)),
-            fingerprint,
-            MonotonicDuration::new(6),
-            MonotonicInstant::new(52),
-        ),
-        Ok(RetryDecision::Retry {
-            attempt: 3,
-            delay: MonotonicDuration::new(6),
-        })
-    );
-    assert_eq!(
-        owner.decide_retry(
-            RetryEvent::Response(StatusCode::TOO_MANY_REQUESTS),
-            fingerprint,
+            fingerprint.subject(),
             MonotonicDuration::new(0),
             MonotonicInstant::new(53),
         ),
         Ok(RetryDecision::Stop(RetryStopReason::AttemptsExhausted))
-    );
+    ));
     assert_eq!(owner.attempts(), 3);
     assert_eq!(owner.cumulative_delay().get(), 10);
 }
 
 #[test]
-fn delay_elapsed_and_rollback_checks_fail_closed_without_extending_budgets() {
-    let fingerprint = FingerprintRef::test_exact(b"request-a");
-    let Some(delay_policy) = policy(4, 5, 100) else {
+fn projected_and_post_sleep_elapsed_budgets_fail_closed() {
+    let Some(prepared) = read_only("/servers") else {
         return;
     };
-    let Ok(mut delay_owner) = owner(fingerprint, delay_policy) else {
+    let Some(endpoint) = endpoint() else { return };
+    let mut storage = [0_u8; 512];
+    let Ok(fingerprint) =
+        build_canonical_fingerprint(prepared, endpoint, FingerprintScope::Absent, &mut storage)
+    else {
         return;
     };
-    assert_eq!(
-        retry(&mut delay_owner, fingerprint, 6, 1),
-        Ok(RetryDecision::Stop(
-            RetryStopReason::CumulativeDelayExhausted
-        ))
-    );
-    assert_eq!(delay_owner.attempts(), 1);
-
-    let Some(elapsed_policy) = policy(4, 50, 2) else {
+    let Some(policy) = policy(4, 50, 10) else {
         return;
     };
-    let Ok(mut elapsed_owner) = owner(fingerprint, elapsed_policy) else {
-        return;
-    };
-    assert_eq!(
-        retry(&mut elapsed_owner, fingerprint, 1, 3),
-        Ok(RetryDecision::Stop(RetryStopReason::ElapsedBudgetExhausted))
-    );
-    let rollback = elapsed_owner.decide_retry(
-        RetryEvent::Transport(DeliveryPhase::NotSent),
-        fingerprint,
-        MonotonicDuration::new(1),
-        MonotonicInstant::new(2),
-    );
-    assert_eq!(rollback, Err(RetryPolicyError::MonotonicRollback));
-    assert_eq!(elapsed_owner.attempts(), 1);
-
-    let Some(overflow_policy) = policy(3, u64::MAX, u64::MAX) else {
-        return;
-    };
-    let Ok(mut overflow_owner) = owner(fingerprint, overflow_policy) else {
+    let Ok(mut owner) = RetryController::new(
+        fingerprint.subject(),
+        None,
+        policy,
+        MonotonicInstant::new(0),
+    ) else {
         return;
     };
     assert!(matches!(
-        retry(&mut overflow_owner, fingerprint, u64::MAX, 0),
-        Ok(RetryDecision::Retry { attempt: 2, .. })
+        owner.decide_retry(
+            RetryEvent::Transport(DeliveryPhase::NotSent),
+            fingerprint.subject(),
+            MonotonicDuration::new(2),
+            MonotonicInstant::new(9),
+        ),
+        Ok(RetryDecision::Stop(RetryStopReason::ElapsedBudgetExhausted))
     ));
-    assert_eq!(
-        retry(&mut overflow_owner, fingerprint, 1, 0),
-        Err(RetryPolicyError::CumulativeDelayOverflow)
+
+    let Ok(mut owner) = RetryController::new(
+        fingerprint.subject(),
+        None,
+        policy,
+        MonotonicInstant::new(0),
+    ) else {
+        return;
+    };
+    let permit = owner.decide_retry(
+        RetryEvent::Transport(DeliveryPhase::NotSent),
+        fingerprint.subject(),
+        MonotonicDuration::new(1),
+        MonotonicInstant::new(8),
     );
-    assert_eq!(overflow_owner.attempts(), 2);
+    assert!(matches!(&permit, Ok(RetryDecision::Retry(_))));
+    let Ok(RetryDecision::Retry(permit)) = permit else {
+        return;
+    };
+    assert!(matches!(
+        permit.authorize_execution(MonotonicInstant::new(11)),
+        Err(RetryPermitError::ElapsedBudgetExhausted)
+    ));
+
+    let Ok(mut owner) = RetryController::new(
+        fingerprint.subject(),
+        None,
+        policy,
+        MonotonicInstant::new(0),
+    ) else {
+        return;
+    };
+    let permit = owner.decide_retry(
+        RetryEvent::Transport(DeliveryPhase::NotSent),
+        fingerprint.subject(),
+        MonotonicDuration::new(1),
+        MonotonicInstant::new(8),
+    );
+    let Ok(RetryDecision::Retry(permit)) = permit else {
+        return;
+    };
+    assert!(matches!(
+        permit.authorize_execution(MonotonicInstant::new(8)),
+        Err(RetryPermitError::TooEarly)
+    ));
 }
 
 #[test]
-fn body_replayability_fingerprint_and_status_are_mandatory() {
-    let fingerprint = FingerprintRef::test_exact(b"request-a");
-    let different = FingerprintRef::test_exact(b"request-b");
-    let Some(metadata) = metadata(OperationImpact::ReadOnly) else {
+fn retry_subject_prevents_unrelated_request_policy_borrowing() {
+    let Some(safe) = read_only("/safe") else {
         return;
     };
-    let Some(retry_policy) = policy(2, 1, 1) else {
+    let Some(destructive) = prepared(
+        "/destructive",
+        OperationImpact::Destructive,
+        RequestSemantics::NonIdempotent,
+        RetryEligibility::Never,
+        BodyReplayability::Replayable,
+    ) else {
         return;
     };
-    let non_replayable = RetryController::test_new(
-        metadata,
-        BodyReplayability::NotReplayable,
-        fingerprint,
-        None,
-        retry_policy,
-        MonotonicInstant::new(0),
-    );
-    assert!(non_replayable.is_ok());
-    let Ok(mut non_replayable) = non_replayable else {
+    let Some(endpoint) = endpoint() else { return };
+    let mut safe_storage = [0_u8; 512];
+    let mut destructive_storage = [0_u8; 512];
+    let Ok(safe_fingerprint) =
+        build_canonical_fingerprint(safe, endpoint, FingerprintScope::Absent, &mut safe_storage)
+    else {
         return;
     };
-    assert_eq!(
-        retry(&mut non_replayable, fingerprint, 0, 0),
-        Ok(RetryDecision::Stop(RetryStopReason::NonReplayableBody))
-    );
-    assert_eq!(
-        retry(&mut non_replayable, different, 0, 0),
-        Err(RetryPolicyError::FingerprintMismatch)
-    );
+    let Ok(destructive_fingerprint) = build_canonical_fingerprint(
+        destructive,
+        endpoint,
+        FingerprintScope::Absent,
+        &mut destructive_storage,
+    ) else {
+        return;
+    };
+    let Some(policy) = policy(2, 0, 10) else {
+        return;
+    };
+    let mut entropy = [0xA5_u8; 32];
+    {
+        let Ok(intent) = IdempotencyIntent::new(&mut entropy) else {
+            return;
+        };
+        let binding = IdempotencyBinding::bind(intent, destructive_fingerprint.as_ref());
+        let Ok(mut owner) = RetryController::new(
+            destructive_fingerprint.subject(),
+            Some(binding),
+            policy,
+            MonotonicInstant::new(0),
+        ) else {
+            return;
+        };
+        assert!(matches!(
+            owner.decide_retry(
+                RetryEvent::Response(StatusCode::new(500).unwrap_or(StatusCode::OK)),
+                destructive_fingerprint.subject(),
+                MonotonicDuration::new(0),
+                MonotonicInstant::new(0),
+            ),
+            Ok(RetryDecision::Stop(RetryStopReason::IneligibleOperation))
+        ));
+        assert!(matches!(
+            owner.decide_retry(
+                RetryEvent::Response(StatusCode::new(500).unwrap_or(StatusCode::OK)),
+                safe_fingerprint.subject(),
+                MonotonicDuration::new(0),
+                MonotonicInstant::new(0),
+            ),
+            Err(RetryPolicyError::FingerprintMismatch)
+        ));
+    }
+    assert!(entropy.iter().all(|byte| *byte == 0));
+}
 
-    let Ok(mut status_owner) = owner(fingerprint, retry_policy) else {
+#[test]
+fn replayability_fingerprint_status_and_delay_are_mandatory() {
+    let Some(non_replayable) = prepared(
+        "/servers",
+        OperationImpact::ReadOnly,
+        RequestSemantics::Safe,
+        RetryEligibility::ExplicitPolicy,
+        BodyReplayability::NotReplayable,
+    ) else {
         return;
     };
-    assert_eq!(
+    let Some(different) = read_only("/other") else {
+        return;
+    };
+    let Some(endpoint) = endpoint() else { return };
+    let mut first_storage = [0_u8; 512];
+    let mut second_storage = [0_u8; 512];
+    let Ok(first) = build_canonical_fingerprint(
+        non_replayable,
+        endpoint,
+        FingerprintScope::Absent,
+        &mut first_storage,
+    ) else {
+        return;
+    };
+    let Ok(second) = build_canonical_fingerprint(
+        different,
+        endpoint,
+        FingerprintScope::Absent,
+        &mut second_storage,
+    ) else {
+        return;
+    };
+    let Some(policy) = policy(2, 1, 5) else {
+        return;
+    };
+    let Ok(mut owner) =
+        RetryController::new(first.subject(), None, policy, MonotonicInstant::new(0))
+    else {
+        return;
+    };
+    assert!(matches!(
+        owner.decide_retry(
+            RetryEvent::Transport(DeliveryPhase::NotSent),
+            first.subject(),
+            MonotonicDuration::new(0),
+            MonotonicInstant::new(0),
+        ),
+        Ok(RetryDecision::Stop(RetryStopReason::NonReplayableBody))
+    ));
+    assert!(matches!(
+        owner.decide_retry(
+            RetryEvent::Transport(DeliveryPhase::NotSent),
+            second.subject(),
+            MonotonicDuration::new(0),
+            MonotonicInstant::new(0),
+        ),
+        Err(RetryPolicyError::FingerprintMismatch)
+    ));
+
+    let Some(replayable) = read_only("/status") else {
+        return;
+    };
+    let mut status_storage = [0_u8; 512];
+    let Ok(status_fingerprint) = build_canonical_fingerprint(
+        replayable,
+        endpoint,
+        FingerprintScope::Absent,
+        &mut status_storage,
+    ) else {
+        return;
+    };
+    let Ok(mut status_owner) = RetryController::new(
+        status_fingerprint.subject(),
+        None,
+        policy,
+        MonotonicInstant::new(0),
+    ) else {
+        return;
+    };
+    assert!(matches!(
         status_owner.decide_retry(
             RetryEvent::Response(StatusCode::new(400).unwrap_or(StatusCode::OK)),
-            fingerprint,
+            status_fingerprint.subject(),
             MonotonicDuration::new(0),
             MonotonicInstant::new(0),
         ),
         Ok(RetryDecision::Stop(RetryStopReason::NonTransientResponse))
-    );
+    ));
 }
 
 #[test]
-fn mutations_require_a_moved_fresh_intent_and_consume_delivery_phase() {
-    let fingerprint = FingerprintRef::test_exact(b"mutation-a");
-    let Some(metadata) = metadata(OperationImpact::Mutation) else {
-        return;
-    };
-    let Some(retry_policy) = policy(2, 1, 1) else {
-        return;
-    };
-    let missing = RetryController::test_new(
-        metadata,
+fn mutation_intent_is_borrowed_one_use_and_cleared_on_drop() {
+    let Some(mutation) = prepared(
+        "/mutation",
+        OperationImpact::Mutation,
+        RequestSemantics::Idempotent,
+        RetryEligibility::ExplicitPolicy,
         BodyReplayability::Replayable,
-        fingerprint,
-        None,
-        retry_policy,
-        MonotonicInstant::new(0),
-    );
+    ) else {
+        return;
+    };
+    let Some(endpoint) = endpoint() else { return };
+    let mut storage = [0_u8; 512];
+    let Ok(fingerprint) =
+        build_canonical_fingerprint(mutation, endpoint, FingerprintScope::Absent, &mut storage)
+    else {
+        return;
+    };
+    let Some(policy) = policy(2, 0, 2) else {
+        return;
+    };
     assert!(matches!(
-        missing,
+        RetryController::new(
+            fingerprint.subject(),
+            None,
+            policy,
+            MonotonicInstant::new(0),
+        ),
         Err(RetryPolicyError::MissingMutationIntent)
     ));
 
-    let mut mismatched_entropy = [0x5A_u8; 32];
-    let mismatched_intent = IdempotencyIntent::new(&mut mismatched_entropy);
-    assert!(mismatched_intent.is_ok());
-    assert!(mismatched_entropy.iter().all(|byte| *byte == 0));
-    let Ok(mismatched_intent) = mismatched_intent else {
-        return;
-    };
-    let mismatched = IdempotencyBinding::bind(
-        mismatched_intent,
-        FingerprintRef::test_exact(b"different-mutation"),
-    );
-    assert!(matches!(
-        RetryController::test_new(
-            metadata,
-            BodyReplayability::Replayable,
-            fingerprint,
-            Some(mismatched),
-            retry_policy,
-            MonotonicInstant::new(0),
-        ),
-        Err(RetryPolicyError::IdempotencyFingerprintMismatch)
-    ));
-
-    let mut entropy = [0xA5_u8; 32];
-    let intent = IdempotencyIntent::new(&mut entropy);
-    assert!(intent.is_ok());
-    assert!(entropy.iter().all(|byte| *byte == 0));
-    let Ok(intent) = intent else { return };
-    let binding = IdempotencyBinding::bind(intent, fingerprint);
-    let owner = RetryController::test_new(
-        metadata,
-        BodyReplayability::Replayable,
-        fingerprint,
-        Some(binding),
-        retry_policy,
-        MonotonicInstant::new(0),
-    );
-    assert!(owner.is_ok());
-    let Ok(mut owner) = owner else { return };
-    assert_eq!(
-        owner.decide_retry(
-            RetryEvent::Transport(DeliveryPhase::PossiblySent),
-            fingerprint,
-            MonotonicDuration::new(0),
-            MonotonicInstant::new(0),
-        ),
-        Ok(RetryDecision::Retry {
-            attempt: 2,
-            delay: MonotonicDuration::new(0),
-        })
-    );
-}
-
-#[test]
-fn idempotent_mutations_consume_every_conservative_delivery_phase() {
     for phase in [
         DeliveryPhase::NotSent,
         DeliveryPhase::PossiblySent,
         DeliveryPhase::ResponseStarted,
     ] {
-        let fingerprint = FingerprintRef::test_exact(b"mutation-delivery");
-        let Some(metadata) = metadata(OperationImpact::Mutation) else {
-            return;
-        };
-        let Some(retry_policy) = policy(2, 1, 1) else {
-            return;
-        };
         let mut entropy = [0xC3_u8; 32];
-        let Ok(intent) = IdempotencyIntent::new(&mut entropy) else {
-            return;
-        };
-        let binding = IdempotencyBinding::bind(intent, fingerprint);
-        let owner = RetryController::test_new(
-            metadata,
-            BodyReplayability::Replayable,
-            fingerprint,
-            Some(binding),
-            retry_policy,
-            MonotonicInstant::new(0),
-        );
-        let Ok(mut owner) = owner else { return };
-        assert_eq!(
-            owner.decide_retry(
+        {
+            let Ok(intent) = IdempotencyIntent::new(&mut entropy) else {
+                return;
+            };
+            let binding = IdempotencyBinding::bind(intent, fingerprint.as_ref());
+            let Ok(mut owner) = RetryController::new(
+                fingerprint.subject(),
+                Some(binding),
+                policy,
+                MonotonicInstant::new(0),
+            ) else {
+                return;
+            };
+            let decision = owner.decide_retry(
                 RetryEvent::Transport(phase),
-                fingerprint,
+                fingerprint.subject(),
                 MonotonicDuration::new(0),
                 MonotonicInstant::new(0),
-            ),
-            Ok(RetryDecision::Retry {
-                attempt: 2,
-                delay: MonotonicDuration::new(0),
-            })
-        );
+            );
+            assert!(matches!(decision, Ok(RetryDecision::Retry(_))));
+        }
+        assert!(entropy.iter().all(|byte| *byte == 0));
     }
 }
 
 #[test]
-fn intent_shape_rejects_empty_short_oversized_and_zero_values() {
+fn rollback_and_arithmetic_overflow_never_extend_budgets() {
+    let Some(prepared) = read_only("/budgets") else {
+        return;
+    };
+    let Some(endpoint) = endpoint() else { return };
+    let mut storage = [0_u8; 512];
+    let Ok(fingerprint) =
+        build_canonical_fingerprint(prepared, endpoint, FingerprintScope::Absent, &mut storage)
+    else {
+        return;
+    };
+    let Some(overflow_policy) = policy(3, u64::MAX, u64::MAX) else {
+        return;
+    };
+    let Ok(mut owner) = RetryController::new(
+        fingerprint.subject(),
+        None,
+        overflow_policy,
+        MonotonicInstant::new(0),
+    ) else {
+        return;
+    };
+    assert!(matches!(
+        owner.decide_retry(
+            RetryEvent::Transport(DeliveryPhase::NotSent),
+            fingerprint.subject(),
+            MonotonicDuration::new(u64::MAX),
+            MonotonicInstant::new(0),
+        ),
+        Ok(RetryDecision::Retry(_))
+    ));
+    assert!(matches!(
+        owner.decide_retry(
+            RetryEvent::Transport(DeliveryPhase::NotSent),
+            fingerprint.subject(),
+            MonotonicDuration::new(1),
+            MonotonicInstant::new(0),
+        ),
+        Err(RetryPolicyError::CumulativeDelayOverflow)
+    ));
+
+    let Some(rollback_policy) = policy(2, 1, 10) else {
+        return;
+    };
+    let Ok(mut owner) = RetryController::new(
+        fingerprint.subject(),
+        None,
+        rollback_policy,
+        MonotonicInstant::new(1),
+    ) else {
+        return;
+    };
+    assert!(matches!(
+        owner.decide_retry(
+            RetryEvent::Transport(DeliveryPhase::NotSent),
+            fingerprint.subject(),
+            MonotonicDuration::new(0),
+            MonotonicInstant::new(0),
+        ),
+        Err(RetryPolicyError::MonotonicRollback)
+    ));
+}
+
+#[test]
+fn intent_shape_rejects_and_clears_invalid_values() {
     let mut empty = [];
     let mut short = [1_u8; 15];
     let mut oversized = [1_u8; 65];
     let mut zero = [0_u8; 16];
-    let mut minimum = [1_u8; 16];
     assert!(IdempotencyIntent::new(&mut empty).is_err());
     assert!(IdempotencyIntent::new(&mut short).is_err());
     assert!(IdempotencyIntent::new(&mut oversized).is_err());
     assert!(IdempotencyIntent::new(&mut zero).is_err());
-    assert_eq!(
-        IdempotencyIntent::new(&mut minimum).map(|value| value.len()),
-        Ok(16)
-    );
     assert!(short.iter().all(|byte| *byte == 0));
     assert!(oversized.iter().all(|byte| *byte == 0));
     assert!(zero.iter().all(|byte| *byte == 0));
-    assert!(minimum.iter().all(|byte| *byte == 0));
-    assert!(IdempotencyIntent::new(&mut minimum).is_err());
 }
 
-fn owner<'a>(
-    fingerprint: FingerprintRef<'a>,
-    policy: RetryPolicy,
-) -> Result<RetryController<'a>, RetryPolicyError> {
-    let Some(metadata) = metadata(OperationImpact::ReadOnly) else {
-        return Err(RetryPolicyError::FingerprintMismatch);
-    };
-    RetryController::test_new(
-        metadata,
+fn read_only(target: &'static str) -> Option<crate::operation::PreparedRequest<'static>> {
+    prepared(
+        target,
+        OperationImpact::ReadOnly,
+        RequestSemantics::Safe,
+        RetryEligibility::ExplicitPolicy,
         BodyReplayability::Replayable,
-        fingerprint,
-        None,
-        policy,
-        MonotonicInstant::new(0),
-    )
-}
-
-fn retry(
-    owner: &mut RetryController<'_>,
-    fingerprint: FingerprintRef<'_>,
-    delay: u64,
-    now: u64,
-) -> Result<RetryDecision, RetryPolicyError> {
-    owner.decide_retry(
-        RetryEvent::Transport(DeliveryPhase::NotSent),
-        fingerprint,
-        MonotonicDuration::new(delay),
-        MonotonicInstant::new(now),
     )
 }
 
@@ -346,20 +483,4 @@ fn policy(attempts: u16, delay: u64, elapsed: u64) -> Option<RetryPolicy> {
         MonotonicDuration::new(delay),
         MonotonicDuration::new(elapsed),
     ))
-}
-
-fn metadata(impact: OperationImpact) -> Option<OperationMetadata> {
-    let semantics = if impact == OperationImpact::ReadOnly {
-        RequestSemantics::Safe
-    } else {
-        RequestSemantics::Idempotent
-    };
-    OperationMetadata::new(
-        impact,
-        semantics,
-        RetryEligibility::ExplicitPolicy,
-        CostIntent::NoKnownCost,
-        RequestIdPolicy::Discard,
-    )
-    .ok()
 }

@@ -107,6 +107,7 @@ name = "cloud-sdk"
 version = "0.46.0"
 dependencies = [
  "cloud-sdk-sanitization",
+ "subtle",
 ]
 
 [[package]]

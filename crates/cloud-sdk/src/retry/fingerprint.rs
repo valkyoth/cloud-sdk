@@ -3,6 +3,7 @@
 use core::fmt;
 
 use cloud_sdk_sanitization::sanitize_bytes;
+use subtle::ConstantTimeEq;
 
 use crate::operation::PreparedRequest;
 use crate::transport::{EndpointIdentity, EndpointScheme};
@@ -74,6 +75,8 @@ pub enum FingerprintBuildError<E> {
     LengthOverflow,
     /// Caller storage cannot hold the complete canonical fingerprint.
     OutputTooSmall,
+    /// The prepared service policy does not admit the fingerprint endpoint.
+    EndpointNotAdmitted,
     /// The caller-provided digest implementation failed.
     Hasher(E),
     /// The digest implementation returned the wrong initialized length.
@@ -87,6 +90,7 @@ impl<E> fmt::Debug for FingerprintBuildError<E> {
             Self::ScopeTooLong => "FingerprintBuildError::ScopeTooLong",
             Self::LengthOverflow => "FingerprintBuildError::LengthOverflow",
             Self::OutputTooSmall => "FingerprintBuildError::OutputTooSmall",
+            Self::EndpointNotAdmitted => "FingerprintBuildError::EndpointNotAdmitted",
             Self::Hasher(_) => "FingerprintBuildError::Hasher([redacted])",
             Self::InvalidDigestLength => "FingerprintBuildError::InvalidDigestLength",
         })
@@ -100,6 +104,7 @@ impl<E> fmt::Display for FingerprintBuildError<E> {
             Self::ScopeTooLong => "retry fingerprint scope exceeds the length limit",
             Self::LengthOverflow => "retry fingerprint length overflowed",
             Self::OutputTooSmall => "retry fingerprint output is too small",
+            Self::EndpointNotAdmitted => "retry fingerprint endpoint is not admitted",
             Self::Hasher(_) => "retry fingerprint hashing failed",
             Self::InvalidDigestLength => "retry fingerprint digest length is invalid",
         })
@@ -119,16 +124,26 @@ where
 }
 
 /// Caller-buffer canonical request fingerprint cleared on drop.
-pub struct CanonicalFingerprint<'a> {
-    storage: &'a mut [u8],
+pub struct CanonicalFingerprint<'output, 'request> {
+    storage: &'output mut [u8],
     len: usize,
+    prepared: PreparedRequest<'request>,
 }
 
-impl CanonicalFingerprint<'_> {
+impl<'output, 'request> CanonicalFingerprint<'output, 'request> {
     /// Returns a redacted comparison reference without exposing diagnostics.
     #[must_use]
     pub fn as_ref(&self) -> FingerprintRef<'_> {
         FingerprintRef(FingerprintKind::Exact(self.as_bytes()))
+    }
+
+    /// Binds this fingerprint to the exact prepared request used to build it.
+    #[must_use]
+    pub fn subject(&self) -> RetrySubject<'request, '_> {
+        RetrySubject {
+            prepared: &self.prepared,
+            fingerprint: self.as_ref(),
+        }
     }
 
     /// Returns the initialized canonical length.
@@ -148,7 +163,7 @@ impl CanonicalFingerprint<'_> {
     }
 }
 
-impl fmt::Debug for CanonicalFingerprint<'_> {
+impl fmt::Debug for CanonicalFingerprint<'_, '_> {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter
             .debug_struct("CanonicalFingerprint")
@@ -158,20 +173,21 @@ impl fmt::Debug for CanonicalFingerprint<'_> {
     }
 }
 
-impl Drop for CanonicalFingerprint<'_> {
+impl Drop for CanonicalFingerprint<'_, '_> {
     fn drop(&mut self) {
         sanitize_bytes(self.storage);
     }
 }
 
-/// Owned collision-resistant digest cleared on drop.
-pub struct FingerprintDigest {
+/// Caller-buffer collision-resistant digest cleared on drop.
+pub struct FingerprintDigest<'output, 'request> {
     algorithm: DigestAlgorithm,
-    bytes: [u8; MAX_FINGERPRINT_DIGEST_BYTES],
+    storage: &'output mut [u8],
     len: usize,
+    prepared: PreparedRequest<'request>,
 }
 
-impl FingerprintDigest {
+impl<'output, 'request> FingerprintDigest<'output, 'request> {
     /// Returns the admitted digest algorithm.
     #[must_use]
     pub const fn algorithm(&self) -> DigestAlgorithm {
@@ -183,12 +199,21 @@ impl FingerprintDigest {
     pub fn as_ref(&self) -> FingerprintRef<'_> {
         FingerprintRef(FingerprintKind::Digest {
             algorithm: self.algorithm,
-            bytes: self.bytes.get(..self.len).unwrap_or_default(),
+            bytes: self.storage.get(..self.len).unwrap_or_default(),
         })
+    }
+
+    /// Binds this digest to the exact prepared request used to build it.
+    #[must_use]
+    pub fn subject(&self) -> RetrySubject<'request, '_> {
+        RetrySubject {
+            prepared: &self.prepared,
+            fingerprint: self.as_ref(),
+        }
     }
 }
 
-impl fmt::Debug for FingerprintDigest {
+impl fmt::Debug for FingerprintDigest<'_, '_> {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter
             .debug_struct("FingerprintDigest")
@@ -198,9 +223,9 @@ impl fmt::Debug for FingerprintDigest {
     }
 }
 
-impl Drop for FingerprintDigest {
+impl Drop for FingerprintDigest<'_, '_> {
     fn drop(&mut self) {
-        sanitize_bytes(&mut self.bytes);
+        sanitize_bytes(self.storage);
         self.len = 0;
     }
 }
@@ -208,6 +233,47 @@ impl Drop for FingerprintDigest {
 /// Borrowed exact or collision-resistant request fingerprint.
 #[derive(Clone, Copy)]
 pub struct FingerprintRef<'a>(FingerprintKind<'a>);
+
+/// One prepared request inseparably bound to its canonical fingerprint.
+///
+/// Fields are private and only fingerprint guards can construct this value.
+///
+/// ```compile_fail
+/// use cloud_sdk::operation::PreparedRequest;
+/// use cloud_sdk::retry::{FingerprintRef, RetrySubject};
+///
+/// fn forge<'request, 'fingerprint>(
+///     prepared: &'fingerprint PreparedRequest<'request>,
+///     fingerprint: FingerprintRef<'fingerprint>,
+/// ) -> RetrySubject<'request, 'fingerprint> {
+///     RetrySubject { prepared, fingerprint }
+/// }
+/// ```
+#[derive(Clone, Copy)]
+pub struct RetrySubject<'request, 'fingerprint> {
+    prepared: &'fingerprint PreparedRequest<'request>,
+    fingerprint: FingerprintRef<'fingerprint>,
+}
+
+impl<'request, 'fingerprint> RetrySubject<'request, 'fingerprint> {
+    pub(crate) const fn prepared(self) -> &'fingerprint PreparedRequest<'request> {
+        self.prepared
+    }
+
+    pub(crate) const fn fingerprint(self) -> FingerprintRef<'fingerprint> {
+        self.fingerprint
+    }
+}
+
+impl fmt::Debug for RetrySubject<'_, '_> {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("RetrySubject")
+            .field("prepared", &self.prepared)
+            .field("fingerprint", &"[redacted]")
+            .finish()
+    }
+}
 
 #[derive(Clone, Copy)]
 enum FingerprintKind<'a> {
@@ -237,11 +303,6 @@ impl<'a> FingerprintRef<'a> {
             _ => false,
         }
     }
-
-    #[cfg(test)]
-    pub(crate) const fn test_exact(bytes: &'a [u8]) -> Self {
-        Self(FingerprintKind::Exact(bytes))
-    }
 }
 
 impl fmt::Debug for FingerprintRef<'_> {
@@ -251,13 +312,17 @@ impl fmt::Debug for FingerprintRef<'_> {
 }
 
 /// Builds exact versioned canonical bytes into caller-owned storage.
-pub fn build_canonical_fingerprint<'output>(
-    request: PreparedRequest<'_>,
+pub fn build_canonical_fingerprint<'output, 'request>(
+    request: PreparedRequest<'request>,
     endpoint: EndpointIdentity<'_>,
     scope: FingerprintScope<'_>,
     output: &'output mut [u8],
-) -> Result<CanonicalFingerprint<'output>, FingerprintBuildError<core::convert::Infallible>> {
+) -> Result<CanonicalFingerprint<'output, 'request>, FingerprintBuildError<core::convert::Infallible>>
+{
     sanitize_bytes(output);
+    if !request.service().endpoint_policy().admits(endpoint) {
+        return Err(FingerprintBuildError::EndpointNotAdmitted);
+    }
     let required = encoded_len(&request, endpoint, scope)?;
     if output.len() < required {
         return Err(FingerprintBuildError::OutputTooSmall);
@@ -273,30 +338,34 @@ pub fn build_canonical_fingerprint<'output>(
     Ok(CanonicalFingerprint {
         storage: output,
         len: required,
+        prepared: request,
     })
 }
 
 /// Builds and hashes canonical bytes, clearing caller scratch on every path.
-pub fn build_fingerprint_digest<H: FingerprintHasher>(
-    request: PreparedRequest<'_>,
+pub fn build_fingerprint_digest<'output, 'request, H: FingerprintHasher>(
+    request: PreparedRequest<'request>,
     endpoint: EndpointIdentity<'_>,
     scope: FingerprintScope<'_>,
     scratch: &mut [u8],
+    output: &'output mut [u8],
     hasher: &H,
-) -> Result<FingerprintDigest, FingerprintBuildError<H::Error>> {
+) -> Result<FingerprintDigest<'output, 'request>, FingerprintBuildError<H::Error>> {
+    sanitize_bytes(output);
     let canonical = build_canonical_fingerprint(request, endpoint, scope, scratch)
         .map_err(map_infallible_error)?;
     let algorithm = hasher.algorithm();
     let expected = algorithm.output_len();
     let mut digest = FingerprintDigest {
         algorithm,
-        bytes: [0_u8; MAX_FINGERPRINT_DIGEST_BYTES],
+        storage: output,
         len: 0,
+        prepared: request,
     };
     let output = digest
-        .bytes
+        .storage
         .get_mut(..expected)
-        .ok_or(FingerprintBuildError::InvalidDigestLength)?;
+        .ok_or(FingerprintBuildError::OutputTooSmall)?;
     let len = hasher
         .digest(canonical.as_bytes(), output)
         .map_err(FingerprintBuildError::Hasher)?;
@@ -315,6 +384,7 @@ fn map_infallible_error<E>(
         FingerprintBuildError::ScopeTooLong => FingerprintBuildError::ScopeTooLong,
         FingerprintBuildError::LengthOverflow => FingerprintBuildError::LengthOverflow,
         FingerprintBuildError::OutputTooSmall => FingerprintBuildError::OutputTooSmall,
+        FingerprintBuildError::EndpointNotAdmitted => FingerprintBuildError::EndpointNotAdmitted,
         FingerprintBuildError::InvalidDigestLength => FingerprintBuildError::InvalidDigestLength,
         FingerprintBuildError::Hasher(never) => match never {},
     }
@@ -423,14 +493,7 @@ fn encode<E>(
 }
 
 fn constant_time_eq(left: &[u8], right: &[u8]) -> bool {
-    if left.len() != right.len() {
-        return false;
-    }
-    let mut difference = 0_u8;
-    for (left, right) in left.iter().zip(right) {
-        difference |= left ^ right;
-    }
-    difference == 0
+    left.len() == right.len() && bool::from(left.ct_eq(right))
 }
 
 #[cfg(test)]

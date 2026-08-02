@@ -41,4 +41,11 @@ impl MonotonicInstant {
             None => None,
         }
     }
+
+    pub(crate) const fn checked_add(self, duration: MonotonicDuration) -> Option<Self> {
+        match self.0.checked_add(duration.get()) {
+            Some(value) => Some(Self(value)),
+            None => None,
+        }
+    }
 }

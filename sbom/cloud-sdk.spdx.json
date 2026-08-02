@@ -1,21 +1,21 @@
 {
   "SPDXID": "SPDXRef-DOCUMENT",
   "creationInfo": {
-    "created": "2026-08-02T07:55:05Z",
+    "created": "2026-08-02T09:23:20Z",
     "creators": [
       "Tool: cargo-sbom-v0.10.0",
       "Tool: cloud-sdk-complete-spdx-v1"
     ]
   },
   "dataLicense": "CC0-1.0",
-  "documentNamespace": "https://spdx.org/spdxdocs/cloud-sdk-5619ebd4-897a-4519-9938-c538275e131d",
+  "documentNamespace": "https://spdx.org/spdxdocs/cloud-sdk-376ec69d-9d3a-49e5-b822-9173cbe9efb5",
   "files": [
     {
       "SPDXID": "SPDXRef-File-cloud_sdk",
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "371df7fc0442d6d21f872888e8e6190ae6d63087"
+          "checksumValue": "1f353e360359fa7422200b5362200ab72e9fa195"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -29,7 +29,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "371df7fc0442d6d21f872888e8e6190ae6d63087"
+          "checksumValue": "1f353e360359fa7422200b5362200ab72e9fa195"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -43,7 +43,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "371df7fc0442d6d21f872888e8e6190ae6d63087"
+          "checksumValue": "1f353e360359fa7422200b5362200ab72e9fa195"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -57,7 +57,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "371df7fc0442d6d21f872888e8e6190ae6d63087"
+          "checksumValue": "1f353e360359fa7422200b5362200ab72e9fa195"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -71,7 +71,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "371df7fc0442d6d21f872888e8e6190ae6d63087"
+          "checksumValue": "1f353e360359fa7422200b5362200ab72e9fa195"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -3325,6 +3325,11 @@
       "spdxElementId": "SPDXRef-Package-cloud-sdk-0.46.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-sanitization-0.16.0"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-0.46.0",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-subtle-2.6.1"
     },
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-hetzner-0.36.0",

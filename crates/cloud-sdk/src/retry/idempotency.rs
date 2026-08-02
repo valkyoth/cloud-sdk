@@ -3,6 +3,7 @@
 use core::fmt;
 
 use cloud_sdk_sanitization::sanitize_bytes;
+use subtle::{Choice, ConstantTimeEq};
 
 use super::fingerprint::FingerprintRef;
 
@@ -31,8 +32,9 @@ impl_static_error!(IdempotencyIntentError,
 /// One-use fresh intent identifier supplied by a caller CSPRNG.
 ///
 /// This type is intentionally neither `Copy` nor `Clone`. Construction checks
-/// shape, moves bytes into fixed storage, and clears the mutable source on
-/// every path. Entropy quality and global uniqueness remain caller duties.
+/// shape and retains exclusive access to caller storage until drop. Invalid
+/// sources are cleared immediately. Entropy quality and global uniqueness
+/// remain caller duties.
 ///
 /// ```compile_fail
 /// use cloud_sdk::retry::IdempotencyIntent;
@@ -41,36 +43,24 @@ impl_static_error!(IdempotencyIntentError,
 /// let intent = IdempotencyIntent::new(&mut entropy).unwrap();
 /// let _duplicate = intent.clone();
 /// ```
-pub struct IdempotencyIntent {
-    bytes: [u8; MAX_IDEMPOTENCY_INTENT_BYTES],
-    len: usize,
+pub struct IdempotencyIntent<'secret> {
+    bytes: &'secret mut [u8],
 }
 
-impl IdempotencyIntent {
-    /// Moves fresh bytes into owned storage and clears `source` on every path.
-    pub fn new(source: &mut [u8]) -> Result<Self, IdempotencyIntentError> {
-        let validation = validate_source(source);
-        let mut intent = Self {
-            bytes: [0_u8; MAX_IDEMPOTENCY_INTENT_BYTES],
-            len: 0,
-        };
-        let result = validation.and_then(|()| {
-            let destination = intent
-                .bytes
-                .get_mut(..source.len())
-                .ok_or(IdempotencyIntentError::TooLong)?;
-            destination.copy_from_slice(source);
-            intent.len = source.len();
-            Ok(intent)
-        });
-        sanitize_bytes(source);
-        result
+impl<'secret> IdempotencyIntent<'secret> {
+    /// Borrows fresh bytes exclusively and clears invalid sources immediately.
+    pub fn new(source: &'secret mut [u8]) -> Result<Self, IdempotencyIntentError> {
+        if let Err(error) = validate_source(source) {
+            sanitize_bytes(source);
+            return Err(error);
+        }
+        Ok(Self { bytes: source })
     }
 
     /// Returns the identifier length without exposing entropy bytes.
     #[must_use]
     pub const fn len(&self) -> usize {
-        self.len
+        self.bytes.len()
     }
 
     /// Reports whether the identifier is empty. A valid intent is never empty.
@@ -80,16 +70,15 @@ impl IdempotencyIntent {
     }
 }
 
-impl fmt::Debug for IdempotencyIntent {
+impl fmt::Debug for IdempotencyIntent<'_> {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter.write_str("IdempotencyIntent([redacted])")
     }
 }
 
-impl Drop for IdempotencyIntent {
+impl Drop for IdempotencyIntent<'_> {
     fn drop(&mut self) {
-        sanitize_bytes(&mut self.bytes);
-        self.len = 0;
+        sanitize_bytes(self.bytes);
     }
 }
 
@@ -100,7 +89,11 @@ fn validate_source(source: &[u8]) -> Result<(), IdempotencyIntentError> {
     if source.len() > MAX_IDEMPOTENCY_INTENT_BYTES {
         return Err(IdempotencyIntentError::TooLong);
     }
-    if source.iter().all(|byte| *byte == 0) {
+    let mut any_nonzero = Choice::from(0);
+    for byte in source {
+        any_nonzero |= !byte.ct_eq(&0);
+    }
+    if !bool::from(any_nonzero) {
         return Err(IdempotencyIntentError::AllZero);
     }
     Ok(())
@@ -112,14 +105,14 @@ fn validate_source(source: &[u8]) -> Result<(), IdempotencyIntentError> {
 /// It prevents this retry owner from applying one intent to different request
 /// bytes. Provider retry eligibility remains source-locked operation policy.
 pub struct IdempotencyBinding<'a> {
-    intent: IdempotencyIntent,
+    intent: IdempotencyIntent<'a>,
     fingerprint: FingerprintRef<'a>,
 }
 
 impl<'a> IdempotencyBinding<'a> {
     /// Consumes a fresh intent and binds it to one request fingerprint.
     #[must_use]
-    pub const fn bind(intent: IdempotencyIntent, fingerprint: FingerprintRef<'a>) -> Self {
+    pub const fn bind(intent: IdempotencyIntent<'a>, fingerprint: FingerprintRef<'a>) -> Self {
         Self {
             intent,
             fingerprint,

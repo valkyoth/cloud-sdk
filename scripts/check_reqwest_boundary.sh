@@ -14,13 +14,17 @@ if ! printf '%s\n' "$default_tree" | grep -Fq "cloud-sdk v${sdk_version}"; then
     echo "reqwest boundary: cloud-sdk v${sdk_version} is missing" >&2
     exit 1
 fi
+if ! printf '%s\n' "$default_tree" | grep -Fq 'subtle v2.6.1'; then
+    echo "reqwest boundary: fixed-time core primitive is missing" >&2
+    exit 1
+fi
 if printf '%s\n' "$default_dependencies" | grep -Eq \
     'reqwest|hyper|tokio|rustls|native-tls|openssl'; then
     echo "reqwest boundary: transport entered the default graph" >&2
     printf '%s\n' "$default_tree" >&2
     exit 1
 fi
-if [ "$(printf '%s\n' "$default_tree" | wc -l)" -ne 4 ]; then
+if [ "$(printf '%s\n' "$default_tree" | wc -l)" -ne 5 ]; then
     echo "reqwest boundary: unexpected default dependency entered graph" >&2
     printf '%s\n' "$default_tree" >&2
     exit 1

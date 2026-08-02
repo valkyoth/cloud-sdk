@@ -1,21 +1,21 @@
 {
   "SPDXID": "SPDXRef-DOCUMENT",
   "creationInfo": {
-    "created": "2026-08-02T07:55:05Z",
+    "created": "2026-08-02T09:23:20Z",
     "creators": [
       "Tool: cargo-sbom-v0.10.0",
       "Tool: cloud-sdk-complete-spdx-v1"
     ]
   },
   "dataLicense": "CC0-1.0",
-  "documentNamespace": "https://spdx.org/spdxdocs/reqwest-feature-unification-46035d24-d2c3-4309-ad55-13e4f46632e5",
+  "documentNamespace": "https://spdx.org/spdxdocs/reqwest-feature-unification-78de4649-4fcf-4424-bdc2-3c7c95ab84b4",
   "files": [
     {
       "SPDXID": "SPDXRef-File-cloud_sdk_reqwest_feature_unification_test",
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "391cfac9539dbc5d808f6d0752fa4e10c3c838f8"
+          "checksumValue": "cd426600fa54fe3ad97207aac28521ddc539220f"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -3844,6 +3844,11 @@
       "spdxElementId": "SPDXRef-Package-cloud-sdk-0.46.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-sanitization-0.16.0"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-0.46.0",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-subtle-2.6.1"
     },
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.31.1",

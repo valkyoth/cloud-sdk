@@ -11,13 +11,17 @@ if ! printf '%s\n' "$default_tree" | grep -Fq "cloud-sdk v${sdk_version}"; then
     echo "testkit boundary: cloud-sdk v${sdk_version} is missing" >&2
     exit 1
 fi
+if ! printf '%s\n' "$default_tree" | grep -Fq 'subtle v2.6.1'; then
+    echo "testkit boundary: fixed-time core primitive is missing" >&2
+    exit 1
+fi
 if printf '%s\n' "$default_tree" | grep -Eq \
     'cloud-sdk-(hetzner|reqwest)|reqwest|hyper|tokio|async-std|smol|rustls|native-tls|openssl|serde|mio|socket'; then
     echo "testkit boundary: forbidden provider, network, TLS, runtime, or parser dependency" >&2
     printf '%s\n' "$default_tree" >&2
     exit 1
 fi
-if [ "$(printf '%s\n' "$default_tree" | wc -l)" -ne 4 ]; then
+if [ "$(printf '%s\n' "$default_tree" | wc -l)" -ne 5 ]; then
     echo "testkit boundary: unexpected default dependency entered graph" >&2
     printf '%s\n' "$default_tree" >&2
     exit 1

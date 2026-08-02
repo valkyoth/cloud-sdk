@@ -632,10 +632,11 @@ assert_eq!(policy.max_cumulative_delay().get(), 30_000);
 ```
 
 One non-cloneable controller owns the total attempts and requested-delay
-budget. It admits retries only after exact request fingerprint comparison,
-prepared-body replayability, provider operation metadata, delivery phase, and
-monotonic elapsed time agree. Mutations additionally require a fresh
-fingerprint-bound intent. The complete flow and provider policy table are in
+budget. Private retry subjects bind request policy to exact fingerprints, and
+one-use permits recheck the hard deadline after caller-owned sleep. Retries
+also require prepared-body replayability, provider operation metadata,
+delivery phase, and a fresh fingerprint-bound intent for mutations. The
+complete flow and provider policy table are in
 the [retry and idempotency guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/RETRY_AND_IDEMPOTENCY.md).
 
 ## Action Polling Example

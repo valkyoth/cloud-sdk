@@ -60,7 +60,22 @@ for package in cloud-sdk cloud-sdk-hetzner; do
         echo "sanitization boundary: audited primitive is missing from $package" >&2
         exit 1
     fi
+    if ! printf '%s\n' "$default_tree" |
+        grep -Fq 'subtle v2.6.1'; then
+        echo "sanitization boundary: fixed-time primitive is missing from $package" >&2
+        exit 1
+    fi
 done
+
+subtle_features=$(
+    cargo tree -p cloud-sdk --no-default-features \
+        --edges no-dev,features --invert subtle@2.6.1
+)
+if printf '%s\n' "$subtle_features" |
+    grep -Eq 'subtle feature "(default|std|i128|const-generics|core_hint_black_box|nightly)"'; then
+    echo "sanitization boundary: core enabled an unadmitted subtle feature" >&2
+    exit 1
+fi
 
 hetzner_serde_tree=$(
     cargo tree -p cloud-sdk-hetzner --no-default-features \
@@ -71,7 +86,7 @@ if ! printf '%s\n' "$hetzner_serde_tree" |
     echo "sanitization boundary: Hetzner serde graph is missing owned secret cleanup" >&2
     exit 1
 fi
-if printf '%s\n' "$hetzner_serde_tree" | grep -Eq '(^|[[:space:]])(zeroize|subtle) v'; then
+if printf '%s\n' "$hetzner_serde_tree" | grep -Eq '(^|[[:space:]])zeroize v'; then
     echo "sanitization boundary: Hetzner serde graph enabled an interoperability dependency" >&2
     exit 1
 fi

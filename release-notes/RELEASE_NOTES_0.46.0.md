@@ -17,14 +17,20 @@ dependency boundary.
   headers, body, and optional account scope.
 - Added caller-buffer exact fingerprints and caller-supplied SHA-256, SHA-384,
   SHA-512, or BLAKE3 digest contracts with exact output validation.
-- Added cleanup-owning, redacted canonical and digest storage.
-- Added non-cloneable, cleanup-owning fresh `IdempotencyIntent` and
-  fingerprint-bound `IdempotencyBinding` values; construction clears mutable
-  entropy sources on every path.
+- Added cleanup-owning, redacted caller-buffer canonical and digest storage.
+- Bound prepared request policy and fingerprint identity into private-field
+  `RetrySubject` values and reject endpoints outside prepared service policy.
+- Added non-cloneable fresh `IdempotencyIntent` guards and fingerprint-bound
+  `IdempotencyBinding` values; valid intent bytes remain in one borrowed
+  caller location and clear on drop, while invalid sources clear immediately.
 - Added nonzero total attempts, cumulative requested-delay, and monotonic
   elapsed budgets under one non-cloneable `RetryController`.
 - Added conservative delivery-phase and `429`/`5xx` response decisions with
   exact replay mismatch, rollback, overflow, and exhaustion rejection.
+- Included requested delay in the hard elapsed deadline and added a one-use
+  post-sleep `RetryPermit` check that returns only the bound prepared replay.
+- Used reviewed `subtle` fixed-time primitives for equal-length fingerprint
+  comparison and all-zero intent validation.
 - Added explicit prepared-body replayability. Hetzner's transactionally
   prepared immutable byte snapshots are replayable; nonempty custom provider
   bodies fail closed until explicitly marked.

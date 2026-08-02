@@ -12,21 +12,24 @@ body replay an explicit prepared-request capability. Nonempty bodies fail
 closed until a provider marks its immutable snapshot replayable.
 
 `FingerprintScope`, `CanonicalFingerprint`, `FingerprintRef`,
-`DigestAlgorithm`, `FingerprintHasher`, and `FingerprintDigest` define exact
-or collision-resistant request identities. Construction includes all provider,
-operation, endpoint, target, prepared header, body, and optional account-scope
-fields under one versioned binary domain. Public diagnostics redact bytes and
-cleanup-owning values clear complete storage on drop.
+`DigestAlgorithm`, `FingerprintHasher`, `FingerprintDigest`, and
+`RetrySubject` define exact or collision-resistant request identities.
+Construction verifies endpoint admission and includes all provider, operation,
+endpoint, target, prepared header, body, and optional account-scope fields
+under one versioned binary domain. Private subject fields prevent request
+policy and fingerprint identity from being mixed. Public diagnostics redact
+bytes and caller-buffer guards clear complete storage on drop.
 
-`IdempotencyIntent` moves bounded caller entropy into fixed cleanup-owning
-storage without exposing it and clears the mutable source on every path.
+`IdempotencyIntent` holds exclusive access to bounded caller entropy without
+copying the byte array through movable values and clears that storage on drop.
 `IdempotencyBinding` consumes one intent and binds it to one fingerprint. Both
 remain non-cloneable so safe code cannot duplicate local operation identity.
 
 `MaxAttempts`, `MonotonicInstant`, `MonotonicDuration`, `RetryPolicy`,
-`RetryEvent`, `RetryDecision`, `RetryStopReason`, and `RetryController` provide
-one non-cloneable mutable retry owner. Decisions consume hard attempts and
-requested-delay budgets and validate monotonic elapsed time.
+`RetryEvent`, `RetryDecision`, `RetryPermit`, `RetryStopReason`, and
+`RetryController` provide one non-cloneable mutable retry owner. Decisions
+consume hard attempts and requested-delay budgets, include delay in the hard
+elapsed deadline, and return a one-use post-sleep execution permit.
 
 `PreparedRequestRecord::body_replayability` adds redacted testkit evidence.
 
@@ -44,7 +47,9 @@ comparison and admitted digest comparison avoid Rust's non-cryptographic
 `Hash`. Digest algorithms have fixed collision-resistant identities and exact
 lengths; caller implementations remain reviewed trust boundaries.
 
-Canonical scratch and digest output clear on success, failure, and drop.
+Canonical scratch and borrowed digest output clear on success, failure, and
+drop. Reviewed `subtle` fixed-time primitives compare equal-length fingerprint
+bytes and validate intent zero state; lengths and algorithm IDs are public.
 Fingerprint, intent, and body diagnostics are redacted. Mutation retries
 require provider eligibility, idempotent semantics, immutable body replay, a
 fresh binding, exact request match, and budget availability. Unknown delivery

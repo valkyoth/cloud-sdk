@@ -34,22 +34,27 @@ Do not loop around `execute_blocking`, `execute_async`, or a raw transport call
 using method-based assumptions. Instead:
 
 1. Build an exact canonical fingerprint or reviewed collision-resistant
-   digest for the prepared request and verified endpoint.
+   digest for the prepared request and admitted endpoint. Keep exact or digest
+   output in its caller-owned cleanup guard.
 2. For an eligible mutation, obtain fresh mutable CSPRNG bytes and bind one
-   `IdempotencyIntent` to that fingerprint. Construction clears the source
-   buffer on every path; the owned intent clears on drop.
+   `IdempotencyIntent` to that fingerprint. A valid intent borrows one source
+   buffer until drop and then clears it; invalid input clears immediately.
 3. Create one `RetryController` with nonzero attempts and hard cumulative-delay
-   and monotonic-elapsed budgets.
+   and monotonic-elapsed budgets from `fingerprint.subject()`. Request policy
+   and fingerprint identity can no longer be supplied independently.
 4. Execute the initial attempt once.
 5. Feed conservative delivery phase or response status, the rebuilt exact
-   fingerprint, caller-selected delay/jitter, and monotonic time into
+   subject, caller-selected delay/jitter, and monotonic time into
    `decide_retry`.
-6. Execute again only for `RetryDecision::Retry`.
+6. For `RetryDecision::Retry(permit)`, sleep outside the SDK and consume
+   `permit.authorize_execution(now_after_sleep)` immediately before executing
+   the exact returned prepared request.
 
-The controller rejects request mismatch, monotonic rollback, delay overflow,
-and a mutation binding created for another request. It stops on ineligible
-metadata, non-replayable bodies, non-transient responses, or exhausted
-budgets.
+The controller rejects request mismatch, unadmitted endpoints, monotonic
+rollback, delay overflow, and a mutation binding created for another request.
+It stops on ineligible metadata, non-replayable bodies, non-transient
+responses, projected deadline overrun, or exhausted budgets. The one-use
+permit checks elapsed time again after sleep.
 
 The idempotency binding is local replay policy. It does not add a provider
 header and cannot make a source-locked non-idempotent or destructive Hetzner

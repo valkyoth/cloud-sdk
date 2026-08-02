@@ -19,6 +19,7 @@ std = ["alloc"]
 
 [dependencies]
 cloud-sdk-sanitization.workspace = true
+subtle.workspace = true
 
 [lints]
 workspace = true

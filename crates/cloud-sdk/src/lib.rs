@@ -55,7 +55,8 @@ mod tests {
         DelayDecisionError, QuotaError, QuotaExtensionError, RateLimitError, RetryAfterError,
     };
     use crate::retry::{
-        FingerprintBuildError, IdempotencyIntentError, MaxAttemptsError, RetryPolicyError,
+        FingerprintBuildError, IdempotencyIntentError, MaxAttemptsError, RetryPermitError,
+        RetryPolicyError,
     };
     use crate::transport::{
         ContentTypeError, EndpointIdentityError, HeaderError, InformationalResponseError,
@@ -100,6 +101,7 @@ mod tests {
         assert_error::<IdempotencyIntentError>();
         assert_error::<MaxAttemptsError>();
         assert_error::<RetryPolicyError>();
+        assert_error::<RetryPermitError>();
         assert_error::<ContentTypeError>();
         assert_error::<HeaderError>();
         assert_error::<EndpointIdentityError>();
