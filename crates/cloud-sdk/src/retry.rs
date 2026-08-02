@@ -2,6 +2,7 @@
 
 mod fingerprint;
 mod idempotency;
+mod permit;
 mod policy;
 mod time;
 
@@ -15,9 +16,10 @@ pub use idempotency::{
     IdempotencyBinding, IdempotencyIntent, IdempotencyIntentError, MAX_IDEMPOTENCY_INTENT_BYTES,
     MIN_IDEMPOTENCY_INTENT_BYTES,
 };
+pub use permit::{RetryExecutionError, RetryPermit, RetryPermitError};
 pub use policy::{
-    MaxAttempts, MaxAttemptsError, RetryController, RetryDecision, RetryEvent, RetryPermit,
-    RetryPermitError, RetryPolicy, RetryPolicyError, RetryStopReason,
+    MaxAttempts, MaxAttemptsError, RetryController, RetryDecision, RetryEvent, RetryPolicy,
+    RetryPolicyError, RetryStopReason,
 };
 pub use time::{MonotonicDuration, MonotonicInstant};
 

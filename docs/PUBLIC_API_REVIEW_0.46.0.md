@@ -30,6 +30,9 @@ remain non-cloneable so safe code cannot duplicate local operation identity.
 `RetryController` provide one non-cloneable mutable retry owner. Decisions
 consume hard attempts and requested-delay budgets, include delay in the hard
 elapsed deadline, and return a one-use post-sleep execution permit.
+`RetryExecutionError` separates permit rejection from redacted prepared
+execution failure. Blocking and executor-neutral async permit methods execute
+the exact replay directly without returning a reusable prepared request.
 
 `PreparedRequestRecord::body_replayability` adds redacted testkit evidence.
 
@@ -52,10 +55,15 @@ drop. Reviewed `subtle` fixed-time primitives compare equal-length fingerprint
 bytes and validate intent zero state; lengths and algorithm IDs are public.
 Fingerprint, intent, and body diagnostics are redacted. Mutation retries
 require provider eligibility, idempotent semantics, immutable body replay, a
-fresh binding, exact request match, and budget availability. Unknown delivery
-is consumed as possibly sent. Non-idempotent and destructive Hetzner
-operations remain non-retryable.
+fresh binding, exact wire match, complete prepared-policy equality, and budget
+availability. Policy equality covers service endpoint policy, operation
+metadata, response policy, authentication policy, raw response policy,
+operation identity, and body replayability. Unknown delivery is consumed as
+possibly sent. Non-idempotent and destructive Hetzner operations remain
+non-retryable.
 
 Wall-clock quota values and monotonic retry values are distinct types.
-Rollback and arithmetic overflow fail closed. The API adds no implicit sleep,
-jitter, entropy, clock, task, transport execution, or provider header.
+Rollback and arithmetic overflow fail closed. A permit holds an exclusive
+controller-state borrow through blocking or async execution, and its final
+observation advances controller time. The API adds no implicit sleep, jitter,
+entropy, clock, task, transport implementation, or provider header.

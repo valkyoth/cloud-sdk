@@ -27,8 +27,12 @@ dependency boundary.
   elapsed budgets under one non-cloneable `RetryController`.
 - Added conservative delivery-phase and `429`/`5xx` response decisions with
   exact replay mismatch, rollback, overflow, and exhaustion rejection.
-- Included requested delay in the hard elapsed deadline and added a one-use
-  post-sleep `RetryPermit` check that returns only the bound prepared replay.
+- Reject identical-wire replays when service, operation, authentication,
+  response, raw-response, operation-identity, or body-replay policies differ.
+- Included requested delay in the hard elapsed deadline and added one-use
+  `RetryPermit` blocking and async execution. A permit exclusively borrows
+  controller clock state, advances it after sleep, and never returns a
+  reusable prepared request.
 - Used reviewed `subtle` fixed-time primitives for equal-length fingerprint
   comparison and all-zero intent validation.
 - Added explicit prepared-body replayability. Hetzner's transactionally
@@ -39,7 +43,8 @@ dependency boundary.
 - Updated the optional transport graph's transitive `ipnet` dependency from
   `2.12.0` to `2.12.1` after registry freshness review.
 - Added known SHA-256, canonical field, cleanup, intent, mutation, delivery,
-  endless-transient, attempt, delay, elapsed, rollback, and replay tests.
+  endless-transient, attempt, delay, elapsed, rollback, identical-wire policy
+  laundering, compile-fail fan-out, and blocking/async permit tests.
 
 ## Versions
 

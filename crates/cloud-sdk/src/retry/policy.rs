@@ -3,7 +3,8 @@
 use core::fmt;
 
 use super::{
-    FingerprintRef, IdempotencyBinding, MonotonicDuration, MonotonicInstant, RetrySubject,
+    FingerprintRef, IdempotencyBinding, MonotonicDuration, MonotonicInstant, RetryPermit,
+    RetrySubject,
 };
 use crate::operation::{
     BodyReplayability, OperationImpact, OperationMetadata, PreparedRequest, RequestSemantics,
@@ -112,96 +113,11 @@ pub enum RetryStopReason {
 
 /// Retry admitted or stopped without sleeping or executing transport.
 #[derive(Debug)]
-pub enum RetryDecision<'request, 'subject> {
+pub enum RetryDecision<'controller, 'request, 'subject> {
     /// One-use authorization for the exact replay subject.
-    Retry(RetryPermit<'request, 'subject>),
+    Retry(RetryPermit<'controller, 'request, 'subject>),
     /// Do not execute another attempt.
     Stop(RetryStopReason),
-}
-
-/// Why a one-use retry permit did not authorize execution.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum RetryPermitError {
-    /// The caller observed a time before the authorized delay completed.
-    TooEarly,
-    /// The caller observed a time before the controller's start instant.
-    MonotonicRollback,
-    /// The hard elapsed budget expired before execution.
-    ElapsedBudgetExhausted,
-}
-
-impl_static_error!(RetryPermitError,
-    Self::TooEarly => "retry permit used before its authorized delay",
-    Self::MonotonicRollback => "retry permit monotonic observation moved backward",
-    Self::ElapsedBudgetExhausted => "retry permit elapsed budget is exhausted",
-);
-
-/// Non-cloneable authorization for one exact prepared replay.
-///
-/// The caller must consume this permit immediately after sleeping and before
-/// transport execution. This second monotonic check accounts for scheduler
-/// delay and other overhead after the initial retry decision.
-///
-/// ```compile_fail
-/// use cloud_sdk::retry::RetryPermit;
-///
-/// fn duplicate(permit: RetryPermit<'_, '_>) {
-///     let _second = permit.clone();
-/// }
-/// ```
-#[must_use]
-pub struct RetryPermit<'request, 'subject> {
-    prepared: &'subject PreparedRequest<'request>,
-    attempt: u16,
-    delay: MonotonicDuration,
-    not_before: MonotonicInstant,
-    started: MonotonicInstant,
-    max_elapsed: MonotonicDuration,
-}
-
-impl<'request> RetryPermit<'request, '_> {
-    /// Returns the authorized attempt number, including the initial attempt.
-    #[must_use]
-    pub const fn attempt(&self) -> u16 {
-        self.attempt
-    }
-
-    /// Returns the exact caller-selected delay charged to retry budgets.
-    #[must_use]
-    pub const fn delay(&self) -> MonotonicDuration {
-        self.delay
-    }
-
-    /// Consumes the permit and returns its exact prepared request when timely.
-    pub fn authorize_execution(
-        self,
-        now: MonotonicInstant,
-    ) -> Result<PreparedRequest<'request>, RetryPermitError> {
-        let elapsed = now
-            .checked_duration_since(self.started)
-            .ok_or(RetryPermitError::MonotonicRollback)?;
-        if now < self.not_before {
-            return Err(RetryPermitError::TooEarly);
-        }
-        if elapsed > self.max_elapsed {
-            return Err(RetryPermitError::ElapsedBudgetExhausted);
-        }
-        Ok(*self.prepared)
-    }
-}
-
-impl fmt::Debug for RetryPermit<'_, '_> {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        formatter
-            .debug_struct("RetryPermit")
-            .field("prepared", &"[bound request]")
-            .field("attempt", &self.attempt)
-            .field("delay", &self.delay)
-            .field("not_before", &self.not_before)
-            .field("started", &self.started)
-            .field("max_elapsed", &self.max_elapsed)
-            .finish()
-    }
 }
 
 /// Retry-controller construction or state-transition failure.
@@ -211,6 +127,8 @@ pub enum RetryPolicyError {
     MissingMutationIntent,
     /// The initial and replay request fingerprints differ.
     FingerprintMismatch,
+    /// Retry-critical prepared policies differ despite identical wire bytes.
+    ReplayPolicyMismatch,
     /// The supplied idempotency binding belongs to another request.
     IdempotencyFingerprintMismatch,
     /// Caller monotonic observations moved backward.
@@ -222,6 +140,7 @@ pub enum RetryPolicyError {
 impl_static_error!(RetryPolicyError,
     Self::MissingMutationIntent => "retrying a mutation requires an idempotency intent",
     Self::FingerprintMismatch => "retry request fingerprint does not match the initial request",
+    Self::ReplayPolicyMismatch => "retry request policy does not match the initial request",
     Self::IdempotencyFingerprintMismatch => "idempotency binding does not match the initial request",
     Self::MonotonicRollback => "retry monotonic observation moved backward",
     Self::CumulativeDelayOverflow => "retry cumulative delay overflowed",
@@ -232,15 +151,16 @@ impl_static_error!(RetryPolicyError,
 /// ```compile_fail
 /// use cloud_sdk::retry::RetryController;
 ///
-/// fn duplicate(owner: RetryController<'_>) {
+/// fn duplicate(owner: RetryController<'_, '_>) {
 ///     let _second = owner.clone();
 /// }
 /// ```
-pub struct RetryController<'a> {
+pub struct RetryController<'request, 'binding> {
+    prepared: PreparedRequest<'request>,
     metadata: OperationMetadata,
     body: BodyReplayability,
-    fingerprint: FingerprintRef<'a>,
-    idempotency: Option<IdempotencyBinding<'a>>,
+    fingerprint: FingerprintRef<'binding>,
+    idempotency: Option<IdempotencyBinding<'binding>>,
     policy: RetryPolicy,
     started: MonotonicInstant,
     last_observed: MonotonicInstant,
@@ -248,20 +168,19 @@ pub struct RetryController<'a> {
     cumulative_delay: u64,
 }
 
-impl<'a> RetryController<'a> {
+impl<'request, 'binding> RetryController<'request, 'binding> {
     /// Creates the sole retry owner for one initial request attempt.
     ///
     /// The moved intent is bound to the initial fingerprint. Mutating requests
     /// with more than one admitted attempt require a fresh intent.
     pub fn new(
-        subject: RetrySubject<'_, 'a>,
-        idempotency: Option<IdempotencyBinding<'a>>,
+        subject: RetrySubject<'request, 'binding>,
+        idempotency: Option<IdempotencyBinding<'binding>>,
         policy: RetryPolicy,
         started: MonotonicInstant,
     ) -> Result<Self, RetryPolicyError> {
         Self::from_parts(
-            subject.prepared().metadata(),
-            subject.prepared().body_replayability(),
+            subject.prepared(),
             subject.fingerprint(),
             idempotency,
             policy,
@@ -270,13 +189,14 @@ impl<'a> RetryController<'a> {
     }
 
     fn from_parts(
-        metadata: OperationMetadata,
-        body: BodyReplayability,
-        fingerprint: FingerprintRef<'a>,
-        idempotency: Option<IdempotencyBinding<'a>>,
+        prepared: &PreparedRequest<'request>,
+        fingerprint: FingerprintRef<'binding>,
+        idempotency: Option<IdempotencyBinding<'binding>>,
         policy: RetryPolicy,
         started: MonotonicInstant,
     ) -> Result<Self, RetryPolicyError> {
+        let metadata = prepared.metadata();
+        let body = prepared.body_replayability();
         if policy.max_attempts().get() > 1
             && metadata.impact() != OperationImpact::ReadOnly
             && idempotency.is_none()
@@ -290,6 +210,7 @@ impl<'a> RetryController<'a> {
             return Err(RetryPolicyError::IdempotencyFingerprintMismatch);
         }
         Ok(Self {
+            prepared: *prepared,
             metadata,
             body,
             fingerprint,
@@ -318,20 +239,20 @@ impl<'a> RetryController<'a> {
     ///
     /// `delay` includes caller-selected backoff and jitter. This function does
     /// not read clocks, sleep, execute transport, or classify provider errors.
-    pub fn decide_retry<'request, 'subject>(
-        &mut self,
+    pub fn decide_retry<'controller, 'replay, 'subject>(
+        &'controller mut self,
         event: RetryEvent,
-        replay: RetrySubject<'request, 'subject>,
+        replay: RetrySubject<'replay, 'subject>,
         delay: MonotonicDuration,
         now: MonotonicInstant,
-    ) -> Result<RetryDecision<'request, 'subject>, RetryPolicyError> {
+    ) -> Result<RetryDecision<'controller, 'replay, 'subject>, RetryPolicyError> {
         if !self.fingerprint.matches(replay.fingerprint()) {
             return Err(RetryPolicyError::FingerprintMismatch);
         }
-        if now < self.last_observed || now.checked_duration_since(self.started).is_none() {
-            return Err(RetryPolicyError::MonotonicRollback);
+        if !self.prepared.has_same_retry_policy(replay.prepared()) {
+            return Err(RetryPolicyError::ReplayPolicyMismatch);
         }
-        self.last_observed = now;
+        let elapsed = observe_monotonic(&mut self.last_observed, self.started, now)?;
 
         if self.metadata.retry_eligibility() != RetryEligibility::ExplicitPolicy {
             return Ok(RetryDecision::Stop(RetryStopReason::IneligibleOperation));
@@ -359,9 +280,6 @@ impl<'a> RetryController<'a> {
         if self.attempts >= self.policy.max_attempts().get() {
             return Ok(RetryDecision::Stop(RetryStopReason::AttemptsExhausted));
         }
-        let elapsed = now
-            .checked_duration_since(self.started)
-            .ok_or(RetryPolicyError::MonotonicRollback)?;
         let projected_elapsed = elapsed.get().checked_add(delay.get());
         if projected_elapsed.is_none_or(|value| value > self.policy.max_elapsed().get()) {
             return Ok(RetryDecision::Stop(RetryStopReason::ElapsedBudgetExhausted));
@@ -383,18 +301,34 @@ impl<'a> RetryController<'a> {
             .attempts
             .checked_add(1)
             .ok_or(RetryPolicyError::CumulativeDelayOverflow)?;
-        Ok(RetryDecision::Retry(RetryPermit {
-            prepared: replay.prepared(),
-            attempt: self.attempts,
+        Ok(RetryDecision::Retry(RetryPermit::new(
+            &mut self.last_observed,
+            replay.prepared(),
+            self.attempts,
             delay,
             not_before,
-            started: self.started,
-            max_elapsed: self.policy.max_elapsed(),
-        }))
+            self.started,
+            self.policy.max_elapsed(),
+        )))
     }
 }
 
-impl fmt::Debug for RetryController<'_> {
+pub(crate) fn observe_monotonic(
+    last_observed: &mut MonotonicInstant,
+    started: MonotonicInstant,
+    now: MonotonicInstant,
+) -> Result<MonotonicDuration, RetryPolicyError> {
+    if now < *last_observed {
+        return Err(RetryPolicyError::MonotonicRollback);
+    }
+    let elapsed = now
+        .checked_duration_since(started)
+        .ok_or(RetryPolicyError::MonotonicRollback)?;
+    *last_observed = now;
+    Ok(elapsed)
+}
+
+impl fmt::Debug for RetryController<'_, '_> {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter
             .debug_struct("RetryController")

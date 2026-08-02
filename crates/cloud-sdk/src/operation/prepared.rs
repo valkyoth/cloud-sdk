@@ -277,6 +277,16 @@ impl<'request> PreparedRequest<'request> {
         self.body_replayability
     }
 
+    pub(crate) fn has_same_retry_policy(&self, other: &Self) -> bool {
+        self.service == other.service
+            && self.metadata == other.metadata
+            && self.response_policy == other.response_policy
+            && self.authentication_policy == other.authentication_policy
+            && self.raw_response_policy == other.raw_response_policy
+            && self.operation_id == other.operation_id
+            && self.body_replayability == other.body_replayability
+    }
+
     /// Applies the complete prepared response policy without executing transport.
     pub fn validate_response<'buffer>(
         self,

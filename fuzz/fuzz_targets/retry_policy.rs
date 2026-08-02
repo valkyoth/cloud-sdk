@@ -1,6 +1,9 @@
 #![no_main]
 
-use cloud_sdk::authentication::{AuthenticationScopePolicy, ScopeRequirement};
+use cloud_sdk::authentication::{
+    AuthenticatedRequest, AuthenticationScopePolicy, BlockingAuthenticatedTransport,
+    ScopeRequirement,
+};
 use cloud_sdk::operation::{
     ContentTypePolicy, CostIntent, OperationId, OperationImpact, OperationMetadata,
     PreparedRequest, ProviderService, RequestIdPolicy, RequestSemantics, ResponseBodyPolicy,
@@ -11,8 +14,9 @@ use cloud_sdk::retry::{
     RetryController, RetryEvent, RetryPolicy, build_canonical_fingerprint,
 };
 use cloud_sdk::transport::{
-    DeliveryPhase, EndpointIdentity, EndpointPolicy, EndpointScheme, MediaType, RawResponsePolicy,
-    RequestTarget, ResponseMediaPolicy, StatusCode, TransportRequest,
+    BoundTransport, DeliveryPhase, EndpointIdentity, EndpointIdentityError, EndpointPolicy,
+    EndpointScheme, HeaderSensitivity, MediaType, RawResponsePolicy, RequestTarget,
+    ResponseMediaPolicy, ResponseMetadata, ResponseWriter, StatusCode, TransportRequest,
 };
 use cloud_sdk::{Method, provider_id, service_id};
 use libfuzzer_sys::fuzz_target;
@@ -70,9 +74,60 @@ fuzz_target!(|data: &[u8]| {
         MonotonicInstant::new(elapsed),
     );
     if let Ok(cloud_sdk::retry::RetryDecision::Retry(permit)) = decision {
-        let _ = permit.authorize_execution(MonotonicInstant::new(elapsed));
+        let transport = FuzzTransport(endpoint);
+        let mut response = [0_u8; 1024];
+        let mut headers = [0_u8; 8192];
+        let execution_time = if data.get(5).is_some_and(|byte| byte & 1 == 1) {
+            elapsed.saturating_add(delay)
+        } else {
+            elapsed
+        };
+        let _ = permit.execute_blocking(
+            MonotonicInstant::new(execution_time),
+            &transport,
+            &mut response,
+            &mut headers,
+        );
     }
 });
+
+struct FuzzTransport(EndpointIdentity<'static>);
+
+impl BoundTransport for FuzzTransport {
+    fn endpoint_identity(&self) -> Result<EndpointIdentity<'_>, EndpointIdentityError> {
+        Ok(self.0)
+    }
+}
+
+impl BlockingAuthenticatedTransport for FuzzTransport {
+    type Error = ();
+
+    fn send_authenticated(
+        &self,
+        _request: AuthenticatedRequest<'_, '_>,
+        response: &mut ResponseWriter<'_>,
+    ) -> Result<(), Self::Error> {
+        let mut attempt = response.begin_attempt().map_err(|_| ())?;
+        attempt
+            .body_mut()
+            .map_err(|_| ())?
+            .get_mut(..2)
+            .ok_or(())?
+            .copy_from_slice(b"{}");
+        attempt
+            .headers_mut()
+            .map_err(|_| ())?
+            .try_push(
+                "content-type",
+                b"application/json",
+                HeaderSensitivity::Public,
+            )
+            .map_err(|_| ())?;
+        attempt
+            .commit(StatusCode::OK, 2, ResponseMetadata::EMPTY)
+            .map_err(|_| ())
+    }
+}
 
 fn prepared(body: &[u8]) -> Option<PreparedRequest<'_>> {
     let endpoint = endpoint()?;

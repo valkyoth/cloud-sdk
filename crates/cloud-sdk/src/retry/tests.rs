@@ -1,21 +1,16 @@
 use super::{
     FingerprintScope, IdempotencyBinding, IdempotencyIntent, MaxAttempts, MonotonicDuration,
-    MonotonicInstant, RetryController, RetryDecision, RetryEvent, RetryPermit, RetryPermitError,
-    RetryPolicy, RetryPolicyError, RetryStopReason, build_canonical_fingerprint,
+    MonotonicInstant, RetryController, RetryDecision, RetryEvent, RetryExecutionError,
+    RetryPermitError, RetryPolicy, RetryPolicyError, RetryStopReason, build_canonical_fingerprint,
 };
 use crate::operation::{BodyReplayability, OperationImpact, RequestSemantics, RetryEligibility};
 use crate::transport::{DeliveryPhase, StatusCode};
 
+mod basic_tests;
 mod fixture;
 mod permit_tests;
-use fixture::{endpoint, prepared};
-
-#[test]
-fn zero_attempt_policy_is_unrepresentable() {
-    assert!(MaxAttempts::new(0).is_err());
-    assert_eq!(MaxAttempts::new(1).map(MaxAttempts::get), Ok(1));
-    assert!(core::mem::size_of::<RetryPermit<'static, 'static>>() <= 128);
-}
+mod policy_identity_tests;
+use fixture::{RecordingTransport, endpoint, prepared};
 
 #[test]
 fn hard_attempt_and_cumulative_delay_budgets_stop_endless_transients() {
@@ -53,19 +48,26 @@ fn hard_attempt_and_cumulative_delay_budgets_stop_endless_transients() {
     };
     assert_eq!(first.attempt(), 2);
     assert_eq!(first.delay().get(), 4);
-    let Ok(authorized) = first.authorize_execution(MonotonicInstant::new(55)) else {
-        return;
-    };
-    assert_eq!(
-        authorized.transport_request().target().path().as_str(),
-        "/servers"
+    let transport = RecordingTransport::new(endpoint);
+    let mut response = [0_u8; 64];
+    let mut headers = [0_u8; 8192];
+    assert!(
+        first
+            .execute_blocking(
+                MonotonicInstant::new(55),
+                &transport,
+                &mut response,
+                &mut headers,
+            )
+            .is_ok()
     );
+    assert_eq!(transport.calls(), 1);
 
     let second = owner.decide_retry(
         RetryEvent::Response(StatusCode::new(503).unwrap_or(StatusCode::TOO_MANY_REQUESTS)),
         fingerprint.subject(),
         MonotonicDuration::new(6),
-        MonotonicInstant::new(52),
+        MonotonicInstant::new(56),
     );
     assert!(matches!(&second, Ok(RetryDecision::Retry(_))));
     let Ok(RetryDecision::Retry(second)) = second else {
@@ -73,13 +75,23 @@ fn hard_attempt_and_cumulative_delay_budgets_stop_endless_transients() {
     };
     assert_eq!(second.attempt(), 3);
     assert_eq!(second.delay().get(), 6);
+    assert!(
+        second
+            .execute_blocking(
+                MonotonicInstant::new(62),
+                &transport,
+                &mut response,
+                &mut headers,
+            )
+            .is_ok()
+    );
 
     assert!(matches!(
         owner.decide_retry(
             RetryEvent::Response(StatusCode::TOO_MANY_REQUESTS),
             fingerprint.subject(),
             MonotonicDuration::new(0),
-            MonotonicInstant::new(53),
+            MonotonicInstant::new(63),
         ),
         Ok(RetryDecision::Stop(RetryStopReason::AttemptsExhausted))
     ));
@@ -138,9 +150,19 @@ fn projected_and_post_sleep_elapsed_budgets_fail_closed() {
     let Ok(RetryDecision::Retry(permit)) = permit else {
         return;
     };
+    let transport = RecordingTransport::new(endpoint);
+    let mut response = [0_u8; 64];
+    let mut headers = [0_u8; 8192];
     assert!(matches!(
-        permit.authorize_execution(MonotonicInstant::new(11)),
-        Err(RetryPermitError::ElapsedBudgetExhausted)
+        permit.execute_blocking(
+            MonotonicInstant::new(11),
+            &transport,
+            &mut response,
+            &mut headers,
+        ),
+        Err(RetryExecutionError::Permit(
+            RetryPermitError::ElapsedBudgetExhausted
+        ))
     ));
 
     let Ok(mut owner) = RetryController::new(
@@ -161,8 +183,13 @@ fn projected_and_post_sleep_elapsed_budgets_fail_closed() {
         return;
     };
     assert!(matches!(
-        permit.authorize_execution(MonotonicInstant::new(8)),
-        Err(RetryPermitError::TooEarly)
+        permit.execute_blocking(
+            MonotonicInstant::new(8),
+            &transport,
+            &mut response,
+            &mut headers,
+        ),
+        Err(RetryExecutionError::Permit(RetryPermitError::TooEarly))
     ));
 }
 
@@ -450,21 +477,6 @@ fn rollback_and_arithmetic_overflow_never_extend_budgets() {
         ),
         Err(RetryPolicyError::MonotonicRollback)
     ));
-}
-
-#[test]
-fn intent_shape_rejects_and_clears_invalid_values() {
-    let mut empty = [];
-    let mut short = [1_u8; 15];
-    let mut oversized = [1_u8; 65];
-    let mut zero = [0_u8; 16];
-    assert!(IdempotencyIntent::new(&mut empty).is_err());
-    assert!(IdempotencyIntent::new(&mut short).is_err());
-    assert!(IdempotencyIntent::new(&mut oversized).is_err());
-    assert!(IdempotencyIntent::new(&mut zero).is_err());
-    assert!(short.iter().all(|byte| *byte == 0));
-    assert!(oversized.iter().all(|byte| *byte == 0));
-    assert!(zero.iter().all(|byte| *byte == 0));
 }
 
 fn read_only(target: &'static str) -> Option<crate::operation::PreparedRequest<'static>> {

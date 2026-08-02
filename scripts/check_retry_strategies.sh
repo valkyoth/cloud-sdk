@@ -34,7 +34,11 @@ for required in \
     'canonical_host_field' \
     'sanitize_bytes(source)' \
     'ConstantTimeEq' \
-    'authorize_execution' \
+    'execute_blocking' \
+    'execute_async' \
+    'ReplayPolicyMismatch' \
+    'has_same_retry_policy' \
+    'observe_monotonic' \
     'EndpointNotAdmitted' \
     'CumulativeDelayOverflow' \
     'MonotonicRollback' \

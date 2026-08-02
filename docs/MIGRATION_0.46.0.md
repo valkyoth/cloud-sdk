@@ -41,20 +41,25 @@ using method-based assumptions. Instead:
    buffer until drop and then clears it; invalid input clears immediately.
 3. Create one `RetryController` with nonzero attempts and hard cumulative-delay
    and monotonic-elapsed budgets from `fingerprint.subject()`. Request policy
-   and fingerprint identity can no longer be supplied independently.
+   and fingerprint identity can no longer be supplied independently. The
+   controller retains the complete initial prepared policy identity.
 4. Execute the initial attempt once.
 5. Feed conservative delivery phase or response status, the rebuilt exact
    subject, caller-selected delay/jitter, and monotonic time into
    `decide_retry`.
 6. For `RetryDecision::Retry(permit)`, sleep outside the SDK and consume
-   `permit.authorize_execution(now_after_sleep)` immediately before executing
-   the exact returned prepared request.
+   `permit.execute_blocking(...)` or `permit.execute_async(...)`. The permit
+   rechecks time and executes its exact request without returning a reusable
+   `PreparedRequest`.
 
-The controller rejects request mismatch, unadmitted endpoints, monotonic
-rollback, delay overflow, and a mutation binding created for another request.
-It stops on ineligible metadata, non-replayable bodies, non-transient
-responses, projected deadline overrun, or exhausted budgets. The one-use
-permit checks elapsed time again after sleep.
+The controller rejects wire fingerprint mismatch, any difference in complete
+prepared policies, unadmitted endpoints, monotonic rollback, delay overflow,
+and a mutation binding created for another request. It stops on ineligible
+metadata, non-replayable bodies, non-transient responses, projected deadline
+overrun, or exhausted budgets. A permit exclusively borrows controller clock
+state until execution, preventing simultaneously outstanding attempts in safe
+code. Its post-sleep observation advances the same monotonic state used by the
+next decision.
 
 The idempotency binding is local replay policy. It does not add a provider
 header and cannot make a source-locked non-idempotent or destructive Hetzner

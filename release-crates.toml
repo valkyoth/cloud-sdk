@@ -7,7 +7,7 @@ previous_version = "0.45.0"
 version = "0.46.0"
 change = "code"
 publish = true
-reason = "Add endpoint-bound request fingerprints, borrowed idempotency guards, and one-use bounded retry permits."
+reason = "Add full-policy replay binding, borrowed idempotency guards, and exclusive one-use retry execution permits."
 
 [crates."cloud-sdk-hetzner"]
 previous_version = "0.35.0"

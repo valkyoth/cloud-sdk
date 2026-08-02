@@ -108,8 +108,9 @@ let mut retries = RetryController::new(
 ```
 
 `RetryController` is neither `Copy` nor `Clone`, and decisions require
-`&mut self`. This makes one value the attempt and delay-budget owner and
-prevents safe fan-out from that owner. Transports and adapters must continue to
+`&mut self`. An admitted permit retains an exclusive borrow of controller
+monotonic state through execution, so safe code cannot retain multiple
+outstanding permits from one owner. Transports and adapters must continue to
 perform exactly one attempt per call; do not enable a second transport-owned
 retry layer.
 
@@ -117,9 +118,17 @@ After the initial attempt, pass one conservative event, a newly rebuilt retry
 subject, caller-selected backoff plus jitter, and a monotonic observation to
 `decide_retry`. A returned `RetryDecision::Retry(permit)` consumes the next
 attempt and charges the complete requested delay. Sleep outside the SDK, then
-consume `permit.authorize_execution(now_after_sleep)` immediately before
-transport. This second check returns only the exact prepared replay bound into
-the subject. A stop decision does not execute or sleep.
+consume `permit.execute_blocking(...)` or `permit.execute_async(...)`. The
+permit rechecks time and executes only the exact prepared replay bound into the
+subject; it never exposes a reusable request. Its observation advances the
+controller clock before transport execution. A stop decision does not execute
+or sleep.
+
+Fingerprint equality alone is insufficient because two identical wire
+requests can carry different security policy. Before clock or budget mutation,
+the controller also requires equality of service endpoint policy, operation
+metadata, checked-response policy, authentication policy, raw-response policy,
+operation identity, and body replayability.
 
 Only `429` and `5xx` responses are transient at this neutral layer. Provider
 error decoding may impose stricter policy before calling the controller.
@@ -139,6 +148,8 @@ controller.
 - Maximum elapsed time covers current elapsed time plus the requested delay.
 - A one-use permit checks the hard elapsed budget again after sleeping and
   accounts for scheduler or caller overhead before execution.
+- Permit observations and decisions share one controller-owned monotonic
+  state; a timestamp older than either observation fails closed.
 - Arithmetic overflow fails closed.
 - A backward monotonic observation is an error and never extends a budget.
 - Zero delay is data, not permission to busy-loop beyond the attempt bound.
@@ -147,3 +158,6 @@ Cancellation, deadlines, sleeping, randomness, and concurrency limits remain
 application responsibilities. Never hold credentials or secret payloads in
 ordinary diagnostic values. Keep canonical scratch and request preparation
 buffers under their cleanup-owning guards until transport use is complete.
+The controller prevents accidental safe-code fan-out through its API; code
+that intentionally bypasses it by invoking a prepared request or transport
+directly is outside the retry-policy boundary.
