@@ -17,8 +17,9 @@ closed until a provider marks its immutable snapshot replayable.
 Construction verifies endpoint admission and includes all provider, operation,
 endpoint, target, prepared header name/value/sensitivity, body, and optional
 account-scope fields under one versioned binary domain. Private subject fields
-prevent request policy and fingerprint identity from being mixed. Public diagnostics redact
-bytes and caller-buffer guards clear complete storage on drop.
+prevent request policy and fingerprint identity from being mixed. Public
+diagnostics redact bytes and caller-buffer guards clear complete storage on
+drop.
 
 `IdempotencyIntent` holds exclusive access to bounded caller entropy without
 copying the byte array through movable values and clears that storage on drop.
