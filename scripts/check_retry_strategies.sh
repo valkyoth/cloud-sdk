@@ -26,7 +26,7 @@ for required in \
 done
 
 for required in \
-    'cloud-sdk/retry-fingerprint/v1\0' \
+    'cloud-sdk/retry-fingerprint/v2\0' \
     'FingerprintKind::Exact' \
     'Sha256,' \
     'Blake3,' \
@@ -50,6 +50,8 @@ for required in \
 done
 
 grep -Fq 'pub enum BodyReplayability' "$prepared"
+grep -Fq 'has_same_header_policy' "$prepared"
+grep -Fq 'header.sensitivity()' "$core/fingerprint.rs"
 grep -Fq '.with_replayable_body()' "$provider"
 grep -Fq '.retry_canceled_requests(false)' "$adapter"
 if grep -Fq '.retry_canceled_requests(true)' "$adapter"; then

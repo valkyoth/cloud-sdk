@@ -48,13 +48,14 @@ fn canonical_format_is_versioned_field_separated_and_cleared() {
         let FingerprintRef(FingerprintKind::Exact(bytes)) = canonical.as_ref() else {
             return;
         };
-        assert!(bytes.starts_with(b"cloud-sdk/retry-fingerprint/v1\0"));
+        assert!(bytes.starts_with(b"cloud-sdk/retry-fingerprint/v2\0"));
         assert!(contains_field(bytes, 1, b"example"));
         assert!(contains_field(bytes, 2, b"compute"));
         assert!(contains_field(bytes, 3, b"list_servers"));
         assert!(contains_field(bytes, 9, b"/servers"));
         assert!(contains_field(bytes, 11, b"name=one"));
         assert!(contains_field(bytes, 13, b"accept"));
+        assert!(contains_field(bytes, 18, &[0]));
         assert!(contains_field(bytes, 15, b"{\"name\":\"one\"}"));
         assert!(contains_field(bytes, 16, &[1]));
         assert!(contains_field(bytes, 17, b"account-a"));
@@ -426,7 +427,7 @@ fn endpoint() -> Option<EndpointIdentity<'static>> {
 
 fn contains_field(mut input: &[u8], tag: u8, expected: &[u8]) -> bool {
     input = input
-        .strip_prefix(b"cloud-sdk/retry-fingerprint/v1\0")
+        .strip_prefix(b"cloud-sdk/retry-fingerprint/v2\0")
         .unwrap_or_default();
     while input.len() >= 9 {
         let Some(current_tag) = input.first().copied() else {

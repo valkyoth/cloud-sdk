@@ -37,15 +37,17 @@ admits the supplied endpoint. Length-prefixed fields bind:
 - method, endpoint scheme, canonical DNS/IPv4/IPv6 identity, effective port,
   and base path;
 - exact path, query presence, and exact query bytes;
-- every prepared request header name and value;
+- every prepared request header name, value, and sensitivity marker;
 - exact request body bytes; and
 - explicit account or tenant scope, including absence.
 
-The domain is `cloud-sdk/retry-fingerprint/v1`. Tags and big-endian lengths
+The domain is `cloud-sdk/retry-fingerprint/v2`. Tags and big-endian lengths
 separate every field. Header names are lowercased because HTTP names are
-case-insensitive; values and ordering remain exact. Adapter-owned
-authentication is excluded because credentials may rotate without changing
-the intended provider operation.
+case-insensitive; values, sensitivity markers, and ordering remain exact. A
+retry also compares sensitivity independently as prepared policy so a marker
+downgrade cannot be laundered through an otherwise identical request.
+Adapter-owned authentication is excluded because credentials may rotate
+without changing the intended provider operation.
 
 Canonical bytes are redacted, cannot be extracted through the public API, and
 the complete caller buffer is volatile-cleared when its guard drops. Use an

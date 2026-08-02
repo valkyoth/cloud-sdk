@@ -36,6 +36,14 @@ pub enum HeaderSensitivity {
     Sensitive,
 }
 
+impl HeaderSensitivity {
+    /// Reports whether the value requires sensitive transport handling.
+    #[must_use]
+    pub(crate) const fn is_sensitive(self) -> bool {
+        matches!(self, Self::Sensitive)
+    }
+}
+
 /// Bounded HTTP header validation or capacity failure.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum HeaderError {

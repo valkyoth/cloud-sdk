@@ -14,7 +14,8 @@ dependency boundary.
 
 - Added a versioned, domain-separated canonical fingerprint over provider,
   service, operation, method, endpoint identity, exact path/query, prepared
-  headers, body, and optional account scope.
+  header names, values, and sensitivity markers, body, and optional account
+  scope under the `v2` fingerprint domain.
 - Added caller-buffer exact fingerprints and caller-supplied SHA-256, SHA-384,
   SHA-512, or BLAKE3 digest contracts with exact output validation.
 - Added cleanup-owning, redacted caller-buffer canonical and digest storage.
@@ -29,6 +30,8 @@ dependency boundary.
   exact replay mismatch, rollback, overflow, and exhaustion rejection.
 - Reject identical-wire replays when service, operation, authentication,
   response, raw-response, operation-identity, or body-replay policies differ.
+- Independently compare request-header sensitivity policy so public/sensitive
+  marker changes fail closed even when header names and values are identical.
 - Included requested delay in the hard elapsed deadline and added one-use
   `RetryPermit` blocking and async execution. A permit exclusively borrows
   controller clock state, advances it after sleep, and never returns a

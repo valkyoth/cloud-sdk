@@ -285,6 +285,17 @@ impl<'request> PreparedRequest<'request> {
             && self.raw_response_policy == other.raw_response_policy
             && self.operation_id == other.operation_id
             && self.body_replayability == other.body_replayability
+            && self.has_same_header_policy(other)
+    }
+
+    fn has_same_header_policy(&self, other: &Self) -> bool {
+        let left = self.request.headers().as_slice();
+        let right = other.request.headers().as_slice();
+        left.len() == right.len()
+            && left
+                .iter()
+                .zip(right)
+                .all(|(left, right)| left.sensitivity() == right.sensitivity())
     }
 
     /// Applies the complete prepared response policy without executing transport.

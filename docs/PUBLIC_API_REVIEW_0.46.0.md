@@ -15,9 +15,9 @@ closed until a provider marks its immutable snapshot replayable.
 `DigestAlgorithm`, `FingerprintHasher`, `FingerprintDigest`, and
 `RetrySubject` define exact or collision-resistant request identities.
 Construction verifies endpoint admission and includes all provider, operation,
-endpoint, target, prepared header, body, and optional account-scope fields
-under one versioned binary domain. Private subject fields prevent request
-policy and fingerprint identity from being mixed. Public diagnostics redact
+endpoint, target, prepared header name/value/sensitivity, body, and optional
+account-scope fields under one versioned binary domain. Private subject fields
+prevent request policy and fingerprint identity from being mixed. Public diagnostics redact
 bytes and caller-buffer guards clear complete storage on drop.
 
 `IdempotencyIntent` holds exclusive access to bounded caller entropy without
@@ -58,9 +58,9 @@ require provider eligibility, idempotent semantics, immutable body replay, a
 fresh binding, exact wire match, complete prepared-policy equality, and budget
 availability. Policy equality covers service endpoint policy, operation
 metadata, response policy, authentication policy, raw response policy,
-operation identity, and body replayability. Unknown delivery is consumed as
-possibly sent. Non-idempotent and destructive Hetzner operations remain
-non-retryable.
+operation identity, body replayability, and request-header sensitivity.
+Unknown delivery is consumed as possibly sent. Non-idempotent and destructive
+Hetzner operations remain non-retryable.
 
 Wall-clock quota values and monotonic retry values are distinct types.
 Rollback and arithmetic overflow fail closed. A permit holds an exclusive

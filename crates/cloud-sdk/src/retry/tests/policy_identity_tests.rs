@@ -11,7 +11,8 @@ use crate::operation::{
 };
 use crate::transport::{
     AcknowledgedCustomEndpoint, CustomEndpointAcknowledgement, EndpointPolicy, MediaType,
-    RawResponsePolicy, RequestTarget, ResponseMediaPolicy, StatusCode, TransportRequest,
+    RawResponsePolicy, RequestHeader, RequestHeaders, RequestTarget, ResponseMediaPolicy,
+    StatusCode, TransportRequest,
 };
 use crate::{Method, ProviderId, ServiceId};
 
@@ -27,6 +28,7 @@ enum PolicyVariant {
     ResponsePolicy,
     AuthenticationPolicy,
     RawResponsePolicy,
+    HeaderSensitivity,
 }
 
 #[test]
@@ -41,6 +43,77 @@ fn identical_wire_bytes_cannot_launder_any_prepared_policy() {
     ] {
         assert_policy_rejected(variant);
     }
+}
+
+#[test]
+fn header_sensitivity_is_bound_to_fingerprint_and_retry_policy() {
+    let Some(endpoint) = endpoint() else { return };
+    let Ok(sensitive) = RequestHeader::sensitive("x-retry-secret", "same-value") else {
+        return;
+    };
+    let Ok(public) = RequestHeader::new("x-retry-secret", "same-value") else {
+        return;
+    };
+    let sensitive_headers = [sensitive];
+    let public_headers = [public];
+    let Ok(sensitive_headers) = RequestHeaders::new(&sensitive_headers) else {
+        return;
+    };
+    let Ok(public_headers) = RequestHeaders::new(&public_headers) else {
+        return;
+    };
+    let Some(initial) = request_with_headers(PolicyVariant::Baseline, sensitive_headers) else {
+        return;
+    };
+    let Some(replay) = request_with_headers(PolicyVariant::HeaderSensitivity, public_headers)
+    else {
+        return;
+    };
+    let mut initial_storage = [0_u8; 512];
+    let mut replay_storage = [0_u8; 512];
+    let Ok(initial_fingerprint) = build_canonical_fingerprint(
+        initial,
+        endpoint,
+        FingerprintScope::Absent,
+        &mut initial_storage,
+    ) else {
+        return;
+    };
+    let Ok(replay_fingerprint) = build_canonical_fingerprint(
+        replay,
+        endpoint,
+        FingerprintScope::Absent,
+        &mut replay_storage,
+    ) else {
+        return;
+    };
+    assert!(
+        !initial_fingerprint
+            .as_ref()
+            .matches(replay_fingerprint.as_ref())
+    );
+    assert!(!initial.has_same_retry_policy(&replay));
+
+    let Some(policy) = policy(2, 0, 20) else {
+        return;
+    };
+    let Ok(mut controller) = RetryController::new(
+        initial_fingerprint.subject(),
+        None,
+        policy,
+        MonotonicInstant::new(0),
+    ) else {
+        return;
+    };
+    assert!(matches!(
+        controller.decide_retry(
+            RetryEvent::Response(StatusCode::new(500).unwrap_or(StatusCode::OK)),
+            replay_fingerprint.subject(),
+            MonotonicDuration::new(0),
+            MonotonicInstant::new(5),
+        ),
+        Err(RetryPolicyError::FingerprintMismatch)
+    ));
 }
 
 fn assert_policy_rejected(variant: PolicyVariant) {
@@ -108,6 +181,13 @@ fn assert_policy_rejected(variant: PolicyVariant) {
 }
 
 fn request(variant: PolicyVariant) -> Option<PreparedRequest<'static>> {
+    request_with_headers(variant, RequestHeaders::EMPTY)
+}
+
+fn request_with_headers<'a>(
+    variant: PolicyVariant,
+    headers: RequestHeaders<'a>,
+) -> Option<PreparedRequest<'a>> {
     let endpoint = endpoint()?;
     let provider = ProviderId::new("example").ok()?;
     let service = ServiceId::new("compute").ok()?;
@@ -178,6 +258,7 @@ fn request(variant: PolicyVariant) -> Option<PreparedRequest<'static>> {
     )
     .ok()?;
     let request = TransportRequest::new(Method::Post, RequestTarget::new("/same-wire").ok()?)
+        .with_headers(headers)
         .with_body(b"{}");
     let prepared = PreparedRequest::new(
         request,

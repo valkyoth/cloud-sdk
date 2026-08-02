@@ -11,7 +11,7 @@ use crate::transport::{EndpointIdentity, EndpointScheme};
 mod writer;
 use writer::{Writer, canonical_host_len};
 
-const DOMAIN: &[u8] = b"cloud-sdk/retry-fingerprint/v1\0";
+const DOMAIN: &[u8] = b"cloud-sdk/retry-fingerprint/v2\0";
 /// Maximum account or tenant scope bytes admitted to a fingerprint.
 pub const MAX_FINGERPRINT_SCOPE_BYTES: usize = 1024;
 /// Maximum supported collision-resistant digest output.
@@ -424,17 +424,16 @@ fn encoded_len(
     for header in request.headers().as_slice() {
         len = field_len(len, header.name().as_str().len())?;
         len = field_len(len, header.value().as_str().len())?;
+        len = field_len(len, 1)?;
     }
     Ok(len)
 }
-
 fn field_len<E>(current: usize, value_len: usize) -> Result<usize, FingerprintBuildError<E>> {
     current
         .checked_add(9)
         .and_then(|value| value.checked_add(value_len))
         .ok_or(FingerprintBuildError::LengthOverflow)
 }
-
 fn scope_bytes(
     scope: FingerprintScope<'_>,
 ) -> Result<&[u8], FingerprintBuildError<core::convert::Infallible>> {
@@ -485,6 +484,7 @@ fn encode<E>(
     for header in request.headers().as_slice() {
         writer.lowercase_field(13, header.name().as_str().as_bytes())?;
         writer.field(14, header.value().as_str().as_bytes())?;
+        writer.field(18, &[u8::from(header.sensitivity().is_sensitive())])?;
     }
     writer.field(15, request.body())?;
     writer.field(16, &[u8::from(scope_present)])?;

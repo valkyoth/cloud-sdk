@@ -52,14 +52,16 @@ using method-based assumptions. Instead:
    rechecks time and executes its exact request without returning a reusable
    `PreparedRequest`.
 
-The controller rejects wire fingerprint mismatch, any difference in complete
-prepared policies, unadmitted endpoints, monotonic rollback, delay overflow,
-and a mutation binding created for another request. It stops on ineligible
-metadata, non-replayable bodies, non-transient responses, projected deadline
-overrun, or exhausted budgets. A permit exclusively borrows controller clock
-state until execution, preventing simultaneously outstanding attempts in safe
-code. Its post-sleep observation advances the same monotonic state used by the
-next decision.
+The `v2` fingerprint binds each request header's sensitivity marker as well as
+its name and value. The controller also compares those markers independently
+as prepared policy. It rejects wire fingerprint mismatch, any difference in
+complete prepared policies, unadmitted endpoints, monotonic rollback, delay
+overflow, and a mutation binding created for another request. It stops on
+ineligible metadata, non-replayable bodies, non-transient responses, projected
+deadline overrun, or exhausted budgets. A permit exclusively borrows
+controller clock state until execution, preventing simultaneously outstanding
+attempts in safe code. Its post-sleep observation advances the same monotonic
+state used by the next decision.
 
 The idempotency binding is local replay policy. It does not add a provider
 header and cannot make a source-locked non-idempotent or destructive Hetzner
