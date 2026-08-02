@@ -97,9 +97,11 @@ immediate zero delay or an error. Delays above the caller maximum are clamped
 or rejected. A previous wall-clock observation can be supplied so rollback
 fails before a decision is returned.
 
-The decision does not imply that replay is safe. Callers must separately
-check operation metadata, idempotency, delivery phase, retry count, deadline,
-and cancellation policy. v0.46 adds those retry-policy contracts.
+The decision does not imply that replay is safe. Combine it with the operation
+metadata, exact request identity, delivery phase, attempts, and monotonic
+budgets in the v0.46
+[`RetryController`](RETRY_AND_IDEMPOTENCY.md). Cancellation and sleeping remain
+caller policy.
 
 ## Compatibility
 

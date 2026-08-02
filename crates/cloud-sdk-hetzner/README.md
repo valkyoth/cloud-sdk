@@ -38,8 +38,8 @@ boundaries.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.45.0"
-cloud-sdk-hetzner = "0.35.0"
+cloud-sdk = "0.46.0"
+cloud-sdk-hetzner = "0.36.0"
 ```
 
 ## Features
@@ -215,6 +215,10 @@ Provider-owned quota decoding and pure delay policy are described in the
 [v0.45 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.45.0.md)
 and the
 [quota and retry guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/QUOTA_AND_RETRY.md).
+Exact replay identity and source-locked retry classes are described in the
+[v0.46 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.46.0.md)
+and the
+[retry and idempotency guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/RETRY_AND_IDEMPOTENCY.md).
 
 ## Optional Serde Boundary
 
@@ -222,7 +226,7 @@ Enable Serde explicitly; it is never part of the default graph:
 
 ```toml
 [dependencies]
-cloud-sdk-hetzner = { version = "0.35.0", features = ["serde"] }
+cloud-sdk-hetzner = { version = "0.36.0", features = ["serde"] }
 ```
 
 The feature admits serde_json with `default-features = false` and `alloc` only

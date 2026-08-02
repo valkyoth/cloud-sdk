@@ -38,8 +38,8 @@ provider without adding transport dependencies to provider crates.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.45.0"
-cloud-sdk-reqwest = { version = "0.31.0", features = ["blocking-rustls"] }
+cloud-sdk = "0.46.0"
+cloud-sdk-reqwest = { version = "0.31.1", features = ["blocking-rustls"] }
 ```
 
 The examples use Hetzner as a concrete endpoint, but the adapter contains no
@@ -78,6 +78,10 @@ Basic credential and client additions are listed in the
 [v0.42 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.42.0.md).
 Authenticated raw-wire execution and delivery-phase changes are listed in the
 [v0.43 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.43.0.md).
+The v0.46 package change is dependency-only. Retry ownership remains in the
+provider-neutral caller policy described by the
+[retry and idempotency guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/RETRY_AND_IDEMPOTENCY.md);
+each adapter call still performs exactly one attempt.
 
 ## Raw Blocking Executor
 
@@ -309,8 +313,8 @@ compiled into `webpki-roots`:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.45.0"
-cloud-sdk-reqwest = { version = "0.31.0", features = ["blocking-rustls-webpki-roots"] }
+cloud-sdk = "0.46.0"
+cloud-sdk-reqwest = { version = "0.31.1", features = ["blocking-rustls-webpki-roots"] }
 ```
 
 The blocking API is identical to the example above. The custom rustls client
@@ -326,8 +330,8 @@ Use the same blocking API with the dedicated feature:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.45.0"
-cloud-sdk-reqwest = { version = "0.31.0", features = ["blocking-rustls-fips"] }
+cloud-sdk = "0.46.0"
+cloud-sdk-reqwest = { version = "0.31.1", features = ["blocking-rustls-fips"] }
 rustls = "=0.23.43"
 ```
 

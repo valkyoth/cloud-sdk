@@ -34,8 +34,8 @@ and runtime-free.
 
 ```toml
 [dev-dependencies]
-cloud-sdk = "0.45.0"
-cloud-sdk-testkit = "0.25.2"
+cloud-sdk = "0.46.0"
+cloud-sdk-testkit = "0.26.0"
 ```
 
 ## Mock Transport
@@ -162,9 +162,9 @@ only for tests that deliberately exercise the additive hook.
 
 `PreparedRequestRecord::capture` records method, redacted target/body lengths,
 provider service and endpoint policy, complete operation metadata, checked
-response policy, authentication scope, and raw response policy without copying
-request values. Tests can therefore assert both safety classification and the
-complete authenticated wire contract.
+response policy, authentication scope, raw response policy, and explicit body
+replayability without copying request values. Tests can therefore assert both
+safety classification and the complete authenticated wire contract.
 
 ## Fixture Builders
 

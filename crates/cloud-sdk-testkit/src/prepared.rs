@@ -4,7 +4,9 @@ use core::fmt;
 
 use cloud_sdk::Method;
 use cloud_sdk::authentication::AuthenticationScopePolicy;
-use cloud_sdk::operation::{OperationMetadata, PreparedRequest, ProviderService, ResponsePolicy};
+use cloud_sdk::operation::{
+    BodyReplayability, OperationMetadata, PreparedRequest, ProviderService, ResponsePolicy,
+};
 use cloud_sdk::transport::{HeaderSensitivity, RawResponsePolicy};
 
 /// Non-secret record of one prepared request for policy assertions.
@@ -21,6 +23,7 @@ pub struct PreparedRequestRecord<'endpoint> {
     response_policy: ResponsePolicy,
     authentication_policy: AuthenticationScopePolicy<'endpoint>,
     raw_response_policy: RawResponsePolicy<'endpoint>,
+    body_replayability: BodyReplayability,
 }
 
 impl<'endpoint> PreparedRequestRecord<'endpoint> {
@@ -45,6 +48,7 @@ impl<'endpoint> PreparedRequestRecord<'endpoint> {
             response_policy: prepared.response_policy(),
             authentication_policy: prepared.authentication_policy(),
             raw_response_policy: prepared.raw_response_policy(),
+            body_replayability: prepared.body_replayability(),
         }
     }
 
@@ -113,6 +117,12 @@ impl<'endpoint> PreparedRequestRecord<'endpoint> {
     pub const fn raw_response_policy(self) -> RawResponsePolicy<'endpoint> {
         self.raw_response_policy
     }
+
+    /// Returns the explicit request-body replay capability.
+    #[must_use]
+    pub const fn body_replayability(self) -> BodyReplayability {
+        self.body_replayability
+    }
 }
 
 impl fmt::Debug for PreparedRequestRecord<'_> {
@@ -132,6 +142,7 @@ impl fmt::Debug for PreparedRequestRecord<'_> {
             .field("response_policy", &self.response_policy)
             .field("authentication_policy", &self.authentication_policy)
             .field("raw_response_policy", &self.raw_response_policy)
+            .field("body_replayability", &self.body_replayability)
             .finish()
     }
 }

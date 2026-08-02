@@ -16,6 +16,15 @@ use crate::transport::{
 };
 use crate::{ProviderId, ProviderMarker, ServiceId, ServiceMarker};
 
+/// Whether one prepared request body can be sent again byte-for-byte.
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub enum BodyReplayability {
+    /// The body source cannot guarantee an identical subsequent read.
+    NotReplayable,
+    /// The complete body is an immutable byte snapshot for the request lifetime.
+    Replayable,
+}
+
 /// Caller-owned target and request-body storage supplied to preparation.
 pub struct PreparationStorage<'storage> {
     target: &'storage mut [u8],
@@ -134,6 +143,7 @@ pub struct PreparedRequest<'request> {
     authentication_policy: AuthenticationScopePolicy<'request>,
     raw_response_policy: RawResponsePolicy<'request>,
     operation_id: Option<OperationId>,
+    body_replayability: BodyReplayability,
 }
 
 /// Incoherent policy supplied while constructing a prepared request.
@@ -184,6 +194,11 @@ impl<'request> PreparedRequest<'request> {
             authentication_policy,
             raw_response_policy,
             operation_id: None,
+            body_replayability: if request.body().is_empty() {
+                BodyReplayability::Replayable
+            } else {
+                BodyReplayability::NotReplayable
+            },
         })
     }
 
@@ -191,6 +206,16 @@ impl<'request> PreparedRequest<'request> {
     #[must_use]
     pub const fn with_operation_id(mut self, operation_id: OperationId) -> Self {
         self.operation_id = Some(operation_id);
+        self
+    }
+
+    /// Marks the immutable prepared body snapshot as byte-for-byte replayable.
+    ///
+    /// Providers must call this only after preparation has completed and when
+    /// the borrowed body bytes cannot change for the prepared request lifetime.
+    #[must_use]
+    pub const fn with_replayable_body(mut self) -> Self {
+        self.body_replayability = BodyReplayability::Replayable;
         self
     }
 
@@ -244,6 +269,12 @@ impl<'request> PreparedRequest<'request> {
     #[must_use]
     pub const fn operation_id(self) -> Option<OperationId> {
         self.operation_id
+    }
+
+    /// Returns the explicit request-body replay capability.
+    #[must_use]
+    pub const fn body_replayability(self) -> BodyReplayability {
+        self.body_replayability
     }
 
     /// Applies the complete prepared response policy without executing transport.
@@ -344,6 +375,7 @@ impl fmt::Debug for PreparedRequest<'_> {
             .field("authentication_policy", &self.authentication_policy)
             .field("raw_response_policy", &self.raw_response_policy)
             .field("operation_id", &self.operation_id)
+            .field("body_replayability", &self.body_replayability)
             .finish()
     }
 }

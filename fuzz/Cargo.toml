@@ -57,6 +57,13 @@ doc = false
 bench = false
 
 [[bin]]
+name = "retry_policy"
+path = "fuzz_targets/retry_policy.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
 name = "pagination_opaque"
 path = "fuzz_targets/pagination_opaque.rs"
 test = false

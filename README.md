@@ -120,8 +120,8 @@ Portable and native platform evidence is documented in
 
 ```toml
 [dependencies]
-cloud-sdk = "0.45.0"
-cloud-sdk-hetzner = "0.35.0"
+cloud-sdk = "0.46.0"
+cloud-sdk-hetzner = "0.36.0"
 ```
 
 ## cloud-sdk Features
@@ -147,6 +147,7 @@ visible. Applications should enable only the features they use.
 - [Robot wire source lock](https://github.com/valkyoth/cloud-sdk/blob/main/docs/ROBOT_WIRE_SOURCE_LOCK.md)
 - [Pagination strategies](https://github.com/valkyoth/cloud-sdk/blob/main/docs/PAGINATION_STRATEGIES.md)
 - [Quota and retry policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/QUOTA_AND_RETRY.md)
+- [Retry and idempotency policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/RETRY_AND_IDEMPOTENCY.md)
 - [Release runbook](https://github.com/valkyoth/cloud-sdk/blob/main/docs/RELEASE_RUNBOOK.md)
 - [Versioning and error policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/VERSIONING_POLICY.md)
 - [Migrating to v0.29](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.29.0.md)
@@ -166,6 +167,7 @@ visible. Applications should enable only the features they use.
 - [Migrating to v0.43](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.43.0.md)
 - [Migrating to v0.44](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.44.0.md)
 - [Migrating to v0.45](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.45.0.md)
+- [Migrating to v0.46](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.46.0.md)
 - [Deprecated endpoint policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/DEPRECATED_ENDPOINT_POLICY.md)
 
 ## Provider-Neutral Quickstart
@@ -457,8 +459,8 @@ without changing the default allocation-free graph.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.45.0"
-cloud-sdk-reqwest = { version = "0.31.0", features = ["blocking-rustls"] }
+cloud-sdk = "0.46.0"
+cloud-sdk-reqwest = { version = "0.31.1", features = ["blocking-rustls"] }
 ```
 
 The production builder is HTTPS-only, requires explicit bounded timeouts and a
@@ -484,8 +486,8 @@ when deterministic public WebPKI roots are required:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.45.0"
-cloud-sdk-reqwest = { version = "0.31.0", features = ["blocking-rustls-webpki-roots"] }
+cloud-sdk = "0.46.0"
+cloud-sdk-reqwest = { version = "0.31.1", features = ["blocking-rustls-webpki-roots"] }
 ```
 
 The blocking API is unchanged. This feature excludes host-added enterprise
@@ -501,8 +503,8 @@ feature instead of relying on dependency feature unification:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.45.0"
-cloud-sdk-reqwest = { version = "0.31.0", features = ["blocking-rustls-fips"] }
+cloud-sdk = "0.46.0"
+cloud-sdk-reqwest = { version = "0.31.1", features = ["blocking-rustls-fips"] }
 ```
 
 Client construction explicitly selects rustls' AWS-LC FIPS provider and fails
@@ -520,8 +522,8 @@ example is in the
 
 ```toml
 [dependencies]
-cloud-sdk = "0.45.0"
-cloud-sdk-reqwest = { version = "0.31.0", features = ["async-rustls"] }
+cloud-sdk = "0.46.0"
+cloud-sdk-reqwest = { version = "0.31.1", features = ["async-rustls"] }
 ```
 
 The async adapter requires an active Tokio executor because reqwest uses Tokio
@@ -611,6 +613,30 @@ assert_eq!(decision.map(|value| value.delay().get()), Some(30));
 The result is data only. The caller owns clocks, sleeping, retry eligibility,
 attempt counts, deadlines, and cancellation. See the
 [quota and retry guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/QUOTA_AND_RETRY.md).
+
+## Retry Budget Example
+
+```rust
+use cloud_sdk::retry::{MaxAttempts, MonotonicDuration, RetryPolicy};
+
+# fn main() -> Result<(), Box<dyn core::error::Error>> {
+let policy = RetryPolicy::new(
+    MaxAttempts::new(3)?,
+    MonotonicDuration::new(30_000),
+    MonotonicDuration::new(120_000),
+);
+assert_eq!(policy.max_attempts().get(), 3);
+assert_eq!(policy.max_cumulative_delay().get(), 30_000);
+# Ok(())
+# }
+```
+
+One non-cloneable controller owns the total attempts and requested-delay
+budget. It admits retries only after exact request fingerprint comparison,
+prepared-body replayability, provider operation metadata, delivery phase, and
+monotonic elapsed time agree. Mutations additionally require a fresh
+fingerprint-bound intent. The complete flow and provider policy table are in
+the [retry and idempotency guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/RETRY_AND_IDEMPOTENCY.md).
 
 ## Action Polling Example
 

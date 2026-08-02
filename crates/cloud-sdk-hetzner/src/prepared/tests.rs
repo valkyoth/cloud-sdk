@@ -1,6 +1,7 @@
 use cloud_sdk::authentication::ScopeRequirement;
 use cloud_sdk::operation::{
-    CostIntent, OperationImpact, PreparationStorage, PreparationStorageGuard, PrepareOperation,
+    BodyReplayability, CostIntent, OperationImpact, PreparationStorage, PreparationStorageGuard,
+    PrepareOperation,
 };
 use cloud_sdk::transport::{
     CanonicalQuery, EndpointIdentity, EndpointScheme, RequestPath, RequestQuery, StatusCode,
@@ -149,6 +150,7 @@ fn prepares_global_actions_and_catalog_gets() {
             .is_none()
     );
     assert_eq!(prepared.metadata().impact(), OperationImpact::ReadOnly);
+    assert_eq!(prepared.body_replayability(), BodyReplayability::Replayable);
     assert_eq!(
         prepared.response_policy().success_statuses(),
         &[StatusCode::OK]

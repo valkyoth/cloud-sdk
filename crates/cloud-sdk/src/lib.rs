@@ -29,6 +29,7 @@ mod method;
 pub mod operation;
 pub mod pagination;
 pub mod rate_limit;
+pub mod retry;
 pub mod transport;
 
 pub use identity::{
@@ -52,6 +53,9 @@ mod tests {
     use crate::pagination::PaginationError;
     use crate::rate_limit::{
         DelayDecisionError, QuotaError, QuotaExtensionError, RateLimitError, RetryAfterError,
+    };
+    use crate::retry::{
+        FingerprintBuildError, IdempotencyIntentError, MaxAttemptsError, RetryPolicyError,
     };
     use crate::transport::{
         ContentTypeError, EndpointIdentityError, HeaderError, InformationalResponseError,
@@ -92,6 +96,10 @@ mod tests {
         assert_error::<QuotaExtensionError>();
         assert_error::<RetryAfterError>();
         assert_error::<DelayDecisionError>();
+        assert_error::<FingerprintBuildError<core::convert::Infallible>>();
+        assert_error::<IdempotencyIntentError>();
+        assert_error::<MaxAttemptsError>();
+        assert_error::<RetryPolicyError>();
         assert_error::<ContentTypeError>();
         assert_error::<HeaderError>();
         assert_error::<EndpointIdentityError>();

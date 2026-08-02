@@ -253,7 +253,11 @@ where
         authentication_policy,
         raw_response_policy,
     )
-    .map(|prepared| prepared.with_operation_id(operation_id))
+    .map(|prepared| {
+        prepared
+            .with_operation_id(operation_id)
+            .with_replayable_body()
+    })
     .map_err(HetznerPreparationError::InvalidPreparedPolicy)
 }
 

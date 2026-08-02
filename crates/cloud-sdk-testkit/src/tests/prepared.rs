@@ -3,9 +3,9 @@ use core::task::{Context, Poll, Waker};
 
 use cloud_sdk::authentication::{AuthenticationScopePolicy, ScopeRequirement};
 use cloud_sdk::operation::{
-    ContentTypePolicy, CostIntent, OperationImpact, OperationMetadata, PreparedExecutionError,
-    PreparedRequest, ProviderService, RequestIdPolicy, RequestSemantics, ResponseBodyPolicy,
-    ResponsePolicy, ResponsePolicyError, RetryEligibility,
+    BodyReplayability, ContentTypePolicy, CostIntent, OperationImpact, OperationMetadata,
+    PreparedExecutionError, PreparedRequest, ProviderService, RequestIdPolicy, RequestSemantics,
+    ResponseBodyPolicy, ResponsePolicy, ResponsePolicyError, RetryEligibility,
 };
 use cloud_sdk::transport::{
     ContentType, EndpointIdentity, EndpointIdentityError, EndpointPolicy, EndpointScheme,
@@ -76,6 +76,10 @@ fn prepared_records_capture_policy_and_redact_request_values() {
         ScopeRequirement::Forbidden
     );
     assert_eq!(record.raw_response_policy().max_body_bytes(), 16);
+    assert_eq!(
+        record.body_replayability(),
+        BodyReplayability::NotReplayable
+    );
     assert!(record.raw_response_policy().admits_header("content-type"));
     assert!(record.raw_response_policy().admits_header("x-request-id"));
 
