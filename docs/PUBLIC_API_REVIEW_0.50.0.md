@@ -19,7 +19,8 @@ unbounded identifiers.
 - 208 sealed operation markers under `association::operations`;
 - sealed `HetznerOperation` and alias `OperationAssociation` traits;
 - `EndpointFor<O, E>`, `QueryFor<O, Q>`, and `BodyFor<O, B>`;
-- `AssociatedOperation<O, E, Q, B>` and typed `Prepared<O>`;
+- `AssociatedOperation<O, E, Q, B>`, cleanup-owning
+  `prepare_typed_guarded`, and typed `Prepared<O>`;
 - inspectable `OperationDescriptor` and non-exhaustive policy enums; and
 - zero-sized public policy markers used by associated types.
 
@@ -47,7 +48,11 @@ client ergonomics remain later roadmap work.
 - Hand-maintaining 208 implementations was rejected in favor of deterministic
   generation from reviewed source locks.
 - Encoding policy directly in endpoint-name heuristics at runtime was rejected;
-  preparation validates generated metadata against existing provider policy.
+preparation validates generated metadata against existing provider policy.
+- Returning an association mismatch after serialization was rejected. Exact
+  canonical policy preflight now completes before writable storage is lent.
+- Inferring security classifications from names, tags, or HTTP methods was
+  rejected in favor of the strict reviewed `OPERATION_ASSOCIATIONS.tsv`.
 - Removing existing `PrepareOperation` APIs was rejected as unnecessary churn
   during the pre-1.0 migration window.
 

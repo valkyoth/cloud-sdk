@@ -135,6 +135,23 @@ impl<'storage> PreparationStorageGuard<'storage> {
         ))
     }
 
+    /// Runs provider-specific preparation while retaining cleanup ownership.
+    ///
+    /// This is the typed counterpart to [`Self::prepare`]. The closure may
+    /// return a provider-specific prepared wrapper that borrows this guard.
+    /// Both complete buffers are cleared before the closure is entered.
+    pub fn prepare_with<'guard, T, E, F>(&'guard mut self, prepare: F) -> Result<T, E>
+    where
+        F: FnOnce(PreparationStorage<'guard>) -> Result<T, E>,
+    {
+        sanitize_bytes(self.target.as_mut_slice());
+        sanitize_bytes(self.body.as_mut_slice());
+        prepare(PreparationStorage::new(
+            self.target.as_mut_slice(),
+            self.body.as_mut_slice(),
+        ))
+    }
+
     /// Returns capacities without exposing stored request bytes.
     #[must_use]
     pub fn capacities(&self) -> (usize, usize) {
@@ -288,6 +305,26 @@ mod tests {
 
         assert!(matches!(guard.prepare(&ContaminateStorage), Err(())));
         assert!(matches!(guard.prepare(&AssertCleared), Err(())));
+    }
+
+    #[test]
+    fn provider_specific_preparation_retains_cleanup_ownership() {
+        let mut target = [0xA5_u8; 8];
+        let mut body = [0x5A_u8; 16];
+        {
+            let mut guard = PreparationStorageGuard::new(&mut target, &mut body);
+            let result: Result<(), ()> = guard.prepare_with(|storage| {
+                let (target, body) = storage.into_parts();
+                assert!(target.iter().all(|byte| *byte == 0));
+                assert!(body.iter().all(|byte| *byte == 0));
+                target.fill(0x11);
+                body.fill(0x22);
+                Err(())
+            });
+            assert_eq!(result, Err(()));
+        }
+        assert_eq!(target, [0; 8]);
+        assert_eq!(body, [0; 16]);
     }
 
     #[test]

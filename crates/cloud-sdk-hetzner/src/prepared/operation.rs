@@ -334,7 +334,9 @@ where
     }
 }
 
-fn response_policy(profile: ResponseProfile) -> Result<ResponsePolicy, HetznerPreparationError> {
+pub(crate) fn response_policy(
+    profile: ResponseProfile,
+) -> Result<ResponsePolicy, HetznerPreparationError> {
     let (statuses, content_type, body, max) = match profile {
         ResponseProfile::JsonOk => (
             STATUS_OK,

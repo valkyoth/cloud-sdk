@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import importlib.util
 import sys
+import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -24,25 +25,63 @@ def load_generator():
 def main() -> int:
     generator = load_generator()
     operations = generator.load_operations()
+    associations = generator.read_associations()
     assert len(operations) == 208
+    assert len(associations) == 208
     assert len({operation.operation_id for operation in operations}) == 208
     assert generator.pascal("change_zone_rrset_ttl") == "ChangeZoneRrsetTtl"
     by_id = {operation.operation_id: operation for operation in operations}
-    assert generator.query(by_id["get_actions"]) == "RequiredQuery"
-    assert generator.query(by_id["list_servers"]) == "OptionalQuery"
-    assert generator.query(by_id["list_storage_box_folders"]) == "QueryForbidden"
-    assert generator.query(by_id["get_server"]) == "QueryForbidden"
-    assert generator.service(by_id["list_zones"])[0] == "DnsService"
-    assert generator.service(by_id["list_certificates"])[0] == "SecurityService"
-    assert generator.service(by_id["list_storage_boxes"])[0] == "StorageService"
-    assert generator.permit(by_id["create_server"]) == "CostPermit"
-    assert generator.permit(by_id["delete_server"]) == "DestructivePermit"
-    assert generator.permit(by_id["update_server"]) == "MutationPermit"
-    assert generator.permit(by_id["get_server"]) == "NoPermit"
+    assert by_id["get_actions"].query_policy == "required"
+    assert by_id["list_servers"].query_policy == "optional"
+    assert by_id["list_storage_box_folders"].query_policy == "forbidden"
+    assert by_id["list_zones"].service == "dns"
+    assert by_id["list_certificates"].service == "security"
+    assert by_id["list_storage_boxes"].authentication == "basic"
+    assert by_id["create_server"].permit_class == "cost"
+    assert by_id["delete_server"].permit_class == "destructive"
+    assert by_id["update_server"].retry_policy == "explicit"
+
+    for operation in operations:
+        generated_row = generator.row(operation)
+        expected_markers = (
+            generator.SERVICE_TYPES[operation.service][0],
+            generator.AUTHENTICATION_TYPES[operation.authentication],
+            generator.QUERY_TYPES[operation.query_policy],
+            generator.BODY_TYPES[operation.body_policy],
+            generator.RETRY_TYPES[operation.retry_policy],
+            generator.PERMIT_TYPES[operation.permit_class],
+        )
+        assert all(marker in generated_row for marker in expected_markers)
+
+    with tempfile.TemporaryDirectory() as directory:
+        source = Path(directory) / "associations.tsv"
+        source.write_text("operation_id\tservice\nget_action\tcloud\n", encoding="ascii")
+        try:
+            generator.read_associations(source)
+        except ValueError as error:
+            assert "invalid schema" in str(error)
+        else:
+            raise AssertionError("invalid schema was accepted")
+
+        invalid = associations[0].copy()
+        invalid["permit_class"] = "implicit"
+        source.write_text(
+            "\t".join(generator.ASSOCIATION_COLUMNS)
+            + "\n"
+            + "\t".join(invalid[column] for column in generator.ASSOCIATION_COLUMNS)
+            + "\n",
+            encoding="ascii",
+        )
+        try:
+            generator.read_associations(source)
+        except ValueError as error:
+            assert "unknown permit_class" in str(error)
+        else:
+            raise AssertionError("unknown classification was accepted")
     generated = generator.formatted_render()
     assert generated.count("Association for Hetzner operation") == 1
     assert generated.count("        (") == 208
-    print("13 operation association generator checks passed.")
+    print("208 exhaustive association rows and strict manifest failures checked.")
     return 0
 
 

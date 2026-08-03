@@ -1,7 +1,10 @@
-use cloud_sdk::operation::PreparationStorage;
+use cloud_sdk::operation::{PreparationStorage, PreparationStorageGuard};
 
 use super::operations::{
     ChangeZoneProtection, GetAction, GetActions, ListCertificates, ListStorageBoxes,
+};
+use super::validation::{
+    descriptor_policy_is_coherent, preflight_association, prepared_policy_matches,
 };
 use super::{
     ALL_OPERATIONS, AssociatedOperation, AssociationError, AuthenticationClass, BodyPolicy,
@@ -56,6 +59,12 @@ fn registry_is_complete_unique_and_stably_sorted() {
             .count(),
         31
     );
+    assert!(
+        ALL_OPERATIONS
+            .iter()
+            .copied()
+            .all(descriptor_policy_is_coherent)
+    );
 }
 
 #[test]
@@ -95,6 +104,8 @@ fn typed_preparation_preserves_operation_and_runtime_policy() -> Result<(), &'st
         .prepare_typed(PreparationStorage::new(&mut target, &mut body))
         .map_err(|_| "action preparation")?;
     assert_eq!(prepared.association(), GetAction::DESCRIPTOR);
+    prepared_policy_matches::<GetAction>(&prepared.as_untyped())
+        .map_err(|_| "exact action policy")?;
     assert_eq!(
         prepared.as_untyped().transport_request().target().as_str(),
         "/actions/7"
@@ -108,6 +119,28 @@ fn typed_preparation_preserves_operation_and_runtime_policy() -> Result<(), &'st
         .prepare_typed(PreparationStorage::new(&mut target, &mut body))
         .map_err(|_| "query preparation")?;
     assert_eq!(prepared.association(), GetActions::DESCRIPTOR);
+    prepared_policy_matches::<GetActions>(&prepared.as_untyped())
+        .map_err(|_| "exact actions policy")?;
+    Ok(())
+}
+
+#[test]
+fn typed_guard_owns_cleanup_for_complete_request_storage() -> Result<(), &'static str> {
+    let action_id = ActionId::new(7).ok_or("action ID")?;
+    let action = AssociatedOperation::<GetAction, _>::endpoint(ActionEndpoint::Get(action_id))
+        .map_err(|_| "action association")?;
+    let mut target = [0xA5_u8; 64];
+    let mut body = [0x5A_u8; 64];
+    {
+        let mut storage = PreparationStorageGuard::new(&mut target, &mut body);
+        let prepared = action
+            .prepare_typed_guarded(&mut storage)
+            .map_err(|_| "guarded preparation")?;
+        prepared_policy_matches::<GetAction>(&prepared.as_untyped())
+            .map_err(|_| "guarded exact policy")?;
+    }
+    assert_eq!(target, [0; 64]);
+    assert_eq!(body, [0; 64]);
     Ok(())
 }
 
@@ -163,4 +196,13 @@ fn wrong_endpoint_and_missing_components_fail_before_writing() {
         ),
         Err(AssociationError::BodyRequired)
     ));
+}
+
+#[test]
+fn runtime_policy_disagreement_fails_during_write_free_preflight() {
+    let action_id = ActionId::new(1).unwrap_or_else(|| unreachable!());
+    assert_eq!(
+        preflight_association::<GetActions, _>(ActionEndpoint::Get(action_id)),
+        Err(AssociationError::PreparedPolicyMismatch)
+    );
 }

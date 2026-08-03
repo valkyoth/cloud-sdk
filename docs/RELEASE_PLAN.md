@@ -1779,9 +1779,9 @@ Status: implementation complete; pentest required.
 
 Goal: make endpoint/query/body/response mismatches unrepresentable.
 
-Deliverables: sealed operation traits, `QueryFor<O>`, `BodyFor<O>`, and typed `Prepared<O>` with exhaustive associated service/endpoint policy, auth class and authentication-scope requirements, request headers/media, admitted statuses, success/error body and media policies, response caps, pagination/quota/retry strategy, streaming mode, response/error types, and required permit class; plus forward-compatible enum rules.
+Deliverables: sealed operation traits, `QueryFor<O>`, `BodyFor<O>`, typed `Prepared<O>`, cleanup-owning typed preparation, and write-free exact policy preflight with exhaustive associated service/endpoint policy, auth class and authentication-scope requirements, request headers/media, admitted statuses, success/error body and media policies, response caps, pagination/quota/retry strategy, streaming mode, response/error types, and required permit class; plus a strict reviewed classification manifest and forward-compatible enum rules.
 
-Verification: compile-fail mismatch for every association, source-derived binding coverage, semver review, and `scripts/release_0_50_gate.sh`.
+Verification: compile-fail mismatch for every association, strict-schema and unknown-classification failures, exhaustive 208-row descriptor coherence, exact prepared-policy equality, guarded cleanup, source-derived binding coverage, semver review, and `scripts/release_0_50_gate.sh`.
 
 Stop gate: `v0.50.0 implementation stop reached. Run pentest for this exact commit.`
 

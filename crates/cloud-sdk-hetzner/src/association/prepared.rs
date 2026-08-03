@@ -5,20 +5,16 @@ use core::marker::PhantomData;
 
 use cloud_sdk::authentication::{AsyncAuthenticatedTransport, LocalAsyncAuthenticatedTransport};
 use cloud_sdk::operation::{
-    CheckedResponseGuard, PreparationStorage, PreparedExecutionError, PreparedRequest,
-    ProviderService, ResponseBodyPolicy, ResponsePolicyError,
+    CheckedResponseGuard, PreparationStorage, PreparationStorageGuard, PreparedExecutionError,
+    PreparedRequest, ResponsePolicyError,
 };
-use cloud_sdk::transport::{BoundTransport, MediaType, ResponseBuffer, ResponseMediaPolicy};
+use cloud_sdk::transport::{BoundTransport, ResponseBuffer};
 
 use super::components::{AssociationError, BodyFor, EndpointFor, QueryFor};
-use super::policy::{
-    AuthenticationClass, BodyPolicy, HetznerOperation, QueryPolicy, ResponseShape,
-};
-use super::types::{metadata_permit, metadata_retry};
-use crate::endpoint::ApiSurface;
+use super::policy::HetznerOperation;
+use super::validation::preflight_association;
 use crate::prepared::{
-    BodyWire, EndpointWire, HetznerPreparationError, NoBody, NoQuery, QueryWire,
-    authentication_policy, prepare_parts,
+    BodyWire, EndpointWire, HetznerPreparationError, NoBody, NoQuery, QueryWire, prepare_parts,
 };
 
 /// Failure while preparing a compile-time-associated operation.
@@ -137,12 +133,7 @@ where
         storage: PreparationStorage<'storage>,
     ) -> Result<Prepared<'storage, O>, AssociatedPreparationError> {
         let endpoint = self.endpoint.into_inner();
-        let authentication = match endpoint.endpoint_group().surface() {
-            ApiSurface::Storage => AuthenticationClass::Basic,
-            ApiSurface::Cloud | ApiSurface::Dns | ApiSurface::Security => {
-                AuthenticationClass::Bearer
-            }
-        };
+        preflight_association::<O, _>(endpoint).map_err(AssociatedPreparationError::Association)?;
         let request = prepare_parts(
             endpoint,
             self.query.into_inner(),
@@ -150,7 +141,30 @@ where
             storage,
         )
         .map_err(AssociatedPreparationError::Preparation)?;
-        Prepared::try_new(request, authentication).map_err(AssociatedPreparationError::Association)
+        Ok(Prepared::new(request))
+    }
+
+    /// Prepares through cleanup-owning storage while preserving `O`.
+    ///
+    /// Association policy is checked before the guard lends either writable
+    /// buffer. The guard clears both complete buffers before preparation and
+    /// again when it is dropped after transport use.
+    pub fn prepare_typed_guarded<'guard>(
+        &self,
+        storage: &'guard mut PreparationStorageGuard<'_>,
+    ) -> Result<Prepared<'guard, O>, AssociatedPreparationError> {
+        let endpoint = self.endpoint.into_inner();
+        preflight_association::<O, _>(endpoint).map_err(AssociatedPreparationError::Association)?;
+        storage.prepare_with(|buffers| {
+            prepare_parts(
+                endpoint,
+                self.query.into_inner(),
+                self.body.into_inner(),
+                buffers,
+            )
+            .map(Prepared::new)
+            .map_err(AssociatedPreparationError::Preparation)
+        })
     }
 }
 
@@ -186,15 +200,11 @@ impl<'request, O: HetznerOperation> Prepared<'request, O> {
         clippy::large_types_passed_by_value,
         reason = "ownership transfer keeps typed preparation allocation-free"
     )]
-    fn try_new(
-        inner: PreparedRequest<'request>,
-        authentication: AuthenticationClass,
-    ) -> Result<Self, AssociationError> {
-        validate_policy::<O>(&inner, authentication)?;
-        Ok(Self {
+    const fn new(inner: PreparedRequest<'request>) -> Self {
+        Self {
             inner,
             operation: PhantomData,
-        })
+        }
     }
 
     /// Returns the complete compile-time association.
@@ -278,126 +288,4 @@ impl<O: HetznerOperation> fmt::Debug for Prepared<'_, O> {
             .field("request", &self.inner)
             .finish()
     }
-}
-
-fn validate_policy<O: HetznerOperation>(
-    prepared: &PreparedRequest<'_>,
-    authentication: AuthenticationClass,
-) -> Result<(), AssociationError> {
-    let descriptor = O::DESCRIPTOR;
-    let request = prepared.transport_request();
-    let service = prepared.service();
-    let metadata = prepared.metadata();
-    let response = prepared.response_policy();
-    let raw = prepared.raw_response_policy();
-    let expected_service = provider_service_for(descriptor)?;
-    let expected_authentication =
-        authentication_policy(expected_service, descriptor.api_base_url())
-            .map_err(|_| AssociationError::PreparedPolicyMismatch)?;
-
-    if prepared.operation_id() != Some(descriptor.operation_id())
-        || request.method() != descriptor.method()
-        || service != expected_service
-        || authentication != descriptor.authentication()
-        || prepared.authentication_policy() != expected_authentication
-        || metadata_retry(metadata.semantics(), metadata.retry_eligibility()) != descriptor.retry()
-        || metadata_permit(metadata.impact(), metadata.cost_intent()) != descriptor.permit()
-        || !request_shape_matches(descriptor, request)
-        || !request_headers_match(descriptor, request)
-        || response.success_statuses() != [descriptor.success_status()]
-        || response.max_body_bytes() != descriptor.success_body_bytes()
-        || !success_response_matches(descriptor.response_shape(), response)
-        || raw.body_limit(descriptor.success_status()) != descriptor.success_body_bytes()
-        || raw.body_limit(cloud_sdk::transport::StatusCode::TOO_MANY_REQUESTS)
-            != descriptor.error_body_bytes()
-        || !raw_media_matches(descriptor, &raw)
-    {
-        return Err(AssociationError::PreparedPolicyMismatch);
-    }
-    Ok(())
-}
-
-fn provider_service_for(
-    descriptor: super::OperationDescriptor,
-) -> Result<cloud_sdk::operation::ProviderService<'static>, AssociationError> {
-    let policy = crate::official_endpoint_policy(descriptor.api_base_url())
-        .map_err(|_| AssociationError::PreparedPolicyMismatch)?;
-    Ok(ProviderService::new(
-        crate::HETZNER_PROVIDER_ID,
-        descriptor.service_id(),
-        policy,
-    ))
-}
-
-fn request_shape_matches(
-    descriptor: super::OperationDescriptor,
-    request: cloud_sdk::transport::TransportRequest<'_>,
-) -> bool {
-    let has_query = request.target().as_str().contains('?');
-    let has_body = !request.body().is_empty();
-    let query = match descriptor.query_policy() {
-        QueryPolicy::Forbidden => !has_query,
-        QueryPolicy::Optional => true,
-        QueryPolicy::Required => has_query,
-    };
-    let body = match descriptor.body_policy() {
-        BodyPolicy::Forbidden => !has_body,
-        BodyPolicy::RequiredJson => has_body,
-    };
-    query && body
-}
-
-fn request_headers_match(
-    descriptor: super::OperationDescriptor,
-    request: cloud_sdk::transport::TransportRequest<'_>,
-) -> bool {
-    let headers = request.headers();
-    let accept = headers
-        .get("accept")
-        .is_some_and(|header| header.value().as_str() == MediaType::JSON.as_str());
-    let content_type = headers
-        .get("content-type")
-        .is_some_and(|header| header.value().as_str() == MediaType::JSON.as_str());
-    match descriptor.body_policy() {
-        BodyPolicy::Forbidden => accept && !content_type && headers.as_slice().len() == 1,
-        BodyPolicy::RequiredJson => accept && content_type && headers.as_slice().len() == 2,
-    }
-}
-
-fn success_response_matches(
-    shape: ResponseShape,
-    response: cloud_sdk::operation::ResponsePolicy,
-) -> bool {
-    match shape {
-        ResponseShape::Empty => {
-            response.body_policy() == ResponseBodyPolicy::Forbidden
-                && matches!(
-                    response.content_type_policy(),
-                    cloud_sdk::operation::ContentTypePolicy::Forbidden
-                )
-        }
-        _ => {
-            response.body_policy() == ResponseBodyPolicy::Required
-                && matches!(
-                    response.content_type_policy(),
-                    cloud_sdk::operation::ContentTypePolicy::Required(types)
-                        if types == [MediaType::JSON]
-                )
-        }
-    }
-}
-
-fn raw_media_matches(
-    descriptor: super::OperationDescriptor,
-    raw: &cloud_sdk::transport::RawResponsePolicy<'_>,
-) -> bool {
-    let success = raw.media_policy(descriptor.success_status());
-    let error = raw.media_policy(cloud_sdk::transport::StatusCode::TOO_MANY_REQUESTS);
-    let expected_success = if matches!(descriptor.response_shape(), ResponseShape::Empty) {
-        matches!(success, ResponseMediaPolicy::Forbidden)
-    } else {
-        matches!(success, ResponseMediaPolicy::Required(types) if types == [MediaType::JSON])
-    };
-    expected_success
-        && matches!(error, ResponseMediaPolicy::Required(types) if types == [MediaType::JSON])
 }

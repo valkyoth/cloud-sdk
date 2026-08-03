@@ -13,8 +13,9 @@ pub use operation::{HetznerPreparedOperation, NoBody, NoQuery};
 pub(crate) use json::{JsonWriter, SensitiveJsonString, encode_object};
 pub(crate) use operation::{
     BodyWire, EndpointWire, QueryWire, RequestShape, ResponseProfile, prepare_parts,
+    response_policy,
 };
-pub(crate) use wire_policy::authentication_policy;
+pub(crate) use wire_policy::{authentication_policy, provider_service, raw_response_policy};
 
 #[cfg(test)]
 mod response_metadata_tests;

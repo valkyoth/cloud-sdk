@@ -54,7 +54,7 @@ pub(crate) fn authentication_policy(
     ))
 }
 
-pub(super) fn raw_response_policy(
+pub(crate) fn raw_response_policy(
     profile: ResponseProfile,
 ) -> Result<RawResponsePolicy<'static>, HetznerPreparationError> {
     let mut admitted_headers = [HeaderName::new("content-type")

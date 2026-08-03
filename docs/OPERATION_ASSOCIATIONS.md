@@ -27,7 +27,7 @@ policy review, and future client-kernel integration without exposing payloads.
 ## Read Example
 
 ```rust
-use cloud_sdk::operation::PreparationStorage;
+use cloud_sdk::operation::PreparationStorageGuard;
 use cloud_sdk_hetzner::actions::{ActionEndpoint, ActionId};
 use cloud_sdk_hetzner::association::AssociatedOperation;
 use cloud_sdk_hetzner::association::operations::GetAction;
@@ -38,10 +38,8 @@ let operation = AssociatedOperation::<GetAction, _>::endpoint(
 )?;
 let mut target = [0_u8; 64];
 let mut body = [0_u8; 1];
-let prepared = operation.prepare_typed(PreparationStorage::new(
-    &mut target,
-    &mut body,
-))?;
+let mut storage = PreparationStorageGuard::new(&mut target, &mut body);
+let prepared = operation.prepare_typed_guarded(&mut storage)?;
 
 assert_eq!(prepared.association().operation_id().as_str(), "get_action");
 assert_eq!(
@@ -66,11 +64,19 @@ component that merely reports a chosen operation string.
 
 ## Prepared Requests
 
-`prepare_typed` first uses the existing transactional fixed-buffer encoder,
-then checks the complete prepared request against `O::DESCRIPTOR`. This check
-includes provider/service identity, official endpoint policy, authentication
-scope, method, query/body presence, request headers, retry and impact metadata,
-permit class, success status, response media, and body limits.
+`prepare_typed` performs a write-free policy preflight before lending storage
+to the existing transactional fixed-buffer encoder. The preflight compares
+exact canonical service, official endpoint, authentication scope, operation
+metadata including request-ID policy, checked-response policy, raw-response
+policy including admitted headers and informational/trailer behavior, request
+shape, and body replayability. A disagreement therefore fails before request
+bytes can be written.
+
+`prepare_typed_guarded` is the preferred secret-bearing route. It returns the
+same `Prepared<O>` while borrowing one `PreparationStorageGuard`; safe Rust
+therefore keeps volatile cleanup ownership alive through transport use. The
+lower-level `prepare_typed(PreparationStorage)` remains available to callers
+that provide an equivalent lifecycle and cleanup guarantee.
 
 `Prepared<O>` delegates checked response validation and blocking, Send-async,
 and local-async authenticated execution. `as_untyped` borrows the underlying
@@ -84,19 +90,25 @@ high-level client decoder. Typed resource decoding remains on the roadmap.
 
 `scripts/generate_operation_associations.py` reconstructs the registry from:
 
+- `docs/OPERATION_ASSOCIATIONS.tsv` for the reviewed service,
+  authentication, query, body, retry, and permit classification of every
+  active operation;
 - `docs/API_FINGERPRINTS.tsv` for active operation, method, service, and
   pagination facts;
 - `docs/PREPARED_BODY_OPERATIONS.txt` for request-body presence; and
 - `crates/cloud-sdk-hetzner/src/serde/response_operations.tsv` for success
   status and response family.
 
-Generation requires exact 208-operation response coverage, exact 91-operation
-body coverage, globally unique operation IDs, and no inactive body binding.
+The association manifest has one exact seven-column schema, a closed value
+vocabulary, sorted unique IDs, and complete 208-operation coverage. Generation
+also requires exact 208-operation response coverage, exact 91-operation body
+coverage, globally unique operation IDs, and no inactive body binding.
 `scripts/generate_operation_associations.py --check` runs in normal and
 release checks. The compact generated registry is intentionally excluded from
 rustfmt expansion so it remains below the repository 500-line limit; rustfmt
 still formats the handwritten generator macro and every other Rust file.
 
-Permit classification is provider-reviewed metadata and is rechecked against
-the existing prepared operation metadata whenever a typed operation is
-prepared. A disagreement fails closed with `PreparedPolicyMismatch`.
+Every classification is provider-reviewed metadata. Exhaustive generator
+tests verify all 208 rows, while each typed preparation independently compares
+the selected endpoint's runtime policy before serialization. A disagreement
+fails closed with `PreparedPolicyMismatch`.

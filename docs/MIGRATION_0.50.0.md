@@ -27,20 +27,36 @@ reject component mismatches at runtime. New code can use a marker from
 receive a `Prepared<O>` that retains the operation identity.
 
 ```rust
+use cloud_sdk::operation::PreparationStorageGuard;
 use cloud_sdk_hetzner::actions::{ActionEndpoint, ActionId};
 use cloud_sdk_hetzner::association::AssociatedOperation;
 use cloud_sdk_hetzner::association::operations::GetAction;
 
-let id = ActionId::new(1).ok_or("invalid action ID")?;
+let id = ActionId::new(1).expect("1 is a valid action ID");
 let operation = AssociatedOperation::<GetAction, _>::endpoint(
     ActionEndpoint::Get(id),
-)?;
-# Ok::<(), Box<dyn core::error::Error>>(())
+)
+.expect("the endpoint matches GetAction");
+
+let mut target = [0_u8; 1024];
+let mut body = [0_u8; 16 * 1024];
+let mut storage = PreparationStorageGuard::new(&mut target, &mut body);
+let prepared = operation
+    .prepare_typed_guarded(&mut storage)
+    .expect("the buffers fit the prepared request");
+
+// Send `prepared` before the storage guard leaves scope.
+drop(prepared);
 ```
 
 Use `query`, `json`, or independently validated component wrappers for
 operations requiring those components. Explicitly call `into_untyped` only
-when operation type erasure is intended.
+when operation type erasure is intended. For secret-bearing operations, prefer
+the cleanup-owning typed route shown above.
+
+The association preflight runs before writable storage is borrowed. The guard
+clears both complete buffers before preparation and when it is dropped after
+transport use.
 
 ## Operation Identifiers
 

@@ -85,7 +85,7 @@ Use compile-time operation associations when endpoint, query, body, response,
 and safety policy must retain one nominal operation identity:
 
 ```rust
-use cloud_sdk::operation::PreparationStorage;
+use cloud_sdk::operation::PreparationStorageGuard;
 use cloud_sdk_hetzner::actions::{ActionEndpoint, ActionId};
 use cloud_sdk_hetzner::association::AssociatedOperation;
 use cloud_sdk_hetzner::association::operations::GetAction;
@@ -96,10 +96,8 @@ let operation = AssociatedOperation::<GetAction, _>::endpoint(
 )?;
 let mut target = [0_u8; 64];
 let mut body = [0_u8; 1];
-let prepared = operation.prepare_typed(PreparationStorage::new(
-    &mut target,
-    &mut body,
-))?;
+let mut storage = PreparationStorageGuard::new(&mut target, &mut body);
+let prepared = operation.prepare_typed_guarded(&mut storage)?;
 
 assert_eq!(prepared.association().operation_id().as_str(), "get_action");
 # Ok::<(), Box<dyn core::error::Error>>(())

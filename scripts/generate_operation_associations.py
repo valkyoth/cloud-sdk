@@ -15,70 +15,19 @@ BODIES = ROOT / "docs" / "PREPARED_BODY_OPERATIONS.txt"
 RESPONSES = (
     ROOT / "crates" / "cloud-sdk-hetzner" / "src" / "serde" / "response_operations.tsv"
 )
+ASSOCIATIONS = ROOT / "docs" / "OPERATION_ASSOCIATIONS.tsv"
 OUTPUT = ROOT / "crates" / "cloud-sdk-hetzner" / "src" / "association" / "markers.rs"
 EXPECTED_OPERATIONS = 208
 
-DNS_TAGS = {"Zones", "Zone Actions", "Zone RRSets", "Zone RRSet Actions"}
-SECURITY_TAGS = {"Certificates", "Certificate Actions", "SSH Keys"}
-REQUIRED_QUERY = {"get_actions", "get_load_balancer_metrics", "get_server_metrics"}
-OPTIONAL_QUERY_WITHOUT_PAGINATION = {
-    "list_storage_box_snapshots",
-    "list_storage_box_subaccounts",
-}
-COST_OPERATIONS = {
-    "change_load_balancer_type",
-    "change_server_type",
-    "change_storage_box_type",
-    "create_floating_ip",
-    "create_load_balancer",
-    "create_primary_ip",
-    "create_server",
-    "create_server_image",
-    "create_storage_box",
-    "create_volume",
-    "enable_server_backup",
-    "resize_volume",
-}
-DESTRUCTIVE_POST_OPERATIONS = {
-    "change_floating_ip_protection",
-    "change_image_protection",
-    "change_load_balancer_protection",
-    "change_network_protection",
-    "change_primary_ip_protection",
-    "change_server_protection",
-    "change_storage_box_protection",
-    "change_volume_protection",
-    "change_zone_protection",
-    "change_zone_rrset_protection",
-    "delete_load_balancer_service",
-    "delete_network_route",
-    "delete_network_subnet",
-    "detach_load_balancer_from_network",
-    "detach_server_from_network",
-    "detach_server_iso",
-    "detach_volume",
-    "disable_load_balancer_public_interface",
-    "disable_server_backup",
-    "disable_server_rescue",
-    "disable_storage_box_snapshot_plan",
-    "import_zone_zonefile",
-    "poweroff_server",
-    "rebuild_server",
-    "remove_firewall_from_resources",
-    "remove_load_balancer_target",
-    "remove_server_from_placement_group",
-    "remove_zone_rrset_records",
-    "reset_server",
-    "reset_server_password",
-    "reset_storage_box_password",
-    "reset_storage_box_subaccount_password",
-    "rollback_storage_box_snapshot",
-    "set_firewall_rules",
-    "set_zone_rrset_records",
-    "shutdown_server",
-    "unassign_floating_ip",
-    "unassign_primary_ip",
-}
+ASSOCIATION_COLUMNS = (
+    "operation_id",
+    "service",
+    "authentication",
+    "query_policy",
+    "body_policy",
+    "retry_policy",
+    "permit_class",
+)
 
 METHOD_TYPES = {
     "GET": "GetMethod",
@@ -101,6 +50,29 @@ RESPONSE_TYPES = {
     "pricing": "PricingResponse",
     "folders": "FoldersResponse",
 }
+SERVICE_TYPES = {
+    "cloud": ("CloudService", "CloudEndpointPolicy"),
+    "dns": ("DnsService", "CloudEndpointPolicy"),
+    "security": ("SecurityService", "CloudEndpointPolicy"),
+    "storage": ("StorageService", "StorageEndpointPolicy"),
+}
+AUTHENTICATION_TYPES = {
+    "bearer": "BearerAuthentication",
+    "basic": "BasicAuthentication",
+}
+QUERY_TYPES = {
+    "forbidden": "QueryForbidden",
+    "optional": "OptionalQuery",
+    "required": "RequiredQuery",
+}
+BODY_TYPES = {"forbidden": "BodyForbidden", "json": "JsonBody"}
+RETRY_TYPES = {"never": "NeverRetry", "explicit": "ExplicitRetry"}
+PERMIT_TYPES = {
+    "none": "NoPermit",
+    "mutation": "MutationPermit",
+    "destructive": "DestructivePermit",
+    "cost": "CostPermit",
+}
 
 
 @dataclass(frozen=True)
@@ -112,11 +84,57 @@ class Operation:
     pagination: str
     status: str
     response: str
+    service: str
+    authentication: str
+    query_policy: str
+    body_policy: str
+    retry_policy: str
+    permit_class: str
 
 
 def read_tsv(path: Path) -> list[dict[str, str]]:
     with path.open(encoding="ascii", newline="") as handle:
         return list(csv.DictReader(handle, delimiter="\t"))
+
+
+def read_associations(path: Path = ASSOCIATIONS) -> list[dict[str, str]]:
+    with path.open(encoding="ascii", newline="") as handle:
+        reader = csv.DictReader(handle, delimiter="\t")
+        if tuple(reader.fieldnames or ()) != ASSOCIATION_COLUMNS:
+            raise ValueError("operation association source has an invalid schema")
+        rows = list(reader)
+    for number, row in enumerate(rows, 2):
+        if None in row or any(not row[column] for column in ASSOCIATION_COLUMNS):
+            raise ValueError(f"invalid operation association row {number}")
+        validate_value(row, "service", SERVICE_TYPES, number)
+        validate_value(row, "authentication", AUTHENTICATION_TYPES, number)
+        validate_value(row, "query_policy", QUERY_TYPES, number)
+        validate_value(row, "body_policy", BODY_TYPES, number)
+        validate_value(row, "retry_policy", RETRY_TYPES, number)
+        validate_value(row, "permit_class", PERMIT_TYPES, number)
+    operation_ids = [row["operation_id"] for row in rows]
+    if operation_ids != sorted(operation_ids):
+        raise ValueError("operation association rows are not sorted")
+    if len(operation_ids) != len(set(operation_ids)):
+        raise ValueError("operation association source has duplicate operation IDs")
+    if any(
+        not operation_id
+        or not operation_id[0].islower()
+        or not all(
+            character.islower() or character.isdigit() or character == "_"
+            for character in operation_id
+        )
+        for operation_id in operation_ids
+    ):
+        raise ValueError("operation association source has an invalid operation ID")
+    return rows
+
+
+def validate_value(
+    row: dict[str, str], column: str, admitted: dict[str, object], number: int
+) -> None:
+    if row[column] not in admitted:
+        raise ValueError(f"unknown {column} at operation association row {number}")
 
 
 def read_bodies(path: Path) -> set[str]:
@@ -146,20 +164,35 @@ def load_operations() -> list[Operation]:
     ]
     fingerprints = indexed(fingerprint_rows, "operation_id", "fingerprint")
     responses = indexed(read_tsv(RESPONSES), "operation_id", "response")
+    associations = indexed(
+        read_associations(), "operation_id", "operation association"
+    )
     bodies = read_bodies(BODIES)
     active = set(fingerprints)
     if len(active) != EXPECTED_OPERATIONS:
         raise ValueError("active operation count changed")
     if set(responses) != active:
         raise ValueError("response bindings do not exactly cover active operations")
+    if set(associations) != active:
+        raise ValueError("operation associations do not exactly cover active operations")
     if not bodies <= active:
         raise ValueError("request-body lock contains inactive operations")
     operations = []
     for operation_id in sorted(active):
         source = fingerprints[operation_id]
         response = responses[operation_id]
+        association = associations[operation_id]
         if source["api"] != response["api"]:
             raise ValueError(f"API source mismatch for {operation_id}")
+        body_present = operation_id in bodies
+        if (association["body_policy"] == "json") != body_present:
+            raise ValueError(f"body source mismatch for {operation_id}")
+        if (association["service"] == "storage") != (source["api"] == "hetzner"):
+            raise ValueError(f"service source mismatch for {operation_id}")
+        if (association["authentication"] == "basic") != (
+            association["service"] == "storage"
+        ):
+            raise ValueError(f"authentication source mismatch for {operation_id}")
         operations.append(
             Operation(
                 api=source["api"],
@@ -169,6 +202,12 @@ def load_operations() -> list[Operation]:
                 pagination=source["pagination"],
                 status=response["status"],
                 response=response["shape"],
+                service=association["service"],
+                authentication=association["authentication"],
+                query_policy=association["query_policy"],
+                body_policy=association["body_policy"],
+                retry_policy=association["retry_policy"],
+                permit_class=association["permit_class"],
             )
         )
     return operations
@@ -178,40 +217,10 @@ def pascal(value: str) -> str:
     return "".join(part[:1].upper() + part[1:] for part in value.split("_"))
 
 
-def service(operation: Operation) -> tuple[str, str, str]:
-    if operation.api == "hetzner":
-        return "StorageService", "StorageEndpointPolicy", "BasicAuthentication"
-    if operation.tag in DNS_TAGS:
-        return "DnsService", "CloudEndpointPolicy", "BearerAuthentication"
-    if operation.tag in SECURITY_TAGS:
-        return "SecurityService", "CloudEndpointPolicy", "BearerAuthentication"
-    return "CloudService", "CloudEndpointPolicy", "BearerAuthentication"
-
-
-def query(operation: Operation) -> str:
-    if operation.operation_id in REQUIRED_QUERY:
-        return "RequiredQuery"
-    if (
-        operation.pagination == "yes"
-        or operation.operation_id in OPTIONAL_QUERY_WITHOUT_PAGINATION
-    ):
-        return "OptionalQuery"
-    return "QueryForbidden"
-
-
-def permit(operation: Operation) -> str:
-    if operation.operation_id in COST_OPERATIONS:
-        return "CostPermit"
-    if operation.method == "DELETE" or operation.operation_id in DESTRUCTIVE_POST_OPERATIONS:
-        return "DestructivePermit"
-    if operation.method == "GET":
-        return "NoPermit"
-    return "MutationPermit"
-
-
-def row(operation: Operation, bodies: set[str]) -> str:
-    service_type, endpoint, authentication = service(operation)
-    body = "JsonBody" if operation.operation_id in bodies else "BodyForbidden"
+def row(operation: Operation) -> str:
+    service_type, endpoint = SERVICE_TYPES[operation.service]
+    authentication = AUTHENTICATION_TYPES[operation.authentication]
+    body = BODY_TYPES[operation.body_policy]
     values = (
         pascal(operation.operation_id),
         f'"{operation.operation_id}"',
@@ -219,20 +228,20 @@ def row(operation: Operation, bodies: set[str]) -> str:
         endpoint,
         authentication,
         METHOD_TYPES[operation.method],
-        query(operation),
+        QUERY_TYPES[operation.query_policy],
         body,
         STATUS_TYPES[operation.status],
         RESPONSE_TYPES[operation.response],
         "NumberedPagination" if operation.pagination == "yes" else "NoPagination",
-        permit(operation),
+        RETRY_TYPES[operation.retry_policy],
+        PERMIT_TYPES[operation.permit_class],
     )
     return "        (" + ", ".join(values) + "),"
 
 
 def render() -> str:
     operations = load_operations()
-    bodies = read_bodies(BODIES)
-    rows = "\n".join(row(operation, bodies) for operation in operations)
+    rows = "\n".join(row(operation) for operation in operations)
     return f'''//! Generated exhaustive active-operation associations.
 //!
 //! Regenerate with `scripts/generate_operation_associations.py`.
@@ -259,16 +268,11 @@ macro_rules! success_media {{
     (EmptyResponse) => {{ ForbiddenSuccessMedia }};
     ($response:ident) => {{ JsonSuccessMedia }};
 }}
-macro_rules! retry {{
-    (GetMethod) => {{ ExplicitRetry }};
-    (PutMethod) => {{ ExplicitRetry }};
-    ($method:ident) => {{ NeverRetry }};
-}}
 
 macro_rules! operation_associations {{
     ($(($marker:ident, $id:literal, $service:ident, $endpoint:ident, $authentication:ident,
         $method:ident, $query:ident, $body:ident, $status:ident, $response:ident,
-        $pagination:ident, $permit:ident),)+) => {{
+        $pagination:ident, $retry:ident, $permit:ident),)+) => {{
         /// Sealed markers for every active source-locked Hetzner operation.
         pub mod operations {{
             use super::*;
@@ -294,7 +298,7 @@ macro_rules! operation_associations {{
                     type ResponseCaps = JsonResponseCaps;
                     type Pagination = $pagination;
                     type Quota = HetznerQuota;
-                    type Retry = retry!($method);
+                    type Retry = $retry;
                     type Streaming = BufferedStreaming;
                     type Success = $response;
                     type Error = HetznerErrorResponse;
@@ -310,7 +314,7 @@ macro_rules! operation_associations {{
                         <$status as StatusAssociation>::STATUS,
                         <$response as ResponseAssociation>::SHAPE,
                         <$pagination as PaginationAssociation>::POLICY,
-                        <$method as MethodAssociation>::RETRY,
+                        <$retry as RetryAssociation>::POLICY,
                         <$permit as PermitAssociation>::CLASS,
                     );
                 }}

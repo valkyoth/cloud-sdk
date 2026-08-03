@@ -23,9 +23,12 @@ and execution.
   request headers/media, success status, response body/media/caps, pagination,
   quota, retry, streaming, success/error models, and permit class.
 - Added inspectable non-secret descriptors and forward-compatible policy enums.
-- Rechecked generated policy against existing prepared runtime policy before a
-  typed prepared value can be constructed.
-- Generated all bindings from exact API fingerprint, body, and response locks.
+- Added write-free exact policy preflight and cleanup-owning
+  `prepare_typed_guarded` before typed request serialization.
+- Compare canonical metadata, request-ID handling, body replayability,
+  checked-response policy, and complete raw-response policy exactly.
+- Generated all bindings from a strict reviewed 208-row classification
+  manifest plus exact API fingerprint, body, and response locks.
 - Added freshness, regression, compile-fail, service-identity, and behavioral
   tests without changing the default no_std or dependency graph.
 - Added const `OperationId::new` and compile-time `operation_id!` literals.

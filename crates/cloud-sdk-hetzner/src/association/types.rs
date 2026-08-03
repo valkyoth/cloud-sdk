@@ -1,7 +1,6 @@
 //! Zero-sized policy types used by operation associations.
 
 use cloud_sdk::Method;
-use cloud_sdk::operation::{CostIntent, OperationImpact, RequestSemantics};
 use cloud_sdk::transport::{MAX_RAW_RESPONSE_BODY_BYTES, StatusCode};
 
 use super::policy::{
@@ -122,29 +121,29 @@ impl BodyAssociation for JsonBody {
 }
 
 pub(crate) trait MethodAssociation {
-    type Retry;
     const METHOD: Method;
-    const RETRY: RetryPolicy;
 }
 impl MethodAssociation for GetMethod {
-    type Retry = ExplicitRetry;
     const METHOD: Method = Method::Get;
-    const RETRY: RetryPolicy = RetryPolicy::Explicit;
 }
 impl MethodAssociation for PutMethod {
-    type Retry = ExplicitRetry;
     const METHOD: Method = Method::Put;
-    const RETRY: RetryPolicy = RetryPolicy::Explicit;
 }
 impl MethodAssociation for PostMethod {
-    type Retry = NeverRetry;
     const METHOD: Method = Method::Post;
-    const RETRY: RetryPolicy = RetryPolicy::Never;
 }
 impl MethodAssociation for DeleteMethod {
-    type Retry = NeverRetry;
     const METHOD: Method = Method::Delete;
-    const RETRY: RetryPolicy = RetryPolicy::Never;
+}
+
+pub(crate) trait RetryAssociation {
+    const POLICY: RetryPolicy;
+}
+impl RetryAssociation for ExplicitRetry {
+    const POLICY: RetryPolicy = RetryPolicy::Explicit;
+}
+impl RetryAssociation for NeverRetry {
+    const POLICY: RetryPolicy = RetryPolicy::Never;
 }
 
 pub(crate) trait StatusAssociation {
@@ -216,35 +215,6 @@ impl PermitAssociation for DestructivePermit {
 }
 impl PermitAssociation for CostPermit {
     const CLASS: PermitClass = PermitClass::Cost;
-}
-
-pub(crate) const fn metadata_permit(impact: OperationImpact, cost: CostIntent) -> PermitClass {
-    if matches!(cost, CostIntent::MayIncurCost) {
-        PermitClass::Cost
-    } else {
-        match impact {
-            OperationImpact::ReadOnly => PermitClass::None,
-            OperationImpact::Mutation => PermitClass::Mutation,
-            OperationImpact::Destructive => PermitClass::Destructive,
-        }
-    }
-}
-
-pub(crate) const fn metadata_retry(
-    semantics: RequestSemantics,
-    retry: cloud_sdk::operation::RetryEligibility,
-) -> RetryPolicy {
-    if matches!(
-        semantics,
-        RequestSemantics::Safe | RequestSemantics::Idempotent
-    ) && matches!(
-        retry,
-        cloud_sdk::operation::RetryEligibility::ExplicitPolicy
-    ) {
-        RetryPolicy::Explicit
-    } else {
-        RetryPolicy::Never
-    }
 }
 
 const _: () = assert!(MAX_ASSOCIATED_JSON_BYTES <= MAX_RAW_RESPONSE_BODY_BYTES);
