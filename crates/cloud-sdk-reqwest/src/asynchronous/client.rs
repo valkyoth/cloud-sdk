@@ -5,8 +5,8 @@ use cloud_sdk::authentication::{
     AsyncAuthenticatedTransport, AuthenticatedRequest, CredentialGeneration,
 };
 use cloud_sdk::transport::{
-    BoundTransport, EndpointIdentity, EndpointIdentityError, ResponseStorageSanitizer,
-    ResponseWriter, TransportFailure,
+    AsyncResponseStaging, BoundTransport, EndpointIdentity, EndpointIdentityError,
+    ResponseCompletion, ResponseStorageSanitizer, TransportFailure,
 };
 use cloud_sdk_sanitization::{SecretBuffer, sanitize_bytes};
 
@@ -104,11 +104,11 @@ impl AsyncClient {
         self.credentials.refresh_from_secret_buffer(handoff, source)
     }
 
-    async fn send_inner(
+    async fn send_inner<'writer, 'buffer>(
         &self,
         authenticated: AuthenticatedRequest<'_, '_>,
-        response_writer: &mut ResponseWriter<'_>,
-    ) -> Result<(), AuthenticatedTransportFailure> {
+        response: AsyncResponseStaging<'writer, 'buffer>,
+    ) -> Result<ResponseCompletion, AuthenticatedTransportFailure> {
         let endpoint_identity = self.endpoint.identity().map_err(|_| {
             TransportFailure::not_sent(TransportError::AuthenticationEndpointMismatch)
         })?;
@@ -132,7 +132,7 @@ impl AsyncClient {
                 authenticated.transport_request(),
                 authenticated.response_policy(),
                 authorization,
-                response_writer,
+                response,
             )
             .await
             .map_err(|failure| failure.map(TransportError::RawHttp))
@@ -142,15 +142,16 @@ impl AsyncClient {
 impl AsyncAuthenticatedTransport for AsyncClient {
     type Error = AuthenticatedTransportFailure;
 
-    async fn send_authenticated<'transport, 'request, 'policy, 'writer>(
+    async fn send_authenticated<'transport, 'request, 'policy, 'writer, 'buffer>(
         &'transport self,
         request: AuthenticatedRequest<'request, 'policy>,
-        response: &'writer mut ResponseWriter<'_>,
-    ) -> Result<(), Self::Error>
+        response: AsyncResponseStaging<'writer, 'buffer>,
+    ) -> Result<ResponseCompletion, Self::Error>
     where
         'transport: 'writer,
         'request: 'writer,
         'policy: 'writer,
+        'buffer: 'writer,
     {
         self.send_inner(request, response).await
     }

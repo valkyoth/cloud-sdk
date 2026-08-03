@@ -1,8 +1,15 @@
 //! Provider-neutral raw HTTP execution and response-wire policy.
 
+mod local_async;
+
+pub use local_async::{LocalAsyncRawHttpExecutor, drive_local_raw};
+
 use core::future::Future;
 
-use super::{HeaderName, MediaType, ResponseWriter, StatusCode, TransportRequest};
+use super::{
+    AsyncExecutionError, AsyncResponseStaging, HeaderName, MediaType, ResponseCompletion,
+    ResponseWriter, StatusCode, TransportRequest,
+};
 
 /// Maximum informational response heads accepted before a final response.
 pub const MAX_INFORMATIONAL_RESPONSES: u8 = 8;
@@ -247,69 +254,52 @@ pub trait BlockingRawHttpExecutor {
     ) -> Result<(), Self::Error>;
 }
 
-/// Runtime-neutral asynchronous raw HTTP execution.
+/// Runtime-neutral Send asynchronous raw HTTP execution.
+///
+/// Implementations stage responses without commit access. Callers use
+/// [`drive_async_raw`].
 pub trait AsyncRawHttpExecutor {
     /// Executor-specific phased failure.
     type Error;
 
-    /// Executes exactly once without implicit authentication or retries.
-    ///
-    /// Implementations must use [`ResponseWriter::begin_attempt`]. Response
-    /// mutation and commitment are available only through the returned guard,
-    /// which clears state across future cancellation.
-    fn execute<'executor, 'request, 'policy, 'writer>(
+    /// Stages exactly one response without implicit authentication or retries.
+    fn execute<'executor, 'request, 'policy, 'writer, 'buffer>(
         &'executor self,
         request: TransportRequest<'request>,
         policy: RawResponsePolicy<'policy>,
-        response: &'writer mut ResponseWriter<'_>,
-    ) -> impl Future<Output = Result<(), Self::Error>> + Send + 'writer
-    where
-        'executor: 'writer,
-        'request: 'writer,
-        'policy: 'writer;
-}
-
-/// Runtime-neutral raw HTTP execution for `!Send` local futures.
-///
-/// This trait owns no executor. Dropping a returned future must leave response
-/// state uncommitted and clear partial bytes, while request delivery remains
-/// conservatively possibly sent.
-pub trait LocalAsyncRawHttpExecutor {
-    /// Executor-specific phased failure.
-    type Error;
-
-    /// Executes exactly once without requiring a `Send` future.
-    fn execute_local<'executor, 'request, 'policy, 'writer>(
-        &'executor self,
-        request: TransportRequest<'request>,
-        policy: RawResponsePolicy<'policy>,
-        response: &'writer mut ResponseWriter<'_>,
-    ) -> impl Future<Output = Result<(), Self::Error>> + 'writer
-    where
-        'executor: 'writer,
-        'request: 'writer,
-        'policy: 'writer;
-}
-
-impl<T> LocalAsyncRawHttpExecutor for T
-where
-    T: AsyncRawHttpExecutor + ?Sized,
-{
-    type Error = T::Error;
-
-    fn execute_local<'executor, 'request, 'policy, 'writer>(
-        &'executor self,
-        request: TransportRequest<'request>,
-        policy: RawResponsePolicy<'policy>,
-        response: &'writer mut ResponseWriter<'_>,
-    ) -> impl Future<Output = Result<(), Self::Error>> + 'writer
+        response: AsyncResponseStaging<'writer, 'buffer>,
+    ) -> impl Future<Output = Result<ResponseCompletion, Self::Error>> + Send + 'writer
     where
         'executor: 'writer,
         'request: 'writer,
         'policy: 'writer,
-    {
-        AsyncRawHttpExecutor::execute(self, request, policy, response)
-    }
+        'buffer: 'writer;
+}
+
+/// Drives one raw cross-thread async attempt and commits after `Ready(Ok)`.
+pub async fn drive_async_raw<'executor, 'request, 'policy, 'writer, 'buffer, T>(
+    executor: &'executor T,
+    request: TransportRequest<'request>,
+    policy: RawResponsePolicy<'policy>,
+    response: &'writer mut ResponseWriter<'buffer>,
+) -> Result<(), AsyncExecutionError<T::Error>>
+where
+    T: AsyncRawHttpExecutor + ?Sized,
+    'executor: 'writer,
+    'request: 'writer,
+    'policy: 'writer,
+    'buffer: 'writer,
+{
+    let mut attempt = response
+        .begin_attempt()
+        .map_err(AsyncExecutionError::Response)?;
+    let completion = executor
+        .execute(request, policy, attempt.staging())
+        .await
+        .map_err(AsyncExecutionError::Transport)?;
+    attempt
+        .commit_completion(completion)
+        .map_err(AsyncExecutionError::Response)
 }
 
 fn validate_media(policy: ResponseMediaPolicy<'_>) -> Result<(), RawResponsePolicyError> {

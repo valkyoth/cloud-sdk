@@ -41,10 +41,11 @@ response buffers must remain distinct. Bound concurrency in the application
 with a fixed worker or task budget. The SDK does not create tasks, semaphores,
 queues, retries, sleeps, or an executor.
 
-Dropping an async future does not prove the request was not delivered. Treat
-cancellation as `PossiblySent`, clear partial response storage through the
-mandatory response-attempt guard, and never repeat a mutation without its
-operation-specific retry policy or reconciliation.
+Dropping an async future does not prove the request was not delivered. Invoke
+async transports through SDK-owned drivers, which hold the response-attempt
+guard and expose only non-committing staging. Treat cancellation as
+`PossiblySent` and never repeat a mutation without its operation-specific retry
+policy or reconciliation.
 
 Before Hetzner credentials are used, call
 `cloud_sdk_hetzner::verify_official_endpoint(&transport, expected_base)`. It

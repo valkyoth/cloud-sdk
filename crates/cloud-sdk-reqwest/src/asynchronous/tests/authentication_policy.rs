@@ -1,9 +1,11 @@
 use cloud_sdk::Method;
 use cloud_sdk::ProviderId;
 use cloud_sdk::authentication::{
-    AsyncAuthenticatedTransport, AuthenticatedRequest, AuthenticationScopePolicy, ScopeRequirement,
+    AuthenticatedRequest, AuthenticationScopePolicy, ScopeRequirement, drive_async_authenticated,
 };
-use cloud_sdk::transport::{RequestTarget, ResponseBuffer, TransportRequest};
+use cloud_sdk::transport::{
+    AsyncExecutionError, RequestTarget, ResponseBuffer, TransportFailure, TransportRequest,
+};
 
 use super::{
     AsyncClientBuilder, BearerToken, HttpsEndpoint, TransportError, UserAgent, build_loopback,
@@ -67,15 +69,10 @@ fn scope_rejection_happens_before_async_network_or_header_work() {
         {
             let mut response = ResponseBuffer::new(&mut body, 8, &mut headers);
             assert_eq!(
-                AsyncAuthenticatedTransport::send_authenticated(
-                    &client,
-                    request,
-                    response.writer(),
-                )
-                .await,
-                Err(cloud_sdk::transport::TransportFailure::not_sent(
-                    TransportError::AuthenticationScopeRejected
-                ))
+                drive_async_authenticated(&client, request, response.writer(),).await,
+                Err(AsyncExecutionError::Transport(TransportFailure::not_sent(
+                    TransportError::AuthenticationScopeRejected,
+                )))
             );
         }
         assert_eq!(body, [0_u8; 8]);

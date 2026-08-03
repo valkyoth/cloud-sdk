@@ -7,8 +7,8 @@ use std::vec::Vec;
 use bytes::Bytes;
 use cloud_sdk::Method;
 use cloud_sdk::transport::{
-    RawResponsePolicy, ResponseAttempt, ResponseMetadata, ResponseWriter, StatusCode,
-    TransportFailure, TransportRequest,
+    AsyncResponseStaging, RawResponsePolicy, ResponseAttempt, ResponseCompletion, ResponseHeaders,
+    ResponseMetadata, ResponseWriterError, StatusCode, TransportFailure, TransportRequest,
 };
 use cloud_sdk_sanitization::sanitize_bytes;
 use http::header::{AUTHORIZATION, HeaderName, HeaderValue, USER_AGENT};
@@ -37,6 +37,40 @@ use super::{
 };
 
 type HttpClient = Client<HttpsConnector<HttpConnector>, Full<Bytes>>;
+
+pub(crate) trait RawResponseSink<'buffer> {
+    fn body_capacity(&self) -> usize;
+    fn body_mut(&mut self) -> Result<&mut [u8], ResponseWriterError>;
+    fn headers_mut(&mut self) -> Result<&mut ResponseHeaders<'buffer>, ResponseWriterError>;
+}
+
+impl<'buffer> RawResponseSink<'buffer> for ResponseAttempt<'_, 'buffer> {
+    fn body_capacity(&self) -> usize {
+        ResponseAttempt::body_capacity(self)
+    }
+
+    fn body_mut(&mut self) -> Result<&mut [u8], ResponseWriterError> {
+        ResponseAttempt::body_mut(self)
+    }
+
+    fn headers_mut(&mut self) -> Result<&mut ResponseHeaders<'buffer>, ResponseWriterError> {
+        ResponseAttempt::headers_mut(self)
+    }
+}
+
+impl<'buffer> RawResponseSink<'buffer> for AsyncResponseStaging<'_, 'buffer> {
+    fn body_capacity(&self) -> usize {
+        AsyncResponseStaging::body_capacity(self)
+    }
+
+    fn body_mut(&mut self) -> Result<&mut [u8], ResponseWriterError> {
+        AsyncResponseStaging::body_mut(self)
+    }
+
+    fn headers_mut(&mut self) -> Result<&mut ResponseHeaders<'buffer>, ResponseWriterError> {
+        AsyncResponseStaging::headers_mut(self)
+    }
+}
 
 pub(super) struct ResponseState {
     informational_limit: u8,
@@ -170,42 +204,33 @@ impl RawHyperClient {
         })
     }
 
-    pub(crate) async fn execute(
+    pub(crate) async fn execute<'buffer>(
         &self,
         request: TransportRequest<'_>,
         policy: RawResponsePolicy<'_>,
-        response_writer: &mut ResponseWriter<'_>,
-    ) -> Result<(), RawTransportFailure> {
-        self.execute_inner(request, policy, None, response_writer)
-            .await
+        response: &mut impl RawResponseSink<'buffer>,
+    ) -> Result<ResponseCompletion, RawTransportFailure> {
+        self.execute_inner(request, policy, None, response).await
     }
 
-    pub(crate) async fn execute_authenticated(
+    pub(crate) async fn execute_authenticated<'buffer>(
         &self,
         request: TransportRequest<'_>,
         policy: RawResponsePolicy<'_>,
         authorization: HeaderValue,
-        response_writer: &mut ResponseWriter<'_>,
-    ) -> Result<(), RawTransportFailure> {
-        self.execute_inner(request, policy, Some(authorization), response_writer)
+        response: &mut impl RawResponseSink<'buffer>,
+    ) -> Result<ResponseCompletion, RawTransportFailure> {
+        self.execute_inner(request, policy, Some(authorization), response)
             .await
     }
 
-    async fn execute_inner(
+    async fn execute_inner<'buffer>(
         &self,
         request: TransportRequest<'_>,
         policy: RawResponsePolicy<'_>,
         authorization: Option<HeaderValue>,
-        response_writer: &mut ResponseWriter<'_>,
-    ) -> Result<(), RawTransportFailure> {
-        if response_writer.is_committed() {
-            return Err(TransportFailure::not_sent(
-                RawHttpError::ResponseAlreadyCommitted,
-            ));
-        }
-        let mut attempt = response_writer
-            .begin_attempt()
-            .map_err(|_| TransportFailure::not_sent(RawHttpError::ResponseAlreadyCommitted))?;
+        response: &mut impl RawResponseSink<'buffer>,
+    ) -> Result<ResponseCompletion, RawTransportFailure> {
         let method = request.method();
         let request = self.prepare_request(request, authorization)?;
         let state = Arc::new(ResponseState::new(policy.informational_limit()));
@@ -214,7 +239,7 @@ impl RawHyperClient {
         hyper::ext::on_informational(&mut request, move |head| {
             observer.observe_informational(head.status().as_u16());
         });
-        let operation = self.execute_timed(method, request, policy, &mut attempt, state.as_ref());
+        let operation = self.execute_timed(method, request, policy, response, state.as_ref());
         match tokio::time::timeout(self.timeouts.total(), operation).await {
             Ok(result) => result,
             Err(_) if state.response_started() => {
@@ -278,14 +303,14 @@ impl RawHyperClient {
             .map_err(|_| TransportFailure::not_sent(RawHttpError::RequestBuildFailed))
     }
 
-    async fn execute_timed(
+    async fn execute_timed<'buffer>(
         &self,
         method: Method,
         request: http::Request<Full<Bytes>>,
         policy: RawResponsePolicy<'_>,
-        response_writer: &mut ResponseAttempt<'_, '_>,
+        sink: &mut impl RawResponseSink<'buffer>,
         state: &ResponseState,
-    ) -> Result<(), RawTransportFailure> {
+    ) -> Result<ResponseCompletion, RawTransportFailure> {
         let mut request = core::pin::pin!(self.client.request(request));
         let mut rejection = core::pin::pin!(state.wait_for_informational_rejection());
         let response = poll_fn(|context| {
@@ -311,9 +336,9 @@ impl RawHyperClient {
         state.final_started.store(true, Ordering::Release);
         let status = StatusCode::new(response.status().as_u16())
             .ok_or_else(|| TransportFailure::response_started(RawHttpError::InvalidStatus))?;
-        let writer_capacity = response_writer.body_capacity();
+        let writer_capacity = sink.body_capacity();
         let body_limit = {
-            let headers = response_writer.headers_mut().map_err(|_| {
+            let headers = sink.headers_mut().map_err(|_| {
                 TransportFailure::response_started(RawHttpError::ResponseCommitFailed)
             })?;
             inspect_response_head(
@@ -326,10 +351,12 @@ impl RawHyperClient {
             )
             .map_err(TransportFailure::response_started)?
         };
-        let body_len = read_bounded_body(response.into_body(), response_writer, body_limit).await?;
-        response_writer
-            .commit(status, body_len, ResponseMetadata::EMPTY)
-            .map_err(|_| TransportFailure::response_started(RawHttpError::ResponseCommitFailed))
+        let body_len = read_bounded_body(response.into_body(), sink, body_limit).await?;
+        Ok(ResponseCompletion::new(
+            status,
+            body_len,
+            ResponseMetadata::EMPTY,
+        ))
     }
 }
 
@@ -351,9 +378,9 @@ pub(crate) fn platform_client_config() -> Result<ClientConfig, BuildError> {
         .with_no_client_auth())
 }
 
-pub(super) async fn read_bounded_body(
+pub(super) async fn read_bounded_body<'buffer>(
     mut body: Incoming,
-    writer: &mut ResponseAttempt<'_, '_>,
+    writer: &mut impl RawResponseSink<'buffer>,
     limit: usize,
 ) -> Result<usize, RawTransportFailure> {
     let mut budget = ResponseBodyBudget::new(limit);

@@ -4,9 +4,10 @@ use super::{ProviderLinkExecutionError, ValidatedProviderLink};
 use crate::Method;
 use crate::authentication::{
     AuthenticatedRequest, AuthenticationScopePolicy, LocalAsyncAuthenticatedTransport,
+    drive_local_authenticated,
 };
 use crate::operation::OperationId;
-use crate::transport::{BoundTransport, RawResponsePolicy, ResponseWriter};
+use crate::transport::{AsyncExecutionError, BoundTransport, RawResponsePolicy, ResponseWriter};
 
 impl ValidatedProviderLink<'_, '_> {
     /// Validates and executes one authenticated local asynchronous
@@ -32,12 +33,17 @@ impl ValidatedProviderLink<'_, '_> {
         let request = self
             .request_for(transport, method, operation)
             .map_err(ProviderLinkExecutionError::Pagination)?;
-        LocalAsyncAuthenticatedTransport::send_authenticated_local(
+        drive_local_authenticated(
             transport,
             AuthenticatedRequest::new(request, authentication, response_policy),
             response,
         )
         .await
-        .map_err(ProviderLinkExecutionError::Transport)
+        .map_err(|error| match error {
+            AsyncExecutionError::Transport(error) => ProviderLinkExecutionError::Transport(error),
+            AsyncExecutionError::Response(error) => {
+                ProviderLinkExecutionError::ResponseWriter(error)
+            }
+        })
     }
 }

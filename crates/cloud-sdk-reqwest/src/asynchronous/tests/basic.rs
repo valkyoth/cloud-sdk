@@ -3,9 +3,12 @@ use std::time::Duration;
 
 use cloud_sdk::Method;
 use cloud_sdk::authentication::{
-    AsyncAuthenticatedTransport, AuthenticatedRequest, AuthenticationScopePolicy, ScopeRequirement,
+    AuthenticatedRequest, AuthenticationScopePolicy, ScopeRequirement, drive_async_authenticated,
 };
-use cloud_sdk::transport::{BoundTransport, RequestTarget, ResponseBuffer, TransportRequest};
+use cloud_sdk::transport::{
+    AsyncExecutionError, BoundTransport, RequestTarget, ResponseBuffer, TransportFailure,
+    TransportRequest,
+};
 
 use super::super::{
     AsyncBasicClient, AsyncBasicClientBuilder, BasicCredential, BasicCredentialScope,
@@ -82,13 +85,9 @@ fn asynchronous_basic_client_sends_exact_authorization_and_target() {
         let mut body = [0_u8; 8];
         let mut headers = [0_u8; 512];
         let mut response = ResponseBuffer::new(&mut body, 8, &mut headers);
-        let result = AsyncAuthenticatedTransport::send_authenticated(
-            &client,
-            request(&client, target),
-            response.writer(),
-        )
-        .await;
-        assert_eq!(result, Ok(()));
+        let result =
+            drive_async_authenticated(&client, request(&client, target), response.writer()).await;
+        assert!(result.is_ok());
 
         let recorded = server.request.recv_timeout(Duration::from_secs(2));
         assert!(recorded.is_ok());
@@ -153,15 +152,10 @@ fn asynchronous_basic_scope_rejection_clears_response_storage() {
         let mut headers = [0xa5_u8; 512];
         let mut response = ResponseBuffer::new(&mut body, 8, &mut headers);
         assert_eq!(
-            AsyncAuthenticatedTransport::send_authenticated(
-                &client,
-                authenticated,
-                response.writer(),
-            )
-            .await,
-            Err(cloud_sdk::transport::TransportFailure::not_sent(
-                TransportError::AuthenticationScopeRejected
-            ))
+            drive_async_authenticated(&client, authenticated, response.writer(),).await,
+            Err(AsyncExecutionError::Transport(TransportFailure::not_sent(
+                TransportError::AuthenticationScopeRejected,
+            )))
         );
         drop(response);
         assert_eq!(body, [0_u8; 8]);

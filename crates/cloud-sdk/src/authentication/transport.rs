@@ -1,7 +1,10 @@
 use core::fmt;
 use core::future::Future;
 
-use crate::transport::{RawResponsePolicy, ResponseWriter, TransportRequest};
+use crate::transport::{
+    AsyncExecutionError, AsyncResponseStaging, RawResponsePolicy, ResponseCompletion,
+    ResponseWriter, TransportRequest,
+};
 
 use super::AuthenticationScopePolicy;
 
@@ -71,21 +74,25 @@ pub trait BlockingAuthenticatedTransport {
     ) -> Result<(), Self::Error>;
 }
 
-/// Executor-neutral async transport requiring an authentication policy.
+/// Executor-neutral Send async transport requiring authentication policy.
+///
+/// Implementations stage responses without commit access. Callers use
+/// [`drive_async_authenticated`].
 pub trait AsyncAuthenticatedTransport {
     /// Transport-specific failure.
     type Error;
 
-    /// Validates scope and sends one authenticated request.
-    fn send_authenticated<'transport, 'request, 'policy, 'writer>(
+    /// Validates scope and stages one authenticated response.
+    fn send_authenticated<'transport, 'request, 'policy, 'writer, 'buffer>(
         &'transport self,
         request: AuthenticatedRequest<'request, 'policy>,
-        response: &'writer mut ResponseWriter<'_>,
-    ) -> impl Future<Output = Result<(), Self::Error>> + Send + 'writer
+        response: AsyncResponseStaging<'writer, 'buffer>,
+    ) -> impl Future<Output = Result<ResponseCompletion, Self::Error>> + Send + 'writer
     where
         'transport: 'writer,
         'request: 'writer,
-        'policy: 'writer;
+        'policy: 'writer,
+        'buffer: 'writer;
 }
 
 /// Executor-neutral authenticated transport for `!Send` local futures.
@@ -99,15 +106,66 @@ pub trait LocalAsyncAuthenticatedTransport {
     type Error;
 
     /// Validates scope and sends one authenticated request locally.
-    fn send_authenticated_local<'transport, 'request, 'policy, 'writer>(
+    fn send_authenticated_local<'transport, 'request, 'policy, 'writer, 'buffer>(
         &'transport self,
         request: AuthenticatedRequest<'request, 'policy>,
-        response: &'writer mut ResponseWriter<'_>,
-    ) -> impl Future<Output = Result<(), Self::Error>> + 'writer
+        response: AsyncResponseStaging<'writer, 'buffer>,
+    ) -> impl Future<Output = Result<ResponseCompletion, Self::Error>> + 'writer
     where
         'transport: 'writer,
         'request: 'writer,
-        'policy: 'writer;
+        'policy: 'writer,
+        'buffer: 'writer;
+}
+
+/// Drives one authenticated local attempt and commits after `Ready(Ok)`.
+pub async fn drive_local_authenticated<'transport, 'request, 'policy, 'writer, 'buffer, T>(
+    transport: &'transport T,
+    request: AuthenticatedRequest<'request, 'policy>,
+    response: &'writer mut ResponseWriter<'buffer>,
+) -> Result<(), AsyncExecutionError<T::Error>>
+where
+    T: LocalAsyncAuthenticatedTransport + ?Sized,
+    'transport: 'writer,
+    'request: 'writer,
+    'policy: 'writer,
+    'buffer: 'writer,
+{
+    let mut attempt = response
+        .begin_attempt()
+        .map_err(AsyncExecutionError::Response)?;
+    let completion = transport
+        .send_authenticated_local(request, attempt.staging())
+        .await
+        .map_err(AsyncExecutionError::Transport)?;
+    attempt
+        .commit_completion(completion)
+        .map_err(AsyncExecutionError::Response)
+}
+
+/// Drives one authenticated cross-thread async attempt and commits after `Ready(Ok)`.
+pub async fn drive_async_authenticated<'transport, 'request, 'policy, 'writer, 'buffer, T>(
+    transport: &'transport T,
+    request: AuthenticatedRequest<'request, 'policy>,
+    response: &'writer mut ResponseWriter<'buffer>,
+) -> Result<(), AsyncExecutionError<T::Error>>
+where
+    T: AsyncAuthenticatedTransport + ?Sized,
+    'transport: 'writer,
+    'request: 'writer,
+    'policy: 'writer,
+    'buffer: 'writer,
+{
+    let mut attempt = response
+        .begin_attempt()
+        .map_err(AsyncExecutionError::Response)?;
+    let completion = transport
+        .send_authenticated(request, attempt.staging())
+        .await
+        .map_err(AsyncExecutionError::Transport)?;
+    attempt
+        .commit_completion(completion)
+        .map_err(AsyncExecutionError::Response)
 }
 
 impl<T> LocalAsyncAuthenticatedTransport for T
@@ -116,16 +174,17 @@ where
 {
     type Error = T::Error;
 
-    fn send_authenticated_local<'transport, 'request, 'policy, 'writer>(
+    async fn send_authenticated_local<'transport, 'request, 'policy, 'writer, 'buffer>(
         &'transport self,
         request: AuthenticatedRequest<'request, 'policy>,
-        response: &'writer mut ResponseWriter<'_>,
-    ) -> impl Future<Output = Result<(), Self::Error>> + 'writer
+        response: AsyncResponseStaging<'writer, 'buffer>,
+    ) -> Result<ResponseCompletion, Self::Error>
     where
         'transport: 'writer,
         'request: 'writer,
         'policy: 'writer,
+        'buffer: 'writer,
     {
-        AsyncAuthenticatedTransport::send_authenticated(self, request, response)
+        AsyncAuthenticatedTransport::send_authenticated(self, request, response).await
     }
 }

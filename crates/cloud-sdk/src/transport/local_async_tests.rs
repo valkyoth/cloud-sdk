@@ -5,9 +5,9 @@ use core::task::{Context, Poll, Waker};
 use crate::Method;
 
 use super::{
-    ASYNC_CANCELLATION_DELIVERY_PHASE, AsyncTransport, DeliveryPhase, HeaderSensitivity,
-    LocalAsyncTransport, RequestTarget, ResponseBuffer, ResponseMetadata, ResponseWriter,
-    StatusCode, TransportRequest,
+    ASYNC_CANCELLATION_DELIVERY_PHASE, AsyncResponseStaging, AsyncTransport, DeliveryPhase,
+    HeaderSensitivity, LocalAsyncTransport, RequestTarget, ResponseBuffer, ResponseCompletion,
+    ResponseMetadata, StatusCode, TransportRequest, drive_async, drive_local,
 };
 
 struct PendingLocalTransport {
@@ -17,25 +17,29 @@ struct PendingLocalTransport {
 impl LocalAsyncTransport for PendingLocalTransport {
     type Error = ();
 
-    async fn send_local<'transport, 'request, 'writer>(
+    async fn send_local<'transport, 'request, 'writer, 'buffer>(
         &'transport self,
         _request: TransportRequest<'request>,
-        response: &'writer mut ResponseWriter<'_>,
-    ) -> Result<(), Self::Error>
+        mut response: AsyncResponseStaging<'writer, 'buffer>,
+    ) -> Result<ResponseCompletion, Self::Error>
     where
         'transport: 'writer,
         'request: 'writer,
+        'buffer: 'writer,
     {
         self.polls.set(self.polls.get().saturating_add(1));
-        let mut attempt = response.begin_attempt().map_err(|_| ())?;
-        attempt.body_mut().map_err(|_| ())?.fill(0x5a);
-        attempt
+        response.body_mut().map_err(|_| ())?.fill(0x5a);
+        response
             .headers_mut()
             .map_err(|_| ())?
             .try_push("x-secret", b"partial", HeaderSensitivity::Sensitive)
             .map_err(|_| ())?;
         pending::<()>().await;
-        Ok(())
+        Ok(ResponseCompletion::new(
+            StatusCode::OK,
+            2,
+            ResponseMetadata::EMPTY,
+        ))
     }
 }
 
@@ -55,7 +59,7 @@ fn local_async_cancellation_clears_partial_state_and_is_possibly_sent() {
     let mut headers = [0xa5_u8; 256];
     let mut response = ResponseBuffer::new(&mut body, 16, &mut headers);
     {
-        let future = LocalAsyncTransport::send_local(
+        let future = drive_local(
             &transport,
             TransportRequest::new(Method::Get, target),
             response.writer(),
@@ -96,14 +100,15 @@ struct CooperativeLocalTransport {
 impl LocalAsyncTransport for CooperativeLocalTransport {
     type Error = ();
 
-    async fn send_local<'transport, 'request, 'writer>(
+    async fn send_local<'transport, 'request, 'writer, 'buffer>(
         &'transport self,
         _request: TransportRequest<'request>,
-        response: &'writer mut ResponseWriter<'_>,
-    ) -> Result<(), Self::Error>
+        mut response: AsyncResponseStaging<'writer, 'buffer>,
+    ) -> Result<ResponseCompletion, Self::Error>
     where
         'transport: 'writer,
         'request: 'writer,
+        'buffer: 'writer,
     {
         let active = self.active.get().checked_add(1).ok_or(())?;
         self.active.set(active);
@@ -113,7 +118,7 @@ impl LocalAsyncTransport for CooperativeLocalTransport {
             active: &self.active,
         };
         YieldOnce { yielded: false }.await;
-        commit_ok(response)
+        stage_ok(&mut response)
     }
 }
 
@@ -151,12 +156,12 @@ fn local_async_allows_bounded_same_thread_concurrency() {
     let mut second_headers = [0_u8; 64];
     let mut second_response = ResponseBuffer::new(&mut second_body, 2, &mut second_headers);
     {
-        let first = LocalAsyncTransport::send_local(
+        let first = drive_local(
             &transport,
             TransportRequest::new(Method::Get, target),
             first_response.writer(),
         );
-        let second = LocalAsyncTransport::send_local(
+        let second = drive_local(
             &transport,
             TransportRequest::new(Method::Get, target),
             second_response.writer(),
@@ -200,16 +205,17 @@ struct SendTransport;
 impl AsyncTransport for SendTransport {
     type Error = ();
 
-    async fn send<'transport, 'request, 'writer>(
+    async fn send<'transport, 'request, 'writer, 'buffer>(
         &'transport self,
         _request: TransportRequest<'request>,
-        response: &'writer mut ResponseWriter<'_>,
-    ) -> Result<(), Self::Error>
+        mut response: AsyncResponseStaging<'writer, 'buffer>,
+    ) -> Result<ResponseCompletion, Self::Error>
     where
         'transport: 'writer,
         'request: 'writer,
+        'buffer: 'writer,
     {
-        commit_ok(response)
+        stage_ok(&mut response)
     }
 }
 
@@ -221,7 +227,7 @@ fn send_async_transports_automatically_satisfy_the_local_contract() {
     let mut body = [0_u8; 2];
     let mut headers = [0_u8; 64];
     let mut response = ResponseBuffer::new(&mut body, 2, &mut headers);
-    let future = LocalAsyncTransport::send_local(
+    let future = drive_local(
         &SendTransport,
         TransportRequest::new(Method::Get, target),
         response.writer(),
@@ -234,15 +240,73 @@ fn send_async_transports_automatically_satisfy_the_local_contract() {
     ));
 }
 
-fn commit_ok(response: &mut ResponseWriter<'_>) -> Result<(), ()> {
-    let mut attempt = response.begin_attempt().map_err(|_| ())?;
-    attempt
+struct StagedThenPendingSendTransport;
+
+impl AsyncTransport for StagedThenPendingSendTransport {
+    type Error = ();
+
+    async fn send<'transport, 'request, 'writer, 'buffer>(
+        &'transport self,
+        _request: TransportRequest<'request>,
+        mut response: AsyncResponseStaging<'writer, 'buffer>,
+    ) -> Result<ResponseCompletion, Self::Error>
+    where
+        'transport: 'writer,
+        'request: 'writer,
+        'buffer: 'writer,
+    {
+        response.body_mut().map_err(|_| ())?.fill(0x5a);
+        response
+            .headers_mut()
+            .map_err(|_| ())?
+            .try_push("x-secret", b"committed", HeaderSensitivity::Sensitive)
+            .map_err(|_| ())?;
+        pending::<()>().await;
+        Ok(ResponseCompletion::new(
+            StatusCode::OK,
+            2,
+            ResponseMetadata::EMPTY,
+        ))
+    }
+}
+
+#[test]
+fn send_driver_rolls_back_staging_when_cancelled() {
+    let Ok(target) = RequestTarget::new("/stage-then-pending") else {
+        return;
+    };
+    let mut body = [0xa5_u8; 16];
+    let mut headers = [0xa5_u8; 256];
+    let mut response = ResponseBuffer::new(&mut body, 16, &mut headers);
+    {
+        let future = drive_async(
+            &StagedThenPendingSendTransport,
+            TransportRequest::new(Method::Get, target),
+            response.writer(),
+        );
+        let mut future = core::pin::pin!(future);
+        let mut context = Context::from_waker(Waker::noop());
+        assert!(matches!(
+            Future::poll(future.as_mut(), &mut context),
+            Poll::Pending
+        ));
+    }
+    assert!(!response.writer().is_committed());
+    drop(response);
+    assert_eq!(body, [0_u8; 16]);
+    assert_eq!(headers, [0_u8; 256]);
+}
+
+fn stage_ok(response: &mut AsyncResponseStaging<'_, '_>) -> Result<ResponseCompletion, ()> {
+    response
         .body_mut()
         .map_err(|_| ())?
         .get_mut(..2)
         .ok_or(())?
         .copy_from_slice(b"ok");
-    attempt
-        .commit(StatusCode::OK, 2, ResponseMetadata::EMPTY)
-        .map_err(|_| ())
+    Ok(ResponseCompletion::new(
+        StatusCode::OK,
+        2,
+        ResponseMetadata::EMPTY,
+    ))
 }

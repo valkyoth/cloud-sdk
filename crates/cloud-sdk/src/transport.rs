@@ -12,7 +12,10 @@ mod response;
 mod retained;
 mod workspace;
 
-pub use asynchronous::{ASYNC_CANCELLATION_DELIVERY_PHASE, AsyncTransport, LocalAsyncTransport};
+pub use asynchronous::{
+    ASYNC_CANCELLATION_DELIVERY_PHASE, AsyncExecutionError, AsyncTransport, LocalAsyncTransport,
+    drive_async, drive_local,
+};
 pub use cleanup::ResponseStorageSanitizer;
 pub use content_type::{
     ContentType, ContentTypeError, MAX_CONTENT_TYPE_BYTES, MediaType, ResponseContentType,
@@ -35,7 +38,7 @@ pub use raw::{
     AsyncRawHttpExecutor, BlockingRawHttpExecutor, InformationalResponseError,
     InformationalResponseTracker, LocalAsyncRawHttpExecutor, MAX_INFORMATIONAL_RESPONSES,
     MAX_RAW_RESPONSE_BODY_BYTES, MAX_RESPONSE_CHUNKS, RawResponsePolicy, RawResponsePolicyError,
-    ResponseMediaPolicy, TrailerPolicy,
+    ResponseMediaPolicy, TrailerPolicy, drive_async_raw, drive_local_raw,
 };
 pub use request_target::{
     CanonicalQuery, FormQuery, MAX_REQUEST_TARGET_BYTES, ProviderLinkQuery, QueryPair, QueryPairs,
@@ -43,8 +46,8 @@ pub use request_target::{
     StructuredQueryError,
 };
 pub use response::{
-    ResponseAttempt, ResponseBuffer, ResponseMetadata, ResponseWriter, ResponseWriterError,
-    TransportResponse,
+    AsyncResponseStaging, ResponseAttempt, ResponseBuffer, ResponseCompletion, ResponseMetadata,
+    ResponseWriter, ResponseWriterError, TransportResponse,
 };
 pub use retained::{MAX_REQUEST_ID_BYTES, RetainedMetadataError, RetainedResponseMetadata};
 pub use workspace::{

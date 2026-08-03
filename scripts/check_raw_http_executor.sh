@@ -42,8 +42,11 @@ fi
 
 raw_engine=crates/cloud-sdk-reqwest/src/shared/raw_hyper.rs
 for required in \
-    'self.execute_inner(request, policy, None, response_writer)' \
-    'self.execute_inner(request, policy, Some(authorization), response_writer)' \
+    'pub(crate) trait RawResponseSink' \
+    'response: &mut impl RawResponseSink' \
+    'Result<ResponseCompletion, RawTransportFailure>' \
+    'self.execute_inner(request, policy, None, response)' \
+    'self.execute_inner(request, policy, Some(authorization), response)' \
     'authorization.set_sensitive(true)' \
     'headers.insert(AUTHORIZATION, authorization)'; do
     if ! grep -Fq "$required" "$raw_engine"; then
@@ -51,6 +54,35 @@ for required in \
         exit 1
     fi
 done
+if grep -Fq '.commit(' "$raw_engine"; then
+    echo "raw HTTP executor: raw engine can commit caller response storage" >&2
+    exit 1
+fi
+
+blocking_raw=crates/cloud-sdk-reqwest/src/blocking/raw.rs
+for required in \
+    '.begin_attempt()' \
+    '.commit_completion(completion)'; do
+    if ! grep -Fq "$required" "$blocking_raw"; then
+        echo "raw HTTP executor: blocking adapter does not own response commit" >&2
+        exit 1
+    fi
+done
+
+async_raw=crates/cloud-sdk-reqwest/src/asynchronous/raw.rs
+for required in \
+    'AsyncResponseStaging' \
+    'Result<ResponseCompletion, RawTransportFailure>'; do
+    if ! grep -Fq "$required" "$async_raw"; then
+        echo "raw HTTP executor: async adapter does not use staged completion" >&2
+        exit 1
+    fi
+done
+if grep -Fq 'ResponseWriter' "$async_raw"; then
+    echo "raw HTTP executor: async adapter received committing response access" >&2
+    exit 1
+fi
+
 for raw_client in \
     crates/cloud-sdk-reqwest/src/blocking/raw.rs \
     crates/cloud-sdk-reqwest/src/asynchronous/raw.rs; do

@@ -92,7 +92,7 @@ runtime dependency:
 # async fn example() {
 use cloud_sdk::Method;
 use cloud_sdk::transport::{
-    AsyncTransport, RequestTarget, ResponseBuffer, TransportRequest,
+    RequestTarget, ResponseBuffer, TransportRequest, drive_async,
 };
 use cloud_sdk_testkit::{
     ExpectedRequest, FixtureBody, MockExchange, MockTransport, ResponseFixture,
@@ -110,7 +110,7 @@ let output_capacity = output.len();
 let mut response_headers = [0_u8; cloud_sdk::transport::MAX_RESPONSE_HEADER_BYTES];
 let mut response =
     ResponseBuffer::new(&mut output, output_capacity, &mut response_headers);
-if AsyncTransport::send(
+if drive_async(
     &transport,
     TransportRequest::new(Method::Get, target),
     response.writer(),
@@ -129,10 +129,10 @@ assert!(response
 ```
 
 `LocalMockTransport` is deliberately `!Sync` and exercises the local async
-basic and authenticated contracts without a runtime. Use `send_local` or
+basic and authenticated contracts without a runtime. Use `drive_local` or
 `PreparedRequest::execute_local_async` to compile-check browser, embedded, and
 single-threaded workflows. Existing `MockTransport` automatically satisfies
-the local contract through its `Send` async implementation.
+the local contract through its transaction-wrapped `Send` async implementation.
 
 ## Raw Delivery Faults
 

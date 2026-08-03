@@ -15,8 +15,9 @@ use crate::authentication::{
 };
 use crate::operation::OperationId;
 use crate::transport::{
-    BoundTransport, EndpointIdentity, EndpointIdentityError, EndpointScheme, RawResponsePolicy,
-    RequestPath, RequestTarget, ResponseBuffer, ResponseMediaPolicy, ResponseWriter,
+    AsyncResponseStaging, BoundTransport, EndpointIdentity, EndpointIdentityError, EndpointScheme,
+    RawResponsePolicy, RequestPath, RequestTarget, ResponseBuffer, ResponseCompletion,
+    ResponseMediaPolicy, ResponseMetadata, ResponseWriter, StatusCode,
 };
 
 struct TestTransport {
@@ -52,6 +53,13 @@ impl TestTransport {
         assert_eq!(output, [0xa5; 128]);
         self.calls.fetch_add(1, Ordering::Relaxed);
     }
+
+    fn commit_empty(response: &mut ResponseWriter<'_>) -> Result<(), &'static str> {
+        let mut attempt = response.begin_attempt().map_err(|_| "response rejected")?;
+        attempt
+            .commit(StatusCode::NO_CONTENT, 0, ResponseMetadata::EMPTY)
+            .map_err(|_| "response rejected")
+    }
 }
 
 impl BlockingAuthenticatedTransport for TestTransport {
@@ -60,13 +68,13 @@ impl BlockingAuthenticatedTransport for TestTransport {
     fn send_authenticated(
         &self,
         request: AuthenticatedRequest<'_, '_>,
-        _response: &mut ResponseWriter<'_>,
+        response: &mut ResponseWriter<'_>,
     ) -> Result<(), Self::Error> {
         self.record(request);
         if self.fail {
             Err("secret transport detail")
         } else {
-            Ok(())
+            Self::commit_empty(response)
         }
     }
 }
@@ -74,21 +82,26 @@ impl BlockingAuthenticatedTransport for TestTransport {
 impl AsyncAuthenticatedTransport for TestTransport {
     type Error = &'static str;
 
-    async fn send_authenticated<'transport, 'request, 'policy, 'writer>(
+    async fn send_authenticated<'transport, 'request, 'policy, 'writer, 'buffer>(
         &'transport self,
         request: AuthenticatedRequest<'request, 'policy>,
-        _response: &'writer mut ResponseWriter<'_>,
-    ) -> Result<(), Self::Error>
+        _response: AsyncResponseStaging<'writer, 'buffer>,
+    ) -> Result<ResponseCompletion, Self::Error>
     where
         'transport: 'writer,
         'request: 'writer,
         'policy: 'writer,
+        'buffer: 'writer,
     {
         self.record(request);
         if self.fail {
             Err("secret transport detail")
         } else {
-            Ok(())
+            Ok(ResponseCompletion::new(
+                StatusCode::NO_CONTENT,
+                0,
+                ResponseMetadata::EMPTY,
+            ))
         }
     }
 }

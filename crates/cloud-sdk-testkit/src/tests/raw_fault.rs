@@ -1,8 +1,7 @@
 use cloud_sdk::Method;
 use cloud_sdk::transport::{
-    AsyncRawHttpExecutor, BlockingRawHttpExecutor, DeliveryPhase, LocalAsyncRawHttpExecutor,
-    MediaType, RawResponsePolicy, RequestTarget, ResponseBuffer, ResponseMediaPolicy,
-    TransportRequest,
+    AsyncExecutionError, BlockingRawHttpExecutor, DeliveryPhase, MediaType, RawResponsePolicy,
+    RequestTarget, ResponseBuffer, ResponseMediaPolicy, TransportRequest, drive_async_raw,
 };
 use core::future::Future;
 use core::task::{Context, Poll, Waker};
@@ -57,7 +56,7 @@ fn async_unknown_fault_is_immediately_possibly_sent() {
     let mut body = [0xa5_u8; 1];
     let mut headers = [0xa5_u8; 32];
     let mut response = ResponseBuffer::new(&mut body, 1, &mut headers);
-    let future = AsyncRawHttpExecutor::execute(
+    let future = drive_async_raw(
         &executor,
         TransportRequest::new(Method::Get, target),
         policy,
@@ -68,7 +67,8 @@ fn async_unknown_fault_is_immediately_possibly_sent() {
     let mut context = Context::from_waker(waker);
     assert!(matches!(
         Future::poll(future.as_mut(), &mut context),
-        Poll::Ready(Err(error)) if error.phase() == DeliveryPhase::PossiblySent
+        Poll::Ready(Err(AsyncExecutionError::Transport(error)))
+            if error.phase() == DeliveryPhase::PossiblySent
     ));
 }
 
@@ -82,7 +82,7 @@ fn send_raw_executor_automatically_satisfies_local_async() {
     let mut body = [0xa5_u8; 1];
     let mut headers = [0xa5_u8; 32];
     let mut response = ResponseBuffer::new(&mut body, 1, &mut headers);
-    let future = LocalAsyncRawHttpExecutor::execute_local(
+    let future = cloud_sdk::transport::drive_local_raw(
         &executor,
         TransportRequest::new(Method::Get, target),
         policy,
@@ -92,6 +92,7 @@ fn send_raw_executor_automatically_satisfies_local_async() {
     let mut context = Context::from_waker(Waker::noop());
     assert!(matches!(
         Future::poll(future.as_mut(), &mut context),
-        Poll::Ready(Err(error)) if error.phase() == DeliveryPhase::NotSent
+        Poll::Ready(Err(AsyncExecutionError::Transport(error)))
+            if error.phase() == DeliveryPhase::NotSent
     ));
 }

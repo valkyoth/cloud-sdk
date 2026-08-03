@@ -1,8 +1,8 @@
 //! Local asynchronous prepared-request execution.
 
 use super::{CheckedResponseGuard, PreparedExecutionError, PreparedRequest};
-use crate::authentication::LocalAsyncAuthenticatedTransport;
-use crate::transport::{BoundTransport, ResponseBuffer};
+use crate::authentication::{LocalAsyncAuthenticatedTransport, drive_local_authenticated};
+use crate::transport::{AsyncExecutionError, BoundTransport, ResponseBuffer};
 
 impl<'request> PreparedRequest<'request> {
     /// Verifies endpoint identity, executes once on a local async transport,
@@ -33,14 +33,17 @@ impl<'request> PreparedRequest<'request> {
             .endpoint_policy()
             .verify(actual)
             .map_err(|_| PreparedExecutionError::EndpointMismatch)?;
-        LocalAsyncAuthenticatedTransport::send_authenticated_local(
-            transport,
-            self.authenticated_request(),
-            response.writer(),
-        )
-        .await
-        .map_err(PreparedExecutionError::Transport)?;
+        drive_local_authenticated(transport, self.authenticated_request(), response.writer())
+            .await
+            .map_err(map_local_error)?;
         self.validate_response(response)
             .map_err(PreparedExecutionError::ResponsePolicy)
+    }
+}
+
+fn map_local_error<E>(error: AsyncExecutionError<E>) -> PreparedExecutionError<E> {
+    match error {
+        AsyncExecutionError::Transport(error) => PreparedExecutionError::Transport(error),
+        AsyncExecutionError::Response(error) => PreparedExecutionError::ResponseWriter(error),
     }
 }

@@ -1727,13 +1727,17 @@ Goal: support `!Send` browser-WASM, embedded, and single-threaded executors.
 Deliverables: `LocalAsyncTransport`, `LocalAsyncAuthenticatedTransport`, and
 `LocalAsyncRawHttpExecutor` beside their cross-thread contracts; automatic
 local compatibility for existing `Send` implementations; local prepared,
-provider-link, and one-use retry-permit execution; an explicit
-possibly-sent cancellation classification; mandatory uncommitted response
-cleanup; a deliberately `!Sync` no-allocation testkit mock; and no allocator,
-runtime, task, clock, or executor ownership.
+provider-link, and one-use retry-permit execution; one non-committing
+`AsyncResponseStaging` and returned `ResponseCompletion` contract for Send and
+local futures; SDK-owned drivers that commit only after `Ready(Ok)`; an explicit
+possibly-sent cancellation classification; rollback of partial state; a deliberately
+`!Sync` no-allocation testkit mock; and no allocator, runtime, task, clock, or
+executor ownership.
 
 Verification: genuinely `!Send` compile evidence, cross-thread blanket
-adaptation, partial-secret dropped-future cleanup, possibly-sent cancellation,
+adaptation, Send/local partial-secret dropped-future cleanup and compile-fail
+proof that implementations cannot commit,
+possibly-sent cancellation,
 sequential and cooperatively outstanding local futures, prepared request,
 provider-link, raw-executor, and retry-permit conformance, browser-WASM,
 embedded and complete portable compile matrices, doctests, and

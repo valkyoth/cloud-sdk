@@ -39,7 +39,7 @@ provider without adding transport dependencies to provider crates.
 ```toml
 [dependencies]
 cloud-sdk = "0.47.0"
-cloud-sdk-reqwest = { version = "0.31.2", features = ["blocking-rustls"] }
+cloud-sdk-reqwest = { version = "0.32.0", features = ["blocking-rustls"] }
 ```
 
 The examples use Hetzner as a concrete endpoint, but the adapter contains no
@@ -318,7 +318,7 @@ compiled into `webpki-roots`:
 ```toml
 [dependencies]
 cloud-sdk = "0.47.0"
-cloud-sdk-reqwest = { version = "0.31.2", features = ["blocking-rustls-webpki-roots"] }
+cloud-sdk-reqwest = { version = "0.32.0", features = ["blocking-rustls-webpki-roots"] }
 ```
 
 The blocking API is identical to the example above. The custom rustls client
@@ -335,7 +335,7 @@ Use the same blocking API with the dedicated feature:
 ```toml
 [dependencies]
 cloud-sdk = "0.47.0"
-cloud-sdk-reqwest = { version = "0.31.2", features = ["blocking-rustls-fips"] }
+cloud-sdk-reqwest = { version = "0.32.0", features = ["blocking-rustls-fips"] }
 rustls = "=0.23.43"
 ```
 
@@ -389,8 +389,8 @@ use std::time::Duration;
 
 use cloud_sdk::{Method, ProviderId, ServiceId};
 use cloud_sdk::authentication::{
-    AsyncAuthenticatedTransport, AuthenticatedRequest,
-    AuthenticationScopePolicy, ScopeRequirement,
+    AuthenticatedRequest, AuthenticationScopePolicy, ScopeRequirement,
+    drive_async_authenticated,
 };
 use cloud_sdk::transport::{
     HeaderName, MediaType, RawResponsePolicy, RequestTarget, ResponseBuffer,
@@ -457,7 +457,7 @@ let mut response = ResponseBuffer::new(
     response_capacity,
     &mut response_headers,
 );
-if AsyncAuthenticatedTransport::send_authenticated(
+if drive_async_authenticated(
     &client,
     request,
     response.writer(),

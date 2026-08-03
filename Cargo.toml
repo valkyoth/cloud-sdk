@@ -48,7 +48,7 @@ hyper-rustls = { version = "0.27.9", default-features = false }
 hyper-util = { version = "0.1.20", default-features = false }
 cloud-sdk = { path = "crates/cloud-sdk", version = "0.47.0", default-features = false }
 cloud-sdk-hetzner = { path = "crates/cloud-sdk-hetzner", version = "0.36.1" }
-cloud-sdk-reqwest = { path = "crates/cloud-sdk-reqwest", version = "0.31.2" }
+cloud-sdk-reqwest = { path = "crates/cloud-sdk-reqwest", version = "0.32.0" }
 cloud-sdk-sanitization = { path = "crates/cloud-sdk-sanitization", version = "0.16.0", default-features = false }
 cloud-sdk-testkit = { path = "crates/cloud-sdk-testkit", version = "0.27.0" }
 reqwest = { version = "=0.13.4", default-features = false }

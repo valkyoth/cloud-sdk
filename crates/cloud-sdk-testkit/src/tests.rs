@@ -1,9 +1,8 @@
 use alloc::format;
 use cloud_sdk::Method;
 use cloud_sdk::transport::{
-    AsyncTransport, BlockingTransport, CanonicalQuery, FormQuery, RequestPath, RequestQuery,
-    RequestTarget, ResponseBuffer, ResponseMetadata, StatusCode, TransportRequest,
-    TransportResponse,
+    BlockingTransport, CanonicalQuery, FormQuery, RequestPath, RequestQuery, RequestTarget,
+    ResponseBuffer, ResponseMetadata, StatusCode, TransportRequest, TransportResponse, drive_async,
 };
 use core::future::Future;
 use core::task::{Context, Poll, Waker};
@@ -336,7 +335,7 @@ fn async_mock_transport_matches_blocking_behavior_without_an_executor() {
         let mut headers = [0_u8; 8192];
         let mut response_buffer = ResponseBuffer::new(&mut output, 32, &mut headers);
         {
-            let future = AsyncTransport::send(
+            let future = drive_async(
                 &transport,
                 TransportRequest::new(Method::Get, target),
                 response_buffer.writer(),
@@ -370,7 +369,7 @@ fn dropping_unpolled_async_mock_does_not_consume_or_write() {
         let mut headers = [0xa5_u8; 8192];
         {
             let mut response_buffer = ResponseBuffer::new(&mut output, 16, &mut headers);
-            let future = AsyncTransport::send(
+            let future = drive_async(
                 &transport,
                 TransportRequest::new(Method::Get, target),
                 response_buffer.writer(),

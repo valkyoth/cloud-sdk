@@ -62,7 +62,7 @@ for required in \
     fi
 done
 for required in \
-    'response_writer.headers_mut()' \
+    'sink.headers_mut()' \
     'inspect_response_head('; do
     if ! grep -Fq "$required" "$raw_engine"; then
         echo "header model: raw adapter response capture is incomplete" >&2

@@ -1,7 +1,7 @@
 use super::{
-    ContentType, ContentTypeError, RequestPathError, RequestTarget, RequestTargetError,
-    ResponseBuffer, ResponseContentType, ResponseMetadata, ResponseStorageSanitizer,
-    ResponseWriter, StatusCode, TransportRequest,
+    AsyncResponseStaging, ContentType, ContentTypeError, RequestPathError, RequestTarget,
+    RequestTargetError, ResponseBuffer, ResponseCompletion, ResponseContentType, ResponseMetadata,
+    ResponseStorageSanitizer, ResponseWriter, StatusCode, TransportRequest, drive_async,
 };
 use crate::Method;
 use crate::rate_limit::RateLimit;
@@ -247,22 +247,28 @@ impl AsyncTransport for SequentialAsyncTransport {
 
     // Avoid capturing the deliberately non-Sync receiver in the Send future.
     #[allow(clippy::manual_async_fn)]
-    fn send<'transport, 'request, 'writer>(
+    fn send<'transport, 'request, 'writer, 'buffer>(
         &'transport self,
         _request: TransportRequest<'request>,
-        response: &'writer mut ResponseWriter<'_>,
-    ) -> impl Future<Output = Result<(), Self::Error>> + Send + 'writer
+        mut response: AsyncResponseStaging<'writer, 'buffer>,
+    ) -> impl Future<Output = Result<ResponseCompletion, Self::Error>> + Send + 'writer
     where
         'transport: 'writer,
         'request: 'writer,
+        'buffer: 'writer,
     {
         async move {
-            let mut attempt = response.begin_attempt().map_err(|_| ())?;
-            let output = attempt.body_mut().map_err(|_| ())?.get_mut(..2).ok_or(())?;
+            let output = response
+                .body_mut()
+                .map_err(|_| ())?
+                .get_mut(..2)
+                .ok_or(())?;
             output.copy_from_slice(b"ok");
-            attempt
-                .commit(StatusCode::OK, 2, ResponseMetadata::EMPTY)
-                .map_err(|_| ())
+            Ok(ResponseCompletion::new(
+                StatusCode::OK,
+                2,
+                ResponseMetadata::EMPTY,
+            ))
         }
     }
 }
@@ -294,7 +300,7 @@ fn non_sync_transports_remain_usable_sequentially() {
     let mut async_headers = [0_u8; 8192];
     let mut async_response = ResponseBuffer::new(&mut async_output, 2, &mut async_headers);
     {
-        let future = AsyncTransport::send(&asynchronous, request, async_response.writer());
+        let future = drive_async(&asynchronous, request, async_response.writer());
         let mut future = core::pin::pin!(future);
         let waker = Waker::noop();
         let mut context = Context::from_waker(waker);

@@ -1,18 +1,21 @@
 //! Deterministic no-allocation mock transport.
 
-use core::cell::Cell;
+mod local;
+
+pub use local::LocalMockTransport;
+
 use core::fmt;
 use core::sync::atomic::{AtomicUsize, Ordering};
 
 use cloud_sdk::Method;
 use cloud_sdk::authentication::{
     AsyncAuthenticatedTransport, AuthenticatedRequest, BlockingAuthenticatedTransport,
-    LocalAsyncAuthenticatedTransport,
 };
 use cloud_sdk::transport::{
-    AsyncTransport, BlockingTransport, BoundTransport, EndpointIdentity, EndpointIdentityError,
-    HeaderSensitivity, LocalAsyncTransport, RequestHeaders, RequestTarget, ResponseContentType,
-    ResponseHeaders, ResponseMetadata, ResponseWriter, TransportRequest,
+    AsyncResponseStaging, AsyncTransport, BlockingTransport, BoundTransport, EndpointIdentity,
+    EndpointIdentityError, HeaderSensitivity, RequestHeaders, RequestTarget, ResponseAttempt,
+    ResponseCompletion, ResponseContentType, ResponseHeaders, ResponseMetadata, ResponseWriter,
+    TransportRequest,
 };
 
 use crate::{FixtureBodyError, ResponseFixture};
@@ -184,6 +187,17 @@ impl<'a> MockTransport<'a> {
         let mut response = response
             .begin_attempt()
             .map_err(|_| MockError::ResponseWriterRejected)?;
+        let completion = self.stage_inner(request, &mut response)?;
+        response
+            .commit_completion(completion)
+            .map_err(|_| MockError::ResponseWriterRejected)
+    }
+
+    fn stage_inner<'buffer>(
+        &self,
+        request: TransportRequest<'_>,
+        response: &mut impl MockResponseSink<'buffer>,
+    ) -> Result<ResponseCompletion, MockError> {
         let cursor = self.cursor.load(Ordering::Acquire);
         let exchange = self.exchanges.get(cursor).ok_or(MockError::Exhausted)?;
         if request.method() != exchange.request.method() {
@@ -252,9 +266,36 @@ impl<'a> MockTransport<'a> {
         self.cursor
             .compare_exchange(cursor, next_cursor, Ordering::AcqRel, Ordering::Acquire)
             .map_err(|_| MockError::ConcurrentRequest)?;
-        response
-            .commit(exchange.response.status(), body_len, metadata)
-            .map_err(|_| MockError::ResponseWriterRejected)
+        Ok(ResponseCompletion::new(
+            exchange.response.status(),
+            body_len,
+            metadata,
+        ))
+    }
+}
+
+trait MockResponseSink<'buffer> {
+    fn body_mut(&mut self) -> Result<&mut [u8], MockError>;
+    fn headers_mut(&mut self) -> Result<&mut ResponseHeaders<'buffer>, MockError>;
+}
+
+impl<'buffer> MockResponseSink<'buffer> for ResponseAttempt<'_, 'buffer> {
+    fn body_mut(&mut self) -> Result<&mut [u8], MockError> {
+        ResponseAttempt::body_mut(self).map_err(|_| MockError::ResponseWriterRejected)
+    }
+
+    fn headers_mut(&mut self) -> Result<&mut ResponseHeaders<'buffer>, MockError> {
+        ResponseAttempt::headers_mut(self).map_err(|_| MockError::ResponseWriterRejected)
+    }
+}
+
+impl<'buffer> MockResponseSink<'buffer> for AsyncResponseStaging<'_, 'buffer> {
+    fn body_mut(&mut self) -> Result<&mut [u8], MockError> {
+        AsyncResponseStaging::body_mut(self).map_err(|_| MockError::ResponseWriterRejected)
+    }
+
+    fn headers_mut(&mut self) -> Result<&mut ResponseHeaders<'buffer>, MockError> {
+        AsyncResponseStaging::headers_mut(self).map_err(|_| MockError::ResponseWriterRejected)
     }
 }
 
@@ -329,33 +370,35 @@ impl BlockingAuthenticatedTransport for MockTransport<'_> {
 impl AsyncTransport for MockTransport<'_> {
     type Error = MockError;
 
-    async fn send<'transport, 'request, 'writer>(
+    async fn send<'transport, 'request, 'writer, 'buffer>(
         &'transport self,
         request: TransportRequest<'request>,
-        response: &'writer mut ResponseWriter<'_>,
-    ) -> Result<(), Self::Error>
+        mut response: AsyncResponseStaging<'writer, 'buffer>,
+    ) -> Result<ResponseCompletion, Self::Error>
     where
         'transport: 'writer,
         'request: 'writer,
+        'buffer: 'writer,
     {
-        self.send_inner(request, response)
+        self.stage_inner(request, &mut response)
     }
 }
 
 impl AsyncAuthenticatedTransport for MockTransport<'_> {
     type Error = MockError;
 
-    async fn send_authenticated<'transport, 'request, 'policy, 'writer>(
+    async fn send_authenticated<'transport, 'request, 'policy, 'writer, 'buffer>(
         &'transport self,
         request: AuthenticatedRequest<'request, 'policy>,
-        response: &'writer mut ResponseWriter<'_>,
-    ) -> Result<(), Self::Error>
+        mut response: AsyncResponseStaging<'writer, 'buffer>,
+    ) -> Result<ResponseCompletion, Self::Error>
     where
         'transport: 'writer,
         'request: 'writer,
         'policy: 'writer,
+        'buffer: 'writer,
     {
-        self.send_inner(request.transport_request(), response)
+        self.stage_inner(request.transport_request(), &mut response)
     }
 }
 
@@ -369,102 +412,6 @@ impl fmt::Debug for MockTransport<'_> {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter
             .debug_struct("MockTransport")
-            .field("remaining", &self.remaining())
-            .finish_non_exhaustive()
-    }
-}
-
-/// Ordered mock transport whose futures are intentionally local-only.
-///
-/// The `Cell` marker makes this type `!Sync`, so futures borrowing it cannot be
-/// sent between threads. It exercises browser, embedded, and single-threaded
-/// executor integrations without adding an allocator or runtime dependency.
-///
-/// ```compile_fail
-/// use cloud_sdk_testkit::LocalMockTransport;
-/// fn require_sync<T: Sync>() {}
-/// require_sync::<LocalMockTransport<'static>>();
-/// ```
-pub struct LocalMockTransport<'a> {
-    inner: MockTransport<'a>,
-    local_marker: Cell<()>,
-}
-
-impl<'a> LocalMockTransport<'a> {
-    /// Creates a local-only mock over an ordered exchange slice.
-    #[must_use]
-    pub const fn new(exchanges: &'a [MockExchange<'a>]) -> Self {
-        Self {
-            inner: MockTransport::new(exchanges),
-            local_marker: Cell::new(()),
-        }
-    }
-
-    /// Binds the mock permanently to one normalized endpoint identity.
-    #[must_use]
-    pub const fn with_endpoint(mut self, endpoint: EndpointIdentity<'a>) -> Self {
-        self.inner = self.inner.with_endpoint(endpoint);
-        self
-    }
-
-    /// Returns the number of exchanges not yet consumed.
-    #[must_use]
-    pub fn remaining(&self) -> usize {
-        self.inner.remaining()
-    }
-
-    /// Reports whether every expected exchange was consumed.
-    #[must_use]
-    pub fn is_complete(&self) -> bool {
-        self.inner.is_complete()
-    }
-}
-
-impl LocalAsyncTransport for LocalMockTransport<'_> {
-    type Error = MockError;
-
-    async fn send_local<'transport, 'request, 'writer>(
-        &'transport self,
-        request: TransportRequest<'request>,
-        response: &'writer mut ResponseWriter<'_>,
-    ) -> Result<(), Self::Error>
-    where
-        'transport: 'writer,
-        'request: 'writer,
-    {
-        self.local_marker.get();
-        self.inner.send_inner(request, response)
-    }
-}
-
-impl LocalAsyncAuthenticatedTransport for LocalMockTransport<'_> {
-    type Error = MockError;
-
-    async fn send_authenticated_local<'transport, 'request, 'policy, 'writer>(
-        &'transport self,
-        request: AuthenticatedRequest<'request, 'policy>,
-        response: &'writer mut ResponseWriter<'_>,
-    ) -> Result<(), Self::Error>
-    where
-        'transport: 'writer,
-        'request: 'writer,
-        'policy: 'writer,
-    {
-        self.local_marker.get();
-        self.inner.send_inner(request.transport_request(), response)
-    }
-}
-
-impl BoundTransport for LocalMockTransport<'_> {
-    fn endpoint_identity(&self) -> Result<EndpointIdentity<'_>, EndpointIdentityError> {
-        self.inner.endpoint_identity()
-    }
-}
-
-impl fmt::Debug for LocalMockTransport<'_> {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        formatter
-            .debug_struct("LocalMockTransport")
             .field("remaining", &self.remaining())
             .finish_non_exhaustive()
     }

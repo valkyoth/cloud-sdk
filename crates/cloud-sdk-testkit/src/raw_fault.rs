@@ -1,8 +1,8 @@
 //! Deterministic delivery-phase fault injection for raw executors.
 
 use cloud_sdk::transport::{
-    AsyncRawHttpExecutor, BlockingRawHttpExecutor, RawResponsePolicy, ResponseWriter,
-    TransportFailure, TransportRequest,
+    AsyncRawHttpExecutor, AsyncResponseStaging, BlockingRawHttpExecutor, RawResponsePolicy,
+    ResponseCompletion, ResponseWriter, TransportFailure, TransportRequest,
 };
 
 /// Failure point injected by [`RawFaultExecutor`].
@@ -69,16 +69,17 @@ impl BlockingRawHttpExecutor for RawFaultExecutor {
 impl AsyncRawHttpExecutor for RawFaultExecutor {
     type Error = TransportFailure<RawFaultError>;
 
-    async fn execute<'executor, 'request, 'policy, 'writer>(
+    async fn execute<'executor, 'request, 'policy, 'writer, 'buffer>(
         &'executor self,
         _request: TransportRequest<'request>,
         _policy: RawResponsePolicy<'policy>,
-        _response: &'writer mut ResponseWriter<'_>,
-    ) -> Result<(), Self::Error>
+        _response: AsyncResponseStaging<'writer, 'buffer>,
+    ) -> Result<ResponseCompletion, Self::Error>
     where
         'executor: 'writer,
         'request: 'writer,
         'policy: 'writer,
+        'buffer: 'writer,
     {
         Err(self.failure())
     }

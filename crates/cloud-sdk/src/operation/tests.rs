@@ -13,9 +13,9 @@ use crate::authentication::{
     BlockingAuthenticatedTransport, ScopeRequirement,
 };
 use crate::transport::{
-    BoundTransport, EndpointIdentity, EndpointIdentityError, EndpointPolicy, EndpointScheme,
-    HeaderName, MediaType, RawResponsePolicy, RequestTarget, ResponseMediaPolicy, ResponseMetadata,
-    ResponseWriter, StatusCode, TransportRequest,
+    AsyncResponseStaging, BoundTransport, EndpointIdentity, EndpointIdentityError, EndpointPolicy,
+    EndpointScheme, HeaderName, MediaType, RawResponsePolicy, RequestTarget, ResponseCompletion,
+    ResponseMediaPolicy, ResponseMetadata, ResponseWriter, StatusCode, TransportRequest,
 };
 use crate::{
     Method, ProviderId, ProviderMarker, ServiceId, ServiceMarker, provider_id, service_id,
@@ -372,17 +372,40 @@ impl BlockingAuthenticatedTransport for RecordingTransport {
 impl AsyncAuthenticatedTransport for RecordingTransport {
     type Error = ();
 
-    async fn send_authenticated<'transport, 'request, 'policy, 'writer>(
+    async fn send_authenticated<'transport, 'request, 'policy, 'writer, 'buffer>(
         &'transport self,
         _request: AuthenticatedRequest<'request, 'policy>,
-        response: &'writer mut ResponseWriter<'_>,
-    ) -> Result<(), Self::Error>
+        mut response: AsyncResponseStaging<'writer, 'buffer>,
+    ) -> Result<ResponseCompletion, Self::Error>
     where
         'transport: 'writer,
         'request: 'writer,
         'policy: 'writer,
+        'buffer: 'writer,
     {
-        self.send_inner(response)
+        self.calls.fetch_add(1, Ordering::AcqRel);
+        self.last_capacity
+            .store(response.body_capacity(), Ordering::Release);
+        response
+            .body_mut()
+            .map_err(|_| ())?
+            .get_mut(..2)
+            .ok_or(())?
+            .copy_from_slice(b"{}");
+        response
+            .headers_mut()
+            .map_err(|_| ())?
+            .try_push(
+                "content-type",
+                b"application/json",
+                crate::transport::HeaderSensitivity::Public,
+            )
+            .map_err(|_| ())?;
+        Ok(ResponseCompletion::new(
+            StatusCode::OK,
+            2,
+            ResponseMetadata::EMPTY,
+        ))
     }
 }
 

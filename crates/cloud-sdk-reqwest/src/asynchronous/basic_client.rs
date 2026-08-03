@@ -3,8 +3,8 @@ use std::sync::Arc;
 
 use cloud_sdk::authentication::{AsyncAuthenticatedTransport, AuthenticatedRequest};
 use cloud_sdk::transport::{
-    BoundTransport, EndpointIdentity, EndpointIdentityError, ResponseStorageSanitizer,
-    ResponseWriter, TransportFailure,
+    AsyncResponseStaging, BoundTransport, EndpointIdentity, EndpointIdentityError,
+    ResponseCompletion, ResponseStorageSanitizer, TransportFailure,
 };
 use cloud_sdk_sanitization::sanitize_bytes;
 
@@ -39,11 +39,11 @@ impl AsyncBasicClient {
         }
     }
 
-    async fn send_inner(
+    async fn send_inner<'writer, 'buffer>(
         &self,
         authenticated: AuthenticatedRequest<'_, '_>,
-        response: &mut ResponseWriter<'_>,
-    ) -> Result<(), AuthenticatedTransportFailure> {
+        response: AsyncResponseStaging<'writer, 'buffer>,
+    ) -> Result<ResponseCompletion, AuthenticatedTransportFailure> {
         let endpoint = self.endpoint.identity().map_err(|_| {
             TransportFailure::not_sent(TransportError::AuthenticationEndpointMismatch)
         })?;
@@ -73,15 +73,16 @@ impl AsyncBasicClient {
 impl AsyncAuthenticatedTransport for AsyncBasicClient {
     type Error = AuthenticatedTransportFailure;
 
-    async fn send_authenticated<'transport, 'request, 'policy, 'writer>(
+    async fn send_authenticated<'transport, 'request, 'policy, 'writer, 'buffer>(
         &'transport self,
         request: AuthenticatedRequest<'request, 'policy>,
-        response: &'writer mut ResponseWriter<'_>,
-    ) -> Result<(), Self::Error>
+        response: AsyncResponseStaging<'writer, 'buffer>,
+    ) -> Result<ResponseCompletion, Self::Error>
     where
         'transport: 'writer,
         'request: 'writer,
         'policy: 'writer,
+        'buffer: 'writer,
     {
         self.send_inner(request, response).await
     }

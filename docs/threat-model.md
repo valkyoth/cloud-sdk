@@ -130,10 +130,10 @@
   authority, rustls with TLS 1.2 minimum, explicit bounded timeouts, no
   redirects, retries, proxies, referers, or decompression, and caller-bounded
   responses;
-- local async contracts permit `!Send` futures without weakening endpoint,
-  authentication, response, or cleanup policy; cancellation leaves no
-  committed response but is conservatively possibly sent and never proves a
-  mutation can be repeated;
+- Send and local async contracts expose only non-committing response staging;
+  SDK drivers commit after `Ready(Ok)`, cancellation leaves no committed
+  response, remains conservatively possibly sent, and never proves a mutation
+  can be repeated;
 - transport sends use shared references; cloneable reqwest clients take an
   atomic token snapshot under a short-lived lock, release it before I/O or
   `.await`, retain old snapshots only for in-flight requests, and sanitize

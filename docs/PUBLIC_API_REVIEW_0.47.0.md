@@ -7,11 +7,13 @@ Scope: provider-neutral local asynchronous execution and cancellation policy.
 ## Added API
 
 `LocalAsyncTransport`, `LocalAsyncAuthenticatedTransport`, and
-`LocalAsyncRawHttpExecutor` mirror the existing cross-thread contracts without
-requiring returned futures to implement `Send`. Their methods are explicitly
-named `send_local`, `send_authenticated_local`, and `execute_local` to avoid
-ambiguous method resolution when a cross-thread implementation also receives
-the local blanket implementation.
+`LocalAsyncRawHttpExecutor` accept non-committing `AsyncResponseStaging` and
+return `ResponseCompletion` without requiring returned futures to implement
+`Send`. The existing Send async traits now use the same staging and completion
+types. `drive_async`, `drive_async_authenticated`, `drive_async_raw`, and their
+local counterparts own the cleanup transaction and perform final commitment
+after `Ready(Ok)`. `AsyncExecutionError<E>` separates transport failure from
+SDK response-transaction failure.
 
 `PreparedRequest::execute_local_async`,
 `ValidatedProviderLink::execute_local_async`, and
@@ -24,26 +26,30 @@ no-allocation, intentionally `!Sync` basic and authenticated fixture.
 
 ## Compatibility
 
-Blanket implementations adapt every `AsyncTransport`,
+Blanket implementations adapt every updated `AsyncTransport`,
 `AsyncAuthenticatedTransport`, and `AsyncRawHttpExecutor` to its local
-counterpart. Existing downstream implementations require no source change.
+counterpart. Downstream Send async implementations must migrate from
+`ResponseWriter` plus `Result<(), E>` to `AsyncResponseStaging` plus
+`Result<ResponseCompletion, E>` and callers must use the corresponding driver.
 No blanket implementation converts local futures into `Send` futures.
 
-Blocking and cross-thread method signatures are unchanged. Reqwest remains a
-Tokio-backed cross-thread adapter and receives local compatibility through the
-blanket implementation; no executor or browser support is implied.
+Blocking method signatures are unchanged. Reqwest remains a Tokio-backed
+cross-thread adapter and receives local compatibility through the blanket
+implementation; no executor or browser support is implied.
 
 ## Cancellation And Cleanup
 
-Dropping a local or cross-thread future cancels observation but cannot prove
-that request bytes were not delivered. The response remains uncommitted.
-Implementations must hold a cleanup-owning `ResponseAttempt` while mutating
-body or header storage; cancellation drops that guard and clears partial
-state. Prepared execution additionally owns a cleanup-owning `ResponseBuffer`.
+Dropping any async driver future cancels observation but cannot prove that
+request bytes were not delivered. Implementations cannot access `commit()`.
+Core holds a cleanup-owning `ResponseAttempt` while the implementation mutates
+body or header staging, and commits returned completion metadata only after
+success. Send and local implementations have no safe access to that attempt or
+its commit operation.
 
 Regression tests poll a genuinely local future until it writes sensitive body
 and header bytes, drop it while pending, and prove the next attempt observes
-cleared storage. Separate tests keep two local futures cooperatively
+cleared storage. Another test stages sensitive bytes through a Send transport,
+suspends, cancels, and proves all bytes are cleared. Separate tests keep two local futures cooperatively
 outstanding, execute prepared requests and retry permits through a `!Sync`
 mock, and prove cross-thread transports satisfy local traits automatically.
 

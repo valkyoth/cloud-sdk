@@ -59,9 +59,9 @@ mod tests {
         RetryPermitError, RetryPolicyError,
     };
     use crate::transport::{
-        ContentTypeError, EndpointIdentityError, HeaderError, InformationalResponseError,
-        RawResponsePolicyError, RequestPathError, RequestTargetError, ResponseWriterError,
-        TransportFailure,
+        AsyncExecutionError, ContentTypeError, EndpointIdentityError, HeaderError,
+        InformationalResponseError, RawResponsePolicyError, RequestPathError, RequestTargetError,
+        ResponseWriterError, TransportFailure,
     };
     use core::fmt::{self, Write};
 
@@ -114,6 +114,7 @@ mod tests {
         assert_error::<ResponsePolicyValidationError>();
         assert_error::<PreparedExecutionError<()>>();
         assert_error::<ResponseWriterError>();
+        assert_error::<AsyncExecutionError<()>>();
         assert_error::<RawResponsePolicyError>();
         assert_error::<InformationalResponseError>();
         assert_error::<TransportFailure<()>>();

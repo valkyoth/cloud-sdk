@@ -4,7 +4,7 @@ use core::fmt;
 
 use crate::authentication::{
     AsyncAuthenticatedTransport, AuthenticatedRequest, AuthenticationScopePolicy,
-    BlockingAuthenticatedTransport,
+    BlockingAuthenticatedTransport, drive_async_authenticated,
 };
 use crate::operation::{
     CheckedResponseGuard, OperationId, OperationMetadata, RequestIdPolicy, ResponsePolicy,
@@ -12,7 +12,7 @@ use crate::operation::{
 };
 use crate::transport::{
     BoundTransport, EndpointIdentityError, EndpointPolicy, RawResponsePolicy, ResponseBuffer,
-    TransportRequest,
+    ResponseWriterError, TransportRequest,
 };
 use crate::{ProviderId, ProviderMarker, ServiceId, ServiceMarker};
 
@@ -362,10 +362,16 @@ impl<'request> PreparedRequest<'request> {
         );
         self.verify_endpoint(transport)
             .map_err(map_endpoint_error)?;
-        transport
-            .send_authenticated(self.authenticated_request(), response.writer())
+        drive_async_authenticated(transport, self.authenticated_request(), response.writer())
             .await
-            .map_err(PreparedExecutionError::Transport)?;
+            .map_err(|error| match error {
+                crate::transport::AsyncExecutionError::Transport(error) => {
+                    PreparedExecutionError::Transport(error)
+                }
+                crate::transport::AsyncExecutionError::Response(error) => {
+                    PreparedExecutionError::ResponseWriter(error)
+                }
+            })?;
         self.response_policy
             .validate(response, self.metadata.request_id_policy())
             .map_err(PreparedExecutionError::ResponsePolicy)
@@ -410,6 +416,8 @@ pub enum PreparedExecutionError<E> {
     EndpointMismatch,
     /// The concrete transport failed.
     Transport(E),
+    /// The SDK-owned response transaction failed.
+    ResponseWriter(ResponseWriterError),
     /// The response failed provider-neutral policy.
     ResponsePolicy(ResponsePolicyError),
 }
@@ -423,6 +431,10 @@ impl<E> fmt::Debug for PreparedExecutionError<E> {
                 .finish(),
             Self::EndpointMismatch => formatter.write_str("EndpointMismatch"),
             Self::Transport(_) => formatter.write_str("Transport([redacted])"),
+            Self::ResponseWriter(error) => formatter
+                .debug_tuple("ResponseWriter")
+                .field(error)
+                .finish(),
             Self::ResponsePolicy(error) => formatter
                 .debug_tuple("ResponsePolicy")
                 .field(error)
@@ -437,6 +449,7 @@ impl<E> fmt::Display for PreparedExecutionError<E> {
             Self::EndpointIdentity(_) => "transport endpoint identity is invalid",
             Self::EndpointMismatch => "transport endpoint differs from prepared service",
             Self::Transport(_) => "prepared request transport failed",
+            Self::ResponseWriter(_) => "prepared response transaction failed",
             Self::ResponsePolicy(_) => "prepared response policy failed",
         })
     }

@@ -5,12 +5,12 @@ use cloud_sdk_sanitization::{SecretBuffer, sanitize_bytes, sanitize_value};
 use crate::Method;
 use crate::authentication::{
     AsyncAuthenticatedTransport, AuthenticatedRequest, AuthenticationScopePolicy,
-    BlockingAuthenticatedTransport,
+    BlockingAuthenticatedTransport, drive_async_authenticated,
 };
 use crate::operation::OperationId;
 use crate::transport::{
     BoundTransport, EndpointIdentity, EndpointScheme, RawResponsePolicy, RequestPath,
-    RequestTarget, ResponseWriter, TransportRequest,
+    RequestTarget, ResponseWriter, ResponseWriterError, TransportRequest,
 };
 
 use super::{PaginationError, PaginationLimits};
@@ -64,6 +64,8 @@ pub enum ProviderLinkExecutionError<E> {
     Pagination(PaginationError),
     /// The endpoint-verified authenticated transport failed.
     Transport(E),
+    /// The SDK-owned response transaction failed.
+    ResponseWriter(ResponseWriterError),
 }
 
 impl<E> fmt::Debug for ProviderLinkExecutionError<E> {
@@ -71,6 +73,10 @@ impl<E> fmt::Debug for ProviderLinkExecutionError<E> {
         match self {
             Self::Pagination(error) => formatter.debug_tuple("Pagination").field(error).finish(),
             Self::Transport(_) => formatter.write_str("Transport([redacted])"),
+            Self::ResponseWriter(error) => formatter
+                .debug_tuple("ResponseWriter")
+                .field(error)
+                .finish(),
         }
     }
 }
@@ -80,6 +86,7 @@ impl<E> fmt::Display for ProviderLinkExecutionError<E> {
         formatter.write_str(match self {
             Self::Pagination(_) => "provider pagination link validation failed",
             Self::Transport(_) => "provider pagination link transport failed",
+            Self::ResponseWriter(_) => "provider pagination response transaction failed",
         })
     }
 }
@@ -208,13 +215,20 @@ impl<'storage, 'endpoint> ValidatedProviderLink<'storage, 'endpoint> {
         let request = self
             .request_for(transport, method, operation)
             .map_err(ProviderLinkExecutionError::Pagination)?;
-        transport
-            .send_authenticated(
-                AuthenticatedRequest::new(request, authentication, response_policy),
-                response,
-            )
-            .await
-            .map_err(ProviderLinkExecutionError::Transport)
+        drive_async_authenticated(
+            transport,
+            AuthenticatedRequest::new(request, authentication, response_policy),
+            response,
+        )
+        .await
+        .map_err(|error| match error {
+            crate::transport::AsyncExecutionError::Transport(error) => {
+                ProviderLinkExecutionError::Transport(error)
+            }
+            crate::transport::AsyncExecutionError::Response(error) => {
+                ProviderLinkExecutionError::ResponseWriter(error)
+            }
+        })
     }
 
     pub(super) fn request_for<'request, T: BoundTransport>(

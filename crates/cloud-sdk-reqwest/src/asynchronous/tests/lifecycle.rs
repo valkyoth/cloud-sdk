@@ -4,9 +4,10 @@ use std::string::String;
 use std::time::Duration;
 
 use cloud_sdk::Method;
-use cloud_sdk::authentication::AsyncAuthenticatedTransport;
+use cloud_sdk::authentication::drive_async_authenticated;
 use cloud_sdk::transport::{
-    BoundTransport, RequestTarget, ResponseBuffer, ResponseMetadata, StatusCode, TransportRequest,
+    AsyncExecutionError, BoundTransport, RequestTarget, ResponseBuffer, ResponseMetadata,
+    ResponseWriterError, StatusCode, TransportRequest,
 };
 
 use super::{BearerToken, authenticated, build_loopback, run_async_test};
@@ -41,7 +42,7 @@ fn async_send_future_stays_within_explicit_state_budget() {
     let mut output = [0_u8; 1];
     let mut headers = [0_u8; 8192];
     let mut response = ResponseBuffer::new(&mut output, 1, &mut headers);
-    let future = AsyncAuthenticatedTransport::send_authenticated(
+    let future = drive_async_authenticated(
         &client,
         authenticated(&client, TransportRequest::new(Method::Get, target)),
         response.writer(),
@@ -76,16 +77,14 @@ fn async_precommitted_writer_fails_before_network_access() {
         );
         drop(attempt);
         assert_eq!(
-            AsyncAuthenticatedTransport::send_authenticated(
+            drive_async_authenticated(
                 &client,
                 authenticated(&client, TransportRequest::new(Method::Get, target)),
                 response.writer(),
             )
             .await,
-            Err(cloud_sdk::transport::TransportFailure::not_sent(
-                super::super::TransportError::RawHttp(
-                    super::super::RawHttpError::ResponseAlreadyCommitted
-                )
+            Err(AsyncExecutionError::Response(
+                ResponseWriterError::AlreadyCommitted,
             ))
         );
     });

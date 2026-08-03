@@ -439,9 +439,9 @@ capacity through a sealed `ResponseWriter`, and return a
 `CheckedResponseGuard` only after status, body, and content type pass. The
 provided transports wrap each writer use in a transactional `ResponseAttempt`;
 failed, timed-out, unwound, or cancelled attempts clear complete body and
-header storage before reuse. Custom transports must acquire the same guard
-through `ResponseWriter::begin_attempt`; mutation and commitment are not
-available directly on `ResponseWriter`. The checked response guard owns
+header storage before reuse. Blocking custom transports acquire the same guard
+through `ResponseWriter::begin_attempt`; all async implementations receive
+non-committing staging instead. The checked response guard owns
 mandatory volatile cleanup of the complete caller buffer plus its
 header, request-ID, cursor/link, and decoder-scratch workspace; borrowed
 decoding is closure-scoped and owned decoding clears storage before returning.
@@ -462,7 +462,7 @@ without changing the default allocation-free graph.
 ```toml
 [dependencies]
 cloud-sdk = "0.47.0"
-cloud-sdk-reqwest = { version = "0.31.2", features = ["blocking-rustls"] }
+cloud-sdk-reqwest = { version = "0.32.0", features = ["blocking-rustls"] }
 ```
 
 The production builder is HTTPS-only, requires explicit bounded timeouts and a
@@ -489,7 +489,7 @@ when deterministic public WebPKI roots are required:
 ```toml
 [dependencies]
 cloud-sdk = "0.47.0"
-cloud-sdk-reqwest = { version = "0.31.2", features = ["blocking-rustls-webpki-roots"] }
+cloud-sdk-reqwest = { version = "0.32.0", features = ["blocking-rustls-webpki-roots"] }
 ```
 
 The blocking API is unchanged. This feature excludes host-added enterprise
@@ -506,7 +506,7 @@ feature instead of relying on dependency feature unification:
 ```toml
 [dependencies]
 cloud-sdk = "0.47.0"
-cloud-sdk-reqwest = { version = "0.31.2", features = ["blocking-rustls-fips"] }
+cloud-sdk-reqwest = { version = "0.32.0", features = ["blocking-rustls-fips"] }
 ```
 
 Client construction explicitly selects rustls' AWS-LC FIPS provider and fails
@@ -525,7 +525,7 @@ example is in the
 ```toml
 [dependencies]
 cloud-sdk = "0.47.0"
-cloud-sdk-reqwest = { version = "0.31.2", features = ["async-rustls"] }
+cloud-sdk-reqwest = { version = "0.32.0", features = ["async-rustls"] }
 ```
 
 The async adapter requires an active Tokio executor because reqwest uses Tokio
@@ -538,7 +538,7 @@ See the complete, compile-checked
 [`cloud-sdk-reqwest` async example](https://docs.rs/cloud-sdk-reqwest/latest/cloud_sdk_reqwest/#async-example)
 for client construction and request execution.
 
-## Local Async Transport
+## Async Transport
 
 `LocalAsyncTransport`, `LocalAsyncAuthenticatedTransport`, and
 `LocalAsyncRawHttpExecutor` support `!Send` browser-WASM, embedded, and
@@ -546,9 +546,15 @@ single-threaded futures without selecting an executor. Existing `Send` async
 implementations automatically satisfy the local contracts. Prepared requests,
 provider links, and retry permits expose `execute_local_async`.
 
-Dropping any async future leaves the response uncommitted and clears partial
-response storage, but request delivery is conservatively `PossiblySent`. See
-the [local async contract](https://github.com/valkyoth/cloud-sdk/blob/main/docs/LOCAL_ASYNC.md).
+All async implementations receive non-committing `AsyncResponseStaging` and
+return `ResponseCompletion`. Cross-thread callers use `drive_async`,
+`drive_async_authenticated`, or `drive_async_raw`; local callers use the
+corresponding `drive_local` functions. These SDK-owned drivers commit only
+after `Ready(Ok)`.
+
+Dropping any async driver future rolls back partial response state, but request
+delivery is conservatively `PossiblySent`. See the
+[local async contract](https://github.com/valkyoth/cloud-sdk/blob/main/docs/LOCAL_ASYNC.md).
 
 ## Numbered Pagination Example
 

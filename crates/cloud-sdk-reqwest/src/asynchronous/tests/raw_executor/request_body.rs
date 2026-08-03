@@ -2,11 +2,10 @@ use std::time::Duration;
 
 use cloud_sdk::Method;
 use cloud_sdk::transport::{
-    AsyncRawHttpExecutor, ContentType, DeliveryPhase, RequestHeader, RequestHeaders,
-    ResponseBuffer, TransportRequest,
+    ContentType, DeliveryPhase, RequestHeader, RequestHeaders, ResponseBuffer, TransportRequest,
 };
 
-use super::{build_raw_loopback, policy};
+use super::{RawAsyncTestExt, build_raw_loopback, policy};
 use crate::asynchronous::{MAX_RAW_REQUEST_BODY_BYTES, RawHttpError};
 use crate::test_server::spawn;
 
@@ -38,7 +37,7 @@ fn public_path_accepts_exact_and_rejects_plus_one_request_body() {
         let mut response = ResponseBuffer::new(&mut body, 16, &mut header_storage);
         assert!(
             client
-                .execute(
+                .execute_checked(
                     TransportRequest::new(Method::Post, target)
                         .with_headers(headers)
                         .with_body(&exact),
@@ -59,7 +58,7 @@ fn public_path_accepts_exact_and_rejects_plus_one_request_body() {
         let mut response = ResponseBuffer::new(&mut body, 16, &mut header_storage);
         assert!(matches!(
             client
-                .execute(
+                .execute_checked(
                     TransportRequest::new(Method::Post, target)
                         .with_headers(headers)
                         .with_body(&oversized),

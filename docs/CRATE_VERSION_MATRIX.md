@@ -695,13 +695,14 @@ adds one bounded retry owner with fresh local mutation intent.
 ## v0.47.0 Tracking Table
 
 `v0.47.0` adds local asynchronous contracts for `!Send` browser-WASM,
-embedded, and single-threaded executors while preserving cross-thread APIs.
+embedded, and single-threaded executors and gives every async transport the
+same non-committing response boundary.
 
 | Crate | Published | Planned | Change | Publish | Reason |
 | --- | --- | --- | --- | --- | --- |
 | `cloud-sdk` | `0.46.0` | `0.47.0` | `code` | Yes | Add local basic, authenticated, raw, prepared, pagination, and retry execution contracts with explicit cancellation policy. |
 | `cloud-sdk-hetzner` | `0.36.0` | `0.36.1` | `dependency` | Yes | Update the provider's `cloud-sdk` dependency without changing Hetzner behavior. |
-| `cloud-sdk-reqwest` | `0.31.1` | `0.31.2` | `dependency` | Yes | Update `cloud-sdk`; existing Send futures automatically satisfy the local contract. |
+| `cloud-sdk-reqwest` | `0.31.1` | `0.32.0` | `code` | Yes | Migrate Send async transports to non-committing staging and SDK-owned response commitment; retain automatic local compatibility. |
 | `cloud-sdk-sanitization` | `0.16.0` | `0.16.0` | `unchanged` | No | No code, dependency, or package metadata changes. |
 | `cloud-sdk-testkit` | `0.26.0` | `0.27.0` | `code` | Yes | Add a no-allocation deliberately local-only mock and local async conformance fixtures. |
 

@@ -1,8 +1,9 @@
 use core::fmt;
 
 use cloud_sdk::transport::{
-    AsyncRawHttpExecutor, BoundTransport, EndpointIdentity, EndpointIdentityError,
-    RawResponsePolicy, ResponseStorageSanitizer, ResponseWriter, TransportRequest,
+    AsyncRawHttpExecutor, AsyncResponseStaging, BoundTransport, EndpointIdentity,
+    EndpointIdentityError, RawResponsePolicy, ResponseCompletion, ResponseStorageSanitizer,
+    TransportRequest,
 };
 use cloud_sdk_sanitization::sanitize_bytes;
 use http::header::HeaderValue;
@@ -21,15 +22,15 @@ impl RawAsyncClient {
         Self { inner, endpoint }
     }
 
-    pub(crate) async fn execute_authenticated(
+    pub(crate) async fn execute_authenticated<'writer, 'buffer>(
         &self,
         request: TransportRequest<'_>,
         policy: RawResponsePolicy<'_>,
         authorization: HeaderValue,
-        response_writer: &mut ResponseWriter<'_>,
-    ) -> Result<(), RawTransportFailure> {
+        mut response: AsyncResponseStaging<'writer, 'buffer>,
+    ) -> Result<ResponseCompletion, RawTransportFailure> {
         self.inner
-            .execute_authenticated(request, policy, authorization, response_writer)
+            .execute_authenticated(request, policy, authorization, &mut response)
             .await
     }
 }
@@ -37,18 +38,19 @@ impl RawAsyncClient {
 impl AsyncRawHttpExecutor for RawAsyncClient {
     type Error = RawTransportFailure;
 
-    async fn execute<'executor, 'request, 'policy, 'writer>(
+    async fn execute<'executor, 'request, 'policy, 'writer, 'buffer>(
         &'executor self,
         request: TransportRequest<'request>,
         policy: RawResponsePolicy<'policy>,
-        response: &'writer mut ResponseWriter<'_>,
-    ) -> Result<(), Self::Error>
+        mut response: AsyncResponseStaging<'writer, 'buffer>,
+    ) -> Result<ResponseCompletion, Self::Error>
     where
         'executor: 'writer,
         'request: 'writer,
         'policy: 'writer,
+        'buffer: 'writer,
     {
-        self.inner.execute(request, policy, response).await
+        self.inner.execute(request, policy, &mut response).await
     }
 }
 

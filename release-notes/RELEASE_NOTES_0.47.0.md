@@ -7,8 +7,9 @@ Release date: pending
 ## Overview
 
 v0.47 adds a complete local asynchronous execution family for `!Send`
-browser-WASM, embedded, and single-threaded futures without changing the
-default no_std dependency boundary or existing cross-thread APIs.
+browser-WASM, embedded, and single-threaded futures. All async transport APIs
+now use one non-committing response contract without changing the default
+no_std dependency boundary.
 
 ## Local Async
 
@@ -20,7 +21,10 @@ default no_std dependency boundary or existing cross-thread APIs.
   provider links, and one-use retry permits.
 - Added explicit `PossiblySent` cancellation classification through
   `ASYNC_CANCELLATION_DELIVERY_PHASE`.
-- Required uncommitted response cleanup across local future cancellation.
+- Added non-committing `AsyncResponseStaging`, `ResponseCompletion`, and
+  SDK-owned Send/local drivers that commit only after `Ready(Ok)`.
+- Required rollback of partial response state across every async future
+  cancellation; implementations have no commit capability.
 - Added `LocalMockTransport`, a no-allocation deliberately `!Sync` testkit
   fixture for local basic and authenticated workflows.
 - Added partial-secret cancellation, same-thread cooperative concurrency,
@@ -33,7 +37,7 @@ default no_std dependency boundary or existing cross-thread APIs.
 | --- | --- | --- |
 | `cloud-sdk` | `0.47.0` | local async contract code |
 | `cloud-sdk-hetzner` | `0.36.1` | dependency-only patch |
-| `cloud-sdk-reqwest` | `0.31.2` | dependency-only patch |
+| `cloud-sdk-reqwest` | `0.32.0` | Send async staging migration |
 | `cloud-sdk-sanitization` | `0.16.0` | unchanged; not published |
 | `cloud-sdk-testkit` | `0.27.0` | local mock and conformance code |
 

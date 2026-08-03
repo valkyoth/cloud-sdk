@@ -3,15 +3,18 @@ use std::time::Duration;
 
 use cloud_sdk::Method;
 use cloud_sdk::transport::{
-    AsyncRawHttpExecutor, DeliveryPhase, MediaType, RawResponsePolicy, ResponseBuffer,
-    ResponseMediaPolicy, TransportRequest,
+    DeliveryPhase, MediaType, RawResponsePolicy, ResponseBuffer, ResponseMediaPolicy,
+    TransportRequest,
 };
 
 use super::{run_async_test, test_timeouts};
 use crate::asynchronous::{RawAsyncClient, RawAsyncClientBuilder, RawHttpError, UserAgent};
 use crate::test_server::{spawn, spawn_concurrent_pair, spawn_raw_response, spawn_raw_split};
 
+mod driver;
 mod request_body;
+
+pub(super) use driver::RawAsyncTestExt;
 
 fn build_raw_loopback(endpoint: &str) -> Option<RawAsyncClient> {
     let endpoint = crate::asynchronous::HttpsEndpoint::local_http(endpoint).ok()?;
@@ -55,7 +58,7 @@ fn raw_async_streams_directly_into_the_caller_buffer() {
         let mut response = ResponseBuffer::new(&mut body, 16, &mut header_storage);
         assert!(
             client
-                .execute(
+                .execute_checked(
                     TransportRequest::new(Method::Get, target),
                     policy,
                     response.writer(),
@@ -90,7 +93,7 @@ Content-Length: 6\r\nConnection: close\r\n\r\nsec";
         let mut response = ResponseBuffer::new(&mut body, 16, &mut header_storage);
         let cancelled = tokio::time::timeout(
             Duration::from_millis(100),
-            client.execute(
+            client.execute_checked(
                 TransportRequest::new(Method::Get, target),
                 policy,
                 response.writer(),
@@ -130,7 +133,7 @@ HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: 2\r\nConnec
         let mut header_storage = [0xa5_u8; 128];
         let mut response = ResponseBuffer::new(&mut body, 16, &mut header_storage);
         let failure = client
-            .execute(
+            .execute_checked(
                 TransportRequest::new(Method::Get, target),
                 policy,
                 response.writer(),
@@ -173,7 +176,7 @@ Content-Length: 2\r\nConnection: close\r\n\r\n{}";
             let mut header_storage = [0xa5_u8; 128];
             let mut response = ResponseBuffer::new(&mut body, 16, &mut header_storage);
             let result = client
-                .execute(
+                .execute_checked(
                     TransportRequest::new(Method::Get, target),
                     policy,
                     response.writer(),
@@ -210,7 +213,7 @@ Content-Length: 2\r\nConnection: close\r\n\r\n{}";
         let mut response = ResponseBuffer::new(&mut body, 16, &mut header_storage);
         let result = tokio::time::timeout(
             Duration::from_millis(750),
-            client.execute(
+            client.execute_checked(
                 TransportRequest::new(Method::Get, target),
                 policy,
                 response.writer(),
@@ -256,7 +259,7 @@ Transfer-Encoding: chunked\r\n\r\n2\r\n{}\r\n0\r\nX-Checksum: secret\r\n\r\n"[..
             let mut response = ResponseBuffer::new(&mut body, 16, &mut header_storage);
             assert!(matches!(
                 client
-                    .execute(
+                    .execute_checked(
                         TransportRequest::new(Method::Get, target),
                         policy,
                         response.writer(),
@@ -288,7 +291,7 @@ Connection: close\r\n\r\n12345";
         let mut response = ResponseBuffer::new(&mut body, 16, &mut header_storage);
         assert!(matches!(
             client
-                .execute(
+                .execute_checked(
                     TransportRequest::new(Method::Get, target),
                     policy,
                     response.writer(),
@@ -321,7 +324,7 @@ Content-Length: 5\r\nConnection: close\r\n\r\n{}";
         let mut response = ResponseBuffer::new(&mut body, 16, &mut header_storage);
         assert!(matches!(
             client
-                .execute(
+                .execute_checked(
                     TransportRequest::new(Method::Get, target),
                     policy,
                     response.writer(),
@@ -354,7 +357,7 @@ Content-Length: 2\r\nConnection: close\r\n\r\n{}";
         let mut response = ResponseBuffer::new(&mut body, 16, &mut header_storage);
         assert!(
             client
-                .execute(
+                .execute_checked(
                     TransportRequest::new(Method::Head, target),
                     policy,
                     response.writer(),
@@ -381,7 +384,7 @@ Connection: close\r\n\r\n";
         let mut response = ResponseBuffer::new(&mut body, 16, &mut header_storage);
         assert!(matches!(
             client
-                .execute(
+                .execute_checked(
                     TransportRequest::new(Method::Get, target),
                     policy,
                     response.writer(),
@@ -425,12 +428,12 @@ fn raw_async_client_is_clone_send_sync_and_concurrent() {
         let mut second_body = [0xa5_u8; 16];
         let mut second_headers = [0xa5_u8; 128];
         let mut second_response = ResponseBuffer::new(&mut second_body, 16, &mut second_headers);
-        let first_future = first.execute(
+        let first_future = first.execute_checked(
             TransportRequest::new(Method::Get, target),
             policy,
             first_response.writer(),
         );
-        let second_future = second.execute(
+        let second_future = second.execute_checked(
             TransportRequest::new(Method::Get, target),
             policy,
             second_response.writer(),

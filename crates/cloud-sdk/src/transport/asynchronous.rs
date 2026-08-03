@@ -1,29 +1,51 @@
-//! Runtime-neutral asynchronous transport contract.
+//! Runtime-neutral asynchronous transport contracts.
 
-use core::future::Future;
+use core::{fmt, future::Future};
 
-use super::{DeliveryPhase, ResponseWriter, TransportRequest};
+use super::{
+    AsyncResponseStaging, DeliveryPhase, ResponseCompletion, ResponseWriter, ResponseWriterError,
+    TransportRequest,
+};
 
 /// Conservative delivery classification after an asynchronous future is
 /// cancelled by being dropped.
-///
-/// Cancellation proves only that no successful response was committed. It
-/// does not prove that request bytes were not delivered, so mutation policy
-/// must treat the operation as possibly sent.
 pub const ASYNC_CANCELLATION_DELIVERY_PHASE: DeliveryPhase = DeliveryPhase::PossiblySent;
+
+/// Failure while SDK-owned asynchronous response staging is driven to completion.
+#[derive(Clone, Copy, Eq, PartialEq)]
+pub enum AsyncExecutionError<E> {
+    /// The transport failed before successful response completion.
+    Transport(E),
+    /// Response staging or final commitment failed.
+    Response(ResponseWriterError),
+}
+
+impl<E> fmt::Debug for AsyncExecutionError<E> {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Transport(_) => formatter.write_str("Transport([redacted])"),
+            Self::Response(error) => formatter.debug_tuple("Response").field(error).finish(),
+        }
+    }
+}
+
+impl<E> fmt::Display for AsyncExecutionError<E> {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.write_str(match self {
+            Self::Transport(_) => "asynchronous transport failed",
+            Self::Response(_) => "asynchronous response staging failed",
+        })
+    }
+}
+
+impl<E> core::error::Error for AsyncExecutionError<E> {}
 
 /// Local asynchronous transport for `!Send` futures and executors.
 ///
-/// This contract is suitable for browser WASM, embedded executors, and
-/// single-threaded runtimes. It owns no executor and does not imply that two
-/// returned futures may be polled concurrently; that remains a property of
-/// the implementation and caller.
-///
-/// Dropping the returned future cancels caller observation, not necessarily
-/// remote execution. Implementations must leave the response uncommitted and
-/// clear partial body and header state. Callers must classify the request as
-/// [`ASYNC_CANCELLATION_DELIVERY_PHASE`] unless stronger transport evidence is
-/// available.
+/// Implementations receive a non-committing staging view and return completion
+/// metadata. [`drive_local`] owns the cleanup attempt across the await and
+/// commits only after `Ready(Ok)`. Cancellation clears partial response state
+/// and remains conservatively [`DeliveryPhase::PossiblySent`].
 ///
 /// A local implementation may deliberately return a future that is not
 /// `Send`:
@@ -31,7 +53,8 @@ pub const ASYNC_CANCELLATION_DELIVERY_PHASE: DeliveryPhase = DeliveryPhase::Poss
 /// ```compile_fail
 /// use core::cell::Cell;
 /// use cloud_sdk::transport::{
-///     LocalAsyncTransport, ResponseWriter, TransportRequest,
+///     AsyncResponseStaging, LocalAsyncTransport, ResponseCompletion,
+///     ResponseMetadata, StatusCode, TransportRequest,
 /// };
 ///
 /// struct Local(Cell<()>);
@@ -39,24 +62,32 @@ pub const ASYNC_CANCELLATION_DELIVERY_PHASE: DeliveryPhase = DeliveryPhase::Poss
 /// impl LocalAsyncTransport for Local {
 ///     type Error = ();
 ///
-///     fn send_local<'transport, 'request, 'writer>(
+///     fn send_local<'transport, 'request, 'writer, 'buffer>(
 ///         &'transport self,
 ///         _request: TransportRequest<'request>,
-///         _response: &'writer mut ResponseWriter<'_>,
-///     ) -> impl core::future::Future<Output = Result<(), Self::Error>> + 'writer
+///         _response: AsyncResponseStaging<'writer, 'buffer>,
+///     ) -> impl core::future::Future<Output = Result<ResponseCompletion, Self::Error>> + 'writer
 ///     where
 ///         'transport: 'writer,
 ///         'request: 'writer,
+///         'buffer: 'writer,
 ///     {
-///         async move { self.0.get(); Ok(()) }
+///         async move {
+///             self.0.get();
+///             Ok(ResponseCompletion::new(
+///                 StatusCode::NO_CONTENT,
+///                 0,
+///                 ResponseMetadata::EMPTY,
+///             ))
+///         }
 ///     }
 /// }
 ///
 /// fn require_send<T: Send>(_: T) {}
-/// fn reject_send(
-///     transport: &Local,
-///     request: TransportRequest<'_>,
-///     response: &mut ResponseWriter<'_>,
+/// fn reject_send<'a, 'buffer: 'a>(
+///     transport: &'a Local,
+///     request: TransportRequest<'a>,
+///     response: AsyncResponseStaging<'a, 'buffer>,
 /// ) {
 ///     require_send(transport.send_local(request, response));
 /// }
@@ -65,49 +96,85 @@ pub trait LocalAsyncTransport {
     /// Transport-specific failure.
     type Error;
 
-    /// Sends one request without requiring the returned future to be `Send`.
-    fn send_local<'transport, 'request, 'writer>(
+    /// Stages one response without requiring the returned future to be `Send`.
+    fn send_local<'transport, 'request, 'writer, 'buffer>(
         &'transport self,
         request: TransportRequest<'request>,
-        response: &'writer mut ResponseWriter<'_>,
-    ) -> impl Future<Output = Result<(), Self::Error>> + 'writer
+        response: AsyncResponseStaging<'writer, 'buffer>,
+    ) -> impl Future<Output = Result<ResponseCompletion, Self::Error>> + 'writer
     where
         'transport: 'writer,
-        'request: 'writer;
+        'request: 'writer,
+        'buffer: 'writer;
 }
 
-/// Asynchronous transport over caller-owned request and response buffers.
+/// Drives one local transport attempt and commits only after `Ready(Ok)`.
+pub async fn drive_local<'transport, 'request, 'writer, 'buffer, T>(
+    transport: &'transport T,
+    request: TransportRequest<'request>,
+    response: &'writer mut ResponseWriter<'buffer>,
+) -> Result<(), AsyncExecutionError<T::Error>>
+where
+    T: LocalAsyncTransport + ?Sized,
+    'transport: 'writer,
+    'request: 'writer,
+    'buffer: 'writer,
+{
+    let mut attempt = response
+        .begin_attempt()
+        .map_err(AsyncExecutionError::Response)?;
+    let completion = transport
+        .send_local(request, attempt.staging())
+        .await
+        .map_err(AsyncExecutionError::Transport)?;
+    attempt
+        .commit_completion(completion)
+        .map_err(AsyncExecutionError::Response)
+}
+
+/// Cross-thread asynchronous transport over caller-owned buffers.
 ///
-/// The contract does not select an executor, allocator, HTTP client, TLS
-/// implementation, clock, or retry policy. Adapter crates document any runtime
-/// requirements they add.
-///
-/// The shared receiver does not create concurrency. Callers may overlap or
-/// spawn returned futures only when the concrete implementation and future
-/// satisfy their executor's `Sync`, `Send`, and lifetime requirements.
-///
-/// Implementations must treat cancellation as an error path: dropping the
-/// returned future must not expose a partially initialized response as a
-/// successful response. Implementations handling secret response
-/// data should also clear temporary owned storage when the future is dropped.
+/// Implementations can stage body and headers but cannot commit a response.
+/// Callers use [`drive_async`], which owns cleanup across the await and commits
+/// returned completion metadata only after `Ready(Ok)`.
 pub trait AsyncTransport {
     /// Transport-specific failure.
     type Error;
 
-    /// Sends one request and initializes the complete response body in the
-    /// caller buffer.
-    ///
-    /// Implementations must use [`ResponseWriter::begin_attempt`]. Response
-    /// mutation and commitment are available only through the returned guard,
-    /// which clears state when the future is cancelled.
-    fn send<'transport, 'request, 'writer>(
+    /// Stages one complete response without committing it.
+    fn send<'transport, 'request, 'writer, 'buffer>(
         &'transport self,
         request: TransportRequest<'request>,
-        response: &'writer mut ResponseWriter<'_>,
-    ) -> impl Future<Output = Result<(), Self::Error>> + Send + 'writer
+        response: AsyncResponseStaging<'writer, 'buffer>,
+    ) -> impl Future<Output = Result<ResponseCompletion, Self::Error>> + Send + 'writer
     where
         'transport: 'writer,
-        'request: 'writer;
+        'request: 'writer,
+        'buffer: 'writer;
+}
+
+/// Drives one cross-thread async attempt and commits only after `Ready(Ok)`.
+pub async fn drive_async<'transport, 'request, 'writer, 'buffer, T>(
+    transport: &'transport T,
+    request: TransportRequest<'request>,
+    response: &'writer mut ResponseWriter<'buffer>,
+) -> Result<(), AsyncExecutionError<T::Error>>
+where
+    T: AsyncTransport + ?Sized,
+    'transport: 'writer,
+    'request: 'writer,
+    'buffer: 'writer,
+{
+    let mut attempt = response
+        .begin_attempt()
+        .map_err(AsyncExecutionError::Response)?;
+    let completion = transport
+        .send(request, attempt.staging())
+        .await
+        .map_err(AsyncExecutionError::Transport)?;
+    attempt
+        .commit_completion(completion)
+        .map_err(AsyncExecutionError::Response)
 }
 
 impl<T> LocalAsyncTransport for T
@@ -116,15 +183,16 @@ where
 {
     type Error = T::Error;
 
-    fn send_local<'transport, 'request, 'writer>(
+    async fn send_local<'transport, 'request, 'writer, 'buffer>(
         &'transport self,
         request: TransportRequest<'request>,
-        response: &'writer mut ResponseWriter<'_>,
-    ) -> impl Future<Output = Result<(), Self::Error>> + 'writer
+        response: AsyncResponseStaging<'writer, 'buffer>,
+    ) -> Result<ResponseCompletion, Self::Error>
     where
         'transport: 'writer,
         'request: 'writer,
+        'buffer: 'writer,
     {
-        AsyncTransport::send(self, request, response)
+        AsyncTransport::send(self, request, response).await
     }
 }

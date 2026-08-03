@@ -18,10 +18,10 @@ reason = "Update cloud-sdk to v0.47 without changing provider request or respons
 
 [crates."cloud-sdk-reqwest"]
 previous_version = "0.31.1"
-version = "0.31.2"
-change = "dependency"
+version = "0.32.0"
+change = "code"
 publish = true
-reason = "Update cloud-sdk to v0.47; existing Send futures automatically satisfy the local contract."
+reason = "Migrate Send async transports to non-committing staging and SDK-owned response commitment."
 
 [crates."cloud-sdk-sanitization"]
 previous_version = "0.16.0"

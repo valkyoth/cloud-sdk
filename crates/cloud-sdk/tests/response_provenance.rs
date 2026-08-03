@@ -9,9 +9,9 @@ use cloud_sdk::operation::{
     ContentTypePolicy, RequestIdPolicy, ResponseBodyPolicy, ResponsePolicy, ResponsePolicyError,
 };
 use cloud_sdk::transport::{
-    AsyncTransport, BlockingTransport, HeaderSensitivity, MediaType, RequestTarget, ResponseBuffer,
-    ResponseMetadata, ResponseStorageSanitizer, ResponseWriter, ResponseWriterError, StatusCode,
-    TransportRequest,
+    AsyncResponseStaging, AsyncTransport, BlockingTransport, HeaderSensitivity, MediaType,
+    RequestTarget, ResponseBuffer, ResponseCompletion, ResponseMetadata, ResponseStorageSanitizer,
+    ResponseWriter, ResponseWriterError, StatusCode, TransportRequest, drive_async,
 };
 
 static OK: [StatusCode; 1] = [StatusCode::OK];
@@ -207,7 +207,7 @@ fn owned_decode_clears_before_return_and_borrow_is_guard_scoped() -> Result<(), 
 }
 
 #[test]
-fn blocking_and_async_transports_share_the_same_sealed_writer_contract() {
+fn blocking_and_async_transports_share_sealed_response_provenance() {
     let transport = ExampleTransport {
         sanitizer: CountingSanitizer::new(),
     };
@@ -244,7 +244,7 @@ fn blocking_and_async_transports_share_the_same_sealed_writer_contract() {
             &transport,
         );
         {
-            let future = AsyncTransport::send(&transport, request, response.writer());
+            let future = drive_async(&transport, request, response.writer());
             let mut future = core::pin::pin!(future);
             let mut context = Context::from_waker(Waker::noop());
             assert!(matches!(
@@ -324,6 +324,29 @@ impl ExampleTransport {
             .map_err(|_| ResponseWriterError::InitializedLengthTooLarge)?;
         attempt.commit(StatusCode::OK, 2, ResponseMetadata::EMPTY)
     }
+
+    fn stage_inner(
+        response: &mut AsyncResponseStaging<'_, '_>,
+    ) -> Result<ResponseCompletion, ResponseWriterError> {
+        let output = response
+            .body_mut()?
+            .get_mut(..2)
+            .ok_or(ResponseWriterError::InitializedLengthTooLarge)?;
+        output.copy_from_slice(b"{}");
+        response
+            .headers_mut()?
+            .try_push(
+                "content-type",
+                b"application/json",
+                HeaderSensitivity::Public,
+            )
+            .map_err(|_| ResponseWriterError::InitializedLengthTooLarge)?;
+        Ok(ResponseCompletion::new(
+            StatusCode::OK,
+            2,
+            ResponseMetadata::EMPTY,
+        ))
+    }
 }
 
 impl ResponseStorageSanitizer for ExampleTransport {
@@ -347,15 +370,16 @@ impl BlockingTransport for ExampleTransport {
 impl AsyncTransport for ExampleTransport {
     type Error = ResponseWriterError;
 
-    async fn send<'transport, 'request, 'writer>(
+    async fn send<'transport, 'request, 'writer, 'buffer>(
         &'transport self,
         _request: TransportRequest<'request>,
-        response: &'writer mut ResponseWriter<'_>,
-    ) -> Result<(), Self::Error>
+        mut response: AsyncResponseStaging<'writer, 'buffer>,
+    ) -> Result<ResponseCompletion, Self::Error>
     where
         'transport: 'writer,
         'request: 'writer,
+        'buffer: 'writer,
     {
-        Self::send_inner(response)
+        Self::stage_inner(&mut response)
     }
 }

@@ -3,11 +3,11 @@ use std::time::Duration;
 use std::vec::Vec;
 
 use cloud_sdk::Method;
-use cloud_sdk::authentication::AsyncAuthenticatedTransport;
+use cloud_sdk::authentication::drive_async_authenticated;
 use cloud_sdk::rate_limit::RateLimit;
 use cloud_sdk::transport::{
-    ContentType, RequestHeader, RequestHeaders, RequestTarget, ResponseBuffer,
-    ResponseStorageSanitizer, StatusCode, TransportFailure, TransportRequest, TransportResponse,
+    AsyncExecutionError, ContentType, RequestHeader, RequestHeaders, RequestTarget, ResponseBuffer,
+    ResponseStorageSanitizer, StatusCode, TransportRequest, TransportResponse,
 };
 
 use super::{
@@ -124,13 +124,12 @@ async fn send_test(
     let capacity = output.len();
     let mut headers = [0_u8; 8192];
     let mut response = ResponseBuffer::new(output, capacity, &mut headers);
-    AsyncAuthenticatedTransport::send_authenticated(
-        client,
-        authenticated(client, request),
-        response.writer(),
-    )
-    .await
-    .map_err(TransportFailure::into_error)?;
+    drive_async_authenticated(client, authenticated(client, request), response.writer())
+        .await
+        .map_err(|failure| match failure {
+            AsyncExecutionError::Transport(failure) => failure.into_error(),
+            AsyncExecutionError::Response(_) => TransportError::ResponseCommitFailed,
+        })?;
     response
         .with_response(CapturedResponse::capture)
         .map_err(|_| TransportError::ResponseCommitFailed)
@@ -461,7 +460,7 @@ fn caller_cancellation_after_partial_body_never_exposes_response() {
         let mut headers = [0xa5_u8; 8192];
         {
             let mut response = ResponseBuffer::new(&mut output, 32, &mut headers);
-            let future = AsyncAuthenticatedTransport::send_authenticated(
+            let future = drive_async_authenticated(
                 &client,
                 authenticated(&client, TransportRequest::new(Method::Get, target)),
                 response.writer(),

@@ -2,7 +2,7 @@ use core::future::Future;
 use core::task::{Context, Poll, Waker};
 
 use cloud_sdk::Method;
-use cloud_sdk::transport::{LocalAsyncTransport, RequestTarget, ResponseBuffer, TransportRequest};
+use cloud_sdk::transport::{RequestTarget, ResponseBuffer, TransportRequest, drive_local};
 
 use crate::{ExpectedRequest, FixtureBody, LocalMockTransport, MockExchange, ResponseFixture};
 
@@ -32,12 +32,12 @@ fn local_async_mock_supports_cooperatively_outstanding_requests() {
     let mut second_headers = [0_u8; 64];
     let mut second_response = ResponseBuffer::new(&mut second_body, 2, &mut second_headers);
     {
-        let first = LocalAsyncTransport::send_local(
+        let first = drive_local(
             &transport,
             TransportRequest::new(Method::Get, target),
             first_response.writer(),
         );
-        let second = LocalAsyncTransport::send_local(
+        let second = drive_local(
             &transport,
             TransportRequest::new(Method::Get, target),
             second_response.writer(),
@@ -84,7 +84,7 @@ fn dropping_unpolled_local_mock_future_preserves_the_exchange() {
     let mut headers = [0xa5_u8; 64];
     {
         let mut response = ResponseBuffer::new(&mut output, 2, &mut headers);
-        let future = LocalAsyncTransport::send_local(
+        let future = drive_local(
             &transport,
             TransportRequest::new(Method::Get, target),
             response.writer(),
