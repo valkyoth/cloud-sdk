@@ -241,6 +241,10 @@ fn transactional_sink_failure_rolls_back_and_overreport_is_rejected() {
     );
     assert_eq!(sink.aborted, Some(StreamPartialState::RollbackRequired));
     assert!(sink.bytes().is_empty());
+    assert_eq!(
+        outcome.partial_state(),
+        StreamPartialState::RollbackRequired
+    );
     assert!(scratch.iter().all(|byte| *byte == 0));
 
     let mut source = SliceSource {
@@ -264,6 +268,11 @@ fn transactional_sink_failure_rolls_back_and_overreport_is_rejected() {
         ))
     );
     assert_eq!(sink.aborted, Some(StreamPartialState::RollbackRequired));
+    assert_eq!(
+        outcome.partial_state(),
+        StreamPartialState::RollbackRequired
+    );
+    assert_eq!(outcome.progress().bytes(), 0);
 
     let mut source = SliceSource {
         chunks,
@@ -283,6 +292,36 @@ fn transactional_sink_failure_rolls_back_and_overreport_is_rejected() {
         Err(StreamExecutionError::Sink(SinkError))
     );
     assert_eq!(sink.aborted, Some(StreamPartialState::Dirty));
+    assert_eq!(outcome.partial_state(), StreamPartialState::Dirty);
+    assert_eq!(outcome.progress().bytes(), 0);
+
+    let mut source = SliceSource {
+        chunks,
+        index: 0,
+        reads: 0,
+    };
+    let mut sink = FixtureSink::new(0);
+    let mut outcome = StreamOutcome::new();
+    let zero_progress = policy(
+        StreamFraming::Declared(4),
+        StreamSinkMode::Direct,
+        limits(4, 4, 1, 4, 0),
+    );
+    assert_eq!(
+        drive_blocking_stream(
+            zero_progress,
+            &mut source,
+            &mut sink,
+            &mut scratch,
+            &mut outcome,
+        ),
+        Err(StreamExecutionError::Progress(
+            StreamProgressError::ZeroProgressLimitExceeded
+        ))
+    );
+    assert_eq!(sink.aborted, Some(StreamPartialState::Dirty));
+    assert_eq!(outcome.partial_state(), StreamPartialState::Dirty);
+    assert_eq!(outcome.progress().bytes(), 0);
 }
 
 #[test]
@@ -307,6 +346,35 @@ fn empty_scratch_fails_before_source_or_sink_access() {
     assert_eq!(source.reads, 0);
     assert_eq!(sink.writes, 0);
     assert_eq!(outcome.state(), StreamState::NotStarted);
+}
+
+#[test]
+fn empty_scratch_resets_a_reused_complete_outcome() {
+    let chunks: &[&[u8]] = &[b"a"];
+    let mut source = SliceSource {
+        chunks,
+        index: 0,
+        reads: 0,
+    };
+    let mut sink = FixtureSink::new(1);
+    let mut scratch = [0_u8; 1];
+    let mut outcome = StreamOutcome::new();
+    let policy = policy(
+        StreamFraming::Declared(1),
+        StreamSinkMode::Direct,
+        limits(1, 1, 1, 3, 0),
+    );
+    assert!(
+        drive_blocking_stream(policy, &mut source, &mut sink, &mut scratch, &mut outcome).is_ok()
+    );
+    assert_eq!(outcome.state(), StreamState::Complete);
+
+    assert_eq!(
+        drive_blocking_stream(policy, &mut source, &mut sink, &mut [], &mut outcome),
+        Err(StreamExecutionError::EmptyScratch)
+    );
+    assert_eq!(outcome.state(), StreamState::NotStarted);
+    assert_eq!(outcome.partial_state(), StreamPartialState::Clean);
 }
 
 #[test]

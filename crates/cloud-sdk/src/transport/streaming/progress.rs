@@ -1,7 +1,7 @@
 //! Transactional byte, chunk, observation, and backpressure accounting.
 
 use super::policy::partial_state;
-use super::{StreamFraming, StreamKind, StreamPolicy, StreamSinkMode};
+use super::{StreamCompletion, StreamFraming, StreamKind, StreamPolicy};
 
 /// Public nonsensitive streaming counters.
 #[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
@@ -63,11 +63,11 @@ pub enum StreamState {
 /// Visibility and cleanup requirement after incomplete transfer.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum StreamPartialState {
-    /// No bytes reached the sink.
+    /// No sink write was attempted.
     Clean,
-    /// Hidden transactional bytes must be rolled back by the sink.
+    /// A transactional write was attempted and must be rolled back.
     RollbackRequired,
-    /// Direct sink bytes may already be externally visible.
+    /// A direct sink write may already have produced an external effect.
     Dirty,
 }
 
@@ -180,32 +180,11 @@ impl_static_error!(StreamProgressError,
     Self::ArithmeticOverflow => "stream accounting overflowed",
 );
 
-/// Successful accounting completion.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct StreamCompletion {
-    progress: StreamProgress,
-    sink_mode: StreamSinkMode,
-}
-
-impl StreamCompletion {
-    /// Returns final actual counters.
-    #[must_use]
-    pub const fn progress(self) -> StreamProgress {
-        self.progress
-    }
-
-    /// Reports whether the sink must commit its hidden transactional state.
-    #[must_use]
-    pub const fn requires_sink_commit(self) -> bool {
-        matches!(self.sink_mode, StreamSinkMode::Transactional)
-    }
-}
-
 /// SDK-owned accounting attempt over caller-owned outcome state.
 ///
 /// Only one source chunk may be outstanding. Dropping an active attempt marks
-/// it cancelled and records whether partial bytes are clean, need rollback, or
-/// are already dirty.
+/// it cancelled and records whether a sink write was never attempted, needs
+/// transactional rollback, or may already be externally visible.
 pub struct StreamAttempt<'outcome> {
     policy: StreamPolicy,
     progress: StreamProgress,
@@ -215,6 +194,7 @@ pub struct StreamAttempt<'outcome> {
     end_validated: bool,
     source_observation_pending: bool,
     sink_observation_pending: bool,
+    sink_write_attempted: bool,
 }
 
 impl<'outcome> StreamAttempt<'outcome> {
@@ -235,6 +215,7 @@ impl<'outcome> StreamAttempt<'outcome> {
             end_validated: false,
             source_observation_pending: false,
             sink_observation_pending: false,
+            sink_write_attempted: false,
         }
     }
 
@@ -315,7 +296,8 @@ impl<'outcome> StreamAttempt<'outcome> {
         Ok(())
     }
 
-    /// Reserves one sink observation before external sink code is called.
+    /// Reserves one sink observation and conservatively records a write attempt
+    /// before external sink code is called.
     pub fn begin_sink_observation(&mut self) -> Result<(), StreamProgressError> {
         self.ensure_open()?;
         if self.source_observation_pending {
@@ -329,6 +311,7 @@ impl<'outcome> StreamAttempt<'outcome> {
         }
         let observations = self.next_observation()?;
         self.progress.observations = observations;
+        self.sink_write_attempted = true;
         self.sink_observation_pending = true;
         self.sync_active();
         Ok(())
@@ -467,10 +450,10 @@ impl<'outcome> StreamAttempt<'outcome> {
     }
 
     fn sync(&mut self, state: StreamState) {
-        let partial = if matches!(state, StreamState::Complete) {
+        let partial = if matches!(state, StreamState::Complete) || !self.sink_write_attempted {
             StreamPartialState::Clean
         } else {
-            partial_state(self.policy.sink_mode(), self.progress.bytes)
+            partial_state(self.policy.sink_mode(), true)
         };
         *self.outcome = StreamOutcome {
             state,

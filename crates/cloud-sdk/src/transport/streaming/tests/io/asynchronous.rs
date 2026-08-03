@@ -280,3 +280,132 @@ fn cancellation_while_transactional_commit_is_pending_is_not_complete() {
     assert_eq!(outcome.state(), StreamState::Cancelled);
     assert_eq!(scratch, [0; 2]);
 }
+
+struct PendingFirstWriteSink {
+    effect_observed: bool,
+    aborted: Option<StreamPartialState>,
+}
+
+impl LocalAsyncStreamSink for PendingFirstWriteSink {
+    type Error = ();
+
+    async fn write_chunk_local<'operation>(
+        &'operation mut self,
+        _input: &'operation [u8],
+    ) -> Result<usize, Self::Error> {
+        self.effect_observed = true;
+        pending::<()>().await;
+        Ok(0)
+    }
+
+    async fn commit_local(&mut self) -> Result<(), Self::Error> {
+        Ok(())
+    }
+
+    fn abort_local(&mut self, partial: StreamPartialState) {
+        self.aborted = Some(partial);
+    }
+}
+
+#[test]
+fn first_sink_future_cancellation_is_never_reported_clean() {
+    for (mode, expected) in [
+        (
+            StreamSinkMode::Transactional,
+            StreamPartialState::RollbackRequired,
+        ),
+        (StreamSinkMode::Direct, StreamPartialState::Dirty),
+    ] {
+        let policy = policy(StreamFraming::Declared(2), mode, limits(2, 2, 1, 3, 0));
+        let mut source = FiniteLocalSource { done: false };
+        let mut sink = PendingFirstWriteSink {
+            effect_observed: false,
+            aborted: None,
+        };
+        let mut scratch = [0_u8; 2];
+        let mut outcome = StreamOutcome::new();
+        {
+            let future =
+                drive_local_stream(policy, &mut source, &mut sink, &mut scratch, &mut outcome);
+            let mut future = core::pin::pin!(future);
+            let mut context = Context::from_waker(Waker::noop());
+            assert!(matches!(
+                Future::poll(future.as_mut(), &mut context),
+                Poll::Pending
+            ));
+        }
+        assert!(sink.effect_observed);
+        assert_eq!(sink.aborted, Some(expected));
+        assert_eq!(outcome.state(), StreamState::Cancelled);
+        assert_eq!(outcome.partial_state(), expected);
+        assert_eq!(outcome.progress().bytes(), 0);
+        assert_eq!(scratch, [0; 2]);
+    }
+}
+
+#[test]
+fn async_empty_scratch_resets_reused_complete_outcomes() {
+    let policy = policy(
+        StreamFraming::Declared(2),
+        StreamSinkMode::Direct,
+        limits(2, 2, 1, 3, 0),
+    );
+    let mut scratch = [0_u8; 2];
+    let mut outcome = StreamOutcome::new();
+
+    let mut source = SendSource { done: false };
+    let mut sink = SendSink {
+        output: [0; 2],
+        len: 0,
+        committed: false,
+        aborted: None,
+    };
+    {
+        let future = drive_async_stream(policy, &mut source, &mut sink, &mut scratch, &mut outcome);
+        let mut future = core::pin::pin!(future);
+        let mut context = Context::from_waker(Waker::noop());
+        assert!(matches!(
+            Future::poll(future.as_mut(), &mut context),
+            Poll::Ready(Ok(_))
+        ));
+    }
+    assert_eq!(outcome.state(), StreamState::Complete);
+    {
+        let future = drive_async_stream(policy, &mut source, &mut sink, &mut [], &mut outcome);
+        let mut future = core::pin::pin!(future);
+        let mut context = Context::from_waker(Waker::noop());
+        assert!(matches!(
+            Future::poll(future.as_mut(), &mut context),
+            Poll::Ready(Err(super::super::super::StreamExecutionError::EmptyScratch))
+        ));
+    }
+    assert_eq!(outcome.state(), StreamState::NotStarted);
+
+    let mut source = SendSource { done: false };
+    let mut sink = SendSink {
+        output: [0; 2],
+        len: 0,
+        committed: false,
+        aborted: None,
+    };
+    {
+        let future = drive_local_stream(policy, &mut source, &mut sink, &mut scratch, &mut outcome);
+        let mut future = core::pin::pin!(future);
+        let mut context = Context::from_waker(Waker::noop());
+        assert!(matches!(
+            Future::poll(future.as_mut(), &mut context),
+            Poll::Ready(Ok(_))
+        ));
+    }
+    assert_eq!(outcome.state(), StreamState::Complete);
+    {
+        let future = drive_local_stream(policy, &mut source, &mut sink, &mut [], &mut outcome);
+        let mut future = core::pin::pin!(future);
+        let mut context = Context::from_waker(Waker::noop());
+        assert!(matches!(
+            Future::poll(future.as_mut(), &mut context),
+            Poll::Ready(Err(super::super::super::StreamExecutionError::EmptyScratch))
+        ));
+    }
+    assert_eq!(outcome.state(), StreamState::NotStarted);
+}

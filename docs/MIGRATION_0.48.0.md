@@ -29,7 +29,13 @@ change. Large or incremental I/O may instead use:
 
 Use the matching `drive_*_stream` function. Supply nonempty caller-owned
 scratch storage and one `StreamOutcome`. The complete scratch slice is cleared
-before use and on every exit.
+before use and on every exit. Drivers reset the outcome before validating
+scratch, so reusing a previously complete outcome cannot leave stale success
+after an empty-scratch error.
+
+Send and local async drivers force a cooperative yield after 64 completed
+source or sink callbacks. This is internal and needs no executor-specific API,
+but callers must still provide timeout and cancellation policy.
 
 Every source must report `StreamReplayability`. Default to `NotReplayable`.
 Use `Replayable(StreamSourceId)` only when the source owner can reproduce exact
@@ -44,8 +50,11 @@ not byte, chunk, observation, or progress bounds.
 
 Transactional sinks must hide partial data and remove it from `abort` when the
 driver reports `RollbackRequired`. Direct sinks may expose partial data and
-must treat `Dirty` as requiring reconciliation. Sink commit can be async;
-cancellation while commit is pending aborts and never records completion.
+must treat `Dirty` as requiring reconciliation. Calling
+`begin_sink_observation` makes this classification sticky before sink code
+runs, even if no accepted byte can later be recorded. Sink commit can be
+async; cancellation while commit is pending aborts and never records
+completion.
 
 ## Retry Migration
 

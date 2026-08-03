@@ -19,6 +19,7 @@ where
     S: BlockingStreamSource,
     D: BlockingStreamSink,
 {
+    *outcome = StreamOutcome::new();
     if scratch.is_empty() {
         return Err(StreamExecutionError::EmptyScratch);
     }

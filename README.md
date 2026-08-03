@@ -592,7 +592,9 @@ assert!(attempt.commit_sink().is_ok());
 
 Blocking, Send-async, and local-async drivers use complete caller-owned scratch
 storage, clear it on every exit, count only bytes actually accepted by the
-sink, and never retry. See the
+sink, and never retry. Sink-attempt state becomes conservative before external
+I/O, and async drivers force a cooperative yield after bounded ready work. See
+the
 [streaming contract](https://github.com/valkyoth/cloud-sdk/blob/main/docs/STREAMING.md).
 
 ## Numbered Pagination Example

@@ -213,7 +213,7 @@ impl<'sink, S> AbortGuard<'sink, S> {
     }
 
     fn record_write_attempt(&mut self, policy: StreamPolicy) {
-        self.partial = partial_state(policy.sink_mode(), 1);
+        self.partial = partial_state(policy.sink_mode(), true);
     }
 
     fn disarm(&mut self) {

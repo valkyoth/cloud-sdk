@@ -248,3 +248,25 @@ fn drop_records_cancellation_and_transactional_or_dirty_partial_state() {
     drop(StreamAttempt::new(policy, &mut outcome));
     assert_eq!(outcome.partial_state(), StreamPartialState::Clean);
 }
+
+#[test]
+fn sink_observation_makes_partial_state_sticky_before_progress() {
+    for (mode, expected) in [
+        (
+            StreamSinkMode::Transactional,
+            StreamPartialState::RollbackRequired,
+        ),
+        (StreamSinkMode::Direct, StreamPartialState::Dirty),
+    ] {
+        let policy = policy(StreamFraming::ExecutorOwned, mode, limits(8, 4, 1, 3, 1));
+        let mut outcome = StreamOutcome::new();
+        {
+            let mut attempt = StreamAttempt::new(policy, &mut outcome);
+            assert_eq!(chunk(&mut attempt, 1), Ok(()));
+            assert_eq!(attempt.begin_sink_observation(), Ok(()));
+        }
+        assert_eq!(outcome.state(), StreamState::Cancelled);
+        assert_eq!(outcome.partial_state(), expected);
+        assert_eq!(outcome.progress().bytes(), 0);
+    }
+}

@@ -6,6 +6,13 @@ use crate::transport::{
     StreamAttempt, StreamCompletion, StreamOutcome, StreamPartialState, StreamPolicy,
     StreamProgressError,
 };
+use core::{
+    future::Future,
+    pin::Pin,
+    task::{Context, Poll},
+};
+
+const MAX_CALLBACKS_BEFORE_YIELD: u16 = 64;
 
 /// Drives one local asynchronous transfer without owning an executor.
 pub async fn drive_local_stream<S, D>(
@@ -19,12 +26,14 @@ where
     S: LocalAsyncStreamSource,
     D: LocalAsyncStreamSink,
 {
+    *outcome = StreamOutcome::new();
     if scratch.is_empty() {
         return Err(StreamExecutionError::EmptyScratch);
     }
     let mut scratch = ScratchGuard::new(scratch);
     let mut guard = AbortGuard::new(sink, abort_local::<D>);
     let mut attempt = StreamAttempt::new(policy, outcome);
+    let mut cooperation = CooperativeBudget::new();
     let completion = loop {
         attempt
             .begin_source_observation()
@@ -42,15 +51,23 @@ where
             }
         };
         match read {
-            StreamRead::End => break attempt.finish().map_err(StreamExecutionError::Progress)?,
-            StreamRead::Wait => attempt
-                .observe_wait()
-                .map_err(StreamExecutionError::Progress)?,
+            StreamRead::End => {
+                let completion = attempt.finish().map_err(StreamExecutionError::Progress)?;
+                cooperation.after_callback().await;
+                break completion;
+            }
+            StreamRead::Wait => {
+                attempt
+                    .observe_wait()
+                    .map_err(StreamExecutionError::Progress)?;
+                cooperation.after_callback().await;
+            }
             StreamRead::Chunk(len) => {
                 validate_source_length(len, output.len(), &mut attempt)?;
                 attempt
                     .begin_chunk(len)
                     .map_err(StreamExecutionError::Progress)?;
+                cooperation.after_callback().await;
                 let mut offset = 0_usize;
                 while offset < len {
                     let Some(input) = output.get(offset..len) else {
@@ -69,6 +86,7 @@ where
                         }
                     };
                     advance::<S::Error, D::Error>(&mut attempt, &mut offset, accepted)?;
+                    cooperation.after_callback().await;
                 }
             }
         }
@@ -96,12 +114,14 @@ where
     S: AsyncStreamSource + Send,
     D: AsyncStreamSink + Send,
 {
+    *outcome = StreamOutcome::new();
     if scratch.is_empty() {
         return Err(StreamExecutionError::EmptyScratch);
     }
     let mut scratch = ScratchGuard::new(scratch);
     let mut guard = AbortGuard::new(sink, abort_async::<D>);
     let mut attempt = StreamAttempt::new(policy, outcome);
+    let mut cooperation = CooperativeBudget::new();
     let completion = loop {
         attempt
             .begin_source_observation()
@@ -119,15 +139,23 @@ where
             }
         };
         match read {
-            StreamRead::End => break attempt.finish().map_err(StreamExecutionError::Progress)?,
-            StreamRead::Wait => attempt
-                .observe_wait()
-                .map_err(StreamExecutionError::Progress)?,
+            StreamRead::End => {
+                let completion = attempt.finish().map_err(StreamExecutionError::Progress)?;
+                cooperation.after_callback().await;
+                break completion;
+            }
+            StreamRead::Wait => {
+                attempt
+                    .observe_wait()
+                    .map_err(StreamExecutionError::Progress)?;
+                cooperation.after_callback().await;
+            }
             StreamRead::Chunk(len) => {
                 validate_source_length(len, output.len(), &mut attempt)?;
                 attempt
                     .begin_chunk(len)
                     .map_err(StreamExecutionError::Progress)?;
+                cooperation.after_callback().await;
                 let mut offset = 0_usize;
                 while offset < len {
                     let Some(input) = output.get(offset..len) else {
@@ -146,6 +174,7 @@ where
                         }
                     };
                     advance::<S::Error, D::Error>(&mut attempt, &mut offset, accepted)?;
+                    cooperation.after_callback().await;
                 }
             }
         }
@@ -198,4 +227,46 @@ fn abort_local<S: LocalAsyncStreamSink>(sink: &mut S, state: StreamPartialState)
 
 fn abort_async<S: AsyncStreamSink>(sink: &mut S, state: StreamPartialState) {
     sink.abort(state);
+}
+
+struct CooperativeBudget {
+    completed_callbacks: u16,
+}
+
+impl CooperativeBudget {
+    const fn new() -> Self {
+        Self {
+            completed_callbacks: 0,
+        }
+    }
+
+    async fn after_callback(&mut self) {
+        if self.completed_callbacks == MAX_CALLBACKS_BEFORE_YIELD - 1 {
+            self.completed_callbacks = 0;
+            YieldOnce { yielded: false }.await;
+        } else if let Some(next) = self.completed_callbacks.checked_add(1) {
+            self.completed_callbacks = next;
+        } else {
+            self.completed_callbacks = 0;
+            YieldOnce { yielded: false }.await;
+        }
+    }
+}
+
+struct YieldOnce {
+    yielded: bool,
+}
+
+impl Future for YieldOnce {
+    type Output = ();
+
+    fn poll(mut self: Pin<&mut Self>, context: &mut Context<'_>) -> Poll<Self::Output> {
+        if self.yielded {
+            Poll::Ready(())
+        } else {
+            self.yielded = true;
+            context.waker().wake_by_ref();
+            Poll::Pending
+        }
+    }
 }

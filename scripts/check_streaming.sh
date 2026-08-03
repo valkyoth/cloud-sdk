@@ -33,6 +33,9 @@ done
 for contract in \
     'never retry' \
     'caller-owned cancellation' \
+    'after every 64' \
+    'completed source or sink callbacks' \
+    'no sink write was attempted' \
     'RollbackRequired' \
     'no read-ahead'; do
     if ! grep -Fq "$contract" docs/STREAMING.md; then

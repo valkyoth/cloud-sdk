@@ -55,8 +55,16 @@ before the violating state is accepted; a rejected attempt is terminal.
 The caller supplies one nonempty scratch slice. Drivers limit the source view
 to the policy chunk size, never allocate or retain a chunk, and volatile-clear
 the complete scratch slice before first use and on success, error, or future
-cancellation. Send source and sink futures are required to be `Send`; Send
-implementations automatically satisfy the local traits.
+cancellation. The caller-owned outcome is reset before scratch validation, so
+an empty-scratch error cannot preserve stale success from an earlier attempt.
+Send source and sink futures are required to be `Send`; Send implementations
+automatically satisfy the local traits.
+
+Both async drivers force one self-waking cooperative yield after every 64
+completed source or sink callbacks. An always-ready source and sink therefore
+cannot process the complete global stream ceiling in one executor poll. This
+adds no runtime, executor, timer, or allocation dependency and does not replace
+caller-owned timeout and cancellation policy.
 
 ```rust
 use cloud_sdk::transport::{
@@ -106,15 +114,17 @@ misreported as completion.
 
 Dropping an active attempt records:
 
-- `Clean` when no bytes reached the sink;
-- `RollbackRequired` when a transactional sink accepted hidden bytes; or
-- `Dirty` when a direct sink may have exposed bytes.
+- `Clean` when no sink write was attempted;
+- `RollbackRequired` when a transactional sink write was attempted; or
+- `Dirty` when a direct sink write may have produced an external effect.
 
-The supplied drivers arm an abort guard before source access. Before any
-nonempty sink write is attempted, the guard conservatively records rollback
-required or dirty state; a sink error or invalid progress report therefore
-cannot claim the attempt remained clean. Error or async cancellation
-synchronously invokes the sink's abort method with that partial state.
+`StreamAttempt::begin_sink_observation` makes this sink-attempt state sticky in
+the authoritative `StreamOutcome` before external sink code runs. The supplied
+drivers also arm their abort guard at that boundary. A first-write error,
+invalid or zero progress, or cancellation while the first sink future is
+pending therefore cannot claim the attempt remained clean. Error or async
+cancellation synchronously invokes the sink's abort method with that same
+partial state.
 Transactional sinks must discard every hidden partial byte;
 `RollbackRequired` is a contract obligation, not a claim that arbitrary
 external storage can be rolled back. Direct sinks remain dirty and require

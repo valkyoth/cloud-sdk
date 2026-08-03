@@ -19,11 +19,16 @@ buffered request behavior or the default no_std dependency graph.
   handling, and pre-accept overflow rejection.
 - Added source and sink observation preflight so hard caps reject before
   external I/O, including terminal, error, and invalid-progress observations.
+- Added sticky sink-attempt state so first-write failure, invalid or zero
+  progress, and cancellation cannot falsely report a clean outcome.
 - Added explicit transactional rollback and dirty direct-sink outcomes.
 - Added blocking, Send-async, and local-async source/sink traits and drivers
   over caller-owned scratch storage.
+- Added a forced cooperative yield after every 64 completed async callbacks.
 - Added complete scratch clearing before use and on success, failure, or
   cancellation.
+- Reset reused outcomes before empty-scratch rejection to prevent stale
+  completion state.
 - Re-exported the audited `sanitize_bytes` boundary through
   `cloud_sdk::buffer` for provider-neutral companion crates.
 - Added separate end validation and sink commitment so cancellation during

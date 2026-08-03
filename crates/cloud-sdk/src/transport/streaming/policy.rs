@@ -238,8 +238,11 @@ impl StreamPolicy {
     }
 }
 
-pub(super) const fn partial_state(mode: StreamSinkMode, bytes: u64) -> super::StreamPartialState {
-    if bytes == 0 {
+pub(super) const fn partial_state(
+    mode: StreamSinkMode,
+    write_attempted: bool,
+) -> super::StreamPartialState {
+    if !write_attempted {
         super::StreamPartialState::Clean
     } else {
         match mode {

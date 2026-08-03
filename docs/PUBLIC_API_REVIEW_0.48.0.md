@@ -19,12 +19,19 @@ actual-byte `advance`, bounded `observe_wait`, end validation, and post-sink
 `commit_sink`. `StreamProgress`, `StreamState`, and `StreamPartialState` expose
 only nonsensitive counters and lifecycle classes.
 
+Sink observation preflight records a sticky attempted-write state before
+external sink code runs. Every incomplete `StreamOutcome` is therefore
+conservative even when the first sink callback errors, reports invalid or zero
+progress, or remains pending until cancellation.
+
 Blocking, Send-async, and local-async source/sink traits use caller-owned
 scratch storage. `drive_blocking_stream`, `drive_async_stream`, and
 `drive_local_stream` perform one bounded attempt, clear complete scratch,
 enforce backpressure, commit after end validation, and abort on every ordinary
 error or async cancellation. Send traits require Send futures and the Send
-driver itself is compile-checked as Send.
+driver itself is compile-checked as Send. Async drivers self-yield after 64
+completed callbacks, and all drivers reset reused outcomes before rejecting
+empty scratch.
 
 `StreamReplayability`, redacted exact `StreamSourceId`, and
 `validate_stream_replay` make changed or non-replayable sources explicit.
@@ -58,6 +65,8 @@ dependency patch.
 - exact replay identity without non-cryptographic hashing;
 - no automatic retry;
 - complete scratch cleanup on success, error, and cancellation;
+- bounded cooperative work for always-ready async callbacks;
+- no stale successful outcome after precondition failure;
 - explicit transactional rollback versus dirty direct state; and
 - cancellation during source read, sink write, and sink commit.
 

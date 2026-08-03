@@ -1,10 +1,12 @@
 //! Allocation-free, runtime-neutral streaming transport contracts.
 
+mod completion;
 mod io;
 mod policy;
 mod progress;
 mod replay;
 
+pub use completion::StreamCompletion;
 pub use io::{
     AsyncStreamSink, AsyncStreamSource, BlockingStreamSink, BlockingStreamSource,
     LocalAsyncStreamSink, LocalAsyncStreamSource, StreamExecutionError, StreamRead,
@@ -16,8 +18,8 @@ pub use policy::{
     StreamPolicy, StreamPolicyError, StreamSinkMode,
 };
 pub use progress::{
-    StreamAttempt, StreamCompletion, StreamOutcome, StreamPartialState, StreamProgress,
-    StreamProgressError, StreamState,
+    StreamAttempt, StreamOutcome, StreamPartialState, StreamProgress, StreamProgressError,
+    StreamState,
 };
 pub use replay::{
     MAX_STREAM_SOURCE_ID_BYTES, StreamReplayError, StreamReplayability, StreamSourceId,
