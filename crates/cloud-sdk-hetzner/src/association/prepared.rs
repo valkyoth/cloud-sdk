@@ -12,9 +12,10 @@ use cloud_sdk::transport::{BoundTransport, ResponseBuffer};
 
 use super::components::{AssociationError, BodyFor, EndpointFor, QueryFor};
 use super::policy::HetznerOperation;
-use super::validation::preflight_association;
+use super::validation::validate_association;
 use crate::prepared::{
-    BodyWire, EndpointWire, HetznerPreparationError, NoBody, NoQuery, QueryWire, prepare_parts,
+    BodyWire, EndpointWire, HetznerPreparationError, NoBody, NoQuery, QueryWire,
+    clear_preparation_storage, prepare_parts_with_policy,
 };
 
 /// Failure while preparing a compile-time-associated operation.
@@ -133,12 +134,15 @@ where
         storage: PreparationStorage<'storage>,
     ) -> Result<Prepared<'storage, O>, AssociatedPreparationError> {
         let endpoint = self.endpoint.into_inner();
-        preflight_association::<O, _>(endpoint).map_err(AssociatedPreparationError::Association)?;
-        let request = prepare_parts(
+        let storage = clear_preparation_storage(storage);
+        let policy = validate_association::<O, _>(endpoint)
+            .map_err(AssociatedPreparationError::Association)?;
+        let request = prepare_parts_with_policy(
             endpoint,
             self.query.into_inner(),
             self.body.into_inner(),
             storage,
+            &policy,
         )
         .map_err(AssociatedPreparationError::Preparation)?;
         Ok(Prepared::new(request))
@@ -146,21 +150,22 @@ where
 
     /// Prepares through cleanup-owning storage while preserving `O`.
     ///
-    /// Association policy is checked before the guard lends either writable
-    /// buffer. The guard clears both complete buffers before preparation and
-    /// again when it is dropped after transport use.
+    /// The guard clears both complete buffers before association validation
+    /// and preparation, then clears them again when dropped after transport.
     pub fn prepare_typed_guarded<'guard>(
         &self,
         storage: &'guard mut PreparationStorageGuard<'_>,
     ) -> Result<Prepared<'guard, O>, AssociatedPreparationError> {
         let endpoint = self.endpoint.into_inner();
-        preflight_association::<O, _>(endpoint).map_err(AssociatedPreparationError::Association)?;
         storage.prepare_with(|buffers| {
-            prepare_parts(
+            let policy = validate_association::<O, _>(endpoint)
+                .map_err(AssociatedPreparationError::Association)?;
+            prepare_parts_with_policy(
                 endpoint,
                 self.query.into_inner(),
                 self.body.into_inner(),
                 buffers,
+                &policy,
             )
             .map(Prepared::new)
             .map_err(AssociatedPreparationError::Preparation)

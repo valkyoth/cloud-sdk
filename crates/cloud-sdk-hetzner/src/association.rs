@@ -9,7 +9,7 @@ mod markers;
 mod policy;
 mod prepared;
 mod types;
-mod validation;
+pub(crate) mod validation;
 
 pub use components::{
     AssociationError, BodyComponent, BodyFor, EndpointComponent, EndpointFor, QueryComponent,

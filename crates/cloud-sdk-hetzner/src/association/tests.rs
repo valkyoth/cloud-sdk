@@ -1,10 +1,14 @@
+use core::cell::Cell;
+
+use cloud_sdk::Method;
+use cloud_sdk::operation::OperationMetadata;
 use cloud_sdk::operation::{PreparationStorage, PreparationStorageGuard};
 
 use super::operations::{
     ChangeZoneProtection, GetAction, GetActions, ListCertificates, ListStorageBoxes,
 };
 use super::validation::{
-    descriptor_policy_is_coherent, preflight_association, prepared_policy_matches,
+    descriptor_policy_is_coherent, prepared_policy_matches, validate_association,
 };
 use super::{
     ALL_OPERATIONS, AssociatedOperation, AssociationError, AuthenticationClass, BodyPolicy,
@@ -12,12 +16,64 @@ use super::{
 };
 use crate::actions::{ActionEndpoint, ActionId, ActionListRequest};
 use crate::dns::zones::{ZoneProtectionRequest, ZoneReference};
+use crate::endpoint::EndpointGroup;
+use crate::prepared::{
+    EndpointWire, HetznerPreparationError, NoBody, NoQuery, RequestShape, ResponseProfile,
+    prepare_parts_with_policy,
+};
+use crate::request::ApiBaseUrl;
 use crate::security::certificates::CertificateEndpoint;
 use crate::storage::storage_boxes::StorageBoxEndpoint;
 use crate::{
     CLOUD_SERVICE_ID, DNS_SERVICE_ID, SECURITY_SERVICE_ID, STORAGE_SERVICE_ID,
     cloud::shared::CloudResourceId,
 };
+
+#[derive(Clone, Copy)]
+struct ChangingMethodEndpoint<'a> {
+    inner: ActionEndpoint,
+    method_reads: &'a Cell<usize>,
+}
+
+impl EndpointWire for ChangingMethodEndpoint<'_> {
+    fn method(self) -> Method {
+        let reads = self.method_reads.get();
+        self.method_reads.set(reads.saturating_add(1));
+        if reads == 0 {
+            EndpointWire::method(self.inner)
+        } else {
+            Method::Delete
+        }
+    }
+
+    fn api_base_url(self) -> ApiBaseUrl {
+        EndpointWire::api_base_url(self.inner)
+    }
+
+    fn endpoint_group(self) -> EndpointGroup {
+        EndpointWire::endpoint_group(self.inner)
+    }
+
+    fn write_path(self, output: &mut [u8]) -> Result<usize, HetznerPreparationError> {
+        EndpointWire::write_path(self.inner, output)
+    }
+
+    fn request_shape(self) -> RequestShape {
+        EndpointWire::request_shape(self.inner)
+    }
+
+    fn response_profile(self) -> ResponseProfile {
+        EndpointWire::response_profile(self.inner)
+    }
+
+    fn metadata(self) -> Result<OperationMetadata, HetznerPreparationError> {
+        EndpointWire::metadata(self.inner)
+    }
+
+    fn operation_key(self) -> &'static str {
+        EndpointWire::operation_key(self.inner)
+    }
+}
 
 #[test]
 fn registry_is_complete_unique_and_stably_sorted() {
@@ -202,7 +258,57 @@ fn wrong_endpoint_and_missing_components_fail_before_writing() {
 fn runtime_policy_disagreement_fails_during_write_free_preflight() {
     let action_id = ActionId::new(1).unwrap_or_else(|| unreachable!());
     assert_eq!(
-        preflight_association::<GetActions, _>(ActionEndpoint::Get(action_id)),
-        Err(AssociationError::PreparedPolicyMismatch)
+        validate_association::<GetActions, _>(ActionEndpoint::Get(action_id)).map(|_| ()),
+        Err(AssociationError::PreparedPolicyMismatch),
     );
+}
+
+#[test]
+fn request_assembly_consumes_validated_policy_without_rereading_endpoint_method() {
+    let action_id = ActionId::new(1).unwrap_or_else(|| unreachable!());
+    let method_reads = Cell::new(0);
+    let endpoint = ChangingMethodEndpoint {
+        inner: ActionEndpoint::Get(action_id),
+        method_reads: &method_reads,
+    };
+    let policy = validate_association::<GetAction, _>(endpoint)
+        .unwrap_or_else(|_| unreachable!("canonical first snapshot must validate"));
+    let mut target = [0_u8; 64];
+    let mut body = [0_u8; 64];
+    let prepared = prepare_parts_with_policy(
+        endpoint,
+        NoQuery,
+        NoBody,
+        PreparationStorage::new(&mut target, &mut body),
+        &policy,
+    )
+    .unwrap_or_else(|_| unreachable!("validated policy must drive assembly"));
+
+    assert_eq!(method_reads.get(), 1);
+    assert_eq!(prepared.transport_request().method(), Method::Get);
+    assert!(prepared_policy_matches::<GetAction>(&prepared).is_ok());
+}
+
+#[test]
+fn typed_validation_failure_clears_reused_storage_before_returning() {
+    let action_id = ActionId::new(1).unwrap_or_else(|| unreachable!());
+    let method_reads = Cell::new(1);
+    let endpoint = ChangingMethodEndpoint {
+        inner: ActionEndpoint::Get(action_id),
+        method_reads: &method_reads,
+    };
+    let operation = AssociatedOperation::<GetAction, _>::endpoint(endpoint)
+        .unwrap_or_else(|_| unreachable!("operation key remains canonical"));
+    let mut target = [0xA5_u8; 64];
+    let mut body = [0x5A_u8; 64];
+    let result = operation.prepare_typed(PreparationStorage::new(&mut target, &mut body));
+
+    assert!(matches!(
+        result,
+        Err(super::AssociatedPreparationError::Association(
+            AssociationError::PreparedPolicyMismatch
+        ))
+    ));
+    assert_eq!(target, [0; 64]);
+    assert_eq!(body, [0; 64]);
 }

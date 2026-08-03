@@ -3,16 +3,18 @@
 use core::marker::PhantomData;
 
 use cloud_sdk::Method;
+use cloud_sdk::authentication::AuthenticationScopePolicy;
 use cloud_sdk::operation::{
-    ContentTypePolicy, CostIntent, OperationId, OperationImpact, OperationMetadata,
-    PreparationStorage, PrepareOperation, PreparedRequest, RequestIdPolicy, RequestSemantics,
-    ResponseBodyPolicy, ResponsePolicy, RetryEligibility,
+    BodyReplayability, ContentTypePolicy, CostIntent, OperationId, OperationImpact,
+    OperationMetadata, PreparationStorage, PrepareOperation, PreparedRequest, ProviderService,
+    RequestIdPolicy, RequestSemantics, ResponseBodyPolicy, ResponsePolicy, RetryEligibility,
 };
 use cloud_sdk::transport::{
-    ContentType, MediaType, RequestHeader, RequestHeaders, RequestTarget, StatusCode,
-    TransportRequest,
+    ContentType, MediaType, RawResponsePolicy, RequestHeader, RequestHeaders, RequestTarget,
+    StatusCode, TransportRequest,
 };
 
+use crate::association::validation::ValidatedAssociationPolicy;
 use crate::endpoint::EndpointGroup;
 use crate::request::ApiBaseUrl;
 
@@ -83,6 +85,35 @@ pub(crate) trait BodyWire: Copy {
 
     fn accepts_operation(self, operation_key: &str) -> bool {
         self.operation_key() == operation_key
+    }
+}
+
+#[derive(Clone, Copy)]
+struct RequestAssemblyPolicy {
+    operation_id: OperationId,
+    method: Method,
+    request_shape: RequestShape,
+    service: ProviderService<'static>,
+    metadata: OperationMetadata,
+    response: ResponsePolicy,
+    authentication: AuthenticationScopePolicy<'static>,
+    raw_response: RawResponsePolicy<'static>,
+    body_replayability: BodyReplayability,
+}
+
+impl From<&ValidatedAssociationPolicy> for RequestAssemblyPolicy {
+    fn from(policy: &ValidatedAssociationPolicy) -> Self {
+        Self {
+            operation_id: policy.operation_id,
+            method: policy.method,
+            request_shape: policy.request_shape,
+            service: policy.service,
+            metadata: policy.metadata,
+            response: policy.response,
+            authentication: policy.authentication,
+            raw_response: policy.raw_response,
+            body_replayability: policy.body_replayability,
+        }
     }
 }
 
@@ -195,16 +226,72 @@ where
     Q: QueryWire,
     B: BodyWire,
 {
-    let (target_storage, body_storage) = storage.into_parts();
-    cloud_sdk_sanitization::sanitize_bytes(target_storage);
-    cloud_sdk_sanitization::sanitize_bytes(body_storage);
+    let storage = clear_preparation_storage(storage);
     let metadata = endpoint.metadata()?;
     let profile = endpoint.response_profile();
-    let policy = response_policy(profile)?;
+    let response = response_policy(profile)?;
     let service = provider_service(endpoint.endpoint_group())?;
-    let authentication_policy = authentication_policy(service, endpoint.api_base_url())?;
-    let raw_response_policy = raw_response_policy(profile)?;
-    validate_components(endpoint, query, body)?;
+    let authentication = authentication_policy(service, endpoint.api_base_url())?;
+    let raw_response = raw_response_policy(profile)?;
+    let operation_id = OperationId::new(endpoint.operation_key())
+        .map_err(HetznerPreparationError::InvalidOperationId)?;
+    let policy = RequestAssemblyPolicy {
+        operation_id,
+        method: endpoint.method(),
+        request_shape: endpoint.request_shape(),
+        service,
+        metadata,
+        response,
+        authentication,
+        raw_response,
+        body_replayability: BodyReplayability::Replayable,
+    };
+    prepare_parts_using_policy(endpoint, query, body, storage, &policy)
+}
+
+pub(crate) fn prepare_parts_with_policy<'storage, E, Q, B>(
+    endpoint: E,
+    query: Q,
+    body: B,
+    storage: PreparationStorage<'storage>,
+    policy: &ValidatedAssociationPolicy,
+) -> Result<PreparedRequest<'storage>, HetznerPreparationError>
+where
+    E: EndpointWire,
+    Q: QueryWire,
+    B: BodyWire,
+{
+    let storage = clear_preparation_storage(storage);
+    let assembly_policy = RequestAssemblyPolicy::from(policy);
+    prepare_parts_using_policy(endpoint, query, body, storage, &assembly_policy)
+}
+
+pub(crate) fn clear_preparation_storage(storage: PreparationStorage<'_>) -> PreparationStorage<'_> {
+    let (target, body) = storage.into_parts();
+    cloud_sdk_sanitization::sanitize_bytes(target);
+    cloud_sdk_sanitization::sanitize_bytes(body);
+    PreparationStorage::new(target, body)
+}
+
+fn prepare_parts_using_policy<'storage, E, Q, B>(
+    endpoint: E,
+    query: Q,
+    body: B,
+    storage: PreparationStorage<'storage>,
+    policy: &RequestAssemblyPolicy,
+) -> Result<PreparedRequest<'storage>, HetznerPreparationError>
+where
+    E: EndpointWire,
+    Q: QueryWire,
+    B: BodyWire,
+{
+    let (target_storage, body_storage) = storage.into_parts();
+    validate_components(
+        policy.request_shape,
+        policy.operation_id.as_str(),
+        query,
+        body,
+    )?;
     let (target_len, body_len) =
         match write_components(endpoint, query, body, target_storage, body_storage) {
             Ok(lengths) => lengths,
@@ -239,24 +326,24 @@ where
     };
     let headers =
         RequestHeaders::new(header_entries).map_err(HetznerPreparationError::InvalidHeaders)?;
-    let mut request = TransportRequest::new(endpoint.method(), target).with_headers(headers);
+    let mut request = TransportRequest::new(policy.method, target).with_headers(headers);
     if !body_bytes.is_empty() {
         request = request.with_body(body_bytes);
     }
-    let operation_id = OperationId::new(endpoint.operation_key())
-        .map_err(HetznerPreparationError::InvalidOperationId)?;
     PreparedRequest::new(
         request,
-        service,
-        metadata,
-        policy,
-        authentication_policy,
-        raw_response_policy,
+        policy.service,
+        policy.metadata,
+        policy.response,
+        policy.authentication,
+        policy.raw_response,
     )
     .map(|prepared| {
-        prepared
-            .with_operation_id(operation_id)
-            .with_replayable_body()
+        let prepared = prepared.with_operation_id(policy.operation_id);
+        match policy.body_replayability {
+            BodyReplayability::NotReplayable => prepared,
+            BodyReplayability::Replayable => prepared.with_replayable_body(),
+        }
     })
     .map_err(HetznerPreparationError::InvalidPreparedPolicy)
 }
@@ -305,23 +392,24 @@ where
     Ok((target_len, body_len))
 }
 
-fn validate_components<E, Q, B>(
-    endpoint: E,
+fn validate_components<Q, B>(
+    request_shape: RequestShape,
+    operation_key: &str,
     query: Q,
     body: B,
 ) -> Result<(), HetznerPreparationError>
 where
-    E: EndpointWire,
     Q: QueryWire,
     B: BodyWire,
 {
     let has_query = !query.operation_key().is_empty();
     let has_body = !body.operation_key().is_empty();
-    let key = endpoint.operation_key();
-    if has_query && !query.accepts_operation(key) || has_body && !body.accepts_operation(key) {
+    if has_query && !query.accepts_operation(operation_key)
+        || has_body && !body.accepts_operation(operation_key)
+    {
         return Err(HetznerPreparationError::OperationMismatch);
     }
-    match (endpoint.request_shape(), has_query, has_body) {
+    match (request_shape, has_query, has_body) {
         (RequestShape::None, true, _) => Err(HetznerPreparationError::UnexpectedQuery),
         (RequestShape::None | RequestShape::OptionalQuery, _, true) => {
             Err(HetznerPreparationError::UnexpectedBody)
@@ -397,70 +485,4 @@ pub(crate) fn operation_metadata(
 }
 
 #[cfg(test)]
-mod tests {
-    use cloud_sdk::operation::{CostIntent, OperationImpact, RequestSemantics, RetryEligibility};
-
-    use super::{OperationClass, operation_metadata};
-    use crate::EndpointGroup;
-    use crate::endpoint::official_endpoint_policy;
-    use crate::prepared::wire_policy::provider_service;
-
-    #[test]
-    fn prepared_services_use_the_canonical_official_policies() {
-        for group in [EndpointGroup::Servers, EndpointGroup::StorageBoxes] {
-            let base = group.api_base_url();
-            let service = provider_service(group);
-            let official = official_endpoint_policy(base);
-            assert!(service.is_ok() && official.is_ok());
-            if let (Ok(service), Ok(official)) = (service, official) {
-                assert_eq!(service.endpoint_policy(), official);
-            }
-        }
-    }
-
-    #[test]
-    fn operation_classes_own_impact_semantics_and_retry_policy() {
-        let cases = [
-            (
-                OperationClass::ReadOnly,
-                OperationImpact::ReadOnly,
-                RequestSemantics::Safe,
-                RetryEligibility::ExplicitPolicy,
-            ),
-            (
-                OperationClass::IdempotentMutation,
-                OperationImpact::Mutation,
-                RequestSemantics::Idempotent,
-                RetryEligibility::ExplicitPolicy,
-            ),
-            (
-                OperationClass::NonIdempotentMutation,
-                OperationImpact::Mutation,
-                RequestSemantics::NonIdempotent,
-                RetryEligibility::Never,
-            ),
-            (
-                OperationClass::IdempotentDestructive,
-                OperationImpact::Destructive,
-                RequestSemantics::Idempotent,
-                RetryEligibility::Never,
-            ),
-            (
-                OperationClass::NonIdempotentDestructive,
-                OperationImpact::Destructive,
-                RequestSemantics::NonIdempotent,
-                RetryEligibility::Never,
-            ),
-        ];
-
-        for (class, impact, semantics, retry) in cases {
-            let metadata = operation_metadata(class, CostIntent::NoKnownCost);
-            assert!(metadata.is_ok());
-            if let Ok(metadata) = metadata {
-                assert_eq!(metadata.impact(), impact);
-                assert_eq!(metadata.semantics(), semantics);
-                assert_eq!(metadata.retry_eligibility(), retry);
-            }
-        }
-    }
-}
+mod tests;

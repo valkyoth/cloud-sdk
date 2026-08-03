@@ -54,9 +54,10 @@ operations requiring those components. Explicitly call `into_untyped` only
 when operation type erasure is intended. For secret-bearing operations, prefer
 the cleanup-owning typed route shown above.
 
-The association preflight runs before writable storage is borrowed. The guard
-clears both complete buffers before preparation and when it is dropped after
-transport use.
+The guard clears both complete buffers before association validation. The
+validator snapshots endpoint policy once and returns an immutable checked token
+that request construction consumes without recalculating policy from the
+endpoint. The guard clears both buffers again when dropped after transport use.
 
 ## Operation Identifiers
 

@@ -23,10 +23,13 @@ and execution.
   request headers/media, success status, response body/media/caps, pagination,
   quota, retry, streaming, success/error models, and permit class.
 - Added inspectable non-secret descriptors and forward-compatible policy enums.
-- Added write-free exact policy preflight and cleanup-owning
+- Added clear-before-validation exact policy checking and cleanup-owning
   `prepare_typed_guarded` before typed request serialization.
-- Compare canonical metadata, request-ID handling, body replayability,
-  checked-response policy, and complete raw-response policy exactly.
+- Snapshot canonical operation ID, method, metadata, request-ID handling, body
+  replayability, authentication scope, checked-response policy, and complete
+  raw-response policy into one token consumed directly by request assembly.
+- Added a stateful-endpoint regression proving assembly does not recalculate
+  security-relevant endpoint policy after successful validation.
 - Generated all bindings from a strict reviewed 208-row classification
   manifest plus exact API fingerprint, body, and response locks.
 - Added freshness, regression, compile-fail, service-identity, and behavioral

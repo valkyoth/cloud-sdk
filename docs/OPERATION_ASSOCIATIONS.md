@@ -64,19 +64,23 @@ component that merely reports a chosen operation string.
 
 ## Prepared Requests
 
-`prepare_typed` performs a write-free policy preflight before lending storage
-to the existing transactional fixed-buffer encoder. The preflight compares
-exact canonical service, official endpoint, authentication scope, operation
-metadata including request-ID policy, checked-response policy, raw-response
-policy including admitted headers and informational/trailer behavior, request
-shape, and body replayability. A disagreement therefore fails before request
-bytes can be written.
+`prepare_typed` clears the complete supplied storage, snapshots every endpoint
+policy field once, and performs a write-free exact policy validation before
+encoding. Validation compares canonical service, official endpoint,
+authentication scope, operation metadata including request-ID policy,
+checked-response policy, raw-response policy including admitted headers and
+informational/trailer behavior, and request shape. Body replayability is an
+association-owned canonical classification. The resulting immutable token
+contains all of those fields plus the operation ID and method, and request
+construction consumes that token instead of consulting endpoint policy again.
+A disagreement therefore fails before request bytes can be written.
 
-`prepare_typed_guarded` is the preferred secret-bearing route. It returns the
-same `Prepared<O>` while borrowing one `PreparationStorageGuard`; safe Rust
-therefore keeps volatile cleanup ownership alive through transport use. The
-lower-level `prepare_typed(PreparationStorage)` remains available to callers
-that provide an equivalent lifecycle and cleanup guarantee.
+`prepare_typed_guarded` is the preferred secret-bearing route. The guard clears
+both complete buffers before entering validation and returns the same
+`Prepared<O>` while retaining cleanup ownership; safe Rust therefore keeps
+volatile cleanup alive through transport use. The lower-level
+`prepare_typed(PreparationStorage)` remains available to callers that provide
+an equivalent lifecycle and cleanup guarantee.
 
 `Prepared<O>` delegates checked response validation and blocking, Send-async,
 and local-async authenticated execution. `as_untyped` borrows the underlying

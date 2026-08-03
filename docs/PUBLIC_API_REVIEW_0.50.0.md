@@ -48,9 +48,10 @@ client ergonomics remain later roadmap work.
 - Hand-maintaining 208 implementations was rejected in favor of deterministic
   generation from reviewed source locks.
 - Encoding policy directly in endpoint-name heuristics at runtime was rejected;
-preparation validates generated metadata against existing provider policy.
-- Returning an association mismatch after serialization was rejected. Exact
-  canonical policy preflight now completes before writable storage is lent.
+  preparation validates generated metadata against existing provider policy.
+- Returning an association mismatch after serialization was rejected. Storage
+  is cleared first, then exact write-free validation returns one immutable
+  policy token consumed directly by request construction.
 - Inferring security classifications from names, tags, or HTTP methods was
   rejected in favor of the strict reviewed `OPERATION_ASSOCIATIONS.tsv`.
 - Removing existing `PrepareOperation` APIs was rejected as unnecessary churn

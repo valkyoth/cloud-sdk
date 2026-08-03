@@ -1,10 +1,11 @@
 //! Canonical association and prepared-wire policy validation.
 
+use cloud_sdk::Method;
 #[cfg(test)]
-use cloud_sdk::operation::{BodyReplayability, PreparedRequest};
+use cloud_sdk::operation::PreparedRequest;
 use cloud_sdk::operation::{
-    CostIntent, OperationImpact, OperationMetadata, ProviderService, RequestIdPolicy,
-    RequestSemantics, ResponsePolicy, RetryEligibility,
+    BodyReplayability, CostIntent, OperationId, OperationImpact, OperationMetadata,
+    ProviderService, RequestIdPolicy, RequestSemantics, ResponsePolicy, RetryEligibility,
 };
 #[cfg(test)]
 use cloud_sdk::transport::{MediaType, TransportRequest};
@@ -21,41 +22,54 @@ use crate::prepared::{
     raw_response_policy, response_policy,
 };
 
+/// Complete association policy checked against one endpoint snapshot.
 #[derive(Clone, Copy)]
-struct CanonicalPolicy {
-    service: ProviderService<'static>,
-    metadata: OperationMetadata,
-    response: ResponsePolicy,
-    authentication: cloud_sdk::authentication::AuthenticationScopePolicy<'static>,
-    raw_response: RawResponsePolicy<'static>,
-    profile: ResponseProfile,
-    request_shape: RequestShape,
+pub(crate) struct ValidatedAssociationPolicy {
+    pub(crate) operation_id: OperationId,
+    pub(crate) method: Method,
+    pub(crate) service: ProviderService<'static>,
+    pub(crate) metadata: OperationMetadata,
+    pub(crate) response: ResponsePolicy,
+    pub(crate) authentication: cloud_sdk::authentication::AuthenticationScopePolicy<'static>,
+    pub(crate) raw_response: RawResponsePolicy<'static>,
+    pub(crate) body_replayability: BodyReplayability,
+    pub(crate) profile: ResponseProfile,
+    pub(crate) request_shape: RequestShape,
 }
 
-pub(crate) fn preflight_association<O, E>(endpoint: E) -> Result<(), AssociationError>
+pub(crate) fn validate_association<O, E>(
+    endpoint: E,
+) -> Result<ValidatedAssociationPolicy, AssociationError>
 where
     O: HetznerOperation,
     E: EndpointWire,
 {
     let descriptor = O::DESCRIPTOR;
     let expected = canonical_policy(descriptor)?;
-    let runtime_service = provider_service(endpoint.endpoint_group()).map_err(policy_mismatch)?;
+    let operation_key = endpoint.operation_key();
+    let method = endpoint.method();
+    let api_base_url = endpoint.api_base_url();
+    let endpoint_group = endpoint.endpoint_group();
+    let request_shape = endpoint.request_shape();
+    let response_profile = endpoint.response_profile();
+    let metadata = endpoint.metadata().map_err(policy_mismatch)?;
+    let runtime_service = provider_service(endpoint_group).map_err(policy_mismatch)?;
     let runtime_authentication =
-        authentication_policy(runtime_service, endpoint.api_base_url()).map_err(policy_mismatch)?;
-    let runtime_response = response_policy(endpoint.response_profile()).map_err(policy_mismatch)?;
-    let runtime_raw = raw_response_policy(endpoint.response_profile()).map_err(policy_mismatch)?;
-    let authentication = match endpoint.endpoint_group().surface() {
+        authentication_policy(runtime_service, api_base_url).map_err(policy_mismatch)?;
+    let runtime_response = response_policy(response_profile).map_err(policy_mismatch)?;
+    let runtime_raw = raw_response_policy(response_profile).map_err(policy_mismatch)?;
+    let authentication = match endpoint_group.surface() {
         ApiSurface::Storage => AuthenticationClass::Basic,
         ApiSurface::Cloud | ApiSurface::Dns | ApiSurface::Security => AuthenticationClass::Bearer,
     };
 
-    if endpoint.operation_key() != descriptor.operation_id().as_str()
-        || endpoint.method() != descriptor.method()
-        || endpoint.api_base_url() != descriptor.api_base_url()
+    if operation_key != expected.operation_id.as_str()
+        || method != expected.method
+        || api_base_url != descriptor.api_base_url()
         || authentication != descriptor.authentication()
-        || endpoint.request_shape() != expected.request_shape
-        || endpoint.response_profile() != expected.profile
-        || endpoint.metadata().map_err(policy_mismatch)? != expected.metadata
+        || request_shape != expected.request_shape
+        || response_profile != expected.profile
+        || metadata != expected.metadata
         || runtime_service != expected.service
         || runtime_authentication != expected.authentication
         || runtime_response != expected.response
@@ -63,7 +77,7 @@ where
     {
         return Err(AssociationError::PreparedPolicyMismatch);
     }
-    Ok(())
+    Ok(expected)
 }
 
 #[cfg(test)]
@@ -73,14 +87,14 @@ pub(crate) fn prepared_policy_matches<O: HetznerOperation>(
     let descriptor = O::DESCRIPTOR;
     let expected = canonical_policy(descriptor)?;
     let request = prepared.transport_request();
-    if prepared.operation_id() != Some(descriptor.operation_id())
-        || request.method() != descriptor.method()
+    if prepared.operation_id() != Some(expected.operation_id)
+        || request.method() != expected.method
         || prepared.service() != expected.service
         || prepared.metadata() != expected.metadata
         || prepared.response_policy() != expected.response
         || prepared.authentication_policy() != expected.authentication
         || prepared.raw_response_policy() != expected.raw_response
-        || prepared.body_replayability() != BodyReplayability::Replayable
+        || prepared.body_replayability() != expected.body_replayability
         || !request_shape_matches(descriptor, request)
         || !request_headers_match(descriptor, request)
     {
@@ -94,16 +108,21 @@ pub(crate) fn descriptor_policy_is_coherent(descriptor: OperationDescriptor) -> 
     canonical_policy(descriptor).is_ok()
 }
 
-fn canonical_policy(descriptor: OperationDescriptor) -> Result<CanonicalPolicy, AssociationError> {
+fn canonical_policy(
+    descriptor: OperationDescriptor,
+) -> Result<ValidatedAssociationPolicy, AssociationError> {
     let service = provider_service_for(descriptor)?;
     let profile = response_profile_for(descriptor)?;
-    Ok(CanonicalPolicy {
+    Ok(ValidatedAssociationPolicy {
+        operation_id: descriptor.operation_id(),
+        method: descriptor.method(),
         service,
         metadata: metadata_for(descriptor)?,
         response: response_policy(profile).map_err(policy_mismatch)?,
         authentication: authentication_policy(service, descriptor.api_base_url())
             .map_err(policy_mismatch)?,
         raw_response: raw_response_policy(profile).map_err(policy_mismatch)?,
+        body_replayability: BodyReplayability::Replayable,
         profile,
         request_shape: request_shape_for(descriptor)?,
     })
