@@ -11,7 +11,7 @@ The repository also contains a compile-checked
 
 ```toml
 [dependencies]
-cloud-sdk-hetzner = { version = "0.37.0", features = ["serde"] }
+cloud-sdk-hetzner = { version = "0.38.0", features = ["serde"] }
 ```
 
 ## Visitor

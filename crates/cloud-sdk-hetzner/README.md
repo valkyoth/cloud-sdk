@@ -38,8 +38,8 @@ boundaries.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.49.0"
-cloud-sdk-hetzner = "0.37.0"
+cloud-sdk = "0.50.0"
+cloud-sdk-hetzner = "0.38.0"
 ```
 
 ## Features
@@ -80,6 +80,37 @@ Storage Box examples are indexed in the
 [Hetzner workflow guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/HETZNER_EXAMPLES.md).
 Security-sensitive transport decisions are covered by the
 [security recipes](https://github.com/valkyoth/cloud-sdk/blob/main/docs/SECURITY_RECIPES.md).
+
+Use compile-time operation associations when endpoint, query, body, response,
+and safety policy must retain one nominal operation identity:
+
+```rust
+use cloud_sdk::operation::PreparationStorage;
+use cloud_sdk_hetzner::actions::{ActionEndpoint, ActionId};
+use cloud_sdk_hetzner::association::AssociatedOperation;
+use cloud_sdk_hetzner::association::operations::GetAction;
+
+let id = ActionId::new(7).ok_or("invalid action ID")?;
+let operation = AssociatedOperation::<GetAction, _>::endpoint(
+    ActionEndpoint::Get(id),
+)?;
+let mut target = [0_u8; 64];
+let mut body = [0_u8; 1];
+let prepared = operation.prepare_typed(PreparationStorage::new(
+    &mut target,
+    &mut body,
+))?;
+
+assert_eq!(prepared.association().operation_id().as_str(), "get_action");
+# Ok::<(), Box<dyn core::error::Error>>(())
+```
+
+`EndpointFor<O, _>`, `QueryFor<O, _>`, and `BodyFor<O, _>` cannot be combined
+across different operation markers. `Prepared<O>` retains the exact service,
+official endpoint, authentication scope, request and response policy,
+pagination, quota, retry, streaming, response/error, and permit associations.
+See the
+[operation association guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/OPERATION_ASSOCIATIONS.md).
 
 Every active operation can be converted into a bounded provider-neutral
 prepared request. This mutation example performs no network operation:
@@ -230,7 +261,7 @@ Enable Serde explicitly; it is never part of the default graph:
 
 ```toml
 [dependencies]
-cloud-sdk-hetzner = { version = "0.37.0", features = ["serde"] }
+cloud-sdk-hetzner = { version = "0.38.0", features = ["serde"] }
 ```
 
 The feature admits serde_json with `default-features = false` and `alloc` only

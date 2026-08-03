@@ -11,7 +11,7 @@ default-members = ["crates/cloud-sdk"]
 resolver = "3"
 
 [workspace.package]
-version = "0.49.0"
+version = "0.50.0"
 edition = "2024"
 rust-version = "1.90"
 license = "MIT OR Apache-2.0"
@@ -46,11 +46,11 @@ http-body-util = { version = "0.1.4", default-features = false }
 hyper = { version = "1.11.0", default-features = false }
 hyper-rustls = { version = "0.27.9", default-features = false }
 hyper-util = { version = "0.1.20", default-features = false }
-cloud-sdk = { path = "crates/cloud-sdk", version = "0.49.0", default-features = false }
-cloud-sdk-hetzner = { path = "crates/cloud-sdk-hetzner", version = "0.37.0" }
-cloud-sdk-reqwest = { path = "crates/cloud-sdk-reqwest", version = "0.32.2" }
+cloud-sdk = { path = "crates/cloud-sdk", version = "0.50.0", default-features = false }
+cloud-sdk-hetzner = { path = "crates/cloud-sdk-hetzner", version = "0.38.0" }
+cloud-sdk-reqwest = { path = "crates/cloud-sdk-reqwest", version = "0.32.3" }
 cloud-sdk-sanitization = { path = "crates/cloud-sdk-sanitization", version = "0.17.0", default-features = false }
-cloud-sdk-testkit = { path = "crates/cloud-sdk-testkit", version = "0.28.1" }
+cloud-sdk-testkit = { path = "crates/cloud-sdk-testkit", version = "0.28.2" }
 reqwest = { version = "=0.13.4", default-features = false }
 rustls = { version = "=0.23.43", default-features = false }
 rustls-platform-verifier = { version = "=0.7.0", default-features = false }

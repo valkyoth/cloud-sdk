@@ -13,7 +13,7 @@ scripts/test-hetzner-live-smoke-runner.py
 scripts/test-platform-matrix.py
 scripts/test-latest-tools.py
 scripts/test-dependency-review.py
-scripts/check_dependency_review.py v0.48.0 docs/DEPENDENCY_REVIEW_0.49.0.md
+scripts/check_dependency_review.py v0.49.0 docs/DEPENDENCY_REVIEW_0.50.0.md
 scripts/test-publishable-readmes.py
 scripts/check-release-plan-structure.py
 scripts/test-release-plan-structure.py
@@ -66,6 +66,8 @@ cargo clippy --manifest-path tools/prepared-coverage-check/Cargo.toml \
 cargo test --manifest-path tools/prepared-coverage-check/Cargo.toml --locked
 scripts/check_prepared_operation_coverage.py
 scripts/check_response_operation_coverage.py
+scripts/generate_operation_associations.py --check
+scripts/test-operation-associations.py
 scripts/check_hetzner_wire_migration.py
 scripts/test-response-operation-coverage.py
 scripts/test-generate-response-operations.py

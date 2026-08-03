@@ -34,18 +34,19 @@ pub struct OperationId(&'static str);
 
 impl OperationId {
     /// Validates a provider operation identifier.
-    pub fn new(value: &'static str) -> Result<Self, OperationIdError> {
+    pub const fn new(value: &'static str) -> Result<Self, OperationIdError> {
         if value.is_empty() {
             return Err(OperationIdError::Empty);
         }
         if value.len() > MAX_OPERATION_ID_BYTES {
             return Err(OperationIdError::TooLong);
         }
-        if value
-            .bytes()
-            .any(|byte| !byte.is_ascii_lowercase() && !byte.is_ascii_digit() && byte != b'_')
-        {
-            return Err(OperationIdError::InvalidByte);
+        let mut remaining = value.as_bytes();
+        while let Some((byte, tail)) = remaining.split_first() {
+            if !byte.is_ascii_lowercase() && !byte.is_ascii_digit() && *byte != b'_' {
+                return Err(OperationIdError::InvalidByte);
+            }
+            remaining = tail;
         }
         Ok(Self(value))
     }
@@ -57,12 +58,36 @@ impl OperationId {
     }
 }
 
+/// Creates a compile-time validated [`OperationId`].
+///
+/// Invalid literals fail during compilation:
+///
+/// ```compile_fail
+/// use cloud_sdk::operation_id;
+///
+/// let _ = operation_id!("Get-Server");
+/// ```
+#[macro_export]
+macro_rules! operation_id {
+    ($value:literal) => {{
+        const VALUE: $crate::operation::OperationId =
+            match $crate::operation::OperationId::new($value) {
+                Ok(value) => value,
+                Err(_) => panic!("invalid operation identifier literal"),
+            };
+        VALUE
+    }};
+}
+
 #[cfg(test)]
 mod tests {
     use super::{OperationId, OperationIdError};
 
+    const GET_SERVER: OperationId = operation_id!("get_server");
+
     #[test]
     fn accepts_source_style_identifiers_and_rejects_ambiguous_text() {
+        assert_eq!(GET_SERVER.as_str(), "get_server");
         assert_eq!(
             OperationId::new("get_server").map(OperationId::as_str),
             Ok("get_server")

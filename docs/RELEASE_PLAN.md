@@ -1634,7 +1634,7 @@ Stop gate: `v0.39.0 implementation stop reached. Run pentest for this exact comm
 
 ### v0.40.0 - Raw Bounded HTTP Executor
 
-Status: release candidate; pentest and final retest passed.
+Status: tagged and published.
 
 Goal: make transports execute complete validated HTTP requests without provider policy.
 
@@ -1759,7 +1759,7 @@ Stop gate: `v0.48.0 implementation stop reached. Run pentest for this exact comm
 
 ### v0.49.0 - Incremental Provider Decoding
 
-Status: release candidate; pentest and final retest passed.
+Status: tagged and published.
 
 Goal: decode large lists, metrics, zonefiles, logs, and streams without one large JSON tree.
 
@@ -1774,6 +1774,8 @@ Verification: differential fixtures, token/field/numeric/exponent exhaustion, ev
 Stop gate: `v0.49.0 implementation stop reached. Run pentest for this exact commit.`
 
 ### v0.50.0 - Compile-Time Operation Associations
+
+Status: implementation complete; pentest required.
 
 Goal: make endpoint/query/body/response mismatches unrepresentable.
 

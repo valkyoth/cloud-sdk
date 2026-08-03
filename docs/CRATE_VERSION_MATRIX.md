@@ -1,7 +1,7 @@
 # Crate Version Matrix
 
-Status: `v0.48.0` is tagged and published. `v0.49.0` is a release candidate;
-pentest and final retest passed, and GitHub checks are pending.
+Status: `v0.49.0` is tagged and published. `v0.50.0` implementation is
+complete and awaits pentest.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
@@ -732,6 +732,19 @@ changing the buffered checked decoder or default dependency graph.
 | `cloud-sdk-reqwest` | `0.32.1` | `0.32.2` | `dependency` | Yes | Update the core dependency without changing adapter behavior. |
 | `cloud-sdk-sanitization` | `0.16.0` | `0.17.0` | `code` | Yes | Add bounded fallible growth for protected parser staging. |
 | `cloud-sdk-testkit` | `0.28.0` | `0.28.1` | `dependency` | Yes | Update the core dependency without changing testkit behavior. |
+
+## v0.50.0 Tracking Table
+
+`v0.50.0` adds exhaustive compile-time associations for every active Hetzner
+operation without changing the default dependency or feature graph.
+
+| Crate | Published | Planned | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.49.0` | `0.50.0` | `code` | Yes | Add const operation IDs and compile-time validated operation literals. |
+| `cloud-sdk-hetzner` | `0.37.0` | `0.38.0` | `code` | Yes | Add all 208 sealed operation markers, typed components, prepared requests, and source-lock generation. |
+| `cloud-sdk-reqwest` | `0.32.2` | `0.32.3` | `dependency` | Yes | Update the core dependency without changing adapter behavior. |
+| `cloud-sdk-sanitization` | `0.17.0` | `0.17.0` | `unchanged` | No | No code, dependency, or package metadata changes. |
+| `cloud-sdk-testkit` | `0.28.1` | `0.28.2` | `dependency` | Yes | Update the core dependency without changing testkit behavior. |
 
 ## Planned Milestone Ownership
 

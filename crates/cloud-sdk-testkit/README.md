@@ -34,8 +34,8 @@ and runtime-free.
 
 ```toml
 [dev-dependencies]
-cloud-sdk = "0.49.0"
-cloud-sdk-testkit = "0.28.1"
+cloud-sdk = "0.50.0"
+cloud-sdk-testkit = "0.28.2"
 ```
 
 ## Mock Transport

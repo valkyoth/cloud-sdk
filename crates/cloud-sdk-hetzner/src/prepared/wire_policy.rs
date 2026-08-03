@@ -25,7 +25,7 @@ const ADMITTED_RESPONSE_HEADERS: [&str; 6] = [
     "retry-after",
 ];
 
-pub(super) fn provider_service(
+pub(crate) fn provider_service(
     group: EndpointGroup,
 ) -> Result<ProviderService<'static>, HetznerPreparationError> {
     let policy = official_endpoint_policy(group.api_base_url())
@@ -38,7 +38,7 @@ pub(super) fn provider_service(
     })
 }
 
-pub(super) fn authentication_policy(
+pub(crate) fn authentication_policy(
     service: ProviderService<'static>,
     base: ApiBaseUrl,
 ) -> Result<AuthenticationScopePolicy<'static>, HetznerPreparationError> {
