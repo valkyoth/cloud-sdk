@@ -1,6 +1,5 @@
 //! Incremental decoder state machine and structural grammar.
 
-use alloc::collections::BTreeSet;
 use alloc::vec::Vec;
 
 use cloud_sdk_sanitization::SecretString;
@@ -177,7 +176,7 @@ impl IncrementalJsonDecoder {
                 if byte != b'"' {
                     return Err(IncrementalJsonError::InvalidSyntax);
                 }
-                self.start_key();
+                self.start_key()?;
                 Ok(true)
             }
             _ if self.expects_value() => self.start_value(byte, visitor),
@@ -216,7 +215,7 @@ impl IncrementalJsonDecoder {
                 self.open_container(Frame::Object(ObjectFrame {
                     phase: ObjectPhase::KeyOrEnd,
                     fields: 0,
-                    keys: BTreeSet::new(),
+                    keys: Vec::new(),
                 }))?;
                 self.emit(IncrementalJsonEvent::StartObject, visitor)?;
             }
@@ -239,7 +238,7 @@ impl IncrementalJsonDecoder {
             b'n' => self.start_literal(b"null", LiteralValue::Null),
             b't' => self.start_literal(b"true", LiteralValue::Bool(true)),
             b'f' => self.start_literal(b"false", LiteralValue::Bool(false)),
-            b'-' | b'0'..=b'9' => self.start_number(byte),
+            b'-' | b'0'..=b'9' => self.start_number(byte)?,
             _ => return Err(IncrementalJsonError::InvalidSyntax),
         }
         Ok(true)
@@ -253,22 +252,28 @@ impl IncrementalJsonDecoder {
         }));
     }
 
-    fn start_number(&mut self, byte: u8) {
-        let mut text = SecretString::with_capacity(self.limits.number_bytes.min(32));
-        text.push_str(match byte {
-            b'-' => "-",
-            b'0' => "0",
-            b'1' => "1",
-            b'2' => "2",
-            b'3' => "3",
-            b'4' => "4",
-            b'5' => "5",
-            b'6' => "6",
-            b'7' => "7",
-            b'8' => "8",
-            b'9' => "9",
-            _ => "",
-        });
+    fn start_number<E>(&mut self, byte: u8) -> Result<(), IncrementalJsonError<E>> {
+        let mut text = SecretString::try_with_capacity(self.limits.number_bytes.min(32))
+            .map_err(|_| IncrementalJsonError::Allocation)?;
+        cloud_sdk_sanitization::try_append_secret_string(
+            &mut text,
+            match byte {
+                b'-' => "-",
+                b'0' => "0",
+                b'1' => "1",
+                b'2' => "2",
+                b'3' => "3",
+                b'4' => "4",
+                b'5' => "5",
+                b'6' => "6",
+                b'7' => "7",
+                b'8' => "8",
+                b'9' => "9",
+                _ => "",
+            },
+            self.limits.number_bytes,
+        )
+        .map_err(|_| IncrementalJsonError::Allocation)?;
         let phase = match byte {
             b'-' => NumberPhase::Minus,
             b'0' => NumberPhase::Zero,
@@ -279,9 +284,10 @@ impl IncrementalJsonDecoder {
             phase,
             exponent_digits: 0,
         }));
+        Ok(())
     }
 
-    fn start_key(&mut self) {
+    fn start_key<E>(&mut self) -> Result<(), IncrementalJsonError<E>> {
         self.lexical = Some(Lexical::String(JsonString {
             kind: StringKind::Key,
             mode: StringMode::Normal,
@@ -289,14 +295,21 @@ impl IncrementalJsonDecoder {
             utf8: [0; 4],
             utf8_len: 0,
             utf8_expected: 0,
-            key: Some(IncrementalKey::with_capacity(32)),
+            key: Some(
+                IncrementalKey::try_with_capacity(self.limits.string_bytes.min(32))
+                    .map_err(|_| IncrementalJsonError::Allocation)?,
+            ),
         }));
+        Ok(())
     }
 
     fn open_container<E>(&mut self, frame: Frame) -> Result<(), IncrementalJsonError<E>> {
         if self.frames.len() >= self.limits.depth {
             return Err(IncrementalJsonError::DepthLimit);
         }
+        self.frames
+            .try_reserve(1)
+            .map_err(|_| IncrementalJsonError::Allocation)?;
         self.frames.push(frame);
         Ok(())
     }
@@ -324,15 +337,18 @@ impl IncrementalJsonDecoder {
         event: IncrementalJsonEvent<'_>,
         visitor: &mut V,
     ) -> Result<(), IncrementalJsonError<V::Error>> {
-        match visitor
-            .visit(event)
-            .map_err(IncrementalJsonError::Visitor)?
-        {
-            VisitControl::Continue => Ok(()),
-            VisitControl::Stop => {
+        self.terminal = Terminal::Failed;
+        match visitor.visit(event) {
+            Ok(VisitControl::Continue) => {
+                self.terminal = Terminal::Active;
+                Ok(())
+            }
+            Ok(VisitControl::Stop) => {
+                self.clear_staging();
                 self.terminal = Terminal::Stopped;
                 Ok(())
             }
+            Err(error) => Err(IncrementalJsonError::Visitor(error)),
         }
     }
 
@@ -349,9 +365,17 @@ impl IncrementalJsonDecoder {
 
     fn fail<T, E>(&mut self, error: IncrementalJsonError<E>) -> Result<T, IncrementalJsonError<E>> {
         self.terminal = Terminal::Failed;
+        self.clear_staging();
+        Err(error)
+    }
+
+    pub(super) fn clear_staging(&mut self) {
         self.lexical = None;
         self.frames.clear();
-        Err(error)
+    }
+
+    pub(super) const fn is_active(&self) -> bool {
+        matches!(self.terminal, Terminal::Active)
     }
 }
 

@@ -791,7 +791,7 @@ assert_eq!(value, Some("\"line\\n\\\"quoted\\\"\""));
 | [`cloud-sdk-hetzner`](https://crates.io/crates/cloud-sdk-hetzner) | no | Hetzner provider APIs and provider-specific documentation. |
 | [`cloud-sdk-reqwest`](https://crates.io/crates/cloud-sdk-reqwest) | no | Provider-neutral optional blocking and async reqwest/rustls transports; transport-free by default. |
 | [`cloud-sdk-testkit`](https://crates.io/crates/cloud-sdk-testkit) | no | Provider-neutral mock transports, stream fixtures, prepared-request records, response fixtures, and adversarial corpus. |
-| [`cloud-sdk-sanitization`](https://crates.io/crates/cloud-sdk-sanitization) | no | Provider-neutral mandatory volatile cleanup primitive plus optional owned UTF-8 secret storage. |
+| [`cloud-sdk-sanitization`](https://crates.io/crates/cloud-sdk-sanitization) | no | Provider-neutral volatile cleanup plus bounded fallible protected UTF-8 growth. |
 
 Each provider has one primary crate for its APIs and documentation. Reusable
 transport, testing, and secret-handling capabilities remain provider-neutral.

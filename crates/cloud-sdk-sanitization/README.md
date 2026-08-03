@@ -38,8 +38,8 @@ crate with default features disabled.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.38.0"
-cloud-sdk-sanitization = "0.16.0"
+cloud-sdk = "0.49.0"
+cloud-sdk-sanitization = "0.17.0"
 ```
 
 ## Example
@@ -80,6 +80,24 @@ assert!(!alloc::format!("{secret:?}").contains("temporary secret"));
 # fn main() {}
 ```
 
+`try_append_secret_string` grows protected text with fallible allocation and
+a caller-supplied public byte ceiling. Growth prepares replacement storage,
+then clears the old allocation before replacing it:
+
+```rust
+# #[cfg(feature = "alloc")]
+# fn main() -> Result<(), cloud_sdk_sanitization::SecretStringAppendError> {
+use cloud_sdk_sanitization::{SecretString, try_append_secret_string};
+
+let mut secret = SecretString::empty();
+try_append_secret_string(&mut secret, "bounded", 32)?;
+assert_eq!(secret.try_with_secret(|text| text == "bounded"), Ok(true));
+# Ok(())
+# }
+# #[cfg(not(feature = "alloc"))]
+# fn main() {}
+```
+
 ## Features
 
 | Feature | Default | Effect |
@@ -95,8 +113,9 @@ keeps its default features disabled in every configuration.
 
 `SecretBuffer` volatile-clears its entire borrowed slice on drop, including
 after early returns and unwind where unwind exists. `SecretString` clears its
-full owned allocation capacity on drop and clears old allocations before
-growth. `sanitize_bytes` provides the reviewed byte primitive used by core;
+full owned allocation capacity on drop. `try_append_secret_string` reports
+bounded growth failure and clears old storage before replacement.
+`sanitize_bytes` provides the reviewed byte primitive used by core;
 `sanitize_value` applies the same boundary to scalar lifecycle state.
 
 These helpers do not clear immutable source strings or copies made by

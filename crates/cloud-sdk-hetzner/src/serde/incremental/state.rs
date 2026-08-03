@@ -1,10 +1,11 @@
 //! Private grammar and lexical state.
 
-use alloc::collections::BTreeSet;
+use alloc::vec::Vec;
 use core::cmp::Ordering;
 
-use cloud_sdk_sanitization::SecretString;
-use cloud_sdk_sanitization::sanitize_bytes;
+use cloud_sdk_sanitization::{
+    SecretString, SecretStringAppendError, sanitize_bytes, try_append_secret_string,
+};
 
 pub(super) enum Terminal {
     Active,
@@ -32,7 +33,7 @@ pub(super) enum ArrayPhase {
 pub(super) struct ObjectFrame {
     pub(super) phase: ObjectPhase,
     pub(super) fields: usize,
-    pub(super) keys: BTreeSet<IncrementalKey>,
+    pub(super) keys: Vec<IncrementalKey>,
 }
 
 pub(super) enum ObjectPhase {
@@ -99,12 +100,18 @@ pub(super) struct JsonString {
 pub(super) struct IncrementalKey(SecretString);
 
 impl IncrementalKey {
-    pub(super) fn with_capacity(capacity: usize) -> Self {
-        Self(SecretString::with_capacity(capacity))
+    pub(super) fn try_with_capacity(capacity: usize) -> Result<Self, SecretStringAppendError> {
+        SecretString::try_with_capacity(capacity)
+            .map(Self)
+            .map_err(|_| SecretStringAppendError::Allocation)
     }
 
-    pub(super) fn push_str(&mut self, value: &str) {
-        self.0.push_str(value);
+    pub(super) fn try_push_str(
+        &mut self,
+        value: &str,
+        maximum_bytes: usize,
+    ) -> Result<(), SecretStringAppendError> {
+        try_append_secret_string(&mut self.0, value, maximum_bytes)
     }
 
     pub(super) fn try_with_str<R>(

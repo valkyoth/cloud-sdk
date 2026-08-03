@@ -2,7 +2,7 @@
 
 Status: admitted only behind the non-default `cloud-sdk-hetzner/serde` feature.
 
-Checked: 2026-07-26.
+Checked: 2026-08-03.
 
 ## Packages
 
@@ -10,7 +10,7 @@ Checked: 2026-07-26.
 | --- | --- | --- | --- | --- |
 | `serde` | `1.0.229` | optional normal dependency | MIT OR Apache-2.0 | disabled |
 | `serde_json` | `1.0.151` | optional request/envelope Serde implementation and test parser | MIT OR Apache-2.0 | disabled; `alloc` only |
-| `cloud-sdk-sanitization` | `0.16.0` | mandatory byte cleanup plus opt-in owned secret cleanup | MIT OR Apache-2.0 | disabled; `alloc` only |
+| `cloud-sdk-sanitization` | `0.17.0` | mandatory cleanup plus bounded fallible protected-string growth | MIT OR Apache-2.0 | disabled; `alloc` only |
 | `sanitization` | `2.0.3` | transitive volatile byte cleanup | MIT OR Apache-2.0 | disabled |
 
 Serde and serde_json are sourced from crates.io and maintained by the Serde
@@ -35,6 +35,10 @@ are rejected. Only validated provider-owned models cross the public boundary.
 Source-locked secrets and redacted provider/action errors move from the private
 tree into checked response models without another plaintext allocation and
 remain available only through closure-scoped UTF-8 access.
+
+Incremental parser keys and numbers use the facade's bounded fallible growth;
+frames and sorted duplicate-key stores reserve fallibly. Parser-owned
+allocation failure is a payload-free decoder error.
 
 ## Transitive Surface
 

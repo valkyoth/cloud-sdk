@@ -79,15 +79,26 @@ fn decode(
 }
 
 fuzz_target!(|data: &[u8]| {
-    let seed = data.first().copied().map_or(1, usize::from);
-    let stop_after = data
-        .get(1)
-        .copied()
-        .filter(|value| *value != 0)
-        .map(usize::from);
-    let one_shot = decode(data, 0, seed, stop_after);
-    let bytewise = decode(data, 1, seed, stop_after);
-    let variable = decode(data, 2, seed, stop_after);
+    let Some((&seed, controlled)) = data.split_first() else {
+        return;
+    };
+    let Some((&stop_control, payload)) = controlled.split_first() else {
+        return;
+    };
+    let seed = usize::from(seed);
+    let stop_after = (stop_control != 0).then_some(usize::from(stop_control));
+
+    let complete = decode(payload, 0, seed, None);
+    if complete.0 == Ok(IncrementalJsonProgress::Complete) {
+        assert!(
+            serde_json::from_slice::<serde_json::Value>(payload).is_ok(),
+            "incremental decoder accepted invalid JSON"
+        );
+    }
+
+    let one_shot = decode(payload, 0, seed, stop_after);
+    let bytewise = decode(payload, 1, seed, stop_after);
+    let variable = decode(payload, 2, seed, stop_after);
 
     assert_eq!(one_shot, bytewise);
     assert_eq!(one_shot, variable);

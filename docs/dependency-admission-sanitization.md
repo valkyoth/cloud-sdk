@@ -3,7 +3,7 @@
 Status: admitted only through the mandatory `cloud-sdk-sanitization` boundary
 with default features disabled.
 
-Checked: 2026-07-26.
+Checked: 2026-08-03.
 
 ## Decision
 
@@ -17,8 +17,9 @@ and `no_std`, and has no runtime dependencies with default features disabled.
 The upstream default `asm-compare` feature is deliberately not admitted.
 
 `cloud-sdk-sanitization` exposes narrow `sanitize_bytes` and `sanitize_value`
-functions, a borrowed `SecretBuffer` guard, and the reviewed opt-in allocation-backed
-`sanitization::SecretString`.
+functions, a borrowed `SecretBuffer` guard, the reviewed opt-in
+allocation-backed `sanitization::SecretString`, and bounded fallible protected
+string growth.
 Since v0.38, the provider-neutral core depends on this boundary so response
 cleanup cannot be delegated to an untrusted transport implementation. The
 default `cloud-sdk` and provider graphs therefore contain only the two
@@ -39,6 +40,10 @@ capacity on drop, clears old allocations before growth, and exposes UTF-8 only
 through checked closures. Neither guard can clear immutable source strings,
 transport copies, kernel buffers, crash dumps, swap, remote systems, allocator
 metadata, or copies outside guarded storage.
+
+The facade's fallible append prepares bounded replacement storage before
+copying, clears the old protected allocation before swapping, and reports
+length, capacity, allocation, or UTF-8-invariant failure without payload data.
 
 No interoperability or native hardening features are enabled. In particular,
 the optional `zeroize-interop`, `subtle-interop`, memory locking, guard pages,

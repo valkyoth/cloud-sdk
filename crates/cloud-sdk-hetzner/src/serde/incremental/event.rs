@@ -111,6 +111,8 @@ pub enum IncrementalJsonError<E> {
     NumberLimit,
     /// The configured exponent-digit limit was exceeded.
     ExponentLimit,
+    /// Bounded parser-owned storage could not be allocated.
+    Allocation,
     /// End of input was reached before the document was complete.
     IncompleteDocument,
     /// The decoder was used after a terminal result.
@@ -144,6 +146,7 @@ impl<E> fmt::Debug for IncrementalJsonError<E> {
             Self::StringLimit => "IncrementalJsonError::StringLimit",
             Self::NumberLimit => "IncrementalJsonError::NumberLimit",
             Self::ExponentLimit => "IncrementalJsonError::ExponentLimit",
+            Self::Allocation => "IncrementalJsonError::Allocation",
             Self::IncompleteDocument => "IncrementalJsonError::IncompleteDocument",
             Self::TerminalState => "IncrementalJsonError::TerminalState",
             Self::Visitor(_) => "IncrementalJsonError::Visitor([redacted])",
@@ -166,6 +169,7 @@ impl<E> fmt::Display for IncrementalJsonError<E> {
             Self::StringLimit => "JSON string limit exceeded",
             Self::NumberLimit => "JSON number limit exceeded",
             Self::ExponentLimit => "JSON exponent limit exceeded",
+            Self::Allocation => "incremental JSON decoder allocation failed",
             Self::IncompleteDocument => "incomplete JSON document",
             Self::TerminalState => "incremental JSON decoder is terminal",
             Self::Visitor(_) => "incremental JSON visitor failed",

@@ -100,6 +100,12 @@ continues. `finish()` is mandatory and is the only operation that can report
 after that event are deliberately not parsed, so `Stopped` must never be used
 as proof that a complete response was valid.
 
+Visitor calls are unwind boundaries. The decoder is poisoned before invoking
+visitor code and returns to the active state only after a normal `Continue`.
+If an application catches a visitor panic, every later `push` or `finish`
+returns `TerminalState`. A normal `Stop` immediately releases parser-owned
+lexical and duplicate-key staging.
+
 The incremental parser does not admit HTTP status, content type, operation
 identity, or response-envelope shape. Apply the prepared response policy
 before feeding a provider body, or use the existing checked buffered decoder
@@ -108,9 +114,11 @@ when a complete typed response is required.
 ## Secret And Cleanup Boundary
 
 Duplicate-detection keys and number tokens use the admitted sanitization
-crate's growth-aware protected storage. Partial UTF-8 and escaped-character
-scratch is volatile-cleared after use and on drop. Decoder errors clear all
-owned lexical and structural staging before returning.
+crate's bounded, fallibly growing protected storage. Frame and sorted
+duplicate-key storage also reserve fallibly. Allocation failure returns the
+payload-free `IncrementalJsonError::Allocation`. Partial UTF-8 and
+escaped-character scratch is guarded and volatile-cleared on return or unwind.
+Decoder errors clear all owned lexical and structural staging before returning.
 
 Input chunks remain caller-owned. The decoder cannot erase them, transport
 buffers, visitor-owned copies, operating-system buffers, logs, crash dumps,

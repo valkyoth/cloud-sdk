@@ -2,7 +2,7 @@
 
 use core::str;
 
-use cloud_sdk_sanitization::sanitize_bytes;
+use cloud_sdk_sanitization::{SecretBuffer, sanitize_bytes, try_append_secret_string};
 
 use super::decoder::IncrementalJsonDecoder;
 use super::event::{IncrementalJsonError, IncrementalJsonEvent, IncrementalJsonVisitor};
@@ -140,7 +140,8 @@ impl IncrementalJsonDecoder {
         }
         let bytes = [byte];
         let text = str::from_utf8(&bytes).map_err(|_| IncrementalJsonError::InvalidSyntax)?;
-        number.text.push_str(text);
+        try_append_secret_string(&mut number.text, text, self.limits.number_bytes)
+            .map_err(|_| IncrementalJsonError::Allocation)?;
         Ok(())
     }
 
@@ -200,7 +201,7 @@ impl IncrementalJsonDecoder {
                 digits,
             } => self.consume_low_unicode(&mut string, high, value, digits, byte, visitor)?,
         }
-        if !closes {
+        if !closes && self.is_active() {
             self.lexical = Some(Lexical::String(string));
         }
         Ok(true)
@@ -349,14 +350,14 @@ impl IncrementalJsonDecoder {
         sanitize_bytes(&mut string.utf8);
         string.utf8_len = 0;
         string.utf8_expected = 0;
-        let bytes = scratch
+        let guarded = SecretBuffer::new(&mut scratch);
+        let bytes = guarded
+            .as_slice()
             .get(..len)
             .ok_or(IncrementalJsonError::InvalidUtf8)?;
-        let result = str::from_utf8(bytes)
+        str::from_utf8(bytes)
             .map_err(|_| IncrementalJsonError::InvalidUtf8)
-            .and_then(|text| self.deliver_text(string, text, visitor));
-        sanitize_bytes(&mut scratch);
-        result
+            .and_then(|text| self.deliver_text(string, text, visitor))
     }
 
     fn deliver_character<V: IncrementalJsonVisitor>(
@@ -366,10 +367,9 @@ impl IncrementalJsonDecoder {
         visitor: &mut V,
     ) -> Result<(), IncrementalJsonError<V::Error>> {
         let mut scratch = [0_u8; 4];
-        let text = character.encode_utf8(&mut scratch);
-        let result = self.deliver_text(string, text, visitor);
-        sanitize_bytes(&mut scratch);
-        result
+        let mut guarded = SecretBuffer::new(&mut scratch);
+        let text = character.encode_utf8(guarded.as_mut_slice());
+        self.deliver_text(string, text, visitor)
     }
 
     fn deliver_text<V: IncrementalJsonVisitor>(
@@ -390,7 +390,8 @@ impl IncrementalJsonDecoder {
                 .key
                 .as_mut()
                 .ok_or(IncrementalJsonError::InvalidSyntax)?
-                .push_str(text),
+                .try_push_str(text, self.limits.string_bytes)
+                .map_err(|_| IncrementalJsonError::Allocation)?,
             StringKind::Value => self.emit(IncrementalJsonEvent::StringFragment(text), visitor)?,
         }
         Ok(())
@@ -408,13 +409,14 @@ impl IncrementalJsonDecoder {
                     .key
                     .take()
                     .ok_or(IncrementalJsonError::InvalidSyntax)?;
-                let duplicate = match self.frames.last() {
-                    Some(Frame::Object(frame)) => frame.keys.contains(&key),
+                let insertion = match self.frames.last() {
+                    Some(Frame::Object(frame)) => frame.keys.binary_search(&key),
                     _ => return Err(IncrementalJsonError::InvalidSyntax),
                 };
-                if duplicate {
-                    return Err(IncrementalJsonError::DuplicateKey);
-                }
+                let insertion = match insertion {
+                    Ok(_) => return Err(IncrementalJsonError::DuplicateKey),
+                    Err(index) => index,
+                };
                 self.charge_token()?;
                 self.fields = self
                     .fields
@@ -431,10 +433,16 @@ impl IncrementalJsonDecoder {
                 if frame.fields > self.limits.object_fields {
                     return Err(IncrementalJsonError::ObjectFieldLimit);
                 }
+                frame
+                    .keys
+                    .try_reserve(1)
+                    .map_err(|_| IncrementalJsonError::Allocation)?;
                 key.try_with_str(|text| self.emit(IncrementalJsonEvent::Key(text), visitor))
                     .map_err(|_| IncrementalJsonError::InvalidUtf8)??;
-                if let Some(Frame::Object(frame)) = self.frames.last_mut() {
-                    frame.keys.insert(key);
+                if self.is_active()
+                    && let Some(Frame::Object(frame)) = self.frames.last_mut()
+                {
+                    frame.keys.insert(insertion, key);
                     frame.phase = ObjectPhase::Colon;
                 }
                 Ok(())

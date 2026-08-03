@@ -20,6 +20,10 @@ complete JSON tree. Existing buffered checked decoding remains unchanged.
 - Rejected duplicate decoded keys across chunks and escaped-key spellings.
 - Validated partial UTF-8, escapes, and surrogate pairs across every chunk boundary.
 - Kept temporary keys and numbers in growth-aware protected storage and cleared fixed scratch.
+- Made parser-owned frame, key, number, and duplicate-key allocation fallible.
+- Poisoned the decoder across visitor panic and immediately cleared staging on visitor stop.
+- Guarded UTF-8 and character scratch across normal return and unwind.
+- Added an independent `serde_json` validity oracle to the incremental fuzz target.
 - Redacted payload-bearing event, decoder, and visitor-error diagnostics.
 - Kept status, content-type, operation binding, retry, transport, and input-buffer cleanup explicit.
 
@@ -30,7 +34,7 @@ complete JSON tree. Existing buffered checked decoding remains unchanged.
 | `cloud-sdk` | `0.49.0` | facade metadata |
 | `cloud-sdk-hetzner` | `0.37.0` | incremental decoder code |
 | `cloud-sdk-reqwest` | `0.32.2` | dependency-only patch |
-| `cloud-sdk-sanitization` | `0.16.0` | unchanged; not published |
+| `cloud-sdk-sanitization` | `0.17.0` | fallible protected-string growth code |
 | `cloud-sdk-testkit` | `0.28.1` | dependency-only patch |
 
 ## Documentation

@@ -1,6 +1,9 @@
 use alloc::format;
 use alloc::vec::Vec;
 
+#[cfg(feature = "std")]
+use crate::std as test_std;
+
 use super::super::{
     IncrementalJsonDecoder, IncrementalJsonError, IncrementalJsonEvent, IncrementalJsonProgress,
     IncrementalJsonVisitor, VisitControl,
@@ -98,6 +101,8 @@ fn early_stop_never_claims_complete_document_validation() {
         decoder.push(input, &mut visitor),
         Ok(IncrementalJsonProgress::Stopped)
     );
+    assert!(decoder.lexical.is_none());
+    assert!(decoder.frames.is_empty());
     assert_eq!(
         decoder.finish(&mut visitor),
         Ok(IncrementalJsonProgress::Stopped)
@@ -106,6 +111,38 @@ fn early_stop_never_claims_complete_document_validation() {
         decoder.push(b"null", &mut visitor),
         Ok(IncrementalJsonProgress::Stopped)
     );
+}
+
+#[test]
+#[cfg(feature = "std")]
+fn visitor_panic_permanently_poisons_the_decoder() {
+    struct PanicsOnFragment;
+    impl IncrementalJsonVisitor for PanicsOnFragment {
+        type Error = core::convert::Infallible;
+
+        fn visit(&mut self, event: IncrementalJsonEvent<'_>) -> Result<VisitControl, Self::Error> {
+            if matches!(event, IncrementalJsonEvent::StringFragment(_)) {
+                test_std::panic::resume_unwind(alloc::boxed::Box::new(()));
+            }
+            Ok(VisitControl::Continue)
+        }
+    }
+
+    let mut decoder = IncrementalJsonDecoder::new();
+    let panic = test_std::panic::catch_unwind(test_std::panic::AssertUnwindSafe(|| {
+        let _ = decoder.push(br#"["x"#, &mut PanicsOnFragment);
+    }));
+    assert!(panic.is_err());
+
+    let mut collector = Collector::default();
+    assert!(matches!(
+        decoder.push(b",null]", &mut collector),
+        Err(IncrementalJsonError::TerminalState)
+    ));
+    assert!(matches!(
+        decoder.finish(&mut collector),
+        Err(IncrementalJsonError::TerminalState)
+    ));
 }
 
 #[test]

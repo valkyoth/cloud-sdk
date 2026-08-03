@@ -15,6 +15,22 @@ for symbol in \
     fi
 done
 
+if grep -R -q -- 'BTreeSet\|SecretString::with_capacity' "$root"; then
+    echo "incremental decoding: parser staging uses infallible allocation" >&2
+    exit 1
+fi
+for contract in \
+    try_append_secret_string \
+    try_reserve \
+    visitor_panic_permanently_poisons_the_decoder \
+    'serde_json::from_slice'; do
+    if ! grep -R -q -- "$contract" \
+        "$root" crates/cloud-sdk-sanitization/src fuzz/fuzz_targets/incremental_json.rs; then
+        echo "incremental decoding: missing remediation contract $contract" >&2
+        exit 1
+    fi
+done
+
 for document in \
     docs/INCREMENTAL_DECODING.md \
     docs/MIGRATION_0.49.0.md \
@@ -35,6 +51,6 @@ find "$root" -type f -name '*.rs' -print | while IFS= read -r source; do
     fi
 done
 
-cargo test --locked -p cloud-sdk-hetzner --features serde incremental
+cargo test --locked -p cloud-sdk-hetzner --features serde,std incremental
 
 echo "incremental decoding: contract, limits, chunking, cleanup, and docs passed"

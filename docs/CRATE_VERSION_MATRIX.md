@@ -730,7 +730,7 @@ changing the buffered checked decoder or default dependency graph.
 | `cloud-sdk` | `0.48.0` | `0.49.0` | `metadata` | Yes | Publish facade documentation and align the provider release. |
 | `cloud-sdk-hetzner` | `0.36.2` | `0.37.0` | `code` | Yes | Add bounded incremental visitor decoding across arbitrary JSON chunks. |
 | `cloud-sdk-reqwest` | `0.32.1` | `0.32.2` | `dependency` | Yes | Update the core dependency without changing adapter behavior. |
-| `cloud-sdk-sanitization` | `0.16.0` | `0.16.0` | `unchanged` | No | No code, dependency, or package metadata changes. |
+| `cloud-sdk-sanitization` | `0.16.0` | `0.17.0` | `code` | Yes | Add bounded fallible growth for protected parser staging. |
 | `cloud-sdk-testkit` | `0.28.0` | `0.28.1` | `dependency` | Yes | Update the core dependency without changing testkit behavior. |
 
 ## Planned Milestone Ownership

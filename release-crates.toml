@@ -25,10 +25,10 @@ reason = "Update cloud-sdk to v0.49 without changing reqwest adapter behavior."
 
 [crates."cloud-sdk-sanitization"]
 previous_version = "0.16.0"
-version = "0.16.0"
-change = "unchanged"
-publish = false
-reason = "No code, dependency, or package metadata changes."
+version = "0.17.0"
+change = "code"
+publish = true
+reason = "Add bounded fallible growth for protected UTF-8 parser staging."
 
 [crates."cloud-sdk-testkit"]
 previous_version = "0.28.0"

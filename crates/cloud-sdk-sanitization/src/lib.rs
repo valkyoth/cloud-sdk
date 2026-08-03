@@ -10,6 +10,79 @@ extern crate alloc;
 #[cfg(feature = "alloc")]
 pub use sanitization::SecretString;
 
+/// Failure while fallibly appending to protected UTF-8 storage.
+#[cfg(feature = "alloc")]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[non_exhaustive]
+pub enum SecretStringAppendError {
+    /// The resulting public byte length exceeds the caller's bound.
+    TooLong,
+    /// The resulting public byte length overflowed `usize`.
+    CapacityOverflow,
+    /// Protected replacement storage could not be allocated.
+    Allocation,
+    /// The protected string's internal UTF-8 invariant was not satisfied.
+    InvalidUtf8,
+}
+
+#[cfg(feature = "alloc")]
+impl core::fmt::Display for SecretStringAppendError {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        formatter.write_str(match self {
+            Self::TooLong => "secret string length limit exceeded",
+            Self::CapacityOverflow => "secret string capacity overflowed",
+            Self::Allocation => "secret string allocation failed",
+            Self::InvalidUtf8 => "secret string UTF-8 invariant failed",
+        })
+    }
+}
+
+#[cfg(feature = "alloc")]
+impl core::error::Error for SecretStringAppendError {}
+
+/// Fallibly appends text to protected storage within a public byte bound.
+///
+/// Growth allocates and fills replacement storage before clearing the old
+/// allocation and swapping it out. Appends within existing capacity cannot
+/// allocate. The borrowed source is not cleared.
+#[cfg(feature = "alloc")]
+pub fn try_append_secret_string(
+    value: &mut SecretString,
+    text: &str,
+    maximum_bytes: usize,
+) -> Result<(), SecretStringAppendError> {
+    let required = value
+        .len()
+        .checked_add(text.len())
+        .ok_or(SecretStringAppendError::CapacityOverflow)?;
+    if required > maximum_bytes {
+        return Err(SecretStringAppendError::TooLong);
+    }
+    if required <= value.capacity() {
+        value.push_str(text);
+        return Ok(());
+    }
+
+    let capacity = value
+        .capacity()
+        .max(1)
+        .saturating_mul(2)
+        .max(required)
+        .min(maximum_bytes);
+    let mut replacement = SecretString::try_with_capacity(capacity)
+        .map_err(|_| SecretStringAppendError::Allocation)?;
+    value
+        .try_with_secret(|current| {
+            replacement.push_str(current);
+            replacement.push_str(text);
+        })
+        .map_err(|_| SecretStringAppendError::InvalidUtf8)?;
+
+    value.clear_secret();
+    core::mem::swap(value, &mut replacement);
+    Ok(())
+}
+
 /// Volatile-clears an ordinary caller-owned byte buffer.
 ///
 /// This delegates to the reviewed `sanitization` crate so the clear cannot be
@@ -86,6 +159,8 @@ mod tests {
     #[cfg(feature = "alloc")]
     use super::sanitize_string;
     use super::{SecretBuffer, sanitize_bytes, sanitize_value};
+    #[cfg(feature = "alloc")]
+    use super::{SecretStringAppendError, try_append_secret_string};
 
     #[test]
     fn explicit_sanitization_clears_every_byte() {
@@ -149,5 +224,20 @@ mod tests {
             Ok(true)
         );
         assert!(!alloc::format!("{secret:?}").contains("temporary secret"));
+    }
+
+    #[cfg(feature = "alloc")]
+    #[test]
+    fn protected_string_append_grows_fallibly_within_its_bound() {
+        let mut secret =
+            SecretString::try_with_capacity(2).unwrap_or_else(|_| SecretString::empty());
+        assert_eq!(try_append_secret_string(&mut secret, "ab", 8), Ok(()));
+        assert_eq!(try_append_secret_string(&mut secret, "cdef", 8), Ok(()));
+        assert_eq!(secret.try_with_secret(|text| text == "abcdef"), Ok(true));
+        assert_eq!(
+            try_append_secret_string(&mut secret, "ghi", 8),
+            Err(SecretStringAppendError::TooLong)
+        );
+        assert_eq!(secret.try_with_secret(|text| text == "abcdef"), Ok(true));
     }
 }

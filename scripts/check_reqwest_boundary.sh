@@ -49,7 +49,7 @@ for dependency in \
     'hyper-rustls v0.27.9' \
     'hyper-util v0.1.20' \
     'reqwest v0.13.4' \
-    'cloud-sdk-sanitization v0.16.0' \
+    'cloud-sdk-sanitization v0.17.0' \
     'sanitization v2.0.3' \
     'rustls v0.23.43'; do
     if ! printf '%s\n' "$blocking_tree" | grep -Fq "$dependency"; then
@@ -75,7 +75,7 @@ for dependency in \
     'hyper-util v0.1.20' \
     'reqwest v0.13.4' \
     'tokio v1.53.1' \
-    'cloud-sdk-sanitization v0.16.0' \
+    'cloud-sdk-sanitization v0.17.0' \
     'sanitization v2.0.3' \
     'rustls v0.23.43'; do
     if ! printf '%s\n' "$async_tree" | grep -Fq "$dependency"; then

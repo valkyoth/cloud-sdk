@@ -11,13 +11,14 @@ unchanged.
 cloud-sdk = "0.49.0"
 cloud-sdk-hetzner = "0.37.0"
 cloud-sdk-reqwest = "0.32.2"
-cloud-sdk-sanitization = "0.16.0"
+cloud-sdk-sanitization = "0.17.0"
 cloud-sdk-testkit = "0.28.1"
 ```
 
-`cloud-sdk-hetzner` is the code release. `cloud-sdk` publishes aligned facade
-documentation. Reqwest and testkit receive dependency-only patches.
-Sanitization is unchanged and is not published.
+`cloud-sdk-hetzner` and `cloud-sdk-sanitization` are code releases. `cloud-sdk`
+publishes aligned facade documentation. Reqwest and testkit receive
+dependency-only patches. The sanitization facade adds bounded fallible growth
+for parser-owned protected text.
 
 ## New Boundary
 
@@ -26,6 +27,11 @@ bounded chunks through `IncrementalJsonDecoder::push`, and always call
 `finish`. Treat only `IncrementalJsonProgress::Complete` as full-document
 validation. `Stopped` means the visitor deliberately left the remainder
 unvalidated.
+
+Visitor callbacks are panic boundaries. A panic permanently poisons the
+decoder, while an ordinary `Stop` immediately clears parser-owned staging.
+Parser-owned allocation failure now returns `IncrementalJsonError::Allocation`
+instead of invoking the allocation error handler.
 
 No existing buffered code needs migration. Continue using `decode_response`
 when operation binding and a complete typed success or provider-error model

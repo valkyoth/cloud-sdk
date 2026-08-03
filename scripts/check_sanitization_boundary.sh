@@ -51,7 +51,7 @@ fi
 for package in cloud-sdk cloud-sdk-hetzner; do
     default_tree=$(cargo tree -p "$package" --no-default-features --edges normal)
     if ! printf '%s\n' "$default_tree" |
-        grep -Fq 'cloud-sdk-sanitization v0.16.0'; then
+        grep -Fq 'cloud-sdk-sanitization v0.17.0'; then
         echo "sanitization boundary: mandatory cleanup is missing from $package" >&2
         exit 1
     fi
