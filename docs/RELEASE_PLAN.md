@@ -1720,7 +1720,7 @@ Stop gate: `v0.46.0 implementation stop reached. Run pentest for this exact comm
 
 ### v0.47.0 - Local Async Contract
 
-Status: implementation stop reached; pentest required.
+Status: release candidate; pentest and final retest passed.
 
 Goal: support `!Send` browser-WASM, embedded, and single-threaded executors.
 

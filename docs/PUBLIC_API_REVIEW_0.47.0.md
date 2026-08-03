@@ -49,9 +49,10 @@ its commit operation.
 Regression tests poll a genuinely local future until it writes sensitive body
 and header bytes, drop it while pending, and prove the next attempt observes
 cleared storage. Another test stages sensitive bytes through a Send transport,
-suspends, cancels, and proves all bytes are cleared. Separate tests keep two local futures cooperatively
-outstanding, execute prepared requests and retry permits through a `!Sync`
-mock, and prove cross-thread transports satisfy local traits automatically.
+suspends, cancels, and proves all bytes are cleared. Separate tests keep two
+local futures cooperatively outstanding, execute prepared requests and retry
+permits through a `!Sync` mock, and prove cross-thread transports satisfy local
+traits automatically.
 
 ## Security Boundaries
 

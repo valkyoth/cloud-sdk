@@ -162,8 +162,13 @@ fn raw_async_rechecks_informational_rejection_after_final_response() {
 HTTP/1.1 103 Early Hints\r\nLink: </b>\r\n\r\n\
 HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\
 Content-Length: 2\r\nConnection: close\r\n\r\n{}";
-            let server = spawn_raw_response(wire)
-                .unwrap_or_else(|error| panic!("failed to create loopback server: {error}"));
+            let server = spawn_raw_response(wire);
+            let server_error = server.as_ref().err();
+            assert!(
+                server_error.is_none(),
+                "failed to create loopback server: {server_error:?}"
+            );
+            let Ok(server) = server else { return };
             let client = build_raw_loopback(&server.endpoint);
             assert!(client.is_some());
             let Some(client) = client else { return };
