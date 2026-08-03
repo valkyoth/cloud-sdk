@@ -38,8 +38,8 @@ provider without adding transport dependencies to provider crates.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.46.0"
-cloud-sdk-reqwest = { version = "0.31.1", features = ["blocking-rustls"] }
+cloud-sdk = "0.47.0"
+cloud-sdk-reqwest = { version = "0.31.2", features = ["blocking-rustls"] }
 ```
 
 The examples use Hetzner as a concrete endpoint, but the adapter contains no
@@ -82,6 +82,10 @@ The v0.46 package change is dependency-only. Retry ownership remains in the
 provider-neutral caller policy described by the
 [retry and idempotency guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/RETRY_AND_IDEMPOTENCY.md);
 each adapter call still performs exactly one attempt.
+The v0.47 package change is also dependency-only. Reqwest's `Send` futures
+automatically satisfy the local async traits, but the adapter still requires
+Tokio and does not become a browser-WASM or embedded transport. See the
+[local async guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/LOCAL_ASYNC.md).
 
 ## Raw Blocking Executor
 
@@ -313,8 +317,8 @@ compiled into `webpki-roots`:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.46.0"
-cloud-sdk-reqwest = { version = "0.31.1", features = ["blocking-rustls-webpki-roots"] }
+cloud-sdk = "0.47.0"
+cloud-sdk-reqwest = { version = "0.31.2", features = ["blocking-rustls-webpki-roots"] }
 ```
 
 The blocking API is identical to the example above. The custom rustls client
@@ -330,8 +334,8 @@ Use the same blocking API with the dedicated feature:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.46.0"
-cloud-sdk-reqwest = { version = "0.31.1", features = ["blocking-rustls-fips"] }
+cloud-sdk = "0.47.0"
+cloud-sdk-reqwest = { version = "0.31.2", features = ["blocking-rustls-fips"] }
 rustls = "=0.23.43"
 ```
 

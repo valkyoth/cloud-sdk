@@ -17,8 +17,8 @@ use cloud_sdk::{
 };
 
 use crate::{
-    ExpectedRequest, FixtureBody, MockError, MockExchange, MockTransport, PreparedRequestRecord,
-    ResponseFixture,
+    ExpectedRequest, FixtureBody, LocalMockTransport, MockError, MockExchange, MockTransport,
+    PreparedRequestRecord, ResponseFixture,
 };
 
 static OK_STATUS: [StatusCode; 1] = [StatusCode::OK];
@@ -122,6 +122,29 @@ fn bound_mock_executes_prepared_requests_for_blocking_and_async_contracts() {
     let mut context = Context::from_waker(waker);
     let asynchronous = Future::poll(future.as_mut(), &mut context);
     assert!(matches!(asynchronous, Poll::Ready(Ok(_))));
+    assert!(mock.is_complete());
+}
+
+#[test]
+fn local_async_mock_executes_a_checked_prepared_request() {
+    let prepared = prepared_request(16);
+    let exchange = successful_exchange();
+    let endpoint = official_endpoint();
+    assert!(prepared.is_ok() && exchange.is_ok() && endpoint.is_ok());
+    let (Ok(prepared), Ok(exchange), Ok(endpoint)) = (prepared, exchange, endpoint) else {
+        return;
+    };
+    let exchanges = [exchange];
+    let mock = LocalMockTransport::new(&exchanges).with_endpoint(endpoint);
+    let mut output = [0_u8; 32];
+    let mut headers = [0_u8; 8192];
+    let future = prepared.execute_local_async(&mock, &mut output, &mut headers);
+    let mut future = core::pin::pin!(future);
+    let mut context = Context::from_waker(Waker::noop());
+    assert!(matches!(
+        Future::poll(future.as_mut(), &mut context),
+        Poll::Ready(Ok(_))
+    ));
     assert!(mock.is_complete());
 }
 

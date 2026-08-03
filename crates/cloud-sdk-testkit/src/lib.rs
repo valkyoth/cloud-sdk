@@ -35,7 +35,7 @@ pub use body::{FixtureBody, FixtureBodyError, MAX_FIXTURE_BODY_BYTES};
 pub use metadata::{
     ActionFixture, ActionState, FixtureMetadataError, PaginationFixture, RateLimitFixture,
 };
-pub use mock::{ExpectedRequest, MockError, MockExchange, MockTransport};
+pub use mock::{ExpectedRequest, LocalMockTransport, MockError, MockExchange, MockTransport};
 pub use prepared::PreparedRequestRecord;
 pub use raw_fault::{RawFault, RawFaultError, RawFaultExecutor};
 pub use response::{FixtureKind, ResponseFixture, ResponseFixtureError};

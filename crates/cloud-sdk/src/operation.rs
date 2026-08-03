@@ -1,5 +1,6 @@
 //! Allocation-free operation preparation and checked response policy.
 
+mod local_async;
 mod metadata;
 mod operation_id;
 mod policy;
@@ -26,6 +27,8 @@ pub use storage::{
     PreparationCapacityProfile, PreparationStorageGuard,
 };
 
+#[cfg(test)]
+mod local_async_tests;
 #[cfg(test)]
 mod prepared_policy_tests;
 #[cfg(test)]

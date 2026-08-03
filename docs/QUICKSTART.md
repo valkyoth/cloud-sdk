@@ -8,15 +8,15 @@ usable in `no_std` environments.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.46.0"
+cloud-sdk = "0.47.0"
 ```
 
 Provider-specific request models are separate dependencies. For Hetzner:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.46.0"
-cloud-sdk-hetzner = "0.36.0"
+cloud-sdk = "0.47.0"
+cloud-sdk-hetzner = "0.36.1"
 ```
 
 ## Build A Transport Request
@@ -101,6 +101,8 @@ See [`MIGRATION_0.45.0.md`](MIGRATION_0.45.0.md) for provider-owned quota
 decoding, exact `Retry-After`, and pure bounded delay decisions.
 See [`MIGRATION_0.46.0.md`](MIGRATION_0.46.0.md) for canonical request
 fingerprints, fresh intent binding, and single-owner retry budgets.
+See [`MIGRATION_0.47.0.md`](MIGRATION_0.47.0.md) for local `!Send` futures,
+explicit cancellation policy, and local prepared execution.
 
 ## Guard Preparation Storage
 
@@ -188,8 +190,8 @@ sent. See [`MIGRATION_0.34.0.md`](MIGRATION_0.34.0.md).
 ## Select A Transport
 
 - Use `cloud-sdk-testkit` for deterministic blocking and async unit tests.
-- Implement `BlockingTransport` or `AsyncTransport` for a platform-native
-  transport.
+- Implement `BlockingTransport`, `AsyncTransport`, or `LocalAsyncTransport`
+  for a platform-native transport.
 - Enable `cloud-sdk-reqwest/blocking-rustls`,
   `blocking-rustls-webpki-roots`, `blocking-rustls-fips`, or `async-rustls`
   when the supported native reqwest boundary fits the target.
@@ -199,10 +201,10 @@ The reqwest crate also exposes credential-free `RawBlockingClient` and
 retain only admitted response headers, and return delivery-phased failures.
 See [`RAW_HTTP_EXECUTOR.md`](RAW_HTTP_EXECUTOR.md).
 
-Both transport traits send through `&self`. Thread-safe implementations can be
+All transport traits send through `&self`. Thread-safe implementations can be
 shared under caller-selected concurrency limits without a mutex held across I/O
-or `.await`; implementations that are not `Sync` remain sequential. The SDK
-does not create tasks, queues, retries, sleeps, or an executor.
+or `.await`; local implementations may return `!Send` futures and use `!Sync`
+state. The SDK does not create tasks, queues, retries, sleeps, or an executor.
 
 The FIPS blocking feature additionally requires an explicit `FipsTlsPolicy`
 containing deployment-managed trust roots and complete, current CRLs. Missing,
@@ -221,9 +223,10 @@ trust policy, explicit read-only/mutation/destructive impact, request semantics,
 retry eligibility, cost intent, accepted statuses and media types, body shape,
 and maximum response length.
 
-`PreparedRequest::execute_blocking` and `execute_async` verify endpoint policy
-before sending and lend no more than the policy's admitted response capacity
-through a sealed `ResponseWriter`. A cleanup-owning `ResponseBuffer`
+`PreparedRequest::execute_blocking`, `execute_async`, and
+`execute_local_async` verify endpoint policy before sending and lend no more
+than the policy's admitted response capacity through a sealed `ResponseWriter`.
+A cleanup-owning `ResponseBuffer`
 volatile-clears the complete caller buffer before admission and on every exit;
 provided transports additionally acquire a transactional `ResponseAttempt`
 that clears uncommitted body and header state on failure, unwind, timeout, or

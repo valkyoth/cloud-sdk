@@ -6,7 +6,9 @@ use cloud_sdk_sanitization::sanitize_bytes;
 
 use super::policy::observe_monotonic;
 use super::{MonotonicDuration, MonotonicInstant};
-use crate::authentication::{AsyncAuthenticatedTransport, BlockingAuthenticatedTransport};
+use crate::authentication::{
+    AsyncAuthenticatedTransport, BlockingAuthenticatedTransport, LocalAsyncAuthenticatedTransport,
+};
 use crate::operation::{CheckedResponseGuard, PreparedExecutionError, PreparedRequest};
 use crate::transport::BoundTransport;
 
@@ -177,6 +179,29 @@ impl<'controller, 'request, 'subject> RetryPermit<'controller, 'request, 'subjec
         self.authorize(now).map_err(RetryExecutionError::Permit)?;
         self.prepared
             .execute_async(transport, response_storage, response_header_storage)
+            .await
+            .map_err(RetryExecutionError::Execution)
+    }
+
+    /// Authorizes and executes the exact replay once on a local async
+    /// transport without owning an executor.
+    pub async fn execute_local_async<'transport, 'buffer, T>(
+        mut self,
+        now: MonotonicInstant,
+        transport: &'transport T,
+        response_storage: &'buffer mut [u8],
+        response_header_storage: &'buffer mut [u8],
+    ) -> Result<CheckedResponseGuard<'buffer>, RetryExecutionError<T::Error>>
+    where
+        T: LocalAsyncAuthenticatedTransport + BoundTransport,
+        'request: 'transport,
+        'subject: 'transport,
+    {
+        sanitize_bytes(response_storage);
+        sanitize_bytes(response_header_storage);
+        self.authorize(now).map_err(RetryExecutionError::Permit)?;
+        self.prepared
+            .execute_local_async(transport, response_storage, response_header_storage)
             .await
             .map_err(RetryExecutionError::Execution)
     }

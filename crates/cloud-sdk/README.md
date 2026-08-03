@@ -120,8 +120,8 @@ Portable and native platform evidence is documented in
 
 ```toml
 [dependencies]
-cloud-sdk = "0.46.0"
-cloud-sdk-hetzner = "0.36.0"
+cloud-sdk = "0.47.0"
+cloud-sdk-hetzner = "0.36.1"
 ```
 
 ## cloud-sdk Features
@@ -148,6 +148,7 @@ visible. Applications should enable only the features they use.
 - [Pagination strategies](https://github.com/valkyoth/cloud-sdk/blob/main/docs/PAGINATION_STRATEGIES.md)
 - [Quota and retry policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/QUOTA_AND_RETRY.md)
 - [Retry and idempotency policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/RETRY_AND_IDEMPOTENCY.md)
+- [Local async contract](https://github.com/valkyoth/cloud-sdk/blob/main/docs/LOCAL_ASYNC.md)
 - [Release runbook](https://github.com/valkyoth/cloud-sdk/blob/main/docs/RELEASE_RUNBOOK.md)
 - [Versioning and error policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/VERSIONING_POLICY.md)
 - [Migrating to v0.29](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.29.0.md)
@@ -168,6 +169,7 @@ visible. Applications should enable only the features they use.
 - [Migrating to v0.44](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.44.0.md)
 - [Migrating to v0.45](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.45.0.md)
 - [Migrating to v0.46](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.46.0.md)
+- [Migrating to v0.47](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.47.0.md)
 - [Deprecated endpoint policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/DEPRECATED_ENDPOINT_POLICY.md)
 
 ## Provider-Neutral Quickstart
@@ -459,8 +461,8 @@ without changing the default allocation-free graph.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.46.0"
-cloud-sdk-reqwest = { version = "0.31.1", features = ["blocking-rustls"] }
+cloud-sdk = "0.47.0"
+cloud-sdk-reqwest = { version = "0.31.2", features = ["blocking-rustls"] }
 ```
 
 The production builder is HTTPS-only, requires explicit bounded timeouts and a
@@ -486,8 +488,8 @@ when deterministic public WebPKI roots are required:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.46.0"
-cloud-sdk-reqwest = { version = "0.31.1", features = ["blocking-rustls-webpki-roots"] }
+cloud-sdk = "0.47.0"
+cloud-sdk-reqwest = { version = "0.31.2", features = ["blocking-rustls-webpki-roots"] }
 ```
 
 The blocking API is unchanged. This feature excludes host-added enterprise
@@ -503,8 +505,8 @@ feature instead of relying on dependency feature unification:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.46.0"
-cloud-sdk-reqwest = { version = "0.31.1", features = ["blocking-rustls-fips"] }
+cloud-sdk = "0.47.0"
+cloud-sdk-reqwest = { version = "0.31.2", features = ["blocking-rustls-fips"] }
 ```
 
 Client construction explicitly selects rustls' AWS-LC FIPS provider and fails
@@ -522,8 +524,8 @@ example is in the
 
 ```toml
 [dependencies]
-cloud-sdk = "0.46.0"
-cloud-sdk-reqwest = { version = "0.31.1", features = ["async-rustls"] }
+cloud-sdk = "0.47.0"
+cloud-sdk-reqwest = { version = "0.31.2", features = ["async-rustls"] }
 ```
 
 The async adapter requires an active Tokio executor because reqwest uses Tokio
@@ -535,6 +537,18 @@ limit; callers own task lifetimes, bounds, cancellation, and executor policy.
 See the complete, compile-checked
 [`cloud-sdk-reqwest` async example](https://docs.rs/cloud-sdk-reqwest/latest/cloud_sdk_reqwest/#async-example)
 for client construction and request execution.
+
+## Local Async Transport
+
+`LocalAsyncTransport`, `LocalAsyncAuthenticatedTransport`, and
+`LocalAsyncRawHttpExecutor` support `!Send` browser-WASM, embedded, and
+single-threaded futures without selecting an executor. Existing `Send` async
+implementations automatically satisfy the local contracts. Prepared requests,
+provider links, and retry permits expose `execute_local_async`.
+
+Dropping any async future leaves the response uncommitted and clears partial
+response storage, but request delivery is conservatively `PossiblySent`. See
+the [local async contract](https://github.com/valkyoth/cloud-sdk/blob/main/docs/LOCAL_ASYNC.md).
 
 ## Numbered Pagination Example
 

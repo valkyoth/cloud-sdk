@@ -1,27 +1,27 @@
 [release]
-version = "0.46.0"
+version = "0.47.0"
 policy = "independent"
 
 [crates."cloud-sdk"]
-previous_version = "0.45.0"
-version = "0.46.0"
+previous_version = "0.46.0"
+version = "0.47.0"
 change = "code"
 publish = true
-reason = "Add full-policy replay binding, borrowed idempotency guards, and exclusive one-use retry execution permits."
+reason = "Add local async transport, authenticated execution, raw execution, prepared request, pagination, and retry contracts."
 
 [crates."cloud-sdk-hetzner"]
-previous_version = "0.35.0"
-version = "0.36.0"
-change = "code"
-publish = true
-reason = "Source-lock immutable prepared request bodies as byte-for-byte replayable."
-
-[crates."cloud-sdk-reqwest"]
-previous_version = "0.31.0"
-version = "0.31.1"
+previous_version = "0.36.0"
+version = "0.36.1"
 change = "dependency"
 publish = true
-reason = "Update cloud-sdk to v0.46 and the reviewed transitive ipnet patch without adding transport-owned retry."
+reason = "Update cloud-sdk to v0.47 without changing provider request or response behavior."
+
+[crates."cloud-sdk-reqwest"]
+previous_version = "0.31.1"
+version = "0.31.2"
+change = "dependency"
+publish = true
+reason = "Update cloud-sdk to v0.47; existing Send futures automatically satisfy the local contract."
 
 [crates."cloud-sdk-sanitization"]
 previous_version = "0.16.0"
@@ -31,8 +31,8 @@ publish = false
 reason = "No code, dependency, or package metadata changes."
 
 [crates."cloud-sdk-testkit"]
-previous_version = "0.25.2"
-version = "0.26.0"
+previous_version = "0.26.0"
+version = "0.27.0"
 change = "code"
 publish = true
-reason = "Record prepared request body replayability for provider-neutral policy assertions."
+reason = "Add a no-allocation local-only mock transport and local async conformance fixtures."

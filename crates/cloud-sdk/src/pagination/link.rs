@@ -217,7 +217,7 @@ impl<'storage, 'endpoint> ValidatedProviderLink<'storage, 'endpoint> {
             .map_err(ProviderLinkExecutionError::Transport)
     }
 
-    fn request_for<'request, T: BoundTransport>(
+    pub(super) fn request_for<'request, T: BoundTransport>(
         &'request self,
         transport: &T,
         method: Method,

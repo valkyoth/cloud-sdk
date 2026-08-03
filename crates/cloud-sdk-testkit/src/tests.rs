@@ -14,6 +14,7 @@ use crate::{
     RateLimitFixture, RawFaultError, ResponseFixture, ResponseFixtureError, adversarial_corpus,
 };
 
+mod local_async;
 mod prepared;
 mod raw_fault;
 

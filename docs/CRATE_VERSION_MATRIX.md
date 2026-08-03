@@ -1,7 +1,7 @@
 # Crate Version Matrix
 
-Status: `v0.45.0` is tagged. `v0.46.0` is a release candidate with pentest and
-final retest passed; local and GitHub release gates remain before tagging.
+Status: `v0.46.0` is tagged. `v0.47.0` is at implementation stop and requires
+pentest for the exact implementation commit.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
@@ -691,6 +691,19 @@ adds one bounded retry owner with fresh local mutation intent.
 | `cloud-sdk-reqwest` | `0.31.0` | `0.31.1` | `dependency` | Yes | Update `cloud-sdk` and the reviewed transitive `ipnet` patch without introducing transport-owned retry. |
 | `cloud-sdk-sanitization` | `0.16.0` | `0.16.0` | `unchanged` | No | No code, dependency, or package metadata changes. |
 | `cloud-sdk-testkit` | `0.25.2` | `0.26.0` | `code` | Yes | Record explicit body replayability in redacted prepared-request policy evidence. |
+
+## v0.47.0 Tracking Table
+
+`v0.47.0` adds local asynchronous contracts for `!Send` browser-WASM,
+embedded, and single-threaded executors while preserving cross-thread APIs.
+
+| Crate | Published | Planned | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.46.0` | `0.47.0` | `code` | Yes | Add local basic, authenticated, raw, prepared, pagination, and retry execution contracts with explicit cancellation policy. |
+| `cloud-sdk-hetzner` | `0.36.0` | `0.36.1` | `dependency` | Yes | Update the provider's `cloud-sdk` dependency without changing Hetzner behavior. |
+| `cloud-sdk-reqwest` | `0.31.1` | `0.31.2` | `dependency` | Yes | Update `cloud-sdk`; existing Send futures automatically satisfy the local contract. |
+| `cloud-sdk-sanitization` | `0.16.0` | `0.16.0` | `unchanged` | No | No code, dependency, or package metadata changes. |
+| `cloud-sdk-testkit` | `0.26.0` | `0.27.0` | `code` | Yes | Add a no-allocation deliberately local-only mock and local async conformance fixtures. |
 
 ## Planned Milestone Ownership
 

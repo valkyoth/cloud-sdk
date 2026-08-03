@@ -21,6 +21,7 @@ pub use signing::{
 };
 pub use transport::{
     AsyncAuthenticatedTransport, AuthenticatedRequest, BlockingAuthenticatedTransport,
+    LocalAsyncAuthenticatedTransport,
 };
 pub use value::{MAX_SCOPE_VALUE_BYTES, ScopeValue, ScopeValueError};
 

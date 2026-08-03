@@ -316,6 +316,30 @@ fn async_execution_couples_endpoint_validation_and_dispatch() {
 }
 
 #[test]
+fn send_transport_provider_links_execute_through_local_async() {
+    let mut source = *b"/v2/droplets?page=2";
+    let mut storage = [0_u8; 64];
+    let link = ValidatedProviderLink::transfer_from(&mut source, &mut storage, binding(), limits())
+        .unwrap_or_else(|_| unreachable!());
+    let transport = transport("/v2/droplets?page=2");
+    let mut response_storage = [];
+    let mut header_storage = [];
+    let mut response = ResponseBuffer::new(&mut response_storage, 0, &mut header_storage);
+    let mut future = core::pin::pin!(link.execute_local_async(
+        &transport,
+        Method::Get,
+        operation("list_droplets"),
+        authentication(),
+        response_policy(),
+        response.writer(),
+    ));
+    let mut context = Context::from_waker(Waker::noop());
+
+    assert_eq!(future.as_mut().poll(&mut context), Poll::Ready(Ok(())));
+    assert_eq!(transport.calls.load(Ordering::Relaxed), 1);
+}
+
+#[test]
 fn execution_errors_flatten_and_redact_transport_details() {
     let mut source = *b"/v2/droplets?page=2";
     let mut storage = [0_u8; 64];

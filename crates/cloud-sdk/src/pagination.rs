@@ -2,6 +2,7 @@
 
 mod budget;
 mod link;
+mod local_async;
 mod numbered;
 mod offset;
 mod opaque;

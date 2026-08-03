@@ -269,6 +269,49 @@ pub trait AsyncRawHttpExecutor {
         'policy: 'writer;
 }
 
+/// Runtime-neutral raw HTTP execution for `!Send` local futures.
+///
+/// This trait owns no executor. Dropping a returned future must leave response
+/// state uncommitted and clear partial bytes, while request delivery remains
+/// conservatively possibly sent.
+pub trait LocalAsyncRawHttpExecutor {
+    /// Executor-specific phased failure.
+    type Error;
+
+    /// Executes exactly once without requiring a `Send` future.
+    fn execute_local<'executor, 'request, 'policy, 'writer>(
+        &'executor self,
+        request: TransportRequest<'request>,
+        policy: RawResponsePolicy<'policy>,
+        response: &'writer mut ResponseWriter<'_>,
+    ) -> impl Future<Output = Result<(), Self::Error>> + 'writer
+    where
+        'executor: 'writer,
+        'request: 'writer,
+        'policy: 'writer;
+}
+
+impl<T> LocalAsyncRawHttpExecutor for T
+where
+    T: AsyncRawHttpExecutor + ?Sized,
+{
+    type Error = T::Error;
+
+    fn execute_local<'executor, 'request, 'policy, 'writer>(
+        &'executor self,
+        request: TransportRequest<'request>,
+        policy: RawResponsePolicy<'policy>,
+        response: &'writer mut ResponseWriter<'_>,
+    ) -> impl Future<Output = Result<(), Self::Error>> + 'writer
+    where
+        'executor: 'writer,
+        'request: 'writer,
+        'policy: 'writer,
+    {
+        AsyncRawHttpExecutor::execute(self, request, policy, response)
+    }
+}
+
 fn validate_media(policy: ResponseMediaPolicy<'_>) -> Result<(), RawResponsePolicyError> {
     let media = match policy {
         ResponseMediaPolicy::Required(media) | ResponseMediaPolicy::Optional(media) => media,

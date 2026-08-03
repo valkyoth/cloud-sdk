@@ -1,16 +1,18 @@
 //! Deterministic no-allocation mock transport.
 
+use core::cell::Cell;
 use core::fmt;
 use core::sync::atomic::{AtomicUsize, Ordering};
 
 use cloud_sdk::Method;
 use cloud_sdk::authentication::{
     AsyncAuthenticatedTransport, AuthenticatedRequest, BlockingAuthenticatedTransport,
+    LocalAsyncAuthenticatedTransport,
 };
 use cloud_sdk::transport::{
     AsyncTransport, BlockingTransport, BoundTransport, EndpointIdentity, EndpointIdentityError,
-    HeaderSensitivity, RequestHeaders, RequestTarget, ResponseContentType, ResponseHeaders,
-    ResponseMetadata, ResponseWriter, TransportRequest,
+    HeaderSensitivity, LocalAsyncTransport, RequestHeaders, RequestTarget, ResponseContentType,
+    ResponseHeaders, ResponseMetadata, ResponseWriter, TransportRequest,
 };
 
 use crate::{FixtureBodyError, ResponseFixture};
@@ -367,6 +369,102 @@ impl fmt::Debug for MockTransport<'_> {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter
             .debug_struct("MockTransport")
+            .field("remaining", &self.remaining())
+            .finish_non_exhaustive()
+    }
+}
+
+/// Ordered mock transport whose futures are intentionally local-only.
+///
+/// The `Cell` marker makes this type `!Sync`, so futures borrowing it cannot be
+/// sent between threads. It exercises browser, embedded, and single-threaded
+/// executor integrations without adding an allocator or runtime dependency.
+///
+/// ```compile_fail
+/// use cloud_sdk_testkit::LocalMockTransport;
+/// fn require_sync<T: Sync>() {}
+/// require_sync::<LocalMockTransport<'static>>();
+/// ```
+pub struct LocalMockTransport<'a> {
+    inner: MockTransport<'a>,
+    local_marker: Cell<()>,
+}
+
+impl<'a> LocalMockTransport<'a> {
+    /// Creates a local-only mock over an ordered exchange slice.
+    #[must_use]
+    pub const fn new(exchanges: &'a [MockExchange<'a>]) -> Self {
+        Self {
+            inner: MockTransport::new(exchanges),
+            local_marker: Cell::new(()),
+        }
+    }
+
+    /// Binds the mock permanently to one normalized endpoint identity.
+    #[must_use]
+    pub const fn with_endpoint(mut self, endpoint: EndpointIdentity<'a>) -> Self {
+        self.inner = self.inner.with_endpoint(endpoint);
+        self
+    }
+
+    /// Returns the number of exchanges not yet consumed.
+    #[must_use]
+    pub fn remaining(&self) -> usize {
+        self.inner.remaining()
+    }
+
+    /// Reports whether every expected exchange was consumed.
+    #[must_use]
+    pub fn is_complete(&self) -> bool {
+        self.inner.is_complete()
+    }
+}
+
+impl LocalAsyncTransport for LocalMockTransport<'_> {
+    type Error = MockError;
+
+    async fn send_local<'transport, 'request, 'writer>(
+        &'transport self,
+        request: TransportRequest<'request>,
+        response: &'writer mut ResponseWriter<'_>,
+    ) -> Result<(), Self::Error>
+    where
+        'transport: 'writer,
+        'request: 'writer,
+    {
+        self.local_marker.get();
+        self.inner.send_inner(request, response)
+    }
+}
+
+impl LocalAsyncAuthenticatedTransport for LocalMockTransport<'_> {
+    type Error = MockError;
+
+    async fn send_authenticated_local<'transport, 'request, 'policy, 'writer>(
+        &'transport self,
+        request: AuthenticatedRequest<'request, 'policy>,
+        response: &'writer mut ResponseWriter<'_>,
+    ) -> Result<(), Self::Error>
+    where
+        'transport: 'writer,
+        'request: 'writer,
+        'policy: 'writer,
+    {
+        self.local_marker.get();
+        self.inner.send_inner(request.transport_request(), response)
+    }
+}
+
+impl BoundTransport for LocalMockTransport<'_> {
+    fn endpoint_identity(&self) -> Result<EndpointIdentity<'_>, EndpointIdentityError> {
+        self.inner.endpoint_identity()
+    }
+}
+
+impl fmt::Debug for LocalMockTransport<'_> {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("LocalMockTransport")
             .field("remaining", &self.remaining())
             .finish_non_exhaustive()
     }

@@ -33,11 +33,18 @@ security controls.
 
 ## Concurrency
 
-The blocking and async transport contracts use shared references. A concrete
-`Sync` client can serve overlapping caller-owned requests without a mutex held
-across I/O or `.await`; request and response buffers must remain distinct.
-Bound concurrency in the application with a fixed worker or task budget. The
-SDK does not create tasks, semaphores, queues, retries, sleeps, or an executor.
+The blocking, cross-thread async, and local async transport contracts use
+shared references. A concrete `Sync` client can serve overlapping caller-owned
+requests without a mutex held across I/O or `.await`; local `!Sync` transports
+may support cooperatively outstanding futures on one thread. Request and
+response buffers must remain distinct. Bound concurrency in the application
+with a fixed worker or task budget. The SDK does not create tasks, semaphores,
+queues, retries, sleeps, or an executor.
+
+Dropping an async future does not prove the request was not delivered. Treat
+cancellation as `PossiblySent`, clear partial response storage through the
+mandatory response-attempt guard, and never repeat a mutation without its
+operation-specific retry policy or reconciliation.
 
 Before Hetzner credentials are used, call
 `cloud_sdk_hetzner::verify_official_endpoint(&transport, expected_base)`. It

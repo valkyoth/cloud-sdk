@@ -34,8 +34,8 @@ and runtime-free.
 
 ```toml
 [dev-dependencies]
-cloud-sdk = "0.46.0"
-cloud-sdk-testkit = "0.26.0"
+cloud-sdk = "0.47.0"
+cloud-sdk-testkit = "0.27.0"
 ```
 
 ## Mock Transport
@@ -127,6 +127,12 @@ assert!(response
 # }
 # fn main() {}
 ```
+
+`LocalMockTransport` is deliberately `!Sync` and exercises the local async
+basic and authenticated contracts without a runtime. Use `send_local` or
+`PreparedRequest::execute_local_async` to compile-check browser, embedded, and
+single-threaded workflows. Existing `MockTransport` automatically satisfies
+the local contract through its `Send` async implementation.
 
 ## Raw Delivery Faults
 

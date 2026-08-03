@@ -38,8 +38,8 @@ boundaries.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.46.0"
-cloud-sdk-hetzner = "0.36.0"
+cloud-sdk = "0.47.0"
+cloud-sdk-hetzner = "0.36.1"
 ```
 
 ## Features
@@ -219,6 +219,10 @@ Exact replay identity and source-locked retry classes are described in the
 [v0.46 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.46.0.md)
 and the
 [retry and idempotency guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/RETRY_AND_IDEMPOTENCY.md).
+Local `!Send` prepared execution and cancellation policy are described in the
+[v0.47 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.47.0.md)
+and the
+[local async guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/LOCAL_ASYNC.md).
 
 ## Optional Serde Boundary
 
@@ -226,7 +230,7 @@ Enable Serde explicitly; it is never part of the default graph:
 
 ```toml
 [dependencies]
-cloud-sdk-hetzner = { version = "0.36.0", features = ["serde"] }
+cloud-sdk-hetzner = { version = "0.36.1", features = ["serde"] }
 ```
 
 The feature admits serde_json with `default-features = false` and `alloc` only

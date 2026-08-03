@@ -12,7 +12,7 @@ mod response;
 mod retained;
 mod workspace;
 
-pub use asynchronous::AsyncTransport;
+pub use asynchronous::{ASYNC_CANCELLATION_DELIVERY_PHASE, AsyncTransport, LocalAsyncTransport};
 pub use cleanup::ResponseStorageSanitizer;
 pub use content_type::{
     ContentType, ContentTypeError, MAX_CONTENT_TYPE_BYTES, MediaType, ResponseContentType,
@@ -33,9 +33,9 @@ pub use header::{
 };
 pub use raw::{
     AsyncRawHttpExecutor, BlockingRawHttpExecutor, InformationalResponseError,
-    InformationalResponseTracker, MAX_INFORMATIONAL_RESPONSES, MAX_RAW_RESPONSE_BODY_BYTES,
-    MAX_RESPONSE_CHUNKS, RawResponsePolicy, RawResponsePolicyError, ResponseMediaPolicy,
-    TrailerPolicy,
+    InformationalResponseTracker, LocalAsyncRawHttpExecutor, MAX_INFORMATIONAL_RESPONSES,
+    MAX_RAW_RESPONSE_BODY_BYTES, MAX_RESPONSE_CHUNKS, RawResponsePolicy, RawResponsePolicyError,
+    ResponseMediaPolicy, TrailerPolicy,
 };
 pub use request_target::{
     CanonicalQuery, FormQuery, MAX_REQUEST_TARGET_BYTES, ProviderLinkQuery, QueryPair, QueryPairs,
@@ -195,5 +195,7 @@ pub trait BlockingTransport {
     ) -> Result<(), Self::Error>;
 }
 
+#[cfg(test)]
+mod local_async_tests;
 #[cfg(test)]
 mod tests;

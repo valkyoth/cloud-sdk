@@ -1708,6 +1708,8 @@ Stop gate: `v0.45.0 implementation stop reached. Run pentest for this exact comm
 
 ### v0.46.0 - Retry And Idempotency Strategies
 
+Status: tagged and published.
+
 Goal: source-lock retry behavior per operation instead of inferring it from methods.
 
 Deliverables: retry/idempotency tables, one explicit retry owner, request-body replayability capability, nonzero attempt accounting, maximum cumulative requested delay, mutation authorization, delivery-phase consumption with unknown treated as possibly sent, replay/mismatch rejection, and caller-owned delay/jitter inputs. Request fingerprints use a versioned domain-separated canonical format over provider, service, operation, admitted endpoint identity, exact query bytes, selected headers, body, and applicable account/scope; comparison uses exact bounded canonical bytes or a collision-resistant caller-supplied digest, never `Hash` or another non-cryptographic digest; temporary canonical inputs are redacted and cleared. Private-field retry subjects bind prepared policy to fingerprint identity, while the controller separately compares every retry-critical prepared policy before state mutation. Each idempotency key begins as fresh caller entropy retained in one borrowed cleanup location and is then bound to the fingerprint, so separate intentional identical operations cannot collide by construction. Wall-clock observations are typed separately from monotonic durations used for delay, timeout, and elapsed budgets; decisions and permit execution advance one controller-owned monotonic state, so rollback cannot extend any budget. The hard elapsed deadline includes requested delay and is rechecked by a one-use permit after sleep. A permit exclusively borrows controller state through direct blocking or executor-neutral async execution, preventing simultaneously outstanding safe-code fan-out without claiming to constrain code that intentionally bypasses the controller. Non-replayable bodies and indeterminate mutations never retry automatically.
@@ -1718,11 +1720,24 @@ Stop gate: `v0.46.0 implementation stop reached. Run pentest for this exact comm
 
 ### v0.47.0 - Local Async Contract
 
+Status: implementation stop reached; pentest required.
+
 Goal: support `!Send` browser-WASM, embedded, and single-threaded executors.
 
-Deliverables: `LocalAsyncTransport` beside cross-thread `AsyncTransport`, explicit cancellation semantics, and no executor ownership.
+Deliverables: `LocalAsyncTransport`, `LocalAsyncAuthenticatedTransport`, and
+`LocalAsyncRawHttpExecutor` beside their cross-thread contracts; automatic
+local compatibility for existing `Send` implementations; local prepared,
+provider-link, and one-use retry-permit execution; an explicit
+possibly-sent cancellation classification; mandatory uncommitted response
+cleanup; a deliberately `!Sync` no-allocation testkit mock; and no allocator,
+runtime, task, clock, or executor ownership.
 
-Verification: portable compile matrix, dropped-future cleanup, sequential/concurrent conformance, and `scripts/release_0_47_gate.sh`.
+Verification: genuinely `!Send` compile evidence, cross-thread blanket
+adaptation, partial-secret dropped-future cleanup, possibly-sent cancellation,
+sequential and cooperatively outstanding local futures, prepared request,
+provider-link, raw-executor, and retry-permit conformance, browser-WASM,
+embedded and complete portable compile matrices, doctests, and
+`scripts/release_0_47_gate.sh`.
 
 Stop gate: `v0.47.0 implementation stop reached. Run pentest for this exact commit.`
 

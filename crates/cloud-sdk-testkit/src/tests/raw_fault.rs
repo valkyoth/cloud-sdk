@@ -1,7 +1,8 @@
 use cloud_sdk::Method;
 use cloud_sdk::transport::{
-    AsyncRawHttpExecutor, BlockingRawHttpExecutor, DeliveryPhase, MediaType, RawResponsePolicy,
-    RequestTarget, ResponseBuffer, ResponseMediaPolicy, TransportRequest,
+    AsyncRawHttpExecutor, BlockingRawHttpExecutor, DeliveryPhase, LocalAsyncRawHttpExecutor,
+    MediaType, RawResponsePolicy, RequestTarget, ResponseBuffer, ResponseMediaPolicy,
+    TransportRequest,
 };
 use core::future::Future;
 use core::task::{Context, Poll, Waker};
@@ -68,5 +69,29 @@ fn async_unknown_fault_is_immediately_possibly_sent() {
     assert!(matches!(
         Future::poll(future.as_mut(), &mut context),
         Poll::Ready(Err(error)) if error.phase() == DeliveryPhase::PossiblySent
+    ));
+}
+
+#[test]
+fn send_raw_executor_automatically_satisfies_local_async() {
+    let Ok(target) = RequestTarget::new("/fault") else {
+        return;
+    };
+    let Some(policy) = policy() else { return };
+    let executor = RawFaultExecutor::new(RawFault::NotSent);
+    let mut body = [0xa5_u8; 1];
+    let mut headers = [0xa5_u8; 32];
+    let mut response = ResponseBuffer::new(&mut body, 1, &mut headers);
+    let future = LocalAsyncRawHttpExecutor::execute_local(
+        &executor,
+        TransportRequest::new(Method::Get, target),
+        policy,
+        response.writer(),
+    );
+    let mut future = core::pin::pin!(future);
+    let mut context = Context::from_waker(Waker::noop());
+    assert!(matches!(
+        Future::poll(future.as_mut(), &mut context),
+        Poll::Ready(Err(error)) if error.phase() == DeliveryPhase::NotSent
     ));
 }

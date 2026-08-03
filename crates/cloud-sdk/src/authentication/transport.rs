@@ -87,3 +87,45 @@ pub trait AsyncAuthenticatedTransport {
         'request: 'writer,
         'policy: 'writer;
 }
+
+/// Executor-neutral authenticated transport for `!Send` local futures.
+///
+/// Dropping the returned future leaves the response uncommitted and clears
+/// partial response state, but does not prove that the authenticated request
+/// was not delivered. Cancellation is conservatively
+/// [`DeliveryPhase::PossiblySent`](crate::transport::DeliveryPhase::PossiblySent).
+pub trait LocalAsyncAuthenticatedTransport {
+    /// Transport-specific failure.
+    type Error;
+
+    /// Validates scope and sends one authenticated request locally.
+    fn send_authenticated_local<'transport, 'request, 'policy, 'writer>(
+        &'transport self,
+        request: AuthenticatedRequest<'request, 'policy>,
+        response: &'writer mut ResponseWriter<'_>,
+    ) -> impl Future<Output = Result<(), Self::Error>> + 'writer
+    where
+        'transport: 'writer,
+        'request: 'writer,
+        'policy: 'writer;
+}
+
+impl<T> LocalAsyncAuthenticatedTransport for T
+where
+    T: AsyncAuthenticatedTransport + ?Sized,
+{
+    type Error = T::Error;
+
+    fn send_authenticated_local<'transport, 'request, 'policy, 'writer>(
+        &'transport self,
+        request: AuthenticatedRequest<'request, 'policy>,
+        response: &'writer mut ResponseWriter<'_>,
+    ) -> impl Future<Output = Result<(), Self::Error>> + 'writer
+    where
+        'transport: 'writer,
+        'request: 'writer,
+        'policy: 'writer,
+    {
+        AsyncAuthenticatedTransport::send_authenticated(self, request, response)
+    }
+}

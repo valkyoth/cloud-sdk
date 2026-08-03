@@ -113,11 +113,15 @@ unlisted dependencies fail closed before a platform claim is accepted.
 - FreeBSD users may evaluate the reqwest adapter, but this repository does not
   provide a native FreeBSD transport job.
 - Android and iOS applications should implement the core blocking or async
-  transport contract using a platform-reviewed networking stack.
-- Browser and non-browser WASM environments need a WASM-native transport; the
-  native reqwest/rustls feature graph is intentionally not enabled.
+  transport contract using a platform-reviewed networking stack. A
+  single-threaded adapter may implement `LocalAsyncTransport` without making
+  its future `Send`.
+- Browser and non-browser WASM environments need a WASM-native local async
+  transport; the native reqwest/rustls feature graph is intentionally not
+  enabled.
 - Bare-metal targets need an allocator-free or caller-buffer transport suited
-  to their network stack. The SDK does not select one.
+  to their network stack. Local async execution does not require an allocator
+  or executor. The SDK does not select either one.
 
 Target-specific transports must preserve the SDK's bounded response,
 credential redaction, timeout, redirect, retry, and cleanup policies. Platform
