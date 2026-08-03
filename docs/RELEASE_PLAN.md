@@ -1759,7 +1759,7 @@ Stop gate: `v0.48.0 implementation stop reached. Run pentest for this exact comm
 
 ### v0.49.0 - Incremental Provider Decoding
 
-Status: implementation stop reached; pentest pending.
+Status: release candidate; pentest and final retest passed.
 
 Goal: decode large lists, metrics, zonefiles, logs, and streams without one large JSON tree.
 

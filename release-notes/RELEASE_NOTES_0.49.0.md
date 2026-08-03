@@ -1,6 +1,6 @@
 # cloud-sdk 0.49.0 Release Notes
 
-Status: implementation stop; pentest required before release.
+Status: release candidate; pentest and final retest passed.
 
 Release date: pending
 
@@ -47,12 +47,10 @@ complete JSON tree. Existing buffered checked decoding remains unchanged.
 
 ## Pentest
 
-No release tag may be created until the exact implementation commit passes
-pentest and a permanent report is committed at
-`security/pentest/v0.49.0.md`.
+Pentest and final retest passed. The permanent report is committed at
+[`security/pentest/v0.49.0.md`](../security/pentest/v0.49.0.md).
 
 ## Release Gate
 
-```text
-v0.49.0 implementation stop reached. Run pentest for this exact commit.
-```
+v0.49.0 release candidate. Tag only after the clean local release gate and
+GitHub CI and CodeQL default setup pass on the final release commit.

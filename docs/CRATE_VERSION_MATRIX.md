@@ -1,7 +1,7 @@
 # Crate Version Matrix
 
-Status: `v0.48.0` is tagged and published. `v0.49.0` reached its implementation
-stop and requires pentest before release.
+Status: `v0.48.0` is tagged and published. `v0.49.0` is a release candidate;
+pentest and final retest passed, and GitHub checks are pending.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
