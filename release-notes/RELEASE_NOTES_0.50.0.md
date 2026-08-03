@@ -1,6 +1,6 @@
 # cloud-sdk 0.50.0 Release Notes
 
-Status: implementation complete; pentest required.
+Status: release candidate; pentest and final retest passed.
 
 Release date: pending
 
@@ -55,11 +55,10 @@ and execution.
 
 ## Pentest
 
-Independent pentest is required for the exact implementation commit. The
-permanent report will be committed at
-`security/pentest/v0.50.0.md` after remediation and final retest.
+Pentest and final retest passed. The permanent report is committed at
+[`security/pentest/v0.50.0.md`](../security/pentest/v0.50.0.md).
 
 ## Release Gate
 
-Do not tag v0.50.0 until pentest evidence is committed, the clean local release
-gate passes, and GitHub CI and CodeQL default setup pass on the release commit.
+v0.50.0 release candidate. Tag only after the clean local release gate and
+GitHub CI and CodeQL default setup pass on the final release commit.
