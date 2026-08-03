@@ -10,12 +10,14 @@ use core::task::{Context, Poll, Waker};
 use crate::{
     ActionFixture, ActionState, AdversarialKind, ExpectedRequest, FixtureBody, FixtureBodyError,
     FixtureKind, FixtureMetadataError, MockError, MockExchange, MockTransport, PaginationFixture,
-    RateLimitFixture, RawFaultError, ResponseFixture, ResponseFixtureError, adversarial_corpus,
+    RateLimitFixture, RawFaultError, ResponseFixture, ResponseFixtureError, StreamFixtureError,
+    adversarial_corpus,
 };
 
 mod local_async;
 mod prepared;
 mod raw_fault;
+mod stream;
 
 #[test]
 fn public_errors_implement_payload_free_core_error() {
@@ -26,6 +28,7 @@ fn public_errors_implement_payload_free_core_error() {
     assert_error::<MockError>();
     assert_error::<RawFaultError>();
     assert_error::<ResponseFixtureError>();
+    assert_error::<StreamFixtureError>();
     assert_eq!(
         format!("{}", FixtureBodyError::TooLarge),
         "fixture body exceeds the size limit"

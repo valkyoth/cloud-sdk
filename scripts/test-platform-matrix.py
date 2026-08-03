@@ -18,7 +18,7 @@ def fake_environment(
     directory: Path,
     *,
     installed: str = "x86_64-unknown-linux-gnu",
-    tree: str = "cloud-sdk v0.47.0\ncloud-sdk-hetzner v0.36.1\nsubtle v2.6.1\n",
+    tree: str = "cloud-sdk v0.48.0\ncloud-sdk-hetzner v0.36.2\nsubtle v2.6.1\n",
 ) -> tuple[dict[str, str], Path]:
     fake_bin = directory / "bin"
     fake_bin.mkdir()

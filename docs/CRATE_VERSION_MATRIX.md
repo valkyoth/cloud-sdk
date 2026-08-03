@@ -1,7 +1,7 @@
 # Crate Version Matrix
 
-Status: `v0.46.0` is tagged. `v0.47.0` is a release candidate with pentest and
-final retest passed; tagging waits for the local release gate and GitHub.
+Status: `v0.47.0` is tagged and published. `v0.48.0` is at implementation stop
+and requires pentest for the exact implementation commit.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
@@ -705,6 +705,20 @@ same non-committing response boundary.
 | `cloud-sdk-reqwest` | `0.31.1` | `0.32.0` | `code` | Yes | Migrate Send async transports to non-committing staging and SDK-owned response commitment; retain automatic local compatibility. |
 | `cloud-sdk-sanitization` | `0.16.0` | `0.16.0` | `unchanged` | No | No code, dependency, or package metadata changes. |
 | `cloud-sdk-testkit` | `0.26.0` | `0.27.0` | `code` | Yes | Add a no-allocation deliberately local-only mock and local async conformance fixtures. |
+
+## v0.48.0 Tracking Table
+
+`v0.48.0` adds bounded streaming policy, actual-byte accounting, deterministic
+backpressure, replay identity, cancellation cleanup, and blocking, Send-async,
+and local-async drivers.
+
+| Crate | Published | Planned | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.47.0` | `0.48.0` | `code` | Yes | Add bounded streaming policy, accounting, replay, cleanup, and drivers for all execution modes. |
+| `cloud-sdk-hetzner` | `0.36.1` | `0.36.2` | `dependency` | Yes | Update the provider's `cloud-sdk` dependency without changing Hetzner behavior. |
+| `cloud-sdk-reqwest` | `0.32.0` | `0.32.1` | `dependency` | Yes | Update the core dependency without claiming a reqwest streaming adapter. |
+| `cloud-sdk-sanitization` | `0.16.0` | `0.16.0` | `unchanged` | No | No code, dependency, or package metadata changes. |
+| `cloud-sdk-testkit` | `0.27.0` | `0.28.0` | `code` | Yes | Add deterministic borrowed stream sources and caller-buffered short-write sinks. |
 
 ## Planned Milestone Ownership
 

@@ -27,6 +27,7 @@ mod mock;
 mod prepared;
 mod raw_fault;
 mod response;
+mod stream;
 
 pub use adversarial::{
     AdversarialFixture, AdversarialKind, DEFAULT_RESPONSE_LIMIT, adversarial_corpus,
@@ -39,6 +40,9 @@ pub use mock::{ExpectedRequest, LocalMockTransport, MockError, MockExchange, Moc
 pub use prepared::PreparedRequestRecord;
 pub use raw_fault::{RawFault, RawFaultError, RawFaultExecutor};
 pub use response::{FixtureKind, ResponseFixture, ResponseFixtureError};
+pub use stream::{
+    MAX_STREAM_FIXTURE_CHUNKS, StreamFixtureError, StreamFixtureSink, StreamFixtureSource,
+};
 
 #[cfg(test)]
 mod tests;

@@ -2,6 +2,7 @@
 
 mod encoder;
 
+pub use cloud_sdk_sanitization::sanitize_bytes;
 pub use encoder::{
     SnapshotEncoder, encode_snapshot, encode_snapshot_bounded, measure_snapshot,
     measure_snapshot_bounded,

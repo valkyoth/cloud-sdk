@@ -1,27 +1,27 @@
 [release]
-version = "0.47.0"
+version = "0.48.0"
 policy = "independent"
 
 [crates."cloud-sdk"]
-previous_version = "0.46.0"
-version = "0.47.0"
+previous_version = "0.47.0"
+version = "0.48.0"
 change = "code"
 publish = true
-reason = "Add local async transport, authenticated execution, raw execution, prepared request, pagination, and retry contracts."
+reason = "Add bounded blocking, Send-async, and local-async streaming policy, accounting, replay, cleanup, and drivers."
 
 [crates."cloud-sdk-hetzner"]
-previous_version = "0.36.0"
-version = "0.36.1"
+previous_version = "0.36.1"
+version = "0.36.2"
 change = "dependency"
 publish = true
-reason = "Update cloud-sdk to v0.47 without changing provider request or response behavior."
+reason = "Update cloud-sdk to v0.48 without changing provider request or response behavior."
 
 [crates."cloud-sdk-reqwest"]
-previous_version = "0.31.1"
-version = "0.32.0"
-change = "code"
+previous_version = "0.32.0"
+version = "0.32.1"
+change = "dependency"
 publish = true
-reason = "Migrate Send async transports to non-committing staging and SDK-owned response commitment."
+reason = "Update cloud-sdk to v0.48 without changing reqwest adapter behavior."
 
 [crates."cloud-sdk-sanitization"]
 previous_version = "0.16.0"
@@ -31,8 +31,8 @@ publish = false
 reason = "No code, dependency, or package metadata changes."
 
 [crates."cloud-sdk-testkit"]
-previous_version = "0.26.0"
-version = "0.27.0"
+previous_version = "0.27.0"
+version = "0.28.0"
 change = "code"
 publish = true
-reason = "Add a no-allocation local-only mock transport and local async conformance fixtures."
+reason = "Add deterministic bounded streaming source and short-write sink fixtures."

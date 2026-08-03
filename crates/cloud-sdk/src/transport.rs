@@ -10,6 +10,7 @@ mod raw;
 mod request_target;
 mod response;
 mod retained;
+mod streaming;
 mod workspace;
 
 pub use asynchronous::{
@@ -50,6 +51,16 @@ pub use response::{
     ResponseWriter, ResponseWriterError, TransportResponse,
 };
 pub use retained::{MAX_REQUEST_ID_BYTES, RetainedMetadataError, RetainedResponseMetadata};
+pub use streaming::{
+    AsyncStreamSink, AsyncStreamSource, BlockingStreamSink, BlockingStreamSource,
+    LocalAsyncStreamSink, LocalAsyncStreamSource, MAX_CONSECUTIVE_ZERO_PROGRESS, MAX_STREAM_BYTES,
+    MAX_STREAM_CHUNK_BYTES, MAX_STREAM_CHUNKS, MAX_STREAM_OBSERVATIONS, MAX_STREAM_SOURCE_ID_BYTES,
+    StreamAttempt, StreamCompletion, StreamExecutionError, StreamFraming, StreamKind, StreamLimits,
+    StreamLimitsError, StreamOutcome, StreamPartialState, StreamPolicy, StreamPolicyError,
+    StreamProgress, StreamProgressError, StreamRead, StreamReplayError, StreamReplayability,
+    StreamSinkMode, StreamSourceId, StreamSourceIdError, StreamState, drive_async_stream,
+    drive_blocking_stream, drive_local_stream, validate_stream_replay,
+};
 pub use workspace::{
     RESPONSE_CURSOR_SCRATCH_BYTES, RESPONSE_DECODER_SCRATCH_BYTES,
     RESPONSE_PROVIDER_LINK_SCRATCH_BYTES, ResponseDecodeWorkspace,

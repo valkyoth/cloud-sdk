@@ -1622,7 +1622,7 @@ Stop gate: `v0.38.0 implementation stop reached. Run pentest for this exact comm
 
 ### v0.39.0 - Atomic Encoders And Capacity Profiles
 
-Status: release candidate; pentest and final retest passed.
+Status: tagged and published.
 
 Goal: eliminate partial writes, state drift, and secret tails.
 
@@ -1746,6 +1746,8 @@ embedded and complete portable compile matrices, doctests, and
 Stop gate: `v0.47.0 implementation stop reached. Run pentest for this exact commit.`
 
 ### v0.48.0 - Streaming Transport Contracts
+
+Status: implementation stop reached; pentest required.
 
 Goal: support bounded upload/download/event I/O without changing buffered requests.
 

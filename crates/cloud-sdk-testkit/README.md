@@ -34,8 +34,8 @@ and runtime-free.
 
 ```toml
 [dev-dependencies]
-cloud-sdk = "0.47.0"
-cloud-sdk-testkit = "0.27.0"
+cloud-sdk = "0.48.0"
+cloud-sdk-testkit = "0.28.0"
 ```
 
 ## Mock Transport
@@ -151,6 +151,50 @@ Each exchange is consumed only after method, target, ordered headers, body,
 and complete response capacity match. Failures are distinct and payload-free.
 Debug output redacts request targets, header values, request bodies, and
 response bodies.
+
+## Streaming Fixtures
+
+`StreamFixtureSource` preserves ordered chunk boundaries, including explicit
+empty chunks. `StreamFixtureSink` uses caller storage and a deterministic
+maximum write size to exercise short writes and backpressure:
+
+```rust
+use cloud_sdk::transport::{
+    StreamFraming, StreamKind, StreamLimits, StreamOutcome, StreamPolicy,
+    StreamSinkMode, drive_blocking_stream,
+};
+use cloud_sdk_testkit::{StreamFixtureSink, StreamFixtureSource};
+
+let chunks: &[&[u8]] = &[b"ab", b"", b"cde"];
+let Ok(mut source) = StreamFixtureSource::new(chunks) else { return };
+let mut output = [0_u8; 5];
+let Ok(mut sink) = StreamFixtureSink::new(&mut output, 2) else { return };
+let Ok(limits) = StreamLimits::new(5, 3, 3, 7, 1) else { return };
+let Ok(policy) = StreamPolicy::new(
+    StreamKind::FiniteDownload,
+    StreamFraming::Declared(5),
+    StreamSinkMode::Transactional,
+    limits,
+) else { return };
+let mut scratch = [0_u8; 3];
+let mut outcome = StreamOutcome::new();
+
+assert!(drive_blocking_stream(
+    policy,
+    &mut source,
+    &mut sink,
+    &mut scratch,
+    &mut outcome,
+).is_ok());
+assert_eq!(sink.bytes(), b"abcde");
+assert_eq!(sink.writes(), 3);
+```
+
+The same fixtures implement the Send async contracts and therefore the local
+async contracts. Sources are non-replayable by default; use
+`StreamFixtureSource::with_replayability` only with an exact
+`StreamSourceId`. See the main
+[`streaming contract`](https://github.com/valkyoth/cloud-sdk/blob/main/docs/STREAMING.md).
 
 ## Prepared Request Assertions
 

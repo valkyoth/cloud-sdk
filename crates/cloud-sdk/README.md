@@ -120,8 +120,8 @@ Portable and native platform evidence is documented in
 
 ```toml
 [dependencies]
-cloud-sdk = "0.47.0"
-cloud-sdk-hetzner = "0.36.1"
+cloud-sdk = "0.48.0"
+cloud-sdk-hetzner = "0.36.2"
 ```
 
 ## cloud-sdk Features
@@ -149,6 +149,7 @@ visible. Applications should enable only the features they use.
 - [Quota and retry policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/QUOTA_AND_RETRY.md)
 - [Retry and idempotency policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/RETRY_AND_IDEMPOTENCY.md)
 - [Local async contract](https://github.com/valkyoth/cloud-sdk/blob/main/docs/LOCAL_ASYNC.md)
+- [Streaming transport contract](https://github.com/valkyoth/cloud-sdk/blob/main/docs/STREAMING.md)
 - [Release runbook](https://github.com/valkyoth/cloud-sdk/blob/main/docs/RELEASE_RUNBOOK.md)
 - [Versioning and error policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/VERSIONING_POLICY.md)
 - [Migrating to v0.29](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.29.0.md)
@@ -170,6 +171,7 @@ visible. Applications should enable only the features they use.
 - [Migrating to v0.45](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.45.0.md)
 - [Migrating to v0.46](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.46.0.md)
 - [Migrating to v0.47](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.47.0.md)
+- [Migrating to v0.48](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.48.0.md)
 - [Deprecated endpoint policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/DEPRECATED_ENDPOINT_POLICY.md)
 
 ## Provider-Neutral Quickstart
@@ -461,8 +463,8 @@ without changing the default allocation-free graph.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.47.0"
-cloud-sdk-reqwest = { version = "0.32.0", features = ["blocking-rustls"] }
+cloud-sdk = "0.48.0"
+cloud-sdk-reqwest = { version = "0.32.1", features = ["blocking-rustls"] }
 ```
 
 The production builder is HTTPS-only, requires explicit bounded timeouts and a
@@ -488,8 +490,8 @@ when deterministic public WebPKI roots are required:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.47.0"
-cloud-sdk-reqwest = { version = "0.32.0", features = ["blocking-rustls-webpki-roots"] }
+cloud-sdk = "0.48.0"
+cloud-sdk-reqwest = { version = "0.32.1", features = ["blocking-rustls-webpki-roots"] }
 ```
 
 The blocking API is unchanged. This feature excludes host-added enterprise
@@ -505,8 +507,8 @@ feature instead of relying on dependency feature unification:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.47.0"
-cloud-sdk-reqwest = { version = "0.32.0", features = ["blocking-rustls-fips"] }
+cloud-sdk = "0.48.0"
+cloud-sdk-reqwest = { version = "0.32.1", features = ["blocking-rustls-fips"] }
 ```
 
 Client construction explicitly selects rustls' AWS-LC FIPS provider and fails
@@ -524,8 +526,8 @@ example is in the
 
 ```toml
 [dependencies]
-cloud-sdk = "0.47.0"
-cloud-sdk-reqwest = { version = "0.32.0", features = ["async-rustls"] }
+cloud-sdk = "0.48.0"
+cloud-sdk-reqwest = { version = "0.32.1", features = ["async-rustls"] }
 ```
 
 The async adapter requires an active Tokio executor because reqwest uses Tokio
@@ -555,6 +557,43 @@ after `Ready(Ok)`.
 Dropping any async driver future rolls back partial response state, but request
 delivery is conservatively `PossiblySent`. See the
 [local async contract](https://github.com/valkyoth/cloud-sdk/blob/main/docs/LOCAL_ASYNC.md).
+
+## Streaming Transport
+
+Opt-in streaming contracts support finite uploads, finite downloads, and
+caller-cancelled event streams without adding allocation, networking, or an
+executor to core. Every attempt fixes hard byte, chunk-size, chunk-count,
+observation, and consecutive zero-progress limits plus declared or
+executor-owned framing and transactional or direct sink behavior.
+
+```rust
+use cloud_sdk::transport::{
+    StreamAttempt, StreamFraming, StreamKind, StreamLimits, StreamOutcome,
+    StreamPolicy, StreamSinkMode,
+};
+
+let Ok(limits) = StreamLimits::new(8, 4, 2, 4, 1) else { return };
+let Ok(policy) = StreamPolicy::new(
+    StreamKind::FiniteDownload,
+    StreamFraming::Declared(4),
+    StreamSinkMode::Transactional,
+    limits,
+) else { return };
+let mut outcome = StreamOutcome::new();
+let mut attempt = StreamAttempt::new(policy, &mut outcome);
+assert!(attempt.begin_source_observation().is_ok());
+assert!(attempt.begin_chunk(4).is_ok());
+assert!(attempt.begin_sink_observation().is_ok());
+assert!(attempt.advance(4).is_ok());
+assert!(attempt.begin_source_observation().is_ok());
+assert!(attempt.finish().is_ok());
+assert!(attempt.commit_sink().is_ok());
+```
+
+Blocking, Send-async, and local-async drivers use complete caller-owned scratch
+storage, clear it on every exit, count only bytes actually accepted by the
+sink, and never retry. See the
+[streaming contract](https://github.com/valkyoth/cloud-sdk/blob/main/docs/STREAMING.md).
 
 ## Numbered Pagination Example
 
@@ -744,10 +783,10 @@ assert_eq!(value, Some("\"line\\n\\\"quoted\\\"\""));
 
 | Crate | Default `std`? | Purpose |
 | --- | --- | --- |
-| [`cloud-sdk`](https://crates.io/crates/cloud-sdk) | no | Provider-neutral domains, prepared operations, and checked response policy. |
+| [`cloud-sdk`](https://crates.io/crates/cloud-sdk) | no | Provider-neutral domains, prepared operations, checked responses, and bounded streaming policy. |
 | [`cloud-sdk-hetzner`](https://crates.io/crates/cloud-sdk-hetzner) | no | Hetzner provider APIs and provider-specific documentation. |
 | [`cloud-sdk-reqwest`](https://crates.io/crates/cloud-sdk-reqwest) | no | Provider-neutral optional blocking and async reqwest/rustls transports; transport-free by default. |
-| [`cloud-sdk-testkit`](https://crates.io/crates/cloud-sdk-testkit) | no | Provider-neutral blocking/async mock transport, prepared-request records, response fixtures, and adversarial corpus. |
+| [`cloud-sdk-testkit`](https://crates.io/crates/cloud-sdk-testkit) | no | Provider-neutral mock transports, stream fixtures, prepared-request records, response fixtures, and adversarial corpus. |
 | [`cloud-sdk-sanitization`](https://crates.io/crates/cloud-sdk-sanitization) | no | Provider-neutral mandatory volatile cleanup primitive plus optional owned UTF-8 secret storage. |
 
 Each provider has one primary crate for its APIs and documentation. Reusable

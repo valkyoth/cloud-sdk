@@ -61,7 +61,8 @@ mod tests {
     use crate::transport::{
         AsyncExecutionError, ContentTypeError, EndpointIdentityError, HeaderError,
         InformationalResponseError, RawResponsePolicyError, RequestPathError, RequestTargetError,
-        ResponseWriterError, TransportFailure,
+        ResponseWriterError, StreamExecutionError, StreamLimitsError, StreamPolicyError,
+        StreamProgressError, StreamReplayError, StreamSourceIdError, TransportFailure,
     };
     use core::fmt::{self, Write};
 
@@ -117,6 +118,12 @@ mod tests {
         assert_error::<AsyncExecutionError<()>>();
         assert_error::<RawResponsePolicyError>();
         assert_error::<InformationalResponseError>();
+        assert_error::<StreamLimitsError>();
+        assert_error::<StreamPolicyError>();
+        assert_error::<StreamProgressError>();
+        assert_error::<StreamSourceIdError>();
+        assert_error::<StreamReplayError>();
+        assert_error::<StreamExecutionError<(), ()>>();
         assert_error::<TransportFailure<()>>();
 
         assert_display(PaginationError::PageZero, "page number must be nonzero");
