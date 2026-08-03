@@ -1,8 +1,8 @@
 # cloud-sdk 0.48.0 Release Notes
 
-Status: implementation stop reached; pentest required.
+Status: release candidate; pentest and final retest passed.
 
-Release date: pending
+Release date: 2026-08-03
 
 ## Overview
 
@@ -57,11 +57,13 @@ buffered request behavior or the default no_std dependency graph.
 
 ## Pentest
 
-Pentest is required for the exact implementation-stop commit. Temporary
-findings belong in root `PENTEST.md` and must be removed after remediation.
+The permanent [v0.48.0 pentest report](../security/pentest/v0.48.0.md) records
+the iterative review, completed remediation, and green final retest of commit
+`e012a1c60cae2f53a1327a0976d76af724290f16`.
 
 ## Release Gate
 
 ```text
-v0.48.0 implementation stop reached. Run pentest for this exact commit.
+v0.48.0 release candidate. Tag only after the local release gate and GitHub
+checks pass on the final release commit.
 ```

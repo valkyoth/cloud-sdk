@@ -1747,7 +1747,7 @@ Stop gate: `v0.47.0 implementation stop reached. Run pentest for this exact comm
 
 ### v0.48.0 - Streaming Transport Contracts
 
-Status: implementation stop reached; pentest required.
+Status: release candidate; pentest and final retest passed.
 
 Goal: support bounded upload/download/event I/O without changing buffered requests.
 
