@@ -79,6 +79,7 @@ fn decode(
 }
 
 fuzz_target!(|data: &[u8]| {
+    // Wire format: [chunk_seed, stop_control, JSON payload...].
     let Some((&seed, controlled)) = data.split_first() else {
         return;
     };

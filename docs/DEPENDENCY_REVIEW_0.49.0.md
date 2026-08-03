@@ -41,4 +41,5 @@ pinned Cargo security/fuzz tool current on crates.io on 2026-08-03.
 - truncation, amplification, duplicate keys, early stop, and terminal failure;
 - fallible frame, key, number, and duplicate-store allocation;
 - panic poisoning, protected scratch guards, immediate stop cleanup, and redacted diagnostics;
+- deterministic control-prefixed valid and duplicate fuzz-seed preflight;
 - fuzz, package, SBOM, Cargo Deny, RustSec, MSRV, and v0.49 release-gate evidence.

@@ -20,8 +20,9 @@ creation timestamp, random document namespace, and array ordering.
 
 Serde `1.0.229` is the first admitted optional third-party normal dependency.
 Its defaults are disabled and its `alloc` and `derive` features are enabled only
-by `cloud-sdk-hetzner/serde`. serde_json `1.0.151` is dev-only. The full decision
-and transitive surface are recorded in
+by `cloud-sdk-hetzner/serde`. serde_json `1.0.151` is an optional normal
+dependency enabled only by `cloud-sdk-hetzner/serde`; its defaults and `std`
+feature remain disabled. The full decision and transitive surface are recorded in
 [`dependency-admission-serde.md`](dependency-admission-serde.md), and
 `scripts/check_serde_boundary.sh` enforces graph isolation.
 

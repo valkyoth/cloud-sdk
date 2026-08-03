@@ -1769,7 +1769,7 @@ Numeric events retain the buffered decoder's finite-number admission. Input
 chunks remain caller-owned, visitor payloads are borrowed and debug-redacted,
 and `Stopped` remains structurally distinct from complete-document validation.
 
-Verification: differential fixtures, token/field/numeric/exponent exhaustion, every partial UTF-8 and general chunk boundary, truncation, amplification, early stop, caught visitor panic, fallible-growth tests, independent fuzz validity oracle, fuzzing, and `scripts/release_0_49_gate.sh`.
+Verification: differential fixtures, token/field/numeric/exponent exhaustion, every partial UTF-8 and general chunk boundary, truncation, amplification, early stop, caught visitor panic, fallible-growth tests, independent fuzz validity oracle, deterministic control-prefixed valid/duplicate seed preflight, fuzzing, and `scripts/release_0_49_gate.sh`.
 
 Stop gate: `v0.49.0 implementation stop reached. Run pentest for this exact commit.`
 

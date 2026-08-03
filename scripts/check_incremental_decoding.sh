@@ -23,9 +23,11 @@ for contract in \
     try_append_secret_string \
     try_reserve \
     visitor_panic_permanently_poisons_the_decoder \
+    valid_seed_reaches_complete_incremental_and_independent_parsers \
     'serde_json::from_slice'; do
     if ! grep -R -q -- "$contract" \
-        "$root" crates/cloud-sdk-sanitization/src fuzz/fuzz_targets/incremental_json.rs; then
+        "$root" crates/cloud-sdk-sanitization/src fuzz/fuzz_targets/incremental_json.rs \
+        fuzz/tests/incremental_json_seeds.rs; then
         echo "incremental decoding: missing remediation contract $contract" >&2
         exit 1
     fi

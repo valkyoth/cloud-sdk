@@ -24,6 +24,7 @@ complete JSON tree. Existing buffered checked decoding remains unchanged.
 - Poisoned the decoder across visitor panic and immediately cleared staging on visitor stop.
 - Guarded UTF-8 and character scratch across normal return and unwind.
 - Added an independent `serde_json` validity oracle to the incremental fuzz target.
+- Migrated incremental fuzz seeds to the two-control-byte wire format and added deterministic valid/duplicate preflight tests.
 - Redacted payload-bearing event, decoder, and visitor-error diagnostics.
 - Kept status, content-type, operation binding, retry, transport, and input-buffer cleanup explicit.
 

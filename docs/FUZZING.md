@@ -48,12 +48,18 @@ scripts/check_fuzz_harness.sh --smoke
 | `response_envelopes` | bounded action, error, and pagination JSON envelopes |
 | `response_content_type` | media-type essence, parameters, quoted strings, escapes, and bounded owned response metadata |
 | `checked_response` | prepared-policy binding, source-locked operation decoding, typed success/error envelopes, invalid UTF-8, oversized integers, deep nesting, and malformed payload rejection |
+| `incremental_json` | chunk-invariant bounded decoding, early stop, duplicate keys, and independent JSON-validity admission |
 
 Named seeds under `fuzz/seeds/` are synthetic valid and invalid cases derived
 from source-locked API examples and SDK policy boundaries. Generated corpora
 belong under ignored `fuzz/corpus/`; crashes belong under ignored
 `fuzz/artifacts/`. Never seed from production responses, credentials, private
 DNS data, request bodies, or logs.
+
+The `incremental_json` corpus uses `.seed` files with the wire format
+`[chunk_seed, stop_control, JSON payload...]`. Its deterministic integration
+test verifies that the valid seed reaches `Complete` and the duplicate seed
+reaches `DuplicateKey` before release fuzz smoke begins.
 
 ## Longer Runs
 
