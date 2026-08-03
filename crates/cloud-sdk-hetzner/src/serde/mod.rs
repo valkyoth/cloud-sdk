@@ -10,6 +10,7 @@
 
 mod binding;
 mod checked;
+mod incremental;
 mod models;
 mod pagination;
 mod response;
@@ -19,6 +20,10 @@ mod strict_json;
 pub use checked::{
     CheckedHetznerResponse, HetznerApiError, HetznerDecodeError, decode_response,
     decode_response_at,
+};
+pub use incremental::{
+    IncrementalJsonDecoder, IncrementalJsonError, IncrementalJsonEvent, IncrementalJsonLimits,
+    IncrementalJsonLimitsError, IncrementalJsonProgress, IncrementalJsonVisitor, VisitControl,
 };
 pub use models::{
     ActionResult, ActionResultError, ActionResultResource, CompositeResult, FolderList,
