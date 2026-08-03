@@ -1,21 +1,21 @@
 {
   "SPDXID": "SPDXRef-DOCUMENT",
   "creationInfo": {
-    "created": "2026-08-03T13:33:45Z",
+    "created": "2026-08-03T16:31:37Z",
     "creators": [
       "Tool: cargo-sbom-v0.10.0",
       "Tool: cloud-sdk-complete-spdx-v1"
     ]
   },
   "dataLicense": "CC0-1.0",
-  "documentNamespace": "https://spdx.org/spdxdocs/reqwest-feature-unification-be34bb3e-7b2a-48a5-87a3-0f683192e95c",
+  "documentNamespace": "https://spdx.org/spdxdocs/reqwest-feature-unification-ba1736e7-a2f6-4761-a906-628661aa6be6",
   "files": [
     {
       "SPDXID": "SPDXRef-File-cloud_sdk_reqwest_feature_unification_test",
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "f2bc8705ca2710b02023eea4fae5bbb97e9af664"
+          "checksumValue": "3e31c6a7100f36c0067b182536c8be4eabbe7f06"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -339,24 +339,24 @@
       ]
     },
     {
-      "SPDXID": "SPDXRef-Package-cloud-sdk-0.48.0",
+      "SPDXID": "SPDXRef-Package-cloud-sdk-0.49.0",
       "description": "no_std-first provider-neutral cloud SDK foundations.",
       "downloadLocation": "NONE",
       "homepage": "https://github.com/valkyoth/cloud-sdk",
       "licenseConcluded": "MIT OR Apache-2.0",
       "licenseDeclared": "MIT OR Apache-2.0",
       "name": "cloud-sdk",
-      "versionInfo": "0.48.0"
+      "versionInfo": "0.49.0"
     },
     {
-      "SPDXID": "SPDXRef-Package-cloud-sdk-reqwest-0.32.1",
+      "SPDXID": "SPDXRef-Package-cloud-sdk-reqwest-0.32.2",
       "description": "Optional provider-neutral reqwest transport boundary for cloud-sdk.",
       "downloadLocation": "NONE",
       "homepage": "https://github.com/valkyoth/cloud-sdk",
       "licenseConcluded": "MIT OR Apache-2.0",
       "licenseDeclared": "MIT OR Apache-2.0",
       "name": "cloud-sdk-reqwest",
-      "versionInfo": "0.32.1"
+      "versionInfo": "0.32.2"
     },
     {
       "SPDXID": "SPDXRef-Package-cloud-sdk-reqwest-feature-unification-test-0.0.0",
@@ -3841,109 +3841,109 @@
       "relatedSpdxElement": "SPDXRef-Package-libloading-0.8.9"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-0.48.0",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-0.49.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-sanitization-0.16.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-0.48.0",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-0.49.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-subtle-2.6.1"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.32.1",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.32.2",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-aws-lc-fips-sys-0.13.16"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.32.1",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.32.2",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-aws-lc-rs-1.17.3"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.32.1",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.32.2",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-aws-lc-sys-0.43.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.32.1",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.32.2",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-base64-ng-1.3.9"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.32.1",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.32.2",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-bytes-1.12.1"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.32.1",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.32.2",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-0.48.0"
+      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-0.49.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.32.1",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.32.2",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-sanitization-0.16.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.32.1",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.32.2",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-http-1.5.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.32.1",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.32.2",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-http-body-util-0.1.4"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.32.1",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.32.2",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-hyper-1.11.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.32.1",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.32.2",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-hyper-rustls-0.27.9"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.32.1",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.32.2",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-hyper-util-0.1.20"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.32.1",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.32.2",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-reqwest-0.13.4"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.32.1",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.32.2",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-rustls-0.23.43"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.32.1",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.32.2",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-rustls-platform-verifier-0.7.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.32.1",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.32.2",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-tokio-1.53.1"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.32.1",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.32.2",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-webpki-roots-1.0.9"
     },
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-feature-unification-test-0.0.0",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-0.48.0"
+      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-0.49.0"
     },
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-feature-unification-test-0.0.0",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-reqwest-0.32.1"
+      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-reqwest-0.32.2"
     },
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-feature-unification-test-0.0.0",

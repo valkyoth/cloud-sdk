@@ -41,6 +41,7 @@ behavior. No third-party dependency or feature changes.
 - duplicate decoded keys across arbitrary chunk boundaries;
 - grammar and trailing-document rejection;
 - partial UTF-8, escape, and surrogate state;
+- finite numeric admission matching the buffered decoder;
 - exact and one-over resource ceilings;
 - protected growth-aware key and number staging;
 - cleanup after success, failure, visitor error, and drop;

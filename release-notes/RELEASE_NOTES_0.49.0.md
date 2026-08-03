@@ -16,6 +16,7 @@ complete JSON tree. Existing buffered checked decoding remains unchanged.
 - Added explicit pending, stopped, complete, and terminal-failure lifecycle states.
 - Added hard and caller-lowerable limits for input, nesting, tokens, aggregate fields,
   per-object fields, strings, number tokens, and exponent digits.
+- Preserved finite-number admission from the buffered checked decoder.
 - Rejected duplicate decoded keys across chunks and escaped-key spellings.
 - Validated partial UTF-8, escapes, and surrogate pairs across every chunk boundary.
 - Kept temporary keys and numbers in growth-aware protected storage and cleared fixed scratch.

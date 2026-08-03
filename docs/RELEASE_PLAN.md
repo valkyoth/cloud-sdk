@@ -1759,11 +1759,15 @@ Stop gate: `v0.48.0 implementation stop reached. Run pentest for this exact comm
 
 ### v0.49.0 - Incremental Provider Decoding
 
-Status: implementation in progress; pentest pending.
+Status: implementation stop reached; pentest pending.
 
 Goal: decode large lists, metrics, zonefiles, logs, and streams without one large JSON tree.
 
 Deliverables: bounded visitor/state APIs preserving duplicate, nesting, aggregate, string, secret, early-stop, and cleanup protections; explicit total token and field limits; bounded numeric token and exponent lengths; validated partial UTF-8 state across chunk boundaries.
+
+Numeric events retain the buffered decoder's finite-number admission. Input
+chunks remain caller-owned, visitor payloads are borrowed and debug-redacted,
+and `Stopped` remains structurally distinct from complete-document validation.
 
 Verification: differential fixtures, token/field/numeric/exponent exhaustion, every partial UTF-8 and general chunk boundary, truncation, amplification, early stop, fuzzing, and `scripts/release_0_49_gate.sh`.
 

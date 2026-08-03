@@ -89,6 +89,8 @@ pub enum IncrementalJsonProgress {
 pub enum IncrementalJsonError<E> {
     /// JSON syntax is invalid.
     InvalidSyntax,
+    /// A number token cannot be represented as a finite JSON number.
+    InvalidNumber,
     /// A string contains invalid UTF-8.
     InvalidUtf8,
     /// An object contains a duplicate key.
@@ -131,6 +133,7 @@ impl<E> fmt::Debug for IncrementalJsonError<E> {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter.write_str(match self {
             Self::InvalidSyntax => "IncrementalJsonError::InvalidSyntax",
+            Self::InvalidNumber => "IncrementalJsonError::InvalidNumber",
             Self::InvalidUtf8 => "IncrementalJsonError::InvalidUtf8",
             Self::DuplicateKey => "IncrementalJsonError::DuplicateKey",
             Self::DepthLimit => "IncrementalJsonError::DepthLimit",
@@ -152,6 +155,7 @@ impl<E> fmt::Display for IncrementalJsonError<E> {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter.write_str(match self {
             Self::InvalidSyntax => "invalid JSON syntax",
+            Self::InvalidNumber => "invalid or non-finite JSON number",
             Self::InvalidUtf8 => "invalid UTF-8 in JSON string",
             Self::DuplicateKey => "duplicate JSON object key",
             Self::DepthLimit => "JSON nesting limit exceeded",

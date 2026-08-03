@@ -91,7 +91,8 @@ visited.
 
 The decoder validates exactly one JSON document, duplicate decoded keys,
 grammar, nesting, numeric shape, Unicode escapes, surrogate pairs, and UTF-8
-continued across chunks. `push()` always reports `Pending` while validation
+continued across chunks. Numeric values must also be finite under the same
+admission rule as the buffered checked decoder. `push()` always reports `Pending` while validation
 continues. `finish()` is mandatory and is the only operation that can report
 `Complete`.
 

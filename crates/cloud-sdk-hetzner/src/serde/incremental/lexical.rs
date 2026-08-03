@@ -151,7 +151,15 @@ impl IncrementalJsonDecoder {
     ) -> Result<(), IncrementalJsonError<V::Error>> {
         number
             .text
-            .try_with_secret(|text| self.emit(IncrementalJsonEvent::Number(text), visitor))
+            .try_with_secret(|text| {
+                let value = text
+                    .parse::<f64>()
+                    .map_err(|_| IncrementalJsonError::InvalidNumber)?;
+                if !value.is_finite() {
+                    return Err(IncrementalJsonError::InvalidNumber);
+                }
+                self.emit(IncrementalJsonEvent::Number(text), visitor)
+            })
             .map_err(|_| IncrementalJsonError::InvalidUtf8)??;
         Ok(())
     }

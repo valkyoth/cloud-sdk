@@ -33,6 +33,7 @@ fn agrees_with_serde_json_on_valid_and_invalid_fixtures() {
         b"1.",
         b"1e",
         b"1e+",
+        b"1e309",
         b"+1",
         &[b'"', 0xc0, 0x80, b'"'],
     ];
