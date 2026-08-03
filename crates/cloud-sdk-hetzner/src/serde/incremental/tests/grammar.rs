@@ -57,6 +57,18 @@ fn rejects_duplicate_decoded_keys_at_each_nesting_level() {
 }
 
 #[test]
+fn long_keys_can_grow_protected_storage_and_remain_duplicate_checked() {
+    let key = "k".repeat(96);
+    let unique = format!(r#"{{"{key}":1}}"#);
+    let duplicate = format!(r#"{{"{key}":1,"{key}":2}}"#);
+    assert!(decode(unique.as_bytes()).is_ok());
+    assert!(matches!(
+        decode(duplicate.as_bytes()),
+        Err(IncrementalJsonError::DuplicateKey)
+    ));
+}
+
+#[test]
 fn decoder_is_terminal_after_failure_and_completion() {
     let mut failed = IncrementalJsonDecoder::new();
     let mut collector = Collector::default();

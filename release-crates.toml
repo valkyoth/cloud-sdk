@@ -1,27 +1,27 @@
 [release]
-version = "0.48.0"
+version = "0.49.0"
 policy = "independent"
 
 [crates."cloud-sdk"]
-previous_version = "0.47.0"
-version = "0.48.0"
-change = "code"
+previous_version = "0.48.0"
+version = "0.49.0"
+change = "metadata"
 publish = true
-reason = "Add bounded blocking, Send-async, and local-async streaming policy, accounting, replay, cleanup, and drivers."
+reason = "Publish the v0.49 facade documentation and provider version alignment."
 
 [crates."cloud-sdk-hetzner"]
-previous_version = "0.36.1"
-version = "0.36.2"
-change = "dependency"
+previous_version = "0.36.2"
+version = "0.37.0"
+change = "code"
 publish = true
-reason = "Update cloud-sdk to v0.48 without changing provider request or response behavior."
+reason = "Add bounded incremental provider JSON decoding across arbitrary input chunks."
 
 [crates."cloud-sdk-reqwest"]
-previous_version = "0.32.0"
-version = "0.32.1"
+previous_version = "0.32.1"
+version = "0.32.2"
 change = "dependency"
 publish = true
-reason = "Update cloud-sdk to v0.48 without changing reqwest adapter behavior."
+reason = "Update cloud-sdk to v0.49 without changing reqwest adapter behavior."
 
 [crates."cloud-sdk-sanitization"]
 previous_version = "0.16.0"
@@ -31,8 +31,8 @@ publish = false
 reason = "No code, dependency, or package metadata changes."
 
 [crates."cloud-sdk-testkit"]
-previous_version = "0.27.0"
-version = "0.28.0"
-change = "code"
+previous_version = "0.28.0"
+version = "0.28.1"
+change = "dependency"
 publish = true
-reason = "Add deterministic bounded streaming source and short-write sink fixtures."
+reason = "Update cloud-sdk to v0.49 without changing testkit behavior."

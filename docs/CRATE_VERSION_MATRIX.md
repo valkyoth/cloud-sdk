@@ -1,7 +1,7 @@
 # Crate Version Matrix
 
-Status: `v0.47.0` is tagged and published. `v0.48.0` is a release candidate;
-pentest and final retest passed, and GitHub checks are pending.
+Status: `v0.48.0` is tagged and published. `v0.49.0` implementation is in
+progress and requires pentest before release.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
@@ -719,6 +719,19 @@ and local-async drivers.
 | `cloud-sdk-reqwest` | `0.32.0` | `0.32.1` | `dependency` | Yes | Update the core dependency without claiming a reqwest streaming adapter. |
 | `cloud-sdk-sanitization` | `0.16.0` | `0.16.0` | `unchanged` | No | No code, dependency, or package metadata changes. |
 | `cloud-sdk-testkit` | `0.27.0` | `0.28.0` | `code` | Yes | Add deterministic borrowed stream sources and caller-buffered short-write sinks. |
+
+## v0.49.0 Tracking Table
+
+`v0.49.0` adds provider-owned bounded incremental JSON decoding without
+changing the buffered checked decoder or default dependency graph.
+
+| Crate | Published | Planned | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.48.0` | `0.49.0` | `metadata` | Yes | Publish facade documentation and align the provider release. |
+| `cloud-sdk-hetzner` | `0.36.2` | `0.37.0` | `code` | Yes | Add bounded incremental visitor decoding across arbitrary JSON chunks. |
+| `cloud-sdk-reqwest` | `0.32.1` | `0.32.2` | `dependency` | Yes | Update the core dependency without changing adapter behavior. |
+| `cloud-sdk-sanitization` | `0.16.0` | `0.16.0` | `unchanged` | No | No code, dependency, or package metadata changes. |
+| `cloud-sdk-testkit` | `0.28.0` | `0.28.1` | `dependency` | Yes | Update the core dependency without changing testkit behavior. |
 
 ## Planned Milestone Ownership
 

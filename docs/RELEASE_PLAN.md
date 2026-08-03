@@ -1720,7 +1720,7 @@ Stop gate: `v0.46.0 implementation stop reached. Run pentest for this exact comm
 
 ### v0.47.0 - Local Async Contract
 
-Status: release candidate; pentest and final retest passed.
+Status: tagged and published.
 
 Goal: support `!Send` browser-WASM, embedded, and single-threaded executors.
 
@@ -1747,7 +1747,7 @@ Stop gate: `v0.47.0 implementation stop reached. Run pentest for this exact comm
 
 ### v0.48.0 - Streaming Transport Contracts
 
-Status: release candidate; pentest and final retest passed.
+Status: tagged and published.
 
 Goal: support bounded upload/download/event I/O without changing buffered requests.
 
@@ -1758,6 +1758,8 @@ Verification: exact/under/over/unknown declared lengths, every byte/chunk/observ
 Stop gate: `v0.48.0 implementation stop reached. Run pentest for this exact commit.`
 
 ### v0.49.0 - Incremental Provider Decoding
+
+Status: implementation in progress; pentest pending.
 
 Goal: decode large lists, metrics, zonefiles, logs, and streams without one large JSON tree.
 

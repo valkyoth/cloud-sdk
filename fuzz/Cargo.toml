@@ -118,3 +118,10 @@ path = "fuzz_targets/raw_http1_wire.rs"
 test = false
 doc = false
 bench = false
+
+[[bin]]
+name = "incremental_json"
+path = "fuzz_targets/incremental_json.rs"
+test = false
+doc = false
+bench = false

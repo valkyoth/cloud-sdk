@@ -38,8 +38,8 @@ boundaries.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.48.0"
-cloud-sdk-hetzner = "0.36.2"
+cloud-sdk = "0.49.0"
+cloud-sdk-hetzner = "0.37.0"
 ```
 
 ## Features
@@ -230,7 +230,7 @@ Enable Serde explicitly; it is never part of the default graph:
 
 ```toml
 [dependencies]
-cloud-sdk-hetzner = { version = "0.36.2", features = ["serde"] }
+cloud-sdk-hetzner = { version = "0.37.0", features = ["serde"] }
 ```
 
 The feature admits serde_json with `default-features = false` and `alloc` only
@@ -356,6 +356,18 @@ model. A shared 65,536-node budget bounds aggregate JSON structure allocation.
 Cloned response models share the protected allocation, which is cleared after
 the final clone drops. `ResponseBuffer` clears the complete original transport
 storage before decoding returns.
+
+### Incremental JSON
+
+Large provider responses can be validated without constructing the private
+full JSON tree. `IncrementalJsonDecoder` accepts arbitrary chunks, emits
+borrowed events, rejects duplicate decoded keys, and enforces explicit input,
+depth, token, field, string, number, and exponent limits. Only `finish()` can
+return `Complete`; visitor-requested `Stopped` is not complete-document
+validation. See the
+[incremental decoding guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/INCREMENTAL_DECODING.md)
+for the full contract and the compile-checked
+[`incremental_json` example](https://github.com/valkyoth/cloud-sdk/blob/main/crates/cloud-sdk-hetzner/examples/incremental_json.rs).
 
 ## RRSet Request Example
 

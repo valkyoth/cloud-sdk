@@ -396,6 +396,17 @@ impl IncrementalJsonDecoder {
         match string.kind {
             StringKind::Value => self.emit(IncrementalJsonEvent::StringEnd, visitor),
             StringKind::Key => {
+                let key = string
+                    .key
+                    .take()
+                    .ok_or(IncrementalJsonError::InvalidSyntax)?;
+                let duplicate = match self.frames.last() {
+                    Some(Frame::Object(frame)) => frame.keys.contains(&key),
+                    _ => return Err(IncrementalJsonError::InvalidSyntax),
+                };
+                if duplicate {
+                    return Err(IncrementalJsonError::DuplicateKey);
+                }
                 self.charge_token()?;
                 self.fields = self
                     .fields
@@ -404,10 +415,6 @@ impl IncrementalJsonDecoder {
                 if self.fields > self.limits.fields {
                     return Err(IncrementalJsonError::FieldLimit);
                 }
-                let key = string
-                    .key
-                    .take()
-                    .ok_or(IncrementalJsonError::InvalidSyntax)?;
                 let frame = match self.frames.last_mut() {
                     Some(Frame::Object(frame)) => frame,
                     _ => return Err(IncrementalJsonError::InvalidSyntax),
@@ -415,9 +422,6 @@ impl IncrementalJsonDecoder {
                 frame.fields = frame.fields.saturating_add(1);
                 if frame.fields > self.limits.object_fields {
                     return Err(IncrementalJsonError::ObjectFieldLimit);
-                }
-                if frame.keys.contains(&key) {
-                    return Err(IncrementalJsonError::DuplicateKey);
                 }
                 key.try_with_str(|text| self.emit(IncrementalJsonEvent::Key(text), visitor))
                     .map_err(|_| IncrementalJsonError::InvalidUtf8)??;

@@ -41,6 +41,54 @@ impl IncrementalJsonLimits {
         exponent_digits: HARD_MAX_EXPONENT_DIGITS,
     };
 
+    /// Returns the aggregate input-byte limit.
+    #[must_use]
+    pub const fn input_bytes(self) -> usize {
+        self.input_bytes
+    }
+
+    /// Returns the maximum number of open arrays and objects.
+    #[must_use]
+    pub const fn depth(self) -> usize {
+        self.depth
+    }
+
+    /// Returns the aggregate value-and-key token limit.
+    #[must_use]
+    pub const fn tokens(self) -> usize {
+        self.tokens
+    }
+
+    /// Returns the aggregate object-field limit.
+    #[must_use]
+    pub const fn fields(self) -> usize {
+        self.fields
+    }
+
+    /// Returns the per-object field limit.
+    #[must_use]
+    pub const fn object_fields(self) -> usize {
+        self.object_fields
+    }
+
+    /// Returns the decoded-byte limit for each string or key.
+    #[must_use]
+    pub const fn string_bytes(self) -> usize {
+        self.string_bytes
+    }
+
+    /// Returns the byte limit for each number token.
+    #[must_use]
+    pub const fn number_bytes(self) -> usize {
+        self.number_bytes
+    }
+
+    /// Returns the digit limit for each number exponent.
+    #[must_use]
+    pub const fn exponent_digits(self) -> usize {
+        self.exponent_digits
+    }
+
     /// Lowers the aggregate input-byte limit.
     pub fn with_input_bytes(mut self, limit: usize) -> Result<Self, IncrementalJsonLimitsError> {
         self.input_bytes = checked_nonzero(limit, MAX_SERDE_RESPONSE_BYTES)?;
@@ -105,7 +153,7 @@ pub struct IncrementalJsonLimitsError;
 
 impl fmt::Display for IncrementalJsonLimitsError {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        formatter.write_str("incremental JSON limit is zero or exceeds its reviewed maximum")
+        formatter.write_str("incremental JSON limit is outside its reviewed range")
     }
 }
 
