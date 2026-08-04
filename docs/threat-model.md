@@ -234,6 +234,12 @@
   expose no reusable prepared request, exact confirmed endpoints are rechecked
   at dispatch, and caller-owned clocks enforce exclusive expiry immediately
   before blocking transport access or on first async poll.
+- provider-generic client execution owns no queue, executor, clock, retry loop,
+  or storage; each in-flight request consumes one bounded atomic slot and four
+  caller-owned uniquely borrowed buffers; cancellation clears complete target,
+  request, response, and header regions before releasing admission; checked
+  decoders cannot recover the already-sent prepared request, and the direct
+  kernel path cannot bypass state-change or cost permits.
 
 Cleanup does not cover process abort, `mem::forget` or deliberately leaked
 guards, immutable/external copies, TLS and allocator internals, kernel/device

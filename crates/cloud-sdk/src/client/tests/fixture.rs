@@ -89,7 +89,7 @@ impl PrepareOperation for ExampleOperation {
             RequestTarget::new(target).map_err(|_| FixtureError::Invalid)?,
         );
         body_storage.fill(0);
-        let endpoint = endpoint();
+        let endpoint = endpoint().ok_or(FixtureError::Invalid)?;
         let metadata = OperationMetadata::new(
             self.impact,
             if self.impact == OperationImpact::ReadOnly {
@@ -120,7 +120,6 @@ impl ClientOperation for ExampleOperation {
 
     fn decode_response(
         &self,
-        _prepared: PreparedRequest<'_>,
         response: ClientResponse<'_, '_>,
     ) -> Result<Self::Output, Self::DecodeError> {
         match response.kind().map_err(|_| DecodeError::Admission)? {
@@ -187,14 +186,12 @@ const fn authentication_policy(
     )
 }
 
-pub(super) fn endpoint() -> EndpointIdentity<'static> {
-    EndpointIdentity::new(EndpointScheme::Https, "api.example.invalid", 443, "/v1")
-        .expect("fixture endpoint")
+pub(super) fn endpoint() -> Option<EndpointIdentity<'static>> {
+    EndpointIdentity::new(EndpointScheme::Https, "api.example.invalid", 443, "/v1").ok()
 }
 
-pub(super) fn other_endpoint() -> EndpointIdentity<'static> {
-    EndpointIdentity::new(EndpointScheme::Https, "other.example.invalid", 443, "/v1")
-        .expect("fixture endpoint")
+pub(super) fn other_endpoint() -> Option<EndpointIdentity<'static>> {
+    EndpointIdentity::new(EndpointScheme::Https, "other.example.invalid", 443, "/v1").ok()
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -242,7 +239,10 @@ impl FakeTransport {
 
     fn validate(&self, request: AuthenticatedRequest<'_, '_>) -> Result<(), TransportError> {
         self.calls.fetch_add(1, Ordering::AcqRel);
-        if !self.accept_auth || request.policy() != authentication_policy(endpoint()) {
+        let Some(endpoint) = endpoint() else {
+            return Err(TransportError::Authentication);
+        };
+        if !self.accept_auth || request.policy() != authentication_policy(endpoint) {
             return Err(TransportError::Authentication);
         }
         Ok(())

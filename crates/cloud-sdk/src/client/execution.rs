@@ -1,5 +1,6 @@
 use super::{
-    ClientExecutionError, ClientKernel, ClientOperation, ClientResponse, ClientWorkspaceLease,
+    ClientExecutionError, ClientKernel, ClientOperation, ClientResponse, ClientResult,
+    ClientWorkspaceLease,
 };
 use crate::authentication::{
     AsyncAuthenticatedTransport, BlockingAuthenticatedTransport, LocalAsyncAuthenticatedTransport,
@@ -16,7 +17,7 @@ where
         &self,
         operation: &O,
         mut lease: ClientWorkspaceLease<'_, '_, N>,
-    ) -> Result<O::Output, ClientExecutionError<O::Error, T::Error, O::DecodeError>>
+    ) -> ClientResult<O::Output, O::Error, T::Error, O::DecodeError>
     where
         O: ClientOperation,
     {
@@ -29,7 +30,7 @@ where
             .send_blocking(&self.transport, parts.response_body, parts.response_headers)
             .map_err(ClientExecutionError::Execution)?;
         operation
-            .decode_response(prepared, ClientResponse::new(prepared, response))
+            .decode_response(ClientResponse::new(prepared, response))
             .map_err(ClientExecutionError::Decode)
     }
 }
@@ -39,12 +40,15 @@ where
     T: AsyncAuthenticatedTransport + BoundTransport + Sync,
 {
     /// Prepares, authenticates, sends once, and checked-decodes with a Send transport.
+    // The explicit opaque return is required for the compiler to prove the
+    // public Send guarantee across the authenticated transport RPITIT.
+    #[allow(clippy::manual_async_fn)]
     pub fn execute_async<O, const N: usize>(
         &self,
         operation: &O,
         mut lease: ClientWorkspaceLease<'_, '_, N>,
     ) -> impl core::future::Future<
-        Output = Result<O::Output, ClientExecutionError<O::Error, T::Error, O::DecodeError>>,
+        Output = ClientResult<O::Output, O::Error, T::Error, O::DecodeError>,
     > + Send
     where
         O: ClientOperation + Sync,
@@ -64,7 +68,7 @@ where
                 .await
                 .map_err(ClientExecutionError::Execution)?;
             operation
-                .decode_response(prepared, ClientResponse::new(prepared, response))
+                .decode_response(ClientResponse::new(prepared, response))
                 .map_err(ClientExecutionError::Decode)
         }
     }
@@ -79,7 +83,7 @@ where
         &self,
         operation: &O,
         mut lease: ClientWorkspaceLease<'_, '_, N>,
-    ) -> Result<O::Output, ClientExecutionError<O::Error, T::Error, O::DecodeError>>
+    ) -> ClientResult<O::Output, O::Error, T::Error, O::DecodeError>
     where
         O: ClientOperation,
     {
@@ -93,7 +97,7 @@ where
             .await
             .map_err(ClientExecutionError::Execution)?;
         operation
-            .decode_response(prepared, ClientResponse::new(prepared, response))
+            .decode_response(ClientResponse::new(prepared, response))
             .map_err(ClientExecutionError::Decode)
     }
 }

@@ -1,33 +1,33 @@
 [release]
-version = "0.51.0"
-milestone = "0.51.0"
+version = "0.52.0"
+milestone = "0.52.0"
 baseline = "0.50.0"
-cumulative_milestones = ["0.51.0"]
+cumulative_milestones = ["0.51.0", "0.52.0"]
 policy = "independent"
 stage = "internal"
 exceptional = false
 exception_reason = ""
 
 [crates."cloud-sdk"]
-previous_version = "0.50.0"
-version = "0.51.0"
+previous_version = "0.51.0"
+version = "0.52.0"
 change = "code"
 publish = false
-reason = "Add plan-confirm execution permits for mutation, destructive, and cost-bearing operations."
+reason = "Add the provider-generic client kernel and bounded caller-owned workspace leases."
 
 [crates."cloud-sdk-hetzner"]
 previous_version = "0.38.0"
 version = "0.38.0"
 change = "code"
 publish = false
-reason = "Require provider-neutral execution permits for typed state-changing operations."
+reason = "Retain cumulative v0.51 typed execution changes for the v0.55 public checkpoint."
 
 [crates."cloud-sdk-reqwest"]
 previous_version = "0.32.3"
 version = "0.32.3"
 change = "dependency"
 publish = false
-reason = "Accumulate the cloud-sdk v0.51 dependency for the v0.55 public checkpoint."
+reason = "Accumulate the cloud-sdk v0.52 dependency for the v0.55 public checkpoint."
 
 [crates."cloud-sdk-sanitization"]
 previous_version = "0.17.0"
@@ -41,4 +41,4 @@ previous_version = "0.28.2"
 version = "0.28.2"
 change = "code"
 publish = false
-reason = "Align prepared-execution fixtures with the v0.51 read-only direct-execution boundary."
+reason = "Retain cumulative v0.51 fixture changes for the v0.55 public checkpoint."

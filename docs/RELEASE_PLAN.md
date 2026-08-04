@@ -1821,8 +1821,8 @@ Stop gate: `v0.50.0 implementation stop reached. Run pentest for this exact comm
 
 ### v0.51.0 - Mutation, Destructive, And Cost Permits
 
-Status: release candidate; local security review passed. Tagging requires the
-clean release gate and green GitHub CI and CodeQL on the exact commit.
+Status: tagged internal development milestone; cumulative pentest and crates.io
+publication remain deferred to v0.55.0.
 
 Goal: enforce safety intent at execution.
 
@@ -1833,6 +1833,9 @@ Verification: plan-confirm version/domain/field separation, weak digest rejectio
 Stop gate: `v0.51.0 implementation stop reached. Complete the security review and full release gate for this exact commit; defer cumulative pentest and crates.io publication to v0.55.0.`
 
 ### v0.52.0 - Provider-Generic Client Kernel
+
+Status: release candidate; local security review passed. Tagging requires the
+clean release gate and green GitHub CI and CodeQL on the exact commit.
 
 Goal: make secure typed execution reusable without publishing extra client crates.
 

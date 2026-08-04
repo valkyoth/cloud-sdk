@@ -2,8 +2,8 @@
 
 Status: `v0.50.0` is tagged and published. It is the baseline for the first
 five-minor development train, whose next cumulative pentest and crates.io
-checkpoint is `v0.55.0`. Source milestone `v0.51.0` is implementation-complete
-and awaiting its tag gate; it is not a separate crates.io publication.
+checkpoint is `v0.55.0`. Source milestone `v0.51.0` is tagged; `v0.52.0` is the
+current release candidate. Neither is a separate crates.io publication.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
@@ -766,6 +766,20 @@ crate; all changed package trees remain part of the v0.55 cumulative release.
 | `cloud-sdk-reqwest` | `0.32.3` | `0.32.3` | `dependency` | No | Accumulate the source core dependency for v0.55 without publication. |
 | `cloud-sdk-sanitization` | `0.17.0` | `0.17.0` | `unchanged` | No | No code, dependency, or package metadata changes. |
 | `cloud-sdk-testkit` | `0.28.2` | `0.28.2` | `code` | No | Align transport-policy fixtures with read-only direct execution. |
+
+## v0.52.0 Tracking Table
+
+`v0.52.0` is the second internal milestone accumulated after the public v0.50
+baseline. It adds the provider-generic client kernel without publishing a
+crate; all changed package trees remain part of the v0.55 cumulative release.
+
+| Crate | Published | Source | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.50.0` | `0.52.0` | `code` | No | Add typed blocking/Send-async/local-async client execution and bounded caller-owned workspace leases. |
+| `cloud-sdk-hetzner` | `0.38.0` | `0.38.0` | `code` | No | Retain cumulative v0.51 typed permit integration for v0.55. |
+| `cloud-sdk-reqwest` | `0.32.3` | `0.32.3` | `dependency` | No | Accumulate the source core dependency for v0.55 without publication. |
+| `cloud-sdk-sanitization` | `0.17.0` | `0.17.0` | `unchanged` | No | No code, dependency, or package metadata changes. |
+| `cloud-sdk-testkit` | `0.28.2` | `0.28.2` | `code` | No | Retain cumulative v0.51 fixture changes for v0.55. |
 
 ## Planned Milestone Ownership
 

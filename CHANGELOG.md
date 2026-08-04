@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.52.0 - 2026-08-04
+
+- Added an allocation-free provider-generic client kernel for blocking,
+  Send-async, and local-async typed execution.
+- Added caller-owned four-buffer workspace leases with fixed atomic admission,
+  immediate exhaustion, no hidden queue, and complete cleanup before reuse.
+- Added checked success and provider-error decoder facades without exposing a
+  reusable prepared request after the single transport attempt.
+- Preserved plan-confirm permit denial for mutation, destructive, and
+  cost-bearing direct execution.
+- Required additive response sanitizers to be `Sync` so the documented async
+  execution future is actually `Send`.
+- Added fake-provider conformance, endpoint/auth mismatch, concurrency,
+  cancellation, cleanup, and compile-fail alias tests.
+
 ## 0.44.0 - 2026-07-31
 
 - Added distinct bounded numbered, offset, cursor, marker, and provider-link

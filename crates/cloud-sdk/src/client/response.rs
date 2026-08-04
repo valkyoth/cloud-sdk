@@ -63,6 +63,7 @@ pub struct ClientResponse<'request, 'buffer> {
 }
 
 impl<'request, 'buffer> ClientResponse<'request, 'buffer> {
+    #[allow(clippy::large_types_passed_by_value)]
     pub(crate) const fn new(
         prepared: PreparedRequest<'request>,
         response: ResponseBuffer<'buffer>,

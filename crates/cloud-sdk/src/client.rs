@@ -14,7 +14,9 @@ pub use workspace::{
 
 use core::fmt;
 
-use crate::operation::{PrepareOperation, PreparedRequest};
+use crate::operation::PrepareOperation;
+
+type ClientResult<R, P, T, D> = Result<R, ClientExecutionError<P, T, D>>;
 
 /// Typed provider operation executable by [`ClientKernel`].
 ///
@@ -30,7 +32,6 @@ pub trait ClientOperation: PrepareOperation {
     /// Decodes one bounded, authenticated, send-once response.
     fn decode_response(
         &self,
-        prepared: PreparedRequest<'_>,
         response: ClientResponse<'_, '_>,
     ) -> Result<Self::Output, Self::DecodeError>;
 }

@@ -84,10 +84,11 @@ operation contracts, then validates them with an unpublished OVHcloud API v2
 architecture probe, a narrow credential-free Robot wire fixture, and
 full-fidelity Hetzner vertical slices before the neutral API freeze.
 
-Source milestone `v0.51.0` adds plan-confirm execution permits for mutation,
-destructive, and cost-bearing requests. It is a tagged development milestone
-accumulating toward the next crates.io publication at `v0.55.0`; published
-install examples therefore remain on the `v0.50.0` checkpoint.
+Source milestone `v0.52.0` adds a provider-generic client kernel with bounded
+caller-owned workspace leases across blocking, Send-async, and local-async
+execution. It accumulates with the tagged v0.51 plan-confirm permit milestone
+toward the next crates.io publication at `v0.55.0`; published install examples
+therefore remain on the `v0.50.0` checkpoint.
 
 ## Trust Dashboard
 
@@ -169,6 +170,7 @@ visible. Applications should enable only the features they use.
 - [Quota and retry policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/QUOTA_AND_RETRY.md)
 - [Retry and idempotency policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/RETRY_AND_IDEMPOTENCY.md)
 - [Plan-confirm execution permits](https://github.com/valkyoth/cloud-sdk/blob/main/docs/EXECUTION_PERMITS.md)
+- [Provider-generic client kernel](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CLIENT_KERNEL.md)
 - [Local async contract](https://github.com/valkyoth/cloud-sdk/blob/main/docs/LOCAL_ASYNC.md)
 - [Streaming transport contract](https://github.com/valkyoth/cloud-sdk/blob/main/docs/STREAMING.md)
 - [Release runbook](https://github.com/valkyoth/cloud-sdk/blob/main/docs/RELEASE_RUNBOOK.md)
@@ -196,6 +198,7 @@ visible. Applications should enable only the features they use.
 - [Migrating to v0.49](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.49.0.md)
 - [Migrating to v0.50](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.50.0.md)
 - [Migrating source users to v0.51](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.51.0.md)
+- [Migrating source users to v0.52](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.52.0.md)
 - [Compile-time Hetzner operation associations](https://github.com/valkyoth/cloud-sdk/blob/main/docs/OPERATION_ASSOCIATIONS.md)
 - [Incremental provider decoding](https://github.com/valkyoth/cloud-sdk/blob/main/docs/INCREMENTAL_DECODING.md)
 - [Deprecated endpoint policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/DEPRECATED_ENDPOINT_POLICY.md)
@@ -215,6 +218,33 @@ assert_eq!(request.method(), Method::Get);
 assert_eq!(request.target().as_str(), "/resources?page=1");
 assert!(request.body().is_empty());
 ```
+
+Bound concurrent typed execution with caller-owned storage:
+
+```rust
+use cloud_sdk::client::{ClientWorkspace, ClientWorkspacePool};
+
+let pool = ClientWorkspacePool::<4>::new()?;
+let mut target = [0_u8; 1024];
+let mut request_body = [0_u8; 4096];
+let mut response_body = [0_u8; 8192];
+let mut response_headers = [0_u8; 8192];
+let workspace = ClientWorkspace::new(
+    &mut target,
+    &mut request_body,
+    &mut response_body,
+    &mut response_headers,
+);
+let lease = pool.try_acquire(workspace)?;
+assert_eq!(lease.capacities(), (1024, 4096, 8192, 8192));
+drop(lease);
+assert!(target.iter().all(|byte| *byte == 0));
+# Ok::<(), Box<dyn core::error::Error>>(())
+```
+
+Provider crates implement the typed preparation and checked decoder. The
+kernel owns no allocation, queue, executor, clock, retry loop, or network
+stack; see the [client kernel contract](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CLIENT_KERNEL.md).
 
 Add provider-owned headers as one validated bounded block:
 

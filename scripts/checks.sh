@@ -13,7 +13,7 @@ scripts/test-hetzner-live-smoke-runner.py
 scripts/test-platform-matrix.py
 scripts/test-latest-tools.py
 scripts/test-dependency-review.py
-scripts/check_dependency_review.py v0.50.0 docs/DEPENDENCY_REVIEW_0.51.0.md
+scripts/check_dependency_review.py v0.51.0 docs/DEPENDENCY_REVIEW_0.52.0.md
 scripts/test-publishable-readmes.py
 scripts/check-release-plan-structure.py
 scripts/test-release-plan-structure.py
@@ -25,6 +25,7 @@ scripts/check_pagination_strategies.sh
 scripts/check_quota_strategies.sh
 scripts/check_retry_strategies.sh
 scripts/check_execution_permits.sh
+scripts/check_client_kernel.sh
 scripts/check_local_async.sh
 scripts/check_streaming.sh
 scripts/check_incremental_decoding.sh

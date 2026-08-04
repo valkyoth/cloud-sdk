@@ -251,10 +251,13 @@ impl<const N: usize> Drop for LeaseSlot<'_, N> {
     }
 }
 
-const fn valid_mask<const N: usize>() -> usize {
-    if N == MAX_CLIENT_WORKSPACE_LEASES {
-        usize::MAX
-    } else {
-        (1_usize << N) - 1
+fn valid_mask<const N: usize>() -> usize {
+    let shift = match u32::try_from(N) {
+        Ok(value) => value,
+        Err(_) => return usize::MAX,
+    };
+    match 1_usize.checked_shl(shift) {
+        Some(upper_bit) => upper_bit.saturating_sub(1),
+        None => usize::MAX,
     }
 }
