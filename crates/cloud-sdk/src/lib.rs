@@ -42,7 +42,7 @@ pub use method::{MAX_METHOD_BYTES, Method, MethodError};
 #[cfg(test)]
 mod tests {
     use super::{Method, MethodError, ProviderId, ServiceId};
-    use crate::action_polling::ActionPollError;
+    use crate::action_polling::{ActionObserveError, ActionPollError};
     use crate::authentication::{
         AuthenticationScopeError, CredentialGenerationError, ScopeValueError, SigningBuildError,
         SigningContextValueError, SigningInputError, SigningOutputError, SigningValueError,
@@ -115,7 +115,8 @@ mod tests {
         assert_error::<EndpointIdentityError>();
         assert_error::<RequestTargetError>();
         assert_error::<MethodError>();
-        assert_error::<ActionPollError<&'static str>>();
+        assert_error::<ActionPollError>();
+        assert_error::<ActionObserveError<&'static str>>();
         assert_error::<OperationMetadataError>();
         assert_error::<ResponsePolicyError>();
         assert_error::<ResponsePolicyValidationError>();
@@ -202,8 +203,8 @@ mod tests {
             "transport failed with uncertain delivery",
         );
         assert_display(
-            ActionPollError::Policy("sentinel-secret"),
-            "action poll policy failed",
+            ActionObserveError::Backoff("sentinel-secret"),
+            "action poll backoff policy failed",
         );
     }
 

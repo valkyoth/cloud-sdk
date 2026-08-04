@@ -84,11 +84,11 @@ operation contracts, then validates them with an unpublished OVHcloud API v2
 architecture probe, a narrow credential-free Robot wire fixture, and
 full-fidelity Hetzner vertical slices before the neutral API freeze.
 
-Source milestone `v0.52.0` adds a provider-generic client kernel with bounded
-caller-owned workspace leases across blocking, Send-async, and local-async
-execution. It accumulates with the tagged v0.51 plan-confirm permit milestone
-toward the next crates.io publication at `v0.55.0`; published install examples
-therefore remain on the `v0.50.0` checkpoint.
+Source milestone `v0.53.0` adds bounded pager and action workflow drivers with
+separate cancellation, backoff, progress, provider wall-clock telemetry, and
+monotonic local budgets. It accumulates with the tagged v0.51 and v0.52
+milestones toward the next crates.io publication at `v0.55.0`; published
+install examples therefore remain on the `v0.50.0` checkpoint.
 
 ## Trust Dashboard
 
@@ -176,6 +176,7 @@ visible. Applications should enable only the features they use.
 - [Retry and idempotency policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/RETRY_AND_IDEMPOTENCY.md)
 - [Plan-confirm execution permits](https://github.com/valkyoth/cloud-sdk/blob/main/docs/EXECUTION_PERMITS.md)
 - [Provider-generic client kernel](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CLIENT_KERNEL.md)
+- [Pager and action workflow drivers](https://github.com/valkyoth/cloud-sdk/blob/main/docs/WORKFLOW_DRIVERS.md)
 - [Local async contract](https://github.com/valkyoth/cloud-sdk/blob/main/docs/LOCAL_ASYNC.md)
 - [Streaming transport contract](https://github.com/valkyoth/cloud-sdk/blob/main/docs/STREAMING.md)
 - [Release runbook](https://github.com/valkyoth/cloud-sdk/blob/main/docs/RELEASE_RUNBOOK.md)
@@ -204,6 +205,7 @@ visible. Applications should enable only the features they use.
 - [Migrating to v0.50](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.50.0.md)
 - [Migrating source users to v0.51](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.51.0.md)
 - [Migrating source users to v0.52](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.52.0.md)
+- [Migrating source users to v0.53](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.53.0.md)
 - [Compile-time Hetzner operation associations](https://github.com/valkyoth/cloud-sdk/blob/main/docs/OPERATION_ASSOCIATIONS.md)
 - [Incremental provider decoding](https://github.com/valkyoth/cloud-sdk/blob/main/docs/INCREMENTAL_DECODING.md)
 - [Deprecated endpoint policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/DEPRECATED_ENDPOINT_POLICY.md)
@@ -669,18 +671,23 @@ the
 
 ```rust
 use cloud_sdk::pagination::{
-    NumberedPageMetadata, NumberedPagination, PageNumber, PaginationBudget,
+    NumberedPageMetadata, NumberedPageObservation, NumberedPagination,
+    PageNumber, PagerControl, PagerDriver, PagerStep, PaginationBudget,
     PaginationLimits, SnapshotPolicy,
 };
 
-# fn main() -> Result<(), cloud_sdk::pagination::PaginationError> {
+# fn main() -> Result<(), Box<dyn core::error::Error>> {
 let first = PageNumber::new(1)?;
 let second = PageNumber::new(2)?;
 let limits = PaginationLimits::new(3, 30, 128)?;
 let budget = PaginationBudget::new(limits, SnapshotPolicy::Forbidden);
-let mut pagination = NumberedPagination::new(first, 25, budget)?;
+let strategy = NumberedPagination::new(first, 25, budget)?;
+let mut pager = PagerDriver::new(strategy);
 
-assert_eq!(pagination.next_page()?, first);
+assert_eq!(
+    pager.next_request(PagerControl::Continue)?,
+    PagerStep::Request(first),
+);
 let metadata = NumberedPageMetadata::new(
     first,
     25,
@@ -689,17 +696,23 @@ let metadata = NumberedPageMetadata::new(
     Some(second),
     Some(30),
 )?;
-let boundary = pagination.observe(metadata, 25, None, None)?;
+let boundary = pager.observe(NumberedPageObservation::new(
+    metadata, 25, None, None,
+))?;
 
 assert!(!boundary.is_terminal());
-assert_eq!(pagination.next_page()?, second);
+assert_eq!(
+    pager.next_request(PagerControl::Continue)?,
+    PagerStep::Request(second),
+);
 # Ok(())
 # }
 ```
 
-The caller fetches and decodes each requested page, then passes validated
-metadata and the decoded entry count to the numbered strategy. Request, item,
-opaque-state, snapshot, and traversal metadata limits fail closed. Cursor,
+The driver admits exactly one request before accepting its response. The caller
+fetches and decodes that page, then supplies one grouped observation. Request,
+item, opaque-state, snapshot, and traversal metadata limits fail closed;
+cancellation is explicit and the driver has no transport or executor. Cursor,
 offset, marker, and operation-bound provider-link strategies are documented in
 the [pagination guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/PAGINATION_STRATEGIES.md).
 
@@ -772,45 +785,57 @@ the [retry and idempotency guide](https://github.com/valkyoth/cloud-sdk/blob/mai
 ## Action Polling Example
 
 ```rust
-use core::time::Duration;
 use cloud_sdk::action_polling::{
-    ActionPollStep, ActionPoller, ActionUpdate, PollContext, PollDecision,
-    PollPolicy,
+    ActionPollLimits, ActionPollStep, ActionPoller, ActionUpdate,
+    ExponentialBackoff, PollControl, PollRequestStep, ProgressObservation,
+    ProgressPolicy, ProviderTimeObservation,
 };
+use cloud_sdk::retry::{MonotonicDuration, MonotonicInstant};
 
-struct FixedDelay;
+# fn main() -> Result<(), Box<dyn core::error::Error>> {
+let limits = ActionPollLimits::new(
+    60,
+    MonotonicDuration::new(8_000),
+    MonotonicDuration::new(120_000),
+    MonotonicDuration::new(300_000),
+)?;
+let mut poller = ActionPoller::new(
+    limits,
+    ProgressPolicy::Nondecreasing,
+    MonotonicInstant::new(0),
+);
+let mut backoff = ExponentialBackoff::new(
+    MonotonicDuration::new(2_000),
+    MonotonicDuration::new(8_000),
+    2,
+)?;
 
-impl PollPolicy for FixedDelay {
-    type Error = ();
-
-    fn decide(&mut self, _context: PollContext) -> Result<PollDecision, Self::Error> {
-        Ok(PollDecision::Delay(Duration::from_secs(2)))
-    }
-}
-
-let mut poller = ActionPoller::new();
-let mut policy = FixedDelay;
+assert_eq!(
+    poller.next_request(PollControl::Continue, MonotonicInstant::new(0))?,
+    PollRequestStep::Request,
+);
 let running = poller.observe(
     ActionUpdate::<()>::Running,
-    25,
+    ProgressObservation::Percent(25),
     None,
-    &mut policy,
+    ProviderTimeObservation::default(),
+    MonotonicInstant::new(10),
+    &mut backoff,
+)?;
+assert_eq!(
+    running,
+    ActionPollStep::Delay(MonotonicDuration::new(2_000)),
 );
-assert_eq!(running, Ok(ActionPollStep::Delay(Duration::from_secs(2))));
-
-let complete = poller.observe(
-    ActionUpdate::<()>::Success,
-    100,
-    None,
-    &mut policy,
-);
-assert_eq!(complete, Ok(ActionPollStep::Complete));
+# Ok(())
+# }
 ```
 
-Provider failures are returned as `ActionPollStep::Failed(E)` without being
-discarded. Running observations invoke caller policy, which must explicitly
-choose a nonzero delay, cancellation, or timeout; the SDK owns no clock,
-executor, sleep, retry count, or deadline.
+Provider failures are returned as `ActionPollStep::Failed(E)`. The driver
+enforces request/response sequencing, nonzero bounded backoff, an unconditional
+observation limit, cumulative delay, and monotonic elapsed time. `PollControl`
+owns cancellation separately from backoff. Provider wall-clock timestamps are
+typed telemetry only and cannot extend local budgets. The SDK owns no clock,
+executor, sleep, or transport.
 
 ## Fixed Buffer Example
 

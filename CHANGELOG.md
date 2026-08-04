@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.53.0 - 2026-08-04
+
+- Added a provider-neutral pager driver that enforces one admitted request per
+  response while retaining transactional numbered and offset budgets.
+- Replaced policy-coupled action polling with explicit request admission,
+  cancellation, hard observation limits, bounded backoff, and monotonic time.
+- Added provider progress policies for nondecreasing, bounded explicit-reset,
+  and unordered progress domains.
+- Kept provider wall-clock timestamps as typed telemetry that cannot extend
+  monotonic delay or elapsed budgets.
+- Redacted generic backoff failures and provider action failures from Debug.
+- Added cancellation, busy-loop, progression, exhaustion, rollback, and
+  cross-strategy workflow tests plus migrated examples and fuzz coverage.
+
 ## 0.52.0 - 2026-08-04
 
 - Added an allocation-free provider-generic client kernel for blocking,

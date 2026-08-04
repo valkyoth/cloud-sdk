@@ -92,8 +92,10 @@ uncertain.
 
 Action polling is different from retrying a mutation. Send a mutation once,
 retain its validated action identifier, and poll the action endpoint through a
-caller-owned `PollPolicy`. Reject progress regression and stop at explicit
-timeout or cancellation limits.
+caller-owned `ActionPoller`. Select hard observation, per-delay, cumulative
+delay, and monotonic elapsed limits before the first request. Keep
+`PollControl` separate from backoff, reject implicit progress regression, and
+admit phase resets only through an explicit bounded provider progress policy.
 
 ## State-Changing Execution Authority
 

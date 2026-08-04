@@ -1834,8 +1834,8 @@ Stop gate: `v0.51.0 implementation stop reached. Complete the security review an
 
 ### v0.52.0 - Provider-Generic Client Kernel
 
-Status: release candidate; local security review passed. Tagging requires the
-clean release gate and green GitHub CI and CodeQL on the exact commit.
+Status: tagged 2026-08-04 as an internal development milestone; cumulative
+pentest and crates.io publication remain deferred to v0.55.0.
 
 Goal: make secure typed execution reusable without publishing extra client crates.
 
@@ -1846,6 +1846,10 @@ Verification: fake-provider conformance, endpoint/auth mismatch, lease exhaustio
 Stop gate: `v0.52.0 implementation stop reached. Complete the security review and full release gate for this exact commit; defer cumulative pentest and crates.io publication to v0.55.0.`
 
 ### v0.53.0 - Pager And Action Workflow Drivers
+
+Status: release candidate; local security review and repository gates passed.
+Tagging requires the clean release gate and green GitHub CI and CodeQL on the
+exact commit.
 
 Goal: provide ergonomic workflows without clocks, sleep, or executors in core.
 

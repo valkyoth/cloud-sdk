@@ -581,21 +581,13 @@ sleeping, and cancellation.
 ```rust
 # #[cfg(feature = "serde")]
 # fn main() {
-use core::time::Duration;
 use cloud_sdk::action_polling::{
-    ActionPollStep, ActionPoller, PollContext, PollDecision, PollPolicy,
+    ActionPollLimits, ActionPollStep, ActionPoller, ExponentialBackoff,
+    PollControl, PollRequestStep, ProgressObservation, ProgressPolicy,
+    ProviderTimeObservation,
 };
+use cloud_sdk::retry::{MonotonicDuration, MonotonicInstant};
 use cloud_sdk_hetzner::serde::ActionEnvelope;
-
-struct FixedDelay;
-
-impl PollPolicy for FixedDelay {
-    type Error = ();
-
-    fn decide(&mut self, _context: PollContext) -> Result<PollDecision, Self::Error> {
-        Ok(PollDecision::Delay(Duration::from_secs(2)))
-    }
-}
 
 let body = br#"{"action":{
     "id":42,"command":"create_server","status":"running","progress":25,
@@ -605,24 +597,48 @@ let body = br#"{"action":{
 let Ok(envelope) = serde_json::from_slice::<ActionEnvelope<'_>>(body) else {
     return;
 };
-let mut poller = ActionPoller::new();
-let mut policy = FixedDelay;
+let Ok(limits) = ActionPollLimits::new(
+    60,
+    MonotonicDuration::new(8_000),
+    MonotonicDuration::new(120_000),
+    MonotonicDuration::new(300_000),
+) else { return };
+let mut poller = ActionPoller::new(
+    limits,
+    ProgressPolicy::Nondecreasing,
+    MonotonicInstant::new(0),
+);
+let Ok(mut backoff) = ExponentialBackoff::new(
+    MonotonicDuration::new(2_000),
+    MonotonicDuration::new(8_000),
+    2,
+) else { return };
+assert_eq!(
+    poller.next_request(PollControl::Continue, MonotonicInstant::new(0)),
+    Ok(PollRequestStep::Request),
+);
 let step = poller.observe(
     envelope.action().polling_update(),
-    envelope.action().progress(),
+    ProgressObservation::Percent(envelope.action().progress()),
     None,
-    &mut policy,
+    ProviderTimeObservation::default(),
+    MonotonicInstant::new(10),
+    &mut backoff,
 );
 
-assert_eq!(step, Ok(ActionPollStep::Delay(Duration::from_secs(2))));
+assert_eq!(
+    step,
+    Ok(ActionPollStep::Delay(MonotonicDuration::new(2_000))),
+);
 # }
 # #[cfg(not(feature = "serde"))]
 # fn main() {}
 ```
 
 For an `error` action, the step is `ActionPollStep::Failed` and carries the
-validated optional Hetzner error response. The SDK never sleeps, retries, or
-declares a timeout on its own.
+validated optional Hetzner error response. Hard observations, delay, and
+monotonic elapsed budgets are selected before the first request. The SDK never
+reads a clock, sleeps, retries, or owns an executor.
 
 ## Security Request Example
 

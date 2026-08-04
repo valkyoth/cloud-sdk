@@ -25,6 +25,14 @@ presence and value cannot change after the first accepted response.
 `MAX_SNAPSHOT_ID_BYTES`; callers must not truncate or hash UUIDs, ETags,
 version tokens, or other provider identities into a smaller value.
 
+## Request Sequencing
+
+Wrap numbered or offset strategies in `PagerDriver` when the workflow must
+admit exactly one request before accepting one response. `PagerControl` keeps
+cancellation independent from provider continuation state. Rejected strategy
+observations remain pending and transactional; they do not advance counters or
+allow another request. See [`WORKFLOW_DRIVERS.md`](WORKFLOW_DRIVERS.md).
+
 ## Numbered Pages
 
 Use `NumberedPagination` when the provider requests one-based page numbers.

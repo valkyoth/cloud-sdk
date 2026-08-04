@@ -1,6 +1,7 @@
 //! Explicit provider-neutral pagination strategy state.
 
 mod budget;
+mod driver;
 mod link;
 mod local_async;
 mod numbered;
@@ -11,9 +12,13 @@ pub use budget::{
     MAX_SNAPSHOT_ID_BYTES, PaginationBudget, PaginationLimits, PaginationProgress, SnapshotId,
     SnapshotPolicy,
 };
+pub use driver::{PageStrategy, PagerControl, PagerDriver, PagerDriverError, PagerStep};
 pub use link::{ProviderLinkBinding, ProviderLinkExecutionError, ValidatedProviderLink};
-pub use numbered::{NumberedPageBoundary, NumberedPageMetadata, NumberedPagination, PageNumber};
-pub use offset::{OffsetPageBoundary, OffsetPageMetadata, OffsetPagination};
+pub use numbered::{
+    NumberedPageBoundary, NumberedPageMetadata, NumberedPageObservation, NumberedPagination,
+    PageNumber,
+};
+pub use offset::{OffsetPageBoundary, OffsetPageMetadata, OffsetPageObservation, OffsetPagination};
 pub use opaque::{
     CursorDigest, CursorHistory, MAX_OPAQUE_STATE_BYTES, PaginationCursor, PaginationMarker,
 };

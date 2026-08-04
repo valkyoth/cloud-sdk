@@ -200,10 +200,13 @@
 - release drift fetches require exact non-redirecting HTTPS URLs under the
   default validating TLS context, bounded downloads, and pinned digest
   verification before parsing;
-- action polling rejects running progress regression and zero-delay loops,
-  gives terminal status precedence over progress telemetry, preserves provider
-  failures, and delegates delay, timeout, and cancellation to caller policy
-  without owning a clock or retry loop;
+- pager and action drivers admit exactly one response per request and remain
+  non-cloneable; pagination retains transactional hard budgets; action polling
+  rejects zero-delay loops, bounds observations and cumulative delay, separates
+  cancellation from backoff, admits progress reset only under bounded explicit
+  policy, and uses monotonic observations exclusively for local elapsed state;
+  provider wall-clock rollback cannot extend execution and generic policy
+  failures are redacted;
 - the live harness is ignored by default; its repository-anchored clean-commit
   build phase rejects credential variables and produces only untrusted staging;
   an administrator installs the executable and runtime into root-owned

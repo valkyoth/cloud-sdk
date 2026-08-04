@@ -1,6 +1,6 @@
 use crate::rate_limit::RateLimit;
 
-use super::{PaginationBudget, PaginationError, PaginationProgress, SnapshotId};
+use super::{PageStrategy, PaginationBudget, PaginationError, PaginationProgress, SnapshotId};
 
 /// Validated metadata from one offset-based response.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -67,6 +67,33 @@ pub struct OffsetPageBoundary {
     entries: usize,
     rate_limit: Option<RateLimit>,
     progress: PaginationProgress,
+}
+
+/// One decoded offset-page response supplied to a pager driver.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct OffsetPageObservation<'snapshot> {
+    metadata: OffsetPageMetadata,
+    entries: usize,
+    rate_limit: Option<RateLimit>,
+    snapshot: Option<SnapshotId<'snapshot>>,
+}
+
+impl<'snapshot> OffsetPageObservation<'snapshot> {
+    /// Groups one complete decoded response observation.
+    #[must_use]
+    pub const fn new(
+        metadata: OffsetPageMetadata,
+        entries: usize,
+        rate_limit: Option<RateLimit>,
+        snapshot: Option<SnapshotId<'snapshot>>,
+    ) -> Self {
+        Self {
+            metadata,
+            entries,
+            rate_limit,
+            snapshot,
+        }
+    }
 }
 
 impl OffsetPageBoundary {
@@ -210,5 +237,27 @@ impl core::fmt::Debug for OffsetPagination {
             .field("traversal_metadata", &"[redacted]")
             .field("budget", &self.budget)
             .finish()
+    }
+}
+
+impl PageStrategy for OffsetPagination {
+    type Request = u64;
+    type Observation<'observation> = OffsetPageObservation<'observation>;
+    type Boundary = OffsetPageBoundary;
+
+    fn next_request(&self) -> Result<Self::Request, PaginationError> {
+        self.next_offset()
+    }
+
+    fn observe<'observation>(
+        &mut self,
+        observation: Self::Observation<'observation>,
+    ) -> Result<Self::Boundary, PaginationError> {
+        self.observe(
+            observation.metadata,
+            observation.entries,
+            observation.rate_limit,
+            observation.snapshot,
+        )
     }
 }
