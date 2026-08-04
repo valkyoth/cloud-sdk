@@ -207,6 +207,8 @@ impl SharedPermitState {
         }
     }
 
+    // `try_update` is unavailable on Rust 1.90; retain its predecessor through MSRV.
+    #[allow(deprecated)]
     fn observe(
         &self,
         subject: PlanSubject<'_, '_>,
