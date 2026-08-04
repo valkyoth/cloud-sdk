@@ -1,7 +1,7 @@
 //! Adversarial v0.38 response cleanup lifecycle tests.
 
-use core::cell::Cell;
 use core::future::{Future, pending};
+use core::sync::atomic::{AtomicBool, Ordering};
 use core::task::{Context, Poll, Waker};
 
 use cloud_sdk::operation::{
@@ -163,7 +163,7 @@ fn mandatory_final_clear_runs_when_an_additive_hook_panics() {
     assert_eq!(admission_headers, [0_u8; 8192]);
 
     let hook = PanicOnDropHook {
-        admitted: Cell::new(false),
+        admitted: AtomicBool::new(false),
     };
     let mut drop_storage = [0xa5_u8; 32];
     let mut drop_headers = [0xa5_u8; 8192];
@@ -373,12 +373,12 @@ impl ResponseStorageSanitizer for PanickingHook {
 }
 
 struct PanicOnDropHook {
-    admitted: Cell<bool>,
+    admitted: AtomicBool,
 }
 
 impl ResponseStorageSanitizer for PanicOnDropHook {
     fn sanitize_response_storage(&self, response_storage: &mut [u8]) {
-        if self.admitted.replace(true) {
+        if self.admitted.swap(true, Ordering::AcqRel) {
             response_storage.fill(0x7a);
             std::panic::resume_unwind(std::boxed::Box::new("intentional drop cleanup panic"));
         }

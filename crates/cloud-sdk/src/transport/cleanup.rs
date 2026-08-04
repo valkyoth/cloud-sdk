@@ -5,7 +5,7 @@
 /// Core volatile-clears the complete storage before and after this hook. The
 /// hook can add platform controls such as cache eviction, but a no-op or faulty
 /// implementation cannot replace or weaken the mandatory clear.
-pub trait ResponseStorageSanitizer {
+pub trait ResponseStorageSanitizer: Sync {
     /// Applies an additive platform-specific cleanup operation.
     fn sanitize_response_storage(&self, response_storage: &mut [u8]);
 }

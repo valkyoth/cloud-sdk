@@ -22,18 +22,30 @@ impl<'request> PreparedRequest<'request> {
         T: LocalAsyncAuthenticatedTransport + BoundTransport,
         'request: 'transport,
     {
+        let response = self
+            .send_local_async(transport, response_storage, response_header_storage)
+            .await?;
+        self.validate_response(response)
+            .map_err(PreparedExecutionError::ResponsePolicy)
+    }
+
+    pub(crate) async fn send_local_async<'transport, 'buffer, T>(
+        &'transport self,
+        transport: &'transport T,
+        response_storage: &'buffer mut [u8],
+        response_header_storage: &'buffer mut [u8],
+    ) -> Result<ResponseBuffer<'buffer>, PreparedExecutionError<T::Error>>
+    where
+        T: LocalAsyncAuthenticatedTransport + BoundTransport,
+        'request: 'transport,
+    {
         if self.requires_execution_permit() {
             sanitize_bytes(response_storage);
             sanitize_bytes(response_header_storage);
             return Err(PreparedExecutionError::AuthorizationRequired);
         }
-        self.execute_local_async_authorized(
-            transport,
-            None,
-            response_storage,
-            response_header_storage,
-        )
-        .await
+        self.send_local_async_authorized(transport, None, response_storage, response_header_storage)
+            .await
     }
 
     pub(crate) async fn execute_local_async_authorized<'transport, 'buffer, T>(
@@ -43,6 +55,29 @@ impl<'request> PreparedRequest<'request> {
         response_storage: &'buffer mut [u8],
         response_header_storage: &'buffer mut [u8],
     ) -> Result<CheckedResponseGuard<'buffer>, PreparedExecutionError<T::Error>>
+    where
+        T: LocalAsyncAuthenticatedTransport + BoundTransport,
+        'request: 'transport,
+    {
+        let response = self
+            .send_local_async_authorized(
+                transport,
+                confirmed_endpoint,
+                response_storage,
+                response_header_storage,
+            )
+            .await?;
+        self.validate_response(response)
+            .map_err(PreparedExecutionError::ResponsePolicy)
+    }
+
+    pub(crate) async fn send_local_async_authorized<'transport, 'buffer, T>(
+        &'transport self,
+        transport: &'transport T,
+        confirmed_endpoint: Option<EndpointIdentity<'_>>,
+        response_storage: &'buffer mut [u8],
+        response_header_storage: &'buffer mut [u8],
+    ) -> Result<ResponseBuffer<'buffer>, PreparedExecutionError<T::Error>>
     where
         T: LocalAsyncAuthenticatedTransport + BoundTransport,
         'request: 'transport,
@@ -67,8 +102,7 @@ impl<'request> PreparedRequest<'request> {
         drive_local_authenticated(transport, self.authenticated_request(), response.writer())
             .await
             .map_err(map_local_error)?;
-        self.validate_response(response)
-            .map_err(PreparedExecutionError::ResponsePolicy)
+        Ok(response)
     }
 }
 

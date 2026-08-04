@@ -24,6 +24,7 @@ macro_rules! impl_static_error {
 pub mod action_polling;
 pub mod authentication;
 pub mod buffer;
+pub mod client;
 mod identity;
 mod method;
 pub mod operation;
@@ -45,6 +46,9 @@ mod tests {
     use crate::authentication::{
         AuthenticationScopeError, CredentialGenerationError, ScopeValueError, SigningBuildError,
         SigningContextValueError, SigningInputError, SigningOutputError, SigningValueError,
+    };
+    use crate::client::{
+        CheckedDecodeError, ClientExecutionError, WorkspaceAcquireError, WorkspacePoolError,
     };
     use crate::operation::{
         AttemptBudgetError, CurrencyCodeError, ExecutionPermitError, OperationMetadataError,
@@ -136,6 +140,10 @@ mod tests {
         assert_error::<StreamReplayError>();
         assert_error::<StreamExecutionError<(), ()>>();
         assert_error::<TransportFailure<()>>();
+        assert_error::<CheckedDecodeError<()>>();
+        assert_error::<ClientExecutionError<(), (), ()>>();
+        assert_error::<WorkspaceAcquireError>();
+        assert_error::<WorkspacePoolError>();
 
         assert_display(PaginationError::PageZero, "page number must be nonzero");
         assert_display(RateLimitError::LimitZero, "rate limit must be nonzero");

@@ -316,12 +316,27 @@ impl<'request> PreparedRequest<'request> {
     where
         T: BlockingAuthenticatedTransport + BoundTransport,
     {
+        let response = self.send_blocking(transport, response_storage, response_header_storage)?;
+        self.response_policy
+            .validate(response, self.metadata.request_id_policy())
+            .map_err(PreparedExecutionError::ResponsePolicy)
+    }
+
+    pub(crate) fn send_blocking<'buffer, T>(
+        self,
+        transport: &T,
+        response_storage: &'buffer mut [u8],
+        response_header_storage: &'buffer mut [u8],
+    ) -> Result<ResponseBuffer<'buffer>, PreparedExecutionError<T::Error>>
+    where
+        T: BlockingAuthenticatedTransport + BoundTransport,
+    {
         if self.requires_execution_permit() {
             sanitize_bytes(response_storage);
             sanitize_bytes(response_header_storage);
             return Err(PreparedExecutionError::AuthorizationRequired);
         }
-        self.execute_blocking_authorized(transport, None, response_storage, response_header_storage)
+        self.send_blocking_authorized(transport, None, response_storage, response_header_storage)
     }
 
     pub(crate) fn execute_blocking_authorized<'buffer, T>(
@@ -331,6 +346,27 @@ impl<'request> PreparedRequest<'request> {
         response_storage: &'buffer mut [u8],
         response_header_storage: &'buffer mut [u8],
     ) -> Result<CheckedResponseGuard<'buffer>, PreparedExecutionError<T::Error>>
+    where
+        T: BlockingAuthenticatedTransport + BoundTransport,
+    {
+        let response = self.send_blocking_authorized(
+            transport,
+            confirmed_endpoint,
+            response_storage,
+            response_header_storage,
+        )?;
+        self.response_policy
+            .validate(response, self.metadata.request_id_policy())
+            .map_err(PreparedExecutionError::ResponsePolicy)
+    }
+
+    pub(crate) fn send_blocking_authorized<'buffer, T>(
+        self,
+        transport: &T,
+        confirmed_endpoint: Option<EndpointIdentity<'_>>,
+        response_storage: &'buffer mut [u8],
+        response_header_storage: &'buffer mut [u8],
+    ) -> Result<ResponseBuffer<'buffer>, PreparedExecutionError<T::Error>>
     where
         T: BlockingAuthenticatedTransport + BoundTransport,
     {
@@ -344,9 +380,7 @@ impl<'request> PreparedRequest<'request> {
         transport
             .send_authenticated(self.authenticated_request(), response.writer())
             .map_err(PreparedExecutionError::Transport)?;
-        self.response_policy
-            .validate(response, self.metadata.request_id_policy())
-            .map_err(PreparedExecutionError::ResponsePolicy)
+        Ok(response)
     }
 
     /// Async equivalent of [`Self::execute_blocking`] without owning an executor.
@@ -360,12 +394,30 @@ impl<'request> PreparedRequest<'request> {
         T: AsyncAuthenticatedTransport + BoundTransport,
         'request: 'transport,
     {
+        let response = self
+            .send_async(transport, response_storage, response_header_storage)
+            .await?;
+        self.response_policy
+            .validate(response, self.metadata.request_id_policy())
+            .map_err(PreparedExecutionError::ResponsePolicy)
+    }
+
+    pub(crate) async fn send_async<'transport, 'buffer, T>(
+        &'transport self,
+        transport: &'transport T,
+        response_storage: &'buffer mut [u8],
+        response_header_storage: &'buffer mut [u8],
+    ) -> Result<ResponseBuffer<'buffer>, PreparedExecutionError<T::Error>>
+    where
+        T: AsyncAuthenticatedTransport + BoundTransport,
+        'request: 'transport,
+    {
         if self.requires_execution_permit() {
             sanitize_bytes(response_storage);
             sanitize_bytes(response_header_storage);
             return Err(PreparedExecutionError::AuthorizationRequired);
         }
-        self.execute_async_authorized(transport, None, response_storage, response_header_storage)
+        self.send_async_authorized(transport, None, response_storage, response_header_storage)
             .await
     }
 
@@ -376,6 +428,30 @@ impl<'request> PreparedRequest<'request> {
         response_storage: &'buffer mut [u8],
         response_header_storage: &'buffer mut [u8],
     ) -> Result<CheckedResponseGuard<'buffer>, PreparedExecutionError<T::Error>>
+    where
+        T: AsyncAuthenticatedTransport + BoundTransport,
+        'request: 'transport,
+    {
+        let response = self
+            .send_async_authorized(
+                transport,
+                confirmed_endpoint,
+                response_storage,
+                response_header_storage,
+            )
+            .await?;
+        self.response_policy
+            .validate(response, self.metadata.request_id_policy())
+            .map_err(PreparedExecutionError::ResponsePolicy)
+    }
+
+    pub(crate) async fn send_async_authorized<'transport, 'buffer, T>(
+        &'transport self,
+        transport: &'transport T,
+        confirmed_endpoint: Option<EndpointIdentity<'_>>,
+        response_storage: &'buffer mut [u8],
+        response_header_storage: &'buffer mut [u8],
+    ) -> Result<ResponseBuffer<'buffer>, PreparedExecutionError<T::Error>>
     where
         T: AsyncAuthenticatedTransport + BoundTransport,
         'request: 'transport,
@@ -397,9 +473,7 @@ impl<'request> PreparedRequest<'request> {
                     PreparedExecutionError::ResponseWriter(error)
                 }
             })?;
-        self.response_policy
-            .validate(response, self.metadata.request_id_policy())
-            .map_err(PreparedExecutionError::ResponsePolicy)
+        Ok(response)
     }
 
     pub(crate) const fn requires_execution_permit(self) -> bool {
