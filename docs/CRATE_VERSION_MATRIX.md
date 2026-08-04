@@ -814,14 +814,15 @@ a crate; all changed package trees remain part of the v0.55 cumulative release.
 
 `v0.55.0` is the cumulative public checkpoint after the published v0.50
 baseline. Independent versions cover every package-tree change accumulated in
-v0.51 through v0.55; unchanged sanitization code is explicitly excluded.
+v0.51 through v0.55, including the final cross-workspace test-assurance
+remediation.
 
 | Crate | Previous | Planned | Change | Publish | Reason |
 | --- | --- | --- | --- | --- | --- |
 | `cloud-sdk` | `0.50.0` | `0.55.0` | `code` | Yes | Publish cumulative permits, client execution, workflow drivers, and diagnostics. |
 | `cloud-sdk-hetzner` | `0.38.0` | `0.39.0` | `code` | Yes | Publish cumulative typed permit and direct-execution integration. |
 | `cloud-sdk-reqwest` | `0.32.3` | `0.32.4` | `dependency` | Yes | Update the core dependency without changing adapter behavior. |
-| `cloud-sdk-sanitization` | `0.17.0` | `0.17.0` | `unchanged` | No | No code, dependency, or package metadata changes. |
+| `cloud-sdk-sanitization` | `0.17.0` | `0.18.0` | `code` | Yes | Make cleanup fixtures fail closed under the workspace-wide security test policy. |
 | `cloud-sdk-testkit` | `0.28.2` | `0.29.0` | `code` | Yes | Publish cumulative policy fixtures plus bounded dynamic responders, records, scripts, and stream faults. |
 
 ## Planned Milestone Ownership

@@ -10,7 +10,7 @@ use crate::test_server::spawn;
 #[test]
 fn malformed_or_duplicate_response_content_type_fails_closed() {
     let Ok(target) = RequestTarget::new("/servers") else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     for (headers, expected) in [
         (
@@ -26,9 +26,11 @@ fn malformed_or_duplicate_response_content_type_fails_closed() {
         ),
     ] {
         let server = spawn("200 OK", headers, b"secret", Duration::ZERO);
-        let Ok(server) = server else { return };
+        let Ok(server) = server else {
+            unreachable!("security fixture construction failed")
+        };
         let Some(client) = build_loopback(&server.endpoint) else {
-            return;
+            unreachable!("security fixture construction failed");
         };
         let mut output = [0xa5_u8; 8];
         assert!(matches!(

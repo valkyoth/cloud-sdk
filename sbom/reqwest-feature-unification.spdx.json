@@ -1,21 +1,21 @@
 {
   "SPDXID": "SPDXRef-DOCUMENT",
   "creationInfo": {
-    "created": "2026-08-04T14:38:17Z",
+    "created": "2026-08-04T19:50:53Z",
     "creators": [
       "Tool: cargo-sbom-v0.10.0",
       "Tool: cloud-sdk-complete-spdx-v1"
     ]
   },
   "dataLicense": "CC0-1.0",
-  "documentNamespace": "https://spdx.org/spdxdocs/reqwest-feature-unification-c909b1e3-b541-4f40-9438-43e1be0abeaa",
+  "documentNamespace": "https://spdx.org/spdxdocs/reqwest-feature-unification-c6fb8187-7fec-4599-b3d3-4e7f6b38454f",
   "files": [
     {
       "SPDXID": "SPDXRef-File-cloud_sdk_reqwest_feature_unification_test",
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "124610586fbdde9ed0349c362dccb07644c11c41"
+          "checksumValue": "6bd9237191b5d028726ccf32a7df24529a58e7be"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -366,14 +366,14 @@
       "versionInfo": "0.0.0"
     },
     {
-      "SPDXID": "SPDXRef-Package-cloud-sdk-sanitization-0.17.0",
+      "SPDXID": "SPDXRef-Package-cloud-sdk-sanitization-0.18.0",
       "description": "Provider-neutral mandatory cleanup and secret-sanitization boundary for cloud-sdk.",
       "downloadLocation": "NONE",
       "homepage": "https://github.com/valkyoth/cloud-sdk",
       "licenseConcluded": "MIT OR Apache-2.0",
       "licenseDeclared": "MIT OR Apache-2.0",
       "name": "cloud-sdk-sanitization",
-      "versionInfo": "0.17.0"
+      "versionInfo": "0.18.0"
     },
     {
       "SPDXID": "SPDXRef-Package-cmake-0.1.58",
@@ -3843,7 +3843,7 @@
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-0.55.0",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-sanitization-0.17.0"
+      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-sanitization-0.18.0"
     },
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-0.55.0",
@@ -3883,7 +3883,7 @@
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.32.4",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-sanitization-0.17.0"
+      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-sanitization-0.18.0"
     },
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.32.4",
@@ -3961,7 +3961,7 @@
       "relatedSpdxElement": "SPDXRef-Package-tokio-1.53.1"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-sanitization-0.17.0",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-sanitization-0.18.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-sanitization-2.0.3"
     },

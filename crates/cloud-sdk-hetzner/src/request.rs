@@ -174,7 +174,7 @@ mod tests {
         let maximum = core::str::from_utf8(&maximum);
         assert!(maximum.is_ok());
         let Ok(maximum) = maximum else {
-            return;
+            unreachable!("security fixture construction failed");
         };
         assert!(EndpointPath::new(maximum).is_ok());
 
@@ -183,7 +183,7 @@ mod tests {
         let too_long = core::str::from_utf8(&too_long);
         assert!(too_long.is_ok());
         let Ok(too_long) = too_long else {
-            return;
+            unreachable!("security fixture construction failed");
         };
         assert_eq!(EndpointPath::new(too_long), Err(EndpointPathError::TooLong));
     }

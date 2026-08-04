@@ -282,7 +282,7 @@ mod tests {
     #[test]
     fn response_validation_accepts_only_expected_shapes_and_pagination() {
         let Some(locations) = PROBES.first().copied() else {
-            return;
+            unreachable!("security fixture construction failed");
         };
         assert!(locations
             .validate_body(br#"{"locations":[],"meta":{"pagination":{"page":1,"per_page":1,"previous_page":null,"next_page":null,"last_page":1,"total_entries":0}}}"#)

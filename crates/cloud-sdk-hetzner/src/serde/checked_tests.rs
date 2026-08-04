@@ -57,9 +57,11 @@ fn decodes_action_list_resource_and_paginated_resource_families() {
         prepared("get_server", CLOUD_SERVICE_ID, StatusCode::OK),
         response(StatusCode::OK, server),
     );
-    let Ok(decoded) = decoded else { return };
+    let Ok(decoded) = decoded else {
+        unreachable!("security fixture construction failed")
+    };
     let HetznerSuccess::Resource(resource) = decoded.success() else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     assert_eq!(resource.kind(), ResourceKind::Server);
     assert_eq!(resource.name(), Some("web-1"));
@@ -91,13 +93,15 @@ fn decodes_composite_special_empty_and_storage_families() {
         prepared("create_server", CLOUD_SERVICE_ID, StatusCode::CREATED),
         response(StatusCode::CREATED, create.as_bytes()),
     );
-    let Ok(decoded) = decoded else { return };
+    let Ok(decoded) = decoded else {
+        unreachable!("security fixture construction failed")
+    };
     let HetznerSuccess::Composite(composite) = decoded.success() else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     assert_eq!(composite.secrets().len(), 1);
     let Some(secret) = composite.secrets().first() else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     assert_eq!(
         secret
@@ -120,9 +124,11 @@ fn decodes_composite_special_empty_and_storage_families() {
         prepared("get_zone_zonefile", CLOUD_SERVICE_ID, StatusCode::OK),
         response(StatusCode::OK, zonefile),
     );
-    let Ok(decoded) = decoded else { return };
+    let Ok(decoded) = decoded else {
+        unreachable!("security fixture construction failed")
+    };
     let HetznerSuccess::ZoneFile(zonefile) = decoded.success() else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     assert_eq!(
         zonefile.try_with_zonefile(|value| value == "example.com. 60 IN A 192.0.2.1"),
@@ -231,7 +237,9 @@ fn checked_success_and_error_retain_provider_owned_quota() {
         response(StatusCode::OK, br#"{"server":{"id":1}}"#),
         &headers,
     );
-    let Ok(success) = success else { return };
+    let Ok(success) = success else {
+        unreachable!("security fixture construction failed")
+    };
     assert_eq!(success.quota().buckets().len(), 1);
     assert_eq!(success.rate_limit().map(|value| value.remaining()), Some(0));
     assert!(success.quota().retry_after().is_some());
@@ -245,7 +253,7 @@ fn checked_success_and_error_retain_provider_owned_quota() {
         &headers,
     );
     let Err(HetznerDecodeError::Provider(provider)) = provider else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     assert_eq!(provider.quota().buckets().len(), 1);
     assert!(provider.quota().retry_after().is_some());

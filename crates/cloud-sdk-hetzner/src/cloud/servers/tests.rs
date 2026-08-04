@@ -18,21 +18,22 @@ use core::fmt::Write;
 fn server_paths_match_api_matrix() {
     let id = ServerId::new(42);
     let mut output = [0u8; 64];
-    if let Some(id) = id {
-        assert_eq!(ServerEndpoint::List.write_path(&mut output), Ok(8));
-        assert_eq!(ServerEndpoint::Get(id).write_path(&mut output), Ok(11));
-        assert_eq!(ServerEndpoint::Metrics(id).write_path(&mut output), Ok(19));
-        let path = output
-            .get(..19)
-            .and_then(|bytes| core::str::from_utf8(bytes).ok());
-        assert_eq!(path, Some("/servers/42/metrics"));
-        assert_eq!(ServerEndpoint::Delete(id).method().as_str(), "DELETE");
-        assert_eq!(ServerEndpoint::Create.api_base_url(), ApiBaseUrl::CloudV1);
-        assert_eq!(
-            ServerEndpoint::Create.endpoint_group(),
-            EndpointGroup::Servers
-        );
-    }
+    let Some(id) = id else {
+        unreachable!("security fixture construction failed");
+    };
+    assert_eq!(ServerEndpoint::List.write_path(&mut output), Ok(8));
+    assert_eq!(ServerEndpoint::Get(id).write_path(&mut output), Ok(11));
+    assert_eq!(ServerEndpoint::Metrics(id).write_path(&mut output), Ok(19));
+    let path = output
+        .get(..19)
+        .and_then(|bytes| core::str::from_utf8(bytes).ok());
+    assert_eq!(path, Some("/servers/42/metrics"));
+    assert_eq!(ServerEndpoint::Delete(id).method().as_str(), "DELETE");
+    assert_eq!(ServerEndpoint::Create.api_base_url(), ApiBaseUrl::CloudV1);
+    assert_eq!(
+        ServerEndpoint::Create.endpoint_group(),
+        EndpointGroup::Servers
+    );
 }
 
 #[test]
@@ -42,26 +43,27 @@ fn server_list_query_writes_filters_pagination_and_sorting() {
     let page = Page::new(2);
     let per_page = PerPage::new(25);
     let mut output = [0u8; 160];
-    if let (Ok(name), Ok(selector), Ok(page), Ok(per_page)) = (name, selector, page, per_page) {
-        let request = ServerListRequest::new()
-            .with_name(name)
-            .with_label_selector(selector)
-            .with_status(ServerStatus::Running)
-            .with_page(page)
-            .with_per_page(per_page)
-            .with_sort(ServerSortField::Created, SortDirection::Desc);
-        let written = request.write_query(&mut output);
-        assert_eq!(written, Ok(90));
-        let query = output
-            .get(..90)
-            .and_then(|bytes| core::str::from_utf8(bytes).ok());
-        assert_eq!(
-            query,
-            Some(
-                "label_selector=env%3Dprod&name=web-1&page=2&per_page=25&sort=created%3Adesc&status=running"
-            )
-        );
-    }
+    let (Ok(name), Ok(selector), Ok(page), Ok(per_page)) = (name, selector, page, per_page) else {
+        unreachable!("security fixture construction failed");
+    };
+    let request = ServerListRequest::new()
+        .with_name(name)
+        .with_label_selector(selector)
+        .with_status(ServerStatus::Running)
+        .with_page(page)
+        .with_per_page(per_page)
+        .with_sort(ServerSortField::Created, SortDirection::Desc);
+    let written = request.write_query(&mut output);
+    assert_eq!(written, Ok(90));
+    let query = output
+        .get(..90)
+        .and_then(|bytes| core::str::from_utf8(bytes).ok());
+    assert_eq!(
+        query,
+        Some(
+            "label_selector=env%3Dprod&name=web-1&page=2&per_page=25&sort=created%3Adesc&status=running"
+        )
+    );
 }
 
 #[test]
@@ -69,59 +71,65 @@ fn server_create_validates_required_fields_and_mutual_exclusions() {
     let name = ServerName::new("web-1");
     let server_type = ServerReference::new("cpx22");
     let image = ServerReference::new("ubuntu-24.04");
-    if let (Ok(name), Ok(server_type), Ok(image)) = (name, server_type, image) {
-        let request = ServerCreateRequest::new(name, server_type, image);
-        let user_data = UserData::new("#cloud-config\n");
-        if let Ok(user_data) = user_data {
-            let request = request.with_user_data(user_data);
-            assert_eq!(request.endpoint(), ServerEndpoint::Create);
-            let mut debug = DebugBuffer::new();
-            assert!(write!(&mut debug, "{request:?}").is_ok());
-            let debug = debug.as_str();
-            assert!(debug.contains("[redacted]"));
-            assert!(!debug.contains("#cloud-config"));
-        }
-    }
+    let (Ok(name), Ok(server_type), Ok(image)) = (name, server_type, image) else {
+        unreachable!("security fixture construction failed");
+    };
+    let request = ServerCreateRequest::new(name, server_type, image);
+    let user_data = UserData::new("#cloud-config\n");
+    let Ok(user_data) = user_data else {
+        unreachable!("security fixture construction failed");
+    };
+    let request = request.with_user_data(user_data);
+    assert_eq!(request.endpoint(), ServerEndpoint::Create);
+    let mut debug = DebugBuffer::new();
+    assert!(write!(&mut debug, "{request:?}").is_ok());
+    let debug = debug.as_str();
+    assert!(debug.contains("[redacted]"));
+    assert!(!debug.contains("#cloud-config"));
+
     let primary_ip = ServerResourceId::new(7);
-    if let Some(primary_ip) = primary_ip {
-        assert_eq!(
-            ServerPublicNet::new(
-                false,
-                true,
-                PrimaryIpSelection::Id(primary_ip),
-                PrimaryIpSelection::Auto,
-            ),
-            Err(ServerRequestError::MutuallyExclusiveFields)
-        );
-    }
+    let Some(primary_ip) = primary_ip else {
+        unreachable!("security fixture construction failed");
+    };
+    assert_eq!(
+        ServerPublicNet::new(
+            false,
+            true,
+            PrimaryIpSelection::Id(primary_ip),
+            PrimaryIpSelection::Auto,
+        ),
+        Err(ServerRequestError::MutuallyExclusiveFields)
+    );
 }
 
 #[test]
 fn server_user_data_writes_json_string_without_raw_interpolation() {
     let user_data = UserData::new("#cloud-config\nwrite_files:\n- path: \"C:\\\\tmp\"\n");
     let mut output = [0u8; 96];
-    if let Ok(user_data) = user_data {
-        let written = user_data.write_json_string(&mut output);
-        assert_eq!(written, Ok(54));
-        let body_value = output
-            .get(..54)
-            .and_then(|bytes| core::str::from_utf8(bytes).ok());
-        assert_eq!(
-            body_value,
-            Some("\"#cloud-config\\nwrite_files:\\n- path: \\\"C:\\\\\\\\tmp\\\"\\n\"")
-        );
-    }
+    let Ok(user_data) = user_data else {
+        unreachable!("security fixture construction failed");
+    };
+    let written = user_data.write_json_string(&mut output);
+    assert_eq!(written, Ok(54));
+    let body_value = output
+        .get(..54)
+        .and_then(|bytes| core::str::from_utf8(bytes).ok());
+    assert_eq!(
+        body_value,
+        Some("\"#cloud-config\\nwrite_files:\\n- path: \\\"C:\\\\\\\\tmp\\\"\\n\"")
+    );
 
     let user_data = UserData::new("quoted \" value");
     let mut output = [0xa5_u8; 8];
-    if let Ok(user_data) = user_data {
-        let original = output;
-        assert_eq!(
-            user_data.write_json_string(&mut output),
-            Err(ServerRequestError::BodyBufferTooSmall)
-        );
-        assert_eq!(output, original);
-    }
+    let Ok(user_data) = user_data else {
+        unreachable!("security fixture construction failed");
+    };
+    let original = output;
+    assert_eq!(
+        user_data.write_json_string(&mut output),
+        Err(ServerRequestError::BodyBufferTooSmall)
+    );
+    assert_eq!(output, original);
 }
 
 #[test]
@@ -178,26 +186,29 @@ fn server_metrics_validate_time_range_and_write_query() {
     let id = ServerId::new(42);
     let start = TimestampValue::new("2026-07-08T10:00:00Z");
     let end = TimestampValue::new("2026-07-08T11:00:00Z");
-    if let (Some(id), Ok(start), Ok(end)) = (id, start, end) {
-        let request = ServerMetricsRequest::try_new(id, ServerMetricType::Cpu, start, end);
-        assert!(request.is_ok());
-        if let Ok(request) = request {
-            let mut output = [0u8; 128];
-            let written = request.write_query(&mut output);
-            assert_eq!(written, Ok(68));
-            let query = output
-                .get(..68)
-                .and_then(|bytes| core::str::from_utf8(bytes).ok());
-            assert_eq!(
-                query,
-                Some("end=2026-07-08T11%3A00%3A00Z&start=2026-07-08T10%3A00%3A00Z&type=cpu")
-            );
-        }
-        assert_eq!(
-            ServerMetricsRequest::try_new(id, ServerMetricType::Cpu, end, start),
-            Err(ServerRequestError::InvalidTimeRange)
-        );
-    }
+    let (Some(id), Ok(start), Ok(end)) = (id, start, end) else {
+        unreachable!("security fixture construction failed");
+    };
+    let request = ServerMetricsRequest::try_new(id, ServerMetricType::Cpu, start, end);
+    assert!(request.is_ok());
+    let Ok(request) = request else {
+        unreachable!("security fixture construction failed");
+    };
+    let mut output = [0u8; 128];
+    let written = request.write_query(&mut output);
+    assert_eq!(written, Ok(68));
+    let query = output
+        .get(..68)
+        .and_then(|bytes| core::str::from_utf8(bytes).ok());
+    assert_eq!(
+        query,
+        Some("end=2026-07-08T11%3A00%3A00Z&start=2026-07-08T10%3A00%3A00Z&type=cpu")
+    );
+
+    assert_eq!(
+        ServerMetricsRequest::try_new(id, ServerMetricType::Cpu, end, start),
+        Err(ServerRequestError::InvalidTimeRange)
+    );
 }
 
 #[test]
@@ -205,33 +216,34 @@ fn server_action_paths_match_api_matrix() {
     let server_id = ServerId::new(42);
     let action_id = ActionId::new(9);
     let mut output = [0u8; 96];
-    if let (Some(server_id), Some(action_id)) = (server_id, action_id) {
-        assert_eq!(
-            ServerActionEndpoint::ListAll.write_path(&mut output),
-            Ok(16)
-        );
-        assert_eq!(
-            ServerActionEndpoint::Get(action_id).write_path(&mut output),
-            Ok(18)
-        );
-        assert_eq!(
-            ServerActionEndpoint::ListForServer(server_id).write_path(&mut output),
-            Ok(19)
-        );
-        assert_eq!(
-            ServerActionEndpoint::Start(server_id, ServerActionKind::ChangeDnsPtr)
-                .write_path(&mut output),
-            Ok(34)
-        );
-        let path = output
-            .get(..34)
-            .and_then(|bytes| core::str::from_utf8(bytes).ok());
-        assert_eq!(path, Some("/servers/42/actions/change_dns_ptr"));
-        assert_eq!(
-            ServerActionEndpoint::Start(server_id, ServerActionKind::Shutdown).endpoint_group(),
-            EndpointGroup::ServerActions
-        );
-    }
+    let (Some(server_id), Some(action_id)) = (server_id, action_id) else {
+        unreachable!("security fixture construction failed");
+    };
+    assert_eq!(
+        ServerActionEndpoint::ListAll.write_path(&mut output),
+        Ok(16)
+    );
+    assert_eq!(
+        ServerActionEndpoint::Get(action_id).write_path(&mut output),
+        Ok(18)
+    );
+    assert_eq!(
+        ServerActionEndpoint::ListForServer(server_id).write_path(&mut output),
+        Ok(19)
+    );
+    assert_eq!(
+        ServerActionEndpoint::Start(server_id, ServerActionKind::ChangeDnsPtr)
+            .write_path(&mut output),
+        Ok(34)
+    );
+    let path = output
+        .get(..34)
+        .and_then(|bytes| core::str::from_utf8(bytes).ok());
+    assert_eq!(path, Some("/servers/42/actions/change_dns_ptr"));
+    assert_eq!(
+        ServerActionEndpoint::Start(server_id, ServerActionKind::Shutdown).endpoint_group(),
+        EndpointGroup::ServerActions
+    );
 }
 
 #[test]
@@ -313,43 +325,48 @@ fn all_server_action_start_paths_match_api_matrix() {
         ),
         (ServerActionKind::Shutdown, "/servers/42/actions/shutdown"),
     ];
-    if let Some(server_id) = server_id {
-        for (kind, expected) in cases {
-            let mut output = [0u8; 96];
-            let written = ServerActionEndpoint::Start(server_id, kind).write_path(&mut output);
-            assert_eq!(written, Ok(expected.len()));
-            let path = output
-                .get(..expected.len())
-                .and_then(|bytes| core::str::from_utf8(bytes).ok());
-            assert_eq!(path, Some(expected));
-        }
+    let Some(server_id) = server_id else {
+        unreachable!("security fixture construction failed");
+    };
+    for (kind, expected) in cases {
+        let mut output = [0u8; 96];
+        let written = ServerActionEndpoint::Start(server_id, kind).write_path(&mut output);
+        assert_eq!(written, Ok(expected.len()));
+        let path = output
+            .get(..expected.len())
+            .and_then(|bytes| core::str::from_utf8(bytes).ok());
+        assert_eq!(path, Some(expected));
     }
 }
 
 #[test]
 fn server_actions_validate_body_requirements_and_dns_ptr_intent() {
     let ip = TextValue::new("2001:db8::1");
-    if let Ok(ip) = ip {
-        assert_eq!(
-            ServerActionRequest::change_dns_ptr(ip, DnsPtrIntent::Reset),
-            ServerActionRequest::ChangeDnsPtr {
-                ip,
-                dns_ptr: DnsPtrIntent::Reset,
-            }
-        );
-    }
+    let Ok(ip) = ip else {
+        unreachable!("security fixture construction failed");
+    };
+    assert_eq!(
+        ServerActionRequest::change_dns_ptr(ip, DnsPtrIntent::Reset),
+        ServerActionRequest::ChangeDnsPtr {
+            ip,
+            dns_ptr: DnsPtrIntent::Reset,
+        }
+    );
+
     assert_eq!(
         ServerActionRequest::empty(ServerActionKind::Rebuild),
         Err(ServerRequestError::ActionBodyRequired)
     );
     assert!(ServerActionRequest::empty(ServerActionKind::Poweroff).is_ok());
     let network = ServerResourceId::new(7);
-    if let Some(network) = network {
-        assert_eq!(
-            ServerActionRequest::change_alias_ips(network, &[]),
-            Err(ServerRequestError::EmptyAliasIps)
-        );
-    }
+    let Some(network) = network else {
+        unreachable!("security fixture construction failed");
+    };
+    assert_eq!(
+        ServerActionRequest::change_alias_ips(network, &[]),
+        Err(ServerRequestError::EmptyAliasIps)
+    );
+
     assert_eq!(ServerImageType::Snapshot, ServerImageType::Snapshot);
 }
 

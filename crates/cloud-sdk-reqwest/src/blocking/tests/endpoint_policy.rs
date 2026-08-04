@@ -39,14 +39,14 @@ fn canonical_request_targets_preserve_exact_wire_bytes() {
     let path = RequestPath::new("/resources");
     assert!(endpoint.is_ok() && path.is_ok());
     let (Ok(endpoint), Ok(path)) = (endpoint, path) else {
-        return;
+        unreachable!("security fixture construction failed");
     };
 
     let mut empty_output = [0_u8; 16];
     let empty_query = CanonicalQuery::new("");
     assert!(empty_query.is_ok());
     let Ok(empty_query) = empty_query else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let empty_target = RequestTarget::assemble(
         path,
@@ -55,7 +55,7 @@ fn canonical_request_targets_preserve_exact_wire_bytes() {
     );
     assert!(empty_target.is_ok());
     let Ok(empty_target) = empty_target else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     assert_eq!(
         endpoint
@@ -69,13 +69,13 @@ fn canonical_request_targets_preserve_exact_wire_bytes() {
     let form_query = FormQuery::new("name=test+server");
     assert!(form_query.is_ok());
     let Ok(form_query) = form_query else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let form_target =
         RequestTarget::assemble(path, RequestQuery::Form(form_query), &mut form_output);
     assert!(form_target.is_ok());
     let Ok(form_target) = form_target else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     assert_eq!(
         endpoint
@@ -90,11 +90,13 @@ fn canonical_request_targets_preserve_exact_wire_bytes() {
 fn endpoints_reject_authority_and_normalization_ambiguity() {
     let redacted = custom_endpoint("https://api.example.test/v1");
     assert!(redacted.is_ok());
-    if let Ok(redacted) = redacted {
-        let debug = std::format!("{redacted:?}");
-        assert!(debug.contains("[redacted]"));
-        assert!(!debug.contains("api.example.test"));
-    }
+    let Ok(redacted) = redacted else {
+        unreachable!("security fixture construction failed");
+    };
+    let debug = std::format!("{redacted:?}");
+    assert!(debug.contains("[redacted]"));
+    assert!(!debug.contains("api.example.test"));
+
     assert!(matches!(
         custom_endpoint("http://api.example.test/v1"),
         Err(EndpointError::HttpsRequired)
@@ -170,32 +172,35 @@ fn endpoints_reject_authority_and_normalization_ambiguity() {
     let compressed = custom_endpoint("https://[2001:db8::1]/v1");
     let expanded = custom_endpoint("https://[2001:0db8:0:0:0:0:0:1]/v1");
     assert!(compressed.is_ok() && expanded.is_ok());
-    if let (Ok(compressed), Ok(expanded)) = (compressed, expanded) {
-        assert_eq!(compressed.identity(), expanded.identity());
-    }
+    let (Ok(compressed), Ok(expanded)) = (compressed, expanded) else {
+        unreachable!("security fixture construction failed");
+    };
+    assert_eq!(compressed.identity(), expanded.identity());
 
     let official = EndpointIdentity::new(EndpointScheme::Https, "api.example.test", 443, "/v1");
     assert!(official.is_ok());
-    if let Ok(official) = official {
-        let policy = EndpointPolicy::fixed(official);
-        assert!(HttpsEndpoint::new_with_policy("https://api.example.test/v1", policy).is_ok());
-        assert!(matches!(
-            HttpsEndpoint::new_with_policy("https://other.example.test/v1", policy),
-            Err(EndpointError::PolicyRejected)
-        ));
-    }
+    let Ok(official) = official else {
+        unreachable!("security fixture construction failed");
+    };
+    let policy = EndpointPolicy::fixed(official);
+    assert!(HttpsEndpoint::new_with_policy("https://api.example.test/v1", policy).is_ok());
+    assert!(matches!(
+        HttpsEndpoint::new_with_policy("https://other.example.test/v1", policy),
+        Err(EndpointError::PolicyRejected)
+    ));
 
     let endpoint = custom_endpoint("https://api.example.test/v1");
     let safe = RequestTarget::new("/servers?name=test%20server");
-    if let (Ok(endpoint), Ok(safe)) = (endpoint, safe) {
-        let url = endpoint.compose(safe);
-        assert_eq!(
-            url.as_ref().map(reqwest::Url::as_str),
-            Ok("https://api.example.test/v1/servers?name=test%20server")
-        );
-        for target in ["/%2e%2e/admin", "/x%2fy", "/x%5cevil", "/x%25%32%66"] {
-            assert!(RequestTarget::new(target).is_err());
-        }
-        assert!(RequestTarget::new("/servers/../admin").is_err());
+    let (Ok(endpoint), Ok(safe)) = (endpoint, safe) else {
+        unreachable!("security fixture construction failed");
+    };
+    let url = endpoint.compose(safe);
+    assert_eq!(
+        url.as_ref().map(reqwest::Url::as_str),
+        Ok("https://api.example.test/v1/servers?name=test%20server")
+    );
+    for target in ["/%2e%2e/admin", "/x%2fy", "/x%5cevil", "/x%25%32%66"] {
+        assert!(RequestTarget::new(target).is_err());
     }
+    assert!(RequestTarget::new("/servers/../admin").is_err());
 }

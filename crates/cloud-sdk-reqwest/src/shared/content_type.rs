@@ -40,9 +40,10 @@ mod tests {
         );
         let parsed = parse_response_content_type(&headers);
         assert!(parsed.is_ok());
-        if let Ok(Some(parsed)) = parsed {
-            assert_eq!(parsed.as_str(), "application/json; charset=utf-8");
-        }
+        let Ok(Some(parsed)) = parsed else {
+            unreachable!("security fixture construction failed");
+        };
+        assert_eq!(parsed.as_str(), "application/json; charset=utf-8");
     }
 
     #[test]

@@ -31,17 +31,23 @@ fn storage_box_groups_are_owned_by_storage_module() {
 fn storage_box_paths_match_api_matrix() {
     let id = storage_box_id();
     assert!(id.is_some(), "fixture storage box ID must validate");
-    let Some(id) = id else { return };
+    let Some(id) = id else {
+        unreachable!("security fixture construction failed")
+    };
     let type_id = StorageBoxTypeId::new(3);
     assert!(type_id.is_some(), "fixture type ID must validate");
-    let Some(type_id) = type_id else { return };
+    let Some(type_id) = type_id else {
+        unreachable!("security fixture construction failed")
+    };
     let action_id = ActionId::new(9);
     assert!(action_id.is_some(), "fixture action ID must validate");
-    let Some(action_id) = action_id else { return };
+    let Some(action_id) = action_id else {
+        unreachable!("security fixture construction failed")
+    };
     let snapshot_id = StorageBoxSnapshotId::new(7);
     assert!(snapshot_id.is_some(), "fixture snapshot ID must validate");
     let Some(snapshot_id) = snapshot_id else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let subaccount_id = StorageBoxSubaccountId::new(8);
     assert!(
@@ -49,7 +55,7 @@ fn storage_box_paths_match_api_matrix() {
         "fixture subaccount ID must validate"
     );
     let Some(subaccount_id) = subaccount_id else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let mut output = [0u8; 128];
 
@@ -127,22 +133,34 @@ fn storage_box_paths_match_api_matrix() {
 fn storage_box_queries_match_source_locked_parameters() {
     let selector = LabelSelector::new("env=prod");
     assert!(selector.is_ok(), "fixture selector must validate");
-    let Ok(selector) = selector else { return };
+    let Ok(selector) = selector else {
+        unreachable!("security fixture construction failed")
+    };
     let name = StorageBoxName::new("backup-box");
     assert!(name.is_ok(), "fixture name must validate");
-    let Ok(name) = name else { return };
+    let Ok(name) = name else {
+        unreachable!("security fixture construction failed")
+    };
     let page = Page::new(2);
     assert!(page.is_ok(), "fixture page must validate");
-    let Ok(page) = page else { return };
+    let Ok(page) = page else {
+        unreachable!("security fixture construction failed")
+    };
     let per_page = PerPage::new(25);
     assert!(per_page.is_ok(), "fixture per_page must validate");
-    let Ok(per_page) = per_page else { return };
+    let Ok(per_page) = per_page else {
+        unreachable!("security fixture construction failed")
+    };
     let action_id = ActionId::new(9);
     assert!(action_id.is_some(), "fixture action ID must validate");
-    let Some(action_id) = action_id else { return };
+    let Some(action_id) = action_id else {
+        unreachable!("security fixture construction failed")
+    };
     let username = StorageBoxSubaccountUsername::new("u42");
     assert!(username.is_ok(), "fixture username validates");
-    let Ok(username) = username else { return };
+    let Ok(username) = username else {
+        unreachable!("security fixture construction failed")
+    };
     let mut output = [0u8; 160];
 
     let query = StorageBoxListRequest::new()
@@ -207,16 +225,24 @@ fn storage_box_queries_match_source_locked_parameters() {
 fn storage_box_body_markers_preserve_required_fields_and_secrets() {
     let name = StorageBoxName::new("backup-box");
     assert!(name.is_ok(), "fixture name must validate");
-    let Ok(name) = name else { return };
+    let Ok(name) = name else {
+        unreachable!("security fixture construction failed")
+    };
     let location = StorageBoxLocation::new("fsn1");
     assert!(location.is_ok(), "fixture location must validate");
-    let Ok(location) = location else { return };
+    let Ok(location) = location else {
+        unreachable!("security fixture construction failed")
+    };
     let box_type = StorageBoxTypeRef::new("bx20");
     assert!(box_type.is_ok(), "fixture type ref validates");
-    let Ok(box_type) = box_type else { return };
+    let Ok(box_type) = box_type else {
+        unreachable!("security fixture construction failed")
+    };
     let password = StorageBoxPassword::new(r#"a"b\c"#);
     assert!(password.is_ok(), "fixture password validates");
-    let Ok(password) = password else { return };
+    let Ok(password) = password else {
+        unreachable!("security fixture construction failed")
+    };
     let mut output = [0u8; 16];
 
     assert_eq!(
@@ -242,10 +268,14 @@ fn storage_box_body_markers_preserve_required_fields_and_secrets() {
 fn storage_box_snapshot_and_subaccount_markers_validate_boundaries() {
     let id = storage_box_id();
     assert!(id.is_some(), "fixture storage box ID must validate");
-    let Some(id) = id else { return };
+    let Some(id) = id else {
+        unreachable!("security fixture construction failed")
+    };
     let snapshot = StorageBoxSnapshotRef::new("snapshot-1");
     assert!(snapshot.is_ok(), "fixture snapshot validates");
-    let Ok(snapshot) = snapshot else { return };
+    let Ok(snapshot) = snapshot else {
+        unreachable!("security fixture construction failed")
+    };
     assert_eq!(SnapshotPlanMaxSnapshots::new(0), None);
     assert_eq!(SnapshotPlanMinute::new(60), None);
     assert_eq!(SnapshotPlanHour::new(24), None);
@@ -255,14 +285,18 @@ fn storage_box_snapshot_and_subaccount_markers_validate_boundaries() {
     let max_snapshots = SnapshotPlanMaxSnapshots::new(5);
     assert!(max_snapshots.is_some(), "fixture max validates");
     let Some(max_snapshots) = max_snapshots else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let minute = SnapshotPlanMinute::new(30);
     assert!(minute.is_some(), "fixture minute validates");
-    let Some(minute) = minute else { return };
+    let Some(minute) = minute else {
+        unreachable!("security fixture construction failed")
+    };
     let hour = SnapshotPlanHour::new(3);
     assert!(hour.is_some(), "fixture hour validates");
-    let Some(hour) = hour else { return };
+    let Some(hour) = hour else {
+        unreachable!("security fixture construction failed")
+    };
     assert_eq!(
         StorageBoxSnapshotPlanRequest::new(max_snapshots, minute, hour).max_snapshots(),
         max_snapshots
@@ -290,10 +324,14 @@ fn storage_box_snapshot_and_subaccount_markers_validate_boundaries() {
     );
     let home = StorageBoxHomeDirectory::new("safe/path");
     assert!(home.is_ok(), "fixture home dir validates");
-    let Ok(home) = home else { return };
+    let Ok(home) = home else {
+        unreachable!("security fixture construction failed")
+    };
     let password = StorageBoxPassword::new("not-logged");
     assert!(password.is_ok(), "fixture password validates");
-    let Ok(password) = password else { return };
+    let Ok(password) = password else {
+        unreachable!("security fixture construction failed")
+    };
     assert_eq!(
         StorageBoxSubaccountCreateRequest::new(id, home, password).endpoint(),
         StorageBoxSubaccountEndpoint::Create(id)

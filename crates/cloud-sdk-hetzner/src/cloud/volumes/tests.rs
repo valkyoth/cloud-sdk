@@ -12,10 +12,14 @@ use crate::pagination::{Page, PerPage, SortDirection};
 fn storage_ip_volume_paths_match_api_matrix() {
     let id = VolumeId::new(42);
     assert!(id.is_some(), "fixture volume ID must validate");
-    let Some(id) = id else { return };
+    let Some(id) = id else {
+        unreachable!("security fixture construction failed")
+    };
     let action_id = ActionId::new(9);
     assert!(action_id.is_some(), "fixture action ID must validate");
-    let Some(action_id) = action_id else { return };
+    let Some(action_id) = action_id else {
+        unreachable!("security fixture construction failed")
+    };
     let mut output = [0u8; 80];
     assert_eq!(VolumeEndpoint::List.write_path(&mut output), Ok(8));
     assert_eq!(VolumeEndpoint::Get(id).write_path(&mut output), Ok(11));
@@ -68,16 +72,24 @@ fn storage_ip_volume_paths_match_api_matrix() {
 fn storage_ip_volume_query_writes_filters_pagination_and_sorting() {
     let selector = LabelSelector::new("env=prod");
     assert!(selector.is_ok(), "fixture label selector must validate");
-    let Ok(selector) = selector else { return };
+    let Ok(selector) = selector else {
+        unreachable!("security fixture construction failed")
+    };
     let name = VolumeName::new("database-storage");
     assert!(name.is_ok(), "fixture volume name must validate");
-    let Ok(name) = name else { return };
+    let Ok(name) = name else {
+        unreachable!("security fixture construction failed")
+    };
     let page = Page::new(2);
     assert!(page.is_ok(), "fixture page must validate");
-    let Ok(page) = page else { return };
+    let Ok(page) = page else {
+        unreachable!("security fixture construction failed")
+    };
     let per_page = PerPage::new(25);
     assert!(per_page.is_ok(), "fixture per_page must validate");
-    let Ok(per_page) = per_page else { return };
+    let Ok(per_page) = per_page else {
+        unreachable!("security fixture construction failed")
+    };
     let mut output = [0u8; 128];
     let request = VolumeListRequest::new()
         .with_label_selector(selector)
@@ -106,13 +118,19 @@ fn storage_ip_volume_size_and_placement_are_validated() {
 
     let size = VolumeSizeGb::new(42);
     assert!(size.is_some(), "fixture volume size must validate");
-    let Some(size) = size else { return };
+    let Some(size) = size else {
+        unreachable!("security fixture construction failed")
+    };
     let name = VolumeName::new("database-storage");
     assert!(name.is_ok(), "fixture volume name must validate");
-    let Ok(name) = name else { return };
+    let Ok(name) = name else {
+        unreachable!("security fixture construction failed")
+    };
     let location = VolumeLocation::new("fsn1");
     assert!(location.is_ok(), "fixture volume location must validate");
-    let Ok(location) = location else { return };
+    let Ok(location) = location else {
+        unreachable!("security fixture construction failed")
+    };
     let request = VolumeCreateRequest::new(size, name, VolumeCreatePlacement::Location(location));
     assert_eq!(
         request.placement(),
@@ -124,12 +142,16 @@ fn storage_ip_volume_size_and_placement_are_validated() {
 fn storage_ip_volume_action_markers_preserve_required_fields() {
     let server = VolumeId::new(42);
     assert!(server.is_some(), "fixture server ID must validate");
-    let Some(server) = server else { return };
+    let Some(server) = server else {
+        unreachable!("security fixture construction failed")
+    };
     let attach = VolumeAttachRequest::new(server, true);
     assert!(attach.automount());
     let size = VolumeSizeGb::new(64);
     assert!(size.is_some(), "fixture resize size must validate");
-    let Some(size) = size else { return };
+    let Some(size) = size else {
+        unreachable!("security fixture construction failed")
+    };
     let resize = VolumeResizeRequest::new(size);
     assert_eq!(resize.size(), size);
     assert!(VolumeProtectionRequest::new(true).delete());

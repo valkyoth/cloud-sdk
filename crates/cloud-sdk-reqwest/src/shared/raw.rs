@@ -315,11 +315,11 @@ mod tests {
     fn selects_status_limit_and_drops_unadmitted_headers() {
         let admitted = HeaderName::new("content-type");
         assert!(admitted.is_ok());
-        let Ok(admitted) = admitted else { return };
-        let admitted_headers = [admitted];
-        let Some(policy) = policy(&admitted_headers) else {
-            return;
+        let Ok(admitted) = admitted else {
+            unreachable!("security fixture construction failed")
         };
+        let admitted_headers = [admitted];
+        let policy = policy(&admitted_headers).unwrap_or_else(|| unreachable!());
         let mut source = HeaderMap::new();
         source.insert("content-type", HeaderValue::from_static("application/json"));
         source.insert("set-cookie", HeaderValue::from_static("secret=1"));
@@ -347,10 +347,10 @@ mod tests {
             HeaderName::new("ratelimit-reset"),
         ];
         let [Ok(limit), Ok(remaining), Ok(reset)] = names else {
-            return;
+            unreachable!("security fixture construction failed");
         };
         let Some(policy) = policy(&[limit, remaining, reset]) else {
-            return;
+            unreachable!("security fixture construction failed");
         };
         let mut source = HeaderMap::new();
         source.insert("ratelimit-remaining", HeaderValue::from_static("7"));
@@ -376,7 +376,7 @@ mod tests {
     }
     #[test]
     fn rejects_duplicates_and_no_content_framing() {
-        let Some(policy) = policy(&[]) else { return };
+        let policy = policy(&[]).unwrap_or_else(|| unreachable!());
         let mut duplicate = HeaderMap::new();
         duplicate.append("x-test", HeaderValue::from_static("one"));
         duplicate.append("x-test", HeaderValue::from_static("two"));
@@ -411,7 +411,7 @@ mod tests {
 
     #[test]
     fn rejects_media_mismatch_oversized_length_and_hostile_header_count() {
-        let Some(policy) = policy(&[]) else { return };
+        let policy = policy(&[]).unwrap_or_else(|| unreachable!());
         let mut storage = [0_u8; 128];
         let mut captured = ResponseHeaders::new(&mut storage);
 
@@ -448,7 +448,7 @@ mod tests {
         for index in 0..=super::MAX_UPSTREAM_HTTP1_HEADERS {
             let name = format!("x-field-{index}");
             let Ok(name) = reqwest::header::HeaderName::from_bytes(name.as_bytes()) else {
-                return;
+                unreachable!("security fixture construction failed");
             };
             hostile.insert(name, HeaderValue::from_static("value"));
         }
@@ -467,7 +467,7 @@ mod tests {
 
     #[test]
     fn head_and_not_modified_select_zero_body_capacity() {
-        let Some(policy) = policy(&[]) else { return };
+        let policy = policy(&[]).unwrap_or_else(|| unreachable!());
         let mut source = HeaderMap::new();
         source.insert("content-type", HeaderValue::from_static("application/json"));
         source.insert("content-length", HeaderValue::from_static("8"));

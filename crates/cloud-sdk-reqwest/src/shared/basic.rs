@@ -371,19 +371,20 @@ mod tests {
         let username = BasicUsername::new("Aladdin");
         let password = BasicPassword::new("open sesame");
         let (Ok(username), Ok(password), Some(scope)) = (username, password, test_scope()) else {
-            return;
+            unreachable!("security fixture construction failed");
         };
         let credential = BasicCredential::new(username, password, scope);
         assert!(credential.is_ok());
-        if let Ok(credential) = credential {
-            assert_eq!(
-                credential.owned_bytes(),
-                b"Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ=="
-            );
-            assert!(!format!("{credential:?}").contains("Aladdin"));
-            let header = credential.header_value();
-            assert!(header.as_ref().is_ok_and(|value| value.is_sensitive()));
-        }
+        let Ok(credential) = credential else {
+            unreachable!("security fixture construction failed");
+        };
+        assert_eq!(
+            credential.owned_bytes(),
+            b"Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ=="
+        );
+        assert!(!format!("{credential:?}").contains("Aladdin"));
+        let header = credential.header_value();
+        assert!(header.as_ref().is_ok_and(|value| value.is_sensitive()));
     }
 
     #[test]
@@ -433,7 +434,7 @@ mod tests {
         let mut username = *b"robot-user";
         let mut password = *b"secret-pass";
         let Some(scope) = test_scope() else {
-            return;
+            unreachable!("security fixture construction failed");
         };
         assert!(BasicCredential::from_mut_bytes(&mut username, &mut password, scope).is_ok());
         assert_eq!(username, [0; 10]);
@@ -442,7 +443,7 @@ mod tests {
         let mut invalid_username = *b"bad:user";
         let mut valid_password = *b"password";
         let Some(scope) = test_scope() else {
-            return;
+            unreachable!("security fixture construction failed");
         };
         assert_eq!(
             BasicCredential::from_mut_bytes(&mut invalid_username, &mut valid_password, scope,)
@@ -464,12 +465,13 @@ mod tests {
             BasicPassword::from_bytes(&password),
             test_scope(),
         ) else {
-            return;
+            unreachable!("security fixture construction failed");
         };
         let credential = BasicCredential::new(username, password, scope);
         assert!(credential.is_ok());
-        if let Ok(credential) = credential {
-            assert_eq!(credential.owned_bytes().len(), 3_082);
-        }
+        let Ok(credential) = credential else {
+            unreachable!("security fixture construction failed");
+        };
+        assert_eq!(credential.owned_bytes().len(), 3_082);
     }
 }

@@ -23,7 +23,7 @@ fn deterministic_root_client_builds_without_platform_state() {
     let (Ok(endpoint), Ok(token), Ok(user_agent), Ok(timeouts)) =
         (endpoint, token, user_agent, timeouts)
     else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     assert!(
         BlockingClientBuilder::new(

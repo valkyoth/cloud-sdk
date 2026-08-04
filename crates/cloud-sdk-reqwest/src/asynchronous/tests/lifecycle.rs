@@ -16,25 +16,27 @@ fn async_client_is_clone_send_sync_and_endpoint_bound() {
     assert_shared::<super::super::AsyncClient>();
 
     let Some(client) = build_loopback("http://127.0.0.1:9/v1") else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let before = client.endpoint_identity();
     assert!(before.is_ok());
     let replacement = BearerToken::new("replacement-token");
     assert!(replacement.is_ok());
-    if let Ok(replacement) = replacement {
-        assert!(client.rotate_bearer_token(replacement).is_ok());
-    }
+    let Ok(replacement) = replacement else {
+        unreachable!("security fixture construction failed");
+    };
+    assert!(client.rotate_bearer_token(replacement).is_ok());
+
     assert_eq!(client.endpoint_identity(), before);
 }
 
 #[test]
 fn async_send_future_stays_within_explicit_state_budget() {
     let Some(client) = build_loopback("http://127.0.0.1:9/v1") else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let Ok(target) = RequestTarget::new("/future-size") else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let mut output = [0_u8; 1];
     let mut headers = [0_u8; 8192];
@@ -51,12 +53,14 @@ fn async_send_future_stays_within_explicit_state_budget() {
 fn async_shared_handle_supports_overlapping_caller_bounded_requests() {
     run_async_test(async {
         let server = spawn_concurrent_pair("200 OK", b"ok");
-        let Ok(server) = server else { return };
+        let Ok(server) = server else {
+            unreachable!("security fixture construction failed")
+        };
         let Some(client) = build_loopback(&server.endpoint) else {
-            return;
+            unreachable!("security fixture construction failed");
         };
         let Ok(target) = RequestTarget::new("/concurrent") else {
-            return;
+            unreachable!("security fixture construction failed");
         };
 
         let results = join_two(send_once(&client, target), send_once(&client, target)).await;
@@ -71,9 +75,11 @@ fn async_shared_handle_supports_overlapping_caller_bounded_requests() {
 fn async_rotation_from_mutable_bytes_is_visible_to_clones() {
     run_async_test(async {
         let server = spawn_concurrent_pair("200 OK", b"ok");
-        let Ok(server) = server else { return };
+        let Ok(server) = server else {
+            unreachable!("security fixture construction failed")
+        };
         let Some(client) = build_loopback(&server.endpoint) else {
-            return;
+            unreachable!("security fixture construction failed");
         };
         let clone = client.clone();
         let mut replacement = *b"rotated-token";
@@ -84,7 +90,7 @@ fn async_rotation_from_mutable_bytes_is_visible_to_clones() {
         );
         assert_eq!(replacement, [0; 13]);
         let Ok(target) = RequestTarget::new("/rotation") else {
-            return;
+            unreachable!("security fixture construction failed");
         };
 
         let results = join_two(send_once(&client, target), send_once(&clone, target)).await;
@@ -96,12 +102,14 @@ fn async_rotation_from_mutable_bytes_is_visible_to_clones() {
 fn async_rotation_does_not_change_an_in_flight_token_snapshot() {
     run_async_test(async {
         let server = spawn_sequence_with_first_delay("200 OK", b"ok", Duration::from_millis(150));
-        let Ok(server) = server else { return };
+        let Ok(server) = server else {
+            unreachable!("security fixture construction failed")
+        };
         let Some(client) = build_loopback(&server.endpoint) else {
-            return;
+            unreachable!("security fixture construction failed");
         };
         let Ok(target) = RequestTarget::new("/rotation") else {
-            return;
+            unreachable!("security fixture construction failed");
         };
         let first = send_once(&client, target);
         let mut first = core::pin::pin!(first);
@@ -109,7 +117,9 @@ fn async_rotation_does_not_change_an_in_flight_token_snapshot() {
         let first_request = loop {
             match server.request.try_recv() {
                 Ok(request) => break request,
-                Err(std::sync::mpsc::TryRecvError::Disconnected) => return,
+                Err(std::sync::mpsc::TryRecvError::Disconnected) => {
+                    unreachable!("security fixture construction failed")
+                }
                 Err(std::sync::mpsc::TryRecvError::Empty) => {
                     let state = poll_fn(|context| Poll::Ready(first.as_mut().poll(context))).await;
                     assert!(matches!(state, Poll::Pending));
@@ -131,10 +141,11 @@ fn async_rotation_does_not_change_an_in_flight_token_snapshot() {
         assert!(send_once(&client, target).await);
         let second_request = server.request.recv_timeout(Duration::from_secs(2));
         assert!(second_request.is_ok());
-        if let Ok(second_request) = second_request {
-            assert!(has_authorization(&second_request.bytes, "rotated-token"));
-            assert!(!has_authorization(&second_request.bytes, "test-token"));
-        }
+        let Ok(second_request) = second_request else {
+            unreachable!("security fixture construction failed");
+        };
+        assert!(has_authorization(&second_request.bytes, "rotated-token"));
+        assert!(!has_authorization(&second_request.bytes, "test-token"));
     });
 }
 

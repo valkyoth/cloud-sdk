@@ -31,10 +31,10 @@ reason = "Update the cloud-sdk dependency to the v0.55 public checkpoint."
 
 [crates."cloud-sdk-sanitization"]
 previous_version = "0.17.0"
-version = "0.17.0"
-change = "unchanged"
-publish = false
-reason = "No code, dependency, or package metadata changes."
+version = "0.18.0"
+change = "code"
+publish = true
+reason = "Make sanitizer cleanup fixtures fail closed under the workspace-wide test policy."
 
 [crates."cloud-sdk-testkit"]
 previous_version = "0.28.2"

@@ -42,7 +42,9 @@ fn test_timeouts() -> Option<RequestTimeouts> {
 fn async_prepared_cleanup_contract_clears_the_complete_caller_buffer() {
     let client = build_loopback("http://127.0.0.1:1/v1");
     assert!(client.is_some());
-    let Some(client) = client else { return };
+    let Some(client) = client else {
+        unreachable!("security fixture construction failed")
+    };
     let mut output = [0xA5_u8; 64];
     client.sanitize_response_storage(&mut output);
     assert_eq!(output, [0_u8; 64]);
@@ -114,15 +116,17 @@ fn async_client_sends_exact_headers_target_and_body_once() {
             b"retry-later",
             Duration::ZERO,
         );
-        let Ok(server) = server else { return };
+        let Ok(server) = server else {
+            unreachable!("security fixture construction failed")
+        };
         let Some(client) = build_loopback(&server.endpoint) else {
-            return;
+            unreachable!("security fixture construction failed");
         };
         let Ok(target) = RequestTarget::new("/servers?name=test%20server") else {
-            return;
+            unreachable!("security fixture construction failed");
         };
         let Ok(sensitive) = RequestHeader::sensitive("x-test-secret", "redacted-value") else {
-            return;
+            unreachable!("security fixture construction failed");
         };
         let entries = [
             RequestHeader::accept(cloud_sdk::transport::MediaType::JSON),
@@ -130,7 +134,7 @@ fn async_client_sends_exact_headers_target_and_body_once() {
             sensitive,
         ];
         let Ok(headers) = RequestHeaders::new(&entries) else {
-            return;
+            unreachable!("security fixture construction failed");
         };
         let request = TransportRequest::new(Method::Post, target)
             .with_body(br#"{"name":"server"}"#)
@@ -144,17 +148,18 @@ fn async_client_sends_exact_headers_target_and_body_once() {
 
         let recorded = server.request.recv_timeout(Duration::from_secs(2));
         assert!(recorded.is_ok());
-        if let Ok(recorded) = recorded {
-            let wire = String::from_utf8_lossy(&recorded.bytes).to_ascii_lowercase();
-            assert!(wire.starts_with("post /v1/servers?name=test%20server http/1.1\r\n"));
-            assert!(wire.contains("authorization: bearer test-token\r\n"));
-            assert!(wire.contains("user-agent: cloud-sdk-test/0.18\r\n"));
-            assert!(wire.contains("accept: application/json\r\n"));
-            assert!(wire.contains("content-type: application/json\r\n"));
-            assert!(wire.contains("x-test-secret: redacted-value\r\n"));
-            assert!(wire.contains("content-type: application/json\r\n"));
-            assert!(wire.ends_with(r#"{"name":"server"}"#));
-        }
+        let Ok(recorded) = recorded else {
+            unreachable!("security fixture construction failed");
+        };
+        let wire = String::from_utf8_lossy(&recorded.bytes).to_ascii_lowercase();
+        assert!(wire.starts_with("post /v1/servers?name=test%20server http/1.1\r\n"));
+        assert!(wire.contains("authorization: bearer test-token\r\n"));
+        assert!(wire.contains("user-agent: cloud-sdk-test/0.18\r\n"));
+        assert!(wire.contains("accept: application/json\r\n"));
+        assert!(wire.contains("content-type: application/json\r\n"));
+        assert!(wire.contains("x-test-secret: redacted-value\r\n"));
+        assert!(wire.contains("content-type: application/json\r\n"));
+        assert!(wire.ends_with(r#"{"name":"server"}"#));
     });
 }
 
@@ -208,12 +213,14 @@ fn async_redirect_is_not_followed_or_admitted_and_oversized_body_is_rejected() {
             b"redirect",
             Duration::ZERO,
         );
-        let Ok(redirect) = redirect else { return };
+        let Ok(redirect) = redirect else {
+            unreachable!("security fixture construction failed")
+        };
         let Some(client) = build_loopback(&redirect.endpoint) else {
-            return;
+            unreachable!("security fixture construction failed");
         };
         let Ok(target) = RequestTarget::new("/servers") else {
-            return;
+            unreachable!("security fixture construction failed");
         };
         let mut output = [0_u8; 16];
         let response = send_test(
@@ -229,9 +236,11 @@ fn async_redirect_is_not_followed_or_admitted_and_oversized_body_is_rejected() {
         assert_eq!(output, [0_u8; 16]);
 
         let oversized = spawn("200 OK", &[], b"oversized", Duration::ZERO);
-        let Ok(oversized) = oversized else { return };
+        let Ok(oversized) = oversized else {
+            unreachable!("security fixture construction failed")
+        };
         let Some(client) = build_loopback(&oversized.endpoint) else {
-            return;
+            unreachable!("security fixture construction failed");
         };
         let mut short = [0xa5_u8; 4];
         let result = send_test(
@@ -264,12 +273,14 @@ fn async_checked_response_exposes_content_type_without_transport_rate_limit_deco
             b"{}",
             Duration::ZERO,
         );
-        let Ok(server) = server else { return };
+        let Ok(server) = server else {
+            unreachable!("security fixture construction failed")
+        };
         let Some(client) = build_loopback(&server.endpoint) else {
-            return;
+            unreachable!("security fixture construction failed");
         };
         let Ok(target) = RequestTarget::new("/servers") else {
-            return;
+            unreachable!("security fixture construction failed");
         };
         let mut output = [0_u8; 8];
         let response = send_test(
@@ -279,9 +290,11 @@ fn async_checked_response_exposes_content_type_without_transport_rate_limit_deco
         )
         .await;
         assert!(response.is_ok());
-        let Ok(response) = response else { return };
+        let Ok(response) = response else {
+            unreachable!("security fixture construction failed")
+        };
         let Some(content_type) = response.content_type() else {
-            return;
+            unreachable!("security fixture construction failed");
         };
         assert_eq!(content_type, "application/json; charset=utf-8");
         assert_eq!(response.rate_limit(), None);
@@ -292,7 +305,7 @@ fn async_checked_response_exposes_content_type_without_transport_rate_limit_deco
 fn async_malformed_or_duplicate_response_content_type_fails_closed() {
     run_async_test(async {
         let Ok(target) = RequestTarget::new("/servers") else {
-            return;
+            unreachable!("security fixture construction failed");
         };
         for (headers, expected) in [
             (
@@ -308,9 +321,11 @@ fn async_malformed_or_duplicate_response_content_type_fails_closed() {
             ),
         ] {
             let server = spawn("200 OK", headers, b"secret", Duration::ZERO);
-            let Ok(server) = server else { return };
+            let Ok(server) = server else {
+                unreachable!("security fixture construction failed")
+            };
             let Some(client) = build_loopback(&server.endpoint) else {
-                return;
+                unreachable!("security fixture construction failed");
             };
             let mut output = [0xa5_u8; 8];
             assert!(matches!(
@@ -341,12 +356,14 @@ fn async_duplicate_rate_limit_headers_fail_closed() {
             b"secret",
             Duration::ZERO,
         );
-        let Ok(server) = server else { return };
+        let Ok(server) = server else {
+            unreachable!("security fixture construction failed")
+        };
         let Some(client) = build_loopback(&server.endpoint) else {
-            return;
+            unreachable!("security fixture construction failed");
         };
         let Ok(target) = RequestTarget::new("/servers") else {
-            return;
+            unreachable!("security fixture construction failed");
         };
         let mut output = [0xa5_u8; 8];
         let result = send_test(
@@ -369,7 +386,9 @@ fn async_duplicate_rate_limit_headers_fail_closed() {
 fn internal_timeout_is_payload_free_and_clears_output() {
     run_async_test(async {
         let server = spawn("200 OK", &[], b"late", Duration::from_millis(100));
-        let Ok(server) = server else { return };
+        let Ok(server) = server else {
+            unreachable!("security fixture construction failed")
+        };
         let endpoint = HttpsEndpoint::local_http(&server.endpoint);
         let token = BearerToken::new("test-token");
         let user_agent = UserAgent::new("cloud-sdk-test/0.18");
@@ -377,14 +396,16 @@ fn internal_timeout_is_payload_free_and_clears_output() {
         let (Ok(endpoint), Ok(token), Ok(user_agent), Ok(timeouts)) =
             (endpoint, token, user_agent, timeouts)
         else {
-            return;
+            unreachable!("security fixture construction failed");
         };
         let credential = test_credential(token, &endpoint);
         let client = AsyncClientBuilder::new(endpoint, credential, user_agent, timeouts)
             .build_for_loopback();
-        let Ok(client) = client else { return };
+        let Ok(client) = client else {
+            unreachable!("security fixture construction failed")
+        };
         let Ok(target) = RequestTarget::new("/slow") else {
-            return;
+            unreachable!("security fixture construction failed");
         };
         let mut output = [0xa5_u8; 8];
         let result = send_test(
@@ -410,12 +431,14 @@ fn caller_cancellation_after_partial_body_never_exposes_response() {
             b"-tail",
             Duration::from_millis(500),
         );
-        let Ok(server) = server else { return };
+        let Ok(server) = server else {
+            unreachable!("security fixture construction failed")
+        };
         let Some(client) = build_loopback(&server.endpoint) else {
-            return;
+            unreachable!("security fixture construction failed");
         };
         let Ok(target) = RequestTarget::new("/slow") else {
-            return;
+            unreachable!("security fixture construction failed");
         };
         let mut output = [0xa5_u8; 32];
         let mut headers = [0xa5_u8; 8192];

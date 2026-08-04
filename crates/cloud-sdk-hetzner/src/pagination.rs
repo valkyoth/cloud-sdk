@@ -274,7 +274,9 @@ mod tests {
             Some(100),
         );
         assert!(metadata.is_ok());
-        let Ok(metadata) = metadata else { return };
+        let Ok(metadata) = metadata else {
+            unreachable!("security fixture construction failed")
+        };
         assert_eq!(metadata.as_core().page().get(), 2);
         assert_eq!(
             metadata.as_core().next_page().map(|page| page.get()),

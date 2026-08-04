@@ -103,16 +103,22 @@ where
 fn prepares_global_actions_and_catalog_gets() {
     let id = ActionId::new(7);
     assert!(id.is_some());
-    let Some(id) = id else { return };
+    let Some(id) = id else {
+        unreachable!("security fixture construction failed")
+    };
     let ids = [id];
     let operation = ActionListRequest::try_new(&ids);
     assert!(operation.is_ok());
-    let Ok(operation) = operation else { return };
+    let Ok(operation) = operation else {
+        unreachable!("security fixture construction failed")
+    };
     let mut target = [0_u8; 64];
     let mut body = [0_u8; 1];
     let prepared = operation.prepare(PreparationStorage::new(&mut target, &mut body));
     assert!(prepared.is_ok());
-    let Ok(prepared) = prepared else { return };
+    let Ok(prepared) = prepared else {
+        unreachable!("security fixture construction failed")
+    };
     assert_eq!(
         prepared.transport_request().target().as_str(),
         "/actions?id=7"
@@ -121,7 +127,7 @@ fn prepares_global_actions_and_catalog_gets() {
     let query = CanonicalQuery::new("id=7");
     assert!(path.is_ok() && query.is_ok());
     let (Ok(path), Ok(query)) = (path, query) else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     assert_eq!(prepared.transport_request().target().path(), path);
     assert_eq!(
@@ -159,12 +165,14 @@ fn prepares_global_actions_and_catalog_gets() {
     let catalog_id = CatalogId::new(3);
     assert!(catalog_id.is_some());
     let Some(catalog_id) = catalog_id else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let endpoint = CatalogGetEndpoint::Location(catalog_id);
     let prepared = endpoint.prepare(PreparationStorage::new(&mut target, &mut body));
     assert!(prepared.is_ok());
-    let Ok(prepared) = prepared else { return };
+    let Ok(prepared) = prepared else {
+        unreachable!("security fixture construction failed")
+    };
     assert_eq!(
         prepared.transport_request().target().as_str(),
         "/locations/3"
@@ -187,7 +195,9 @@ fn missing_required_components_clear_complete_storage() {
 fn insufficient_target_storage_never_exposes_partial_bytes() {
     let id = ActionId::new(42);
     assert!(id.is_some());
-    let Some(id) = id else { return };
+    let Some(id) = id else {
+        unreachable!("security fixture construction failed")
+    };
     let endpoint = ActionEndpoint::Get(id);
     let mut target = [0xA5_u8; 4];
     let mut body = [0x5A_u8; 4];
@@ -203,7 +213,9 @@ fn insufficient_target_storage_never_exposes_partial_bytes() {
 fn cleanup_guard_retains_storage_until_transport_use_then_clears_all_bytes() {
     let id = ActionId::new(42);
     assert!(id.is_some());
-    let Some(id) = id else { return };
+    let Some(id) = id else {
+        unreachable!("security fixture construction failed")
+    };
     let mut target = [0xA5_u8; 32];
     let mut body = [0x5A_u8; 16];
     {
@@ -211,7 +223,9 @@ fn cleanup_guard_retains_storage_until_transport_use_then_clears_all_bytes() {
         {
             let prepared = storage.prepare(&ActionEndpoint::Get(id));
             assert!(prepared.is_ok());
-            let Ok(prepared) = prepared else { return };
+            let Ok(prepared) = prepared else {
+                unreachable!("security fixture construction failed")
+            };
             assert_eq!(
                 prepared.transport_request().target().as_str(),
                 "/actions/42"
@@ -226,7 +240,9 @@ fn cleanup_guard_retains_storage_until_transport_use_then_clears_all_bytes() {
 fn checked_pairing_supports_local_filters_and_rejects_mismatches() {
     let zone_id = CloudResourceId::new(9);
     assert!(zone_id.is_some());
-    let Some(zone_id) = zone_id else { return };
+    let Some(zone_id) = zone_id else {
+        unreachable!("security fixture construction failed")
+    };
     let zone = ZoneReference::Id(zone_id);
     let operation = HetznerPreparedOperation::query(
         ZoneActionEndpoint::ListForZone(zone),
@@ -236,7 +252,9 @@ fn checked_pairing_supports_local_filters_and_rejects_mismatches() {
     let mut body = [0_u8; 8];
     let prepared = operation.prepare(PreparationStorage::new(&mut target, &mut body));
     assert!(prepared.is_ok());
-    let Ok(prepared) = prepared else { return };
+    let Ok(prepared) = prepared else {
+        unreachable!("security fixture construction failed")
+    };
     assert_eq!(
         prepared.transport_request().target().as_str(),
         "/zones/9/actions"
@@ -258,13 +276,17 @@ fn checked_pairing_supports_local_filters_and_rejects_mismatches() {
 fn prepares_exact_json_and_clears_failed_body_storage() {
     let zone_id = CloudResourceId::new(11);
     assert!(zone_id.is_some());
-    let Some(zone_id) = zone_id else { return };
+    let Some(zone_id) = zone_id else {
+        unreachable!("security fixture construction failed")
+    };
     let request = ZoneProtectionRequest::new(ZoneReference::Id(zone_id), true);
     let mut target = [0_u8; 64];
     let mut body = [0_u8; 32];
     let prepared = request.prepare(PreparationStorage::new(&mut target, &mut body));
     assert!(prepared.is_ok());
-    let Ok(prepared) = prepared else { return };
+    let Ok(prepared) = prepared else {
+        unreachable!("security fixture construction failed")
+    };
     assert_eq!(
         prepared.transport_request().target().as_str(),
         "/zones/11/actions/change_protection"
@@ -304,7 +326,7 @@ fn prepares_firewall_removal_with_destructive_metadata() {
     let server = FirewallId::new(7);
     assert!(firewall.is_some() && server.is_some());
     let (Some(firewall), Some(server)) = (firewall, server) else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let resources = [FirewallResource::Server(server)];
     let operation = HetznerPreparedOperation::json(
@@ -315,7 +337,9 @@ fn prepares_firewall_removal_with_destructive_metadata() {
     let mut body = [0_u8; 96];
     let prepared = operation.prepare(PreparationStorage::new(&mut target, &mut body));
     assert!(prepared.is_ok());
-    let Ok(prepared) = prepared else { return };
+    let Ok(prepared) = prepared else {
+        unreachable!("security fixture construction failed")
+    };
     assert_eq!(
         prepared.transport_request().target().as_str(),
         "/firewalls/42/actions/remove_from_resources"
@@ -333,7 +357,7 @@ fn prepares_cost_bearing_load_balancer_create() {
     let load_balancer_type = LoadBalancerType::new("lb11");
     assert!(name.is_ok() && load_balancer_type.is_ok());
     let (Ok(name), Ok(load_balancer_type)) = (name, load_balancer_type) else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let request = LoadBalancerCreateRequest::new(name, load_balancer_type)
         .with_algorithm(LoadBalancerAlgorithm::LeastConnections)
@@ -342,7 +366,9 @@ fn prepares_cost_bearing_load_balancer_create() {
     let mut body = [0_u8; 160];
     let prepared = request.prepare(PreparationStorage::new(&mut target, &mut body));
     assert!(prepared.is_ok());
-    let Ok(prepared) = prepared else { return };
+    let Ok(prepared) = prepared else {
+        unreachable!("security fixture construction failed")
+    };
     assert_eq!(
         prepared.transport_request().target().as_str(),
         "/load_balancers"
@@ -372,7 +398,7 @@ fn destructive_metadata_covers_replacement_reset_and_protection_operations() {
     assert!(cloud_id.is_some() && server_id.is_some() && rrset_name.is_ok());
     let (Some(cloud_id), Some(server_id), Ok(rrset_name)) = (cloud_id, server_id, rrset_name)
     else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let zone = ZoneReference::Id(cloud_id);
     let rrset = RrsetReference::new(zone, rrset_name, RrsetType::A);
@@ -407,13 +433,17 @@ fn destructive_metadata_covers_replacement_reset_and_protection_operations() {
 fn enabling_server_backups_requires_cost_approval() {
     let server_id = ServerId::new(7);
     assert!(server_id.is_some());
-    let Some(server_id) = server_id else { return };
+    let Some(server_id) = server_id else {
+        unreachable!("security fixture construction failed")
+    };
     let metadata = EndpointWire::metadata(ServerActionEndpoint::Start(
         server_id,
         ServerActionKind::EnableBackup,
     ));
     assert!(metadata.is_ok());
-    let Ok(metadata) = metadata else { return };
+    let Ok(metadata) = metadata else {
+        unreachable!("security fixture construction failed")
+    };
     assert_eq!(metadata.cost_intent(), CostIntent::MayIncurCost);
 }
 
@@ -427,14 +457,16 @@ fn prepares_storage_secret_atomically_for_the_storage_api() {
     let (Ok(name), Ok(location), Ok(storage_box_type), Ok(password)) =
         (name, location, storage_box_type, password)
     else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let request = StorageBoxCreateRequest::new(name, location, storage_box_type, password);
     let mut target = [0_u8; 32];
     let mut body = [0_u8; 160];
     let prepared = request.prepare(PreparationStorage::new(&mut target, &mut body));
     assert!(prepared.is_ok());
-    let Ok(prepared) = prepared else { return };
+    let Ok(prepared) = prepared else {
+        unreachable!("security fixture construction failed")
+    };
     assert_eq!(
         prepared.transport_request().target().as_str(),
         "/storage_boxes"
@@ -446,15 +478,16 @@ fn prepares_storage_secret_atomically_for_the_storage_api() {
     let storage_endpoint =
         EndpointIdentity::new(EndpointScheme::Https, "api.hetzner.com", 443, "/v1");
     assert!(storage_endpoint.is_ok());
-    if let Ok(storage_endpoint) = storage_endpoint {
-        assert_eq!(
-            prepared
-                .service()
-                .endpoint_policy()
-                .verify(storage_endpoint),
-            Ok(())
-        );
-    }
+    let Ok(storage_endpoint) = storage_endpoint else {
+        unreachable!("security fixture construction failed");
+    };
+    assert_eq!(
+        prepared
+            .service()
+            .endpoint_policy()
+            .verify(storage_endpoint),
+        Ok(())
+    );
 
     let mut short_target = [0xA5_u8; 32];
     let mut short_body = [0x5A_u8; 20];

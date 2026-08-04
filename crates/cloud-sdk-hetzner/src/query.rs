@@ -241,24 +241,32 @@ mod tests {
     #[test]
     fn preserves_deterministic_order() {
         let mut query = QueryBuilder::<2>::new();
-        if let Ok(param) = QueryParam::new("a", "1") {
-            assert!(query.push(param).is_ok());
-        }
-        if let Ok(param) = QueryParam::new("a", "2") {
-            assert_eq!(query.push(param), Ok(()));
-        }
+        let Ok(param) = QueryParam::new("a", "1") else {
+            unreachable!("security fixture construction failed");
+        };
+        assert!(query.push(param).is_ok());
+
+        let Ok(param) = QueryParam::new("a", "2") else {
+            unreachable!("security fixture construction failed");
+        };
+        assert_eq!(query.push(param), Ok(()));
+
         assert_eq!(query.len(), 2);
     }
 
     #[test]
     fn writes_percent_encoded_query_without_allocating() {
         let mut query = QueryBuilder::<2>::new();
-        if let Ok(param) = QueryParam::new("label_selector", "env=prod,tier in (web,api)") {
-            assert!(query.push(param).is_ok());
-        }
-        if let Ok(param) = QueryParam::new("page", "1") {
-            assert!(query.push(param).is_ok());
-        }
+        let Ok(param) = QueryParam::new("label_selector", "env=prod,tier in (web,api)") else {
+            unreachable!("security fixture construction failed");
+        };
+        assert!(query.push(param).is_ok());
+
+        let Ok(param) = QueryParam::new("page", "1") else {
+            unreachable!("security fixture construction failed");
+        };
+        assert!(query.push(param).is_ok());
+
         let mut output = [0u8; 128];
         assert_eq!(query.write_percent_encoded(&mut output), Ok(62));
         assert_eq!(query.encoded_len(), Ok(62));
@@ -289,11 +297,14 @@ mod tests {
     #[test]
     fn rejects_out_of_order_query_keys() {
         let mut query = QueryBuilder::<2>::new();
-        if let Ok(param) = QueryParam::new("b", "1") {
-            assert!(query.push(param).is_ok());
-        }
-        if let Ok(param) = QueryParam::new("a", "1") {
-            assert_eq!(query.push(param), Err(QueryError::OutOfOrder));
-        }
+        let Ok(param) = QueryParam::new("b", "1") else {
+            unreachable!("security fixture construction failed");
+        };
+        assert!(query.push(param).is_ok());
+
+        let Ok(param) = QueryParam::new("a", "1") else {
+            unreachable!("security fixture construction failed");
+        };
+        assert_eq!(query.push(param), Err(QueryError::OutOfOrder));
     }
 }

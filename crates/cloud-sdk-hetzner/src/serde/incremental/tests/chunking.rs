@@ -161,7 +161,7 @@ fn visitor_errors_are_recoverable_but_redacted_from_diagnostics() {
     assert!(result.is_err(), "visitor failure must propagate");
     let error = match result {
         Err(error) => error,
-        Ok(_) => return,
+        Ok(_) => unreachable!("security fixture construction failed"),
     };
     assert!(!format!("{error:?}").contains("sensitive visitor payload"));
     assert_eq!(

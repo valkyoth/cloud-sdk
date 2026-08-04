@@ -18,19 +18,21 @@ fn public_path_accepts_exact_and_rejects_plus_one_request_body() {
             b"{}",
             Duration::ZERO,
         ) else {
-            return;
+            unreachable!("security fixture construction failed");
         };
         let Some(client) = build_raw_loopback(&server.endpoint) else {
-            return;
+            unreachable!("security fixture construction failed");
         };
         let Ok(target) = cloud_sdk::transport::RequestTarget::new("/servers") else {
-            return;
+            unreachable!("security fixture construction failed");
         };
         let header_values = [RequestHeader::content_type(ContentType::JSON)];
         let Ok(headers) = RequestHeaders::new(&header_values) else {
-            return;
+            unreachable!("security fixture construction failed");
         };
-        let Some(policy) = policy(2) else { return };
+        let Some(policy) = policy(2) else {
+            unreachable!("security fixture construction failed")
+        };
         let exact = std::vec![0x5a; MAX_RAW_REQUEST_BODY_BYTES];
         let mut body = [0xa5_u8; 16];
         let mut header_storage = [0xa5_u8; 128];
@@ -50,7 +52,7 @@ fn public_path_accepts_exact_and_rejects_plus_one_request_body() {
         drop(exact);
 
         let Some(client) = build_raw_loopback("http://127.0.0.1:9/v1") else {
-            return;
+            unreachable!("security fixture construction failed");
         };
         let oversized = std::vec![0x5a; MAX_RAW_REQUEST_BODY_BYTES.saturating_add(1)];
         let mut body = [0xa5_u8; 16];

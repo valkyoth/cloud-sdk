@@ -11,30 +11,31 @@ use crate::pagination::{Page, PerPage, SortDirection};
 fn server_adjacent_placement_group_paths_match_api_matrix() {
     let id = PlacementGroupId::new(42);
     let mut output = [0u8; 64];
-    if let Some(id) = id {
-        assert_eq!(PlacementGroupEndpoint::List.write_path(&mut output), Ok(17));
-        assert_eq!(
-            PlacementGroupEndpoint::Create.write_path(&mut output),
-            Ok(17)
-        );
-        assert_eq!(
-            PlacementGroupEndpoint::Get(id).write_path(&mut output),
-            Ok(20)
-        );
-        assert_eq!(PlacementGroupEndpoint::Update(id).method().as_str(), "PUT");
-        assert_eq!(
-            PlacementGroupEndpoint::Delete(id).method().as_str(),
-            "DELETE"
-        );
-        let path = output
-            .get(..20)
-            .and_then(|bytes| core::str::from_utf8(bytes).ok());
-        assert_eq!(path, Some("/placement_groups/42"));
-        assert_eq!(
-            PlacementGroupEndpoint::Get(id).endpoint_group(),
-            EndpointGroup::PlacementGroups
-        );
-    }
+    let Some(id) = id else {
+        unreachable!("security fixture construction failed");
+    };
+    assert_eq!(PlacementGroupEndpoint::List.write_path(&mut output), Ok(17));
+    assert_eq!(
+        PlacementGroupEndpoint::Create.write_path(&mut output),
+        Ok(17)
+    );
+    assert_eq!(
+        PlacementGroupEndpoint::Get(id).write_path(&mut output),
+        Ok(20)
+    );
+    assert_eq!(PlacementGroupEndpoint::Update(id).method().as_str(), "PUT");
+    assert_eq!(
+        PlacementGroupEndpoint::Delete(id).method().as_str(),
+        "DELETE"
+    );
+    let path = output
+        .get(..20)
+        .and_then(|bytes| core::str::from_utf8(bytes).ok());
+    assert_eq!(path, Some("/placement_groups/42"));
+    assert_eq!(
+        PlacementGroupEndpoint::Get(id).endpoint_group(),
+        EndpointGroup::PlacementGroups
+    );
 }
 
 #[test]
@@ -43,22 +44,23 @@ fn server_adjacent_placement_group_query_writes_filters_pagination_and_sorting()
     let page = Page::new(2);
     let per_page = PerPage::new(25);
     let mut output = [0u8; 96];
-    if let (Ok(selector), Ok(page), Ok(per_page)) = (selector, page, per_page) {
-        let request = PlacementGroupListRequest::new()
-            .with_label_selector(selector)
-            .with_page(page)
-            .with_per_page(per_page)
-            .with_sort(PlacementGroupSortField::Created, SortDirection::Desc);
-        let written = request.write_query(&mut output);
-        assert_eq!(written, Ok(64));
-        let query = output
-            .get(..64)
-            .and_then(|bytes| core::str::from_utf8(bytes).ok());
-        assert_eq!(
-            query,
-            Some("label_selector=env%3Dprod&page=2&per_page=25&sort=created%3Adesc")
-        );
-    }
+    let (Ok(selector), Ok(page), Ok(per_page)) = (selector, page, per_page) else {
+        unreachable!("security fixture construction failed");
+    };
+    let request = PlacementGroupListRequest::new()
+        .with_label_selector(selector)
+        .with_page(page)
+        .with_per_page(per_page)
+        .with_sort(PlacementGroupSortField::Created, SortDirection::Desc);
+    let written = request.write_query(&mut output);
+    assert_eq!(written, Ok(64));
+    let query = output
+        .get(..64)
+        .and_then(|bytes| core::str::from_utf8(bytes).ok());
+    assert_eq!(
+        query,
+        Some("label_selector=env%3Dprod&page=2&per_page=25&sort=created%3Adesc")
+    );
 }
 
 #[test]
@@ -72,9 +74,10 @@ fn server_adjacent_placement_group_type_and_required_fields_are_validated() {
         Ok("spread")
     );
     let name = PlacementGroupName::new("spread-a");
-    if let Ok(name) = name {
-        let request = PlacementGroupCreateRequest::new(name, PlacementGroupType::Spread);
-        assert_eq!(request.endpoint(), PlacementGroupEndpoint::Create);
-        assert_eq!(request.placement_group_type(), PlacementGroupType::Spread);
-    }
+    let Ok(name) = name else {
+        unreachable!("security fixture construction failed");
+    };
+    let request = PlacementGroupCreateRequest::new(name, PlacementGroupType::Spread);
+    assert_eq!(request.endpoint(), PlacementGroupEndpoint::Create);
+    assert_eq!(request.placement_group_type(), PlacementGroupType::Spread);
 }

@@ -39,13 +39,13 @@ fn json_policy<'a>(admitted: &'a [HeaderName<'a>]) -> Option<RawResponsePolicy<'
 #[test]
 fn raw_blocking_precommitted_writer_fails_before_network_access() {
     let Some(client) = build_raw_loopback("http://127.0.0.1:1/v1") else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let Ok(target) = cloud_sdk::transport::RequestTarget::new("/precommitted") else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let Some(policy) = json_policy(&[]) else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let mut body = [0xa5_u8; 8];
     let mut headers = [0xa5_u8; 128];
@@ -87,31 +87,33 @@ fn raw_blocking_sends_no_implicit_auth_or_json_accept() {
         b"{}",
         Duration::ZERO,
     );
-    let Ok(server) = server else { return };
+    let Ok(server) = server else {
+        unreachable!("security fixture construction failed")
+    };
     let Some(client) = build_raw_loopback(&server.endpoint) else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let Ok(target) = cloud_sdk::transport::RequestTarget::new("/servers") else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let Ok(content_type) = HeaderName::new("content-type") else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let Ok(request_id) = HeaderName::new("x-request-id") else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let Ok(limit) = HeaderName::new("ratelimit-limit") else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let Ok(remaining) = HeaderName::new("ratelimit-remaining") else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let Ok(reset) = HeaderName::new("ratelimit-reset") else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let admitted = [content_type, request_id, limit, remaining, reset];
     let Some(policy) = json_policy(&admitted) else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let mut body = [0xa5_u8; 16];
     let mut header_storage = [0xa5_u8; 128];
@@ -139,11 +141,12 @@ fn raw_blocking_sends_no_implicit_auth_or_json_accept() {
 
     let recorded = server.request.recv_timeout(Duration::from_secs(2));
     assert!(recorded.is_ok());
-    if let Ok(recorded) = recorded {
-        let wire = String::from_utf8_lossy(&recorded.bytes).to_ascii_lowercase();
-        assert!(!wire.contains("authorization:"));
-        assert!(!wire.contains("accept: application/json"));
-    }
+    let Ok(recorded) = recorded else {
+        unreachable!("security fixture construction failed");
+    };
+    let wire = String::from_utf8_lossy(&recorded.bytes).to_ascii_lowercase();
+    assert!(!wire.contains("authorization:"));
+    assert!(!wire.contains("accept: application/json"));
 }
 
 #[test]
@@ -154,15 +157,17 @@ fn raw_blocking_uses_error_cap_and_response_started_phase() {
         b"12345",
         Duration::ZERO,
     );
-    let Ok(server) = server else { return };
+    let Ok(server) = server else {
+        unreachable!("security fixture construction failed")
+    };
     let Some(client) = build_raw_loopback(&server.endpoint) else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let Ok(target) = cloud_sdk::transport::RequestTarget::new("/servers") else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let Some(policy) = json_policy(&[]) else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let mut body = [0xa5_u8; 16];
     let mut header_storage = [0xa5_u8; 128];
@@ -183,27 +188,31 @@ fn raw_blocking_uses_error_cap_and_response_started_phase() {
 #[test]
 fn raw_blocking_connect_failure_is_not_sent() {
     let endpoint = custom_endpoint("https://127.0.0.1:9/v1");
-    let Ok(endpoint) = endpoint else { return };
+    let Ok(endpoint) = endpoint else {
+        unreachable!("security fixture construction failed")
+    };
     let Ok(user_agent) = UserAgent::new("cloud-sdk-raw-test/0.40") else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let Some(timeouts) = test_timeouts() else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let builder = RawBlockingClientBuilder::new(endpoint, user_agent, timeouts);
     #[cfg(feature = "blocking-rustls-fips")]
     let builder = {
         let Some(policy) = fips_tls_policy() else {
-            return;
+            unreachable!("security fixture construction failed");
         };
         builder.with_fips_tls_policy(policy)
     };
-    let Ok(client) = builder.build() else { return };
+    let Ok(client) = builder.build() else {
+        unreachable!("security fixture construction failed")
+    };
     let Ok(target) = cloud_sdk::transport::RequestTarget::new("/servers") else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let Some(policy) = json_policy(&[]) else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let mut body = [0xa5_u8; 16];
     let mut header_storage = [0xa5_u8; 128];
@@ -222,19 +231,19 @@ fn raw_blocking_connect_failure_is_not_sent() {
 #[test]
 fn raw_blocking_rejects_nested_runtime_without_sending() {
     let Some(client) = build_raw_loopback("http://127.0.0.1:9/v1") else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let Ok(target) = cloud_sdk::transport::RequestTarget::new("/servers") else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let Some(policy) = json_policy(&[]) else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let Ok(runtime) = tokio::runtime::Builder::new_current_thread()
         .enable_all()
         .build()
     else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     runtime.block_on(async {
         let mut body = [0xa5_u8; 16];
@@ -280,15 +289,17 @@ fn raw_blocking_rejects_duplicate_and_trailer_heads() {
         ),
     ] {
         let server = spawn("200 OK", headers, b"{}", Duration::ZERO);
-        let Ok(server) = server else { return };
+        let Ok(server) = server else {
+            unreachable!("security fixture construction failed")
+        };
         let Some(client) = build_raw_loopback(&server.endpoint) else {
-            return;
+            unreachable!("security fixture construction failed");
         };
         let Ok(target) = cloud_sdk::transport::RequestTarget::new("/servers") else {
-            return;
+            unreachable!("security fixture construction failed");
         };
         let Some(policy) = json_policy(&[]) else {
-            return;
+            unreachable!("security fixture construction failed");
         };
         let mut body = [0xa5_u8; 16];
         let mut header_storage = [0xa5_u8; 128];
@@ -311,13 +322,13 @@ HTTP/1.1 103 Early Hints\r\nLink: </b>\r\n\r\n\
 HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: 2\r\n\
 Connection: close\r\n\r\n{}";
     let Ok(server) = spawn_raw_response(wire) else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let Some(client) = build_raw_loopback(&server.endpoint) else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let Ok(target) = cloud_sdk::transport::RequestTarget::new("/servers") else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let Ok(policy) = RawResponsePolicy::new(
         16,
@@ -327,7 +338,7 @@ Connection: close\r\n\r\n{}";
         &[],
         1,
     ) else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let mut body = [0xa5_u8; 16];
     let mut header_storage = [0xa5_u8; 128];
@@ -350,13 +361,13 @@ fn raw_blocking_client_is_clone_send_sync_and_concurrent() {
     assert_traits::<RawBlockingClient>();
 
     let Ok(server) = spawn_concurrent_pair("200 OK", b"{}") else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let Some(client) = build_raw_loopback(&server.endpoint) else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let Ok(target) = cloud_sdk::transport::RequestTarget::new("/servers") else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let Ok(policy) = RawResponsePolicy::new(
         16,
@@ -366,7 +377,7 @@ fn raw_blocking_client_is_clone_send_sync_and_concurrent() {
         &[],
         2,
     ) else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     std::thread::scope(|scope| {
         let first = client.clone();
@@ -399,13 +410,13 @@ fn execute_small(
 #[test]
 fn raw_fips_builder_requires_the_same_explicit_tls_policy() {
     let Ok(endpoint) = custom_endpoint("https://example.com/v1") else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let Ok(user_agent) = UserAgent::new("cloud-sdk-raw-test/0.40") else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let Some(timeouts) = test_timeouts() else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     assert!(matches!(
         RawBlockingClientBuilder::new(endpoint, user_agent, timeouts).build(),

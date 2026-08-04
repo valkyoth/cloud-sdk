@@ -9,11 +9,12 @@ v0.51.0 through v0.55.0. It follows the published v0.50.0 baseline.
 cloud-sdk = "0.55.0"
 cloud-sdk-hetzner = "0.39.0"
 cloud-sdk-reqwest = "0.32.4"
+cloud-sdk-sanitization = "0.18.0"
 cloud-sdk-testkit = "0.29.0"
 ```
 
-`cloud-sdk-sanitization` remains `0.17.0` and is not republished because its
-package tree did not change.
+`cloud-sdk-sanitization` moves to `0.18.0` for workspace-wide fail-closed test
+assurance. Its public API and runtime behavior are unchanged.
 
 ## v0.51: Execution Permits
 

@@ -22,11 +22,12 @@ default testkit graph remains the same bounded `no_std` graph enforced by
 | `cloud-sdk` | `0.50.0` | `0.55.0` | cumulative code release |
 | `cloud-sdk-hetzner` | `0.38.0` | `0.39.0` | cumulative provider integration code |
 | `cloud-sdk-reqwest` | `0.32.3` | `0.32.4` | dependency-only core update |
-| `cloud-sdk-sanitization` | `0.17.0` | `0.17.0` | unchanged and excluded |
+| `cloud-sdk-sanitization` | `0.17.0` | `0.18.0` | fail-closed cleanup fixture assurance |
 | `cloud-sdk-testkit` | `0.28.2` | `0.29.0` | cumulative fixture and dynamic scenario code |
 
-The publication manifest contains only the four changed package trees.
-`cloud-sdk-sanitization` remains `publish = false`.
+The publication manifest contains all five changed package trees. The
+sanitization release changes test assurance only; its public API, runtime code,
+dependency graph, and feature graph are unchanged.
 
 ## Root Lockfile Changes Since v0.54
 
@@ -36,6 +37,7 @@ The publication manifest contains only the four changed package trees.
 | `cloud-sdk-hetzner` | `0.38.0` | `0.39.0` | Cumulative provider code version assignment. |
 | `cloud-sdk-reqwest` | `0.32.3` | `0.32.4` | Dependency-only core range update. |
 | `cloud-sdk-testkit` | `0.28.2` | `0.29.0` | Dynamic scenario implementation. |
+| `cloud-sdk-sanitization` | `0.17.0` | `0.18.0` | Workspace-wide fail-closed fixture remediation. |
 
 ## Required Verification
 

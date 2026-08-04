@@ -14,7 +14,9 @@ use crate::test_server::{spawn_concurrent_pair, spawn_sequence_with_first_delay}
 fn prepared_cleanup_contract_clears_the_complete_caller_buffer() {
     let client = build_loopback("http://127.0.0.1:1/v1");
     assert!(client.is_some());
-    let Some(client) = client else { return };
+    let Some(client) = client else {
+        unreachable!("security fixture construction failed")
+    };
     let mut output = [0xA5_u8; 64];
     client.sanitize_response_storage(&mut output);
     assert_eq!(output, [0_u8; 64]);
@@ -26,33 +28,39 @@ fn blocking_client_is_clone_send_sync_and_endpoint_bound() {
     assert_shared::<super::super::BlockingClient>();
 
     let Some(client) = build_loopback("http://127.0.0.1:9/v1") else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let identity = client.endpoint_identity();
     assert!(identity.is_ok());
-    if let Ok(identity) = identity {
-        assert_eq!(identity.host(), "127.0.0.1");
-        assert_eq!(identity.effective_port(), 9);
-        assert_eq!(identity.base_path(), "/v1");
-    }
+    let Ok(identity) = identity else {
+        unreachable!("security fixture construction failed");
+    };
+    assert_eq!(identity.host(), "127.0.0.1");
+    assert_eq!(identity.effective_port(), 9);
+    assert_eq!(identity.base_path(), "/v1");
+
     let before = client.endpoint_identity();
     let replacement = BearerToken::new("replacement-token");
     assert!(replacement.is_ok());
-    if let Ok(replacement) = replacement {
-        assert!(client.rotate_bearer_token(replacement).is_ok());
-    }
+    let Ok(replacement) = replacement else {
+        unreachable!("security fixture construction failed");
+    };
+    assert!(client.rotate_bearer_token(replacement).is_ok());
+
     assert_eq!(client.endpoint_identity(), before);
 }
 
 #[test]
 fn blocking_shared_handle_supports_overlapping_caller_bounded_requests() {
     let server = spawn_concurrent_pair("200 OK", b"ok");
-    let Ok(server) = server else { return };
+    let Ok(server) = server else {
+        unreachable!("security fixture construction failed")
+    };
     let Some(client) = build_loopback(&server.endpoint) else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let Ok(target) = RequestTarget::new("/concurrent") else {
-        return;
+        unreachable!("security fixture construction failed");
     };
 
     std::thread::scope(|scope| {
@@ -69,21 +77,24 @@ fn blocking_shared_handle_supports_overlapping_caller_bounded_requests() {
 #[test]
 fn blocking_rotation_keeps_in_flight_snapshot_and_changes_new_requests() {
     let server = spawn_sequence_with_first_delay("200 OK", b"ok", Duration::from_millis(150));
-    let Ok(server) = server else { return };
+    let Ok(server) = server else {
+        unreachable!("security fixture construction failed")
+    };
     let Some(client) = build_loopback(&server.endpoint) else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let Ok(target) = RequestTarget::new("/rotation") else {
-        return;
+        unreachable!("security fixture construction failed");
     };
 
     std::thread::scope(|scope| {
         let first = scope.spawn(|| send_once(&client, target));
         let first_request = server.request.recv_timeout(Duration::from_secs(2));
         assert!(first_request.is_ok());
-        if let Ok(first_request) = first_request {
-            assert!(has_authorization(&first_request.bytes, "test-token"));
-        }
+        let Ok(first_request) = first_request else {
+            unreachable!("security fixture construction failed");
+        };
+        assert!(has_authorization(&first_request.bytes, "test-token"));
 
         let mut replacement = *b"rotated-token";
         assert!(
@@ -98,16 +109,17 @@ fn blocking_rotation_keeps_in_flight_snapshot_and_changes_new_requests() {
     assert!(send_once(&client, target));
     let second_request = server.request.recv_timeout(Duration::from_secs(2));
     assert!(second_request.is_ok());
-    if let Ok(second_request) = second_request {
-        assert!(has_authorization(&second_request.bytes, "rotated-token"));
-        assert!(!has_authorization(&second_request.bytes, "test-token"));
-    }
+    let Ok(second_request) = second_request else {
+        unreachable!("security fixture construction failed");
+    };
+    assert!(has_authorization(&second_request.bytes, "rotated-token"));
+    assert!(!has_authorization(&second_request.bytes, "test-token"));
 }
 
 #[test]
 fn blocking_guarded_rotation_clears_source_and_is_shared_by_clones() {
     let Some(client) = build_loopback("http://127.0.0.1:9/v1") else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let clone = client.clone();
     let mut source = *b"guarded-token";

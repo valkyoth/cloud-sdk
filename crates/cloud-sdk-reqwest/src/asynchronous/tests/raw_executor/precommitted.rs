@@ -10,12 +10,14 @@ use crate::asynchronous::RawHttpError;
 fn raw_async_precommitted_writer_fails_before_network_access() {
     super::super::run_async_test(async {
         let Some(client) = build_raw_loopback("http://127.0.0.1:1/v1") else {
-            return;
+            unreachable!("security fixture construction failed");
         };
         let Ok(target) = cloud_sdk::transport::RequestTarget::new("/precommitted") else {
-            return;
+            unreachable!("security fixture construction failed");
         };
-        let Some(policy) = policy(2) else { return };
+        let Some(policy) = policy(2) else {
+            unreachable!("security fixture construction failed")
+        };
         let mut body = [0xa5_u8; 8];
         let mut headers = [0xa5_u8; 128];
         let mut response = ResponseBuffer::new(&mut body, 8, &mut headers);

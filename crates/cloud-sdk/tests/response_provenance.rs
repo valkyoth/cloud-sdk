@@ -66,7 +66,9 @@ fn uncommitted_response_fails_closed_and_clears_complete_storage() {
     let mut headers = [0xa5_u8; 8192];
     let policy = json_policy(8);
     assert!(policy.is_ok());
-    let Ok(policy) = policy else { return };
+    let Ok(policy) = policy else {
+        unreachable!("security fixture construction failed")
+    };
     let result = policy.validate(
         ResponseBuffer::with_additive_sanitizer(&mut storage, 8, &mut headers, &sanitizer),
         RequestIdPolicy::Discard,
@@ -213,7 +215,9 @@ fn blocking_and_async_transports_share_sealed_response_provenance() {
     };
     let request = test_request();
     assert!(request.is_some());
-    let Some(request) = request else { return };
+    let Some(request) = request else {
+        unreachable!("security fixture construction failed")
+    };
 
     let mut blocking_storage = [0xa5_u8; 8];
     let mut blocking_headers = [0xa5_u8; 8192];

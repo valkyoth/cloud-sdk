@@ -29,7 +29,9 @@ fn deeply_nested_unknown_fields_do_not_change_domain_state() {
     assert!(ResponseBytes::new(input.as_bytes()).is_ok());
     let parsed = serde_json::from_str::<ActionEnvelope<'_>>(&input);
     assert!(parsed.is_ok());
-    let Ok(parsed) = parsed else { return };
+    let Ok(parsed) = parsed else {
+        unreachable!("security fixture construction failed")
+    };
     assert_eq!(parsed.action().id().get(), 42);
     assert_eq!(parsed.action().command(), "create_rrset");
     assert_eq!(parsed.action().progress(), 50);

@@ -29,7 +29,7 @@ fn mutable_and_guarded_sources_clear_on_success_and_failure() {
 #[test]
 fn rejected_rotation_preserves_active_token_and_clears_input() {
     let Ok(active) = BearerToken::new("active-token") else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let store = CredentialStore::new(active);
     let mut rejected = *b"bad token";
@@ -40,23 +40,26 @@ fn rejected_rotation_preserves_active_token_and_clears_input() {
     assert_eq!(rejected, [0; 9]);
     let snapshot = store.snapshot();
     assert!(snapshot.is_ok());
-    if let Ok(snapshot) = snapshot {
-        assert_eq!(snapshot.owned_bytes(), b"Bearer active-token");
-    }
+    let Ok(snapshot) = snapshot else {
+        unreachable!("security fixture construction failed");
+    };
+    assert_eq!(snapshot.owned_bytes(), b"Bearer active-token");
 }
 
 #[test]
 fn retired_token_waits_for_last_snapshot_and_generations_advance() {
     let drops = Arc::new(AtomicUsize::new(0));
     let active = BearerToken::with_drop_probe("old-token", Arc::clone(&drops));
-    let Ok(active) = active else { return };
+    let Ok(active) = active else {
+        unreachable!("security fixture construction failed")
+    };
     let store = CredentialStore::new(active);
     let old_snapshot = store.snapshot();
     let Ok(old_snapshot) = old_snapshot else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let Ok(replacement) = BearerToken::new("new-token") else {
-        return;
+        unreachable!("security fixture construction failed");
     };
 
     let generation = store.rotate(replacement);
@@ -65,10 +68,12 @@ fn retired_token_waits_for_last_snapshot_and_generations_advance() {
     assert_eq!(old_snapshot.owned_bytes(), b"Bearer old-token");
     let new_snapshot = store.snapshot();
     assert!(new_snapshot.is_ok());
-    if let Ok(new_snapshot) = new_snapshot {
-        assert_eq!(new_snapshot.generation().get(), 2);
-        assert_eq!(new_snapshot.owned_bytes(), b"Bearer new-token");
-    }
+    let Ok(new_snapshot) = new_snapshot else {
+        unreachable!("security fixture construction failed");
+    };
+    assert_eq!(new_snapshot.generation().get(), 2);
+    assert_eq!(new_snapshot.owned_bytes(), b"Bearer new-token");
+
     drop(old_snapshot);
     assert_eq!(drops.load(Ordering::SeqCst), 1);
 }
@@ -76,19 +81,19 @@ fn retired_token_waits_for_last_snapshot_and_generations_advance() {
 #[test]
 fn stale_refresh_cannot_overwrite_newer_rotation() {
     let Ok(active) = BearerToken::new("active-token") else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let store = CredentialStore::new(active);
     let Ok(snapshot) = store.snapshot() else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let handoff = snapshot.refresh_handoff();
     let Ok(rotated) = BearerToken::new("rotated-token") else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     assert!(store.rotate(rotated).is_ok());
     let Ok(stale) = BearerToken::new("stale-refresh") else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     assert_eq!(
         store.refresh(handoff, stale),
@@ -96,29 +101,30 @@ fn stale_refresh_cannot_overwrite_newer_rotation() {
     );
     let current = store.snapshot();
     assert!(current.is_ok());
-    if let Ok(current) = current {
-        assert_eq!(current.owned_bytes(), b"Bearer rotated-token");
-        assert_eq!(current.generation().get(), 2);
-    }
+    let Ok(current) = current else {
+        unreachable!("security fixture construction failed");
+    };
+    assert_eq!(current.owned_bytes(), b"Bearer rotated-token");
+    assert_eq!(current.generation().get(), 2);
 }
 
 #[test]
 fn refresh_handoff_cannot_cross_credential_store_lineages() {
     let Ok(first_token) = BearerToken::new("first-token") else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let Ok(second_token) = BearerToken::new("second-token") else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let first = CredentialStore::new(first_token);
     let second = CredentialStore::new(second_token);
     let Ok(first_snapshot) = first.snapshot() else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let drops = Arc::new(AtomicUsize::new(0));
     let Ok(replacement) = BearerToken::with_drop_probe("foreign-replacement", Arc::clone(&drops))
     else {
-        return;
+        unreachable!("security fixture construction failed");
     };
 
     assert_eq!(
@@ -132,25 +138,26 @@ fn refresh_handoff_cannot_cross_credential_store_lineages() {
     assert_eq!(drops.load(Ordering::SeqCst), 1);
     let current = second.snapshot();
     assert!(current.is_ok());
-    if let Ok(current) = current {
-        assert_eq!(current.owned_bytes(), b"Bearer second-token");
-    }
+    let Ok(current) = current else {
+        unreachable!("security fixture construction failed");
+    };
+    assert_eq!(current.owned_bytes(), b"Bearer second-token");
 }
 
 #[test]
 fn competing_refreshes_allow_exactly_one_generation_transition() {
     let Ok(active) = BearerToken::new("active-token") else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let store = CredentialStore::new(active);
     let Ok(snapshot) = store.snapshot() else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let handoff = snapshot.refresh_handoff();
     let first = BearerToken::new("first-refresh");
     let second = BearerToken::new("second-refresh");
     let (Ok(first), Ok(second)) = (first, second) else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     assert_eq!(
         store
@@ -167,11 +174,11 @@ fn competing_refreshes_allow_exactly_one_generation_transition() {
 #[test]
 fn concurrent_refresh_race_allows_exactly_one_winner() {
     let Ok(active) = BearerToken::new("active-token") else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let store = Arc::new(CredentialStore::new(active));
     let Ok(snapshot) = store.snapshot() else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let handoff = snapshot.refresh_handoff();
     let barrier = Arc::new(Barrier::new(3));
@@ -218,11 +225,11 @@ fn concurrent_refresh_race_allows_exactly_one_winner() {
 #[test]
 fn rejected_refresh_clears_input_without_changing_generation() {
     let Ok(active) = BearerToken::new("active-token") else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let store = CredentialStore::new(active);
     let Ok(snapshot) = store.snapshot() else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let mut rejected = *b"bad token";
     assert!(matches!(
@@ -239,7 +246,7 @@ fn rejected_refresh_clears_input_without_changing_generation() {
 #[test]
 fn poisoned_state_recovers_for_snapshots_rotations_and_refreshes() {
     let Ok(active) = BearerToken::new("active-token") else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let store = CredentialStore::new(active);
 
@@ -247,11 +254,13 @@ fn poisoned_state_recovers_for_snapshots_rotations_and_refreshes() {
     let snapshot = store.snapshot();
     assert!(snapshot.is_ok());
     assert!(!store.current.is_poisoned());
-    let Ok(snapshot) = snapshot else { return };
+    let Ok(snapshot) = snapshot else {
+        unreachable!("security fixture construction failed")
+    };
 
     poison_state(&store);
     let Ok(replacement) = BearerToken::new("replacement-token") else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     assert!(
         store
@@ -261,19 +270,22 @@ fn poisoned_state_recovers_for_snapshots_rotations_and_refreshes() {
     assert!(!store.current.is_poisoned());
     let snapshot = store.snapshot();
     assert!(snapshot.is_ok());
-    if let Ok(snapshot) = snapshot {
-        assert_eq!(snapshot.owned_bytes(), b"Bearer replacement-token");
-    }
+    let Ok(snapshot) = snapshot else {
+        unreachable!("security fixture construction failed");
+    };
+    assert_eq!(snapshot.owned_bytes(), b"Bearer replacement-token");
 }
 
 #[test]
 fn header_copy_has_cleanup_owner_and_redacted_snapshot() {
     let drops = Arc::new(AtomicUsize::new(0));
     let token = BearerToken::with_header_drop_probe("active-token", Arc::clone(&drops));
-    let Ok(token) = token else { return };
+    let Ok(token) = token else {
+        unreachable!("security fixture construction failed")
+    };
     let store = CredentialStore::new(token);
     let Ok(snapshot) = store.snapshot() else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let header = snapshot.header_value_with_drop_probe();
     assert!(header.is_ok());

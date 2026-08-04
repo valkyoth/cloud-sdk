@@ -255,9 +255,11 @@ mod tests {
     fn reserves_the_complete_token_read_bound_before_io() {
         let result = token_read_buffer();
         assert!(result.is_ok());
-        let Ok(buffer) = result else { return };
+        let Ok(buffer) = result else {
+            unreachable!("security fixture construction failed")
+        };
         let Ok(required) = usize::try_from(MAX_TOKEN_READ_BYTES) else {
-            return;
+            unreachable!("security fixture construction failed");
         };
         assert!(buffer.is_empty());
         assert!(buffer.capacity() >= required);

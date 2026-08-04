@@ -114,17 +114,24 @@ fn blocking_client_sends_exact_headers_target_and_body_once() {
         b"retry-later",
         Duration::ZERO,
     );
-    assert!(server.is_ok());
-    let Ok(server) = server else { return };
+    let Ok(server) = server else {
+        unreachable!("security fixture construction failed")
+    };
     let client = build_loopback(&server.endpoint);
     assert!(client.is_some());
-    let Some(client) = client else { return };
+    let Some(client) = client else {
+        unreachable!("security fixture construction failed")
+    };
     let target = RequestTarget::new("/servers?name=test%20server");
     assert!(target.is_ok());
-    let Ok(target) = target else { return };
+    let Ok(target) = target else {
+        unreachable!("security fixture construction failed")
+    };
     let sensitive = RequestHeader::sensitive("x-test-secret", "redacted-value");
     assert!(sensitive.is_ok());
-    let Ok(sensitive) = sensitive else { return };
+    let Ok(sensitive) = sensitive else {
+        unreachable!("security fixture construction failed")
+    };
     let entries = [
         RequestHeader::accept(cloud_sdk::transport::MediaType::JSON),
         RequestHeader::content_type(ContentType::JSON),
@@ -132,7 +139,9 @@ fn blocking_client_sends_exact_headers_target_and_body_once() {
     ];
     let headers = RequestHeaders::new(&entries);
     assert!(headers.is_ok());
-    let Ok(headers) = headers else { return };
+    let Ok(headers) = headers else {
+        unreachable!("security fixture construction failed")
+    };
     let request = TransportRequest::new(Method::Post, target)
         .with_body(br#"{"name":"server"}"#)
         .with_headers(headers);
@@ -145,16 +154,17 @@ fn blocking_client_sends_exact_headers_target_and_body_once() {
 
     let recorded = server.request.recv_timeout(Duration::from_secs(2));
     assert!(recorded.is_ok());
-    if let Ok(recorded) = recorded {
-        let wire = String::from_utf8_lossy(&recorded.bytes).to_ascii_lowercase();
-        assert!(wire.starts_with("post /v1/servers?name=test%20server http/1.1\r\n"));
-        assert!(wire.contains("authorization: bearer test-token\r\n"));
-        assert!(wire.contains("user-agent: cloud-sdk-test/0.18\r\n"));
-        assert!(wire.contains("accept: application/json\r\n"));
-        assert!(wire.contains("content-type: application/json\r\n"));
-        assert!(wire.contains("x-test-secret: redacted-value\r\n"));
-        assert!(wire.ends_with(r#"{"name":"server"}"#));
-    }
+    let Ok(recorded) = recorded else {
+        unreachable!("security fixture construction failed");
+    };
+    let wire = String::from_utf8_lossy(&recorded.bytes).to_ascii_lowercase();
+    assert!(wire.starts_with("post /v1/servers?name=test%20server http/1.1\r\n"));
+    assert!(wire.contains("authorization: bearer test-token\r\n"));
+    assert!(wire.contains("user-agent: cloud-sdk-test/0.18\r\n"));
+    assert!(wire.contains("accept: application/json\r\n"));
+    assert!(wire.contains("content-type: application/json\r\n"));
+    assert!(wire.contains("x-test-secret: redacted-value\r\n"));
+    assert!(wire.ends_with(r#"{"name":"server"}"#));
 }
 
 #[test]
@@ -165,12 +175,14 @@ fn redirects_are_not_followed_or_admitted_and_oversized_bodies_are_cleared() {
         b"redirect",
         Duration::ZERO,
     );
-    let Ok(redirect) = redirect else { return };
+    let Ok(redirect) = redirect else {
+        unreachable!("security fixture construction failed")
+    };
     let Some(client) = build_loopback(&redirect.endpoint) else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let Ok(target) = RequestTarget::new("/servers") else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let mut output = [0_u8; 16];
     let response = send_test(
@@ -185,9 +197,11 @@ fn redirects_are_not_followed_or_admitted_and_oversized_bodies_are_cleared() {
     assert_eq!(output, [0_u8; 16]);
 
     let oversized = spawn("200 OK", &[], b"oversized", Duration::ZERO);
-    let Ok(oversized) = oversized else { return };
+    let Ok(oversized) = oversized else {
+        unreachable!("security fixture construction failed")
+    };
     let Some(client) = build_loopback(&oversized.endpoint) else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let mut short = [0xa5_u8; 4];
     assert!(matches!(
@@ -216,12 +230,14 @@ fn checked_response_exposes_content_type_without_transport_rate_limit_decoding()
         b"{}",
         Duration::ZERO,
     );
-    let Ok(server) = server else { return };
+    let Ok(server) = server else {
+        unreachable!("security fixture construction failed")
+    };
     let Some(client) = build_loopback(&server.endpoint) else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let Ok(target) = RequestTarget::new("/servers") else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let mut output = [0_u8; 8];
     let response = send_test(
@@ -230,9 +246,11 @@ fn checked_response_exposes_content_type_without_transport_rate_limit_decoding()
         &mut output,
     );
     assert!(response.is_ok());
-    let Ok(response) = response else { return };
+    let Ok(response) = response else {
+        unreachable!("security fixture construction failed")
+    };
     let Some(content_type) = response.content_type() else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     assert_eq!(content_type, "application/json; charset=utf-8");
     assert_eq!(response.rate_limit(), None);
@@ -246,12 +264,14 @@ fn incomplete_rate_limit_headers_are_retained_for_provider_decoding() {
         b"secret",
         Duration::ZERO,
     );
-    let Ok(server) = server else { return };
+    let Ok(server) = server else {
+        unreachable!("security fixture construction failed")
+    };
     let Some(client) = build_loopback(&server.endpoint) else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let Ok(target) = RequestTarget::new("/servers") else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let mut output = [0xa5_u8; 8];
     let response = send_test(
@@ -275,12 +295,14 @@ fn duplicate_rate_limit_headers_fail_closed() {
         b"secret",
         Duration::ZERO,
     );
-    let Ok(server) = server else { return };
+    let Ok(server) = server else {
+        unreachable!("security fixture construction failed")
+    };
     let Some(client) = build_loopback(&server.endpoint) else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let Ok(target) = RequestTarget::new("/servers") else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let mut output = [0xa5_u8; 8];
     assert!(matches!(
@@ -299,10 +321,10 @@ fn duplicate_rate_limit_headers_fail_closed() {
 #[test]
 fn nonempty_body_requires_content_type_before_network_access() {
     let Some(client) = build_loopback("http://127.0.0.1:9/v1") else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let Ok(target) = RequestTarget::new("/servers") else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let mut output = [0xa5_u8; 8];
     assert!(matches!(
@@ -321,7 +343,9 @@ fn nonempty_body_requires_content_type_before_network_access() {
 #[test]
 fn response_timeout_is_payload_free_and_clears_output() {
     let server = spawn("200 OK", &[], b"late", Duration::from_millis(100));
-    let Ok(server) = server else { return };
+    let Ok(server) = server else {
+        unreachable!("security fixture construction failed")
+    };
     let endpoint = HttpsEndpoint::local_http(&server.endpoint);
     let token = BearerToken::new("test-token");
     let user_agent = UserAgent::new("cloud-sdk-test/0.18");
@@ -329,14 +353,23 @@ fn response_timeout_is_payload_free_and_clears_output() {
     let (Ok(endpoint), Ok(token), Ok(user_agent), Ok(timeouts)) =
         (endpoint, token, user_agent, timeouts)
     else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let credential = test_credential(token, &endpoint);
-    let client =
-        BlockingClientBuilder::new(endpoint, credential, user_agent, timeouts).build_for_loopback();
-    let Ok(client) = client else { return };
+    let builder = BlockingClientBuilder::new(endpoint, credential, user_agent, timeouts);
+    #[cfg(feature = "blocking-rustls-fips")]
+    let builder = {
+        let Some(policy) = fips_tls_policy() else {
+            unreachable!("security fixture construction failed");
+        };
+        builder.with_fips_tls_policy(policy)
+    };
+    let client = builder.build_for_loopback();
+    let Ok(client) = client else {
+        unreachable!("security fixture construction failed")
+    };
     let Ok(target) = RequestTarget::new("/slow") else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let mut output = [0xa5_u8; 8];
     assert!(matches!(
@@ -359,7 +392,7 @@ fn status_constant_remains_compatible_with_transport_response() {
 #[test]
 fn fips_provider_and_complete_client_configuration_report_fips() {
     let Some(policy) = fips_tls_policy() else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     assert_eq!(super::config::test_fips_configuration(&policy), Ok(true));
 }
@@ -368,7 +401,7 @@ fn fips_provider_and_complete_client_configuration_report_fips() {
 #[test]
 fn non_fips_provider_and_complete_configuration_fail_closed() {
     let Some(policy) = fips_tls_policy() else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     assert_eq!(super::config::test_non_fips_rejection(&policy), Ok(true));
 }
@@ -381,14 +414,18 @@ fn fips_policy_rejects_missing_roots_crls_and_malformed_crls() {
         FipsTlsPolicy::new(RootCertStore::empty(), vec![crl.clone()]),
         Err(BuildError::FipsTrustRootsRequired)
     ));
-    let Some(roots) = fips_roots() else { return };
+    let Some(roots) = fips_roots() else {
+        unreachable!("security fixture construction failed")
+    };
     assert!(matches!(
         FipsTlsPolicy::new(roots, vec![]),
         Err(BuildError::FipsCertificateRevocationListsRequired)
     ));
-    let Some(roots) = fips_roots() else { return };
+    let Some(roots) = fips_roots() else {
+        unreachable!("security fixture construction failed")
+    };
     let Ok(policy) = FipsTlsPolicy::new(roots, vec![crl]) else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     assert_eq!(
         super::config::test_fips_configuration(&policy),
@@ -406,7 +443,7 @@ fn fips_client_builder_requires_an_explicit_tls_policy() {
     let (Ok(endpoint), Ok(token), Ok(user_agent), Some(timeouts)) =
         (endpoint, token, user_agent, timeouts)
     else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     assert!(matches!(
         BlockingClientBuilder::new(
@@ -427,34 +464,37 @@ fn preinstalled_non_fips_global_provider_does_not_influence_fips_client() {
     const CHILD_MARKER: &str = "cloud-sdk FIPS global-provider child ran";
     if std::env::var_os(CHILD).is_some() {
         let Some(policy) = fips_tls_policy() else {
-            return;
+            unreachable!("security fixture construction failed");
         };
         assert!(super::config::test_non_fips_global_independence(&policy));
         println!("{CHILD_MARKER}");
-        return;
+    } else {
+        let executable = std::env::current_exe();
+        assert!(executable.is_ok());
+        let Ok(executable) = executable else {
+            unreachable!("security fixture construction failed")
+        };
+        let output = std::process::Command::new(executable)
+            .args([
+                "--exact",
+                "blocking::tests::preinstalled_non_fips_global_provider_does_not_influence_fips_client",
+                "--nocapture",
+            ])
+            .env(CHILD, "1")
+            .output();
+        assert!(output.is_ok());
+        let Ok(output) = output else {
+            unreachable!("security fixture construction failed")
+        };
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        assert!(
+            output.status.success(),
+            "isolated FIPS test failed: {}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        assert!(
+            stdout.contains(CHILD_MARKER),
+            "isolated FIPS test did not run"
+        );
     }
-
-    let executable = std::env::current_exe();
-    assert!(executable.is_ok());
-    let Ok(executable) = executable else { return };
-    let output = std::process::Command::new(executable)
-        .args([
-            "--exact",
-            "blocking::tests::preinstalled_non_fips_global_provider_does_not_influence_fips_client",
-            "--nocapture",
-        ])
-        .env(CHILD, "1")
-        .output();
-    assert!(output.is_ok());
-    let Ok(output) = output else { return };
-    let stdout = String::from_utf8_lossy(&output.stdout);
-    assert!(
-        output.status.success(),
-        "isolated FIPS test failed: {}",
-        String::from_utf8_lossy(&output.stderr)
-    );
-    assert!(
-        stdout.contains(CHILD_MARKER),
-        "isolated FIPS test did not run"
-    );
 }

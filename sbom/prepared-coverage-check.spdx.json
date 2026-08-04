@@ -1,17 +1,31 @@
 {
   "SPDXID": "SPDXRef-DOCUMENT",
   "creationInfo": {
-    "created": "2026-08-04T14:38:18Z",
+    "created": "2026-08-04T19:50:53Z",
     "creators": [
       "Tool: cargo-sbom-v0.10.0",
       "Tool: cloud-sdk-complete-spdx-v1"
     ]
   },
   "dataLicense": "CC0-1.0",
-  "documentNamespace": "https://spdx.org/spdxdocs/prepared-coverage-check-022dd425-f4c7-42eb-bae9-f630d218a20e",
+  "documentNamespace": "https://spdx.org/spdxdocs/prepared-coverage-check-b1c9ec4b-6d6c-46e4-b8a5-87b772e0dce3",
   "files": [
     {
       "SPDXID": "SPDXRef-File-cloud-sdk-prepared-coverage-check",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "bb15f68ae14d4412cc227d59057738e3f9305a7a"
+        }
+      ],
+      "fileName": "./Cargo.lock",
+      "fileTypes": [
+        "SOURCE",
+        "TEXT"
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-File-fail-closed-test-check",
       "checksums": [
         {
           "algorithm": "SHA1",
@@ -91,7 +105,17 @@
       "relatedSpdxElement": "SPDXRef-File-cloud-sdk-prepared-coverage-check"
     },
     {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-File-fail-closed-test-check"
+    },
+    {
       "spdxElementId": "SPDXRef-File-cloud-sdk-prepared-coverage-check",
+      "relationshipType": "GENERATED_FROM",
+      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-prepared-coverage-check-0.0.0"
+    },
+    {
+      "spdxElementId": "SPDXRef-File-fail-closed-test-check",
       "relationshipType": "GENERATED_FROM",
       "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-prepared-coverage-check-0.0.0"
     },

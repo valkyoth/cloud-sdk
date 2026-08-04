@@ -12,9 +12,10 @@ fn prepared_services_use_the_canonical_official_policies() {
         let service = provider_service(group);
         let official = official_endpoint_policy(base);
         assert!(service.is_ok() && official.is_ok());
-        if let (Ok(service), Ok(official)) = (service, official) {
-            assert_eq!(service.endpoint_policy(), official);
-        }
+        let (Ok(service), Ok(official)) = (service, official) else {
+            unreachable!("security fixture construction failed");
+        };
+        assert_eq!(service.endpoint_policy(), official);
     }
 }
 
@@ -56,10 +57,11 @@ fn operation_classes_own_impact_semantics_and_retry_policy() {
     for (class, impact, semantics, retry) in cases {
         let metadata = operation_metadata(class, CostIntent::NoKnownCost);
         assert!(metadata.is_ok());
-        if let Ok(metadata) = metadata {
-            assert_eq!(metadata.impact(), impact);
-            assert_eq!(metadata.semantics(), semantics);
-            assert_eq!(metadata.retry_eligibility(), retry);
-        }
+        let Ok(metadata) = metadata else {
+            unreachable!("security fixture construction failed");
+        };
+        assert_eq!(metadata.impact(), impact);
+        assert_eq!(metadata.semantics(), semantics);
+        assert_eq!(metadata.retry_eligibility(), retry);
     }
 }

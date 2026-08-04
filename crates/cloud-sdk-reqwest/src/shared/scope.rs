@@ -301,14 +301,15 @@ mod tests {
             .and_then(|scope| scope.try_with_account("secret-account"))
             .and_then(|scope| scope.try_with_tenant("secret-tenant"));
         assert!(scope.is_ok());
-        if let Ok(scope) = scope {
-            let debug = std::format!("{scope:?}");
-            assert!(debug.contains("[redacted]"));
-            assert!(!debug.contains("secret-audience"));
-            assert!(!debug.contains("secret-account"));
-            assert!(!debug.contains("secret-tenant"));
-            assert!(scope.borrowed().is_ok());
-        }
+        let Ok(scope) = scope else {
+            unreachable!("security fixture construction failed");
+        };
+        let debug = std::format!("{scope:?}");
+        assert!(debug.contains("[redacted]"));
+        assert!(!debug.contains("secret-audience"));
+        assert!(!debug.contains("secret-account"));
+        assert!(!debug.contains("secret-tenant"));
+        assert!(scope.borrowed().is_ok());
     }
 
     #[test]

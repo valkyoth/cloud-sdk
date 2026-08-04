@@ -22,7 +22,9 @@ fn external_provider_owns_identity_without_core_enum_changes() {
     let endpoint =
         EndpointIdentity::new(EndpointScheme::Https, "api.independent.invalid", 443, "/v2");
     assert!(endpoint.is_ok());
-    let Ok(endpoint) = endpoint else { return };
+    let Ok(endpoint) = endpoint else {
+        unreachable!("security fixture construction failed")
+    };
     let policy = EndpointPolicy::fixed(endpoint);
     let service = ProviderService::from_marker::<ComputeV2>(policy);
 

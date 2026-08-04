@@ -46,14 +46,16 @@ fn raw_async_streams_directly_into_the_caller_buffer() {
             b"{}",
             Duration::ZERO,
         );
-        let Ok(server) = server else { return };
+        let Ok(server) = server else {
+            unreachable!("security fixture construction failed")
+        };
         let Some(client) = build_raw_loopback(&server.endpoint) else {
-            return;
+            unreachable!("security fixture construction failed");
         };
         let Ok(target) = cloud_sdk::transport::RequestTarget::new("/servers") else {
-            return;
+            unreachable!("security fixture construction failed");
         };
-        let Some(policy) = policy(2) else { return };
+        let policy = policy(2).unwrap_or_else(|| unreachable!());
         let mut body = [0xa5_u8; 16];
         let mut header_storage = [0xa5_u8; 128];
         let mut response = ResponseBuffer::new(&mut body, 16, &mut header_storage);
@@ -81,14 +83,16 @@ fn raw_async_cancellation_clears_partial_body_and_headers() {
         let first = b"HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\
 Content-Length: 6\r\nConnection: close\r\n\r\nsec";
         let server = spawn_raw_split(first, b"ret", Duration::from_millis(1_000));
-        let Ok(server) = server else { return };
+        let Ok(server) = server else {
+            unreachable!("security fixture construction failed")
+        };
         let Some(client) = build_raw_loopback(&server.endpoint) else {
-            return;
+            unreachable!("security fixture construction failed");
         };
         let Ok(target) = cloud_sdk::transport::RequestTarget::new("/servers") else {
-            return;
+            unreachable!("security fixture construction failed");
         };
-        let Some(policy) = policy(2) else { return };
+        let policy = policy(2).unwrap_or_else(|| unreachable!());
         let mut body = [0xa5_u8; 16];
         let mut header_storage = [0xa5_u8; 128];
         let mut response = ResponseBuffer::new(&mut body, 16, &mut header_storage);
@@ -122,14 +126,16 @@ fn raw_async_enforces_the_informational_response_limit() {
 HTTP/1.1 103 Early Hints\r\nLink: </b>\r\n\r\n\
 HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: 2\r\nConnection: close\r\n\r\n{}";
         let server = spawn_raw_response(wire);
-        let Ok(server) = server else { return };
+        let Ok(server) = server else {
+            unreachable!("security fixture construction failed")
+        };
         let Some(client) = build_raw_loopback(&server.endpoint) else {
-            return;
+            unreachable!("security fixture construction failed");
         };
         let Ok(target) = cloud_sdk::transport::RequestTarget::new("/servers") else {
-            return;
+            unreachable!("security fixture construction failed");
         };
-        let Some(policy) = policy(1) else { return };
+        let policy = policy(1).unwrap_or_else(|| unreachable!());
         let mut body = [0xa5_u8; 16];
         let mut header_storage = [0xa5_u8; 128];
         let mut response = ResponseBuffer::new(&mut body, 16, &mut header_storage);
@@ -156,7 +162,9 @@ fn raw_async_rechecks_informational_rejection_after_final_response() {
         .enable_all()
         .build();
     assert!(runtime.is_ok());
-    let Ok(runtime) = runtime else { return };
+    let Ok(runtime) = runtime else {
+        unreachable!("security fixture construction failed")
+    };
     runtime.block_on(async {
         for _ in 0..32 {
             let wire = b"HTTP/1.1 103 Early Hints\r\nLink: </a>\r\n\r\n\
@@ -169,14 +177,20 @@ Content-Length: 2\r\nConnection: close\r\n\r\n{}";
                 server_error.is_none(),
                 "failed to create loopback server: {server_error:?}"
             );
-            let Ok(server) = server else { return };
+            let Ok(server) = server else {
+                unreachable!("security fixture construction failed")
+            };
             let client = build_raw_loopback(&server.endpoint);
             assert!(client.is_some());
-            let Some(client) = client else { return };
+            let Some(client) = client else {
+                unreachable!("security fixture construction failed")
+            };
             let target = cloud_sdk::transport::RequestTarget::new("/servers");
             assert!(target.is_ok());
-            let Ok(target) = target else { return };
-            let Some(policy) = policy(1) else { return };
+            let Ok(target) = target else {
+                unreachable!("security fixture construction failed")
+            };
+            let policy = policy(1).unwrap_or_else(|| unreachable!());
             let mut body = [0xa5_u8; 16];
             let mut header_storage = [0xa5_u8; 128];
             let mut response = ResponseBuffer::new(&mut body, 16, &mut header_storage);
@@ -205,14 +219,18 @@ HTTP/1.1 103 Early Hints\r\nLink: </b>\r\n\r\n";
         let final_response = b"HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\
 Content-Length: 2\r\nConnection: close\r\n\r\n{}";
         let server = spawn_raw_split(informational, final_response, Duration::from_millis(1_500));
-        let Ok(server) = server else { return };
+        let Ok(server) = server else {
+            unreachable!("security fixture construction failed")
+        };
         let Some(client) = build_raw_loopback(&server.endpoint) else {
-            return;
+            unreachable!("security fixture construction failed");
         };
         let Ok(target) = cloud_sdk::transport::RequestTarget::new("/servers") else {
-            return;
+            unreachable!("security fixture construction failed");
         };
-        let Some(policy) = policy(1) else { return };
+        let Some(policy) = policy(1) else {
+            unreachable!("security fixture construction failed")
+        };
         let mut body = [0xa5_u8; 16];
         let mut header_storage = [0xa5_u8; 128];
         let mut response = ResponseBuffer::new(&mut body, 16, &mut header_storage);
@@ -250,15 +268,17 @@ Transfer-Encoding: chunked\r\n\r\n2\r\n{}\r\n0\r\nX-Checksum: secret\r\n\r\n"[..
     ] {
         run_async_test(async {
             let Ok(server) = spawn_raw_response(wire) else {
-                return;
+                unreachable!("security fixture construction failed");
             };
             let Some(client) = build_raw_loopback(&server.endpoint) else {
-                return;
+                unreachable!("security fixture construction failed");
             };
             let Ok(target) = cloud_sdk::transport::RequestTarget::new("/servers") else {
-                return;
+                unreachable!("security fixture construction failed");
             };
-            let Some(policy) = policy(2) else { return };
+            let Some(policy) = policy(2) else {
+                unreachable!("security fixture construction failed")
+            };
             let mut body = [0xa5_u8; 16];
             let mut header_storage = [0xa5_u8; 128];
             let mut response = ResponseBuffer::new(&mut body, 16, &mut header_storage);
@@ -282,15 +302,17 @@ fn raw_async_enforces_streamed_bytes_without_content_length() {
         let wire = b"HTTP/1.1 400 Bad Request\r\nContent-Type: application/json\r\n\
 Connection: close\r\n\r\n12345";
         let Ok(server) = spawn_raw_response(wire) else {
-            return;
+            unreachable!("security fixture construction failed");
         };
         let Some(client) = build_raw_loopback(&server.endpoint) else {
-            return;
+            unreachable!("security fixture construction failed");
         };
         let Ok(target) = cloud_sdk::transport::RequestTarget::new("/servers") else {
-            return;
+            unreachable!("security fixture construction failed");
         };
-        let Some(policy) = policy(2) else { return };
+        let Some(policy) = policy(2) else {
+            unreachable!("security fixture construction failed")
+        };
         let mut body = [0xa5_u8; 16];
         let mut header_storage = [0xa5_u8; 128];
         let mut response = ResponseBuffer::new(&mut body, 16, &mut header_storage);
@@ -315,15 +337,17 @@ fn raw_async_rejects_truncated_declared_body() {
         let wire = b"HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\
 Content-Length: 5\r\nConnection: close\r\n\r\n{}";
         let Ok(server) = spawn_raw_response(wire) else {
-            return;
+            unreachable!("security fixture construction failed");
         };
         let Some(client) = build_raw_loopback(&server.endpoint) else {
-            return;
+            unreachable!("security fixture construction failed");
         };
         let Ok(target) = cloud_sdk::transport::RequestTarget::new("/servers") else {
-            return;
+            unreachable!("security fixture construction failed");
         };
-        let Some(policy) = policy(2) else { return };
+        let Some(policy) = policy(2) else {
+            unreachable!("security fixture construction failed")
+        };
         let mut body = [0xa5_u8; 16];
         let mut header_storage = [0xa5_u8; 128];
         let mut response = ResponseBuffer::new(&mut body, 16, &mut header_storage);
@@ -348,15 +372,17 @@ fn raw_async_applies_head_and_no_content_body_rules() {
         let head = b"HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\
 Content-Length: 2\r\nConnection: close\r\n\r\n{}";
         let Ok(server) = spawn_raw_response(head) else {
-            return;
+            unreachable!("security fixture construction failed");
         };
         let Some(client) = build_raw_loopback(&server.endpoint) else {
-            return;
+            unreachable!("security fixture construction failed");
         };
         let Ok(target) = cloud_sdk::transport::RequestTarget::new("/servers") else {
-            return;
+            unreachable!("security fixture construction failed");
         };
-        let Some(policy) = policy(2) else { return };
+        let Some(policy) = policy(2) else {
+            unreachable!("security fixture construction failed")
+        };
         let mut body = [0xa5_u8; 16];
         let mut header_storage = [0xa5_u8; 128];
         let mut response = ResponseBuffer::new(&mut body, 16, &mut header_storage);
@@ -379,10 +405,10 @@ Content-Length: 2\r\nConnection: close\r\n\r\n{}";
         let no_content = b"HTTP/1.1 204 No Content\r\nContent-Length: 0\r\n\
 Connection: close\r\n\r\n";
         let Ok(server) = spawn_raw_response(no_content) else {
-            return;
+            unreachable!("security fixture construction failed");
         };
         let Some(client) = build_raw_loopback(&server.endpoint) else {
-            return;
+            unreachable!("security fixture construction failed");
         };
         let mut body = [0xa5_u8; 16];
         let mut header_storage = [0xa5_u8; 128];
@@ -407,13 +433,13 @@ fn raw_async_client_is_clone_send_sync_and_concurrent() {
 
     run_async_test(async {
         let Ok(server) = spawn_concurrent_pair("200 OK", b"{}") else {
-            return;
+            unreachable!("security fixture construction failed");
         };
         let Some(client) = build_raw_loopback(&server.endpoint) else {
-            return;
+            unreachable!("security fixture construction failed");
         };
         let Ok(target) = cloud_sdk::transport::RequestTarget::new("/servers") else {
-            return;
+            unreachable!("security fixture construction failed");
         };
         let Ok(policy) = RawResponsePolicy::new(
             16,
@@ -423,7 +449,7 @@ fn raw_async_client_is_clone_send_sync_and_concurrent() {
             &[],
             2,
         ) else {
-            return;
+            unreachable!("security fixture construction failed");
         };
         let first = client.clone();
         let second = client.clone();

@@ -18,27 +18,28 @@ const KEY: &str = "-----BEGIN PRIVATE KEY-----\nMIIB\n-----END PRIVATE KEY-----"
 fn certificate_paths_match_api_matrix() {
     let id = CertificateId::new(42);
     let mut output = [0u8; 64];
-    if let Some(id) = id {
-        assert_eq!(CertificateEndpoint::List.write_path(&mut output), Ok(13));
-        assert_eq!(CertificateEndpoint::Get(id).write_path(&mut output), Ok(16));
-        assert_eq!(
-            CertificateEndpoint::Retry(id).write_path(&mut output),
-            Ok(30)
-        );
-        let path = output
-            .get(..30)
-            .and_then(|bytes| core::str::from_utf8(bytes).ok());
-        assert_eq!(path, Some("/certificates/42/actions/retry"));
-        assert_eq!(CertificateEndpoint::Retry(id).method().as_str(), "POST");
-        assert_eq!(
-            CertificateEndpoint::Retry(id).api_base_url(),
-            ApiBaseUrl::CloudV1
-        );
-        assert_eq!(
-            CertificateEndpoint::Retry(id).endpoint_group(),
-            EndpointGroup::CertificateActions
-        );
-    }
+    let Some(id) = id else {
+        unreachable!("security fixture construction failed");
+    };
+    assert_eq!(CertificateEndpoint::List.write_path(&mut output), Ok(13));
+    assert_eq!(CertificateEndpoint::Get(id).write_path(&mut output), Ok(16));
+    assert_eq!(
+        CertificateEndpoint::Retry(id).write_path(&mut output),
+        Ok(30)
+    );
+    let path = output
+        .get(..30)
+        .and_then(|bytes| core::str::from_utf8(bytes).ok());
+    assert_eq!(path, Some("/certificates/42/actions/retry"));
+    assert_eq!(CertificateEndpoint::Retry(id).method().as_str(), "POST");
+    assert_eq!(
+        CertificateEndpoint::Retry(id).api_base_url(),
+        ApiBaseUrl::CloudV1
+    );
+    assert_eq!(
+        CertificateEndpoint::Retry(id).endpoint_group(),
+        EndpointGroup::CertificateActions
+    );
 }
 
 #[test]
@@ -48,25 +49,26 @@ fn certificate_list_query_writes_filters_pagination_and_sorting() {
     let page = Page::new(2);
     let per_page = PerPage::new(25);
     let mut output = [0u8; 160];
-    if let (Ok(name), Ok(selector), Ok(page), Ok(per_page)) = (name, selector, page, per_page) {
-        let request = CertificateListRequest::new()
-            .with_name(name)
-            .with_label_selector(selector)
-            .with_type(CertificateType::Managed)
-            .with_page(page)
-            .with_per_page(per_page)
-            .with_sort(CertificateSortField::Created, SortDirection::Desc);
-        assert_eq!(request.write_query(&mut output), Ok(93));
-        let query = output
-            .get(..93)
-            .and_then(|bytes| core::str::from_utf8(bytes).ok());
-        assert_eq!(
-            query,
-            Some(
-                "label_selector=env%3Dprod&name=web%20cert&page=2&per_page=25&sort=created%3Adesc&type=managed"
-            )
-        );
-    }
+    let (Ok(name), Ok(selector), Ok(page), Ok(per_page)) = (name, selector, page, per_page) else {
+        unreachable!("security fixture construction failed");
+    };
+    let request = CertificateListRequest::new()
+        .with_name(name)
+        .with_label_selector(selector)
+        .with_type(CertificateType::Managed)
+        .with_page(page)
+        .with_per_page(per_page)
+        .with_sort(CertificateSortField::Created, SortDirection::Desc);
+    assert_eq!(request.write_query(&mut output), Ok(93));
+    let query = output
+        .get(..93)
+        .and_then(|bytes| core::str::from_utf8(bytes).ok());
+    assert_eq!(
+        query,
+        Some(
+            "label_selector=env%3Dprod&name=web%20cert&page=2&per_page=25&sort=created%3Adesc&type=managed"
+        )
+    );
 }
 
 #[test]
@@ -74,16 +76,17 @@ fn certificate_create_modes_redact_debug() {
     let name = CertificateName::new("web");
     let certificate = certificate_pem(CERT);
     let private_key = private_key_pem(KEY);
-    if let (Ok(name), Ok(certificate), Ok(private_key)) = (name, certificate, private_key) {
-        let mode = CertificateCreateMode::uploaded(certificate, private_key);
-        let request = CertificateCreateRequest::new(name, mode);
-        let mut debug = DebugBuffer::new();
-        assert!(write!(&mut debug, "{request:?}").is_ok());
-        let debug = debug.as_str();
-        assert!(debug.contains("[redacted]"));
-        assert!(!debug.contains("PRIVATE KEY"));
-        assert_eq!(request.mode().certificate_type(), CertificateType::Uploaded);
-    }
+    let (Ok(name), Ok(certificate), Ok(private_key)) = (name, certificate, private_key) else {
+        unreachable!("security fixture construction failed");
+    };
+    let mode = CertificateCreateMode::uploaded(certificate, private_key);
+    let request = CertificateCreateRequest::new(name, mode);
+    let mut debug = DebugBuffer::new();
+    assert!(write!(&mut debug, "{request:?}").is_ok());
+    let debug = debug.as_str();
+    assert!(debug.contains("[redacted]"));
+    assert!(!debug.contains("PRIVATE KEY"));
+    assert_eq!(request.mode().certificate_type(), CertificateType::Uploaded);
 }
 
 #[test]
@@ -93,10 +96,12 @@ fn managed_certificate_domains_are_validated() {
         Err(SecurityRequestError::InvalidDomainName)
     );
     let domain = CertificateDomainName::new("*.example.com");
-    if let Ok(domain) = domain {
-        let domains = [domain];
-        assert!(CertificateCreateMode::managed(&domains).is_ok());
-    }
+    let Ok(domain) = domain else {
+        unreachable!("security fixture construction failed");
+    };
+    let domains = [domain];
+    assert!(CertificateCreateMode::managed(&domains).is_ok());
+
     assert_eq!(
         CertificateCreateMode::managed(&[]).map(CertificateCreateMode::certificate_type),
         Err(SecurityRequestError::EmptyDomainNames),
@@ -126,7 +131,7 @@ fn private_key_writer_escapes_atomically_and_uses_guarded_cleanup() {
     let private_key = private_key_pem(ESCAPED_KEY);
     assert!(private_key.is_ok(), "fixture private key must validate");
     let Ok(private_key) = private_key else {
-        return;
+        unreachable!("security fixture construction failed");
     };
 
     let mut short = [0xa5_u8; 16];
@@ -142,7 +147,9 @@ fn private_key_writer_escapes_atomically_and_uses_guarded_cleanup() {
         let mut guarded = SecretBuffer::new(&mut output);
         let written = private_key.write_json_string(guarded.as_mut_slice());
         assert!(written.is_ok(), "private key writer must succeed");
-        let Ok(written) = written else { return };
+        let Ok(written) = written else {
+            unreachable!("security fixture construction failed")
+        };
         let encoded = guarded
             .as_slice()
             .get(..written)

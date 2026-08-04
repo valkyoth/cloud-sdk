@@ -97,7 +97,9 @@ mod tests {
     fn representative_bindings_are_exact() {
         let server = find("get_server");
         assert!(server.is_some());
-        let Some(server) = server else { return };
+        let Some(server) = server else {
+            unreachable!("security fixture construction failed")
+        };
         assert_eq!(server.service_id, CLOUD_SERVICE_ID);
         assert_eq!(server.status, 200);
         assert_eq!(server.shape, ResponseShape::Resource);
@@ -105,7 +107,9 @@ mod tests {
 
         let storage = find("list_storage_boxes");
         assert!(storage.is_some());
-        let Some(storage) = storage else { return };
+        let Some(storage) = storage else {
+            unreachable!("security fixture construction failed")
+        };
         assert_eq!(storage.service_id, STORAGE_SERVICE_ID);
         assert_eq!(storage.shape, ResponseShape::ResourcePage);
     }

@@ -279,7 +279,7 @@ fn dns_rrsets_resource_paths_and_methods_match_source_lock() {
     let id = CloudResourceId::new(42);
     assert!(id.is_some());
     let Some(id) = id else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let id_zone = ZoneReference::Id(id);
     let endpoint = RrsetEndpoint::List(id_zone);

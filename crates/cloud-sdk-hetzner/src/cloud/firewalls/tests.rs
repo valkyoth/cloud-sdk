@@ -16,10 +16,14 @@ use crate::pagination::{Page, PerPage, SortDirection};
 fn networks_firewalls_paths_match_source_lock() {
     let id = FirewallId::new(42);
     assert!(id.is_some(), "fixture Firewall ID must validate");
-    let Some(id) = id else { return };
+    let Some(id) = id else {
+        unreachable!("security fixture construction failed")
+    };
     let action = ActionId::new(9);
     assert!(action.is_some(), "fixture action ID must validate");
-    let Some(action) = action else { return };
+    let Some(action) = action else {
+        unreachable!("security fixture construction failed")
+    };
     let mut output = [0u8; 80];
     assert_eq!(FirewallEndpoint::List.write_path(&mut output), Ok(10));
     assert_eq!(FirewallEndpoint::Get(id).write_path(&mut output), Ok(13));
@@ -53,16 +57,24 @@ fn networks_firewalls_paths_match_source_lock() {
 fn networks_firewalls_list_query_includes_labels() {
     let name = FirewallName::new("edge");
     assert!(name.is_ok(), "fixture name must validate");
-    let Ok(name) = name else { return };
+    let Ok(name) = name else {
+        unreachable!("security fixture construction failed")
+    };
     let selector = LabelSelector::new("env=prod");
     assert!(selector.is_ok(), "fixture selector must validate");
-    let Ok(selector) = selector else { return };
+    let Ok(selector) = selector else {
+        unreachable!("security fixture construction failed")
+    };
     let page = Page::new(2);
     assert!(page.is_ok(), "fixture page must validate");
-    let Ok(page) = page else { return };
+    let Ok(page) = page else {
+        unreachable!("security fixture construction failed")
+    };
     let per_page = PerPage::new(25);
     assert!(per_page.is_ok(), "fixture page size must validate");
-    let Ok(per_page) = per_page else { return };
+    let Ok(per_page) = per_page else {
+        unreachable!("security fixture construction failed")
+    };
     let request = FirewallListRequest::new()
         .with_name(name)
         .with_label_selector(selector)
@@ -84,11 +96,15 @@ fn networks_firewalls_list_query_includes_labels() {
 fn networks_firewalls_rules_reject_conflicts_and_bad_ports() {
     let anywhere = IpCidr::new("0.0.0.0/0");
     assert!(anywhere.is_ok(), "fixture CIDR must validate");
-    let Ok(anywhere) = anywhere else { return };
+    let Ok(anywhere) = anywhere else {
+        unreachable!("security fixture construction failed")
+    };
     let cidrs = [anywhere];
     let incoming = FirewallSelectors::incoming(&cidrs);
     assert!(incoming.is_ok(), "fixture selectors must validate");
-    let Ok(incoming) = incoming else { return };
+    let Ok(incoming) = incoming else {
+        unreachable!("security fixture construction failed")
+    };
     assert_eq!(FirewallPort::new("0"), Err(FirewallRuleError::InvalidPort));
     assert_eq!(
         FirewallPort::new("65536"),
@@ -100,7 +116,9 @@ fn networks_firewalls_rules_reject_conflicts_and_bad_ports() {
     );
     let port = FirewallPort::new("80-443");
     assert!(port.is_ok(), "fixture port must validate");
-    let Ok(port) = port else { return };
+    let Ok(port) = port else {
+        unreachable!("security fixture construction failed")
+    };
     assert_eq!(port.bounds(), (80, 443));
     assert_eq!(
         FirewallRule::try_new(incoming, FirewallProtocol::Icmp, Some(port)),
@@ -108,7 +126,9 @@ fn networks_firewalls_rules_reject_conflicts_and_bad_ports() {
     );
     let rule = FirewallRule::try_new(incoming, FirewallProtocol::Tcp, Some(port));
     assert!(rule.is_ok(), "fixture rule must validate");
-    let Ok(rule) = rule else { return };
+    let Ok(rule) = rule else {
+        unreachable!("security fixture construction failed")
+    };
     let duplicate_rules = [rule, rule];
     assert_eq!(
         FirewallRuleSet::new(&duplicate_rules),
@@ -136,7 +156,9 @@ fn networks_firewalls_required_fields_and_bodies_are_explicit() {
 
     let server = FirewallId::new(7);
     assert!(server.is_some(), "fixture server ID must validate");
-    let Some(server) = server else { return };
+    let Some(server) = server else {
+        unreachable!("security fixture construction failed")
+    };
     let resources = [FirewallResource::Server(server)];
     assert_eq!(
         FirewallResourcesRequest::new(&resources).resources().len(),
@@ -147,15 +169,19 @@ fn networks_firewalls_required_fields_and_bodies_are_explicit() {
     let value = LabelValue::new("prod");
     assert!(key.is_ok() && value.is_ok(), "fixture label must validate");
     let (Ok(key), Ok(value)) = (key, value) else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let entries = [(key, value)];
     let labels = FirewallLabels::new(&entries);
     assert!(labels.is_ok(), "fixture labels must validate");
-    let Ok(labels) = labels else { return };
+    let Ok(labels) = labels else {
+        unreachable!("security fixture construction failed")
+    };
     let name = FirewallName::new("edge");
     assert!(name.is_ok(), "fixture name must validate");
-    let Ok(name) = name else { return };
+    let Ok(name) = name else {
+        unreachable!("security fixture construction failed")
+    };
     let request = FirewallCreateRequest::new(name)
         .with_labels(labels)
         .with_resources(&resources);

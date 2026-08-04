@@ -13,23 +13,24 @@ use core::fmt::Write;
 fn ssh_key_paths_match_api_matrix() {
     let id = SshKeyId::new(42);
     let mut output = [0u8; 32];
-    if let Some(id) = id {
-        assert_eq!(SshKeyEndpoint::List.write_path(&mut output), Ok(9));
-        assert_eq!(SshKeyEndpoint::Get(id).write_path(&mut output), Ok(12));
-        let path = output
-            .get(..12)
-            .and_then(|bytes| core::str::from_utf8(bytes).ok());
-        assert_eq!(path, Some("/ssh_keys/42"));
-        assert_eq!(SshKeyEndpoint::Delete(id).method().as_str(), "DELETE");
-        assert_eq!(
-            SshKeyEndpoint::Update(id).api_base_url(),
-            ApiBaseUrl::CloudV1
-        );
-        assert_eq!(
-            SshKeyEndpoint::Create.endpoint_group(),
-            EndpointGroup::SshKeys
-        );
-    }
+    let Some(id) = id else {
+        unreachable!("security fixture construction failed");
+    };
+    assert_eq!(SshKeyEndpoint::List.write_path(&mut output), Ok(9));
+    assert_eq!(SshKeyEndpoint::Get(id).write_path(&mut output), Ok(12));
+    let path = output
+        .get(..12)
+        .and_then(|bytes| core::str::from_utf8(bytes).ok());
+    assert_eq!(path, Some("/ssh_keys/42"));
+    assert_eq!(SshKeyEndpoint::Delete(id).method().as_str(), "DELETE");
+    assert_eq!(
+        SshKeyEndpoint::Update(id).api_base_url(),
+        ApiBaseUrl::CloudV1
+    );
+    assert_eq!(
+        SshKeyEndpoint::Create.endpoint_group(),
+        EndpointGroup::SshKeys
+    );
 }
 
 #[test]
@@ -39,36 +40,38 @@ fn ssh_key_list_query_writes_filters_pagination_and_sorting() {
     let page = Page::new(2);
     let per_page = PerPage::new(25);
     let mut output = [0u8; 128];
-    if let (Ok(name), Ok(selector), Ok(page), Ok(per_page)) = (name, selector, page, per_page) {
-        let request = SshKeyListRequest::new()
-            .with_name(name)
-            .with_label_selector(selector)
-            .with_page(page)
-            .with_per_page(per_page)
-            .with_sort(SshKeySortField::Name, SortDirection::Asc);
-        assert_eq!(request.write_query(&mut output), Ok(78));
-        let query = output
-            .get(..78)
-            .and_then(|bytes| core::str::from_utf8(bytes).ok());
-        assert_eq!(
-            query,
-            Some("label_selector=env%3Dprod&name=deploy%20key&page=2&per_page=25&sort=name%3Aasc")
-        );
-    }
+    let (Ok(name), Ok(selector), Ok(page), Ok(per_page)) = (name, selector, page, per_page) else {
+        unreachable!("security fixture construction failed");
+    };
+    let request = SshKeyListRequest::new()
+        .with_name(name)
+        .with_label_selector(selector)
+        .with_page(page)
+        .with_per_page(per_page)
+        .with_sort(SshKeySortField::Name, SortDirection::Asc);
+    assert_eq!(request.write_query(&mut output), Ok(78));
+    let query = output
+        .get(..78)
+        .and_then(|bytes| core::str::from_utf8(bytes).ok());
+    assert_eq!(
+        query,
+        Some("label_selector=env%3Dprod&name=deploy%20key&page=2&per_page=25&sort=name%3Aasc")
+    );
 }
 
 #[test]
 fn ssh_key_create_redacts_debug() {
     let name = SshKeyName::new("deploy");
     let public_key = SshPublicKey::new("ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMockKey");
-    if let (Ok(name), Ok(public_key)) = (name, public_key) {
-        let request = SshKeyCreateRequest::new(name, public_key);
-        let mut debug = DebugBuffer::new();
-        assert!(write!(&mut debug, "{request:?}").is_ok());
-        let debug = debug.as_str();
-        assert!(debug.contains("[redacted]"));
-        assert!(!debug.contains("AAAAC3"));
-    }
+    let (Ok(name), Ok(public_key)) = (name, public_key) else {
+        unreachable!("security fixture construction failed");
+    };
+    let request = SshKeyCreateRequest::new(name, public_key);
+    let mut debug = DebugBuffer::new();
+    assert!(write!(&mut debug, "{request:?}").is_ok());
+    let debug = debug.as_str();
+    assert!(debug.contains("[redacted]"));
+    assert!(!debug.contains("AAAAC3"));
 }
 
 struct DebugBuffer {
@@ -120,20 +123,23 @@ fn ssh_key_validation_rejects_bad_inputs() {
     );
     let key = LabelKey::new("z");
     let value = LabelValue::new("");
-    if let (Ok(key), Ok(value)) = (key, value) {
-        let labels = [(key, value)];
-        assert!(SecurityLabels::new(&labels).is_ok());
-    }
+    let (Ok(key), Ok(value)) = (key, value) else {
+        unreachable!("security fixture construction failed");
+    };
+    let labels = [(key, value)];
+    assert!(SecurityLabels::new(&labels).is_ok());
+
     let duplicate_key = LabelKey::new("a");
     let first = LabelValue::new("one");
     let second = LabelValue::new("two");
-    if let (Ok(duplicate_key), Ok(first), Ok(second)) = (duplicate_key, first, second) {
-        let labels = [(duplicate_key, first), (duplicate_key, second)];
-        assert_eq!(
-            SecurityLabels::new(&labels),
-            Err(SecurityRequestError::InvalidLabel(
-                crate::labels::LabelError::InvalidSelectorSyntax
-            ))
-        );
-    }
+    let (Ok(duplicate_key), Ok(first), Ok(second)) = (duplicate_key, first, second) else {
+        unreachable!("security fixture construction failed");
+    };
+    let labels = [(duplicate_key, first), (duplicate_key, second)];
+    assert_eq!(
+        SecurityLabels::new(&labels),
+        Err(SecurityRequestError::InvalidLabel(
+            crate::labels::LabelError::InvalidSelectorSyntax
+        ))
+    );
 }

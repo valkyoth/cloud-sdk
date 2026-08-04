@@ -38,6 +38,8 @@ diagnostics, and realistic allocation-free test scenarios.
 - Pagination and action scripts validate complete finite lifecycles before use.
 - Exact source/sink failures, short writes, endless empty input, alternating
   empty/data input, and unpolled cancellation are covered by tests.
+- Security fixture failures now fail tests explicitly across every workspace
+  crate, and CI scans the complete `crates/` tree for prohibited bypasses.
 
 ## Versions
 
@@ -46,7 +48,7 @@ diagnostics, and realistic allocation-free test scenarios.
 | `cloud-sdk` | `0.55.0` | planned |
 | `cloud-sdk-hetzner` | `0.39.0` | planned code release |
 | `cloud-sdk-reqwest` | `0.32.4` | planned dependency-only patch |
-| `cloud-sdk-sanitization` | `0.17.0` | unchanged; excluded |
+| `cloud-sdk-sanitization` | `0.18.0` | planned test-assurance code release |
 | `cloud-sdk-testkit` | `0.29.0` | planned code release |
 
 ## Documentation

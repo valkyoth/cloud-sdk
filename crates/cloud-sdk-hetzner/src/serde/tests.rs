@@ -213,7 +213,7 @@ fn serde_action_envelope_validates_security_relevant_fields() {
     let resource = envelope.action().resources().first();
     assert!(resource.is_some());
     let Some(resource) = resource else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     assert_eq!(resource.id().get(), 7);
     assert_eq!(resource.resource_type(), "zone");
@@ -268,7 +268,7 @@ fn serde_action_error_is_classified_without_exposing_raw_unknown_code() {
     let error = envelope.action().error();
     assert!(error.is_some());
     let Some(error) = error else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     assert_eq!(error.code(), ApiErrorCode::Unknown);
     assert_eq!(error.message(), "failed");
@@ -282,11 +282,12 @@ fn serde_action_error_is_classified_without_exposing_raw_unknown_code() {
 fn serde_response_bytes_are_bounded_before_parser_use() {
     let secret = ResponseBytes::new(b"secret response");
     assert!(secret.is_ok());
-    if let Ok(secret) = secret {
-        let debug = format!("{secret:?}");
-        assert!(debug.contains("[redacted]"));
-        assert!(!debug.contains("secret response"));
-    }
+    let Ok(secret) = secret else {
+        unreachable!("security fixture construction failed");
+    };
+    let debug = format!("{secret:?}");
+    assert!(debug.contains("[redacted]"));
+    assert!(!debug.contains("secret response"));
 
     let accepted = vec![0_u8; MAX_SERDE_RESPONSE_BYTES];
     let admitted = ResponseBytes::new(&accepted);

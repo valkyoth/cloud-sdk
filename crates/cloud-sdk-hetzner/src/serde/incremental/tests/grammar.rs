@@ -120,7 +120,7 @@ fn completed_utf8_scratch_is_cleared_before_more_input() {
     );
     assert!(matches!(decoder.lexical, Some(Lexical::String(_))));
     let Some(Lexical::String(string)) = decoder.lexical.as_ref() else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     assert_eq!(string.utf8, [0; 4]);
     assert_eq!(string.utf8_len, 0);

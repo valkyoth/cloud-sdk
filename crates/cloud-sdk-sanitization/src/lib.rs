@@ -191,9 +191,11 @@ mod tests {
         let mut bytes = [0xa5_u8; 8];
         {
             let mut guarded = SecretBuffer::new(&mut bytes);
-            if let Some(first) = guarded.as_mut_slice().first_mut() {
-                *first = 0x42;
-            }
+            let Some(first) = guarded.as_mut_slice().first_mut() else {
+                unreachable!("security fixture construction failed");
+            };
+            *first = 0x42;
+
             assert_eq!(guarded.as_slice().first(), Some(&0x42));
         }
         assert_eq!(bytes, [0; 8]);
@@ -203,9 +205,10 @@ mod tests {
     fn guard_clears_after_an_early_error() {
         fn write_then_fail(output: &mut [u8]) -> Result<(), ()> {
             let mut guarded = SecretBuffer::new(output);
-            if let Some(first) = guarded.as_mut_slice().first_mut() {
-                *first = 0x42;
-            }
+            let Some(first) = guarded.as_mut_slice().first_mut() else {
+                unreachable!("security fixture construction failed");
+            };
+            *first = 0x42;
             Err(())
         }
 

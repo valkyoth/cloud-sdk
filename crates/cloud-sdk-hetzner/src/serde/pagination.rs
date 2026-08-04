@@ -129,7 +129,9 @@ mod tests {
     fn parses_coherent_required_metadata_and_ignores_additive_fields() {
         let parsed = serde_json::from_str::<PaginationEnvelope>(VALID);
         assert!(parsed.is_ok());
-        let Ok(parsed) = parsed else { return };
+        let Ok(parsed) = parsed else {
+            unreachable!("security fixture construction failed")
+        };
         assert_eq!(parsed.pagination().page().get(), 2);
         assert_eq!(parsed.pagination().next_page().map(Page::get), Some(3));
         assert_eq!(parsed.pagination().as_core().total_entries(), Some(100));

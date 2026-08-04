@@ -320,7 +320,7 @@ fn dns_zones_tsig_is_coherent_validated_and_redacted() {
     let server = nameserver!("1.1.1.1").with_tsig(credentials);
     let Some(configured) = server.tsig() else {
         assert!(server.tsig().is_some());
-        return;
+        unreachable!("security fixture construction failed");
     };
     assert_eq!(configured.algorithm(), TsigAlgorithm::HmacSha256);
     assert_eq!(configured.algorithm().as_api_str(), "hmac-sha256");

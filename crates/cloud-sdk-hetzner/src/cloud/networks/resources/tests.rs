@@ -15,10 +15,14 @@ use crate::pagination::{Page, PerPage, SortDirection};
 fn networks_firewalls_network_paths_match_source_lock() {
     let id = NetworkId::new(42);
     assert!(id.is_some());
-    let Some(id) = id else { return };
+    let Some(id) = id else {
+        unreachable!("security fixture construction failed")
+    };
     let action = ActionId::new(9);
     assert!(action.is_some());
-    let Some(action) = action else { return };
+    let Some(action) = action else {
+        unreachable!("security fixture construction failed")
+    };
     let mut output = [0u8; 80];
     assert_eq!(NetworkEndpoint::List.write_path(&mut output), Ok(9));
     assert_eq!(NetworkEndpoint::Get(id).write_path(&mut output), Ok(12));
@@ -63,14 +67,16 @@ fn networks_firewalls_network_paths_match_source_lock() {
 #[test]
 fn networks_firewalls_network_query_includes_labels() {
     let Ok(name) = NetworkName::new("private") else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let Ok(selector) = LabelSelector::new("env=prod") else {
-        return;
+        unreachable!("security fixture construction failed");
     };
-    let Ok(page) = Page::new(2) else { return };
+    let Ok(page) = Page::new(2) else {
+        unreachable!("security fixture construction failed")
+    };
     let Ok(per_page) = PerPage::new(25) else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let request = NetworkListRequest::new()
         .with_name(name)
@@ -92,10 +98,10 @@ fn networks_firewalls_network_query_includes_labels() {
 #[test]
 fn networks_firewalls_subnet_and_route_markers_enforce_shape() {
     let Ok(zone) = NetworkZone::new("eu-central") else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let Ok(subnet_range) = SubnetIpRange::new("10.0.1.0/24") else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let cloud = NetworkSubnet::cloud(zone, Some(subnet_range));
     assert_eq!(cloud.subnet_type(), NetworkSubnetType::Cloud);
@@ -103,16 +109,16 @@ fn networks_firewalls_subnet_and_route_markers_enforce_shape() {
 
     assert_eq!(NetworkVswitchId::new(0), None);
     let Some(vswitch_id) = NetworkVswitchId::new(1000) else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let vswitch = NetworkSubnet::vswitch(zone, Some(subnet_range), vswitch_id);
     assert_eq!(vswitch.vswitch_id(), Some(vswitch_id));
 
     let Ok(destination) = RouteDestination::new("10.100.1.0/24") else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let Ok(gateway) = RouteGateway::new("10.0.1.1") else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let route = NetworkRoute::new(destination, gateway);
     assert_eq!(NetworkRouteRequest::new(route).route(), route);
@@ -122,10 +128,10 @@ fn networks_firewalls_subnet_and_route_markers_enforce_shape() {
 #[test]
 fn networks_firewalls_network_required_fields_are_preserved() {
     let Ok(name) = NetworkName::new("private") else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let Ok(ip_range) = NetworkIpRange::new("10.0.0.0/16") else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     assert_eq!(
         NetworkCreateRequest::new(name, ip_range).ip_range(),
@@ -136,12 +142,14 @@ fn networks_firewalls_network_required_fields_are_preserved() {
     let value = LabelValue::new("prod");
     assert!(key.is_ok() && value.is_ok(), "fixture label must validate");
     let (Ok(key), Ok(value)) = (key, value) else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let entries = [(key, value)];
     let labels = NetworkLabels::new(&entries);
     assert!(labels.is_ok(), "fixture labels must validate");
-    let Ok(labels) = labels else { return };
+    let Ok(labels) = labels else {
+        unreachable!("security fixture construction failed")
+    };
     let request = NetworkCreateRequest::new(name, ip_range).with_labels(labels);
     assert_eq!(request.labels(), Some(labels));
 }

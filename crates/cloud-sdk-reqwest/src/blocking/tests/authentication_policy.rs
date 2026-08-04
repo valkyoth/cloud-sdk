@@ -26,17 +26,19 @@ fn bearer_tokens_are_bounded_validated_redacted_and_sensitive() {
     }
     let token = BearerToken::new("token-value==");
     assert!(token.is_ok());
-    if let Ok(token) = token {
-        assert_eq!(token.owned_bytes(), b"Bearer token-value==");
-        let debug = std::format!("{token:?}");
-        assert!(debug.contains("[redacted]"));
-        assert!(!debug.contains("token-value"));
-        let header = token.header_value();
-        assert!(header.is_ok());
-        if let Ok(header) = header {
-            assert!(header.is_sensitive());
-        }
-    }
+    let Ok(token) = token else {
+        unreachable!("security fixture construction failed");
+    };
+    assert_eq!(token.owned_bytes(), b"Bearer token-value==");
+    let debug = std::format!("{token:?}");
+    assert!(debug.contains("[redacted]"));
+    assert!(!debug.contains("token-value"));
+    let header = token.header_value();
+    assert!(header.is_ok());
+    let Ok(header) = header else {
+        unreachable!("security fixture construction failed");
+    };
+    assert!(header.is_sensitive());
 }
 
 #[test]
@@ -77,7 +79,7 @@ fn client_builder_rejects_a_credential_bound_to_another_endpoint() {
         timeouts,
     )
     else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let credential = BearerCredential::new(
         token,
@@ -94,10 +96,10 @@ fn client_builder_rejects_a_credential_bound_to_another_endpoint() {
 #[test]
 fn scope_rejection_happens_before_blocking_network_or_header_work() {
     let Some(client) = build_loopback("http://127.0.0.1:9/v1") else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let Ok(provider) = ProviderId::new("example") else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let policy = AuthenticationScopePolicy::new(
         ScopeRequirement::Required(provider),
@@ -108,10 +110,10 @@ fn scope_rejection_happens_before_blocking_network_or_header_work() {
         ScopeRequirement::Forbidden,
     );
     let Ok(target) = RequestTarget::new("/must-not-send") else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let Ok(endpoint) = client.endpoint_identity() else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let request = super::support::prepared_with_policy(
         TransportRequest::new(Method::Get, target),

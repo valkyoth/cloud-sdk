@@ -34,7 +34,9 @@ fn decodes_complete_provider_bucket_and_retry_after() {
     );
     let decoded = HetznerQuota::decode(&headers, WallClockTimestamp::new(1_000));
     assert!(decoded.is_ok());
-    let Ok(decoded) = decoded else { return };
+    let Ok(decoded) = decoded else {
+        unreachable!("security fixture construction failed")
+    };
     assert_eq!(decoded.buckets().len(), 1);
     assert_eq!(decoded.rate_limit().map(|value| value.limit()), Some(3600));
     assert_eq!(

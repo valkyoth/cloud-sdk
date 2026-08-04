@@ -14,10 +14,10 @@ use crate::shared::CustomEndpointAcknowledgement;
 fn missing_content_type_fails_before_async_network_access() {
     run_async_test(async {
         let Some(client) = build_loopback("http://127.0.0.1:9/v1") else {
-            return;
+            unreachable!("security fixture construction failed");
         };
         let Ok(target) = RequestTarget::new("/servers") else {
-            return;
+            unreachable!("security fixture construction failed");
         };
         let mut output = [0xa5_u8; 8];
         let result = send_test(
@@ -40,10 +40,10 @@ fn missing_content_type_fails_before_async_network_access() {
 fn scope_rejection_happens_before_async_network_or_header_work() {
     run_async_test(async {
         let Some(client) = build_loopback("http://127.0.0.1:9/v1") else {
-            return;
+            unreachable!("security fixture construction failed");
         };
         let Ok(provider) = ProviderId::new("example") else {
-            return;
+            unreachable!("security fixture construction failed");
         };
         let policy = AuthenticationScopePolicy::new(
             ScopeRequirement::Required(provider),
@@ -54,10 +54,10 @@ fn scope_rejection_happens_before_async_network_or_header_work() {
             ScopeRequirement::Forbidden,
         );
         let Ok(target) = RequestTarget::new("/must-not-send") else {
-            return;
+            unreachable!("security fixture construction failed");
         };
         let Ok(endpoint) = client.endpoint_identity() else {
-            return;
+            unreachable!("security fixture construction failed");
         };
         let request = super::support::prepared_with_policy(
             TransportRequest::new(Method::Get, target),
@@ -96,7 +96,7 @@ fn async_builder_debug_redacts_endpoint_scope_and_token() {
     let (Ok(endpoint), Ok(token), Ok(user_agent), Some(timeouts)) =
         (endpoint, token, user_agent, timeouts)
     else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let credential = test_credential(token, &endpoint);
     let builder = AsyncClientBuilder::new(endpoint, credential, user_agent, timeouts);
