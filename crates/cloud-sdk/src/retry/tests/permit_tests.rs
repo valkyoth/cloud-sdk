@@ -9,17 +9,19 @@ use crate::transport::DeliveryPhase;
 #[test]
 fn permit_rejects_an_observation_before_the_controller_start() {
     let Some(prepared) = read_only("/rollback") else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
     let mut storage = [0_u8; 512];
-    let Some(endpoint) = endpoint() else { return };
+    let Some(endpoint) = endpoint() else {
+        unreachable!("retry security fixture construction failed");
+    };
     let Ok(fingerprint) =
         build_canonical_fingerprint(prepared, endpoint, FingerprintScope::Absent, &mut storage)
     else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
     let Some(policy) = policy(2, 10, 20) else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
     let Ok(mut controller) = RetryController::new(
         fingerprint.subject(),
@@ -27,7 +29,7 @@ fn permit_rejects_an_observation_before_the_controller_start() {
         policy,
         MonotonicInstant::new(5),
     ) else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
     let Ok(RetryDecision::Retry(permit)) = controller.decide_retry(
         RetryEvent::Transport(DeliveryPhase::NotSent),
@@ -35,7 +37,7 @@ fn permit_rejects_an_observation_before_the_controller_start() {
         MonotonicDuration::new(2),
         MonotonicInstant::new(6),
     ) else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
 
     let transport = RecordingTransport::new(endpoint);
@@ -59,17 +61,19 @@ fn permit_rejects_an_observation_before_the_controller_start() {
 #[test]
 fn permit_execution_advances_the_controller_clock() {
     let Some(prepared) = read_only("/clock") else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
-    let Some(endpoint) = endpoint() else { return };
+    let Some(endpoint) = endpoint() else {
+        unreachable!("retry security fixture construction failed");
+    };
     let mut storage = [0_u8; 512];
     let Ok(fingerprint) =
         build_canonical_fingerprint(prepared, endpoint, FingerprintScope::Absent, &mut storage)
     else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
     let Some(policy) = policy(3, 10, 20) else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
     let Ok(mut controller) = RetryController::new(
         fingerprint.subject(),
@@ -77,7 +81,7 @@ fn permit_execution_advances_the_controller_clock() {
         policy,
         MonotonicInstant::new(5),
     ) else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
     let Ok(RetryDecision::Retry(permit)) = controller.decide_retry(
         RetryEvent::Transport(DeliveryPhase::NotSent),
@@ -85,7 +89,7 @@ fn permit_execution_advances_the_controller_clock() {
         MonotonicDuration::new(1),
         MonotonicInstant::new(6),
     ) else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
     let transport = RecordingTransport::new(endpoint);
     let mut response = [0_u8; 64];
@@ -115,17 +119,19 @@ fn permit_execution_advances_the_controller_clock() {
 #[test]
 fn async_permit_executes_the_bound_request_once() {
     let Some(prepared) = read_only("/async") else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
-    let Some(endpoint) = endpoint() else { return };
+    let Some(endpoint) = endpoint() else {
+        unreachable!("retry security fixture construction failed");
+    };
     let mut storage = [0_u8; 512];
     let Ok(fingerprint) =
         build_canonical_fingerprint(prepared, endpoint, FingerprintScope::Absent, &mut storage)
     else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
     let Some(policy) = policy(2, 1, 20) else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
     let Ok(mut controller) = RetryController::new(
         fingerprint.subject(),
@@ -133,7 +139,7 @@ fn async_permit_executes_the_bound_request_once() {
         policy,
         MonotonicInstant::new(0),
     ) else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
     let Ok(RetryDecision::Retry(permit)) = controller.decide_retry(
         RetryEvent::Transport(DeliveryPhase::NotSent),
@@ -141,7 +147,7 @@ fn async_permit_executes_the_bound_request_once() {
         MonotonicDuration::new(1),
         MonotonicInstant::new(1),
     ) else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
     let transport = RecordingTransport::new(endpoint);
     let mut response = [0_u8; 64];
@@ -165,17 +171,19 @@ fn async_permit_executes_the_bound_request_once() {
 #[test]
 fn local_async_permit_executes_the_bound_request_once() {
     let Some(prepared) = read_only("/local-async") else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
-    let Some(endpoint) = endpoint() else { return };
+    let Some(endpoint) = endpoint() else {
+        unreachable!("retry security fixture construction failed");
+    };
     let mut storage = [0_u8; 512];
     let Ok(fingerprint) =
         build_canonical_fingerprint(prepared, endpoint, FingerprintScope::Absent, &mut storage)
     else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
     let Some(policy) = policy(2, 1, 20) else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
     let Ok(mut controller) = RetryController::new(
         fingerprint.subject(),
@@ -183,7 +191,7 @@ fn local_async_permit_executes_the_bound_request_once() {
         policy,
         MonotonicInstant::new(0),
     ) else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
     let Ok(RetryDecision::Retry(permit)) = controller.decide_retry(
         RetryEvent::Transport(DeliveryPhase::NotSent),
@@ -191,7 +199,7 @@ fn local_async_permit_executes_the_bound_request_once() {
         MonotonicDuration::new(1),
         MonotonicInstant::new(1),
     ) else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
     let transport = LocalRecordingTransport::new(endpoint);
     let mut response = [0_u8; 64];

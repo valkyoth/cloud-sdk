@@ -7,25 +7,26 @@ use crate::operation::{BodyReplayability, OperationImpact, RequestSemantics, Ret
 use crate::transport::{DeliveryPhase, StatusCode};
 
 mod basic_tests;
+mod fail_closed_assurance;
 mod fixture;
 mod permit_tests;
 mod policy_identity_tests;
-use fixture::{RecordingTransport, endpoint, prepared};
+use fixture::{RecordingTransport, prepared, required_endpoint};
 
 #[test]
 fn hard_attempt_and_cumulative_delay_budgets_stop_endless_transients() {
     let Some(prepared) = read_only("/servers") else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
-    let Some(endpoint) = endpoint() else { return };
+    let endpoint = required_endpoint();
     let mut storage = [0_u8; 512];
     let Ok(fingerprint) =
         build_canonical_fingerprint(prepared, endpoint, FingerprintScope::Absent, &mut storage)
     else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
     let Some(policy) = policy(3, 10, 100) else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
     let Ok(mut owner) = RetryController::new(
         fingerprint.subject(),
@@ -33,7 +34,7 @@ fn hard_attempt_and_cumulative_delay_budgets_stop_endless_transients() {
         policy,
         MonotonicInstant::new(50),
     ) else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
 
     let first = owner.decide_retry(
@@ -44,7 +45,7 @@ fn hard_attempt_and_cumulative_delay_budgets_stop_endless_transients() {
     );
     assert!(matches!(&first, Ok(RetryDecision::Retry(_))));
     let Ok(RetryDecision::Retry(first)) = first else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
     assert_eq!(first.attempt(), 2);
     assert_eq!(first.delay().get(), 4);
@@ -71,7 +72,7 @@ fn hard_attempt_and_cumulative_delay_budgets_stop_endless_transients() {
     );
     assert!(matches!(&second, Ok(RetryDecision::Retry(_))));
     let Ok(RetryDecision::Retry(second)) = second else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
     assert_eq!(second.attempt(), 3);
     assert_eq!(second.delay().get(), 6);
@@ -102,17 +103,17 @@ fn hard_attempt_and_cumulative_delay_budgets_stop_endless_transients() {
 #[test]
 fn projected_and_post_sleep_elapsed_budgets_fail_closed() {
     let Some(prepared) = read_only("/servers") else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
-    let Some(endpoint) = endpoint() else { return };
+    let endpoint = required_endpoint();
     let mut storage = [0_u8; 512];
     let Ok(fingerprint) =
         build_canonical_fingerprint(prepared, endpoint, FingerprintScope::Absent, &mut storage)
     else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
     let Some(policy) = policy(4, 50, 10) else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
     let Ok(mut owner) = RetryController::new(
         fingerprint.subject(),
@@ -120,7 +121,7 @@ fn projected_and_post_sleep_elapsed_budgets_fail_closed() {
         policy,
         MonotonicInstant::new(0),
     ) else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
     assert!(matches!(
         owner.decide_retry(
@@ -138,7 +139,7 @@ fn projected_and_post_sleep_elapsed_budgets_fail_closed() {
         policy,
         MonotonicInstant::new(0),
     ) else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
     let permit = owner.decide_retry(
         RetryEvent::Transport(DeliveryPhase::NotSent),
@@ -148,7 +149,7 @@ fn projected_and_post_sleep_elapsed_budgets_fail_closed() {
     );
     assert!(matches!(&permit, Ok(RetryDecision::Retry(_))));
     let Ok(RetryDecision::Retry(permit)) = permit else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
     let transport = RecordingTransport::new(endpoint);
     let mut response = [0_u8; 64];
@@ -171,7 +172,7 @@ fn projected_and_post_sleep_elapsed_budgets_fail_closed() {
         policy,
         MonotonicInstant::new(0),
     ) else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
     let permit = owner.decide_retry(
         RetryEvent::Transport(DeliveryPhase::NotSent),
@@ -180,7 +181,7 @@ fn projected_and_post_sleep_elapsed_budgets_fail_closed() {
         MonotonicInstant::new(8),
     );
     let Ok(RetryDecision::Retry(permit)) = permit else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
     assert!(matches!(
         permit.execute_blocking(
@@ -196,7 +197,7 @@ fn projected_and_post_sleep_elapsed_budgets_fail_closed() {
 #[test]
 fn retry_subject_prevents_unrelated_request_policy_borrowing() {
     let Some(safe) = read_only("/safe") else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
     let Some(destructive) = prepared(
         "/destructive",
@@ -205,15 +206,15 @@ fn retry_subject_prevents_unrelated_request_policy_borrowing() {
         RetryEligibility::Never,
         BodyReplayability::Replayable,
     ) else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
-    let Some(endpoint) = endpoint() else { return };
+    let endpoint = required_endpoint();
     let mut safe_storage = [0_u8; 512];
     let mut destructive_storage = [0_u8; 512];
     let Ok(safe_fingerprint) =
         build_canonical_fingerprint(safe, endpoint, FingerprintScope::Absent, &mut safe_storage)
     else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
     let Ok(destructive_fingerprint) = build_canonical_fingerprint(
         destructive,
@@ -221,15 +222,15 @@ fn retry_subject_prevents_unrelated_request_policy_borrowing() {
         FingerprintScope::Absent,
         &mut destructive_storage,
     ) else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
     let Some(policy) = policy(2, 0, 10) else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
     let mut entropy = [0xA5_u8; 32];
     {
         let Ok(intent) = IdempotencyIntent::new(&mut entropy) else {
-            return;
+            unreachable!("retry security fixture construction failed");
         };
         let binding = IdempotencyBinding::bind(intent, destructive_fingerprint.as_ref());
         let Ok(mut owner) = RetryController::new(
@@ -238,7 +239,7 @@ fn retry_subject_prevents_unrelated_request_policy_borrowing() {
             policy,
             MonotonicInstant::new(0),
         ) else {
-            return;
+            unreachable!("retry security fixture construction failed");
         };
         assert!(matches!(
             owner.decide_retry(
@@ -271,12 +272,12 @@ fn replayability_fingerprint_status_and_delay_are_mandatory() {
         RetryEligibility::ExplicitPolicy,
         BodyReplayability::NotReplayable,
     ) else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
     let Some(different) = read_only("/other") else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
-    let Some(endpoint) = endpoint() else { return };
+    let endpoint = required_endpoint();
     let mut first_storage = [0_u8; 512];
     let mut second_storage = [0_u8; 512];
     let Ok(first) = build_canonical_fingerprint(
@@ -285,7 +286,7 @@ fn replayability_fingerprint_status_and_delay_are_mandatory() {
         FingerprintScope::Absent,
         &mut first_storage,
     ) else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
     let Ok(second) = build_canonical_fingerprint(
         different,
@@ -293,15 +294,15 @@ fn replayability_fingerprint_status_and_delay_are_mandatory() {
         FingerprintScope::Absent,
         &mut second_storage,
     ) else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
     let Some(policy) = policy(2, 1, 5) else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
     let Ok(mut owner) =
         RetryController::new(first.subject(), None, policy, MonotonicInstant::new(0))
     else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
     assert!(matches!(
         owner.decide_retry(
@@ -323,7 +324,7 @@ fn replayability_fingerprint_status_and_delay_are_mandatory() {
     ));
 
     let Some(replayable) = read_only("/status") else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
     let mut status_storage = [0_u8; 512];
     let Ok(status_fingerprint) = build_canonical_fingerprint(
@@ -332,7 +333,7 @@ fn replayability_fingerprint_status_and_delay_are_mandatory() {
         FingerprintScope::Absent,
         &mut status_storage,
     ) else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
     let Ok(mut status_owner) = RetryController::new(
         status_fingerprint.subject(),
@@ -340,7 +341,7 @@ fn replayability_fingerprint_status_and_delay_are_mandatory() {
         policy,
         MonotonicInstant::new(0),
     ) else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
     assert!(matches!(
         status_owner.decide_retry(
@@ -362,17 +363,17 @@ fn mutation_intent_is_borrowed_one_use_and_cleared_on_drop() {
         RetryEligibility::ExplicitPolicy,
         BodyReplayability::Replayable,
     ) else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
-    let Some(endpoint) = endpoint() else { return };
+    let endpoint = required_endpoint();
     let mut storage = [0_u8; 512];
     let Ok(fingerprint) =
         build_canonical_fingerprint(mutation, endpoint, FingerprintScope::Absent, &mut storage)
     else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
     let Some(policy) = policy(2, 0, 2) else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
     assert!(matches!(
         RetryController::new(
@@ -392,7 +393,7 @@ fn mutation_intent_is_borrowed_one_use_and_cleared_on_drop() {
         let mut entropy = [0xC3_u8; 32];
         {
             let Ok(intent) = IdempotencyIntent::new(&mut entropy) else {
-                return;
+                unreachable!("retry security fixture construction failed");
             };
             let binding = IdempotencyBinding::bind(intent, fingerprint.as_ref());
             let Ok(mut owner) = RetryController::new(
@@ -401,7 +402,7 @@ fn mutation_intent_is_borrowed_one_use_and_cleared_on_drop() {
                 policy,
                 MonotonicInstant::new(0),
             ) else {
-                return;
+                unreachable!("retry security fixture construction failed");
             };
             let decision = owner.decide_retry(
                 RetryEvent::Transport(phase),
@@ -418,17 +419,17 @@ fn mutation_intent_is_borrowed_one_use_and_cleared_on_drop() {
 #[test]
 fn rollback_and_arithmetic_overflow_never_extend_budgets() {
     let Some(prepared) = read_only("/budgets") else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
-    let Some(endpoint) = endpoint() else { return };
+    let endpoint = required_endpoint();
     let mut storage = [0_u8; 512];
     let Ok(fingerprint) =
         build_canonical_fingerprint(prepared, endpoint, FingerprintScope::Absent, &mut storage)
     else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
     let Some(overflow_policy) = policy(3, u64::MAX, u64::MAX) else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
     let Ok(mut owner) = RetryController::new(
         fingerprint.subject(),
@@ -436,7 +437,7 @@ fn rollback_and_arithmetic_overflow_never_extend_budgets() {
         overflow_policy,
         MonotonicInstant::new(0),
     ) else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
     assert!(matches!(
         owner.decide_retry(
@@ -458,7 +459,7 @@ fn rollback_and_arithmetic_overflow_never_extend_budgets() {
     ));
 
     let Some(rollback_policy) = policy(2, 1, 10) else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
     let Ok(mut owner) = RetryController::new(
         fingerprint.subject(),
@@ -466,7 +467,7 @@ fn rollback_and_arithmetic_overflow_never_extend_budgets() {
         rollback_policy,
         MonotonicInstant::new(1),
     ) else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
     assert!(matches!(
         owner.decide_retry(

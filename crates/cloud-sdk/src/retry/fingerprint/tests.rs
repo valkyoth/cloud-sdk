@@ -28,9 +28,11 @@ static OTHER_HEADERS: [RequestHeader<'static>; 1] =
 #[test]
 fn canonical_format_is_versioned_field_separated_and_cleared() {
     let Some(prepared) = fixture(b"{\"name\":\"one\"}", "/servers?name=one") else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
-    let Some(endpoint) = endpoint() else { return };
+    let Some(endpoint) = endpoint() else {
+        unreachable!("retry security fixture construction failed");
+    };
     let mut storage = [0xA5_u8; 512];
     {
         let result = build_canonical_fingerprint(
@@ -42,11 +44,11 @@ fn canonical_format_is_versioned_field_separated_and_cleared() {
         assert!(result.is_ok());
         let canonical = match result {
             Ok(value) => value,
-            Err(_) => return,
+            Err(_) => unreachable!("retry security fixture construction failed"),
         };
         assert!(!canonical.is_empty());
         let FingerprintRef(FingerprintKind::Exact(bytes)) = canonical.as_ref() else {
-            return;
+            unreachable!("retry security fixture construction failed");
         };
         assert!(bytes.starts_with(b"cloud-sdk/retry-fingerprint/v2\0"));
         assert!(contains_field(bytes, 1, b"example"));
@@ -65,12 +67,14 @@ fn canonical_format_is_versioned_field_separated_and_cleared() {
 
 #[test]
 fn every_request_identity_component_changes_exact_comparison() {
-    let Some(endpoint) = endpoint() else { return };
+    let Some(endpoint) = endpoint() else {
+        unreachable!("retry security fixture construction failed");
+    };
     let Some(first_request) = fixture(b"one", "/servers?name=one") else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
     let Some(second_request) = fixture(b"two", "/servers?name=one") else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
     let mut first_storage = [0_u8; 512];
     let mut second_storage = [0_u8; 512];
@@ -103,10 +107,10 @@ fn every_provider_operation_and_wire_domain_change_is_distinct() {
         "compute",
         &HEADERS,
     ) else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
     let Some(base_endpoint) = endpoint() else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
     let candidates = [
         fixture_parts(
@@ -174,7 +178,9 @@ fn every_provider_operation_and_wire_domain_change_is_distinct() {
         ),
     ];
     for candidate in candidates {
-        let Some(candidate) = candidate else { return };
+        let Some(candidate) = candidate else {
+            unreachable!("retry security fixture construction failed");
+        };
         assert!(!same_fingerprint(
             base,
             base_endpoint,
@@ -187,7 +193,7 @@ fn every_provider_operation_and_wire_domain_change_is_distinct() {
     let Some(other_endpoint) =
         EndpointIdentity::new(EndpointScheme::Https, "other.example.invalid", 443, "/v1").ok()
     else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
     let Some(other_prepared) = fixture_parts_endpoint(
         b"one",
@@ -199,7 +205,7 @@ fn every_provider_operation_and_wire_domain_change_is_distinct() {
         &HEADERS,
         other_endpoint,
     ) else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
     assert!(!same_fingerprint(
         base,
@@ -238,9 +244,11 @@ fn digest_boundary_accepts_sha256_vector_and_rejects_wrong_length() {
         ])
     );
     let Some(prepared) = fixture(b"{}", "/servers") else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
-    let Some(endpoint) = endpoint() else { return };
+    let Some(endpoint) = endpoint() else {
+        unreachable!("retry security fixture construction failed");
+    };
     let mut scratch = [0xA5_u8; 512];
     let mut digest_output = [0xA5_u8; 64];
     {
@@ -253,10 +261,12 @@ fn digest_boundary_accepts_sha256_vector_and_rejects_wrong_length() {
             &Sha256,
         );
         assert!(digest.is_ok());
-        let Ok(digest) = digest else { return };
+        let Ok(digest) = digest else {
+            unreachable!("retry security fixture construction failed");
+        };
         assert_eq!(digest.algorithm(), DigestAlgorithm::Sha256);
         let FingerprintRef(FingerprintKind::Digest { bytes, .. }) = digest.as_ref() else {
-            return;
+            unreachable!("retry security fixture construction failed");
         };
         assert_eq!(bytes.len(), 32);
         assert!(bytes.iter().any(|byte| *byte != 0));
@@ -298,9 +308,11 @@ fn digest_boundary_accepts_sha256_vector_and_rejects_wrong_length() {
 #[test]
 fn insufficient_storage_fails_with_cleared_output() {
     let Some(prepared) = fixture(b"{}", "/servers") else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
-    let Some(endpoint) = endpoint() else { return };
+    let Some(endpoint) = endpoint() else {
+        unreachable!("retry security fixture construction failed");
+    };
     let mut storage = [0xA5_u8; 8];
     let result =
         build_canonical_fingerprint(prepared, endpoint, FingerprintScope::Absent, &mut storage);
@@ -354,8 +366,8 @@ pub(super) fn fixture_parts_endpoint(
         .with_headers(RequestHeaders::new(headers).ok()?)
         .with_body(body);
     let metadata = OperationMetadata::new(
-        OperationImpact::ReadOnly,
-        RequestSemantics::Safe,
+        OperationImpact::Mutation,
+        RequestSemantics::Idempotent,
         RetryEligibility::ExplicitPolicy,
         CostIntent::NoKnownCost,
         RequestIdPolicy::Discard,
@@ -417,7 +429,7 @@ pub(super) fn same_fingerprint(
         build_canonical_fingerprint(second, second_endpoint, second_scope, &mut second_storage);
     match (first, second) {
         (Ok(first), Ok(second)) => first.as_ref().matches(second.as_ref()),
-        _ => true,
+        _ => unreachable!("retry fingerprint fixture construction failed"),
     }
 }
 

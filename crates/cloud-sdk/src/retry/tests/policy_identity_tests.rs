@@ -47,27 +47,29 @@ fn identical_wire_bytes_cannot_launder_any_prepared_policy() {
 
 #[test]
 fn header_sensitivity_is_bound_to_fingerprint_and_retry_policy() {
-    let Some(endpoint) = endpoint() else { return };
+    let Some(endpoint) = endpoint() else {
+        unreachable!("retry security fixture construction failed");
+    };
     let Ok(sensitive) = RequestHeader::sensitive("x-retry-secret", "same-value") else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
     let Ok(public) = RequestHeader::new("x-retry-secret", "same-value") else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
     let sensitive_headers = [sensitive];
     let public_headers = [public];
     let Ok(sensitive_headers) = RequestHeaders::new(&sensitive_headers) else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
     let Ok(public_headers) = RequestHeaders::new(&public_headers) else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
     let Some(initial) = request_with_headers(PolicyVariant::Baseline, sensitive_headers) else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
     let Some(replay) = request_with_headers(PolicyVariant::HeaderSensitivity, public_headers)
     else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
     let mut initial_storage = [0_u8; 512];
     let mut replay_storage = [0_u8; 512];
@@ -77,7 +79,7 @@ fn header_sensitivity_is_bound_to_fingerprint_and_retry_policy() {
         FingerprintScope::Absent,
         &mut initial_storage,
     ) else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
     let Ok(replay_fingerprint) = build_canonical_fingerprint(
         replay,
@@ -85,7 +87,7 @@ fn header_sensitivity_is_bound_to_fingerprint_and_retry_policy() {
         FingerprintScope::Absent,
         &mut replay_storage,
     ) else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
     assert!(
         !initial_fingerprint
@@ -95,7 +97,7 @@ fn header_sensitivity_is_bound_to_fingerprint_and_retry_policy() {
     assert!(!initial.has_same_retry_policy(&replay));
 
     let Some(policy) = policy(2, 0, 20) else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
     let Ok(mut controller) = RetryController::new(
         initial_fingerprint.subject(),
@@ -103,7 +105,7 @@ fn header_sensitivity_is_bound_to_fingerprint_and_retry_policy() {
         policy,
         MonotonicInstant::new(0),
     ) else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
     assert!(matches!(
         controller.decide_retry(
@@ -117,12 +119,14 @@ fn header_sensitivity_is_bound_to_fingerprint_and_retry_policy() {
 }
 
 fn assert_policy_rejected(variant: PolicyVariant) {
-    let Some(endpoint) = endpoint() else { return };
+    let Some(endpoint) = endpoint() else {
+        unreachable!("retry security fixture construction failed");
+    };
     let Some(initial) = request(PolicyVariant::Baseline) else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
     let Some(replay) = request(variant) else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
     let mut initial_storage = [0_u8; 512];
     let mut replay_storage = [0_u8; 512];
@@ -132,7 +136,7 @@ fn assert_policy_rejected(variant: PolicyVariant) {
         FingerprintScope::Absent,
         &mut initial_storage,
     ) else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
     let Ok(replay_fingerprint) = build_canonical_fingerprint(
         replay,
@@ -140,7 +144,7 @@ fn assert_policy_rejected(variant: PolicyVariant) {
         FingerprintScope::Absent,
         &mut replay_storage,
     ) else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
     assert!(
         initial_fingerprint
@@ -148,7 +152,7 @@ fn assert_policy_rejected(variant: PolicyVariant) {
             .matches(replay_fingerprint.as_ref())
     );
     let Some(policy) = policy(2, 0, 20) else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
     let Ok(mut controller) = RetryController::new(
         initial_fingerprint.subject(),
@@ -156,7 +160,7 @@ fn assert_policy_rejected(variant: PolicyVariant) {
         policy,
         MonotonicInstant::new(0),
     ) else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
 
     assert!(matches!(
@@ -257,7 +261,7 @@ fn request_with_headers<'a>(
         0,
     )
     .ok()?;
-    let request = TransportRequest::new(Method::Post, RequestTarget::new("/same-wire").ok()?)
+    let request = TransportRequest::new(Method::Get, RequestTarget::new("/same-wire").ok()?)
         .with_headers(headers)
         .with_body(b"{}");
     let prepared = PreparedRequest::new(

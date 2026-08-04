@@ -24,6 +24,10 @@ pub fn endpoint() -> Option<EndpointIdentity<'static>> {
     EndpointIdentity::new(EndpointScheme::Https, "api.example.invalid", 443, "/v1").ok()
 }
 
+pub fn required_endpoint() -> EndpointIdentity<'static> {
+    endpoint().unwrap_or_else(|| unreachable!("retry fixture construction failed"))
+}
+
 pub fn prepared(
     target: &'static str,
     impact: OperationImpact,
@@ -32,8 +36,12 @@ pub fn prepared(
     replayability: BodyReplayability,
 ) -> Option<PreparedRequest<'static>> {
     let endpoint = endpoint()?;
-    let request =
-        TransportRequest::new(Method::Post, RequestTarget::new(target).ok()?).with_body(b"{}");
+    let method = if impact == OperationImpact::ReadOnly {
+        Method::Get
+    } else {
+        Method::Post
+    };
+    let request = TransportRequest::new(method, RequestTarget::new(target).ok()?).with_body(b"{}");
     let metadata = OperationMetadata::new(
         impact,
         semantics,

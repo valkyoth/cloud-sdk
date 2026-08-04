@@ -15,7 +15,7 @@ fn equivalent_ipv6_endpoint_spellings_have_one_fingerprint_identity() {
         "/v1",
     );
     let (Ok(compact), Ok(expanded)) = (compact, expanded) else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
     let Some(compact_prepared) = fixture_parts_endpoint(
         b"{}",
@@ -27,7 +27,7 @@ fn equivalent_ipv6_endpoint_spellings_have_one_fingerprint_identity() {
         &HEADERS,
         compact,
     ) else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
     let Some(expanded_prepared) = fixture_parts_endpoint(
         b"{}",
@@ -39,7 +39,7 @@ fn equivalent_ipv6_endpoint_spellings_have_one_fingerprint_identity() {
         &HEADERS,
         expanded,
     ) else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
     assert_eq!(compact, expanded);
     assert!(same_fingerprint(
@@ -55,12 +55,12 @@ fn equivalent_ipv6_endpoint_spellings_have_one_fingerprint_identity() {
 #[test]
 fn fingerprint_builder_rejects_an_endpoint_outside_prepared_policy() {
     let Some(prepared) = fixture(b"{}", "/servers") else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
     let Some(other) =
         EndpointIdentity::new(EndpointScheme::Https, "other.example.invalid", 443, "/v1").ok()
     else {
-        return;
+        unreachable!("retry security fixture construction failed");
     };
     let mut storage = [0xA5_u8; 512];
     let result =
