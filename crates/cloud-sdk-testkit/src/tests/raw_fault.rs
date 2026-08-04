@@ -23,9 +23,11 @@ fn policy() -> Option<RawResponsePolicy<'static>> {
 #[test]
 fn preserves_every_conservative_delivery_phase() {
     let Ok(target) = RequestTarget::new("/fault") else {
-        return;
+        unreachable!("testkit security fixture construction failed");
     };
-    let Some(policy) = policy() else { return };
+    let Some(policy) = policy() else {
+        unreachable!("testkit security fixture construction failed");
+    };
     for (fault, expected) in [
         (RawFault::NotSent, DeliveryPhase::NotSent),
         (RawFault::PossiblySent, DeliveryPhase::PossiblySent),
@@ -49,9 +51,11 @@ fn preserves_every_conservative_delivery_phase() {
 #[test]
 fn async_unknown_fault_is_immediately_possibly_sent() {
     let Ok(target) = RequestTarget::new("/fault") else {
-        return;
+        unreachable!("testkit security fixture construction failed");
     };
-    let Some(policy) = policy() else { return };
+    let Some(policy) = policy() else {
+        unreachable!("testkit security fixture construction failed");
+    };
     let executor = RawFaultExecutor::new(RawFault::Unknown);
     let mut body = [0xa5_u8; 1];
     let mut headers = [0xa5_u8; 32];
@@ -75,9 +79,11 @@ fn async_unknown_fault_is_immediately_possibly_sent() {
 #[test]
 fn send_raw_executor_automatically_satisfies_local_async() {
     let Ok(target) = RequestTarget::new("/fault") else {
-        return;
+        unreachable!("testkit security fixture construction failed");
     };
-    let Some(policy) = policy() else { return };
+    let Some(policy) = policy() else {
+        unreachable!("testkit security fixture construction failed");
+    };
     let executor = RawFaultExecutor::new(RawFault::NotSent);
     let mut body = [0xa5_u8; 1];
     let mut headers = [0xa5_u8; 32];

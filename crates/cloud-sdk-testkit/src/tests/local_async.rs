@@ -9,10 +9,10 @@ use crate::{ExpectedRequest, FixtureBody, LocalMockTransport, MockExchange, Resp
 #[test]
 fn local_async_mock_supports_cooperatively_outstanding_requests() {
     let Ok(target) = RequestTarget::new("/local") else {
-        return;
+        unreachable!("testkit security fixture construction failed");
     };
     let Ok(body) = FixtureBody::new(b"ok") else {
-        return;
+        unreachable!("testkit security fixture construction failed");
     };
     let exchanges = [
         MockExchange::new(
@@ -70,10 +70,10 @@ fn local_async_mock_supports_cooperatively_outstanding_requests() {
 #[test]
 fn dropping_unpolled_local_mock_future_preserves_the_exchange() {
     let Ok(target) = RequestTarget::new("/local-drop") else {
-        return;
+        unreachable!("testkit security fixture construction failed");
     };
     let Ok(body) = FixtureBody::new(b"ok") else {
-        return;
+        unreachable!("testkit security fixture construction failed");
     };
     let exchanges = [MockExchange::new(
         ExpectedRequest::new(Method::Get, target),

@@ -43,7 +43,9 @@ impl ServiceMarker for ComputeService {
 fn prepared_records_capture_policy_and_redact_request_values() {
     let prepared = mutation_prepared_request(16);
     assert!(prepared.is_ok());
-    let Ok(prepared) = prepared else { return };
+    let Ok(prepared) = prepared else {
+        unreachable!("testkit security fixture construction failed");
+    };
     let record = PreparedRequestRecord::capture(prepared);
     assert_eq!(record.method(), Method::Post);
     assert_eq!(record.target_len(), 8);
@@ -101,7 +103,7 @@ fn bound_mock_executes_prepared_requests_for_blocking_and_async_contracts() {
     let (Ok(prepared), Ok(first_exchange), Ok(second_exchange), Ok(endpoint)) =
         (prepared, first_exchange, second_exchange, endpoint)
     else {
-        return;
+        unreachable!("testkit security fixture construction failed");
     };
     let exchanges = [first_exchange, second_exchange];
     let mock = MockTransport::new(&exchanges).with_endpoint(endpoint);
@@ -132,7 +134,7 @@ fn local_async_mock_executes_a_checked_prepared_request() {
     let endpoint = official_endpoint();
     assert!(prepared.is_ok() && exchange.is_ok() && endpoint.is_ok());
     let (Ok(prepared), Ok(exchange), Ok(endpoint)) = (prepared, exchange, endpoint) else {
-        return;
+        unreachable!("testkit security fixture construction failed");
     };
     let exchanges = [exchange];
     let mock = LocalMockTransport::new(&exchanges).with_endpoint(endpoint);
@@ -158,13 +160,13 @@ fn mock_models_endpoint_status_content_type_and_empty_body_failures() {
     let (Ok(prepared), Ok(expected), Ok(endpoint), Ok(other)) =
         (prepared, expected, endpoint, other)
     else {
-        return;
+        unreachable!("testkit security fixture construction failed");
     };
     let Ok(json_body) = FixtureBody::new(b"{}") else {
-        return;
+        unreachable!("testkit security fixture construction failed");
     };
     let Ok(empty_body) = FixtureBody::new(b"") else {
-        return;
+        unreachable!("testkit security fixture construction failed");
     };
 
     let success = ResponseFixture::success(json_body).with_content_type("application/json");
@@ -225,10 +227,10 @@ fn mock_models_oversized_responses_and_retry_classification_mistakes() {
     let endpoint = official_endpoint();
     assert!(prepared.is_ok() && expected.is_ok() && endpoint.is_ok());
     let (Ok(prepared), Ok(expected), Ok(endpoint)) = (prepared, expected, endpoint) else {
-        return;
+        unreachable!("testkit security fixture construction failed");
     };
     let Ok(oversized_body) = FixtureBody::new(b"123") else {
-        return;
+        unreachable!("testkit security fixture construction failed");
     };
     let fixture = ResponseFixture::success(oversized_body).with_content_type("application/json");
     let exchanges = [MockExchange::new(expected, fixture)];
@@ -244,7 +246,7 @@ fn mock_models_oversized_responses_and_retry_classification_mistakes() {
     assert_eq!(mock.remaining(), 1);
 
     let Some(mutation) = mutation_prepared_request(2).ok() else {
-        return;
+        unreachable!("testkit security fixture construction failed");
     };
     let record = PreparedRequestRecord::capture(mutation);
     assert_ne!(record.metadata().impact(), OperationImpact::ReadOnly);
@@ -261,7 +263,7 @@ fn mock_rejects_unbound_endpoints_request_media_mismatch_and_invalid_fixture_med
     let exchange = successful_exchange();
     assert!(prepared.is_ok() && exchange.is_ok());
     let (Ok(prepared), Ok(exchange)) = (prepared, exchange) else {
-        return;
+        unreachable!("testkit security fixture construction failed");
     };
     let exchanges = [exchange];
     let unbound = MockTransport::new(&exchanges);
@@ -281,7 +283,7 @@ fn mock_rejects_unbound_endpoints_request_media_mismatch_and_invalid_fixture_med
     let body = FixtureBody::new(b"{}");
     assert!(endpoint.is_ok() && target.is_ok() && body.is_ok());
     let (Ok(endpoint), Ok(target), Ok(body)) = (endpoint, target, body) else {
-        return;
+        unreachable!("testkit security fixture construction failed");
     };
     let no_media_expectation = ExpectedRequest::new(Method::Get, target).with_body(b"{}");
     let exchanges = [MockExchange::new(
