@@ -33,6 +33,10 @@
 - malicious or compromised third-party dependency.
 - test fixtures accidentally performing network or filesystem operations;
 - mock mismatch diagnostics disclosing request targets or bodies.
+- lifecycle telemetry exposing generic errors, request-ID bytes, provider
+  messages, resource identifiers, cursors, targets, headers, or bodies;
+- observer failures changing request results, hidden observer locks causing
+  reentrancy deadlocks, or unbounded callbacks harming availability;
 - authority replacement or path-normalization confusion when a future adapter
   combines untrusted request targets with an authenticated provider base URL;
 - out-of-bounds response lengths from buggy or malicious safe transports;
@@ -111,6 +115,10 @@
   models, post-parse validation, and default dependency-graph isolation;
 - no_std mock transport with borrowed expectations, atomic bounded fixture
   writes, payload-free errors, and redacted request/response diagnostics;
+- opt-in copy-only lifecycle events admit finite categories plus bounded public
+  provider taxonomy, status, and request-ID disposition only; core never logs,
+  retains observer state, or exposes discarded-ID presence; observer return
+  errors are isolated from execution and no SDK-owned observer lock exists;
 - origin-form targets reject scheme-relative prefixes, backslashes, fragments,
   controls, spaces, and non-ASCII before an adapter can attach credentials;
 - transports receive only a sealed writer over the admitted caller-owned

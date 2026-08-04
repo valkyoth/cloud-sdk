@@ -84,11 +84,11 @@ operation contracts, then validates them with an unpublished OVHcloud API v2
 architecture probe, a narrow credential-free Robot wire fixture, and
 full-fidelity Hetzner vertical slices before the neutral API freeze.
 
-Source milestone `v0.53.0` adds bounded pager and action workflow drivers with
-separate cancellation, backoff, progress, provider wall-clock telemetry, and
-monotonic local budgets. It accumulates with the tagged v0.51 and v0.52
-milestones toward the next crates.io publication at `v0.55.0`; published
-install examples therefore remain on the `v0.50.0` checkpoint.
+Source milestone `v0.54.0` adds opt-in structured lifecycle diagnostics with
+finite payload-free categories and request-ID policy enforcement across all
+client execution modes. It accumulates with tagged v0.51 through v0.53 toward
+the next crates.io publication at `v0.55.0`; published install examples
+therefore remain on the `v0.50.0` checkpoint.
 
 ## Trust Dashboard
 
@@ -177,6 +177,7 @@ visible. Applications should enable only the features they use.
 - [Plan-confirm execution permits](https://github.com/valkyoth/cloud-sdk/blob/main/docs/EXECUTION_PERMITS.md)
 - [Provider-generic client kernel](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CLIENT_KERNEL.md)
 - [Pager and action workflow drivers](https://github.com/valkyoth/cloud-sdk/blob/main/docs/WORKFLOW_DRIVERS.md)
+- [Payload-free diagnostics](https://github.com/valkyoth/cloud-sdk/blob/main/docs/DIAGNOSTICS.md)
 - [Local async contract](https://github.com/valkyoth/cloud-sdk/blob/main/docs/LOCAL_ASYNC.md)
 - [Streaming transport contract](https://github.com/valkyoth/cloud-sdk/blob/main/docs/STREAMING.md)
 - [Release runbook](https://github.com/valkyoth/cloud-sdk/blob/main/docs/RELEASE_RUNBOOK.md)
@@ -206,6 +207,7 @@ visible. Applications should enable only the features they use.
 - [Migrating source users to v0.51](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.51.0.md)
 - [Migrating source users to v0.52](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.52.0.md)
 - [Migrating source users to v0.53](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.53.0.md)
+- [Migrating source users to v0.54](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.54.0.md)
 - [Compile-time Hetzner operation associations](https://github.com/valkyoth/cloud-sdk/blob/main/docs/OPERATION_ASSOCIATIONS.md)
 - [Incremental provider decoding](https://github.com/valkyoth/cloud-sdk/blob/main/docs/INCREMENTAL_DECODING.md)
 - [Deprecated endpoint policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/DEPRECATED_ENDPOINT_POLICY.md)

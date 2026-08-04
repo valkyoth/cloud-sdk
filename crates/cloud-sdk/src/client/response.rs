@@ -1,5 +1,6 @@
 use core::fmt;
 
+use crate::diagnostics::{DiagnosticRequestId, DiagnosticResponse};
 use crate::operation::{CheckedResponse, PreparedRequest, ResponsePolicyError};
 use crate::transport::{
     ResponseBuffer, ResponseDecodeWorkspace, ResponseWriterError, StatusCode, TransportResponse,
@@ -87,6 +88,15 @@ impl<'request, 'buffer> ClientResponse<'request, 'buffer> {
                 ClientResponseKind::Other
             }
         })
+    }
+
+    pub(crate) fn diagnostic_response(&self) -> Result<DiagnosticResponse, ResponseWriterError> {
+        let status = self.status()?;
+        let request_id = DiagnosticRequestId::classify(
+            self.prepared.metadata().request_id_policy(),
+            self.response.request_id().is_some(),
+        );
+        Ok(DiagnosticResponse::new(status, request_id))
     }
 
     /// Applies success policy, decodes an owned value, and clears all storage.

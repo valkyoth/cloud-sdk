@@ -2,9 +2,9 @@
 
 Status: `v0.50.0` is tagged and published. It is the baseline for the first
 five-minor development train, whose next cumulative pentest and crates.io
-checkpoint is `v0.55.0`. Source milestones `v0.51.0` and `v0.52.0` are tagged;
-`v0.53.0` is the current release candidate. None is a separate crates.io
-publication.
+checkpoint is `v0.55.0`. Source milestones `v0.51.0` through `v0.53.0` are
+tagged; `v0.54.0` is the current release candidate. None is a separate
+crates.io publication.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
@@ -791,6 +791,20 @@ a crate; all changed package trees remain part of the v0.55 cumulative release.
 | Crate | Published | Source | Change | Publish | Reason |
 | --- | --- | --- | --- | --- | --- |
 | `cloud-sdk` | `0.50.0` | `0.53.0` | `code` | No | Add sequenced pager and bounded action polling with separate cancellation, backoff, progress, and time policy. |
+| `cloud-sdk-hetzner` | `0.38.0` | `0.38.0` | `code` | No | Retain cumulative typed execution changes for v0.55. |
+| `cloud-sdk-reqwest` | `0.32.3` | `0.32.3` | `dependency` | No | Accumulate the source core dependency for v0.55 without publication. |
+| `cloud-sdk-sanitization` | `0.17.0` | `0.17.0` | `unchanged` | No | No code, dependency, or package metadata changes. |
+| `cloud-sdk-testkit` | `0.28.2` | `0.28.2` | `code` | No | Retain cumulative v0.51 fixture changes for v0.55. |
+
+## v0.54.0 Tracking Table
+
+`v0.54.0` is the fourth internal milestone accumulated after the public v0.50
+baseline. It adds provider-neutral payload-free diagnostics without publishing
+a crate; all changed package trees remain part of the v0.55 cumulative release.
+
+| Crate | Published | Source | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.50.0` | `0.54.0` | `code` | No | Add finite diagnostic categories and opt-in lifecycle observers across all client modes. |
 | `cloud-sdk-hetzner` | `0.38.0` | `0.38.0` | `code` | No | Retain cumulative typed execution changes for v0.55. |
 | `cloud-sdk-reqwest` | `0.32.3` | `0.32.3` | `dependency` | No | Accumulate the source core dependency for v0.55 without publication. |
 | `cloud-sdk-sanitization` | `0.17.0` | `0.17.0` | `unchanged` | No | No code, dependency, or package metadata changes. |

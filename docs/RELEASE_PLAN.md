@@ -1848,8 +1848,8 @@ Stop gate: `v0.52.0 implementation stop reached. Complete the security review an
 ### v0.53.0 - Pager And Action Workflow Drivers
 
 Status: release candidate; local security review and repository gates passed.
-Tagging requires the clean release gate and green GitHub CI and CodeQL on the
-exact commit.
+Tagged on 2026-08-04 after the clean release gate and green GitHub CI and
+CodeQL on the exact commit.
 
 Goal: provide ergonomic workflows without clocks, sleep, or executors in core.
 
@@ -1860,6 +1860,10 @@ Verification: busy-loop, progress reset/regression, terminal bounds, cancellatio
 Stop gate: `v0.53.0 implementation stop reached. Complete the security review and full release gate for this exact commit; defer cumulative pentest and crates.io publication to v0.55.0.`
 
 ### v0.54.0 - Structured Payload-Free Diagnostics
+
+Status: release candidate; local security review and repository gates passed.
+Tagging requires the clean release gate and green GitHub CI and CodeQL on the
+exact commit.
 
 Goal: make failures actionable without leaking provider or customer data.
 

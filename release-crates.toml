@@ -1,19 +1,19 @@
 [release]
-version = "0.53.0"
-milestone = "0.53.0"
+version = "0.54.0"
+milestone = "0.54.0"
 baseline = "0.50.0"
-cumulative_milestones = ["0.51.0", "0.52.0", "0.53.0"]
+cumulative_milestones = ["0.51.0", "0.52.0", "0.53.0", "0.54.0"]
 policy = "independent"
 stage = "internal"
 exceptional = false
 exception_reason = ""
 
 [crates."cloud-sdk"]
-previous_version = "0.52.0"
-version = "0.53.0"
+previous_version = "0.53.0"
+version = "0.54.0"
 change = "code"
 publish = false
-reason = "Add bounded pager and action workflow drivers with separated control, backoff, progress, and time policy."
+reason = "Add structured payload-free diagnostics and opt-in lifecycle observation."
 
 [crates."cloud-sdk-hetzner"]
 previous_version = "0.38.0"
@@ -27,7 +27,7 @@ previous_version = "0.32.3"
 version = "0.32.3"
 change = "dependency"
 publish = false
-reason = "Accumulate the cloud-sdk v0.53 dependency for the v0.55 public checkpoint."
+reason = "Accumulate the cloud-sdk v0.54 dependency for the v0.55 public checkpoint."
 
 [crates."cloud-sdk-sanitization"]
 previous_version = "0.17.0"

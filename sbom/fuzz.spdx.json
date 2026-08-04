@@ -1,21 +1,21 @@
 {
   "SPDXID": "SPDXRef-DOCUMENT",
   "creationInfo": {
-    "created": "2026-08-04T12:14:24Z",
+    "created": "2026-08-04T13:19:39Z",
     "creators": [
       "Tool: cargo-sbom-v0.10.0",
       "Tool: cloud-sdk-complete-spdx-v1"
     ]
   },
   "dataLicense": "CC0-1.0",
-  "documentNamespace": "https://spdx.org/spdxdocs/fuzz-0094f40f-442e-4609-8b2a-b75023fa5fa2",
+  "documentNamespace": "https://spdx.org/spdxdocs/fuzz-0a5e0eef-3690-469b-968c-c204f7fba3f9",
   "files": [
     {
       "SPDXID": "SPDXRef-File-action_polling",
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "d7da6792f6c44e512e6cf4d864683aa6a50a3797"
+          "checksumValue": "f14f49dfb2483cec135d05ddc430543c61366204"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -29,7 +29,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "d7da6792f6c44e512e6cf4d864683aa6a50a3797"
+          "checksumValue": "f14f49dfb2483cec135d05ddc430543c61366204"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -43,7 +43,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "d7da6792f6c44e512e6cf4d864683aa6a50a3797"
+          "checksumValue": "f14f49dfb2483cec135d05ddc430543c61366204"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -57,7 +57,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "d7da6792f6c44e512e6cf4d864683aa6a50a3797"
+          "checksumValue": "f14f49dfb2483cec135d05ddc430543c61366204"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -71,7 +71,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "d7da6792f6c44e512e6cf4d864683aa6a50a3797"
+          "checksumValue": "f14f49dfb2483cec135d05ddc430543c61366204"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -85,7 +85,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "d7da6792f6c44e512e6cf4d864683aa6a50a3797"
+          "checksumValue": "f14f49dfb2483cec135d05ddc430543c61366204"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -99,7 +99,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "d7da6792f6c44e512e6cf4d864683aa6a50a3797"
+          "checksumValue": "f14f49dfb2483cec135d05ddc430543c61366204"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -113,7 +113,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "d7da6792f6c44e512e6cf4d864683aa6a50a3797"
+          "checksumValue": "f14f49dfb2483cec135d05ddc430543c61366204"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -127,7 +127,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "d7da6792f6c44e512e6cf4d864683aa6a50a3797"
+          "checksumValue": "f14f49dfb2483cec135d05ddc430543c61366204"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -141,7 +141,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "d7da6792f6c44e512e6cf4d864683aa6a50a3797"
+          "checksumValue": "f14f49dfb2483cec135d05ddc430543c61366204"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -155,7 +155,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "d7da6792f6c44e512e6cf4d864683aa6a50a3797"
+          "checksumValue": "f14f49dfb2483cec135d05ddc430543c61366204"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -169,7 +169,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "d7da6792f6c44e512e6cf4d864683aa6a50a3797"
+          "checksumValue": "f14f49dfb2483cec135d05ddc430543c61366204"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -183,7 +183,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "d7da6792f6c44e512e6cf4d864683aa6a50a3797"
+          "checksumValue": "f14f49dfb2483cec135d05ddc430543c61366204"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -197,7 +197,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "d7da6792f6c44e512e6cf4d864683aa6a50a3797"
+          "checksumValue": "f14f49dfb2483cec135d05ddc430543c61366204"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -211,7 +211,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "d7da6792f6c44e512e6cf4d864683aa6a50a3797"
+          "checksumValue": "f14f49dfb2483cec135d05ddc430543c61366204"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -225,7 +225,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "d7da6792f6c44e512e6cf4d864683aa6a50a3797"
+          "checksumValue": "f14f49dfb2483cec135d05ddc430543c61366204"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -451,14 +451,14 @@
       "versionInfo": "0.10.1"
     },
     {
-      "SPDXID": "SPDXRef-Package-cloud-sdk-0.53.0",
+      "SPDXID": "SPDXRef-Package-cloud-sdk-0.54.0",
       "description": "no_std-first provider-neutral cloud SDK foundations.",
       "downloadLocation": "NONE",
       "homepage": "https://github.com/valkyoth/cloud-sdk",
       "licenseConcluded": "MIT OR Apache-2.0",
       "licenseDeclared": "MIT OR Apache-2.0",
       "name": "cloud-sdk",
-      "versionInfo": "0.53.0"
+      "versionInfo": "0.54.0"
     },
     {
       "SPDXID": "SPDXRef-Package-cloud-sdk-fuzz-0.0.0",
@@ -3206,19 +3206,19 @@
       "relatedSpdxElement": "SPDXRef-Package-rand--core-0.10.1"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-0.53.0",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-0.54.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-sanitization-0.17.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-0.53.0",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-0.54.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-subtle-2.6.1"
     },
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-fuzz-0.0.0",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-0.53.0"
+      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-0.54.0"
     },
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-fuzz-0.0.0",
@@ -3243,7 +3243,7 @@
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-hetzner-0.38.0",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-0.53.0"
+      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-0.54.0"
     },
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-hetzner-0.38.0",
@@ -3273,7 +3273,7 @@
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.32.3",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-0.53.0"
+      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-0.54.0"
     },
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.32.3",

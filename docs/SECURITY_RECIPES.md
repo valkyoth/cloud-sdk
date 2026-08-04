@@ -62,6 +62,12 @@ targets, DNS secrets, cloud-init data, private keys, passwords, or provider
 resource identifiers. Treat `Debug` output as untrusted unless its type
 explicitly documents redaction.
 
+Prefer the opt-in `DiagnosticObserver` boundary when recording client lifecycle
+events. It admits only finite categories and bounded public taxonomy and never
+includes request-ID bytes. Keep observer callbacks bounded and non-panicking;
+their returned errors are ignored, while panics follow normal Rust panic
+behavior. See [`DIAGNOSTICS.md`](DIAGNOSTICS.md).
+
 ## Signing
 
 Provider signing code must supply approved body-digest and signature

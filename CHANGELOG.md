@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.54.0 - 2026-08-04
+
+- Added finite provider-neutral diagnostic categories and bounded lifecycle
+  context without request, response, credential, cursor, or message payloads.
+- Added opt-in observer execution methods for blocking, cross-thread async,
+  and local async clients while keeping ordinary execution observation-free.
+- Kept observer errors isolated from request results and made observer state,
+  synchronization, retention, and logging entirely caller-owned.
+- Reported request-ID disposition according to operation retention policy
+  without exposing identifier bytes or discarded-ID presence.
+- Added cross-mode lifecycle, failure-category, reentrancy, error-isolation,
+  maximum-identity, cleanup, and stable redaction snapshot tests.
+
 ## 0.53.0 - 2026-08-04
 
 - Added a provider-neutral pager driver that enforces one admitted request per

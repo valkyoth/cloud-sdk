@@ -17,7 +17,8 @@ use crate::transport::{
     TransportRequest,
 };
 use crate::{
-    Method, ProviderId, ProviderMarker, ServiceId, ServiceMarker, provider_id, service_id,
+    Method, ProviderId, ProviderMarker, ServiceId, ServiceMarker, operation_id, provider_id,
+    service_id,
 };
 
 static OK_STATUS: [StatusCode; 1] = [StatusCode::OK];
@@ -39,18 +40,28 @@ impl ServiceMarker for ExampleService {
 #[derive(Clone, Copy)]
 pub(super) struct ExampleOperation {
     impact: OperationImpact,
+    reject_decode: bool,
 }
 
 impl ExampleOperation {
     pub(super) const fn read_only() -> Self {
         Self {
             impact: OperationImpact::ReadOnly,
+            reject_decode: false,
         }
     }
 
     pub(super) const fn mutation() -> Self {
         Self {
             impact: OperationImpact::Mutation,
+            reject_decode: false,
+        }
+    }
+
+    pub(super) const fn rejecting_decode() -> Self {
+        Self {
+            impact: OperationImpact::ReadOnly,
+            reject_decode: true,
         }
     }
 }
@@ -109,6 +120,7 @@ impl PrepareOperation for ExampleOperation {
             authentication_policy(endpoint),
             raw_policy()?,
         )
+        .map(|prepared| prepared.with_operation_id(operation_id!("list_servers")))
         .map_err(|_| FixtureError::Invalid)
     }
 }
@@ -121,6 +133,9 @@ impl ClientOperation for ExampleOperation {
         &self,
         response: ClientResponse<'_, '_>,
     ) -> Result<Self::Output, Self::DecodeError> {
+        if self.reject_decode {
+            return Err(DecodeError::Admission);
+        }
         match response.kind().map_err(|_| DecodeError::Admission)? {
             ClientResponseKind::Success => response
                 .decode_success_owned(|checked, _| {

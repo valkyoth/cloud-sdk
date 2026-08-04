@@ -25,6 +25,7 @@ pub mod action_polling;
 pub mod authentication;
 pub mod buffer;
 pub mod client;
+pub mod diagnostics;
 mod identity;
 mod method;
 pub mod operation;
