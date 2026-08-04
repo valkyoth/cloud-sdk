@@ -19,21 +19,21 @@ fn pagination_script_validates_and_serves_every_page() {
         PaginationFixture::new(1, 1, 2, 2),
         PaginationFixture::new(2, 1, 2, 2),
     ) else {
-        return;
+        unreachable!("testkit security fixture construction failed");
     };
     let fixtures = [
         ResponseFixture::paginated(body(), first),
         ResponseFixture::paginated(body(), second),
     ];
     let Ok(script) = PaginationScript::new(&fixtures) else {
-        return;
+        unreachable!("testkit security fixture construction failed");
     };
     let slots = [const { RequestRecordSlot::new() }; 2];
     let Ok(transport) = DynamicMockTransport::new(script, &slots) else {
-        return;
+        unreachable!("testkit security fixture construction failed");
     };
     let Ok(target) = RequestTarget::new("/pages") else {
-        return;
+        unreachable!("testkit security fixture construction failed");
     };
     for _ in 0..2 {
         let mut output = [0_u8; 2];
@@ -57,7 +57,7 @@ fn pagination_script_rejects_gaps_and_incomplete_sequences() {
         PaginationFixture::new(2, 1, 3, 3),
         PaginationFixture::new(3, 1, 3, 3),
     ) else {
-        return;
+        unreachable!("testkit security fixture construction failed");
     };
     let gap = [
         ResponseFixture::paginated(body(), second),
@@ -68,7 +68,7 @@ fn pagination_script_rejects_gaps_and_incomplete_sequences() {
         Err(ScenarioScriptError::InvalidPageSequence)
     ));
     let Ok(first) = PaginationFixture::new(1, 1, 3, 3) else {
-        return;
+        unreachable!("testkit security fixture construction failed");
     };
     let incomplete = [ResponseFixture::paginated(body(), first)];
     assert!(matches!(
@@ -83,7 +83,7 @@ fn action_script_requires_monotonic_progress_and_final_terminal_state() {
         ActionFixture::new(ActionState::Running, 40),
         ActionFixture::new(ActionState::Success, 100),
     ) else {
-        return;
+        unreachable!("testkit security fixture construction failed");
     };
     let valid = [
         ResponseFixture::action(body(), running),
@@ -92,7 +92,7 @@ fn action_script_requires_monotonic_progress_and_final_terminal_state() {
     assert!(ActionScript::new(&valid).is_ok());
 
     let Ok(regressed) = ActionFixture::new(ActionState::Running, 20) else {
-        return;
+        unreachable!("testkit security fixture construction failed");
     };
     let regression = [
         ResponseFixture::action(body(), running),

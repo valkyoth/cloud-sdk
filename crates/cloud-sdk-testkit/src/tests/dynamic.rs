@@ -26,7 +26,7 @@ fn fixture(body: &'static [u8]) -> ResponseFixture<'static> {
 fn rejection_and_small_response_storage_do_not_consume_or_record() {
     let fixture = fixture(b"hello");
     let Ok(expected) = RequestTarget::new("/expected") else {
-        return;
+        unreachable!("testkit security fixture construction failed");
     };
     let responder = DynamicResponder::new(|request: DynamicRequest<'_>| {
         if request.target() == expected {
@@ -37,11 +37,11 @@ fn rejection_and_small_response_storage_do_not_consume_or_record() {
     });
     let slots = [const { RequestRecordSlot::new() }; 1];
     let Ok(transport) = DynamicMockTransport::new(responder, &slots) else {
-        return;
+        unreachable!("testkit security fixture construction failed");
     };
 
     let Ok(wrong) = RequestTarget::new("/wrong") else {
-        return;
+        unreachable!("testkit security fixture construction failed");
     };
     let mut body = [0xa5_u8; 5];
     let mut headers = [0xa5_u8; 64];
@@ -74,7 +74,7 @@ fn rejection_and_small_response_storage_do_not_consume_or_record() {
             .is_ok()
     );
     let Some(record) = transport.record(0) else {
-        return;
+        unreachable!("testkit security fixture construction failed");
     };
     assert_eq!(record.sequence(), 0);
     assert_eq!(record.method(), RecordedMethod::Get);
@@ -91,10 +91,10 @@ fn capacity_exhaustion_is_fail_closed() {
     let responder = DynamicResponder::new(|_: DynamicRequest<'_>| Ok::<_, Rejected>(&fixture));
     let slots = [const { RequestRecordSlot::new() }; 1];
     let Ok(transport) = DynamicMockTransport::new(responder, &slots) else {
-        return;
+        unreachable!("testkit security fixture construction failed");
     };
     let Ok(target) = RequestTarget::new("/bounded") else {
-        return;
+        unreachable!("testkit security fixture construction failed");
     };
     for expected_success in [true, false] {
         let mut body = [0_u8; 1];
@@ -151,10 +151,10 @@ fn committed_slots_cannot_be_silently_reused() {
     {
         let responder = DynamicResponder::new(|_: DynamicRequest<'_>| Ok::<_, Rejected>(&fixture));
         let Ok(transport) = DynamicMockTransport::new(responder, &slots) else {
-            return;
+            unreachable!("testkit security fixture construction failed");
         };
         let Ok(target) = RequestTarget::new("/once") else {
-            return;
+            unreachable!("testkit security fixture construction failed");
         };
         let mut body = [0_u8; 1];
         let mut headers = [0_u8; 32];
@@ -186,10 +186,10 @@ fn dropping_an_unpolled_future_does_not_invoke_or_record() {
     });
     let slots = [const { RequestRecordSlot::new() }; 1];
     let Ok(transport) = DynamicMockTransport::new(responder, &slots) else {
-        return;
+        unreachable!("testkit security fixture construction failed");
     };
     let Ok(target) = RequestTarget::new("/cancel") else {
-        return;
+        unreachable!("testkit security fixture construction failed");
     };
     let mut body = [0xa5_u8; 1];
     let mut headers = [0xa5_u8; 32];

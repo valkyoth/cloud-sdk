@@ -16,7 +16,7 @@ fn fixtures_support_empty_chunks_short_writes_and_commit() {
     let sink = StreamFixtureSink::new(&mut output, 2);
     let limits = StreamLimits::new(5, 3, 3, 7, 1);
     let (Ok(mut source), Ok(mut sink), Ok(limits)) = (source, sink, limits) else {
-        return;
+        unreachable!("testkit security fixture construction failed");
     };
     let policy = StreamPolicy::new(
         StreamKind::FiniteDownload,
@@ -25,7 +25,7 @@ fn fixtures_support_empty_chunks_short_writes_and_commit() {
         limits,
     );
     let Ok(policy) = policy else {
-        return;
+        unreachable!("testkit security fixture construction failed");
     };
     let mut scratch = [0_u8; 3];
     let mut outcome = StreamOutcome::new();
@@ -41,14 +41,14 @@ fn fixtures_support_empty_chunks_short_writes_and_commit() {
 #[test]
 fn endless_empty_source_stops_at_the_zero_progress_bound() {
     let Ok(mut source) = StreamPatternSource::new(StreamPattern::EndlessEmpty) else {
-        return;
+        unreachable!("testkit security fixture construction failed");
     };
     let mut output = [0xa5_u8; 1];
     let Ok(mut sink) = StreamFixtureSink::new(&mut output, 1) else {
-        return;
+        unreachable!("testkit security fixture construction failed");
     };
     let Ok(limits) = StreamLimits::new(1, 1, 8, 8, 2) else {
-        return;
+        unreachable!("testkit security fixture construction failed");
     };
     let Ok(policy) = StreamPolicy::new(
         StreamKind::FiniteDownload,
@@ -56,7 +56,7 @@ fn endless_empty_source_stops_at_the_zero_progress_bound() {
         StreamSinkMode::Transactional,
         limits,
     ) else {
-        return;
+        unreachable!("testkit security fixture construction failed");
     };
     let mut scratch = [0_u8; 1];
     let mut outcome = StreamOutcome::new();
@@ -75,7 +75,7 @@ fn endless_empty_source_stops_at_the_zero_progress_bound() {
 fn alternating_pattern_is_exact_and_checks_scratch_size() {
     let Ok(mut source) = StreamPatternSource::new(StreamPattern::AlternatingEmptyData(b"xy"))
     else {
-        return;
+        unreachable!("testkit security fixture construction failed");
     };
     let mut scratch = [0_u8; 2];
     assert_eq!(source.read_chunk(&mut scratch), Ok(StreamRead::Chunk(0)));
@@ -85,7 +85,7 @@ fn alternating_pattern_is_exact_and_checks_scratch_size() {
 
     let Ok(mut source) = StreamPatternSource::new(StreamPattern::AlternatingEmptyData(b"xy"))
     else {
-        return;
+        unreachable!("testkit security fixture construction failed");
     };
     let mut short = [0_u8; 1];
     assert_eq!(source.read_chunk(&mut short), Ok(StreamRead::Chunk(0)));
@@ -103,7 +103,7 @@ fn alternating_pattern_is_exact_and_checks_scratch_size() {
 fn source_and_sink_faults_are_injected_at_exact_one_based_attempts() {
     let chunks: &[&[u8]] = &[b"a", b"b"];
     let Ok(source) = StreamFixtureSource::new(chunks) else {
-        return;
+        unreachable!("testkit security fixture construction failed");
     };
     assert!(matches!(
         source.with_fault_at_observation(0),
@@ -112,7 +112,7 @@ fn source_and_sink_faults_are_injected_at_exact_one_based_attempts() {
     let Ok(mut source) =
         StreamFixtureSource::new(chunks).and_then(|source| source.with_fault_at_observation(2))
     else {
-        return;
+        unreachable!("testkit security fixture construction failed");
     };
     let mut scratch = [0_u8; 1];
     assert_eq!(source.read_chunk(&mut scratch), Ok(StreamRead::Chunk(1)));
@@ -123,7 +123,7 @@ fn source_and_sink_faults_are_injected_at_exact_one_based_attempts() {
 
     let mut output = [0xa5_u8; 2];
     let Ok(sink) = StreamFixtureSink::new(&mut output, 1) else {
-        return;
+        unreachable!("testkit security fixture construction failed");
     };
     assert!(matches!(
         sink.with_fault_at_write(0),
@@ -132,7 +132,7 @@ fn source_and_sink_faults_are_injected_at_exact_one_based_attempts() {
     let Ok(mut sink) =
         StreamFixtureSink::new(&mut output, 1).and_then(|sink| sink.with_fault_at_write(2))
     else {
-        return;
+        unreachable!("testkit security fixture construction failed");
     };
     assert_eq!(
         cloud_sdk::transport::BlockingStreamSink::write_chunk(&mut sink, b"a"),
