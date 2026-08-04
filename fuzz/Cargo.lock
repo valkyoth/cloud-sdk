@@ -104,7 +104,7 @@ dependencies = [
 
 [[package]]
 name = "cloud-sdk"
-version = "0.54.0"
+version = "0.55.0"
 dependencies = [
  "cloud-sdk-sanitization",
  "subtle",
@@ -123,7 +123,7 @@ dependencies = [
 
 [[package]]
 name = "cloud-sdk-hetzner"
-version = "0.38.0"
+version = "0.39.0"
 dependencies = [
  "cloud-sdk",
  "cloud-sdk-sanitization",
@@ -133,7 +133,7 @@ dependencies = [
 
 [[package]]
 name = "cloud-sdk-reqwest"
-version = "0.32.3"
+version = "0.32.4"
 dependencies = [
  "base64-ng",
  "bytes",

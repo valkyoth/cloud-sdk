@@ -20,6 +20,14 @@ pub enum StreamFixtureError {
     SinkStorageTooSmall,
     /// The configured maximum sink write is zero.
     ZeroWriteLimit,
+    /// Fault observation indices are one-based.
+    ZeroFaultIndex,
+    /// The source reached its configured injected failure.
+    InjectedSourceFault,
+    /// The sink reached its configured injected failure.
+    InjectedSinkFault,
+    /// Alternating stream patterns require a nonempty data chunk.
+    EmptyPatternData,
 }
 
 impl_static_error!(StreamFixtureError,
@@ -27,6 +35,10 @@ impl_static_error!(StreamFixtureError,
     Self::SourceScratchTooSmall => "stream fixture scratch storage is too small",
     Self::SinkStorageTooSmall => "stream fixture sink storage is too small",
     Self::ZeroWriteLimit => "stream fixture sink write limit is zero",
+    Self::ZeroFaultIndex => "stream fixture fault index must be nonzero",
+    Self::InjectedSourceFault => "stream fixture injected a source failure",
+    Self::InjectedSinkFault => "stream fixture injected a sink failure",
+    Self::EmptyPatternData => "alternating stream pattern data is empty",
 );
 
 /// Borrowed ordered chunks for one deterministic finite source.
@@ -35,6 +47,7 @@ pub struct StreamFixtureSource<'fixture> {
     index: usize,
     observations: usize,
     replayability: StreamReplayability<'fixture>,
+    fault_at_observation: Option<usize>,
 }
 
 impl<'fixture> StreamFixtureSource<'fixture> {
@@ -49,6 +62,7 @@ impl<'fixture> StreamFixtureSource<'fixture> {
             index: 0,
             observations: 0,
             replayability: StreamReplayability::NotReplayable,
+            fault_at_observation: None,
         })
     }
 
@@ -65,7 +79,20 @@ impl<'fixture> StreamFixtureSource<'fixture> {
             index: 0,
             observations: 0,
             replayability,
+            fault_at_observation: None,
         })
+    }
+
+    /// Injects a source failure at one one-based read observation.
+    pub const fn with_fault_at_observation(
+        mut self,
+        observation: usize,
+    ) -> Result<Self, StreamFixtureError> {
+        if observation == 0 {
+            return Err(StreamFixtureError::ZeroFaultIndex);
+        }
+        self.fault_at_observation = Some(observation);
+        Ok(self)
     }
 
     /// Returns source observations including the final end marker.
@@ -76,6 +103,9 @@ impl<'fixture> StreamFixtureSource<'fixture> {
 
     fn read(&mut self, output: &mut [u8]) -> Result<StreamRead, StreamFixtureError> {
         self.observations = self.observations.saturating_add(1);
+        if self.fault_at_observation == Some(self.observations) {
+            return Err(StreamFixtureError::InjectedSourceFault);
+        }
         let Some(chunk) = self.chunks.get(self.index) else {
             return Ok(StreamRead::End);
         };
@@ -85,6 +115,84 @@ impl<'fixture> StreamFixtureSource<'fixture> {
         target.copy_from_slice(chunk);
         self.index = self.index.saturating_add(1);
         Ok(StreamRead::Chunk(chunk.len()))
+    }
+}
+
+/// Non-terminating deterministic source pattern for hard-limit tests.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum StreamPattern<'fixture> {
+    /// Every observation is an explicit empty chunk.
+    EndlessEmpty,
+    /// Observations alternate between an empty chunk and borrowed data.
+    AlternatingEmptyData(&'fixture [u8]),
+}
+
+/// Non-terminating stream source used to verify cancellation and hard bounds.
+pub struct StreamPatternSource<'fixture> {
+    pattern: StreamPattern<'fixture>,
+    observations: usize,
+}
+
+impl<'fixture> StreamPatternSource<'fixture> {
+    /// Creates a deterministic non-terminating source pattern.
+    pub const fn new(pattern: StreamPattern<'fixture>) -> Result<Self, StreamFixtureError> {
+        if matches!(pattern, StreamPattern::AlternatingEmptyData(data) if data.is_empty()) {
+            return Err(StreamFixtureError::EmptyPatternData);
+        }
+        Ok(Self {
+            pattern,
+            observations: 0,
+        })
+    }
+
+    /// Returns the number of source observations.
+    #[must_use]
+    pub const fn observations(&self) -> usize {
+        self.observations
+    }
+
+    fn read(&mut self, output: &mut [u8]) -> Result<StreamRead, StreamFixtureError> {
+        self.observations = self.observations.saturating_add(1);
+        match self.pattern {
+            StreamPattern::EndlessEmpty => Ok(StreamRead::Chunk(0)),
+            StreamPattern::AlternatingEmptyData(_) if self.observations % 2 == 1 => {
+                Ok(StreamRead::Chunk(0))
+            }
+            StreamPattern::AlternatingEmptyData(data) => {
+                let target = output
+                    .get_mut(..data.len())
+                    .ok_or(StreamFixtureError::SourceScratchTooSmall)?;
+                target.copy_from_slice(data);
+                Ok(StreamRead::Chunk(data.len()))
+            }
+        }
+    }
+}
+
+impl BlockingStreamSource for StreamPatternSource<'_> {
+    type Error = StreamFixtureError;
+
+    fn replayability(&self) -> StreamReplayability<'_> {
+        StreamReplayability::NotReplayable
+    }
+
+    fn read_chunk(&mut self, output: &mut [u8]) -> Result<StreamRead, Self::Error> {
+        self.read(output)
+    }
+}
+
+impl AsyncStreamSource for StreamPatternSource<'_> {
+    type Error = StreamFixtureError;
+
+    fn replayability(&self) -> StreamReplayability<'_> {
+        StreamReplayability::NotReplayable
+    }
+
+    async fn read_chunk<'operation>(
+        &'operation mut self,
+        output: &'operation mut [u8],
+    ) -> Result<StreamRead, Self::Error> {
+        self.read(output)
     }
 }
 
@@ -123,6 +231,7 @@ pub struct StreamFixtureSink<'storage> {
     writes: usize,
     committed: bool,
     aborted: Option<StreamPartialState>,
+    fault_at_write: Option<usize>,
 }
 
 impl<'storage> StreamFixtureSink<'storage> {
@@ -142,7 +251,17 @@ impl<'storage> StreamFixtureSink<'storage> {
             writes: 0,
             committed: false,
             aborted: None,
+            fault_at_write: None,
         })
+    }
+
+    /// Injects a sink failure at one one-based write attempt.
+    pub const fn with_fault_at_write(mut self, write: usize) -> Result<Self, StreamFixtureError> {
+        if write == 0 {
+            return Err(StreamFixtureError::ZeroFaultIndex);
+        }
+        self.fault_at_write = Some(write);
+        Ok(self)
     }
 
     /// Returns initialized sink bytes.
@@ -170,6 +289,10 @@ impl<'storage> StreamFixtureSink<'storage> {
     }
 
     fn write(&mut self, input: &[u8]) -> Result<usize, StreamFixtureError> {
+        let next_write = self.writes.saturating_add(1);
+        if self.fault_at_write == Some(next_write) {
+            return Err(StreamFixtureError::InjectedSinkFault);
+        }
         let accepted = core::cmp::min(input.len(), self.max_write_bytes);
         let end = self
             .initialized_len

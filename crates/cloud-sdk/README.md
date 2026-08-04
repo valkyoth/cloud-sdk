@@ -84,11 +84,11 @@ operation contracts, then validates them with an unpublished OVHcloud API v2
 architecture probe, a narrow credential-free Robot wire fixture, and
 full-fidelity Hetzner vertical slices before the neutral API freeze.
 
-Source milestone `v0.54.0` adds opt-in structured lifecycle diagnostics with
-finite payload-free categories and request-ID policy enforcement across all
-client execution modes. It accumulates with tagged v0.51 through v0.53 toward
-the next crates.io publication at `v0.55.0`; published install examples
-therefore remain on the `v0.50.0` checkpoint.
+The `v0.55.0` public checkpoint candidate accumulates plan-confirm execution
+permits, the provider-generic client kernel, bounded pager and action drivers,
+payload-free diagnostics, and dynamic testkit scenarios from tagged v0.51
+through v0.55. Publication requires a cumulative pentest from the published
+`v0.50.0` baseline through the exact candidate commit.
 
 ## Trust Dashboard
 
@@ -146,8 +146,8 @@ Portable and native platform evidence is documented in
 
 ```toml
 [dependencies]
-cloud-sdk = "0.50.0"
-cloud-sdk-hetzner = "0.38.0"
+cloud-sdk = "0.55.0"
+cloud-sdk-hetzner = "0.39.0"
 ```
 
 ## cloud-sdk Features
@@ -178,6 +178,7 @@ visible. Applications should enable only the features they use.
 - [Provider-generic client kernel](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CLIENT_KERNEL.md)
 - [Pager and action workflow drivers](https://github.com/valkyoth/cloud-sdk/blob/main/docs/WORKFLOW_DRIVERS.md)
 - [Payload-free diagnostics](https://github.com/valkyoth/cloud-sdk/blob/main/docs/DIAGNOSTICS.md)
+- [Dynamic testkit scenarios](https://github.com/valkyoth/cloud-sdk/blob/main/docs/DYNAMIC_TESTKIT.md)
 - [Local async contract](https://github.com/valkyoth/cloud-sdk/blob/main/docs/LOCAL_ASYNC.md)
 - [Streaming transport contract](https://github.com/valkyoth/cloud-sdk/blob/main/docs/STREAMING.md)
 - [Release runbook](https://github.com/valkyoth/cloud-sdk/blob/main/docs/RELEASE_RUNBOOK.md)
@@ -208,6 +209,7 @@ visible. Applications should enable only the features they use.
 - [Migrating source users to v0.52](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.52.0.md)
 - [Migrating source users to v0.53](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.53.0.md)
 - [Migrating source users to v0.54](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.54.0.md)
+- [Migrating to v0.55](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.55.0.md)
 - [Compile-time Hetzner operation associations](https://github.com/valkyoth/cloud-sdk/blob/main/docs/OPERATION_ASSOCIATIONS.md)
 - [Incremental provider decoding](https://github.com/valkyoth/cloud-sdk/blob/main/docs/INCREMENTAL_DECODING.md)
 - [Deprecated endpoint policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/DEPRECATED_ENDPOINT_POLICY.md)
@@ -535,8 +537,8 @@ without changing the default allocation-free graph.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.50.0"
-cloud-sdk-reqwest = { version = "0.32.3", features = ["blocking-rustls"] }
+cloud-sdk = "0.55.0"
+cloud-sdk-reqwest = { version = "0.32.4", features = ["blocking-rustls"] }
 ```
 
 The production builder is HTTPS-only, requires explicit bounded timeouts and a
@@ -562,8 +564,8 @@ when deterministic public WebPKI roots are required:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.50.0"
-cloud-sdk-reqwest = { version = "0.32.3", features = ["blocking-rustls-webpki-roots"] }
+cloud-sdk = "0.55.0"
+cloud-sdk-reqwest = { version = "0.32.4", features = ["blocking-rustls-webpki-roots"] }
 ```
 
 The blocking API is unchanged. This feature excludes host-added enterprise
@@ -579,8 +581,8 @@ feature instead of relying on dependency feature unification:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.50.0"
-cloud-sdk-reqwest = { version = "0.32.3", features = ["blocking-rustls-fips"] }
+cloud-sdk = "0.55.0"
+cloud-sdk-reqwest = { version = "0.32.4", features = ["blocking-rustls-fips"] }
 ```
 
 Client construction explicitly selects rustls' AWS-LC FIPS provider and fails
@@ -598,8 +600,8 @@ example is in the
 
 ```toml
 [dependencies]
-cloud-sdk = "0.50.0"
-cloud-sdk-reqwest = { version = "0.32.3", features = ["async-rustls"] }
+cloud-sdk = "0.55.0"
+cloud-sdk-reqwest = { version = "0.32.4", features = ["async-rustls"] }
 ```
 
 The async adapter requires an active Tokio executor because reqwest uses Tokio

@@ -99,6 +99,10 @@
 - cargo-deny and cargo-audit;
 - explicit API source lock before endpoint implementation;
 - mock and adversarial testkit before transport helpers are stabilized;
+- dynamic testkit scenarios serialize request-dependent selection, bound
+  successful observations in caller-owned atomic slots, retain lengths and
+  finite classifications only, validate complete pagination/action scripts,
+  and exercise endless zero-progress, partial-I/O, and exact injected faults;
 - SHA256-only TSIG policy, minimum secret size, redacted output, and no ordinary
   equality on secret-bearing types;
 - provider-neutral volatile caller-buffer guards and no ordinary equality on

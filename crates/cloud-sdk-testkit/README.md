@@ -30,12 +30,17 @@ Provider-neutral testing support for the main
 The default graph is no_std, allocation-free, network-free, filesystem-free,
 and runtime-free.
 
+Static ordered exchanges are the simplest choice for fixed request sequences.
+Use bounded dynamic scenarios when a response must depend on the current
+request or when pagination, polling, cancellation, partial I/O, or injected
+failures need deterministic multi-request coverage.
+
 ## Install
 
 ```toml
 [dev-dependencies]
-cloud-sdk = "0.50.0"
-cloud-sdk-testkit = "0.28.2"
+cloud-sdk = "0.55.0"
+cloud-sdk-testkit = "0.29.0"
 ```
 
 ## Mock Transport
@@ -196,6 +201,13 @@ async contracts. Sources are non-replayable by default; use
 `StreamSourceId`. See the main
 [`streaming contract`](https://github.com/valkyoth/cloud-sdk/blob/main/docs/STREAMING.md).
 
+Use `with_fault_at_observation` and `with_fault_at_write` for exact one-based
+I/O failures. A validated `StreamPatternSource` with `EndlessEmpty` models an
+endless zero-progress peer, while `AlternatingEmptyData` requires a nonempty
+borrowed chunk and alternates it with explicit empty chunks. Pattern sources
+never emit `StreamRead::End`; the core stream policy must stop them through its
+byte, chunk, observation, or zero-progress bounds.
+
 ## Prepared Request Assertions
 
 Bind `MockTransport` with `with_endpoint` before executing a
@@ -227,6 +239,66 @@ transport metadata to paginated, action, success, or error responses.
 `FixtureBody` supports borrowed bytes and compact repeated-byte bodies up to
 8 MiB plus one byte. Writes preflight capacity and leave undersized destination
 buffers unchanged.
+
+## Dynamic Scenarios
+
+`DynamicMockTransport` invokes a borrowed `ProviderFixtureBuilder` for each
+request and records only successful steps. `DynamicResponder` adapts a closure;
+provider crates can implement the trait directly for reusable fixture builders.
+Selection failures, undersized response storage, and cancellation do not
+consume a sequence number or create a record.
+
+```rust
+use cloud_sdk::Method;
+use cloud_sdk::transport::{
+    BlockingTransport, RequestTarget, ResponseBuffer, TransportRequest,
+};
+use cloud_sdk_testkit::{
+    DynamicMockTransport, DynamicRequest, DynamicResponder, FixtureBody,
+    RequestRecordSlot, ResponseFixture,
+};
+
+let Ok(target) = RequestTarget::new("/resources") else { return };
+let Ok(body) = FixtureBody::new(br#"{"resources":[]}"#) else { return };
+let fixture = ResponseFixture::success(body);
+let responder = DynamicResponder::new(|request: DynamicRequest<'_>| {
+    if request.method() == Method::Get && request.target() == target {
+        Ok(&fixture)
+    } else {
+        Err(())
+    }
+});
+let records = [const { RequestRecordSlot::new() }; 2];
+let Ok(transport) = DynamicMockTransport::new(responder, &records) else {
+    return;
+};
+let mut output = [0_u8; 32];
+let output_capacity = output.len();
+let mut headers = [0_u8; 64];
+let mut response = ResponseBuffer::new(&mut output, output_capacity, &mut headers);
+
+assert!(transport
+    .send(
+        TransportRequest::new(Method::Get, target),
+        response.writer(),
+    )
+    .is_ok());
+assert_eq!(transport.recorded(), 1);
+let Some(record) = transport.record(0) else { return };
+assert_eq!(record.body_len(), 0);
+assert_eq!(record.status().get(), 200);
+```
+
+`PaginationScript` requires page one through the declared last page with stable
+page size and totals. `ActionScript` requires nondecreasing progress, running
+intermediate steps, and exactly one final success or error. Both are finite,
+bounded to `MAX_DYNAMIC_RECORDS`, and implement `ProviderFixtureBuilder`.
+
+`RequestRecordSlot` uses caller-owned atomic storage. Its public observation
+contains a finite method class, encoded target length, body length, header
+count, response status, and sequence number. It never retains target bytes,
+header names or values, request bodies, response bodies, or extension-method
+tokens.
 
 ## Adversarial Corpus
 
@@ -263,6 +335,8 @@ be exposed as a remote secret comparison oracle. Authentication, base URLs,
 headers, timeout policy, TLS, retry behavior, and secret ownership remain
 responsibilities of concrete transport adapters.
 
-The testkit stores only borrowed expectations and fixture bodies. Callers must
-keep borrowed data alive and must still sanitize secret-bearing test buffers
-when their threat model requires it.
+The testkit stores only borrowed expectations and fixture bodies. Dynamic
+responders execute synchronously during a transport poll and must remain
+deterministic, bounded, and free of blocking I/O. Callers must keep borrowed
+data alive and must still sanitize secret-bearing test buffers when their
+threat model requires it.

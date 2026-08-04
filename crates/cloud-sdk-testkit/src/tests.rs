@@ -8,15 +8,18 @@ use core::future::Future;
 use core::task::{Context, Poll, Waker};
 
 use crate::{
-    ActionFixture, ActionState, AdversarialKind, ExpectedRequest, FixtureBody, FixtureBodyError,
-    FixtureKind, FixtureMetadataError, MockError, MockExchange, MockTransport, PaginationFixture,
-    RateLimitFixture, RawFaultError, ResponseFixture, ResponseFixtureError, StreamFixtureError,
+    ActionFixture, ActionState, AdversarialKind, DynamicMockConfigError, DynamicMockError,
+    ExpectedRequest, FixtureBody, FixtureBodyError, FixtureKind, FixtureMetadataError, MockError,
+    MockExchange, MockTransport, PaginationFixture, RateLimitFixture, RawFaultError,
+    ResponseFixture, ResponseFixtureError, ScenarioScriptError, StreamFixtureError,
     adversarial_corpus,
 };
 
+mod dynamic;
 mod local_async;
 mod prepared;
 mod raw_fault;
+mod script;
 mod stream;
 
 #[test]
@@ -25,9 +28,12 @@ fn public_errors_implement_payload_free_core_error() {
 
     assert_error::<FixtureBodyError>();
     assert_error::<FixtureMetadataError>();
+    assert_error::<DynamicMockConfigError>();
+    assert_error::<DynamicMockError<()>>();
     assert_error::<MockError>();
     assert_error::<RawFaultError>();
     assert_error::<ResponseFixtureError>();
+    assert_error::<ScenarioScriptError>();
     assert_error::<StreamFixtureError>();
     assert_eq!(
         format!("{}", FixtureBodyError::TooLarge),

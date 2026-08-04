@@ -2,9 +2,9 @@
 
 Status: `v0.50.0` is tagged and published. It is the baseline for the first
 five-minor development train, whose next cumulative pentest and crates.io
-checkpoint is `v0.55.0`. Source milestones `v0.51.0` through `v0.53.0` are
-tagged; `v0.54.0` is the current release candidate. None is a separate
-crates.io publication.
+checkpoint is `v0.55.0`. Source milestones `v0.51.0` through `v0.54.0` are
+tagged; `v0.55.0` is the cumulative public checkpoint candidate. Publication
+requires its cumulative pentest and final release gate.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
@@ -809,6 +809,20 @@ a crate; all changed package trees remain part of the v0.55 cumulative release.
 | `cloud-sdk-reqwest` | `0.32.3` | `0.32.3` | `dependency` | No | Accumulate the source core dependency for v0.55 without publication. |
 | `cloud-sdk-sanitization` | `0.17.0` | `0.17.0` | `unchanged` | No | No code, dependency, or package metadata changes. |
 | `cloud-sdk-testkit` | `0.28.2` | `0.28.2` | `code` | No | Retain cumulative v0.51 fixture changes for v0.55. |
+
+## v0.55.0 Tracking Table
+
+`v0.55.0` is the cumulative public checkpoint after the published v0.50
+baseline. Independent versions cover every package-tree change accumulated in
+v0.51 through v0.55; unchanged sanitization code is explicitly excluded.
+
+| Crate | Previous | Planned | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.50.0` | `0.55.0` | `code` | Yes | Publish cumulative permits, client execution, workflow drivers, and diagnostics. |
+| `cloud-sdk-hetzner` | `0.38.0` | `0.39.0` | `code` | Yes | Publish cumulative typed permit and direct-execution integration. |
+| `cloud-sdk-reqwest` | `0.32.3` | `0.32.4` | `dependency` | Yes | Update the core dependency without changing adapter behavior. |
+| `cloud-sdk-sanitization` | `0.17.0` | `0.17.0` | `unchanged` | No | No code, dependency, or package metadata changes. |
+| `cloud-sdk-testkit` | `0.28.2` | `0.29.0` | `code` | Yes | Publish cumulative policy fixtures plus bounded dynamic responders, records, scripts, and stream faults. |
 
 ## Planned Milestone Ownership
 

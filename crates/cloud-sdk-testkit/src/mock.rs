@@ -213,68 +213,73 @@ impl<'a> MockTransport<'a> {
             return Err(MockError::HeadersMismatch);
         }
         let next_cursor = cursor.checked_add(1).ok_or(MockError::CursorOverflow)?;
-        let _content_type = exchange
-            .response
-            .content_type()
-            .map(ResponseContentType::new)
-            .transpose()
-            .map_err(|_| MockError::InvalidFixtureMetadata)?;
-        let rate_limit = exchange
-            .response
-            .rate_limit()
-            .map(|value| value.into_rate_limit())
-            .transpose()
-            .map_err(|_| MockError::InvalidFixtureMetadata)?;
-        {
-            let response_headers = response
-                .headers_mut()
-                .map_err(|_| MockError::ResponseWriterRejected)?;
-            if let Some(source) = exchange.response.headers() {
-                for header in source.iter() {
-                    response_headers
-                        .try_push(header.name(), header.value(), header.sensitivity())
-                        .map_err(|_| MockError::InvalidFixtureMetadata)?;
-                }
-            }
-            if let Some(value) = exchange.response.content_type() {
-                response_headers
-                    .try_push("content-type", value.as_bytes(), HeaderSensitivity::Public)
-                    .map_err(|_| MockError::InvalidFixtureMetadata)?;
-            }
-            if let Some(value) = rate_limit {
-                push_rate_limit_headers(response_headers, value)
-                    .map_err(|_| MockError::InvalidFixtureMetadata)?;
-            }
-        }
-        let body_len = exchange
-            .response
-            .body()
-            .write_to(
-                response
-                    .body_mut()
-                    .map_err(|_| MockError::ResponseWriterRejected)?,
-            )
-            .map_err(|error| match error {
-                FixtureBodyError::OutputTooSmall | FixtureBodyError::TooLarge => {
-                    MockError::ResponseBufferTooSmall
-                }
-            })?;
-        let mut metadata = ResponseMetadata::EMPTY;
-        if let Some(value) = rate_limit {
-            metadata = metadata.with_rate_limit(value);
-        }
+        let completion = stage_response(&exchange.response, response)?;
         self.cursor
             .compare_exchange(cursor, next_cursor, Ordering::AcqRel, Ordering::Acquire)
             .map_err(|_| MockError::ConcurrentRequest)?;
-        Ok(ResponseCompletion::new(
-            exchange.response.status(),
-            body_len,
-            metadata,
-        ))
+        Ok(completion)
     }
 }
 
-trait MockResponseSink<'buffer> {
+pub(crate) fn stage_response<'buffer>(
+    fixture: &ResponseFixture<'_>,
+    response: &mut impl MockResponseSink<'buffer>,
+) -> Result<ResponseCompletion, MockError> {
+    let _content_type = fixture
+        .content_type()
+        .map(ResponseContentType::new)
+        .transpose()
+        .map_err(|_| MockError::InvalidFixtureMetadata)?;
+    let rate_limit = fixture
+        .rate_limit()
+        .map(|value| value.into_rate_limit())
+        .transpose()
+        .map_err(|_| MockError::InvalidFixtureMetadata)?;
+    {
+        let response_headers = response
+            .headers_mut()
+            .map_err(|_| MockError::ResponseWriterRejected)?;
+        if let Some(source) = fixture.headers() {
+            for header in source.iter() {
+                response_headers
+                    .try_push(header.name(), header.value(), header.sensitivity())
+                    .map_err(|_| MockError::InvalidFixtureMetadata)?;
+            }
+        }
+        if let Some(value) = fixture.content_type() {
+            response_headers
+                .try_push("content-type", value.as_bytes(), HeaderSensitivity::Public)
+                .map_err(|_| MockError::InvalidFixtureMetadata)?;
+        }
+        if let Some(value) = rate_limit {
+            push_rate_limit_headers(response_headers, value)
+                .map_err(|_| MockError::InvalidFixtureMetadata)?;
+        }
+    }
+    let body_len = fixture
+        .body()
+        .write_to(
+            response
+                .body_mut()
+                .map_err(|_| MockError::ResponseWriterRejected)?,
+        )
+        .map_err(|error| match error {
+            FixtureBodyError::OutputTooSmall | FixtureBodyError::TooLarge => {
+                MockError::ResponseBufferTooSmall
+            }
+        })?;
+    let mut metadata = ResponseMetadata::EMPTY;
+    if let Some(value) = rate_limit {
+        metadata = metadata.with_rate_limit(value);
+    }
+    Ok(ResponseCompletion::new(
+        fixture.status(),
+        body_len,
+        metadata,
+    ))
+}
+
+pub(crate) trait MockResponseSink<'buffer> {
     fn body_mut(&mut self) -> Result<&mut [u8], MockError>;
     fn headers_mut(&mut self) -> Result<&mut ResponseHeaders<'buffer>, MockError>;
 }

@@ -38,8 +38,8 @@ boundaries.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.50.0"
-cloud-sdk-hetzner = "0.38.0"
+cloud-sdk = "0.55.0"
+cloud-sdk-hetzner = "0.39.0"
 ```
 
 ## Features
@@ -266,7 +266,7 @@ Enable Serde explicitly; it is never part of the default graph:
 
 ```toml
 [dependencies]
-cloud-sdk-hetzner = { version = "0.38.0", features = ["serde"] }
+cloud-sdk-hetzner = { version = "0.39.0", features = ["serde"] }
 ```
 
 The feature admits serde_json with `default-features = false` and `alloc` only
