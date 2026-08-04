@@ -93,13 +93,14 @@ fn scope_values_are_bounded_validated_and_redacted() {
     assert_eq!(ScopeValue::new(&too_long), Err(ScopeValueError::TooLong));
     let accepted = ScopeValue::new("urn:example:tenant/a?b=c");
     assert!(accepted.is_ok());
-    if let Ok(accepted) = accepted {
-        let mut debug = FormatBuffer::new();
-        assert!(core::fmt::write(&mut debug, format_args!("{accepted:?}")).is_ok());
-        let debug = debug.as_str();
-        assert!(debug.contains("[redacted]"));
-        assert!(!debug.contains("tenant"));
-    }
+    let Ok(accepted) = accepted else {
+        unreachable!("scope-value fixture construction failed");
+    };
+    let mut debug = FormatBuffer::new();
+    assert!(core::fmt::write(&mut debug, format_args!("{accepted:?}")).is_ok());
+    let debug = debug.as_str();
+    assert!(debug.contains("[redacted]"));
+    assert!(!debug.contains("tenant"));
 }
 
 #[test]

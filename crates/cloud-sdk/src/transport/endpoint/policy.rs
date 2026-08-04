@@ -268,6 +268,8 @@ mod tests {
                     Err(EndpointPolicyError::DestinationMismatch)
                 );
             }
+        } else {
+            unreachable!("endpoint-policy fixture construction failed");
         }
     }
 
@@ -305,7 +307,11 @@ mod tests {
             assert!(regional.is_ok());
             if let Ok(regional) = regional {
                 assert!(EndpointPolicy::region_derived(regional).admits(endpoint));
+            } else {
+                unreachable!("regional endpoint-policy fixture construction failed");
             }
+        } else {
+            unreachable!("endpoint-policy fixture construction failed");
         }
     }
 

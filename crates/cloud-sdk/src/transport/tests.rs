@@ -47,15 +47,21 @@ fn request_targets_are_origin_form_and_bounded() {
     let mut accepted = [b'a'; super::MAX_REQUEST_TARGET_BYTES];
     if let Some(first) = accepted.first_mut() {
         *first = b'/';
+    } else {
+        unreachable!("accepted request-target fixture is empty");
     }
     let accepted = core::str::from_utf8(&accepted);
     assert!(accepted.is_ok());
     if let Ok(accepted) = accepted {
         assert!(RequestTarget::new(accepted).is_ok());
+    } else {
+        unreachable!("accepted request-target fixture is not UTF-8");
     }
     let mut rejected = [b'a'; super::MAX_REQUEST_TARGET_BYTES + 1];
     if let Some(first) = rejected.first_mut() {
         *first = b'/';
+    } else {
+        unreachable!("rejected request-target fixture is empty");
     }
     let rejected = core::str::from_utf8(&rejected);
     assert!(rejected.is_ok());
@@ -64,6 +70,8 @@ fn request_targets_are_origin_form_and_bounded() {
             RequestTarget::new(rejected),
             Err(RequestTargetError::TooLong)
         );
+    } else {
+        unreachable!("rejected request-target fixture is not UTF-8");
     }
 }
 
@@ -86,8 +94,14 @@ fn transport_request_debug_redacts_target_and_body() {
                 assert!(debug.contains("[redacted]"));
                 assert!(!debug.contains("secret"));
                 assert!(!debug.contains("application/x-private"));
+            } else {
+                unreachable!("request-header fixture construction failed");
             }
+        } else {
+            unreachable!("content-type fixture construction failed");
         }
+    } else {
+        unreachable!("request-target fixture construction failed");
     }
 }
 
@@ -115,6 +129,8 @@ fn content_types_are_bounded_and_header_safe() {
     assert!(oversized.is_ok());
     if let Ok(oversized) = oversized {
         assert_eq!(ContentType::new(oversized), Err(ContentTypeError::TooLong));
+    } else {
+        unreachable!("oversized content-type fixture is not UTF-8");
     }
 }
 
@@ -135,7 +151,11 @@ fn transport_requests_preserve_explicit_headers() {
                     .map(|header| header.value().as_str()),
                 Some("application/json")
             );
+        } else {
+            unreachable!("request-header fixture construction failed");
         }
+    } else {
+        unreachable!("request-target fixture construction failed");
     }
 }
 
@@ -187,6 +207,8 @@ fn transport_response_borrows_body_propagates_metadata_and_redacts_debug() {
     let mut metadata = ResponseMetadata::EMPTY;
     if let Some(value) = rate_limit {
         metadata = metadata.with_rate_limit(value);
+    } else {
+        unreachable!("rate-limit fixture construction failed");
     }
     assert!(attempt.commit(StatusCode::OK, body.len(), metadata).is_ok());
     drop(attempt);

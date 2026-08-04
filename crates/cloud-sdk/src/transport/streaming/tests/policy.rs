@@ -91,5 +91,7 @@ fn policy_makes_length_and_event_framing_explicit() {
         assert_eq!(event.framing(), StreamFraming::ExecutorOwned);
         assert_eq!(event.sink_mode(), StreamSinkMode::Transactional);
         assert_eq!(event.limits(), limits);
+    } else {
+        unreachable!("stream event-policy fixture construction failed");
     }
 }

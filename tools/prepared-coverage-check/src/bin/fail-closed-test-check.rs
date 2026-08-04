@@ -41,7 +41,7 @@ fn run() -> Result<(), String> {
             .map_err(|error| format!("source is not UTF-8 ({}): {error}", source.display()))?;
         let file = syn::parse_file(text)
             .map_err(|error| format!("cannot parse {}: {error}", source.display()))?;
-        for test in tests_with_bare_returns(&file) {
+        for test in tests_with_fail_open_paths(&file) {
             failures.push(format!("{}::{test}", source.display()));
         }
     }
@@ -50,7 +50,7 @@ fn run() -> Result<(), String> {
         return Ok(());
     }
     Err(format!(
-        "expressionless return in test function(s):\n{}",
+        "fail-open control flow in test function(s):\n{}",
         failures.join("\n")
     ))
 }
@@ -97,7 +97,7 @@ fn collect_sources(root: &Path, output: &mut Vec<PathBuf>) -> Result<(), String>
     Ok(())
 }
 
-fn tests_with_bare_returns(file: &syn::File) -> BTreeSet<String> {
+fn tests_with_fail_open_paths(file: &syn::File) -> BTreeSet<String> {
     let mut visitor = TestVisitor::default();
     visitor.visit_file(file);
     visitor.failures
@@ -111,9 +111,9 @@ struct TestVisitor {
 impl<'ast> Visit<'ast> for TestVisitor {
     fn visit_item_fn(&mut self, function: &'ast syn::ItemFn) {
         if is_test_function(function) {
-            let mut returns = BareReturnVisitor::default();
-            returns.visit_block(&function.block);
-            if returns.found {
+            let mut assurance = FailOpenVisitor::default();
+            assurance.visit_block(&function.block);
+            if assurance.found {
                 self.failures.insert(function.sig.ident.to_string());
             }
             return;
@@ -133,22 +133,111 @@ fn is_test_function(function: &syn::ItemFn) -> bool {
 }
 
 #[derive(Default)]
-struct BareReturnVisitor {
+struct FailOpenVisitor {
     found: bool,
 }
 
-impl<'ast> Visit<'ast> for BareReturnVisitor {
+impl<'ast> Visit<'ast> for FailOpenVisitor {
     fn visit_expr_return(&mut self, expression: &'ast syn::ExprReturn) {
         if expression.expr.is_none() {
             self.found = true;
         }
         visit::visit_expr_return(self, expression);
     }
+
+    fn visit_expr_if(&mut self, expression: &'ast syn::ExprIf) {
+        if success_pattern(&expression.cond)
+            && !expression
+                .else_branch
+                .as_ref()
+                .is_some_and(|(_, branch)| explicit_failure(branch))
+        {
+            self.found = true;
+        }
+        visit::visit_expr_if(self, expression);
+    }
+}
+
+fn success_pattern(expression: &syn::Expr) -> bool {
+    let syn::Expr::Let(binding) = expression else {
+        return false;
+    };
+    pattern_contains_success(&binding.pat)
+}
+
+fn pattern_contains_success(pattern: &syn::Pat) -> bool {
+    match pattern {
+        syn::Pat::TupleStruct(pattern) => {
+            pattern
+                .path
+                .segments
+                .last()
+                .is_some_and(|segment| segment.ident == "Ok" || segment.ident == "Some")
+                || pattern.elems.iter().any(pattern_contains_success)
+        }
+        syn::Pat::Tuple(pattern) => pattern.elems.iter().any(pattern_contains_success),
+        syn::Pat::Paren(pattern) => pattern_contains_success(&pattern.pat),
+        syn::Pat::Reference(pattern) => pattern_contains_success(&pattern.pat),
+        syn::Pat::Type(pattern) => pattern_contains_success(&pattern.pat),
+        syn::Pat::Or(pattern) => pattern.cases.iter().any(pattern_contains_success),
+        syn::Pat::Slice(pattern) => pattern.elems.iter().any(pattern_contains_success),
+        syn::Pat::Struct(pattern) => pattern
+            .fields
+            .iter()
+            .any(|field| pattern_contains_success(&field.pat)),
+        _ => false,
+    }
+}
+
+fn explicit_failure(expression: &syn::Expr) -> bool {
+    match expression {
+        syn::Expr::Block(expression) => expression
+            .block
+            .stmts
+            .last()
+            .is_some_and(statement_is_failure),
+        syn::Expr::Group(expression) => explicit_failure(&expression.expr),
+        syn::Expr::Paren(expression) => explicit_failure(&expression.expr),
+        syn::Expr::Macro(expression) => failure_macro(&expression.mac),
+        syn::Expr::Return(expression) => expression
+            .expr
+            .as_deref()
+            .is_some_and(returned_error),
+        _ => false,
+    }
+}
+
+fn statement_is_failure(statement: &syn::Stmt) -> bool {
+    match statement {
+        syn::Stmt::Expr(expression, _) => explicit_failure(expression),
+        syn::Stmt::Macro(statement) => failure_macro(&statement.mac),
+        _ => false,
+    }
+}
+
+fn failure_macro(mac: &syn::Macro) -> bool {
+    mac.path.segments.last().is_some_and(|segment| {
+        segment.ident == "unreachable" || segment.ident == "panic"
+    })
+}
+
+fn returned_error(expression: &syn::Expr) -> bool {
+    let syn::Expr::Call(call) = expression else {
+        return false;
+    };
+    let syn::Expr::Path(function) = call.func.as_ref() else {
+        return false;
+    };
+    function
+        .path
+        .segments
+        .last()
+        .is_some_and(|segment| segment.ident == "Err")
 }
 
 #[cfg(test)]
 mod tests {
-    use super::tests_with_bare_returns;
+    use super::tests_with_fail_open_paths;
 
     #[test]
     fn detects_only_expressionless_returns_inside_tests() -> Result<(), syn::Error> {
@@ -161,7 +250,7 @@ mod tests {
             fn value_return() -> bool { return true; }
             "#,
         )?;
-        let failures = tests_with_bare_returns(&file);
+        let failures = tests_with_fail_open_paths(&file);
         assert_eq!(failures.len(), 1);
         assert!(failures.contains("secure"));
         Ok(())
@@ -175,7 +264,55 @@ mod tests {
             async fn nested() { run(|| { return; }); }
             "#,
         )?;
-        assert!(tests_with_bare_returns(&file).contains("nested"));
+        assert!(tests_with_fail_open_paths(&file).contains("nested"));
+        Ok(())
+    }
+
+    #[test]
+    fn detects_success_conditionals_without_failing_else() -> Result<(), syn::Error> {
+        let file = syn::parse_file(
+            r#"
+            #[test]
+            fn direct() { if let Ok(value) = fixture() { assert_safe(value); } }
+            #[test]
+            fn nested_tuple() {
+                if let (Ok(first), Some(second)) = fixtures() {
+                    assert_safe((first, second));
+                }
+            }
+            #[test]
+            fn empty_else() {
+                if let Some(value) = fixture() { assert_safe(value); } else {}
+            }
+            "#,
+        )?;
+        let failures = tests_with_fail_open_paths(&file);
+        assert_eq!(failures.len(), 3);
+        assert!(failures.contains("direct"));
+        assert!(failures.contains("nested_tuple"));
+        assert!(failures.contains("empty_else"));
+        Ok(())
+    }
+
+    #[test]
+    fn accepts_explicitly_failing_success_conditionals() -> Result<(), syn::Error> {
+        let file = syn::parse_file(
+            r#"
+            fn helper() { if let Ok(value) = fixture() { use_value(value); } }
+            #[test]
+            fn unreachable_else() {
+                if let Ok(value) = fixture() { assert_safe(value); }
+                else { unreachable!("fixture failed"); }
+            }
+            #[test]
+            fn error_return() -> Result<(), &'static str> {
+                if let Some(value) = fixture() { assert_safe(value); }
+                else { return Err("fixture failed"); }
+                Ok(())
+            }
+            "#,
+        )?;
+        assert!(tests_with_fail_open_paths(&file).is_empty());
         Ok(())
     }
 }

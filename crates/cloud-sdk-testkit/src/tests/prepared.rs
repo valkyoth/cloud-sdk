@@ -194,6 +194,8 @@ fn mock_models_endpoint_status_content_type_and_empty_body_failures() {
                 ResponsePolicyError::UnexpectedStatus
             ))
         ));
+    } else {
+        unreachable!("provider-error fixture construction failed");
     }
 
     for (fixture, expected_error) in [
@@ -316,6 +318,8 @@ fn mock_rejects_unbound_endpoints_request_media_mismatch_and_invalid_fixture_med
         ));
         assert_eq!(output, [0_u8; 16]);
         assert_eq!(mock.remaining(), 1);
+    } else {
+        unreachable!("expected-request fixture construction failed");
     }
 }
 

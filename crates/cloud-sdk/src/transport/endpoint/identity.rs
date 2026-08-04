@@ -295,6 +295,8 @@ mod tests {
         if let Ok(official) = official {
             assert_eq!(official.host(), "api.hetzner.cloud");
             assert_eq!(official.effective_port(), 443);
+        } else {
+            unreachable!("endpoint-identity fixture construction failed");
         }
         for host in [
             "API.Hetzner.Cloud",
@@ -337,6 +339,8 @@ mod tests {
         assert!(compressed.is_ok() && expanded.is_ok());
         if let (Ok(compressed), Ok(expanded)) = (compressed, expanded) {
             assert_eq!(compressed, expanded);
+        } else {
+            unreachable!("IPv6 endpoint fixture construction failed");
         }
     }
 
@@ -356,6 +360,8 @@ mod tests {
             assert!(candidate.is_ok());
             if let Ok(candidate) = candidate {
                 assert_ne!(candidate, official);
+            } else {
+                unreachable!("endpoint candidate fixture construction failed");
             }
         }
     }

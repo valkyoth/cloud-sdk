@@ -84,6 +84,8 @@ fn fixture_builders_cover_success_pagination_action_rate_limit_and_error() {
         let error =
             StatusCode::new(503).and_then(|status| ResponseFixture::error(status, body).ok());
         assert!(error.is_some());
+    } else {
+        unreachable!("response fixture construction failed");
     }
 }
 
@@ -113,23 +115,21 @@ fn metadata_rejects_incoherent_values() {
 
 #[test]
 fn fixture_body_write_is_atomic_and_repeated_body_is_compact() {
-    let body = FixtureBody::new(b"response");
-    if let Ok(body) = body {
-        let mut short = [0xa5_u8; 4];
-        let original = short;
-        assert_eq!(
-            body.write_to(&mut short),
-            Err(FixtureBodyError::OutputTooSmall)
-        );
-        assert_eq!(short, original);
-    }
+    let body = FixtureBody::new(b"response")
+        .unwrap_or_else(|_| unreachable!("fixture-body construction failed"));
+    let mut short = [0xa5_u8; 4];
+    let original = short;
+    assert_eq!(
+        body.write_to(&mut short),
+        Err(FixtureBodyError::OutputTooSmall)
+    );
+    assert_eq!(short, original);
 
-    let repeated = FixtureBody::repeated(b'x', 8);
-    if let Ok(repeated) = repeated {
-        let mut output = [0_u8; 8];
-        assert_eq!(repeated.write_to(&mut output), Ok(8));
-        assert_eq!(output, [b'x'; 8]);
-    }
+    let repeated = FixtureBody::repeated(b'x', 8)
+        .unwrap_or_else(|_| unreachable!("repeated fixture-body construction failed"));
+    let mut output = [0_u8; 8];
+    assert_eq!(repeated.write_to(&mut output), Ok(8));
+    assert_eq!(output, [b'x'; 8]);
 }
 
 #[test]
@@ -164,6 +164,8 @@ fn mock_transport_is_ordered_fail_closed_and_non_consuming_on_mismatch() {
             send_blocking(&transport, request, &mut output),
             Err(MockError::Exhausted)
         ));
+    } else {
+        unreachable!("mock transport fixture construction failed");
     }
 }
 
@@ -274,6 +276,8 @@ fn mock_transport_matches_extension_methods_without_aliasing() {
             )
             .is_ok()
         );
+    } else {
+        unreachable!("extension-method fixture construction failed");
     }
 }
 
@@ -295,6 +299,8 @@ fn mock_transport_does_not_consume_exchange_when_response_buffer_is_small() {
         ));
         assert_eq!(short, [0_u8; 4]);
         assert_eq!(transport.remaining(), 1);
+    } else {
+        unreachable!("small-buffer fixture construction failed");
     }
 }
 
@@ -328,6 +334,8 @@ fn mock_transport_propagates_rate_limit_metadata() {
         assert_eq!(metadata.limit(), 3600);
         assert_eq!(metadata.remaining(), 3599);
         assert_eq!(metadata.reset_epoch_seconds(), 42);
+    } else {
+        unreachable!("rate-limit fixture construction failed");
     }
 }
 
@@ -362,6 +370,8 @@ fn async_mock_transport_matches_blocking_behavior_without_an_executor() {
                 .is_ok_and(core::convert::identity)
         );
         assert!(transport.is_complete());
+    } else {
+        unreachable!("async mock fixture construction failed");
     }
 }
 
@@ -388,6 +398,8 @@ fn dropping_unpolled_async_mock_does_not_consume_or_write() {
         }
         assert_eq!(output, [0_u8; 16]);
         assert_eq!(transport.remaining(), 1);
+    } else {
+        unreachable!("unpolled async fixture construction failed");
     }
 }
 
@@ -428,6 +440,8 @@ fn mock_transport_distinguishes_target_and_body_mismatches_without_leaking_debug
 
         assert!(debug.contains("[redacted]"));
         assert!(!debug.contains("secret"));
+    } else {
+        unreachable!("mock mismatch fixture construction failed");
     }
 }
 
@@ -479,5 +493,7 @@ fn adversarial_corpus_is_complete_and_oversized_case_is_compact() {
     if let Some(oversized) = oversized {
         assert_eq!(oversized.body().as_bytes(), None);
         assert_eq!(oversized.body().len(), 8_388_609);
+    } else {
+        unreachable!("oversized adversarial fixture was absent");
     }
 }

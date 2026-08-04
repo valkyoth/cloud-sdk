@@ -292,6 +292,8 @@ mod tests {
             assert_eq!(response.as_str(), "Application/JSON; charset=utf-8");
             assert!(response.matches(MediaType::JSON));
             assert!(!response.matches(MediaType::new("text/plain").unwrap_or(MediaType::JSON)));
+        } else {
+            unreachable!("response content-type fixture construction failed");
         }
     }
 

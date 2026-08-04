@@ -93,6 +93,8 @@ fn every_request_identity_component_changes_exact_comparison() {
     assert!(first.is_ok() && second.is_ok());
     if let (Ok(first), Ok(second)) = (first, second) {
         assert!(!first.as_ref().matches(second.as_ref()));
+    } else {
+        unreachable!("retry fingerprint fixture construction failed");
     }
 }
 

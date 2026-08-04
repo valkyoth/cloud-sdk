@@ -55,24 +55,25 @@ fn response_policy_classifies_every_rejection_before_decoding() {
         0,
     );
     assert!(forbidden.is_ok());
-    if let Ok(forbidden) = forbidden {
+    let Ok(forbidden) = forbidden else {
+        unreachable!("forbidden response-policy fixture construction failed");
+    };
+    assert!(matches!(
+        validate_fixture(forbidden, StatusCode::OK, b"x", None),
+        Err(ResponsePolicyError::ForbiddenBody)
+    ));
+    assert!(matches!(
+        validate_fixture(forbidden, StatusCode::OK, b"", Some(b"application/json")),
+        Err(ResponsePolicyError::ForbiddenContentType)
+    ));
+    for malformed in [
+        b"application/json; charset".as_slice(),
+        b"application/json\xff".as_slice(),
+    ] {
         assert!(matches!(
-            validate_fixture(forbidden, StatusCode::OK, b"x", None),
-            Err(ResponsePolicyError::ForbiddenBody)
+            validate_fixture(forbidden, StatusCode::OK, b"", Some(malformed)),
+            Err(ResponsePolicyError::InvalidContentType)
         ));
-        assert!(matches!(
-            validate_fixture(forbidden, StatusCode::OK, b"", Some(b"application/json")),
-            Err(ResponsePolicyError::ForbiddenContentType)
-        ));
-        for malformed in [
-            b"application/json; charset".as_slice(),
-            b"application/json\xff".as_slice(),
-        ] {
-            assert!(matches!(
-                validate_fixture(forbidden, StatusCode::OK, b"", Some(malformed)),
-                Err(ResponsePolicyError::InvalidContentType)
-            ));
-        }
     }
 
     let optional = ResponsePolicy::new(
@@ -82,16 +83,17 @@ fn response_policy_classifies_every_rejection_before_decoding() {
         4,
     );
     assert!(optional.is_ok());
-    if let Ok(optional) = optional {
-        for malformed in [
-            b"application/json; charset".as_slice(),
-            b"application/json\xff".as_slice(),
-        ] {
-            assert!(matches!(
-                validate_fixture(optional, StatusCode::OK, b"{}", Some(malformed)),
-                Err(ResponsePolicyError::InvalidContentType)
-            ));
-        }
+    let Ok(optional) = optional else {
+        unreachable!("optional response-policy fixture construction failed");
+    };
+    for malformed in [
+        b"application/json; charset".as_slice(),
+        b"application/json\xff".as_slice(),
+    ] {
+        assert!(matches!(
+            validate_fixture(optional, StatusCode::OK, b"{}", Some(malformed)),
+            Err(ResponsePolicyError::InvalidContentType)
+        ));
     }
 }
 

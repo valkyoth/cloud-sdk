@@ -423,6 +423,8 @@ mod tests {
                 ),
                 Err(RawResponsePolicyError::UnsafeAdmittedHeader)
             ));
+        } else {
+            unreachable!("unsafe-header fixture construction failed");
         }
         let first = HeaderName::new("x-request-id");
         let second = HeaderName::new("X-Request-ID");
@@ -439,6 +441,8 @@ mod tests {
                 ),
                 Err(RawResponsePolicyError::DuplicateAdmittedHeader)
             ));
+        } else {
+            unreachable!("duplicate-header fixture construction failed");
         }
     }
 }

@@ -46,6 +46,8 @@ fn exact_length_counts_actual_partial_sink_progress() {
         assert_eq!(completion.progress().chunks(), 2);
         assert_eq!(completion.progress().observations(), 5);
         assert!(completion.requires_sink_commit());
+    } else {
+        unreachable!("stream completion fixture construction failed");
     }
     assert_eq!(attempt.commit_sink(), Ok(()));
     assert_eq!(

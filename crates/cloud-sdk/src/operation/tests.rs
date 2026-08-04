@@ -74,15 +74,14 @@ fn operation_metadata_rejects_privilege_escalating_combinations() {
 
     let metadata = read_only_metadata();
     assert!(metadata.is_ok());
-    if let Ok(metadata) = metadata {
-        assert_eq!(metadata.impact(), OperationImpact::ReadOnly);
-        assert_eq!(metadata.semantics(), RequestSemantics::Safe);
-        assert_eq!(
-            metadata.retry_eligibility(),
-            RetryEligibility::ExplicitPolicy
-        );
-        assert_eq!(metadata.cost_intent(), CostIntent::NoKnownCost);
-    }
+    let metadata = fixture(metadata);
+    assert_eq!(metadata.impact(), OperationImpact::ReadOnly);
+    assert_eq!(metadata.semantics(), RequestSemantics::Safe);
+    assert_eq!(
+        metadata.retry_eligibility(),
+        RetryEligibility::ExplicitPolicy
+    );
+    assert_eq!(metadata.cost_intent(), CostIntent::NoKnownCost);
 }
 
 #[test]
@@ -233,9 +232,10 @@ fn prepared_async_execution_uses_the_same_endpoint_and_response_policy() {
         let mut context = Context::from_waker(waker);
         let response = Future::poll(future.as_mut(), &mut context);
         assert!(matches!(response, Poll::Ready(Ok(_))));
-        if let Poll::Ready(Ok(response)) = response {
-            assert!(response.with_borrowed(|checked| checked.body() == b"{}"));
-        }
+        let Poll::Ready(Ok(response)) = response else {
+            unreachable!("async response fixture did not complete successfully");
+        };
+        assert!(response.with_borrowed(|checked| checked.body() == b"{}"));
     }
     assert_eq!(transport.calls.load(Ordering::Acquire), 1);
     assert_eq!(transport.last_capacity.load(Ordering::Acquire), 16);

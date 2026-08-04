@@ -108,7 +108,11 @@ fn request_encoding_is_exact_and_failure_is_atomic() {
                 Err(HeaderError::OutputTooSmall)
             );
             assert_eq!(short, [0xa5; 8]);
+        } else {
+            unreachable!("request-header collection fixture construction failed");
         }
+    } else {
+        unreachable!("request-header fixture construction failed");
     }
 }
 
@@ -132,6 +136,8 @@ fn all_request_capacity_boundaries_are_enforced() {
             RequestHeaders::new(&entries),
             Err(HeaderError::TooManyHeaders)
         ));
+    } else {
+        unreachable!("request-header fixture construction failed");
     }
 
     let value = "x".repeat(MAX_HEADER_VALUE_BYTES);
@@ -173,6 +179,8 @@ fn all_request_capacity_boundaries_are_enforced() {
         };
         if let Ok(value) = RequestHeader::new(name, &value) {
             *entry = value;
+        } else {
+            unreachable!("aggregate request-header fixture construction failed");
         }
     }
     assert!(matches!(
