@@ -1,4 +1,3 @@
-use cloud_sdk::Method;
 use cloud_sdk::operation::OperationId;
 use cloud_sdk::pagination::{PaginationLimits, ProviderLinkBinding, ValidatedProviderLink};
 use cloud_sdk::transport::{EndpointIdentity, EndpointScheme, RequestPath};

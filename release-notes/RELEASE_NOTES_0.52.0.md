@@ -41,6 +41,9 @@ crates.io publication range.
 - Made the Send-async kernel return an explicitly `Send` future.
 - Required additive response sanitizers to be `Sync`, correcting the previous
   mismatch between the documented Send path and a retained trait object.
+- Raised the workspace MSRV from Rust 1.90 to 1.92. Rust 1.90 and 1.91 reject
+  the generic `Send` future because of compiler issue rust-lang/rust#100013;
+  Rust 1.92 through the pinned 1.97.1 toolchain compile the same contract.
 
 ## Versions
 

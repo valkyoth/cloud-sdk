@@ -22,7 +22,7 @@ fuzz package reuses that exact locked version.
 separate lockfile. No published crate depends on `libfuzzer-sys`, and no
 default, alloc, Serde, transport, or all-feature SDK graph activates it.
 Nightly Rust is required only for this harness; supported SDK compilers remain
-stable Rust 1.90.0 through 1.97.1.
+stable Rust 1.92.0 through 1.97.1.
 
 `libfuzzer-sys` compiles and links LLVM libFuzzer support through its build
 dependencies, including `cc`. This native build surface is acceptable only in

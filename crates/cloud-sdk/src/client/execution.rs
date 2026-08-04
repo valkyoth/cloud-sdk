@@ -40,8 +40,8 @@ where
     T: AsyncAuthenticatedTransport + BoundTransport + Sync,
 {
     /// Prepares, authenticates, sends once, and checked-decodes with a Send transport.
-    // The explicit opaque return is required for the compiler to prove the
-    // public Send guarantee across the authenticated transport RPITIT.
+    // The explicit opaque return makes the cross-thread execution guarantee
+    // part of the public API instead of relying on async-future inference.
     #[allow(clippy::manual_async_fn)]
     pub fn execute_async<O, const N: usize>(
         &self,

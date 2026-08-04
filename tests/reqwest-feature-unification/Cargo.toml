@@ -2,7 +2,7 @@
 name = "cloud-sdk-reqwest-feature-unification-test"
 version = "0.0.0"
 edition = "2024"
-rust-version = "1.90"
+rust-version = "1.92"
 publish = false
 
 [workspace]

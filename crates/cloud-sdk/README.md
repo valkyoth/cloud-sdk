@@ -95,7 +95,7 @@ therefore remain on the `v0.50.0` checkpoint.
 | Area | Status |
 | --- | --- |
 | License | `MIT OR Apache-2.0` |
-| MSRV | Rust `1.90.0` |
+| MSRV | Rust `1.92.0` |
 | Pinned toolchain | Rust `1.97.1` |
 | Default target | `no_std` |
 | Default runtime dependencies | only the first-party cleanup boundary and admitted `sanitization` primitive; provider crates remain transport-free |
@@ -125,12 +125,17 @@ matrix, release plan, tests, and pentest gates.
 
 ## Rust Version Support
 
-The minimum supported Rust version is Rust `1.90.0`. Development uses the
+The minimum supported Rust version is Rust `1.92.0`. Development uses the
 pinned stable Rust `1.97.1` until the toolchain policy is updated.
+
+v0.52.0 raised the MSRV from Rust 1.90 to 1.92 because Rust 1.90 and 1.91 hit
+[compiler issue #100013](https://github.com/rust-lang/rust/issues/100013) when
+proving the client kernel's explicit `Send` future. The project retains the
+cross-thread async guarantee instead of weakening it for those two compilers.
 
 | Rust | Local Evidence |
 | --- | --- |
-| `1.90.0 - 1.96.1` | `cargo +<version> check --workspace --all-features` for every supported compiler |
+| `1.92.0 - 1.96.1` | `cargo +<version> check --workspace --all-features` for every supported compiler |
 | `1.97.0` | `cargo +1.97.0 check --workspace --all-features` |
 | `1.97.1` | `scripts/checks.sh` |
 

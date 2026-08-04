@@ -1,13 +1,11 @@
 # Toolchain Policy
 
-The workspace develops on stable Rust `1.97.1` and declares MSRV `1.90`.
+The workspace develops on stable Rust `1.97.1` and declares MSRV `1.92`.
 
 Compatibility must be maintained for:
 
 | Rust | Requirement |
 | --- | --- |
-| `1.90.0` | `cargo +1.90.0 check --workspace --all-features` |
-| `1.91.0` | `cargo +1.91.0 check --workspace --all-features` |
 | `1.92.0` | `cargo +1.92.0 check --workspace --all-features` |
 | `1.93.0` | `cargo +1.93.0 check --workspace --all-features` |
 | `1.94.0` | `cargo +1.94.0 check --workspace --all-features` |
@@ -20,6 +18,11 @@ Compatibility must be maintained for:
 `scripts/check_rust_version_matrix.sh` checks the complete table locally. CI
 runs each version as an independent fail-fast-disabled matrix job so one failure
 does not hide results from the remaining supported compilers.
+
+v0.52.0 raised the MSRV from Rust 1.90 to 1.92. Rust 1.90 and 1.91 cannot
+prove the higher-ranked lifetime bound for the client kernel's explicitly
+`Send` future (rust-lang/rust#100013). Weakening that contract would prevent
+generic cross-thread executor use, while Rust 1.92 and later compile it.
 
 Pinned release tools, checked against crates.io on 2026-07-27:
 
