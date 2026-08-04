@@ -67,7 +67,9 @@ fn applies_conflict_and_maximum_policies_deterministically() {
             ExcessDelayPolicy::Clamp,
         ),
     );
-    let Ok(Some(clamped)) = clamped else { return };
+    let Ok(Some(clamped)) = clamped else {
+        unreachable!("security fixture construction failed");
+    };
     assert_eq!(clamped.delay().get(), 100);
     assert_eq!(clamped.source(), DelaySource::RetryAfter);
     assert!(clamped.was_clamped());
@@ -100,7 +102,7 @@ fn agreeing_sources_are_reported_together() {
         ),
     );
     let Ok(Some(decision)) = decision else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     assert_eq!(decision.source(), DelaySource::Both);
     assert_eq!(decision.delay().get(), 25);

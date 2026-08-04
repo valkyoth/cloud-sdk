@@ -173,7 +173,7 @@ fn mock_rejects_precommitted_writer_without_consuming_exchange() {
         RequestTarget::new("/servers"),
         FixtureBody::new(br#"{"servers":[]}"#),
     ) else {
-        return;
+        unreachable!("testkit security fixture construction failed");
     };
     let exchanges = [MockExchange::new(
         ExpectedRequest::new(Method::Get, target),
@@ -211,7 +211,7 @@ fn mock_transport_distinguishes_query_presence_and_dialect() {
     let form = FormQuery::new("name=test");
     assert!(path.is_ok() && canonical.is_ok() && form.is_ok());
     let (Ok(path), Ok(canonical), Ok(form)) = (path, canonical, form) else {
-        return;
+        unreachable!("testkit security fixture construction failed");
     };
     let mut canonical_output = [0_u8; 32];
     let mut form_output = [0_u8; 32];
@@ -225,7 +225,7 @@ fn mock_transport_distinguishes_query_presence_and_dialect() {
     assert!(canonical_target.is_ok() && form_target.is_ok() && body.is_ok());
     let (Ok(canonical_target), Ok(form_target), Ok(body)) = (canonical_target, form_target, body)
     else {
-        return;
+        unreachable!("testkit security fixture construction failed");
     };
     let exchanges = [MockExchange::new(
         ExpectedRequest::new(Method::Get, canonical_target),
@@ -323,7 +323,7 @@ fn mock_transport_propagates_rate_limit_metadata() {
         );
         assert!(result.is_ok());
         let Some(metadata) = result.ok().flatten() else {
-            return;
+            unreachable!("testkit security fixture construction failed");
         };
         assert_eq!(metadata.limit(), 3600);
         assert_eq!(metadata.remaining(), 3599);
@@ -458,7 +458,9 @@ fn inspect_blocking<R>(
 fn adversarial_corpus_is_complete_and_oversized_case_is_compact() {
     let corpus = adversarial_corpus();
     assert!(corpus.is_ok());
-    let Ok(corpus) = corpus else { return };
+    let Ok(corpus) = corpus else {
+        unreachable!("testkit security fixture construction failed");
+    };
     let expected = [
         AdversarialKind::MalformedJson,
         AdversarialKind::UnknownFields,

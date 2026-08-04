@@ -66,7 +66,7 @@ impl LocalAsyncAuthenticatedTransport for PendingLocalAuthenticatedTransport {
 #[test]
 fn local_async_prepared_cancellation_clears_complete_response_storage() {
     let Some((prepared, endpoint)) = prepared() else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let transport = PendingLocalAuthenticatedTransport {
         endpoint,

@@ -5,6 +5,7 @@ publish = false
 edition = "2024"
 rust-version = "1.92"
 license = "MIT OR Apache-2.0"
+default-run = "cloud-sdk-prepared-coverage-check"
 
 [dependencies]
 syn = { version = "=3.0.3", default-features = false, features = ["full", "parsing", "visit"] }

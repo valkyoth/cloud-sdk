@@ -12,7 +12,7 @@ fn source_id_is_bounded_exact_and_redacted() {
         Err(StreamSourceIdError::TooLong)
     );
     let Ok(identity) = StreamSourceId::new(b"version-1") else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     assert_eq!(identity.as_bytes(), b"version-1");
     assert_eq!(identity, identity);
@@ -25,7 +25,7 @@ fn replay_requires_both_replayability_and_exact_source_version() {
         StreamSourceId::new(b"source-v1"),
         StreamSourceId::new(b"source-v2"),
     ) else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     assert_eq!(
         validate_stream_replay(

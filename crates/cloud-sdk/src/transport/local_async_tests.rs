@@ -50,7 +50,7 @@ fn local_async_cancellation_clears_partial_state_and_is_possibly_sent() {
         DeliveryPhase::PossiblySent
     );
     let Ok(target) = RequestTarget::new("/local-cancel") else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let transport = PendingLocalTransport {
         polls: Cell::new(0),
@@ -73,7 +73,7 @@ fn local_async_cancellation_clears_partial_state_and_is_possibly_sent() {
     }
     assert_eq!(transport.polls.get(), 1);
     let Ok(mut next) = response.writer().begin_attempt() else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     assert!(
         next.body_mut()
@@ -143,7 +143,7 @@ impl Future for YieldOnce {
 #[test]
 fn local_async_allows_bounded_same_thread_concurrency() {
     let Ok(target) = RequestTarget::new("/local-concurrent") else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let transport = CooperativeLocalTransport {
         active: Cell::new(0),
@@ -222,7 +222,7 @@ impl AsyncTransport for SendTransport {
 #[test]
 fn send_async_transports_automatically_satisfy_the_local_contract() {
     let Ok(target) = RequestTarget::new("/send-as-local") else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let mut body = [0_u8; 2];
     let mut headers = [0_u8; 64];
@@ -273,7 +273,7 @@ impl AsyncTransport for StagedThenPendingSendTransport {
 #[test]
 fn send_driver_rolls_back_staging_when_cancelled() {
     let Ok(target) = RequestTarget::new("/stage-then-pending") else {
-        return;
+        unreachable!("security fixture construction failed");
     };
     let mut body = [0xa5_u8; 16];
     let mut headers = [0xa5_u8; 256];
