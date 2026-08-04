@@ -71,7 +71,9 @@ cargo test --manifest-path tools/prepared-coverage-check/Cargo.toml --locked
 cargo run --quiet --locked \
     --manifest-path tools/prepared-coverage-check/Cargo.toml \
     --bin fail-closed-test-check -- \
-    crates
+    crates \
+    fuzz/tests \
+    tests/reqwest-feature-unification/src
 scripts/check_prepared_operation_coverage.py
 scripts/check_response_operation_coverage.py
 scripts/generate_operation_associations.py --check

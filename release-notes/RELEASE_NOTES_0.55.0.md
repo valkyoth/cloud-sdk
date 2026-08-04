@@ -38,8 +38,8 @@ diagnostics, and realistic allocation-free test scenarios.
 - Pagination and action scripts validate complete finite lifecycles before use.
 - Exact source/sink failures, short writes, endless empty input, alternating
   empty/data input, and unpolled cancellation are covered by tests.
-- Security fixture failures now fail tests explicitly across every workspace
-  crate, and CI scans the complete `crates/` tree for prohibited bypasses.
+- Security fixture failures now fail tests explicitly across all repository
+  test-source roots, and CI scans those complete roots for prohibited bypasses.
 
 ## Versions
 
