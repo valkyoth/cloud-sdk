@@ -101,7 +101,9 @@ mod legacy_tests {
     fn exposes_coherent_metadata() {
         let rate_limit = RateLimit::new(3600, 3599, 42);
         assert!(rate_limit.is_ok());
-        let Ok(rate_limit) = rate_limit else { return };
+        let Ok(rate_limit) = rate_limit else {
+            unreachable!("rate-limit fixture construction failed");
+        };
         assert_eq!(rate_limit.limit(), 3600);
         assert_eq!(rate_limit.remaining(), 3599);
         assert_eq!(rate_limit.reset_epoch_seconds(), 42);

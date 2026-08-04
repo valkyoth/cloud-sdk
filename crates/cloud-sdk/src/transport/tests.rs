@@ -276,7 +276,7 @@ impl AsyncTransport for SequentialAsyncTransport {
 #[test]
 fn non_sync_transports_remain_usable_sequentially() {
     let Ok(target) = RequestTarget::new("/sequential") else {
-        return;
+        unreachable!("transport request-target fixture construction failed");
     };
     let request = TransportRequest::new(Method::Get, target);
     let blocking = SequentialBlockingTransport {

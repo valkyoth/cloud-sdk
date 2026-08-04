@@ -14,7 +14,9 @@ static JSON_MEDIA: [MediaType<'static>; 1] = [MediaType::JSON];
 fn response_policy_classifies_every_rejection_before_decoding() {
     let required = json_response_policy(4);
     assert!(required.is_ok());
-    let Ok(required) = required else { return };
+    let Ok(required) = required else {
+        unreachable!("response-policy fixture construction failed");
+    };
     let status = StatusCode::new(201).unwrap_or(StatusCode::OK);
     assert!(matches!(
         validate_fixture(required, status, b"{}", None),

@@ -432,7 +432,7 @@ fn rejects_scheme_authority_userinfo_fragment_and_operation_path_changes() {
     for (value, expected) in cases {
         let mut source = [0_u8; 96];
         let Some(source) = source.get_mut(..value.len()) else {
-            return;
+            unreachable!("provider-link source fixture exceeded its buffer");
         };
         source.copy_from_slice(value);
         let mut destination = [0xa5_u8; 128];
@@ -484,7 +484,7 @@ fn accepts_equivalent_ipv6_authority_and_rejects_invalid_raw_queries() {
     ] {
         let mut source = [0_u8; 32];
         let Some(source) = source.get_mut(..value.len()) else {
-            return;
+            unreachable!("provider-link source fixture exceeded its buffer");
         };
         source.copy_from_slice(value);
         let mut destination = [0xa5_u8; 64];

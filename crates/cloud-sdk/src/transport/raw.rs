@@ -378,7 +378,7 @@ mod tests {
     #[test]
     fn selects_independent_success_and_error_limits() {
         let Ok(policy) = policy(2) else {
-            return;
+            unreachable!("raw-response policy fixture construction failed");
         };
         assert_eq!(policy.body_limit(StatusCode::OK), 1024);
         assert_eq!(
@@ -390,7 +390,7 @@ mod tests {
     #[test]
     fn bounds_informationals_and_rejects_switching_protocols() {
         let Ok(policy) = policy(2) else {
-            return;
+            unreachable!("raw-response policy fixture construction failed");
         };
         let mut tracker = InformationalResponseTracker::new(policy);
         let early = StatusCode::new(103).unwrap_or(StatusCode::OK);

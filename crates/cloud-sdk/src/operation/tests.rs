@@ -171,11 +171,9 @@ fn prepared_blocking_execution_checks_endpoint_and_lends_only_policy_capacity() 
     let mut body = [0_u8; 8];
     let prepared = operation.prepare(PreparationStorage::new(&mut target, &mut body));
     assert!(prepared.is_ok());
-    let Ok(prepared) = prepared else { return };
+    let prepared = fixture(prepared);
 
-    let Ok(official) = official_endpoint() else {
-        return;
-    };
+    let official = fixture(official_endpoint());
     let transport = RecordingTransport::new(official);
     let mut response_storage = [0xA5_u8; 64];
     let mut response_header_storage = [0xA5_u8; 8192];
@@ -193,7 +191,7 @@ fn prepared_blocking_execution_checks_endpoint_and_lends_only_policy_capacity() 
     assert_eq!(transport.last_capacity.load(Ordering::Acquire), 16);
     assert_eq!(response_storage.get(2..), Some([0_u8; 62].as_slice()));
 
-    let Ok(other) = other_endpoint() else { return };
+    let other = fixture(other_endpoint());
     let mismatched = RecordingTransport::new(other);
     response_storage.fill(0xA5);
     let response = prepared.execute_blocking_authorized(
@@ -218,10 +216,8 @@ fn prepared_async_execution_uses_the_same_endpoint_and_response_policy() {
     let mut body = [0_u8; 8];
     let prepared = operation.prepare(PreparationStorage::new(&mut target, &mut body));
     assert!(prepared.is_ok());
-    let Ok(prepared) = prepared else { return };
-    let Ok(official) = official_endpoint() else {
-        return;
-    };
+    let prepared = fixture(prepared);
+    let official = fixture(official_endpoint());
     let transport = RecordingTransport::new(official);
     let mut response_storage = [0xA5_u8; 64];
     let mut response_header_storage = [0xA5_u8; 8192];
@@ -466,6 +462,10 @@ fn official_endpoint() -> Result<EndpointIdentity<'static>, EndpointIdentityErro
 
 fn other_endpoint() -> Result<EndpointIdentity<'static>, EndpointIdentityError> {
     EndpointIdentity::new(EndpointScheme::Https, "example.invalid", 443, "/v1")
+}
+
+fn fixture<T, E>(result: Result<T, E>) -> T {
+    result.unwrap_or_else(|_| unreachable!("security fixture construction failed"))
 }
 
 struct DebugBuffer {

@@ -59,7 +59,7 @@ fn zero_and_incoherent_limits_are_rejected_independently() {
 #[test]
 fn policy_makes_length_and_event_framing_explicit() {
     let Ok(limits) = StreamLimits::new(8, 8, 2, 4, 1) else {
-        return;
+        unreachable!("stream-policy limits fixture construction failed");
     };
     assert_eq!(
         StreamPolicy::new(

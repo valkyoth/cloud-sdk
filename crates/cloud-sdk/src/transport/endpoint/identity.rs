@@ -344,7 +344,9 @@ mod tests {
     fn comparison_detects_every_destination_change() {
         let official =
             EndpointIdentity::new(EndpointScheme::Https, "api.hetzner.cloud", 443, "/v1");
-        let Ok(official) = official else { return };
+        let Ok(official) = official else {
+            unreachable!("endpoint-identity fixture construction failed");
+        };
         for candidate in [
             EndpointIdentity::new(EndpointScheme::Http, "api.hetzner.cloud", 443, "/v1"),
             EndpointIdentity::new(EndpointScheme::Https, "evil.example", 443, "/v1"),

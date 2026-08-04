@@ -173,7 +173,7 @@ fn caller_cancelled_event_waits_are_observation_and_progress_bounded() {
     use super::super::{StreamKind, StreamLimits, StreamPolicy};
 
     let Ok(limits) = StreamLimits::new(8, 1, 1, 2, 1) else {
-        return;
+        unreachable!("stream-progress limits fixture construction failed");
     };
     let Ok(policy) = StreamPolicy::new(
         StreamKind::CallerCancelledEvent,
@@ -181,7 +181,7 @@ fn caller_cancelled_event_waits_are_observation_and_progress_bounded() {
         StreamSinkMode::Direct,
         limits,
     ) else {
-        return;
+        unreachable!("stream-progress policy fixture construction failed");
     };
     let mut outcome = StreamOutcome::new();
     let mut attempt = StreamAttempt::new(policy, &mut outcome);

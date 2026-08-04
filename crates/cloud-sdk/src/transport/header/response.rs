@@ -429,11 +429,11 @@ mod cleanup_tests {
         assert_eq!(headers.bytes.as_slice().as_ptr(), pointer);
         assert_eq!(headers.bytes_len, 39);
         let Ok(Some(protected)) = protected else {
-            return;
+            unreachable!("protected response-header fixture was not found");
         };
         let mut snapshot_storage = [0xa5_u8; 128];
         let Ok(snapshot) = headers.retain_copy_into(&mut snapshot_storage) else {
-            return;
+            unreachable!("response-header snapshot fixture construction failed");
         };
         assert_eq!(snapshot.len(), 2);
         assert!(

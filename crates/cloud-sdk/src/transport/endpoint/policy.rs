@@ -229,7 +229,7 @@ mod tests {
         let other = identity("other.example");
         assert!(a.is_ok() && b.is_ok() && other.is_ok());
         let (Ok(a), Ok(b), Ok(other)) = (a, b, other) else {
-            return;
+            unreachable!("endpoint-policy fixture construction failed");
         };
         let official = [a, b];
         let set = EndpointPolicy::official_set(&official);
@@ -279,7 +279,9 @@ mod tests {
         );
         let endpoint = identity("region.example");
         assert!(endpoint.is_ok());
-        let Ok(endpoint) = endpoint else { return };
+        let Ok(endpoint) = endpoint else {
+            unreachable!("endpoint-policy fixture construction failed");
+        };
         for region in ["", "EU-west-1", "-eu", "eu-", "eu_west"] {
             assert_eq!(
                 RegionEndpoint::new(region, endpoint),
@@ -293,7 +295,9 @@ mod tests {
         let host_bytes = *b"runtime-region.example";
         let host = core::str::from_utf8(&host_bytes);
         assert!(host.is_ok());
-        let Ok(host) = host else { return };
+        let Ok(host) = host else {
+            unreachable!("endpoint-policy host fixture construction failed");
+        };
         let endpoint = identity(host);
         assert!(endpoint.is_ok());
         if let Ok(endpoint) = endpoint {

@@ -73,7 +73,7 @@ fn duplicate_names_fail_regardless_of_case_or_value() {
     let identical = RequestHeader::new("x-trace", "same");
     let conflicting = RequestHeader::new("x-TRACE", "different");
     let (Ok(first), Ok(identical), Ok(conflicting)) = (first, identical, conflicting) else {
-        return;
+        unreachable!("request-header fixture construction failed");
     };
     assert!(matches!(
         RequestHeaders::new(&[first, identical]),
@@ -313,7 +313,7 @@ fn exact_aggregate_request_and_response_boundaries_are_admitted() {
         RequestHeader::new("x-5", &full),
         RequestHeader::new("x-6", &full),
     ) else {
-        return;
+        unreachable!("aggregate-header fixture construction failed");
     };
     let first = [
         first_0, first_1, first_2, first_3, first_4, first_5, first_6,
@@ -321,7 +321,7 @@ fn exact_aggregate_request_and_response_boundaries_are_admitted() {
     let first_headers = RequestHeaders::new(&first);
     assert!(first_headers.is_ok());
     let Ok(first_headers) = first_headers else {
-        return;
+        unreachable!("aggregate request-header fixture construction failed");
     };
     let final_name = "x-final";
     let overhead = final_name.len().checked_add(4).unwrap_or_default();
@@ -333,7 +333,7 @@ fn exact_aggregate_request_and_response_boundaries_are_admitted() {
     let final_header = RequestHeader::new(final_name, &final_value);
     assert!(final_header.is_ok());
     let Ok(final_header) = final_header else {
-        return;
+        unreachable!("final request-header fixture construction failed");
     };
     let entries = [
         first_0,

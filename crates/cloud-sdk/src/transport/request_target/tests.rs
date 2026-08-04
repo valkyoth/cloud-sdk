@@ -9,7 +9,7 @@ macro_rules! valid {
         let result = $value;
         assert!(result.is_ok());
         let Ok(value) = result else {
-            return;
+            unreachable!("request-target fixture construction failed");
         };
         value
     }};
@@ -108,7 +108,7 @@ fn preserves_query_order_duplicates_and_value_presence() {
     let values = (pairs.next(), pairs.next(), pairs.next(), pairs.next());
     assert!(values.0.is_some() && values.1.is_some() && values.2.is_some() && values.3.is_some());
     let (Some(flag), Some(empty), Some(first), Some(second)) = values else {
-        return;
+        unreachable!("request-target query fixture was incomplete");
     };
     assert_eq!((flag.key(), flag.value()), ("flag", None));
     assert_eq!((empty.key(), empty.value()), ("empty", Some("")));
@@ -168,7 +168,7 @@ fn assembles_prefix_only_and_preserves_exact_query_bytes() {
     let tail = output.get(initialized_len..);
     assert!(tail.is_some());
     let Some(tail) = tail else {
-        return;
+        unreachable!("request-target output fixture was incomplete");
     };
     assert!(tail.iter().all(|byte| *byte == 0xA5));
 }

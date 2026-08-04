@@ -139,7 +139,7 @@ mod tests {
         let extension = QuotaExtension::new(b"partition", b"account-42");
         assert!(extension.is_ok());
         let Ok(mut extension) = extension else {
-            return;
+            unreachable!("quota-extension fixture construction failed");
         };
 
         extension.clear();

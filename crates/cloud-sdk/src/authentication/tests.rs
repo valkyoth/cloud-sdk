@@ -153,7 +153,9 @@ fn unscoped_credentials_cannot_bypass_required_bindings() {
             ),
         };
         assert!(result.is_err());
-        let Err(error) = result else { return };
+        let Err(error) = result else {
+            unreachable!("security fixture unexpectedly succeeded");
+        };
         assert_eq!(error.field(), field);
         assert_eq!(error.violation(), ScopeViolation::MissingRequired);
     }
@@ -182,7 +184,9 @@ fn every_field_enforces_forbidden_and_mismatch_rules() {
     {
         let result = all_forbidden().validate(scope);
         assert!(result.is_err());
-        let Err(error) = result else { return };
+        let Err(error) = result else {
+            unreachable!("security fixture unexpectedly succeeded");
+        };
         assert_eq!(error.field(), field);
         assert_eq!(error.violation(), ScopeViolation::SuppliedForbidden);
     }
@@ -228,7 +232,9 @@ fn every_field_enforces_forbidden_and_mismatch_rules() {
     for (policy, scope, field) in mismatch_cases {
         let result = policy.validate(scope);
         assert!(result.is_err());
-        let Err(error) = result else { return };
+        let Err(error) = result else {
+            unreachable!("security fixture unexpectedly succeeded");
+        };
         assert_eq!(error.field(), field);
         assert_eq!(error.violation(), ScopeViolation::Mismatch);
     }
@@ -273,7 +279,9 @@ fn every_field_enforces_forbidden_and_mismatch_rules() {
     ] {
         let result = policy.validate(scope);
         assert!(result.is_err());
-        let Err(error) = result else { return };
+        let Err(error) = result else {
+            unreachable!("security fixture unexpectedly succeeded");
+        };
         assert_eq!(error.field(), field);
         assert_eq!(error.violation(), ScopeViolation::Mismatch);
     }
@@ -314,7 +322,9 @@ fn endpoint_policy_rejects_plain_http_before_scope_comparison() {
     );
     let result = policy.validate(AuthenticationScope::unscoped().with_endpoint(http));
     assert!(result.is_err());
-    let Err(error) = result else { return };
+    let Err(error) = result else {
+        unreachable!("security fixture unexpectedly succeeded");
+    };
     assert_eq!(error.field(), ScopeField::Endpoint);
     assert_eq!(error.violation(), ScopeViolation::InsecureEndpoint);
 }

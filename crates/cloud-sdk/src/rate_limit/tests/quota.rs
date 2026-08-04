@@ -26,7 +26,9 @@ fn large_bucket_accessors_borrow_instead_of_copying_the_bucket() {
 fn validates_bucket_invariants_and_distinct_ids() {
     let id = QuotaBucketId::new(b"project-hourly");
     assert!(id.is_ok());
-    let Ok(id) = id else { return };
+    let Ok(id) = id else {
+        unreachable!("quota-bucket fixture construction failed");
+    };
     assert_eq!(
         QuotaBucket::new(id, 0, 0, QuotaReset::Unknown),
         Err(QuotaError::LimitZero)
@@ -52,11 +54,13 @@ fn enforces_bucket_capacity() {
         [b"a", b"b", b"c", b"d", b"e", b"f", b"g", b"h", b"i"];
     let mut buckets = QuotaBuckets::new();
     for id in ids.iter().take(MAX_QUOTA_BUCKETS) {
-        let Ok(value) = bucket(id, 1) else { return };
+        let Ok(value) = bucket(id, 1) else {
+            unreachable!("quota-bucket fixture construction failed");
+        };
         assert_eq!(buckets.try_push(value), Ok(()));
     }
     let Ok(extra) = bucket(ids.get(MAX_QUOTA_BUCKETS).copied().unwrap_or_default(), 1) else {
-        return;
+        unreachable!("quota-bucket fixture construction failed");
     };
     assert_eq!(buckets.try_push(extra), Err(QuotaError::TooManyBuckets));
 }
@@ -64,11 +68,13 @@ fn enforces_bucket_capacity() {
 #[test]
 fn preserves_bounded_extensions_with_redacted_debug() {
     let Ok(mut value) = bucket(b"partitioned", 1) else {
-        return;
+        unreachable!("quota-bucket fixture construction failed");
     };
     let extension = QuotaExtension::new(b"partition-key", b"customer-42");
     assert!(extension.is_ok());
-    let Ok(extension) = extension else { return };
+    let Ok(extension) = extension else {
+        unreachable!("quota-extension fixture construction failed");
+    };
     assert_eq!(value.try_add_extension(extension.clone()), Ok(()));
     let retained = value.extensions().next();
     assert_eq!(

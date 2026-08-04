@@ -71,11 +71,7 @@ cargo test --manifest-path tools/prepared-coverage-check/Cargo.toml --locked
 cargo run --quiet --locked \
     --manifest-path tools/prepared-coverage-check/Cargo.toml \
     --bin fail-closed-test-check -- \
-    crates/cloud-sdk/src/retry \
-    crates/cloud-sdk/src/operation/local_async_tests.rs \
-    crates/cloud-sdk/src/transport/local_async_tests.rs \
-    crates/cloud-sdk/src/transport/streaming/tests/replay.rs \
-    crates/cloud-sdk/src/rate_limit/tests/decision.rs \
+    crates/cloud-sdk/src \
     crates/cloud-sdk-testkit/src
 scripts/check_prepared_operation_coverage.py
 scripts/check_response_operation_coverage.py
