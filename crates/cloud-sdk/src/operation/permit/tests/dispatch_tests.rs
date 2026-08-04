@@ -11,6 +11,9 @@ use crate::operation::{
 };
 use crate::transport::{EndpointIdentity, EndpointPolicy, EndpointScheme};
 
+#[cfg(feature = "std")]
+use crate::std as test_std;
+
 struct TestClock(AtomicU32);
 
 impl TestClock {
@@ -26,6 +29,16 @@ impl TestClock {
 impl crate::operation::PermitClock for TestClock {
     fn now(&self) -> PermitTimestamp {
         time(u64::from(self.0.load(Ordering::Acquire)))
+    }
+}
+
+#[cfg(feature = "std")]
+struct PanickingClock;
+
+#[cfg(feature = "std")]
+impl crate::operation::PermitClock for PanickingClock {
+    fn now(&self) -> PermitTimestamp {
+        test_std::panic::resume_unwind(test_std::boxed::Box::new("clock failure"))
     }
 }
 
@@ -227,6 +240,103 @@ fn shared_attempt_rechecks_expiry_at_dispatch() {
     assert_eq!(body, [0_u8; 64]);
     assert_eq!(headers, [0_u8; 128]);
     assert_eq!(permit.state(), PermitState::Spent);
+}
+
+#[cfg(feature = "std")]
+#[test]
+fn panicking_clock_clears_blocking_response_storage_before_unwind() {
+    let Some((mut storage, plan)) = mutation_plan(200) else {
+        return;
+    };
+    let Ok(fingerprint) = build_canonical_plan(plan, &mut storage) else {
+        return;
+    };
+    let Ok(mut permit) = MutationPermit::new(fingerprint.subject(), time(100)) else {
+        return;
+    };
+    let Ok(attempt) = permit.begin(time(101)) else {
+        return;
+    };
+    let Some(endpoint) = endpoint() else { return };
+    let transport = ClassifiedTransport::new(endpoint, None);
+    let mut body = [0xa5_u8; 64];
+    let mut headers = [0xa5_u8; 128];
+
+    let panic = test_std::panic::catch_unwind(test_std::panic::AssertUnwindSafe(|| {
+        let _ = attempt.execute_blocking(&PanickingClock, &transport, &mut body, &mut headers);
+    }));
+
+    assert!(panic.is_err());
+    assert_eq!(transport.calls(), 0);
+    assert_eq!(body, [0_u8; 64]);
+    assert_eq!(headers, [0_u8; 128]);
+}
+
+#[cfg(feature = "std")]
+#[test]
+fn panicking_clock_clears_send_async_response_storage_before_unwind() {
+    let Some((mut storage, plan)) = mutation_plan(200) else {
+        return;
+    };
+    let Ok(fingerprint) = build_canonical_plan(plan, &mut storage) else {
+        return;
+    };
+    let Ok(mut permit) = MutationPermit::new(fingerprint.subject(), time(100)) else {
+        return;
+    };
+    let Ok(attempt) = permit.begin(time(101)) else {
+        return;
+    };
+    let Some(endpoint) = endpoint() else { return };
+    let transport = ClassifiedTransport::new(endpoint, None);
+    let mut body = [0xa5_u8; 64];
+    let mut headers = [0xa5_u8; 128];
+
+    let panic = test_std::panic::catch_unwind(test_std::panic::AssertUnwindSafe(|| {
+        let future = attempt.execute_async(&PanickingClock, &transport, &mut body, &mut headers);
+        let mut future = core::pin::pin!(future);
+        let mut context = Context::from_waker(Waker::noop());
+        let _ = Future::poll(future.as_mut(), &mut context);
+    }));
+
+    assert!(panic.is_err());
+    assert_eq!(transport.calls(), 0);
+    assert_eq!(body, [0_u8; 64]);
+    assert_eq!(headers, [0_u8; 128]);
+}
+
+#[cfg(feature = "std")]
+#[test]
+fn panicking_clock_clears_local_async_response_storage_before_unwind() {
+    let Some((mut storage, plan)) = mutation_plan(200) else {
+        return;
+    };
+    let Ok(fingerprint) = build_canonical_plan(plan, &mut storage) else {
+        return;
+    };
+    let Ok(mut permit) = MutationPermit::new(fingerprint.subject(), time(100)) else {
+        return;
+    };
+    let Ok(attempt) = permit.begin(time(101)) else {
+        return;
+    };
+    let Some(endpoint) = endpoint() else { return };
+    let transport = ClassifiedTransport::new(endpoint, None);
+    let mut body = [0xa5_u8; 64];
+    let mut headers = [0xa5_u8; 128];
+
+    let panic = test_std::panic::catch_unwind(test_std::panic::AssertUnwindSafe(|| {
+        let future =
+            attempt.execute_local_async(&PanickingClock, &transport, &mut body, &mut headers);
+        let mut future = core::pin::pin!(future);
+        let mut context = Context::from_waker(Waker::noop());
+        let _ = Future::poll(future.as_mut(), &mut context);
+    }));
+
+    assert!(panic.is_err());
+    assert_eq!(transport.calls(), 0);
+    assert_eq!(body, [0_u8; 64]);
+    assert_eq!(headers, [0_u8; 128]);
 }
 
 fn mutation_plan(expires: u64) -> Option<([u8; 4096], PlanConfirmation<'static, 'static>)> {

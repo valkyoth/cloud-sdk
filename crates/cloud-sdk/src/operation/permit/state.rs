@@ -256,6 +256,8 @@ impl<'permit, 'request, 'fingerprint> PermitAttempt<'permit, 'request, 'fingerpr
         T::Error: DeliveryClassified,
         C: PermitClock + ?Sized,
     {
+        sanitize_bytes(response_storage);
+        sanitize_bytes(response_header_storage);
         self.ensure_fresh(clock.now(), response_storage, response_header_storage)?;
         let result = self.subject.prepared().execute_blocking_authorized(
             transport,
@@ -281,6 +283,8 @@ impl<'permit, 'request, 'fingerprint> PermitAttempt<'permit, 'request, 'fingerpr
         'request: 'transport,
         'permit: 'transport,
     {
+        sanitize_bytes(response_storage);
+        sanitize_bytes(response_header_storage);
         self.ensure_fresh(clock.now(), response_storage, response_header_storage)?;
         let result = self
             .subject
@@ -310,6 +314,8 @@ impl<'permit, 'request, 'fingerprint> PermitAttempt<'permit, 'request, 'fingerpr
         'request: 'transport,
         'permit: 'transport,
     {
+        sanitize_bytes(response_storage);
+        sanitize_bytes(response_header_storage);
         self.ensure_fresh(clock.now(), response_storage, response_header_storage)?;
         let result = self
             .subject
