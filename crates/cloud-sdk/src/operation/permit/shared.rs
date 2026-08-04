@@ -234,6 +234,20 @@ impl SharedPermitState {
         result
     }
 
+    pub(super) fn observe_attempt(
+        &self,
+        subject: PlanSubject<'_, '_>,
+        expected_generation: u16,
+        now: PermitTimestamp,
+    ) -> Result<(), ExecutionPermitError> {
+        self.observe(subject, now)?;
+        let (state, generation, _) = unpack(self.packed.load(Ordering::Acquire));
+        if state != IN_FLIGHT || generation != expected_generation {
+            return Err(ExecutionPermitError::Spent);
+        }
+        Ok(())
+    }
+
     fn spend(&self) {
         loop {
             let current = self.packed.load(Ordering::Acquire);

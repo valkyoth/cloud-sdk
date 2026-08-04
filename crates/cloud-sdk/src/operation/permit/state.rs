@@ -347,7 +347,9 @@ impl<'permit, 'request, 'fingerprint> PermitAttempt<'permit, 'request, 'fingerpr
     ) -> Result<(), PermitExecutionError<E>> {
         let observed = match &mut self.owner {
             AttemptOwner::Direct(owner) => owner.observe(now),
-            AttemptOwner::Shared(owner) => owner.observe(self.subject, now),
+            AttemptOwner::Shared(owner) => {
+                owner.observe_attempt(self.subject, self.generation, now)
+            }
         };
         if let Err(error) = observed {
             sanitize_bytes(response_storage);

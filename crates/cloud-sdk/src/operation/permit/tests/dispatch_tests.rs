@@ -242,6 +242,49 @@ fn shared_attempt_rechecks_expiry_at_dispatch() {
     assert_eq!(permit.state(), PermitState::Spent);
 }
 
+#[test]
+fn shared_attempt_cannot_dispatch_after_another_handle_spends_its_generation() {
+    let Some((mut storage, plan)) = mutation_plan(110) else {
+        return;
+    };
+    let Ok(fingerprint) = build_canonical_plan(plan, &mut storage) else {
+        return;
+    };
+    let mut state = SharedPermitState::new();
+    let Ok(permit) = SharedMutationPermit::new(&mut state, fingerprint.subject(), time(100)) else {
+        return;
+    };
+    let invalidator = permit.clone();
+    let Ok(attempt) = permit.begin(time(109)) else {
+        return;
+    };
+    assert!(matches!(
+        invalidator.begin(time(110)),
+        Err(ExecutionPermitError::Expired)
+    ));
+    assert_eq!(permit.state(), PermitState::Spent);
+
+    let Some(endpoint) = endpoint() else { return };
+    let transport = ClassifiedTransport::new(endpoint, None);
+    let clock = TestClock::new(109);
+    let mut body = [0xa5_u8; 64];
+    let mut headers = [0xa5_u8; 128];
+    let result = attempt.execute_blocking(&clock, &transport, &mut body, &mut headers);
+    assert!(matches!(
+        result.as_ref().map_err(|error| error.execution()),
+        Err(
+            crate::operation::PreparedExecutionError::AuthorizationInvalid(
+                ExecutionPermitError::Spent
+            )
+        )
+    ));
+    drop(result);
+    assert_eq!(transport.calls(), 0);
+    assert_eq!(body, [0_u8; 64]);
+    assert_eq!(headers, [0_u8; 128]);
+    assert_eq!(permit.state(), PermitState::Spent);
+}
+
 #[cfg(feature = "std")]
 #[test]
 fn panicking_clock_clears_blocking_response_storage_before_unwind() {
