@@ -12,7 +12,7 @@ fn named_absolute_provider_link_seed_reaches_the_success_path() {
     let path = RequestPath::new("/v2/resources").unwrap_or_else(|_| unreachable!());
     let operation = OperationId::new("list_resources").unwrap_or_else(|_| unreachable!());
     let limits = PaginationLimits::new(8, 1_000, 8_192).unwrap_or_else(|_| unreachable!());
-    let binding = ProviderLinkBinding::new(endpoint, Method::Get, operation, path);
+    let binding = ProviderLinkBinding::new(endpoint, operation, path);
     let mut source = seed.to_vec();
     let mut destination = [0xa5_u8; 8_192];
 

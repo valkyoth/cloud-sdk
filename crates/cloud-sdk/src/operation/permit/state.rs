@@ -1,15 +1,16 @@
 //! Direct permit transitions and execution-attempt ownership.
 
 use super::{
-    ExecutionPermitError, PermitDisposition, PermitExecutionError, PermitIdempotencyKey,
-    PermitScope, PermitState, PermitTimestamp, PlanSubject, ReconciliationToken, RecoveryToken,
-    ReplayPolicy,
+    ExecutionPermitError, PermitClock, PermitDisposition, PermitExecutionError,
+    PermitIdempotencyKey, PermitScope, PermitState, PermitTimestamp, PlanSubject,
+    ReconciliationToken, RecoveryToken, ReplayPolicy,
 };
 use crate::authentication::{
     AsyncAuthenticatedTransport, BlockingAuthenticatedTransport, LocalAsyncAuthenticatedTransport,
 };
 use crate::operation::{CheckedResponseGuard, PreparedExecutionError};
 use crate::transport::{BoundTransport, DeliveryClassified, DeliveryPhase};
+use cloud_sdk_sanitization::sanitize_bytes;
 
 pub(super) struct DirectState<'request, 'fingerprint> {
     subject: PlanSubject<'request, 'fingerprint>,
@@ -146,7 +147,7 @@ impl<'request, 'fingerprint> DirectState<'request, 'fingerprint> {
             return PermitDisposition::Spent;
         }
         match phase {
-            AttemptPhase::Applied => {
+            AttemptPhase::Applied | AttemptPhase::Rejected => {
                 self.state = PermitState::Spent;
                 PermitDisposition::Spent
             }
@@ -169,6 +170,7 @@ impl<'request, 'fingerprint> DirectState<'request, 'fingerprint> {
 #[derive(Clone, Copy)]
 pub(super) enum AttemptPhase {
     Applied,
+    Rejected,
     NotSent,
     Uncertain,
 }
@@ -179,6 +181,16 @@ enum AttemptOwner<'permit, 'request, 'fingerprint> {
 }
 
 /// One in-flight attempt. Dropping it records uncertain delivery.
+///
+/// The prepared request cannot be extracted from this capability.
+///
+/// ```compile_fail
+/// use cloud_sdk::operation::PermitAttempt;
+///
+/// fn extract(attempt: &PermitAttempt<'_, '_, '_>) {
+///     let _ = attempt.prepared();
+/// }
+/// ```
 #[must_use]
 pub struct PermitAttempt<'permit, 'request, 'fingerprint> {
     owner: AttemptOwner<'permit, 'request, 'fingerprint>,
@@ -213,12 +225,6 @@ impl<'permit, 'request, 'fingerprint> PermitAttempt<'permit, 'request, 'fingerpr
         }
     }
 
-    /// Returns the exact request bound to this authority.
-    #[must_use]
-    pub const fn prepared(&self) -> crate::operation::PreparedRequest<'request> {
-        self.subject.prepared()
-    }
-
     /// Completes a manually driven attempt with conservative delivery state.
     ///
     /// `NotSent` is sound only when a delivery-aware transport boundary proves
@@ -238,8 +244,9 @@ impl<'permit, 'request, 'fingerprint> PermitAttempt<'permit, 'request, 'fingerpr
     }
 
     /// Executes once through a delivery-classified blocking transport.
-    pub fn execute_blocking<'buffer, T>(
+    pub fn execute_blocking<'buffer, T, C>(
         mut self,
+        clock: &C,
         transport: &T,
         response_storage: &'buffer mut [u8],
         response_header_storage: &'buffer mut [u8],
@@ -247,9 +254,12 @@ impl<'permit, 'request, 'fingerprint> PermitAttempt<'permit, 'request, 'fingerpr
     where
         T: BlockingAuthenticatedTransport + BoundTransport,
         T::Error: DeliveryClassified,
+        C: PermitClock + ?Sized,
     {
+        self.ensure_fresh(clock.now(), response_storage, response_header_storage)?;
         let result = self.subject.prepared().execute_blocking_authorized(
             transport,
+            Some(self.subject.endpoint()),
             response_storage,
             response_header_storage,
         );
@@ -257,8 +267,9 @@ impl<'permit, 'request, 'fingerprint> PermitAttempt<'permit, 'request, 'fingerpr
     }
 
     /// Executes once through a delivery-classified Send-async transport.
-    pub async fn execute_async<'transport, 'buffer, T>(
+    pub async fn execute_async<'transport, 'buffer, T, C>(
         mut self,
+        clock: &'transport C,
         transport: &'transport T,
         response_storage: &'buffer mut [u8],
         response_header_storage: &'buffer mut [u8],
@@ -266,20 +277,28 @@ impl<'permit, 'request, 'fingerprint> PermitAttempt<'permit, 'request, 'fingerpr
     where
         T: AsyncAuthenticatedTransport + BoundTransport,
         T::Error: DeliveryClassified,
+        C: PermitClock + Sync + ?Sized,
         'request: 'transport,
         'permit: 'transport,
     {
+        self.ensure_fresh(clock.now(), response_storage, response_header_storage)?;
         let result = self
             .subject
             .prepared()
-            .execute_async_authorized(transport, response_storage, response_header_storage)
+            .execute_async_authorized(
+                transport,
+                Some(self.subject.endpoint()),
+                response_storage,
+                response_header_storage,
+            )
             .await;
         self.finish_result(result)
     }
 
     /// Executes once through a delivery-classified local-async transport.
-    pub async fn execute_local_async<'transport, 'buffer, T>(
+    pub async fn execute_local_async<'transport, 'buffer, T, C>(
         mut self,
+        clock: &'transport C,
         transport: &'transport T,
         response_storage: &'buffer mut [u8],
         response_header_storage: &'buffer mut [u8],
@@ -287,15 +306,44 @@ impl<'permit, 'request, 'fingerprint> PermitAttempt<'permit, 'request, 'fingerpr
     where
         T: LocalAsyncAuthenticatedTransport + BoundTransport,
         T::Error: DeliveryClassified,
+        C: PermitClock + ?Sized,
         'request: 'transport,
         'permit: 'transport,
     {
+        self.ensure_fresh(clock.now(), response_storage, response_header_storage)?;
         let result = self
             .subject
             .prepared()
-            .execute_local_async_authorized(transport, response_storage, response_header_storage)
+            .execute_local_async_authorized(
+                transport,
+                Some(self.subject.endpoint()),
+                response_storage,
+                response_header_storage,
+            )
             .await;
         self.finish_result(result)
+    }
+
+    fn ensure_fresh<E>(
+        &mut self,
+        now: PermitTimestamp,
+        response_storage: &mut [u8],
+        response_header_storage: &mut [u8],
+    ) -> Result<(), PermitExecutionError<E>> {
+        let observed = match &mut self.owner {
+            AttemptOwner::Direct(owner) => owner.observe(now),
+            AttemptOwner::Shared(owner) => owner.observe(self.subject, now),
+        };
+        if let Err(error) = observed {
+            sanitize_bytes(response_storage);
+            sanitize_bytes(response_header_storage);
+            let disposition = self.finish(AttemptPhase::Rejected);
+            return Err(PermitExecutionError {
+                execution: PreparedExecutionError::AuthorizationInvalid(error),
+                disposition,
+            });
+        }
+        Ok(())
     }
 
     fn finish_result<'buffer, E: DeliveryClassified>(

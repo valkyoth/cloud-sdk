@@ -83,8 +83,11 @@ operation-specific idempotency or reconciliation policy.
 The credential-free raw traits intentionally have no credential input. The
 authenticated reqwest adapters use the same bounded engine but inject one
 transport-owned authorization field only after scope validation.
-`AuthenticatedRequest` carries the operation-owned `RawResponsePolicy`, so
-authenticated execution cannot infer or bypass wire limits.
+The internal `AuthenticatedRequest` carries the operation-owned
+`RawResponsePolicy`, so authenticated execution cannot infer or bypass wire
+limits. Downstream code cannot construct or extract this wire capability;
+dispatch enters through checked prepared execution, a consuming execution
+permit, or the structurally GET-only provider-link continuation path.
 
 The 8 MiB request-copy limit is a first-party `cloud-sdk-reqwest` guarantee,
 not a core raw-trait guarantee. Bearer and Basic authentication policy are

@@ -1,9 +1,9 @@
 use core::{fmt, str};
 
 use cloud_sdk::Method;
-use cloud_sdk::authentication::BlockingAuthenticatedTransport;
+use cloud_sdk::operation::PreparedExecutionError;
 use cloud_sdk::operation::{PreparationStorage, PrepareOperation};
-use cloud_sdk::transport::{ResponseBuffer, StatusCode};
+use cloud_sdk::transport::StatusCode;
 use cloud_sdk_hetzner::cloud::catalog::{
     CatalogListEndpoint, CatalogListRequest, CatalogRequestError, CatalogSingletonEndpoint,
     PublicImageKind,
@@ -101,22 +101,16 @@ impl CatalogProbe {
         let mut response_storage = vec![0_u8; MAX_RESPONSE_BYTES];
         let mut guarded = SecretBuffer::new(response_storage.as_mut_slice());
         let mut response_header_storage = [0_u8; 8192];
-        let mut response = ResponseBuffer::new(
-            guarded.as_mut_slice(),
-            MAX_RESPONSE_BYTES,
-            &mut response_header_storage,
-        );
-        client
-            .send_authenticated(prepared.authenticated_request(), response.writer())
-            .map_err(|error| ProbeFailure::new(self.name, ProbeError::Transport(error)))?;
-        response
-            .with_response(|view| {
+        let checked = prepared
+            .execute_blocking(client, guarded.as_mut_slice(), &mut response_header_storage)
+            .map_err(|error| ProbeFailure::new(self.name, map_execution_error(error)))?;
+        checked
+            .decode_owned(|view| {
                 if view.status() != StatusCode::OK {
                     return Err(ProbeError::UnexpectedStatus(view.status().get()));
                 }
                 self.validate_body(view.body())
             })
-            .map_err(|_| ProbeFailure::new(self.name, ProbeError::ResponseCommit))?
             .map_err(|kind| ProbeFailure::new(self.name, kind))
     }
 
@@ -171,6 +165,13 @@ impl CatalogProbe {
             ProbeRequest::Singleton(_) => {}
         }
         Ok(())
+    }
+}
+
+fn map_execution_error(error: PreparedExecutionError<AuthenticatedTransportFailure>) -> ProbeError {
+    match error {
+        PreparedExecutionError::Transport(error) => ProbeError::Transport(error),
+        _ => ProbeError::ResponseCommit,
     }
 }
 

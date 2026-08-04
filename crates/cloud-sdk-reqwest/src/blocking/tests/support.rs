@@ -1,18 +1,20 @@
 use std::{string::String, vec::Vec};
 
-use cloud_sdk::authentication::{
-    AuthenticatedRequest, AuthenticationScopePolicy, BlockingAuthenticatedTransport,
-    ScopeRequirement,
+use cloud_sdk::authentication::{AuthenticationScopePolicy, ScopeRequirement};
+use cloud_sdk::operation::{
+    ContentTypePolicy, CostIntent, OperationImpact, OperationMetadata, PreparedExecutionError,
+    PreparedRequest, ProviderService, RequestIdPolicy, RequestSemantics, ResponseBodyPolicy,
+    ResponsePolicy, RetryEligibility,
 };
 use cloud_sdk::rate_limit::RateLimit;
 use cloud_sdk::transport::{
-    BoundTransport, EndpointIdentity, HeaderName, MediaType, RawResponsePolicy, ResponseBuffer,
-    ResponseMediaPolicy, StatusCode, TransportRequest, TransportResponse,
+    BoundTransport, EndpointIdentity, EndpointPolicy, HeaderName, MediaType, RawResponsePolicy,
+    ResponseMediaPolicy, StatusCode, TransportRequest,
 };
 
 use super::super::{
-    BearerCredential, BearerCredentialScope, BearerToken, BlockingClient, HttpsEndpoint,
-    TransportError,
+    AuthenticatedTransportFailure, BearerCredential, BearerCredentialScope, BearerToken,
+    BlockingClient, HttpsEndpoint, TransportError,
 };
 
 pub(super) fn test_credential(token: BearerToken, endpoint: &HttpsEndpoint) -> BearerCredential {
@@ -26,18 +28,53 @@ pub(super) fn test_credential(token: BearerToken, endpoint: &HttpsEndpoint) -> B
     )
 }
 
-pub(super) fn authenticated<'request, 'endpoint>(
-    client: &'endpoint BlockingClient,
+pub(super) fn prepared<'request>(
+    client: &'request BlockingClient,
     request: TransportRequest<'request>,
-) -> AuthenticatedRequest<'request, 'endpoint> {
+) -> PreparedRequest<'request> {
     let endpoint = client
         .endpoint_identity()
         .unwrap_or_else(|_| unreachable!());
-    AuthenticatedRequest::new(
+    prepared_with_policy(
         request,
+        ProviderService::new(
+            cloud_sdk::provider_id!("example"),
+            cloud_sdk::service_id!("compute"),
+            EndpointPolicy::fixed(endpoint),
+        ),
         test_authentication_policy(endpoint),
+    )
+}
+
+pub(super) fn prepared_with_policy<'request>(
+    request: TransportRequest<'request>,
+    service: ProviderService<'request>,
+    authentication: AuthenticationScopePolicy<'request>,
+) -> PreparedRequest<'request> {
+    let metadata = OperationMetadata::new(
+        OperationImpact::ReadOnly,
+        RequestSemantics::Safe,
+        RetryEligibility::Never,
+        CostIntent::NoKnownCost,
+        RequestIdPolicy::Discard,
+    )
+    .unwrap_or_else(|_| unreachable!());
+    let response = ResponsePolicy::new(
+        &[StatusCode::OK],
+        ContentTypePolicy::Optional(&[MediaType::JSON]),
+        ResponseBodyPolicy::Optional,
+        8192,
+    )
+    .unwrap_or_else(|_| unreachable!());
+    PreparedRequest::new(
+        request,
+        service,
+        metadata,
+        response,
+        authentication,
         test_raw_response_policy(),
     )
+    .unwrap_or_else(|_| unreachable!())
 }
 
 pub(super) fn test_raw_response_policy() -> RawResponsePolicy<'static> {
@@ -77,29 +114,17 @@ pub(super) struct CapturedResponse {
     body: Vec<u8>,
     content_type: Option<String>,
     rate_limit: Option<RateLimit>,
-    rate_limit_remaining: Option<Vec<u8>>,
-    content_type_header: Option<Vec<u8>>,
 }
 
 impl CapturedResponse {
-    fn capture(response: TransportResponse<'_, '_>) -> Self {
+    fn capture(response: cloud_sdk::operation::CheckedResponse<'_>) -> Self {
         Self {
             status: response.status(),
             body: response.body().to_vec(),
             content_type: response
                 .content_type()
-                .ok()
-                .flatten()
                 .map(|content_type| String::from(content_type.as_str())),
             rate_limit: response.rate_limit(),
-            rate_limit_remaining: response
-                .headers()
-                .get("ratelimit-remaining")
-                .map(|header| header.value().to_vec()),
-            content_type_header: response
-                .headers()
-                .get("content-type")
-                .map(|header| header.value().to_vec()),
         }
     }
 
@@ -118,14 +143,6 @@ impl CapturedResponse {
     pub(super) const fn rate_limit(&self) -> Option<RateLimit> {
         self.rate_limit
     }
-
-    pub(super) fn rate_limit_remaining_header(&self) -> Option<&[u8]> {
-        self.rate_limit_remaining.as_deref()
-    }
-
-    pub(super) fn content_type_header(&self) -> Option<&[u8]> {
-        self.content_type_header.as_deref()
-    }
 }
 
 pub(super) fn send_test(
@@ -133,16 +150,18 @@ pub(super) fn send_test(
     request: TransportRequest<'_>,
     output: &mut [u8],
 ) -> Result<CapturedResponse, TransportError> {
-    let capacity = output.len();
     let mut headers = [0_u8; 8192];
-    let mut response = ResponseBuffer::new(output, capacity, &mut headers);
-    BlockingAuthenticatedTransport::send_authenticated(
-        client,
-        authenticated(client, request),
-        response.writer(),
-    )
-    .map_err(cloud_sdk::transport::TransportFailure::into_error)?;
-    response
-        .with_response(CapturedResponse::capture)
-        .map_err(|_| TransportError::ResponseCommitFailed)
+    let checked = prepared(client, request)
+        .execute_blocking(client, output, &mut headers)
+        .map_err(map_execution_error)?;
+    Ok(checked.with_borrowed(CapturedResponse::capture))
+}
+
+fn map_execution_error(
+    error: PreparedExecutionError<AuthenticatedTransportFailure>,
+) -> TransportError {
+    match error {
+        PreparedExecutionError::Transport(failure) => failure.into_error(),
+        _ => TransportError::ResponseCommitFailed,
+    }
 }

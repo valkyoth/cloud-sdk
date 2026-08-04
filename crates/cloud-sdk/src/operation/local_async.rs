@@ -2,7 +2,7 @@
 
 use super::{CheckedResponseGuard, PreparedExecutionError, PreparedRequest};
 use crate::authentication::{LocalAsyncAuthenticatedTransport, drive_local_authenticated};
-use crate::transport::{AsyncExecutionError, BoundTransport, ResponseBuffer};
+use crate::transport::{AsyncExecutionError, BoundTransport, EndpointIdentity, ResponseBuffer};
 use cloud_sdk_sanitization::sanitize_bytes;
 
 impl<'request> PreparedRequest<'request> {
@@ -27,13 +27,19 @@ impl<'request> PreparedRequest<'request> {
             sanitize_bytes(response_header_storage);
             return Err(PreparedExecutionError::AuthorizationRequired);
         }
-        self.execute_local_async_authorized(transport, response_storage, response_header_storage)
-            .await
+        self.execute_local_async_authorized(
+            transport,
+            None,
+            response_storage,
+            response_header_storage,
+        )
+        .await
     }
 
     pub(crate) async fn execute_local_async_authorized<'transport, 'buffer, T>(
         &'transport self,
         transport: &'transport T,
+        confirmed_endpoint: Option<EndpointIdentity<'_>>,
         response_storage: &'buffer mut [u8],
         response_header_storage: &'buffer mut [u8],
     ) -> Result<CheckedResponseGuard<'buffer>, PreparedExecutionError<T::Error>>
@@ -49,10 +55,15 @@ impl<'request> PreparedRequest<'request> {
         let actual = transport
             .endpoint_identity()
             .map_err(PreparedExecutionError::EndpointIdentity)?;
-        self.service()
-            .endpoint_policy()
-            .verify(actual)
-            .map_err(|_| PreparedExecutionError::EndpointMismatch)?;
+        match confirmed_endpoint {
+            Some(expected) if actual == expected => {}
+            Some(_) => return Err(PreparedExecutionError::EndpointMismatch),
+            None => self
+                .service()
+                .endpoint_policy()
+                .verify(actual)
+                .map_err(|_| PreparedExecutionError::EndpointMismatch)?,
+        }
         drive_local_authenticated(transport, self.authenticated_request(), response.writer())
             .await
             .map_err(map_local_error)?;

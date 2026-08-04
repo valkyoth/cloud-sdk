@@ -30,6 +30,12 @@ included in the cumulative v0.55 pentest and crates.io publication.
   paths without changing the default no_std graph.
 - Added conservative `DeliveryClassified` transport failures for blocking,
   Send-async, and local-async execution.
+- Made authenticated request construction and extraction internal, and removed
+  reusable prepared-request access from permit attempts.
+- Retained and enforced the exact confirmed endpoint at authorized dispatch,
+  including within multi-endpoint official policies.
+- Added caller-owned `PermitClock` dispatch sampling, exclusive expiry, and
+  fail-closed spending of attempts that expire before transport access.
 
 ## Provider Integration
 

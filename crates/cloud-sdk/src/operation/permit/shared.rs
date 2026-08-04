@@ -99,7 +99,7 @@ impl SharedPermitState {
                 return PermitDisposition::Spent;
             }
             let (next_state, disposition) = match phase {
-                AttemptPhase::Applied => (SPENT, PermitDisposition::Spent),
+                AttemptPhase::Applied | AttemptPhase::Rejected => (SPENT, PermitDisposition::Spent),
                 AttemptPhase::NotSent if remaining == 0 => (SPENT, PermitDisposition::Spent),
                 AttemptPhase::NotSent => (
                     RECOVERABLE,
@@ -209,7 +209,7 @@ impl SharedPermitState {
 
     // `try_update` is unavailable on Rust 1.90; retain its predecessor through MSRV.
     #[allow(deprecated)]
-    fn observe(
+    pub(super) fn observe(
         &self,
         subject: PlanSubject<'_, '_>,
         now: PermitTimestamp,

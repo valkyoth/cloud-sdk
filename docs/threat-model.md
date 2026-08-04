@@ -229,7 +229,11 @@
   endpoint, scope, validity interval, attempt budget, replay policy,
   idempotency identity, and cost ceiling; stale recovery generations,
   backward clocks, no-op plans, mismatched fingerprints, concurrent spend,
-  and uncertain delivery fail closed pending operation-specific reconciliation.
+  and uncertain delivery fail closed pending operation-specific reconciliation;
+  authenticated request construction/extraction is internal, permit attempts
+  expose no reusable prepared request, exact confirmed endpoints are rechecked
+  at dispatch, and caller-owned clocks enforce exclusive expiry immediately
+  before blocking transport access or on first async poll.
 
 Cleanup does not cover process abort, `mem::forget` or deliberately leaked
 guards, immutable/external copies, TLS and allocator internals, kernel/device

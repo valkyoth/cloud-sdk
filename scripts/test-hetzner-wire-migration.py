@@ -116,8 +116,8 @@ def main() -> None:
             ),
             (
                 "live_smoke",
-                "prepared.authenticated_request()",
-                "manual_authenticated_request()",
+                ".execute_blocking(",
+                ".execute_unchecked(",
                 "missing required wire control",
             ),
         ]

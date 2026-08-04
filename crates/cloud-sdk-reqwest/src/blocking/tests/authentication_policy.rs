@@ -1,10 +1,8 @@
 use cloud_sdk::Method;
 use cloud_sdk::ProviderId;
-use cloud_sdk::authentication::{
-    AuthenticatedRequest, AuthenticationScopePolicy, BlockingAuthenticatedTransport,
-    ScopeRequirement,
-};
-use cloud_sdk::transport::{RequestTarget, ResponseBuffer, TransportRequest};
+use cloud_sdk::authentication::{AuthenticationScopePolicy, ScopeRequirement};
+use cloud_sdk::operation::{PreparedExecutionError, ProviderService};
+use cloud_sdk::transport::{BoundTransport, EndpointPolicy, RequestTarget, TransportRequest};
 
 use super::super::BearerTokenError;
 use super::{BearerToken, TransportError, build_loopback};
@@ -112,21 +110,27 @@ fn scope_rejection_happens_before_blocking_network_or_header_work() {
     let Ok(target) = RequestTarget::new("/must-not-send") else {
         return;
     };
-    let request = AuthenticatedRequest::new(
+    let Ok(endpoint) = client.endpoint_identity() else {
+        return;
+    };
+    let request = super::support::prepared_with_policy(
         TransportRequest::new(Method::Get, target),
+        ProviderService::new(
+            provider,
+            cloud_sdk::service_id!("compute"),
+            EndpointPolicy::fixed(endpoint),
+        ),
         policy,
-        super::support::test_raw_response_policy(),
     );
     let mut body = [0xa5_u8; 8];
     let mut headers = [0xa5_u8; 8192];
-    let mut response = ResponseBuffer::new(&mut body, 8, &mut headers);
-    assert_eq!(
-        BlockingAuthenticatedTransport::send_authenticated(&client, request, response.writer(),),
-        Err(cloud_sdk::transport::TransportFailure::not_sent(
-            TransportError::AuthenticationScopeRejected
-        ))
-    );
-    drop(response);
+    assert!(matches!(
+        request.execute_blocking(&client, &mut body, &mut headers),
+        Err(PreparedExecutionError::Transport(failure))
+            if failure == cloud_sdk::transport::TransportFailure::not_sent(
+                TransportError::AuthenticationScopeRejected
+            )
+    ));
     assert_eq!(body, [0_u8; 8]);
     assert_eq!(headers, [0_u8; 8192]);
 }

@@ -24,11 +24,14 @@ Use raw clients only below a separately reviewed authentication layer. Use
 `BlockingAuthenticatedTransport` or `AsyncAuthenticatedTransport` when the
 reqwest adapter owns a credential.
 
-Every `AuthenticatedRequest` also carries a complete `RawResponsePolicy`.
-Bearer and Basic clients validate scope, construct one sensitive authorization
-field, and then execute through the same bounded raw Hyper engine as the
-credential-free raw clients. There is no high-level reqwest compatibility
-fallback.
+Every internal `AuthenticatedRequest` also carries a complete
+`RawResponsePolicy`. Construction and extraction are crate-private; application
+and provider code initiates authenticated I/O through checked
+`PreparedRequest::execute_*`, permit-authorized execution, or the structurally
+GET-only provider-link continuation path. Bearer and Basic clients validate
+scope, construct one sensitive authorization field, and then execute through
+the same bounded raw Hyper engine as the credential-free raw clients. There is
+no high-level reqwest compatibility fallback.
 
 ## Credential Scope
 

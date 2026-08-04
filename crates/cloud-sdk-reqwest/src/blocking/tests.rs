@@ -36,7 +36,7 @@ mod raw_executor;
 mod response_content_type;
 mod support;
 
-use support::{authenticated, send_test, test_credential};
+use support::{send_test, test_credential};
 
 fn test_timeouts() -> Option<RequestTimeouts> {
     RequestTimeouts::new(Duration::from_secs(2), Duration::from_secs(1)).ok()
@@ -138,11 +138,10 @@ fn blocking_client_sends_exact_headers_target_and_body_once() {
         .with_headers(headers);
     let mut output = [0xa5_u8; 32];
     let response = send_test(&client, request, &mut output);
-    assert!(response.is_ok());
-    if let Ok(response) = response {
-        assert_eq!(response.status().get(), 503);
-        assert_eq!(response.body(), b"retry-later");
-    }
+    assert!(matches!(
+        response,
+        Err(TransportError::ResponseCommitFailed)
+    ));
 
     let recorded = server.request.recv_timeout(Duration::from_secs(2));
     assert!(recorded.is_ok());
@@ -159,7 +158,7 @@ fn blocking_client_sends_exact_headers_target_and_body_once() {
 }
 
 #[test]
-fn redirects_are_returned_and_oversized_bodies_are_cleared() {
+fn redirects_are_not_followed_or_admitted_and_oversized_bodies_are_cleared() {
     let redirect = spawn(
         "302 Found",
         &[("Location", "https://evil.example/steal")],
@@ -179,11 +178,11 @@ fn redirects_are_returned_and_oversized_bodies_are_cleared() {
         TransportRequest::new(Method::Get, target),
         &mut output,
     );
-    assert!(response.is_ok());
-    if let Ok(response) = response {
-        assert_eq!(response.status().get(), 302);
-        assert_eq!(response.body(), b"redirect");
-    }
+    assert!(matches!(
+        response,
+        Err(TransportError::ResponseCommitFailed)
+    ));
+    assert_eq!(output, [0_u8; 16]);
 
     let oversized = spawn("200 OK", &[], b"oversized", Duration::ZERO);
     let Ok(oversized) = oversized else { return };
@@ -205,7 +204,7 @@ fn redirects_are_returned_and_oversized_bodies_are_cleared() {
 }
 
 #[test]
-fn response_retains_admitted_rate_limit_headers_without_transport_decoding() {
+fn checked_response_exposes_content_type_without_transport_rate_limit_decoding() {
     let server = spawn(
         "200 OK",
         &[
@@ -237,14 +236,6 @@ fn response_retains_admitted_rate_limit_headers_without_transport_decoding() {
     };
     assert_eq!(content_type, "application/json; charset=utf-8");
     assert_eq!(response.rate_limit(), None);
-    assert_eq!(
-        response.rate_limit_remaining_header(),
-        Some(b"3599".as_slice())
-    );
-    assert_eq!(
-        response.content_type_header(),
-        Some(b"application/json; charset=utf-8".as_slice())
-    );
 }
 
 #[test]

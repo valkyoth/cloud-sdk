@@ -4,7 +4,7 @@ use std::time::Duration;
 use cloud_sdk::Method;
 use cloud_sdk::transport::{
     BlockingRawHttpExecutor, DeliveryPhase, HeaderName, MediaType, RawResponsePolicy,
-    ResponseBuffer, ResponseMediaPolicy, StatusCode, TransportRequest,
+    ResponseBuffer, ResponseMediaPolicy, ResponseMetadata, StatusCode, TransportRequest,
 };
 
 use super::{custom_endpoint, test_timeouts};
@@ -34,6 +34,42 @@ fn json_policy<'a>(admitted: &'a [HeaderName<'a>]) -> Option<RawResponsePolicy<'
         2,
     )
     .ok()
+}
+
+#[test]
+fn raw_blocking_precommitted_writer_fails_before_network_access() {
+    let Some(client) = build_raw_loopback("http://127.0.0.1:1/v1") else {
+        return;
+    };
+    let Ok(target) = cloud_sdk::transport::RequestTarget::new("/precommitted") else {
+        return;
+    };
+    let Some(policy) = json_policy(&[]) else {
+        return;
+    };
+    let mut body = [0xa5_u8; 8];
+    let mut headers = [0xa5_u8; 128];
+    let mut response = ResponseBuffer::new(&mut body, 8, &mut headers);
+    let mut attempt = response
+        .writer()
+        .begin_attempt()
+        .unwrap_or_else(|_| unreachable!());
+    assert!(
+        attempt
+            .commit(StatusCode::OK, 0, ResponseMetadata::EMPTY)
+            .is_ok()
+    );
+    drop(attempt);
+    assert_eq!(
+        client.execute(
+            TransportRequest::new(Method::Get, target),
+            policy,
+            response.writer(),
+        ),
+        Err(cloud_sdk::transport::TransportFailure::not_sent(
+            RawHttpError::ResponseAlreadyCommitted
+        ))
+    );
 }
 
 #[test]

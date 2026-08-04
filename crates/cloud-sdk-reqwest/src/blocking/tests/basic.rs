@@ -2,11 +2,9 @@ use std::string::String;
 use std::time::Duration;
 
 use cloud_sdk::Method;
-use cloud_sdk::authentication::{
-    AuthenticatedRequest, AuthenticationScopePolicy, BlockingAuthenticatedTransport,
-    ScopeRequirement,
-};
-use cloud_sdk::transport::{BoundTransport, RequestTarget, ResponseBuffer, TransportRequest};
+use cloud_sdk::authentication::{AuthenticationScopePolicy, ScopeRequirement};
+use cloud_sdk::operation::{PreparedExecutionError, PreparedRequest, ProviderService};
+use cloud_sdk::transport::{BoundTransport, EndpointPolicy, RequestTarget, TransportRequest};
 
 use super::super::{
     BasicCredential, BasicCredentialScope, BasicPassword, BasicUsername, BlockingBasicClient,
@@ -44,10 +42,7 @@ fn build_loopback(endpoint: &str) -> Option<BlockingBasicClient> {
     builder.build_for_loopback().ok()
 }
 
-fn request<'a>(
-    client: &'a BlockingBasicClient,
-    target: RequestTarget<'a>,
-) -> AuthenticatedRequest<'a, 'a> {
+fn request<'a>(client: &'a BlockingBasicClient, target: RequestTarget<'a>) -> PreparedRequest<'a> {
     let endpoint = client
         .endpoint_identity()
         .unwrap_or_else(|_| unreachable!());
@@ -59,10 +54,14 @@ fn request<'a>(
         ScopeRequirement::Forbidden,
         ScopeRequirement::Forbidden,
     );
-    AuthenticatedRequest::new(
+    super::support::prepared_with_policy(
         TransportRequest::new(Method::Get, target),
+        ProviderService::new(
+            cloud_sdk::provider_id!("hetzner"),
+            cloud_sdk::service_id!("robot"),
+            EndpointPolicy::fixed(endpoint),
+        ),
         policy,
-        super::support::test_raw_response_policy(),
     )
 }
 
@@ -84,13 +83,8 @@ fn blocking_basic_client_sends_exact_authorization_and_target() {
     };
     let mut body = [0xa5_u8; 8];
     let mut headers = [0xa5_u8; 512];
-    let mut response = ResponseBuffer::new(&mut body, 8, &mut headers);
-    let result = BlockingAuthenticatedTransport::send_authenticated(
-        &client,
-        request(&client, target),
-        response.writer(),
-    );
-    assert_eq!(result, Ok(()));
+    let result = request(&client, target).execute_blocking(&client, &mut body, &mut headers);
+    assert!(result.is_ok());
 
     let recorded = server.request.recv_timeout(Duration::from_secs(2));
     assert!(recorded.is_ok());
@@ -144,25 +138,24 @@ fn blocking_basic_client_rejects_incomplete_scope_before_network() {
         ScopeRequirement::Forbidden,
         ScopeRequirement::Forbidden,
     );
-    let authenticated = AuthenticatedRequest::new(
+    let request = super::support::prepared_with_policy(
         TransportRequest::new(Method::Get, target),
+        ProviderService::new(
+            cloud_sdk::provider_id!("hetzner"),
+            cloud_sdk::service_id!("robot"),
+            EndpointPolicy::fixed(endpoint),
+        ),
         policy,
-        super::support::test_raw_response_policy(),
     );
     let mut body = [0_u8; 8];
     let mut headers = [0_u8; 512];
-    let mut response = ResponseBuffer::new(&mut body, 8, &mut headers);
-    assert_eq!(
-        BlockingAuthenticatedTransport::send_authenticated(
-            &client,
-            authenticated,
-            response.writer(),
-        ),
-        Err(cloud_sdk::transport::TransportFailure::not_sent(
-            TransportError::AuthenticationScopeRejected
-        ))
-    );
-    drop(response);
+    assert!(matches!(
+        request.execute_blocking(&client, &mut body, &mut headers),
+        Err(PreparedExecutionError::Transport(failure))
+            if failure == cloud_sdk::transport::TransportFailure::not_sent(
+                TransportError::AuthenticationScopeRejected
+            )
+    ));
     assert_eq!(body, [0_u8; 8]);
     assert_eq!(headers, [0_u8; 512]);
 }

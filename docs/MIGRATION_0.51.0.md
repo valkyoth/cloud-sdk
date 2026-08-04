@@ -18,6 +18,23 @@ Build a `PlanConfirmation`, call `build_canonical_plan` or
 execute through the one-use `PermitAttempt`. See
 [`EXECUTION_PERMITS.md`](EXECUTION_PERMITS.md).
 
+Every permit execute method now takes a caller-owned `PermitClock` before the
+transport argument. The SDK samples it at actual blocking dispatch or first
+async poll, and `expires_at` is exclusive. Queued attempts that expire are
+spent before transport access.
+
+The endpoint confirmed into the plan is enforced exactly during dispatch.
+Another endpoint admitted by the same provider policy no longer matches.
+
+## Authenticated Transport Capability
+
+`AuthenticatedRequest::new`, `PreparedRequest::authenticated_request`, and
+`PermitAttempt::prepared` are no longer public. Source users must execute
+read-only requests through `PreparedRequest::execute_*` and state-changing
+requests through `PermitAttempt::execute_*`. Transport implementations still
+receive `AuthenticatedRequest`, but application and provider code cannot forge
+or extract that wire capability.
+
 ## Typed Hetzner Operations
 
 `cloud_sdk_hetzner::association::Prepared<O>` exposes direct execution only
@@ -45,6 +62,7 @@ execution will fail closed until integrated with the permit lifecycle.
 
 ## Compatibility
 
-No default feature, allocation, network, TLS, runtime, filesystem, clock, or
-random dependency was added. The default provider-neutral and Hetzner graphs
-remain allocation-free and `no_std`.
+No default feature, allocation, network, TLS, runtime, filesystem, system-clock,
+or random dependency was added. `PermitClock` is a caller implementation. The
+default provider-neutral and Hetzner graphs remain allocation-free and
+`no_std`.

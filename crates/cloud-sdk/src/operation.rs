@@ -16,7 +16,7 @@ pub use operation_id::{OperationId, OperationIdError};
 pub use permit::{
     AttemptBudget, AttemptBudgetError, CanonicalPlanFingerprint, CostPermit, CurrencyCode,
     CurrencyCodeError, DestructivePermit, ExecutionPermitError, MutationPermit, PermitAttempt,
-    PermitContext, PermitContextError, PermitDisposition, PermitExecutionError,
+    PermitClock, PermitContext, PermitContextError, PermitDisposition, PermitExecutionError,
     PermitIdempotencyKey, PermitIdempotencyKeyError, PermitScope, PermitState, PermitTimestamp,
     PermitValidity, PermitValidityError, PlanChange, PlanConfirmation, PlanCost, PlanCostError,
     PlanFingerprintBuildError, PlanFingerprintDigest, PlanFingerprintRef, PlanFingerprintScope,

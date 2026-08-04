@@ -25,17 +25,16 @@ pub struct ProviderLinkBinding<'a> {
 }
 
 impl<'a> ProviderLinkBinding<'a> {
-    /// Binds links to one endpoint, method, operation, and exact path pattern.
+    /// Binds read-only GET links to one endpoint, operation, and exact path.
     #[must_use]
     pub const fn new(
         endpoint: EndpointIdentity<'a>,
-        method: Method,
         operation: OperationId,
         path: RequestPath<'a>,
     ) -> Self {
         Self {
             endpoint,
-            method,
+            method: Method::Get,
             operation,
             path,
         }
@@ -186,7 +185,7 @@ impl<'storage, 'endpoint> ValidatedProviderLink<'storage, 'endpoint> {
             .map_err(ProviderLinkExecutionError::Pagination)?;
         transport
             .send_authenticated(
-                AuthenticatedRequest::new(request, authentication, response_policy),
+                AuthenticatedRequest::new(request, authentication, &response_policy),
                 response,
             )
             .map_err(ProviderLinkExecutionError::Transport)
@@ -217,7 +216,7 @@ impl<'storage, 'endpoint> ValidatedProviderLink<'storage, 'endpoint> {
             .map_err(ProviderLinkExecutionError::Pagination)?;
         drive_async_authenticated(
             transport,
-            AuthenticatedRequest::new(request, authentication, response_policy),
+            AuthenticatedRequest::new(request, authentication, &response_policy),
             response,
         )
         .await

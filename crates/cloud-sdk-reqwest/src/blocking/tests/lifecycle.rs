@@ -2,14 +2,12 @@ use std::string::String;
 use std::time::Duration;
 
 use cloud_sdk::Method;
-use cloud_sdk::authentication::BlockingAuthenticatedTransport;
 use cloud_sdk::transport::{
-    BoundTransport, RequestTarget, ResponseBuffer, ResponseMetadata, ResponseStorageSanitizer,
-    StatusCode, TransportRequest,
+    BoundTransport, RequestTarget, ResponseStorageSanitizer, TransportRequest,
 };
 use cloud_sdk_sanitization::SecretBuffer;
 
-use super::{BearerToken, authenticated, build_loopback};
+use super::{BearerToken, build_loopback};
 use crate::test_server::{spawn_concurrent_pair, spawn_sequence_with_first_delay};
 
 #[test]
@@ -44,41 +42,6 @@ fn blocking_client_is_clone_send_sync_and_endpoint_bound() {
         assert!(client.rotate_bearer_token(replacement).is_ok());
     }
     assert_eq!(client.endpoint_identity(), before);
-}
-
-#[test]
-fn blocking_precommitted_writer_fails_before_network_access() {
-    let Some(client) = build_loopback("http://127.0.0.1:1/v1") else {
-        return;
-    };
-    let Ok(target) = RequestTarget::new("/precommitted") else {
-        return;
-    };
-    let mut output = [0xa5_u8; 8];
-    let mut headers = [0xa5_u8; 8192];
-    let mut response = ResponseBuffer::new(&mut output, 8, &mut headers);
-    let mut attempt = response
-        .writer()
-        .begin_attempt()
-        .unwrap_or_else(|_| unreachable!());
-    assert!(
-        attempt
-            .commit(StatusCode::OK, 0, ResponseMetadata::EMPTY)
-            .is_ok()
-    );
-    drop(attempt);
-    assert_eq!(
-        BlockingAuthenticatedTransport::send_authenticated(
-            &client,
-            authenticated(&client, TransportRequest::new(Method::Get, target)),
-            response.writer(),
-        ),
-        Err(cloud_sdk::transport::TransportFailure::not_sent(
-            super::super::TransportError::RawHttp(
-                super::super::RawHttpError::ResponseAlreadyCommitted
-            )
-        ))
-    );
 }
 
 #[test]

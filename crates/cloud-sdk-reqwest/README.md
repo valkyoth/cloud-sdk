@@ -162,13 +162,15 @@ clients share one bounded HTTP/1 engine. See the complete
 use std::time::Duration;
 
 use cloud_sdk::{Method, ProviderId, ServiceId};
-use cloud_sdk::authentication::{
-    AuthenticatedRequest, AuthenticationScopePolicy,
-    BlockingAuthenticatedTransport, ScopeRequirement,
+use cloud_sdk::authentication::{AuthenticationScopePolicy, ScopeRequirement};
+use cloud_sdk::operation::{
+    ContentTypePolicy, CostIntent, OperationImpact, OperationMetadata,
+    PreparedRequest, ProviderService, RequestIdPolicy, RequestSemantics,
+    ResponseBodyPolicy, ResponsePolicy, RetryEligibility,
 };
 use cloud_sdk::transport::{
-    HeaderName, MediaType, RawResponsePolicy, RequestTarget, ResponseBuffer,
-    ResponseMediaPolicy, TransportRequest,
+    EndpointPolicy, HeaderName, MediaType, RawResponsePolicy, RequestTarget,
+    ResponseMediaPolicy, StatusCode, TransportRequest,
 };
 use cloud_sdk_reqwest::blocking::{
     BearerCredential, BearerCredentialScope, BearerToken,
@@ -210,7 +212,7 @@ else { return };
 
 let Ok(target) = RequestTarget::new("/servers?page=1") else { return };
 let Ok(content_type) = HeaderName::new("content-type") else { return };
-let Ok(response_policy) = RawResponsePolicy::new(
+let Ok(raw_response_policy) = RawResponsePolicy::new(
     65_536,
     65_536,
     ResponseMediaPolicy::Required(&[MediaType::JSON]),
@@ -218,26 +220,40 @@ let Ok(response_policy) = RawResponsePolicy::new(
     &[content_type],
     8,
 ) else { return };
-let request = AuthenticatedRequest::new(
+let Ok(response_policy) = ResponsePolicy::new(
+    &[StatusCode::OK],
+    ContentTypePolicy::Required(&[MediaType::JSON]),
+    ResponseBodyPolicy::Required,
+    65_536,
+) else { return };
+let Ok(metadata) = OperationMetadata::new(
+    OperationImpact::ReadOnly,
+    RequestSemantics::Safe,
+    RetryEligibility::Never,
+    CostIntent::NoKnownCost,
+    RequestIdPolicy::Discard,
+) else { return };
+let service_policy = ProviderService::new(
+    provider,
+    service,
+    EndpointPolicy::fixed(endpoint_identity),
+);
+let Ok(request) = PreparedRequest::new(
     TransportRequest::new(Method::Get, target),
-    authentication_policy,
+    service_policy,
+    metadata,
     response_policy,
-);
+    authentication_policy,
+    raw_response_policy,
+) else { return };
 let mut response_body = [0_u8; 65_536];
-let response_capacity = response_body.len();
 let mut response_headers = [0_u8; cloud_sdk::transport::MAX_RESPONSE_HEADER_BYTES];
-let mut response = ResponseBuffer::new(
+let Ok(response) = request.execute_blocking(
+    &client,
     &mut response_body,
-    response_capacity,
     &mut response_headers,
-);
-if client.send_authenticated(request, response.writer()).is_err() {
-    return;
-}
-
-assert!(response
-    .with_response(|view| view.status().is_success())
-    .is_ok_and(core::convert::identity));
+) else { return };
+assert!(response.status().is_success());
 # }
 # #[cfg(not(feature = "blocking-rustls"))]
 # fn main() {}
@@ -246,7 +262,7 @@ assert!(response
 ### Basic Authentication
 
 Basic credentials use separate types and builders, but every send uses the
-same mandatory `AuthenticatedRequest` scope policy as the bearer example:
+same mandatory checked `PreparedRequest` path as the bearer example:
 
 ```rust,no_run
 # #[cfg(feature = "blocking-rustls")]
@@ -388,13 +404,15 @@ create or own a runtime. Call it from an active Tokio executor:
 use std::time::Duration;
 
 use cloud_sdk::{Method, ProviderId, ServiceId};
-use cloud_sdk::authentication::{
-    AuthenticatedRequest, AuthenticationScopePolicy, ScopeRequirement,
-    drive_async_authenticated,
+use cloud_sdk::authentication::{AuthenticationScopePolicy, ScopeRequirement};
+use cloud_sdk::operation::{
+    ContentTypePolicy, CostIntent, OperationImpact, OperationMetadata,
+    PreparedRequest, ProviderService, RequestIdPolicy, RequestSemantics,
+    ResponseBodyPolicy, ResponsePolicy, RetryEligibility,
 };
 use cloud_sdk::transport::{
-    HeaderName, MediaType, RawResponsePolicy, RequestTarget, ResponseBuffer,
-    ResponseMediaPolicy, TransportRequest,
+    EndpointPolicy, HeaderName, MediaType, RawResponsePolicy, RequestTarget,
+    ResponseMediaPolicy, StatusCode, TransportRequest,
 };
 use cloud_sdk_reqwest::asynchronous::{
     AsyncClientBuilder, BearerCredential, BearerCredentialScope,
@@ -436,7 +454,7 @@ else { return };
 
 let Ok(target) = RequestTarget::new("/servers?page=1") else { return };
 let Ok(content_type) = HeaderName::new("content-type") else { return };
-let Ok(response_policy) = RawResponsePolicy::new(
+let Ok(raw_response_policy) = RawResponsePolicy::new(
     65_536,
     65_536,
     ResponseMediaPolicy::Required(&[MediaType::JSON]),
@@ -444,33 +462,42 @@ let Ok(response_policy) = RawResponsePolicy::new(
     &[content_type],
     8,
 ) else { return };
-let request = AuthenticatedRequest::new(
+let Ok(response_policy) = ResponsePolicy::new(
+    &[StatusCode::OK],
+    ContentTypePolicy::Required(&[MediaType::JSON]),
+    ResponseBodyPolicy::Required,
+    65_536,
+) else { return };
+let Ok(metadata) = OperationMetadata::new(
+    OperationImpact::ReadOnly,
+    RequestSemantics::Safe,
+    RetryEligibility::Never,
+    CostIntent::NoKnownCost,
+    RequestIdPolicy::Discard,
+) else { return };
+let service_policy = ProviderService::new(
+    provider,
+    service,
+    EndpointPolicy::fixed(endpoint_identity),
+);
+let Ok(request) = PreparedRequest::new(
     TransportRequest::new(Method::Get, target),
-    authentication_policy,
+    service_policy,
+    metadata,
     response_policy,
-);
+    authentication_policy,
+    raw_response_policy,
+) else { return };
 let mut response_body = [0_u8; 65_536];
-let response_capacity = response_body.len();
 let mut response_headers = [0_u8; cloud_sdk::transport::MAX_RESPONSE_HEADER_BYTES];
-let mut response = ResponseBuffer::new(
-    &mut response_body,
-    response_capacity,
-    &mut response_headers,
-);
-if drive_async_authenticated(
+let Ok(response) = request.execute_async(
     &client,
-    request,
-    response.writer(),
+    &mut response_body,
+    &mut response_headers,
 )
     .await
-    .is_err()
-{
-    return;
-}
-
-assert!(response
-    .with_response(|view| view.status().is_success())
-    .is_ok_and(core::convert::identity));
+else { return };
+assert!(response.status().is_success());
 # }
 # fn main() {}
 ```

@@ -104,8 +104,8 @@ for required in '.commit_completion(' '.is_committed()' '.begin_attempt()'; do
 done
 
 for regression in \
-    crates/cloud-sdk-reqwest/src/blocking/tests/lifecycle.rs \
-    crates/cloud-sdk-reqwest/src/asynchronous/tests/lifecycle.rs; do
+    crates/cloud-sdk-reqwest/src/blocking/tests/raw_executor.rs \
+    crates/cloud-sdk-reqwest/src/asynchronous/tests/raw_executor/precommitted.rs; do
     if ! grep -Fq 'precommitted_writer_fails_before_network_access' "$regression"; then
         echo "response provenance: precommitted regression missing from $regression" >&2
         exit 1
@@ -164,7 +164,7 @@ cargo test --locked -p cloud-sdk --all-features --test response_provenance
 cargo test --locked -p cloud-sdk --all-features --test response_cleanup
 cargo test --locked -p cloud-sdk --doc
 cargo test --locked -p cloud-sdk-testkit --all-features
-cargo test --locked -p cloud-sdk-reqwest --all-features lifecycle
+cargo test --locked -p cloud-sdk-reqwest --all-features precommitted_writer_fails_before_network_access
 cargo check --locked --manifest-path fuzz/Cargo.toml --bin checked_response
 
 echo "sealed response provenance checks passed."

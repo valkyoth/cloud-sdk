@@ -73,7 +73,7 @@ fuzz_target!(|data: &[u8]| {
     let Ok(limits) = PaginationLimits::new(8, 1_000, 8_192) else {
         return;
     };
-    let binding = ProviderLinkBinding::new(endpoint, Method::Get, operation, path);
+    let binding = ProviderLinkBinding::new(endpoint, operation, path);
     let mut source = data.get(..8_192).unwrap_or(data).to_vec();
     let mut destination = vec![0xa5_u8; 8_192];
     let mut response_storage = [];

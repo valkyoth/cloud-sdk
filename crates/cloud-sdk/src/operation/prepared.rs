@@ -13,7 +13,8 @@ use crate::operation::{
     ResponsePolicy, ResponsePolicyError,
 };
 use crate::transport::{
-    BoundTransport, EndpointPolicy, RawResponsePolicy, ResponseBuffer, TransportRequest,
+    BoundTransport, EndpointIdentity, EndpointPolicy, RawResponsePolicy, ResponseBuffer,
+    TransportRequest,
 };
 use crate::{ProviderId, ProviderMarker, ServiceId, ServiceMarker};
 
@@ -243,11 +244,11 @@ impl<'request> PreparedRequest<'request> {
 
     /// Returns the request with its mandatory authentication and raw wire policy.
     #[must_use]
-    pub const fn authenticated_request(self) -> AuthenticatedRequest<'request, 'request> {
+    pub(crate) const fn authenticated_request(self) -> AuthenticatedRequest<'request, 'request> {
         AuthenticatedRequest::new(
             self.request,
             self.authentication_policy,
-            self.raw_response_policy,
+            &self.raw_response_policy,
         )
     }
 
@@ -320,12 +321,13 @@ impl<'request> PreparedRequest<'request> {
             sanitize_bytes(response_header_storage);
             return Err(PreparedExecutionError::AuthorizationRequired);
         }
-        self.execute_blocking_authorized(transport, response_storage, response_header_storage)
+        self.execute_blocking_authorized(transport, None, response_storage, response_header_storage)
     }
 
     pub(crate) fn execute_blocking_authorized<'buffer, T>(
         self,
         transport: &T,
+        confirmed_endpoint: Option<EndpointIdentity<'_>>,
         response_storage: &'buffer mut [u8],
         response_header_storage: &'buffer mut [u8],
     ) -> Result<CheckedResponseGuard<'buffer>, PreparedExecutionError<T::Error>>
@@ -337,7 +339,7 @@ impl<'request> PreparedRequest<'request> {
             self.raw_response_policy.max_body_bytes(),
             response_header_storage,
         );
-        self.verify_endpoint(transport)
+        self.verify_endpoint(transport, confirmed_endpoint)
             .map_err(map_endpoint_error)?;
         transport
             .send_authenticated(self.authenticated_request(), response.writer())
@@ -363,13 +365,14 @@ impl<'request> PreparedRequest<'request> {
             sanitize_bytes(response_header_storage);
             return Err(PreparedExecutionError::AuthorizationRequired);
         }
-        self.execute_async_authorized(transport, response_storage, response_header_storage)
+        self.execute_async_authorized(transport, None, response_storage, response_header_storage)
             .await
     }
 
     pub(crate) async fn execute_async_authorized<'transport, 'buffer, T>(
         &'transport self,
         transport: &'transport T,
+        confirmed_endpoint: Option<EndpointIdentity<'_>>,
         response_storage: &'buffer mut [u8],
         response_header_storage: &'buffer mut [u8],
     ) -> Result<CheckedResponseGuard<'buffer>, PreparedExecutionError<T::Error>>
@@ -382,7 +385,7 @@ impl<'request> PreparedRequest<'request> {
             self.raw_response_policy.max_body_bytes(),
             response_header_storage,
         );
-        self.verify_endpoint(transport)
+        self.verify_endpoint(transport, confirmed_endpoint)
             .map_err(map_endpoint_error)?;
         drive_async_authenticated(transport, self.authenticated_request(), response.writer())
             .await
@@ -404,17 +407,26 @@ impl<'request> PreparedRequest<'request> {
             || matches!(self.metadata.cost_intent(), super::CostIntent::MayIncurCost)
     }
 
-    fn verify_endpoint<T>(self, transport: &T) -> Result<(), EndpointCheckError>
+    fn verify_endpoint<T>(
+        self,
+        transport: &T,
+        confirmed_endpoint: Option<EndpointIdentity<'_>>,
+    ) -> Result<(), EndpointCheckError>
     where
         T: BoundTransport,
     {
         let actual = transport
             .endpoint_identity()
             .map_err(EndpointCheckError::Invalid)?;
-        self.service
-            .endpoint_policy
-            .verify(actual)
-            .map_err(|_| EndpointCheckError::Mismatch)
+        match confirmed_endpoint {
+            Some(expected) if actual == expected => Ok(()),
+            Some(_) => Err(EndpointCheckError::Mismatch),
+            None => self
+                .service
+                .endpoint_policy
+                .verify(actual)
+                .map_err(|_| EndpointCheckError::Mismatch),
+        }
     }
 }
 

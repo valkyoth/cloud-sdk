@@ -1,11 +1,8 @@
 use cloud_sdk::Method;
 use cloud_sdk::ProviderId;
-use cloud_sdk::authentication::{
-    AuthenticatedRequest, AuthenticationScopePolicy, ScopeRequirement, drive_async_authenticated,
-};
-use cloud_sdk::transport::{
-    AsyncExecutionError, RequestTarget, ResponseBuffer, TransportFailure, TransportRequest,
-};
+use cloud_sdk::authentication::{AuthenticationScopePolicy, ScopeRequirement};
+use cloud_sdk::operation::{PreparedExecutionError, ProviderService};
+use cloud_sdk::transport::{BoundTransport, EndpointPolicy, RequestTarget, TransportRequest};
 
 use super::{
     AsyncClientBuilder, BearerToken, HttpsEndpoint, TransportError, UserAgent, build_loopback,
@@ -59,21 +56,28 @@ fn scope_rejection_happens_before_async_network_or_header_work() {
         let Ok(target) = RequestTarget::new("/must-not-send") else {
             return;
         };
-        let request = AuthenticatedRequest::new(
+        let Ok(endpoint) = client.endpoint_identity() else {
+            return;
+        };
+        let request = super::support::prepared_with_policy(
             TransportRequest::new(Method::Get, target),
+            ProviderService::new(
+                provider,
+                cloud_sdk::service_id!("compute"),
+                EndpointPolicy::fixed(endpoint),
+            ),
             policy,
-            super::support::test_raw_response_policy(),
         );
         let mut body = [0xa5_u8; 8];
         let mut headers = [0xa5_u8; 8192];
         {
-            let mut response = ResponseBuffer::new(&mut body, 8, &mut headers);
-            assert_eq!(
-                drive_async_authenticated(&client, request, response.writer(),).await,
-                Err(AsyncExecutionError::Transport(TransportFailure::not_sent(
-                    TransportError::AuthenticationScopeRejected,
-                )))
-            );
+            assert!(matches!(
+                request.execute_async(&client, &mut body, &mut headers).await,
+                Err(PreparedExecutionError::Transport(failure))
+                    if failure == cloud_sdk::transport::TransportFailure::not_sent(
+                        TransportError::AuthenticationScopeRejected
+                    )
+            ));
         }
         assert_eq!(body, [0_u8; 8]);
         assert_eq!(headers, [0_u8; 8192]);

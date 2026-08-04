@@ -243,6 +243,7 @@ impl fmt::Debug for PlanFingerprintRef<'_> {
 pub struct PlanSubject<'request, 'fingerprint> {
     prepared: &'fingerprint PreparedRequest<'request>,
     fingerprint: PlanFingerprintRef<'fingerprint>,
+    endpoint: EndpointIdentity<'fingerprint>,
     scope: PermitScope,
     validity: PermitValidity,
     replay: ReplayPolicy,
@@ -269,6 +270,10 @@ impl<'request, 'fingerprint> PlanSubject<'request, 'fingerprint> {
         self.attempts
     }
 
+    pub(crate) const fn endpoint(self) -> EndpointIdentity<'fingerprint> {
+        self.endpoint
+    }
+
     pub(crate) const fn prepared(self) -> PreparedRequest<'request> {
         *self.prepared
     }
@@ -292,6 +297,7 @@ impl fmt::Debug for PlanSubject<'_, '_> {
             .debug_struct("PlanSubject")
             .field("prepared", &self.prepared)
             .field("fingerprint", &"[redacted]")
+            .field("endpoint", &self.endpoint)
             .field("scope", &self.scope)
             .field("validity", &self.validity)
             .field("replay", &self.replay)
@@ -461,6 +467,7 @@ fn subject<'request, 'plan: 'fingerprint, 'fingerprint>(
     PlanSubject {
         prepared: &plan.prepared,
         fingerprint,
+        endpoint: plan.endpoint,
         scope,
         validity: plan.validity,
         replay: plan.replay,

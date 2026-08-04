@@ -1,11 +1,15 @@
 //! Plan-confirm execution authority for state-changing operations.
 
+mod clock;
 mod direct;
+mod execution_error;
 mod fingerprint;
 mod shared;
 mod state;
 
+pub use clock::PermitClock;
 pub use direct::{CostPermit, DestructivePermit, MutationPermit};
+pub use execution_error::PermitExecutionError;
 pub use fingerprint::{
     CanonicalPlanFingerprint, PlanConfirmation, PlanFingerprintBuildError, PlanFingerprintDigest,
     PlanFingerprintRef, PlanSubject, build_canonical_plan, build_plan_digest,
@@ -164,7 +168,7 @@ impl PermitValidity {
             .0
             .checked_sub(self.issued_at.0)
             .ok_or(ExecutionPermitError::NotYetValid)?;
-        if elapsed > u64::from(self.duration) {
+        if elapsed >= u64::from(self.duration) {
             return Err(ExecutionPermitError::Expired);
         }
         u32::try_from(elapsed).map_err(|_| ExecutionPermitError::Expired)
@@ -457,44 +461,6 @@ impl_static_error!(ExecutionPermitError,
     Self::ReplayForbidden => "execution permit replay policy forbids repetition",
     Self::GenerationExhausted => "execution permit generation is exhausted",
 );
-
-/// Prepared execution failure plus the fail-closed permit disposition.
-pub struct PermitExecutionError<E> {
-    pub(crate) execution: super::PreparedExecutionError<E>,
-    pub(crate) disposition: PermitDisposition,
-}
-
-impl<E> PermitExecutionError<E> {
-    /// Returns the underlying payload-redacting execution failure.
-    #[must_use]
-    pub const fn execution(&self) -> &super::PreparedExecutionError<E> {
-        &self.execution
-    }
-
-    /// Returns the recovery or reconciliation disposition.
-    #[must_use]
-    pub const fn disposition(&self) -> PermitDisposition {
-        self.disposition
-    }
-}
-
-impl<E> fmt::Debug for PermitExecutionError<E> {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        formatter
-            .debug_struct("PermitExecutionError")
-            .field("execution", &"[redacted]")
-            .field("disposition", &self.disposition)
-            .finish()
-    }
-}
-
-impl<E> fmt::Display for PermitExecutionError<E> {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        formatter.write_str("permit-authorized request execution failed")
-    }
-}
-
-impl<E> core::error::Error for PermitExecutionError<E> {}
 
 #[cfg(test)]
 mod tests;

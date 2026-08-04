@@ -17,6 +17,12 @@ All constructors require complete policy input. There is no permissive
 `Default` for authority, no weak digest selection, and no API that extracts a
 reusable state-changing request from a permit attempt.
 
+Authenticated wire capability construction and extraction are crate-private.
+Downstream transports can implement the public traits and inspect the request
+they receive, but application and provider code can initiate authenticated I/O
+only through checked prepared execution. Permit attempts expose execution and
+completion operations, not their reusable `PreparedRequest`.
+
 ## Changed API Behavior
 
 Direct `PreparedRequest` execution rejects state-changing or cost-bearing
@@ -31,6 +37,12 @@ one caller-owned `SharedPermitState`; atomic lifecycle, remaining budget,
 recovery generation, and monotonic wall-clock observation are never copied.
 Only one attempt can transition from ready to in-flight.
 
+Each execute method samples a caller-owned `PermitClock` at dispatch. Expiry is
+exclusive, delayed async futures are checked when first polled, and pre-send
+expiry spends the attempt without entering uncertain-delivery state. The
+transport endpoint must exactly equal the endpoint retained by the confirmed
+plan, even when the service policy admits several official endpoints.
+
 ## Failure Contract
 
 Public errors implement payload-free `Display`, redacted `Debug`, and
@@ -41,5 +53,6 @@ digest construction clears caller output; successful guards clear on drop.
 ## Compatibility Boundaries
 
 The API remains allocation-free and `no_std`, uses portable core atomics, and
-adds no dependency or feature. Callers continue to own clocks, entropy,
+adds no dependency or feature. `PermitClock` is a pure caller boundary; callers
+continue to own clock implementations, entropy,
 pricing, reconciliation reads, retries, scheduling, storage, and transport.

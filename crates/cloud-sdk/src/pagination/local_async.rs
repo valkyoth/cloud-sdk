@@ -35,7 +35,7 @@ impl ValidatedProviderLink<'_, '_> {
             .map_err(ProviderLinkExecutionError::Pagination)?;
         drive_local_authenticated(
             transport,
-            AuthenticatedRequest::new(request, authentication, response_policy),
+            AuthenticatedRequest::new(request, authentication, &response_policy),
             response,
         )
         .await

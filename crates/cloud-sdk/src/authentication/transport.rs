@@ -9,6 +9,22 @@ use crate::transport::{
 use super::AuthenticationScopePolicy;
 
 /// Request plus mandatory provider or operation-owned authentication policy.
+///
+/// Construction is internal so application code cannot bypass prepared or
+/// permit-authorized execution through the public transport traits.
+///
+/// ```compile_fail
+/// use cloud_sdk::authentication::{AuthenticatedRequest, AuthenticationScopePolicy};
+/// use cloud_sdk::transport::{RawResponsePolicy, TransportRequest};
+///
+/// fn forge(
+///     request: TransportRequest<'_>,
+///     authentication: AuthenticationScopePolicy<'_>,
+///     response: RawResponsePolicy<'_>,
+/// ) {
+///     let _ = AuthenticatedRequest::new(request, authentication, &response);
+/// }
+/// ```
 #[derive(Clone, Copy)]
 pub struct AuthenticatedRequest<'request, 'policy> {
     request: TransportRequest<'request>,
@@ -19,15 +35,15 @@ pub struct AuthenticatedRequest<'request, 'policy> {
 impl<'request, 'policy> AuthenticatedRequest<'request, 'policy> {
     /// Binds a transport request to its complete authentication policy.
     #[must_use]
-    pub const fn new(
+    pub(crate) const fn new(
         request: TransportRequest<'request>,
         policy: AuthenticationScopePolicy<'policy>,
-        response_policy: RawResponsePolicy<'policy>,
+        response_policy: &RawResponsePolicy<'policy>,
     ) -> Self {
         Self {
             request,
             policy,
-            response_policy,
+            response_policy: *response_policy,
         }
     }
 

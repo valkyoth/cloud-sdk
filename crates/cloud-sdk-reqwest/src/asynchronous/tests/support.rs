@@ -1,9 +1,12 @@
-use cloud_sdk::authentication::{
-    AuthenticatedRequest, AuthenticationScopePolicy, ScopeRequirement,
+use cloud_sdk::authentication::{AuthenticationScopePolicy, ScopeRequirement};
+use cloud_sdk::operation::{
+    ContentTypePolicy, CostIntent, OperationImpact, OperationMetadata, PreparedRequest,
+    ProviderService, RequestIdPolicy, RequestSemantics, ResponseBodyPolicy, ResponsePolicy,
+    RetryEligibility,
 };
 use cloud_sdk::transport::{
-    BoundTransport, EndpointIdentity, HeaderName, MediaType, RawResponsePolicy,
-    ResponseMediaPolicy, TransportRequest,
+    BoundTransport, EndpointIdentity, EndpointPolicy, HeaderName, MediaType, RawResponsePolicy,
+    ResponseMediaPolicy, StatusCode, TransportRequest,
 };
 
 use super::super::{
@@ -21,18 +24,53 @@ pub(super) fn test_credential(token: BearerToken, endpoint: &HttpsEndpoint) -> B
     )
 }
 
-pub(super) fn authenticated<'request, 'endpoint>(
-    client: &'endpoint AsyncClient,
+pub(super) fn prepared<'request>(
+    client: &'request AsyncClient,
     request: TransportRequest<'request>,
-) -> AuthenticatedRequest<'request, 'endpoint> {
+) -> PreparedRequest<'request> {
     let endpoint = client
         .endpoint_identity()
         .unwrap_or_else(|_| unreachable!());
-    AuthenticatedRequest::new(
+    prepared_with_policy(
         request,
+        ProviderService::new(
+            cloud_sdk::provider_id!("example"),
+            cloud_sdk::service_id!("compute"),
+            EndpointPolicy::fixed(endpoint),
+        ),
         test_authentication_policy(endpoint),
+    )
+}
+
+pub(super) fn prepared_with_policy<'request>(
+    request: TransportRequest<'request>,
+    service: ProviderService<'request>,
+    authentication: AuthenticationScopePolicy<'request>,
+) -> PreparedRequest<'request> {
+    let metadata = OperationMetadata::new(
+        OperationImpact::ReadOnly,
+        RequestSemantics::Safe,
+        RetryEligibility::Never,
+        CostIntent::NoKnownCost,
+        RequestIdPolicy::Discard,
+    )
+    .unwrap_or_else(|_| unreachable!());
+    let response = ResponsePolicy::new(
+        &[StatusCode::OK],
+        ContentTypePolicy::Optional(&[MediaType::JSON]),
+        ResponseBodyPolicy::Optional,
+        8192,
+    )
+    .unwrap_or_else(|_| unreachable!());
+    PreparedRequest::new(
+        request,
+        service,
+        metadata,
+        response,
+        authentication,
         test_raw_response_policy(),
     )
+    .unwrap_or_else(|_| unreachable!())
 }
 
 pub(super) fn test_raw_response_policy() -> RawResponsePolicy<'static> {

@@ -1,3 +1,4 @@
+mod dispatch_tests;
 mod fingerprint_tests;
 mod fixture;
 mod separation_tests;

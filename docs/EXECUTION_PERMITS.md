@@ -34,12 +34,31 @@ failure, panic, and drop.
 5. Select `MutationPermit`, `DestructivePermit`, or `CostPermit` from the
    fingerprint's `PlanSubject`. A scope mismatch fails before execution.
 6. Call `begin`, then consume the returned `PermitAttempt` through
-   `execute_blocking`, `execute_async`, or `execute_local_async`.
+   `execute_blocking`, `execute_async`, or `execute_local_async`, passing a
+   caller-owned `PermitClock` sampled by the SDK at dispatch.
 
 The SDK has no clock, random source, price feed, account inventory, or remote
 state oracle. The caller must obtain trustworthy values and compare desired
 state with current state. `PlanChange::ChangesState` is an assertion reviewed
 by the caller; the SDK cannot infer a provider-side no-op from wire bytes.
+
+The confirmed endpoint is retained in `PlanSubject` and compared with the
+transport's exact endpoint immediately before every authorized send. Admission
+to the same `EndpointPolicy::OfficialSet` is insufficient. Confirming endpoint A never authorizes endpoint B.
+
+## Dispatch-Time Validity
+
+`expires_at` is exclusive. `begin(now)` rejects an already expired permit, and
+every execute method samples `PermitClock::now` again immediately before
+endpoint verification and transport access. For async execution this sample
+occurs when the future is first polled, not when it is created. An attempt that
+expires while queued is permanently spent, clears response storage, and
+returns `AuthorizationInvalid(Expired)` without marking delivery uncertain,
+because the transport was not called.
+
+The SDK does not provide a system clock. Production callers must supply a
+trustworthy clock implementation and keep its unit and epoch consistent with
+the timestamps used to construct the permit.
 
 ## Direct And Shared Authority
 
@@ -65,6 +84,7 @@ thread/task admission.
 | `PossiblySent` | `PendingReconciliation` | Query provider state with operation-specific logic before any repetition. |
 | `ResponseStarted` but execution failed | `PendingReconciliation` | Treat delivery as uncertain and reconcile. |
 | Attempt dropped or cancelled | `PendingReconciliation` | Never infer not-sent from cancellation. |
+| Expired or rolled-back clock before dispatch | `Spent` | Build and confirm a fresh plan; transport was not called. |
 
 Manual `PermitAttempt::complete(DeliveryPhase::NotSent)` is sound only behind
 a transport boundary that proves no request bytes reached the peer. Unknown
@@ -82,6 +102,12 @@ Attempt budgets include every transport attempt. Exhaustion, stale tokens,
 fingerprint mismatch, idempotency mismatch, expiry, not-yet-valid time, and a
 caller clock moving backward all fail closed. A backward observation never
 extends validity.
+
+`AuthenticatedRequest` construction and prepared-request extraction are
+internal capabilities. `PermitAttempt` exposes no reusable prepared request.
+Downstream code can inspect non-secret prepared metadata, but authenticated
+dispatch must enter through checked read-only execution or a consuming permit
+attempt.
 
 ## Cost Authority
 

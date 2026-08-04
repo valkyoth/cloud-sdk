@@ -1,5 +1,9 @@
 # v0.43.0 Public API Review
 
+> Historical note: v0.51 internalized authenticated request construction and
+> extraction so this earlier adapter-integration surface cannot bypass checked
+> prepared or permit-authorized execution.
+
 Date: 2026-07-31
 
 Scope: complete Hetzner migration from prepared operations through

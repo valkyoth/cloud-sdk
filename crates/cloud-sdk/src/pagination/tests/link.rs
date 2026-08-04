@@ -133,7 +133,7 @@ fn operation(value: &'static str) -> OperationId {
 fn binding() -> ProviderLinkBinding<'static> {
     let endpoint = endpoint();
     let path = RequestPath::new("/v2/droplets").unwrap_or_else(|_| unreachable!());
-    ProviderLinkBinding::new(endpoint, Method::Get, operation("list_droplets"), path)
+    ProviderLinkBinding::new(endpoint, operation("list_droplets"), path)
 }
 
 fn endpoint() -> EndpointIdentity<'static> {
@@ -469,7 +469,7 @@ fn accepts_equivalent_ipv6_authority_and_rejects_invalid_raw_queries() {
     let endpoint = EndpointIdentity::new(EndpointScheme::Https, "[2001:db8::1]", 443, "/v2")
         .unwrap_or_else(|_| unreachable!());
     let path = RequestPath::new("/v2/droplets").unwrap_or_else(|_| unreachable!());
-    let binding = ProviderLinkBinding::new(endpoint, Method::Get, operation("list_droplets"), path);
+    let binding = ProviderLinkBinding::new(endpoint, operation("list_droplets"), path);
     let mut source = *b"https://[2001:0db8:0:0:0:0:0:1]/v2/droplets?page=2";
     let mut storage = [0_u8; 64];
     assert!(

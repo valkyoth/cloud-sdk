@@ -2,7 +2,7 @@
 
 use core::fmt;
 
-use crate::operation::ResponsePolicyError;
+use crate::operation::{ExecutionPermitError, ResponsePolicyError};
 use crate::transport::{EndpointIdentityError, ResponseWriterError};
 
 /// Incoherent policy supplied while constructing a prepared request.
@@ -29,6 +29,8 @@ impl core::error::Error for PreparedRequestPolicyError {}
 pub enum PreparedExecutionError<E> {
     /// A state-changing request was executed without plan-confirm authority.
     AuthorizationRequired,
+    /// Plan-confirm authority became invalid before transport dispatch.
+    AuthorizationInvalid(ExecutionPermitError),
     /// The bound transport returned invalid endpoint identity.
     EndpointIdentity(EndpointIdentityError),
     /// The bound endpoint differs from the prepared provider service.
@@ -45,6 +47,10 @@ impl<E> fmt::Debug for PreparedExecutionError<E> {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::AuthorizationRequired => formatter.write_str("AuthorizationRequired"),
+            Self::AuthorizationInvalid(error) => formatter
+                .debug_tuple("AuthorizationInvalid")
+                .field(error)
+                .finish(),
             Self::EndpointIdentity(error) => formatter
                 .debug_tuple("EndpointIdentity")
                 .field(error)
@@ -67,6 +73,7 @@ impl<E> fmt::Display for PreparedExecutionError<E> {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter.write_str(match self {
             Self::AuthorizationRequired => "state-changing request requires execution authority",
+            Self::AuthorizationInvalid(_) => "execution authority is no longer valid",
             Self::EndpointIdentity(_) => "transport endpoint identity is invalid",
             Self::EndpointMismatch => "transport endpoint differs from prepared service",
             Self::Transport(_) => "prepared request transport failed",
@@ -84,9 +91,10 @@ impl<E: crate::transport::DeliveryClassified> crate::transport::DeliveryClassifi
     fn delivery_phase(&self) -> crate::transport::DeliveryPhase {
         use crate::transport::DeliveryPhase;
         match self {
-            Self::AuthorizationRequired | Self::EndpointIdentity(_) | Self::EndpointMismatch => {
-                DeliveryPhase::NotSent
-            }
+            Self::AuthorizationRequired
+            | Self::AuthorizationInvalid(_)
+            | Self::EndpointIdentity(_)
+            | Self::EndpointMismatch => DeliveryPhase::NotSent,
             Self::Transport(error) => error.delivery_phase(),
             Self::ResponseWriter(_) => DeliveryPhase::PossiblySent,
             Self::ResponsePolicy(_) => DeliveryPhase::ResponseStarted,

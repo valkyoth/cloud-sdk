@@ -181,6 +181,7 @@ fn prepared_blocking_execution_checks_endpoint_and_lends_only_policy_capacity() 
     let mut response_header_storage = [0xA5_u8; 8192];
     let response = prepared.execute_blocking_authorized(
         &transport,
+        None,
         &mut response_storage,
         &mut response_header_storage,
     );
@@ -197,6 +198,7 @@ fn prepared_blocking_execution_checks_endpoint_and_lends_only_policy_capacity() 
     response_storage.fill(0xA5);
     let response = prepared.execute_blocking_authorized(
         &mismatched,
+        None,
         &mut response_storage,
         &mut response_header_storage,
     );
@@ -226,6 +228,7 @@ fn prepared_async_execution_uses_the_same_endpoint_and_response_policy() {
     {
         let future = prepared.execute_async_authorized(
             &transport,
+            None,
             &mut response_storage,
             &mut response_header_storage,
         );

@@ -1,4 +1,5 @@
 use core::future::Future;
+use core::sync::atomic::{AtomicU32, Ordering};
 use core::task::{Context, Poll, Waker};
 
 use super::fixture::{ClassifiedTransport, endpoint, prepared};
@@ -14,6 +15,20 @@ use crate::transport::DeliveryPhase;
 use crate::std as test_std;
 
 const IDENTITY: &[u8] = b"0123456789abcdef0123456789abcdef";
+
+struct TestClock(AtomicU32);
+
+impl TestClock {
+    const fn new(now: u32) -> Self {
+        Self(AtomicU32::new(now))
+    }
+}
+
+impl crate::operation::PermitClock for TestClock {
+    fn now(&self) -> PermitTimestamp {
+        time(u64::from(self.0.load(Ordering::Acquire)))
+    }
+}
 
 #[test]
 fn direct_recovery_reconciliation_and_budget_are_generation_bound() {
@@ -219,7 +234,8 @@ fn permit_execution_maps_delivery_and_spends_success_across_modes() {
     };
     let mut body = [0_u8; 64];
     let mut headers = [0_u8; 128];
-    let error = attempt.execute_blocking(&failing, &mut body, &mut headers);
+    let clock = TestClock::new(102);
+    let error = attempt.execute_blocking(&clock, &failing, &mut body, &mut headers);
     assert!(matches!(
         error.as_ref().map_err(|error| error.disposition()),
         Err(PermitDisposition::Recoverable(_))
@@ -242,7 +258,7 @@ fn permit_execution_maps_delivery_and_spends_success_across_modes() {
         return;
     };
     {
-        let result = attempt.execute_blocking(&successful, &mut body, &mut headers);
+        let result = attempt.execute_blocking(&clock, &successful, &mut body, &mut headers);
         assert!(result.is_ok());
     }
     assert_eq!(second_permit.state(), PermitState::Spent);
@@ -262,7 +278,7 @@ fn permit_execution_maps_delivery_and_spends_success_across_modes() {
         return;
     };
     {
-        let future = attempt.execute_async(&successful, &mut body, &mut headers);
+        let future = attempt.execute_async(&clock, &successful, &mut body, &mut headers);
         let mut future = core::pin::pin!(future);
         let mut context = Context::from_waker(Waker::noop());
         assert!(matches!(
@@ -287,7 +303,7 @@ fn permit_execution_maps_delivery_and_spends_success_across_modes() {
         return;
     };
     {
-        let future = attempt.execute_local_async(&successful, &mut body, &mut headers);
+        let future = attempt.execute_local_async(&clock, &successful, &mut body, &mut headers);
         let mut future = core::pin::pin!(future);
         let mut context = Context::from_waker(Waker::noop());
         assert!(matches!(

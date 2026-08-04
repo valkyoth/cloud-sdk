@@ -4,13 +4,10 @@ use std::string::String;
 use std::time::Duration;
 
 use cloud_sdk::Method;
-use cloud_sdk::authentication::drive_async_authenticated;
-use cloud_sdk::transport::{
-    AsyncExecutionError, BoundTransport, RequestTarget, ResponseBuffer, ResponseMetadata,
-    ResponseWriterError, StatusCode, TransportRequest,
-};
+use cloud_sdk::transport::{BoundTransport, RequestTarget, TransportRequest};
 
-use super::{BearerToken, authenticated, build_loopback, run_async_test};
+use super::support::prepared;
+use super::{BearerToken, build_loopback, run_async_test};
 use crate::test_server::{spawn_concurrent_pair, spawn_sequence_with_first_delay};
 
 #[test]
@@ -41,53 +38,13 @@ fn async_send_future_stays_within_explicit_state_budget() {
     };
     let mut output = [0_u8; 1];
     let mut headers = [0_u8; 8192];
-    let mut response = ResponseBuffer::new(&mut output, 1, &mut headers);
-    let future = drive_async_authenticated(
-        &client,
-        authenticated(&client, TransportRequest::new(Method::Get, target)),
-        response.writer(),
-    );
+    let request = prepared(&client, TransportRequest::new(Method::Get, target));
+    let future = request.execute_async(&client, &mut output, &mut headers);
     let future_bytes = core::mem::size_of_val(&future);
     assert!(
         future_bytes <= 8_192,
         "async send future exceeds the 8 KiB state budget: {future_bytes} bytes"
     );
-}
-
-#[test]
-fn async_precommitted_writer_fails_before_network_access() {
-    run_async_test(async {
-        let Some(client) = build_loopback("http://127.0.0.1:1/v1") else {
-            return;
-        };
-        let Ok(target) = RequestTarget::new("/precommitted") else {
-            return;
-        };
-        let mut output = [0xa5_u8; 8];
-        let mut headers = [0xa5_u8; 8192];
-        let mut response = ResponseBuffer::new(&mut output, 8, &mut headers);
-        let mut attempt = response
-            .writer()
-            .begin_attempt()
-            .unwrap_or_else(|_| unreachable!());
-        assert!(
-            attempt
-                .commit(StatusCode::OK, 0, ResponseMetadata::EMPTY)
-                .is_ok()
-        );
-        drop(attempt);
-        assert_eq!(
-            drive_async_authenticated(
-                &client,
-                authenticated(&client, TransportRequest::new(Method::Get, target)),
-                response.writer(),
-            )
-            .await,
-            Err(AsyncExecutionError::Response(
-                ResponseWriterError::AlreadyCommitted,
-            ))
-        );
-    });
 }
 
 #[test]

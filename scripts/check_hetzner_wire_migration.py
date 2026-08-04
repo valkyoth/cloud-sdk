@@ -92,7 +92,7 @@ REQUIRED = {
     ],
     "live_smoke": [
         ".prepare(storage)",
-        "prepared.authenticated_request()",
+        ".execute_blocking(",
     ],
 }
 
@@ -112,7 +112,12 @@ FORBIDDEN = {
     ],
     "blocking_basic": ["reqwest::blocking::Client", "super::client::execute"],
     "async_basic": ["use reqwest::Client", "super::client::execute"],
-    "live_smoke": ["AuthenticationScopePolicy", "AuthenticatedRequest::new"],
+    "live_smoke": [
+        "AuthenticationScopePolicy",
+        "AuthenticatedRequest::new",
+        "authenticated_request()",
+        ".send_authenticated(",
+    ],
 }
 
 

@@ -3,11 +3,11 @@ use std::time::Duration;
 use std::vec::Vec;
 
 use cloud_sdk::Method;
-use cloud_sdk::authentication::drive_async_authenticated;
+use cloud_sdk::operation::PreparedExecutionError;
 use cloud_sdk::rate_limit::RateLimit;
 use cloud_sdk::transport::{
-    AsyncExecutionError, ContentType, RequestHeader, RequestHeaders, RequestTarget, ResponseBuffer,
-    ResponseStorageSanitizer, StatusCode, TransportRequest, TransportResponse,
+    ContentType, RequestHeader, RequestHeaders, RequestTarget, ResponseStorageSanitizer,
+    StatusCode, TransportRequest,
 };
 
 use super::{
@@ -22,7 +22,7 @@ mod lifecycle;
 mod raw_executor;
 mod support;
 
-use support::{authenticated, test_credential};
+use support::{prepared, test_credential};
 
 fn run_async_test(future: impl core::future::Future<Output = ()>) {
     let runtime = tokio::runtime::Builder::new_current_thread()
@@ -65,29 +65,17 @@ struct CapturedResponse {
     body: Vec<u8>,
     content_type: Option<String>,
     rate_limit: Option<RateLimit>,
-    rate_limit_remaining: Option<Vec<u8>>,
-    content_type_header: Option<Vec<u8>>,
 }
 
 impl CapturedResponse {
-    fn capture(response: TransportResponse<'_, '_>) -> Self {
+    fn capture(response: cloud_sdk::operation::CheckedResponse<'_>) -> Self {
         Self {
             status: response.status(),
             body: response.body().to_vec(),
             content_type: response
                 .content_type()
-                .ok()
-                .flatten()
                 .map(|content_type| String::from(content_type.as_str())),
             rate_limit: response.rate_limit(),
-            rate_limit_remaining: response
-                .headers()
-                .get("ratelimit-remaining")
-                .map(|header| header.value().to_vec()),
-            content_type_header: response
-                .headers()
-                .get("content-type")
-                .map(|header| header.value().to_vec()),
         }
     }
 
@@ -106,14 +94,6 @@ impl CapturedResponse {
     const fn rate_limit(&self) -> Option<RateLimit> {
         self.rate_limit
     }
-
-    fn rate_limit_remaining_header(&self) -> Option<&[u8]> {
-        self.rate_limit_remaining.as_deref()
-    }
-
-    fn content_type_header(&self) -> Option<&[u8]> {
-        self.content_type_header.as_deref()
-    }
 }
 
 async fn send_test(
@@ -121,18 +101,21 @@ async fn send_test(
     request: TransportRequest<'_>,
     output: &mut [u8],
 ) -> Result<CapturedResponse, TransportError> {
-    let capacity = output.len();
     let mut headers = [0_u8; 8192];
-    let mut response = ResponseBuffer::new(output, capacity, &mut headers);
-    drive_async_authenticated(client, authenticated(client, request), response.writer())
+    let checked = prepared(client, request)
+        .execute_async(client, output, &mut headers)
         .await
-        .map_err(|failure| match failure {
-            AsyncExecutionError::Transport(failure) => failure.into_error(),
-            AsyncExecutionError::Response(_) => TransportError::ResponseCommitFailed,
-        })?;
-    response
-        .with_response(CapturedResponse::capture)
-        .map_err(|_| TransportError::ResponseCommitFailed)
+        .map_err(map_execution_error)?;
+    Ok(checked.with_borrowed(CapturedResponse::capture))
+}
+
+fn map_execution_error(
+    error: PreparedExecutionError<super::AuthenticatedTransportFailure>,
+) -> TransportError {
+    match error {
+        PreparedExecutionError::Transport(failure) => failure.into_error(),
+        _ => TransportError::ResponseCommitFailed,
+    }
 }
 
 #[test]
@@ -167,11 +150,10 @@ fn async_client_sends_exact_headers_target_and_body_once() {
             .with_headers(headers);
         let mut output = [0xa5_u8; 32];
         let response = send_test(&client, request, &mut output).await;
-        assert!(response.is_ok());
-        if let Ok(response) = response {
-            assert_eq!(response.status().get(), 503);
-            assert_eq!(response.body(), b"retry-later");
-        }
+        assert!(matches!(
+            response,
+            Err(TransportError::ResponseCommitFailed)
+        ));
 
         let recorded = server.request.recv_timeout(Duration::from_secs(2));
         assert!(recorded.is_ok());
@@ -231,7 +213,7 @@ fn async_client_sends_complete_method_domain_exactly() {
 }
 
 #[test]
-fn async_redirect_is_not_followed_and_oversized_body_is_rejected() {
+fn async_redirect_is_not_followed_or_admitted_and_oversized_body_is_rejected() {
     run_async_test(async {
         let redirect = spawn(
             "302 Found",
@@ -253,11 +235,11 @@ fn async_redirect_is_not_followed_and_oversized_body_is_rejected() {
             &mut output,
         )
         .await;
-        assert!(response.is_ok());
-        if let Ok(response) = response {
-            assert_eq!(response.status().get(), 302);
-            assert_eq!(response.body(), b"redirect");
-        }
+        assert!(matches!(
+            response,
+            Err(TransportError::ResponseCommitFailed)
+        ));
+        assert_eq!(output, [0_u8; 16]);
 
         let oversized = spawn("200 OK", &[], b"oversized", Duration::ZERO);
         let Ok(oversized) = oversized else { return };
@@ -282,7 +264,7 @@ fn async_redirect_is_not_followed_and_oversized_body_is_rejected() {
 }
 
 #[test]
-fn async_response_retains_admitted_rate_limit_headers_without_transport_decoding() {
+fn async_checked_response_exposes_content_type_without_transport_rate_limit_decoding() {
     run_async_test(async {
         let server = spawn(
             "200 OK",
@@ -316,14 +298,6 @@ fn async_response_retains_admitted_rate_limit_headers_without_transport_decoding
         };
         assert_eq!(content_type, "application/json; charset=utf-8");
         assert_eq!(response.rate_limit(), None);
-        assert_eq!(
-            response.rate_limit_remaining_header(),
-            Some(b"3599".as_slice())
-        );
-        assert_eq!(
-            response.content_type_header(),
-            Some(b"application/json; charset=utf-8".as_slice())
-        );
     });
 }
 
@@ -459,12 +433,8 @@ fn caller_cancellation_after_partial_body_never_exposes_response() {
         let mut output = [0xa5_u8; 32];
         let mut headers = [0xa5_u8; 8192];
         {
-            let mut response = ResponseBuffer::new(&mut output, 32, &mut headers);
-            let future = drive_async_authenticated(
-                &client,
-                authenticated(&client, TransportRequest::new(Method::Get, target)),
-                response.writer(),
-            );
+            let request = prepared(&client, TransportRequest::new(Method::Get, target));
+            let future = request.execute_async(&client, &mut output, &mut headers);
             let result = tokio::time::timeout(Duration::from_millis(100), future).await;
             assert!(result.is_err(), "unexpected early completion: {result:?}");
         }

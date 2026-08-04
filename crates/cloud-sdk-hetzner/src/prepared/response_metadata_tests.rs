@@ -1,6 +1,8 @@
-use cloud_sdk::authentication::{BlockingAuthenticatedTransport, ScopeRequirement};
+use cloud_sdk::authentication::ScopeRequirement;
 use cloud_sdk::operation::{PreparationStorage, PrepareOperation};
-use cloud_sdk::transport::{HeaderSensitivity, ResponseBuffer, ResponseHeaders, StatusCode};
+use cloud_sdk::transport::{
+    HeaderSensitivity, ResponseBuffer, ResponseHeaders, ResponseMetadata, StatusCode,
+};
 use cloud_sdk_testkit::{
     ExpectedRequest, FixtureBody, MockExchange, MockTransport, ResponseFixture,
 };
@@ -61,33 +63,6 @@ fn provider_error_metadata_exposes_the_protected_request_id() -> Result<(), &'st
     let prepared = operation
         .prepare(PreparationStorage::new(&mut target, &mut request_body))
         .map_err(|_| "preparation")?;
-    let request = prepared.transport_request();
-    let expected = ExpectedRequest::new(request.method(), request.target())
-        .with_body(request.body())
-        .with_headers(request.headers());
-    let body = FixtureBody::new(br#"{"error":{"code":"rate_limit","message":"wait"}}"#)
-        .map_err(|_| "fixture body")?;
-    let mut fixture_header_storage = [0_u8; 256];
-    let mut fixture_headers = ResponseHeaders::new(&mut fixture_header_storage);
-    fixture_headers
-        .try_push(
-            "x-request-id",
-            b"error-request-456",
-            HeaderSensitivity::Sensitive,
-        )
-        .map_err(|_| "fixture request ID")?;
-    let fixture = ResponseFixture::error(StatusCode::TOO_MANY_REQUESTS, body)
-        .map_err(|_| "error fixture")?
-        .with_content_type("application/json")
-        .with_headers(fixture_headers);
-    let exchange = MockExchange::new(expected, fixture);
-    let ScopeRequirement::Required(endpoint) =
-        prepared.authentication_policy().endpoint_requirement()
-    else {
-        return Err("official endpoint policy");
-    };
-    let exchanges = [exchange];
-    let transport = MockTransport::new(&exchanges).with_endpoint(endpoint);
     let mut response_body = [0_u8; 128];
     let mut response_header_storage = [0_u8; 512];
     let mut response = ResponseBuffer::new(
@@ -95,12 +70,31 @@ fn provider_error_metadata_exposes_the_protected_request_id() -> Result<(), &'st
         prepared.raw_response_policy().max_body_bytes(),
         &mut response_header_storage,
     );
-    BlockingAuthenticatedTransport::send_authenticated(
-        &transport,
-        prepared.authenticated_request(),
-        response.writer(),
-    )
-    .map_err(|_| "transport")?;
+    let mut attempt = response.writer().begin_attempt().map_err(|_| "attempt")?;
+    attempt
+        .headers_mut()
+        .map_err(|_| "headers")?
+        .try_push(
+            "x-request-id",
+            b"error-request-456",
+            HeaderSensitivity::Sensitive,
+        )
+        .map_err(|_| "request ID")?;
+    let body = br#"{"error":{"code":"rate_limit","message":"wait"}}"#;
+    attempt
+        .body_mut()
+        .map_err(|_| "body")?
+        .get_mut(..body.len())
+        .ok_or("body capacity")?
+        .copy_from_slice(body);
+    attempt
+        .commit(
+            StatusCode::TOO_MANY_REQUESTS,
+            body.len(),
+            ResponseMetadata::EMPTY,
+        )
+        .map_err(|_| "commit")?;
+    drop(attempt);
     prepared
         .apply_response_metadata_policy(&mut response)
         .map_err(|_| "metadata policy")?;

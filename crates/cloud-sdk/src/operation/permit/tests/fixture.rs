@@ -30,6 +30,15 @@ pub fn prepared(
     cost: CostIntent,
 ) -> Option<PreparedRequest<'static>> {
     let endpoint = endpoint()?;
+    prepared_with_policy(target, impact, cost, EndpointPolicy::fixed(endpoint))
+}
+
+pub fn prepared_with_policy<'a>(
+    target: &'a str,
+    impact: OperationImpact,
+    cost: CostIntent,
+    endpoint_policy: EndpointPolicy<'a>,
+) -> Option<PreparedRequest<'a>> {
     let request = TransportRequest::new(Method::Post, RequestTarget::new(target).ok()?)
         .with_body(br#"{"name":"example"}"#);
     let metadata = OperationMetadata::new(
@@ -69,7 +78,7 @@ pub fn prepared(
         ProviderService::new(
             ProviderId::new("example").ok()?,
             ServiceId::new("compute").ok()?,
-            EndpointPolicy::fixed(endpoint),
+            endpoint_policy,
         ),
         metadata,
         response,

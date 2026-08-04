@@ -1,5 +1,9 @@
 # Migrating To v0.43
 
+> Superseded in v0.51: authenticated request construction and extraction are
+> internal. Use checked `PreparedRequest::execute_*` or permit-authorized
+> execution instead of the direct construction shown below.
+
 v0.43 completes the authenticated raw-wire migration for every active Hetzner
 operation. Prepared execution now carries all policy needed by the bounded raw
 HTTP engine and cannot fall back to a legacy transport path.
