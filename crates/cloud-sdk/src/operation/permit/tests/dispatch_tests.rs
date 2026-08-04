@@ -245,19 +245,35 @@ fn shared_attempt_rechecks_expiry_at_dispatch() {
 #[cfg(feature = "std")]
 #[test]
 fn panicking_clock_clears_blocking_response_storage_before_unwind() {
-    let Some((mut storage, plan)) = mutation_plan(200) else {
+    let fixture = mutation_plan(200);
+    assert!(
+        fixture.is_some(),
+        "mutation permit fixture must remain valid"
+    );
+    let Some((mut storage, plan)) = fixture else {
         return;
     };
-    let Ok(fingerprint) = build_canonical_plan(plan, &mut storage) else {
+    let fingerprint = build_canonical_plan(plan, &mut storage);
+    assert!(
+        fingerprint.is_ok(),
+        "canonical security fixture must build successfully"
+    );
+    let Ok(fingerprint) = fingerprint else {
         return;
     };
-    let Ok(mut permit) = MutationPermit::new(fingerprint.subject(), time(100)) else {
+    let permit = MutationPermit::new(fingerprint.subject(), time(100));
+    assert!(permit.is_ok(), "mutation permit fixture must construct");
+    let Ok(mut permit) = permit else {
         return;
     };
-    let Ok(attempt) = permit.begin(time(101)) else {
+    let attempt = permit.begin(time(101));
+    assert!(attempt.is_ok(), "mutation permit attempt must begin");
+    let Ok(attempt) = attempt else {
         return;
     };
-    let Some(endpoint) = endpoint() else { return };
+    let endpoint = endpoint();
+    assert!(endpoint.is_some(), "endpoint fixture must remain valid");
+    let Some(endpoint) = endpoint else { return };
     let transport = ClassifiedTransport::new(endpoint, None);
     let mut body = [0xa5_u8; 64];
     let mut headers = [0xa5_u8; 128];
@@ -275,19 +291,35 @@ fn panicking_clock_clears_blocking_response_storage_before_unwind() {
 #[cfg(feature = "std")]
 #[test]
 fn panicking_clock_clears_send_async_response_storage_before_unwind() {
-    let Some((mut storage, plan)) = mutation_plan(200) else {
+    let fixture = mutation_plan(200);
+    assert!(
+        fixture.is_some(),
+        "mutation permit fixture must remain valid"
+    );
+    let Some((mut storage, plan)) = fixture else {
         return;
     };
-    let Ok(fingerprint) = build_canonical_plan(plan, &mut storage) else {
+    let fingerprint = build_canonical_plan(plan, &mut storage);
+    assert!(
+        fingerprint.is_ok(),
+        "canonical security fixture must build successfully"
+    );
+    let Ok(fingerprint) = fingerprint else {
         return;
     };
-    let Ok(mut permit) = MutationPermit::new(fingerprint.subject(), time(100)) else {
+    let permit = MutationPermit::new(fingerprint.subject(), time(100));
+    assert!(permit.is_ok(), "mutation permit fixture must construct");
+    let Ok(mut permit) = permit else {
         return;
     };
-    let Ok(attempt) = permit.begin(time(101)) else {
+    let attempt = permit.begin(time(101));
+    assert!(attempt.is_ok(), "mutation permit attempt must begin");
+    let Ok(attempt) = attempt else {
         return;
     };
-    let Some(endpoint) = endpoint() else { return };
+    let endpoint = endpoint();
+    assert!(endpoint.is_some(), "endpoint fixture must remain valid");
+    let Some(endpoint) = endpoint else { return };
     let transport = ClassifiedTransport::new(endpoint, None);
     let mut body = [0xa5_u8; 64];
     let mut headers = [0xa5_u8; 128];
@@ -308,19 +340,35 @@ fn panicking_clock_clears_send_async_response_storage_before_unwind() {
 #[cfg(feature = "std")]
 #[test]
 fn panicking_clock_clears_local_async_response_storage_before_unwind() {
-    let Some((mut storage, plan)) = mutation_plan(200) else {
+    let fixture = mutation_plan(200);
+    assert!(
+        fixture.is_some(),
+        "mutation permit fixture must remain valid"
+    );
+    let Some((mut storage, plan)) = fixture else {
         return;
     };
-    let Ok(fingerprint) = build_canonical_plan(plan, &mut storage) else {
+    let fingerprint = build_canonical_plan(plan, &mut storage);
+    assert!(
+        fingerprint.is_ok(),
+        "canonical security fixture must build successfully"
+    );
+    let Ok(fingerprint) = fingerprint else {
         return;
     };
-    let Ok(mut permit) = MutationPermit::new(fingerprint.subject(), time(100)) else {
+    let permit = MutationPermit::new(fingerprint.subject(), time(100));
+    assert!(permit.is_ok(), "mutation permit fixture must construct");
+    let Ok(mut permit) = permit else {
         return;
     };
-    let Ok(attempt) = permit.begin(time(101)) else {
+    let attempt = permit.begin(time(101));
+    assert!(attempt.is_ok(), "mutation permit attempt must begin");
+    let Ok(attempt) = attempt else {
         return;
     };
-    let Some(endpoint) = endpoint() else { return };
+    let endpoint = endpoint();
+    assert!(endpoint.is_some(), "endpoint fixture must remain valid");
+    let Some(endpoint) = endpoint else { return };
     let transport = ClassifiedTransport::new(endpoint, None);
     let mut body = [0xa5_u8; 64];
     let mut headers = [0xa5_u8; 128];
