@@ -80,7 +80,7 @@ impl PrepareOperation for ExampleOperation {
         &self,
         storage: PreparationStorage<'storage>,
     ) -> Result<PreparedRequest<'storage>, Self::Error> {
-        let (target_storage, body_storage) = storage.into_parts();
+        let (target_storage, _body_storage) = storage.into_parts();
         let target = target_storage.get_mut(..8).ok_or(FixtureError::Invalid)?;
         target.copy_from_slice(b"/servers");
         let target = core::str::from_utf8(target).map_err(|_| FixtureError::Invalid)?;
@@ -88,7 +88,6 @@ impl PrepareOperation for ExampleOperation {
             Method::Get,
             RequestTarget::new(target).map_err(|_| FixtureError::Invalid)?,
         );
-        body_storage.fill(0);
         let endpoint = endpoint().ok_or(FixtureError::Invalid)?;
         let metadata = OperationMetadata::new(
             self.impact,
