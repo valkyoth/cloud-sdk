@@ -123,6 +123,11 @@ fn rollback_expiry_mismatch_scope_and_drop_fail_closed() {
         permit.begin(time(104)),
         Err(ExecutionPermitError::ClockRollback)
     ));
+    assert_eq!(permit.state(), PermitState::Spent);
+    assert!(matches!(
+        permit.begin(time(106)),
+        Err(ExecutionPermitError::Spent)
+    ));
 
     let Some((mut other_storage, other_plan)) =
         mutation_plan("/other", ReplayPolicy::ReconcileThenRetry, 3, 110)
@@ -130,6 +135,9 @@ fn rollback_expiry_mismatch_scope_and_drop_fail_closed() {
         return;
     };
     let Ok(other) = build_canonical_plan(other_plan, &mut other_storage) else {
+        return;
+    };
+    let Ok(mut permit) = MutationPermit::new(subject, time(105)) else {
         return;
     };
     assert!(matches!(
@@ -145,6 +153,11 @@ fn rollback_expiry_mismatch_scope_and_drop_fail_closed() {
     assert!(matches!(
         permit.begin(time(111)),
         Err(ExecutionPermitError::Expired)
+    ));
+    assert_eq!(permit.state(), PermitState::Spent);
+    assert!(matches!(
+        permit.begin(time(109)),
+        Err(ExecutionPermitError::Spent)
     ));
 }
 
@@ -408,4 +421,68 @@ fn shared_recovery_tokens_are_generation_bound() {
         Err(ExecutionPermitError::StaleGeneration)
     );
     assert!(permit.recover_not_sent(second_token, time(104)).is_ok());
+}
+
+#[test]
+fn expiry_permanently_spends_recoverable_and_reconcilable_permits() {
+    let Some((mut direct_storage, direct_plan)) =
+        mutation_plan("/direct", ReplayPolicy::RecoverNotSent, 2, 110)
+    else {
+        return;
+    };
+    let Ok(direct_fingerprint) = build_canonical_plan(direct_plan, &mut direct_storage) else {
+        return;
+    };
+    let Ok(mut direct) = MutationPermit::new(direct_fingerprint.subject(), time(100)) else {
+        return;
+    };
+    let Ok(attempt) = direct.begin(time(101)) else {
+        return;
+    };
+    let PermitDisposition::Recoverable(recovery) = attempt.complete(DeliveryPhase::NotSent) else {
+        return;
+    };
+    assert_eq!(
+        direct.recover_not_sent(recovery, time(110)),
+        Err(ExecutionPermitError::Expired)
+    );
+    assert_eq!(direct.state(), PermitState::Spent);
+    assert!(matches!(
+        direct.begin(time(109)),
+        Err(ExecutionPermitError::Spent)
+    ));
+
+    let Some((mut shared_storage, shared_plan)) =
+        mutation_plan("/shared", ReplayPolicy::ReconcileThenRetry, 2, 110)
+    else {
+        return;
+    };
+    let Ok(shared_fingerprint) = build_canonical_plan(shared_plan, &mut shared_storage) else {
+        return;
+    };
+    let subject = shared_fingerprint.subject();
+    let mut state = SharedPermitState::new();
+    let Ok(shared) = SharedMutationPermit::new(&mut state, subject, time(100)) else {
+        return;
+    };
+    let Ok(attempt) = shared.begin(time(101)) else {
+        return;
+    };
+    let PermitDisposition::PendingReconciliation(reconciliation) =
+        attempt.complete(DeliveryPhase::PossiblySent)
+    else {
+        return;
+    };
+    let Ok(identity) = PermitIdempotencyKey::new(IDENTITY) else {
+        return;
+    };
+    assert_eq!(
+        shared.reconcile_not_applied(reconciliation, subject, identity, time(110)),
+        Err(ExecutionPermitError::Expired)
+    );
+    assert_eq!(shared.state(), PermitState::Spent);
+    assert!(matches!(
+        shared.begin(time(109)),
+        Err(ExecutionPermitError::Spent)
+    ));
 }

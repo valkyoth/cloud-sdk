@@ -119,8 +119,17 @@ impl<'request, 'fingerprint> DirectState<'request, 'fingerprint> {
     }
 
     fn observe(&mut self, now: PermitTimestamp) -> Result<(), ExecutionPermitError> {
-        let offset = self.subject.validity().offset(now)?;
+        let offset = match self.subject.validity().offset(now) {
+            Ok(offset) => offset,
+            Err(error) => {
+                self.state = PermitState::Spent;
+                self.remaining = 0;
+                return Err(error);
+            }
+        };
         if offset < self.last_offset {
+            self.state = PermitState::Spent;
+            self.remaining = 0;
             return Err(ExecutionPermitError::ClockRollback);
         }
         self.last_offset = offset;

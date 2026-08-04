@@ -1,4 +1,5 @@
 mod fixture;
+mod response_diagnostics;
 
 use core::cell::Cell;
 use core::future::Future;

@@ -326,6 +326,13 @@ impl<'buffer> ResponseBuffer<'buffer> {
         self.writer.request_id()
     }
 
+    pub(crate) fn has_request_id(&self) -> Result<bool, ResponseWriterError> {
+        if self.request_id().is_some() {
+            return Ok(true);
+        }
+        self.with_response(|response| response.headers().get("x-request-id").is_some())
+    }
+
     pub(crate) fn retain_request_id<'destination>(
         &mut self,
         destination: &'destination mut [u8],

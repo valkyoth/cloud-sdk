@@ -92,10 +92,13 @@ impl<'request, 'buffer> ClientResponse<'request, 'buffer> {
 
     pub(crate) fn diagnostic_response(&self) -> Result<DiagnosticResponse, ResponseWriterError> {
         let status = self.status()?;
-        let request_id = DiagnosticRequestId::classify(
-            self.prepared.metadata().request_id_policy(),
-            self.response.request_id().is_some(),
-        );
+        let policy = self.prepared.metadata().request_id_policy();
+        let present = match policy {
+            crate::operation::RequestIdPolicy::Discard => false,
+            crate::operation::RequestIdPolicy::Protected
+            | crate::operation::RequestIdPolicy::Retain => self.response.has_request_id()?,
+        };
+        let request_id = DiagnosticRequestId::classify(policy, present);
         Ok(DiagnosticResponse::new(status, request_id))
     }
 

@@ -41,6 +41,7 @@ impl ServiceMarker for ExampleService {
 pub(super) struct ExampleOperation {
     impact: OperationImpact,
     reject_decode: bool,
+    request_id_policy: RequestIdPolicy,
 }
 
 impl ExampleOperation {
@@ -48,6 +49,7 @@ impl ExampleOperation {
         Self {
             impact: OperationImpact::ReadOnly,
             reject_decode: false,
+            request_id_policy: RequestIdPolicy::Discard,
         }
     }
 
@@ -55,6 +57,7 @@ impl ExampleOperation {
         Self {
             impact: OperationImpact::Mutation,
             reject_decode: false,
+            request_id_policy: RequestIdPolicy::Discard,
         }
     }
 
@@ -62,7 +65,13 @@ impl ExampleOperation {
         Self {
             impact: OperationImpact::ReadOnly,
             reject_decode: true,
+            request_id_policy: RequestIdPolicy::Discard,
         }
+    }
+
+    pub(super) const fn with_request_id_policy(mut self, policy: RequestIdPolicy) -> Self {
+        self.request_id_policy = policy;
+        self
     }
 }
 
@@ -109,7 +118,7 @@ impl PrepareOperation for ExampleOperation {
             },
             RetryEligibility::ExplicitPolicy,
             CostIntent::NoKnownCost,
-            RequestIdPolicy::Discard,
+            self.request_id_policy,
         )
         .map_err(|_| FixtureError::Invalid)?;
         PreparedRequest::new(
@@ -176,12 +185,13 @@ fn response_policy() -> Result<ResponsePolicy, FixtureError> {
 
 fn raw_policy() -> Result<RawResponsePolicy<'static>, FixtureError> {
     let content_type = HeaderName::new("content-type").map_err(|_| FixtureError::Invalid)?;
+    let request_id = HeaderName::new("x-request-id").map_err(|_| FixtureError::Invalid)?;
     RawResponsePolicy::new(
         64,
         64,
         ResponseMediaPolicy::Required(&JSON_MEDIA),
         ResponseMediaPolicy::Required(&JSON_MEDIA),
-        &[content_type],
+        &[content_type, request_id],
         4,
     )
     .map_err(|_| FixtureError::Invalid)

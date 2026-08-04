@@ -214,13 +214,46 @@ impl SharedPermitState {
         subject: PlanSubject<'_, '_>,
         now: PermitTimestamp,
     ) -> Result<(), ExecutionPermitError> {
-        let offset = subject.validity().offset(now)?;
-        self.last_offset
+        let offset = match subject.validity().offset(now) {
+            Ok(offset) => offset,
+            Err(error) => {
+                self.spend();
+                return Err(error);
+            }
+        };
+        let result = self
+            .last_offset
             .fetch_update(Ordering::AcqRel, Ordering::Acquire, |previous| {
                 (offset >= previous).then_some(offset)
             })
             .map(|_| ())
-            .map_err(|_| ExecutionPermitError::ClockRollback)
+            .map_err(|_| ExecutionPermitError::ClockRollback);
+        if result.is_err() {
+            self.spend();
+        }
+        result
+    }
+
+    fn spend(&self) {
+        loop {
+            let current = self.packed.load(Ordering::Acquire);
+            let (_, generation, _) = unpack(current);
+            if current == pack(SPENT, generation, 0) {
+                return;
+            }
+            if self
+                .packed
+                .compare_exchange(
+                    current,
+                    pack(SPENT, generation, 0),
+                    Ordering::AcqRel,
+                    Ordering::Acquire,
+                )
+                .is_ok()
+            {
+                return;
+            }
+        }
     }
 }
 
