@@ -87,8 +87,9 @@ full-fidelity Hetzner vertical slices before the neutral API freeze.
 The `v0.55.0` public checkpoint candidate accumulates plan-confirm execution
 permits, the provider-generic client kernel, bounded pager and action drivers,
 payload-free diagnostics, and dynamic testkit scenarios from tagged v0.51
-through v0.55. Publication requires a cumulative pentest from the published
-`v0.50.0` baseline through the exact candidate commit.
+through v0.55. Its cumulative pentest from the published `v0.50.0` baseline
+and final retest passed; publication awaits the final clean release gate,
+GitHub CI, and CodeQL.
 
 ## Trust Dashboard
 

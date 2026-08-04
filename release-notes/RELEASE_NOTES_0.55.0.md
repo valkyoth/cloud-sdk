@@ -1,11 +1,11 @@
 # cloud-sdk 0.55.0 Release Notes
 
-Status: cumulative public checkpoint candidate; pentest required.
+Status: release candidate; cumulative pentest and final retest passed.
 
-Release date: pending
+Release date: 2026-08-04
 
 Security-Review: PASS
-Pentest: REQUIRED
+Pentest: PASS
 Publication: PENDING
 
 ## Overview
@@ -58,9 +58,13 @@ diagnostics, and realistic allocation-free test scenarios.
 - [`docs/PUBLIC_API_REVIEW_0.55.0.md`](../docs/PUBLIC_API_REVIEW_0.55.0.md)
 - [`docs/DEPENDENCY_REVIEW_0.55.0.md`](../docs/DEPENDENCY_REVIEW_0.55.0.md)
 
+## Pentest
+
+Cumulative pentest from signed `v0.50.0` through the final v0.55
+implementation commit and the final retest passed. The permanent report is at
+[`security/pentest/v0.55.0.md`](../security/pentest/v0.55.0.md).
+
 ## Release Gate
 
-Run a cumulative pentest from signed tag `v0.50.0` through the exact final
-v0.55 candidate commit. After the report and any required retest are committed,
-run `scripts/release_0_55_gate.sh`. Tag and publish only after that clean local
-gate plus GitHub CI and CodeQL are green.
+Run `scripts/release_0_55_gate.sh`. Tag and publish only after that clean local
+gate plus GitHub CI and CodeQL are green on the final release-evidence commit.

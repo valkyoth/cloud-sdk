@@ -1,10 +1,10 @@
 # Crate Version Matrix
 
 Status: `v0.50.0` is tagged and published. It is the baseline for the first
-five-minor development train, whose next cumulative pentest and crates.io
-checkpoint is `v0.55.0`. Source milestones `v0.51.0` through `v0.54.0` are
-tagged; `v0.55.0` is the cumulative public checkpoint candidate. Publication
-requires its cumulative pentest and final release gate.
+five-minor development train. Source milestones `v0.51.0` through `v0.54.0`
+are tagged; `v0.55.0` is the cumulative public checkpoint candidate. Its
+cumulative pentest and final retest passed. Publication awaits the final clean
+release gate, GitHub CI, and CodeQL.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
