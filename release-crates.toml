@@ -1,6 +1,12 @@
 [release]
 version = "0.50.0"
+milestone = "0.50.0"
+baseline = "0.50.0"
+cumulative_milestones = []
 policy = "independent"
+stage = "public"
+exceptional = false
+exception_reason = ""
 
 [crates."cloud-sdk"]
 previous_version = "0.49.0"

@@ -3,15 +3,27 @@
 ## Workspace Releases
 
 Repository tags follow the `cloud-sdk` facade version. The facade always moves
-to the tag version. Every other published crate is independently versioned:
+to the tag version and keeps ordinary `vX.Y.Z` tag names. Beginning after the
+published v0.50.0 baseline, pre-1.0 tags form five-minor release trains:
+
+- intermediate versions receive signed tags but are not published;
+- versions divisible by five receive a cumulative pentest and crates.io
+  publication;
+- v1.0.0 receives an independent full-project pentest and publication;
+- material security changes may create an exceptional earlier checkpoint.
+
+Every other published crate is independently versioned:
 
 - real public code changes receive an appropriate pre-1.0 minor increment;
 - dependency-only changes receive a patch increment;
 - unchanged crates are not published;
 - one provider maps to one provider crate.
 
-`release-crates.toml` is the machine-checked publication plan and must describe
-the reason and change class for every crate before a release tag is created.
+Supporting crates retain their latest published versions during intermediate
+tags. At a public checkpoint, cumulative package-tree comparison against the
+previous public tag determines which crates must move: dependencies publish
+first and the facade publishes last. `release-crates.toml` records the stage,
+baseline, complete milestone list, reason, and change class for every crate.
 
 ## Pre-1.0 Compatibility
 

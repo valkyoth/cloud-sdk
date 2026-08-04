@@ -11,9 +11,13 @@ Dependencies are denied by default until reviewed. New dependencies require:
 - tests for the behavior being admitted;
 - documentation under `docs/dependency-admission-*.md`.
 
-Release gates require `cargo deny check`, `cargo audit`, and an SBOM before
-tagging. Standalone test/tooling workspaces compiled by release CI require
-their own locked policy check, advisory audit, and SBOM.
+Every tag requires `cargo deny check`, `cargo audit`, and current SBOM evidence.
+Intermediate pre-1.0 stages prohibit crates.io publication. At every
+fifth-minor or exceptional public checkpoint, the publisher compares package
+trees cumulatively with the previous public tag, publishes changed
+dependencies first, and publishes the facade last. Standalone test/tooling
+workspaces compiled by release CI require their own locked policy check,
+advisory audit, and SBOM.
 `scripts/check_sbom_freshness.sh` regenerates both inventories and compares
 canonical content with the committed evidence. It ignores only the generated
 creation timestamp, random document namespace, and array ordering.

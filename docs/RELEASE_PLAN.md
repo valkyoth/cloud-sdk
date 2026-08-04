@@ -2,9 +2,9 @@
 
 Status: planning document.
 
-This plan is intentionally granular. `cloud-sdk` manages infrastructure APIs, so
-each milestone must be small enough to review, test, pentest, and stop cleanly
-before tagging.
+This plan is intentionally granular. `cloud-sdk` manages infrastructure APIs,
+so each milestone must be small enough to review, test, and stop cleanly before
+tagging. Independent pentests cover cumulative five-minor release trains.
 
 The list below is not a maximum. Add patch releases or split a milestone before
 implementation if the work no longer fits in one safe review pass.
@@ -29,8 +29,7 @@ Every release must have:
 - release notes;
 - dependency-policy evidence;
 - source-lock evidence for API behavior;
-- completed pentest evidence for the exact implementation commit being
-  reviewed;
+- the security review and pentest evidence required by its release class;
 - no hidden dependency on one developer machine.
 
 Every release should prefer:
@@ -46,12 +45,39 @@ Every release should prefer:
 - no default networking, async runtime, TLS stack, filesystem, clock, token
   storage, or secret-manager dependency.
 
-## Pentest Before Tags
+## Assurance And Release Classes
 
-Every version must pass a security review and pentest before it is tagged. This
-applies to `v0.N.P` patch tags as well as milestone tags.
+Tags retain the ordinary `vX.Y.Z` names. Through v0.50.0 every version received
+an individual pentest and crates.io publication. Beginning after that public
+baseline, pre-1.0 releases use two classes:
 
-A version is not tag-ready until:
+- a scheduled cumulative checkpoint is `v0.N.0` when `N` is divisible by five;
+- every other `v0.N.0` and `v0.N.P` is an intermediate signed tag unless an
+  exceptional security or publication trigger applies.
+
+Every intermediate version still requires the complete repository and
+version-specific gates, current release notes and SBOMs, an explicit
+`Security-Review: PASS`, and green GitHub CI and CodeQL on the exact commit.
+Its release notes name the next checkpoint for both pentest and crates.io
+publication. It has no versioned pentest report and selects no crate for
+publication.
+
+Each scheduled checkpoint pentests every change after the previous public tag
+through the exact candidate. The range includes every intervening minor and
+patch tag. Its report records `Assessment: CUMULATIVE`, `Baseline: vX.Y.Z`, and
+`Range-End: vX.Y.Z`. An exceptional assessment may remain a targeted,
+unpublished tag without narrowing the scheduled range. An exceptional crates.io
+checkpoint requires a cumulative or full assessment and becomes the new public
+baseline so no unassessed package change is published.
+
+An exceptional pentest is required for material changes to credentials,
+authentication, endpoint trust, TLS/FIPS, secret handling, hostile response
+parsing, destructive or cost-incurring request policy, unsafe/native code,
+release publication controls, security fixes, incidents, or production claims.
+The maintainer may request an additional assessment at any milestone. v1.0.0
+always requires an independent full-project pentest and public release gate.
+
+A version is not tag-ready until its applicable assurance class passes:
 
 - `scripts/checks.sh` passes;
 - the version-specific release gate, including required live Hetzner and IANA
@@ -59,21 +85,22 @@ A version is not tag-ready until:
 - `cargo deny check` passes;
 - `cargo audit` passes;
 - `scripts/generate-sbom.sh` succeeds;
-- `scripts/check_sbom_freshness.sh` proves both committed SBOMs match their
+- `scripts/check_sbom_freshness.sh` proves all committed SBOMs match their
   current dependency graphs;
 - release notes exist at `release-notes/RELEASE_NOTES_X.Y.Z.md`;
-- a pentest report exists at `security/pentest/vX.Y.Z.md`;
-- the pentest report names the exact full 40-character `Reviewed-Commit:`;
-- the pentest report has `Status: PASS`;
-- the pentest report has non-blank `Tester:` and `Scope:` fields;
-- the pentest report has a `Date: YYYY-MM-DD` field;
+- a pentest report exists at `security/pentest/vX.Y.Z.md` when the release is a
+  scheduled, exceptional, or production assessment;
+- every applicable pentest report names the exact full 40-character
+  `Reviewed-Commit:`, has `Status: PASS`, has non-blank `Tester:` and `Scope:`
+  fields, and has a `Date: YYYY-MM-DD` field;
 - `sbom/cloud-sdk.spdx.json` exists and is non-empty;
 - `sbom/reqwest-feature-unification.spdx.json` exists and is non-empty when
   the standalone downstream fixture is present;
 - `sbom/fuzz.spdx.json` exists and is non-empty for the excluded fuzz tooling
   graph;
-- `scripts/validate-release-readiness.sh vX.Y.Z` proves that the reviewed
-  implementation commit is an ancestor of the final release commit;
+- for assessed releases, `scripts/validate-release-readiness.sh vX.Y.Z` proves
+  that the reviewed implementation commit is an ancestor of the final release
+  commit;
 - shared readiness rejects modified tracked files and all untracked files;
 - the version-specific gate snapshots the clean validated `HEAD`, requires it
   to remain unchanged, and reruns readiness after every check;
@@ -85,8 +112,8 @@ retest, CodeQL, or another release gate causes release-relevant changes, rerun
 the review and update `Reviewed-Commit:` to the latest reviewed commit before
 tagging.
 
-Normal CI validates release metadata without requiring the still-pending
-current report. The versioned release gate requires the report before tagging.
+Normal CI validates release metadata without requiring a report for an
+intermediate version. The versioned release gate enforces the selected stage.
 The reviewed implementation commit must be an ancestor of the final release
 commit. The permanent report and final release metadata may be committed
 together after a green pentest. GitHub validates that complete release commit.
@@ -94,17 +121,18 @@ The normal publisher still requires a verifiable signed, annotated `vX.Y.Z`
 tag to point at `HEAD` and has no dirty-tree, skipped-check, untagged, or
 no-verification bypass flags.
 
-When a version's implementation criteria are done, stop and say:
+When an intermediate version's implementation criteria are done, stop and say:
 
 ```text
-vX.Y.Z implementation stop reached. Run pentest for this exact commit.
+vX.Y.Z implementation stop reached. Complete the security review and full release gate for this exact commit; defer cumulative pentest and crates.io publication to v0.N.0.
 ```
 
-No tag is created at that point.
+For a cumulative, exceptional, or production candidate, stop and request the
+applicable exact-commit pentest before tagging.
 
 ### Pentest Handoff Flow
 
-Use this loop for every version:
+Use this loop for scheduled, exceptional, and production assessments:
 
 1. Complete the implementation, tests, documentation, release metadata, and
    local gates, then commit the exact state handed to pentest.
@@ -122,6 +150,12 @@ Use this loop for every version:
    change and latest reviewed state, commit, and wait for GitHub again.
 8. When GitHub is green, run the versioned release gate against the unchanged
    commit. Tag and push only when explicitly requested.
+
+For an intermediate tagged milestone, complete implementation and release
+metadata, run all local and version-specific gates, record the security review
+and exact checkpoint deferral, commit, confirm GitHub CI and CodeQL, then create
+the normal signed `vX.Y.Z` tag only when explicitly requested. Do not create a
+pentest report or invoke crates.io publication.
 
 Root `PENTEST.md` is temporary scratch input. It must not be committed. The
 permanent report is part of the release tag.
@@ -1793,7 +1827,7 @@ Deliverables: scope/fingerprint/expiry-bound permits are non-`Copy`, and direct 
 
 Verification: plan-confirm version/domain/field separation, weak digest rejection, canonical-input cleanup, compile-fail direct copy/clone misuse, shared-handle clone/drop interleavings, shared-budget exhaustion, stale-generation `NotSent` recovery rejection, concurrent double-spend, every delivery-state transition, recover/reconcile/repeat rules, exact idempotency mismatch, wall-clock rollback, stale/mismatch/replay/budget/price/no-op/redaction tests, Loom where supported, and `scripts/release_0_51_gate.sh`.
 
-Stop gate: `v0.51.0 implementation stop reached. Run pentest for this exact commit.`
+Stop gate: `v0.51.0 implementation stop reached. Complete the security review and full release gate for this exact commit; defer cumulative pentest and crates.io publication to v0.55.0.`
 
 ### v0.52.0 - Provider-Generic Client Kernel
 
@@ -1803,7 +1837,7 @@ Deliverables: one policy path for blocking, Send-async, and local-async preparat
 
 Verification: fake-provider conformance, endpoint/auth mismatch, lease exhaustion/reuse, alias compile-fail cases, cancellation, bounded concurrency, cross-mode cleanup, and `scripts/release_0_52_gate.sh`.
 
-Stop gate: `v0.52.0 implementation stop reached. Run pentest for this exact commit.`
+Stop gate: `v0.52.0 implementation stop reached. Complete the security review and full release gate for this exact commit; defer cumulative pentest and crates.io publication to v0.55.0.`
 
 ### v0.53.0 - Pager And Action Workflow Drivers
 
@@ -1813,7 +1847,7 @@ Deliverables: pure next-request/delay drivers, unconditional observation limits,
 
 Verification: busy-loop, progress reset/regression, terminal bounds, cancellation, wall-clock rollback, monotonic timeout/budget exhaustion, page/action scenarios, and `scripts/release_0_53_gate.sh`.
 
-Stop gate: `v0.53.0 implementation stop reached. Run pentest for this exact commit.`
+Stop gate: `v0.53.0 implementation stop reached. Complete the security review and full release gate for this exact commit; defer cumulative pentest and crates.io publication to v0.55.0.`
 
 ### v0.54.0 - Structured Payload-Free Diagnostics
 
@@ -1823,7 +1857,7 @@ Deliverables: bounded provider/service/operation/status/request-ID/retry/error c
 
 Verification: redaction corpus, maximum lengths, observer disabled/enabled behavior, reentrancy/error isolation, downstream error types, snapshots, and `scripts/release_0_54_gate.sh`.
 
-Stop gate: `v0.54.0 implementation stop reached. Run pentest for this exact commit.`
+Stop gate: `v0.54.0 implementation stop reached. Complete the security review and full release gate for this exact commit; defer cumulative pentest and crates.io publication to v0.55.0.`
 
 ### v0.55.0 - Dynamic Testkit
 
@@ -1833,7 +1867,7 @@ Deliverables: bounded recording, dynamic responders, fault injection including e
 
 Verification: exhaustion, mismatch non-consumption, recording caps, injected failures, no_std checks, and `scripts/release_0_55_gate.sh`.
 
-Stop gate: `v0.55.0 implementation stop reached. Run pentest for this exact commit.`
+Stop gate: `v0.55.0 implementation stop reached. Run the cumulative pentest through this exact commit before tagging and crates.io publication.`
 
 ### v0.56.0 - Provider-Generic Drift Engine
 
@@ -1843,7 +1877,7 @@ Deliverables: manifests/plugins for sources, auth, endpoints, operations, schema
 
 Verification: malicious documents, redirect denial, digest rotation, reproducibility, plugin fixtures, and `scripts/release_0_56_gate.sh`.
 
-Stop gate: `v0.56.0 implementation stop reached. Run pentest for this exact commit.`
+Stop gate: `v0.56.0 implementation stop reached. Complete the security review and full release gate for this exact commit; defer cumulative pentest and crates.io publication to v0.60.0.`
 
 ## Tier C - OVHcloud API v2 Probe And Neutral Freeze
 
@@ -1855,7 +1889,7 @@ Deliverables: official documents, console schema fingerprints, 5-10 read-only ca
 
 Verification: drift fixtures, operation inventory, source reproducibility, and `scripts/release_0_57_gate.sh`.
 
-Stop gate: `v0.57.0 implementation stop reached. Run pentest for this exact commit.`
+Stop gate: `v0.57.0 implementation stop reached. Complete the security review and full release gate for this exact commit; defer cumulative pentest and crates.io publication to v0.60.0.`
 
 ### v0.58.0 - OVHcloud Authority And OAuth Conformance
 
@@ -1865,7 +1899,7 @@ Deliverables: source-locked authority/alias policy, no credentialed redirects, r
 
 Verification: pair mismatch, alias, redirect, expiry, rotation, redaction, and `scripts/release_0_58_gate.sh`.
 
-Stop gate: `v0.58.0 implementation stop reached. Run pentest for this exact commit.`
+Stop gate: `v0.58.0 implementation stop reached. Complete the security review and full release gate for this exact commit; defer cumulative pentest and crates.io publication to v0.60.0.`
 
 ### v0.59.0 - OVHcloud Cursor And Header Conformance
 
@@ -1875,7 +1909,7 @@ Deliverables: bounded/redacted cursor headers, terminal-page semantics, validati
 
 Verification: cursor cycles/controls/oversize, missing-next, duplicate headers, schema drift, and `scripts/release_0_59_gate.sh`.
 
-Stop gate: `v0.59.0 implementation stop reached. Run pentest for this exact commit.`
+Stop gate: `v0.59.0 implementation stop reached. Complete the security review and full release gate for this exact commit; defer cumulative pentest and crates.io publication to v0.60.0.`
 
 ### v0.60.0 - OVHcloud Task And Event Conformance
 
@@ -1885,7 +1919,7 @@ Deliverables: actual `/task` or `/event` operation coverage where available, bou
 
 Verification: state/progress/timestamp/link/message adversarial fixtures and `scripts/release_0_60_gate.sh`.
 
-Stop gate: `v0.60.0 implementation stop reached. Run pentest for this exact commit.`
+Stop gate: `v0.60.0 implementation stop reached. Run the cumulative pentest through this exact commit before tagging and crates.io publication.`
 
 ### v0.61.0 - OVHcloud End-To-End Probe
 
@@ -1895,7 +1929,7 @@ Deliverables: 5-10 read-only operations across blocking/async/local-async/testki
 
 Verification: conformance matrix, no-publish/dependency gates, optional live smoke, and `scripts/release_0_61_gate.sh`.
 
-Stop gate: `v0.61.0 implementation stop reached. Run pentest for this exact commit.`
+Stop gate: `v0.61.0 implementation stop reached. Complete the security review and full release gate for this exact commit; defer cumulative pentest and crates.io publication to v0.65.0.`
 
 ### v0.62.0 - Neutral API Freeze
 
@@ -1905,7 +1939,7 @@ Deliverables: OVHcloud probe-driven changes complete and the `v0.42.0` Robot Bas
 
 Verification: public API diff; OVHcloud and Robot conformance fixtures; vertical-slice source-field, association, guard, secret, large-response, typed-error, no-content, and cross-executor matrices; downstream fixtures; no_std/platform matrix; and `scripts/release_0_62_gate.sh`.
 
-Stop gate: `v0.62.0 implementation stop reached. Run pentest for this exact commit.`
+Stop gate: `v0.62.0 implementation stop reached. Complete the security review and full release gate for this exact commit; defer cumulative pentest and crates.io publication to v0.65.0.`
 
 ## Tier D - Complete Hetzner Models And Clients
 
@@ -1917,7 +1951,7 @@ Deliverables: source-complete validated models, nullability, unknown-value polic
 
 Verification: schema gates, golden/adversarial fixtures, fuzzing, and `scripts/release_0_63_gate.sh`.
 
-Stop gate: `v0.63.0 implementation stop reached. Run pentest for this exact commit.`
+Stop gate: `v0.63.0 implementation stop reached. Complete the security review and full release gate for this exact commit; defer cumulative pentest and crates.io publication to v0.65.0.`
 
 ### v0.64.0 - Cloud Actions, Metrics, And Special Models
 
@@ -1927,7 +1961,7 @@ Deliverables: calendar-valid UTC RFC3339, exact decimals, bounded metrics, nulla
 
 Verification: boundary dates/decimals, metrics limits, action states, fuzzing, and `scripts/release_0_64_gate.sh`.
 
-Stop gate: `v0.64.0 implementation stop reached. Run pentest for this exact commit.`
+Stop gate: `v0.64.0 implementation stop reached. Complete the security review and full release gate for this exact commit; defer cumulative pentest and crates.io publication to v0.65.0.`
 
 ### v0.65.0 - Complete DNS Models
 
@@ -1937,7 +1971,7 @@ Deliverables: exact request/response fields, bounded zonefiles, TSIG policy, unk
 
 Verification: schema/secret/zonefile/adversarial/live-read tests and `scripts/release_0_65_gate.sh`.
 
-Stop gate: `v0.65.0 implementation stop reached. Run pentest for this exact commit.`
+Stop gate: `v0.65.0 implementation stop reached. Run the cumulative pentest through this exact commit before tagging and crates.io publication.`
 
 ### v0.66.0 - Complete Security Models
 
@@ -1947,7 +1981,7 @@ Deliverables: all fields/actions, protected private/key material, redacted diagn
 
 Verification: schema, PEM/key, secret cleanup, unknown-state, fuzzing, and `scripts/release_0_66_gate.sh`.
 
-Stop gate: `v0.66.0 implementation stop reached. Run pentest for this exact commit.`
+Stop gate: `v0.66.0 implementation stop reached. Complete the security review and full release gate for this exact commit; defer cumulative pentest and crates.io publication to v0.70.0.`
 
 ### v0.67.0 - Complete Console Storage Box Models
 
@@ -1957,7 +1991,7 @@ Deliverables: all source fields, secret outputs, bounded large responses, nullab
 
 Verification: schema/secret/large-response/live-read tests and `scripts/release_0_67_gate.sh`.
 
-Stop gate: `v0.67.0 implementation stop reached. Run pentest for this exact commit.`
+Stop gate: `v0.67.0 implementation stop reached. Complete the security review and full release gate for this exact commit; defer cumulative pentest and crates.io publication to v0.70.0.`
 
 ### v0.68.0 - Complete Hetzner Typed Binding Gate
 
@@ -1967,7 +2001,7 @@ Deliverables: zero missing request/query/body/response/error/policy bindings and
 
 Verification: generated/source-derived matrix gate, compile-fail mismatches, and `scripts/release_0_68_gate.sh`.
 
-Stop gate: `v0.68.0 implementation stop reached. Run pentest for this exact commit.`
+Stop gate: `v0.68.0 implementation stop reached. Complete the security review and full release gate for this exact commit; defer cumulative pentest and crates.io publication to v0.70.0.`
 
 ### v0.69.0 - Hetzner Client Foundation
 
@@ -1977,7 +2011,7 @@ Deliverables: Cloud/DNS/Console endpoint and credential separation, explicit cus
 
 Verification: endpoint/auth confusion, cleanup/cancellation/rotation, examples, and `scripts/release_0_69_gate.sh`.
 
-Stop gate: `v0.69.0 implementation stop reached. Run pentest for this exact commit.`
+Stop gate: `v0.69.0 implementation stop reached. Complete the security review and full release gate for this exact commit; defer cumulative pentest and crates.io publication to v0.70.0.`
 
 ### v0.70.0 - Cloud Client Methods
 
@@ -1987,7 +2021,7 @@ Deliverables: complete read/mutation/action/metrics methods, permits, pagination
 
 Verification: operation-client coverage, scenarios, live read-only smoke, and `scripts/release_0_70_gate.sh`.
 
-Stop gate: `v0.70.0 implementation stop reached. Run pentest for this exact commit.`
+Stop gate: `v0.70.0 implementation stop reached. Run the cumulative pentest through this exact commit before tagging and crates.io publication.`
 
 ### v0.71.0 - DNS Client Methods
 
@@ -1997,7 +2031,7 @@ Deliverables: zone/RRSet CRUD, actions, zonefiles, TSIG, permits, pagination, an
 
 Verification: client coverage, secret/cancellation scenarios, live read-only smoke, and `scripts/release_0_71_gate.sh`.
 
-Stop gate: `v0.71.0 implementation stop reached. Run pentest for this exact commit.`
+Stop gate: `v0.71.0 implementation stop reached. Complete the security review and full release gate for this exact commit; defer cumulative pentest and crates.io publication to v0.75.0.`
 
 ### v0.72.0 - Security Client Methods
 
@@ -2007,7 +2041,7 @@ Deliverables: typed CRUD/actions, key/private-material lifecycle, rotation, perm
 
 Verification: client coverage, secret/error/cancellation scenarios, live read-only smoke, and `scripts/release_0_72_gate.sh`.
 
-Stop gate: `v0.72.0 implementation stop reached. Run pentest for this exact commit.`
+Stop gate: `v0.72.0 implementation stop reached. Complete the security review and full release gate for this exact commit; defer cumulative pentest and crates.io publication to v0.75.0.`
 
 ### v0.73.0 - Console Storage Box Client Methods
 
@@ -2017,7 +2051,7 @@ Deliverables: boxes/types/snapshots/folders/subaccounts/actions, permits, pagina
 
 Verification: client coverage, large/secret scenarios, live read-only smoke, and `scripts/release_0_73_gate.sh`.
 
-Stop gate: `v0.73.0 implementation stop reached. Run pentest for this exact commit.`
+Stop gate: `v0.73.0 implementation stop reached. Complete the security review and full release gate for this exact commit; defer cumulative pentest and crates.io publication to v0.75.0.`
 
 ## Tier E - Hetzner Robot
 
@@ -2029,7 +2063,7 @@ Deliverables: active/deprecated inventory, auth/lockout/forms/errors/limits/main
 
 Verification: source fixtures, drift fetch, inventory gate, and `scripts/release_0_74_gate.sh`.
 
-Stop gate: `v0.74.0 implementation stop reached. Run pentest for this exact commit.`
+Stop gate: `v0.74.0 implementation stop reached. Complete the security review and full release gate for this exact commit; defer cumulative pentest and crates.io publication to v0.75.0.`
 
 ### v0.75.0 - Robot Form Codec
 
@@ -2039,7 +2073,7 @@ Deliverables: repeated fields, percent rules, exact preflight, transactional sta
 
 Verification: every capacity, repeats, controls, fuzzing, and `scripts/release_0_75_gate.sh`.
 
-Stop gate: `v0.75.0 implementation stop reached. Run pentest for this exact commit.`
+Stop gate: `v0.75.0 implementation stop reached. Run the cumulative pentest through this exact commit before tagging and crates.io publication.`
 
 ### v0.76.0 - Robot Credentials And Lockout Policy
 
@@ -2049,7 +2083,7 @@ Deliverables: protected ingestion/rotation/cleanup, endpoint and Robot-service s
 
 Verification: auth cross-use, redaction, rotation, rejection-state transition, stale/rejected generation reuse, explicit reconfirmation, concurrent attempts sharing one generation, lockout gate, and `scripts/release_0_76_gate.sh`.
 
-Stop gate: `v0.76.0 implementation stop reached. Run pentest for this exact commit.`
+Stop gate: `v0.76.0 implementation stop reached. Complete the security review and full release gate for this exact commit; defer cumulative pentest and crates.io publication to v0.80.0.`
 
 ### v0.77.0 - Robot Error And Quota Protocol
 
@@ -2059,7 +2093,7 @@ Deliverables: bounded envelopes, payload-free diagnostics, provider quota decode
 
 Verification: malformed/unknown/oversized/duplicate/quota tests, auth-versus-quota/maintenance/transient separation, unknown-code fail-closed behavior, authentication retry denial, and `scripts/release_0_77_gate.sh`.
 
-Stop gate: `v0.77.0 implementation stop reached. Run pentest for this exact commit.`
+Stop gate: `v0.77.0 implementation stop reached. Complete the security review and full release gate for this exact commit; defer cumulative pentest and crates.io publication to v0.80.0.`
 
 ### v0.78.0 - Robot Servers
 
@@ -2069,7 +2103,7 @@ Deliverables: canonical server identity, capabilities, statuses, nullable subnet
 
 Verification: source coverage, field/conflict/boundary tests, and `scripts/release_0_78_gate.sh`.
 
-Stop gate: `v0.78.0 implementation stop reached. Run pentest for this exact commit.`
+Stop gate: `v0.78.0 implementation stop reached. Complete the security review and full release gate for this exact commit; defer cumulative pentest and crates.io publication to v0.80.0.`
 
 ### v0.79.0 - Robot Cancellations
 
@@ -2079,7 +2113,7 @@ Deliverables: dates, reasons, location reservation, conflicts, destructive permi
 
 Verification: date/conflict/permit/source tests and `scripts/release_0_79_gate.sh`.
 
-Stop gate: `v0.79.0 implementation stop reached. Run pentest for this exact commit.`
+Stop gate: `v0.79.0 implementation stop reached. Complete the security review and full release gate for this exact commit; defer cumulative pentest and crates.io publication to v0.80.0.`
 
 ### v0.80.0 - Robot IP Management
 
@@ -2089,7 +2123,7 @@ Deliverables: canonical addresses/MACs, traffic thresholds, lock/assignment stat
 
 Verification: address/form/conflict/source tests and `scripts/release_0_80_gate.sh`.
 
-Stop gate: `v0.80.0 implementation stop reached. Run pentest for this exact commit.`
+Stop gate: `v0.80.0 implementation stop reached. Run the cumulative pentest through this exact commit before tagging and crates.io publication.`
 
 ### v0.81.0 - Robot Subnet Management
 
@@ -2099,7 +2133,7 @@ Deliverables: canonical network/gateway/mask/broadcast semantics, assignment met
 
 Verification: host-bit/family/boundary/source tests and `scripts/release_0_81_gate.sh`.
 
-Stop gate: `v0.81.0 implementation stop reached. Run pentest for this exact commit.`
+Stop gate: `v0.81.0 implementation stop reached. Complete the security review and full release gate for this exact commit; defer cumulative pentest and crates.io publication to v0.85.0.`
 
 ### v0.82.0 - Robot Reset
 
@@ -2109,7 +2143,7 @@ Deliverables: source-locked reset types, typed intent, permits, action responses
 
 Verification: capability/permit/source tests and `scripts/release_0_82_gate.sh`.
 
-Stop gate: `v0.82.0 implementation stop reached. Run pentest for this exact commit.`
+Stop gate: `v0.82.0 implementation stop reached. Complete the security review and full release gate for this exact commit; defer cumulative pentest and crates.io publication to v0.85.0.`
 
 ### v0.83.0 - Robot Failover
 
@@ -2119,7 +2153,7 @@ Deliverables: canonical routes, reroute/delete intent, permits, conflicts, and n
 
 Verification: route/family/permit/source tests and `scripts/release_0_83_gate.sh`.
 
-Stop gate: `v0.83.0 implementation stop reached. Run pentest for this exact commit.`
+Stop gate: `v0.83.0 implementation stop reached. Complete the security review and full release gate for this exact commit; defer cumulative pentest and crates.io publication to v0.85.0.`
 
 ### v0.84.0 - Robot Wake-On-LAN
 
@@ -2129,7 +2163,7 @@ Deliverables: capability checks, explicit wake intent, mutation permit, response
 
 Verification: identity/capability/permit/source tests and `scripts/release_0_84_gate.sh`.
 
-Stop gate: `v0.84.0 implementation stop reached. Run pentest for this exact commit.`
+Stop gate: `v0.84.0 implementation stop reached. Complete the security review and full release gate for this exact commit; defer cumulative pentest and crates.io publication to v0.85.0.`
 
 ### v0.85.0 - Robot Boot Configuration
 
@@ -2139,7 +2173,7 @@ Deliverables: overview/get/activate/deactivate/last operations, validated config
 
 Verification: secret/form/compatibility/source tests and `scripts/release_0_85_gate.sh`.
 
-Stop gate: `v0.85.0 implementation stop reached. Run pentest for this exact commit.`
+Stop gate: `v0.85.0 implementation stop reached. Run the cumulative pentest through this exact commit before tagging and crates.io publication.`
 
 ### v0.86.0 - Robot Reverse DNS
 
@@ -2149,7 +2183,7 @@ Deliverables: canonical addresses, bounded DNS names, forms, conflicts, permits,
 
 Verification: DNS/address/source tests and `scripts/release_0_86_gate.sh`.
 
-Stop gate: `v0.86.0 implementation stop reached. Run pentest for this exact commit.`
+Stop gate: `v0.86.0 implementation stop reached. Complete the security review and full release gate for this exact commit; defer cumulative pentest and crates.io publication to v0.90.0.`
 
 ### v0.87.0 - Robot Traffic
 
@@ -2159,7 +2193,7 @@ Deliverables: bounded ranges/intervals/repeated addresses/numeric limits and inc
 
 Verification: date/range/repeat/stream/source tests and `scripts/release_0_87_gate.sh`.
 
-Stop gate: `v0.87.0 implementation stop reached. Run pentest for this exact commit.`
+Stop gate: `v0.87.0 implementation stop reached. Complete the security review and full release gate for this exact commit; defer cumulative pentest and crates.io publication to v0.90.0.`
 
 ### v0.88.0 - Robot SSH Keys
 
@@ -2169,7 +2203,7 @@ Deliverables: algorithms, fingerprints, names, keys, atomic forms, redaction, an
 
 Verification: key/form/secret/source tests and `scripts/release_0_88_gate.sh`.
 
-Stop gate: `v0.88.0 implementation stop reached. Run pentest for this exact commit.`
+Stop gate: `v0.88.0 implementation stop reached. Complete the security review and full release gate for this exact commit; defer cumulative pentest and crates.io publication to v0.90.0.`
 
 ### v0.89.0 - Robot Firewalls And Templates
 
@@ -2179,7 +2213,7 @@ Deliverables: bounded ordered rules, CIDRs, ports, protocols, replacement intent
 
 Verification: ordering/duplicate/rule/form/source tests and `scripts/release_0_89_gate.sh`.
 
-Stop gate: `v0.89.0 implementation stop reached. Run pentest for this exact commit.`
+Stop gate: `v0.89.0 implementation stop reached. Complete the security review and full release gate for this exact commit; defer cumulative pentest and crates.io publication to v0.90.0.`
 
 ### v0.90.0 - Robot vSwitches
 
@@ -2189,7 +2223,7 @@ Deliverables: VLANs, server lists, attach/detach/cancel intent, conflicts, repea
 
 Verification: VLAN/membership/form/source tests and `scripts/release_0_90_gate.sh`.
 
-Stop gate: `v0.90.0 implementation stop reached. Run pentest for this exact commit.`
+Stop gate: `v0.90.0 implementation stop reached. Run the cumulative pentest through this exact commit before tagging and crates.io publication.`
 
 ### v0.91.0 - Robot Ordering Catalogs
 
@@ -2199,7 +2233,7 @@ Deliverables: exact decimals, locations, distributions, limits, current-price wa
 
 Verification: catalog/price/decimal/source tests and `scripts/release_0_91_gate.sh`.
 
-Stop gate: `v0.91.0 implementation stop reached. Run pentest for this exact commit.`
+Stop gate: `v0.91.0 implementation stop reached. Complete the security review and full release gate for this exact commit; defer cumulative pentest and crates.io publication to v0.95.0.`
 
 ### v0.92.0 - Robot Transactions
 
@@ -2209,7 +2243,7 @@ Deliverables: all states, identifiers, prices, timestamps, nullability, paginati
 
 Verification: state/decimal/date/source tests and `scripts/release_0_92_gate.sh`.
 
-Stop gate: `v0.92.0 implementation stop reached. Run pentest for this exact commit.`
+Stop gate: `v0.92.0 implementation stop reached. Complete the security review and full release gate for this exact commit; defer cumulative pentest and crates.io publication to v0.95.0.`
 
 ### v0.93.0 - Robot Ordering Mutations
 
@@ -2219,7 +2253,7 @@ Deliverables: cost permits and plan-confirm fingerprints bound to product, obser
 
 Verification: stale-price/mismatch/replay/budget, not-sent/possibly-sent/response-started faults, reconciliation-before-repeat, non-execution/source tests, and `scripts/release_0_93_gate.sh`.
 
-Stop gate: `v0.93.0 implementation stop reached. Run pentest for this exact commit.`
+Stop gate: `v0.93.0 implementation stop reached. Complete the security review and full release gate for this exact commit; defer cumulative pentest and crates.io publication to v0.95.0.`
 
 ### v0.94.0 - Robot Client Integration
 
@@ -2229,7 +2263,7 @@ Deliverables: blocking, Send-async, local-async, pager/action workflows, endpoin
 
 Verification: client coverage, authentication rejection through direct/pager/action/workflow paths with exactly one wire attempt, rejected-generation reuse denial, explicit reconfirmation, lockout/cancellation/concurrency scenarios, and `scripts/release_0_94_gate.sh`.
 
-Stop gate: `v0.94.0 implementation stop reached. Run pentest for this exact commit.`
+Stop gate: `v0.94.0 implementation stop reached. Complete the security review and full release gate for this exact commit; defer cumulative pentest and crates.io publication to v0.95.0.`
 
 ### v0.95.0 - Robot Live Evidence
 
@@ -2239,7 +2273,7 @@ Deliverables: credential-free staging, ignored operator harness, private token f
 
 Verification: staging/runner tests, explicit operator smoke, source drift, and `scripts/release_0_95_gate.sh`.
 
-Stop gate: `v0.95.0 implementation stop reached. Run pentest for this exact commit.`
+Stop gate: `v0.95.0 implementation stop reached. Run the cumulative pentest through this exact commit before tagging and crates.io publication.`
 
 ## Tier F - Whole-Platform Qualification
 
@@ -2251,7 +2285,7 @@ Deliverables: zero unclassified claimed operations, maintained corpora, cross-ad
 
 Verification: all corpora/fuzz smoke/matrices/SBOM/deny/audit and `scripts/release_0_96_gate.sh`.
 
-Stop gate: `v0.96.0 implementation stop reached. Run pentest for this exact commit.`
+Stop gate: `v0.96.0 implementation stop reached. Complete the security review and full release gate for this exact commit; defer cumulative pentest and crates.io publication to v1.0.0.`
 
 ### v0.97.0 - Platform, MSRV, And FIPS Qualification
 
@@ -2261,7 +2295,7 @@ Deliverables: good/revoked/unknown/expired-CRL/wrong-issuer/incomplete-chain han
 
 Verification: full platform/MSRV matrix, packaged FIPS tests including missing/untrusted time, native-build review, dependency freshness, and `scripts/release_0_97_gate.sh`.
 
-Stop gate: `v0.97.0 implementation stop reached. Run pentest for this exact commit.`
+Stop gate: `v0.97.0 implementation stop reached. Complete the security review and full release gate for this exact commit; defer cumulative pentest and crates.io publication to v1.0.0.`
 
 ### v0.98.0 - Provenance And Governance Review
 
@@ -2271,7 +2305,7 @@ Deliverables: signer rotation/revocation, branch/release protection, trusted-pub
 
 Verification: runbook/signer/provenance/reproducibility tests and `scripts/release_0_98_gate.sh`.
 
-Stop gate: `v0.98.0 implementation stop reached. Run pentest for this exact commit.`
+Stop gate: `v0.98.0 implementation stop reached. Complete the security review and full release gate for this exact commit; defer cumulative pentest and crates.io publication to v1.0.0.`
 
 ### v0.99.0 - Controlled Mutation Release Candidate
 
@@ -2281,7 +2315,7 @@ Deliverables: manual-only disposable project, approval, spending ceilings, uniqu
 
 Verification: fake-provider dry runs, approved manual evidence when available, every release gate, and `scripts/release_0_99_gate.sh`.
 
-Stop gate: `v0.99.0 implementation stop reached. Run pentest for this exact commit.`
+Stop gate: `v0.99.0 implementation stop reached. Complete the security review and full release gate for this exact commit; defer cumulative pentest and crates.io publication to v1.0.0.`
 
 ### v1.0.0 - Full Hetzner Production SDK
 

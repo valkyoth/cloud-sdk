@@ -10,7 +10,17 @@ import sys
 import time
 from pathlib import Path
 
+sys.dont_write_bytecode = True
+
 from release_state import verify_release_state, worktree_status
+from release_train import (
+    parse_version,
+    publication_allowed,
+    validate_cumulative_package_changes,
+    validate_facade_previous_version,
+    validate_release_context,
+    validate_repository_train,
+)
 
 try:
     import tomllib
@@ -69,47 +79,6 @@ def load_toml(path: Path) -> dict:
         return tomllib.load(handle)
 
 
-def parse_version(version: str) -> tuple[int, int, int]:
-    parts = version.split(".")
-    if len(parts) != 3:
-        raise RuntimeError(f"version must be MAJOR.MINOR.PATCH: {version}")
-    try:
-        major, minor, patch = (int(part) for part in parts)
-    except ValueError as exc:
-        raise RuntimeError(f"version must be numeric: {version}") from exc
-    return (major, minor, patch)
-
-
-def previous_release_version(tags: tuple[str, ...], release: str) -> str:
-    release_parts = parse_version(release)
-    prior: list[tuple[int, int, int]] = []
-    for tag in tags:
-        if not tag.startswith("v"):
-            continue
-        try:
-            candidate = parse_version(tag.removeprefix("v"))
-        except RuntimeError:
-            continue
-        if candidate < release_parts:
-            prior.append(candidate)
-    if not prior:
-        return "none"
-    major, minor, patch = max(prior)
-    return f"{major}.{minor}.{patch}"
-
-
-def verify_facade_previous_version(plan: dict) -> None:
-    raw_tags = capture(["git", "tag", "--list", "v*.*.*"])
-    tags = tuple(line for line in raw_tags.splitlines() if line)
-    expected = previous_release_version(tags, plan["version"])
-    actual = plan["crates"]["cloud-sdk"]["previous_version"]
-    if actual != expected:
-        raise RuntimeError(
-            "cloud-sdk previous_version does not match latest prior release tag: "
-            f"expected {expected}, actual {actual}"
-        )
-
-
 def is_initial(previous: str) -> bool:
     return previous == "none"
 
@@ -159,9 +128,8 @@ def release_plan(plan_path: Path) -> dict:
     plan = load_toml(plan_path)
     release = plan.get("release", {})
     crates = plan.get("crates", {})
-    version = release.get("version")
-    if not isinstance(version, str):
-        raise RuntimeError("release-crates.toml is missing [release].version")
+    context = validate_release_context(release)
+    version = context["version"]
     if release.get("policy") != "independent":
         raise RuntimeError("release-crates.toml must use policy = \"independent\"")
     reject_retired_packages(PUBLISH_ORDER, source="PUBLISH_ORDER")
@@ -175,11 +143,17 @@ def release_plan(plan_path: Path) -> dict:
         )
     parse_version(version)
     for package_name, entry in crates.items():
-        validate_plan_entry(package_name, entry, version)
-    return {"version": version, "crates": crates}
+        validate_plan_entry(package_name, entry, version, context["stage"])
+    context["crates"] = crates
+    return context
 
 
-def validate_plan_entry(package_name: str, entry: dict, release: str) -> None:
+def validate_plan_entry(
+    package_name: str,
+    entry: dict,
+    release: str,
+    stage: str = "public",
+) -> None:
     previous = entry.get("previous_version")
     version = entry.get("version")
     change = entry.get("change")
@@ -194,6 +168,22 @@ def validate_plan_entry(package_name: str, entry: dict, release: str) -> None:
 
     planned_version = parse_version(version)
     release_parts = parse_version(release)
+
+    if stage == "internal":
+        if publish:
+            raise RuntimeError(f"{package_name} cannot publish at internal stage")
+        if package_name == "cloud-sdk":
+            if planned_version != release_parts:
+                raise RuntimeError(
+                    f"{package_name} must always match release version {release}"
+                )
+            if change == "unchanged":
+                raise RuntimeError(f"{package_name} cannot be unchanged in a release")
+        elif not is_initial(previous) and planned_version != parse_version(previous):
+            raise RuntimeError(
+                f"{package_name} must retain its published version at internal stage"
+            )
+        return
 
     if is_initial(previous):
         if change != "code":
@@ -305,6 +295,7 @@ def verify_publish_order(packages: dict[str, dict], plan: dict) -> None:
                     f"{dependency_name} appears later in PUBLISH_ORDER"
                 )
         seen.add(package_name)
+    validate_cumulative_package_changes(packages, plan)
 
 
 def check_release_tag(version: str, *, require_tag: bool) -> None:
@@ -417,7 +408,8 @@ def main() -> int:
     plan_path = raw_plan_path if raw_plan_path.is_absolute() else (ROOT / raw_plan_path)
     plan = release_plan(plan_path.resolve())
     if plan_path.resolve() == DEFAULT_PLAN.resolve():
-        verify_facade_previous_version(plan)
+        validate_repository_train(plan)
+        validate_facade_previous_version(plan)
     if args.version is None:
         args.version = plan["version"]
     elif args.version != plan["version"]:
@@ -433,8 +425,18 @@ def main() -> int:
 
     if args.check:
         print("release_crates.py publish order is up to date.")
-        print(f"release_crates.py release plan is {args.version}.")
+        print(
+            f"release_crates.py release plan is {args.version} "
+            f"with stage={plan['stage']}."
+        )
         return 0
+
+    if not publication_allowed(plan):
+        print(
+            "Refusing crates.io publication for an internal tagged milestone.",
+            file=sys.stderr,
+        )
+        return 1
 
     require_clean_tree(allow_dirty=args.dry_run)
     expected_head = capture(["git", "rev-parse", "HEAD"])

@@ -1,7 +1,8 @@
 # Crate Version Matrix
 
-Status: `v0.49.0` is tagged and published. `v0.50.0` implementation is
-complete and awaits pentest.
+Status: `v0.50.0` is tagged and published. It is the baseline for the first
+five-minor development train, whose next cumulative pentest and crates.io
+checkpoint is `v0.55.0`.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
@@ -12,16 +13,21 @@ workspace normally adds only one primary crate for each provider.
 
 | Change kind | Version rule | Publish? |
 | --- | --- | --- |
-| `code` | `cloud-sdk` always follows the release/tag version. Provider and boundary crates use independent minor bumps after their initial release. | Yes |
-| `dependency` | Provider and boundary crates patch-bump the existing line when a manifest dependency range must change. `cloud-sdk` still follows the release/tag version. | Yes |
-| `metadata` | Use the release/tag version when republishing corrected immutable package metadata or release evidence. | Yes |
+| `code` | `cloud-sdk` always follows the release/tag version. At public checkpoints, provider and boundary crates use one independent minor bump for cumulative code changes. | Public checkpoint only |
+| `dependency` | At public checkpoints, provider and boundary crates patch-bump when an internal dependency range must change. | Public checkpoint only |
+| `metadata` | At public checkpoints, use the independently required metadata version; the facade follows the tag. | Public checkpoint only |
 | `unchanged` | Keep the previous published version. | No |
 
-`cloud-sdk` is the facade crate and must publish on every release with the same
-version as the tag. Other crates publish independently: real code changes move
-to the next independent minor line, dependency-only related bumps stay on the
-same minor line and increase only the patch number, metadata-only release
-alignment uses the release/tag version, and unchanged crates are not published.
+Every pre-1.0 tag advances `cloud-sdk`, but intermediate tags select no package
+for crates.io. Supporting crates retain their published versions while their
+code and metadata changes accumulate. At every fifth-minor or exceptional
+public checkpoint, the release tool compares each package tree with the
+previous public tag, rejects any lost delta, publishes changed dependencies in
+order, and publishes `cloud-sdk` last. Unchanged crates are not republished.
+
+All minor and patch tags after the baseline must appear in
+`cumulative_milestones`; a checkpoint cannot omit an intervening build from
+pentest or publication planning.
 
 ## v0.1.0 Tracking Table
 

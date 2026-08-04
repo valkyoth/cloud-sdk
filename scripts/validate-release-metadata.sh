@@ -53,7 +53,8 @@ fi
 if [ "$strict" = true ]; then
     scripts/validate-release-readiness.sh "v${version}"
 else
-    echo "release metadata: v${version} pentest report checked only by release readiness"
+    stage="$(sed -n 's/^stage = "\(.*\)"/\1/p' release-crates.toml | sed -n '1p')"
+    echo "release metadata: v${version} stage=${stage}; final readiness is checked only by the version gate"
 fi
 
 if [ ! -x scripts/release_crates.py ] || [ ! -x scripts/test-release-crates.py ] \

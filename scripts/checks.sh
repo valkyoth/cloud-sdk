@@ -74,7 +74,9 @@ scripts/test-generate-response-operations.py
 scripts/test-prepared-operation-coverage.py
 scripts/test-hetzner-wire-migration.py
 scripts/release_crates.py --check
+scripts/validate-release-train.py
 scripts/test-release-crates.py
+scripts/test-release-train.py
 scripts/test-release-state.py
 cargo package -p cloud-sdk --allow-dirty \
     --config 'patch.crates-io.cloud-sdk-sanitization.path="crates/cloud-sdk-sanitization"'

@@ -40,6 +40,21 @@ fit their environment. The project emphasizes validated inputs, bounded
 memory use, caller-controlled behavior, cross-platform compatibility,
 security review, and reproducible release evidence.
 
+## Development Status
+
+All `0.x` versions are development releases. Their APIs may change and they
+may still contain defects or incomplete behavior before `1.0.0`; review the
+documented operation and provider limits before using them with real
+infrastructure.
+
+Beginning after the published `v0.50.0` baseline, every pre-1.0 version still
+receives the complete automated release gate, GitHub CI and CodeQL, release
+notes, and a normal signed `v0.x.x` tag. Cumulative pentesting and crates.io
+publication occur every fifth minor version, so the next public checkpoint is
+`v0.55.0`. Intervening tags are included in that cumulative assessment but are
+not separately published. Material security changes can trigger an earlier
+pentest and publication.
+
 ## Cost And Production Warning
 
 Cloud APIs can create, modify, and delete billable resources. This SDK is built
@@ -82,7 +97,7 @@ full-fidelity Hetzner vertical slices before the neutral API freeze.
 | Default features | empty |
 | Network defaults | none |
 | Secret storage defaults | none |
-| Release evidence | local gates, dependency policy, SBOM, pentest report before tags |
+| Release evidence | full gates and SBOM for every tag; cumulative pentest and crates.io publication every fifth pre-1.0 minor or earlier when risk requires it |
 | Platform support | explicit tiers and targets in [`docs/PLATFORM_SUPPORT.md`](https://github.com/valkyoth/cloud-sdk/blob/main/docs/PLATFORM_SUPPORT.md) |
 | Crate versions | tracked in [`docs/CRATE_VERSION_MATRIX.md`](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATE_VERSION_MATRIX.md) |
 | 1.0 target | serious production-ready foundation plus complete Hetzner Cloud, DNS, Console Storage Box, and Robot provider |

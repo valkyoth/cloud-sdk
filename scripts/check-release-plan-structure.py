@@ -17,6 +17,7 @@ HEADING = re.compile(
 )
 FIELD = re.compile(r"^(Goal|Deliverables|Verification|Stop gate):(.*)$", re.MULTILINE)
 FIELD_ORDER = ("Goal", "Deliverables", "Verification", "Stop gate")
+CADENCE_START = (0, 51, 0)
 
 
 @dataclass(frozen=True, order=True)
@@ -97,6 +98,41 @@ def stop_gate_contract(content: str) -> str:
     return content.splitlines()[0].strip()
 
 
+def expected_checkpoint(version: Version) -> str:
+    next_minor = ((version.minor // 5) + 1) * 5
+    return "v1.0.0" if next_minor >= 100 else f"v0.{next_minor}.0"
+
+
+def validate_stop_gate(version: Version, contract: str) -> str | None:
+    normalized = contract.lower()
+    if version.text not in contract:
+        return f"{version.text} stop gate names a different version"
+    current = (version.major, version.minor, version.patch)
+    historical = current < CADENCE_START
+    stable = version.major >= 1
+    checkpoint = (
+        version.major == 0
+        and version.patch == 0
+        and version.minor % 5 == 0
+    )
+    if historical or stable or checkpoint:
+        required = ("pentest", "exact commit")
+        if checkpoint and not historical:
+            required += ("cumulative", "crates.io")
+    else:
+        required = (
+            "security review",
+            "exact commit",
+            "defer",
+            "crates.io",
+            expected_checkpoint(version).lower(),
+        )
+    missing = tuple(value for value in required if value not in normalized)
+    if missing:
+        return f"{version.text} stop gate is missing cadence terms {missing}"
+    return None
+
+
 def validate(path: Path) -> int:
     text = path.read_text(encoding="utf-8")
     sections = parse_sections(text)
@@ -139,16 +175,9 @@ def validate(path: Path) -> int:
         except ValueError as error:
             errors.append(f"{section.version.text} {error}")
             continue
-        stop_gate = stop_contract.lower()
-        if section.version.text not in stop_contract:
-            errors.append(
-                f"{section.version.text} stop gate names a different version"
-            )
-        if "pentest" not in stop_gate or "exact commit" not in stop_gate:
-            errors.append(
-                f"{section.version.text} stop gate must require an exact-commit "
-                "pentest"
-            )
+        stop_error = validate_stop_gate(section.version, stop_contract)
+        if stop_error is not None:
+            errors.append(stop_error)
 
     if errors:
         raise ValueError("\n".join(errors))

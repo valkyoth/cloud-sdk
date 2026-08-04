@@ -40,8 +40,10 @@ def reject(path: Path, text: str) -> None:
 
 
 def main() -> None:
-    repository = run(ROOT / "docs" / "RELEASE_PLAN.md")
+    repository_path = ROOT / "docs" / "RELEASE_PLAN.md"
+    repository = run(repository_path)
     assert repository.returncode == 0, repository
+    repository_text = repository_path.read_text(encoding="utf-8")
 
     first = section("v0.1.0", "scripts/release_0_1_gate.sh")
     second = section("v0.2.0", "scripts/release_0_2_gate.sh")
@@ -77,12 +79,26 @@ def main() -> None:
             path,
             first + section("v0.3.0", "scripts/release_0_3_gate.sh"),
         )
+        reject(
+            path,
+            repository_text.replace(
+                "v0.51.0 implementation stop reached. Complete the security review",
+                "v0.51.0 implementation stop reached. Run pentest",
+            ),
+        )
+        reject(
+            path,
+            repository_text.replace(
+                "v0.55.0 implementation stop reached. Run the cumulative pentest",
+                "v0.55.0 implementation stop reached. Run pentest",
+            ),
+        )
 
         path.write_text(first + second, encoding="utf-8")
         valid_fixture = run(path)
         assert valid_fixture.returncode == 0, valid_fixture
 
-    print("9 release plan structure tests passed.")
+    print("11 release plan structure tests passed.")
 
 
 if __name__ == "__main__":

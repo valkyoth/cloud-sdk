@@ -217,7 +217,9 @@
   calls only pure SDK boundaries, admits synthetic seeds, rejects tracked
   generated corpora/artifacts, bounds smoke inputs and time, and compiles under
   a separately pinned nightly without changing stable crate support;
-- pentest report before every tag.
+- complete release and security-delta review before every tag, with cumulative
+  pentest reports every fifth pre-1.0 minor and exceptional assessments for
+  material trust-boundary changes.
 
 Cleanup does not cover process abort, `mem::forget` or deliberately leaked
 guards, immutable/external copies, TLS and allocator internals, kernel/device

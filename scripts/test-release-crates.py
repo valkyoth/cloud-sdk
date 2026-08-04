@@ -8,8 +8,9 @@ import contextlib
 import importlib.util
 import io
 from pathlib import Path
+import sys
 
-
+sys.dont_write_bytecode = True
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts" / "release_crates.py"
 
@@ -37,6 +38,9 @@ def package(name: str, version: str, deps: tuple[str, ...] = ()) -> dict:
 def base_plan() -> dict:
     return {
         "version": "0.4.0",
+        "baseline": "0.4.0",
+        "stage": "public",
+        "anchor": True,
         "crates": {
             name: {
                 "previous_version": "0.3.0",
@@ -218,7 +222,7 @@ def test_facade_must_always_match_release_version() -> None:
     )
 
 
-def test_facade_must_publish_for_every_release() -> None:
+def test_facade_must_publish_for_every_public_release() -> None:
     entry = {
         "previous_version": "0.3.0",
         "version": "0.4.0",
@@ -235,28 +239,46 @@ def test_facade_must_publish_for_every_release() -> None:
     )
 
 
-def test_previous_release_version_uses_latest_semantic_tag_before_release() -> None:
-    tags = ("v0.17.0", "v0.18.0", "v0.19.0", "not-a-release", "vbroken")
-    assert release_crates.previous_release_version(tags, "0.19.0") == "0.18.0"
-    assert release_crates.previous_release_version(tags, "0.18.0") == "0.17.0"
+def test_internal_facade_advances_without_publication() -> None:
+    entry = {
+        "previous_version": "0.50.0",
+        "version": "0.51.0",
+        "change": "code",
+        "publish": False,
+        "reason": "test",
+    }
+    release_crates.validate_plan_entry("cloud-sdk", entry, "0.51.0", "internal")
 
 
-def test_facade_previous_version_must_match_latest_prior_tag() -> None:
-    plan = base_plan()
-    plan["version"] = "0.19.0"
-    plan["crates"]["cloud-sdk"]["previous_version"] = "0.17.0"
-    original = release_crates.capture
-    release_crates.capture = lambda _command: "v0.17.0\nv0.18.0\n"
-    try:
-        assert_fails(
-            "expected 0.18.0, actual 0.17.0",
-            release_crates.verify_facade_previous_version,
-            plan,
-        )
-        plan["crates"]["cloud-sdk"]["previous_version"] = "0.18.0"
-        release_crates.verify_facade_previous_version(plan)
-    finally:
-        release_crates.capture = original
+def test_internal_support_crate_retains_published_version() -> None:
+    entry = {
+        "previous_version": "0.38.0",
+        "version": "0.38.0",
+        "change": "code",
+        "publish": False,
+        "reason": "carry to checkpoint",
+    }
+    release_crates.validate_plan_entry(
+        "cloud-sdk-hetzner", entry, "0.51.0", "internal"
+    )
+
+
+def test_internal_stage_rejects_publication() -> None:
+    entry = {
+        "previous_version": "0.38.0",
+        "version": "0.38.0",
+        "change": "code",
+        "publish": True,
+        "reason": "test",
+    }
+    assert_fails(
+        "cannot publish at internal stage",
+        release_crates.validate_plan_entry,
+        "cloud-sdk-hetzner",
+        entry,
+        "0.51.0",
+        "internal",
+    )
 
 
 def test_provider_code_changes_use_next_independent_minor() -> None:
@@ -452,9 +474,10 @@ def run_tests() -> None:
         test_nested_package_is_rejected_at_release_boundaries,
         test_facade_code_changes_must_use_milestone_version,
         test_facade_must_always_match_release_version,
-        test_facade_must_publish_for_every_release,
-        test_previous_release_version_uses_latest_semantic_tag_before_release,
-        test_facade_previous_version_must_match_latest_prior_tag,
+        test_facade_must_publish_for_every_public_release,
+        test_internal_facade_advances_without_publication,
+        test_internal_support_crate_retains_published_version,
+        test_internal_stage_rejects_publication,
         test_provider_code_changes_use_next_independent_minor,
         test_provider_code_changes_reject_release_counter_jump,
         test_initial_release_accepts_none_previous_version,
