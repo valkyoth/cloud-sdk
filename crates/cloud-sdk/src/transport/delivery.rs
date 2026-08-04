@@ -13,6 +13,12 @@ pub enum DeliveryPhase {
     ResponseStarted,
 }
 
+/// Error whose furthest possible request-delivery phase is explicit.
+pub trait DeliveryClassified {
+    /// Returns the conservative delivery phase for permit transitions.
+    fn delivery_phase(&self) -> DeliveryPhase;
+}
+
 /// Payload-redacting transport failure with an explicit delivery phase.
 ///
 /// Unknown send state must use [`Self::unknown`], which conservatively maps to
@@ -82,6 +88,12 @@ impl<E> TransportFailure<E> {
             phase: self.phase,
             error: transform(self.error),
         }
+    }
+}
+
+impl<E> DeliveryClassified for TransportFailure<E> {
+    fn delivery_phase(&self) -> DeliveryPhase {
+        self.phase
     }
 }
 

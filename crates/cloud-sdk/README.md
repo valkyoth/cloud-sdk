@@ -84,6 +84,11 @@ operation contracts, then validates them with an unpublished OVHcloud API v2
 architecture probe, a narrow credential-free Robot wire fixture, and
 full-fidelity Hetzner vertical slices before the neutral API freeze.
 
+Source milestone `v0.51.0` adds plan-confirm execution permits for mutation,
+destructive, and cost-bearing requests. It is a tagged development milestone
+accumulating toward the next crates.io publication at `v0.55.0`; published
+install examples therefore remain on the `v0.50.0` checkpoint.
+
 ## Trust Dashboard
 
 | Area | Status |
@@ -163,6 +168,7 @@ visible. Applications should enable only the features they use.
 - [Pagination strategies](https://github.com/valkyoth/cloud-sdk/blob/main/docs/PAGINATION_STRATEGIES.md)
 - [Quota and retry policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/QUOTA_AND_RETRY.md)
 - [Retry and idempotency policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/RETRY_AND_IDEMPOTENCY.md)
+- [Plan-confirm execution permits](https://github.com/valkyoth/cloud-sdk/blob/main/docs/EXECUTION_PERMITS.md)
 - [Local async contract](https://github.com/valkyoth/cloud-sdk/blob/main/docs/LOCAL_ASYNC.md)
 - [Streaming transport contract](https://github.com/valkyoth/cloud-sdk/blob/main/docs/STREAMING.md)
 - [Release runbook](https://github.com/valkyoth/cloud-sdk/blob/main/docs/RELEASE_RUNBOOK.md)
@@ -189,6 +195,7 @@ visible. Applications should enable only the features they use.
 - [Migrating to v0.48](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.48.0.md)
 - [Migrating to v0.49](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.49.0.md)
 - [Migrating to v0.50](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.50.0.md)
+- [Migrating source users to v0.51](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.51.0.md)
 - [Compile-time Hetzner operation associations](https://github.com/valkyoth/cloud-sdk/blob/main/docs/OPERATION_ASSOCIATIONS.md)
 - [Incremental provider decoding](https://github.com/valkyoth/cloud-sdk/blob/main/docs/INCREMENTAL_DECODING.md)
 - [Deprecated endpoint policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/DEPRECATED_ENDPOINT_POLICY.md)
@@ -454,7 +461,8 @@ assert_eq!(
 ```
 
 `PrepareOperation` writes a validated target and body into caller-owned
-storage and returns one `PreparedRequest`. Blocking and async execution verify
+storage and returns one `PreparedRequest`. Read-only blocking and async
+execution verify
 the provider-owned endpoint policy before sending, lend only the response policy's admitted
 capacity through a sealed `ResponseWriter`, and return a
 `CheckedResponseGuard` only after status, body, and content type pass. The
@@ -469,6 +477,12 @@ decoding is closure-scoped and owned decoding clears storage before returning.
 Optional `ResponseStorageSanitizer` implementations may add platform cleanup,
 but cannot replace or weaken the core clear. The SDK still performs no
 automatic retry or scheduling.
+
+State-changing prepared requests cannot execute directly. Mutation,
+destructive, and cost-bearing operations require a non-copyable
+plan-confirm permit bound to the exact request, endpoint, account/tenant,
+expiry, replay policy, and any observed price ceiling. See
+[Plan-Confirm Execution Permits](https://github.com/valkyoth/cloud-sdk/blob/main/docs/EXECUTION_PERMITS.md).
 
 Use `PreparationStorageGuard` when request buffers may contain secrets. The
 prepared request borrows the guard, so safe Rust keeps cleanup ownership alive

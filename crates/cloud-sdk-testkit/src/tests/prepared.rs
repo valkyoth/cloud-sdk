@@ -41,7 +41,7 @@ impl ServiceMarker for ComputeService {
 
 #[test]
 fn prepared_records_capture_policy_and_redact_request_values() {
-    let prepared = prepared_request(16);
+    let prepared = mutation_prepared_request(16);
     assert!(prepared.is_ok());
     let Ok(prepared) = prepared else { return };
     let record = PreparedRequestRecord::capture(prepared);
@@ -243,7 +243,10 @@ fn mock_models_oversized_responses_and_retry_classification_mistakes() {
     ));
     assert_eq!(mock.remaining(), 1);
 
-    let record = PreparedRequestRecord::capture(prepared);
+    let Some(mutation) = mutation_prepared_request(2).ok() else {
+        return;
+    };
+    let record = PreparedRequestRecord::capture(mutation);
     assert_ne!(record.metadata().impact(), OperationImpact::ReadOnly);
     assert_ne!(record.metadata().semantics(), RequestSemantics::Safe);
     assert_eq!(
@@ -315,19 +318,40 @@ fn mock_rejects_unbound_endpoints_request_media_mismatch_and_invalid_fixture_med
 }
 
 fn prepared_request(max_body_bytes: usize) -> Result<PreparedRequest<'static>, ()> {
+    build_prepared_request(
+        max_body_bytes,
+        OperationImpact::ReadOnly,
+        RequestSemantics::Safe,
+        RetryEligibility::ExplicitPolicy,
+        CostIntent::NoKnownCost,
+    )
+}
+
+fn mutation_prepared_request(max_body_bytes: usize) -> Result<PreparedRequest<'static>, ()> {
+    build_prepared_request(
+        max_body_bytes,
+        OperationImpact::Mutation,
+        RequestSemantics::Idempotent,
+        RetryEligibility::ExplicitPolicy,
+        CostIntent::MayIncurCost,
+    )
+}
+
+fn build_prepared_request(
+    max_body_bytes: usize,
+    impact: OperationImpact,
+    semantics: RequestSemantics,
+    retry: RetryEligibility,
+    cost: CostIntent,
+) -> Result<PreparedRequest<'static>, ()> {
     let target = RequestTarget::new("/servers").map_err(|_| ())?;
     let headers = RequestHeaders::new(&JSON_REQUEST_HEADERS).map_err(|_| ())?;
     let request = TransportRequest::new(Method::Post, target)
         .with_body(b"{}")
         .with_headers(headers);
-    let metadata = OperationMetadata::new(
-        OperationImpact::Mutation,
-        RequestSemantics::Idempotent,
-        RetryEligibility::ExplicitPolicy,
-        CostIntent::MayIncurCost,
-        RequestIdPolicy::Protected,
-    )
-    .map_err(|_| ())?;
+    let metadata =
+        OperationMetadata::new(impact, semantics, retry, cost, RequestIdPolicy::Protected)
+            .map_err(|_| ())?;
     let response_policy = ResponsePolicy::new(
         &OK_STATUS,
         ContentTypePolicy::Required(&JSON_MEDIA),

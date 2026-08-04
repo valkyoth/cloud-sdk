@@ -21,7 +21,7 @@ pub use cleanup::ResponseStorageSanitizer;
 pub use content_type::{
     ContentType, ContentTypeError, MAX_CONTENT_TYPE_BYTES, MediaType, ResponseContentType,
 };
-pub use delivery::{DeliveryPhase, TransportFailure};
+pub use delivery::{DeliveryClassified, DeliveryPhase, TransportFailure};
 pub(crate) use endpoint::CanonicalHost;
 pub use endpoint::{
     AcknowledgedCustomEndpoint, BoundTransport, CustomEndpointAcknowledgement, EndpointIdentity,

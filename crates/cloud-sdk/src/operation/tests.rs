@@ -179,7 +179,7 @@ fn prepared_blocking_execution_checks_endpoint_and_lends_only_policy_capacity() 
     let transport = RecordingTransport::new(official);
     let mut response_storage = [0xA5_u8; 64];
     let mut response_header_storage = [0xA5_u8; 8192];
-    let response = prepared.execute_blocking(
+    let response = prepared.execute_blocking_authorized(
         &transport,
         &mut response_storage,
         &mut response_header_storage,
@@ -195,7 +195,7 @@ fn prepared_blocking_execution_checks_endpoint_and_lends_only_policy_capacity() 
     let Ok(other) = other_endpoint() else { return };
     let mismatched = RecordingTransport::new(other);
     response_storage.fill(0xA5);
-    let response = prepared.execute_blocking(
+    let response = prepared.execute_blocking_authorized(
         &mismatched,
         &mut response_storage,
         &mut response_header_storage,
@@ -224,7 +224,7 @@ fn prepared_async_execution_uses_the_same_endpoint_and_response_policy() {
     let mut response_storage = [0xA5_u8; 64];
     let mut response_header_storage = [0xA5_u8; 8192];
     {
-        let future = prepared.execute_async(
+        let future = prepared.execute_async_authorized(
             &transport,
             &mut response_storage,
             &mut response_header_storage,

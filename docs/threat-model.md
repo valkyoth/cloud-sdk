@@ -82,6 +82,10 @@
   production responses, or private infrastructure data;
 - fuzz-only nightly, native build, or sanitizer dependencies leaking into a
   published or default SDK graph;
+- copied, replayed, stale, expired, price-mismatched, or request-mismatched
+  authority causing an unintended state change or charge;
+- treating uncertain delivery as not sent and repeating an operation without
+  provider-specific reconciliation;
 
 ## Controls
 
@@ -220,6 +224,12 @@
 - complete release and security-delta review before every tag, with cumulative
   pentest reports every fifth pre-1.0 minor and exceptional assessments for
   material trust-boundary changes.
+- direct state-changing prepared execution fails closed; non-`Copy` direct
+  permits and explicitly shared atomic permits bind one exact versioned plan,
+  endpoint, scope, validity interval, attempt budget, replay policy,
+  idempotency identity, and cost ceiling; stale recovery generations,
+  backward clocks, no-op plans, mismatched fingerprints, concurrent spend,
+  and uncertain delivery fail closed pending operation-specific reconciliation.
 
 Cleanup does not cover process abort, `mem::forget` or deliberately leaked
 guards, immutable/external copies, TLS and allocator internals, kernel/device

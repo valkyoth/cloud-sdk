@@ -293,4 +293,7 @@ pub trait HetznerOperation: private::Sealed + 'static {
 pub trait OperationAssociation: HetznerOperation {}
 impl<T: HetznerOperation> OperationAssociation for T {}
 
+/// Sealed association for operations that require no execution permit.
+pub trait ReadOnlyOperation: HetznerOperation {}
+
 pub(crate) use private::Sealed;

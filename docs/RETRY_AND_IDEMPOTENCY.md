@@ -160,6 +160,8 @@ Cancellation, deadlines, sleeping, randomness, and concurrency limits remain
 application responsibilities. Never hold credentials or secret payloads in
 ordinary diagnostic values. Keep canonical scratch and request preparation
 buffers under their cleanup-owning guards until transport use is complete.
-The controller prevents accidental safe-code fan-out through its API; code
-that intentionally bypasses it by invoking a prepared request or transport
-directly is outside the retry-policy boundary.
+The controller prevents accidental safe-code fan-out through its API. Direct
+prepared execution is available only to read-only operations; state-changing
+repetition must also satisfy the plan-confirm execution-permit lifecycle in
+[`EXECUTION_PERMITS.md`](EXECUTION_PERMITS.md). Calling a lower transport API
+outside these boundaries assumes responsibility for equivalent policy.

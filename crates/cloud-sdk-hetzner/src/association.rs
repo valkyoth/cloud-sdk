@@ -18,7 +18,7 @@ pub use components::{
 pub use markers::{ALL_OPERATIONS, operations};
 pub use policy::{
     AuthenticationClass, BodyPolicy, HetznerOperation, OperationAssociation, OperationDescriptor,
-    PaginationPolicy, PermitClass, QueryPolicy, ResponseShape, RetryPolicy,
+    PaginationPolicy, PermitClass, QueryPolicy, ReadOnlyOperation, ResponseShape, RetryPolicy,
 };
 pub use prepared::{AssociatedOperation, AssociatedPreparationError, Prepared};
 pub use types::*;

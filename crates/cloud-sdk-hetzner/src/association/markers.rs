@@ -4,7 +4,7 @@
 
 use cloud_sdk::{ServiceMarker, operation_id};
 
-use super::policy::{HetznerOperation, OperationDescriptor, Sealed};
+use super::policy::{HetznerOperation, OperationDescriptor, ReadOnlyOperation, Sealed};
 use super::types::*;
 use crate::identity::{CloudService, DnsService, SecurityService, StorageService};
 
@@ -39,6 +39,13 @@ macro_rules! success_media {
     ($response:ident) => {
         JsonSuccessMedia
     };
+}
+
+macro_rules! read_only_operation {
+    ($marker:ident, NoPermit) => {
+        impl ReadOnlyOperation for $marker {}
+    };
+    ($marker:ident, $permit:ident) => {};
 }
 
 macro_rules! operation_associations {
@@ -90,6 +97,7 @@ macro_rules! operation_associations {
                         <$permit as PermitAssociation>::CLASS,
                     );
                 }
+                read_only_operation!($marker, $permit);
             )+
         }
 

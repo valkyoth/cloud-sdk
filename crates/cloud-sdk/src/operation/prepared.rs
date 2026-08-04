@@ -2,19 +2,24 @@
 
 use core::fmt;
 
+use cloud_sdk_sanitization::sanitize_bytes;
+
 use crate::authentication::{
     AsyncAuthenticatedTransport, AuthenticatedRequest, AuthenticationScopePolicy,
     BlockingAuthenticatedTransport, drive_async_authenticated,
 };
 use crate::operation::{
-    CheckedResponseGuard, OperationId, OperationMetadata, RequestIdPolicy, ResponsePolicy,
-    ResponsePolicyError,
+    CheckedResponseGuard, OperationId, OperationImpact, OperationMetadata, RequestIdPolicy,
+    ResponsePolicy, ResponsePolicyError,
 };
 use crate::transport::{
-    BoundTransport, EndpointIdentityError, EndpointPolicy, RawResponsePolicy, ResponseBuffer,
-    ResponseWriterError, TransportRequest,
+    BoundTransport, EndpointPolicy, RawResponsePolicy, ResponseBuffer, TransportRequest,
 };
 use crate::{ProviderId, ProviderMarker, ServiceId, ServiceMarker};
+
+mod error;
+use error::{EndpointCheckError, map_endpoint_error};
+pub use error::{PreparedExecutionError, PreparedRequestPolicyError};
 
 /// Whether one prepared request body can be sent again byte-for-byte.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
@@ -145,25 +150,6 @@ pub struct PreparedRequest<'request> {
     operation_id: Option<OperationId>,
     body_replayability: BodyReplayability,
 }
-
-/// Incoherent policy supplied while constructing a prepared request.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum PreparedRequestPolicyError {
-    /// Protected or retainable request IDs were not admitted by raw transport.
-    MissingRequestIdHeader,
-}
-
-impl fmt::Display for PreparedRequestPolicyError {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        formatter.write_str(match self {
-            Self::MissingRequestIdHeader => {
-                "prepared request ID policy requires raw x-request-id admission"
-            }
-        })
-    }
-}
-
-impl core::error::Error for PreparedRequestPolicyError {}
 
 impl<'request> PreparedRequest<'request> {
     /// Creates a complete prepared request after checking cross-policy invariants.
@@ -329,6 +315,23 @@ impl<'request> PreparedRequest<'request> {
     where
         T: BlockingAuthenticatedTransport + BoundTransport,
     {
+        if self.requires_execution_permit() {
+            sanitize_bytes(response_storage);
+            sanitize_bytes(response_header_storage);
+            return Err(PreparedExecutionError::AuthorizationRequired);
+        }
+        self.execute_blocking_authorized(transport, response_storage, response_header_storage)
+    }
+
+    pub(crate) fn execute_blocking_authorized<'buffer, T>(
+        self,
+        transport: &T,
+        response_storage: &'buffer mut [u8],
+        response_header_storage: &'buffer mut [u8],
+    ) -> Result<CheckedResponseGuard<'buffer>, PreparedExecutionError<T::Error>>
+    where
+        T: BlockingAuthenticatedTransport + BoundTransport,
+    {
         let mut response = ResponseBuffer::new(
             response_storage,
             self.raw_response_policy.max_body_bytes(),
@@ -346,6 +349,25 @@ impl<'request> PreparedRequest<'request> {
 
     /// Async equivalent of [`Self::execute_blocking`] without owning an executor.
     pub async fn execute_async<'transport, 'buffer, T>(
+        &'transport self,
+        transport: &'transport T,
+        response_storage: &'buffer mut [u8],
+        response_header_storage: &'buffer mut [u8],
+    ) -> Result<CheckedResponseGuard<'buffer>, PreparedExecutionError<T::Error>>
+    where
+        T: AsyncAuthenticatedTransport + BoundTransport,
+        'request: 'transport,
+    {
+        if self.requires_execution_permit() {
+            sanitize_bytes(response_storage);
+            sanitize_bytes(response_header_storage);
+            return Err(PreparedExecutionError::AuthorizationRequired);
+        }
+        self.execute_async_authorized(transport, response_storage, response_header_storage)
+            .await
+    }
+
+    pub(crate) async fn execute_async_authorized<'transport, 'buffer, T>(
         &'transport self,
         transport: &'transport T,
         response_storage: &'buffer mut [u8],
@@ -377,6 +399,11 @@ impl<'request> PreparedRequest<'request> {
             .map_err(PreparedExecutionError::ResponsePolicy)
     }
 
+    pub(crate) const fn requires_execution_permit(self) -> bool {
+        !matches!(self.metadata.impact(), OperationImpact::ReadOnly)
+            || matches!(self.metadata.cost_intent(), super::CostIntent::MayIncurCost)
+    }
+
     fn verify_endpoint<T>(self, transport: &T) -> Result<(), EndpointCheckError>
     where
         T: BoundTransport,
@@ -404,67 +431,5 @@ impl fmt::Debug for PreparedRequest<'_> {
             .field("operation_id", &self.operation_id)
             .field("body_replayability", &self.body_replayability)
             .finish()
-    }
-}
-
-/// Prepared execution failure with transport details redacted from diagnostics.
-#[derive(Clone, Copy, Eq, PartialEq)]
-pub enum PreparedExecutionError<E> {
-    /// The bound transport returned invalid endpoint identity.
-    EndpointIdentity(EndpointIdentityError),
-    /// The bound endpoint differs from the prepared provider service.
-    EndpointMismatch,
-    /// The concrete transport failed.
-    Transport(E),
-    /// The SDK-owned response transaction failed.
-    ResponseWriter(ResponseWriterError),
-    /// The response failed provider-neutral policy.
-    ResponsePolicy(ResponsePolicyError),
-}
-
-impl<E> fmt::Debug for PreparedExecutionError<E> {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::EndpointIdentity(error) => formatter
-                .debug_tuple("EndpointIdentity")
-                .field(error)
-                .finish(),
-            Self::EndpointMismatch => formatter.write_str("EndpointMismatch"),
-            Self::Transport(_) => formatter.write_str("Transport([redacted])"),
-            Self::ResponseWriter(error) => formatter
-                .debug_tuple("ResponseWriter")
-                .field(error)
-                .finish(),
-            Self::ResponsePolicy(error) => formatter
-                .debug_tuple("ResponsePolicy")
-                .field(error)
-                .finish(),
-        }
-    }
-}
-
-impl<E> fmt::Display for PreparedExecutionError<E> {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        formatter.write_str(match self {
-            Self::EndpointIdentity(_) => "transport endpoint identity is invalid",
-            Self::EndpointMismatch => "transport endpoint differs from prepared service",
-            Self::Transport(_) => "prepared request transport failed",
-            Self::ResponseWriter(_) => "prepared response transaction failed",
-            Self::ResponsePolicy(_) => "prepared response policy failed",
-        })
-    }
-}
-
-impl<E: fmt::Debug> core::error::Error for PreparedExecutionError<E> {}
-
-enum EndpointCheckError {
-    Invalid(EndpointIdentityError),
-    Mismatch,
-}
-
-fn map_endpoint_error<E>(error: EndpointCheckError) -> PreparedExecutionError<E> {
-    match error {
-        EndpointCheckError::Invalid(error) => PreparedExecutionError::EndpointIdentity(error),
-        EndpointCheckError::Mismatch => PreparedExecutionError::EndpointMismatch,
     }
 }

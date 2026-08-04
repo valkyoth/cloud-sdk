@@ -29,7 +29,8 @@ provider-owned contract:
    exact provider service, authentication scope, checked response policy, and
    raw wire policy.
 4. Send only after the application has reviewed credentials, operation cost,
-   timeout, retry, logging, and response-size policy.
+   timeout, retry, logging, response-size policy, and the exact plan-confirm
+   execution permit required by state-changing metadata.
 
 The provider crate covers preparation and checked typed envelope decoding for
 all 208 active operations. Resource results expose validated common identity
@@ -52,6 +53,9 @@ Before adding a transport call to a mutation example:
 - make retry behavior operation-specific and idempotency-aware;
 - cap response bodies and redact credentials, bodies, and resource IDs;
 - verify provider pricing and cleanup behavior.
+- build an exact plan-confirm fingerprint and consume the matching mutation,
+  destructive, or cost permit; direct prepared execution fails closed.
 
 See [Security Recipes](SECURITY_RECIPES.md) before connecting these models to a
-live account.
+live account, and [Execution Permits](EXECUTION_PERMITS.md) for the mandatory
+state-changing execution lifecycle.

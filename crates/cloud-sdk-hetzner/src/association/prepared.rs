@@ -11,7 +11,7 @@ use cloud_sdk::operation::{
 use cloud_sdk::transport::{BoundTransport, ResponseBuffer};
 
 use super::components::{AssociationError, BodyFor, EndpointFor, QueryFor};
-use super::policy::HetznerOperation;
+use super::policy::{HetznerOperation, ReadOnlyOperation};
 use super::validation::validate_association;
 use crate::prepared::{
     BodyWire, EndpointWire, HetznerPreparationError, NoBody, NoQuery, QueryWire,
@@ -194,6 +194,23 @@ impl<O: HetznerOperation, E, Q, B> fmt::Debug for AssociatedOperation<O, E, Q, B
 ///     decode(request);
 /// }
 /// ```
+///
+/// State-changing operations expose no direct execution method:
+///
+/// ```compile_fail
+/// use cloud_sdk::authentication::BlockingAuthenticatedTransport;
+/// use cloud_sdk::transport::BoundTransport;
+/// use cloud_sdk_hetzner::association::{Prepared, operations::CreateServer};
+///
+/// fn bypass<T>(request: Prepared<'_, CreateServer>, transport: &T)
+/// where
+///     T: BlockingAuthenticatedTransport + BoundTransport,
+/// {
+///     let mut body = [0_u8; 64];
+///     let mut headers = [0_u8; 128];
+///     let _ = request.execute_blocking(transport, &mut body, &mut headers);
+/// }
+/// ```
 #[derive(Clone, Copy)]
 pub struct Prepared<'request, O> {
     inner: PreparedRequest<'request>,
@@ -237,8 +254,10 @@ impl<'request, O: HetznerOperation> Prepared<'request, O> {
     ) -> Result<CheckedResponseGuard<'buffer>, ResponsePolicyError> {
         self.inner.validate_response(response)
     }
+}
 
-    /// Executes once through a blocking authenticated transport.
+impl<'request, O: ReadOnlyOperation> Prepared<'request, O> {
+    /// Executes one read-only operation through a blocking authenticated transport.
     pub fn execute_blocking<'buffer, T>(
         self,
         transport: &T,
@@ -252,7 +271,7 @@ impl<'request, O: HetznerOperation> Prepared<'request, O> {
             .execute_blocking(transport, response_storage, response_header_storage)
     }
 
-    /// Executes once through a `Send` asynchronous authenticated transport.
+    /// Executes one read-only operation through a `Send` asynchronous transport.
     pub async fn execute_async<'transport, 'buffer, T>(
         &'transport self,
         transport: &'transport T,
@@ -268,7 +287,7 @@ impl<'request, O: HetznerOperation> Prepared<'request, O> {
             .await
     }
 
-    /// Executes once through a local asynchronous authenticated transport.
+    /// Executes one read-only operation through a local asynchronous transport.
     pub async fn execute_local_async<'transport, 'buffer, T>(
         &'transport self,
         transport: &'transport T,

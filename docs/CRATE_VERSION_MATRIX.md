@@ -2,7 +2,8 @@
 
 Status: `v0.50.0` is tagged and published. It is the baseline for the first
 five-minor development train, whose next cumulative pentest and crates.io
-checkpoint is `v0.55.0`.
+checkpoint is `v0.55.0`. Source milestone `v0.51.0` is implementation-complete
+and awaiting its tag gate; it is not a separate crates.io publication.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
@@ -751,6 +752,20 @@ operation without changing the default dependency or feature graph.
 | `cloud-sdk-reqwest` | `0.32.2` | `0.32.3` | `dependency` | Yes | Update the core dependency without changing adapter behavior. |
 | `cloud-sdk-sanitization` | `0.17.0` | `0.17.0` | `unchanged` | No | No code, dependency, or package metadata changes. |
 | `cloud-sdk-testkit` | `0.28.1` | `0.28.2` | `dependency` | Yes | Update the core dependency without changing testkit behavior. |
+
+## v0.51.0 Tracking Table
+
+`v0.51.0` is the first internal milestone accumulated after the public
+v0.50 baseline. It adds plan-confirm execution authority without publishing a
+crate; all changed package trees remain part of the v0.55 cumulative release.
+
+| Crate | Published | Source | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.50.0` | `0.51.0` | `code` | No | Add exact plan confirmation, direct/shared permits, delivery classification, and state-changing execution enforcement. |
+| `cloud-sdk-hetzner` | `0.38.0` | `0.38.0` | `code` | No | Gate typed state-changing execution on the provider-neutral permit lifecycle. |
+| `cloud-sdk-reqwest` | `0.32.3` | `0.32.3` | `dependency` | No | Accumulate the source core dependency for v0.55 without publication. |
+| `cloud-sdk-sanitization` | `0.17.0` | `0.17.0` | `unchanged` | No | No code, dependency, or package metadata changes. |
+| `cloud-sdk-testkit` | `0.28.2` | `0.28.2` | `code` | No | Align transport-policy fixtures with read-only direct execution. |
 
 ## Planned Milestone Ownership
 

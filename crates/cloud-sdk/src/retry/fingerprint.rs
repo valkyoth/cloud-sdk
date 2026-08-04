@@ -40,7 +40,7 @@ pub enum DigestAlgorithm {
 }
 
 impl DigestAlgorithm {
-    const fn output_len(self) -> usize {
+    pub(crate) const fn output_len(self) -> usize {
         match self {
             Self::Sha256 | Self::Blake3 => 32,
             Self::Sha384 => 48,

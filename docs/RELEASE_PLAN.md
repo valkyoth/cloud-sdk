@@ -1809,7 +1809,7 @@ Stop gate: `v0.49.0 implementation stop reached. Run pentest for this exact comm
 
 ### v0.50.0 - Compile-Time Operation Associations
 
-Status: implementation complete; pentest required.
+Status: tagged and published; pentest and release gates passed.
 
 Goal: make endpoint/query/body/response mismatches unrepresentable.
 
@@ -1820,6 +1820,9 @@ Verification: compile-fail mismatch for every association, strict-schema and unk
 Stop gate: `v0.50.0 implementation stop reached. Run pentest for this exact commit.`
 
 ### v0.51.0 - Mutation, Destructive, And Cost Permits
+
+Status: release candidate; local security review passed. Tagging requires the
+clean release gate and green GitHub CI and CodeQL on the exact commit.
 
 Goal: enforce safety intent at execution.
 

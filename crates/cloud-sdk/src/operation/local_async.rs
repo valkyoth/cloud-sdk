@@ -3,6 +3,7 @@
 use super::{CheckedResponseGuard, PreparedExecutionError, PreparedRequest};
 use crate::authentication::{LocalAsyncAuthenticatedTransport, drive_local_authenticated};
 use crate::transport::{AsyncExecutionError, BoundTransport, ResponseBuffer};
+use cloud_sdk_sanitization::sanitize_bytes;
 
 impl<'request> PreparedRequest<'request> {
     /// Verifies endpoint identity, executes once on a local async transport,
@@ -12,6 +13,25 @@ impl<'request> PreparedRequest<'request> {
     /// to be `Send`. Dropping it clears the response buffer while request
     /// delivery remains conservatively possibly sent.
     pub async fn execute_local_async<'transport, 'buffer, T>(
+        &'transport self,
+        transport: &'transport T,
+        response_storage: &'buffer mut [u8],
+        response_header_storage: &'buffer mut [u8],
+    ) -> Result<CheckedResponseGuard<'buffer>, PreparedExecutionError<T::Error>>
+    where
+        T: LocalAsyncAuthenticatedTransport + BoundTransport,
+        'request: 'transport,
+    {
+        if self.requires_execution_permit() {
+            sanitize_bytes(response_storage);
+            sanitize_bytes(response_header_storage);
+            return Err(PreparedExecutionError::AuthorizationRequired);
+        }
+        self.execute_local_async_authorized(transport, response_storage, response_header_storage)
+            .await
+    }
+
+    pub(crate) async fn execute_local_async_authorized<'transport, 'buffer, T>(
         &'transport self,
         transport: &'transport T,
         response_storage: &'buffer mut [u8],

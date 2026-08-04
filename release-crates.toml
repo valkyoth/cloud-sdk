@@ -1,33 +1,33 @@
 [release]
-version = "0.50.0"
-milestone = "0.50.0"
+version = "0.51.0"
+milestone = "0.51.0"
 baseline = "0.50.0"
-cumulative_milestones = []
+cumulative_milestones = ["0.51.0"]
 policy = "independent"
-stage = "public"
+stage = "internal"
 exceptional = false
 exception_reason = ""
 
 [crates."cloud-sdk"]
-previous_version = "0.49.0"
-version = "0.50.0"
+previous_version = "0.50.0"
+version = "0.51.0"
 change = "code"
-publish = true
-reason = "Add compile-time operation identifier construction for provider associations."
+publish = false
+reason = "Add plan-confirm execution permits for mutation, destructive, and cost-bearing operations."
 
 [crates."cloud-sdk-hetzner"]
-previous_version = "0.37.0"
+previous_version = "0.38.0"
 version = "0.38.0"
 change = "code"
-publish = true
-reason = "Add exhaustive compile-time associations for all 208 active Hetzner operations."
+publish = false
+reason = "Require provider-neutral execution permits for typed state-changing operations."
 
 [crates."cloud-sdk-reqwest"]
-previous_version = "0.32.2"
+previous_version = "0.32.3"
 version = "0.32.3"
 change = "dependency"
-publish = true
-reason = "Update cloud-sdk to v0.50 without changing reqwest adapter behavior."
+publish = false
+reason = "Accumulate the cloud-sdk v0.51 dependency for the v0.55 public checkpoint."
 
 [crates."cloud-sdk-sanitization"]
 previous_version = "0.17.0"
@@ -37,8 +37,8 @@ publish = false
 reason = "No code, dependency, or package metadata changes."
 
 [crates."cloud-sdk-testkit"]
-previous_version = "0.28.1"
+previous_version = "0.28.2"
 version = "0.28.2"
-change = "dependency"
-publish = true
-reason = "Update cloud-sdk to v0.50 without changing testkit behavior."
+change = "code"
+publish = false
+reason = "Align prepared-execution fixtures with the v0.51 read-only direct-execution boundary."

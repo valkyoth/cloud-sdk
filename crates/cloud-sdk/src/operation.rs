@@ -3,6 +3,7 @@
 mod local_async;
 mod metadata;
 mod operation_id;
+mod permit;
 mod policy;
 mod prepared;
 mod storage;
@@ -12,6 +13,17 @@ pub use metadata::{
     RequestSemantics, RetryEligibility,
 };
 pub use operation_id::{OperationId, OperationIdError};
+pub use permit::{
+    AttemptBudget, AttemptBudgetError, CanonicalPlanFingerprint, CostPermit, CurrencyCode,
+    CurrencyCodeError, DestructivePermit, ExecutionPermitError, MutationPermit, PermitAttempt,
+    PermitContext, PermitContextError, PermitDisposition, PermitExecutionError,
+    PermitIdempotencyKey, PermitIdempotencyKeyError, PermitScope, PermitState, PermitTimestamp,
+    PermitValidity, PermitValidityError, PlanChange, PlanConfirmation, PlanCost, PlanCostError,
+    PlanFingerprintBuildError, PlanFingerprintDigest, PlanFingerprintRef, PlanFingerprintScope,
+    PlanSubject, ReconciliationToken, RecoveryToken, ReplayPolicy, SharedCostPermit,
+    SharedDestructivePermit, SharedMutationPermit, SharedPermitState, build_canonical_plan,
+    build_plan_digest,
+};
 pub use policy::{
     CheckedResponse, CheckedResponseGuard, ContentTypePolicy, ResponseBodyPolicy, ResponsePolicy,
     ResponsePolicyError, ResponsePolicyValidationError,

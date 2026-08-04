@@ -95,6 +95,24 @@ retain its validated action identifier, and poll the action endpoint through a
 caller-owned `PollPolicy`. Reject progress regression and stop at explicit
 timeout or cancellation limits.
 
+## State-Changing Execution Authority
+
+Direct prepared execution is read-only. Before a mutation, destructive action,
+or cost-bearing operation can reach transport, construct an exact
+`PlanConfirmation` and consume the matching permit. Confirm current state so
+`PlanChange::ChangesState` is true, bind the canonical endpoint and exact
+request, choose a short caller-observed validity interval, and include account,
+tenant, review context, attempt budget, replay policy, and any exact price
+ceiling.
+
+Use direct non-cloneable permits by default. Shared permits are appropriate
+only when callers intentionally need one atomic authority across workers; all
+clones retain the same budget and recovery generation. Generate idempotency
+identity with a CSPRNG and retain it under cleanup ownership. Never classify a
+timeout or cancellation as not sent. After uncertain delivery, perform an
+operation-specific provider read and call reconciliation only if it proves the
+attempt was not applied. See [`EXECUTION_PERMITS.md`](EXECUTION_PERMITS.md).
+
 ## Live Smoke Tests
 
 The repository smoke harness is read-only and ignored by default. Its secure

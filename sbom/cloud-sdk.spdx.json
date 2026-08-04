@@ -1,21 +1,21 @@
 {
   "SPDXID": "SPDXRef-DOCUMENT",
   "creationInfo": {
-    "created": "2026-08-03T18:56:48Z",
+    "created": "2026-08-04T08:05:32Z",
     "creators": [
       "Tool: cargo-sbom-v0.10.0",
       "Tool: cloud-sdk-complete-spdx-v1"
     ]
   },
   "dataLicense": "CC0-1.0",
-  "documentNamespace": "https://spdx.org/spdxdocs/cloud-sdk-a10b19e2-f174-48a1-90c7-ff93aff39ead",
+  "documentNamespace": "https://spdx.org/spdxdocs/cloud-sdk-76c624a6-7662-49f9-91b5-1c54b196d65a",
   "files": [
     {
       "SPDXID": "SPDXRef-File-cloud_sdk",
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "d0966c9027922d0d57608c208083c6480d753bce"
+          "checksumValue": "a27bdb168c6a2a0ba2a5553e82e112db1f5170a1"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -29,7 +29,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "d0966c9027922d0d57608c208083c6480d753bce"
+          "checksumValue": "a27bdb168c6a2a0ba2a5553e82e112db1f5170a1"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -43,7 +43,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "d0966c9027922d0d57608c208083c6480d753bce"
+          "checksumValue": "a27bdb168c6a2a0ba2a5553e82e112db1f5170a1"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -57,7 +57,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "d0966c9027922d0d57608c208083c6480d753bce"
+          "checksumValue": "a27bdb168c6a2a0ba2a5553e82e112db1f5170a1"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -71,7 +71,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "d0966c9027922d0d57608c208083c6480d753bce"
+          "checksumValue": "a27bdb168c6a2a0ba2a5553e82e112db1f5170a1"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -363,14 +363,14 @@
       ]
     },
     {
-      "SPDXID": "SPDXRef-Package-cloud-sdk-0.50.0",
+      "SPDXID": "SPDXRef-Package-cloud-sdk-0.51.0",
       "description": "no_std-first provider-neutral cloud SDK foundations.",
       "downloadLocation": "NONE",
       "homepage": "https://github.com/valkyoth/cloud-sdk",
       "licenseConcluded": "MIT OR Apache-2.0",
       "licenseDeclared": "MIT OR Apache-2.0",
       "name": "cloud-sdk",
-      "versionInfo": "0.50.0"
+      "versionInfo": "0.51.0"
     },
     {
       "SPDXID": "SPDXRef-Package-cloud-sdk-hetzner-0.38.0",
@@ -3074,7 +3074,7 @@
     {
       "spdxElementId": "SPDXRef-File-cloud_sdk",
       "relationshipType": "GENERATED_FROM",
-      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-0.50.0"
+      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-0.51.0"
     },
     {
       "spdxElementId": "SPDXRef-File-cloud_sdk_hetzner",
@@ -3322,19 +3322,19 @@
       "relatedSpdxElement": "SPDXRef-Package-libloading-0.8.9"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-0.50.0",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-0.51.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-sanitization-0.17.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-0.50.0",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-0.51.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-subtle-2.6.1"
     },
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-hetzner-0.38.0",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-0.50.0"
+      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-0.51.0"
     },
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-hetzner-0.38.0",
@@ -3389,7 +3389,7 @@
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.32.3",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-0.50.0"
+      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-0.51.0"
     },
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.32.3",
@@ -3454,7 +3454,7 @@
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-testkit-0.28.2",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-0.50.0"
+      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-0.51.0"
     },
     {
       "spdxElementId": "SPDXRef-Package-cmake-0.1.58",

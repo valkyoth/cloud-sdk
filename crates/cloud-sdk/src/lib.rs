@@ -47,7 +47,9 @@ mod tests {
         SigningContextValueError, SigningInputError, SigningOutputError, SigningValueError,
     };
     use crate::operation::{
-        OperationMetadataError, PreparedExecutionError, ResponsePolicyError,
+        AttemptBudgetError, CurrencyCodeError, ExecutionPermitError, OperationMetadataError,
+        PermitContextError, PermitExecutionError, PermitIdempotencyKeyError, PermitValidityError,
+        PlanCostError, PlanFingerprintBuildError, PreparedExecutionError, ResponsePolicyError,
         ResponsePolicyValidationError,
     };
     use crate::pagination::PaginationError;
@@ -114,6 +116,15 @@ mod tests {
         assert_error::<ResponsePolicyError>();
         assert_error::<ResponsePolicyValidationError>();
         assert_error::<PreparedExecutionError<()>>();
+        assert_error::<AttemptBudgetError>();
+        assert_error::<CurrencyCodeError>();
+        assert_error::<ExecutionPermitError>();
+        assert_error::<PermitContextError>();
+        assert_error::<PermitExecutionError<()>>();
+        assert_error::<PermitIdempotencyKeyError>();
+        assert_error::<PermitValidityError>();
+        assert_error::<PlanCostError>();
+        assert_error::<PlanFingerprintBuildError<core::convert::Infallible>>();
         assert_error::<ResponseWriterError>();
         assert_error::<AsyncExecutionError<()>>();
         assert_error::<RawResponsePolicyError>();
@@ -161,6 +172,10 @@ mod tests {
         assert_display(
             PreparedExecutionError::<()>::Transport(()),
             "prepared request transport failed",
+        );
+        assert_display(
+            PreparedExecutionError::<()>::AuthorizationRequired,
+            "state-changing request requires execution authority",
         );
         assert_display(
             ResponseWriterError::AlreadyCommitted,

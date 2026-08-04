@@ -43,6 +43,14 @@ def replace(root: Path, name: str, old: str, new: str) -> None:
     path.write_text(source.replace(old, new, 1), encoding="utf-8")
 
 
+def replace_all(root: Path, name: str, old: str, new: str) -> None:
+    path = root / checker.FILES[name]
+    source = path.read_text(encoding="utf-8")
+    if old not in source:
+        raise AssertionError(f"test mutation is stale: {name}: {old}")
+    path.write_text(source.replace(old, new), encoding="utf-8")
+
+
 def main() -> None:
     with tempfile.TemporaryDirectory() as temporary:
         root = Path(temporary)
@@ -56,7 +64,7 @@ def main() -> None:
                 "core_prepared",
                 "T: BlockingAuthenticatedTransport + BoundTransport",
                 "T: BlockingTransport + BoundTransport",
-                "missing required wire control",
+                "compatibility fallback",
             ),
             (
                 "core_prepared",
@@ -119,6 +127,17 @@ def main() -> None:
             result = run(root)
             assert result.returncode == 1, (name, result)
             assert diagnostic in result.stderr, (name, result.stderr)
+
+        stage(root)
+        replace_all(
+            root,
+            "core_prepared",
+            "T: BlockingAuthenticatedTransport + BoundTransport",
+            "T: ReplacementTransport + BoundTransport",
+        )
+        missing_authenticated = run(root)
+        assert missing_authenticated.returncode == 1, missing_authenticated
+        assert "missing required wire control" in missing_authenticated.stderr
 
         stage(root)
         operation = root / checker.FILES["provider_operation"]

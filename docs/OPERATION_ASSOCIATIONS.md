@@ -82,10 +82,14 @@ volatile cleanup alive through transport use. The lower-level
 `prepare_typed(PreparationStorage)` remains available to callers that provide
 an equivalent lifecycle and cleanup guarantee.
 
-`Prepared<O>` delegates checked response validation and blocking, Send-async,
-and local-async authenticated execution. `as_untyped` borrows the underlying
-provider-neutral request. `into_untyped` is a deliberately explicit operation
-type erasure.
+`Prepared<O>` delegates checked response validation. Direct blocking,
+Send-async, and local-async authenticated execution exists only when `O`
+implements the sealed `ReadOnlyOperation` marker generated from `NoPermit`.
+State-changing markers build a plan-confirm fingerprint and execute through a
+mutation, destructive, or cost permit. `as_untyped` borrows the underlying
+provider-neutral request, while `into_untyped` is deliberate type erasure;
+the neutral execution boundary still rejects state-changing requests without
+authority.
 
 This release associates response model families but does not add the future
 high-level client decoder. Typed resource decoding remains on the roadmap.

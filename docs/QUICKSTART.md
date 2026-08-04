@@ -229,8 +229,8 @@ trust policy, explicit read-only/mutation/destructive impact, request semantics,
 retry eligibility, cost intent, accepted statuses and media types, body shape,
 and maximum response length.
 
-`PreparedRequest::execute_blocking`, `execute_async`, and
-`execute_local_async` verify endpoint policy before sending and lend no more
+For read-only metadata, `PreparedRequest::execute_blocking`, `execute_async`,
+and `execute_local_async` verify endpoint policy before sending and lend no more
 than the policy's admitted response capacity through a sealed `ResponseWriter`.
 A cleanup-owning `ResponseBuffer`
 volatile-clears the complete caller buffer before admission and on every exit;
@@ -247,9 +247,17 @@ owned decoding clears body, temporary metadata, request identifiers, cursor or
 provider-link staging, and decoder scratch before returning. Execution never
 retries, sleeps, schedules work, or selects a clock.
 
+Mutation, destructive, and cost-bearing metadata cannot use those direct
+methods. Build a versioned exact or strong-digest `PlanConfirmation`, then
+consume a `MutationPermit`, `DestructivePermit`, or `CostPermit` attempt. The
+permit binds the complete wire request, endpoint, scope, validity, replay
+intent, caller context, and price ceiling, and fails closed after uncertain
+delivery. See [`EXECUTION_PERMITS.md`](EXECUTION_PERMITS.md).
+
 ## Continue
 
 - [Hetzner workflow examples](HETZNER_EXAMPLES.md)
 - [Security recipes](SECURITY_RECIPES.md)
+- [Plan-confirm execution permits](EXECUTION_PERMITS.md)
 - [Platform support](PLATFORM_SUPPORT.md)
 - [Live smoke testing](LIVE_SMOKE_TESTING.md)

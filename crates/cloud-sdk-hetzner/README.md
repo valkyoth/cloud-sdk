@@ -110,6 +110,13 @@ pagination, quota, retry, streaming, response/error, and permit associations.
 See the
 [operation association guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/OPERATION_ASSOCIATIONS.md).
 
+Only `NoPermit` read-only markers expose direct typed execution. Mutation,
+destructive, and cost-bearing markers must be converted to an exact
+provider-neutral plan confirmation and consumed through the corresponding
+execution permit. Explicit type erasure does not bypass this runtime boundary.
+See the
+[execution permit guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/EXECUTION_PERMITS.md).
+
 Every active operation can be converted into a bounded provider-neutral
 prepared request. This mutation example performs no network operation:
 
