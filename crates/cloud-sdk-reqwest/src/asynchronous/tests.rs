@@ -3,7 +3,6 @@ use std::time::Duration;
 use std::vec::Vec;
 
 use cloud_sdk::Method;
-use cloud_sdk::operation::PreparedExecutionError;
 use cloud_sdk::rate_limit::RateLimit;
 use cloud_sdk::transport::{
     ContentType, RequestHeader, RequestHeaders, RequestTarget, ResponseStorageSanitizer,
@@ -102,20 +101,8 @@ async fn send_test(
     output: &mut [u8],
 ) -> Result<CapturedResponse, TransportError> {
     let mut headers = [0_u8; 8192];
-    let checked = prepared(client, request)
-        .execute_async(client, output, &mut headers)
-        .await
-        .map_err(map_execution_error)?;
+    let checked = support::execute_test(client, request, output, &mut headers).await?;
     Ok(checked.with_borrowed(CapturedResponse::capture))
-}
-
-fn map_execution_error(
-    error: PreparedExecutionError<super::AuthenticatedTransportFailure>,
-) -> TransportError {
-    match error {
-        PreparedExecutionError::Transport(failure) => failure.into_error(),
-        _ => TransportError::ResponseCommitFailed,
-    }
 }
 
 #[test]

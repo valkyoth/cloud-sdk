@@ -247,8 +247,9 @@
   and uncertain delivery fail closed pending operation-specific reconciliation;
   authenticated request construction/extraction is internal, permit attempts
   expose no reusable prepared request, exact confirmed endpoints are rechecked
-  at dispatch, and caller-owned clocks enforce exclusive expiry immediately
-  before blocking transport access or on first async poll.
+  at dispatch, read-only direct execution requires both read-only metadata and
+  a `GET` or `HEAD` wire method, and caller-owned clocks enforce exclusive
+  expiry immediately before blocking transport access or on first async poll.
 - provider-generic client execution owns no queue, executor, clock, retry loop,
   or storage; each in-flight request consumes one bounded atomic slot and four
   caller-owned uniquely borrowed buffers; cancellation clears complete target,

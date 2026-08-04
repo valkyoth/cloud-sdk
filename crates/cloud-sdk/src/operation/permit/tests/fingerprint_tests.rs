@@ -23,9 +23,11 @@ fn canonical_plan_is_domain_separated_bounded_and_cleared() {
         OperationImpact::Mutation,
         CostIntent::NoKnownCost,
     ) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
-    let Some(endpoint) = endpoint() else { return };
+    let Some(endpoint) = endpoint() else {
+        unreachable!("permit security fixture construction failed")
+    };
     let Some(plan) = plan(
         request,
         endpoint,
@@ -33,12 +35,12 @@ fn canonical_plan_is_domain_separated_bounded_and_cleared() {
         200,
         ReplayPolicy::ReconcileThenRetry,
     ) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let mut output = [0xa5_u8; 4096];
     {
         let Ok(fingerprint) = build_canonical_plan(plan, &mut output) else {
-            return;
+            unreachable!("permit security fixture construction failed");
         };
         assert!(fingerprint.len() > request.transport_request().body().len());
         assert_eq!(
@@ -52,20 +54,22 @@ fn canonical_plan_is_domain_separated_bounded_and_cleared() {
 
 #[test]
 fn exact_query_bytes_change_plan_identity() {
-    let Some(endpoint) = endpoint() else { return };
+    let Some(endpoint) = endpoint() else {
+        unreachable!("permit security fixture construction failed")
+    };
     let Some(first_request) = prepared(
         "/resources?label=one",
         OperationImpact::Mutation,
         CostIntent::NoKnownCost,
     ) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let Some(second_request) = prepared(
         "/resources?label=two",
         OperationImpact::Mutation,
         CostIntent::NoKnownCost,
     ) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let Some(first_plan) = plan(
         first_request,
@@ -74,7 +78,7 @@ fn exact_query_bytes_change_plan_identity() {
         200,
         ReplayPolicy::ReconcileThenRetry,
     ) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let Some(second_plan) = plan(
         second_request,
@@ -83,33 +87,35 @@ fn exact_query_bytes_change_plan_identity() {
         200,
         ReplayPolicy::ReconcileThenRetry,
     ) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let mut first_output = [0_u8; 4096];
     let mut second_output = [0_u8; 4096];
     let Ok(first) = build_canonical_plan(first_plan, &mut first_output) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let Ok(second) = build_canonical_plan(second_plan, &mut second_output) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     assert!(!first.as_ref().matches(second.as_ref()));
 }
 
 #[test]
 fn validation_rejects_read_only_no_op_cost_mismatch_and_small_output() {
-    let Some(endpoint) = endpoint() else { return };
+    let Some(endpoint) = endpoint() else {
+        unreachable!("permit security fixture construction failed")
+    };
     let Some(read_only) = read_only("/resources") else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let Some(context) = PermitContext::new(CONTEXT).ok() else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let Some(validity) = PermitValidity::new(time(100), time(200)).ok() else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let Some(attempts) = AttemptBudget::new(1).ok() else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let read_only_plan = PlanConfirmation::new(
         read_only,
@@ -134,7 +140,7 @@ fn validation_rejects_read_only_no_op_cost_mismatch_and_small_output() {
         OperationImpact::Mutation,
         CostIntent::NoKnownCost,
     ) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let no_op = PlanConfirmation::new(
         mutation,
@@ -159,7 +165,7 @@ fn validation_rejects_read_only_no_op_cost_mismatch_and_small_output() {
         OperationImpact::Mutation,
         CostIntent::MayIncurCost,
     ) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let missing_cost = PlanConfirmation::new(
         cost_request,
@@ -186,7 +192,7 @@ fn validation_rejects_read_only_no_op_cost_mismatch_and_small_output() {
         200,
         ReplayPolicy::SingleAttempt,
     ) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let mut tiny = [0xa5_u8; 4];
     assert!(matches!(
@@ -198,29 +204,31 @@ fn validation_rejects_read_only_no_op_cost_mismatch_and_small_output() {
 
 #[test]
 fn cost_and_digest_policy_are_exact_and_cleanup_owned() {
-    let Some(endpoint) = endpoint() else { return };
+    let Some(endpoint) = endpoint() else {
+        unreachable!("permit security fixture construction failed")
+    };
     let Some(request) = prepared(
         "/resources",
         OperationImpact::Mutation,
         CostIntent::MayIncurCost,
     ) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let Some(context) = PermitContext::new(CONTEXT).ok() else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let Some(validity) = PermitValidity::new(time(100), time(200)).ok() else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let Some(attempts) = AttemptBudget::new(1).ok() else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let Some(currency) = CurrencyCode::new("EUR").ok() else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     assert!(PlanCost::new(currency, 2, 101, 100).is_err());
     let Some(cost) = PlanCost::new(currency, 2, 100, 100).ok() else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let plan = PlanConfirmation::new(
         request,
@@ -240,7 +248,7 @@ fn cost_and_digest_policy_are_exact_and_cleanup_owned() {
     {
         let Ok(fingerprint) = build_plan_digest(plan, &mut scratch, &mut digest, &TestHasher)
         else {
-            return;
+            unreachable!("permit security fixture construction failed");
         };
         assert_eq!(fingerprint.algorithm(), DigestAlgorithm::Sha256);
         assert_eq!(
@@ -255,16 +263,18 @@ fn cost_and_digest_policy_are_exact_and_cleanup_owned() {
 #[cfg(feature = "std")]
 #[test]
 fn digest_failures_and_panics_clear_all_caller_storage() {
-    let Some(endpoint) = endpoint() else { return };
+    let Some(endpoint) = endpoint() else {
+        unreachable!("permit security fixture construction failed")
+    };
     let Some(request) = prepared(
         "/resources",
         OperationImpact::Mutation,
         CostIntent::NoKnownCost,
     ) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let Some(plan) = plan(request, endpoint, CONTEXT, 200, ReplayPolicy::SingleAttempt) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let mut scratch = [0xa5_u8; 4096];
     let mut digest = [0xa5_u8; 64];

@@ -103,6 +103,10 @@ impl Method {
         self.token
     }
 
+    pub(crate) const fn permits_direct_read_only(self) -> bool {
+        token_is(self.token.as_bytes(), b"GET") || token_is(self.token.as_bytes(), b"HEAD")
+    }
+
     const fn known(token: &'static str) -> Self {
         Self { token }
     }
@@ -182,6 +186,22 @@ mod tests {
             ],
             ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"]
         );
+    }
+
+    #[test]
+    fn only_get_and_head_admit_direct_read_only_execution() {
+        assert!(Method::Get.permits_direct_read_only());
+        assert!(Method::Head.permits_direct_read_only());
+        for method in [
+            Method::Post,
+            Method::Put,
+            Method::Delete,
+            Method::Patch,
+            Method::Options,
+            PURGE,
+        ] {
+            assert!(!method.permits_direct_read_only());
+        }
     }
 
     #[test]

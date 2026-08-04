@@ -44,15 +44,17 @@ impl crate::operation::PermitClock for PanickingClock {
 
 #[test]
 fn confirmed_endpoint_is_exact_within_an_admitted_official_set() {
-    let Some(first) = endpoint() else { return };
+    let Some(first) = endpoint() else {
+        unreachable!("permit security fixture construction failed")
+    };
     let Some(second) =
         EndpointIdentity::new(EndpointScheme::Https, "api-alt.example.invalid", 443, "/v1").ok()
     else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let official = [first, second];
     let Some(policy) = EndpointPolicy::official_set(&official).ok() else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let Some(request) = prepared_with_policy(
         "/resources",
@@ -60,20 +62,20 @@ fn confirmed_endpoint_is_exact_within_an_admitted_official_set() {
         CostIntent::NoKnownCost,
         policy,
     ) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let Some(plan) = plan_for_request(request, first, 200) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let mut storage = [0_u8; 4096];
     let Ok(fingerprint) = build_canonical_plan(plan, &mut storage) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let Ok(mut permit) = MutationPermit::new(fingerprint.subject(), time(100)) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let Ok(attempt) = permit.begin(time(101)) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let transport = ClassifiedTransport::new(second, None);
     let clock = TestClock::new(102);
@@ -92,18 +94,20 @@ fn confirmed_endpoint_is_exact_within_an_admitted_official_set() {
 #[test]
 fn expiry_is_exclusive_and_rechecked_at_blocking_dispatch() {
     let Some((mut storage, plan)) = mutation_plan(110) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let Ok(fingerprint) = build_canonical_plan(plan, &mut storage) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let Ok(mut permit) = MutationPermit::new(fingerprint.subject(), time(100)) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let Ok(attempt) = permit.begin(time(109)) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
-    let Some(endpoint) = endpoint() else { return };
+    let Some(endpoint) = endpoint() else {
+        unreachable!("permit security fixture construction failed")
+    };
     let transport = ClassifiedTransport::new(endpoint, None);
     let clock = TestClock::new(110);
     let mut body = [0xa5_u8; 64];
@@ -127,18 +131,20 @@ fn expiry_is_exclusive_and_rechecked_at_blocking_dispatch() {
 #[test]
 fn send_async_samples_time_when_first_polled() {
     let Some((mut storage, plan)) = mutation_plan(110) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let Ok(fingerprint) = build_canonical_plan(plan, &mut storage) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let Ok(mut permit) = MutationPermit::new(fingerprint.subject(), time(100)) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let Ok(attempt) = permit.begin(time(109)) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
-    let Some(endpoint) = endpoint() else { return };
+    let Some(endpoint) = endpoint() else {
+        unreachable!("permit security fixture construction failed")
+    };
     let transport = ClassifiedTransport::new(endpoint, None);
     let clock = TestClock::new(109);
     let mut body = [0xa5_u8; 64];
@@ -168,18 +174,20 @@ fn send_async_samples_time_when_first_polled() {
 #[test]
 fn local_async_samples_time_when_first_polled() {
     let Some((mut storage, plan)) = mutation_plan(110) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let Ok(fingerprint) = build_canonical_plan(plan, &mut storage) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let Ok(mut permit) = MutationPermit::new(fingerprint.subject(), time(100)) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let Ok(attempt) = permit.begin(time(109)) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
-    let Some(endpoint) = endpoint() else { return };
+    let Some(endpoint) = endpoint() else {
+        unreachable!("permit security fixture construction failed")
+    };
     let transport = ClassifiedTransport::new(endpoint, None);
     let clock = TestClock::new(109);
     let mut body = [0xa5_u8; 64];
@@ -209,19 +217,21 @@ fn local_async_samples_time_when_first_polled() {
 #[test]
 fn shared_attempt_rechecks_expiry_at_dispatch() {
     let Some((mut storage, plan)) = mutation_plan(110) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let Ok(fingerprint) = build_canonical_plan(plan, &mut storage) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let mut state = SharedPermitState::new();
     let Ok(permit) = SharedMutationPermit::new(&mut state, fingerprint.subject(), time(100)) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let Ok(attempt) = permit.begin(time(109)) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
-    let Some(endpoint) = endpoint() else { return };
+    let Some(endpoint) = endpoint() else {
+        unreachable!("permit security fixture construction failed")
+    };
     let transport = ClassifiedTransport::new(endpoint, None);
     let clock = TestClock::new(110);
     let mut body = [0xa5_u8; 64];
@@ -245,18 +255,18 @@ fn shared_attempt_rechecks_expiry_at_dispatch() {
 #[test]
 fn shared_attempt_cannot_dispatch_after_another_handle_spends_its_generation() {
     let Some((mut storage, plan)) = mutation_plan(110) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let Ok(fingerprint) = build_canonical_plan(plan, &mut storage) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let mut state = SharedPermitState::new();
     let Ok(permit) = SharedMutationPermit::new(&mut state, fingerprint.subject(), time(100)) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let invalidator = permit.clone();
     let Ok(attempt) = permit.begin(time(109)) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     assert!(matches!(
         invalidator.begin(time(110)),
@@ -264,7 +274,9 @@ fn shared_attempt_cannot_dispatch_after_another_handle_spends_its_generation() {
     ));
     assert_eq!(permit.state(), PermitState::Spent);
 
-    let Some(endpoint) = endpoint() else { return };
+    let Some(endpoint) = endpoint() else {
+        unreachable!("permit security fixture construction failed")
+    };
     let transport = ClassifiedTransport::new(endpoint, None);
     let clock = TestClock::new(109);
     let mut body = [0xa5_u8; 64];
@@ -294,7 +306,7 @@ fn panicking_clock_clears_blocking_response_storage_before_unwind() {
         "mutation permit fixture must remain valid"
     );
     let Some((mut storage, plan)) = fixture else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let fingerprint = build_canonical_plan(plan, &mut storage);
     assert!(
@@ -302,21 +314,23 @@ fn panicking_clock_clears_blocking_response_storage_before_unwind() {
         "canonical security fixture must build successfully"
     );
     let Ok(fingerprint) = fingerprint else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let permit = MutationPermit::new(fingerprint.subject(), time(100));
     assert!(permit.is_ok(), "mutation permit fixture must construct");
     let Ok(mut permit) = permit else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let attempt = permit.begin(time(101));
     assert!(attempt.is_ok(), "mutation permit attempt must begin");
     let Ok(attempt) = attempt else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let endpoint = endpoint();
     assert!(endpoint.is_some(), "endpoint fixture must remain valid");
-    let Some(endpoint) = endpoint else { return };
+    let Some(endpoint) = endpoint else {
+        unreachable!("permit security fixture construction failed")
+    };
     let transport = ClassifiedTransport::new(endpoint, None);
     let mut body = [0xa5_u8; 64];
     let mut headers = [0xa5_u8; 128];
@@ -340,7 +354,7 @@ fn panicking_clock_clears_send_async_response_storage_before_unwind() {
         "mutation permit fixture must remain valid"
     );
     let Some((mut storage, plan)) = fixture else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let fingerprint = build_canonical_plan(plan, &mut storage);
     assert!(
@@ -348,21 +362,23 @@ fn panicking_clock_clears_send_async_response_storage_before_unwind() {
         "canonical security fixture must build successfully"
     );
     let Ok(fingerprint) = fingerprint else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let permit = MutationPermit::new(fingerprint.subject(), time(100));
     assert!(permit.is_ok(), "mutation permit fixture must construct");
     let Ok(mut permit) = permit else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let attempt = permit.begin(time(101));
     assert!(attempt.is_ok(), "mutation permit attempt must begin");
     let Ok(attempt) = attempt else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let endpoint = endpoint();
     assert!(endpoint.is_some(), "endpoint fixture must remain valid");
-    let Some(endpoint) = endpoint else { return };
+    let Some(endpoint) = endpoint else {
+        unreachable!("permit security fixture construction failed")
+    };
     let transport = ClassifiedTransport::new(endpoint, None);
     let mut body = [0xa5_u8; 64];
     let mut headers = [0xa5_u8; 128];
@@ -389,7 +405,7 @@ fn panicking_clock_clears_local_async_response_storage_before_unwind() {
         "mutation permit fixture must remain valid"
     );
     let Some((mut storage, plan)) = fixture else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let fingerprint = build_canonical_plan(plan, &mut storage);
     assert!(
@@ -397,21 +413,23 @@ fn panicking_clock_clears_local_async_response_storage_before_unwind() {
         "canonical security fixture must build successfully"
     );
     let Ok(fingerprint) = fingerprint else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let permit = MutationPermit::new(fingerprint.subject(), time(100));
     assert!(permit.is_ok(), "mutation permit fixture must construct");
     let Ok(mut permit) = permit else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let attempt = permit.begin(time(101));
     assert!(attempt.is_ok(), "mutation permit attempt must begin");
     let Ok(attempt) = attempt else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let endpoint = endpoint();
     assert!(endpoint.is_some(), "endpoint fixture must remain valid");
-    let Some(endpoint) = endpoint else { return };
+    let Some(endpoint) = endpoint else {
+        unreachable!("permit security fixture construction failed")
+    };
     let transport = ClassifiedTransport::new(endpoint, None);
     let mut body = [0xa5_u8; 64];
     let mut headers = [0xa5_u8; 128];

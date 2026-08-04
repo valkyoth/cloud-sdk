@@ -10,6 +10,8 @@ use crate::transport::{EndpointIdentityError, ResponseWriterError};
 pub enum PreparedRequestPolicyError {
     /// Protected or retainable request IDs were not admitted by raw transport.
     MissingRequestIdHeader,
+    /// Read-only metadata was paired with a method that can change state.
+    ReadOnlyMethodMismatch,
 }
 
 impl fmt::Display for PreparedRequestPolicyError {
@@ -18,6 +20,7 @@ impl fmt::Display for PreparedRequestPolicyError {
             Self::MissingRequestIdHeader => {
                 "prepared request ID policy requires raw x-request-id admission"
             }
+            Self::ReadOnlyMethodMismatch => "read-only operation metadata requires GET or HEAD",
         })
     }
 }

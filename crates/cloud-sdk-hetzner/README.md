@@ -114,6 +114,8 @@ Only `NoPermit` read-only markers expose direct typed execution. Mutation,
 destructive, and cost-bearing markers must be converted to an exact
 provider-neutral plan confirmation and consumed through the corresponding
 execution permit. Explicit type erasure does not bypass this runtime boundary.
+The neutral layer also requires `GET` or `HEAD` for direct read-only execution;
+all other wire methods remain permit-gated independently of provider metadata.
 See the
 [execution permit guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/EXECUTION_PERMITS.md).
 

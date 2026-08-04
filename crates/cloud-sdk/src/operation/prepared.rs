@@ -101,7 +101,9 @@ impl<'request> PreparedRequest<'request> {
     ///
     /// Returns [`PreparedRequestPolicyError::MissingRequestIdHeader`] when
     /// operation metadata protects or retains request IDs but the raw response
-    /// policy does not admit `x-request-id`.
+    /// policy does not admit `x-request-id`. Returns
+    /// [`PreparedRequestPolicyError::ReadOnlyMethodMismatch`] when read-only
+    /// metadata is paired with any method other than `GET` or `HEAD`.
     pub fn new(
         request: TransportRequest<'request>,
         service: ProviderService<'request>,
@@ -110,6 +112,11 @@ impl<'request> PreparedRequest<'request> {
         authentication_policy: AuthenticationScopePolicy<'request>,
         raw_response_policy: RawResponsePolicy<'request>,
     ) -> Result<Self, PreparedRequestPolicyError> {
+        if matches!(metadata.impact(), OperationImpact::ReadOnly)
+            && !request.method().permits_direct_read_only()
+        {
+            return Err(PreparedRequestPolicyError::ReadOnlyMethodMismatch);
+        }
         if metadata.request_id_policy() != RequestIdPolicy::Discard
             && !raw_response_policy.admits_header("x-request-id")
         {
@@ -419,7 +426,8 @@ impl<'request> PreparedRequest<'request> {
     }
 
     pub(crate) const fn requires_execution_permit(self) -> bool {
-        !matches!(self.metadata.impact(), OperationImpact::ReadOnly)
+        !self.request.method().permits_direct_read_only()
+            || !matches!(self.metadata.impact(), OperationImpact::ReadOnly)
             || matches!(self.metadata.cost_intent(), super::CostIntent::MayIncurCost)
     }
 

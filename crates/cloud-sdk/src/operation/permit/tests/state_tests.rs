@@ -35,31 +35,31 @@ fn direct_recovery_reconciliation_and_budget_are_generation_bound() {
     let Some((mut storage, plan)) =
         mutation_plan("/resources", ReplayPolicy::ReconcileThenRetry, 4, 200)
     else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let Ok(fingerprint) = build_canonical_plan(plan, &mut storage) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let subject = fingerprint.subject();
     let Ok(mut permit) = MutationPermit::new(subject, time(100)) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
 
     let Ok(first) = permit.begin(time(101)) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let PermitDisposition::Recoverable(first_token) = first.complete(DeliveryPhase::NotSent) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     assert_eq!(permit.state(), PermitState::Recoverable);
     assert!(permit.recover_not_sent(first_token, time(102)).is_ok());
 
     let Ok(second) = permit.begin(time(103)) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let PermitDisposition::Recoverable(second_token) = second.complete(DeliveryPhase::NotSent)
     else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     assert_eq!(
         permit.recover_not_sent(first_token, time(104)),
@@ -68,22 +68,22 @@ fn direct_recovery_reconciliation_and_budget_are_generation_bound() {
     assert!(permit.recover_not_sent(second_token, time(104)).is_ok());
 
     let Ok(third) = permit.begin(time(105)) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let PermitDisposition::PendingReconciliation(pending) =
         third.complete(DeliveryPhase::PossiblySent)
     else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let Ok(wrong) = PermitIdempotencyKey::new(b"fedcba9876543210fedcba9876543210") else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     assert_eq!(
         permit.reconcile_not_applied(pending, subject, wrong, time(106)),
         Err(ExecutionPermitError::IdempotencyMismatch)
     );
     let Ok(identity) = PermitIdempotencyKey::new(IDENTITY) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     assert!(
         permit
@@ -91,7 +91,7 @@ fn direct_recovery_reconciliation_and_budget_are_generation_bound() {
             .is_ok()
     );
     let Ok(last) = permit.begin(time(107)) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     assert_eq!(last.complete_applied(), PermitDisposition::Spent);
     assert_eq!(permit.state(), PermitState::Spent);
@@ -106,10 +106,10 @@ fn rollback_expiry_mismatch_scope_and_drop_fail_closed() {
     let Some((mut storage, plan)) =
         mutation_plan("/resources", ReplayPolicy::ReconcileThenRetry, 3, 110)
     else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let Ok(fingerprint) = build_canonical_plan(plan, &mut storage) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let subject = fingerprint.subject();
     assert!(matches!(
@@ -117,7 +117,7 @@ fn rollback_expiry_mismatch_scope_and_drop_fail_closed() {
         Err(ExecutionPermitError::ScopeMismatch)
     ));
     let Ok(mut permit) = MutationPermit::new(subject, time(105)) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     assert!(matches!(
         permit.begin(time(104)),
@@ -132,13 +132,13 @@ fn rollback_expiry_mismatch_scope_and_drop_fail_closed() {
     let Some((mut other_storage, other_plan)) =
         mutation_plan("/other", ReplayPolicy::ReconcileThenRetry, 3, 110)
     else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let Ok(other) = build_canonical_plan(other_plan, &mut other_storage) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let Ok(mut permit) = MutationPermit::new(subject, time(105)) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     assert!(matches!(
         permit.begin_for(other.subject(), time(106)),
@@ -146,7 +146,7 @@ fn rollback_expiry_mismatch_scope_and_drop_fail_closed() {
     ));
 
     let Ok(attempt) = permit.begin(time(106)) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     drop(attempt);
     assert_eq!(permit.state(), PermitState::PendingReconciliation);
@@ -167,14 +167,14 @@ fn shared_clones_cannot_double_spend_or_restore_dropped_authority() {
     let Some((mut storage, plan)) =
         mutation_plan("/resources", ReplayPolicy::ReconcileThenRetry, 2, 200)
     else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let Ok(fingerprint) = build_canonical_plan(plan, &mut storage) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let mut state = SharedPermitState::new();
     let Ok(first) = SharedMutationPermit::new(&mut state, fingerprint.subject(), time(100)) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let second = first.clone();
     {
@@ -189,7 +189,7 @@ fn shared_clones_cannot_double_spend_or_restore_dropped_authority() {
         let first_worker = &first;
         threads.spawn(move || {
             let Ok(attempt) = first_worker.begin(time(101)) else {
-                return;
+                unreachable!("permit security fixture construction failed");
             };
             entered_worker.wait();
             release_worker.wait();
@@ -212,9 +212,11 @@ fn erased_mutations_cannot_bypass_authority_and_buffers_are_cleared() {
         OperationImpact::Mutation,
         CostIntent::NoKnownCost,
     ) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
-    let Some(endpoint) = endpoint() else { return };
+    let Some(endpoint) = endpoint() else {
+        unreachable!("permit security fixture construction failed")
+    };
     let transport = ClassifiedTransport::new(endpoint, None);
     let mut body = [0xa5_u8; 64];
     let mut headers = [0xa5_u8; 128];
@@ -229,21 +231,23 @@ fn erased_mutations_cannot_bypass_authority_and_buffers_are_cleared() {
 
 #[test]
 fn permit_execution_maps_delivery_and_spends_success_across_modes() {
-    let Some(endpoint) = endpoint() else { return };
+    let Some(endpoint) = endpoint() else {
+        unreachable!("permit security fixture construction failed")
+    };
     let Some((mut first_storage, first_plan)) =
         mutation_plan("/resources", ReplayPolicy::RecoverNotSent, 2, 200)
     else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let Ok(first_fingerprint) = build_canonical_plan(first_plan, &mut first_storage) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let Ok(mut first_permit) = MutationPermit::new(first_fingerprint.subject(), time(100)) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let failing = ClassifiedTransport::new(endpoint, Some(DeliveryPhase::NotSent));
     let Ok(attempt) = first_permit.begin(time(101)) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let mut body = [0_u8; 64];
     let mut headers = [0_u8; 128];
@@ -258,17 +262,17 @@ fn permit_execution_maps_delivery_and_spends_success_across_modes() {
     let Some((mut second_storage, second_plan)) =
         mutation_plan("/resources", ReplayPolicy::SingleAttempt, 1, 200)
     else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let Ok(second_fingerprint) = build_canonical_plan(second_plan, &mut second_storage) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let Ok(mut second_permit) = MutationPermit::new(second_fingerprint.subject(), time(100)) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let successful = ClassifiedTransport::new(endpoint, None);
     let Ok(attempt) = second_permit.begin(time(101)) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     {
         let result = attempt.execute_blocking(&clock, &successful, &mut body, &mut headers);
@@ -279,16 +283,16 @@ fn permit_execution_maps_delivery_and_spends_success_across_modes() {
     let Some((mut async_storage, async_plan)) =
         mutation_plan("/resources", ReplayPolicy::SingleAttempt, 1, 200)
     else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let Ok(async_fingerprint) = build_canonical_plan(async_plan, &mut async_storage) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let Ok(mut async_permit) = MutationPermit::new(async_fingerprint.subject(), time(100)) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let Ok(attempt) = async_permit.begin(time(101)) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     {
         let future = attempt.execute_async(&clock, &successful, &mut body, &mut headers);
@@ -304,16 +308,16 @@ fn permit_execution_maps_delivery_and_spends_success_across_modes() {
     let Some((mut local_storage, local_plan)) =
         mutation_plan("/resources", ReplayPolicy::SingleAttempt, 1, 200)
     else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let Ok(local_fingerprint) = build_canonical_plan(local_plan, &mut local_storage) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let Ok(mut local_permit) = MutationPermit::new(local_fingerprint.subject(), time(100)) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let Ok(attempt) = local_permit.begin(time(101)) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     {
         let future = attempt.execute_local_async(&clock, &successful, &mut body, &mut headers);
@@ -367,16 +371,16 @@ fn stale_manual_recovery_token_never_rearms_spent_state() {
     let Some((mut storage, plan)) =
         mutation_plan("/resources", ReplayPolicy::RecoverNotSent, 1, 200)
     else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let Ok(fingerprint) = build_canonical_plan(plan, &mut storage) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let Ok(mut permit) = MutationPermit::new(fingerprint.subject(), time(100)) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let Ok(attempt) = permit.begin(time(101)) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     assert_eq!(
         attempt.complete(DeliveryPhase::NotSent),
@@ -393,28 +397,28 @@ fn shared_recovery_tokens_are_generation_bound() {
     let Some((mut storage, plan)) =
         mutation_plan("/resources", ReplayPolicy::RecoverNotSent, 3, 200)
     else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let Ok(fingerprint) = build_canonical_plan(plan, &mut storage) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let mut state = SharedPermitState::new();
     let Ok(permit) = SharedMutationPermit::new(&mut state, fingerprint.subject(), time(100)) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let Ok(first) = permit.begin(time(101)) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let PermitDisposition::Recoverable(first_token) = first.complete(DeliveryPhase::NotSent) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     assert!(permit.recover_not_sent(first_token, time(102)).is_ok());
     let Ok(second) = permit.begin(time(103)) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let PermitDisposition::Recoverable(second_token) = second.complete(DeliveryPhase::NotSent)
     else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     assert_eq!(
         permit.recover_not_sent(first_token, time(104)),
@@ -428,19 +432,19 @@ fn expiry_permanently_spends_recoverable_and_reconcilable_permits() {
     let Some((mut direct_storage, direct_plan)) =
         mutation_plan("/direct", ReplayPolicy::RecoverNotSent, 2, 110)
     else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let Ok(direct_fingerprint) = build_canonical_plan(direct_plan, &mut direct_storage) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let Ok(mut direct) = MutationPermit::new(direct_fingerprint.subject(), time(100)) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let Ok(attempt) = direct.begin(time(101)) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let PermitDisposition::Recoverable(recovery) = attempt.complete(DeliveryPhase::NotSent) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     assert_eq!(
         direct.recover_not_sent(recovery, time(110)),
@@ -455,26 +459,26 @@ fn expiry_permanently_spends_recoverable_and_reconcilable_permits() {
     let Some((mut shared_storage, shared_plan)) =
         mutation_plan("/shared", ReplayPolicy::ReconcileThenRetry, 2, 110)
     else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let Ok(shared_fingerprint) = build_canonical_plan(shared_plan, &mut shared_storage) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let subject = shared_fingerprint.subject();
     let mut state = SharedPermitState::new();
     let Ok(shared) = SharedMutationPermit::new(&mut state, subject, time(100)) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let Ok(attempt) = shared.begin(time(101)) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let PermitDisposition::PendingReconciliation(reconciliation) =
         attempt.complete(DeliveryPhase::PossiblySent)
     else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let Ok(identity) = PermitIdempotencyKey::new(IDENTITY) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     assert_eq!(
         shared.reconcile_not_applied(reconciliation, subject, identity, time(110)),

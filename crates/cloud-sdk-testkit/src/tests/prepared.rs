@@ -283,7 +283,7 @@ fn mock_rejects_unbound_endpoints_request_media_mismatch_and_invalid_fixture_med
     let (Ok(endpoint), Ok(target), Ok(body)) = (endpoint, target, body) else {
         return;
     };
-    let no_media_expectation = ExpectedRequest::new(Method::Post, target).with_body(b"{}");
+    let no_media_expectation = ExpectedRequest::new(Method::Get, target).with_body(b"{}");
     let exchanges = [MockExchange::new(
         no_media_expectation,
         ResponseFixture::success(body).with_content_type("application/json"),
@@ -346,7 +346,12 @@ fn build_prepared_request(
 ) -> Result<PreparedRequest<'static>, ()> {
     let target = RequestTarget::new("/servers").map_err(|_| ())?;
     let headers = RequestHeaders::new(&JSON_REQUEST_HEADERS).map_err(|_| ())?;
-    let request = TransportRequest::new(Method::Post, target)
+    let method = if matches!(impact, OperationImpact::ReadOnly) {
+        Method::Get
+    } else {
+        Method::Post
+    };
+    let request = TransportRequest::new(method, target)
         .with_body(b"{}")
         .with_headers(headers);
     let metadata =
@@ -393,7 +398,7 @@ fn build_prepared_request(
 fn expected_request() -> Result<ExpectedRequest<'static>, ()> {
     let target = RequestTarget::new("/servers").map_err(|_| ())?;
     let headers = RequestHeaders::new(&JSON_REQUEST_HEADERS).map_err(|_| ())?;
-    Ok(ExpectedRequest::new(Method::Post, target)
+    Ok(ExpectedRequest::new(Method::Get, target)
         .with_body(b"{}")
         .with_headers(headers))
 }

@@ -15,9 +15,11 @@ fn every_confirmation_policy_field_is_independently_domain_separated() {
         OperationImpact::Mutation,
         CostIntent::NoKnownCost,
     ) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
-    let Some(endpoint) = endpoint() else { return };
+    let Some(endpoint) = endpoint() else {
+        unreachable!("permit security fixture construction failed")
+    };
     let Some(base) = confirmation(
         request,
         endpoint,
@@ -30,7 +32,7 @@ fn every_confirmation_policy_field_is_independently_domain_separated() {
         3,
         Some(FIRST_ID),
     ) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let variants = [
         confirmation(
@@ -131,7 +133,9 @@ fn every_confirmation_policy_field_is_independently_domain_separated() {
         ),
     ];
     for variant in variants {
-        let Some(variant) = variant else { return };
+        let Some(variant) = variant else {
+            unreachable!("permit security fixture construction failed")
+        };
         assert!(different(base, variant));
     }
 }
@@ -143,20 +147,22 @@ fn every_cost_field_is_independently_domain_separated() {
         OperationImpact::Mutation,
         CostIntent::MayIncurCost,
     ) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
-    let Some(endpoint) = endpoint() else { return };
+    let Some(endpoint) = endpoint() else {
+        unreachable!("permit security fixture construction failed")
+    };
     let Some(eur) = CurrencyCode::new("EUR").ok() else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let Some(usd) = CurrencyCode::new("USD").ok() else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let Some(base_cost) = PlanCost::new(eur, 2, 100, 200).ok() else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     let Some(base) = cost_confirmation(request, endpoint, base_cost) else {
-        return;
+        unreachable!("permit security fixture construction failed");
     };
     for cost in [
         PlanCost::new(usd, 2, 100, 200),
@@ -164,9 +170,11 @@ fn every_cost_field_is_independently_domain_separated() {
         PlanCost::new(eur, 2, 101, 200),
         PlanCost::new(eur, 2, 100, 201),
     ] {
-        let Some(cost) = cost.ok() else { return };
+        let Some(cost) = cost.ok() else {
+            unreachable!("permit security fixture construction failed")
+        };
         let Some(variant) = cost_confirmation(request, endpoint, cost) else {
-            return;
+            unreachable!("permit security fixture construction failed");
         };
         assert!(different(base, variant));
     }

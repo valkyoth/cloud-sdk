@@ -524,6 +524,9 @@ destructive, and cost-bearing operations require a non-copyable
 plan-confirm permit bound to the exact request, endpoint, account/tenant,
 expiry, replay policy, and any observed price ceiling. See
 [Plan-Confirm Execution Permits](https://github.com/valkyoth/cloud-sdk/blob/main/docs/EXECUTION_PERMITS.md).
+Direct read-only execution additionally requires `GET` or `HEAD`; contradictory
+read-only metadata is rejected during preparation and cannot bypass the method
+check through type erasure.
 
 Use `PreparationStorageGuard` when request buffers may contain secrets. The
 prepared request borrows the guard, so safe Rust keeps cleanup ownership alive

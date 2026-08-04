@@ -81,3 +81,63 @@ fn non_discarded_request_ids_require_raw_header_admission() -> Result<(), &'stat
     }
     Ok(())
 }
+
+#[test]
+fn read_only_metadata_rejects_methods_that_can_change_state() -> Result<(), &'static str> {
+    let target = RequestTarget::new("/servers/critical").map_err(|_| "target")?;
+    let endpoint = EndpointIdentity::new(EndpointScheme::Https, "api.example.invalid", 443, "/v1")
+        .map_err(|_| "endpoint")?;
+    let response = ResponsePolicy::new(
+        &OK,
+        ContentTypePolicy::Required(&JSON),
+        ResponseBodyPolicy::Required,
+        16,
+    )
+    .map_err(|_| "response")?;
+    let metadata = OperationMetadata::new(
+        OperationImpact::ReadOnly,
+        RequestSemantics::Safe,
+        RetryEligibility::ExplicitPolicy,
+        CostIntent::NoKnownCost,
+        RequestIdPolicy::Discard,
+    )
+    .map_err(|_| "metadata")?;
+    let authentication = AuthenticationScopePolicy::new(
+        ScopeRequirement::Required(TestProvider::ID),
+        ScopeRequirement::Required(TestService::ID),
+        ScopeRequirement::Required(endpoint),
+        ScopeRequirement::Forbidden,
+        ScopeRequirement::Forbidden,
+        ScopeRequirement::Forbidden,
+    );
+    let raw = RawResponsePolicy::new(
+        16,
+        16,
+        ResponseMediaPolicy::Required(&JSON),
+        ResponseMediaPolicy::Required(&JSON),
+        &[],
+        8,
+    )
+    .map_err(|_| "raw")?;
+
+    for method in [
+        Method::Post,
+        Method::Put,
+        Method::Patch,
+        Method::Delete,
+        Method::Options,
+    ] {
+        assert!(matches!(
+            PreparedRequest::new(
+                TransportRequest::new(method, target),
+                ProviderService::from_marker::<TestService>(EndpointPolicy::fixed(endpoint)),
+                metadata,
+                response,
+                authentication,
+                raw,
+            ),
+            Err(PreparedRequestPolicyError::ReadOnlyMethodMismatch)
+        ));
+    }
+    Ok(())
+}

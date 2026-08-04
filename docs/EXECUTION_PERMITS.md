@@ -2,8 +2,10 @@
 
 `cloud-sdk` requires explicit execution authority for every prepared request
 whose metadata is mutating, destructive, or cost-bearing. Read-only requests
-retain direct blocking, Send-async, and local-async execution. Type erasure
-does not bypass the neutral runtime check.
+retain direct blocking, Send-async, and local-async execution only when their
+wire method is `GET` or `HEAD`. Read-only metadata paired with another method
+is rejected during preparation, and dispatch independently treats every other
+method as permit-requiring. Type erasure does not bypass either neutral check.
 
 ## Security Purpose
 
@@ -106,8 +108,9 @@ extends validity.
 `AuthenticatedRequest` construction and prepared-request extraction are
 internal capabilities. `PermitAttempt` exposes no reusable prepared request.
 Downstream code can inspect non-secret prepared metadata, but authenticated
-dispatch must enter through checked read-only execution or a consuming permit
-attempt.
+dispatch must enter through checked `GET`/`HEAD` read-only execution or a
+consuming permit attempt. Provider-defined metadata cannot authorize direct
+execution of `POST`, `PUT`, `PATCH`, `DELETE`, `OPTIONS`, or extension methods.
 
 ## Cost Authority
 

@@ -42,6 +42,9 @@ for sealed read-only `NoPermit` operation markers. Mutation, destructive, and
 cost markers retain response validation and explicit access to the neutral
 prepared request, but state-changing execution requires the neutral permit.
 Explicit `into_untyped` erasure does not restore direct execution.
+The provider-neutral constructor also rejects read-only metadata for methods
+other than `GET` and `HEAD`, and dispatch independently permit-gates every
+other method.
 
 ## Transport Errors
 

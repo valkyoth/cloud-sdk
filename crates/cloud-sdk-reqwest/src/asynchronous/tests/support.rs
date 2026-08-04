@@ -1,8 +1,10 @@
 use cloud_sdk::authentication::{AuthenticationScopePolicy, ScopeRequirement};
 use cloud_sdk::operation::{
-    ContentTypePolicy, CostIntent, OperationImpact, OperationMetadata, PreparedRequest,
-    ProviderService, RequestIdPolicy, RequestSemantics, ResponseBodyPolicy, ResponsePolicy,
-    RetryEligibility,
+    AttemptBudget, CheckedResponseGuard, ContentTypePolicy, CostIntent, MutationPermit,
+    OperationImpact, OperationMetadata, PermitClock, PermitContext, PermitTimestamp,
+    PermitValidity, PlanChange, PlanConfirmation, PlanFingerprintScope, PreparedExecutionError,
+    PreparedRequest, ProviderService, ReplayPolicy, RequestIdPolicy, RequestSemantics,
+    ResponseBodyPolicy, ResponsePolicy, RetryEligibility, build_canonical_plan,
 };
 use cloud_sdk::transport::{
     BoundTransport, EndpointIdentity, EndpointPolicy, HeaderName, MediaType, RawResponsePolicy,
@@ -11,6 +13,7 @@ use cloud_sdk::transport::{
 
 use super::super::{
     AsyncClient, BearerCredential, BearerCredentialScope, BearerToken, HttpsEndpoint,
+    TransportError,
 };
 
 pub(super) fn test_credential(token: BearerToken, endpoint: &HttpsEndpoint) -> BearerCredential {
@@ -47,9 +50,18 @@ pub(super) fn prepared_with_policy<'request>(
     service: ProviderService<'request>,
     authentication: AuthenticationScopePolicy<'request>,
 ) -> PreparedRequest<'request> {
+    let direct = matches!(request.method().as_str(), "GET" | "HEAD");
     let metadata = OperationMetadata::new(
-        OperationImpact::ReadOnly,
-        RequestSemantics::Safe,
+        if direct {
+            OperationImpact::ReadOnly
+        } else {
+            OperationImpact::Mutation
+        },
+        if direct {
+            RequestSemantics::Safe
+        } else {
+            RequestSemantics::NonIdempotent
+        },
         RetryEligibility::Never,
         CostIntent::NoKnownCost,
         RequestIdPolicy::Discard,
@@ -71,6 +83,78 @@ pub(super) fn prepared_with_policy<'request>(
         test_raw_response_policy(),
     )
     .unwrap_or_else(|_| unreachable!())
+    .with_operation_id(cloud_sdk::operation_id!("reqwest_transport_test"))
+}
+
+pub(super) async fn execute_test<'request, 'buffer>(
+    client: &'request AsyncClient,
+    request: TransportRequest<'request>,
+    output: &'buffer mut [u8],
+    headers: &'buffer mut [u8],
+) -> Result<CheckedResponseGuard<'buffer>, TransportError> {
+    let direct = matches!(request.method().as_str(), "GET" | "HEAD");
+    let prepared = prepared(client, request);
+    if direct {
+        return prepared
+            .execute_async(client, output, headers)
+            .await
+            .map_err(map_execution_error);
+    }
+
+    let endpoint = client
+        .endpoint_identity()
+        .map_err(|_| TransportError::ResponseCommitFailed)?;
+    let plan = PlanConfirmation::new(
+        prepared,
+        endpoint,
+        PlanFingerprintScope::Value(b"test-account"),
+        PlanFingerprintScope::Absent,
+        PermitContext::new(b"reqwest transport test")
+            .map_err(|_| TransportError::ResponseCommitFailed)?,
+        PermitValidity::new(time(100), time(200))
+            .map_err(|_| TransportError::ResponseCommitFailed)?,
+        ReplayPolicy::SingleAttempt,
+        AttemptBudget::new(1).map_err(|_| TransportError::ResponseCommitFailed)?,
+        PlanChange::ChangesState,
+        None,
+        None,
+    );
+    let mut fingerprint_storage = [0_u8; 32_768];
+    let fingerprint = build_canonical_plan(plan, &mut fingerprint_storage)
+        .map_err(|_| TransportError::ResponseCommitFailed)?;
+    let mut permit = MutationPermit::new(fingerprint.subject(), time(100))
+        .map_err(|_| TransportError::ResponseCommitFailed)?;
+    let attempt = permit
+        .begin(time(101))
+        .map_err(|_| TransportError::ResponseCommitFailed)?;
+    attempt
+        .execute_async(&FixedClock, client, output, headers)
+        .await
+        .map_err(|error| match error.execution() {
+            PreparedExecutionError::Transport(failure) => *failure.error(),
+            _ => TransportError::ResponseCommitFailed,
+        })
+}
+
+fn map_execution_error(
+    error: PreparedExecutionError<super::super::AuthenticatedTransportFailure>,
+) -> TransportError {
+    match error {
+        PreparedExecutionError::Transport(failure) => failure.into_error(),
+        _ => TransportError::ResponseCommitFailed,
+    }
+}
+
+struct FixedClock;
+
+impl PermitClock for FixedClock {
+    fn now(&self) -> PermitTimestamp {
+        time(102)
+    }
+}
+
+const fn time(value: u64) -> PermitTimestamp {
+    PermitTimestamp::from_seconds(value)
 }
 
 pub(super) fn test_raw_response_policy() -> RawResponsePolicy<'static> {

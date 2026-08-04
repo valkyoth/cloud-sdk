@@ -2,9 +2,11 @@ use std::{string::String, vec::Vec};
 
 use cloud_sdk::authentication::{AuthenticationScopePolicy, ScopeRequirement};
 use cloud_sdk::operation::{
-    ContentTypePolicy, CostIntent, OperationImpact, OperationMetadata, PreparedExecutionError,
-    PreparedRequest, ProviderService, RequestIdPolicy, RequestSemantics, ResponseBodyPolicy,
-    ResponsePolicy, RetryEligibility,
+    AttemptBudget, ContentTypePolicy, CostIntent, MutationPermit, OperationImpact,
+    OperationMetadata, PermitClock, PermitContext, PermitTimestamp, PermitValidity, PlanChange,
+    PlanConfirmation, PlanFingerprintScope, PreparedExecutionError, PreparedRequest,
+    ProviderService, ReplayPolicy, RequestIdPolicy, RequestSemantics, ResponseBodyPolicy,
+    ResponsePolicy, RetryEligibility, build_canonical_plan,
 };
 use cloud_sdk::rate_limit::RateLimit;
 use cloud_sdk::transport::{
@@ -51,9 +53,18 @@ pub(super) fn prepared_with_policy<'request>(
     service: ProviderService<'request>,
     authentication: AuthenticationScopePolicy<'request>,
 ) -> PreparedRequest<'request> {
+    let direct = matches!(request.method().as_str(), "GET" | "HEAD");
     let metadata = OperationMetadata::new(
-        OperationImpact::ReadOnly,
-        RequestSemantics::Safe,
+        if direct {
+            OperationImpact::ReadOnly
+        } else {
+            OperationImpact::Mutation
+        },
+        if direct {
+            RequestSemantics::Safe
+        } else {
+            RequestSemantics::NonIdempotent
+        },
         RetryEligibility::Never,
         CostIntent::NoKnownCost,
         RequestIdPolicy::Discard,
@@ -75,6 +86,7 @@ pub(super) fn prepared_with_policy<'request>(
         test_raw_response_policy(),
     )
     .unwrap_or_else(|_| unreachable!())
+    .with_operation_id(cloud_sdk::operation_id!("reqwest_transport_test"))
 }
 
 pub(super) fn test_raw_response_policy() -> RawResponsePolicy<'static> {
@@ -151,10 +163,68 @@ pub(super) fn send_test(
     output: &mut [u8],
 ) -> Result<CapturedResponse, TransportError> {
     let mut headers = [0_u8; 8192];
-    let checked = prepared(client, request)
-        .execute_blocking(client, output, &mut headers)
-        .map_err(map_execution_error)?;
+    let direct = matches!(request.method().as_str(), "GET" | "HEAD");
+    let prepared = prepared(client, request);
+    let checked = if direct {
+        prepared
+            .execute_blocking(client, output, &mut headers)
+            .map_err(map_execution_error)?
+    } else {
+        execute_mutation(client, prepared, output, &mut headers)?
+    };
     Ok(checked.with_borrowed(CapturedResponse::capture))
+}
+
+fn execute_mutation<'buffer>(
+    client: &BlockingClient,
+    prepared: PreparedRequest<'_>,
+    output: &'buffer mut [u8],
+    headers: &'buffer mut [u8],
+) -> Result<cloud_sdk::operation::CheckedResponseGuard<'buffer>, TransportError> {
+    let endpoint = client
+        .endpoint_identity()
+        .map_err(|_| TransportError::ResponseCommitFailed)?;
+    let plan = PlanConfirmation::new(
+        prepared,
+        endpoint,
+        PlanFingerprintScope::Value(b"test-account"),
+        PlanFingerprintScope::Absent,
+        PermitContext::new(b"reqwest transport test")
+            .map_err(|_| TransportError::ResponseCommitFailed)?,
+        PermitValidity::new(time(100), time(200))
+            .map_err(|_| TransportError::ResponseCommitFailed)?,
+        ReplayPolicy::SingleAttempt,
+        AttemptBudget::new(1).map_err(|_| TransportError::ResponseCommitFailed)?,
+        PlanChange::ChangesState,
+        None,
+        None,
+    );
+    let mut fingerprint_storage = [0_u8; 32_768];
+    let fingerprint = build_canonical_plan(plan, &mut fingerprint_storage)
+        .map_err(|_| TransportError::ResponseCommitFailed)?;
+    let mut permit = MutationPermit::new(fingerprint.subject(), time(100))
+        .map_err(|_| TransportError::ResponseCommitFailed)?;
+    let attempt = permit
+        .begin(time(101))
+        .map_err(|_| TransportError::ResponseCommitFailed)?;
+    attempt
+        .execute_blocking(&FixedClock, client, output, headers)
+        .map_err(|error| match error.execution() {
+            PreparedExecutionError::Transport(failure) => *failure.error(),
+            _ => TransportError::ResponseCommitFailed,
+        })
+}
+
+struct FixedClock;
+
+impl PermitClock for FixedClock {
+    fn now(&self) -> PermitTimestamp {
+        time(102)
+    }
+}
+
+const fn time(value: u64) -> PermitTimestamp {
+    PermitTimestamp::from_seconds(value)
 }
 
 fn map_execution_error(
