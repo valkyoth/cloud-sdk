@@ -14,11 +14,12 @@ def _index(rows: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
 
 def _field_paths(old: Any, new: Any, prefix: str = "") -> list[str]:
     if type(old) is not type(new):
-        return [prefix or "value"]
+        return [prefix]
     if isinstance(old, dict):
         paths: list[str] = []
         for key in sorted(set(old) | set(new)):
-            path = f"{prefix}.{key}" if prefix else key
+            segment = key.replace("~", "~0").replace("/", "~1")
+            path = f"{prefix}/{segment}"
             if key not in old or key not in new:
                 paths.append(path)
             else:
@@ -27,8 +28,8 @@ def _field_paths(old: Any, new: Any, prefix: str = "") -> list[str]:
     if isinstance(old, list):
         if old == new:
             return []
-        return [prefix or "value"]
-    return [] if old == new else [prefix or "value"]
+        return [prefix]
+    return [] if old == new else [prefix]
 
 
 def _contract_changes(
@@ -45,12 +46,12 @@ def _contract_changes(
         for row_id in sorted(set(expected) | set(current)):
             if row_id not in expected:
                 kind = "added"
-                fields = ["row"]
+                fields = [""]
                 old_digest = None
                 new_digest = canonical_sha256(current[row_id]["values"])
             elif row_id not in current:
                 kind = "removed"
-                fields = ["row"]
+                fields = [""]
                 old_digest = canonical_sha256(expected[row_id]["values"])
                 new_digest = None
             else:
@@ -87,12 +88,12 @@ def _source_changes(
     for source_id in sorted(set(expected) | set(current)):
         if source_id not in expected:
             kind = "added"
-            fields = ["source"]
+            fields = [""]
             old_digest = None
             new_digest = canonical_sha256(current[source_id])
         elif source_id not in current:
             kind = "removed"
-            fields = ["source"]
+            fields = [""]
             old_digest = canonical_sha256(expected[source_id])
             new_digest = None
         else:
@@ -126,7 +127,7 @@ def build_report(
             identity_changes.append(
                 {
                     "category": "identity",
-                    "fields": [field],
+                    "fields": [f"/{field}"],
                     "id": field,
                     "kind": "changed",
                     "new_sha256": canonical_sha256(observation[field]),

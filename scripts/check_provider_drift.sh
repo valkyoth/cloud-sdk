@@ -4,6 +4,7 @@ set -eu
 scripts/test-provider-drift-model.py
 scripts/test-provider-drift-fetch.py
 scripts/test-provider-drift-report.py
+scripts/test-provider-drift-check.py
 scripts/test-hetzner-provider-drift-bridge.py
 scripts/check_hetzner_provider_drift_bridge.py
 

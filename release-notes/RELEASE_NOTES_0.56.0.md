@@ -24,17 +24,23 @@ the v0.60.0 checkpoint.
 - Added strict, bounded plugin, provider-lock, and observation documents.
 - Covered authentication, cost, endpoints, headers, idempotency, operations,
   pagination, retry, and schema evidence.
-- Added deterministic field-level reports containing hashes and paths rather
-  than source or normalized values.
+- Added deterministic field-level reports containing hashes and RFC 6901 JSON
+  pointers rather than source or normalized values.
 - Added explicit security, provider, and release owners plus per-category
   add/change/remove severity.
 
 ## Source Retrieval
 
-- Requires exact credential-free HTTPS URLs and platform TLS verification.
+- Requires hard-coded provider/source endpoint approval, globally routable DNS
+  results, exact credential-free HTTPS URLs, and platform TLS verification.
+- Disables ambient proxy configuration and documents the required egress
+  control against DNS rebinding on high-assurance release hosts.
 - Rejects redirects before following them and validates the final URL.
-- Enforces per-source byte and total-time limits.
-- Authenticates every complete response before invoking an adapter.
+- Enforces per-source byte/read-time limits and a killable 180-second
+  whole-plan deadline.
+- Authenticates every complete response before invoking a hard-coded reviewed
+  adapter, derives live evidence from those bytes, and independently requires
+  the result to match the tracked observation.
 
 ## Release Process
 
@@ -42,6 +48,8 @@ the v0.60.0 checkpoint.
 - Retained five-minor crates.io publication checkpoints; v0.60.0 is next.
 - Added an immediate `review_baseline` distinct from the public package
   baseline and fail-closed readiness tests for both release stages.
+- Requires exactly one value for every release-note and pentest evidence field,
+  rejecting duplicated or contradictory security status.
 
 ## Versions
 

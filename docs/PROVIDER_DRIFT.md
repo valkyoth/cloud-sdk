@@ -15,19 +15,31 @@ version, and the complete canonical category list. Provider-specific adapters
 are repository-reviewed scripts selected explicitly by a release gate; a
 provider manifest cannot select a command, import a module, or execute code.
 
-Adapters may receive remote source bytes only through
-`provider_drift_fetch.with_verified_sources`. It:
+Adapters may receive remote source bytes only after
+`provider_drift_fetch.fetch_verified_sources` returns successfully. The
+fetcher and `check_provider_drift.py` together:
 
-- requests exact credential-free HTTPS URLs with the validating platform TLS
-  context;
+- permits only provider/source endpoints present in a hard-coded reviewed
+  registry and rejects DNS results containing any non-global address;
+- ignores ambient proxy variables and requests exact credential-free HTTPS
+  URLs with the validating platform TLS context;
 - refuses every redirect before constructing a follow-up request;
-- checks the final URL, per-source byte bound, total read time, and SHA-256;
-- invokes the adapter only after every source authenticates; and
+- checks the final URL, per-source byte bound, per-read time, whole-plan hard
+  deadline, and SHA-256 in a killable worker process;
+- invokes a hard-coded reviewed adapter only after every source authenticates;
+- derives the live observation from fetched bytes and requires it to equal the
+  separately tracked observation before comparison with the lock; and
 - never puts source content into errors or canonical drift output.
 
 This authenticates a reviewed source snapshot. It does not establish that a
 provider account, TLS environment, workstation, or upstream publisher is
 trustworthy.
+
+DNS is checked before opening the TLS connection, but application-level DNS
+validation cannot by itself eliminate rebinding between resolution and
+connection. Release hosts must enforce egress policy so approved provider
+names cannot route to loopback, link-local, private, metadata, or internal
+destinations after validation.
 
 ## Documents
 
@@ -59,7 +71,7 @@ backslashes, uppercase authorities, and an explicitly redundant port 443.
 one compact JSON line. Changes contain only:
 
 - category, row identifier, and add/change/remove kind;
-- changed normalized field paths;
+- changed normalized field paths as unambiguous RFC 6901 JSON pointers;
 - old and new canonical SHA-256 values;
 - explicit owner and compatibility severity.
 

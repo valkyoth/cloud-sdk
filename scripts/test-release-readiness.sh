@@ -232,6 +232,28 @@ repo="$(make_fixture wrong-assessment 0.56.0 internal 0.55.0)"
         scripts/validate-release-readiness.sh v0.56.0
 )
 
+repo="$(make_fixture conflicting-notes 0.56.0 internal 0.55.0)"
+(
+    cd "$repo"
+    stage_candidate 0.56.0 0.55.0 internal v0.60.0
+    printf 'Pentest: REQUIRED\n' >>release-notes/RELEASE_NOTES_0.56.0.md
+    git add release-notes
+    git commit -q -m conflict
+    assert_fails_with "exactly one Pentest field" \
+        scripts/validate-release-readiness.sh v0.56.0
+)
+
+repo="$(make_fixture conflicting-report 0.56.0 internal 0.55.0)"
+(
+    cd "$repo"
+    stage_candidate 0.56.0 0.55.0 internal v0.60.0
+    printf 'Status: FAIL\n' >>security/pentest/v0.56.0.md
+    git add security
+    git commit -q -m conflict
+    assert_fails_with "exactly one Status field" \
+        scripts/validate-release-readiness.sh v0.56.0
+)
+
 repo="$(make_fixture wrong-baseline 0.56.0 internal 0.55.0)"
 (
     cd "$repo"
@@ -259,4 +281,4 @@ repo="$(make_fixture targeted 0.57.0 internal 0.55.0 true)"
     scripts/validate-release-readiness.sh v0.57.0
 )
 
-echo "14 staged release readiness tests passed."
+echo "16 staged release readiness tests passed."

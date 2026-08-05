@@ -54,7 +54,7 @@ def test_changes_are_field_level_owned_and_payload_free() -> None:
     assert len(report["changes"]) == 1
     change = report["changes"][0]
     assert change["category"] == "operations"
-    assert change["fields"] == ["path"]
+    assert change["fields"] == ["/path"]
     assert change["owner"] == "hetzner-maintainers"
     assert change["severity"] == "blocking"
     assert hostile.encode("ascii") not in canonical_bytes(report)
@@ -65,7 +65,7 @@ def test_source_digest_rotation_is_security_owned_and_blocking() -> None:
     observation["sources"][0]["sha256"] = "f" * 64
     change = build_report(lock, observation)["changes"][0]
     assert change["category"] == "sources"
-    assert change["fields"] == ["sha256"]
+    assert change["fields"] == ["/sha256"]
     assert change["owner"] == "security-maintainers"
     assert change["severity"] == "blocking"
 
@@ -91,6 +91,20 @@ def test_plugin_or_provider_substitution_is_blocking() -> None:
     changes = build_report(lock, observation)["changes"]
     assert [change["id"] for change in changes] == ["plugin", "provider"]
     assert all(change["severity"] == "blocking" for change in changes)
+
+
+def test_changed_fields_are_unambiguous_rfc6901_pointers() -> None:
+    lock, observation = fixtures()
+    expected = lock["contracts"]["operations"][0]["values"]
+    values = observation["contracts"]["operations"][0]["values"]
+    expected["a.b"] = "old-flat"
+    values["a.b"] = "flat"
+    expected["a"] = {"b": "old-nested"}
+    values["a"] = {"b": "nested"}
+    expected["a/b~c"] = "old-escaped"
+    values["a/b~c"] = "escaped"
+    fields = build_report(lock, observation)["changes"][0]["fields"]
+    assert fields == ["/a/b", "/a.b", "/a~1b~0c"]
 
 
 def main() -> None:

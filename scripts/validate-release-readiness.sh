@@ -6,6 +6,15 @@ fail() {
     exit 1
 }
 
+unique_field() {
+    field_file="$1"
+    field_name="$2"
+    count="$(grep -Ec "^${field_name}:" "$field_file" || true)"
+    test "$count" -eq 1 ||
+        fail "${field_file} must contain exactly one ${field_name} field"
+    sed -n "s/^${field_name}: //p" "$field_file"
+}
+
 tag="${1:-}"
 case "$tag" in
 v[0-9]*.[0-9]*.[0-9]*) ;;
@@ -61,34 +70,44 @@ checkpoint="$(
         'import sys; minor = int(sys.argv[1].split(".")[1]); nxt = ((minor // 5) + 1) * 5; print("v1.0.0" if nxt >= 100 else f"v0.{nxt}.0")' \
         "$version"
 )"
-grep -Fxq 'Security-Review: PASS' "$release_notes" ||
+security_review="$(unique_field "$release_notes" Security-Review)"
+test "$security_review" = PASS ||
     fail "release notes must record Security-Review: PASS"
-grep -Fxq 'Pentest: PASS' "$release_notes" ||
+pentest_status="$(unique_field "$release_notes" Pentest)"
+test "$pentest_status" = PASS ||
     fail "release notes must record Pentest: PASS"
+publication="$(unique_field "$release_notes" Publication)"
 if [ "$stage" = "internal" ]; then
-    grep -Fxq "Publication: DEFERRED TO ${checkpoint}" "$release_notes" ||
+    test "$publication" = "DEFERRED TO ${checkpoint}" ||
         fail "internal release notes must defer publication to ${checkpoint}"
 else
-    grep -Fxq 'Publication: PENDING' "$release_notes" ||
+    test "$publication" = PENDING ||
         fail "public release notes must record Publication: PENDING"
 fi
 test -f "$pentest_report" || fail "missing pentest report: ${pentest_report}"
 git cat-file -e "HEAD:${pentest_report}" 2>/dev/null ||
     fail "pentest report must be committed in tag candidate: ${pentest_report}"
-grep -q '^Status: PASS$' "$pentest_report" || fail "pentest status must be PASS"
-grep -Eq '^Reviewed-Commit: [0-9a-f]{40}$' "$pentest_report" ||
+status_field="$(unique_field "$pentest_report" Status)"
+test "$status_field" = PASS || fail "pentest status must be PASS"
+assessment="$(unique_field "$pentest_report" Assessment)"
+report_baseline="$(unique_field "$pentest_report" Baseline)"
+range_end="$(unique_field "$pentest_report" Range-End)"
+reviewed_commit="$(unique_field "$pentest_report" Reviewed-Commit)"
+tester="$(unique_field "$pentest_report" Tester)"
+scope="$(unique_field "$pentest_report" Scope)"
+report_date="$(unique_field "$pentest_report" Date)"
+printf '%s\n' "$reviewed_commit" | grep -Eq '^[0-9a-f]{40}$' ||
     fail "pentest report requires Reviewed-Commit"
-grep -Eq '^Tester: .+' "$pentest_report" || fail "pentest report requires Tester"
-grep -Eq '^Scope: .+' "$pentest_report" || fail "pentest report requires Scope"
-grep -Eq '^Date: [0-9]{4}-[0-9]{2}-[0-9]{2}$' "$pentest_report" ||
+test -n "$tester" || fail "pentest report requires Tester"
+test -n "$scope" || fail "pentest report requires Scope"
+printf '%s\n' "$report_date" | grep -Eq '^[0-9]{4}-[0-9]{2}-[0-9]{2}$' ||
     fail "pentest report requires Date"
 
 if [ "$review_baseline" != "$version" ]; then
-    grep -Fxq "Baseline: v${review_baseline}" "$pentest_report" ||
+    test "$report_baseline" = "v${review_baseline}" ||
         fail "pentest report baseline must be v${review_baseline}"
-    grep -Fxq "Range-End: ${tag}" "$pentest_report" ||
+    test "$range_end" = "$tag" ||
         fail "pentest report range end must be ${tag}"
-    assessment="$(sed -n 's/^Assessment: //p' "$pentest_report")"
     if [ "${version%%.*}" != "0" ]; then
         test "$assessment" = "FULL" ||
             fail "stable release requires Assessment: FULL"
@@ -102,7 +121,6 @@ if [ "$review_baseline" != "$version" ]; then
     fi
 fi
 
-reviewed_commit="$(sed -n 's/^Reviewed-Commit: //p' "$pentest_report")"
 git cat-file -e "${reviewed_commit}^{commit}" 2>/dev/null ||
     fail "reviewed commit ${reviewed_commit} was not found"
 git merge-base --is-ancestor "$reviewed_commit" HEAD ||
