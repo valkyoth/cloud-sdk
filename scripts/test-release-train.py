@@ -15,6 +15,7 @@ def release(
     *,
     stage: str,
     baseline: str = "0.50.0",
+    review_baseline: str | None = None,
     milestones: tuple[str, ...] = (),
     exceptional: bool = False,
     reason: str = "",
@@ -23,6 +24,7 @@ def release(
         "version": version,
         "milestone": version,
         "baseline": baseline,
+        "review_baseline": review_baseline or baseline,
         "cumulative_milestones": list(milestones),
         "policy": "independent",
         "stage": stage,
@@ -54,6 +56,19 @@ def test_intermediate_minor_is_internal() -> None:
     assert context["stage"] == "internal"
     assert not release_train.publication_allowed(context)
     assert release_train.next_checkpoint("0.51.0") == "0.55.0"
+
+
+def test_review_baseline_is_retained_in_validated_context() -> None:
+    context = release_train.validate_release_context(
+        release(
+            "0.57.0",
+            stage="internal",
+            baseline="0.55.0",
+            review_baseline="0.56.0",
+            milestones=("0.56.0", "0.57.0"),
+        )
+    )
+    assert context["review_baseline"] == "0.56.0"
 
 
 def test_intermediate_patch_keeps_the_same_checkpoint() -> None:

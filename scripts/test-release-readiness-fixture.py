@@ -16,6 +16,7 @@ Path("release-crates.toml").write_text(
 version = "{version}"
 milestone = "{version}"
 baseline = "{baseline}"
+review_baseline = "{baseline}"
 cumulative_milestones = {milestones}
 policy = "independent"
 stage = "{stage}"

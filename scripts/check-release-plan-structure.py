@@ -17,7 +17,8 @@ HEADING = re.compile(
 )
 FIELD = re.compile(r"^(Goal|Deliverables|Verification|Stop gate):(.*)$", re.MULTILINE)
 FIELD_ORDER = ("Goal", "Deliverables", "Verification", "Stop gate")
-CADENCE_START = (0, 51, 0)
+DEFERRED_PENTEST_START = (0, 51, 0)
+PER_TAG_PENTEST_START = (0, 56, 0)
 
 
 @dataclass(frozen=True, order=True)
@@ -108,14 +109,21 @@ def validate_stop_gate(version: Version, contract: str) -> str | None:
     if version.text not in contract:
         return f"{version.text} stop gate names a different version"
     current = (version.major, version.minor, version.patch)
-    historical = current < CADENCE_START
+    historical = current < DEFERRED_PENTEST_START
+    per_tag = current >= PER_TAG_PENTEST_START
     stable = version.major >= 1
     checkpoint = (
         version.major == 0
         and version.patch == 0
         and version.minor % 5 == 0
     )
-    if historical or stable or checkpoint:
+    if stable:
+        required = ("pentest", "exact commit")
+    elif per_tag:
+        required = ("pentest", "exact commit", "crates.io")
+        if not stable and not checkpoint:
+            required += ("defer", expected_checkpoint(version).lower())
+    elif historical or checkpoint:
         required = ("pentest", "exact commit")
         if checkpoint and not historical:
             required += ("cumulative", "crates.io")

@@ -1,5 +1,10 @@
 # Hetzner API Drift Maintenance
 
+This document covers the full Hetzner-specific OpenAPI workflow. New provider
+probes and crates also use the provider-neutral manifest and canonical diff
+layer in [`PROVIDER_DRIFT.md`](PROVIDER_DRIFT.md). The neutral Hetzner bridge
+must remain green, but it does not replace the deeper checks below.
+
 This runbook governs changes detected between the reviewed Hetzner OpenAPI
 source lock and the current official Cloud/DNS and Console API specifications.
 The detector never modifies source, lock evidence, or release metadata unless a

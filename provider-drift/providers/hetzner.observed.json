@@ -1,0 +1,161 @@
+{
+  "contracts": {
+    "authentication": [
+      {
+        "id": "cloud-bearer",
+        "values": {
+          "endpoint_scope": "exact",
+          "scheme": "bearer",
+          "service": "cloud"
+        }
+      },
+      {
+        "id": "dns-bearer",
+        "values": {
+          "endpoint_scope": "exact",
+          "scheme": "bearer",
+          "service": "dns"
+        }
+      }
+    ],
+    "cost": [
+      {
+        "id": "operation-policy",
+        "values": {
+        "manifest": "docs/OPERATION_ASSOCIATIONS.tsv",
+          "mutation_authority": "required",
+          "sha256": "cd0685dfceb8cc6b5f1f5ab1f5ceb42cc258a7d7edebd9a065171572ba485551"
+        }
+      }
+    ],
+    "endpoints": [
+      {
+        "id": "cloud-v1",
+        "values": {
+          "base_path": "/v1",
+          "host": "api.hetzner.cloud",
+          "scheme": "https"
+        }
+      },
+      {
+        "id": "dns-v1",
+        "values": {
+          "base_path": "/v1",
+          "host": "api.hetzner.cloud",
+          "scheme": "https"
+        }
+      }
+    ],
+    "headers": [
+      {
+        "id": "response-metadata",
+        "values": {
+          "duplicate_policy": "reject",
+          "request_id": "operation_policy",
+          "unknown_sensitivity": "sensitive"
+        }
+      },
+      {
+        "id": "rate-limit",
+        "values": {
+          "fields": [
+            "ratelimit-limit",
+            "ratelimit-remaining",
+            "ratelimit-reset"
+          ],
+          "presence": "all_or_none"
+        }
+      }
+    ],
+    "idempotency": [
+      {
+        "id": "operation-policy",
+        "values": {
+        "manifest": "docs/OPERATION_ASSOCIATIONS.tsv",
+          "sha256": "cd0685dfceb8cc6b5f1f5ab1f5ceb42cc258a7d7edebd9a065171572ba485551"
+        }
+      }
+    ],
+    "operations": [
+      {
+        "id": "active-operation-lock",
+        "values": {
+        "active_count": 208,
+        "count": 221,
+        "path": "docs/API_FINGERPRINTS.tsv",
+          "sha256": "2db2942ea7bd4a04f840592f418f72cc015c37f29af358010f460988a476ff83"
+        }
+      },
+      {
+        "id": "response-binding-lock",
+        "values": {
+          "count": 208,
+          "path": "crates/cloud-sdk-hetzner/src/serde/response_operations.tsv",
+          "sha256": "2a4ef5d76271d9b3a64c52608434361a92855809e38c42b5e828d35ae0b73232"
+        }
+      }
+    ],
+    "pagination": [
+      {
+        "id": "cloud-numbered",
+        "values": {
+          "page": "page",
+          "per_page": "per_page",
+          "provider_links": "same_authority"
+        }
+      },
+      {
+        "id": "dns-numbered",
+        "values": {
+          "page": "page",
+          "per_page": "per_page",
+          "provider_links": "same_authority"
+        }
+      }
+    ],
+    "retry": [
+      {
+        "id": "operation-policy",
+        "values": {
+          "delivery_phases": [
+            "not_sent",
+            "possibly_sent",
+            "response_started"
+          ],
+        "manifest": "docs/OPERATION_ASSOCIATIONS.tsv",
+          "sha256": "cd0685dfceb8cc6b5f1f5ab1f5ceb42cc258a7d7edebd9a065171572ba485551"
+        }
+      }
+    ],
+    "schemas": [
+      {
+        "id": "openapi-schema-lock",
+        "values": {
+          "count": 8,
+        "path": "docs/API_SCHEMA_FINGERPRINTS.tsv",
+          "sha256": "5d9bf5ca3383248b077ce34a2fb0eafa2ec4cd8df517666cbb4d9488b2266589"
+        }
+      }
+    ]
+  },
+  "format": "cloud-sdk-provider-observation/v1",
+  "plugin": {
+    "id": "normalized-json",
+    "version": 1
+  },
+  "provider": "hetzner",
+  "sources": [
+    {
+      "id": "cloud-openapi",
+      "max_bytes": 33554432,
+      "sha256": "9ca6b542a057b002804b9f4f45ccfdb8b9a28c92b7e5bf5ae1b7f46b54fe0093",
+      "url": "https://docs.hetzner.cloud/cloud.spec.json"
+    },
+    {
+      "id": "dns-openapi",
+      "max_bytes": 33554432,
+      "sha256": "f70750016d81c927ddf877e103541c90d3e3372723cdf54e6fd7b2eba4a8108a",
+      "url": "https://docs.hetzner.cloud/hetzner.spec.json"
+    }
+  ]
+}

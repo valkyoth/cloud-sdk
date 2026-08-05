@@ -47,13 +47,12 @@ may still contain defects or incomplete behavior before `1.0.0`; review the
 documented operation and provider limits before using them with real
 infrastructure.
 
-Beginning after the published `v0.50.0` baseline, every pre-1.0 version still
-receives the complete automated release gate, GitHub CI and CodeQL, release
-notes, and a normal signed `v0.x.x` tag. Cumulative pentesting and crates.io
-publication occur every fifth minor version, so the next public checkpoint is
-`v0.55.0`. Intervening tags are included in that cumulative assessment but are
-not separately published. Material security changes can trigger an earlier
-pentest and publication.
+Every pre-1.0 version receives the complete automated release gate, an
+incremental pentest against the preceding tag, GitHub CI and CodeQL, release
+notes, permanent pentest evidence, and a normal signed `v0.x.x` tag. Crates.io
+publication occurs every fifth minor version, so the next public checkpoint is
+`v0.60.0`. Intervening tags are fully reviewed but are not separately published.
+A material security or compatibility need can trigger an earlier publication.
 
 ## Cost And Production Warning
 
@@ -84,12 +83,11 @@ operation contracts, then validates them with an unpublished OVHcloud API v2
 architecture probe, a narrow credential-free Robot wire fixture, and
 full-fidelity Hetzner vertical slices before the neutral API freeze.
 
-The `v0.55.0` public checkpoint candidate accumulates plan-confirm execution
-permits, the provider-generic client kernel, bounded pager and action drivers,
-payload-free diagnostics, and dynamic testkit scenarios from tagged v0.51
-through v0.55. Its cumulative pentest from the published `v0.50.0` baseline
-and final retest passed; publication awaits the final clean release gate,
-GitHub CI, and CodeQL.
+The latest published checkpoint is `v0.55.0`. The `v0.56.0` source milestone
+adds provider-neutral API drift manifests, canonical observations and diffs,
+bounded no-redirect source retrieval, and a compatibility bridge to the
+existing Hetzner source locks. It will receive its own pentest and signed tag;
+its crates.io publication is deferred to `v0.60.0`.
 
 ## Trust Dashboard
 
@@ -104,7 +102,7 @@ GitHub CI, and CodeQL.
 | Default features | empty |
 | Network defaults | none |
 | Secret storage defaults | none |
-| Release evidence | full gates and SBOM for every tag; cumulative pentest and crates.io publication every fifth pre-1.0 minor or earlier when risk requires it |
+| Release evidence | full gates, SBOM, and incremental pentest for every tag; crates.io publication every fifth pre-1.0 minor or earlier when required |
 | Platform support | explicit tiers and targets in [`docs/PLATFORM_SUPPORT.md`](https://github.com/valkyoth/cloud-sdk/blob/main/docs/PLATFORM_SUPPORT.md) |
 | Crate versions | tracked in [`docs/CRATE_VERSION_MATRIX.md`](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATE_VERSION_MATRIX.md) |
 | 1.0 target | serious production-ready foundation plus complete Hetzner Cloud, DNS, Console Storage Box, and Robot provider |
@@ -184,6 +182,7 @@ visible. Applications should enable only the features they use.
 - [Streaming transport contract](https://github.com/valkyoth/cloud-sdk/blob/main/docs/STREAMING.md)
 - [Release runbook](https://github.com/valkyoth/cloud-sdk/blob/main/docs/RELEASE_RUNBOOK.md)
 - [Versioning and error policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/VERSIONING_POLICY.md)
+- [Provider-generic drift evidence](https://github.com/valkyoth/cloud-sdk/blob/main/docs/PROVIDER_DRIFT.md)
 - [Migrating to v0.29](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.29.0.md)
 - [Migrating to v0.30](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.30.0.md)
 - [Migrating to v0.31](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.31.0.md)
@@ -211,6 +210,7 @@ visible. Applications should enable only the features they use.
 - [Migrating source users to v0.53](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.53.0.md)
 - [Migrating source users to v0.54](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.54.0.md)
 - [Migrating to v0.55](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.55.0.md)
+- [Migrating source users to v0.56](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.56.0.md)
 - [Compile-time Hetzner operation associations](https://github.com/valkyoth/cloud-sdk/blob/main/docs/OPERATION_ASSOCIATIONS.md)
 - [Incremental provider decoding](https://github.com/valkyoth/cloud-sdk/blob/main/docs/INCREMENTAL_DECODING.md)
 - [Deprecated endpoint policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/DEPRECATED_ENDPOINT_POLICY.md)

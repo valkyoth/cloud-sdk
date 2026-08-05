@@ -1,10 +1,9 @@
 # Crate Version Matrix
 
-Status: `v0.50.0` is tagged and published. It is the baseline for the first
-five-minor development train. Source milestones `v0.51.0` through `v0.54.0`
-are tagged; `v0.55.0` is the cumulative public checkpoint candidate. Its
-cumulative pentest and final retest passed. Publication awaits the final clean
-release gate, GitHub CI, and CodeQL.
+Status: `v0.55.0` is tagged and published. `v0.56.0` is the first source
+milestone in the next five-minor publication train. Every tag beginning with
+v0.56 receives its own incremental pentest; package publication is deferred to
+the next scheduled checkpoint at `v0.60.0`.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
@@ -20,16 +19,18 @@ workspace normally adds only one primary crate for each provider.
 | `metadata` | At public checkpoints, use the independently required metadata version; the facade follows the tag. | Public checkpoint only |
 | `unchanged` | Keep the previous published version. | No |
 
-Every pre-1.0 tag advances `cloud-sdk`, but intermediate tags select no package
-for crates.io. Supporting crates retain their published versions while their
-code and metadata changes accumulate. At every fifth-minor or exceptional
-public checkpoint, the release tool compares each package tree with the
-previous public tag, rejects any lost delta, publishes changed dependencies in
-order, and publishes `cloud-sdk` last. Unchanged crates are not republished.
+Every pre-1.0 tag advances `cloud-sdk` and receives incremental pentest
+evidence, but intermediate tags select no package for crates.io. Supporting
+crates retain their published versions while their code and metadata changes
+accumulate. At every fifth-minor or exceptional public checkpoint, the release
+tool compares each package tree with the previous public tag, rejects any lost
+delta, verifies every intervening tag's pentest report, publishes changed
+dependencies in order, and publishes `cloud-sdk` last. Unchanged crates are not
+republished.
 
-All minor and patch tags after the baseline must appear in
+All minor and patch tags after the public baseline must appear in
 `cumulative_milestones`; a checkpoint cannot omit an intervening build from
-pentest or publication planning.
+publication planning or the pentest-evidence chain.
 
 ## v0.1.0 Tracking Table
 
@@ -824,6 +825,20 @@ remediation.
 | `cloud-sdk-reqwest` | `0.32.3` | `0.32.4` | `dependency` | Yes | Update the core dependency without changing adapter behavior. |
 | `cloud-sdk-sanitization` | `0.17.0` | `0.18.0` | `code` | Yes | Make cleanup fixtures fail closed under the workspace-wide security test policy. |
 | `cloud-sdk-testkit` | `0.28.2` | `0.29.0` | `code` | Yes | Publish cumulative policy fixtures plus bounded dynamic responders, records, scripts, and stream faults. |
+
+## v0.56.0 Tracking Table
+
+`v0.56.0` adds provider-neutral drift evidence and restores incremental
+pentesting for every tag. It is an internal milestone, so all supporting crates
+retain their published versions and no package is selected for crates.io.
+
+| Crate | Published | Source | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.55.0` | `0.56.0` | `metadata` | No | Record provider-generic drift tooling and per-tag pentest release metadata. |
+| `cloud-sdk-hetzner` | `0.39.0` | `0.39.0` | `unchanged` | No | No provider crate source or metadata changes. |
+| `cloud-sdk-reqwest` | `0.32.4` | `0.32.4` | `unchanged` | No | No transport adapter source, dependency, or metadata changes. |
+| `cloud-sdk-sanitization` | `0.18.0` | `0.18.0` | `unchanged` | No | No sanitization boundary changes. |
+| `cloud-sdk-testkit` | `0.29.0` | `0.29.0` | `unchanged` | No | No testkit source or metadata changes. |
 
 ## Planned Milestone Ownership
 

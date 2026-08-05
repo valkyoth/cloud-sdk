@@ -26,7 +26,8 @@ def main() -> int:
     release_train.validate_repository_train(plan)
     print(
         f"release train {plan['version']} is valid with stage={plan['stage']} "
-        f"and baseline=v{plan['baseline']}"
+        f"baseline=v{plan['baseline']} and "
+        f"review-baseline=v{plan['review_baseline']}"
     )
     return 0
 

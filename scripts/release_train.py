@@ -46,13 +46,21 @@ def validate_release_context(release: dict) -> dict:
     version = release.get("version")
     milestone = release.get("milestone")
     baseline = release.get("baseline")
+    review_baseline = release.get("review_baseline")
     milestones = release.get("cumulative_milestones")
     stage = release.get("stage")
     exceptional = release.get("exceptional")
     exception_reason = release.get("exception_reason")
     if not all(
         isinstance(value, str)
-        for value in (version, milestone, baseline, stage, exception_reason)
+        for value in (
+            version,
+            milestone,
+            baseline,
+            review_baseline,
+            stage,
+            exception_reason,
+        )
     ) or not isinstance(milestones, list) or not isinstance(exceptional, bool):
         raise RuntimeError("release train metadata is incomplete")
     if not all(isinstance(value, str) for value in milestones):
@@ -64,11 +72,20 @@ def validate_release_context(release: dict) -> dict:
 
     parsed = parse_version(version)
     parsed_baseline = parse_version(baseline)
-    if parsed < CADENCE_BASELINE or parsed_baseline < CADENCE_BASELINE:
+    parsed_review_baseline = parse_version(review_baseline)
+    if (
+        parsed < CADENCE_BASELINE
+        or parsed_baseline < CADENCE_BASELINE
+        or parsed_review_baseline < CADENCE_BASELINE
+    ):
         raise RuntimeError("staged release policy begins at v0.50.0")
     anchor = parsed == CADENCE_BASELINE and parsed_baseline == parsed
     if parsed_baseline > parsed or (parsed_baseline == parsed and not anchor):
         raise RuntimeError("release baseline must precede the milestone")
+    if parsed_review_baseline > parsed or (
+        parsed_review_baseline == parsed and not anchor
+    ):
+        raise RuntimeError("review baseline must precede the milestone")
 
     parsed_milestones = tuple(parse_version(value) for value in milestones)
     if len(set(parsed_milestones)) != len(parsed_milestones):
@@ -106,6 +123,7 @@ def validate_release_context(release: dict) -> dict:
         "version": version,
         "milestone": milestone,
         "baseline": baseline,
+        "review_baseline": review_baseline,
         "cumulative_milestones": tuple(milestones),
         "stage": stage,
         "exceptional": exceptional,
@@ -143,6 +161,13 @@ def validate_repository_train(plan: dict) -> None:
         raise RuntimeError(
             "cumulative_milestones must list every tag after "
             f"v{plan['baseline']} through {plan['version']}: expected {expected}"
+        )
+    tags = semantic_tags_before(plan["version"])
+    expected_review_baseline = tags[-1] if tags else plan["baseline"]
+    if plan["review_baseline"] != expected_review_baseline:
+        raise RuntimeError(
+            "review_baseline must be the immediately preceding release tag: "
+            f"expected {expected_review_baseline}, actual {plan['review_baseline']}"
         )
 
 

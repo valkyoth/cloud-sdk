@@ -236,9 +236,9 @@
   calls only pure SDK boundaries, admits synthetic seeds, rejects tracked
   generated corpora/artifacts, bounds smoke inputs and time, and compiles under
   a separately pinned nightly without changing stable crate support;
-- complete release and security-delta review before every tag, with cumulative
-  pentest reports every fifth pre-1.0 minor and exceptional assessments for
-  material trust-boundary changes.
+- complete release and security-delta review before every tag, with an
+  incremental pentest report against the preceding tag and crates.io
+  publication every fifth pre-1.0 minor.
 - direct state-changing prepared execution fails closed; non-`Copy` direct
   permits and explicitly shared atomic permits bind one exact versioned plan,
   endpoint, scope, validity interval, attempt budget, replay policy,

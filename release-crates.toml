@@ -1,44 +1,45 @@
 [release]
-version = "0.55.0"
-milestone = "0.55.0"
-baseline = "0.50.0"
-cumulative_milestones = ["0.51.0", "0.52.0", "0.53.0", "0.54.0", "0.55.0"]
+version = "0.56.0"
+milestone = "0.56.0"
+baseline = "0.55.0"
+review_baseline = "0.55.0"
+cumulative_milestones = ["0.56.0"]
 policy = "independent"
-stage = "public"
+stage = "internal"
 exceptional = false
 exception_reason = ""
 
 [crates."cloud-sdk"]
-previous_version = "0.50.0"
-version = "0.55.0"
-change = "code"
-publish = true
-reason = "Publish the cumulative permit, client, workflow, diagnostics, and dynamic-testkit checkpoint."
+previous_version = "0.55.0"
+version = "0.56.0"
+change = "metadata"
+publish = false
+reason = "Record the provider-generic drift engine milestone without crates.io publication."
 
 [crates."cloud-sdk-hetzner"]
-previous_version = "0.38.0"
+previous_version = "0.39.0"
 version = "0.39.0"
-change = "code"
-publish = true
-reason = "Publish cumulative typed permit and direct-execution integration."
+change = "unchanged"
+publish = false
+reason = "No provider crate source or package metadata changes."
 
 [crates."cloud-sdk-reqwest"]
-previous_version = "0.32.3"
+previous_version = "0.32.4"
 version = "0.32.4"
-change = "dependency"
-publish = true
-reason = "Update the cloud-sdk dependency to the v0.55 public checkpoint."
+change = "unchanged"
+publish = false
+reason = "No adapter source, dependency, or package metadata changes."
 
 [crates."cloud-sdk-sanitization"]
-previous_version = "0.17.0"
+previous_version = "0.18.0"
 version = "0.18.0"
-change = "code"
-publish = true
-reason = "Make sanitizer cleanup fixtures fail closed under the workspace-wide test policy."
+change = "unchanged"
+publish = false
+reason = "No sanitization boundary changes."
 
 [crates."cloud-sdk-testkit"]
-previous_version = "0.28.2"
+previous_version = "0.29.0"
 version = "0.29.0"
-change = "code"
-publish = true
-reason = "Add bounded dynamic responders, recording, scripts, and stream fault fixtures."
+change = "unchanged"
+publish = false
+reason = "No testkit source or package metadata changes."

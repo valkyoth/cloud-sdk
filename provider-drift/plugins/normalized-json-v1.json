@@ -1,0 +1,16 @@
+{
+  "format": "cloud-sdk-provider-drift-plugin/v1",
+  "id": "normalized-json",
+  "version": 1,
+  "categories": [
+    "authentication",
+    "cost",
+    "endpoints",
+    "headers",
+    "idempotency",
+    "operations",
+    "pagination",
+    "retry",
+    "schemas"
+  ]
+}
