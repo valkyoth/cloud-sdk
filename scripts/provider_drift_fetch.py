@@ -5,7 +5,6 @@ from __future__ import annotations
 
 import hashlib
 import ipaddress
-import multiprocessing
 import socket
 import ssl
 import time
@@ -18,7 +17,6 @@ CONNECT_TIMEOUT_SECONDS = 10
 TOTAL_TIMEOUT_SECONDS = 60
 READ_CHUNK_BYTES = 64 * 1024
 MAX_TOTAL_SOURCE_BYTES = 128 * 1024 * 1024
-PLAN_TIMEOUT_SECONDS = 180
 
 APPROVED_SOURCE_ENDPOINTS = {
     ("hetzner", "cloud-openapi"): (
@@ -144,7 +142,7 @@ def fetch_source(
     return payload
 
 
-def _preflight(lock: dict[str, Any]) -> None:
+def preflight_sources(lock: dict[str, Any]) -> None:
     try:
         admitted = sum(source["max_bytes"] for source in lock["sources"])
     except (KeyError, TypeError) as error:
@@ -154,58 +152,8 @@ def _preflight(lock: dict[str, Any]) -> None:
 
 
 def _fetch_verified_sources(lock: dict[str, Any]) -> dict[str, bytes]:
-    _preflight(lock)
+    preflight_sources(lock)
     payloads: dict[str, bytes] = {}
     for source in lock["sources"]:
         payloads[source["id"]] = fetch_source(lock["provider"], source)
     return payloads
-
-
-def _fetch_worker(lock: dict[str, Any], connection: Any) -> None:
-    try:
-        connection.send((True, _fetch_verified_sources(lock)))
-    except FetchError as error:
-        connection.send((False, str(error)))
-    finally:
-        connection.close()
-
-
-def _stop_worker(process: Any) -> None:
-    if process.is_alive():
-        process.terminate()
-        process.join(1)
-    if process.is_alive():
-        process.kill()
-        process.join()
-
-
-def fetch_verified_sources(
-    lock: dict[str, Any],
-    *,
-    timeout: int = PLAN_TIMEOUT_SECONDS,
-    context: Any = None,
-) -> dict[str, bytes]:
-    """Fetch the complete plan in a killable hard-deadline worker."""
-    _preflight(lock)
-    worker_context = context or multiprocessing.get_context("spawn")
-    receiver, sender = worker_context.Pipe(duplex=False)
-    process = worker_context.Process(target=_fetch_worker, args=(lock, sender))
-    process.start()
-    sender.close()
-    try:
-        if not receiver.poll(timeout):
-            _stop_worker(process)
-            raise FetchError("source fetch plan exceeded its hard deadline")
-        try:
-            succeeded, result = receiver.recv()
-        except EOFError as error:
-            raise FetchError("source fetch worker stopped without a result") from error
-    finally:
-        receiver.close()
-        process.join(1)
-        _stop_worker(process)
-    if not succeeded:
-        raise FetchError(result)
-    if not isinstance(result, dict):
-        raise FetchError("source fetch worker returned an invalid result")
-    return result

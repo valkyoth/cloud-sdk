@@ -88,6 +88,16 @@ def test_nested_evidence_descriptors_are_typed_before_file_access() -> None:
     assert_raises("descriptor is invalid", bridge.validate_bridge, lock, observation)
 
 
+def test_local_policy_evidence_tampering_is_detected() -> None:
+    lock, observation = fixtures()
+    for document in (lock, observation):
+        headers = {
+            row["id"]: row["values"] for row in document["contracts"]["headers"]
+        }
+        headers["rate-limit-policy"]["evidence"]["sha256"] = "0" * 64
+    assert_raises("digest is stale", bridge.validate_bridge, lock, observation)
+
+
 def main() -> None:
     tests = tuple(
         value

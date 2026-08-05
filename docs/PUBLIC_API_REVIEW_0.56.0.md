@@ -31,9 +31,13 @@ All local documents are bounded, strict, no-follow regular files. Remote
 sources require code-reviewed endpoints, globally routable DNS results, exact
 credential-free HTTPS URLs, no ambient proxy, default certificate and hostname
 validation, redirect denial, size/read bounds, a killable whole-plan deadline,
-and full digest authentication before adapter use. A reviewed adapter derives
-the live observation from those bytes, and the live result must equal the
-separately tracked observation. Drift output is deterministic and payload-free.
+and full digest authentication before adapter use. The worker contains fetch,
+parse, normalization, tracked-observation comparison, and report construction;
+only a bounded payload-free report crosses IPC. A reviewed adapter derives
+provider facts from authenticated bytes and repository policy from hashed
+no-follow local evidence without copying contract values from the lock. The
+live result must equal the separately tracked observation. Drift output is
+deterministic and payload-free.
 
 Release notes and permanent pentest reports require one unambiguous value for
 each security evidence field; duplicate or contradictory status is rejected.

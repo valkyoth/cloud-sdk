@@ -41,6 +41,11 @@ the v0.60.0 checkpoint.
 - Authenticates every complete response before invoking a hard-coded reviewed
   adapter, derives live evidence from those bytes, and independently requires
   the result to match the tracked observation.
+- Derives authentication, server, response-header, and pagination evidence
+  directly from OpenAPI; reconstructs repository-owned policies from no-follow
+  hashed files instead of copying lock contracts.
+- Contains fetch, parse, normalization, comparison, and reporting in the
+  deadline worker and transfers only a bounded 2 MiB report across IPC.
 
 ## Release Process
 

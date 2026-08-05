@@ -174,8 +174,7 @@ def test_all_sources_authenticate_before_payloads_are_returned() -> None:
     assert calls == ["first", "second"]
 
 
-def test_aggregate_admission_precedes_fetch_and_adapter_invocation() -> None:
-    called: list[bool] = []
+def test_aggregate_admission_precedes_fetch() -> None:
     lock = {
         "provider": "hetzner",
         "sources": [
@@ -188,7 +187,6 @@ def test_aggregate_admission_precedes_fetch_and_adapter_invocation() -> None:
         fetch._fetch_verified_sources,
         lock,
     )
-    assert not called
 
 
 def test_network_targets_require_reviewed_global_destinations() -> None:
@@ -218,76 +216,6 @@ def test_network_targets_require_reviewed_global_destinations() -> None:
         item,
         resolver=global_resolver,
     )
-
-
-class FakeReceiver:
-    def __init__(self) -> None:
-        self.closed = False
-
-    def poll(self, timeout: int) -> bool:
-        assert timeout == 3
-        return False
-
-    def close(self) -> None:
-        self.closed = True
-
-
-class FakeSender:
-    def close(self) -> None:
-        pass
-
-
-class FakeProcess:
-    def __init__(self) -> None:
-        self.started = False
-        self.alive = True
-        self.terminated = False
-
-    def start(self) -> None:
-        self.started = True
-
-    def is_alive(self) -> bool:
-        return self.alive
-
-    def terminate(self) -> None:
-        self.terminated = True
-        self.alive = False
-
-    def kill(self) -> None:
-        self.alive = False
-
-    def join(self, _timeout=None) -> None:
-        pass
-
-
-class FakeContext:
-    def __init__(self) -> None:
-        self.receiver = FakeReceiver()
-        self.process = FakeProcess()
-
-    def Pipe(self, *, duplex: bool):
-        assert not duplex
-        return self.receiver, FakeSender()
-
-    def Process(self, *, target, args):
-        assert target is fetch._fetch_worker
-        assert len(args) == 2
-        return self.process
-
-
-def test_whole_plan_deadline_terminates_the_worker() -> None:
-    context = FakeContext()
-    lock = {"provider": "hetzner", "sources": []}
-    assert_raises(
-        "hard deadline",
-        fetch.fetch_verified_sources,
-        lock,
-        timeout=3,
-        context=context,
-    )
-    assert context.process.started
-    assert context.process.terminated
-    assert context.receiver.closed
 
 
 def main() -> None:

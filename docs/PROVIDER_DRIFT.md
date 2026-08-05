@@ -15,9 +15,8 @@ version, and the complete canonical category list. Provider-specific adapters
 are repository-reviewed scripts selected explicitly by a release gate; a
 provider manifest cannot select a command, import a module, or execute code.
 
-Adapters may receive remote source bytes only after
-`provider_drift_fetch.fetch_verified_sources` returns successfully. The
-fetcher and `check_provider_drift.py` together:
+Adapters receive remote source bytes only inside a killable verification
+worker. The worker and `check_provider_drift.py` together:
 
 - permits only provider/source endpoints present in a hard-coded reviewed
   registry and rejects DNS results containing any non-global address;
@@ -26,10 +25,15 @@ fetcher and `check_provider_drift.py` together:
 - refuses every redirect before constructing a follow-up request;
 - checks the final URL, per-source byte bound, per-read time, whole-plan hard
   deadline, and SHA-256 in a killable worker process;
-- invokes a hard-coded reviewed adapter only after every source authenticates;
+- invokes a hard-coded reviewed adapter only after every source authenticates,
+  while the whole download, parse, normalization, comparison, and report path
+  remains under one 180-second deadline;
 - derives the live observation from fetched bytes and requires it to equal the
   separately tracked observation before comparison with the lock; and
-- never puts source content into errors or canonical drift output.
+- transfers only a bounded 2 MiB payload-free report across process IPC, never
+  raw source bytes; and
+- never puts source content into errors or canonical drift output, including
+  malformed Unicode, excessive nesting, parser failures, and worker exits.
 
 This authenticates a reviewed source snapshot. It does not establish that a
 provider account, TLS environment, workstation, or upstream publisher is
@@ -52,6 +56,14 @@ A provider lock contains:
 - explicit add/change/remove severity for every category; and
 - normalized rows for authentication, endpoints, operations, schemas,
   pagination, headers, retry, idempotency, and cost policy.
+
+Reviewed adapters construct every category explicitly. Authentication,
+servers, provider response headers, paginated operation sets, operation
+fingerprints, response bindings, and schema fingerprints are derived from the
+authenticated provider documents. Repository-owned response, rate-limit,
+retry, idempotency, and cost policies are reconstructed from fixed semantics
+and no-follow SHA-256 evidence for their authoritative local files. No live
+category is initialized from lock contract values.
 
 An observation contains only the plugin identity, observed sources, and the
 same normalized categories. Both formats reject unknown fields, duplicate JSON

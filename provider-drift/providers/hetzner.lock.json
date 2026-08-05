@@ -62,7 +62,10 @@
         "values": {
           "endpoint_scope": "exact",
           "scheme": "bearer",
-          "service": "cloud"
+          "service": "cloud",
+          "source_name": "APIToken",
+          "source_sha256": "8749eac4bb4f787cccf51e9cd3edc1f075626bc9048d1eb2cdbbcdd22f8b95d4",
+          "type": "http"
         }
       },
       {
@@ -70,7 +73,10 @@
         "values": {
           "endpoint_scope": "exact",
           "scheme": "bearer",
-          "service": "dns"
+          "service": "dns",
+          "source_name": "APIToken",
+          "source_sha256": "8749eac4bb4f787cccf51e9cd3edc1f075626bc9048d1eb2cdbbcdd22f8b95d4",
+          "type": "http"
         }
       }
     ],
@@ -78,7 +84,7 @@
       {
         "id": "operation-policy",
         "values": {
-        "manifest": "docs/OPERATION_ASSOCIATIONS.tsv",
+          "path": "docs/OPERATION_ASSOCIATIONS.tsv",
           "mutation_authority": "required",
           "sha256": "cd0685dfceb8cc6b5f1f5ab1f5ceb42cc258a7d7edebd9a065171572ba485551"
         }
@@ -90,30 +96,64 @@
         "values": {
           "base_path": "/v1",
           "host": "api.hetzner.cloud",
-          "scheme": "https"
+          "port": 443,
+          "scheme": "https",
+          "source_sha256": "a72dd1f2cbeb2ef2351bf4b0c49508e8aa96ae3d494e6d10f54b6a75b6d7e8ad"
         }
       },
       {
         "id": "dns-v1",
         "values": {
           "base_path": "/v1",
-          "host": "api.hetzner.cloud",
-          "scheme": "https"
+          "host": "api.hetzner.com",
+          "port": 443,
+          "scheme": "https",
+          "source_sha256": "e326b4e0c61bb0dd6b600e040bd775a8349b8030b01aa47f3b81371589190a7e"
         }
       }
     ],
     "headers": [
       {
-        "id": "response-metadata",
+        "id": "cloud-response-headers",
+        "values": {
+          "names": [
+            "x-next"
+          ],
+          "source_sha256": "5bc967d790d12cb5a114b5844010346ada84607b5644d832473e054290111cd5"
+        }
+      },
+      {
+        "id": "dns-response-headers",
+        "values": {
+          "names": [],
+          "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+        }
+      },
+      {
+        "id": "response-metadata-policy",
         "values": {
           "duplicate_policy": "reject",
+          "evidence": [
+            {
+              "path": "crates/cloud-sdk-hetzner/src/prepared/wire_policy.rs",
+              "sha256": "418ca536c0a72bb982fb5e8023369b81a2ac3289388e2db024f296dacf603c65"
+            },
+            {
+              "path": "crates/cloud-sdk-hetzner/src/prepared/operation.rs",
+              "sha256": "781482f9d4d4afb66d317860883fcefe3d69f8cb65e32615d5364b1238aea2e1"
+            }
+          ],
           "request_id": "operation_policy",
           "unknown_sensitivity": "sensitive"
         }
       },
       {
-        "id": "rate-limit",
+        "id": "rate-limit-policy",
         "values": {
+          "evidence": {
+            "path": "crates/cloud-sdk-hetzner/src/rate_limit.rs",
+            "sha256": "fda3979ed5dd58c9263ad0408951fd9877d289c754ac99fc5fa55924311b48f1"
+          },
           "fields": [
             "ratelimit-limit",
             "ratelimit-remaining",
@@ -127,7 +167,7 @@
       {
         "id": "operation-policy",
         "values": {
-        "manifest": "docs/OPERATION_ASSOCIATIONS.tsv",
+          "path": "docs/OPERATION_ASSOCIATIONS.tsv",
           "sha256": "cd0685dfceb8cc6b5f1f5ab1f5ceb42cc258a7d7edebd9a065171572ba485551"
         }
       }
@@ -157,6 +197,8 @@
         "values": {
           "page": "page",
           "per_page": "per_page",
+          "operation_count": 38,
+          "operations_sha256": "7018ab18db7b858cc4baf1aba4d7af92451d3eb7e660a34a23a53818c571efdd",
           "provider_links": "same_authority"
         }
       },
@@ -165,6 +207,8 @@
         "values": {
           "page": "page",
           "per_page": "per_page",
+          "operation_count": 4,
+          "operations_sha256": "50c92054c913880f10ee72c094a4b6e6d7004f98194f8254a2ccde8fb3869be9",
           "provider_links": "same_authority"
         }
       }
@@ -178,7 +222,7 @@
             "possibly_sent",
             "response_started"
           ],
-        "manifest": "docs/OPERATION_ASSOCIATIONS.tsv",
+          "path": "docs/OPERATION_ASSOCIATIONS.tsv",
           "sha256": "cd0685dfceb8cc6b5f1f5ab1f5ceb42cc258a7d7edebd9a065171572ba485551"
         }
       }

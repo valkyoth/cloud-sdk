@@ -65,6 +65,19 @@ def _verify_evidence(value: dict, root: Path) -> None:
         raise BridgeError("evidence row count is stale")
 
 
+def _verify_digest_evidence(value: dict, root: Path) -> None:
+    if set(value) != {"path", "sha256"}:
+        raise BridgeError("policy evidence descriptor is invalid")
+    descriptor = {**value, "count": 0}
+    try:
+        path = root / value["path"]
+        payload = read_bounded_bytes(path, "Hetzner policy evidence", MAX_EVIDENCE_BYTES)
+    except (TypeError, ValueError) as error:
+        raise BridgeError("policy evidence must be a bounded regular file") from error
+    descriptor["count"] = max(0, len(payload.splitlines()) - 1)
+    _verify_evidence(descriptor, root)
+
+
 def validate_bridge(lock: dict, observation: dict, root: Path = ROOT) -> None:
     if lock["provider"] != "hetzner" or observation["provider"] != "hetzner":
         raise BridgeError("bridge provider must remain Hetzner")
@@ -101,10 +114,14 @@ def validate_bridge(lock: dict, observation: dict, root: Path = ROOT) -> None:
     for policy in policies:
         evidence = {
             "count": 208,
-            "path": policy["manifest"],
+            "path": policy["path"],
             "sha256": policy["sha256"],
         }
         _verify_evidence(evidence, root)
+    headers = _rows(lock["contracts"], "headers")
+    for evidence in headers["response-metadata-policy"]["evidence"]:
+        _verify_digest_evidence(evidence, root)
+    _verify_digest_evidence(headers["rate-limit-policy"]["evidence"], root)
     if operations["active-operation-lock"]["active_count"] != 208:
         raise BridgeError("active Hetzner operation count is stale")
 
