@@ -87,8 +87,8 @@ The latest published checkpoint is `v0.55.0`. The signed `v0.56.0` source
 milestone added provider-neutral API drift evidence. The `v0.57.0` source
 milestone locks an unpublished, non-provider OVHcloud API v2 probe against
 eight read-only IAM operations and the official authority, OAuth, schema,
-cursor, task, and event documentation. It requires its own pentest and signed
-tag; crates.io publication remains deferred to `v0.60.0`.
+cursor, task, and event documentation. Its incremental pentest and final retest
+passed; crates.io publication remains deferred to `v0.60.0`.
 
 ## Trust Dashboard
 

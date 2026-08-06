@@ -2,9 +2,9 @@
 
 Status: `v0.55.0` is tagged and published, and `v0.56.0` is a signed source
 milestone. `v0.57.0` is the current source milestone in the next five-minor
-publication train. Every tag beginning with v0.56 receives its own incremental
-pentest; package publication is deferred to the next scheduled checkpoint at
-`v0.60.0`.
+publication train, and its incremental pentest and final retest passed. Every
+tag beginning with v0.56 receives its own incremental pentest; package
+publication is deferred to the next scheduled checkpoint at `v0.60.0`.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared

@@ -1,11 +1,11 @@
 # cloud-sdk 0.57.0 Milestone Notes
 
-Status: implementation stop reached; incremental pentest required.
+Status: release candidate; incremental pentest and final retest passed.
 
-Release date: pending
+Release date: 2026-08-06
 
 Security-Review: PASS
-Pentest: REQUIRED
+Pentest: PASS
 Publication: DEFERRED TO v0.60.0
 
 ## Overview
@@ -73,7 +73,7 @@ the v0.60.0 checkpoint.
 
 ## Release Gate
 
-Run `scripts/release_0_57_gate.sh` only after the incremental pentest and final
-retest pass and permanent evidence is committed at
-`security/pentest/v0.57.0.md`. Tag only after that clean gate plus GitHub CI and
-CodeQL are green. Do not publish crates for this internal milestone.
+The incremental pentest and final retest passed, with permanent evidence at
+[`security/pentest/v0.57.0.md`](../security/pentest/v0.57.0.md). Tag only after
+`scripts/release_0_57_gate.sh` passes on the clean evidence commit and GitHub CI
+and CodeQL are green. Do not publish crates for this internal milestone.

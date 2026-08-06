@@ -1,6 +1,6 @@
 # Migrating Source Users To v0.57.0
 
-v0.57.0 is a tagged source milestone. The latest crates.io checkpoint remains
+v0.57.0 is a source-only milestone. The latest crates.io checkpoint remains
 v0.55.0, and this milestone changes no Rust public API or runtime behavior.
 
 Repositories consuming `cloud-sdk` from Git may update their pinned revision
