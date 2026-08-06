@@ -42,10 +42,13 @@ endpoint bound, and token acquisition must not follow redirects.
 
 ### Expiry and rotation races
 
-`expires_in` is provider wall-time metadata, not a trustworthy local clock.
-The v0.58 conformance layer must convert it through explicit caller time,
-refresh before expiry under bounded policy, use generation-safe atomic
-rotation, preserve in-flight snapshots, and clear retired storage.
+`expires_in` is a duration supplied by the provider, not a trustworthy local
+clock. The v0.58 conformance layer converts it through explicit caller-owned
+monotonic time, rejects zero/overflow/incoherent refresh windows, treats expiry
+as exclusive, and issues refresh handoffs only inside the configured window.
+Token and replacement lifetime rotate atomically under one generation-safe
+compare-and-swap; in-flight snapshots retain their prior generation and
+retired storage clears after its final owner drops.
 
 ### Schema override misuse
 

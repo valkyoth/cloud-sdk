@@ -16,7 +16,7 @@ use cloud_sdk::transport::{
 
 use super::super::{
     AuthenticatedTransportFailure, BearerCredential, BearerCredentialScope, BearerToken,
-    BlockingClient, HttpsEndpoint, TransportError,
+    BlockingClient, BlockingClientBuilder, HttpsEndpoint, TransportError, UserAgent,
 };
 
 pub(super) fn test_credential(token: BearerToken, endpoint: &HttpsEndpoint) -> BearerCredential {
@@ -44,6 +44,24 @@ pub(super) fn test_expiring_credential(
         ),
         lifetime,
     )
+}
+
+pub(super) fn expiring_loopback(
+    endpoint: &str,
+    lifetime: CredentialLifetime,
+) -> Option<BlockingClient> {
+    let endpoint = HttpsEndpoint::local_http(endpoint).ok()?;
+    let token = BearerToken::new("test-token").ok()?;
+    let credential = test_expiring_credential(token, &endpoint, lifetime);
+    let builder = BlockingClientBuilder::new(
+        endpoint,
+        credential,
+        UserAgent::new("cloud-sdk-test/0.18").ok()?,
+        super::test_timeouts()?,
+    );
+    #[cfg(feature = "blocking-rustls-fips")]
+    let builder = builder.with_fips_tls_policy(super::fips_tls_policy()?);
+    builder.build_for_loopback().ok()
 }
 
 pub(super) fn prepared<'request>(

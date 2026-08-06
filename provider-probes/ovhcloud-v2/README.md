@@ -55,3 +55,27 @@ The source lock captures architecture facts that differ from Hetzner:
 v0.58.0 through v0.61.0 implement conformance fixtures for these facts. A
 future supported `cloud-sdk-ovhcloud` requires a separate full source lock,
 scope, threat model, release plan, crate version history, and pentest.
+
+## v0.58 Authority And OAuth Conformance
+
+| Region | API identity | Token identity |
+| --- | --- | --- |
+| `eu` | `https://eu.api.ovh.com:443/v2` | `https://www.ovh.com:443/auth/oauth2/token` |
+| `ca` | `https://ca.api.ovh.com:443/v2` | `https://ca.ovh.com:443/auth/oauth2/token` |
+
+The source-bound fixture admits only these exact pairs. It rejects aliases,
+cross-region combinations, unknown regions, duplicate identities, HTTP, and
+credentialed redirects. Console and historical API hostnames are never token
+or bearer destinations.
+
+The neutral core converts the documented `expires_in` through explicit
+caller-owned monotonic time and a caller-selected refresh margin. The reqwest
+adapter binds refresh to the exact credential lineage and generation, permits
+time-qualified handoff only inside the refresh window, rejects expiry and
+clock rollback, and atomically installs a replacement token and lifetime.
+Neither core nor the probe owns a clock, acquisition task, retry policy, or
+secret store.
+
+Run `scripts/check_ovhcloud_authority_conformance.sh` to bind the authority
+fixture and OAuth response shape to the reviewed source lock and execute the
+core plus blocking/async credential lifecycle tests.

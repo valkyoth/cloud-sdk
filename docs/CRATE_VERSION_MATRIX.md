@@ -1,10 +1,10 @@
 # Crate Version Matrix
 
-Status: `v0.55.0` is tagged and published, and `v0.56.0` is a signed source
-milestone. `v0.57.0` is the current source milestone in the next five-minor
-publication train, and its incremental pentest and final retest passed. Every
-tag beginning with v0.56 receives its own incremental pentest; package
-publication is deferred to the next scheduled checkpoint at `v0.60.0`.
+Status: `v0.55.0` is tagged and published. `v0.56.0` and `v0.57.0` are signed
+source milestones. `v0.58.0` is the current candidate in the next five-minor
+publication train and requires its incremental pentest. Every tag beginning
+with v0.56 receives its own incremental pentest; package publication is
+deferred to the next scheduled checkpoint at `v0.60.0`.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
@@ -854,6 +854,20 @@ provider crate, and no workspace package is selected for crates.io.
 | `cloud-sdk-reqwest` | `0.32.4` | `0.32.4` | `unchanged` | No | No transport adapter source, dependency, or metadata changes. |
 | `cloud-sdk-sanitization` | `0.18.0` | `0.18.0` | `unchanged` | No | No sanitization boundary changes. |
 | `cloud-sdk-testkit` | `0.29.0` | `0.29.0` | `unchanged` | No | No testkit source or metadata changes. |
+
+## v0.58.0 Tracking Table
+
+`v0.58.0` adds exact regional API/token authority pairs and explicit-time
+expiring bearer lifecycles. It remains an internal milestone, so cumulative
+package changes retain their published version numbers until v0.60.0.
+
+| Crate | Published | Source | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.55.0` | `0.58.0` | `code` | No | Add bounded endpoint-pair and credential-lifetime contracts. |
+| `cloud-sdk-hetzner` | `0.39.0` | `0.39.0` | `dependency` | No | Accumulate the source core dependency for v0.60.0. |
+| `cloud-sdk-reqwest` | `0.32.4` | `0.32.4` | `code` | No | Add expiry-qualified atomic bearer rotation and refresh. |
+| `cloud-sdk-sanitization` | `0.18.0` | `0.18.0` | `unchanged` | No | No sanitization boundary changes. |
+| `cloud-sdk-testkit` | `0.29.0` | `0.29.0` | `dependency` | No | Accumulate the source core dependency for v0.60.0. |
 
 ## Planned Milestone Ownership
 

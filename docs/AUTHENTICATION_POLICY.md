@@ -1,11 +1,12 @@
 # Authentication Policy
 
-Status: v0.43 prepared authenticated raw-wire migration is a release
-candidate; pentest and final retest passed.
+Status: v0.58 regional authority and expiring OAuth conformance is at its
+implementation stop; pentest required.
 
 The authentication layer is separate from credential-free raw HTTP execution. Core
-defines scope, generation, and authenticated transport contracts without
-owning token bytes, acquisition, expiry, clocks, executors, or secret stores.
+defines scope, generation, caller-clock credential lifetimes, and authenticated
+transport contracts without owning token bytes, acquisition, clocks,
+executors, or secret stores.
 `cloud-sdk-reqwest` owns optional bearer and Basic credential lifecycles and
 header construction.
 
@@ -69,6 +70,14 @@ ASCII bytes without whitespace or backslash and are redacted from diagnostics.
 Credential scope is immutable after client construction. Bearer rotation
 cannot silently change it.
 
+Providers with geographic API and token authorities use
+`EndpointPairPolicy`. A finite reviewed table binds one canonical region to
+one exact HTTPS API identity and one exact HTTPS token identity. Cross-region
+combinations, aliases, duplicate identities, unknown regions, and non-HTTPS
+entries fail closed. Token acquisition and authenticated API execution do not
+follow redirects; a redirect response is an error, never a new credential
+destination.
+
 ## Basic Credentials
 
 Basic and bearer credentials are distinct types with distinct client builders.
@@ -95,9 +104,13 @@ atomically installs a new token and advances the generation. Requests take an
 network I/O or `.await`; in-flight requests continue with their original
 snapshot.
 
-External refresh logic captures a `BearerRefreshHandoff` from a snapshot
-before acquisition. The adapter binds this handoff to one credential-store
-lineage in addition to the core generation. Installation is compare-and-swap:
+Static credentials capture a `BearerRefreshHandoff` from a snapshot before
+acquisition. Expiring credentials instead require
+`refresh_handoff_at(CredentialTimestamp)`. The adapter issues that handoff only
+inside the configured refresh window and strictly before expiry. Caller time
+before the lifetime observation is rejected as rollback. The adapter binds
+every handoff to one credential-store lineage in addition to the core
+generation. Installation is compare-and-swap:
 
 1. capture the current generation and opaque store lineage;
 2. acquire a replacement outside the SDK;
@@ -105,8 +118,15 @@ lineage in addition to the core generation. Installation is compare-and-swap:
 4. reject a foreign lineage before comparing generations;
 5. reject it as stale if rotation or another refresh already advanced state.
 
-Generations never wrap. The SDK supplies no refresh task, clock, expiry
-decision, queue, retry, or token source.
+Generations never wrap. The SDK supplies no refresh task, clock, queue, retry,
+or token source.
+
+`CredentialLifetime::from_expires_in` converts a nonzero provider lifetime
+through explicit caller-owned monotonic time and an explicit refresh margin.
+Zero lifetime, a margin at least as long as the lifetime, and timestamp
+overflow fail closed. Expiry is exclusive. Expiring rotation and refresh
+install the token and complete replacement lifetime in one locked generation
+change; static and expiring lifecycle modes cannot be changed implicitly.
 
 ## Secret Lifetime
 
@@ -149,8 +169,13 @@ The release checks cover:
 - mutable and guarded source cleanup on success and rejection;
 - in-flight snapshots and retired-token cleanup;
 - foreign-store, sequential, and concurrent stale refresh races;
+- regional authority-pair mismatch, alias, duplicate, and downgrade rejection;
+- explicit-time refresh-window, rollback, expiry, and overflow boundaries;
+- atomic token-and-lifetime rotation across blocking and async client clones;
 - poisoned lock recovery and generation exhaustion;
 - cleanup-owned header copies and redacted diagnostics.
 
 Run `scripts/check_bearer_authentication.sh` and
-`scripts/check_basic_and_signing.sh` for the focused contracts.
+`scripts/check_basic_and_signing.sh` for the focused contracts. OVHcloud
+source conformance additionally runs through
+`scripts/check_ovhcloud_authority_conformance.sh`.

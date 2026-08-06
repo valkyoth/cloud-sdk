@@ -12,8 +12,8 @@ use cloud_sdk::transport::{
 };
 
 use super::super::{
-    AsyncClient, BearerCredential, BearerCredentialScope, BearerToken, HttpsEndpoint,
-    TransportError,
+    AsyncClient, AsyncClientBuilder, BearerCredential, BearerCredentialScope, BearerToken,
+    HttpsEndpoint, TransportError, UserAgent,
 };
 
 pub(super) fn test_credential(token: BearerToken, endpoint: &HttpsEndpoint) -> BearerCredential {
@@ -41,6 +41,23 @@ pub(super) fn test_expiring_credential(
         ),
         lifetime,
     )
+}
+
+pub(super) fn expiring_loopback(
+    endpoint: &str,
+    lifetime: CredentialLifetime,
+) -> Option<AsyncClient> {
+    let endpoint = HttpsEndpoint::local_http(endpoint).ok()?;
+    let token = BearerToken::new("test-token").ok()?;
+    let credential = test_expiring_credential(token, &endpoint, lifetime);
+    AsyncClientBuilder::new(
+        endpoint,
+        credential,
+        UserAgent::new("cloud-sdk-test/0.18").ok()?,
+        super::test_timeouts()?,
+    )
+    .build_for_loopback()
+    .ok()
 }
 
 pub(super) fn prepared<'request>(

@@ -1911,9 +1911,9 @@ Stop gate: `v0.57.0 implementation stop reached. Complete the pentest and full r
 
 Goal: challenge endpoint/auth contracts with geographic API/token pairs and expiring OAuth2.
 
-Deliverables: source-locked authority/alias policy, no credentialed redirects, region-bound token authority, `expires_in` handoff, atomic rotation, and least-privilege guidance.
+Deliverables: source-bound EU/CA API-to-token fixtures; allocation-free `RegionalEndpointPair` and `EndpointPairPolicy`; alias, cross-region, duplicate, downgrade, and credentialed-redirect rejection; caller-clock `CredentialLifetime` conversion from `expires_in`; exclusive expiry and time-qualified refresh handoffs; lineage/generation-bound atomic token-and-lifetime replacement across blocking and async clients; mutable-source cleanup; and OVHcloud least-privilege guidance without an SDK support claim.
 
-Verification: pair mismatch, alias, redirect, expiry, rotation, redaction, and `scripts/release_0_58_gate.sh`.
+Verification: source-lock/fixture equality, pair mismatch, alias, duplicate, redirect, expiry, rollback, overflow, refresh-window boundaries, stale/concurrent rotation, mutable-source cleanup, redaction, unchanged no_std/default dependency graphs, and `scripts/release_0_58_gate.sh`.
 
 Stop gate: `v0.58.0 implementation stop reached. Complete the pentest and full release gate for this exact commit; defer crates.io publication to v0.60.0.`
 

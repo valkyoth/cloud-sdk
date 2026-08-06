@@ -8,7 +8,8 @@ use cloud_sdk::transport::{
 };
 use cloud_sdk_sanitization::SecretBuffer;
 
-use super::{BearerToken, build_expiring_loopback, build_loopback};
+use super::support::expiring_loopback;
+use super::{BearerToken, build_loopback};
 use crate::test_server::{spawn_concurrent_pair, spawn_sequence_with_first_delay};
 
 #[test]
@@ -135,7 +136,7 @@ fn blocking_expiring_refresh_updates_token_and_lifetime_for_every_clone() {
     let initial =
         CredentialLifetime::from_expires_in(CredentialTimestamp::from_seconds(1_000), 3_599, 300)
             .unwrap_or_else(|_| unreachable!("security fixture construction failed"));
-    let Some(client) = build_expiring_loopback("http://127.0.0.1:9/v1", initial) else {
+    let Some(client) = expiring_loopback("http://127.0.0.1:9/v1", initial) else {
         unreachable!("security fixture construction failed");
     };
     let clone = client.clone();

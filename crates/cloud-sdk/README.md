@@ -83,12 +83,12 @@ operation contracts, then validates them with an unpublished OVHcloud API v2
 architecture probe, a narrow credential-free Robot wire fixture, and
 full-fidelity Hetzner vertical slices before the neutral API freeze.
 
-The latest published checkpoint is `v0.55.0`. The signed `v0.56.0` source
-milestone added provider-neutral API drift evidence. The `v0.57.0` source
-milestone locks an unpublished, non-provider OVHcloud API v2 probe against
-eight read-only IAM operations and the official authority, OAuth, schema,
-cursor, task, and event documentation. Its incremental pentest and final retest
-passed; crates.io publication remains deferred to `v0.60.0`.
+The latest published checkpoint is `v0.55.0`. Signed source milestones v0.56
+and v0.57 added provider-neutral drift evidence and locked the unpublished
+OVHcloud API v2 probe. The v0.58 candidate adds exact regional API/token
+pairing and explicit-time expiring bearer lifecycles; its implementation stop
+is reached and incremental pentesting is required. Crates.io publication
+remains deferred to `v0.60.0`.
 
 ## Trust Dashboard
 
@@ -213,6 +213,7 @@ visible. Applications should enable only the features they use.
 - [Migrating to v0.55](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.55.0.md)
 - [Migrating source users to v0.56](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.56.0.md)
 - [Migrating source users to v0.57](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.57.0.md)
+- [Migrating source users to v0.58](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.58.0.md)
 - [Compile-time Hetzner operation associations](https://github.com/valkyoth/cloud-sdk/blob/main/docs/OPERATION_ASSOCIATIONS.md)
 - [Incremental provider decoding](https://github.com/valkyoth/cloud-sdk/blob/main/docs/INCREMENTAL_DECODING.md)
 - [Deprecated endpoint policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/DEPRECATED_ENDPOINT_POLICY.md)

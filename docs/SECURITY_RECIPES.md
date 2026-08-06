@@ -23,6 +23,11 @@ security controls.
   credential atomically, in-flight requests retain their prior snapshot, and
   retired adapter-owned storage is cleared after its last snapshot. Revoke the
   old provider credential after the application's in-flight window closes.
+- For expiring OAuth tokens, derive `CredentialLifetime` from the provider's
+  `expires_in`, a caller-owned monotonic timestamp, and a bounded refresh
+  margin. Use `BearerCredential::new_expiring`, request a handoff with
+  `refresh_handoff_at(now)`, and install the replacement token and lifetime in
+  one client call. Never continue using a token at or after exclusive expiry.
 - For Basic authentication, prefer `BasicUsername::from_mut_bytes`,
   `BasicPassword::from_mut_bytes`, or guarded-buffer constructors. The adapter
   clears owned intermediate and encoded bytes, but cannot clear immutable
@@ -30,6 +35,23 @@ security controls.
 - Never probe Robot with intentionally invalid credentials. Three failed
   logins can block the source IP for ten minutes. Robot operation clients will
   add lockout-aware attempt policy in a later milestone.
+
+## OVHcloud Probe Credentials
+
+The unpublished OVHcloud probe does not load credentials or make authenticated
+calls. Any operator reproducing its architecture manually must use a dedicated
+service account and an IAM policy limited to the exact read operations under
+review. The official guide's `scope=all` example is protocol evidence, not
+permission guidance; independently review the service account's effective IAM
+policy before issuing a token.
+
+Select one reviewed geographic pair and keep it fixed for the complete
+credential lifecycle: `eu.api.ovh.com` pairs with `www.ovh.com`, while
+`ca.api.ovh.com` pairs with `ca.ovh.com`. Do not send client credentials or
+bearer tokens to console hosts, historical aliases, redirects, custom hosts,
+or a different region. Protect the client secret as strictly as the resulting
+bearer token, use short caller-bounded timeouts and response limits, and revoke
+the service account immediately after suspected exposure.
 
 ## Concurrency
 

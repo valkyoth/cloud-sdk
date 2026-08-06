@@ -3,7 +3,6 @@ use std::time::Duration;
 use std::vec::Vec;
 
 use cloud_sdk::Method;
-use cloud_sdk::authentication::CredentialLifetime;
 use cloud_sdk::rate_limit::RateLimit;
 use cloud_sdk::transport::{
     ContentType, RequestHeader, RequestHeaders, RequestTarget, ResponseStorageSanitizer,
@@ -22,7 +21,7 @@ mod lifecycle;
 mod raw_executor;
 mod support;
 
-use support::{prepared, test_credential, test_expiring_credential};
+use support::{prepared, test_credential};
 
 fn run_async_test(future: impl core::future::Future<Output = ()>) {
     let runtime = tokio::runtime::Builder::new_current_thread()
@@ -60,20 +59,6 @@ fn build_loopback(endpoint: &str) -> Option<AsyncClient> {
     AsyncClientBuilder::new(endpoint, credential, user_agent, timeouts)
         .build_for_loopback()
         .ok()
-}
-
-fn build_expiring_loopback(endpoint: &str, lifetime: CredentialLifetime) -> Option<AsyncClient> {
-    let endpoint = HttpsEndpoint::local_http(endpoint).ok()?;
-    let token = BearerToken::new("test-token").ok()?;
-    let credential = test_expiring_credential(token, &endpoint, lifetime);
-    AsyncClientBuilder::new(
-        endpoint,
-        credential,
-        UserAgent::new("cloud-sdk-test/0.18").ok()?,
-        test_timeouts()?,
-    )
-    .build_for_loopback()
-    .ok()
 }
 
 struct CapturedResponse {
