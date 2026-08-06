@@ -559,7 +559,7 @@ assert!(result.is_ok());
 assert!(replacement.iter().all(|byte| *byte == 0));
 
 let Ok(snapshot) = client.credential_snapshot() else { return };
-let handoff = snapshot.refresh_handoff();
+let Ok(handoff) = snapshot.refresh_handoff() else { return };
 let mut refreshed = *b"new-refreshed-token";
 let refreshed_generation =
     client.refresh_bearer_token_from_mut_bytes(handoff, &mut refreshed);
@@ -581,10 +581,17 @@ rejected input leaves the active credential unchanged.
 Refresh uses lineage-bound compare-and-swap handoffs. A handoff from another
 client is rejected even when both clients have the same generation. If
 rotation or another refresh wins while external acquisition is in progress,
-the stale refresh is rejected and cannot overwrite the newer token. The SDK
-supplies no clock, expiry decision, acquisition future, executor, or secret
-store; callers own those policies and pass only the resulting token and
-captured handoff.
+the stale refresh is rejected and cannot overwrite the newer token.
+
+For OAuth credentials, construct a `CredentialLifetime` from the provider's
+`expires_in` value and an explicit caller-owned monotonic timestamp, then use
+`BearerCredential::new_expiring`. An expiring snapshot permits
+`refresh_handoff_at(now)` only inside its configured refresh window and before
+exclusive expiry. Each successful expiring rotation or refresh atomically
+installs both the replacement token and its complete replacement lifetime.
+Static and expiring lifecycle modes cannot be changed implicitly. The SDK
+supplies no clock, token-acquisition future, executor, or secret store; callers
+own those boundaries and pass only validated lifetimes, tokens, and handoffs.
 
 ## Enforced Policy
 

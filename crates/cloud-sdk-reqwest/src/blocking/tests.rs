@@ -14,6 +14,7 @@ use rustls::pki_types::pem::PemObject;
 use rustls::pki_types::{CertificateDer, CertificateRevocationListDer};
 
 use cloud_sdk::Method;
+use cloud_sdk::authentication::CredentialLifetime;
 use cloud_sdk::transport::{
     ContentType, RequestHeader, RequestHeaders, RequestTarget, StatusCode, TransportRequest,
 };
@@ -36,7 +37,7 @@ mod raw_executor;
 mod response_content_type;
 mod support;
 
-use support::{send_test, test_credential};
+use support::{send_test, test_credential, test_expiring_credential};
 
 fn test_timeouts() -> Option<RequestTimeouts> {
     RequestTimeouts::new(Duration::from_secs(2), Duration::from_secs(1)).ok()
@@ -56,6 +57,24 @@ fn build_loopback(endpoint: &str) -> Option<super::BlockingClient> {
     let timeouts = test_timeouts()?;
     let credential = test_credential(token, &endpoint);
     let builder = BlockingClientBuilder::new(endpoint, credential, user_agent, timeouts);
+    #[cfg(feature = "blocking-rustls-fips")]
+    let builder = builder.with_fips_tls_policy(fips_tls_policy()?);
+    builder.build_for_loopback().ok()
+}
+
+fn build_expiring_loopback(
+    endpoint: &str,
+    lifetime: CredentialLifetime,
+) -> Option<super::BlockingClient> {
+    let endpoint = HttpsEndpoint::local_http(endpoint).ok()?;
+    let token = BearerToken::new("test-token").ok()?;
+    let credential = test_expiring_credential(token, &endpoint, lifetime);
+    let builder = BlockingClientBuilder::new(
+        endpoint,
+        credential,
+        UserAgent::new("cloud-sdk-test/0.18").ok()?,
+        test_timeouts()?,
+    );
     #[cfg(feature = "blocking-rustls-fips")]
     let builder = builder.with_fips_tls_policy(fips_tls_policy()?);
     builder.build_for_loopback().ok()

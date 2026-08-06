@@ -1,11 +1,15 @@
 //! Provider-neutral authentication scope and execution contracts.
 
+mod expiry;
 mod generation;
 mod policy;
 mod signing;
 mod transport;
 mod value;
 
+pub use expiry::{
+    CredentialLifetime, CredentialLifetimeError, CredentialLifetimeState, CredentialTimestamp,
+};
 pub use generation::{CredentialGeneration, CredentialGenerationError, RefreshHandoff};
 pub use policy::{
     AuthenticationScope, AuthenticationScopeError, AuthenticationScopePolicy, ScopeField,

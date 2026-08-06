@@ -4,10 +4,11 @@ use std::string::String;
 use std::time::Duration;
 
 use cloud_sdk::Method;
+use cloud_sdk::authentication::{CredentialLifetime, CredentialTimestamp};
 use cloud_sdk::transport::{BoundTransport, RequestTarget, TransportRequest};
 
 use super::support::prepared;
-use super::{BearerToken, build_loopback, run_async_test};
+use super::{BearerToken, build_expiring_loopback, build_loopback, run_async_test};
 use crate::test_server::{spawn_concurrent_pair, spawn_sequence_with_first_delay};
 
 #[test]
@@ -96,6 +97,37 @@ fn async_rotation_from_mutable_bytes_is_visible_to_clones() {
         let results = join_two(send_once(&client, target), send_once(&clone, target)).await;
         assert_eq!(results, (true, true));
     });
+}
+
+#[test]
+fn async_expiring_rotation_is_atomic_and_visible_to_clones() {
+    let initial =
+        CredentialLifetime::from_expires_in(CredentialTimestamp::from_seconds(1_000), 3_599, 300)
+            .unwrap_or_else(|_| unreachable!("security fixture construction failed"));
+    let Some(client) = build_expiring_loopback("http://127.0.0.1:9/v1", initial) else {
+        unreachable!("security fixture construction failed");
+    };
+    let clone = client.clone();
+    let replacement_lifetime =
+        CredentialLifetime::from_expires_in(CredentialTimestamp::from_seconds(2_000), 3_599, 300)
+            .unwrap_or_else(|_| unreachable!("security fixture construction failed"));
+    let mut replacement = *b"expiring-token";
+
+    assert!(
+        client
+            .rotate_bearer_token_from_mut_bytes_with_lifetime(
+                &mut replacement,
+                replacement_lifetime,
+            )
+            .is_ok()
+    );
+    assert_eq!(replacement, [0; 14]);
+    assert_eq!(
+        clone
+            .credential_snapshot()
+            .map(|snapshot| snapshot.lifetime()),
+        Ok(Some(replacement_lifetime))
+    );
 }
 
 #[test]

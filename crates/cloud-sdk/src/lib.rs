@@ -45,8 +45,9 @@ mod tests {
     use super::{Method, MethodError, ProviderId, ServiceId};
     use crate::action_polling::{ActionObserveError, ActionPollError};
     use crate::authentication::{
-        AuthenticationScopeError, CredentialGenerationError, ScopeValueError, SigningBuildError,
-        SigningContextValueError, SigningInputError, SigningOutputError, SigningValueError,
+        AuthenticationScopeError, CredentialGenerationError, CredentialLifetimeError,
+        ScopeValueError, SigningBuildError, SigningContextValueError, SigningInputError,
+        SigningOutputError, SigningValueError,
     };
     use crate::client::{
         CheckedDecodeError, ClientExecutionError, WorkspaceAcquireError, WorkspacePoolError,
@@ -66,10 +67,11 @@ mod tests {
         RetryPermitError, RetryPolicyError,
     };
     use crate::transport::{
-        AsyncExecutionError, ContentTypeError, EndpointIdentityError, HeaderError,
-        InformationalResponseError, RawResponsePolicyError, RequestPathError, RequestTargetError,
-        ResponseWriterError, StreamExecutionError, StreamLimitsError, StreamPolicyError,
-        StreamProgressError, StreamReplayError, StreamSourceIdError, TransportFailure,
+        AsyncExecutionError, ContentTypeError, EndpointIdentityError, EndpointPairPolicyError,
+        HeaderError, InformationalResponseError, RawResponsePolicyError, RequestPathError,
+        RequestTargetError, ResponseWriterError, StreamExecutionError, StreamLimitsError,
+        StreamPolicyError, StreamProgressError, StreamReplayError, StreamSourceIdError,
+        TransportFailure,
     };
     use core::fmt::{self, Write};
 
@@ -94,6 +96,7 @@ mod tests {
         assert_error::<PaginationError>();
         assert_error::<AuthenticationScopeError>();
         assert_error::<CredentialGenerationError>();
+        assert_error::<CredentialLifetimeError>();
         assert_error::<ScopeValueError>();
         assert_error::<SigningValueError>();
         assert_error::<SigningContextValueError>();
@@ -114,6 +117,7 @@ mod tests {
         assert_error::<ContentTypeError>();
         assert_error::<HeaderError>();
         assert_error::<EndpointIdentityError>();
+        assert_error::<EndpointPairPolicyError>();
         assert_error::<RequestTargetError>();
         assert_error::<MethodError>();
         assert_error::<ActionPollError>();

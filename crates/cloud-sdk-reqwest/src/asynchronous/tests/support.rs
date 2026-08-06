@@ -1,4 +1,4 @@
-use cloud_sdk::authentication::{AuthenticationScopePolicy, ScopeRequirement};
+use cloud_sdk::authentication::{AuthenticationScopePolicy, CredentialLifetime, ScopeRequirement};
 use cloud_sdk::operation::{
     AttemptBudget, CheckedResponseGuard, ContentTypePolicy, CostIntent, MutationPermit,
     OperationImpact, OperationMetadata, PermitClock, PermitContext, PermitTimestamp,
@@ -24,6 +24,22 @@ pub(super) fn test_credential(token: BearerToken, endpoint: &HttpsEndpoint) -> B
             cloud_sdk::service_id!("compute"),
             endpoint.clone(),
         ),
+    )
+}
+
+pub(super) fn test_expiring_credential(
+    token: BearerToken,
+    endpoint: &HttpsEndpoint,
+    lifetime: CredentialLifetime,
+) -> BearerCredential {
+    BearerCredential::new_expiring(
+        token,
+        BearerCredentialScope::new(
+            cloud_sdk::provider_id!("example"),
+            cloud_sdk::service_id!("compute"),
+            endpoint.clone(),
+        ),
+        lifetime,
     )
 }
 

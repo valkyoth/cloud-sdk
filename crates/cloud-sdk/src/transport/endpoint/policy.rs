@@ -200,7 +200,7 @@ impl<'a> EndpointPolicy<'a> {
     }
 }
 
-fn validate_region(region: &str) -> Result<(), EndpointPolicyError> {
+pub(super) fn validate_region(region: &str) -> Result<(), EndpointPolicyError> {
     if region.is_empty()
         || region.len() > MAX_ENDPOINT_REGION_BYTES
         || region.starts_with('-')

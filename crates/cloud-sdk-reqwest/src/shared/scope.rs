@@ -1,7 +1,9 @@
 use core::fmt;
 use std::string::String;
 
-use cloud_sdk::authentication::{AuthenticationScope, ScopeValue, ScopeValueError};
+use cloud_sdk::authentication::{
+    AuthenticationScope, CredentialLifetime, ScopeValue, ScopeValueError,
+};
 use cloud_sdk::transport::EndpointIdentity;
 use cloud_sdk::{ProviderId, ServiceId};
 
@@ -253,13 +255,32 @@ define_scope!(BasicCredentialScope, "BasicCredentialScope");
 pub struct BearerCredential {
     pub(crate) token: BearerToken,
     pub(crate) scope: BearerCredentialScope,
+    pub(crate) lifetime: Option<CredentialLifetime>,
 }
 
 impl BearerCredential {
     /// Binds a validated token to an immutable scope.
     #[must_use]
     pub const fn new(token: BearerToken, scope: BearerCredentialScope) -> Self {
-        Self { token, scope }
+        Self {
+            token,
+            scope,
+            lifetime: None,
+        }
+    }
+
+    /// Binds an expiring token and its caller-clock lifetime to one scope.
+    #[must_use]
+    pub const fn new_expiring(
+        token: BearerToken,
+        scope: BearerCredentialScope,
+        lifetime: CredentialLifetime,
+    ) -> Self {
+        Self {
+            token,
+            scope,
+            lifetime: Some(lifetime),
+        }
     }
 }
 

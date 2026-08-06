@@ -1,0 +1,3 @@
+region	api_host	api_port	api_base_path	token_host	token_port	token_base_path
+ca	ca.api.ovh.com	443	/v2	ca.ovh.com	443	/auth/oauth2/token
+eu	eu.api.ovh.com	443	/v2	www.ovh.com	443	/auth/oauth2/token

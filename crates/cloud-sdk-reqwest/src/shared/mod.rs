@@ -46,7 +46,7 @@ pub use config::{MAX_TIMEOUT_SECONDS, RequestTimeouts, TimeoutError, UserAgent, 
 pub(crate) use credentials::CredentialStore;
 pub use credentials::{
     BearerCredentialSnapshot, BearerRefreshHandoff, CredentialStateError, CredentialUpdateError,
-    TokenRefreshError, TokenRotationError,
+    RefreshHandoffError, TokenRefreshError, TokenRotationError,
 };
 pub use endpoint::{EndpointError, HttpsEndpoint, MAX_CONFIGURED_ENDPOINT_BYTES};
 pub use error::{BuildError, TransportError};
@@ -83,8 +83,9 @@ mod error_tests {
     use super::{
         BasicCredentialError, BasicCredentialScopeError, BasicPasswordError, BasicUsernameError,
         BearerCredentialScopeError, BearerTokenError, BuildError, CredentialStateError,
-        CredentialUpdateError, EndpointError, RawHttpError, RawTransportFailure, TimeoutError,
-        TokenRefreshError, TokenRotationError, TransportError, UserAgentError,
+        CredentialUpdateError, EndpointError, RawHttpError, RawTransportFailure,
+        RefreshHandoffError, TimeoutError, TokenRefreshError, TokenRotationError, TransportError,
+        UserAgentError,
     };
     use std::string::ToString;
 
@@ -101,6 +102,7 @@ mod error_tests {
         assert_error::<BuildError>();
         assert_error::<CredentialStateError>();
         assert_error::<CredentialUpdateError>();
+        assert_error::<RefreshHandoffError>();
         assert_error::<EndpointError>();
         assert_error::<TimeoutError>();
         assert_error::<TokenRotationError>();

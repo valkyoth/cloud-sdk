@@ -1,108 +1,25 @@
 use core::fmt;
 use std::sync::{Arc, RwLock};
 
-use cloud_sdk::authentication::{CredentialGeneration, CredentialGenerationError, RefreshHandoff};
+use cloud_sdk::authentication::{
+    CredentialGeneration, CredentialGenerationError, CredentialLifetime, CredentialLifetimeState,
+    CredentialTimestamp, RefreshHandoff,
+};
 use cloud_sdk_sanitization::SecretBuffer;
 
-use super::{BearerToken, BearerTokenError};
+use super::BearerToken;
 
-/// Credential-state access failure.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum CredentialStateError {
-    /// The short-lived credential-state lock could not be recovered.
-    Unavailable,
-}
+mod error;
 
-impl_static_error!(CredentialStateError,
-    Self::Unavailable => "credential state is unavailable",
-);
-
-/// Validated token rotation failure.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum CredentialUpdateError {
-    /// The credential state could not be changed.
-    StateUnavailable,
-    /// The monotonic credential generation cannot advance.
-    GenerationExhausted,
-}
-
-impl_static_error!(CredentialUpdateError,
-    Self::StateUnavailable => "credential state is unavailable",
-    Self::GenerationExhausted => "credential generation is exhausted",
-);
-
-/// Bearer-token validation or rotation failure.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum TokenRotationError {
-    /// The replacement bearer token was rejected before state changed.
-    TokenRejected(BearerTokenError),
-    /// The credential state could not be changed.
-    StateUnavailable,
-    /// The monotonic credential generation cannot advance.
-    GenerationExhausted,
-}
-
-impl fmt::Display for TokenRotationError {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        formatter.write_str(match self {
-            Self::TokenRejected(_) => "replacement bearer token was rejected",
-            Self::StateUnavailable => "credential state is unavailable",
-            Self::GenerationExhausted => "credential generation is exhausted",
-        })
-    }
-}
-
-impl core::error::Error for TokenRotationError {
-    fn source(&self) -> Option<&(dyn core::error::Error + 'static)> {
-        match self {
-            Self::TokenRejected(error) => Some(error),
-            Self::StateUnavailable | Self::GenerationExhausted => None,
-        }
-    }
-}
-
-/// Compare-and-swap bearer refresh failure.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum TokenRefreshError {
-    /// The replacement bearer token was rejected before state changed.
-    TokenRejected(BearerTokenError),
-    /// A newer rotation or refresh superseded this handoff.
-    StaleGeneration,
-    /// The refresh handoff belongs to a different credential lifecycle.
-    CredentialMismatch,
-    /// The credential state could not be changed.
-    StateUnavailable,
-    /// The monotonic credential generation cannot advance.
-    GenerationExhausted,
-}
-
-impl fmt::Display for TokenRefreshError {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        formatter.write_str(match self {
-            Self::TokenRejected(_) => "refreshed bearer token was rejected",
-            Self::StaleGeneration => "credential refresh generation is stale",
-            Self::CredentialMismatch => "credential refresh handoff belongs to another credential",
-            Self::StateUnavailable => "credential state is unavailable",
-            Self::GenerationExhausted => "credential generation is exhausted",
-        })
-    }
-}
-
-impl core::error::Error for TokenRefreshError {
-    fn source(&self) -> Option<&(dyn core::error::Error + 'static)> {
-        match self {
-            Self::TokenRejected(error) => Some(error),
-            Self::StaleGeneration
-            | Self::CredentialMismatch
-            | Self::StateUnavailable
-            | Self::GenerationExhausted => None,
-        }
-    }
-}
+pub use error::{
+    CredentialStateError, CredentialUpdateError, RefreshHandoffError, TokenRefreshError,
+    TokenRotationError,
+};
 
 struct VersionedToken {
     generation: CredentialGeneration,
     token: BearerToken,
+    lifetime: Option<CredentialLifetime>,
 }
 
 struct CredentialLineage;
@@ -152,8 +69,37 @@ impl BearerCredentialSnapshot {
     }
 
     /// Creates a refresh handoff tied to this exact snapshot generation.
+    pub fn refresh_handoff(&self) -> Result<BearerRefreshHandoff, RefreshHandoffError> {
+        if self.current.lifetime.is_some() {
+            return Err(RefreshHandoffError::ExplicitTimeRequired);
+        }
+        Ok(self.new_handoff())
+    }
+
+    /// Creates a refresh handoff only inside an expiring token's refresh window.
+    pub fn refresh_handoff_at(
+        &self,
+        now: CredentialTimestamp,
+    ) -> Result<BearerRefreshHandoff, RefreshHandoffError> {
+        let lifetime = self
+            .current
+            .lifetime
+            .ok_or(RefreshHandoffError::LifetimeNotConfigured)?;
+        match lifetime.state_at(now) {
+            CredentialLifetimeState::ClockRollback => Err(RefreshHandoffError::ClockRollback),
+            CredentialLifetimeState::Fresh => Err(RefreshHandoffError::RefreshNotRequired),
+            CredentialLifetimeState::RefreshRequired => Ok(self.new_handoff()),
+            CredentialLifetimeState::Expired => Err(RefreshHandoffError::CredentialExpired),
+        }
+    }
+
+    /// Returns the caller-clock lifetime for an expiring credential.
     #[must_use]
-    pub fn refresh_handoff(&self) -> BearerRefreshHandoff {
+    pub fn lifetime(&self) -> Option<CredentialLifetime> {
+        self.current.lifetime
+    }
+
+    fn new_handoff(&self) -> BearerRefreshHandoff {
         BearerRefreshHandoff {
             lineage: Arc::clone(&self.lineage),
             expected: self.generation().refresh_handoff(),
@@ -200,12 +146,13 @@ pub(crate) struct CredentialStore {
 }
 
 impl CredentialStore {
-    pub(crate) fn new(token: BearerToken) -> Self {
+    pub(crate) fn new(token: BearerToken, lifetime: Option<CredentialLifetime>) -> Self {
         Self {
             lineage: Arc::new(CredentialLineage),
             current: RwLock::new(Arc::new(VersionedToken {
                 generation: CredentialGeneration::INITIAL,
                 token,
+                lifetime,
             })),
         }
     }
@@ -230,8 +177,21 @@ impl CredentialStore {
     ) -> Result<CredentialGeneration, CredentialUpdateError> {
         let retired = {
             let mut current = self.write_current();
-            replace_current(&mut current, token)
-                .map_err(|_| CredentialUpdateError::GenerationExhausted)?
+            replace_current(&mut current, token, None).map_err(map_update_failure)?
+        };
+        let (retired, generation) = retired;
+        drop(retired);
+        Ok(generation)
+    }
+
+    pub(crate) fn rotate_with_lifetime(
+        &self,
+        token: BearerToken,
+        lifetime: CredentialLifetime,
+    ) -> Result<CredentialGeneration, CredentialUpdateError> {
+        let retired = {
+            let mut current = self.write_current();
+            replace_current(&mut current, token, Some(lifetime)).map_err(map_update_failure)?
         };
         let (retired, generation) = retired;
         drop(retired);
@@ -251,8 +211,28 @@ impl CredentialStore {
             if handoff.expected_generation() != current.generation {
                 return Err(TokenRefreshError::StaleGeneration);
             }
-            replace_current(&mut current, token)
-                .map_err(|_| TokenRefreshError::GenerationExhausted)?
+            replace_current(&mut current, token, None).map_err(map_refresh_update)?
+        };
+        let (retired, generation) = retired;
+        drop(retired);
+        Ok(generation)
+    }
+
+    pub(crate) fn refresh_with_lifetime(
+        &self,
+        handoff: BearerRefreshHandoff,
+        token: BearerToken,
+        lifetime: CredentialLifetime,
+    ) -> Result<CredentialGeneration, TokenRefreshError> {
+        if !Arc::ptr_eq(&self.lineage, &handoff.lineage) {
+            return Err(TokenRefreshError::CredentialMismatch);
+        }
+        let retired = {
+            let mut current = self.write_current();
+            if handoff.expected_generation() != current.generation {
+                return Err(TokenRefreshError::StaleGeneration);
+            }
+            replace_current(&mut current, token, Some(lifetime)).map_err(map_refresh_update)?
         };
         let (retired, generation) = retired;
         drop(retired);
@@ -287,6 +267,28 @@ impl CredentialStore {
         self.rotate(token).map_err(map_rotation_update)
     }
 
+    pub(crate) fn rotate_from_mut_bytes_with_lifetime(
+        &self,
+        source: &mut [u8],
+        lifetime: CredentialLifetime,
+    ) -> Result<CredentialGeneration, TokenRotationError> {
+        let token =
+            BearerToken::from_mut_bytes(source).map_err(TokenRotationError::TokenRejected)?;
+        self.rotate_with_lifetime(token, lifetime)
+            .map_err(map_rotation_update)
+    }
+
+    pub(crate) fn rotate_from_secret_buffer_with_lifetime(
+        &self,
+        source: SecretBuffer<'_>,
+        lifetime: CredentialLifetime,
+    ) -> Result<CredentialGeneration, TokenRotationError> {
+        let token =
+            BearerToken::from_secret_buffer(source).map_err(TokenRotationError::TokenRejected)?;
+        self.rotate_with_lifetime(token, lifetime)
+            .map_err(map_rotation_update)
+    }
+
     pub(crate) fn refresh_from_mut_bytes(
         &self,
         handoff: BearerRefreshHandoff,
@@ -306,12 +308,36 @@ impl CredentialStore {
             BearerToken::from_secret_buffer(source).map_err(TokenRefreshError::TokenRejected)?;
         self.refresh(handoff, token)
     }
+
+    pub(crate) fn refresh_from_mut_bytes_with_lifetime(
+        &self,
+        handoff: BearerRefreshHandoff,
+        source: &mut [u8],
+        lifetime: CredentialLifetime,
+    ) -> Result<CredentialGeneration, TokenRefreshError> {
+        let token =
+            BearerToken::from_mut_bytes(source).map_err(TokenRefreshError::TokenRejected)?;
+        self.refresh_with_lifetime(handoff, token, lifetime)
+    }
+
+    pub(crate) fn refresh_from_secret_buffer_with_lifetime(
+        &self,
+        handoff: BearerRefreshHandoff,
+        source: SecretBuffer<'_>,
+        lifetime: CredentialLifetime,
+    ) -> Result<CredentialGeneration, TokenRefreshError> {
+        let token =
+            BearerToken::from_secret_buffer(source).map_err(TokenRefreshError::TokenRejected)?;
+        self.refresh_with_lifetime(handoff, token, lifetime)
+    }
 }
 
 fn map_rotation_update(error: CredentialUpdateError) -> TokenRotationError {
     match error {
         CredentialUpdateError::StateUnavailable => TokenRotationError::StateUnavailable,
         CredentialUpdateError::GenerationExhausted => TokenRotationError::GenerationExhausted,
+        CredentialUpdateError::LifetimeRequired => TokenRotationError::LifetimeRequired,
+        CredentialUpdateError::LifetimeForbidden => TokenRotationError::LifetimeForbidden,
     }
 }
 
@@ -321,12 +347,51 @@ impl fmt::Debug for CredentialStore {
     }
 }
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum CredentialUpdateFailure {
+    GenerationExhausted,
+    LifetimeRequired,
+    LifetimeForbidden,
+}
+
+fn map_update_failure(error: CredentialUpdateFailure) -> CredentialUpdateError {
+    match error {
+        CredentialUpdateFailure::GenerationExhausted => CredentialUpdateError::GenerationExhausted,
+        CredentialUpdateFailure::LifetimeRequired => CredentialUpdateError::LifetimeRequired,
+        CredentialUpdateFailure::LifetimeForbidden => CredentialUpdateError::LifetimeForbidden,
+    }
+}
+
+fn map_refresh_update(error: CredentialUpdateFailure) -> TokenRefreshError {
+    match error {
+        CredentialUpdateFailure::GenerationExhausted => TokenRefreshError::GenerationExhausted,
+        CredentialUpdateFailure::LifetimeRequired => TokenRefreshError::LifetimeRequired,
+        CredentialUpdateFailure::LifetimeForbidden => TokenRefreshError::LifetimeForbidden,
+    }
+}
+
 fn replace_current(
     current: &mut Arc<VersionedToken>,
     token: BearerToken,
-) -> Result<(Arc<VersionedToken>, CredentialGeneration), CredentialGenerationError> {
-    let generation = current.generation.checked_next()?;
-    let replacement = Arc::new(VersionedToken { generation, token });
+    lifetime: Option<CredentialLifetime>,
+) -> Result<(Arc<VersionedToken>, CredentialGeneration), CredentialUpdateFailure> {
+    match (current.lifetime, lifetime) {
+        (Some(_), None) => return Err(CredentialUpdateFailure::LifetimeRequired),
+        (None, Some(_)) => return Err(CredentialUpdateFailure::LifetimeForbidden),
+        (Some(_), Some(_)) | (None, None) => {}
+    }
+    let generation =
+        current
+            .generation
+            .checked_next()
+            .map_err(|_error: CredentialGenerationError| {
+                CredentialUpdateFailure::GenerationExhausted
+            })?;
+    let replacement = Arc::new(VersionedToken {
+        generation,
+        token,
+        lifetime,
+    });
     Ok((core::mem::replace(current, replacement), generation))
 }
 

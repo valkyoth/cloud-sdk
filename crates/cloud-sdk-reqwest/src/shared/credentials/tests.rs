@@ -5,9 +5,24 @@ use std::sync::{
     atomic::{AtomicUsize, Ordering},
 };
 
+use cloud_sdk::authentication::{CredentialLifetime, CredentialLifetimeState, CredentialTimestamp};
 use cloud_sdk_sanitization::SecretBuffer;
 
-use super::{BearerToken, CredentialStore, TokenRefreshError, TokenRotationError};
+use super::{
+    BearerCredentialSnapshot, BearerRefreshHandoff, BearerToken, CredentialStore,
+    CredentialUpdateError, RefreshHandoffError, TokenRefreshError, TokenRotationError,
+};
+
+fn handoff(snapshot: &BearerCredentialSnapshot) -> BearerRefreshHandoff {
+    snapshot
+        .refresh_handoff()
+        .unwrap_or_else(|_| unreachable!())
+}
+
+fn lifetime(observed: u64) -> CredentialLifetime {
+    CredentialLifetime::from_expires_in(CredentialTimestamp::from_seconds(observed), 3_599, 300)
+        .unwrap_or_else(|_| unreachable!())
+}
 
 #[test]
 fn mutable_and_guarded_sources_clear_on_success_and_failure() {
@@ -31,7 +46,7 @@ fn rejected_rotation_preserves_active_token_and_clears_input() {
     let Ok(active) = BearerToken::new("active-token") else {
         unreachable!("security fixture construction failed");
     };
-    let store = CredentialStore::new(active);
+    let store = CredentialStore::new(active, None);
     let mut rejected = *b"bad token";
     assert!(matches!(
         store.rotate_from_mut_bytes(&mut rejected),
@@ -53,7 +68,7 @@ fn retired_token_waits_for_last_snapshot_and_generations_advance() {
     let Ok(active) = active else {
         unreachable!("security fixture construction failed")
     };
-    let store = CredentialStore::new(active);
+    let store = CredentialStore::new(active, None);
     let old_snapshot = store.snapshot();
     let Ok(old_snapshot) = old_snapshot else {
         unreachable!("security fixture construction failed");
@@ -83,11 +98,11 @@ fn stale_refresh_cannot_overwrite_newer_rotation() {
     let Ok(active) = BearerToken::new("active-token") else {
         unreachable!("security fixture construction failed");
     };
-    let store = CredentialStore::new(active);
+    let store = CredentialStore::new(active, None);
     let Ok(snapshot) = store.snapshot() else {
         unreachable!("security fixture construction failed");
     };
-    let handoff = snapshot.refresh_handoff();
+    let handoff = handoff(&snapshot);
     let Ok(rotated) = BearerToken::new("rotated-token") else {
         unreachable!("security fixture construction failed");
     };
@@ -116,8 +131,8 @@ fn refresh_handoff_cannot_cross_credential_store_lineages() {
     let Ok(second_token) = BearerToken::new("second-token") else {
         unreachable!("security fixture construction failed");
     };
-    let first = CredentialStore::new(first_token);
-    let second = CredentialStore::new(second_token);
+    let first = CredentialStore::new(first_token, None);
+    let second = CredentialStore::new(second_token, None);
     let Ok(first_snapshot) = first.snapshot() else {
         unreachable!("security fixture construction failed");
     };
@@ -128,7 +143,7 @@ fn refresh_handoff_cannot_cross_credential_store_lineages() {
     };
 
     assert_eq!(
-        second.refresh(first_snapshot.refresh_handoff(), replacement),
+        second.refresh(handoff(&first_snapshot), replacement),
         Err(TokenRefreshError::CredentialMismatch)
     );
     assert_eq!(
@@ -149,11 +164,11 @@ fn competing_refreshes_allow_exactly_one_generation_transition() {
     let Ok(active) = BearerToken::new("active-token") else {
         unreachable!("security fixture construction failed");
     };
-    let store = CredentialStore::new(active);
+    let store = CredentialStore::new(active, None);
     let Ok(snapshot) = store.snapshot() else {
         unreachable!("security fixture construction failed");
     };
-    let handoff = snapshot.refresh_handoff();
+    let handoff = handoff(&snapshot);
     let first = BearerToken::new("first-refresh");
     let second = BearerToken::new("second-refresh");
     let (Ok(first), Ok(second)) = (first, second) else {
@@ -176,11 +191,11 @@ fn concurrent_refresh_race_allows_exactly_one_winner() {
     let Ok(active) = BearerToken::new("active-token") else {
         unreachable!("security fixture construction failed");
     };
-    let store = Arc::new(CredentialStore::new(active));
+    let store = Arc::new(CredentialStore::new(active, None));
     let Ok(snapshot) = store.snapshot() else {
         unreachable!("security fixture construction failed");
     };
-    let handoff = snapshot.refresh_handoff();
+    let handoff = handoff(&snapshot);
     let barrier = Arc::new(Barrier::new(3));
     let mut successes = 0_usize;
     let mut stale = 0_usize;
@@ -227,13 +242,13 @@ fn rejected_refresh_clears_input_without_changing_generation() {
     let Ok(active) = BearerToken::new("active-token") else {
         unreachable!("security fixture construction failed");
     };
-    let store = CredentialStore::new(active);
+    let store = CredentialStore::new(active, None);
     let Ok(snapshot) = store.snapshot() else {
         unreachable!("security fixture construction failed");
     };
     let mut rejected = *b"bad token";
     assert!(matches!(
-        store.refresh_from_mut_bytes(snapshot.refresh_handoff(), &mut rejected),
+        store.refresh_from_mut_bytes(handoff(&snapshot), &mut rejected),
         Err(TokenRefreshError::TokenRejected(_))
     ));
     assert_eq!(rejected, [0; 9]);
@@ -248,7 +263,7 @@ fn poisoned_state_recovers_for_snapshots_rotations_and_refreshes() {
     let Ok(active) = BearerToken::new("active-token") else {
         unreachable!("security fixture construction failed");
     };
-    let store = CredentialStore::new(active);
+    let store = CredentialStore::new(active, None);
 
     poison_state(&store);
     let snapshot = store.snapshot();
@@ -262,11 +277,7 @@ fn poisoned_state_recovers_for_snapshots_rotations_and_refreshes() {
     let Ok(replacement) = BearerToken::new("replacement-token") else {
         unreachable!("security fixture construction failed");
     };
-    assert!(
-        store
-            .refresh(snapshot.refresh_handoff(), replacement)
-            .is_ok()
-    );
+    assert!(store.refresh(handoff(&snapshot), replacement).is_ok());
     assert!(!store.current.is_poisoned());
     let snapshot = store.snapshot();
     assert!(snapshot.is_ok());
@@ -283,7 +294,7 @@ fn header_copy_has_cleanup_owner_and_redacted_snapshot() {
     let Ok(token) = token else {
         unreachable!("security fixture construction failed")
     };
-    let store = CredentialStore::new(token);
+    let store = CredentialStore::new(token, None);
     let Ok(snapshot) = store.snapshot() else {
         unreachable!("security fixture construction failed");
     };
@@ -295,6 +306,111 @@ fn header_copy_has_cleanup_owner_and_redacted_snapshot() {
     let debug = std::format!("{snapshot:?}");
     assert!(debug.contains("[redacted]"));
     assert!(!debug.contains("active-token"));
+}
+
+#[test]
+fn expiring_snapshots_require_time_qualified_refresh_handoffs() {
+    let Ok(token) = BearerToken::new("expiring-token") else {
+        unreachable!("security fixture construction failed");
+    };
+    let store = CredentialStore::new(token, Some(lifetime(1_000)));
+    let Ok(snapshot) = store.snapshot() else {
+        unreachable!("security fixture construction failed");
+    };
+    assert_eq!(snapshot.lifetime(), Some(lifetime(1_000)));
+    assert!(matches!(
+        snapshot.refresh_handoff(),
+        Err(RefreshHandoffError::ExplicitTimeRequired)
+    ));
+    assert!(matches!(
+        snapshot.refresh_handoff_at(CredentialTimestamp::from_seconds(999)),
+        Err(RefreshHandoffError::ClockRollback)
+    ));
+    assert!(matches!(
+        snapshot.refresh_handoff_at(CredentialTimestamp::from_seconds(4_298)),
+        Err(RefreshHandoffError::RefreshNotRequired)
+    ));
+    assert!(
+        snapshot
+            .refresh_handoff_at(CredentialTimestamp::from_seconds(4_299))
+            .is_ok()
+    );
+    assert!(matches!(
+        snapshot.refresh_handoff_at(CredentialTimestamp::from_seconds(4_599)),
+        Err(RefreshHandoffError::CredentialExpired)
+    ));
+}
+
+#[test]
+fn lifetime_mode_cannot_be_silently_added_or_removed() {
+    let Ok(expiring) = BearerToken::new("expiring-token") else {
+        unreachable!("security fixture construction failed");
+    };
+    let expiring = CredentialStore::new(expiring, Some(lifetime(1_000)));
+    let Ok(replacement) = BearerToken::new("replacement-token") else {
+        unreachable!("security fixture construction failed");
+    };
+    assert_eq!(
+        expiring.rotate(replacement),
+        Err(CredentialUpdateError::LifetimeRequired)
+    );
+    assert_eq!(
+        expiring.snapshot().map(|snapshot| snapshot
+            .lifetime()
+            .map(|value| value.state_at(CredentialTimestamp::from_seconds(1_000)))),
+        Ok(Some(CredentialLifetimeState::Fresh))
+    );
+
+    let Ok(static_token) = BearerToken::new("static-token") else {
+        unreachable!("security fixture construction failed");
+    };
+    let static_store = CredentialStore::new(static_token, None);
+    let Ok(replacement) = BearerToken::new("replacement-token") else {
+        unreachable!("security fixture construction failed");
+    };
+    assert_eq!(
+        static_store.rotate_with_lifetime(replacement, lifetime(2_000)),
+        Err(CredentialUpdateError::LifetimeForbidden)
+    );
+}
+
+#[test]
+fn expiring_refresh_rotates_token_and_lifetime_atomically_and_clears_input() {
+    let Ok(active) = BearerToken::new("active-token") else {
+        unreachable!("security fixture construction failed");
+    };
+    let store = CredentialStore::new(active, Some(lifetime(1_000)));
+    let Ok(snapshot) = store.snapshot() else {
+        unreachable!("security fixture construction failed");
+    };
+    let handoff = snapshot
+        .refresh_handoff_at(CredentialTimestamp::from_seconds(4_299))
+        .unwrap_or_else(|_| unreachable!());
+    let mut replacement = *b"refreshed-token";
+    assert_eq!(
+        store
+            .refresh_from_mut_bytes_with_lifetime(
+                handoff.clone(),
+                &mut replacement,
+                lifetime(4_300),
+            )
+            .map(|generation| generation.get()),
+        Ok(2)
+    );
+    assert_eq!(replacement, [0; 15]);
+    let Ok(current) = store.snapshot() else {
+        unreachable!("security fixture construction failed");
+    };
+    assert_eq!(current.owned_bytes(), b"Bearer refreshed-token");
+    assert_eq!(current.lifetime(), Some(lifetime(4_300)));
+    assert_eq!(
+        store.refresh_with_lifetime(
+            handoff,
+            BearerToken::new("stale-token").unwrap_or_else(|_| unreachable!()),
+            lifetime(4_301),
+        ),
+        Err(TokenRefreshError::StaleGeneration)
+    );
 }
 
 fn poison_state(store: &CredentialStore) {

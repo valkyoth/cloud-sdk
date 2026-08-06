@@ -2,7 +2,7 @@ use core::fmt;
 use std::sync::Arc;
 
 use cloud_sdk::authentication::{
-    AuthenticatedRequest, BlockingAuthenticatedTransport, CredentialGeneration,
+    AuthenticatedRequest, BlockingAuthenticatedTransport, CredentialGeneration, CredentialLifetime,
 };
 use cloud_sdk::transport::{
     BoundTransport, EndpointIdentity, EndpointIdentityError, ResponseStorageSanitizer,
@@ -39,7 +39,7 @@ impl BlockingClient {
             client,
             endpoint,
             scope: Arc::new(credential.scope),
-            credentials: Arc::new(CredentialStore::new(credential.token)),
+            credentials: Arc::new(CredentialStore::new(credential.token, credential.lifetime)),
             allow_insecure_loopback,
         }
     }
@@ -60,6 +60,15 @@ impl BlockingClient {
         self.credentials.rotate(replacement)
     }
 
+    /// Atomically replaces an expiring token and its complete lifetime.
+    pub fn rotate_bearer_token_with_lifetime(
+        &self,
+        replacement: BearerToken,
+        lifetime: CredentialLifetime,
+    ) -> Result<CredentialGeneration, CredentialUpdateError> {
+        self.credentials.rotate_with_lifetime(replacement, lifetime)
+    }
+
     /// Validates and rotates mutable bytes, clearing the complete source.
     pub fn rotate_bearer_token_from_mut_bytes(
         &self,
@@ -76,6 +85,26 @@ impl BlockingClient {
         self.credentials.rotate_from_secret_buffer(source)
     }
 
+    /// Clears mutable input and atomically installs an expiring replacement.
+    pub fn rotate_bearer_token_from_mut_bytes_with_lifetime(
+        &self,
+        source: &mut [u8],
+        lifetime: CredentialLifetime,
+    ) -> Result<CredentialGeneration, TokenRotationError> {
+        self.credentials
+            .rotate_from_mut_bytes_with_lifetime(source, lifetime)
+    }
+
+    /// Consumes guarded input and atomically installs an expiring replacement.
+    pub fn rotate_bearer_token_from_secret_buffer_with_lifetime(
+        &self,
+        source: SecretBuffer<'_>,
+        lifetime: CredentialLifetime,
+    ) -> Result<CredentialGeneration, TokenRotationError> {
+        self.credentials
+            .rotate_from_secret_buffer_with_lifetime(source, lifetime)
+    }
+
     /// Installs a refresh only if its captured generation is still current.
     pub fn refresh_bearer_token(
         &self,
@@ -83,6 +112,17 @@ impl BlockingClient {
         replacement: BearerToken,
     ) -> Result<CredentialGeneration, TokenRefreshError> {
         self.credentials.refresh(handoff, replacement)
+    }
+
+    /// Installs an expiring refresh if its time-qualified handoff is current.
+    pub fn refresh_bearer_token_with_lifetime(
+        &self,
+        handoff: BearerRefreshHandoff,
+        replacement: BearerToken,
+        lifetime: CredentialLifetime,
+    ) -> Result<CredentialGeneration, TokenRefreshError> {
+        self.credentials
+            .refresh_with_lifetime(handoff, replacement, lifetime)
     }
 
     /// Validates refreshed mutable bytes, clears them, and rejects stale work.
@@ -101,6 +141,28 @@ impl BlockingClient {
         source: SecretBuffer<'_>,
     ) -> Result<CredentialGeneration, TokenRefreshError> {
         self.credentials.refresh_from_secret_buffer(handoff, source)
+    }
+
+    /// Clears mutable refresh input and atomically installs its lifetime.
+    pub fn refresh_bearer_token_from_mut_bytes_with_lifetime(
+        &self,
+        handoff: BearerRefreshHandoff,
+        source: &mut [u8],
+        lifetime: CredentialLifetime,
+    ) -> Result<CredentialGeneration, TokenRefreshError> {
+        self.credentials
+            .refresh_from_mut_bytes_with_lifetime(handoff, source, lifetime)
+    }
+
+    /// Consumes guarded refresh input and atomically installs its lifetime.
+    pub fn refresh_bearer_token_from_secret_buffer_with_lifetime(
+        &self,
+        handoff: BearerRefreshHandoff,
+        source: SecretBuffer<'_>,
+        lifetime: CredentialLifetime,
+    ) -> Result<CredentialGeneration, TokenRefreshError> {
+        self.credentials
+            .refresh_from_secret_buffer_with_lifetime(handoff, source, lifetime)
     }
 
     fn send_inner(

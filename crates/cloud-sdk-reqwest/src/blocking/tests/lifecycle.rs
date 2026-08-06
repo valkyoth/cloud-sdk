@@ -2,12 +2,13 @@ use std::string::String;
 use std::time::Duration;
 
 use cloud_sdk::Method;
+use cloud_sdk::authentication::{CredentialLifetime, CredentialTimestamp};
 use cloud_sdk::transport::{
     BoundTransport, RequestTarget, ResponseStorageSanitizer, TransportRequest,
 };
 use cloud_sdk_sanitization::SecretBuffer;
 
-use super::{BearerToken, build_loopback};
+use super::{BearerToken, build_expiring_loopback, build_loopback};
 use crate::test_server::{spawn_concurrent_pair, spawn_sequence_with_first_delay};
 
 #[test]
@@ -127,6 +128,44 @@ fn blocking_guarded_rotation_clears_source_and_is_shared_by_clones() {
     assert!(result.is_ok());
     assert_eq!(source, [0; 13]);
     assert_eq!(client.endpoint_identity(), clone.endpoint_identity());
+}
+
+#[test]
+fn blocking_expiring_refresh_updates_token_and_lifetime_for_every_clone() {
+    let initial =
+        CredentialLifetime::from_expires_in(CredentialTimestamp::from_seconds(1_000), 3_599, 300)
+            .unwrap_or_else(|_| unreachable!("security fixture construction failed"));
+    let Some(client) = build_expiring_loopback("http://127.0.0.1:9/v1", initial) else {
+        unreachable!("security fixture construction failed");
+    };
+    let clone = client.clone();
+    let snapshot = clone
+        .credential_snapshot()
+        .unwrap_or_else(|_| unreachable!("security fixture construction failed"));
+    let handoff = snapshot
+        .refresh_handoff_at(CredentialTimestamp::from_seconds(4_300))
+        .unwrap_or_else(|_| unreachable!("security fixture construction failed"));
+    let replacement_lifetime =
+        CredentialLifetime::from_expires_in(CredentialTimestamp::from_seconds(4_300), 3_599, 300)
+            .unwrap_or_else(|_| unreachable!("security fixture construction failed"));
+    let mut replacement = *b"expiring-token";
+
+    assert!(
+        clone
+            .refresh_bearer_token_from_mut_bytes_with_lifetime(
+                handoff,
+                &mut replacement,
+                replacement_lifetime,
+            )
+            .is_ok()
+    );
+    assert_eq!(replacement, [0; 14]);
+    assert_eq!(
+        client
+            .credential_snapshot()
+            .map(|snapshot| snapshot.lifetime()),
+        Ok(Some(replacement_lifetime))
+    );
 }
 
 fn send_once(client: &super::super::BlockingClient, target: RequestTarget<'_>) -> bool {

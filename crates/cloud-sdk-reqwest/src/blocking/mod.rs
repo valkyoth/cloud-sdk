@@ -17,8 +17,9 @@ pub use crate::shared::{
     HttpsEndpoint, MAX_BASIC_AUTHORIZATION_BYTES, MAX_BASIC_PASSWORD_BYTES,
     MAX_BASIC_USERNAME_BYTES, MAX_BEARER_TOKEN_BYTES, MAX_CONFIGURED_ENDPOINT_BYTES,
     MAX_RAW_REQUEST_BODY_BYTES, MAX_TIMEOUT_SECONDS, MAX_UPSTREAM_HTTP1_HEAD_BYTES,
-    MAX_UPSTREAM_HTTP1_HEADERS, RawHttpError, RawTransportFailure, RequestTimeouts, TimeoutError,
-    TokenRefreshError, TokenRotationError, TransportError, UserAgent, UserAgentError,
+    MAX_UPSTREAM_HTTP1_HEADERS, RawHttpError, RawTransportFailure, RefreshHandoffError,
+    RequestTimeouts, TimeoutError, TokenRefreshError, TokenRotationError, TransportError,
+    UserAgent, UserAgentError,
 };
 pub use basic_client::BlockingBasicClient;
 pub use basic_config::BlockingBasicClientBuilder;
