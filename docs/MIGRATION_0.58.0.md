@@ -11,8 +11,10 @@ HTTPS API and token `EndpointIdentity` values. Alias, cross-region, duplicate,
 unknown-region, and downgrade cases reject before credential use.
 
 `CredentialLifetime::from_expires_in` converts provider expiry durations using
-an explicit caller-owned `CredentialTimestamp` and refresh margin. No clock or
-refresh task is added to the default `no_std` graph.
+an explicit caller-owned `CredentialTimestamp` and nonzero refresh margin. A
+zero margin is rejected because it would leave no interval in which a refresh
+handoff can be acquired. No clock or refresh task is added to the default
+`no_std` graph.
 
 ## Reqwest Changes
 

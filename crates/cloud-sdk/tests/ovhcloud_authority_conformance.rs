@@ -107,6 +107,10 @@ fn expires_in_is_converted_through_caller_time_with_a_refresh_margin() {
         CredentialLifetimeState::Expired
     );
     assert_eq!(
+        CredentialLifetime::from_expires_in(CredentialTimestamp::from_seconds(0), 3_599, 0),
+        Err(CredentialLifetimeError::ZeroRefreshWindow)
+    );
+    assert_eq!(
         CredentialLifetime::from_expires_in(CredentialTimestamp::from_seconds(0), 3_599, 3_599),
         Err(CredentialLifetimeError::RefreshWindowTooLarge)
     );

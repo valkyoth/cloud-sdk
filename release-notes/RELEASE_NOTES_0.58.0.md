@@ -30,7 +30,8 @@ the v0.60.0 checkpoint.
 ## Expiring Credentials
 
 - Added explicit caller-clock lifetime construction from `expires_in`.
-- Added exclusive expiry, rollback detection, and bounded refresh windows.
+- Added exclusive expiry, rollback detection, and nonempty bounded refresh
+  windows; zero refresh margins fail closed.
 - Required time-qualified refresh handoffs for expiring credentials.
 - Rotated token and replacement lifetime atomically under lineage and
   generation compare-and-swap.

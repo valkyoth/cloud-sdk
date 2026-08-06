@@ -123,8 +123,9 @@ or token source.
 
 `CredentialLifetime::from_expires_in` converts a nonzero provider lifetime
 through explicit caller-owned monotonic time and an explicit refresh margin.
-Zero lifetime, a margin at least as long as the lifetime, and timestamp
-overflow fail closed. Expiry is exclusive. Expiring rotation and refresh
+Zero lifetime, zero refresh margin, a margin at least as long as the lifetime,
+and timestamp overflow fail closed. A nonempty `RefreshRequired` interval is
+therefore guaranteed before exclusive expiry. Expiring rotation and refresh
 install the token and complete replacement lifetime in one locked generation
 change; static and expiring lifecycle modes cannot be changed implicitly.
 

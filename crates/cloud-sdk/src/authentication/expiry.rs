@@ -25,6 +25,8 @@ impl CredentialTimestamp {
 pub enum CredentialLifetimeError {
     /// `expires_in` must be nonzero.
     ZeroExpiresIn,
+    /// Refresh lead time must be nonzero so a refresh window exists.
+    ZeroRefreshWindow,
     /// Refresh lead time must leave a nonempty fresh interval.
     RefreshWindowTooLarge,
     /// The caller timestamp and `expires_in` overflow the representation.
@@ -33,6 +35,7 @@ pub enum CredentialLifetimeError {
 
 impl_static_error!(CredentialLifetimeError,
     Self::ZeroExpiresIn => "credential expires_in must be nonzero",
+    Self::ZeroRefreshWindow => "credential refresh window must be nonzero",
     Self::RefreshWindowTooLarge => "credential refresh window consumes the complete lifetime",
     Self::TimestampOverflow => "credential expiry timestamp overflows",
 );
@@ -72,6 +75,9 @@ impl CredentialLifetime {
     ) -> Result<Self, CredentialLifetimeError> {
         if expires_in == 0 {
             return Err(CredentialLifetimeError::ZeroExpiresIn);
+        }
+        if refresh_before == 0 {
+            return Err(CredentialLifetimeError::ZeroRefreshWindow);
         }
         if refresh_before >= expires_in {
             return Err(CredentialLifetimeError::RefreshWindowTooLarge);
@@ -182,11 +188,15 @@ mod tests {
             Err(CredentialLifetimeError::ZeroExpiresIn)
         );
         assert_eq!(
+            CredentialLifetime::from_expires_in(now, 60, 0),
+            Err(CredentialLifetimeError::ZeroRefreshWindow)
+        );
+        assert_eq!(
             CredentialLifetime::from_expires_in(now, 60, 60),
             Err(CredentialLifetimeError::RefreshWindowTooLarge)
         );
         assert_eq!(
-            CredentialLifetime::from_expires_in(CredentialTimestamp::from_seconds(u64::MAX), 1, 0,),
+            CredentialLifetime::from_expires_in(CredentialTimestamp::from_seconds(u64::MAX), 2, 1,),
             Err(CredentialLifetimeError::TimestampOverflow)
         );
     }
