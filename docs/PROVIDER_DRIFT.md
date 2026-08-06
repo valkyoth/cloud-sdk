@@ -23,6 +23,8 @@ worker. The worker and `check_provider_drift.py` together:
   any non-global address;
 - connects the TLS socket only to that validated address set while retaining
   the approved hostname for SNI, certificate verification, and `Host`;
+- admits at most eight unique TCP destinations and shares one ten-second
+  deadline across every connection and TLS handshake attempt;
 - bypasses ambient proxies, sends one fixed request shape, and treats redirect
   statuses as terminal without constructing a follow-up request;
 - checks per-source byte bounds, per-read time, the whole-plan hard deadline,
@@ -95,10 +97,11 @@ bytes. Source URL or digest rotation is always security-owned and blocking.
 
 The OVHcloud IAM console emits the same unique path entries in unstable list
 order. Its reviewed source authenticator therefore strict-parses the complete
-bounded JSON object, rejects duplicate members and path keys, sorts only the
-top-level API path set, and hashes every remaining field. The two guide
-sources use raw-byte SHA-256 and immutable upstream commit URLs. No other
-source receives normalization.
+bounded UTF-8 JSON object, rejects duplicate members, duplicate path keys, and
+non-finite constants, sorts only the top-level API path set, canonicalizes
+object member order and insignificant JSON formatting, and hashes every value
+and remaining list order. The two guide sources use raw-byte SHA-256 and
+immutable upstream commit URLs. No other source receives normalization.
 
 ## Review And Rotation
 

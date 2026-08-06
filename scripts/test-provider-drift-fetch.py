@@ -185,6 +185,80 @@ def test_pinned_connection_uses_validated_socket_and_original_sni() -> None:
     assert ("sni", "docs.hetzner.cloud") in calls
     connection.close()
 
+    socket_attempted = False
+
+    def unexpected_socket(*_args):
+        nonlocal socket_attempted
+        socket_attempted = True
+        raise AssertionError("connection started after its deadline")
+
+    expired_ticks = iter((0.0, 11.0))
+    expired = fetch.PinnedHTTPSConnection(
+        target,
+        context=Context(),
+        timeout=10,
+        socket_factory=unexpected_socket,
+        monotonic=lambda: next(expired_ticks),
+    )
+    try:
+        expired.connect()
+    except OSError as error:
+        assert str(error) == "all validated source addresses failed"
+    else:
+        raise AssertionError("expired connection deadline was accepted")
+    assert not socket_attempted
+
+
+def test_pinned_connection_shares_one_deadline_across_addresses_and_tls() -> None:
+    calls = []
+
+    class RawSocket:
+        def __init__(self, fails: bool) -> None:
+            self.fails = fails
+
+        def settimeout(self, timeout: float) -> None:
+            calls.append(("timeout", timeout))
+
+        def connect(self, address) -> None:
+            calls.append(("connect", address))
+            if self.fails:
+                raise OSError("fixture connect failure")
+
+        def close(self) -> None:
+            calls.append(("close",))
+
+    class Context:
+        def wrap_socket(self, raw_socket, *, server_hostname: str):
+            calls.append(("sni", server_hostname))
+            return raw_socket
+
+    target = fetch.ResolvedTarget(
+        "docs.hetzner.cloud",
+        443,
+        "/cloud.spec.json",
+        (
+            (fetch.socket.AF_INET, fetch.socket.SOCK_STREAM, 6, ("8.8.8.8", 443)),
+            (fetch.socket.AF_INET, fetch.socket.SOCK_STREAM, 6, ("8.8.4.4", 443)),
+        ),
+    )
+    sockets = iter((RawSocket(True), RawSocket(False)))
+    ticks = iter((100.0, 101.0, 106.0, 109.0))
+    connection = fetch.PinnedHTTPSConnection(
+        target,
+        context=Context(),
+        timeout=10,
+        socket_factory=lambda *_args: next(sockets),
+        monotonic=lambda: next(ticks),
+    )
+    connection.connect()
+    assert [call for call in calls if call[0] == "timeout"] == [
+        ("timeout", 9.0),
+        ("timeout", 4.0),
+        ("timeout", 1.0),
+    ]
+    assert ("sni", "docs.hetzner.cloud") in calls
+    connection.close()
+
 
 def test_all_sources_authenticate_before_payloads_are_returned() -> None:
     calls: list[str] = []
@@ -248,6 +322,28 @@ def test_network_targets_require_reviewed_global_destinations() -> None:
         ],
     )
     assert wrong_port.addresses[0][3] == ("93.184.216.34", 443)
+    duplicates = fetch.validate_network_target(
+        "hetzner",
+        item,
+        resolver=lambda *_args, **_kwargs: global_resolver("", 0) * 32,
+    )
+    assert len(duplicates.addresses) == 1
+    assert_raises(
+        "too many addresses",
+        fetch.validate_network_target,
+        "hetzner",
+        item,
+        resolver=lambda *_args, **_kwargs: [
+            (
+                fetch.socket.AF_INET,
+                fetch.socket.SOCK_STREAM,
+                6,
+                "",
+                (f"8.8.8.{last}", 443),
+            )
+            for last in range(1, fetch.MAX_RESOLVED_ADDRESSES + 2)
+        ],
+    )
     assert_raises(
         "non-global address",
         fetch.validate_network_target,

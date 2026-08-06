@@ -13,7 +13,8 @@ service, random source, or serializer enters the workspace for v0.57.
 The excluded probe uses the Python standard library and the provider-neutral
 drift engine admitted in v0.56. Remote retrieval is credential-free, resolves
 once, connects only to validated global addresses with original-host TLS
-verification, and remains exact-URL, redirect-denying, and bounded.
+verification, caps unique destinations at eight under one connection deadline,
+and remains exact-URL, redirect-denying, and bounded.
 
 ## Package Versions
 

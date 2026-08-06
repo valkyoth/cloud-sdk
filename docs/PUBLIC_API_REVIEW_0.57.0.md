@@ -30,7 +30,8 @@ Official source retrieval uses one validated global DNS answer set for the
 actual socket while preserving original-host SNI and certificate checks. It
 remains exact-URL, no-proxy, no-redirect, bounded, and digest authenticated.
 The two official GitHub guides are commit-pinned. The adapter rejects duplicate
-JSON members and IAM paths, unexpected authorities, absent OAuth or task
-evidence, non-production operations, and non-GET candidates. Lock and
-observation are compared independently, and CI rejects accidental package
-publication.
+JSON members and IAM paths, non-UTF-8 documents, non-finite constants,
+unexpected authorities, absent OAuth or task evidence, non-production
+operations, and non-GET candidates. DNS admission is deduplicated and capped at
+eight destinations under one connection deadline. Lock and observation are
+compared independently, and CI rejects accidental package publication.

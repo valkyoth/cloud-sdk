@@ -23,10 +23,11 @@ are in
 The live release gate fetches all four exact URLs without ambient proxies or
 redirects and requires the independently generated observation to match
 [`ovhcloud-v2-probe.observed.json`](../../provider-drift/providers/ovhcloud-v2-probe.observed.json).
-The IAM digest covers the complete strict JSON object after sorting only its
-unique top-level API path entries; OVH emits those entries in unstable order.
-Every field and nested order remains authenticated. The other three digests
-cover exact raw bytes.
+The IAM digest covers the complete strict UTF-8 JSON object after sorting only
+its unique top-level API path entries; OVH emits those entries in unstable
+order. Object member order and insignificant JSON formatting are canonicalized;
+every value and remaining list order stays authenticated. Non-finite constants
+are rejected. The other three digests cover exact raw bytes.
 
 ## Candidate Surface
 

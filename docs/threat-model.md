@@ -211,8 +211,9 @@
   transport details redacted from diagnostics;
 - release drift fetches require exact non-redirecting HTTPS URLs, carry one
   globally routable DNS answer set into the TLS socket while preserving the
-  original hostname for SNI and certificate checks, enforce bounded downloads,
-  and require reviewed digest verification before observation parsing;
+  original hostname for SNI and certificate checks, admit at most eight unique
+  destinations under one connection deadline, enforce bounded downloads, and
+  require reviewed digest verification before observation parsing;
 - the unpublished OVHcloud API v2 probe admits only four exact official
   credential-free source URLs and eight production GET IAM candidates; derives
   authority, OAuth, schema, cursor, task, and event facts from authenticated

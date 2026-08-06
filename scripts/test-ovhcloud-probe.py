@@ -201,6 +201,23 @@ def test_iam_source_integrity_normalizes_only_unique_path_order() -> None:
         raise AssertionError("duplicate OVHcloud IAM paths were accepted")
 
 
+def test_json_sources_require_utf8_finite_standard_values() -> None:
+    invalid = (
+        '{"apis":[],"value":NaN}'.encode("utf-8"),
+        '{"apis":[],"value":Infinity}'.encode("utf-8"),
+        '{"apis":[],"value":-Infinity}'.encode("utf-8"),
+        '{"apis":[],"value":1e999}'.encode("utf-8"),
+        '{"apis":[]}'.encode("utf-16"),
+    )
+    for payload in invalid:
+        try:
+            source_digest("iam-schema", payload)
+        except OvhcloudProbeError:
+            pass
+        else:
+            raise AssertionError("non-strict OVHcloud JSON was accepted")
+
+
 def test_probe_package_is_rejected_from_every_publication_boundary() -> None:
     ensure_no_probe_packages(
         {"cloud-sdk"}, {"cloud-sdk", "cloud-sdk-hetzner"}, ("cloud-sdk",)
@@ -267,6 +284,7 @@ def main() -> None:
         test_duplicate_json_and_authority_substitution_fail_closed,
         test_every_source_changes_the_observation,
         test_iam_source_integrity_normalizes_only_unique_path_order,
+        test_json_sources_require_utf8_finite_standard_values,
         test_probe_package_is_rejected_from_every_publication_boundary,
         test_every_remote_source_has_one_exact_reviewed_endpoint,
     )

@@ -42,9 +42,11 @@ the v0.60.0 checkpoint.
   and authenticated before provider observation construction.
 - Resolves each source once and connects the TLS socket only to the validated
   global address set while retaining original-host SNI, certificate, and
-  `Host` verification.
+  `Host` verification; duplicate answers are removed, at most eight unique
+  destinations are admitted, and all attempts share one ten-second deadline.
 - Authenticates both observed IAM wire orderings by sorting only the unique
-  top-level path set before hashing every field in the strict JSON object.
+  top-level path set before hashing every value and remaining list order in the
+  strict UTF-8 JSON object; duplicate keys and non-finite constants fail closed.
 - Records regional API and token authorities distinctly; no credential is
   created, loaded, sent, or accepted by the probe.
 - Excludes the probe from Cargo workspace membership, package discovery,

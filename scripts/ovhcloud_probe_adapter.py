@@ -5,7 +5,9 @@ from __future__ import annotations
 
 import hashlib
 import json
-from typing import Any
+import math
+from typing import Any, NoReturn
+
 
 class OvhcloudProbeError(RuntimeError):
     """Official probe sources do not match the reviewed shape."""
@@ -32,9 +34,28 @@ def _pairs(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
     return result
 
 
+def _reject_constant(value: str) -> NoReturn:
+    raise OvhcloudProbeError(
+        f"OVHcloud JSON contains unsupported constant {value}"
+    )
+
+
+def _finite_float(text: str) -> float:
+    value = float(text)
+    if not math.isfinite(value):
+        raise OvhcloudProbeError("OVHcloud JSON contains a non-finite number")
+    return value
+
+
 def _json(payload: bytes, label: str) -> dict[str, Any]:
     try:
-        value = json.loads(payload, object_pairs_hook=_pairs)
+        text = payload.decode("utf-8", errors="strict")
+        value = json.loads(
+            text,
+            object_pairs_hook=_pairs,
+            parse_constant=_reject_constant,
+            parse_float=_finite_float,
+        )
     except (UnicodeDecodeError, json.JSONDecodeError) as error:
         raise OvhcloudProbeError(f"{label} is not strict UTF-8 JSON") from error
     if not isinstance(value, dict):

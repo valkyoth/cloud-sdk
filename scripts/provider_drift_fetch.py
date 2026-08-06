@@ -19,6 +19,7 @@ CONNECT_TIMEOUT_SECONDS = 10
 TOTAL_TIMEOUT_SECONDS = 60
 READ_CHUNK_BYTES = 64 * 1024
 MAX_TOTAL_SOURCE_BYTES = 128 * 1024 * 1024
+MAX_RESOLVED_ADDRESSES = 8
 
 APPROVED_SOURCE_ENDPOINTS = {
     ("hetzner", "cloud-openapi"): (
@@ -81,6 +82,7 @@ class PinnedHTTPSConnection(http.client.HTTPSConnection):
         context: ssl.SSLContext,
         timeout: int,
         socket_factory: Callable[..., socket.socket] = socket.socket,
+        monotonic: Callable[[], float] = time.monotonic,
     ) -> None:
         super().__init__(
             target.host,
@@ -90,14 +92,24 @@ class PinnedHTTPSConnection(http.client.HTTPSConnection):
         )
         self._addresses = target.addresses
         self._socket_factory = socket_factory
+        self._monotonic = monotonic
 
     def connect(self) -> None:
+        deadline = self._monotonic() + self.timeout
         last_error: OSError | None = None
         for family, kind, protocol, address in self._addresses:
+            remaining = deadline - self._monotonic()
+            if remaining <= 0:
+                break
             raw_socket = self._socket_factory(family, kind, protocol)
             try:
-                raw_socket.settimeout(self.timeout)
+                raw_socket.settimeout(remaining)
                 raw_socket.connect(address)
+                remaining = deadline - self._monotonic()
+                if remaining <= 0:
+                    raw_socket.close()
+                    break
+                raw_socket.settimeout(remaining)
                 self.sock = self._context.wrap_socket(
                     raw_socket,
                     server_hostname=self.host,
@@ -167,6 +179,7 @@ def validate_network_target(
     if not addresses:
         raise FetchError(f"could not resolve {source['id']}")
     validated: list[Address] = []
+    seen: set[Address] = set()
     for result in addresses:
         try:
             family, kind, protocol, _canonical, socket_address = result
@@ -188,7 +201,13 @@ def validate_network_target(
             )
         else:
             raise FetchError(f"{source['id']} resolved to an invalid address family")
-        validated.append((family, kind, protocol, pinned_address))
+        candidate = (family, kind, protocol, pinned_address)
+        if candidate in seen:
+            continue
+        if len(validated) >= MAX_RESOLVED_ADDRESSES:
+            raise FetchError(f"{source['id']} returned too many addresses")
+        seen.add(candidate)
+        validated.append(candidate)
     request_target = parsed.path or "/"
     if parsed.query:
         request_target = f"{request_target}?{parsed.query}"
