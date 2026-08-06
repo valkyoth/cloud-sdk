@@ -33,5 +33,6 @@ The two official GitHub guides are commit-pinned. The adapter rejects duplicate
 JSON members and IAM paths, non-UTF-8 documents, non-finite constants,
 unexpected authorities, absent OAuth or task evidence, non-production
 operations, and non-GET candidates. DNS admission is deduplicated and capped at
-eight destinations under one connection deadline. Lock and observation are
-compared independently, and CI rejects accidental package publication.
+eight destinations under one TLS-setup deadline; successful setup restores the
+normal HTTP I/O timeout. Lock and observation are compared independently, and
+CI rejects accidental package publication.

@@ -14,7 +14,8 @@ The excluded probe uses the Python standard library and the provider-neutral
 drift engine admitted in v0.56. Remote retrieval is credential-free, resolves
 once, connects only to validated global addresses with original-host TLS
 verification, caps unique destinations at eight under one connection deadline,
-and remains exact-URL, redirect-denying, and bounded.
+restores the normal HTTP I/O timeout after TLS, and remains exact-URL,
+redirect-denying, and bounded.
 
 ## Package Versions
 

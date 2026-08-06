@@ -102,6 +102,7 @@ class PinnedHTTPSConnection(http.client.HTTPSConnection):
             if remaining <= 0:
                 break
             raw_socket = self._socket_factory(family, kind, protocol)
+            wrapped_socket = None
             try:
                 raw_socket.settimeout(remaining)
                 raw_socket.connect(address)
@@ -110,14 +111,22 @@ class PinnedHTTPSConnection(http.client.HTTPSConnection):
                     raw_socket.close()
                     break
                 raw_socket.settimeout(remaining)
-                self.sock = self._context.wrap_socket(
+                wrapped_socket = self._context.wrap_socket(
                     raw_socket,
                     server_hostname=self.host,
                 )
+                if self._monotonic() >= deadline:
+                    wrapped_socket.close()
+                    break
+                wrapped_socket.settimeout(self.timeout)
+                self.sock = wrapped_socket
                 return
             except OSError as error:
                 last_error = error
-                raw_socket.close()
+                if wrapped_socket is None:
+                    raw_socket.close()
+                else:
+                    wrapped_socket.close()
         raise OSError("all validated source addresses failed") from last_error
 
 

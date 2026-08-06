@@ -23,8 +23,9 @@ worker. The worker and `check_provider_drift.py` together:
   any non-global address;
 - connects the TLS socket only to that validated address set while retaining
   the approved hostname for SNI, certificate verification, and `Host`;
-- admits at most eight unique TCP destinations and shares one ten-second
-  deadline across every connection and TLS handshake attempt;
+- admits at most eight unique TCP destinations and shares one ten-second setup
+  deadline across every connection and TLS handshake attempt, then restores
+  the normal per-I/O timeout for authenticated HTTP exchange;
 - bypasses ambient proxies, sends one fixed request shape, and treats redirect
   statuses as terminal without constructing a follow-up request;
 - checks per-source byte bounds, per-read time, the whole-plan hard deadline,

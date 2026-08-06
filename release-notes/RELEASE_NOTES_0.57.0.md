@@ -43,7 +43,8 @@ the v0.60.0 checkpoint.
 - Resolves each source once and connects the TLS socket only to the validated
   global address set while retaining original-host SNI, certificate, and
   `Host` verification; duplicate answers are removed, at most eight unique
-  destinations are admitted, and all attempts share one ten-second deadline.
+  destinations are admitted, all setup attempts share one ten-second deadline,
+  and successful TLS setup restores the normal HTTP I/O timeout.
 - Authenticates both observed IAM wire orderings by sorting only the unique
   top-level path set before hashing every value and remaining list order in the
   strict UTF-8 JSON object; duplicate keys and non-finite constants fail closed.

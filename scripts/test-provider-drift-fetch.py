@@ -242,7 +242,7 @@ def test_pinned_connection_shares_one_deadline_across_addresses_and_tls() -> Non
         ),
     )
     sockets = iter((RawSocket(True), RawSocket(False)))
-    ticks = iter((100.0, 101.0, 106.0, 109.0))
+    ticks = iter((100.0, 101.0, 106.0, 109.0, 109.5))
     connection = fetch.PinnedHTTPSConnection(
         target,
         context=Context(),
@@ -255,9 +255,53 @@ def test_pinned_connection_shares_one_deadline_across_addresses_and_tls() -> Non
         ("timeout", 9.0),
         ("timeout", 4.0),
         ("timeout", 1.0),
+        ("timeout", 10),
     ]
     assert ("sni", "docs.hetzner.cloud") in calls
     connection.close()
+
+
+def test_pinned_connection_rejects_tls_that_exceeds_setup_deadline() -> None:
+    calls = []
+
+    class RawSocket:
+        def settimeout(self, timeout: float) -> None:
+            calls.append(("timeout", timeout))
+
+        def connect(self, address) -> None:
+            calls.append(("connect", address))
+
+        def close(self) -> None:
+            calls.append(("close",))
+
+    class Context:
+        def wrap_socket(self, raw_socket, *, server_hostname: str):
+            calls.append(("sni", server_hostname))
+            return raw_socket
+
+    target = fetch.ResolvedTarget(
+        "docs.hetzner.cloud",
+        443,
+        "/cloud.spec.json",
+        ((fetch.socket.AF_INET, fetch.socket.SOCK_STREAM, 6, ("8.8.8.8", 443)),),
+    )
+    ticks = iter((0.0, 1.0, 2.0, 11.0))
+    connection = fetch.PinnedHTTPSConnection(
+        target,
+        context=Context(),
+        timeout=10,
+        socket_factory=lambda *_args: RawSocket(),
+        monotonic=lambda: next(ticks),
+    )
+    try:
+        connection.connect()
+    except OSError as error:
+        assert str(error) == "all validated source addresses failed"
+    else:
+        raise AssertionError("TLS completion after the deadline was accepted")
+    assert connection.sock is None
+    assert calls[-1] == ("close",)
+    assert ("timeout", 10) not in calls
 
 
 def test_all_sources_authenticate_before_payloads_are_returned() -> None:
