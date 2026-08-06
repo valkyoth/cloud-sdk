@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import string
 
@@ -199,6 +200,13 @@ def test_iam_source_integrity_normalizes_only_unique_path_order() -> None:
         pass
     else:
         raise AssertionError("duplicate OVHcloud IAM paths were accepted")
+
+
+def test_public_source_integrity_uses_exact_sha256() -> None:
+    public_schema = b'{"password":"documented request field","id":"schema field"}'
+    assert source_digest("api-index", public_schema) == hashlib.sha256(
+        public_schema
+    ).hexdigest()
 
 
 def test_json_sources_require_utf8_finite_standard_values() -> None:

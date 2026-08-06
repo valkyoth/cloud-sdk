@@ -83,6 +83,9 @@ def _digest(value: Any) -> str:
 
 
 def _source_digest(payload: bytes) -> str:
+    # These are public provider documents, not credential values. SHA-256 is
+    # the source-lock integrity format; a password KDF would not be appropriate.
+    # codeql[py/weak-sensitive-data-hashing]
     return hashlib.sha256(payload).hexdigest()
 
 
