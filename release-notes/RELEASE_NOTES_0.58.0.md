@@ -26,6 +26,8 @@ the v0.60.0 checkpoint.
 - Rejected aliases, cross-region combinations, unknown regions, duplicate
   identities, HTTP, and credentialed redirects.
 - Kept the OVHcloud probe excluded from packages and support claims.
+- Documented the CodeQL boundary between public source-integrity hashing and
+  password hashing while preserving exact SHA-256 lock compatibility.
 
 ## Expiring Credentials
 
