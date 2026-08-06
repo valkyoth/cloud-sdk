@@ -4,14 +4,16 @@
 from __future__ import annotations
 
 import hashlib
+import http.client
 import ipaddress
 import socket
 import ssl
 import time
-import urllib.request
+from dataclasses import dataclass
 from typing import Any, Callable
 from urllib.parse import urlsplit
 
+from ovhcloud_probe_adapter import OvhcloudProbeError, source_digest
 
 CONNECT_TIMEOUT_SECONDS = 10
 TOTAL_TIMEOUT_SECONDS = 60
@@ -42,12 +44,12 @@ APPROVED_SOURCE_ENDPOINTS = {
     ("ovhcloud-v2-probe", "api-v2-principles"): (
         "raw.githubusercontent.com",
         443,
-        "https://raw.githubusercontent.com/ovh/ovhcloud-docs/develop/docs/en/guides/manage-and-operate/api/apiv2.mdx",
+        "https://raw.githubusercontent.com/ovh/ovhcloud-docs/eb5d926b9030000cfb03386c4cbe6d60491ab63a/docs/en/guides/manage-and-operate/api/apiv2.mdx",
     ),
     ("ovhcloud-v2-probe", "oauth2-service-account"): (
         "raw.githubusercontent.com",
         443,
-        "https://raw.githubusercontent.com/ovh/ovhcloud-docs/develop/docs/en/guides/account-and-service-management/account-information/authenticate-api-with-service-account.mdx",
+        "https://raw.githubusercontent.com/ovh/ovhcloud-docs/eb5d926b9030000cfb03386c4cbe6d60491ab63a/docs/en/guides/account-and-service-management/account-information/authenticate-api-with-service-account.mdx",
     ),
 }
 
@@ -56,27 +58,64 @@ class FetchError(RuntimeError):
     """An authenticated provider source could not be obtained."""
 
 
-class RejectRedirects(urllib.request.HTTPRedirectHandler):
-    """Refuse every redirect before a second request is constructed."""
+Address = tuple[int, int, int, tuple[Any, ...]]
 
-    def redirect_request(
+
+@dataclass(frozen=True)
+class ResolvedTarget:
+    """One approved authority and the exact global addresses resolved once."""
+
+    host: str
+    port: int
+    request_target: str
+    addresses: tuple[Address, ...]
+
+
+class PinnedHTTPSConnection(http.client.HTTPSConnection):
+    """Connect only to prevalidated addresses while verifying the DNS name."""
+
+    def __init__(
         self,
-        _request: Any,
-        _file: Any,
-        _code: int,
-        _message: str,
-        _headers: Any,
-        _new_url: str,
+        target: ResolvedTarget,
+        *,
+        context: ssl.SSLContext,
+        timeout: int,
+        socket_factory: Callable[..., socket.socket] = socket.socket,
     ) -> None:
-        return None
+        super().__init__(
+            target.host,
+            target.port,
+            context=context,
+            timeout=timeout,
+        )
+        self._addresses = target.addresses
+        self._socket_factory = socket_factory
+
+    def connect(self) -> None:
+        last_error: OSError | None = None
+        for family, kind, protocol, address in self._addresses:
+            raw_socket = self._socket_factory(family, kind, protocol)
+            try:
+                raw_socket.settimeout(self.timeout)
+                raw_socket.connect(address)
+                self.sock = self._context.wrap_socket(
+                    raw_socket,
+                    server_hostname=self.host,
+                )
+                return
+            except OSError as error:
+                last_error = error
+                raw_socket.close()
+        raise OSError("all validated source addresses failed") from last_error
 
 
-def validate_response(response: Any, expected_url: str, source_id: str) -> None:
-    final_url = response.geturl()
-    if not isinstance(final_url, str) or urlsplit(final_url).scheme != "https":
-        raise FetchError(f"{source_id} resolved to a non-HTTPS URL")
-    if final_url != expected_url:
-        raise FetchError(f"{source_id} redirected away from its pinned URL")
+def connection_for(target: ResolvedTarget) -> PinnedHTTPSConnection:
+    """Construct the production pinned-address HTTPS connection."""
+    return PinnedHTTPSConnection(
+        target,
+        context=ssl.create_default_context(),
+        timeout=CONNECT_TIMEOUT_SECONDS,
+    )
 
 
 def read_bounded(
@@ -108,7 +147,7 @@ def validate_network_target(
     source: dict[str, Any],
     *,
     resolver: Callable[..., Any] = socket.getaddrinfo,
-) -> None:
+) -> ResolvedTarget:
     approved = APPROVED_SOURCE_ENDPOINTS.get((provider, source["id"]))
     if approved is None:
         raise FetchError("source endpoint has not received code review")
@@ -127,13 +166,33 @@ def validate_network_target(
         raise FetchError(f"could not resolve {source['id']}") from error
     if not addresses:
         raise FetchError(f"could not resolve {source['id']}")
+    validated: list[Address] = []
     for result in addresses:
         try:
-            address = ipaddress.ip_address(result[4][0])
+            family, kind, protocol, _canonical, socket_address = result
+            address = ipaddress.ip_address(socket_address[0])
         except (IndexError, TypeError, ValueError) as error:
             raise FetchError(f"{source['id']} resolved to an invalid address") from error
         if not address.is_global:
             raise FetchError(f"{source['id']} resolved to a non-global address")
+        if kind != socket.SOCK_STREAM:
+            raise FetchError(f"{source['id']} resolved to an invalid socket type")
+        if family == socket.AF_INET and len(socket_address) == 2:
+            pinned_address = (address.compressed, port)
+        elif family == socket.AF_INET6 and len(socket_address) == 4:
+            pinned_address = (
+                address.compressed,
+                port,
+                socket_address[2],
+                socket_address[3],
+            )
+        else:
+            raise FetchError(f"{source['id']} resolved to an invalid address family")
+        validated.append((family, kind, protocol, pinned_address))
+    request_target = parsed.path or "/"
+    if parsed.query:
+        request_target = f"{request_target}?{parsed.query}"
+    return ResolvedTarget(host, port, request_target, tuple(validated))
 
 
 def fetch_source(
@@ -141,22 +200,40 @@ def fetch_source(
     source: dict[str, Any],
     *,
     resolver: Callable[..., Any] = socket.getaddrinfo,
+    connection_factory: Callable[[ResolvedTarget], Any] = connection_for,
 ) -> bytes:
     source_id = source["id"]
-    url = source["url"]
-    validate_network_target(provider, source, resolver=resolver)
-    opener = urllib.request.build_opener(
-        urllib.request.ProxyHandler({}),
-        urllib.request.HTTPSHandler(context=ssl.create_default_context()),
-        RejectRedirects(),
-    )
+    target = validate_network_target(provider, source, resolver=resolver)
+    connection = connection_factory(target)
     try:
-        with opener.open(url, timeout=CONNECT_TIMEOUT_SECONDS) as response:
-            validate_response(response, url, source_id)
+        connection.request(
+            "GET",
+            target.request_target,
+            headers={
+                "Accept-Encoding": "identity",
+                "Connection": "close",
+                "Host": target.host,
+                "User-Agent": "cloud-sdk-provider-drift/0.57",
+            },
+        )
+        with connection.getresponse() as response:
+            if 300 <= response.status <= 399:
+                raise FetchError(f"{source_id} redirected away from its pinned URL")
+            if response.status != 200:
+                raise FetchError(f"{source_id} returned an unexpected HTTP status")
             payload = read_bounded(response, source_id, source["max_bytes"])
-    except OSError as error:
-        raise FetchError(f"could not fetch {source_id}: {error}") from error
-    actual = hashlib.sha256(payload).hexdigest()
+    except (OSError, http.client.HTTPException) as error:
+        raise FetchError(f"could not fetch {source_id}") from error
+    finally:
+        connection.close()
+    try:
+        actual = (
+            source_digest(source_id, payload)
+            if provider == "ovhcloud-v2-probe"
+            else hashlib.sha256(payload).hexdigest()
+        )
+    except OvhcloudProbeError as error:
+        raise FetchError(f"{source_id} integrity normalization failed") from error
     if actual != source["sha256"]:
         raise FetchError(f"{source_id} SHA-256 mismatch")
     return payload

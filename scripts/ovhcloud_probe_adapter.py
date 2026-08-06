@@ -7,7 +7,6 @@ import hashlib
 import json
 from typing import Any
 
-
 class OvhcloudProbeError(RuntimeError):
     """Official probe sources do not match the reviewed shape."""
 
@@ -64,6 +63,26 @@ def _digest(value: Any) -> str:
 
 def _source_digest(payload: bytes) -> str:
     return hashlib.sha256(payload).hexdigest()
+
+
+def source_digest(source_id: str, payload: bytes) -> str:
+    """Hash one reviewed source, normalizing only the IAM path-set order."""
+    if source_id != "iam-schema":
+        return _source_digest(payload)
+    schema = _json(payload, "OVHcloud IAM schema")
+    apis = schema.get("apis")
+    if not isinstance(apis, list):
+        raise OvhcloudProbeError("OVHcloud IAM operations are invalid")
+    paths = []
+    for item in apis:
+        if not isinstance(item, dict) or not isinstance(item.get("path"), str):
+            raise OvhcloudProbeError("OVHcloud IAM path is invalid")
+        paths.append(item["path"])
+    if len(paths) != len(set(paths)):
+        raise OvhcloudProbeError("OVHcloud IAM paths are not unique")
+    normalized = dict(schema)
+    normalized["apis"] = sorted(apis, key=lambda item: item["path"])
+    return _digest(normalized)
 
 
 def _candidate_id(path: str) -> str:
@@ -374,5 +393,5 @@ def build_observation(lock: dict[str, Any], payloads: dict[str, bytes]) -> dict[
         "sources": [dict(source) for source in lock["sources"]],
     }
     for source in observation["sources"]:
-        source["sha256"] = _source_digest(payloads[source["id"]])
+        source["sha256"] = source_digest(source["id"], payloads[source["id"]])
     return observation

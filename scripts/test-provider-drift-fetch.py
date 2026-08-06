@@ -5,18 +5,19 @@ from __future__ import annotations
 
 import hashlib
 import io
-import urllib.error
 
 import provider_drift_fetch as fetch
 
 
 class Response(io.BytesIO):
-    def __init__(self, payload: bytes, url: str) -> None:
+    def __init__(self, payload: bytes, status: int = 200) -> None:
         super().__init__(payload)
-        self.url = url
+        self.status = status
+        self.read_calls = 0
 
-    def geturl(self) -> str:
-        return self.url
+    def read(self, size: int = -1) -> bytes:
+        self.read_calls += 1
+        return super().read(size)
 
     def __enter__(self):
         return self
@@ -25,15 +26,22 @@ class Response(io.BytesIO):
         self.close()
 
 
-class Opener:
+class Connection:
     def __init__(self, response) -> None:
         self.response = response
+        self.requests = []
+        self.closed = False
 
-    def open(self, _url: str, *, timeout: int):
-        assert timeout == fetch.CONNECT_TIMEOUT_SECONDS
+    def request(self, method: str, target: str, *, headers: dict) -> None:
+        self.requests.append((method, target, headers))
+
+    def getresponse(self):
         if isinstance(self.response, Exception):
             raise self.response
         return self.response
+
+    def close(self) -> None:
+        self.closed = True
 
 
 def assert_raises(expected: str, function, *args, **kwargs) -> None:
@@ -58,26 +66,20 @@ def global_resolver(_host: str, _port: int, **_kwargs):
     return [(fetch.socket.AF_INET, fetch.socket.SOCK_STREAM, 6, "", ("93.184.216.34", 443))]
 
 
-def test_redirect_handler_and_final_url_checks_fail_closed() -> None:
-    handler = fetch.RejectRedirects()
-    request = fetch.urllib.request.Request("https://example.invalid/spec.json")
-    assert handler.redirect_request(
-        request, None, 302, "Found", {}, "https://attacker.invalid/spec.json"
-    ) is None
+def test_redirect_response_is_rejected_without_reading_or_following() -> None:
+    response = Response(b"redirect payload", 302)
+    connection = Connection(response)
     assert_raises(
         "redirected away",
-        fetch.validate_response,
-        Response(b"{}", "https://attacker.invalid/spec.json"),
-        "https://example.invalid/spec.json",
-        "fixture",
+        fetch.fetch_source,
+        "hetzner",
+        source(b"{}"),
+        resolver=global_resolver,
+        connection_factory=lambda _target: connection,
     )
-    assert_raises(
-        "non-HTTPS",
-        fetch.validate_response,
-        Response(b"{}", "http://example.invalid/spec.json"),
-        "https://example.invalid/spec.json",
-        "fixture",
-    )
+    assert response.read_calls == 0
+    assert len(connection.requests) == 1
+    assert connection.closed
 
 
 def test_bounded_reader_accepts_exact_and_rejects_plus_one_and_timeout() -> None:
@@ -98,51 +100,90 @@ def test_bounded_reader_accepts_exact_and_rejects_plus_one_and_timeout() -> None
 
 def test_digest_is_verified_before_payload_is_returned() -> None:
     payload = b'{"openapi":"3.0.0"}'
-    original = fetch.urllib.request.build_opener
-    handlers = []
+    connections = []
 
-    def opener(*items):
-        handlers.extend(items)
-        return Opener(Response(payload, "https://docs.hetzner.cloud/cloud.spec.json"))
+    def factory(_target):
+        connection = Connection(Response(payload))
+        connections.append(connection)
+        return connection
 
-    fetch.urllib.request.build_opener = opener
-    try:
-        assert (
-            fetch.fetch_source("hetzner", source(payload), resolver=global_resolver)
-            == payload
+    assert fetch.fetch_source(
+        "hetzner", source(payload), resolver=global_resolver,
+        connection_factory=factory,
+    ) == payload
+    assert connections[0].requests == [
+        (
+            "GET",
+            "/cloud.spec.json",
+            {
+                "Accept-Encoding": "identity",
+                "Connection": "close",
+                "Host": "docs.hetzner.cloud",
+                "User-Agent": "cloud-sdk-provider-drift/0.57",
+            },
         )
-        proxy = next(item for item in handlers if isinstance(item, fetch.urllib.request.ProxyHandler))
-        assert proxy.proxies == {}
-        wrong = source(payload)
-        wrong["sha256"] = "0" * 64
-        try:
-            fetch.fetch_source("hetzner", wrong, resolver=global_resolver)
-        except fetch.FetchError as error:
-            message = str(error)
-            assert message == "cloud-openapi SHA-256 mismatch"
-            assert hashlib.sha256(payload).hexdigest() not in message
-        else:
-            raise AssertionError("expected FetchError")
-    finally:
-        fetch.urllib.request.build_opener = original
+    ]
+    wrong = source(payload)
+    wrong["sha256"] = "0" * 64
+    try:
+        fetch.fetch_source(
+            "hetzner", wrong, resolver=global_resolver,
+            connection_factory=factory,
+        )
+    except fetch.FetchError as error:
+        message = str(error)
+        assert message == "cloud-openapi SHA-256 mismatch"
+        assert hashlib.sha256(payload).hexdigest() not in message
+    else:
+        raise AssertionError("expected FetchError")
 
 
-def test_rejected_redirect_has_bounded_error_and_no_payload() -> None:
-    url = "https://docs.hetzner.cloud/cloud.spec.json"
-    original = fetch.urllib.request.build_opener
-    fetch.urllib.request.build_opener = lambda *_handlers: Opener(
-        urllib.error.HTTPError(url, 302, "Found", {}, None)
+def test_transport_failure_has_bounded_error_and_closes_connection() -> None:
+    connection = Connection(OSError("sensitive transport detail"))
+    assert_raises(
+        "could not fetch cloud-openapi",
+        fetch.fetch_source,
+        "hetzner",
+        source(b"{}"),
+        resolver=global_resolver,
+        connection_factory=lambda _target: connection,
     )
-    try:
-        assert_raises(
-            "could not fetch cloud-openapi",
-            fetch.fetch_source,
-            "hetzner",
-            source(b"{}"),
-            resolver=global_resolver,
-        )
-    finally:
-        fetch.urllib.request.build_opener = original
+    assert connection.closed
+
+
+def test_pinned_connection_uses_validated_socket_and_original_sni() -> None:
+    calls = []
+
+    class RawSocket:
+        def settimeout(self, timeout: int) -> None:
+            calls.append(("timeout", timeout))
+
+        def connect(self, address) -> None:
+            calls.append(("connect", address))
+
+        def close(self) -> None:
+            calls.append(("close",))
+
+    class Context:
+        def wrap_socket(self, raw_socket, *, server_hostname: str):
+            calls.append(("sni", server_hostname))
+            return raw_socket
+
+    target = fetch.validate_network_target(
+        "hetzner", source(b"{}"), resolver=global_resolver
+    )
+    connection = fetch.PinnedHTTPSConnection(
+        target,
+        context=Context(),
+        timeout=fetch.CONNECT_TIMEOUT_SECONDS,
+        socket_factory=lambda family, kind, protocol: (
+            calls.append(("socket", family, kind, protocol)) or RawSocket()
+        ),
+    )
+    connection.connect()
+    assert ("connect", ("93.184.216.34", 443)) in calls
+    assert ("sni", "docs.hetzner.cloud") in calls
+    connection.close()
 
 
 def test_all_sources_authenticate_before_payloads_are_returned() -> None:
@@ -191,6 +232,22 @@ def test_aggregate_admission_precedes_fetch() -> None:
 
 def test_network_targets_require_reviewed_global_destinations() -> None:
     item = source(b"{}")
+    target = fetch.validate_network_target(
+        "hetzner", item, resolver=global_resolver
+    )
+    assert target.host == "docs.hetzner.cloud"
+    assert target.request_target == "/cloud.spec.json"
+    assert target.addresses == (
+        (fetch.socket.AF_INET, fetch.socket.SOCK_STREAM, 6, ("93.184.216.34", 443)),
+    )
+    wrong_port = fetch.validate_network_target(
+        "hetzner",
+        item,
+        resolver=lambda *_args, **_kwargs: [
+            (fetch.socket.AF_INET, fetch.socket.SOCK_STREAM, 6, "", ("93.184.216.34", 80))
+        ],
+    )
+    assert wrong_port.addresses[0][3] == ("93.184.216.34", 443)
     assert_raises(
         "non-global address",
         fetch.validate_network_target,
@@ -215,6 +272,15 @@ def test_network_targets_require_reviewed_global_destinations() -> None:
         "other-provider",
         item,
         resolver=global_resolver,
+    )
+    assert_raises(
+        "invalid socket type",
+        fetch.validate_network_target,
+        "hetzner",
+        item,
+        resolver=lambda *_args, **_kwargs: [
+            (fetch.socket.AF_INET, fetch.socket.SOCK_DGRAM, 17, "", ("93.184.216.34", 443))
+        ],
     )
 
 

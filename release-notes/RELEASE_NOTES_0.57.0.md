@@ -23,6 +23,8 @@ the v0.60.0 checkpoint.
 
 - Locked the official API v2 index, IAM console schema, API v2 guide, and
   service-account OAuth guide by exact URL, byte length, and SHA-256.
+- Pinned both GitHub-hosted guides to official documentation commit
+  `eb5d926b9030000cfb03386c4cbe6d60491ab63a`.
 - Derived authority, token endpoint, OAuth expiry, schema-version, cursor,
   task, event, operation, response-model, and stability evidence from the
   authenticated source bytes.
@@ -37,7 +39,12 @@ the v0.60.0 checkpoint.
   missing authentication/task evidence, non-production operations, and methods
   other than `GET`.
 - Keeps all retrieval credential-free, exact-origin, redirect-free, bounded,
-  and authenticated before source parsing.
+  and authenticated before provider observation construction.
+- Resolves each source once and connects the TLS socket only to the validated
+  global address set while retaining original-host SNI, certificate, and
+  `Host` verification.
+- Authenticates both observed IAM wire orderings by sorting only the unique
+  top-level path set before hashing every field in the strict JSON object.
 - Records regional API and token authorities distinctly; no credential is
   created, loaded, sent, or accepted by the probe.
 - Excludes the probe from Cargo workspace membership, package discovery,

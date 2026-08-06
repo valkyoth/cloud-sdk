@@ -293,19 +293,19 @@
       "id": "api-v2-principles",
       "max_bytes": 65536,
       "sha256": "afd16253ec3d126c8ca1c66b2298be87976b35af384ffc38e6f2d7f029098ae7",
-      "url": "https://raw.githubusercontent.com/ovh/ovhcloud-docs/develop/docs/en/guides/manage-and-operate/api/apiv2.mdx"
+      "url": "https://raw.githubusercontent.com/ovh/ovhcloud-docs/eb5d926b9030000cfb03386c4cbe6d60491ab63a/docs/en/guides/manage-and-operate/api/apiv2.mdx"
     },
     {
       "id": "iam-schema",
       "max_bytes": 1048576,
-      "sha256": "f354014402442e9369c42873feb194151b30b3cea0e306bfdaada8b791870d44",
+      "sha256": "27a1c172c055615e25673d46f583ed0f0d4ba2d77df5a70324b7a446eeacc585",
       "url": "https://api.eu.ovhcloud.com/v2/iam.json"
     },
     {
       "id": "oauth2-service-account",
       "max_bytes": 65536,
       "sha256": "84096963fe74b598a2a35adfa4f7f0a65efa878ecf1a9e8f4110371da92c30b7",
-      "url": "https://raw.githubusercontent.com/ovh/ovhcloud-docs/develop/docs/en/guides/account-and-service-management/account-information/authenticate-api-with-service-account.mdx"
+      "url": "https://raw.githubusercontent.com/ovh/ovhcloud-docs/eb5d926b9030000cfb03386c4cbe6d60491ab63a/docs/en/guides/account-and-service-management/account-information/authenticate-api-with-service-account.mdx"
     }
   ]
 }

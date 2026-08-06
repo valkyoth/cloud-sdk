@@ -13,9 +13,9 @@ operation.
 | Evidence | Official source | SHA-256 |
 | --- | --- | --- |
 | API v2 section index | `https://api.eu.ovhcloud.com/v2` | `88e2566259826d7a224ce88c7fc141ed742cad0365457f3132c9d774bf19db6c` |
-| IAM console schema | `https://api.eu.ovhcloud.com/v2/iam.json` | `f354014402442e9369c42873feb194151b30b3cea0e306bfdaada8b791870d44` |
-| API v2 principles | official `ovh/ovhcloud-docs` English guide | `afd16253ec3d126c8ca1c66b2298be87976b35af384ffc38e6f2d7f029098ae7` |
-| OAuth2 service accounts | official `ovh/ovhcloud-docs` English guide | `84096963fe74b598a2a35adfa4f7f0a65efa878ecf1a9e8f4110371da92c30b7` |
+| IAM console schema | `https://api.eu.ovhcloud.com/v2/iam.json` | `27a1c172c055615e25673d46f583ed0f0d4ba2d77df5a70324b7a446eeacc585` |
+| API v2 principles | official `ovh/ovhcloud-docs` guide at `eb5d926b9030000cfb03386c4cbe6d60491ab63a` | `afd16253ec3d126c8ca1c66b2298be87976b35af384ffc38e6f2d7f029098ae7` |
+| OAuth2 service accounts | official `ovh/ovhcloud-docs` guide at `eb5d926b9030000cfb03386c4cbe6d60491ab63a` | `84096963fe74b598a2a35adfa4f7f0a65efa878ecf1a9e8f4110371da92c30b7` |
 
 The complete URLs, byte limits, contracts, owners, and compatibility policy
 are in
@@ -23,6 +23,10 @@ are in
 The live release gate fetches all four exact URLs without ambient proxies or
 redirects and requires the independently generated observation to match
 [`ovhcloud-v2-probe.observed.json`](../../provider-drift/providers/ovhcloud-v2-probe.observed.json).
+The IAM digest covers the complete strict JSON object after sorting only its
+unique top-level API path entries; OVH emits those entries in unstable order.
+Every field and nested order remains authenticated. The other three digests
+cover exact raw bytes.
 
 ## Candidate Surface
 

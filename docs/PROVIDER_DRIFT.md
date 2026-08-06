@@ -19,12 +19,14 @@ Adapters receive remote source bytes only inside a killable verification
 worker. The worker and `check_provider_drift.py` together:
 
 - permits only provider/source endpoints present in a hard-coded reviewed
-  registry and rejects DNS results containing any non-global address;
-- ignores ambient proxy variables and requests exact credential-free HTTPS
-  URLs with the validating platform TLS context;
-- refuses every redirect before constructing a follow-up request;
-- checks the final URL, per-source byte bound, per-read time, whole-plan hard
-  deadline, and SHA-256 in a killable worker process;
+  registry, resolves each authority once, and rejects an answer set containing
+  any non-global address;
+- connects the TLS socket only to that validated address set while retaining
+  the approved hostname for SNI, certificate verification, and `Host`;
+- bypasses ambient proxies, sends one fixed request shape, and treats redirect
+  statuses as terminal without constructing a follow-up request;
+- checks per-source byte bounds, per-read time, the whole-plan hard deadline,
+  and reviewed SHA-256 evidence in a killable worker process;
 - invokes a hard-coded reviewed adapter only after every source authenticates,
   while the whole download, parse, normalization, comparison, and report path
   remains under one 180-second deadline;
@@ -39,11 +41,10 @@ This authenticates a reviewed source snapshot. It does not establish that a
 provider account, TLS environment, workstation, or upstream publisher is
 trustworthy.
 
-DNS is checked before opening the TLS connection, but application-level DNS
-validation cannot by itself eliminate rebinding between resolution and
-connection. Release hosts must enforce egress policy so approved provider
-names cannot route to loopback, link-local, private, metadata, or internal
-destinations after validation.
+The initial DNS answer and platform trust store remain operational trust
+boundaries. High-assurance release hosts should still enforce egress policy,
+but DNS cannot be re-resolved between admission and this fetcher's socket
+connection.
 
 ## Documents
 
@@ -91,6 +92,13 @@ Raw source text and normalized values are omitted from the report. This keeps
 malicious or sensitive input out of CI diagnostics while retaining exact
 review identity. Equivalent document and row ordering produces identical
 bytes. Source URL or digest rotation is always security-owned and blocking.
+
+The OVHcloud IAM console emits the same unique path entries in unstable list
+order. Its reviewed source authenticator therefore strict-parses the complete
+bounded JSON object, rejects duplicate members and path keys, sorts only the
+top-level API path set, and hashes every remaining field. The two guide
+sources use raw-byte SHA-256 and immutable upstream commit URLs. No other
+source receives normalization.
 
 ## Review And Rotation
 

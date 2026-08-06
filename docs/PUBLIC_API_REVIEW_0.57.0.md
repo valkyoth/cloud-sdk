@@ -26,8 +26,11 @@ commitment for a future full OVHcloud provider.
 
 ## Security Review
 
-Official source retrieval uses the v0.56 exact-URL, no-redirect, bounded,
-platform-TLS, digest-before-adapter path. The adapter rejects duplicate JSON
-members, unexpected authorities, absent OAuth or task evidence, non-production
-operations, and non-GET candidates. Lock and observation are compared
-independently, and CI rejects accidental package publication.
+Official source retrieval uses one validated global DNS answer set for the
+actual socket while preserving original-host SNI and certificate checks. It
+remains exact-URL, no-proxy, no-redirect, bounded, and digest authenticated.
+The two official GitHub guides are commit-pinned. The adapter rejects duplicate
+JSON members and IAM paths, unexpected authorities, absent OAuth or task
+evidence, non-production operations, and non-GET candidates. Lock and
+observation are compared independently, and CI rejects accidental package
+publication.

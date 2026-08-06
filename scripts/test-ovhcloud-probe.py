@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import string
 
 from check_ovhcloud_probe import (
     ROOT,
@@ -15,6 +16,7 @@ from ovhcloud_probe_adapter import (
     CANDIDATE_PATHS,
     OvhcloudProbeError,
     build_observation,
+    source_digest,
 )
 from provider_drift_model import read_bounded_json, validate_observation
 import provider_drift_fetch as fetch
@@ -175,6 +177,30 @@ def test_every_source_changes_the_observation() -> None:
     assert baseline["sources"] != changed["sources"]
 
 
+def test_iam_source_integrity_normalizes_only_unique_path_order() -> None:
+    first = payloads()["iam-schema"]
+    value = json.loads(first)
+    value["apis"].reverse()
+    reordered = json.dumps(value).encode("utf-8")
+    assert source_digest("iam-schema", first) == source_digest(
+        "iam-schema", reordered
+    )
+    value["apis"][0]["description"] = "semantic drift"
+    changed = json.dumps(value).encode("utf-8")
+    assert source_digest("iam-schema", first) != source_digest(
+        "iam-schema", changed
+    )
+    value = json.loads(first)
+    value["apis"].append(value["apis"][0])
+    duplicate = json.dumps(value).encode("utf-8")
+    try:
+        source_digest("iam-schema", duplicate)
+    except OvhcloudProbeError:
+        pass
+    else:
+        raise AssertionError("duplicate OVHcloud IAM paths were accepted")
+
+
 def test_probe_package_is_rejected_from_every_publication_boundary() -> None:
     ensure_no_probe_packages(
         {"cloud-sdk"}, {"cloud-sdk", "cloud-sdk-hetzner"}, ("cloud-sdk",)
@@ -206,9 +232,21 @@ def test_every_remote_source_has_one_exact_reviewed_endpoint() -> None:
         ]
 
     for source in lock()["sources"]:
-        fetch.validate_network_target(
+        target = fetch.validate_network_target(
             "ovhcloud-v2-probe", source, resolver=resolver
         )
+        assert target.addresses == (
+            (
+                fetch.socket.AF_INET,
+                fetch.socket.SOCK_STREAM,
+                6,
+                ("93.184.216.34", 443),
+            ),
+        )
+        if target.host == "raw.githubusercontent.com":
+            revision = source["url"].split("/")[5]
+            assert len(revision) == 40
+            assert all(character in string.hexdigits.lower() for character in revision)
         changed = dict(source)
         changed["url"] = "https://attacker.example/source"
         try:
@@ -228,6 +266,7 @@ def main() -> None:
         test_candidate_stability_authentication_and_method_fail_closed,
         test_duplicate_json_and_authority_substitution_fail_closed,
         test_every_source_changes_the_observation,
+        test_iam_source_integrity_normalizes_only_unique_path_order,
         test_probe_package_is_rejected_from_every_publication_boundary,
         test_every_remote_source_has_one_exact_reviewed_endpoint,
     )

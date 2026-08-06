@@ -24,8 +24,11 @@ cost-bearing behavior in the repository or CI.
 ### Source and schema substitution
 
 Mutable official sources can change without notice. Exact endpoints are
-hard-coded, redirects and proxies are disabled, globally routable DNS is
-required, and every response is authenticated against its reviewed digest.
+hard-coded, the validated DNS address set is used directly for the TLS socket,
+redirects and proxies are disabled, and every response is authenticated
+against its reviewed digest. The two GitHub guides are pinned to an immutable
+official commit. The IAM schema authenticator normalizes only its unstable
+unique top-level path order before hashing the complete strict JSON object.
 Digest rotation requires review, a new observation, tests, and pentesting.
 
 ### Credential exfiltration and overbroad scopes
