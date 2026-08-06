@@ -1,0 +1,372 @@
+{
+  "compatibility": {
+    "authentication": {
+      "added": "blocking",
+      "changed": "blocking",
+      "owner": "security",
+      "removed": "blocking"
+    },
+    "cost": {
+      "added": "review",
+      "changed": "blocking",
+      "owner": "security",
+      "removed": "blocking"
+    },
+    "endpoints": {
+      "added": "blocking",
+      "changed": "blocking",
+      "owner": "security",
+      "removed": "blocking"
+    },
+    "headers": {
+      "added": "review",
+      "changed": "blocking",
+      "owner": "provider",
+      "removed": "blocking"
+    },
+    "idempotency": {
+      "added": "review",
+      "changed": "blocking",
+      "owner": "security",
+      "removed": "blocking"
+    },
+    "operations": {
+      "added": "review",
+      "changed": "blocking",
+      "owner": "provider",
+      "removed": "blocking"
+    },
+    "pagination": {
+      "added": "review",
+      "changed": "blocking",
+      "owner": "provider",
+      "removed": "blocking"
+    },
+    "retry": {
+      "added": "review",
+      "changed": "blocking",
+      "owner": "security",
+      "removed": "blocking"
+    },
+    "schemas": {
+      "added": "review",
+      "changed": "blocking",
+      "owner": "provider",
+      "removed": "blocking"
+    }
+  },
+  "contracts": {
+    "authentication": [
+      {
+        "id": "oauth2-client-credentials",
+        "values": {
+          "flow": "client_credentials",
+          "request_media": "application/x-www-form-urlencoded",
+          "response_fields": [
+            "access_token",
+            "expires_in",
+            "scope",
+            "token_type"
+          ],
+          "scheme": "bearer",
+          "source_sha256": "84096963fe74b598a2a35adfa4f7f0a65efa878ecf1a9e8f4110371da92c30b7",
+          "token_endpoints": [
+            {
+              "region": "ca",
+              "url": "https://ca.ovh.com/auth/oauth2/token"
+            },
+            {
+              "region": "eu",
+              "url": "https://www.ovh.com/auth/oauth2/token"
+            }
+          ]
+        }
+      }
+    ],
+    "cost": [
+      {
+        "id": "probe-read-only",
+        "values": {
+          "candidate_count": 8,
+          "candidates_sha256": "adfd129ddea0963a4439abc11e49a53062f0683a3a30778ab14242b418840c14",
+          "cost_approval": "not_applicable",
+          "methods": [
+            "GET"
+          ]
+        }
+      }
+    ],
+    "endpoints": [
+      {
+        "id": "ca-api-v2",
+        "values": {
+          "base_path": "/v2",
+          "host": "ca.api.ovh.com",
+          "region": "ca",
+          "token_host": "ca.ovh.com"
+        }
+      },
+      {
+        "id": "eu-api-v2",
+        "values": {
+          "base_path": "/v2",
+          "host": "eu.api.ovh.com",
+          "region": "eu",
+          "token_host": "www.ovh.com"
+        }
+      },
+      {
+        "id": "eu-console-schema",
+        "values": {
+          "base_path": "/v2",
+          "host": "api.eu.ovhcloud.com",
+          "sections_sha256": "a01183c7c246c9bfcc32fa53289ddf92b68d51f4625b1f7fd1c5c60db31de2f9"
+        }
+      }
+    ],
+    "headers": [
+      {
+        "id": "cursor-pagination",
+        "values": {
+          "request": [
+            "X-Pagination-Cursor",
+            "X-Pagination-Size"
+          ],
+          "response": [
+            "X-Pagination-Cursor-Next"
+          ],
+          "source_sha256": "afd16253ec3d126c8ca1c66b2298be87976b35af384ffc38e6f2d7f029098ae7"
+        }
+      },
+      {
+        "id": "schema-version-validation",
+        "values": {
+          "account_default_when_absent": true,
+          "request": "X-Schemas-Version",
+          "source_sha256": "afd16253ec3d126c8ca1c66b2298be87976b35af384ffc38e6f2d7f029098ae7",
+          "use": "validation_only"
+        }
+      }
+    ],
+    "idempotency": [
+      {
+        "id": "probe-read-only",
+        "values": {
+          "candidates_sha256": "adfd129ddea0963a4439abc11e49a53062f0683a3a30778ab14242b418840c14",
+          "key": "not_applicable",
+          "methods": [
+            "GET"
+          ]
+        }
+      }
+    ],
+    "operations": [
+      {
+        "id": "iam/permissionsgroup",
+        "values": {
+          "actions": [
+            "account:apiovh:iam/permissionsGroup/get"
+          ],
+          "authenticated": true,
+          "headers": [
+            "X-Pagination-Cursor",
+            "X-Pagination-Size"
+          ],
+          "method": "GET",
+          "path": "/iam/permissionsGroup",
+          "response_type": "iam.PermissionsGroup[]",
+          "stability": "production"
+        }
+      },
+      {
+        "id": "iam/permissionsgroup/by-permissionsgroupurn",
+        "values": {
+          "actions": [
+            "account:apiovh:iam/permissionsGroup/get"
+          ],
+          "authenticated": true,
+          "headers": [],
+          "method": "GET",
+          "path": "/iam/permissionsGroup/{permissionsGroupURN}",
+          "response_type": "iam.PermissionsGroup",
+          "stability": "production"
+        }
+      },
+      {
+        "id": "iam/policy",
+        "values": {
+          "actions": [
+            "account:apiovh:iam/policy/get"
+          ],
+          "authenticated": true,
+          "headers": [
+            "X-Pagination-Cursor",
+            "X-Pagination-Size"
+          ],
+          "method": "GET",
+          "path": "/iam/policy",
+          "response_type": "iam.policy.Response[]",
+          "stability": "production"
+        }
+      },
+      {
+        "id": "iam/policy/by-policyid",
+        "values": {
+          "actions": [
+            "account:apiovh:iam/policy/get"
+          ],
+          "authenticated": true,
+          "headers": [],
+          "method": "GET",
+          "path": "/iam/policy/{policyId}",
+          "response_type": "iam.policy.Response",
+          "stability": "production"
+        }
+      },
+      {
+        "id": "iam/resource",
+        "values": {
+          "actions": [],
+          "authenticated": true,
+          "headers": [
+            "X-Pagination-Cursor",
+            "X-Pagination-Size"
+          ],
+          "method": "GET",
+          "path": "/iam/resource",
+          "response_type": "iam.resource.Resource[]",
+          "stability": "production"
+        }
+      },
+      {
+        "id": "iam/resource/by-resourceurn",
+        "values": {
+          "actions": [],
+          "authenticated": true,
+          "headers": [],
+          "method": "GET",
+          "path": "/iam/resource/{resourceURN}",
+          "response_type": "iam.resource.Resource",
+          "stability": "production"
+        }
+      },
+      {
+        "id": "iam/resourcegroup",
+        "values": {
+          "actions": [
+            "account:apiovh:iam/resourceGroup/get"
+          ],
+          "authenticated": true,
+          "headers": [
+            "X-Pagination-Cursor",
+            "X-Pagination-Size"
+          ],
+          "method": "GET",
+          "path": "/iam/resourceGroup",
+          "response_type": "iam.group.Response[]",
+          "stability": "production"
+        }
+      },
+      {
+        "id": "iam/resourcegroup/by-groupid",
+        "values": {
+          "actions": [
+            "account:apiovh:iam/resourceGroup/get"
+          ],
+          "authenticated": true,
+          "headers": [],
+          "method": "GET",
+          "path": "/iam/resourceGroup/{groupId}",
+          "response_type": "iam.group.Response",
+          "stability": "production"
+        }
+      }
+    ],
+    "pagination": [
+      {
+        "id": "iam-cursor",
+        "values": {
+          "cursor_request": "X-Pagination-Cursor",
+          "next_response": "X-Pagination-Cursor-Next",
+          "operation_count": 4,
+          "operations_sha256": "b0b4b83bf00bb8d1628636cae9b1007038588eb1c9f9b85a65c78c7ef585de45",
+          "size_request": "X-Pagination-Size",
+          "terminal": "next_header_absent"
+        }
+      }
+    ],
+    "retry": [
+      {
+        "id": "probe-read-only",
+        "values": {
+          "automatic_policy": "caller_supplied",
+          "candidates_sha256": "adfd129ddea0963a4439abc11e49a53062f0683a3a30778ab14242b418840c14",
+          "methods": [
+            "GET"
+          ]
+        }
+      }
+    ],
+    "schemas": [
+      {
+        "id": "api-sections",
+        "values": {
+          "count": 18,
+          "sha256": "a01183c7c246c9bfcc32fa53289ddf92b68d51f4625b1f7fd1c5c60db31de2f9"
+        }
+      },
+      {
+        "id": "iam-models",
+        "values": {
+          "count": 39,
+          "sha256": "80ca87e8745b1c31fa047d4577d265dbc4c95aad09146468ce278a0147f6a729"
+        }
+      },
+      {
+        "id": "task-event-contract",
+        "values": {
+          "event_path": "/event",
+          "source_sha256": "afd16253ec3d126c8ca1c66b2298be87976b35af384ffc38e6f2d7f029098ae7",
+          "task_path": "/task"
+        }
+      }
+    ]
+  },
+  "format": "cloud-sdk-provider-lock/v1",
+  "owners": {
+    "provider": "ovhcloud-probe",
+    "release": "cloud-sdk-release",
+    "security": "cloud-sdk-security"
+  },
+  "plugin": {
+    "id": "normalized-json",
+    "version": 1
+  },
+  "provider": "ovhcloud-v2-probe",
+  "sources": [
+    {
+      "id": "api-index",
+      "max_bytes": 65536,
+      "sha256": "88e2566259826d7a224ce88c7fc141ed742cad0365457f3132c9d774bf19db6c",
+      "url": "https://api.eu.ovhcloud.com/v2"
+    },
+    {
+      "id": "api-v2-principles",
+      "max_bytes": 65536,
+      "sha256": "afd16253ec3d126c8ca1c66b2298be87976b35af384ffc38e6f2d7f029098ae7",
+      "url": "https://raw.githubusercontent.com/ovh/ovhcloud-docs/develop/docs/en/guides/manage-and-operate/api/apiv2.mdx"
+    },
+    {
+      "id": "iam-schema",
+      "max_bytes": 1048576,
+      "sha256": "f354014402442e9369c42873feb194151b30b3cea0e306bfdaada8b791870d44",
+      "url": "https://api.eu.ovhcloud.com/v2/iam.json"
+    },
+    {
+      "id": "oauth2-service-account",
+      "max_bytes": 65536,
+      "sha256": "84096963fe74b598a2a35adfa4f7f0a65efa878ecf1a9e8f4110371da92c30b7",
+      "url": "https://raw.githubusercontent.com/ovh/ovhcloud-docs/develop/docs/en/guides/account-and-service-management/account-information/authenticate-api-with-service-account.mdx"
+    }
+  ]
+}

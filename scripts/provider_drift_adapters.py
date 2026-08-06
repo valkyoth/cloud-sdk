@@ -13,6 +13,10 @@ from urllib.parse import urlsplit
 import check_hetzner_api_drift as hetzner
 import generate_response_operations as responses
 from provider_drift_model import read_bounded_bytes
+from ovhcloud_probe_adapter import (
+    OvhcloudProbeError,
+    build_observation as build_ovhcloud_probe_observation,
+)
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -375,6 +379,8 @@ def _hetzner_observation(
 Adapter = Callable[[dict[str, Any], dict[str, bytes]], dict[str, Any]]
 ADAPTERS: dict[tuple[str, str, int], Adapter] = {
     ("hetzner", "normalized-json", 1): _hetzner_observation,
+    ("ovhcloud-v2-probe", "normalized-json", 1):
+        build_ovhcloud_probe_observation,
 }
 
 
@@ -389,6 +395,8 @@ def build_live_observation(
         return adapter(lock, payloads)
     except AdapterError:
         raise
+    except OvhcloudProbeError as error:
+        raise AdapterError("OVHcloud probe source normalization failed") from error
     except (
         csv.Error,
         KeyError,

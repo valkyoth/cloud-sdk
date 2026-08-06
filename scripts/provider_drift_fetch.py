@@ -29,6 +29,26 @@ APPROVED_SOURCE_ENDPOINTS = {
         443,
         "https://docs.hetzner.cloud/hetzner.spec.json",
     ),
+    ("ovhcloud-v2-probe", "api-index"): (
+        "api.eu.ovhcloud.com",
+        443,
+        "https://api.eu.ovhcloud.com/v2",
+    ),
+    ("ovhcloud-v2-probe", "iam-schema"): (
+        "api.eu.ovhcloud.com",
+        443,
+        "https://api.eu.ovhcloud.com/v2/iam.json",
+    ),
+    ("ovhcloud-v2-probe", "api-v2-principles"): (
+        "raw.githubusercontent.com",
+        443,
+        "https://raw.githubusercontent.com/ovh/ovhcloud-docs/develop/docs/en/guides/manage-and-operate/api/apiv2.mdx",
+    ),
+    ("ovhcloud-v2-probe", "oauth2-service-account"): (
+        "raw.githubusercontent.com",
+        443,
+        "https://raw.githubusercontent.com/ovh/ovhcloud-docs/develop/docs/en/guides/account-and-service-management/account-information/authenticate-api-with-service-account.mdx",
+    ),
 }
 
 

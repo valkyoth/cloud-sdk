@@ -1,0 +1,9 @@
+id	method	path	pagination	response_type	stability
+iam/permissionsgroup	GET	/iam/permissionsGroup	cursor	iam.PermissionsGroup[]	production
+iam/permissionsgroup/by-permissionsgroupurn	GET	/iam/permissionsGroup/{permissionsGroupURN}	none	iam.PermissionsGroup	production
+iam/policy	GET	/iam/policy	cursor	iam.policy.Response[]	production
+iam/policy/by-policyid	GET	/iam/policy/{policyId}	none	iam.policy.Response	production
+iam/resource	GET	/iam/resource	cursor	iam.resource.Resource[]	production
+iam/resource/by-resourceurn	GET	/iam/resource/{resourceURN}	none	iam.resource.Resource	production
+iam/resourcegroup	GET	/iam/resourceGroup	cursor	iam.group.Response[]	production
+iam/resourcegroup/by-groupid	GET	/iam/resourceGroup/{groupId}	none	iam.group.Response	production

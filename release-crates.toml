@@ -1,20 +1,20 @@
 [release]
-version = "0.56.0"
-milestone = "0.56.0"
+version = "0.57.0"
+milestone = "0.57.0"
 baseline = "0.55.0"
-review_baseline = "0.55.0"
-cumulative_milestones = ["0.56.0"]
+review_baseline = "0.56.0"
+cumulative_milestones = ["0.56.0", "0.57.0"]
 policy = "independent"
 stage = "internal"
 exceptional = false
 exception_reason = ""
 
 [crates."cloud-sdk"]
-previous_version = "0.55.0"
-version = "0.56.0"
+previous_version = "0.56.0"
+version = "0.57.0"
 change = "metadata"
 publish = false
-reason = "Record the provider-generic drift engine milestone without crates.io publication."
+reason = "Record the unpublished OVHcloud API v2 source-lock probe without crates.io publication."
 
 [crates."cloud-sdk-hetzner"]
 previous_version = "0.39.0"

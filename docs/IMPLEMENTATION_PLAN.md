@@ -123,7 +123,7 @@ owned by `cloud-sdk-hetzner::storage`.
    incremental decoding, typed operations, atomic shared-state permits, a
    provider-generic client kernel, pure monotonic-budget workflow drivers,
    diagnostics, zero-progress testkit scenarios, and generic drift evidence in
-   `v0.44.0` through `v0.56.0`.
+   `v0.44.0` through `v0.57.0`.
 14. Multi-provider proof and neutral freeze: an unpublished OVHcloud API v2
    source lock and conformance probe in `v0.57.0` through `v0.61.0`, followed
    by the neutral API freeze in `v0.62.0`. The probe covers source-locked

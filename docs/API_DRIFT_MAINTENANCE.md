@@ -99,3 +99,27 @@ scripts/checks.sh
 The live command must report the reviewed source digests and `no drift` after
 an accepted refresh. Commit source-lock files, implementation, tests,
 documentation, release notes, and security evidence together.
+
+## Unpublished OVHcloud Probe
+
+The excluded v0.57-v0.61 OVHcloud API v2 probe uses the same neutral drift
+engine but is not a provider support claim. Its source inventory, selected
+read-only operations, and threat boundaries are documented in
+[`provider-probes/ovhcloud-v2/README.md`](../provider-probes/ovhcloud-v2/README.md).
+
+Run the tracked observation check locally with:
+
+```bash
+scripts/check_ovhcloud_probe.py
+scripts/check_provider_drift.py \
+    --plugin provider-drift/plugins/normalized-json-v1.json \
+    --lock provider-drift/providers/ovhcloud-v2-probe.lock.json \
+    --observation provider-drift/providers/ovhcloud-v2-probe.observed.json \
+    --fetch-sources
+```
+
+Any official source-byte or normalized-contract change is a release stop. The
+probe must remain outside Cargo workspace membership, package discovery,
+publish ordering, and supported-provider documentation. A future full
+`cloud-sdk-ovhcloud` implementation requires a separate post-1.0 plan and
+review; the probe cannot be renamed or promoted into it.

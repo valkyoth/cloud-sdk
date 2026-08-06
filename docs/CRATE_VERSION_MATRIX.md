@@ -1,9 +1,10 @@
 # Crate Version Matrix
 
-Status: `v0.55.0` is tagged and published. `v0.56.0` is the first source
-milestone in the next five-minor publication train. Every tag beginning with
-v0.56 receives its own incremental pentest; package publication is deferred to
-the next scheduled checkpoint at `v0.60.0`.
+Status: `v0.55.0` is tagged and published, and `v0.56.0` is a signed source
+milestone. `v0.57.0` is the current source milestone in the next five-minor
+publication train. Every tag beginning with v0.56 receives its own incremental
+pentest; package publication is deferred to the next scheduled checkpoint at
+`v0.60.0`.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
@@ -835,6 +836,20 @@ retain their published versions and no package is selected for crates.io.
 | Crate | Published | Source | Change | Publish | Reason |
 | --- | --- | --- | --- | --- | --- |
 | `cloud-sdk` | `0.55.0` | `0.56.0` | `metadata` | No | Record provider-generic drift tooling and per-tag pentest release metadata. |
+| `cloud-sdk-hetzner` | `0.39.0` | `0.39.0` | `unchanged` | No | No provider crate source or metadata changes. |
+| `cloud-sdk-reqwest` | `0.32.4` | `0.32.4` | `unchanged` | No | No transport adapter source, dependency, or metadata changes. |
+| `cloud-sdk-sanitization` | `0.18.0` | `0.18.0` | `unchanged` | No | No sanitization boundary changes. |
+| `cloud-sdk-testkit` | `0.29.0` | `0.29.0` | `unchanged` | No | No testkit source or metadata changes. |
+
+## v0.57.0 Tracking Table
+
+`v0.57.0` source-locks an excluded OVHcloud API v2 architecture probe. The
+probe is evidence for later neutral-contract validation, not a supported
+provider crate, and no workspace package is selected for crates.io.
+
+| Crate | Published | Source | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.55.0` | `0.57.0` | `metadata` | No | Record the source-locked unpublished OVHcloud probe and release evidence. |
 | `cloud-sdk-hetzner` | `0.39.0` | `0.39.0` | `unchanged` | No | No provider crate source or metadata changes. |
 | `cloud-sdk-reqwest` | `0.32.4` | `0.32.4` | `unchanged` | No | No transport adapter source, dependency, or metadata changes. |
 | `cloud-sdk-sanitization` | `0.18.0` | `0.18.0` | `unchanged` | No | No sanitization boundary changes. |

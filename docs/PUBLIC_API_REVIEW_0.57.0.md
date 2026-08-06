@@ -1,0 +1,33 @@
+# v0.57.0 Public API Review
+
+Date: 2026-08-06
+
+Scope: unpublished OVHcloud API v2 source-lock probe.
+
+## Rust API
+
+v0.57.0 adds no Rust public API and changes no provider, transport, client,
+sanitization, or testkit runtime behavior. The `cloud-sdk` source package moves
+to 0.57.0 for the repository tag while crates.io remains at 0.55.0 until the
+v0.60.0 checkpoint.
+
+## Probe Contract
+
+The new repository contract consists of one excluded source inventory, threat
+model, exact candidate table, neutral drift lock, canonical observation, and a
+hard-coded reviewed adapter. It covers eight production read-only IAM routes
+and source-derived API/token authorities, OAuth expiry, schema validation,
+cursor pagination, task, and event evidence.
+
+The probe has no Cargo manifest, workspace membership, public Rust module,
+release-plan package, publish-order entry, runtime transport, credential input,
+or supported-provider claim. Its names and files are not a compatibility
+commitment for a future full OVHcloud provider.
+
+## Security Review
+
+Official source retrieval uses the v0.56 exact-URL, no-redirect, bounded,
+platform-TLS, digest-before-adapter path. The adapter rejects duplicate JSON
+members, unexpected authorities, absent OAuth or task evidence, non-production
+operations, and non-GET candidates. Lock and observation are compared
+independently, and CI rejects accidental package publication.

@@ -47,4 +47,5 @@
 | CodeQL default setup | repository setting |
 | API source lock | active for `v0.2.0` |
 | provider-generic drift evidence | strict declarative plugins and bounded no-follow JSON; exact credential-free HTTPS sources with redirect denial, aggregate admission, digest-before-adapter verification, canonical payload-free diffs, explicit ownership/severity, and a Hetzner compatibility bridge to every authoritative operation/schema/policy lock |
+| unpublished OVHcloud probe | excluded non-package evidence only; four exact official sources and eight production GET IAM candidates; source-derived authority, OAuth, schema, cursor, task, and event facts; exact operation inventory; live reproducibility; no Cargo manifest, workspace member, release-plan package, publish-order entry, or provider support claim |
 | Storage Boxes drift check | active for `v0.2.0` |

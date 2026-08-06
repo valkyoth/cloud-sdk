@@ -212,6 +212,11 @@
 - release drift fetches require exact non-redirecting HTTPS URLs under the
   default validating TLS context, bounded downloads, and pinned digest
   verification before parsing;
+- the unpublished OVHcloud API v2 probe admits only four exact official
+  credential-free source URLs and eight production GET IAM candidates; derives
+  authority, OAuth, schema, cursor, task, and event facts from authenticated
+  bytes; and is excluded from Cargo packages, release publishing, credential
+  use, runtime execution, and provider support claims;
 - pager and action drivers admit exactly one response per request and remain
   non-cloneable; pagination retains transactional hard budgets; action polling
   rejects zero-delay loops, bounds observations and cumulative delay, separates
