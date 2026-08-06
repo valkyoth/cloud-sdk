@@ -14,8 +14,9 @@ payload-free, and implement `core::error::Error`.
 
 `CredentialTimestamp`, `CredentialLifetime`, and `CredentialLifetimeState`
 model explicit caller time, refresh admission, and exclusive expiry without a
-clock or runtime dependency. Construction rejects zero lifetime, incoherent
-refresh margins, and arithmetic overflow.
+clock or runtime dependency. Construction rejects zero lifetime, a zero refresh
+margin, a margin that consumes the lifetime, and arithmetic overflow. Every
+admitted lifetime therefore has a nonempty refresh interval before expiry.
 
 ## Reqwest API
 

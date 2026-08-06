@@ -86,9 +86,8 @@ full-fidelity Hetzner vertical slices before the neutral API freeze.
 The latest published checkpoint is `v0.55.0`. Signed source milestones v0.56
 and v0.57 added provider-neutral drift evidence and locked the unpublished
 OVHcloud API v2 probe. The v0.58 candidate adds exact regional API/token
-pairing and explicit-time expiring bearer lifecycles; its implementation stop
-is reached and incremental pentesting is required. Crates.io publication
-remains deferred to `v0.60.0`.
+pairing and explicit-time expiring bearer lifecycles. Its incremental pentest
+and final retest passed; crates.io publication remains deferred to `v0.60.0`.
 
 ## Trust Dashboard
 

@@ -2,9 +2,9 @@
 
 Status: `v0.55.0` is tagged and published. `v0.56.0` and `v0.57.0` are signed
 source milestones. `v0.58.0` is the current candidate in the next five-minor
-publication train and requires its incremental pentest. Every tag beginning
-with v0.56 receives its own incremental pentest; package publication is
-deferred to the next scheduled checkpoint at `v0.60.0`.
+publication train, and its incremental pentest and final retest passed. Every
+tag beginning with v0.56 receives its own incremental pentest; package
+publication is deferred to the next scheduled checkpoint at `v0.60.0`.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
@@ -859,7 +859,8 @@ provider crate, and no workspace package is selected for crates.io.
 
 `v0.58.0` adds exact regional API/token authority pairs and explicit-time
 expiring bearer lifecycles. It remains an internal milestone, so cumulative
-package changes retain their published version numbers until v0.60.0.
+package changes retain their published version numbers until v0.60.0. Its
+incremental pentest and final retest passed.
 
 | Crate | Published | Source | Change | Publish | Reason |
 | --- | --- | --- | --- | --- | --- |
