@@ -1,6 +1,6 @@
 # v0.62.0 Dependency Review
 
-Status: implementation stop pending pentest.
+Status: release review complete; pentest and final retest passed.
 
 No third-party dependency, feature, or version is added. The source-complete
 models reuse `alloc`, the existing protected `SecretString` boundary, and the

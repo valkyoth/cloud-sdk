@@ -1,9 +1,9 @@
 # Crate Version Matrix
 
 Status: `v0.60.0` is tagged and published and `v0.61.0` is a signed internal
-milestone. `v0.62.0` has reached the neutral-freeze implementation stop; its
-pentest, final gate, GitHub CI, and CodeQL remain before tagging. Every pre-1.0
-tag receives its own incremental pentest.
+milestone. The `v0.62.0` pentest and final retest passed and its local release
+evidence is complete; GitHub CI and CodeQL remain before the signed internal
+tag. Every pre-1.0 tag receives its own incremental pentest.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared

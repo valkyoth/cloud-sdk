@@ -1970,7 +1970,8 @@ Stop gate: `v0.61.0 implementation stop reached. Complete the pentest and full r
 
 ### v0.62.0 - Neutral API Freeze
 
-Status: implementation stop reached; pentest required before the internal tag.
+Status: release candidate; pentest and final retest passed. Local release
+evidence is complete; GitHub CI, CodeQL, and the signed internal tag remain.
 
 Goal: freeze provider-neutral contracts only after materially different probes and complete primary-provider vertical slices.
 

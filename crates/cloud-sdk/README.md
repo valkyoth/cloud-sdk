@@ -86,9 +86,10 @@ full-fidelity Hetzner vertical slices before the neutral API freeze.
 The latest published checkpoint is `v0.60.0`; v0.61 is a signed internal
 milestone. v0.62 freezes the provider-neutral API after the OVHcloud and Robot
 probes and adds source-complete Hetzner Cloud, DNS-secret, security-secret,
-Storage Box, typed-error, action, and no-content vertical evidence. It remains
-an internal milestone and requires its pentest, full gate, and green GitHub CI
-and CodeQL before tagging. Crates.io publication remains deferred to v0.65.0.
+Storage Box, typed-error, action, and no-content vertical evidence. Its pentest
+and final retest passed and its clean local release evidence is complete. Green
+GitHub CI and CodeQL remain required before the signed internal tag. Crates.io
+publication remains deferred to v0.65.0.
 
 ## Trust Dashboard
 
