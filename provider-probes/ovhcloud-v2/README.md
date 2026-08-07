@@ -3,10 +3,10 @@
 Status: unpublished conformance evidence; not a supported provider.
 
 This probe challenges provider-neutral `cloud-sdk` contracts before their
-v0.62.0 freeze. It is deliberately limited to eight stable, authenticated,
-read-only IAM operations. It does not provide an OVHcloud SDK, create a Cargo
-package, make an API-completeness claim, or approve any mutation or billable
-operation.
+v0.62.0 freeze. It is deliberately limited to ten stable, authenticated,
+read-only IAM and notification-task operations. It does not provide an
+OVHcloud SDK, create a Cargo package, make an API-completeness claim, or
+approve any mutation or billable operation.
 
 ## Locked Sources
 
@@ -14,28 +14,30 @@ operation.
 | --- | --- | --- |
 | API v2 section index | `https://api.eu.ovhcloud.com/v2` | `88e2566259826d7a224ce88c7fc141ed742cad0365457f3132c9d774bf19db6c` |
 | IAM console schema | `https://api.eu.ovhcloud.com/v2/iam.json` | `27a1c172c055615e25673d46f583ed0f0d4ba2d77df5a70324b7a446eeacc585` |
+| Notification console schema | `https://api.eu.ovhcloud.com/v2/notification.json` | `8377d39ee3d7d9aee52a3ebb3e7ae50ce575333d409dcc16289ebe74b9fd28f1` |
 | API v2 principles | official `ovh/ovhcloud-docs` guide at `eb5d926b9030000cfb03386c4cbe6d60491ab63a` | `afd16253ec3d126c8ca1c66b2298be87976b35af384ffc38e6f2d7f029098ae7` |
 | OAuth2 service accounts | official `ovh/ovhcloud-docs` guide at `eb5d926b9030000cfb03386c4cbe6d60491ab63a` | `84096963fe74b598a2a35adfa4f7f0a65efa878ecf1a9e8f4110371da92c30b7` |
 
 The complete URLs, byte limits, contracts, owners, and compatibility policy
 are in
 [`ovhcloud-v2-probe.lock.json`](../../provider-drift/providers/ovhcloud-v2-probe.lock.json).
-The live release gate fetches all four exact URLs without ambient proxies or
+The live release gate fetches all five exact URLs without ambient proxies or
 redirects and requires the independently generated observation to match
 [`ovhcloud-v2-probe.observed.json`](../../provider-drift/providers/ovhcloud-v2-probe.observed.json).
 The IAM digest covers the complete strict UTF-8 JSON object after sorting only
 its unique top-level API path entries; OVH emits those entries in unstable
 order. Object member order and insignificant JSON formatting are canonicalized;
-every value and remaining list order stays authenticated. Non-finite constants
+every value and remaining list order stays authenticated. The notification
+schema uses the same top-level path-order normalization. Non-finite constants
 are rejected. The other three digests cover exact raw bytes.
 
 ## Candidate Surface
 
-[`CANDIDATES.tsv`](CANDIDATES.tsv) records the eight selected operations. Every
+[`CANDIDATES.tsv`](CANDIDATES.tsv) records the ten selected operations. Every
 row is `GET`, stable production, bearer-authenticated, and either unpaginated
 or uses the documented cursor headers. The source adapter independently
 reconstructs method, path, response type, IAM actions, authentication, and
-pagination from the console schema.
+pagination from the console schemas.
 
 This surface was selected to exercise collection and resource responses,
 encoded URN and UUID path identities, operations with and without declared IAM
@@ -102,3 +104,29 @@ Run `scripts/check_ovhcloud_header_conformance.sh` to bind these names, the
 four-operation pagination surface, terminal behavior, reviewed schema major,
 prepared-response decoding, context rebinding rejection, and adversarial core
 tests to the immutable probe.
+
+## v0.60 Task And Event Conformance
+
+The notification schema exposes two stable authenticated production reads:
+
+- `GET /notification/contactMean/{contactMeanId}/task`;
+- `GET /notification/contactMean/{contactMeanId}/task/{taskId}`.
+
+The collection uses the same source-locked cursor headers as the four IAM
+collections, bringing the reviewed cursor surface to five operations.
+
+The probe binds both operations and the complete `common.Task`,
+`common.TaskError`, `common.TaskProgress`, and `common.TaskStatusEnum` models
+to the reviewed notification digest. The neutral core admits all six exact
+statuses through bounded lifecycle categories, validates calendar-aware UTC
+timestamps and lifecycle ordering, bounds every scalar and collection, redacts
+task content from diagnostics, treats related-resource links as non-executable
+metadata, and maps task completion into the existing action-polling contract.
+
+No event endpoint is claimed by this source surface. Generic `AsyncEvent` and
+`AsyncEventBatch` values therefore remain fixture-only models, and the
+conformance inventory records that distinction explicitly.
+
+Run `scripts/check_ovhcloud_task_conformance.sh` to verify the live source lock,
+exact routes and schemas, model bounds, status mapping, task polling, redaction,
+and event non-claim.

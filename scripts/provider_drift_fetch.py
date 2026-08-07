@@ -42,6 +42,11 @@ APPROVED_SOURCE_ENDPOINTS = {
         443,
         "https://api.eu.ovhcloud.com/v2/iam.json",
     ),
+    ("ovhcloud-v2-probe", "notification-task-schema"): (
+        "api.eu.ovhcloud.com",
+        443,
+        "https://api.eu.ovhcloud.com/v2/notification.json",
+    ),
     ("ovhcloud-v2-probe", "api-v2-principles"): (
         "raw.githubusercontent.com",
         443,

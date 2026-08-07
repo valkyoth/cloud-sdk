@@ -8,12 +8,15 @@ import json
 import math
 from typing import Any, NoReturn
 
+from ovhcloud_probe_error import OvhcloudProbeError
+from ovhcloud_task_adapter import (
+    TASK_CANDIDATE_PATHS,
+    task_model_evidence,
+    task_operations,
+)
 
-class OvhcloudProbeError(RuntimeError):
-    """Official probe sources do not match the reviewed shape."""
 
-
-CANDIDATE_PATHS = (
+IAM_CANDIDATE_PATHS = (
     "/iam/permissionsGroup",
     "/iam/permissionsGroup/{permissionsGroupURN}",
     "/iam/policy",
@@ -23,6 +26,7 @@ CANDIDATE_PATHS = (
     "/iam/resourceGroup",
     "/iam/resourceGroup/{groupId}",
 )
+CANDIDATE_PATHS = IAM_CANDIDATE_PATHS + TASK_CANDIDATE_PATHS
 
 
 def _pairs(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
@@ -90,20 +94,20 @@ def _source_digest(payload: bytes) -> str:
 
 
 def source_digest(source_id: str, payload: bytes) -> str:
-    """Hash one reviewed source, normalizing only the IAM path-set order."""
-    if source_id != "iam-schema":
+    """Hash one reviewed source, normalizing only schema path-set order."""
+    if source_id not in ("iam-schema", "notification-task-schema"):
         return _source_digest(payload)
-    schema = _json(payload, "OVHcloud IAM schema")
+    schema = _json(payload, "OVHcloud console schema")
     apis = schema.get("apis")
     if not isinstance(apis, list):
-        raise OvhcloudProbeError("OVHcloud IAM operations are invalid")
+        raise OvhcloudProbeError("OVHcloud schema operations are invalid")
     paths = []
     for item in apis:
         if not isinstance(item, dict) or not isinstance(item.get("path"), str):
-            raise OvhcloudProbeError("OVHcloud IAM path is invalid")
+            raise OvhcloudProbeError("OVHcloud schema path is invalid")
         paths.append(item["path"])
     if len(paths) != len(set(paths)):
-        raise OvhcloudProbeError("OVHcloud IAM paths are not unique")
+        raise OvhcloudProbeError("OVHcloud schema paths are not unique")
     normalized = dict(schema)
     normalized["apis"] = sorted(apis, key=lambda item: item["path"])
     return _digest(normalized)
@@ -160,7 +164,7 @@ def _candidate_operations(schema: dict[str, Any]) -> list[dict[str, Any]]:
         by_path[item["path"]] = operations
 
     selected: list[dict[str, Any]] = []
-    for path in CANDIDATE_PATHS:
+    for path in IAM_CANDIDATE_PATHS:
         matches = [
             operation
             for operation in by_path.get(path, [])
@@ -256,12 +260,16 @@ def build_observation(lock: dict[str, Any], payloads: dict[str, bytes]) -> dict[
         "api-index",
         "api-v2-principles",
         "iam-schema",
+        "notification-task-schema",
         "oauth2-service-account",
     }
     if set(payloads) != expected:
         raise OvhcloudProbeError("OVHcloud probe source set is incomplete")
     index = _json(payloads["api-index"], "OVHcloud API index")
     schema = _json(payloads["iam-schema"], "OVHcloud IAM schema")
+    task_schema = _json(
+        payloads["notification-task-schema"], "OVHcloud notification schema"
+    )
     principles = _text(payloads["api-v2-principles"], "OVHcloud API principles")
     oauth = _text(payloads["oauth2-service-account"], "OVHcloud OAuth2 guide")
     _require(
@@ -292,7 +300,7 @@ def build_observation(lock: dict[str, Any], payloads: dict[str, bytes]) -> dict[
         "OVHcloud OAuth2 guide",
     )
     sections = _api_sections(index)
-    candidates = _candidate_operations(schema)
+    candidates = _candidate_operations(schema) + task_operations(task_schema)
     candidate_digest = _digest(candidates)
     paginated = [
         row["id"]
@@ -302,6 +310,9 @@ def build_observation(lock: dict[str, Any], payloads: dict[str, bytes]) -> dict[
     ]
     principles_sha = _source_digest(payloads["api-v2-principles"])
     schema_sha = source_digest("iam-schema", payloads["iam-schema"])
+    task_schema_sha = source_digest(
+        "notification-task-schema", payloads["notification-task-schema"]
+    )
     oauth_sha = _source_digest(payloads["oauth2-service-account"])
     schema_version = _schema_version_evidence(schema, principles, schema_sha)
     contracts = {
@@ -431,6 +442,10 @@ def build_observation(lock: dict[str, Any], payloads: dict[str, bytes]) -> dict[
                 "values": {"count": len(sections), "sha256": _digest(sections)},
             },
             {"id": "iam-models", "values": _model_evidence(schema)},
+            {
+                "id": "notification-task-models",
+                "values": task_model_evidence(task_schema, task_schema_sha),
+            },
             {
                 "id": "task-event-contract",
                 "values": {

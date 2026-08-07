@@ -13,7 +13,7 @@ scripts/test-hetzner-live-smoke-runner.py
 scripts/test-platform-matrix.py
 scripts/test-latest-tools.py
 scripts/test-dependency-review.py
-scripts/check_dependency_review.py v0.55.0 docs/DEPENDENCY_REVIEW_0.59.0.md
+scripts/check_dependency_review.py v0.55.0 docs/DEPENDENCY_REVIEW_0.60.0.md
 scripts/test-publishable-readmes.py
 scripts/check-release-plan-structure.py
 scripts/test-release-plan-structure.py
@@ -66,6 +66,7 @@ scripts/test-hetzner-api-drift.py
 scripts/check_provider_drift.sh
 scripts/check_ovhcloud_authority_conformance.sh
 scripts/check_ovhcloud_header_conformance.sh
+scripts/check_ovhcloud_task_conformance.sh
 scripts/check_api_matrix_coverage.py
 scripts/test-api-matrix-coverage.py
 cargo clippy --manifest-path tools/prepared-coverage-check/Cargo.toml \

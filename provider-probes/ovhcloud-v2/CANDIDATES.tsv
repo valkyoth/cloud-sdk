@@ -7,3 +7,5 @@ iam/resource	GET	/iam/resource	cursor	iam.resource.Resource[]	production
 iam/resource/by-resourceurn	GET	/iam/resource/{resourceURN}	none	iam.resource.Resource	production
 iam/resourcegroup	GET	/iam/resourceGroup	cursor	iam.group.Response[]	production
 iam/resourcegroup/by-groupid	GET	/iam/resourceGroup/{groupId}	none	iam.group.Response	production
+notification/contactmean/by-contactmeanid/task	GET	/notification/contactMean/{contactMeanId}/task	cursor	common.Task[]	production
+notification/contactmean/by-contactmeanid/task/by-taskid	GET	/notification/contactMean/{contactMeanId}/task/{taskId}	none	common.Task	production

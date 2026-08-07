@@ -1,2 +1,2 @@
 cursor_request	size_request	next_response	terminal	page_size	operation_count	schema_header	schema_version	schema_major	principles_sha256	schema_sha256
-X-Pagination-Cursor	X-Pagination-Size	X-Pagination-Cursor-Next	next_header_absent	5	4	X-Schemas-Version	1.0	1	afd16253ec3d126c8ca1c66b2298be87976b35af384ffc38e6f2d7f029098ae7	27a1c172c055615e25673d46f583ed0f0d4ba2d77df5a70324b7a446eeacc585
+X-Pagination-Cursor	X-Pagination-Size	X-Pagination-Cursor-Next	next_header_absent	5	5	X-Schemas-Version	1.0	1	afd16253ec3d126c8ca1c66b2298be87976b35af384ffc38e6f2d7f029098ae7	27a1c172c055615e25673d46f583ed0f0d4ba2d77df5a70324b7a446eeacc585

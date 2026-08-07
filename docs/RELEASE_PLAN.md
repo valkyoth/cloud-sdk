@@ -1936,6 +1936,13 @@ Goal: prove asynchronous resource models against real source-locked read routes.
 
 Deliverables: actual `/task` or `/event` operation coverage where available, bounded task/progress/error/event models, and generic examples kept as fixtures rather than endpoint claims.
 
+Implementation assignment: source-lock the production authenticated
+`GET /notification/contactMean/{contactMeanId}/task` collection and
+`GET /notification/contactMean/{contactMeanId}/task/{taskId}` resource from
+the official notification schema. Bind all task fields and six statuses.
+Retain events as generic fixtures because this reviewed surface exposes no
+event route; do not infer or advertise one.
+
 Verification: state/progress/timestamp/link/message adversarial fixtures and `scripts/release_0_60_gate.sh`.
 
 Stop gate: `v0.60.0 implementation stop reached. Run the pentest for this exact commit before tagging and crates.io publication.`

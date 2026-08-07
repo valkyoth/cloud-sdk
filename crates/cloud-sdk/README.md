@@ -83,13 +83,12 @@ operation contracts, then validates them with an unpublished OVHcloud API v2
 architecture probe, a narrow credential-free Robot wire fixture, and
 full-fidelity Hetzner vertical slices before the neutral API freeze.
 
-The latest published checkpoint is `v0.55.0`. Signed source milestones v0.56
-through v0.58 added provider-neutral drift evidence, locked the unpublished
-OVHcloud API v2 probe, and challenged regional authentication contracts. The
-v0.59 release candidate adds prepared-request-bound header-cursor execution
-and reviewed schema validation; its incremental pentest and final retest
-passed. Tagging awaits green GitHub CI and CodeQL, while crates.io publication
-remains deferred to `v0.60.0`.
+The latest published checkpoint is `v0.55.0`; signed source milestones v0.56
+through v0.59 are complete. The v0.60 public-checkpoint candidate adds bounded
+provider-neutral asynchronous-resource models and binds them to source-locked
+OVHcloud production task reads without claiming a supported OVHcloud provider.
+Its exact implementation commit requires pentest and release-gate approval
+before tagging and crates.io publication.
 
 ## Trust Dashboard
 
@@ -147,8 +146,8 @@ Portable and native platform evidence is documented in
 
 ```toml
 [dependencies]
-cloud-sdk = "0.55.0"
-cloud-sdk-hetzner = "0.39.0"
+cloud-sdk = "0.60.0"
+cloud-sdk-hetzner = "0.39.1"
 ```
 
 ## cloud-sdk Features
@@ -174,6 +173,7 @@ visible. Applications should enable only the features they use.
 - [Robot wire source lock](https://github.com/valkyoth/cloud-sdk/blob/main/docs/ROBOT_WIRE_SOURCE_LOCK.md)
 - [Pagination strategies](https://github.com/valkyoth/cloud-sdk/blob/main/docs/PAGINATION_STRATEGIES.md)
 - [Schema version validation](https://github.com/valkyoth/cloud-sdk/blob/main/docs/SCHEMA_VERSION_VALIDATION.md)
+- [Bounded asynchronous resources](https://github.com/valkyoth/cloud-sdk/blob/main/docs/ASYNC_RESOURCES.md)
 - [Quota and retry policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/QUOTA_AND_RETRY.md)
 - [Retry and idempotency policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/RETRY_AND_IDEMPOTENCY.md)
 - [Plan-confirm execution permits](https://github.com/valkyoth/cloud-sdk/blob/main/docs/EXECUTION_PERMITS.md)
@@ -217,6 +217,7 @@ visible. Applications should enable only the features they use.
 - [Migrating source users to v0.57](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.57.0.md)
 - [Migrating source users to v0.58](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.58.0.md)
 - [Migrating source users to v0.59](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.59.0.md)
+- [Migrating to v0.60](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.60.0.md)
 - [Compile-time Hetzner operation associations](https://github.com/valkyoth/cloud-sdk/blob/main/docs/OPERATION_ASSOCIATIONS.md)
 - [Incremental provider decoding](https://github.com/valkyoth/cloud-sdk/blob/main/docs/INCREMENTAL_DECODING.md)
 - [Deprecated endpoint policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/DEPRECATED_ENDPOINT_POLICY.md)
@@ -547,8 +548,8 @@ without changing the default allocation-free graph.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.55.0"
-cloud-sdk-reqwest = { version = "0.32.4", features = ["blocking-rustls"] }
+cloud-sdk = "0.60.0"
+cloud-sdk-reqwest = { version = "0.33.0", features = ["blocking-rustls"] }
 ```
 
 The production builder is HTTPS-only, requires explicit bounded timeouts and a
@@ -574,8 +575,8 @@ when deterministic public WebPKI roots are required:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.55.0"
-cloud-sdk-reqwest = { version = "0.32.4", features = ["blocking-rustls-webpki-roots"] }
+cloud-sdk = "0.60.0"
+cloud-sdk-reqwest = { version = "0.33.0", features = ["blocking-rustls-webpki-roots"] }
 ```
 
 The blocking API is unchanged. This feature excludes host-added enterprise
@@ -591,8 +592,8 @@ feature instead of relying on dependency feature unification:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.55.0"
-cloud-sdk-reqwest = { version = "0.32.4", features = ["blocking-rustls-fips"] }
+cloud-sdk = "0.60.0"
+cloud-sdk-reqwest = { version = "0.33.0", features = ["blocking-rustls-fips"] }
 ```
 
 Client construction explicitly selects rustls' AWS-LC FIPS provider and fails
@@ -610,8 +611,8 @@ example is in the
 
 ```toml
 [dependencies]
-cloud-sdk = "0.55.0"
-cloud-sdk-reqwest = { version = "0.32.4", features = ["async-rustls"] }
+cloud-sdk = "0.60.0"
+cloud-sdk-reqwest = { version = "0.33.0", features = ["async-rustls"] }
 ```
 
 The async adapter requires an active Tokio executor because reqwest uses Tokio

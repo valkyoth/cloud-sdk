@@ -15,9 +15,17 @@ from check_ovhcloud_probe import (
 )
 from ovhcloud_probe_adapter import (
     CANDIDATE_PATHS,
+    IAM_CANDIDATE_PATHS,
     OvhcloudProbeError,
     build_observation,
     source_digest,
+)
+from ovhcloud_task_adapter import (
+    TASK_CANDIDATE_PATHS,
+    TASK_ERROR_FIELDS,
+    TASK_FIELDS,
+    TASK_PROGRESS_FIELDS,
+    TASK_STATUSES,
 )
 from provider_drift_model import read_bounded_json, validate_observation
 import provider_drift_fetch as fetch
@@ -44,6 +52,48 @@ def operation(path: str) -> dict:
     }
 
 
+def task_operation(path: str) -> dict:
+    collection = path.endswith("/task")
+    parameters = [
+        {"name": "contactMeanId", "paramType": "path"},
+    ]
+    if collection:
+        parameters.extend(
+            [
+                {"name": "X-Pagination-Cursor", "paramType": "header"},
+                {"name": "X-Pagination-Size", "paramType": "header"},
+            ]
+        )
+    else:
+        parameters.append({"name": "taskId", "paramType": "path"})
+    return {
+        "apiStatus": {"value": "PRODUCTION"},
+        "httpMethod": "GET",
+        "iamActions": [{"name": "fixture:task/get"}],
+        "noAuthentication": False,
+        "parameters": parameters,
+        "responseType": "common.Task[]" if collection else "common.Task",
+    }
+
+
+def task_models() -> dict:
+    def properties(names: tuple[str, ...]) -> dict:
+        return {
+            name: {"canBeNull": name in ("errors", "finishedAt", "startedAt"), "type": "string"}
+            for name in names
+        }
+
+    return {
+        "common.Task": {"properties": properties(TASK_FIELDS)},
+        "common.TaskError": {"properties": properties(TASK_ERROR_FIELDS)},
+        "common.TaskProgress": {"properties": properties(TASK_PROGRESS_FIELDS)},
+        "common.TaskStatusEnum": {
+            "enum": list(TASK_STATUSES),
+            "enumType": "string",
+        },
+    }
+
+
 def payloads() -> dict[str, bytes]:
     index = {
         "apis": [
@@ -60,10 +110,19 @@ def payloads() -> dict[str, bytes]:
         "apiVersion": "1.0",
         "apis": [
             {"operations": [operation(path)], "path": path}
-            for path in CANDIDATE_PATHS
+            for path in IAM_CANDIDATE_PATHS
         ],
         "basePath": "https://api.eu.ovhcloud.com/v2",
         "models": {"fixture.Resource": {"id": "Resource"}},
+    }
+    task_schema = {
+        "apiVersion": "1.0",
+        "apis": [
+            {"operations": [task_operation(path)], "path": path}
+            for path in TASK_CANDIDATE_PATHS
+        ],
+        "basePath": "https://api.eu.ovhcloud.com/v2",
+        "models": task_models(),
     }
     principles = "\n".join(
         (
@@ -92,6 +151,7 @@ def payloads() -> dict[str, bytes]:
         "api-index": json.dumps(index).encode("utf-8"),
         "api-v2-principles": principles.encode("utf-8"),
         "iam-schema": json.dumps(schema).encode("utf-8"),
+        "notification-task-schema": json.dumps(task_schema).encode("utf-8"),
         "oauth2-service-account": oauth.encode("utf-8"),
     }
 
@@ -114,7 +174,7 @@ def assert_rejected(source_payloads: dict[str, bytes]) -> None:
 def test_current_evidence_and_inventory_are_consistent() -> None:
     check_evidence()
     rows = read_inventory(ROOT / "provider-probes/ovhcloud-v2/CANDIDATES.tsv")
-    assert len(rows) == 8
+    assert len(rows) == 10
     assert all(row["method"] == "GET" for row in rows)
 
 
@@ -131,7 +191,7 @@ def test_synthetic_sources_construct_every_category() -> None:
         "retry",
         "schemas",
     }
-    assert len(observation["contracts"]["operations"]) == 8
+    assert len(observation["contracts"]["operations"]) == 10
 
 
 def test_missing_oauth_and_task_contracts_fail_closed() -> None:
@@ -177,30 +237,34 @@ def test_every_source_changes_the_observation() -> None:
     changed = build_observation(lock(), changed_payloads)
     assert baseline["contracts"]["schemas"] != changed["contracts"]["schemas"]
     assert baseline["sources"] != changed["sources"]
+    changed_payloads = payloads()
+    task_schema = json.loads(changed_payloads["notification-task-schema"])
+    task_schema["models"]["common.Task"]["description"] = "semantic drift"
+    changed_payloads["notification-task-schema"] = json.dumps(task_schema).encode("utf-8")
+    changed = build_observation(lock(), changed_payloads)
+    assert baseline["contracts"]["schemas"] != changed["contracts"]["schemas"]
+    assert baseline["sources"] != changed["sources"]
 
 
-def test_iam_source_integrity_normalizes_only_unique_path_order() -> None:
-    first = payloads()["iam-schema"]
-    value = json.loads(first)
-    value["apis"].reverse()
-    reordered = json.dumps(value).encode("utf-8")
-    assert source_digest("iam-schema", first) == source_digest(
-        "iam-schema", reordered
-    )
-    value["apis"][0]["description"] = "semantic drift"
-    changed = json.dumps(value).encode("utf-8")
-    assert source_digest("iam-schema", first) != source_digest(
-        "iam-schema", changed
-    )
-    value = json.loads(first)
-    value["apis"].append(value["apis"][0])
-    duplicate = json.dumps(value).encode("utf-8")
-    try:
-        source_digest("iam-schema", duplicate)
-    except OvhcloudProbeError:
-        pass
-    else:
-        raise AssertionError("duplicate OVHcloud IAM paths were accepted")
+def test_schema_integrity_normalizes_only_unique_path_order() -> None:
+    for source_id in ("iam-schema", "notification-task-schema"):
+        first = payloads()[source_id]
+        value = json.loads(first)
+        value["apis"].reverse()
+        reordered = json.dumps(value).encode("utf-8")
+        assert source_digest(source_id, first) == source_digest(source_id, reordered)
+        value["apis"][0]["description"] = "semantic drift"
+        changed = json.dumps(value).encode("utf-8")
+        assert source_digest(source_id, first) != source_digest(source_id, changed)
+        value = json.loads(first)
+        value["apis"].append(value["apis"][0])
+        duplicate = json.dumps(value).encode("utf-8")
+        try:
+            source_digest(source_id, duplicate)
+        except OvhcloudProbeError:
+            pass
+        else:
+            raise AssertionError("duplicate OVHcloud schema paths were accepted")
 
 
 def test_public_source_integrity_uses_exact_sha256() -> None:
@@ -292,7 +356,8 @@ def main() -> None:
         test_candidate_stability_authentication_and_method_fail_closed,
         test_duplicate_json_and_authority_substitution_fail_closed,
         test_every_source_changes_the_observation,
-        test_iam_source_integrity_normalizes_only_unique_path_order,
+        test_schema_integrity_normalizes_only_unique_path_order,
+        test_public_source_integrity_uses_exact_sha256,
         test_json_sources_require_utf8_finite_standard_values,
         test_probe_package_is_rejected_from_every_publication_boundary,
         test_every_remote_source_has_one_exact_reviewed_endpoint,

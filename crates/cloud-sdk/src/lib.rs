@@ -22,6 +22,7 @@ macro_rules! impl_static_error {
 }
 
 pub mod action_polling;
+pub mod async_resource;
 pub mod authentication;
 pub mod buffer;
 pub mod client;
@@ -45,6 +46,7 @@ pub use method::{MAX_METHOD_BYTES, Method, MethodError};
 mod tests {
     use super::{Method, MethodError, ProviderId, ServiceId};
     use crate::action_polling::{ActionObserveError, ActionPollError};
+    use crate::async_resource::AsyncResourceValidationError;
     use crate::authentication::{
         AuthenticationScopeError, CredentialGenerationError, CredentialLifetimeError,
         ScopeValueError, SigningBuildError, SigningContextValueError, SigningInputError,
@@ -96,6 +98,7 @@ mod tests {
         fn assert_error<E: core::error::Error>() {}
 
         assert_error::<PaginationError>();
+        assert_error::<AsyncResourceValidationError>();
         assert_error::<HeaderCursorExecutionError<core::convert::Infallible>>();
         assert_error::<AuthenticationScopeError>();
         assert_error::<CredentialGenerationError>();

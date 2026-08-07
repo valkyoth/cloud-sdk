@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.60.0 - Pending
+
+- Added bounded provider-neutral asynchronous task, progress, error, and
+  generic event models with redacted diagnostics and hard collection limits.
+- Added canonical UTC timestamp parsing with calendar, lifecycle-order, and
+  terminal-state coherence validation.
+- Source-locked two stable authenticated OVHcloud production task reads and
+  the complete common task model family as excluded conformance evidence.
+- Expanded the unpublished OVHcloud probe to ten read operations and five
+  exact official sources while keeping event examples fixture-only.
+- Prepared the cumulative public checkpoint for signed v0.56 through v0.60,
+  including the v0.58 reqwest credential-lifetime changes.
+
 ## 0.54.0 - 2026-08-04
 
 - Added finite provider-neutral diagnostic categories and bounded lifecycle

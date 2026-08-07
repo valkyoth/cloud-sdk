@@ -31,8 +31,8 @@
       {
         "id": "probe-read-only",
         "values": {
-          "candidate_count": 8,
-          "candidates_sha256": "adfd129ddea0963a4439abc11e49a53062f0683a3a30778ab14242b418840c14",
+          "candidate_count": 10,
+          "candidates_sha256": "5e59f29336c4df2133b156a3f7fb04fcedf77bf642a4d049d5190af1b98050c2",
           "cost_approval": "not_applicable",
           "methods": [
             "GET"
@@ -99,7 +99,7 @@
       {
         "id": "probe-read-only",
         "values": {
-          "candidates_sha256": "adfd129ddea0963a4439abc11e49a53062f0683a3a30778ab14242b418840c14",
+          "candidates_sha256": "5e59f29336c4df2133b156a3f7fb04fcedf77bf642a4d049d5190af1b98050c2",
           "key": "not_applicable",
           "methods": [
             "GET"
@@ -227,6 +227,44 @@
           "response_type": "iam.group.Response",
           "stability": "production"
         }
+      },
+      {
+        "id": "notification/contactmean/by-contactmeanid/task",
+        "values": {
+          "actions": [
+            "account:apiovh:notification/contactMean/task/get"
+          ],
+          "authenticated": true,
+          "headers": [
+            "X-Pagination-Cursor",
+            "X-Pagination-Size"
+          ],
+          "method": "GET",
+          "path": "/notification/contactMean/{contactMeanId}/task",
+          "path_parameters": [
+            "contactMeanId"
+          ],
+          "response_type": "common.Task[]",
+          "stability": "production"
+        }
+      },
+      {
+        "id": "notification/contactmean/by-contactmeanid/task/by-taskid",
+        "values": {
+          "actions": [
+            "account:apiovh:notification/contactMean/task/get"
+          ],
+          "authenticated": true,
+          "headers": [],
+          "method": "GET",
+          "path": "/notification/contactMean/{contactMeanId}/task/{taskId}",
+          "path_parameters": [
+            "contactMeanId",
+            "taskId"
+          ],
+          "response_type": "common.Task",
+          "stability": "production"
+        }
       }
     ],
     "pagination": [
@@ -235,8 +273,8 @@
         "values": {
           "cursor_request": "X-Pagination-Cursor",
           "next_response": "X-Pagination-Cursor-Next",
-          "operation_count": 4,
-          "operations_sha256": "b0b4b83bf00bb8d1628636cae9b1007038588eb1c9f9b85a65c78c7ef585de45",
+          "operation_count": 5,
+          "operations_sha256": "f88f60a1e700d3f3d7b47cd7dcadd1db4047aaa8a8e9d535b9501d2bcdd15aa8",
           "size_request": "X-Pagination-Size",
           "terminal": "next_header_absent"
         }
@@ -247,7 +285,7 @@
         "id": "probe-read-only",
         "values": {
           "automatic_policy": "caller_supplied",
-          "candidates_sha256": "adfd129ddea0963a4439abc11e49a53062f0683a3a30778ab14242b418840c14",
+          "candidates_sha256": "5e59f29336c4df2133b156a3f7fb04fcedf77bf642a4d049d5190af1b98050c2",
           "methods": [
             "GET"
           ]
@@ -267,6 +305,42 @@
         "values": {
           "count": 39,
           "sha256": "80ca87e8745b1c31fa047d4577d265dbc4c95aad09146468ce278a0147f6a729"
+        }
+      },
+      {
+        "id": "notification-task-models",
+        "values": {
+          "count": 4,
+          "error_fields": [
+            "message"
+          ],
+          "model_sha256": "a93e1e2fd7665522b9f730301915f86bf29e17280b5ce418af8a712d7b0e685a",
+          "progress_fields": [
+            "name",
+            "status"
+          ],
+          "source_sha256": "8377d39ee3d7d9aee52a3ebb3e7ae50ce575333d409dcc16289ebe74b9fd28f1",
+          "statuses": [
+            "DONE",
+            "ERROR",
+            "PENDING",
+            "RUNNING",
+            "SCHEDULED",
+            "WAITING_USER_INPUT"
+          ],
+          "task_fields": [
+            "createdAt",
+            "errors",
+            "finishedAt",
+            "id",
+            "link",
+            "message",
+            "progress",
+            "startedAt",
+            "status",
+            "type",
+            "updatedAt"
+          ]
         }
       },
       {
@@ -303,6 +377,12 @@
       "max_bytes": 1048576,
       "sha256": "27a1c172c055615e25673d46f583ed0f0d4ba2d77df5a70324b7a446eeacc585",
       "url": "https://api.eu.ovhcloud.com/v2/iam.json"
+    },
+    {
+      "id": "notification-task-schema",
+      "max_bytes": 4194304,
+      "sha256": "8377d39ee3d7d9aee52a3ebb3e7ae50ce575333d409dcc16289ebe74b9fd28f1",
+      "url": "https://api.eu.ovhcloud.com/v2/notification.json"
     },
     {
       "id": "oauth2-service-account",

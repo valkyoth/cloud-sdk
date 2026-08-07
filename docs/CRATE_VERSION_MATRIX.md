@@ -1,10 +1,9 @@
 # Crate Version Matrix
 
-Status: `v0.55.0` is tagged and published. `v0.56.0` through `v0.58.0` are
-signed source milestones. `v0.59.0` is a release candidate with its incremental
-pentest and final retest passed; tagging awaits green GitHub CI and CodeQL.
-Every tag beginning with v0.56 receives its own incremental pentest; package
-publication is deferred to the next scheduled checkpoint at `v0.60.0`.
+Status: `v0.55.0` is tagged and published. `v0.56.0` through `v0.59.0` are
+signed source milestones. `v0.60.0` is the cumulative public-checkpoint
+candidate and requires its incremental pentest before tagging and publication.
+Every tag beginning with v0.56 receives its own incremental pentest.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
@@ -884,6 +883,21 @@ v0.60.0.
 | `cloud-sdk-reqwest` | `0.32.4` | `0.32.4` | `dependency` | No | Accumulate the source core dependency for v0.60.0. |
 | `cloud-sdk-sanitization` | `0.18.0` | `0.18.0` | `unchanged` | No | No sanitization boundary changes. |
 | `cloud-sdk-testkit` | `0.29.0` | `0.29.0` | `dependency` | No | Accumulate the source core dependency for v0.60.0. |
+
+## v0.60.0 Tracking Table
+
+`v0.60.0` is the cumulative public checkpoint after v0.55. It publishes every
+package-tree change from v0.56 through v0.60, including bounded asynchronous
+resources and source-locked production OVHcloud task conformance. The excluded
+probe remains unpublished.
+
+| Crate | Published | Planned | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.55.0` | `0.60.0` | `code` | Yes | Publish cumulative drift, authority, cursor, schema, and asynchronous-resource contracts. |
+| `cloud-sdk-hetzner` | `0.39.0` | `0.39.1` | `dependency` | Yes | Update the core dependency for the public checkpoint. |
+| `cloud-sdk-reqwest` | `0.32.4` | `0.33.0` | `code` | Yes | Publish expiry-qualified atomic bearer rotation and refresh. |
+| `cloud-sdk-sanitization` | `0.18.0` | `0.18.0` | `unchanged` | No | No sanitization boundary changes. |
+| `cloud-sdk-testkit` | `0.29.0` | `0.29.1` | `dependency` | Yes | Update the core dependency for the public checkpoint. |
 
 ## Planned Milestone Ownership
 

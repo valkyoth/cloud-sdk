@@ -1,34 +1,34 @@
 [release]
-version = "0.59.0"
-milestone = "0.59.0"
+version = "0.60.0"
+milestone = "0.60.0"
 baseline = "0.55.0"
-review_baseline = "0.58.0"
-cumulative_milestones = ["0.56.0", "0.57.0", "0.58.0", "0.59.0"]
+review_baseline = "0.59.0"
+cumulative_milestones = ["0.56.0", "0.57.0", "0.58.0", "0.59.0", "0.60.0"]
 policy = "independent"
-stage = "internal"
+stage = "public"
 exceptional = false
 exception_reason = ""
 
 [crates."cloud-sdk"]
-previous_version = "0.58.0"
-version = "0.59.0"
+previous_version = "0.55.0"
+version = "0.60.0"
 change = "code"
-publish = false
-reason = "Add bounded header-cursor decoding and reviewed schema-version validation contracts."
+publish = true
+reason = "Publish cumulative provider drift, regional authentication, cursor, schema, and asynchronous-resource contracts."
 
 [crates."cloud-sdk-hetzner"]
 previous_version = "0.39.0"
-version = "0.39.0"
+version = "0.39.1"
 change = "dependency"
-publish = false
-reason = "Accumulate the source core dependency for v0.60 without publication."
+publish = true
+reason = "Update the core dependency for the cumulative v0.60 public checkpoint."
 
 [crates."cloud-sdk-reqwest"]
 previous_version = "0.32.4"
-version = "0.32.4"
-change = "dependency"
-publish = false
-reason = "Accumulate the source core dependency for v0.60 without publication."
+version = "0.33.0"
+change = "code"
+publish = true
+reason = "Publish cumulative expiry-qualified atomic bearer rotation and refresh support."
 
 [crates."cloud-sdk-sanitization"]
 previous_version = "0.18.0"
@@ -39,7 +39,7 @@ reason = "No sanitization boundary changes."
 
 [crates."cloud-sdk-testkit"]
 previous_version = "0.29.0"
-version = "0.29.0"
+version = "0.29.1"
 change = "dependency"
-publish = false
-reason = "Accumulate the source core dependency for v0.60 without publication."
+publish = true
+reason = "Update the core dependency for the cumulative v0.60 public checkpoint."
