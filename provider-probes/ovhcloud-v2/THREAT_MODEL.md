@@ -79,13 +79,16 @@ response header, and all caller buffers clear before pre-dispatch validation.
 
 ### Accidental support or publication
 
-The probe is not a Cargo package, workspace member, release-plan crate, or
-publisher entry. CI checks this invariant. No probe result expands the Hetzner
-support claim or pre-approves a future OVHcloud provider crate.
+The probe harness is an exact `publish = false` workspace package so normal
+dependency, lint, test, and SBOM controls cover it. Release tooling filters
+nonpublishable workspace tools and separately rejects any OVHcloud release-plan
+or publisher entry. No probe result expands the Hetzner support claim or
+pre-approves a future OVHcloud provider crate.
 
 ## Exclusions
 
 Mutation, ordering, billing, account creation, service-account management,
-OpenStack APIs, API v1 compatibility, live authenticated calls, and complete
-OVHcloud product coverage are outside this probe. No claim of provider,
-regulatory, military, or organizational accreditation is made.
+OpenStack APIs, API v1 compatibility, and complete OVHcloud product coverage
+are outside this probe. The optional ignored live smoke is limited to one
+least-privilege policy collection read and is never automatic. No claim of
+provider, regulatory, military, or organizational accreditation is made.

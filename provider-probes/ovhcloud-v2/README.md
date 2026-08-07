@@ -5,8 +5,9 @@ Status: unpublished conformance evidence; not a supported provider.
 This probe challenges provider-neutral `cloud-sdk` contracts before their
 v0.62.0 freeze. It is deliberately limited to ten stable, authenticated,
 read-only IAM and notification-task operations. It does not provide an
-OVHcloud SDK, create a Cargo package, make an API-completeness claim, or
-approve any mutation or billable operation.
+OVHcloud SDK, make an API-completeness claim, or approve any mutation or
+billable operation. Its `publish = false` Cargo harness is workspace test
+evidence and is excluded from every crates.io release plan and publisher.
 
 ## Locked Sources
 
@@ -134,3 +135,36 @@ conformance inventory records that distinction explicitly.
 Run `scripts/check_ovhcloud_task_conformance.sh` to verify the live source lock,
 exact routes and schemas, model bounds, status mapping, task polling, redaction,
 and event non-claim.
+
+## v0.61 End-To-End Execution
+
+The nonpublishable harness executes all ten candidate operations through the
+unchanged provider-neutral prepared-request, checked-response, blocking,
+Send-async, local-async, and testkit contracts. Every operation is `GET`, safe,
+read-only, no-known-cost, and ineligible for automatic retry. Collection calls
+send the exact bounded `X-Pagination-Size` header, and all calls retain only
+the reviewed content-type and optional next-cursor response metadata.
+
+Credential-free fixtures run in normal CI:
+
+```sh
+scripts/check_ovhcloud_execution_probe.sh
+```
+
+The `live-smoke` feature compiles one ignored EU-only
+`GET /iam/policy` smoke. It requires only the source-locked
+`account:apiovh:iam/policy/get` action, an exact `read-only` opt-in, and a
+private regular token file. It rejects the destructive opt-in variable,
+custom endpoints, redirects, retries, broad token-file permissions, symlinks,
+file replacement during open, oversized tokens, and oversized responses.
+
+```sh
+CLOUD_SDK_OVHCLOUD_LIVE_MODE=read-only \
+CLOUD_SDK_OVHCLOUD_TOKEN_FILE=/private/path/token \
+cargo test -p ovhcloud-v2-probe --features live-smoke \
+  --test live_smoke -- --ignored --exact least_privilege_policy_collection_smoke
+```
+
+The smoke is never run by CI or a release gate because credentials and live
+account access remain operator-owned. `scripts/release_0_61_gate.sh` compiles
+it, keeps it ignored, and runs the complete credential-free matrix.

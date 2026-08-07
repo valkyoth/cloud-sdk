@@ -1,10 +1,9 @@
 # Crate Version Matrix
 
-Status: `v0.55.0` is tagged and published. `v0.56.0` through `v0.59.0` are
-signed source milestones. `v0.60.0` is the cumulative public-checkpoint
-candidate; its incremental pentest and local release review are complete, and
-tagging and publication await green GitHub CI and CodeQL. Every tag beginning
-with v0.56 receives its own incremental pentest.
+Status: `v0.60.0` is tagged and published. `v0.61.0` is an internal source
+milestone at its implementation stop; pentest, final release review, GitHub CI,
+and CodeQL remain before tagging. Every pre-1.0 tag receives its own
+incremental pentest.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
@@ -899,6 +898,20 @@ probe remains unpublished.
 | `cloud-sdk-reqwest` | `0.32.4` | `0.33.0` | `code` | Yes | Publish expiry-qualified atomic bearer rotation and refresh. |
 | `cloud-sdk-sanitization` | `0.18.0` | `0.18.0` | `unchanged` | No | No sanitization boundary changes. |
 | `cloud-sdk-testkit` | `0.29.0` | `0.29.1` | `dependency` | Yes | Update the core dependency for the public checkpoint. |
+
+## v0.61.0 Tracking Table
+
+`v0.61.0` adds the nonpublishable OVHcloud end-to-end execution harness. It
+remains an internal milestone, so no package is selected for crates.io and
+supporting crates retain their published versions until v0.65.0.
+
+| Crate | Published | Source | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.60.0` | `0.61.0` | `metadata` | No | Record the end-to-end probe harness and release evidence. |
+| `cloud-sdk-hetzner` | `0.39.1` | `0.39.1` | `dependency` | No | Accumulate the source core dependency for v0.65.0. |
+| `cloud-sdk-reqwest` | `0.33.0` | `0.33.0` | `dependency` | No | Accumulate the source core dependency for v0.65.0. |
+| `cloud-sdk-sanitization` | `0.18.0` | `0.18.0` | `unchanged` | No | No sanitization boundary changes. |
+| `cloud-sdk-testkit` | `0.29.1` | `0.29.1` | `dependency` | No | Accumulate the source core dependency for v0.65.0. |
 
 ## Planned Milestone Ownership
 

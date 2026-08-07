@@ -218,9 +218,9 @@
 - the unpublished OVHcloud API v2 probe admits only five exact official
   credential-free source URLs and ten production authenticated GET candidates;
   derives authority, OAuth, schema, cursor, and task facts from authenticated
-  bytes; keeps events fixture-only; and is excluded from Cargo packages,
-  release publishing, credential use, runtime execution, and provider support
-  claims;
+  bytes; keeps events fixture-only; and confines execution to a nonpublishable
+  workspace harness excluded from release publishing, automatic credential
+  use, mutations, and provider support claims;
 - pager and action drivers admit exactly one response per request and remain
   non-cloneable; pagination retains transactional hard budgets; action polling
   rejects zero-delay loops, bounds observations and cumulative delay, separates

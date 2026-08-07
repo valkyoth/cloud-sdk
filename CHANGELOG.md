@@ -1,6 +1,19 @@
 # Changelog
 
-## 0.60.0 - Pending
+## 0.61.0 - Pending
+
+- Added a nonpublishable OVHcloud API v2 execution harness covered by the
+  workspace dependency, lint, test, SBOM, and release gates.
+- Executed all ten source-locked read operations through blocking, Send-async,
+  local-async, and provider-neutral testkit contracts.
+- Added exact read-only, safe, no-retry metadata and credential-free response
+  fixtures for every probe operation.
+- Added an ignored, feature-gated EU live smoke for `GET /iam/policy` with
+  exact endpoint binding, private token-file validation, bounded response
+  storage, and complete token-source cleanup.
+- Kept the harness outside every crates.io release plan and publication order.
+
+## 0.60.0 - 2026-08-07
 
 - Added bounded provider-neutral asynchronous task, progress, error, and
   generic event models with redacted diagnostics and hard collection limits.

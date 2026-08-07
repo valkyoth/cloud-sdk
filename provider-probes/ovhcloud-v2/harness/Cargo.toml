@@ -1,0 +1,23 @@
+[package]
+name = "ovhcloud-v2-probe"
+description = "Unpublished OVHcloud v2 conformance harness for cloud-sdk."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+homepage.workspace = true
+repository.workspace = true
+publish = false
+
+[features]
+default = []
+live-smoke = ["dep:cloud-sdk-reqwest", "dep:cloud-sdk-sanitization"]
+
+[dependencies]
+cloud-sdk.workspace = true
+cloud-sdk-testkit.workspace = true
+cloud-sdk-reqwest = { workspace = true, optional = true, features = ["blocking-rustls"] }
+cloud-sdk-sanitization = { workspace = true, optional = true }
+
+[lints]
+workspace = true

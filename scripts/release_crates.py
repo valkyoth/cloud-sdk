@@ -98,7 +98,7 @@ def workspace_packages(metadata: dict) -> dict[str, dict]:
     return {
         package["name"]: package
         for package in metadata["packages"]
-        if package["id"] in workspace_ids
+        if package["id"] in workspace_ids and package.get("publish") != []
     }
 
 

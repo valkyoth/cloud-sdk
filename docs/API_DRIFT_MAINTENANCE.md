@@ -119,7 +119,7 @@ scripts/check_provider_drift.py \
 ```
 
 Any official source-byte or normalized-contract change is a release stop. The
-probe must remain outside Cargo workspace membership, package discovery,
-publish ordering, and supported-provider documentation. A future full
-`cloud-sdk-ovhcloud` implementation requires a separate post-1.0 plan and
+probe harness must remain exactly `publish = false`, covered by workspace
+checks, and absent from publish ordering and supported-provider documentation.
+A future full `cloud-sdk-ovhcloud` implementation requires a separate post-1.0 plan and
 review; the probe cannot be renamed or promoted into it.

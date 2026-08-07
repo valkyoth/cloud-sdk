@@ -21,6 +21,8 @@ import release_crates
 
 ROOT = Path(__file__).resolve().parents[1]
 PROBE = ROOT / "provider-probes" / "ovhcloud-v2"
+HARNESS = PROBE / "harness" / "Cargo.toml"
+HARNESS_PACKAGE = "ovhcloud-v2-probe"
 FIELDS = ("id", "method", "path", "pagination", "response_type", "stability")
 
 
@@ -101,8 +103,14 @@ def check_evidence(root: Path = ROOT) -> None:
 def ensure_no_probe_packages(
     package_names: set[str], planned_names: set[str], publish_order: tuple[str, ...]
 ) -> None:
+    unsupported_packages = {
+        name
+        for name in package_names
+        if "ovhcloud" in name.lower() and name != HARNESS_PACKAGE
+    }
+    if unsupported_packages:
+        raise ValueError("OVHcloud provider entered Cargo package metadata")
     for source, names in (
-        ("Cargo package metadata", package_names),
         ("release plan", planned_names),
         ("publisher", set(publish_order)),
     ):
@@ -111,12 +119,22 @@ def ensure_no_probe_packages(
 
 
 def check_no_publish(root: Path = ROOT) -> None:
-    if any((root / "provider-probes").rglob("Cargo.toml")):
-        raise ValueError("provider probes must not be Cargo packages")
+    manifests = set((root / "provider-probes").rglob("Cargo.toml"))
+    expected_manifest = root / HARNESS.relative_to(ROOT)
+    if manifests != {expected_manifest}:
+        raise ValueError("provider probes contain an unreviewed Cargo package")
     metadata = json.loads(release_crates.capture(
         ["cargo", "metadata", "--format-version", "1", "--no-deps"]
     ))
     package_names = {package["name"] for package in metadata["packages"]}
+    harnesses = [
+        package for package in metadata["packages"]
+        if package["name"] == HARNESS_PACKAGE
+    ]
+    if len(harnesses) != 1 or harnesses[0].get("publish") != []:
+        raise ValueError("OVHcloud harness is not uniquely nonpublishable")
+    if harnesses[0]["id"] not in set(metadata["workspace_members"]):
+        raise ValueError("OVHcloud harness is not covered by workspace checks")
     plan = release_crates.release_plan(root / "release-crates.toml")
     ensure_no_probe_packages(
         package_names, set(plan["crates"]), release_crates.PUBLISH_ORDER

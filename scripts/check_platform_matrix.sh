@@ -92,7 +92,7 @@ check_default_boundary() {
         cargo tree --locked --workspace --target all \
             --edges normal --prefix none
     )"
-    allowed='^(cloud-sdk|cloud-sdk-hetzner|cloud-sdk-reqwest|cloud-sdk-sanitization|cloud-sdk-testkit|sanitization|subtle) v'
+    allowed='^(cloud-sdk|cloud-sdk-hetzner|cloud-sdk-reqwest|cloud-sdk-sanitization|cloud-sdk-testkit|ovhcloud-v2-probe|sanitization|subtle) v'
     unexpected="$(
         printf '%s\n' "$dependency_tree" \
             | grep -E '^[^[:space:]]+ v' \

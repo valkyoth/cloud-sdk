@@ -314,7 +314,9 @@ def test_task_property_contract_requires_type_nullability_and_optionality() -> N
 
 def test_probe_package_is_rejected_from_every_publication_boundary() -> None:
     ensure_no_probe_packages(
-        {"cloud-sdk"}, {"cloud-sdk", "cloud-sdk-hetzner"}, ("cloud-sdk",)
+        {"cloud-sdk", "ovhcloud-v2-probe"},
+        {"cloud-sdk", "cloud-sdk-hetzner"},
+        ("cloud-sdk",),
     )
     for position in range(3):
         values = [set(), set(), tuple()]

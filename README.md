@@ -51,7 +51,7 @@ Every pre-1.0 version receives the complete automated release gate, an
 incremental pentest against the preceding tag, GitHub CI and CodeQL, release
 notes, permanent pentest evidence, and a normal signed `v0.x.x` tag. Crates.io
 publication occurs every fifth minor version, so the next public checkpoint is
-`v0.60.0`. Intervening tags are fully reviewed but are not separately published.
+`v0.65.0`. Intervening tags are fully reviewed but are not separately published.
 A material security or compatibility need can trigger an earlier publication.
 
 ## Cost And Production Warning
@@ -83,13 +83,11 @@ operation contracts, then validates them with an unpublished OVHcloud API v2
 architecture probe, a narrow credential-free Robot wire fixture, and
 full-fidelity Hetzner vertical slices before the neutral API freeze.
 
-The latest published checkpoint is `v0.55.0`; signed source milestones v0.56
-through v0.59 are complete. The reviewed v0.60 public-checkpoint candidate adds
-bounded provider-neutral asynchronous-resource models and binds them to
-source-locked OVHcloud production task reads without claiming a supported
-OVHcloud provider. Its pentest and local release review are complete; tagging
-and crates.io publication require green GitHub CI and CodeQL on the unchanged
-release-evidence commit.
+The latest published checkpoint is `v0.60.0`. The v0.61 implementation executes
+all ten source-locked OVHcloud probe operations through blocking, Send-async,
+local-async, and testkit contracts without adding a supported provider. It is
+at the implementation stop and requires pentest, final release checks, and
+green GitHub CI and CodeQL before its signed internal tag.
 
 ## Trust Dashboard
 

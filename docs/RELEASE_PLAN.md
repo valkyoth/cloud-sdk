@@ -1951,9 +1951,17 @@ Stop gate: `v0.60.0 implementation stop reached. Run the pentest for this exact 
 
 Goal: execute the complete unpublished probe through unchanged neutral contracts.
 
-Deliverables: 5-10 read-only operations across blocking/async/local-async/testkit, credential-free fixtures, optional ignored least-privilege live smoke, and zero provider exceptions in core.
+Deliverables: execute all ten source-locked read-only operations through
+blocking, Send-async, local-async, and testkit paths in the exact
+`publish = false` `ovhcloud-v2-probe` harness; include credential-free
+fixtures, an ignored least-privilege EU `GET /iam/policy` live smoke, secure
+token-file cleanup, and zero provider exceptions in reusable core code.
 
-Verification: conformance matrix, no-publish/dependency gates, optional live smoke, and `scripts/release_0_61_gate.sh`.
+Verification: catalog/source-lock equality; cross-executor result and policy
+matrix; live-config adversarial tests; compiled-but-ignored smoke; workspace
+dependency/SBOM controls; no-publish/release-plan regression gates;
+`scripts/check_ovhcloud_execution_probe.sh`; and
+`scripts/release_0_61_gate.sh`.
 
 Stop gate: `v0.61.0 implementation stop reached. Complete the pentest and full release gate for this exact commit; defer crates.io publication to v0.65.0.`
 

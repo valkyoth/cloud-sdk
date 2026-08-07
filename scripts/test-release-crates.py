@@ -82,6 +82,18 @@ def test_current_plan_accepts_unchanged_crates() -> None:
     release_crates.verify_publish_order(base_packages(), base_plan())
 
 
+def test_workspace_package_selection_excludes_publish_false_tools() -> None:
+    published = package("cloud-sdk", "0.4.0")
+    published.update({"id": "cloud-sdk-id", "publish": None})
+    harness = package("ovhcloud-v2-probe", "0.4.0")
+    harness.update({"id": "probe-id", "publish": []})
+    metadata = {
+        "workspace_members": ["cloud-sdk-id", "probe-id"],
+        "packages": [published, harness],
+    }
+    assert release_crates.workspace_packages(metadata) == {"cloud-sdk": published}
+
+
 def test_retired_package_is_absent_from_publish_order() -> None:
     assert not (
         set(release_crates.PUBLISH_ORDER) & release_crates.RETIRED_PACKAGES
