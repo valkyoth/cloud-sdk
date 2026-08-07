@@ -1,11 +1,11 @@
 # cloud-sdk 0.60.0 Release Notes
 
-Status: implementation stop reached; pentest required.
+Status: release candidate; pentest and final retest passed.
 
 Release date: pending
 
 Security-Review: PASS
-Pentest: PENDING
+Pentest: PASS
 Publication: PENDING
 
 ## Overview
@@ -62,7 +62,7 @@ models. It does not publish or claim an OVHcloud provider.
 
 ## Release Gate
 
-Run `scripts/release_0_60_gate.sh` on the clean final evidence commit after the
-incremental pentest from signed v0.59.0 passes. GitHub CI and CodeQL must then
-be green on that unchanged commit before tagging and publishing the four
-selected crates in the verified release-tool order.
+The incremental pentest from signed v0.59.0 and final retest passed. Run
+`scripts/release_0_60_gate.sh` on the clean final evidence commit. GitHub CI
+and CodeQL must then be green on that unchanged commit before tagging and
+publishing the four selected crates in the verified release-tool order.

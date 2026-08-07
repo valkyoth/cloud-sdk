@@ -2,8 +2,9 @@
 
 Status: `v0.55.0` is tagged and published. `v0.56.0` through `v0.59.0` are
 signed source milestones. `v0.60.0` is the cumulative public-checkpoint
-candidate and requires its incremental pentest before tagging and publication.
-Every tag beginning with v0.56 receives its own incremental pentest.
+candidate; its incremental pentest and local release review are complete, and
+tagging and publication await green GitHub CI and CodeQL. Every tag beginning
+with v0.56 receives its own incremental pentest.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared

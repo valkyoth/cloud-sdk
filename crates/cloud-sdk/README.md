@@ -84,11 +84,12 @@ architecture probe, a narrow credential-free Robot wire fixture, and
 full-fidelity Hetzner vertical slices before the neutral API freeze.
 
 The latest published checkpoint is `v0.55.0`; signed source milestones v0.56
-through v0.59 are complete. The v0.60 public-checkpoint candidate adds bounded
-provider-neutral asynchronous-resource models and binds them to source-locked
-OVHcloud production task reads without claiming a supported OVHcloud provider.
-Its exact implementation commit requires pentest and release-gate approval
-before tagging and crates.io publication.
+through v0.59 are complete. The reviewed v0.60 public-checkpoint candidate adds
+bounded provider-neutral asynchronous-resource models and binds them to
+source-locked OVHcloud production task reads without claiming a supported
+OVHcloud provider. Its pentest and local release review are complete; tagging
+and crates.io publication require green GitHub CI and CodeQL on the unchanged
+release-evidence commit.
 
 ## Trust Dashboard
 
