@@ -18,6 +18,13 @@ are therefore frozen for pre-1.0 provider completion.
   selected-operation model types.
 - `decode_associated_response`, which preserves an exact operation marker until
   the checked decoder consumes the prepared request.
+- `AssociatedCheckedResponse<'buffer, O>`, returned by typed response
+  validation and read-only execution so the decoder cannot accept a response
+  produced for another operation marker. `into_untyped` is the explicit escape
+  from this associated contract.
+- `HetznerQuotaBucket`, a compact representation of Hetzner's sole project-hour
+  bucket, and `HetznerQuota::to_quota_buckets`, the allocation-free conversion
+  into the neutral rollback-aware delay-policy input.
 - protected multiline validation for certificate PEM and DNS zonefile output;
   diagnostics continue to use stricter single-line validation.
 
@@ -37,3 +44,15 @@ destructive permit fixtures exercise `201` and `204` responses.
 No default feature, runtime dependency, executor, network client, filesystem,
 clock, TLS, or secret-store dependency is added. The default graph remains
 `no_std`; complete models remain behind the existing `serde`/`alloc` feature.
+
+This unpublished internal milestone intentionally changes development APIs:
+
+- `decode_associated_checked_response` consumes only one
+  `AssociatedCheckedResponse<O>` instead of independently accepting a prepared
+  request and untyped checked guard;
+- `HetznerQuota::buckets` returns `&[HetznerQuotaBucket]` instead of the generic
+  `QuotaBuckets`; callers needing `decide_delay` use `to_quota_buckets`;
+- `SensitiveText`, secret-bearing checked responses, provider errors, and
+  decode errors no longer implement infallible `Clone`. Protected storage must
+  remain single-owner unless a future explicit fallible duplication API is
+  introduced.

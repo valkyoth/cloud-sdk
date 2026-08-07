@@ -35,6 +35,9 @@ vertical slices. It remains an internal tag and publishes no crate.
 - Removed infallible `Arc` and `Box` allocation from protected response text
   and quota metadata; secret-bearing response models are intentionally not
   infallibly cloneable.
+- Added `HetznerQuota::to_quota_buckets` so the compact inline provider bucket
+  enters neutral `decide_delay` policy without bespoke retry logic or heap
+  allocation.
 - Sorted bounded JSON object fields once, rejected adjacent duplicates, used
   binary field lookup, and lowered the per-object ceiling to 256 fields.
 - Added `decode_associated_checked_response` so blocking, Send-async, and local

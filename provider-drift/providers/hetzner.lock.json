@@ -152,7 +152,7 @@
         "values": {
           "evidence": {
             "path": "crates/cloud-sdk-hetzner/src/rate_limit.rs",
-            "sha256": "d3ff343f77694f0d862b4dd4ce59037ad56356f324196478374ea8d7972de4f0"
+            "sha256": "af41428dc7e5cbbf6ef1012523937023d342b6c71e13e522840d944e0723c0d5"
           },
           "fields": [
             "ratelimit-limit",

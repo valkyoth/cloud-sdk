@@ -568,6 +568,8 @@ headers.try_push("retry-after", b"10", HeaderSensitivity::Public)?;
 
 let quota = HetznerQuota::decode(&headers, WallClockTimestamp::new(1))?;
 assert_eq!(quota.buckets().len(), 1);
+let policy_buckets = quota.to_quota_buckets()?;
+assert_eq!(policy_buckets.len(), 1);
 assert!(quota.retry_after().is_some());
 # Ok::<(), Box<dyn core::error::Error>>(())
 ```

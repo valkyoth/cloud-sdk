@@ -25,11 +25,12 @@ in depth: ordinary Rust moves can leave stale inline bytes at prior locations,
 which are not dropped. Secret values require stable caller-owned or allocated
 cleanup storage rather than `QuotaExtension`.
 
-The inline aggregate is deliberately not `Copy`: it can occupy several
+The generic inline aggregate is deliberately not `Copy`: it can occupy several
 kilobytes at maximum capacity. Read-only accessors borrow buckets and quota
 sets, while callers can use an explicit `Clone` when a second owned snapshot
-is required. The optional owned Hetzner response decoder boxes quota once at
-its allocation boundary and moves that box through success or error decoding.
+is required. Hetzner checked responses retain their sole provider bucket in a
+compact inline representation and materialize the generic aggregate only when
+the caller explicitly invokes `to_quota_buckets`.
 
 `RetryAfter::parse` accepts decimal delay-seconds and all HTTP-date forms that
 RFC 9110 requires recipients to accept: IMF-fixdate, obsolete RFC 850, and
@@ -60,6 +61,8 @@ headers.try_push("retry-after", b"3", HeaderSensitivity::Public)?;
 
 let quota = HetznerQuota::decode(&headers, WallClockTimestamp::new(1))?;
 assert_eq!(quota.buckets().len(), 1);
+let policy_buckets = quota.to_quota_buckets()?;
+assert_eq!(policy_buckets.len(), 1);
 # Ok::<(), Box<dyn core::error::Error>>(())
 ```
 
@@ -71,7 +74,8 @@ century.
 
 ## Pure Delay Decisions
 
-`decide_delay` considers only exhausted buckets. When multiple exhausted
+Convert compact Hetzner quota with `to_quota_buckets` before calling
+`decide_delay`. The policy considers only exhausted buckets. When multiple exhausted
 buckets exist it uses the longest required bucket delay. An exhausted bucket
 with `QuotaReset::Unknown` fails closed; unknown reset metadata on a bucket
 that still has capacity remains informational.

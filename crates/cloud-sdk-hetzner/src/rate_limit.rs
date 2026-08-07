@@ -3,7 +3,8 @@
 use core::fmt;
 
 use cloud_sdk::rate_limit::{
-    QuotaError, RateLimit, RetryAfter, RetryAfterError, WallClockTimestamp,
+    QuotaBucket, QuotaBucketId, QuotaBuckets, QuotaError, QuotaReset, RateLimit, RetryAfter,
+    RetryAfterError, WallClockTimestamp,
 };
 use cloud_sdk::transport::ResponseHeaders;
 
@@ -93,6 +94,23 @@ impl HetznerQuota {
         self.buckets
             .get(..usize::from(self.bucket_len))
             .unwrap_or_default()
+    }
+
+    /// Converts the compact provider bucket into the neutral delay-policy
+    /// aggregate. The destination is fixed-capacity and performs no allocation.
+    pub fn to_quota_buckets(&self) -> Result<QuotaBuckets, QuotaError> {
+        let mut result = QuotaBuckets::new();
+        for bucket in self.buckets() {
+            let id = QuotaBucketId::new(bucket.id())?;
+            let bucket = QuotaBucket::new(
+                id,
+                bucket.limit(),
+                bucket.remaining(),
+                QuotaReset::At(bucket.reset()),
+            )?;
+            result.try_push(bucket)?;
+        }
+        Ok(result)
     }
 
     /// Returns the decoded standard retry instruction.

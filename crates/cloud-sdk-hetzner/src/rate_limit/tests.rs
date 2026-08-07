@@ -1,4 +1,7 @@
-use cloud_sdk::rate_limit::{RetryAfter, WallClockTimestamp};
+use cloud_sdk::rate_limit::{
+    DelayConflictPolicy, DelaySeconds, ExcessDelayPolicy, PastTimestampPolicy, QuotaDelayPolicy,
+    QuotaReset, RetryAfter, WallClockTimestamp, decide_delay,
+};
 use cloud_sdk::transport::{HeaderSensitivity, ResponseHeaders};
 
 use super::{HetznerQuota, HetznerQuotaError};
@@ -45,6 +48,63 @@ fn decodes_complete_provider_bucket_and_retry_after() {
         Some(RetryAfter::Delay(cloud_sdk::rate_limit::DelaySeconds::new(
             10
         )))
+    );
+}
+
+#[test]
+fn compact_quota_converts_into_complete_rollback_aware_delay_policy() {
+    let mut storage = [0_u8; 8_192];
+    let headers = headers(
+        &mut storage,
+        &[
+            ("ratelimit-limit", b"3600"),
+            ("ratelimit-remaining", b"0"),
+            ("ratelimit-reset", b"42"),
+            ("retry-after", b"10"),
+        ],
+    );
+    let decoded = HetznerQuota::decode(&headers, WallClockTimestamp::new(1));
+    let Ok(decoded) = decoded else {
+        unreachable!("quota conversion fixture failed")
+    };
+    let converted = decoded.to_quota_buckets();
+    let Ok(converted) = converted else {
+        unreachable!("compact quota conversion failed")
+    };
+    let Some(bucket) = converted.iter().next() else {
+        unreachable!("converted quota bucket is missing")
+    };
+    assert_eq!(bucket.id().as_bytes(), b"hetzner-project-hourly");
+    assert_eq!(bucket.limit(), 3600);
+    assert_eq!(bucket.remaining(), 0);
+    assert_eq!(bucket.reset(), QuotaReset::At(WallClockTimestamp::new(42)));
+
+    let policy = QuotaDelayPolicy::new(
+        DelaySeconds::new(300),
+        PastTimestampPolicy::Reject,
+        ExcessDelayPolicy::Reject,
+        DelayConflictPolicy::Longest,
+    );
+    let decision = decide_delay(
+        &converted,
+        decoded.retry_after(),
+        WallClockTimestamp::new(1),
+        None,
+        policy,
+    );
+    let Ok(Some(decision)) = decision else {
+        unreachable!("complete delay policy rejected valid quota")
+    };
+    assert_eq!(decision.delay(), DelaySeconds::new(41));
+    assert!(
+        decide_delay(
+            &converted,
+            decoded.retry_after(),
+            WallClockTimestamp::new(1),
+            Some(WallClockTimestamp::new(2)),
+            policy,
+        )
+        .is_err()
     );
 }
 
