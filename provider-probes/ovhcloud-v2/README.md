@@ -89,7 +89,8 @@ metadata, moved into bounded cleanup-owning cursor storage, checked through
 exact cycle history, and sent back only by the same retained prepared request
 context and exact initially observed endpoint. Raw cursor headers are not
 public. Its absence is the source-defined terminal-page signal; no body-length
-heuristic overrides that signal.
+heuristic overrides that signal. Binding rejects a response policy that would
+discard this header, and pre-dispatch failures clear every caller buffer.
 
 The locked IAM console schema and validation example both select schema
 version `1.0`. `X-Schemas-Version` remains an explicit validation-only header;

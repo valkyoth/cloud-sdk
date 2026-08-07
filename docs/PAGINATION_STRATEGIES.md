@@ -87,7 +87,10 @@ validated names, and one nonzero page size. Bind it to a complete
 `HeaderCursorContinuation` retains the exact request context and the normalized
 endpoint identity observed on the first dispatch. It can execute the next
 request but cannot emit headers or accept a replacement request or endpoint.
-Decimal scratch storage is cleared on every path.
+Binding also requires the raw response policy to retain the configured
+next-cursor header. Every public execution entry clears complete response-body,
+response-header, decimal, transfer, and cursor storage before any fallible
+endpoint or header operation.
 
 Session execution reads the bounded response headers produced by its own
 prepared request. Absence of the configured next-cursor header is terminal. A

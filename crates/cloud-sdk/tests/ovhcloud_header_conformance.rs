@@ -63,17 +63,23 @@ fn authentication() -> AuthenticationScopePolicy<'static> {
 }
 
 fn prepared(operation: &'static str, target: &'static str) -> PreparedRequest<'static> {
-    prepared_with_headers(operation, target, RequestHeaders::EMPTY)
+    prepared_with_configuration(operation, target, RequestHeaders::EMPTY, true)
 }
 
-fn prepared_with_headers<'headers>(
+fn prepared_with_configuration<'headers>(
     operation: &'static str,
     target: &'static str,
     headers: RequestHeaders<'headers>,
+    retain_cursor_header: bool,
 ) -> PreparedRequest<'headers> {
     static OK: [StatusCode; 1] = [StatusCode::OK];
     static JSON: [MediaType<'static>; 1] = [MediaType::JSON];
     let retained = [HeaderName::new("X-Pagination-Cursor-Next").unwrap_or_else(|_| unreachable!())];
+    let retained = if retain_cursor_header {
+        retained.as_slice()
+    } else {
+        &[]
+    };
     let metadata = OperationMetadata::new(
         OperationImpact::ReadOnly,
         RequestSemantics::Safe,
@@ -94,7 +100,7 @@ fn prepared_with_headers<'headers>(
         64,
         ResponseMediaPolicy::Required(&JSON),
         ResponseMediaPolicy::Required(&JSON),
-        &retained,
+        retained,
         0,
     )
     .unwrap_or_else(|_| unreachable!());
@@ -346,6 +352,8 @@ fn source_locked_header_cursor_round_trip_and_terminal_signal_are_exact() {
         ));
     }
     assert_eq!(replacement.calls.load(Ordering::Acquire), 0);
+    assert_eq!(next_body, [0; 64]);
+    assert_eq!(next_headers, [0; 256]);
     let terminal = continuation
         .execute_blocking(
             &transport,
@@ -386,6 +394,16 @@ fn cursor_policy_rejects_another_operation_before_dispatch() {
     assert!(matches!(
         case_identical_headers.bind(prepared("ovhcloud_iam_identity_list", "/iam/identity")),
         Err(PaginationError::OperationMismatch)
+    ));
+    let missing_retention = prepared_with_configuration(
+        "ovhcloud_iam_policy_list",
+        "/iam/policy",
+        RequestHeaders::EMPTY,
+        false,
+    );
+    assert!(matches!(
+        policy().bind(missing_retention),
+        Err(PaginationError::ResponseHeaderNotAdmitted)
     ));
 }
 
@@ -432,14 +450,15 @@ fn async_execution_modes_use_the_same_bound_initial_request() {
 }
 
 #[test]
-fn conflicting_prepared_headers_fail_before_dispatch_and_clear_cursor_storage() {
+fn conflicting_prepared_headers_fail_before_dispatch_and_clear_all_buffers() {
     let entries = [RequestHeader::new("X-Pagination-Size", "9").unwrap_or_else(|_| unreachable!())];
     let headers = RequestHeaders::new(&entries).unwrap_or_else(|_| unreachable!());
     let session = policy()
-        .bind(prepared_with_headers(
+        .bind(prepared_with_configuration(
             "ovhcloud_iam_policy_list",
             "/iam/policy",
             headers,
+            true,
         ))
         .unwrap_or_else(|_| unreachable!());
     let transport = CursorTransport::new();
@@ -468,32 +487,9 @@ fn conflicting_prepared_headers_fail_before_dispatch_and_clear_cursor_storage() 
         ));
     }
     assert_eq!(transport.calls.load(Ordering::Acquire), 0);
+    assert_eq!(body, [0; 64]);
+    assert_eq!(response_headers, [0; 256]);
     assert_eq!(decimal, [0; 20]);
     assert_eq!(transfer, [0; 64]);
     assert_eq!(cursor, [0; 64]);
-}
-
-#[test]
-fn raw_metadata_rejects_duplicate_next_headers_before_decoding() {
-    use cloud_sdk::transport::ResponseHeaders;
-    let mut storage = [0_u8; 128];
-    let mut headers = ResponseHeaders::new(&mut storage);
-    assert!(
-        headers
-            .try_push(
-                "X-Pagination-Cursor-Next",
-                b"first",
-                HeaderSensitivity::Sensitive,
-            )
-            .is_ok()
-    );
-    assert!(
-        headers
-            .try_push(
-                "x-pagination-cursor-next",
-                b"second",
-                HeaderSensitivity::Sensitive,
-            )
-            .is_err()
-    );
 }

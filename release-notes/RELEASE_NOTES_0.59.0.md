@@ -35,6 +35,10 @@ the v0.60.0 checkpoint.
   only their retained method, target, provider/service, authentication scope,
   operation metadata, response policy, and exact initially observed endpoint.
 - Added blocking, executor-neutral async, and local async bound execution.
+- Rejected binding when the prepared raw-response policy does not retain the
+  configured next-cursor header.
+- Cleared complete response, response-header, decimal, transfer, and cursor
+  buffers before every fallible pre-dispatch operation.
 
 ## Schema Validation
 

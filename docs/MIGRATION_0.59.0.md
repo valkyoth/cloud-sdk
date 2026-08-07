@@ -23,12 +23,14 @@ replaced. The normalized endpoint identity observed on the first dispatch is
 also retained, and continuation execution rejects a transport reporting any
 other identity before dispatch. Raw cursor header emission and response-header
 decoding are not public. Existing raw response policies must explicitly admit
-the provider's next-cursor header.
+the provider's next-cursor header; `bind` now rejects policies that do not.
+All five caller buffers are cleared before endpoint lookup or header assembly,
+including pre-dispatch failures.
 
 `PaginationError` adds `InvalidHeaderPolicy`, `InvalidHeaderState`, and
-`InsecureHeaderState`, `OperationMismatch`, `RequestHeaderConflict`, and
-`EndpointMismatch`. Exhaustive matches must include these payload-free
-variants.
+`InsecureHeaderState`, `OperationMismatch`, `RequestHeaderConflict`,
+`ResponseHeaderNotAdmitted`, and `EndpointMismatch`. Exhaustive matches must
+include these payload-free variants.
 
 ## Schema Validation
 

@@ -1,4 +1,4 @@
-use cloud_sdk_sanitization::{SecretBuffer, sanitize_bytes};
+use cloud_sdk_sanitization::SecretBuffer;
 
 use crate::authentication::AsyncAuthenticatedTransport;
 use crate::buffer::write_u64;
@@ -10,7 +10,7 @@ use crate::transport::{
 
 use super::{
     HeaderCursorContinuation, HeaderCursorExecutionError, HeaderCursorPage, HeaderCursorSession,
-    finish_page,
+    clear_execution_buffers, finish_page,
 };
 
 impl HeaderCursorSession<'_, '_> {
@@ -32,9 +32,13 @@ impl HeaderCursorSession<'_, '_> {
     where
         T: AsyncAuthenticatedTransport + BoundTransport,
     {
-        sanitize_bytes(decimal_scratch);
-        sanitize_bytes(transfer_scratch);
-        sanitize_bytes(cursor_destination);
+        clear_execution_buffers(
+            response_storage,
+            response_header_storage,
+            decimal_scratch,
+            transfer_scratch,
+            cursor_destination,
+        );
         let endpoint = transport.endpoint_identity().map_err(|error| {
             HeaderCursorExecutionError::Prepared(PreparedExecutionError::EndpointIdentity(error))
         })?;
@@ -75,9 +79,13 @@ impl<'cursor, 'endpoint, 'session, 'request, 'policy>
     where
         T: AsyncAuthenticatedTransport + BoundTransport,
     {
-        sanitize_bytes(decimal_scratch);
-        sanitize_bytes(transfer_scratch);
-        sanitize_bytes(cursor_destination);
+        clear_execution_buffers(
+            response_storage,
+            response_header_storage,
+            decimal_scratch,
+            transfer_scratch,
+            cursor_destination,
+        );
         let endpoint = transport.endpoint_identity().map_err(|error| {
             HeaderCursorExecutionError::Prepared(PreparedExecutionError::EndpointIdentity(error))
         })?;

@@ -60,6 +60,12 @@ impl<'policy> HeaderCursorPolicy<'policy> {
         if prepared.operation_id() != Some(self.operation_id()) {
             return Err(PaginationError::OperationMismatch);
         }
+        if !prepared
+            .raw_response_policy()
+            .admits_header(self.next_response().as_str())
+        {
+            return Err(PaginationError::ResponseHeaderNotAdmitted);
+        }
         Ok(HeaderCursorSession {
             policy: self,
             prepared,
@@ -92,9 +98,13 @@ impl HeaderCursorSession<'_, '_> {
     where
         T: BlockingAuthenticatedTransport + BoundTransport,
     {
-        sanitize_bytes(decimal_scratch);
-        sanitize_bytes(transfer_scratch);
-        sanitize_bytes(cursor_destination);
+        clear_execution_buffers(
+            response_storage,
+            response_header_storage,
+            decimal_scratch,
+            transfer_scratch,
+            cursor_destination,
+        );
         let endpoint = transport.endpoint_identity().map_err(|error| {
             HeaderCursorExecutionError::Prepared(PreparedExecutionError::EndpointIdentity(error))
         })?;
@@ -236,9 +246,13 @@ impl<'cursor, 'endpoint, 'session, 'request, 'policy>
     where
         T: BlockingAuthenticatedTransport + BoundTransport,
     {
-        sanitize_bytes(decimal_scratch);
-        sanitize_bytes(transfer_scratch);
-        sanitize_bytes(cursor_destination);
+        clear_execution_buffers(
+            response_storage,
+            response_header_storage,
+            decimal_scratch,
+            transfer_scratch,
+            cursor_destination,
+        );
         let endpoint = transport.endpoint_identity().map_err(|error| {
             HeaderCursorExecutionError::Prepared(PreparedExecutionError::EndpointIdentity(error))
         })?;
@@ -271,6 +285,20 @@ impl fmt::Debug for HeaderCursorContinuation<'_, '_, '_, '_, '_> {
             .field("cursor", &"[redacted]")
             .finish()
     }
+}
+
+pub(super) fn clear_execution_buffers(
+    response_storage: &mut [u8],
+    response_header_storage: &mut [u8],
+    decimal_scratch: &mut [u8],
+    transfer_scratch: &mut [u8],
+    cursor_destination: &mut [u8],
+) {
+    sanitize_bytes(response_storage);
+    sanitize_bytes(response_header_storage);
+    sanitize_bytes(decimal_scratch);
+    sanitize_bytes(transfer_scratch);
+    sanitize_bytes(cursor_destination);
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -378,4 +406,30 @@ pub(super) fn with_merged_request<'request, R>(
     let headers =
         RequestHeaders::new(selected).map_err(|_| PaginationError::RequestHeaderConflict)?;
     Ok(inspect((*prepared).with_request_headers(headers)))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::clear_execution_buffers;
+
+    #[test]
+    fn predispatch_cleanup_clears_every_caller_buffer() {
+        let mut response = [0xa5; 3];
+        let mut headers = [0xa5; 5];
+        let mut decimal = [0xa5; 7];
+        let mut transfer = [0xa5; 11];
+        let mut cursor = [0xa5; 13];
+        clear_execution_buffers(
+            &mut response,
+            &mut headers,
+            &mut decimal,
+            &mut transfer,
+            &mut cursor,
+        );
+        assert_eq!(response, [0; 3]);
+        assert_eq!(headers, [0; 5]);
+        assert_eq!(decimal, [0; 7]);
+        assert_eq!(transfer, [0; 11]);
+        assert_eq!(cursor, [0; 13]);
+    }
 }

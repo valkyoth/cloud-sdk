@@ -95,6 +95,8 @@ pub enum PaginationError {
     OperationMismatch,
     /// Pagination headers conflict with the retained prepared request.
     RequestHeaderConflict,
+    /// The prepared response policy does not retain the next-cursor header.
+    ResponseHeaderNotAdmitted,
     /// A continuation transport changed the initially observed endpoint.
     EndpointMismatch,
     /// A provider link was not valid UTF-8 or request-target syntax.
@@ -148,6 +150,7 @@ impl_static_error!(PaginationError,
     Self::InsecureHeaderState => "pagination cursor header state is not sensitive",
     Self::OperationMismatch => "pagination cursor operation does not match the prepared request",
     Self::RequestHeaderConflict => "pagination headers conflict with the prepared request",
+    Self::ResponseHeaderNotAdmitted => "pagination cursor response header is not admitted",
     Self::EndpointMismatch => "pagination continuation changed the bound endpoint",
     Self::InvalidProviderLink => "provider pagination link is invalid",
     Self::ProviderLinkSchemeChanged => "provider pagination link changed scheme",

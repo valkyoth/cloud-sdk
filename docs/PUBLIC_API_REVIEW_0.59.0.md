@@ -15,7 +15,9 @@ request, and decodes only the resulting checked response. A continuation
 retains that same prepared request plus the exact normalized endpoint identity
 observed on the first dispatch. It exposes execution and history observation,
 but no raw cursor or request-header access. Continuation execution rejects a
-different transport endpoint before dispatch.
+different transport endpoint before dispatch. Binding rejects a raw response
+policy that omits the next-cursor header, and execution clears all five caller
+buffers before any fallible endpoint or header operation.
 
 The API does not allocate, expose cursor text, accept a replacement method,
 target, provider/service, endpoint policy, authentication scope, operation, or
@@ -39,5 +41,5 @@ remain provider and caller responsibilities.
 
 The additions are provider-neutral and `no_std`. The unreleased initial v0.59
 raw header methods were replaced by prepared-request-bound execution after
-security review. Exhaustive `PaginationError` matches must admit six new
+security review. Exhaustive `PaginationError` matches must admit seven new
 variants. No default feature or dependency graph changes.

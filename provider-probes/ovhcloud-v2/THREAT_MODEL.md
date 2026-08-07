@@ -74,7 +74,8 @@ decodes only that execution's checked response. Continuations retain the same
 method, target, provider/service, authentication scope, operation metadata,
 response policy, and exact normalized endpoint observed on the first dispatch.
 They cannot expose raw headers or accept a replacement request context or
-endpoint.
+endpoint. Binding fails if the prepared raw-response policy omits the cursor
+response header, and all caller buffers clear before pre-dispatch validation.
 
 ### Accidental support or publication
 
