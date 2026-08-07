@@ -306,6 +306,7 @@ mod tests {
         assert_eq!(bytes, vec![0; b"secret-token-prefix".len()]);
     }
 
+    #[cfg(unix)]
     #[test]
     fn private_regular_token_file_is_accepted_with_redacted_output() -> std::io::Result<()> {
         let directory = TempDirectory::new()?;
@@ -319,6 +320,20 @@ mod tests {
         let diagnostic = format!("{token:?}");
         assert_eq!(diagnostic, "BearerToken([redacted])");
         assert!(!diagnostic.contains("secret-token"));
+        Ok(())
+    }
+
+    #[cfg(not(unix))]
+    #[test]
+    fn token_file_loading_fails_closed_on_unsupported_platform() -> std::io::Result<()> {
+        let directory = TempDirectory::new()?;
+        let path = directory.path().join("token");
+        write_private(&path, b"secret-token\n")?;
+
+        assert!(matches!(
+            read_token_file(&path),
+            Err(LiveConfigurationError::TokenFilePlatformUnsupported)
+        ));
         Ok(())
     }
 
