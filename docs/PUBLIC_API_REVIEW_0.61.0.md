@@ -22,7 +22,9 @@ All ten operations are source-locked `GET` requests with read-only, safe,
 no-known-cost, and never-retry metadata. Deterministic fixtures execute through
 blocking, Send-async, and local-async prepared response validation. The
 optional live smoke is ignored, EU-only, exact-endpoint bound, least-privilege,
-bounded, and protected by private token-file and cleanup controls.
+bounded, and protected on Unix by private token-file, opened-file identity,
+and complete partial-read cleanup controls. Non-Unix live execution fails
+closed until equivalent platform checks exist.
 
 Release tooling ignores only workspace members whose Cargo metadata explicitly
 reports `publish = false`; regression coverage proves that publishable members

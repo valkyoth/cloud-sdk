@@ -22,6 +22,8 @@ pub enum LiveConfigurationError {
     TokenFileMetadataUnavailable,
     TokenFileSymlink,
     TokenFileNotRegular,
+    #[cfg(not(unix))]
+    TokenFilePlatformUnsupported,
     TokenFilePermissionsTooBroad,
     TokenFileChangedDuringOpen,
     TokenFileOpenFailed,
@@ -39,6 +41,10 @@ impl fmt::Display for LiveConfigurationError {
             Self::TokenFileMetadataUnavailable => "token file metadata is unavailable",
             Self::TokenFileSymlink => "token file symlinks are forbidden",
             Self::TokenFileNotRegular => "token file is not regular",
+            #[cfg(not(unix))]
+            Self::TokenFilePlatformUnsupported => {
+                "token file security checks are unsupported on this platform"
+            }
             Self::TokenFilePermissionsTooBroad => "token file permissions are too broad",
             Self::TokenFileChangedDuringOpen => "token file changed during open",
             Self::TokenFileOpenFailed => "token file could not be opened",
@@ -110,10 +116,16 @@ fn read_token_file(path: &Path) -> Result<BearerToken, LiveConfigurationError> {
     bytes
         .try_reserve_exact(capacity)
         .map_err(|_| LiveConfigurationError::TokenFileReadFailed)?;
-    file.take(MAX_TOKEN_READ_BYTES)
-        .read_to_end(&mut bytes)
-        .map_err(|_| LiveConfigurationError::TokenFileReadFailed)?;
+    read_token_from(file, &mut bytes)
+}
+
+fn read_token_from<R: Read>(
+    reader: R,
+    bytes: &mut Vec<u8>,
+) -> Result<BearerToken, LiveConfigurationError> {
+    let read_result = reader.take(MAX_TOKEN_READ_BYTES).read_to_end(bytes);
     let guarded = SecretBuffer::new(bytes.as_mut_slice());
+    read_result.map_err(|_| LiveConfigurationError::TokenFileReadFailed)?;
     if guarded.as_slice().len() > usize::try_from(MAX_TOKEN_FILE_BYTES).unwrap_or(usize::MAX) {
         return Err(LiveConfigurationError::TokenFileTooLarge);
     }
@@ -145,14 +157,22 @@ fn validate_metadata(metadata: &Metadata) -> Result<(), LiveConfigurationError> 
     if !metadata.is_file() {
         return Err(LiveConfigurationError::TokenFileNotRegular);
     }
-    #[cfg(unix)]
-    {
-        use std::os::unix::fs::PermissionsExt;
-        if metadata.permissions().mode() & 0o077 != 0 {
-            return Err(LiveConfigurationError::TokenFilePermissionsTooBroad);
-        }
+    validate_private_permissions(metadata)
+}
+
+#[cfg(unix)]
+fn validate_private_permissions(metadata: &Metadata) -> Result<(), LiveConfigurationError> {
+    use std::os::unix::fs::PermissionsExt;
+
+    if metadata.permissions().mode() & 0o077 != 0 {
+        return Err(LiveConfigurationError::TokenFilePermissionsTooBroad);
     }
     Ok(())
+}
+
+#[cfg(not(unix))]
+fn validate_private_permissions(_metadata: &Metadata) -> Result<(), LiveConfigurationError> {
+    Err(LiveConfigurationError::TokenFilePlatformUnsupported)
 }
 
 #[cfg(unix)]
@@ -163,18 +183,19 @@ fn same_opened_file(before: &Metadata, opened: &Metadata) -> bool {
 
 #[cfg(not(unix))]
 fn same_opened_file(_before: &Metadata, _opened: &Metadata) -> bool {
-    true
+    false
 }
 
 #[cfg(test)]
 mod tests {
     use std::fs::{self, DirBuilder, OpenOptions};
-    use std::io::Write;
+    use std::io::{self, Read, Write};
     use std::path::{Path, PathBuf};
     use std::sync::atomic::{AtomicU64, Ordering};
 
     use super::{
-        LiveConfigurationError, normalized_token_len, read_token_file, validate_live_mode,
+        LiveConfigurationError, normalized_token_len, read_token_file, read_token_from,
+        validate_live_mode,
     };
 
     static TEMP_SEQUENCE: AtomicU64 = AtomicU64::new(0);
@@ -246,6 +267,43 @@ mod tests {
                 Err(LiveConfigurationError::TokenRejected)
             );
         }
+    }
+
+    struct PrefixThenError {
+        prefix: Option<&'static [u8]>,
+    }
+
+    impl Read for PrefixThenError {
+        fn read(&mut self, output: &mut [u8]) -> io::Result<usize> {
+            let Some(prefix) = self.prefix.take() else {
+                return Err(io::Error::other("injected token read failure"));
+            };
+            let length = prefix.len().min(output.len());
+            let Some(destination) = output.get_mut(..length) else {
+                unreachable!("bounded reader destination became invalid");
+            };
+            let Some(source) = prefix.get(..length) else {
+                unreachable!("bounded reader source became invalid");
+            };
+            destination.copy_from_slice(source);
+            Ok(length)
+        }
+    }
+
+    #[test]
+    fn partial_token_read_is_cleared_before_error_propagation() {
+        let mut bytes = Vec::with_capacity(64);
+        let result = read_token_from(
+            PrefixThenError {
+                prefix: Some(b"secret-token-prefix"),
+            },
+            &mut bytes,
+        );
+        assert!(matches!(
+            result,
+            Err(LiveConfigurationError::TokenFileReadFailed)
+        ));
+        assert_eq!(bytes, vec![0; b"secret-token-prefix".len()]);
     }
 
     #[test]

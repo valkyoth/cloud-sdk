@@ -154,9 +154,12 @@ scripts/check_ovhcloud_execution_probe.sh
 The `live-smoke` feature compiles one ignored EU-only
 `GET /iam/policy` smoke. It requires only the source-locked
 `account:apiovh:iam/policy/get` action, an exact `read-only` opt-in, and a
-private regular token file. It rejects the destructive opt-in variable,
-custom endpoints, redirects, retries, broad token-file permissions, symlinks,
-file replacement during open, oversized tokens, and oversized responses.
+private regular token file on Unix. It rejects the destructive opt-in
+variable, custom endpoints, redirects, retries, broad token-file permissions,
+symlinks, file replacement during open, oversized tokens, and oversized
+responses. Non-Unix execution fails closed until equivalent ACL and
+opened-file identity validation is implemented. The complete token read
+buffer is cleared after success and partial-read failure.
 
 ```sh
 CLOUD_SDK_OVHCLOUD_LIVE_MODE=read-only \

@@ -35,11 +35,13 @@ to the v0.65.0 cumulative checkpoint.
 
 - Added one ignored, feature-gated EU `GET /iam/policy` smoke requiring the
   exact `account:apiovh:iam/policy/get` action.
-- Required explicit read-only mode and a private regular token file.
+- Required explicit read-only mode and a private regular token file on Unix;
+  non-Unix live execution fails closed pending equivalent ACL checks.
 - Rejected custom endpoints, destructive mode, retries, symlinks, broad file
   permissions, replacement during open, and oversized token/response data.
-- Protected the complete token read buffer with the first-party sanitization
-  boundary and kept credentials absent from CI and release gates.
+- Protected the complete token read buffer, including partial-read failures,
+  with the first-party sanitization boundary and kept credentials absent from
+  CI and release gates.
 
 ## Versions
 
