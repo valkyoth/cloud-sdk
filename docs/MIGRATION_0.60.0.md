@@ -25,6 +25,12 @@ Only add the crates and opt-in features the application uses.
   links, timestamps, task/progress/error snapshots, generic event fixtures,
   and action-polling conversion.
 
+Use `AsyncTask::poll_disposition` and handle
+`AsyncPollDisposition::WaitingForInput` explicitly before passing an update to
+the action-polling driver. Task `link` and `message` fields are optional.
+Equivalent UTC fractional-second spellings compare equal; parsing is limited
+to one through nine fractional digits and rejects leap seconds.
+
 No existing default feature is enabled. The default graph remains
 allocation-free and `no_std`, and no provider, transport, runtime, clock, or
 parser is selected automatically.

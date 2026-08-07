@@ -34,7 +34,7 @@ pub enum AsyncResourceValidationError {
     LinkTooLong,
     /// A link contained whitespace or a control character.
     InvalidLink,
-    /// A timestamp was not canonical UTC RFC 3339.
+    /// A timestamp was outside the strict UTC nanosecond RFC 3339 subset.
     InvalidTimestamp,
     /// Task timestamps contradicted their lifecycle ordering.
     TimestampOrder,
@@ -152,15 +152,25 @@ struct TimestampParts {
     nanosecond: u32,
 }
 
-/// Canonical UTC RFC 3339 timestamp retained as borrowed sensitive text.
-#[derive(Clone, Copy, Eq, PartialEq)]
+/// Strict UTC nanosecond RFC 3339 timestamp retained as borrowed sensitive text.
+#[derive(Clone, Copy)]
 pub struct AsyncResourceTimestamp<'a> {
     value: &'a str,
     parts: TimestampParts,
 }
 
+impl PartialEq for AsyncResourceTimestamp<'_> {
+    fn eq(&self, other: &Self) -> bool {
+        self.parts == other.parts
+    }
+}
+
+impl Eq for AsyncResourceTimestamp<'_> {}
+
 impl<'a> AsyncResourceTimestamp<'a> {
-    /// Parses `YYYY-MM-DDTHH:MM:SS[.fraction]Z` with calendar validation.
+    /// Parses `YYYY-MM-DDTHH:MM:SS[.1-9 digits]Z` with calendar validation.
+    ///
+    /// Leap seconds are rejected because this type has no leap-second table.
     pub fn parse(value: &'a str) -> Result<Self, AsyncResourceValidationError> {
         let bytes = value.as_bytes();
         if !(20..=30).contains(&bytes.len())

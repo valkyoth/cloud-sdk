@@ -28,6 +28,10 @@ models. It does not publish or claim an OVHcloud provider.
 - Added allocation-free bounded identifiers, text, non-executable links,
   calendar-valid UTC timestamps, task/progress/error snapshots, and generic
   event batches.
+- Preserved optional task links/messages, nullable error collections, semantic
+  timestamp equality, and an explicit waiting-for-input polling disposition.
+- Bound every task property type, nullability flag, and required flag into
+  source conformance evidence.
 - Bound task conformance to the production reads
   `/notification/contactMean/{contactMeanId}/task` and
   `/notification/contactMean/{contactMeanId}/task/{taskId}` plus the exact

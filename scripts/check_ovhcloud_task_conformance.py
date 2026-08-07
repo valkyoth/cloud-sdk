@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import csv
+import json
 import sys
 from pathlib import Path
 
@@ -23,6 +24,7 @@ FIELDS = (
     "task_fields",
     "progress_fields",
     "error_fields",
+    "property_contracts",
     "statuses",
     "model_sha256",
     "schema_sha256",
@@ -87,6 +89,12 @@ def expected_row(lock: dict) -> dict[str, str]:
         "task_fields": ",".join(models["task_fields"]),
         "progress_fields": ",".join(models["progress_fields"]),
         "error_fields": ",".join(models["error_fields"]),
+        "property_contracts": json.dumps(
+            models["property_contracts"],
+            ensure_ascii=True,
+            sort_keys=True,
+            separators=(",", ":"),
+        ),
         "statuses": ",".join(models["statuses"]),
         "model_sha256": models["model_sha256"],
         "schema_sha256": models["source_sha256"],

@@ -24,6 +24,15 @@ pub enum AsyncResourceStatus {
     Failed,
 }
 
+/// Exhaustive polling disposition for one asynchronous task snapshot.
+#[derive(Debug, Eq, PartialEq)]
+pub enum AsyncPollDisposition<'a> {
+    /// The task can be consumed by the ordinary bounded action-polling driver.
+    Update(ActionUpdate<&'a [AsyncTaskError<'a>]>),
+    /// The provider requires explicit caller intervention before polling resumes.
+    WaitingForInput,
+}
+
 impl AsyncResourceStatus {
     /// Reports whether the provider lifecycle is complete.
     #[must_use]
@@ -104,10 +113,10 @@ pub struct AsyncTaskParts<'a> {
     pub kind: AsyncResourceText<'a>,
     /// Current normalized status.
     pub status: AsyncResourceStatus,
-    /// Related-resource link. This is metadata, not an executable target.
-    pub link: AsyncResourceLink<'a>,
-    /// Provider task description.
-    pub message: AsyncResourceText<'a>,
+    /// Optional related-resource link. This is metadata, not an executable target.
+    pub link: Option<AsyncResourceLink<'a>>,
+    /// Optional provider task description.
+    pub message: Option<AsyncResourceText<'a>>,
     /// Creation timestamp.
     pub created_at: AsyncResourceTimestamp<'a>,
     /// Last-update timestamp.
@@ -180,13 +189,13 @@ impl<'a> AsyncTask<'a> {
 
     /// Returns the non-executable related-resource link.
     #[must_use]
-    pub const fn link(&self) -> AsyncResourceLink<'a> {
+    pub const fn link(&self) -> Option<AsyncResourceLink<'a>> {
         self.parts.link
     }
 
-    /// Returns the sensitive provider task description.
+    /// Returns the optional sensitive provider task description.
     #[must_use]
-    pub const fn message(&self) -> AsyncResourceText<'a> {
+    pub const fn message(&self) -> Option<AsyncResourceText<'a>> {
         self.parts.message
     }
 
@@ -226,13 +235,16 @@ impl<'a> AsyncTask<'a> {
         self.parts.errors
     }
 
-    /// Maps the snapshot into the existing bounded polling driver contract.
+    /// Classifies the snapshot without collapsing caller-intervention states.
     #[must_use]
-    pub fn action_update(&self) -> ActionUpdate<&'a [AsyncTaskError<'a>]> {
+    pub fn poll_disposition(&self) -> AsyncPollDisposition<'a> {
         match self.parts.status {
-            AsyncResourceStatus::Succeeded => ActionUpdate::Success,
-            AsyncResourceStatus::Failed => ActionUpdate::Failed(self.parts.errors),
-            _ => ActionUpdate::Running,
+            AsyncResourceStatus::Succeeded => AsyncPollDisposition::Update(ActionUpdate::Success),
+            AsyncResourceStatus::Failed => {
+                AsyncPollDisposition::Update(ActionUpdate::Failed(self.parts.errors))
+            }
+            AsyncResourceStatus::WaitingForInput => AsyncPollDisposition::WaitingForInput,
+            _ => AsyncPollDisposition::Update(ActionUpdate::Running),
         }
     }
 }

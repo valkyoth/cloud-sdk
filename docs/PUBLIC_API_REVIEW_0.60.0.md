@@ -14,9 +14,12 @@ described in their migration guides and adds the `async_resource` module:
 - payload-free `AsyncResourceValidationError`;
 - redacted borrowed `AsyncResourceId`, `AsyncResourceText`, and
   `AsyncResourceLink`;
-- canonical calendar-valid `AsyncResourceTimestamp`;
+- strict UTC nanosecond, calendar-valid, instant-equal
+  `AsyncResourceTimestamp`;
 - normalized `AsyncResourceStatus` and bounded progress/error values;
 - lifecycle-coherent `AsyncTask` and complete read-only field access;
+- exhaustive `AsyncPollDisposition` that cannot collapse caller intervention
+  into continued polling;
 - generic bounded `AsyncEvent` and `AsyncEventBatch` fixture models.
 
 `cloud-sdk-reqwest 0.33.0` publishes the v0.58 expiry-qualified atomic bearer
@@ -31,8 +34,10 @@ matches require the v0.59 migration described in
 is added.
 
 All asynchronous-resource scalar content is borrowed, bounded, validated, and
-redacted from Debug. Links are explicitly non-executable. Timestamp ordering
-and terminal coherence fail closed. The model does not parse provider JSON,
+redacted from Debug. Optional task links and messages preserve source
+optionality, and links are explicitly non-executable. Timestamp ordering,
+terminal coherence, and waiting-for-input polling behavior fail closed. The
+model does not parse provider JSON,
 own a clock, execute links, poll automatically, or claim an OVHcloud provider.
 
 The public checkpoint is suitable for pentest after the complete repository,

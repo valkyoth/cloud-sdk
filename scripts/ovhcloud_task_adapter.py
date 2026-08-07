@@ -74,17 +74,28 @@ def _schema_models(schema: dict[str, Any]) -> dict[str, Any]:
     return selected
 
 
-def _property_names(model: dict[str, Any], expected: tuple[str, ...]) -> None:
+def _property_contract(
+    model: dict[str, Any], expected: tuple[str, ...]
+) -> list[dict[str, Any]]:
     properties = model.get("properties")
     if not isinstance(properties, dict) or tuple(sorted(properties)) != expected:
         raise OvhcloudProbeError("OVHcloud task model fields changed")
-    for value in properties.values():
+    contract = []
+    for name, value in sorted(properties.items()):
         if (
             not isinstance(value, dict)
             or not isinstance(value.get("type"), str)
             or type(value.get("canBeNull")) is not bool
+            or type(value.get("required")) is not bool
         ):
             raise OvhcloudProbeError("OVHcloud task field is invalid")
+        contract.append({
+            "name": name,
+            "nullable": value["canBeNull"],
+            "required": value["required"],
+            "type": value["type"],
+        })
+    return contract
 
 
 def task_model_evidence(
@@ -92,9 +103,27 @@ def task_model_evidence(
 ) -> dict[str, Any]:
     """Bind the exact common task, error, progress, and status models."""
     selected = _schema_models(schema)
-    _property_names(selected["common.Task"], TASK_FIELDS)
-    _property_names(selected["common.TaskError"], TASK_ERROR_FIELDS)
-    _property_names(selected["common.TaskProgress"], TASK_PROGRESS_FIELDS)
+    property_contracts = [
+        {
+            "id": "common-task",
+            "model": "common.Task",
+            "properties": _property_contract(selected["common.Task"], TASK_FIELDS),
+        },
+        {
+            "id": "common-task-error",
+            "model": "common.TaskError",
+            "properties": _property_contract(
+                selected["common.TaskError"], TASK_ERROR_FIELDS
+            ),
+        },
+        {
+            "id": "common-task-progress",
+            "model": "common.TaskProgress",
+            "properties": _property_contract(
+                selected["common.TaskProgress"], TASK_PROGRESS_FIELDS
+            ),
+        },
+    ]
     status = selected["common.TaskStatusEnum"]
     if status.get("enumType") != "string" or tuple(status.get("enum", ())) != TASK_STATUSES:
         raise OvhcloudProbeError("OVHcloud task statuses changed")
@@ -104,6 +133,7 @@ def task_model_evidence(
         "error_fields": list(TASK_ERROR_FIELDS),
         "model_sha256": _digest(rows),
         "progress_fields": list(TASK_PROGRESS_FIELDS),
+        "property_contracts": property_contracts,
         "source_sha256": schema_sha256,
         "statuses": list(TASK_STATUSES),
         "task_fields": list(TASK_FIELDS),

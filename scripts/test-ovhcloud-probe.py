@@ -79,7 +79,11 @@ def task_operation(path: str) -> dict:
 def task_models() -> dict:
     def properties(names: tuple[str, ...]) -> dict:
         return {
-            name: {"canBeNull": name in ("errors", "finishedAt", "startedAt"), "type": "string"}
+            name: {
+                "canBeNull": name in ("errors", "finishedAt", "startedAt"),
+                "required": False,
+                "type": "string",
+            }
             for name in names
         }
 
@@ -291,6 +295,23 @@ def test_json_sources_require_utf8_finite_standard_values() -> None:
             raise AssertionError("non-strict OVHcloud JSON was accepted")
 
 
+def test_task_property_contract_requires_type_nullability_and_optionality() -> None:
+    for field, replacement in (
+        ("type", None),
+        ("canBeNull", "false"),
+        ("required", None),
+    ):
+        changed = payloads()
+        schema = json.loads(changed["notification-task-schema"])
+        link_property = schema["models"]["common.Task"]["properties"]["link"]
+        if replacement is None:
+            del link_property[field]
+        else:
+            link_property[field] = replacement
+        changed["notification-task-schema"] = json.dumps(schema).encode("utf-8")
+        assert_rejected(changed)
+
+
 def test_probe_package_is_rejected_from_every_publication_boundary() -> None:
     ensure_no_probe_packages(
         {"cloud-sdk"}, {"cloud-sdk", "cloud-sdk-hetzner"}, ("cloud-sdk",)
@@ -359,6 +380,7 @@ def main() -> None:
         test_schema_integrity_normalizes_only_unique_path_order,
         test_public_source_integrity_uses_exact_sha256,
         test_json_sources_require_utf8_finite_standard_values,
+        test_task_property_contract_requires_type_nullability_and_optionality,
         test_probe_package_is_rejected_from_every_publication_boundary,
         test_every_remote_source_has_one_exact_reviewed_endpoint,
     )

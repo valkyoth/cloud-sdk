@@ -22,10 +22,16 @@ implementations redact sensitive content.
 ## Task Validation
 
 `AsyncTask::new` accepts borrowed `AsyncTaskParts` after each scalar has been
-validated. It rejects collection overflow, timestamps outside canonical UTC
-`YYYY-MM-DDTHH:MM:SS[.fraction]Z`, invalid calendar values, contradictory
+validated. It rejects collection overflow, timestamps outside the strict UTC
+`YYYY-MM-DDTHH:MM:SS[.1-9 digits]Z` subset, invalid calendar values,
+leap-second spellings, contradictory
 creation/start/update/finish ordering, and terminal states without a finish
 time. Nonterminal states reject a finish time.
+
+Timestamp equality compares the parsed instant, so equivalent fractional
+spellings such as `.1Z` and `.100Z` are equal. The strict subset is limited to
+nanosecond precision and rejects leap seconds because the crate owns no
+leap-second table.
 
 ```rust
 use cloud_sdk::async_resource::{
@@ -37,8 +43,8 @@ let task = AsyncTask::new(AsyncTaskParts {
     id: AsyncResourceId::new("task-42")?,
     kind: AsyncResourceText::new("resource.update")?,
     status: AsyncResourceStatus::Running,
-    link: AsyncResourceLink::new("/resources/42")?,
-    message: AsyncResourceText::new("update running")?,
+    link: Some(AsyncResourceLink::new("/resources/42")?),
+    message: Some(AsyncResourceText::new("update running")?),
     created_at: AsyncResourceTimestamp::parse("2026-08-07T08:00:00Z")?,
     updated_at: AsyncResourceTimestamp::parse("2026-08-07T08:00:01Z")?,
     started_at: Some(AsyncResourceTimestamp::parse("2026-08-07T08:00:01Z")?),
@@ -51,9 +57,15 @@ assert!(!task.status().is_terminal());
 # Ok::<(), cloud_sdk::async_resource::AsyncResourceValidationError>(())
 ```
 
-`AsyncTask::action_update` maps the snapshot into the existing bounded action
-polling contract. Provider adapters remain responsible for exact source-status
-mapping and bounded response decoding.
+`AsyncTask::poll_disposition` maps ordinary active and terminal states into the
+existing bounded action-polling contract. `WaitingForInput` is a distinct
+exhaustive disposition, so callers must stop polling and perform the required
+intervention explicitly. Provider adapters remain responsible for exact
+source-status mapping and bounded response decoding.
+
+Task links and messages are optional because the source schema marks them as
+non-required and official task shapes can omit them. A nullable or omitted
+error collection maps to the empty bounded slice.
 
 ## Source-Locked Evidence
 

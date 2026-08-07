@@ -29,8 +29,8 @@ fn parts<'a>(
         id: id("018f4a55-8970-7db9-b6b5-4afed75820af"),
         kind: text("contact-mean-validation"),
         status,
-        link: link("/v2/notification/contactMean/example"),
-        message: text("provider-controlled task message"),
+        link: Some(link("/v2/notification/contactMean/example")),
+        message: Some(text("provider-controlled task message")),
         created_at: timestamp("2026-08-07T08:00:00Z"),
         updated_at: timestamp("2026-08-07T08:00:02.500000000Z"),
         started_at,
@@ -95,6 +95,14 @@ fn utc_timestamps_validate_calendar_fraction_and_order() {
         timestamp("2026-01-01T00:00:00.9Z").compare(timestamp("2026-01-01T00:00:01Z")),
         core::cmp::Ordering::Less
     );
+    assert_eq!(
+        timestamp("2026-01-01T00:00:00.1Z"),
+        timestamp("2026-01-01T00:00:00.100Z")
+    );
+    assert_eq!(
+        timestamp("2026-01-01T00:00:00Z"),
+        timestamp("2026-01-01T00:00:00.0Z")
+    );
 }
 
 #[test]
@@ -111,7 +119,10 @@ fn task_lifecycle_is_bounded_coherent_and_pollable() {
         &[],
     ))
     .unwrap_or_else(|_| unreachable!());
-    assert_eq!(running.action_update(), ActionUpdate::Running);
+    assert_eq!(
+        running.poll_disposition(),
+        AsyncPollDisposition::Update(ActionUpdate::Running)
+    );
     assert_eq!(running.progress(), &progress);
 
     let errors = [AsyncTaskError::new(text("sentinel-provider-error"))];
@@ -124,9 +135,26 @@ fn task_lifecycle_is_bounded_coherent_and_pollable() {
     ))
     .unwrap_or_else(|_| unreachable!());
     assert_eq!(
-        failed.action_update(),
-        ActionUpdate::Failed(errors.as_slice())
+        failed.poll_disposition(),
+        AsyncPollDisposition::Update(ActionUpdate::Failed(errors.as_slice()))
     );
+
+    let mut waiting_parts = parts(
+        AsyncResourceStatus::WaitingForInput,
+        Some(timestamp("2026-08-07T08:00:01Z")),
+        None,
+        &progress,
+        &[],
+    );
+    waiting_parts.link = None;
+    waiting_parts.message = None;
+    let waiting = AsyncTask::new(waiting_parts).unwrap_or_else(|_| unreachable!());
+    assert_eq!(
+        waiting.poll_disposition(),
+        AsyncPollDisposition::WaitingForInput
+    );
+    assert_eq!(waiting.link(), None);
+    assert_eq!(waiting.message(), None);
 
     assert!(matches!(
         AsyncTask::new(parts(AsyncResourceStatus::Succeeded, None, None, &[], &[],)),

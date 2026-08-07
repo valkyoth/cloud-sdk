@@ -1,10 +1,9 @@
 //! Source-bound OVHcloud task and generic event-model conformance.
 
-use cloud_sdk::action_polling::ActionUpdate;
 use cloud_sdk::async_resource::{
-    AsyncEvent, AsyncEventParts, AsyncProgressStep, AsyncResourceId, AsyncResourceLink,
-    AsyncResourceStatus, AsyncResourceText, AsyncResourceTimestamp, AsyncTask, AsyncTaskError,
-    AsyncTaskParts,
+    AsyncEvent, AsyncEventParts, AsyncPollDisposition, AsyncProgressStep, AsyncResourceId,
+    AsyncResourceLink, AsyncResourceStatus, AsyncResourceText, AsyncResourceTimestamp, AsyncTask,
+    AsyncTaskError, AsyncTaskParts,
 };
 
 const REVIEWED_TASKS: &str = include_str!("fixtures/ovhcloud-task-contracts.tsv");
@@ -65,8 +64,8 @@ fn complete_source_task_shape_is_bounded_redacted_and_pollable() {
         id: id("018f4a55-8970-7db9-b6b5-4afed75820af"),
         kind: text("sentinel-task-type"),
         status: status("ERROR").unwrap_or_else(|_| unreachable!()),
-        link: link("/v2/notification/contactMean/sentinel-resource"),
-        message: text("sentinel-task-message"),
+        link: Some(link("/v2/notification/contactMean/sentinel-resource")),
+        message: Some(text("sentinel-task-message")),
         created_at: timestamp("2026-08-07T08:00:00Z"),
         updated_at: timestamp("2026-08-07T08:00:02Z"),
         started_at: Some(timestamp("2026-08-07T08:00:01Z")),
@@ -76,8 +75,10 @@ fn complete_source_task_shape_is_bounded_redacted_and_pollable() {
     })
     .unwrap_or_else(|_| unreachable!());
     assert_eq!(
-        task.action_update(),
-        ActionUpdate::Failed(errors.as_slice())
+        task.poll_disposition(),
+        AsyncPollDisposition::Update(cloud_sdk::action_polling::ActionUpdate::Failed(
+            errors.as_slice()
+        ))
     );
     assert_eq!(task.created_at(), timestamp("2026-08-07T08:00:00Z"));
     assert_eq!(task.updated_at(), timestamp("2026-08-07T08:00:02Z"));
@@ -93,6 +94,31 @@ fn complete_source_task_shape_is_bounded_redacted_and_pollable() {
     ] {
         assert!(!debug.contains(secret));
     }
+}
+
+#[test]
+fn omitted_optional_task_fields_and_nullable_errors_remain_representable() {
+    let task = AsyncTask::new(AsyncTaskParts {
+        id: id("018f4a55-8970-7db9-b6b5-4afed75820af"),
+        kind: text("source-example"),
+        status: AsyncResourceStatus::WaitingForInput,
+        link: None,
+        message: None,
+        created_at: timestamp("2026-08-07T08:00:00Z"),
+        updated_at: timestamp("2026-08-07T08:00:01Z"),
+        started_at: None,
+        finished_at: None,
+        progress: &[],
+        errors: &[],
+    })
+    .unwrap_or_else(|_| unreachable!());
+    assert_eq!(task.link(), None);
+    assert_eq!(task.message(), None);
+    assert!(task.errors().is_empty());
+    assert_eq!(
+        task.poll_disposition(),
+        AsyncPollDisposition::WaitingForInput
+    );
 }
 
 #[test]

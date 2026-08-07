@@ -4,8 +4,8 @@ mod model;
 mod value;
 
 pub use model::{
-    AsyncEvent, AsyncEventBatch, AsyncEventParts, AsyncProgressStep, AsyncResourceStatus,
-    AsyncTask, AsyncTaskError, AsyncTaskParts,
+    AsyncEvent, AsyncEventBatch, AsyncEventParts, AsyncPollDisposition, AsyncProgressStep,
+    AsyncResourceStatus, AsyncTask, AsyncTaskError, AsyncTaskParts,
 };
 pub use value::{
     AsyncResourceId, AsyncResourceLink, AsyncResourceText, AsyncResourceTimestamp,

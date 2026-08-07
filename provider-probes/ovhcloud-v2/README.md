@@ -121,7 +121,11 @@ to the reviewed notification digest. The neutral core admits all six exact
 statuses through bounded lifecycle categories, validates calendar-aware UTC
 timestamps and lifecycle ordering, bounds every scalar and collection, redacts
 task content from diagnostics, treats related-resource links as non-executable
-metadata, and maps task completion into the existing action-polling contract.
+metadata, preserves non-required link/message and nullable error shapes, and
+maps task completion into the existing action-polling contract. Waiting for
+user input remains an exhaustive pause disposition and never schedules another
+poll automatically. Exact property type, nullability, and required flags are
+part of the source lock.
 
 No event endpoint is claimed by this source surface. Generic `AsyncEvent` and
 `AsyncEventBatch` values therefore remain fixture-only models, and the

@@ -42,6 +42,12 @@ def test_current_evidence_is_exact_and_event_is_fixture_only() -> None:
     assert row["resource_response"] == "common.Task"
     assert row["generic_event_scope"] == "fixture-only"
     assert row["generic_event_path"] == "/event"
+    assert '"name":"link","nullable":false,"required":false,"type":"string"' in row[
+        "property_contracts"
+    ]
+    assert '"name":"errors","nullable":true,"required":false' in row[
+        "property_contracts"
+    ]
 
 
 def test_route_method_status_and_model_drift_fail_closed() -> None:
@@ -59,6 +65,12 @@ def test_route_method_status_and_model_drift_fail_closed() -> None:
             "beta",
         ),
         ("schemas", "notification-task-models", "statuses", ["DONE"]),
+        (
+            "schemas",
+            "notification-task-models",
+            "property_contracts",
+            {},
+        ),
     ):
         changed = copy.deepcopy(current_lock())
         rows = changed["contracts"][category]
