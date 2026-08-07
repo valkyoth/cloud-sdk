@@ -1921,9 +1921,9 @@ Stop gate: `v0.58.0 implementation stop reached. Complete the pentest and full r
 
 Goal: prove opaque pagination and schema-validation headers need no core exception.
 
-Deliverables: bounded/redacted cursor headers, terminal-page semantics, validation-only `X-Schemas-Version`, reviewed schema-major evidence, and raw metadata decoding.
+Deliverables: bounded/redacted cursor headers, terminal-page semantics, validation-only `X-Schemas-Version`, reviewed schema-major evidence, and prepared-request-bound metadata decoding and continuation execution.
 
-Verification: cursor cycles/controls/oversize, missing-next, duplicate headers, schema drift, and `scripts/release_0_59_gate.sh`.
+Verification: cursor cycles/controls/oversize, missing-next, duplicate headers, operation mismatch, method/target/service/endpoint/tenant rebinding prevention, schema drift, and `scripts/release_0_59_gate.sh`.
 
 Stop gate: `v0.59.0 implementation stop reached. Complete the pentest and full release gate for this exact commit; defer crates.io publication to v0.60.0.`
 

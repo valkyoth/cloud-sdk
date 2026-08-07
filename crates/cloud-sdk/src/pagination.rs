@@ -14,7 +14,10 @@ pub use budget::{
     SnapshotPolicy,
 };
 pub use driver::{PageStrategy, PagerControl, PagerDriver, PagerDriverError, PagerStep};
-pub use header_cursor::{HeaderCursorContinuation, HeaderCursorNext, HeaderCursorPolicy};
+pub use header_cursor::{
+    HeaderCursorContinuation, HeaderCursorExecutionError, HeaderCursorNext, HeaderCursorPage,
+    HeaderCursorPolicy, HeaderCursorSession,
+};
 pub use link::{ProviderLinkBinding, ProviderLinkExecutionError, ValidatedProviderLink};
 pub use numbered::{
     NumberedPageBoundary, NumberedPageMetadata, NumberedPageObservation, NumberedPagination,
@@ -88,6 +91,12 @@ pub enum PaginationError {
     InvalidHeaderState,
     /// A cursor response header was not retained as sensitive metadata.
     InsecureHeaderState,
+    /// A header cursor policy was bound to another prepared operation.
+    OperationMismatch,
+    /// Pagination headers conflict with the retained prepared request.
+    RequestHeaderConflict,
+    /// A continuation transport changed the initially observed endpoint.
+    EndpointMismatch,
     /// A provider link was not valid UTF-8 or request-target syntax.
     InvalidProviderLink,
     /// A provider link changed the bound network scheme.
@@ -137,6 +146,9 @@ impl_static_error!(PaginationError,
     Self::InvalidHeaderPolicy => "pagination cursor header policy is invalid",
     Self::InvalidHeaderState => "pagination cursor header state is invalid",
     Self::InsecureHeaderState => "pagination cursor header state is not sensitive",
+    Self::OperationMismatch => "pagination cursor operation does not match the prepared request",
+    Self::RequestHeaderConflict => "pagination headers conflict with the prepared request",
+    Self::EndpointMismatch => "pagination continuation changed the bound endpoint",
     Self::InvalidProviderLink => "provider pagination link is invalid",
     Self::ProviderLinkSchemeChanged => "provider pagination link changed scheme",
     Self::ProviderLinkAuthorityChanged => "provider pagination link changed authority",

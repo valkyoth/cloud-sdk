@@ -69,6 +69,13 @@ rejected. The source-defined absence of the next header terminates traversal;
 body size is not used to guess that another page exists. Exact cursor history
 still requires a caller-selected collision-resistant digest.
 
+The public cursor path binds the complete prepared request before dispatch and
+decodes only that execution's checked response. Continuations retain the same
+method, target, provider/service, authentication scope, operation metadata,
+response policy, and exact normalized endpoint observed on the first dispatch.
+They cannot expose raw headers or accept a replacement request context or
+endpoint.
+
 ### Accidental support or publication
 
 The probe is not a Cargo package, workspace member, release-plan crate, or

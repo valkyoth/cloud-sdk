@@ -1,5 +1,5 @@
-use super::super::{HeaderCursorNext, HeaderCursorPolicy, PaginationError, PaginationLimits};
-use super::assert_redacted;
+use super::super::header_cursor::DecodedHeaderCursor;
+use super::super::{HeaderCursorPolicy, PaginationError, PaginationLimits};
 use crate::operation::OperationId;
 use crate::transport::{HeaderSensitivity, ResponseHeaders};
 
@@ -24,8 +24,10 @@ fn absent_next_header_is_terminal_and_clears_outputs() {
     let headers = ResponseHeaders::new(&mut header_storage);
     let mut scratch = [0xa5_u8; 32];
     let mut destination = [0xa5_u8; 32];
-    let result = policy().decode_next(&headers, &mut scratch, &mut destination, limits(32));
-    assert!(result.is_ok_and(|next| next.is_complete()));
+    {
+        let result = policy().decode_next(&headers, &mut scratch, &mut destination, limits(32));
+        assert!(matches!(result, Ok(DecodedHeaderCursor::Complete)));
+    }
     assert_eq!(scratch, [0; 32]);
     assert_eq!(destination, [0; 32]);
 }
@@ -48,11 +50,11 @@ fn next_cursor_round_trips_only_as_a_sensitive_request_header() {
         let next = policy()
             .decode_next(&headers, &mut transfer, &mut destination, limits(32))
             .unwrap_or_else(|_| unreachable!());
-        let HeaderCursorNext::Continue(ref continuation) = next else {
+        let DecodedHeaderCursor::Continue(ref cursor) = next else {
             unreachable!("continuation fixture became terminal");
         };
         let mut decimal = [0xa5_u8; 20];
-        let observed = continuation.with_request_headers(&mut decimal, |request| {
+        let observed = policy().with_request_headers(Some(cursor), &mut decimal, |request| {
             let cursor = request.get("x-pagination-cursor");
             let size = request.get("x-pagination-size");
             (
@@ -72,7 +74,6 @@ fn next_cursor_round_trips_only_as_a_sensitive_request_header() {
             ))
         );
         assert_eq!(decimal, [0; 20]);
-        assert_redacted(&next);
     }
     assert_eq!(transfer, [0; 32]);
     assert_eq!(destination, [0; 32]);
@@ -81,7 +82,7 @@ fn next_cursor_round_trips_only_as_a_sensitive_request_header() {
 #[test]
 fn initial_request_contains_only_the_public_page_size() {
     let mut scratch = [0xa5_u8; 20];
-    let result = policy().with_initial_request_headers(&mut scratch, |headers| {
+    let result = policy().with_request_headers(None, &mut scratch, |headers| {
         (
             headers.as_slice().len(),
             headers.get("x-pagination-cursor").is_none(),

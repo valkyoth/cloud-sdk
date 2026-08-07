@@ -21,8 +21,8 @@ the v0.60.0 checkpoint.
 
 ## Header Cursor Pagination
 
-- Bound each cursor lifecycle to one `OperationId` plus distinct request
-  cursor, request size, and response next-cursor header roles.
+- Bound each cursor lifecycle to one complete `PreparedRequest` plus distinct
+  request cursor, request size, and response next-cursor header roles.
 - Marked cursor request values sensitive and required sensitive raw response
   retention before decoding.
 - Treated an absent next header as terminal exactly as the provider source
@@ -31,8 +31,10 @@ the v0.60.0 checkpoint.
   and insufficient-storage cursor metadata.
 - Reused cleanup-owning `PaginationCursor` and exact `CursorHistory` cycle and
   collision checks.
-- Returned an operation-bound continuation that cannot safely rebind its
-  cursor to another header policy.
+- Made raw header emission and decoding internal; public continuations execute
+  only their retained method, target, provider/service, authentication scope,
+  operation metadata, response policy, and exact initially observed endpoint.
+- Added blocking, executor-neutral async, and local async bound execution.
 
 ## Schema Validation
 

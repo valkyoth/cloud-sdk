@@ -8,18 +8,21 @@ validation.
 ## Cursor API
 
 `HeaderCursorPolicy` owns an `OperationId`, validated borrowed header names,
-and a nonzero page size. It emits request headers inside a closure, marks
-continuation cursors sensitive, and clears decimal scratch. `decode_next` reads
-bounded raw `ResponseHeaders`, treats next-header absence as terminal, and
-transfers a present request-safe cursor into cleanup-owning caller storage.
-The returned `HeaderCursorContinuation` retains the decoding policy and emits
-only that operation's next request headers; it exposes history observation but
-not raw cursor access.
+and a nonzero page size. `bind` rejects a `PreparedRequest` with another
+operation ID and returns a session retaining the complete request context.
+Session execution adds bounded headers, dispatches the retained prepared
+request, and decodes only the resulting checked response. A continuation
+retains that same prepared request plus the exact normalized endpoint identity
+observed on the first dispatch. It exposes execution and history observation,
+but no raw cursor or request-header access. Continuation execution rejects a
+different transport endpoint before dispatch.
 
-The API does not allocate, expose cursor text outside closure scope, infer
-continuation from response bodies, select a digest, or execute transport.
-`CursorHistory` remains the exact cycle and collision boundary. New
-`PaginationError` variants are static and payload-free.
+The API does not allocate, expose cursor text, accept a replacement method,
+target, provider/service, endpoint policy, authentication scope, operation, or
+response policy, infer continuation from response bodies, or select a digest.
+Blocking, executor-neutral async, and local async execution share this
+boundary. `CursorHistory` remains the exact cycle and collision boundary. New
+errors are static and payload-free.
 
 ## Schema API
 
@@ -34,6 +37,7 @@ remain provider and caller responsibilities.
 
 ## Compatibility
 
-The additions are provider-neutral and `no_std`. Existing APIs keep their
-signatures except exhaustive `PaginationError` matches, which must admit the
-three new variants. No default feature or dependency graph changes.
+The additions are provider-neutral and `no_std`. The unreleased initial v0.59
+raw header methods were replaced by prepared-request-bound execution after
+security review. Exhaustive `PaginationError` matches must admit six new
+variants. No default feature or dependency graph changes.

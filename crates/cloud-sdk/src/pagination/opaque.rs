@@ -83,6 +83,14 @@ impl<'storage> PaginationCursor<'storage> {
     pub fn with_cursor<R>(&self, inspect: impl FnOnce(&[u8]) -> R) -> R {
         self.state.with_bytes(inspect)
     }
+
+    pub(super) fn as_bytes(&self) -> &[u8] {
+        self.state
+            .bytes
+            .as_slice()
+            .get(..self.state.len)
+            .unwrap_or_default()
+    }
 }
 
 impl fmt::Debug for PaginationCursor<'_> {

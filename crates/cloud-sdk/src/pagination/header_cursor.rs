@@ -2,11 +2,17 @@ use core::fmt;
 
 use cloud_sdk_sanitization::{SecretBuffer, sanitize_bytes};
 
-use super::{CursorDigest, CursorHistory, PaginationCursor, PaginationError, PaginationLimits};
+use super::{PaginationCursor, PaginationError, PaginationLimits};
 use crate::buffer::write_u64;
 use crate::operation::OperationId;
 use crate::transport::{
     HeaderName, HeaderSensitivity, RequestHeader, RequestHeaders, ResponseHeaders,
+};
+
+mod execution;
+pub use execution::{
+    HeaderCursorContinuation, HeaderCursorExecutionError, HeaderCursorNext, HeaderCursorPage,
+    HeaderCursorSession,
 };
 
 /// Source-bound header names and page size for opaque cursor pagination.
@@ -86,19 +92,7 @@ impl<'a> HeaderCursorPolicy<'a> {
         self.page_size
     }
 
-    /// Builds the exact request headers only for the duration of `inspect`.
-    ///
-    /// A continuation cursor is always marked sensitive. The decimal scratch
-    /// buffer is cleared on success, failure, unwind, and return.
-    pub fn with_initial_request_headers<R>(
-        self,
-        decimal_scratch: &mut [u8],
-        inspect: impl FnOnce(RequestHeaders<'_>) -> R,
-    ) -> Result<R, PaginationError> {
-        self.with_request_headers(None, decimal_scratch, inspect)
-    }
-
-    fn with_request_headers<R>(
+    pub(super) fn with_request_headers<R>(
         self,
         cursor: Option<&PaginationCursor<'_>>,
         decimal_scratch: &mut [u8],
@@ -129,22 +123,17 @@ impl<'a> HeaderCursorPolicy<'a> {
         }
     }
 
-    /// Decodes an optional next cursor from retained raw response metadata.
-    ///
-    /// Absence is the terminal-page signal. A present value must have been
-    /// retained as sensitive metadata and must be valid for an HTTP request
-    /// header. Scratch and destination are cleared on every path.
-    pub fn decode_next<'storage>(
+    pub(super) fn decode_next<'storage>(
         self,
         headers: &ResponseHeaders<'_>,
         transfer_scratch: &mut [u8],
         destination: &'storage mut [u8],
         limits: PaginationLimits,
-    ) -> Result<HeaderCursorNext<'storage, 'a>, PaginationError> {
+    ) -> Result<DecodedHeaderCursor<'storage>, PaginationError> {
         sanitize_bytes(transfer_scratch);
         sanitize_bytes(destination);
         let Some(header) = headers.get(self.next_response.as_str()) else {
-            return Ok(HeaderCursorNext::Complete);
+            return Ok(DecodedHeaderCursor::Complete);
         };
         if header.sensitivity() != HeaderSensitivity::Sensitive {
             return Err(PaginationError::InsecureHeaderState);
@@ -155,12 +144,8 @@ impl<'a> HeaderCursorPolicy<'a> {
             .get_mut(..value.len())
             .ok_or(PaginationError::OutputTooSmall)?;
         source.copy_from_slice(value);
-        PaginationCursor::transfer_from(source, destination, limits).map(|cursor| {
-            HeaderCursorNext::Continue(HeaderCursorContinuation {
-                policy: self,
-                cursor,
-            })
-        })
+        PaginationCursor::transfer_from(source, destination, limits)
+            .map(DecodedHeaderCursor::Continue)
     }
 
     fn inspect_request_headers<R>(
@@ -199,72 +184,9 @@ impl fmt::Debug for HeaderCursorPolicy<'_> {
     }
 }
 
-/// Decoded continuation state from a cursor response header.
-pub enum HeaderCursorNext<'storage, 'policy> {
-    /// The next-cursor header was absent, so traversal is complete.
+pub(super) enum DecodedHeaderCursor<'storage> {
     Complete,
-    /// A bounded cleanup-owning cursor is available for the next request.
-    Continue(HeaderCursorContinuation<'storage, 'policy>),
-}
-
-impl HeaderCursorNext<'_, '_> {
-    /// Reports whether the provider declared a terminal page.
-    #[must_use]
-    pub const fn is_complete(&self) -> bool {
-        matches!(self, Self::Complete)
-    }
-}
-
-impl fmt::Debug for HeaderCursorNext<'_, '_> {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Complete => formatter.write_str("HeaderCursorNext::Complete"),
-            Self::Continue(_) => formatter.write_str("HeaderCursorNext::Continue([redacted])"),
-        }
-    }
-}
-
-/// Operation-bound cleanup-owning header cursor for one next request.
-pub struct HeaderCursorContinuation<'storage, 'policy> {
-    policy: HeaderCursorPolicy<'policy>,
-    cursor: PaginationCursor<'storage>,
-}
-
-impl HeaderCursorContinuation<'_, '_> {
-    /// Returns the provider operation that produced this continuation.
-    #[must_use]
-    pub const fn operation_id(&self) -> OperationId {
-        self.policy.operation
-    }
-
-    /// Checks and transactionally records the exact cursor in caller history.
-    pub fn observe_history(
-        &self,
-        history: &mut CursorHistory<'_>,
-        digest: CursorDigest,
-    ) -> Result<(), PaginationError> {
-        history.observe(&self.cursor, digest)
-    }
-
-    /// Emits the fixed page size and this operation-bound sensitive cursor.
-    pub fn with_request_headers<R>(
-        &self,
-        decimal_scratch: &mut [u8],
-        inspect: impl FnOnce(RequestHeaders<'_>) -> R,
-    ) -> Result<R, PaginationError> {
-        self.policy
-            .with_request_headers(Some(&self.cursor), decimal_scratch, inspect)
-    }
-}
-
-impl fmt::Debug for HeaderCursorContinuation<'_, '_> {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        formatter
-            .debug_struct("HeaderCursorContinuation")
-            .field("operation", &self.policy.operation)
-            .field("cursor", &"[redacted]")
-            .finish()
-    }
+    Continue(PaginationCursor<'storage>),
 }
 
 fn validate_cursor_value(value: &[u8], limits: PaginationLimits) -> Result<(), PaginationError> {

@@ -86,9 +86,10 @@ Four locked IAM collection operations use the exact request headers
 `X-Pagination-Size` and `X-Pagination-Cursor` and the response header
 `X-Pagination-Cursor-Next`. The response header is retained as sensitive raw
 metadata, moved into bounded cleanup-owning cursor storage, checked through
-exact cycle history, and sent back only as a sensitive request header. Its
-absence is the source-defined terminal-page signal; no body-length heuristic
-overrides that signal.
+exact cycle history, and sent back only by the same retained prepared request
+context and exact initially observed endpoint. Raw cursor headers are not
+public. Its absence is the source-defined terminal-page signal; no body-length
+heuristic overrides that signal.
 
 The locked IAM console schema and validation example both select schema
 version `1.0`. `X-Schemas-Version` remains an explicit validation-only header;
@@ -98,4 +99,5 @@ automatic selection.
 
 Run `scripts/check_ovhcloud_header_conformance.sh` to bind these names, the
 four-operation pagination surface, terminal behavior, reviewed schema major,
-raw response decoding, and adversarial core tests to the immutable probe.
+prepared-response decoding, context rebinding rejection, and adversarial core
+tests to the immutable probe.

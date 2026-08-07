@@ -872,13 +872,14 @@ incremental pentest and final retest passed.
 
 ## v0.59.0 Tracking Table
 
-`v0.59.0` adds bounded sensitive header-cursor decoding and reviewed
-schema-version validation. It remains an internal milestone, so cumulative
-package changes retain their published version numbers until v0.60.0.
+`v0.59.0` adds prepared-request-bound sensitive header-cursor execution and
+reviewed schema-version validation. It remains an internal milestone, so
+cumulative package changes retain their published version numbers until
+v0.60.0.
 
 | Crate | Published | Source | Change | Publish | Reason |
 | --- | --- | --- | --- | --- | --- |
-| `cloud-sdk` | `0.55.0` | `0.59.0` | `code` | No | Add header-cursor and reviewed schema-version contracts. |
+| `cloud-sdk` | `0.55.0` | `0.59.0` | `code` | No | Add prepared-bound header-cursor and reviewed schema-version contracts. |
 | `cloud-sdk-hetzner` | `0.39.0` | `0.39.0` | `dependency` | No | Accumulate the source core dependency for v0.60.0. |
 | `cloud-sdk-reqwest` | `0.32.4` | `0.32.4` | `dependency` | No | Accumulate the source core dependency for v0.60.0. |
 | `cloud-sdk-sanitization` | `0.18.0` | `0.18.0` | `unchanged` | No | No sanitization boundary changes. |

@@ -59,7 +59,7 @@ mod tests {
         PlanCostError, PlanFingerprintBuildError, PreparedExecutionError, ResponsePolicyError,
         ResponsePolicyValidationError,
     };
-    use crate::pagination::PaginationError;
+    use crate::pagination::{HeaderCursorExecutionError, PaginationError};
     use crate::rate_limit::{
         DelayDecisionError, QuotaError, QuotaExtensionError, RateLimitError, RetryAfterError,
     };
@@ -96,6 +96,7 @@ mod tests {
         fn assert_error<E: core::error::Error>() {}
 
         assert_error::<PaginationError>();
+        assert_error::<HeaderCursorExecutionError<core::convert::Infallible>>();
         assert_error::<AuthenticationScopeError>();
         assert_error::<CredentialGenerationError>();
         assert_error::<CredentialLifetimeError>();

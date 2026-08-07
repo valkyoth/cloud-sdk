@@ -315,6 +315,10 @@ impl<'buffer> ResponseBuffer<'buffer> {
         self.writer.response()
     }
 
+    pub(crate) const fn headers(&self) -> &ResponseHeaders<'buffer> {
+        self.writer.headers()
+    }
+
     pub(crate) fn apply_request_id_policy(
         &mut self,
         policy: RequestIdPolicy,

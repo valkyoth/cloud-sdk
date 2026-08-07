@@ -13,8 +13,8 @@ use crate::operation::{
     ResponsePolicy, ResponsePolicyError,
 };
 use crate::transport::{
-    BoundTransport, EndpointIdentity, EndpointPolicy, RawResponsePolicy, ResponseBuffer,
-    TransportRequest,
+    BoundTransport, EndpointIdentity, EndpointPolicy, RawResponsePolicy, RequestHeaders,
+    ResponseBuffer, TransportRequest,
 };
 use crate::{ProviderId, ProviderMarker, ServiceId, ServiceMarker};
 
@@ -211,6 +211,26 @@ impl<'request> PreparedRequest<'request> {
     #[must_use]
     pub const fn body_replayability(self) -> BodyReplayability {
         self.body_replayability
+    }
+
+    pub(crate) fn with_request_headers<'headers>(
+        self,
+        headers: RequestHeaders<'headers>,
+    ) -> PreparedRequest<'headers>
+    where
+        'request: 'headers,
+    {
+        let request: TransportRequest<'headers> = self.request;
+        PreparedRequest {
+            request: request.with_headers(headers),
+            service: self.service,
+            metadata: self.metadata,
+            response_policy: self.response_policy,
+            authentication_policy: self.authentication_policy,
+            raw_response_policy: self.raw_response_policy,
+            operation_id: self.operation_id,
+            body_replayability: self.body_replayability,
+        }
     }
 
     pub(crate) fn has_same_retry_policy(&self, other: &Self) -> bool {

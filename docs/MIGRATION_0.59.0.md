@@ -7,20 +7,27 @@ v0.55.0; package publication is deferred to v0.60.0.
 
 Provider integrations can construct `HeaderCursorPolicy` from an
 `OperationId`, three source-reviewed header names, and one nonzero page size.
-Use `with_initial_request_headers` for the first request. After transport has
-retained the admitted next-cursor response header as sensitive metadata, call
-`decode_next`; `HeaderCursorNext::Complete` means the source-defined next
-header was absent.
+Call `bind` with the complete `PreparedRequest`, then execute the returned
+`HeaderCursorSession` through `execute_blocking`, `execute_async`, or
+`execute_local_async`. The session adds the initial size header, executes the
+exact retained request, and decodes only the response produced by that
+execution. `HeaderCursorNext::Complete` means the source-defined next header
+was absent.
 
 For continuations, call `observe_history` on the returned
-`HeaderCursorContinuation`, then use its `with_request_headers` method. The
-continuation retains the operation and decoding policy, so the cursor cannot
-be safely rebound to another operation or header policy. The cursor is never
-returned as a plain public string. Existing raw response policies must
-explicitly admit the provider's next-cursor header.
+`HeaderCursorContinuation`, then execute it through the matching transport
+method. The continuation retains the complete prepared request: method,
+target, provider/service, endpoint policy, authentication scope (including
+account and tenant), operation metadata, and response policy cannot be
+replaced. The normalized endpoint identity observed on the first dispatch is
+also retained, and continuation execution rejects a transport reporting any
+other identity before dispatch. Raw cursor header emission and response-header
+decoding are not public. Existing raw response policies must explicitly admit
+the provider's next-cursor header.
 
 `PaginationError` adds `InvalidHeaderPolicy`, `InvalidHeaderState`, and
-`InsecureHeaderState`. Exhaustive matches must include these payload-free
+`InsecureHeaderState`, `OperationMismatch`, `RequestHeaderConflict`, and
+`EndpointMismatch`. Exhaustive matches must include these payload-free
 variants.
 
 ## Schema Validation

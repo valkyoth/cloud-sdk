@@ -1,5 +1,5 @@
 //! Checked provider-neutral response policy.
-
+mod cursor;
 use core::fmt;
 
 use super::RequestIdPolicy;
@@ -8,7 +8,6 @@ use crate::transport::{
     MediaType, ResponseBuffer, ResponseContentType, ResponseDecodeWorkspace, ResponseWriterError,
     RetainedMetadataError, RetainedResponseMetadata, StatusCode, TransportResponse,
 };
-
 /// Expected response-body shape.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum ResponseBodyPolicy {
