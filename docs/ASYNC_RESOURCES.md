@@ -67,6 +67,11 @@ Task links and messages are optional because the source schema marks them as
 non-required and official task shapes can omit them. A nullable or omitted
 error collection maps to the empty bounded slice.
 
+A `Succeeded` task containing provider errors is rejected with
+`StatusErrorMismatch`. The reviewed OVHcloud schema does not define whether
+such errors are historical diagnostics, so the provider-neutral model does not
+silently discard contradictory failure evidence.
+
 ## Source-Locked Evidence
 
 v0.60 binds this model to the official OVHcloud API v2 production reads

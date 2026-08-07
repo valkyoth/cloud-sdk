@@ -36,8 +36,8 @@ is added.
 All asynchronous-resource scalar content is borrowed, bounded, validated, and
 redacted from Debug. Optional task links and messages preserve source
 optionality, and links are explicitly non-executable. Timestamp ordering,
-terminal coherence, and waiting-for-input polling behavior fail closed. The
-model does not parse provider JSON,
+terminal coherence, contradictory success/error snapshots, and
+waiting-for-input polling behavior fail closed. The model does not parse provider JSON,
 own a clock, execute links, poll automatically, or claim an OVHcloud provider.
 
 The public checkpoint is suitable for pentest after the complete repository,

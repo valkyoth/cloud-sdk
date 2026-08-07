@@ -162,6 +162,16 @@ fn task_lifecycle_is_bounded_coherent_and_pollable() {
     ));
     assert!(matches!(
         AsyncTask::new(parts(
+            AsyncResourceStatus::Succeeded,
+            Some(timestamp("2026-08-07T08:00:01Z")),
+            Some(timestamp("2026-08-07T08:00:02Z")),
+            &[],
+            &errors,
+        )),
+        Err(AsyncResourceValidationError::StatusErrorMismatch)
+    ));
+    assert!(matches!(
+        AsyncTask::new(parts(
             AsyncResourceStatus::Running,
             Some(timestamp("2026-08-07T08:00:02.600Z")),
             None,

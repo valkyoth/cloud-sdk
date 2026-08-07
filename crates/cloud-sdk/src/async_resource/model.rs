@@ -137,7 +137,7 @@ pub struct AsyncTask<'a> {
 }
 
 impl<'a> AsyncTask<'a> {
-    /// Validates collection limits, timestamp ordering, and terminal coherence.
+    /// Validates collection limits, timestamp ordering, and lifecycle coherence.
     pub fn new(parts: AsyncTaskParts<'a>) -> Result<Self, AsyncResourceValidationError> {
         if parts.progress.len() > MAX_ASYNC_PROGRESS_STEPS {
             return Err(AsyncResourceValidationError::TooManyProgressSteps);
@@ -165,6 +165,9 @@ impl<'a> AsyncTask<'a> {
         }
         if parts.status.is_terminal() != parts.finished_at.is_some() {
             return Err(AsyncResourceValidationError::TerminalTimeMismatch);
+        }
+        if parts.status == AsyncResourceStatus::Succeeded && !parts.errors.is_empty() {
+            return Err(AsyncResourceValidationError::StatusErrorMismatch);
         }
         Ok(Self { parts })
     }

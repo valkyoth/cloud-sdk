@@ -122,6 +122,28 @@ fn omitted_optional_task_fields_and_nullable_errors_remain_representable() {
 }
 
 #[test]
+fn successful_task_with_provider_errors_fails_closed() {
+    let errors = [AsyncTaskError::new(text("contradictory-provider-error"))];
+    let result = AsyncTask::new(AsyncTaskParts {
+        id: id("018f4a55-8970-7db9-b6b5-4afed75820af"),
+        kind: text("source-example"),
+        status: AsyncResourceStatus::Succeeded,
+        link: None,
+        message: None,
+        created_at: timestamp("2026-08-07T08:00:00Z"),
+        updated_at: timestamp("2026-08-07T08:00:01Z"),
+        started_at: None,
+        finished_at: Some(timestamp("2026-08-07T08:00:01Z")),
+        progress: &[],
+        errors: &errors,
+    });
+    assert!(matches!(
+        result,
+        Err(cloud_sdk::async_resource::AsyncResourceValidationError::StatusErrorMismatch)
+    ));
+}
+
+#[test]
 fn generic_event_model_does_not_create_an_endpoint_claim() {
     let event = AsyncEvent::new(AsyncEventParts {
         id: id("event-fixture"),

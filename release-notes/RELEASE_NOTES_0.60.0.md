@@ -30,6 +30,8 @@ models. It does not publish or claim an OVHcloud provider.
   event batches.
 - Preserved optional task links/messages, nullable error collections, semantic
   timestamp equality, and an explicit waiting-for-input polling disposition.
+- Rejected successful task snapshots containing contradictory provider errors
+  instead of silently discarding the failure evidence.
 - Bound every task property type, nullability flag, and required flag into
   source conformance evidence.
 - Bound task conformance to the production reads
