@@ -1,8 +1,8 @@
 # Crate Version Matrix
 
-Status: `v0.55.0` is tagged and published. `v0.56.0` and `v0.57.0` are signed
-source milestones. `v0.58.0` is the current candidate in the next five-minor
-publication train, and its incremental pentest and final retest passed. Every
+Status: `v0.55.0` is tagged and published. `v0.56.0` through `v0.58.0` are
+signed source milestones. `v0.59.0` is the current implementation stop in the
+next five-minor publication train and requires its incremental pentest. Every
 tag beginning with v0.56 receives its own incremental pentest; package
 publication is deferred to the next scheduled checkpoint at `v0.60.0`.
 
@@ -867,6 +867,20 @@ incremental pentest and final retest passed.
 | `cloud-sdk` | `0.55.0` | `0.58.0` | `code` | No | Add bounded endpoint-pair and credential-lifetime contracts. |
 | `cloud-sdk-hetzner` | `0.39.0` | `0.39.0` | `dependency` | No | Accumulate the source core dependency for v0.60.0. |
 | `cloud-sdk-reqwest` | `0.32.4` | `0.32.4` | `code` | No | Add expiry-qualified atomic bearer rotation and refresh. |
+| `cloud-sdk-sanitization` | `0.18.0` | `0.18.0` | `unchanged` | No | No sanitization boundary changes. |
+| `cloud-sdk-testkit` | `0.29.0` | `0.29.0` | `dependency` | No | Accumulate the source core dependency for v0.60.0. |
+
+## v0.59.0 Tracking Table
+
+`v0.59.0` adds bounded sensitive header-cursor decoding and reviewed
+schema-version validation. It remains an internal milestone, so cumulative
+package changes retain their published version numbers until v0.60.0.
+
+| Crate | Published | Source | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.55.0` | `0.59.0` | `code` | No | Add header-cursor and reviewed schema-version contracts. |
+| `cloud-sdk-hetzner` | `0.39.0` | `0.39.0` | `dependency` | No | Accumulate the source core dependency for v0.60.0. |
+| `cloud-sdk-reqwest` | `0.32.4` | `0.32.4` | `dependency` | No | Accumulate the source core dependency for v0.60.0. |
 | `cloud-sdk-sanitization` | `0.18.0` | `0.18.0` | `unchanged` | No | No sanitization boundary changes. |
 | `cloud-sdk-testkit` | `0.29.0` | `0.29.0` | `dependency` | No | Accumulate the source core dependency for v0.60.0. |
 

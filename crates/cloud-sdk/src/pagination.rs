@@ -2,6 +2,7 @@
 
 mod budget;
 mod driver;
+mod header_cursor;
 mod link;
 mod local_async;
 mod numbered;
@@ -13,6 +14,7 @@ pub use budget::{
     SnapshotPolicy,
 };
 pub use driver::{PageStrategy, PagerControl, PagerDriver, PagerDriverError, PagerStep};
+pub use header_cursor::{HeaderCursorContinuation, HeaderCursorNext, HeaderCursorPolicy};
 pub use link::{ProviderLinkBinding, ProviderLinkExecutionError, ValidatedProviderLink};
 pub use numbered::{
     NumberedPageBoundary, NumberedPageMetadata, NumberedPageObservation, NumberedPagination,
@@ -80,6 +82,12 @@ pub enum PaginationError {
     CursorDigestCollision,
     /// One cursor value was supplied with different digests.
     CursorDigestChanged,
+    /// Header roles in one cursor policy are not distinct valid names.
+    InvalidHeaderPolicy,
+    /// A cursor response header cannot be sent back as a request value.
+    InvalidHeaderState,
+    /// A cursor response header was not retained as sensitive metadata.
+    InsecureHeaderState,
     /// A provider link was not valid UTF-8 or request-target syntax.
     InvalidProviderLink,
     /// A provider link changed the bound network scheme.
@@ -126,6 +134,9 @@ impl_static_error!(PaginationError,
     Self::CursorCycle => "pagination cursor cycle was detected",
     Self::CursorDigestCollision => "pagination cursor digest collision was detected",
     Self::CursorDigestChanged => "pagination cursor digest changed for the same state",
+    Self::InvalidHeaderPolicy => "pagination cursor header policy is invalid",
+    Self::InvalidHeaderState => "pagination cursor header state is invalid",
+    Self::InsecureHeaderState => "pagination cursor header state is not sensitive",
     Self::InvalidProviderLink => "provider pagination link is invalid",
     Self::ProviderLinkSchemeChanged => "provider pagination link changed scheme",
     Self::ProviderLinkAuthorityChanged => "provider pagination link changed authority",

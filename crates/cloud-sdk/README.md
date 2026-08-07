@@ -84,10 +84,11 @@ architecture probe, a narrow credential-free Robot wire fixture, and
 full-fidelity Hetzner vertical slices before the neutral API freeze.
 
 The latest published checkpoint is `v0.55.0`. Signed source milestones v0.56
-and v0.57 added provider-neutral drift evidence and locked the unpublished
-OVHcloud API v2 probe. The v0.58 candidate adds exact regional API/token
-pairing and explicit-time expiring bearer lifecycles. Its incremental pentest
-and final retest passed; crates.io publication remains deferred to `v0.60.0`.
+through v0.58 added provider-neutral drift evidence, locked the unpublished
+OVHcloud API v2 probe, and challenged regional authentication contracts. The
+v0.59 implementation adds bounded header-cursor decoding and reviewed schema
+validation. Its incremental pentest is required before tagging; crates.io
+publication remains deferred to `v0.60.0`.
 
 ## Trust Dashboard
 
@@ -171,6 +172,7 @@ visible. Applications should enable only the features they use.
 - [Canonical signing input policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/SIGNING_INPUT_POLICY.md)
 - [Robot wire source lock](https://github.com/valkyoth/cloud-sdk/blob/main/docs/ROBOT_WIRE_SOURCE_LOCK.md)
 - [Pagination strategies](https://github.com/valkyoth/cloud-sdk/blob/main/docs/PAGINATION_STRATEGIES.md)
+- [Schema version validation](https://github.com/valkyoth/cloud-sdk/blob/main/docs/SCHEMA_VERSION_VALIDATION.md)
 - [Quota and retry policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/QUOTA_AND_RETRY.md)
 - [Retry and idempotency policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/RETRY_AND_IDEMPOTENCY.md)
 - [Plan-confirm execution permits](https://github.com/valkyoth/cloud-sdk/blob/main/docs/EXECUTION_PERMITS.md)
@@ -213,6 +215,7 @@ visible. Applications should enable only the features they use.
 - [Migrating source users to v0.56](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.56.0.md)
 - [Migrating source users to v0.57](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.57.0.md)
 - [Migrating source users to v0.58](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.58.0.md)
+- [Migrating source users to v0.59](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.59.0.md)
 - [Compile-time Hetzner operation associations](https://github.com/valkyoth/cloud-sdk/blob/main/docs/OPERATION_ASSOCIATIONS.md)
 - [Incremental provider decoding](https://github.com/valkyoth/cloud-sdk/blob/main/docs/INCREMENTAL_DECODING.md)
 - [Deprecated endpoint policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/DEPRECATED_ENDPOINT_POLICY.md)

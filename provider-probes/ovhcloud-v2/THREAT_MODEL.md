@@ -62,6 +62,13 @@ Cursors, task errors, event links, and messages may contain opaque provider or
 tenant data. They are sensitive by default, bounded, never formatted in public
 errors, and cleared with their owning response or workflow state.
 
+Cursor response metadata defaults to sensitive, must be canonical request-safe
+ASCII, and is copied only through bounded cleanup-owning storage. Empty,
+oversized, control-bearing, non-ASCII, duplicate, or public cursor headers are
+rejected. The source-defined absence of the next header terminates traversal;
+body size is not used to guess that another page exists. Exact cursor history
+still requires a caller-selected collision-resistant digest.
+
 ### Accidental support or publication
 
 The probe is not a Cargo package, workspace member, release-plan crate, or

@@ -68,6 +68,7 @@ def payloads() -> dict[str, bytes]:
     principles = "\n".join(
         (
             "X-Schemas-Version",
+            "X-Schemas-Version: 1.0",
             "https://eu.api.ovh.com/v2/iam/policy",
             "X-Pagination-Size",
             "X-Pagination-Cursor-Next",

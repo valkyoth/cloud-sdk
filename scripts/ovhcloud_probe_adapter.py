@@ -222,6 +222,34 @@ def _model_evidence(schema: dict[str, Any]) -> dict[str, Any]:
     return {"count": len(rows), "sha256": _digest(rows)}
 
 
+def _schema_version_evidence(
+    schema: dict[str, Any], principles: str, schema_sha256: str
+) -> dict[str, Any]:
+    version = schema.get("apiVersion")
+    if not isinstance(version, str) or version.count(".") != 1:
+        raise OvhcloudProbeError("OVHcloud schema version is invalid")
+    major_text, minor_text = version.split(".")
+    if (
+        not major_text.isascii()
+        or not minor_text.isascii()
+        or not major_text.isdecimal()
+        or not minor_text.isdecimal()
+        or (len(major_text) > 1 and major_text.startswith("0"))
+        or (len(minor_text) > 1 and minor_text.startswith("0"))
+    ):
+        raise OvhcloudProbeError("OVHcloud schema version is not canonical")
+    major = int(major_text)
+    if major <= 0 or major > 65535 or int(minor_text) > 65535:
+        raise OvhcloudProbeError("OVHcloud schema version is out of range")
+    if f"X-Schemas-Version: {version}" not in principles:
+        raise OvhcloudProbeError("OVHcloud schema version example differs from schema")
+    return {
+        "reviewed_major": major,
+        "reviewed_version": version,
+        "schema_source_sha256": schema_sha256,
+    }
+
+
 def build_observation(lock: dict[str, Any], payloads: dict[str, bytes]) -> dict[str, Any]:
     """Build the complete probe observation from authenticated sources."""
     expected = {
@@ -240,6 +268,7 @@ def build_observation(lock: dict[str, Any], payloads: dict[str, bytes]) -> dict[
         principles,
         (
             "X-Schemas-Version",
+            "X-Schemas-Version: 1.0",
             "https://eu.api.ovh.com/v2/iam/policy",
             "X-Pagination-Size",
             "X-Pagination-Cursor-Next",
@@ -272,7 +301,9 @@ def build_observation(lock: dict[str, Any], payloads: dict[str, bytes]) -> dict[
         == ["X-Pagination-Cursor", "X-Pagination-Size"]
     ]
     principles_sha = _source_digest(payloads["api-v2-principles"])
+    schema_sha = source_digest("iam-schema", payloads["iam-schema"])
     oauth_sha = _source_digest(payloads["oauth2-service-account"])
+    schema_version = _schema_version_evidence(schema, principles, schema_sha)
     contracts = {
         "authentication": [
             {
@@ -354,6 +385,7 @@ def build_observation(lock: dict[str, Any], payloads: dict[str, bytes]) -> dict[
                 "values": {
                     "account_default_when_absent": True,
                     "request": "X-Schemas-Version",
+                    **schema_version,
                     "source_sha256": principles_sha,
                     "use": "validation_only",
                 },

@@ -87,6 +87,9 @@
         "values": {
           "account_default_when_absent": true,
           "request": "X-Schemas-Version",
+          "reviewed_major": 1,
+          "reviewed_version": "1.0",
+          "schema_source_sha256": "27a1c172c055615e25673d46f583ed0f0d4ba2d77df5a70324b7a446eeacc585",
           "source_sha256": "afd16253ec3d126c8ca1c66b2298be87976b35af384ffc38e6f2d7f029098ae7",
           "use": "validation_only"
         }

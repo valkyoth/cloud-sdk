@@ -78,6 +78,31 @@ caller-produced 32-byte digest. Exact repetition is a cycle; equal digests for
 different cursors are collisions; equal cursors with different digests also
 fail closed. History has independent entry and byte budgets.
 
+## Header Cursors
+
+Use `HeaderCursorPolicy` when a provider carries page size and continuation
+state in HTTP headers. The policy binds one `OperationId`, three distinct
+validated names, and one nonzero page size. `with_initial_request_headers`
+creates the first public size header. A decoded `HeaderCursorContinuation`
+retains that operation and policy and creates the next public size plus
+sensitive cursor headers only for the duration of a closure. Decimal scratch
+storage is cleared on every path.
+
+`decode_next` reads directly from bounded `ResponseHeaders`. Absence of the
+configured next-cursor header is terminal. A present value must be nonempty,
+within `PaginationLimits::max_state_bytes`, retained as sensitive metadata,
+and canonical visible ASCII that can be sent back as one request-header
+value. It is transferred into cleanup-owning caller storage without exposing a
+plain string. Empty, control-bearing, non-ASCII, oversized, public, duplicate,
+or undersized-storage cases fail closed and clear transfer storage.
+
+Call `HeaderCursorContinuation::observe_history` before following it.
+The provider-neutral codec deliberately does not select a digest, infer a
+continuation from body length, allocate storage, or issue a request. OVHcloud
+v2 conformance binds this contract to `X-Pagination-Size`,
+`X-Pagination-Cursor`, and `X-Pagination-Cursor-Next`; other providers must
+source-lock their own names and terminal semantics.
+
 ## Provider Links
 
 Some providers return an absolute or origin-form next link. Bind such links to

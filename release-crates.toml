@@ -1,20 +1,20 @@
 [release]
-version = "0.58.0"
-milestone = "0.58.0"
+version = "0.59.0"
+milestone = "0.59.0"
 baseline = "0.55.0"
-review_baseline = "0.57.0"
-cumulative_milestones = ["0.56.0", "0.57.0", "0.58.0"]
+review_baseline = "0.58.0"
+cumulative_milestones = ["0.56.0", "0.57.0", "0.58.0", "0.59.0"]
 policy = "independent"
 stage = "internal"
 exceptional = false
 exception_reason = ""
 
 [crates."cloud-sdk"]
-previous_version = "0.57.0"
-version = "0.58.0"
+previous_version = "0.58.0"
+version = "0.59.0"
 change = "code"
 publish = false
-reason = "Add provider-neutral regional authority pairs and explicit credential lifetime contracts."
+reason = "Add bounded header-cursor decoding and reviewed schema-version validation contracts."
 
 [crates."cloud-sdk-hetzner"]
 previous_version = "0.39.0"
@@ -26,9 +26,9 @@ reason = "Accumulate the source core dependency for v0.60 without publication."
 [crates."cloud-sdk-reqwest"]
 previous_version = "0.32.4"
 version = "0.32.4"
-change = "code"
+change = "dependency"
 publish = false
-reason = "Add expiry-qualified atomic bearer rotation and refresh without publication."
+reason = "Accumulate the source core dependency for v0.60 without publication."
 
 [crates."cloud-sdk-sanitization"]
 previous_version = "0.18.0"

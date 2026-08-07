@@ -79,3 +79,23 @@ secret store.
 Run `scripts/check_ovhcloud_authority_conformance.sh` to bind the authority
 fixture and OAuth response shape to the reviewed source lock and execute the
 core plus blocking/async credential lifecycle tests.
+
+## v0.59 Cursor And Header Conformance
+
+Four locked IAM collection operations use the exact request headers
+`X-Pagination-Size` and `X-Pagination-Cursor` and the response header
+`X-Pagination-Cursor-Next`. The response header is retained as sensitive raw
+metadata, moved into bounded cleanup-owning cursor storage, checked through
+exact cycle history, and sent back only as a sensitive request header. Its
+absence is the source-defined terminal-page signal; no body-length heuristic
+overrides that signal.
+
+The locked IAM console schema and validation example both select schema
+version `1.0`. `X-Schemas-Version` remains an explicit validation-only header;
+normal production calls omit it and use the account-selected major. A schema
+major change requires a new authenticated source lock and review rather than
+automatic selection.
+
+Run `scripts/check_ovhcloud_header_conformance.sh` to bind these names, the
+four-operation pagination surface, terminal behavior, reviewed schema major,
+raw response decoding, and adversarial core tests to the immutable probe.

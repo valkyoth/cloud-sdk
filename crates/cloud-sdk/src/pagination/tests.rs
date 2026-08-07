@@ -1,6 +1,7 @@
 use core::fmt::{self, Write};
 
 mod driver;
+mod header_cursor;
 mod link;
 mod numbered_budget;
 mod offset;

@@ -32,6 +32,7 @@ pub mod operation;
 pub mod pagination;
 pub mod rate_limit;
 pub mod retry;
+pub mod schema;
 pub mod transport;
 
 pub use identity::{
@@ -66,6 +67,7 @@ mod tests {
         FingerprintBuildError, IdempotencyIntentError, MaxAttemptsError, RetryExecutionError,
         RetryPermitError, RetryPolicyError,
     };
+    use crate::schema::SchemaVersionError;
     use crate::transport::{
         AsyncExecutionError, ContentTypeError, EndpointIdentityError, EndpointPairPolicyError,
         HeaderError, InformationalResponseError, RawResponsePolicyError, RequestPathError,
@@ -150,6 +152,7 @@ mod tests {
         assert_error::<ClientExecutionError<(), (), ()>>();
         assert_error::<WorkspaceAcquireError>();
         assert_error::<WorkspacePoolError>();
+        assert_error::<SchemaVersionError>();
 
         assert_display(PaginationError::PageZero, "page number must be nonzero");
         assert_display(RateLimitError::LimitZero, "rate limit must be nonzero");
