@@ -31,6 +31,8 @@ pub enum AsyncPollDisposition<'a> {
     Update(ActionUpdate<&'a [AsyncTaskError<'a>]>),
     /// The provider requires explicit caller intervention before polling resumes.
     WaitingForInput,
+    /// The provider reported success while retaining contradictory error evidence.
+    ContradictorySuccess(&'a [AsyncTaskError<'a>]),
 }
 
 impl AsyncResourceStatus {
@@ -166,9 +168,6 @@ impl<'a> AsyncTask<'a> {
         if parts.status.is_terminal() != parts.finished_at.is_some() {
             return Err(AsyncResourceValidationError::TerminalTimeMismatch);
         }
-        if parts.status == AsyncResourceStatus::Succeeded && !parts.errors.is_empty() {
-            return Err(AsyncResourceValidationError::StatusErrorMismatch);
-        }
         Ok(Self { parts })
     }
 
@@ -242,6 +241,9 @@ impl<'a> AsyncTask<'a> {
     #[must_use]
     pub fn poll_disposition(&self) -> AsyncPollDisposition<'a> {
         match self.parts.status {
+            AsyncResourceStatus::Succeeded if !self.parts.errors.is_empty() => {
+                AsyncPollDisposition::ContradictorySuccess(self.parts.errors)
+            }
             AsyncResourceStatus::Succeeded => AsyncPollDisposition::Update(ActionUpdate::Success),
             AsyncResourceStatus::Failed => {
                 AsyncPollDisposition::Update(ActionUpdate::Failed(self.parts.errors))

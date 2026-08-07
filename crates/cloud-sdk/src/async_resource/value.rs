@@ -40,8 +40,6 @@ pub enum AsyncResourceValidationError {
     TimestampOrder,
     /// A terminal task omitted completion time or a running task supplied it.
     TerminalTimeMismatch,
-    /// A successful task retained provider errors with ambiguous precedence.
-    StatusErrorMismatch,
     /// A task contained too many progress steps.
     TooManyProgressSteps,
     /// A task contained too many errors.
@@ -63,7 +61,6 @@ impl_static_error!(AsyncResourceValidationError,
     Self::InvalidTimestamp => "asynchronous resource timestamp is invalid",
     Self::TimestampOrder => "asynchronous resource timestamps are incoherent",
     Self::TerminalTimeMismatch => "asynchronous resource completion time contradicts its status",
-    Self::StatusErrorMismatch => "asynchronous resource status contradicts its errors",
     Self::TooManyProgressSteps => "asynchronous task has too many progress steps",
     Self::TooManyErrors => "asynchronous task has too many errors",
     Self::TooManyEvents => "asynchronous resource batch has too many events",

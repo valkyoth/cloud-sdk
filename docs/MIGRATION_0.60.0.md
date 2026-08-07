@@ -31,9 +31,10 @@ the action-polling driver. Task `link` and `message` fields are optional.
 Equivalent UTC fractional-second spellings compare equal; parsing is limited
 to one through nine fractional digits and rejects leap seconds.
 
-`AsyncTask::new` rejects `Succeeded` snapshots with a non-empty error list as
-`AsyncResourceValidationError::StatusErrorMismatch`; callers must resolve the
-provider contradiction rather than treating it as success.
+`AsyncTask::poll_disposition` returns
+`AsyncPollDisposition::ContradictorySuccess` for `Succeeded` snapshots with a
+non-empty error list. Callers must resolve the provider ambiguity before
+treating the task as successful.
 
 No existing default feature is enabled. The default graph remains
 allocation-free and `no_std`, and no provider, transport, runtime, clock, or
