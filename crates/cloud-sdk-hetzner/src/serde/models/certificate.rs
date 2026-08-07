@@ -1,11 +1,12 @@
 //! Source-complete certificate response model.
 
-use alloc::collections::BTreeMap;
 use alloc::string::String;
 use alloc::vec::Vec;
 use core::fmt;
 
-use super::{ResponseModelError, SensitiveText, object, required, value_text};
+use super::{
+    Labels, ResponseModelError, SensitiveText, object, parse_labels, required, value_text,
+};
 use crate::response::ApiErrorCode;
 use crate::serde::strict_json::{Map, Value};
 
@@ -83,7 +84,7 @@ pub struct Certificate {
     /// Resource name.
     pub name: String,
     /// User-defined labels.
-    pub labels: BTreeMap<String, String>,
+    pub labels: Labels,
     /// Certificate type when supplied by the provider.
     pub kind: Option<CertificateKind>,
     /// Protected certificate chain in PEM format.
@@ -144,7 +145,7 @@ pub(crate) fn parse_certificate(value: &mut Value) -> Result<Certificate, Respon
     Ok(Certificate {
         id: positive_u64(fields, "id")?,
         name: text(fields, "name", 256)?,
-        labels: labels(required(fields, "labels")?)?,
+        labels: parse_labels(required(fields, "labels")?, MAX_LABELS)?,
         kind,
         certificate,
         created: text(fields, "created", 64)?,
@@ -213,44 +214,17 @@ fn parse_uses(value: &Value) -> Result<Vec<CertificateUse>, ResponseModelError> 
     if values.len() > MAX_USES {
         return Err(ResponseModelError::TooManyItems);
     }
-    values
-        .iter()
-        .map(|value| {
-            let fields = object(value)?;
-            Ok(CertificateUse {
-                id: positive_u64(fields, "id")?,
-                resource_type: text(fields, "type", 128)?,
-            })
-        })
-        .collect()
-}
-
-fn labels(value: &Value) -> Result<BTreeMap<String, String>, ResponseModelError> {
-    let fields = object(value)?;
-    if fields.len() > MAX_LABELS {
-        return Err(ResponseModelError::TooManyItems);
+    let mut uses = Vec::new();
+    uses.try_reserve_exact(values.len())
+        .map_err(|_| ResponseModelError::Allocation)?;
+    for value in values {
+        let fields = object(value)?;
+        uses.push(CertificateUse {
+            id: positive_u64(fields, "id")?,
+            resource_type: text(fields, "type", 128)?,
+        });
     }
-    fields
-        .iter()
-        .map(|(key, value)| {
-            super::validate_text(key.as_str(), 128)?;
-            let value = label_text(value, 1_024)?;
-            Ok((String::from(key.as_str()), value))
-        })
-        .collect()
-}
-
-fn label_text(value: &Value, max: usize) -> Result<String, ResponseModelError> {
-    value
-        .try_with_str(|value| {
-            if value.is_empty() {
-                Ok(String::new())
-            } else {
-                super::checked_text(value, max)
-            }
-        })
-        .map_err(|_| ResponseModelError::InvalidText)?
-        .ok_or(ResponseModelError::WrongType)?
+    Ok(uses)
 }
 
 fn text_list(value: &Value, limit: usize, max: usize) -> Result<Vec<String>, ResponseModelError> {
@@ -258,7 +232,14 @@ fn text_list(value: &Value, limit: usize, max: usize) -> Result<Vec<String>, Res
     if values.len() > limit {
         return Err(ResponseModelError::TooManyItems);
     }
-    values.iter().map(|value| value_text(value, max)).collect()
+    let mut output = Vec::new();
+    output
+        .try_reserve_exact(values.len())
+        .map_err(|_| ResponseModelError::Allocation)?;
+    for value in values {
+        output.push(value_text(value, max)?);
+    }
+    Ok(output)
 }
 
 fn take_nullable_secret(

@@ -43,11 +43,27 @@ def main() -> int:
     )
     require(
         ROOT / "crates/cloud-sdk-hetzner/src/serde/checked.rs",
-        ("decode_associated_response", "validate_incremental(bytes.as_slice())"),
+        ("decode_associated_checked_response",),
+    )
+    require(
+        ROOT / "crates/cloud-sdk-hetzner/src/serde/checked/success.rs",
+        ("validate_incremental(bytes.as_slice())", "validate_page_item_count"),
     )
     require(
         ROOT / "crates/cloud-sdk-hetzner/src/serde/vertical_tests.rs",
-        tuple(EXPECTED),
+        tuple(EXPECTED) + ("source_complete_pages_reject_more_items",),
+    )
+    require(
+        ROOT / "crates/cloud-sdk-hetzner/tests/vertical_execution.rs",
+        (
+            "decode_associated_checked_response",
+            "AuthenticationClass::Bearer",
+            "HetznerSuccess::Locations",
+            "HetznerSuccess::Certificate",
+            "HetznerSuccess::ZoneFile",
+            "HetznerSuccess::StorageBoxes",
+            "INVALID_JSON",
+        ),
     )
     require(
         ROOT / "docs/REJECTED_ABSTRACTIONS_0.62.0.md",

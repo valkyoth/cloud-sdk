@@ -187,7 +187,14 @@ pub(crate) fn parse_actions(value: &mut Value) -> Result<Vec<ActionResult>, Resp
     if values.len() > MAX_ACTIONS {
         return Err(ResponseModelError::TooManyItems);
     }
-    values.iter_mut().map(parse_action).collect()
+    let mut actions = Vec::new();
+    actions
+        .try_reserve_exact(values.len())
+        .map_err(|_| ResponseModelError::Allocation)?;
+    for value in values {
+        actions.push(parse_action(value)?);
+    }
+    Ok(actions)
 }
 
 fn parse_resources(value: &Value) -> Result<Vec<ActionResultResource>, ResponseModelError> {
@@ -195,18 +202,20 @@ fn parse_resources(value: &Value) -> Result<Vec<ActionResultResource>, ResponseM
     if values.len() > MAX_ACTION_RESOURCES {
         return Err(ResponseModelError::TooManyItems);
     }
-    values
-        .iter()
-        .map(|value| {
-            let fields = object(value)?;
-            let id = required(fields, "id")?
-                .as_u64()
-                .and_then(CloudResourceId::new)
-                .ok_or(ResponseModelError::InvalidIdentifier)?;
-            let resource_type = text_field(fields, "type", 128)?;
-            Ok(ActionResultResource { id, resource_type })
-        })
-        .collect()
+    let mut resources = Vec::new();
+    resources
+        .try_reserve_exact(values.len())
+        .map_err(|_| ResponseModelError::Allocation)?;
+    for value in values {
+        let fields = object(value)?;
+        let id = required(fields, "id")?
+            .as_u64()
+            .and_then(CloudResourceId::new)
+            .ok_or(ResponseModelError::InvalidIdentifier)?;
+        let resource_type = text_field(fields, "type", 128)?;
+        resources.push(ActionResultResource { id, resource_type });
+    }
+    Ok(resources)
 }
 
 fn parse_error(value: &mut Value) -> Result<Option<ActionResultError>, ResponseModelError> {

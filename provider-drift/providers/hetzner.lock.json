@@ -69,11 +69,11 @@
         }
       },
       {
-        "id": "dns-bearer",
+        "id": "storage-bearer",
         "values": {
           "endpoint_scope": "exact",
           "scheme": "bearer",
-          "service": "dns",
+          "service": "storage",
           "source_name": "APIToken",
           "source_sha256": "8749eac4bb4f787cccf51e9cd3edc1f075626bc9048d1eb2cdbbcdd22f8b95d4",
           "type": "http"
@@ -86,7 +86,7 @@
         "values": {
           "path": "docs/OPERATION_ASSOCIATIONS.tsv",
           "mutation_authority": "required",
-          "sha256": "cd0685dfceb8cc6b5f1f5ab1f5ceb42cc258a7d7edebd9a065171572ba485551"
+          "sha256": "444f671dcc1803ba22d593431db4b6399192f8bff1920b94479f36dfa98e0739"
         }
       }
     ],
@@ -102,7 +102,7 @@
         }
       },
       {
-        "id": "dns-v1",
+        "id": "storage-v1",
         "values": {
           "base_path": "/v1",
           "host": "api.hetzner.com",
@@ -123,7 +123,7 @@
         }
       },
       {
-        "id": "dns-response-headers",
+        "id": "storage-response-headers",
         "values": {
           "names": [],
           "source_sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
@@ -168,7 +168,7 @@
         "id": "operation-policy",
         "values": {
           "path": "docs/OPERATION_ASSOCIATIONS.tsv",
-          "sha256": "cd0685dfceb8cc6b5f1f5ab1f5ceb42cc258a7d7edebd9a065171572ba485551"
+          "sha256": "444f671dcc1803ba22d593431db4b6399192f8bff1920b94479f36dfa98e0739"
         }
       }
     ],
@@ -203,7 +203,7 @@
         }
       },
       {
-        "id": "dns-numbered",
+        "id": "storage-numbered",
         "values": {
           "page": "page",
           "per_page": "per_page",
@@ -223,7 +223,7 @@
             "response_started"
           ],
           "path": "docs/OPERATION_ASSOCIATIONS.tsv",
-          "sha256": "cd0685dfceb8cc6b5f1f5ab1f5ceb42cc258a7d7edebd9a065171572ba485551"
+          "sha256": "444f671dcc1803ba22d593431db4b6399192f8bff1920b94479f36dfa98e0739"
         }
       }
     ],
@@ -257,7 +257,7 @@
       "url": "https://docs.hetzner.cloud/cloud.spec.json"
     },
     {
-      "id": "dns-openapi",
+      "id": "storage-openapi",
       "max_bytes": 33554432,
       "sha256": "f70750016d81c927ddf877e103541c90d3e3372723cdf54e6fd7b2eba4a8108a",
       "url": "https://docs.hetzner.cloud/hetzner.spec.json"

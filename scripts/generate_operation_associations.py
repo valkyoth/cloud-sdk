@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import json
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
@@ -17,6 +18,7 @@ RESPONSES = (
 )
 ASSOCIATIONS = ROOT / "docs" / "OPERATION_ASSOCIATIONS.tsv"
 OUTPUT = ROOT / "crates" / "cloud-sdk-hetzner" / "src" / "association" / "markers.rs"
+PROVIDER_LOCK = ROOT / "provider-drift" / "providers" / "hetzner.lock.json"
 EXPECTED_OPERATIONS = 208
 
 ASSOCIATION_COLUMNS = (
@@ -158,6 +160,28 @@ def indexed(rows: list[dict[str, str]], key: str, source: str) -> dict[str, dict
     return result
 
 
+def source_authentication() -> dict[str, str]:
+    try:
+        lock = json.loads(PROVIDER_LOCK.read_text(encoding="utf-8"))
+        rows = lock["contracts"]["authentication"]
+    except (OSError, UnicodeError, json.JSONDecodeError, KeyError, TypeError) as error:
+        raise ValueError("provider authentication lock is unavailable") from error
+    schemes: dict[str, str] = {}
+    for row in rows:
+        try:
+            values = row["values"]
+            service = values["service"]
+            scheme = values["scheme"]
+        except (KeyError, TypeError) as error:
+            raise ValueError("provider authentication lock is invalid") from error
+        if service in schemes or scheme not in AUTHENTICATION_TYPES:
+            raise ValueError("provider authentication lock is invalid")
+        schemes[service] = scheme
+    if set(schemes) != {"cloud", "storage"}:
+        raise ValueError("provider authentication lock has the wrong services")
+    return {"cloud": schemes["cloud"], "hetzner": schemes["storage"]}
+
+
 def load_operations() -> list[Operation]:
     fingerprint_rows = [
         row for row in read_tsv(FINGERPRINTS) if row["deprecated"] == "no"
@@ -168,6 +192,7 @@ def load_operations() -> list[Operation]:
         read_associations(), "operation_id", "operation association"
     )
     bodies = read_bodies(BODIES)
+    authentication = source_authentication()
     active = set(fingerprints)
     if len(active) != EXPECTED_OPERATIONS:
         raise ValueError("active operation count changed")
@@ -191,9 +216,7 @@ def load_operations() -> list[Operation]:
             raise ValueError(f"body source mismatch for {operation_id}")
         if (association["service"] == "storage") != (source["api"] == "hetzner"):
             raise ValueError(f"service source mismatch for {operation_id}")
-        if (association["authentication"] == "basic") != (
-            association["service"] == "storage"
-        ):
+        if association["authentication"] != authentication[source["api"]]:
             raise ValueError(f"authentication source mismatch for {operation_id}")
         operations.append(
             Operation(

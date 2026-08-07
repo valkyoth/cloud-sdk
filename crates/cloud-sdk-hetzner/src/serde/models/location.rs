@@ -7,8 +7,6 @@ use super::{ResponseModelError, object, parse_pagination, required, value_text};
 use crate::pagination::PaginationMetadata;
 use crate::serde::strict_json::Value;
 
-const MAX_LOCATIONS: usize = 1_024;
-
 /// One source-complete Hetzner Cloud location.
 #[non_exhaustive]
 #[derive(Clone, Debug, PartialEq)]
@@ -43,19 +41,23 @@ pub struct LocationPage {
 
 pub(crate) fn parse_location_page(value: &Value) -> Result<LocationPage, ResponseModelError> {
     let envelope = object(value)?;
+    let pagination = parse_pagination(required(envelope, "meta")?)?;
     let values = required(envelope, "locations")?
         .as_array()
         .ok_or(ResponseModelError::WrongType)?;
-    if values.len() > MAX_LOCATIONS {
-        return Err(ResponseModelError::TooManyItems);
+    if values.len() > usize::from(pagination.per_page().get()) {
+        return Err(ResponseModelError::InvalidPagination);
     }
-    let locations = values
-        .iter()
-        .map(parse_location)
-        .collect::<Result<Vec<_>, _>>()?;
+    let mut locations = Vec::new();
+    locations
+        .try_reserve_exact(values.len())
+        .map_err(|_| ResponseModelError::Allocation)?;
+    for value in values {
+        locations.push(parse_location(value)?);
+    }
     Ok(LocationPage {
         locations,
-        pagination: parse_pagination(required(envelope, "meta")?)?,
+        pagination,
     })
 }
 

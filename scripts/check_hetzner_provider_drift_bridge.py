@@ -90,7 +90,7 @@ def validate_bridge(lock: dict, observation: dict, root: Path = ROOT) -> None:
     sources = {source["id"]: source for source in lock["sources"]}
     expected_sources = {
         "cloud-openapi": (hetzner.SPECS["cloud"], hetzner.PINNED_SPEC_SHA256["cloud"]),
-        "dns-openapi": (
+        "storage-openapi": (
             hetzner.SPECS["hetzner"],
             hetzner.PINNED_SPEC_SHA256["hetzner"],
         ),

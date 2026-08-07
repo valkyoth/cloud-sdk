@@ -18,8 +18,9 @@ mod rrsets;
 mod strict_json;
 
 pub use checked::{
-    CheckedHetznerResponse, HetznerApiError, HetznerDecodeError, decode_associated_response,
-    decode_response, decode_response_at,
+    CheckedHetznerResponse, HetznerApiError, HetznerDecodeError,
+    decode_associated_checked_response, decode_associated_response, decode_response,
+    decode_response_at,
 };
 pub use incremental::{
     IncrementalJsonDecoder, IncrementalJsonError, IncrementalJsonEvent, IncrementalJsonLimits,
@@ -28,10 +29,10 @@ pub use incremental::{
 pub use models::{
     AccessSettings, ActionResult, ActionResultError, ActionResultResource, Certificate,
     CertificateError, CertificateKind, CertificateStatus, CertificateUse, CompositeResult,
-    Deprecation, FolderList, HetznerSuccess, Location, LocationPage, MetricPoint, MetricSeries,
-    Metrics, Money, NamedSensitiveText, Price, Pricing, Protection, Resource, ResourceIdentifier,
-    ResourceKind, ResponseModelError, SensitiveText, SnapshotPlan, StorageBox, StorageBoxPage,
-    StorageBoxStats, StorageBoxStatus, StorageBoxType, ZoneFile,
+    Deprecation, FolderList, HetznerSuccess, Labels, Location, LocationPage, MetricPoint,
+    MetricSeries, Metrics, Money, NamedSensitiveText, Price, Pricing, Protection, Resource,
+    ResourceIdentifier, ResourceKind, ResponseModelError, SensitiveText, SnapshotPlan, StorageBox,
+    StorageBoxPage, StorageBoxStats, StorageBoxStatus, StorageBoxType, ZoneFile,
 };
 pub use pagination::PaginationEnvelope;
 pub use response::{
@@ -43,6 +44,8 @@ pub use rrsets::{MAX_RRSET_JSON_BODY_BYTES, RrsetBodyError, RrsetRequestBody};
 
 #[cfg(test)]
 mod adversarial_tests;
+#[cfg(test)]
+mod checked_pagination_tests;
 #[cfg(test)]
 mod checked_security_tests;
 #[cfg(test)]

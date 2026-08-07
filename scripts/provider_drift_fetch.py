@@ -27,7 +27,7 @@ APPROVED_SOURCE_ENDPOINTS = {
         443,
         "https://docs.hetzner.cloud/cloud.spec.json",
     ),
-    ("hetzner", "dns-openapi"): (
+    ("hetzner", "storage-openapi"): (
         "docs.hetzner.cloud",
         443,
         "https://docs.hetzner.cloud/hetzner.spec.json",

@@ -1,6 +1,5 @@
 //! Bounded duplicate-rejecting JSON admission with protected string storage.
 
-use alloc::collections::BTreeMap;
 use alloc::string::String;
 use alloc::vec::Vec;
 use core::borrow::Borrow;
@@ -8,20 +7,63 @@ use core::borrow::Borrow;
 use cloud_sdk_sanitization::{SecretString, sanitize_string};
 
 mod parser;
+pub(super) use parser::JsonError;
 
 pub(super) const MAX_JSON_DEPTH: usize = 64;
 pub(super) const MAX_JSON_CONTAINER_ENTRIES: usize = 4096;
 pub(super) const MAX_JSON_NODES: usize = 65_536;
 pub(super) const MAX_JSON_STRING_BYTES: usize = 1_048_576;
 
-pub(super) type Map = BTreeMap<ProtectedKey, Value>;
+pub(super) struct Map(Vec<(ProtectedKey, Value)>);
+
+impl Map {
+    pub(super) const fn new() -> Self {
+        Self(Vec::new())
+    }
+
+    pub(super) fn try_reserve(&mut self, additional: usize) -> Result<(), ()> {
+        self.0.try_reserve(additional).map_err(|_| ())
+    }
+
+    pub(super) fn len(&self) -> usize {
+        self.0.len()
+    }
+
+    pub(super) fn contains_key(&self, key: &str) -> bool {
+        self.get(key).is_some()
+    }
+
+    pub(super) fn insert_reserved(&mut self, key: ProtectedKey, value: Value) {
+        self.0.push((key, value));
+    }
+
+    pub(super) fn get(&self, key: &str) -> Option<&Value> {
+        self.0
+            .iter()
+            .find(|(candidate, _)| candidate.as_str() == key)
+            .map(|(_, value)| value)
+    }
+
+    pub(super) fn get_mut(&mut self, key: &str) -> Option<&mut Value> {
+        self.0
+            .iter_mut()
+            .find(|(candidate, _)| candidate.as_str() == key)
+            .map(|(_, value)| value)
+    }
+
+    pub(super) fn iter(&self) -> impl Iterator<Item = (&ProtectedKey, &Value)> {
+        self.0.iter().map(|(key, value)| (key, value))
+    }
+}
 
 #[derive(Eq, Ord, PartialEq, PartialOrd)]
 pub(super) struct ProtectedKey(String);
 
 impl ProtectedKey {
-    pub(super) fn with_capacity(capacity: usize) -> Self {
-        Self(String::with_capacity(capacity))
+    pub(super) fn try_with_capacity(capacity: usize) -> Result<Self, ()> {
+        let mut value = String::new();
+        value.try_reserve_exact(capacity).map_err(|_| ())?;
+        Ok(Self(value))
     }
 
     pub(super) fn push_str(&mut self, value: &str) {
@@ -259,7 +301,8 @@ mod tests {
 
     #[test]
     fn object_keys_use_capacity_wiping_storage() {
-        let mut key = ProtectedKey::with_capacity(32);
+        let mut key = ProtectedKey::try_with_capacity(32)
+            .unwrap_or_else(|()| unreachable!("test key allocation failed"));
         key.push_str("potentially sensitive key");
         assert_eq!(key.0.capacity(), 32);
         sanitize_string(&mut key.0);

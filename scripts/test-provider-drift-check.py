@@ -92,33 +92,36 @@ def test_source_derived_categories_do_not_inherit_lock_values() -> None:
         "security": [{"APIToken": []}],
         "servers": [{"url": "https://api.hetzner.cloud/v1"}],
     }
-    dns_document = copy.deepcopy(document)
-    dns_document["servers"] = [{"url": "https://api.hetzner.com/v1"}]
+    storage_document = copy.deepcopy(document)
+    storage_document["servers"] = [{"url": "https://api.hetzner.com/v1"}]
     original_parse = adapters.hetzner.parse_spec
     original_operations = adapters.hetzner.operation_rows
     original_schemas = adapters.hetzner.schema_rows
     original_responses = adapters.responses.rows
+    original_services = adapters.responses.operation_services
     adapters.hetzner.parse_spec = lambda api, _payload: (
-        document if api == "cloud" else dns_document
+        document if api == "cloud" else storage_document
     )
     adapters.hetzner.operation_rows = lambda _api, _document: []
     adapters.hetzner.schema_rows = lambda _api, _document: []
     adapters.responses.rows = lambda _api, _document: []
+    adapters.responses.operation_services = lambda: {}
     try:
         observed = adapters._hetzner_observation(
-            lock, {"cloud-openapi": b"cloud", "dns-openapi": b"dns"}
+            lock, {"cloud-openapi": b"cloud", "storage-openapi": b"storage"}
         )
     finally:
         adapters.hetzner.parse_spec = original_parse
         adapters.hetzner.operation_rows = original_operations
         adapters.hetzner.schema_rows = original_schemas
         adapters.responses.rows = original_responses
+        adapters.responses.operation_services = original_services
     authentication = {
         row["id"]: row["values"] for row in observed["contracts"]["authentication"]
     }
     endpoints = {row["id"]: row["values"] for row in observed["contracts"]["endpoints"]}
     assert authentication["cloud-bearer"]["scheme"] == "bearer"
-    assert endpoints["dns-v1"]["host"] == "api.hetzner.com"
+    assert endpoints["storage-v1"]["host"] == "api.hetzner.com"
     assert observed["contracts"]["cost"][0]["values"]["path"] == (
         "docs/OPERATION_ASSOCIATIONS.tsv"
     )

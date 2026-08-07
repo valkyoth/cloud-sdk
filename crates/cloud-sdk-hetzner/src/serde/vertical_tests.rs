@@ -4,7 +4,7 @@ use alloc::string::String;
 use cloud_sdk::transport::StatusCode;
 
 use super::checked_test_support::{decode_response, empty_response, prepared, response};
-use super::{HetznerDecodeError, HetznerSuccess, StorageBoxStatus};
+use super::{HetznerDecodeError, HetznerSuccess, ResponseModelError, StorageBoxStatus};
 use crate::{CLOUD_SERVICE_ID, DNS_SERVICE_ID, SECURITY_SERVICE_ID, STORAGE_SERVICE_ID};
 
 const LOCATION: &str = r#"{"id":42,"name":"fsn1","description":"Falkenstein DC Park 1","country":"DE","city":"Falkenstein","latitude":50.47612,"longitude":12.370071,"network_zone":"eu-central"}"#;
@@ -89,6 +89,38 @@ fn storage_box_uses_incremental_admission_and_preserves_nested_fields() {
     assert_eq!(
         storage_box.labels.get("empty").map(String::as_str),
         Some("")
+    );
+}
+
+#[test]
+fn source_complete_pages_reject_more_items_than_declared_per_page() {
+    let one_item_page = r#"{"pagination":{"page":1,"per_page":1,"previous_page":null,"next_page":2,"last_page":2,"total_entries":2}}"#;
+    let locations = format!(
+        r#"{{"locations":[{0},{0}],"meta":{1}}}"#,
+        LOCATION, one_item_page,
+    );
+    assert_eq!(
+        decode_response(
+            prepared("list_locations", CLOUD_SERVICE_ID, StatusCode::OK),
+            response(StatusCode::OK, locations.as_bytes()),
+        ),
+        Err(HetznerDecodeError::Model(
+            ResponseModelError::InvalidPagination,
+        )),
+    );
+
+    let boxes = format!(
+        r#"{{"storage_boxes":[{0},{0}],"meta":{1}}}"#,
+        STORAGE_BOX, one_item_page,
+    );
+    assert_eq!(
+        decode_response(
+            prepared("list_storage_boxes", STORAGE_SERVICE_ID, StatusCode::OK),
+            response(StatusCode::OK, boxes.as_bytes()),
+        ),
+        Err(HetznerDecodeError::Model(
+            ResponseModelError::InvalidPagination,
+        )),
     );
 }
 

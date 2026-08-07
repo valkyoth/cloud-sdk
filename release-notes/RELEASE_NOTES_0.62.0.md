@@ -25,6 +25,16 @@ vertical slices. It remains an internal tag and publishes no crate.
 - Reused the checked typed API error and exact `delete_certificate` 204 path.
 - Corrected generated response bindings to preserve Cloud, DNS, security, and
   Storage service identities independently of the two upstream API documents.
+- Corrected the Storage management API association to bearer authentication,
+  derived generation policy from the reviewed provider lock, and renamed the
+  misleading DNS drift identities to Storage identities.
+- Required every numbered response array to contain no more records than its
+  validated `per_page` value before typed allocation begins.
+- Made protected JSON DOM and typed response allocations fallible and exposed
+  allocation failure through payload-free model errors.
+- Added `decode_associated_checked_response` so blocking, Send-async, and local
+  async execution results enter the operation-associated typed decoder without
+  reopening raw response bytes.
 
 ## Neutral Freeze
 
@@ -35,6 +45,11 @@ The public review records the accepted contracts and rejected abstractions.
 Testkit now admits exact successful `2xx` statuses and classifies all in-memory
 mock failures as proven `NotSent`, allowing permit-authorized `201` and `204`
 fixtures without pretending peer I/O occurred.
+
+The vertical gate now uses operation-valid Location, Certificate, Zonefile,
+and Storage Box fixtures, checks Storage bearer authentication, typed-decodes
+all three executor results, and proves the generic `{"ok":true}` envelope is
+rejected for every source-complete read slice.
 
 ## Versions
 

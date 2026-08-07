@@ -249,11 +249,14 @@ pub(crate) fn parse_folders(value: &Value) -> Result<FolderList, ResponseModelEr
     if values.len() > MAX_FOLDERS {
         return Err(ResponseModelError::TooManyItems);
     }
-    values
-        .iter()
-        .map(|value| value_text(value, 4096))
-        .collect::<Result<Vec<_>, _>>()
-        .map(FolderList)
+    let mut folders = Vec::new();
+    folders
+        .try_reserve_exact(values.len())
+        .map_err(|_| ResponseModelError::Allocation)?;
+    for value in values {
+        folders.push(value_text(value, 4096)?);
+    }
+    Ok(FolderList(folders))
 }
 
 pub(crate) fn parse_metrics(value: &Value) -> Result<Metrics, ResponseModelError> {
@@ -268,8 +271,11 @@ pub(crate) fn parse_metrics(value: &Value) -> Result<Metrics, ResponseModelError
     if time_series.len() > MAX_METRIC_SERIES {
         return Err(ResponseModelError::TooManyItems);
     }
-    let mut series = Vec::with_capacity(time_series.len());
-    for (name, value) in time_series {
+    let mut series = Vec::new();
+    series
+        .try_reserve_exact(time_series.len())
+        .map_err(|_| ResponseModelError::Allocation)?;
+    for (name, value) in time_series.iter() {
         let name = checked_text(name.as_str(), 256)?;
         let series_fields = object(value)?;
         let values = required(series_fields, "values")?
@@ -278,7 +284,10 @@ pub(crate) fn parse_metrics(value: &Value) -> Result<Metrics, ResponseModelError
         if values.len() > MAX_METRIC_POINTS {
             return Err(ResponseModelError::TooManyItems);
         }
-        let mut points = Vec::with_capacity(values.len());
+        let mut points = Vec::new();
+        points
+            .try_reserve_exact(values.len())
+            .map_err(|_| ResponseModelError::Allocation)?;
         for point in values {
             let point = point.as_array().ok_or(ResponseModelError::WrongType)?;
             if point.len() != 2 {

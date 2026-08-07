@@ -169,10 +169,14 @@ pub(crate) fn parse_resources(
     if values.len() > MAX_RESOURCES {
         return Err(ResponseModelError::TooManyItems);
     }
-    values
-        .iter()
-        .map(|value| parse_resource(root, value))
-        .collect()
+    let mut resources = Vec::new();
+    resources
+        .try_reserve_exact(values.len())
+        .map_err(|_| ResponseModelError::Allocation)?;
+    for value in values {
+        resources.push(parse_resource(root, value)?);
+    }
+    Ok(resources)
 }
 
 pub(crate) fn parse_pagination(value: &Value) -> Result<PaginationMetadata, ResponseModelError> {

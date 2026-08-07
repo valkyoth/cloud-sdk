@@ -14,9 +14,9 @@ pub const MAX_ASSOCIATED_JSON_BYTES: usize = 8_388_608;
 #[non_exhaustive]
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum AuthenticationClass {
-    /// Hetzner Cloud, DNS, and security bearer-token authentication.
+    /// Hetzner Cloud, DNS, security, and Storage management bearer token.
     Bearer,
-    /// Hetzner Console Storage HTTP Basic authentication.
+    /// Reserved for future source-reviewed Basic authentication operations.
     Basic,
 }
 

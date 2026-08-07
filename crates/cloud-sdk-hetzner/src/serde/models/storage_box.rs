@@ -1,16 +1,17 @@
 //! Source-complete Storage Box response models.
 
-use alloc::collections::BTreeMap;
 use alloc::string::String;
 use alloc::vec::Vec;
 
 use super::location::parse_location;
-use super::{Location, ResponseModelError, object, parse_pagination, required, value_text};
-use crate::pagination::PaginationMetadata;
+use super::{
+    Labels, Location, ResponseModelError, object, parse_labels, parse_pagination, required,
+    value_text,
+};
+use crate::pagination::{MAX_PER_PAGE, PaginationMetadata};
 use crate::serde::strict_json::{Map, Value};
 
-const MAX_BOXES: usize = 4_096;
-const MAX_PRICES: usize = 1_024;
+const MAX_PRICES: usize = MAX_PER_PAGE as usize;
 const MAX_LABELS: usize = 64;
 
 /// Decimal monetary amount preserved as provider text.
@@ -154,7 +155,7 @@ pub struct StorageBox {
     /// Deletion protection.
     pub protection: Protection,
     /// User labels.
-    pub labels: BTreeMap<String, String>,
+    pub labels: Labels,
     /// Lifecycle state.
     pub status: StorageBoxStatus,
     /// Primary username when initialized.
@@ -181,15 +182,23 @@ pub struct StorageBoxPage {
 
 pub(crate) fn parse_storage_box_page(value: &Value) -> Result<StorageBoxPage, ResponseModelError> {
     let envelope = object(value)?;
+    let pagination = parse_pagination(required(envelope, "meta")?)?;
     let values = required(envelope, "storage_boxes")?
         .as_array()
         .ok_or(ResponseModelError::WrongType)?;
-    if values.len() > MAX_BOXES {
-        return Err(ResponseModelError::TooManyItems);
+    if values.len() > usize::from(pagination.per_page().get()) {
+        return Err(ResponseModelError::InvalidPagination);
+    }
+    let mut storage_boxes = Vec::new();
+    storage_boxes
+        .try_reserve_exact(values.len())
+        .map_err(|_| ResponseModelError::Allocation)?;
+    for value in values {
+        storage_boxes.push(parse_box(value)?);
     }
     Ok(StorageBoxPage {
-        storage_boxes: values.iter().map(parse_box).collect::<Result<_, _>>()?,
-        pagination: parse_pagination(required(envelope, "meta")?)?,
+        storage_boxes,
+        pagination,
     })
 }
 
@@ -203,7 +212,7 @@ fn parse_box(value: &Value) -> Result<StorageBox, ResponseModelError> {
         access_settings: parse_access(required(fields, "access_settings")?)?,
         snapshot_plan: parse_snapshot_plan(required(fields, "snapshot_plan")?)?,
         protection: parse_protection(required(fields, "protection")?)?,
-        labels: parse_labels(required(fields, "labels")?)?,
+        labels: parse_labels(required(fields, "labels")?, MAX_LABELS)?,
         status: parse_status(required(fields, "status")?)?,
         username: nullable_text(fields, "username", 256)?,
         server: nullable_text(fields, "server", 512)?,
@@ -221,6 +230,13 @@ fn parse_type(value: &Value) -> Result<StorageBoxType, ResponseModelError> {
     if prices.len() > MAX_PRICES {
         return Err(ResponseModelError::TooManyItems);
     }
+    let mut parsed_prices = Vec::new();
+    parsed_prices
+        .try_reserve_exact(prices.len())
+        .map_err(|_| ResponseModelError::Allocation)?;
+    for price in prices {
+        parsed_prices.push(parse_price(price)?);
+    }
     Ok(StorageBoxType {
         id: positive(fields, "id")?,
         name: text(fields, "name", 128)?,
@@ -229,7 +245,7 @@ fn parse_type(value: &Value) -> Result<StorageBoxType, ResponseModelError> {
         automatic_snapshot_limit: nullable_u64(fields, "automatic_snapshot_limit")?,
         subaccounts_limit: number(fields, "subaccounts_limit")?,
         size: number(fields, "size")?,
-        prices: prices.iter().map(parse_price).collect::<Result<_, _>>()?,
+        prices: parsed_prices,
         deprecation: parse_deprecation(required(fields, "deprecation")?)?,
     })
 }
@@ -315,30 +331,6 @@ fn parse_status(value: &Value) -> Result<StorageBoxStatus, ResponseModelError> {
         .map_err(|_| ResponseModelError::InvalidText)?
         .flatten()
         .ok_or(ResponseModelError::UnknownEnumValue)
-}
-
-fn parse_labels(value: &Value) -> Result<BTreeMap<String, String>, ResponseModelError> {
-    let fields = object(value)?;
-    if fields.len() > MAX_LABELS {
-        return Err(ResponseModelError::TooManyItems);
-    }
-    fields
-        .iter()
-        .map(|(key, value)| {
-            let label = value
-                .try_with_str(|value| {
-                    if value.is_empty() {
-                        Ok(String::new())
-                    } else {
-                        super::checked_text(value, 1_024)
-                    }
-                })
-                .map_err(|_| ResponseModelError::InvalidText)?
-                .ok_or(ResponseModelError::WrongType)??;
-            super::validate_text(key.as_str(), 128)?;
-            Ok((String::from(key.as_str()), label))
-        })
-        .collect()
 }
 
 fn decimal(fields: &Map, key: &str) -> Result<String, ResponseModelError> {

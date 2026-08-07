@@ -22,7 +22,8 @@ EXPECTED = (
         "Success response models",
         "Complete checked envelope and resource-identity coverage for all 208 "
         "operations, plus source-complete v0.62 location, certificate, and "
-        "Storage Box slices",
+        "Storage Box slices; typed execution guards decode through "
+        "`decode_associated_checked_response`",
         "Remaining provider-complete resource fields before `1.0.0`",
     ),
     (

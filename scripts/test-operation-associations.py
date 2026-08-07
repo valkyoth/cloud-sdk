@@ -36,7 +36,11 @@ def main() -> int:
     assert by_id["list_storage_box_folders"].query_policy == "forbidden"
     assert by_id["list_zones"].service == "dns"
     assert by_id["list_certificates"].service == "security"
-    assert by_id["list_storage_boxes"].authentication == "basic"
+    assert generator.source_authentication() == {
+        "cloud": "bearer",
+        "hetzner": "bearer",
+    }
+    assert by_id["list_storage_boxes"].authentication == "bearer"
     assert by_id["create_server"].permit_class == "cost"
     assert by_id["delete_server"].permit_class == "destructive"
     assert by_id["update_server"].retry_policy == "explicit"

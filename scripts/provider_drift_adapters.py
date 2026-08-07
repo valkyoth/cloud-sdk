@@ -47,8 +47,14 @@ def _render_response_rows(rows: list[tuple[str, ...]]) -> bytes:
                 responses.validate_tsv_cell(value, f"response field {index}")
             except ValueError as error:
                 raise AdapterError("provider response operation is invalid") from error
-    lines = ["api\toperation_id\tstatus\tshape\troot\trequired"]
-    lines.extend("\t".join(row) for row in sorted(rows, key=lambda row: row[1]))
+    services = responses.operation_services()
+    if set(operation_ids) != set(services):
+        raise AdapterError("provider response services are incomplete")
+    lines = ["api\tservice\toperation_id\tstatus\tshape\troot\trequired"]
+    lines.extend(
+        "\t".join((row[0], services[row[1]], *row[1:]))
+        for row in sorted(rows, key=lambda row: row[1])
+    )
     return ("\n".join(lines) + "\n").encode("ascii")
 
 
@@ -239,20 +245,21 @@ def _policy_contracts() -> dict[str, list[dict[str, Any]]]:
 def _hetzner_observation(
     lock: dict[str, Any], payloads: dict[str, bytes]
 ) -> dict[str, Any]:
-    if set(payloads) != {"cloud-openapi", "dns-openapi"}:
+    if set(payloads) != {"cloud-openapi", "storage-openapi"}:
         raise AdapterError("Hetzner source set is incomplete")
     try:
         documents = {
             "cloud": hetzner.parse_spec("cloud", payloads["cloud-openapi"]),
-            "hetzner": hetzner.parse_spec("hetzner", payloads["dns-openapi"]),
+            "storage": hetzner.parse_spec("hetzner", payloads["storage-openapi"]),
         }
         operations: list[dict[str, str]] = []
         schemas: list[dict[str, str]] = []
         response_rows: list[tuple[str, ...]] = []
-        for api, document in documents.items():
-            operations.extend(hetzner.operation_rows(api, document))
-            schemas.extend(hetzner.schema_rows(api, document))
-            response_rows.extend(responses.rows(api, document))
+        for source_api, service in (("cloud", "cloud"), ("hetzner", "storage")):
+            document = documents[service]
+            operations.extend(hetzner.operation_rows(source_api, document))
+            schemas.extend(hetzner.schema_rows(source_api, document))
+            response_rows.extend(responses.rows(source_api, document))
     except (KeyError, SystemExit, ValueError) as error:
         raise AdapterError("Hetzner source normalization failed") from error
 
@@ -281,16 +288,16 @@ def _hetzner_observation(
     contracts = {
         "authentication": [
             _authentication_row("cloud", documents["cloud"]),
-            _authentication_row("dns", documents["hetzner"]),
+            _authentication_row("storage", documents["storage"]),
         ],
         "cost": policies["cost"],
         "endpoints": [
             _endpoint_row("cloud", documents["cloud"]),
-            _endpoint_row("dns", documents["hetzner"]),
+            _endpoint_row("storage", documents["storage"]),
         ],
         "headers": [
             _header_row("cloud", documents["cloud"]),
-            _header_row("dns", documents["hetzner"]),
+            _header_row("storage", documents["storage"]),
             {
                 "id": "response-metadata-policy",
                 "values": {
@@ -326,7 +333,7 @@ def _hetzner_observation(
         "operations": [],
         "pagination": [
             _pagination_row("cloud", "cloud", operations),
-            _pagination_row("hetzner", "dns", operations),
+            _pagination_row("hetzner", "storage", operations),
         ],
         "retry": policies["retry"],
         "schemas": [],
@@ -368,7 +375,7 @@ def _hetzner_observation(
     }
     source_payloads = {
         "cloud-openapi": payloads["cloud-openapi"],
-        "dns-openapi": payloads["dns-openapi"],
+        "storage-openapi": payloads["storage-openapi"],
     }
     for source in observation["sources"]:
         source["sha256"] = hashlib.sha256(source_payloads[source["id"]]).hexdigest()

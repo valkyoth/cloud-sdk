@@ -151,7 +151,7 @@ fn descriptors_cover_every_policy_dimension() {
 
     let storage = ListStorageBoxes::DESCRIPTOR;
     assert_eq!(storage.service_id(), STORAGE_SERVICE_ID);
-    assert_eq!(storage.authentication(), AuthenticationClass::Basic);
+    assert_eq!(storage.authentication(), AuthenticationClass::Bearer);
     assert_eq!(storage.query_policy(), QueryPolicy::Optional);
 }
 

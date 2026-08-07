@@ -56,6 +56,8 @@ pub enum ResponseModelError {
     EnvelopeMismatch,
     /// A numeric value is outside its source-locked range.
     InvalidNumber,
+    /// Memory required for a bounded response model could not be reserved.
+    Allocation,
 }
 
 impl_static_error!(ResponseModelError,
@@ -68,7 +70,74 @@ impl_static_error!(ResponseModelError,
     Self::InvalidPagination => "Hetzner response pagination is invalid",
     Self::EnvelopeMismatch => "Hetzner response does not match the operation envelope",
     Self::InvalidNumber => "Hetzner response number is invalid",
+    Self::Allocation => "Hetzner response model allocation failed",
 );
+
+/// Fallibly constructed, deterministic provider labels.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct Labels(Vec<(String, String)>);
+
+impl Labels {
+    fn parse(value: &Value, maximum: usize) -> Result<Self, ResponseModelError> {
+        let fields = object(value)?;
+        if fields.len() > maximum {
+            return Err(ResponseModelError::TooManyItems);
+        }
+        let mut labels = Vec::new();
+        labels
+            .try_reserve_exact(fields.len())
+            .map_err(|_| ResponseModelError::Allocation)?;
+        for (key, value) in fields.iter() {
+            let key = checked_text(key.as_str(), 128)?;
+            let value = value
+                .try_with_str(|value| {
+                    if value.is_empty() {
+                        Ok(String::new())
+                    } else {
+                        checked_text(value, 1_024)
+                    }
+                })
+                .map_err(|_| ResponseModelError::InvalidText)?
+                .ok_or(ResponseModelError::WrongType)??;
+            labels.push((key, value));
+        }
+        labels.sort_unstable_by(|left, right| left.0.cmp(&right.0));
+        Ok(Self(labels))
+    }
+
+    /// Returns the value for one exact label key.
+    #[must_use]
+    pub fn get(&self, key: &str) -> Option<&String> {
+        self.0
+            .binary_search_by(|(candidate, _)| candidate.as_str().cmp(key))
+            .ok()
+            .and_then(|index| self.0.get(index))
+            .map(|(_, value)| value)
+    }
+
+    /// Returns the number of labels.
+    #[must_use]
+    pub fn len(&self) -> usize {
+        self.0.len()
+    }
+
+    /// Reports whether no labels are present.
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
+    /// Iterates over labels in stable key order.
+    pub fn iter(&self) -> impl Iterator<Item = (&str, &str)> {
+        self.0
+            .iter()
+            .map(|(key, value)| (key.as_str(), value.as_str()))
+    }
+}
+
+pub(super) fn parse_labels(value: &Value, maximum: usize) -> Result<Labels, ResponseModelError> {
+    Labels::parse(value, maximum)
+}
 
 /// Typed successful result returned by the checked decoder.
 #[derive(Clone, Debug, PartialEq)]
@@ -202,7 +271,12 @@ pub(super) fn value_text(value: &Value, max: usize) -> Result<String, ResponseMo
 
 pub(super) fn checked_text(value: &str, max: usize) -> Result<String, ResponseModelError> {
     validate_text(value, max)?;
-    Ok(String::from(value))
+    let mut output = String::new();
+    output
+        .try_reserve_exact(value.len())
+        .map_err(|_| ResponseModelError::Allocation)?;
+    output.push_str(value);
+    Ok(output)
 }
 
 pub(super) fn validate_text(value: &str, max: usize) -> Result<(), ResponseModelError> {

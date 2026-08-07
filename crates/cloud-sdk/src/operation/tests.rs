@@ -182,10 +182,11 @@ fn prepared_blocking_execution_checks_endpoint_and_lends_only_policy_capacity() 
         &mut response_storage,
         &mut response_header_storage,
     );
-    assert!(
-        response
-            .is_ok_and(|response| { response.with_borrowed(|checked| checked.body() == b"{}") })
-    );
+    assert!(response.is_ok_and(|response| {
+        response.with_borrowed(|checked| {
+            checked.body() == b"{}" && checked.headers().get("content-type").is_some()
+        })
+    }));
     assert_eq!(transport.calls.load(Ordering::Acquire), 1);
     assert_eq!(transport.last_capacity.load(Ordering::Acquire), 16);
     assert_eq!(response_storage.get(2..), Some([0_u8; 62].as_slice()));

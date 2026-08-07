@@ -20,6 +20,7 @@ pub(crate) enum JsonError {
     ContainerLimit,
     NodeLimit,
     StringLimit,
+    Allocation,
 }
 
 #[cfg(test)]
@@ -98,6 +99,7 @@ impl Parser<'_> {
             if values.len() >= MAX_JSON_CONTAINER_ENTRIES {
                 return Err(JsonError::ContainerLimit);
             }
+            values.try_reserve(1).map_err(|_| JsonError::Allocation)?;
             values.push(self.parse_value(depth.saturating_add(1))?);
             self.skip_whitespace();
             if self.consume(b']') {
@@ -121,11 +123,12 @@ impl Parser<'_> {
             if values.len() >= MAX_JSON_CONTAINER_ENTRIES {
                 return Err(JsonError::ContainerLimit);
             }
+            values.try_reserve(1).map_err(|_| JsonError::Allocation)?;
             if self.current() != Some(b'"') {
                 return Err(JsonError::InvalidSyntax);
             }
             let key = self.parse_key()?;
-            if values.contains_key(&key) {
+            if values.contains_key(key.as_str()) {
                 return Err(JsonError::DuplicateKey);
             }
             self.skip_whitespace();
@@ -134,7 +137,7 @@ impl Parser<'_> {
             }
             self.skip_whitespace();
             let value = self.parse_value(depth.saturating_add(1))?;
-            values.insert(key, value);
+            values.insert_reserved(key, value);
             self.skip_whitespace();
             if self.consume(b'}') {
                 return Ok(values);
@@ -148,7 +151,8 @@ impl Parser<'_> {
 
     fn parse_secret_string(&mut self) -> Result<SecretString, JsonError> {
         let scan = scan_string(self.input, self.position)?;
-        let mut output = SecretString::with_capacity(scan.decoded_len);
+        let mut output =
+            SecretString::try_with_capacity(scan.decoded_len).map_err(|_| JsonError::Allocation)?;
         decode_string(
             self.input,
             self.position,
@@ -164,7 +168,8 @@ impl Parser<'_> {
 
     fn parse_key(&mut self) -> Result<ProtectedKey, JsonError> {
         let scan = scan_string(self.input, self.position)?;
-        let mut output = ProtectedKey::with_capacity(scan.decoded_len);
+        let mut output =
+            ProtectedKey::try_with_capacity(scan.decoded_len).map_err(|_| JsonError::Allocation)?;
         decode_string(
             self.input,
             self.position,

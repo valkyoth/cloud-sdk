@@ -1,13 +1,12 @@
 //! Checked provider-neutral response policy.
 mod cursor;
-use core::fmt;
-
 use super::RequestIdPolicy;
 use crate::rate_limit::RateLimit;
 use crate::transport::{
     MediaType, ResponseBuffer, ResponseContentType, ResponseDecodeWorkspace, ResponseWriterError,
     RetainedMetadataError, RetainedResponseMetadata, StatusCode, TransportResponse,
 };
+use core::fmt;
 /// Expected response-body shape.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum ResponseBodyPolicy {
@@ -237,6 +236,7 @@ pub(crate) fn apply_request_id_policy(
 pub struct CheckedResponse<'body> {
     status: StatusCode,
     body: &'body [u8],
+    headers: &'body crate::transport::ResponseHeaders<'body>,
     content_type: Option<ResponseContentType<'body>>,
     rate_limit: Option<RateLimit>,
     request_id: Option<&'body [u8]>,
@@ -397,20 +397,6 @@ impl fmt::Debug for CheckedResponseGuard<'_> {
     }
 }
 
-impl fmt::Debug for CheckedResponse<'_> {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        formatter
-            .debug_struct("CheckedResponse")
-            .field("status", &self.status())
-            .field("body_len", &self.body().len())
-            .field("body", &"[redacted]")
-            .field("content_type", &self.content_type())
-            .field("rate_limit", &self.rate_limit())
-            .field("request_id", &"[redacted]")
-            .finish()
-    }
-}
-
 fn checked_response<'response>(
     writer: &'response ResponseBuffer<'_>,
     snapshot: CheckedResponseSnapshot,
@@ -418,6 +404,7 @@ fn checked_response<'response>(
     CheckedResponse {
         status: snapshot.status,
         body: writer.initialized_body(snapshot.body_len),
+        headers: writer.headers(),
         content_type: writer
             .response()
             .ok()

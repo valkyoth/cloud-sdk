@@ -59,8 +59,9 @@ where
     let runtime_response = response_policy(response_profile).map_err(policy_mismatch)?;
     let runtime_raw = raw_response_policy(response_profile).map_err(policy_mismatch)?;
     let authentication = match endpoint_group.surface() {
-        ApiSurface::Storage => AuthenticationClass::Basic,
-        ApiSurface::Cloud | ApiSurface::Dns | ApiSurface::Security => AuthenticationClass::Bearer,
+        ApiSurface::Cloud | ApiSurface::Dns | ApiSurface::Security | ApiSurface::Storage => {
+            AuthenticationClass::Bearer
+        }
     };
 
     if operation_key != expected.operation_id.as_str()
