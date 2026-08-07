@@ -37,7 +37,7 @@ impl ActionResultResource {
 }
 
 /// Error embedded in a completed action result.
-#[derive(Clone, Eq, PartialEq)]
+#[derive(Eq, PartialEq)]
 pub struct ActionResultError {
     code: ApiErrorCode,
     message: SensitiveText,
@@ -70,7 +70,7 @@ impl fmt::Debug for ActionResultError {
 }
 
 /// Validated action returned by a Hetzner operation.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq)]
 pub struct ActionResult {
     id: ActionId,
     command: String,

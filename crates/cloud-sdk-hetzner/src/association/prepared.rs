@@ -217,6 +217,57 @@ pub struct Prepared<'request, O> {
     operation: PhantomData<fn() -> O>,
 }
 
+/// Checked response retaining the exact operation that produced it.
+///
+/// A response cannot be decoded through another operation marker:
+///
+/// ```compile_fail
+/// use cloud_sdk_hetzner::association::{AssociatedCheckedResponse, operations};
+/// use cloud_sdk_hetzner::serde::decode_associated_checked_response;
+///
+/// fn cross_wire(
+///     response: AssociatedCheckedResponse<'_, operations::ListServers>,
+/// ) {
+///     let _ = decode_associated_checked_response::<operations::ListStorageBoxes>(response);
+/// }
+/// ```
+pub struct AssociatedCheckedResponse<'buffer, O> {
+    inner: CheckedResponseGuard<'buffer>,
+    operation: PhantomData<fn() -> O>,
+}
+
+impl<'buffer, O: HetznerOperation> AssociatedCheckedResponse<'buffer, O> {
+    fn new(inner: CheckedResponseGuard<'buffer>) -> Self {
+        Self {
+            inner,
+            operation: PhantomData,
+        }
+    }
+
+    /// Returns the compile-time operation associated with this response.
+    #[must_use]
+    pub const fn association(&self) -> super::OperationDescriptor {
+        O::DESCRIPTOR
+    }
+
+    /// Explicitly erases the operation marker and returns the provider-neutral
+    /// checked guard. This leaves the operation-associated decoding contract.
+    #[must_use]
+    pub fn into_untyped(self) -> CheckedResponseGuard<'buffer> {
+        self.inner
+    }
+}
+
+impl<O: HetznerOperation> fmt::Debug for AssociatedCheckedResponse<'_, O> {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("AssociatedCheckedResponse")
+            .field("operation", &O::DESCRIPTOR.operation_id())
+            .field("response", &"[checked]")
+            .finish()
+    }
+}
+
 impl<'request, O: HetznerOperation> Prepared<'request, O> {
     #[allow(
         clippy::large_types_passed_by_value,
@@ -251,8 +302,10 @@ impl<'request, O: HetznerOperation> Prepared<'request, O> {
     pub fn validate_response<'buffer>(
         self,
         response: ResponseBuffer<'buffer>,
-    ) -> Result<CheckedResponseGuard<'buffer>, ResponsePolicyError> {
-        self.inner.validate_response(response)
+    ) -> Result<AssociatedCheckedResponse<'buffer, O>, ResponsePolicyError> {
+        self.inner
+            .validate_response(response)
+            .map(AssociatedCheckedResponse::new)
     }
 }
 
@@ -263,12 +316,13 @@ impl<'request, O: ReadOnlyOperation> Prepared<'request, O> {
         transport: &T,
         response_storage: &'buffer mut [u8],
         response_header_storage: &'buffer mut [u8],
-    ) -> Result<CheckedResponseGuard<'buffer>, PreparedExecutionError<T::Error>>
+    ) -> Result<AssociatedCheckedResponse<'buffer, O>, PreparedExecutionError<T::Error>>
     where
         T: cloud_sdk::authentication::BlockingAuthenticatedTransport + BoundTransport,
     {
         self.inner
             .execute_blocking(transport, response_storage, response_header_storage)
+            .map(AssociatedCheckedResponse::new)
     }
 
     /// Executes one read-only operation through a `Send` asynchronous transport.
@@ -277,7 +331,7 @@ impl<'request, O: ReadOnlyOperation> Prepared<'request, O> {
         transport: &'transport T,
         response_storage: &'buffer mut [u8],
         response_header_storage: &'buffer mut [u8],
-    ) -> Result<CheckedResponseGuard<'buffer>, PreparedExecutionError<T::Error>>
+    ) -> Result<AssociatedCheckedResponse<'buffer, O>, PreparedExecutionError<T::Error>>
     where
         T: AsyncAuthenticatedTransport + BoundTransport,
         'request: 'transport,
@@ -285,6 +339,7 @@ impl<'request, O: ReadOnlyOperation> Prepared<'request, O> {
         self.inner
             .execute_async(transport, response_storage, response_header_storage)
             .await
+            .map(AssociatedCheckedResponse::new)
     }
 
     /// Executes one read-only operation through a local asynchronous transport.
@@ -293,7 +348,7 @@ impl<'request, O: ReadOnlyOperation> Prepared<'request, O> {
         transport: &'transport T,
         response_storage: &'buffer mut [u8],
         response_header_storage: &'buffer mut [u8],
-    ) -> Result<CheckedResponseGuard<'buffer>, PreparedExecutionError<T::Error>>
+    ) -> Result<AssociatedCheckedResponse<'buffer, O>, PreparedExecutionError<T::Error>>
     where
         T: LocalAsyncAuthenticatedTransport + BoundTransport,
         'request: 'transport,
@@ -301,6 +356,7 @@ impl<'request, O: ReadOnlyOperation> Prepared<'request, O> {
         self.inner
             .execute_local_async(transport, response_storage, response_header_storage)
             .await
+            .map(AssociatedCheckedResponse::new)
     }
 }
 

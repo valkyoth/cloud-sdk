@@ -140,7 +140,7 @@ pub(super) fn parse_labels(value: &Value, maximum: usize) -> Result<Labels, Resp
 }
 
 /// Typed successful result returned by the checked decoder.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub enum HetznerSuccess {
     /// Operation succeeded without a response body.
     Empty,
@@ -181,7 +181,7 @@ pub enum HetznerSuccess {
 }
 
 /// Validated multi-part success response.
-#[derive(Clone, PartialEq)]
+#[derive(PartialEq)]
 pub struct CompositeResult {
     pub(super) resource: Option<Resource>,
     pub(super) actions: Vec<ActionResult>,
@@ -220,7 +220,7 @@ impl fmt::Debug for CompositeResult {
 }
 
 /// Named sensitive field returned by a provider operation.
-#[derive(Clone, Eq, PartialEq)]
+#[derive(Eq, PartialEq)]
 pub struct NamedSensitiveText {
     name: &'static str,
     value: SensitiveText,

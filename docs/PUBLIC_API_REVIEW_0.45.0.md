@@ -43,6 +43,11 @@ meaning for the Hetzner single bucket are unchanged.
 `Copy`. Their read-only accessors take `&self`; callers must request an
 explicit `Clone` when they need a separate owned snapshot.
 
+As of v0.62, `HetznerQuota` stores the provider's sole project-hour bucket in
+a compact provider-owned inline representation. The generic multi-bucket
+`QuotaBuckets` type remains available for providers that actually expose that
+shape; checked Hetzner results no longer require a heap box for quota.
+
 `QuotaExtension` is also no longer `Copy`; callers must explicitly clone an
 extension when retaining more than one owned instance.
 
@@ -56,6 +61,6 @@ rollback behavior is never implicit. Extensions are bounded, redacted, and
 best-effort cleared when the final owner is dropped; they are explicitly not a
 credential-storage boundary. Delay output is bounded by caller policy and
 cannot trigger I/O or replay by itself. Large
-fixed-capacity aggregates are borrowed through decision and decode paths, and
-the optional owned response boundary boxes quota before branching into
-success or provider-error decoding.
+fixed-capacity aggregates are borrowed through decision and decode paths. The
+v0.62 compact Hetzner representation remains inline through success and
+provider-error decoding.

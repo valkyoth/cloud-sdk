@@ -37,6 +37,11 @@ informational metadata, not secret storage: cleanup is best effort because
 ordinary moves can leave stale inline bytes. Keep credentials and secrets in
 stable cleanup-owning storage.
 
+Current v0.62 Hetzner decoding retains the same complete headers in one compact
+provider-owned bucket rather than the generic eight-bucket aggregate. Code
+using `buckets().len()`, `limit()`, and `remaining()` remains source-compatible;
+bucket identity and reset access now use Hetzner-specific return types.
+
 Use `decode_response_at` when an HTTP-date `Retry-After` can occur. The old
 `decode_response` remains valid for decimal delay-seconds and fixed-year HTTP
 dates, but rejects obsolete RFC 850 dates that require a current-year input.

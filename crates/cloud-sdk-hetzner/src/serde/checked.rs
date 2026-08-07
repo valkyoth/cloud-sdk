@@ -1,12 +1,9 @@
 //! Policy-bound checked Hetzner response decoding.
 
-use alloc::boxed::Box;
 use alloc::vec::Vec;
 use core::fmt;
 
-use cloud_sdk::operation::{
-    CheckedResponse, CheckedResponseGuard, PreparedRequest, ResponsePolicyError,
-};
+use cloud_sdk::operation::{CheckedResponse, PreparedRequest, ResponsePolicyError};
 use cloud_sdk::rate_limit::{RateLimit, WallClockTimestamp};
 use cloud_sdk::transport::{
     MediaType, ResponseBuffer, ResponseDecodeWorkspace, ResponseWriterError, TransportResponse,
@@ -34,11 +31,11 @@ mod success;
 use success::{decode_checked_success, decode_provider_error};
 
 /// Typed provider error returned by a checked operation response.
-#[derive(Clone, Eq, PartialEq)]
+#[derive(Eq, PartialEq)]
 pub struct HetznerApiError {
     code: ApiErrorCode,
     message: SensitiveText,
-    quota: Box<HetznerQuota>,
+    quota: HetznerQuota,
 }
 
 impl HetznerApiError {
@@ -83,7 +80,7 @@ impl fmt::Display for HetznerApiError {
 impl core::error::Error for HetznerApiError {}
 
 /// Failure from the checked decoder. Diagnostics never contain response data.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq)]
 pub enum HetznerDecodeError {
     /// The prepared request has no provider operation identifier.
     MissingOperationId,
@@ -145,10 +142,10 @@ impl core::error::Error for HetznerDecodeError {
 }
 
 /// Successful checked response plus validated rate-limit metadata.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Debug, PartialEq)]
 pub struct CheckedHetznerResponse {
     success: HetznerSuccess,
-    quota: Box<HetznerQuota>,
+    quota: HetznerQuota,
 }
 
 impl CheckedHetznerResponse {
@@ -196,20 +193,17 @@ pub fn decode_associated_response<O: crate::association::HetznerOperation>(
 
 /// Decodes one successful typed execution result without reopening raw bytes.
 pub fn decode_associated_checked_response<O: crate::association::HetznerOperation>(
-    prepared: crate::association::Prepared<'_, O>,
-    checked: CheckedResponseGuard<'_>,
+    checked: crate::association::AssociatedCheckedResponse<'_, O>,
 ) -> Result<CheckedHetznerResponse, HetznerDecodeError> {
     let operation = O::DESCRIPTOR.operation_id();
     let binding = find(operation.as_str()).ok_or(HetznerDecodeError::UnknownOperation)?;
-    let service = prepared.as_untyped().service();
-    if service.provider_id() != HETZNER_PROVIDER_ID || service.service_id() != binding.service_id {
+    if O::DESCRIPTOR.service_id() != binding.service_id {
         return Err(HetznerDecodeError::ServiceMismatch);
     }
+    let checked = checked.into_untyped();
     checked.decode_owned_with_workspace(|checked, workspace| {
-        let quota = Box::new(
-            HetznerQuota::decode_without_clock(checked.headers())
-                .map_err(HetznerDecodeError::Quota)?,
-        );
+        let quota = HetznerQuota::decode_without_clock(checked.headers())
+            .map_err(HetznerDecodeError::Quota)?;
         decode_checked_success(operation.as_str(), binding, checked, workspace, quota)
     })
 }
@@ -240,15 +234,13 @@ fn decode_response_with_clock(
     if service.provider_id() != HETZNER_PROVIDER_ID || service.service_id() != binding.service_id {
         return Err(HetznerDecodeError::ServiceMismatch);
     }
-    let quota = Box::new(
-        response
-            .with_response(|view| match now {
-                Some(now) => HetznerQuota::decode(view.headers(), now),
-                None => HetznerQuota::decode_without_clock(view.headers()),
-            })
-            .map_err(HetznerDecodeError::ResponseWriter)?
-            .map_err(HetznerDecodeError::Quota)?,
-    );
+    let quota = response
+        .with_response(|view| match now {
+            Some(now) => HetznerQuota::decode(view.headers(), now),
+            None => HetznerQuota::decode_without_clock(view.headers()),
+        })
+        .map_err(HetznerDecodeError::ResponseWriter)?
+        .map_err(HetznerDecodeError::Quota)?;
     let status = response
         .with_response(|view| view.status())
         .map_err(HetznerDecodeError::ResponseWriter)?;

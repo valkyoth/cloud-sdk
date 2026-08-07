@@ -3,8 +3,7 @@
 use core::fmt;
 
 use cloud_sdk::rate_limit::{
-    QuotaBucket, QuotaBucketId, QuotaBuckets, QuotaError, QuotaReset, RateLimit, RetryAfter,
-    RetryAfterError, WallClockTimestamp,
+    QuotaError, RateLimit, RetryAfter, RetryAfterError, WallClockTimestamp,
 };
 use cloud_sdk::transport::ResponseHeaders;
 
@@ -21,8 +20,55 @@ const RESET_HEADER: &str = "ratelimit-reset";
 /// Provider-owned quota metadata from one Hetzner response.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct HetznerQuota {
-    buckets: QuotaBuckets,
+    buckets: [HetznerQuotaBucket; 1],
+    bucket_len: u8,
     retry_after: Option<RetryAfter>,
+}
+
+/// Hetzner's single project-hour quota bucket in compact inline storage.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct HetznerQuotaBucket {
+    limit: u64,
+    remaining: u64,
+    reset: WallClockTimestamp,
+}
+
+impl HetznerQuotaBucket {
+    const EMPTY: Self = Self {
+        limit: 0,
+        remaining: 0,
+        reset: WallClockTimestamp::new(0),
+    };
+
+    /// Returns the stable provider bucket identity.
+    #[must_use]
+    pub const fn id(&self) -> &'static [u8] {
+        HETZNER_PROJECT_BUCKET
+    }
+
+    /// Returns the hourly request limit.
+    #[must_use]
+    pub const fn limit(&self) -> u64 {
+        self.limit
+    }
+
+    /// Returns the requests remaining in the current provider window.
+    #[must_use]
+    pub const fn remaining(&self) -> u64 {
+        self.remaining
+    }
+
+    /// Returns the absolute provider reset timestamp.
+    #[must_use]
+    pub const fn reset(&self) -> WallClockTimestamp {
+        self.reset
+    }
+
+    /// Reports whether this bucket has no requests remaining.
+    #[must_use]
+    pub const fn is_exhausted(&self) -> bool {
+        self.remaining == 0
+    }
 }
 
 impl HetznerQuota {
@@ -43,8 +89,10 @@ impl HetznerQuota {
 
     /// Returns all decoded provider buckets.
     #[must_use]
-    pub const fn buckets(&self) -> &QuotaBuckets {
-        &self.buckets
+    pub fn buckets(&self) -> &[HetznerQuotaBucket] {
+        self.buckets
+            .get(..usize::from(self.bucket_len))
+            .unwrap_or_default()
     }
 
     /// Returns the decoded standard retry instruction.
@@ -56,17 +104,14 @@ impl HetznerQuota {
     /// Reports whether neither quota nor retry metadata was supplied.
     #[must_use]
     pub const fn is_empty(&self) -> bool {
-        self.buckets.is_empty() && self.retry_after.is_none()
+        self.bucket_len == 0 && self.retry_after.is_none()
     }
 
     /// Returns the legacy single-bucket compatibility view.
     #[must_use]
     pub fn rate_limit(&self) -> Option<RateLimit> {
-        let bucket = self.buckets.iter().next()?;
-        let QuotaReset::At(reset) = bucket.reset() else {
-            return None;
-        };
-        RateLimit::new(bucket.limit(), bucket.remaining(), reset.get()).ok()
+        let bucket = self.buckets().first()?;
+        RateLimit::new(bucket.limit(), bucket.remaining(), bucket.reset().get()).ok()
     }
 }
 
@@ -81,17 +126,26 @@ fn decode(
         (false, false, false) | (true, true, true) => {}
         _ => return Err(HetznerQuotaError::PartialHeaders),
     }
-    let mut buckets = QuotaBuckets::new();
+    let mut buckets = [HetznerQuotaBucket::EMPTY; 1];
+    let mut bucket_len = 0_u8;
     if let (Some(limit), Some(remaining), Some(reset)) = (limit, remaining, reset) {
-        let id = QuotaBucketId::new(HETZNER_PROJECT_BUCKET).map_err(HetznerQuotaError::Quota)?;
-        let bucket = QuotaBucket::new(
-            id,
-            parse_decimal(limit.value())?,
-            parse_decimal(remaining.value())?,
-            QuotaReset::At(WallClockTimestamp::new(parse_decimal(reset.value())?)),
-        )
-        .map_err(HetznerQuotaError::Quota)?;
-        buckets.try_push(bucket).map_err(HetznerQuotaError::Quota)?;
+        let limit = parse_decimal(limit.value())?;
+        let remaining = parse_decimal(remaining.value())?;
+        if limit == 0 {
+            return Err(HetznerQuotaError::Quota(QuotaError::LimitZero));
+        }
+        if remaining > limit {
+            return Err(HetznerQuotaError::Quota(QuotaError::RemainingExceedsLimit));
+        }
+        let slot = buckets
+            .first_mut()
+            .ok_or(HetznerQuotaError::Quota(QuotaError::TooManyBuckets))?;
+        *slot = HetznerQuotaBucket {
+            limit,
+            remaining,
+            reset: WallClockTimestamp::new(parse_decimal(reset.value())?),
+        };
+        bucket_len = 1;
     }
     let retry_after = headers
         .get(RETRY_AFTER_HEADER)
@@ -99,6 +153,7 @@ fn decode(
         .transpose()?;
     Ok(HetznerQuota {
         buckets,
+        bucket_len,
         retry_after,
     })
 }

@@ -1,7 +1,6 @@
 //! Metrics, pricing, folder, and sensitive text models.
 
 use alloc::string::String;
-use alloc::sync::Arc;
 use alloc::vec::Vec;
 use core::fmt;
 
@@ -16,14 +15,22 @@ const MAX_METRIC_POINTS: usize = 65_536;
 
 /// Sensitive provider text requiring closure-scoped access.
 ///
-/// Clones share one protected allocation. The allocation is cleared after the
-/// final clone is dropped.
-#[derive(Clone)]
-pub struct SensitiveText(Arc<SecretString>);
+/// The owned allocation is cleared when this value is dropped. This type does
+/// not implement `Clone`; callers must not duplicate protected response text
+/// through an infallible allocation path.
+///
+/// ```compile_fail
+/// use cloud_sdk_hetzner::serde::SensitiveText;
+///
+/// fn duplicate(secret: SensitiveText) {
+///     let _ = secret.clone();
+/// }
+/// ```
+pub struct SensitiveText(SecretString);
 
 impl SensitiveText {
     pub(crate) fn new(value: SecretString) -> Self {
-        Self(Arc::new(value))
+        Self(value)
     }
 
     /// Runs a closure with temporary read-only access to the sensitive text.
@@ -82,7 +89,7 @@ impl fmt::Debug for SensitiveText {
 }
 
 /// Exported DNS zonefile with redacted diagnostics.
-#[derive(Clone, Eq, PartialEq)]
+#[derive(Eq, PartialEq)]
 pub struct ZoneFile(SensitiveText);
 
 impl ZoneFile {
@@ -351,22 +358,23 @@ fn text(fields: &Map, key: &str, max: usize) -> Result<String, ResponseModelErro
 
 #[cfg(test)]
 mod tests {
-    use alloc::sync::Arc;
     use cloud_sdk_sanitization::SecretString;
 
     use super::SensitiveText;
 
     #[test]
-    fn sensitive_text_clones_share_protected_storage() {
-        let secret = SensitiveText::new(SecretString::from_secret_str("temporary secret"));
-        let clone = secret.clone();
+    fn sensitive_text_adopts_protected_storage_without_another_allocation() {
+        let protected = SecretString::from_secret_str("temporary secret");
+        let before = protected.with_secret_bytes(|value| value.as_ptr());
+        let secret = SensitiveText::new(protected);
+        let after = secret.0.with_secret_bytes(|value| value.as_ptr());
 
-        assert!(Arc::ptr_eq(&secret.0, &clone.0));
+        assert_eq!(before, after);
         assert_eq!(
-            clone.try_with_secret(|value| value == "temporary secret"),
+            secret.try_with_secret(|value| value == "temporary secret"),
             Ok(true)
         );
-        assert!(!alloc::format!("{clone:?}").contains("temporary secret"));
+        assert!(!alloc::format!("{secret:?}").contains("temporary secret"));
     }
 
     #[test]

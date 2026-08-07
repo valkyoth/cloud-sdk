@@ -18,6 +18,7 @@ fn headers<'a>(storage: &'a mut [u8], values: &[(&str, &[u8])]) -> ResponseHeade
 fn large_quota_accessors_borrow_instead_of_copying_the_aggregate() {
     let _: fn(&HetznerQuota) -> Option<RetryAfter> = HetznerQuota::retry_after;
     let _: fn(&HetznerQuota) -> Option<cloud_sdk::rate_limit::RateLimit> = HetznerQuota::rate_limit;
+    assert!(core::mem::size_of::<HetznerQuota>() <= 128);
 }
 
 #[test]

@@ -5,7 +5,7 @@ pub(super) fn decode_checked_success(
     binding: ResponseBinding,
     checked: CheckedResponse<'_>,
     workspace: &mut ResponseDecodeWorkspace,
-    quota: Box<HetznerQuota>,
+    quota: HetznerQuota,
 ) -> Result<CheckedHetznerResponse, HetznerDecodeError> {
     if checked.status().get() != binding.status {
         return Err(HetznerDecodeError::ResponsePolicy(
@@ -30,7 +30,7 @@ pub(super) fn decode_checked_success(
 pub(super) fn decode_provider_error(
     response: TransportResponse<'_, '_>,
     workspace: &mut ResponseDecodeWorkspace,
-    quota: Box<HetznerQuota>,
+    quota: HetznerQuota,
 ) -> Result<HetznerApiError, HetznerDecodeError> {
     if response.body().is_empty() {
         return Err(HetznerDecodeError::MissingErrorBody);

@@ -32,9 +32,14 @@ vertical slices. It remains an internal tag and publishes no crate.
   validated `per_page` value before typed allocation begins.
 - Made protected JSON DOM and typed response allocations fallible and exposed
   allocation failure through payload-free model errors.
+- Removed infallible `Arc` and `Box` allocation from protected response text
+  and quota metadata; secret-bearing response models are intentionally not
+  infallibly cloneable.
+- Sorted bounded JSON object fields once, rejected adjacent duplicates, used
+  binary field lookup, and lowered the per-object ceiling to 256 fields.
 - Added `decode_associated_checked_response` so blocking, Send-async, and local
-  async execution results enter the operation-associated typed decoder without
-  reopening raw response bytes.
+  async execution results retain an unforgeable `AssociatedCheckedResponse<O>`
+  marker through typed decoding without reopening raw response bytes.
 
 ## Neutral Freeze
 

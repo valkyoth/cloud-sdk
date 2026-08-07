@@ -36,7 +36,7 @@ pub struct CertificateUse {
 
 /// Provider diagnostic embedded in managed-certificate status.
 #[non_exhaustive]
-#[derive(Clone, Eq, PartialEq)]
+#[derive(Eq, PartialEq)]
 pub struct CertificateError {
     /// Stable provider error code.
     pub code: ApiErrorCode,
@@ -65,7 +65,7 @@ impl fmt::Debug for CertificateError {
 
 /// Optional managed-certificate issuance and renewal state.
 #[non_exhaustive]
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Debug, Eq, PartialEq)]
 pub struct CertificateStatus {
     /// Issuance state when supplied by the provider.
     pub issuance: Option<String>,
@@ -77,7 +77,7 @@ pub struct CertificateStatus {
 
 /// Source-complete `get_certificate` result.
 #[non_exhaustive]
-#[derive(Clone, Eq, PartialEq)]
+#[derive(Eq, PartialEq)]
 pub struct Certificate {
     /// Provider resource identifier.
     pub id: u64,

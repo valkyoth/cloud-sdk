@@ -188,7 +188,7 @@ fn exercise_read_modes<O>(
     let Ok(blocking) = blocking else {
         unreachable!("blocking vertical execution failed")
     };
-    let decoded = decode_associated_checked_response(prepared, blocking);
+    let decoded = decode_associated_checked_response(blocking);
     let Ok(decoded) = decoded else {
         unreachable!("blocking typed vertical decode failed")
     };
@@ -202,7 +202,7 @@ fn exercise_read_modes<O>(
     let Poll::Ready(Ok(asynchronous)) = Future::poll(future.as_mut(), &mut context) else {
         unreachable!("Send-async vertical execution failed")
     };
-    let decoded = decode_associated_checked_response(prepared, asynchronous);
+    let decoded = decode_associated_checked_response(asynchronous);
     let Ok(decoded) = decoded else {
         unreachable!("Send-async typed vertical decode failed")
     };
@@ -219,7 +219,7 @@ fn exercise_read_modes<O>(
     let Poll::Ready(Ok(local)) = Future::poll(future.as_mut(), &mut context) else {
         unreachable!("local-async vertical execution failed")
     };
-    let decoded = decode_associated_checked_response(prepared, local);
+    let decoded = decode_associated_checked_response(local);
     let Ok(decoded) = decoded else {
         unreachable!("local-async typed vertical decode failed")
     };
@@ -241,7 +241,7 @@ fn exercise_read_modes<O>(
     let Ok(invalid) = invalid else {
         unreachable!("invalid vertical execution failed before provider decoding")
     };
-    assert!(decode_associated_checked_response(prepared, invalid).is_err());
+    assert!(decode_associated_checked_response(invalid).is_err());
 }
 
 fn assert_read_success(expected: ReadSuccess, success: &HetznerSuccess) {

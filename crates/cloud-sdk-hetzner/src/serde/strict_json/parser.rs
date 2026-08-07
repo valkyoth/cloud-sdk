@@ -6,8 +6,8 @@ use core::str;
 use cloud_sdk_sanitization::{SecretString, sanitize_bytes};
 
 use super::{
-    MAX_JSON_CONTAINER_ENTRIES, MAX_JSON_DEPTH, MAX_JSON_NODES, MAX_JSON_STRING_BYTES, Map, Number,
-    ProtectedKey, Value,
+    MAX_JSON_CONTAINER_ENTRIES, MAX_JSON_DEPTH, MAX_JSON_NODES, MAX_JSON_OBJECT_FIELDS,
+    MAX_JSON_STRING_BYTES, Map, Number, ProtectedKey, Value,
 };
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -120,7 +120,7 @@ impl Parser<'_> {
             return Ok(values);
         }
         loop {
-            if values.len() >= MAX_JSON_CONTAINER_ENTRIES {
+            if values.len() >= MAX_JSON_OBJECT_FIELDS {
                 return Err(JsonError::ContainerLimit);
             }
             values.try_reserve(1).map_err(|_| JsonError::Allocation)?;
@@ -128,9 +128,6 @@ impl Parser<'_> {
                 return Err(JsonError::InvalidSyntax);
             }
             let key = self.parse_key()?;
-            if values.contains_key(key.as_str()) {
-                return Err(JsonError::DuplicateKey);
-            }
             self.skip_whitespace();
             if !self.consume(b':') {
                 return Err(JsonError::InvalidSyntax);
@@ -140,7 +137,7 @@ impl Parser<'_> {
             values.insert_reserved(key, value);
             self.skip_whitespace();
             if self.consume(b'}') {
-                return Ok(values);
+                return values.finish();
             }
             if !self.consume(b',') {
                 return Err(JsonError::InvalidSyntax);

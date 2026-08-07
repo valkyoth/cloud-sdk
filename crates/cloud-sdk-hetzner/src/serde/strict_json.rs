@@ -11,6 +11,7 @@ pub(super) use parser::JsonError;
 
 pub(super) const MAX_JSON_DEPTH: usize = 64;
 pub(super) const MAX_JSON_CONTAINER_ENTRIES: usize = 4096;
+pub(super) const MAX_JSON_OBJECT_FIELDS: usize = 256;
 pub(super) const MAX_JSON_NODES: usize = 65_536;
 pub(super) const MAX_JSON_STRING_BYTES: usize = 1_048_576;
 
@@ -37,18 +38,32 @@ impl Map {
         self.0.push((key, value));
     }
 
+    pub(super) fn finish(mut self) -> Result<Self, JsonError> {
+        self.0
+            .sort_unstable_by(|left, right| left.0.as_str().cmp(right.0.as_str()));
+        if self.0.windows(2).any(|pair| match pair {
+            [(left, _), (right, _)] => left.as_str() == right.as_str(),
+            _ => false,
+        }) {
+            return Err(JsonError::DuplicateKey);
+        }
+        Ok(self)
+    }
+
     pub(super) fn get(&self, key: &str) -> Option<&Value> {
         self.0
-            .iter()
-            .find(|(candidate, _)| candidate.as_str() == key)
+            .binary_search_by(|(candidate, _)| candidate.as_str().cmp(key))
+            .ok()
+            .and_then(|index| self.0.get(index))
             .map(|(_, value)| value)
     }
 
     pub(super) fn get_mut(&mut self, key: &str) -> Option<&mut Value> {
-        self.0
-            .iter_mut()
-            .find(|(candidate, _)| candidate.as_str() == key)
-            .map(|(_, value)| value)
+        let index = self
+            .0
+            .binary_search_by(|(candidate, _)| candidate.as_str().cmp(key))
+            .ok()?;
+        self.0.get_mut(index).map(|(_, value)| value)
     }
 
     pub(super) fn iter(&self) -> impl Iterator<Item = (&ProtectedKey, &Value)> {
@@ -189,7 +204,10 @@ pub(super) fn parse_with_scratch(
 
 #[cfg(test)]
 mod tests {
-    use super::{MAX_JSON_DEPTH, MAX_JSON_NODES, ProtectedKey, Value, parse};
+    use super::{
+        JsonError, MAX_JSON_DEPTH, MAX_JSON_NODES, MAX_JSON_OBJECT_FIELDS, ProtectedKey, Value,
+        parse,
+    };
     use alloc::format;
     use alloc::string::String;
     use cloud_sdk_sanitization::sanitize_string;
@@ -205,6 +223,34 @@ mod tests {
         );
         assert!(parse(nested.as_bytes()).is_err());
         assert!(parse(br#"{"id":1,"future":true}"#).is_ok());
+    }
+
+    #[test]
+    fn object_fields_are_sorted_for_lookup_and_source_bounded() {
+        let parsed = parse(br#"{"z":1,"middle":2,"a":3}"#);
+        let Ok(Value::Object(fields)) = parsed else {
+            unreachable!("bounded object fixture failed")
+        };
+        assert_eq!(fields.get("a").and_then(Value::as_u64), Some(3));
+        assert_eq!(fields.get("middle").and_then(Value::as_u64), Some(2));
+        assert_eq!(fields.get("z").and_then(Value::as_u64), Some(1));
+
+        let mut input = String::from("{");
+        for index in 0..MAX_JSON_OBJECT_FIELDS {
+            if index != 0 {
+                input.push(',');
+            }
+            input.push_str(&format!("\"field{index:03}\":null"));
+        }
+        input.push('}');
+        assert!(parse(input.as_bytes()).is_ok());
+        input.pop();
+        input.push_str(",\"overflow\":null}");
+        assert_eq!(
+            parse(input.as_bytes()).err(),
+            Some(JsonError::ContainerLimit)
+        );
+        sanitize_string(&mut input);
     }
 
     #[test]

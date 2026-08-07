@@ -14,8 +14,12 @@
   authentication and renamed its provider-drift contracts from DNS to Storage.
 - Bound every numbered response array to its validated `per_page` value and
   made response DOM and typed-model allocation failures recoverable errors.
-- Added typed decoding directly from executed checked response guards, with
-  valid cross-executor fixtures and invalid-envelope rejection for each slice.
+- Made strict JSON object lookup `O(log n)` after one bounded sort, lowered the
+  per-object ceiling to 256 fields, and removed infallible secret/quota wrapper
+  allocations.
+- Added operation-branded typed decoding directly from executed checked
+  response guards, with compile-time cross-operation rejection, valid
+  cross-executor fixtures, and invalid-envelope rejection for each slice.
 - Added exact `2xx` testkit fixtures and fail-closed delivery classification
   for permit-authorized mutation and destructive execution evidence.
 - Froze provider-neutral contracts after unchanged OVHcloud and Robot probes;
