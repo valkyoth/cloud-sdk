@@ -220,7 +220,7 @@ impl<'a> AsyncResourceTimestamp<'a> {
         })
     }
 
-    /// Runs a closure with the exact canonical timestamp.
+    /// Runs a closure with the exact validated source spelling.
     pub fn with_str<R>(self, inspect: impl FnOnce(&str) -> R) -> R {
         inspect(self.value)
     }
