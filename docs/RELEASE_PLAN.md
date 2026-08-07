@@ -1919,6 +1919,9 @@ Stop gate: `v0.58.0 implementation stop reached. Complete the pentest and full r
 
 ### v0.59.0 - OVHcloud Cursor And Header Conformance
 
+Status: release candidate; pentest and final retest passed. Tagging awaits the
+clean release gate and green GitHub CI and CodeQL.
+
 Goal: prove opaque pagination and schema-validation headers need no core exception.
 
 Deliverables: bounded/redacted cursor headers, terminal-page semantics, validation-only `X-Schemas-Version`, reviewed schema-major evidence, and prepared-request-bound metadata decoding and continuation execution.

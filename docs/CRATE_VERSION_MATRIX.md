@@ -1,9 +1,9 @@
 # Crate Version Matrix
 
 Status: `v0.55.0` is tagged and published. `v0.56.0` through `v0.58.0` are
-signed source milestones. `v0.59.0` is the current implementation stop in the
-next five-minor publication train and requires its incremental pentest. Every
-tag beginning with v0.56 receives its own incremental pentest; package
+signed source milestones. `v0.59.0` is a release candidate with its incremental
+pentest and final retest passed; tagging awaits green GitHub CI and CodeQL.
+Every tag beginning with v0.56 receives its own incremental pentest; package
 publication is deferred to the next scheduled checkpoint at `v0.60.0`.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as

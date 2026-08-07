@@ -86,9 +86,10 @@ full-fidelity Hetzner vertical slices before the neutral API freeze.
 The latest published checkpoint is `v0.55.0`. Signed source milestones v0.56
 through v0.58 added provider-neutral drift evidence, locked the unpublished
 OVHcloud API v2 probe, and challenged regional authentication contracts. The
-v0.59 implementation adds prepared-request-bound header-cursor execution and
-reviewed schema validation. Its incremental pentest is required before
-tagging; crates.io publication remains deferred to `v0.60.0`.
+v0.59 release candidate adds prepared-request-bound header-cursor execution
+and reviewed schema validation; its incremental pentest and final retest
+passed. Tagging awaits green GitHub CI and CodeQL, while crates.io publication
+remains deferred to `v0.60.0`.
 
 ## Trust Dashboard
 
