@@ -54,7 +54,7 @@ pub(super) enum Number {
 /// Private parser tree whose string values clear their full allocation on drop.
 pub(super) enum Value {
     Null,
-    Bool,
+    Bool(bool),
     Number(Number),
     String(SecretString),
     Array(Vec<Self>),
@@ -79,6 +79,13 @@ impl Value {
             Self::Number(Number::Unsigned(value)) => Some(*value as f64),
             Self::Number(Number::Signed(value)) => Some(*value as f64),
             Self::Number(Number::Float(value)) => Some(*value),
+            _ => None,
+        }
+    }
+
+    pub(super) const fn as_bool(&self) -> Option<bool> {
+        match self {
+            Self::Bool(value) => Some(*value),
             _ => None,
         }
     }

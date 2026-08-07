@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import csv
 import json
 from pathlib import Path
 import sys
@@ -16,6 +17,7 @@ DEFAULT_OUTPUT = (
 )
 METHODS = ("get", "post", "put", "delete")
 EXPECTED_ACTIVE = 208
+ASSOCIATIONS = ROOT / "docs" / "OPERATION_ASSOCIATIONS.tsv"
 SPECIAL_KEYS = {
     "action",
     "actions",
@@ -134,9 +136,30 @@ def render(all_rows: list[tuple[str, ...]]) -> str:
     for row in all_rows:
         for index, value in enumerate(row):
             validate_tsv_cell(value, f"response field {index}")
-    lines = ["api\toperation_id\tstatus\tshape\troot\trequired"]
-    lines.extend("\t".join(row) for row in sorted(all_rows, key=lambda row: row[1]))
+    services = operation_services()
+    if set(operation_ids) != set(services):
+        raise ValueError("operation service lock differs from active response operations")
+    lines = ["api\tservice\toperation_id\tstatus\tshape\troot\trequired"]
+    lines.extend(
+        "\t".join((row[0], services[row[1]], *row[1:]))
+        for row in sorted(all_rows, key=lambda row: row[1])
+    )
     return "\n".join(lines) + "\n"
+
+
+def operation_services() -> dict[str, str]:
+    try:
+        with ASSOCIATIONS.open(encoding="ascii", newline="") as handle:
+            rows = list(csv.DictReader(handle, delimiter="\t"))
+    except (OSError, UnicodeError) as error:
+        raise ValueError(f"cannot read {ASSOCIATIONS}: {error}") from error
+    services = {row.get("operation_id", ""): row.get("service", "") for row in rows}
+    if len(services) != EXPECTED_ACTIVE or any(
+        not operation or service not in {"cloud", "dns", "security", "storage"}
+        for operation, service in services.items()
+    ):
+        raise ValueError("operation service lock is incomplete or invalid")
+    return services
 
 
 def validate_tsv_cell(value: str, field: str) -> None:

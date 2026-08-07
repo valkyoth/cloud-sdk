@@ -12,10 +12,10 @@ use cloud_sdk::authentication::{
     AsyncAuthenticatedTransport, AuthenticatedRequest, BlockingAuthenticatedTransport,
 };
 use cloud_sdk::transport::{
-    AsyncResponseStaging, AsyncTransport, BlockingTransport, BoundTransport, EndpointIdentity,
-    EndpointIdentityError, HeaderSensitivity, RequestHeaders, RequestTarget, ResponseAttempt,
-    ResponseCompletion, ResponseContentType, ResponseHeaders, ResponseMetadata, ResponseWriter,
-    TransportRequest,
+    AsyncResponseStaging, AsyncTransport, BlockingTransport, BoundTransport, DeliveryClassified,
+    DeliveryPhase, EndpointIdentity, EndpointIdentityError, HeaderSensitivity, RequestHeaders,
+    RequestTarget, ResponseAttempt, ResponseCompletion, ResponseContentType, ResponseHeaders,
+    ResponseMetadata, ResponseWriter, TransportRequest,
 };
 
 use crate::{FixtureBodyError, ResponseFixture};
@@ -136,6 +136,13 @@ impl_static_error!(MockError,
     Self::InvalidFixtureMetadata => "mock fixture metadata is invalid",
     Self::ResponseWriterRejected => "mock response writer rejected output",
 );
+
+impl DeliveryClassified for MockError {
+    fn delivery_phase(&self) -> DeliveryPhase {
+        // Testkit never contacts a peer; every failure proves zero delivery.
+        DeliveryPhase::NotSent
+    }
+}
 
 /// Ordered no-allocation mock implementation of [`BlockingTransport`].
 pub struct MockTransport<'a> {

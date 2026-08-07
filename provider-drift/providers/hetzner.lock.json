@@ -187,7 +187,7 @@
         "values": {
           "count": 208,
           "path": "crates/cloud-sdk-hetzner/src/serde/response_operations.tsv",
-          "sha256": "2a4ef5d76271d9b3a64c52608434361a92855809e38c42b5e828d35ae0b73232"
+          "sha256": "4cffc39416a7312c57aae906f598dd9482f4667a368b103bfdeacf37165513fe"
         }
       }
     ],

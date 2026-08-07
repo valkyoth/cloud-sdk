@@ -16,6 +16,7 @@ use crate::{
 };
 
 mod dynamic;
+mod exact_response;
 mod fail_closed_assurance;
 mod local_async;
 mod prepared;

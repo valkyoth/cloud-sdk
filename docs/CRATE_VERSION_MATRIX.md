@@ -1,9 +1,9 @@
 # Crate Version Matrix
 
-Status: `v0.60.0` is tagged and published. `v0.61.0` is an internal source
-milestone whose pentest and final retest passed. Its local release evidence is
-complete; GitHub CI and CodeQL remain before tagging. Every pre-1.0 tag receives
-its own incremental pentest.
+Status: `v0.60.0` is tagged and published and `v0.61.0` is a signed internal
+milestone. `v0.62.0` has reached the neutral-freeze implementation stop; its
+pentest, final gate, GitHub CI, and CodeQL remain before tagging. Every pre-1.0
+tag receives its own incremental pentest.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
@@ -912,6 +912,20 @@ supporting crates retain their published versions until v0.65.0.
 | `cloud-sdk-reqwest` | `0.33.0` | `0.33.0` | `dependency` | No | Accumulate the source core dependency for v0.65.0. |
 | `cloud-sdk-sanitization` | `0.18.0` | `0.18.0` | `unchanged` | No | No sanitization boundary changes. |
 | `cloud-sdk-testkit` | `0.29.1` | `0.29.1` | `dependency` | No | Accumulate the source core dependency for v0.65.0. |
+
+## v0.62.0 Tracking Table
+
+`v0.62.0` freezes the neutral contracts after materially different probes and
+source-complete primary-provider slices. It remains internal; supporting crate
+versions accumulate code until the v0.65.0 public checkpoint.
+
+| Crate | Published | Source | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.60.0` | `0.62.0` | `code` | No | Record the reviewed neutral API freeze and exact milestone evidence. |
+| `cloud-sdk-hetzner` | `0.39.1` | `0.39.1` | `code` | No | Accumulate source-complete locations, certificate, and Storage Box slices plus exact DNS/security response identities. |
+| `cloud-sdk-reqwest` | `0.33.0` | `0.33.0` | `dependency` | No | Accumulate the source core dependency for v0.65.0. |
+| `cloud-sdk-sanitization` | `0.18.0` | `0.18.0` | `unchanged` | No | Existing protected owned strings satisfy the secret-output boundary. |
+| `cloud-sdk-testkit` | `0.29.1` | `0.29.1` | `code` | No | Accumulate exact successful statuses and delivery-classified permit fixtures. |
 
 ## Planned Milestone Ownership
 

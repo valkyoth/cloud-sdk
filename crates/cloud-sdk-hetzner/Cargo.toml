@@ -42,6 +42,10 @@ workspace = true
 name = "live_smoke"
 required-features = ["serde"]
 
+[[test]]
+name = "vertical_execution"
+required-features = ["serde"]
+
 [[example]]
 name = "action_polling"
 required-features = ["serde"]

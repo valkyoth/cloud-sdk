@@ -184,6 +184,8 @@ def load_operations() -> list[Operation]:
         association = associations[operation_id]
         if source["api"] != response["api"]:
             raise ValueError(f"API source mismatch for {operation_id}")
+        if association["service"] != response["service"]:
+            raise ValueError(f"response service mismatch for {operation_id}")
         body_present = operation_id in bodies
         if (association["body_policy"] == "json") != body_present:
             raise ValueError(f"body source mismatch for {operation_id}")

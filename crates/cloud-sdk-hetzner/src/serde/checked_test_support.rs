@@ -17,7 +17,10 @@ use super::{
     CheckedHetznerResponse, HetznerDecodeError, decode_response as decode_checked_response,
     decode_response_at as decode_checked_response_at,
 };
-use crate::identity::{CloudService, STORAGE_SERVICE_ID, StorageService};
+use crate::identity::{
+    CloudService, DNS_SERVICE_ID, DnsService, SECURITY_SERVICE_ID, STORAGE_SERVICE_ID,
+    SecurityService, StorageService,
+};
 use cloud_sdk::rate_limit::WallClockTimestamp;
 
 const JSON: &[MediaType<'static>] = &[MediaType::JSON];
@@ -77,10 +80,17 @@ pub(super) fn prepared(
     let operation_id = OperationId::new(operation);
     assert!(operation_id.is_ok());
     let endpoint = endpoint.unwrap_or_else(|_| unreachable!());
-    let service = if service_id == STORAGE_SERVICE_ID {
-        ProviderService::from_marker::<StorageService>(EndpointPolicy::fixed(endpoint))
-    } else {
-        ProviderService::from_marker::<CloudService>(EndpointPolicy::fixed(endpoint))
+    let service = match service_id {
+        STORAGE_SERVICE_ID => {
+            ProviderService::from_marker::<StorageService>(EndpointPolicy::fixed(endpoint))
+        }
+        DNS_SERVICE_ID => {
+            ProviderService::from_marker::<DnsService>(EndpointPolicy::fixed(endpoint))
+        }
+        SECURITY_SERVICE_ID => {
+            ProviderService::from_marker::<SecurityService>(EndpointPolicy::fixed(endpoint))
+        }
+        _ => ProviderService::from_marker::<CloudService>(EndpointPolicy::fixed(endpoint)),
     };
     let authentication_policy = AuthenticationScopePolicy::new(
         ScopeRequirement::Required(service.provider_id()),

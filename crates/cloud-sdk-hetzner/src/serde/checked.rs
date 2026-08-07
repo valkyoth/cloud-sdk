@@ -13,11 +13,16 @@ use cloud_sdk::transport::{
 use super::binding::{ResponseBinding, ResponseShape, find};
 use super::models::{
     CompositeResult, HetznerSuccess, NamedSensitiveText, ResponseModelError, SensitiveText, object,
-    parse_action, parse_actions, parse_folders, parse_metrics, parse_pagination, parse_pricing,
-    parse_resource, parse_resources, parse_zonefile, required, value_text,
+    parse_action, parse_actions, parse_certificate, parse_folders, parse_location_page,
+    parse_metrics, parse_pagination, parse_pricing, parse_resource, parse_resources,
+    parse_storage_box_page, parse_zonefile, required, value_text,
 };
 use super::strict_json;
 use super::strict_json::{Map, Value};
+use super::{
+    IncrementalJsonDecoder, IncrementalJsonEvent, IncrementalJsonProgress, IncrementalJsonVisitor,
+    VisitControl,
+};
 use super::{MAX_SERDE_RESPONSE_BYTES, ResponseBytes, ResponseSizeError};
 use crate::identity::HETZNER_PROVIDER_ID;
 use crate::rate_limit::{HetznerQuota, HetznerQuotaError};
@@ -175,6 +180,15 @@ pub fn decode_response(
     decode_response_with_clock(prepared, response, None)
 }
 
+/// Decodes a response while preserving the compile-time operation association
+/// until the checked provider boundary.
+pub fn decode_associated_response<O: crate::association::HetznerOperation>(
+    prepared: crate::association::Prepared<'_, O>,
+    response: ResponseBuffer<'_>,
+) -> Result<CheckedHetznerResponse, HetznerDecodeError> {
+    decode_response(prepared.into_untyped(), response)
+}
+
 /// Decodes one response with caller-supplied wall time for obsolete HTTP dates.
 pub fn decode_response_at(
     prepared: PreparedRequest<'_>,
@@ -241,10 +255,14 @@ fn decode_response_with_clock(
         } else {
             let bytes =
                 ResponseBytes::new(checked.body()).map_err(HetznerDecodeError::ResponseSize)?;
+            if operation.as_str() == "list_storage_boxes" {
+                validate_incremental(bytes.as_slice())?;
+            }
             let mut value =
                 strict_json::parse_with_scratch(bytes.as_slice(), workspace.decoder_scratch_mut())
                     .map_err(|_| HetznerDecodeError::MalformedPayload)?;
-            decode_success(binding, &mut value).map_err(HetznerDecodeError::Model)?
+            decode_success(operation.as_str(), binding, &mut value)
+                .map_err(HetznerDecodeError::Model)?
         };
         Ok(CheckedHetznerResponse { success, quota })
     })
@@ -297,6 +315,7 @@ fn decode_provider_error(
 }
 
 fn decode_success(
+    operation: &str,
     binding: ResponseBinding,
     value: &mut Value,
 ) -> Result<HetznerSuccess, ResponseModelError> {
@@ -310,6 +329,18 @@ fn decode_success(
     if binding.shape == ResponseShape::ZoneFile {
         let envelope = object_mut(value)?;
         return parse_zonefile(required_mut(envelope, "zonefile")?).map(HetznerSuccess::ZoneFile);
+    }
+    match operation {
+        "list_locations" => {
+            return parse_location_page(value).map(HetznerSuccess::Locations);
+        }
+        "get_certificate" => {
+            return parse_certificate(value).map(HetznerSuccess::Certificate);
+        }
+        "list_storage_boxes" => {
+            return parse_storage_box_page(value).map(HetznerSuccess::StorageBoxes);
+        }
+        _ => {}
     }
     match binding.shape {
         ResponseShape::Empty => Ok(HetznerSuccess::Empty),
@@ -343,6 +374,30 @@ fn decode_success(
         ResponseShape::Folders => {
             parse_folders(required(object(value)?, "folders")?).map(HetznerSuccess::Folders)
         }
+    }
+}
+
+fn validate_incremental(bytes: &[u8]) -> Result<(), HetznerDecodeError> {
+    struct ValidationVisitor;
+
+    impl IncrementalJsonVisitor for ValidationVisitor {
+        type Error = core::convert::Infallible;
+
+        fn visit(&mut self, _event: IncrementalJsonEvent<'_>) -> Result<VisitControl, Self::Error> {
+            Ok(VisitControl::Continue)
+        }
+    }
+
+    let mut decoder = IncrementalJsonDecoder::new();
+    let mut visitor = ValidationVisitor;
+    for chunk in bytes.chunks(257) {
+        if decoder.push(chunk, &mut visitor).is_err() {
+            return Err(HetznerDecodeError::MalformedPayload);
+        }
+    }
+    match decoder.finish(&mut visitor) {
+        Ok(IncrementalJsonProgress::Complete) => Ok(()),
+        _ => Err(HetznerDecodeError::MalformedPayload),
     }
 }
 

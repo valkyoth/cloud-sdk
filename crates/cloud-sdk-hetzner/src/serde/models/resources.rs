@@ -138,10 +138,21 @@ pub(crate) fn parse_resource(root: &str, value: &Value) -> Result<Resource, Resp
         .get("name")
         .map(|value| value_text(value, MAX_RESOURCE_TEXT_BYTES))
         .transpose()?;
-    let status = fields
-        .get("status")
-        .map(|value| parse_status(kind, value))
-        .transpose()?;
+    let status = if matches!(
+        kind,
+        ResourceKind::Server
+            | ResourceKind::Image
+            | ResourceKind::Volume
+            | ResourceKind::Zone
+            | ResourceKind::StorageBox
+    ) {
+        fields
+            .get("status")
+            .map(|value| parse_status(kind, value))
+            .transpose()?
+    } else {
+        None
+    };
     Ok(Resource {
         kind,
         id,

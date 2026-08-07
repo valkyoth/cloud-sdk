@@ -65,8 +65,8 @@ impl Parser<'_> {
         }
         match self.current() {
             Some(b'n') => self.parse_literal(b"null", Value::Null),
-            Some(b't') => self.parse_literal(b"true", Value::Bool),
-            Some(b'f') => self.parse_literal(b"false", Value::Bool),
+            Some(b't') => self.parse_literal(b"true", Value::Bool(true)),
+            Some(b'f') => self.parse_literal(b"false", Value::Bool(false)),
             Some(b'"') => self.parse_secret_string().map(Value::String),
             Some(b'[') => self.parse_array(depth).map(Value::Array),
             Some(b'{') => self.parse_object(depth).map(Value::Object),

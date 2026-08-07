@@ -2,7 +2,7 @@
 
 use cloud_sdk::ServiceId;
 
-use crate::identity::{CLOUD_SERVICE_ID, STORAGE_SERVICE_ID};
+use crate::identity::{CLOUD_SERVICE_ID, DNS_SERVICE_ID, SECURITY_SERVICE_ID, STORAGE_SERVICE_ID};
 
 const TABLE: &str = include_str!("response_operations.tsv");
 
@@ -35,6 +35,7 @@ pub(super) fn find(operation_id: &str) -> Option<ResponseBinding> {
     TABLE.lines().skip(1).find_map(|line| {
         let mut fields = line.split('\t');
         let api = fields.next()?;
+        let service = fields.next()?;
         let operation = fields.next()?;
         let status = fields.next()?.parse::<u16>().ok()?;
         let shape = parse_shape(fields.next()?)?;
@@ -43,9 +44,11 @@ pub(super) fn find(operation_id: &str) -> Option<ResponseBinding> {
         if fields.next().is_some() || operation != operation_id {
             return None;
         }
-        let service_id = match api {
-            "cloud" => CLOUD_SERVICE_ID,
-            "hetzner" => STORAGE_SERVICE_ID,
+        let service_id = match (api, service) {
+            ("cloud", "cloud") => CLOUD_SERVICE_ID,
+            ("cloud", "dns") => DNS_SERVICE_ID,
+            ("cloud", "security") => SECURITY_SERVICE_ID,
+            ("hetzner", "storage") => STORAGE_SERVICE_ID,
             _ => return None,
         };
         Some(ResponseBinding {
@@ -85,7 +88,7 @@ mod tests {
     fn table_has_one_parseable_binding_per_active_operation() {
         assert_eq!(TABLE.lines().skip(1).count(), 208);
         for line in TABLE.lines().skip(1) {
-            let operation = line.split('\t').nth(1);
+            let operation = line.split('\t').nth(2);
             assert!(
                 operation.and_then(find).is_some(),
                 "invalid binding: {line}"

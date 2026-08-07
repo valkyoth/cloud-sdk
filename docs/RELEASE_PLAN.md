@@ -1949,8 +1949,8 @@ Stop gate: `v0.60.0 implementation stop reached. Run the pentest for this exact 
 
 ### v0.61.0 - OVHcloud End-To-End Probe
 
-Status: release candidate; pentest and final retest passed. Local release
-evidence is complete; GitHub CI, CodeQL, and the signed internal tag remain.
+Status: signed internal milestone; pentest, final retest, local release gate,
+GitHub CI, and CodeQL passed. Crates.io publication was deferred.
 
 Goal: execute the complete unpublished probe through unchanged neutral contracts.
 
@@ -1969,6 +1969,8 @@ dependency/SBOM controls; no-publish/release-plan regression gates;
 Stop gate: `v0.61.0 implementation stop reached. Complete the pentest and full release gate for this exact commit; defer crates.io publication to v0.65.0.`
 
 ### v0.62.0 - Neutral API Freeze
+
+Status: implementation stop reached; pentest required before the internal tag.
 
 Goal: freeze provider-neutral contracts only after materially different probes and complete primary-provider vertical slices.
 

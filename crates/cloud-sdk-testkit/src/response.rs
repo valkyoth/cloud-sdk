@@ -24,10 +24,13 @@ pub enum FixtureKind {
 pub enum ResponseFixtureError {
     /// Error fixtures require a `4xx` or `5xx` status.
     NonErrorStatus,
+    /// Success fixtures require a `2xx` status.
+    NonSuccessStatus,
 }
 
 impl_static_error!(ResponseFixtureError,
     Self::NonErrorStatus => "error fixture requires an HTTP error status",
+    Self::NonSuccessStatus => "success fixture requires a successful HTTP status",
 );
 
 /// Provider-neutral response body plus optional interpreted metadata.
@@ -48,6 +51,17 @@ impl<'a> ResponseFixture<'a> {
     #[must_use]
     pub const fn success(body: FixtureBody<'a>) -> Self {
         Self::new(FixtureKind::Success, StatusCode::OK, body)
+    }
+
+    /// Creates a success response with an exact provider-owned `2xx` status.
+    pub const fn success_at(
+        status: StatusCode,
+        body: FixtureBody<'a>,
+    ) -> Result<Self, ResponseFixtureError> {
+        if !status.is_success() {
+            return Err(ResponseFixtureError::NonSuccessStatus);
+        }
+        Ok(Self::new(FixtureKind::Success, status, body))
     }
 
     /// Creates a `200 OK` paginated response.

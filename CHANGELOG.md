@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.62.0 - 2026-08-07
+
+- Added source-complete checked models for `list_locations`, `get_certificate`,
+  and `list_storage_boxes`, alongside the existing complete action, zonefile,
+  provider-error, and no-content models.
+- Preserved DNS and security service identities in the generated response
+  binding table instead of collapsing every Cloud API operation into the
+  compute service.
+- Routed large Storage Box responses through bounded incremental JSON
+  admission before protected duplicate-rejecting model decoding.
+- Added exact `2xx` testkit fixtures and fail-closed delivery classification
+  for permit-authorized mutation and destructive execution evidence.
+- Froze provider-neutral contracts after unchanged OVHcloud and Robot probes;
+  crates.io publication remains deferred to v0.65.0.
+
 ## 0.61.0 - 2026-08-07
 
 - Added a nonpublishable OVHcloud API v2 execution harness covered by the

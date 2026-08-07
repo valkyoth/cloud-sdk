@@ -62,7 +62,15 @@ def active_operations(text: str) -> set[str]:
 def response_operations(path: Path) -> set[str]:
     with path.open("r", encoding="ascii", newline="") as handle:
         reader = csv.DictReader(handle, delimiter="\t")
-        expected = ["api", "operation_id", "status", "shape", "root", "required"]
+        expected = [
+            "api",
+            "service",
+            "operation_id",
+            "status",
+            "shape",
+            "root",
+            "required",
+        ]
         if reader.fieldnames != expected:
             raise ValueError("response operation table header is invalid")
         rows = list(reader)
@@ -77,6 +85,7 @@ def response_operations(path: Path) -> set[str]:
         shape = row.get("shape", "")
         root = row.get("root", "")
         status = row.get("status", "")
+        service = row.get("service", "")
         if not operation or operation in operations:
             raise ValueError("response operation identifiers are missing or duplicated")
         if shape not in SHAPES:
@@ -85,6 +94,8 @@ def response_operations(path: Path) -> set[str]:
             raise ValueError(f"resource response has no root for {operation}")
         if status not in {"200", "201", "204"}:
             raise ValueError(f"unexpected success status for {operation}")
+        if service not in {"cloud", "dns", "security", "storage"}:
+            raise ValueError(f"unexpected service for {operation}")
         operations.add(operation)
     return operations
 

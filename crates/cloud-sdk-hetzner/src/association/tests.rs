@@ -5,7 +5,8 @@ use cloud_sdk::operation::OperationMetadata;
 use cloud_sdk::operation::{PreparationStorage, PreparationStorageGuard};
 
 use super::operations::{
-    ChangeZoneProtection, GetAction, GetActions, ListCertificates, ListStorageBoxes,
+    ChangeZoneProtection, DeleteCertificate, GetAction, GetActions, GetCertificate,
+    GetZoneZonefile, ListCertificates, ListLocations, ListStorageBoxes, PoweronServer,
 };
 use super::validation::{
     descriptor_policy_is_coherent, prepared_policy_matches, validate_association,
@@ -15,6 +16,10 @@ use super::{
     HetznerOperation, PaginationPolicy, PermitClass, QueryPolicy, ResponseShape,
 };
 use crate::actions::{ActionEndpoint, ActionId, ActionListRequest};
+use crate::cloud::catalog::CatalogListEndpoint;
+use crate::cloud::servers::ServerId;
+use crate::cloud::servers::actions::{ServerActionEndpoint, ServerActionKind};
+use crate::dns::zones::ZoneEndpoint;
 use crate::dns::zones::{ZoneProtectionRequest, ZoneReference};
 use crate::endpoint::EndpointGroup;
 use crate::prepared::{
@@ -23,6 +28,7 @@ use crate::prepared::{
 };
 use crate::request::ApiBaseUrl;
 use crate::security::certificates::CertificateEndpoint;
+use crate::security::certificates::CertificateId;
 use crate::storage::storage_boxes::StorageBoxEndpoint;
 use crate::{
     CLOUD_SERVICE_ID, DNS_SERVICE_ID, SECURITY_SERVICE_ID, STORAGE_SERVICE_ID,
@@ -230,6 +236,55 @@ fn typed_preparation_checks_dns_security_and_storage_policies() -> Result<(), &'
         storage
             .prepare_typed(PreparationStorage::new(&mut target, &mut body))
             .is_ok()
+    );
+    Ok(())
+}
+
+#[test]
+fn neutral_freeze_slices_all_prepare_through_exact_associations() -> Result<(), &'static str> {
+    let server_id = ServerId::new(42).ok_or("server ID")?;
+    let certificate_id = CertificateId::new(42).ok_or("certificate ID")?;
+    let zone_id = CloudResourceId::new(42).ok_or("zone ID")?;
+    let zone = ZoneReference::Id(zone_id);
+    let mut target = [0_u8; 256];
+    let mut body = [0_u8; 256];
+
+    macro_rules! assert_prepared {
+        ($marker:ty, $endpoint:expr, $path:literal) => {{
+            let operation = AssociatedOperation::<$marker, _>::endpoint($endpoint)
+                .map_err(|_| "slice association")?;
+            let prepared = operation
+                .prepare_typed(PreparationStorage::new(&mut target, &mut body))
+                .map_err(|_| "slice preparation")?;
+            assert_eq!(prepared.association(), <$marker>::DESCRIPTOR);
+            assert_eq!(
+                prepared.as_untyped().transport_request().target().as_str(),
+                $path
+            );
+        }};
+    }
+
+    assert_prepared!(ListLocations, CatalogListEndpoint::Locations, "/locations");
+    assert_prepared!(
+        PoweronServer,
+        ServerActionEndpoint::Start(server_id, ServerActionKind::Poweron),
+        "/servers/42/actions/poweron"
+    );
+    assert_prepared!(
+        GetZoneZonefile,
+        ZoneEndpoint::ExportZoneFile(zone),
+        "/zones/42/zonefile"
+    );
+    assert_prepared!(
+        GetCertificate,
+        CertificateEndpoint::Get(certificate_id),
+        "/certificates/42"
+    );
+    assert_prepared!(ListStorageBoxes, StorageBoxEndpoint::List, "/storage_boxes");
+    assert_prepared!(
+        DeleteCertificate,
+        CertificateEndpoint::Delete(certificate_id),
+        "/certificates/42"
     );
     Ok(())
 }

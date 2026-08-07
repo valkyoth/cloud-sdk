@@ -83,12 +83,12 @@ operation contracts, then validates them with an unpublished OVHcloud API v2
 architecture probe, a narrow credential-free Robot wire fixture, and
 full-fidelity Hetzner vertical slices before the neutral API freeze.
 
-The latest published checkpoint is `v0.60.0`. The v0.61 implementation executes
-all ten source-locked OVHcloud probe operations through blocking, Send-async,
-local-async, and testkit contracts without adding a supported provider. It is
-an internal milestone whose pentest and final retest passed. Its clean local
-release evidence is complete; green GitHub CI and CodeQL remain required before
-the signed internal tag.
+The latest published checkpoint is `v0.60.0`; v0.61 is a signed internal
+milestone. v0.62 freezes the provider-neutral API after the OVHcloud and Robot
+probes and adds source-complete Hetzner Cloud, DNS-secret, security-secret,
+Storage Box, typed-error, action, and no-content vertical evidence. It remains
+an internal milestone and requires its pentest, full gate, and green GitHub CI
+and CodeQL before tagging. Crates.io publication remains deferred to v0.65.0.
 
 ## Trust Dashboard
 

@@ -44,8 +44,8 @@ class ResponseOperationCoverageTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             table = Path(directory) / "responses.tsv"
             table.write_text(
-                "api\toperation_id\tstatus\tshape\troot\trequired\n"
-                "cloud\tget_actions\t200\tactions\t-\t-\textra\n",
+                "api\tservice\toperation_id\tstatus\tshape\troot\trequired\n"
+                "cloud\tcloud\tget_actions\t200\tactions\t-\t-\textra\n",
                 encoding="ascii",
             )
             with self.assertRaisesRegex(ValueError, "wrong column count"):

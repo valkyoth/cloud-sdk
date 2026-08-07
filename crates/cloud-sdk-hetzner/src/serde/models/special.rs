@@ -38,6 +38,31 @@ impl SensitiveText {
         self.try_with_secret(|value| validate_text(value, max))
             .map_err(|_| ResponseModelError::InvalidText)?
     }
+
+    pub(crate) fn validate_multiline(&self, max: usize) -> Result<(), ResponseModelError> {
+        self.try_with_secret(|value| {
+            if value.is_empty()
+                || value.len() > max
+                || value.chars().any(|character| {
+                    !matches!(character, '\t' | '\n' | '\r')
+                        && (character.is_control()
+                            || matches!(
+                                character,
+                                '\u{061c}'
+                                    | '\u{200b}'..='\u{200f}'
+                                    | '\u{202a}'..='\u{202e}'
+                                    | '\u{2060}'..='\u{2069}'
+                                    | '\u{feff}'
+                            ))
+                })
+            {
+                Err(ResponseModelError::InvalidText)
+            } else {
+                Ok(())
+            }
+        })
+        .map_err(|_| ResponseModelError::InvalidText)?
+    }
 }
 
 impl PartialEq for SensitiveText {
@@ -215,7 +240,7 @@ pub(crate) fn parse_zonefile(value: &mut Value) -> Result<ZoneFile, ResponseMode
         .take_string()
         .map(SensitiveText::new)
         .ok_or(ResponseModelError::WrongType)?;
-    secret.validate(8_388_608)?;
+    secret.validate_multiline(8_388_608)?;
     Ok(ZoneFile(secret))
 }
 

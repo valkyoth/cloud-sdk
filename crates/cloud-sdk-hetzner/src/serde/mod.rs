@@ -18,17 +18,20 @@ mod rrsets;
 mod strict_json;
 
 pub use checked::{
-    CheckedHetznerResponse, HetznerApiError, HetznerDecodeError, decode_response,
-    decode_response_at,
+    CheckedHetznerResponse, HetznerApiError, HetznerDecodeError, decode_associated_response,
+    decode_response, decode_response_at,
 };
 pub use incremental::{
     IncrementalJsonDecoder, IncrementalJsonError, IncrementalJsonEvent, IncrementalJsonLimits,
     IncrementalJsonLimitsError, IncrementalJsonProgress, IncrementalJsonVisitor, VisitControl,
 };
 pub use models::{
-    ActionResult, ActionResultError, ActionResultResource, CompositeResult, FolderList,
-    HetznerSuccess, MetricPoint, MetricSeries, Metrics, NamedSensitiveText, Pricing, Resource,
-    ResourceIdentifier, ResourceKind, ResponseModelError, SensitiveText, ZoneFile,
+    AccessSettings, ActionResult, ActionResultError, ActionResultResource, Certificate,
+    CertificateError, CertificateKind, CertificateStatus, CertificateUse, CompositeResult,
+    Deprecation, FolderList, HetznerSuccess, Location, LocationPage, MetricPoint, MetricSeries,
+    Metrics, Money, NamedSensitiveText, Price, Pricing, Protection, Resource, ResourceIdentifier,
+    ResourceKind, ResponseModelError, SensitiveText, SnapshotPlan, StorageBox, StorageBoxPage,
+    StorageBoxStats, StorageBoxStatus, StorageBoxType, ZoneFile,
 };
 pub use pagination::PaginationEnvelope;
 pub use response::{
@@ -48,3 +51,5 @@ mod checked_test_support;
 mod checked_tests;
 #[cfg(test)]
 mod tests;
+#[cfg(test)]
+mod vertical_tests;

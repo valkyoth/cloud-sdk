@@ -121,7 +121,7 @@ fn decodes_composite_special_empty_and_storage_families() {
     );
     let zonefile = br#"{"zonefile":"example.com. 60 IN A 192.0.2.1"}"#;
     let decoded = decode_response(
-        prepared("get_zone_zonefile", CLOUD_SERVICE_ID, StatusCode::OK),
+        prepared("get_zone_zonefile", crate::DNS_SERVICE_ID, StatusCode::OK),
         response(StatusCode::OK, zonefile),
     );
     let Ok(decoded) = decoded else {
@@ -159,7 +159,7 @@ fn decodes_composite_special_empty_and_storage_families() {
         decode_response(
             prepared(
                 "delete_certificate",
-                CLOUD_SERVICE_ID,
+                crate::SECURITY_SERVICE_ID,
                 StatusCode::NO_CONTENT,
             ),
             empty,
@@ -296,6 +296,7 @@ fn every_source_locked_operation_decodes_its_minimal_success_envelope() {
         let mut fields = line.split('\t');
         let (
             Some(api),
+            Some(service),
             Some(operation),
             Some(status_text),
             Some(shape),
@@ -308,15 +309,18 @@ fn every_source_locked_operation_decodes_its_minimal_success_envelope() {
             fields.next(),
             fields.next(),
             fields.next(),
+            fields.next(),
         )
         else {
             continue;
         };
         assert!(fields.next().is_none(), "invalid response binding row");
-        let service_id = if api == "hetzner" {
-            STORAGE_SERVICE_ID
-        } else {
-            CLOUD_SERVICE_ID
+        let service_id = match (api, service) {
+            ("cloud", "cloud") => CLOUD_SERVICE_ID,
+            ("cloud", "dns") => crate::DNS_SERVICE_ID,
+            ("cloud", "security") => crate::SECURITY_SERVICE_ID,
+            ("hetzner", "storage") => STORAGE_SERVICE_ID,
+            _ => unreachable!("invalid response binding service"),
         };
         let status = if status_text == "201" {
             StatusCode::CREATED
@@ -423,6 +427,27 @@ fn action_value() -> serde_json::Value {
 }
 
 fn resource_value(root: &str) -> serde_json::Value {
+    if root == "location" || root == "locations" {
+        return serde_json::json!({
+            "id":1,"name":"fsn1","description":"Falkenstein DC Park 1",
+            "country":"DE","city":"Falkenstein","latitude":50.47612,
+            "longitude":12.370071,"network_zone":"eu-central"
+        });
+    }
+    if root == "certificate" || root == "certificates" {
+        return serde_json::json!({
+            "id":1,"name":"certificate","labels":{},"type":"uploaded",
+            "certificate":"-----BEGIN CERTIFICATE-----\nfixture",
+            "created":"2026-01-01T00:00:00Z",
+            "not_valid_before":"2026-01-01T00:00:00Z",
+            "not_valid_after":"2027-01-01T00:00:00Z",
+            "domain_names":["example.com"],"fingerprint":"00:11",
+            "status":null,"used_by":[]
+        });
+    }
+    if root == "storage_box" || root == "storage_boxes" {
+        return storage_box_value();
+    }
     let id = if root == "rrset" || root == "rrsets" {
         serde_json::Value::String(String::from("rrset-id"))
     } else {
@@ -444,4 +469,28 @@ fn resource_value(root: &str) -> serde_json::Value {
         );
     }
     serde_json::Value::Object(resource)
+}
+
+fn storage_box_value() -> serde_json::Value {
+    serde_json::json!({
+        "id":1,"name":"backup",
+        "storage_box_type":{
+            "id":1,"name":"bx11","description":"BX11","snapshot_limit":10,
+            "automatic_snapshot_limit":10,"subaccounts_limit":200,"size":1073741824,
+            "prices":[{"location":"fsn1","price_hourly":{"net":"1.0000","gross":"1.1900"},
+                "price_monthly":{"net":"1.0000","gross":"1.1900"},
+                "setup_fee":{"net":"0.0000","gross":"0.0000"}}],"deprecation":null
+        },
+        "location":{"id":1,"name":"fsn1","description":"Falkenstein DC Park 1",
+            "country":"DE","city":"Falkenstein","latitude":50.47612,
+            "longitude":12.370071,"network_zone":"eu-central"},
+        "access_settings":{"reachable_externally":false,"samba_enabled":true,
+            "ssh_enabled":true,"webdav_enabled":false,"zfs_enabled":true},
+        "snapshot_plan":{"max_snapshots":10,"minute":30,"hour":3,
+            "day_of_week":7,"day_of_month":null},
+        "protection":{"delete":false},"labels":{"environment":"test"},"status":"active",
+        "username":"u12345","server":"u12345.your-storagebox.de","system":"FSN1-BX1",
+        "stats":{"size":1,"size_data":1,"size_snapshots":0},
+        "created":"2026-01-01T00:00:00Z"
+    })
 }

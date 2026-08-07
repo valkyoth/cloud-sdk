@@ -1,8 +1,11 @@
 //! Validated owned success-response models.
 
 mod actions;
+mod certificate;
+mod location;
 mod resources;
 mod special;
+mod storage_box;
 
 use alloc::string::String;
 use alloc::vec::Vec;
@@ -12,14 +15,25 @@ use crate::pagination::PaginationMetadata;
 use crate::serde::strict_json::{Map, Value};
 
 pub use actions::{ActionResult, ActionResultError, ActionResultResource};
+pub use certificate::{
+    Certificate, CertificateError, CertificateKind, CertificateStatus, CertificateUse,
+};
+pub use location::{Location, LocationPage};
 pub use resources::{Resource, ResourceIdentifier, ResourceKind};
 pub use special::{
     FolderList, MetricPoint, MetricSeries, Metrics, Pricing, SensitiveText, ZoneFile,
 };
+pub use storage_box::{
+    AccessSettings, Deprecation, Money, Price, Protection, SnapshotPlan, StorageBox,
+    StorageBoxPage, StorageBoxStats, StorageBoxStatus, StorageBoxType,
+};
 
 pub(crate) use actions::{parse_action, parse_actions};
+pub(crate) use certificate::parse_certificate;
+pub(crate) use location::parse_location_page;
 pub(crate) use resources::{parse_pagination, parse_resource, parse_resources};
 pub(crate) use special::{parse_folders, parse_metrics, parse_pricing, parse_zonefile};
+pub(crate) use storage_box::parse_storage_box_page;
 
 /// Failure while validating a parsed success-response model.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -61,6 +75,12 @@ impl_static_error!(ResponseModelError,
 pub enum HetznerSuccess {
     /// Operation succeeded without a response body.
     Empty,
+    /// Source-complete paginated Cloud locations.
+    Locations(LocationPage),
+    /// Source-complete certificate output with protected PEM material.
+    Certificate(Certificate),
+    /// Source-complete paginated Console Storage Boxes.
+    StorageBoxes(StorageBoxPage),
     /// One validated action.
     Action(ActionResult),
     /// A bounded action list, optionally with pagination metadata.

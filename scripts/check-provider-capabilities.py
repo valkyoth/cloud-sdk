@@ -21,8 +21,9 @@ EXPECTED = (
     (
         "Success response models",
         "Complete checked envelope and resource-identity coverage for all 208 "
-        "non-deprecated operations",
-        "Provider-complete resource fields before `1.0.0`",
+        "operations, plus source-complete v0.62 location, certificate, and "
+        "Storage Box slices",
+        "Remaining provider-complete resource fields before `1.0.0`",
     ),
     (
         "Error response models",
