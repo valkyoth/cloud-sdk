@@ -86,8 +86,9 @@ full-fidelity Hetzner vertical slices before the neutral API freeze.
 The latest published checkpoint is `v0.60.0`. The v0.61 implementation executes
 all ten source-locked OVHcloud probe operations through blocking, Send-async,
 local-async, and testkit contracts without adding a supported provider. It is
-at the implementation stop and requires pentest, final release checks, and
-green GitHub CI and CodeQL before its signed internal tag.
+an internal milestone whose pentest and final retest passed. Its clean local
+release evidence is complete; green GitHub CI and CodeQL remain required before
+the signed internal tag.
 
 ## Trust Dashboard
 

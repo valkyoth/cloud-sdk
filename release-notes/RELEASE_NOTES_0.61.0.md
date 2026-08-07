@@ -1,11 +1,11 @@
 # cloud-sdk 0.61.0 Milestone Notes
 
-Status: implementation stop reached; pentest required.
+Status: release candidate; pentest and final retest passed.
 
-Release date: pending
+Release date: 2026-08-07
 
-Security-Review: PENDING
-Pentest: PENDING
+Security-Review: PASS
+Pentest: PASS
 Publication: DEFERRED TO v0.65.0
 
 ## Overview
@@ -63,10 +63,11 @@ version but is not part of the independent crate publication plan.
 - [`docs/MIGRATION_0.61.0.md`](../docs/MIGRATION_0.61.0.md)
 - [`docs/PUBLIC_API_REVIEW_0.61.0.md`](../docs/PUBLIC_API_REVIEW_0.61.0.md)
 - [`docs/DEPENDENCY_REVIEW_0.61.0.md`](../docs/DEPENDENCY_REVIEW_0.61.0.md)
+- [`security/pentest/v0.61.0.md`](../security/pentest/v0.61.0.md)
 
 ## Release Gate
 
-Run `scripts/release_0_61_gate.sh` only after the incremental pentest and final
-retest pass and permanent evidence replaces the pending fields above. GitHub
-CI and CodeQL must then be green on the unchanged evidence commit before the
-signed internal tag. Do not publish crates for this milestone.
+The incremental pentest and final retest passed. Run
+`scripts/release_0_61_gate.sh` on the clean evidence commit. GitHub CI and
+CodeQL must then be green on that unchanged commit before the signed internal
+tag. Do not publish crates for this milestone.

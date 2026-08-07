@@ -1949,6 +1949,9 @@ Stop gate: `v0.60.0 implementation stop reached. Run the pentest for this exact 
 
 ### v0.61.0 - OVHcloud End-To-End Probe
 
+Status: release candidate; pentest and final retest passed. Local release
+evidence is complete; GitHub CI, CodeQL, and the signed internal tag remain.
+
 Goal: execute the complete unpublished probe through unchanged neutral contracts.
 
 Deliverables: execute all ten source-locked read-only operations through

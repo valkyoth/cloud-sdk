@@ -1,6 +1,6 @@
 # v0.61.0 Dependency Review
 
-Status: implementation review complete; pentest and final release gate pending.
+Status: release review complete; pentest and final retest passed.
 
 Scope: dependency changes from published v0.60.0 through v0.61.0.
 

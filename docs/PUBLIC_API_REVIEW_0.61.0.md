@@ -1,6 +1,6 @@
 # v0.61.0 Public API Review
 
-Status: implementation review complete; pentest and release gate required.
+Status: release review complete; pentest and final retest passed.
 
 Scope: changes from signed and published v0.60.0 through v0.61.0.
 

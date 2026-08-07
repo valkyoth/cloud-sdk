@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.61.0 - Pending
+## 0.61.0 - 2026-08-07
 
 - Added a nonpublishable OVHcloud API v2 execution harness covered by the
   workspace dependency, lint, test, SBOM, and release gates.
