@@ -1,10 +1,10 @@
 # Crate Version Matrix
 
 Status: `v0.60.0` is tagged and published and `v0.61.0` and `v0.62.0` are
-signed internal milestones. The `v0.63.0` implementation stop is reached; its
-pentest and final release evidence remain required before tagging. Crates.io
-publication remains deferred to `v0.65.0`. Every pre-1.0 tag receives its own
-incremental pentest.
+signed internal milestones. The `v0.63.0` pentest and final retest passed and
+its local release evidence is complete; GitHub CI and CodeQL remain before the
+signed internal tag. Crates.io publication remains deferred to `v0.65.0`.
+Every pre-1.0 tag receives its own incremental pentest.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
@@ -938,9 +938,9 @@ continues to accumulate under the published package version until v0.65.0.
 | --- | --- | --- | --- | --- | --- |
 | `cloud-sdk` | `0.60.0` | `0.63.0` | `metadata` | No | Record the complete Cloud model milestone and release evidence. |
 | `cloud-sdk-hetzner` | `0.39.1` | `0.39.1` | `code` | No | Accumulate source-complete ordinary Cloud resources, pricing, generated schema validation, and dedicated checked results. |
-| `cloud-sdk-reqwest` | `0.33.0` | `0.33.0` | `dependency` | No | Accumulate the source core dependency for v0.65.0. |
+| `cloud-sdk-reqwest` | `0.33.0` | `0.33.0` | `code` | No | Accumulate the exact `base64-ng 2.0.1` Basic-auth encoder update for v0.65.0. |
 | `cloud-sdk-sanitization` | `0.18.0` | `0.18.0` | `unchanged` | No | No sanitization boundary changes. |
-| `cloud-sdk-testkit` | `0.29.1` | `0.29.1` | `dependency` | No | Accumulate the source core dependency for v0.65.0. |
+| `cloud-sdk-testkit` | `0.29.1` | `0.29.1` | `code` | No | Retain the cumulative v0.62 fixture changes for v0.65.0. |
 
 ## Planned Milestone Ownership
 

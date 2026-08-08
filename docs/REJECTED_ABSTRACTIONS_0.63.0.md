@@ -1,6 +1,6 @@
 # v0.63.0 Rejected Abstractions
 
-Status: implementation review complete; pentest required.
+Status: release candidate; pentest and final retest passed.
 
 ## One Generic Resource Model
 
