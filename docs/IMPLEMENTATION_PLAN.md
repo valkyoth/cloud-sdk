@@ -228,9 +228,9 @@ Expected future candidates must be reviewed before use:
   configuration, runtime verification, and feature graph are a dedicated
   `v0.23.0` admission.
 - `v0.23.0` admits rustls' optional FIPS mode with explicit provider and
-  complete-client runtime verification. Current aws-lc-fips-sys binds a 3.x
-  module whose exact active NIST certificate coverage is not claimed by this
-  repository.
+  complete-client runtime verification. The current exact aws-lc-fips-sys pin
+  binds AWS-LC FIPS 3.4.0, whose active NIST certificate coverage is not
+  claimed by this repository.
 - The deterministic-root boundary introduced in `v0.24.0` currently admits
   `webpki-roots 1.0.9` only through a non-default blocking
   feature with a complete explicit rustls configuration. It also records the

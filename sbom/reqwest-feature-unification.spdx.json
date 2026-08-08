@@ -1,21 +1,21 @@
 {
   "SPDXID": "SPDXRef-DOCUMENT",
   "creationInfo": {
-    "created": "2026-08-08T11:35:31Z",
+    "created": "2026-08-08T11:54:17Z",
     "creators": [
       "Tool: cargo-sbom-v0.10.0",
       "Tool: cloud-sdk-complete-spdx-v1"
     ]
   },
   "dataLicense": "CC0-1.0",
-  "documentNamespace": "https://spdx.org/spdxdocs/reqwest-feature-unification-940ced55-6941-415e-84ae-848351618f07",
+  "documentNamespace": "https://spdx.org/spdxdocs/reqwest-feature-unification-bb4c97f2-9e9b-4a7d-8dc6-7b9351ba26f1",
   "files": [
     {
       "SPDXID": "SPDXRef-File-cloud_sdk_reqwest_feature_unification_test",
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "c2380ff291a1eecdd92bf4cb28a80495f51d5b21"
+          "checksumValue": "616bcd7517616334514086f3ddfac2453cb32f38"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -45,20 +45,20 @@
       ]
     },
     {
-      "SPDXID": "SPDXRef-Package-async-trait-0.1.91",
+      "SPDXID": "SPDXRef-Package-async-trait-0.1.92",
       "description": "Type erasure for async trait methods",
       "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
-          "referenceLocator": "pkg:cargo/async-trait@0.1.91",
+          "referenceLocator": "pkg:cargo/async-trait@0.1.92",
           "referenceType": "purl"
         }
       ],
       "licenseConcluded": "MIT OR Apache-2.0",
       "licenseDeclared": "MIT OR Apache-2.0",
       "name": "async-trait",
-      "versionInfo": "0.1.91"
+      "versionInfo": "0.1.92"
     },
     {
       "SPDXID": "SPDXRef-Package-atomic-waker-1.1.2",
@@ -241,18 +241,18 @@
       "versionInfo": "1.12.1"
     },
     {
-      "SPDXID": "SPDXRef-Package-cc-1.4.0",
+      "SPDXID": "SPDXRef-Package-cc-1.4.2",
       "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
       "licenseConcluded": "MIT OR Apache-2.0",
       "name": "cc",
-      "versionInfo": "1.4.0",
+      "versionInfo": "1.4.2",
       "licenseDeclared": "MIT OR Apache-2.0",
       "description": "A build-time dependency for Cargo build scripts to assist in invoking the native\nC compiler to compile native C code into a static archive to be linked into Rust\ncode.\n",
       "homepage": "https://github.com/rust-lang/cc-rs",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
-          "referenceLocator": "pkg:cargo/cc@1.4.0",
+          "referenceLocator": "pkg:cargo/cc@1.4.2",
           "referenceType": "purl"
         }
       ]
@@ -624,17 +624,17 @@
       "versionInfo": "1.0.2"
     },
     {
-      "SPDXID": "SPDXRef-Package-find-msvc-tools-0.1.9",
+      "SPDXID": "SPDXRef-Package-find-msvc-tools-0.1.10",
       "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
       "licenseConcluded": "MIT OR Apache-2.0",
       "name": "find-msvc-tools",
-      "versionInfo": "0.1.9",
+      "versionInfo": "0.1.10",
       "licenseDeclared": "MIT OR Apache-2.0",
       "description": "Find windows-specific tools, read MSVC versions from the registry and from COM interfaces",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
-          "referenceLocator": "pkg:cargo/find-msvc-tools@0.1.9",
+          "referenceLocator": "pkg:cargo/find-msvc-tools@0.1.10",
           "referenceType": "purl"
         }
       ]
@@ -1369,13 +1369,13 @@
       ]
     },
     {
-      "SPDXID": "SPDXRef-Package-js-sys-0.3.103",
+      "SPDXID": "SPDXRef-Package-js-sys-0.3.104",
       "description": "Bindings for all JS global objects and functions in all JS environments like\nNode.js and browsers, built on `#[wasm_bindgen]` using the `wasm-bindgen` crate.\n",
       "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
-          "referenceLocator": "pkg:cargo/js-sys@0.3.103",
+          "referenceLocator": "pkg:cargo/js-sys@0.3.104",
           "referenceType": "purl"
         }
       ],
@@ -1383,7 +1383,7 @@
       "licenseConcluded": "MIT OR Apache-2.0",
       "licenseDeclared": "MIT OR Apache-2.0",
       "name": "js-sys",
-      "versionInfo": "0.3.103"
+      "versionInfo": "0.3.104"
     },
     {
       "SPDXID": "SPDXRef-Package-libc-0.2.189",
@@ -2616,36 +2616,36 @@
       "versionInfo": "0.2.0"
     },
     {
-      "SPDXID": "SPDXRef-Package-thiserror-2.0.19",
+      "SPDXID": "SPDXRef-Package-thiserror-2.0.20",
       "description": "derive(Error)",
       "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
-          "referenceLocator": "pkg:cargo/thiserror@2.0.19",
+          "referenceLocator": "pkg:cargo/thiserror@2.0.20",
           "referenceType": "purl"
         }
       ],
       "licenseConcluded": "MIT OR Apache-2.0",
       "licenseDeclared": "MIT OR Apache-2.0",
       "name": "thiserror",
-      "versionInfo": "2.0.19"
+      "versionInfo": "2.0.20"
     },
     {
-      "SPDXID": "SPDXRef-Package-thiserror-impl-2.0.19",
+      "SPDXID": "SPDXRef-Package-thiserror-impl-2.0.20",
       "description": "Implementation detail of the `thiserror` crate",
       "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
-          "referenceLocator": "pkg:cargo/thiserror-impl@2.0.19",
+          "referenceLocator": "pkg:cargo/thiserror-impl@2.0.20",
           "referenceType": "purl"
         }
       ],
       "licenseConcluded": "MIT OR Apache-2.0",
       "licenseDeclared": "MIT OR Apache-2.0",
       "name": "thiserror-impl",
-      "versionInfo": "2.0.19"
+      "versionInfo": "2.0.20"
     },
     {
       "SPDXID": "SPDXRef-Package-tinystr-0.8.3",
@@ -3014,13 +3014,13 @@
       "versionInfo": "0.11.1+wasi-snapshot-preview1"
     },
     {
-      "SPDXID": "SPDXRef-Package-wasm-bindgen-0.2.126",
+      "SPDXID": "SPDXRef-Package-wasm-bindgen-0.2.127",
       "description": "Easy support for interacting between JS and Rust.\n",
       "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
-          "referenceLocator": "pkg:cargo/wasm-bindgen@0.2.126",
+          "referenceLocator": "pkg:cargo/wasm-bindgen@0.2.127",
           "referenceType": "purl"
         }
       ],
@@ -3028,16 +3028,16 @@
       "licenseConcluded": "MIT OR Apache-2.0",
       "licenseDeclared": "MIT OR Apache-2.0",
       "name": "wasm-bindgen",
-      "versionInfo": "0.2.126"
+      "versionInfo": "0.2.127"
     },
     {
-      "SPDXID": "SPDXRef-Package-wasm-bindgen-futures-0.4.76",
+      "SPDXID": "SPDXRef-Package-wasm-bindgen-futures-0.4.77",
       "description": "Bridging the gap between Rust Futures and JavaScript Promises",
       "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
-          "referenceLocator": "pkg:cargo/wasm-bindgen-futures@0.4.76",
+          "referenceLocator": "pkg:cargo/wasm-bindgen-futures@0.4.77",
           "referenceType": "purl"
         }
       ],
@@ -3045,16 +3045,16 @@
       "licenseConcluded": "MIT OR Apache-2.0",
       "licenseDeclared": "MIT OR Apache-2.0",
       "name": "wasm-bindgen-futures",
-      "versionInfo": "0.4.76"
+      "versionInfo": "0.4.77"
     },
     {
-      "SPDXID": "SPDXRef-Package-wasm-bindgen-macro-0.2.126",
+      "SPDXID": "SPDXRef-Package-wasm-bindgen-macro-0.2.127",
       "description": "Definition of the `#[wasm_bindgen]` attribute, an internal dependency\n",
       "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
-          "referenceLocator": "pkg:cargo/wasm-bindgen-macro@0.2.126",
+          "referenceLocator": "pkg:cargo/wasm-bindgen-macro@0.2.127",
           "referenceType": "purl"
         }
       ],
@@ -3062,16 +3062,16 @@
       "licenseConcluded": "MIT OR Apache-2.0",
       "licenseDeclared": "MIT OR Apache-2.0",
       "name": "wasm-bindgen-macro",
-      "versionInfo": "0.2.126"
+      "versionInfo": "0.2.127"
     },
     {
-      "SPDXID": "SPDXRef-Package-wasm-bindgen-macro-support-0.2.126",
+      "SPDXID": "SPDXRef-Package-wasm-bindgen-macro-support-0.2.127",
       "description": "Implementation APIs for the `#[wasm_bindgen]` attribute",
       "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
-          "referenceLocator": "pkg:cargo/wasm-bindgen-macro-support@0.2.126",
+          "referenceLocator": "pkg:cargo/wasm-bindgen-macro-support@0.2.127",
           "referenceType": "purl"
         }
       ],
@@ -3079,16 +3079,16 @@
       "licenseConcluded": "MIT OR Apache-2.0",
       "licenseDeclared": "MIT OR Apache-2.0",
       "name": "wasm-bindgen-macro-support",
-      "versionInfo": "0.2.126"
+      "versionInfo": "0.2.127"
     },
     {
-      "SPDXID": "SPDXRef-Package-wasm-bindgen-shared-0.2.126",
+      "SPDXID": "SPDXRef-Package-wasm-bindgen-shared-0.2.127",
       "description": "Shared support between wasm-bindgen and wasm-bindgen cli, an internal\ndependency.\n",
       "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
-          "referenceLocator": "pkg:cargo/wasm-bindgen-shared@0.2.126",
+          "referenceLocator": "pkg:cargo/wasm-bindgen-shared@0.2.127",
           "referenceType": "purl"
         }
       ],
@@ -3096,16 +3096,16 @@
       "licenseConcluded": "MIT OR Apache-2.0",
       "licenseDeclared": "MIT OR Apache-2.0",
       "name": "wasm-bindgen-shared",
-      "versionInfo": "0.2.126"
+      "versionInfo": "0.2.127"
     },
     {
-      "SPDXID": "SPDXRef-Package-web-sys-0.3.103",
+      "SPDXID": "SPDXRef-Package-web-sys-0.3.104",
       "description": "Bindings for all Web APIs, a procedurally generated crate from WebIDL\n",
       "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
-          "referenceLocator": "pkg:cargo/web-sys@0.3.103",
+          "referenceLocator": "pkg:cargo/web-sys@0.3.104",
           "referenceType": "purl"
         }
       ],
@@ -3113,7 +3113,7 @@
       "licenseConcluded": "MIT OR Apache-2.0",
       "licenseDeclared": "MIT OR Apache-2.0",
       "name": "web-sys",
-      "versionInfo": "0.3.103"
+      "versionInfo": "0.3.104"
     },
     {
       "SPDXID": "SPDXRef-Package-web-time-1.1.0",
@@ -3601,17 +3601,17 @@
       "relatedSpdxElement": "SPDXRef-Package-memchr-2.8.3"
     },
     {
-      "spdxElementId": "SPDXRef-Package-async-trait-0.1.91",
+      "spdxElementId": "SPDXRef-Package-async-trait-0.1.92",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-proc-macro2-1.0.107"
     },
     {
-      "spdxElementId": "SPDXRef-Package-async-trait-0.1.91",
+      "spdxElementId": "SPDXRef-Package-async-trait-0.1.92",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-quote-1.0.47"
     },
     {
-      "spdxElementId": "SPDXRef-Package-async-trait-0.1.91",
+      "spdxElementId": "SPDXRef-Package-async-trait-0.1.92",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-syn-3.0.3"
     },
@@ -3628,7 +3628,7 @@
     {
       "spdxElementId": "SPDXRef-Package-aws-lc-fips-sys-0.13.16",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cc-1.4.0"
+      "relatedSpdxElement": "SPDXRef-Package-cc-1.4.2"
     },
     {
       "spdxElementId": "SPDXRef-Package-aws-lc-fips-sys-0.13.16",
@@ -3673,7 +3673,7 @@
     {
       "spdxElementId": "SPDXRef-Package-aws-lc-sys-0.43.0",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cc-1.4.0"
+      "relatedSpdxElement": "SPDXRef-Package-cc-1.4.2"
     },
     {
       "spdxElementId": "SPDXRef-Package-aws-lc-sys-0.43.0",
@@ -3761,37 +3761,37 @@
       "relatedSpdxElement": "SPDXRef-Package-syn-2.0.119"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cc-1.4.0",
+      "spdxElementId": "SPDXRef-Package-cc-1.4.2",
       "relationshipType": "BUILD_DEPENDENCY_OF",
       "relatedSpdxElement": "SPDXRef-Package-aws-lc-fips-sys-0.13.16"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cc-1.4.0",
+      "spdxElementId": "SPDXRef-Package-cc-1.4.2",
       "relationshipType": "BUILD_DEPENDENCY_OF",
       "relatedSpdxElement": "SPDXRef-Package-aws-lc-sys-0.43.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cc-1.4.0",
+      "spdxElementId": "SPDXRef-Package-cc-1.4.2",
       "relationshipType": "BUILD_DEPENDENCY_OF",
       "relatedSpdxElement": "SPDXRef-Package-ring-0.17.14"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cc-1.4.0",
+      "spdxElementId": "SPDXRef-Package-cc-1.4.2",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-find-msvc-tools-0.1.9"
+      "relatedSpdxElement": "SPDXRef-Package-find-msvc-tools-0.1.10"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cc-1.4.0",
+      "spdxElementId": "SPDXRef-Package-cc-1.4.2",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-jobserver-0.1.35"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cc-1.4.0",
+      "spdxElementId": "SPDXRef-Package-cc-1.4.2",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-libc-0.2.189"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cc-1.4.0",
+      "spdxElementId": "SPDXRef-Package-cc-1.4.2",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-shlex-2.0.1"
     },
@@ -3978,7 +3978,7 @@
     {
       "spdxElementId": "SPDXRef-Package-cmake-0.1.58",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cc-1.4.0"
+      "relatedSpdxElement": "SPDXRef-Package-cc-1.4.2"
     },
     {
       "spdxElementId": "SPDXRef-Package-combine-4.6.7",
@@ -4138,7 +4138,7 @@
     {
       "spdxElementId": "SPDXRef-Package-getrandom-0.2.17",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-js-sys-0.3.103"
+      "relatedSpdxElement": "SPDXRef-Package-js-sys-0.3.104"
     },
     {
       "spdxElementId": "SPDXRef-Package-getrandom-0.2.17",
@@ -4153,7 +4153,7 @@
     {
       "spdxElementId": "SPDXRef-Package-getrandom-0.2.17",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-wasm-bindgen-0.2.126"
+      "relatedSpdxElement": "SPDXRef-Package-wasm-bindgen-0.2.127"
     },
     {
       "spdxElementId": "SPDXRef-Package-getrandom-0.4.3",
@@ -4163,7 +4163,7 @@
     {
       "spdxElementId": "SPDXRef-Package-getrandom-0.4.3",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-js-sys-0.3.103"
+      "relatedSpdxElement": "SPDXRef-Package-js-sys-0.3.104"
     },
     {
       "spdxElementId": "SPDXRef-Package-getrandom-0.4.3",
@@ -4183,7 +4183,7 @@
     {
       "spdxElementId": "SPDXRef-Package-getrandom-0.4.3",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-wasm-bindgen-0.2.126"
+      "relatedSpdxElement": "SPDXRef-Package-wasm-bindgen-0.2.127"
     },
     {
       "spdxElementId": "SPDXRef-Package-glob-0.3.4",
@@ -4248,7 +4248,7 @@
     {
       "spdxElementId": "SPDXRef-Package-hickory-net-0.26.1",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-async-trait-0.1.91"
+      "relatedSpdxElement": "SPDXRef-Package-async-trait-0.1.92"
     },
     {
       "spdxElementId": "SPDXRef-Package-hickory-net-0.26.1",
@@ -4303,7 +4303,7 @@
     {
       "spdxElementId": "SPDXRef-Package-hickory-net-0.26.1",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-thiserror-2.0.19"
+      "relatedSpdxElement": "SPDXRef-Package-thiserror-2.0.20"
     },
     {
       "spdxElementId": "SPDXRef-Package-hickory-net-0.26.1",
@@ -4368,7 +4368,7 @@
     {
       "spdxElementId": "SPDXRef-Package-hickory-proto-0.26.1",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-thiserror-2.0.19"
+      "relatedSpdxElement": "SPDXRef-Package-thiserror-2.0.20"
     },
     {
       "spdxElementId": "SPDXRef-Package-hickory-proto-0.26.1",
@@ -4463,7 +4463,7 @@
     {
       "spdxElementId": "SPDXRef-Package-hickory-resolver-0.26.1",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-thiserror-2.0.19"
+      "relatedSpdxElement": "SPDXRef-Package-thiserror-2.0.20"
     },
     {
       "spdxElementId": "SPDXRef-Package-hickory-resolver-0.26.1",
@@ -4953,7 +4953,7 @@
     {
       "spdxElementId": "SPDXRef-Package-jni-0.22.4",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-thiserror-2.0.19"
+      "relatedSpdxElement": "SPDXRef-Package-thiserror-2.0.20"
     },
     {
       "spdxElementId": "SPDXRef-Package-jni-0.22.4",
@@ -5016,19 +5016,19 @@
       "relatedSpdxElement": "SPDXRef-Package-libc-0.2.189"
     },
     {
-      "spdxElementId": "SPDXRef-Package-js-sys-0.3.103",
+      "spdxElementId": "SPDXRef-Package-js-sys-0.3.104",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cfg-if-1.0.4"
     },
     {
-      "spdxElementId": "SPDXRef-Package-js-sys-0.3.103",
+      "spdxElementId": "SPDXRef-Package-js-sys-0.3.104",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-futures-util-0.3.33"
     },
     {
-      "spdxElementId": "SPDXRef-Package-js-sys-0.3.103",
+      "spdxElementId": "SPDXRef-Package-js-sys-0.3.104",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-wasm-bindgen-0.2.126"
+      "relatedSpdxElement": "SPDXRef-Package-wasm-bindgen-0.2.127"
     },
     {
       "spdxElementId": "SPDXRef-Package-libloading-0.8.9",
@@ -5253,7 +5253,7 @@
     {
       "spdxElementId": "SPDXRef-Package-quinn-0.11.11",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-thiserror-2.0.19"
+      "relatedSpdxElement": "SPDXRef-Package-thiserror-2.0.20"
     },
     {
       "spdxElementId": "SPDXRef-Package-quinn-0.11.11",
@@ -5328,7 +5328,7 @@
     {
       "spdxElementId": "SPDXRef-Package-quinn-proto-0.11.16",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-thiserror-2.0.19"
+      "relatedSpdxElement": "SPDXRef-Package-thiserror-2.0.20"
     },
     {
       "spdxElementId": "SPDXRef-Package-quinn-proto-0.11.16",
@@ -5513,7 +5513,7 @@
     {
       "spdxElementId": "SPDXRef-Package-reqwest-0.13.4",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-js-sys-0.3.103"
+      "relatedSpdxElement": "SPDXRef-Package-js-sys-0.3.104"
     },
     {
       "spdxElementId": "SPDXRef-Package-reqwest-0.13.4",
@@ -5593,22 +5593,22 @@
     {
       "spdxElementId": "SPDXRef-Package-reqwest-0.13.4",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-wasm-bindgen-0.2.126"
+      "relatedSpdxElement": "SPDXRef-Package-wasm-bindgen-0.2.127"
     },
     {
       "spdxElementId": "SPDXRef-Package-reqwest-0.13.4",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-wasm-bindgen-futures-0.4.76"
+      "relatedSpdxElement": "SPDXRef-Package-wasm-bindgen-futures-0.4.77"
     },
     {
       "spdxElementId": "SPDXRef-Package-reqwest-0.13.4",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-web-sys-0.3.103"
+      "relatedSpdxElement": "SPDXRef-Package-web-sys-0.3.104"
     },
     {
       "spdxElementId": "SPDXRef-Package-ring-0.17.14",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cc-1.4.0"
+      "relatedSpdxElement": "SPDXRef-Package-cc-1.4.2"
     },
     {
       "spdxElementId": "SPDXRef-Package-ring-0.17.14",
@@ -5798,7 +5798,7 @@
     {
       "spdxElementId": "SPDXRef-Package-rustversion-1.0.23",
       "relationshipType": "BUILD_DEPENDENCY_OF",
-      "relatedSpdxElement": "SPDXRef-Package-wasm-bindgen-0.2.126"
+      "relatedSpdxElement": "SPDXRef-Package-wasm-bindgen-0.2.127"
     },
     {
       "spdxElementId": "SPDXRef-Package-same-file-1.0.6",
@@ -5971,22 +5971,22 @@
       "relatedSpdxElement": "SPDXRef-Package-libc-0.2.189"
     },
     {
-      "spdxElementId": "SPDXRef-Package-thiserror-2.0.19",
+      "spdxElementId": "SPDXRef-Package-thiserror-2.0.20",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-thiserror-impl-2.0.19"
+      "relatedSpdxElement": "SPDXRef-Package-thiserror-impl-2.0.20"
     },
     {
-      "spdxElementId": "SPDXRef-Package-thiserror-impl-2.0.19",
+      "spdxElementId": "SPDXRef-Package-thiserror-impl-2.0.20",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-proc-macro2-1.0.107"
     },
     {
-      "spdxElementId": "SPDXRef-Package-thiserror-impl-2.0.19",
+      "spdxElementId": "SPDXRef-Package-thiserror-impl-2.0.20",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-quote-1.0.47"
     },
     {
-      "spdxElementId": "SPDXRef-Package-thiserror-impl-2.0.19",
+      "spdxElementId": "SPDXRef-Package-thiserror-impl-2.0.20",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-syn-3.0.3"
     },
@@ -6223,12 +6223,12 @@
     {
       "spdxElementId": "SPDXRef-Package-uuid-1.24.0",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-js-sys-0.3.103"
+      "relatedSpdxElement": "SPDXRef-Package-js-sys-0.3.104"
     },
     {
       "spdxElementId": "SPDXRef-Package-uuid-1.24.0",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-wasm-bindgen-0.2.126"
+      "relatedSpdxElement": "SPDXRef-Package-wasm-bindgen-0.2.127"
     },
     {
       "spdxElementId": "SPDXRef-Package-walkdir-2.5.0",
@@ -6251,99 +6251,99 @@
       "relatedSpdxElement": "SPDXRef-Package-try-lock-0.2.5"
     },
     {
-      "spdxElementId": "SPDXRef-Package-wasm-bindgen-0.2.126",
+      "spdxElementId": "SPDXRef-Package-wasm-bindgen-0.2.127",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cfg-if-1.0.4"
     },
     {
-      "spdxElementId": "SPDXRef-Package-wasm-bindgen-0.2.126",
+      "spdxElementId": "SPDXRef-Package-wasm-bindgen-0.2.127",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-once--cell-1.21.4"
     },
     {
-      "spdxElementId": "SPDXRef-Package-wasm-bindgen-0.2.126",
+      "spdxElementId": "SPDXRef-Package-wasm-bindgen-0.2.127",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-rustversion-1.0.23"
     },
     {
-      "spdxElementId": "SPDXRef-Package-wasm-bindgen-0.2.126",
+      "spdxElementId": "SPDXRef-Package-wasm-bindgen-0.2.127",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-wasm-bindgen-macro-0.2.126"
+      "relatedSpdxElement": "SPDXRef-Package-wasm-bindgen-macro-0.2.127"
     },
     {
-      "spdxElementId": "SPDXRef-Package-wasm-bindgen-0.2.126",
+      "spdxElementId": "SPDXRef-Package-wasm-bindgen-0.2.127",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-wasm-bindgen-shared-0.2.126"
+      "relatedSpdxElement": "SPDXRef-Package-wasm-bindgen-shared-0.2.127"
     },
     {
-      "spdxElementId": "SPDXRef-Package-wasm-bindgen-futures-0.4.76",
+      "spdxElementId": "SPDXRef-Package-wasm-bindgen-futures-0.4.77",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-js-sys-0.3.103"
+      "relatedSpdxElement": "SPDXRef-Package-js-sys-0.3.104"
     },
     {
-      "spdxElementId": "SPDXRef-Package-wasm-bindgen-futures-0.4.76",
+      "spdxElementId": "SPDXRef-Package-wasm-bindgen-futures-0.4.77",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-wasm-bindgen-0.2.126"
+      "relatedSpdxElement": "SPDXRef-Package-wasm-bindgen-0.2.127"
     },
     {
-      "spdxElementId": "SPDXRef-Package-wasm-bindgen-macro-0.2.126",
+      "spdxElementId": "SPDXRef-Package-wasm-bindgen-macro-0.2.127",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-quote-1.0.47"
     },
     {
-      "spdxElementId": "SPDXRef-Package-wasm-bindgen-macro-0.2.126",
+      "spdxElementId": "SPDXRef-Package-wasm-bindgen-macro-0.2.127",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-wasm-bindgen-macro-support-0.2.126"
+      "relatedSpdxElement": "SPDXRef-Package-wasm-bindgen-macro-support-0.2.127"
     },
     {
-      "spdxElementId": "SPDXRef-Package-wasm-bindgen-macro-support-0.2.126",
+      "spdxElementId": "SPDXRef-Package-wasm-bindgen-macro-support-0.2.127",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-bumpalo-3.20.3"
     },
     {
-      "spdxElementId": "SPDXRef-Package-wasm-bindgen-macro-support-0.2.126",
+      "spdxElementId": "SPDXRef-Package-wasm-bindgen-macro-support-0.2.127",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-proc-macro2-1.0.107"
     },
     {
-      "spdxElementId": "SPDXRef-Package-wasm-bindgen-macro-support-0.2.126",
+      "spdxElementId": "SPDXRef-Package-wasm-bindgen-macro-support-0.2.127",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-quote-1.0.47"
     },
     {
-      "spdxElementId": "SPDXRef-Package-wasm-bindgen-macro-support-0.2.126",
+      "spdxElementId": "SPDXRef-Package-wasm-bindgen-macro-support-0.2.127",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-syn-2.0.119"
     },
     {
-      "spdxElementId": "SPDXRef-Package-wasm-bindgen-macro-support-0.2.126",
+      "spdxElementId": "SPDXRef-Package-wasm-bindgen-macro-support-0.2.127",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-wasm-bindgen-shared-0.2.126"
+      "relatedSpdxElement": "SPDXRef-Package-wasm-bindgen-shared-0.2.127"
     },
     {
-      "spdxElementId": "SPDXRef-Package-wasm-bindgen-shared-0.2.126",
+      "spdxElementId": "SPDXRef-Package-wasm-bindgen-shared-0.2.127",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-unicode-ident-1.0.24"
     },
     {
-      "spdxElementId": "SPDXRef-Package-web-sys-0.3.103",
+      "spdxElementId": "SPDXRef-Package-web-sys-0.3.104",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-js-sys-0.3.103"
+      "relatedSpdxElement": "SPDXRef-Package-js-sys-0.3.104"
     },
     {
-      "spdxElementId": "SPDXRef-Package-web-sys-0.3.103",
+      "spdxElementId": "SPDXRef-Package-web-sys-0.3.104",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-wasm-bindgen-0.2.126"
-    },
-    {
-      "spdxElementId": "SPDXRef-Package-web-time-1.1.0",
-      "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-js-sys-0.3.103"
+      "relatedSpdxElement": "SPDXRef-Package-wasm-bindgen-0.2.127"
     },
     {
       "spdxElementId": "SPDXRef-Package-web-time-1.1.0",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-wasm-bindgen-0.2.126"
+      "relatedSpdxElement": "SPDXRef-Package-js-sys-0.3.104"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-web-time-1.1.0",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-wasm-bindgen-0.2.127"
     },
     {
       "spdxElementId": "SPDXRef-Package-webpki-root-certs-1.0.9",

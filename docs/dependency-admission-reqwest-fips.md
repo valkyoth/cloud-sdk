@@ -3,7 +3,7 @@
 Status: admitted only through the non-default
 `cloud-sdk-reqwest/blocking-rustls-fips` feature.
 
-Checked: 2026-08-01.
+Checked: 2026-08-08.
 
 ## Decision
 
@@ -93,10 +93,10 @@ Release builders must retain Cargo checksum verification, use reviewed pinned
 build images, avoid untrusted compiler environment flags, and preserve build
 logs. Reproducible byte-for-byte native outputs are not claimed. The v0.24
 review and the
-[`2026-07-20 maintenance review`](DEPENDENCY_REVIEW_2026-07-20.md) record the
-applicable exact Cargo archive checksums and confirm that hosted native tools
-remain mutable; production builders must pin those tools in an immutable
-reviewed image. Cargo Deny narrowly skips duplicate detection for build-only
+[`v0.65 dependency review`](DEPENDENCY_REVIEW_0.65.0.md) record the applicable
+exact Cargo archive checksums and confirm that hosted native tools remain
+mutable; production builders must pin those tools in an immutable reviewed
+image. Cargo Deny narrowly skips duplicate detection for build-only
 `shlex 1.3.0`: bindgen requires the 1.x line while cc requires 2.x. The
 all-feature workspace also permits compile-time `syn 2.0.119` while current
 Serde uses `syn 3`. Neither duplicate has a runtime path, so each exception

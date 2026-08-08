@@ -38,6 +38,9 @@ optional `serde` feature.
   pricing, location, certificate, and Storage Box response work from v0.63-v0.64.
 - Includes exact `base64-ng 2.0.1` integration in the optional reqwest Basic-auth
   graph and cumulative exact-response/testkit improvements.
+- Reviews the newer AWS-LC `1.18.0/0.44.0/0.14.1` set but retains the previous
+  exact pins because the FIPS crate fails a clean read-only Cargo source build;
+  runtime FIPS verification remains distinct from deployment accreditation.
 - Adds deterministic DNS schema generation, adversarial tests, named fuzz seeds,
   incremental coverage, and an ignored credential-gated typed zone live probe.
 
