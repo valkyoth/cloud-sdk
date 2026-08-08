@@ -29,7 +29,9 @@ exercise more nested values, lists, strings, and unknown additive fields.
   upstream specification during live drift checks. Unrecognized schema
   keywords, semantic siblings beside `allOf`, and unsafe overlapping `allOf`
   properties stop generation; the only supported overlap is an explicit,
-  non-empty string-enum discriminator intersection.
+  non-empty string-enum discriminator intersection. `oneOf` and its
+  discriminator are admitted only through the implemented array-item union
+  walker; direct object unions stop generation.
 - The optional Basic-auth encoder moves to exact `base64-ng 2.0.1` with default
   features disabled. Existing exact output, source-clearing, aggregate-bound,
   feature-boundary, and transport tests continue to cover its use.

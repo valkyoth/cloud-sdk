@@ -30,7 +30,6 @@ HANDLED_SCHEMA_KEYS = frozenset(
     (
         "additionalProperties",
         "allOf",
-        "discriminator",
         "enum",
         "format",
         "items",
@@ -40,13 +39,13 @@ HANDLED_SCHEMA_KEYS = frozenset(
         "minItems",
         "minLength",
         "minimum",
-        "oneOf",
         "pattern",
         "properties",
         "required",
         "type",
     )
 )
+UNION_SCHEMA_KEYS = frozenset(("discriminator", "oneOf"))
 UNSUPPORTED_SECURITY_CONSTRAINTS = frozenset(
     (
         "exclusiveMinimum",

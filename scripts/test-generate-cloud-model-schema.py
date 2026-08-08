@@ -208,6 +208,31 @@ def test_unknown_schema_composition_fails_closed() -> None:
             {"type": "string", keyword: {}},
         )
 
+    assert_raises(
+        "has unsupported schema keys: discriminator, oneOf",
+        generator.walk_object,
+        "server",
+        "",
+        {
+            "type": "object",
+            "properties": {
+                "choice": {
+                    "oneOf": [
+                        {
+                            "type": "object",
+                            "required": ["secret"],
+                            "properties": {
+                                "secret": {"type": "string", "minLength": 8}
+                            },
+                        }
+                    ],
+                    "discriminator": {"propertyName": "kind"},
+                }
+            },
+        },
+        [],
+    )
+
 
 def test_all_of_composition_is_narrow_and_explicit() -> None:
     assert_raises(

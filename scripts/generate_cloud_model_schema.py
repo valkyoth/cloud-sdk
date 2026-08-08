@@ -15,6 +15,7 @@ from cloud_schema_policy import (
     SUPPORTED_FORMATS,
     SUPPORTED_PATTERNS,
     UNSUPPORTED_SECURITY_CONSTRAINTS,
+    UNION_SCHEMA_KEYS,
     merge_all_of,
 )
 
@@ -179,13 +180,21 @@ def cell(value: Any) -> str:
     return text
 
 
-def validate_constraints(model: str, path: str, schema: dict[str, Any]) -> None:
+def validate_constraints(
+    model: str,
+    path: str,
+    schema: dict[str, Any],
+    *,
+    allowed_keys: frozenset[str] = frozenset(),
+) -> None:
     unsupported = sorted(UNSUPPORTED_SECURITY_CONSTRAINTS.intersection(schema))
     if unsupported:
         joined = ", ".join(unsupported)
         raise ValueError(f"{model}:{path} has unenforced constraints: {joined}")
 
-    unknown = sorted(set(schema).difference(ANNOTATION_KEYS | HANDLED_SCHEMA_KEYS))
+    unknown = sorted(
+        set(schema).difference(ANNOTATION_KEYS | HANDLED_SCHEMA_KEYS | allowed_keys)
+    )
     if unknown:
         joined = ", ".join(unknown)
         raise ValueError(f"{model}:{path} has unsupported schema keys: {joined}")
@@ -265,7 +274,7 @@ def walk_object(model: str, prefix: str, schema: dict[str, Any], rows: list[dict
 
 
 def walk_union(model: str, path: str, schema: dict[str, Any], rows: list[dict[str, str]]) -> None:
-    validate_constraints(model, path, schema)
+    validate_constraints(model, path, schema, allowed_keys=UNION_SCHEMA_KEYS)
     discriminator = schema.get("discriminator", {})
     selector = discriminator.get("propertyName") if isinstance(discriminator, dict) else None
     branches = schema.get("oneOf")

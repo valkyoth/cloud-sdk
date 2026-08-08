@@ -54,6 +54,8 @@ an internal tag and publishes no crate. The provider package version remains
 - Made schema composition fail closed on unknown keywords, semantic `allOf`
   siblings, and unsafe overlapping properties while retaining checked
   discriminator-enum intersections used by the pinned specification.
+- Restricted `oneOf` admission to the implemented discriminated array-item
+  union path so direct object unions cannot silently lose branch constraints.
 
 ## Dependency Maintenance
 
