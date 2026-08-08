@@ -1,7 +1,7 @@
 # Crate Version Matrix
 
 Status: `v0.60.0` is tagged and published and `v0.61.0` through `v0.64.0` are
-signed internal milestones. `v0.65.0` is the next cumulative public checkpoint;
+signed internal milestones. `v0.65.0` is the cumulative release candidate;
 its source versions and publish set are fixed below while implementation
 awaits its incremental pentest and final release evidence. Every pre-1.0 tag
 receives its own incremental pentest.

@@ -1,6 +1,6 @@
 # v0.65.0 Rejected Abstractions
 
-Status: implementation complete; incremental pentest required.
+Status: release candidate; pentest and final retest passed.
 
 ## Generic DNS Resources
 

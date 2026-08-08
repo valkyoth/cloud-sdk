@@ -1,12 +1,12 @@
 # cloud-sdk 0.65.0 Release Notes
 
-Status: implementation complete; incremental pentest required.
+Status: release candidate; pentest and final retest passed.
 
-Release date: pending
+Release date: 2026-08-08
 
-Security-Review: PENDING
-Pentest: PENDING
-Publication: PUBLIC CHECKPOINT AFTER GREEN CI
+Security-Review: PASS
+Pentest: PASS
+Publication: PENDING
 
 ## Overview
 
@@ -71,10 +71,11 @@ optional `serde` feature.
 - [`docs/THREAT_MODEL_DELTA_0.65.0.md`](../docs/THREAT_MODEL_DELTA_0.65.0.md)
 - [`docs/REJECTED_ABSTRACTIONS_0.65.0.md`](../docs/REJECTED_ABSTRACTIONS_0.65.0.md)
 - [`docs/MIGRATION_0.65.0.md`](../docs/MIGRATION_0.65.0.md)
+- [`security/pentest/v0.65.0.md`](../security/pentest/v0.65.0.md)
 
 ## Release Gate
 
-Run `scripts/release_0_65_gate.sh` on the clean implementation evidence commit.
-After the incremental pentest and final retest, commit the permanent report,
-rerun the gate, and require green GitHub CI and CodeQL on the unchanged commit
-before the signed public tag and crates.io publication.
+The incremental pentest and final retest passed. Run
+`scripts/release_0_65_gate.sh` on the clean evidence commit, then require green
+GitHub CI and CodeQL on that unchanged commit before the signed public tag and
+crates.io publication.

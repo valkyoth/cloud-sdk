@@ -86,9 +86,9 @@ full-fidelity Hetzner vertical slices before the neutral API freeze.
 The latest published checkpoint is `v0.60.0`; v0.61 through v0.64 are signed
 internal milestones. v0.65 completes source-derived Hetzner DNS zone and RRSet
 responses, protected TSIG results, bounded zonefiles, open future RR types, and
-incremental large-response admission. The implementation and local evidence
-must pass the incremental pentest, final release gate, GitHub CI, and CodeQL
-before the signed public tag and cumulative crates.io publication.
+incremental large-response admission. Its incremental pentest and final retest
+passed; the final release gate, GitHub CI, and CodeQL must pass before the
+signed public tag and cumulative crates.io publication.
 
 ## Trust Dashboard
 

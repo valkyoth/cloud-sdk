@@ -1,6 +1,6 @@
 # v0.65.0 Threat Model Delta
 
-Status: implementation complete; incremental pentest required.
+Status: release candidate; pentest and final retest passed.
 
 ## New Assets
 

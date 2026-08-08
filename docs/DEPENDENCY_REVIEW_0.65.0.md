@@ -1,6 +1,6 @@
 # v0.65.0 Dependency Review
 
-Status: implementation complete; incremental pentest required.
+Status: release candidate; pentest and final retest passed.
 
 The v0.65 DNS implementation adds no dependency or feature. It reuses the
 existing optional Serde parser, `alloc`, and first-party protected string

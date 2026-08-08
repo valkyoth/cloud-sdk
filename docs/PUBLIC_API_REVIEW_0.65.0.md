@@ -1,6 +1,6 @@
 # v0.65.0 Public API Review
 
-Status: implementation complete; incremental pentest required.
+Status: release candidate; pentest and final retest passed.
 
 Scope: cumulative public changes from signed and published v0.60.0 through
 v0.65.0, with the v0.65 delta focused on Hetzner DNS responses.
