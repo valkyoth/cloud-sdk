@@ -180,6 +180,31 @@ fn rrset_record_deduplication_handles_the_exact_source_bound() {
 }
 
 #[test]
+fn late_rrset_validation_errors_fail_closed_after_sensitive_allocations() {
+    let mut duplicate_records = resource_value("rrset");
+    let Some(fields) = duplicate_records.as_object_mut() else {
+        unreachable!("RRSet cleanup fixture is not an object")
+    };
+    fields.insert(
+        "records".into(),
+        serde_json::json!([
+            {"value":"192.0.2.77","comment":"first"},
+            {"value":"192.0.2.77","comment":"second"}
+        ]),
+    );
+    fields.insert("labels".into(), serde_json::json!({"topology":"private"}));
+    let body =
+        serde_json::to_vec(&serde_json::json!({"rrset":duplicate_records})).unwrap_or_default();
+    assert_decode_error(
+        decode_response(
+            prepared("get_zone_rrset", DNS_SERVICE_ID, StatusCode::OK),
+            response(StatusCode::OK, &body),
+        ),
+        HetznerDecodeError::Model(ResponseModelError::InvalidText),
+    );
+}
+
+#[test]
 fn dns_lists_and_create_composites_keep_dedicated_models() {
     let meta = serde_json::json!({"pagination":{
         "page":1,"per_page":1,"previous_page":null,"next_page":null,

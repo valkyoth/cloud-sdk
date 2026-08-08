@@ -8,6 +8,10 @@ workspace=crates/cloud-sdk/src/transport/workspace.rs
 headers=crates/cloud-sdk/src/transport/header/response.rs
 content_type=crates/cloud-sdk/src/transport/content_type.rs
 strict_json=crates/cloud-sdk-hetzner/src/serde/strict_json.rs
+model_guard=crates/cloud-sdk-hetzner/src/serde/models/wipe_string.rs
+model_root=crates/cloud-sdk-hetzner/src/serde/models.rs
+dns_zone=crates/cloud-sdk-hetzner/src/serde/models/dns/zone/parser.rs
+dns_rrset=crates/cloud-sdk-hetzner/src/serde/models/dns/rrset.rs
 
 if find crates fuzz/fuzz_targets -type f -name '*.rs' -exec \
     grep -HnE '\.fill\(0(_u8)?\)' {} +; then
@@ -70,6 +74,34 @@ for required in \
     'sanitize_string(&mut self.0)'; do
     if ! grep -Fq "$required" "$strict_json"; then
         echo "response cleanup: missing protected JSON-key contract $required" >&2
+        exit 1
+    fi
+done
+
+for required in \
+    'pub(super) struct WipeString(String)' \
+    'pub(super) struct WipeStrings(Vec<String>)' \
+    'sanitize_string(&mut self.0)' \
+    'sanitize_string(value)'; do
+    if ! grep -Fq "$required" "$model_guard"; then
+        echo "response cleanup: missing fallible model-parser guard $required" >&2
+        exit 1
+    fi
+done
+
+for contract in \
+    "$model_root:let mut labels = Self(Vec::new())" \
+    "$model_root:let key = WipeString::new(" \
+    "$dns_zone:let name = WipeString::new(" \
+    "$dns_zone:let address = WipeString::new(" \
+    "$dns_zone:let mut output = WipeStrings::with_capacity(values.len())?" \
+    "$dns_rrset:let id = WipeString::new(" \
+    "$dns_rrset:let raw = WipeString::new(" \
+    "$dns_rrset:let value = WipeString::new("; do
+    file=${contract%%:*}
+    required=${contract#*:}
+    if ! grep -Fq "$required" "$file"; then
+        echo "response cleanup: missing error-path ownership contract $required" >&2
         exit 1
     fi
 done

@@ -130,3 +130,24 @@ fn checked_zone_labels_remain_redacted_when_accessed_directly() {
     assert!(!debug.contains("classified-topology"));
     assert!(debug.contains("[redacted]"));
 }
+
+#[test]
+fn late_zone_validation_errors_fail_closed_after_sensitive_allocations() {
+    let mut invalid_registrar = resource_value("zone");
+    let Some(fields) = invalid_registrar.as_object_mut() else {
+        unreachable!("zone cleanup fixture is not an object")
+    };
+    fields.insert("labels".into(), serde_json::json!({"topology":"private"}));
+    fields.insert("registrar".into(), serde_json::json!("future"));
+    assert_zone_model_error(invalid_registrar, ResponseModelError::UnknownEnumValue);
+
+    let mut invalid_primary_port = resource_value("zone");
+    let Some(fields) = invalid_primary_port.as_object_mut() else {
+        unreachable!("zone cleanup fixture is not an object")
+    };
+    fields.insert(
+        "primary_nameservers".into(),
+        serde_json::json!([{"address":"192.0.2.55","port":0}]),
+    );
+    assert_zone_model_error(invalid_primary_port, ResponseModelError::InvalidNumber);
+}

@@ -13,6 +13,7 @@ mod resources;
 mod scalars;
 mod special;
 mod storage_box;
+mod wipe_string;
 
 use alloc::string::String;
 use alloc::vec::Vec;
@@ -22,6 +23,8 @@ use cloud_sdk_sanitization::sanitize_string;
 
 use crate::pagination::PaginationMetadata;
 use crate::serde::strict_json::{Map, Value};
+
+use wipe_string::WipeString;
 
 pub use actions::{ActionResult, ActionResultError, ActionResultResource};
 pub use certificate::{
@@ -111,26 +114,31 @@ impl Labels {
         if fields.len() > maximum {
             return Err(ResponseModelError::TooManyItems);
         }
-        let mut labels = Vec::new();
+        let mut labels = Self(Vec::new());
         labels
+            .0
             .try_reserve_exact(fields.len())
             .map_err(|_| ResponseModelError::Allocation)?;
         for (key, value) in fields.iter() {
-            let key = checked_text(key.as_str(), 128)?;
-            let value = value
-                .try_with_str(|value| {
-                    if value.is_empty() {
-                        Ok(String::new())
-                    } else {
-                        checked_text(value, 1_024)
-                    }
-                })
-                .map_err(|_| ResponseModelError::InvalidText)?
-                .ok_or(ResponseModelError::WrongType)??;
-            labels.push((key, value));
+            let key = WipeString::new(checked_text(key.as_str(), 128)?);
+            let value = WipeString::new(
+                value
+                    .try_with_str(|value| {
+                        if value.is_empty() {
+                            Ok(String::new())
+                        } else {
+                            checked_text(value, 1_024)
+                        }
+                    })
+                    .map_err(|_| ResponseModelError::InvalidText)?
+                    .ok_or(ResponseModelError::WrongType)??,
+            );
+            labels.0.push((key.into_inner(), value.into_inner()));
         }
-        labels.sort_unstable_by(|left, right| left.0.cmp(&right.0));
-        Ok(Self(labels))
+        labels
+            .0
+            .sort_unstable_by(|left, right| left.0.cmp(&right.0));
+        Ok(labels)
     }
 
     /// Returns the value for one exact label key.

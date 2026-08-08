@@ -1,6 +1,5 @@
 //! Strict parser for source-complete DNS zone responses.
 
-use alloc::string::String;
 use alloc::vec::Vec;
 use core::net::IpAddr;
 use core::str::FromStr;
@@ -9,6 +8,7 @@ use crate::dns::zones::MAX_TSIG_KEY_BYTES;
 use crate::serde::strict_json::Value;
 
 use super::super::super::cloud_schema::validate_model;
+use super::super::super::wipe_string::{WipeString, WipeStrings};
 use super::super::super::{ResponseModelError, object, parse_labels, required, value_text};
 use super::*;
 
@@ -18,7 +18,7 @@ pub(in crate::serde::models::dns) fn parse_zone(
     validate_model("zone", value)?;
     let fields = object(value)?;
     let id = bounded_id(required(fields, "id")?)?;
-    let name = value_text(required(fields, "name")?, MAX_ZONE_NAME_BYTES)?;
+    let name = WipeString::new(value_text(required(fields, "name")?, MAX_ZONE_NAME_BYTES)?);
     let created = timestamp(required(fields, "created")?)?;
     let mode = parse_mode(required(fields, "mode")?)?;
     let status = parse_status(required(fields, "status")?)?;
@@ -36,7 +36,7 @@ pub(in crate::serde::models::dns) fn parse_zone(
     validate_zone_mode(mode, &primary_nameservers)?;
     Ok(Zone {
         id,
-        name,
+        name: name.into_inner(),
         created,
         mode,
         status,
@@ -110,8 +110,11 @@ fn primary_addresses_are_unique(
 
 fn parse_primary_nameserver(value: &mut Value) -> Result<PrimaryNameserver, ResponseModelError> {
     let fields = value.as_object_mut().ok_or(ResponseModelError::WrongType)?;
-    let address = value_text(required(fields, "address")?, MAX_NAMESERVER_TEXT_BYTES)?;
-    IpAddr::from_str(&address).map_err(|_| ResponseModelError::InvalidText)?;
+    let address = WipeString::new(value_text(
+        required(fields, "address")?,
+        MAX_NAMESERVER_TEXT_BYTES,
+    )?);
+    IpAddr::from_str(address.as_str()).map_err(|_| ResponseModelError::InvalidText)?;
     let port = fields
         .get("port")
         .map(|value| {
@@ -144,7 +147,7 @@ fn parse_primary_nameserver(value: &mut Value) -> Result<PrimaryNameserver, Resp
         return Err(ResponseModelError::EnvelopeMismatch);
     }
     Ok(PrimaryNameserver {
-        address,
+        address: address.into_inner(),
         port,
         tsig_key,
         tsig_algorithm,
@@ -166,24 +169,24 @@ fn parse_authoritative(value: &Value) -> Result<AuthoritativeNameservers, Respon
         .map(parse_delegation_status)
         .transpose()?;
     Ok(AuthoritativeNameservers {
-        assigned,
-        delegated,
+        assigned: assigned.into_inner(),
+        delegated: delegated.into_inner(),
         delegation_last_check,
         delegation_status,
     })
 }
 
-fn nameserver_texts(value: &Value) -> Result<Vec<String>, ResponseModelError> {
+fn nameserver_texts(value: &Value) -> Result<WipeStrings, ResponseModelError> {
     let values = value.as_array().ok_or(ResponseModelError::WrongType)?;
     if values.len() > MAX_NAMESERVERS {
         return Err(ResponseModelError::TooManyItems);
     }
-    let mut output = Vec::new();
-    output
-        .try_reserve_exact(values.len())
-        .map_err(|_| ResponseModelError::Allocation)?;
+    let mut output = WipeStrings::with_capacity(values.len())?;
     for value in values {
-        output.push(value_text(value, MAX_NAMESERVER_TEXT_BYTES)?);
+        output.push(WipeString::new(value_text(
+            value,
+            MAX_NAMESERVER_TEXT_BYTES,
+        )?));
     }
     Ok(output)
 }

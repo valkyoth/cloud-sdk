@@ -31,6 +31,9 @@ optional `serde` feature.
 - Enforced nonempty unique secondary-zone primaries, atomic TSIG key/algorithm
   state, a conservative record-count envelope, no ordinary equality on
   TSIG-bearing aggregates, and clear-on-drop DNS operational strings.
+- Added immediate cleanup ownership for temporary and partially parsed DNS
+  strings so later validation errors clear topology, labels, record values, and
+  comments before releasing their allocations.
 - Replaced quadratic RRSet duplicate detection with bounded borrowed-value
   sorting and exact 4,096-record regression coverage.
 - Incrementally prevalidate zone pages, RRSet pages, and bounded zonefiles

@@ -17,8 +17,11 @@ Status: implementation complete; incremental pentest required.
   ordinary heap-string copy, use closure-scoped access, clear on drop, and stay
   redacted from all DNS diagnostics.
 - DNS zone names, nameserver text, labels, RRSet identifiers and names, open RR
-  types, record values, and comments clear their owned allocations on drop.
-  Caller-created copies remain the caller's cleanup responsibility.
+  types, record values, and comments acquire cleanup ownership immediately when
+  copied during fallible parsing. Private guards clear temporary and partial
+  allocations on every error path, then transfer ownership without copying to
+  final models that clear on drop. Caller-created copies remain the caller's
+  cleanup responsibility.
 - Returned TSIG keys must be bounded canonical padded standard Base64. Legacy
   HMAC-MD5 and HMAC-SHA1 values are observable for existing configurations but
   remain unavailable to outbound request constructors, which admit only

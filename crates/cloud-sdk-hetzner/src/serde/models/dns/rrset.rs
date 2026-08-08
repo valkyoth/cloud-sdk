@@ -10,6 +10,7 @@ use crate::dns::rrsets::{MAX_RECORD_COMMENT_BYTES, MAX_RECORD_VALUE_BYTES, Rrset
 use crate::serde::strict_json::{Map, Value};
 
 use super::super::cloud_schema::validate_model;
+use super::super::wipe_string::WipeString;
 use super::super::{
     Labels, ResponseModelError, checked_text, object, parse_labels, required, validate_text,
     value_text,
@@ -191,8 +192,8 @@ impl Drop for DnsRrset {
 pub(super) fn parse_rrset(value: &mut Value) -> Result<DnsRrset, ResponseModelError> {
     validate_model("rrset", value)?;
     let fields = object(value)?;
-    let id = value_text(required(fields, "id")?, MAX_RRSET_ID_BYTES)?;
-    let name = value_text(required(fields, "name")?, MAX_RRSET_NAME_BYTES)?;
+    let id = WipeString::new(value_text(required(fields, "id")?, MAX_RRSET_ID_BYTES)?);
+    let name = WipeString::new(value_text(required(fields, "name")?, MAX_RRSET_NAME_BYTES)?);
     let record_type = parse_type(required(fields, "type")?)?;
     let ttl = parse_ttl(required(fields, "ttl")?)?;
     let labels = parse_labels(required(fields, "labels")?, 256)?;
@@ -203,8 +204,8 @@ pub(super) fn parse_rrset(value: &mut Value) -> Result<DnsRrset, ResponseModelEr
         .filter(|value| (1..=MAX_PROVIDER_ID).contains(value))
         .ok_or(ResponseModelError::InvalidIdentifier)?;
     Ok(DnsRrset {
-        id,
-        name,
+        id: id.into_inner(),
+        name: name.into_inner(),
         record_type,
         ttl,
         labels,
@@ -215,15 +216,19 @@ pub(super) fn parse_rrset(value: &mut Value) -> Result<DnsRrset, ResponseModelEr
 }
 
 fn parse_type(value: &Value) -> Result<DnsRrsetType, ResponseModelError> {
-    let raw = value_text(value, MAX_RRSET_TYPE_BYTES)?;
+    let raw = WipeString::new(value_text(value, MAX_RRSET_TYPE_BYTES)?);
     if !raw
+        .as_str()
         .bytes()
         .all(|byte| byte.is_ascii_uppercase() || byte.is_ascii_digit())
     {
         return Err(ResponseModelError::InvalidText);
     }
-    let known = known_type(&raw);
-    Ok(DnsRrsetType { raw, known })
+    let known = known_type(raw.as_str());
+    Ok(DnsRrsetType {
+        raw: raw.into_inner(),
+        known,
+    })
 }
 
 fn known_type(value: &str) -> Option<RrsetType> {
@@ -303,9 +308,19 @@ fn record_values_are_unique(records: &[DnsRecord]) -> Result<bool, ResponseModel
 }
 
 fn parse_record(fields: &Map) -> Result<DnsRecord, ResponseModelError> {
-    let value = value_text(required(fields, "value")?, MAX_RECORD_VALUE_BYTES)?;
-    let comment = fields.get("comment").map(copy_optional_text).transpose()?;
-    Ok(DnsRecord { value, comment })
+    let value = WipeString::new(value_text(
+        required(fields, "value")?,
+        MAX_RECORD_VALUE_BYTES,
+    )?);
+    let comment = fields
+        .get("comment")
+        .map(copy_optional_text)
+        .transpose()?
+        .map(WipeString::new);
+    Ok(DnsRecord {
+        value: value.into_inner(),
+        comment: comment.map(WipeString::into_inner),
+    })
 }
 
 fn copy_optional_text(value: &Value) -> Result<String, ResponseModelError> {
