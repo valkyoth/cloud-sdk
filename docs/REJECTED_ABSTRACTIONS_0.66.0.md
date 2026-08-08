@@ -1,6 +1,6 @@
 # v0.66.0 Rejected Abstractions
 
-Status: implementation stop reached; pentest required.
+Status: release candidate; pentest and final retest passed.
 
 ## Generic Resource Identities
 

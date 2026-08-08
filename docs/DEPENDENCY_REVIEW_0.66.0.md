@@ -1,6 +1,6 @@
 # v0.66.0 Dependency Review
 
-Status: implementation stop reached; pentest required.
+Status: release candidate; pentest and final retest passed.
 
 The optional `cloud-sdk-hetzner/serde` feature reuses exact first-party
 `base64-ng 2.0.1` and admits `md-5 0.11.0` plus `sha2 0.10.9`, all with defaults

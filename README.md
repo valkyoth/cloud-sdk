@@ -86,10 +86,10 @@ full-fidelity Hetzner vertical slices before the neutral API freeze.
 The latest published checkpoint is `v0.65.0`. v0.66 completes source-derived
 Hetzner certificate and structurally validated SSH-key response models,
 verified key fingerprints, exact certificate error codes, protected key
-material, redacted diagnostics, and typed security live-smoke coverage. It
-remains an internal milestone until its incremental pentest, final release
-gate, GitHub CI, and CodeQL are green; cumulative crates.io publication is
-deferred to v0.70.0.
+material, redacted diagnostics, and typed security live-smoke coverage. Its
+incremental pentest and final retest passed; the internal tag remains gated on
+the full release check, GitHub CI, and CodeQL. Cumulative crates.io publication
+is deferred to v0.70.0.
 
 ## Trust Dashboard
 

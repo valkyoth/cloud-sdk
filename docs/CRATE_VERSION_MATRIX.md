@@ -1,7 +1,7 @@
 # Crate Version Matrix
 
-Status: `v0.65.0` is tagged and published. `v0.66.0` is an internal milestone
-that completes Hetzner certificate and SSH-key response models; no package is
+Status: `v0.65.0` is tagged and published. `v0.66.0` is an internal release
+candidate with a passed incremental pentest and final retest; no package is
 selected for crates.io until the v0.70.0 cumulative checkpoint. Every pre-1.0
 tag receives its own incremental pentest.
 
