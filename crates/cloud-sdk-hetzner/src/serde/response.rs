@@ -12,7 +12,7 @@ use crate::actions::MAX_ACTION_ID;
 use crate::actions::{ActionId, ActionStatus};
 use crate::cloud::shared::CloudResourceId;
 use crate::response::ApiErrorCode;
-use crate::serde::models::valid_utc_timestamp;
+use crate::serde::models::{is_unsafe_display_character, valid_utc_timestamp};
 
 mod wire;
 
@@ -366,12 +366,8 @@ fn validate_text<E>(value: &str, max: usize, field: &str) -> Result<(), E>
 where
     E: ::serde::de::Error,
 {
-    if value.is_empty() || value.len() > max || value.bytes().any(invalid_text_byte) {
+    if value.is_empty() || value.len() > max || value.chars().any(is_unsafe_display_character) {
         return Err(E::custom(field));
     }
     Ok(())
-}
-
-const fn invalid_text_byte(byte: u8) -> bool {
-    byte < 0x20 || byte == 0x7f
 }

@@ -10,6 +10,9 @@
   and retained absent, null, and protected secret-output states.
 - Bounded every strict-JSON number token, preserved integer, fractional,
   exponent, and negative-zero text, and made allocation failure recoverable.
+- Validated metric sign and zero semantics from exact lexical numbers so
+  floating-point underflow cannot admit negative timestamps or reject positive
+  steps, and aligned borrowed error-code text with the Unicode-safe policy.
 - Added action, metrics, composite, provider-error, adversarial-boundary, and
   dedicated checked-response fuzz coverage.
 

@@ -162,13 +162,10 @@ pub(crate) fn parse_metrics(value: &mut Value) -> Result<Metrics, ResponseModelE
     let step_value = fields
         .get_mut("step")
         .ok_or(ResponseModelError::MissingField)?;
-    if !step_value
-        .as_f64()
-        .is_some_and(|step| step.is_finite() && step > 0.0)
-    {
+    let step = ExactDecimal::take(step_value)?;
+    if !step.is_strictly_positive() {
         return Err(ResponseModelError::InvalidNumber);
     }
-    let step = ExactDecimal::take(step_value)?;
     let time_series = fields
         .get_mut("time_series")
         .ok_or(ResponseModelError::MissingField)?
@@ -207,14 +204,12 @@ pub(crate) fn parse_metrics(value: &mut Value) -> Result<Metrics, ResponseModelE
             let [timestamp, value] = pair else {
                 return Err(ResponseModelError::EnvelopeMismatch);
             };
-            if !timestamp
-                .as_f64()
-                .is_some_and(|timestamp| timestamp.is_finite() && timestamp >= 0.0)
-            {
+            let timestamp = ExactDecimal::take(timestamp)?;
+            if !timestamp.is_non_negative() {
                 return Err(ResponseModelError::InvalidNumber);
             }
             points.push(MetricPoint {
-                timestamp: ExactDecimal::take(timestamp)?,
+                timestamp,
                 value: value_text(value, 256)?,
             });
         }
@@ -314,5 +309,25 @@ mod tests {
             parse_metrics(&mut value),
             Err(ResponseModelError::TooManyItems)
         );
+    }
+
+    #[test]
+    fn metrics_validate_exact_sign_and_zero_without_float_underflow() {
+        for (step, timestamp, accepted) in [
+            ("1e-400", "1e-400", true),
+            ("6e+1", "6e-1", true),
+            ("0e100", "1", false),
+            ("-0", "1", false),
+            ("1", "-1e-400", false),
+            ("1", "-0", false),
+        ] {
+            let input = format!(
+                "{{\"start\":\"2026-08-08T00:00:00Z\",\"end\":\"2026-08-08T01:00:00Z\",\"step\":{step},\"time_series\":{{\"cpu\":{{\"values\":[[{timestamp},\"1\"]]}}}}}}"
+            );
+            let Ok(mut value) = parse(input.as_bytes()) else {
+                unreachable!("exact metrics fixture failed to parse")
+            };
+            assert_eq!(parse_metrics(&mut value).is_ok(), accepted, "{input}");
+        }
     }
 }

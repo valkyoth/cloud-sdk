@@ -188,6 +188,20 @@ fn serde_error_envelope_borrows_and_ignores_additive_fields() {
 }
 
 #[test]
+fn borrowed_api_error_rejects_unicode_log_spoofing_controls() {
+    for code in [
+        "safe\\u202egol",
+        "zero\\u200bwidth",
+        "isolate\\u2066text",
+        "mark\\u061ctext",
+        "bom\\ufefftext",
+    ] {
+        let input = format!("{{\"error\":{{\"code\":\"{code}\",\"message\":\"safe\"}}}}");
+        assert!(serde_json::from_str::<ApiErrorEnvelope<'_>>(&input).is_err());
+    }
+}
+
+#[test]
 fn serde_action_envelope_validates_security_relevant_fields() {
     let json = r#"{
         "action": {

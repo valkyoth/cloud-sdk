@@ -33,6 +33,10 @@ package version remains 0.39.1 while changes accumulate for v0.65.0.
 
 - Limited every strict-JSON number token to 128 bytes before allocation and
   made lexical-storage allocation failure recoverable.
+- Derived metric sign and zero classification from exact lexical tokens,
+  covering underflow-sized exponents and signed zero without float coercion.
+- Applied the same Unicode control and invisible-format rejection policy to
+  borrowed and checked provider error-code text.
 - Enforced source-max action resource IDs and operation-specific secret
   nullability.
 - Added exact-number, UTC/calendar, metrics amplification, action/error,

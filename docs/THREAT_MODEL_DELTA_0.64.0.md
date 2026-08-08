@@ -18,11 +18,15 @@ states, and unknown provider error-code text.
 - Metrics admit at most 512 named series, 16,384 points per series, and 16,384
   points across the response. Existing wire, node, object, depth, duplicate,
   and checked-allocation limits remain mandatory.
+- Metric timestamp sign and step positivity are derived from the exact lexical
+  token. Binary-float underflow therefore cannot turn a negative timestamp or
+  positive nonzero step into accepted or rejected zero.
 - Composite action fields are no longer flattened. Secret outputs use protected
   owned storage, operation-specific nullability, and an accessor that
   distinguishes absent from explicit null.
 - Unknown error codes remain available for forward compatibility but are
-  redacted with commands, timestamps, resource types, metric values, and
+  validated against the shared Unicode control and invisible-format policy,
+  then redacted with commands, timestamps, resource types, metric values, and
   protected messages from `Debug` output.
 - Complete metric copies are fallible and reserve each bounded allocation.
   Allocation failure returns `ResponseModelError::Allocation`.

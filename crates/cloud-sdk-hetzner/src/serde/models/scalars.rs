@@ -78,6 +78,19 @@ impl ExactDecimal {
         lexical.push_str(&self.0);
         Self::from_lexical(lexical)
     }
+
+    pub(crate) fn is_non_negative(&self) -> bool {
+        !self.0.as_bytes().starts_with(b"-")
+    }
+
+    pub(crate) fn is_strictly_positive(&self) -> bool {
+        self.is_non_negative()
+            && self
+                .0
+                .bytes()
+                .take_while(|byte| !matches!(byte, b'e' | b'E'))
+                .any(|byte| matches!(byte, b'1'..=b'9'))
+    }
 }
 
 impl fmt::Debug for ExactDecimal {
@@ -122,6 +135,27 @@ mod tests {
                 unreachable!("exact number fixture failed to convert")
             };
             assert_eq!(decimal.as_str(), lexical);
+        }
+    }
+
+    #[test]
+    fn exact_decimal_classifies_sign_and_zero_without_floating_point() {
+        for (lexical, non_negative, positive) in [
+            ("-1e-400", false, false),
+            ("1e-400", true, true),
+            ("-0", false, false),
+            ("0e100", true, false),
+            ("6e-1", true, true),
+            ("6e+1", true, true),
+        ] {
+            let Ok(mut value) = parse(lexical.as_bytes()) else {
+                unreachable!("exact classification fixture failed to parse")
+            };
+            let Ok(decimal) = ExactDecimal::take(&mut value) else {
+                unreachable!("exact classification fixture failed to convert")
+            };
+            assert_eq!(decimal.is_non_negative(), non_negative, "{lexical}");
+            assert_eq!(decimal.is_strictly_positive(), positive, "{lexical}");
         }
     }
 }

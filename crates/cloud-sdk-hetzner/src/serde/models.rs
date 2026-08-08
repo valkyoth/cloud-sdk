@@ -353,7 +353,7 @@ pub(super) fn validate_text(value: &str, max: usize) -> Result<(), ResponseModel
     Ok(())
 }
 
-fn is_unsafe_display_character(character: char) -> bool {
+pub(super) fn is_unsafe_display_character(character: char) -> bool {
     character.is_control()
         || matches!(
             character,
