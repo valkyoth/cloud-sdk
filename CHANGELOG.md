@@ -11,6 +11,8 @@
 - Redacted complete Cloud metadata from diagnostics, replaced recursive
   infallible cloning with fallible copies, and enforced source formats,
   patterns, and Unicode-scalar string limits.
+- Made Cloud schema generation fail closed on unknown composition keywords,
+  semantic `allOf` siblings, and unsafe overlapping properties.
 - Updated the optional `cloud-sdk-reqwest` Basic-auth encoder to exact
   `base64-ng 2.0.1` with default features disabled.
 

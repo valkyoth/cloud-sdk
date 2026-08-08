@@ -51,6 +51,9 @@ an internal tag and publishes no crate. The provider package version remains
   fallible `try_clone` methods now preserve checked-allocation failures.
 - Made unknown source formats, patterns, and unsupported numeric or collection
   constraints stop schema generation instead of silently weakening validation.
+- Made schema composition fail closed on unknown keywords, semantic `allOf`
+  siblings, and unsafe overlapping properties while retaining checked
+  discriminator-enum intersections used by the pinned specification.
 
 ## Dependency Maintenance
 

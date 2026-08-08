@@ -8,6 +8,16 @@ import json
 from pathlib import Path
 from typing import Any
 
+from cloud_schema_policy import (
+    ANNOTATION_KEYS,
+    HANDLED_SCHEMA_KEYS,
+    RECORDED_SECURITY_CONSTRAINTS,
+    SUPPORTED_FORMATS,
+    SUPPORTED_PATTERNS,
+    UNSUPPORTED_SECURITY_CONSTRAINTS,
+    merge_all_of,
+)
+
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUTPUT = (
@@ -57,49 +67,6 @@ MODEL_ROOTS = {
     "volumes": "volume",
 }
 EXPECTED_MODELS = frozenset(MODEL_ROOTS.values())
-SUPPORTED_FORMATS = frozenset(("date-time", "decimal", "double", "int32", "int64"))
-SUPPORTED_PATTERNS = frozenset(
-    (
-        r"^[a-z0-9]+(-?[a-z0-9]*)*$",
-        r"^\S(.*\S)?$",
-    )
-)
-UNSUPPORTED_SECURITY_CONSTRAINTS = frozenset(
-    (
-        "exclusiveMinimum",
-        "exclusiveMaximum",
-        "multipleOf",
-        "uniqueItems",
-        "minProperties",
-        "maxProperties",
-        "contains",
-        "minContains",
-        "maxContains",
-        "prefixItems",
-        "unevaluatedItems",
-        "patternProperties",
-        "propertyNames",
-        "dependentRequired",
-        "dependentSchemas",
-        "unevaluatedProperties",
-        "const",
-        "not",
-        "contentEncoding",
-        "contentMediaType",
-    )
-)
-RECORDED_SECURITY_CONSTRAINTS = frozenset(
-    (
-        "minimum",
-        "maximum",
-        "minLength",
-        "maxLength",
-        "minItems",
-        "maxItems",
-        "format",
-        "pattern",
-    )
-)
 FIELDS = (
     "model",
     "path",
@@ -203,31 +170,6 @@ def schema_types(schema: dict[str, Any]) -> list[str]:
     raise ValueError("schema node has no supported type")
 
 
-def merge_all_of(schema: dict[str, Any]) -> dict[str, Any]:
-    branches = schema.get("allOf")
-    if not isinstance(branches, list):
-        return schema
-    merged: dict[str, Any] = {key: value for key, value in schema.items() if key != "allOf"}
-    properties: dict[str, Any] = {}
-    required: set[str] = set()
-    for branch in branches:
-        if not isinstance(branch, dict):
-            raise ValueError("allOf branch is not an object")
-        branch = merge_all_of(branch)
-        branch_properties = branch.get("properties", {})
-        if not isinstance(branch_properties, dict):
-            raise ValueError("allOf properties are invalid")
-        properties.update(branch_properties)
-        branch_required = branch.get("required", [])
-        if not isinstance(branch_required, list):
-            raise ValueError("allOf required list is invalid")
-        required.update(branch_required)
-    merged["type"] = "object"
-    merged["properties"] = properties
-    merged["required"] = sorted(required)
-    return merged
-
-
 def cell(value: Any) -> str:
     if value is None:
         return "-"
@@ -242,6 +184,11 @@ def validate_constraints(model: str, path: str, schema: dict[str, Any]) -> None:
     if unsupported:
         joined = ", ".join(unsupported)
         raise ValueError(f"{model}:{path} has unenforced constraints: {joined}")
+
+    unknown = sorted(set(schema).difference(ANNOTATION_KEYS | HANDLED_SCHEMA_KEYS))
+    if unknown:
+        joined = ", ".join(unknown)
+        raise ValueError(f"{model}:{path} has unsupported schema keys: {joined}")
 
     format_value = schema.get("format")
     if format_value is not None and format_value not in SUPPORTED_FORMATS:

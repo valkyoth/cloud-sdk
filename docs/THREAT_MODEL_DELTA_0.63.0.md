@@ -26,7 +26,10 @@ exercise more nested values, lists, strings, and unknown additive fields.
   identifiers and unknown future values. Infallible recursive `Clone` is not
   implemented; explicit `try_clone` methods preserve checked allocation.
 - The generated contract and fixtures must reproduce from the exact pinned
-  upstream specification during live drift checks.
+  upstream specification during live drift checks. Unrecognized schema
+  keywords, semantic siblings beside `allOf`, and unsafe overlapping `allOf`
+  properties stop generation; the only supported overlap is an explicit,
+  non-empty string-enum discriminator intersection.
 - The optional Basic-auth encoder moves to exact `base64-ng 2.0.1` with default
   features disabled. Existing exact output, source-clearing, aggregate-bound,
   feature-boundary, and transport tests continue to cover its use.

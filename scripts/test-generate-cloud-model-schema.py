@@ -197,6 +197,73 @@ def test_constraints_are_recorded_and_unsupported_constraints_fail_closed() -> N
     )
 
 
+def test_unknown_schema_composition_fails_closed() -> None:
+    for keyword in ("anyOf", "if", "then", "else"):
+        assert_raises(
+            "has unsupported schema keys",
+            generator.descriptor,
+            "server",
+            "field",
+            True,
+            {"type": "string", keyword: {}},
+        )
+
+
+def test_all_of_composition_is_narrow_and_explicit() -> None:
+    assert_raises(
+        "unsupported sibling schema keys",
+        generator.merge_all_of,
+        {
+            "allOf": [{"type": "object", "properties": {}}],
+            "properties": {"lost": {"type": "string"}},
+            "required": ["lost"],
+        },
+    )
+    assert_raises(
+        "unsupported overlap",
+        generator.merge_all_of,
+        {
+            "allOf": [
+                {
+                    "type": "object",
+                    "properties": {"value": {"type": "integer", "minimum": 1}},
+                },
+                {
+                    "type": "object",
+                    "properties": {"value": {"type": "integer", "maximum": 10}},
+                },
+            ]
+        },
+    )
+
+    merged = generator.merge_all_of(
+        {
+            "title": "SelectedProtocol",
+            "allOf": [
+                {
+                    "type": "object",
+                    "required": ["protocol"],
+                    "properties": {
+                        "protocol": {
+                            "type": "string",
+                            "enum": ["tcp", "http", "https"],
+                        }
+                    },
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "protocol": {"type": "string", "enum": ["https"]}
+                    },
+                },
+            ],
+        }
+    )
+    assert merged["title"] == "SelectedProtocol"
+    assert merged["required"] == ["protocol"]
+    assert merged["properties"]["protocol"]["enum"] == ["https"]
+
+
 def test_committed_evidence_is_structurally_complete() -> None:
     rows = list(
         csv.DictReader(
@@ -230,6 +297,8 @@ def main() -> None:
         test_inconsistent_resource_occurrences_are_rejected,
         test_discriminated_union_has_shared_and_selected_paths,
         test_constraints_are_recorded_and_unsupported_constraints_fail_closed,
+        test_unknown_schema_composition_fails_closed,
+        test_all_of_composition_is_narrow_and_explicit,
         test_committed_evidence_is_structurally_complete,
     )
     for test in tests:
