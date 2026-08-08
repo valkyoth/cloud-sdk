@@ -1,6 +1,6 @@
 # v0.64.0 Dependency Review
 
-Status: implementation stop reached; pentest required.
+Status: release candidate; pentest and final retest passed.
 
 No dependency or feature is added, removed, or updated. Cloud special models
 reuse the existing optional Serde boundary, `alloc`, and

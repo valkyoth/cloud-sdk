@@ -1,9 +1,9 @@
 # Crate Version Matrix
 
 Status: `v0.60.0` is tagged and published and `v0.61.0` through `v0.63.0` are
-signed internal milestones. The `v0.64.0` implementation stop is reached and
-requires its pentest and final release evidence before tagging.
-Crates.io publication remains deferred to `v0.65.0`.
+signed internal milestones. The `v0.64.0` pentest and final retest passed and
+its local release evidence is complete; GitHub CI and CodeQL remain before the
+signed internal tag. Crates.io publication remains deferred to `v0.65.0`.
 Every pre-1.0 tag receives its own incremental pentest.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as

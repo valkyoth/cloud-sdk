@@ -1,11 +1,11 @@
 # cloud-sdk 0.64.0 Milestone Notes
 
-Status: implementation stop reached; pentest required.
+Status: release candidate; pentest and final retest passed.
 
 Release date: 2026-08-08
 
 Security-Review: PASS
-Pentest: PENDING
+Pentest: PASS
 Publication: DEFERRED TO v0.65.0
 
 ## Overview
@@ -61,10 +61,11 @@ package version remains 0.39.1 while changes accumulate for v0.65.0.
 - [`docs/THREAT_MODEL_DELTA_0.64.0.md`](../docs/THREAT_MODEL_DELTA_0.64.0.md)
 - [`docs/REJECTED_ABSTRACTIONS_0.64.0.md`](../docs/REJECTED_ABSTRACTIONS_0.64.0.md)
 - [`docs/MIGRATION_0.64.0.md`](../docs/MIGRATION_0.64.0.md)
+- [`security/pentest/v0.64.0.md`](../security/pentest/v0.64.0.md)
 
 ## Release Gate
 
-Pentest this exact implementation-stop commit. After remediation and a green
-retest, add the permanent v0.64 report and run `scripts/release_0_64_gate.sh`
-on the clean evidence commit. GitHub CI and CodeQL must be green on that
-unchanged commit before the signed internal tag. Do not publish crates.
+The incremental pentest and final retest passed. Run
+`scripts/release_0_64_gate.sh` on the clean evidence commit. GitHub CI and
+CodeQL must then be green on that unchanged commit before the signed internal
+tag. Do not publish crates.
