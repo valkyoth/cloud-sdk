@@ -18,7 +18,9 @@ The optional reqwest `fuzzing` feature now activates the exact admitted
 `aws-lc-rs 1.17.3` and `aws-lc-sys 0.43.0` dependencies directly. The fuzz
 lockfile was corrected from the rejected compatible update, and the ordinary
 fuzz metadata gate rejects any future AWS-LC version drift in that tooling
-graph.
+graph. It requests colorless Cargo tree output and separately normalizes ANSI
+sequences and Cargo's repeated `(*)` rows so CI presentation settings cannot
+alter the exact package-set decision.
 
 ## Independent Versions
 

@@ -50,7 +50,9 @@ optional `serde` feature.
   exact pins because the FIPS crate fails a clean read-only Cargo source build;
   runtime FIPS verification remains distinct from deployment accreditation.
 - Pins and mechanically verifies those retained AWS-LC versions in the fuzz
-  tooling graph as well as the production and feature-unification lockfiles.
+  tooling graph as well as the production and feature-unification lockfiles;
+  colored Cargo output and repeated tree rows are normalized before exact-set
+  comparison without admitting missing, additional, or changed versions.
 - Adds deterministic DNS schema generation, adversarial tests, named fuzz seeds,
   incremental coverage, and an ignored credential-gated typed zone live probe.
 
