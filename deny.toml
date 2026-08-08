@@ -39,6 +39,9 @@ multiple-versions = "deny"
 wildcards = "deny"
 highlight = "all"
 skip = [
+    { crate = "block-buffer@0.10.4", reason = "ssh-key 0.6.7 uses digest 0.10 while latest md-5 0.11 uses digest 0.11; both are optional no_std response validation" },
+    { crate = "crypto-common@0.1.7", reason = "ssh-key 0.6.7 uses RustCrypto 0.10 traits while latest md-5 0.11 uses the 0.11 line" },
+    { crate = "digest@0.10.7", reason = "stable ssh-key 0.6.7 has not moved to digest 0.11 used by latest md-5 0.11" },
     { crate = "shlex@1.3.0", reason = "aws-lc-fips-sys bindgen uses shlex 1 while cc uses shlex 2; v0.24 confirmed both are build-only" },
     { crate = "syn@2.0.119", reason = "AWS-LC bindgen and platform macros require syn 2 while current Serde requires syn 3; both lines are compile-time only" },
 ]

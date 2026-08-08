@@ -22,11 +22,13 @@ remains at 0.40.0 while changes accumulate for v0.70.0.
   domains, fingerprint, usage, managed issuance/renewal state, and protected
   provider failure detail.
 - Preserved every current SSH-key field, including labels, canonical creation
-  time, source-documented MD5 fingerprint, and protected OpenSSH public-key
-  material.
+  time, a provider MD5 fingerprint bound to structurally decoded OpenSSH/RFC
+  4253 key material, and an SDK-computed SHA-256 identity fingerprint.
 - Rejected unknown certificate states, malformed PEM chains, status/error
   contradictions, malformed fingerprints, invalid public keys, and invalid
   timestamps before returning public models.
+- Preserved exact certificate-specific failure codes alongside their generic
+  `ApiErrorCode` classification, with redacted diagnostics and drop cleanup.
 
 ## Security And Verification
 
@@ -39,6 +41,9 @@ remains at 0.40.0 while changes accumulate for v0.70.0.
   read-only live-smoke coverage.
 - Added `scripts/check_security_response_models.sh` to the ordinary and final
   release gates.
+- Admitted exact, non-default `ssh-key 0.6.7` and `md-5 0.11.0` dependencies
+  only behind the provider Serde feature. MD5 is limited to checking Hetzner's
+  legacy compatibility field and is not used for new security decisions.
 
 ## Versions
 
@@ -57,6 +62,7 @@ remains at 0.40.0 while changes accumulate for v0.70.0.
 - [`docs/THREAT_MODEL_DELTA_0.66.0.md`](../docs/THREAT_MODEL_DELTA_0.66.0.md)
 - [`docs/REJECTED_ABSTRACTIONS_0.66.0.md`](../docs/REJECTED_ABSTRACTIONS_0.66.0.md)
 - [`docs/MIGRATION_0.66.0.md`](../docs/MIGRATION_0.66.0.md)
+- [`docs/dependency-admission-ssh-key.md`](../docs/dependency-admission-ssh-key.md)
 
 ## Release Gate
 

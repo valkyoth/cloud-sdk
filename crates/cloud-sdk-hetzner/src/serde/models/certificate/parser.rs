@@ -130,8 +130,10 @@ fn parse_error(value: &mut Value) -> Result<Option<CertificateError>, ResponseMo
         return Err(ResponseModelError::InvalidText);
     }
     let message = take_secret(fields, "message", 16_384)?;
+    let classified = ApiErrorCode::from_api_str(code.as_str());
     Ok(Some(CertificateError {
-        code: ApiErrorCode::from_api_str(code.as_str()),
+        code: classified,
+        code_text: code.into_inner(),
         message,
     }))
 }

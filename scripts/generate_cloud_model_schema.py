@@ -484,8 +484,12 @@ def normalize_fixture(model: str, value: Any) -> Any:
         value["records"][0]["value"] = "192.0.2.1"
     if model == "ssh_key" and isinstance(value, dict):
         value["created"] = "2026-01-01T00:00:00Z"
-        value["fingerprint"] = "00:11:22:33:44:55:66:77:88:99:aa:bb:cc:dd:ee:ff"
-        value["public_key"] = "ssh-ed25519 Y2xvdWQtc2RrLXRlc3Q="
+        value["fingerprint"] = "ae:6f:ba:1b:70:2c:ae:c7:5c:ab:6e:4d:5e:d4:c7:23"
+        value["public_key"] = (
+            "ssh-ed25519 "
+            "AAAAC3NzaC1lZDI1NTE5AAAAILM+rvN+ot98qgEN796jTiQfZfG1KaT0PtFDJ/XFSqti "
+            "user@example.com"
+        )
     return value
 
 

@@ -103,11 +103,24 @@ for contract in \
     "$certificate:let name = WipeString::new(" \
     "$certificate:let mut output = WipeStrings::with_capacity(values.len())?" \
     "$ssh_key:.take_string()" \
-    "$ssh_key:.map(SensitiveText::new)"; do
+    "$ssh_key:.map(SensitiveText::new)" \
+    "$ssh_key:let wire = SecretBuffer::new(wire.as_mut_slice())" \
+    "$ssh_key:sanitize_bytes(&mut self.sha256_fingerprint)"; do
     file=${contract%%:*}
     required=${contract#*:}
     if ! grep -Fq "$required" "$file"; then
         echo "response cleanup: missing error-path ownership contract $required" >&2
+        exit 1
+    fi
+done
+
+for required in \
+    'code_text: code.into_inner()' \
+    'sanitize_string(&mut self.code_text)'; do
+    if ! grep -R -Fq "$required" \
+        crates/cloud-sdk-hetzner/src/serde/models/certificate.rs \
+        crates/cloud-sdk-hetzner/src/serde/models/certificate/parser.rs; then
+        echo "response cleanup: missing certificate error-code cleanup contract $required" >&2
         exit 1
     fi
 done

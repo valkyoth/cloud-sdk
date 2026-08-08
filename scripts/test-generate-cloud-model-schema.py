@@ -353,6 +353,14 @@ def test_committed_evidence_is_structurally_complete() -> None:
         "-----BEGIN CERTIFICATE-----\n"
     )
     assert fixtures["ssh_key"]["public_key"].startswith("ssh-ed25519 ")
+    assert fixtures["ssh_key"]["fingerprint"] == (
+        "ae:6f:ba:1b:70:2c:ae:c7:5c:ab:6e:4d:5e:d4:c7:23"
+    )
+    assert fixtures["ssh_key"]["public_key"] == (
+        "ssh-ed25519 "
+        "AAAAC3NzaC1lZDI1NTE5AAAAILM+rvN+ot98qgEN796jTiQfZfG1KaT0PtFDJ/XFSqti "
+        "user@example.com"
+    )
     assert {row["format"] for row in rows} == {
         "-",
         "date-time",

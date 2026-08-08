@@ -86,8 +86,15 @@ if ! printf '%s\n' "$hetzner_serde_tree" |
     echo "sanitization boundary: Hetzner serde graph is missing owned secret cleanup" >&2
     exit 1
 fi
-if printf '%s\n' "$hetzner_serde_tree" | grep -Eq '(^|[[:space:]])zeroize v'; then
-    echo "sanitization boundary: Hetzner serde graph enabled an interoperability dependency" >&2
+zeroize_path=$(
+    cargo tree --locked -p cloud-sdk-hetzner --no-default-features \
+        --features serde --edges normal --invert zeroize@1.9.0 --prefix none
+)
+if [ "$(printf '%s\n' "$zeroize_path" | wc -l)" -ne 3 ] ||
+    ! printf '%s\n' "$zeroize_path" | grep -Fqx 'zeroize v1.9.0' ||
+    ! printf '%s\n' "$zeroize_path" | grep -Fqx 'ssh-key v0.6.7' ||
+    ! printf '%s\n' "$zeroize_path" | grep -Fq 'cloud-sdk-hetzner v0.40.0'; then
+    echo "sanitization boundary: Hetzner serde zeroize path exceeds reviewed ssh-key internals" >&2
     exit 1
 fi
 

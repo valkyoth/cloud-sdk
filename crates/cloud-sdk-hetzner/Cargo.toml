@@ -17,8 +17,10 @@ default = []
 alloc = ["cloud-sdk/alloc"]
 serde = [
     "alloc",
+    "dep:md-5",
     "dep:serde",
     "dep:serde_json",
+    "dep:ssh-key",
     "cloud-sdk-sanitization/alloc",
 ]
 std = ["alloc", "cloud-sdk/std"]
@@ -26,8 +28,10 @@ std = ["alloc", "cloud-sdk/std"]
 [dependencies]
 cloud-sdk.workspace = true
 cloud-sdk-sanitization.workspace = true
+md-5 = { workspace = true, optional = true }
 serde = { workspace = true, optional = true }
 serde_json = { workspace = true, optional = true }
+ssh-key = { workspace = true, optional = true }
 
 [dev-dependencies]
 cloud-sdk-reqwest = { workspace = true, features = ["blocking-rustls"] }

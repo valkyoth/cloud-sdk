@@ -30,6 +30,15 @@ feature remain disabled. The full decision and transitive surface are recorded i
 [`dependency-admission-serde.md`](dependency-admission-serde.md), and
 `scripts/check_serde_boundary.sh` enforces graph isolation.
 
+RustCrypto `ssh-key 0.6.7` and `md-5 0.11.0` are admitted only through the
+same non-default provider Serde boundary. The former structurally decodes
+OpenSSH/RFC 4253 public keys and derives SHA-256 identity; the latter verifies
+only Hetzner's legacy response fingerprint. Defaults are disabled, and MD5 is
+not admitted for new security decisions. The complete graph and limitations
+are recorded in
+[`dependency-admission-ssh-key.md`](dependency-admission-ssh-key.md), while
+`scripts/check_security_response_models.sh` enforces default-graph isolation.
+
 The first-party `sanitization` `2.0.3` crate is admitted only through
 `cloud-sdk-sanitization`, with default features disabled and no transitive
 runtime dependencies. The decision and limits are recorded in

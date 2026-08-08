@@ -272,16 +272,20 @@ cloud-sdk-hetzner = { version = "0.40.0", features = ["serde"] }
 ```
 
 The feature admits serde_json with `default-features = false` and `alloc` only
-for the public Serde request/envelope APIs. Checked responses use a private
-direct parser that never routes decoded string values through serde_json heap
-scratch storage. The decoder consumes a cleanup-owning `ResponseBuffer`
+for the public Serde request/envelope APIs. It also admits `ssh-key` with only
+`alloc` and `md-5` with no features for checked SSH-key responses; neither
+enters the default provider graph. Checked responses use a private direct
+parser that never routes decoded string values through serde_json heap scratch
+storage. The decoder consumes a cleanup-owning `ResponseBuffer`
 together with its exact `PreparedRequest`, applies the prepared
 status/content-type/body policy, rejects duplicate or malformed JSON, and
 returns validated typed success or API errors only after response storage is
 cleared.
-Resource responses currently expose validated identity and common state fields;
-provider-complete resource field models remain planned before `1.0.0`. The
-bounded parser tree and its volatile-clearing string storage remain private:
+Checked resource responses are source-complete except for the Console models
+scheduled for v0.67. SSH public keys receive complete OpenSSH/RFC 4253 parsing,
+legacy provider fingerprints are bound to the parsed key, and callers receive
+an SDK-computed SHA-256 fingerprint for identity comparisons. The bounded
+parser tree and its volatile-clearing string storage remain private:
 
 ```rust
 # #[cfg(feature = "serde")]

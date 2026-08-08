@@ -38,3 +38,11 @@ is required.
 Secret-bearing security aggregates no longer support ordinary equality. Read
 certificate chains and SSH public keys only through protected access paths,
 and clear any caller-owned copies after use.
+
+Use `SshKey::sha256_fingerprint()` for key identity comparisons. The existing
+`SshKey::fingerprint()` method is retained as Hetzner's verified legacy MD5
+text and should not be used as a collision-resistant identifier.
+
+`CertificateError::code()` continues to provide the common classification.
+Use `CertificateError::code_text()` when certificate-specific machine-readable
+codes such as `issuance_failed` must drive diagnostics or remediation.

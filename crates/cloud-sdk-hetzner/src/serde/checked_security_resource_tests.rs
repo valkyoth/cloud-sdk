@@ -12,6 +12,13 @@ use super::{
     ResponseModelError, SecurityResource,
 };
 use crate::SECURITY_SERVICE_ID;
+use crate::response::ApiErrorCode;
+
+const VALID_SSH_KEY: &str = concat!(
+    "ssh-ed25519 ",
+    "AAAAC3NzaC1lZDI1NTE5AAAAILM+rvN+ot98qgEN796jTiQfZfG1KaT0PtFDJ/XFSqti ",
+    "user@example.com"
+);
 
 fn body(root: &str, value: serde_json::Value) -> alloc::vec::Vec<u8> {
     serde_json::to_vec(&serde_json::json!({root:value})).unwrap_or_default()
@@ -56,8 +63,16 @@ fn ssh_key_singletons_pages_and_rotation_responses_are_source_complete() {
         assert_eq!(key.id(), 1);
         assert_eq!(key.name(), "x");
         assert_eq!(
-            key.try_with_public_key(|value| value == "ssh-ed25519 Y2xvdWQtc2RrLXRlc3Q="),
+            key.try_with_public_key(|value| value == VALID_SSH_KEY),
             Ok(true)
+        );
+        assert_eq!(
+            key.sha256_fingerprint(),
+            &[
+                0x50, 0x25, 0x22, 0x2e, 0xbe, 0xcf, 0x8e, 0xcf, 0x70, 0x14, 0x52, 0x4c, 0x0c, 0x1c,
+                0x8b, 0x81, 0xcd, 0xcd, 0xae, 0xd7, 0x54, 0xdf, 0x8e, 0x0e, 0x81, 0x43, 0x38, 0xe7,
+                0x06, 0x4f, 0x70, 0x84,
+            ]
         );
         let debug = format!("{key:?}");
         assert!(!debug.contains("Y2xvdWQ"));
@@ -212,6 +227,12 @@ fn certificate_status_and_type_contradictions_fail_closed() {
     };
     assert_eq!(status.issuance(), Some(CertificateIssuanceState::Failed));
     assert_eq!(status.renewal(), Some(CertificateRenewalState::Scheduled));
+    let Some(error) = status.error() else {
+        unreachable!("certificate error disappeared")
+    };
+    assert_eq!(error.code(), ApiErrorCode::Unknown);
+    assert_eq!(error.code_text(), "issuance_failed");
+    assert!(!format!("{error:?}").contains("issuance_failed"));
     assert!(!format!("{certificate:?}").contains("private diagnostic"));
 }
 
@@ -220,6 +241,14 @@ fn ssh_key_shape_and_certificate_chain_bounds_fail_closed() {
     for (field, value) in [
         ("fingerprint", serde_json::json!("00:11")),
         ("public_key", serde_json::json!("ssh-dss Y2xvdWQ=")),
+        (
+            "public_key",
+            serde_json::json!("ssh-ed25519 Y2xvdWQtc2RrLXRlc3Q="),
+        ),
+        (
+            "public_key",
+            serde_json::json!("ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAA==="),
+        ),
         ("created", serde_json::json!("2026-02-30T00:00:00Z")),
     ] {
         let mut key = resource_value("ssh_key");
@@ -234,6 +263,21 @@ fn ssh_key_shape_and_certificate_chain_bounds_fail_closed() {
             ResponseModelError::InvalidText,
         );
     }
+
+    let mut mismatched = resource_value("ssh_key");
+    let Some(fields) = mismatched.as_object_mut() else {
+        unreachable!("SSH-key fixture is not an object")
+    };
+    fields.insert(
+        "fingerprint".into(),
+        serde_json::json!("00:11:22:33:44:55:66:77:88:99:aa:bb:cc:dd:ee:ff"),
+    );
+    assert_model_error(
+        "get_ssh_key",
+        "ssh_key",
+        mismatched,
+        ResponseModelError::EnvelopeMismatch,
+    );
 
     let block = "-----BEGIN CERTIFICATE-----\nYQ==\n-----END CERTIFICATE-----";
     let mut certificate = resource_value("certificate");

@@ -9,11 +9,15 @@ Scope: changes from signed v0.65.0 through v0.66.0.
 - `SecurityResource` and `SecurityResourceKind` identify complete certificate
   and SSH-key response families.
 - `SshKey` exposes validated metadata and closure-scoped inspection of its
-  protected OpenSSH public key.
+  protected, structurally decoded OpenSSH public key. Its
+  `sha256_fingerprint` accessor exposes an SDK-computed 32-byte identity value;
+  `fingerprint` remains the provider's verified legacy MD5 text.
 - `CertificateIssuanceState` and `CertificateRenewalState` replace unchecked
   provider-state strings.
 - `Certificate`, `CertificateStatus`, `CertificateError`, and
   `CertificateUse` expose private fields through read-only accessors.
+- `CertificateError::code_text` preserves certificate-specific provider codes
+  even when `CertificateError::code` classifies them as `ApiErrorCode::Unknown`.
 - `CompositeResult::security_resource` returns a source-complete certificate
   created by `create_certificate`.
 

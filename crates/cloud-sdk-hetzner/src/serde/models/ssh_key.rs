@@ -3,7 +3,9 @@
 use alloc::string::String;
 use core::fmt;
 
-use cloud_sdk_sanitization::sanitize_string;
+use cloud_sdk_sanitization::{SecretBuffer, sanitize_bytes, sanitize_string};
+use md5::{Digest, Md5};
+use ssh_key::{HashAlg, PublicKey};
 
 use super::cloud_schema::validate_model;
 use super::wipe_string::WipeString;
@@ -31,6 +33,7 @@ pub struct SshKey {
     id: u64,
     name: String,
     fingerprint: String,
+    sha256_fingerprint: [u8; 32],
     public_key: SensitiveText,
     labels: Labels,
     created: UtcTimestamp,
@@ -53,6 +56,16 @@ impl SshKey {
     #[must_use]
     pub fn fingerprint(&self) -> &str {
         &self.fingerprint
+    }
+
+    /// Returns the SDK-computed SHA-256 fingerprint bytes.
+    ///
+    /// This fingerprint is derived from the RFC 4253 public-key encoding and
+    /// is suitable for identity comparisons. [`Self::fingerprint`] exposes
+    /// Hetzner's legacy MD5 compatibility field.
+    #[must_use]
+    pub const fn sha256_fingerprint(&self) -> &[u8; 32] {
+        &self.sha256_fingerprint
     }
 
     /// Inspects the protected OpenSSH public key without returning a borrow.
@@ -92,6 +105,7 @@ impl Drop for SshKey {
     fn drop(&mut self) {
         sanitize_string(&mut self.name);
         sanitize_string(&mut self.fingerprint);
+        sanitize_bytes(&mut self.sha256_fingerprint);
     }
 }
 
@@ -107,9 +121,7 @@ pub(crate) fn parse_ssh_key(value: &mut Value) -> Result<SshKey, ResponseModelEr
         required(fields, "fingerprint")?,
         MD5_FINGERPRINT_BYTES,
     )?);
-    if !is_md5_fingerprint(fingerprint.as_str()) {
-        return Err(ResponseModelError::InvalidText);
-    }
+    let supplied_fingerprint = parse_md5_fingerprint(fingerprint.as_str())?;
     let labels = parse_labels(required(fields, "labels")?, MAX_LABELS)?;
     let created = required(fields, "created")?
         .try_with_str(UtcTimestamp::try_new)
@@ -122,46 +134,83 @@ pub(crate) fn parse_ssh_key(value: &mut Value) -> Result<SshKey, ResponseModelEr
         .map(SensitiveText::new)
         .ok_or(ResponseModelError::WrongType)?;
     public_key.validate(MAX_SSH_PUBLIC_KEY_BYTES)?;
-    public_key
-        .try_with_secret(|value| SshPublicKey::new(value).map(|_| ()))
-        .map_err(|_| ResponseModelError::InvalidText)?
-        .map_err(|_| ResponseModelError::InvalidText)?;
+    let sha256_fingerprint = public_key
+        .try_with_secret(|value| validate_key_identity(value, supplied_fingerprint))
+        .map_err(|_| ResponseModelError::InvalidText)??;
     Ok(SshKey {
         id,
         name: name.into_inner(),
         fingerprint: fingerprint.into_inner(),
+        sha256_fingerprint,
         public_key,
         labels,
         created,
     })
 }
 
-fn is_md5_fingerprint(value: &str) -> bool {
-    value.len() == MD5_FINGERPRINT_BYTES
-        && value.bytes().enumerate().all(|(index, byte)| {
-            if index % 3 == 2 {
-                byte == b':'
-            } else {
-                byte.is_ascii_hexdigit()
-            }
-        })
+fn parse_md5_fingerprint(value: &str) -> Result<[u8; 16], ResponseModelError> {
+    if value.len() != MD5_FINGERPRINT_BYTES {
+        return Err(ResponseModelError::InvalidText);
+    }
+    let mut output = [0_u8; 16];
+    let mut octets = value.split(':');
+    for byte in &mut output {
+        let octet = octets.next().ok_or(ResponseModelError::InvalidText)?;
+        if octet.len() != 2 {
+            return Err(ResponseModelError::InvalidText);
+        }
+        *byte = u8::from_str_radix(octet, 16).map_err(|_| ResponseModelError::InvalidText)?;
+    }
+    if octets.next().is_some() {
+        return Err(ResponseModelError::InvalidText);
+    }
+    Ok(output)
+}
+
+fn validate_key_identity(
+    value: &str,
+    supplied_fingerprint: [u8; 16],
+) -> Result<[u8; 32], ResponseModelError> {
+    SshPublicKey::new(value).map_err(|_| ResponseModelError::InvalidText)?;
+    let parsed = PublicKey::from_openssh(value).map_err(|_| ResponseModelError::InvalidText)?;
+    let mut wire = parsed
+        .to_bytes()
+        .map_err(|_| ResponseModelError::InvalidText)?;
+    let computed_fingerprint: [u8; 16] = {
+        let wire = SecretBuffer::new(wire.as_mut_slice());
+        Md5::digest(wire.as_slice()).into()
+    };
+    if computed_fingerprint != supplied_fingerprint {
+        return Err(ResponseModelError::EnvelopeMismatch);
+    }
+    parsed
+        .fingerprint(HashAlg::Sha256)
+        .sha256()
+        .ok_or(ResponseModelError::InvalidText)
 }
 
 #[cfg(test)]
 mod tests {
-    use super::is_md5_fingerprint;
+    use super::parse_md5_fingerprint;
 
     #[test]
     fn fingerprint_requires_exactly_sixteen_colon_separated_octets() {
-        assert!(is_md5_fingerprint(
-            "00:11:22:33:44:55:66:77:88:99:aa:bb:cc:dd:ee:ff"
-        ));
+        assert_eq!(
+            parse_md5_fingerprint("00:11:22:33:44:55:66:77:88:99:aa:bb:cc:dd:ee:ff"),
+            Ok([
+                0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xaa, 0xbb, 0xcc, 0xdd,
+                0xee, 0xff,
+            ])
+        );
         for invalid in [
             "00:11",
             "00112233445566778899aabbccddeeff",
             "00:11:22:33:44:55:66:77:88:99:aa:bb:cc:dd:ee:gg",
         ] {
-            assert!(!is_md5_fingerprint(invalid));
+            assert_eq!(
+                parse_md5_fingerprint(invalid),
+                Err(super::ResponseModelError::InvalidText)
+            );
         }
     }
 }

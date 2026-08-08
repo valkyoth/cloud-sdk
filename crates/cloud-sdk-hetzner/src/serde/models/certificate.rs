@@ -93,6 +93,7 @@ impl Drop for CertificateUse {
 /// Provider diagnostic embedded in managed-certificate status.
 pub struct CertificateError {
     code: ApiErrorCode,
+    code_text: String,
     message: SensitiveText,
 }
 
@@ -101,6 +102,12 @@ impl CertificateError {
     #[must_use]
     pub const fn code(&self) -> ApiErrorCode {
         self.code
+    }
+
+    /// Returns the exact validated provider error code.
+    #[must_use]
+    pub fn code_text(&self) -> &str {
+        &self.code_text
     }
 
     /// Inspects the protected provider message without returning a borrowed secret.
@@ -117,8 +124,15 @@ impl fmt::Debug for CertificateError {
         formatter
             .debug_struct("CertificateError")
             .field("code", &self.code)
+            .field("code_text", &"[redacted]")
             .field("message", &"[redacted]")
             .finish()
+    }
+}
+
+impl Drop for CertificateError {
+    fn drop(&mut self) {
+        sanitize_string(&mut self.code_text);
     }
 }
 
