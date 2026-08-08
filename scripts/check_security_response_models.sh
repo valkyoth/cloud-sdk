@@ -1,6 +1,12 @@
 #!/usr/bin/env sh
 set -eu
 
+legacy_admission=docs/dependency-admission-ssh-key.md
+if [ -e "$legacy_admission" ] || [ -L "$legacy_admission" ]; then
+    echo "Hetzner security response evidence contains the obsolete ssh-key admission record" >&2
+    exit 1
+fi
+
 default_tree="$(
     cargo tree --locked -p cloud-sdk-hetzner --no-default-features \
         --edges normal --prefix none

@@ -43,7 +43,7 @@ remains at 0.40.0 while changes accumulate for v0.70.0.
   cleanup, all-operation, named fuzz-seed, vertical execution, and ignored
   read-only live-smoke coverage.
 - Added `scripts/check_security_response_models.sh` to the ordinary and final
-  release gates.
+  release gates, including rejection of the obsolete `ssh-key` admission path.
 - Reused exact `base64-ng 2.0.1` and admitted exact `md-5 0.11.0` plus
   `sha2 0.10.9` only behind the provider Serde feature. A bounded first-party
   RFC 4253 parser validates one cleanup-owned wire allocation; `ssh-key` and
