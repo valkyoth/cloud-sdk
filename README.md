@@ -83,13 +83,13 @@ operation contracts, then validates them with an unpublished OVHcloud API v2
 architecture probe, a narrow credential-free Robot wire fixture, and
 full-fidelity Hetzner vertical slices before the neutral API freeze.
 
-The latest published checkpoint is `v0.60.0`; v0.61 and v0.62 are signed
-internal milestones. v0.63 completes source-derived ordinary Hetzner Cloud
-resource models, pricing, and catalog validation with exact nullability and
-bounds while retaining bounded future fields and enum values. Its pentest and
-final retest passed and its clean local release evidence is complete. Green
-GitHub CI and CodeQL remain required before the signed internal tag. Crates.io
-publication remains deferred to v0.65.0.
+The latest published checkpoint is `v0.60.0`; v0.61 through v0.63 are signed
+internal milestones. v0.64 completes Hetzner Cloud actions, exact metrics,
+composite action distinctions, nullable secret results, and canonical UTC
+timestamp models. The implementation stop has been reached and this exact
+commit requires its pentest, full release gate, and green GitHub CI and CodeQL
+before the signed internal tag. Crates.io publication remains deferred to
+v0.65.0.
 
 ## Trust Dashboard
 

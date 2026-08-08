@@ -106,6 +106,13 @@ doc = false
 bench = false
 
 [[bin]]
+name = "cloud_special_responses"
+path = "fuzz_targets/cloud_special_responses.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
 name = "raw_response_parser"
 path = "fuzz_targets/raw_response_parser.rs"
 test = false

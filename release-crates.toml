@@ -1,27 +1,27 @@
 [release]
-version = "0.63.0"
-milestone = "0.63.0"
+version = "0.64.0"
+milestone = "0.64.0"
 baseline = "0.60.0"
-review_baseline = "0.62.0"
-cumulative_milestones = ["0.61.0", "0.62.0", "0.63.0"]
+review_baseline = "0.63.0"
+cumulative_milestones = ["0.61.0", "0.62.0", "0.63.0", "0.64.0"]
 policy = "independent"
 stage = "internal"
 exceptional = false
 exception_reason = ""
 
 [crates."cloud-sdk"]
-previous_version = "0.62.0"
-version = "0.63.0"
+previous_version = "0.63.0"
+version = "0.64.0"
 change = "metadata"
 publish = false
-reason = "Record the complete Hetzner Cloud response-model milestone and release evidence."
+reason = "Record the Cloud action, metrics, composite, exact scalar, and release evidence milestone."
 
 [crates."cloud-sdk-hetzner"]
 previous_version = "0.39.1"
 version = "0.39.1"
 change = "code"
 publish = false
-reason = "Accumulate source-complete ordinary Cloud models and schema-derived validation for v0.65."
+reason = "Accumulate source-complete Cloud action, metrics, composite, and exact scalar models for v0.65."
 
 [crates."cloud-sdk-reqwest"]
 previous_version = "0.33.0"

@@ -1,0 +1,1 @@
+cdc{"action":{"id":1,"command":"request_console","status":"running","progress":1,"started":"2026-08-08T00:00:00Z","finished":null,"resources":[],"error":null},"password":"secret","wss_url":"wss://console.example.invalid"}

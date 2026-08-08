@@ -4,7 +4,7 @@ set -eu
 mode="${1:---metadata}"
 toolchain="nightly-2026-07-26"
 cargo_fuzz_version="0.13.2"
-targets="buffer_writers request_targets action_requests labels_dns pagination quota_retry retry_policy pagination_opaque provider_links action_polling response_envelopes response_content_type checked_response raw_response_parser raw_http1_wire incremental_json"
+targets="buffer_writers request_targets action_requests labels_dns pagination quota_retry retry_policy pagination_opaque provider_links action_polling response_envelopes response_content_type checked_response cloud_special_responses raw_response_parser raw_http1_wire incremental_json"
 
 check_layout() {
     cargo fmt --manifest-path fuzz/Cargo.toml -- --check
@@ -13,7 +13,7 @@ check_layout() {
 
     manifest_targets="$(
         sed -n 's/^name = "\([a-z0-9_]*\)"$/\1/p' fuzz/Cargo.toml |
-            tail -n 16 |
+            tail -n 17 |
             tr '\n' ' ' |
             sed 's/ $//'
     )"
@@ -87,4 +87,4 @@ case "$mode" in
     ;;
 esac
 
-echo "fuzz harness: ${mode} passed for 16 targets"
+echo "fuzz harness: ${mode} passed for 17 targets"

@@ -6,8 +6,8 @@ use core::fmt;
 
 use cloud_sdk::action_polling::ActionUpdate;
 
-use super::{ResponseModelError, SensitiveText, object, required, value_text};
-use crate::actions::{ActionId, ActionStatus};
+use super::{ResponseModelError, SensitiveText, UtcTimestamp, object, required, value_text};
+use crate::actions::{ActionId, ActionStatus, MAX_ACTION_ID};
 use crate::cloud::shared::CloudResourceId;
 use crate::response::ApiErrorCode;
 use crate::serde::strict_json::{Map, Value};
@@ -16,10 +16,20 @@ const MAX_ACTIONS: usize = 1024;
 const MAX_ACTION_RESOURCES: usize = 256;
 
 /// Resource referenced by an action result.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Eq, PartialEq)]
 pub struct ActionResultResource {
     id: CloudResourceId,
     resource_type: String,
+}
+
+impl fmt::Debug for ActionResultResource {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("ActionResultResource")
+            .field("id", &self.id)
+            .field("resource_type", &"[redacted]")
+            .finish()
+    }
 }
 
 impl ActionResultResource {
@@ -40,6 +50,7 @@ impl ActionResultResource {
 #[derive(Eq, PartialEq)]
 pub struct ActionResultError {
     code: ApiErrorCode,
+    code_text: String,
     message: SensitiveText,
 }
 
@@ -48,6 +59,12 @@ impl ActionResultError {
     #[must_use]
     pub const fn code(&self) -> ApiErrorCode {
         self.code
+    }
+
+    /// Returns the exact validated provider error code.
+    #[must_use]
+    pub fn code_text(&self) -> &str {
+        &self.code_text
     }
 
     /// Runs a closure with temporary access to the provider action error message.
@@ -64,20 +81,21 @@ impl fmt::Debug for ActionResultError {
         formatter
             .debug_struct("ActionResultError")
             .field("code", &self.code)
+            .field("code_text", &"[redacted]")
             .field("message", &"[redacted]")
             .finish()
     }
 }
 
 /// Validated action returned by a Hetzner operation.
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Eq, PartialEq)]
 pub struct ActionResult {
     id: ActionId,
     command: String,
     status: ActionStatus,
     progress: u8,
-    started: String,
-    finished: Option<String>,
+    started: UtcTimestamp,
+    finished: Option<UtcTimestamp>,
     resources: Vec<ActionResultResource>,
     error: Option<ActionResultError>,
 }
@@ -110,13 +128,13 @@ impl ActionResult {
     /// Returns the action start timestamp text.
     #[must_use]
     pub fn started(&self) -> &str {
-        &self.started
+        self.started.as_str()
     }
 
     /// Returns the optional finish timestamp text.
     #[must_use]
     pub fn finished(&self) -> Option<&str> {
-        self.finished.as_deref()
+        self.finished.as_ref().map(UtcTimestamp::as_str)
     }
 
     /// Returns resources referenced by the action.
@@ -142,6 +160,21 @@ impl ActionResult {
     }
 }
 
+impl fmt::Debug for ActionResult {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("ActionResult")
+            .field("id", &self.id)
+            .field("command", &"[redacted]")
+            .field("status", &self.status)
+            .field("progress", &self.progress)
+            .field("timestamps", &"[redacted]")
+            .field("resource_count", &self.resources.len())
+            .field("error", &self.error)
+            .finish()
+    }
+}
+
 pub(crate) fn parse_action(value: &mut Value) -> Result<ActionResult, ResponseModelError> {
     let fields = value.as_object_mut().ok_or(ResponseModelError::WrongType)?;
     let id = required(fields, "id")?
@@ -159,8 +192,8 @@ pub(crate) fn parse_action(value: &mut Value) -> Result<ActionResult, ResponseMo
         .and_then(|value| u8::try_from(value).ok())
         .filter(|value| *value <= 100)
         .ok_or(ResponseModelError::InvalidNumber)?;
-    let started = text_field(fields, "started", 64)?;
-    let finished = nullable_text_field(fields, "finished", 64)?;
+    let started = timestamp_field(fields, "started")?;
+    let finished = nullable_timestamp_field(fields, "finished")?;
     let resources = parse_resources(required(fields, "resources")?)?;
     let error = parse_error(
         fields
@@ -210,6 +243,7 @@ fn parse_resources(value: &Value) -> Result<Vec<ActionResultResource>, ResponseM
         let fields = object(value)?;
         let id = required(fields, "id")?
             .as_u64()
+            .filter(|id| *id <= MAX_ACTION_ID)
             .and_then(CloudResourceId::new)
             .ok_or(ResponseModelError::InvalidIdentifier)?;
         let resource_type = text_field(fields, "type", 128)?;
@@ -233,6 +267,7 @@ fn parse_error(value: &mut Value) -> Result<Option<ActionResultError>, ResponseM
     message.validate(16_384)?;
     Ok(Some(ActionResultError {
         code: ApiErrorCode::from_api_str(&code),
+        code_text: code,
         message,
     }))
 }
@@ -241,15 +276,20 @@ fn text_field(fields: &Map, key: &str, max: usize) -> Result<String, ResponseMod
     value_text(required(fields, key)?, max)
 }
 
-fn nullable_text_field(
+fn timestamp_field(fields: &Map, key: &str) -> Result<UtcTimestamp, ResponseModelError> {
+    let value = text_field(fields, key, 64)?;
+    UtcTimestamp::try_new(&value)
+}
+
+fn nullable_timestamp_field(
     fields: &Map,
     key: &str,
-    max: usize,
-) -> Result<Option<String>, ResponseModelError> {
+) -> Result<Option<UtcTimestamp>, ResponseModelError> {
     let value = required(fields, key)?;
     if value.is_null() {
         Ok(None)
     } else {
-        value_text(value, max).map(Some)
+        let value = value_text(value, 64)?;
+        UtcTimestamp::try_new(&value).map(Some)
     }
 }

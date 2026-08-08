@@ -45,8 +45,10 @@ impl<'a> ApiErrorWire<'a> {
             MAX_API_ERROR_MESSAGE_BYTES,
             "API error message is invalid",
         )?;
+        let code = ApiErrorCode::from_api_str(self.code.as_ref());
         Ok(ApiErrorResponse {
-            code: ApiErrorCode::from_api_str(self.code.as_ref()),
+            code,
+            code_text: self.code,
             message: self.message,
         })
     }

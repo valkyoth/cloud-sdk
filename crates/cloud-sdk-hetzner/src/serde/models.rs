@@ -7,7 +7,9 @@ mod cloud_resources;
 mod cloud_schema;
 mod cloud_value;
 mod location;
+mod metrics;
 mod resources;
+mod scalars;
 mod special;
 mod storage_box;
 
@@ -28,10 +30,10 @@ pub use cloud_resources::{
 };
 pub use cloud_value::{CloudNumber, CloudObject, CloudValue};
 pub use location::{Location, LocationPage};
+pub use metrics::{MetricPoint, MetricSeries, Metrics};
 pub use resources::{Resource, ResourceIdentifier, ResourceKind};
-pub use special::{
-    FolderList, MetricPoint, MetricSeries, Metrics, Pricing, SensitiveText, ZoneFile,
-};
+pub use scalars::{ExactDecimal, UtcTimestamp};
+pub use special::{FolderList, Pricing, SensitiveText, ZoneFile};
 pub use storage_box::{
     AccessSettings, Deprecation, Money, Price, Protection, SnapshotPlan, StorageBox,
     StorageBoxPage, StorageBoxStats, StorageBoxStatus, StorageBoxType,
@@ -43,8 +45,10 @@ pub(crate) use cloud_resources::{
     is_cloud_resource_root, parse_cloud_resource, parse_cloud_resources,
 };
 pub(crate) use location::{parse_location, parse_location_page};
+pub(crate) use metrics::parse_metrics;
 pub(crate) use resources::{parse_pagination, parse_resource, parse_resources};
-pub(crate) use special::{parse_folders, parse_metrics, parse_pricing, parse_zonefile};
+pub(crate) use scalars::valid_utc_timestamp;
+pub(crate) use special::{parse_folders, parse_pricing, parse_zonefile};
 pub(crate) use storage_box::parse_storage_box_page;
 
 /// Failure while validating a parsed success-response model.
@@ -211,8 +215,11 @@ pub enum HetznerSuccess {
 pub struct CompositeResult {
     pub(super) resource: Option<Resource>,
     pub(super) cloud_resource: Option<CloudResource>,
+    pub(super) action: Option<ActionResult>,
     pub(super) actions: Vec<ActionResult>,
+    pub(super) next_actions: Vec<ActionResult>,
     pub(super) secrets: Vec<NamedSensitiveText>,
+    pub(super) null_secrets: Vec<&'static str>,
 }
 
 impl CompositeResult {
@@ -228,16 +235,37 @@ impl CompositeResult {
         self.cloud_resource.as_ref()
     }
 
-    /// Returns actions supplied by the operation.
+    /// Returns the singular action supplied by the operation.
+    #[must_use]
+    pub const fn action(&self) -> Option<&ActionResult> {
+        self.action.as_ref()
+    }
+
+    /// Returns the source `actions` collection supplied by the operation.
     #[must_use]
     pub fn actions(&self) -> &[ActionResult] {
         &self.actions
+    }
+
+    /// Returns the source `next_actions` collection supplied by the operation.
+    #[must_use]
+    pub fn next_actions(&self) -> &[ActionResult] {
+        &self.next_actions
     }
 
     /// Returns sensitive output fields held in protected owned storage.
     #[must_use]
     pub fn secrets(&self) -> &[NamedSensitiveText] {
         &self.secrets
+    }
+
+    /// Looks up a sensitive output while preserving absent, null, and text states.
+    #[must_use]
+    pub fn secret(&self, name: &str) -> Option<Option<&SensitiveText>> {
+        if let Some(secret) = self.secrets.iter().find(|secret| secret.name() == name) {
+            return Some(Some(secret.value()));
+        }
+        self.null_secrets.contains(&name).then_some(None)
     }
 }
 
@@ -250,7 +278,9 @@ impl fmt::Debug for CompositeResult {
                 "cloud_resource",
                 &self.cloud_resource.as_ref().map(|_| "[redacted]"),
             )
-            .field("actions", &self.actions)
+            .field("action", &self.action)
+            .field("action_count", &self.actions.len())
+            .field("next_action_count", &self.next_actions.len())
             .field("secrets", &"[redacted]")
             .finish()
     }

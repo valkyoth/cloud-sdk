@@ -1,4 +1,4 @@
-//! Metrics, pricing, folder, and sensitive text models.
+//! Pricing, folder, and sensitive text models.
 
 use alloc::string::String;
 use alloc::vec::Vec;
@@ -13,8 +13,6 @@ use super::{
 use crate::serde::strict_json::{Map, Value};
 
 const MAX_FOLDERS: usize = 4096;
-const MAX_METRIC_SERIES: usize = 512;
-const MAX_METRIC_POINTS: usize = 65_536;
 
 /// Sensitive provider text requiring closure-scoped access.
 ///
@@ -108,83 +106,6 @@ impl ZoneFile {
 impl fmt::Debug for ZoneFile {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter.write_str("ZoneFile([redacted])")
-    }
-}
-
-/// One timestamp/value pair from a metrics response.
-#[derive(Clone, Debug, PartialEq)]
-pub struct MetricPoint {
-    timestamp: f64,
-    value: String,
-}
-
-impl MetricPoint {
-    /// Returns the provider timestamp.
-    #[must_use]
-    pub const fn timestamp(&self) -> f64 {
-        self.timestamp
-    }
-
-    /// Returns the decimal metric value text without lossy conversion.
-    #[must_use]
-    pub fn value(&self) -> &str {
-        &self.value
-    }
-}
-
-/// Named metrics time series.
-#[derive(Clone, Debug, PartialEq)]
-pub struct MetricSeries {
-    name: String,
-    points: Vec<MetricPoint>,
-}
-
-impl MetricSeries {
-    /// Returns the provider series name.
-    #[must_use]
-    pub fn name(&self) -> &str {
-        &self.name
-    }
-
-    /// Returns bounded metric points.
-    #[must_use]
-    pub fn points(&self) -> &[MetricPoint] {
-        &self.points
-    }
-}
-
-/// Validated server or load-balancer metrics result.
-#[derive(Clone, Debug, PartialEq)]
-pub struct Metrics {
-    start: String,
-    end: String,
-    step: f64,
-    series: Vec<MetricSeries>,
-}
-
-impl Metrics {
-    /// Returns the requested range start.
-    #[must_use]
-    pub fn start(&self) -> &str {
-        &self.start
-    }
-
-    /// Returns the requested range end.
-    #[must_use]
-    pub fn end(&self) -> &str {
-        &self.end
-    }
-
-    /// Returns the positive provider sampling step.
-    #[must_use]
-    pub const fn step(&self) -> f64 {
-        self.step
-    }
-
-    /// Returns the bounded time series.
-    #[must_use]
-    pub fn series(&self) -> &[MetricSeries] {
-        &self.series
     }
 }
 
@@ -298,61 +219,6 @@ pub(crate) fn parse_folders(value: &Value) -> Result<FolderList, ResponseModelEr
         folders.push(value_text(value, 4096)?);
     }
     Ok(FolderList(folders))
-}
-
-pub(crate) fn parse_metrics(value: &Value) -> Result<Metrics, ResponseModelError> {
-    let fields = object(value)?;
-    let start = text(fields, "start", 64)?;
-    let end = text(fields, "end", 64)?;
-    let step = required(fields, "step")?
-        .as_f64()
-        .filter(|value| value.is_finite() && *value > 0.0)
-        .ok_or(ResponseModelError::InvalidNumber)?;
-    let time_series = object(required(fields, "time_series")?)?;
-    if time_series.len() > MAX_METRIC_SERIES {
-        return Err(ResponseModelError::TooManyItems);
-    }
-    let mut series = Vec::new();
-    series
-        .try_reserve_exact(time_series.len())
-        .map_err(|_| ResponseModelError::Allocation)?;
-    for (name, value) in time_series.iter() {
-        let name = checked_text(name.as_str(), 256)?;
-        let series_fields = object(value)?;
-        let values = required(series_fields, "values")?
-            .as_array()
-            .ok_or(ResponseModelError::WrongType)?;
-        if values.len() > MAX_METRIC_POINTS {
-            return Err(ResponseModelError::TooManyItems);
-        }
-        let mut points = Vec::new();
-        points
-            .try_reserve_exact(values.len())
-            .map_err(|_| ResponseModelError::Allocation)?;
-        for point in values {
-            let point = point.as_array().ok_or(ResponseModelError::WrongType)?;
-            if point.len() != 2 {
-                return Err(ResponseModelError::EnvelopeMismatch);
-            }
-            let timestamp = point
-                .first()
-                .and_then(Value::as_f64)
-                .filter(|value| value.is_finite())
-                .ok_or(ResponseModelError::InvalidNumber)?;
-            let value = point
-                .get(1)
-                .ok_or(ResponseModelError::WrongType)
-                .and_then(|value| value_text(value, 256))?;
-            points.push(MetricPoint { timestamp, value });
-        }
-        series.push(MetricSeries { name, points });
-    }
-    Ok(Metrics {
-        start,
-        end,
-        step,
-        series,
-    })
 }
 
 pub(crate) fn parse_pricing(value: &Value) -> Result<Pricing, ResponseModelError> {

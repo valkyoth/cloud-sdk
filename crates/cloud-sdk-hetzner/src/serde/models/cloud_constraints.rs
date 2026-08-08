@@ -69,7 +69,7 @@ fn valid_decimal(value: &str) -> bool {
     fraction.is_none_or(|value| !value.is_empty() && value.bytes().all(is_digit))
 }
 
-fn valid_rfc3339(value: &str) -> bool {
+pub(super) fn valid_rfc3339(value: &str) -> bool {
     let bytes = value.as_bytes();
     if bytes.len() < 20
         || bytes.get(4) != Some(&b'-')

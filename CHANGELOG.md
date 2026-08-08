@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.64.0 - 2026-08-08
+
+- Added source-complete owned Cloud action results with canonical UTC
+  timestamps, source-bounded resource IDs, and retained unknown error codes.
+- Added exact lexical JSON decimals and bounded server/load-balancer metrics
+  with aggregate point limits and redacted fallible-copy models.
+- Preserved singular, collection, and follow-up composite actions separately
+  and retained absent, null, and protected secret-output states.
+- Bounded every strict-JSON number token, preserved integer, fractional,
+  exponent, and negative-zero text, and made allocation failure recoverable.
+- Added action, metrics, composite, provider-error, adversarial-boundary, and
+  dedicated checked-response fuzz coverage.
+
 ## 0.63.0 - 2026-08-08
 
 - Added source-derived, source-complete ordinary Hetzner Cloud response models

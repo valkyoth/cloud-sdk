@@ -1,0 +1,1 @@
+ddc{"action":{"id":1,"command":"poweron_server","status":"running","progress":1,"started":"2026-08-08T00:00:00Z","finished":null,"resources":[{"id":1,"type":"server"}],"error":null}}

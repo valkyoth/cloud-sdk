@@ -1,9 +1,9 @@
 # Crate Version Matrix
 
-Status: `v0.60.0` is tagged and published and `v0.61.0` and `v0.62.0` are
-signed internal milestones. The `v0.63.0` pentest and final retest passed and
-its local release evidence is complete; GitHub CI and CodeQL remain before the
-signed internal tag. Crates.io publication remains deferred to `v0.65.0`.
+Status: `v0.60.0` is tagged and published and `v0.61.0` through `v0.63.0` are
+signed internal milestones. The `v0.64.0` implementation stop is reached and
+requires its pentest and final release evidence before tagging.
+Crates.io publication remains deferred to `v0.65.0`.
 Every pre-1.0 tag receives its own incremental pentest.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
@@ -913,6 +913,21 @@ supporting crates retain their published versions until v0.65.0.
 | `cloud-sdk-reqwest` | `0.33.0` | `0.33.0` | `code` | No | Accumulate the exact `base64-ng 2.0.1` Basic-auth encoder update for v0.65.0. |
 | `cloud-sdk-sanitization` | `0.18.0` | `0.18.0` | `unchanged` | No | No sanitization boundary changes. |
 | `cloud-sdk-testkit` | `0.29.1` | `0.29.1` | `code` | No | Retain the cumulative v0.62 fixture changes for v0.65.0. |
+
+## v0.64.0 Tracking Table
+
+`v0.64.0` completes Cloud action, metrics, composite, exact numeric, and
+canonical timestamp responses. It remains internal, so no package is selected
+for crates.io and cumulative provider/adapter/testkit changes remain deferred
+to v0.65.0.
+
+| Crate | Published | Source | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.60.0` | `0.64.0` | `metadata` | No | Record the Cloud special-model milestone and exact release evidence. |
+| `cloud-sdk-hetzner` | `0.39.1` | `0.39.1` | `code` | No | Accumulate complete action, metrics, composite, exact scalar, and protected-error models for v0.65.0. |
+| `cloud-sdk-reqwest` | `0.33.0` | `0.33.0` | `code` | No | Retain the cumulative exact `base64-ng 2.0.1` update for v0.65.0. |
+| `cloud-sdk-sanitization` | `0.18.0` | `0.18.0` | `unchanged` | No | Existing protected owned strings satisfy nullable secret-output handling. |
+| `cloud-sdk-testkit` | `0.29.1` | `0.29.1` | `code` | No | Retain cumulative neutral fixture changes for v0.65.0. |
 
 ## v0.62.0 Tracking Table
 

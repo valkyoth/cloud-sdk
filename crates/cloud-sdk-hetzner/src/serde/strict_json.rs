@@ -14,6 +14,7 @@ pub(super) const MAX_JSON_CONTAINER_ENTRIES: usize = 4096;
 pub(super) const MAX_JSON_OBJECT_FIELDS: usize = 256;
 pub(super) const MAX_JSON_NODES: usize = 65_536;
 pub(super) const MAX_JSON_STRING_BYTES: usize = 1_048_576;
+pub(super) const MAX_JSON_NUMBER_BYTES: usize = 128;
 
 pub(super) struct Map(Vec<(ProtectedKey, Value)>);
 
@@ -69,6 +70,10 @@ impl Map {
     pub(super) fn iter(&self) -> impl Iterator<Item = (&ProtectedKey, &Value)> {
         self.0.iter().map(|(key, value)| (key, value))
     }
+
+    pub(super) fn iter_mut(&mut self) -> impl Iterator<Item = (&ProtectedKey, &mut Value)> {
+        self.0.iter_mut().map(|(key, value)| (&*key, value))
+    }
 }
 
 #[derive(Eq, Ord, PartialEq, PartialOrd)]
@@ -103,9 +108,42 @@ impl Drop for ProtectedKey {
 }
 
 pub(super) enum Number {
-    Unsigned(u64),
-    Signed(i64),
-    Float(f64),
+    Unsigned(LexicalNumber<u64>),
+    Signed(LexicalNumber<i64>),
+    Float(LexicalNumber<f64>),
+}
+
+pub(super) struct LexicalNumber<T> {
+    value: T,
+    lexical: String,
+}
+
+impl<T> LexicalNumber<T> {
+    pub(super) fn try_new(value: T, lexical: &str) -> Result<Self, ()> {
+        let mut owned = String::new();
+        owned.try_reserve_exact(lexical.len()).map_err(|_| ())?;
+        owned.push_str(lexical);
+        Ok(Self {
+            value,
+            lexical: owned,
+        })
+    }
+
+    pub(super) fn into_lexical(mut self) -> String {
+        core::mem::take(&mut self.lexical)
+    }
+}
+
+impl<T: Copy> LexicalNumber<T> {
+    pub(super) const fn value(&self) -> T {
+        self.value
+    }
+}
+
+impl<T> Drop for LexicalNumber<T> {
+    fn drop(&mut self) {
+        sanitize_string(&mut self.lexical);
+    }
 }
 
 /// Private parser tree whose string values clear their full allocation on drop.
@@ -125,16 +163,16 @@ impl Value {
 
     pub(super) fn as_u64(&self) -> Option<u64> {
         match self {
-            Self::Number(Number::Unsigned(value)) => Some(*value),
-            Self::Number(Number::Signed(value)) => u64::try_from(*value).ok(),
+            Self::Number(Number::Unsigned(value)) => Some(value.value()),
+            Self::Number(Number::Signed(value)) => u64::try_from(value.value()).ok(),
             _ => None,
         }
     }
 
     pub(super) fn as_i64(&self) -> Option<i64> {
         match self {
-            Self::Number(Number::Unsigned(value)) => i64::try_from(*value).ok(),
-            Self::Number(Number::Signed(value)) => Some(*value),
+            Self::Number(Number::Unsigned(value)) => i64::try_from(value.value()).ok(),
+            Self::Number(Number::Signed(value)) => Some(value.value()),
             _ => None,
         }
     }
@@ -153,9 +191,9 @@ impl Value {
 
     pub(super) fn as_f64(&self) -> Option<f64> {
         match self {
-            Self::Number(Number::Unsigned(value)) => Some(*value as f64),
-            Self::Number(Number::Signed(value)) => Some(*value as f64),
-            Self::Number(Number::Float(value)) => Some(*value),
+            Self::Number(Number::Unsigned(value)) => Some(value.value() as f64),
+            Self::Number(Number::Signed(value)) => Some(value.value() as f64),
+            Self::Number(Number::Float(value)) => Some(value.value()),
             _ => None,
         }
     }
@@ -168,6 +206,13 @@ impl Value {
     }
 
     pub(super) fn as_array(&self) -> Option<&[Self]> {
+        match self {
+            Self::Array(values) => Some(values),
+            _ => None,
+        }
+    }
+
+    pub(super) fn as_array_mut(&mut self) -> Option<&mut [Self]> {
         match self {
             Self::Array(values) => Some(values),
             _ => None,
@@ -202,6 +247,19 @@ impl Value {
         let value = core::mem::replace(self, Self::Null);
         match value {
             Self::String(value) => Some(value),
+            other => {
+                *self = other;
+                None
+            }
+        }
+    }
+
+    pub(super) fn take_number_lexical(&mut self) -> Option<String> {
+        let value = core::mem::replace(self, Self::Null);
+        match value {
+            Self::Number(Number::Unsigned(value)) => Some(value.into_lexical()),
+            Self::Number(Number::Signed(value)) => Some(value.into_lexical()),
+            Self::Number(Number::Float(value)) => Some(value.into_lexical()),
             other => {
                 *self = other;
                 None

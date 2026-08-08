@@ -68,6 +68,7 @@ pub(super) fn decode_provider_error(
         .map_err(HetznerDecodeError::Model)?;
     Ok(HetznerApiError {
         code: ApiErrorCode::from_api_str(&code),
+        code_text: code,
         message,
         quota,
     })
@@ -83,7 +84,7 @@ fn decode_success(
         validate_required(envelope, binding.required)?;
     }
     if binding.shape == ResponseShape::Composite {
-        return decode_composite(binding, object_mut(value)?);
+        return decode_composite(operation, binding, object_mut(value)?);
     }
     if binding.shape == ResponseShape::ZoneFile {
         let envelope = object_mut(value)?;
@@ -127,7 +128,7 @@ fn decode_success(
         }
         ResponseShape::Composite => Err(ResponseModelError::EnvelopeMismatch),
         ResponseShape::Metrics => {
-            parse_metrics(required(object(value)?, "metrics")?).map(HetznerSuccess::Metrics)
+            parse_metrics(required_mut(object_mut(value)?, "metrics")?).map(HetznerSuccess::Metrics)
         }
         ResponseShape::ZoneFile => Err(ResponseModelError::EnvelopeMismatch),
         ResponseShape::Pricing => {
@@ -205,10 +206,11 @@ fn decode_resources(
 }
 
 fn decode_composite(
+    operation: &str,
     binding: ResponseBinding,
     envelope: &mut Map,
 ) -> Result<HetznerSuccess, ResponseModelError> {
-    let secrets = take_composite_secrets(envelope)?;
+    let (secrets, null_secrets) = take_composite_secrets(operation, envelope)?;
     let cloud_resource = if binding.root != "-" && is_cloud_resource_root(binding.root) {
         envelope
             .get(binding.root)
@@ -225,37 +227,45 @@ fn decode_composite(
             .map(|value| parse_resource(binding.root, value))
             .transpose()?
     };
-    let mut actions = Vec::new();
-    if let Some(value) = envelope.get_mut("action") {
-        actions
-            .try_reserve(1)
-            .map_err(|_| ResponseModelError::Allocation)?;
-        actions.push(parse_action(value)?);
-    }
-    for key in ["actions", "next_actions"] {
-        if let Some(value) = envelope.get_mut(key) {
-            let parsed = parse_actions(value)?;
-            actions
-                .try_reserve(parsed.len())
-                .map_err(|_| ResponseModelError::Allocation)?;
-            actions.extend(parsed);
-        }
-    }
+    let action = envelope.get_mut("action").map(parse_action).transpose()?;
+    let actions = envelope
+        .get_mut("actions")
+        .map(parse_actions)
+        .transpose()?
+        .unwrap_or_default();
+    let next_actions = envelope
+        .get_mut("next_actions")
+        .map(parse_actions)
+        .transpose()?
+        .unwrap_or_default();
     Ok(HetznerSuccess::Composite(CompositeResult {
         resource,
         cloud_resource,
+        action,
         actions,
+        next_actions,
         secrets,
+        null_secrets,
     }))
 }
 
 fn take_composite_secrets(
+    operation: &str,
     envelope: &mut Map,
-) -> Result<Vec<NamedSensitiveText>, ResponseModelError> {
+) -> Result<(Vec<NamedSensitiveText>, Vec<&'static str>), ResponseModelError> {
     let mut secrets = Vec::new();
+    let mut null_secrets = Vec::new();
     for key in ["root_password", "password", "wss_url"] {
         if let Some(value) = envelope.get_mut(key) {
+            let nullable = secret_policy(operation, key)?;
             if value.is_null() {
+                if !nullable {
+                    return Err(ResponseModelError::WrongType);
+                }
+                null_secrets
+                    .try_reserve(1)
+                    .map_err(|_| ResponseModelError::Allocation)?;
+                null_secrets.push(key);
                 continue;
             }
             let secret = value
@@ -269,7 +279,16 @@ fn take_composite_secrets(
             secrets.push(NamedSensitiveText::new(key, secret));
         }
     }
-    Ok(secrets)
+    Ok((secrets, null_secrets))
+}
+
+fn secret_policy(operation: &str, key: &str) -> Result<bool, ResponseModelError> {
+    match (operation, key) {
+        ("create_server" | "rebuild_server", "root_password") => Ok(true),
+        ("enable_server_rescue" | "reset_server_password", "root_password")
+        | ("request_server_console", "password" | "wss_url") => Ok(false),
+        _ => Err(ResponseModelError::EnvelopeMismatch),
+    }
 }
 
 fn object_mut(value: &mut Value) -> Result<&mut Map, ResponseModelError> {

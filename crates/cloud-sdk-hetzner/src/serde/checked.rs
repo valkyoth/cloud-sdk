@@ -1,5 +1,6 @@
 //! Policy-bound checked Hetzner response decoding.
 
+use alloc::string::String;
 use alloc::vec::Vec;
 use core::fmt;
 
@@ -35,6 +36,7 @@ use success::{decode_checked_success, decode_provider_error};
 #[derive(Eq, PartialEq)]
 pub struct HetznerApiError {
     code: ApiErrorCode,
+    code_text: String,
     message: SensitiveText,
     quota: HetznerQuota,
 }
@@ -44,6 +46,12 @@ impl HetznerApiError {
     #[must_use]
     pub const fn code(&self) -> ApiErrorCode {
         self.code
+    }
+
+    /// Returns the exact validated provider error code.
+    #[must_use]
+    pub fn code_text(&self) -> &str {
+        &self.code_text
     }
 
     /// Runs a closure with temporary access to the provider error message.
@@ -66,6 +74,7 @@ impl fmt::Debug for HetznerApiError {
         formatter
             .debug_struct("HetznerApiError")
             .field("code", &self.code)
+            .field("code_text", &"[redacted]")
             .field("message", &"[redacted]")
             .field("quota", &self.quota)
             .finish()

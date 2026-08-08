@@ -1985,7 +1985,7 @@ Stop gate: `v0.62.0 implementation stop reached. Complete the pentest and full r
 
 ### v0.63.0 - Complete Cloud Resource Models
 
-Status: implementation stop reached; pentest required.
+Status: tagged 2026-08-08 as an internal development milestone.
 
 Goal: complete compute, network, IP, volume, pricing, and catalog fields.
 
@@ -2014,11 +2014,27 @@ Stop gate: `v0.63.0 implementation stop reached. Complete the pentest and full r
 
 ### v0.64.0 - Cloud Actions, Metrics, And Special Models
 
+Status: implementation stop reached; pentest required.
+
 Goal: complete action, metrics, composite, decimal, and timestamp responses.
 
-Deliverables: calendar-valid UTC RFC3339, exact decimals, bounded metrics, nullable results, and complete action/error fields.
+Deliverables: add `UtcTimestamp` with calendar validation and canonical uppercase
+UTC `T`/`Z` form; add `ExactDecimal` that retains the complete bounded JSON
+number token, including integer, fraction, exponent, and negative zero. Replace
+lossy metric floats with exact values, enforce positive steps plus per-series
+and aggregate point bounds, and expose only fallible copies and redacted
+diagnostics. Complete action IDs, source-bounded resource IDs, status,
+progress, timestamps, resources, nullable error, exact unknown error-code text,
+and protected messages. Preserve composite `action`, `actions`, and
+`next_actions` independently and distinguish absent, null, and protected secret
+outputs according to each operation's exact source nullability.
 
-Verification: boundary dates/decimals, metrics limits, action states, fuzzing, and `scripts/release_0_64_gate.sh`.
+Verification: leap-year, leap-second, lowercase, offset, fraction, exponent,
+negative-zero, non-finite, oversized-number, positive-step, per-series,
+aggregate-point, source-ID, action-state, unknown-error, nullability,
+redacted-debug, and fallible-copy tests. Run all 208 minimal operation fixtures,
+the dedicated checked special-response fuzz target and seeds, live pinned
+schema/operation drift, and `scripts/release_0_64_gate.sh`.
 
 Stop gate: `v0.64.0 implementation stop reached. Complete the pentest and full release gate for this exact commit; defer crates.io publication to v0.65.0.`
 

@@ -251,7 +251,7 @@ fn serde_action_envelope_validates_security_relevant_fields() {
 }
 
 #[test]
-fn serde_action_error_is_classified_without_exposing_raw_unknown_code() {
+fn serde_action_error_classifies_and_retains_raw_unknown_code() {
     let json = r#"{
         "action": {
             "id": 42,
@@ -271,11 +271,13 @@ fn serde_action_error_is_classified_without_exposing_raw_unknown_code() {
         unreachable!("security fixture construction failed");
     };
     assert_eq!(error.code(), ApiErrorCode::Unknown);
+    assert_eq!(error.code_text(), "future_error");
     assert_eq!(error.message(), "failed");
     assert_eq!(
         envelope.action().polling_update(),
         ActionUpdate::Failed(Some(error))
     );
+    assert!(!format!("{error:?}").contains("future_error"));
 }
 
 #[test]

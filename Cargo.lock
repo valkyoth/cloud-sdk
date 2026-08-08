@@ -163,7 +163,7 @@ dependencies = [
 
 [[package]]
 name = "cloud-sdk"
-version = "0.63.0"
+version = "0.64.0"
 dependencies = [
  "cloud-sdk-sanitization",
  "subtle",
@@ -761,7 +761,7 @@ checksum = "7c87def4c32ab89d880effc9e097653c8da5d6ef28e6b539d313baaacfbafcbe"
 
 [[package]]
 name = "ovhcloud-v2-probe"
-version = "0.63.0"
+version = "0.64.0"
 dependencies = [
  "cloud-sdk",
  "cloud-sdk-reqwest",

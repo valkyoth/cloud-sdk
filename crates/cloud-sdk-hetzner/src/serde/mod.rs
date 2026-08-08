@@ -30,12 +30,13 @@ pub use incremental::{
 pub use models::{
     AccessSettings, ActionResult, ActionResultError, ActionResultResource, Certificate,
     CertificateError, CertificateKind, CertificateStatus, CertificateUse, CloudNumber, CloudObject,
-    CloudResource, CloudResourceKind, CloudValue, CompositeResult, Deprecation, Firewall,
-    FloatingIp, FolderList, HetznerSuccess, Image, Iso, Labels, LoadBalancer, LoadBalancerType,
-    Location, LocationPage, MetricPoint, MetricSeries, Metrics, Money, NamedSensitiveText, Network,
-    PlacementGroup, Price, Pricing, PrimaryIp, Protection, Resource, ResourceIdentifier,
-    ResourceKind, ResponseModelError, SensitiveText, Server, ServerType, SnapshotPlan, StorageBox,
-    StorageBoxPage, StorageBoxStats, StorageBoxStatus, StorageBoxType, Volume, ZoneFile,
+    CloudResource, CloudResourceKind, CloudValue, CompositeResult, Deprecation, ExactDecimal,
+    Firewall, FloatingIp, FolderList, HetznerSuccess, Image, Iso, Labels, LoadBalancer,
+    LoadBalancerType, Location, LocationPage, MetricPoint, MetricSeries, Metrics, Money,
+    NamedSensitiveText, Network, PlacementGroup, Price, Pricing, PrimaryIp, Protection, Resource,
+    ResourceIdentifier, ResourceKind, ResponseModelError, SensitiveText, Server, ServerType,
+    SnapshotPlan, StorageBox, StorageBoxPage, StorageBoxStats, StorageBoxStatus, StorageBoxType,
+    UtcTimestamp, Volume, ZoneFile,
 };
 pub use pagination::PaginationEnvelope;
 pub use response::{
@@ -53,6 +54,8 @@ mod checked_fixtures;
 mod checked_pagination_tests;
 #[cfg(test)]
 mod checked_security_tests;
+#[cfg(test)]
+mod checked_special_tests;
 #[cfg(test)]
 mod checked_test_support;
 #[cfg(test)]

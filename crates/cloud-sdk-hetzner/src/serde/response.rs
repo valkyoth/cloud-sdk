@@ -8,9 +8,11 @@ use ::serde::Deserialize;
 use ::serde::de::Error as _;
 use cloud_sdk::action_polling::ActionUpdate;
 
+use crate::actions::MAX_ACTION_ID;
 use crate::actions::{ActionId, ActionStatus};
 use crate::cloud::shared::CloudResourceId;
 use crate::response::ApiErrorCode;
+use crate::serde::models::valid_utc_timestamp;
 
 mod wire;
 
@@ -73,6 +75,7 @@ impl fmt::Debug for ResponseBytes<'_> {
 #[derive(Clone, Eq, PartialEq)]
 pub struct ApiErrorResponse<'a> {
     code: ApiErrorCode,
+    code_text: Cow<'a, str>,
     message: Cow<'a, str>,
 }
 
@@ -81,6 +84,7 @@ impl fmt::Debug for ApiErrorResponse<'_> {
         formatter
             .debug_struct("ApiErrorResponse")
             .field("code", &self.code)
+            .field("code_text", &"[redacted]")
             .field("message", &"[redacted]")
             .finish()
     }
@@ -99,6 +103,12 @@ impl ApiErrorResponse<'_> {
     #[must_use]
     pub const fn code(&self) -> ApiErrorCode {
         self.code
+    }
+
+    /// Returns the exact validated provider error code.
+    #[must_use]
+    pub fn code_text(&self) -> &str {
+        self.code_text.as_ref()
     }
 
     /// Returns the human-facing error message.
@@ -135,10 +145,20 @@ impl<'de> Deserialize<'de> for ApiErrorEnvelope<'de> {
 }
 
 /// Resource referenced by an action response.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Eq, PartialEq)]
 pub struct ActionResource<'a> {
     id: CloudResourceId,
     resource_type: Cow<'a, str>,
+}
+
+impl fmt::Debug for ActionResource<'_> {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("ActionResource")
+            .field("id", &self.id)
+            .field("resource_type", &"[redacted]")
+            .finish()
+    }
 }
 
 impl<'a> ActionResource<'a> {
@@ -161,8 +181,12 @@ impl<'de: 'a, 'a> Deserialize<'de> for ActionResource<'a> {
         D: ::serde::Deserializer<'de>,
     {
         let wire = ActionResourceWire::deserialize(deserializer)?;
-        let id = CloudResourceId::new(wire.id)
-            .ok_or_else(|| D::Error::custom("action resource ID must be nonzero"))?;
+        let id = wire
+            .id
+            .le(&MAX_ACTION_ID)
+            .then(|| CloudResourceId::new(wire.id))
+            .flatten()
+            .ok_or_else(|| D::Error::custom("action resource ID is outside source bounds"))?;
         validate_text::<D::Error>(
             wire.resource_type.as_ref(),
             MAX_ACTION_RESOURCE_TYPE_BYTES,
@@ -176,7 +200,7 @@ impl<'de: 'a, 'a> Deserialize<'de> for ActionResource<'a> {
 }
 
 /// Validated action response body.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Eq, PartialEq)]
 pub struct ActionResponse<'a> {
     id: ActionId,
     command: Cow<'a, str>,
@@ -186,6 +210,21 @@ pub struct ActionResponse<'a> {
     finished: Option<Cow<'a, str>>,
     resources: Vec<ActionResource<'a>>,
     error: Option<ApiErrorResponse<'a>>,
+}
+
+impl fmt::Debug for ActionResponse<'_> {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("ActionResponse")
+            .field("id", &self.id)
+            .field("command", &"[redacted]")
+            .field("status", &self.status)
+            .field("progress", &self.progress)
+            .field("timestamps", &"[redacted]")
+            .field("resource_count", &self.resources.len())
+            .field("error", &self.error)
+            .finish()
+    }
 }
 
 impl<'a> ActionResponse<'a> {
@@ -285,12 +324,22 @@ impl<'de> Deserialize<'de> for ActionEnvelope<'de> {
             MAX_ACTION_TIMESTAMP_BYTES,
             "action start timestamp is invalid",
         )?;
+        if !valid_utc_timestamp(wire.action.started.as_ref()) {
+            return Err(D::Error::custom(
+                "action start timestamp is not canonical UTC",
+            ));
+        }
         if let Some(finished) = wire.action.finished.0.as_deref() {
             validate_text::<D::Error>(
                 finished,
                 MAX_ACTION_TIMESTAMP_BYTES,
                 "action finish timestamp is invalid",
             )?;
+            if !valid_utc_timestamp(finished) {
+                return Err(D::Error::custom(
+                    "action finish timestamp is not canonical UTC",
+                ));
+            }
         }
         let error = wire
             .action

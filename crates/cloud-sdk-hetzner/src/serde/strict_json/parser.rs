@@ -6,8 +6,9 @@ use core::str;
 use cloud_sdk_sanitization::{SecretString, sanitize_bytes};
 
 use super::{
-    MAX_JSON_CONTAINER_ENTRIES, MAX_JSON_DEPTH, MAX_JSON_NODES, MAX_JSON_OBJECT_FIELDS,
-    MAX_JSON_STRING_BYTES, Map, Number, ProtectedKey, Value,
+    LexicalNumber, MAX_JSON_CONTAINER_ENTRIES, MAX_JSON_DEPTH, MAX_JSON_NODES,
+    MAX_JSON_NUMBER_BYTES, MAX_JSON_OBJECT_FIELDS, MAX_JSON_STRING_BYTES, Map, Number,
+    ProtectedKey, Value,
 };
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -214,17 +215,22 @@ impl Parser<'_> {
                 .ok_or(JsonError::InvalidNumber)?,
         )
         .map_err(|_| JsonError::InvalidUtf8)?;
+        if text.len() > MAX_JSON_NUMBER_BYTES {
+            return Err(JsonError::InvalidNumber);
+        }
         if float {
             return parse_finite_float(text);
         }
         if negative {
-            text.parse::<i64>()
-                .map(Number::Signed)
-                .or_else(|_| parse_finite_float(text))
+            match text.parse::<i64>() {
+                Ok(value) => lexical_number(value, text).map(Number::Signed),
+                Err(_) => parse_finite_float(text),
+            }
         } else {
-            text.parse::<u64>()
-                .map(Number::Unsigned)
-                .or_else(|_| parse_finite_float(text))
+            match text.parse::<u64>() {
+                Ok(value) => lexical_number(value, text).map(Number::Unsigned),
+                Err(_) => parse_finite_float(text),
+            }
         }
     }
 
@@ -278,10 +284,14 @@ impl Parser<'_> {
 
 fn parse_finite_float(text: &str) -> Result<Number, JsonError> {
     let value = text.parse::<f64>().map_err(|_| JsonError::InvalidNumber)?;
-    value
-        .is_finite()
-        .then_some(Number::Float(value))
-        .ok_or(JsonError::InvalidNumber)
+    if !value.is_finite() {
+        return Err(JsonError::InvalidNumber);
+    }
+    lexical_number(value, text).map(Number::Float)
+}
+
+fn lexical_number<T>(value: T, text: &str) -> Result<LexicalNumber<T>, JsonError> {
+    LexicalNumber::try_new(value, text).map_err(|_| JsonError::Allocation)
 }
 
 struct StringScan {
