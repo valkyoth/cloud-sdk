@@ -35,12 +35,13 @@ package version remains 0.39.1 while changes accumulate for v0.65.0.
   made lexical-storage allocation failure recoverable.
 - Derived metric sign and zero classification from exact lexical tokens,
   covering underflow-sized exponents and signed zero without float coercion.
-- Applied the same Unicode control and invisible-format rejection policy to
-  borrowed and checked provider error-code text.
+- Restricted borrowed, provider, action, and certificate error-code text to a
+  shared bounded ASCII machine-identifier grammar.
 - Enforced source-max action resource IDs and operation-specific secret
   nullability.
 - Added exact-number, UTC/calendar, metrics amplification, action/error,
-  composite-nullability, redaction, all-operation, and dedicated fuzz coverage.
+  composite-nullability, redaction, all-operation, dual-decoder fuzz, and named
+  seed-route coverage.
 - Retained exact pinned upstream operation and schema drift gates.
 
 ## Versions

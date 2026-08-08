@@ -12,7 +12,7 @@ use crate::actions::MAX_ACTION_ID;
 use crate::actions::{ActionId, ActionStatus};
 use crate::cloud::shared::CloudResourceId;
 use crate::response::ApiErrorCode;
-use crate::serde::models::{is_unsafe_display_character, valid_utc_timestamp};
+use crate::serde::models::{is_unsafe_display_character, valid_error_code, valid_utc_timestamp};
 
 mod wire;
 
@@ -368,6 +368,16 @@ where
 {
     if value.is_empty() || value.len() > max || value.chars().any(is_unsafe_display_character) {
         return Err(E::custom(field));
+    }
+    Ok(())
+}
+
+fn validate_error_code<E>(value: &str) -> Result<(), E>
+where
+    E: ::serde::de::Error,
+{
+    if !valid_error_code(value, MAX_API_ERROR_CODE_BYTES) {
+        return Err(E::custom("API error code is invalid"));
     }
     Ok(())
 }

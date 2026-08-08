@@ -132,3 +132,46 @@ fn checked_provider_errors_retain_unknown_codes_with_redacted_diagnostics() {
     assert!(!debug.contains("future_provider_error"));
     assert!(!debug.contains("private failure"));
 }
+
+#[test]
+fn checked_provider_and_action_error_codes_reject_non_ascii_identifiers() {
+    let Some(bad_request) = StatusCode::new(400) else {
+        unreachable!("HTTP 400 must be a valid status")
+    };
+    for code in [
+        "line\u{2028}break",
+        "paragraph\u{2029}break",
+        "soft\u{00ad}hyphen",
+        "direction\u{206a}control",
+    ] {
+        let provider =
+            serde_json::to_vec(&serde_json::json!({"error":{"code":code,"message":"safe"}}))
+                .unwrap_or_default();
+        assert_eq!(
+            decode_response(
+                prepared("get_action", CLOUD_SERVICE_ID, StatusCode::OK),
+                response(bad_request, &provider),
+            ),
+            Err(HetznerDecodeError::Model(ResponseModelError::InvalidText))
+        );
+
+        let mut action = action_value();
+        let Some(fields) = action.as_object_mut() else {
+            unreachable!("action fixture is not an object")
+        };
+        fields.insert("status".into(), serde_json::json!("error"));
+        fields.insert("progress".into(), serde_json::json!(100));
+        fields.insert(
+            "error".into(),
+            serde_json::json!({"code":code,"message":"safe"}),
+        );
+        let action = serde_json::to_vec(&serde_json::json!({"action":action})).unwrap_or_default();
+        assert_eq!(
+            decode_response(
+                prepared("get_action", CLOUD_SERVICE_ID, StatusCode::OK),
+                response(StatusCode::OK, &action),
+            ),
+            Err(HetznerDecodeError::Model(ResponseModelError::InvalidText))
+        );
+    }
+}

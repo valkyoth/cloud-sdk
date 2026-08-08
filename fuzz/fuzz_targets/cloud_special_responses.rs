@@ -13,7 +13,7 @@ use cloud_sdk::transport::{
     StatusCode, TransportRequest,
 };
 use cloud_sdk_hetzner::CloudService;
-use cloud_sdk_hetzner::serde::decode_response;
+use cloud_sdk_hetzner::serde::{ApiErrorEnvelope, ResponseBytes, decode_response};
 use libfuzzer_sys::fuzz_target;
 
 const JSON: &[MediaType<'static>] = &[MediaType::JSON];
@@ -152,5 +152,8 @@ fuzz_target!(|data: &[u8]| {
         return;
     }
     drop(attempt);
+    if let Ok(admitted) = ResponseBytes::new(body) {
+        let _ = serde_json::from_slice::<ApiErrorEnvelope<'_>>(admitted.as_slice());
+    }
     let _ = decode_response(prepared, response);
 });

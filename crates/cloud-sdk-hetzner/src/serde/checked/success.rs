@@ -58,6 +58,9 @@ pub(super) fn decode_provider_error(
         128,
     )
     .map_err(HetznerDecodeError::Model)?;
+    if !valid_error_code(&code, 128) {
+        return Err(HetznerDecodeError::Model(ResponseModelError::InvalidText));
+    }
     let message = required_mut(error, "message")
         .map_err(HetznerDecodeError::Model)?
         .take_string()

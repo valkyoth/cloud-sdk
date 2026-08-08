@@ -11,8 +11,8 @@ use ::serde::de::value::MapAccessDeserializer;
 use ::serde::de::{Error as _, MapAccess, SeqAccess, Visitor};
 
 use super::{
-    ActionResource, ApiErrorResponse, MAX_ACTION_RESPONSE_RESOURCES, MAX_API_ERROR_CODE_BYTES,
-    MAX_API_ERROR_MESSAGE_BYTES, validate_text,
+    ActionResource, ApiErrorResponse, MAX_ACTION_RESPONSE_RESOURCES, MAX_API_ERROR_MESSAGE_BYTES,
+    validate_error_code, validate_text,
 };
 use crate::response::ApiErrorCode;
 
@@ -35,11 +35,7 @@ impl<'a> ApiErrorWire<'a> {
     where
         E: ::serde::de::Error,
     {
-        validate_text::<E>(
-            self.code.as_ref(),
-            MAX_API_ERROR_CODE_BYTES,
-            "API error code is invalid",
-        )?;
+        validate_error_code::<E>(self.code.as_ref())?;
         validate_text::<E>(
             self.message.as_ref(),
             MAX_API_ERROR_MESSAGE_BYTES,

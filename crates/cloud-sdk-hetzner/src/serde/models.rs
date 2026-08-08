@@ -353,6 +353,14 @@ pub(super) fn validate_text(value: &str, max: usize) -> Result<(), ResponseModel
     Ok(())
 }
 
+pub(super) fn valid_error_code(value: &str, max: usize) -> bool {
+    !value.is_empty()
+        && value.len() <= max
+        && value
+            .bytes()
+            .all(|byte| byte.is_ascii_alphanumeric() || matches!(byte, b'_' | b'-' | b'.'))
+}
+
 pub(super) fn is_unsafe_display_character(character: char) -> bool {
     character.is_control()
         || matches!(
@@ -367,7 +375,7 @@ pub(super) fn is_unsafe_display_character(character: char) -> bool {
 
 #[cfg(test)]
 mod model_tests {
-    use super::{ResponseModelError, checked_text};
+    use super::{ResponseModelError, checked_text, valid_error_code};
 
     #[test]
     fn checked_text_rejects_unicode_controls_and_invisible_formatting() {
@@ -388,5 +396,22 @@ mod model_tests {
             checked_text("visible text", 64).as_deref(),
             Ok("visible text")
         );
+    }
+
+    #[test]
+    fn error_codes_use_a_bounded_ascii_machine_identifier_grammar() {
+        for valid in ["forbidden", "future-code.v2", "ERROR_42"] {
+            assert!(valid_error_code(valid, 128));
+        }
+        for invalid in [
+            "",
+            "has space",
+            "line\u{2028}break",
+            "soft\u{00ad}hyphen",
+            "direction\u{206a}control",
+        ] {
+            assert!(!valid_error_code(invalid, 128));
+        }
+        assert!(!valid_error_code(&"a".repeat(129), 128));
     }
 }

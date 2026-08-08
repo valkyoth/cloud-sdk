@@ -25,14 +25,14 @@ states, and unknown provider error-code text.
   owned storage, operation-specific nullability, and an accessor that
   distinguishes absent from explicit null.
 - Unknown error codes remain available for forward compatibility but are
-  validated against the shared Unicode control and invisible-format policy,
-  then redacted with commands, timestamps, resource types, metric values, and
-  protected messages from `Debug` output.
+  limited to bounded ASCII alphanumeric, underscore, hyphen, and period
+  machine identifiers. They are redacted with commands, timestamps, resource
+  types, metric values, and protected messages from `Debug` output.
 - Complete metric copies are fallible and reserve each bounded allocation.
   Allocation failure returns `ResponseModelError::Allocation`.
 - Exact pinned operation/schema fingerprints, all-operation fixtures, focused
-  adversarial tests, and the dedicated checked-response fuzz target cover the
-  new parser paths.
+  adversarial tests, named seed-route assertions, and the dedicated checked and
+  borrowed response fuzz paths cover the new parser surface.
 
 ## Unchanged Boundaries
 

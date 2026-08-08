@@ -6,7 +6,9 @@ use core::fmt;
 
 use cloud_sdk::action_polling::ActionUpdate;
 
-use super::{ResponseModelError, SensitiveText, UtcTimestamp, object, required, value_text};
+use super::{
+    ResponseModelError, SensitiveText, UtcTimestamp, object, required, valid_error_code, value_text,
+};
 use crate::actions::{ActionId, ActionStatus, MAX_ACTION_ID};
 use crate::cloud::shared::CloudResourceId;
 use crate::response::ApiErrorCode;
@@ -258,6 +260,9 @@ fn parse_error(value: &mut Value) -> Result<Option<ActionResultError>, ResponseM
     }
     let fields = value.as_object_mut().ok_or(ResponseModelError::WrongType)?;
     let code = text_field(fields, "code", 128)?;
+    if !valid_error_code(&code, 128) {
+        return Err(ResponseModelError::InvalidText);
+    }
     let message = fields
         .get_mut("message")
         .ok_or(ResponseModelError::MissingField)?

@@ -191,8 +191,12 @@ fn serde_error_envelope_borrows_and_ignores_additive_fields() {
 fn borrowed_api_error_rejects_unicode_log_spoofing_controls() {
     for code in [
         "safe\\u202egol",
+        "line\\u2028break",
+        "paragraph\\u2029break",
+        "soft\\u00adhyphen",
         "zero\\u200bwidth",
         "isolate\\u2066text",
+        "deprecated\\u206acontrol",
         "mark\\u061ctext",
         "bom\\ufefftext",
     ] {

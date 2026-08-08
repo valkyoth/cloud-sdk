@@ -5,7 +5,8 @@ use alloc::vec::Vec;
 use core::fmt;
 
 use super::{
-    Labels, ResponseModelError, SensitiveText, object, parse_labels, required, value_text,
+    Labels, ResponseModelError, SensitiveText, object, parse_labels, required, valid_error_code,
+    value_text,
 };
 use crate::response::ApiErrorCode;
 use crate::serde::strict_json::{Map, Value};
@@ -201,6 +202,9 @@ fn parse_error(value: &mut Value) -> Result<Option<CertificateError>, ResponseMo
     }
     let fields = value.as_object_mut().ok_or(ResponseModelError::WrongType)?;
     let code = text(fields, "code", 128)?;
+    if !valid_error_code(&code, 128) {
+        return Err(ResponseModelError::InvalidText);
+    }
     let message = take_secret(fields, "message", 16_384)?;
     message.validate(16_384)?;
     Ok(Some(CertificateError {
@@ -301,4 +305,30 @@ fn positive_u64(fields: &Map, key: &str) -> Result<u64, ResponseModelError> {
         .as_u64()
         .filter(|value| *value != 0 && *value <= 9_007_199_254_740_991)
         .ok_or(ResponseModelError::InvalidNumber)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::parse_error;
+    use crate::serde::models::ResponseModelError;
+    use crate::serde::strict_json::parse;
+
+    #[test]
+    fn certificate_error_codes_reject_non_ascii_identifiers() {
+        for code in [
+            "line\\u2028break",
+            "paragraph\\u2029break",
+            "soft\\u00adhyphen",
+            "direction\\u206acontrol",
+        ] {
+            let input = alloc::format!("{{\"code\":\"{code}\",\"message\":\"safe\"}}");
+            let Ok(mut value) = parse(input.as_bytes()) else {
+                unreachable!("certificate error fixture failed to parse")
+            };
+            assert_eq!(
+                parse_error(&mut value),
+                Err(ResponseModelError::InvalidText)
+            );
+        }
+    }
 }
