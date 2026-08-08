@@ -1,10 +1,10 @@
 # Crate Version Matrix
 
-Status: `v0.60.0` is tagged and published and `v0.61.0` through `v0.63.0` are
-signed internal milestones. The `v0.64.0` pentest and final retest passed and
-its local release evidence is complete; GitHub CI and CodeQL remain before the
-signed internal tag. Crates.io publication remains deferred to `v0.65.0`.
-Every pre-1.0 tag receives its own incremental pentest.
+Status: `v0.60.0` is tagged and published and `v0.61.0` through `v0.64.0` are
+signed internal milestones. `v0.65.0` is the next cumulative public checkpoint;
+its source versions and publish set are fixed below while implementation
+awaits its incremental pentest and final release evidence. Every pre-1.0 tag
+receives its own incremental pentest.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
@@ -956,6 +956,26 @@ continues to accumulate under the published package version until v0.65.0.
 | `cloud-sdk-reqwest` | `0.33.0` | `0.33.0` | `code` | No | Accumulate the exact `base64-ng 2.0.1` Basic-auth encoder update for v0.65.0. |
 | `cloud-sdk-sanitization` | `0.18.0` | `0.18.0` | `unchanged` | No | No sanitization boundary changes. |
 | `cloud-sdk-testkit` | `0.29.1` | `0.29.1` | `code` | No | Retain the cumulative v0.62 fixture changes for v0.65.0. |
+
+## v0.65.0 Tracking Table
+
+`v0.65.0` completes source-derived DNS response models and publishes all
+reviewed code accumulated since v0.60.0. Independent code changes receive one
+minor bump, the provider-neutral facade matches the tag, and unchanged
+sanitization code is not republished.
+
+| Crate | Previous published | Source | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.60.0` | `0.65.0` | `code` | Yes | Publish the cumulative provider-neutral contract and release checkpoint. |
+| `cloud-sdk-hetzner` | `0.39.1` | `0.40.0` | `code` | Yes | Publish cumulative source-complete Cloud and DNS response models. |
+| `cloud-sdk-reqwest` | `0.33.0` | `0.34.0` | `code` | Yes | Publish cumulative transport hardening and exact `base64-ng 2.0.1` integration. |
+| `cloud-sdk-sanitization` | `0.18.0` | `0.18.0` | `unchanged` | No | No source or dependency change occurred after v0.60.0. |
+| `cloud-sdk-testkit` | `0.29.1` | `0.30.0` | `code` | Yes | Publish cumulative exact-response and permit fixture improvements. |
+
+Publish order is `cloud-sdk 0.65.0`, `cloud-sdk-reqwest 0.34.0`,
+`cloud-sdk-testkit 0.30.0`, then `cloud-sdk-hetzner 0.40.0`. The unchanged
+sanitization crate is skipped and the unpublished OVHcloud probe is outside the
+publishable package set.
 
 ## Planned Milestone Ownership
 

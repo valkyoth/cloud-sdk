@@ -2040,13 +2040,51 @@ Stop gate: `v0.64.0 implementation stop reached. Complete the pentest and full r
 
 ### v0.65.0 - Complete DNS Models
 
-Goal: complete zones, RRSets, zonefiles, actions, and secret-bearing DNS results.
+Goal: complete source-locked DNS zone, RRSet, zonefile, action, and
+secret-bearing response models, then publish the cumulative v0.61-v0.65 crate
+train.
 
-Deliverables: exact request/response fields, bounded zonefiles, TSIG policy, unknown record handling, and incremental decode coverage.
+Deliverables:
 
-Verification: schema/secret/zonefile/adversarial/live-read tests and `scripts/release_0_65_gate.sh`.
+- Extend deterministic Cloud-spec extraction to DNS zones and RRSets,
+  including the primary/secondary root discriminator, every required field,
+  nullability, numeric bound, text bound, and source-known enum value.
+- Return dedicated `Zone` and `DnsRrset` models from singleton, paginated, and
+  create-composite responses instead of reducing DNS objects to generic IDs.
+- Preserve zone mode, status, TTL, record count, labels, protection, registrar,
+  authoritative/delegated nameservers, delegation timestamps/status, RRSet
+  ownership, record comments, and nullable inherited TTLs.
+- Move returned TSIG keys directly from protected parser storage into
+  `SensitiveText`, redact all DNS diagnostics, admit legacy algorithms only as
+  response observations, and retain HMAC-SHA256 as the outbound request policy.
+- Accept bounded additive future uppercase RR types without assigning them
+  source-known request semantics; reject empty or duplicate record sets,
+  invalid IDs/TTLs, noncanonical TSIG Base64, incoherent primary-zone transfer
+  servers, and oversized provider-omitted collections.
+- Keep zonefiles under the global 8 MiB response boundary and incrementally
+  prevalidate zone lists, RRSet lists, and exported zonefiles before the
+  duplicate-rejecting protected one-shot model parser.
+- Publish only changed crates: `cloud-sdk 0.65.0`,
+  `cloud-sdk-hetzner 0.40.0`, `cloud-sdk-reqwest 0.34.0`, and
+  `cloud-sdk-testkit 0.30.0`; retain unchanged
+  `cloud-sdk-sanitization 0.18.0` and exclude the OVHcloud probe.
 
-Stop gate: `v0.65.0 implementation stop reached. Run the pentest for this exact commit before tagging and crates.io publication.`
+Verification:
+
+- Regenerate and compare the complete source-derived model table and fixtures;
+  reject inconsistent occurrences, unsupported schema composition, or changed
+  union branches.
+- Test TSIG ownership/redaction/canonical Base64, mode coherence, delegation,
+  ID/TTL edges, nullable TTLs, empty/duplicate records, unknown RR types,
+  pagination counts, create composites, zonefile boundaries, malformed JSON,
+  and allocation/size failures.
+- Route named DNS corpus seeds through the checked response fuzzer, run all 208
+  minimal operation fixtures, incremental chunk validation, credential-gated
+  read-only zone smoke coverage, and pinned live API/model drift checks.
+- Verify package contents and cumulative independent publication order, then run
+  `scripts/release_0_65_gate.sh` on the clean evidence commit.
+
+Stop gate: `v0.65.0 implementation stop reached. Run the pentest for this exact commit before tagging and cumulative crates.io publication.`
 
 ### v0.66.0 - Complete Security Models
 

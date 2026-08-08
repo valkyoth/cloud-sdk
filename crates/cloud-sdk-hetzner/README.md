@@ -38,8 +38,8 @@ boundaries.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.60.0"
-cloud-sdk-hetzner = "0.39.1"
+cloud-sdk = "0.65.0"
+cloud-sdk-hetzner = "0.40.0"
 ```
 
 ## Features
@@ -208,7 +208,7 @@ authentication scope, raw response policy, and official endpoint.
 | Request models | Complete for all 208 non-deprecated operations | Current |
 | Path/query encoding | Complete for all 208 non-deprecated operations | Current |
 | Body serialization | Complete for all 91 non-deprecated operations with request bodies | Current |
-| Success response models | Complete checked envelopes for all 208 operations; source-complete ordinary Cloud resources, actions, metrics, composites, pricing, locations, certificates, and Storage Boxes; operation-branded typed execution guards decode through `decode_associated_checked_response` | Remaining DNS, security, and Console models in `v0.65.0 - v0.67.0` |
+| Success response models | Complete checked envelopes for all 208 operations; source-complete ordinary Cloud resources, DNS zones and RRSets, zonefiles, actions, metrics, composites, pricing, locations, certificates, and Storage Boxes; operation-branded typed execution guards decode through `decode_associated_checked_response` | Remaining SSH-key and Console models in `v0.66.0 - v0.67.0` |
 | Error response models | Complete checked typed API error decoding for all active operations | Current |
 | End-to-end client | Not available | `v0.69.0 - v0.73.0`, after provider-neutral contract hardening and complete resource models |
 
@@ -268,7 +268,7 @@ Enable Serde explicitly; it is never part of the default graph:
 
 ```toml
 [dependencies]
-cloud-sdk-hetzner = { version = "0.39.1", features = ["serde"] }
+cloud-sdk-hetzner = { version = "0.40.0", features = ["serde"] }
 ```
 
 The feature admits serde_json with `default-features = false` and `alloc` only

@@ -13,7 +13,7 @@ scripts/test-hetzner-live-smoke-runner.py
 scripts/test-platform-matrix.py
 scripts/test-latest-tools.py
 scripts/test-dependency-review.py
-scripts/check_dependency_review.py v0.63.0 docs/DEPENDENCY_REVIEW_0.64.0.md
+scripts/check_dependency_review.py v0.60.0 docs/DEPENDENCY_REVIEW_0.65.0.md
 scripts/test-publishable-readmes.py
 scripts/check-release-plan-structure.py
 scripts/test-release-plan-structure.py
@@ -64,6 +64,7 @@ scripts/test-iana-ipv6-registry.py
 scripts/check_hetzner_api_drift.py --local-only
 scripts/test-hetzner-api-drift.py
 scripts/test-generate-cloud-model-schema.py
+scripts/check_dns_response_models.sh
 scripts/check_provider_drift.sh
 scripts/check_ovhcloud_authority_conformance.sh
 scripts/check_ovhcloud_header_conformance.sh

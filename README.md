@@ -83,12 +83,12 @@ operation contracts, then validates them with an unpublished OVHcloud API v2
 architecture probe, a narrow credential-free Robot wire fixture, and
 full-fidelity Hetzner vertical slices before the neutral API freeze.
 
-The latest published checkpoint is `v0.60.0`; v0.61 through v0.63 are signed
-internal milestones. v0.64 completes Hetzner Cloud actions, exact metrics,
-composite action distinctions, nullable secret results, and canonical UTC
-timestamp models. Its pentest and final retest passed and its clean local
-release evidence is complete. Green GitHub CI and CodeQL remain required before
-the signed internal tag. Crates.io publication remains deferred to v0.65.0.
+The latest published checkpoint is `v0.60.0`; v0.61 through v0.64 are signed
+internal milestones. v0.65 completes source-derived Hetzner DNS zone and RRSet
+responses, protected TSIG results, bounded zonefiles, open future RR types, and
+incremental large-response admission. The implementation and local evidence
+must pass the incremental pentest, final release gate, GitHub CI, and CodeQL
+before the signed public tag and cumulative crates.io publication.
 
 ## Trust Dashboard
 
@@ -146,8 +146,8 @@ Portable and native platform evidence is documented in
 
 ```toml
 [dependencies]
-cloud-sdk = "0.60.0"
-cloud-sdk-hetzner = "0.39.1"
+cloud-sdk = "0.65.0"
+cloud-sdk-hetzner = "0.40.0"
 ```
 
 ## cloud-sdk Features
@@ -548,8 +548,8 @@ without changing the default allocation-free graph.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.60.0"
-cloud-sdk-reqwest = { version = "0.33.0", features = ["blocking-rustls"] }
+cloud-sdk = "0.65.0"
+cloud-sdk-reqwest = { version = "0.34.0", features = ["blocking-rustls"] }
 ```
 
 The production builder is HTTPS-only, requires explicit bounded timeouts and a
@@ -575,8 +575,8 @@ when deterministic public WebPKI roots are required:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.60.0"
-cloud-sdk-reqwest = { version = "0.33.0", features = ["blocking-rustls-webpki-roots"] }
+cloud-sdk = "0.65.0"
+cloud-sdk-reqwest = { version = "0.34.0", features = ["blocking-rustls-webpki-roots"] }
 ```
 
 The blocking API is unchanged. This feature excludes host-added enterprise
@@ -592,8 +592,8 @@ feature instead of relying on dependency feature unification:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.60.0"
-cloud-sdk-reqwest = { version = "0.33.0", features = ["blocking-rustls-fips"] }
+cloud-sdk = "0.65.0"
+cloud-sdk-reqwest = { version = "0.34.0", features = ["blocking-rustls-fips"] }
 ```
 
 Client construction explicitly selects rustls' AWS-LC FIPS provider and fails
@@ -611,8 +611,8 @@ example is in the
 
 ```toml
 [dependencies]
-cloud-sdk = "0.60.0"
-cloud-sdk-reqwest = { version = "0.33.0", features = ["async-rustls"] }
+cloud-sdk = "0.65.0"
+cloud-sdk-reqwest = { version = "0.34.0", features = ["async-rustls"] }
 ```
 
 The async adapter requires an active Tokio executor because reqwest uses Tokio
