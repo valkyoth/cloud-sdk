@@ -208,7 +208,7 @@ authentication scope, raw response policy, and official endpoint.
 | Request models | Complete for all 208 non-deprecated operations | Current |
 | Path/query encoding | Complete for all 208 non-deprecated operations | Current |
 | Body serialization | Complete for all 91 non-deprecated operations with request bodies | Current |
-| Success response models | Complete checked envelopes for all 208 operations; source-complete ordinary Cloud resources, DNS zones and RRSets, zonefiles, actions, metrics, composites, pricing, locations, certificates, and Storage Boxes; operation-branded typed execution guards decode through `decode_associated_checked_response` | Remaining SSH-key and Console models in `v0.66.0 - v0.67.0` |
+| Success response models | Complete checked envelopes for all 208 operations; source-complete ordinary Cloud resources, DNS zones and RRSets, zonefiles, actions, metrics, composites, pricing, locations, certificates, and Storage Boxes; complete certificate and SSH-key models; operation-branded typed execution guards decode through `decode_associated_checked_response` | Remaining Console models in `v0.67.0` |
 | Error response models | Complete checked typed API error decoding for all active operations | Current |
 | End-to-end client | Not available | `v0.69.0 - v0.73.0`, after provider-neutral contract hardening and complete resource models |
 

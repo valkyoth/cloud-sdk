@@ -1,10 +1,9 @@
 # Crate Version Matrix
 
-Status: `v0.60.0` is tagged and published and `v0.61.0` through `v0.64.0` are
-signed internal milestones. `v0.65.0` is the cumulative release candidate;
-its source versions and publish set are fixed below while implementation
-awaits its incremental pentest and final release evidence. Every pre-1.0 tag
-receives its own incremental pentest.
+Status: `v0.65.0` is tagged and published. `v0.66.0` is an internal milestone
+that completes Hetzner certificate and SSH-key response models; no package is
+selected for crates.io until the v0.70.0 cumulative checkpoint. Every pre-1.0
+tag receives its own incremental pentest.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
@@ -976,6 +975,20 @@ Publish order is `cloud-sdk 0.65.0`, `cloud-sdk-reqwest 0.34.0`,
 `cloud-sdk-testkit 0.30.0`, then `cloud-sdk-hetzner 0.40.0`. The unchanged
 sanitization crate is skipped and the unpublished OVHcloud probe is outside the
 publishable package set.
+
+## v0.66.0 Tracking Table
+
+`v0.66.0` completes source-derived certificate and SSH-key response models.
+It remains internal, so no package is selected for crates.io and provider code
+accumulates under the versions published at v0.65.0 until v0.70.0.
+
+| Crate | Published | Source | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.65.0` | `0.66.0` | `metadata` | No | Record the complete security response-model milestone and release evidence. |
+| `cloud-sdk-hetzner` | `0.40.0` | `0.40.0` | `code` | No | Accumulate complete certificate and SSH-key response models for v0.70.0. |
+| `cloud-sdk-reqwest` | `0.34.0` | `0.34.0` | `unchanged` | No | No transport boundary changes. |
+| `cloud-sdk-sanitization` | `0.18.0` | `0.18.0` | `unchanged` | No | Existing protected owned strings satisfy the secret-output boundary. |
+| `cloud-sdk-testkit` | `0.30.0` | `0.30.0` | `unchanged` | No | No testkit boundary changes. |
 
 ## Planned Milestone Ownership
 

@@ -39,6 +39,8 @@ DEFAULT_FIXTURES = (
 )
 METHODS = ("get", "post", "put", "delete")
 MODEL_ROOTS = {
+    "certificate": "certificate",
+    "certificates": "certificate",
     "firewall": "firewall",
     "firewalls": "firewall",
     "floating_ip": "floating_ip",
@@ -70,6 +72,8 @@ MODEL_ROOTS = {
     "zones": "zone",
     "rrset": "rrset",
     "rrsets": "rrset",
+    "ssh_key": "ssh_key",
+    "ssh_keys": "ssh_key",
 }
 EXPECTED_MODELS = frozenset(MODEL_ROOTS.values())
 FIELDS = (
@@ -450,6 +454,20 @@ def render_fixtures(document: dict[str, Any]) -> str:
 
 def normalize_fixture(model: str, value: Any) -> Any:
     """Apply deterministic semantic values omitted from machine constraints."""
+    if model == "certificate" and isinstance(value, dict):
+        value["certificate"] = (
+            "-----BEGIN CERTIFICATE-----\n"
+            "Y2xvdWQtc2RrLXRlc3QtY2VydGlmaWNhdGU=\n"
+            "-----END CERTIFICATE-----"
+        )
+        value["created"] = "2026-01-01T00:00:00Z"
+        value["domain_names"] = ["example.com"]
+        value["fingerprint"] = "00:11:22:33"
+        value["not_valid_after"] = "2027-01-01T00:00:00Z"
+        value["not_valid_before"] = "2026-01-01T00:00:00Z"
+        value["type"] = "uploaded"
+        value["status"] = None
+        value["used_by"] = []
     if model == "zone" and isinstance(value, dict):
         value["mode"] = "secondary"
         value["name"] = "example.com"
@@ -464,6 +482,10 @@ def normalize_fixture(model: str, value: Any) -> Any:
         value["name"] = "www"
         value["type"] = "A"
         value["records"][0]["value"] = "192.0.2.1"
+    if model == "ssh_key" and isinstance(value, dict):
+        value["created"] = "2026-01-01T00:00:00Z"
+        value["fingerprint"] = "00:11:22:33:44:55:66:77:88:99:aa:bb:cc:dd:ee:ff"
+        value["public_key"] = "ssh-ed25519 Y2xvdWQtc2RrLXRlc3Q="
     return value
 
 

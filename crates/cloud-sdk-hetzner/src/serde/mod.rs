@@ -29,17 +29,18 @@ pub use incremental::{
 };
 pub use models::{
     AccessSettings, ActionResult, ActionResultError, ActionResultResource,
-    AuthoritativeNameservers, Certificate, CertificateError, CertificateKind, CertificateStatus,
-    CertificateUse, CloudNumber, CloudObject, CloudResource, CloudResourceKind, CloudValue,
-    CompositeResult, Deprecation, DnsRecord, DnsResource, DnsResourceKind, DnsRrset,
-    DnsRrsetProtection, DnsRrsetType, DnsTsigAlgorithm, ExactDecimal, Firewall, FloatingIp,
-    FolderList, HetznerSuccess, Image, Iso, Labels, LoadBalancer, LoadBalancerType, Location,
-    LocationPage, MAX_ZONE_RECORD_COUNT, MetricPoint, MetricSeries, Metrics, Money,
-    NamedSensitiveText, Network, PlacementGroup, Price, Pricing, PrimaryIp, PrimaryNameserver,
-    Protection, Resource, ResourceIdentifier, ResourceKind, ResponseModelError, SensitiveText,
-    Server, ServerType, SnapshotPlan, StorageBox, StorageBoxPage, StorageBoxStats,
-    StorageBoxStatus, StorageBoxType, UtcTimestamp, Volume, Zone, ZoneDelegationStatus, ZoneFile,
-    ZoneMode, ZoneProtection, ZoneRegistrar, ZoneStatus,
+    AuthoritativeNameservers, Certificate, CertificateError, CertificateIssuanceState,
+    CertificateKind, CertificateRenewalState, CertificateStatus, CertificateUse, CloudNumber,
+    CloudObject, CloudResource, CloudResourceKind, CloudValue, CompositeResult, Deprecation,
+    DnsRecord, DnsResource, DnsResourceKind, DnsRrset, DnsRrsetProtection, DnsRrsetType,
+    DnsTsigAlgorithm, ExactDecimal, Firewall, FloatingIp, FolderList, HetznerSuccess, Image, Iso,
+    Labels, LoadBalancer, LoadBalancerType, Location, LocationPage, MAX_ZONE_RECORD_COUNT,
+    MetricPoint, MetricSeries, Metrics, Money, NamedSensitiveText, Network, PlacementGroup, Price,
+    Pricing, PrimaryIp, PrimaryNameserver, Protection, Resource, ResourceIdentifier, ResourceKind,
+    ResponseModelError, SecurityResource, SecurityResourceKind, SensitiveText, Server, ServerType,
+    SnapshotPlan, SshKey, StorageBox, StorageBoxPage, StorageBoxStats, StorageBoxStatus,
+    StorageBoxType, UtcTimestamp, Volume, Zone, ZoneDelegationStatus, ZoneFile, ZoneMode,
+    ZoneProtection, ZoneRegistrar, ZoneStatus,
 };
 pub use pagination::PaginationEnvelope;
 pub use response::{
@@ -59,6 +60,8 @@ mod checked_dns_zone_security_tests;
 mod checked_fixtures;
 #[cfg(test)]
 mod checked_pagination_tests;
+#[cfg(test)]
+mod checked_security_resource_tests;
 #[cfg(test)]
 mod checked_security_tests;
 #[cfg(test)]

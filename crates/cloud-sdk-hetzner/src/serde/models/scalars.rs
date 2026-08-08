@@ -3,6 +3,8 @@
 use alloc::string::String;
 use core::fmt;
 
+use cloud_sdk_sanitization::sanitize_string;
+
 use super::cloud_constraints::valid_rfc3339;
 use super::{ResponseModelError, checked_text};
 use crate::serde::strict_json::Value;
@@ -37,6 +39,12 @@ impl UtcTimestamp {
 impl fmt::Debug for UtcTimestamp {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter.write_str("UtcTimestamp([redacted])")
+    }
+}
+
+impl Drop for UtcTimestamp {
+    fn drop(&mut self) {
+        sanitize_string(&mut self.0);
     }
 }
 

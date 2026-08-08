@@ -18,7 +18,12 @@ pub(super) fn decode_checked_success(
         let bytes = ResponseBytes::new(checked.body()).map_err(HetznerDecodeError::ResponseSize)?;
         if matches!(
             operation,
-            "list_storage_boxes" | "list_zones" | "list_zone_rrsets" | "get_zone_zonefile"
+            "list_certificates"
+                | "list_ssh_keys"
+                | "list_storage_boxes"
+                | "list_zones"
+                | "list_zone_rrsets"
+                | "get_zone_zonefile"
         ) {
             validate_incremental(bytes.as_slice())?;
         }
@@ -102,7 +107,6 @@ fn decode_success(
             return parse_location(required(object(value)?, "location")?)
                 .map(HetznerSuccess::Location);
         }
-        "get_certificate" => return parse_certificate(value).map(HetznerSuccess::Certificate),
         "list_storage_boxes" => {
             return parse_storage_box_page(value).map(HetznerSuccess::StorageBoxes);
         }
@@ -193,6 +197,26 @@ fn decode_resources(
             pagination,
         });
     }
+    if is_security_resource_root(binding.root) {
+        let pagination = if binding.shape == ResponseShape::ResourcePage {
+            Some(parse_pagination(required(envelope, "meta")?)?)
+        } else {
+            None
+        };
+        if let Some(page) = &pagination {
+            validate_page_item_count(required(envelope, binding.root)?, page)?;
+        }
+        if binding.shape == ResponseShape::Resource {
+            return parse_security_resource(binding.root, required_mut(envelope, binding.root)?)
+                .map(HetznerSuccess::SecurityResource);
+        }
+        let resources =
+            parse_security_resources(binding.root, required_mut(envelope, binding.root)?)?;
+        return Ok(HetznerSuccess::SecurityResources {
+            resources,
+            pagination,
+        });
+    }
     let value = required(envelope, binding.root)?;
     if is_cloud_resource_root(binding.root) {
         if binding.shape == ResponseShape::Resource {
@@ -260,7 +284,19 @@ fn decode_composite(
             .map_err(|_| ResponseModelError::Allocation)?;
         dns_resources.push(dns_resource);
     }
-    let resource = if binding.root == "-" || cloud_resource.is_some() || has_dns_resource {
+    let security_resource = if binding.root != "-" && is_security_resource_root(binding.root) {
+        envelope
+            .get_mut(binding.root)
+            .map(|value| parse_security_resource(binding.root, value))
+            .transpose()?
+    } else {
+        None
+    };
+    let resource = if binding.root == "-"
+        || cloud_resource.is_some()
+        || has_dns_resource
+        || security_resource.is_some()
+    {
         None
     } else {
         envelope
@@ -283,6 +319,7 @@ fn decode_composite(
         resource,
         cloud_resource,
         dns_resources,
+        security_resource,
         action,
         actions,
         next_actions,

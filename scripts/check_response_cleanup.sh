@@ -12,6 +12,8 @@ model_guard=crates/cloud-sdk-hetzner/src/serde/models/wipe_string.rs
 model_root=crates/cloud-sdk-hetzner/src/serde/models.rs
 dns_zone=crates/cloud-sdk-hetzner/src/serde/models/dns/zone/parser.rs
 dns_rrset=crates/cloud-sdk-hetzner/src/serde/models/dns/rrset.rs
+certificate=crates/cloud-sdk-hetzner/src/serde/models/certificate/parser.rs
+ssh_key=crates/cloud-sdk-hetzner/src/serde/models/ssh_key.rs
 
 if find crates fuzz/fuzz_targets -type f -name '*.rs' -exec \
     grep -HnE '\.fill\(0(_u8)?\)' {} +; then
@@ -97,7 +99,11 @@ for contract in \
     "$dns_zone:let mut output = WipeStrings::with_capacity(values.len())?" \
     "$dns_rrset:let id = WipeString::new(" \
     "$dns_rrset:let raw = WipeString::new(" \
-    "$dns_rrset:let value = WipeString::new("; do
+    "$dns_rrset:let value = WipeString::new(" \
+    "$certificate:let name = WipeString::new(" \
+    "$certificate:let mut output = WipeStrings::with_capacity(values.len())?" \
+    "$ssh_key:.take_string()" \
+    "$ssh_key:.map(SensitiveText::new)"; do
     file=${contract%%:*}
     required=${contract#*:}
     if ! grep -Fq "$required" "$file"; then

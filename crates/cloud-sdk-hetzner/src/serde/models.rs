@@ -11,7 +11,9 @@ mod location;
 mod metrics;
 mod resources;
 mod scalars;
+mod security;
 mod special;
+mod ssh_key;
 mod storage_box;
 mod wipe_string;
 
@@ -28,7 +30,8 @@ use wipe_string::WipeString;
 
 pub use actions::{ActionResult, ActionResultError, ActionResultResource};
 pub use certificate::{
-    Certificate, CertificateError, CertificateKind, CertificateStatus, CertificateUse,
+    Certificate, CertificateError, CertificateIssuanceState, CertificateKind,
+    CertificateRenewalState, CertificateStatus, CertificateUse,
 };
 pub use cloud_resources::{
     CloudResource, CloudResourceKind, Firewall, FloatingIp, Image, Iso, LoadBalancer,
@@ -44,7 +47,9 @@ pub use location::{Location, LocationPage};
 pub use metrics::{MetricPoint, MetricSeries, Metrics};
 pub use resources::{Resource, ResourceIdentifier, ResourceKind};
 pub use scalars::{ExactDecimal, UtcTimestamp};
+pub use security::{SecurityResource, SecurityResourceKind};
 pub use special::{FolderList, Pricing, SensitiveText, ZoneFile};
+pub use ssh_key::SshKey;
 pub use storage_box::{
     AccessSettings, Deprecation, Money, Price, Protection, SnapshotPlan, StorageBox,
     StorageBoxPage, StorageBoxStats, StorageBoxStatus, StorageBoxType,
@@ -60,7 +65,11 @@ pub(crate) use location::{parse_location, parse_location_page};
 pub(crate) use metrics::parse_metrics;
 pub(crate) use resources::{parse_pagination, parse_resource, parse_resources};
 pub(crate) use scalars::valid_utc_timestamp;
+pub(crate) use security::{
+    is_security_resource_root, parse_security_resource, parse_security_resources,
+};
 pub(crate) use special::{parse_folders, parse_pricing, parse_zonefile};
+pub(crate) use ssh_key::parse_ssh_key;
 pub(crate) use storage_box::parse_storage_box_page;
 
 /// Failure while validating a parsed success-response model.
@@ -195,6 +204,8 @@ pub(super) fn parse_labels(value: &Value, maximum: usize) -> Result<Labels, Resp
 }
 
 /// Typed successful result returned by the checked decoder.
+// Results remain value-owned so allocation failure stays explicit in model parsers.
+#[allow(clippy::large_enum_variant)]
 #[derive(Debug)]
 pub enum HetznerSuccess {
     /// Operation succeeded without a response body.
@@ -203,8 +214,6 @@ pub enum HetznerSuccess {
     Locations(LocationPage),
     /// One source-complete Cloud location.
     Location(Location),
-    /// Source-complete certificate output with protected PEM material.
-    Certificate(Certificate),
     /// Source-complete paginated Console Storage Boxes.
     StorageBoxes(StorageBoxPage),
     /// One validated action.
@@ -243,6 +252,15 @@ pub enum HetznerSuccess {
         /// Pagination supplied by paginated endpoints.
         pagination: Option<PaginationMetadata>,
     },
+    /// One source-complete security resource.
+    SecurityResource(SecurityResource),
+    /// Source-complete security resources with optional pagination.
+    SecurityResources {
+        /// Dedicated certificate or SSH-key variants.
+        resources: Vec<SecurityResource>,
+        /// Pagination supplied by paginated endpoints.
+        pagination: Option<PaginationMetadata>,
+    },
     /// A create/action result with optional resource, actions, and secrets.
     Composite(CompositeResult),
     /// Metrics response.
@@ -260,6 +278,7 @@ pub struct CompositeResult {
     pub(super) resource: Option<Resource>,
     pub(super) cloud_resource: Option<CloudResource>,
     pub(super) dns_resources: Vec<DnsResource>,
+    pub(super) security_resource: Option<SecurityResource>,
     pub(super) action: Option<ActionResult>,
     pub(super) actions: Vec<ActionResult>,
     pub(super) next_actions: Vec<ActionResult>,
@@ -278,6 +297,12 @@ impl CompositeResult {
     #[must_use]
     pub const fn cloud_resource(&self) -> Option<&CloudResource> {
         self.cloud_resource.as_ref()
+    }
+
+    /// Returns the source-complete security resource when supplied.
+    #[must_use]
+    pub const fn security_resource(&self) -> Option<&SecurityResource> {
+        self.security_resource.as_ref()
     }
 
     /// Returns the source-complete DNS resource when supplied.

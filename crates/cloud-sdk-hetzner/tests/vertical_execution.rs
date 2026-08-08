@@ -248,7 +248,12 @@ fn assert_read_success(expected: ReadSuccess, success: &HetznerSuccess) {
     let matches = matches!(
         (expected, success),
         (ReadSuccess::Locations, HetznerSuccess::Locations(_))
-            | (ReadSuccess::Certificate, HetznerSuccess::Certificate(_))
+            | (
+                ReadSuccess::Certificate,
+                HetznerSuccess::SecurityResource(
+                    cloud_sdk_hetzner::serde::SecurityResource::Certificate(_),
+                ),
+            )
             | (ReadSuccess::ZoneFile, HetznerSuccess::ZoneFile(_))
             | (ReadSuccess::StorageBoxes, HetznerSuccess::StorageBoxes(_))
     );

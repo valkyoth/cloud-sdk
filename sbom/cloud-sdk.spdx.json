@@ -1,21 +1,21 @@
 {
   "SPDXID": "SPDXRef-DOCUMENT",
   "creationInfo": {
-    "created": "2026-08-08T11:54:16Z",
+    "created": "2026-08-08T15:23:19Z",
     "creators": [
       "Tool: cargo-sbom-v0.10.0",
       "Tool: cloud-sdk-complete-spdx-v1"
     ]
   },
   "dataLicense": "CC0-1.0",
-  "documentNamespace": "https://spdx.org/spdxdocs/cloud-sdk-7288c105-5e05-4aa3-a22d-4c04bbd3b598",
+  "documentNamespace": "https://spdx.org/spdxdocs/cloud-sdk-2b3f7856-18b0-468d-81ad-933567b7c0f7",
   "files": [
     {
       "SPDXID": "SPDXRef-File-cloud_sdk",
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "c57263e65ed05a84b885e312a0d79955eeca317e"
+          "checksumValue": "55b26cb876cb5fb636a96f9b992999017cead432"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -29,7 +29,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "c57263e65ed05a84b885e312a0d79955eeca317e"
+          "checksumValue": "55b26cb876cb5fb636a96f9b992999017cead432"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -43,7 +43,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "c57263e65ed05a84b885e312a0d79955eeca317e"
+          "checksumValue": "55b26cb876cb5fb636a96f9b992999017cead432"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -57,7 +57,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "c57263e65ed05a84b885e312a0d79955eeca317e"
+          "checksumValue": "55b26cb876cb5fb636a96f9b992999017cead432"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -71,7 +71,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "c57263e65ed05a84b885e312a0d79955eeca317e"
+          "checksumValue": "55b26cb876cb5fb636a96f9b992999017cead432"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -85,7 +85,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "c57263e65ed05a84b885e312a0d79955eeca317e"
+          "checksumValue": "55b26cb876cb5fb636a96f9b992999017cead432"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -377,14 +377,14 @@
       ]
     },
     {
-      "SPDXID": "SPDXRef-Package-cloud-sdk-0.65.0",
+      "SPDXID": "SPDXRef-Package-cloud-sdk-0.66.0",
       "description": "no_std-first provider-neutral cloud SDK foundations.",
       "downloadLocation": "NONE",
       "homepage": "https://github.com/valkyoth/cloud-sdk",
       "licenseConcluded": "MIT OR Apache-2.0",
       "licenseDeclared": "MIT OR Apache-2.0",
       "name": "cloud-sdk",
-      "versionInfo": "0.65.0"
+      "versionInfo": "0.66.0"
     },
     {
       "SPDXID": "SPDXRef-Package-cloud-sdk-hetzner-0.40.0",
@@ -1351,14 +1351,14 @@
       "versionInfo": "0.2.1"
     },
     {
-      "SPDXID": "SPDXRef-Package-ovhcloud-v2-probe-0.65.0",
+      "SPDXID": "SPDXRef-Package-ovhcloud-v2-probe-0.66.0",
       "description": "Unpublished OVHcloud v2 conformance harness for cloud-sdk.",
       "downloadLocation": "NONE",
       "homepage": "https://github.com/valkyoth/cloud-sdk",
       "licenseConcluded": "MIT OR Apache-2.0",
       "licenseDeclared": "MIT OR Apache-2.0",
       "name": "ovhcloud-v2-probe",
-      "versionInfo": "0.65.0"
+      "versionInfo": "0.66.0"
     },
     {
       "SPDXID": "SPDXRef-Package-percent-encoding-2.3.2",
@@ -3103,7 +3103,7 @@
     {
       "spdxElementId": "SPDXRef-File-cloud_sdk",
       "relationshipType": "GENERATED_FROM",
-      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-0.65.0"
+      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-0.66.0"
     },
     {
       "spdxElementId": "SPDXRef-File-cloud_sdk_hetzner",
@@ -3128,7 +3128,7 @@
     {
       "spdxElementId": "SPDXRef-File-ovhcloud_v2_probe",
       "relationshipType": "GENERATED_FROM",
-      "relatedSpdxElement": "SPDXRef-Package-ovhcloud-v2-probe-0.65.0"
+      "relatedSpdxElement": "SPDXRef-Package-ovhcloud-v2-probe-0.66.0"
     },
     {
       "spdxElementId": "SPDXRef-Package-aho-corasick-1.1.5",
@@ -3356,19 +3356,19 @@
       "relatedSpdxElement": "SPDXRef-Package-libloading-0.8.9"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-0.65.0",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-0.66.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-sanitization-0.18.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-0.65.0",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-0.66.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-subtle-2.6.1"
     },
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-hetzner-0.40.0",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-0.65.0"
+      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-0.66.0"
     },
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-hetzner-0.40.0",
@@ -3423,7 +3423,7 @@
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.34.0",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-0.65.0"
+      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-0.66.0"
     },
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.34.0",
@@ -3488,7 +3488,7 @@
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-testkit-0.30.0",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-0.65.0"
+      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-0.66.0"
     },
     {
       "spdxElementId": "SPDXRef-Package-cmake-0.1.58",
@@ -4221,22 +4221,22 @@
       "relatedSpdxElement": "SPDXRef-Package-minimal-lexical-0.2.1"
     },
     {
-      "spdxElementId": "SPDXRef-Package-ovhcloud-v2-probe-0.65.0",
+      "spdxElementId": "SPDXRef-Package-ovhcloud-v2-probe-0.66.0",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-0.65.0"
+      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-0.66.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-ovhcloud-v2-probe-0.65.0",
+      "spdxElementId": "SPDXRef-Package-ovhcloud-v2-probe-0.66.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-reqwest-0.34.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-ovhcloud-v2-probe-0.65.0",
+      "spdxElementId": "SPDXRef-Package-ovhcloud-v2-probe-0.66.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-sanitization-0.18.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-ovhcloud-v2-probe-0.65.0",
+      "spdxElementId": "SPDXRef-Package-ovhcloud-v2-probe-0.66.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-testkit-0.30.0"
     },

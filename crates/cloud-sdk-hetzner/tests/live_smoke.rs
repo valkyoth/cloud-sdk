@@ -12,12 +12,19 @@ use std::time::Duration;
 use cloud_sdk::operation::PreparationStorage;
 use cloud_sdk_hetzner::association::AssociatedOperation;
 use cloud_sdk_hetzner::association::operations::ListZones;
+use cloud_sdk_hetzner::association::operations::{ListCertificates, ListSshKeys};
 use cloud_sdk_hetzner::dns::zones::{ZoneEndpoint, ZoneListRequest};
 use cloud_sdk_hetzner::official_endpoint_policy;
 use cloud_sdk_hetzner::pagination::{Page, PerPage};
 use cloud_sdk_hetzner::request::{ApiBaseUrl, CLOUD_API_BASE_URL};
-use cloud_sdk_hetzner::serde::{DnsResource, HetznerSuccess, decode_associated_checked_response};
-use cloud_sdk_hetzner::{CLOUD_SERVICE_ID, DNS_SERVICE_ID, HETZNER_PROVIDER_ID};
+use cloud_sdk_hetzner::security::certificates::{CertificateEndpoint, CertificateListRequest};
+use cloud_sdk_hetzner::security::ssh_keys::{SshKeyEndpoint, SshKeyListRequest};
+use cloud_sdk_hetzner::serde::{
+    DnsResource, HetznerSuccess, SecurityResourceKind, decode_associated_checked_response,
+};
+use cloud_sdk_hetzner::{
+    CLOUD_SERVICE_ID, DNS_SERVICE_ID, HETZNER_PROVIDER_ID, SECURITY_SERVICE_ID,
+};
 use cloud_sdk_reqwest::blocking::{
     BearerCredential, BearerCredentialScope, BlockingClientBuilder, BuildError, EndpointError,
     HttpsEndpoint, RequestTimeouts, TimeoutError, UserAgent, UserAgentError,
@@ -34,10 +41,21 @@ enum LiveSmokeError {
     Client(BuildError),
     Probe(ProbeFailure),
     DnsProbe(DnsProbeStage),
+    SecurityProbe(SecurityProbeStage),
 }
 
 #[derive(Clone, Copy, Debug)]
 enum DnsProbeStage {
+    Pagination,
+    Association,
+    Preparation,
+    Transport,
+    Decode,
+    Shape,
+}
+
+#[derive(Clone, Copy, Debug)]
+enum SecurityProbeStage {
     Pagination,
     Association,
     Preparation,
@@ -58,6 +76,9 @@ impl fmt::Debug for LiveSmokeError {
             Self::Client(error) => formatter.debug_tuple("Client").field(error).finish(),
             Self::Probe(error) => formatter.debug_tuple("Probe").field(error).finish(),
             Self::DnsProbe(stage) => formatter.debug_tuple("DnsProbe").field(stage).finish(),
+            Self::SecurityProbe(stage) => {
+                formatter.debug_tuple("SecurityProbe").field(stage).finish()
+            }
         }
     }
 }
@@ -146,6 +167,74 @@ fn read_only_dns_model_smoke() -> Result<(), LiveSmokeError> {
     {
         return Err(LiveSmokeError::DnsProbe(DnsProbeStage::Shape));
     }
+    Ok(())
+}
+
+#[test]
+#[ignore = "requires explicit opt-in and a private read-only Hetzner token file"]
+fn read_only_security_model_smoke() -> Result<(), LiveSmokeError> {
+    let token = load_read_only_token()?;
+    let policy = official_endpoint_policy(ApiBaseUrl::CloudV1)
+        .map_err(|_| LiveSmokeError::Endpoint(EndpointError::PolicyRejected))?;
+    let endpoint = HttpsEndpoint::new_with_policy(CLOUD_API_BASE_URL, policy)
+        .map_err(LiveSmokeError::Endpoint)?;
+    let credential_scope =
+        BearerCredentialScope::new(HETZNER_PROVIDER_ID, SECURITY_SERVICE_ID, endpoint.clone());
+    let credential = BearerCredential::new(token, credential_scope);
+    let user_agent = UserAgent::new("cloud-sdk-security-live-smoke/0.66.0")
+        .map_err(LiveSmokeError::UserAgent)?;
+    let timeouts = RequestTimeouts::new(Duration::from_secs(30), Duration::from_secs(10))
+        .map_err(LiveSmokeError::Timeout)?;
+    let client = BlockingClientBuilder::new(endpoint, credential, user_agent, timeouts)
+        .build()
+        .map_err(LiveSmokeError::Client)?;
+    let page =
+        Page::new(1).map_err(|_| LiveSmokeError::SecurityProbe(SecurityProbeStage::Pagination))?;
+    let per_page = PerPage::new(1)
+        .map_err(|_| LiveSmokeError::SecurityProbe(SecurityProbeStage::Pagination))?;
+
+    macro_rules! run_probe {
+        ($operation:expr, $expected:expr) => {{
+            let mut target = [0_u8; 128];
+            let mut request_body = [0_u8; 1];
+            let prepared = $operation
+                .prepare_typed(PreparationStorage::new(&mut target, &mut request_body))
+                .map_err(|_| LiveSmokeError::SecurityProbe(SecurityProbeStage::Preparation))?;
+            let mut body = vec![0_u8; 8_388_608];
+            let mut headers = [0_u8; 8_192];
+            let response = prepared
+                .execute_blocking(&client, &mut body, &mut headers)
+                .map_err(|_| LiveSmokeError::SecurityProbe(SecurityProbeStage::Transport))?;
+            let decoded = decode_associated_checked_response(response)
+                .map_err(|_| LiveSmokeError::SecurityProbe(SecurityProbeStage::Decode))?;
+            let HetznerSuccess::SecurityResources { resources, .. } = decoded.success() else {
+                return Err(LiveSmokeError::SecurityProbe(SecurityProbeStage::Shape));
+            };
+            if resources
+                .iter()
+                .any(|resource| resource.kind() != $expected)
+            {
+                return Err(LiveSmokeError::SecurityProbe(SecurityProbeStage::Shape));
+            }
+        }};
+    }
+
+    let certificate_query = CertificateListRequest::new()
+        .with_page(page)
+        .with_per_page(per_page);
+    let certificate = AssociatedOperation::<ListCertificates, _, _>::query(
+        CertificateEndpoint::List,
+        certificate_query,
+    )
+    .map_err(|_| LiveSmokeError::SecurityProbe(SecurityProbeStage::Association))?;
+    run_probe!(certificate, SecurityResourceKind::Certificate);
+
+    let ssh_query = SshKeyListRequest::new()
+        .with_page(page)
+        .with_per_page(per_page);
+    let ssh = AssociatedOperation::<ListSshKeys, _, _>::query(SshKeyEndpoint::List, ssh_query)
+        .map_err(|_| LiveSmokeError::SecurityProbe(SecurityProbeStage::Association))?;
+    run_probe!(ssh, SecurityResourceKind::SshKey);
     Ok(())
 }
 

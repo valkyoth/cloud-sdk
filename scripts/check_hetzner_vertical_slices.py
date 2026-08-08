@@ -39,7 +39,7 @@ def main() -> int:
 
     require(
         ROOT / "crates/cloud-sdk-hetzner/src/serde/models.rs",
-        ("Locations(LocationPage)", "Certificate(Certificate)", "StorageBoxes(StorageBoxPage)"),
+        ("Locations(LocationPage)", "SecurityResource(SecurityResource)", "StorageBoxes(StorageBoxPage)"),
     )
     require(
         ROOT / "crates/cloud-sdk-hetzner/src/serde/checked.rs",
@@ -63,7 +63,7 @@ def main() -> int:
             "decode_associated_checked_response",
             "AuthenticationClass::Bearer",
             "HetznerSuccess::Locations",
-            "HetznerSuccess::Certificate",
+            "HetznerSuccess::SecurityResource",
             "HetznerSuccess::ZoneFile",
             "HetznerSuccess::StorageBoxes",
             "INVALID_JSON",

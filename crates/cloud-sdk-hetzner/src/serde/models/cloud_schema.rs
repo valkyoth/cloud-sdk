@@ -20,7 +20,7 @@ pub(super) fn validate_model(model: &str, value: &Value) -> Result<(), ResponseM
         }
         found = true;
         let descriptor = Descriptor::parse(&mut fields)?;
-        validate_path(value, descriptor.path, descriptor)?;
+        validate_path(model, value, descriptor.path, descriptor)?;
     }
     if !found {
         return Err(ResponseModelError::SchemaMismatch);
@@ -72,6 +72,7 @@ impl<'a> Descriptor<'a> {
 }
 
 fn validate_path(
+    model: &str,
     current: &Value,
     path: &str,
     descriptor: Descriptor<'_>,
@@ -93,15 +94,15 @@ fn validate_path(
 
     match segment.collection {
         Collection::None => match tail {
-            Some(tail) => validate_path(value, tail, descriptor),
-            None => validate_value(value, descriptor),
+            Some(tail) => validate_path(model, value, tail, descriptor),
+            None => validate_value(model, path, value, descriptor),
         },
         Collection::All => {
             let values = value.as_array().ok_or(ResponseModelError::WrongType)?;
             for item in values {
                 match tail {
-                    Some(tail) => validate_path(item, tail, descriptor)?,
-                    None => validate_value(item, descriptor)?,
+                    Some(tail) => validate_path(model, item, tail, descriptor)?,
+                    None => validate_value(model, path, item, descriptor)?,
                 }
             }
             Ok(())
@@ -114,8 +115,8 @@ fn validate_path(
             for item in values {
                 if selector_matches(item, field, expected)? {
                     match tail {
-                        Some(tail) => validate_path(item, tail, descriptor)?,
-                        None => validate_value(item, descriptor)?,
+                        Some(tail) => validate_path(model, item, tail, descriptor)?,
+                        None => validate_value(model, path, item, descriptor)?,
                     }
                 }
             }
@@ -190,7 +191,12 @@ fn nonempty(value: &str) -> Result<&str, ResponseModelError> {
     }
 }
 
-fn validate_value(value: &Value, descriptor: Descriptor<'_>) -> Result<(), ResponseModelError> {
+fn validate_value(
+    model: &str,
+    path: &str,
+    value: &Value,
+    descriptor: Descriptor<'_>,
+) -> Result<(), ResponseModelError> {
     if value.is_null() {
         return if admits(descriptor.types, "null") {
             Ok(())
@@ -208,7 +214,12 @@ fn validate_value(value: &Value, descriptor: Descriptor<'_>) -> Result<(), Respo
         return Err(ResponseModelError::WrongType);
     }
     validate_number(value, descriptor.minimum, descriptor.maximum)?;
-    validate_string(value, descriptor.min_length, descriptor.max_length)?;
+    validate_string(
+        value,
+        descriptor.min_length,
+        descriptor.max_length,
+        model == "certificate" && path == "certificate",
+    )?;
     validate_format(value, descriptor.format)?;
     validate_pattern(value, descriptor.pattern)?;
     validate_items(value, descriptor.min_items, descriptor.max_items)
@@ -250,10 +261,19 @@ fn bound(value: &str) -> Result<Option<f64>, ResponseModelError> {
         .ok_or(ResponseModelError::SchemaMismatch)
 }
 
-fn validate_string(value: &Value, minimum: &str, maximum: &str) -> Result<(), ResponseModelError> {
+fn validate_string(
+    value: &Value,
+    minimum: &str,
+    maximum: &str,
+    multiline: bool,
+) -> Result<(), ResponseModelError> {
     value
         .try_with_str(|text| {
-            if text.len() > 1_048_576 || text.chars().any(unsafe_character) {
+            if text.len() > 1_048_576
+                || text
+                    .chars()
+                    .any(|character| unsafe_character(character, multiline))
+            {
                 return Err(ResponseModelError::InvalidText);
             }
             let character_count = text.chars().count();
@@ -305,8 +325,8 @@ fn usize_bound(value: &str) -> Result<Option<usize>, ResponseModelError> {
     }
 }
 
-fn unsafe_character(character: char) -> bool {
-    character.is_control()
+fn unsafe_character(character: char, multiline: bool) -> bool {
+    (character.is_control() && !(multiline && matches!(character, '\t' | '\n' | '\r')))
         || matches!(
             character,
             '\u{061c}'
@@ -332,7 +352,7 @@ mod tests {
         let Ok(exact) = exact else {
             unreachable!("Unicode boundary fixture failed")
         };
-        assert_eq!(validate_string(&exact, "1", "128"), Ok(()));
+        assert_eq!(validate_string(&exact, "1", "128", false), Ok(()));
 
         let over = format!("\"{}\"", "é".repeat(129));
         let over = parse(over.as_bytes());
@@ -340,7 +360,7 @@ mod tests {
             unreachable!("Unicode over-bound fixture failed")
         };
         assert_eq!(
-            validate_string(&over, "1", "128"),
+            validate_string(&over, "1", "128", false),
             Err(ResponseModelError::InvalidText)
         );
     }

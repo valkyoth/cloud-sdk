@@ -343,12 +343,16 @@ def test_committed_evidence_is_structurally_complete() -> None:
         )
     )
     fixtures = json.loads(generator.DEFAULT_FIXTURES.read_text(encoding="ascii"))
-    assert len(rows) == 569
+    assert len(rows) == 595
     assert {row["model"] for row in rows} == generator.EXPECTED_MODELS
     assert set(fixtures) == generator.EXPECTED_MODELS
     identities = [(row["model"], row["path"]) for row in rows]
     assert len(identities) == len(set(identities))
     assert all(isinstance(fixture, dict) for fixture in fixtures.values())
+    assert fixtures["certificate"]["certificate"].startswith(
+        "-----BEGIN CERTIFICATE-----\n"
+    )
+    assert fixtures["ssh_key"]["public_key"].startswith("ssh-ed25519 ")
     assert {row["format"] for row in rows} == {
         "-",
         "date-time",

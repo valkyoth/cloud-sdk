@@ -92,7 +92,6 @@ pub(super) fn resource_value(root: &str) -> serde_json::Value {
     }
     match root {
         "location" | "locations" => location_value(),
-        "certificate" | "certificates" => certificate_value(),
         "storage_box" | "storage_boxes" => storage_box_value(),
         _ => generic_resource_value(root),
     }
@@ -115,6 +114,8 @@ fn cloud_model_name(root: &str) -> Option<&'static str> {
         "volume" | "volumes" => Some("volume"),
         "zone" | "zones" => Some("zone"),
         "rrset" | "rrsets" => Some("rrset"),
+        "certificate" | "certificates" => Some("certificate"),
+        "ssh_key" | "ssh_keys" => Some("ssh_key"),
         _ => None,
     }
 }
@@ -124,16 +125,6 @@ fn location_value() -> serde_json::Value {
         "id":1, "name":"fsn1", "description":"Falkenstein DC Park 1",
         "country":"DE", "city":"Falkenstein", "latitude":50.47612,
         "longitude":12.370071, "network_zone":"eu-central"
-    })
-}
-
-fn certificate_value() -> serde_json::Value {
-    serde_json::json!({
-        "id":1, "name":"certificate", "labels":{}, "type":"uploaded",
-        "certificate":"-----BEGIN CERTIFICATE-----\nfixture",
-        "created":"2026-01-01T00:00:00Z", "not_valid_before":"2026-01-01T00:00:00Z",
-        "not_valid_after":"2027-01-01T00:00:00Z", "domain_names":["example.com"],
-        "fingerprint":"00:11", "status":null, "used_by":[]
     })
 }
 

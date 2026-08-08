@@ -25,6 +25,8 @@ pub use crate::security::shared::SecurityLabels;
 /// SSH key request error.
 pub use crate::security::shared::SecurityRequestError;
 
+/// Maximum SSH public-key length admitted by request and response models.
+pub use crate::security::shared::MAX_SSH_PUBLIC_KEY_BYTES;
 /// SSH public key request value.
 pub use crate::security::shared::SshPublicKey;
 

@@ -4,16 +4,22 @@ use alloc::string::String;
 use alloc::vec::Vec;
 use core::fmt;
 
-use super::{
-    Labels, ResponseModelError, SensitiveText, object, parse_labels, required, valid_error_code,
-    value_text,
-};
+use cloud_sdk_sanitization::sanitize_string;
+
+use super::{Labels, SensitiveText, UtcTimestamp};
 use crate::response::ApiErrorCode;
-use crate::serde::strict_json::{Map, Value};
+
+mod parser;
+
+pub(crate) use parser::parse_certificate;
 
 const MAX_LABELS: usize = 64;
 const MAX_DOMAINS: usize = 1_024;
 const MAX_USES: usize = 1_024;
+const MAX_CERTIFICATE_BYTES: usize = 1_048_576;
+const MAX_CERTIFICATES_IN_CHAIN: usize = 5;
+const BEGIN_CERTIFICATE: &str = "-----BEGIN CERTIFICATE-----";
+const END_CERTIFICATE: &str = "-----END CERTIFICATE-----";
 
 /// Certificate kind returned by Hetzner Cloud.
 #[non_exhaustive]
@@ -25,26 +31,78 @@ pub enum CertificateKind {
     Managed,
 }
 
+/// Managed-certificate issuance state.
+#[non_exhaustive]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum CertificateIssuanceState {
+    /// Issuance is still pending.
+    Pending,
+    /// Issuance completed.
+    Completed,
+    /// Issuance failed.
+    Failed,
+}
+
+/// Managed-certificate renewal state.
+#[non_exhaustive]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum CertificateRenewalState {
+    /// Renewal is scheduled.
+    Scheduled,
+    /// Renewal is pending.
+    Pending,
+    /// Renewal failed.
+    Failed,
+    /// Renewal is unavailable.
+    Unavailable,
+}
+
 /// One resource using a certificate.
 #[non_exhaustive]
-#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct CertificateUse {
-    /// Referenced resource identifier.
-    pub id: u64,
-    /// Referenced resource type.
-    pub resource_type: String,
+    id: u64,
+    resource_type: String,
+}
+
+impl CertificateUse {
+    /// Returns the referenced resource identifier.
+    #[must_use]
+    pub const fn id(&self) -> u64 {
+        self.id
+    }
+
+    /// Returns the additive provider resource type.
+    #[must_use]
+    pub fn resource_type(&self) -> &str {
+        &self.resource_type
+    }
+}
+
+impl fmt::Debug for CertificateUse {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.write_str("CertificateUse([redacted])")
+    }
+}
+
+impl Drop for CertificateUse {
+    fn drop(&mut self) {
+        sanitize_string(&mut self.resource_type);
+    }
 }
 
 /// Provider diagnostic embedded in managed-certificate status.
-#[non_exhaustive]
-#[derive(Eq, PartialEq)]
 pub struct CertificateError {
-    /// Stable provider error code.
-    pub code: ApiErrorCode,
+    code: ApiErrorCode,
     message: SensitiveText,
 }
 
 impl CertificateError {
+    /// Returns the stable provider error code.
+    #[must_use]
+    pub const fn code(&self) -> ApiErrorCode {
+        self.code
+    }
+
     /// Inspects the protected provider message without returning a borrowed secret.
     pub fn try_with_message<R>(
         &self,
@@ -66,269 +124,155 @@ impl fmt::Debug for CertificateError {
 
 /// Optional managed-certificate issuance and renewal state.
 #[non_exhaustive]
-#[derive(Debug, Eq, PartialEq)]
 pub struct CertificateStatus {
-    /// Issuance state when supplied by the provider.
-    pub issuance: Option<String>,
-    /// Renewal state when supplied by the provider.
-    pub renewal: Option<String>,
-    /// Protected failure detail when supplied by the provider.
-    pub error: Option<CertificateError>,
+    issuance: Option<CertificateIssuanceState>,
+    renewal: Option<CertificateRenewalState>,
+    error: Option<CertificateError>,
 }
 
-/// Source-complete `get_certificate` result.
+impl CertificateStatus {
+    /// Returns the issuance state supplied by the provider.
+    #[must_use]
+    pub const fn issuance(&self) -> Option<CertificateIssuanceState> {
+        self.issuance
+    }
+
+    /// Returns the renewal state supplied by the provider.
+    #[must_use]
+    pub const fn renewal(&self) -> Option<CertificateRenewalState> {
+        self.renewal
+    }
+
+    /// Returns protected failure detail supplied by the provider.
+    #[must_use]
+    pub const fn error(&self) -> Option<&CertificateError> {
+        self.error.as_ref()
+    }
+}
+
+impl fmt::Debug for CertificateStatus {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("CertificateStatus")
+            .field("issuance", &self.issuance)
+            .field("renewal", &self.renewal)
+            .field("error", &self.error.as_ref().map(|_| "[redacted]"))
+            .finish()
+    }
+}
+
+/// Source-complete certificate returned by the checked decoder.
+///
+/// Ordinary equality is intentionally unavailable because this value can own
+/// a complete certificate chain and protected provider diagnostics.
+///
+/// ```compile_fail
+/// use cloud_sdk_hetzner::serde::Certificate;
+/// fn compare(left: Certificate, right: Certificate) -> bool { left == right }
+/// ```
 #[non_exhaustive]
-#[derive(Eq, PartialEq)]
 pub struct Certificate {
-    /// Provider resource identifier.
-    pub id: u64,
-    /// Resource name.
-    pub name: String,
-    /// User-defined labels.
-    pub labels: Labels,
-    /// Certificate type when supplied by the provider.
-    pub kind: Option<CertificateKind>,
-    /// Protected certificate chain in PEM format.
-    pub certificate: Option<SensitiveText>,
-    /// Creation timestamp text.
-    pub created: String,
-    /// Earliest validity timestamp.
-    pub not_valid_before: Option<String>,
-    /// Expiry timestamp.
-    pub not_valid_after: Option<String>,
-    /// Covered domains.
-    pub domain_names: Vec<String>,
-    /// SHA-256 certificate fingerprint.
-    pub fingerprint: Option<String>,
-    /// Optional managed-certificate state.
-    pub status: Option<CertificateStatus>,
-    /// Resources currently using the certificate.
-    pub used_by: Vec<CertificateUse>,
+    id: u64,
+    name: String,
+    labels: Labels,
+    kind: Option<CertificateKind>,
+    certificate: Option<SensitiveText>,
+    created: UtcTimestamp,
+    not_valid_before: Option<UtcTimestamp>,
+    not_valid_after: Option<UtcTimestamp>,
+    domain_names: Vec<String>,
+    fingerprint: Option<String>,
+    status: Option<CertificateStatus>,
+    used_by: Vec<CertificateUse>,
+}
+
+impl Certificate {
+    /// Returns the provider identifier.
+    #[must_use]
+    pub const fn id(&self) -> u64 {
+        self.id
+    }
+    /// Returns the resource name.
+    #[must_use]
+    pub fn name(&self) -> &str {
+        &self.name
+    }
+    /// Returns user-defined labels.
+    #[must_use]
+    pub const fn labels(&self) -> &Labels {
+        &self.labels
+    }
+    /// Returns the source-known certificate kind when supplied.
+    #[must_use]
+    pub const fn kind(&self) -> Option<CertificateKind> {
+        self.kind
+    }
+    /// Returns the protected certificate chain when supplied.
+    #[must_use]
+    pub const fn certificate(&self) -> Option<&SensitiveText> {
+        self.certificate.as_ref()
+    }
+    /// Returns the creation timestamp.
+    #[must_use]
+    pub const fn created(&self) -> &UtcTimestamp {
+        &self.created
+    }
+    /// Returns the beginning of the validity interval.
+    #[must_use]
+    pub const fn not_valid_before(&self) -> Option<&UtcTimestamp> {
+        self.not_valid_before.as_ref()
+    }
+    /// Returns the end of the validity interval.
+    #[must_use]
+    pub const fn not_valid_after(&self) -> Option<&UtcTimestamp> {
+        self.not_valid_after.as_ref()
+    }
+    /// Returns covered domains.
+    #[must_use]
+    pub fn domain_names(&self) -> &[String] {
+        &self.domain_names
+    }
+    /// Returns the certificate fingerprint when supplied.
+    #[must_use]
+    pub fn fingerprint(&self) -> Option<&str> {
+        self.fingerprint.as_deref()
+    }
+    /// Returns managed-certificate state when supplied.
+    #[must_use]
+    pub const fn status(&self) -> Option<&CertificateStatus> {
+        self.status.as_ref()
+    }
+    /// Returns resources using this certificate.
+    #[must_use]
+    pub fn used_by(&self) -> &[CertificateUse] {
+        &self.used_by
+    }
 }
 
 impl fmt::Debug for Certificate {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter
             .debug_struct("Certificate")
-            .field("id", &self.id)
-            .field("name", &self.name)
-            .field("labels", &self.labels)
+            .field("id", &"[redacted]")
             .field("kind", &self.kind)
             .field(
                 "certificate",
                 &self.certificate.as_ref().map(|_| "[redacted]"),
             )
-            .field("created", &self.created)
-            .field("not_valid_before", &self.not_valid_before)
-            .field("not_valid_after", &self.not_valid_after)
-            .field("domain_names", &self.domain_names)
-            .field("fingerprint", &self.fingerprint)
             .field("status", &self.status)
-            .field("used_by", &self.used_by)
+            .field("fields", &"[redacted]")
             .finish()
     }
 }
 
-pub(crate) fn parse_certificate(value: &mut Value) -> Result<Certificate, ResponseModelError> {
-    let envelope = value.as_object_mut().ok_or(ResponseModelError::WrongType)?;
-    let fields = envelope
-        .get_mut("certificate")
-        .ok_or(ResponseModelError::MissingField)?
-        .as_object_mut()
-        .ok_or(ResponseModelError::WrongType)?;
-    let kind = fields.get("type").map(parse_kind).transpose()?;
-    let certificate = take_nullable_secret(fields, "certificate", 1_048_576)?;
-    let status = fields
-        .get_mut("status")
-        .map(parse_status)
-        .transpose()?
-        .flatten();
-    Ok(Certificate {
-        id: positive_u64(fields, "id")?,
-        name: text(fields, "name", 256)?,
-        labels: parse_labels(required(fields, "labels")?, MAX_LABELS)?,
-        kind,
-        certificate,
-        created: text(fields, "created", 64)?,
-        not_valid_before: nullable_text(fields, "not_valid_before", 64)?,
-        not_valid_after: nullable_text(fields, "not_valid_after", 64)?,
-        domain_names: text_list(required(fields, "domain_names")?, MAX_DOMAINS, 256)?,
-        fingerprint: nullable_text(fields, "fingerprint", 256)?,
-        status,
-        used_by: parse_uses(required(fields, "used_by")?)?,
-    })
-}
-
-fn parse_kind(value: &Value) -> Result<CertificateKind, ResponseModelError> {
-    value
-        .try_with_str(|value| match value {
-            "uploaded" => Some(CertificateKind::Uploaded),
-            "managed" => Some(CertificateKind::Managed),
-            _ => None,
-        })
-        .map_err(|_| ResponseModelError::InvalidText)?
-        .flatten()
-        .ok_or(ResponseModelError::UnknownEnumValue)
-}
-
-fn parse_status(value: &mut Value) -> Result<Option<CertificateStatus>, ResponseModelError> {
-    if value.is_null() {
-        return Ok(None);
-    }
-    let fields = value.as_object_mut().ok_or(ResponseModelError::WrongType)?;
-    let issuance = fields
-        .get("issuance")
-        .map(|value| enum_text(value, &["pending", "completed", "failed"]))
-        .transpose()?;
-    let renewal = fields
-        .get("renewal")
-        .map(|value| enum_text(value, &["scheduled", "pending", "failed", "unavailable"]))
-        .transpose()?;
-    let error = fields
-        .get_mut("error")
-        .map(parse_error)
-        .transpose()?
-        .flatten();
-    Ok(Some(CertificateStatus {
-        issuance,
-        renewal,
-        error,
-    }))
-}
-
-fn parse_error(value: &mut Value) -> Result<Option<CertificateError>, ResponseModelError> {
-    if value.is_null() {
-        return Ok(None);
-    }
-    let fields = value.as_object_mut().ok_or(ResponseModelError::WrongType)?;
-    let code = text(fields, "code", 128)?;
-    if !valid_error_code(&code, 128) {
-        return Err(ResponseModelError::InvalidText);
-    }
-    let message = take_secret(fields, "message", 16_384)?;
-    message.validate(16_384)?;
-    Ok(Some(CertificateError {
-        code: ApiErrorCode::from_api_str(&code),
-        message,
-    }))
-}
-
-fn parse_uses(value: &Value) -> Result<Vec<CertificateUse>, ResponseModelError> {
-    let values = value.as_array().ok_or(ResponseModelError::WrongType)?;
-    if values.len() > MAX_USES {
-        return Err(ResponseModelError::TooManyItems);
-    }
-    let mut uses = Vec::new();
-    uses.try_reserve_exact(values.len())
-        .map_err(|_| ResponseModelError::Allocation)?;
-    for value in values {
-        let fields = object(value)?;
-        uses.push(CertificateUse {
-            id: positive_u64(fields, "id")?,
-            resource_type: text(fields, "type", 128)?,
-        });
-    }
-    Ok(uses)
-}
-
-fn text_list(value: &Value, limit: usize, max: usize) -> Result<Vec<String>, ResponseModelError> {
-    let values = value.as_array().ok_or(ResponseModelError::WrongType)?;
-    if values.len() > limit {
-        return Err(ResponseModelError::TooManyItems);
-    }
-    let mut output = Vec::new();
-    output
-        .try_reserve_exact(values.len())
-        .map_err(|_| ResponseModelError::Allocation)?;
-    for value in values {
-        output.push(value_text(value, max)?);
-    }
-    Ok(output)
-}
-
-fn take_nullable_secret(
-    fields: &mut Map,
-    key: &str,
-    max: usize,
-) -> Result<Option<SensitiveText>, ResponseModelError> {
-    let value = fields
-        .get_mut(key)
-        .ok_or(ResponseModelError::MissingField)?;
-    if value.is_null() {
-        return Ok(None);
-    }
-    take_secret(fields, key, max).map(Some)
-}
-
-fn take_secret(
-    fields: &mut Map,
-    key: &str,
-    max: usize,
-) -> Result<SensitiveText, ResponseModelError> {
-    let secret = fields
-        .get_mut(key)
-        .ok_or(ResponseModelError::MissingField)?
-        .take_string()
-        .map(SensitiveText::new)
-        .ok_or(ResponseModelError::WrongType)?;
-    secret.validate_multiline(max)?;
-    Ok(secret)
-}
-
-fn enum_text(value: &Value, known: &[&str]) -> Result<String, ResponseModelError> {
-    let value = value_text(value, 64)?;
-    known
-        .contains(&value.as_str())
-        .then_some(value)
-        .ok_or(ResponseModelError::UnknownEnumValue)
-}
-
-fn nullable_text(
-    fields: &Map,
-    key: &str,
-    max: usize,
-) -> Result<Option<String>, ResponseModelError> {
-    let value = required(fields, key)?;
-    if value.is_null() {
-        Ok(None)
-    } else {
-        value_text(value, max).map(Some)
-    }
-}
-
-fn text(fields: &Map, key: &str, max: usize) -> Result<String, ResponseModelError> {
-    value_text(required(fields, key)?, max)
-}
-
-fn positive_u64(fields: &Map, key: &str) -> Result<u64, ResponseModelError> {
-    required(fields, key)?
-        .as_u64()
-        .filter(|value| *value != 0 && *value <= 9_007_199_254_740_991)
-        .ok_or(ResponseModelError::InvalidNumber)
-}
-
-#[cfg(test)]
-mod tests {
-    use super::parse_error;
-    use crate::serde::models::ResponseModelError;
-    use crate::serde::strict_json::parse;
-
-    #[test]
-    fn certificate_error_codes_reject_non_ascii_identifiers() {
-        for code in [
-            "line\\u2028break",
-            "paragraph\\u2029break",
-            "soft\\u00adhyphen",
-            "direction\\u206acontrol",
-        ] {
-            let input = alloc::format!("{{\"code\":\"{code}\",\"message\":\"safe\"}}");
-            let Ok(mut value) = parse(input.as_bytes()) else {
-                unreachable!("certificate error fixture failed to parse")
-            };
-            assert_eq!(
-                parse_error(&mut value),
-                Err(ResponseModelError::InvalidText)
-            );
+impl Drop for Certificate {
+    fn drop(&mut self) {
+        sanitize_string(&mut self.name);
+        for domain in &mut self.domain_names {
+            sanitize_string(domain);
+        }
+        if let Some(fingerprint) = &mut self.fingerprint {
+            sanitize_string(fingerprint);
         }
     }
 }

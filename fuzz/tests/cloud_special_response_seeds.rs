@@ -9,6 +9,8 @@ const ERROR_UNICODE: &[u8] =
     include_bytes!("../seeds/cloud_special_responses/error-unicode-control.json");
 const DNS_ZONE: &[u8] = include_bytes!("../seeds/cloud_special_responses/dns-zone.json");
 const DNS_RRSET: &[u8] = include_bytes!("../seeds/cloud_special_responses/dns-rrset.json");
+const CERTIFICATE: &[u8] = include_bytes!("../seeds/cloud_special_responses/certificate.json");
+const SSH_KEY: &[u8] = include_bytes!("../seeds/cloud_special_responses/ssh-key.json");
 
 fn split(seed: &[u8]) -> (&[u8], &[u8]) {
     let (controls, payload) = seed.split_at(3);
@@ -41,6 +43,16 @@ fn named_dns_seeds_reach_dedicated_checked_models() {
     for (seed, selector) in [(DNS_ZONE, 4), (DNS_RRSET, 5)] {
         let (controls, _) = split(seed);
         assert_eq!(controls[0] % 8, selector);
+        assert_eq!(controls[1] & 1, 0, "seed must select success status");
+        assert_eq!(controls[2] % 3, 0, "seed must select JSON content type");
+    }
+}
+
+#[test]
+fn named_security_seeds_reach_protected_checked_models() {
+    for (seed, selector) in [(CERTIFICATE, 8), (SSH_KEY, 9)] {
+        let (controls, _) = split(seed);
+        assert_eq!(controls[0] % 10, selector);
         assert_eq!(controls[1] & 1, 0, "seed must select success status");
         assert_eq!(controls[2] % 3, 0, "seed must select JSON content type");
     }

@@ -6,12 +6,14 @@ use cloud_sdk::transport::StatusCode;
 use super::checked_test_support::{
     assert_decode_error, decode_response, empty_response, prepared, response,
 };
-use super::{HetznerDecodeError, HetznerSuccess, ResponseModelError, StorageBoxStatus};
+use super::{
+    HetznerDecodeError, HetznerSuccess, ResponseModelError, SecurityResource, StorageBoxStatus,
+};
 use crate::{CLOUD_SERVICE_ID, DNS_SERVICE_ID, SECURITY_SERVICE_ID, STORAGE_SERVICE_ID};
 
 const LOCATION: &str = r#"{"id":42,"name":"fsn1","description":"Falkenstein DC Park 1","country":"DE","city":"Falkenstein","latitude":50.47612,"longitude":12.370071,"network_zone":"eu-central"}"#;
 const PAGINATION: &str = r#"{"pagination":{"page":1,"per_page":25,"previous_page":null,"next_page":2,"last_page":2,"total_entries":26}}"#;
-const CERTIFICATE: &[u8] = br#"{"certificate":{"id":897,"name":"website","labels":{"environment":"prod"},"type":"managed","certificate":"-----BEGIN CERTIFICATE-----\nsecret-fixture\n-----END CERTIFICATE-----","created":"2026-01-01T00:00:00Z","not_valid_before":"2026-01-01T00:00:00Z","not_valid_after":"2027-01-01T00:00:00Z","domain_names":["example.com","www.example.com"],"fingerprint":"03:c7:55","status":{"issuance":"completed","renewal":"scheduled","error":null},"used_by":[{"id":4711,"type":"load_balancer"}]}}"#;
+const CERTIFICATE: &[u8] = br#"{"certificate":{"id":897,"name":"website","labels":{"environment":"prod"},"type":"managed","certificate":"-----BEGIN CERTIFICATE-----\nc2VjcmV0LWZpeHR1cmU=\n-----END CERTIFICATE-----","created":"2026-01-01T00:00:00Z","not_valid_before":"2026-01-01T00:00:00Z","not_valid_after":"2027-01-01T00:00:00Z","domain_names":["example.com","www.example.com"],"fingerprint":"03:c7:55","status":{"issuance":"completed","renewal":"scheduled","error":null},"used_by":[{"id":4711,"type":"load_balancer"}]}}"#;
 const STORAGE_BOX: &str = r#"{"id":42,"name":"backup","storage_box_type":{"id":7,"name":"bx11","description":"BX11","snapshot_limit":10,"automatic_snapshot_limit":10,"subaccounts_limit":200,"size":1073741824,"prices":[{"location":"fsn1","price_hourly":{"net":"1.0000","gross":"1.1900"},"price_monthly":{"net":"5.0000","gross":"5.9500"},"setup_fee":{"net":"0.0000","gross":"0.0000"}}],"deprecation":{"unavailable_after":"2028-01-01T00:00:00Z","announced":"2027-01-01T00:00:00Z"}},"location":{"id":1,"name":"fsn1","description":"Falkenstein DC Park 1","country":"DE","city":"Falkenstein","latitude":50.47612,"longitude":12.370071,"network_zone":"eu-central"},"access_settings":{"reachable_externally":false,"samba_enabled":true,"ssh_enabled":true,"webdav_enabled":false,"zfs_enabled":true},"snapshot_plan":{"max_snapshots":10,"minute":30,"hour":3,"day_of_week":7,"day_of_month":null},"protection":{"delete":true},"labels":{"empty":""},"status":"active","username":"u12345","server":"u12345.your-storagebox.de","system":"FSN1-BX355","stats":{"size":3,"size_data":2,"size_snapshots":1},"created":"2026-01-01T00:00:00Z"}"#;
 
 #[test]
@@ -46,22 +48,24 @@ fn certificate_pem_and_status_errors_stay_protected() {
     let Ok(decoded) = decoded else {
         unreachable!("source-complete certificate fixture failed")
     };
-    let HetznerSuccess::Certificate(certificate) = decoded.success() else {
+    let HetznerSuccess::SecurityResource(SecurityResource::Certificate(certificate)) =
+        decoded.success()
+    else {
         unreachable!("get_certificate returned the wrong typed model")
     };
-    assert_eq!(certificate.domain_names.len(), 2);
-    let Some(used_by) = certificate.used_by.first() else {
+    assert_eq!(certificate.domain_names().len(), 2);
+    let Some(used_by) = certificate.used_by().first() else {
         unreachable!("certificate resource fixture disappeared")
     };
-    assert_eq!(used_by.resource_type, "load_balancer");
-    let Some(pem) = &certificate.certificate else {
+    assert_eq!(used_by.resource_type(), "load_balancer");
+    let Some(pem) = certificate.certificate() else {
         unreachable!("certificate PEM was not retained")
     };
     assert_eq!(
-        pem.try_with_secret(|value| value.contains("secret-fixture")),
+        pem.try_with_secret(|value| value.contains("c2VjcmV0LWZpeHR1cmU=")),
         Ok(true)
     );
-    assert!(!format!("{certificate:?}").contains("secret-fixture"));
+    assert!(!format!("{certificate:?}").contains("c2VjcmV0LWZpeHR1cmU="));
 }
 
 #[test]

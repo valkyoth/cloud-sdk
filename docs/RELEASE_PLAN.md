@@ -2090,9 +2090,33 @@ Stop gate: `v0.65.0 implementation stop reached. Run the pentest for this exact 
 
 Goal: complete certificate and SSH-key typed coverage.
 
-Deliverables: all fields/actions, protected private/key material, redacted diagnostics, and rotation-compatible responses.
+Deliverables:
 
-Verification: schema, PEM/key, secret cleanup, unknown-state, fuzzing, and `scripts/release_0_66_gate.sh`.
+- Extend deterministic Cloud-spec extraction to certificate and SSH-key roots,
+  including every required field, nullability rule, numeric/text bound, and
+  source-known state.
+- Return dedicated certificate and SSH-key models from singleton, paginated,
+  update, and create-composite responses through one typed security-resource
+  family.
+- Preserve certificate type, chain, validity, domains, fingerprint, labels,
+  usage, and managed issuance/renewal detail; preserve SSH-key identity,
+  fingerprint, public key, labels, and creation time.
+- Keep certificate chains, SSH public keys, and provider failure messages in
+  protected owned storage with closure-scoped inspection, redacted
+  diagnostics, guarded parser error paths, and sanitizing drop behavior.
+- Reject malformed or excessive PEM chains, invalid OpenSSH keys and MD5
+  fingerprints, unknown managed states, status/error contradictions, invalid
+  timestamps, and uploaded/managed shape confusion.
+- Add a credential-gated read-only certificate/SSH-key live probe without
+  introducing network, runtime, TLS, or secret-store dependencies into the
+  default graph.
+
+Verification: regenerate the exact source field table and fixtures; run all
+208 operation fixtures, singleton/page/composite routing, PEM five/six-block
+boundaries, key/fingerprint/timestamp/state/coherence failures, redaction and
+cleanup checks, vertical execution, ignored live-probe staging, and named fuzz
+seeds. Run `scripts/check_security_response_models.sh`, pinned live API/model
+drift, and `scripts/release_0_66_gate.sh`.
 
 Stop gate: `v0.66.0 implementation stop reached. Complete the pentest and full release gate for this exact commit; defer crates.io publication to v0.70.0.`
 
