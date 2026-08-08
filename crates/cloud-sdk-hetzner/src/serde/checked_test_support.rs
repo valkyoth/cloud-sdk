@@ -167,6 +167,16 @@ pub(super) fn decode_response(
     decode_response_with_metadata(prepared, fixture, None, &[], None)
 }
 
+pub(super) fn assert_decode_error(
+    result: Result<CheckedHetznerResponse, HetznerDecodeError>,
+    expected: HetznerDecodeError,
+) {
+    let Err(actual) = result else {
+        unreachable!("response fixture unexpectedly decoded successfully")
+    };
+    assert_eq!(actual, expected);
+}
+
 pub(super) fn decode_response_with_request_id(
     prepared: PreparedRequest<'_>,
     fixture: TestResponse<'_>,

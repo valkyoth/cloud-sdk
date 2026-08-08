@@ -18,6 +18,8 @@ use alloc::string::String;
 use alloc::vec::Vec;
 use core::fmt;
 
+use cloud_sdk_sanitization::sanitize_string;
+
 use crate::pagination::PaginationMetadata;
 use crate::serde::strict_json::{Map, Value};
 
@@ -32,8 +34,8 @@ pub use cloud_resources::{
 pub use cloud_value::{CloudNumber, CloudObject, CloudValue};
 pub use dns::{
     AuthoritativeNameservers, DnsRecord, DnsResource, DnsResourceKind, DnsRrset,
-    DnsRrsetProtection, DnsRrsetType, DnsTsigAlgorithm, PrimaryNameserver, Zone,
-    ZoneDelegationStatus, ZoneMode, ZoneProtection, ZoneRegistrar, ZoneStatus,
+    DnsRrsetProtection, DnsRrsetType, DnsTsigAlgorithm, MAX_ZONE_RECORD_COUNT, PrimaryNameserver,
+    Zone, ZoneDelegationStatus, ZoneMode, ZoneProtection, ZoneRegistrar, ZoneStatus,
 };
 pub use location::{Location, LocationPage};
 pub use metrics::{MetricPoint, MetricSeries, Metrics};
@@ -100,7 +102,7 @@ impl_static_error!(ResponseModelError,
 );
 
 /// Fallibly constructed, deterministic provider labels.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Eq, PartialEq)]
 pub struct Labels(Vec<(String, String)>);
 
 impl Labels {
@@ -161,12 +163,31 @@ impl Labels {
     }
 }
 
+impl fmt::Debug for Labels {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("Labels")
+            .field("count", &self.0.len())
+            .field("values", &"[redacted]")
+            .finish()
+    }
+}
+
+impl Drop for Labels {
+    fn drop(&mut self) {
+        for (key, value) in &mut self.0 {
+            sanitize_string(key);
+            sanitize_string(value);
+        }
+    }
+}
+
 pub(super) fn parse_labels(value: &Value, maximum: usize) -> Result<Labels, ResponseModelError> {
     Labels::parse(value, maximum)
 }
 
 /// Typed successful result returned by the checked decoder.
-#[derive(Debug, PartialEq)]
+#[derive(Debug)]
 pub enum HetznerSuccess {
     /// Operation succeeded without a response body.
     Empty,
@@ -227,7 +248,6 @@ pub enum HetznerSuccess {
 }
 
 /// Validated multi-part success response.
-#[derive(PartialEq)]
 pub struct CompositeResult {
     pub(super) resource: Option<Resource>,
     pub(super) cloud_resource: Option<CloudResource>,

@@ -6,7 +6,7 @@ use alloc::string::String;
 use cloud_sdk::transport::StatusCode;
 
 use super::checked_fixtures::{action_value, resource_value};
-use super::checked_test_support::{decode_response, prepared, response};
+use super::checked_test_support::{assert_decode_error, decode_response, prepared, response};
 use super::{HetznerDecodeError, HetznerSuccess, ResponseModelError};
 use crate::actions::MAX_ACTION_ID;
 use crate::identity::CLOUD_SERVICE_ID;
@@ -46,7 +46,7 @@ fn composite_rejects_null_for_nonnullable_secret_outputs() {
         "wss_url": "wss://console.example.invalid",
     });
     let console = serde_json::to_vec(&console).unwrap_or_default();
-    assert_eq!(
+    assert_decode_error(
         decode_response(
             prepared(
                 "request_server_console",
@@ -55,7 +55,7 @@ fn composite_rejects_null_for_nonnullable_secret_outputs() {
             ),
             response(StatusCode::CREATED, &console),
         ),
-        Err(HetznerDecodeError::Model(ResponseModelError::WrongType))
+        HetznerDecodeError::Model(ResponseModelError::WrongType),
     );
 }
 
@@ -147,12 +147,12 @@ fn checked_provider_and_action_error_codes_reject_non_ascii_identifiers() {
         let provider =
             serde_json::to_vec(&serde_json::json!({"error":{"code":code,"message":"safe"}}))
                 .unwrap_or_default();
-        assert_eq!(
+        assert_decode_error(
             decode_response(
                 prepared("get_action", CLOUD_SERVICE_ID, StatusCode::OK),
                 response(bad_request, &provider),
             ),
-            Err(HetznerDecodeError::Model(ResponseModelError::InvalidText))
+            HetznerDecodeError::Model(ResponseModelError::InvalidText),
         );
 
         let mut action = action_value();
@@ -166,12 +166,12 @@ fn checked_provider_and_action_error_codes_reject_non_ascii_identifiers() {
             serde_json::json!({"code":code,"message":"safe"}),
         );
         let action = serde_json::to_vec(&serde_json::json!({"action":action})).unwrap_or_default();
-        assert_eq!(
+        assert_decode_error(
             decode_response(
                 prepared("get_action", CLOUD_SERVICE_ID, StatusCode::OK),
                 response(StatusCode::OK, &action),
             ),
-            Err(HetznerDecodeError::Model(ResponseModelError::InvalidText))
+            HetznerDecodeError::Model(ResponseModelError::InvalidText),
         );
     }
 }

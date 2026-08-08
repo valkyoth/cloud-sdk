@@ -2,7 +2,7 @@
 set -eu
 
 python3 scripts/test-generate-cloud-model-schema.py
-cargo test -p cloud-sdk-hetzner --all-features serde::checked_dns_tests
+cargo test -p cloud-sdk-hetzner --all-features serde::checked_dns
 cargo test -p cloud-sdk-hetzner --all-features --test live_smoke
 cargo test --manifest-path fuzz/Cargo.toml --test cloud_special_response_seeds
 

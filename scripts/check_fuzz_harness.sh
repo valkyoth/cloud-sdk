@@ -11,6 +11,21 @@ check_layout() {
     cargo metadata --manifest-path fuzz/Cargo.toml --locked --no-deps \
         --format-version 1 >/dev/null
 
+    aws_lc_packages="$(
+        cargo tree --manifest-path fuzz/Cargo.toml --locked \
+            --edges normal --prefix none |
+            grep -E '^aws-lc-(rs|sys) v' |
+            sed 's/ (\*)$//' |
+            sort -u
+    )"
+    expected_aws_lc_packages='aws-lc-rs v1.17.3
+aws-lc-sys v0.43.0'
+    if [ "$aws_lc_packages" != "$expected_aws_lc_packages" ]; then
+        echo "fuzz harness: AWS-LC graph differs from the admitted exact versions" >&2
+        printf '%s\n' "$aws_lc_packages" >&2
+        exit 1
+    fi
+
     manifest_targets="$(
         sed -n 's/^name = "\([a-z0-9_]*\)"$/\1/p' fuzz/Cargo.toml |
             tail -n 17 |

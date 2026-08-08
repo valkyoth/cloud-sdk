@@ -4,6 +4,8 @@ use alloc::string::String;
 use alloc::vec::Vec;
 use core::fmt;
 
+use cloud_sdk_sanitization::sanitize_string;
+
 use crate::dns::rrsets::{MAX_RECORD_COMMENT_BYTES, MAX_RECORD_VALUE_BYTES, RrsetType};
 use crate::serde::strict_json::{Map, Value};
 
@@ -52,6 +54,12 @@ impl fmt::Debug for DnsRrsetType {
     }
 }
 
+impl Drop for DnsRrsetType {
+    fn drop(&mut self) {
+        sanitize_string(&mut self.raw);
+    }
+}
+
 /// One bounded record in an RRSet response.
 #[derive(Eq, PartialEq)]
 pub struct DnsRecord {
@@ -80,6 +88,15 @@ impl fmt::Debug for DnsRecord {
             .field("value", &"[redacted]")
             .field("comment", &self.comment.as_ref().map(|_| "[redacted]"))
             .finish()
+    }
+}
+
+impl Drop for DnsRecord {
+    fn drop(&mut self) {
+        sanitize_string(&mut self.value);
+        if let Some(comment) = self.comment.as_mut() {
+            sanitize_string(comment);
+        }
     }
 }
 
@@ -161,6 +178,13 @@ impl fmt::Debug for DnsRrset {
             .field("record_count", &self.records.len())
             .field("fields", &"[redacted]")
             .finish()
+    }
+}
+
+impl Drop for DnsRrset {
+    fn drop(&mut self) {
+        sanitize_string(&mut self.id);
+        sanitize_string(&mut self.name);
     }
 }
 

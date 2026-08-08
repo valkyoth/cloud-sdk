@@ -12,8 +12,8 @@ use super::ResponseModelError;
 
 pub use rrset::{DnsRecord, DnsRrset, DnsRrsetProtection, DnsRrsetType};
 pub use zone::{
-    AuthoritativeNameservers, DnsTsigAlgorithm, PrimaryNameserver, Zone, ZoneDelegationStatus,
-    ZoneMode, ZoneProtection, ZoneRegistrar, ZoneStatus,
+    AuthoritativeNameservers, DnsTsigAlgorithm, MAX_ZONE_RECORD_COUNT, PrimaryNameserver, Zone,
+    ZoneDelegationStatus, ZoneMode, ZoneProtection, ZoneRegistrar, ZoneStatus,
 };
 
 /// Dedicated DNS resource family.
@@ -27,7 +27,16 @@ pub enum DnsResourceKind {
 }
 
 /// Source-complete DNS resource returned by the checked decoder.
-#[derive(PartialEq)]
+///
+/// Ordinary equality is unavailable because a zone resource can contain a
+/// TSIG key.
+///
+/// ```compile_fail
+/// use cloud_sdk_hetzner::serde::DnsResource;
+/// fn compare(left: DnsResource, right: DnsResource) -> bool {
+///     left == right
+/// }
+/// ```
 #[non_exhaustive]
 pub enum DnsResource {
     /// DNS zone.

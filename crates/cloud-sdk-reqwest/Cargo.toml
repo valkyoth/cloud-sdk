@@ -151,7 +151,12 @@ async-rustls = [
     "tokio/sync",
     "tokio/time",
 ]
-fuzzing = ["blocking-rustls", "tokio/io-util"]
+fuzzing = [
+    "blocking-rustls",
+    "dep:aws-lc-rs",
+    "dep:aws-lc-sys",
+    "tokio/io-util",
+]
 
 [dependencies]
 aws-lc-fips-sys = { workspace = true, optional = true }

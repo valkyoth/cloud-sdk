@@ -6,7 +6,7 @@ use alloc::vec::Vec;
 use cloud_sdk::transport::StatusCode;
 
 use super::checked_fixtures::{action_value, resource_value};
-use super::checked_test_support::{decode_response, prepared, response};
+use super::checked_test_support::{assert_decode_error, decode_response, prepared, response};
 use super::{
     DnsResource, HetznerDecodeError, HetznerSuccess, ResponseModelError, ZoneMode, ZoneStatus,
 };
@@ -56,14 +56,12 @@ fn zone_mode_and_nameserver_semantics_fail_closed() {
     };
     fields.insert("mode".into(), serde_json::json!("primary"));
     let body = serde_json::to_vec(&serde_json::json!({"zone":zone})).unwrap_or_default();
-    assert_eq!(
+    assert_decode_error(
         decode_response(
             prepared("get_zone", DNS_SERVICE_ID, StatusCode::OK),
             response(StatusCode::OK, &body),
         ),
-        Err(HetznerDecodeError::Model(
-            ResponseModelError::EnvelopeMismatch
-        ))
+        HetznerDecodeError::Model(ResponseModelError::EnvelopeMismatch),
     );
 
     let mut zone = resource_value("zone");
@@ -72,14 +70,12 @@ fn zone_mode_and_nameserver_semantics_fail_closed() {
     };
     fields.insert("status".into(), serde_json::json!("future-state"));
     let body = serde_json::to_vec(&serde_json::json!({"zone":zone})).unwrap_or_default();
-    assert_eq!(
+    assert_decode_error(
         decode_response(
             prepared("get_zone", DNS_SERVICE_ID, StatusCode::OK),
             response(StatusCode::OK, &body),
         ),
-        Err(HetznerDecodeError::Model(
-            ResponseModelError::UnknownEnumValue
-        ))
+        HetznerDecodeError::Model(ResponseModelError::UnknownEnumValue),
     );
 }
 
@@ -119,12 +115,12 @@ fn rrset_retains_unknown_types_but_rejects_ambiguous_records() {
         ]),
     );
     let body = serde_json::to_vec(&serde_json::json!({"rrset":duplicate})).unwrap_or_default();
-    assert_eq!(
+    assert_decode_error(
         decode_response(
             prepared("get_zone_rrset", DNS_SERVICE_ID, StatusCode::OK),
             response(StatusCode::OK, &body),
         ),
-        Err(HetznerDecodeError::Model(ResponseModelError::InvalidText))
+        HetznerDecodeError::Model(ResponseModelError::InvalidText),
     );
 }
 
@@ -174,12 +170,12 @@ fn rrset_record_deduplication_handles_the_exact_source_bound() {
     records.push(serde_json::json!({"value":"record-0000.example.com."}));
     fields.insert("records".into(), serde_json::Value::Array(records));
     let body = serde_json::to_vec(&serde_json::json!({"rrset":duplicate})).unwrap_or_default();
-    assert_eq!(
+    assert_decode_error(
         decode_response(
             prepared("get_zone_rrset", DNS_SERVICE_ID, StatusCode::OK),
             response(StatusCode::OK, &body),
         ),
-        Err(HetznerDecodeError::Model(ResponseModelError::InvalidText))
+        HetznerDecodeError::Model(ResponseModelError::InvalidText),
     );
 }
 

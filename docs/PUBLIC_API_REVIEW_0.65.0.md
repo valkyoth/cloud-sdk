@@ -14,6 +14,10 @@ v0.65.0, with the v0.65 delta focused on Hetzner DNS responses.
   registrar, delegation state, and primary nameservers.
 - `PrimaryNameserver` exposes validated address/port and response TSIG algorithm
   while restricting TSIG key access to `try_with_tsig_key`.
+- `PrimaryNameserver`, `Zone`, `DnsResource`, and the checked success wrappers
+  omit ordinary equality because TSIG-bearing state can flow through them.
+- `MAX_ZONE_RECORD_COUNT` publishes the conservative checked-response ceiling
+  so callers can reason about the accepted operational envelope.
 - `DnsRrset` exposes ID, owner name, nullable TTL, labels, protection, records,
   and owning zone. `DnsRrsetType` retains additive future uppercase RR types and
   classifies source-known values through `known`.

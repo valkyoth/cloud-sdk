@@ -153,7 +153,17 @@ impl core::error::Error for HetznerDecodeError {
 }
 
 /// Successful checked response plus validated rate-limit metadata.
-#[derive(Debug, PartialEq)]
+///
+/// Ordinary equality is unavailable because a successful DNS response can
+/// contain TSIG material.
+///
+/// ```compile_fail
+/// use cloud_sdk_hetzner::serde::CheckedHetznerResponse;
+/// fn compare(left: CheckedHetznerResponse, right: CheckedHetznerResponse) -> bool {
+///     left == right
+/// }
+/// ```
+#[derive(Debug)]
 pub struct CheckedHetznerResponse {
     success: HetznerSuccess,
     quota: HetznerQuota,

@@ -14,6 +14,12 @@ Cargo's read-only source tree. The exact `1.17.3/0.43.0/0.13.16` set therefore
 remains pinned. Routine compatible transitive updates were resolved on
 2026-08-08 without changing any default feature graph.
 
+The optional reqwest `fuzzing` feature now activates the exact admitted
+`aws-lc-rs 1.17.3` and `aws-lc-sys 0.43.0` dependencies directly. The fuzz
+lockfile was corrected from the rejected compatible update, and the ordinary
+fuzz metadata gate rejects any future AWS-LC version drift in that tooling
+graph.
+
 ## Independent Versions
 
 | Package | Previous published | v0.65 source | Change | Publish |
@@ -45,6 +51,11 @@ then the Hetzner provider after each dependency is visible on crates.io.
 | `wasm-bindgen-macro-support` | `0.2.126` | `0.2.127` | Compile-time wasm macro support patch update. |
 | `wasm-bindgen-shared` | `0.2.126` | `0.2.127` | Shared wasm binding support patch update. |
 | `web-sys` | `0.3.103` | `0.3.104` | Target-specific Web API binding patch update. |
+
+The separate fuzz lock briefly resolved rejected `aws-lc-rs 1.18.0` and
+`aws-lc-sys 0.44.0` through a compatible transitive range. Pentest remediation
+restored the exact retained versions and added graph enforcement; those
+rejected versions are not part of the final v0.65 evidence.
 
 ## Rejected AWS-LC Update
 

@@ -838,9 +838,10 @@ Base64 and decode to at least 32 bytes. Generate them with a CSPRNG, share them
 only with the intended peer, and rotate them periodically; representation
 validation cannot establish entropy.
 
-`ZoneFile`, `TsigKey`, `TsigCredentials`, and request structures containing
-them intentionally omit ordinary equality. Use a reviewed constant-time
-mechanism if external secret comparison is required. RFC 8945 defines the
+`ZoneFile`, `TsigKey`, `TsigCredentials`, returned `PrimaryNameserver`/`Zone`
+models, and checked-success structures containing them intentionally omit
+ordinary equality. Use a reviewed constant-time mechanism if external secret
+comparison is required. RFC 8945 defines the
 [algorithm requirements](https://www.rfc-editor.org/rfc/rfc8945.html#section-6)
 and [shared-secret requirements](https://www.rfc-editor.org/rfc/rfc8945.html#section-8).
 

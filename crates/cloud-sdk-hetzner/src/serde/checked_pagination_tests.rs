@@ -2,7 +2,7 @@ use alloc::format;
 
 use cloud_sdk::transport::StatusCode;
 
-use super::checked_test_support::{decode_response, prepared, response};
+use super::checked_test_support::{assert_decode_error, decode_response, prepared, response};
 use super::{HetznerDecodeError, ResponseModelError};
 use crate::identity::CLOUD_SERVICE_ID;
 
@@ -21,27 +21,23 @@ fn numbered_action_and_resource_pages_reject_more_items_than_per_page() {
         action(),
         one_item_page(),
     );
-    assert_eq!(
+    assert_decode_error(
         decode_response(
             prepared("list_servers_actions", CLOUD_SERVICE_ID, StatusCode::OK),
             response(StatusCode::OK, actions.as_bytes()),
         ),
-        Err(HetznerDecodeError::Model(
-            ResponseModelError::InvalidPagination,
-        )),
+        HetznerDecodeError::Model(ResponseModelError::InvalidPagination),
     );
 
     let resources = format!(
         r#"{{"servers":[{{"id":1,"name":"one","status":"running"}},{{"id":2,"name":"two","status":"running"}}],"meta":{}}}"#,
         one_item_page(),
     );
-    assert_eq!(
+    assert_decode_error(
         decode_response(
             prepared("list_servers", CLOUD_SERVICE_ID, StatusCode::OK),
             response(StatusCode::OK, resources.as_bytes()),
         ),
-        Err(HetznerDecodeError::Model(
-            ResponseModelError::InvalidPagination,
-        )),
+        HetznerDecodeError::Model(ResponseModelError::InvalidPagination),
     );
 }

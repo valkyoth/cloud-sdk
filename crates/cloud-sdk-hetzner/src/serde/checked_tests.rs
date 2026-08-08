@@ -4,8 +4,8 @@ use cloud_sdk::transport::StatusCode;
 
 use super::checked_fixtures::{action_value, minimal_body, resource_value};
 use super::checked_test_support::{
-    decode_response, decode_response_with_headers, decode_response_with_headers_at, empty_response,
-    prepared, response,
+    assert_decode_error, decode_response, decode_response_with_headers,
+    decode_response_with_headers_at, empty_response, prepared, response,
 };
 use super::{CloudResourceKind, HetznerDecodeError, HetznerSuccess};
 use crate::identity::{CLOUD_SERVICE_ID, STORAGE_SERVICE_ID};
@@ -198,12 +198,12 @@ fn decodes_composite_special_empty_and_storage_families() {
 #[test]
 fn rejects_policy_binding_json_and_model_failures() {
     let duplicate = br#"{"server":{"id":1,"id":2,"status":"running"}}"#;
-    assert_eq!(
+    assert_decode_error(
         decode_response(
             prepared("get_server", CLOUD_SERVICE_ID, StatusCode::OK),
             response(StatusCode::OK, duplicate),
         ),
-        Err(HetznerDecodeError::MalformedPayload)
+        HetznerDecodeError::MalformedPayload,
     );
     let missing = br#"{"server":{"id":1,"status":"future"}}"#;
     assert!(matches!(
@@ -213,12 +213,12 @@ fn rejects_policy_binding_json_and_model_failures() {
         ),
         Err(HetznerDecodeError::Model(_))
     ));
-    assert_eq!(
+    assert_decode_error(
         decode_response(
             prepared("get_server", STORAGE_SERVICE_ID, StatusCode::OK),
             response(StatusCode::OK, br#"{"server":{"id":1}}"#),
         ),
-        Err(HetznerDecodeError::ServiceMismatch)
+        HetznerDecodeError::ServiceMismatch,
     );
     assert!(matches!(
         decode_response(

@@ -44,3 +44,8 @@ avoid copying them into ordinary strings. A response `DnsRrsetType` may have
 `known() == None`; inspect `as_str()` for diagnostics or storage, but do not
 send it through a request constructor until a later source-lock update assigns
 explicit semantics.
+
+TSIG-bearing `PrimaryNameserver`, `Zone`, `DnsResource`, `CompositeResult`,
+`HetznerSuccess`, and `CheckedHetznerResponse` values no longer support
+ordinary equality. Compare reviewed public metadata through explicit
+accessors; do not compare secret-bearing aggregates.

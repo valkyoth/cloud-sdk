@@ -34,12 +34,12 @@ pub use models::{
     CompositeResult, Deprecation, DnsRecord, DnsResource, DnsResourceKind, DnsRrset,
     DnsRrsetProtection, DnsRrsetType, DnsTsigAlgorithm, ExactDecimal, Firewall, FloatingIp,
     FolderList, HetznerSuccess, Image, Iso, Labels, LoadBalancer, LoadBalancerType, Location,
-    LocationPage, MetricPoint, MetricSeries, Metrics, Money, NamedSensitiveText, Network,
-    PlacementGroup, Price, Pricing, PrimaryIp, PrimaryNameserver, Protection, Resource,
-    ResourceIdentifier, ResourceKind, ResponseModelError, SensitiveText, Server, ServerType,
-    SnapshotPlan, StorageBox, StorageBoxPage, StorageBoxStats, StorageBoxStatus, StorageBoxType,
-    UtcTimestamp, Volume, Zone, ZoneDelegationStatus, ZoneFile, ZoneMode, ZoneProtection,
-    ZoneRegistrar, ZoneStatus,
+    LocationPage, MAX_ZONE_RECORD_COUNT, MetricPoint, MetricSeries, Metrics, Money,
+    NamedSensitiveText, Network, PlacementGroup, Price, Pricing, PrimaryIp, PrimaryNameserver,
+    Protection, Resource, ResourceIdentifier, ResourceKind, ResponseModelError, SensitiveText,
+    Server, ServerType, SnapshotPlan, StorageBox, StorageBoxPage, StorageBoxStats,
+    StorageBoxStatus, StorageBoxType, UtcTimestamp, Volume, Zone, ZoneDelegationStatus, ZoneFile,
+    ZoneMode, ZoneProtection, ZoneRegistrar, ZoneStatus,
 };
 pub use pagination::PaginationEnvelope;
 pub use response::{
@@ -53,6 +53,8 @@ pub use rrsets::{MAX_RRSET_JSON_BODY_BYTES, RrsetBodyError, RrsetRequestBody};
 mod adversarial_tests;
 #[cfg(test)]
 mod checked_dns_tests;
+#[cfg(test)]
+mod checked_dns_zone_security_tests;
 #[cfg(test)]
 mod checked_fixtures;
 #[cfg(test)]

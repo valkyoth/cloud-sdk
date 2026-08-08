@@ -6,7 +6,7 @@ use cloud_sdk::operation::ResponsePolicyError;
 use cloud_sdk::transport::StatusCode;
 
 use super::checked_test_support::{
-    decode_response, decode_response_with_request_id, prepared, response,
+    assert_decode_error, decode_response, decode_response_with_request_id, prepared, response,
 };
 use super::strict_json::MAX_JSON_NODES;
 use super::{HetznerDecodeError, HetznerSuccess};
@@ -27,24 +27,24 @@ fn rejects_aggregate_json_amplification_and_protects_failure_path_strings() {
 
     assert!(containers < 4096);
     assert!(amplified.len() < 1_000_000);
-    assert_eq!(
+    assert_decode_error(
         decode_response(
             prepared("get_server", CLOUD_SERVICE_ID, StatusCode::OK),
             response(StatusCode::OK, amplified.as_bytes()),
         ),
-        Err(HetznerDecodeError::MalformedPayload)
+        HetznerDecodeError::MalformedPayload,
     );
 
     for malformed in [
         br#"{"root_password":"first","root_password":"second"}"#.as_slice(),
         br#"{"root_password":"temporary"} trailing"#,
     ] {
-        assert_eq!(
+        assert_decode_error(
             decode_response(
                 prepared("create_server", CLOUD_SERVICE_ID, StatusCode::CREATED),
                 response(StatusCode::CREATED, malformed),
             ),
-            Err(HetznerDecodeError::MalformedPayload)
+            HetznerDecodeError::MalformedPayload,
         );
     }
     assert!(matches!(
@@ -101,10 +101,8 @@ fn provider_errors_apply_the_operation_request_id_policy() {
         ),
         b"",
     );
-    assert_eq!(
+    assert_decode_error(
         decoded,
-        Err(HetznerDecodeError::ResponsePolicy(
-            ResponsePolicyError::InvalidRequestId
-        ))
+        HetznerDecodeError::ResponsePolicy(ResponsePolicyError::InvalidRequestId),
     );
 }

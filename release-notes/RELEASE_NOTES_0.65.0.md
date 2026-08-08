@@ -28,6 +28,11 @@ optional `serde` feature.
 - Moved returned TSIG keys directly into protected owned storage, redacted DNS
   diagnostics, checked canonical Base64, and kept legacy response observations
   separate from the HMAC-SHA256-only outbound policy.
+- Enforced nonempty unique secondary-zone primaries, atomic TSIG key/algorithm
+  state, a conservative record-count envelope, no ordinary equality on
+  TSIG-bearing aggregates, and clear-on-drop DNS operational strings.
+- Replaced quadratic RRSet duplicate detection with bounded borrowed-value
+  sorting and exact 4,096-record regression coverage.
 - Incrementally prevalidate zone pages, RRSet pages, and bounded zonefiles
   before duplicate-rejecting protected model decoding.
 
@@ -41,6 +46,8 @@ optional `serde` feature.
 - Reviews the newer AWS-LC `1.18.0/0.44.0/0.14.1` set but retains the previous
   exact pins because the FIPS crate fails a clean read-only Cargo source build;
   runtime FIPS verification remains distinct from deployment accreditation.
+- Pins and mechanically verifies those retained AWS-LC versions in the fuzz
+  tooling graph as well as the production and feature-unification lockfiles.
 - Adds deterministic DNS schema generation, adversarial tests, named fuzz seeds,
   incremental coverage, and an ignored credential-gated typed zone live probe.
 

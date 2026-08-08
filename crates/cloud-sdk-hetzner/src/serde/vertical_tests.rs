@@ -3,7 +3,9 @@ use alloc::string::String;
 
 use cloud_sdk::transport::StatusCode;
 
-use super::checked_test_support::{decode_response, empty_response, prepared, response};
+use super::checked_test_support::{
+    assert_decode_error, decode_response, empty_response, prepared, response,
+};
 use super::{HetznerDecodeError, HetznerSuccess, ResponseModelError, StorageBoxStatus};
 use crate::{CLOUD_SERVICE_ID, DNS_SERVICE_ID, SECURITY_SERVICE_ID, STORAGE_SERVICE_ID};
 
@@ -99,28 +101,24 @@ fn source_complete_pages_reject_more_items_than_declared_per_page() {
         r#"{{"locations":[{0},{0}],"meta":{1}}}"#,
         LOCATION, one_item_page,
     );
-    assert_eq!(
+    assert_decode_error(
         decode_response(
             prepared("list_locations", CLOUD_SERVICE_ID, StatusCode::OK),
             response(StatusCode::OK, locations.as_bytes()),
         ),
-        Err(HetznerDecodeError::Model(
-            ResponseModelError::InvalidPagination,
-        )),
+        HetznerDecodeError::Model(ResponseModelError::InvalidPagination),
     );
 
     let boxes = format!(
         r#"{{"storage_boxes":[{0},{0}],"meta":{1}}}"#,
         STORAGE_BOX, one_item_page,
     );
-    assert_eq!(
+    assert_decode_error(
         decode_response(
             prepared("list_storage_boxes", STORAGE_SERVICE_ID, StatusCode::OK),
             response(StatusCode::OK, boxes.as_bytes()),
         ),
-        Err(HetznerDecodeError::Model(
-            ResponseModelError::InvalidPagination,
-        )),
+        HetznerDecodeError::Model(ResponseModelError::InvalidPagination),
     );
 }
 
