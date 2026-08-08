@@ -27,6 +27,9 @@ remains at 0.40.0 while changes accumulate for v0.70.0.
 - Rejected unknown certificate states, malformed PEM chains, status/error
   contradictions, malformed fingerprints, invalid public keys, and invalid
   timestamps before returning public models.
+- Accepted every source-supported Ed25519, RSA, ECDSA, and FIDO key form while
+  rejecting prefix-confusable, vendor-suffixed, text/wire-mismatched, and
+  malformed RFC 4253 structures.
 - Preserved exact certificate-specific failure codes alongside their generic
   `ApiErrorCode` classification, with redacted diagnostics and drop cleanup.
 
@@ -41,9 +44,10 @@ remains at 0.40.0 while changes accumulate for v0.70.0.
   read-only live-smoke coverage.
 - Added `scripts/check_security_response_models.sh` to the ordinary and final
   release gates.
-- Admitted exact, non-default `ssh-key 0.6.7` and `md-5 0.11.0` dependencies
-  only behind the provider Serde feature. MD5 is limited to checking Hetzner's
-  legacy compatibility field and is not used for new security decisions.
+- Reused exact `base64-ng 2.0.1` and admitted exact `md-5 0.11.0` plus
+  `sha2 0.10.9` only behind the provider Serde feature. A bounded first-party
+  RFC 4253 parser validates one cleanup-owned wire allocation; `ssh-key` and
+  `zeroize` do not enter the graph. MD5 remains compatibility-only.
 
 ## Versions
 
@@ -62,7 +66,7 @@ remains at 0.40.0 while changes accumulate for v0.70.0.
 - [`docs/THREAT_MODEL_DELTA_0.66.0.md`](../docs/THREAT_MODEL_DELTA_0.66.0.md)
 - [`docs/REJECTED_ABSTRACTIONS_0.66.0.md`](../docs/REJECTED_ABSTRACTIONS_0.66.0.md)
 - [`docs/MIGRATION_0.66.0.md`](../docs/MIGRATION_0.66.0.md)
-- [`docs/dependency-admission-ssh-key.md`](../docs/dependency-admission-ssh-key.md)
+- [`docs/dependency-admission-ssh-public-key.md`](../docs/dependency-admission-ssh-public-key.md)
 
 ## Release Gate
 

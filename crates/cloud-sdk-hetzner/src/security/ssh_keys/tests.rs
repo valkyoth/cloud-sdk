@@ -112,6 +112,17 @@ fn ssh_key_validation_rejects_bad_inputs() {
         SshPublicKey::new("not-a-key"),
         Err(SecurityRequestError::InvalidSshPublicKey)
     );
+    for value in [
+        "ecdsa-sha2-attacker@example.com AAAA",
+        "ecdsa-sha2-nistp256@evil.example AAAA",
+        "sk-ssh-ed25519@evil.example AAAA",
+        "sk-ecdsa-sha2-nistp256@evil.example AAAA",
+    ] {
+        assert_eq!(
+            SshPublicKey::new(value),
+            Err(SecurityRequestError::InvalidSshPublicKey)
+        );
+    }
     assert_eq!(
         SshKeyListRequest::new().with_fingerprint("zz:zz"),
         Err(SecurityRequestError::InvalidSshFingerprint)

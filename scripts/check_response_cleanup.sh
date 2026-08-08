@@ -14,6 +14,7 @@ dns_zone=crates/cloud-sdk-hetzner/src/serde/models/dns/zone/parser.rs
 dns_rrset=crates/cloud-sdk-hetzner/src/serde/models/dns/rrset.rs
 certificate=crates/cloud-sdk-hetzner/src/serde/models/certificate/parser.rs
 ssh_key=crates/cloud-sdk-hetzner/src/serde/models/ssh_key.rs
+ssh_wire=crates/cloud-sdk-hetzner/src/serde/models/ssh_wire.rs
 
 if find crates fuzz/fuzz_targets -type f -name '*.rs' -exec \
     grep -HnE '\.fill\(0(_u8)?\)' {} +; then
@@ -104,8 +105,9 @@ for contract in \
     "$certificate:let mut output = WipeStrings::with_capacity(values.len())?" \
     "$ssh_key:.take_string()" \
     "$ssh_key:.map(SensitiveText::new)" \
-    "$ssh_key:let wire = SecretBuffer::new(wire.as_mut_slice())" \
-    "$ssh_key:sanitize_bytes(&mut self.sha256_fingerprint)"; do
+    "$ssh_key:sanitize_bytes(&mut self.sha256_fingerprint)" \
+    "$ssh_wire:let mut wire = SecretBuffer::new(storage.as_mut_slice())" \
+    "$ssh_wire:validate_wire(algorithm, wire.as_slice())?"; do
     file=${contract%%:*}
     required=${contract#*:}
     if ! grep -Fq "$required" "$file"; then
@@ -113,6 +115,12 @@ for contract in \
         exit 1
     fi
 done
+
+if grep -R -Eq 'ssh_key::PublicKey|PublicKey::from_openssh' \
+    crates/cloud-sdk-hetzner/src; then
+    echo "response cleanup: SSH validation creates an unprotected owned key model" >&2
+    exit 1
+fi
 
 for required in \
     'code_text: code.into_inner()' \

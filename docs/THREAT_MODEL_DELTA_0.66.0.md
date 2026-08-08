@@ -19,8 +19,10 @@ usage, and provider-managed issuance or renewal failures.
 - Managed issuance and renewal states are closed source-known enums. Failed
   states require protected provider error detail; nonfailed states reject
   contradictory errors. Uploaded certificates reject managed status.
-- SSH keys pass both the bounded request-side algorithm policy and complete
-  OpenSSH/RFC 4253 structural decoding. Hetzner's 16-octet legacy MD5
+- SSH keys pass one exact seven-algorithm allowlist shared by request and
+  response models, strict Base64 decoding, and bounded RFC 4253 structural
+  validation. Prefix-confusable and vendor-suffixed names fail closed.
+  Hetzner's 16-octet legacy MD5
   fingerprint must match the decoded wire key, and a separate SHA-256
   fingerprint is derived for identity comparisons. MD5 is compatibility-only,
   not collision-resistant proof against a malicious provider.
@@ -28,7 +30,9 @@ usage, and provider-managed issuance or renewal failures.
   protected owned storage with closure-scoped inspection. Names, domains,
   fingerprints, timestamps, labels, and usage metadata are redacted from
   diagnostics; owned strings are sanitized on drop.
-- Parser temporaries use cleanup guards across late validation failures.
+- Parser temporaries use cleanup guards across late validation failures. The
+  RFC 4253 parser operates directly on one cleanup-owned decoded allocation
+  and creates no second owned public-key or comment model.
   Dedicated tests, named fuzz seeds, all-operation fixtures, vertical
   execution, and the credential-gated read-only probe cover the new routes.
 - Certificate-specific error-code text survives generic classification in
@@ -37,7 +41,7 @@ usage, and provider-managed issuance or renewal failures.
 ## Unchanged Boundaries
 
 The default graph remains transport-free and `no_std`. The optional Serde
-graph adds reviewed `no_std` SSH parsing and digest dependencies. Public keys
+graph adds reviewed `no_std` Base64 and digest dependencies. Public keys
 and certificate chains are not private keys, but are protected because they can
 still reveal account identity and deployment topology. Callers remain
 responsible for clearing any copies created inside inspection closures.

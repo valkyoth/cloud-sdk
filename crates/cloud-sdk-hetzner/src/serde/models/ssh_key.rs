@@ -3,16 +3,15 @@
 use alloc::string::String;
 use core::fmt;
 
-use cloud_sdk_sanitization::{SecretBuffer, sanitize_bytes, sanitize_string};
-use md5::{Digest, Md5};
-use ssh_key::{HashAlg, PublicKey};
+use cloud_sdk_sanitization::{sanitize_bytes, sanitize_string};
 
 use super::cloud_schema::validate_model;
+use super::ssh_wire::validate_key_identity;
 use super::wipe_string::WipeString;
 use super::{
     Labels, ResponseModelError, SensitiveText, UtcTimestamp, parse_labels, required, value_text,
 };
-use crate::security::ssh_keys::{MAX_SSH_PUBLIC_KEY_BYTES, SshPublicKey};
+use crate::security::ssh_keys::MAX_SSH_PUBLIC_KEY_BYTES;
 use crate::serde::strict_json::Value;
 
 const MAX_LABELS: usize = 64;
@@ -165,28 +164,6 @@ fn parse_md5_fingerprint(value: &str) -> Result<[u8; 16], ResponseModelError> {
         return Err(ResponseModelError::InvalidText);
     }
     Ok(output)
-}
-
-fn validate_key_identity(
-    value: &str,
-    supplied_fingerprint: [u8; 16],
-) -> Result<[u8; 32], ResponseModelError> {
-    SshPublicKey::new(value).map_err(|_| ResponseModelError::InvalidText)?;
-    let parsed = PublicKey::from_openssh(value).map_err(|_| ResponseModelError::InvalidText)?;
-    let mut wire = parsed
-        .to_bytes()
-        .map_err(|_| ResponseModelError::InvalidText)?;
-    let computed_fingerprint: [u8; 16] = {
-        let wire = SecretBuffer::new(wire.as_mut_slice());
-        Md5::digest(wire.as_slice()).into()
-    };
-    if computed_fingerprint != supplied_fingerprint {
-        return Err(ResponseModelError::EnvelopeMismatch);
-    }
-    parsed
-        .fingerprint(HashAlg::Sha256)
-        .sha256()
-        .ok_or(ResponseModelError::InvalidText)
 }
 
 #[cfg(test)]

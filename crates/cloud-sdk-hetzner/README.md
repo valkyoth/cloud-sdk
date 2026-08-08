@@ -272,11 +272,13 @@ cloud-sdk-hetzner = { version = "0.40.0", features = ["serde"] }
 ```
 
 The feature admits serde_json with `default-features = false` and `alloc` only
-for the public Serde request/envelope APIs. It also admits `ssh-key` with only
-`alloc` and `md-5` with no features for checked SSH-key responses; neither
-enters the default provider graph. Checked responses use a private direct
-parser that never routes decoded string values through serde_json heap scratch
-storage. The decoder consumes a cleanup-owning `ResponseBuffer`
+for the public Serde request/envelope APIs. Checked SSH-key responses reuse
+exact `base64-ng` and admit exact `md-5` plus `sha2`, all without defaults;
+none enters the default provider graph. A private bounded parser validates the
+exact supported algorithm set and RFC 4253 structure directly inside one
+cleanup-owned decoded allocation. Checked responses never route decoded
+string values through serde_json heap scratch storage. The decoder consumes a
+cleanup-owning `ResponseBuffer`
 together with its exact `PreparedRequest`, applies the prepared
 status/content-type/body policy, rejects duplicate or malformed JSON, and
 returns validated typed success or API errors only after response storage is

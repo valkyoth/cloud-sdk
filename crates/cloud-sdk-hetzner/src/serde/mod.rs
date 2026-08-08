@@ -67,6 +67,8 @@ mod checked_security_tests;
 #[cfg(test)]
 mod checked_special_tests;
 #[cfg(test)]
+mod checked_ssh_key_algorithm_tests;
+#[cfg(test)]
 mod checked_test_support;
 #[cfg(test)]
 mod checked_tests;

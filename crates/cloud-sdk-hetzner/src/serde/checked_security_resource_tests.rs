@@ -249,6 +249,14 @@ fn ssh_key_shape_and_certificate_chain_bounds_fail_closed() {
             "public_key",
             serde_json::json!("ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAA==="),
         ),
+        (
+            "public_key",
+            serde_json::json!("ecdsa-sha2-attacker@example.com AAAA"),
+        ),
+        (
+            "public_key",
+            serde_json::json!("sk-ssh-ed25519@evil.example AAAA"),
+        ),
         ("created", serde_json::json!("2026-02-30T00:00:00Z")),
     ] {
         let mut key = resource_value("ssh_key");

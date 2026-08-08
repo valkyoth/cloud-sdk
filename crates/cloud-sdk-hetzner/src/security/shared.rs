@@ -149,7 +149,7 @@ impl<'a> SshPublicKey<'a> {
         let key = fields
             .next()
             .ok_or(SecurityRequestError::InvalidSshPublicKey)?;
-        if !is_supported_ssh_algorithm(algorithm) || key.is_empty() || !is_base64ish(key) {
+        if ssh_algorithm(algorithm).is_none() || key.is_empty() || !is_base64ish(key) {
             return Err(SecurityRequestError::InvalidSshPublicKey);
         }
         Ok(Self { value })
@@ -353,12 +353,43 @@ fn has_control_byte(value: &str) -> bool {
     value.bytes().any(|byte| byte < 0x20 || byte == 0x7f)
 }
 
-fn is_supported_ssh_algorithm(value: &str) -> bool {
-    value == "ssh-ed25519"
-        || value == "ssh-rsa"
-        || value.starts_with("ecdsa-sha2-")
-        || value.starts_with("sk-ssh-ed25519@")
-        || value.starts_with("sk-ecdsa-sha2-")
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(crate) enum SshAlgorithm {
+    Ed25519,
+    Rsa,
+    EcdsaNistP256,
+    EcdsaNistP384,
+    EcdsaNistP521,
+    SkEd25519,
+    SkEcdsaNistP256,
+}
+
+impl SshAlgorithm {
+    #[cfg(feature = "serde")]
+    pub(crate) const fn as_str(self) -> &'static str {
+        match self {
+            Self::Ed25519 => "ssh-ed25519",
+            Self::Rsa => "ssh-rsa",
+            Self::EcdsaNistP256 => "ecdsa-sha2-nistp256",
+            Self::EcdsaNistP384 => "ecdsa-sha2-nistp384",
+            Self::EcdsaNistP521 => "ecdsa-sha2-nistp521",
+            Self::SkEd25519 => "sk-ssh-ed25519@openssh.com",
+            Self::SkEcdsaNistP256 => "sk-ecdsa-sha2-nistp256@openssh.com",
+        }
+    }
+}
+
+pub(crate) fn ssh_algorithm(value: &str) -> Option<SshAlgorithm> {
+    match value {
+        "ssh-ed25519" => Some(SshAlgorithm::Ed25519),
+        "ssh-rsa" => Some(SshAlgorithm::Rsa),
+        "ecdsa-sha2-nistp256" => Some(SshAlgorithm::EcdsaNistP256),
+        "ecdsa-sha2-nistp384" => Some(SshAlgorithm::EcdsaNistP384),
+        "ecdsa-sha2-nistp521" => Some(SshAlgorithm::EcdsaNistP521),
+        "sk-ssh-ed25519@openssh.com" => Some(SshAlgorithm::SkEd25519),
+        "sk-ecdsa-sha2-nistp256@openssh.com" => Some(SshAlgorithm::SkEcdsaNistP256),
+        _ => None,
+    }
 }
 
 fn is_base64ish(value: &str) -> bool {

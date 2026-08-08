@@ -1,14 +1,14 @@
 {
   "SPDXID": "SPDXRef-DOCUMENT",
   "creationInfo": {
-    "created": "2026-08-08T16:30:00Z",
+    "created": "2026-08-08T17:02:10Z",
     "creators": [
       "Tool: cargo-sbom-v0.10.0",
       "Tool: cloud-sdk-complete-spdx-v1"
     ]
   },
   "dataLicense": "CC0-1.0",
-  "documentNamespace": "https://spdx.org/spdxdocs/reqwest-feature-unification-4233c417-34e2-4efd-9e30-46e7f2639b28",
+  "documentNamespace": "https://spdx.org/spdxdocs/reqwest-feature-unification-89da87a9-e053-46c2-a0cf-3a94e6d5022b",
   "files": [
     {
       "SPDXID": "SPDXRef-File-cloud_sdk_reqwest_feature_unification_test",
