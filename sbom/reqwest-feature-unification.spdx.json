@@ -1,21 +1,21 @@
 {
   "SPDXID": "SPDXRef-DOCUMENT",
   "creationInfo": {
-    "created": "2026-08-08T06:30:42Z",
+    "created": "2026-08-08T06:44:50Z",
     "creators": [
       "Tool: cargo-sbom-v0.10.0",
       "Tool: cloud-sdk-complete-spdx-v1"
     ]
   },
   "dataLicense": "CC0-1.0",
-  "documentNamespace": "https://spdx.org/spdxdocs/reqwest-feature-unification-aa26bd8f-94bd-4507-8a51-42ba087247b8",
+  "documentNamespace": "https://spdx.org/spdxdocs/reqwest-feature-unification-3dbfaff4-e690-415b-915e-058c3e055883",
   "files": [
     {
       "SPDXID": "SPDXRef-File-cloud_sdk_reqwest_feature_unification_test",
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "f29b42fa74e5b403d6e0b4fa23dbee526883c2f7"
+          "checksumValue": "22abba542472e2942e59a0e848704e8b5246824d"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -158,13 +158,13 @@
       "versionInfo": "0.22.1"
     },
     {
-      "SPDXID": "SPDXRef-Package-base64-ng-1.3.9",
-      "description": "no_std-first Base64 encoding and decoding with strict APIs and a security-heavy release process",
+      "SPDXID": "SPDXRef-Package-base64-ng-2.0.1",
+      "description": "no_std-first Base64 encoding and decoding with strict RFC 4648 APIs and optional SIMD",
       "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
-          "referenceLocator": "pkg:cargo/base64-ng@1.3.9",
+          "referenceLocator": "pkg:cargo/base64-ng@2.0.1",
           "referenceType": "purl"
         }
       ],
@@ -172,7 +172,7 @@
       "licenseConcluded": "MIT OR Apache-2.0",
       "licenseDeclared": "MIT OR Apache-2.0",
       "name": "base64-ng",
-      "versionInfo": "1.3.9"
+      "versionInfo": "2.0.1"
     },
     {
       "SPDXID": "SPDXRef-Package-bindgen-0.72.1",
@@ -3868,7 +3868,7 @@
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.33.0",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-base64-ng-1.3.9"
+      "relatedSpdxElement": "SPDXRef-Package-base64-ng-2.0.1"
     },
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.33.0",

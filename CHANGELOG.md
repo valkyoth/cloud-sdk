@@ -8,6 +8,8 @@
   drift binding, adversarial tests, and a complete Cloud fuzz seed.
 - Retained bounded future fields and enum strings while removing ordinary
   Cloud responses from the common-identity fallback.
+- Updated the optional `cloud-sdk-reqwest` Basic-auth encoder to exact
+  `base64-ng 2.0.1` with default features disabled.
 
 ## 0.62.0 - 2026-08-07
 

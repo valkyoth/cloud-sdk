@@ -910,7 +910,7 @@ supporting crates retain their published versions until v0.65.0.
 | --- | --- | --- | --- | --- | --- |
 | `cloud-sdk` | `0.60.0` | `0.61.0` | `metadata` | No | Record the end-to-end probe harness and release evidence. |
 | `cloud-sdk-hetzner` | `0.39.1` | `0.39.1` | `dependency` | No | Accumulate the source core dependency for v0.65.0. |
-| `cloud-sdk-reqwest` | `0.33.0` | `0.33.0` | `dependency` | No | Accumulate the source core dependency for v0.65.0. |
+| `cloud-sdk-reqwest` | `0.33.0` | `0.33.0` | `code` | No | Accumulate the exact `base64-ng 2.0.1` Basic-auth encoder update for v0.65.0. |
 | `cloud-sdk-sanitization` | `0.18.0` | `0.18.0` | `unchanged` | No | No sanitization boundary changes. |
 | `cloud-sdk-testkit` | `0.29.1` | `0.29.1` | `code` | No | Retain the cumulative v0.62 fixture changes for v0.65.0. |
 

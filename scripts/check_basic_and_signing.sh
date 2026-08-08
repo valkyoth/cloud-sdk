@@ -80,7 +80,7 @@ fi
 manifest='crates/cloud-sdk-reqwest/Cargo.toml'
 grep -Fq 'base64-ng = { workspace = true, optional = true }' "$manifest"
 grep -Fq '"dep:base64-ng"' "$manifest"
-grep -Fq 'base64-ng = { version = "=1.3.9", default-features = false }' Cargo.toml
+grep -Fq 'base64-ng = { version = "=2.0.1", default-features = false }' Cargo.toml
 
 package_files="$(cargo package -p cloud-sdk-hetzner --allow-dirty --list)"
 if printf '%s\n' "$package_files" | grep -Fq 'robot-wire'; then

@@ -40,13 +40,20 @@ an internal tag and publishes no crate. The provider package version remains
   canonical-schema-equality, deterministic fixture, adversarial model, full
   operation matrix, and fuzz-corpus evidence.
 
+## Dependency Maintenance
+
+- Updated the optional, exact `base64-ng` Basic-auth encoder dependency from
+  1.3.9 to 2.0.1 with default features disabled and no new transitive package.
+- Retained exact feature-boundary, bounded-output, source-clearing, and
+  authorization-vector tests around the encoder integration.
+
 ## Versions
 
 | Crate | Source version | Cumulative change | Publication |
 | --- | --- | --- | --- |
 | `cloud-sdk` | `0.63.0` | metadata | deferred to v0.65.0 |
 | `cloud-sdk-hetzner` | `0.39.1` | code | deferred |
-| `cloud-sdk-reqwest` | `0.33.0` | dependency | deferred |
+| `cloud-sdk-reqwest` | `0.33.0` | code | deferred |
 | `cloud-sdk-sanitization` | `0.18.0` | unchanged | no |
 | `cloud-sdk-testkit` | `0.29.1` | code | deferred |
 

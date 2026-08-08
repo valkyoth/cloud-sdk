@@ -36,6 +36,8 @@ and paginated results. This is an intentional pre-1.0 development API change.
 
 ## Compatibility
 
-No default feature, dependency, runtime, transport, executor, filesystem,
-clock, TLS, or secret-store boundary changes. Models require the existing
-optional `serde` and `alloc` boundary. No provider-neutral API changed.
+No default feature, runtime, transport, executor, filesystem, clock, TLS, or
+secret-store boundary changes. Models require the existing optional `serde`
+and `alloc` boundary. The exact optional Basic-auth encoder update does not
+change the authentication API or dependency-graph shape. No provider-neutral
+API changed.

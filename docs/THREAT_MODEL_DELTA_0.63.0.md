@@ -22,10 +22,14 @@ exercise more nested values, lists, strings, and unknown additive fields.
   the selected resource family or bypass validation of known fields.
 - The generated contract and fixtures must reproduce from the exact pinned
   upstream specification during live drift checks.
+- The optional Basic-auth encoder moves to exact `base64-ng 2.0.1` with default
+  features disabled. Existing exact output, source-clearing, aggregate-bound,
+  feature-boundary, and transport tests continue to cover its use.
 
 ## Unchanged Boundaries
 
 These ordinary Cloud resources do not contain credentials or documented secret
 outputs. Existing zonefile, certificate, password, and provider-error protected
 storage remains unchanged. The default graph remains transport-free and
-`no_std`; no network or retry behavior is introduced.
+`no_std`; no network or retry behavior is introduced. The encoder update does
+not change the public authentication contract.

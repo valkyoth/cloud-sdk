@@ -6,14 +6,14 @@ Status: admitted only through `cloud-sdk-reqwest/blocking-rustls`,
 with reqwest default features disabled. The internal `fuzzing` feature aliases
 `blocking-rustls` only for the isolated fuzz workspace.
 
-Checked: 2026-08-01.
+Checked: 2026-08-08.
 
 ## Decision
 
 | Crate | Version | Role | Default features |
 | --- | --- | --- | --- |
 | `reqwest` | `0.13.4` | blocking/async HTTP client and URL/header types | disabled |
-| `base64-ng` | `1.3.9` | bounded RFC 4648 Basic authorization encoding | disabled |
+| `base64-ng` | `2.0.1` | bounded RFC 4648 Basic authorization encoding | disabled |
 | `bytes` | `1.12.1` | sanitized owned async request-body handoff | disabled |
 | `http` | `1.5.0` | raw request and response-head representation | disabled |
 | `http-body-util` | `0.1.4` | raw body ownership and response-frame access | disabled |

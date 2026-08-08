@@ -43,7 +43,7 @@ blocking_tree=$(cargo tree -p cloud-sdk-reqwest --no-default-features \
     --features blocking-rustls --edges normal)
 for dependency in \
     'http v1.5.0' \
-    'base64-ng v1.3.9' \
+    'base64-ng v2.0.1' \
     'http-body-util v0.1.4' \
     'hyper v1.11.0' \
     'hyper-rustls v0.27.9' \
@@ -68,7 +68,7 @@ async_tree=$(cargo tree -p cloud-sdk-reqwest --no-default-features \
     --features async-rustls --edges normal)
 for dependency in \
     'bytes v1.12.1' \
-    'base64-ng v1.3.9' \
+    'base64-ng v2.0.1' \
     'http-body-util v0.1.4' \
     'hyper v1.11.0' \
     'hyper-rustls v0.27.9' \
