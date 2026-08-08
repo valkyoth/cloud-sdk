@@ -12,8 +12,8 @@ use cloud_sdk::transport::{
     RawResponsePolicy, RequestTarget, ResponseBuffer, ResponseMediaPolicy, ResponseMetadata,
     StatusCode, TransportRequest,
 };
-use cloud_sdk_hetzner::CloudService;
 use cloud_sdk_hetzner::serde::{ApiErrorEnvelope, ResponseBytes, decode_response};
+use cloud_sdk_hetzner::{CloudService, DnsService};
 use libfuzzer_sys::fuzz_target;
 
 const JSON: &[MediaType<'static>] = &[MediaType::JSON];
@@ -21,14 +21,22 @@ const OK: &[StatusCode] = &[StatusCode::OK];
 const CREATED: &[StatusCode] = &[StatusCode::CREATED];
 
 fn prepared(selector: u8) -> Option<(PreparedRequest<'static>, StatusCode)> {
-    let (operation, target, method, statuses, status) = match selector % 4 {
-        0 => ("get_action", "/actions/1", Method::Get, OK, StatusCode::OK),
+    let (operation, target, method, statuses, status, dns) = match selector % 8 {
+        0 => (
+            "get_action",
+            "/actions/1",
+            Method::Get,
+            OK,
+            StatusCode::OK,
+            false,
+        ),
         1 => (
             "get_server_metrics",
             "/servers/1/metrics",
             Method::Get,
             OK,
             StatusCode::OK,
+            false,
         ),
         2 => (
             "create_server",
@@ -36,13 +44,47 @@ fn prepared(selector: u8) -> Option<(PreparedRequest<'static>, StatusCode)> {
             Method::Post,
             CREATED,
             StatusCode::CREATED,
+            false,
         ),
-        _ => (
+        3 => (
             "request_server_console",
             "/servers/1/actions/request_console",
             Method::Post,
             CREATED,
             StatusCode::CREATED,
+            false,
+        ),
+        4 => (
+            "get_zone",
+            "/zones/1",
+            Method::Get,
+            OK,
+            StatusCode::OK,
+            true,
+        ),
+        5 => (
+            "get_zone_rrset",
+            "/zones/1/rrsets/www/A",
+            Method::Get,
+            OK,
+            StatusCode::OK,
+            true,
+        ),
+        6 => (
+            "get_zone_zonefile",
+            "/zones/1/zonefile",
+            Method::Get,
+            OK,
+            StatusCode::OK,
+            true,
+        ),
+        _ => (
+            "create_zone",
+            "/zones",
+            Method::Post,
+            CREATED,
+            StatusCode::CREATED,
+            true,
         ),
     };
     let target = RequestTarget::new(target).ok()?;
@@ -64,7 +106,11 @@ fn prepared(selector: u8) -> Option<(PreparedRequest<'static>, StatusCode)> {
     )
     .ok()?;
     let operation = OperationId::new(operation).ok()?;
-    let service = ProviderService::from_marker::<CloudService>(EndpointPolicy::fixed(endpoint));
+    let service = if dns {
+        ProviderService::from_marker::<DnsService>(EndpointPolicy::fixed(endpoint))
+    } else {
+        ProviderService::from_marker::<CloudService>(EndpointPolicy::fixed(endpoint))
+    };
     let authentication_policy = AuthenticationScopePolicy::new(
         ScopeRequirement::Required(service.provider_id()),
         ScopeRequirement::Required(service.service_id()),

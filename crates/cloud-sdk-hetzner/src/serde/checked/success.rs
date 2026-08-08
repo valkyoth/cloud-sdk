@@ -16,7 +16,10 @@ pub(super) fn decode_checked_success(
         HetznerSuccess::Empty
     } else {
         let bytes = ResponseBytes::new(checked.body()).map_err(HetznerDecodeError::ResponseSize)?;
-        if operation == "list_storage_boxes" {
+        if matches!(
+            operation,
+            "list_storage_boxes" | "list_zones" | "list_zone_rrsets" | "get_zone_zonefile"
+        ) {
             validate_incremental(bytes.as_slice())?;
         }
         let mut value =
@@ -127,7 +130,7 @@ fn decode_success(
             })
         }
         ResponseShape::Resource | ResponseShape::ResourceList | ResponseShape::ResourcePage => {
-            decode_resources(binding, object(value)?)
+            decode_resources(binding, object_mut(value)?)
         }
         ResponseShape::Composite => Err(ResponseModelError::EnvelopeMismatch),
         ResponseShape::Metrics => {
@@ -169,8 +172,27 @@ fn validate_incremental(bytes: &[u8]) -> Result<(), HetznerDecodeError> {
 
 fn decode_resources(
     binding: ResponseBinding,
-    envelope: &Map,
+    envelope: &mut Map,
 ) -> Result<HetznerSuccess, ResponseModelError> {
+    if is_dns_resource_root(binding.root) {
+        let pagination = if binding.shape == ResponseShape::ResourcePage {
+            Some(parse_pagination(required(envelope, "meta")?)?)
+        } else {
+            None
+        };
+        if let Some(page) = &pagination {
+            validate_page_item_count(required(envelope, binding.root)?, page)?;
+        }
+        if binding.shape == ResponseShape::Resource {
+            return parse_dns_resource(binding.root, required_mut(envelope, binding.root)?)
+                .map(HetznerSuccess::DnsResource);
+        }
+        let resources = parse_dns_resources(binding.root, required_mut(envelope, binding.root)?)?;
+        return Ok(HetznerSuccess::DnsResources {
+            resources,
+            pagination,
+        });
+    }
     let value = required(envelope, binding.root)?;
     if is_cloud_resource_root(binding.root) {
         if binding.shape == ResponseShape::Resource {
@@ -222,7 +244,23 @@ fn decode_composite(
     } else {
         None
     };
-    let resource = if binding.root == "-" || cloud_resource.is_some() {
+    let dns_resource = if binding.root != "-" && is_dns_resource_root(binding.root) {
+        envelope
+            .get_mut(binding.root)
+            .map(|value| parse_dns_resource(binding.root, value))
+            .transpose()?
+    } else {
+        None
+    };
+    let has_dns_resource = dns_resource.is_some();
+    let mut dns_resources = Vec::new();
+    if let Some(dns_resource) = dns_resource {
+        dns_resources
+            .try_reserve_exact(1)
+            .map_err(|_| ResponseModelError::Allocation)?;
+        dns_resources.push(dns_resource);
+    }
+    let resource = if binding.root == "-" || cloud_resource.is_some() || has_dns_resource {
         None
     } else {
         envelope
@@ -244,6 +282,7 @@ fn decode_composite(
     Ok(HetznerSuccess::Composite(CompositeResult {
         resource,
         cloud_resource,
+        dns_resources,
         action,
         actions,
         next_actions,

@@ -28,15 +28,18 @@ pub use incremental::{
     IncrementalJsonLimitsError, IncrementalJsonProgress, IncrementalJsonVisitor, VisitControl,
 };
 pub use models::{
-    AccessSettings, ActionResult, ActionResultError, ActionResultResource, Certificate,
-    CertificateError, CertificateKind, CertificateStatus, CertificateUse, CloudNumber, CloudObject,
-    CloudResource, CloudResourceKind, CloudValue, CompositeResult, Deprecation, ExactDecimal,
-    Firewall, FloatingIp, FolderList, HetznerSuccess, Image, Iso, Labels, LoadBalancer,
-    LoadBalancerType, Location, LocationPage, MetricPoint, MetricSeries, Metrics, Money,
-    NamedSensitiveText, Network, PlacementGroup, Price, Pricing, PrimaryIp, Protection, Resource,
+    AccessSettings, ActionResult, ActionResultError, ActionResultResource,
+    AuthoritativeNameservers, Certificate, CertificateError, CertificateKind, CertificateStatus,
+    CertificateUse, CloudNumber, CloudObject, CloudResource, CloudResourceKind, CloudValue,
+    CompositeResult, Deprecation, DnsRecord, DnsResource, DnsResourceKind, DnsRrset,
+    DnsRrsetProtection, DnsRrsetType, DnsTsigAlgorithm, ExactDecimal, Firewall, FloatingIp,
+    FolderList, HetznerSuccess, Image, Iso, Labels, LoadBalancer, LoadBalancerType, Location,
+    LocationPage, MetricPoint, MetricSeries, Metrics, Money, NamedSensitiveText, Network,
+    PlacementGroup, Price, Pricing, PrimaryIp, PrimaryNameserver, Protection, Resource,
     ResourceIdentifier, ResourceKind, ResponseModelError, SensitiveText, Server, ServerType,
     SnapshotPlan, StorageBox, StorageBoxPage, StorageBoxStats, StorageBoxStatus, StorageBoxType,
-    UtcTimestamp, Volume, ZoneFile,
+    UtcTimestamp, Volume, Zone, ZoneDelegationStatus, ZoneFile, ZoneMode, ZoneProtection,
+    ZoneRegistrar, ZoneStatus,
 };
 pub use pagination::PaginationEnvelope;
 pub use response::{
@@ -48,6 +51,8 @@ pub use rrsets::{MAX_RRSET_JSON_BODY_BYTES, RrsetBodyError, RrsetRequestBody};
 
 #[cfg(test)]
 mod adversarial_tests;
+#[cfg(test)]
+mod checked_dns_tests;
 #[cfg(test)]
 mod checked_fixtures;
 #[cfg(test)]

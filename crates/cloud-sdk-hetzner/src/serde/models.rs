@@ -6,6 +6,7 @@ mod cloud_constraints;
 mod cloud_resources;
 mod cloud_schema;
 mod cloud_value;
+mod dns;
 mod location;
 mod metrics;
 mod resources;
@@ -29,6 +30,11 @@ pub use cloud_resources::{
     LoadBalancerType, Network, PlacementGroup, PrimaryIp, Server, ServerType, Volume,
 };
 pub use cloud_value::{CloudNumber, CloudObject, CloudValue};
+pub use dns::{
+    AuthoritativeNameservers, DnsRecord, DnsResource, DnsResourceKind, DnsRrset,
+    DnsRrsetProtection, DnsRrsetType, DnsTsigAlgorithm, PrimaryNameserver, Zone,
+    ZoneDelegationStatus, ZoneMode, ZoneProtection, ZoneRegistrar, ZoneStatus,
+};
 pub use location::{Location, LocationPage};
 pub use metrics::{MetricPoint, MetricSeries, Metrics};
 pub use resources::{Resource, ResourceIdentifier, ResourceKind};
@@ -44,6 +50,7 @@ pub(crate) use certificate::parse_certificate;
 pub(crate) use cloud_resources::{
     is_cloud_resource_root, parse_cloud_resource, parse_cloud_resources,
 };
+pub(crate) use dns::{is_dns_resource_root, parse_dns_resource, parse_dns_resources};
 pub(crate) use location::{parse_location, parse_location_page};
 pub(crate) use metrics::parse_metrics;
 pub(crate) use resources::{parse_pagination, parse_resource, parse_resources};
@@ -198,6 +205,15 @@ pub enum HetznerSuccess {
         /// Pagination supplied by paginated endpoints.
         pagination: Option<PaginationMetadata>,
     },
+    /// One source-complete DNS resource.
+    DnsResource(DnsResource),
+    /// Source-complete DNS resources with optional pagination.
+    DnsResources {
+        /// Dedicated DNS resource variants.
+        resources: Vec<DnsResource>,
+        /// Pagination supplied by paginated endpoints.
+        pagination: Option<PaginationMetadata>,
+    },
     /// A create/action result with optional resource, actions, and secrets.
     Composite(CompositeResult),
     /// Metrics response.
@@ -215,6 +231,7 @@ pub enum HetznerSuccess {
 pub struct CompositeResult {
     pub(super) resource: Option<Resource>,
     pub(super) cloud_resource: Option<CloudResource>,
+    pub(super) dns_resources: Vec<DnsResource>,
     pub(super) action: Option<ActionResult>,
     pub(super) actions: Vec<ActionResult>,
     pub(super) next_actions: Vec<ActionResult>,
@@ -233,6 +250,12 @@ impl CompositeResult {
     #[must_use]
     pub const fn cloud_resource(&self) -> Option<&CloudResource> {
         self.cloud_resource.as_ref()
+    }
+
+    /// Returns the source-complete DNS resource when supplied.
+    #[must_use]
+    pub fn dns_resource(&self) -> Option<&DnsResource> {
+        self.dns_resources.first()
     }
 
     /// Returns the singular action supplied by the operation.
@@ -278,6 +301,7 @@ impl fmt::Debug for CompositeResult {
                 "cloud_resource",
                 &self.cloud_resource.as_ref().map(|_| "[redacted]"),
             )
+            .field("dns_resource", &self.dns_resource().map(|_| "[redacted]"))
             .field("action", &self.action)
             .field("action_count", &self.actions.len())
             .field("next_action_count", &self.next_actions.len())

@@ -144,6 +144,52 @@ def test_discriminated_union_has_shared_and_selected_paths() -> None:
     assert "services[protocol=https]/certificate" in paths
 
 
+def test_root_union_is_flattened_only_when_branches_share_one_shape() -> None:
+    common = {
+        "type": "object",
+        "required": ["id"],
+        "properties": {"id": {"type": "integer", "minimum": 1}},
+    }
+    schema = {
+        "oneOf": [
+            {
+                "allOf": [
+                    common,
+                    {
+                        "type": "object",
+                        "required": ["mode"],
+                        "properties": {"mode": {"type": "string", "enum": ["primary"]}},
+                    },
+                ]
+            },
+            {
+                "allOf": [
+                    common,
+                    {
+                        "type": "object",
+                        "required": ["mode"],
+                        "properties": {"mode": {"type": "string", "enum": ["secondary"]}},
+                    },
+                ]
+            },
+        ],
+        "discriminator": {"propertyName": "mode"},
+    }
+    flattened = generator.flatten_root_union("zone", schema)
+    assert flattened["required"] == ["id", "mode"]
+    assert flattened["properties"]["mode"]["enum"] == ["primary", "secondary"]
+
+    schema["oneOf"][1]["allOf"][0] = {
+        "type": "object",
+        "required": ["id", "changed"],
+        "properties": {
+            "id": {"type": "integer", "minimum": 1},
+            "changed": {"type": "boolean"},
+        },
+    }
+    assert_raises("do not share one field shape", generator.flatten_root_union, "zone", schema)
+
+
 def test_constraints_are_recorded_and_unsupported_constraints_fail_closed() -> None:
     row = generator.descriptor(
         "location",
@@ -297,7 +343,7 @@ def test_committed_evidence_is_structurally_complete() -> None:
         )
     )
     fixtures = json.loads(generator.DEFAULT_FIXTURES.read_text(encoding="ascii"))
-    assert len(rows) == 535
+    assert len(rows) == 569
     assert {row["model"] for row in rows} == generator.EXPECTED_MODELS
     assert set(fixtures) == generator.EXPECTED_MODELS
     identities = [(row["model"], row["path"]) for row in rows]

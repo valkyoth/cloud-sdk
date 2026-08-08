@@ -66,6 +66,10 @@ MODEL_ROOTS = {
     "server_types": "server_type",
     "volume": "volume",
     "volumes": "volume",
+    "zone": "zone",
+    "zones": "zone",
+    "rrset": "rrset",
+    "rrsets": "rrset",
 }
 EXPECTED_MODELS = frozenset(MODEL_ROOTS.values())
 FIELDS = (
@@ -156,6 +160,50 @@ def collect_models(document: dict[str, Any]) -> dict[str, dict[str, Any]]:
             raise ValueError(f"{model} response schemas are not structurally identical")
         output[model] = canonical
     return output
+
+
+def flatten_root_union(model: str, schema: dict[str, Any]) -> dict[str, Any]:
+    """Flatten a discriminated object union whose branches share one shape."""
+    if "oneOf" not in schema:
+        return schema
+    validate_constraints(model, "<root>", schema, allowed_keys=UNION_SCHEMA_KEYS)
+    discriminator = schema.get("discriminator", {})
+    selector = discriminator.get("propertyName") if isinstance(discriminator, dict) else None
+    branches = schema.get("oneOf")
+    if not isinstance(selector, str) or not isinstance(branches, list) or not branches:
+        raise ValueError(f"{model} has an unsupported root union")
+
+    merged_branches = [merge_all_of(branch) for branch in branches if isinstance(branch, dict)]
+    if len(merged_branches) != len(branches):
+        raise ValueError(f"{model} root union branch is invalid")
+    first = merged_branches[0]
+    first_properties = first.get("properties", {})
+    first_required = first.get("required", [])
+    if not isinstance(first_properties, dict) or not isinstance(first_required, list):
+        raise ValueError(f"{model} root union metadata is invalid")
+
+    selector_values: list[str] = []
+    output_properties = dict(first_properties)
+    for branch in merged_branches:
+        properties = branch.get("properties", {})
+        required = branch.get("required", [])
+        if not isinstance(properties, dict) or not isinstance(required, list):
+            raise ValueError(f"{model} root union metadata is invalid")
+        selector_schema = properties.get(selector, {})
+        values = selector_schema.get("enum", []) if isinstance(selector_schema, dict) else []
+        if len(values) != 1 or not isinstance(values[0], str):
+            raise ValueError(f"{model} root union selector is ambiguous")
+        selector_values.append(values[0])
+        comparable = {key: value for key, value in properties.items() if key != selector}
+        expected = {key: value for key, value in first_properties.items() if key != selector}
+        if clean_schema(comparable) != clean_schema(expected) or sorted(required) != sorted(first_required):
+            raise ValueError(f"{model} root union branches do not share one field shape")
+    output_properties[selector] = {"type": "string", "enum": sorted(selector_values)}
+    return {
+        "type": "object",
+        "properties": output_properties,
+        "required": sorted(first_required),
+    }
 
 
 def schema_types(schema: dict[str, Any]) -> list[str]:
@@ -331,6 +379,7 @@ def walk_children(model: str, path: str, schema: dict[str, Any], rows: list[dict
 def render(document: dict[str, Any]) -> str:
     rows: list[dict[str, str]] = []
     for model, schema in sorted(collect_models(document).items()):
+        schema = flatten_root_union(model, schema)
         walk_object(model, "", schema, rows)
     lines = ["\t".join(FIELDS)]
     lines.extend("\t".join(row[field] for field in FIELDS) for row in rows)
@@ -393,10 +442,29 @@ def example_value(schema: dict[str, Any]) -> Any:
 
 def render_fixtures(document: dict[str, Any]) -> str:
     fixtures = {
-        model: example_value(schema)
+        model: normalize_fixture(model, example_value(flatten_root_union(model, schema)))
         for model, schema in sorted(collect_models(document).items())
     }
     return json.dumps(fixtures, sort_keys=True, separators=(",", ":")) + "\n"
+
+
+def normalize_fixture(model: str, value: Any) -> Any:
+    """Apply deterministic semantic values omitted from machine constraints."""
+    if model == "zone" and isinstance(value, dict):
+        value["mode"] = "secondary"
+        value["name"] = "example.com"
+        value["authoritative_nameservers"]["assigned"] = ["ns1.example.com."]
+        value["authoritative_nameservers"]["delegated"] = ["ns1.example.com."]
+        nameserver = value["primary_nameservers"][0]
+        nameserver["address"] = "192.0.2.1"
+        nameserver["port"] = 53
+        nameserver["tsig_algorithm"] = "hmac-sha256"
+        nameserver["tsig_key"] = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+    if model == "rrset" and isinstance(value, dict):
+        value["name"] = "www"
+        value["type"] = "A"
+        value["records"][0]["value"] = "192.0.2.1"
+    return value
 
 
 def main() -> int:

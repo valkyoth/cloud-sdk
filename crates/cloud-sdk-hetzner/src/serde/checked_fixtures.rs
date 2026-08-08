@@ -113,6 +113,8 @@ fn cloud_model_name(root: &str) -> Option<&'static str> {
         "server" | "servers" => Some("server"),
         "server_type" | "server_types" => Some("server_type"),
         "volume" | "volumes" => Some("volume"),
+        "zone" | "zones" => Some("zone"),
+        "rrset" | "rrsets" => Some("rrset"),
         _ => None,
     }
 }

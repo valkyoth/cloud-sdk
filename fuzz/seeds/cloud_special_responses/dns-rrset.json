@@ -1,0 +1,1 @@
+edc{"rrset":{"id":"rrset-1","name":"www","type":"FUTURE42","ttl":null,"labels":{},"protection":{"change":false},"records":[{"value":"192.0.2.1","comment":"web"}],"zone":1}}
