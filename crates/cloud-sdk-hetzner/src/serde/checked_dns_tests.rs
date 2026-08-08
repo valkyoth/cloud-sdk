@@ -1,6 +1,7 @@
 //! Dedicated DNS response-model regressions.
 
 use alloc::format;
+use alloc::vec::Vec;
 
 use cloud_sdk::transport::StatusCode;
 
@@ -117,6 +118,61 @@ fn rrset_retains_unknown_types_but_rejects_ambiguous_records() {
             {"value":"192.0.2.1","comment":"duplicate"}
         ]),
     );
+    let body = serde_json::to_vec(&serde_json::json!({"rrset":duplicate})).unwrap_or_default();
+    assert_eq!(
+        decode_response(
+            prepared("get_zone_rrset", DNS_SERVICE_ID, StatusCode::OK),
+            response(StatusCode::OK, &body),
+        ),
+        Err(HetznerDecodeError::Model(ResponseModelError::InvalidText))
+    );
+}
+
+#[test]
+fn rrset_record_deduplication_handles_the_exact_source_bound() {
+    let mut records = Vec::new();
+    records
+        .try_reserve_exact(4_096)
+        .unwrap_or_else(|_| unreachable!("bounded RRSet test allocation failed"));
+    for index in 0..4_096 {
+        records.push(serde_json::json!({
+            "value": format!("record-{index:04}.example.com.")
+        }));
+    }
+
+    let mut rrset = resource_value("rrset");
+    let Some(fields) = rrset.as_object_mut() else {
+        unreachable!("RRSet fixture is not an object")
+    };
+    fields.insert("records".into(), serde_json::Value::Array(records));
+    let body = serde_json::to_vec(&serde_json::json!({"rrset":rrset})).unwrap_or_default();
+    let decoded = decode_response(
+        prepared("get_zone_rrset", DNS_SERVICE_ID, StatusCode::OK),
+        response(StatusCode::OK, &body),
+    );
+    let Ok(decoded) = decoded else {
+        unreachable!("exact-bound RRSet fixture failed")
+    };
+    let HetznerSuccess::DnsResource(DnsResource::Rrset(rrset)) = decoded.success() else {
+        unreachable!("RRSet fixture selected the wrong response model")
+    };
+    assert_eq!(rrset.records().len(), 4_096);
+
+    let mut duplicate = resource_value("rrset");
+    let Some(fields) = duplicate.as_object_mut() else {
+        unreachable!("RRSet fixture is not an object")
+    };
+    let mut records = Vec::new();
+    records
+        .try_reserve_exact(4_096)
+        .unwrap_or_else(|_| unreachable!("bounded RRSet test allocation failed"));
+    for index in 0..4_095 {
+        records.push(serde_json::json!({
+            "value": format!("record-{index:04}.example.com.")
+        }));
+    }
+    records.push(serde_json::json!({"value":"record-0000.example.com."}));
+    fields.insert("records".into(), serde_json::Value::Array(records));
     let body = serde_json::to_vec(&serde_json::json!({"rrset":duplicate})).unwrap_or_default();
     assert_eq!(
         decode_response(

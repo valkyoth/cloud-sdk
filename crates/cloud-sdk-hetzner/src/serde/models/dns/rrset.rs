@@ -257,15 +257,25 @@ fn parse_records(value: &Value) -> Result<Vec<DnsRecord>, ResponseModelError> {
         .map_err(|_| ResponseModelError::Allocation)?;
     for value in values {
         let record = parse_record(object(value)?)?;
-        if records
-            .iter()
-            .any(|previous: &DnsRecord| previous.value == record.value)
-        {
-            return Err(ResponseModelError::InvalidText);
-        }
         records.push(record);
     }
+    if !record_values_are_unique(&records)? {
+        return Err(ResponseModelError::InvalidText);
+    }
     Ok(records)
+}
+
+fn record_values_are_unique(records: &[DnsRecord]) -> Result<bool, ResponseModelError> {
+    let mut order = Vec::new();
+    order
+        .try_reserve_exact(records.len())
+        .map_err(|_| ResponseModelError::Allocation)?;
+    order.extend(records.iter().map(DnsRecord::value));
+    order.sort_unstable();
+    Ok(!order.windows(2).any(|pair| match pair {
+        [left, right] => left == right,
+        _ => false,
+    }))
 }
 
 fn parse_record(fields: &Map) -> Result<DnsRecord, ResponseModelError> {
