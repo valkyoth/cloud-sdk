@@ -42,6 +42,7 @@ scripts/check-provider-capabilities.py
 scripts/test-provider-capabilities.py
 scripts/check-custom-endpoint-docs.py
 scripts/test-custom-endpoint-docs.py
+scripts/test-fuzz-aws-lc-tree.py
 scripts/check_fuzz_harness.sh --metadata
 scripts/validate-file-lengths.sh
 scripts/validate-modularity-policy.sh check
