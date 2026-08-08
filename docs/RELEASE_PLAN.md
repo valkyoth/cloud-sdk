@@ -1985,11 +1985,24 @@ Stop gate: `v0.62.0 implementation stop reached. Complete the pentest and full r
 
 ### v0.63.0 - Complete Cloud Resource Models
 
+Status: implementation stop reached; pentest required.
+
 Goal: complete compute, network, IP, volume, pricing, and catalog fields.
 
-Deliverables: source-complete validated models, nullability, unknown-value policy, and no common-identity fallback.
+Deliverables: source-derived models for firewalls, floating IPs, images, ISOs,
+load balancers and their types, networks, placement groups, primary IPs,
+servers and their types, volumes, pricing, and locations. Validate all 535
+source-known field paths, required fields, nullability, exact JSON types,
+numeric/string/array bounds, and discriminated service/target variants. Retain
+bounded unknown fields and enum strings explicitly, and route ordinary Cloud
+operations through dedicated `CloudResource` variants with no common-identity
+fallback. Bind the generated field table and full fixtures to the exact pinned
+Cloud specification through the upstream drift gate.
 
-Verification: schema gates, golden/adversarial fixtures, fuzzing, and `scripts/release_0_63_gate.sh`.
+Verification: generator determinism and canonical-schema-equality tests; all
+208 operation response fixtures; missing, wrong-type, nullability, future-field,
+future-enum, nested-union, and allocation-bound tests; complete Cloud response
+fuzz seed; live upstream schema drift; and `scripts/release_0_63_gate.sh`.
 
 Stop gate: `v0.63.0 implementation stop reached. Complete the pentest and full release gate for this exact commit; defer crates.io publication to v0.65.0.`
 

@@ -91,6 +91,10 @@ fn decode_success(
     }
     match operation {
         "list_locations" => return parse_location_page(value).map(HetznerSuccess::Locations),
+        "get_location" => {
+            return parse_location(required(object(value)?, "location")?)
+                .map(HetznerSuccess::Location);
+        }
         "get_certificate" => return parse_certificate(value).map(HetznerSuccess::Certificate),
         "list_storage_boxes" => {
             return parse_storage_box_page(value).map(HetznerSuccess::StorageBoxes);
@@ -164,6 +168,24 @@ fn decode_resources(
     envelope: &Map,
 ) -> Result<HetznerSuccess, ResponseModelError> {
     let value = required(envelope, binding.root)?;
+    if is_cloud_resource_root(binding.root) {
+        if binding.shape == ResponseShape::Resource {
+            return parse_cloud_resource(binding.root, value).map(HetznerSuccess::CloudResource);
+        }
+        let pagination = if binding.shape == ResponseShape::ResourcePage {
+            Some(parse_pagination(required(envelope, "meta")?)?)
+        } else {
+            None
+        };
+        if let Some(page) = &pagination {
+            validate_page_item_count(value, page)?;
+        }
+        let resources = parse_cloud_resources(binding.root, value)?;
+        return Ok(HetznerSuccess::CloudResources {
+            resources,
+            pagination,
+        });
+    }
     if binding.shape == ResponseShape::Resource {
         return parse_resource(binding.root, value).map(HetznerSuccess::Resource);
     }
@@ -187,7 +209,15 @@ fn decode_composite(
     envelope: &mut Map,
 ) -> Result<HetznerSuccess, ResponseModelError> {
     let secrets = take_composite_secrets(envelope)?;
-    let resource = if binding.root == "-" {
+    let cloud_resource = if binding.root != "-" && is_cloud_resource_root(binding.root) {
+        envelope
+            .get(binding.root)
+            .map(|value| parse_cloud_resource(binding.root, value))
+            .transpose()?
+    } else {
+        None
+    };
+    let resource = if binding.root == "-" || cloud_resource.is_some() {
         None
     } else {
         envelope
@@ -213,6 +243,7 @@ fn decode_composite(
     }
     Ok(HetznerSuccess::Composite(CompositeResult {
         resource,
+        cloud_resource,
         actions,
         secrets,
     }))

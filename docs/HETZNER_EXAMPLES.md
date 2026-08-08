@@ -33,9 +33,10 @@ provider-owned contract:
    execution permit required by state-changing metadata.
 
 The provider crate covers preparation and checked typed envelope decoding for
-all 208 active operations. Resource results expose validated common identity
-and state fields; provider-complete resource field models remain scheduled
-before `1.0.0`. The crate does not yet provide a high-level client that also
+all 208 active operations. Ordinary Cloud resource results retain every
+source-known field plus bounded future fields through dedicated resource
+variants; Cloud specials, DNS, security, and Console model completion remains
+scheduled before `1.0.0`. The crate does not yet provide a high-level client that also
 performs transport or chooses caller-owned storage automatically. That
 boundary is explicit so application code cannot silently inherit networking,
 retry, runtime, or secret-storage behavior. Prepared execution itself has no

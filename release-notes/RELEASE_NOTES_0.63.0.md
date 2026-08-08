@@ -1,0 +1,67 @@
+# cloud-sdk 0.63.0 Milestone Notes
+
+Status: implementation stop reached; pentest required.
+
+Release date: 2026-08-08
+
+Security-Review: PENDING
+Pentest: PENDING
+Publication: DEFERRED TO v0.65.0
+
+## Overview
+
+v0.63 completes source-derived ordinary Hetzner Cloud resource models. It is
+an internal tag and publishes no crate. The provider package version remains
+0.39.1 while these changes accumulate for the v0.65.0 public checkpoint.
+
+## Cloud Models
+
+- Added dedicated models for firewalls, floating IPs, images, ISOs, load
+  balancers and types, networks, placement groups, primary IPs, servers and
+  types, and volumes.
+- Made pricing source-complete and retained every nested source field.
+- Added `CloudResource` and `CloudResourceKind` so ordinary Cloud responses no
+  longer pass through the common-identity fallback.
+- Added `CloudObject`, `CloudValue`, and `CloudNumber` to retain source-known
+  and bounded future fields without coercing integer identities through
+  floating point.
+- Added dedicated single and list checked-success variants and a dedicated
+  composite resource slot.
+
+## Source Evidence
+
+- Generated a 535-row field contract and complete fixtures from the exact
+  pinned Hetzner Cloud OpenAPI document.
+- Enforced required fields, nullability, exact JSON types, numeric, text, and
+  list bounds, plus load-balancer discriminated unions.
+- Preserved unknown future enum strings and fields after source-known
+  validation instead of rejecting additive upstream evolution.
+- Bound both generated files to live upstream drift detection and added
+  canonical-schema-equality, deterministic fixture, adversarial model, full
+  operation matrix, and fuzz-corpus evidence.
+
+## Versions
+
+| Crate | Source version | Cumulative change | Publication |
+| --- | --- | --- | --- |
+| `cloud-sdk` | `0.63.0` | metadata | deferred to v0.65.0 |
+| `cloud-sdk-hetzner` | `0.39.1` | code | deferred |
+| `cloud-sdk-reqwest` | `0.33.0` | dependency | deferred |
+| `cloud-sdk-sanitization` | `0.18.0` | unchanged | no |
+| `cloud-sdk-testkit` | `0.29.1` | code | deferred |
+
+## Release Evidence
+
+- [`docs/PUBLIC_API_REVIEW_0.63.0.md`](../docs/PUBLIC_API_REVIEW_0.63.0.md)
+- [`docs/DEPENDENCY_REVIEW_0.63.0.md`](../docs/DEPENDENCY_REVIEW_0.63.0.md)
+- [`docs/THREAT_MODEL_DELTA_0.63.0.md`](../docs/THREAT_MODEL_DELTA_0.63.0.md)
+- [`docs/REJECTED_ABSTRACTIONS_0.63.0.md`](../docs/REJECTED_ABSTRACTIONS_0.63.0.md)
+- [`docs/MIGRATION_0.63.0.md`](../docs/MIGRATION_0.63.0.md)
+
+The pentest report is added only after the implementation commit is reviewed.
+
+## Release Gate
+
+Run `scripts/release_0_63_gate.sh` after the pentest report is committed.
+GitHub CI and CodeQL must then be green on that unchanged commit before the
+signed internal tag. Do not publish crates.

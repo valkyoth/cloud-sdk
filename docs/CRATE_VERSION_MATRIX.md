@@ -1,9 +1,10 @@
 # Crate Version Matrix
 
-Status: `v0.60.0` is tagged and published and `v0.61.0` is a signed internal
-milestone. The `v0.62.0` pentest and final retest passed and its local release
-evidence is complete; GitHub CI and CodeQL remain before the signed internal
-tag. Every pre-1.0 tag receives its own incremental pentest.
+Status: `v0.60.0` is tagged and published and `v0.61.0` and `v0.62.0` are
+signed internal milestones. The `v0.63.0` implementation stop is reached; its
+pentest and final release evidence remain required before tagging. Crates.io
+publication remains deferred to `v0.65.0`. Every pre-1.0 tag receives its own
+incremental pentest.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
@@ -911,7 +912,7 @@ supporting crates retain their published versions until v0.65.0.
 | `cloud-sdk-hetzner` | `0.39.1` | `0.39.1` | `dependency` | No | Accumulate the source core dependency for v0.65.0. |
 | `cloud-sdk-reqwest` | `0.33.0` | `0.33.0` | `dependency` | No | Accumulate the source core dependency for v0.65.0. |
 | `cloud-sdk-sanitization` | `0.18.0` | `0.18.0` | `unchanged` | No | No sanitization boundary changes. |
-| `cloud-sdk-testkit` | `0.29.1` | `0.29.1` | `dependency` | No | Accumulate the source core dependency for v0.65.0. |
+| `cloud-sdk-testkit` | `0.29.1` | `0.29.1` | `code` | No | Retain the cumulative v0.62 fixture changes for v0.65.0. |
 
 ## v0.62.0 Tracking Table
 
@@ -926,6 +927,20 @@ versions accumulate code until the v0.65.0 public checkpoint.
 | `cloud-sdk-reqwest` | `0.33.0` | `0.33.0` | `dependency` | No | Accumulate the source core dependency for v0.65.0. |
 | `cloud-sdk-sanitization` | `0.18.0` | `0.18.0` | `unchanged` | No | Existing protected owned strings satisfy the secret-output boundary. |
 | `cloud-sdk-testkit` | `0.29.1` | `0.29.1` | `code` | No | Accumulate exact successful statuses and delivery-classified permit fixtures. |
+
+## v0.63.0 Tracking Table
+
+`v0.63.0` completes source-derived ordinary Hetzner Cloud resource models. It
+remains internal, so no package is selected for crates.io and provider code
+continues to accumulate under the published package version until v0.65.0.
+
+| Crate | Published | Source | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.60.0` | `0.63.0` | `metadata` | No | Record the complete Cloud model milestone and release evidence. |
+| `cloud-sdk-hetzner` | `0.39.1` | `0.39.1` | `code` | No | Accumulate source-complete ordinary Cloud resources, pricing, generated schema validation, and dedicated checked results. |
+| `cloud-sdk-reqwest` | `0.33.0` | `0.33.0` | `dependency` | No | Accumulate the source core dependency for v0.65.0. |
+| `cloud-sdk-sanitization` | `0.18.0` | `0.18.0` | `unchanged` | No | No sanitization boundary changes. |
+| `cloud-sdk-testkit` | `0.29.1` | `0.29.1` | `dependency` | No | Accumulate the source core dependency for v0.65.0. |
 
 ## Planned Milestone Ownership
 

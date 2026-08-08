@@ -208,7 +208,7 @@ authentication scope, raw response policy, and official endpoint.
 | Request models | Complete for all 208 non-deprecated operations | Current |
 | Path/query encoding | Complete for all 208 non-deprecated operations | Current |
 | Body serialization | Complete for all 91 non-deprecated operations with request bodies | Current |
-| Success response models | Complete checked envelope and resource-identity coverage for all 208 operations, plus source-complete v0.62 location, certificate, and Storage Box slices; operation-branded typed execution guards decode through `decode_associated_checked_response` | Remaining provider-complete resource fields before `1.0.0` |
+| Success response models | Complete checked envelopes for all 208 operations; source-complete ordinary Cloud resources, pricing, locations, certificates, and Storage Boxes; operation-branded typed execution guards decode through `decode_associated_checked_response` | Remaining Cloud specials, DNS, security, and Console models in `v0.64.0 - v0.67.0` |
 | Error response models | Complete checked typed API error decoding for all active operations | Current |
 | End-to-end client | Not available | `v0.69.0 - v0.73.0`, after provider-neutral contract hardening and complete resource models |
 
@@ -329,14 +329,18 @@ use cloud_sdk::transport::{
     HeaderSensitivity, ResponseBuffer, ResponseMetadata, ResponseStorageSanitizer,
     StatusCode,
 };
-use cloud_sdk_hetzner::cloud::servers::{ServerEndpoint, ServerId};
-use cloud_sdk_hetzner::serde::{HetznerSuccess, decode_response};
+use cloud_sdk_hetzner::cloud::servers::placement_groups::{
+    PlacementGroupEndpoint, PlacementGroupId,
+};
+use cloud_sdk_hetzner::serde::{CloudResourceKind, HetznerSuccess, decode_response};
 
-let endpoint = ServerEndpoint::Get(ServerId::new(42).ok_or("invalid ID")?);
+let endpoint = PlacementGroupEndpoint::Get(
+    PlacementGroupId::new(42).ok_or("invalid ID")?,
+);
 let mut target = [0_u8; 64];
 let mut body = [];
 let prepared = endpoint.prepare(PreparationStorage::new(&mut target, &mut body))?;
-let response_body = br#"{"server":{"id":42,"name":"web-1","status":"running"}}"#;
+let response_body = br#"{"placement_group":{"id":42,"name":"group-1","labels":{},"type":"spread","created":"2026-08-08T00:00:00Z","servers":[]}}"#;
 let mut response_storage = [0_u8; 128];
 let mut response_header_storage =
     [0_u8; cloud_sdk::transport::MAX_RESPONSE_HEADER_BYTES];
@@ -366,10 +370,11 @@ let mut response = ResponseBuffer::with_additive_sanitizer(
 }
 let decoded = decode_response(prepared, response)?;
 
-let HetznerSuccess::Resource(server) = decoded.success() else {
+let HetznerSuccess::CloudResource(group) = decoded.success() else {
     return Err("unexpected response family".into());
 };
-assert_eq!(server.name(), Some("web-1"));
+assert_eq!(group.kind(), CloudResourceKind::PlacementGroup);
+assert_eq!(group.name(), Some("group-1"));
 
 struct Sanitizer;
 impl ResponseStorageSanitizer for Sanitizer {

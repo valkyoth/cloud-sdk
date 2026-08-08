@@ -6,7 +6,10 @@ use core::fmt;
 
 use cloud_sdk_sanitization::SecretString;
 
-use super::{ResponseModelError, checked_text, object, required, validate_text, value_text};
+use super::cloud_schema::validate_model;
+use super::{
+    CloudObject, ResponseModelError, checked_text, object, required, validate_text, value_text,
+};
 use crate::serde::strict_json::{Map, Value};
 
 const MAX_FOLDERS: usize = 4096;
@@ -186,12 +189,11 @@ impl Metrics {
 }
 
 /// Validated pricing summary.
-#[derive(Clone, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Pricing {
     currency: String,
     vat_rate: String,
-    server_type_prices: usize,
-    load_balancer_type_prices: usize,
+    fields: CloudObject,
 }
 
 impl Pricing {
@@ -209,14 +211,26 @@ impl Pricing {
 
     /// Returns the number of server-type price records.
     #[must_use]
-    pub const fn server_type_prices(&self) -> usize {
-        self.server_type_prices
+    pub fn server_type_prices(&self) -> usize {
+        match self.fields.get("server_types") {
+            Some(super::CloudValue::Array(values)) => values.len(),
+            _ => 0,
+        }
     }
 
     /// Returns the number of load-balancer-type price records.
     #[must_use]
-    pub const fn load_balancer_type_prices(&self) -> usize {
-        self.load_balancer_type_prices
+    pub fn load_balancer_type_prices(&self) -> usize {
+        match self.fields.get("load_balancer_types") {
+            Some(super::CloudValue::Array(values)) => values.len(),
+            _ => 0,
+        }
+    }
+
+    /// Returns every source-known and future pricing field in stable order.
+    #[must_use]
+    pub const fn fields(&self) -> &CloudObject {
+        &self.fields
     }
 }
 
@@ -322,33 +336,12 @@ pub(crate) fn parse_metrics(value: &Value) -> Result<Metrics, ResponseModelError
 }
 
 pub(crate) fn parse_pricing(value: &Value) -> Result<Pricing, ResponseModelError> {
+    validate_model("pricing", value)?;
     let fields = object(value)?;
-    for key in [
-        "primary_ips",
-        "floating_ips",
-        "server_types",
-        "load_balancer_types",
-    ] {
-        required(fields, key)?
-            .as_array()
-            .ok_or(ResponseModelError::WrongType)?;
-    }
-    for key in ["image", "volume", "server_backup", "floating_ip"] {
-        object(required(fields, key)?)?;
-    }
-    let server_type_prices = required(fields, "server_types")?
-        .as_array()
-        .ok_or(ResponseModelError::WrongType)?
-        .len();
-    let load_balancer_type_prices = required(fields, "load_balancer_types")?
-        .as_array()
-        .ok_or(ResponseModelError::WrongType)?
-        .len();
     Ok(Pricing {
         currency: text(fields, "currency", 16)?,
         vat_rate: text(fields, "vat_rate", 64)?,
-        server_type_prices,
-        load_balancer_type_prices,
+        fields: CloudObject::from_value(value)?,
     })
 }
 

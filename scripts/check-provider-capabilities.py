@@ -20,11 +20,12 @@ EXPECTED = (
     ),
     (
         "Success response models",
-        "Complete checked envelope and resource-identity coverage for all 208 "
-        "operations, plus source-complete v0.62 location, certificate, and "
-        "Storage Box slices; operation-branded typed execution guards decode through "
+        "Complete checked envelopes for all 208 operations; source-complete "
+        "ordinary Cloud resources, pricing, locations, certificates, and Storage "
+        "Boxes; operation-branded typed execution guards decode through "
         "`decode_associated_checked_response`",
-        "Remaining provider-complete resource fields before `1.0.0`",
+        "Remaining Cloud specials, DNS, security, and Console models in "
+        "`v0.64.0 - v0.67.0`",
     ),
     (
         "Error response models",

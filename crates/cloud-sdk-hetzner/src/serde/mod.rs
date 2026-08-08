@@ -5,8 +5,9 @@
 //! aggregate size policy is applied before serialization. Checked response
 //! decoding binds every active operation to its source-locked status and
 //! envelope shape, validates security-relevant fields, and returns typed
-//! actions, resource identities, pagination, special results, or API errors.
-//! Provider-complete resource field models remain future work.
+//! actions, source-complete ordinary Cloud resources, pagination, special
+//! results, or API errors. Unknown future fields and enum strings are retained
+//! explicitly after all source-known field, type, bound, and nullability checks.
 
 mod binding;
 mod checked;
@@ -28,11 +29,13 @@ pub use incremental::{
 };
 pub use models::{
     AccessSettings, ActionResult, ActionResultError, ActionResultResource, Certificate,
-    CertificateError, CertificateKind, CertificateStatus, CertificateUse, CompositeResult,
-    Deprecation, FolderList, HetznerSuccess, Labels, Location, LocationPage, MetricPoint,
-    MetricSeries, Metrics, Money, NamedSensitiveText, Price, Pricing, Protection, Resource,
-    ResourceIdentifier, ResourceKind, ResponseModelError, SensitiveText, SnapshotPlan, StorageBox,
-    StorageBoxPage, StorageBoxStats, StorageBoxStatus, StorageBoxType, ZoneFile,
+    CertificateError, CertificateKind, CertificateStatus, CertificateUse, CloudNumber, CloudObject,
+    CloudResource, CloudResourceKind, CloudValue, CompositeResult, Deprecation, Firewall,
+    FloatingIp, FolderList, HetznerSuccess, Image, Iso, Labels, LoadBalancer, LoadBalancerType,
+    Location, LocationPage, MetricPoint, MetricSeries, Metrics, Money, NamedSensitiveText, Network,
+    PlacementGroup, Price, Pricing, PrimaryIp, Protection, Resource, ResourceIdentifier,
+    ResourceKind, ResponseModelError, SensitiveText, Server, ServerType, SnapshotPlan, StorageBox,
+    StorageBoxPage, StorageBoxStats, StorageBoxStatus, StorageBoxType, Volume, ZoneFile,
 };
 pub use pagination::PaginationEnvelope;
 pub use response::{
@@ -44,6 +47,8 @@ pub use rrsets::{MAX_RRSET_JSON_BODY_BYTES, RrsetBodyError, RrsetRequestBody};
 
 #[cfg(test)]
 mod adversarial_tests;
+#[cfg(test)]
+mod checked_fixtures;
 #[cfg(test)]
 mod checked_pagination_tests;
 #[cfg(test)]

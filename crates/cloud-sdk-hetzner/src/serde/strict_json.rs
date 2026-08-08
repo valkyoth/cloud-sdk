@@ -131,6 +131,26 @@ impl Value {
         }
     }
 
+    pub(super) fn as_i64(&self) -> Option<i64> {
+        match self {
+            Self::Number(Number::Unsigned(value)) => i64::try_from(*value).ok(),
+            Self::Number(Number::Signed(value)) => Some(*value),
+            _ => None,
+        }
+    }
+
+    pub(super) const fn is_integer(&self) -> bool {
+        matches!(self, Self::Number(Number::Unsigned(_) | Number::Signed(_)))
+    }
+
+    pub(super) const fn is_number(&self) -> bool {
+        matches!(self, Self::Number(_))
+    }
+
+    pub(super) const fn is_string(&self) -> bool {
+        matches!(self, Self::String(_))
+    }
+
     pub(super) fn as_f64(&self) -> Option<f64> {
         match self {
             Self::Number(Number::Unsigned(value)) => Some(*value as f64),

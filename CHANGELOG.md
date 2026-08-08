@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.63.0 - 2026-08-08
+
+- Added source-derived, source-complete ordinary Hetzner Cloud response models
+  and dedicated checked result variants.
+- Added a 535-field generated schema contract, complete fixtures, upstream
+  drift binding, adversarial tests, and a complete Cloud fuzz seed.
+- Retained bounded future fields and enum strings while removing ordinary
+  Cloud responses from the common-identity fallback.
+
 ## 0.62.0 - 2026-08-07
 
 - Added source-complete checked models for `list_locations`, `get_certificate`,

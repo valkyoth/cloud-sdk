@@ -61,7 +61,7 @@ pub(crate) fn parse_location_page(value: &Value) -> Result<LocationPage, Respons
     })
 }
 
-pub(super) fn parse_location(value: &Value) -> Result<Location, ResponseModelError> {
+pub(crate) fn parse_location(value: &Value) -> Result<Location, ResponseModelError> {
     let fields = object(value)?;
     let id = positive_u64(fields, "id")?;
     let latitude = finite_number(fields, "latitude")?;

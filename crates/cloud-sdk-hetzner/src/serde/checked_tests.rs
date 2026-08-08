@@ -1,20 +1,20 @@
 use alloc::format;
-use alloc::string::String;
 
 use cloud_sdk::transport::StatusCode;
 
+use super::checked_fixtures::{action_value, minimal_body, resource_value};
 use super::checked_test_support::{
     decode_response, decode_response_with_headers, decode_response_with_headers_at, empty_response,
     prepared, response,
 };
-use super::{HetznerDecodeError, HetznerSuccess, ResourceKind};
+use super::{CloudResourceKind, HetznerDecodeError, HetznerSuccess};
 use crate::identity::{CLOUD_SERVICE_ID, STORAGE_SERVICE_ID};
 
-fn action() -> &'static str {
+pub(super) fn action() -> &'static str {
     r#"{"id":42,"command":"poweron_server","status":"running","progress":10,"started":"2026-07-16T00:00:00Z","finished":null,"resources":[{"id":7,"type":"server"}],"error":null}"#
 }
 
-fn pagination() -> &'static str {
+pub(super) fn pagination() -> &'static str {
     r#"{"pagination":{"page":1,"per_page":25,"previous_page":null,"next_page":null,"last_page":1,"total_entries":1}}"#
 }
 
@@ -52,31 +52,32 @@ fn decodes_action_list_resource_and_paginated_resource_families() {
         .is_ok()
     );
 
-    let server = br#"{"server":{"id":42,"name":"web-1","status":"running","future":true}}"#;
+    let server = serde_json::json!({"server": resource_value("server")});
+    let server = serde_json::to_vec(&server).unwrap_or_default();
     let decoded = decode_response(
         prepared("get_server", CLOUD_SERVICE_ID, StatusCode::OK),
-        response(StatusCode::OK, server),
+        response(StatusCode::OK, &server),
     );
     let Ok(decoded) = decoded else {
         unreachable!("security fixture construction failed")
     };
-    let HetznerSuccess::Resource(resource) = decoded.success() else {
+    let HetznerSuccess::CloudResource(resource) = decoded.success() else {
         unreachable!("security fixture construction failed");
     };
-    assert_eq!(resource.kind(), ResourceKind::Server);
-    assert_eq!(resource.name(), Some("web-1"));
+    assert_eq!(resource.kind(), CloudResourceKind::Server);
+    assert_eq!(resource.name(), Some("x"));
 
-    let servers = format!(
-        r#"{{"servers":[{{"id":42,"name":"web-1","status":"running"}}],"meta":{}}}"#,
-        pagination()
-    );
+    let meta =
+        serde_json::from_str::<serde_json::Value>(pagination()).unwrap_or(serde_json::Value::Null);
+    let servers = serde_json::json!({"servers":[resource_value("server")],"meta":meta});
+    let servers = serde_json::to_vec(&servers).unwrap_or_default();
     let decoded = decode_response(
         prepared("list_servers", CLOUD_SERVICE_ID, StatusCode::OK),
-        response(StatusCode::OK, servers.as_bytes()),
+        response(StatusCode::OK, &servers),
     );
     assert!(matches!(
         decoded.map(|value| value.into_success()),
-        Ok(HetznerSuccess::Resources {
+        Ok(HetznerSuccess::CloudResources {
             pagination: Some(_),
             ..
         })
@@ -85,13 +86,16 @@ fn decodes_action_list_resource_and_paginated_resource_families() {
 
 #[test]
 fn decodes_composite_special_empty_and_storage_families() {
-    let create = format!(
-        r#"{{"server":{{"id":42,"name":"web-1","status":"running"}},"action":{},"next_actions":[],"root_password":"dont-log-this"}}"#,
-        action()
-    );
+    let create = serde_json::json!({
+        "server":resource_value("server"),
+        "action":action_value(),
+        "next_actions":[],
+        "root_password":"dont-log-this"
+    });
+    let create = serde_json::to_vec(&create).unwrap_or_default();
     let decoded = decode_response(
         prepared("create_server", CLOUD_SERVICE_ID, StatusCode::CREATED),
-        response(StatusCode::CREATED, create.as_bytes()),
+        response(StatusCode::CREATED, &create),
     );
     let Ok(decoded) = decoded else {
         unreachable!("security fixture construction failed")
@@ -99,6 +103,8 @@ fn decodes_composite_special_empty_and_storage_families() {
     let HetznerSuccess::Composite(composite) = decoded.success() else {
         unreachable!("security fixture construction failed");
     };
+    assert!(composite.cloud_resource().is_some());
+    assert!(composite.resource().is_none());
     assert_eq!(composite.secrets().len(), 1);
     let Some(secret) = composite.secrets().first() else {
         unreachable!("security fixture construction failed");
@@ -134,11 +140,12 @@ fn decodes_composite_special_empty_and_storage_families() {
         zonefile.try_with_zonefile(|value| value == "example.com. 60 IN A 192.0.2.1"),
         Ok(true)
     );
-    let pricing = br#"{"pricing":{"currency":"EUR","vat_rate":"19.0","primary_ips":[],"floating_ips":[],"image":{},"volume":{},"server_backup":{},"server_types":[],"load_balancer_types":[],"floating_ip":{}}}"#;
+    let pricing = serde_json::to_vec(&serde_json::json!({"pricing":resource_value("pricing")}))
+        .unwrap_or_default();
     assert!(
         decode_response(
             prepared("get_pricing", CLOUD_SERVICE_ID, StatusCode::OK),
-            response(StatusCode::OK, pricing),
+            response(StatusCode::OK, &pricing),
         )
         .is_ok()
     );
@@ -178,11 +185,11 @@ fn rejects_policy_binding_json_and_model_failures() {
         ),
         Err(HetznerDecodeError::MalformedPayload)
     );
-    let unknown = br#"{"server":{"id":1,"status":"future"}}"#;
+    let missing = br#"{"server":{"id":1,"status":"future"}}"#;
     assert!(matches!(
         decode_response(
             prepared("get_server", CLOUD_SERVICE_ID, StatusCode::OK),
-            response(StatusCode::OK, unknown),
+            response(StatusCode::OK, missing),
         ),
         Err(HetznerDecodeError::Model(_))
     ));
@@ -232,9 +239,11 @@ fn checked_success_and_error_retain_provider_owned_quota() {
         ("ratelimit-reset", b"42".as_slice()),
         ("retry-after", b"10".as_slice()),
     ];
+    let server = serde_json::to_vec(&serde_json::json!({"server":resource_value("server")}))
+        .unwrap_or_default();
     let success = decode_response_with_headers(
         prepared("get_server", CLOUD_SERVICE_ID, StatusCode::OK),
-        response(StatusCode::OK, br#"{"server":{"id":1}}"#),
+        response(StatusCode::OK, &server),
         &headers,
     );
     let Ok(success) = success else {
@@ -272,16 +281,18 @@ fn checked_decoder_rejects_partial_quota_before_payload_use() {
 #[test]
 fn checked_clock_aware_decoder_resolves_obsolete_retry_date() {
     let headers = [("retry-after", b"Sunday, 06-Nov-94 08:49:37 GMT".as_slice())];
+    let server = serde_json::to_vec(&serde_json::json!({"server":resource_value("server")}))
+        .unwrap_or_default();
     let without_clock = decode_response_with_headers(
         prepared("get_server", CLOUD_SERVICE_ID, StatusCode::OK),
-        response(StatusCode::OK, br#"{"server":{"id":1}}"#),
+        response(StatusCode::OK, &server),
         &headers,
     );
     assert!(matches!(without_clock, Err(HetznerDecodeError::Quota(_))));
 
     let with_clock = decode_response_with_headers_at(
         prepared("get_server", CLOUD_SERVICE_ID, StatusCode::OK),
-        response(StatusCode::OK, br#"{"server":{"id":1}}"#),
+        response(StatusCode::OK, &server),
         &headers,
         cloud_sdk::rate_limit::WallClockTimestamp::new(1_767_225_600),
     );
@@ -340,157 +351,4 @@ fn every_source_locked_operation_decodes_its_minimal_success_envelope() {
         checked = checked.saturating_add(1);
     }
     assert_eq!(checked, 208);
-}
-
-fn minimal_body(shape: &str, root: &str, required_fields: &str) -> String {
-    let mut envelope = serde_json::Map::new();
-    match shape {
-        "action" => {
-            envelope.insert(String::from("action"), action_value());
-        }
-        "actions" | "actions-page" => {
-            envelope.insert(
-                String::from("actions"),
-                serde_json::Value::Array(alloc::vec![action_value()]),
-            );
-        }
-        "resource" | "resource-list" | "resource-page" => {
-            envelope.insert(
-                String::from(root),
-                if shape == "resource" {
-                    resource_value(root)
-                } else {
-                    serde_json::Value::Array(alloc::vec![resource_value(root)])
-                },
-            );
-        }
-        "metrics" => {
-            envelope.insert(
-                String::from("metrics"),
-                serde_json::json!({
-                    "start":"2026-01-01T00:00:00Z",
-                    "end":"2026-01-01T01:00:00Z",
-                    "step":60.0,
-                    "time_series":{}
-                }),
-            );
-        }
-        "zonefile" => {
-            envelope.insert(
-                String::from("zonefile"),
-                serde_json::Value::String(String::from("example.com. 60 IN A 192.0.2.1")),
-            );
-        }
-        "pricing" => {
-            envelope.insert(
-                String::from("pricing"),
-                serde_json::json!({
-                    "currency":"EUR","vat_rate":"19.0","primary_ips":[],
-                    "floating_ips":[],"image":{},"volume":{},"server_backup":{},
-                    "server_types":[],"load_balancer_types":[],"floating_ip":{}
-                }),
-            );
-        }
-        "folders" => {
-            envelope.insert(String::from("folders"), serde_json::json!(["/backup"]));
-        }
-        "composite" | "empty" => {}
-        _ => return String::from("null"),
-    }
-    if shape.ends_with("page") {
-        let meta = serde_json::from_str(pagination()).unwrap_or(serde_json::Value::Null);
-        envelope.insert(String::from("meta"), meta);
-    }
-    for field in required_fields.split(',').filter(|field| *field != "-") {
-        if envelope.contains_key(field) {
-            continue;
-        }
-        let value = match field {
-            "action" => action_value(),
-            "actions" | "next_actions" => serde_json::Value::Array(alloc::vec![action_value()]),
-            "root_password" | "password" | "wss_url" => {
-                serde_json::Value::String(String::from("sensitive"))
-            }
-            "meta" => serde_json::from_str(pagination()).unwrap_or(serde_json::Value::Null),
-            _ => resource_value(field),
-        };
-        envelope.insert(String::from(field), value);
-    }
-    if shape == "composite" && root != "-" && !envelope.contains_key(root) {
-        envelope.insert(String::from(root), resource_value(root));
-    }
-    serde_json::to_string(&serde_json::Value::Object(envelope)).unwrap_or_default()
-}
-
-fn action_value() -> serde_json::Value {
-    serde_json::from_str(action()).unwrap_or(serde_json::Value::Null)
-}
-
-fn resource_value(root: &str) -> serde_json::Value {
-    if root == "location" || root == "locations" {
-        return serde_json::json!({
-            "id":1,"name":"fsn1","description":"Falkenstein DC Park 1",
-            "country":"DE","city":"Falkenstein","latitude":50.47612,
-            "longitude":12.370071,"network_zone":"eu-central"
-        });
-    }
-    if root == "certificate" || root == "certificates" {
-        return serde_json::json!({
-            "id":1,"name":"certificate","labels":{},"type":"uploaded",
-            "certificate":"-----BEGIN CERTIFICATE-----\nfixture",
-            "created":"2026-01-01T00:00:00Z",
-            "not_valid_before":"2026-01-01T00:00:00Z",
-            "not_valid_after":"2027-01-01T00:00:00Z",
-            "domain_names":["example.com"],"fingerprint":"00:11",
-            "status":null,"used_by":[]
-        });
-    }
-    if root == "storage_box" || root == "storage_boxes" {
-        return storage_box_value();
-    }
-    let id = if root == "rrset" || root == "rrsets" {
-        serde_json::Value::String(String::from("rrset-id"))
-    } else {
-        serde_json::Value::from(1_u64)
-    };
-    let mut resource = serde_json::Map::new();
-    resource.insert(String::from("id"), id);
-    let status = match root {
-        "server" | "servers" => Some("running"),
-        "image" | "images" | "volume" | "volumes" => Some("available"),
-        "zone" | "zones" => Some("ok"),
-        "storage_box" | "storage_boxes" => Some("active"),
-        _ => None,
-    };
-    if let Some(status) = status {
-        resource.insert(
-            String::from("status"),
-            serde_json::Value::String(String::from(status)),
-        );
-    }
-    serde_json::Value::Object(resource)
-}
-
-fn storage_box_value() -> serde_json::Value {
-    serde_json::json!({
-        "id":1,"name":"backup",
-        "storage_box_type":{
-            "id":1,"name":"bx11","description":"BX11","snapshot_limit":10,
-            "automatic_snapshot_limit":10,"subaccounts_limit":200,"size":1073741824,
-            "prices":[{"location":"fsn1","price_hourly":{"net":"1.0000","gross":"1.1900"},
-                "price_monthly":{"net":"1.0000","gross":"1.1900"},
-                "setup_fee":{"net":"0.0000","gross":"0.0000"}}],"deprecation":null
-        },
-        "location":{"id":1,"name":"fsn1","description":"Falkenstein DC Park 1",
-            "country":"DE","city":"Falkenstein","latitude":50.47612,
-            "longitude":12.370071,"network_zone":"eu-central"},
-        "access_settings":{"reachable_externally":false,"samba_enabled":true,
-            "ssh_enabled":true,"webdav_enabled":false,"zfs_enabled":true},
-        "snapshot_plan":{"max_snapshots":10,"minute":30,"hour":3,
-            "day_of_week":7,"day_of_month":null},
-        "protection":{"delete":false},"labels":{"environment":"test"},"status":"active",
-        "username":"u12345","server":"u12345.your-storagebox.de","system":"FSN1-BX1",
-        "stats":{"size":1,"size_data":1,"size_snapshots":0},
-        "created":"2026-01-01T00:00:00Z"
-    })
 }

@@ -4,17 +4,19 @@ use cloud_sdk::operation::{PreparationStorage, PrepareOperation};
 use cloud_sdk::transport::{
     HeaderSensitivity, ResponseBuffer, ResponseMetadata, ResponseStorageSanitizer, StatusCode,
 };
-use cloud_sdk_hetzner::cloud::servers::{ServerEndpoint, ServerId};
-use cloud_sdk_hetzner::serde::{HetznerSuccess, decode_response};
+use cloud_sdk_hetzner::cloud::servers::placement_groups::{
+    PlacementGroupEndpoint, PlacementGroupId,
+};
+use cloud_sdk_hetzner::serde::{CloudResourceKind, HetznerSuccess, decode_response};
 
 fn main() -> Result<(), Box<dyn core::error::Error>> {
-    let id = ServerId::new(42).ok_or("invalid server ID")?;
-    let operation = ServerEndpoint::Get(id);
+    let id = PlacementGroupId::new(42).ok_or("invalid placement-group ID")?;
+    let operation = PlacementGroupEndpoint::Get(id);
     let mut target = [0_u8; 64];
     let mut body = [];
     let prepared = operation.prepare(PreparationStorage::new(&mut target, &mut body))?;
 
-    let response_body = br#"{"server":{"id":42,"name":"web-1","status":"running"}}"#;
+    let response_body = br#"{"placement_group":{"id":42,"name":"group-1","labels":{},"type":"spread","created":"2026-08-08T00:00:00Z","servers":[]}}"#;
     let mut response_storage = [0_u8; 128];
     let mut response_header_storage = [0_u8; 8192];
     let mut response = ResponseBuffer::with_additive_sanitizer(
@@ -38,10 +40,11 @@ fn main() -> Result<(), Box<dyn core::error::Error>> {
     drop(attempt);
     let decoded = decode_response(prepared, response)?;
 
-    let HetznerSuccess::Resource(server) = decoded.success() else {
+    let HetznerSuccess::CloudResource(group) = decoded.success() else {
         return Err("unexpected response family".into());
     };
-    assert_eq!(server.name(), Some("web-1"));
+    assert_eq!(group.kind(), CloudResourceKind::PlacementGroup);
+    assert_eq!(group.name(), Some("group-1"));
     Ok(())
 }
 

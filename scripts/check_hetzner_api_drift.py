@@ -25,6 +25,8 @@ from hetzner_drift_report import (
 )
 from generate_response_operations import render as render_response_operations
 from generate_response_operations import rows as response_operation_rows
+from generate_cloud_model_schema import render as render_cloud_model_schema
+from generate_cloud_model_schema import render_fixtures as render_cloud_model_fixtures
 
 ROOT = Path(__file__).resolve().parents[1]
 OP_LOCK = ROOT / "docs" / "API_FINGERPRINTS.tsv"
@@ -33,6 +35,17 @@ MATRIX = ROOT / "docs" / "API_MATRIX.md"
 SPEC_LOCK = ROOT / "docs" / "SPEC_LOCK.md"
 RESPONSE_LOCK = (
     ROOT / "crates" / "cloud-sdk-hetzner" / "src" / "serde" / "response_operations.tsv"
+)
+CLOUD_MODEL_SCHEMA_LOCK = (
+    ROOT
+    / "crates"
+    / "cloud-sdk-hetzner"
+    / "src"
+    / "serde"
+    / "cloud_model_schema.tsv"
+)
+CLOUD_MODEL_FIXTURE_LOCK = CLOUD_MODEL_SCHEMA_LOCK.with_name(
+    "cloud_model_fixtures.json"
 )
 
 SPECS = {
@@ -356,7 +369,15 @@ def ensure_refresh_sources_pinned(source_hashes: dict[str, str]) -> None:
 
 def validate_local_files() -> int:
     status = 0
-    for path in (OP_LOCK, SCHEMA_LOCK, MATRIX, SPEC_LOCK, RESPONSE_LOCK):
+    for path in (
+        OP_LOCK,
+        SCHEMA_LOCK,
+        MATRIX,
+        SPEC_LOCK,
+        RESPONSE_LOCK,
+        CLOUD_MODEL_SCHEMA_LOCK,
+        CLOUD_MODEL_FIXTURE_LOCK,
+    ):
         if not path.is_file() or path.stat().st_size == 0:
             print(f"missing required lock file: {path}", file=sys.stderr)
             status = 1
@@ -365,6 +386,7 @@ def validate_local_files() -> int:
 
     operation_count = len(read_tsv(OP_LOCK))
     schema_count = len(read_tsv(SCHEMA_LOCK))
+    model_field_count = len(read_tsv(CLOUD_MODEL_SCHEMA_LOCK))
     matrix_text = MATRIX.read_text(encoding="utf-8")
     spec_text = SPEC_LOCK.read_text(encoding="utf-8")
     required = [
@@ -380,6 +402,7 @@ def validate_local_files() -> int:
             status = 1
     print(f"locked operations: {operation_count}")
     print(f"locked schemas: {schema_count}")
+    print(f"locked Cloud model fields: {model_field_count}")
     return status
 
 
@@ -402,8 +425,10 @@ def main() -> int:
             response_operation_rows("cloud", documents["cloud"])
             + response_operation_rows("hetzner", documents["hetzner"])
         )
+        cloud_model_schema_lock = render_cloud_model_schema(documents["cloud"])
+        cloud_model_fixture_lock = render_cloud_model_fixtures(documents["cloud"])
     except ValueError as error:
-        raise SystemExit(f"invalid success-response schemas: {error}") from error
+        raise SystemExit(f"invalid response schemas: {error}") from error
     operations = []
     schemas = []
     for api, document in documents.items():
@@ -447,6 +472,8 @@ def main() -> int:
         )
         write_tsv(SCHEMA_LOCK, schemas, ["api", "schema", "fingerprint"])
         RESPONSE_LOCK.write_text(response_lock, encoding="ascii")
+        CLOUD_MODEL_SCHEMA_LOCK.write_text(cloud_model_schema_lock, encoding="ascii")
+        CLOUD_MODEL_FIXTURE_LOCK.write_text(cloud_model_fixture_lock, encoding="ascii")
         print(f"wrote {len(operations)} operation fingerprints")
         print(f"wrote {len(schemas)} schema fingerprints")
         return 0
@@ -454,6 +481,12 @@ def main() -> int:
     status = validate_local_files()
     if RESPONSE_LOCK.read_text(encoding="ascii") != response_lock:
         print("Hetzner success-response operation lock has drift", file=sys.stderr)
+        status = 1
+    if CLOUD_MODEL_SCHEMA_LOCK.read_text(encoding="ascii") != cloud_model_schema_lock:
+        print("Hetzner Cloud model schema lock has drift", file=sys.stderr)
+        status = 1
+    if CLOUD_MODEL_FIXTURE_LOCK.read_text(encoding="ascii") != cloud_model_fixture_lock:
+        print("Hetzner Cloud model fixtures have drift", file=sys.stderr)
         status = 1
     report = build_drift_report(
         read_tsv(OP_LOCK),

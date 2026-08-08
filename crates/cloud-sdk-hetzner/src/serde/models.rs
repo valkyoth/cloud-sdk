@@ -2,6 +2,9 @@
 
 mod actions;
 mod certificate;
+mod cloud_resources;
+mod cloud_schema;
+mod cloud_value;
 mod location;
 mod resources;
 mod special;
@@ -18,6 +21,11 @@ pub use actions::{ActionResult, ActionResultError, ActionResultResource};
 pub use certificate::{
     Certificate, CertificateError, CertificateKind, CertificateStatus, CertificateUse,
 };
+pub use cloud_resources::{
+    CloudResource, CloudResourceKind, Firewall, FloatingIp, Image, Iso, LoadBalancer,
+    LoadBalancerType, Network, PlacementGroup, PrimaryIp, Server, ServerType, Volume,
+};
+pub use cloud_value::{CloudNumber, CloudObject, CloudValue};
 pub use location::{Location, LocationPage};
 pub use resources::{Resource, ResourceIdentifier, ResourceKind};
 pub use special::{
@@ -30,7 +38,10 @@ pub use storage_box::{
 
 pub(crate) use actions::{parse_action, parse_actions};
 pub(crate) use certificate::parse_certificate;
-pub(crate) use location::parse_location_page;
+pub(crate) use cloud_resources::{
+    is_cloud_resource_root, parse_cloud_resource, parse_cloud_resources,
+};
+pub(crate) use location::{parse_location, parse_location_page};
 pub(crate) use resources::{parse_pagination, parse_resource, parse_resources};
 pub(crate) use special::{parse_folders, parse_metrics, parse_pricing, parse_zonefile};
 pub(crate) use storage_box::parse_storage_box_page;
@@ -58,6 +69,8 @@ pub enum ResponseModelError {
     InvalidNumber,
     /// Memory required for a bounded response model could not be reserved.
     Allocation,
+    /// The committed source-derived model schema is malformed or incomplete.
+    SchemaMismatch,
 }
 
 impl_static_error!(ResponseModelError,
@@ -71,6 +84,7 @@ impl_static_error!(ResponseModelError,
     Self::EnvelopeMismatch => "Hetzner response does not match the operation envelope",
     Self::InvalidNumber => "Hetzner response number is invalid",
     Self::Allocation => "Hetzner response model allocation failed",
+    Self::SchemaMismatch => "Hetzner source-derived model schema is invalid",
 );
 
 /// Fallibly constructed, deterministic provider labels.
@@ -146,6 +160,8 @@ pub enum HetznerSuccess {
     Empty,
     /// Source-complete paginated Cloud locations.
     Locations(LocationPage),
+    /// One source-complete Cloud location.
+    Location(Location),
     /// Source-complete certificate output with protected PEM material.
     Certificate(Certificate),
     /// Source-complete paginated Console Storage Boxes.
@@ -168,6 +184,15 @@ pub enum HetznerSuccess {
         /// Pagination supplied by paginated endpoints.
         pagination: Option<PaginationMetadata>,
     },
+    /// One source-complete ordinary Cloud resource.
+    CloudResource(CloudResource),
+    /// Source-complete ordinary Cloud resources with optional pagination.
+    CloudResources {
+        /// Dedicated resource variants.
+        resources: Vec<CloudResource>,
+        /// Pagination supplied by paginated endpoints.
+        pagination: Option<PaginationMetadata>,
+    },
     /// A create/action result with optional resource, actions, and secrets.
     Composite(CompositeResult),
     /// Metrics response.
@@ -184,6 +209,7 @@ pub enum HetznerSuccess {
 #[derive(PartialEq)]
 pub struct CompositeResult {
     pub(super) resource: Option<Resource>,
+    pub(super) cloud_resource: Option<CloudResource>,
     pub(super) actions: Vec<ActionResult>,
     pub(super) secrets: Vec<NamedSensitiveText>,
 }
@@ -193,6 +219,12 @@ impl CompositeResult {
     #[must_use]
     pub const fn resource(&self) -> Option<&Resource> {
         self.resource.as_ref()
+    }
+
+    /// Returns the source-complete ordinary Cloud resource when supplied.
+    #[must_use]
+    pub const fn cloud_resource(&self) -> Option<&CloudResource> {
+        self.cloud_resource.as_ref()
     }
 
     /// Returns actions supplied by the operation.
@@ -213,6 +245,7 @@ impl fmt::Debug for CompositeResult {
         formatter
             .debug_struct("CompositeResult")
             .field("resource", &self.resource)
+            .field("cloud_resource", &self.cloud_resource)
             .field("actions", &self.actions)
             .field("secrets", &"[redacted]")
             .finish()
