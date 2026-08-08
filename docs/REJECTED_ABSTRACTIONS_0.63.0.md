@@ -28,3 +28,17 @@ Rust code remains reviewed source.
 Exposing `serde_json::Value` would tie the provider API to Serde's owned value
 model, hide allocation policy, and permit integer coercion mistakes. The public
 field tree uses crate-owned bounded value types and fallible conversion.
+
+## Infallible Recursive Cloning
+
+Deriving `Clone` for an accepted 8 MiB, 65,536-node response tree would make a
+later application copy capable of aborting on allocation failure. Complete
+Cloud trees expose explicit `try_clone` methods that reserve every allocation
+fallibly and return `ResponseModelError::Allocation`.
+
+## Payload-Bearing Diagnostics
+
+Resource metadata is not necessarily a credential, but names, labels,
+addresses, topology, placement, billing values, and future fields can still be
+operationally sensitive. `Debug` therefore reports only bounded shape and
+resource kind; complete values require explicit accessors.

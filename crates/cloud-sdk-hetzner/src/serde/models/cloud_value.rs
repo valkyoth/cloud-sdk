@@ -2,6 +2,7 @@
 
 use alloc::string::String;
 use alloc::vec::Vec;
+use core::fmt;
 
 use crate::serde::strict_json::{Map, Value};
 
@@ -19,7 +20,7 @@ pub enum CloudNumber {
 }
 
 /// One fully retained field in an ordinary Hetzner Cloud resource model.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(PartialEq)]
 pub enum CloudValue {
     /// Explicit JSON null.
     Null,
@@ -36,6 +37,27 @@ pub enum CloudValue {
 }
 
 impl CloudValue {
+    /// Fallibly copies this value and all nested allocation-backed fields.
+    pub fn try_clone(&self) -> Result<Self, ResponseModelError> {
+        match self {
+            Self::Null => Ok(Self::Null),
+            Self::Bool(value) => Ok(Self::Bool(*value)),
+            Self::Number(value) => Ok(Self::Number(*value)),
+            Self::Text(value) => copy_string(value).map(Self::Text),
+            Self::Array(values) => {
+                let mut output = Vec::new();
+                output
+                    .try_reserve_exact(values.len())
+                    .map_err(|_| ResponseModelError::Allocation)?;
+                for value in values {
+                    output.push(value.try_clone()?);
+                }
+                Ok(Self::Array(output))
+            }
+            Self::Object(value) => value.try_clone().map(Self::Object),
+        }
+    }
+
     /// Returns text without interpreting a future enum value.
     #[must_use]
     pub fn as_text(&self) -> Option<&str> {
@@ -128,11 +150,50 @@ impl CloudValue {
     }
 }
 
+impl fmt::Debug for CloudValue {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Null => formatter.write_str("Null"),
+            Self::Bool(_) => formatter.write_str("Bool([redacted])"),
+            Self::Number(_) => formatter.write_str("Number([redacted])"),
+            Self::Text(_) => formatter.write_str("Text([redacted])"),
+            Self::Array(values) => formatter
+                .debug_struct("Array")
+                .field("item_count", &values.len())
+                .field("items", &"[redacted]")
+                .finish(),
+            Self::Object(value) => formatter.debug_tuple("Object").field(value).finish(),
+        }
+    }
+}
+
 /// Sorted source field collection for one resource or nested object.
-#[derive(Clone, Debug, PartialEq)]
+///
+/// This allocation-heavy type deliberately does not implement [`Clone`]. Use
+/// [`Self::try_clone`] when an owned copy is required.
+///
+/// ```compile_fail
+/// use cloud_sdk_hetzner::serde::CloudObject;
+///
+/// fn requires_clone<T: Clone>() {}
+/// requires_clone::<CloudObject>();
+/// ```
+#[derive(PartialEq)]
 pub struct CloudObject(Vec<(String, CloudValue)>);
 
 impl CloudObject {
+    /// Fallibly copies every retained field and nested value.
+    pub fn try_clone(&self) -> Result<Self, ResponseModelError> {
+        let mut output = Vec::new();
+        output
+            .try_reserve_exact(self.0.len())
+            .map_err(|_| ResponseModelError::Allocation)?;
+        for (name, value) in &self.0 {
+            output.push((copy_string(name)?, value.try_clone()?));
+        }
+        Ok(Self(output))
+    }
+
     /// Returns a field by its exact provider name.
     #[must_use]
     pub fn get(&self, name: &str) -> Option<&CloudValue> {
@@ -196,6 +257,16 @@ impl CloudObject {
             output.push((name, CloudValue::from_private(value)?));
         }
         Ok(Self(output))
+    }
+}
+
+impl fmt::Debug for CloudObject {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("CloudObject")
+            .field("field_count", &self.0.len())
+            .field("fields", &"[redacted]")
+            .finish()
     }
 }
 

@@ -189,7 +189,7 @@ impl Metrics {
 }
 
 /// Validated pricing summary.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(PartialEq)]
 pub struct Pricing {
     currency: String,
     vat_rate: String,
@@ -197,6 +197,15 @@ pub struct Pricing {
 }
 
 impl Pricing {
+    /// Fallibly copies the complete pricing response.
+    pub fn try_clone(&self) -> Result<Self, ResponseModelError> {
+        Ok(Self {
+            currency: checked_text(&self.currency, 16)?,
+            vat_rate: checked_text(&self.vat_rate, 64)?,
+            fields: self.fields.try_clone()?,
+        })
+    }
+
     /// Returns the provider currency code.
     #[must_use]
     pub fn currency(&self) -> &str {
@@ -231,6 +240,17 @@ impl Pricing {
     #[must_use]
     pub const fn fields(&self) -> &CloudObject {
         &self.fields
+    }
+}
+
+impl fmt::Debug for Pricing {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("Pricing")
+            .field("currency", &"[redacted]")
+            .field("vat_rate", &"[redacted]")
+            .field("fields", &"[redacted]")
+            .finish()
     }
 }
 

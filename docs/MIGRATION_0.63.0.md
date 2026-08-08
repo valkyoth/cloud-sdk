@@ -34,4 +34,10 @@ location lists continue to return `HetznerSuccess::Locations`.
 contain finite fractional values. It remains `PartialEq` and its existing
 summary accessors remain available.
 
+`CloudValue`, `CloudObject`, every dedicated ordinary Cloud resource, and
+`Pricing` deliberately do not implement infallible `Clone`. Replace `.clone()`
+with `.try_clone()?` so allocation failure remains a recoverable
+`ResponseModelError::Allocation`. Their `Debug` implementations expose only
+shape or resource kind and redact identifiers and field values.
+
 The next cumulative crates.io checkpoint is v0.65.0.

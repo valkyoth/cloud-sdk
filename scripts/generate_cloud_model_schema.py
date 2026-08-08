@@ -57,6 +57,49 @@ MODEL_ROOTS = {
     "volumes": "volume",
 }
 EXPECTED_MODELS = frozenset(MODEL_ROOTS.values())
+SUPPORTED_FORMATS = frozenset(("date-time", "decimal", "double", "int32", "int64"))
+SUPPORTED_PATTERNS = frozenset(
+    (
+        r"^[a-z0-9]+(-?[a-z0-9]*)*$",
+        r"^\S(.*\S)?$",
+    )
+)
+UNSUPPORTED_SECURITY_CONSTRAINTS = frozenset(
+    (
+        "exclusiveMinimum",
+        "exclusiveMaximum",
+        "multipleOf",
+        "uniqueItems",
+        "minProperties",
+        "maxProperties",
+        "contains",
+        "minContains",
+        "maxContains",
+        "prefixItems",
+        "unevaluatedItems",
+        "patternProperties",
+        "propertyNames",
+        "dependentRequired",
+        "dependentSchemas",
+        "unevaluatedProperties",
+        "const",
+        "not",
+        "contentEncoding",
+        "contentMediaType",
+    )
+)
+RECORDED_SECURITY_CONSTRAINTS = frozenset(
+    (
+        "minimum",
+        "maximum",
+        "minLength",
+        "maxLength",
+        "minItems",
+        "maxItems",
+        "format",
+        "pattern",
+    )
+)
 FIELDS = (
     "model",
     "path",
@@ -68,6 +111,8 @@ FIELDS = (
     "max_length",
     "min_items",
     "max_items",
+    "format",
+    "pattern",
     "known_values",
 )
 
@@ -192,7 +237,50 @@ def cell(value: Any) -> str:
     return text
 
 
+def validate_constraints(model: str, path: str, schema: dict[str, Any]) -> None:
+    unsupported = sorted(UNSUPPORTED_SECURITY_CONSTRAINTS.intersection(schema))
+    if unsupported:
+        joined = ", ".join(unsupported)
+        raise ValueError(f"{model}:{path} has unenforced constraints: {joined}")
+
+    format_value = schema.get("format")
+    if format_value is not None and format_value not in SUPPORTED_FORMATS:
+        raise ValueError(f"{model}:{path} has unsupported format: {format_value!r}")
+    types = set(schema_types(schema))
+    expected_type = {
+        "date-time": "string",
+        "decimal": "string",
+        "double": "number",
+        "int32": "integer",
+        "int64": "integer",
+    }.get(format_value)
+    if expected_type is not None and expected_type not in types:
+        raise ValueError(
+            f"{model}:{path} format {format_value!r} requires {expected_type}"
+        )
+    pattern = schema.get("pattern")
+    if pattern is not None and pattern not in SUPPORTED_PATTERNS:
+        raise ValueError(f"{model}:{path} has unsupported pattern: {pattern!r}")
+    if pattern is not None and "string" not in types:
+        raise ValueError(f"{model}:{path} pattern requires string")
+
+    branches = schema.get("allOf", [])
+    if isinstance(branches, list):
+        security_keys = UNSUPPORTED_SECURITY_CONSTRAINTS | RECORDED_SECURITY_CONSTRAINTS
+        for branch in branches:
+            if not isinstance(branch, dict):
+                continue
+            hidden = sorted(security_keys.intersection(branch))
+            if hidden:
+                joined = ", ".join(hidden)
+                raise ValueError(
+                    f"{model}:{path} has unflattened allOf constraints: {joined}"
+                )
+            validate_constraints(model, path, branch)
+
+
 def descriptor(model: str, path: str, required: bool, schema: dict[str, Any]) -> dict[str, str]:
+    validate_constraints(model, path, schema)
     known = schema.get("enum", [])
     if not isinstance(known, list) or not all(isinstance(item, str) for item in known):
         known = []
@@ -207,12 +295,16 @@ def descriptor(model: str, path: str, required: bool, schema: dict[str, Any]) ->
         "max_length": cell(schema.get("maxLength")),
         "min_items": cell(schema.get("minItems")),
         "max_items": cell(schema.get("maxItems")),
+        "format": cell(schema.get("format")),
+        "pattern": cell(schema.get("pattern")),
         "known_values": "|".join(known) or "-",
     }
 
 
 def walk_object(model: str, prefix: str, schema: dict[str, Any], rows: list[dict[str, str]]) -> None:
+    validate_constraints(model, prefix or "<root>", schema)
     schema = merge_all_of(schema)
+    validate_constraints(model, prefix or "<root>", schema)
     properties = schema.get("properties", {})
     required = schema.get("required", [])
     if not isinstance(properties, dict) or not isinstance(required, list):
@@ -226,6 +318,7 @@ def walk_object(model: str, prefix: str, schema: dict[str, Any], rows: list[dict
 
 
 def walk_union(model: str, path: str, schema: dict[str, Any], rows: list[dict[str, str]]) -> None:
+    validate_constraints(model, path, schema)
     discriminator = schema.get("discriminator", {})
     selector = discriminator.get("propertyName") if isinstance(discriminator, dict) else None
     branches = schema.get("oneOf")
@@ -236,6 +329,7 @@ def walk_union(model: str, path: str, schema: dict[str, Any], rows: list[dict[st
     for branch in branches:
         if not isinstance(branch, dict):
             raise ValueError(f"{model} union branch is invalid at {path}")
+        validate_constraints(model, path, branch)
         branch = merge_all_of(branch)
         properties = branch.get("properties", {})
         selector_schema = properties.get(selector, {}) if isinstance(properties, dict) else {}
@@ -307,6 +401,11 @@ def example_value(schema: dict[str, Any]) -> Any:
         minimum = schema.get("minimum", 1.0)
         return max(float(minimum), 1.0)
     if nonnull == "string":
+        format_value = schema.get("format")
+        if format_value == "date-time":
+            return "2026-01-01T00:00:00Z"
+        if format_value == "decimal":
+            return "1.0"
         known = schema.get("enum", [])
         if isinstance(known, list) and known and isinstance(known[0], str):
             return known[0]

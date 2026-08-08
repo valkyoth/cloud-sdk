@@ -1,6 +1,7 @@
 //! Dedicated ordinary Hetzner Cloud resource models.
 
 use alloc::vec::Vec;
+use core::fmt;
 
 use crate::serde::strict_json::Value;
 
@@ -10,13 +11,21 @@ use super::{CloudObject, ResponseModelError};
 macro_rules! cloud_model {
     ($name:ident, $model:literal) => {
         #[doc = concat!("Source-complete `", $model, "` response model.")]
-        #[derive(Clone, Debug, PartialEq)]
+        #[derive(PartialEq)]
         pub struct $name {
             id: u64,
             fields: CloudObject,
         }
 
         impl $name {
+            /// Fallibly copies this resource and its complete field tree.
+            pub fn try_clone(&self) -> Result<Self, ResponseModelError> {
+                Ok(Self {
+                    id: self.id,
+                    fields: self.fields.try_clone()?,
+                })
+            }
+
             /// Returns every known and future source field in stable order.
             #[must_use]
             pub const fn fields(&self) -> &CloudObject {
@@ -45,6 +54,16 @@ macro_rules! cloud_model {
                     return Err(ResponseModelError::InvalidIdentifier);
                 }
                 Ok(Self { id, fields })
+            }
+        }
+
+        impl fmt::Debug for $name {
+            fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+                formatter
+                    .debug_struct(stringify!($name))
+                    .field("id", &"[redacted]")
+                    .field("fields", &"[redacted]")
+                    .finish()
             }
         }
     };
@@ -94,7 +113,7 @@ pub enum CloudResourceKind {
 }
 
 /// Dedicated source-complete ordinary Cloud resource.
-#[derive(Clone, Debug, PartialEq)]
+#[derive(PartialEq)]
 #[non_exhaustive]
 pub enum CloudResource {
     /// Firewall.
@@ -124,6 +143,24 @@ pub enum CloudResource {
 }
 
 impl CloudResource {
+    /// Fallibly copies this resource and its complete field tree.
+    pub fn try_clone(&self) -> Result<Self, ResponseModelError> {
+        match self {
+            Self::Firewall(value) => value.try_clone().map(Self::Firewall),
+            Self::FloatingIp(value) => value.try_clone().map(Self::FloatingIp),
+            Self::Image(value) => value.try_clone().map(Self::Image),
+            Self::Iso(value) => value.try_clone().map(Self::Iso),
+            Self::LoadBalancer(value) => value.try_clone().map(Self::LoadBalancer),
+            Self::LoadBalancerType(value) => value.try_clone().map(Self::LoadBalancerType),
+            Self::Network(value) => value.try_clone().map(Self::Network),
+            Self::PlacementGroup(value) => value.try_clone().map(Self::PlacementGroup),
+            Self::PrimaryIp(value) => value.try_clone().map(Self::PrimaryIp),
+            Self::Server(value) => value.try_clone().map(Self::Server),
+            Self::ServerType(value) => value.try_clone().map(Self::ServerType),
+            Self::Volume(value) => value.try_clone().map(Self::Volume),
+        }
+    }
+
     /// Returns the exact resource family.
     #[must_use]
     pub const fn kind(&self) -> CloudResourceKind {
@@ -185,6 +222,17 @@ impl CloudResource {
     #[must_use]
     pub fn name(&self) -> Option<&str> {
         self.fields().text("name")
+    }
+}
+
+impl fmt::Debug for CloudResource {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("CloudResource")
+            .field("kind", &self.kind())
+            .field("id", &"[redacted]")
+            .field("fields", &"[redacted]")
+            .finish()
     }
 }
 
@@ -251,6 +299,8 @@ fn model_for_root(root: &str) -> Option<&'static str> {
 
 #[cfg(test)]
 mod tests {
+    use alloc::format;
+
     use super::{CloudResource, parse_cloud_resource};
     use crate::serde::models::ResponseModelError;
     use crate::serde::strict_json::parse;
@@ -274,8 +324,9 @@ mod tests {
 
     #[test]
     fn complete_model_rejects_missing_required_and_wrong_nullable_types() {
-        let missing =
-            parse(br#"{"id":42,"name":"group","labels":{},"type":"spread","created":"now"}"#);
+        let missing = parse(
+            br#"{"id":42,"name":"group","labels":{},"type":"spread","created":"2026-08-08T00:00:00Z"}"#,
+        );
         let Ok(missing) = missing else {
             unreachable!("missing-field fixture failed")
         };
@@ -284,7 +335,7 @@ mod tests {
             Err(ResponseModelError::MissingField)
         );
 
-        let wrong = parse(br#"{"id":42,"name":"ip","labels":{},"created":"now","blocked":false,"location":{},"ip":"192.0.2.1","dns_ptr":[],"protection":{"delete":false},"type":"ipv4","auto_delete":false,"assignee_type":"server","assignee_id":"42"}"#);
+        let wrong = parse(br#"{"id":42,"name":"ip","labels":{},"created":"2026-08-08T00:00:00Z","blocked":false,"location":{},"ip":"192.0.2.1","dns_ptr":[],"protection":{"delete":false},"type":"ipv4","auto_delete":false,"assignee_type":"server","assignee_id":"42"}"#);
         let Ok(wrong) = wrong else {
             unreachable!("wrong-nullability fixture failed")
         };
@@ -292,5 +343,32 @@ mod tests {
             parse_cloud_resource("primary_ip", &wrong),
             Err(ResponseModelError::WrongType)
         );
+    }
+
+    #[test]
+    fn complete_model_debug_is_redacted_and_copy_is_fallible() {
+        let value = parse(
+            br#"{"id":42,"name":"topology-canary","labels":{},"type":"spread","created":"2026-08-08T00:00:00Z","servers":[],"future":{"address":"198.51.100.9"}}"#,
+        );
+        let Ok(value) = value else {
+            unreachable!("redaction fixture failed")
+        };
+        let resource = parse_cloud_resource("placement_group", &value);
+        let Ok(resource) = resource else {
+            unreachable!("redaction resource failed")
+        };
+        let copy = resource.try_clone();
+        assert_eq!(copy.as_ref(), Ok(&resource));
+
+        let debug = format!("{resource:?} {:?}", resource.fields());
+        assert!(debug.contains("[redacted]"));
+        assert!(!debug.contains("topology-canary"));
+        assert!(!debug.contains("198.51.100.9"));
+        assert!(!debug.contains("42"));
+
+        let Some(future) = resource.fields().get("future") else {
+            unreachable!("future field was not retained")
+        };
+        assert!(!format!("{future:?}").contains("198.51.100.9"));
     }
 }

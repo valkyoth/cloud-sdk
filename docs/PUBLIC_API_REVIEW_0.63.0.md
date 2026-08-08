@@ -15,6 +15,9 @@ Scope: changes from signed v0.62.0 through v0.63.0.
 - `CloudObject`, `CloudValue`, and `CloudNumber` expose stable field lookup and
   iteration while preserving null, boolean, integer, finite fractional,
   string, list, and object distinctions.
+- `CloudValue::try_clone`, `CloudObject::try_clone`, dedicated resource
+  `try_clone` methods, and `Pricing::try_clone` provide checked-allocation
+  copies without an infallible recursive `Clone` implementation.
 - `HetznerSuccess::{Location, CloudResource, CloudResources}` and
   `CompositeResult::cloud_resource` preserve dedicated Cloud results.
 - `Pricing::fields` exposes the complete pricing response while its existing
@@ -26,6 +29,11 @@ All new enums and response families remain non-exhaustive where downstream
 matching could otherwise block additive provider evolution. Unknown enum
 strings are retained as text in the field tree; source-known enum values are
 evidence, not a closed runtime allowlist.
+
+Complete Cloud field trees use deliberately redacted `Debug` implementations.
+Diagnostics reveal bounded shape information and resource kind, but never
+identifiers, names, labels, addresses, topology, pricing values, or unknown
+future field content.
 
 ## Changed Decoding
 

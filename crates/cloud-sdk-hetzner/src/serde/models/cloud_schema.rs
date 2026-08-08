@@ -3,6 +3,7 @@
 use crate::serde::strict_json::Value;
 
 use super::ResponseModelError;
+use super::cloud_constraints::{validate_format, validate_pattern};
 
 const TABLE: &str = include_str!("../cloud_model_schema.tsv");
 
@@ -38,6 +39,8 @@ struct Descriptor<'a> {
     max_length: &'a str,
     min_items: &'a str,
     max_items: &'a str,
+    format: &'a str,
+    pattern: &'a str,
 }
 
 impl<'a> Descriptor<'a> {
@@ -58,6 +61,8 @@ impl<'a> Descriptor<'a> {
             max_length: fields.next().ok_or(ResponseModelError::SchemaMismatch)?,
             min_items: fields.next().ok_or(ResponseModelError::SchemaMismatch)?,
             max_items: fields.next().ok_or(ResponseModelError::SchemaMismatch)?,
+            format: fields.next().ok_or(ResponseModelError::SchemaMismatch)?,
+            pattern: fields.next().ok_or(ResponseModelError::SchemaMismatch)?,
         };
         if fields.next().is_none() || fields.next().is_some() {
             return Err(ResponseModelError::SchemaMismatch);
@@ -204,6 +209,8 @@ fn validate_value(value: &Value, descriptor: Descriptor<'_>) -> Result<(), Respo
     }
     validate_number(value, descriptor.minimum, descriptor.maximum)?;
     validate_string(value, descriptor.min_length, descriptor.max_length)?;
+    validate_format(value, descriptor.format)?;
+    validate_pattern(value, descriptor.pattern)?;
     validate_items(value, descriptor.min_items, descriptor.max_items)
 }
 
@@ -249,8 +256,9 @@ fn validate_string(value: &Value, minimum: &str, maximum: &str) -> Result<(), Re
             if text.len() > 1_048_576 || text.chars().any(unsafe_character) {
                 return Err(ResponseModelError::InvalidText);
             }
+            let character_count = text.chars().count();
             validate_usize_bound(
-                text.len(),
+                character_count,
                 minimum,
                 maximum,
                 ResponseModelError::InvalidText,
@@ -307,4 +315,33 @@ fn unsafe_character(character: char) -> bool {
                 | '\u{2060}'..='\u{2069}'
                 | '\u{feff}'
         )
+}
+
+#[cfg(test)]
+mod tests {
+    use alloc::format;
+
+    use super::validate_string;
+    use crate::serde::models::ResponseModelError;
+    use crate::serde::strict_json::parse;
+
+    #[test]
+    fn source_string_limits_count_unicode_scalars_not_utf8_bytes() {
+        let exact = format!("\"{}\"", "é".repeat(128));
+        let exact = parse(exact.as_bytes());
+        let Ok(exact) = exact else {
+            unreachable!("Unicode boundary fixture failed")
+        };
+        assert_eq!(validate_string(&exact, "1", "128"), Ok(()));
+
+        let over = format!("\"{}\"", "é".repeat(129));
+        let over = parse(over.as_bytes());
+        let Ok(over) = over else {
+            unreachable!("Unicode over-bound fixture failed")
+        };
+        assert_eq!(
+            validate_string(&over, "1", "128"),
+            Err(ResponseModelError::InvalidText)
+        );
+    }
 }

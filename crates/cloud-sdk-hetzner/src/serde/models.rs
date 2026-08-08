@@ -2,6 +2,7 @@
 
 mod actions;
 mod certificate;
+mod cloud_constraints;
 mod cloud_resources;
 mod cloud_schema;
 mod cloud_value;
@@ -245,7 +246,10 @@ impl fmt::Debug for CompositeResult {
         formatter
             .debug_struct("CompositeResult")
             .field("resource", &self.resource)
-            .field("cloud_resource", &self.cloud_resource)
+            .field(
+                "cloud_resource",
+                &self.cloud_resource.as_ref().map(|_| "[redacted]"),
+            )
             .field("actions", &self.actions)
             .field("secrets", &"[redacted]")
             .finish()

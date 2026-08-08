@@ -396,8 +396,12 @@ redacted diagnostics. Every parsed string value uses volatile-clearing storage
 from the first decoded byte, including escaped strings and parser/model error
 paths. Provider and action error messages use the same protected closure-access
 model. A shared 65,536-node budget bounds aggregate JSON structure allocation.
-Cloned response models share the protected allocation, which is cleared after
-the final clone drops. `ResponseBuffer` clears the complete original transport
+Secret-bearing response models do not implement `Clone`. Ordinary Cloud
+resource and pricing trees also redact all values from `Debug` and deliberately
+omit infallible `Clone`; use their `try_clone()` methods when an owned copy is
+required. Names, labels, addresses, topology, and unknown future fields remain
+available only through explicit accessors and should be treated as operationally
+sensitive by callers. `ResponseBuffer` clears the complete original transport
 storage before decoding returns.
 
 ### Incremental JSON

@@ -1,4 +1,4 @@
-use alloc::format;
+use alloc::{format, string::String};
 
 use cloud_sdk::transport::StatusCode;
 
@@ -86,8 +86,16 @@ fn decodes_action_list_resource_and_paginated_resource_families() {
 
 #[test]
 fn decodes_composite_special_empty_and_storage_families() {
+    let mut server = resource_value("server");
+    let Some(server_fields) = server.as_object_mut() else {
+        unreachable!("server fixture is not an object")
+    };
+    server_fields.insert(
+        String::from("future_topology"),
+        serde_json::json!("private-topology-canary"),
+    );
     let create = serde_json::json!({
-        "server":resource_value("server"),
+        "server":server,
         "action":action_value(),
         "next_actions":[],
         "root_password":"dont-log-this"
@@ -115,7 +123,9 @@ fn decodes_composite_special_empty_and_storage_families() {
             .try_with_secret(|value| value == "dont-log-this"),
         Ok(true)
     );
-    assert!(!format!("{composite:?}").contains("dont-log-this"));
+    let debug = format!("{composite:?}");
+    assert!(!debug.contains("dont-log-this"));
+    assert!(!debug.contains("private-topology-canary"));
 
     let metrics = br#"{"metrics":{"start":"2026-01-01T00:00:00Z","end":"2026-01-01T01:00:00Z","step":60.0,"time_series":{"cpu":{"values":[[1.5,"42"]]}}}}"#;
     assert!(
@@ -140,15 +150,25 @@ fn decodes_composite_special_empty_and_storage_families() {
         zonefile.try_with_zonefile(|value| value == "example.com. 60 IN A 192.0.2.1"),
         Ok(true)
     );
-    let pricing = serde_json::to_vec(&serde_json::json!({"pricing":resource_value("pricing")}))
-        .unwrap_or_default();
-    assert!(
-        decode_response(
-            prepared("get_pricing", CLOUD_SERVICE_ID, StatusCode::OK),
-            response(StatusCode::OK, &pricing),
-        )
-        .is_ok()
+    let mut pricing = resource_value("pricing");
+    let Some(currency) = pricing.get_mut("currency") else {
+        unreachable!("pricing fixture has no currency")
+    };
+    *currency = serde_json::json!("CURRENCY-CANARY");
+    let pricing = serde_json::to_vec(&serde_json::json!({"pricing":pricing})).unwrap_or_default();
+    let decoded = decode_response(
+        prepared("get_pricing", CLOUD_SERVICE_ID, StatusCode::OK),
+        response(StatusCode::OK, &pricing),
     );
+    let Ok(decoded) = decoded else {
+        unreachable!("pricing fixture failed")
+    };
+    let HetznerSuccess::Pricing(pricing) = decoded.success() else {
+        unreachable!("pricing model was not selected")
+    };
+    let pricing_copy = pricing.try_clone();
+    assert_eq!(pricing_copy.as_ref(), Ok(pricing));
+    assert!(!format!("{pricing:?}").contains("CURRENCY-CANARY"));
     let folders = br#"{"folders":["/backup"]}"#;
     assert!(
         decode_response(

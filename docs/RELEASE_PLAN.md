@@ -1997,12 +1997,18 @@ numeric/string/array bounds, and discriminated service/target variants. Retain
 bounded unknown fields and enum strings explicitly, and route ordinary Cloud
 operations through dedicated `CloudResource` variants with no common-identity
 fallback. Bind the generated field table and full fixtures to the exact pinned
-Cloud specification through the upstream drift gate.
+Cloud specification through the upstream drift gate. Redact complete metadata
+from diagnostics, permit copies only through checked-allocation `try_clone`,
+count source string bounds as Unicode scalars under the hard byte ceiling, and
+enforce source formats and patterns while failing generation on unsupported
+security constraints.
 
 Verification: generator determinism and canonical-schema-equality tests; all
 208 operation response fixtures; missing, wrong-type, nullability, future-field,
 future-enum, nested-union, and allocation-bound tests; complete Cloud response
-fuzz seed; live upstream schema drift; and `scripts/release_0_63_gate.sh`.
+fuzz seed; redacted-debug and fallible-copy regressions; RFC 3339, decimal,
+integer-format, pattern, and multibyte-string boundaries; live upstream schema
+drift; and `scripts/release_0_63_gate.sh`.
 
 Stop gate: `v0.63.0 implementation stop reached. Complete the pentest and full release gate for this exact commit; defer crates.io publication to v0.65.0.`
 

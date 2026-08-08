@@ -144,6 +144,59 @@ def test_discriminated_union_has_shared_and_selected_paths() -> None:
     assert "services[protocol=https]/certificate" in paths
 
 
+def test_constraints_are_recorded_and_unsupported_constraints_fail_closed() -> None:
+    row = generator.descriptor(
+        "location",
+        "created",
+        True,
+        {"type": "string", "format": "date-time", "pattern": r"^\S(.*\S)?$"},
+    )
+    assert row["format"] == "date-time"
+    assert row["pattern"] == r"^\S(.*\S)?$"
+
+    for constraint in sorted(generator.UNSUPPORTED_SECURITY_CONSTRAINTS):
+        assert_raises(
+            "has unenforced constraints",
+            generator.descriptor,
+            "server",
+            "field",
+            True,
+            {"type": "string", constraint: 1},
+        )
+    assert_raises(
+        "unsupported format",
+        generator.descriptor,
+        "server",
+        "field",
+        True,
+        {"type": "string", "format": "future-format"},
+    )
+    assert_raises(
+        "unsupported pattern",
+        generator.descriptor,
+        "server",
+        "field",
+        True,
+        {"type": "string", "pattern": "^future$"},
+    )
+    assert_raises(
+        "unflattened allOf constraints",
+        generator.walk_object,
+        "server",
+        "field",
+        {
+            "allOf": [
+                {
+                    "type": "object",
+                    "maxProperties": 4,
+                    "properties": {},
+                }
+            ]
+        },
+        [],
+    )
+
+
 def test_committed_evidence_is_structurally_complete() -> None:
     rows = list(
         csv.DictReader(
@@ -158,6 +211,17 @@ def test_committed_evidence_is_structurally_complete() -> None:
     identities = [(row["model"], row["path"]) for row in rows]
     assert len(identities) == len(set(identities))
     assert all(isinstance(fixture, dict) for fixture in fixtures.values())
+    assert {row["format"] for row in rows} == {
+        "-",
+        "date-time",
+        "decimal",
+        "double",
+        "int64",
+    }
+    assert {row["pattern"] for row in rows} == {
+        "-",
+        r"^[a-z0-9]+(-?[a-z0-9]*)*$",
+    }
 
 
 def main() -> None:
@@ -165,6 +229,7 @@ def main() -> None:
         test_render_covers_every_model_and_open_enum,
         test_inconsistent_resource_occurrences_are_rejected,
         test_discriminated_union_has_shared_and_selected_paths,
+        test_constraints_are_recorded_and_unsupported_constraints_fail_closed,
         test_committed_evidence_is_structurally_complete,
     )
     for test in tests:

@@ -1,536 +1,536 @@
-model	path	required	types	minimum	maximum	min_length	max_length	min_items	max_items	known_values
-firewall	applied_to	yes	array	-	-	-	-	-	-	-
-firewall	applied_to[]/applied_to_resources	no	array	-	-	-	-	-	-	-
-firewall	applied_to[]/applied_to_resources[]/server	no	object	-	-	-	-	-	-	-
-firewall	applied_to[]/applied_to_resources[]/server/id	yes	integer	1	9007199254740991	-	-	-	-	-
-firewall	applied_to[]/applied_to_resources[]/type	no	string	-	-	-	-	-	-	server
-firewall	applied_to[]/label_selector	no	object	-	-	-	-	-	-	-
-firewall	applied_to[]/label_selector/selector	yes	string	-	-	-	-	-	-	-
-firewall	applied_to[]/server	no	object	-	-	-	-	-	-	-
-firewall	applied_to[]/server/id	yes	integer	1	9007199254740991	-	-	-	-	-
-firewall	applied_to[]/type	yes	string	-	-	-	-	-	-	server|label_selector
-firewall	created	yes	string	-	-	-	-	-	-	-
-firewall	id	yes	integer	1	9007199254740991	-	-	-	-	-
-firewall	labels	no	object	-	-	-	-	-	-	-
-firewall	name	yes	string	-	-	1	128	-	-	-
-firewall	rules	yes	array	-	-	-	-	-	-	-
-firewall	rules[]/destination_ips	yes	array	-	-	-	-	-	-	-
-firewall	rules[]/destination_ips[]	yes	string	-	-	-	-	-	-	-
-firewall	rules[]/direction	yes	string	-	-	-	-	-	-	in|out
-firewall	rules[]/port	yes	null|string	-	-	-	-	-	-	-
-firewall	rules[]/protocol	yes	string	-	-	-	-	-	-	tcp|udp|icmp|esp|gre
-firewall	rules[]/source_ips	yes	array	-	-	-	-	-	-	-
-firewall	rules[]/source_ips[]	yes	string	-	-	-	-	-	-	-
-floating_ip	blocked	yes	boolean	-	-	-	-	-	-	-
-floating_ip	created	yes	string	-	-	-	-	-	-	-
-floating_ip	dns_ptr	yes	array	-	-	-	-	-	-	-
-floating_ip	dns_ptr[]/dns_ptr	yes	string	-	-	-	-	-	-	-
-floating_ip	dns_ptr[]/ip	yes	string	-	-	-	-	-	-	-
-floating_ip	home_location	yes	object	-	-	-	-	-	-	-
-floating_ip	home_location/city	yes	string	-	-	-	-	-	-	-
-floating_ip	home_location/country	yes	string	-	-	-	-	-	-	-
-floating_ip	home_location/id	yes	integer	1	9007199254740991	-	-	-	-	-
-floating_ip	home_location/latitude	yes	number	-	-	-	-	-	-	-
-floating_ip	home_location/longitude	yes	number	-	-	-	-	-	-	-
-floating_ip	home_location/name	yes	string	-	-	-	-	-	-	-
-floating_ip	home_location/network_zone	yes	string	-	-	-	-	-	-	-
-floating_ip	id	yes	integer	1	9007199254740991	-	-	-	-	-
-floating_ip	ip	yes	string	-	-	-	-	-	-	-
-floating_ip	labels	yes	object	-	-	-	-	-	-	-
-floating_ip	name	yes	string	-	-	-	-	-	-	-
-floating_ip	protection	yes	object	-	-	-	-	-	-	-
-floating_ip	protection/delete	yes	boolean	-	-	-	-	-	-	-
-floating_ip	server	yes	integer|null	-	-	-	-	-	-	-
-floating_ip	type	yes	string	-	-	-	-	-	-	ipv4|ipv6
-image	architecture	yes	string	-	-	-	-	-	-	x86|arm
-image	bound_to	yes	integer|null	-	-	-	-	-	-	-
-image	created	yes	string	-	-	-	-	-	-	-
-image	created_from	yes	null|object	-	-	-	-	-	-	-
-image	created_from/id	yes	integer	-	-	-	-	-	-	-
-image	created_from/name	yes	string	-	-	-	-	-	-	-
-image	deleted	yes	null|string	-	-	-	-	-	-	-
-image	deprecated	yes	null|string	-	-	-	-	-	-	-
-image	disk_size	yes	number	-	-	-	-	-	-	-
-image	id	yes	integer	1	9007199254740991	-	-	-	-	-
-image	image_size	yes	null|number	-	-	-	-	-	-	-
-image	labels	yes	object	-	-	-	-	-	-	-
-image	name	yes	null|string	-	-	-	-	-	-	-
-image	os_flavor	yes	string	-	-	-	-	-	-	ubuntu|centos|debian|fedora|rocky|alma|opensuse|unknown
-image	os_version	yes	null|string	-	-	-	-	-	-	-
-image	protection	yes	object	-	-	-	-	-	-	-
-image	protection/delete	yes	boolean	-	-	-	-	-	-	-
-image	rapid_deploy	no	boolean	-	-	-	-	-	-	-
-image	status	yes	string	-	-	-	-	-	-	available|creating|unavailable
-image	type	yes	string	-	-	-	-	-	-	system|app|snapshot|backup
-iso	architecture	yes	null|string	-	-	-	-	-	-	x86|arm
-iso	deprecation	yes	null|object	-	-	-	-	-	-	-
-iso	deprecation/announced	yes	string	-	-	-	-	-	-	-
-iso	deprecation/unavailable_after	yes	string	-	-	-	-	-	-	-
-iso	id	yes	integer	1	9007199254740991	-	-	-	-	-
-iso	name	yes	null|string	-	-	-	-	-	-	-
-iso	type	yes	null|string	-	-	-	-	-	-	public|private
-load_balancer	algorithm	yes	object	-	-	-	-	-	-	-
-load_balancer	algorithm/type	yes	string	-	-	-	-	-	-	round_robin|least_connections
-load_balancer	created	yes	string	-	-	-	-	-	-	-
-load_balancer	id	yes	integer	1	9007199254740991	-	-	-	-	-
-load_balancer	included_traffic	yes	integer	-	-	-	-	-	-	-
-load_balancer	ingoing_traffic	yes	integer|null	-	-	-	-	-	-	-
-load_balancer	labels	yes	object	-	-	-	-	-	-	-
-load_balancer	load_balancer_type	yes	object	-	-	-	-	-	-	-
-load_balancer	load_balancer_type/deprecated	yes	null|string	-	-	-	-	-	-	-
-load_balancer	load_balancer_type/deprecation	yes	null|object	-	-	-	-	-	-	-
-load_balancer	load_balancer_type/deprecation/announced	yes	string	-	-	-	-	-	-	-
-load_balancer	load_balancer_type/deprecation/unavailable_after	yes	string	-	-	-	-	-	-	-
-load_balancer	load_balancer_type/id	yes	integer	-	-	-	-	-	-	-
-load_balancer	load_balancer_type/max_assigned_certificates	yes	integer	-	-	-	-	-	-	-
-load_balancer	load_balancer_type/max_connections	yes	integer	-	-	-	-	-	-	-
-load_balancer	load_balancer_type/max_services	yes	integer	-	-	-	-	-	-	-
-load_balancer	load_balancer_type/max_targets	yes	integer	-	-	-	-	-	-	-
-load_balancer	load_balancer_type/name	yes	string	-	-	-	-	-	-	-
-load_balancer	load_balancer_type/prices	yes	array	-	-	-	-	-	-	-
-load_balancer	load_balancer_type/prices[]/included_traffic	yes	integer	-	-	-	-	-	-	-
-load_balancer	load_balancer_type/prices[]/location	yes	string	-	-	-	-	-	-	-
-load_balancer	load_balancer_type/prices[]/price_hourly	yes	object	-	-	-	-	-	-	-
-load_balancer	load_balancer_type/prices[]/price_hourly/gross	yes	string	-	-	-	-	-	-	-
-load_balancer	load_balancer_type/prices[]/price_hourly/net	yes	string	-	-	-	-	-	-	-
-load_balancer	load_balancer_type/prices[]/price_monthly	yes	object	-	-	-	-	-	-	-
-load_balancer	load_balancer_type/prices[]/price_monthly/gross	yes	string	-	-	-	-	-	-	-
-load_balancer	load_balancer_type/prices[]/price_monthly/net	yes	string	-	-	-	-	-	-	-
-load_balancer	load_balancer_type/prices[]/price_per_tb_traffic	yes	object	-	-	-	-	-	-	-
-load_balancer	load_balancer_type/prices[]/price_per_tb_traffic/gross	yes	string	-	-	-	-	-	-	-
-load_balancer	load_balancer_type/prices[]/price_per_tb_traffic/net	yes	string	-	-	-	-	-	-	-
-load_balancer	location	yes	object	-	-	-	-	-	-	-
-load_balancer	location/city	yes	string	-	-	-	-	-	-	-
-load_balancer	location/country	yes	string	-	-	-	-	-	-	-
-load_balancer	location/id	yes	integer	1	9007199254740991	-	-	-	-	-
-load_balancer	location/latitude	yes	number	-	-	-	-	-	-	-
-load_balancer	location/longitude	yes	number	-	-	-	-	-	-	-
-load_balancer	location/name	yes	string	-	-	-	-	-	-	-
-load_balancer	location/network_zone	yes	string	-	-	-	-	-	-	-
-load_balancer	name	yes	string	-	-	-	-	-	-	-
-load_balancer	outgoing_traffic	yes	integer|null	-	-	-	-	-	-	-
-load_balancer	private_net	yes	array	-	-	-	-	-	-	-
-load_balancer	private_net[]/ip	yes	string	-	-	-	-	-	-	-
-load_balancer	private_net[]/network	yes	integer	-	-	-	-	-	-	-
-load_balancer	protection	yes	object	-	-	-	-	-	-	-
-load_balancer	protection/delete	yes	boolean	-	-	-	-	-	-	-
-load_balancer	public_net	yes	object	-	-	-	-	-	-	-
-load_balancer	public_net/enabled	yes	boolean	-	-	-	-	-	-	-
-load_balancer	public_net/ipv4	yes	object	-	-	-	-	-	-	-
-load_balancer	public_net/ipv4/dns_ptr	yes	null|string	-	-	-	-	-	-	-
-load_balancer	public_net/ipv4/ip	yes	null|string	-	-	-	-	-	-	-
-load_balancer	public_net/ipv6	yes	object	-	-	-	-	-	-	-
-load_balancer	public_net/ipv6/dns_ptr	yes	null|string	-	-	-	-	-	-	-
-load_balancer	public_net/ipv6/ip	yes	null|string	-	-	-	-	-	-	-
-load_balancer	services	yes	array	-	-	-	-	-	-	-
-load_balancer	services[]/protocol	yes	string	-	-	-	-	-	-	http|https|tcp
-load_balancer	services[protocol=tcp]/destination_port	yes	integer	-	-	-	-	-	-	-
-load_balancer	services[protocol=tcp]/health_check	yes	object	-	-	-	-	-	-	-
-load_balancer	services[protocol=tcp]/health_check/http	no	object	-	-	-	-	-	-	-
-load_balancer	services[protocol=tcp]/health_check/http/domain	yes	null|string	-	-	-	128	-	-	-
-load_balancer	services[protocol=tcp]/health_check/http/path	yes	string	-	-	1	256	-	-	-
-load_balancer	services[protocol=tcp]/health_check/http/response	no	string	-	-	-	256	-	-	-
-load_balancer	services[protocol=tcp]/health_check/http/status_codes	no	array	-	-	-	-	-	20	-
-load_balancer	services[protocol=tcp]/health_check/http/status_codes[]	yes	string	-	-	-	-	-	-	-
-load_balancer	services[protocol=tcp]/health_check/http/tls	no	boolean	-	-	-	-	-	-	-
-load_balancer	services[protocol=tcp]/health_check/interval	yes	integer	3	60	-	-	-	-	-
-load_balancer	services[protocol=tcp]/health_check/port	yes	integer	-	-	-	-	-	-	-
-load_balancer	services[protocol=tcp]/health_check/protocol	yes	string	-	-	-	-	-	-	tcp|http
-load_balancer	services[protocol=tcp]/health_check/retries	yes	integer	1	5	-	-	-	-	-
-load_balancer	services[protocol=tcp]/health_check/timeout	yes	integer	1	60	-	-	-	-	-
-load_balancer	services[protocol=tcp]/listen_port	yes	integer	-	-	-	-	-	-	-
-load_balancer	services[protocol=tcp]/protocol	yes	string	-	-	-	-	-	-	tcp
-load_balancer	services[protocol=tcp]/proxyprotocol	yes	boolean	-	-	-	-	-	-	-
-load_balancer	services[protocol=http]/destination_port	yes	integer	-	-	-	-	-	-	-
-load_balancer	services[protocol=http]/health_check	yes	object	-	-	-	-	-	-	-
-load_balancer	services[protocol=http]/health_check/http	no	object	-	-	-	-	-	-	-
-load_balancer	services[protocol=http]/health_check/http/domain	yes	null|string	-	-	-	128	-	-	-
-load_balancer	services[protocol=http]/health_check/http/path	yes	string	-	-	1	256	-	-	-
-load_balancer	services[protocol=http]/health_check/http/response	no	string	-	-	-	256	-	-	-
-load_balancer	services[protocol=http]/health_check/http/status_codes	no	array	-	-	-	-	-	20	-
-load_balancer	services[protocol=http]/health_check/http/status_codes[]	yes	string	-	-	-	-	-	-	-
-load_balancer	services[protocol=http]/health_check/http/tls	no	boolean	-	-	-	-	-	-	-
-load_balancer	services[protocol=http]/health_check/interval	yes	integer	3	60	-	-	-	-	-
-load_balancer	services[protocol=http]/health_check/port	yes	integer	-	-	-	-	-	-	-
-load_balancer	services[protocol=http]/health_check/protocol	yes	string	-	-	-	-	-	-	tcp|http
-load_balancer	services[protocol=http]/health_check/retries	yes	integer	1	5	-	-	-	-	-
-load_balancer	services[protocol=http]/health_check/timeout	yes	integer	1	60	-	-	-	-	-
-load_balancer	services[protocol=http]/http	yes	object	-	-	-	-	-	-	-
-load_balancer	services[protocol=http]/http/cookie_lifetime	yes	integer	30	86400	-	-	-	-	-
-load_balancer	services[protocol=http]/http/cookie_name	yes	string	-	-	1	100	-	-	-
-load_balancer	services[protocol=http]/http/sticky_sessions	yes	boolean	-	-	-	-	-	-	-
-load_balancer	services[protocol=http]/http/timeout_idle	yes	integer	30	300	-	-	-	-	-
-load_balancer	services[protocol=http]/listen_port	yes	integer	-	-	-	-	-	-	-
-load_balancer	services[protocol=http]/protocol	yes	string	-	-	-	-	-	-	http
-load_balancer	services[protocol=http]/proxyprotocol	yes	boolean	-	-	-	-	-	-	-
-load_balancer	services[protocol=https]/destination_port	yes	integer	-	-	-	-	-	-	-
-load_balancer	services[protocol=https]/health_check	yes	object	-	-	-	-	-	-	-
-load_balancer	services[protocol=https]/health_check/http	no	object	-	-	-	-	-	-	-
-load_balancer	services[protocol=https]/health_check/http/domain	yes	null|string	-	-	-	128	-	-	-
-load_balancer	services[protocol=https]/health_check/http/path	yes	string	-	-	1	256	-	-	-
-load_balancer	services[protocol=https]/health_check/http/response	no	string	-	-	-	256	-	-	-
-load_balancer	services[protocol=https]/health_check/http/status_codes	no	array	-	-	-	-	-	20	-
-load_balancer	services[protocol=https]/health_check/http/status_codes[]	yes	string	-	-	-	-	-	-	-
-load_balancer	services[protocol=https]/health_check/http/tls	no	boolean	-	-	-	-	-	-	-
-load_balancer	services[protocol=https]/health_check/interval	yes	integer	3	60	-	-	-	-	-
-load_balancer	services[protocol=https]/health_check/port	yes	integer	-	-	-	-	-	-	-
-load_balancer	services[protocol=https]/health_check/protocol	yes	string	-	-	-	-	-	-	tcp|http
-load_balancer	services[protocol=https]/health_check/retries	yes	integer	1	5	-	-	-	-	-
-load_balancer	services[protocol=https]/health_check/timeout	yes	integer	1	60	-	-	-	-	-
-load_balancer	services[protocol=https]/http	yes	object	-	-	-	-	-	-	-
-load_balancer	services[protocol=https]/http/certificates	yes	array	-	-	-	-	-	-	-
-load_balancer	services[protocol=https]/http/certificates[]	yes	integer	-	-	-	-	-	-	-
-load_balancer	services[protocol=https]/http/cookie_lifetime	yes	integer	30	86400	-	-	-	-	-
-load_balancer	services[protocol=https]/http/cookie_name	yes	string	-	-	1	100	-	-	-
-load_balancer	services[protocol=https]/http/redirect_http	yes	boolean	-	-	-	-	-	-	-
-load_balancer	services[protocol=https]/http/sticky_sessions	yes	boolean	-	-	-	-	-	-	-
-load_balancer	services[protocol=https]/http/timeout_idle	yes	integer	30	300	-	-	-	-	-
-load_balancer	services[protocol=https]/listen_port	yes	integer	-	-	-	-	-	-	-
-load_balancer	services[protocol=https]/protocol	yes	string	-	-	-	-	-	-	https
-load_balancer	services[protocol=https]/proxyprotocol	yes	boolean	-	-	-	-	-	-	-
-load_balancer	targets	yes	array	-	-	-	-	-	-	-
-load_balancer	targets[]/type	yes	string	-	-	-	-	-	-	ip|label_selector|server
-load_balancer	targets[type=server]/health_status	yes	array	-	-	-	-	-	-	-
-load_balancer	targets[type=server]/health_status[]/listen_port	yes	integer	-	-	-	-	-	-	-
-load_balancer	targets[type=server]/health_status[]/status	yes	string	-	-	-	-	-	-	healthy|unhealthy|unknown
-load_balancer	targets[type=server]/server	yes	object	-	-	-	-	-	-	-
-load_balancer	targets[type=server]/server/id	yes	integer	-	-	-	-	-	-	-
-load_balancer	targets[type=server]/server/ip	yes	string	-	-	-	-	-	-	-
-load_balancer	targets[type=server]/type	yes	string	-	-	-	-	-	-	server
-load_balancer	targets[type=server]/use_private_ip	yes	boolean	-	-	-	-	-	-	-
-load_balancer	targets[type=label_selector]/label_selector	yes	object	-	-	-	-	-	-	-
-load_balancer	targets[type=label_selector]/label_selector/selector	yes	string	-	-	1	1000	-	-	-
-load_balancer	targets[type=label_selector]/targets	yes	array	-	-	-	-	-	-	-
-load_balancer	targets[type=label_selector]/targets[]/health_status	yes	array	-	-	-	-	-	-	-
-load_balancer	targets[type=label_selector]/targets[]/health_status[]/listen_port	yes	integer	-	-	-	-	-	-	-
-load_balancer	targets[type=label_selector]/targets[]/health_status[]/status	yes	string	-	-	-	-	-	-	healthy|unhealthy|unknown
-load_balancer	targets[type=label_selector]/targets[]/server	yes	object	-	-	-	-	-	-	-
-load_balancer	targets[type=label_selector]/targets[]/server/id	yes	integer	-	-	-	-	-	-	-
-load_balancer	targets[type=label_selector]/targets[]/server/ip	yes	string	-	-	-	-	-	-	-
-load_balancer	targets[type=label_selector]/targets[]/type	yes	string	-	-	-	-	-	-	-
-load_balancer	targets[type=label_selector]/targets[]/use_private_ip	yes	boolean	-	-	-	-	-	-	-
-load_balancer	targets[type=label_selector]/type	yes	string	-	-	-	-	-	-	label_selector
-load_balancer	targets[type=label_selector]/use_private_ip	yes	boolean	-	-	-	-	-	-	-
-load_balancer	targets[type=ip]/health_status	yes	array	-	-	-	-	-	-	-
-load_balancer	targets[type=ip]/health_status[]/listen_port	yes	integer	-	-	-	-	-	-	-
-load_balancer	targets[type=ip]/health_status[]/status	yes	string	-	-	-	-	-	-	healthy|unhealthy|unknown
-load_balancer	targets[type=ip]/ip	yes	object	-	-	-	-	-	-	-
-load_balancer	targets[type=ip]/ip/ip	yes	string	-	-	-	-	-	-	-
-load_balancer	targets[type=ip]/type	yes	string	-	-	-	-	-	-	ip
-load_balancer_type	deprecated	yes	null|string	-	-	-	-	-	-	-
-load_balancer_type	deprecation	yes	null|object	-	-	-	-	-	-	-
-load_balancer_type	deprecation/announced	yes	string	-	-	-	-	-	-	-
-load_balancer_type	deprecation/unavailable_after	yes	string	-	-	-	-	-	-	-
-load_balancer_type	id	yes	integer	-	-	-	-	-	-	-
-load_balancer_type	max_assigned_certificates	yes	integer	-	-	-	-	-	-	-
-load_balancer_type	max_connections	yes	integer	-	-	-	-	-	-	-
-load_balancer_type	max_services	yes	integer	-	-	-	-	-	-	-
-load_balancer_type	max_targets	yes	integer	-	-	-	-	-	-	-
-load_balancer_type	name	yes	string	-	-	-	-	-	-	-
-load_balancer_type	prices	yes	array	-	-	-	-	-	-	-
-load_balancer_type	prices[]/included_traffic	yes	integer	-	-	-	-	-	-	-
-load_balancer_type	prices[]/location	yes	string	-	-	-	-	-	-	-
-load_balancer_type	prices[]/price_hourly	yes	object	-	-	-	-	-	-	-
-load_balancer_type	prices[]/price_hourly/gross	yes	string	-	-	-	-	-	-	-
-load_balancer_type	prices[]/price_hourly/net	yes	string	-	-	-	-	-	-	-
-load_balancer_type	prices[]/price_monthly	yes	object	-	-	-	-	-	-	-
-load_balancer_type	prices[]/price_monthly/gross	yes	string	-	-	-	-	-	-	-
-load_balancer_type	prices[]/price_monthly/net	yes	string	-	-	-	-	-	-	-
-load_balancer_type	prices[]/price_per_tb_traffic	yes	object	-	-	-	-	-	-	-
-load_balancer_type	prices[]/price_per_tb_traffic/gross	yes	string	-	-	-	-	-	-	-
-load_balancer_type	prices[]/price_per_tb_traffic/net	yes	string	-	-	-	-	-	-	-
-location	city	yes	string	-	-	-	-	-	-	-
-location	country	yes	string	-	-	-	-	-	-	-
-location	id	yes	integer	1	9007199254740991	-	-	-	-	-
-location	latitude	yes	number	-	-	-	-	-	-	-
-location	longitude	yes	number	-	-	-	-	-	-	-
-location	name	yes	string	-	-	-	-	-	-	-
-location	network_zone	yes	string	-	-	-	-	-	-	-
-network	created	yes	string	-	-	-	-	-	-	-
-network	expose_routes_to_vswitch	yes	boolean	-	-	-	-	-	-	-
-network	id	yes	integer	-	-	-	-	-	-	-
-network	ip_range	yes	string	-	-	-	-	-	-	-
-network	labels	yes	object	-	-	-	-	-	-	-
-network	load_balancers	no	array	-	-	-	-	-	-	-
-network	load_balancers[]	yes	integer	-	-	-	-	-	-	-
-network	name	yes	string	-	-	1	128	-	-	-
-network	protection	yes	object	-	-	-	-	-	-	-
-network	protection/delete	yes	boolean	-	-	-	-	-	-	-
-network	routes	yes	array	-	-	-	-	-	-	-
-network	routes[]/destination	yes	string	-	-	-	-	-	-	-
-network	routes[]/gateway	yes	string	-	-	-	-	-	-	-
-network	servers	yes	array	-	-	-	-	-	-	-
-network	servers[]	yes	integer	-	-	-	-	-	-	-
-network	subnets	yes	array	-	-	-	-	-	-	-
-network	subnets[]/gateway	yes	string	-	-	-	-	-	-	-
-network	subnets[]/ip_range	no	string	-	-	-	-	-	-	-
-network	subnets[]/network_zone	yes	string	-	-	-	-	-	-	-
-network	subnets[]/type	yes	string	-	-	-	-	-	-	cloud|server|vswitch
-network	subnets[]/vswitch_id	no	integer|null	-	-	-	-	-	-	-
-placement_group	created	yes	string	-	-	-	-	-	-	-
-placement_group	id	yes	integer	1	9007199254740991	-	-	-	-	-
-placement_group	labels	yes	object	-	-	-	-	-	-	-
-placement_group	name	yes	string	-	-	-	-	-	-	-
-placement_group	servers	yes	array	-	-	-	-	-	-	-
-placement_group	servers[]	yes	integer	-	-	-	-	-	-	-
-placement_group	type	yes	string	-	-	-	-	-	-	spread
-pricing	currency	yes	string	-	-	-	-	-	-	-
-pricing	floating_ip	yes	object	-	-	-	-	-	-	-
-pricing	floating_ip/price_monthly	yes	object	-	-	-	-	-	-	-
-pricing	floating_ip/price_monthly/gross	yes	string	-	-	-	-	-	-	-
-pricing	floating_ip/price_monthly/net	yes	string	-	-	-	-	-	-	-
-pricing	floating_ips	yes	array	-	-	-	-	-	-	-
-pricing	floating_ips[]/prices	yes	array	-	-	-	-	-	-	-
-pricing	floating_ips[]/prices[]/location	yes	string	-	-	-	-	-	-	-
-pricing	floating_ips[]/prices[]/price_monthly	yes	object	-	-	-	-	-	-	-
-pricing	floating_ips[]/prices[]/price_monthly/gross	yes	string	-	-	-	-	-	-	-
-pricing	floating_ips[]/prices[]/price_monthly/net	yes	string	-	-	-	-	-	-	-
-pricing	floating_ips[]/type	yes	string	-	-	-	-	-	-	ipv4|ipv6
-pricing	image	yes	object	-	-	-	-	-	-	-
-pricing	image/price_per_gb_month	yes	object	-	-	-	-	-	-	-
-pricing	image/price_per_gb_month/gross	yes	string	-	-	-	-	-	-	-
-pricing	image/price_per_gb_month/net	yes	string	-	-	-	-	-	-	-
-pricing	load_balancer_types	yes	array	-	-	-	-	-	-	-
-pricing	load_balancer_types[]/id	yes	integer	-	-	-	-	-	-	-
-pricing	load_balancer_types[]/name	yes	string	-	-	-	-	-	-	-
-pricing	load_balancer_types[]/prices	yes	array	-	-	-	-	-	-	-
-pricing	load_balancer_types[]/prices[]/included_traffic	yes	integer	-	-	-	-	-	-	-
-pricing	load_balancer_types[]/prices[]/location	yes	string	-	-	-	-	-	-	-
-pricing	load_balancer_types[]/prices[]/price_hourly	yes	object	-	-	-	-	-	-	-
-pricing	load_balancer_types[]/prices[]/price_hourly/gross	yes	string	-	-	-	-	-	-	-
-pricing	load_balancer_types[]/prices[]/price_hourly/net	yes	string	-	-	-	-	-	-	-
-pricing	load_balancer_types[]/prices[]/price_monthly	yes	object	-	-	-	-	-	-	-
-pricing	load_balancer_types[]/prices[]/price_monthly/gross	yes	string	-	-	-	-	-	-	-
-pricing	load_balancer_types[]/prices[]/price_monthly/net	yes	string	-	-	-	-	-	-	-
-pricing	load_balancer_types[]/prices[]/price_per_tb_traffic	yes	object	-	-	-	-	-	-	-
-pricing	load_balancer_types[]/prices[]/price_per_tb_traffic/gross	yes	string	-	-	-	-	-	-	-
-pricing	load_balancer_types[]/prices[]/price_per_tb_traffic/net	yes	string	-	-	-	-	-	-	-
-pricing	primary_ips	yes	array	-	-	-	-	-	-	-
-pricing	primary_ips[]/prices	yes	array	-	-	-	-	-	-	-
-pricing	primary_ips[]/prices[]/location	yes	string	-	-	-	-	-	-	-
-pricing	primary_ips[]/prices[]/price_hourly	yes	object	-	-	-	-	-	-	-
-pricing	primary_ips[]/prices[]/price_hourly/gross	yes	string	-	-	-	-	-	-	-
-pricing	primary_ips[]/prices[]/price_hourly/net	yes	string	-	-	-	-	-	-	-
-pricing	primary_ips[]/prices[]/price_monthly	yes	object	-	-	-	-	-	-	-
-pricing	primary_ips[]/prices[]/price_monthly/gross	yes	string	-	-	-	-	-	-	-
-pricing	primary_ips[]/prices[]/price_monthly/net	yes	string	-	-	-	-	-	-	-
-pricing	primary_ips[]/type	yes	string	-	-	-	-	-	-	ipv4|ipv6
-pricing	server_backup	yes	object	-	-	-	-	-	-	-
-pricing	server_backup/percentage	yes	string	-	-	-	-	-	-	-
-pricing	server_types	yes	array	-	-	-	-	-	-	-
-pricing	server_types[]/id	yes	integer	-	-	-	-	-	-	-
-pricing	server_types[]/name	yes	string	-	-	-	-	-	-	-
-pricing	server_types[]/prices	yes	array	-	-	-	-	-	-	-
-pricing	server_types[]/prices[]/included_traffic	yes	integer	-	-	-	-	-	-	-
-pricing	server_types[]/prices[]/location	yes	string	-	-	-	-	-	-	-
-pricing	server_types[]/prices[]/price_hourly	yes	object	-	-	-	-	-	-	-
-pricing	server_types[]/prices[]/price_hourly/gross	yes	string	-	-	-	-	-	-	-
-pricing	server_types[]/prices[]/price_hourly/net	yes	string	-	-	-	-	-	-	-
-pricing	server_types[]/prices[]/price_monthly	yes	object	-	-	-	-	-	-	-
-pricing	server_types[]/prices[]/price_monthly/gross	yes	string	-	-	-	-	-	-	-
-pricing	server_types[]/prices[]/price_monthly/net	yes	string	-	-	-	-	-	-	-
-pricing	server_types[]/prices[]/price_per_tb_traffic	yes	object	-	-	-	-	-	-	-
-pricing	server_types[]/prices[]/price_per_tb_traffic/gross	yes	string	-	-	-	-	-	-	-
-pricing	server_types[]/prices[]/price_per_tb_traffic/net	yes	string	-	-	-	-	-	-	-
-pricing	vat_rate	yes	string	-	-	-	-	-	-	-
-pricing	volume	yes	object	-	-	-	-	-	-	-
-pricing	volume/price_per_gb_month	yes	object	-	-	-	-	-	-	-
-pricing	volume/price_per_gb_month/gross	yes	string	-	-	-	-	-	-	-
-pricing	volume/price_per_gb_month/net	yes	string	-	-	-	-	-	-	-
-primary_ip	assignee_id	yes	integer|null	-	-	-	-	-	-	-
-primary_ip	assignee_type	yes	string	-	-	-	-	-	-	server
-primary_ip	auto_delete	yes	boolean	-	-	-	-	-	-	-
-primary_ip	blocked	yes	boolean	-	-	-	-	-	-	-
-primary_ip	created	yes	string	-	-	-	-	-	-	-
-primary_ip	dns_ptr	yes	array	-	-	-	-	-	-	-
-primary_ip	dns_ptr[]/dns_ptr	yes	string	-	-	-	-	-	-	-
-primary_ip	dns_ptr[]/ip	yes	string	-	-	-	-	-	-	-
-primary_ip	id	yes	integer	1	9007199254740991	-	-	-	-	-
-primary_ip	ip	yes	string	-	-	-	-	-	-	-
-primary_ip	labels	yes	object	-	-	-	-	-	-	-
-primary_ip	location	yes	object	-	-	-	-	-	-	-
-primary_ip	location/city	yes	string	-	-	-	-	-	-	-
-primary_ip	location/country	yes	string	-	-	-	-	-	-	-
-primary_ip	location/id	yes	integer	1	9007199254740991	-	-	-	-	-
-primary_ip	location/latitude	yes	number	-	-	-	-	-	-	-
-primary_ip	location/longitude	yes	number	-	-	-	-	-	-	-
-primary_ip	location/name	yes	string	-	-	-	-	-	-	-
-primary_ip	location/network_zone	yes	string	-	-	-	-	-	-	-
-primary_ip	name	yes	string	-	-	-	-	-	-	-
-primary_ip	protection	yes	object	-	-	-	-	-	-	-
-primary_ip	protection/delete	yes	boolean	-	-	-	-	-	-	-
-primary_ip	type	yes	string	-	-	-	-	-	-	ipv4|ipv6
-server	backup_window	yes	null|string	-	-	-	-	-	-	-
-server	created	yes	string	-	-	-	-	-	-	-
-server	id	yes	integer	1	9007199254740991	-	-	-	-	-
-server	image	yes	null|object	-	-	-	-	-	-	-
-server	image/architecture	yes	string	-	-	-	-	-	-	x86|arm
-server	image/bound_to	yes	integer|null	-	-	-	-	-	-	-
-server	image/created	yes	string	-	-	-	-	-	-	-
-server	image/created_from	yes	null|object	-	-	-	-	-	-	-
-server	image/created_from/id	yes	integer	-	-	-	-	-	-	-
-server	image/created_from/name	yes	string	-	-	-	-	-	-	-
-server	image/deleted	yes	null|string	-	-	-	-	-	-	-
-server	image/deprecated	yes	null|string	-	-	-	-	-	-	-
-server	image/disk_size	yes	number	-	-	-	-	-	-	-
-server	image/id	yes	integer	1	9007199254740991	-	-	-	-	-
-server	image/image_size	yes	null|number	-	-	-	-	-	-	-
-server	image/labels	yes	object	-	-	-	-	-	-	-
-server	image/name	yes	null|string	-	-	-	-	-	-	-
-server	image/os_flavor	yes	string	-	-	-	-	-	-	ubuntu|centos|debian|fedora|rocky|alma|opensuse|unknown
-server	image/os_version	yes	null|string	-	-	-	-	-	-	-
-server	image/protection	yes	object	-	-	-	-	-	-	-
-server	image/protection/delete	yes	boolean	-	-	-	-	-	-	-
-server	image/rapid_deploy	no	boolean	-	-	-	-	-	-	-
-server	image/status	yes	string	-	-	-	-	-	-	available|creating|unavailable
-server	image/type	yes	string	-	-	-	-	-	-	system|app|snapshot|backup
-server	included_traffic	yes	integer|null	-	-	-	-	-	-	-
-server	ingoing_traffic	yes	integer|null	-	-	-	-	-	-	-
-server	iso	yes	null|object	-	-	-	-	-	-	-
-server	iso/architecture	yes	null|string	-	-	-	-	-	-	x86|arm
-server	iso/deprecation	yes	null|object	-	-	-	-	-	-	-
-server	iso/deprecation/announced	yes	string	-	-	-	-	-	-	-
-server	iso/deprecation/unavailable_after	yes	string	-	-	-	-	-	-	-
-server	iso/id	yes	integer	1	9007199254740991	-	-	-	-	-
-server	iso/name	yes	null|string	-	-	-	-	-	-	-
-server	iso/type	yes	null|string	-	-	-	-	-	-	public|private
-server	labels	yes	object	-	-	-	-	-	-	-
-server	load_balancers	no	array	-	-	-	-	-	-	-
-server	load_balancers[]	yes	integer	-	-	-	-	-	-	-
-server	location	yes	object	-	-	-	-	-	-	-
-server	location/city	yes	string	-	-	-	-	-	-	-
-server	location/country	yes	string	-	-	-	-	-	-	-
-server	location/id	yes	integer	1	9007199254740991	-	-	-	-	-
-server	location/latitude	yes	number	-	-	-	-	-	-	-
-server	location/longitude	yes	number	-	-	-	-	-	-	-
-server	location/name	yes	string	-	-	-	-	-	-	-
-server	location/network_zone	yes	string	-	-	-	-	-	-	-
-server	locked	yes	boolean	-	-	-	-	-	-	-
-server	name	yes	string	-	-	-	-	-	-	-
-server	outgoing_traffic	yes	integer|null	-	-	-	-	-	-	-
-server	placement_group	no	null|object	-	-	-	-	-	-	-
-server	placement_group/created	yes	string	-	-	-	-	-	-	-
-server	placement_group/id	yes	integer	1	9007199254740991	-	-	-	-	-
-server	placement_group/labels	yes	object	-	-	-	-	-	-	-
-server	placement_group/name	yes	string	-	-	-	-	-	-	-
-server	placement_group/servers	yes	array	-	-	-	-	-	-	-
-server	placement_group/servers[]	yes	integer	-	-	-	-	-	-	-
-server	placement_group/type	yes	string	-	-	-	-	-	-	spread
-server	primary_disk_size	yes	number	-	-	-	-	-	-	-
-server	private_net	yes	array	-	-	-	-	-	-	-
-server	private_net[]/alias_ips	no	array	-	-	-	-	-	-	-
-server	private_net[]/alias_ips[]	yes	string	-	-	-	-	-	-	-
-server	private_net[]/ip	no	string	-	-	-	-	-	-	-
-server	private_net[]/mac_address	no	string	-	-	-	-	-	-	-
-server	private_net[]/network	no	integer	-	-	-	-	-	-	-
-server	protection	yes	object	-	-	-	-	-	-	-
-server	protection/delete	yes	boolean	-	-	-	-	-	-	-
-server	protection/rebuild	yes	boolean	-	-	-	-	-	-	-
-server	public_net	yes	object	-	-	-	-	-	-	-
-server	public_net/firewalls	no	array	-	-	-	-	-	-	-
-server	public_net/firewalls[]/id	no	integer	1	9007199254740991	-	-	-	-	-
-server	public_net/firewalls[]/status	no	string	-	-	-	-	-	-	applied|pending
-server	public_net/floating_ips	yes	array	-	-	-	-	-	-	-
-server	public_net/floating_ips[]	yes	integer	-	-	-	-	-	-	-
-server	public_net/ipv4	yes	null|object	-	-	-	-	-	-	-
-server	public_net/ipv4/blocked	yes	boolean	-	-	-	-	-	-	-
-server	public_net/ipv4/dns_ptr	yes	string	-	-	-	-	-	-	-
-server	public_net/ipv4/id	no	integer	1	9007199254740991	-	-	-	-	-
-server	public_net/ipv4/ip	yes	string	-	-	-	-	-	-	-
-server	public_net/ipv6	yes	null|object	-	-	-	-	-	-	-
-server	public_net/ipv6/blocked	yes	boolean	-	-	-	-	-	-	-
-server	public_net/ipv6/dns_ptr	yes	array|null	-	-	-	-	-	-	-
-server	public_net/ipv6/dns_ptr[]/dns_ptr	yes	string	-	-	-	-	-	-	-
-server	public_net/ipv6/dns_ptr[]/ip	yes	string	-	-	-	-	-	-	-
-server	public_net/ipv6/id	no	integer	1	9007199254740991	-	-	-	-	-
-server	public_net/ipv6/ip	yes	string	-	-	-	-	-	-	-
-server	rescue_enabled	yes	boolean	-	-	-	-	-	-	-
-server	server_type	yes	object	-	-	-	-	-	-	-
-server	server_type/architecture	yes	string	-	-	-	-	-	-	x86|arm
-server	server_type/category	no	string	-	-	-	-	-	-	-
-server	server_type/cores	yes	number	-	-	-	-	-	-	-
-server	server_type/cpu_type	yes	string	-	-	-	-	-	-	shared|dedicated
-server	server_type/deprecated	yes	boolean	-	-	-	-	-	-	-
-server	server_type/deprecation	no	null|object	-	-	-	-	-	-	-
-server	server_type/deprecation/announced	yes	string	-	-	-	-	-	-	-
-server	server_type/deprecation/unavailable_after	yes	string	-	-	-	-	-	-	-
-server	server_type/disk	yes	number	-	-	-	-	-	-	-
-server	server_type/id	yes	integer	-	-	-	-	-	-	-
-server	server_type/locations	yes	array	-	-	-	-	-	-	-
-server	server_type/locations[]/available	yes	boolean	-	-	-	-	-	-	-
-server	server_type/locations[]/deprecation	yes	null|object	-	-	-	-	-	-	-
-server	server_type/locations[]/deprecation/announced	yes	string	-	-	-	-	-	-	-
-server	server_type/locations[]/deprecation/unavailable_after	yes	string	-	-	-	-	-	-	-
-server	server_type/locations[]/id	yes	integer	1	9007199254740991	-	-	-	-	-
-server	server_type/locations[]/name	yes	string	-	-	-	-	-	-	-
-server	server_type/locations[]/recommended	yes	boolean	-	-	-	-	-	-	-
-server	server_type/memory	yes	number	-	-	-	-	-	-	-
-server	server_type/name	yes	string	-	-	-	-	-	-	-
-server	server_type/prices	yes	array	-	-	-	-	-	-	-
-server	server_type/prices[]/included_traffic	yes	integer	-	-	-	-	-	-	-
-server	server_type/prices[]/location	yes	string	-	-	-	-	-	-	-
-server	server_type/prices[]/price_hourly	yes	object	-	-	-	-	-	-	-
-server	server_type/prices[]/price_hourly/gross	yes	string	-	-	-	-	-	-	-
-server	server_type/prices[]/price_hourly/net	yes	string	-	-	-	-	-	-	-
-server	server_type/prices[]/price_monthly	yes	object	-	-	-	-	-	-	-
-server	server_type/prices[]/price_monthly/gross	yes	string	-	-	-	-	-	-	-
-server	server_type/prices[]/price_monthly/net	yes	string	-	-	-	-	-	-	-
-server	server_type/prices[]/price_per_tb_traffic	yes	object	-	-	-	-	-	-	-
-server	server_type/prices[]/price_per_tb_traffic/gross	yes	string	-	-	-	-	-	-	-
-server	server_type/prices[]/price_per_tb_traffic/net	yes	string	-	-	-	-	-	-	-
-server	server_type/storage_type	yes	string	-	-	-	-	-	-	local|network
-server	status	yes	string	-	-	-	-	-	-	running|initializing|starting|stopping|off|deleting|migrating|rebuilding|unknown
-server	volumes	no	array	-	-	-	-	-	-	-
-server	volumes[]	yes	integer	-	-	-	-	-	-	-
-server_type	architecture	yes	string	-	-	-	-	-	-	x86|arm
-server_type	category	no	string	-	-	-	-	-	-	-
-server_type	cores	yes	number	-	-	-	-	-	-	-
-server_type	cpu_type	yes	string	-	-	-	-	-	-	shared|dedicated
-server_type	deprecated	yes	boolean	-	-	-	-	-	-	-
-server_type	deprecation	no	null|object	-	-	-	-	-	-	-
-server_type	deprecation/announced	yes	string	-	-	-	-	-	-	-
-server_type	deprecation/unavailable_after	yes	string	-	-	-	-	-	-	-
-server_type	disk	yes	number	-	-	-	-	-	-	-
-server_type	id	yes	integer	-	-	-	-	-	-	-
-server_type	locations	yes	array	-	-	-	-	-	-	-
-server_type	locations[]/available	yes	boolean	-	-	-	-	-	-	-
-server_type	locations[]/deprecation	yes	null|object	-	-	-	-	-	-	-
-server_type	locations[]/deprecation/announced	yes	string	-	-	-	-	-	-	-
-server_type	locations[]/deprecation/unavailable_after	yes	string	-	-	-	-	-	-	-
-server_type	locations[]/id	yes	integer	1	9007199254740991	-	-	-	-	-
-server_type	locations[]/name	yes	string	-	-	-	-	-	-	-
-server_type	locations[]/recommended	yes	boolean	-	-	-	-	-	-	-
-server_type	memory	yes	number	-	-	-	-	-	-	-
-server_type	name	yes	string	-	-	-	-	-	-	-
-server_type	prices	yes	array	-	-	-	-	-	-	-
-server_type	prices[]/included_traffic	yes	integer	-	-	-	-	-	-	-
-server_type	prices[]/location	yes	string	-	-	-	-	-	-	-
-server_type	prices[]/price_hourly	yes	object	-	-	-	-	-	-	-
-server_type	prices[]/price_hourly/gross	yes	string	-	-	-	-	-	-	-
-server_type	prices[]/price_hourly/net	yes	string	-	-	-	-	-	-	-
-server_type	prices[]/price_monthly	yes	object	-	-	-	-	-	-	-
-server_type	prices[]/price_monthly/gross	yes	string	-	-	-	-	-	-	-
-server_type	prices[]/price_monthly/net	yes	string	-	-	-	-	-	-	-
-server_type	prices[]/price_per_tb_traffic	yes	object	-	-	-	-	-	-	-
-server_type	prices[]/price_per_tb_traffic/gross	yes	string	-	-	-	-	-	-	-
-server_type	prices[]/price_per_tb_traffic/net	yes	string	-	-	-	-	-	-	-
-server_type	storage_type	yes	string	-	-	-	-	-	-	local|network
-volume	created	yes	string	-	-	-	-	-	-	-
-volume	format	yes	null|string	-	-	-	-	-	-	-
-volume	id	yes	integer	1	9007199254740991	-	-	-	-	-
-volume	labels	yes	object	-	-	-	-	-	-	-
-volume	linux_device	yes	string	-	-	-	-	-	-	-
-volume	location	yes	object	-	-	-	-	-	-	-
-volume	location/city	yes	string	-	-	-	-	-	-	-
-volume	location/country	yes	string	-	-	-	-	-	-	-
-volume	location/id	yes	integer	1	9007199254740991	-	-	-	-	-
-volume	location/latitude	yes	number	-	-	-	-	-	-	-
-volume	location/longitude	yes	number	-	-	-	-	-	-	-
-volume	location/name	yes	string	-	-	-	-	-	-	-
-volume	location/network_zone	yes	string	-	-	-	-	-	-	-
-volume	name	yes	string	-	-	-	-	-	-	-
-volume	protection	yes	object	-	-	-	-	-	-	-
-volume	protection/delete	yes	boolean	-	-	-	-	-	-	-
-volume	server	yes	integer|null	-	-	-	-	-	-	-
-volume	size	yes	number	-	-	-	-	-	-	-
-volume	status	yes	string	-	-	-	-	-	-	available|creating
+model	path	required	types	minimum	maximum	min_length	max_length	min_items	max_items	format	pattern	known_values
+firewall	applied_to	yes	array	-	-	-	-	-	-	-	-	-
+firewall	applied_to[]/applied_to_resources	no	array	-	-	-	-	-	-	-	-	-
+firewall	applied_to[]/applied_to_resources[]/server	no	object	-	-	-	-	-	-	-	-	-
+firewall	applied_to[]/applied_to_resources[]/server/id	yes	integer	1	9007199254740991	-	-	-	-	int64	-	-
+firewall	applied_to[]/applied_to_resources[]/type	no	string	-	-	-	-	-	-	-	-	server
+firewall	applied_to[]/label_selector	no	object	-	-	-	-	-	-	-	-	-
+firewall	applied_to[]/label_selector/selector	yes	string	-	-	-	-	-	-	-	-	-
+firewall	applied_to[]/server	no	object	-	-	-	-	-	-	-	-	-
+firewall	applied_to[]/server/id	yes	integer	1	9007199254740991	-	-	-	-	int64	-	-
+firewall	applied_to[]/type	yes	string	-	-	-	-	-	-	-	-	server|label_selector
+firewall	created	yes	string	-	-	-	-	-	-	date-time	-	-
+firewall	id	yes	integer	1	9007199254740991	-	-	-	-	int64	-	-
+firewall	labels	no	object	-	-	-	-	-	-	-	-	-
+firewall	name	yes	string	-	-	1	128	-	-	-	-	-
+firewall	rules	yes	array	-	-	-	-	-	-	-	-	-
+firewall	rules[]/destination_ips	yes	array	-	-	-	-	-	-	-	-	-
+firewall	rules[]/destination_ips[]	yes	string	-	-	-	-	-	-	-	-	-
+firewall	rules[]/direction	yes	string	-	-	-	-	-	-	-	-	in|out
+firewall	rules[]/port	yes	null|string	-	-	-	-	-	-	-	-	-
+firewall	rules[]/protocol	yes	string	-	-	-	-	-	-	-	-	tcp|udp|icmp|esp|gre
+firewall	rules[]/source_ips	yes	array	-	-	-	-	-	-	-	-	-
+firewall	rules[]/source_ips[]	yes	string	-	-	-	-	-	-	-	-	-
+floating_ip	blocked	yes	boolean	-	-	-	-	-	-	-	-	-
+floating_ip	created	yes	string	-	-	-	-	-	-	date-time	-	-
+floating_ip	dns_ptr	yes	array	-	-	-	-	-	-	-	-	-
+floating_ip	dns_ptr[]/dns_ptr	yes	string	-	-	-	-	-	-	-	-	-
+floating_ip	dns_ptr[]/ip	yes	string	-	-	-	-	-	-	-	-	-
+floating_ip	home_location	yes	object	-	-	-	-	-	-	-	-	-
+floating_ip	home_location/city	yes	string	-	-	-	-	-	-	-	-	-
+floating_ip	home_location/country	yes	string	-	-	-	-	-	-	-	-	-
+floating_ip	home_location/id	yes	integer	1	9007199254740991	-	-	-	-	int64	-	-
+floating_ip	home_location/latitude	yes	number	-	-	-	-	-	-	double	-	-
+floating_ip	home_location/longitude	yes	number	-	-	-	-	-	-	double	-	-
+floating_ip	home_location/name	yes	string	-	-	-	-	-	-	-	^[a-z0-9]+(-?[a-z0-9]*)*$	-
+floating_ip	home_location/network_zone	yes	string	-	-	-	-	-	-	-	^[a-z0-9]+(-?[a-z0-9]*)*$	-
+floating_ip	id	yes	integer	1	9007199254740991	-	-	-	-	int64	-	-
+floating_ip	ip	yes	string	-	-	-	-	-	-	-	-	-
+floating_ip	labels	yes	object	-	-	-	-	-	-	-	-	-
+floating_ip	name	yes	string	-	-	-	-	-	-	-	-	-
+floating_ip	protection	yes	object	-	-	-	-	-	-	-	-	-
+floating_ip	protection/delete	yes	boolean	-	-	-	-	-	-	-	-	-
+floating_ip	server	yes	integer|null	-	-	-	-	-	-	int64	-	-
+floating_ip	type	yes	string	-	-	-	-	-	-	-	-	ipv4|ipv6
+image	architecture	yes	string	-	-	-	-	-	-	-	-	x86|arm
+image	bound_to	yes	integer|null	-	-	-	-	-	-	int64	-	-
+image	created	yes	string	-	-	-	-	-	-	date-time	-	-
+image	created_from	yes	null|object	-	-	-	-	-	-	-	-	-
+image	created_from/id	yes	integer	-	-	-	-	-	-	int64	-	-
+image	created_from/name	yes	string	-	-	-	-	-	-	-	-	-
+image	deleted	yes	null|string	-	-	-	-	-	-	-	-	-
+image	deprecated	yes	null|string	-	-	-	-	-	-	date-time	-	-
+image	disk_size	yes	number	-	-	-	-	-	-	-	-	-
+image	id	yes	integer	1	9007199254740991	-	-	-	-	int64	-	-
+image	image_size	yes	null|number	-	-	-	-	-	-	-	-	-
+image	labels	yes	object	-	-	-	-	-	-	-	-	-
+image	name	yes	null|string	-	-	-	-	-	-	-	-	-
+image	os_flavor	yes	string	-	-	-	-	-	-	-	-	ubuntu|centos|debian|fedora|rocky|alma|opensuse|unknown
+image	os_version	yes	null|string	-	-	-	-	-	-	-	-	-
+image	protection	yes	object	-	-	-	-	-	-	-	-	-
+image	protection/delete	yes	boolean	-	-	-	-	-	-	-	-	-
+image	rapid_deploy	no	boolean	-	-	-	-	-	-	-	-	-
+image	status	yes	string	-	-	-	-	-	-	-	-	available|creating|unavailable
+image	type	yes	string	-	-	-	-	-	-	-	-	system|app|snapshot|backup
+iso	architecture	yes	null|string	-	-	-	-	-	-	-	-	x86|arm
+iso	deprecation	yes	null|object	-	-	-	-	-	-	-	-	-
+iso	deprecation/announced	yes	string	-	-	-	-	-	-	date-time	-	-
+iso	deprecation/unavailable_after	yes	string	-	-	-	-	-	-	date-time	-	-
+iso	id	yes	integer	1	9007199254740991	-	-	-	-	int64	-	-
+iso	name	yes	null|string	-	-	-	-	-	-	-	-	-
+iso	type	yes	null|string	-	-	-	-	-	-	-	-	public|private
+load_balancer	algorithm	yes	object	-	-	-	-	-	-	-	-	-
+load_balancer	algorithm/type	yes	string	-	-	-	-	-	-	-	-	round_robin|least_connections
+load_balancer	created	yes	string	-	-	-	-	-	-	date-time	-	-
+load_balancer	id	yes	integer	1	9007199254740991	-	-	-	-	int64	-	-
+load_balancer	included_traffic	yes	integer	-	-	-	-	-	-	int64	-	-
+load_balancer	ingoing_traffic	yes	integer|null	-	-	-	-	-	-	int64	-	-
+load_balancer	labels	yes	object	-	-	-	-	-	-	-	-	-
+load_balancer	load_balancer_type	yes	object	-	-	-	-	-	-	-	-	-
+load_balancer	load_balancer_type/deprecated	yes	null|string	-	-	-	-	-	-	date-time	-	-
+load_balancer	load_balancer_type/deprecation	yes	null|object	-	-	-	-	-	-	-	-	-
+load_balancer	load_balancer_type/deprecation/announced	yes	string	-	-	-	-	-	-	date-time	-	-
+load_balancer	load_balancer_type/deprecation/unavailable_after	yes	string	-	-	-	-	-	-	date-time	-	-
+load_balancer	load_balancer_type/id	yes	integer	-	-	-	-	-	-	int64	-	-
+load_balancer	load_balancer_type/max_assigned_certificates	yes	integer	-	-	-	-	-	-	int64	-	-
+load_balancer	load_balancer_type/max_connections	yes	integer	-	-	-	-	-	-	int64	-	-
+load_balancer	load_balancer_type/max_services	yes	integer	-	-	-	-	-	-	int64	-	-
+load_balancer	load_balancer_type/max_targets	yes	integer	-	-	-	-	-	-	int64	-	-
+load_balancer	load_balancer_type/name	yes	string	-	-	-	-	-	-	-	-	-
+load_balancer	load_balancer_type/prices	yes	array	-	-	-	-	-	-	-	-	-
+load_balancer	load_balancer_type/prices[]/included_traffic	yes	integer	-	-	-	-	-	-	int64	-	-
+load_balancer	load_balancer_type/prices[]/location	yes	string	-	-	-	-	-	-	-	-	-
+load_balancer	load_balancer_type/prices[]/price_hourly	yes	object	-	-	-	-	-	-	-	-	-
+load_balancer	load_balancer_type/prices[]/price_hourly/gross	yes	string	-	-	-	-	-	-	decimal	-	-
+load_balancer	load_balancer_type/prices[]/price_hourly/net	yes	string	-	-	-	-	-	-	decimal	-	-
+load_balancer	load_balancer_type/prices[]/price_monthly	yes	object	-	-	-	-	-	-	-	-	-
+load_balancer	load_balancer_type/prices[]/price_monthly/gross	yes	string	-	-	-	-	-	-	decimal	-	-
+load_balancer	load_balancer_type/prices[]/price_monthly/net	yes	string	-	-	-	-	-	-	decimal	-	-
+load_balancer	load_balancer_type/prices[]/price_per_tb_traffic	yes	object	-	-	-	-	-	-	-	-	-
+load_balancer	load_balancer_type/prices[]/price_per_tb_traffic/gross	yes	string	-	-	-	-	-	-	decimal	-	-
+load_balancer	load_balancer_type/prices[]/price_per_tb_traffic/net	yes	string	-	-	-	-	-	-	decimal	-	-
+load_balancer	location	yes	object	-	-	-	-	-	-	-	-	-
+load_balancer	location/city	yes	string	-	-	-	-	-	-	-	-	-
+load_balancer	location/country	yes	string	-	-	-	-	-	-	-	-	-
+load_balancer	location/id	yes	integer	1	9007199254740991	-	-	-	-	int64	-	-
+load_balancer	location/latitude	yes	number	-	-	-	-	-	-	double	-	-
+load_balancer	location/longitude	yes	number	-	-	-	-	-	-	double	-	-
+load_balancer	location/name	yes	string	-	-	-	-	-	-	-	^[a-z0-9]+(-?[a-z0-9]*)*$	-
+load_balancer	location/network_zone	yes	string	-	-	-	-	-	-	-	^[a-z0-9]+(-?[a-z0-9]*)*$	-
+load_balancer	name	yes	string	-	-	-	-	-	-	-	-	-
+load_balancer	outgoing_traffic	yes	integer|null	-	-	-	-	-	-	int64	-	-
+load_balancer	private_net	yes	array	-	-	-	-	-	-	-	-	-
+load_balancer	private_net[]/ip	yes	string	-	-	-	-	-	-	-	-	-
+load_balancer	private_net[]/network	yes	integer	-	-	-	-	-	-	int64	-	-
+load_balancer	protection	yes	object	-	-	-	-	-	-	-	-	-
+load_balancer	protection/delete	yes	boolean	-	-	-	-	-	-	-	-	-
+load_balancer	public_net	yes	object	-	-	-	-	-	-	-	-	-
+load_balancer	public_net/enabled	yes	boolean	-	-	-	-	-	-	-	-	-
+load_balancer	public_net/ipv4	yes	object	-	-	-	-	-	-	-	-	-
+load_balancer	public_net/ipv4/dns_ptr	yes	null|string	-	-	-	-	-	-	-	-	-
+load_balancer	public_net/ipv4/ip	yes	null|string	-	-	-	-	-	-	-	-	-
+load_balancer	public_net/ipv6	yes	object	-	-	-	-	-	-	-	-	-
+load_balancer	public_net/ipv6/dns_ptr	yes	null|string	-	-	-	-	-	-	-	-	-
+load_balancer	public_net/ipv6/ip	yes	null|string	-	-	-	-	-	-	-	-	-
+load_balancer	services	yes	array	-	-	-	-	-	-	-	-	-
+load_balancer	services[]/protocol	yes	string	-	-	-	-	-	-	-	-	http|https|tcp
+load_balancer	services[protocol=tcp]/destination_port	yes	integer	-	-	-	-	-	-	-	-	-
+load_balancer	services[protocol=tcp]/health_check	yes	object	-	-	-	-	-	-	-	-	-
+load_balancer	services[protocol=tcp]/health_check/http	no	object	-	-	-	-	-	-	-	-	-
+load_balancer	services[protocol=tcp]/health_check/http/domain	yes	null|string	-	-	-	128	-	-	-	-	-
+load_balancer	services[protocol=tcp]/health_check/http/path	yes	string	-	-	1	256	-	-	-	-	-
+load_balancer	services[protocol=tcp]/health_check/http/response	no	string	-	-	-	256	-	-	-	-	-
+load_balancer	services[protocol=tcp]/health_check/http/status_codes	no	array	-	-	-	-	-	20	-	-	-
+load_balancer	services[protocol=tcp]/health_check/http/status_codes[]	yes	string	-	-	-	-	-	-	-	-	-
+load_balancer	services[protocol=tcp]/health_check/http/tls	no	boolean	-	-	-	-	-	-	-	-	-
+load_balancer	services[protocol=tcp]/health_check/interval	yes	integer	3	60	-	-	-	-	-	-	-
+load_balancer	services[protocol=tcp]/health_check/port	yes	integer	-	-	-	-	-	-	-	-	-
+load_balancer	services[protocol=tcp]/health_check/protocol	yes	string	-	-	-	-	-	-	-	-	tcp|http
+load_balancer	services[protocol=tcp]/health_check/retries	yes	integer	1	5	-	-	-	-	-	-	-
+load_balancer	services[protocol=tcp]/health_check/timeout	yes	integer	1	60	-	-	-	-	-	-	-
+load_balancer	services[protocol=tcp]/listen_port	yes	integer	-	-	-	-	-	-	-	-	-
+load_balancer	services[protocol=tcp]/protocol	yes	string	-	-	-	-	-	-	-	-	tcp
+load_balancer	services[protocol=tcp]/proxyprotocol	yes	boolean	-	-	-	-	-	-	-	-	-
+load_balancer	services[protocol=http]/destination_port	yes	integer	-	-	-	-	-	-	-	-	-
+load_balancer	services[protocol=http]/health_check	yes	object	-	-	-	-	-	-	-	-	-
+load_balancer	services[protocol=http]/health_check/http	no	object	-	-	-	-	-	-	-	-	-
+load_balancer	services[protocol=http]/health_check/http/domain	yes	null|string	-	-	-	128	-	-	-	-	-
+load_balancer	services[protocol=http]/health_check/http/path	yes	string	-	-	1	256	-	-	-	-	-
+load_balancer	services[protocol=http]/health_check/http/response	no	string	-	-	-	256	-	-	-	-	-
+load_balancer	services[protocol=http]/health_check/http/status_codes	no	array	-	-	-	-	-	20	-	-	-
+load_balancer	services[protocol=http]/health_check/http/status_codes[]	yes	string	-	-	-	-	-	-	-	-	-
+load_balancer	services[protocol=http]/health_check/http/tls	no	boolean	-	-	-	-	-	-	-	-	-
+load_balancer	services[protocol=http]/health_check/interval	yes	integer	3	60	-	-	-	-	-	-	-
+load_balancer	services[protocol=http]/health_check/port	yes	integer	-	-	-	-	-	-	-	-	-
+load_balancer	services[protocol=http]/health_check/protocol	yes	string	-	-	-	-	-	-	-	-	tcp|http
+load_balancer	services[protocol=http]/health_check/retries	yes	integer	1	5	-	-	-	-	-	-	-
+load_balancer	services[protocol=http]/health_check/timeout	yes	integer	1	60	-	-	-	-	-	-	-
+load_balancer	services[protocol=http]/http	yes	object	-	-	-	-	-	-	-	-	-
+load_balancer	services[protocol=http]/http/cookie_lifetime	yes	integer	30	86400	-	-	-	-	-	-	-
+load_balancer	services[protocol=http]/http/cookie_name	yes	string	-	-	1	100	-	-	-	-	-
+load_balancer	services[protocol=http]/http/sticky_sessions	yes	boolean	-	-	-	-	-	-	-	-	-
+load_balancer	services[protocol=http]/http/timeout_idle	yes	integer	30	300	-	-	-	-	-	-	-
+load_balancer	services[protocol=http]/listen_port	yes	integer	-	-	-	-	-	-	-	-	-
+load_balancer	services[protocol=http]/protocol	yes	string	-	-	-	-	-	-	-	-	http
+load_balancer	services[protocol=http]/proxyprotocol	yes	boolean	-	-	-	-	-	-	-	-	-
+load_balancer	services[protocol=https]/destination_port	yes	integer	-	-	-	-	-	-	-	-	-
+load_balancer	services[protocol=https]/health_check	yes	object	-	-	-	-	-	-	-	-	-
+load_balancer	services[protocol=https]/health_check/http	no	object	-	-	-	-	-	-	-	-	-
+load_balancer	services[protocol=https]/health_check/http/domain	yes	null|string	-	-	-	128	-	-	-	-	-
+load_balancer	services[protocol=https]/health_check/http/path	yes	string	-	-	1	256	-	-	-	-	-
+load_balancer	services[protocol=https]/health_check/http/response	no	string	-	-	-	256	-	-	-	-	-
+load_balancer	services[protocol=https]/health_check/http/status_codes	no	array	-	-	-	-	-	20	-	-	-
+load_balancer	services[protocol=https]/health_check/http/status_codes[]	yes	string	-	-	-	-	-	-	-	-	-
+load_balancer	services[protocol=https]/health_check/http/tls	no	boolean	-	-	-	-	-	-	-	-	-
+load_balancer	services[protocol=https]/health_check/interval	yes	integer	3	60	-	-	-	-	-	-	-
+load_balancer	services[protocol=https]/health_check/port	yes	integer	-	-	-	-	-	-	-	-	-
+load_balancer	services[protocol=https]/health_check/protocol	yes	string	-	-	-	-	-	-	-	-	tcp|http
+load_balancer	services[protocol=https]/health_check/retries	yes	integer	1	5	-	-	-	-	-	-	-
+load_balancer	services[protocol=https]/health_check/timeout	yes	integer	1	60	-	-	-	-	-	-	-
+load_balancer	services[protocol=https]/http	yes	object	-	-	-	-	-	-	-	-	-
+load_balancer	services[protocol=https]/http/certificates	yes	array	-	-	-	-	-	-	-	-	-
+load_balancer	services[protocol=https]/http/certificates[]	yes	integer	-	-	-	-	-	-	int64	-	-
+load_balancer	services[protocol=https]/http/cookie_lifetime	yes	integer	30	86400	-	-	-	-	-	-	-
+load_balancer	services[protocol=https]/http/cookie_name	yes	string	-	-	1	100	-	-	-	-	-
+load_balancer	services[protocol=https]/http/redirect_http	yes	boolean	-	-	-	-	-	-	-	-	-
+load_balancer	services[protocol=https]/http/sticky_sessions	yes	boolean	-	-	-	-	-	-	-	-	-
+load_balancer	services[protocol=https]/http/timeout_idle	yes	integer	30	300	-	-	-	-	-	-	-
+load_balancer	services[protocol=https]/listen_port	yes	integer	-	-	-	-	-	-	-	-	-
+load_balancer	services[protocol=https]/protocol	yes	string	-	-	-	-	-	-	-	-	https
+load_balancer	services[protocol=https]/proxyprotocol	yes	boolean	-	-	-	-	-	-	-	-	-
+load_balancer	targets	yes	array	-	-	-	-	-	-	-	-	-
+load_balancer	targets[]/type	yes	string	-	-	-	-	-	-	-	-	ip|label_selector|server
+load_balancer	targets[type=server]/health_status	yes	array	-	-	-	-	-	-	-	-	-
+load_balancer	targets[type=server]/health_status[]/listen_port	yes	integer	-	-	-	-	-	-	-	-	-
+load_balancer	targets[type=server]/health_status[]/status	yes	string	-	-	-	-	-	-	-	-	healthy|unhealthy|unknown
+load_balancer	targets[type=server]/server	yes	object	-	-	-	-	-	-	-	-	-
+load_balancer	targets[type=server]/server/id	yes	integer	-	-	-	-	-	-	int64	-	-
+load_balancer	targets[type=server]/server/ip	yes	string	-	-	-	-	-	-	-	-	-
+load_balancer	targets[type=server]/type	yes	string	-	-	-	-	-	-	-	-	server
+load_balancer	targets[type=server]/use_private_ip	yes	boolean	-	-	-	-	-	-	-	-	-
+load_balancer	targets[type=label_selector]/label_selector	yes	object	-	-	-	-	-	-	-	-	-
+load_balancer	targets[type=label_selector]/label_selector/selector	yes	string	-	-	1	1000	-	-	-	-	-
+load_balancer	targets[type=label_selector]/targets	yes	array	-	-	-	-	-	-	-	-	-
+load_balancer	targets[type=label_selector]/targets[]/health_status	yes	array	-	-	-	-	-	-	-	-	-
+load_balancer	targets[type=label_selector]/targets[]/health_status[]/listen_port	yes	integer	-	-	-	-	-	-	-	-	-
+load_balancer	targets[type=label_selector]/targets[]/health_status[]/status	yes	string	-	-	-	-	-	-	-	-	healthy|unhealthy|unknown
+load_balancer	targets[type=label_selector]/targets[]/server	yes	object	-	-	-	-	-	-	-	-	-
+load_balancer	targets[type=label_selector]/targets[]/server/id	yes	integer	-	-	-	-	-	-	int64	-	-
+load_balancer	targets[type=label_selector]/targets[]/server/ip	yes	string	-	-	-	-	-	-	-	-	-
+load_balancer	targets[type=label_selector]/targets[]/type	yes	string	-	-	-	-	-	-	-	-	-
+load_balancer	targets[type=label_selector]/targets[]/use_private_ip	yes	boolean	-	-	-	-	-	-	-	-	-
+load_balancer	targets[type=label_selector]/type	yes	string	-	-	-	-	-	-	-	-	label_selector
+load_balancer	targets[type=label_selector]/use_private_ip	yes	boolean	-	-	-	-	-	-	-	-	-
+load_balancer	targets[type=ip]/health_status	yes	array	-	-	-	-	-	-	-	-	-
+load_balancer	targets[type=ip]/health_status[]/listen_port	yes	integer	-	-	-	-	-	-	-	-	-
+load_balancer	targets[type=ip]/health_status[]/status	yes	string	-	-	-	-	-	-	-	-	healthy|unhealthy|unknown
+load_balancer	targets[type=ip]/ip	yes	object	-	-	-	-	-	-	-	-	-
+load_balancer	targets[type=ip]/ip/ip	yes	string	-	-	-	-	-	-	-	-	-
+load_balancer	targets[type=ip]/type	yes	string	-	-	-	-	-	-	-	-	ip
+load_balancer_type	deprecated	yes	null|string	-	-	-	-	-	-	date-time	-	-
+load_balancer_type	deprecation	yes	null|object	-	-	-	-	-	-	-	-	-
+load_balancer_type	deprecation/announced	yes	string	-	-	-	-	-	-	date-time	-	-
+load_balancer_type	deprecation/unavailable_after	yes	string	-	-	-	-	-	-	date-time	-	-
+load_balancer_type	id	yes	integer	-	-	-	-	-	-	int64	-	-
+load_balancer_type	max_assigned_certificates	yes	integer	-	-	-	-	-	-	int64	-	-
+load_balancer_type	max_connections	yes	integer	-	-	-	-	-	-	int64	-	-
+load_balancer_type	max_services	yes	integer	-	-	-	-	-	-	int64	-	-
+load_balancer_type	max_targets	yes	integer	-	-	-	-	-	-	int64	-	-
+load_balancer_type	name	yes	string	-	-	-	-	-	-	-	-	-
+load_balancer_type	prices	yes	array	-	-	-	-	-	-	-	-	-
+load_balancer_type	prices[]/included_traffic	yes	integer	-	-	-	-	-	-	int64	-	-
+load_balancer_type	prices[]/location	yes	string	-	-	-	-	-	-	-	-	-
+load_balancer_type	prices[]/price_hourly	yes	object	-	-	-	-	-	-	-	-	-
+load_balancer_type	prices[]/price_hourly/gross	yes	string	-	-	-	-	-	-	decimal	-	-
+load_balancer_type	prices[]/price_hourly/net	yes	string	-	-	-	-	-	-	decimal	-	-
+load_balancer_type	prices[]/price_monthly	yes	object	-	-	-	-	-	-	-	-	-
+load_balancer_type	prices[]/price_monthly/gross	yes	string	-	-	-	-	-	-	decimal	-	-
+load_balancer_type	prices[]/price_monthly/net	yes	string	-	-	-	-	-	-	decimal	-	-
+load_balancer_type	prices[]/price_per_tb_traffic	yes	object	-	-	-	-	-	-	-	-	-
+load_balancer_type	prices[]/price_per_tb_traffic/gross	yes	string	-	-	-	-	-	-	decimal	-	-
+load_balancer_type	prices[]/price_per_tb_traffic/net	yes	string	-	-	-	-	-	-	decimal	-	-
+location	city	yes	string	-	-	-	-	-	-	-	-	-
+location	country	yes	string	-	-	-	-	-	-	-	-	-
+location	id	yes	integer	1	9007199254740991	-	-	-	-	int64	-	-
+location	latitude	yes	number	-	-	-	-	-	-	double	-	-
+location	longitude	yes	number	-	-	-	-	-	-	double	-	-
+location	name	yes	string	-	-	-	-	-	-	-	^[a-z0-9]+(-?[a-z0-9]*)*$	-
+location	network_zone	yes	string	-	-	-	-	-	-	-	^[a-z0-9]+(-?[a-z0-9]*)*$	-
+network	created	yes	string	-	-	-	-	-	-	date-time	-	-
+network	expose_routes_to_vswitch	yes	boolean	-	-	-	-	-	-	-	-	-
+network	id	yes	integer	-	-	-	-	-	-	int64	-	-
+network	ip_range	yes	string	-	-	-	-	-	-	-	-	-
+network	labels	yes	object	-	-	-	-	-	-	-	-	-
+network	load_balancers	no	array	-	-	-	-	-	-	-	-	-
+network	load_balancers[]	yes	integer	-	-	-	-	-	-	int64	-	-
+network	name	yes	string	-	-	1	128	-	-	-	-	-
+network	protection	yes	object	-	-	-	-	-	-	-	-	-
+network	protection/delete	yes	boolean	-	-	-	-	-	-	-	-	-
+network	routes	yes	array	-	-	-	-	-	-	-	-	-
+network	routes[]/destination	yes	string	-	-	-	-	-	-	-	-	-
+network	routes[]/gateway	yes	string	-	-	-	-	-	-	-	-	-
+network	servers	yes	array	-	-	-	-	-	-	-	-	-
+network	servers[]	yes	integer	-	-	-	-	-	-	int64	-	-
+network	subnets	yes	array	-	-	-	-	-	-	-	-	-
+network	subnets[]/gateway	yes	string	-	-	-	-	-	-	-	-	-
+network	subnets[]/ip_range	no	string	-	-	-	-	-	-	-	-	-
+network	subnets[]/network_zone	yes	string	-	-	-	-	-	-	-	-	-
+network	subnets[]/type	yes	string	-	-	-	-	-	-	-	-	cloud|server|vswitch
+network	subnets[]/vswitch_id	no	integer|null	-	-	-	-	-	-	int64	-	-
+placement_group	created	yes	string	-	-	-	-	-	-	date-time	-	-
+placement_group	id	yes	integer	1	9007199254740991	-	-	-	-	int64	-	-
+placement_group	labels	yes	object	-	-	-	-	-	-	-	-	-
+placement_group	name	yes	string	-	-	-	-	-	-	-	-	-
+placement_group	servers	yes	array	-	-	-	-	-	-	-	-	-
+placement_group	servers[]	yes	integer	-	-	-	-	-	-	int64	-	-
+placement_group	type	yes	string	-	-	-	-	-	-	-	-	spread
+pricing	currency	yes	string	-	-	-	-	-	-	-	-	-
+pricing	floating_ip	yes	object	-	-	-	-	-	-	-	-	-
+pricing	floating_ip/price_monthly	yes	object	-	-	-	-	-	-	-	-	-
+pricing	floating_ip/price_monthly/gross	yes	string	-	-	-	-	-	-	decimal	-	-
+pricing	floating_ip/price_monthly/net	yes	string	-	-	-	-	-	-	decimal	-	-
+pricing	floating_ips	yes	array	-	-	-	-	-	-	-	-	-
+pricing	floating_ips[]/prices	yes	array	-	-	-	-	-	-	-	-	-
+pricing	floating_ips[]/prices[]/location	yes	string	-	-	-	-	-	-	-	-	-
+pricing	floating_ips[]/prices[]/price_monthly	yes	object	-	-	-	-	-	-	-	-	-
+pricing	floating_ips[]/prices[]/price_monthly/gross	yes	string	-	-	-	-	-	-	decimal	-	-
+pricing	floating_ips[]/prices[]/price_monthly/net	yes	string	-	-	-	-	-	-	decimal	-	-
+pricing	floating_ips[]/type	yes	string	-	-	-	-	-	-	-	-	ipv4|ipv6
+pricing	image	yes	object	-	-	-	-	-	-	-	-	-
+pricing	image/price_per_gb_month	yes	object	-	-	-	-	-	-	-	-	-
+pricing	image/price_per_gb_month/gross	yes	string	-	-	-	-	-	-	decimal	-	-
+pricing	image/price_per_gb_month/net	yes	string	-	-	-	-	-	-	decimal	-	-
+pricing	load_balancer_types	yes	array	-	-	-	-	-	-	-	-	-
+pricing	load_balancer_types[]/id	yes	integer	-	-	-	-	-	-	int64	-	-
+pricing	load_balancer_types[]/name	yes	string	-	-	-	-	-	-	-	-	-
+pricing	load_balancer_types[]/prices	yes	array	-	-	-	-	-	-	-	-	-
+pricing	load_balancer_types[]/prices[]/included_traffic	yes	integer	-	-	-	-	-	-	int64	-	-
+pricing	load_balancer_types[]/prices[]/location	yes	string	-	-	-	-	-	-	-	-	-
+pricing	load_balancer_types[]/prices[]/price_hourly	yes	object	-	-	-	-	-	-	-	-	-
+pricing	load_balancer_types[]/prices[]/price_hourly/gross	yes	string	-	-	-	-	-	-	decimal	-	-
+pricing	load_balancer_types[]/prices[]/price_hourly/net	yes	string	-	-	-	-	-	-	decimal	-	-
+pricing	load_balancer_types[]/prices[]/price_monthly	yes	object	-	-	-	-	-	-	-	-	-
+pricing	load_balancer_types[]/prices[]/price_monthly/gross	yes	string	-	-	-	-	-	-	decimal	-	-
+pricing	load_balancer_types[]/prices[]/price_monthly/net	yes	string	-	-	-	-	-	-	decimal	-	-
+pricing	load_balancer_types[]/prices[]/price_per_tb_traffic	yes	object	-	-	-	-	-	-	-	-	-
+pricing	load_balancer_types[]/prices[]/price_per_tb_traffic/gross	yes	string	-	-	-	-	-	-	decimal	-	-
+pricing	load_balancer_types[]/prices[]/price_per_tb_traffic/net	yes	string	-	-	-	-	-	-	decimal	-	-
+pricing	primary_ips	yes	array	-	-	-	-	-	-	-	-	-
+pricing	primary_ips[]/prices	yes	array	-	-	-	-	-	-	-	-	-
+pricing	primary_ips[]/prices[]/location	yes	string	-	-	-	-	-	-	-	-	-
+pricing	primary_ips[]/prices[]/price_hourly	yes	object	-	-	-	-	-	-	-	-	-
+pricing	primary_ips[]/prices[]/price_hourly/gross	yes	string	-	-	-	-	-	-	decimal	-	-
+pricing	primary_ips[]/prices[]/price_hourly/net	yes	string	-	-	-	-	-	-	decimal	-	-
+pricing	primary_ips[]/prices[]/price_monthly	yes	object	-	-	-	-	-	-	-	-	-
+pricing	primary_ips[]/prices[]/price_monthly/gross	yes	string	-	-	-	-	-	-	decimal	-	-
+pricing	primary_ips[]/prices[]/price_monthly/net	yes	string	-	-	-	-	-	-	decimal	-	-
+pricing	primary_ips[]/type	yes	string	-	-	-	-	-	-	-	-	ipv4|ipv6
+pricing	server_backup	yes	object	-	-	-	-	-	-	-	-	-
+pricing	server_backup/percentage	yes	string	-	-	-	-	-	-	decimal	-	-
+pricing	server_types	yes	array	-	-	-	-	-	-	-	-	-
+pricing	server_types[]/id	yes	integer	-	-	-	-	-	-	int64	-	-
+pricing	server_types[]/name	yes	string	-	-	-	-	-	-	-	-	-
+pricing	server_types[]/prices	yes	array	-	-	-	-	-	-	-	-	-
+pricing	server_types[]/prices[]/included_traffic	yes	integer	-	-	-	-	-	-	int64	-	-
+pricing	server_types[]/prices[]/location	yes	string	-	-	-	-	-	-	-	-	-
+pricing	server_types[]/prices[]/price_hourly	yes	object	-	-	-	-	-	-	-	-	-
+pricing	server_types[]/prices[]/price_hourly/gross	yes	string	-	-	-	-	-	-	decimal	-	-
+pricing	server_types[]/prices[]/price_hourly/net	yes	string	-	-	-	-	-	-	decimal	-	-
+pricing	server_types[]/prices[]/price_monthly	yes	object	-	-	-	-	-	-	-	-	-
+pricing	server_types[]/prices[]/price_monthly/gross	yes	string	-	-	-	-	-	-	decimal	-	-
+pricing	server_types[]/prices[]/price_monthly/net	yes	string	-	-	-	-	-	-	decimal	-	-
+pricing	server_types[]/prices[]/price_per_tb_traffic	yes	object	-	-	-	-	-	-	-	-	-
+pricing	server_types[]/prices[]/price_per_tb_traffic/gross	yes	string	-	-	-	-	-	-	decimal	-	-
+pricing	server_types[]/prices[]/price_per_tb_traffic/net	yes	string	-	-	-	-	-	-	decimal	-	-
+pricing	vat_rate	yes	string	-	-	-	-	-	-	decimal	-	-
+pricing	volume	yes	object	-	-	-	-	-	-	-	-	-
+pricing	volume/price_per_gb_month	yes	object	-	-	-	-	-	-	-	-	-
+pricing	volume/price_per_gb_month/gross	yes	string	-	-	-	-	-	-	decimal	-	-
+pricing	volume/price_per_gb_month/net	yes	string	-	-	-	-	-	-	decimal	-	-
+primary_ip	assignee_id	yes	integer|null	-	-	-	-	-	-	int64	-	-
+primary_ip	assignee_type	yes	string	-	-	-	-	-	-	-	-	server
+primary_ip	auto_delete	yes	boolean	-	-	-	-	-	-	-	-	-
+primary_ip	blocked	yes	boolean	-	-	-	-	-	-	-	-	-
+primary_ip	created	yes	string	-	-	-	-	-	-	date-time	-	-
+primary_ip	dns_ptr	yes	array	-	-	-	-	-	-	-	-	-
+primary_ip	dns_ptr[]/dns_ptr	yes	string	-	-	-	-	-	-	-	-	-
+primary_ip	dns_ptr[]/ip	yes	string	-	-	-	-	-	-	-	-	-
+primary_ip	id	yes	integer	1	9007199254740991	-	-	-	-	int64	-	-
+primary_ip	ip	yes	string	-	-	-	-	-	-	-	-	-
+primary_ip	labels	yes	object	-	-	-	-	-	-	-	-	-
+primary_ip	location	yes	object	-	-	-	-	-	-	-	-	-
+primary_ip	location/city	yes	string	-	-	-	-	-	-	-	-	-
+primary_ip	location/country	yes	string	-	-	-	-	-	-	-	-	-
+primary_ip	location/id	yes	integer	1	9007199254740991	-	-	-	-	int64	-	-
+primary_ip	location/latitude	yes	number	-	-	-	-	-	-	double	-	-
+primary_ip	location/longitude	yes	number	-	-	-	-	-	-	double	-	-
+primary_ip	location/name	yes	string	-	-	-	-	-	-	-	^[a-z0-9]+(-?[a-z0-9]*)*$	-
+primary_ip	location/network_zone	yes	string	-	-	-	-	-	-	-	^[a-z0-9]+(-?[a-z0-9]*)*$	-
+primary_ip	name	yes	string	-	-	-	-	-	-	-	-	-
+primary_ip	protection	yes	object	-	-	-	-	-	-	-	-	-
+primary_ip	protection/delete	yes	boolean	-	-	-	-	-	-	-	-	-
+primary_ip	type	yes	string	-	-	-	-	-	-	-	-	ipv4|ipv6
+server	backup_window	yes	null|string	-	-	-	-	-	-	-	-	-
+server	created	yes	string	-	-	-	-	-	-	date-time	-	-
+server	id	yes	integer	1	9007199254740991	-	-	-	-	int64	-	-
+server	image	yes	null|object	-	-	-	-	-	-	-	-	-
+server	image/architecture	yes	string	-	-	-	-	-	-	-	-	x86|arm
+server	image/bound_to	yes	integer|null	-	-	-	-	-	-	int64	-	-
+server	image/created	yes	string	-	-	-	-	-	-	date-time	-	-
+server	image/created_from	yes	null|object	-	-	-	-	-	-	-	-	-
+server	image/created_from/id	yes	integer	-	-	-	-	-	-	int64	-	-
+server	image/created_from/name	yes	string	-	-	-	-	-	-	-	-	-
+server	image/deleted	yes	null|string	-	-	-	-	-	-	-	-	-
+server	image/deprecated	yes	null|string	-	-	-	-	-	-	date-time	-	-
+server	image/disk_size	yes	number	-	-	-	-	-	-	-	-	-
+server	image/id	yes	integer	1	9007199254740991	-	-	-	-	int64	-	-
+server	image/image_size	yes	null|number	-	-	-	-	-	-	-	-	-
+server	image/labels	yes	object	-	-	-	-	-	-	-	-	-
+server	image/name	yes	null|string	-	-	-	-	-	-	-	-	-
+server	image/os_flavor	yes	string	-	-	-	-	-	-	-	-	ubuntu|centos|debian|fedora|rocky|alma|opensuse|unknown
+server	image/os_version	yes	null|string	-	-	-	-	-	-	-	-	-
+server	image/protection	yes	object	-	-	-	-	-	-	-	-	-
+server	image/protection/delete	yes	boolean	-	-	-	-	-	-	-	-	-
+server	image/rapid_deploy	no	boolean	-	-	-	-	-	-	-	-	-
+server	image/status	yes	string	-	-	-	-	-	-	-	-	available|creating|unavailable
+server	image/type	yes	string	-	-	-	-	-	-	-	-	system|app|snapshot|backup
+server	included_traffic	yes	integer|null	-	-	-	-	-	-	int64	-	-
+server	ingoing_traffic	yes	integer|null	-	-	-	-	-	-	int64	-	-
+server	iso	yes	null|object	-	-	-	-	-	-	-	-	-
+server	iso/architecture	yes	null|string	-	-	-	-	-	-	-	-	x86|arm
+server	iso/deprecation	yes	null|object	-	-	-	-	-	-	-	-	-
+server	iso/deprecation/announced	yes	string	-	-	-	-	-	-	date-time	-	-
+server	iso/deprecation/unavailable_after	yes	string	-	-	-	-	-	-	date-time	-	-
+server	iso/id	yes	integer	1	9007199254740991	-	-	-	-	int64	-	-
+server	iso/name	yes	null|string	-	-	-	-	-	-	-	-	-
+server	iso/type	yes	null|string	-	-	-	-	-	-	-	-	public|private
+server	labels	yes	object	-	-	-	-	-	-	-	-	-
+server	load_balancers	no	array	-	-	-	-	-	-	-	-	-
+server	load_balancers[]	yes	integer	-	-	-	-	-	-	int64	-	-
+server	location	yes	object	-	-	-	-	-	-	-	-	-
+server	location/city	yes	string	-	-	-	-	-	-	-	-	-
+server	location/country	yes	string	-	-	-	-	-	-	-	-	-
+server	location/id	yes	integer	1	9007199254740991	-	-	-	-	int64	-	-
+server	location/latitude	yes	number	-	-	-	-	-	-	double	-	-
+server	location/longitude	yes	number	-	-	-	-	-	-	double	-	-
+server	location/name	yes	string	-	-	-	-	-	-	-	^[a-z0-9]+(-?[a-z0-9]*)*$	-
+server	location/network_zone	yes	string	-	-	-	-	-	-	-	^[a-z0-9]+(-?[a-z0-9]*)*$	-
+server	locked	yes	boolean	-	-	-	-	-	-	-	-	-
+server	name	yes	string	-	-	-	-	-	-	-	-	-
+server	outgoing_traffic	yes	integer|null	-	-	-	-	-	-	int64	-	-
+server	placement_group	no	null|object	-	-	-	-	-	-	-	-	-
+server	placement_group/created	yes	string	-	-	-	-	-	-	date-time	-	-
+server	placement_group/id	yes	integer	1	9007199254740991	-	-	-	-	int64	-	-
+server	placement_group/labels	yes	object	-	-	-	-	-	-	-	-	-
+server	placement_group/name	yes	string	-	-	-	-	-	-	-	-	-
+server	placement_group/servers	yes	array	-	-	-	-	-	-	-	-	-
+server	placement_group/servers[]	yes	integer	-	-	-	-	-	-	int64	-	-
+server	placement_group/type	yes	string	-	-	-	-	-	-	-	-	spread
+server	primary_disk_size	yes	number	-	-	-	-	-	-	-	-	-
+server	private_net	yes	array	-	-	-	-	-	-	-	-	-
+server	private_net[]/alias_ips	no	array	-	-	-	-	-	-	-	-	-
+server	private_net[]/alias_ips[]	yes	string	-	-	-	-	-	-	-	-	-
+server	private_net[]/ip	no	string	-	-	-	-	-	-	-	-	-
+server	private_net[]/mac_address	no	string	-	-	-	-	-	-	-	-	-
+server	private_net[]/network	no	integer	-	-	-	-	-	-	int64	-	-
+server	protection	yes	object	-	-	-	-	-	-	-	-	-
+server	protection/delete	yes	boolean	-	-	-	-	-	-	-	-	-
+server	protection/rebuild	yes	boolean	-	-	-	-	-	-	-	-	-
+server	public_net	yes	object	-	-	-	-	-	-	-	-	-
+server	public_net/firewalls	no	array	-	-	-	-	-	-	-	-	-
+server	public_net/firewalls[]/id	no	integer	1	9007199254740991	-	-	-	-	int64	-	-
+server	public_net/firewalls[]/status	no	string	-	-	-	-	-	-	-	-	applied|pending
+server	public_net/floating_ips	yes	array	-	-	-	-	-	-	-	-	-
+server	public_net/floating_ips[]	yes	integer	-	-	-	-	-	-	int64	-	-
+server	public_net/ipv4	yes	null|object	-	-	-	-	-	-	-	-	-
+server	public_net/ipv4/blocked	yes	boolean	-	-	-	-	-	-	-	-	-
+server	public_net/ipv4/dns_ptr	yes	string	-	-	-	-	-	-	-	-	-
+server	public_net/ipv4/id	no	integer	1	9007199254740991	-	-	-	-	int64	-	-
+server	public_net/ipv4/ip	yes	string	-	-	-	-	-	-	-	-	-
+server	public_net/ipv6	yes	null|object	-	-	-	-	-	-	-	-	-
+server	public_net/ipv6/blocked	yes	boolean	-	-	-	-	-	-	-	-	-
+server	public_net/ipv6/dns_ptr	yes	array|null	-	-	-	-	-	-	-	-	-
+server	public_net/ipv6/dns_ptr[]/dns_ptr	yes	string	-	-	-	-	-	-	-	-	-
+server	public_net/ipv6/dns_ptr[]/ip	yes	string	-	-	-	-	-	-	-	-	-
+server	public_net/ipv6/id	no	integer	1	9007199254740991	-	-	-	-	int64	-	-
+server	public_net/ipv6/ip	yes	string	-	-	-	-	-	-	-	-	-
+server	rescue_enabled	yes	boolean	-	-	-	-	-	-	-	-	-
+server	server_type	yes	object	-	-	-	-	-	-	-	-	-
+server	server_type/architecture	yes	string	-	-	-	-	-	-	-	-	x86|arm
+server	server_type/category	no	string	-	-	-	-	-	-	-	-	-
+server	server_type/cores	yes	number	-	-	-	-	-	-	-	-	-
+server	server_type/cpu_type	yes	string	-	-	-	-	-	-	-	-	shared|dedicated
+server	server_type/deprecated	yes	boolean	-	-	-	-	-	-	-	-	-
+server	server_type/deprecation	no	null|object	-	-	-	-	-	-	-	-	-
+server	server_type/deprecation/announced	yes	string	-	-	-	-	-	-	date-time	-	-
+server	server_type/deprecation/unavailable_after	yes	string	-	-	-	-	-	-	date-time	-	-
+server	server_type/disk	yes	number	-	-	-	-	-	-	-	-	-
+server	server_type/id	yes	integer	-	-	-	-	-	-	int64	-	-
+server	server_type/locations	yes	array	-	-	-	-	-	-	-	-	-
+server	server_type/locations[]/available	yes	boolean	-	-	-	-	-	-	-	-	-
+server	server_type/locations[]/deprecation	yes	null|object	-	-	-	-	-	-	-	-	-
+server	server_type/locations[]/deprecation/announced	yes	string	-	-	-	-	-	-	date-time	-	-
+server	server_type/locations[]/deprecation/unavailable_after	yes	string	-	-	-	-	-	-	date-time	-	-
+server	server_type/locations[]/id	yes	integer	1	9007199254740991	-	-	-	-	int64	-	-
+server	server_type/locations[]/name	yes	string	-	-	-	-	-	-	-	-	-
+server	server_type/locations[]/recommended	yes	boolean	-	-	-	-	-	-	-	-	-
+server	server_type/memory	yes	number	-	-	-	-	-	-	-	-	-
+server	server_type/name	yes	string	-	-	-	-	-	-	-	-	-
+server	server_type/prices	yes	array	-	-	-	-	-	-	-	-	-
+server	server_type/prices[]/included_traffic	yes	integer	-	-	-	-	-	-	int64	-	-
+server	server_type/prices[]/location	yes	string	-	-	-	-	-	-	-	-	-
+server	server_type/prices[]/price_hourly	yes	object	-	-	-	-	-	-	-	-	-
+server	server_type/prices[]/price_hourly/gross	yes	string	-	-	-	-	-	-	decimal	-	-
+server	server_type/prices[]/price_hourly/net	yes	string	-	-	-	-	-	-	decimal	-	-
+server	server_type/prices[]/price_monthly	yes	object	-	-	-	-	-	-	-	-	-
+server	server_type/prices[]/price_monthly/gross	yes	string	-	-	-	-	-	-	decimal	-	-
+server	server_type/prices[]/price_monthly/net	yes	string	-	-	-	-	-	-	decimal	-	-
+server	server_type/prices[]/price_per_tb_traffic	yes	object	-	-	-	-	-	-	-	-	-
+server	server_type/prices[]/price_per_tb_traffic/gross	yes	string	-	-	-	-	-	-	decimal	-	-
+server	server_type/prices[]/price_per_tb_traffic/net	yes	string	-	-	-	-	-	-	decimal	-	-
+server	server_type/storage_type	yes	string	-	-	-	-	-	-	-	-	local|network
+server	status	yes	string	-	-	-	-	-	-	-	-	running|initializing|starting|stopping|off|deleting|migrating|rebuilding|unknown
+server	volumes	no	array	-	-	-	-	-	-	-	-	-
+server	volumes[]	yes	integer	-	-	-	-	-	-	int64	-	-
+server_type	architecture	yes	string	-	-	-	-	-	-	-	-	x86|arm
+server_type	category	no	string	-	-	-	-	-	-	-	-	-
+server_type	cores	yes	number	-	-	-	-	-	-	-	-	-
+server_type	cpu_type	yes	string	-	-	-	-	-	-	-	-	shared|dedicated
+server_type	deprecated	yes	boolean	-	-	-	-	-	-	-	-	-
+server_type	deprecation	no	null|object	-	-	-	-	-	-	-	-	-
+server_type	deprecation/announced	yes	string	-	-	-	-	-	-	date-time	-	-
+server_type	deprecation/unavailable_after	yes	string	-	-	-	-	-	-	date-time	-	-
+server_type	disk	yes	number	-	-	-	-	-	-	-	-	-
+server_type	id	yes	integer	-	-	-	-	-	-	int64	-	-
+server_type	locations	yes	array	-	-	-	-	-	-	-	-	-
+server_type	locations[]/available	yes	boolean	-	-	-	-	-	-	-	-	-
+server_type	locations[]/deprecation	yes	null|object	-	-	-	-	-	-	-	-	-
+server_type	locations[]/deprecation/announced	yes	string	-	-	-	-	-	-	date-time	-	-
+server_type	locations[]/deprecation/unavailable_after	yes	string	-	-	-	-	-	-	date-time	-	-
+server_type	locations[]/id	yes	integer	1	9007199254740991	-	-	-	-	int64	-	-
+server_type	locations[]/name	yes	string	-	-	-	-	-	-	-	-	-
+server_type	locations[]/recommended	yes	boolean	-	-	-	-	-	-	-	-	-
+server_type	memory	yes	number	-	-	-	-	-	-	-	-	-
+server_type	name	yes	string	-	-	-	-	-	-	-	-	-
+server_type	prices	yes	array	-	-	-	-	-	-	-	-	-
+server_type	prices[]/included_traffic	yes	integer	-	-	-	-	-	-	int64	-	-
+server_type	prices[]/location	yes	string	-	-	-	-	-	-	-	-	-
+server_type	prices[]/price_hourly	yes	object	-	-	-	-	-	-	-	-	-
+server_type	prices[]/price_hourly/gross	yes	string	-	-	-	-	-	-	decimal	-	-
+server_type	prices[]/price_hourly/net	yes	string	-	-	-	-	-	-	decimal	-	-
+server_type	prices[]/price_monthly	yes	object	-	-	-	-	-	-	-	-	-
+server_type	prices[]/price_monthly/gross	yes	string	-	-	-	-	-	-	decimal	-	-
+server_type	prices[]/price_monthly/net	yes	string	-	-	-	-	-	-	decimal	-	-
+server_type	prices[]/price_per_tb_traffic	yes	object	-	-	-	-	-	-	-	-	-
+server_type	prices[]/price_per_tb_traffic/gross	yes	string	-	-	-	-	-	-	decimal	-	-
+server_type	prices[]/price_per_tb_traffic/net	yes	string	-	-	-	-	-	-	decimal	-	-
+server_type	storage_type	yes	string	-	-	-	-	-	-	-	-	local|network
+volume	created	yes	string	-	-	-	-	-	-	date-time	-	-
+volume	format	yes	null|string	-	-	-	-	-	-	-	-	-
+volume	id	yes	integer	1	9007199254740991	-	-	-	-	int64	-	-
+volume	labels	yes	object	-	-	-	-	-	-	-	-	-
+volume	linux_device	yes	string	-	-	-	-	-	-	-	-	-
+volume	location	yes	object	-	-	-	-	-	-	-	-	-
+volume	location/city	yes	string	-	-	-	-	-	-	-	-	-
+volume	location/country	yes	string	-	-	-	-	-	-	-	-	-
+volume	location/id	yes	integer	1	9007199254740991	-	-	-	-	int64	-	-
+volume	location/latitude	yes	number	-	-	-	-	-	-	double	-	-
+volume	location/longitude	yes	number	-	-	-	-	-	-	double	-	-
+volume	location/name	yes	string	-	-	-	-	-	-	-	^[a-z0-9]+(-?[a-z0-9]*)*$	-
+volume	location/network_zone	yes	string	-	-	-	-	-	-	-	^[a-z0-9]+(-?[a-z0-9]*)*$	-
+volume	name	yes	string	-	-	-	-	-	-	-	-	-
+volume	protection	yes	object	-	-	-	-	-	-	-	-	-
+volume	protection/delete	yes	boolean	-	-	-	-	-	-	-	-	-
+volume	server	yes	integer|null	-	-	-	-	-	-	int64	-	-
+volume	size	yes	number	-	-	-	-	-	-	-	-	-
+volume	status	yes	string	-	-	-	-	-	-	-	-	available|creating

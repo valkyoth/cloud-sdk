@@ -33,12 +33,24 @@ an internal tag and publishes no crate. The provider package version remains
 - Generated a 535-row field contract and complete fixtures from the exact
   pinned Hetzner Cloud OpenAPI document.
 - Enforced required fields, nullability, exact JSON types, numeric, text, and
-  list bounds, plus load-balancer discriminated unions.
+  list bounds, RFC 3339 date-times, exact decimal syntax, integer/double
+  formats, source patterns, plus load-balancer discriminated unions. Source
+  string lengths use Unicode scalar counts under a separate hard byte ceiling.
 - Preserved unknown future enum strings and fields after source-known
   validation instead of rejecting additive upstream evolution.
 - Bound both generated files to live upstream drift detection and added
   canonical-schema-equality, deterministic fixture, adversarial model, full
   operation matrix, and fuzz-corpus evidence.
+
+## Security Hardening
+
+- Redacted identifiers, metadata, topology, pricing, and unknown future values
+  from every complete Cloud model's `Debug` output, including composite
+  results.
+- Removed infallible recursive `Clone` from complete Cloud and pricing trees;
+  fallible `try_clone` methods now preserve checked-allocation failures.
+- Made unknown source formats, patterns, and unsupported numeric or collection
+  constraints stop schema generation instead of silently weakening validation.
 
 ## Dependency Maintenance
 
