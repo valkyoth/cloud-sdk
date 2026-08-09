@@ -10,6 +10,7 @@ use cloud_sdk::operation::{
 };
 use cloud_sdk::transport::{BoundTransport, ResponseBuffer};
 
+use super::ExpectedResponseIdentity;
 use super::components::{AssociationError, BodyFor, EndpointFor, QueryFor};
 use super::policy::{HetznerOperation, ReadOnlyOperation};
 use super::validation::validate_association;
@@ -134,6 +135,7 @@ where
         storage: PreparationStorage<'storage>,
     ) -> Result<Prepared<'storage, O>, AssociatedPreparationError> {
         let endpoint = self.endpoint.into_inner();
+        let expected_identity = endpoint.expected_response_identity();
         let storage = clear_preparation_storage(storage);
         let policy = validate_association::<O, _>(endpoint)
             .map_err(AssociatedPreparationError::Association)?;
@@ -145,7 +147,7 @@ where
             &policy,
         )
         .map_err(AssociatedPreparationError::Preparation)?;
-        Ok(Prepared::new(request))
+        Ok(Prepared::new(request, expected_identity))
     }
 
     /// Prepares through cleanup-owning storage while preserving `O`.
@@ -157,6 +159,7 @@ where
         storage: &'guard mut PreparationStorageGuard<'_>,
     ) -> Result<Prepared<'guard, O>, AssociatedPreparationError> {
         let endpoint = self.endpoint.into_inner();
+        let expected_identity = endpoint.expected_response_identity();
         storage.prepare_with(|buffers| {
             let policy = validate_association::<O, _>(endpoint)
                 .map_err(AssociatedPreparationError::Association)?;
@@ -167,7 +170,7 @@ where
                 buffers,
                 &policy,
             )
-            .map(Prepared::new)
+            .map(|request| Prepared::new(request, expected_identity))
             .map_err(AssociatedPreparationError::Preparation)
         })
     }
@@ -214,6 +217,8 @@ impl<O: HetznerOperation, E, Q, B> fmt::Debug for AssociatedOperation<O, E, Q, B
 #[derive(Clone, Copy)]
 pub struct Prepared<'request, O> {
     inner: PreparedRequest<'request>,
+    #[cfg_attr(not(feature = "serde"), allow(dead_code))]
+    expected_identity: ExpectedResponseIdentity,
     operation: PhantomData<fn() -> O>,
 }
 
@@ -233,13 +238,19 @@ pub struct Prepared<'request, O> {
 /// ```
 pub struct AssociatedCheckedResponse<'buffer, O> {
     inner: CheckedResponseGuard<'buffer>,
+    #[cfg_attr(not(feature = "serde"), allow(dead_code))]
+    expected_identity: ExpectedResponseIdentity,
     operation: PhantomData<fn() -> O>,
 }
 
 impl<'buffer, O: HetznerOperation> AssociatedCheckedResponse<'buffer, O> {
-    fn new(inner: CheckedResponseGuard<'buffer>) -> Self {
+    fn new(
+        inner: CheckedResponseGuard<'buffer>,
+        expected_identity: ExpectedResponseIdentity,
+    ) -> Self {
         Self {
             inner,
+            expected_identity,
             operation: PhantomData,
         }
     }
@@ -250,11 +261,17 @@ impl<'buffer, O: HetznerOperation> AssociatedCheckedResponse<'buffer, O> {
         O::DESCRIPTOR
     }
 
-    /// Explicitly erases the operation marker and returns the provider-neutral
-    /// checked guard. This leaves the operation-associated decoding contract.
+    /// Explicitly erases the operation marker and expected response identity.
+    /// This leaves the operation-associated decoding contract and is intended
+    /// only for callers implementing equivalent custom validation.
     #[must_use]
     pub fn into_untyped(self) -> CheckedResponseGuard<'buffer> {
         self.inner
+    }
+
+    #[cfg(feature = "serde")]
+    pub(crate) fn into_parts(self) -> (CheckedResponseGuard<'buffer>, ExpectedResponseIdentity) {
+        (self.inner, self.expected_identity)
     }
 }
 
@@ -273,9 +290,13 @@ impl<'request, O: HetznerOperation> Prepared<'request, O> {
         clippy::large_types_passed_by_value,
         reason = "ownership transfer keeps typed preparation allocation-free"
     )]
-    const fn new(inner: PreparedRequest<'request>) -> Self {
+    const fn new(
+        inner: PreparedRequest<'request>,
+        expected_identity: ExpectedResponseIdentity,
+    ) -> Self {
         Self {
             inner,
+            expected_identity,
             operation: PhantomData,
         }
     }
@@ -292,10 +313,17 @@ impl<'request, O: HetznerOperation> Prepared<'request, O> {
         self.inner
     }
 
-    /// Explicitly erases the operation marker.
+    /// Explicitly erases the operation marker and expected response identity.
+    /// The returned request cannot enforce provider resource identity during
+    /// response decoding.
     #[must_use]
     pub const fn into_untyped(self) -> PreparedRequest<'request> {
         self.inner
+    }
+
+    #[cfg(feature = "serde")]
+    pub(crate) const fn into_parts(self) -> (PreparedRequest<'request>, ExpectedResponseIdentity) {
+        (self.inner, self.expected_identity)
     }
 
     /// Applies the operation-owned response policy without transport execution.
@@ -303,9 +331,10 @@ impl<'request, O: HetznerOperation> Prepared<'request, O> {
         self,
         response: ResponseBuffer<'buffer>,
     ) -> Result<AssociatedCheckedResponse<'buffer, O>, ResponsePolicyError> {
+        let expected_identity = self.expected_identity;
         self.inner
             .validate_response(response)
-            .map(AssociatedCheckedResponse::new)
+            .map(|inner| AssociatedCheckedResponse::new(inner, expected_identity))
     }
 }
 
@@ -320,9 +349,10 @@ impl<'request, O: ReadOnlyOperation> Prepared<'request, O> {
     where
         T: cloud_sdk::authentication::BlockingAuthenticatedTransport + BoundTransport,
     {
+        let expected_identity = self.expected_identity;
         self.inner
             .execute_blocking(transport, response_storage, response_header_storage)
-            .map(AssociatedCheckedResponse::new)
+            .map(|inner| AssociatedCheckedResponse::new(inner, expected_identity))
     }
 
     /// Executes one read-only operation through a `Send` asynchronous transport.
@@ -339,7 +369,7 @@ impl<'request, O: ReadOnlyOperation> Prepared<'request, O> {
         self.inner
             .execute_async(transport, response_storage, response_header_storage)
             .await
-            .map(AssociatedCheckedResponse::new)
+            .map(|inner| AssociatedCheckedResponse::new(inner, self.expected_identity))
     }
 
     /// Executes one read-only operation through a local asynchronous transport.
@@ -356,7 +386,7 @@ impl<'request, O: ReadOnlyOperation> Prepared<'request, O> {
         self.inner
             .execute_local_async(transport, response_storage, response_header_storage)
             .await
-            .map(AssociatedCheckedResponse::new)
+            .map(|inner| AssociatedCheckedResponse::new(inner, self.expected_identity))
     }
 }
 

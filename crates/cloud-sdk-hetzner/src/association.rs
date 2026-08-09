@@ -5,6 +5,7 @@
 //! runtime dependencies.
 
 mod components;
+mod identity;
 mod markers;
 mod policy;
 mod prepared;
@@ -24,6 +25,8 @@ pub use prepared::{
     AssociatedCheckedResponse, AssociatedOperation, AssociatedPreparationError, Prepared,
 };
 pub use types::*;
+
+pub(crate) use identity::ExpectedResponseIdentity;
 
 #[cfg(test)]
 mod tests;

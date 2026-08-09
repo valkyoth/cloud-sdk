@@ -7,6 +7,8 @@ import csv
 import importlib.util
 import io
 import json
+import subprocess
+import sys
 from pathlib import Path
 
 
@@ -426,6 +428,18 @@ def test_committed_evidence_is_structurally_complete() -> None:
     }
 
 
+def test_cli_requires_the_console_specification() -> None:
+    result = subprocess.run(
+        [sys.executable, str(SCRIPT), "missing-cloud.json"],
+        cwd=ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    assert result.returncode == 2, result
+    assert "--console-spec" in result.stderr and "required" in result.stderr
+
+
 def main() -> None:
     tests = (
         test_render_covers_every_model_and_open_enum,
@@ -436,6 +450,7 @@ def main() -> None:
         test_unknown_schema_composition_fails_closed,
         test_all_of_composition_is_narrow_and_explicit,
         test_committed_evidence_is_structurally_complete,
+        test_cli_requires_the_console_specification,
     )
     for test in tests:
         test()

@@ -38,6 +38,14 @@ at 0.40.0 while changes accumulate for v0.70.0.
   for boxes and types that does not require owned storage inventory.
 - Added `scripts/check_storage_response_models.sh` to the ordinary and final
   release gates. No dependency or default-feature boundary changed.
+- Redacted Console resource identifiers in direct, page, composite, and
+  `HetznerSuccess` diagnostics and removed structural equality from dynamic
+  Console aggregates.
+- Bound typed singleton, parent-scoped list, and create-reference responses to
+  identifiers captured directly from endpoint values; cross-resource replay
+  now fails with a payload-free model error.
+- Sanitized invalid owned timestamp allocations before rejection and made the
+  Console specification mandatory for the model-generator CLI.
 
 ## Versions
 

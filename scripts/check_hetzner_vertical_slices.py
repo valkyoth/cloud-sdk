@@ -47,11 +47,19 @@ def main() -> int:
     )
     require(
         ROOT / "crates/cloud-sdk-hetzner/src/serde/checked.rs",
-        ("decode_associated_checked_response", "AssociatedCheckedResponse<'_, O>"),
+        (
+            "decode_associated_checked_response",
+            "AssociatedCheckedResponse<'_, O>",
+            "validate_expected_identity",
+        ),
     )
     require(
         ROOT / "crates/cloud-sdk-hetzner/src/association/prepared.rs",
-        ("pub struct AssociatedCheckedResponse", "map(AssociatedCheckedResponse::new)"),
+        (
+            "pub struct AssociatedCheckedResponse",
+            "endpoint.expected_response_identity()",
+            "AssociatedCheckedResponse::new(inner, expected_identity)",
+        ),
     )
     require(
         ROOT / "crates/cloud-sdk-hetzner/src/serde/checked/success.rs",

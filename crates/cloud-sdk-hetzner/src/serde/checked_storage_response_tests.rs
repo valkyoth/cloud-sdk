@@ -3,15 +3,29 @@
 use alloc::format;
 use alloc::vec;
 
+use cloud_sdk::operation::PreparationStorage;
 use cloud_sdk::transport::StatusCode;
 
 use super::checked_fixtures::{action_value, resource_value};
-use super::checked_test_support::{assert_decode_error, decode_response, prepared, response};
+use super::checked_test_support::{
+    assert_decode_error, decode_response, decode_typed_checked_response, decode_typed_response,
+    prepared, response,
+};
 use super::checked_tests::pagination;
 use super::{
     HetznerDecodeError, HetznerSuccess, ResponseModelError, StorageBoxResource, StorageBoxStatus,
 };
 use crate::STORAGE_SERVICE_ID;
+use crate::association::AssociatedOperation;
+use crate::association::operations::{
+    CreateStorageBoxSnapshot, GetStorageBox, GetStorageBoxSnapshot, GetStorageBoxSubaccount,
+    GetStorageBoxType, ListStorageBoxSnapshots,
+};
+use crate::storage::storage_boxes::{
+    StorageBoxEndpoint, StorageBoxId, StorageBoxSnapshotCreateRequest, StorageBoxSnapshotEndpoint,
+    StorageBoxSnapshotId, StorageBoxSubaccountEndpoint, StorageBoxSubaccountId,
+    StorageBoxTypeEndpoint, StorageBoxTypeId,
+};
 
 fn envelope_body(root: &str, value: serde_json::Value) -> alloc::vec::Vec<u8> {
     serde_json::to_vec(&serde_json::json!({root:value})).unwrap_or_default()
@@ -49,6 +63,8 @@ fn boxes_and_types_use_source_complete_singleton_and_page_models() {
         let Ok(decoded) = decoded else {
             unreachable!("source-derived Storage Box fixture failed")
         };
+        let success_debug = format!("{:?}", decoded.success());
+        assert!(!success_debug.contains("id: 1"));
         let HetznerSuccess::StorageBox(storage_box) = decoded.success() else {
             unreachable!("Storage Box singleton selected the wrong model")
         };
@@ -58,6 +74,7 @@ fn boxes_and_types_use_source_complete_singleton_and_page_models() {
         assert_eq!(storage_box.storage_box_type().prices().len(), 1);
         assert_eq!(storage_box.created(), "2026-01-01T00:00:00Z");
         let debug = format!("{storage_box:?}");
+        assert!(!debug.contains("id: 1"));
         assert!(!debug.contains("u12345"));
         assert!(!debug.contains("backup"));
     }
@@ -75,6 +92,8 @@ fn boxes_and_types_use_source_complete_singleton_and_page_models() {
     };
     assert_eq!(page.storage_boxes().len(), 1);
     assert_eq!(page.pagination().total_entries(), Some(1));
+    assert!(!format!("{page:?}").contains("id: 1"));
+    assert!(!format!("{:?}", decoded.success()).contains("id: 1"));
 
     let body = paged_body("storage_box_types", resource_value("storage_box_type"));
     let decoded = decode_response(
@@ -92,6 +111,8 @@ fn boxes_and_types_use_source_complete_singleton_and_page_models() {
     };
     assert_eq!(storage_box_type.id(), 1);
     assert_eq!(storage_box_type.prices().len(), 1);
+    assert!(!format!("{storage_box_type:?}").contains("id: 1"));
+    assert!(!format!("{:?}", decoded.success()).contains("id: 1"));
 
     let body = envelope_body("storage_box_type", resource_value("storage_box_type"));
     let decoded = decode_response(
@@ -116,13 +137,19 @@ fn snapshots_and_subaccounts_preserve_every_source_field() {
         let Ok(decoded) = decoded else {
             unreachable!("snapshot singleton failed")
         };
+        let success_debug = format!("{:?}", decoded.success());
+        assert!(!success_debug.contains("storage_box: 1"));
+        assert!(!success_debug.contains("id: 1"));
         let HetznerSuccess::StorageBoxSnapshot(snapshot) = decoded.success() else {
             unreachable!("snapshot singleton selected the wrong model")
         };
         assert_eq!(snapshot.storage_box(), 1);
         assert_eq!(snapshot.name(), "manual-2026-01-01");
         assert_eq!(snapshot.description(), "daily backup");
-        assert!(!format!("{snapshot:?}").contains("daily backup"));
+        let debug = format!("{snapshot:?}");
+        assert!(!debug.contains("daily backup"));
+        assert!(!debug.contains("storage_box: 1"));
+        assert!(!debug.contains("id: 1"));
     }
 
     let body = envelope_body("snapshots", serde_json::json!([snapshot]));
@@ -152,13 +179,19 @@ fn snapshots_and_subaccounts_preserve_every_source_field() {
         let Ok(decoded) = decoded else {
             unreachable!("subaccount singleton failed")
         };
+        let success_debug = format!("{:?}", decoded.success());
+        assert!(!success_debug.contains("storage_box: 1"));
+        assert!(!success_debug.contains("id: 1"));
         let HetznerSuccess::StorageBoxSubaccount(subaccount) = decoded.success() else {
             unreachable!("subaccount singleton selected the wrong model")
         };
         assert_eq!(subaccount.storage_box(), 1);
         assert_eq!(subaccount.home_directory(), "backups/server01");
         assert_eq!(subaccount.username(), "u12345-sub1");
-        assert!(!format!("{subaccount:?}").contains("backups/server01"));
+        let debug = format!("{subaccount:?}");
+        assert!(!debug.contains("backups/server01"));
+        assert!(!debug.contains("storage_box: 1"));
+        assert!(!debug.contains("id: 1"));
     }
 
     let body = envelope_body("subaccounts", serde_json::json!([subaccount]));
@@ -209,11 +242,19 @@ fn create_composites_distinguish_complete_boxes_from_partial_references() {
         let HetznerSuccess::Composite(composite) = decoded.success() else {
             unreachable!("Console create selected the wrong envelope")
         };
+        let success_debug = format!("{:?}", decoded.success());
+        assert!(!success_debug.contains("storage_box: 9"));
+        assert!(!success_debug.contains("id: 7"));
+        assert!(!success_debug.contains("id: 8"));
         assert!(composite.action().is_some());
         assert!(composite.resource().is_none());
         let Some(resource) = composite.storage_box_resource() else {
             unreachable!("Console resource disappeared")
         };
+        let debug = format!("{resource:?}");
+        assert!(!debug.contains("id: 7"));
+        assert!(!debug.contains("id: 8"));
+        assert!(!debug.contains("storage_box: 9"));
         match (operation, resource) {
             ("create_storage_box", StorageBoxResource::StorageBox(value)) => {
                 assert_eq!(value.id(), 1);
@@ -227,6 +268,128 @@ fn create_composites_distinguish_complete_boxes_from_partial_references() {
             _ => unreachable!("Console create selected the wrong resource model"),
         }
     }
+}
+
+#[test]
+fn typed_storage_responses_reject_cross_resource_replay() {
+    let Some(one) = StorageBoxId::new(1) else {
+        unreachable!("Storage Box fixture ID became invalid")
+    };
+    let Some(two) = StorageBoxId::new(2) else {
+        unreachable!("Storage Box mismatch ID became invalid")
+    };
+    let Some(snapshot_two) = StorageBoxSnapshotId::new(2) else {
+        unreachable!("snapshot mismatch ID became invalid")
+    };
+    let Some(subaccount_two) = StorageBoxSubaccountId::new(2) else {
+        unreachable!("subaccount mismatch ID became invalid")
+    };
+    let Some(type_two) = StorageBoxTypeId::new(2) else {
+        unreachable!("type mismatch ID became invalid")
+    };
+
+    macro_rules! assert_mismatch {
+        ($marker:ty, $operation:expr, $status:expr, $body:expr) => {{
+            let mut target = [0_u8; 256];
+            let mut request_body = [0_u8; 256];
+            let prepared = $operation
+                .prepare_typed(PreparationStorage::new(&mut target, &mut request_body))
+                .unwrap_or_else(|_| unreachable!("typed mismatch fixture failed to prepare"));
+            assert_decode_error(
+                decode_typed_response::<$marker>(prepared, response($status, &$body)),
+                HetznerDecodeError::Model(ResponseModelError::ResponseIdentityMismatch),
+            );
+        }};
+    }
+
+    let mut target = [0_u8; 256];
+    let mut request_body = [0_u8; 256];
+    let matching = AssociatedOperation::<GetStorageBox, _>::endpoint(StorageBoxEndpoint::Get(one))
+        .unwrap_or_else(|_| unreachable!("matching box endpoint failed to associate"))
+        .prepare_typed(PreparationStorage::new(&mut target, &mut request_body))
+        .unwrap_or_else(|_| unreachable!("matching box fixture failed to prepare"));
+    let matching_body = envelope_body("storage_box", resource_value("storage_box"));
+    assert!(
+        decode_typed_response::<GetStorageBox>(matching, response(StatusCode::OK, &matching_body))
+            .is_ok()
+    );
+
+    assert_mismatch!(
+        GetStorageBox,
+        AssociatedOperation::<GetStorageBox, _>::endpoint(StorageBoxEndpoint::Get(two))
+            .unwrap_or_else(|_| unreachable!("box endpoint failed to associate")),
+        StatusCode::OK,
+        envelope_body("storage_box", resource_value("storage_box"))
+    );
+
+    let mut target = [0_u8; 256];
+    let mut request_body = [0_u8; 256];
+    let checked_mismatch =
+        AssociatedOperation::<GetStorageBox, _>::endpoint(StorageBoxEndpoint::Get(two))
+            .unwrap_or_else(|_| unreachable!("checked box endpoint failed to associate"))
+            .prepare_typed(PreparationStorage::new(&mut target, &mut request_body))
+            .unwrap_or_else(|_| unreachable!("checked box fixture failed to prepare"));
+    let checked_body = envelope_body("storage_box", resource_value("storage_box"));
+    assert_decode_error(
+        decode_typed_checked_response::<GetStorageBox>(
+            checked_mismatch,
+            response(StatusCode::OK, &checked_body),
+        ),
+        HetznerDecodeError::Model(ResponseModelError::ResponseIdentityMismatch),
+    );
+    assert_mismatch!(
+        GetStorageBoxType,
+        AssociatedOperation::<GetStorageBoxType, _>::endpoint(StorageBoxTypeEndpoint::Get(
+            type_two
+        ))
+        .unwrap_or_else(|_| unreachable!("type endpoint failed to associate")),
+        StatusCode::OK,
+        envelope_body("storage_box_type", resource_value("storage_box_type"))
+    );
+    assert_mismatch!(
+        GetStorageBoxSnapshot,
+        AssociatedOperation::<GetStorageBoxSnapshot, _>::endpoint(StorageBoxSnapshotEndpoint::Get(
+            one,
+            snapshot_two,
+        ))
+        .unwrap_or_else(|_| unreachable!("snapshot endpoint failed to associate")),
+        StatusCode::OK,
+        envelope_body("snapshot", resource_value("snapshot"))
+    );
+    assert_mismatch!(
+        GetStorageBoxSubaccount,
+        AssociatedOperation::<GetStorageBoxSubaccount, _>::endpoint(
+            StorageBoxSubaccountEndpoint::Get(one, subaccount_two)
+        )
+        .unwrap_or_else(|_| unreachable!("subaccount endpoint failed to associate")),
+        StatusCode::OK,
+        envelope_body("subaccount", resource_value("subaccount"))
+    );
+    assert_mismatch!(
+        ListStorageBoxSnapshots,
+        AssociatedOperation::<ListStorageBoxSnapshots, _>::endpoint(
+            StorageBoxSnapshotEndpoint::List(two)
+        )
+        .unwrap_or_else(|_| unreachable!("snapshot list failed to associate")),
+        StatusCode::OK,
+        envelope_body("snapshots", serde_json::json!([resource_value("snapshot")]))
+    );
+
+    let request = StorageBoxSnapshotCreateRequest::new(two);
+    let operation =
+        AssociatedOperation::<CreateStorageBoxSnapshot, _, _, _>::json(request.endpoint(), request)
+            .unwrap_or_else(|_| unreachable!("snapshot create failed to associate"));
+    let body = serde_json::to_vec(&serde_json::json!({
+        "snapshot":{"id":1,"storage_box":1},
+        "action":action_value()
+    }))
+    .unwrap_or_default();
+    assert_mismatch!(
+        CreateStorageBoxSnapshot,
+        operation,
+        StatusCode::CREATED,
+        body
+    );
 }
 
 #[test]

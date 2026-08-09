@@ -46,6 +46,12 @@ endpoint_wire!(
     match endpoint {
         StorageBoxEndpoint::Create => CostIntent::MayIncurCost,
         _ => CostIntent::NoKnownCost,
+    },
+    identity endpoint => match endpoint {
+        StorageBoxEndpoint::Get(id) | StorageBoxEndpoint::Update(id) => {
+            crate::association::ExpectedResponseIdentity::StorageBox(id.get())
+        }
+        _ => crate::association::ExpectedResponseIdentity::None,
     }
 );
 
@@ -66,7 +72,13 @@ endpoint_wire!(
         StorageBoxTypeEndpoint::Get(_) => "get_storage_box_type",
     },
     OperationClass::ReadOnly,
-    CostIntent::NoKnownCost
+    CostIntent::NoKnownCost,
+    identity endpoint => match endpoint {
+        StorageBoxTypeEndpoint::Get(id) => {
+            crate::association::ExpectedResponseIdentity::StorageBoxType(id.get())
+        }
+        StorageBoxTypeEndpoint::List => crate::association::ExpectedResponseIdentity::None,
+    }
 );
 
 query_wire!(StorageBoxTypeListRequest<'_>, request => {
@@ -185,7 +197,26 @@ endpoint_wire!(
         StorageBoxSnapshotEndpoint::Update(_, _) => OperationClass::IdempotentMutation,
         StorageBoxSnapshotEndpoint::Delete(_, _) => OperationClass::IdempotentDestructive,
     },
-    CostIntent::NoKnownCost
+    CostIntent::NoKnownCost,
+    identity endpoint => match endpoint {
+        StorageBoxSnapshotEndpoint::List(storage_box)
+        | StorageBoxSnapshotEndpoint::Create(storage_box) => {
+            crate::association::ExpectedResponseIdentity::StorageBoxSnapshot {
+                storage_box: storage_box.get(),
+                snapshot: None,
+            }
+        }
+        StorageBoxSnapshotEndpoint::Get(storage_box, snapshot)
+        | StorageBoxSnapshotEndpoint::Update(storage_box, snapshot) => {
+            crate::association::ExpectedResponseIdentity::StorageBoxSnapshot {
+                storage_box: storage_box.get(),
+                snapshot: Some(snapshot.get()),
+            }
+        }
+        StorageBoxSnapshotEndpoint::Delete(_, _) => {
+            crate::association::ExpectedResponseIdentity::None
+        }
+    }
 );
 
 impl crate::prepared::QueryWire for StorageBoxSnapshotListRequest<'_> {
@@ -230,7 +261,26 @@ endpoint_wire!(
         StorageBoxSubaccountEndpoint::Update(_, _) => OperationClass::IdempotentMutation,
         StorageBoxSubaccountEndpoint::Delete(_, _) => OperationClass::IdempotentDestructive,
     },
-    CostIntent::NoKnownCost
+    CostIntent::NoKnownCost,
+    identity endpoint => match endpoint {
+        StorageBoxSubaccountEndpoint::List(storage_box)
+        | StorageBoxSubaccountEndpoint::Create(storage_box) => {
+            crate::association::ExpectedResponseIdentity::StorageBoxSubaccount {
+                storage_box: storage_box.get(),
+                subaccount: None,
+            }
+        }
+        StorageBoxSubaccountEndpoint::Get(storage_box, subaccount)
+        | StorageBoxSubaccountEndpoint::Update(storage_box, subaccount) => {
+            crate::association::ExpectedResponseIdentity::StorageBoxSubaccount {
+                storage_box: storage_box.get(),
+                subaccount: Some(subaccount.get()),
+            }
+        }
+        StorageBoxSubaccountEndpoint::Delete(_, _) => {
+            crate::association::ExpectedResponseIdentity::None
+        }
+    }
 );
 
 impl crate::prepared::QueryWire for StorageBoxSubaccountListRequest<'_> {

@@ -8,7 +8,7 @@ use crate::serde::strict_json::Value;
 
 /// Source-complete `list_storage_box_types` response.
 #[non_exhaustive]
-#[derive(Debug, PartialEq)]
+#[derive(Debug)]
 pub struct StorageBoxTypePage {
     storage_box_types: Vec<StorageBoxType>,
     pagination: PaginationMetadata,

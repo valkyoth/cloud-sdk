@@ -22,8 +22,15 @@ pub struct StorageBoxSnapshotStats {
 }
 
 /// One source-complete Storage Box snapshot.
+///
+/// Whole-model equality is intentionally unavailable because dynamic provider
+/// text must not acquire a variable-time comparison API.
+///
+/// ```compile_fail
+/// use cloud_sdk_hetzner::serde::StorageBoxSnapshot;
+/// fn compare(left: &StorageBoxSnapshot, right: &StorageBoxSnapshot) -> bool { left == right }
+/// ```
 #[non_exhaustive]
-#[derive(PartialEq)]
 pub struct StorageBoxSnapshot {
     storage_box: u64,
     id: u64,
@@ -89,8 +96,8 @@ impl fmt::Debug for StorageBoxSnapshot {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter
             .debug_struct("StorageBoxSnapshot")
-            .field("storage_box", &self.storage_box)
-            .field("id", &self.id)
+            .field("storage_box", &"[redacted]")
+            .field("id", &"[redacted]")
             .field("is_automatic", &self.is_automatic)
             .field("text", &"[redacted]")
             .field("labels", &self.labels)

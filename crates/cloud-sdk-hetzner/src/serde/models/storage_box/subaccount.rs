@@ -28,8 +28,15 @@ pub struct StorageBoxSubaccountAccessSettings {
 }
 
 /// One source-complete Storage Box subaccount.
+///
+/// Whole-model equality is intentionally unavailable because dynamic provider
+/// text must not acquire a variable-time comparison API.
+///
+/// ```compile_fail
+/// use cloud_sdk_hetzner::serde::StorageBoxSubaccount;
+/// fn compare(left: &StorageBoxSubaccount, right: &StorageBoxSubaccount) -> bool { left == right }
+/// ```
 #[non_exhaustive]
-#[derive(PartialEq)]
 pub struct StorageBoxSubaccount {
     storage_box: u64,
     id: u64,
@@ -109,8 +116,8 @@ impl fmt::Debug for StorageBoxSubaccount {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter
             .debug_struct("StorageBoxSubaccount")
-            .field("storage_box", &self.storage_box)
-            .field("id", &self.id)
+            .field("storage_box", &"[redacted]")
+            .field("id", &"[redacted]")
             .field("identity", &"[redacted]")
             .field("home_directory", &"[redacted]")
             .field("labels", &self.labels)

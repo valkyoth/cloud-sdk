@@ -41,8 +41,15 @@ pub struct StorageBoxStats {
 }
 
 /// One source-complete Hetzner Console Storage Box.
+///
+/// Whole-model equality is intentionally unavailable because dynamic provider
+/// text must not acquire a variable-time comparison API.
+///
+/// ```compile_fail
+/// use cloud_sdk_hetzner::serde::StorageBox;
+/// fn compare(left: &StorageBox, right: &StorageBox) -> bool { left == right }
+/// ```
 #[non_exhaustive]
-#[derive(PartialEq)]
 pub struct StorageBox {
     id: u64,
     name: String,
@@ -150,7 +157,7 @@ impl fmt::Debug for StorageBox {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter
             .debug_struct("StorageBox")
-            .field("id", &self.id)
+            .field("id", &"[redacted]")
             .field("status", &self.status)
             .field("name", &"[redacted]")
             .field("connection_identity", &"[redacted]")
@@ -173,7 +180,7 @@ impl Drop for StorageBox {
 
 /// Source-complete `list_storage_boxes` response.
 #[non_exhaustive]
-#[derive(Debug, PartialEq)]
+#[derive(Debug)]
 pub struct StorageBoxPage {
     storage_boxes: Vec<StorageBox>,
     pagination: PaginationMetadata,

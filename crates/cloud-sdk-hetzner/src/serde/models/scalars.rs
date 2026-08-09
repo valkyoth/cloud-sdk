@@ -24,8 +24,9 @@ impl UtcTimestamp {
         checked_text(value, MAX_TIMESTAMP_BYTES).map(Self)
     }
 
-    pub(super) fn try_from_string(value: String) -> Result<Self, ResponseModelError> {
+    pub(super) fn try_from_string(mut value: String) -> Result<Self, ResponseModelError> {
         if !valid_utc_timestamp(&value) || value.is_empty() || value.len() > MAX_TIMESTAMP_BYTES {
+            sanitize_string(&mut value);
             return Err(ResponseModelError::InvalidText);
         }
         Ok(Self(value))
@@ -122,6 +123,8 @@ pub(crate) fn valid_utc_timestamp(value: &str) -> bool {
 
 #[cfg(test)]
 mod tests {
+    use alloc::string::String;
+
     use super::{ExactDecimal, UtcTimestamp};
     use crate::serde::strict_json::parse;
 
@@ -138,6 +141,7 @@ mod tests {
         ] {
             assert!(UtcTimestamp::try_new(value).is_err());
         }
+        assert!(UtcTimestamp::try_from_string(String::from("2026-02-30T00:00:00Z")).is_err());
     }
 
     #[test]

@@ -17,6 +17,7 @@ use super::{
     CheckedHetznerResponse, HetznerDecodeError, decode_response as decode_checked_response,
     decode_response_at as decode_checked_response_at,
 };
+use crate::association::{HetznerOperation, Prepared};
 use crate::identity::{
     CloudService, DNS_SERVICE_ID, DnsService, SECURITY_SERVICE_ID, STORAGE_SERVICE_ID,
     SecurityService, StorageService,
@@ -165,6 +166,62 @@ pub(super) fn decode_response(
     fixture: TestResponse<'_>,
 ) -> Result<CheckedHetznerResponse, HetznerDecodeError> {
     decode_response_with_metadata(prepared, fixture, None, &[], None)
+}
+
+pub(super) fn decode_typed_response<O: HetznerOperation>(
+    prepared: Prepared<'_, O>,
+    fixture: TestResponse<'_>,
+) -> Result<CheckedHetznerResponse, HetznerDecodeError> {
+    decode_typed_response_mode(prepared, fixture, false)
+}
+
+pub(super) fn decode_typed_checked_response<O: HetznerOperation>(
+    prepared: Prepared<'_, O>,
+    fixture: TestResponse<'_>,
+) -> Result<CheckedHetznerResponse, HetznerDecodeError> {
+    decode_typed_response_mode(prepared, fixture, true)
+}
+
+fn decode_typed_response_mode<O: HetznerOperation>(
+    prepared: Prepared<'_, O>,
+    fixture: TestResponse<'_>,
+    validate_first: bool,
+) -> Result<CheckedHetznerResponse, HetznerDecodeError> {
+    let mut storage = vec![0_u8; fixture.body.len()];
+    let mut header_storage = [0_u8; 8192];
+    let capacity = storage.len();
+    let mut response = ResponseBuffer::new(&mut storage, capacity, &mut header_storage);
+    let mut attempt = response
+        .writer()
+        .begin_attempt()
+        .map_err(HetznerDecodeError::ResponseWriter)?;
+    if fixture.json {
+        attempt
+            .headers_mut()
+            .map_err(HetznerDecodeError::ResponseWriter)?
+            .try_push(
+                "content-type",
+                b"application/json; charset=utf-8",
+                HeaderSensitivity::Public,
+            )
+            .map_err(|_| HetznerDecodeError::MalformedPayload)?;
+    }
+    attempt
+        .body_mut()
+        .map_err(HetznerDecodeError::ResponseWriter)?
+        .copy_from_slice(fixture.body);
+    attempt
+        .commit(fixture.status, fixture.body.len(), ResponseMetadata::EMPTY)
+        .map_err(HetznerDecodeError::ResponseWriter)?;
+    drop(attempt);
+    if validate_first {
+        let checked = prepared
+            .validate_response(response)
+            .map_err(HetznerDecodeError::ResponsePolicy)?;
+        super::decode_associated_checked_response(checked)
+    } else {
+        super::decode_associated_response(prepared, response)
+    }
 }
 
 pub(super) fn assert_decode_error(

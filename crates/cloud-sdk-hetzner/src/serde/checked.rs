@@ -29,6 +29,7 @@ use super::{
     VisitControl,
 };
 use super::{MAX_SERDE_RESPONSE_BYTES, ResponseBytes, ResponseSizeError};
+use crate::association::ExpectedResponseIdentity;
 use crate::identity::HETZNER_PROVIDER_ID;
 use crate::rate_limit::{HetznerQuota, HetznerQuotaError};
 use crate::response::ApiErrorCode;
@@ -212,7 +213,10 @@ pub fn decode_associated_response<O: crate::association::HetznerOperation>(
     prepared: crate::association::Prepared<'_, O>,
     response: ResponseBuffer<'_>,
 ) -> Result<CheckedHetznerResponse, HetznerDecodeError> {
-    decode_response(prepared.into_untyped(), response)
+    let (prepared, expected_identity) = prepared.into_parts();
+    let decoded = decode_response(prepared, response)?;
+    validate_expected_identity(decoded.success(), expected_identity)?;
+    Ok(decoded)
 }
 
 /// Decodes one successful typed execution result without reopening raw bytes.
@@ -224,12 +228,92 @@ pub fn decode_associated_checked_response<O: crate::association::HetznerOperatio
     if O::DESCRIPTOR.service_id() != binding.service_id {
         return Err(HetznerDecodeError::ServiceMismatch);
     }
-    let checked = checked.into_untyped();
-    checked.decode_owned_with_workspace(|checked, workspace| {
+    let (checked, expected_identity) = checked.into_parts();
+    let decoded = checked.decode_owned_with_workspace(|checked, workspace| {
         let quota = HetznerQuota::decode_without_clock(checked.headers())
             .map_err(HetznerDecodeError::Quota)?;
         decode_checked_success(operation.as_str(), binding, checked, workspace, quota)
-    })
+    })?;
+    validate_expected_identity(decoded.success(), expected_identity)?;
+    Ok(decoded)
+}
+
+fn validate_expected_identity(
+    success: &HetznerSuccess,
+    expected: ExpectedResponseIdentity,
+) -> Result<(), HetznerDecodeError> {
+    let matches = match (expected, success) {
+        (ExpectedResponseIdentity::None, _) => true,
+        (ExpectedResponseIdentity::StorageBox(expected), HetznerSuccess::StorageBox(value)) => {
+            value.id() == expected
+        }
+        (
+            ExpectedResponseIdentity::StorageBoxType(expected),
+            HetznerSuccess::StorageBoxType(value),
+        ) => value.id() == expected,
+        (
+            ExpectedResponseIdentity::StorageBoxSnapshot {
+                storage_box,
+                snapshot,
+            },
+            HetznerSuccess::StorageBoxSnapshot(value),
+        ) => value.storage_box() == storage_box && snapshot == Some(value.id()),
+        (
+            ExpectedResponseIdentity::StorageBoxSnapshot {
+                storage_box,
+                snapshot: None,
+            },
+            HetznerSuccess::StorageBoxSnapshots(values),
+        ) => values
+            .iter()
+            .all(|value| value.storage_box() == storage_box),
+        (
+            ExpectedResponseIdentity::StorageBoxSubaccount {
+                storage_box,
+                subaccount,
+            },
+            HetznerSuccess::StorageBoxSubaccount(value),
+        ) => value.storage_box() == storage_box && subaccount == Some(value.id()),
+        (
+            ExpectedResponseIdentity::StorageBoxSubaccount {
+                storage_box,
+                subaccount: None,
+            },
+            HetznerSuccess::StorageBoxSubaccounts(values),
+        ) => values
+            .iter()
+            .all(|value| value.storage_box() == storage_box),
+        (
+            ExpectedResponseIdentity::StorageBoxSnapshot {
+                storage_box,
+                snapshot: None,
+            },
+            HetznerSuccess::Composite(value),
+        ) => matches!(
+            value.storage_box_resource(),
+            Some(super::models::StorageBoxResource::SnapshotReference(reference))
+                if reference.storage_box() == storage_box
+        ),
+        (
+            ExpectedResponseIdentity::StorageBoxSubaccount {
+                storage_box,
+                subaccount: None,
+            },
+            HetznerSuccess::Composite(value),
+        ) => matches!(
+            value.storage_box_resource(),
+            Some(super::models::StorageBoxResource::SubaccountReference(reference))
+                if reference.storage_box() == storage_box
+        ),
+        _ => false,
+    };
+    if matches {
+        Ok(())
+    } else {
+        Err(HetznerDecodeError::Model(
+            ResponseModelError::ResponseIdentityMismatch,
+        ))
+    }
 }
 
 /// Decodes one response with caller-supplied wall time for obsolete HTTP dates.

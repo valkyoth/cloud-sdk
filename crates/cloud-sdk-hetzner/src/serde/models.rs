@@ -106,6 +106,8 @@ pub enum ResponseModelError {
     Allocation,
     /// The committed source-derived model schema is malformed or incomplete.
     SchemaMismatch,
+    /// A typed response contains a different resource identity than requested.
+    ResponseIdentityMismatch,
 }
 
 impl_static_error!(ResponseModelError,
@@ -120,6 +122,7 @@ impl_static_error!(ResponseModelError,
     Self::InvalidNumber => "Hetzner response number is invalid",
     Self::Allocation => "Hetzner response model allocation failed",
     Self::SchemaMismatch => "Hetzner source-derived model schema is invalid",
+    Self::ResponseIdentityMismatch => "Hetzner response identity does not match its request",
 );
 
 /// Fallibly constructed, deterministic provider labels.

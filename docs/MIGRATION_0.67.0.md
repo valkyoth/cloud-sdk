@@ -44,3 +44,16 @@ These cleanup-owning aggregates no longer implement ordinary `Clone` or
 field-based equality. Borrow values for inspection and avoid making
 unprotected owned copies of usernames, hosts, descriptions, labels, or other
 provider-returned account metadata.
+
+## Typed Response Identity
+
+Keep `Prepared<O>` and `AssociatedCheckedResponse<O>` typed through
+`decode_associated_response` or `decode_associated_checked_response`. These
+paths now reject Storage Box response identities that differ from the endpoint
+used during preparation, including parent identities on snapshot/subaccount
+lists and create references.
+
+`Prepared::into_untyped` and `AssociatedCheckedResponse::into_untyped` remain
+available for custom integrations, but explicitly discard this identity
+binding. Custom decoders using those escape hatches must enforce equivalent
+resource checks themselves.

@@ -28,7 +28,10 @@ ENDPOINTS = """endpoint_wire!(
         TestEndpoint::Write => "write_test",
     },
     false,
-    ()
+    (),
+    identity endpoint => match endpoint {
+        TestEndpoint::Read | TestEndpoint::Write => (),
+    }
 );"""
 BODIES = 'body_wire!(WriteRequest, request => (), "write_test", write_test);'
 MANIFEST = """[package]

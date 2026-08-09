@@ -7,10 +7,16 @@ use crate::serde::strict_json::Value;
 
 /// Minimal snapshot identity returned by `create_storage_box_snapshot`.
 #[non_exhaustive]
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Eq, PartialEq)]
 pub struct StorageBoxSnapshotReference {
     id: u64,
     storage_box: u64,
+}
+
+impl fmt::Debug for StorageBoxSnapshotReference {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.write_str("StorageBoxSnapshotReference([redacted])")
+    }
 }
 
 impl StorageBoxSnapshotReference {
@@ -29,10 +35,16 @@ impl StorageBoxSnapshotReference {
 
 /// Minimal subaccount identity returned by `create_storage_box_subaccount`.
 #[non_exhaustive]
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Eq, PartialEq)]
 pub struct StorageBoxSubaccountReference {
     id: u64,
     storage_box: u64,
+}
+
+impl fmt::Debug for StorageBoxSubaccountReference {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.write_str("StorageBoxSubaccountReference([redacted])")
+    }
 }
 
 impl StorageBoxSubaccountReference {

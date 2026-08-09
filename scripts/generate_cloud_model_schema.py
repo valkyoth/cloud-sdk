@@ -473,13 +473,13 @@ def render_fixtures(
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("cloud_spec", type=Path)
-    parser.add_argument("--console-spec", type=Path)
+    parser.add_argument("--console-spec", type=Path, required=True)
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument("--fixture-output", type=Path, default=DEFAULT_FIXTURES)
     parser.add_argument("--check", action="store_true")
     args = parser.parse_args()
     document = load_spec(args.cloud_spec)
-    console_document = load_spec(args.console_spec) if args.console_spec else None
+    console_document = load_spec(args.console_spec)
     generated = render(document, console_document)
     fixtures = render_fixtures(document, console_document)
     if args.check:

@@ -21,6 +21,19 @@ Public `String` fields permit accidental unredacted formatting and prevent the
 model from owning cleanup policy. Dynamic Console response text is private,
 cleanup-owning, and exposed through borrowed read-only accessors.
 
+## Reparse Serialized Paths For Response Identity
+
+Recovering expected identifiers from prepared URL text would duplicate path
+parsing and couple security checks to serialization details. Typed preparation
+captures identifiers from endpoint values before path encoding and carries an
+opaque allocation-free identity alongside the operation marker.
+
+## Structural Equality For Dynamic Models
+
+Derived equality would compare cleanup-owning provider text with ordinary
+variable-time string operations. Console aggregates retain explicit scalar
+accessors but expose no whole-model equality contract.
+
 ## Unbounded Provider Collections
 
 The provider specification does not give every list a practical memory cap.

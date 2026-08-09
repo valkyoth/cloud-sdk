@@ -18,11 +18,15 @@ Scope: changes from signed v0.66.0 through v0.67.0.
   Console create results.
 - `UtcTimestamp::try_from_string` permits response parsers to transfer an
   already cleanup-owned timestamp allocation after canonical validation.
+- Typed associated preparation now retains an opaque expected response
+  identity for modeled Storage Box singleton, parent-scoped list, and create
+  operations.
 
 ## Changed Provider API
 
-- `Money`, `Price`, `Deprecation`, `StorageBoxType`, `StorageBox`, and
-  `StorageBoxPage` fields are private and use read-only accessors.
+- `Money`, `Price`, `Deprecation`, `StorageBoxType`, `StorageBox`,
+  `StorageBoxPage`, `StorageBoxSnapshot`, `StorageBoxSubaccount`, and their page
+  wrappers use private fields and read-only accessors.
 - Their dynamic response text uses cleanup-owning storage and aggregate `Debug`
   output is redacted. These types therefore no longer provide ordinary
   `Clone`, field-based construction, or field-based equality.
@@ -32,6 +36,13 @@ Scope: changes from signed v0.66.0 through v0.67.0.
   `CompositeResult::resource` accessor.
 - Creation and deprecation times are canonical `UtcTimestamp` values rather
   than unchecked `String` values.
+- `decode_associated_response` and `decode_associated_checked_response` reject
+  validly shaped Storage Box responses whose resource or parent identity does
+  not match the typed endpoint. Explicit `into_untyped` calls discard this
+  binding and document that consequence.
+- Console aggregate and reference `Debug` output redacts provider resource
+  identifiers as well as dynamic text. Dynamic string-bearing aggregates do
+  not implement structural equality.
 
 ## Compatibility
 

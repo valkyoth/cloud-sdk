@@ -68,6 +68,10 @@ pub(crate) trait EndpointWire: Copy {
     fn response_profile(self) -> ResponseProfile;
     fn metadata(self) -> Result<OperationMetadata, HetznerPreparationError>;
     fn operation_key(self) -> &'static str;
+
+    fn expected_response_identity(self) -> crate::association::ExpectedResponseIdentity {
+        crate::association::ExpectedResponseIdentity::None
+    }
 }
 
 pub(crate) trait QueryWire: Copy {

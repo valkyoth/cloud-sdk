@@ -14,6 +14,13 @@ macro_rules! impl_endpoint_prepare {
 }
 
 macro_rules! endpoint_wire {
+    (@identity $endpoint:expr) => {
+        crate::association::ExpectedResponseIdentity::None
+    };
+    (@identity $endpoint:expr, $value:ident => $identity:expr) => {{
+        let $value = $endpoint;
+        $identity
+    }};
     (
         $type:ty,
         $value:ident => $shape:expr,
@@ -23,6 +30,8 @@ macro_rules! endpoint_wire {
         },
         $class:expr,
         $cost:expr
+        $(, identity $identity_value:ident => $identity:expr)?
+        $(,)?
     ) => {
         impl crate::prepared::EndpointWire for $type {
             fn method(self) -> cloud_sdk::Method {
@@ -70,6 +79,12 @@ macro_rules! endpoint_wire {
                 match $key_value {
                     $($key_pattern => $key),+
                 }
+            }
+
+            fn expected_response_identity(
+                self,
+            ) -> crate::association::ExpectedResponseIdentity {
+                endpoint_wire!(@identity self $(, $identity_value => $identity)?)
             }
         }
 

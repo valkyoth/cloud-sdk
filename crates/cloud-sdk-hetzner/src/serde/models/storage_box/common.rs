@@ -19,7 +19,6 @@ const MAX_PRICES: usize = MAX_PER_PAGE as usize;
 
 /// Decimal monetary amount preserved as provider text.
 #[non_exhaustive]
-#[derive(Eq, PartialEq)]
 pub struct Money {
     net: String,
     gross: String,
@@ -54,7 +53,6 @@ impl Drop for Money {
 
 /// Storage Box price at one location.
 #[non_exhaustive]
-#[derive(Eq, PartialEq)]
 pub struct Price {
     location: String,
     hourly: Money,
@@ -106,7 +104,7 @@ impl Drop for Price {
 
 /// Provider deprecation interval.
 #[non_exhaustive]
-#[derive(Debug, Eq, PartialEq)]
+#[derive(Debug)]
 pub struct Deprecation {
     unavailable_after: UtcTimestamp,
     announced: UtcTimestamp,
@@ -127,8 +125,15 @@ impl Deprecation {
 }
 
 /// Source-complete Storage Box type.
+///
+/// Whole-model equality is intentionally unavailable because dynamic provider
+/// text and price data must not acquire a variable-time comparison API.
+///
+/// ```compile_fail
+/// use cloud_sdk_hetzner::serde::StorageBoxType;
+/// fn compare(left: &StorageBoxType, right: &StorageBoxType) -> bool { left == right }
+/// ```
 #[non_exhaustive]
-#[derive(PartialEq)]
 pub struct StorageBoxType {
     id: u64,
     name: String,
@@ -201,7 +206,7 @@ impl fmt::Debug for StorageBoxType {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter
             .debug_struct("StorageBoxType")
-            .field("id", &self.id)
+            .field("id", &"[redacted]")
             .field("name", &"[redacted]")
             .field("price_count", &self.prices.len())
             .field("deprecated", &self.deprecation.is_some())

@@ -84,7 +84,7 @@
             },
             {
               "path": "crates/cloud-sdk-hetzner/src/prepared/operation.rs",
-              "sha256": "781482f9d4d4afb66d317860883fcefe3d69f8cb65e32615d5364b1238aea2e1"
+              "sha256": "ceaf6528456b17d2d4120da7cdd13a55e250a9c54ef78cdf99dfcb65d1e39de7"
             }
           ],
           "request_id": "operation_policy",

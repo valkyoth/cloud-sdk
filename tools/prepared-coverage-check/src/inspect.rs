@@ -84,6 +84,9 @@ fn inspect_items(
                         validate_macro_expression(&arguments.response)?;
                         validate_macro_expression(&arguments.destructive)?;
                         validate_macro_expression(&arguments.cost)?;
+                        if let Some(identity) = &arguments.identity {
+                            validate_macro_expression(identity)?;
+                        }
                         keys.extend(strict_endpoint_mapping(&arguments.mapping)?);
                     }
                     (RegistryKind::Body, Some("body_wire"))

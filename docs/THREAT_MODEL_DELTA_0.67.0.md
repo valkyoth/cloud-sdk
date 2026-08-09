@@ -27,7 +27,15 @@ labels, usage counters, pricing, lifecycle state, and access settings.
   values fail before public model construction.
 - Provider-returned dynamic text is transferred into cleanup-owning storage.
   Fallible parse temporaries and completed models sanitize allocations on drop;
-  aggregate diagnostics redact values.
+  aggregate diagnostics redact values and resource identifiers. Invalid owned
+  timestamp allocations are sanitized before rejection.
+- Typed response decoding compares source-model identifiers with identities
+  captured directly from endpoint values before request serialization. Exact
+  box, type, snapshot, and subaccount singletons are bound; parent-scoped
+  snapshot/subaccount lists and create references are also bound. Mismatches
+  fail with a payload-free `ResponseIdentityMismatch` error.
+- Dynamic Console aggregates expose no structural equality, avoiding a public
+  variable-time comparison path for their protected provider text.
 - Create composites distinguish complete boxes from source-documented partial
   snapshot/subaccount references instead of pretending all create responses
   have one generic resource shape.
@@ -41,3 +49,6 @@ No response model contains a Storage Box password. Password-bearing action
 outputs remain in the existing `SensitiveText` composite boundary. Callers are
 still responsible for clearing copies made from protected inspection closures.
 The default crate graph remains transport-free and `no_std`.
+Explicit conversion to provider-neutral prepared or checked values remains an
+escape hatch and discards typed response-identity enforcement; callers using
+it must provide equivalent validation.

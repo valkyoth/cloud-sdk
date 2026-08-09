@@ -11,6 +11,7 @@ pub(crate) struct EndpointWireArgs {
     pub(crate) mapping: Expr,
     pub(crate) destructive: Expr,
     pub(crate) cost: Expr,
+    pub(crate) identity: Option<Expr>,
 }
 
 impl Parse for EndpointWireArgs {
@@ -28,6 +29,18 @@ impl Parse for EndpointWireArgs {
         let destructive: Expr = input.parse()?;
         input.parse::<Token![,]>()?;
         let cost: Expr = input.parse()?;
+        let identity = if input.is_empty() {
+            None
+        } else {
+            input.parse::<Token![,]>()?;
+            let keyword: Ident = input.parse()?;
+            if keyword != "identity" {
+                return Err(input.error("expected identity response binding"));
+            }
+            let _: Ident = input.parse()?;
+            input.parse::<Token![=>]>()?;
+            Some(input.parse()?)
+        };
         if !input.is_empty() {
             return Err(input.error("unexpected endpoint_wire tokens"));
         }
@@ -38,6 +51,7 @@ impl Parse for EndpointWireArgs {
             mapping,
             destructive,
             cost,
+            identity,
         })
     }
 }
