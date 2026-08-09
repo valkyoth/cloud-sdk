@@ -38,8 +38,8 @@ boundaries.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.65.0"
-cloud-sdk-hetzner = "0.40.0"
+cloud-sdk = "0.70.0"
+cloud-sdk-hetzner = "0.41.0"
 ```
 
 ## Features
@@ -80,6 +80,10 @@ Storage Box examples are indexed in the
 [Hetzner workflow guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/HETZNER_EXAMPLES.md).
 Security-sensitive transport decisions are covered by the
 [security recipes](https://github.com/valkyoth/cloud-sdk/blob/main/docs/SECURITY_RECIPES.md).
+The compile-checked
+[`cloud_client` example](https://github.com/valkyoth/cloud-sdk/blob/main/crates/cloud-sdk-hetzner/examples/cloud_client.rs)
+shows official construction, bounded caller-owned storage, a named Cloud read,
+and typed response handling against the deterministic testkit transport.
 
 Use compile-time operation associations when endpoint, query, body, response,
 and safety policy must retain one nominal operation identity:
@@ -113,6 +117,13 @@ The generated
 [complete binding manifest](https://github.com/valkyoth/cloud-sdk/blob/main/docs/TYPED_OPERATION_BINDINGS.tsv)
 makes all 208 active operation contracts reviewable without reading generated
 Rust source.
+
+With `serde`, `HetznerClient::cloud` exposes named blocking, `Send` async, and
+local-async methods for all 139 active Cloud operations. Read-only calls use a
+`ClientWorkspaceLease` and return a fully checked, owned response. Mutation,
+destructive, and cost-bearing calls expose named preparation plus execution
+that accepts only the matching plan-confirm permit attempt. The client selects
+no retry policy, runtime, clock, transport, or secret store.
 
 Only `NoPermit` read-only markers expose direct typed execution. Mutation,
 destructive, and cost-bearing markers use `AssociatedPlanConfirmation`, an
@@ -217,7 +228,7 @@ authentication scope, raw response policy, and official endpoint.
 | Body serialization | Complete for all 91 non-deprecated operations with request bodies | Current |
 | Success response models | Complete checked envelopes for all 208 operations; source-complete ordinary Cloud resources, DNS zones and RRSets, zonefiles, actions, metrics, composites, pricing, locations, certificates, SSH keys, and Console Storage Boxes, types, snapshots, subaccounts, and folders; operation-branded typed execution guards decode through `decode_associated_checked_response` | Current |
 | Error response models | Complete checked typed API error decoding for all active operations | Current |
-| End-to-end client | v0.69 foundation: service-typed official/custom construction and checked read-only execution; custom execution and service-specific convenience methods remain unavailable | `v0.70.0 - v0.73.0` |
+| End-to-end client | Complete named workflows for all 139 Cloud operations; generic checked read-only execution remains available for DNS, security, and Console Storage Box operations; custom-endpoint execution remains unavailable | DNS, security, and Console named methods in `v0.71.0 - v0.73.0` |
 
 Thirteen deprecated operations remain deliberately unavailable. A checked
 release gate prevents non-deprecated request operations from returning to a
@@ -277,7 +288,7 @@ Enable Serde explicitly; it is never part of the default graph:
 
 ```toml
 [dependencies]
-cloud-sdk-hetzner = { version = "0.40.0", features = ["serde"] }
+cloud-sdk-hetzner = { version = "0.41.0", features = ["serde"] }
 ```
 
 The feature admits serde_json with `default-features = false` and `alloc` only

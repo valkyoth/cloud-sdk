@@ -33,20 +33,26 @@ non-HTTPS identities. The configured host is a credential destination and
 must never come from a tenant, request body, webhook, or other attacker-
 controlled input.
 
-Custom clients carry the separate `CustomEndpointTrust` type marker. v0.69
+Custom clients carry the separate `CustomEndpointTrust` type marker. v0.70
 does not expose execution methods on that marker: existing Hetzner operations
 remain source-locked to official endpoint identities. This avoids presenting a
 custom client that appears usable but only fails after request preparation.
 Custom execution requires a future explicit operation-policy binding; it will
 not silently loosen official policies.
 
-## Read-Only Execution
+## Cloud Client Methods
 
-With the `serde` feature, official clients provide blocking, `Send` async, and
-local async execution for associated read-only operations belonging to the
-same service. A Cloud client cannot execute a DNS, security, or Console
-Storage operation. State-changing operations do not implement this client
-operation contract and remain behind plan-confirm permits.
+With the `serde` feature, the official Cloud client exposes named methods for
+all 139 active Cloud operations. Each read operation has blocking, `Send`
+async, and local-async methods. Mutation, destructive, and cost-bearing
+operations have a named cleanup-owning preparation method plus three execution
+methods that accept only the operation's matching `AssociatedPermitAttempt`.
+
+The split is intentional: preparation creates no authority. The caller must
+review the exact prepared request, build an `AssociatedPlanConfirmation`,
+fingerprint it, create the required mutation/destructive/cost permit, and begin
+one attempt before the client can send the request. The client never creates a
+permit or retries an attempt implicitly.
 
 Every call:
 
@@ -70,7 +76,12 @@ target, request-body, response-body, and response-header capacities. Use
 `OwnedClientWorkspace::try_for_profile` fallibly allocates the same exact
 bounded layout and wipes all four allocations on drop.
 
-The generic associated-operation entry point is foundation-level API. Service-
-specific convenience methods are delivered in v0.70 through v0.73. Until
-those methods exist, construct requests with the associated operation types
-documented in [`OPERATION_ASSOCIATIONS.md`](OPERATION_ASSOCIATIONS.md).
+`CLOUD_CLIENT_METHODS` exposes the exhaustive operation descriptors behind the
+named surface for auditing and tooling. Its 139 rows are generated from the
+source-locked operation association manifest and checked for exact permit and
+pagination classifications.
+
+DNS, security, and Console Storage Box named methods are delivered in
+v0.71-v0.73. Their generic associated-operation execution remains available;
+construct requests with the types documented in
+[`OPERATION_ASSOCIATIONS.md`](OPERATION_ASSOCIATIONS.md).

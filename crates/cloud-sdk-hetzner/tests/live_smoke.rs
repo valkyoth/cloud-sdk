@@ -9,11 +9,14 @@ mod config;
 
 use std::time::Duration;
 
+use cloud_sdk::client::{ClientWorkspace, ClientWorkspacePool};
 use cloud_sdk::operation::PreparationStorage;
 use cloud_sdk_hetzner::association::AssociatedOperation;
-use cloud_sdk_hetzner::association::operations::ListZones;
 use cloud_sdk_hetzner::association::operations::{ListCertificates, ListSshKeys};
+use cloud_sdk_hetzner::association::operations::{ListLocations, ListZones};
 use cloud_sdk_hetzner::association::operations::{ListStorageBoxTypes, ListStorageBoxes};
+use cloud_sdk_hetzner::client::HetznerClient;
+use cloud_sdk_hetzner::cloud::catalog::CatalogListEndpoint;
 use cloud_sdk_hetzner::dns::zones::{ZoneEndpoint, ZoneListRequest};
 use cloud_sdk_hetzner::official_endpoint_policy;
 use cloud_sdk_hetzner::pagination::{Page, PerPage};
@@ -42,6 +45,7 @@ enum LiveSmokeError {
     Timeout(TimeoutError),
     Client(BuildError),
     Probe(ProbeFailure),
+    CloudClientProbe(CloudClientProbeStage),
     DnsProbe(DnsProbeStage),
     SecurityProbe(SecurityProbeStage),
     StorageProbe(StorageProbeStage),
@@ -54,6 +58,16 @@ enum DnsProbeStage {
     Preparation,
     Transport,
     Decode,
+    Shape,
+}
+
+#[derive(Clone, Copy, Debug)]
+enum CloudClientProbeStage {
+    Construction,
+    Association,
+    WorkspacePool,
+    WorkspaceLease,
+    Execution,
     Shape,
 }
 
@@ -87,6 +101,10 @@ impl fmt::Debug for LiveSmokeError {
             Self::Timeout(error) => formatter.debug_tuple("Timeout").field(error).finish(),
             Self::Client(error) => formatter.debug_tuple("Client").field(error).finish(),
             Self::Probe(error) => formatter.debug_tuple("Probe").field(error).finish(),
+            Self::CloudClientProbe(stage) => formatter
+                .debug_tuple("CloudClientProbe")
+                .field(stage)
+                .finish(),
             Self::DnsProbe(stage) => formatter.debug_tuple("DnsProbe").field(stage).finish(),
             Self::SecurityProbe(stage) => {
                 formatter.debug_tuple("SecurityProbe").field(stage).finish()
@@ -122,17 +140,46 @@ fn read_only_catalog_smoke() -> Result<(), LiveSmokeError> {
         BearerCredentialScope::new(HETZNER_PROVIDER_ID, CLOUD_SERVICE_ID, endpoint.clone());
     let credential = BearerCredential::new(token, credential_scope);
     let user_agent =
-        UserAgent::new("cloud-sdk-live-smoke/0.68.0").map_err(LiveSmokeError::UserAgent)?;
+        UserAgent::new("cloud-sdk-live-smoke/0.70.0").map_err(LiveSmokeError::UserAgent)?;
     let timeouts = RequestTimeouts::new(Duration::from_secs(30), Duration::from_secs(10))
         .map_err(LiveSmokeError::Timeout)?;
-    let client = BlockingClientBuilder::new(endpoint, credential, user_agent, timeouts)
+    let transport = BlockingClientBuilder::new(endpoint, credential, user_agent, timeouts)
         .build()
         .map_err(LiveSmokeError::Client)?;
+    let client = HetznerClient::cloud(transport)
+        .map_err(|_| LiveSmokeError::CloudClientProbe(CloudClientProbeStage::Construction))?;
 
     for probe in PROBES {
-        probe.run(&client)?;
+        probe.run(client.transport())?;
         println!("live smoke: {} passed", probe.name());
     }
+
+    let operation =
+        AssociatedOperation::<ListLocations, _>::endpoint(CatalogListEndpoint::Locations)
+            .map_err(|_| LiveSmokeError::CloudClientProbe(CloudClientProbeStage::Association))?;
+    let mut target = [0_u8; 256];
+    let mut request_body = [0_u8; 1];
+    let mut response_body = vec![0_u8; 1_048_576];
+    let mut response_headers = [0_u8; 8_192];
+    let pool = ClientWorkspacePool::<1>::new()
+        .map_err(|_| LiveSmokeError::CloudClientProbe(CloudClientProbeStage::WorkspacePool))?;
+    let lease = pool
+        .try_acquire(ClientWorkspace::new(
+            &mut target,
+            &mut request_body,
+            response_body.as_mut_slice(),
+            &mut response_headers,
+        ))
+        .map_err(|_| LiveSmokeError::CloudClientProbe(CloudClientProbeStage::WorkspaceLease))?;
+    let response = client
+        .list_locations_blocking(&operation, lease)
+        .map_err(|_| LiveSmokeError::CloudClientProbe(CloudClientProbeStage::Execution))?;
+    if !matches!(response.success(), HetznerSuccess::Locations(_)) {
+        return Err(LiveSmokeError::CloudClientProbe(
+            CloudClientProbeStage::Shape,
+        ));
+    }
+    println!("live smoke: typed Cloud client passed");
     Ok(())
 }
 
@@ -148,7 +195,7 @@ fn read_only_dns_model_smoke() -> Result<(), LiveSmokeError> {
         BearerCredentialScope::new(HETZNER_PROVIDER_ID, DNS_SERVICE_ID, endpoint.clone());
     let credential = BearerCredential::new(token, credential_scope);
     let user_agent =
-        UserAgent::new("cloud-sdk-dns-live-smoke/0.68.0").map_err(LiveSmokeError::UserAgent)?;
+        UserAgent::new("cloud-sdk-dns-live-smoke/0.70.0").map_err(LiveSmokeError::UserAgent)?;
     let timeouts = RequestTimeouts::new(Duration::from_secs(30), Duration::from_secs(10))
         .map_err(LiveSmokeError::Timeout)?;
     let client = BlockingClientBuilder::new(endpoint, credential, user_agent, timeouts)
@@ -196,7 +243,7 @@ fn read_only_security_model_smoke() -> Result<(), LiveSmokeError> {
     let credential_scope =
         BearerCredentialScope::new(HETZNER_PROVIDER_ID, SECURITY_SERVICE_ID, endpoint.clone());
     let credential = BearerCredential::new(token, credential_scope);
-    let user_agent = UserAgent::new("cloud-sdk-security-live-smoke/0.68.0")
+    let user_agent = UserAgent::new("cloud-sdk-security-live-smoke/0.70.0")
         .map_err(LiveSmokeError::UserAgent)?;
     let timeouts = RequestTimeouts::new(Duration::from_secs(30), Duration::from_secs(10))
         .map_err(LiveSmokeError::Timeout)?;
@@ -265,7 +312,7 @@ fn read_only_storage_model_smoke() -> Result<(), LiveSmokeError> {
         BearerCredentialScope::new(HETZNER_PROVIDER_ID, STORAGE_SERVICE_ID, endpoint.clone());
     let credential = BearerCredential::new(token, credential_scope);
     let user_agent =
-        UserAgent::new("cloud-sdk-storage-live-smoke/0.68.0").map_err(LiveSmokeError::UserAgent)?;
+        UserAgent::new("cloud-sdk-storage-live-smoke/0.70.0").map_err(LiveSmokeError::UserAgent)?;
     let timeouts = RequestTimeouts::new(Duration::from_secs(30), Duration::from_secs(10))
         .map_err(LiveSmokeError::Timeout)?;
     let client = BlockingClientBuilder::new(endpoint, credential, user_agent, timeouts)

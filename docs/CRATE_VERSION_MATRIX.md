@@ -1,9 +1,8 @@
 # Crate Version Matrix
 
-Status: `v0.65.0` is tagged and published, and `v0.66.0` through `v0.68.0` are
-signed internal milestones. `v0.69.0` is the current implementation milestone.
-No package is selected for crates.io until the v0.70.0 cumulative checkpoint.
-Every pre-1.0 tag receives its own incremental pentest.
+Status: `v0.65.0` is the latest published checkpoint, `v0.66.0` through
+`v0.69.0` are signed internal milestones, and `v0.70.0` is the current public
+checkpoint candidate. Every pre-1.0 tag receives its own incremental pentest.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
@@ -24,9 +23,8 @@ evidence, but intermediate tags select no package for crates.io. Supporting
 crates retain their published versions while their code and metadata changes
 accumulate. At every fifth-minor or exceptional public checkpoint, the release
 tool compares each package tree with the previous public tag, rejects any lost
-delta, verifies every intervening tag's pentest report, publishes changed
-dependencies in order, and publishes `cloud-sdk` last. Unchanged crates are not
-republished.
+delta, verifies every intervening tag's pentest report, and publishes changed
+packages in dependency order. Unchanged crates are not republished.
 
 All minor and patch tags after the public baseline must appear in
 `cumulative_milestones`; a checkpoint cannot omit an intervening build from
@@ -1034,6 +1032,23 @@ to accumulate under versions published at v0.65.0 until v0.70.0.
 | `cloud-sdk-reqwest` | `0.34.0` | `0.34.0` | `unchanged` | No | No transport boundary changes. |
 | `cloud-sdk-sanitization` | `0.18.0` | `0.18.0` | `unchanged` | No | Existing complete-buffer cleanup satisfies the new workspace owner. |
 | `cloud-sdk-testkit` | `0.30.0` | `0.30.0` | `unchanged` | No | Existing deterministic transport supports the vertical client evidence. |
+
+## v0.70.0 Tracking Table
+
+`v0.70.0` completes named typed workflows for all 139 active Cloud operations
+and publishes the cumulative v0.66-v0.70 release train.
+
+| Crate | Previous published | Source | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.65.0` | `0.70.0` | `code` | Yes | Publish the cumulative provider-neutral checkpoint and facade version. |
+| `cloud-sdk-hetzner` | `0.40.0` | `0.41.0` | `code` | Yes | Publish cumulative response models, operation bindings, client foundation, and complete Cloud client methods. |
+| `cloud-sdk-reqwest` | `0.34.0` | `0.34.1` | `dependency` | Yes | Require the v0.70 core without changing transport code. |
+| `cloud-sdk-sanitization` | `0.18.0` | `0.18.0` | `unchanged` | No | No package content or dependency changed. |
+| `cloud-sdk-testkit` | `0.30.0` | `0.30.1` | `dependency` | Yes | Require the v0.70 core without changing testkit code. |
+
+Publish order is `cloud-sdk 0.70.0`, `cloud-sdk-reqwest 0.34.1`,
+`cloud-sdk-testkit 0.30.1`, then `cloud-sdk-hetzner 0.41.0`. The unchanged
+sanitization crate and unpublished OVHcloud probe are excluded.
 
 ## Planned Milestone Ownership
 

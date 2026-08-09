@@ -50,9 +50,9 @@ infrastructure.
 Every pre-1.0 version receives the complete automated release gate, an
 incremental pentest against the preceding tag, GitHub CI and CodeQL, release
 notes, permanent pentest evidence, and a normal signed `v0.x.x` tag. Crates.io
-publication occurs every fifth minor version, so the next public checkpoint is
-`v0.70.0`. Intervening tags are fully reviewed but are not separately published.
-A material security or compatibility need can trigger an earlier publication.
+publication occurs every fifth minor version. Intervening tags are fully
+reviewed but are not separately published. A material security or compatibility
+need can trigger an earlier publication.
 
 ## Cost And Production Warning
 
@@ -76,19 +76,11 @@ listed in the
 [crate version matrix](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATE_VERSION_MATRIX.md).
 
 Current releases provide provider-neutral contracts and provider-owned,
-validated request and response building blocks. Before the high-level client is
-stabilized, the roadmap now hardens extensible provider identities, HTTP
-metadata, authentication, pagination, local async, bounded decoding, and typed
-operation contracts, then validates them with an unpublished OVHcloud API v2
-architecture probe, a narrow credential-free Robot wire fixture, and
-full-fidelity Hetzner vertical slices before the neutral API freeze.
-
-The latest published checkpoint is `v0.65.0`, and `v0.68.0` is the latest
-signed internal milestone. v0.69 adds service-typed official and explicitly
-trusted custom Hetzner client construction, shared read-only execution through
-the checked decoder, and named complete-workspace capacity profiles. The
-v0.69 implementation stop is ready for incremental pentest; cumulative
-crates.io publication remains deferred to v0.70.0.
+validated request and response building blocks. v0.70 adds exhaustive named
+Cloud client methods for all 139 active Hetzner Cloud operations, including
+checked read-only execution and plan-confirm mutation, destructive, and cost
+workflows across blocking, Send-async, and local-async transports. DNS,
+security, Console Storage Box, and Robot client work continues in the roadmap.
 
 ## Trust Dashboard
 
@@ -146,8 +138,8 @@ Portable and native platform evidence is documented in
 
 ```toml
 [dependencies]
-cloud-sdk = "0.65.0"
-cloud-sdk-hetzner = "0.40.0"
+cloud-sdk = "0.70.0"
+cloud-sdk-hetzner = "0.41.0"
 ```
 
 ## cloud-sdk Features
@@ -228,6 +220,7 @@ visible. Applications should enable only the features they use.
 - [Migrating source users to v0.67](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.67.0.md)
 - [Migrating source users to v0.68](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.68.0.md)
 - [Migrating source users to v0.69](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.69.0.md)
+- [Migrating to v0.70](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.70.0.md)
 - [Compile-time Hetzner operation associations](https://github.com/valkyoth/cloud-sdk/blob/main/docs/OPERATION_ASSOCIATIONS.md)
 - [Incremental provider decoding](https://github.com/valkyoth/cloud-sdk/blob/main/docs/INCREMENTAL_DECODING.md)
 - [Deprecated endpoint policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/DEPRECATED_ENDPOINT_POLICY.md)
@@ -558,8 +551,8 @@ without changing the default allocation-free graph.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.65.0"
-cloud-sdk-reqwest = { version = "0.34.0", features = ["blocking-rustls"] }
+cloud-sdk = "0.70.0"
+cloud-sdk-reqwest = { version = "0.34.1", features = ["blocking-rustls"] }
 ```
 
 The production builder is HTTPS-only, requires explicit bounded timeouts and a
@@ -585,8 +578,8 @@ when deterministic public WebPKI roots are required:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.65.0"
-cloud-sdk-reqwest = { version = "0.34.0", features = ["blocking-rustls-webpki-roots"] }
+cloud-sdk = "0.70.0"
+cloud-sdk-reqwest = { version = "0.34.1", features = ["blocking-rustls-webpki-roots"] }
 ```
 
 The blocking API is unchanged. This feature excludes host-added enterprise
@@ -602,8 +595,8 @@ feature instead of relying on dependency feature unification:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.65.0"
-cloud-sdk-reqwest = { version = "0.34.0", features = ["blocking-rustls-fips"] }
+cloud-sdk = "0.70.0"
+cloud-sdk-reqwest = { version = "0.34.1", features = ["blocking-rustls-fips"] }
 ```
 
 Client construction explicitly selects rustls' AWS-LC FIPS provider and fails
@@ -621,8 +614,8 @@ example is in the
 
 ```toml
 [dependencies]
-cloud-sdk = "0.65.0"
-cloud-sdk-reqwest = { version = "0.34.0", features = ["async-rustls"] }
+cloud-sdk = "0.70.0"
+cloud-sdk-reqwest = { version = "0.34.1", features = ["async-rustls"] }
 ```
 
 The async adapter requires an active Tokio executor because reqwest uses Tokio

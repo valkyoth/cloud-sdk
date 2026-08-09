@@ -30,7 +30,7 @@ feature remain disabled. The full decision and transitive surface are recorded i
 [`dependency-admission-serde.md`](dependency-admission-serde.md), and
 `scripts/check_serde_boundary.sh` enforces graph isolation.
 
-Exact `base64-ng 2.0.1`, `md-5 0.11.0`, and `sha2 0.10.9` are admitted only
+Exact `base64-ng 2.0.1`, `md-5 0.11.0`, and `sha2 0.11.0` are admitted only
 through the non-default provider Serde boundary. A bounded first-party parser
 uses them to structurally validate OpenSSH/RFC 4253 public keys, bind Hetzner's
 legacy response fingerprint, and derive SHA-256 identity without creating a

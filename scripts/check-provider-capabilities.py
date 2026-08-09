@@ -35,10 +35,10 @@ EXPECTED = (
     ),
     (
         "End-to-end client",
-        "v0.69 foundation: service-typed official/custom construction and checked "
-        "read-only execution; custom execution and service-specific convenience "
-        "methods remain unavailable",
-        "`v0.70.0 - v0.73.0`",
+        "Complete named workflows for all 139 Cloud operations; generic checked "
+        "read-only execution remains available for DNS, security, and Console "
+        "Storage Box operations; custom-endpoint execution remains unavailable",
+        "DNS, security, and Console named methods in `v0.71.0 - v0.73.0`",
     ),
 )
 

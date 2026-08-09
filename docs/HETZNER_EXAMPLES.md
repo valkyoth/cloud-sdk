@@ -14,6 +14,7 @@ execution so running them cannot create billable resources.
 | Pagination response | [`pagination.rs`](../crates/cloud-sdk-hetzner/examples/pagination.rs) | `cargo run -p cloud-sdk-hetzner --example pagination --features serde` |
 | Action polling | [`action_polling.rs`](../crates/cloud-sdk-hetzner/examples/action_polling.rs) | `cargo run -p cloud-sdk-hetzner --example action_polling --features serde` |
 | Checked response decoding | [`checked_response.rs`](../crates/cloud-sdk-hetzner/examples/checked_response.rs) | `cargo run -p cloud-sdk-hetzner --example checked_response --features serde` |
+| Complete Cloud client read | [`cloud_client.rs`](../crates/cloud-sdk-hetzner/examples/cloud_client.rs) | `cargo run -p cloud-sdk-hetzner --example cloud_client --features serde` |
 | Global and certificate action queries | [`actions.rs`](../crates/cloud-sdk-hetzner/examples/actions.rs) | `cargo run -p cloud-sdk-hetzner --example actions` |
 | DNS Zone request | [`dns.rs`](../crates/cloud-sdk-hetzner/examples/dns.rs) | `cargo run -p cloud-sdk-hetzner --example dns` |
 | Storage Box list request | [`storage_box.rs`](../crates/cloud-sdk-hetzner/examples/storage_box.rs) | `cargo run -p cloud-sdk-hetzner --example storage_box` |
@@ -33,15 +34,14 @@ provider-owned contract:
    execution permit required by state-changing metadata.
 
 The provider crate covers preparation and checked typed envelope decoding for
-all 208 active operations. Ordinary Cloud resource results retain every
-source-known field plus bounded future fields through dedicated resource
-variants; Cloud specials, DNS, security, and Console model completion remains
-scheduled before `1.0.0`. The crate does not yet provide a high-level client that also
-performs transport or chooses caller-owned storage automatically. That
-boundary is explicit so application code cannot silently inherit networking,
-retry, runtime, or secret-storage behavior. Prepared execution itself has no
-legacy transport fallback: it requires an authenticated transport and sends
-the operation-owned raw response policy with the request.
+all 208 active operations. v0.70 exposes named client workflows for all 139
+active Cloud operations. Read-only methods prepare, execute, enforce response
+policy, and decode through one caller-owned workspace lease. State-changing
+methods retain separate named preparation and permit-authorized execution, so
+review and confirmation cannot be skipped. DNS, security, and Console methods
+arrive in v0.71-v0.73; their generic associated-operation paths remain
+available. The client selects no transport, retry policy, runtime, clock, or
+secret store.
 
 ## Mutation Safety
 

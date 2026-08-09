@@ -2,7 +2,7 @@
 
 Status: admitted only behind the non-default `cloud-sdk-hetzner/serde` feature.
 
-Checked: 2026-08-08.
+Checked: 2026-08-09.
 
 ## Decision
 
@@ -16,7 +16,7 @@ the request model and creates no second owned public-key representation.
 | --- | --- | --- | --- |
 | `base64-ng` | `2.0.1` | defaults disabled | MIT OR Apache-2.0 |
 | `md-5` | `0.11.0` | defaults disabled | MIT OR Apache-2.0 |
-| `sha2` | `0.10.9` | defaults disabled | MIT OR Apache-2.0 |
+| `sha2` | `0.11.0` | defaults disabled | MIT OR Apache-2.0 |
 
 All three packages are `no_std` and pinned exactly. `base64-ng` is an existing
 first-party dependency already admitted for bounded Basic authentication. The
@@ -28,12 +28,9 @@ number, native-code, or operating-system capability.
 The packages enter only the provider Serde graph. The default provider graph
 remains allocation-free, transport-free, and independent of them.
 
-Stable `sha2 0.10.9` uses RustCrypto digest 0.10, while latest stable
-`md-5 0.11.0` uses digest 0.11. Cargo Deny therefore carries exact exceptions
-for `digest 0.10.7`, `block-buffer 0.10.4`, and `crypto-common 0.1.7`.
-Downgrading MD5 would violate the latest-stable policy without reducing
-runtime capability. Remove the exceptions when stable SHA-256 and MD5 releases
-converge on one digest line.
+`sha2 0.11.0` and `md-5 0.11.0` share RustCrypto digest 0.11. The v0.70 update
+therefore removes the old digest 0.10 duplicate graph and its Cargo Deny
+exceptions without changing runtime capability.
 
 `scripts/check_security_response_models.sh` proves exact graph membership,
 default-graph isolation, complete algorithm fixtures, and the absence of
