@@ -81,11 +81,14 @@ PERMIT_TYPES = {
 class Operation:
     api: str
     method: str
+    path: str
     tag: str
     operation_id: str
     pagination: str
     status: str
     response: str
+    response_root: str
+    response_required: str
     service: str
     authentication: str
     query_policy: str
@@ -222,11 +225,14 @@ def load_operations() -> list[Operation]:
             Operation(
                 api=source["api"],
                 method=source["method"],
+                path=source["path"],
                 tag=source["tag"],
                 operation_id=operation_id,
                 pagination=source["pagination"],
                 status=response["status"],
                 response=response["shape"],
+                response_root=response["root"],
+                response_required=response["required"],
                 service=association["service"],
                 authentication=association["authentication"],
                 query_policy=association["query_policy"],

@@ -109,6 +109,10 @@ official endpoint, authentication scope, request and response policy,
 pagination, quota, retry, streaming, response/error, and permit associations.
 See the
 [operation association guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/OPERATION_ASSOCIATIONS.md).
+The generated
+[complete binding manifest](https://github.com/valkyoth/cloud-sdk/blob/main/docs/TYPED_OPERATION_BINDINGS.tsv)
+makes all 208 active operation contracts reviewable without reading generated
+Rust source.
 
 Only `NoPermit` read-only markers expose direct typed execution. Mutation,
 destructive, and cost-bearing markers use `AssociatedPlanConfirmation`, an

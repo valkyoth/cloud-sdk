@@ -121,6 +121,15 @@ release checks. The compact generated registry is intentionally excluded from
 rustfmt expansion so it remains below the repository 500-line limit; rustfmt
 still formats the handwritten generator macro and every other Rust file.
 
+v0.68 additionally publishes `docs/TYPED_OPERATION_BINDINGS.tsv`, a canonical
+28-column review artifact covering path, method, endpoint, authentication,
+query, body, headers, media, success and error response, bounds, pagination,
+quota, retry, streaming, permit, and response-identity policy for every active
+operation. `scripts/check_typed_operation_bindings.py` requires exact equality
+with all source locks, the generated Rust markers, the API matrix, and the Rust
+AST endpoint/body registries. It also proves that all 13 deprecated operations
+remain absent from executable bindings.
+
 Every classification is provider-reviewed metadata. Exhaustive generator
 tests verify all 208 rows, while each typed preparation independently compares
 the selected endpoint's runtime policy before serialization. A disagreement

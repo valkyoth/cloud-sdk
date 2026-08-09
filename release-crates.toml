@@ -1,27 +1,27 @@
 [release]
-version = "0.67.0"
-milestone = "0.67.0"
+version = "0.68.0"
+milestone = "0.68.0"
 baseline = "0.65.0"
-review_baseline = "0.66.0"
-cumulative_milestones = ["0.66.0", "0.67.0"]
+review_baseline = "0.67.0"
+cumulative_milestones = ["0.66.0", "0.67.0", "0.68.0"]
 policy = "independent"
 stage = "internal"
 exceptional = false
 exception_reason = ""
 
 [crates."cloud-sdk"]
-previous_version = "0.66.0"
-version = "0.67.0"
+previous_version = "0.67.0"
+version = "0.68.0"
 change = "metadata"
 publish = false
-reason = "Record the complete Hetzner Console response-model milestone."
+reason = "Record the complete Hetzner typed-operation binding milestone."
 
 [crates."cloud-sdk-hetzner"]
 previous_version = "0.40.0"
 version = "0.40.0"
 change = "code"
 publish = false
-reason = "Accumulate complete Console Storage Box response models for v0.70."
+reason = "Accumulate the complete 208-operation typed binding proof for v0.70."
 
 [crates."cloud-sdk-reqwest"]
 previous_version = "0.34.0"

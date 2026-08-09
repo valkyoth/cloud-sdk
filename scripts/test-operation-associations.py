@@ -49,9 +49,18 @@ def main() -> int:
         generated_row = generator.row(operation)
         expected_markers = (
             generator.SERVICE_TYPES[operation.service][0],
+            generator.SERVICE_TYPES[operation.service][1],
             generator.AUTHENTICATION_TYPES[operation.authentication],
+            generator.METHOD_TYPES[operation.method],
             generator.QUERY_TYPES[operation.query_policy],
             generator.BODY_TYPES[operation.body_policy],
+            generator.STATUS_TYPES[operation.status],
+            generator.RESPONSE_TYPES[operation.response],
+            (
+                "NumberedPagination"
+                if operation.pagination == "yes"
+                else "NoPagination"
+            ),
             generator.RETRY_TYPES[operation.retry_policy],
             generator.PERMIT_TYPES[operation.permit_class],
         )
@@ -85,6 +94,20 @@ def main() -> int:
     generated = generator.formatted_render()
     assert generated.count("Association for Hetzner operation") == 1
     assert generated.count("        (") == 208
+    fixed_associations = (
+        "type AuthenticationScope = RequiredServiceScope;",
+        "type RequestHeaders = body_headers!($body);",
+        "type RequestMedia = body_media!($body);",
+        "type SuccessBody = success_body!($response);",
+        "type SuccessMedia = success_media!($response);",
+        "type ErrorBody = JsonErrorBody;",
+        "type ErrorMedia = JsonErrorMedia;",
+        "type ResponseCaps = JsonResponseCaps;",
+        "type Quota = HetznerQuota;",
+        "type Streaming = BufferedStreaming;",
+        "type Error = HetznerErrorResponse;",
+    )
+    assert all(binding in generated for binding in fixed_associations)
     print("208 exhaustive association rows and strict manifest failures checked.")
     return 0
 

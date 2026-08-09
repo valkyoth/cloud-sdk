@@ -59,6 +59,18 @@ impl core::error::Error for AssociatedPreparationError {
 ///     combine(endpoint, query);
 /// }
 /// ```
+///
+/// Request bodies bound to different operations also cannot be combined:
+///
+/// ```compile_fail
+/// use cloud_sdk_hetzner::association::{BodyFor, EndpointFor};
+/// use cloud_sdk_hetzner::association::operations::{CreateServer, UpdateServer};
+///
+/// fn combine<O, E, B>(_: EndpointFor<O, E>, _: BodyFor<O, B>) {}
+/// fn mismatch<E, B>(endpoint: EndpointFor<CreateServer, E>, body: BodyFor<UpdateServer, B>) {
+///     combine(endpoint, body);
+/// }
+/// ```
 pub struct AssociatedOperation<O, E, Q = NoQuery, B = NoBody> {
     endpoint: EndpointFor<O, E>,
     query: QueryFor<O, Q>,

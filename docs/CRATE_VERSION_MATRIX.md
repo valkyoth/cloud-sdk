@@ -1,10 +1,9 @@
 # Crate Version Matrix
 
-Status: `v0.65.0` is tagged and published, and `v0.66.0` is a signed internal
-milestone. The `v0.67.0` pentest and retest passed; its final evidence commit
-awaits GitHub CI and CodeQL before the internal tag. No package is selected for
-crates.io until the v0.70.0 cumulative checkpoint. Every pre-1.0 tag receives
-its own incremental pentest.
+Status: `v0.65.0` is tagged and published, and `v0.66.0` and `v0.67.0` are
+signed internal milestones. `v0.68.0` is the current implementation milestone.
+No package is selected for crates.io until the v0.70.0 cumulative checkpoint.
+Every pre-1.0 tag receives its own incremental pentest.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
@@ -1004,6 +1003,21 @@ published at v0.65.0 until v0.70.0.
 | `cloud-sdk-hetzner` | `0.40.0` | `0.40.0` | `code` | No | Accumulate complete Console Storage Box response models for v0.70.0. |
 | `cloud-sdk-reqwest` | `0.34.0` | `0.34.0` | `unchanged` | No | No transport boundary changes. |
 | `cloud-sdk-sanitization` | `0.18.0` | `0.18.0` | `unchanged` | No | Existing cleanup-owning strings satisfy the response-text boundary. |
+| `cloud-sdk-testkit` | `0.30.0` | `0.30.0` | `unchanged` | No | No testkit boundary changes. |
+
+## v0.68.0 Tracking Table
+
+`v0.68.0` proves one complete source-derived typed binding for every active
+pre-Robot operation and explicit exclusion of every deprecated operation. It
+remains internal, so no package is selected for crates.io and provider code
+continues to accumulate under versions published at v0.65.0 until v0.70.0.
+
+| Crate | Published | Source | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.65.0` | `0.68.0` | `metadata` | No | Record the complete typed-operation binding milestone and release evidence. |
+| `cloud-sdk-hetzner` | `0.40.0` | `0.40.0` | `code` | No | Accumulate the 208-operation request, response, error, and policy proof for v0.70.0. |
+| `cloud-sdk-reqwest` | `0.34.0` | `0.34.0` | `unchanged` | No | No transport boundary changes. |
+| `cloud-sdk-sanitization` | `0.18.0` | `0.18.0` | `unchanged` | No | No sanitization boundary changes. |
 | `cloud-sdk-testkit` | `0.30.0` | `0.30.0` | `unchanged` | No | No testkit boundary changes. |
 
 ## Planned Milestone Ownership

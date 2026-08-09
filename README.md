@@ -226,6 +226,7 @@ visible. Applications should enable only the features they use.
 - [Migrating to v0.65](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.65.0.md)
 - [Migrating source users to v0.66](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.66.0.md)
 - [Migrating source users to v0.67](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.67.0.md)
+- [Migrating source users to v0.68](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.68.0.md)
 - [Compile-time Hetzner operation associations](https://github.com/valkyoth/cloud-sdk/blob/main/docs/OPERATION_ASSOCIATIONS.md)
 - [Incremental provider decoding](https://github.com/valkyoth/cloud-sdk/blob/main/docs/INCREMENTAL_DECODING.md)
 - [Deprecated endpoint policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/DEPRECATED_ENDPOINT_POLICY.md)

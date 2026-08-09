@@ -122,7 +122,7 @@ fn read_only_catalog_smoke() -> Result<(), LiveSmokeError> {
         BearerCredentialScope::new(HETZNER_PROVIDER_ID, CLOUD_SERVICE_ID, endpoint.clone());
     let credential = BearerCredential::new(token, credential_scope);
     let user_agent =
-        UserAgent::new("cloud-sdk-live-smoke/0.67.0").map_err(LiveSmokeError::UserAgent)?;
+        UserAgent::new("cloud-sdk-live-smoke/0.68.0").map_err(LiveSmokeError::UserAgent)?;
     let timeouts = RequestTimeouts::new(Duration::from_secs(30), Duration::from_secs(10))
         .map_err(LiveSmokeError::Timeout)?;
     let client = BlockingClientBuilder::new(endpoint, credential, user_agent, timeouts)
@@ -148,7 +148,7 @@ fn read_only_dns_model_smoke() -> Result<(), LiveSmokeError> {
         BearerCredentialScope::new(HETZNER_PROVIDER_ID, DNS_SERVICE_ID, endpoint.clone());
     let credential = BearerCredential::new(token, credential_scope);
     let user_agent =
-        UserAgent::new("cloud-sdk-dns-live-smoke/0.67.0").map_err(LiveSmokeError::UserAgent)?;
+        UserAgent::new("cloud-sdk-dns-live-smoke/0.68.0").map_err(LiveSmokeError::UserAgent)?;
     let timeouts = RequestTimeouts::new(Duration::from_secs(30), Duration::from_secs(10))
         .map_err(LiveSmokeError::Timeout)?;
     let client = BlockingClientBuilder::new(endpoint, credential, user_agent, timeouts)
@@ -196,7 +196,7 @@ fn read_only_security_model_smoke() -> Result<(), LiveSmokeError> {
     let credential_scope =
         BearerCredentialScope::new(HETZNER_PROVIDER_ID, SECURITY_SERVICE_ID, endpoint.clone());
     let credential = BearerCredential::new(token, credential_scope);
-    let user_agent = UserAgent::new("cloud-sdk-security-live-smoke/0.67.0")
+    let user_agent = UserAgent::new("cloud-sdk-security-live-smoke/0.68.0")
         .map_err(LiveSmokeError::UserAgent)?;
     let timeouts = RequestTimeouts::new(Duration::from_secs(30), Duration::from_secs(10))
         .map_err(LiveSmokeError::Timeout)?;
@@ -265,7 +265,7 @@ fn read_only_storage_model_smoke() -> Result<(), LiveSmokeError> {
         BearerCredentialScope::new(HETZNER_PROVIDER_ID, STORAGE_SERVICE_ID, endpoint.clone());
     let credential = BearerCredential::new(token, credential_scope);
     let user_agent =
-        UserAgent::new("cloud-sdk-storage-live-smoke/0.67.0").map_err(LiveSmokeError::UserAgent)?;
+        UserAgent::new("cloud-sdk-storage-live-smoke/0.68.0").map_err(LiveSmokeError::UserAgent)?;
     let timeouts = RequestTimeouts::new(Duration::from_secs(30), Duration::from_secs(10))
         .map_err(LiveSmokeError::Timeout)?;
     let client = BlockingClientBuilder::new(endpoint, credential, user_agent, timeouts)
