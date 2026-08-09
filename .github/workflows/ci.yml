@@ -160,13 +160,9 @@ jobs:
             --config deny.toml --locked check advisories licenses sources
 
       - name: Check RustSec advisories
-        run: |
-          cargo audit
-          cargo audit --no-fetch \
-            --file tests/reqwest-feature-unification/Cargo.lock
-          cargo audit --no-fetch --file fuzz/Cargo.lock
-          cargo audit --no-fetch \
-            --file tools/prepared-coverage-check/Cargo.lock
+        env:
+          TMPDIR: ${{ runner.temp }}
+        run: scripts/check_rustsec_advisories.sh
 
       - name: Check committed SBOM freshness
         run: scripts/check_sbom_freshness.sh

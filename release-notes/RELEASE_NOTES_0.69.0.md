@@ -8,6 +8,11 @@ Security-Review: PASS
 Pentest: PASS
 Publication: DEFERRED TO v0.70.0
 
+The final CI candidate isolates RustSec advisory acquisition in a fresh
+temporary database. This prevents stale deleted draft advisories in a runner
+checkout from causing a false audit failure; all four lockfiles still use one
+fetched database and fail closed on any audit error.
+
 ## Overview
 
 v0.69 establishes the Hetzner client construction, endpoint-trust, complete

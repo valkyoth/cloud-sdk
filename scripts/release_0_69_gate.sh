@@ -86,10 +86,7 @@ command -v cargo-audit >/dev/null 2>&1 || {
     echo "release gate: cargo-audit not installed" >&2
     exit 1
 }
-cargo audit
-cargo audit --no-fetch --file tests/reqwest-feature-unification/Cargo.lock
-cargo audit --no-fetch --file fuzz/Cargo.lock
-cargo audit --no-fetch --file tools/prepared-coverage-check/Cargo.lock
+scripts/check_rustsec_advisories.sh
 
 if [ "$(git rev-parse HEAD)" != "$reviewed_head" ]; then
     echo "release gate: HEAD changed while checks were running" >&2
