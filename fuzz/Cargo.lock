@@ -113,7 +113,7 @@ dependencies = [
 
 [[package]]
 name = "cloud-sdk"
-version = "0.70.0"
+version = "0.71.0"
 dependencies = [
  "cloud-sdk-sanitization",
  "subtle",

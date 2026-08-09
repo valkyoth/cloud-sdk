@@ -75,12 +75,14 @@ Published and planned versions for each independently versioned crate are
 listed in the
 [crate version matrix](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATE_VERSION_MATRIX.md).
 
-Current releases provide provider-neutral contracts and provider-owned,
-validated request and response building blocks. v0.70 adds exhaustive named
-Cloud client methods for all 139 active Hetzner Cloud operations, including
-checked read-only execution and plan-confirm mutation, destructive, and cost
-workflows across blocking, Send-async, and local-async transports. DNS,
-security, Console Storage Box, and Robot client work continues in the roadmap.
+The latest crates.io checkpoint is v0.70. The v0.71 source milestone adds
+exhaustive named client methods for all 24 active Hetzner DNS operations,
+including checked reads, numbered pagination, action responses, TSIG-aware
+preparation, and plan-confirm mutation or destructive execution across
+blocking, Send-async, and local-async transports. It also retires the earlier
+experimental FIPS transport; future FIPS work is deferred until Brynja is
+ready. Security, Console Storage Box, and Robot client work continues in the
+roadmap, and cumulative crates.io publication is deferred to v0.75.
 
 ## Trust Dashboard
 
@@ -221,6 +223,7 @@ visible. Applications should enable only the features they use.
 - [Migrating source users to v0.68](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.68.0.md)
 - [Migrating source users to v0.69](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.69.0.md)
 - [Migrating to v0.70](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.70.0.md)
+- [Migrating source users to v0.71](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.71.0.md)
 - [Compile-time Hetzner operation associations](https://github.com/valkyoth/cloud-sdk/blob/main/docs/OPERATION_ASSOCIATIONS.md)
 - [Incremental provider decoding](https://github.com/valkyoth/cloud-sdk/blob/main/docs/INCREMENTAL_DECODING.md)
 - [Deprecated endpoint policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/DEPRECATED_ENDPOINT_POLICY.md)

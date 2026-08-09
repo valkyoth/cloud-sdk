@@ -25,8 +25,10 @@ applications. The prepared request supplies exact Cloud service identity,
 official endpoint, required authentication scope, bounded raw response policy,
 and checked response policy to the authenticated raw adapter. v0.70 also runs
 `list_locations_blocking` through the official service-typed Cloud client,
-caller-owned workspace pool, complete response policy, and typed decoder. The
-harness has no separate legacy request assembly path.
+caller-owned workspace pool, complete response policy, and typed decoder.
+v0.71 runs the paginated `list_zones_blocking` path through the equivalent
+official DNS client and checked DNS resource model. The harness has no separate
+legacy request assembly path for either client probe.
 
 Ordinary checks run all offline harness tests but leave the authenticated test
 ignored:

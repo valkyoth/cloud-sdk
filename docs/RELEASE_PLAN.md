@@ -2194,6 +2194,8 @@ Stop gate: `v0.70.0 implementation stop reached. Run the pentest for this exact 
 
 ### v0.71.0 - DNS Client Methods
 
+Status: implementation stop reached; pentest required before tagging.
+
 Goal: expose every claimed DNS operation through typed workflows.
 
 Deliverables: zone/RRSet CRUD, actions, zonefiles, TSIG, permits, pagination, and cleanup across all execution modes; retire the experimental AWS-LC FIPS transport and enforce deferment to Brynja without changing ordinary rustls transports.

@@ -31,8 +31,8 @@ def main() -> None:
         path = Path(temporary) / "README.md"
         current_client = (
             "End-to-end client | Complete named workflows for all 139 Cloud "
-            "operations; generic checked read-only execution remains available "
-            "for DNS, security, and Console Storage Box operations; custom-"
+            "and 24 DNS operations; generic checked read-only execution remains "
+            "available for security and Console Storage Box operations; custom-"
             "endpoint execution remains unavailable"
         )
         path.write_text(

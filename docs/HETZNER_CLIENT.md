@@ -40,13 +40,19 @@ custom client that appears usable but only fails after request preparation.
 Custom execution requires a future explicit operation-policy binding; it will
 not silently loosen official policies.
 
-## Cloud Client Methods
+## Named Client Methods
 
 With the `serde` feature, the official Cloud client exposes named methods for
 all 139 active Cloud operations. Each read operation has blocking, `Send`
 async, and local-async methods. Mutation, destructive, and cost-bearing
 operations have a named cleanup-owning preparation method plus three execution
 methods that accept only the operation's matching `AssociatedPermitAttempt`.
+
+The official DNS client applies the same contract to all 24 active DNS
+operations: eight read-only, nine mutation, and seven destructive methods.
+The four list operations retain numbered-pagination policy, action endpoints
+decode through the checked action models, and zonefile or TSIG-bearing
+preparation stays in caller-owned cleanup-guarded storage.
 
 The split is intentional: preparation creates no authority. The caller must
 review the exact prepared request, build an `AssociatedPlanConfirmation`,
@@ -76,12 +82,12 @@ target, request-body, response-body, and response-header capacities. Use
 `OwnedClientWorkspace::try_for_profile` fallibly allocates the same exact
 bounded layout and wipes all four allocations on drop.
 
-`CLOUD_CLIENT_METHODS` exposes the exhaustive operation descriptors behind the
-named surface for auditing and tooling. Its 139 rows are generated from the
-source-locked operation association manifest and checked for exact permit and
-pagination classifications.
+`CLOUD_CLIENT_METHODS` and `DNS_CLIENT_METHODS` expose the exhaustive operation
+descriptors behind the named surfaces for auditing and tooling. Their 139 and
+24 rows are generated from the source-locked operation association manifest
+and checked for exact permit and pagination classifications.
 
-DNS, security, and Console Storage Box named methods are delivered in
-v0.71-v0.73. Their generic associated-operation execution remains available;
-construct requests with the types documented in
+Security and Console Storage Box named methods are delivered in v0.72-v0.73.
+Their generic associated-operation execution remains available; construct
+requests with the types documented in
 [`OPERATION_ASSOCIATIONS.md`](OPERATION_ASSOCIATIONS.md).

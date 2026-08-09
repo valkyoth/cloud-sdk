@@ -1,9 +1,8 @@
 # Crate Version Matrix
 
-Status: `v0.65.0` is the latest published checkpoint, `v0.66.0` through
-`v0.69.0` are signed internal milestones, and `v0.70.0` is the pentest-approved
-public checkpoint candidate awaiting GitHub CI and CodeQL. Every pre-1.0 tag
-receives its own incremental pentest.
+Status: `v0.70.0` is the latest published checkpoint and `v0.71.0` is the
+current internal source milestone. Every pre-1.0 tag receives its own
+incremental pentest; cumulative crates.io publication is deferred to v0.75.0.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
@@ -1050,6 +1049,20 @@ and publishes the cumulative v0.66-v0.70 release train.
 Publish order is `cloud-sdk 0.70.0`, `cloud-sdk-reqwest 0.34.1`,
 `cloud-sdk-testkit 0.30.1`, then `cloud-sdk-hetzner 0.41.0`. The unchanged
 sanitization crate and unpublished OVHcloud probe are excluded.
+
+## v0.71.0 Tracking Table
+
+`v0.71.0` completes named typed workflows for all 24 active DNS operations,
+retires the experimental FIPS transport, and begins the v0.71-v0.75 cumulative
+train. No crate is published at this internal milestone.
+
+| Crate | Published | Source | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.70.0` | `0.71.0` | `metadata` | No | Record the DNS client and FIPS-deferment milestone. |
+| `cloud-sdk-hetzner` | `0.41.0` | `0.41.0` | `code` | No | Accumulate complete generated DNS client methods for v0.75.0. |
+| `cloud-sdk-reqwest` | `0.34.1` | `0.34.1` | `code` | No | Accumulate removal of the experimental FIPS transport for v0.75.0. |
+| `cloud-sdk-sanitization` | `0.18.0` | `0.18.0` | `unchanged` | No | No sanitization boundary changes. |
+| `cloud-sdk-testkit` | `0.30.1` | `0.30.1` | `unchanged` | No | No testkit boundary changes. |
 
 ## Planned Milestone Ownership
 

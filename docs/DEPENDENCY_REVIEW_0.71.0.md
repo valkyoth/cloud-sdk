@@ -1,6 +1,6 @@
 # v0.71.0 Dependency Review
 
-Status: implementation in progress.
+Status: implementation stop reached; pentest required before tagging.
 
 This change retires the experimental AWS-LC FIPS transport from the active
 workspace and removes its optional native dependency graph. The ordinary
@@ -18,12 +18,14 @@ provider dependency is added.
 | `bindgen` | `0.72.1` | `-` | Removed with `aws-lc-fips-sys`. |
 | `cexpr` | `0.6.0` | `-` | Removed with bindgen. |
 | `clang-sys` | `1.9.1` | `-` | Removed with bindgen. |
+| `cloud-sdk` | `0.70.0` | `0.71.0` | Advance the provider-neutral workspace milestone; no dependency boundary changes. |
 | `either` | `1.17.0` | `-` | Removed with the FIPS build graph. |
 | `glob` | `0.3.4` | `-` | Removed with clang-sys. |
 | `itertools` | `0.13.0` | `-` | Removed with bindgen. |
 | `libloading` | `0.8.9` | `-` | Removed with clang-sys. |
 | `minimal-lexical` | `0.2.1` | `-` | Removed with nom. |
 | `nom` | `7.1.3` | `-` | Removed with cexpr. |
+| `ovhcloud-v2-probe` | `0.70.0` | `0.71.0` | Advance the unpublished workspace probe with the shared workspace version. |
 | `prettyplease` | `0.2.37` | `-` | Removed with bindgen. |
 | `regex` | `1.13.1` | `-` | Removed with bindgen. |
 | `regex-automata` | `0.4.18` | `-` | Removed with regex. |
