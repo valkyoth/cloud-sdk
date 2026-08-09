@@ -52,6 +52,10 @@ required-features = ["serde"]
 name = "vertical_execution"
 required-features = ["serde"]
 
+[[test]]
+name = "client_foundation"
+required-features = ["serde"]
+
 [[example]]
 name = "action_polling"
 required-features = ["serde"]

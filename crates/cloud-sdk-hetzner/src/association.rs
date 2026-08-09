@@ -4,6 +4,8 @@
 //! source-locked request encoders. They do not add allocation, transport, or
 //! runtime dependencies.
 
+#[cfg(feature = "serde")]
+mod client;
 mod components;
 mod evidence;
 mod identity;
@@ -14,6 +16,8 @@ mod prepared;
 mod types;
 pub(crate) mod validation;
 
+#[cfg(feature = "serde")]
+pub use client::HetznerClientOperation;
 pub use components::{
     AssociationError, BodyComponent, BodyFor, EndpointComponent, EndpointFor, QueryComponent,
     QueryFor,

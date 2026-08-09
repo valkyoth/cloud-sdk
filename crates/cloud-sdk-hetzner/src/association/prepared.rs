@@ -134,6 +134,14 @@ impl<O: HetznerOperation, E, Q, B> AssociatedOperation<O, E, Q, B> {
 }
 
 #[allow(private_bounds)]
+impl<O: HetznerOperation, E: EndpointWire, Q, B> AssociatedOperation<O, E, Q, B> {
+    #[cfg(feature = "serde")]
+    pub(crate) fn expected_response_identity(&self) -> ExpectedResponseIdentity {
+        self.endpoint.into_inner().expected_response_identity()
+    }
+}
+
+#[allow(private_bounds)]
 impl<O, E, Q, B> AssociatedOperation<O, E, Q, B>
 where
     O: HetznerOperation,

@@ -27,6 +27,7 @@ macro_rules! impl_static_error {
 
 pub mod actions;
 pub mod association;
+pub mod client;
 pub mod cloud;
 pub mod dns;
 pub mod endpoint;

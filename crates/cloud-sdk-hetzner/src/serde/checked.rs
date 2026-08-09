@@ -4,7 +4,8 @@ use alloc::string::String;
 use alloc::vec::Vec;
 use core::fmt;
 
-use cloud_sdk::operation::{CheckedResponse, PreparedRequest, ResponsePolicyError};
+use cloud_sdk::client::{CheckedDecodeError, ClientResponse, ClientResponseKind};
+use cloud_sdk::operation::{CheckedResponse, OperationId, PreparedRequest, ResponsePolicyError};
 use cloud_sdk::rate_limit::{RateLimit, WallClockTimestamp};
 use cloud_sdk::transport::{
     MediaType, ResponseBuffer, ResponseDecodeWorkspace, ResponseWriterError, TransportResponse,
@@ -196,6 +197,56 @@ impl CheckedHetznerResponse {
     #[must_use]
     pub fn into_success(self) -> HetznerSuccess {
         self.success
+    }
+}
+
+pub(crate) fn decode_client_response(
+    response: ClientResponse<'_, '_>,
+    operation: OperationId,
+    service: cloud_sdk::ServiceId,
+    expected_identity: ExpectedResponseIdentity,
+) -> Result<CheckedHetznerResponse, HetznerDecodeError> {
+    let binding = find(operation.as_str()).ok_or(HetznerDecodeError::UnknownOperation)?;
+    if service != binding.service_id {
+        return Err(HetznerDecodeError::ServiceMismatch);
+    }
+    match response
+        .kind()
+        .map_err(HetznerDecodeError::ResponseWriter)?
+    {
+        ClientResponseKind::Success => {
+            let decoded = response
+                .decode_success_owned(|checked, workspace| {
+                    let quota = HetznerQuota::decode_without_clock(checked.headers())
+                        .map_err(HetznerDecodeError::Quota)?;
+                    decode_checked_success(operation.as_str(), binding, checked, workspace, quota)
+                })
+                .map_err(map_client_decode_error)?;
+            validate_expected_identity(decoded.success(), expected_identity)?;
+            Ok(decoded)
+        }
+        ClientResponseKind::Error => response
+            .decode_error_owned(|response, workspace| {
+                let quota = HetznerQuota::decode_without_clock(response.headers())
+                    .map_err(HetznerDecodeError::Quota)?;
+                decode_provider_error(response, workspace, quota)
+            })
+            .map_err(map_client_decode_error)
+            .and_then(|error| Err(HetznerDecodeError::Provider(error))),
+        ClientResponseKind::Other => Err(HetznerDecodeError::ResponsePolicy(
+            ResponsePolicyError::UnexpectedStatus,
+        )),
+    }
+}
+
+fn map_client_decode_error(error: CheckedDecodeError<HetznerDecodeError>) -> HetznerDecodeError {
+    match error {
+        CheckedDecodeError::ResponseWriter(error) => HetznerDecodeError::ResponseWriter(error),
+        CheckedDecodeError::ResponsePolicy(error) => HetznerDecodeError::ResponsePolicy(error),
+        CheckedDecodeError::ExpectedErrorStatus => {
+            HetznerDecodeError::ResponsePolicy(ResponsePolicyError::UnexpectedStatus)
+        }
+        CheckedDecodeError::Decoder(error) => error,
     }
 }
 

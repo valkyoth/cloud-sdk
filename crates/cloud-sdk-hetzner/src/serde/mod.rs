@@ -18,6 +18,7 @@ mod response;
 mod rrsets;
 mod strict_json;
 
+pub(crate) use checked::decode_client_response;
 pub use checked::{
     CheckedHetznerResponse, HetznerApiError, HetznerDecodeError,
     decode_associated_checked_response, decode_associated_response, decode_response,

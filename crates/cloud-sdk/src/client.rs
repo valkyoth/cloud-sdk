@@ -2,10 +2,14 @@
 
 mod error;
 mod execution;
+mod profile;
 mod response;
 mod workspace;
 
 pub use error::ClientExecutionError;
+#[cfg(feature = "alloc")]
+pub use profile::OwnedClientWorkspace;
+pub use profile::{ClientCapacityError, ClientCapacityProfile};
 pub use response::{CheckedDecodeError, ClientResponse, ClientResponseKind};
 pub use workspace::{
     ClientWorkspace, ClientWorkspaceLease, ClientWorkspacePool, MAX_CLIENT_WORKSPACE_LEASES,
