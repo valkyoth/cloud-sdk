@@ -1,6 +1,6 @@
 //! Source-locked path-template validation.
 
-use cloud_sdk::transport::RequestTarget;
+use cloud_sdk::transport::{RequestPath, RequestTarget};
 
 use super::HetznerPreparationError;
 
@@ -23,7 +23,7 @@ pub(super) fn validate_or_clear(
     let path = target
         .get(..path_len)
         .and_then(|bytes| core::str::from_utf8(bytes).ok());
-    if path.is_some_and(|path| matches(path, template)) {
+    if path.is_some_and(|path| RequestPath::new(path).is_ok() && matches(path, template)) {
         return Ok(());
     }
     cloud_sdk_sanitization::sanitize_bytes(target);
@@ -84,5 +84,28 @@ mod tests {
         assert!(super::validate_or_clear(&mut target, 10, "/servers/{id}", &mut body).is_err());
         assert_eq!(target, [0; 24]);
         assert_eq!(body, [0; 12]);
+    }
+
+    #[test]
+    fn endpoint_path_rejects_raw_and_encoded_delimiters() {
+        for path in [
+            "/servers/7?x=1",
+            "/servers/7#fragment",
+            "/servers/7%3Fx",
+            "/servers/7%23fragment",
+        ] {
+            let mut target = [0; 32];
+            let Some(output) = target.get_mut(..path.len()) else {
+                unreachable!("path fixture exceeds target storage");
+            };
+            output.copy_from_slice(path.as_bytes());
+            let mut body = [0x42; 8];
+            assert!(
+                super::validate_or_clear(&mut target, path.len(), "/servers/{id}", &mut body,)
+                    .is_err()
+            );
+            assert_eq!(target, [0; 32]);
+            assert_eq!(body, [0; 8]);
+        }
     }
 }

@@ -27,23 +27,7 @@ EXPECTED_REJECTING_BODY_VARIANTS = {
     "reset_server_password",
     "shutdown_server",
 }
-EVIDENCE_COLUMNS = (
-    "operation_id",
-    "method",
-    "path",
-    "endpoint_policy",
-    "authentication",
-    "query_policy",
-    "body_policy",
-    "success_status",
-    "success_shape",
-    "success_body_max_bytes",
-    "error_body_max_bytes",
-    "pagination",
-    "retry",
-    "permit_class",
-    "response_identity",
-)
+EVIDENCE_COLUMNS = bindings.COLUMNS
 
 
 def executable_evidence() -> list[dict[str, str]]:
@@ -97,10 +81,7 @@ def validate() -> None:
     actual_rows = bindings.read_manifest()
     if actual_rows != expected_rows:
         raise ValueError("typed operation binding manifest differs from source locks")
-    expected_evidence = [
-        {column: row[column] for column in EVIDENCE_COLUMNS} for row in actual_rows
-    ]
-    if executable_evidence() != expected_evidence:
+    if executable_evidence() != actual_rows:
         raise ValueError("compiled Rust bindings differ from the reviewed manifest")
     manifest_operations = {row["operation_id"] for row in actual_rows}
     if manifest_operations != active or manifest_operations & deprecated:

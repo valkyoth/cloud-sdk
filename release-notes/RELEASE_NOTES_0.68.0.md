@@ -19,12 +19,14 @@ and publishes no crate.
 - Added a canonical 28-column generated operation manifest covering exact API
   path, endpoint, authentication, request, response, bounds, workflow, permit,
   and response-identity policy.
-- Cross-checked all 208 rows against independent fingerprint, association,
+- Cross-checked all 28 columns in all 208 rows against compiled descriptors and
+  associated marker labels, plus independent fingerprint, association,
   request-body, response, provider-authentication, Markdown matrix, generated
   Rust marker, Rust AST, and compiled descriptor evidence.
 - Source-locked path templates and exact/parent/none response-identity classes
   in executable descriptors. Written paths now fail closed against the template
-  and clear complete request storage on mismatch.
+  and `RequestPath`, reject raw or encoded query/fragment delimiters, and clear
+  complete request storage on mismatch.
 - Required the exact 91 JSON request-body operations while source-locking 12
   shared enum variants that reject bodies under typed policy.
 - Explicitly excluded all 13 deprecated operations from executable endpoint,

@@ -8,9 +8,10 @@ cumulative v0.70.0 checkpoint.
 
 No caller migration is required. Public operation marker names, associated
 types, checked decoding, permits, and transport behavior are unchanged.
-`OperationDescriptor` now exposes path-template and response-identity metadata.
-Request preparation additionally rejects any internal encoder output that does
-not match its source-locked template.
+`OperationDescriptor` now exposes path-template, success-envelope, and
+response-identity metadata. Request preparation additionally rejects internal
+encoder output that is not a valid path or does not match its source-locked
+template.
 
 Provider integrations can review the complete binding contract in
 `docs/TYPED_OPERATION_BINDINGS.tsv`. When changing a source-locked operation,
@@ -23,5 +24,5 @@ scripts/check_typed_operation_bindings.py
 ```
 
 The final command also checks all endpoint and body adapters through the Rust
-AST tooling, compares compiled descriptor evidence, and rejects deprecated
-executable bindings.
+AST tooling, compares all 28 manifest columns with compiled descriptor and
+associated-marker evidence, and rejects deprecated executable bindings.

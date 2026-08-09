@@ -4,12 +4,22 @@
 from __future__ import annotations
 
 import importlib.util
+import os
+import subprocess
 import sys
 import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts" / "generate_operation_associations.py"
+
+if sys.flags.optimize:
+    raise SystemExit("security regression tests must not run with Python optimization")
+
+
+def require(condition: bool, message: str) -> None:
+    if not condition:
+        raise AssertionError(message)
 
 
 def load_generator():
@@ -26,28 +36,60 @@ def main() -> int:
     generator = load_generator()
     operations = generator.load_operations()
     associations = generator.read_associations()
-    assert len(operations) == 208
-    assert len(associations) == 208
-    assert len({operation.operation_id for operation in operations}) == 208
-    assert generator.pascal("change_zone_rrset_ttl") == "ChangeZoneRrsetTtl"
+    require(len(operations) == 208, "operation count changed")
+    require(len(associations) == 208, "association count changed")
+    require(
+        len({operation.operation_id for operation in operations}) == 208,
+        "operation IDs are not unique",
+    )
+    require(
+        generator.pascal("change_zone_rrset_ttl") == "ChangeZoneRrsetTtl",
+        "marker naming changed",
+    )
     by_id = {operation.operation_id: operation for operation in operations}
-    assert by_id["get_actions"].query_policy == "required"
-    assert by_id["list_servers"].query_policy == "optional"
-    assert by_id["list_storage_box_folders"].query_policy == "forbidden"
-    assert by_id["list_zones"].service == "dns"
-    assert by_id["list_certificates"].service == "security"
-    assert generator.source_authentication() == {
-        "cloud": "bearer",
-        "hetzner": "bearer",
-    }
-    assert by_id["list_storage_boxes"].authentication == "bearer"
-    assert by_id["create_server"].permit_class == "cost"
-    assert by_id["delete_server"].permit_class == "destructive"
-    assert by_id["update_server"].retry_policy == "explicit"
-    assert by_id["get_storage_box"].response_identity == "exact-resource"
-    assert by_id["list_storage_box_snapshots"].response_identity == "parent-resource"
-    assert by_id["list_servers"].response_identity == "none"
-    assert len(generator.read_response_identities()) == 11
+    expectations = (
+        (by_id["get_actions"].query_policy == "required", "required query changed"),
+        (by_id["list_servers"].query_policy == "optional", "optional query changed"),
+        (
+            by_id["list_storage_box_folders"].query_policy == "forbidden",
+            "forbidden query changed",
+        ),
+        (by_id["list_zones"].service == "dns", "DNS service changed"),
+        (by_id["list_certificates"].service == "security", "security service changed"),
+        (
+            generator.source_authentication()
+            == {"cloud": "bearer", "hetzner": "bearer"},
+            "source authentication changed",
+        ),
+        (
+            by_id["list_storage_boxes"].authentication == "bearer",
+            "storage authentication changed",
+        ),
+        (by_id["create_server"].permit_class == "cost", "cost permit changed"),
+        (
+            by_id["delete_server"].permit_class == "destructive",
+            "destructive permit changed",
+        ),
+        (
+            by_id["update_server"].retry_policy == "explicit",
+            "retry policy changed",
+        ),
+        (
+            by_id["get_storage_box"].response_identity == "exact-resource",
+            "exact response identity changed",
+        ),
+        (
+            by_id["list_storage_box_snapshots"].response_identity == "parent-resource",
+            "parent response identity changed",
+        ),
+        (
+            by_id["list_servers"].response_identity == "none",
+            "default response identity changed",
+        ),
+        (len(generator.read_response_identities()) == 11, "identity count changed"),
+    )
+    for condition, message in expectations:
+        require(condition, message)
 
     for operation in operations:
         generated_row = generator.row(operation)
@@ -68,7 +110,10 @@ def main() -> int:
             generator.RETRY_TYPES[operation.retry_policy],
             generator.PERMIT_TYPES[operation.permit_class],
         )
-        assert all(marker in generated_row for marker in expected_markers)
+        require(
+            all(marker in generated_row for marker in expected_markers),
+            f"generated marker binding changed for {operation.operation_id}",
+        )
 
     with tempfile.TemporaryDirectory() as directory:
         source = Path(directory) / "associations.tsv"
@@ -76,7 +121,7 @@ def main() -> int:
         try:
             generator.read_associations(source)
         except ValueError as error:
-            assert "invalid schema" in str(error)
+            require("invalid schema" in str(error), "schema error changed")
         else:
             raise AssertionError("invalid schema was accepted")
 
@@ -92,7 +137,7 @@ def main() -> int:
         try:
             generator.read_associations(source)
         except ValueError as error:
-            assert "unknown permit_class" in str(error)
+            require("unknown permit_class" in str(error), "permit error changed")
         else:
             raise AssertionError("unknown classification was accepted")
 
@@ -104,12 +149,15 @@ def main() -> int:
         try:
             generator.read_response_identities(identity_source)
         except ValueError as error:
-            assert "invalid response identity" in str(error)
+            require("invalid response identity" in str(error), "identity error changed")
         else:
             raise AssertionError("unknown response identity was accepted")
     generated = generator.formatted_render()
-    assert generated.count("Association for Hetzner operation") == 1
-    assert generated.count("        (") == 208
+    require(
+        generated.count("Association for Hetzner operation") == 1,
+        "generated operation documentation changed",
+    )
+    require(generated.count("        (") == 208, "generated row count changed")
     fixed_associations = (
         "type AuthenticationScope = RequiredServiceScope;",
         "type RequestHeaders = body_headers!($body);",
@@ -123,7 +171,23 @@ def main() -> int:
         "type Streaming = BufferedStreaming;",
         "type Error = HetznerErrorResponse;",
     )
-    assert all(binding in generated for binding in fixed_associations)
+    require(
+        all(binding in generated for binding in fixed_associations),
+        "fixed associated types changed",
+    )
+    optimized = subprocess.run(
+        [sys.executable, "-O", str(Path(__file__).resolve())],
+        cwd=ROOT,
+        env={**os.environ, "PYTHONOPTIMIZE": ""},
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    require(optimized.returncode != 0, "optimized test execution was accepted")
+    require(
+        "must not run with Python optimization" in optimized.stderr,
+        "optimized execution did not fail for the expected reason",
+    )
     print("208 exhaustive association rows and strict manifest failures checked.")
     return 0
 

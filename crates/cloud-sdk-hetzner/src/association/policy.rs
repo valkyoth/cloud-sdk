@@ -130,6 +130,8 @@ pub struct OperationDescriptor {
     success_status: StatusCode,
     response_shape: ResponseShape,
     path_template: &'static str,
+    success_root: &'static str,
+    success_required: &'static str,
     response_identity: ResponseIdentityClass,
     success_body_bytes: usize,
     error_body_bytes: usize,
@@ -151,6 +153,8 @@ impl OperationDescriptor {
         success_status: StatusCode,
         response_shape: ResponseShape,
         path_template: &'static str,
+        success_root: &'static str,
+        success_required: &'static str,
         response_identity: ResponseIdentityClass,
         pagination: PaginationPolicy,
         retry: RetryPolicy,
@@ -172,6 +176,8 @@ impl OperationDescriptor {
             success_status,
             response_shape,
             path_template,
+            success_root,
+            success_required,
             response_identity,
             success_body_bytes,
             error_body_bytes: MAX_ASSOCIATED_JSON_BYTES,
@@ -230,6 +236,16 @@ impl OperationDescriptor {
     #[must_use]
     pub const fn path_template(self) -> &'static str {
         self.path_template
+    }
+    /// Returns the source-locked JSON envelope root, or `-` when absent.
+    #[must_use]
+    pub const fn success_root(self) -> &'static str {
+        self.success_root
+    }
+    /// Returns the source-locked required success fields, or `-` when absent.
+    #[must_use]
+    pub const fn success_required(self) -> &'static str {
+        self.success_required
     }
     /// Returns the successful response identity relationship.
     #[must_use]

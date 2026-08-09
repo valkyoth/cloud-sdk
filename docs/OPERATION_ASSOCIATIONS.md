@@ -130,13 +130,16 @@ with all source locks, the generated Rust markers, the API matrix, and the Rust
 AST endpoint/body registries. Compiled Rust descriptors independently emit the
 method, path template, endpoint, authentication, request shape, status,
 response shape and caps, pagination, retry, permit, and identity class that the
-gate compares with the manifest. It also proves that all 13 deprecated
-operations remain absent from executable bindings.
+gate compares with the manifest. Associated marker labels and descriptor
+envelope metadata make that compiled comparison cover all 28 columns. It also
+proves that all 13 deprecated operations remain absent from executable
+bindings.
 
 Every classification is provider-reviewed metadata. Exhaustive generator
 tests verify all 208 rows, while each typed preparation independently compares
 the selected endpoint's runtime policy before serialization. The written path
-must match the descriptor template before a request can be returned. A policy
+must be a valid `RequestPath` and match the descriptor template before a request
+can be returned. A policy
 disagreement fails with `PreparedPolicyMismatch`; a wire-path disagreement
 clears caller storage and fails with `HetznerPreparationError::Path`.
 

@@ -5,6 +5,7 @@
 //! runtime dependencies.
 
 mod components;
+mod evidence;
 mod identity;
 mod markers;
 mod permit;
@@ -17,7 +18,9 @@ pub use components::{
     AssociationError, BodyComponent, BodyFor, EndpointComponent, EndpointFor, QueryComponent,
     QueryFor,
 };
-pub use markers::{ALL_OPERATIONS, operations};
+#[doc(hidden)]
+pub use evidence::{EvidenceLabel, OperationBindingEvidence};
+pub use markers::{ALL_OPERATION_EVIDENCE, ALL_OPERATIONS, operations};
 pub use permit::{
     AssociatedCanonicalPlanFingerprint, AssociatedCostPermit, AssociatedDestructivePermit,
     AssociatedMutationPermit, AssociatedPermitAttempt, AssociatedPlanConfirmation,

@@ -297,6 +297,8 @@ def row(operation: Operation) -> str:
         STATUS_TYPES[operation.status],
         RESPONSE_TYPES[operation.response],
         json.dumps(operation.path),
+        json.dumps(operation.response_root),
+        json.dumps(operation.response_required),
         RESPONSE_IDENTITY_TYPES[operation.response_identity],
         "NumberedPagination" if operation.pagination == "yes" else "NoPagination",
         RETRY_TYPES[operation.retry_policy],
@@ -317,6 +319,7 @@ use cloud_sdk::{{ServiceMarker, operation_id}};
 use super::policy::{{
     HetznerOperation, OperationDescriptor, ReadOnlyOperation, ResponseIdentityClass, Sealed,
 }};
+use super::OperationBindingEvidence;
 use super::types::*;
 use crate::identity::{{CloudService, DnsService, SecurityService, StorageService}};
 
@@ -347,7 +350,7 @@ macro_rules! read_only_operation {{
 macro_rules! operation_associations {{
     ($(($marker:ident, $id:literal, $service:ident, $endpoint:ident, $authentication:ident,
         $method:ident, $query:ident, $body:ident, $status:ident, $response:ident,
-        $path:literal, $response_identity:expr,
+        $path:literal, $success_root:literal, $success_required:literal, $response_identity:expr,
         $pagination:ident, $retry:ident, $permit:ident),)+) => {{
         /// Sealed markers for every active source-locked Hetzner operation.
         pub mod operations {{
@@ -390,6 +393,8 @@ macro_rules! operation_associations {{
                         <$status as StatusAssociation>::STATUS,
                         <$response as ResponseAssociation>::SHAPE,
                         $path,
+                        $success_root,
+                        $success_required,
                         $response_identity,
                         <$pagination as PaginationAssociation>::POLICY,
                         <$retry as RetryAssociation>::POLICY,
@@ -403,6 +408,12 @@ macro_rules! operation_associations {{
         /// Descriptors for all active operations in stable operation-ID order.
         pub const ALL_OPERATIONS: &[OperationDescriptor] = &[
             $(<operations::$marker as HetznerOperation>::DESCRIPTOR,)+
+        ];
+
+        /// Marker-derived evidence for all active operations in stable order.
+        #[doc(hidden)]
+        pub const ALL_OPERATION_EVIDENCE: &[OperationBindingEvidence] = &[
+            $(OperationBindingEvidence::of::<operations::$marker>(),)+
         ];
 
         pub(crate) fn operation_path_template(operation_id: &str) -> Option<&'static str> {{
