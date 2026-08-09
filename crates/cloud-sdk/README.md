@@ -83,12 +83,12 @@ operation contracts, then validates them with an unpublished OVHcloud API v2
 architecture probe, a narrow credential-free Robot wire fixture, and
 full-fidelity Hetzner vertical slices before the neutral API freeze.
 
-The latest published checkpoint is `v0.65.0`, and `v0.67.0` is the latest
-signed internal milestone. v0.68 proves complete typed request, response,
-error, and policy associations for all 208 active pre-Robot Hetzner operations,
-with exact path and response-identity enforcement. Its incremental pentest and
-retest passed; the final evidence commit awaits GitHub CI and CodeQL before the
-internal tag. Cumulative crates.io publication is deferred to v0.70.0.
+The latest published checkpoint is `v0.65.0`, and `v0.68.0` is the latest
+signed internal milestone. v0.69 adds service-typed official and explicitly
+trusted custom Hetzner client construction, shared read-only execution through
+the checked decoder, and named complete-workspace capacity profiles. The
+v0.69 implementation stop is ready for incremental pentest; cumulative
+crates.io publication remains deferred to v0.70.0.
 
 ## Trust Dashboard
 
@@ -178,6 +178,7 @@ visible. Applications should enable only the features they use.
 - [Retry and idempotency policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/RETRY_AND_IDEMPOTENCY.md)
 - [Plan-confirm execution permits](https://github.com/valkyoth/cloud-sdk/blob/main/docs/EXECUTION_PERMITS.md)
 - [Provider-generic client kernel](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CLIENT_KERNEL.md)
+- [Hetzner client foundation](https://github.com/valkyoth/cloud-sdk/blob/main/docs/HETZNER_CLIENT.md)
 - [Pager and action workflow drivers](https://github.com/valkyoth/cloud-sdk/blob/main/docs/WORKFLOW_DRIVERS.md)
 - [Payload-free diagnostics](https://github.com/valkyoth/cloud-sdk/blob/main/docs/DIAGNOSTICS.md)
 - [Dynamic testkit scenarios](https://github.com/valkyoth/cloud-sdk/blob/main/docs/DYNAMIC_TESTKIT.md)
@@ -226,6 +227,7 @@ visible. Applications should enable only the features they use.
 - [Migrating source users to v0.66](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.66.0.md)
 - [Migrating source users to v0.67](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.67.0.md)
 - [Migrating source users to v0.68](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.68.0.md)
+- [Migrating source users to v0.69](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.69.0.md)
 - [Compile-time Hetzner operation associations](https://github.com/valkyoth/cloud-sdk/blob/main/docs/OPERATION_ASSOCIATIONS.md)
 - [Incremental provider decoding](https://github.com/valkyoth/cloud-sdk/blob/main/docs/INCREMENTAL_DECODING.md)
 - [Deprecated endpoint policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/DEPRECATED_ENDPOINT_POLICY.md)

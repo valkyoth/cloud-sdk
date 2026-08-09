@@ -1,7 +1,7 @@
 # Crate Version Matrix
 
-Status: `v0.65.0` is tagged and published, and `v0.66.0` and `v0.67.0` are
-signed internal milestones. `v0.68.0` is the current implementation milestone.
+Status: `v0.65.0` is tagged and published, and `v0.66.0` through `v0.68.0` are
+signed internal milestones. `v0.69.0` is the current implementation milestone.
 No package is selected for crates.io until the v0.70.0 cumulative checkpoint.
 Every pre-1.0 tag receives its own incremental pentest.
 
@@ -1019,6 +1019,21 @@ continues to accumulate under versions published at v0.65.0 until v0.70.0.
 | `cloud-sdk-reqwest` | `0.34.0` | `0.34.0` | `unchanged` | No | No transport boundary changes. |
 | `cloud-sdk-sanitization` | `0.18.0` | `0.18.0` | `unchanged` | No | No sanitization boundary changes. |
 | `cloud-sdk-testkit` | `0.30.0` | `0.30.0` | `unchanged` | No | No testkit boundary changes. |
+
+## v0.69.0 Tracking Table
+
+`v0.69.0` adds service-typed Hetzner client construction, endpoint trust,
+complete workspace profiles, and generic checked read-only execution. It
+remains internal, so no package is selected for crates.io and code continues
+to accumulate under versions published at v0.65.0 until v0.70.0.
+
+| Crate | Published | Source | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.65.0` | `0.69.0` | `code` | No | Add named complete-client capacity profiles and optional owned storage. |
+| `cloud-sdk-hetzner` | `0.40.0` | `0.40.0` | `code` | No | Accumulate service-typed official/custom construction and checked read-only execution for v0.70.0. |
+| `cloud-sdk-reqwest` | `0.34.0` | `0.34.0` | `unchanged` | No | No transport boundary changes. |
+| `cloud-sdk-sanitization` | `0.18.0` | `0.18.0` | `unchanged` | No | Existing complete-buffer cleanup satisfies the new workspace owner. |
+| `cloud-sdk-testkit` | `0.30.0` | `0.30.0` | `unchanged` | No | Existing deterministic transport supports the vertical client evidence. |
 
 ## Planned Milestone Ownership
 

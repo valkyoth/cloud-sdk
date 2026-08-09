@@ -59,6 +59,13 @@ future. Safe caller code cannot access those regions until completion or
 cancellation. Dropping the future clears the buffers before releasing its pool
 slot.
 
+Use `ClientWorkspace::for_profile` to require one complete named storage
+policy. `ClientCapacityProfile::EMBEDDED`, `DEFAULT`, and `LARGE` cover target,
+request body, response body, and response headers together. Validation first
+clears every complete supplied region and fails closed when any one capacity
+is short. Enabling `alloc` adds fallible `OwnedClientWorkspace` allocation for
+the same exact profiles without changing the default allocation-free graph.
+
 ## Execution Modes
 
 - `execute_blocking` accepts `BlockingAuthenticatedTransport`.

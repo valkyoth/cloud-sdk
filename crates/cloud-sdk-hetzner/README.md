@@ -217,7 +217,7 @@ authentication scope, raw response policy, and official endpoint.
 | Body serialization | Complete for all 91 non-deprecated operations with request bodies | Current |
 | Success response models | Complete checked envelopes for all 208 operations; source-complete ordinary Cloud resources, DNS zones and RRSets, zonefiles, actions, metrics, composites, pricing, locations, certificates, SSH keys, and Console Storage Boxes, types, snapshots, subaccounts, and folders; operation-branded typed execution guards decode through `decode_associated_checked_response` | Current |
 | Error response models | Complete checked typed API error decoding for all active operations | Current |
-| End-to-end client | Not available | `v0.69.0 - v0.73.0`, after provider-neutral contract hardening and complete resource models |
+| End-to-end client | v0.69 foundation: service-typed official/custom construction and checked read-only execution; custom execution and service-specific convenience methods remain unavailable | `v0.70.0 - v0.73.0` |
 
 Thirteen deprecated operations remain deliberately unavailable. A checked
 release gate prevents non-deprecated request operations from returning to a
@@ -226,6 +226,8 @@ planned or deferred state. See the
 for operation-level request status and the
 [release plan](https://github.com/valkyoth/cloud-sdk/blob/main/docs/RELEASE_PLAN.md)
 for prepared-request, serialization, response, and client milestones.
+The construction, storage, and trust boundaries are described in the
+[Hetzner client guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/HETZNER_CLIENT.md).
 Upstream source monitoring and lock-refresh decisions follow the
 [API drift maintenance runbook](https://github.com/valkyoth/cloud-sdk/blob/main/docs/API_DRIFT_MAINTENANCE.md).
 Breaking v0.27 constructor and custom-endpoint changes are listed in the
