@@ -30,9 +30,10 @@ unchanged.
 
 The service is represented in the client type. The new
 `HetznerClientOperation` trait is implemented only for associated read-only
-operations and retains their provider service. This makes cross-service client
-execution a compile-time mismatch. Associated mutations and destructive or
-cost-bearing operations do not gain the direct client execution contract.
+operations, is sealed against foreign implementations, and retains their
+provider service. This makes forged and cross-service client execution a
+compile-time mismatch. Associated mutations and destructive or cost-bearing
+operations do not gain the direct client execution contract.
 
 Custom clients carry `CustomEndpointTrust`; only official-trust clients expose
 execution methods in v0.69. The separate marker prevents an explicitly trusted

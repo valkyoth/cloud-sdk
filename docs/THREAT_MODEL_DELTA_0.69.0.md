@@ -25,6 +25,7 @@ storage, response policy, and checked decoding in one public path.
 
 - Each client carries one `ServiceMarker` in its type.
 - Each executable associated operation retains its operation marker's service.
+- The operation-to-service trait is sealed against downstream implementations.
 - Client execution requires exact service-type equality; Cloud, DNS, security,
   and Storage operations cannot be interchanged.
 

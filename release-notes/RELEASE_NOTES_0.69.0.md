@@ -23,7 +23,8 @@ internal milestone and publishes no crate.
   methods in this milestone.
 - Connected associated read-only operations to the provider-neutral client
   kernel and complete checked Hetzner success/error decoder.
-- Required compile-time service equality between a client and operation.
+- Sealed the provider-owned operation-to-service association and required
+  compile-time service equality between a client and operation.
   State-changing operations remain behind plan-confirm permits.
 - Preserved caller-bounded `&self` concurrency, exactly one transport attempt,
   and no client-owned executor, queue, clock, retry, or backoff policy.

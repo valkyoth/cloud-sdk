@@ -24,6 +24,10 @@ if grep -Fq 'HetznerClient<T, S, CustomEndpointTrust>' \
 fi
 grep -Fq 'O: ReadOnlyOperation' \
     crates/cloud-sdk-hetzner/src/association/client.rs
+grep -Fq 'ClientOperation + private::Sealed' \
+    crates/cloud-sdk-hetzner/src/association/client.rs
+grep -Fq 'private::Sealed for AssociatedOperation' \
+    crates/cloud-sdk-hetzner/src/association/client.rs
 grep -Fq 'CustomEndpointAcknowledgement' docs/HETZNER_CLIENT.md
 grep -Fq 'must never come from a tenant' docs/HETZNER_CLIENT.md
 
