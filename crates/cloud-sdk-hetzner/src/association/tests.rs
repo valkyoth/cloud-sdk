@@ -79,6 +79,10 @@ impl EndpointWire for ChangingMethodEndpoint<'_> {
     fn operation_key(self) -> &'static str {
         EndpointWire::operation_key(self.inner)
     }
+
+    fn expected_response_identity(self) -> super::ExpectedResponseIdentity {
+        EndpointWire::expected_response_identity(self.inner)
+    }
 }
 
 #[test]

@@ -51,6 +51,11 @@ impl crate::prepared::EndpointWire for ActionEndpoint {
             Self::Get(_) => "get_action",
         }
     }
+
+    fn expected_response_identity(self) -> crate::association::ExpectedResponseIdentity {
+        let _ = self;
+        crate::association::ExpectedResponseIdentity::None
+    }
 }
 
 impl crate::prepared::QueryWire for ActionListRequest<'_> {
@@ -131,6 +136,11 @@ impl crate::prepared::EndpointWire for CatalogListEndpoint {
             Self::PublicImages(_) => "list_images",
         }
     }
+
+    fn expected_response_identity(self) -> crate::association::ExpectedResponseIdentity {
+        let _ = self;
+        crate::association::ExpectedResponseIdentity::None
+    }
 }
 
 impl crate::prepared::EndpointWire for CatalogGetEndpoint {
@@ -178,6 +188,11 @@ impl crate::prepared::EndpointWire for CatalogGetEndpoint {
             Self::PublicImage(_) => "get_image",
         }
     }
+
+    fn expected_response_identity(self) -> crate::association::ExpectedResponseIdentity {
+        let _ = self;
+        crate::association::ExpectedResponseIdentity::None
+    }
 }
 
 impl crate::prepared::EndpointWire for CatalogSingletonEndpoint {
@@ -212,6 +227,11 @@ impl crate::prepared::EndpointWire for CatalogSingletonEndpoint {
 
     fn operation_key(self) -> &'static str {
         "get_pricing"
+    }
+
+    fn expected_response_identity(self) -> crate::association::ExpectedResponseIdentity {
+        let _ = self;
+        crate::association::ExpectedResponseIdentity::None
     }
 }
 
@@ -267,9 +287,6 @@ fn write_catalog_path(output: &mut [u8], path: &str) -> Result<usize, HetznerPre
 }
 
 macro_rules! endpoint_wire {
-    (@identity $endpoint:expr) => {
-        crate::association::ExpectedResponseIdentity::None
-    };
     (@identity $endpoint:expr, $value:ident => $identity:expr) => {{
         let $value = $endpoint;
         $identity
@@ -283,7 +300,7 @@ macro_rules! endpoint_wire {
         },
         $class:expr,
         $cost:expr
-        $(, identity $identity_value:ident => $identity:expr)?
+        , identity $identity_value:ident => $identity:expr
         $(,)?
     ) => {
         impl crate::prepared::EndpointWire for $type {
@@ -337,7 +354,7 @@ macro_rules! endpoint_wire {
             fn expected_response_identity(
                 self,
             ) -> crate::association::ExpectedResponseIdentity {
-                endpoint_wire!(@identity self $(, $identity_value => $identity)?)
+                endpoint_wire!(@identity self, $identity_value => $identity)
             }
         }
 

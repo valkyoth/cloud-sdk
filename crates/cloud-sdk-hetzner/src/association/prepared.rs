@@ -244,7 +244,7 @@ pub struct AssociatedCheckedResponse<'buffer, O> {
 }
 
 impl<'buffer, O: HetznerOperation> AssociatedCheckedResponse<'buffer, O> {
-    fn new(
+    pub(super) fn new(
         inner: CheckedResponseGuard<'buffer>,
         expected_identity: ExpectedResponseIdentity,
     ) -> Self {
@@ -323,6 +323,12 @@ impl<'request, O: HetznerOperation> Prepared<'request, O> {
 
     #[cfg(feature = "serde")]
     pub(crate) const fn into_parts(self) -> (PreparedRequest<'request>, ExpectedResponseIdentity) {
+        (self.inner, self.expected_identity)
+    }
+
+    pub(super) const fn into_associated_plan_parts(
+        self,
+    ) -> (PreparedRequest<'request>, ExpectedResponseIdentity) {
         (self.inner, self.expected_identity)
     }
 

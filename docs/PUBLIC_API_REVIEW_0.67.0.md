@@ -21,6 +21,10 @@ Scope: changes from signed v0.66.0 through v0.67.0.
 - Typed associated preparation now retains an opaque expected response
   identity for modeled Storage Box singleton, parent-scoped list, and create
   operations.
+- `AssociatedPlanConfirmation`, associated exact/digest fingerprints and
+  subjects, direct/shared `Associated*Permit` wrappers, and
+  `AssociatedPermitAttempt` preserve that opaque identity through authorized
+  state-changing execution.
 
 ## Changed Provider API
 
@@ -40,6 +44,9 @@ Scope: changes from signed v0.66.0 through v0.67.0.
   validly shaped Storage Box responses whose resource or parent identity does
   not match the typed endpoint. Explicit `into_untyped` calls discard this
   binding and document that consequence.
+- `EndpointWire::expected_response_identity` and the endpoint adapter macro no
+  longer provide a default. Every endpoint family must state its identity
+  policy explicitly, while ID-bearing variants are source-locked by tests.
 - Console aggregate and reference `Debug` output redacts provider resource
   identifiers as well as dynamic text. Dynamic string-bearing aggregates do
   not implement structural equality.

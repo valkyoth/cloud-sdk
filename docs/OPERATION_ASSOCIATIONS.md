@@ -86,10 +86,15 @@ an equivalent lifecycle and cleanup guarantee.
 Send-async, and local-async authenticated execution exists only when `O`
 implements the sealed `ReadOnlyOperation` marker generated from `NoPermit`.
 State-changing markers build a plan-confirm fingerprint and execute through a
-mutation, destructive, or cost permit. `as_untyped` borrows the underlying
-provider-neutral request, while `into_untyped` is deliberate type erasure;
-the neutral execution boundary still rejects state-changing requests without
-authority.
+provider-bound mutation, destructive, or cost permit. Construct
+`AssociatedPlanConfirmation` directly from `Prepared<O>`, then use
+`build_associated_canonical_plan` or `build_associated_plan_digest`. Associated
+direct and shared permit attempts return `AssociatedCheckedResponse<O>`, so
+endpoint-derived response identity reaches typed decoding without a caller
+reattachment step. `as_untyped` borrows the underlying provider-neutral
+request, while `into_untyped` is deliberate type erasure; the neutral execution
+boundary still rejects state-changing requests without authority, but typed
+response-identity validation is no longer available.
 
 This release associates response model families but does not add the future
 high-level client decoder. Typed resource decoding remains on the roadmap.
@@ -120,3 +125,8 @@ Every classification is provider-reviewed metadata. Exhaustive generator
 tests verify all 208 rows, while each typed preparation independently compares
 the selected endpoint's runtime policy before serialization. A disagreement
 fails closed with `PreparedPolicyMismatch`.
+
+Every endpoint adapter must also declare an explicit response-identity policy;
+there is no trait or macro default. AST coverage rejects omitted declarations,
+and source-locked tests enumerate every ID-bearing Storage Box endpoint
+variant and expected parent/resource identity.

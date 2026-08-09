@@ -39,6 +39,15 @@ failure, panic, and drop.
    `execute_blocking`, `execute_async`, or `execute_local_async`, passing a
    caller-owned `PermitClock` sampled by the SDK at dispatch.
 
+Provider crates can retain response provenance through this lifecycle. For
+Hetzner typed operations, construct `AssociatedPlanConfirmation` from the
+original `Prepared<O>`, build an associated exact or strong-digest
+fingerprint, and select the matching direct or shared `Associated*Permit`.
+Its attempt returns `AssociatedCheckedResponse<O>` across blocking,
+Send-async, and local-async execution. The opaque binding cannot be attached
+to an arbitrary core permit attempt; it originates only from the typed request
+that entered the confirmed plan.
+
 The SDK has no clock, random source, price feed, account inventory, or remote
 state oracle. The caller must obtain trustworthy values and compare desired
 state with current state. `PlanChange::ChangesState` is an assertion reviewed

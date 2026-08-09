@@ -34,6 +34,13 @@ labels, usage counters, pricing, lifecycle state, and access settings.
   box, type, snapshot, and subaccount singletons are bound; parent-scoped
   snapshot/subaccount lists and create references are also bound. Mismatches
   fail with a payload-free `ResponseIdentityMismatch` error.
+- Associated exact and strong-digest plan fingerprints carry that opaque
+  identity into direct and shared mutation, destructive, and cost permits.
+  Permit execution returns the typed checked response in every execution mode;
+  callers cannot attach a provider identity to an unrelated core attempt.
+- Every endpoint adapter declares identity explicitly with no default. AST
+  coverage rejects omission, and source-locked tests enumerate all currently
+  ID-bearing endpoint variants.
 - Dynamic Console aggregates expose no structural equality, avoiding a public
   variable-time comparison path for their protected provider text.
 - Create composites distinguish complete boxes from source-documented partial

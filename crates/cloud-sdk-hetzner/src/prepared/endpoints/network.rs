@@ -46,7 +46,8 @@ endpoint_wire!(
         FirewallEndpoint::Update(_) => OperationClass::IdempotentMutation,
         FirewallEndpoint::Delete(_) => OperationClass::IdempotentDestructive,
     },
-    CostIntent::NoKnownCost
+    CostIntent::NoKnownCost,
+    identity endpoint => { let _ = endpoint; crate::association::ExpectedResponseIdentity::None }
 );
 
 query_wire!(FirewallListRequest<'_>, request => {
@@ -86,7 +87,8 @@ endpoint_wire!(
         }
         FirewallActionEndpoint::ApplyToResources(_) => OperationClass::NonIdempotentMutation,
     },
-    CostIntent::NoKnownCost
+    CostIntent::NoKnownCost,
+    identity endpoint => { let _ = endpoint; crate::association::ExpectedResponseIdentity::None }
 );
 
 endpoint_wire!(
@@ -121,7 +123,8 @@ endpoint_wire!(
     match endpoint {
         LoadBalancerEndpoint::Create => CostIntent::MayIncurCost,
         _ => CostIntent::NoKnownCost,
-    }
+    },
+    identity endpoint => { let _ = endpoint; crate::association::ExpectedResponseIdentity::None }
 );
 
 query_wire!(LoadBalancerListRequest<'_>, request => {
@@ -187,7 +190,8 @@ endpoint_wire!(
     match endpoint {
         LoadBalancerActionEndpoint::ChangeType(_) => CostIntent::MayIncurCost,
         _ => CostIntent::NoKnownCost,
-    }
+    },
+    identity endpoint => { let _ = endpoint; crate::association::ExpectedResponseIdentity::None }
 );
 
 endpoint_wire!(
@@ -215,7 +219,8 @@ endpoint_wire!(
         NetworkEndpoint::Update(_) => OperationClass::IdempotentMutation,
         NetworkEndpoint::Delete(_) => OperationClass::IdempotentDestructive,
     },
-    CostIntent::NoKnownCost
+    CostIntent::NoKnownCost,
+    identity endpoint => { let _ = endpoint; crate::association::ExpectedResponseIdentity::None }
 );
 
 query_wire!(NetworkListRequest<'_>, request => {
@@ -262,7 +267,8 @@ endpoint_wire!(
         | NetworkActionEndpoint::AddSubnet(_)
         | NetworkActionEndpoint::ChangeIpRange(_) => OperationClass::NonIdempotentMutation,
     },
-    CostIntent::NoKnownCost
+    CostIntent::NoKnownCost,
+    identity endpoint => { let _ = endpoint; crate::association::ExpectedResponseIdentity::None }
 );
 
 endpoint_wire!(
@@ -293,7 +299,8 @@ endpoint_wire!(
     match endpoint {
         FloatingIpEndpoint::Create => CostIntent::MayIncurCost,
         _ => CostIntent::NoKnownCost,
-    }
+    },
+    identity endpoint => { let _ = endpoint; crate::association::ExpectedResponseIdentity::None }
 );
 
 query_wire!(FloatingIpListRequest<'_>, request => {
@@ -337,7 +344,8 @@ endpoint_wire!(
             OperationClass::NonIdempotentMutation
         }
     },
-    CostIntent::NoKnownCost
+    CostIntent::NoKnownCost,
+    identity endpoint => { let _ = endpoint; crate::association::ExpectedResponseIdentity::None }
 );
 
 endpoint_wire!(
@@ -368,7 +376,8 @@ endpoint_wire!(
     match endpoint {
         PrimaryIpEndpoint::Create => CostIntent::MayIncurCost,
         _ => CostIntent::NoKnownCost,
-    }
+    },
+    identity endpoint => { let _ = endpoint; crate::association::ExpectedResponseIdentity::None }
 );
 
 query_wire!(PrimaryIpListRequest<'_>, request => {
@@ -413,5 +422,6 @@ endpoint_wire!(
             OperationClass::NonIdempotentMutation
         }
     },
-    CostIntent::NoKnownCost
+    CostIntent::NoKnownCost,
+    identity endpoint => { let _ = endpoint; crate::association::ExpectedResponseIdentity::None }
 );

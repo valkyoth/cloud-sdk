@@ -7,6 +7,7 @@
 mod components;
 mod identity;
 mod markers;
+mod permit;
 mod policy;
 mod prepared;
 mod types;
@@ -17,6 +18,13 @@ pub use components::{
     QueryFor,
 };
 pub use markers::{ALL_OPERATIONS, operations};
+pub use permit::{
+    AssociatedCanonicalPlanFingerprint, AssociatedCostPermit, AssociatedDestructivePermit,
+    AssociatedMutationPermit, AssociatedPermitAttempt, AssociatedPlanConfirmation,
+    AssociatedPlanFingerprintDigest, AssociatedPlanSubject, AssociatedSharedCostPermit,
+    AssociatedSharedDestructivePermit, AssociatedSharedMutationPermit,
+    build_associated_canonical_plan, build_associated_plan_digest,
+};
 pub use policy::{
     AuthenticationClass, BodyPolicy, HetznerOperation, OperationAssociation, OperationDescriptor,
     PaginationPolicy, PermitClass, QueryPolicy, ReadOnlyOperation, ResponseShape, RetryPolicy,
@@ -28,5 +36,7 @@ pub use types::*;
 
 pub(crate) use identity::ExpectedResponseIdentity;
 
+#[cfg(test)]
+mod identity_contract_tests;
 #[cfg(test)]
 mod tests;

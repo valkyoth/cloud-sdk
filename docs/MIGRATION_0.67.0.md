@@ -57,3 +57,10 @@ lists and create references.
 available for custom integrations, but explicitly discard this identity
 binding. Custom decoders using those escape hatches must enforce equivalent
 resource checks themselves.
+
+For mutation, destructive, and cost-bearing typed operations, replace an
+untyped `PlanConfirmation` with `AssociatedPlanConfirmation`. Build it through
+`build_associated_canonical_plan` or `build_associated_plan_digest`, then use
+the corresponding direct or shared `Associated*Permit`. Its execution result
+can be passed directly to `decode_associated_checked_response`; no provider
+identity needs to be reconstructed after authorization.

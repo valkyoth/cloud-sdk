@@ -44,6 +44,13 @@ at 0.40.0 while changes accumulate for v0.70.0.
 - Bound typed singleton, parent-scoped list, and create-reference responses to
   identifiers captured directly from endpoint values; cross-resource replay
   now fails with a payload-free model error.
+- Carried those identities through exact and strong-digest plan confirmation,
+  direct/shared mutation, destructive, and cost permits, and all three
+  execution modes. Authorized typed execution now returns an associated
+  checked response instead of erasing provider provenance.
+- Removed the endpoint identity-policy default. Every endpoint adapter must
+  declare its policy, AST coverage rejects omissions, and source-locked tests
+  enumerate all current ID-bearing Storage Box variants.
 - Sanitized invalid owned timestamp allocations before rejection and made the
   Console specification mandatory for the model-generator CLI.
 

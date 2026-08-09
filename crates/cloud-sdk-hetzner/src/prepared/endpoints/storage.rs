@@ -133,7 +133,8 @@ endpoint_wire!(
     match endpoint {
         StorageBoxActionEndpoint::ChangeType(_) => CostIntent::MayIncurCost,
         _ => CostIntent::NoKnownCost,
-    }
+    },
+    identity endpoint => { let _ = endpoint; crate::association::ExpectedResponseIdentity::None }
 );
 
 impl crate::prepared::QueryWire for StorageBoxActionListRequest {
@@ -312,5 +313,6 @@ endpoint_wire!(
             OperationClass::NonIdempotentMutation
         }
     },
-    CostIntent::NoKnownCost
+    CostIntent::NoKnownCost,
+    identity endpoint => { let _ = endpoint; crate::association::ExpectedResponseIdentity::None }
 );

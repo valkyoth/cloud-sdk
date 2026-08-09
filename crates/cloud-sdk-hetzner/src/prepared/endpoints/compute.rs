@@ -43,7 +43,8 @@ endpoint_wire!(
     match endpoint {
         ServerEndpoint::Create => CostIntent::MayIncurCost,
         _ => CostIntent::NoKnownCost,
-    }
+    },
+    identity endpoint => { let _ = endpoint; crate::association::ExpectedResponseIdentity::None }
 );
 
 query_wire!(ServerListRequest<'_>, request => {
@@ -126,7 +127,8 @@ endpoint_wire!(
                 | ServerActionKind::EnableBackup
         ) => CostIntent::MayIncurCost,
         _ => CostIntent::NoKnownCost,
-    }
+    },
+    identity endpoint => { let _ = endpoint; crate::association::ExpectedResponseIdentity::None }
 );
 
 endpoint_wire!(
@@ -151,7 +153,8 @@ endpoint_wire!(
         ImageEndpoint::Update(_) => OperationClass::IdempotentMutation,
         ImageEndpoint::Delete(_) => OperationClass::IdempotentDestructive,
     },
-    CostIntent::NoKnownCost
+    CostIntent::NoKnownCost,
+    identity endpoint => { let _ = endpoint; crate::association::ExpectedResponseIdentity::None }
 );
 
 query_wire!(ImageListRequest, request => {
@@ -184,7 +187,8 @@ endpoint_wire!(
         | ImageActionEndpoint::ListForImage(_) => OperationClass::ReadOnly,
         ImageActionEndpoint::ChangeProtection(_) => OperationClass::NonIdempotentDestructive,
     },
-    CostIntent::NoKnownCost
+    CostIntent::NoKnownCost,
+    identity endpoint => { let _ = endpoint; crate::association::ExpectedResponseIdentity::None }
 );
 
 endpoint_wire!(
@@ -214,7 +218,8 @@ endpoint_wire!(
         PlacementGroupEndpoint::Update(_) => OperationClass::IdempotentMutation,
         PlacementGroupEndpoint::Delete(_) => OperationClass::IdempotentDestructive,
     },
-    CostIntent::NoKnownCost
+    CostIntent::NoKnownCost,
+    identity endpoint => { let _ = endpoint; crate::association::ExpectedResponseIdentity::None }
 );
 
 query_wire!(PlacementGroupListRequest<'_>, request => {
@@ -250,7 +255,8 @@ endpoint_wire!(
     match endpoint {
         VolumeEndpoint::Create => CostIntent::MayIncurCost,
         _ => CostIntent::NoKnownCost,
-    }
+    },
+    identity endpoint => { let _ = endpoint; crate::association::ExpectedResponseIdentity::None }
 );
 
 query_wire!(VolumeListRequest<'_>, request => {
@@ -298,7 +304,8 @@ endpoint_wire!(
     match endpoint {
         VolumeActionEndpoint::Resize(_) => CostIntent::MayIncurCost,
         _ => CostIntent::NoKnownCost,
-    }
+    },
+    identity endpoint => { let _ = endpoint; crate::association::ExpectedResponseIdentity::None }
 );
 
 const fn server_action_requires_body(kind: ServerActionKind) -> bool {

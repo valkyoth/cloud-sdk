@@ -5,7 +5,7 @@
 /// This value is intentionally crate-private and has no `Debug`
 /// implementation so request identifiers cannot enter diagnostics through the
 /// association layer.
-#[derive(Clone, Copy, Default)]
+#[derive(Clone, Copy, Default, Eq, PartialEq)]
 #[cfg_attr(not(feature = "serde"), allow(dead_code))]
 pub(crate) enum ExpectedResponseIdentity {
     /// The operation has no currently modeled response-identity contract.

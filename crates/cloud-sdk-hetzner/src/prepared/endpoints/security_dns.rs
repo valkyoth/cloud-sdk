@@ -46,7 +46,8 @@ endpoint_wire!(
         CertificateEndpoint::Update(_) => OperationClass::IdempotentMutation,
         CertificateEndpoint::Delete(_) => OperationClass::IdempotentDestructive,
     },
-    CostIntent::NoKnownCost
+    CostIntent::NoKnownCost,
+    identity endpoint => { let _ = endpoint; crate::association::ExpectedResponseIdentity::None }
 );
 
 query_wire!(CertificateListRequest<'_>, request => {
@@ -69,7 +70,8 @@ endpoint_wire!(
         CertificateActionEndpoint::ListForCertificate(_) => "list_certificate_actions",
     },
     OperationClass::ReadOnly,
-    CostIntent::NoKnownCost
+    CostIntent::NoKnownCost,
+    identity endpoint => { let _ = endpoint; crate::association::ExpectedResponseIdentity::None }
 );
 
 query_wire!(CertificateActionListRequest<'_>, request => {
@@ -103,7 +105,8 @@ endpoint_wire!(
         SshKeyEndpoint::Update(_) => OperationClass::IdempotentMutation,
         SshKeyEndpoint::Delete(_) => OperationClass::IdempotentDestructive,
     },
-    CostIntent::NoKnownCost
+    CostIntent::NoKnownCost,
+    identity endpoint => { let _ = endpoint; crate::association::ExpectedResponseIdentity::None }
 );
 
 query_wire!(SshKeyListRequest<'_>, request => {
@@ -140,7 +143,8 @@ endpoint_wire!(
         ZoneEndpoint::Update(_) => OperationClass::IdempotentMutation,
         ZoneEndpoint::Delete(_) => OperationClass::IdempotentDestructive,
     },
-    CostIntent::NoKnownCost
+    CostIntent::NoKnownCost,
+    identity endpoint => { let _ = endpoint; crate::association::ExpectedResponseIdentity::None }
 );
 
 query_wire!(ZoneListRequest<'_>, request => {
@@ -183,7 +187,8 @@ endpoint_wire!(
             OperationClass::NonIdempotentMutation
         }
     },
-    CostIntent::NoKnownCost
+    CostIntent::NoKnownCost,
+    identity endpoint => { let _ = endpoint; crate::association::ExpectedResponseIdentity::None }
 );
 
 impl crate::prepared::QueryWire for ZoneActionListRequest {
@@ -243,7 +248,8 @@ endpoint_wire!(
         RrsetEndpoint::Update(_) => OperationClass::IdempotentMutation,
         RrsetEndpoint::Delete(_) => OperationClass::IdempotentDestructive,
     },
-    CostIntent::NoKnownCost
+    CostIntent::NoKnownCost,
+    identity endpoint => { let _ = endpoint; crate::association::ExpectedResponseIdentity::None }
 );
 
 query_wire!(RrsetListRequest<'_>, request => request.endpoint());
@@ -273,5 +279,6 @@ endpoint_wire!(
         | RrsetActionEndpoint::AddRecords(_)
         | RrsetActionEndpoint::UpdateRecords(_) => OperationClass::NonIdempotentMutation,
     },
-    CostIntent::NoKnownCost
+    CostIntent::NoKnownCost,
+    identity endpoint => { let _ = endpoint; crate::association::ExpectedResponseIdentity::None }
 );

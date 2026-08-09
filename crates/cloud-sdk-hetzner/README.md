@@ -111,9 +111,12 @@ See the
 [operation association guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/OPERATION_ASSOCIATIONS.md).
 
 Only `NoPermit` read-only markers expose direct typed execution. Mutation,
-destructive, and cost-bearing markers must be converted to an exact
-provider-neutral plan confirmation and consumed through the corresponding
-execution permit. Explicit type erasure does not bypass this runtime boundary.
+destructive, and cost-bearing markers use `AssociatedPlanConfirmation`, an
+associated exact or strong-digest fingerprint, and the corresponding
+`Associated*Permit`. Successful permit execution returns
+`AssociatedCheckedResponse<O>`, preserving endpoint-derived response identity
+through typed decoding. Explicit type erasure does not bypass the neutral
+runtime permit boundary, but it discards this provider identity binding.
 The neutral layer also requires `GET` or `HEAD` for direct read-only execution;
 all other wire methods remain permit-gated independently of provider metadata.
 See the

@@ -27,6 +27,16 @@ def main() -> None:
         complete = run(directory)
         assert complete.returncode == 0, complete
         assert "2 endpoints and 1 request bodies" in complete.stdout
+        missing_identity = run(
+            directory,
+            endpoints=(
+                "endpoint_wire!(TestEndpoint, endpoint => (), (), match endpoint { "
+                'TestEndpoint::Read => "read_test", '
+                'TestEndpoint::Write => "write_test" }, false, ());'
+            ),
+        )
+        assert missing_identity.returncode == 1, missing_identity
+        assert "expected identity response binding" in missing_identity.stderr
         redirected_library = run(
             directory,
             manifest=MANIFEST + '\n[lib]\npath = "src/decoy.rs"\n',
@@ -109,7 +119,7 @@ def main() -> None:
             directory,
             endpoints=(
                 "endpoint_wire!(Real, value => (), (), match value { "
-                'Real::Write => "write_test" }, false, ());\n'
+                'Real::Write => "write_test" }, false, (), identity endpoint => ());\n'
                 "#[erase]\nimpl crate::prepared::EndpointWire for Fake { "
                 'fn operation_key(self) -> &\'static str { "read_test" } }'
             ),
@@ -121,7 +131,7 @@ def main() -> None:
             directory,
             endpoints=(
                 "endpoint_wire!(Real, value => (), (), match value { "
-                'Real::Write => "write_test" }, false, ());\n'
+                'Real::Write => "write_test" }, false, (), identity endpoint => ());\n'
                 "impl crate::prepared::EndpointWire for Fake { "
                 "fn operation_key(self) -> &'static str { "
                 'return "wrong_operation"; "read_test" } }'
@@ -134,7 +144,7 @@ def main() -> None:
             directory,
             endpoints=(
                 "endpoint_wire!(Real, value => (), (), match value { "
-                'Real::Write => "write_test" }, false, ());\n'
+                'Real::Write => "write_test" }, false, (), identity endpoint => ());\n'
                 "impl crate::prepared::EndpointWire for Fake { "
                 "fn operation_key(self) -> &'static str { "
                 '#[cfg(any())] "read_test" } }'
@@ -149,7 +159,7 @@ def main() -> None:
                 "endpoint_wire!(TestEndpoint, endpoint => (), (), "
                 "#[cfg(any())] match endpoint { "
                 'TestEndpoint::Read => "read_test", '
-                'TestEndpoint::Write => "write_test" }, false, ());'
+                'TestEndpoint::Write => "write_test" }, false, (), identity endpoint => ());'
             ),
         )
         assert attributed_macro_mapping.returncode == 1, attributed_macro_mapping
@@ -192,7 +202,7 @@ def main() -> None:
             directory,
             endpoints=(
                 "endpoint_wire!(TestEndpoint, endpoint => (), (), match endpoint { "
-                'TestEndpoint::Write => "write_test" }, false, ());'
+                'TestEndpoint::Write => "write_test" }, false, (), identity endpoint => ());'
             ),
         )
         assert missing_endpoint.returncode == 1, missing_endpoint
@@ -205,9 +215,9 @@ def main() -> None:
         line_comments = run(
             directory,
             endpoints=(
-                '// endpoint_wire!(Fake, value => (), (), "read_test", false, ());\n'
+                '// endpoint_wire!(Fake, value => (), (), "read_test", false, (), identity endpoint => ());\n'
                 'endpoint_wire!(Real, value => (), (), match value { '
-                'Real::Write => "write_test" }, false, ());'
+                'Real::Write => "write_test" }, false, (), identity endpoint => ());'
             ),
         )
         assert line_comments.returncode == 1, line_comments
@@ -227,9 +237,9 @@ def main() -> None:
             directory,
             endpoints=(
                 'endpoint_wire!(Real, value => (), (), match value { '
-                'Real::Write => "write_test" }, false, ());\n'
+                'Real::Write => "write_test" }, false, (), identity endpoint => ());\n'
                 '#[cfg(test)] endpoint_wire!('
-                'TestOnly, value => (), (), "read_test", false, ());'
+                'TestOnly, value => (), (), "read_test", false, (), identity endpoint => ());'
             ),
         )
         assert test_only.returncode == 1, test_only
@@ -240,7 +250,7 @@ def main() -> None:
             endpoints=(
                 'const CLAIMED: &str = "read_test";\n'
                 'endpoint_wire!(Real, value => (), (), match value { '
-                'Real::Write => "write_test" }, false, ());'
+                'Real::Write => "write_test" }, false, (), identity endpoint => ());'
             ),
         )
         assert standalone_constants.returncode == 1, standalone_constants
@@ -252,7 +262,7 @@ def main() -> None:
                 ENDPOINTS
                 + '\nendpoint_wire!('
                 'Duplicate, value => (), (), match value { '
-                'Duplicate::Read => "read_test" }, false, ());'
+                'Duplicate::Read => "read_test" }, false, (), identity endpoint => ());'
             ),
         )
         assert duplicate_adapter.returncode == 1, duplicate_adapter
@@ -299,9 +309,9 @@ def main() -> None:
             endpoints=(
                 '/* outer /* inner */ endpoint_wire!('
                 'Fake, value => (), (), match value { '
-                'Fake::Read => "read_test" }, false, ()); */\n'
+                'Fake::Read => "read_test" }, false, (), identity endpoint => ()); */\n'
                 'endpoint_wire!(Real, value => (), (), match value { '
-                'Real::Write => "write_test" }, false, ());'
+                'Real::Write => "write_test" }, false, (), identity endpoint => ());'
             ),
         )
         assert nested_comment.returncode == 1, nested_comment
@@ -312,9 +322,9 @@ def main() -> None:
             endpoints=(
                 'const CLAIMED: &str = r#"endpoint_wire!('
                 'Fake, value => (), (), match value { '
-                'Fake::Read => \\"read_test\\" }, false, ());"#;\n'
+                'Fake::Read => \\"read_test\\" }, false, (), identity endpoint => ());"#;\n'
                 'endpoint_wire!(Real, value => (), (), match value { '
-                'Real::Write => "write_test" }, false, ());'
+                'Real::Write => "write_test" }, false, (), identity endpoint => ());'
             ),
         )
         assert raw_string.returncode == 1, raw_string
@@ -324,7 +334,7 @@ def main() -> None:
             directory,
             endpoints=(
                 'endpoint_wire!(Fake, value => (), (), '
-                '{ let _ = "read_test"; "write_test" }, false, ());'
+                '{ let _ = "read_test"; "write_test" }, false, (), identity endpoint => ());'
             ),
         )
         assert discarded_literal.returncode == 1, discarded_literal
@@ -334,7 +344,7 @@ def main() -> None:
             directory,
             endpoints=(
                 'fn key(_: Fake) -> &\'static str { "write_test" }\n'
-                'endpoint_wire!(Fake, value => (), (), key(value), false, ());\n'
+                'endpoint_wire!(Fake, value => (), (), key(value), false, (), identity endpoint => ());\n'
                 'const CLAIMED: &str = "read_test";'
             ),
         )
@@ -345,9 +355,9 @@ def main() -> None:
             directory,
             endpoints=(
                 "decoy::endpoint_wire!(Fake, value => (), (), match value { "
-                'Fake::Read => "read_test" }, false, ());\n'
+                'Fake::Read => "read_test" }, false, (), identity endpoint => ());\n'
                 "endpoint_wire!(Real, value => (), (), match value { "
-                'Real::Write => "write_test" }, false, ());'
+                'Real::Write => "write_test" }, false, (), identity endpoint => ());'
             ),
         )
         assert namespaced_endpoint.returncode == 1, namespaced_endpoint
@@ -369,7 +379,7 @@ def main() -> None:
                 "struct Fake; impl EndpointWire for Fake { "
                 'fn operation_key(self) -> &\'static str { "read_test" } } }\n'
                 "endpoint_wire!(Real, value => (), (), match value { "
-                'Real::Write => "write_test" }, false, ());'
+                'Real::Write => "write_test" }, false, (), identity endpoint => ());'
             ),
         )
         assert inline_fake_trait.returncode == 1, inline_fake_trait
@@ -428,7 +438,7 @@ def main() -> None:
                 "struct Fake; impl EndpointWire for Fake { "
                 'fn operation_key(self) -> &\'static str { "read_test" } }\n'
                 "endpoint_wire!(Real, value => (), (), match value { "
-                'Real::Write => "write_test" }, false, ());'
+                'Real::Write => "write_test" }, false, (), identity endpoint => ());'
             ),
         )
         assert fake_trait.returncode == 1, fake_trait
@@ -493,7 +503,7 @@ def main() -> None:
         assert duplicate.returncode == 1, duplicate
         assert "duplicate body operation" in duplicate.stderr
 
-    print("95 prepared-operation coverage tests passed.")
+    print("96 prepared-operation coverage tests passed.")
 
 
 if __name__ == "__main__":

@@ -192,7 +192,7 @@ def assert_accepts_operation_mutations_rejected(directory: Path) -> None:
         crate_root=parent_macro,
         endpoints=(
             "endpoint_wire!(Real, value => (), (), match value { "
-            'Real::Write => "write_test" }, false, ());\n'
+            'Real::Write => "write_test" }, false, (), identity endpoint => ());\n'
             "impl crate::prepared::EndpointWire for Fake { permissive!(); }\n"
         ),
     )
@@ -248,7 +248,7 @@ def assert_attributed_impl_items_rejected(directory: Path) -> None:
         directory,
         endpoints=(
             "endpoint_wire!(Real, value => (), (), match value { "
-            'Real::Write => "write_test" }, false, ());\n'
+            'Real::Write => "write_test" }, false, (), identity endpoint => ());\n'
             "impl crate::prepared::EndpointWire for Fake { "
             "#[generate_key] fn placeholder() {} }\n"
         ),
@@ -329,7 +329,7 @@ def assert_hidden_module_evidence_rejected(directory: Path) -> None:
             "endpoint_wire!(TestEndpoint, endpoint => { "
             f"{hidden_impl} () }}, (), match endpoint {{ "
             'TestEndpoint::Read => "read_test", '
-            'TestEndpoint::Write => "write_test" }, false, ());'
+            'TestEndpoint::Write => "write_test" }, false, (), identity endpoint => ());'
         ),
     )
     assert_nested_item_rejected(endpoint_argument)
@@ -358,7 +358,7 @@ def assert_hidden_module_evidence_rejected(directory: Path) -> None:
             endpoints=(
                 f"endpoint_wire!({hidden_type}, endpoint => (), (), match endpoint {{ "
                 'TestEndpoint::Read => "read_test", TestEndpoint::Write => "write_test" '
-                "}, false, ());"
+                "}, false, (), identity endpoint => ());"
             ),
         ),
         run(directory, bodies=f'body_wire!({hidden_type}, request => (), "write_test", write);'),
@@ -390,7 +390,8 @@ def assert_hidden_module_evidence_rejected(directory: Path) -> None:
             endpoints=(
                 "endpoint_wire!(TestEndpoint, endpoint => (), (), match endpoint { "
                 'TestEndpoint::Read => "read_test", TestEndpoint::Write => "write_test" }, '
-                f"matches!({{ {hidden_impl} endpoint }}, TestEndpoint::Read), ());"
+                f"matches!({{ {hidden_impl} endpoint }}, TestEndpoint::Read), (), "
+                "identity endpoint => ());"
             ),
         ),
         run(
@@ -403,7 +404,7 @@ def assert_hidden_module_evidence_rejected(directory: Path) -> None:
             endpoints=(
                 "endpoint_wire!(TestEndpoint, endpoint => (), (), match endpoint { "
                 'opaque!() => "read_test", TestEndpoint::Write => "write_test" '
-                "}, false, ());"
+                "}, false, (), identity endpoint => ());"
             ),
         ),
     ]

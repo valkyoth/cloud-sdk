@@ -4,9 +4,8 @@ use core::future::Future;
 use core::task::{Context, Poll, Waker};
 
 use cloud_sdk::operation::{
-    AttemptBudget, DestructivePermit, MutationPermit, PermitClock, PermitContext, PermitTimestamp,
-    PermitValidity, PlanChange, PlanConfirmation, PlanFingerprintScope, PreparationStorage,
-    PreparedRequest, ReplayPolicy, build_canonical_plan,
+    AttemptBudget, PermitClock, PermitContext, PermitTimestamp, PermitValidity, PlanChange,
+    PlanFingerprintScope, PreparationStorage, PreparedRequest, ReplayPolicy,
 };
 use cloud_sdk::transport::{EndpointIdentity, EndpointScheme, StatusCode};
 use cloud_sdk_hetzner::association::operations::{
@@ -14,7 +13,10 @@ use cloud_sdk_hetzner::association::operations::{
     PoweronServer,
 };
 use cloud_sdk_hetzner::association::{
-    AssociatedOperation, AuthenticationClass, HetznerOperation, Prepared, ReadOnlyOperation,
+    AssociatedDestructivePermit, AssociatedMutationPermit, AssociatedOperation,
+    AssociatedPlanConfirmation, AuthenticationClass, DestructivePermit as DestructivePermitMarker,
+    HetznerOperation, MutationPermit as MutationPermitMarker, Prepared, ReadOnlyOperation,
+    build_associated_canonical_plan,
 };
 use cloud_sdk_hetzner::cloud::catalog::CatalogListEndpoint;
 use cloud_sdk_hetzner::cloud::servers::ServerId;
@@ -27,6 +29,10 @@ use cloud_sdk_hetzner::storage::storage_boxes::StorageBoxEndpoint;
 use cloud_sdk_testkit::{
     ExpectedRequest, FixtureBody, LocalMockTransport, MockExchange, MockTransport, ResponseFixture,
 };
+
+#[path = "vertical_execution/permit_identity.rs"]
+mod permit_identity;
+use permit_identity::execute_shared_digest_mutation;
 
 const INVALID_JSON: &[u8] = br#"{"ok":true}"#;
 const LOCATIONS: &[u8] = br#"{"locations":[{"id":42,"name":"fsn1","description":"Falkenstein DC Park 1","country":"DE","city":"Falkenstein","latitude":50.47612,"longitude":12.370071,"network_zone":"eu-central"}],"meta":{"pagination":{"page":1,"per_page":25,"previous_page":null,"next_page":null,"last_page":1,"total_entries":1}}}"#;
@@ -142,7 +148,7 @@ fn action_and_no_content_slices_cross_permit_and_executor_paths() {
     let Ok(prepared) = prepared else {
         unreachable!("poweron preparation failed")
     };
-    exercise_mutation_modes(prepared.into_untyped(), cloud);
+    exercise_mutation_modes(prepared, cloud);
 
     let operation = AssociatedOperation::<DeleteCertificate, _>::endpoint(
         CertificateEndpoint::Delete(certificate_id),
@@ -154,7 +160,7 @@ fn action_and_no_content_slices_cross_permit_and_executor_paths() {
     let Ok(prepared) = prepared else {
         unreachable!("delete certificate preparation failed")
     };
-    exercise_destructive_modes(prepared.into_untyped(), cloud);
+    exercise_destructive_modes(prepared, cloud);
 }
 
 fn exercise_read_modes<O>(
@@ -268,14 +274,19 @@ fn endpoint(host: &'static str) -> EndpointIdentity<'static> {
     endpoint
 }
 
-fn exercise_mutation_modes(prepared: PreparedRequest<'_>, endpoint: EndpointIdentity<'static>) {
+fn exercise_mutation_modes<O>(prepared: Prepared<'_, O>, endpoint: EndpointIdentity<'static>)
+where
+    O: Copy + HetznerOperation<Permit = MutationPermitMarker>,
+{
+    let untyped = prepared.as_untyped();
     let mut scratch = [0_u8; 4_096];
-    let plan = plan(prepared, endpoint);
-    let fingerprint = build_canonical_plan(plan, &mut scratch);
+    let plan = associated_plan(prepared, endpoint);
+    let fingerprint = build_associated_canonical_plan(plan, &mut scratch);
     let Ok(fingerprint) = fingerprint else {
         unreachable!("mutation plan fingerprint failed")
     };
-    let permit = MutationPermit::new(fingerprint.subject(), PermitTimestamp::from_seconds(100));
+    let permit =
+        AssociatedMutationPermit::new(fingerprint.subject(), PermitTimestamp::from_seconds(100));
     let Ok(mut permit) = permit else {
         unreachable!("mutation permit failed")
     };
@@ -283,30 +294,38 @@ fn exercise_mutation_modes(prepared: PreparedRequest<'_>, endpoint: EndpointIden
     let Ok(attempt) = attempt else {
         unreachable!("mutation attempt failed")
     };
-    let exchange = exchange(prepared, StatusCode::CREATED, ACTION, true);
+    let exchange = exchange(untyped, StatusCode::CREATED, ACTION, true);
     let exchanges = [exchange];
     let mock = MockTransport::new(&exchanges).with_endpoint(endpoint);
     let mut body = [0_u8; 512];
     let mut headers = [0_u8; 8_192];
     let result = attempt.execute_blocking(&FixedClock, &mock, &mut body, &mut headers);
-    assert!(result.is_ok());
-    drop(result);
+    let Ok(result) = result else {
+        unreachable!("typed mutation execution failed")
+    };
+    assert!(decode_associated_checked_response(result).is_ok());
 
     execute_mutation_async(prepared, endpoint, false);
     execute_mutation_async(prepared, endpoint, true);
+    execute_shared_digest_mutation(prepared, endpoint);
 }
 
-fn execute_mutation_async(
-    prepared: PreparedRequest<'_>,
+fn execute_mutation_async<O>(
+    prepared: Prepared<'_, O>,
     endpoint: EndpointIdentity<'static>,
     local: bool,
-) {
+) where
+    O: Copy + HetznerOperation<Permit = MutationPermitMarker>,
+{
+    let untyped = prepared.as_untyped();
     let mut scratch = [0_u8; 4_096];
-    let fingerprint = build_canonical_plan(plan(prepared, endpoint), &mut scratch);
+    let fingerprint =
+        build_associated_canonical_plan(associated_plan(prepared, endpoint), &mut scratch);
     let Ok(fingerprint) = fingerprint else {
         unreachable!("async mutation plan fingerprint failed")
     };
-    let permit = MutationPermit::new(fingerprint.subject(), PermitTimestamp::from_seconds(100));
+    let permit =
+        AssociatedMutationPermit::new(fingerprint.subject(), PermitTimestamp::from_seconds(100));
     let Ok(mut permit) = permit else {
         unreachable!("async mutation permit failed")
     };
@@ -314,7 +333,7 @@ fn execute_mutation_async(
     let Ok(attempt) = attempt else {
         unreachable!("async mutation attempt failed")
     };
-    let exchanges = [exchange(prepared, StatusCode::CREATED, ACTION, true)];
+    let exchanges = [exchange(untyped, StatusCode::CREATED, ACTION, true)];
     let mut body = [0_u8; 512];
     let mut headers = [0_u8; 8_192];
     let mut context = Context::from_waker(Waker::noop());
@@ -322,30 +341,37 @@ fn execute_mutation_async(
         let mock = LocalMockTransport::new(&exchanges).with_endpoint(endpoint);
         let future = attempt.execute_local_async(&FixedClock, &mock, &mut body, &mut headers);
         let mut future = core::pin::pin!(future);
-        assert!(matches!(
-            Future::poll(future.as_mut(), &mut context),
-            Poll::Ready(Ok(_))
-        ));
+        let Poll::Ready(Ok(response)) = Future::poll(future.as_mut(), &mut context) else {
+            unreachable!("typed local mutation execution failed")
+        };
+        assert!(decode_associated_checked_response(response).is_ok());
     } else {
         let mock = MockTransport::new(&exchanges).with_endpoint(endpoint);
         let future = attempt.execute_async(&FixedClock, &mock, &mut body, &mut headers);
         let mut future = core::pin::pin!(future);
-        assert!(matches!(
-            Future::poll(future.as_mut(), &mut context),
-            Poll::Ready(Ok(_))
-        ));
+        let Poll::Ready(Ok(response)) = Future::poll(future.as_mut(), &mut context) else {
+            unreachable!("typed Send mutation execution failed")
+        };
+        assert!(decode_associated_checked_response(response).is_ok());
     }
 }
 
-fn exercise_destructive_modes(prepared: PreparedRequest<'_>, endpoint: EndpointIdentity<'static>) {
+fn exercise_destructive_modes<O>(prepared: Prepared<'_, O>, endpoint: EndpointIdentity<'static>)
+where
+    O: Copy + HetznerOperation<Permit = DestructivePermitMarker>,
+{
+    let untyped = prepared.as_untyped();
     for mode in 0..3 {
         let mut scratch = [0_u8; 4_096];
-        let fingerprint = build_canonical_plan(plan(prepared, endpoint), &mut scratch);
+        let fingerprint =
+            build_associated_canonical_plan(associated_plan(prepared, endpoint), &mut scratch);
         let Ok(fingerprint) = fingerprint else {
             unreachable!("destructive plan fingerprint failed")
         };
-        let permit =
-            DestructivePermit::new(fingerprint.subject(), PermitTimestamp::from_seconds(100));
+        let permit = AssociatedDestructivePermit::new(
+            fingerprint.subject(),
+            PermitTimestamp::from_seconds(100),
+        );
         let Ok(mut permit) = permit else {
             unreachable!("destructive permit failed")
         };
@@ -353,46 +379,47 @@ fn exercise_destructive_modes(prepared: PreparedRequest<'_>, endpoint: EndpointI
         let Ok(attempt) = attempt else {
             unreachable!("destructive attempt failed")
         };
-        let exchanges = [exchange(prepared, StatusCode::NO_CONTENT, b"", false)];
+        let exchanges = [exchange(untyped, StatusCode::NO_CONTENT, b"", false)];
         let mut body = [0_u8; 1];
         let mut headers = [0_u8; 8_192];
         let mut context = Context::from_waker(Waker::noop());
         match mode {
             0 => {
                 let mock = MockTransport::new(&exchanges).with_endpoint(endpoint);
-                assert!(
-                    attempt
-                        .execute_blocking(&FixedClock, &mock, &mut body, &mut headers)
-                        .is_ok()
-                );
+                let response =
+                    attempt.execute_blocking(&FixedClock, &mock, &mut body, &mut headers);
+                let Ok(response) = response else {
+                    unreachable!("typed destructive execution failed")
+                };
+                assert!(decode_associated_checked_response(response).is_ok());
             }
             1 => {
                 let mock = MockTransport::new(&exchanges).with_endpoint(endpoint);
                 let future = attempt.execute_async(&FixedClock, &mock, &mut body, &mut headers);
                 let mut future = core::pin::pin!(future);
-                assert!(matches!(
-                    Future::poll(future.as_mut(), &mut context),
-                    Poll::Ready(Ok(_))
-                ));
+                let Poll::Ready(Ok(response)) = Future::poll(future.as_mut(), &mut context) else {
+                    unreachable!("typed async destructive execution failed")
+                };
+                assert!(decode_associated_checked_response(response).is_ok());
             }
             _ => {
                 let mock = LocalMockTransport::new(&exchanges).with_endpoint(endpoint);
                 let future =
                     attempt.execute_local_async(&FixedClock, &mock, &mut body, &mut headers);
                 let mut future = core::pin::pin!(future);
-                assert!(matches!(
-                    Future::poll(future.as_mut(), &mut context),
-                    Poll::Ready(Ok(_))
-                ));
+                let Poll::Ready(Ok(response)) = Future::poll(future.as_mut(), &mut context) else {
+                    unreachable!("typed local destructive execution failed")
+                };
+                assert!(decode_associated_checked_response(response).is_ok());
             }
         }
     }
 }
 
-fn plan<'a>(
-    prepared: PreparedRequest<'a>,
+fn associated_plan<'a, O: HetznerOperation>(
+    prepared: Prepared<'a, O>,
     endpoint: EndpointIdentity<'static>,
-) -> PlanConfirmation<'static, 'a> {
+) -> AssociatedPlanConfirmation<'static, 'a, O> {
     let context = PermitContext::new(b"v0.62 vertical fixture");
     let Ok(context) = context else {
         unreachable!("permit context failed")
@@ -408,7 +435,7 @@ fn plan<'a>(
     let Ok(attempts) = attempts else {
         unreachable!("attempt budget failed")
     };
-    PlanConfirmation::new(
+    AssociatedPlanConfirmation::new(
         prepared,
         endpoint,
         PlanFingerprintScope::Value(b"account"),
@@ -426,7 +453,7 @@ fn plan<'a>(
 fn exchange<'a>(
     prepared: PreparedRequest<'a>,
     status: StatusCode,
-    body: &'static [u8],
+    body: &'a [u8],
     json: bool,
 ) -> MockExchange<'a> {
     let request = prepared.transport_request();
