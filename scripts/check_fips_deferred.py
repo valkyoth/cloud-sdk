@@ -12,6 +12,7 @@ from pathlib import Path
 FORBIDDEN_FEATURE = "blocking-rustls-fips"
 FORBIDDEN_DEPENDENCY = "aws-lc-fips-sys"
 FORBIDDEN_SYMBOL = "FipsTlsPolicy"
+FORBIDDEN_DENY_TERMS = (FORBIDDEN_FEATURE, FORBIDDEN_DEPENDENCY, FORBIDDEN_SYMBOL)
 
 
 def load_toml(path: Path) -> dict:
@@ -53,6 +54,12 @@ def collect_failures(root: Path) -> list[str]:
     ci = (root / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
     if "fips-transport:" in ci or "check_reqwest_fips_boundary.sh" in ci:
         failures.append("CI still activates the retired FIPS transport")
+
+    deny = load_toml(root / "deny.toml")
+    for exception in deny.get("bans", {}).get("skip", []):
+        exception_text = f'{exception.get("crate", "")} {exception.get("reason", "")}'
+        if any(term.lower() in exception_text.lower() for term in FORBIDDEN_DENY_TERMS):
+            failures.append("deny.toml retains an obsolete FIPS-specific ban exception")
 
     for relative in ("README.md", "crates/cloud-sdk/README.md", "crates/cloud-sdk-reqwest/README.md"):
         text = (root / relative).read_text(encoding="utf-8")

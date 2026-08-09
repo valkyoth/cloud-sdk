@@ -35,6 +35,11 @@ def fixture(root: Path) -> None:
         'features = ["blocking-rustls"]\n',
     )
     write(root / "Cargo.lock", 'version = 4\n')
+    write(
+        root / "deny.toml",
+        '[bans]\nskip = [{ crate = "syn@2.0.119", reason = "Platform macros '
+        'require syn 2 while current Serde requires syn 3" }]\n',
+    )
     write(root / "crates/cloud-sdk-reqwest/src/lib.rs", "#![no_std]\n")
     write(root / ".github/workflows/ci.yml", "jobs:\n  fips-deferment:\n")
     write(root / "README.md", "Transport features are opt in.\n")
@@ -77,11 +82,17 @@ def test_lock_source_ci_and_docs_fail() -> None:
         write(root / "crates/cloud-sdk-reqwest/src/lib.rs", "pub struct FipsTlsPolicy;\n")
         write(root / ".github/workflows/ci.yml", "jobs:\n  fips-transport:\n")
         write(root / "README.md", "Enable blocking-rustls-fips.\n")
+        write(
+            root / "deny.toml",
+            '[bans]\nskip = [{ crate = "shlex@1.3.0", reason = '
+            '"aws-lc-fips-sys requires this duplicate" }]\n',
+        )
         failures = CHECKER.collect_failures(root)
         assert any("locks aws-lc-fips-sys" in item for item in failures)
         assert any("exposes removed FIPS API" in item for item in failures)
         assert any("retired FIPS transport" in item for item in failures)
         assert any("advertises the retired FIPS API" in item for item in failures)
+        assert any("obsolete FIPS-specific ban exception" in item for item in failures)
 
 
 def main() -> None:
