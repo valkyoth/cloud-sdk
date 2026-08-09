@@ -45,9 +45,13 @@ and executor parity in generated code.
 ### Buffer Residue And Cancellation
 
 - Reads consume a complete `ClientWorkspaceLease`, whose four regions are
-  cleared on completion, error, or cancellation.
+  cleared on completion, error, cancellation, or an unpolled future drop.
 - State-changing preparation borrows `PreparationStorageGuard`; the complete
   target and body regions are cleared on reuse and drop.
+- State-changing Send-async and local-async entry points clear complete
+  response-body and response-header storage synchronously before returning a
+  future. Dropping that future without polling cannot retain an earlier
+  response.
 - Response and permit cleanup remain enforced by the existing core contracts.
 
 ## Unchanged Boundaries

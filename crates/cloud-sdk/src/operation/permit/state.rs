@@ -278,65 +278,77 @@ impl<'permit, 'request, 'fingerprint> PermitAttempt<'permit, 'request, 'fingerpr
     }
 
     /// Executes once through a delivery-classified Send-async transport.
-    pub async fn execute_async<'transport, 'buffer, T, C>(
+    #[allow(clippy::manual_async_fn)]
+    pub fn execute_async<'transport, 'buffer, T, C>(
         mut self,
         clock: &'transport C,
         transport: &'transport T,
         response_storage: &'buffer mut [u8],
         response_header_storage: &'buffer mut [u8],
-    ) -> Result<CheckedResponseGuard<'buffer>, PermitExecutionError<T::Error>>
+    ) -> impl core::future::Future<
+        Output = Result<CheckedResponseGuard<'buffer>, PermitExecutionError<T::Error>>,
+    > + 'transport
     where
         T: AsyncAuthenticatedTransport + BoundTransport,
         T::Error: DeliveryClassified,
         C: PermitClock + Sync + ?Sized,
         'request: 'transport,
         'permit: 'transport,
+        'buffer: 'transport,
     {
         sanitize_bytes(response_storage);
         sanitize_bytes(response_header_storage);
-        self.ensure_fresh(clock.now(), response_storage, response_header_storage)?;
-        let result = self
-            .subject
-            .prepared()
-            .execute_async_authorized(
-                transport,
-                Some(self.subject.endpoint()),
-                response_storage,
-                response_header_storage,
-            )
-            .await;
-        self.finish_result(result)
+        async move {
+            self.ensure_fresh(clock.now(), response_storage, response_header_storage)?;
+            let result = self
+                .subject
+                .prepared()
+                .execute_async_authorized(
+                    transport,
+                    Some(self.subject.endpoint()),
+                    response_storage,
+                    response_header_storage,
+                )
+                .await;
+            self.finish_result(result)
+        }
     }
 
     /// Executes once through a delivery-classified local-async transport.
-    pub async fn execute_local_async<'transport, 'buffer, T, C>(
+    #[allow(clippy::manual_async_fn)]
+    pub fn execute_local_async<'transport, 'buffer, T, C>(
         mut self,
         clock: &'transport C,
         transport: &'transport T,
         response_storage: &'buffer mut [u8],
         response_header_storage: &'buffer mut [u8],
-    ) -> Result<CheckedResponseGuard<'buffer>, PermitExecutionError<T::Error>>
+    ) -> impl core::future::Future<
+        Output = Result<CheckedResponseGuard<'buffer>, PermitExecutionError<T::Error>>,
+    > + 'transport
     where
         T: LocalAsyncAuthenticatedTransport + BoundTransport,
         T::Error: DeliveryClassified,
         C: PermitClock + ?Sized,
         'request: 'transport,
         'permit: 'transport,
+        'buffer: 'transport,
     {
         sanitize_bytes(response_storage);
         sanitize_bytes(response_header_storage);
-        self.ensure_fresh(clock.now(), response_storage, response_header_storage)?;
-        let result = self
-            .subject
-            .prepared()
-            .execute_local_async_authorized(
-                transport,
-                Some(self.subject.endpoint()),
-                response_storage,
-                response_header_storage,
-            )
-            .await;
-        self.finish_result(result)
+        async move {
+            self.ensure_fresh(clock.now(), response_storage, response_header_storage)?;
+            let result = self
+                .subject
+                .prepared()
+                .execute_local_async_authorized(
+                    transport,
+                    Some(self.subject.endpoint()),
+                    response_storage,
+                    response_header_storage,
+                )
+                .await;
+            self.finish_result(result)
+        }
     }
 
     fn ensure_fresh<E>(

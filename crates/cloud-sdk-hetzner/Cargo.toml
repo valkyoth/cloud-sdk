@@ -56,6 +56,10 @@ required-features = ["serde"]
 name = "client_foundation"
 required-features = ["serde"]
 
+[[test]]
+name = "cloud_client_unpolled_cleanup"
+required-features = ["serde"]
+
 [[example]]
 name = "action_polling"
 required-features = ["serde"]

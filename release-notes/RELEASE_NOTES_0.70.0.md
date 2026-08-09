@@ -30,6 +30,12 @@ default provider graph remains transport-free, runtime-free, and `no_std`.
   permit and pagination classifications.
 - Added deterministic read and mutation scenarios plus an ignored read-only
   live client probe using the existing credential-isolated smoke harness.
+- Clear complete state-changing response-body and response-header storage
+  synchronously when Send-async or local-async execution futures are created,
+  including futures dropped without their first poll.
+- Added core and named-client regressions proving unpolled futures perform no
+  transport call, clear both complete buffers, and leave permit authority in
+  the conservative reconciliation state.
 
 ## Cumulative Checkpoint
 

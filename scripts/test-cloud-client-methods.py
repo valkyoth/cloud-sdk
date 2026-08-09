@@ -70,6 +70,28 @@ def main() -> int:
         "AssociatedPermitAttempt" in rendered,
         "state-changing execution lost plan-confirm permits",
     )
+    permitted = rendered.split("macro_rules! permitted_method", 1)[1].split(
+        "macro_rules! cloud_client_method", 1
+    )[0]
+    require(
+        "pub async fn $local" not in permitted,
+        "local permit execution can defer cleanup until its first poll",
+    )
+    require(
+        "async move {\n                    attempt" not in permitted,
+        "Send permit execution can defer cleanup until its first poll",
+    )
+    require(
+        permitted.count("attempt.execute_async(clock, self.transport(), body, headers)") == 1,
+        "Send permit execution no longer constructs the cleanup future eagerly",
+    )
+    require(
+        permitted.count(
+            "attempt.execute_local_async(clock, self.transport(), body, headers)"
+        )
+        == 1,
+        "local permit execution no longer constructs the cleanup future eagerly",
+    )
 
     optimized = subprocess.run(
         [sys.executable, "-O", str(__file__)],
@@ -84,7 +106,7 @@ def main() -> int:
         "must not run with Python optimization" in optimized.stderr,
         "optimized rejection was not explicit",
     )
-    print("139 Cloud client methods and policy classes tested.")
+    print("139 Cloud client methods, policy classes, and eager cleanup paths tested.")
     return 0
 
 

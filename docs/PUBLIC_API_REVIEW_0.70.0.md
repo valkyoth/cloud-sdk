@@ -28,6 +28,13 @@ reviewed operation associations, not maintained as an independent hand-written
 classification. Named methods remain available only on
 `HetznerClient<T, CloudService, OfficialEndpointTrust>`.
 
+State-changing Send-async and local-async methods are ordinary functions that
+return opaque futures rather than `async fn`. This source-compatible call and
+`.await` shape is required so complete response storage is cleared during
+future construction, including when callers drop the future unpolled. The
+typed association and provider-neutral permit wrappers use the same eager
+construction boundary.
+
 ## Compatibility
 
 Existing generic associated preparation, execution, decoding, and permit APIs

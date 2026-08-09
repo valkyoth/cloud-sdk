@@ -63,6 +63,10 @@ grep -Fq 'send_async_samples_time_when_first_polled' \
     "$core/tests/dispatch_tests.rs"
 grep -Fq 'local_async_samples_time_when_first_polled' \
     "$core/tests/dispatch_tests.rs"
+grep -Fq 'unpolled_send_async_attempt_clears_complete_response_storage' \
+    "$core/tests/unpolled_cleanup_tests.rs"
+grep -Fq 'unpolled_local_async_attempt_clears_complete_response_storage' \
+    "$core/tests/unpolled_cleanup_tests.rs"
 grep -Fq 'shared_attempt_rechecks_expiry_at_dispatch' \
     "$core/tests/dispatch_tests.rs"
 grep -Fq 'method: Method::Get' crates/cloud-sdk/src/pagination/link.rs

@@ -215,47 +215,63 @@ impl<'permit, 'request, 'fingerprint, O: HetznerOperation>
     }
 
     /// Executes through a delivery-classified Send-async transport.
-    pub async fn execute_async<'transport, 'buffer, T, C>(
+    #[allow(clippy::manual_async_fn)]
+    pub fn execute_async<'transport, 'buffer, T, C>(
         self,
         clock: &'transport C,
         transport: &'transport T,
         body: &'buffer mut [u8],
         headers: &'buffer mut [u8],
-    ) -> Result<AssociatedCheckedResponse<'buffer, O>, PermitExecutionError<T::Error>>
+    ) -> impl core::future::Future<
+        Output = Result<AssociatedCheckedResponse<'buffer, O>, PermitExecutionError<T::Error>>,
+    > + 'transport
     where
         T: AsyncAuthenticatedTransport + BoundTransport,
         T::Error: DeliveryClassified,
         C: PermitClock + Sync + ?Sized,
         'request: 'transport,
         'permit: 'transport,
+        'fingerprint: 'transport,
+        'buffer: 'transport,
     {
         let binding = self.binding;
-        self.inner
-            .execute_async(clock, transport, body, headers)
-            .await
-            .map(|inner| AssociatedCheckedResponse::new(inner, binding.expected))
+        let future = self.inner.execute_async(clock, transport, body, headers);
+        async move {
+            future
+                .await
+                .map(|inner| AssociatedCheckedResponse::new(inner, binding.expected))
+        }
     }
 
     /// Executes through a delivery-classified local-async transport.
-    pub async fn execute_local_async<'transport, 'buffer, T, C>(
+    #[allow(clippy::manual_async_fn)]
+    pub fn execute_local_async<'transport, 'buffer, T, C>(
         self,
         clock: &'transport C,
         transport: &'transport T,
         body: &'buffer mut [u8],
         headers: &'buffer mut [u8],
-    ) -> Result<AssociatedCheckedResponse<'buffer, O>, PermitExecutionError<T::Error>>
+    ) -> impl core::future::Future<
+        Output = Result<AssociatedCheckedResponse<'buffer, O>, PermitExecutionError<T::Error>>,
+    > + 'transport
     where
         T: LocalAsyncAuthenticatedTransport + BoundTransport,
         T::Error: DeliveryClassified,
         C: PermitClock + ?Sized,
         'request: 'transport,
         'permit: 'transport,
+        'fingerprint: 'transport,
+        'buffer: 'transport,
     {
         let binding = self.binding;
-        self.inner
-            .execute_local_async(clock, transport, body, headers)
-            .await
-            .map(|inner| AssociatedCheckedResponse::new(inner, binding.expected))
+        let future = self
+            .inner
+            .execute_local_async(clock, transport, body, headers);
+        async move {
+            future
+                .await
+                .map(|inner| AssociatedCheckedResponse::new(inner, binding.expected))
+        }
     }
 }
 

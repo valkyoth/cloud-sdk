@@ -205,11 +205,7 @@ macro_rules! permitted_method {
                 'fingerprint: 'transport,
                 'buffer: 'transport,
             {
-                async move {
-                    attempt
-                        .execute_async(clock, self.transport(), body, headers)
-                        .await
-                }
+                attempt.execute_async(clock, self.transport(), body, headers)
             }
         }
 
@@ -219,7 +215,8 @@ macro_rules! permitted_method {
             T::Error: DeliveryClassified,
         {
             #[doc = concat!("Executes an authorized `", stringify!($marker), "` attempt locally.")]
-            pub async fn $local<'transport, 'permit, 'request, 'fingerprint, 'buffer, C>(
+            #[allow(clippy::manual_async_fn)]
+            pub fn $local<'transport, 'permit, 'request, 'fingerprint, 'buffer, C>(
                 &'transport self,
                 attempt: AssociatedPermitAttempt<
                     'permit,
@@ -230,10 +227,12 @@ macro_rules! permitted_method {
                 clock: &'transport C,
                 body: &'buffer mut [u8],
                 headers: &'buffer mut [u8],
-            ) -> Result<
-                AssociatedCheckedResponse<'buffer, operations::$marker>,
-                PermitExecutionError<T::Error>,
-            >
+            ) -> impl core::future::Future<
+                Output = Result<
+                    AssociatedCheckedResponse<'buffer, operations::$marker>,
+                    PermitExecutionError<T::Error>,
+                >,
+            > + 'transport
             where
                 C: PermitClock + ?Sized,
                 'permit: 'transport,
@@ -241,9 +240,7 @@ macro_rules! permitted_method {
                 'fingerprint: 'transport,
                 'buffer: 'transport,
             {
-                attempt
-                    .execute_local_async(clock, self.transport(), body, headers)
-                    .await
+                attempt.execute_local_async(clock, self.transport(), body, headers)
             }
         }
     };

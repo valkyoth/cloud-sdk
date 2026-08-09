@@ -49,6 +49,10 @@ For mutation, destructive, and cost-bearing operations:
 There is no direct state-changing method and no implicit retry. Existing permit
 recovery and reconciliation rules remain unchanged.
 
+State-changing async execution still uses the same `method(...).await` call
+shape. Its returned future is now constructed by a non-async function so prior
+response bytes are cleared immediately, even if that future is never polled.
+
 ## Remaining Service Methods
 
 Named DNS, security, and Console Storage Box methods arrive in v0.71-v0.73.

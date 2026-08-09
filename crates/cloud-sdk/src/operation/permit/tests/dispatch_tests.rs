@@ -448,7 +448,9 @@ fn panicking_clock_clears_local_async_response_storage_before_unwind() {
     assert_eq!(headers, [0_u8; 128]);
 }
 
-fn mutation_plan(expires: u64) -> Option<([u8; 4096], PlanConfirmation<'static, 'static>)> {
+pub(super) fn mutation_plan(
+    expires: u64,
+) -> Option<([u8; 4096], PlanConfirmation<'static, 'static>)> {
     let endpoint = endpoint()?;
     let request = prepared(
         "/resources",
@@ -478,6 +480,6 @@ fn plan_for_request<'a>(
     ))
 }
 
-const fn time(value: u64) -> PermitTimestamp {
+pub(super) const fn time(value: u64) -> PermitTimestamp {
     PermitTimestamp::from_seconds(value)
 }
