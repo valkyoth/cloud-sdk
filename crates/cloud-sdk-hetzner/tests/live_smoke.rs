@@ -55,9 +55,10 @@ enum LiveSmokeError {
 enum DnsProbeStage {
     Pagination,
     Association,
-    Preparation,
-    Transport,
-    Decode,
+    Construction,
+    WorkspacePool,
+    WorkspaceLease,
+    Execution,
     Shape,
 }
 
@@ -195,12 +196,14 @@ fn read_only_dns_model_smoke() -> Result<(), LiveSmokeError> {
         BearerCredentialScope::new(HETZNER_PROVIDER_ID, DNS_SERVICE_ID, endpoint.clone());
     let credential = BearerCredential::new(token, credential_scope);
     let user_agent =
-        UserAgent::new("cloud-sdk-dns-live-smoke/0.70.0").map_err(LiveSmokeError::UserAgent)?;
+        UserAgent::new("cloud-sdk-dns-live-smoke/0.71.0").map_err(LiveSmokeError::UserAgent)?;
     let timeouts = RequestTimeouts::new(Duration::from_secs(30), Duration::from_secs(10))
         .map_err(LiveSmokeError::Timeout)?;
-    let client = BlockingClientBuilder::new(endpoint, credential, user_agent, timeouts)
+    let transport = BlockingClientBuilder::new(endpoint, credential, user_agent, timeouts)
         .build()
         .map_err(LiveSmokeError::Client)?;
+    let client = HetznerClient::dns(transport)
+        .map_err(|_| LiveSmokeError::DnsProbe(DnsProbeStage::Construction))?;
 
     let page = Page::new(1).map_err(|_| LiveSmokeError::DnsProbe(DnsProbeStage::Pagination))?;
     let per_page =
@@ -208,18 +211,23 @@ fn read_only_dns_model_smoke() -> Result<(), LiveSmokeError> {
     let query = ZoneListRequest::new().with_page(page, per_page);
     let operation = AssociatedOperation::<ListZones, _, _>::query(ZoneEndpoint::List, query)
         .map_err(|_| LiveSmokeError::DnsProbe(DnsProbeStage::Association))?;
-    let mut target = [0_u8; 64];
+    let mut target = [0_u8; 256];
     let mut request_body = [0_u8; 1];
-    let prepared = operation
-        .prepare_typed(PreparationStorage::new(&mut target, &mut request_body))
-        .map_err(|_| LiveSmokeError::DnsProbe(DnsProbeStage::Preparation))?;
-    let mut body = vec![0_u8; 1_048_576];
-    let mut headers = [0_u8; 8_192];
-    let response = prepared
-        .execute_blocking(&client, &mut body, &mut headers)
-        .map_err(|_| LiveSmokeError::DnsProbe(DnsProbeStage::Transport))?;
-    let decoded = decode_associated_checked_response(response)
-        .map_err(|_| LiveSmokeError::DnsProbe(DnsProbeStage::Decode))?;
+    let mut response_body = vec![0_u8; 1_048_576];
+    let mut response_headers = [0_u8; 8_192];
+    let pool = ClientWorkspacePool::<1>::new()
+        .map_err(|_| LiveSmokeError::DnsProbe(DnsProbeStage::WorkspacePool))?;
+    let lease = pool
+        .try_acquire(ClientWorkspace::new(
+            &mut target,
+            &mut request_body,
+            response_body.as_mut_slice(),
+            &mut response_headers,
+        ))
+        .map_err(|_| LiveSmokeError::DnsProbe(DnsProbeStage::WorkspaceLease))?;
+    let decoded = client
+        .list_zones_blocking(&operation, lease)
+        .map_err(|_| LiveSmokeError::DnsProbe(DnsProbeStage::Execution))?;
     let HetznerSuccess::DnsResources { resources, .. } = decoded.success() else {
         return Err(LiveSmokeError::DnsProbe(DnsProbeStage::Shape));
     };

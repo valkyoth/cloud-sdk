@@ -60,6 +60,14 @@ required-features = ["serde"]
 name = "cloud_client_unpolled_cleanup"
 required-features = ["serde"]
 
+[[test]]
+name = "dns_client"
+required-features = ["serde"]
+
+[[test]]
+name = "dns_client_unpolled_cleanup"
+required-features = ["serde"]
+
 [[example]]
 name = "action_polling"
 required-features = ["serde"]
@@ -74,6 +82,10 @@ required-features = ["serde"]
 
 [[example]]
 name = "cloud_client"
+required-features = ["serde"]
+
+[[example]]
+name = "dns_client"
 required-features = ["serde"]
 
 [[example]]

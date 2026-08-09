@@ -4,6 +4,8 @@
 mod cloud;
 mod construction;
 #[cfg(feature = "serde")]
+mod dns;
+#[cfg(feature = "serde")]
 mod execution;
 
 #[cfg(feature = "serde")]
@@ -12,6 +14,8 @@ pub use construction::{
     CloudClient, CustomEndpointTrust, DnsClient, EndpointTrust, HetznerClient,
     HetznerClientConstructionError, OfficialEndpointTrust, SecurityClient, StorageClient,
 };
+#[cfg(feature = "serde")]
+pub use dns::{DNS_CLIENT_METHODS, DnsClientMethodDescriptor, DnsReadResult};
 
 #[cfg(test)]
 mod tests;
