@@ -83,13 +83,13 @@ operation contracts, then validates them with an unpublished OVHcloud API v2
 architecture probe, a narrow credential-free Robot wire fixture, and
 full-fidelity Hetzner vertical slices before the neutral API freeze.
 
-The latest published checkpoint is `v0.65.0`. v0.66 completes source-derived
-Hetzner certificate and structurally validated SSH-key response models,
-verified key fingerprints, exact certificate error codes, protected key
-material, redacted diagnostics, and typed security live-smoke coverage. Its
-incremental pentest and final retest passed; the internal tag remains gated on
-the full release check, GitHub CI, and CodeQL. Cumulative crates.io publication
-is deferred to v0.70.0.
+The latest published checkpoint is `v0.65.0`, and `v0.66.0` is a signed
+internal milestone. v0.67 completes source-derived Hetzner Console Storage Box,
+type, snapshot, and subaccount response models with bounded collections,
+validated nullability and timestamps, protected owned text, dedicated checked
+decoder routes, and read-only live-smoke staging. Its incremental pentest is
+required before the internal tag. Cumulative crates.io publication is deferred
+to v0.70.0.
 
 ## Trust Dashboard
 
@@ -219,6 +219,13 @@ visible. Applications should enable only the features they use.
 - [Migrating source users to v0.58](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.58.0.md)
 - [Migrating source users to v0.59](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.59.0.md)
 - [Migrating to v0.60](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.60.0.md)
+- [Migrating source users to v0.61](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.61.0.md)
+- [Migrating source users to v0.62](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.62.0.md)
+- [Migrating source users to v0.63](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.63.0.md)
+- [Migrating source users to v0.64](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.64.0.md)
+- [Migrating to v0.65](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.65.0.md)
+- [Migrating source users to v0.66](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.66.0.md)
+- [Migrating source users to v0.67](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.67.0.md)
 - [Compile-time Hetzner operation associations](https://github.com/valkyoth/cloud-sdk/blob/main/docs/OPERATION_ASSOCIATIONS.md)
 - [Incremental provider decoding](https://github.com/valkyoth/cloud-sdk/blob/main/docs/INCREMENTAL_DECODING.md)
 - [Deprecated endpoint policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/DEPRECATED_ENDPOINT_POLICY.md)

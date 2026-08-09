@@ -87,8 +87,11 @@ fn boxes_and_types_use_source_complete_singleton_and_page_models() {
     let HetznerSuccess::StorageBoxTypes(page) = decoded.success() else {
         unreachable!("Storage Box type page selected the wrong model")
     };
-    assert_eq!(page.storage_box_types()[0].id(), 1);
-    assert_eq!(page.storage_box_types()[0].prices().len(), 1);
+    let Some(storage_box_type) = page.storage_box_types().first() else {
+        unreachable!("Storage Box type fixture became empty")
+    };
+    assert_eq!(storage_box_type.id(), 1);
+    assert_eq!(storage_box_type.prices().len(), 1);
 
     let body = envelope_body("storage_box_type", resource_value("storage_box_type"));
     let decoded = decode_response(

@@ -2122,11 +2122,37 @@ Stop gate: `v0.66.0 implementation stop reached. Complete the pentest and full r
 
 ### v0.67.0 - Complete Console Storage Box Models
 
-Goal: complete boxes, types, snapshots, folders, subaccounts, and actions.
+Goal: replace generic Console success resources with source-complete typed
+Storage Box response families while retaining bounded, cleanup-owning decode
+behavior.
 
-Deliverables: all source fields, secret outputs, bounded large responses, nullability, and contiguous/incremental decoding.
+Deliverables:
 
-Verification: schema/secret/large-response/live-read tests and `scripts/release_0_67_gate.sh`.
+- Extend deterministic model evidence from the pinned Cloud and Console
+  specifications and fail when either source operation or field contract
+  disappears, changes type, changes nullability, or exceeds admitted patterns.
+- Add private-field models and read-only accessors for Storage Boxes, Storage
+  Box types and prices, snapshots and statistics, subaccounts and access
+  settings, pagination, and create-composite references.
+- Validate source integer and text bounds, canonical UTC timestamps, status and
+  nullable initialization coherence, snapshot character policy, subaccount
+  home-directory policy, list limits, and page-size coherence.
+- Keep provider-returned names, descriptions, hostnames, system identifiers,
+  usernames, labels, and monetary text in cleanup-owning storage with redacted
+  aggregate diagnostics and guarded fallible construction.
+- Route list, singleton, update, and create-composite operations to dedicated
+  `HetznerSuccess` and `StorageBoxResource` variants after contiguous and
+  incremental JSON admission; retain shared typed action and folder models.
+- Add credential-gated read-only box/type live probes without requiring owned
+  inventory or admitting transport dependencies to the provider default graph.
+
+Verification: regenerate the combined source field table and fixtures; run
+all-operation minimal envelopes, box/type/snapshot/subaccount singleton and
+list routing, create-reference distinctions, timestamp/nullability/status and
+character failures, exact collection limits, cross-chunk large responses,
+vertical execution, ignored live-probe staging, and named fuzz seeds. Run
+`scripts/check_storage_response_models.sh`, pinned live API/model drift, and
+`scripts/release_0_67_gate.sh`.
 
 Stop gate: `v0.67.0 implementation stop reached. Complete the pentest and full release gate for this exact commit; defer crates.io publication to v0.70.0.`
 

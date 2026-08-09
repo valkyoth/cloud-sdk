@@ -50,6 +50,9 @@ impl StorageBoxSubaccountReference {
 }
 
 /// Source-locked resource supplied by a Console create composite.
+// Keep parsing fully fallible; boxing the complete box would add an infallible
+// allocation after the parser has already reserved and validated all storage.
+#[allow(clippy::large_enum_variant)]
 #[non_exhaustive]
 pub enum StorageBoxResource {
     /// Complete Storage Box returned by `create_storage_box`.

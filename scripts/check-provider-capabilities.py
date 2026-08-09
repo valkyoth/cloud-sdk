@@ -22,11 +22,11 @@ EXPECTED = (
         "Success response models",
         "Complete checked envelopes for all 208 operations; source-complete "
         "ordinary Cloud resources, DNS zones and RRSets, zonefiles, actions, "
-        "metrics, composites, pricing, locations, certificates, and Storage "
-        "Boxes; complete certificate and SSH-key models; operation-branded "
-        "typed execution guards decode through "
+        "metrics, composites, pricing, locations, certificates, SSH keys, "
+        "and Console Storage Boxes, types, snapshots, subaccounts, and "
+        "folders; operation-branded typed execution guards decode through "
         "`decode_associated_checked_response`",
-        "Remaining Console models in `v0.67.0`",
+        "Current",
     ),
     (
         "Error response models",

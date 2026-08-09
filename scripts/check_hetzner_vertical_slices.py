@@ -38,8 +38,12 @@ def main() -> int:
             raise ValueError(f"wrong vertical binding for {operation}: {actual!r}")
 
     require(
-        ROOT / "crates/cloud-sdk-hetzner/src/serde/models.rs",
-        ("Locations(LocationPage)", "SecurityResource(SecurityResource)", "StorageBoxes(StorageBoxPage)"),
+        ROOT / "crates/cloud-sdk-hetzner/src/serde/models/result.rs",
+        (
+            "Locations(LocationPage)",
+            "SecurityResource(SecurityResource)",
+            "StorageBoxes(StorageBoxPage)",
+        ),
     )
     require(
         ROOT / "crates/cloud-sdk-hetzner/src/serde/checked.rs",

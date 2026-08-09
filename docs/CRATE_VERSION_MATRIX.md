@@ -1,9 +1,9 @@
 # Crate Version Matrix
 
-Status: `v0.65.0` is tagged and published. `v0.66.0` is an internal release
-candidate with a passed incremental pentest and final retest; no package is
-selected for crates.io until the v0.70.0 cumulative checkpoint. Every pre-1.0
-tag receives its own incremental pentest.
+Status: `v0.65.0` is tagged and published, and `v0.66.0` is a signed internal
+milestone. `v0.67.0` is the next internal candidate; no package is selected for
+crates.io until the v0.70.0 cumulative checkpoint. Every pre-1.0 tag receives
+its own incremental pentest.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
@@ -988,6 +988,21 @@ accumulates under the versions published at v0.65.0 until v0.70.0.
 | `cloud-sdk-hetzner` | `0.40.0` | `0.40.0` | `code` | No | Accumulate complete certificate and SSH-key response models for v0.70.0. |
 | `cloud-sdk-reqwest` | `0.34.0` | `0.34.0` | `unchanged` | No | No transport boundary changes. |
 | `cloud-sdk-sanitization` | `0.18.0` | `0.18.0` | `unchanged` | No | Existing protected owned strings satisfy the secret-output boundary. |
+| `cloud-sdk-testkit` | `0.30.0` | `0.30.0` | `unchanged` | No | No testkit boundary changes. |
+
+## v0.67.0 Tracking Table
+
+`v0.67.0` completes source-derived Console Storage Box, type, snapshot, and
+subaccount response models. It remains internal, so no package is selected for
+crates.io and provider code continues to accumulate under the versions
+published at v0.65.0 until v0.70.0.
+
+| Crate | Published | Source | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.65.0` | `0.67.0` | `metadata` | No | Record the complete Console response-model milestone and release evidence. |
+| `cloud-sdk-hetzner` | `0.40.0` | `0.40.0` | `code` | No | Accumulate complete Console Storage Box response models for v0.70.0. |
+| `cloud-sdk-reqwest` | `0.34.0` | `0.34.0` | `unchanged` | No | No transport boundary changes. |
+| `cloud-sdk-sanitization` | `0.18.0` | `0.18.0` | `unchanged` | No | Existing cleanup-owning strings satisfy the response-text boundary. |
 | `cloud-sdk-testkit` | `0.30.0` | `0.30.0` | `unchanged` | No | No testkit boundary changes. |
 
 ## Planned Milestone Ownership
