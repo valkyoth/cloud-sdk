@@ -89,9 +89,12 @@ cargo run --quiet --locked \
     tests/reqwest-feature-unification/src
 scripts/generate_operation_associations.py --check
 scripts/generate_typed_operation_bindings.py --check
+scripts/generate_cloud_client_methods.py --check
+scripts/test-cloud-client-methods.py
 scripts/test-operation-associations.py
 scripts/test-typed-operation-bindings.py
 scripts/check_typed_operation_bindings.py
+scripts/check_cloud_client_methods.sh
 scripts/check_hetzner_wire_migration.py
 scripts/test-response-operation-coverage.py
 scripts/test-generate-response-operations.py

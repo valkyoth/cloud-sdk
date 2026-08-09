@@ -5,7 +5,8 @@ use core::task::{Context, Poll, Waker};
 
 use cloud_sdk::operation::{
     AttemptBudget, PermitClock, PermitContext, PermitTimestamp, PermitValidity, PlanChange,
-    PlanFingerprintScope, PreparationStorage, PreparedRequest, ReplayPolicy,
+    PlanFingerprintScope, PreparationStorage, PreparationStorageGuard, PreparedRequest,
+    ReplayPolicy,
 };
 use cloud_sdk::transport::{EndpointIdentity, EndpointScheme, StatusCode};
 use cloud_sdk_hetzner::association::operations::{
@@ -15,9 +16,9 @@ use cloud_sdk_hetzner::association::operations::{
 use cloud_sdk_hetzner::association::{
     AssociatedDestructivePermit, AssociatedMutationPermit, AssociatedOperation,
     AssociatedPlanConfirmation, AuthenticationClass, DestructivePermit as DestructivePermitMarker,
-    HetznerOperation, MutationPermit as MutationPermitMarker, Prepared, ReadOnlyOperation,
-    build_associated_canonical_plan,
+    HetznerOperation, Prepared, ReadOnlyOperation, build_associated_canonical_plan,
 };
+use cloud_sdk_hetzner::client::HetznerClient;
 use cloud_sdk_hetzner::cloud::catalog::CatalogListEndpoint;
 use cloud_sdk_hetzner::cloud::servers::ServerId;
 use cloud_sdk_hetzner::cloud::servers::actions::{ServerActionEndpoint, ServerActionKind};
@@ -144,11 +145,19 @@ fn action_and_no_content_slices_cross_permit_and_executor_paths() {
     let Ok(operation) = operation else {
         unreachable!("poweron association failed")
     };
-    let prepared = operation.prepare_typed(PreparationStorage::new(&mut target, &mut request_body));
+    let no_exchanges = [];
+    let preparation_client =
+        HetznerClient::cloud(MockTransport::new(&no_exchanges).with_endpoint(cloud));
+    let Ok(preparation_client) = preparation_client else {
+        unreachable!("Cloud preparation client construction failed")
+    };
+    let mut storage = PreparationStorageGuard::new(&mut target, &mut request_body);
+    let prepared = preparation_client.prepare_poweron_server(&operation, &mut storage);
     let Ok(prepared) = prepared else {
         unreachable!("poweron preparation failed")
     };
     exercise_mutation_modes(prepared, cloud);
+    drop(storage);
 
     let operation = AssociatedOperation::<DeleteCertificate, _>::endpoint(
         CertificateEndpoint::Delete(certificate_id),
@@ -274,10 +283,10 @@ fn endpoint(host: &'static str) -> EndpointIdentity<'static> {
     endpoint
 }
 
-fn exercise_mutation_modes<O>(prepared: Prepared<'_, O>, endpoint: EndpointIdentity<'static>)
-where
-    O: Copy + HetznerOperation<Permit = MutationPermitMarker>,
-{
+fn exercise_mutation_modes(
+    prepared: Prepared<'_, PoweronServer>,
+    endpoint: EndpointIdentity<'static>,
+) {
     let untyped = prepared.as_untyped();
     let mut scratch = [0_u8; 4_096];
     let plan = associated_plan(prepared, endpoint);
@@ -296,27 +305,29 @@ where
     };
     let exchange = exchange(untyped, StatusCode::CREATED, ACTION, true);
     let exchanges = [exchange];
-    let mock = MockTransport::new(&exchanges).with_endpoint(endpoint);
+    let client = HetznerClient::cloud(MockTransport::new(&exchanges).with_endpoint(endpoint));
+    let Ok(client) = client else {
+        unreachable!("blocking Cloud client construction failed")
+    };
     let mut body = [0_u8; 512];
     let mut headers = [0_u8; 8_192];
-    let result = attempt.execute_blocking(&FixedClock, &mock, &mut body, &mut headers);
+    let result = client.poweron_server_blocking(attempt, &FixedClock, &mut body, &mut headers);
     let Ok(result) = result else {
         unreachable!("typed mutation execution failed")
     };
     assert!(decode_associated_checked_response(result).is_ok());
+    assert!(client.transport().is_complete());
 
     execute_mutation_async(prepared, endpoint, false);
     execute_mutation_async(prepared, endpoint, true);
     execute_shared_digest_mutation(prepared, endpoint);
 }
 
-fn execute_mutation_async<O>(
-    prepared: Prepared<'_, O>,
+fn execute_mutation_async(
+    prepared: Prepared<'_, PoweronServer>,
     endpoint: EndpointIdentity<'static>,
     local: bool,
-) where
-    O: Copy + HetznerOperation<Permit = MutationPermitMarker>,
-{
+) {
     let untyped = prepared.as_untyped();
     let mut scratch = [0_u8; 4_096];
     let fingerprint =
@@ -338,21 +349,31 @@ fn execute_mutation_async<O>(
     let mut headers = [0_u8; 8_192];
     let mut context = Context::from_waker(Waker::noop());
     if local {
-        let mock = LocalMockTransport::new(&exchanges).with_endpoint(endpoint);
-        let future = attempt.execute_local_async(&FixedClock, &mock, &mut body, &mut headers);
+        let client =
+            HetznerClient::cloud(LocalMockTransport::new(&exchanges).with_endpoint(endpoint));
+        let Ok(client) = client else {
+            unreachable!("local Cloud client construction failed")
+        };
+        let future =
+            client.poweron_server_local_async(attempt, &FixedClock, &mut body, &mut headers);
         let mut future = core::pin::pin!(future);
         let Poll::Ready(Ok(response)) = Future::poll(future.as_mut(), &mut context) else {
             unreachable!("typed local mutation execution failed")
         };
         assert!(decode_associated_checked_response(response).is_ok());
+        assert!(client.transport().is_complete());
     } else {
-        let mock = MockTransport::new(&exchanges).with_endpoint(endpoint);
-        let future = attempt.execute_async(&FixedClock, &mock, &mut body, &mut headers);
+        let client = HetznerClient::cloud(MockTransport::new(&exchanges).with_endpoint(endpoint));
+        let Ok(client) = client else {
+            unreachable!("Send-async Cloud client construction failed")
+        };
+        let future = client.poweron_server_async(attempt, &FixedClock, &mut body, &mut headers);
         let mut future = core::pin::pin!(future);
         let Poll::Ready(Ok(response)) = Future::poll(future.as_mut(), &mut context) else {
             unreachable!("typed Send mutation execution failed")
         };
         assert!(decode_associated_checked_response(response).is_ok());
+        assert!(client.transport().is_complete());
     }
 }
 
