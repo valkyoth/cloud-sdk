@@ -1,6 +1,6 @@
 # v0.69.0 Rejected Abstractions
 
-Status: implementation complete; pentest required.
+Status: release candidate; pentest and final retest passed.
 
 ## A Separate Hetzner Client Crate
 

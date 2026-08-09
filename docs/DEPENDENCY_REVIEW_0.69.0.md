@@ -1,6 +1,6 @@
 # v0.69.0 Dependency Review
 
-Status: implementation complete; pentest required.
+Status: release candidate; pentest and final retest passed.
 
 v0.69 adds no package, dependency, feature activation, build script, native
 component, runtime, network stack, or unsafe code. The new client facade uses

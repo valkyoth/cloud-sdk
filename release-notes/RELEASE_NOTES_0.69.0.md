@@ -1,11 +1,11 @@
 # cloud-sdk 0.69.0 Milestone Notes
 
-Status: implementation complete; pentest required.
+Status: release candidate; pentest and final retest passed.
 
-Release date: pending
+Release date: 2026-08-09
 
-Security-Review: PENDING
-Pentest: PENDING
+Security-Review: PASS
+Pentest: PASS
 Publication: DEFERRED TO v0.70.0
 
 ## Overview
@@ -40,6 +40,17 @@ internal milestone and publishes no crate.
   checked provider response plus constructor, trust, capacity, cleanup,
   default-feature, and all-feature tests.
 
+## Security Review
+
+- Sealed `HetznerClientOperation` so foreign operation types cannot claim a
+  provider-owned service association.
+- Replaced source-text client gate assertions with executable unit,
+  integration, rustdoc, and feature-boundary checks.
+- Constrained the custom-trust compile-fail proof fully and paired it with a
+  compiling official-trust control using identical bounds.
+- Kept custom endpoint execution unavailable, direct mutation behind permits,
+  and endpoint-redacted diagnostics allocation-free under default features.
+
 ## Versions
 
 | Crate | Source version | Cumulative change | Publication |
@@ -57,6 +68,7 @@ internal milestone and publishes no crate.
 - [`docs/THREAT_MODEL_DELTA_0.69.0.md`](../docs/THREAT_MODEL_DELTA_0.69.0.md)
 - [`docs/REJECTED_ABSTRACTIONS_0.69.0.md`](../docs/REJECTED_ABSTRACTIONS_0.69.0.md)
 - [`docs/MIGRATION_0.69.0.md`](../docs/MIGRATION_0.69.0.md)
+- [`security/pentest/v0.69.0.md`](../security/pentest/v0.69.0.md)
 
 ## Release Gate
 
