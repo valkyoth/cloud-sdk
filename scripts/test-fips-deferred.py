@@ -4,14 +4,26 @@
 from __future__ import annotations
 
 import importlib.util
+import os
+import subprocess
+import sys
 import tempfile
 from pathlib import Path
+
+
+if sys.flags.optimize:
+    raise SystemExit("security regression tests must not run with Python optimization")
+
+
+def require(condition: bool, message: str) -> None:
+    if not condition:
+        raise AssertionError(message)
 
 
 ROOT = Path(__file__).resolve().parents[1]
 CHECKER_PATH = ROOT / "scripts" / "check_fips_deferred.py"
 SPEC = importlib.util.spec_from_file_location("check_fips_deferred", CHECKER_PATH)
-assert SPEC is not None and SPEC.loader is not None
+require(SPEC is not None and SPEC.loader is not None, "cannot load FIPS checker")
 CHECKER = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(CHECKER)
 
@@ -56,7 +68,7 @@ def test_clean_fixture_passes() -> None:
     with tempfile.TemporaryDirectory() as directory:
         root = Path(directory)
         fixture(root)
-        assert CHECKER.collect_failures(root) == []
+        require(CHECKER.collect_failures(root) == [], "clean fixture was rejected")
 
 
 def test_manifest_feature_and_dependency_fail() -> None:
@@ -70,8 +82,14 @@ def test_manifest_feature_and_dependency_fail() -> None:
             '[dependencies]\naws-lc-fips-sys = "0.1"\n',
         )
         failures = CHECKER.collect_failures(root)
-        assert any("exposes blocking-rustls-fips" in item for item in failures)
-        assert any("depends on aws-lc-fips-sys" in item for item in failures)
+        require(
+            any("exposes blocking-rustls-fips" in item for item in failures),
+            "retired FIPS feature was accepted",
+        )
+        require(
+            any("depends on aws-lc-fips-sys" in item for item in failures),
+            "retired FIPS dependency was accepted",
+        )
 
 
 def test_lock_source_ci_and_docs_fail() -> None:
@@ -88,18 +106,50 @@ def test_lock_source_ci_and_docs_fail() -> None:
             '"aws-lc-fips-sys requires this duplicate" }]\n',
         )
         failures = CHECKER.collect_failures(root)
-        assert any("locks aws-lc-fips-sys" in item for item in failures)
-        assert any("exposes removed FIPS API" in item for item in failures)
-        assert any("retired FIPS transport" in item for item in failures)
-        assert any("advertises the retired FIPS API" in item for item in failures)
-        assert any("obsolete FIPS-specific ban exception" in item for item in failures)
+        require(
+            any("locks aws-lc-fips-sys" in item for item in failures),
+            "retired FIPS lock entry was accepted",
+        )
+        require(
+            any("exposes removed FIPS API" in item for item in failures),
+            "retired FIPS source API was accepted",
+        )
+        require(
+            any("retired FIPS transport" in item for item in failures),
+            "retired FIPS CI job was accepted",
+        )
+        require(
+            any("advertises the retired FIPS API" in item for item in failures),
+            "retired FIPS documentation was accepted",
+        )
+        require(
+            any("obsolete FIPS-specific ban exception" in item for item in failures),
+            "obsolete FIPS deny exception was accepted",
+        )
+
+
+def test_optimized_execution_fails_closed() -> None:
+    optimized = subprocess.run(
+        [sys.executable, "-O", str(__file__)],
+        cwd=ROOT,
+        env={**os.environ, "PYTHONOPTIMIZE": ""},
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    require(optimized.returncode != 0, "optimized test execution was accepted")
+    require(
+        "must not run with Python optimization" in optimized.stderr,
+        "optimized rejection was not explicit",
+    )
 
 
 def main() -> None:
     test_clean_fixture_passes()
     test_manifest_feature_and_dependency_fail()
     test_lock_source_ci_and_docs_fail()
-    print("3 FIPS deferment regression groups passed.")
+    test_optimized_execution_fails_closed()
+    print("4 FIPS deferment regression groups passed.")
 
 
 if __name__ == "__main__":

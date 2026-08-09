@@ -39,7 +39,6 @@ multiple-versions = "deny"
 wildcards = "deny"
 highlight = "all"
 skip = [
-    { crate = "core-foundation@0.9.4", reason = "Reqwest's optional Hickory resolver still uses core-foundation 0.9 on macOS while rustls-platform-verifier uses 0.10" },
     { crate = "syn@2.0.119", reason = "Platform macros require syn 2 while current Serde requires syn 3; both lines are compile-time only" },
 ]
 
