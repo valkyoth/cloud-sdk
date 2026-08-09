@@ -83,11 +83,10 @@ operation contracts, then validates them with an unpublished OVHcloud API v2
 architecture probe, a narrow credential-free Robot wire fixture, and
 full-fidelity Hetzner vertical slices before the neutral API freeze.
 
-The latest published checkpoint is `v0.65.0`, and `v0.66.0` is a signed
-internal milestone. v0.67 completes source-derived Hetzner Console Storage Box,
-type, snapshot, and subaccount response models with bounded collections,
-validated nullability and timestamps, protected owned text, dedicated checked
-decoder routes, and read-only live-smoke staging. Its incremental pentest and
+The latest published checkpoint is `v0.65.0`, and `v0.67.0` is the latest
+signed internal milestone. v0.68 proves complete typed request, response,
+error, and policy associations for all 208 active pre-Robot Hetzner operations,
+with exact path and response-identity enforcement. Its incremental pentest and
 retest passed; the final evidence commit awaits GitHub CI and CodeQL before the
 internal tag. Cumulative crates.io publication is deferred to v0.70.0.
 

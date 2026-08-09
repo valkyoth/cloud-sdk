@@ -1,11 +1,11 @@
 # cloud-sdk 0.68.0 Milestone Notes
 
-Status: implementation complete; pentest required.
+Status: release candidate; pentest and final retest passed.
 
-Release date: pending
+Release date: 2026-08-09
 
-Security-Review: PENDING
-Pentest: PENDING
+Security-Review: PASS
+Pentest: PASS
 Publication: DEFERRED TO v0.70.0
 
 ## Overview
@@ -57,6 +57,7 @@ and publishes no crate.
 
 ## Release Gate
 
-Run `scripts/release_0_68_gate.sh` on the clean final evidence commit after the
-incremental pentest and retest. GitHub CI and CodeQL must be green on that
-unchanged commit before the signed internal tag. Do not publish crates.
+The incremental pentest against signed v0.67.0 and final retest are green. Run
+`scripts/release_0_68_gate.sh` on the clean final evidence commit. GitHub CI and
+CodeQL must be green on that unchanged commit before the signed internal tag.
+Do not publish crates.
