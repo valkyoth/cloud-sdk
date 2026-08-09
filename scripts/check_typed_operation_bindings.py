@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import sys
+import subprocess
 
 import check_prepared_operation_coverage as prepared
 import check_response_operation_coverage as responses
@@ -26,6 +27,52 @@ EXPECTED_REJECTING_BODY_VARIANTS = {
     "reset_server_password",
     "shutdown_server",
 }
+EVIDENCE_COLUMNS = (
+    "operation_id",
+    "method",
+    "path",
+    "endpoint_policy",
+    "authentication",
+    "query_policy",
+    "body_policy",
+    "success_status",
+    "success_shape",
+    "success_body_max_bytes",
+    "error_body_max_bytes",
+    "pagination",
+    "retry",
+    "permit_class",
+    "response_identity",
+)
+
+
+def executable_evidence() -> list[dict[str, str]]:
+    """Read policy values emitted from compiled Rust descriptors."""
+    result = subprocess.run(
+        [
+            "cargo",
+            "run",
+            "--quiet",
+            "--locked",
+            "-p",
+            "cloud-sdk-hetzner",
+            "--example",
+            "typed_binding_evidence",
+        ],
+        cwd=bindings.ROOT,
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
+        raise ValueError("compiled Rust binding evidence could not be emitted")
+    rows = []
+    for number, line in enumerate(result.stdout.splitlines(), 1):
+        values = line.split("\t")
+        if len(values) != len(EVIDENCE_COLUMNS):
+            raise ValueError(f"compiled Rust evidence row {number} is malformed")
+        rows.append(dict(zip(EVIDENCE_COLUMNS, values, strict=True)))
+    return rows
 
 
 def fingerprint_sets() -> tuple[set[str], set[str]]:
@@ -50,6 +97,11 @@ def validate() -> None:
     actual_rows = bindings.read_manifest()
     if actual_rows != expected_rows:
         raise ValueError("typed operation binding manifest differs from source locks")
+    expected_evidence = [
+        {column: row[column] for column in EVIDENCE_COLUMNS} for row in actual_rows
+    ]
+    if executable_evidence() != expected_evidence:
+        raise ValueError("compiled Rust bindings differ from the reviewed manifest")
     manifest_operations = {row["operation_id"] for row in actual_rows}
     if manifest_operations != active or manifest_operations & deprecated:
         raise ValueError("typed binding active/deprecated partition is invalid")

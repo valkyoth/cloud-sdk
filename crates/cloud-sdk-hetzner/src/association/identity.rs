@@ -26,3 +26,25 @@ pub(crate) enum ExpectedResponseIdentity {
         subaccount: Option<u64>,
     },
 }
+
+impl ExpectedResponseIdentity {
+    pub(crate) const fn class(self) -> super::ResponseIdentityClass {
+        match self {
+            Self::None => super::ResponseIdentityClass::None,
+            Self::StorageBox(_) | Self::StorageBoxType(_) => {
+                super::ResponseIdentityClass::ExactResource
+            }
+            Self::StorageBoxSnapshot {
+                snapshot: Some(_), ..
+            }
+            | Self::StorageBoxSubaccount {
+                subaccount: Some(_),
+                ..
+            } => super::ResponseIdentityClass::ExactResource,
+            Self::StorageBoxSnapshot { snapshot: None, .. }
+            | Self::StorageBoxSubaccount {
+                subaccount: None, ..
+            } => super::ResponseIdentityClass::ParentResource,
+        }
+    }
+}

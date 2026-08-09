@@ -4,8 +4,8 @@ Status: implementation complete; pentest required.
 
 v0.68 adds no package, dependency feature, build script, native component, or
 network source. The binding generator and verifier use only Python's standard
-library plus existing repository scripts. The Rust change is documentation-only
-compile-fail coverage.
+library plus existing repository scripts. Rust changes use only existing
+workspace crates and `core`; no dependency edge or feature is added.
 
 The source version of `cloud-sdk-hetzner` remains at published version 0.40.0
 until v0.70.0. No crate is selected for publication.

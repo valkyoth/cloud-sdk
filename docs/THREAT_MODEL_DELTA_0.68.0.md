@@ -18,7 +18,12 @@ their combined association for all 208 active operations.
 - Generation requires exact active-operation equality across fingerprints,
   associations, request-body locks, response locks, and authentication locks.
 - An independent gate compares the committed manifest byte-for-byte with its
-  regenerated form and compares operation sets with the Markdown API matrix.
+  regenerated form, compares operation sets with the Markdown API matrix, and
+  compares security-relevant rows with evidence emitted by compiled Rust.
+- Every prepared path must match the source-locked descriptor template.
+  Mismatch clears complete caller-owned request storage and fails closed.
+- A separate response-identity lock distinguishes no identity, exact-resource,
+  and parent-resource checks instead of flattening every row to one label.
 - The Rust AST checker proves every active operation has an endpoint adapter,
   every required JSON body has a body adapter, and every endpoint declares an
   explicit response-identity policy.
@@ -33,5 +38,6 @@ their combined association for all 208 active operations.
 ## Unchanged Boundaries
 
 No request is sent, no provider response is parsed, and no credential is read
-by the new tooling. Runtime memory, transport, TLS, filesystem, clock, secret,
-and allocation boundaries are unchanged.
+by the new tooling. The preparation path performs bounded segment comparison
+without allocation. Transport, TLS, filesystem, clock, secret, and dependency
+boundaries are unchanged.

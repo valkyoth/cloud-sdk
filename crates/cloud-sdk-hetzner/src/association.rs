@@ -27,7 +27,8 @@ pub use permit::{
 };
 pub use policy::{
     AuthenticationClass, BodyPolicy, HetznerOperation, OperationAssociation, OperationDescriptor,
-    PaginationPolicy, PermitClass, QueryPolicy, ReadOnlyOperation, ResponseShape, RetryPolicy,
+    PaginationPolicy, PermitClass, QueryPolicy, ReadOnlyOperation, ResponseIdentityClass,
+    ResponseShape, RetryPolicy,
 };
 pub use prepared::{
     AssociatedCheckedResponse, AssociatedOperation, AssociatedPreparationError, Prepared,
@@ -35,6 +36,7 @@ pub use prepared::{
 pub use types::*;
 
 pub(crate) use identity::ExpectedResponseIdentity;
+pub(crate) use markers::operation_path_template;
 
 #[cfg(test)]
 mod identity_contract_tests;

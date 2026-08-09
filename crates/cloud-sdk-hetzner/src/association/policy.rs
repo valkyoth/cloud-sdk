@@ -106,6 +106,17 @@ pub enum ResponseShape {
     Folders,
 }
 
+/// Identity relationship enforced for a successful response.
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub enum ResponseIdentityClass {
+    /// No response identity is currently modeled for the operation.
+    None,
+    /// The response must identify the exact resource in the request path.
+    ExactResource,
+    /// The response must identify the parent resource in the request path.
+    ParentResource,
+}
+
 /// Complete inspectable association for one operation marker.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct OperationDescriptor {
@@ -118,6 +129,8 @@ pub struct OperationDescriptor {
     body: BodyPolicy,
     success_status: StatusCode,
     response_shape: ResponseShape,
+    path_template: &'static str,
+    response_identity: ResponseIdentityClass,
     success_body_bytes: usize,
     error_body_bytes: usize,
     pagination: PaginationPolicy,
@@ -137,6 +150,8 @@ impl OperationDescriptor {
         body: BodyPolicy,
         success_status: StatusCode,
         response_shape: ResponseShape,
+        path_template: &'static str,
+        response_identity: ResponseIdentityClass,
         pagination: PaginationPolicy,
         retry: RetryPolicy,
         permit: PermitClass,
@@ -156,6 +171,8 @@ impl OperationDescriptor {
             body,
             success_status,
             response_shape,
+            path_template,
+            response_identity,
             success_body_bytes,
             error_body_bytes: MAX_ASSOCIATED_JSON_BYTES,
             pagination,
@@ -208,6 +225,16 @@ impl OperationDescriptor {
     #[must_use]
     pub const fn response_shape(self) -> ResponseShape {
         self.response_shape
+    }
+    /// Returns the source-locked endpoint path template.
+    #[must_use]
+    pub const fn path_template(self) -> &'static str {
+        self.path_template
+    }
+    /// Returns the successful response identity relationship.
+    #[must_use]
+    pub const fn response_identity(self) -> ResponseIdentityClass {
+        self.response_identity
     }
     /// Returns the successful response-body cap.
     #[must_use]

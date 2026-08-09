@@ -21,13 +21,17 @@ and publishes no crate.
   and response-identity policy.
 - Cross-checked all 208 rows against independent fingerprint, association,
   request-body, response, provider-authentication, Markdown matrix, generated
-  Rust marker, and Rust AST evidence.
+  Rust marker, Rust AST, and compiled descriptor evidence.
+- Source-locked path templates and exact/parent/none response-identity classes
+  in executable descriptors. Written paths now fail closed against the template
+  and clear complete request storage on mismatch.
 - Required the exact 91 JSON request-body operations while source-locking 12
   shared enum variants that reject bodies under typed policy.
 - Explicitly excluded all 13 deprecated operations from executable endpoint,
   body, response, and marker registries.
 - Added regression tests for schema truncation, representative cross-service
-  policy rows, deprecated exclusion, and fail-closed body variants.
+  policy rows, deprecated exclusion, fail-closed body variants, optimized
+  Python rejection, identity classes, and wrong executable paths.
 - Added compile-fail coverage for cross-operation body assembly. Existing
   compile-fail tests cover query, response, and permit mismatches.
 

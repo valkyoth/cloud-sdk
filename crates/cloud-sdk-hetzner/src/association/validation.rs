@@ -35,6 +35,7 @@ pub(crate) struct ValidatedAssociationPolicy {
     pub(crate) body_replayability: BodyReplayability,
     pub(crate) profile: ResponseProfile,
     pub(crate) request_shape: RequestShape,
+    pub(crate) path_template: &'static str,
 }
 
 pub(crate) fn validate_association<O, E>(
@@ -75,6 +76,8 @@ where
         || runtime_authentication != expected.authentication
         || runtime_response != expected.response
         || runtime_raw != expected.raw_response
+        || endpoint.path_template() != descriptor.path_template()
+        || endpoint.response_identity_class() != descriptor.response_identity()
     {
         return Err(AssociationError::PreparedPolicyMismatch);
     }
@@ -126,6 +129,7 @@ fn canonical_policy(
         body_replayability: BodyReplayability::Replayable,
         profile,
         request_shape: request_shape_for(descriptor)?,
+        path_template: descriptor.path_template(),
     })
 }
 

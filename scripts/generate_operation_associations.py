@@ -17,9 +17,11 @@ RESPONSES = (
     ROOT / "crates" / "cloud-sdk-hetzner" / "src" / "serde" / "response_operations.tsv"
 )
 ASSOCIATIONS = ROOT / "docs" / "OPERATION_ASSOCIATIONS.tsv"
+RESPONSE_IDENTITIES = ROOT / "docs" / "RESPONSE_IDENTITY_CLASSES.tsv"
 OUTPUT = ROOT / "crates" / "cloud-sdk-hetzner" / "src" / "association" / "markers.rs"
 PROVIDER_LOCK = ROOT / "provider-drift" / "providers" / "hetzner.lock.json"
 EXPECTED_OPERATIONS = 208
+RESPONSE_IDENTITY_COLUMNS = ("operation_id", "response_identity")
 
 ASSOCIATION_COLUMNS = (
     "operation_id",
@@ -75,6 +77,11 @@ PERMIT_TYPES = {
     "destructive": "DestructivePermit",
     "cost": "CostPermit",
 }
+RESPONSE_IDENTITY_TYPES = {
+    "none": "ResponseIdentityClass::None",
+    "exact-resource": "ResponseIdentityClass::ExactResource",
+    "parent-resource": "ResponseIdentityClass::ParentResource",
+}
 
 
 @dataclass(frozen=True)
@@ -95,6 +102,28 @@ class Operation:
     body_policy: str
     retry_policy: str
     permit_class: str
+    response_identity: str
+
+
+def read_response_identities(path: Path = RESPONSE_IDENTITIES) -> dict[str, str]:
+    """Read explicit non-default response identity classes."""
+    with path.open(encoding="ascii", newline="") as handle:
+        reader = csv.DictReader(handle, delimiter="\t")
+        if tuple(reader.fieldnames or ()) != RESPONSE_IDENTITY_COLUMNS:
+            raise ValueError("response identity source has an invalid schema")
+        rows = list(reader)
+    identities: dict[str, str] = {}
+    for number, row in enumerate(rows, 2):
+        operation_id = row.get("operation_id", "")
+        identity = row.get("response_identity", "")
+        if not operation_id or identity not in RESPONSE_IDENTITY_TYPES or identity == "none":
+            raise ValueError(f"invalid response identity row {number}")
+        if operation_id in identities:
+            raise ValueError("response identity source has duplicate operation IDs")
+        identities[operation_id] = identity
+    if list(identities) != sorted(identities):
+        raise ValueError("response identity rows are not sorted")
+    return identities
 
 
 def read_tsv(path: Path) -> list[dict[str, str]]:
@@ -195,6 +224,7 @@ def load_operations() -> list[Operation]:
         read_associations(), "operation_id", "operation association"
     )
     bodies = read_bodies(BODIES)
+    response_identities = read_response_identities()
     authentication = source_authentication()
     active = set(fingerprints)
     if len(active) != EXPECTED_OPERATIONS:
@@ -205,6 +235,8 @@ def load_operations() -> list[Operation]:
         raise ValueError("operation associations do not exactly cover active operations")
     if not bodies <= active:
         raise ValueError("request-body lock contains inactive operations")
+    if not set(response_identities) <= active:
+        raise ValueError("response identity source contains inactive operations")
     operations = []
     for operation_id in sorted(active):
         source = fingerprints[operation_id]
@@ -239,6 +271,7 @@ def load_operations() -> list[Operation]:
                 body_policy=association["body_policy"],
                 retry_policy=association["retry_policy"],
                 permit_class=association["permit_class"],
+                response_identity=response_identities.get(operation_id, "none"),
             )
         )
     return operations
@@ -263,6 +296,8 @@ def row(operation: Operation) -> str:
         body,
         STATUS_TYPES[operation.status],
         RESPONSE_TYPES[operation.response],
+        json.dumps(operation.path),
+        RESPONSE_IDENTITY_TYPES[operation.response_identity],
         "NumberedPagination" if operation.pagination == "yes" else "NoPagination",
         RETRY_TYPES[operation.retry_policy],
         PERMIT_TYPES[operation.permit_class],
@@ -279,7 +314,9 @@ def render() -> str:
 
 use cloud_sdk::{{ServiceMarker, operation_id}};
 
-use super::policy::{{HetznerOperation, OperationDescriptor, ReadOnlyOperation, Sealed}};
+use super::policy::{{
+    HetznerOperation, OperationDescriptor, ReadOnlyOperation, ResponseIdentityClass, Sealed,
+}};
 use super::types::*;
 use crate::identity::{{CloudService, DnsService, SecurityService, StorageService}};
 
@@ -310,6 +347,7 @@ macro_rules! read_only_operation {{
 macro_rules! operation_associations {{
     ($(($marker:ident, $id:literal, $service:ident, $endpoint:ident, $authentication:ident,
         $method:ident, $query:ident, $body:ident, $status:ident, $response:ident,
+        $path:literal, $response_identity:expr,
         $pagination:ident, $retry:ident, $permit:ident),)+) => {{
         /// Sealed markers for every active source-locked Hetzner operation.
         pub mod operations {{
@@ -351,6 +389,8 @@ macro_rules! operation_associations {{
                         <$body as BodyAssociation>::POLICY,
                         <$status as StatusAssociation>::STATUS,
                         <$response as ResponseAssociation>::SHAPE,
+                        $path,
+                        $response_identity,
                         <$pagination as PaginationAssociation>::POLICY,
                         <$retry as RetryAssociation>::POLICY,
                         <$permit as PermitAssociation>::CLASS,
@@ -364,6 +404,13 @@ macro_rules! operation_associations {{
         pub const ALL_OPERATIONS: &[OperationDescriptor] = &[
             $(<operations::$marker as HetznerOperation>::DESCRIPTOR,)+
         ];
+
+        pub(crate) fn operation_path_template(operation_id: &str) -> Option<&'static str> {{
+            match operation_id {{
+                $($id => Some($path),)+
+                _ => None,
+            }}
+        }}
     }};
 }}
 

@@ -44,6 +44,10 @@ def main() -> int:
     assert by_id["create_server"].permit_class == "cost"
     assert by_id["delete_server"].permit_class == "destructive"
     assert by_id["update_server"].retry_policy == "explicit"
+    assert by_id["get_storage_box"].response_identity == "exact-resource"
+    assert by_id["list_storage_box_snapshots"].response_identity == "parent-resource"
+    assert by_id["list_servers"].response_identity == "none"
+    assert len(generator.read_response_identities()) == 11
 
     for operation in operations:
         generated_row = generator.row(operation)
@@ -91,6 +95,18 @@ def main() -> int:
             assert "unknown permit_class" in str(error)
         else:
             raise AssertionError("unknown classification was accepted")
+
+        identity_source = Path(directory) / "identities.tsv"
+        identity_source.write_text(
+            "operation_id\tresponse_identity\nget_server\tunknown\n",
+            encoding="ascii",
+        )
+        try:
+            generator.read_response_identities(identity_source)
+        except ValueError as error:
+            assert "invalid response identity" in str(error)
+        else:
+            raise AssertionError("unknown response identity was accepted")
     generated = generator.formatted_render()
     assert generated.count("Association for Hetzner operation") == 1
     assert generated.count("        (") == 208

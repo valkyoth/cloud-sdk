@@ -5,6 +5,7 @@ mod endpoints;
 mod error;
 mod json;
 mod operation;
+mod path_template;
 mod wire_policy;
 
 pub use error::HetznerPreparationError;

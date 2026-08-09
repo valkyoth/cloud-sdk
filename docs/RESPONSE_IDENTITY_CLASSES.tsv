@@ -1,0 +1,12 @@
+operation_id	response_identity
+create_storage_box_snapshot	parent-resource
+create_storage_box_subaccount	parent-resource
+get_storage_box	exact-resource
+get_storage_box_snapshot	exact-resource
+get_storage_box_subaccount	exact-resource
+get_storage_box_type	exact-resource
+list_storage_box_snapshots	parent-resource
+list_storage_box_subaccounts	parent-resource
+update_storage_box	exact-resource
+update_storage_box_snapshot	exact-resource
+update_storage_box_subaccount	exact-resource

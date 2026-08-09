@@ -41,6 +41,52 @@ struct ChangingMethodEndpoint<'a> {
     method_reads: &'a Cell<usize>,
 }
 
+#[derive(Clone, Copy)]
+struct WrongPathEndpoint(ActionEndpoint);
+
+impl EndpointWire for WrongPathEndpoint {
+    fn method(self) -> Method {
+        EndpointWire::method(self.0)
+    }
+
+    fn api_base_url(self) -> ApiBaseUrl {
+        EndpointWire::api_base_url(self.0)
+    }
+
+    fn endpoint_group(self) -> EndpointGroup {
+        EndpointWire::endpoint_group(self.0)
+    }
+
+    fn write_path(self, output: &mut [u8]) -> Result<usize, HetznerPreparationError> {
+        let wrong = b"/servers/7";
+        output
+            .get_mut(..wrong.len())
+            .ok_or(HetznerPreparationError::Path)?
+            .copy_from_slice(wrong);
+        Ok(wrong.len())
+    }
+
+    fn request_shape(self) -> RequestShape {
+        EndpointWire::request_shape(self.0)
+    }
+
+    fn response_profile(self) -> ResponseProfile {
+        EndpointWire::response_profile(self.0)
+    }
+
+    fn metadata(self) -> Result<OperationMetadata, HetznerPreparationError> {
+        EndpointWire::metadata(self.0)
+    }
+
+    fn operation_key(self) -> &'static str {
+        EndpointWire::operation_key(self.0)
+    }
+
+    fn expected_response_identity(self) -> super::ExpectedResponseIdentity {
+        EndpointWire::expected_response_identity(self.0)
+    }
+}
+
 impl EndpointWire for ChangingMethodEndpoint<'_> {
     fn method(self) -> Method {
         let reads = self.method_reads.get();
@@ -320,6 +366,26 @@ fn runtime_policy_disagreement_fails_during_write_free_preflight() {
         validate_association::<GetActions, _>(ActionEndpoint::Get(action_id)).map(|_| ()),
         Err(AssociationError::PreparedPolicyMismatch),
     );
+}
+
+#[test]
+fn written_path_must_match_the_source_locked_descriptor_template() -> Result<(), &'static str> {
+    let action_id = ActionId::new(7).ok_or("action ID")?;
+    let operation = AssociatedOperation::<GetAction, _>::endpoint(WrongPathEndpoint(
+        ActionEndpoint::Get(action_id),
+    ))
+    .map_err(|_| "action association")?;
+    let mut target = [0x41; 64];
+    let mut body = [0x42; 32];
+    assert!(matches!(
+        operation.prepare_typed(PreparationStorage::new(&mut target, &mut body)),
+        Err(super::AssociatedPreparationError::Preparation(
+            HetznerPreparationError::Path
+        ))
+    ));
+    assert_eq!(target, [0; 64]);
+    assert_eq!(body, [0; 32]);
+    Ok(())
 }
 
 #[test]

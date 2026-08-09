@@ -69,6 +69,14 @@ pub(crate) trait EndpointWire: Copy {
     fn metadata(self) -> Result<OperationMetadata, HetznerPreparationError>;
     fn operation_key(self) -> &'static str;
     fn expected_response_identity(self) -> crate::association::ExpectedResponseIdentity;
+
+    fn path_template(self) -> &'static str {
+        crate::association::operation_path_template(self.operation_key()).unwrap_or("")
+    }
+
+    fn response_identity_class(self) -> crate::association::ResponseIdentityClass {
+        self.expected_response_identity().class()
+    }
 }
 
 pub(crate) trait QueryWire: Copy {
@@ -100,6 +108,7 @@ struct RequestAssemblyPolicy {
     authentication: AuthenticationScopePolicy<'static>,
     raw_response: RawResponsePolicy<'static>,
     body_replayability: BodyReplayability,
+    path_template: &'static str,
 }
 
 impl From<&ValidatedAssociationPolicy> for RequestAssemblyPolicy {
@@ -114,6 +123,7 @@ impl From<&ValidatedAssociationPolicy> for RequestAssemblyPolicy {
             authentication: policy.authentication,
             raw_response: policy.raw_response,
             body_replayability: policy.body_replayability,
+            path_template: policy.path_template,
         }
     }
 }
@@ -246,6 +256,7 @@ where
         authentication,
         raw_response,
         body_replayability: BodyReplayability::Replayable,
+        path_template: endpoint.path_template(),
     };
     prepare_parts_using_policy(endpoint, query, body, storage, &policy)
 }
@@ -293,7 +304,7 @@ where
         query,
         body,
     )?;
-    let (target_len, body_len) =
+    let (target_len, path_len, body_len) =
         match write_components(endpoint, query, body, target_storage, body_storage) {
             Ok(lengths) => lengths,
             Err(error) => {
@@ -307,7 +318,13 @@ where
         cloud_sdk_sanitization::sanitize_bytes(body_storage);
         return Err(HetznerPreparationError::Body);
     }
-    if let Err(error) = validate_target_storage(target_storage, target_len) {
+    super::path_template::validate_or_clear(
+        target_storage,
+        path_len,
+        policy.path_template,
+        body_storage,
+    )?;
+    if let Err(error) = super::path_template::validate_target(target_storage, target_len) {
         cloud_sdk_sanitization::sanitize_bytes(target_storage);
         cloud_sdk_sanitization::sanitize_bytes(body_storage);
         return Err(error);
@@ -349,23 +366,13 @@ where
     .map_err(HetznerPreparationError::InvalidPreparedPolicy)
 }
 
-fn validate_target_storage(storage: &[u8], len: usize) -> Result<(), HetznerPreparationError> {
-    let text = storage
-        .get(..len)
-        .and_then(|bytes| core::str::from_utf8(bytes).ok())
-        .ok_or(HetznerPreparationError::Path)?;
-    RequestTarget::new(text)
-        .map(|_| ())
-        .map_err(HetznerPreparationError::InvalidTarget)
-}
-
 fn write_components<E, Q, B>(
     endpoint: E,
     query: Q,
     body: B,
     target_storage: &mut [u8],
     body_storage: &mut [u8],
-) -> Result<(usize, usize), HetznerPreparationError>
+) -> Result<(usize, usize, usize), HetznerPreparationError>
 where
     E: EndpointWire,
     Q: QueryWire,
@@ -390,7 +397,7 @@ where
             .ok_or(HetznerPreparationError::Query)?
     };
     let body_len = body.write_body(body_storage)?;
-    Ok((target_len, body_len))
+    Ok((target_len, path_len, body_len))
 }
 
 fn validate_components<Q, B>(

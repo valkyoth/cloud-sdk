@@ -81,7 +81,7 @@ def binding_row(operation: associations.Operation) -> dict[str, str]:
         "retry": operation.retry_policy,
         "streaming": "buffered",
         "permit_class": operation.permit_class,
-        "response_identity": "explicit-endpoint",
+        "response_identity": operation.response_identity,
     }
 
 
