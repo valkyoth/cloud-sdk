@@ -1,3 +1,5 @@
+extern crate std;
+
 use cloud_sdk::transport::{
     BoundTransport, CustomEndpointAcknowledgement, EndpointIdentity, EndpointIdentityError,
     EndpointScheme,
