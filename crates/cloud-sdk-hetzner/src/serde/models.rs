@@ -10,6 +10,7 @@ mod dns;
 mod location;
 mod metrics;
 mod resources;
+mod result;
 mod scalars;
 mod security;
 mod special;
@@ -24,7 +25,6 @@ use core::fmt;
 
 use cloud_sdk_sanitization::sanitize_string;
 
-use crate::pagination::PaginationMetadata;
 use crate::serde::strict_json::{Map, Value};
 
 use wipe_string::WipeString;
@@ -47,13 +47,17 @@ pub use dns::{
 pub use location::{Location, LocationPage};
 pub use metrics::{MetricPoint, MetricSeries, Metrics};
 pub use resources::{Resource, ResourceIdentifier, ResourceKind};
+pub use result::{CompositeResult, HetznerSuccess, NamedSensitiveText};
 pub use scalars::{ExactDecimal, UtcTimestamp};
 pub use security::{SecurityResource, SecurityResourceKind};
 pub use special::{FolderList, Pricing, SensitiveText, ZoneFile};
 pub use ssh_key::SshKey;
 pub use storage_box::{
     AccessSettings, Deprecation, Money, Price, Protection, SnapshotPlan, StorageBox,
-    StorageBoxPage, StorageBoxStats, StorageBoxStatus, StorageBoxType,
+    StorageBoxPage, StorageBoxResource, StorageBoxSnapshot, StorageBoxSnapshotReference,
+    StorageBoxSnapshotStats, StorageBoxStats, StorageBoxStatus, StorageBoxSubaccount,
+    StorageBoxSubaccountAccessSettings, StorageBoxSubaccountReference, StorageBoxType,
+    StorageBoxTypePage,
 };
 
 pub(crate) use actions::{parse_action, parse_actions};
@@ -71,7 +75,11 @@ pub(crate) use security::{
 };
 pub(crate) use special::{parse_folders, parse_pricing, parse_zonefile};
 pub(crate) use ssh_key::parse_ssh_key;
-pub(crate) use storage_box::parse_storage_box_page;
+pub(crate) use storage_box::{
+    parse_storage_box, parse_storage_box_composite_resource, parse_storage_box_page,
+    parse_storage_box_snapshot, parse_storage_box_snapshots, parse_storage_box_subaccount,
+    parse_storage_box_subaccounts, parse_storage_box_type, parse_storage_box_type_page,
+};
 
 /// Failure while validating a parsed success-response model.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -202,201 +210,6 @@ impl Drop for Labels {
 
 pub(super) fn parse_labels(value: &Value, maximum: usize) -> Result<Labels, ResponseModelError> {
     Labels::parse(value, maximum)
-}
-
-/// Typed successful result returned by the checked decoder.
-// Results remain value-owned so allocation failure stays explicit in model parsers.
-#[allow(clippy::large_enum_variant)]
-#[derive(Debug)]
-pub enum HetznerSuccess {
-    /// Operation succeeded without a response body.
-    Empty,
-    /// Source-complete paginated Cloud locations.
-    Locations(LocationPage),
-    /// One source-complete Cloud location.
-    Location(Location),
-    /// Source-complete paginated Console Storage Boxes.
-    StorageBoxes(StorageBoxPage),
-    /// One validated action.
-    Action(ActionResult),
-    /// A bounded action list, optionally with pagination metadata.
-    Actions {
-        /// Validated actions.
-        actions: Vec<ActionResult>,
-        /// Pagination supplied by paginated endpoints.
-        pagination: Option<PaginationMetadata>,
-    },
-    /// One provider resource.
-    Resource(Resource),
-    /// A bounded resource list, optionally with pagination metadata.
-    Resources {
-        /// Validated resources of one kind.
-        resources: Vec<Resource>,
-        /// Pagination supplied by paginated endpoints.
-        pagination: Option<PaginationMetadata>,
-    },
-    /// One source-complete ordinary Cloud resource.
-    CloudResource(CloudResource),
-    /// Source-complete ordinary Cloud resources with optional pagination.
-    CloudResources {
-        /// Dedicated resource variants.
-        resources: Vec<CloudResource>,
-        /// Pagination supplied by paginated endpoints.
-        pagination: Option<PaginationMetadata>,
-    },
-    /// One source-complete DNS resource.
-    DnsResource(DnsResource),
-    /// Source-complete DNS resources with optional pagination.
-    DnsResources {
-        /// Dedicated DNS resource variants.
-        resources: Vec<DnsResource>,
-        /// Pagination supplied by paginated endpoints.
-        pagination: Option<PaginationMetadata>,
-    },
-    /// One source-complete security resource.
-    SecurityResource(SecurityResource),
-    /// Source-complete security resources with optional pagination.
-    SecurityResources {
-        /// Dedicated certificate or SSH-key variants.
-        resources: Vec<SecurityResource>,
-        /// Pagination supplied by paginated endpoints.
-        pagination: Option<PaginationMetadata>,
-    },
-    /// A create/action result with optional resource, actions, and secrets.
-    Composite(CompositeResult),
-    /// Metrics response.
-    Metrics(Metrics),
-    /// Exported zonefile.
-    ZoneFile(ZoneFile),
-    /// Pricing summary.
-    Pricing(Pricing),
-    /// Storage Box folders.
-    Folders(FolderList),
-}
-
-/// Validated multi-part success response.
-pub struct CompositeResult {
-    pub(super) resource: Option<Resource>,
-    pub(super) cloud_resource: Option<CloudResource>,
-    pub(super) dns_resources: Vec<DnsResource>,
-    pub(super) security_resource: Option<SecurityResource>,
-    pub(super) action: Option<ActionResult>,
-    pub(super) actions: Vec<ActionResult>,
-    pub(super) next_actions: Vec<ActionResult>,
-    pub(super) secrets: Vec<NamedSensitiveText>,
-    pub(super) null_secrets: Vec<&'static str>,
-}
-
-impl CompositeResult {
-    /// Returns the created or changed resource when supplied.
-    #[must_use]
-    pub const fn resource(&self) -> Option<&Resource> {
-        self.resource.as_ref()
-    }
-
-    /// Returns the source-complete ordinary Cloud resource when supplied.
-    #[must_use]
-    pub const fn cloud_resource(&self) -> Option<&CloudResource> {
-        self.cloud_resource.as_ref()
-    }
-
-    /// Returns the source-complete security resource when supplied.
-    #[must_use]
-    pub const fn security_resource(&self) -> Option<&SecurityResource> {
-        self.security_resource.as_ref()
-    }
-
-    /// Returns the source-complete DNS resource when supplied.
-    #[must_use]
-    pub fn dns_resource(&self) -> Option<&DnsResource> {
-        self.dns_resources.first()
-    }
-
-    /// Returns the singular action supplied by the operation.
-    #[must_use]
-    pub const fn action(&self) -> Option<&ActionResult> {
-        self.action.as_ref()
-    }
-
-    /// Returns the source `actions` collection supplied by the operation.
-    #[must_use]
-    pub fn actions(&self) -> &[ActionResult] {
-        &self.actions
-    }
-
-    /// Returns the source `next_actions` collection supplied by the operation.
-    #[must_use]
-    pub fn next_actions(&self) -> &[ActionResult] {
-        &self.next_actions
-    }
-
-    /// Returns sensitive output fields held in protected owned storage.
-    #[must_use]
-    pub fn secrets(&self) -> &[NamedSensitiveText] {
-        &self.secrets
-    }
-
-    /// Looks up a sensitive output while preserving absent, null, and text states.
-    #[must_use]
-    pub fn secret(&self, name: &str) -> Option<Option<&SensitiveText>> {
-        if let Some(secret) = self.secrets.iter().find(|secret| secret.name() == name) {
-            return Some(Some(secret.value()));
-        }
-        self.null_secrets.contains(&name).then_some(None)
-    }
-}
-
-impl fmt::Debug for CompositeResult {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        formatter
-            .debug_struct("CompositeResult")
-            .field("resource", &self.resource)
-            .field(
-                "cloud_resource",
-                &self.cloud_resource.as_ref().map(|_| "[redacted]"),
-            )
-            .field("dns_resource", &self.dns_resource().map(|_| "[redacted]"))
-            .field("action", &self.action)
-            .field("action_count", &self.actions.len())
-            .field("next_action_count", &self.next_actions.len())
-            .field("secrets", &"[redacted]")
-            .finish()
-    }
-}
-
-/// Named sensitive field returned by a provider operation.
-#[derive(Eq, PartialEq)]
-pub struct NamedSensitiveText {
-    name: &'static str,
-    value: SensitiveText,
-}
-
-impl NamedSensitiveText {
-    pub(super) fn new(name: &'static str, value: SensitiveText) -> Self {
-        Self { name, value }
-    }
-
-    /// Returns the source-locked field name.
-    #[must_use]
-    pub const fn name(&self) -> &'static str {
-        self.name
-    }
-
-    /// Returns the sensitive field value through an explicit accessor.
-    #[must_use]
-    pub const fn value(&self) -> &SensitiveText {
-        &self.value
-    }
-}
-
-impl fmt::Debug for NamedSensitiveText {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        formatter
-            .debug_struct("NamedSensitiveText")
-            .field("name", &self.name)
-            .field("value", &"[redacted]")
-            .finish()
-    }
 }
 
 pub(super) fn object(value: &Value) -> Result<&Map, ResponseModelError> {

@@ -24,7 +24,8 @@ pub(super) fn decode_checked_success(
                 | "list_zones"
                 | "list_zone_rrsets"
                 | "get_zone_zonefile"
-        ) {
+        ) || operation.contains("storage_box")
+        {
             validate_incremental(bytes.as_slice())?;
         }
         let mut value =
@@ -109,6 +110,33 @@ fn decode_success(
         }
         "list_storage_boxes" => {
             return parse_storage_box_page(value).map(HetznerSuccess::StorageBoxes);
+        }
+        "get_storage_box" | "update_storage_box" => {
+            return parse_storage_box(required_mut(object_mut(value)?, "storage_box")?)
+                .map(HetznerSuccess::StorageBox);
+        }
+        "list_storage_box_types" => {
+            return parse_storage_box_type_page(value).map(HetznerSuccess::StorageBoxTypes);
+        }
+        "get_storage_box_type" => {
+            return parse_storage_box_type(required_mut(object_mut(value)?, "storage_box_type")?)
+                .map(HetznerSuccess::StorageBoxType);
+        }
+        "list_storage_box_snapshots" => {
+            return parse_storage_box_snapshots(required_mut(object_mut(value)?, "snapshots")?)
+                .map(HetznerSuccess::StorageBoxSnapshots);
+        }
+        "get_storage_box_snapshot" | "update_storage_box_snapshot" => {
+            return parse_storage_box_snapshot(required_mut(object_mut(value)?, "snapshot")?)
+                .map(HetznerSuccess::StorageBoxSnapshot);
+        }
+        "list_storage_box_subaccounts" => {
+            return parse_storage_box_subaccounts(required_mut(object_mut(value)?, "subaccounts")?)
+                .map(HetznerSuccess::StorageBoxSubaccounts);
+        }
+        "get_storage_box_subaccount" | "update_storage_box_subaccount" => {
+            return parse_storage_box_subaccount(required_mut(object_mut(value)?, "subaccount")?)
+                .map(HetznerSuccess::StorageBoxSubaccount);
         }
         _ => {}
     }
@@ -292,10 +320,22 @@ fn decode_composite(
     } else {
         None
     };
+    let storage_box_resource = if matches!(
+        operation,
+        "create_storage_box" | "create_storage_box_snapshot" | "create_storage_box_subaccount"
+    ) {
+        envelope
+            .get_mut(binding.root)
+            .map(|value| parse_storage_box_composite_resource(operation, value))
+            .transpose()?
+    } else {
+        None
+    };
     let resource = if binding.root == "-"
         || cloud_resource.is_some()
         || has_dns_resource
         || security_resource.is_some()
+        || storage_box_resource.is_some()
     {
         None
     } else {
@@ -320,6 +360,7 @@ fn decode_composite(
         cloud_resource,
         dns_resources,
         security_resource,
+        storage_box_resource,
         action,
         actions,
         next_actions,

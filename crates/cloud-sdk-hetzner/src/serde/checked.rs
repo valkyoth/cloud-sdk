@@ -17,8 +17,10 @@ use super::models::{
     parse_actions, parse_cloud_resource, parse_cloud_resources, parse_dns_resource,
     parse_dns_resources, parse_folders, parse_location, parse_location_page, parse_metrics,
     parse_pagination, parse_pricing, parse_resource, parse_resources, parse_security_resource,
-    parse_security_resources, parse_storage_box_page, parse_zonefile, required, valid_error_code,
-    value_text,
+    parse_security_resources, parse_storage_box, parse_storage_box_composite_resource,
+    parse_storage_box_page, parse_storage_box_snapshot, parse_storage_box_snapshots,
+    parse_storage_box_subaccount, parse_storage_box_subaccounts, parse_storage_box_type,
+    parse_storage_box_type_page, parse_zonefile, required, valid_error_code, value_text,
 };
 use super::strict_json;
 use super::strict_json::{Map, Value};

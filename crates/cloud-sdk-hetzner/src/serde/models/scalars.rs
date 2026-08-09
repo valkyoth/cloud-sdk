@@ -24,6 +24,13 @@ impl UtcTimestamp {
         checked_text(value, MAX_TIMESTAMP_BYTES).map(Self)
     }
 
+    pub(super) fn try_from_string(value: String) -> Result<Self, ResponseModelError> {
+        if !valid_utc_timestamp(&value) || value.is_empty() || value.len() > MAX_TIMESTAMP_BYTES {
+            return Err(ResponseModelError::InvalidText);
+        }
+        Ok(Self(value))
+    }
+
     /// Returns the exact source timestamp.
     #[must_use]
     pub fn as_str(&self) -> &str {

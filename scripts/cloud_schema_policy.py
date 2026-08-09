@@ -9,6 +9,8 @@ SUPPORTED_FORMATS = frozenset(("date-time", "decimal", "double", "int32", "int64
 SUPPORTED_PATTERNS = frozenset(
     (
         r"^[a-z0-9]+(-?[a-z0-9]*)*$",
+        r"^[a-zA-Z0-9 ./_-]+$",
+        r"[a-zA-Z0-9-_,:<>+#!\(\)\[\]\{\} ]*",
         r"^\S(.*\S)?$",
     )
 )

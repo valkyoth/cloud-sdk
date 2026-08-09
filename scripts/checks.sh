@@ -67,6 +67,7 @@ scripts/test-hetzner-api-drift.py
 scripts/test-generate-cloud-model-schema.py
 scripts/check_dns_response_models.sh
 scripts/check_security_response_models.sh
+scripts/check_storage_response_models.sh
 scripts/check_provider_drift.sh
 scripts/check_ovhcloud_authority_conformance.sh
 scripts/check_ovhcloud_header_conformance.sh

@@ -38,9 +38,11 @@ pub use models::{
     MetricPoint, MetricSeries, Metrics, Money, NamedSensitiveText, Network, PlacementGroup, Price,
     Pricing, PrimaryIp, PrimaryNameserver, Protection, Resource, ResourceIdentifier, ResourceKind,
     ResponseModelError, SecurityResource, SecurityResourceKind, SensitiveText, Server, ServerType,
-    SnapshotPlan, SshKey, StorageBox, StorageBoxPage, StorageBoxStats, StorageBoxStatus,
-    StorageBoxType, UtcTimestamp, Volume, Zone, ZoneDelegationStatus, ZoneFile, ZoneMode,
-    ZoneProtection, ZoneRegistrar, ZoneStatus,
+    SnapshotPlan, SshKey, StorageBox, StorageBoxPage, StorageBoxResource, StorageBoxSnapshot,
+    StorageBoxSnapshotReference, StorageBoxSnapshotStats, StorageBoxStats, StorageBoxStatus,
+    StorageBoxSubaccount, StorageBoxSubaccountAccessSettings, StorageBoxSubaccountReference,
+    StorageBoxType, StorageBoxTypePage, UtcTimestamp, Volume, Zone, ZoneDelegationStatus, ZoneFile,
+    ZoneMode, ZoneProtection, ZoneRegistrar, ZoneStatus,
 };
 pub use pagination::PaginationEnvelope;
 pub use response::{
@@ -68,6 +70,8 @@ mod checked_security_tests;
 mod checked_special_tests;
 #[cfg(test)]
 mod checked_ssh_key_algorithm_tests;
+#[cfg(test)]
+mod checked_storage_response_tests;
 #[cfg(test)]
 mod checked_test_support;
 #[cfg(test)]

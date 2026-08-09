@@ -1,0 +1,1 @@
+o00{"subaccount":{"id":1,"name":"backup-user","description":"backup account","username":"u12345-sub1","server":"u12345-sub1.your-storagebox.de","home_directory":"backups/server01","access_settings":{"reachable_externally":false,"readonly":false,"samba_enabled":false,"ssh_enabled":true,"webdav_enabled":false},"storage_box":1,"labels":{},"created":"2026-01-01T00:00:00Z"}}

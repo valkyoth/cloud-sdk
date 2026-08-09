@@ -82,18 +82,18 @@ fn storage_box_uses_incremental_admission_and_preserves_nested_fields() {
     let HetznerSuccess::StorageBoxes(page) = decoded.success() else {
         unreachable!("list_storage_boxes returned the wrong typed model")
     };
-    let Some(storage_box) = page.storage_boxes.first() else {
+    let Some(storage_box) = page.storage_boxes().first() else {
         unreachable!("Storage Box fixture disappeared")
     };
-    assert_eq!(storage_box.status, StorageBoxStatus::Active);
-    assert!(!storage_box.access_settings.reachable_externally);
-    assert!(storage_box.access_settings.ssh_enabled);
-    let Some(price) = storage_box.storage_box_type.prices.first() else {
+    assert_eq!(storage_box.status(), StorageBoxStatus::Active);
+    assert!(!storage_box.access_settings().reachable_externally);
+    assert!(storage_box.access_settings().ssh_enabled);
+    let Some(price) = storage_box.storage_box_type().prices().first() else {
         unreachable!("Storage Box price fixture disappeared")
     };
-    assert_eq!(price.monthly.net, "5.0000");
+    assert_eq!(price.monthly().net(), "5.0000");
     assert_eq!(
-        storage_box.labels.get("empty").map(String::as_str),
+        storage_box.labels().get("empty").map(String::as_str),
         Some("")
     );
 }

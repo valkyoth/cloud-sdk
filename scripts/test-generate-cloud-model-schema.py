@@ -63,6 +63,28 @@ def synthetic_document() -> dict:
     return {"paths": paths}
 
 
+def synthetic_console_document() -> dict:
+    paths = {}
+    schemas = {}
+    for model in generator.CONSOLE_EXPECTED_MODELS:
+        schemas[model] = {
+            "type": "object",
+            "required": ["id", "state"],
+            "properties": {
+                "id": {"type": "integer", "minimum": 1},
+                "state": {"type": ["string", "null"], "enum": ["known"]},
+            },
+    }
+    for operation_id, (root, model) in generator.CONSOLE_MODEL_OPERATIONS.items():
+        schema = json.loads(json.dumps(schemas[model]))
+        if operation_id.startswith("list_"):
+            schema = {"type": "array", "items": schema}
+        operation = response(root, schema)
+        operation["operationId"] = operation_id
+        paths[f"/{operation_id}"] = {"get": operation}
+    return {"paths": paths}
+
+
 def assert_raises(expected: str, function, *args) -> None:
     try:
         function(*args)
@@ -82,6 +104,34 @@ def test_render_covers_every_model_and_open_enum() -> None:
         row["types"] == "null|string" and row["known_values"] == "known"
         for row in rows
         if row["path"] == "state"
+    )
+
+
+def test_render_covers_every_console_model_and_required_operation() -> None:
+    rendered = generator.render(synthetic_document(), synthetic_console_document())
+    rows = list(csv.DictReader(io.StringIO(rendered), delimiter="\t"))
+    assert {row["model"] for row in rows} == generator.ALL_EXPECTED_MODELS
+    assert len(rows) == len(generator.ALL_EXPECTED_MODELS) * 2
+
+    console = synthetic_console_document()
+    del console["paths"]["/get_storage_box"]
+    assert_raises(
+        "missing Console model operations: get_storage_box",
+        generator.render,
+        synthetic_document(),
+        console,
+    )
+
+    console = synthetic_console_document()
+    changed = console["paths"]["/get_storage_box"]["get"]
+    changed["responses"]["200"]["content"]["application/json"]["schema"][
+        "properties"
+    ]["storage_box"]["properties"]["changed"] = {"type": "boolean"}
+    assert_raises(
+        "storage_box response schemas are not structurally identical",
+        generator.render,
+        synthetic_document(),
+        console,
     )
 
 
@@ -343,9 +393,9 @@ def test_committed_evidence_is_structurally_complete() -> None:
         )
     )
     fixtures = json.loads(generator.DEFAULT_FIXTURES.read_text(encoding="ascii"))
-    assert len(rows) == 595
-    assert {row["model"] for row in rows} == generator.EXPECTED_MODELS
-    assert set(fixtures) == generator.EXPECTED_MODELS
+    assert len(rows) == 718
+    assert {row["model"] for row in rows} == generator.ALL_EXPECTED_MODELS
+    assert set(fixtures) == generator.ALL_EXPECTED_MODELS
     identities = [(row["model"], row["path"]) for row in rows]
     assert len(identities) == len(set(identities))
     assert all(isinstance(fixture, dict) for fixture in fixtures.values())
@@ -370,13 +420,16 @@ def test_committed_evidence_is_structurally_complete() -> None:
     }
     assert {row["pattern"] for row in rows} == {
         "-",
+        r"^[a-zA-Z0-9 ./_-]+$",
         r"^[a-z0-9]+(-?[a-z0-9]*)*$",
+        r"[a-zA-Z0-9-_,:<>+#!\(\)\[\]\{\} ]*",
     }
 
 
 def main() -> None:
     tests = (
         test_render_covers_every_model_and_open_enum,
+        test_render_covers_every_console_model_and_required_operation,
         test_inconsistent_resource_occurrences_are_rejected,
         test_discriminated_union_has_shared_and_selected_paths,
         test_constraints_are_recorded_and_unsupported_constraints_fail_closed,

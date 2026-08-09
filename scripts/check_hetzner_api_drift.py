@@ -425,8 +425,12 @@ def main() -> int:
             response_operation_rows("cloud", documents["cloud"])
             + response_operation_rows("hetzner", documents["hetzner"])
         )
-        cloud_model_schema_lock = render_cloud_model_schema(documents["cloud"])
-        cloud_model_fixture_lock = render_cloud_model_fixtures(documents["cloud"])
+        cloud_model_schema_lock = render_cloud_model_schema(
+            documents["cloud"], documents["hetzner"]
+        )
+        cloud_model_fixture_lock = render_cloud_model_fixtures(
+            documents["cloud"], documents["hetzner"]
+        )
     except ValueError as error:
         raise SystemExit(f"invalid response schemas: {error}") from error
     operations = []

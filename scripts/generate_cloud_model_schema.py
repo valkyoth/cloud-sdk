@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate the source-locked schema table for ordinary Hetzner Cloud models."""
+"""Generate source-locked schemas for Hetzner Cloud and Console models."""
 
 from __future__ import annotations
 
@@ -18,6 +18,7 @@ from cloud_schema_policy import (
     UNION_SCHEMA_KEYS,
     merge_all_of,
 )
+from cloud_model_fixtures import render as render_model_fixtures
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -76,6 +77,32 @@ MODEL_ROOTS = {
     "ssh_keys": "ssh_key",
 }
 EXPECTED_MODELS = frozenset(MODEL_ROOTS.values())
+CONSOLE_MODEL_OPERATIONS = {
+    "list_storage_boxes": ("storage_boxes", "storage_box"),
+    "create_storage_box": ("storage_box", "storage_box"),
+    "get_storage_box": ("storage_box", "storage_box"),
+    "update_storage_box": ("storage_box", "storage_box"),
+    "list_storage_box_types": ("storage_box_types", "storage_box_type"),
+    "get_storage_box_type": ("storage_box_type", "storage_box_type"),
+    "list_storage_box_snapshots": ("snapshots", "storage_box_snapshot"),
+    "get_storage_box_snapshot": ("snapshot", "storage_box_snapshot"),
+    "update_storage_box_snapshot": ("snapshot", "storage_box_snapshot"),
+    "create_storage_box_snapshot": (
+        "snapshot",
+        "storage_box_snapshot_reference",
+    ),
+    "list_storage_box_subaccounts": ("subaccounts", "storage_box_subaccount"),
+    "get_storage_box_subaccount": ("subaccount", "storage_box_subaccount"),
+    "update_storage_box_subaccount": ("subaccount", "storage_box_subaccount"),
+    "create_storage_box_subaccount": (
+        "subaccount",
+        "storage_box_subaccount_reference",
+    ),
+}
+CONSOLE_EXPECTED_MODELS = frozenset(
+    model for _, model in CONSOLE_MODEL_OPERATIONS.values()
+)
+ALL_EXPECTED_MODELS = EXPECTED_MODELS | CONSOLE_EXPECTED_MODELS
 FIELDS = (
     "model",
     "path",
@@ -103,10 +130,15 @@ def load_spec(path: Path) -> dict[str, Any]:
     return value
 
 
-def clean_schema(value: Any) -> Any:
+def clean_schema(value: Any, *, property_map: bool = False) -> Any:
     if isinstance(value, dict):
+        if property_map:
+            return {
+                key: clean_schema(item)
+                for key, item in sorted(value.items())
+            }
         return {
-            key: clean_schema(item)
+            key: clean_schema(item, property_map=key == "properties")
             for key, item in sorted(value.items())
             if key not in {"description", "example", "examples", "externalDocs"}
         }
@@ -132,7 +164,10 @@ def success_schema(operation: dict[str, Any]) -> dict[str, Any]:
     return schema if isinstance(schema, dict) else {}
 
 
-def collect_models(document: dict[str, Any]) -> dict[str, dict[str, Any]]:
+def collect_models(
+    document: dict[str, Any],
+    console_document: dict[str, Any] | None = None,
+) -> dict[str, dict[str, Any]]:
     candidates: dict[str, list[dict[str, Any]]] = {}
     for path_item in document["paths"].values():
         if not isinstance(path_item, dict):
@@ -157,6 +192,37 @@ def collect_models(document: dict[str, Any]) -> dict[str, dict[str, Any]]:
     if set(candidates) != EXPECTED_MODELS:
         missing = sorted(EXPECTED_MODELS.difference(candidates))
         raise ValueError(f"missing Cloud resource schemas: {', '.join(missing)}")
+    if console_document is not None:
+        found_operations: set[str] = set()
+        for path_item in console_document["paths"].values():
+            if not isinstance(path_item, dict):
+                continue
+            for method in METHODS:
+                operation = path_item.get(method)
+                if not isinstance(operation, dict) or operation.get("deprecated") is True:
+                    continue
+                operation_id = operation.get("operationId")
+                selected = CONSOLE_MODEL_OPERATIONS.get(operation_id)
+                if selected is None:
+                    continue
+                root, model = selected
+                properties = success_schema(operation).get("properties", {})
+                if not isinstance(properties, dict):
+                    raise ValueError(f"{operation_id} has no response properties")
+                schema = properties.get(root)
+                if not isinstance(schema, dict):
+                    raise ValueError(f"{operation_id} has no {root} response schema")
+                if schema.get("type") == "array":
+                    schema = schema.get("items", {})
+                if not isinstance(schema, dict):
+                    raise ValueError(f"{operation_id} has an invalid {root} response schema")
+                candidates.setdefault(model, []).append(clean_schema(schema))
+                found_operations.add(operation_id)
+        missing_operations = sorted(set(CONSOLE_MODEL_OPERATIONS).difference(found_operations))
+        if missing_operations:
+            raise ValueError(
+                "missing Console model operations: " + ", ".join(missing_operations)
+            )
     output = {}
     for model, schemas in candidates.items():
         canonical = schemas[0]
@@ -380,9 +446,12 @@ def walk_children(model: str, path: str, schema: dict[str, Any], rows: list[dict
         rows.append(descriptor(model, f"{path}[]", True, items))
 
 
-def render(document: dict[str, Any]) -> str:
+def render(
+    document: dict[str, Any],
+    console_document: dict[str, Any] | None = None,
+) -> str:
     rows: list[dict[str, str]] = []
-    for model, schema in sorted(collect_models(document).items()):
+    for model, schema in sorted(collect_models(document, console_document).items()):
         schema = flatten_root_union(model, schema)
         walk_object(model, "", schema, rows)
     lines = ["\t".join(FIELDS)]
@@ -390,119 +459,29 @@ def render(document: dict[str, Any]) -> str:
     return "\n".join(lines) + "\n"
 
 
-def example_value(schema: dict[str, Any]) -> Any:
-    schema = merge_all_of(schema)
-    if "oneOf" in schema:
-        branches = schema["oneOf"]
-        if not isinstance(branches, list) or not branches:
-            raise ValueError("union has no example branch")
-        return example_value(branches[0])
-    types = schema_types(schema)
-    nonnull = next((value for value in types if value != "null"), "null")
-    if nonnull == "null":
-        return None
-    if nonnull == "boolean":
-        return False
-    if nonnull == "integer":
-        minimum = schema.get("minimum", 1)
-        return max(int(minimum), 1)
-    if nonnull == "number":
-        minimum = schema.get("minimum", 1.0)
-        return max(float(minimum), 1.0)
-    if nonnull == "string":
-        format_value = schema.get("format")
-        if format_value == "date-time":
-            return "2026-01-01T00:00:00Z"
-        if format_value == "decimal":
-            return "1.0"
-        known = schema.get("enum", [])
-        if isinstance(known, list) and known and isinstance(known[0], str):
-            return known[0]
-        minimum = schema.get("minLength", 1)
-        length = max(int(minimum), 1)
-        maximum = schema.get("maxLength")
-        if maximum is not None:
-            length = min(length, int(maximum))
-        return "x" * length
-    if nonnull == "array":
-        items = schema.get("items", {})
-        if not isinstance(items, dict):
-            raise ValueError("array fixture has invalid items")
-        branches = items.get("oneOf")
-        if isinstance(branches, list):
-            return [example_value(branch) for branch in branches]
-        return [example_value(items)]
-    if nonnull == "object":
-        properties = schema.get("properties", {})
-        if not isinstance(properties, dict):
-            raise ValueError("object fixture has invalid properties")
-        return {
-            name: example_value(child)
-            for name, child in sorted(properties.items())
-            if isinstance(child, dict)
-        }
-    raise ValueError(f"unsupported fixture type: {nonnull}")
-
-
-def render_fixtures(document: dict[str, Any]) -> str:
-    fixtures = {
-        model: normalize_fixture(model, example_value(flatten_root_union(model, schema)))
-        for model, schema in sorted(collect_models(document).items())
+def render_fixtures(
+    document: dict[str, Any],
+    console_document: dict[str, Any] | None = None,
+) -> str:
+    models = {
+        model: flatten_root_union(model, schema)
+        for model, schema in collect_models(document, console_document).items()
     }
-    return json.dumps(fixtures, sort_keys=True, separators=(",", ":")) + "\n"
-
-
-def normalize_fixture(model: str, value: Any) -> Any:
-    """Apply deterministic semantic values omitted from machine constraints."""
-    if model == "certificate" and isinstance(value, dict):
-        value["certificate"] = (
-            "-----BEGIN CERTIFICATE-----\n"
-            "Y2xvdWQtc2RrLXRlc3QtY2VydGlmaWNhdGU=\n"
-            "-----END CERTIFICATE-----"
-        )
-        value["created"] = "2026-01-01T00:00:00Z"
-        value["domain_names"] = ["example.com"]
-        value["fingerprint"] = "00:11:22:33"
-        value["not_valid_after"] = "2027-01-01T00:00:00Z"
-        value["not_valid_before"] = "2026-01-01T00:00:00Z"
-        value["type"] = "uploaded"
-        value["status"] = None
-        value["used_by"] = []
-    if model == "zone" and isinstance(value, dict):
-        value["mode"] = "secondary"
-        value["name"] = "example.com"
-        value["authoritative_nameservers"]["assigned"] = ["ns1.example.com."]
-        value["authoritative_nameservers"]["delegated"] = ["ns1.example.com."]
-        nameserver = value["primary_nameservers"][0]
-        nameserver["address"] = "192.0.2.1"
-        nameserver["port"] = 53
-        nameserver["tsig_algorithm"] = "hmac-sha256"
-        nameserver["tsig_key"] = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
-    if model == "rrset" and isinstance(value, dict):
-        value["name"] = "www"
-        value["type"] = "A"
-        value["records"][0]["value"] = "192.0.2.1"
-    if model == "ssh_key" and isinstance(value, dict):
-        value["created"] = "2026-01-01T00:00:00Z"
-        value["fingerprint"] = "ae:6f:ba:1b:70:2c:ae:c7:5c:ab:6e:4d:5e:d4:c7:23"
-        value["public_key"] = (
-            "ssh-ed25519 "
-            "AAAAC3NzaC1lZDI1NTE5AAAAILM+rvN+ot98qgEN796jTiQfZfG1KaT0PtFDJ/XFSqti "
-            "user@example.com"
-        )
-    return value
+    return render_model_fixtures(models)
 
 
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("cloud_spec", type=Path)
+    parser.add_argument("--console-spec", type=Path)
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument("--fixture-output", type=Path, default=DEFAULT_FIXTURES)
     parser.add_argument("--check", action="store_true")
     args = parser.parse_args()
     document = load_spec(args.cloud_spec)
-    generated = render(document)
-    fixtures = render_fixtures(document)
+    console_document = load_spec(args.console_spec) if args.console_spec else None
+    generated = render(document, console_document)
+    fixtures = render_fixtures(document, console_document)
     if args.check:
         if args.output.read_text(encoding="ascii") != generated:
             raise SystemExit("Hetzner Cloud model schema lock is stale")
@@ -512,7 +491,7 @@ def main() -> int:
         return 0
     args.output.write_text(generated, encoding="ascii")
     args.fixture_output.write_text(fixtures, encoding="ascii")
-    print(f"wrote {len(generated.splitlines()) - 1} Cloud model schema rows")
+    print(f"wrote {len(generated.splitlines()) - 1} model schema rows")
     return 0
 
 

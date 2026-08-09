@@ -92,7 +92,6 @@ pub(super) fn resource_value(root: &str) -> serde_json::Value {
     }
     match root {
         "location" | "locations" => location_value(),
-        "storage_box" | "storage_boxes" => storage_box_value(),
         _ => generic_resource_value(root),
     }
 }
@@ -116,6 +115,10 @@ fn cloud_model_name(root: &str) -> Option<&'static str> {
         "rrset" | "rrsets" => Some("rrset"),
         "certificate" | "certificates" => Some("certificate"),
         "ssh_key" | "ssh_keys" => Some("ssh_key"),
+        "storage_box" | "storage_boxes" => Some("storage_box"),
+        "storage_box_type" | "storage_box_types" => Some("storage_box_type"),
+        "snapshot" | "snapshots" => Some("storage_box_snapshot"),
+        "subaccount" | "subaccounts" => Some("storage_box_subaccount"),
         _ => None,
     }
 }
@@ -147,26 +150,4 @@ fn generic_resource_value(root: &str) -> serde_json::Value {
         );
     }
     serde_json::Value::Object(resource)
-}
-
-fn storage_box_value() -> serde_json::Value {
-    serde_json::json!({
-        "id":1, "name":"backup",
-        "storage_box_type":{
-            "id":1, "name":"bx11", "description":"BX11", "snapshot_limit":10,
-            "automatic_snapshot_limit":10, "subaccounts_limit":200, "size":1073741824,
-            "prices":[{"location":"fsn1", "price_hourly":{"net":"1.0000","gross":"1.1900"},
-                "price_monthly":{"net":"1.0000","gross":"1.1900"},
-                "setup_fee":{"net":"0.0000","gross":"0.0000"}}], "deprecation":null
-        },
-        "location":location_value(),
-        "access_settings":{"reachable_externally":false,"samba_enabled":true,
-            "ssh_enabled":true,"webdav_enabled":false,"zfs_enabled":true},
-        "snapshot_plan":{"max_snapshots":10,"minute":30,"hour":3,
-            "day_of_week":7,"day_of_month":null},
-        "protection":{"delete":false}, "labels":{"environment":"test"}, "status":"active",
-        "username":"u12345", "server":"u12345.your-storagebox.de", "system":"FSN1-BX1",
-        "stats":{"size":1,"size_data":1,"size_snapshots":0},
-        "created":"2026-01-01T00:00:00Z"
-    })
 }
