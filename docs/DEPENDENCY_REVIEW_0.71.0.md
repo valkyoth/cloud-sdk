@@ -1,6 +1,6 @@
 # v0.71.0 Dependency Review
 
-Status: implementation stop reached; pentest required before tagging.
+Status: release candidate; pentest and final retest passed.
 
 This change retires the experimental AWS-LC FIPS transport from the active
 workspace and removes its optional native dependency graph. The ordinary
@@ -42,6 +42,12 @@ provider dependency is added.
 - The package gate no longer compiles or ships retired FIPS fixtures.
 - `scripts/check_fips_deferred.py` rejects reintroduction before the Brynja
   admission conditions in [`FIPS_DEFERMENT.md`](FIPS_DEFERMENT.md) are met.
+- Cargo Deny retains no exception for the removed FIPS graph and no
+  unnecessary replacement exception for an inactive target dependency.
+- The fuzz workspace binds first-party path dependencies to the exact reviewed
+  v0.71 source versions.
+- FIPS policy regressions fail closed under normal Python and explicitly reject
+  optimized execution that could otherwise remove language-level assertions.
 
 Historical v0.23-v0.70 release, dependency, and security evidence remains
 unchanged and does not describe the active v0.71 graph.

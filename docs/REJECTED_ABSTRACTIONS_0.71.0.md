@@ -1,6 +1,6 @@
 # v0.71.0 Rejected Abstractions
 
-Status: implementation stop reached; pentest required before tagging.
+Status: release candidate; pentest and final retest passed.
 
 ## Hand-Written DNS Method Classification
 

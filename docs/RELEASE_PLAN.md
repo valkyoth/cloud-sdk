@@ -2194,7 +2194,7 @@ Stop gate: `v0.70.0 implementation stop reached. Run the pentest for this exact 
 
 ### v0.71.0 - DNS Client Methods
 
-Status: implementation stop reached; pentest required before tagging.
+Status: release candidate; pentest and final retest passed.
 
 Goal: expose every claimed DNS operation through typed workflows.
 

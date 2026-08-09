@@ -1,8 +1,9 @@
 # Crate Version Matrix
 
 Status: `v0.70.0` is the latest published checkpoint and `v0.71.0` is the
-current internal source milestone. Every pre-1.0 tag receives its own
-incremental pentest; cumulative crates.io publication is deferred to v0.75.0.
+pentest-approved internal release candidate awaiting GitHub CI and CodeQL.
+Every pre-1.0 tag receives its own incremental pentest; cumulative crates.io
+publication is deferred to v0.75.0.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
