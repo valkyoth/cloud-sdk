@@ -21,6 +21,50 @@ where
     S: ServiceMarker<Provider = Hetzner>,
 {
     /// Sends one service-matched read-only operation synchronously and decodes it.
+    ///
+    /// Custom endpoint trust cannot enter this execution path:
+    ///
+    /// ```compile_fail
+    /// use cloud_sdk::authentication::BlockingAuthenticatedTransport;
+    /// use cloud_sdk::client::{ClientOperation, ClientWorkspaceLease};
+    /// use cloud_sdk::transport::BoundTransport;
+    /// use cloud_sdk_hetzner::association::HetznerClientOperation;
+    /// use cloud_sdk_hetzner::client::{CustomEndpointTrust, HetznerClient};
+    /// use cloud_sdk_hetzner::identity::CloudService;
+    ///
+    /// fn execute_custom<T, O, const N: usize>(
+    ///     client: &HetznerClient<T, CloudService, CustomEndpointTrust>,
+    ///     operation: &O,
+    ///     lease: ClientWorkspaceLease<'_, '_, N>,
+    /// ) where
+    ///     T: BlockingAuthenticatedTransport + BoundTransport,
+    ///     O: ClientOperation + HetznerClientOperation<Service = CloudService>,
+    /// {
+    ///     let _ = client.execute_blocking(operation, lease);
+    /// }
+    /// ```
+    ///
+    /// The same fully constrained operation is executable with official trust:
+    ///
+    /// ```no_run
+    /// use cloud_sdk::authentication::BlockingAuthenticatedTransport;
+    /// use cloud_sdk::client::{ClientOperation, ClientWorkspaceLease};
+    /// use cloud_sdk::transport::BoundTransport;
+    /// use cloud_sdk_hetzner::association::HetznerClientOperation;
+    /// use cloud_sdk_hetzner::client::{HetznerClient, OfficialEndpointTrust};
+    /// use cloud_sdk_hetzner::identity::CloudService;
+    ///
+    /// fn execute_official<T, O, const N: usize>(
+    ///     client: &HetznerClient<T, CloudService, OfficialEndpointTrust>,
+    ///     operation: &O,
+    ///     lease: ClientWorkspaceLease<'_, '_, N>,
+    /// ) where
+    ///     T: BlockingAuthenticatedTransport + BoundTransport,
+    ///     O: ClientOperation + HetznerClientOperation<Service = CloudService>,
+    /// {
+    ///     let _ = client.execute_blocking(operation, lease);
+    /// }
+    /// ```
     pub fn execute_blocking<O, const N: usize>(
         &self,
         operation: &O,

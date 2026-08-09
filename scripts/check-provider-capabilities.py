@@ -35,9 +35,10 @@ EXPECTED = (
     ),
     (
         "End-to-end client",
-        "Not available",
-        "`v0.69.0 - v0.73.0`, after provider-neutral contract hardening and "
-        "complete resource models",
+        "v0.69 foundation: service-typed official/custom construction and checked "
+        "read-only execution; custom execution and service-specific convenience "
+        "methods remain unavailable",
+        "`v0.70.0 - v0.73.0`",
     ),
 )
 

@@ -1,4 +1,4 @@
-extern crate std;
+use core::fmt::{self, Write};
 
 use cloud_sdk::transport::{
     BoundTransport, CustomEndpointAcknowledgement, EndpointIdentity, EndpointIdentityError,
@@ -7,6 +7,44 @@ use cloud_sdk::transport::{
 
 use super::{EndpointTrust, HetznerClient, HetznerClientConstructionError};
 use crate::identity::{CLOUD_SERVICE_ID, DNS_SERVICE_ID, STORAGE_SERVICE_ID};
+
+struct DebugBuffer {
+    bytes: [u8; 256],
+    len: usize,
+}
+
+impl DebugBuffer {
+    fn new() -> Self {
+        Self {
+            bytes: [0; 256],
+            len: 0,
+        }
+    }
+
+    fn contains(&self, needle: &[u8]) -> bool {
+        let Some(written) = self.bytes.get(..self.len) else {
+            return false;
+        };
+        if needle.is_empty() {
+            return true;
+        }
+        written.windows(needle.len()).any(|window| window == needle)
+    }
+}
+
+impl fmt::Write for DebugBuffer {
+    fn write_str(&mut self, value: &str) -> fmt::Result {
+        let Some(end) = self.len.checked_add(value.len()) else {
+            return Err(fmt::Error);
+        };
+        let Some(output) = self.bytes.get_mut(self.len..end) else {
+            return Err(fmt::Error);
+        };
+        output.copy_from_slice(value.as_bytes());
+        self.len = end;
+        Ok(())
+    }
+}
 
 #[derive(Clone, Copy)]
 struct StubTransport {
@@ -106,7 +144,8 @@ fn debug_output_does_not_expose_endpoint_identity() {
     let Ok(client) = client else {
         unreachable!("official cloud fixture was rejected")
     };
-    let diagnostic = std::format!("{client:?}");
-    assert!(!diagnostic.contains("api.hetzner.cloud"));
-    assert!(diagnostic.contains("[bound]"));
+    let mut diagnostic = DebugBuffer::new();
+    assert!(write!(&mut diagnostic, "{client:?}").is_ok());
+    assert!(!diagnostic.contains(b"api.hetzner.cloud"));
+    assert!(diagnostic.contains(b"[bound]"));
 }

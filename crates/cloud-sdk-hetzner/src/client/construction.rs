@@ -18,21 +18,7 @@ pub enum OfficialEndpointTrust {}
 
 /// Marker for explicitly acknowledged operator-controlled endpoint trust.
 ///
-/// Custom endpoint trust cannot enter the official execution path:
-///
-/// ```compile_fail
-/// use cloud_sdk::client::ClientWorkspaceLease;
-/// use cloud_sdk_hetzner::client::{CustomEndpointTrust, HetznerClient};
-/// use cloud_sdk_hetzner::identity::CloudService;
-///
-/// fn execute_custom<T, O, const N: usize>(
-///     client: &HetznerClient<T, CloudService, CustomEndpointTrust>,
-///     operation: &O,
-///     lease: ClientWorkspaceLease<'_, '_, N>,
-/// ) {
-///     let _ = client.execute_blocking(operation, lease);
-/// }
-/// ```
+/// Custom endpoint trust cannot enter the official execution path.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum CustomEndpointTrust {}
 

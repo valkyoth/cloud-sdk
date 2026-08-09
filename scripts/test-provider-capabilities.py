@@ -29,7 +29,15 @@ def main() -> None:
     )
     with tempfile.TemporaryDirectory() as temporary:
         path = Path(temporary) / "README.md"
-        path.write_text(source.replace("End-to-end client | Not available", "End-to-end client | Complete"), encoding="utf-8")
+        current_client = (
+            "End-to-end client | v0.69 foundation: service-typed official/custom "
+            "construction and checked read-only execution; custom execution and "
+            "service-specific convenience methods remain unavailable"
+        )
+        path.write_text(
+            source.replace(current_client, "End-to-end client | Complete"),
+            encoding="utf-8",
+        )
         overstated = run(path)
         assert overstated.returncode == 1, overstated
 
