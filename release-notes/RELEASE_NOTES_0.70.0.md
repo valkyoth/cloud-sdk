@@ -1,11 +1,11 @@
 # cloud-sdk 0.70.0 Release Notes
 
-Status: implementation complete; pentest required.
+Status: release candidate; pentest and final retest passed.
 
-Release date: pending
+Release date: 2026-08-09
 
-Security-Review: PENDING
-Pentest: PENDING
+Security-Review: PASS
+Pentest: PASS
 Publication: PENDING
 
 ## Overview
@@ -67,9 +67,11 @@ default provider graph remains transport-free, runtime-free, and `no_std`.
 - [`docs/THREAT_MODEL_DELTA_0.70.0.md`](../docs/THREAT_MODEL_DELTA_0.70.0.md)
 - [`docs/REJECTED_ABSTRACTIONS_0.70.0.md`](../docs/REJECTED_ABSTRACTIONS_0.70.0.md)
 - [`docs/MIGRATION_0.70.0.md`](../docs/MIGRATION_0.70.0.md)
+- [`security/pentest/v0.70.0.md`](../security/pentest/v0.70.0.md)
 
 ## Release Gate
 
-Run `scripts/release_0_70_gate.sh` on the clean final evidence commit after the
-incremental pentest and retest. GitHub CI and CodeQL must be green on that
-unchanged commit before the signed tag and crates.io publication.
+The incremental pentest and final retest passed. Run
+`scripts/release_0_70_gate.sh` on the clean final evidence commit, then require
+green GitHub CI and CodeQL on that unchanged commit before the signed tag and
+crates.io publication.

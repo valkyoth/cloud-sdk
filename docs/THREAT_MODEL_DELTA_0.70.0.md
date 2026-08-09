@@ -1,6 +1,6 @@
 # v0.70.0 Threat Model Delta
 
-Status: implementation complete; pentest required.
+Status: release candidate; pentest and final retest passed.
 
 ## New Boundary
 

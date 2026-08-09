@@ -1,6 +1,6 @@
 # v0.70.0 Rejected Abstractions
 
-Status: implementation complete; pentest required.
+Status: release candidate; pentest and final retest passed.
 
 ## Hand-Written Per-Operation Methods
 

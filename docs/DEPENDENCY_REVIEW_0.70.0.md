@@ -1,6 +1,6 @@
 # v0.70.0 Dependency Review
 
-Status: implementation complete; pentest required.
+Status: release candidate; pentest and final retest passed.
 
 v0.70 adds no third-party package, feature activation, build script, native
 component, runtime, network stack, unsafe code, or normal provider dependency.

@@ -2178,6 +2178,8 @@ Stop gate: `v0.69.0 implementation stop reached. Complete the pentest and full r
 
 ### v0.70.0 - Cloud Client Methods
 
+Status: release candidate; pentest and final retest passed.
+
 Goal: expose every claimed Cloud operation through typed workflows.
 
 Deliverables: complete read/mutation/action/metrics methods, permits, pagination, quotas, decoding, and blocking/async/local-async parity.

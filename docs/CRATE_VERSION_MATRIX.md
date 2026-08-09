@@ -1,8 +1,9 @@
 # Crate Version Matrix
 
 Status: `v0.65.0` is the latest published checkpoint, `v0.66.0` through
-`v0.69.0` are signed internal milestones, and `v0.70.0` is the current public
-checkpoint candidate. Every pre-1.0 tag receives its own incremental pentest.
+`v0.69.0` are signed internal milestones, and `v0.70.0` is the pentest-approved
+public checkpoint candidate awaiting GitHub CI and CodeQL. Every pre-1.0 tag
+receives its own incremental pentest.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
