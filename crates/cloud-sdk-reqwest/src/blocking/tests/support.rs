@@ -59,8 +59,6 @@ pub(super) fn expiring_loopback(
         UserAgent::new("cloud-sdk-test/0.18").ok()?,
         super::test_timeouts()?,
     );
-    #[cfg(feature = "blocking-rustls-fips")]
-    let builder = builder.with_fips_tls_policy(super::fips_tls_policy()?);
     builder.build_for_loopback().ok()
 }
 

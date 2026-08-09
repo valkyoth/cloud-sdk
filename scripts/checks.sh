@@ -14,7 +14,7 @@ scripts/test-platform-matrix.py
 scripts/test-latest-tools.py
 scripts/test-rustsec-advisories.py
 scripts/test-dependency-review.py
-scripts/check_dependency_review.py v0.69.0 docs/DEPENDENCY_REVIEW_0.70.0.md
+scripts/check_dependency_review.py v0.70.0 docs/DEPENDENCY_REVIEW_0.71.0.md
 scripts/test-publishable-readmes.py
 scripts/check-release-plan-structure.py
 scripts/test-release-plan-structure.py
@@ -55,7 +55,8 @@ scripts/check_testkit_boundary.sh
 scripts/check_platform_matrix.sh --default-boundary
 scripts/check_reqwest_boundary.sh
 scripts/check_reqwest_webpki_roots_boundary.sh
-scripts/check_reqwest_fips_boundary.sh
+scripts/check_fips_deferred.py
+scripts/test-fips-deferred.py
 scripts/smoke_hetzner_live.sh --check
 scripts/check_publishable_readmes.sh
 scripts/validate-release-metadata.sh

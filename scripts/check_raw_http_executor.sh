@@ -95,7 +95,6 @@ done
 for feature in \
     blocking-rustls \
     blocking-rustls-webpki-roots \
-    blocking-rustls-fips \
     async-rustls; do
     cargo check -p cloud-sdk-reqwest --no-default-features --features "$feature"
 done

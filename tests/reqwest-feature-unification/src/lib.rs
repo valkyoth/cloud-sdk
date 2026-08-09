@@ -13,25 +13,8 @@ mod tests {
     };
     use cloud_sdk_reqwest::blocking::{
         BearerCredential, BearerCredentialScope, BearerToken, BlockingClientBuilder,
-        CustomEndpointAcknowledgement, FipsTlsPolicy, HttpsEndpoint, RequestTimeouts, UserAgent,
+        CustomEndpointAcknowledgement, HttpsEndpoint, RequestTimeouts, UserAgent,
     };
-    use rustls::RootCertStore;
-    use rustls::pki_types::pem::PemObject;
-    use rustls::pki_types::{CertificateDer, CertificateRevocationListDer};
-
-    fn fips_policy() -> Option<FipsTlsPolicy> {
-        let certificate = CertificateDer::from_pem_slice(include_bytes!(
-            "../../../crates/cloud-sdk-reqwest/testdata/fips_root.pem"
-        ))
-        .ok()?;
-        let crl = CertificateRevocationListDer::from_pem_slice(include_bytes!(
-            "../../../crates/cloud-sdk-reqwest/testdata/fips.crl.pem"
-        ))
-        .ok()?;
-        let mut roots = RootCertStore::empty();
-        roots.add(certificate).ok()?;
-        FipsTlsPolicy::new(roots, vec![crl]).ok()
-    }
 
     #[test]
     fn hardened_client_builds_with_hickory_and_http2_unified() {
@@ -47,9 +30,6 @@ mod tests {
         else {
             unreachable!("feature-unification fixture construction failed");
         };
-        let Some(policy) = fips_policy() else {
-            unreachable!("FIPS certificate or CRL fixture construction failed");
-        };
         assert!(
             BlockingClientBuilder::new(
                 endpoint.clone(),
@@ -64,7 +44,6 @@ mod tests {
                 user_agent,
                 timeouts,
             )
-            .with_fips_tls_policy(policy)
             .build()
             .is_ok()
         );

@@ -63,7 +63,7 @@ The v0.35 canonical request-target no-external-change review is recorded in
 
 Reqwest `0.13.4` is admitted only through the non-default
 `cloud-sdk-reqwest/blocking-rustls`, `blocking-rustls-webpki-roots`,
-`blocking-rustls-fips`, and `async-rustls` features. Bytes `1.12.1`
+and `async-rustls` features. Bytes `1.12.1`
 is a direct optional dependency only for sanitized async request-body ownership.
 Reqwest defaults are disabled;
 native TLS, response decompression, proxies, redirects, and retries are not
@@ -85,16 +85,11 @@ review are recorded in the original
 [`DEPENDENCY_REVIEW_0.24.0.md`](DEPENDENCY_REVIEW_0.24.0.md) and current
 [`DEPENDENCY_REVIEW_2026-07-20.md`](DEPENDENCY_REVIEW_2026-07-20.md).
 
-The FIPS-mode boundary publishes exact requirements for reqwest `0.13.4`,
-rustls `0.23.43`, rustls-platform-verifier `0.7.0`, aws-lc-rs `1.17.3`,
-aws-lc-fips-sys `0.13.16`, and aws-lc-sys `0.43.0`. Applications still own a
-reviewed complete lockfile or vendored source graph. Its explicit runtime
-verification, mandatory roots and CRLs, current validation-status limitation,
-native build requirements, system-library discovery risk, and additive feature
-behavior are recorded in
-[`dependency-admission-reqwest-fips.md`](dependency-admission-reqwest-fips.md).
-Repository checks force bundled Cargo-authenticated source rather than an
-automatically discovered system module.
+FIPS dependencies and transport APIs are excluded from the active workspace.
+The previous AWS-LC experiment remains recorded as historical evidence in
+[`dependency-admission-reqwest-fips.md`](dependency-admission-reqwest-fips.md),
+while [`FIPS_DEFERMENT.md`](FIPS_DEFERMENT.md) defines the conditions for any
+future Brynja integration. Repository checks reject accidental reintroduction.
 
 The opt-in Hetzner live harness separates build, privileged sealing, and
 credential phases. Cargo and all build-time dependencies run only while the

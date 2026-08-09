@@ -83,42 +83,6 @@ blocking-rustls-webpki-roots = [
     "tokio/sync",
     "tokio/time",
 ]
-blocking-rustls-fips = [
-    "std",
-    "dep:base64-ng",
-    "dep:aws-lc-fips-sys",
-    "dep:aws-lc-rs",
-    "dep:aws-lc-sys",
-    "dep:bytes",
-    "dep:cloud-sdk-sanitization",
-    "dep:http",
-    "dep:http-body-util",
-    "dep:hyper",
-    "dep:hyper-rustls",
-    "dep:hyper-util",
-    "dep:reqwest",
-    "dep:rustls",
-    "dep:rustls-platform-verifier",
-    "dep:tokio",
-    "hyper/client",
-    "hyper/http1",
-    "hyper-rustls/aws-lc-rs",
-    "hyper-rustls/http1",
-    "hyper-rustls/rustls-platform-verifier",
-    "hyper-rustls/tls12",
-    "hyper-util/client-legacy",
-    "hyper-util/http1",
-    "hyper-util/tokio",
-    "reqwest/blocking",
-    "reqwest/rustls-no-provider",
-    "rustls/fips",
-    "rustls/std",
-    "rustls/tls12",
-    "tokio/net",
-    "tokio/rt",
-    "tokio/sync",
-    "tokio/time",
-]
 async-rustls = [
     "std",
     "dep:base64-ng",
@@ -159,7 +123,6 @@ fuzzing = [
 ]
 
 [dependencies]
-aws-lc-fips-sys = { workspace = true, optional = true }
 aws-lc-rs = { workspace = true, optional = true }
 aws-lc-sys = { workspace = true, optional = true }
 base64-ng = { workspace = true, optional = true }

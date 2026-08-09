@@ -251,7 +251,7 @@ has not been assigned to a release.
 | Legacy Robot Storage Box operations are deprecated and overlap the Console API. | The `v0.74.0` matrix marks all 16 legacy operations excluded and no Robot Storage Box module is created. |
 | Repeated invalid Robot credentials can temporarily block the caller's source IP. | Separate credentials and lockout policy in `v0.76.0`; classify authentication rejection as structurally non-retryable in `v0.77.0`; require newly supplied or explicitly reconfirmed credentials before `v0.94.0` clients can attempt again; `v0.95.0` live tests never intentionally submit invalid credentials. |
 | Robot ordering mutations can create immediate infrastructure costs. | Keep catalogs/transactions read-only in `v0.91.0-v0.92.0`; `v0.93.0` requires cost permits, indeterminate-send reconciliation, and keeps purchases outside CI/live smoke. |
-| FIPS configuration flags do not prove certificate, CRL, target, current time, module, or operational readiness. | Add real good/revoked/unknown/expired/wrong-issuer/incomplete-chain handshakes, fail closed without trustworthy current time, and produce bounded readiness evidence in `v0.97.0`; continue to disclaim application or organizational compliance. |
+| FIPS configuration flags do not prove certificate, target, module, operating environment, or operational readiness. | Retire the experimental AWS-LC feature after `v0.70.0`, exclude FIPS from 1.0, and permit a later Brynja integration only after the exact module, certificate, operating environment, build, runtime, and review conditions in `docs/FIPS_DEFERMENT.md` are satisfied. |
 | Release controls do not provide organizationally independent review by themselves. | Add governance limits, signer policy, provenance review, and independent-review disclosure in `v0.98.0`; never claim independence when unavailable. |
 | Destructive and billable behavior lacks controlled disposable-account evidence. | Add a manual-only mutation harness with spending ceilings, cleanup ledgers, and empty-inventory verification in `v0.99.0`; CI remains incapable of invoking it. |
 | Future providers need proven patterns but are not part of the Hetzner 1.0 claim. | The unpublished OVHcloud probe lands in `v0.57.0-v0.61.0`; post-1.0 publishing starts with a finite source-locked Scaleway inventory in `v1.1.0`, then a finite DigitalOcean inventory in `v1.7.0`, with full OVHcloud considered after `v1.12.0`. |
@@ -1032,6 +1032,10 @@ v0.22.0 implementation stop reached. Run pentest for this exact commit.
 ```
 
 ### v0.23.0 - Optional Blocking FIPS Transport
+
+Historical status: implemented for v0.23.0 and retired from the active
+workspace after v0.70.0. This section records earlier-tag behavior and is not
+part of the 1.0 scope; future work is deferred to Brynja.
 
 Goal: add a fail-closed blocking rustls FIPS-mode transport without weakening
 or silently changing the standard blocking transport, while avoiding a
@@ -2192,9 +2196,9 @@ Stop gate: `v0.70.0 implementation stop reached. Run the pentest for this exact 
 
 Goal: expose every claimed DNS operation through typed workflows.
 
-Deliverables: zone/RRSet CRUD, actions, zonefiles, TSIG, permits, pagination, and cleanup across all execution modes.
+Deliverables: zone/RRSet CRUD, actions, zonefiles, TSIG, permits, pagination, and cleanup across all execution modes; retire the experimental AWS-LC FIPS transport and enforce deferment to Brynja without changing ordinary rustls transports.
 
-Verification: client coverage, secret/cancellation scenarios, live read-only smoke, and `scripts/release_0_71_gate.sh`.
+Verification: client coverage, secret/cancellation scenarios, live read-only smoke, active graph/source/package FIPS-absence checks, and `scripts/release_0_71_gate.sh`.
 
 Stop gate: `v0.71.0 implementation stop reached. Complete the pentest and full release gate for this exact commit; defer crates.io publication to v0.75.0.`
 
@@ -2452,13 +2456,13 @@ Verification: all corpora/fuzz smoke/matrices/SBOM/deny/audit and `scripts/relea
 
 Stop gate: `v0.96.0 implementation stop reached. Complete the pentest and full release gate for this exact commit; defer crates.io publication to v1.0.0.`
 
-### v0.97.0 - Platform, MSRV, And FIPS Qualification
+### v0.97.0 - Platform And MSRV Qualification
 
-Goal: produce current evidence for every supported target, compiler, feature graph, and FIPS boundary.
+Goal: produce current evidence for every supported target, compiler, and active feature graph while keeping FIPS deferred to Brynja.
 
-Deliverables: good/revoked/unknown/expired-CRL/wrong-issuer/incomplete-chain handshakes; readiness evidence with module/target/root/CRL/config/policy fingerprints; unsupported-target rejection; authenticated CRL metadata; fail-closed construction/validation when trustworthy current time is unavailable; current NIST review; no compliance overclaim.
+Deliverables: complete portable/native target evidence, unsupported-target rejection, exact compiler and feature-graph records, native dependency/build review, and a verified absence of FIPS features, dependencies, package content, and compliance claims.
 
-Verification: full platform/MSRV matrix, packaged FIPS tests including missing/untrusted time, native-build review, dependency freshness, and `scripts/release_0_97_gate.sh`.
+Verification: full platform/MSRV matrix, packaged active-feature tests, FIPS deferment gate, native-build review, dependency freshness, and `scripts/release_0_97_gate.sh`.
 
 Stop gate: `v0.97.0 implementation stop reached. Complete the pentest and full release gate for this exact commit; defer crates.io publication to v1.0.0.`
 
@@ -2586,7 +2590,7 @@ platform/SBOM/fuzz evidence, and explicit continued exclusion of every
 unselected, alpha, beta, or differently versioned product.
 
 Verification: full selected-inventory matrix, package and public-API review,
-default/no_std/platform/FIPS-compatible boundary checks, live read-only smoke,
+default/no_std/platform/transport-compatible boundary checks, live read-only smoke,
 all Scaleway release gates, and `scripts/release_1_6_gate.sh`.
 
 Stop gate: `v1.6.0 implementation stop reached. Run pentest for this exact commit.`

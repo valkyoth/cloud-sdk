@@ -48,5 +48,3 @@ cargo test -p cloud-sdk-reqwest --no-default-features \
     --features blocking-rustls-webpki-roots
 cargo check -p cloud-sdk-reqwest --no-default-features \
     --features blocking-rustls,blocking-rustls-webpki-roots
-cargo check -p cloud-sdk-reqwest --no-default-features \
-    --features blocking-rustls-webpki-roots,blocking-rustls-fips

@@ -481,7 +481,7 @@ transport or deployment policy and are not performed by `cloud-sdk`.
 The core contracts perform no I/O and select no executor. Use
 `cloud-sdk-testkit` for deterministic blocking or async tests, or opt into
 `cloud-sdk-reqwest/blocking-rustls`, `blocking-rustls-webpki-roots`,
-`blocking-rustls-fips`, or `async-rustls` for HTTPS.
+or `async-rustls` for HTTPS.
 
 ### Prepared Request Policy
 
@@ -586,29 +586,16 @@ The blocking API is unchanged. This feature excludes host-added enterprise
 roots from trust decisions and updates roots only when `webpki-roots` is
 reviewed and upgraded. It does not provide certificate revocation checking,
 certificate pinning, private PKI support, or FIPS status. When combined with
-`blocking-rustls-fips`, the explicit FIPS roots-and-CRLs policy wins.
+other transport features, deterministic roots remain the blocking trust policy.
 
-### Optional Blocking FIPS Transport
+### FIPS Deferment
 
-Applications that require the reviewed FIPS path must select the dedicated
-feature instead of relying on dependency feature unification:
-
-```toml
-[dependencies]
-cloud-sdk = "0.70.0"
-cloud-sdk-reqwest = { version = "0.34.1", features = ["blocking-rustls-fips"] }
-```
-
-Client construction explicitly selects rustls' AWS-LC FIPS provider and fails
-unless both `CryptoProvider::fips()` and `ClientConfig::fips()` report true. It
-also requires a `FipsTlsPolicy` with deployment-managed trust roots and
-complete, current CRLs; unknown or expired revocation status fails closed. The
-feature alone does not make an application or deployment FIPS compliant: the
-caller must satisfy the AWS-LC security policy, approved operating-environment,
-build, entropy, deployment, and operational requirements. The full policy
-example is in the
-[reqwest crate README](https://crates.io/crates/cloud-sdk-reqwest). See also the
-[FIPS dependency admission](https://github.com/valkyoth/cloud-sdk/blob/main/docs/dependency-admission-reqwest-fips.md).
+FIPS support is excluded from the cloud-sdk 1.0 scope. The earlier experimental
+AWS-LC FIPS transport has been retired, and the active workspace exposes no
+FIPS feature or compliance claim. A future version may integrate the separate
+Brynja TLS project after its API, exact cryptographic module, operating
+environment, and validation evidence are stable and independently reviewed.
+See the [FIPS deferment policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/FIPS_DEFERMENT.md).
 
 ## Optional Async Transport
 

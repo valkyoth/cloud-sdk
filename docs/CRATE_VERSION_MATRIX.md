@@ -1065,7 +1065,7 @@ crates or placing provider-specific behavior in a neutral boundary.
 | `v0.62.0` | provider-neutral contracts, `cloud-sdk-hetzner` vertical slices, adapters, testkit, and documentation | Neutral API/semver freeze only after OVHcloud and Robot conformance plus full-fidelity Hetzner Cloud/DNS/security/Storage Box/error/no-content slices across every execution mode. |
 | `v0.63.0 - v0.73.0` | `cloud-sdk-hetzner`, with neutral fixes only when genuinely provider-independent | Complete pre-Robot models, exact operation bindings, and Cloud/DNS/security/Console Storage Box clients. |
 | `v0.74.0 - v0.95.0` | `cloud-sdk-hetzner`; neutral boundaries only for reusable behavior | Robot source lock, protocol, lockout-safe non-retryable authentication rejection, every active endpoint family, client integration, and live evidence. |
-| `v0.96.0 - v0.99.0` | release tooling/docs and affected crates only for proven qualification fixes | Whole-platform adversarial, platform/MSRV/FIPS, provenance, and controlled-mutation release-candidate evidence. |
+| `v0.96.0 - v0.99.0` | release tooling/docs and affected crates only for proven qualification fixes | Whole-platform adversarial, platform/MSRV, provenance, and controlled-mutation release-candidate evidence; FIPS remains deferred to Brynja. |
 | `v1.0.0` | all changed publishable crates under independent version rules | Stable provider-neutral foundation and complete claimed Hetzner provider. |
 
 Every milestone still follows the independent rules above: `cloud-sdk` matches

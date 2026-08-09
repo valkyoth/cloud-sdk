@@ -8,8 +8,6 @@ use cloud_sdk::transport::{
 };
 
 use super::{custom_endpoint, test_timeouts};
-#[cfg(feature = "blocking-rustls-fips")]
-use crate::blocking::tests::fips_tls_policy;
 use crate::blocking::{RawBlockingClient, RawBlockingClientBuilder, RawHttpError, UserAgent};
 use crate::test_server::{spawn, spawn_concurrent_pair, spawn_raw_response};
 
@@ -19,8 +17,6 @@ fn build_raw_loopback(endpoint: &str) -> Option<RawBlockingClient> {
     let endpoint = crate::blocking::HttpsEndpoint::local_http(endpoint).ok()?;
     let user_agent = UserAgent::new("cloud-sdk-raw-test/0.40").ok()?;
     let builder = RawBlockingClientBuilder::new(endpoint, user_agent, test_timeouts()?);
-    #[cfg(feature = "blocking-rustls-fips")]
-    let builder = builder.with_fips_tls_policy(fips_tls_policy()?);
     builder.build_for_loopback().ok()
 }
 
@@ -198,13 +194,6 @@ fn raw_blocking_connect_failure_is_not_sent() {
         unreachable!("security fixture construction failed");
     };
     let builder = RawBlockingClientBuilder::new(endpoint, user_agent, timeouts);
-    #[cfg(feature = "blocking-rustls-fips")]
-    let builder = {
-        let Some(policy) = fips_tls_policy() else {
-            unreachable!("security fixture construction failed");
-        };
-        builder.with_fips_tls_policy(policy)
-    };
     let Ok(client) = builder.build() else {
         unreachable!("security fixture construction failed")
     };
@@ -404,22 +393,4 @@ fn execute_small(
             response.writer(),
         )
         .is_ok()
-}
-
-#[cfg(feature = "blocking-rustls-fips")]
-#[test]
-fn raw_fips_builder_requires_the_same_explicit_tls_policy() {
-    let Ok(endpoint) = custom_endpoint("https://example.com/v1") else {
-        unreachable!("security fixture construction failed");
-    };
-    let Ok(user_agent) = UserAgent::new("cloud-sdk-raw-test/0.40") else {
-        unreachable!("security fixture construction failed");
-    };
-    let Some(timeouts) = test_timeouts() else {
-        unreachable!("security fixture construction failed");
-    };
-    assert!(matches!(
-        RawBlockingClientBuilder::new(endpoint, user_agent, timeouts).build(),
-        Err(crate::blocking::BuildError::FipsTlsPolicyRequired)
-    ));
 }

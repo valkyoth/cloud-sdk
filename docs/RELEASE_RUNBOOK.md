@@ -113,9 +113,8 @@ request all untracked files and do not trust repository Git status display
 configuration.
 
 Repository checks also extract the generated `cloud-sdk-reqwest` crate and
-compile its FIPS tests with `--locked`. Public certificate and CRL verifier
-fixtures used by those tests must therefore be present in the publishable
-archive. Package generation and extracted-crate compilation use fresh,
+compile its deterministic-root tests with `--locked`. FIPS is absent and
+checked by the Brynja deferment gate. Package generation and extracted-crate compilation use fresh,
 script-owned target directories so inherited Cargo configuration cannot cause
 a stale archive to be validated.
 

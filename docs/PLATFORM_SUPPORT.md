@@ -12,8 +12,8 @@ filesystem, clock, socket API, or operating-system abstraction crate.
 
 `cloud-sdk-reqwest` is different. Its default feature set is transport-free,
 but `blocking-rustls`, `blocking-rustls-webpki-roots`,
-`blocking-rustls-fips`, and `async-rustls` deliberately enable std, reqwest,
-rustls, sockets, DNS, and runtime integration. A portable provider model
+and `async-rustls` deliberately enable std, reqwest, rustls, sockets, DNS, and
+runtime integration. A portable provider model
 compiling for a target does not imply that this optional adapter is supported
 on that target.
 
@@ -77,14 +77,11 @@ That command checks every portable crate with all features and the standard,
 deterministic-root, and async reqwest/rustls adapters. Linux remains the
 runtime test platform in the main check gate; Windows and both macOS
 architectures provide native compile evidence without enabling the separately
-scoped FIPS feature.
+scoped transport features.
 
-The FIPS feature has a narrower claim. A dedicated Linux job builds the
-Cargo-authenticated bundled AWS-LC-FIPS source and verifies that the provider
-and complete client configuration report FIPS operation. The client requires
-deployment-managed roots and complete CRLs rather than Linux platform trust
-without revocation. No other target and no NIST-validated operating
-environment is claimed for this dependency line.
+FIPS support is excluded from the 1.0 platform claim and deferred to Brynja.
+No active feature, target, or operating environment is claimed as FIPS
+validated; see [`FIPS_DEFERMENT.md`](FIPS_DEFERMENT.md).
 
 ## Default Dependency Proof
 
@@ -107,9 +104,6 @@ unlisted dependencies fail closed before a platform claim is accepted.
   `cloud-sdk-reqwest/blocking-rustls`, `blocking-rustls-webpki-roots`, or
   `async-rustls` subject to their own deployment and trust-store testing. The
   deterministic snapshot mode excludes host private and enterprise roots.
-- `blocking-rustls-fips` has repository runtime evidence only on Linux x86-64;
-  it requires caller-managed roots and CRLs and is not a compliance or
-  cross-platform support claim.
 - FreeBSD users may evaluate the reqwest adapter, but this repository does not
   provide a native FreeBSD transport job.
 - Android and iOS applications should implement the core blocking or async

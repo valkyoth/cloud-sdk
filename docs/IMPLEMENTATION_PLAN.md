@@ -149,8 +149,8 @@ owned by `cloud-sdk-hetzner::storage`.
    pager/action workflows that cannot repeat authentication rejection, complete
    mock coverage, and carefully gated read-only live evidence in `v0.94.0` and
    `v0.95.0`.
-19. Whole-platform qualification: adversarial/fuzz evidence, platform/MSRV/FIPS
-   handshakes, provenance/governance review, controlled mutation evidence, and
+19. Whole-platform qualification: adversarial/fuzz evidence, platform/MSRV
+   evidence, provenance/governance review, controlled mutation evidence, and
    the final release candidate in `v0.96.0` through `v0.99.0`.
 20. Future providers: publish focused provider crates only after the provider's
    official API source, auth model, transport expectations, threat model, API
@@ -231,6 +231,9 @@ Expected future candidates must be reviewed before use:
   complete-client runtime verification. The current exact aws-lc-fips-sys pin
   binds AWS-LC FIPS 3.4.0, whose active NIST certificate coverage is not
   claimed by this repository.
+- After `v0.70.0`, that experimental FIPS boundary is retired from active
+  manifests, locks, source, packages, and CI. FIPS is excluded from 1.0 and
+  deferred until Brynja satisfies `docs/FIPS_DEFERMENT.md`.
 - The deterministic-root boundary introduced in `v0.24.0` currently admits
   `webpki-roots 1.0.9` only through a non-default blocking
   feature with a complete explicit rustls configuration. It also records the

@@ -62,7 +62,6 @@ pub(crate) use raw_hyper::RawHyperClient;
     feature = "async-rustls",
     all(
         feature = "blocking-rustls",
-        not(feature = "blocking-rustls-fips"),
         not(feature = "blocking-rustls-webpki-roots")
     )
 ))]

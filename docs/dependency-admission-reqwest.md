@@ -2,7 +2,7 @@
 
 Status: admitted only through `cloud-sdk-reqwest/blocking-rustls`,
 `cloud-sdk-reqwest/blocking-rustls-webpki-roots`,
-`cloud-sdk-reqwest/blocking-rustls-fips`, and `cloud-sdk-reqwest/async-rustls`,
+and `cloud-sdk-reqwest/async-rustls`,
 with reqwest default features disabled. The internal `fuzzing` feature aliases
 `blocking-rustls` only for the isolated fuzz workspace.
 
@@ -35,10 +35,8 @@ resolution and must retain a reviewed lockfile or vendored source set; a
 library lockfile is not published as a consumer constraint. All admitted
 licenses satisfy `deny.toml`. The rustls trust-root data requires
 `CDLA-Permissive-2.0`, which is explicitly admitted. The ordinary transport
-graph has no duplicate-version exception. The FIPS native build graph narrowly skips build-only
-`shlex 1.3.0` because bindgen and cc require different major lines; the
-boundary still rejects legacy `windows-sys` `0.52.0` if it becomes reachable
-again.
+graph has no duplicate-version exception. The boundary rejects legacy
+`windows-sys` `0.52.0` if it becomes reachable again.
 
 Aws-lc-sys introduces the workspace's first native dependency build script. It
 invokes a C/CMake toolchain to compile vendored C and assembly cryptographic
@@ -74,12 +72,6 @@ does not admit reqwest. `blocking-rustls` enables:
 The feature also enables the direct HTTP/1 stack used by the credential-free
 raw executor: `http`, `http-body-util`, `hyper`, `hyper-rustls`, `hyper-util`,
 rustls platform verification, and the required Tokio adapters.
-
-`blocking-rustls-fips` enables the blocking and sanitization boundaries with
-`reqwest/rustls-no-provider`, plus direct rustls FIPS and platform-verifier
-configuration. Its additional native graph, runtime checks, validation-status
-limits, and build requirements are reviewed separately in
-[`dependency-admission-reqwest-fips.md`](dependency-admission-reqwest-fips.md).
 
 `blocking-rustls-webpki-roots` enables the blocking and sanitization
 boundaries with an explicit AWS-LC provider, direct rustls configuration, and
@@ -120,10 +112,8 @@ at runtime. A
 separate locked, non-published test fixture deliberately enables both on the
 same reqwest instance and builds both adapters to exercise Cargo feature
 unification against the runtime overrides. Its local `cloud-sdk-reqwest`
-dependency is pinned exactly to `0.29.0` and enables the standard, FIPS, and
-async transport features, proving the explicit FIPS configuration wins under
-additive feature unification. The deterministic-root boundary separately
-compiles both its standard combination and its combination with FIPS.
+dependency enables the standard, deterministic-root, and async transport
+features, proving the runtime hardening survives additive feature unification.
 
 The fixture lockfile is a separate 200-package tooling graph. Release and CI
 gates apply the root advisory, license, and source policy to that lockfile,
@@ -183,10 +173,9 @@ can therefore validate a hostile endpoint. The separately reviewed
 Mozilla snapshot, but it does not provide revocation checks or certificate or
 public-key pinning.
 
-The `blocking-rustls-fips` transport explicitly selects and verifies the rustls
-FIPS provider and complete client configuration. It does not trust unrelated
-dependency features or process-global provider state, and it is not a broader
-application or deployment compliance guarantee.
+FIPS is not admitted by this active transport boundary. The retired experiment
+and future Brynja conditions are documented in
+[`FIPS_DEFERMENT.md`](FIPS_DEFERMENT.md).
 
 ## Secret Boundary
 
@@ -231,16 +220,16 @@ does not enable this std adapter.
 
 `scripts/check_reqwest_boundary.sh`,
 `scripts/check_reqwest_webpki_roots_boundary.sh`, and
-`scripts/check_reqwest_fips_boundary.sh` verify the exact top-level versions,
+`scripts/check_fips_deferred.py` verify the exact top-level versions,
 default and std graph isolation, separate blocking/async required and forbidden
 reqwest features,
 absence of native TLS and decompression dependencies, direct-zeroize
 exclusion, hardened builder policy, adversarial HTTP/2/Hickory feature
 unification, focused tests, fixture lockfile policy and audit coverage,
-package verification, the FIPS graph, and runtime FIPS status.
+package verification, and absence of the retired FIPS graph and API.
 Every entry point that can compile AWS-LC also sources the shared bundled-build
 policy, which rejects target-qualified system-library overrides and forces the
-ordinary and FIPS generic system controls off.
+ordinary generic system control off.
 The release gate additionally runs the full workspace checks, MSRV
 matrix, cargo-deny, cargo-audit, upstream API drift checks, and pentest evidence
 validation.

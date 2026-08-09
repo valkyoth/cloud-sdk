@@ -185,9 +185,9 @@
   central enum or catch-all identity can silently absorb a new API surface;
 - poisoned credential locks recover while holding a guard over one complete
   token `Arc`, preventing permanent failure across every client clone;
-- standard transports use platform trust stores explicitly; FIPS transport
-  requires deployment-managed roots and complete CRLs, checks the full chain,
-  denies unknown revocation status, and enforces CRL expiration;
+- standard transports use platform trust stores explicitly or the reviewed
+  deterministic root snapshot; FIPS is not an active transport or compliance
+  boundary and remains deferred to Brynja;
 - both clients force HTTP/1 and disable Hickory DNS; a locked external fixture
   tests both adapters with downstream reqwest HTTP/2 and Hickory features unified;
 - the core async trait and testkit are executor-neutral; only the optional

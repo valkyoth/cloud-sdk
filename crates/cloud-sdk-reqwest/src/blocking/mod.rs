@@ -24,16 +24,10 @@ pub use crate::shared::{
 pub use basic_client::BlockingBasicClient;
 pub use basic_config::BlockingBasicClientBuilder;
 pub use client::BlockingClient;
-#[cfg(feature = "blocking-rustls-fips")]
-pub use config::FipsTlsPolicy;
 pub use config::{BlockingClientBuilder, RawBlockingClientBuilder};
 pub use raw::RawBlockingClient;
 
 #[cfg(test)]
 mod tests;
-#[cfg(all(
-    test,
-    feature = "blocking-rustls-webpki-roots",
-    not(feature = "blocking-rustls-fips")
-))]
+#[cfg(all(test, feature = "blocking-rustls-webpki-roots"))]
 mod webpki_roots_tests;

@@ -30,8 +30,8 @@ Optional provider-neutral transport adapter for the main
 [`cloud-sdk`](https://crates.io/crates/cloud-sdk) crate.
 
 The crate remains no_std and transport-free by default. Its non-default
-`blocking-rustls`, `blocking-rustls-webpki-roots`, `blocking-rustls-fips`, and
-`async-rustls` features provide reviewed HTTPS implementations for every
+`blocking-rustls`, `blocking-rustls-webpki-roots`, and `async-rustls` features
+provide reviewed HTTPS implementations for every
 provider without adding transport dependencies to provider crates.
 
 ## Install
@@ -150,8 +150,8 @@ if client.execute(
 ```
 
 `RawAsyncClientBuilder` implements the same policy through
-`AsyncRawHttpExecutor`. Blocking, async, deterministic-root, and FIPS raw
-clients share one bounded HTTP/1 engine. See the complete
+`AsyncRawHttpExecutor`. Blocking, async, and deterministic-root raw clients
+share one bounded HTTP/1 engine. See the complete
 [wire and allocation contract](https://github.com/valkyoth/cloud-sdk/blob/main/docs/RAW_HTTP_EXECUTOR.md).
 
 ## Blocking Example
@@ -342,56 +342,17 @@ configuration receives only the compiled snapshot, even though reqwest still
 compiles its platform-verifier dependency. Host and enterprise roots are not
 consulted by this client. Root changes require a reviewed dependency update.
 This mode does not add CRL/OCSP revocation checking, private roots, pinning, or
-FIPS status. When combined with `blocking-rustls-fips`, the FIPS policy wins.
+FIPS status.
 
-## Blocking FIPS Example
+## FIPS Deferment
 
-Use the same blocking API with the dedicated feature:
-
-```toml
-[dependencies]
-cloud-sdk = "0.70.0"
-cloud-sdk-reqwest = { version = "0.34.1", features = ["blocking-rustls-fips"] }
-rustls = "=0.23.43"
-```
-
-```rust,no_run
-# #[cfg(feature = "blocking-rustls-fips")]
-# fn main() {
-use rustls::RootCertStore;
-use rustls::pki_types::{CertificateDer, CertificateRevocationListDer};
-use cloud_sdk_reqwest::blocking::{BlockingClientBuilder, FipsTlsPolicy};
-
-# fn configure(
-#     builder: BlockingClientBuilder,
-#     root_der: Vec<u8>,
-#     crl_der: Vec<u8>,
-# ) {
-let mut roots = RootCertStore::empty();
-let Ok(()) = roots.add(CertificateDer::from(root_der)) else { return };
-let Ok(policy) = FipsTlsPolicy::new(
-    roots,
-    vec![CertificateRevocationListDer::from(crl_der)],
-) else { return };
-let Ok(_client) = builder.with_fips_tls_policy(policy).build() else { return };
-# }
-# }
-# #[cfg(not(feature = "blocking-rustls-fips"))]
-# fn main() {}
-```
-
-The application must authenticate, refresh, and supply complete CRLs for every
-issuer in an accepted chain. Construction rejects missing roots, missing or
-malformed CRLs, and a missing policy; handshakes reject unknown revocation
-status and expired CRLs. Client construction also fails closed unless both the
-provider and complete TLS client configuration report FIPS operation. If both
-blocking features are enabled, this explicit FIPS configuration wins.
-
-A crate feature is not an application or deployment compliance claim; callers
-remain responsible for the validated module's security policy, approved
-operating environment, reviewed application lockfile or vendored sources,
-toolchain, entropy, deployment, and operational controls. See
-[`docs/dependency-admission-reqwest-fips.md`](https://github.com/valkyoth/cloud-sdk/blob/main/docs/dependency-admission-reqwest-fips.md).
+The earlier experimental AWS-LC FIPS mode is retired and is not part of the
+cloud-sdk 1.0 scope. This crate exposes no FIPS transport or compliance claim.
+A future release may integrate Brynja after its exact cryptographic module,
+operating environment, API, and validation evidence are stable and reviewed.
+See the
+[`FIPS_DEFERMENT.md`](https://github.com/valkyoth/cloud-sdk/blob/main/docs/FIPS_DEFERMENT.md)
+policy.
 
 ## Async Example
 
@@ -600,8 +561,7 @@ own those boundaries and pass only validated lifetimes, tokens, and handoffs.
 - Provider-policy admission or explicit trusted-operator acknowledgement
   before a credential destination is constructed.
 - Rustls with TLS 1.2 minimum; platform certificate verification for standard
-  transports, deterministic Mozilla roots for the snapshot feature, and
-  mandatory deployment roots plus CRLs for FIPS.
+  transports and deterministic Mozilla roots for the snapshot feature.
 - Explicit total and connect timeouts, each nonzero and at most 300 seconds.
 - Explicit validated user agent and bounded, type-separated bearer or Basic
   credential.
@@ -646,7 +606,6 @@ use mutable or guarded ingestion whenever the source can be cleared.
 | `std` | no | Enables only std support in first-party boundary crates. |
 | `blocking-rustls` | no | Enables hardened blocking bearer/Basic reqwest/rustls adapters, Base64 encoding, and sanitization. |
 | `blocking-rustls-webpki-roots` | no | Enables blocking bearer/Basic adapters with a deterministic reviewed Mozilla root snapshot. |
-| `blocking-rustls-fips` | no | Enables blocking bearer/Basic adapters with runtime-verified AWS-LC FIPS plus mandatory deployment roots and CRLs. |
 | `async-rustls` | no | Enables hardened async bearer/Basic reqwest/rustls adapters; callers provide an active Tokio runtime. |
 | `fuzzing` | no | Internal post-parse validator and Hyper HTTP/1 wire fuzz adapters; not intended for applications. |
 

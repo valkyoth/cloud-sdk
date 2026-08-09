@@ -1,5 +1,13 @@
 # Reqwest Blocking FIPS Dependency Admission
 
+Status: historical admission, withdrawn from the active workspace after
+`v0.70.0`. FIPS is excluded from the cloud-sdk 1.0 scope and deferred to a
+future Brynja integration under [`FIPS_DEFERMENT.md`](FIPS_DEFERMENT.md).
+
+The remainder of this document records the experimental boundary provided by
+earlier tags. It is not current API, dependency, platform, or compliance
+documentation.
+
 Status: admitted only through the non-default
 `cloud-sdk-reqwest/blocking-rustls-fips` feature.
 

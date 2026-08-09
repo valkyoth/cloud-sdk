@@ -1,17 +1,6 @@
 use std::io::Cursor;
-#[cfg(feature = "blocking-rustls-fips")]
-use std::println;
 use std::string::String;
 use std::time::Duration;
-#[cfg(feature = "blocking-rustls-fips")]
-use std::vec;
-
-#[cfg(feature = "blocking-rustls-fips")]
-use rustls::RootCertStore;
-#[cfg(feature = "blocking-rustls-fips")]
-use rustls::pki_types::pem::PemObject;
-#[cfg(feature = "blocking-rustls-fips")]
-use rustls::pki_types::{CertificateDer, CertificateRevocationListDer};
 
 use cloud_sdk::Method;
 use cloud_sdk::transport::{
@@ -23,8 +12,6 @@ use super::{
     BearerToken, BlockingClientBuilder, CustomEndpointAcknowledgement, EndpointError,
     HttpsEndpoint, RequestTimeouts, TimeoutError, TransportError, UserAgent,
 };
-#[cfg(feature = "blocking-rustls-fips")]
-use super::{BuildError, FipsTlsPolicy};
 use crate::test_server::spawn;
 
 mod authentication_policy;
@@ -56,26 +43,7 @@ fn build_loopback(endpoint: &str) -> Option<super::BlockingClient> {
     let timeouts = test_timeouts()?;
     let credential = test_credential(token, &endpoint);
     let builder = BlockingClientBuilder::new(endpoint, credential, user_agent, timeouts);
-    #[cfg(feature = "blocking-rustls-fips")]
-    let builder = builder.with_fips_tls_policy(fips_tls_policy()?);
     builder.build_for_loopback().ok()
-}
-
-#[cfg(feature = "blocking-rustls-fips")]
-fn fips_roots() -> Option<RootCertStore> {
-    let certificate =
-        CertificateDer::from_pem_slice(include_bytes!("../../testdata/fips_root.pem")).ok()?;
-    let mut roots = RootCertStore::empty();
-    roots.add(certificate).ok()?;
-    Some(roots)
-}
-
-#[cfg(feature = "blocking-rustls-fips")]
-fn fips_tls_policy() -> Option<FipsTlsPolicy> {
-    let crl =
-        CertificateRevocationListDer::from_pem_slice(include_bytes!("../../testdata/fips.crl.pem"))
-            .ok()?;
-    FipsTlsPolicy::new(fips_roots()?, vec![crl]).ok()
 }
 
 #[test]
@@ -357,13 +325,6 @@ fn response_timeout_is_payload_free_and_clears_output() {
     };
     let credential = test_credential(token, &endpoint);
     let builder = BlockingClientBuilder::new(endpoint, credential, user_agent, timeouts);
-    #[cfg(feature = "blocking-rustls-fips")]
-    let builder = {
-        let Some(policy) = fips_tls_policy() else {
-            unreachable!("security fixture construction failed");
-        };
-        builder.with_fips_tls_policy(policy)
-    };
     let client = builder.build_for_loopback();
     let Ok(client) = client else {
         unreachable!("security fixture construction failed")
@@ -386,115 +347,4 @@ fn response_timeout_is_payload_free_and_clears_output() {
 #[test]
 fn status_constant_remains_compatible_with_transport_response() {
     assert_eq!(StatusCode::OK.get(), 200);
-}
-
-#[cfg(feature = "blocking-rustls-fips")]
-#[test]
-fn fips_provider_and_complete_client_configuration_report_fips() {
-    let Some(policy) = fips_tls_policy() else {
-        unreachable!("security fixture construction failed");
-    };
-    assert_eq!(super::config::test_fips_configuration(&policy), Ok(true));
-}
-
-#[cfg(feature = "blocking-rustls-fips")]
-#[test]
-fn non_fips_provider_and_complete_configuration_fail_closed() {
-    let Some(policy) = fips_tls_policy() else {
-        unreachable!("security fixture construction failed");
-    };
-    assert_eq!(super::config::test_non_fips_rejection(&policy), Ok(true));
-}
-
-#[cfg(feature = "blocking-rustls-fips")]
-#[test]
-fn fips_policy_rejects_missing_roots_crls_and_malformed_crls() {
-    let crl = CertificateRevocationListDer::from(vec![0xff]);
-    assert!(matches!(
-        FipsTlsPolicy::new(RootCertStore::empty(), vec![crl.clone()]),
-        Err(BuildError::FipsTrustRootsRequired)
-    ));
-    let Some(roots) = fips_roots() else {
-        unreachable!("security fixture construction failed")
-    };
-    assert!(matches!(
-        FipsTlsPolicy::new(roots, vec![]),
-        Err(BuildError::FipsCertificateRevocationListsRequired)
-    ));
-    let Some(roots) = fips_roots() else {
-        unreachable!("security fixture construction failed")
-    };
-    let Ok(policy) = FipsTlsPolicy::new(roots, vec![crl]) else {
-        unreachable!("security fixture construction failed");
-    };
-    assert_eq!(
-        super::config::test_fips_configuration(&policy),
-        Err(BuildError::FipsRevocationVerifierFailed)
-    );
-}
-
-#[cfg(feature = "blocking-rustls-fips")]
-#[test]
-fn fips_client_builder_requires_an_explicit_tls_policy() {
-    let endpoint = custom_endpoint("https://api.example.test");
-    let token = BearerToken::new("test-token");
-    let user_agent = UserAgent::new("cloud-sdk-test/0.23");
-    let timeouts = test_timeouts();
-    let (Ok(endpoint), Ok(token), Ok(user_agent), Some(timeouts)) =
-        (endpoint, token, user_agent, timeouts)
-    else {
-        unreachable!("security fixture construction failed");
-    };
-    assert!(matches!(
-        BlockingClientBuilder::new(
-            endpoint.clone(),
-            test_credential(token, &endpoint),
-            user_agent,
-            timeouts,
-        )
-        .build(),
-        Err(BuildError::FipsTlsPolicyRequired)
-    ));
-}
-
-#[cfg(feature = "blocking-rustls-fips")]
-#[test]
-fn preinstalled_non_fips_global_provider_does_not_influence_fips_client() {
-    const CHILD: &str = "CLOUD_SDK_FIPS_GLOBAL_PROVIDER_CHILD";
-    const CHILD_MARKER: &str = "cloud-sdk FIPS global-provider child ran";
-    if std::env::var_os(CHILD).is_some() {
-        let Some(policy) = fips_tls_policy() else {
-            unreachable!("security fixture construction failed");
-        };
-        assert!(super::config::test_non_fips_global_independence(&policy));
-        println!("{CHILD_MARKER}");
-    } else {
-        let executable = std::env::current_exe();
-        assert!(executable.is_ok());
-        let Ok(executable) = executable else {
-            unreachable!("security fixture construction failed")
-        };
-        let output = std::process::Command::new(executable)
-            .args([
-                "--exact",
-                "blocking::tests::preinstalled_non_fips_global_provider_does_not_influence_fips_client",
-                "--nocapture",
-            ])
-            .env(CHILD, "1")
-            .output();
-        assert!(output.is_ok());
-        let Ok(output) = output else {
-            unreachable!("security fixture construction failed")
-        };
-        let stdout = String::from_utf8_lossy(&output.stdout);
-        assert!(
-            output.status.success(),
-            "isolated FIPS test failed: {}",
-            String::from_utf8_lossy(&output.stderr)
-        );
-        assert!(
-            stdout.contains(CHILD_MARKER),
-            "isolated FIPS test did not run"
-        );
-    }
 }

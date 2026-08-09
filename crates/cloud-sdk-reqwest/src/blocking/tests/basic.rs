@@ -10,8 +10,6 @@ use super::super::{
     BasicCredential, BasicCredentialScope, BasicPassword, BasicUsername, BlockingBasicClient,
     BlockingBasicClientBuilder, BuildError, HttpsEndpoint, TransportError, UserAgent,
 };
-#[cfg(feature = "blocking-rustls-fips")]
-use super::fips_tls_policy;
 use super::test_timeouts;
 use crate::test_server::spawn;
 
@@ -37,8 +35,6 @@ fn build_loopback(endpoint: &str) -> Option<BlockingBasicClient> {
         UserAgent::new("cloud-sdk-basic-test/0.42").ok()?,
         test_timeouts()?,
     );
-    #[cfg(feature = "blocking-rustls-fips")]
-    let builder = builder.with_fips_tls_policy(fips_tls_policy()?);
     builder.build_for_loopback().ok()
 }
 

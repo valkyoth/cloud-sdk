@@ -18,7 +18,6 @@ cloud-sdk-reqwest = {
     features = [
         "async-rustls",
         "blocking-rustls",
-        "blocking-rustls-fips",
         "blocking-rustls-webpki-roots",
     ],
 }

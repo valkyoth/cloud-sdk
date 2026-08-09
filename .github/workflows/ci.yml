@@ -65,17 +65,17 @@ jobs:
         shell: bash
         run: scripts/check_platform_matrix.sh --native
 
-  fips-transport:
-    name: Blocking FIPS mode on Linux
-    runs-on: ubuntu-22.04
-    timeout-minutes: 30
+  fips-deferment:
+    name: FIPS remains deferred to Brynja
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: Check bundled-source FIPS boundary
-        run: scripts/check_reqwest_fips_boundary.sh
+      - name: Check FIPS deferment boundary
+        run: scripts/check_fips_deferred.py
 
   compatibility:
     name: Rust ${{ matrix.rust }} compatibility

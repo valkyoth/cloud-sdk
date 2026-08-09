@@ -37,7 +37,6 @@ cast_possible_truncation = "deny"
 cast_sign_loss = "deny"
 
 [workspace.dependencies]
-aws-lc-fips-sys = { version = "=0.13.16", default-features = false }
 aws-lc-rs = { version = "=1.17.3", default-features = false }
 aws-lc-sys = { version = "=0.43.0", default-features = false }
 base64-ng = { version = "=2.0.1", default-features = false }
