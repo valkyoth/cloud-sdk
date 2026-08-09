@@ -1,6 +1,6 @@
 # v0.67.0 Dependency Review
 
-Status: implementation stop; incremental pentest required.
+Status: release candidate; pentest and retest passed.
 
 v0.67 adds no third-party package and changes no dependency feature. The
 Console response models reuse the existing `serde_json` strict tree,

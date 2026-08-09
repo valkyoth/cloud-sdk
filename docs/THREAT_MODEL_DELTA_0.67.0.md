@@ -1,6 +1,6 @@
 # v0.67.0 Threat Model Delta
 
-Status: implementation stop; incremental pentest required.
+Status: release candidate; pentest and retest passed.
 
 ## New Surface
 

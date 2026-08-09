@@ -1,6 +1,6 @@
 # v0.67.0 Rejected Abstractions
 
-Status: implementation stop; incremental pentest required.
+Status: release candidate; pentest and retest passed.
 
 ## Generic Console Resources
 

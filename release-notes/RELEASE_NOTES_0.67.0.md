@@ -1,11 +1,11 @@
 # cloud-sdk 0.67.0 Milestone Notes
 
-Status: implementation stop; incremental pentest required.
+Status: release candidate; pentest and retest passed.
 
 Release date: 2026-08-09
 
 Security-Review: PASS
-Pentest: PENDING
+Pentest: PASS
 Publication: DEFERRED TO v0.70.0
 
 ## Overview
@@ -74,7 +74,7 @@ at 0.40.0 while changes accumulate for v0.70.0.
 
 ## Release Gate
 
-Complete the incremental pentest against signed v0.66.0, apply any findings,
-and rerun the pentest until green. Then run `scripts/release_0_67_gate.sh` on
-the clean evidence commit. GitHub CI and CodeQL must be green on that unchanged
-commit before the signed internal tag. Do not publish crates.
+The incremental pentest against signed v0.66.0 and final retest are green. Run
+`scripts/release_0_67_gate.sh` on the clean evidence commit. GitHub CI and
+CodeQL must be green on that unchanged commit before the signed internal tag.
+Do not publish crates.

@@ -1,7 +1,8 @@
 # Crate Version Matrix
 
 Status: `v0.65.0` is tagged and published, and `v0.66.0` is a signed internal
-milestone. `v0.67.0` is the next internal candidate; no package is selected for
+milestone. The `v0.67.0` pentest and retest passed; its final evidence commit
+awaits GitHub CI and CodeQL before the internal tag. No package is selected for
 crates.io until the v0.70.0 cumulative checkpoint. Every pre-1.0 tag receives
 its own incremental pentest.
 
