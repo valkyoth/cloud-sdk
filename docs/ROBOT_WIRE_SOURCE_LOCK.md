@@ -72,7 +72,8 @@ scripts/check_robot_api_lock.py
 
 Release preparation also authenticates the current official document against
 the reviewed digest. The fetch rejects redirects, stops after 8 MiB, and uses
-a 90-second POSIX wall-clock deadline in addition to per-operation timeouts:
+a 90-second POSIX wall-clock deadline in addition to per-operation timeouts.
+An existing process-global real-time timer is rejected and left armed:
 
 ```bash
 scripts/check_robot_wire_fixture.py --fetch

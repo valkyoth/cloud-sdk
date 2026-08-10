@@ -295,5 +295,6 @@ document by exact SHA-256, rejects redirects, extracts every HTTP operation
 heading, compares exact order and route identity, and requires an upstream
 deprecation marker for each excluded Storage Box heading. Lock reads stop at
 256 KiB before parsing; live fetches stop at 8 MiB and have a 90-second hard
-wall-clock deadline. Any source, count, ID, route, status, group, milestone, or
-order change is a review stop.
+wall-clock deadline. An existing process-global real-time timer causes a
+fail-closed result and remains armed. Any source, count, ID, route, status,
+group, milestone, or order change is a review stop.

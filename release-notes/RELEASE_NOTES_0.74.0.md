@@ -30,7 +30,8 @@ milestone; no crate is selected for crates.io publication.
 - Bound the complete canonical operation policy to a separate reviewed
   SHA-256, so structurally valid ID or group/milestone swaps fail closed.
 - Bounded lock reads before allocation and added a 90-second hard wall-clock
-  fetch deadline in addition to per-operation network timeouts.
+  fetch deadline in addition to per-operation network timeouts. Existing
+  process-global real-time timers are rejected without being disabled.
 - Added regression checks for count, identity, grouping, status, milestone,
   policy swapping, lockout retry, source-size, wall deadline, and redirect
   drift.

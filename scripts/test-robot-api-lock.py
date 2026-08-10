@@ -205,7 +205,8 @@ def test_lock_reader_bounds_input_before_json_parsing() -> None:
 
 def test_fetch_deadline_uses_a_real_wall_clock_alarm() -> None:
     if not all(
-        hasattr(signal, name) for name in ("SIGALRM", "ITIMER_REAL", "setitimer")
+        hasattr(signal, name)
+        for name in ("SIGALRM", "ITIMER_REAL", "setitimer", "getitimer")
     ):
         assert_exits("unavailable", checker.fetch_deadline().__enter__)
         return
@@ -216,6 +217,26 @@ def test_fetch_deadline_uses_a_real_wall_clock_alarm() -> None:
         assert "exceeded total deadline" in str(error)
     else:
         raise AssertionError("expected hard fetch deadline")
+
+
+def test_fetch_deadline_preserves_an_existing_timer() -> None:
+    if not all(
+        hasattr(signal, name)
+        for name in ("SIGALRM", "ITIMER_REAL", "setitimer", "getitimer")
+    ):
+        return
+    assert signal.getitimer(signal.ITIMER_REAL) == (0.0, 0.0)
+    signal.setitimer(signal.ITIMER_REAL, 30.0)
+    try:
+        assert_exits(
+            "another real-time deadline is already armed",
+            checker.fetch_deadline().__enter__,
+        )
+        remaining, interval = signal.getitimer(signal.ITIMER_REAL)
+        assert 0.0 < remaining <= 30.0
+        assert interval == 0.0
+    finally:
+        signal.setitimer(signal.ITIMER_REAL, 0.0)
 
 
 def test_redirect_handler_never_creates_a_followup_request() -> None:

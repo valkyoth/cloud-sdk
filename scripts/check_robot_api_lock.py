@@ -284,10 +284,19 @@ def validate_source(lock: dict[str, Any], payload: bytes) -> None:
 @contextmanager
 def fetch_deadline() -> Iterator[None]:
     require(
-        hasattr(signal, "SIGALRM")
-        and hasattr(signal, "ITIMER_REAL")
-        and hasattr(signal, "setitimer"),
+        all(
+            hasattr(signal, name)
+            for name in ("SIGALRM", "ITIMER_REAL", "setitimer", "getitimer")
+        ),
         "hard fetch deadline is unavailable on this platform",
+    )
+    try:
+        previous_timer = signal.getitimer(signal.ITIMER_REAL)
+    except (OSError, ValueError) as error:
+        fail(f"could not inspect hard fetch deadline: {error}")
+    require(
+        previous_timer == (0.0, 0.0),
+        "another real-time deadline is already armed",
     )
 
     def expired(_signum: int, _frame: Any) -> None:

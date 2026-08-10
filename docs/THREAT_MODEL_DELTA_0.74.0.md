@@ -40,6 +40,7 @@ is not compiled into a crate and cannot execute provider operations.
 - Lock reads are capped at 256 KiB before JSON parsing.
 - Fetching is HTTPS-only, redirect-rejecting, capped at 8 MiB, and guarded by
   both per-operation timeouts and a 90-second POSIX wall-clock deadline.
+  Existing process-global real-time deadlines are rejected and preserved.
 - Fetched bytes are decoded and compared but never compiled, imported,
   executed, or copied into a publishable package.
 - Any digest or heading change stops the release for manual review.
