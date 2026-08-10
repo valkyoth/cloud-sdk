@@ -4,16 +4,18 @@
 from __future__ import annotations
 
 import argparse
+from contextlib import contextmanager
 import hashlib
 from html import unescape
 from html.parser import HTMLParser
 import json
 from pathlib import Path
 import re
+import signal
 import ssl
 import urllib.error
 import urllib.request
-from typing import Any
+from typing import Any, Iterator
 
 ROOT = Path(__file__).resolve().parents[1]
 LOCK = ROOT / "tests" / "fixtures" / "robot-api" / "v0.74.0.json"
@@ -22,6 +24,11 @@ SOURCE_SHA256 = "4b396790acc449f47b2b3b893f8eff759c0c25196dc38b1e5e92a12c9704771
 MAX_LOCK_BYTES = 256 * 1024
 MAX_SOURCE_BYTES = 8 * 1024 * 1024
 TIMEOUT_SECONDS = 60
+TOTAL_FETCH_SECONDS = 90
+OPERATIONS_POLICY_SHA256 = (
+    "896e23812d536999ad0deb1509fec9a23"
+    "f92eae28ca0a404e11063b3644a5d76"
+)
 ID = re.compile(r"^[a-z][a-z0-9]*(?:_[a-z0-9]+)*$")
 HEADING = re.compile(r"^(GET|POST|PUT|DELETE) (/\S+)$")
 DEPRECATION_MARKER = re.compile(
@@ -99,7 +106,8 @@ def require(condition: bool, message: str) -> None:
 
 def read_lock() -> dict[str, Any]:
     try:
-        payload = LOCK.read_bytes()
+        with LOCK.open("rb") as stream:
+            payload = stream.read(MAX_LOCK_BYTES + 1)
     except OSError as error:
         fail(f"could not read lock: {error}")
     require(len(payload) <= MAX_LOCK_BYTES, "lock exceeds 256 KiB")
@@ -234,6 +242,17 @@ def validate_operations(lock: dict[str, Any]) -> None:
     require((active, deprecated) == (89, 16), "active/deprecated counts changed")
     expected_counts = {name: value[0] for name, value in GROUPS.items()}
     require(group_counts == expected_counts, "operation group counts changed")
+    canonical = json.dumps(
+        values,
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=False,
+    ).encode("utf-8")
+    actual = hashlib.sha256(canonical).hexdigest()
+    require(
+        actual == OPERATIONS_POLICY_SHA256,
+        f"reviewed operation policy changed to {actual}",
+    )
 
 
 def extract_headings(payload: bytes) -> list[str]:
@@ -262,6 +281,36 @@ def validate_source(lock: dict[str, Any], payload: bytes) -> None:
             require(marker in markers, f"missing upstream deprecation marker {display}")
 
 
+@contextmanager
+def fetch_deadline() -> Iterator[None]:
+    require(
+        hasattr(signal, "SIGALRM")
+        and hasattr(signal, "ITIMER_REAL")
+        and hasattr(signal, "setitimer"),
+        "hard fetch deadline is unavailable on this platform",
+    )
+
+    def expired(_signum: int, _frame: Any) -> None:
+        raise TimeoutError("Robot source fetch exceeded total deadline")
+
+    try:
+        previous = signal.signal(signal.SIGALRM, expired)
+    except (OSError, ValueError) as error:
+        fail(f"could not arm hard fetch deadline: {error}")
+    try:
+        signal.setitimer(signal.ITIMER_REAL, TOTAL_FETCH_SECONDS)
+    except (OSError, ValueError) as error:
+        signal.signal(signal.SIGALRM, previous)
+        fail(f"could not arm hard fetch deadline: {error}")
+    try:
+        yield
+    finally:
+        try:
+            signal.setitimer(signal.ITIMER_REAL, 0)
+        finally:
+            signal.signal(signal.SIGALRM, previous)
+
+
 def fetch_source() -> bytes:
     opener = urllib.request.build_opener(
         RejectRedirects(), urllib.request.HTTPSHandler(context=ssl.create_default_context())
@@ -271,10 +320,11 @@ def fetch_source() -> bytes:
         headers={"User-Agent": "cloud-sdk-robot-api-lock/0.74"},
     )
     try:
-        with opener.open(request, timeout=TIMEOUT_SECONDS) as response:
-            require(response.geturl() == SOURCE_URL, "source redirected")
-            payload = response.read(MAX_SOURCE_BYTES + 1)
-    except (OSError, urllib.error.URLError) as error:
+        with fetch_deadline():
+            with opener.open(request, timeout=TIMEOUT_SECONDS) as response:
+                require(response.geturl() == SOURCE_URL, "source redirected")
+                payload = response.read(MAX_SOURCE_BYTES + 1)
+    except (OSError, TimeoutError, urllib.error.URLError) as error:
         fail(f"could not fetch official source: {error}")
     require(len(payload) <= MAX_SOURCE_BYTES, "official source exceeds 8 MiB")
     return payload

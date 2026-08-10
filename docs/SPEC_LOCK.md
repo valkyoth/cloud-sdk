@@ -285,9 +285,15 @@ The complete Robot inventory is pinned in
 It records all 105 official operation headings in source order, classifies 89
 as active, and excludes all 16 deprecated legacy Storage Box operations. Each
 active row owns one implementation milestone from `v0.78.0` through `v0.93.0`.
+The canonical complete operation array is independently bound by SHA-256
+`896e23812d536999ad0deb1509fec9a23f92eae28ca0a404e11063b3644a5d76`,
+so swapping IDs, routes, groups, statuses, milestones, or source order cannot
+preserve a passing local policy check.
 
 `scripts/check_robot_api_lock.py --fetch` authenticates the bounded official
 document by exact SHA-256, rejects redirects, extracts every HTTP operation
 heading, compares exact order and route identity, and requires an upstream
-deprecation marker for each excluded Storage Box heading. Any source, count,
-route, status, group, or milestone change is a review stop.
+deprecation marker for each excluded Storage Box heading. Lock reads stop at
+256 KiB before parsing; live fetches stop at 8 MiB and have a 90-second hard
+wall-clock deadline. Any source, count, ID, route, status, group, milestone, or
+order change is a review stop.

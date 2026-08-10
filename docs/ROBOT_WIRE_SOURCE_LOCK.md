@@ -55,6 +55,12 @@ or output fields are not separate operation headings and remain excluded under
 the repository's deprecated-endpoint policy. No Robot runtime module, request,
 decoder, credential, or client is introduced by the source lock.
 
+Local validation binds the complete canonical operation array to SHA-256
+`896e23812d536999ad0deb1509fec9a23f92eae28ca0a404e11063b3644a5d76`.
+Structural totals therefore cannot conceal swapped IDs or cross-family
+ownership and milestone changes. The lock reader consumes at most 256 KiB
+before rejecting an oversized file.
+
 ## Verification
 
 Run the local structural check:
@@ -65,7 +71,8 @@ scripts/check_robot_api_lock.py
 ```
 
 Release preparation also authenticates the current official document against
-the reviewed digest:
+the reviewed digest. The fetch rejects redirects, stops after 8 MiB, and uses
+a 90-second POSIX wall-clock deadline in addition to per-operation timeouts:
 
 ```bash
 scripts/check_robot_wire_fixture.py --fetch

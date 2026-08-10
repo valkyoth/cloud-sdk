@@ -17,6 +17,8 @@ is not compiled into a crate and cannot execute provider operations.
 - Operation IDs and method/path pairs must be unique and canonical.
 - Exact group counts require 89 active and 16 deprecated headings.
 - Every active operation has one reviewed implementation milestone.
+- A separate SHA-256 binds the complete canonical operation array, preventing
+  structurally valid ID swaps or cross-family ownership changes.
 
 ### Deprecated Endpoint Revival
 
@@ -35,8 +37,9 @@ is not compiled into a crate and cannot execute provider operations.
 
 ### Untrusted Upstream Bytes
 
-- Fetching is HTTPS-only, redirect-rejecting, timeout-bounded, and capped at
-  8 MiB.
+- Lock reads are capped at 256 KiB before JSON parsing.
+- Fetching is HTTPS-only, redirect-rejecting, capped at 8 MiB, and guarded by
+  both per-operation timeouts and a 90-second POSIX wall-clock deadline.
 - Fetched bytes are decoded and compared but never compiled, imported,
   executed, or copied into a publishable package.
 - Any digest or heading change stops the release for manual review.

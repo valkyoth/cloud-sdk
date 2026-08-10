@@ -6,6 +6,8 @@ from __future__ import annotations
 import copy
 import importlib.util
 from pathlib import Path
+import signal
+import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts" / "check_robot_api_lock.py"
@@ -61,6 +63,29 @@ def test_count_and_duplicate_drift_fail_closed() -> None:
     value = copy.deepcopy(lock())
     value["operations"][1]["id"] = value["operations"][0]["id"]
     assert_exits("duplicate operation id", checker.validate_operations, value)
+
+
+def test_operation_id_assignments_are_cryptographically_bound() -> None:
+    value = copy.deepcopy(lock())
+    first = value["operations"][0]
+    second = value["operations"][1]
+    first["id"], second["id"] = second["id"], first["id"]
+    assert_exits("reviewed operation policy changed", checker.validate_operations, value)
+
+
+def test_cross_family_assignments_are_cryptographically_bound() -> None:
+    value = copy.deepcopy(lock())
+    server = operation(value, "list_servers")
+    cancellation = operation(value, "get_server_cancellation")
+    server["group"], cancellation["group"] = (
+        cancellation["group"],
+        server["group"],
+    )
+    server["milestone"], cancellation["milestone"] = (
+        cancellation["milestone"],
+        server["milestone"],
+    )
+    assert_exits("reviewed operation policy changed", checker.validate_operations, value)
 
 
 def test_storage_deprecation_cannot_be_reclassified_or_reimplemented() -> None:
@@ -164,6 +189,33 @@ def test_source_reader_enforces_the_byte_limit() -> None:
         assert_exits("exceeds 8 MiB", checker.fetch_source)
     finally:
         checker.urllib.request.build_opener = original
+
+
+def test_lock_reader_bounds_input_before_json_parsing() -> None:
+    with tempfile.TemporaryDirectory() as directory:
+        path = Path(directory) / "oversized.json"
+        path.write_bytes(b"{" + b" " * checker.MAX_LOCK_BYTES)
+        original = checker.LOCK
+        checker.LOCK = path
+        try:
+            assert_exits("lock exceeds 256 KiB", checker.read_lock)
+        finally:
+            checker.LOCK = original
+
+
+def test_fetch_deadline_uses_a_real_wall_clock_alarm() -> None:
+    if not all(
+        hasattr(signal, name) for name in ("SIGALRM", "ITIMER_REAL", "setitimer")
+    ):
+        assert_exits("unavailable", checker.fetch_deadline().__enter__)
+        return
+    try:
+        with checker.fetch_deadline():
+            signal.raise_signal(signal.SIGALRM)
+    except TimeoutError as error:
+        assert "exceeded total deadline" in str(error)
+    else:
+        raise AssertionError("expected hard fetch deadline")
 
 
 def test_redirect_handler_never_creates_a_followup_request() -> None:

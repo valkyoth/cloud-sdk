@@ -31,7 +31,8 @@ command fail. Fetched content is maintenance input only and is never compiled,
 packaged, or accepted automatically.
 
 The Robot checker independently rejects redirects, limits the document to
-8 MiB, verifies the exact reviewed SHA-256 digest, compares all 105 HTTP
+8 MiB, enforces a 90-second POSIX wall-clock deadline, verifies the exact
+reviewed source SHA-256 and operation-policy SHA-256, compares all 105 HTTP
 operation headings in source order, and requires upstream deprecation markers
 for the 16 excluded legacy Storage Box operations. Robot lock refreshes are
 manual reviewed changes; the checker has no write mode.

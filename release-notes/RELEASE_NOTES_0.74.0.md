@@ -27,8 +27,13 @@ milestone; no crate is selected for crates.io publication.
 - Added a bounded redirect-rejecting fetch check that compares the exact
   upstream digest, all extracted HTTP headings, and every Storage Box
   deprecation marker to the committed lock.
+- Bound the complete canonical operation policy to a separate reviewed
+  SHA-256, so structurally valid ID or group/milestone swaps fail closed.
+- Bounded lock reads before allocation and added a 90-second hard wall-clock
+  fetch deadline in addition to per-operation network timeouts.
 - Added regression checks for count, identity, grouping, status, milestone,
-  lockout retry, source-size, and redirect drift.
+  policy swapping, lockout retry, source-size, wall deadline, and redirect
+  drift.
 - Kept both Robot locks outside every publishable crate and added no runtime
   Robot module, credential, request, decoder, client, feature, or dependency.
 
