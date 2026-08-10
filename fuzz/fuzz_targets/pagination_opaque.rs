@@ -157,6 +157,7 @@ fn prepared(operation: OperationId) -> Option<PreparedRequest<'static>> {
         response,
         authentication,
         raw,
+        cloud_sdk::operation::RequestBodySensitivity::Public,
     )
     .ok()
     .map(|prepared| prepared.with_operation_id(operation))

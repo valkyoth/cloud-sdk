@@ -7,12 +7,48 @@ use crate::dns::zones::{
 };
 use crate::prepared::{HetznerPreparationError, JsonWriter};
 
-body_wire!(ZoneCreateRequest<'_>, request => request.endpoint(), "create_zone", write_create);
-body_wire!(ZoneUpdateRequest<'_>, request => request.endpoint(), "update_zone", write_update);
-body_wire!(ZonePrimaryNameserversRequest<'_>, request => request.endpoint(), "change_zone_primary_nameservers", write_nameservers_request);
-body_wire!(ZoneProtectionRequest<'_>, request => request.endpoint(), "change_zone_protection", write_protection);
-body_wire!(ZoneTtlRequest<'_>, request => request.endpoint(), "change_zone_ttl", write_ttl);
-body_wire!(ZoneFileImportRequest<'_>, request => request.endpoint(), "import_zone_zonefile", write_zonefile_import);
+body_wire!(ZoneCreateRequest<'_>, request => request.endpoint(), "create_zone", write_create, zone_create_sensitivity);
+body_wire!(ZoneUpdateRequest<'_>, request => request.endpoint(), "update_zone", write_update, public);
+body_wire!(ZonePrimaryNameserversRequest<'_>, request => request.endpoint(), "change_zone_primary_nameservers", write_nameservers_request, nameservers_sensitivity);
+body_wire!(ZoneProtectionRequest<'_>, request => request.endpoint(), "change_zone_protection", write_protection, public);
+body_wire!(ZoneTtlRequest<'_>, request => request.endpoint(), "change_zone_ttl", write_ttl, public);
+body_wire!(ZoneFileImportRequest<'_>, request => request.endpoint(), "import_zone_zonefile", write_zonefile_import, sensitive_body);
+
+fn zone_create_sensitivity(
+    request: ZoneCreateRequest<'_>,
+) -> cloud_sdk::operation::RequestBodySensitivity {
+    if request.zonefile().is_some() {
+        return cloud_sdk::operation::RequestBodySensitivity::Sensitive;
+    }
+    match request.mode() {
+        ZoneCreateMode::Primary => cloud_sdk::operation::RequestBodySensitivity::Public,
+        ZoneCreateMode::Secondary(nameservers) => nameserver_entries_sensitivity(nameservers),
+    }
+}
+
+fn nameservers_sensitivity(
+    request: ZonePrimaryNameserversRequest<'_>,
+) -> cloud_sdk::operation::RequestBodySensitivity {
+    nameserver_entries_sensitivity(request.nameservers())
+}
+
+fn nameserver_entries_sensitivity(
+    nameservers: PrimaryNameservers<'_>,
+) -> cloud_sdk::operation::RequestBodySensitivity {
+    if nameservers
+        .entries()
+        .iter()
+        .any(|nameserver| nameserver.tsig().is_some())
+    {
+        cloud_sdk::operation::RequestBodySensitivity::Sensitive
+    } else {
+        cloud_sdk::operation::RequestBodySensitivity::Public
+    }
+}
+
+fn sensitive_body<T>(_: T) -> cloud_sdk::operation::RequestBodySensitivity {
+    cloud_sdk::operation::RequestBodySensitivity::Sensitive
+}
 
 fn write_create(
     request: ZoneCreateRequest<'_>,

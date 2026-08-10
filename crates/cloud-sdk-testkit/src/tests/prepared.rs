@@ -397,6 +397,7 @@ fn build_prepared_request(
         response_policy,
         authentication_policy,
         raw_response_policy,
+        cloud_sdk::operation::RequestBodySensitivity::Public,
     )
     .map_err(|_| ())
 }

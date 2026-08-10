@@ -84,6 +84,7 @@ pub fn prepared_with_policy<'a>(
         response,
         authentication,
         raw,
+        crate::operation::RequestBodySensitivity::Public,
     )
     .ok()?;
     Some(prepared.with_operation_id(OperationId::new("create_resource").ok()?))
@@ -135,6 +136,7 @@ pub fn read_only(target: &'static str) -> Option<PreparedRequest<'static>> {
         response,
         authentication,
         raw,
+        crate::operation::RequestBodySensitivity::Public,
     )
     .ok()?;
     Some(prepared.with_operation_id(OperationId::new("get_resource").ok()?))

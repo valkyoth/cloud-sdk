@@ -60,6 +60,7 @@ pub(crate) struct BodyWireArgs {
     pub(crate) endpoint: Expr,
     pub(crate) key: LitStr,
     pub(crate) writer: Path,
+    pub(crate) sensitivity: Path,
 }
 
 impl Parse for BodyWireArgs {
@@ -73,6 +74,11 @@ impl Parse for BodyWireArgs {
         let key: LitStr = input.parse()?;
         input.parse::<Token![,]>()?;
         let writer: Path = input.parse()?;
+        if input.is_empty() {
+            return Err(input.error("expected explicit body sensitivity"));
+        }
+        input.parse::<Token![,]>()?;
+        let sensitivity: Path = input.parse()?;
         if !input.is_empty() {
             return Err(input.error("unexpected body_wire tokens"));
         }
@@ -81,6 +87,7 @@ impl Parse for BodyWireArgs {
             endpoint,
             key,
             writer,
+            sensitivity,
         })
     }
 }
@@ -108,6 +115,7 @@ pub(crate) struct BodyComponentArgs {
     pub(crate) ty: Type,
     pub(crate) key: LitStr,
     pub(crate) writer: Path,
+    pub(crate) sensitivity: Path,
 }
 
 impl Parse for BodyComponentArgs {
@@ -117,10 +125,20 @@ impl Parse for BodyComponentArgs {
         let key: LitStr = input.parse()?;
         input.parse::<Token![,]>()?;
         let writer: Path = input.parse()?;
+        if input.is_empty() {
+            return Err(input.error("expected explicit body sensitivity"));
+        }
+        input.parse::<Token![,]>()?;
+        let sensitivity: Path = input.parse()?;
         if !input.is_empty() {
             return Err(input.error("unexpected body_component tokens"));
         }
-        Ok(Self { ty, key, writer })
+        Ok(Self {
+            ty,
+            key,
+            writer,
+            sensitivity,
+        })
     }
 }
 

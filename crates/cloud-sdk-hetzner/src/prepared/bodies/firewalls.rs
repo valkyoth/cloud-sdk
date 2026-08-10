@@ -11,12 +11,13 @@ use crate::cloud::firewalls::{
 };
 use crate::prepared::{HetznerPreparationError, JsonWriter};
 
-body_wire!(FirewallCreateRequest<'_>, request => FirewallEndpoint::Create, "create_firewall", write_create);
-body_wire!(FirewallUpdateRequest<'_>, request => request.endpoint(), "update_firewall", write_update);
+body_wire!(FirewallCreateRequest<'_>, request => FirewallEndpoint::Create, "create_firewall", write_create, public);
+body_wire!(FirewallUpdateRequest<'_>, request => request.endpoint(), "update_firewall", write_update, public);
 body_component!(
     FirewallSetRulesRequest<'_>,
     "set_firewall_rules",
-    write_set_rules
+    write_set_rules,
+    public
 );
 
 impl crate::prepared::BodyWire for FirewallResourcesRequest<'_> {
@@ -29,6 +30,10 @@ impl crate::prepared::BodyWire for FirewallResourcesRequest<'_> {
             FirewallResourceIntent::Apply => "apply_firewall_to_resources",
             FirewallResourceIntent::Remove => "remove_firewall_from_resources",
         }
+    }
+
+    fn sensitivity(self) -> cloud_sdk::operation::RequestBodySensitivity {
+        cloud_sdk::operation::RequestBodySensitivity::Public
     }
 }
 

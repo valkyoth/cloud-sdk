@@ -1,5 +1,14 @@
 macro_rules! body_wire {
-    ($type:ty, $value:ident => $endpoint:expr, $key:literal, $write:path) => {
+    ($type:ty, $value:ident => $endpoint:expr, $key:literal, $write:path, public) => {
+        body_wire!(
+            $type,
+            $value => $endpoint,
+            $key,
+            $write,
+            crate::prepared::bodies::public_body_sensitivity
+        );
+    };
+    ($type:ty, $value:ident => $endpoint:expr, $key:literal, $write:path, $sensitivity:path) => {
         impl crate::prepared::BodyWire for $type {
             fn write_body(
                 self,
@@ -10,6 +19,10 @@ macro_rules! body_wire {
 
             fn operation_key(self) -> &'static str {
                 $key
+            }
+
+            fn sensitivity(self) -> cloud_sdk::operation::RequestBodySensitivity {
+                $sensitivity(self)
             }
         }
 
@@ -30,7 +43,15 @@ macro_rules! body_wire {
 }
 
 macro_rules! body_component {
-    ($type:ty, $key:literal, $write:path) => {
+    ($type:ty, $key:literal, $write:path, public) => {
+        body_component!(
+            $type,
+            $key,
+            $write,
+            crate::prepared::bodies::public_body_sensitivity
+        );
+    };
+    ($type:ty, $key:literal, $write:path, $sensitivity:path) => {
         impl crate::prepared::BodyWire for $type {
             fn write_body(
                 self,
@@ -41,6 +62,10 @@ macro_rules! body_component {
 
             fn operation_key(self) -> &'static str {
                 $key
+            }
+
+            fn sensitivity(self) -> cloud_sdk::operation::RequestBodySensitivity {
+                $sensitivity(self)
             }
         }
     };

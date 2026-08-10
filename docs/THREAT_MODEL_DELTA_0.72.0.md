@@ -40,6 +40,18 @@ private keys, public keys, labels, and destructive deletion intent.
   transient fingerprint scratch, and absent from diagnostics.
 - Caller-owned source material remains an explicit caller cleanup boundary.
 
+### Other Sensitive Request Bodies
+
+- Core `PreparedRequest` construction requires an explicit sensitivity value;
+  there is no fail-open public default.
+- Hetzner's sealed body contract also requires an explicit classification for
+  every generated and manual adapter.
+- Storage Box passwords, DNS zonefiles and TSIG keys, server user data, and
+  RRSet record values or comments receive the same digest-only fingerprint
+  policy as uploaded private keys.
+- Tests cover public and sensitive branches for optional secret fields and
+  unconditional sensitive classifications for each body family.
+
 ### Unsafe Rotation Ordering
 
 - SSH-key replacement and old-key deletion remain separate source operations

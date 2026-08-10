@@ -10,47 +10,54 @@ use crate::storage::storage_boxes::{
     StorageBoxSubaccountCreateRequest, StorageBoxSubaccountUpdateRequest, StorageBoxUpdateRequest,
 };
 
-body_wire!(StorageBoxCreateRequest<'_>, request => request.endpoint(), "create_storage_box", write_create);
-body_wire!(StorageBoxUpdateRequest<'_>, request => request.endpoint(), "update_storage_box", write_update);
-body_wire!(StorageBoxSnapshotCreateRequest<'_>, request => request.endpoint(), "create_storage_box_snapshot", write_snapshot_create);
-body_wire!(StorageBoxSnapshotUpdateRequest<'_>, request => request.endpoint(), "update_storage_box_snapshot", write_snapshot_update);
-body_wire!(StorageBoxSubaccountCreateRequest<'_>, request => request.endpoint(), "create_storage_box_subaccount", write_subaccount_create);
-body_wire!(StorageBoxSubaccountUpdateRequest<'_>, request => request.endpoint(), "update_storage_box_subaccount", write_subaccount_update);
+body_wire!(StorageBoxCreateRequest<'_>, request => request.endpoint(), "create_storage_box", write_create, sensitive_body);
+body_wire!(StorageBoxUpdateRequest<'_>, request => request.endpoint(), "update_storage_box", write_update, public);
+body_wire!(StorageBoxSnapshotCreateRequest<'_>, request => request.endpoint(), "create_storage_box_snapshot", write_snapshot_create, public);
+body_wire!(StorageBoxSnapshotUpdateRequest<'_>, request => request.endpoint(), "update_storage_box_snapshot", write_snapshot_update, public);
+body_wire!(StorageBoxSubaccountCreateRequest<'_>, request => request.endpoint(), "create_storage_box_subaccount", write_subaccount_create, sensitive_body);
+body_wire!(StorageBoxSubaccountUpdateRequest<'_>, request => request.endpoint(), "update_storage_box_subaccount", write_subaccount_update, public);
 
 body_component!(
     StorageBoxProtectionRequest,
     "change_storage_box_protection",
-    write_protection
+    write_protection,
+    public
 );
 body_component!(
     StorageBoxChangeTypeRequest<'_>,
     "change_storage_box_type",
-    write_change_type
+    write_change_type,
+    public
 );
 body_component!(
     StorageBoxRollbackSnapshotRequest<'_>,
     "rollback_storage_box_snapshot",
-    write_rollback
+    write_rollback,
+    public
 );
 body_component!(
     StorageBoxSnapshotPlanRequest,
     "enable_storage_box_snapshot_plan",
-    write_snapshot_plan
+    write_snapshot_plan,
+    public
 );
 body_component!(
     StorageBoxAccessSettingsRequest,
     "update_storage_box_access_settings",
-    write_access_settings_body
+    write_access_settings_body,
+    public
 );
 body_component!(
     StorageBoxChangeHomeDirectoryRequest<'_>,
     "change_storage_box_subaccount_home_directory",
-    write_home_directory
+    write_home_directory,
+    public
 );
 body_component!(
     StorageBoxSubaccountAccessSettingsRequest,
     "update_storage_box_subaccount_access_settings",
-    write_subaccount_access_body
+    write_subaccount_access_body,
+    public
 );
 
 impl crate::prepared::BodyWire for StorageBoxResetPasswordRequest<'_> {
@@ -62,12 +69,20 @@ impl crate::prepared::BodyWire for StorageBoxResetPasswordRequest<'_> {
         "reset_storage_box_password"
     }
 
+    fn sensitivity(self) -> cloud_sdk::operation::RequestBodySensitivity {
+        cloud_sdk::operation::RequestBodySensitivity::Sensitive
+    }
+
     fn accepts_operation(self, operation_key: &str) -> bool {
         match operation_key {
             "reset_storage_box_password" | "reset_storage_box_subaccount_password" => true,
             _ => false,
         }
     }
+}
+
+fn sensitive_body<T>(_: T) -> cloud_sdk::operation::RequestBodySensitivity {
+    cloud_sdk::operation::RequestBodySensitivity::Sensitive
 }
 
 fn write_create(

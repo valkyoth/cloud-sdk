@@ -95,6 +95,7 @@ fn inspect_items(
                         validate_macro_type(&arguments.ty)?;
                         validate_macro_expression(&arguments.endpoint)?;
                         validate_macro_path(&arguments.writer)?;
+                        validate_macro_path(&arguments.sensitivity)?;
                         keys.push(checked_key(&arguments.key)?);
                     }
                     (RegistryKind::Body, Some("body_component"))
@@ -107,6 +108,7 @@ fn inspect_items(
                                 })?;
                         validate_macro_type(&arguments.ty)?;
                         validate_macro_path(&arguments.writer)?;
+                        validate_macro_path(&arguments.sensitivity)?;
                         keys.push(checked_key(&arguments.key)?);
                     }
                     (RegistryKind::Endpoint, Some("query_wire"))

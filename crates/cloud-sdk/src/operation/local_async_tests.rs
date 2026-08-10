@@ -15,8 +15,8 @@ use crate::{Method, ProviderId, ServiceId};
 
 use super::{
     ContentTypePolicy, CostIntent, OperationImpact, OperationMetadata, PreparedRequest,
-    ProviderService, RequestIdPolicy, RequestSemantics, ResponseBodyPolicy, ResponsePolicy,
-    RetryEligibility,
+    ProviderService, RequestBodySensitivity, RequestIdPolicy, RequestSemantics, ResponseBodyPolicy,
+    ResponsePolicy, RetryEligibility,
 };
 
 static OK: [StatusCode; 1] = [StatusCode::OK];
@@ -130,7 +130,16 @@ fn prepared() -> Option<(PreparedRequest<'static>, EndpointIdentity<'static>)> {
         EndpointPolicy::fixed(endpoint),
     );
     Some((
-        PreparedRequest::new(request, service, metadata, response, authentication, raw).ok()?,
+        PreparedRequest::new(
+            request,
+            service,
+            metadata,
+            response,
+            authentication,
+            raw,
+            RequestBodySensitivity::Public,
+        )
+        .ok()?,
         endpoint,
     ))
 }

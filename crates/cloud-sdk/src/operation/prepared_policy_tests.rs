@@ -1,7 +1,7 @@
 use super::{
     ContentTypePolicy, CostIntent, OperationImpact, OperationMetadata, PreparedRequest,
-    PreparedRequestPolicyError, ProviderService, RequestIdPolicy, RequestSemantics,
-    ResponseBodyPolicy, ResponsePolicy, RetryEligibility,
+    PreparedRequestPolicyError, ProviderService, RequestBodySensitivity, RequestIdPolicy,
+    RequestSemantics, ResponseBodyPolicy, ResponsePolicy, RetryEligibility,
 };
 use crate::authentication::{AuthenticationScopePolicy, ScopeRequirement};
 use crate::transport::{
@@ -75,6 +75,7 @@ fn non_discarded_request_ids_require_raw_header_admission() -> Result<(), &'stat
                 response,
                 authentication,
                 raw,
+                RequestBodySensitivity::Public,
             ),
             Err(PreparedRequestPolicyError::MissingRequestIdHeader)
         ));
@@ -135,6 +136,7 @@ fn read_only_metadata_rejects_methods_that_can_change_state() -> Result<(), &'st
                 response,
                 authentication,
                 raw,
+                RequestBodySensitivity::Public,
             ),
             Err(PreparedRequestPolicyError::ReadOnlyMethodMismatch)
         ));

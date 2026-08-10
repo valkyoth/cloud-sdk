@@ -14,9 +14,9 @@ body_wire!(
     write_certificate_create,
     certificate_create_sensitivity
 );
-body_wire!(CertificateUpdateRequest<'_>, request => request.endpoint(), "update_certificate", write_certificate_update);
-body_wire!(SshKeyCreateRequest<'_>, request => request.endpoint(), "create_ssh_key", write_ssh_create);
-body_wire!(SshKeyUpdateRequest<'_>, request => request.endpoint(), "update_ssh_key", write_ssh_update);
+body_wire!(CertificateUpdateRequest<'_>, request => request.endpoint(), "update_certificate", write_certificate_update, public);
+body_wire!(SshKeyCreateRequest<'_>, request => request.endpoint(), "create_ssh_key", write_ssh_create, public);
+body_wire!(SshKeyUpdateRequest<'_>, request => request.endpoint(), "update_ssh_key", write_ssh_update, public);
 
 fn certificate_create_sensitivity(
     request: CertificateCreateRequest<'_>,

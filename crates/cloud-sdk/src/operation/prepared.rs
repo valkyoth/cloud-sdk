@@ -51,6 +51,8 @@ impl<'request> PreparedRequest<'request> {
     /// policy does not admit `x-request-id`. Returns
     /// [`PreparedRequestPolicyError::ReadOnlyMethodMismatch`] when read-only
     /// metadata is paired with any method other than `GET` or `HEAD`.
+    /// `body_sensitivity` is mandatory so provider implementations cannot omit
+    /// the confidential-body review and silently receive a public default.
     pub fn new(
         request: TransportRequest<'request>,
         service: ProviderService<'request>,
@@ -58,6 +60,7 @@ impl<'request> PreparedRequest<'request> {
         response_policy: ResponsePolicy,
         authentication_policy: AuthenticationScopePolicy<'request>,
         raw_response_policy: RawResponsePolicy<'request>,
+        body_sensitivity: RequestBodySensitivity,
     ) -> Result<Self, PreparedRequestPolicyError> {
         if matches!(metadata.impact(), OperationImpact::ReadOnly)
             && !request.method().permits_direct_read_only()
@@ -82,7 +85,7 @@ impl<'request> PreparedRequest<'request> {
             } else {
                 BodyReplayability::NotReplayable
             },
-            body_sensitivity: RequestBodySensitivity::Public,
+            body_sensitivity,
         })
     }
 
@@ -103,10 +106,10 @@ impl<'request> PreparedRequest<'request> {
         self
     }
 
-    /// Marks a body as sensitive so plan confirmation requires a strong digest.
+    /// Upgrades the explicit body classification to sensitive.
     ///
-    /// Providers should set this whenever the serialized body contains secrets
-    /// whose canonical plaintext must not survive for the permit lifetime.
+    /// This cannot downgrade a sensitive body. Providers should classify the
+    /// body at construction; this helper supports reviewed wrapper policies.
     #[must_use]
     pub const fn with_sensitive_body(mut self) -> Self {
         self.body_sensitivity = RequestBodySensitivity::Sensitive;

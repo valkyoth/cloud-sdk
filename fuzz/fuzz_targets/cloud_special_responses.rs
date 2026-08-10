@@ -183,6 +183,7 @@ fn prepared(selector: u8) -> Option<(PreparedRequest<'static>, StatusCode)> {
         policy,
         authentication_policy,
         raw_policy,
+        cloud_sdk::operation::RequestBodySensitivity::Public,
     )
     .ok()?
     .with_operation_id(operation);

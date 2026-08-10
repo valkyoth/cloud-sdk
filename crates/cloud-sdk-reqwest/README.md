@@ -165,8 +165,8 @@ use cloud_sdk::{Method, ProviderId, ServiceId};
 use cloud_sdk::authentication::{AuthenticationScopePolicy, ScopeRequirement};
 use cloud_sdk::operation::{
     ContentTypePolicy, CostIntent, OperationImpact, OperationMetadata,
-    PreparedRequest, ProviderService, RequestIdPolicy, RequestSemantics,
-    ResponseBodyPolicy, ResponsePolicy, RetryEligibility,
+    PreparedRequest, ProviderService, RequestBodySensitivity, RequestIdPolicy,
+    RequestSemantics, ResponseBodyPolicy, ResponsePolicy, RetryEligibility,
 };
 use cloud_sdk::transport::{
     EndpointPolicy, HeaderName, MediaType, RawResponsePolicy, RequestTarget,
@@ -245,6 +245,7 @@ let Ok(request) = PreparedRequest::new(
     response_policy,
     authentication_policy,
     raw_response_policy,
+    RequestBodySensitivity::Public,
 ) else { return };
 let mut response_body = [0_u8; 65_536];
 let mut response_headers = [0_u8; cloud_sdk::transport::MAX_RESPONSE_HEADER_BYTES];
@@ -368,8 +369,8 @@ use cloud_sdk::{Method, ProviderId, ServiceId};
 use cloud_sdk::authentication::{AuthenticationScopePolicy, ScopeRequirement};
 use cloud_sdk::operation::{
     ContentTypePolicy, CostIntent, OperationImpact, OperationMetadata,
-    PreparedRequest, ProviderService, RequestIdPolicy, RequestSemantics,
-    ResponseBodyPolicy, ResponsePolicy, RetryEligibility,
+    PreparedRequest, ProviderService, RequestBodySensitivity, RequestIdPolicy,
+    RequestSemantics, ResponseBodyPolicy, ResponsePolicy, RetryEligibility,
 };
 use cloud_sdk::transport::{
     EndpointPolicy, HeaderName, MediaType, RawResponsePolicy, RequestTarget,
@@ -448,6 +449,7 @@ let Ok(request) = PreparedRequest::new(
     response_policy,
     authentication_policy,
     raw_response_policy,
+    RequestBodySensitivity::Public,
 ) else { return };
 let mut response_body = [0_u8; 65_536];
 let mut response_headers = [0_u8; cloud_sdk::transport::MAX_RESPONSE_HEADER_BYTES];

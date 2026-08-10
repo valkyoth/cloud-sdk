@@ -7,14 +7,18 @@ use crate::dns::rrsets::{
 };
 use crate::prepared::{HetznerPreparationError, JsonWriter};
 
-body_wire!(RrsetCreateRequest<'_>, request => request.endpoint(), "create_zone_rrset", write_create);
-body_wire!(RrsetUpdateRequest<'_>, request => request.endpoint(), "update_zone_rrset", write_update);
-body_wire!(RrsetProtectionRequest<'_>, request => request.endpoint(), "change_zone_rrset_protection", write_protection);
-body_wire!(RrsetTtlRequest<'_>, request => request.endpoint(), "change_zone_rrset_ttl", write_ttl_request);
-body_wire!(RrsetSetRecordsRequest<'_>, request => request.endpoint(), "set_zone_rrset_records", write_set_records);
-body_wire!(RrsetAddRecordsRequest<'_>, request => request.endpoint(), "add_zone_rrset_records", write_add_records);
-body_wire!(RrsetRemoveRecordsRequest<'_>, request => request.endpoint(), "remove_zone_rrset_records", write_remove_records);
-body_wire!(RrsetUpdateRecordsRequest<'_>, request => request.endpoint(), "update_zone_rrset_records", write_update_records);
+body_wire!(RrsetCreateRequest<'_>, request => request.endpoint(), "create_zone_rrset", write_create, sensitive_body);
+body_wire!(RrsetUpdateRequest<'_>, request => request.endpoint(), "update_zone_rrset", write_update, public);
+body_wire!(RrsetProtectionRequest<'_>, request => request.endpoint(), "change_zone_rrset_protection", write_protection, public);
+body_wire!(RrsetTtlRequest<'_>, request => request.endpoint(), "change_zone_rrset_ttl", write_ttl_request, public);
+body_wire!(RrsetSetRecordsRequest<'_>, request => request.endpoint(), "set_zone_rrset_records", write_set_records, sensitive_body);
+body_wire!(RrsetAddRecordsRequest<'_>, request => request.endpoint(), "add_zone_rrset_records", write_add_records, sensitive_body);
+body_wire!(RrsetRemoveRecordsRequest<'_>, request => request.endpoint(), "remove_zone_rrset_records", write_remove_records, sensitive_body);
+body_wire!(RrsetUpdateRecordsRequest<'_>, request => request.endpoint(), "update_zone_rrset_records", write_update_records, sensitive_body);
+
+fn sensitive_body<T>(_: T) -> cloud_sdk::operation::RequestBodySensitivity {
+    cloud_sdk::operation::RequestBodySensitivity::Sensitive
+}
 
 fn write_create(
     request: RrsetCreateRequest<'_>,

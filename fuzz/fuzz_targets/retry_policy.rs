@@ -176,6 +176,7 @@ fn prepared(body: &[u8]) -> Option<PreparedRequest<'_>> {
         response,
         authentication,
         raw,
+        cloud_sdk::operation::RequestBodySensitivity::Public,
     )
     .ok()?;
     Some(

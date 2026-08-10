@@ -19,6 +19,8 @@ pub(crate) use operation::{
 pub(crate) use wire_policy::{authentication_policy, provider_service, raw_response_policy};
 
 #[cfg(test)]
+mod body_sensitivity_tests;
+#[cfg(test)]
 mod response_metadata_tests;
 #[cfg(test)]
 mod tests;

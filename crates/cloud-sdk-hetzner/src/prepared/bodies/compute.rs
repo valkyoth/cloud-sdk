@@ -16,25 +16,37 @@ use crate::cloud::volumes::{
 };
 use crate::prepared::{HetznerPreparationError, JsonWriter};
 
-body_wire!(ServerCreateRequest<'_>, request => request.endpoint(), "create_server", write_server_create);
-body_wire!(ServerUpdateRequest<'_>, request => request.endpoint(), "update_server", write_server_update);
-body_wire!(ImageUpdateRequest<'_>, request => request.endpoint(), "update_image", write_image_update);
+body_wire!(ServerCreateRequest<'_>, request => request.endpoint(), "create_server", write_server_create, server_create_sensitivity);
+body_wire!(ServerUpdateRequest<'_>, request => request.endpoint(), "update_server", write_server_update, public);
+body_wire!(ImageUpdateRequest<'_>, request => request.endpoint(), "update_image", write_image_update, public);
 body_component!(
     ImageProtectionRequest,
     "change_image_protection",
-    write_image_protection
+    write_image_protection,
+    public
 );
-body_wire!(PlacementGroupCreateRequest<'_>, request => request.endpoint(), "create_placement_group", write_placement_create);
-body_wire!(PlacementGroupUpdateRequest<'_>, request => request.endpoint(), "update_placement_group", write_placement_update);
-body_wire!(VolumeCreateRequest<'_>, request => request.endpoint(), "create_volume", write_volume_create);
-body_wire!(VolumeUpdateRequest<'_>, request => request.endpoint(), "update_volume", write_volume_update);
-body_component!(VolumeAttachRequest, "attach_volume", write_volume_attach);
+body_wire!(PlacementGroupCreateRequest<'_>, request => request.endpoint(), "create_placement_group", write_placement_create, public);
+body_wire!(PlacementGroupUpdateRequest<'_>, request => request.endpoint(), "update_placement_group", write_placement_update, public);
+body_wire!(VolumeCreateRequest<'_>, request => request.endpoint(), "create_volume", write_volume_create, public);
+body_wire!(VolumeUpdateRequest<'_>, request => request.endpoint(), "update_volume", write_volume_update, public);
+body_component!(
+    VolumeAttachRequest,
+    "attach_volume",
+    write_volume_attach,
+    public
+);
 body_component!(
     VolumeProtectionRequest,
     "change_volume_protection",
-    write_volume_protection
+    write_volume_protection,
+    public
 );
-body_component!(VolumeResizeRequest, "resize_volume", write_volume_resize);
+body_component!(
+    VolumeResizeRequest,
+    "resize_volume",
+    write_volume_resize,
+    public
+);
 
 impl crate::prepared::BodyWire for ServerActionRequest<'_> {
     fn write_body(self, output: &mut [u8]) -> Result<usize, HetznerPreparationError> {
@@ -68,6 +80,25 @@ impl crate::prepared::BodyWire for ServerActionRequest<'_> {
             Self::Empty(Kind::Shutdown) => "shutdown_server",
             Self::Empty(_) => "",
         }
+    }
+
+    fn sensitivity(self) -> cloud_sdk::operation::RequestBodySensitivity {
+        match self {
+            Self::Rebuild {
+                user_data: Some(_), ..
+            } => cloud_sdk::operation::RequestBodySensitivity::Sensitive,
+            _ => cloud_sdk::operation::RequestBodySensitivity::Public,
+        }
+    }
+}
+
+fn server_create_sensitivity(
+    request: ServerCreateRequest<'_>,
+) -> cloud_sdk::operation::RequestBodySensitivity {
+    if request.user_data.is_some() {
+        cloud_sdk::operation::RequestBodySensitivity::Sensitive
+    } else {
+        cloud_sdk::operation::RequestBodySensitivity::Public
     }
 }
 

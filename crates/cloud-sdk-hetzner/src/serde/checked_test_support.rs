@@ -134,6 +134,7 @@ pub(super) fn prepared(
         policy.unwrap_or_else(|_| unreachable!()),
         authentication_policy,
         raw_policy,
+        cloud_sdk::operation::RequestBodySensitivity::Public,
     )
     .unwrap_or_else(|_| unreachable!())
     .with_operation_id(operation_id.unwrap_or_else(|_| unreachable!()))

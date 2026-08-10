@@ -104,6 +104,7 @@ impl PrepareOperation for ListResources {
             response_policy,
             authentication_policy,
             raw_response_policy,
+            cloud_sdk::operation::RequestBodySensitivity::Public,
         )
         .map_err(|_| PrepareError::InvalidRawResponsePolicy)
     }

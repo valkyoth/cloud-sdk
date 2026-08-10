@@ -128,6 +128,7 @@ impl PrepareOperation for ExampleOperation {
             response_policy()?,
             authentication_policy(endpoint),
             raw_policy()?,
+            crate::operation::RequestBodySensitivity::Public,
         )
         .map(|prepared| prepared.with_operation_id(operation_id!("list_servers")))
         .map_err(|_| FixtureError::Invalid)

@@ -184,6 +184,7 @@ pub fn prepared<'a>(operation: Operation, entries: &'a [RequestHeader<'a>]) -> P
         response_policy,
         authentication,
         raw_policy,
+        cloud_sdk::operation::RequestBodySensitivity::Public,
     )
     .unwrap_or_else(|_| unreachable!("prepared probe request must remain valid"))
 }

@@ -119,6 +119,7 @@ fn prepared_with_configuration<'headers>(
         response,
         authentication(),
         raw,
+        cloud_sdk::operation::RequestBodySensitivity::Public,
     )
     .unwrap_or_else(|_| unreachable!())
     .with_operation_id(OperationId::new(operation).unwrap_or_else(|_| unreachable!()))

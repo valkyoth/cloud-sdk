@@ -19,58 +19,67 @@ use crate::cloud::networks::resources::{
 };
 use crate::prepared::{HetznerPreparationError, JsonWriter};
 
-body_wire!(NetworkCreateRequest<'_>, request => crate::cloud::networks::resources::NetworkEndpoint::Create, "create_network", write_network_create);
-body_wire!(NetworkUpdateRequest<'_>, request => request.endpoint(), "update_network", write_network_update);
+body_wire!(NetworkCreateRequest<'_>, request => crate::cloud::networks::resources::NetworkEndpoint::Create, "create_network", write_network_create, public);
+body_wire!(NetworkUpdateRequest<'_>, request => request.endpoint(), "update_network", write_network_update, public);
 body_component!(
     NetworkAddSubnetRequest<'_>,
     "add_network_subnet",
-    write_subnet_request
+    write_subnet_request,
+    public
 );
 body_component!(
     NetworkChangeIpRangeRequest<'_>,
     "change_network_ip_range",
-    write_change_range
+    write_change_range,
+    public
 );
 body_component!(
     NetworkProtectionRequest,
     "change_network_protection",
-    write_network_protection
+    write_network_protection,
+    public
 );
 
-body_wire!(FloatingIpCreateRequest<'_>, request => FloatingIpEndpoint::Create, "create_floating_ip", write_floating_create);
-body_wire!(FloatingIpUpdateRequest<'_>, request => request.endpoint(), "update_floating_ip", write_floating_update);
+body_wire!(FloatingIpCreateRequest<'_>, request => FloatingIpEndpoint::Create, "create_floating_ip", write_floating_create, public);
+body_wire!(FloatingIpUpdateRequest<'_>, request => request.endpoint(), "update_floating_ip", write_floating_update, public);
 body_component!(
     FloatingIpAssignRequest,
     "assign_floating_ip",
-    write_floating_assign
+    write_floating_assign,
+    public
 );
 body_component!(
     FloatingIpChangeDnsPtrRequest<'_>,
     "change_floating_ip_dns_ptr",
-    write_floating_dns
+    write_floating_dns,
+    public
 );
 body_component!(
     FloatingIpProtectionRequest,
     "change_floating_ip_protection",
-    write_floating_protection
+    write_floating_protection,
+    public
 );
 
-body_wire!(PrimaryIpCreateRequest<'_>, request => PrimaryIpEndpoint::Create, "create_primary_ip", write_primary_create);
-body_wire!(PrimaryIpUpdateRequest<'_>, request => request.endpoint(), "update_primary_ip", write_primary_update);
+body_wire!(PrimaryIpCreateRequest<'_>, request => PrimaryIpEndpoint::Create, "create_primary_ip", write_primary_create, public);
+body_wire!(PrimaryIpUpdateRequest<'_>, request => request.endpoint(), "update_primary_ip", write_primary_update, public);
 body_component!(
     PrimaryIpAssignRequest,
     "assign_primary_ip",
-    write_primary_assign
+    write_primary_assign,
+    public
 );
 body_component!(
     PrimaryIpChangeDnsPtrRequest<'_>,
     "change_primary_ip_dns_ptr",
-    write_primary_dns
+    write_primary_dns,
+    public
 );
 body_component!(
     PrimaryIpProtectionRequest,
     "change_primary_ip_protection",
-    write_primary_protection
+    write_primary_protection,
+    public
 );
 
 // The same route shape is used by add and delete operations.
@@ -84,6 +93,10 @@ impl crate::prepared::BodyWire for NetworkDeleteSubnetRequest<'_> {
     fn operation_key(self) -> &'static str {
         "delete_network_subnet"
     }
+
+    fn sensitivity(self) -> cloud_sdk::operation::RequestBodySensitivity {
+        cloud_sdk::operation::RequestBodySensitivity::Public
+    }
 }
 
 impl crate::prepared::BodyWire for NetworkRouteRequest<'_> {
@@ -93,6 +106,10 @@ impl crate::prepared::BodyWire for NetworkRouteRequest<'_> {
 
     fn operation_key(self) -> &'static str {
         "add_network_route"
+    }
+
+    fn sensitivity(self) -> cloud_sdk::operation::RequestBodySensitivity {
+        cloud_sdk::operation::RequestBodySensitivity::Public
     }
 
     fn accepts_operation(self, operation_key: &str) -> bool {

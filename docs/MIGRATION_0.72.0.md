@@ -3,6 +3,20 @@
 v0.72.0 is an internal source milestone. The latest crates.io checkpoint
 remains v0.70.0, and cumulative publication is deferred to v0.75.0.
 
+## Classifying Provider Request Bodies
+
+Provider implementations that call `PreparedRequest::new` directly must now
+pass `RequestBodySensitivity::Public` or `RequestBodySensitivity::Sensitive`.
+There is no default. Select `Sensitive` whenever the serialized body can contain
+credentials, private keys, bootstrap data, confidential DNS values, or another
+caller-designated secret. Exact plan and retry fingerprints reject that class;
+use the digest builders and clear caller-owned source and transport buffers.
+
+Hetzner preparation performs this classification automatically. Passwords,
+zonefiles, TSIG keys, server user data, uploaded private keys, and RRSet record
+values or comments are covered. Dynamic bodies remain public only when their
+sensitive optional field is absent.
+
 ## Adopting Named Security Reads
 
 Construct an official `HetznerClient::security` from an endpoint-bound
@@ -28,9 +42,9 @@ For certificate and SSH-key mutation or deletion:
 4. Create the matching mutation or destructive permit.
 5. Begin one attempt and pass it to the named executor method.
 
-There is no direct state-changing method and no implicit retry. Uploaded
-private-key source buffers remain caller-owned and require caller cleanup; the
-SDK clears its complete guarded request and response buffers.
+There is no direct state-changing method and no implicit retry. Sensitive
+source buffers remain caller-owned and require caller cleanup; the SDK clears
+its complete guarded request and response buffers.
 Canonical digest scratch is also cleared immediately after hashing; the digest
 alone remains for the permit lifetime.
 

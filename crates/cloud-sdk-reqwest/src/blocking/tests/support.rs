@@ -116,6 +116,7 @@ pub(super) fn prepared_with_policy<'request>(
         response,
         authentication,
         test_raw_response_policy(),
+        cloud_sdk::operation::RequestBodySensitivity::Public,
     )
     .unwrap_or_else(|_| unreachable!())
     .with_operation_id(cloud_sdk::operation_id!("reqwest_transport_test"))

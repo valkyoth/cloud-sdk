@@ -2,7 +2,9 @@
 set -eu
 
 core=crates/cloud-sdk/src/retry
+retry_encoding=crates/cloud-sdk/src/retry/fingerprint/encoding.rs
 prepared=crates/cloud-sdk/src/operation/prepared.rs
+prepared_body=crates/cloud-sdk/src/operation/prepared/body.rs
 provider=crates/cloud-sdk-hetzner/src/prepared/operation.rs
 adapter=crates/cloud-sdk-reqwest/src/shared/raw_hyper.rs
 
@@ -49,11 +51,26 @@ for required in \
     fi
 done
 
-grep -Fq 'pub enum BodyReplayability' "$prepared"
-grep -Fq 'has_same_header_policy' "$prepared"
-grep -Fq 'header.sensitivity()' "$core/fingerprint.rs"
-grep -Fq '.with_replayable_body()' "$provider"
-grep -Fq '.retry_canceled_requests(false)' "$adapter"
+if ! grep -Fq 'pub enum BodyReplayability' "$prepared_body"; then
+    echo 'retry strategies: missing BodyReplayability contract' >&2
+    exit 1
+fi
+if ! grep -Fq 'has_same_header_policy' "$prepared"; then
+    echo 'retry strategies: missing prepared header policy contract' >&2
+    exit 1
+fi
+if ! grep -Fq 'header.sensitivity()' "$retry_encoding"; then
+    echo 'retry strategies: missing sensitive-header fingerprint binding' >&2
+    exit 1
+fi
+if ! grep -Fq '.with_replayable_body()' "$provider"; then
+    echo 'retry strategies: missing provider body replay classification' >&2
+    exit 1
+fi
+if ! grep -Fq '.retry_canceled_requests(false)' "$adapter"; then
+    echo 'retry strategies: raw transport cancellation retry policy drifted' >&2
+    exit 1
+fi
 if grep -Fq '.retry_canceled_requests(true)' "$adapter"; then
     echo 'retry strategies: raw transport enables an independent retry owner' >&2
     exit 1

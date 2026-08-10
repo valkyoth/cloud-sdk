@@ -25,6 +25,13 @@ selected for crates.io publication.
 - Marked uploaded certificate bodies as sensitive, rejected long-lived exact
   fingerprints for them, and added a reviewed SHA-256 plan hasher whose
   canonical scratch is cleared immediately after digest construction.
+- Removed fail-open body-sensitivity defaults from core request construction
+  and Hetzner body adapters. Classified Storage Box passwords, DNS zonefiles,
+  TSIG keys, server user data, and RRSet record values or comments under the
+  same digest-only fingerprint policy.
+- Repaired the retry release gate after `BodyReplayability` moved into its
+  bounded body-policy module; missing source contracts now produce explicit
+  diagnostics.
 - Added paginated read execution, uploaded private-key redaction and cleanup,
   permit-authorized create execution, unpolled cancellation cleanup, a
   compile-checked example, and named read-only live smoke paths.

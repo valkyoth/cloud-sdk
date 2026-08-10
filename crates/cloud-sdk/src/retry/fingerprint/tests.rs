@@ -449,6 +449,7 @@ pub(super) fn fixture_parts_endpoint(
         response,
         authentication,
         raw,
+        crate::operation::RequestBodySensitivity::Public,
     )
     .ok()?;
     let operation = OperationId::new(operation).ok()?;

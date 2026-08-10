@@ -271,6 +271,7 @@ fn request_with_headers<'a>(
         response,
         authentication,
         raw,
+        crate::operation::RequestBodySensitivity::Public,
     )
     .ok()?
     .with_operation_id(OperationId::new("same_operation").ok()?);

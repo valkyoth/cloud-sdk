@@ -12,62 +12,73 @@ use crate::cloud::load_balancers::{
 };
 use crate::prepared::{HetznerPreparationError, JsonWriter};
 
-body_wire!(LoadBalancerCreateRequest<'_>, request => request.endpoint(), "create_load_balancer", write_create);
-body_wire!(LoadBalancerUpdateRequest<'_>, request => request.endpoint(), "update_load_balancer", write_update);
+body_wire!(LoadBalancerCreateRequest<'_>, request => request.endpoint(), "create_load_balancer", write_create, public);
+body_wire!(LoadBalancerUpdateRequest<'_>, request => request.endpoint(), "update_load_balancer", write_update, public);
 body_component!(
     LoadBalancerAddServiceRequest<'_>,
     "add_load_balancer_service",
-    write_add_service
+    write_add_service,
+    public
 );
 body_component!(
     LoadBalancerUpdateServiceRequest<'_>,
     "update_load_balancer_service",
-    write_update_service
+    write_update_service,
+    public
 );
 body_component!(
     LoadBalancerDeleteServiceRequest,
     "delete_load_balancer_service",
-    write_delete_service
+    write_delete_service,
+    public
 );
 body_component!(
     LoadBalancerAttachNetworkRequest<'_>,
     "attach_load_balancer_to_network",
-    write_attach_network
+    write_attach_network,
+    public
 );
 body_component!(
     LoadBalancerDetachNetworkRequest,
     "detach_load_balancer_from_network",
-    write_detach_network
+    write_detach_network,
+    public
 );
 body_component!(
     LoadBalancerChangeDnsPtrRequest<'_>,
     "change_load_balancer_dns_ptr",
-    write_dns_ptr
+    write_dns_ptr,
+    public
 );
 body_component!(
     LoadBalancerProtectionRequest,
     "change_load_balancer_protection",
-    write_protection
+    write_protection,
+    public
 );
 body_component!(
     LoadBalancerChangeTypeRequest<'_>,
     "change_load_balancer_type",
-    write_change_type
+    write_change_type,
+    public
 );
 body_component!(
     LoadBalancerChangeAlgorithmRequest,
     "change_load_balancer_algorithm",
-    write_algorithm
+    write_algorithm,
+    public
 );
 body_component!(
     LoadBalancerAddTargetRequest<'_>,
     "add_load_balancer_target",
-    write_add_target
+    write_add_target,
+    public
 );
 body_component!(
     LoadBalancerRemoveTargetRequest<'_>,
     "remove_load_balancer_target",
-    write_remove_target
+    write_remove_target,
+    public
 );
 
 fn write_create(

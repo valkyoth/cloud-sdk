@@ -5,7 +5,7 @@ use core::task::{Context, Poll, Waker};
 use super::{
     ContentTypePolicy, CostIntent, OperationImpact, OperationMetadata, OperationMetadataError,
     PreparationStorage, PrepareOperation, PreparedExecutionError, PreparedRequest, ProviderService,
-    RequestIdPolicy, RequestSemantics, ResponseBodyPolicy, ResponsePolicy,
+    RequestBodySensitivity, RequestIdPolicy, RequestSemantics, ResponseBodyPolicy, ResponsePolicy,
     ResponsePolicyValidationError, RetryEligibility,
 };
 use crate::authentication::{
@@ -309,6 +309,7 @@ impl PrepareOperation for ExampleOperation {
             policy,
             authentication_policy,
             raw_response_policy,
+            RequestBodySensitivity::Public,
         )
         .map_err(|_| ExamplePrepareError::Invalid)
     }

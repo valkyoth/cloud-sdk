@@ -33,7 +33,7 @@ ENDPOINTS = """endpoint_wire!(
         TestEndpoint::Read | TestEndpoint::Write => (),
     }
 );"""
-BODIES = 'body_wire!(WriteRequest, request => (), "write_test", write_test);'
+BODIES = 'body_wire!(WriteRequest, request => (), "write_test", write_test, public);'
 MANIFEST = """[package]
 name = "prepared-coverage-fixture"
 version = "0.0.0"
@@ -337,7 +337,7 @@ def assert_hidden_module_evidence_rejected(directory: Path) -> None:
         directory,
         bodies=(
             "body_wire!(WriteRequest, request => { "
-            f'{hidden_impl} () }}, "write_test", write_test);'
+            f'{hidden_impl} () }}, "write_test", write_test, public);'
         ),
     )
     assert_nested_item_rejected(body_argument)
@@ -361,19 +361,25 @@ def assert_hidden_module_evidence_rejected(directory: Path) -> None:
                 "}, false, (), identity endpoint => ());"
             ),
         ),
-        run(directory, bodies=f'body_wire!({hidden_type}, request => (), "write_test", write);'),
+        run(
+            directory,
+            bodies=f'body_wire!({hidden_type}, request => (), "write_test", write, public);',
+        ),
         run(
             directory,
             endpoints=ENDPOINTS + f"\nquery_wire!({hidden_type}, request => ());\n",
         ),
-        run(directory, bodies=f'body_component!({hidden_type}, "write_test", write);'),
         run(
             directory,
-            bodies=f'body_wire!(WriteRequest, request => (), "write_test", {hidden_writer});',
+            bodies=f'body_component!({hidden_type}, "write_test", write, public);',
         ),
         run(
             directory,
-            bodies=f'body_component!(WriteRequest, "write_test", {hidden_writer});',
+            bodies=f'body_wire!(WriteRequest, request => (), "write_test", {hidden_writer}, public);',
+        ),
+        run(
+            directory,
+            bodies=f'body_component!(WriteRequest, "write_test", {hidden_writer}, public);',
         ),
         run(
             directory,
@@ -398,7 +404,10 @@ def assert_hidden_module_evidence_rejected(directory: Path) -> None:
             directory,
             endpoints=ENDPOINTS + "\nquery_wire!(Fake, request => opaque!());\n",
         ),
-        run(directory, bodies='body_wire!(opaque!(), request => (), "write_test", write);'),
+        run(
+            directory,
+            bodies='body_wire!(opaque!(), request => (), "write_test", write, public);',
+        ),
         run(
             directory,
             endpoints=(

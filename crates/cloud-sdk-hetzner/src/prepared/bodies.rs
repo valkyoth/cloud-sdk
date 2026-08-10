@@ -1,6 +1,15 @@
 //! Checked JSON body adapters.
 
 macro_rules! body_wire {
+    ($type:ty, $value:ident => $endpoint:expr, $key:literal, $write:path, public) => {
+        body_wire!(
+            $type,
+            $value => $endpoint,
+            $key,
+            $write,
+            crate::prepared::bodies::public_body_sensitivity
+        );
+    };
     ($type:ty, $value:ident => $endpoint:expr, $key:literal, $write:path, $sensitivity:path) => {
         impl crate::prepared::BodyWire for $type {
             fn write_body(
@@ -33,7 +42,18 @@ macro_rules! body_wire {
             }
         }
     };
-    ($type:ty, $value:ident => $endpoint:expr, $key:literal, $write:path) => {
+}
+
+macro_rules! body_component {
+    ($type:ty, $key:literal, $write:path, public) => {
+        body_component!(
+            $type,
+            $key,
+            $write,
+            crate::prepared::bodies::public_body_sensitivity
+        );
+    };
+    ($type:ty, $key:literal, $write:path, $sensitivity:path) => {
         impl crate::prepared::BodyWire for $type {
             fn write_body(
                 self,
@@ -45,39 +65,16 @@ macro_rules! body_wire {
             fn operation_key(self) -> &'static str {
                 $key
             }
-        }
 
-        impl cloud_sdk::operation::PrepareOperation for $type {
-            type Error = crate::prepared::HetznerPreparationError;
-
-            fn prepare<'storage>(
-                &self,
-                storage: cloud_sdk::operation::PreparationStorage<'storage>,
-            ) -> Result<cloud_sdk::operation::PreparedRequest<'storage>, Self::Error> {
-                let $value = *self;
-                let _ = $value;
-                let operation = crate::prepared::HetznerPreparedOperation::json($endpoint, *self);
-                cloud_sdk::operation::PrepareOperation::prepare(&operation, storage)
+            fn sensitivity(self) -> cloud_sdk::operation::RequestBodySensitivity {
+                $sensitivity(self)
             }
         }
     };
 }
 
-macro_rules! body_component {
-    ($type:ty, $key:literal, $write:path) => {
-        impl crate::prepared::BodyWire for $type {
-            fn write_body(
-                self,
-                output: &mut [u8],
-            ) -> Result<usize, crate::prepared::HetznerPreparationError> {
-                $write(self, output)
-            }
-
-            fn operation_key(self) -> &'static str {
-                $key
-            }
-        }
-    };
+fn public_body_sensitivity<T>(_: T) -> cloud_sdk::operation::RequestBodySensitivity {
+    cloud_sdk::operation::RequestBodySensitivity::Public
 }
 
 mod compute;

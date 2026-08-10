@@ -212,6 +212,13 @@ def main() -> None:
         assert missing_body.returncode == 1, missing_body
         assert "missing body adapters: write_test" in missing_body.stderr
 
+        missing_body_sensitivity = run(
+            directory,
+            bodies='body_wire!(WriteRequest, request => (), "write_test", write_test);',
+        )
+        assert missing_body_sensitivity.returncode == 1, missing_body_sensitivity
+        assert "expected explicit body sensitivity" in missing_body_sensitivity.stderr
+
         line_comments = run(
             directory,
             endpoints=(
@@ -273,7 +280,7 @@ def main() -> None:
             bodies=(
                 BODIES
                 + '\nbody_component!('
-                'UnknownRequest, "unknown_test", write_unknown);'
+                'UnknownRequest, "unknown_test", write_unknown, public);'
             ),
         )
         assert unknown_adapter.returncode == 1, unknown_adapter

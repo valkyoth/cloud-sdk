@@ -94,10 +94,7 @@ pub(crate) trait QueryWire: Copy {
 pub(crate) trait BodyWire: Copy {
     fn write_body(self, output: &mut [u8]) -> Result<usize, HetznerPreparationError>;
     fn operation_key(self) -> &'static str;
-
-    fn sensitivity(self) -> RequestBodySensitivity {
-        RequestBodySensitivity::Public
-    }
+    fn sensitivity(self) -> RequestBodySensitivity;
 
     fn accepts_operation(self, operation_key: &str) -> bool {
         self.operation_key() == operation_key
@@ -160,6 +157,10 @@ impl BodyWire for NoBody {
 
     fn operation_key(self) -> &'static str {
         ""
+    }
+
+    fn sensitivity(self) -> RequestBodySensitivity {
+        RequestBodySensitivity::Public
     }
 }
 
@@ -363,12 +364,10 @@ where
         policy.response,
         policy.authentication,
         policy.raw_response,
+        body_sensitivity,
     )
     .map(|prepared| {
-        let mut prepared = prepared.with_operation_id(policy.operation_id);
-        if body_sensitivity.requires_digest() {
-            prepared = prepared.with_sensitive_body();
-        }
+        let prepared = prepared.with_operation_id(policy.operation_id);
         match policy.body_replayability {
             BodyReplayability::NotReplayable => prepared,
             BodyReplayability::Replayable => prepared.with_replayable_body(),
