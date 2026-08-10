@@ -35,6 +35,8 @@ milestone; no crate is selected for crates.io publication.
 - Added regression checks for count, identity, grouping, status, milestone,
   policy swapping, lockout retry, source-size, wall deadline, and redirect
   drift.
+- Aligned the local upstream gate with the API matrix's explicit 221-operation
+  OpenAPI total; Robot remains a separate 105-heading HTML source lock.
 - Kept both Robot locks outside every publishable crate and added no runtime
   Robot module, credential, request, decoder, client, feature, or dependency.
 

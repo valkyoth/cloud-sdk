@@ -28,7 +28,7 @@ check_local_lock() {
     require_text docs/SPEC_LOCK.md "Total source-locked operations: 221"
     require_text docs/SPEC_LOCK.md "2026-07-08"
 
-    require_text docs/API_MATRIX.md "Total source-locked operations: 221"
+    require_text docs/API_MATRIX.md "Total OpenAPI source-locked operations: 221"
     require_text docs/API_MATRIX.md "| cloud | Actions | GET | \`/actions\` | \`get_actions\` |"
     require_text docs/API_MATRIX.md "| cloud | Data Centers | GET | \`/datacenters\` | \`list_datacenters\` |"
     require_text docs/API_MATRIX.md "| cloud | Zone RRSet Actions | POST | \`/zones/{id_or_name}/rrsets/{rr_name}/{rr_type}/actions/change_ttl\` |"
