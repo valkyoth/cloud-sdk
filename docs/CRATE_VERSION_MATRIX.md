@@ -1,10 +1,10 @@
 # Crate Version Matrix
 
 Status: `v0.70.0` is the latest published checkpoint, `v0.71.0` is the signed
-internal DNS-client and FIPS-deferment milestone, and `v0.72.0` is the Security
-client implementation stop awaiting pentest. Every pre-1.0 tag receives its
-own incremental pentest; cumulative crates.io publication is deferred to
-v0.75.0.
+internal DNS-client and FIPS-deferment milestone, and `v0.72.0` is the
+pentest-approved Security-client release candidate awaiting GitHub CI and
+CodeQL. Every pre-1.0 tag receives its own incremental pentest; cumulative
+crates.io publication is deferred to v0.75.0.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared

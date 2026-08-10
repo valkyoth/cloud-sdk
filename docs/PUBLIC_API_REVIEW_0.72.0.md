@@ -1,6 +1,6 @@
 # v0.72.0 Public API Review
 
-Status: implementation stop reached; pentest required before tagging.
+Status: release candidate; pentest and final retest passed.
 
 Scope: changes from signed v0.71.0 through the v0.72.0 implementation stop.
 
@@ -49,7 +49,8 @@ pagination, action, response, retry, and permit classifications.
 ## Compatibility
 
 Direct `PreparedRequest::new` callers must add the explicit
-`RequestBodySensitivity` argument. Existing request domains, generic associated execution, checked response
-models, Cloud and DNS client methods, custom-client construction, and transport
-adapters remain available. Exact fingerprints continue to work for bodies not
-marked sensitive. No default feature or dependency changes.
+`RequestBodySensitivity` argument. Existing request domains, generic associated
+execution, checked response models, Cloud and DNS client methods, custom-client
+construction, and transport adapters remain available. Exact fingerprints
+continue to work for bodies not marked sensitive. No default feature or
+dependency changes.
