@@ -22,7 +22,7 @@ use cloud_sdk_hetzner::security::certificates::{
     CertificateName, certificate_pem, private_key_pem,
 };
 use cloud_sdk_hetzner::serde::{
-    HetznerSuccess, SecurityResource, SecurityResourceKind, decode_associated_checked_response,
+    HetznerSuccess, SecurityResource, decode_associated_checked_response,
 };
 use cloud_sdk_testkit::{
     ExpectedRequest, FixtureBody, LocalMockTransport, MockExchange, MockTransport,
@@ -319,7 +319,6 @@ fn assert_certificate_metadata(result: &cloud_sdk_hetzner::serde::CheckedHetzner
         [SecurityResource::Certificate(certificate)]
             if certificate.name() == "website"
     ));
-    assert_eq!(resources[0].kind(), SecurityResourceKind::Certificate);
     assert_eq!(pagination.total_entries(), Some(1));
     assert_eq!(
         result.rate_limit().map(|value| value.remaining()),
