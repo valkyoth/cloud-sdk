@@ -1,6 +1,6 @@
 # v0.73.0 Rejected Abstractions
 
-Status: implementation stop reached; pentest required before tagging.
+Status: release candidate; pentest passed with no findings.
 
 ## Hand-Written Storage Method Classification
 

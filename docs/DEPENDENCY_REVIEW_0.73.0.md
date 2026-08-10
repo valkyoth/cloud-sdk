@@ -1,6 +1,6 @@
 # v0.73.0 Dependency Review
 
-Status: implementation stop reached; pentest required before tagging.
+Status: release candidate; pentest passed with no findings.
 
 v0.73 adds generated Hetzner Console Storage client methods, tests, and
 documentation. It adds no package, feature activation, build script, native

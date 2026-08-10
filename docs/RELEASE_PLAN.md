@@ -2218,7 +2218,7 @@ Stop gate: `v0.72.0 implementation stop reached. Complete the pentest and full r
 
 ### v0.73.0 - Console Storage Box Client Methods
 
-Status: implementation stop reached; pentest required before tagging.
+Status: release candidate; pentest passed with no findings.
 
 Goal: expose every claimed Console Storage Box operation through typed workflows.
 

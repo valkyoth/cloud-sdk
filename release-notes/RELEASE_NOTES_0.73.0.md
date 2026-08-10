@@ -1,11 +1,11 @@
 # cloud-sdk 0.73.0 Milestone Notes
 
-Status: implementation stop reached; pentest required before tagging.
+Status: release candidate; pentest passed with no findings.
 
-Release date: pending
+Release date: 2026-08-10
 
 Security-Review: PASS
-Pentest: REQUIRED
+Pentest: PASS
 Publication: DEFERRED TO v0.75.0
 
 ## Overview
@@ -49,6 +49,7 @@ crates.io publication.
 - [`docs/THREAT_MODEL_DELTA_0.73.0.md`](../docs/THREAT_MODEL_DELTA_0.73.0.md)
 - [`docs/REJECTED_ABSTRACTIONS_0.73.0.md`](../docs/REJECTED_ABSTRACTIONS_0.73.0.md)
 - [`docs/MIGRATION_0.73.0.md`](../docs/MIGRATION_0.73.0.md)
+- [`security/pentest/v0.73.0.md`](../security/pentest/v0.73.0.md)
 
 ## Release Gate
 
