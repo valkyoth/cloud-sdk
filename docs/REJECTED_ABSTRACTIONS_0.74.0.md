@@ -1,6 +1,6 @@
 # v0.74.0 Rejected Abstractions
 
-Status: implementation stop reached; pentest required before tagging.
+Status: release candidate; pentest and final retest passed.
 
 ## Generating Runtime APIs From Fetched HTML
 

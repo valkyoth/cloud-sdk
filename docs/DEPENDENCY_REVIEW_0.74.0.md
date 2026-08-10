@@ -1,6 +1,6 @@
 # v0.74.0 Dependency Review
 
-Status: implementation stop reached; pentest required before tagging.
+Status: release candidate; pentest and final retest passed.
 
 v0.74 adds a repository-only JSON source lock, Python standard-library
 validation, tests, and documentation. It adds no package, crate dependency,

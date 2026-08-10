@@ -2232,7 +2232,7 @@ Stop gate: `v0.73.0 implementation stop reached. Complete the pentest and full r
 
 ### v0.74.0 - Robot Source Lock And Matrix
 
-Status: implementation stop reached; pentest required before tagging.
+Status: release candidate; pentest and final retest passed.
 
 Goal: establish the reproducible Robot source of truth.
 

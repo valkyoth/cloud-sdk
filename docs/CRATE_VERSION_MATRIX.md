@@ -2,8 +2,9 @@
 
 Status: `v0.70.0` is the latest published checkpoint, `v0.71.0-v0.73.0` are
 signed internal client milestones, and `v0.74.0` is the Robot source-lock
-implementation stop awaiting pentest. Every pre-1.0 tag receives its own
-incremental pentest; cumulative crates.io publication is deferred to v0.75.0.
+release candidate with a green pentest and final retest. Every pre-1.0 tag
+receives its own incremental pentest; cumulative crates.io publication is
+deferred to v0.75.0.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
