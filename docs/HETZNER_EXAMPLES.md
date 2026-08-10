@@ -16,6 +16,7 @@ execution so running them cannot create billable resources.
 | Checked response decoding | [`checked_response.rs`](../crates/cloud-sdk-hetzner/examples/checked_response.rs) | `cargo run -p cloud-sdk-hetzner --example checked_response --features serde` |
 | Complete Cloud client read | [`cloud_client.rs`](../crates/cloud-sdk-hetzner/examples/cloud_client.rs) | `cargo run -p cloud-sdk-hetzner --example cloud_client --features serde` |
 | Complete DNS client read | [`dns_client.rs`](../crates/cloud-sdk-hetzner/examples/dns_client.rs) | `cargo run -p cloud-sdk-hetzner --example dns_client --features serde` |
+| Complete Security client read | [`security_client.rs`](../crates/cloud-sdk-hetzner/examples/security_client.rs) | `cargo run -p cloud-sdk-hetzner --example security_client --features serde` |
 | Global and certificate action queries | [`actions.rs`](../crates/cloud-sdk-hetzner/examples/actions.rs) | `cargo run -p cloud-sdk-hetzner --example actions` |
 | DNS Zone request | [`dns.rs`](../crates/cloud-sdk-hetzner/examples/dns.rs) | `cargo run -p cloud-sdk-hetzner --example dns` |
 | Storage Box list request | [`storage_box.rs`](../crates/cloud-sdk-hetzner/examples/storage_box.rs) | `cargo run -p cloud-sdk-hetzner --example storage_box` |
@@ -37,12 +38,13 @@ provider-owned contract:
 The provider crate covers preparation and checked typed envelope decoding for
 all 208 active operations. v0.70 exposes named client workflows for all 139
 active Cloud operations, and v0.71 does the same for all 24 active DNS
-operations. Read-only methods prepare, execute, enforce response policy, and
-decode through one caller-owned workspace lease. State-changing methods retain
-separate named preparation and permit-authorized execution, so review and
-confirmation cannot be skipped. Security and Console methods arrive in
-v0.72-v0.73; their generic associated-operation paths remain available. The
-client selects no transport, retry policy, runtime, clock, or secret store.
+operations. v0.72 adds all 14 certificate and SSH-key operations. Read-only
+methods prepare, execute, enforce response policy, and decode through one
+caller-owned workspace lease. State-changing methods retain separate named
+preparation and permit-authorized execution, so review and confirmation cannot
+be skipped. Console methods arrive in v0.73; their generic associated-operation
+paths remain available. The client selects no transport, retry policy, runtime,
+clock, or secret store.
 
 ## Mutation Safety
 

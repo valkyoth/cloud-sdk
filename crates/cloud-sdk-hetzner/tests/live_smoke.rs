@@ -76,9 +76,10 @@ enum CloudClientProbeStage {
 enum SecurityProbeStage {
     Pagination,
     Association,
-    Preparation,
-    Transport,
-    Decode,
+    Construction,
+    WorkspacePool,
+    WorkspaceLease,
+    Execution,
     Shape,
 }
 
@@ -251,32 +252,39 @@ fn read_only_security_model_smoke() -> Result<(), LiveSmokeError> {
     let credential_scope =
         BearerCredentialScope::new(HETZNER_PROVIDER_ID, SECURITY_SERVICE_ID, endpoint.clone());
     let credential = BearerCredential::new(token, credential_scope);
-    let user_agent = UserAgent::new("cloud-sdk-security-live-smoke/0.70.0")
+    let user_agent = UserAgent::new("cloud-sdk-security-live-smoke/0.72.0")
         .map_err(LiveSmokeError::UserAgent)?;
     let timeouts = RequestTimeouts::new(Duration::from_secs(30), Duration::from_secs(10))
         .map_err(LiveSmokeError::Timeout)?;
-    let client = BlockingClientBuilder::new(endpoint, credential, user_agent, timeouts)
+    let transport = BlockingClientBuilder::new(endpoint, credential, user_agent, timeouts)
         .build()
         .map_err(LiveSmokeError::Client)?;
+    let client = HetznerClient::security(transport)
+        .map_err(|_| LiveSmokeError::SecurityProbe(SecurityProbeStage::Construction))?;
     let page =
         Page::new(1).map_err(|_| LiveSmokeError::SecurityProbe(SecurityProbeStage::Pagination))?;
     let per_page = PerPage::new(1)
         .map_err(|_| LiveSmokeError::SecurityProbe(SecurityProbeStage::Pagination))?;
 
     macro_rules! run_probe {
-        ($operation:expr, $expected:expr) => {{
-            let mut target = [0_u8; 128];
+        ($operation:expr, $method:ident, $expected:expr) => {{
+            let mut target = [0_u8; 256];
             let mut request_body = [0_u8; 1];
-            let prepared = $operation
-                .prepare_typed(PreparationStorage::new(&mut target, &mut request_body))
-                .map_err(|_| LiveSmokeError::SecurityProbe(SecurityProbeStage::Preparation))?;
-            let mut body = vec![0_u8; 8_388_608];
-            let mut headers = [0_u8; 8_192];
-            let response = prepared
-                .execute_blocking(&client, &mut body, &mut headers)
-                .map_err(|_| LiveSmokeError::SecurityProbe(SecurityProbeStage::Transport))?;
-            let decoded = decode_associated_checked_response(response)
-                .map_err(|_| LiveSmokeError::SecurityProbe(SecurityProbeStage::Decode))?;
+            let mut response_body = vec![0_u8; 8_388_608];
+            let mut response_headers = [0_u8; 8_192];
+            let pool = ClientWorkspacePool::<1>::new()
+                .map_err(|_| LiveSmokeError::SecurityProbe(SecurityProbeStage::WorkspacePool))?;
+            let lease = pool
+                .try_acquire(ClientWorkspace::new(
+                    &mut target,
+                    &mut request_body,
+                    response_body.as_mut_slice(),
+                    &mut response_headers,
+                ))
+                .map_err(|_| LiveSmokeError::SecurityProbe(SecurityProbeStage::WorkspaceLease))?;
+            let decoded = client
+                .$method(&$operation, lease)
+                .map_err(|_| LiveSmokeError::SecurityProbe(SecurityProbeStage::Execution))?;
             let HetznerSuccess::SecurityResources { resources, .. } = decoded.success() else {
                 return Err(LiveSmokeError::SecurityProbe(SecurityProbeStage::Shape));
             };
@@ -297,14 +305,18 @@ fn read_only_security_model_smoke() -> Result<(), LiveSmokeError> {
         certificate_query,
     )
     .map_err(|_| LiveSmokeError::SecurityProbe(SecurityProbeStage::Association))?;
-    run_probe!(certificate, SecurityResourceKind::Certificate);
+    run_probe!(
+        certificate,
+        list_certificates_blocking,
+        SecurityResourceKind::Certificate
+    );
 
     let ssh_query = SshKeyListRequest::new()
         .with_page(page)
         .with_per_page(per_page);
     let ssh = AssociatedOperation::<ListSshKeys, _, _>::query(SshKeyEndpoint::List, ssh_query)
         .map_err(|_| LiveSmokeError::SecurityProbe(SecurityProbeStage::Association))?;
-    run_probe!(ssh, SecurityResourceKind::SshKey);
+    run_probe!(ssh, list_ssh_keys_blocking, SecurityResourceKind::SshKey);
     Ok(())
 }
 

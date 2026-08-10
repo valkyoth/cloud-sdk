@@ -54,6 +54,22 @@ The four list operations retain numbered-pagination policy, action endpoints
 decode through the checked action models, and zonefile or TSIG-bearing
 preparation stays in caller-owned cleanup-guarded storage.
 
+The official Security client covers all 14 certificate and SSH-key operations:
+seven read-only, five mutation, and two destructive methods. Its four list
+operations retain numbered pagination. Uploaded certificate private keys are
+serialized only into cleanup-owning preparation storage, remain redacted from
+diagnostics, and are cleared with the complete target and body buffers.
+Caller-owned source material remains the caller's cleanup responsibility.
+
+SSH-key rotation is intentionally an explicit sequence, not one synthetic
+operation: create the replacement key under a mutation permit, verify its
+returned identity and deployment, then prepare deletion of the old key under
+a separate destructive permit. A failure in either step never authorizes the
+other step, and the client performs no rollback or implicit retry. Certificate
+retry is likewise an explicit mutation-permit operation. Bearer-token rotation
+continues to use the transport credential-generation APIs documented in the
+security recipes.
+
 The split is intentional: preparation creates no authority. The caller must
 review the exact prepared request, build an `AssociatedPlanConfirmation`,
 fingerprint it, create the required mutation/destructive/cost permit, and begin
@@ -82,12 +98,13 @@ target, request-body, response-body, and response-header capacities. Use
 `OwnedClientWorkspace::try_for_profile` fallibly allocates the same exact
 bounded layout and wipes all four allocations on drop.
 
-`CLOUD_CLIENT_METHODS` and `DNS_CLIENT_METHODS` expose the exhaustive operation
-descriptors behind the named surfaces for auditing and tooling. Their 139 and
-24 rows are generated from the source-locked operation association manifest
-and checked for exact permit and pagination classifications.
+`CLOUD_CLIENT_METHODS`, `DNS_CLIENT_METHODS`, and `SECURITY_CLIENT_METHODS`
+expose the exhaustive operation descriptors behind the named surfaces for
+auditing and tooling. Their 139, 24, and 14 rows are generated from the
+source-locked operation association manifest and checked for exact permit and
+pagination classifications.
 
-Security and Console Storage Box named methods are delivered in v0.72-v0.73.
-Their generic associated-operation execution remains available; construct
-requests with the types documented in
+Console Storage Box named methods are delivered in v0.73. Its generic
+associated-operation execution remains available; construct requests with the
+types documented in
 [`OPERATION_ASSOCIATIONS.md`](OPERATION_ASSOCIATIONS.md).

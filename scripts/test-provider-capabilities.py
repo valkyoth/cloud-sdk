@@ -30,10 +30,10 @@ def main() -> None:
     with tempfile.TemporaryDirectory() as temporary:
         path = Path(temporary) / "README.md"
         current_client = (
-            "End-to-end client | Complete named workflows for all 139 Cloud "
-            "and 24 DNS operations; generic checked read-only execution remains "
-            "available for security and Console Storage Box operations; custom-"
-            "endpoint execution remains unavailable"
+            "End-to-end client | Complete named workflows for all 139 Cloud, "
+            "24 DNS, and 14 Security operations; generic checked read-only "
+            "execution remains available for Console Storage Box operations; "
+            "custom-endpoint execution remains unavailable"
         )
         path.write_text(
             source.replace(current_client, "End-to-end client | Complete"),

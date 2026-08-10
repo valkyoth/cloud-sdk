@@ -28,7 +28,10 @@ and checked response policy to the authenticated raw adapter. v0.70 also runs
 caller-owned workspace pool, complete response policy, and typed decoder.
 v0.71 runs the paginated `list_zones_blocking` path through the equivalent
 official DNS client and checked DNS resource model. The harness has no separate
-legacy request assembly path for either client probe.
+legacy request assembly path for either client probe. v0.72 similarly runs
+`list_certificates_blocking` and `list_ssh_keys_blocking` through the official
+Security client, bounded workspace leases, and dedicated checked resource
+models.
 
 Ordinary checks run all offline harness tests but leave the authenticated test
 ignored:

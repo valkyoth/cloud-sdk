@@ -1,9 +1,10 @@
 # Crate Version Matrix
 
-Status: `v0.70.0` is the latest published checkpoint and `v0.71.0` is the
-pentest-approved internal release candidate awaiting GitHub CI and CodeQL.
-Every pre-1.0 tag receives its own incremental pentest; cumulative crates.io
-publication is deferred to v0.75.0.
+Status: `v0.70.0` is the latest published checkpoint, `v0.71.0` is the signed
+internal DNS-client and FIPS-deferment milestone, and `v0.72.0` is the Security
+client implementation stop awaiting pentest. Every pre-1.0 tag receives its
+own incremental pentest; cumulative crates.io publication is deferred to
+v0.75.0.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
@@ -1064,6 +1065,20 @@ train. No crate is published at this internal milestone.
 | `cloud-sdk-reqwest` | `0.34.1` | `0.34.1` | `code` | No | Accumulate removal of the experimental FIPS transport for v0.75.0. |
 | `cloud-sdk-sanitization` | `0.18.0` | `0.18.0` | `unchanged` | No | No sanitization boundary changes. |
 | `cloud-sdk-testkit` | `0.30.1` | `0.30.1` | `unchanged` | No | No testkit boundary changes. |
+
+## v0.72.0 Tracking Table
+
+`v0.72.0` completes named typed workflows for all 14 active certificate and
+SSH-key operations. It remains an internal milestone in the v0.71-v0.75
+cumulative train, so no crate is published.
+
+| Crate | Published | Source | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.70.0` | `0.72.0` | `metadata` | No | Record the Security client milestone. |
+| `cloud-sdk-hetzner` | `0.41.0` | `0.41.0` | `code` | No | Accumulate complete DNS and Security client methods for v0.75.0. |
+| `cloud-sdk-reqwest` | `0.34.1` | `0.34.1` | `unchanged` | No | No transport boundary changes. |
+| `cloud-sdk-sanitization` | `0.18.0` | `0.18.0` | `unchanged` | No | Existing complete-buffer cleanup satisfies private-key preparation. |
+| `cloud-sdk-testkit` | `0.30.1` | `0.30.1` | `unchanged` | No | Existing deterministic transports provide Security executor evidence. |
 
 ## Planned Milestone Ownership
 

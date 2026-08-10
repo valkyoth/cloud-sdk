@@ -35,10 +35,10 @@ EXPECTED = (
     ),
     (
         "End-to-end client",
-        "Complete named workflows for all 139 Cloud and 24 DNS operations; "
-        "generic checked read-only execution remains available for security and "
+        "Complete named workflows for all 139 Cloud, 24 DNS, and 14 Security "
+        "operations; generic checked read-only execution remains available for "
         "Console Storage Box operations; custom-endpoint execution remains unavailable",
-        "Security and Console named methods in `v0.72.0 - v0.73.0`",
+        "Console named methods in `v0.73.0`",
     ),
 )
 

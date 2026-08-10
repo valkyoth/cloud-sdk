@@ -80,6 +80,25 @@ fn security_client_registry_is_complete_sorted_and_policy_exact() {
 }
 
 #[test]
+fn ssh_key_rotation_requires_separate_mutation_and_destructive_authority() {
+    let create = SECURITY_CLIENT_METHODS
+        .iter()
+        .find(|method| method.operation().operation_id().as_str() == "create_ssh_key");
+    let delete = SECURITY_CLIENT_METHODS
+        .iter()
+        .find(|method| method.operation().operation_id().as_str() == "delete_ssh_key");
+    let (Some(create), Some(delete)) = (create, delete) else {
+        unreachable!("SSH-key rotation operations disappeared from the client registry")
+    };
+    assert_eq!(create.permit(), PermitClass::Mutation);
+    assert_eq!(delete.permit(), PermitClass::Destructive);
+    assert_ne!(
+        create.operation().operation_id(),
+        delete.operation().operation_id()
+    );
+}
+
+#[test]
 fn named_security_reads_preserve_pagination_quota_and_executor_parity() {
     let operation = list_certificates_operation();
     let mut expected_target = [0_u8; 128];

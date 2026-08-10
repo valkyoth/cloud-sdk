@@ -87,6 +87,9 @@ and typed response handling against the deterministic testkit transport.
 The matching
 [`dns_client` example](https://github.com/valkyoth/cloud-sdk/blob/main/crates/cloud-sdk-hetzner/examples/dns_client.rs)
 shows numbered DNS pagination through the named official client path.
+The
+[`security_client` example](https://github.com/valkyoth/cloud-sdk/blob/main/crates/cloud-sdk-hetzner/examples/security_client.rs)
+shows certificate pagination through the named official Security client path.
 
 Use compile-time operation associations when endpoint, query, body, response,
 and safety policy must retain one nominal operation identity:
@@ -231,7 +234,7 @@ authentication scope, raw response policy, and official endpoint.
 | Body serialization | Complete for all 91 non-deprecated operations with request bodies | Current |
 | Success response models | Complete checked envelopes for all 208 operations; source-complete ordinary Cloud resources, DNS zones and RRSets, zonefiles, actions, metrics, composites, pricing, locations, certificates, SSH keys, and Console Storage Boxes, types, snapshots, subaccounts, and folders; operation-branded typed execution guards decode through `decode_associated_checked_response` | Current |
 | Error response models | Complete checked typed API error decoding for all active operations | Current |
-| End-to-end client | Complete named workflows for all 139 Cloud and 24 DNS operations; generic checked read-only execution remains available for security and Console Storage Box operations; custom-endpoint execution remains unavailable | Security and Console named methods in `v0.72.0 - v0.73.0` |
+| End-to-end client | Complete named workflows for all 139 Cloud, 24 DNS, and 14 Security operations; generic checked read-only execution remains available for Console Storage Box operations; custom-endpoint execution remains unavailable | Console named methods in `v0.73.0` |
 
 Thirteen deprecated operations remain deliberately unavailable. A checked
 release gate prevents non-deprecated request operations from returning to a
