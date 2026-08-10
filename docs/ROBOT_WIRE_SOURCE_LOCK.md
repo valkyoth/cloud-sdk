@@ -1,6 +1,7 @@
 # Robot Wire Source Lock
 
-Status: narrow protocol fixture source-locked for `v0.42.0`.
+Status: narrow protocol fixture source-locked for `v0.42.0`; complete operation
+inventory source-locked for `v0.74.0`.
 
 Retrieved: 2026-07-30
 
@@ -39,8 +40,20 @@ mutations have no response body.
 The fixture contains no `Authorization`, cookie, token, username, password, or
 live account data. It lives outside every publishable crate. It proves only
 the listed protocol distinctions and makes no Robot operation-coverage claim.
-The complete active/deprecated operation inventory remains assigned to
-`v0.74.0`.
+
+## Complete Operation Lock
+
+[`v0.74.0.json`](../tests/fixtures/robot-api/v0.74.0.json) records all 105
+operation headings from the same authenticated source document in exact source
+order. It classifies 89 headings as active and all 16 legacy `/storagebox`
+headings as deprecated and excluded. The supported replacement is the Hetzner
+Console Storage Box API already implemented by `cloud-sdk-hetzner`.
+
+The lock assigns every active operation to its implementation milestone from
+`v0.78.0` through `v0.93.0`. Deprecated server-IP aliases and deprecated input
+or output fields are not separate operation headings and remain excluded under
+the repository's deprecated-endpoint policy. No Robot runtime module, request,
+decoder, credential, or client is introduced by the source lock.
 
 ## Verification
 
@@ -48,6 +61,7 @@ Run the local structural check:
 
 ```bash
 scripts/check_robot_wire_fixture.py
+scripts/check_robot_api_lock.py
 ```
 
 Release preparation also authenticates the current official document against
@@ -55,6 +69,7 @@ the reviewed digest:
 
 ```bash
 scripts/check_robot_wire_fixture.py --fetch
+scripts/check_robot_api_lock.py --fetch
 ```
 
 Any digest change is a review stop. Review the complete new official document,

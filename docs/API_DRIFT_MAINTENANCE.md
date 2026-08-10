@@ -6,9 +6,11 @@ layer in [`PROVIDER_DRIFT.md`](PROVIDER_DRIFT.md). The neutral Hetzner bridge
 must remain green, but it does not replace the deeper checks below.
 
 This runbook governs changes detected between the reviewed Hetzner OpenAPI
-source lock and the current official Cloud/DNS and Console API specifications.
-The detector never modifies source, lock evidence, or release metadata unless a
-maintainer supplies both lock-refresh flags.
+source lock and the current official Cloud/DNS and Console API specifications,
+and between the reviewed Robot HTML lock and the official Robot Webservice
+documentation. The detectors never modify source, lock evidence, or release
+metadata unless a maintainer uses an explicitly documented OpenAPI lock-refresh
+procedure.
 
 ## Monitoring
 
@@ -17,6 +19,7 @@ started manually. It invokes:
 
 ```bash
 scripts/check_hetzner_api_drift.py --fetch
+scripts/check_robot_api_lock.py --fetch
 ```
 
 Release gates run the same live comparison. The fetch accepts only the two
@@ -26,6 +29,12 @@ object root. A current source digest may differ from the reviewed digest so the
 tool can classify the change, but any digest or semantic difference makes the
 command fail. Fetched content is maintenance input only and is never compiled,
 packaged, or accepted automatically.
+
+The Robot checker independently rejects redirects, limits the document to
+8 MiB, verifies the exact reviewed SHA-256 digest, compares all 105 HTTP
+operation headings in source order, and requires upstream deprecation markers
+for the 16 excluded legacy Storage Box operations. Robot lock refreshes are
+manual reviewed changes; the checker has no write mode.
 
 ## Triage
 
@@ -93,6 +102,9 @@ Run at minimum:
 scripts/test-hetzner-api-drift.py
 scripts/check_hetzner_api_drift.py --local-only
 scripts/check_hetzner_api_drift.py --fetch
+scripts/test-robot-api-lock.py
+scripts/check_robot_api_lock.py
+scripts/check_robot_api_lock.py --fetch
 scripts/checks.sh
 ```
 

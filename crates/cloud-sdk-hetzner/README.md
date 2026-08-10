@@ -251,6 +251,10 @@ The construction, storage, and trust boundaries are described in the
 [Hetzner client guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/HETZNER_CLIENT.md).
 Upstream source monitoring and lock-refresh decisions follow the
 [API drift maintenance runbook](https://github.com/valkyoth/cloud-sdk/blob/main/docs/API_DRIFT_MAINTENANCE.md).
+The separate Robot Webservice is not yet a runtime capability. Its complete
+source lock records 89 active operations and excludes all 16 deprecated
+Storage Box operations before implementation begins in v0.78.0. See the
+[Robot source-lock contract](https://github.com/valkyoth/cloud-sdk/blob/main/docs/ROBOT_WIRE_SOURCE_LOCK.md).
 Breaking v0.27 constructor and custom-endpoint changes are listed in the
 [migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.27.0.md).
 Shared transport and credential lifecycle changes are listed in the
@@ -313,8 +317,8 @@ together with its exact `PreparedRequest`, applies the prepared
 status/content-type/body policy, rejects duplicate or malformed JSON, and
 returns validated typed success or API errors only after response storage is
 cleared.
-Checked resource responses are source-complete except for the Console models
-scheduled for v0.67. SSH public keys receive complete OpenSSH/RFC 4253 parsing,
+Checked resource responses are source-complete. SSH public keys receive
+complete OpenSSH/RFC 4253 parsing,
 legacy provider fingerprints are bound to the parsed key, and callers receive
 an SDK-computed SHA-256 fingerprint for identity comparisons. The bounded
 parser tree and its volatile-clearing string storage remain private:

@@ -83,7 +83,7 @@ grep -Fq '"dep:base64-ng"' "$manifest"
 grep -Fq 'base64-ng = { version = "=2.0.1", default-features = false }' Cargo.toml
 
 package_files="$(cargo package -p cloud-sdk-hetzner --allow-dirty --list)"
-if printf '%s\n' "$package_files" | grep -Fq 'robot-wire'; then
+if printf '%s\n' "$package_files" | grep -Eq 'robot-(wire|api)'; then
     echo "Basic/signing: Robot fixture entered a publishable package" >&2
     exit 1
 fi

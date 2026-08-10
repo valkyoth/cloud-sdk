@@ -353,6 +353,7 @@ def test_maintenance_workflow_is_read_only_and_runs_live_detector() -> None:
     assert "workflow_dispatch:" in workflow
     assert "permissions:\n  contents: read" in workflow
     assert "scripts/check_hetzner_api_drift.py --fetch" in workflow
+    assert "scripts/check_robot_api_lock.py --fetch" in workflow
     assert "--write-lock" not in workflow
     assert "pull-requests: write" not in workflow
 

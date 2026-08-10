@@ -8,9 +8,11 @@ Sources:
 
 - Cloud and DNS: <https://docs.hetzner.cloud/cloud.spec.json>
 - Storage Boxes: <https://docs.hetzner.cloud/hetzner.spec.json>
+- Robot Webservice: <https://robot.hetzner.com/doc/webservice/en.html>
 
-Retrieved: 2026-07-08
-Total source-locked operations: 221 (`cloud`: 189, `hetzner`: 32).
+OpenAPI sources retrieved: 2026-07-08.
+Robot source retrieved: 2026-08-10.
+Total OpenAPI source-locked operations: 221 (`cloud`: 189, `hetzner`: 32).
 Request coverage: 208 non-deprecated operations implemented; 13 deprecated
 operations deferred.
 
@@ -297,30 +299,31 @@ operations deferred.
 Robot Webservice is required for the full Hetzner 1.0 SDK. It is tracked
 in a separate source-locked Robot matrix because it uses a different base URL,
 authentication model, request encoding, and resource set. The current official
-reference documents 105 operation headings. `v0.42.0` source-locks only the
-wire protocol and includes credential-free read, form-mutation, error, quota,
-maintenance, and empty-body fixtures before neutral freeze. The `v0.74.0`
-complete source-lock pass must confirm the expected 89 active operations after
-excluding all 16 deprecated Robot Storage Box operations.
+reference documents 105 operation headings. `v0.42.0` source-locks the wire
+protocol and includes credential-free read, form-mutation, error, quota,
+maintenance, and empty-body fixtures. `v0.74.0` source-locks the complete
+inventory: 89 active operations and 16 deprecated Robot Storage Box operations
+that are explicitly excluded.
 
 Robot implementation schedule:
 
-| Group | Planned Module | Status |
-| --- | --- | --- |
-| server | `cloud_sdk_hetzner::robot::server` | `v0.78.0` |
-| cancellation | `cloud_sdk_hetzner::robot::cancellation` | `v0.79.0` |
-| IP | `cloud_sdk_hetzner::robot::ip` | `v0.80.0` |
-| subnet | `cloud_sdk_hetzner::robot::subnet` | `v0.81.0` |
-| reset | `cloud_sdk_hetzner::robot::reset` | `v0.82.0` |
-| failover | `cloud_sdk_hetzner::robot::failover` | `v0.83.0` |
-| wake on LAN | `cloud_sdk_hetzner::robot::wol` | `v0.84.0` |
-| boot configuration | `cloud_sdk_hetzner::robot::boot` | `v0.85.0` |
-| reverse DNS | `cloud_sdk_hetzner::robot::rdns` | `v0.86.0` |
-| traffic | `cloud_sdk_hetzner::robot::traffic` | `v0.87.0` |
-| SSH keys | `cloud_sdk_hetzner::robot::ssh_keys` | `v0.88.0` |
-| firewall | `cloud_sdk_hetzner::robot::firewall` | `v0.89.0` |
-| vSwitch | `cloud_sdk_hetzner::robot::vswitch` | `v0.90.0` |
-| ordering catalogs | `cloud_sdk_hetzner::robot::ordering` | `v0.91.0` |
-| transactions | `cloud_sdk_hetzner::robot::ordering` | `v0.92.0` |
-| ordering mutations | `cloud_sdk_hetzner::robot::ordering` | `v0.93.0` |
-| legacy storage box | existing Console Storage Box modules | excluded: deprecated upstream |
+| Group | Active | Deprecated | Planned Module | Milestone |
+| --- | ---: | ---: | --- | --- |
+| server | 3 | 0 | `cloud_sdk_hetzner::robot::server` | `v0.78.0` |
+| cancellation | 9 | 0 | `cloud_sdk_hetzner::robot::cancellation` | `v0.79.0` |
+| IP | 6 | 0 | `cloud_sdk_hetzner::robot::ip` | `v0.80.0` |
+| subnet | 6 | 0 | `cloud_sdk_hetzner::robot::subnet` | `v0.81.0` |
+| reset | 3 | 0 | `cloud_sdk_hetzner::robot::reset` | `v0.82.0` |
+| failover | 4 | 0 | `cloud_sdk_hetzner::robot::failover` | `v0.83.0` |
+| wake on LAN | 2 | 0 | `cloud_sdk_hetzner::robot::wol` | `v0.84.0` |
+| boot configuration | 15 | 0 | `cloud_sdk_hetzner::robot::boot` | `v0.85.0` |
+| reverse DNS | 5 | 0 | `cloud_sdk_hetzner::robot::rdns` | `v0.86.0` |
+| traffic | 1 | 0 | `cloud_sdk_hetzner::robot::traffic` | `v0.87.0` |
+| SSH keys | 5 | 0 | `cloud_sdk_hetzner::robot::ssh_keys` | `v0.88.0` |
+| firewall | 8 | 0 | `cloud_sdk_hetzner::robot::firewall` | `v0.89.0` |
+| vSwitch | 7 | 0 | `cloud_sdk_hetzner::robot::vswitch` | `v0.90.0` |
+| ordering catalogs | 6 | 0 | `cloud_sdk_hetzner::robot::ordering` | `v0.91.0` |
+| transactions | 6 | 0 | `cloud_sdk_hetzner::robot::ordering` | `v0.92.0` |
+| ordering mutations | 3 | 0 | `cloud_sdk_hetzner::robot::ordering` | `v0.93.0` |
+| legacy Storage Box | 0 | 16 | existing Console Storage Box modules | excluded |
+| **Total** | **89** | **16** | | |

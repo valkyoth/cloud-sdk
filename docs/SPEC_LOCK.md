@@ -277,3 +277,17 @@ Robot operation is implemented. That complete lock must distinguish active
 operations from deprecated alternatives and exclude the deprecated Robot
 Storage Box family, whose supported replacement is already tracked by the
 Console Storage Box source.
+
+## v0.74.0 Robot Operation Policy
+
+The complete Robot inventory is pinned in
+[`tests/fixtures/robot-api/v0.74.0.json`](../tests/fixtures/robot-api/v0.74.0.json).
+It records all 105 official operation headings in source order, classifies 89
+as active, and excludes all 16 deprecated legacy Storage Box operations. Each
+active row owns one implementation milestone from `v0.78.0` through `v0.93.0`.
+
+`scripts/check_robot_api_lock.py --fetch` authenticates the bounded official
+document by exact SHA-256, rejects redirects, extracts every HTTP operation
+heading, compares exact order and route identity, and requires an upstream
+deprecation marker for each excluded Storage Box heading. Any source, count,
+route, status, group, or milestone change is a review stop.

@@ -26,6 +26,9 @@ different cost, mutation, retry, idempotency, or deletion semantics.
 ## Current Hetzner Scope
 
 The Cloud/DNS source lock contains 13 deliberately excluded deprecated
-operations. Robot's deprecated legacy Storage Box operations will remain
-excluded because the Console Storage Box API is the supported replacement.
+operations. The Robot source lock contains 16 deprecated legacy Storage Box
+operation headings; they remain excluded because the Console Storage Box API
+is the supported replacement. Deprecated server-IP route aliases and
+deprecated request or response fields in otherwise active Robot sections are
+also excluded and do not count as additional operation headings.
 Active-operation completeness is checked independently from deprecated rows.

@@ -14,7 +14,7 @@ scripts/test-platform-matrix.py
 scripts/test-latest-tools.py
 scripts/test-rustsec-advisories.py
 scripts/test-dependency-review.py
-scripts/check_dependency_review.py v0.72.0 docs/DEPENDENCY_REVIEW_0.73.0.md
+scripts/check_dependency_review.py v0.73.0 docs/DEPENDENCY_REVIEW_0.74.0.md
 scripts/test-publishable-readmes.py
 scripts/check-release-plan-structure.py
 scripts/test-release-plan-structure.py
@@ -40,6 +40,8 @@ scripts/check_atomic_encoders.sh
 scripts/check_raw_http_executor.sh
 scripts/check_bearer_authentication.sh
 scripts/check_basic_and_signing.sh
+scripts/check_robot_api_lock.py
+scripts/test-robot-api-lock.py
 scripts/check-provider-capabilities.py
 scripts/test-provider-capabilities.py
 scripts/check-custom-endpoint-docs.py

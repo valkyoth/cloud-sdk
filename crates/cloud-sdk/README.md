@@ -77,13 +77,12 @@ listed in the
 
 The latest crates.io checkpoint is v0.70. The v0.71-v0.73 source milestones
 add exhaustive named client methods for every active Hetzner DNS, Security,
-and Console Storage Box operation. Checked reads, numbered pagination, action
-responses, secret-aware preparation, large incremental response decoding, and
-plan-confirm mutation, destructive, or cost-authorized execution have
-blocking, Send-async, and local-async parity. The earlier experimental FIPS
+and Console Storage Box operation. v0.74 source-locks all 105 official Robot
+operation headings: 89 active operations are assigned to implementation
+milestones and 16 deprecated legacy Storage Box operations are excluded.
+Robot runtime APIs begin in later milestones. The earlier experimental FIPS
 transport is retired; future FIPS work is deferred until Brynja is ready.
-Robot client work continues in the roadmap, and cumulative crates.io
-publication is deferred to v0.75.
+Cumulative crates.io publication is deferred to v0.75.
 
 ## Trust Dashboard
 
@@ -227,6 +226,7 @@ visible. Applications should enable only the features they use.
 - [Migrating source users to v0.71](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.71.0.md)
 - [Migrating source users to v0.72](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.72.0.md)
 - [Migrating source users to v0.73](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.73.0.md)
+- [Migrating source users to v0.74](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.74.0.md)
 - [Compile-time Hetzner operation associations](https://github.com/valkyoth/cloud-sdk/blob/main/docs/OPERATION_ASSOCIATIONS.md)
 - [Incremental provider decoding](https://github.com/valkyoth/cloud-sdk/blob/main/docs/INCREMENTAL_DECODING.md)
 - [Deprecated endpoint policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/DEPRECATED_ENDPOINT_POLICY.md)

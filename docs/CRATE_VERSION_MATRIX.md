@@ -1,8 +1,8 @@
 # Crate Version Matrix
 
-Status: `v0.70.0` is the latest published checkpoint, `v0.71.0` and `v0.72.0`
-are signed internal client milestones, and `v0.73.0` is the Console Storage
-release candidate with a green pentest. Every pre-1.0 tag receives its own
+Status: `v0.70.0` is the latest published checkpoint, `v0.71.0-v0.73.0` are
+signed internal client milestones, and `v0.74.0` is the Robot source-lock
+implementation stop awaiting pentest. Every pre-1.0 tag receives its own
 incremental pentest; cumulative crates.io publication is deferred to v0.75.0.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
@@ -1092,6 +1092,21 @@ cumulative train, so no crate is published.
 | `cloud-sdk-reqwest` | `0.34.1` | `0.34.1` | `unchanged` | No | No transport boundary changes. |
 | `cloud-sdk-sanitization` | `0.18.0` | `0.18.0` | `unchanged` | No | Existing complete-buffer cleanup satisfies Storage password preparation. |
 | `cloud-sdk-testkit` | `0.30.1` | `0.30.1` | `unchanged` | No | Existing deterministic transports provide Storage executor evidence. |
+
+## v0.74.0 Tracking Table
+
+`v0.74.0` source-locks all 105 official Robot operation headings, assigns the
+89 active operations to implementation milestones, and excludes 16 deprecated
+legacy Storage Box operations. It remains an internal milestone in the
+v0.71-v0.75 cumulative train, so no crate is published.
+
+| Crate | Published | Source | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.70.0` | `0.74.0` | `metadata` | No | Record the complete Robot source-lock milestone. |
+| `cloud-sdk-hetzner` | `0.41.0` | `0.41.0` | `code` | No | Accumulate pre-Robot clients and repository-only Robot source evidence for v0.75.0. |
+| `cloud-sdk-reqwest` | `0.34.1` | `0.34.1` | `unchanged` | No | No transport boundary changes. |
+| `cloud-sdk-sanitization` | `0.18.0` | `0.18.0` | `unchanged` | No | No sanitization boundary changes. |
+| `cloud-sdk-testkit` | `0.30.1` | `0.30.1` | `unchanged` | No | No testkit boundary changes. |
 
 ## Planned Milestone Ownership
 

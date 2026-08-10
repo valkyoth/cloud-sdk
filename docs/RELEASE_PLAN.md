@@ -2232,6 +2232,8 @@ Stop gate: `v0.73.0 implementation stop reached. Complete the pentest and full r
 
 ### v0.74.0 - Robot Source Lock And Matrix
 
+Status: implementation stop reached; pentest required before tagging.
+
 Goal: establish the reproducible Robot source of truth.
 
 Deliverables: active/deprecated inventory, auth/lockout/forms/errors/limits/maintenance semantics, and explicit exclusion of all 16 deprecated Storage Box operations.
