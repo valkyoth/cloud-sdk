@@ -10,7 +10,6 @@ mod config;
 use std::time::Duration;
 
 use cloud_sdk::client::{ClientWorkspace, ClientWorkspacePool};
-use cloud_sdk::operation::PreparationStorage;
 use cloud_sdk_hetzner::association::AssociatedOperation;
 use cloud_sdk_hetzner::association::operations::{ListCertificates, ListSshKeys};
 use cloud_sdk_hetzner::association::operations::{ListLocations, ListZones};
@@ -23,10 +22,10 @@ use cloud_sdk_hetzner::pagination::{Page, PerPage};
 use cloud_sdk_hetzner::request::{ApiBaseUrl, CLOUD_API_BASE_URL, HETZNER_API_BASE_URL};
 use cloud_sdk_hetzner::security::certificates::{CertificateEndpoint, CertificateListRequest};
 use cloud_sdk_hetzner::security::ssh_keys::{SshKeyEndpoint, SshKeyListRequest};
-use cloud_sdk_hetzner::serde::{
-    DnsResource, HetznerSuccess, SecurityResourceKind, decode_associated_checked_response,
+use cloud_sdk_hetzner::serde::{DnsResource, HetznerSuccess, SecurityResourceKind};
+use cloud_sdk_hetzner::storage::storage_boxes::{
+    StorageBoxEndpoint, StorageBoxListRequest, StorageBoxTypeEndpoint, StorageBoxTypeListRequest,
 };
-use cloud_sdk_hetzner::storage::storage_boxes::{StorageBoxEndpoint, StorageBoxTypeEndpoint};
 use cloud_sdk_hetzner::{
     CLOUD_SERVICE_ID, DNS_SERVICE_ID, HETZNER_PROVIDER_ID, SECURITY_SERVICE_ID, STORAGE_SERVICE_ID,
 };
@@ -85,10 +84,12 @@ enum SecurityProbeStage {
 
 #[derive(Clone, Copy, Debug)]
 enum StorageProbeStage {
+    Pagination,
     Association,
-    Preparation,
-    Transport,
-    Decode,
+    Construction,
+    WorkspacePool,
+    WorkspaceLease,
+    Execution,
     Shape,
 }
 
@@ -332,29 +333,40 @@ fn read_only_storage_model_smoke() -> Result<(), LiveSmokeError> {
         BearerCredentialScope::new(HETZNER_PROVIDER_ID, STORAGE_SERVICE_ID, endpoint.clone());
     let credential = BearerCredential::new(token, credential_scope);
     let user_agent =
-        UserAgent::new("cloud-sdk-storage-live-smoke/0.70.0").map_err(LiveSmokeError::UserAgent)?;
+        UserAgent::new("cloud-sdk-storage-live-smoke/0.73.0").map_err(LiveSmokeError::UserAgent)?;
     let timeouts = RequestTimeouts::new(Duration::from_secs(30), Duration::from_secs(10))
         .map_err(LiveSmokeError::Timeout)?;
-    let client = BlockingClientBuilder::new(endpoint, credential, user_agent, timeouts)
+    let transport = BlockingClientBuilder::new(endpoint, credential, user_agent, timeouts)
         .build()
         .map_err(LiveSmokeError::Client)?;
+    let client = HetznerClient::storage(transport)
+        .map_err(|_| LiveSmokeError::StorageProbe(StorageProbeStage::Construction))?;
+    let page =
+        Page::new(1).map_err(|_| LiveSmokeError::StorageProbe(StorageProbeStage::Pagination))?;
+    let per_page =
+        PerPage::new(1).map_err(|_| LiveSmokeError::StorageProbe(StorageProbeStage::Pagination))?;
 
     macro_rules! run_probe {
-        ($operation:expr, $shape:pat) => {{
+        ($operation:expr, $method:ident, $shape:pat) => {{
             let operation = $operation
                 .map_err(|_| LiveSmokeError::StorageProbe(StorageProbeStage::Association))?;
-            let mut target = [0_u8; 128];
+            let mut target = [0_u8; 256];
             let mut request_body = [0_u8; 1];
-            let prepared = operation
-                .prepare_typed(PreparationStorage::new(&mut target, &mut request_body))
-                .map_err(|_| LiveSmokeError::StorageProbe(StorageProbeStage::Preparation))?;
-            let mut body = vec![0_u8; 16_777_216];
-            let mut headers = [0_u8; 8_192];
-            let response = prepared
-                .execute_blocking(&client, &mut body, &mut headers)
-                .map_err(|_| LiveSmokeError::StorageProbe(StorageProbeStage::Transport))?;
-            let decoded = decode_associated_checked_response(response)
-                .map_err(|_| LiveSmokeError::StorageProbe(StorageProbeStage::Decode))?;
+            let mut response_body = vec![0_u8; 16_777_216];
+            let mut response_headers = [0_u8; 8_192];
+            let pool = ClientWorkspacePool::<1>::new()
+                .map_err(|_| LiveSmokeError::StorageProbe(StorageProbeStage::WorkspacePool))?;
+            let lease = pool
+                .try_acquire(ClientWorkspace::new(
+                    &mut target,
+                    &mut request_body,
+                    response_body.as_mut_slice(),
+                    &mut response_headers,
+                ))
+                .map_err(|_| LiveSmokeError::StorageProbe(StorageProbeStage::WorkspaceLease))?;
+            let decoded = client
+                .$method(&operation, lease)
+                .map_err(|_| LiveSmokeError::StorageProbe(StorageProbeStage::Execution))?;
             if !matches!(decoded.success(), $shape) {
                 return Err(LiveSmokeError::StorageProbe(StorageProbeStage::Shape));
             }
@@ -362,11 +374,23 @@ fn read_only_storage_model_smoke() -> Result<(), LiveSmokeError> {
     }
 
     run_probe!(
-        AssociatedOperation::<ListStorageBoxes, _>::endpoint(StorageBoxEndpoint::List),
+        AssociatedOperation::<ListStorageBoxes, _, _>::query(
+            StorageBoxEndpoint::List,
+            StorageBoxListRequest::new()
+                .with_page(page)
+                .with_per_page(per_page),
+        ),
+        list_storage_boxes_blocking,
         HetznerSuccess::StorageBoxes(_)
     );
     run_probe!(
-        AssociatedOperation::<ListStorageBoxTypes, _>::endpoint(StorageBoxTypeEndpoint::List),
+        AssociatedOperation::<ListStorageBoxTypes, _, _>::query(
+            StorageBoxTypeEndpoint::List,
+            StorageBoxTypeListRequest::new()
+                .with_page(page)
+                .with_per_page(per_page),
+        ),
+        list_storage_box_types_blocking,
         HetznerSuccess::StorageBoxTypes(_)
     );
     Ok(())

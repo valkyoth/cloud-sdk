@@ -1,27 +1,27 @@
 [release]
-version = "0.72.0"
-milestone = "0.72.0"
+version = "0.73.0"
+milestone = "0.73.0"
 baseline = "0.70.0"
-review_baseline = "0.71.0"
-cumulative_milestones = ["0.71.0", "0.72.0"]
+review_baseline = "0.72.0"
+cumulative_milestones = ["0.71.0", "0.72.0", "0.73.0"]
 policy = "independent"
 stage = "internal"
 exceptional = false
 exception_reason = ""
 
 [crates."cloud-sdk"]
-previous_version = "0.71.0"
-version = "0.72.0"
+previous_version = "0.72.0"
+version = "0.73.0"
 change = "metadata"
 publish = false
-reason = "Record the complete Hetzner Security client milestone."
+reason = "Record the complete Hetzner Console Storage client milestone."
 
 [crates."cloud-sdk-hetzner"]
 previous_version = "0.41.0"
 version = "0.41.0"
 change = "code"
 publish = false
-reason = "Accumulate complete DNS and Security client methods for the v0.75 public checkpoint."
+reason = "Accumulate complete DNS, Security, and Storage client methods for the v0.75 public checkpoint."
 
 [crates."cloud-sdk-reqwest"]
 previous_version = "0.34.1"

@@ -6,7 +6,8 @@ read-only, and disabled in normal CI and workspace tests.
 
 ## Scope
 
-The `v0.19.0` harness sends only `GET` requests for:
+The harness sends only `GET` requests. Its original `v0.19.0` catalog probes
+cover:
 
 - locations;
 - server types;
@@ -14,6 +15,10 @@ The `v0.19.0` harness sends only `GET` requests for:
 - ISOs;
 - public system images; and
 - pricing.
+
+Later releases add read-only typed probes for DNS zones, certificates, SSH
+keys, Storage Boxes, and Storage Box types. No live probe creates, updates,
+resets, or deletes provider state.
 
 List probes request one entry, require strict Hetzner pagination metadata, and
 validate the expected top-level collection. Pricing must return its expected
@@ -31,7 +36,10 @@ official DNS client and checked DNS resource model. The harness has no separate
 legacy request assembly path for either client probe. v0.72 similarly runs
 `list_certificates_blocking` and `list_ssh_keys_blocking` through the official
 Security client, bounded workspace leases, and dedicated checked resource
-models.
+models. v0.73 runs `list_storage_boxes_blocking` and
+`list_storage_box_types_blocking` through the official Console Storage client
+with one-entry pages, bounded workspace leases, and source-complete checked
+Storage response models.
 
 Ordinary checks run all offline harness tests but leave the authenticated test
 ignored:

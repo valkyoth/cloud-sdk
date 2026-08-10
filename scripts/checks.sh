@@ -14,7 +14,7 @@ scripts/test-platform-matrix.py
 scripts/test-latest-tools.py
 scripts/test-rustsec-advisories.py
 scripts/test-dependency-review.py
-scripts/check_dependency_review.py v0.71.0 docs/DEPENDENCY_REVIEW_0.72.0.md
+scripts/check_dependency_review.py v0.72.0 docs/DEPENDENCY_REVIEW_0.73.0.md
 scripts/test-publishable-readmes.py
 scripts/check-release-plan-structure.py
 scripts/test-release-plan-structure.py
@@ -93,15 +93,18 @@ scripts/generate_typed_operation_bindings.py --check
 scripts/generate_cloud_client_methods.py --check
 scripts/generate_dns_client_methods.py --check
 scripts/generate_security_client_methods.py --check
+scripts/generate_storage_client_methods.py --check
 scripts/test-cloud-client-methods.py
 scripts/test-dns-client-methods.py
 scripts/test-security-client-methods.py
+scripts/test-storage-client-methods.py
 scripts/test-operation-associations.py
 scripts/test-typed-operation-bindings.py
 scripts/check_typed_operation_bindings.py
 scripts/check_cloud_client_methods.sh
 scripts/check_dns_client_methods.sh
 scripts/check_security_client_methods.sh
+scripts/check_storage_client_methods.sh
 scripts/check_hetzner_wire_migration.py
 scripts/test-response-operation-coverage.py
 scripts/test-generate-response-operations.py

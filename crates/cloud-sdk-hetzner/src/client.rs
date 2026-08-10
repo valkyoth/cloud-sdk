@@ -9,6 +9,8 @@ mod dns;
 mod execution;
 #[cfg(feature = "serde")]
 mod security;
+#[cfg(feature = "serde")]
+mod storage;
 
 #[cfg(feature = "serde")]
 pub use cloud::{CLOUD_CLIENT_METHODS, CloudClientMethodDescriptor, CloudReadResult};
@@ -20,6 +22,8 @@ pub use construction::{
 pub use dns::{DNS_CLIENT_METHODS, DnsClientMethodDescriptor, DnsReadResult};
 #[cfg(feature = "serde")]
 pub use security::{SECURITY_CLIENT_METHODS, SecurityClientMethodDescriptor, SecurityReadResult};
+#[cfg(feature = "serde")]
+pub use storage::{STORAGE_CLIENT_METHODS, StorageClientMethodDescriptor, StorageReadResult};
 
 #[cfg(test)]
 mod tests;

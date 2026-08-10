@@ -30,9 +30,8 @@ def main() -> None:
     with tempfile.TemporaryDirectory() as temporary:
         path = Path(temporary) / "README.md"
         current_client = (
-            "End-to-end client | Complete named workflows for all 139 Cloud, "
-            "24 DNS, and 14 Security operations; generic checked read-only "
-            "execution remains available for Console Storage Box operations; "
+            "End-to-end client | Complete named workflows for all 208 active "
+            "Cloud, DNS, Security, and Console Storage Box operations; "
             "custom-endpoint execution remains unavailable"
         )
         path.write_text(

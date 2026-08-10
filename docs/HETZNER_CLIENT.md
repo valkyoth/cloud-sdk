@@ -75,6 +75,15 @@ retry is likewise an explicit mutation-permit operation. Bearer-token rotation
 continues to use the transport credential-generation APIs documented in the
 security recipes.
 
+The official Console Storage client covers all 31 active Storage Box
+operations: 12 read-only, nine mutation, eight destructive, and two
+cost-authorized methods. Its four numbered lists retain pagination metadata;
+boxes, types, snapshots, folders, subaccounts, and actions decode through the
+source-complete checked models. Create and password-reset bodies are marked
+sensitive, require digest plan fingerprints, and remain inside cleanup-owning
+storage. Large responses use the bounded incremental decoder through the same
+caller-owned workspace contract.
+
 The split is intentional: preparation creates no authority. The caller must
 review the exact prepared request, build an `AssociatedPlanConfirmation`,
 fingerprint it, create the required mutation/destructive/cost permit, and begin
@@ -103,13 +112,9 @@ target, request-body, response-body, and response-header capacities. Use
 `OwnedClientWorkspace::try_for_profile` fallibly allocates the same exact
 bounded layout and wipes all four allocations on drop.
 
-`CLOUD_CLIENT_METHODS`, `DNS_CLIENT_METHODS`, and `SECURITY_CLIENT_METHODS`
-expose the exhaustive operation descriptors behind the named surfaces for
-auditing and tooling. Their 139, 24, and 14 rows are generated from the
-source-locked operation association manifest and checked for exact permit and
-pagination classifications.
-
-Console Storage Box named methods are delivered in v0.73. Its generic
-associated-operation execution remains available; construct requests with the
-types documented in
-[`OPERATION_ASSOCIATIONS.md`](OPERATION_ASSOCIATIONS.md).
+`CLOUD_CLIENT_METHODS`, `DNS_CLIENT_METHODS`, `SECURITY_CLIENT_METHODS`, and
+`STORAGE_CLIENT_METHODS` expose the exhaustive operation descriptors behind
+the named surfaces for auditing and tooling. Their 139, 24, 14, and 31 rows
+cover all 208 active operations and are generated from the source-locked
+operation association manifest with exact permit and pagination
+classifications.

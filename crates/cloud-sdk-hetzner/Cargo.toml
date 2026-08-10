@@ -76,6 +76,14 @@ required-features = ["serde"]
 name = "security_client_unpolled_cleanup"
 required-features = ["serde"]
 
+[[test]]
+name = "storage_client"
+required-features = ["serde"]
+
+[[test]]
+name = "storage_client_unpolled_cleanup"
+required-features = ["serde"]
+
 [[example]]
 name = "action_polling"
 required-features = ["serde"]
@@ -98,6 +106,10 @@ required-features = ["serde"]
 
 [[example]]
 name = "security_client"
+required-features = ["serde"]
+
+[[example]]
+name = "storage_client"
 required-features = ["serde"]
 
 [[example]]
