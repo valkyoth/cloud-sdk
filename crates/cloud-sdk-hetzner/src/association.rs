@@ -25,6 +25,8 @@ pub use components::{
 #[doc(hidden)]
 pub use evidence::{EvidenceLabel, OperationBindingEvidence};
 pub use markers::{ALL_OPERATION_EVIDENCE, ALL_OPERATIONS, operations};
+#[cfg(feature = "serde")]
+pub use permit::Sha256PlanHasher;
 pub use permit::{
     AssociatedCanonicalPlanFingerprint, AssociatedCostPermit, AssociatedDestructivePermit,
     AssociatedMutationPermit, AssociatedPermitAttempt, AssociatedPlanConfirmation,

@@ -1,6 +1,6 @@
 use super::{
-    DigestAlgorithm, FingerprintBuildError, FingerprintHasher, FingerprintKind, FingerprintRef,
-    FingerprintScope, build_canonical_fingerprint, build_fingerprint_digest,
+    DigestAlgorithm, FingerprintBuildError, FingerprintKind, FingerprintRef, FingerprintScope,
+    build_canonical_fingerprint, build_fingerprint_digest,
 };
 use crate::authentication::{AuthenticationScopePolicy, ScopeRequirement};
 use crate::operation::{
@@ -18,6 +18,8 @@ use crate::{Method, ProviderId, ServiceId};
 mod sha256;
 use sha256::{Sha256, sha256};
 mod endpoint_policy_tests;
+mod helpers;
+use helpers::{WrongLength, contains_field};
 
 static OK: [StatusCode; 1] = [StatusCode::OK];
 static JSON: [MediaType<'static>; 1] = [MediaType::JSON];
@@ -61,8 +63,45 @@ fn canonical_format_is_versioned_field_separated_and_cleared() {
         assert!(contains_field(bytes, 15, b"{\"name\":\"one\"}"));
         assert!(contains_field(bytes, 16, &[1]));
         assert!(contains_field(bytes, 17, b"account-a"));
+        assert!(contains_field(bytes, 19, &[0]));
     }
     assert!(storage.iter().all(|byte| *byte == 0));
+}
+
+#[test]
+fn sensitive_body_rejects_exact_retention_and_uses_cleared_digest_scratch() {
+    let Some(prepared) = fixture(b"private-key", "/certificates") else {
+        unreachable!("retry security fixture construction failed");
+    };
+    let Some(endpoint) = endpoint() else {
+        unreachable!("retry security fixture construction failed");
+    };
+    let prepared = prepared.with_sensitive_body();
+    let mut exact = [0xa5_u8; 512];
+    let result =
+        build_canonical_fingerprint(prepared, endpoint, FingerprintScope::Absent, &mut exact);
+    assert!(matches!(
+        result,
+        Err(FingerprintBuildError::SensitiveBodyRequiresDigest)
+    ));
+    drop(result);
+    assert_eq!(exact, [0_u8; 512]);
+
+    let mut scratch = [0xa5_u8; 512];
+    let mut output = [0xa5_u8; 32];
+    let digest = build_fingerprint_digest(
+        prepared,
+        endpoint,
+        FingerprintScope::Absent,
+        &mut scratch,
+        &mut output,
+        &Sha256,
+    );
+    let Ok(digest) = digest else {
+        unreachable!("sensitive retry digest construction failed");
+    };
+    assert_eq!(digest.algorithm(), DigestAlgorithm::Sha256);
+    assert_eq!(scratch, [0_u8; 512]);
 }
 
 #[test]
@@ -437,49 +476,4 @@ pub(super) fn same_fingerprint(
 
 fn endpoint() -> Option<EndpointIdentity<'static>> {
     EndpointIdentity::new(EndpointScheme::Https, "api.example.invalid", 443, "/v1").ok()
-}
-
-fn contains_field(mut input: &[u8], tag: u8, expected: &[u8]) -> bool {
-    input = input
-        .strip_prefix(b"cloud-sdk/retry-fingerprint/v2\0")
-        .unwrap_or_default();
-    while input.len() >= 9 {
-        let Some(current_tag) = input.first().copied() else {
-            return false;
-        };
-        let mut length = [0_u8; 8];
-        let Some(encoded_length) = input.get(1..9) else {
-            return false;
-        };
-        length.copy_from_slice(encoded_length);
-        let Ok(length) = usize::try_from(u64::from_be_bytes(length)) else {
-            return false;
-        };
-        let Some(end) = 9_usize.checked_add(length) else {
-            return false;
-        };
-        let Some(value) = input.get(9..end) else {
-            return false;
-        };
-        if current_tag == tag && value == expected {
-            return true;
-        }
-        input = input.get(end..).unwrap_or_default();
-    }
-    false
-}
-
-struct WrongLength;
-
-impl FingerprintHasher for WrongLength {
-    type Error = core::convert::Infallible;
-
-    fn algorithm(&self) -> DigestAlgorithm {
-        DigestAlgorithm::Sha256
-    }
-
-    fn digest(&self, _input: &[u8], output: &mut [u8]) -> Result<usize, Self::Error> {
-        output.fill(0xA5);
-        Ok(31)
-    }
 }

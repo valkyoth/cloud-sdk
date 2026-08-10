@@ -53,6 +53,43 @@ fn canonical_plan_is_domain_separated_bounded_and_cleared() {
 }
 
 #[test]
+fn sensitive_body_rejects_exact_retention_and_accepts_cleared_digest_scratch() {
+    let Some(request) = prepared(
+        "/resources",
+        OperationImpact::Mutation,
+        CostIntent::NoKnownCost,
+    ) else {
+        unreachable!("permit security fixture construction failed");
+    };
+    let Some(endpoint) = endpoint() else {
+        unreachable!("permit security fixture construction failed")
+    };
+    let Some(plan) = plan(
+        request.with_sensitive_body(),
+        endpoint,
+        CONTEXT,
+        200,
+        ReplayPolicy::SingleAttempt,
+    ) else {
+        unreachable!("permit security fixture construction failed");
+    };
+    let mut exact = [0xa5_u8; 4_096];
+    assert!(matches!(
+        build_canonical_plan(plan, &mut exact),
+        Err(PlanFingerprintBuildError::SensitiveBodyRequiresDigest)
+    ));
+    assert_eq!(exact, [0_u8; 4_096]);
+
+    let mut scratch = [0xa5_u8; 4_096];
+    let mut digest = [0xa5_u8; 32];
+    let Ok(fingerprint) = build_plan_digest(plan, &mut scratch, &mut digest, &TestHasher) else {
+        unreachable!("sensitive permit digest construction failed");
+    };
+    assert_eq!(fingerprint.algorithm(), DigestAlgorithm::Sha256);
+    assert_eq!(scratch, [0_u8; 4_096]);
+}
+
+#[test]
 fn exact_query_bytes_change_plan_identity() {
     let Some(endpoint) = endpoint() else {
         unreachable!("permit security fixture construction failed")

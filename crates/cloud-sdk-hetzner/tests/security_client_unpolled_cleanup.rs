@@ -7,8 +7,8 @@ use cloud_sdk::operation::{
 use cloud_sdk::transport::{EndpointIdentity, EndpointScheme};
 use cloud_sdk_hetzner::association::operations::CreateCertificate;
 use cloud_sdk_hetzner::association::{
-    AssociatedMutationPermit, AssociatedOperation, AssociatedPlanConfirmation,
-    build_associated_canonical_plan,
+    AssociatedMutationPermit, AssociatedOperation, AssociatedPlanConfirmation, Sha256PlanHasher,
+    build_associated_plan_digest,
 };
 use cloud_sdk_hetzner::client::HetznerClient;
 use cloud_sdk_hetzner::security::certificates::{
@@ -47,12 +47,16 @@ macro_rules! unpolled_security_cleanup_test {
                 let prepared = preparation_client
                     .prepare_create_certificate(&operation, &mut storage)
                     .unwrap_or_else(|_| unreachable!("certificate preparation failed"));
-                let mut fingerprint_storage = [0_u8; 4_096];
-                let fingerprint = build_associated_canonical_plan(
+                let mut fingerprint_scratch = [0xa5_u8; 4_096];
+                let mut digest_storage = [0xa5_u8; 32];
+                let fingerprint = build_associated_plan_digest(
                     plan(prepared, endpoint),
-                    &mut fingerprint_storage,
+                    &mut fingerprint_scratch,
+                    &mut digest_storage,
+                    &Sha256PlanHasher,
                 )
                 .unwrap_or_else(|_| unreachable!("certificate fingerprint failed"));
+                assert_eq!(fingerprint_scratch, [0_u8; 4_096]);
                 let mut permit = AssociatedMutationPermit::new(
                     fingerprint.subject(),
                     PermitTimestamp::from_seconds(100),

@@ -13,73 +13,19 @@ use crate::operation::{
     ResponsePolicy, ResponsePolicyError,
 };
 use crate::transport::{
-    BoundTransport, EndpointIdentity, EndpointPolicy, RawResponsePolicy, RequestHeaders,
-    ResponseBuffer, TransportRequest,
+    BoundTransport, EndpointIdentity, RawResponsePolicy, RequestHeaders, ResponseBuffer,
+    TransportRequest,
 };
-use crate::{ProviderId, ProviderMarker, ServiceId, ServiceMarker};
 
+mod body;
 mod error;
+mod service;
 mod storage;
+pub use body::{BodyReplayability, RequestBodySensitivity};
 use error::{EndpointCheckError, map_endpoint_error};
 pub use error::{PreparedExecutionError, PreparedRequestPolicyError};
+pub use service::ProviderService;
 pub use storage::{PreparationStorage, PrepareOperation};
-
-/// Whether one prepared request body can be sent again byte-for-byte.
-#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-pub enum BodyReplayability {
-    /// The body source cannot guarantee an identical subsequent read.
-    NotReplayable,
-    /// The complete body is an immutable byte snapshot for the request lifetime.
-    Replayable,
-}
-
-/// Provider service and immutable endpoint trust policy.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct ProviderService<'endpoint> {
-    provider_id: ProviderId,
-    service_id: ServiceId,
-    endpoint_policy: EndpointPolicy<'endpoint>,
-}
-
-impl<'endpoint> ProviderService<'endpoint> {
-    /// Binds validated provider and service IDs to an endpoint trust policy.
-    #[must_use]
-    pub const fn new(
-        provider_id: ProviderId,
-        service_id: ServiceId,
-        endpoint_policy: EndpointPolicy<'endpoint>,
-    ) -> Self {
-        Self {
-            provider_id,
-            service_id,
-            endpoint_policy,
-        }
-    }
-
-    /// Binds a provider-owned service marker to an endpoint trust policy.
-    #[must_use]
-    pub const fn from_marker<S: ServiceMarker>(endpoint_policy: EndpointPolicy<'endpoint>) -> Self {
-        Self::new(<S::Provider as ProviderMarker>::ID, S::ID, endpoint_policy)
-    }
-
-    /// Returns the canonical provider namespace.
-    #[must_use]
-    pub const fn provider_id(self) -> ProviderId {
-        self.provider_id
-    }
-
-    /// Returns the canonical provider-owned service namespace.
-    #[must_use]
-    pub const fn service_id(self) -> ServiceId {
-        self.service_id
-    }
-
-    /// Returns the immutable endpoint trust policy.
-    #[must_use]
-    pub const fn endpoint_policy(self) -> EndpointPolicy<'endpoint> {
-        self.endpoint_policy
-    }
-}
 
 /// Complete request, endpoint, operation metadata, and response policy.
 #[derive(Clone, Copy)]
@@ -92,6 +38,7 @@ pub struct PreparedRequest<'request> {
     raw_response_policy: RawResponsePolicy<'request>,
     operation_id: Option<OperationId>,
     body_replayability: BodyReplayability,
+    body_sensitivity: RequestBodySensitivity,
 }
 
 impl<'request> PreparedRequest<'request> {
@@ -135,6 +82,7 @@ impl<'request> PreparedRequest<'request> {
             } else {
                 BodyReplayability::NotReplayable
             },
+            body_sensitivity: RequestBodySensitivity::Public,
         })
     }
 
@@ -152,6 +100,16 @@ impl<'request> PreparedRequest<'request> {
     #[must_use]
     pub const fn with_replayable_body(mut self) -> Self {
         self.body_replayability = BodyReplayability::Replayable;
+        self
+    }
+
+    /// Marks a body as sensitive so plan confirmation requires a strong digest.
+    ///
+    /// Providers should set this whenever the serialized body contains secrets
+    /// whose canonical plaintext must not survive for the permit lifetime.
+    #[must_use]
+    pub const fn with_sensitive_body(mut self) -> Self {
+        self.body_sensitivity = RequestBodySensitivity::Sensitive;
         self
     }
 
@@ -213,6 +171,12 @@ impl<'request> PreparedRequest<'request> {
         self.body_replayability
     }
 
+    /// Returns the provider-declared request-body sensitivity.
+    #[must_use]
+    pub const fn body_sensitivity(self) -> RequestBodySensitivity {
+        self.body_sensitivity
+    }
+
     pub(crate) fn with_request_headers<'headers>(
         self,
         headers: RequestHeaders<'headers>,
@@ -230,6 +194,7 @@ impl<'request> PreparedRequest<'request> {
             raw_response_policy: self.raw_response_policy,
             operation_id: self.operation_id,
             body_replayability: self.body_replayability,
+            body_sensitivity: self.body_sensitivity,
         }
     }
 
@@ -241,6 +206,7 @@ impl<'request> PreparedRequest<'request> {
             && self.raw_response_policy == other.raw_response_policy
             && self.operation_id == other.operation_id
             && self.body_replayability == other.body_replayability
+            && self.body_sensitivity == other.body_sensitivity
             && self.has_same_header_policy(other)
     }
 
@@ -467,7 +433,7 @@ impl<'request> PreparedRequest<'request> {
             Some(_) => Err(EndpointCheckError::Mismatch),
             None => self
                 .service
-                .endpoint_policy
+                .endpoint_policy()
                 .verify(actual)
                 .map_err(|_| EndpointCheckError::Mismatch),
         }
@@ -486,6 +452,7 @@ impl fmt::Debug for PreparedRequest<'_> {
             .field("raw_response_policy", &self.raw_response_policy)
             .field("operation_id", &self.operation_id)
             .field("body_replayability", &self.body_replayability)
+            .field("body_sensitivity", &self.body_sensitivity)
             .finish()
     }
 }

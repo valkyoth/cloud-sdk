@@ -30,7 +30,7 @@ pub use policy::{
 };
 pub use prepared::{
     BodyReplayability, PreparationStorage, PrepareOperation, PreparedExecutionError,
-    PreparedRequest, PreparedRequestPolicyError, ProviderService,
+    PreparedRequest, PreparedRequestPolicyError, ProviderService, RequestBodySensitivity,
 };
 #[cfg(feature = "alloc")]
 pub use storage::OwnedPreparationStorage;

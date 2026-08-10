@@ -21,13 +21,18 @@ For certificate and SSH-key mutation or deletion:
 1. Call the named `prepare_<operation>` method with a
    `PreparationStorageGuard`.
 2. Review the complete method, target, query, and body.
-3. Build and fingerprint an `AssociatedPlanConfirmation`.
+3. Build and fingerprint an `AssociatedPlanConfirmation`. Uploaded certificate
+   requests require `build_associated_plan_digest` with `Sha256PlanHasher`, a
+   caller-owned canonical scratch buffer, and a 32-byte digest buffer. Exact
+   fingerprint construction fails closed with `SensitiveBodyRequiresDigest`.
 4. Create the matching mutation or destructive permit.
 5. Begin one attempt and pass it to the named executor method.
 
 There is no direct state-changing method and no implicit retry. Uploaded
 private-key source buffers remain caller-owned and require caller cleanup; the
 SDK clears its complete guarded request and response buffers.
+Canonical digest scratch is also cleared immediately after hashing; the digest
+alone remains for the permit lifetime.
 
 ## SSH-Key Rotation
 

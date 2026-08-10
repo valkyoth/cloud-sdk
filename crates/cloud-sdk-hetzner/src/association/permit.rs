@@ -20,6 +20,11 @@ use super::identity::ExpectedResponseIdentity;
 use super::prepared::{AssociatedCheckedResponse, Prepared};
 use super::{HetznerOperation, types};
 
+#[cfg(feature = "serde")]
+mod sha256;
+#[cfg(feature = "serde")]
+pub use sha256::Sha256PlanHasher;
+
 struct TypedResponseBinding<O> {
     expected: ExpectedResponseIdentity,
     operation: PhantomData<fn() -> O>,
@@ -120,6 +125,12 @@ pub struct AssociatedPlanFingerprintDigest<'output, 'plan, 'request, O> {
 }
 
 impl<'output, 'plan, 'request, O> AssociatedPlanFingerprintDigest<'output, 'plan, 'request, O> {
+    /// Returns the admitted collision-resistant digest algorithm.
+    #[must_use]
+    pub const fn algorithm(&self) -> cloud_sdk::retry::DigestAlgorithm {
+        self.inner.algorithm()
+    }
+
     /// Borrows the request, fingerprint, and opaque provider response binding.
     #[must_use]
     pub fn subject(&self) -> AssociatedPlanSubject<'_, '_, O> {

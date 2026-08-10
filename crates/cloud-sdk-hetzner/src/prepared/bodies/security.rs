@@ -7,10 +7,29 @@ use crate::security::certificates::{
 };
 use crate::security::ssh_keys::{SshKeyCreateRequest, SshKeyUpdateRequest};
 
-body_wire!(CertificateCreateRequest<'_>, request => request.endpoint(), "create_certificate", write_certificate_create);
+body_wire!(
+    CertificateCreateRequest<'_>,
+    request => request.endpoint(),
+    "create_certificate",
+    write_certificate_create,
+    certificate_create_sensitivity
+);
 body_wire!(CertificateUpdateRequest<'_>, request => request.endpoint(), "update_certificate", write_certificate_update);
 body_wire!(SshKeyCreateRequest<'_>, request => request.endpoint(), "create_ssh_key", write_ssh_create);
 body_wire!(SshKeyUpdateRequest<'_>, request => request.endpoint(), "update_ssh_key", write_ssh_update);
+
+fn certificate_create_sensitivity(
+    request: CertificateCreateRequest<'_>,
+) -> cloud_sdk::operation::RequestBodySensitivity {
+    match request.mode() {
+        CertificateCreateMode::Uploaded { .. } => {
+            cloud_sdk::operation::RequestBodySensitivity::Sensitive
+        }
+        CertificateCreateMode::Managed { .. } => {
+            cloud_sdk::operation::RequestBodySensitivity::Public
+        }
+    }
+}
 
 fn write_certificate_create(
     request: CertificateCreateRequest<'_>,

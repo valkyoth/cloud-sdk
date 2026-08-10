@@ -315,6 +315,24 @@ pub fn build_canonical_plan<'output, 'plan, 'request>(
     CanonicalPlanFingerprint<'output, 'plan, 'request>,
     PlanFingerprintBuildError<core::convert::Infallible>,
 > {
+    if plan.prepared.body_sensitivity().requires_digest() {
+        sanitize_bytes(output);
+        return Err(PlanFingerprintBuildError::SensitiveBodyRequiresDigest);
+    }
+    build_canonical_plan_inner(plan, output)
+}
+
+#[allow(
+    clippy::large_types_passed_by_value,
+    reason = "the returned fingerprint must own the complete confirmed plan"
+)]
+fn build_canonical_plan_inner<'output, 'plan, 'request>(
+    plan: PlanConfirmation<'plan, 'request>,
+    output: &'output mut [u8],
+) -> Result<
+    CanonicalPlanFingerprint<'output, 'plan, 'request>,
+    PlanFingerprintBuildError<core::convert::Infallible>,
+> {
     sanitize_bytes(output);
     let scope = validate(&plan)?;
     let required = measure_snapshot_bounded(
@@ -349,7 +367,7 @@ pub fn build_plan_digest<'output, 'plan, 'request, H: FingerprintHasher>(
     hasher: &H,
 ) -> Result<PlanFingerprintDigest<'output, 'plan, 'request>, PlanFingerprintBuildError<H::Error>> {
     sanitize_bytes(output);
-    let exact = build_canonical_plan(plan, scratch).map_err(map_infallible)?;
+    let exact = build_canonical_plan_inner(plan, scratch).map_err(map_infallible)?;
     let algorithm = hasher.algorithm();
     let expected = algorithm.output_len();
     if output.len() < expected {

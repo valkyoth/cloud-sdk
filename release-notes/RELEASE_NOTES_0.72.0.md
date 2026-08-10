@@ -20,8 +20,11 @@ selected for crates.io publication.
   destructive Security operations.
 - Preserved blocking, `Send` async, and local-async parity, four numbered list
   policies, checked actions/resources, and exact Security service identity.
-- Kept state-changing requests behind cleanup-owning preparation and exact
+- Kept state-changing requests behind cleanup-owning preparation and bound
   plan-confirm permits, with no client-owned retries, rollback, or authority.
+- Marked uploaded certificate bodies as sensitive, rejected long-lived exact
+  fingerprints for them, and added a reviewed SHA-256 plan hasher whose
+  canonical scratch is cleared immediately after digest construction.
 - Added paginated read execution, uploaded private-key redaction and cleanup,
   permit-authorized create execution, unpolled cancellation cleanup, a
   compile-checked example, and named read-only live smoke paths.

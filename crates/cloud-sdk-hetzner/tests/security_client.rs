@@ -9,17 +9,18 @@ use cloud_sdk::operation::{
     PlanFingerprintScope, PreparationStorage, PreparationStorageGuard, PrepareOperation,
     ReplayPolicy,
 };
+use cloud_sdk::retry::DigestAlgorithm;
 use cloud_sdk::transport::{EndpointIdentity, EndpointScheme, StatusCode};
 use cloud_sdk_hetzner::association::operations::{CreateCertificate, ListCertificates};
 use cloud_sdk_hetzner::association::{
     AssociatedMutationPermit, AssociatedOperation, AssociatedPlanConfirmation, PaginationPolicy,
-    PermitClass, build_associated_canonical_plan,
+    PermitClass, Sha256PlanHasher, build_associated_canonical_plan, build_associated_plan_digest,
 };
 use cloud_sdk_hetzner::client::{HetznerClient, SECURITY_CLIENT_METHODS};
 use cloud_sdk_hetzner::pagination::{Page, PerPage};
 use cloud_sdk_hetzner::security::certificates::{
-    CertificateCreateMode, CertificateCreateRequest, CertificateEndpoint, CertificateListRequest,
-    CertificateName, certificate_pem, private_key_pem,
+    CertificateCreateMode, CertificateCreateRequest, CertificateDomainName, CertificateEndpoint,
+    CertificateListRequest, CertificateName, certificate_pem, private_key_pem,
 };
 use cloud_sdk_hetzner::serde::{
     HetznerSuccess, SecurityResource, decode_associated_checked_response,
@@ -176,6 +177,10 @@ fn uploaded_private_key_is_redacted_permitted_and_cleanup_owned() {
             .prepare_create_certificate(&operation, &mut storage)
             .unwrap_or_else(|_| unreachable!("certificate preparation failed"));
         let request = prepared.as_untyped().transport_request();
+        assert_eq!(
+            prepared.as_untyped().body_sensitivity(),
+            cloud_sdk::operation::RequestBodySensitivity::Sensitive
+        );
         let json = core::str::from_utf8(request.body())
             .unwrap_or_else(|_| unreachable!("certificate JSON was not UTF-8"));
         assert!(json.contains("\"private_key\""));
@@ -184,12 +189,24 @@ fn uploaded_private_key_is_redacted_permitted_and_cleanup_owned() {
         let expected = ExpectedRequest::new(request.method(), request.target())
             .with_body(request.body())
             .with_headers(request.headers());
-        let mut fingerprint_storage = [0_u8; 4_096];
-        let fingerprint = build_associated_canonical_plan(
+        assert!(matches!(
+            build_associated_canonical_plan(
+                mutation_plan(prepared, endpoint),
+                &mut [0xa5_u8; 4_096],
+            ),
+            Err(cloud_sdk::operation::PlanFingerprintBuildError::SensitiveBodyRequiresDigest)
+        ));
+        let mut fingerprint_scratch = [0xa5_u8; 4_096];
+        let mut digest_storage = [0xa5_u8; 32];
+        let fingerprint = build_associated_plan_digest(
             mutation_plan(prepared, endpoint),
-            &mut fingerprint_storage,
+            &mut fingerprint_scratch,
+            &mut digest_storage,
+            &Sha256PlanHasher,
         )
         .unwrap_or_else(|_| unreachable!("certificate fingerprint failed"));
+        assert_eq!(fingerprint.algorithm(), DigestAlgorithm::Sha256);
+        assert_eq!(fingerprint_scratch, [0_u8; 4_096]);
         let mut permit = AssociatedMutationPermit::new(
             fingerprint.subject(),
             PermitTimestamp::from_seconds(100),
@@ -224,6 +241,35 @@ fn uploaded_private_key_is_redacted_permitted_and_cleanup_owned() {
     }
     assert_eq!(target, [0_u8; 128]);
     assert_eq!(request_body, [0_u8; 512]);
+}
+
+#[test]
+fn managed_certificate_body_remains_public_and_accepts_exact_fingerprint() {
+    let endpoint = official_endpoint();
+    let name = CertificateName::new("managed")
+        .unwrap_or_else(|_| unreachable!("managed certificate name failed"));
+    let domain = CertificateDomainName::new("example.com")
+        .unwrap_or_else(|_| unreachable!("managed certificate domain failed"));
+    let domains = [domain];
+    let mode = CertificateCreateMode::managed(&domains)
+        .unwrap_or_else(|_| unreachable!("managed certificate mode failed"));
+    let request = CertificateCreateRequest::new(name, mode);
+    let operation =
+        AssociatedOperation::<CreateCertificate, _, _, _>::json(request.endpoint(), request)
+            .unwrap_or_else(|_| unreachable!("managed certificate association failed"));
+    let mut target = [0_u8; 128];
+    let mut body = [0_u8; 512];
+    let prepared = operation
+        .prepare_typed(PreparationStorage::new(&mut target, &mut body))
+        .unwrap_or_else(|_| unreachable!("managed certificate preparation failed"));
+    assert_eq!(
+        prepared.as_untyped().body_sensitivity(),
+        cloud_sdk::operation::RequestBodySensitivity::Public
+    );
+    let mut exact = [0_u8; 4_096];
+    let fingerprint =
+        build_associated_canonical_plan(mutation_plan(prepared, endpoint), &mut exact);
+    assert!(fingerprint.is_ok());
 }
 
 struct ReadWorkspace {

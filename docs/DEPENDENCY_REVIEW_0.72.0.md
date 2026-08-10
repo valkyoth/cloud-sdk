@@ -20,8 +20,10 @@ graphs remain `no_std`, transport-free, and allocation-free.
   optional Serde dependency graph.
 - Generated Security methods use existing operation associations, preparation
   guards, permits, authenticated transports, checked decoding, and workspaces.
-- Uploaded certificate private keys create no new owned source copy; only the
-  complete caller-owned prepared body contains escaped wire material.
+- Uploaded certificate private keys create no new owned source allocation. The
+  guarded prepared body retains escaped wire material; digest construction
+  uses caller-owned canonical scratch that is cleared immediately after the
+  existing `sha2` implementation computes the retained 32-byte identity.
 - The testkit, reqwest adapter, sanitization crate, and their package versions
   do not change.
 - All first-party fuzz and feature-unification path dependencies bind the exact

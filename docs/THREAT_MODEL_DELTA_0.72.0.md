@@ -31,8 +31,13 @@ private keys, public keys, labels, and destructive deletion intent.
 - `PrivateKeyPem` exposes no raw string accessor and redacts `Debug`.
 - Named create preparation requires `PreparationStorageGuard`; complete target
   and body regions clear on failure and drop.
-- Tests prove escaped key material is confined to the prepared body and absent
-  from operation and prepared-request diagnostics.
+- Uploaded create requests carry provider-declared sensitive-body metadata.
+  Exact canonical plan and retry fingerprints fail closed with
+  `SensitiveBodyRequiresDigest`.
+- `Sha256PlanHasher` retains only a collision-resistant digest for the permit
+  lifetime; complete canonical scratch clears immediately after hashing.
+- Tests prove escaped key material is confined to the prepared body and
+  transient fingerprint scratch, and absent from diagnostics.
 - Caller-owned source material remains an explicit caller cleanup boundary.
 
 ### Unsafe Rotation Ordering

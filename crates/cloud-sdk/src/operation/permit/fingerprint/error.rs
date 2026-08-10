@@ -31,6 +31,8 @@ pub enum PlanFingerprintBuildError<E> {
     InputTooLarge,
     /// Caller output cannot hold the complete canonical input or digest.
     OutputTooSmall,
+    /// Sensitive request bodies may only use collision-resistant digests.
+    SensitiveBodyRequiresDigest,
     /// Caller-provided collision-resistant hashing failed.
     Hasher(E),
     /// Hasher output length differs from its admitted algorithm.
@@ -54,6 +56,9 @@ impl<E> fmt::Debug for PlanFingerprintBuildError<E> {
             Self::UnexpectedIdempotency => "PlanFingerprintBuildError::UnexpectedIdempotency",
             Self::InputTooLarge => "PlanFingerprintBuildError::InputTooLarge",
             Self::OutputTooSmall => "PlanFingerprintBuildError::OutputTooSmall",
+            Self::SensitiveBodyRequiresDigest => {
+                "PlanFingerprintBuildError::SensitiveBodyRequiresDigest"
+            }
             Self::Hasher(_) => "PlanFingerprintBuildError::Hasher([redacted])",
             Self::InvalidDigestLength => "PlanFingerprintBuildError::InvalidDigestLength",
         })
@@ -75,6 +80,9 @@ impl<E> fmt::Display for PlanFingerprintBuildError<E> {
             Self::UnexpectedIdempotency => "idempotency identity requires reconciliation replay",
             Self::InputTooLarge => "canonical plan confirmation exceeds its size limit",
             Self::OutputTooSmall => "plan confirmation output is too small",
+            Self::SensitiveBodyRequiresDigest => {
+                "sensitive request body requires a collision-resistant plan digest"
+            }
             Self::Hasher(_) => "plan confirmation hashing failed",
             Self::InvalidDigestLength => "plan confirmation digest length is invalid",
         })
@@ -119,6 +127,9 @@ pub(super) fn map_infallible<E>(
         }
         PlanFingerprintBuildError::InputTooLarge => PlanFingerprintBuildError::InputTooLarge,
         PlanFingerprintBuildError::OutputTooSmall => PlanFingerprintBuildError::OutputTooSmall,
+        PlanFingerprintBuildError::SensitiveBodyRequiresDigest => {
+            PlanFingerprintBuildError::SensitiveBodyRequiresDigest
+        }
         PlanFingerprintBuildError::InvalidDigestLength => {
             PlanFingerprintBuildError::InvalidDigestLength
         }

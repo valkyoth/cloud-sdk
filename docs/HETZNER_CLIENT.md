@@ -57,9 +57,14 @@ preparation stays in caller-owned cleanup-guarded storage.
 The official Security client covers all 14 certificate and SSH-key operations:
 seven read-only, five mutation, and two destructive methods. Its four list
 operations retain numbered pagination. Uploaded certificate private keys are
-serialized only into cleanup-owning preparation storage, remain redacted from
-diagnostics, and are cleared with the complete target and body buffers.
-Caller-owned source material remains the caller's cleanup responsibility.
+serialized into cleanup-owning preparation storage and marked as a sensitive
+request body. Exact canonical plan and retry fingerprints reject that marker
+with `SensitiveBodyRequiresDigest`; use digest construction with
+`Sha256PlanHasher` instead. Canonical scratch is transient and clears
+immediately after hashing, while only the 32-byte digest remains for the permit
+lifetime. Private keys remain redacted from diagnostics and are cleared with
+the complete target, body, and scratch buffers. Caller-owned source material
+remains the caller's cleanup responsibility.
 
 SSH-key rotation is intentionally an explicit sequence, not one synthetic
 operation: create the replacement key under a mutation permit, verify its

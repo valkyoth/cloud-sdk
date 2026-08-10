@@ -5,9 +5,9 @@ use core::marker::PhantomData;
 use cloud_sdk::Method;
 use cloud_sdk::authentication::AuthenticationScopePolicy;
 use cloud_sdk::operation::{
-    BodyReplayability, ContentTypePolicy, CostIntent, OperationId, OperationImpact,
-    OperationMetadata, PreparationStorage, PrepareOperation, PreparedRequest, ProviderService,
-    RequestIdPolicy, RequestSemantics, ResponseBodyPolicy, ResponsePolicy, RetryEligibility,
+    BodyReplayability, ContentTypePolicy, OperationId, OperationMetadata, PreparationStorage,
+    PrepareOperation, PreparedRequest, ProviderService, RequestBodySensitivity, ResponseBodyPolicy,
+    ResponsePolicy,
 };
 use cloud_sdk::transport::{
     ContentType, MediaType, RawResponsePolicy, RequestHeader, RequestHeaders, RequestTarget,
@@ -20,6 +20,9 @@ use crate::request::ApiBaseUrl;
 
 use super::HetznerPreparationError;
 use super::wire_policy::{authentication_policy, provider_service, raw_response_policy};
+
+mod metadata;
+pub(crate) use metadata::operation_metadata;
 
 const JSON_MEDIA: &[MediaType<'static>] = &[MediaType::JSON];
 const STATUS_OK: &[StatusCode] = &[StatusCode::OK];
@@ -91,6 +94,10 @@ pub(crate) trait QueryWire: Copy {
 pub(crate) trait BodyWire: Copy {
     fn write_body(self, output: &mut [u8]) -> Result<usize, HetznerPreparationError>;
     fn operation_key(self) -> &'static str;
+
+    fn sensitivity(self) -> RequestBodySensitivity {
+        RequestBodySensitivity::Public
+    }
 
     fn accepts_operation(self, operation_key: &str) -> bool {
         self.operation_key() == operation_key
@@ -298,6 +305,7 @@ where
     B: BodyWire,
 {
     let (target_storage, body_storage) = storage.into_parts();
+    let body_sensitivity = body.sensitivity();
     validate_components(
         policy.request_shape,
         policy.operation_id.as_str(),
@@ -357,7 +365,10 @@ where
         policy.raw_response,
     )
     .map(|prepared| {
-        let prepared = prepared.with_operation_id(policy.operation_id);
+        let mut prepared = prepared.with_operation_id(policy.operation_id);
+        if body_sensitivity.requires_digest() {
+            prepared = prepared.with_sensitive_body();
+        }
         match policy.body_replayability {
             BodyReplayability::NotReplayable => prepared,
             BodyReplayability::Replayable => prepared.with_replayable_body(),
@@ -455,41 +466,6 @@ pub(crate) fn response_policy(
     };
     ResponsePolicy::new(statuses, content_type, body, max)
         .map_err(HetznerPreparationError::InvalidResponsePolicy)
-}
-
-pub(crate) fn operation_metadata(
-    class: OperationClass,
-    cost: CostIntent,
-) -> Result<OperationMetadata, HetznerPreparationError> {
-    let (impact, semantics, retry) = match class {
-        OperationClass::ReadOnly => (
-            OperationImpact::ReadOnly,
-            RequestSemantics::Safe,
-            RetryEligibility::ExplicitPolicy,
-        ),
-        OperationClass::IdempotentMutation => (
-            OperationImpact::Mutation,
-            RequestSemantics::Idempotent,
-            RetryEligibility::ExplicitPolicy,
-        ),
-        OperationClass::NonIdempotentMutation => (
-            OperationImpact::Mutation,
-            RequestSemantics::NonIdempotent,
-            RetryEligibility::Never,
-        ),
-        OperationClass::IdempotentDestructive => (
-            OperationImpact::Destructive,
-            RequestSemantics::Idempotent,
-            RetryEligibility::Never,
-        ),
-        OperationClass::NonIdempotentDestructive => (
-            OperationImpact::Destructive,
-            RequestSemantics::NonIdempotent,
-            RetryEligibility::Never,
-        ),
-    };
-    OperationMetadata::new(impact, semantics, retry, cost, RequestIdPolicy::Protected)
-        .map_err(HetznerPreparationError::InvalidMetadata)
 }
 
 #[cfg(test)]

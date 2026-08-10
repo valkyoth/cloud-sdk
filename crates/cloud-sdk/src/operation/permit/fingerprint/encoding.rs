@@ -83,7 +83,12 @@ pub(super) fn encode<E: Copy>(
         25,
         plan.idempotency.map(PermitIdempotencyKey::bytes),
     )?;
-    cost_fields(writer, plan.cost)
+    cost_fields(writer, plan.cost)?;
+    field(
+        writer,
+        30,
+        &[u8::from(prepared.body_sensitivity().requires_digest())],
+    )
 }
 
 fn endpoint_fields<E: Copy>(

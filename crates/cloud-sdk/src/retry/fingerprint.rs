@@ -6,10 +6,12 @@ use cloud_sdk_sanitization::sanitize_bytes;
 use subtle::ConstantTimeEq;
 
 use crate::operation::PreparedRequest;
-use crate::transport::{EndpointIdentity, EndpointScheme};
+use crate::transport::EndpointIdentity;
 
+mod encoding;
 mod writer;
-use writer::{Writer, canonical_host_len};
+use encoding::{encode, encoded_len};
+use writer::Writer;
 
 const DOMAIN: &[u8] = b"cloud-sdk/retry-fingerprint/v2\0";
 /// Maximum account or tenant scope bytes admitted to a fingerprint.
@@ -77,6 +79,8 @@ pub enum FingerprintBuildError<E> {
     OutputTooSmall,
     /// The prepared service policy does not admit the fingerprint endpoint.
     EndpointNotAdmitted,
+    /// Sensitive request bodies may only use collision-resistant digests.
+    SensitiveBodyRequiresDigest,
     /// The caller-provided digest implementation failed.
     Hasher(E),
     /// The digest implementation returned the wrong initialized length.
@@ -91,6 +95,9 @@ impl<E> fmt::Debug for FingerprintBuildError<E> {
             Self::LengthOverflow => "FingerprintBuildError::LengthOverflow",
             Self::OutputTooSmall => "FingerprintBuildError::OutputTooSmall",
             Self::EndpointNotAdmitted => "FingerprintBuildError::EndpointNotAdmitted",
+            Self::SensitiveBodyRequiresDigest => {
+                "FingerprintBuildError::SensitiveBodyRequiresDigest"
+            }
             Self::Hasher(_) => "FingerprintBuildError::Hasher([redacted])",
             Self::InvalidDigestLength => "FingerprintBuildError::InvalidDigestLength",
         })
@@ -105,6 +112,9 @@ impl<E> fmt::Display for FingerprintBuildError<E> {
             Self::LengthOverflow => "retry fingerprint length overflowed",
             Self::OutputTooSmall => "retry fingerprint output is too small",
             Self::EndpointNotAdmitted => "retry fingerprint endpoint is not admitted",
+            Self::SensitiveBodyRequiresDigest => {
+                "sensitive request body requires a collision-resistant retry digest"
+            }
             Self::Hasher(_) => "retry fingerprint hashing failed",
             Self::InvalidDigestLength => "retry fingerprint digest length is invalid",
         })
@@ -320,6 +330,24 @@ pub fn build_canonical_fingerprint<'output, 'request>(
 ) -> Result<CanonicalFingerprint<'output, 'request>, FingerprintBuildError<core::convert::Infallible>>
 {
     sanitize_bytes(output);
+    if request.body_sensitivity().requires_digest() {
+        return Err(FingerprintBuildError::SensitiveBodyRequiresDigest);
+    }
+    build_canonical_fingerprint_inner(request, endpoint, scope, output)
+}
+
+#[allow(
+    clippy::large_types_passed_by_value,
+    reason = "the returned fingerprint must own the complete prepared request"
+)]
+fn build_canonical_fingerprint_inner<'output, 'request>(
+    request: PreparedRequest<'request>,
+    endpoint: EndpointIdentity<'_>,
+    scope: FingerprintScope<'_>,
+    output: &'output mut [u8],
+) -> Result<CanonicalFingerprint<'output, 'request>, FingerprintBuildError<core::convert::Infallible>>
+{
+    sanitize_bytes(output);
     if !request.service().endpoint_policy().admits(endpoint) {
         return Err(FingerprintBuildError::EndpointNotAdmitted);
     }
@@ -352,7 +380,7 @@ pub fn build_fingerprint_digest<'output, 'request, H: FingerprintHasher>(
     hasher: &H,
 ) -> Result<FingerprintDigest<'output, 'request>, FingerprintBuildError<H::Error>> {
     sanitize_bytes(output);
-    let canonical = build_canonical_fingerprint(request, endpoint, scope, scratch)
+    let canonical = build_canonical_fingerprint_inner(request, endpoint, scope, scratch)
         .map_err(map_infallible_error)?;
     let algorithm = hasher.algorithm();
     let expected = algorithm.output_len();
@@ -385,111 +413,12 @@ fn map_infallible_error<E>(
         FingerprintBuildError::LengthOverflow => FingerprintBuildError::LengthOverflow,
         FingerprintBuildError::OutputTooSmall => FingerprintBuildError::OutputTooSmall,
         FingerprintBuildError::EndpointNotAdmitted => FingerprintBuildError::EndpointNotAdmitted,
+        FingerprintBuildError::SensitiveBodyRequiresDigest => {
+            FingerprintBuildError::SensitiveBodyRequiresDigest
+        }
         FingerprintBuildError::InvalidDigestLength => FingerprintBuildError::InvalidDigestLength,
         FingerprintBuildError::Hasher(never) => match never {},
     }
-}
-
-fn encoded_len(
-    prepared: &PreparedRequest<'_>,
-    endpoint: EndpointIdentity<'_>,
-    scope: FingerprintScope<'_>,
-) -> Result<usize, FingerprintBuildError<core::convert::Infallible>> {
-    let operation = prepared
-        .operation_id()
-        .ok_or(FingerprintBuildError::MissingOperationId)?;
-    let scope = scope_bytes(scope)?;
-    let request = prepared.transport_request();
-    let query = request.target().query_bytes().unwrap_or_default();
-    let mut len = DOMAIN.len();
-    for value in [
-        prepared.service().provider_id().as_str().as_bytes(),
-        prepared.service().service_id().as_str().as_bytes(),
-        operation.as_str().as_bytes(),
-        request.method().as_str().as_bytes(),
-        endpoint.base_path().as_bytes(),
-        request.target().path().as_str().as_bytes(),
-        query,
-        request.body(),
-    ] {
-        len = field_len(len, value.len())?;
-    }
-    len = field_len(len, 1)?;
-    len = field_len(len, canonical_host_len(endpoint.canonical_host()))?;
-    len = field_len(len, 2)?;
-    len = field_len(len, 1)?;
-    len = field_len(len, 2)?;
-    len = field_len(len, 1)?;
-    len = field_len(len, scope.len())?;
-    for header in request.headers().as_slice() {
-        len = field_len(len, header.name().as_str().len())?;
-        len = field_len(len, header.value().as_str().len())?;
-        len = field_len(len, 1)?;
-    }
-    Ok(len)
-}
-fn field_len<E>(current: usize, value_len: usize) -> Result<usize, FingerprintBuildError<E>> {
-    current
-        .checked_add(9)
-        .and_then(|value| value.checked_add(value_len))
-        .ok_or(FingerprintBuildError::LengthOverflow)
-}
-fn scope_bytes(
-    scope: FingerprintScope<'_>,
-) -> Result<&[u8], FingerprintBuildError<core::convert::Infallible>> {
-    let bytes = match scope {
-        FingerprintScope::Absent => &[][..],
-        FingerprintScope::Value(bytes) => bytes,
-    };
-    if bytes.len() > MAX_FINGERPRINT_SCOPE_BYTES {
-        return Err(FingerprintBuildError::ScopeTooLong);
-    }
-    Ok(bytes)
-}
-
-fn encode<E>(
-    prepared: &PreparedRequest<'_>,
-    endpoint: EndpointIdentity<'_>,
-    scope: FingerprintScope<'_>,
-    writer: &mut Writer<'_>,
-) -> Result<(), FingerprintBuildError<E>> {
-    let operation = prepared
-        .operation_id()
-        .ok_or(FingerprintBuildError::MissingOperationId)?;
-    let scope_present = matches!(scope, FingerprintScope::Value(_));
-    let scope = scope_bytes(scope).map_err(map_infallible_error)?;
-    let request = prepared.transport_request();
-    writer.raw(DOMAIN)?;
-    writer.field(1, prepared.service().provider_id().as_str().as_bytes())?;
-    writer.field(2, prepared.service().service_id().as_str().as_bytes())?;
-    writer.field(3, operation.as_str().as_bytes())?;
-    writer.field(4, request.method().as_str().as_bytes())?;
-    writer.field(
-        5,
-        &[match endpoint.scheme() {
-            EndpointScheme::Http => 0,
-            EndpointScheme::Https => 1,
-        }],
-    )?;
-    writer.canonical_host_field(6, endpoint.canonical_host())?;
-    writer.field(7, &endpoint.effective_port().to_be_bytes())?;
-    writer.field(8, endpoint.base_path().as_bytes())?;
-    writer.field(9, request.target().path().as_str().as_bytes())?;
-    let query = request.target().query_bytes();
-    writer.field(10, &[u8::from(query.is_some())])?;
-    writer.field(11, query.unwrap_or_default())?;
-    let count = u16::try_from(request.headers().as_slice().len())
-        .map_err(|_| FingerprintBuildError::LengthOverflow)?;
-    writer.field(12, &count.to_be_bytes())?;
-    for header in request.headers().as_slice() {
-        writer.lowercase_field(13, header.name().as_str().as_bytes())?;
-        writer.field(14, header.value().as_str().as_bytes())?;
-        writer.field(18, &[u8::from(header.sensitivity().is_sensitive())])?;
-    }
-    writer.field(15, request.body())?;
-    writer.field(16, &[u8::from(scope_present)])?;
-    writer.field(17, scope)?;
-    Ok(())
 }
 
 fn constant_time_eq(left: &[u8], right: &[u8]) -> bool {
