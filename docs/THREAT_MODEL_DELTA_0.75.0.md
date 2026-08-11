@@ -18,7 +18,9 @@ material, customer identifiers, firewall rules, and billable-order inputs.
 - `&`, `=`, `+`, brackets, controls, and non-ASCII bytes cannot create
   unplanned separators or fields.
 - Duplicate fields retain exact caller order instead of entering a map.
-- Field names admit only the reviewed Robot identifier and bracket grammar.
+- Field names admit only one nonempty Robot identifier root followed by zero
+  or more complete bracketed identifier or empty array components. Unbalanced,
+  trailing, and unexpectedly nested bracket forms fail before output changes.
 
 ### Partial Or Oversized Output
 

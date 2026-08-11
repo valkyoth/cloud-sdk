@@ -269,15 +269,33 @@ fn validate_name(name: &str) -> Result<(), RobotFormError> {
     if name.len() > MAX_ROBOT_FORM_NAME_BYTES {
         return Err(RobotFormError::NameTooLong);
     }
-    if name.bytes().any(|byte| {
-        !matches!(
-            byte,
-            b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'_' | b'-' | b'[' | b']'
-        )
-    }) {
+
+    let mut components = name.split('[');
+    let Some(root) = components.next() else {
+        return Err(RobotFormError::InvalidName);
+    };
+    if !valid_name_segment(root, false) {
         return Err(RobotFormError::InvalidName);
     }
+    for component in components {
+        let Some(segment) = component.strip_suffix(']') else {
+            return Err(RobotFormError::InvalidName);
+        };
+        if segment.contains(']') || !valid_name_segment(segment, true) {
+            return Err(RobotFormError::InvalidName);
+        }
+    }
     Ok(())
+}
+
+fn valid_name_segment(segment: &str, allow_empty: bool) -> bool {
+    (allow_empty || !segment.is_empty())
+        && segment.bytes().all(|byte| {
+            matches!(
+                byte,
+                b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'_' | b'-'
+            )
+        })
 }
 
 fn encode_fields(

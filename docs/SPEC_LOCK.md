@@ -308,6 +308,11 @@ and `*`, `-`, `.`, `_` remain literal; every other UTF-8 byte is uppercase
 percent encoded. The SDK does not normalize Unicode, line endings, field
 order, or duplicate fields.
 
+Field names use one nonempty ASCII identifier root followed only by complete
+bracketed identifier components; an empty bracket component is admitted for
+Robot array parameters such as `server[]`. Malformed, unbalanced, or trailing
+bracket text is rejected before encoding.
+
 The public codec caps field count, name bytes, value bytes, and total encoded
 body bytes. It performs exact immutable preflight before mutation and owns
 complete-buffer cleanup after admission. These are SDK security policy bounds,

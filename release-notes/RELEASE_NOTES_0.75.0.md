@@ -22,6 +22,8 @@ of the experimental FIPS transport.
   classification and payload-free diagnostics.
 - Preserved duplicate names for Robot array parameters such as `server[]` and
   indexed firewall names such as `rules[input][0][src_ip]`.
+- Require one nonempty parameter root followed only by complete bracketed
+  components, rejecting malformed nested names before encoding.
 - Added standard form encoding: spaces become `+`; literal separators,
   controls, brackets, `+`, `~`, and non-ASCII UTF-8 bytes are percent encoded
   with uppercase hexadecimal digits.

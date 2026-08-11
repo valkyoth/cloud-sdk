@@ -124,8 +124,11 @@ assert!(output.iter().all(|byte| *byte == 0));
 The codec performs exact checked preflight, preserves output on validation or
 capacity failure, wipes stale tail bytes before an admitted write, and uses
 standard form rules: spaces become `+`, while literal `+`, `&`, `=`, brackets,
-controls, and non-ASCII UTF-8 bytes are percent encoded. It does not send a
-request, own source secrets, or implement Robot authentication.
+controls, and non-ASCII UTF-8 bytes are percent encoded. Field names require a
+nonempty identifier root followed only by complete bracketed components;
+`server[]` remains valid while malformed nesting fails before encoding. The
+codec does not send a request, own source secrets, or implement Robot
+authentication.
 
 Use compile-time operation associations when endpoint, query, body, response,
 and safety policy must retain one nominal operation identity:

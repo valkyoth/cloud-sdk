@@ -150,12 +150,25 @@ fn field_count_and_name_grammar_fail_closed() {
         RobotFormField::public("", "value"),
         Err(RobotFormError::EmptyName)
     );
-    for invalid in ["white space", "field=value", "field&value", "ümlaut"] {
+    for invalid in [
+        "white space",
+        "field=value",
+        "field&value",
+        "ümlaut",
+        "][",
+        "[]",
+        "a[",
+        "a]",
+        "a[b]tail",
+        "a[[b]",
+        "a[b]]",
+    ] {
         assert_eq!(
             RobotFormField::public(invalid, "value"),
             Err(RobotFormError::InvalidName)
         );
     }
+    assert!(RobotFormField::public("server[]", "192.0.2.1").is_ok());
     assert!(RobotFormField::public("rules[input][4095][src_ip]", "::1").is_ok());
 
     let template = field("server[]", "192.0.2.1");
