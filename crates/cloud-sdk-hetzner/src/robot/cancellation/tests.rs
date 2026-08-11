@@ -115,13 +115,22 @@ fn server_form_is_explicit_sensitive_and_non_retryable() {
 }
 
 #[test]
-fn delete_forbids_success_body_and_automatic_retry() {
-    let request = RobotServerCancellationDeleteRequest::new(number());
-    let mut target = [0_u8; 128];
-    let mut body = [0_u8; 1];
-    let prepared = request
-        .prepare(PreparationStorage::new(&mut target, &mut body))
-        .unwrap_or_else(|_| unreachable!("fixture preparation failed"));
+fn delete_response_shapes_are_target_specific_and_non_retryable() {
+    let server = RobotServerCancellationDeleteRequest::new(number());
+    let ip = RobotIpCancellationDeleteRequest::new(ip());
+    let subnet = RobotSubnetCancellationDeleteRequest::new(subnet());
+    let mut server_target = [0_u8; 128];
+    let mut ip_target = [0_u8; 128];
+    let mut subnet_target = [0_u8; 128];
+    let mut server_body = [0_u8; 1];
+    let mut ip_body = [0_u8; 1];
+    let mut subnet_body = [0_u8; 1];
+    let prepared = server
+        .prepare(PreparationStorage::new(
+            &mut server_target,
+            &mut server_body,
+        ))
+        .unwrap_or_else(|_| unreachable!("server delete preparation failed"));
     assert_eq!(
         prepared.response_policy().body_policy(),
         ResponseBodyPolicy::Forbidden
@@ -135,6 +144,25 @@ fn delete_forbids_success_body_and_automatic_retry() {
         prepared.metadata().retry_eligibility(),
         RetryEligibility::Never
     );
+    for prepared in [
+        ip.prepare(PreparationStorage::new(&mut ip_target, &mut ip_body))
+            .unwrap_or_else(|_| unreachable!("IP delete preparation failed")),
+        subnet
+            .prepare(PreparationStorage::new(
+                &mut subnet_target,
+                &mut subnet_body,
+            ))
+            .unwrap_or_else(|_| unreachable!("subnet delete preparation failed")),
+    ] {
+        assert_eq!(
+            prepared.response_policy().body_policy(),
+            ResponseBodyPolicy::Required
+        );
+        assert_eq!(
+            prepared.metadata().retry_eligibility(),
+            RetryEligibility::Never
+        );
+    }
 }
 
 #[test]
@@ -148,6 +176,13 @@ fn protected_value_validation_is_canonical_and_calendar_exact() {
     assert!(RobotIpAddress::new("2001:db8::").is_ok());
     assert!(RobotCancellationDate::new("2028-02-29").is_ok());
     assert!(RobotCancellationReason::new("line\nbreak").is_err());
+    for unsafe_text in [
+        "next\u{0085}line",
+        "trusted\u{202e}txt",
+        "zero\u{200b}width",
+    ] {
+        assert!(RobotCancellationReason::new(unsafe_text).is_err());
+    }
 }
 
 #[test]
@@ -289,9 +324,9 @@ fn decode_server(
     let mut target = [0_u8; 128];
     let mut request_body = [0_u8; 1];
     let prepared = request
-        .prepare(PreparationStorage::new(&mut target, &mut request_body))
+        .prepare_bound(PreparationStorage::new(&mut target, &mut request_body))
         .unwrap_or_else(|_| unreachable!("server cancellation preparation failed"));
-    with_json(prepared, body, |checked| request.decode_response(checked))
+    with_json(prepared, body, |checked| checked.decode_response())
 }
 fn decode_ip(
     body: &[u8],
@@ -301,9 +336,9 @@ fn decode_ip(
     let mut target = [0_u8; 128];
     let mut request_body = [0_u8; 1];
     let prepared = request
-        .prepare(PreparationStorage::new(&mut target, &mut request_body))
+        .prepare_bound(PreparationStorage::new(&mut target, &mut request_body))
         .unwrap_or_else(|_| unreachable!("IP cancellation preparation failed"));
-    with_json(prepared, body, |checked| request.decode_response(checked))
+    with_json(prepared, body, |checked| checked.decode_response())
 }
 fn decode_subnet(
     body: &[u8],
@@ -313,16 +348,16 @@ fn decode_subnet(
     let mut target = [0_u8; 128];
     let mut request_body = [0_u8; 1];
     let prepared = request
-        .prepare(PreparationStorage::new(&mut target, &mut request_body))
+        .prepare_bound(PreparationStorage::new(&mut target, &mut request_body))
         .unwrap_or_else(|_| unreachable!("subnet cancellation preparation failed"));
-    with_json(prepared, body, |checked| request.decode_response(checked))
+    with_json(prepared, body, |checked| checked.decode_response())
 }
 
-fn with_json<R>(
-    prepared: cloud_sdk::operation::PreparedRequest<'_>,
+fn with_json<R, O>(
+    prepared: PreparedCancellation<'_, '_, R>,
     body: &[u8],
-    decode: impl FnOnce(cloud_sdk::operation::CheckedResponseGuard<'_>) -> R,
-) -> R {
+    decode: impl FnOnce(CheckedCancellation<'_, '_, R>) -> O,
+) -> O {
     let mut response_storage = vec![0_u8; body.len()];
     let mut headers = [0_u8; 64];
     let mut response = ResponseBuffer::new(&mut response_storage, body.len(), &mut headers);

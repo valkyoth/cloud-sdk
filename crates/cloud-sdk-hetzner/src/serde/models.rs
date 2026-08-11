@@ -256,15 +256,7 @@ pub(super) fn valid_error_code(value: &str, max: usize) -> bool {
 }
 
 pub(super) fn is_unsafe_display_character(character: char) -> bool {
-    character.is_control()
-        || matches!(
-            character,
-            '\u{061c}'
-                | '\u{200b}'..='\u{200f}'
-                | '\u{202a}'..='\u{202e}'
-                | '\u{2060}'..='\u{2069}'
-                | '\u{feff}'
-        )
+    crate::display::is_unsafe_display_character(character)
 }
 
 #[cfg(test)]

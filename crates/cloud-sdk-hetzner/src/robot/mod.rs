@@ -32,10 +32,11 @@ pub use cancellation::{
 
 #[cfg(feature = "serde")]
 pub use cancellation::{
-    MAX_ROBOT_CANCELLATION_REASON_BYTES, MAX_ROBOT_CANCELLATION_REASONS,
-    RobotCancellationDecodeError, RobotIpCancellation, RobotServerCancellation,
-    RobotServerCancellationReason, RobotSubnetCancellation, decode_robot_ip_cancellation,
-    decode_robot_server_cancellation, decode_robot_subnet_cancellation,
+    CheckedCancellation, MAX_ROBOT_CANCELLATION_REASON_BYTES, MAX_ROBOT_CANCELLATION_REASONS,
+    PreparedCancellation, RobotCancellationDecodeError, RobotIpCancellation,
+    RobotServerCancellation, RobotServerCancellationReason, RobotSubnetCancellation,
+    decode_robot_ip_cancellation, decode_robot_server_cancellation,
+    decode_robot_subnet_cancellation,
 };
 
 #[cfg(feature = "alloc")]

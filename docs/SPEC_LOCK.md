@@ -386,9 +386,12 @@ POST additionally models optional reason and explicit location-reservation
 intent. POST and DELETE are destructive, are never automatically retryable,
 and require the core execution permit boundary when executed.
 
-GET and POST require exact `200` JSON cancellation envelopes. DELETE requires
-exact `200` with no body or content type. Response identities must match the
-request, cancellation date presence must match cancellation state, a scheduled
+GET, POST, and IP/subnet DELETE require exact `200` JSON cancellation
+envelopes. Server DELETE alone requires exact `200` with no body or content
+type. Typed checked responses retain the exact request association. Response
+identities must match the request; POST acknowledgement must match active
+schedule, reason, and reservation intent; IP/subnet DELETE must report inactive
+state. Cancellation date presence must match cancellation state, a scheduled
 date cannot precede the earliest date, and a reserved location requires both
 reservation availability and active cancellation. Server reason shape is an
 array before cancellation and string or null afterward. For IP and subnet,

@@ -2296,9 +2296,9 @@ Status: implementation stop reached; pentest required.
 
 Goal: complete cancellation get/create/revoke workflows.
 
-Deliverables: all nine named server/IP/subnet GET, POST, and DELETE requests; canonical protected identities and calendar dates; explicit immediate/date scheduling; bounded redacted server reasons; explicit location-reservation intent; destructive permit metadata with retry denial; exact JSON versus empty success policy; strict identity/date/state/reason/reservation/subnet conflict decoding; and source-locked handling of official field spelling and server-number shape inconsistencies.
+Deliverables: all nine named server/IP/subnet GET, POST, and DELETE requests; canonical protected identities and calendar dates; explicit immediate/date scheduling; bounded redacted server reasons; explicit location-reservation intent; destructive permit metadata with retry denial; exact JSON success except the documented empty server revoke; typed request/response association; complete POST-intent and inactive revoke acknowledgement checks; shared display-safe reason validation; allocation-aware date decoding; strict identity/date/state/reason/reservation/subnet conflict decoding; and source-locked handling of official field spelling and server-number shape inconsistencies.
 
-Verification: all method/path/form combinations, exact response policies, date and canonical-address boundaries, identity mismatch, state/reason/reservation conflicts, source fixture/checker regressions, checked-response fuzz seeds, alloc/Serde feature graphs, and `scripts/release_0_79_gate.sh`.
+Verification: all method/path/form combinations, target-specific response policies, date and canonical-address boundaries, identity mismatch, cross-operation compile failure, mismatched mutation date/reason/reservation/active-state rejection, Unicode control and directional-format rejection, protected allocation-error classification, source fixture/checker regressions, checked-response fuzz seeds, alloc/Serde feature graphs, and `scripts/release_0_79_gate.sh`.
 
 Stop gate: `v0.79.0 implementation stop reached. Complete the pentest and full release gate for this exact commit; defer crates.io publication to v0.80.0.`
 

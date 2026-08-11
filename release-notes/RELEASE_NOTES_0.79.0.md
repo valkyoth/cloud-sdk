@@ -25,8 +25,8 @@ is selected for crates.io publication.
 - Classified create and revoke operations as destructive with automatic retry
   forbidden. Create is non-idempotent; revoke is idempotent but still requires
   explicit reconciliation after uncertain delivery.
-- Added exact `200` JSON policies for reads/creates and exact empty-body,
-  no-content-type policies for revoke.
+- Added exact `200` JSON policies for reads, creates, and IP/subnet revokes;
+  only server revoke uses the documented empty-body, no-content-type policy.
 - Added strict bounded models and decoders with request/response identity
   binding, date/state consistency, earliest-date enforcement, reservation
   conflict checks, source-specific reason shapes, and canonical subnet checks.
@@ -34,6 +34,10 @@ is selected for crates.io publication.
   requires exactly one, reflecting the official table/example inconsistency.
 - Added a dedicated source fixture/checker, regression suite, and direct
   checked-response fuzz target with deterministic server/IP/subnet seeds.
+- Pentest remediation binds checked responses to the exact cancellation
+  request type and instance, validates complete POST intent and inactive
+  revocation outcomes, shares Unicode display-safety policy, and preserves
+  protected-date allocation errors.
 
 ## Versions
 

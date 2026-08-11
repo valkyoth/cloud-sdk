@@ -29,6 +29,8 @@ pub mod actions;
 pub mod association;
 pub mod client;
 pub mod cloud;
+#[cfg(feature = "alloc")]
+mod display;
 pub mod dns;
 pub mod endpoint;
 pub mod identity;

@@ -51,7 +51,7 @@
       "method": "DELETE",
       "path": "/ip/{ip}/cancellation",
       "request_fields": [],
-      "success": {"status": 200, "body": "empty", "envelope": null},
+      "success": {"status": 200, "body": "json", "envelope": "cancellation"},
       "errors": [404, 409]
     },
     {
@@ -75,7 +75,7 @@
       "method": "DELETE",
       "path": "/subnet/{ip}/cancellation",
       "request_fields": [],
-      "success": {"status": 200, "body": "empty", "envelope": null},
+      "success": {"status": 200, "body": "json", "envelope": "cancellation"},
       "errors": [404, 409]
     }
   ],

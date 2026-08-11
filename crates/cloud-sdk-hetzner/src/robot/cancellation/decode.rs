@@ -1,10 +1,9 @@
 use alloc::vec::Vec;
 
-use cloud_sdk::operation::{CheckedResponse, CheckedResponseGuard};
+use cloud_sdk::operation::CheckedResponse;
 use cloud_sdk::transport::{ResponseDecodeWorkspace, StatusCode};
 
 use super::model::*;
-use super::request::*;
 use super::{RobotCancellationDate, RobotIpAddress, RobotSubnetAddress};
 use crate::robot::server::identity::{DecimalServerNumberError, RobotServerNumber};
 use crate::robot::server::protected_parse;
@@ -28,6 +27,8 @@ pub enum RobotCancellationDecodeError {
     StateConflict,
     /// The response identity did not match the request target.
     ResponseIdentityMismatch,
+    /// A mutation acknowledgement did not match the authorized request intent.
+    MutationOutcomeMismatch,
     /// A response collection exceeded its explicit bound.
     TooManyItems,
     /// Stable protected response storage could not be allocated.
@@ -42,6 +43,7 @@ impl_static_error!(RobotCancellationDecodeError,
     Self::InvalidDate => "Robot cancellation response date is invalid",
     Self::StateConflict => "Robot cancellation response state is contradictory",
     Self::ResponseIdentityMismatch => "Robot cancellation response identity does not match the request",
+    Self::MutationOutcomeMismatch => "Robot cancellation mutation outcome does not match the request",
     Self::TooManyItems => "Robot cancellation response exceeds a collection limit",
     Self::Allocation => "Robot cancellation response allocation failed",
 );
@@ -197,72 +199,6 @@ pub fn decode_robot_subnet_cancellation(
     })
 }
 
-macro_rules! decode_methods {
-    ($get:ident, $create:ty, $output:ty, $decoder:ident, $field:ident) => {
-        impl $get {
-            /// Decodes, identity-checks, and clears this request's response.
-            pub fn decode_response(
-                self,
-                checked: CheckedResponseGuard<'_>,
-            ) -> Result<$output, RobotCancellationDecodeError> {
-                checked.decode_owned_with_workspace(|response, workspace| {
-                    $decoder(response, &self.$field, workspace)
-                })
-            }
-        }
-        impl $create {
-            /// Decodes, identity-checks, and clears this request's response.
-            pub fn decode_response(
-                self,
-                checked: CheckedResponseGuard<'_>,
-            ) -> Result<$output, RobotCancellationDecodeError> {
-                checked.decode_owned_with_workspace(|response, workspace| {
-                    $decoder(response, &self.$field, workspace)
-                })
-            }
-        }
-    };
-}
-
-decode_methods!(
-    RobotServerCancellationGetRequest,
-    RobotServerCancellationCreateRequest<'_>,
-    RobotServerCancellation,
-    decode_robot_server_cancellation,
-    number
-);
-decode_methods!(
-    RobotIpCancellationGetRequest,
-    RobotIpCancellationCreateRequest,
-    RobotIpCancellation,
-    decode_robot_ip_cancellation,
-    ip
-);
-decode_methods!(
-    RobotSubnetCancellationGetRequest,
-    RobotSubnetCancellationCreateRequest,
-    RobotSubnetCancellation,
-    decode_robot_subnet_cancellation,
-    subnet
-);
-
-macro_rules! delete_methods {
-    ($($type:ident),+ $(,)?) => {$ (
-        impl $type {
-            /// Accepts and clears the exact empty `200 OK` response.
-            pub fn decode_response(self, checked: CheckedResponseGuard<'_>) -> Result<(), RobotCancellationDecodeError> {
-                drop(checked);
-                Ok(())
-            }
-        }
-    )+ };
-}
-delete_methods!(
-    RobotServerCancellationDeleteRequest,
-    RobotIpCancellationDeleteRequest,
-    RobotSubnetCancellationDeleteRequest
-);
-
 fn parse_checked(
     checked: CheckedResponse<'_>,
     workspace: &mut ResponseDecodeWorkspace,
@@ -346,7 +282,7 @@ fn parse_date(
     field: &str,
 ) -> Result<RobotCancellationDate, RobotCancellationDecodeError> {
     parse_text(object, field, |text| {
-        RobotCancellationDate::new(text).map_err(|_| RobotCancellationDecodeError::InvalidDate)
+        RobotCancellationDate::new(text).map_err(map_date_error)
     })
 }
 
@@ -390,9 +326,7 @@ fn parse_nullable_date(
         return Ok(None);
     }
     value
-        .try_with_str(|text| {
-            RobotCancellationDate::new(text).map_err(|_| RobotCancellationDecodeError::InvalidDate)
-        })
+        .try_with_str(|text| RobotCancellationDate::new(text).map_err(map_date_error))
         .map_err(|_| RobotCancellationDecodeError::InvalidEnvelope)?
         .ok_or(RobotCancellationDecodeError::InvalidEnvelope)?
         .map(Some)
@@ -493,5 +427,30 @@ fn map_value_error(error: super::RobotCancellationValueError) -> RobotCancellati
             RobotCancellationDecodeError::InvalidIdentifier
         }
         super::RobotCancellationValueError::Allocation => RobotCancellationDecodeError::Allocation,
+    }
+}
+
+fn map_date_error(error: super::RobotCancellationValueError) -> RobotCancellationDecodeError {
+    match error {
+        super::RobotCancellationValueError::Invalid => RobotCancellationDecodeError::InvalidDate,
+        super::RobotCancellationValueError::Allocation => RobotCancellationDecodeError::Allocation,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{RobotCancellationDecodeError, map_date_error};
+    use crate::robot::RobotCancellationValueError;
+
+    #[test]
+    fn date_failures_preserve_invalid_and_allocation_classes() {
+        assert_eq!(
+            map_date_error(RobotCancellationValueError::Invalid),
+            RobotCancellationDecodeError::InvalidDate
+        );
+        assert_eq!(
+            map_date_error(RobotCancellationValueError::Allocation),
+            RobotCancellationDecodeError::Allocation
+        );
     }
 }

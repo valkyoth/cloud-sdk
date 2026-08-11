@@ -55,10 +55,17 @@ def test_route_and_method_drift_fail_closed() -> None:
     assert_exits("operation route policy changed", checker.validate_contract, value)
 
 
-def test_delete_body_and_safety_drift_fail_closed() -> None:
+def test_target_specific_delete_body_and_safety_drift_fail_closed() -> None:
     value = copy.deepcopy(contract())
-    operation(value, "robot_delete_ip_cancellation")["success"]["body"] = "json"
-    assert_exits("DELETE success body", checker.validate_contract, value)
+    operation(value, "robot_delete_server_cancellation")["success"] = {
+        "status": 200, "body": "json", "envelope": "cancellation",
+    }
+    assert_exits("server DELETE success", checker.validate_contract, value)
+    value = copy.deepcopy(contract())
+    operation(value, "robot_delete_ip_cancellation")["success"] = {
+        "status": 200, "body": "empty", "envelope": None,
+    }
+    assert_exits("JSON success envelope", checker.validate_contract, value)
     value = copy.deepcopy(contract())
     value["policy"]["create_retry"] = "automatic"
     assert_exits("safety policy changed", checker.validate_contract, value)

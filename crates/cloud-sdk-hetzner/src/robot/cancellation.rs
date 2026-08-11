@@ -7,6 +7,8 @@ mod value;
 #[cfg(feature = "serde")]
 mod decode;
 #[cfg(feature = "serde")]
+mod exchange;
+#[cfg(feature = "serde")]
 mod model;
 
 pub use request::{
@@ -28,10 +30,14 @@ pub use decode::{
     decode_robot_subnet_cancellation,
 };
 #[cfg(feature = "serde")]
+pub use exchange::{CheckedCancellation, PreparedCancellation};
+#[cfg(feature = "serde")]
 pub use model::{
     MAX_ROBOT_CANCELLATION_REASON_BYTES, MAX_ROBOT_CANCELLATION_REASONS, RobotIpCancellation,
     RobotServerCancellation, RobotServerCancellationReason, RobotSubnetCancellation,
 };
 
+#[cfg(all(test, feature = "serde"))]
+mod exchange_tests;
 #[cfg(all(test, feature = "serde"))]
 mod tests;

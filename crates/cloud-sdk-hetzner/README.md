@@ -145,13 +145,16 @@ create, and revoke operations. Create requests require an explicit immediate
 or calendar-date schedule; server requests also require explicit location
 reservation intent. Create and revoke metadata is destructive and never
 automatically retryable. Responses bind identity to the request, reject
-contradictory dates and state, and preserve the official IP/subnet date-field
-spelling inconsistency without accepting both spellings at once.
+contradictory dates and state, require mutation acknowledgement to match the
+requested schedule/reason/reservation intent, and preserve the official
+IP/subnet date-field spelling inconsistency without accepting both spellings at
+once. Server revoke has an empty success response; IP and subnet revoke return
+and validate inactive cancellation models.
 
 ```rust
-# #[cfg(feature = "alloc")]
+# #[cfg(feature = "serde")]
 # fn main() -> Result<(), Box<dyn core::error::Error>> {
-use cloud_sdk::operation::{PreparationStorage, PrepareOperation};
+use cloud_sdk::operation::PreparationStorage;
 use cloud_sdk_hetzner::robot::{
     RobotCancellationSchedule, RobotIpAddress, RobotIpCancellationCreateRequest,
 };
@@ -163,11 +166,14 @@ let request = RobotIpCancellationCreateRequest::new(
 );
 let mut target = [0_u8; 96];
 let mut body = [0_u8; 64];
-let prepared = request.prepare(PreparationStorage::new(&mut target, &mut body))?;
-assert_eq!(prepared.transport_request().method(), cloud_sdk::Method::Post);
+let prepared = request.prepare_bound(PreparationStorage::new(&mut target, &mut body))?;
+assert_eq!(
+    prepared.as_untyped().transport_request().method(),
+    cloud_sdk::Method::Post,
+);
 # Ok(())
 # }
-# #[cfg(not(feature = "alloc"))]
+# #[cfg(not(feature = "serde"))]
 # fn main() {}
 ```
 

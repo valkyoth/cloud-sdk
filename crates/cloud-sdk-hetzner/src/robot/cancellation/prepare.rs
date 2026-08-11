@@ -192,28 +192,28 @@ fn prepare_inner<'s>(
         ScopeRequirement::Forbidden,
     );
     let metadata = metadata(kind)?;
-    let deleting = matches!(kind, Kind::Delete(_));
+    let empty_success = matches!(kind, Kind::Delete(Target::Server(_)));
     let response = ResponsePolicy::new(
         OK,
-        if deleting {
+        if empty_success {
             ContentTypePolicy::Forbidden
         } else {
             ContentTypePolicy::Required(JSON)
         },
-        if deleting {
+        if empty_success {
             ResponseBodyPolicy::Forbidden
         } else {
             ResponseBodyPolicy::Required
         },
-        if deleting { 0 } else { MAX_SUCCESS_BYTES },
+        if empty_success { 0 } else { MAX_SUCCESS_BYTES },
     )
     .map_err(RobotCancellationRequestError::InvalidResponsePolicy)?;
     let content =
         HeaderName::new("content-type").map_err(RobotCancellationRequestError::InvalidHeaders)?;
     let raw = RawResponsePolicy::new(
-        if deleting { 0 } else { MAX_SUCCESS_BYTES },
+        if empty_success { 0 } else { MAX_SUCCESS_BYTES },
         crate::robot::MAX_ROBOT_ERROR_BODY_BYTES,
-        if deleting {
+        if empty_success {
             ResponseMediaPolicy::Forbidden
         } else {
             ResponseMediaPolicy::Required(JSON)

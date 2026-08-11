@@ -7,7 +7,7 @@ pub const MAX_ROBOT_CANCELLATION_REASON_INPUT_BYTES: usize = 4_096;
 /// Failure while validating or preparing a Robot cancellation operation.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum RobotCancellationRequestError {
-    /// A cancellation reason is empty, too long, or contains control bytes.
+    /// A cancellation reason is empty, too long, or unsafe to display.
     InvalidReason,
     /// Caller-owned path storage was too small or path encoding failed.
     Path,
@@ -81,11 +81,13 @@ pub enum RobotLocationReservationIntent {
 pub struct RobotCancellationReason<'a>(&'a str);
 
 impl<'a> RobotCancellationReason<'a> {
-    /// Validates a non-empty provider reason without control characters.
+    /// Validates bounded text without controls or directional formatting.
     pub fn new(value: &'a str) -> Result<Self, RobotCancellationRequestError> {
         if value.is_empty()
             || value.len() > MAX_ROBOT_CANCELLATION_REASON_INPUT_BYTES
-            || value.bytes().any(|byte| byte.is_ascii_control())
+            || value
+                .chars()
+                .any(crate::display::is_unsafe_display_character)
         {
             return Err(RobotCancellationRequestError::InvalidReason);
         }

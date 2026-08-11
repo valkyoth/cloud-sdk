@@ -24,15 +24,22 @@ provider-neutral execution layer therefore requires a destructive permit.
 ## Serde Response Models
 
 The `serde` feature adds `RobotServerCancellation`, `RobotIpCancellation`,
-`RobotSubnetCancellation`, and `RobotServerCancellationReason`. Request-owned
-decode methods consume a `CheckedResponseGuard`; standalone decoders require a
-checked response plus expected identity and decoder workspace.
+`RobotSubnetCancellation`, `RobotServerCancellationReason`,
+`PreparedCancellation`, and `CheckedCancellation`. `prepare_bound` retains the
+exact request type and instance through response-policy validation; only the
+matching checked type exposes its decoder. Standalone low-level decoders still
+require a checked response plus expected identity and decoder workspace.
 
 Models preserve protected IDs, addresses, dates, names, reasons, and state.
 They reject unknown fields, identity mismatch, impossible date presence,
 scheduled dates before the earliest date, invalid reservation combinations,
 wrong reason shape, noncanonical subnet host bits, and both or neither of the
 two officially documented IP/subnet date-field spellings.
+
+Mutation decoders additionally require POST acknowledgement to match active
+schedule, exact requested date when supplied, server reason, and reservation
+intent. IP/subnet DELETE returns and validates the documented inactive JSON
+model. Server DELETE remains the only empty success response.
 
 ## Semver And Publication
 

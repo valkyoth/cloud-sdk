@@ -24,9 +24,15 @@ operationally sensitive.
 
 ### Hostile Or Contradictory Responses
 
-- GET/POST require checked `200` JSON; DELETE requires checked empty `200`.
+- GET/POST and IP/subnet DELETE require checked `200` JSON; server DELETE
+  requires checked empty `200`.
 - Exact envelopes reject unknown and duplicate fields.
 - Response identity must equal the request identity.
+- `PreparedCancellation` and `CheckedCancellation` retain the exact request
+  type and instance through validation, preventing bare-guard decoder use.
+- POST acknowledgement must be active and match the requested exact date,
+  optional reason, and reservation intent. Immediate schedules require an
+  active provider date. IP/subnet DELETE acknowledgement must be inactive.
 - Date presence must equal cancellation state and cannot precede the earliest
   date; dates are calendar-valid.
 - Reserved location requires both availability and active cancellation.
@@ -42,7 +48,10 @@ operationally sensitive.
   constructing an ordinary `String` copy.
 - Request preparation pre-clears caller path/body storage and clears both on
   reachable validation or capacity failure. POST bodies are marked sensitive.
-- Checked decode methods consume the cleanup-owning response guard.
+- Checked decode methods consume the cleanup-owning, request-associated guard.
+- Request and response display text share one control, bidi, isolate, and
+  zero-width rejection policy.
+- Protected date allocation failures remain distinct from malformed dates.
 
 ## Residual Boundaries
 

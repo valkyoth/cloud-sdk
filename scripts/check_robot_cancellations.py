@@ -10,7 +10,7 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 LOCK = ROOT / "tests/fixtures/robot-cancellation/v0.79.0.json"
-LOCK_SHA256 = "5974f99c0ce067c6bd23584a8c4f1131679e25a4e5ec3083b1a3618917d0edbc"
+LOCK_SHA256 = "588621f059b6cc73b39090223b25b7099efeb4f229bae44a8ec93febbe62d4a7"
 MAX_LOCK_BYTES = 32 * 1024
 SOURCE_SHA256 = "4b396790acc449f47b2b3b893f8eff759c0c25196dc38b1e5e92a12c9704771a"
 
@@ -81,8 +81,9 @@ def validate_contract(value: dict[str, Any]) -> None:
         observed[operation_id] = (operation.get("method"), operation.get("path"))
         success = operation.get("success")
         require(isinstance(success, dict) and success.get("status") == 200, "success policy changed")
-        if operation.get("method") == "DELETE":
-            require(success.get("body") == "empty", "DELETE success body must stay empty")
+        if operation_id == "robot_delete_server_cancellation":
+            require(success == {"status": 200, "body": "empty", "envelope": None},
+                    "server DELETE success must stay empty")
         else:
             require(success == {"status": 200, "body": "json", "envelope": "cancellation"},
                     "JSON success envelope changed")
@@ -109,9 +110,13 @@ def validate_implementation() -> None:
         require(f'"{operation_id}"' in sources, f"missing operation id {operation_id}")
     for required in (
         "OperationImpact::Destructive", "RetryEligibility::Never",
-        "ResponseBodyPolicy::Forbidden", "ResponseMediaPolicy::Forbidden",
+        "Kind::Delete(Target::Server(_))", "ResponseBodyPolicy::Forbidden",
+        "ResponseMediaPolicy::Forbidden",
         '"cancellation-date"', "ResponseIdentityMismatch", "reservation_possible",
         "protected_parse::subnet", "RequestBodySensitivity::Sensitive",
+        "PreparedCancellation", "CheckedCancellation", "MutationOutcomeMismatch",
+        "validate_schedule", "validate_reservation", "validate_reason",
+        "map_date_error", "is_unsafe_display_character",
     ):
         require(required in sources, f"implementation policy missing {required}")
 

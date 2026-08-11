@@ -5,16 +5,16 @@ v0.79 is additive. Existing v0.78 Robot server code does not require changes.
 ## Preparing A Cancellation Read
 
 ```rust
-use cloud_sdk::operation::{PreparationStorage, PrepareOperation};
+use cloud_sdk::operation::PreparationStorage;
 use cloud_sdk_hetzner::robot::{RobotIpAddress, RobotIpCancellationGetRequest};
 
 let ip = RobotIpAddress::new("192.0.2.10")?;
 let request = RobotIpCancellationGetRequest::new(ip);
 let mut target = [0_u8; 96];
 let mut body = [0_u8; 1];
-let prepared = request.prepare(PreparationStorage::new(&mut target, &mut body))?;
+let prepared = request.prepare_bound(PreparationStorage::new(&mut target, &mut body))?;
 assert_eq!(
-    prepared.transport_request().target().as_str(),
+    prepared.as_untyped().transport_request().target().as_str(),
     "/ip/192.0.2.10/cancellation"
 );
 # Ok::<(), Box<dyn core::error::Error>>(())
@@ -23,11 +23,14 @@ assert_eq!(
 Use the matching server or subnet request types for those identity domains.
 POST requires `RobotCancellationSchedule`; server POST also takes an optional
 validated reason and explicit `RobotLocationReservationIntent`. DELETE uses a
-named revoke request and accepts only an empty `200 OK` response.
+named revoke request. Server DELETE accepts only an empty `200 OK`; IP and
+subnet DELETE require their documented JSON cancellation objects.
 
-With `serde`, validate the transport response through the prepared request,
-then call `request.decode_response(checked)`. The decoder binds the returned
-identity to the request and rejects contradictory state.
+With `serde`, call `prepare_bound`, validate through the resulting
+`PreparedCancellation`, and call `checked.decode_response()`. The typed checked
+response retains the exact request instance. POST decoding verifies active
+state, requested date, reason, and reservation intent; IP/subnet DELETE verifies
+that the returned cancellation is inactive.
 
 POST and DELETE are destructive and never automatically retryable. Execution
 must use the core destructive permit boundary and caller-owned reconciliation
