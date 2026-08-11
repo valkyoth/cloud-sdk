@@ -39,8 +39,8 @@ failures need deterministic multi-request coverage.
 
 ```toml
 [dev-dependencies]
-cloud-sdk = "0.70.0"
-cloud-sdk-testkit = "0.30.1"
+cloud-sdk = "0.75.0"
+cloud-sdk-testkit = "0.30.2"
 ```
 
 ## Mock Transport

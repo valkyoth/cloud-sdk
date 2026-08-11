@@ -305,6 +305,11 @@ maintenance, and empty-body fixtures. `v0.74.0` source-locks the complete
 inventory: 89 active operations and 16 deprecated Robot Storage Box operations
 that are explicitly excluded.
 
+`v0.75.0` implements the shared bounded Robot form codec used by later active
+POST operations. This is protocol support, not endpoint coverage: no active
+Robot operation row becomes implemented until its assigned endpoint-family
+milestone.
+
 Robot implementation schedule:
 
 | Group | Active | Deprecated | Planned Module | Milestone |

@@ -49,6 +49,7 @@ scripts/check_fuzz_harness.sh --smoke
 | `response_content_type` | media-type essence, parameters, quoted strings, escapes, and bounded owned response metadata |
 | `checked_response` | prepared-policy binding, source-locked operation decoding, typed success/error envelopes, invalid UTF-8, oversized integers, deep nesting, and malformed payload rejection |
 | `incremental_json` | chunk-invariant bounded decoding, early stop, duplicate keys, and independent JSON-validity admission |
+| `robot_form` | Robot form ordering, repeated fields, HTML-form byte grammar, capacity atomicity, and complete output cleanup |
 
 Named seeds under `fuzz/seeds/` are synthetic valid and invalid cases derived
 from source-locked API examples and SDK policy boundaries. Generated corpora

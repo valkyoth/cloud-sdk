@@ -298,3 +298,17 @@ deprecation marker for each excluded Storage Box heading. Lock reads stop at
 wall-clock deadline. An existing process-global real-time timer causes a
 fail-closed result and remains armed. Any source, count, ID, route, status,
 group, milestone, or order change is a review stop.
+
+## v0.75.0 Robot Form Policy
+
+The form codec is bound to the `v0.42.0` repeated-field wire fixture and the
+official `application/x-www-form-urlencoded` protocol statement. Ordered
+duplicate names are retained. ASCII spaces encode as `+`; ASCII alphanumerics
+and `*`, `-`, `.`, `_` remain literal; every other UTF-8 byte is uppercase
+percent encoded. The SDK does not normalize Unicode, line endings, field
+order, or duplicate fields.
+
+The public codec caps field count, name bytes, value bytes, and total encoded
+body bytes. It performs exact immutable preflight before mutation and owns
+complete-buffer cleanup after admission. These are SDK security policy bounds,
+not provider-advertised service maxima.

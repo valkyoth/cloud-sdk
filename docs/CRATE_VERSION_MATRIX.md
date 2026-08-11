@@ -1,10 +1,10 @@
 # Crate Version Matrix
 
-Status: `v0.70.0` is the latest published checkpoint, `v0.71.0-v0.73.0` are
-signed internal client milestones, and `v0.74.0` is the Robot source-lock
-release candidate with a green pentest and final retest. Every pre-1.0 tag
-receives its own incremental pentest; cumulative crates.io publication is
-deferred to v0.75.0.
+Status: `v0.70.0` is the latest published checkpoint, `v0.71.0-v0.74.0` are
+signed internal milestones, and `v0.75.0` is the Robot form-codec public
+checkpoint at its implementation stop. Every pre-1.0 tag receives its own
+incremental pentest; v0.75.0 publication remains blocked until its pentest and
+release gates are green.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
@@ -1108,6 +1108,24 @@ v0.71-v0.75 cumulative train, so no crate is published.
 | `cloud-sdk-reqwest` | `0.34.1` | `0.34.1` | `unchanged` | No | No transport boundary changes. |
 | `cloud-sdk-sanitization` | `0.18.0` | `0.18.0` | `unchanged` | No | No sanitization boundary changes. |
 | `cloud-sdk-testkit` | `0.30.1` | `0.30.1` | `unchanged` | No | No testkit boundary changes. |
+
+## v0.75.0 Tracking Table
+
+`v0.75.0` adds the bounded Robot form codec and publishes the cumulative
+v0.71-v0.75 train. Only crates with cumulative code or dependency changes are
+selected.
+
+| Crate | Previous published | Source | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.70.0` | `0.75.0` | `code` | Yes | Publish the cumulative provider-neutral checkpoint and standard transactional form primitive. |
+| `cloud-sdk-hetzner` | `0.41.0` | `0.42.0` | `code` | Yes | Publish DNS, Security, Storage clients and the bounded Robot form codec. |
+| `cloud-sdk-reqwest` | `0.34.1` | `0.35.0` | `code` | Yes | Publish the accumulated experimental FIPS transport removal. |
+| `cloud-sdk-sanitization` | `0.18.0` | `0.18.0` | `unchanged` | No | Existing volatile cleanup primitive is reused without package changes. |
+| `cloud-sdk-testkit` | `0.30.1` | `0.30.2` | `dependency` | Yes | Require the v0.75 core without changing testkit behavior. |
+
+Publish order is `cloud-sdk 0.75.0`, `cloud-sdk-reqwest 0.35.0`,
+`cloud-sdk-testkit 0.30.2`, then `cloud-sdk-hetzner 0.42.0`. Sanitization and
+the unpublished OVHcloud probe are excluded.
 
 ## Planned Milestone Ownership
 

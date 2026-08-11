@@ -1,7 +1,8 @@
 # Robot Wire Source Lock
 
 Status: narrow protocol fixture source-locked for `v0.42.0`; complete operation
-inventory source-locked for `v0.74.0`.
+inventory source-locked for `v0.74.0`; bounded form codec implemented in
+`v0.75.0`.
 
 Retrieved: 2026-07-30
 
@@ -60,6 +61,22 @@ Local validation binds the complete canonical operation array to SHA-256
 Structural totals therefore cannot conceal swapped IDs or cross-family
 ownership and milestone changes. The lock reader consumes at most 256 KiB
 before rejecting an oversized file.
+
+## Form Codec Contract
+
+`v0.75.0` implements the first runtime primitive in
+`cloud_sdk_hetzner::robot`. `RobotForm` accepts an ordered bounded slice of
+validated fields, preserves repeated names, performs exact checked preflight,
+and emits standard `application/x-www-form-urlencoded` bytes. Spaces become
+`+`; literal separators, plus signs, brackets, controls, and non-ASCII UTF-8
+bytes are percent encoded with uppercase hexadecimal digits.
+
+Validation and capacity failures leave output unchanged. After exact capacity
+admission, the complete destination is volatile-cleared before writing and is
+owned by `EncodedRobotForm` until that guard clears the complete buffer on
+drop. Borrowed source values and downstream transport copies remain caller and
+operational cleanup boundaries. The codec does not add Robot credentials,
+endpoint operations, response decoding, retries, or network execution.
 
 ## Verification
 

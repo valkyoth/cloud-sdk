@@ -144,6 +144,29 @@ impl<'output, E: Copy> SnapshotEncoder<'output, E> {
         Ok(())
     }
 
+    /// Appends one `application/x-www-form-urlencoded` component.
+    ///
+    /// ASCII spaces become `+`; ASCII alphanumerics and `*`, `-`, `.`, and
+    /// `_` remain literal; every other UTF-8 byte uses uppercase percent
+    /// encoding. Separators such as `&` and `=` are always encoded when they
+    /// occur inside a component.
+    pub fn form_component(&mut self, value: &str) -> Result<(), E> {
+        for byte in value.bytes() {
+            match byte {
+                b' ' => self.byte(b'+')?,
+                b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'*' | b'-' | b'.' | b'_' => {
+                    self.byte(byte)?;
+                }
+                _ => {
+                    self.byte(b'%')?;
+                    self.byte(super::hex_digit(byte >> 4))?;
+                    self.byte(super::hex_digit(byte & 0x0f))?;
+                }
+            }
+        }
+        Ok(())
+    }
+
     /// Appends JSON string contents without surrounding quotes.
     pub fn json_string_escaped(&mut self, value: &str) -> Result<(), E> {
         for byte in value.bytes() {
@@ -349,6 +372,21 @@ mod tests {
             Err(TestError::Rejected)
         );
         assert_eq!(output, [0xA5; 8]);
+    }
+
+    #[test]
+    fn form_component_uses_the_reviewed_html_form_grammar() {
+        let mut output = [0xA5_u8; 64];
+        let result = encode_snapshot(
+            "AZaz09 *-._~+&=\0\né",
+            &mut output,
+            TestError::Rejected,
+            |value, encoder| encoder.form_component(value),
+        );
+        let expected = b"AZaz09+*-._%7E%2B%26%3D%00%0A%C3%A9";
+
+        assert_eq!(result, Ok(expected.len()));
+        assert_eq!(output.get(..expected.len()), Some(expected.as_slice()));
     }
 
     #[test]

@@ -8,7 +8,7 @@
 #[cfg(feature = "std")]
 extern crate std;
 
-#[cfg(feature = "alloc")]
+#[cfg(any(feature = "alloc", test))]
 extern crate alloc;
 
 macro_rules! impl_static_error {
@@ -39,6 +39,7 @@ pub mod query;
 pub mod rate_limit;
 pub mod request;
 pub mod response;
+pub mod robot;
 pub mod security;
 #[cfg(feature = "serde")]
 pub mod serde;
@@ -72,6 +73,7 @@ mod tests {
     use crate::rate_limit::HetznerQuotaError;
     use crate::request::EndpointPathError;
     use crate::response::ApiError;
+    use crate::robot::RobotFormError;
     use crate::security::ssh_keys::SecurityRequestError;
     #[cfg(feature = "serde")]
     use crate::serde::{ApiErrorResponse, ResponseSizeError, RrsetBodyError};
@@ -101,6 +103,7 @@ mod tests {
         assert_error::<QueryError>();
         assert_error::<HetznerQuotaError>();
         assert_error::<RrsetRequestError>();
+        assert_error::<RobotFormError>();
         assert_error::<SecurityRequestError>();
         assert_error::<ServerRequestError>();
         assert_error::<SortError>();
@@ -141,6 +144,10 @@ mod tests {
         assert_display(PaginationError::PageZero, "page number must be nonzero");
         assert_display(QueryError::EmptyKey, "query key is empty");
         assert_display(RrsetRequestError::InvalidName, "RRSet name is invalid");
+        assert_display(
+            RobotFormError::BufferTooSmall,
+            "Robot form output buffer is too small",
+        );
         assert_display(
             SecurityRequestError::EmptyName,
             "security resource name is empty",

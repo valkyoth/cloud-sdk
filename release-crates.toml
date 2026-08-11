@@ -1,34 +1,34 @@
 [release]
-version = "0.74.0"
-milestone = "0.74.0"
+version = "0.75.0"
+milestone = "0.75.0"
 baseline = "0.70.0"
-review_baseline = "0.73.0"
-cumulative_milestones = ["0.71.0", "0.72.0", "0.73.0", "0.74.0"]
+review_baseline = "0.74.0"
+cumulative_milestones = ["0.71.0", "0.72.0", "0.73.0", "0.74.0", "0.75.0"]
 policy = "independent"
-stage = "internal"
+stage = "public"
 exceptional = false
 exception_reason = ""
 
 [crates."cloud-sdk"]
-previous_version = "0.73.0"
-version = "0.74.0"
-change = "metadata"
-publish = false
-reason = "Record the complete Hetzner Robot source-lock milestone."
+previous_version = "0.70.0"
+version = "0.75.0"
+change = "code"
+publish = true
+reason = "Publish the cumulative provider-neutral checkpoint and standard transactional form primitive."
 
 [crates."cloud-sdk-hetzner"]
 previous_version = "0.41.0"
-version = "0.41.0"
+version = "0.42.0"
 change = "code"
-publish = false
-reason = "Accumulate pre-Robot clients and repository-only Robot source evidence for the v0.75 public checkpoint."
+publish = true
+reason = "Publish cumulative DNS, Security, Storage clients and the bounded Robot form codec."
 
 [crates."cloud-sdk-reqwest"]
 previous_version = "0.34.1"
-version = "0.34.1"
-change = "unchanged"
-publish = false
-reason = "No transport boundary changes."
+version = "0.35.0"
+change = "code"
+publish = true
+reason = "Publish the cumulative removal of the deferred experimental FIPS transport."
 
 [crates."cloud-sdk-sanitization"]
 previous_version = "0.18.0"
@@ -39,7 +39,7 @@ reason = "No sanitization boundary changes."
 
 [crates."cloud-sdk-testkit"]
 previous_version = "0.30.1"
-version = "0.30.1"
-change = "unchanged"
-publish = false
-reason = "No testkit boundary changes."
+version = "0.30.2"
+change = "dependency"
+publish = true
+reason = "Require the v0.75 provider-neutral core without changing testkit behavior."

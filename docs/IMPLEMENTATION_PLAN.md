@@ -85,6 +85,12 @@ operation implementation. Deprecated Robot Storage Box operations are
 excluded; their supported replacement is the Console Storage Box API already
 owned by `cloud-sdk-hetzner::storage`.
 
+The `v0.75.0` Robot form codec is the shared first runtime layer. It preserves
+ordered repeated fields, applies exact standard form byte encoding, enforces
+aggregate bounds before mutation, and returns a complete-buffer cleanup guard.
+It deliberately precedes credentials, typed protocol errors, and endpoint
+families so each boundary can be reviewed independently.
+
 ## API Coverage Tracks
 
 1. Foundation: workspace, policy, endpoint group map, API matrix, source lock.

@@ -8,9 +8,9 @@ edition = "2024"
 cargo-fuzz = true
 
 [dependencies]
-cloud-sdk = { path = "../crates/cloud-sdk", version = "=0.74.0" }
-cloud-sdk-hetzner = { path = "../crates/cloud-sdk-hetzner", version = "=0.41.0", features = ["serde"] }
-cloud-sdk-reqwest = { path = "../crates/cloud-sdk-reqwest", version = "=0.34.1", default-features = false, features = ["fuzzing"] }
+cloud-sdk = { path = "../crates/cloud-sdk", version = "=0.75.0" }
+cloud-sdk-hetzner = { path = "../crates/cloud-sdk-hetzner", version = "=0.42.0", features = ["serde"] }
+cloud-sdk-reqwest = { path = "../crates/cloud-sdk-reqwest", version = "=0.35.0", default-features = false, features = ["fuzzing"] }
 libfuzzer-sys = "0.4.13"
 serde_json = "1.0.151"
 
@@ -129,6 +129,13 @@ bench = false
 [[bin]]
 name = "incremental_json"
 path = "fuzz_targets/incremental_json.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "robot_form"
+path = "fuzz_targets/robot_form.rs"
 test = false
 doc = false
 bench = false

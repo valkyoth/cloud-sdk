@@ -38,8 +38,8 @@ boundaries.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.70.0"
-cloud-sdk-hetzner = "0.41.0"
+cloud-sdk = "0.75.0"
+cloud-sdk-hetzner = "0.42.0"
 ```
 
 ## Features
@@ -94,6 +94,38 @@ The
 [`storage_client` example](https://github.com/valkyoth/cloud-sdk/blob/main/crates/cloud-sdk-hetzner/examples/storage_client.rs)
 shows numbered Console Storage pagination through the named official Storage
 client path.
+
+Robot POST bodies use a separate bounded form codec. Ordered duplicate names
+remain duplicate wire fields, and the returned guard clears the complete
+caller buffer when it leaves scope:
+
+```rust
+use cloud_sdk_hetzner::robot::{RobotForm, RobotFormField};
+
+let fields = [
+    RobotFormField::public("server[]", "192.0.2.10")?,
+    RobotFormField::public("server[]", "192.0.2.11")?,
+    RobotFormField::sensitive("password", "example-only-secret")?,
+];
+let form = RobotForm::new(&fields)?;
+let mut output = [0_u8; 256];
+{
+    let encoded = form.encode(&mut output)?;
+    assert_eq!(
+        encoded.as_bytes(),
+        b"server%5B%5D=192.0.2.10&server%5B%5D=192.0.2.11&password=example-only-secret",
+    );
+    // Send while `encoded` owns the mutable output borrow.
+}
+assert!(output.iter().all(|byte| *byte == 0));
+# Ok::<(), Box<dyn core::error::Error>>(())
+```
+
+The codec performs exact checked preflight, preserves output on validation or
+capacity failure, wipes stale tail bytes before an admitted write, and uses
+standard form rules: spaces become `+`, while literal `+`, `&`, `=`, brackets,
+controls, and non-ASCII UTF-8 bytes are percent encoded. It does not send a
+request, own source secrets, or implement Robot authentication.
 
 Use compile-time operation associations when endpoint, query, body, response,
 and safety policy must retain one nominal operation identity:
@@ -251,9 +283,10 @@ The construction, storage, and trust boundaries are described in the
 [Hetzner client guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/HETZNER_CLIENT.md).
 Upstream source monitoring and lock-refresh decisions follow the
 [API drift maintenance runbook](https://github.com/valkyoth/cloud-sdk/blob/main/docs/API_DRIFT_MAINTENANCE.md).
-The separate Robot Webservice is not yet a runtime capability. Its complete
-source lock records 89 active operations and excludes all 16 deprecated
-Storage Box operations before implementation begins in v0.78.0. See the
+The separate Robot Webservice currently exposes its bounded form codec but no
+endpoint-family operation or client. Its complete source lock records 89
+active operations and excludes all 16 deprecated Storage Box operations before
+endpoint implementation begins in v0.78.0. See the
 [Robot source-lock contract](https://github.com/valkyoth/cloud-sdk/blob/main/docs/ROBOT_WIRE_SOURCE_LOCK.md).
 Breaking v0.27 constructor and custom-endpoint changes are listed in the
 [migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.27.0.md).
@@ -302,7 +335,7 @@ Enable Serde explicitly; it is never part of the default graph:
 
 ```toml
 [dependencies]
-cloud-sdk-hetzner = { version = "0.41.0", features = ["serde"] }
+cloud-sdk-hetzner = { version = "0.42.0", features = ["serde"] }
 ```
 
 The feature admits serde_json with `default-features = false` and `alloc` only
