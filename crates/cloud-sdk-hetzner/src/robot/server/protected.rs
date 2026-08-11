@@ -5,13 +5,8 @@ use core::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
 use cloud_sdk_sanitization::SecretBoxBytes;
 
+pub(super) use super::protected_parse::ProtectedValueError;
 use super::protected_parse::{self, AddressFamily};
-
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub(super) enum ProtectedValueError {
-    Invalid,
-    Allocation,
-}
 
 fn protected(
     len: usize,

@@ -1,10 +1,15 @@
 use cloud_sdk_sanitization::{SecretBoxBytes, sanitize_bytes, sanitize_value};
 
-use super::protected::ProtectedValueError;
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(crate) enum ProtectedValueError {
+    Invalid,
+    Allocation,
+}
 
 const INVALID: ProtectedValueError = ProtectedValueError::Invalid;
 
-pub(super) enum AddressFamily {
+#[allow(dead_code)]
+pub(crate) enum AddressFamily {
     Any,
     V4,
     V6,
@@ -26,8 +31,10 @@ impl Drop for Segments {
     }
 }
 
+#[cfg(feature = "serde")]
 struct ProtectedByte(u8);
 
+#[cfg(feature = "serde")]
 impl Drop for ProtectedByte {
     fn drop(&mut self) {
         sanitize_value(&mut self.0);
@@ -42,7 +49,7 @@ impl Drop for ProtectedWord {
     }
 }
 
-pub(super) fn address(
+pub(crate) fn address(
     text: &str,
     expected: AddressFamily,
 ) -> Result<SecretBoxBytes, ProtectedValueError> {
@@ -59,7 +66,8 @@ pub(super) fn address(
     }
 }
 
-pub(super) fn subnet(text: &str, prefix: &str) -> Result<SecretBoxBytes, ProtectedValueError> {
+#[cfg(feature = "serde")]
+pub(crate) fn subnet(text: &str, prefix: &str) -> Result<SecretBoxBytes, ProtectedValueError> {
     let mut parsed_prefix = ProtectedByte(0);
     parse_decimal_byte_into(prefix.as_bytes(), &mut parsed_prefix.0)?;
     let address = address(text, AddressFamily::Any)?;
@@ -78,7 +86,7 @@ pub(super) fn subnet(text: &str, prefix: &str) -> Result<SecretBoxBytes, Protect
     .map_err(|_| ProtectedValueError::Allocation)
 }
 
-pub(super) fn date(text: &str) -> Result<SecretBoxBytes, ProtectedValueError> {
+pub(crate) fn date(text: &str) -> Result<SecretBoxBytes, ProtectedValueError> {
     let bytes = text.as_bytes();
     if bytes.len() != 10 || bytes.get(4) != Some(&b'-') || bytes.get(7) != Some(&b'-') {
         return Err(INVALID);
@@ -268,6 +276,7 @@ fn decimal_step_u16(value: &mut u16, byte: u8) -> Result<(), ProtectedValueError
     Ok(())
 }
 
+#[cfg(feature = "serde")]
 fn canonical_network(bytes: &[u8], prefix: u8) -> bool {
     let maximum = match bytes.first() {
         Some(4) => 32,

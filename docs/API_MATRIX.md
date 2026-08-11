@@ -329,12 +329,17 @@ flags, finite statuses, checked response decoding, and explicit preservation
 of `null` versus empty subnets. The two deprecated server-IP route aliases are
 excluded and cannot be constructed.
 
+`v0.79.0` implements all nine cancellation operations across server, IP, and
+subnet identities. It adds protected canonical targets and dates, explicit
+scheduling and reservation intent, destructive retry-denied metadata, exact
+JSON/empty response policy, identity binding, and strict conflict decoding.
+
 Robot implementation schedule:
 
 | Group | Active | Deprecated | Planned Module | Milestone | Status |
 | --- | ---: | ---: | --- | --- | --- |
 | server | 3 | 0 | `cloud_sdk_hetzner::robot::server` | `v0.78.0` | implemented |
-| cancellation | 9 | 0 | `cloud_sdk_hetzner::robot::cancellation` | `v0.79.0` | planned |
+| cancellation | 9 | 9 | `cloud_sdk_hetzner::robot::cancellation` | `v0.79.0` | implemented |
 | IP | 6 | 0 | `cloud_sdk_hetzner::robot::ip` | `v0.80.0` | planned |
 | subnet | 6 | 0 | `cloud_sdk_hetzner::robot::subnet` | `v0.81.0` | planned |
 | reset | 3 | 0 | `cloud_sdk_hetzner::robot::reset` | `v0.82.0` | planned |

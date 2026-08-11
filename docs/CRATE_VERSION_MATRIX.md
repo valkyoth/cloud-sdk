@@ -1,7 +1,7 @@
 # Crate Version Matrix
 
-Status: `v0.75.0` is the latest published checkpoint and `v0.78.0` is the
-Robot server operation implementation candidate. Its implementation
+Status: `v0.75.0` is the latest published checkpoint and `v0.79.0` is the
+Robot cancellation implementation candidate. Its implementation
 gate is green; pentest and final retest remain required before the full release
 gate, GitHub CI, CodeQL, and tagging. Cumulative crates.io publication is
 deferred to v0.80.0.
@@ -1172,6 +1172,22 @@ published.
 | `cloud-sdk-hetzner` | `0.42.0` | `0.42.0` | `code` | No | Accumulate Robot server requests, preparation, bounded response models, and checked decoding for v0.80.0. |
 | `cloud-sdk-reqwest` | `0.35.0` | `0.35.0` | `unchanged` | No | No transport boundary changes. |
 | `cloud-sdk-sanitization` | `0.18.0` | `0.18.0` | `code` | No | Re-export stable protected fixed-byte ownership for Robot models; defer publication to v0.80.0. |
+| `cloud-sdk-testkit` | `0.30.2` | `0.30.2` | `unchanged` | No | No testkit boundary changes. |
+
+## v0.79.0 Tracking Table
+
+`v0.79.0` adds all nine Robot server, IP, and subnet cancellation operations,
+protected canonical targets/dates, explicit scheduling and reservation intent,
+destructive retry-denied metadata, and strict conflict-aware decoding. It is
+an internal milestone in the v0.76-v0.80 cumulative train, so no crate is
+published.
+
+| Crate | Published | Source | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.75.0` | `0.79.0` | `metadata` | No | Record the Robot cancellation milestone without publishing the cumulative train. |
+| `cloud-sdk-hetzner` | `0.42.0` | `0.42.0` | `code` | No | Accumulate nine cancellation requests, protected models, and strict checked decoding for v0.80.0. |
+| `cloud-sdk-reqwest` | `0.35.0` | `0.35.0` | `unchanged` | No | No transport boundary changes. |
+| `cloud-sdk-sanitization` | `0.18.0` | `0.18.0` | `unchanged` | No | Reuse the admitted protected allocation boundary. |
 | `cloud-sdk-testkit` | `0.30.2` | `0.30.2` | `unchanged` | No | No testkit boundary changes. |
 
 ## Planned Milestone Ownership

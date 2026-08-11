@@ -3,9 +3,11 @@
 //! Robot uses HTTP Basic authentication and form bodies rather than the
 //! bearer-token JSON protocol used by Hetzner Cloud APIs. The module provides
 //! bounded forms plus an allocation-gated protected credential and lockout
-//! policy. Server list, get, and rename operations are source-locked in
-//! `v0.78.0`; later endpoint families remain separate milestones.
+//! policy. Server operations are source-locked in `v0.78.0`, and server, IP,
+//! and subnet cancellation operations are source-locked in `v0.79.0`.
 
+#[cfg(feature = "alloc")]
+mod cancellation;
 #[cfg(feature = "alloc")]
 mod credentials;
 mod form;
@@ -16,6 +18,25 @@ mod server;
 
 /// Maximum Robot error-body bytes admitted by request and response policies.
 pub const MAX_ROBOT_ERROR_BODY_BYTES: usize = 65_536;
+
+#[cfg(feature = "alloc")]
+pub use cancellation::{
+    MAX_ROBOT_CANCELLATION_REASON_INPUT_BYTES, RobotCancellationDate, RobotCancellationReason,
+    RobotCancellationRequestError, RobotCancellationSchedule, RobotCancellationValueError,
+    RobotIpAddress, RobotIpCancellationCreateRequest, RobotIpCancellationDeleteRequest,
+    RobotIpCancellationGetRequest, RobotLocationReservationIntent,
+    RobotServerCancellationCreateRequest, RobotServerCancellationDeleteRequest,
+    RobotServerCancellationGetRequest, RobotSubnetAddress, RobotSubnetCancellationCreateRequest,
+    RobotSubnetCancellationDeleteRequest, RobotSubnetCancellationGetRequest,
+};
+
+#[cfg(feature = "serde")]
+pub use cancellation::{
+    MAX_ROBOT_CANCELLATION_REASON_BYTES, MAX_ROBOT_CANCELLATION_REASONS,
+    RobotCancellationDecodeError, RobotIpCancellation, RobotServerCancellation,
+    RobotServerCancellationReason, RobotSubnetCancellation, decode_robot_ip_cancellation,
+    decode_robot_server_cancellation, decode_robot_subnet_cancellation,
+};
 
 #[cfg(feature = "alloc")]
 pub use credentials::{

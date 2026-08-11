@@ -111,9 +111,9 @@ def validate_implementation() -> None:
     require("left.as_bytes().contains(&b'.')" in protected_parse,
             "compressed IPv6 accepts an embedded IPv4 tail before the compression marker")
     require("canonical_network" in protected_parse, "subnet canonicalization is absent")
-    require("enum ProtectedValueError" in protected
-            and "Invalid," in protected
-            and "Allocation," in protected,
+    require("enum ProtectedValueError" in protected_parse
+            and "Invalid," in protected_parse
+            and "Allocation," in protected_parse,
             "protected value failure classes are collapsed")
     require("map_protected_error" in decoder
             and "ProtectedValueError::Allocation => RobotServerDecodeError::Allocation" in decoder,

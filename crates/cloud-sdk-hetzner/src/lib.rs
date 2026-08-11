@@ -75,12 +75,13 @@ mod tests {
     use crate::rate_limit::HetznerQuotaError;
     use crate::request::EndpointPathError;
     use crate::response::ApiError;
-    #[cfg(feature = "serde")]
-    use crate::robot::RobotDecodeError;
     use crate::robot::RobotFormError;
+    #[cfg(feature = "serde")]
+    use crate::robot::{RobotCancellationDecodeError, RobotDecodeError};
     #[cfg(feature = "alloc")]
     use crate::robot::{
-        RobotCredentialError, RobotCredentialRotationError, RobotCredentialStateError,
+        RobotCancellationRequestError, RobotCancellationValueError, RobotCredentialError,
+        RobotCredentialRotationError, RobotCredentialStateError,
     };
     use crate::security::ssh_keys::SecurityRequestError;
     #[cfg(feature = "serde")]
@@ -117,6 +118,8 @@ mod tests {
             assert_error::<RobotCredentialError>();
             assert_error::<RobotCredentialRotationError>();
             assert_error::<RobotCredentialStateError>();
+            assert_error::<RobotCancellationRequestError>();
+            assert_error::<RobotCancellationValueError>();
         }
         assert_error::<SecurityRequestError>();
         assert_error::<ServerRequestError>();
@@ -187,6 +190,7 @@ mod tests {
             assert_error::<ApiErrorResponse<'static>>();
             assert_error::<ResponseSizeError>();
             assert_error::<RobotDecodeError>();
+            assert_error::<RobotCancellationDecodeError>();
             assert_error::<RrsetBodyError>();
             assert_display(
                 ResponseSizeError::TooLarge,

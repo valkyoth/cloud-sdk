@@ -375,3 +375,23 @@ Request preparation binds the official Robot origin and service, Basic scope,
 form content type for rename, explicit operation metadata, and checked 200
 JSON success policy. The milestone does not add authorization encoding,
 network execution, or a Robot client.
+
+## v0.79.0 Robot Cancellation Policy
+
+The nine active server, IP, and subnet cancellation rows are bound to
+`tests/fixtures/robot-api/v0.74.0.json` and the exact per-operation contract in
+`tests/fixtures/robot-cancellation/v0.79.0.json`. All paths use canonical
+protected identities. POST admits only `now` or a calendar-valid date; server
+POST additionally models optional reason and explicit location-reservation
+intent. POST and DELETE are destructive, are never automatically retryable,
+and require the core execution permit boundary when executed.
+
+GET and POST require exact `200` JSON cancellation envelopes. DELETE requires
+exact `200` with no body or content type. Response identities must match the
+request, cancellation date presence must match cancellation state, a scheduled
+date cannot precede the earliest date, and a reserved location requires both
+reservation availability and active cancellation. Server reason shape is an
+array before cancellation and string or null afterward. For IP and subnet,
+the official tables name `cancellation_date` while examples use
+`cancellation-date`; exactly one reviewed spelling is admitted. Canonical
+subnet host bits are mandatory.

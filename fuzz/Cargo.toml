@@ -8,7 +8,7 @@ edition = "2024"
 cargo-fuzz = true
 
 [dependencies]
-cloud-sdk = { path = "../crates/cloud-sdk", version = "=0.78.0" }
+cloud-sdk = { path = "../crates/cloud-sdk", version = "=0.79.0" }
 cloud-sdk-hetzner = { path = "../crates/cloud-sdk-hetzner", version = "=0.42.0", features = ["serde"] }
 cloud-sdk-reqwest = { path = "../crates/cloud-sdk-reqwest", version = "=0.35.0", default-features = false, features = ["fuzzing"] }
 libfuzzer-sys = "0.4.13"
@@ -157,6 +157,13 @@ bench = false
 [[bin]]
 name = "robot_ip_parser"
 path = "fuzz_targets/robot_ip_parser.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "robot_cancellation_response"
+path = "fuzz_targets/robot_cancellation_response.rs"
 test = false
 doc = false
 bench = false

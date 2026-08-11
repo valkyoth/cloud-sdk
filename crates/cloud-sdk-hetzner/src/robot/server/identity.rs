@@ -29,7 +29,7 @@ pub struct RobotServerNumber(SecretBoxBytes);
 
 #[cfg(feature = "serde")]
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub(super) enum DecimalServerNumberError {
+pub(crate) enum DecimalServerNumberError {
     Invalid,
     Allocation,
 }
@@ -49,7 +49,7 @@ impl RobotServerNumber {
     }
 
     #[cfg(feature = "serde")]
-    pub(super) fn from_decimal_bytes(digits: &[u8]) -> Result<Self, DecimalServerNumberError> {
+    pub(crate) fn from_decimal_bytes(digits: &[u8]) -> Result<Self, DecimalServerNumberError> {
         if !valid_positive_u64_decimal(digits) {
             return Err(DecimalServerNumberError::Invalid);
         }
@@ -73,7 +73,7 @@ impl RobotServerNumber {
         })
     }
 
-    pub(super) fn with_decimal_bytes<R>(&self, inspect: impl FnOnce(&[u8]) -> R) -> R {
+    pub(crate) fn with_decimal_bytes<R>(&self, inspect: impl FnOnce(&[u8]) -> R) -> R {
         self.0.with_secret(inspect)
     }
 }

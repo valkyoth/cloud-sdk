@@ -2292,11 +2292,13 @@ Stop gate: `v0.78.0 implementation stop reached. Complete the pentest and full r
 
 ### v0.79.0 - Robot Cancellations
 
+Status: implementation stop reached; pentest required.
+
 Goal: complete cancellation get/create/revoke workflows.
 
-Deliverables: dates, reasons, location reservation, conflicts, destructive permits, and exact response policy.
+Deliverables: all nine named server/IP/subnet GET, POST, and DELETE requests; canonical protected identities and calendar dates; explicit immediate/date scheduling; bounded redacted server reasons; explicit location-reservation intent; destructive permit metadata with retry denial; exact JSON versus empty success policy; strict identity/date/state/reason/reservation/subnet conflict decoding; and source-locked handling of official field spelling and server-number shape inconsistencies.
 
-Verification: date/conflict/permit/source tests and `scripts/release_0_79_gate.sh`.
+Verification: all method/path/form combinations, exact response policies, date and canonical-address boundaries, identity mismatch, state/reason/reservation conflicts, source fixture/checker regressions, checked-response fuzz seeds, alloc/Serde feature graphs, and `scripts/release_0_79_gate.sh`.
 
 Stop gate: `v0.79.0 implementation stop reached. Complete the pentest and full release gate for this exact commit; defer crates.io publication to v0.80.0.`
 

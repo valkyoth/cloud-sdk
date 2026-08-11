@@ -1,6 +1,6 @@
 //! Source-locked Robot server list, get, and rename operations.
 
-mod identity;
+pub(crate) mod identity;
 mod request;
 
 #[cfg(feature = "serde")]
@@ -11,8 +11,8 @@ mod duplicates;
 mod model;
 #[cfg(feature = "serde")]
 mod protected;
-#[cfg(feature = "serde")]
-mod protected_parse;
+#[cfg(feature = "alloc")]
+pub(crate) mod protected_parse;
 
 pub use identity::{RobotServerNumber, RobotServerNumberError};
 #[cfg(feature = "serde")]
