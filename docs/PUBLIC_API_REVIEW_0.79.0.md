@@ -37,6 +37,9 @@ wrappers carry the private exact-request binding beside the provider-neutral
 plan and permit state. Their blocking, Send-async, and local-async execute
 methods return `CheckedCancellation` directly, so the authorized path never
 erases response provenance or asks callers to reconstruct it.
+Sensitive POST form bodies require `build_cancellation_plan_digest`; exact
+canonical construction intentionally returns `SensitiveBodyRequiresDigest`.
+Bodyless DELETE permits either exact canonical or strong-digest construction.
 
 Models preserve protected IDs, addresses, dates, names, reasons, and state.
 They reject unknown fields, identity mismatch, impossible date presence,
@@ -50,6 +53,11 @@ intent. Omission requires reservation to be unavailable and inactive; reserve
 requires available and active reservation; explicit non-reservation requires
 inactive reservation. IP/subnet DELETE returns and validates the documented
 inactive JSON model. Server DELETE remains the only empty success response.
+
+The cancellation permit regression matrix covers direct and shared permits,
+blocking, Send-async, and local-async dispatch, exact DELETE and digest POST
+fingerprints, mismatched acknowledgements after execution, and unpolled future
+cleanup with authority retained only for reconciliation.
 
 ## Semver And Publication
 

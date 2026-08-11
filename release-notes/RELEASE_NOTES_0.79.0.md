@@ -42,6 +42,12 @@ is selected for crates.io publication.
   unavailable omission, available reservation, and explicit non-reservation
   acknowledgements; validates inactive revocation outcomes; shares Unicode
   display-safety policy; and preserves protected-date allocation errors.
+- Added cancellation-specific direct/shared and
+  blocking/Send-async/local-async permit tests, POST digest and DELETE exact
+  fingerprint coverage, post-execution mismatch rejection, and unpolled
+  cleanup/reconciliation evidence. Documentation now states that sensitive
+  POST forms require the digest builder while bodyless DELETE permits either
+  exact or digest fingerprints.
 
 ## Versions
 

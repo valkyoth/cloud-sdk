@@ -29,12 +29,15 @@ subnet DELETE require their documented JSON cancellation objects.
 With `serde`, read-only code may call `prepare_bound`, validate through the
 resulting `PreparedCancellation`, and call `checked.decode_response()`.
 Destructive POST and DELETE execution must instead move that prepared value
-into `CancellationPlanConfirmation`, build an exact or strong-digest
-cancellation fingerprint, create `CancellationDestructivePermit` or
-`CancellationSharedDestructivePermit`, and execute its attempt. The attempt's
-blocking, Send-async, and local-async methods return `CheckedCancellation`
-directly, retaining the exact request instance through authorization and wire
-execution without caller rebinding.
+into `CancellationPlanConfirmation`, create `CancellationDestructivePermit` or
+`CancellationSharedDestructivePermit`, and execute its attempt. POST
+cancellation form bodies are sensitive, so POST must use
+`build_cancellation_plan_digest`; `build_cancellation_canonical_plan` rejects
+them with `SensitiveBodyRequiresDigest`. Bodyless DELETE may use either the
+exact canonical builder or the strong-digest builder. The attempt's blocking,
+Send-async, and local-async methods return `CheckedCancellation` directly,
+retaining the exact request instance through authorization and wire execution
+without caller rebinding.
 
 POST decoding verifies active state, requested date, reason, and complete
 reservation acknowledgement. `Omit` is accepted only when reservation is

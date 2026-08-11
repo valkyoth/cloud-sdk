@@ -179,12 +179,15 @@ assert_eq!(
 ```
 
 Cancellation create and revoke requests are destructive. Move their
-`PreparedCancellation` into `CancellationPlanConfirmation`, build a
-cancellation fingerprint, and execute a `CancellationDestructivePermit` or
-`CancellationSharedDestructivePermit` attempt. These request-bound wrappers
-return `CheckedCancellation` directly across blocking, Send-async, and
-local-async execution. Keep caller-owned reconciliation after uncertain
-delivery; v0.79 does not provide the Robot high-level client.
+`PreparedCancellation` into `CancellationPlanConfirmation` and execute a
+`CancellationDestructivePermit` or `CancellationSharedDestructivePermit`
+attempt. POST bodies are sensitive and must use
+`build_cancellation_plan_digest`; exact canonical fingerprint construction
+fails closed for POST. Bodyless revoke requests may use the exact canonical or
+strong-digest builder. These request-bound wrappers return
+`CheckedCancellation` directly across blocking, Send-async, and local-async
+execution. Keep caller-owned reconciliation after uncertain delivery; v0.79
+does not provide the Robot high-level client.
 
 Robot error responses use a separate strict decoder. Pass only an admitted
 transport response; unknown statuses, unknown codes, duplicate keys, and

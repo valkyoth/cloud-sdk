@@ -388,7 +388,9 @@ and require the core execution permit boundary when executed. The public
 cancellation plan, fingerprint, direct/shared destructive permit, and attempt
 wrappers retain the exact request association through blocking, Send-async,
 and local-async execution; permit execution returns `CheckedCancellation`
-directly rather than an unbound checked response.
+directly rather than an unbound checked response. Sensitive POST forms require
+the strong-digest fingerprint builder and reject exact retention; bodyless
+DELETE permits exact canonical or strong-digest fingerprints.
 
 GET, POST, and IP/subnet DELETE require exact `200` JSON cancellation
 envelopes. Server DELETE alone requires exact `200` with no body or content
