@@ -2256,7 +2256,7 @@ Stop gate: `v0.75.0 implementation stop reached. Run the pentest for this exact 
 
 ### v0.76.0 - Robot Credentials And Lockout Policy
 
-Status: implementation complete; pentest required.
+Status: release candidate; pentest and final retest passed.
 
 Goal: type-separate Robot Basic credentials and prevent unsafe authentication testing.
 

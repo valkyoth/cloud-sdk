@@ -1,6 +1,6 @@
 # v0.76.0 Threat Model Delta
 
-Status: implementation complete; pentest required.
+Status: release candidate; pentest and final retest passed.
 
 ## New Boundary
 
@@ -60,6 +60,12 @@ poller, or workflow repetition.
 Immutable source copies, allocator internals, intentionally copied closure
 values, process dumps, transport/TLS/kernel buffers, and provider-side storage
 remain operational boundaries.
+
+Creating an owned attempt lineage uses infallible `Arc::new`. Allocator
+exhaustion can therefore abort the process rather than return an error, and an
+abort is outside cleanup guarantees. High-availability, regulated, and
+military deployments must apply external memory limits, process supervision,
+and restart policy appropriate to their environment.
 
 Owned Robot attempts may outlive a rotation and move across task boundaries.
 An old authentication response is then classified as stale without delaying

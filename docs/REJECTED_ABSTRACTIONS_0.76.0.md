@@ -1,6 +1,6 @@
 # v0.76.0 Rejected Abstractions
 
-Status: implementation complete; pentest required.
+Status: release candidate; pentest and final retest passed.
 
 ## Reusing Bare Basic Credentials As Robot Credentials
 

@@ -1,10 +1,10 @@
 # Crate Version Matrix
 
 Status: `v0.75.0` is the latest published checkpoint and `v0.76.0` is the
-Robot credential and lockout-policy source milestone at its implementation
-stop. Every pre-1.0 tag receives its own incremental pentest; v0.76.0 remains
-blocked until its pentest, final release gate, and GitHub CI and CodeQL are
-green. Cumulative crates.io publication is deferred to v0.80.0.
+Robot credential and lockout-policy release candidate. Its incremental
+pentest and final retest passed; tagging remains blocked until the full release
+gate and GitHub CI and CodeQL are green. Cumulative crates.io publication is
+deferred to v0.80.0.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared

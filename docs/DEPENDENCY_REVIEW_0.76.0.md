@@ -1,6 +1,6 @@
 # v0.76.0 Dependency Review
 
-Status: implementation complete; pentest required.
+Status: release candidate; pentest and final retest passed.
 
 v0.76 adds no third-party package, build script, native component, network
 stack, runtime, filesystem, clock, or unsafe code.
@@ -9,6 +9,10 @@ The provider-neutral attempt lifecycle uses `core::sync::atomic::AtomicU32`.
 Its optional owned lineage uses `alloc::sync::Arc`; state construction creates
 one allocation and beginning an attempt only increments the existing strong
 count. No owner address is exposed through diagnostics or `Hash`.
+`OwnedCredentialAttemptState::new` uses infallible `Arc::new`, so allocator
+exhaustion may abort rather than return an SDK error. The threat model excludes
+process-abort cleanup guarantees; high-availability and regulated deployments
+must supply external memory limits and process supervision.
 Protected Robot strings reuse the admitted `SecretString`, `SecretBuffer`, and
 volatile-clear functions already supplied by `cloud-sdk-sanitization` under
 the existing `alloc` feature. The provider's opt-in `alloc` feature now

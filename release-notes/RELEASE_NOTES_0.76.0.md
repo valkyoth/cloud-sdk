@@ -1,11 +1,11 @@
 # cloud-sdk 0.76.0 Milestone Notes
 
-Status: implementation stop reached; pentest required.
+Status: release candidate; pentest and final retest passed.
 
 Release date: 2026-08-11
 
-Security-Review: PENDING
-Pentest: PENDING
+Security-Review: PASS
+Pentest: PASS
 Publication: DEFERRED TO v0.80.0
 
 ## Overview
@@ -34,6 +34,14 @@ selected for crates.io publication.
 - Added concurrent same-generation, stale transition, rejection, replacement,
   reconfirmation, exhaustion, cross-owner confusion, in-flight rotation, and
   stale-response tests.
+
+## Residual Operational Boundary
+
+The alloc-backed owned attempt lineage uses infallible `Arc::new` state
+construction. Allocator exhaustion may therefore abort the process instead of
+returning an SDK error. This is within the documented process-abort threat
+model boundary. High-availability and regulated deployments must enforce
+external memory limits and process supervision.
 
 ## Robot Credentials
 
@@ -69,10 +77,10 @@ selected for crates.io publication.
 - [`docs/THREAT_MODEL_DELTA_0.76.0.md`](../docs/THREAT_MODEL_DELTA_0.76.0.md)
 - [`docs/REJECTED_ABSTRACTIONS_0.76.0.md`](../docs/REJECTED_ABSTRACTIONS_0.76.0.md)
 - [`docs/MIGRATION_0.76.0.md`](../docs/MIGRATION_0.76.0.md)
+- [`security/pentest/v0.76.0.md`](../security/pentest/v0.76.0.md)
 
 ## Release Gate
 
-After the incremental pentest and final retest, run
-`scripts/release_0_76_gate.sh` on the clean final evidence commit. GitHub CI
-and CodeQL must be green on that unchanged commit before the signed internal
-tag. Do not publish crates.
+Run `scripts/release_0_76_gate.sh` on the clean final evidence commit. GitHub
+CI and CodeQL must be green on that unchanged commit before the signed
+internal tag. Do not publish crates.
