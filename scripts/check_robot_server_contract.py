@@ -83,6 +83,7 @@ def validate_api_relationship(value: dict[str, Any], api: dict[str, Any]) -> Non
 def validate_implementation() -> None:
     request = (ROOT / "crates/cloud-sdk-hetzner/src/robot/server/request.rs").read_text(encoding="ascii")
     decoder = (ROOT / "crates/cloud-sdk-hetzner/src/robot/server/decode.rs").read_text(encoding="ascii")
+    model = (ROOT / "crates/cloud-sdk-hetzner/src/robot/server/model.rs").read_text(encoding="ascii")
     require('write_str(output, &mut len, "/server"' in request, "canonical server path is absent")
     require('RobotFormField::public("server_name"' in request, "rename form is absent")
     require("server-ip" not in request, "deprecated IP alias entered request code")
@@ -90,6 +91,11 @@ def validate_implementation() -> None:
         require(status in decoder, f"missing status decoder {status}")
     require("ResponseIdentityMismatch" in decoder, "detail identity binding is absent")
     require("canonical_network" in decoder, "subnet canonicalization is absent")
+    require("reject_duplicates(&servers" in decoder, "sorted server duplicate check is absent")
+    require("reject_duplicates(&result" in decoder, "sorted topology duplicate check is absent")
+    require("pub struct ProtectedIpAddr" in model, "protected address owner is absent")
+    require("impl Drop for RobotServerSummary" in model, "summary cleanup owner is absent")
+    require("RobotServerSummary([redacted])" in model, "summary diagnostics are not redacted")
 
 
 def main() -> None:

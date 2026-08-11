@@ -27,6 +27,26 @@ With `serde`, validate the transport response through the prepared request,
 then pass the resulting guard to `request.decode_response(checked)`. The get
 and update methods verify the response server number before returning.
 
+Server numbers and decoded operational metadata intentionally do not implement
+`Copy` or `Clone`. Create a fresh protected number for each independently owned
+request. Inspect returned IDs, dates, addresses, and subnets through their
+`with_number`, `with_date`, `with_addr`, and `with_subnet` closures:
+
+```rust
+# use cloud_sdk_hetzner::robot::RobotServerSummary;
+fn inspect(summary: &RobotServerSummary) {
+    summary.number().with_number(|number| {
+        // Use the number without retaining it in owned SDK state.
+        let _ = number;
+    });
+    summary.paid_until().with_date(|year, month, day| {
+        let _ = (year, month, day);
+    });
+}
+```
+
+Any scalar copied into caller state is outside the SDK cleanup boundary.
+
 ## Model Differences
 
 - `RobotServerSummary::subnets()` returns `None` for JSON `null` and

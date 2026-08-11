@@ -28,10 +28,13 @@ checked success view. Request-owned decode methods consume a
 `CheckedResponseGuard`, clear caller storage, and bind detail identity to the
 requested server number.
 
-Provider strings use protected closure-scoped access. Addresses and subnets
-use `core::net` values; nullable subnets preserve `None` separately from an
-empty list. `linked_storagebox` is optional because the official output table
-and update example disagree about its presence.
+Provider strings use protected closure-scoped access. Operationally sensitive
+IDs, dates, addresses, subnets, status, cancellation state, and capabilities
+use non-`Copy`, drop-cleaned owners with static redacted diagnostics. Numeric,
+date, address, and subnet inspection is closure-scoped; nullable subnets
+preserve `None` separately from an empty list. `linked_storagebox` is optional
+because the official output table and update example disagree about its
+presence.
 
 ## Semver And Publication
 

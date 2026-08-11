@@ -5,14 +5,14 @@ use core::str::FromStr;
 use cloud_sdk::operation::{CheckedResponse, CheckedResponseGuard};
 use cloud_sdk::transport::{ResponseDecodeWorkspace, StatusCode};
 
+use super::duplicates::reject_duplicates;
+use super::identity::RobotServerNumber;
 use super::model::{
-    MAX_ROBOT_SERVER_ADDRESSES, MAX_ROBOT_SERVER_LIST_ITEMS, RobotServer, RobotServerCapabilities,
-    RobotServerDate, RobotServerList, RobotServerStatus, RobotServerSubnet, RobotServerSummary,
-    RobotStorageBoxNumber,
+    MAX_ROBOT_SERVER_ADDRESSES, MAX_ROBOT_SERVER_LIST_ITEMS, ProtectedIpAddr, RobotServer,
+    RobotServerCapabilities, RobotServerDate, RobotServerList, RobotServerStatus,
+    RobotServerSubnet, RobotServerSummary, RobotStorageBoxNumber,
 };
-use super::request::{
-    RobotServerGetRequest, RobotServerListRequest, RobotServerNumber, RobotServerUpdateRequest,
-};
+use super::request::{RobotServerGetRequest, RobotServerListRequest, RobotServerUpdateRequest};
 use crate::serde::SensitiveText;
 use crate::serde::strict_json::{JsonError, Map, Value, parse_with_scratch};
 
@@ -93,21 +93,16 @@ pub fn decode_robot_server_list(
             .and_then(Value::as_object_mut)
             .ok_or(RobotServerDecodeError::InvalidEnvelope)?;
         let summary = parse_summary(server, SummaryShape::List)?;
-        if servers
-            .iter()
-            .any(|existing: &RobotServerSummary| existing.number() == summary.number())
-        {
-            return Err(RobotServerDecodeError::DuplicateIdentity);
-        }
         servers.push(summary);
     }
+    reject_duplicates(&servers, |server| server.number().identity_key())?;
     Ok(RobotServerList(servers))
 }
 
 /// Decodes a checked canonical get or update result and binds its identity.
 pub fn decode_robot_server(
     checked: CheckedResponse<'_>,
-    expected: RobotServerNumber,
+    expected: &RobotServerNumber,
     workspace: &mut ResponseDecodeWorkspace,
 ) -> Result<RobotServer, RobotServerDecodeError> {
     require_ok(checked)?;
@@ -148,16 +143,16 @@ pub fn decode_robot_server(
     if summary.number() != expected {
         return Err(RobotServerDecodeError::ResponseIdentityMismatch);
     }
-    let capabilities = RobotServerCapabilities {
-        reset: boolean(object, "reset")?,
-        rescue: boolean(object, "rescue")?,
-        vnc: boolean(object, "vnc")?,
-        windows: boolean(object, "windows")?,
-        plesk: boolean(object, "plesk")?,
-        cpanel: boolean(object, "cpanel")?,
-        wake_on_lan: boolean(object, "wol")?,
-        hot_swap: boolean(object, "hot_swap")?,
-    };
+    let capabilities = RobotServerCapabilities::new([
+        boolean(object, "reset")?,
+        boolean(object, "rescue")?,
+        boolean(object, "vnc")?,
+        boolean(object, "windows")?,
+        boolean(object, "plesk")?,
+        boolean(object, "cpanel")?,
+        boolean(object, "wol")?,
+        boolean(object, "hot_swap")?,
+    ]);
     let linked_storage_box = object
         .get("linked_storagebox")
         .map(|value| {
@@ -238,25 +233,27 @@ fn parse_summary(
     }
     let number = RobotServerNumber::new(required_u64(object, "server_number")?)
         .ok_or(RobotServerDecodeError::InvalidIdentifier)?;
-    let main_ipv4 = parse_text(object, "server_ip", |value| {
+    let main_ipv4 = ProtectedIpAddr::new(IpAddr::V4(parse_text(object, "server_ip", |value| {
         Ipv4Addr::from_str(value).map_err(|_| RobotServerDecodeError::InvalidAddress)
-    })?;
-    let main_ipv6_network = parse_text(object, "server_ipv6_net", |value| {
-        Ipv6Addr::from_str(value).map_err(|_| RobotServerDecodeError::InvalidAddress)
-    })?;
+    })?));
+    let main_ipv6_network = ProtectedIpAddr::new(IpAddr::V6(parse_text(
+        object,
+        "server_ipv6_net",
+        |value| Ipv6Addr::from_str(value).map_err(|_| RobotServerDecodeError::InvalidAddress),
+    )?));
     let name = take_text(object, "server_name")?;
     let product = take_text(object, "product")?;
     let datacenter = take_text(object, "dc")?;
     let traffic = take_text(object, "traffic")?;
     let status = parse_text(object, "status", |value| match value {
-        "ready" => Ok(RobotServerStatus::Ready),
-        "in process" => Ok(RobotServerStatus::InProcess),
+        "ready" => Ok(RobotServerStatus::ready()),
+        "in process" => Ok(RobotServerStatus::in_process()),
         _ => Err(RobotServerDecodeError::UnknownStatus),
     })?;
-    let cancelled = boolean(object, "cancelled")?;
+    let cancelled = [u8::from(boolean(object, "cancelled")?)];
     let paid_until = parse_text(object, "paid_until", parse_date)?;
     let addresses = parse_addresses(object)?;
-    if !addresses.contains(&IpAddr::V4(main_ipv4)) {
+    if !addresses.iter().any(|address| address == &main_ipv4) {
         return Err(RobotServerDecodeError::InvalidAddress);
     }
     let subnets = parse_subnets(object)?;
@@ -276,7 +273,7 @@ fn parse_summary(
     })
 }
 
-fn parse_addresses(object: &mut Map) -> Result<Vec<IpAddr>, RobotServerDecodeError> {
+fn parse_addresses(object: &mut Map) -> Result<Vec<ProtectedIpAddr>, RobotServerDecodeError> {
     let values = object
         .get_mut("ip")
         .and_then(Value::take_array)
@@ -291,15 +288,15 @@ fn parse_addresses(object: &mut Map) -> Result<Vec<IpAddr>, RobotServerDecodeErr
     for value in values {
         let address = value
             .try_with_str(|text| {
-                IpAddr::from_str(text).map_err(|_| RobotServerDecodeError::InvalidAddress)
+                IpAddr::from_str(text)
+                    .map(ProtectedIpAddr::new)
+                    .map_err(|_| RobotServerDecodeError::InvalidAddress)
             })
             .map_err(|_| RobotServerDecodeError::InvalidAddress)?
             .ok_or(RobotServerDecodeError::InvalidEnvelope)??;
-        if result.contains(&address) {
-            return Err(RobotServerDecodeError::DuplicateIdentity);
-        }
         result.push(address);
     }
+    reject_duplicates(&result, ProtectedIpAddr::identity_key)?;
     Ok(result)
 }
 
@@ -335,11 +332,9 @@ fn parse_subnets(
             return Err(RobotServerDecodeError::InvalidSubnet);
         }
         let subnet = RobotServerSubnet::new(network, prefix);
-        if result.contains(&subnet) {
-            return Err(RobotServerDecodeError::DuplicateIdentity);
-        }
         result.push(subnet);
     }
+    reject_duplicates(&result, RobotServerSubnet::identity_key)?;
     Ok(Some(result))
 }
 

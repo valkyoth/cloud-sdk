@@ -1,0 +1,1 @@
+1{"server":{"server_ip":"192.0.2.10","server_ipv6_net":"2001:db8:1::","server_number":321,"server_name":"server-1","product":"AX42","dc":"FSN1-DC10","traffic":"unlimited","status":"ready","cancelled":false,"paid_until":"2027-02-29","ip":["192.0.2.10"],"subnet":null,"reset":true,"rescue":true,"vnc":false,"windows":true,"plesk":false,"cpanel":false,"wol":true,"hot_swap":true}}

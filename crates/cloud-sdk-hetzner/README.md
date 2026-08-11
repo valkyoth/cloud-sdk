@@ -122,6 +122,11 @@ Basic-auth scope, form media type, explicit operation impact, retry policy,
 and checked `200`/JSON response policy. Their decode methods consume a
 `CheckedResponseGuard`, clear response storage, reject a mismatched server
 number, and return bounded `RobotServerList` or `RobotServer` models.
+Operationally sensitive IDs, addresses, subnets, dates, states, and capability
+flags are non-`Copy`, drop-cleaned values with redacted diagnostics. Inspect
+IDs, addresses, subnets, and dates through the documented closure-scoped
+accessors; any copy retained by caller code is outside the SDK cleanup
+boundary.
 
 Robot error responses use a separate strict decoder. Pass only an admitted
 transport response; unknown statuses, unknown codes, duplicate keys, and

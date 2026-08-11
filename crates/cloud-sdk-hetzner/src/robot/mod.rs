@@ -42,7 +42,8 @@ pub use server::{
 
 #[cfg(feature = "serde")]
 pub use server::{
-    MAX_ROBOT_SERVER_ADDRESSES, MAX_ROBOT_SERVER_LIST_ITEMS, RobotServer, RobotServerCapabilities,
-    RobotServerDate, RobotServerDecodeError, RobotServerList, RobotServerStatus, RobotServerSubnet,
-    RobotServerSummary, RobotStorageBoxNumber, decode_robot_server, decode_robot_server_list,
+    MAX_ROBOT_SERVER_ADDRESSES, MAX_ROBOT_SERVER_LIST_ITEMS, ProtectedIpAddr, RobotServer,
+    RobotServerCapabilities, RobotServerDate, RobotServerDecodeError, RobotServerList,
+    RobotServerStatus, RobotServerSubnet, RobotServerSummary, RobotStorageBoxNumber,
+    decode_robot_server, decode_robot_server_list,
 };

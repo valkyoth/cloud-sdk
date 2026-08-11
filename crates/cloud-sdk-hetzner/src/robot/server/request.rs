@@ -21,6 +21,8 @@ use crate::endpoint::{
 use crate::identity::{HETZNER_PROVIDER_ID, ROBOT_SERVICE_ID, RobotService};
 use crate::robot::{RobotForm, RobotFormError, RobotFormField};
 
+use super::identity::RobotServerNumber;
+
 const JSON_MEDIA: &[MediaType<'static>] = &[MediaType::JSON];
 const OK: &[StatusCode] = &[StatusCode::OK];
 const MAX_SUCCESS_BYTES: usize = 8_388_608;
@@ -33,24 +35,6 @@ const FORM_HEADERS: [RequestHeader<'static>; 2] = [
 
 /// Maximum bytes admitted for a Robot server name.
 pub const MAX_ROBOT_SERVER_NAME_BYTES: usize = 63;
-
-/// Positive canonical Robot server number.
-#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
-pub struct RobotServerNumber(u64);
-
-impl RobotServerNumber {
-    /// Creates a positive server number.
-    #[must_use]
-    pub const fn new(value: u64) -> Option<Self> {
-        if value == 0 { None } else { Some(Self(value)) }
-    }
-
-    /// Returns the provider number.
-    #[must_use]
-    pub const fn get(self) -> u64 {
-        self.0
-    }
-}
 
 /// Failure while validating or preparing a Robot server operation.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -120,7 +104,7 @@ impl<'a> RobotServerName<'a> {
     }
     /// Returns the validated name.
     #[must_use]
-    pub const fn as_str(self) -> &'a str {
+    pub const fn as_str(&self) -> &'a str {
         self.0
     }
 }
@@ -132,14 +116,20 @@ impl core::fmt::Debug for RobotServerName<'_> {
 }
 
 /// Explicit state change admitted by the server update endpoint.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Eq, PartialEq)]
 pub enum RobotServerUpdateIntent<'a> {
     /// Replace the server name.
     Rename(RobotServerName<'a>),
 }
 
+impl core::fmt::Debug for RobotServerUpdateIntent<'_> {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        formatter.write_str("RobotServerUpdateIntent([redacted])")
+    }
+}
+
 /// Lists all Robot servers.
-#[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]
+#[derive(Clone, Copy, Default, Eq, PartialEq)]
 pub struct RobotServerListRequest;
 impl RobotServerListRequest {
     /// Creates the bodyless list request.
@@ -149,8 +139,14 @@ impl RobotServerListRequest {
     }
 }
 
+impl core::fmt::Debug for RobotServerListRequest {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        formatter.write_str("RobotServerListRequest")
+    }
+}
+
 /// Gets one server by canonical positive number.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Eq, PartialEq)]
 pub struct RobotServerGetRequest {
     number: RobotServerNumber,
 }
@@ -162,13 +158,19 @@ impl RobotServerGetRequest {
     }
     /// Returns the requested server number.
     #[must_use]
-    pub const fn number(self) -> RobotServerNumber {
-        self.number
+    pub const fn number(&self) -> &RobotServerNumber {
+        &self.number
+    }
+}
+
+impl core::fmt::Debug for RobotServerGetRequest {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        formatter.write_str("RobotServerGetRequest([redacted])")
     }
 }
 
 /// Renames one server by canonical positive number.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Eq, PartialEq)]
 pub struct RobotServerUpdateRequest<'a> {
     number: RobotServerNumber,
     intent: RobotServerUpdateIntent<'a>,
@@ -186,13 +188,19 @@ impl<'a> RobotServerUpdateRequest<'a> {
     }
     /// Returns the canonical target number.
     #[must_use]
-    pub const fn number(self) -> RobotServerNumber {
-        self.number
+    pub const fn number(&self) -> &RobotServerNumber {
+        &self.number
     }
     /// Returns the explicit update intent.
     #[must_use]
-    pub const fn intent(self) -> RobotServerUpdateIntent<'a> {
+    pub const fn intent(&self) -> RobotServerUpdateIntent<'a> {
         self.intent
+    }
+}
+
+impl core::fmt::Debug for RobotServerUpdateRequest<'_> {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        formatter.write_str("RobotServerUpdateRequest([redacted])")
     }
 }
 
@@ -211,7 +219,7 @@ impl PrepareOperation for RobotServerGetRequest {
         &self,
         storage: PreparationStorage<'s>,
     ) -> Result<PreparedRequest<'s>, Self::Error> {
-        prepare(Operation::Get(self.number), None, storage)
+        prepare(Operation::Get(&self.number), None, storage)
     }
 }
 impl PrepareOperation for RobotServerUpdateRequest<'_> {
@@ -220,19 +228,19 @@ impl PrepareOperation for RobotServerUpdateRequest<'_> {
         &self,
         storage: PreparationStorage<'s>,
     ) -> Result<PreparedRequest<'s>, Self::Error> {
-        prepare(Operation::Update(self.number), Some(self.intent), storage)
+        prepare(Operation::Update(&self.number), Some(self.intent), storage)
     }
 }
 
 #[derive(Clone, Copy)]
-enum Operation {
+enum Operation<'a> {
     List,
-    Get(RobotServerNumber),
-    Update(RobotServerNumber),
+    Get(&'a RobotServerNumber),
+    Update(&'a RobotServerNumber),
 }
 
 fn prepare<'s>(
-    operation: Operation,
+    operation: Operation<'_>,
     intent: Option<RobotServerUpdateIntent<'_>>,
     storage: PreparationStorage<'s>,
 ) -> Result<PreparedRequest<'s>, RobotServerRequestError> {
@@ -359,7 +367,7 @@ fn prepare<'s>(
         .with_replayable_body())
 }
 
-impl Operation {
+impl Operation<'_> {
     const fn method(self) -> Method {
         match self {
             Self::List | Self::Get(_) => Method::Get,
@@ -397,7 +405,10 @@ impl Operation {
     }
 }
 
-fn write_path(operation: Operation, output: &mut [u8]) -> Result<usize, RobotServerRequestError> {
+fn write_path(
+    operation: Operation<'_>,
+    output: &mut [u8],
+) -> Result<usize, RobotServerRequestError> {
     let mut len = 0;
     write_str(output, &mut len, "/server", RobotServerRequestError::Path)?;
     if let Operation::Get(number) | Operation::Update(number) = operation {
@@ -405,7 +416,7 @@ fn write_path(operation: Operation, output: &mut [u8]) -> Result<usize, RobotSer
         write_u64(
             output,
             &mut len,
-            number.get(),
+            number.value(),
             RobotServerRequestError::Path,
         )?;
     }

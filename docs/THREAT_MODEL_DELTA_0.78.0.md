@@ -40,9 +40,20 @@ sensitive.
 
 - Provider text moves from protected parser strings into `SensitiveText`
   without an ordinary unprotected owned copy.
-- Debug and error output is static or redacted.
+- IDs, addresses, subnets, dates, status, cancellation state, and capability
+  flags move into non-`Copy`, byte-backed owners that volatile-clear on drop.
+- Address, subnet, date, and identity inspection is closure-scoped; status and
+  capability checks borrow their protected owner. Callers that retain scalar
+  copies assume responsibility for clearing or containing those copies.
+- Every server model, nested classified value, and request diagnostic is
+  static and redacted.
+- Duplicate detection sorts a cleanup-owning identity scratch allocation once,
+  preserving provider order while bounding work to `O(n log n)`.
 - Request-owned decode methods consume the checked guard so response and
   decoder workspace storage is cleared before returning the owned model.
+- A direct checked-response fuzz target covers list and detail decoders,
+  source bounds, duplicate tails, mixed families, prefix edges, invalid dates,
+  and identity mismatch.
 
 ## Residual Boundaries
 

@@ -31,6 +31,13 @@ request methods consume `CheckedResponseGuard`.
 Rejected because JSON `null` and `[]` are distinct provider states.
 `Option<Vec<RobotServerSubnet>>` preserves that distinction.
 
+## Copyable Topology Models
+
+Rejected because server inventory is classified as operationally sensitive.
+IDs, addresses, subnets, dates, states, cancellation state, and capabilities
+use non-`Copy`, drop-cleaned owners instead of ordinary scalar fields. Public
+inspection is scoped and diagnostics are static.
+
 ## Permissive Future Fields And Statuses
 
 Rejected for the first Robot endpoint family. Unknown fields and enum strings

@@ -43,6 +43,7 @@ def main() -> None:
     changed_api = copy.deepcopy(api)
     next(row for row in changed_api["operations"] if row["id"] == "get_server")["path"] = "/server/{server-ip}"
     assert_exits("server operations differ", checker.validate_api_relationship, value, changed_api)
+    checker.validate_implementation()
     print("3 Robot server contract regression groups passed.")
 
 

@@ -146,3 +146,10 @@ path = "fuzz_targets/robot_error_protocol.rs"
 test = false
 doc = false
 bench = false
+
+[[bin]]
+name = "robot_server_response"
+path = "fuzz_targets/robot_server_response.rs"
+test = false
+doc = false
+bench = false

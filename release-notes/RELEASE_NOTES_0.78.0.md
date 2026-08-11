@@ -26,6 +26,12 @@ publication.
 - Added strict checked decoding with exact fields, duplicate rejection,
   response identity binding, protected text, and cleanup-owning request decode
   methods.
+- Added non-`Copy`, drop-cleaned owners for server identities, topology,
+  billing dates, states, cancellation flags, and capabilities, with static
+  redacted diagnostics and closure-scoped inspection.
+- Replaced quadratic duplicate scans with wiped sorted identity scratch and
+  added a direct checked-response Robot server fuzz target with exact-bound
+  deterministic seeds.
 - Added source-contract and regression checks for all three operations, fields,
   statuses, nullability, update input, and deprecated aliases.
 - Added provider-neutral form media-type constants without changing the

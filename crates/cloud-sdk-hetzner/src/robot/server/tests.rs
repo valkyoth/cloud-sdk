@@ -6,7 +6,7 @@ use cloud_sdk::transport::{HeaderSensitivity, ResponseBuffer, ResponseMetadata, 
 
 use super::{
     RobotServerDecodeError, RobotServerGetRequest, RobotServerListRequest, RobotServerName,
-    RobotServerNumber, RobotServerStatus, RobotServerUpdateRequest,
+    RobotServerNumber, RobotServerUpdateRequest,
 };
 
 const SUMMARY: &str = r#"{"server_ip":"192.0.2.10","server_ipv6_net":"2001:db8:1::","server_number":321,"server_name":"server-1","product":"AX42","dc":"FSN1-DC10","traffic":"unlimited","status":"ready","cancelled":false,"paid_until":"2028-02-29","ip":["192.0.2.10","2001:db8:1::1"],"subnet":null}"#;
@@ -14,20 +14,18 @@ const DETAIL: &str = r#"{"server":{"server_ip":"192.0.2.10","server_ipv6_net":"2
 
 #[test]
 fn prepares_canonical_list_get_and_rename_requests() {
-    let number =
-        RobotServerNumber::new(321).unwrap_or_else(|| unreachable!("fixture number failed"));
     let list = prepare(RobotServerListRequest::new());
     assert_eq!(list.0, Method::Get);
     assert_eq!(list.1, "/server");
     assert!(list.2.is_empty());
 
-    let get = prepare(RobotServerGetRequest::new(number));
+    let get = prepare(RobotServerGetRequest::new(server_number(321)));
     assert_eq!(get.0, Method::Get);
     assert_eq!(get.1, "/server/321");
 
     let name =
         RobotServerName::new("renamed-1").unwrap_or_else(|_| unreachable!("fixture name failed"));
-    let update = prepare(RobotServerUpdateRequest::rename(number, name));
+    let update = prepare(RobotServerUpdateRequest::rename(server_number(321), name));
     assert_eq!(update.0, Method::Post);
     assert_eq!(update.1, "/server/321");
     assert_eq!(update.2, b"server_name=renamed-1");
@@ -87,15 +85,13 @@ fn decodes_list_nullability_and_detailed_capabilities() {
     let Some(summary) = list.as_slice().first() else {
         unreachable!("decoded list lost its server")
     };
-    assert_eq!(summary.number().get(), 321);
-    assert_eq!(summary.status(), RobotServerStatus::Ready);
+    assert_eq!(summary.number().with_number(|number| number), 321);
+    assert!(summary.status().is_ready());
     assert_eq!(summary.subnets(), None);
     assert_eq!(
-        (
-            summary.paid_until().year(),
-            summary.paid_until().month(),
-            summary.paid_until().day()
-        ),
+        summary
+            .paid_until()
+            .with_date(|year, month, day| (year, month, day)),
         (2028, 2, 29)
     );
     assert_eq!(summary.try_with_name(|name| name == "server-1"), Ok(true));
@@ -106,11 +102,13 @@ fn decodes_list_nullability_and_detailed_capabilities() {
     let Ok(server) = server else {
         unreachable!("valid detail did not decode")
     };
-    assert_eq!(server.summary().status(), RobotServerStatus::InProcess);
+    assert!(server.summary().status().is_in_process());
     assert_eq!(server.summary().subnets().map(<[_]>::len), Some(1));
-    assert!(server.capabilities().wake_on_lan);
+    assert!(server.capabilities().wake_on_lan());
     assert_eq!(
-        server.linked_storage_box().map(|value| value.get()),
+        server
+            .linked_storage_box()
+            .map(|value| value.with_number(|number| number)),
         Some(42)
     );
 }
@@ -131,16 +129,20 @@ fn rejects_identity_conflicts_unknown_state_and_noncanonical_subnets() {
     ));
 
     let unknown = DETAIL.replace("in process", "future-state");
-    let expected =
-        RobotServerNumber::new(321).unwrap_or_else(|| unreachable!("fixture number failed"));
     assert!(matches!(
-        decode_detail(RobotServerGetRequest::new(expected), unknown.as_bytes()),
+        decode_detail(
+            RobotServerGetRequest::new(server_number(321)),
+            unknown.as_bytes()
+        ),
         Err(RobotServerDecodeError::UnknownStatus)
     ));
 
     let host_bits = DETAIL.replace("2001:db8:2::", "2001:db8:2::1");
     assert!(matches!(
-        decode_detail(RobotServerGetRequest::new(expected), host_bits.as_bytes()),
+        decode_detail(
+            RobotServerGetRequest::new(server_number(321)),
+            host_bits.as_bytes()
+        ),
         Err(RobotServerDecodeError::InvalidSubnet)
     ));
 }
@@ -148,22 +150,75 @@ fn rejects_identity_conflicts_unknown_state_and_noncanonical_subnets() {
 #[test]
 fn rejects_invalid_dates_extra_fields_and_missing_main_address() {
     let invalid_date = DETAIL.replace("2028-02-29", "2027-02-29");
-    let number =
-        RobotServerNumber::new(321).unwrap_or_else(|| unreachable!("fixture number failed"));
     assert!(matches!(
-        decode_detail(RobotServerGetRequest::new(number), invalid_date.as_bytes()),
+        decode_detail(
+            RobotServerGetRequest::new(server_number(321)),
+            invalid_date.as_bytes()
+        ),
         Err(RobotServerDecodeError::InvalidDate)
     ));
     let extra = DETAIL.replacen("\"server_ip\"", "\"future\":true,\"server_ip\"", 1);
     assert!(matches!(
-        decode_detail(RobotServerGetRequest::new(number), extra.as_bytes()),
+        decode_detail(
+            RobotServerGetRequest::new(server_number(321)),
+            extra.as_bytes()
+        ),
         Err(RobotServerDecodeError::InvalidEnvelope)
     ));
     let missing_main = DETAIL.replace("[\"192.0.2.10\"]", "[\"192.0.2.11\"]");
     assert!(matches!(
-        decode_detail(RobotServerGetRequest::new(number), missing_main.as_bytes()),
+        decode_detail(
+            RobotServerGetRequest::new(server_number(321)),
+            missing_main.as_bytes()
+        ),
         Err(RobotServerDecodeError::InvalidAddress)
     ));
+}
+
+#[test]
+fn every_server_diagnostic_is_static_and_redacted() {
+    let list_body = alloc::format!("[{{\"server\":{SUMMARY}}}]");
+    let list = decode_list(RobotServerListRequest::new(), list_body.as_bytes())
+        .unwrap_or_else(|_| unreachable!("valid list did not decode"));
+    let server = decode_detail(
+        RobotServerGetRequest::new(server_number(321)),
+        DETAIL.as_bytes(),
+    )
+    .unwrap_or_else(|_| unreachable!("valid detail did not decode"));
+    let name =
+        RobotServerName::new("renamed-1").unwrap_or_else(|_| unreachable!("fixture name failed"));
+    let diagnostics = alloc::format!(
+        "{list:?} {server:?} {:?} {:?} {:?} {:?} {:?} {:?} {:?} {:?} {:?} {:?}",
+        server.summary(),
+        server.summary().number(),
+        server.summary().status(),
+        server.summary().paid_until(),
+        server.summary().addresses().first(),
+        server.summary().subnets().and_then(|values| values.first()),
+        server.capabilities(),
+        server.linked_storage_box(),
+        RobotServerGetRequest::new(server_number(321)),
+        RobotServerUpdateRequest::rename(server_number(321), name),
+    );
+    for secret in [
+        "321",
+        "42",
+        "192.0.2.10",
+        "2001:db8",
+        "2028",
+        "ready",
+        "process",
+        "renamed-1",
+    ] {
+        assert!(
+            !diagnostics.contains(secret),
+            "diagnostics exposed {secret}"
+        );
+    }
+}
+
+fn server_number(value: u64) -> RobotServerNumber {
+    RobotServerNumber::new(value).unwrap_or_else(|| unreachable!("fixture number failed"))
 }
 
 fn prepare<O>(

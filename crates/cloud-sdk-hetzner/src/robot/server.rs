@@ -1,21 +1,25 @@
 //! Source-locked Robot server list, get, and rename operations.
 
+mod identity;
 mod request;
 
 #[cfg(feature = "serde")]
 mod decode;
 #[cfg(feature = "serde")]
+mod duplicates;
+#[cfg(feature = "serde")]
 mod model;
 
+pub use identity::RobotServerNumber;
 #[cfg(feature = "serde")]
 pub use model::{
-    MAX_ROBOT_SERVER_ADDRESSES, MAX_ROBOT_SERVER_LIST_ITEMS, RobotServer, RobotServerCapabilities,
-    RobotServerDate, RobotServerList, RobotServerStatus, RobotServerSubnet, RobotServerSummary,
-    RobotStorageBoxNumber,
+    MAX_ROBOT_SERVER_ADDRESSES, MAX_ROBOT_SERVER_LIST_ITEMS, ProtectedIpAddr, RobotServer,
+    RobotServerCapabilities, RobotServerDate, RobotServerList, RobotServerStatus,
+    RobotServerSubnet, RobotServerSummary, RobotStorageBoxNumber,
 };
 pub use request::{
     MAX_ROBOT_SERVER_NAME_BYTES, RobotServerGetRequest, RobotServerListRequest, RobotServerName,
-    RobotServerNumber, RobotServerRequestError, RobotServerUpdateIntent, RobotServerUpdateRequest,
+    RobotServerRequestError, RobotServerUpdateIntent, RobotServerUpdateRequest,
 };
 
 #[cfg(feature = "serde")]
