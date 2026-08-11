@@ -3,7 +3,7 @@
 Status: narrow protocol fixture source-locked for `v0.42.0`; complete operation
 inventory source-locked for `v0.74.0`; bounded form codec implemented in
 `v0.75.0`; protected credentials and lockout-aware generations implemented in
-`v0.76.0`.
+`v0.76.0`; bounded error and quota protocol implemented in `v0.77.0`.
 
 Retrieved: 2026-07-30
 
@@ -98,6 +98,27 @@ material requires an explicit caller reconfirmation after rejection.
 Reconfirmation while open, stale transitions, and generation wrap fail closed.
 The milestone sends no request and does not intentionally test invalid live
 credentials.
+
+## Error And Quota Contract
+
+`v0.77.0` adds the first Robot response decoder. It consumes only an admitted
+`TransportResponse`, limits an error body to 64 KiB, requires JSON for bodyful
+errors, rejects duplicate or extra fields, and moves provider text into
+cleanup-owning protected strings. Diagnostics expose finite categories and
+counts but never provider message or input-name bytes.
+
+The decoder admits only the source-locked protocol available at this
+milestone: bodyless 401 authentication rejection, `INVALID_INPUT` at 400,
+`RATE_LIMIT_EXCEEDED` at 403, `SERVER_NOT_FOUND` at 404, and bodyless 503
+maintenance. The JSON `status` must equal the HTTP status. Unknown statuses,
+unknown codes, malformed nullability, zero quota values, and future envelope
+fields fail closed until the source lock and decoder are reviewed together.
+
+Authentication rejection has retry disposition `Never`. Quota exposes the
+provider maximum and interval and can produce one exhausted `robot-global`
+provider-neutral quota bucket. Maintenance and explicitly constructed
+transport failures require caller policy. Provider bytes cannot construct the
+transport variant, so an unknown code can never become a transient fallback.
 
 ## Verification
 

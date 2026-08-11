@@ -7,7 +7,7 @@ use core::borrow::Borrow;
 use cloud_sdk_sanitization::{SecretString, sanitize_string};
 
 mod parser;
-pub(super) use parser::JsonError;
+pub(crate) use parser::JsonError;
 
 pub(super) const MAX_JSON_DEPTH: usize = 64;
 pub(super) const MAX_JSON_CONTAINER_ENTRIES: usize = 4096;
@@ -16,7 +16,7 @@ pub(super) const MAX_JSON_NODES: usize = 65_536;
 pub(super) const MAX_JSON_STRING_BYTES: usize = 1_048_576;
 pub(super) const MAX_JSON_NUMBER_BYTES: usize = 128;
 
-pub(super) struct Map(Vec<(ProtectedKey, Value)>);
+pub(crate) struct Map(Vec<(ProtectedKey, Value)>);
 
 impl Map {
     pub(super) const fn new() -> Self {
@@ -27,7 +27,7 @@ impl Map {
         self.0.try_reserve(additional).map_err(|_| ())
     }
 
-    pub(super) fn len(&self) -> usize {
+    pub(crate) fn len(&self) -> usize {
         self.0.len()
     }
 
@@ -51,7 +51,7 @@ impl Map {
         Ok(self)
     }
 
-    pub(super) fn get(&self, key: &str) -> Option<&Value> {
+    pub(crate) fn get(&self, key: &str) -> Option<&Value> {
         self.0
             .binary_search_by(|(candidate, _)| candidate.as_str().cmp(key))
             .ok()
@@ -59,7 +59,7 @@ impl Map {
             .map(|(_, value)| value)
     }
 
-    pub(super) fn get_mut(&mut self, key: &str) -> Option<&mut Value> {
+    pub(crate) fn get_mut(&mut self, key: &str) -> Option<&mut Value> {
         let index = self
             .0
             .binary_search_by(|(candidate, _)| candidate.as_str().cmp(key))
@@ -107,13 +107,13 @@ impl Drop for ProtectedKey {
     }
 }
 
-pub(super) enum Number {
+pub(crate) enum Number {
     Unsigned(LexicalNumber<u64>),
     Signed(LexicalNumber<i64>),
     Float(LexicalNumber<f64>),
 }
 
-pub(super) struct LexicalNumber<T> {
+pub(crate) struct LexicalNumber<T> {
     value: T,
     lexical: String,
 }
@@ -147,7 +147,7 @@ impl<T> Drop for LexicalNumber<T> {
 }
 
 /// Private parser tree whose string values clear their full allocation on drop.
-pub(super) enum Value {
+pub(crate) enum Value {
     Null,
     Bool(bool),
     Number(Number),
@@ -157,11 +157,11 @@ pub(super) enum Value {
 }
 
 impl Value {
-    pub(super) const fn is_null(&self) -> bool {
+    pub(crate) const fn is_null(&self) -> bool {
         matches!(self, Self::Null)
     }
 
-    pub(super) fn as_u64(&self) -> Option<u64> {
+    pub(crate) fn as_u64(&self) -> Option<u64> {
         match self {
             Self::Number(Number::Unsigned(value)) => Some(value.value()),
             Self::Number(Number::Signed(value)) => u64::try_from(value.value()).ok(),
@@ -226,14 +226,14 @@ impl Value {
         }
     }
 
-    pub(super) fn as_object_mut(&mut self) -> Option<&mut Map> {
+    pub(crate) fn as_object_mut(&mut self) -> Option<&mut Map> {
         match self {
             Self::Object(values) => Some(values),
             _ => None,
         }
     }
 
-    pub(super) fn try_with_str<R>(
+    pub(crate) fn try_with_str<R>(
         &self,
         inspect: impl FnOnce(&str) -> R,
     ) -> Result<Option<R>, core::str::Utf8Error> {
@@ -243,7 +243,7 @@ impl Value {
         }
     }
 
-    pub(super) fn take_string(&mut self) -> Option<SecretString> {
+    pub(crate) fn take_string(&mut self) -> Option<SecretString> {
         let value = core::mem::replace(self, Self::Null);
         match value {
             Self::String(value) => Some(value),
@@ -266,6 +266,17 @@ impl Value {
             }
         }
     }
+
+    pub(crate) fn take_array(&mut self) -> Option<Vec<Self>> {
+        let value = core::mem::replace(self, Self::Null);
+        match value {
+            Self::Array(value) => Some(value),
+            other => {
+                *self = other;
+                None
+            }
+        }
+    }
 }
 
 #[cfg(test)]
@@ -273,7 +284,7 @@ pub(super) fn parse(bytes: &[u8]) -> Result<Value, parser::JsonError> {
     parser::parse(bytes)
 }
 
-pub(super) fn parse_with_scratch(
+pub(crate) fn parse_with_scratch(
     bytes: &[u8],
     scratch: &mut [u8],
 ) -> Result<Value, parser::JsonError> {

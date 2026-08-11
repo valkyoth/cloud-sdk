@@ -16,7 +16,7 @@ mod models;
 mod pagination;
 mod response;
 mod rrsets;
-mod strict_json;
+pub(crate) mod strict_json;
 
 pub(crate) use checked::decode_client_response;
 pub use checked::{

@@ -75,6 +75,8 @@ mod tests {
     use crate::rate_limit::HetznerQuotaError;
     use crate::request::EndpointPathError;
     use crate::response::ApiError;
+    #[cfg(feature = "serde")]
+    use crate::robot::RobotDecodeError;
     use crate::robot::RobotFormError;
     #[cfg(feature = "alloc")]
     use crate::robot::{
@@ -184,10 +186,15 @@ mod tests {
         {
             assert_error::<ApiErrorResponse<'static>>();
             assert_error::<ResponseSizeError>();
+            assert_error::<RobotDecodeError>();
             assert_error::<RrsetBodyError>();
             assert_display(
                 ResponseSizeError::TooLarge,
                 "provider response exceeds the parser size limit",
+            );
+            assert_display(
+                RobotDecodeError::UnknownCode,
+                "Robot error code is not source-locked",
             );
             assert_display(
                 RrsetBodyError::SizeOverflow,

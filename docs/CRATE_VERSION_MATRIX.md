@@ -1,9 +1,9 @@
 # Crate Version Matrix
 
-Status: `v0.75.0` is the latest published checkpoint and `v0.76.0` is the
-Robot credential and lockout-policy release candidate. Its incremental
-pentest and final retest passed; tagging remains blocked until the full release
-gate and GitHub CI and CodeQL are green. Cumulative crates.io publication is
+Status: `v0.75.0` is the latest published checkpoint and `v0.77.0` is the
+Robot error and quota protocol implementation candidate. Its implementation
+gate is green; pentest and final retest remain required before the full release
+gate, GitHub CI, CodeQL, and tagging. Cumulative crates.io publication is
 deferred to v0.80.0.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
@@ -1139,6 +1139,20 @@ published at this internal milestone.
 | `cloud-sdk-hetzner` | `0.42.0` | `0.42.0` | `code` | No | Accumulate Robot service identity, exact endpoint scope, protected credentials, rotation, and lockout policy for v0.80.0. |
 | `cloud-sdk-reqwest` | `0.35.0` | `0.35.0` | `unchanged` | No | No transport boundary changes. |
 | `cloud-sdk-sanitization` | `0.18.0` | `0.18.0` | `unchanged` | No | Reuse the existing admitted protected-string and cleanup boundary. |
+| `cloud-sdk-testkit` | `0.30.2` | `0.30.2` | `unchanged` | No | No testkit boundary changes. |
+
+## v0.77.0 Tracking Table
+
+`v0.77.0` adds strict Robot error and quota protocol decoding. It remains an
+internal milestone in the v0.76-v0.80 cumulative train, so no crate is
+published.
+
+| Crate | Published | Source | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.75.0` | `0.77.0` | `metadata` | No | Record the Robot protocol milestone without changing the neutral API. |
+| `cloud-sdk-hetzner` | `0.42.0` | `0.42.0` | `code` | No | Accumulate bounded Robot error, quota, maintenance, authentication, and transport classifications for v0.80.0. |
+| `cloud-sdk-reqwest` | `0.35.0` | `0.35.0` | `unchanged` | No | No transport boundary changes. |
+| `cloud-sdk-sanitization` | `0.18.0` | `0.18.0` | `unchanged` | No | Reuse the existing protected-string cleanup boundary. |
 | `cloud-sdk-testkit` | `0.30.2` | `0.30.2` | `unchanged` | No | No testkit boundary changes. |
 
 ## Planned Milestone Ownership

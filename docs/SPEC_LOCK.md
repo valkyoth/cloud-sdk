@@ -339,3 +339,19 @@ source IP for 600 seconds is enforced structurally: a 401-classified attempt
 closes its complete generation, stale attempts cannot affect replacement
 material, and unchanged credentials require explicit post-rejection caller
 reconfirmation. v0.76 performs no live authentication.
+
+## v0.77.0 Robot Error And Quota Policy
+
+Robot error decoding is bound to the narrow wire fixture in
+`tests/fixtures/robot-wire/v0.42.0.json` and the complete operation lock in
+`tests/fixtures/robot-api/v0.74.0.json`. The admitted protocol is bodyless 401
+authentication rejection, `INVALID_INPUT` at 400, `RATE_LIMIT_EXCEEDED` at
+403, `SERVER_NOT_FOUND` at 404, and bodyless 503 maintenance.
+
+Bodyful errors require JSON, remain under 64 KiB, reject duplicate and unknown
+fields, validate HTTP and envelope status equality, and protect provider text.
+Unknown status and code values are decoder errors, not transient failures.
+Authentication rejection is non-retryable; maintenance, quota delay, and an
+explicitly supplied delivery-classified transport failure remain caller-policy
+decisions. This milestone adds no Robot request execution or endpoint-family
+models.

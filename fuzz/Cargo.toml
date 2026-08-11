@@ -8,7 +8,7 @@ edition = "2024"
 cargo-fuzz = true
 
 [dependencies]
-cloud-sdk = { path = "../crates/cloud-sdk", version = "=0.76.0" }
+cloud-sdk = { path = "../crates/cloud-sdk", version = "=0.77.0" }
 cloud-sdk-hetzner = { path = "../crates/cloud-sdk-hetzner", version = "=0.42.0", features = ["serde"] }
 cloud-sdk-reqwest = { path = "../crates/cloud-sdk-reqwest", version = "=0.35.0", default-features = false, features = ["fuzzing"] }
 libfuzzer-sys = "0.4.13"
@@ -136,6 +136,13 @@ bench = false
 [[bin]]
 name = "robot_form"
 path = "fuzz_targets/robot_form.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "robot_error_protocol"
+path = "fuzz_targets/robot_error_protocol.rs"
 test = false
 doc = false
 bench = false

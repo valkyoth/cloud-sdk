@@ -2268,6 +2268,8 @@ Stop gate: `v0.76.0 implementation stop reached. Complete the pentest and full r
 
 ### v0.77.0 - Robot Error And Quota Protocol
 
+Status: implementation complete; pentest required.
+
 Goal: type Robot errors, maintenance, invalid input, and quota behavior.
 
 Deliverables: bounded envelopes, payload-free diagnostics, provider quota decoder, and structurally distinct authentication-rejection, quota, maintenance, invalid-input, and transient transport classifications. Authentication rejection is never automatically retryable and cannot be converted into a generic transient category by unknown-code fallback; fixtures bind this rule to the source-locked Robot protocol.

@@ -41,6 +41,11 @@ security controls.
   material or an explicit caller-created `CredentialReconfirmation`. Never
   construct reconfirmation from automatic retry, pager, polling, or workflow
   policy.
+- Decode Robot errors only with `decode_robot_failure` over the admitted
+  `TransportResponse`. Do not convert `RobotDecodeError::UnknownCode` or
+  `UnsupportedStatus` into a transient retry. A decoded 401 has
+  `RobotRetryDisposition::Never`; rotate or explicitly reconfirm credentials
+  under the lockout lifecycle before another attempt.
 
 ## OVHcloud Probe Credentials
 

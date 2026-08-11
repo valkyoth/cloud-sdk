@@ -97,6 +97,31 @@ The
 shows numbered Console Storage pagination through the named official Storage
 client path.
 
+Robot error responses use a separate strict decoder. Pass only an admitted
+transport response; unknown statuses, unknown codes, duplicate keys, and
+invalid content types fail closed:
+
+```rust,no_run
+#[cfg(feature = "serde")]
+use cloud_sdk::transport::{ResponseDecodeWorkspace, TransportResponse};
+#[cfg(feature = "serde")]
+use cloud_sdk_hetzner::robot::{RobotDecodeError, RobotFailure, decode_robot_failure};
+
+#[cfg(feature = "serde")]
+fn classify_robot_error(
+    response: TransportResponse<'_, '_>,
+    workspace: &mut ResponseDecodeWorkspace,
+) -> Result<RobotFailure, RobotDecodeError> {
+    let failure = decode_robot_failure(response, workspace)?;
+    assert!(!failure.allows_automatic_retry());
+    Ok(failure)
+}
+```
+
+Authentication rejection is structurally distinct and always has
+`RobotRetryDisposition::Never`. Quota, maintenance, and explicitly supplied
+transport failures still require caller-owned retry policy.
+
 Robot POST bodies use a separate bounded form codec. Ordered duplicate names
 remain duplicate wire fields, and the returned guard clears the complete
 caller buffer when it leaves scope:
@@ -323,15 +348,15 @@ The construction, storage, and trust boundaries are described in the
 Upstream source monitoring and lock-refresh decisions follow the
 [API drift maintenance runbook](https://github.com/valkyoth/cloud-sdk/blob/main/docs/API_DRIFT_MAINTENANCE.md).
 The separate Robot Webservice exposes its bounded form codec, exact official
-endpoint identity, Robot service marker, protected credentials, and
-lockout-aware owned attempt generation that permits in-flight rotation without
-holding a credential borrow, but no endpoint-family operation or client.
+endpoint identity, Robot service marker, protected credentials, lockout-aware
+owned attempt generation, and strict typed error, quota, authentication, and
+maintenance decoding, but no endpoint-family operation or client.
 Its complete source lock records 89 active operations and excludes all 16
 deprecated Storage Box operations before endpoint implementation begins in
 v0.78.0. See the
 [Robot source-lock contract](https://github.com/valkyoth/cloud-sdk/blob/main/docs/ROBOT_WIRE_SOURCE_LOCK.md).
-The v0.76 additions and source migration are described in the
-[v0.76 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.76.0.md).
+The v0.77 additions and source migration are described in the
+[v0.77 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.77.0.md).
 Breaking v0.27 constructor and custom-endpoint changes are listed in the
 [migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.27.0.md).
 Shared transport and credential lifecycle changes are listed in the

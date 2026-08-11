@@ -317,6 +317,12 @@ own a non-hashable opaque lineage so they can cross task boundaries without
 borrowing credentials; rotation makes older responses stale. This also is
 protocol support rather than endpoint coverage and performs no live request.
 
+`v0.77.0` implements strict bounded decoding for authentication rejection,
+invalid input, quota exhaustion, maintenance, and the source-locked general
+provider error. Unknown status or code values fail closed and cannot become
+transient transport failures. This remains protocol support rather than an
+implemented Robot operation row.
+
 Robot implementation schedule:
 
 | Group | Active | Deprecated | Planned Module | Milestone |

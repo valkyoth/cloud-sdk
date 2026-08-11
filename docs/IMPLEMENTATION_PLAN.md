@@ -94,6 +94,12 @@ rotation, and explicit post-rejection reconfirmation. Both deliberately
 precede typed protocol errors and endpoint families so each boundary can be
 reviewed independently.
 
+`v0.77.0` adds the strict Robot error and quota protocol before operation
+families. It consumes admitted responses, protects provider text, rejects
+unknown status/code fallbacks, maps quota to the neutral quota model, and
+makes authentication rejection structurally non-retryable. Endpoint-family
+request preparation begins in `v0.78.0`.
+
 ## API Coverage Tracks
 
 1. Foundation: workspace, policy, endpoint group map, API matrix, source lock.
