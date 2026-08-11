@@ -40,10 +40,18 @@ sensitive.
 
 - Provider text moves from protected parser strings into `SensitiveText`
   without an ordinary unprotected owned copy.
+- Strict JSON numbers retain only their capacity-wiped lexical allocation and
+  Booleans use stable `SecretBoxBytes`; the parser tree no longer retains an
+  ordinary `u64`, `i64`, `f64`, or `bool` payload beside protected text.
 - IDs, addresses, subnets, dates, status, cancellation state, and capability
   flags move into non-`Copy`, stable-allocation-backed `SecretBoxBytes` owners
   that volatile-clear their complete allocations on drop. Moving an SDK model
   transfers only allocation metadata and does not relocate classified bytes.
+- Robot identity and linked Storage Box decimals copy directly from protected
+  lexical storage into stable owners. Address, subnet, and date parsers use
+  bounded byte/word scratch that volatile-clears on every success and error;
+  request paths copy protected decimal digits without reconstructing an SDK
+  scalar.
 - Address, subnet, date, and identity inspection is closure-scoped; status and
   capability checks borrow their protected owner. Callers that retain scalar
   copies assume responsibility for clearing or containing those copies.

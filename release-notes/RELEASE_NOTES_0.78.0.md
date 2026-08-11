@@ -31,6 +31,10 @@ publication.
   topology, billing dates, states, cancellation flags, and capabilities, with
   static redacted diagnostics and closure-scoped inspection. Owner moves no
   longer relocate classified bytes.
+- Removed ordinary retained scalar payloads from strict JSON numbers and
+  Booleans. Robot identities now remain canonical protected decimal bytes,
+  request paths copy those bytes directly, and address/subnet/date decoding
+  uses bounded clear-on-drop scratch before stable protected ownership.
 - Replaced quadratic duplicate scans with sorted public index scratch and
   in-place protected comparisons, eliminating copied identity arrays, and
   added a direct checked-response Robot server fuzz target with exact-bound

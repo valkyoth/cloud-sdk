@@ -131,9 +131,12 @@ number, and return bounded `RobotServerList` or `RobotServer` models.
 Operationally sensitive IDs, addresses, subnets, dates, states, cancellation,
 and capability flags are non-`Copy`, stable-allocation-backed values with
 redacted diagnostics. Moving an SDK model transfers allocation metadata rather
-than copying classified bytes to another inline location. Inspect IDs,
-addresses, subnets, and dates through the documented closure-scoped accessors;
-any scalar copy retained by caller code is outside the SDK cleanup boundary.
+than copying classified bytes to another inline location. The strict decoder
+retains numbers and Booleans in protected lexical/fixed storage, parses Robot
+topology and dates through bounded clear-on-drop scratch, and writes request
+identity paths directly from protected decimal bytes. Inspect IDs, addresses,
+subnets, and dates through the documented closure-scoped accessors; any scalar
+copy retained by caller code is outside the SDK cleanup boundary.
 
 Robot error responses use a separate strict decoder. Pass only an admitted
 transport response; unknown statuses, unknown codes, duplicate keys, and

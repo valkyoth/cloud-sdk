@@ -7,7 +7,9 @@ use core::borrow::Borrow;
 use cloud_sdk_sanitization::{SecretString, sanitize_string};
 
 mod parser;
+mod protected;
 pub(crate) use parser::JsonError;
+use protected::ProtectedBoolean;
 
 #[cfg(test)]
 mod allocation_failure;
@@ -113,39 +115,33 @@ impl Drop for ProtectedKey {
 }
 
 pub(crate) enum Number {
-    Unsigned(LexicalNumber<u64>),
-    Signed(LexicalNumber<i64>),
-    Float(LexicalNumber<f64>),
+    Unsigned(LexicalNumber),
+    Signed(LexicalNumber),
+    Float(LexicalNumber),
 }
 
-pub(crate) struct LexicalNumber<T> {
-    value: T,
+pub(crate) struct LexicalNumber {
     lexical: String,
 }
 
-impl<T> LexicalNumber<T> {
-    pub(super) fn try_new(value: T, lexical: &str) -> Result<Self, ()> {
+impl LexicalNumber {
+    pub(super) fn try_new(lexical: &str) -> Result<Self, ()> {
         let mut owned = String::new();
         owned.try_reserve_exact(lexical.len()).map_err(|_| ())?;
         owned.push_str(lexical);
-        Ok(Self {
-            value,
-            lexical: owned,
-        })
+        Ok(Self { lexical: owned })
     }
 
     pub(super) fn into_lexical(mut self) -> String {
         core::mem::take(&mut self.lexical)
     }
-}
 
-impl<T: Copy> LexicalNumber<T> {
-    pub(super) const fn value(&self) -> T {
-        self.value
+    pub(super) fn as_str(&self) -> &str {
+        &self.lexical
     }
 }
 
-impl<T> Drop for LexicalNumber<T> {
+impl Drop for LexicalNumber {
     fn drop(&mut self) {
         sanitize_string(&mut self.lexical);
     }
@@ -154,7 +150,7 @@ impl<T> Drop for LexicalNumber<T> {
 /// Private parser tree whose string values clear their full allocation on drop.
 pub(crate) enum Value {
     Null,
-    Bool(bool),
+    Bool(ProtectedBoolean),
     Number(Number),
     String(SecretString),
     Array(Vec<Self>),
@@ -168,16 +164,21 @@ impl Value {
 
     pub(crate) fn as_u64(&self) -> Option<u64> {
         match self {
-            Self::Number(Number::Unsigned(value)) => Some(value.value()),
-            Self::Number(Number::Signed(value)) => u64::try_from(value.value()).ok(),
+            Self::Number(Number::Unsigned(value)) => value.as_str().parse().ok(),
+            Self::Number(Number::Signed(value)) => value
+                .as_str()
+                .parse::<i64>()
+                .ok()
+                .and_then(|value| u64::try_from(value).ok()),
             _ => None,
         }
     }
 
     pub(super) fn as_i64(&self) -> Option<i64> {
         match self {
-            Self::Number(Number::Unsigned(value)) => i64::try_from(value.value()).ok(),
-            Self::Number(Number::Signed(value)) => Some(value.value()),
+            Self::Number(Number::Unsigned(value) | Number::Signed(value)) => {
+                value.as_str().parse().ok()
+            }
             _ => None,
         }
     }
@@ -196,16 +197,40 @@ impl Value {
 
     pub(super) fn as_f64(&self) -> Option<f64> {
         match self {
-            Self::Number(Number::Unsigned(value)) => Some(value.value() as f64),
-            Self::Number(Number::Signed(value)) => Some(value.value() as f64),
-            Self::Number(Number::Float(value)) => Some(value.value()),
+            Self::Number(
+                Number::Unsigned(value) | Number::Signed(value) | Number::Float(value),
+            ) => value.as_str().parse().ok(),
             _ => None,
         }
     }
 
-    pub(crate) const fn as_bool(&self) -> Option<bool> {
+    pub(crate) fn as_bool(&self) -> Option<bool> {
         match self {
-            Self::Bool(value) => Some(*value),
+            Self::Bool(value) => Some(value.value()),
+            _ => None,
+        }
+    }
+
+    pub(crate) fn copy_bool_byte_to(&self, destination: &mut u8) -> Option<()> {
+        match self {
+            Self::Bool(value) => {
+                value.copy_byte_to(destination);
+                Some(())
+            }
+            _ => None,
+        }
+    }
+
+    pub(crate) const fn is_bool(&self) -> bool {
+        matches!(self, Self::Bool(_))
+    }
+
+    pub(crate) fn try_with_unsigned_lexical<R>(
+        &self,
+        inspect: impl FnOnce(&str) -> R,
+    ) -> Option<R> {
+        match self {
+            Self::Number(Number::Unsigned(value)) => Some(inspect(value.as_str())),
             _ => None,
         }
     }

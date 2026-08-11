@@ -5,6 +5,8 @@ use core::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
 use cloud_sdk_sanitization::SecretBoxBytes;
 
+use super::protected_parse::{self, AddressFamily};
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub(super) struct ProtectedValueError;
 
@@ -45,39 +47,20 @@ fn ipv6_value(bytes: &[u8], offset: usize) -> Ipv6Addr {
     Ipv6Addr::from(value)
 }
 
-fn encoded_address_byte(address: IpAddr, index: usize) -> u8 {
-    match address {
-        IpAddr::V4(address) => {
-            if index == 0 {
-                4
-            } else {
-                let shift = 32_usize.saturating_sub(index.saturating_mul(8));
-                u8::try_from((u32::from(address) >> shift) & 0xff)
-                    .unwrap_or_else(|_| unreachable!("masked IPv4 byte exceeded u8"))
-            }
-        }
-        IpAddr::V6(address) => {
-            if index == 0 {
-                6
-            } else {
-                let shift = 128_usize.saturating_sub(index.saturating_mul(8));
-                u8::try_from((u128::from(address) >> shift) & 0xff)
-                    .unwrap_or_else(|_| unreachable!("masked IPv6 byte exceeded u8"))
-            }
-        }
-    }
-}
-
 /// Stable protected IP address used for classified server topology.
 pub struct ProtectedIpAddr(SecretBoxBytes);
 
 impl ProtectedIpAddr {
-    pub(super) fn new(value: IpAddr) -> Result<Self, ProtectedValueError> {
-        let len = match value {
-            IpAddr::V4(_) => 5,
-            IpAddr::V6(_) => 17,
-        };
-        protected(len, |index| encoded_address_byte(value, index)).map(Self)
+    pub(super) fn parse(value: &str) -> Result<Self, ProtectedValueError> {
+        protected_parse::address(value, AddressFamily::Any).map(Self)
+    }
+
+    pub(super) fn parse_ipv4(value: &str) -> Result<Self, ProtectedValueError> {
+        protected_parse::address(value, AddressFamily::V4).map(Self)
+    }
+
+    pub(super) fn parse_ipv6(value: &str) -> Result<Self, ProtectedValueError> {
+        protected_parse::address(value, AddressFamily::V6).map(Self)
     }
 
     /// Runs a closure with temporary access to the address.
@@ -119,27 +102,27 @@ impl fmt::Debug for ProtectedIpAddr {
 pub struct RobotStorageBoxNumber(SecretBoxBytes);
 
 impl RobotStorageBoxNumber {
-    pub(super) fn new(value: u64) -> Result<Option<Self>, ProtectedValueError> {
-        if value == 0 {
+    pub(super) fn from_decimal_bytes(digits: &[u8]) -> Result<Option<Self>, ProtectedValueError> {
+        if digits == b"0" {
             return Ok(None);
         }
-        protected(8, |index| {
-            let shift = 56_usize.saturating_sub(index.saturating_mul(8));
-            u8::try_from((value >> shift) & 0xff)
-                .unwrap_or_else(|_| unreachable!("masked Storage Box byte exceeded u8"))
-        })
-        .map(Self)
-        .map(Some)
+        if !valid_u64_decimal(digits) {
+            return Err(ProtectedValueError);
+        }
+        SecretBoxBytes::try_from_slice(digits, 20)
+            .map(Self)
+            .map(Some)
+            .map_err(|_| ProtectedValueError)
     }
 
     /// Runs a closure with temporary access to the provider number.
     pub fn with_number<R>(&self, inspect: impl FnOnce(u64) -> R) -> R {
         self.0.with_secret(|bytes| {
-            inspect(
-                bytes
-                    .iter()
-                    .fold(0_u64, |value, byte| (value << 8) | u64::from(*byte)),
-            )
+            inspect(bytes.iter().fold(0_u64, |value, byte| {
+                value
+                    .saturating_mul(10)
+                    .saturating_add(u64::from(byte.saturating_sub(b'0')))
+            }))
         })
     }
 }
@@ -185,20 +168,8 @@ impl fmt::Debug for RobotServerStatus {
 pub struct RobotServerDate(SecretBoxBytes);
 
 impl RobotServerDate {
-    pub(super) fn new(year: u16, month: u8, day: u8) -> Result<Option<Self>, ProtectedValueError> {
-        if year == 0 || month == 0 || month > 12 || day == 0 || day > days_in_month(year, month) {
-            return Ok(None);
-        }
-        protected(4, |index| match index {
-            0 => u8::try_from((year >> 8) & 0xff)
-                .unwrap_or_else(|_| unreachable!("masked date byte exceeded u8")),
-            1 => u8::try_from(year & 0xff)
-                .unwrap_or_else(|_| unreachable!("masked date byte exceeded u8")),
-            2 => month,
-            _ => day,
-        })
-        .map(Self)
-        .map(Some)
+    pub(super) fn parse(value: &str) -> Result<Self, ProtectedValueError> {
+        protected_parse::date(value).map(Self)
     }
 
     /// Runs a closure with temporary access to year, month, and day.
@@ -216,37 +187,12 @@ impl fmt::Debug for RobotServerDate {
     }
 }
 
-const fn days_in_month(year: u16, month: u8) -> u8 {
-    match month {
-        2 if year.is_multiple_of(400) || (year.is_multiple_of(4) && !year.is_multiple_of(100)) => {
-            29
-        }
-        2 => 28,
-        4 | 6 | 9 | 11 => 30,
-        _ => 31,
-    }
-}
-
 /// Canonical assigned subnet in stable protected storage.
 pub struct RobotServerSubnet(SecretBoxBytes);
 
 impl RobotServerSubnet {
-    pub(super) fn new(network: IpAddr, prefix: u8) -> Result<Self, ProtectedValueError> {
-        let address_len: usize = match network {
-            IpAddr::V4(_) => 5,
-            IpAddr::V6(_) => 17,
-        };
-        let protected_len = address_len
-            .checked_add(1)
-            .unwrap_or_else(|| unreachable!("fixed subnet length overflowed"));
-        protected(protected_len, |index| {
-            if index == address_len {
-                prefix
-            } else {
-                encoded_address_byte(network, index)
-            }
-        })
-        .map(Self)
+    pub(super) fn parse(network: &str, prefix: &str) -> Result<Self, ProtectedValueError> {
+        protected_parse::subnet(network, prefix).map(Self)
     }
 
     /// Runs a closure with temporary access to the canonical network and prefix.
@@ -287,8 +233,16 @@ impl fmt::Debug for RobotServerSubnet {
 pub(super) struct ProtectedFlag(SecretBoxBytes);
 
 impl ProtectedFlag {
-    pub(super) fn new(value: bool) -> Result<Self, ProtectedValueError> {
-        protected(1, |_| u8::from(value)).map(Self)
+    pub(super) fn from_protected(
+        mut copy: impl FnMut(&mut u8),
+    ) -> Result<Self, ProtectedValueError> {
+        SecretBoxBytes::try_from_fn_bounded(1, 1, |_| {
+            let mut value = 0_u8;
+            copy(&mut value);
+            Ok::<u8, Infallible>(value)
+        })
+        .map(Self)
+        .map_err(|_| ProtectedValueError)
     }
 
     pub(super) fn get(&self) -> bool {
@@ -300,30 +254,16 @@ impl ProtectedFlag {
 pub struct RobotServerCapabilities(SecretBoxBytes);
 
 impl RobotServerCapabilities {
-    #[allow(clippy::too_many_arguments)]
-    pub(super) fn new(
-        reset: bool,
-        rescue: bool,
-        vnc: bool,
-        windows: bool,
-        plesk: bool,
-        cpanel: bool,
-        wake_on_lan: bool,
-        hot_swap: bool,
+    pub(super) fn from_protected(
+        mut copy: impl FnMut(usize, &mut u8),
     ) -> Result<Self, ProtectedValueError> {
-        protected(8, |index| {
-            u8::from(match index {
-                0 => reset,
-                1 => rescue,
-                2 => vnc,
-                3 => windows,
-                4 => plesk,
-                5 => cpanel,
-                6 => wake_on_lan,
-                _ => hot_swap,
-            })
+        SecretBoxBytes::try_from_fn_bounded(8, 8, |index| {
+            let mut value = 0_u8;
+            copy(index, &mut value);
+            Ok::<u8, Infallible>(value)
         })
         .map(Self)
+        .map_err(|_| ProtectedValueError)
     }
 
     fn capability(&self, index: usize) -> bool {
@@ -378,14 +318,22 @@ impl fmt::Debug for RobotServerCapabilities {
     }
 }
 
+fn valid_u64_decimal(digits: &[u8]) -> bool {
+    !digits.is_empty()
+        && (digits.len() == 1 || digits.first() != Some(&b'0'))
+        && digits.iter().all(u8::is_ascii_digit)
+        && (digits.len() < 20 || (digits.len() == 20 && digits <= b"18446744073709551615"))
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{ProtectedIpAddr, protected};
-    use core::net::{IpAddr, Ipv4Addr};
+    use super::{ProtectedIpAddr, RobotServerDate, RobotServerSubnet, protected};
+    use core::net::IpAddr;
+    use core::str::FromStr;
 
     #[test]
     fn classified_allocation_address_survives_owner_moves() {
-        let address = ProtectedIpAddr::new(IpAddr::V4(Ipv4Addr::new(192, 0, 2, 1)))
+        let address = ProtectedIpAddr::parse("192.0.2.1")
             .unwrap_or_else(|_| unreachable!("protected fixture allocation failed"));
         let before = address.0.with_secret(<[u8]>::as_ptr);
         let moved = address;
@@ -395,5 +343,36 @@ mod tests {
     #[test]
     fn impossible_protected_capacity_maps_to_failure() {
         assert!(protected(usize::MAX, |_| 0).is_err());
+    }
+
+    #[test]
+    fn protected_parser_accepts_complete_address_families() {
+        for text in [
+            "192.0.2.1",
+            "2001:db8::1",
+            "2001:db8:0:1:2:3:4:5",
+            "::ffff:192.0.2.1",
+            "::",
+        ] {
+            let protected = ProtectedIpAddr::parse(text)
+                .unwrap_or_else(|_| unreachable!("valid address fixture was rejected"));
+            let expected = IpAddr::from_str(text)
+                .unwrap_or_else(|_| unreachable!("standard parser rejected fixture"));
+            assert!(protected.with_addr(|actual| actual == expected));
+        }
+
+        for text in ["192.0.2", "192.00.2.1", "2001:::1", "2001:db8:1"] {
+            assert!(ProtectedIpAddr::parse(text).is_err());
+        }
+    }
+
+    #[test]
+    fn protected_date_and_subnet_parsers_fail_closed() {
+        assert!(RobotServerDate::parse("2028-02-29").is_ok());
+        assert!(RobotServerDate::parse("2027-02-29").is_err());
+        assert!(RobotServerSubnet::parse("192.0.2.0", "24").is_ok());
+        assert!(RobotServerSubnet::parse("2001:db8::", "64").is_ok());
+        assert!(RobotServerSubnet::parse("192.0.2.1", "24").is_err());
+        assert!(RobotServerSubnet::parse("2001:db8::1", "64").is_err());
     }
 }

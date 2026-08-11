@@ -42,6 +42,9 @@ fn canonical_identity_and_name_validation_fail_closed() {
         assert!(RobotServerName::new(invalid).is_err());
     }
     assert!(RobotServerName::new("server-01").is_ok());
+
+    let maximum = prepare(RobotServerGetRequest::new(server_number(u64::MAX)));
+    assert_eq!(maximum.1, "/server/18446744073709551615");
 }
 
 #[test]

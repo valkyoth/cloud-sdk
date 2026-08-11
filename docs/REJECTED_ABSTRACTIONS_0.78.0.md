@@ -46,6 +46,14 @@ Rejected because fixed-array identity keys recreate classified topology in
 ordinary sortable memory. Duplicate detection sorts public collection indices
 and compares stable protected values in place instead.
 
+## Scalar-Backed Parser Models
+
+Rejected because retaining parsed `u64`, `IpAddr`, date-part, or Boolean
+payloads beside protected source text creates another classified lifetime.
+Strict JSON keeps lexical numbers and protected Booleans, Robot identities
+copy canonical decimal bytes directly, and topology/date validation uses
+bounded clear-on-drop scratch before constructing stable owners.
+
 ## Permissive Future Fields And Statuses
 
 Rejected for the first Robot endpoint family. Unknown fields and enum strings

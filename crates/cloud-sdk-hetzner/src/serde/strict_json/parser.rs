@@ -67,8 +67,8 @@ impl Parser<'_> {
         }
         match self.current() {
             Some(b'n') => self.parse_literal(b"null", Value::Null),
-            Some(b't') => self.parse_literal(b"true", Value::Bool(true)),
-            Some(b'f') => self.parse_literal(b"false", Value::Bool(false)),
+            Some(b't') => self.parse_boolean(b"true", 1),
+            Some(b'f') => self.parse_boolean(b"false", 0),
             Some(b'"') => self.parse_secret_string().map(Value::String),
             Some(b'[') => self.parse_array(depth).map(Value::Array),
             Some(b'{') => self.parse_object(depth).map(Value::Object),
@@ -87,6 +87,14 @@ impl Parser<'_> {
         }
         self.position = end;
         Ok(value)
+    }
+
+    fn parse_boolean(&mut self, literal: &[u8], value: u8) -> Result<Value, JsonError> {
+        self.parse_literal(literal, Value::Null)?;
+        allocation_checkpoint()?;
+        super::ProtectedBoolean::try_new(value)
+            .map(Value::Bool)
+            .map_err(|_| JsonError::Allocation)
     }
 
     fn parse_array(&mut self, depth: usize) -> Result<Vec<Value>, JsonError> {
@@ -226,15 +234,15 @@ impl Parser<'_> {
             return parse_finite_float(text);
         }
         if negative {
-            match text.parse::<i64>() {
-                Ok(value) => lexical_number(value, text).map(Number::Signed),
-                Err(_) => parse_finite_float(text),
+            if fits_signed_integer(text) {
+                lexical_number(text).map(Number::Signed)
+            } else {
+                parse_finite_float(text)
             }
+        } else if fits_unsigned_integer(text) {
+            lexical_number(text).map(Number::Unsigned)
         } else {
-            match text.parse::<u64>() {
-                Ok(value) => lexical_number(value, text).map(Number::Unsigned),
-                Err(_) => parse_finite_float(text),
-            }
+            parse_finite_float(text)
         }
     }
 
@@ -287,16 +295,27 @@ impl Parser<'_> {
 }
 
 fn parse_finite_float(text: &str) -> Result<Number, JsonError> {
-    let value = text.parse::<f64>().map_err(|_| JsonError::InvalidNumber)?;
-    if !value.is_finite() {
+    let mut value = text.parse::<f64>().map_err(|_| JsonError::InvalidNumber)?;
+    let finite = value.is_finite();
+    cloud_sdk_sanitization::sanitize_value(&mut value);
+    if !finite {
         return Err(JsonError::InvalidNumber);
     }
-    lexical_number(value, text).map(Number::Float)
+    lexical_number(text).map(Number::Float)
 }
 
-fn lexical_number<T>(value: T, text: &str) -> Result<LexicalNumber<T>, JsonError> {
+fn lexical_number(text: &str) -> Result<LexicalNumber, JsonError> {
     allocation_checkpoint()?;
-    LexicalNumber::try_new(value, text).map_err(|_| JsonError::Allocation)
+    LexicalNumber::try_new(text).map_err(|_| JsonError::Allocation)
+}
+
+fn fits_unsigned_integer(text: &str) -> bool {
+    text.len() < 20 || (text.len() == 20 && text.as_bytes() <= b"18446744073709551615")
+}
+
+fn fits_signed_integer(text: &str) -> bool {
+    let magnitude = text.as_bytes().get(1..).unwrap_or_default();
+    magnitude.len() < 19 || (magnitude.len() == 19 && magnitude <= b"9223372036854775808")
 }
 
 #[inline]

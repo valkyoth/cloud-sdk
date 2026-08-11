@@ -1,6 +1,6 @@
 use cloud_sdk::Method;
 use cloud_sdk::authentication::{AuthenticationScopePolicy, ScopeRequirement};
-use cloud_sdk::buffer::{write_str, write_u64};
+use cloud_sdk::buffer::{write_byte, write_str};
 use cloud_sdk::operation::{
     ContentTypePolicy, CostIntent, OperationId, OperationIdError, OperationImpact,
     OperationMetadata, OperationMetadataError, PreparationStorage, PrepareOperation,
@@ -413,12 +413,12 @@ fn write_path(
     write_str(output, &mut len, "/server", RobotServerRequestError::Path)?;
     if let Operation::Get(number) | Operation::Update(number) = operation {
         write_str(output, &mut len, "/", RobotServerRequestError::Path)?;
-        write_u64(
-            output,
-            &mut len,
-            number.value(),
-            RobotServerRequestError::Path,
-        )?;
+        number.with_decimal_bytes(|digits| {
+            for digit in digits {
+                write_byte(output, &mut len, *digit, RobotServerRequestError::Path)?;
+            }
+            Ok(())
+        })?;
     }
     Ok(len)
 }

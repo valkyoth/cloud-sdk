@@ -11,6 +11,8 @@ mod duplicates;
 mod model;
 #[cfg(feature = "serde")]
 mod protected;
+#[cfg(feature = "serde")]
+mod protected_parse;
 
 pub use identity::{RobotServerNumber, RobotServerNumberError};
 #[cfg(feature = "serde")]

@@ -113,7 +113,10 @@ impl CloudValue {
     pub(super) fn from_private(value: &Value) -> Result<Self, ResponseModelError> {
         match value {
             Value::Null => Ok(Self::Null),
-            Value::Bool(value) => Ok(Self::Bool(*value)),
+            Value::Bool(_) => value
+                .as_bool()
+                .map(Self::Bool)
+                .ok_or(ResponseModelError::WrongType),
             Value::Number(_) if value.is_integer() => {
                 if let Some(value) = value.as_u64() {
                     Ok(Self::Number(CloudNumber::Unsigned(value)))

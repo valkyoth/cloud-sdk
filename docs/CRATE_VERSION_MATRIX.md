@@ -1158,8 +1158,9 @@ published.
 ## v0.78.0 Tracking Table
 
 `v0.78.0` adds canonical Robot server list, get, and rename operations plus
-strict success models. It remains an internal milestone in the v0.76-v0.80
-cumulative train, so no crate is published.
+strict success models. Classified parser intermediates use protected lexical
+or fixed storage and bounded clear-on-drop scratch. It remains an internal
+milestone in the v0.76-v0.80 cumulative train, so no crate is published.
 
 | Crate | Published | Source | Change | Publish | Reason |
 | --- | --- | --- | --- | --- | --- |

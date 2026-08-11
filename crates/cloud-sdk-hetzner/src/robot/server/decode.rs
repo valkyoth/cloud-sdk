@@ -1,12 +1,10 @@
 use alloc::vec::Vec;
-use core::net::{IpAddr, Ipv4Addr, Ipv6Addr};
-use core::str::FromStr;
 
 use cloud_sdk::operation::{CheckedResponse, CheckedResponseGuard};
 use cloud_sdk::transport::{ResponseDecodeWorkspace, StatusCode};
 
 use super::duplicates::{reject_duplicates, reject_duplicates_by};
-use super::identity::{RobotServerNumber, RobotServerNumberError};
+use super::identity::{DecimalServerNumberError, RobotServerNumber};
 use super::model::{
     MAX_ROBOT_SERVER_ADDRESSES, MAX_ROBOT_SERVER_LIST_ITEMS, RobotServer, RobotServerList,
     RobotServerSummary,
@@ -146,27 +144,31 @@ pub fn decode_robot_server(
     if summary.number() != expected {
         return Err(RobotServerDecodeError::ResponseIdentityMismatch);
     }
-    let capabilities = RobotServerCapabilities::new(
-        boolean(object, "reset")?,
-        boolean(object, "rescue")?,
-        boolean(object, "vnc")?,
-        boolean(object, "windows")?,
-        boolean(object, "plesk")?,
-        boolean(object, "cpanel")?,
-        boolean(object, "wol")?,
-        boolean(object, "hot_swap")?,
-    )
+    let capability_fields = [
+        "reset", "rescue", "vnc", "windows", "plesk", "cpanel", "wol", "hot_swap",
+    ];
+    if !capability_fields
+        .iter()
+        .all(|field| object.get(field).is_some_and(Value::is_bool))
+    {
+        return Err(RobotServerDecodeError::InvalidEnvelope);
+    }
+    let capabilities = RobotServerCapabilities::from_protected(|index, destination| {
+        object
+            .get(capability_fields.get(index).copied().unwrap_or(""))
+            .and_then(|value| value.copy_bool_byte_to(destination))
+            .unwrap_or_else(|| unreachable!("validated Robot capability changed type"));
+    })
     .map_err(|_| RobotServerDecodeError::Allocation)?;
     let linked_storage_box = object
         .get("linked_storagebox")
         .map(|value| {
             value
-                .as_u64()
-                .ok_or(RobotServerDecodeError::InvalidIdentifier)
-                .and_then(|number| {
-                    RobotStorageBoxNumber::new(number)
-                        .map_err(|_| RobotServerDecodeError::Allocation)
+                .try_with_unsigned_lexical(|digits| {
+                    RobotStorageBoxNumber::from_decimal_bytes(digits.as_bytes())
+                        .map_err(|_| RobotServerDecodeError::InvalidIdentifier)
                 })
+                .ok_or(RobotServerDecodeError::InvalidIdentifier)?
         })
         .transpose()?
         .flatten();
@@ -238,18 +240,21 @@ fn parse_summary(
     if matches!(shape, SummaryShape::List) {
         require_fields(object, &summary_fields)?;
     }
-    let number =
-        RobotServerNumber::new(required_u64(object, "server_number")?).map_err(map_number_error)?;
-    let main_ipv4 = ProtectedIpAddr::new(IpAddr::V4(parse_text(object, "server_ip", |value| {
-        Ipv4Addr::from_str(value).map_err(|_| RobotServerDecodeError::InvalidAddress)
-    })?))
-    .map_err(|_| RobotServerDecodeError::Allocation)?;
-    let main_ipv6_network = ProtectedIpAddr::new(IpAddr::V6(parse_text(
-        object,
-        "server_ipv6_net",
-        |value| Ipv6Addr::from_str(value).map_err(|_| RobotServerDecodeError::InvalidAddress),
-    )?))
-    .map_err(|_| RobotServerDecodeError::Allocation)?;
+    let number = object
+        .get("server_number")
+        .and_then(|value| {
+            value.try_with_unsigned_lexical(|digits| {
+                RobotServerNumber::from_decimal_bytes(digits.as_bytes())
+            })
+        })
+        .ok_or(RobotServerDecodeError::InvalidEnvelope)?
+        .map_err(map_number_error)?;
+    let main_ipv4 = parse_text(object, "server_ip", |value| {
+        ProtectedIpAddr::parse_ipv4(value).map_err(|_| RobotServerDecodeError::InvalidAddress)
+    })?;
+    let main_ipv6_network = parse_text(object, "server_ipv6_net", |value| {
+        ProtectedIpAddr::parse_ipv6(value).map_err(|_| RobotServerDecodeError::InvalidAddress)
+    })?;
     let name = take_text(object, "server_name")?;
     let product = take_text(object, "product")?;
     let datacenter = take_text(object, "dc")?;
@@ -261,9 +266,19 @@ fn parse_summary(
         }
         _ => Err(RobotServerDecodeError::UnknownStatus),
     })?;
-    let cancelled = ProtectedFlag::new(boolean(object, "cancelled")?)
-        .map_err(|_| RobotServerDecodeError::Allocation)?;
-    let paid_until = parse_text(object, "paid_until", parse_date)?;
+    let cancelled_value = object
+        .get("cancelled")
+        .filter(|value| value.is_bool())
+        .ok_or(RobotServerDecodeError::InvalidEnvelope)?;
+    let cancelled = ProtectedFlag::from_protected(|destination| {
+        cancelled_value
+            .copy_bool_byte_to(destination)
+            .unwrap_or_else(|| unreachable!("validated Robot cancellation changed type"));
+    })
+    .map_err(|_| RobotServerDecodeError::Allocation)?;
+    let paid_until = parse_text(object, "paid_until", |value| {
+        RobotServerDate::parse(value).map_err(|_| RobotServerDecodeError::InvalidDate)
+    })?;
     let addresses = parse_addresses(object)?;
     if !addresses.iter().any(|address| address == &main_ipv4) {
         return Err(RobotServerDecodeError::InvalidAddress);
@@ -300,12 +315,7 @@ fn parse_addresses(object: &mut Map) -> Result<Vec<ProtectedIpAddr>, RobotServer
     for value in values {
         let address = value
             .try_with_str(|text| {
-                IpAddr::from_str(text)
-                    .map_err(|_| RobotServerDecodeError::InvalidAddress)
-                    .and_then(|address| {
-                        ProtectedIpAddr::new(address)
-                            .map_err(|_| RobotServerDecodeError::Allocation)
-                    })
+                ProtectedIpAddr::parse(text).map_err(|_| RobotServerDecodeError::InvalidAddress)
             })
             .map_err(|_| RobotServerDecodeError::InvalidAddress)?
             .ok_or(RobotServerDecodeError::InvalidEnvelope)??;
@@ -339,89 +349,37 @@ fn parse_subnets(
             .as_object_mut()
             .ok_or(RobotServerDecodeError::InvalidEnvelope)?;
         require_fields(subnet, &["ip", "mask"])?;
-        let network = parse_text(subnet, "ip", |text| {
-            IpAddr::from_str(text).map_err(|_| RobotServerDecodeError::InvalidSubnet)
-        })?;
-        let prefix = parse_text(subnet, "mask", parse_prefix)?;
-        if !canonical_network(network, prefix) {
-            return Err(RobotServerDecodeError::InvalidSubnet);
-        }
-        let subnet = RobotServerSubnet::new(network, prefix)
-            .map_err(|_| RobotServerDecodeError::Allocation)?;
-        result.push(subnet);
+        result.push(parse_subnet(subnet)?);
     }
     reject_duplicates(&result)?;
     Ok(Some(result))
 }
 
-fn parse_prefix(value: &str) -> Result<u8, RobotServerDecodeError> {
-    if value.is_empty() || value.len() > 3 || !value.bytes().all(|byte| byte.is_ascii_digit()) {
-        return Err(RobotServerDecodeError::InvalidSubnet);
-    }
-    value
-        .parse()
-        .map_err(|_| RobotServerDecodeError::InvalidSubnet)
+fn parse_subnet(object: &Map) -> Result<RobotServerSubnet, RobotServerDecodeError> {
+    let network = object
+        .get("ip")
+        .ok_or(RobotServerDecodeError::InvalidEnvelope)?;
+    let prefix = object
+        .get("mask")
+        .ok_or(RobotServerDecodeError::InvalidEnvelope)?;
+    network
+        .try_with_str(|network| {
+            prefix.try_with_str(|prefix| {
+                RobotServerSubnet::parse(network, prefix)
+                    .map_err(|_| RobotServerDecodeError::InvalidSubnet)
+            })
+        })
+        .map_err(|_| RobotServerDecodeError::InvalidSubnet)?
+        .ok_or(RobotServerDecodeError::InvalidEnvelope)?
+        .map_err(|_| RobotServerDecodeError::InvalidSubnet)?
+        .ok_or(RobotServerDecodeError::InvalidEnvelope)?
 }
 
-fn canonical_network(address: IpAddr, prefix: u8) -> bool {
-    match address {
-        IpAddr::V4(value) if prefix <= 32 => {
-            u32::from(value) & u32::MAX.checked_shr(u32::from(prefix)).unwrap_or(0) == 0
-        }
-        IpAddr::V6(value) if prefix <= 128 => {
-            u128::from(value) & u128::MAX.checked_shr(u32::from(prefix)).unwrap_or(0) == 0
-        }
-        _ => false,
-    }
-}
-
-fn parse_date(value: &str) -> Result<RobotServerDate, RobotServerDecodeError> {
-    let bytes = value.as_bytes();
-    if bytes.len() != 10 || bytes.get(4) != Some(&b'-') || bytes.get(7) != Some(&b'-') {
-        return Err(RobotServerDecodeError::InvalidDate);
-    }
-    let year = bytes
-        .get(0..4)
-        .ok_or(RobotServerDecodeError::InvalidDate)
-        .and_then(decimal)
-        .and_then(|value| u16::try_from(value).map_err(|_| RobotServerDecodeError::InvalidDate))?;
-    let month = bytes
-        .get(5..7)
-        .ok_or(RobotServerDecodeError::InvalidDate)
-        .and_then(decimal)
-        .and_then(|value| u8::try_from(value).map_err(|_| RobotServerDecodeError::InvalidDate))?;
-    let day = bytes
-        .get(8..10)
-        .ok_or(RobotServerDecodeError::InvalidDate)
-        .and_then(decimal)
-        .and_then(|value| u8::try_from(value).map_err(|_| RobotServerDecodeError::InvalidDate))?;
-    RobotServerDate::new(year, month, day)
-        .map_err(|_| RobotServerDecodeError::Allocation)?
-        .ok_or(RobotServerDecodeError::InvalidDate)
-}
-
-fn map_number_error(error: RobotServerNumberError) -> RobotServerDecodeError {
+fn map_number_error(error: DecimalServerNumberError) -> RobotServerDecodeError {
     match error {
-        RobotServerNumberError::Zero => RobotServerDecodeError::InvalidIdentifier,
-        RobotServerNumberError::Allocation => RobotServerDecodeError::Allocation,
+        DecimalServerNumberError::Invalid => RobotServerDecodeError::InvalidIdentifier,
+        DecimalServerNumberError::Allocation => RobotServerDecodeError::Allocation,
     }
-}
-
-fn decimal(bytes: &[u8]) -> Result<u64, RobotServerDecodeError> {
-    let mut value = 0_u64;
-    for byte in bytes {
-        if !byte.is_ascii_digit() {
-            return Err(RobotServerDecodeError::InvalidDate);
-        }
-        let digit = byte
-            .checked_sub(b'0')
-            .ok_or(RobotServerDecodeError::InvalidDate)?;
-        value = value
-            .checked_mul(10)
-            .and_then(|value| value.checked_add(u64::from(digit)))
-            .ok_or(RobotServerDecodeError::InvalidDate)?;
-    }
-    Ok(value)
 }
 
 fn take_text(object: &mut Map, field: &str) -> Result<SensitiveText, RobotServerDecodeError> {
@@ -448,18 +406,6 @@ fn parse_text<T>(
         .ok_or(RobotServerDecodeError::InvalidEnvelope)?
 }
 
-fn required_u64(object: &Map, field: &str) -> Result<u64, RobotServerDecodeError> {
-    object
-        .get(field)
-        .and_then(Value::as_u64)
-        .ok_or(RobotServerDecodeError::InvalidEnvelope)
-}
-fn boolean(object: &Map, field: &str) -> Result<bool, RobotServerDecodeError> {
-    object
-        .get(field)
-        .and_then(Value::as_bool)
-        .ok_or(RobotServerDecodeError::InvalidEnvelope)
-}
 fn require_ok(checked: CheckedResponse<'_>) -> Result<(), RobotServerDecodeError> {
     if checked.status() == StatusCode::OK {
         Ok(())
