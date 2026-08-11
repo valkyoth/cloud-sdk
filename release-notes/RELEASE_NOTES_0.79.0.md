@@ -1,11 +1,11 @@
 # cloud-sdk 0.79.0 Milestone Notes
 
-Status: implementation stop reached; pentest required.
+Status: release candidate; pentest and final retest passed.
 
-Release date: pending
+Release date: 2026-08-11
 
 Security-Review: PASS
-Pentest: REQUIRED
+Pentest: PASS
 Publication: DEFERRED TO v0.80.0
 
 ## Overview
@@ -66,9 +66,10 @@ is selected for crates.io publication.
 - [`docs/THREAT_MODEL_DELTA_0.79.0.md`](../docs/THREAT_MODEL_DELTA_0.79.0.md)
 - [`docs/REJECTED_ABSTRACTIONS_0.79.0.md`](../docs/REJECTED_ABSTRACTIONS_0.79.0.md)
 - [`docs/MIGRATION_0.79.0.md`](../docs/MIGRATION_0.79.0.md)
+- [`security/pentest/v0.79.0.md`](../security/pentest/v0.79.0.md)
 
 ## Release Gate
 
-Do not run `scripts/release_0_79_gate.sh` until the pentest report is committed.
-After the final evidence commit, GitHub CI and CodeQL must be green before the
-signed internal tag. Do not publish crates for this milestone.
+Run `scripts/release_0_79_gate.sh` only after the pentest report is committed.
+GitHub CI and CodeQL must be green on the unchanged final evidence commit
+before the signed internal tag. Do not publish crates for this milestone.

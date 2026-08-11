@@ -1,10 +1,9 @@
 # Crate Version Matrix
 
 Status: `v0.75.0` is the latest published checkpoint and `v0.79.0` is the
-Robot cancellation implementation candidate. Its implementation
-gate is green; pentest and final retest remain required before the full release
-gate, GitHub CI, CodeQL, and tagging. Cumulative crates.io publication is
-deferred to v0.80.0.
+Robot cancellation release candidate. Its pentest and final retest passed;
+the full release gate, GitHub CI, CodeQL, and tagging remain. Cumulative
+crates.io publication is deferred to v0.80.0.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared

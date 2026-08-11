@@ -2292,7 +2292,7 @@ Stop gate: `v0.78.0 implementation stop reached. Complete the pentest and full r
 
 ### v0.79.0 - Robot Cancellations
 
-Status: implementation stop reached; pentest required.
+Status: release candidate; pentest and final retest passed.
 
 Goal: complete cancellation get/create/revoke workflows.
 

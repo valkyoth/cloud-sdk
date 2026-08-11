@@ -1,7 +1,7 @@
 # Authentication Policy
 
-Status: v0.76 Robot credential and lockout policy is at its implementation
-stop; pentest required.
+Status: reviewed through the v0.79.0 release candidate; the v0.76 Robot
+credential and lockout policy passed its pentest and final retest.
 
 The authentication layer is separate from credential-free raw HTTP execution. Core
 defines scope, generation, caller-clock credential lifetimes, and authenticated

@@ -1,6 +1,6 @@
 # v0.79.0 Rejected Abstractions
 
-Status: implementation stop reached; pentest required.
+Status: release candidate; pentest and final retest passed.
 
 ## One Generic Cancellation Request
 
