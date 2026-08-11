@@ -1,11 +1,11 @@
 # cloud-sdk 0.75.0 Release Notes
 
-Status: implementation stop reached; pentest required.
+Status: release candidate; pentest and final retest passed.
 
-Release date: pending
+Release date: 2026-08-11
 
-Security-Review: REQUIRED
-Pentest: REQUIRED
+Security-Review: PASS
+Pentest: PASS
 Publication: PENDING
 
 ## Overview
@@ -62,12 +62,10 @@ of the experimental FIPS transport.
 - [`docs/THREAT_MODEL_DELTA_0.75.0.md`](../docs/THREAT_MODEL_DELTA_0.75.0.md)
 - [`docs/REJECTED_ABSTRACTIONS_0.75.0.md`](../docs/REJECTED_ABSTRACTIONS_0.75.0.md)
 - [`docs/MIGRATION_0.75.0.md`](../docs/MIGRATION_0.75.0.md)
-- `security/pentest/v0.75.0.md` after the required review
+- [`security/pentest/v0.75.0.md`](../security/pentest/v0.75.0.md)
 
 ## Release Gate
 
-Run the incremental pentest from signed v0.74.0 through the exact v0.75.0
-implementation-stop commit. After remediation and a green retest, add the
-permanent report, rerun `scripts/release_0_75_gate.sh`, and require green
-GitHub CI and CodeQL on the unchanged evidence commit before tagging and
+Run `scripts/release_0_75_gate.sh` on the clean final evidence commit. GitHub
+CI and CodeQL must be green on that unchanged commit before tagging and
 publishing the selected crates.

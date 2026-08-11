@@ -2,9 +2,9 @@
 
 Status: `v0.70.0` is the latest published checkpoint, `v0.71.0-v0.74.0` are
 signed internal milestones, and `v0.75.0` is the Robot form-codec public
-checkpoint at its implementation stop. Every pre-1.0 tag receives its own
-incremental pentest; v0.75.0 publication remains blocked until its pentest and
-release gates are green.
+release candidate with a green pentest and final retest. Every pre-1.0 tag
+receives its own incremental pentest; v0.75.0 publication remains blocked
+until its local release gate and GitHub CI and CodeQL are green.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared

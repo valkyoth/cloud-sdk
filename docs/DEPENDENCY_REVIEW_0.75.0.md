@@ -1,6 +1,6 @@
 # v0.75.0 Dependency Review
 
-Status: implementation stop reached; pentest required.
+Status: release candidate; pentest and final retest passed.
 
 v0.75 adds no third-party package, feature activation, build script, native
 component, runtime, network stack, allocator requirement, unsafe code, or

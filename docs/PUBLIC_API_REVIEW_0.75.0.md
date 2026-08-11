@@ -1,6 +1,6 @@
 # v0.75.0 Public API Review
 
-Status: implementation stop reached; pentest required.
+Status: release candidate; pentest and final retest passed.
 
 Scope: cumulative published changes from v0.70.0 and incremental changes from
 signed v0.74.0 through the v0.75.0 implementation stop.
