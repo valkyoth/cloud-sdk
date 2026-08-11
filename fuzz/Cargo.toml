@@ -153,3 +153,10 @@ path = "fuzz_targets/robot_server_response.rs"
 test = false
 doc = false
 bench = false
+
+[[bin]]
+name = "robot_ip_parser"
+path = "fuzz_targets/robot_ip_parser.rs"
+test = false
+doc = false
+bench = false

@@ -89,6 +89,7 @@ def validate_implementation() -> None:
     identity = (ROOT / "crates/cloud-sdk-hetzner/src/robot/server/identity.rs").read_text(encoding="ascii")
     duplicates = (ROOT / "crates/cloud-sdk-hetzner/src/robot/server/duplicates.rs").read_text(encoding="ascii")
     strict_json = (ROOT / "crates/cloud-sdk-hetzner/src/serde/strict_json.rs").read_text(encoding="utf-8")
+    ip_fuzz = (ROOT / "fuzz/fuzz_targets/robot_ip_parser.rs").read_text(encoding="ascii")
     require('write_str(output, &mut len, "/server"' in request, "canonical server path is absent")
     require('RobotFormField::public("server_name"' in request, "rename form is absent")
     require("server-ip" not in request, "deprecated IP alias entered request code")
@@ -127,6 +128,11 @@ def validate_implementation() -> None:
     require("Vec<usize>" in duplicates, "public index duplicate scratch is absent")
     require("identity_key" not in protected + identity + duplicates,
             "copied classified identity keys re-entered server decoding")
+    require("IpAddr::from_str(candidate)" in ip_fuzz
+            and "AddressField::Ipv4" in ip_fuzz
+            and "AddressField::Ipv6" in ip_fuzz
+            and "request.decode_response(checked).is_ok()" in ip_fuzz,
+            "public-decoder differential IP fuzzing is absent")
     require("RobotServerSummary([redacted])" in model, "summary diagnostics are not redacted")
 
 

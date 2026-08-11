@@ -1,6 +1,6 @@
 # v0.78.0 Threat Model Delta
 
-Status: implementation complete; pentest required.
+Status: release candidate; pentest and final retest passed.
 
 ## New Boundary
 
@@ -69,6 +69,10 @@ sensitive.
 - A direct checked-response fuzz target covers list and detail decoders,
   source bounds, duplicate tails, mixed families, prefix edges, invalid dates,
   and identity mismatch.
+- A separate differential target compares IPv4 and IPv6 acceptance through the
+  public checked Robot decoder with `core::net::IpAddr::from_str`, preventing
+  the custom parser from silently drifting away from Rust's independent
+  standard-library oracle.
 
 ## Residual Boundaries
 

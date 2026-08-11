@@ -1161,8 +1161,10 @@ published.
 strict success models. Classified parser intermediates use protected lexical
 or fixed storage and bounded clear-on-drop scratch, Boolean transfers write
 directly into final protected storage, and allocation failures remain distinct
-from malformed provider data. It remains an internal milestone in the
-v0.76-v0.80 cumulative train, so no crate is published.
+from malformed provider data. Differential fuzzing compares the public Robot
+decoder's IP acceptance with `core::net::IpAddr::from_str`. It remains an
+internal milestone in the v0.76-v0.80 cumulative train, so no crate is
+published.
 
 | Crate | Published | Source | Change | Publish | Reason |
 | --- | --- | --- | --- | --- | --- |

@@ -1,11 +1,11 @@
 # cloud-sdk 0.78.0 Milestone Notes
 
-Status: implementation complete; pentest required.
+Status: release candidate; pentest and final retest passed.
 
 Release date: 2026-08-11
 
-Security-Review: PENDING
-Pentest: REQUIRED
+Security-Review: PASS
+Pentest: PASS
 Publication: DEFERRED TO v0.80.0
 
 ## Overview
@@ -43,6 +43,9 @@ publication.
   in-place protected comparisons, eliminating copied identity arrays, and
   added a direct checked-response Robot server fuzz target with exact-bound
   deterministic seeds.
+- Added differential property fuzzing that drives IPv4 and IPv6 candidates
+  through the public checked Robot decoder and compares acceptance with
+  `core::net::IpAddr::from_str` as an independent oracle.
 - Added source-contract and regression checks for all three operations, fields,
   statuses, nullability, update input, and deprecated aliases.
 - Added provider-neutral form media-type constants without changing the
@@ -65,6 +68,7 @@ publication.
 - [`docs/THREAT_MODEL_DELTA_0.78.0.md`](../docs/THREAT_MODEL_DELTA_0.78.0.md)
 - [`docs/REJECTED_ABSTRACTIONS_0.78.0.md`](../docs/REJECTED_ABSTRACTIONS_0.78.0.md)
 - [`docs/MIGRATION_0.78.0.md`](../docs/MIGRATION_0.78.0.md)
+- [`security/pentest/v0.78.0.md`](../security/pentest/v0.78.0.md)
 
 ## Release Gate
 
