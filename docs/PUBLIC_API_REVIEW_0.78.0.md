@@ -37,8 +37,11 @@ diagnostics. Moving an owner transfers allocation metadata rather than copying
 classified bytes. Decoder-owned number and Boolean representations also avoid
 retained ordinary scalar payloads; Robot decimal path encoding reads the
 protected owner directly, while topology/date validation uses bounded
-clear-on-drop scratch. Numeric, date, address, and subnet inspection is
-closure-scoped; nullable subnets preserve `None` separately from an empty list.
+clear-on-drop scratch. Internal protected parsing preserves allocation failure
+as the public `RobotServerDecodeError::Allocation` category, and protected
+Booleans transfer directly into final storage. Numeric, date, address, and
+subnet inspection is closure-scoped; nullable subnets preserve `None`
+separately from an empty list.
 `linked_storagebox` is optional because the official output table and update
 example disagree about its presence.
 

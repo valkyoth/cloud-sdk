@@ -108,6 +108,18 @@ def validate_implementation() -> None:
     require("struct Octets" in protected_parse and "struct Segments" in protected_parse,
             "clear-on-drop topology scratch is absent")
     require("canonical_network" in protected_parse, "subnet canonicalization is absent")
+    require("enum ProtectedValueError" in protected
+            and "Invalid," in protected
+            and "Allocation," in protected,
+            "protected value failure classes are collapsed")
+    require("map_protected_error" in decoder
+            and "ProtectedValueError::Allocation => RobotServerDecodeError::Allocation" in decoder,
+            "protected allocation failures lose their decoder classification")
+    require("SecretBoxBytes::try_zeroed(1, 1)" in protected
+            and "SecretBoxBytes::try_zeroed(8, 8)" in protected
+            and "with_secret_mut" in protected
+            and "let mut value = 0_u8" not in protected,
+            "protected Boolean transfer uses an ordinary scalar temporary")
     require("Bool(ProtectedBoolean)" in strict_json and "value: T" not in strict_json,
             "strict JSON retains ordinary scalar payloads")
     require("required_u64" not in decoder and ".as_bool()" not in decoder,

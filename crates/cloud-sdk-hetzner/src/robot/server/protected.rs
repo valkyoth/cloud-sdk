@@ -8,7 +8,10 @@ use cloud_sdk_sanitization::SecretBoxBytes;
 use super::protected_parse::{self, AddressFamily};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub(super) struct ProtectedValueError;
+pub(super) enum ProtectedValueError {
+    Invalid,
+    Allocation,
+}
 
 fn protected(
     len: usize,
@@ -16,7 +19,7 @@ fn protected(
 ) -> Result<SecretBoxBytes, ProtectedValueError> {
     let mut make_byte = make_byte;
     SecretBoxBytes::try_from_fn_bounded(len, len, |index| Ok::<u8, Infallible>(make_byte(index)))
-        .map_err(|_| ProtectedValueError)
+        .map_err(|_| ProtectedValueError::Allocation)
 }
 
 fn protected_cmp(left: &SecretBoxBytes, right: &SecretBoxBytes) -> Ordering {
@@ -107,12 +110,12 @@ impl RobotStorageBoxNumber {
             return Ok(None);
         }
         if !valid_u64_decimal(digits) {
-            return Err(ProtectedValueError);
+            return Err(ProtectedValueError::Invalid);
         }
         SecretBoxBytes::try_from_slice(digits, 20)
             .map(Self)
             .map(Some)
-            .map_err(|_| ProtectedValueError)
+            .map_err(|_| ProtectedValueError::Allocation)
     }
 
     /// Runs a closure with temporary access to the provider number.
@@ -236,13 +239,16 @@ impl ProtectedFlag {
     pub(super) fn from_protected(
         mut copy: impl FnMut(&mut u8),
     ) -> Result<Self, ProtectedValueError> {
-        SecretBoxBytes::try_from_fn_bounded(1, 1, |_| {
-            let mut value = 0_u8;
-            copy(&mut value);
-            Ok::<u8, Infallible>(value)
-        })
-        .map(Self)
-        .map_err(|_| ProtectedValueError)
+        let mut bytes =
+            SecretBoxBytes::try_zeroed(1, 1).map_err(|_| ProtectedValueError::Allocation)?;
+        bytes.with_secret_mut(|destination| {
+            copy(
+                destination
+                    .first_mut()
+                    .unwrap_or_else(|| unreachable!("fixed protected flag storage was empty")),
+            );
+        });
+        Ok(Self(bytes))
     }
 
     pub(super) fn get(&self) -> bool {
@@ -257,13 +263,14 @@ impl RobotServerCapabilities {
     pub(super) fn from_protected(
         mut copy: impl FnMut(usize, &mut u8),
     ) -> Result<Self, ProtectedValueError> {
-        SecretBoxBytes::try_from_fn_bounded(8, 8, |index| {
-            let mut value = 0_u8;
-            copy(index, &mut value);
-            Ok::<u8, Infallible>(value)
-        })
-        .map(Self)
-        .map_err(|_| ProtectedValueError)
+        let mut bytes =
+            SecretBoxBytes::try_zeroed(8, 8).map_err(|_| ProtectedValueError::Allocation)?;
+        bytes.with_secret_mut(|destination| {
+            for (index, byte) in destination.iter_mut().enumerate() {
+                copy(index, byte);
+            }
+        });
+        Ok(Self(bytes))
     }
 
     fn capability(&self, index: usize) -> bool {
@@ -327,7 +334,9 @@ fn valid_u64_decimal(digits: &[u8]) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use super::{ProtectedIpAddr, RobotServerDate, RobotServerSubnet, protected};
+    use super::{
+        ProtectedIpAddr, ProtectedValueError, RobotServerDate, RobotServerSubnet, protected,
+    };
     use core::net::IpAddr;
     use core::str::FromStr;
 
@@ -342,7 +351,10 @@ mod tests {
 
     #[test]
     fn impossible_protected_capacity_maps_to_failure() {
-        assert!(protected(usize::MAX, |_| 0).is_err());
+        assert!(matches!(
+            protected(usize::MAX, |_| 0),
+            Err(ProtectedValueError::Allocation)
+        ));
     }
 
     #[test]

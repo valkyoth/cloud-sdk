@@ -35,6 +35,10 @@ publication.
   Booleans. Robot identities now remain canonical protected decimal bytes,
   request paths copy those bytes directly, and address/subnet/date decoding
   uses bounded clear-on-drop scratch before stable protected ownership.
+- Preserved protected allocation failures as `Allocation` instead of
+  misclassifying them as malformed identifiers, addresses, subnets, or dates,
+  and copied cancellation/capability Booleans directly into final protected
+  storage without ordinary byte temporaries.
 - Replaced quadratic duplicate scans with sorted public index scratch and
   in-place protected comparisons, eliminating copied identity arrays, and
   added a direct checked-response Robot server fuzz target with exact-bound

@@ -52,6 +52,10 @@ sensitive.
   bounded byte/word scratch that volatile-clears on every success and error;
   request paths copy protected decimal digits without reconstructing an SDK
   scalar.
+- Protected parser errors distinguish invalid provider data from local
+  allocation failure so retry and incident policy cannot mistake resource
+  exhaustion for a malformed response. Cancellation and capability bytes copy
+  directly between protected allocations without an ordinary scalar temporary.
 - Address, subnet, date, and identity inspection is closure-scoped; status and
   capability checks borrow their protected owner. Callers that retain scalar
   copies assume responsibility for clearing or containing those copies.

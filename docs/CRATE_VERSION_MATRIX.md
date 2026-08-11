@@ -1159,8 +1159,10 @@ published.
 
 `v0.78.0` adds canonical Robot server list, get, and rename operations plus
 strict success models. Classified parser intermediates use protected lexical
-or fixed storage and bounded clear-on-drop scratch. It remains an internal
-milestone in the v0.76-v0.80 cumulative train, so no crate is published.
+or fixed storage and bounded clear-on-drop scratch, Boolean transfers write
+directly into final protected storage, and allocation failures remain distinct
+from malformed provider data. It remains an internal milestone in the
+v0.76-v0.80 cumulative train, so no crate is published.
 
 | Crate | Published | Source | Change | Publish | Reason |
 | --- | --- | --- | --- | --- | --- |

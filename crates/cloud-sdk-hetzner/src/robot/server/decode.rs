@@ -10,8 +10,8 @@ use super::model::{
     RobotServerSummary,
 };
 use super::protected::{
-    ProtectedFlag, ProtectedIpAddr, RobotServerCapabilities, RobotServerDate, RobotServerStatus,
-    RobotServerSubnet, RobotStorageBoxNumber,
+    ProtectedFlag, ProtectedIpAddr, ProtectedValueError, RobotServerCapabilities, RobotServerDate,
+    RobotServerStatus, RobotServerSubnet, RobotStorageBoxNumber,
 };
 use super::request::{RobotServerGetRequest, RobotServerListRequest, RobotServerUpdateRequest};
 use crate::serde::SensitiveText;
@@ -165,8 +165,9 @@ pub fn decode_robot_server(
         .map(|value| {
             value
                 .try_with_unsigned_lexical(|digits| {
-                    RobotStorageBoxNumber::from_decimal_bytes(digits.as_bytes())
-                        .map_err(|_| RobotServerDecodeError::InvalidIdentifier)
+                    RobotStorageBoxNumber::from_decimal_bytes(digits.as_bytes()).map_err(|error| {
+                        map_protected_error(error, RobotServerDecodeError::InvalidIdentifier)
+                    })
                 })
                 .ok_or(RobotServerDecodeError::InvalidIdentifier)?
         })
@@ -250,10 +251,12 @@ fn parse_summary(
         .ok_or(RobotServerDecodeError::InvalidEnvelope)?
         .map_err(map_number_error)?;
     let main_ipv4 = parse_text(object, "server_ip", |value| {
-        ProtectedIpAddr::parse_ipv4(value).map_err(|_| RobotServerDecodeError::InvalidAddress)
+        ProtectedIpAddr::parse_ipv4(value)
+            .map_err(|error| map_protected_error(error, RobotServerDecodeError::InvalidAddress))
     })?;
     let main_ipv6_network = parse_text(object, "server_ipv6_net", |value| {
-        ProtectedIpAddr::parse_ipv6(value).map_err(|_| RobotServerDecodeError::InvalidAddress)
+        ProtectedIpAddr::parse_ipv6(value)
+            .map_err(|error| map_protected_error(error, RobotServerDecodeError::InvalidAddress))
     })?;
     let name = take_text(object, "server_name")?;
     let product = take_text(object, "product")?;
@@ -277,7 +280,8 @@ fn parse_summary(
     })
     .map_err(|_| RobotServerDecodeError::Allocation)?;
     let paid_until = parse_text(object, "paid_until", |value| {
-        RobotServerDate::parse(value).map_err(|_| RobotServerDecodeError::InvalidDate)
+        RobotServerDate::parse(value)
+            .map_err(|error| map_protected_error(error, RobotServerDecodeError::InvalidDate))
     })?;
     let addresses = parse_addresses(object)?;
     if !addresses.iter().any(|address| address == &main_ipv4) {
@@ -315,7 +319,9 @@ fn parse_addresses(object: &mut Map) -> Result<Vec<ProtectedIpAddr>, RobotServer
     for value in values {
         let address = value
             .try_with_str(|text| {
-                ProtectedIpAddr::parse(text).map_err(|_| RobotServerDecodeError::InvalidAddress)
+                ProtectedIpAddr::parse(text).map_err(|error| {
+                    map_protected_error(error, RobotServerDecodeError::InvalidAddress)
+                })
             })
             .map_err(|_| RobotServerDecodeError::InvalidAddress)?
             .ok_or(RobotServerDecodeError::InvalidEnvelope)??;
@@ -365,8 +371,9 @@ fn parse_subnet(object: &Map) -> Result<RobotServerSubnet, RobotServerDecodeErro
     network
         .try_with_str(|network| {
             prefix.try_with_str(|prefix| {
-                RobotServerSubnet::parse(network, prefix)
-                    .map_err(|_| RobotServerDecodeError::InvalidSubnet)
+                RobotServerSubnet::parse(network, prefix).map_err(|error| {
+                    map_protected_error(error, RobotServerDecodeError::InvalidSubnet)
+                })
             })
         })
         .map_err(|_| RobotServerDecodeError::InvalidSubnet)?
@@ -379,6 +386,16 @@ fn map_number_error(error: DecimalServerNumberError) -> RobotServerDecodeError {
     match error {
         DecimalServerNumberError::Invalid => RobotServerDecodeError::InvalidIdentifier,
         DecimalServerNumberError::Allocation => RobotServerDecodeError::Allocation,
+    }
+}
+
+fn map_protected_error(
+    error: ProtectedValueError,
+    invalid: RobotServerDecodeError,
+) -> RobotServerDecodeError {
+    match error {
+        ProtectedValueError::Invalid => invalid,
+        ProtectedValueError::Allocation => RobotServerDecodeError::Allocation,
     }
 }
 
@@ -440,5 +457,28 @@ fn map_json_error(error: JsonError) -> RobotServerDecodeError {
         RobotServerDecodeError::Allocation
     } else {
         RobotServerDecodeError::MalformedPayload
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{ProtectedValueError, RobotServerDecodeError, map_protected_error};
+
+    #[test]
+    fn protected_value_failures_preserve_allocation_classification() {
+        assert_eq!(
+            map_protected_error(
+                ProtectedValueError::Invalid,
+                RobotServerDecodeError::InvalidAddress,
+            ),
+            RobotServerDecodeError::InvalidAddress
+        );
+        assert_eq!(
+            map_protected_error(
+                ProtectedValueError::Allocation,
+                RobotServerDecodeError::InvalidAddress,
+            ),
+            RobotServerDecodeError::Allocation
+        );
     }
 }

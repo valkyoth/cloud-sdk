@@ -2,6 +2,8 @@ use cloud_sdk_sanitization::{SecretBoxBytes, sanitize_bytes, sanitize_value};
 
 use super::protected::ProtectedValueError;
 
+const INVALID: ProtectedValueError = ProtectedValueError::Invalid;
+
 pub(super) enum AddressFamily {
     Any,
     V4,
@@ -46,12 +48,12 @@ pub(super) fn address(
 ) -> Result<SecretBoxBytes, ProtectedValueError> {
     if text.as_bytes().contains(&b':') {
         if matches!(expected, AddressFamily::V4) {
-            return Err(ProtectedValueError);
+            return Err(INVALID);
         }
         ipv6(text)
     } else {
         if matches!(expected, AddressFamily::V6) {
-            return Err(ProtectedValueError);
+            return Err(INVALID);
         }
         ipv4(text)
     }
@@ -63,9 +65,9 @@ pub(super) fn subnet(text: &str, prefix: &str) -> Result<SecretBoxBytes, Protect
     let address = address(text, AddressFamily::Any)?;
     let canonical = address.with_secret(|bytes| canonical_network(bytes, parsed_prefix.0));
     if !canonical {
-        return Err(ProtectedValueError);
+        return Err(INVALID);
     }
-    let len = address.len().checked_add(1).ok_or(ProtectedValueError)?;
+    let len = address.len().checked_add(1).ok_or(INVALID)?;
     SecretBoxBytes::try_from_fn_bounded(len, 18, |index| {
         Ok::<u8, core::convert::Infallible>(if index.checked_add(1) == Some(len) {
             parsed_prefix.0
@@ -73,34 +75,31 @@ pub(super) fn subnet(text: &str, prefix: &str) -> Result<SecretBoxBytes, Protect
             address.with_secret(|bytes| bytes.get(index).copied().unwrap_or(0))
         })
     })
-    .map_err(|_| ProtectedValueError)
+    .map_err(|_| ProtectedValueError::Allocation)
 }
 
 pub(super) fn date(text: &str) -> Result<SecretBoxBytes, ProtectedValueError> {
     let bytes = text.as_bytes();
     if bytes.len() != 10 || bytes.get(4) != Some(&b'-') || bytes.get(7) != Some(&b'-') {
-        return Err(ProtectedValueError);
+        return Err(INVALID);
     }
     let mut parts = Octets([0_u8; 4]);
     let mut year = ProtectedWord(0);
-    for byte in bytes.get(..4).ok_or(ProtectedValueError)? {
+    for byte in bytes.get(..4).ok_or(INVALID)? {
         decimal_step_u16(&mut year.0, *byte)?;
     }
-    parts.0[0] = u8::try_from(year.0 >> 8).map_err(|_| ProtectedValueError)?;
-    parts.0[1] = u8::try_from(year.0 & 0xff).map_err(|_| ProtectedValueError)?;
-    parse_decimal_byte_into(bytes.get(5..7).ok_or(ProtectedValueError)?, &mut parts.0[2])?;
-    parse_decimal_byte_into(
-        bytes.get(8..10).ok_or(ProtectedValueError)?,
-        &mut parts.0[3],
-    )?;
+    parts.0[0] = u8::try_from(year.0 >> 8).map_err(|_| INVALID)?;
+    parts.0[1] = u8::try_from(year.0 & 0xff).map_err(|_| INVALID)?;
+    parse_decimal_byte_into(bytes.get(5..7).ok_or(INVALID)?, &mut parts.0[2])?;
+    parse_decimal_byte_into(bytes.get(8..10).ok_or(INVALID)?, &mut parts.0[3])?;
     let valid = year.0 != 0
         && (1..=12).contains(&parts.0[2])
         && parts.0[3] != 0
         && parts.0[3] <= days_in_month(year.0, parts.0[2]);
     if !valid {
-        return Err(ProtectedValueError);
+        return Err(INVALID);
     }
-    SecretBoxBytes::try_from_slice(&parts.0, 4).map_err(|_| ProtectedValueError)
+    SecretBoxBytes::try_from_slice(&parts.0, 4).map_err(|_| ProtectedValueError::Allocation)
 }
 
 fn ipv4(text: &str) -> Result<SecretBoxBytes, ProtectedValueError> {
@@ -113,7 +112,7 @@ fn ipv4(text: &str) -> Result<SecretBoxBytes, ProtectedValueError> {
             octets.0.get(index.saturating_sub(1)).copied().unwrap_or(0)
         })
     })
-    .map_err(|_| ProtectedValueError)
+    .map_err(|_| ProtectedValueError::Allocation)
 }
 
 fn ipv6(text: &str) -> Result<SecretBoxBytes, ProtectedValueError> {
@@ -135,44 +134,40 @@ fn ipv6(text: &str) -> Result<SecretBoxBytes, ProtectedValueError> {
             }
         })
     })
-    .map_err(|_| ProtectedValueError)
+    .map_err(|_| ProtectedValueError::Allocation)
 }
 
 fn parse_ipv4_into(text: &str, output: &mut [u8; 4]) -> Result<(), ProtectedValueError> {
     let mut parts = text.split('.');
     for target in output {
-        let part = parts.next().ok_or(ProtectedValueError)?;
+        let part = parts.next().ok_or(INVALID)?;
         if part.is_empty() || (part.len() > 1 && part.starts_with('0')) || part.len() > 3 {
-            return Err(ProtectedValueError);
+            return Err(INVALID);
         }
         parse_decimal_byte_into(part.as_bytes(), target)?;
     }
     if parts.next().is_some() {
-        return Err(ProtectedValueError);
+        return Err(INVALID);
     }
     Ok(())
 }
 
 fn parse_ipv6_into(text: &str, output: &mut [u16; 8]) -> Result<(), ProtectedValueError> {
     if text.is_empty() || text.matches("::").count() > 1 {
-        return Err(ProtectedValueError);
+        return Err(INVALID);
     }
     if let Some((left, right)) = text.split_once("::") {
         let left_units = section_units(left)?;
         let right_units = section_units(right)?;
-        if left_units
-            .checked_add(right_units)
-            .ok_or(ProtectedValueError)?
-            >= 8
-        {
-            return Err(ProtectedValueError);
+        if left_units.checked_add(right_units).ok_or(INVALID)? >= 8 {
+            return Err(INVALID);
         }
         parse_section(left, output, 0)?;
         parse_section(right, output, 8_usize.saturating_sub(right_units))?;
         return Ok(());
     }
     if section_units(text)? != 8 {
-        return Err(ProtectedValueError);
+        return Err(INVALID);
     }
     parse_section(text, output, 0)
 }
@@ -185,17 +180,17 @@ fn section_units(section: &str) -> Result<usize, ProtectedValueError> {
     let mut pieces = section.split(':').peekable();
     while let Some(piece) = pieces.next() {
         if piece.is_empty() {
-            return Err(ProtectedValueError);
+            return Err(INVALID);
         }
         let width = if piece.as_bytes().contains(&b'.') {
             if pieces.peek().is_some() {
-                return Err(ProtectedValueError);
+                return Err(INVALID);
             }
             2
         } else {
             1
         };
-        units = units.checked_add(width).ok_or(ProtectedValueError)?;
+        units = units.checked_add(width).ok_or(INVALID)?;
     }
     Ok(units)
 }
@@ -212,48 +207,48 @@ fn parse_section(
         if piece.as_bytes().contains(&b'.') {
             let mut octets = Octets([0_u8; 4]);
             parse_ipv4_into(piece, &mut octets.0)?;
-            *output.get_mut(index).ok_or(ProtectedValueError)? =
+            *output.get_mut(index).ok_or(INVALID)? =
                 (u16::from(octets.0[0]) << 8) | u16::from(octets.0[1]);
-            index = index.checked_add(1).ok_or(ProtectedValueError)?;
-            *output.get_mut(index).ok_or(ProtectedValueError)? =
+            index = index.checked_add(1).ok_or(INVALID)?;
+            *output.get_mut(index).ok_or(INVALID)? =
                 (u16::from(octets.0[2]) << 8) | u16::from(octets.0[3]);
         } else {
             if piece.is_empty() || piece.len() > 4 {
-                return Err(ProtectedValueError);
+                return Err(INVALID);
             }
-            let target = output.get_mut(index).ok_or(ProtectedValueError)?;
+            let target = output.get_mut(index).ok_or(INVALID)?;
             for byte in piece.bytes() {
                 let nibble = ProtectedWord(match byte {
                     b'0'..=b'9' => u16::from(byte.saturating_sub(b'0')),
                     b'a'..=b'f' => u16::from(byte.saturating_sub(b'a').saturating_add(10)),
                     b'A'..=b'F' => u16::from(byte.saturating_sub(b'A').saturating_add(10)),
-                    _ => return Err(ProtectedValueError),
+                    _ => return Err(INVALID),
                 });
                 *target = target
                     .checked_mul(16)
                     .and_then(|value| value.checked_add(nibble.0))
-                    .ok_or(ProtectedValueError)?;
+                    .ok_or(INVALID)?;
             }
         }
-        index = index.checked_add(1).ok_or(ProtectedValueError)?;
+        index = index.checked_add(1).ok_or(INVALID)?;
     }
     Ok(())
 }
 
 fn parse_decimal_byte_into(bytes: &[u8], value: &mut u8) -> Result<(), ProtectedValueError> {
     if bytes.is_empty() {
-        return Err(ProtectedValueError);
+        return Err(INVALID);
     }
     *value = 0;
     for byte in bytes {
         let digit = byte
             .checked_sub(b'0')
             .filter(|digit| *digit <= 9)
-            .ok_or(ProtectedValueError)?;
+            .ok_or(INVALID)?;
         *value = value
             .checked_mul(10)
             .and_then(|value| value.checked_add(digit))
-            .ok_or(ProtectedValueError)?;
+            .ok_or(INVALID)?;
     }
     Ok(())
 }
@@ -262,11 +257,11 @@ fn decimal_step_u16(value: &mut u16, byte: u8) -> Result<(), ProtectedValueError
     let digit = byte
         .checked_sub(b'0')
         .filter(|digit| *digit <= 9)
-        .ok_or(ProtectedValueError)?;
+        .ok_or(INVALID)?;
     *value = value
         .checked_mul(10)
         .and_then(|value| value.checked_add(u16::from(digit)))
-        .ok_or(ProtectedValueError)?;
+        .ok_or(INVALID)?;
     Ok(())
 }
 

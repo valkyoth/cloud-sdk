@@ -54,6 +54,12 @@ Strict JSON keeps lexical numbers and protected Booleans, Robot identities
 copy canonical decimal bytes directly, and topology/date validation uses
 bounded clear-on-drop scratch before constructing stable owners.
 
+## Collapsed Protected Parse Errors
+
+Rejected because treating allocation failure as malformed provider data gives
+callers the wrong retry and incident signal. Protected parsing retains separate
+invalid-input and allocation categories through the public decoder boundary.
+
 ## Permissive Future Fields And Statuses
 
 Rejected for the first Robot endpoint family. Unknown fields and enum strings
