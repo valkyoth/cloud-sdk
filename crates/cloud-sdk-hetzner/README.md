@@ -98,22 +98,28 @@ shows numbered Console Storage pagination through the named official Storage
 client path.
 
 Robot server reads and renames use only the canonical positive server number.
-The deprecated IPv4 path aliases are intentionally unavailable. Request
-preparation is allocation-free and available with default features; strict
-owned success models require `serde`:
+The deprecated IPv4 path aliases are intentionally unavailable. The `alloc`
+feature provides stable protected request identities; request preparation does
+not allocate after identity construction. Strict owned success models require
+`serde`, which includes `alloc`:
 
 ```rust
+# #[cfg(feature = "alloc")]
+# fn main() -> Result<(), Box<dyn core::error::Error>> {
 use cloud_sdk::operation::{PreparationStorage, PrepareOperation};
 use cloud_sdk_hetzner::robot::{RobotServerGetRequest, RobotServerNumber};
 
-let number = RobotServerNumber::new(321).ok_or("server number must be positive")?;
+let number = RobotServerNumber::new(321)?;
 let request = RobotServerGetRequest::new(number);
 let mut target = [0_u8; 64];
 let mut body = [0_u8; 1];
 let prepared = request.prepare(PreparationStorage::new(&mut target, &mut body))?;
 
 assert_eq!(prepared.transport_request().target().as_str(), "/server/321");
-# Ok::<(), Box<dyn core::error::Error>>(())
+# Ok(())
+# }
+# #[cfg(not(feature = "alloc"))]
+# fn main() {}
 ```
 
 `RobotServerListRequest`, `RobotServerGetRequest`, and
@@ -122,11 +128,12 @@ Basic-auth scope, form media type, explicit operation impact, retry policy,
 and checked `200`/JSON response policy. Their decode methods consume a
 `CheckedResponseGuard`, clear response storage, reject a mismatched server
 number, and return bounded `RobotServerList` or `RobotServer` models.
-Operationally sensitive IDs, addresses, subnets, dates, states, and capability
-flags are non-`Copy`, drop-cleaned values with redacted diagnostics. Inspect
-IDs, addresses, subnets, and dates through the documented closure-scoped
-accessors; any copy retained by caller code is outside the SDK cleanup
-boundary.
+Operationally sensitive IDs, addresses, subnets, dates, states, cancellation,
+and capability flags are non-`Copy`, stable-allocation-backed values with
+redacted diagnostics. Moving an SDK model transfers allocation metadata rather
+than copying classified bytes to another inline location. Inspect IDs,
+addresses, subnets, and dates through the documented closure-scoped accessors;
+any scalar copy retained by caller code is outside the SDK cleanup boundary.
 
 Robot error responses use a separate strict decoder. Pass only an admitted
 transport response; unknown statuses, unknown codes, duplicate keys, and

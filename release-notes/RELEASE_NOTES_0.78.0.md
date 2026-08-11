@@ -17,19 +17,22 @@ publication.
 ## Robot Servers
 
 - Added canonical positive server-number identity with no deprecated IP alias.
-- Added allocation-free default-feature preparation for list, get, and explicit
-  rename intent, bound to the official Robot origin, Basic scope, operation
-  metadata, form media type, and checked response policy.
+- Added `alloc`-gated preparation for list, get, and explicit rename intent,
+  bound to the official Robot origin, Basic scope, operation metadata, form
+  media type, and checked response policy. Preparation does not allocate after
+  fallible stable identity construction.
 - Added bounded summaries and details with capability flags, finite status,
   calendar-valid dates, canonical addresses/subnets, nullable subnets, and
   linked Storage Box identity.
 - Added strict checked decoding with exact fields, duplicate rejection,
   response identity binding, protected text, and cleanup-owning request decode
   methods.
-- Added non-`Copy`, drop-cleaned owners for server identities, topology,
-  billing dates, states, cancellation flags, and capabilities, with static
-  redacted diagnostics and closure-scoped inspection.
-- Replaced quadratic duplicate scans with wiped sorted identity scratch and
+- Added non-`Copy`, stable-allocation-backed owners for server identities,
+  topology, billing dates, states, cancellation flags, and capabilities, with
+  static redacted diagnostics and closure-scoped inspection. Owner moves no
+  longer relocate classified bytes.
+- Replaced quadratic duplicate scans with sorted public index scratch and
+  in-place protected comparisons, eliminating copied identity arrays, and
   added a direct checked-response Robot server fuzz target with exact-bound
   deterministic seeds.
 - Added source-contract and regression checks for all three operations, fields,
@@ -44,7 +47,7 @@ publication.
 | `cloud-sdk` | `0.75.0` | `0.78.0` | deferred to v0.80.0 |
 | `cloud-sdk-hetzner` | `0.42.0` | `0.42.0` | code accumulated, no publication |
 | `cloud-sdk-reqwest` | `0.35.0` | `0.35.0` | unchanged |
-| `cloud-sdk-sanitization` | `0.18.0` | `0.18.0` | unchanged |
+| `cloud-sdk-sanitization` | `0.18.0` | `0.18.0` | code accumulated, no publication |
 | `cloud-sdk-testkit` | `0.30.2` | `0.30.2` | unchanged |
 
 ## Release Evidence

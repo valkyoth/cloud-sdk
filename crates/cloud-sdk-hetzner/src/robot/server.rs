@@ -9,13 +9,19 @@ mod decode;
 mod duplicates;
 #[cfg(feature = "serde")]
 mod model;
+#[cfg(feature = "serde")]
+mod protected;
 
-pub use identity::RobotServerNumber;
+pub use identity::{RobotServerNumber, RobotServerNumberError};
 #[cfg(feature = "serde")]
 pub use model::{
-    MAX_ROBOT_SERVER_ADDRESSES, MAX_ROBOT_SERVER_LIST_ITEMS, ProtectedIpAddr, RobotServer,
-    RobotServerCapabilities, RobotServerDate, RobotServerList, RobotServerStatus,
-    RobotServerSubnet, RobotServerSummary, RobotStorageBoxNumber,
+    MAX_ROBOT_SERVER_ADDRESSES, MAX_ROBOT_SERVER_LIST_ITEMS, RobotServer, RobotServerList,
+    RobotServerSummary,
+};
+#[cfg(feature = "serde")]
+pub use protected::{
+    ProtectedIpAddr, RobotServerCapabilities, RobotServerDate, RobotServerStatus,
+    RobotServerSubnet, RobotStorageBoxNumber,
 };
 pub use request::{
     MAX_ROBOT_SERVER_NAME_BYTES, RobotServerGetRequest, RobotServerListRequest, RobotServerName,

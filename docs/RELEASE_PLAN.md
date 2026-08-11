@@ -2284,9 +2284,9 @@ Status: implementation complete; pentest required.
 
 Goal: complete server list/get/update operations and models.
 
-Deliverables: canonical server identity, capabilities, statuses, nullable subnets, explicit update intent, and no legacy IP aliases.
+Deliverables: canonical server identity, capabilities, statuses, nullable subnets, explicit update intent, and no legacy IP aliases. Classified identities, topology, dates, states, and capabilities use fallible stable allocation-backed storage; model moves relocate only allocation metadata, and duplicate checks sort public indices without copied classified keys.
 
-Verification: source coverage, field/conflict/boundary tests, and `scripts/release_0_78_gate.sh`.
+Verification: source coverage, field/conflict/boundary tests, stable-allocation move tests, index-only duplicate checks, and `scripts/release_0_78_gate.sh`.
 
 Stop gate: `v0.78.0 implementation stop reached. Complete the pentest and full release gate for this exact commit; defer crates.io publication to v0.80.0.`
 

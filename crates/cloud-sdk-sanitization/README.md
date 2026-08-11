@@ -57,9 +57,10 @@ assert_eq!(output, [0_u8; 128]);
 ```
 
 With the optional `alloc` feature, the reviewed
-`sanitization::SecretString` is re-exported. It consumes an owned `String`
-without copying its plaintext bytes, restricts access to checked closures, and
-volatile-clears the full allocation capacity on drop:
+`sanitization::SecretString` and `sanitization::SecretBoxBytes` types are
+re-exported. `SecretString` consumes an owned `String` without copying its
+plaintext bytes, restricts access to checked closures, and volatile-clears the
+full allocation capacity on drop:
 
 ```rust
 # #[cfg(feature = "alloc")]
@@ -75,6 +76,25 @@ assert_eq!(
     Ok(true)
 );
 assert!(!alloc::format!("{secret:?}").contains("temporary secret"));
+# }
+# #[cfg(not(feature = "alloc"))]
+# fn main() {}
+```
+
+`SecretBoxBytes` provides fixed-length, fallibly allocated protected bytes.
+Moving the owner transfers only allocation metadata, so the classified bytes
+remain at one stable address until the allocation is cleared on drop:
+
+```rust
+# #[cfg(feature = "alloc")]
+# fn main() {
+use cloud_sdk_sanitization::SecretBoxBytes;
+
+let protected = SecretBoxBytes::try_from_slice(b"topology", 8)
+    .unwrap_or_else(|_| unreachable!("fixed protected allocation failed"));
+let before = protected.with_secret(<[u8]>::as_ptr);
+let moved = protected;
+assert_eq!(before, moved.with_secret(<[u8]>::as_ptr));
 # }
 # #[cfg(not(feature = "alloc"))]
 # fn main() {}
@@ -103,7 +123,7 @@ assert_eq!(secret.try_with_secret(|text| text == "bounded"), Ok(true));
 | Feature | Default | Effect |
 | --- | --- | --- |
 | `default` | yes | Empty; keeps the boundary `no_std`. |
-| `alloc` | no | Adds owned volatile-clearing UTF-8 secret storage. |
+| `alloc` | no | Adds stable owned volatile-clearing UTF-8 and fixed-byte secret storage. |
 | `std` | no | Enables `alloc` and standard-library integration in `cloud-sdk`; clearing behavior is unchanged. |
 
 Docs.rs builds with all features. The underlying `sanitization` dependency
@@ -112,8 +132,10 @@ keeps its default features disabled in every configuration.
 ## Security Notes
 
 `SecretBuffer` volatile-clears its entire borrowed slice on drop, including
-after early returns and unwind where unwind exists. `SecretString` clears its
-full owned allocation capacity on drop. `try_append_secret_string` reports
+after early returns and unwind where unwind exists. `SecretString` and
+`SecretBoxBytes` clear their full owned allocation capacities on drop. Moving
+a `SecretBoxBytes` owner does not move its classified allocation.
+`try_append_secret_string` reports
 bounded growth failure and clears old storage before replacement.
 `sanitize_bytes` provides the reviewed byte primitive used by core;
 `sanitize_value` applies the same boundary to scalar lifecycle state.

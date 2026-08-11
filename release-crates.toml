@@ -33,9 +33,9 @@ reason = "No reqwest transport boundary changes."
 [crates."cloud-sdk-sanitization"]
 previous_version = "0.18.0"
 version = "0.18.0"
-change = "unchanged"
+change = "code"
 publish = false
-reason = "No sanitization boundary changes."
+reason = "Expose stable protected fixed-byte ownership for the Robot server model; defer publication to v0.80.0."
 
 [crates."cloud-sdk-testkit"]
 previous_version = "0.30.2"

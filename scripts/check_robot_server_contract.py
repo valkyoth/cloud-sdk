@@ -84,6 +84,9 @@ def validate_implementation() -> None:
     request = (ROOT / "crates/cloud-sdk-hetzner/src/robot/server/request.rs").read_text(encoding="ascii")
     decoder = (ROOT / "crates/cloud-sdk-hetzner/src/robot/server/decode.rs").read_text(encoding="ascii")
     model = (ROOT / "crates/cloud-sdk-hetzner/src/robot/server/model.rs").read_text(encoding="ascii")
+    protected = (ROOT / "crates/cloud-sdk-hetzner/src/robot/server/protected.rs").read_text(encoding="ascii")
+    identity = (ROOT / "crates/cloud-sdk-hetzner/src/robot/server/identity.rs").read_text(encoding="ascii")
+    duplicates = (ROOT / "crates/cloud-sdk-hetzner/src/robot/server/duplicates.rs").read_text(encoding="ascii")
     require('write_str(output, &mut len, "/server"' in request, "canonical server path is absent")
     require('RobotFormField::public("server_name"' in request, "rename form is absent")
     require("server-ip" not in request, "deprecated IP alias entered request code")
@@ -91,10 +94,15 @@ def validate_implementation() -> None:
         require(status in decoder, f"missing status decoder {status}")
     require("ResponseIdentityMismatch" in decoder, "detail identity binding is absent")
     require("canonical_network" in decoder, "subnet canonicalization is absent")
-    require("reject_duplicates(&servers" in decoder, "sorted server duplicate check is absent")
+    require("reject_duplicates_by(&servers" in decoder, "sorted server duplicate check is absent")
     require("reject_duplicates(&result" in decoder, "sorted topology duplicate check is absent")
-    require("pub struct ProtectedIpAddr" in model, "protected address owner is absent")
-    require("impl Drop for RobotServerSummary" in model, "summary cleanup owner is absent")
+    require("pub struct ProtectedIpAddr(SecretBoxBytes)" in protected,
+            "stable protected address owner is absent")
+    require("pub struct RobotServerNumber(SecretBoxBytes)" in identity,
+            "stable protected server identity is absent")
+    require("Vec<usize>" in duplicates, "public index duplicate scratch is absent")
+    require("identity_key" not in protected + identity + duplicates,
+            "copied classified identity keys re-entered server decoding")
     require("RobotServerSummary([redacted])" in model, "summary diagnostics are not redacted")
 
 

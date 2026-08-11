@@ -57,7 +57,7 @@ fn decode_list(body: &[u8]) -> Option<Result<(), RobotServerDecodeError>> {
 
 fn decode_detail(body: &[u8]) -> Option<Result<(), RobotServerDecodeError>> {
     let number =
-        RobotServerNumber::new(321).unwrap_or_else(|| unreachable!("fixed server number failed"));
+        RobotServerNumber::new(321).unwrap_or_else(|_| unreachable!("fixed server number failed"));
     let request = RobotServerGetRequest::new(number);
     let mut target = [0_u8; 128];
     let mut request_body = [0_u8; 64];

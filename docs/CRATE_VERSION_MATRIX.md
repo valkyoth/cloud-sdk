@@ -1166,7 +1166,7 @@ cumulative train, so no crate is published.
 | `cloud-sdk` | `0.75.0` | `0.78.0` | `metadata` | No | Record the Robot server milestone without publishing the cumulative train. |
 | `cloud-sdk-hetzner` | `0.42.0` | `0.42.0` | `code` | No | Accumulate Robot server requests, preparation, bounded response models, and checked decoding for v0.80.0. |
 | `cloud-sdk-reqwest` | `0.35.0` | `0.35.0` | `unchanged` | No | No transport boundary changes. |
-| `cloud-sdk-sanitization` | `0.18.0` | `0.18.0` | `unchanged` | No | Reuse existing cleanup and protected-string boundaries. |
+| `cloud-sdk-sanitization` | `0.18.0` | `0.18.0` | `code` | No | Re-export stable protected fixed-byte ownership for Robot models; defer publication to v0.80.0. |
 | `cloud-sdk-testkit` | `0.30.2` | `0.30.2` | `unchanged` | No | No testkit boundary changes. |
 
 ## Planned Milestone Ownership

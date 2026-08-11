@@ -8,7 +8,7 @@ extern crate std;
 extern crate alloc;
 
 #[cfg(feature = "alloc")]
-pub use sanitization::SecretString;
+pub use sanitization::{SecretBoxBytes, SecretString};
 
 /// Failure while fallibly appending to protected UTF-8 storage.
 #[cfg(feature = "alloc")]
@@ -155,9 +155,9 @@ mod tests {
     extern crate alloc;
 
     #[cfg(feature = "alloc")]
-    use super::SecretString;
-    #[cfg(feature = "alloc")]
     use super::sanitize_string;
+    #[cfg(feature = "alloc")]
+    use super::{SecretBoxBytes, SecretString};
     use super::{SecretBuffer, sanitize_bytes, sanitize_value};
     #[cfg(feature = "alloc")]
     use super::{SecretStringAppendError, try_append_secret_string};
@@ -227,6 +227,19 @@ mod tests {
             Ok(true)
         );
         assert!(!alloc::format!("{secret:?}").contains("temporary secret"));
+    }
+
+    #[cfg(feature = "alloc")]
+    #[test]
+    fn reexported_secret_box_keeps_bytes_at_one_stable_address_across_moves() {
+        let secret = SecretBoxBytes::try_from_slice(b"topology", 8)
+            .unwrap_or_else(|_| unreachable!("fixed protected fixture allocation failed"));
+        let before = secret.with_secret(<[u8]>::as_ptr);
+        let moved = secret;
+        let after = moved.with_secret(<[u8]>::as_ptr);
+
+        assert_eq!(before, after);
+        assert!(!alloc::format!("{moved:?}").contains("topology"));
     }
 
     #[cfg(feature = "alloc")]

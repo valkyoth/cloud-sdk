@@ -1,79 +1,79 @@
 use alloc::vec::Vec;
 
-use cloud_sdk_sanitization::sanitize_bytes;
-
 use super::decode::RobotServerDecodeError;
 
-pub(super) fn reject_duplicates<T, const N: usize>(
-    values: &[T],
-    mut identity: impl FnMut(&T) -> [u8; N],
-) -> Result<(), RobotServerDecodeError> {
-    let mut scratch = IdentityScratch::new(values.len())?;
-    for value in values {
-        scratch.push(identity(value));
-    }
-    scratch.reject_duplicates()
+pub(super) fn reject_duplicates<T: Ord>(values: &[T]) -> Result<(), RobotServerDecodeError> {
+    reject_duplicates_by(values, |value| value)
 }
 
-struct IdentityScratch<const N: usize>(Vec<[u8; N]>);
+pub(super) fn reject_duplicates_by<T, K: Ord + ?Sized>(
+    values: &[T],
+    identity: impl Fn(&T) -> &K,
+) -> Result<(), RobotServerDecodeError> {
+    let mut order = IndexScratch::new(values.len())?;
+    order.sort_by(|left, right| {
+        identity(indexed(values, left)).cmp(identity(indexed(values, right)))
+    });
+    if order.as_slice().windows(2).any(|pair| {
+        let [left, right] = pair else {
+            unreachable!("two-index duplicate window changed length")
+        };
+        identity(indexed(values, left)) == identity(indexed(values, right))
+    }) {
+        Err(RobotServerDecodeError::DuplicateIdentity)
+    } else {
+        Ok(())
+    }
+}
 
-impl<const N: usize> IdentityScratch<N> {
-    fn new(capacity: usize) -> Result<Self, RobotServerDecodeError> {
+fn indexed<'a, T>(values: &'a [T], index: &usize) -> &'a T {
+    values
+        .get(*index)
+        .unwrap_or_else(|| unreachable!("generated duplicate index exceeded source length"))
+}
+
+struct IndexScratch(Vec<usize>);
+
+impl IndexScratch {
+    fn new(length: usize) -> Result<Self, RobotServerDecodeError> {
         let mut values = Vec::new();
         values
-            .try_reserve_exact(capacity)
+            .try_reserve_exact(length)
             .map_err(|_| RobotServerDecodeError::Allocation)?;
+        values.extend(0..length);
         Ok(Self(values))
     }
 
-    fn push(&mut self, mut identity: [u8; N]) {
-        self.0.push(identity);
-        sanitize_bytes(&mut identity);
+    fn sort_by(&mut self, compare: impl FnMut(&usize, &usize) -> core::cmp::Ordering) {
+        self.0.sort_unstable_by(compare);
     }
 
-    fn reject_duplicates(&mut self) -> Result<(), RobotServerDecodeError> {
-        self.0.sort_unstable();
-        if self
-            .0
-            .windows(2)
-            .any(|pair| matches!(pair, [left, right] if left == right))
-        {
-            Err(RobotServerDecodeError::DuplicateIdentity)
-        } else {
-            Ok(())
-        }
-    }
-}
-
-impl<const N: usize> Drop for IdentityScratch<N> {
-    fn drop(&mut self) {
-        for identity in &mut self.0 {
-            sanitize_bytes(identity);
-        }
+    fn as_slice(&self) -> &[usize] {
+        &self.0
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{IdentityScratch, reject_duplicates};
+    use super::{IndexScratch, reject_duplicates, reject_duplicates_by};
     use crate::robot::server::RobotServerDecodeError;
 
     #[test]
-    fn sorted_scratch_detects_only_exact_duplicates() {
-        let distinct = [[2_u8], [1_u8], [3_u8]];
-        assert_eq!(reject_duplicates(&distinct, |value| *value), Ok(()));
-
-        let duplicate = [[2_u8], [1_u8], [2_u8]];
+    fn sorted_indices_detect_only_exact_duplicates() {
+        assert_eq!(reject_duplicates(&[2_u8, 1, 3]), Ok(()));
         assert_eq!(
-            reject_duplicates(&duplicate, |value| *value),
+            reject_duplicates(&[2_u8, 1, 2]),
             Err(RobotServerDecodeError::DuplicateIdentity)
         );
+
+        let distinct = [(2_u8, 9_u8), (1, 8), (3, 9)];
+        assert_eq!(reject_duplicates_by(&distinct, |value| &value.0), Ok(()));
     }
 
     #[test]
-    fn impossible_scratch_capacity_maps_to_allocation_failure() {
+    fn impossible_index_capacity_maps_to_allocation_failure() {
         assert!(matches!(
-            IdentityScratch::<1>::new(usize::MAX),
+            IndexScratch::new(usize::MAX),
             Err(RobotServerDecodeError::Allocation)
         ));
     }

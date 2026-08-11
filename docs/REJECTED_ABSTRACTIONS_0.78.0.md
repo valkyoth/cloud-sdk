@@ -35,8 +35,16 @@ Rejected because JSON `null` and `[]` are distinct provider states.
 
 Rejected because server inventory is classified as operationally sensitive.
 IDs, addresses, subnets, dates, states, cancellation state, and capabilities
-use non-`Copy`, drop-cleaned owners instead of ordinary scalar fields. Public
-inspection is scoped and diagnostics are static.
+use non-`Copy`, stable-allocation-backed owners instead of inline scalar or
+array fields. Moving an SDK model therefore transfers allocation metadata
+without creating an abandoned classified inline copy. Public inspection is
+scoped and diagnostics are static.
+
+## Copied Duplicate Keys
+
+Rejected because fixed-array identity keys recreate classified topology in
+ordinary sortable memory. Duplicate detection sorts public collection indices
+and compares stable protected values in place instead.
 
 ## Permissive Future Fields And Statuses
 

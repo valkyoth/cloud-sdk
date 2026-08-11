@@ -11,6 +11,7 @@ mod credentials;
 mod form;
 #[cfg(feature = "serde")]
 mod protocol;
+#[cfg(feature = "alloc")]
 mod server;
 
 /// Maximum Robot error-body bytes admitted by request and response policies.
@@ -35,9 +36,11 @@ pub use protocol::{
     RobotRetryDisposition, RobotTransientTransport, decode_robot_failure,
 };
 
+#[cfg(feature = "alloc")]
 pub use server::{
     MAX_ROBOT_SERVER_NAME_BYTES, RobotServerGetRequest, RobotServerListRequest, RobotServerName,
-    RobotServerNumber, RobotServerRequestError, RobotServerUpdateIntent, RobotServerUpdateRequest,
+    RobotServerNumber, RobotServerNumberError, RobotServerRequestError, RobotServerUpdateIntent,
+    RobotServerUpdateRequest,
 };
 
 #[cfg(feature = "serde")]

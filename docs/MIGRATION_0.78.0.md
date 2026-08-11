@@ -9,7 +9,7 @@ not require changes.
 use cloud_sdk::operation::{PreparationStorage, PrepareOperation};
 use cloud_sdk_hetzner::robot::{RobotServerGetRequest, RobotServerNumber};
 
-let number = RobotServerNumber::new(321).ok_or("server number must be positive")?;
+let number = RobotServerNumber::new(321)?;
 let request = RobotServerGetRequest::new(number);
 let mut target = [0_u8; 64];
 let mut body = [0_u8; 1];
@@ -28,8 +28,10 @@ then pass the resulting guard to `request.decode_response(checked)`. The get
 and update methods verify the response server number before returning.
 
 Server numbers and decoded operational metadata intentionally do not implement
-`Copy` or `Clone`. Create a fresh protected number for each independently owned
-request. Inspect returned IDs, dates, addresses, and subnets through their
+`Copy` or `Clone`. `RobotServerNumber::new` is now fallible because it places
+the classified number in stable allocation-backed storage. Create a fresh
+protected number for each independently owned request. Inspect returned IDs,
+dates, addresses, and subnets through their
 `with_number`, `with_date`, `with_addr`, and `with_subnet` closures:
 
 ```rust
@@ -45,7 +47,9 @@ fn inspect(summary: &RobotServerSummary) {
 }
 ```
 
-Any scalar copied into caller state is outside the SDK cleanup boundary.
+Moving these owners transfers only allocation metadata; it does not relocate
+their classified bytes. Any scalar copied into caller state through an accessor
+is outside the SDK cleanup boundary.
 
 ## Model Differences
 

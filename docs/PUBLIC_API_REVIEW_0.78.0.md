@@ -4,11 +4,13 @@ Status: implementation complete; pentest required.
 
 Scope: changes from signed v0.77.0 through the v0.78.0 implementation stop.
 
-## Default-Feature Requests
+## Allocation-Gated Requests
 
-`cloud_sdk_hetzner::robot` adds allocation-free `RobotServerListRequest`,
+With `alloc`, `cloud_sdk_hetzner::robot` adds `RobotServerListRequest`,
 `RobotServerGetRequest`, and `RobotServerUpdateRequest`. Canonical paths accept
-only positive `RobotServerNumber`; deprecated IPv4 aliases are unavailable.
+only a positive, fallibly allocated `RobotServerNumber` whose classified bytes
+remain at one stable address; deprecated IPv4 aliases are unavailable. Request
+preparation itself remains allocation-free after constructing the identity.
 Rename is represented by `RobotServerUpdateIntent::Rename` and a validated
 `RobotServerName`, so an empty update cannot be constructed.
 
@@ -30,8 +32,10 @@ requested server number.
 
 Provider strings use protected closure-scoped access. Operationally sensitive
 IDs, dates, addresses, subnets, status, cancellation state, and capabilities
-use non-`Copy`, drop-cleaned owners with static redacted diagnostics. Numeric,
-date, address, and subnet inspection is closure-scoped; nullable subnets
+use non-`Copy`, stable-allocation-backed owners with static redacted
+diagnostics. Moving an owner transfers allocation metadata rather than copying
+classified bytes. Numeric, date, address, and subnet inspection is
+closure-scoped; nullable subnets
 preserve `None` separately from an empty list. `linked_storagebox` is optional
 because the official output table and update example disagree about its
 presence.

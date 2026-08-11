@@ -37,7 +37,7 @@ fn prepares_canonical_list_get_and_rename_requests() {
 
 #[test]
 fn canonical_identity_and_name_validation_fail_closed() {
-    assert!(RobotServerNumber::new(0).is_none());
+    assert!(RobotServerNumber::new(0).is_err());
     for invalid in ["", "-server", "server-", "server name", "server.example"] {
         assert!(RobotServerName::new(invalid).is_err());
     }
@@ -47,7 +47,7 @@ fn canonical_identity_and_name_validation_fail_closed() {
 #[test]
 fn preparation_failures_clear_target_and_form_storage() {
     let number =
-        RobotServerNumber::new(321).unwrap_or_else(|| unreachable!("fixture number failed"));
+        RobotServerNumber::new(321).unwrap_or_else(|_| unreachable!("fixture number failed"));
     let name =
         RobotServerName::new("renamed-1").unwrap_or_else(|_| unreachable!("fixture name failed"));
     let request = RobotServerUpdateRequest::rename(number, name);
@@ -97,7 +97,7 @@ fn decodes_list_nullability_and_detailed_capabilities() {
     assert_eq!(summary.try_with_name(|name| name == "server-1"), Ok(true));
 
     let number =
-        RobotServerNumber::new(321).unwrap_or_else(|| unreachable!("fixture number failed"));
+        RobotServerNumber::new(321).unwrap_or_else(|_| unreachable!("fixture number failed"));
     let server = decode_detail(RobotServerGetRequest::new(number), DETAIL.as_bytes());
     let Ok(server) = server else {
         unreachable!("valid detail did not decode")
@@ -122,7 +122,7 @@ fn rejects_identity_conflicts_unknown_state_and_noncanonical_subnets() {
     ));
 
     let number =
-        RobotServerNumber::new(999).unwrap_or_else(|| unreachable!("fixture number failed"));
+        RobotServerNumber::new(999).unwrap_or_else(|_| unreachable!("fixture number failed"));
     assert!(matches!(
         decode_detail(RobotServerGetRequest::new(number), DETAIL.as_bytes()),
         Err(RobotServerDecodeError::ResponseIdentityMismatch)
@@ -218,7 +218,7 @@ fn every_server_diagnostic_is_static_and_redacted() {
 }
 
 fn server_number(value: u64) -> RobotServerNumber {
-    RobotServerNumber::new(value).unwrap_or_else(|| unreachable!("fixture number failed"))
+    RobotServerNumber::new(value).unwrap_or_else(|_| unreachable!("fixture number failed"))
 }
 
 fn prepare<O>(
