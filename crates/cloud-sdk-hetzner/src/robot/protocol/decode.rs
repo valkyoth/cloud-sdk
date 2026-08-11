@@ -9,7 +9,7 @@ use super::{
     RobotInvalidInput, RobotProviderError, RobotProviderErrorCode, RobotQuota,
 };
 use crate::serde::SensitiveText;
-use crate::serde::strict_json::{Map, Value, parse_with_scratch};
+use crate::serde::strict_json::{JsonError, Map, Value, parse_with_scratch};
 
 /// Decodes one admitted Robot error response with strict source-locked rules.
 pub fn decode_robot_failure(
@@ -54,8 +54,7 @@ fn decode_json_failure(
     body: &[u8],
     scratch: &mut [u8],
 ) -> Result<RobotFailure, RobotDecodeError> {
-    let mut value =
-        parse_with_scratch(body, scratch).map_err(|_| RobotDecodeError::MalformedPayload)?;
+    let mut value = parse_with_scratch(body, scratch).map_err(map_json_error)?;
     let root = value
         .as_object_mut()
         .ok_or(RobotDecodeError::InvalidEnvelope)?;
@@ -69,6 +68,13 @@ fn decode_json_failure(
         403 => decode_quota(error),
         404 => decode_provider_error(error),
         _ => Err(RobotDecodeError::UnsupportedStatus),
+    }
+}
+
+pub(super) const fn map_json_error(error: JsonError) -> RobotDecodeError {
+    match error {
+        JsonError::Allocation => RobotDecodeError::Allocation,
+        _ => RobotDecodeError::MalformedPayload,
     }
 }
 

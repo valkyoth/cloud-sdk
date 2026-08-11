@@ -80,6 +80,8 @@ case "$mode" in
         max_len=16384
         if [ "$target" = raw_http1_wire ]; then
             max_len=66560
+        elif [ "$target" = robot_error_protocol ]; then
+            max_len=65537
         fi
         cargo "+${toolchain}" fuzz run "$target" "$corpus" -- \
             -runs=64 "-max_len=${max_len}" -timeout=10

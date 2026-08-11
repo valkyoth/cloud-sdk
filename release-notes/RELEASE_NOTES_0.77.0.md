@@ -30,7 +30,10 @@ crates.io publication.
 - Kept transient transport construction separate from provider bytes so
   unknown status and code values fail closed.
 - Added an adversarial fuzz target plus malformed, oversized, duplicate,
-  unknown, mismatch, quota, redaction, and retry-denial tests.
+  unknown, mismatch, quota, redaction, and retry-denial tests. Its release
+  smoke admits the selector byte plus the complete 65,536-byte body boundary.
+- Preserved local parser allocation failures as a distinct payload-free
+  `RobotDecodeError::Allocation` instead of classifying them as hostile input.
 
 ## Versions
 

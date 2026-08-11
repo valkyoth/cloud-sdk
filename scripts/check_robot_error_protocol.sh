@@ -32,6 +32,9 @@ grep -Fq 'if !matches!(status.get(), 400 | 403 | 404)' "$decoder"
 grep -Fq 'RobotDecodeError::UnknownCode' "$decoder"
 grep -Fq 'provider bytes created a transport classification' \
     fuzz/fuzz_targets/robot_error_protocol.rs
+grep -Fq 'JsonError::Allocation => RobotDecodeError::Allocation' "$decoder"
+grep -Fq 'elif [ "$target" = robot_error_protocol ]; then' scripts/check_fuzz_harness.sh
+grep -Fq 'max_len=65537' scripts/check_fuzz_harness.sh
 
 cargo check --locked -p cloud-sdk-hetzner --no-default-features
 cargo check --locked -p cloud-sdk-hetzner --no-default-features --features alloc

@@ -13,6 +13,7 @@ use super::{
     RobotDecodeError, RobotFailure, RobotFailureCategory, RobotProviderErrorCode,
     RobotRetryDisposition, decode_robot_failure,
 };
+use crate::serde::strict_json::JsonError;
 
 const INVALID: &[u8] = br#"{
   "error": {
@@ -172,6 +173,18 @@ fn malformed_duplicate_and_extra_fields_are_rejected() {
             Some(b"application/json"),
         ),
         Err(RobotDecodeError::InvalidEnvelope)
+    );
+}
+
+#[test]
+fn parser_allocation_failure_remains_distinct_from_hostile_input() {
+    assert_eq!(
+        super::decode::map_json_error(JsonError::Allocation),
+        RobotDecodeError::Allocation
+    );
+    assert_eq!(
+        super::decode::map_json_error(JsonError::InvalidSyntax),
+        RobotDecodeError::MalformedPayload
     );
 }
 

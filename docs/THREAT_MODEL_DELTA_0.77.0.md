@@ -32,6 +32,8 @@ sensitive account context.
 - Invalid-input field arrays retain at most 256 entries, each at most 1,024
   bytes; messages retain at most 16,384 bytes.
 - Quota maximum and interval must be nonzero unsigned integers.
+- Local parser allocation failure remains distinct from malformed provider
+  data so resource exhaustion cannot be misreported as hostile input.
 
 ### Data Lifetime And Diagnostics
 
