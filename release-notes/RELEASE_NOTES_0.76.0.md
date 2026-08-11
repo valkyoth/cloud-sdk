@@ -20,14 +20,20 @@ selected for crates.io publication.
   generations and open or rejected status.
 - Authentication rejection closes one exact generation globally and
   idempotently; stale attempts cannot close replacement credentials.
-- Attempts borrow their issuing state; validation and rejection return
-  `ForeignState` before inspecting equal generation numbers from another
-  owner.
+- Allocation-free attempts borrow their issuing state; validation and
+  rejection return `ForeignState` before inspecting equal generation numbers
+  from another owner.
+- Added an `alloc`-gated owned lineage variant for Robot and other task-owned
+  integrations. Attempt creation only clones the existing lineage, does not
+  borrow credentials, and permits rotation while older requests are in flight.
+- Removed `Hash` from owner-bound attempts so caller-supplied hashers cannot
+  observe state addresses.
 - Newly supplied credentials may advance from open or rejected state.
 - Unchanged credentials require an explicit consumed reconfirmation token and
   can be reconfirmed only after rejection.
 - Added concurrent same-generation, stale transition, rejection, replacement,
-  reconfirmation, exhaustion, and cross-owner confusion tests.
+  reconfirmation, exhaustion, cross-owner confusion, in-flight rotation, and
+  stale-response tests.
 
 ## Robot Credentials
 

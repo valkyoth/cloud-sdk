@@ -326,9 +326,13 @@ password validation follows the reviewed Basic interoperability profile:
 visible non-colon ASCII for usernames and printable ASCII for passwords, with
 independent finite bounds.
 
-Each credential attempt borrows the exact state owner that issued it. Secret
+Allocation-free credential attempts borrow the exact issuing state. The
+alloc-backed Robot attempt instead owns an opaque shared lineage so it can
+cross task boundaries and remain usable after credential rotation. Secret
 access and authentication rejection validate owner identity before generation
-or status, so an equal generation from another owner fails closed.
+or status, so an equal generation from another owner fails closed and an old
+response after rotation is stale. Attempts do not expose owner identity to
+`Hash`.
 
 The v0.42 source fact that three authentication failures block the caller's
 source IP for 600 seconds is enforced structurally: a 401-classified attempt

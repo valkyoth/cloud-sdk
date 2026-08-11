@@ -312,7 +312,9 @@ milestone.
 
 `v0.76.0` implements protected Robot credentials, exact official scope, and
 lockout-aware attempt generations. Authentication rejection closes a
-generation until replacement or explicit caller reconfirmation. This also is
+generation until replacement or explicit caller reconfirmation. Robot attempts
+own a non-hashable opaque lineage so they can cross task boundaries without
+borrowing credentials; rotation makes older responses stale. This also is
 protocol support rather than endpoint coverage and performs no live request.
 
 Robot implementation schedule:

@@ -97,7 +97,10 @@ Hetzner Robot service and official endpoint. Mutable or guarded source buffers
 clear on ingestion and rotation. Secret text is available only inside a
 closure bound to one still-open `RobotCredentialAttempt` from that exact
 credential owner. A foreign owner's attempt fails before generation or status
-is considered, even when the numeric generations match.
+is considered, even when the numeric generations match. The Robot attempt
+owns an opaque shared lineage, remains non-hashable, and can cross task
+boundaries without borrowing credentials or holding a lock. Rotation during
+an in-flight attempt is allowed; its later response is classified as stale.
 
 Robot authentication rejection closes that generation for all future
 execution. Replacement material advances the generation; unchanged material

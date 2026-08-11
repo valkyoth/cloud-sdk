@@ -47,12 +47,18 @@ assert!(username.iter().all(|byte| *byte == 0));
 assert!(password.iter().all(|byte| *byte == 0));
 
 let attempt = credentials.begin_attempt()?;
-credentials.try_with_attempt(attempt, |username, password| {
+credentials.try_with_attempt(&attempt, |username, password| {
     // Pass borrowed values directly into a reviewed Basic encoder.
     assert!(!username.is_empty() && !password.is_empty());
 })?;
 # Ok::<(), Box<dyn core::error::Error>>(())
 ```
+
+`RobotCredentialAttempt` owns an opaque shared lineage rather than borrowing
+`RobotCredentials`. It can move into an owned task, and mutable credential
+rotation may proceed while an older request is in flight. Classifying that old
+response afterward returns `StaleGeneration`. Beginning an attempt clones the
+lineage without a per-attempt allocation.
 
 `RobotCredentials` does not send requests or classify responses. Do not build
 an automatic 401 retry. Live testing must never intentionally use invalid

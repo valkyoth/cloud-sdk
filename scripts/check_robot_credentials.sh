@@ -3,6 +3,7 @@ set -eu
 
 cargo check -p cloud-sdk --no-default-features
 cargo test -p cloud-sdk --no-default-features authentication::attempt
+cargo test -p cloud-sdk --no-default-features --features alloc authentication::attempt_owned
 cargo test -p cloud-sdk --no-default-features --test credential_attempt_concurrency
 cargo check -p cloud-sdk-hetzner --no-default-features
 cargo check -p cloud-sdk-hetzner --lib --no-default-features --features alloc
@@ -14,6 +15,7 @@ identity='crates/cloud-sdk-hetzner/src/identity.rs'
 endpoint='crates/cloud-sdk-hetzner/src/endpoint.rs'
 credentials='crates/cloud-sdk-hetzner/src/robot/credentials.rs'
 attempt='crates/cloud-sdk/src/authentication/attempt.rs'
+owned_attempt='crates/cloud-sdk/src/authentication/attempt_owned.rs'
 
 for contract in \
     'pub const ROBOT_SERVICE_ID:' \
@@ -61,6 +63,20 @@ for contract in \
         exit 1
     }
 done
+for contract in \
+    'pub struct OwnedCredentialAttemptState' \
+    'pub struct OwnedCredentialAttempt' \
+    'Arc::ptr_eq'; do
+    grep -Fq "$contract" "$owned_attempt" || {
+        echo "Robot credentials: missing owned attempt contract $contract" >&2
+        exit 1
+    }
+done
+if grep -Fq 'impl Hash for CredentialAttempt' "$attempt" || \
+    grep -Fq 'impl Hash for OwnedCredentialAttempt' "$owned_attempt"; then
+    echo "Robot credentials: owner-bound attempts must not expose Hash" >&2
+    exit 1
+fi
 
 default_tree="$(
     cargo tree --locked -p cloud-sdk-hetzner --no-default-features \

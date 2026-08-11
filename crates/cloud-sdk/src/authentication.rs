@@ -1,6 +1,8 @@
 //! Provider-neutral authentication scope and execution contracts.
 
 mod attempt;
+#[cfg(feature = "alloc")]
+mod attempt_owned;
 mod expiry;
 mod generation;
 mod policy;
@@ -12,6 +14,8 @@ pub use attempt::{
     CredentialAttempt, CredentialAttemptError, CredentialAttemptGeneration,
     CredentialAttemptStatus, CredentialReconfirmation, SharedCredentialAttemptState,
 };
+#[cfg(feature = "alloc")]
+pub use attempt_owned::{OwnedCredentialAttempt, OwnedCredentialAttemptState};
 pub use expiry::{
     CredentialLifetime, CredentialLifetimeError, CredentialLifetimeState, CredentialTimestamp,
 };

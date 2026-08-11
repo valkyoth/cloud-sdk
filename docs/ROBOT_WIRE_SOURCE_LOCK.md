@@ -86,7 +86,10 @@ source-locked HTTPS origin, Hetzner provider identity, and Robot service
 identity. Mutable and guarded input clears on ingestion and rotation; secret
 text is available only inside one still-open attempt bound to the exact
 credential owner and cannot be borrowed out of the closure. Attempts from a
-different owner fail before equal generation values are considered.
+different owner fail before equal generation values are considered. Robot
+attempts own an opaque shared lineage, are non-hashable, can move across task
+boundaries, and do not block rotation; an older response after rotation is
+classified as stale.
 
 Authentication rejection atomically closes the attempted generation. No
 automatic retry, pager, poller, or client can reopen it. Newly supplied

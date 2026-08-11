@@ -9,9 +9,9 @@ use cloud_sdk::authentication::{
 use cloud_sdk_sanitization::SecretBuffer;
 
 use super::{
-    MAX_ROBOT_PASSWORD_BYTES, MAX_ROBOT_USERNAME_BYTES, RobotCredentialError,
-    RobotCredentialRotationError, RobotCredentialScope, RobotCredentialStateError,
-    RobotCredentials,
+    MAX_ROBOT_PASSWORD_BYTES, MAX_ROBOT_USERNAME_BYTES, RobotCredentialAttempt,
+    RobotCredentialError, RobotCredentialRotationError, RobotCredentialScope,
+    RobotCredentialStateError, RobotCredentials,
 };
 use crate::identity::{CLOUD_SERVICE_ID, HETZNER_PROVIDER_ID, ROBOT_SERVICE_ID};
 
@@ -97,12 +97,12 @@ fn rejection_closes_secret_access_until_rotation_or_explicit_reconfirmation() {
         .begin_attempt()
         .unwrap_or_else(|_| unreachable!("initial Robot attempt was rejected"));
     assert_eq!(
-        credentials.try_with_attempt(first, |username, password| {
+        credentials.try_with_attempt(&first, |username, password| {
             username == "robot-user" && password == "replace-only-secret"
         }),
         Ok(true)
     );
-    assert_eq!(credentials.reject_attempt(first), Ok(()));
+    assert_eq!(credentials.reject_attempt(&first), Ok(()));
     assert_eq!(
         credentials.begin_attempt(),
         Err(RobotCredentialStateError::Attempt(
@@ -110,7 +110,7 @@ fn rejection_closes_secret_access_until_rotation_or_explicit_reconfirmation() {
         ))
     );
     assert_eq!(
-        credentials.try_with_attempt(first, |_, _| ()),
+        credentials.try_with_attempt(&first, |_, _| ()),
         Err(RobotCredentialStateError::Attempt(
             CredentialAttemptError::GenerationRejected
         ))
@@ -130,11 +130,17 @@ fn rejection_closes_secret_access_until_rotation_or_explicit_reconfirmation() {
     assert_eq!(third.get(), 3);
     assert!(username.iter().all(|byte| *byte == 0));
     assert!(password.iter().all(|byte| *byte == 0));
+    assert_eq!(
+        credentials.reject_attempt(&first),
+        Err(RobotCredentialStateError::Attempt(
+            CredentialAttemptError::StaleGeneration
+        ))
+    );
     let current = credentials
         .begin_attempt()
         .unwrap_or_else(|_| unreachable!("replacement Robot attempt was rejected"));
     assert_eq!(
-        credentials.try_with_attempt(current, |username, password| {
+        credentials.try_with_attempt(&current, |username, password| {
             username == "replacement-user" && password == "replacement-secret"
         }),
         Ok(true)
@@ -150,13 +156,13 @@ fn foreign_attempts_cannot_use_or_close_equal_generation_credentials() {
         .unwrap_or_else(|_| unreachable!("owner A Robot attempt was rejected"));
 
     assert_eq!(
-        owner_b.try_with_attempt(foreign, |_, _| ()),
+        owner_b.try_with_attempt(&foreign, |_, _| ()),
         Err(RobotCredentialStateError::Attempt(
             CredentialAttemptError::ForeignState
         ))
     );
     assert_eq!(
-        owner_b.reject_attempt(foreign),
+        owner_b.reject_attempt(&foreign),
         Err(RobotCredentialStateError::Attempt(
             CredentialAttemptError::ForeignState
         ))
@@ -167,6 +173,34 @@ fn foreign_attempts_cannot_use_or_close_equal_generation_credentials() {
             CredentialAttemptGeneration::INITIAL,
             CredentialAttemptStatus::Open
         )
+    );
+}
+
+#[test]
+fn rotation_remains_available_while_an_owned_attempt_is_outstanding() {
+    let mut credentials = credentials();
+    let stale = credentials
+        .begin_attempt()
+        .unwrap_or_else(|_| unreachable!("initial Robot attempt was rejected"));
+    let mut username = Vec::from(b"rotated-user".as_slice());
+    let mut password = Vec::from(b"rotated-secret".as_slice());
+
+    let replacement = credentials
+        .rotate_from_mut_bytes(&mut username, &mut password)
+        .unwrap_or_else(|_| unreachable!("in-flight Robot rotation was rejected"));
+
+    assert_eq!(replacement.get(), 2);
+    assert_eq!(
+        credentials.reject_attempt(&stale),
+        Err(RobotCredentialStateError::Attempt(
+            CredentialAttemptError::StaleGeneration
+        ))
+    );
+    assert!(username.iter().all(|byte| *byte == 0));
+    assert!(password.iter().all(|byte| *byte == 0));
+    assert_eq!(
+        credentials.status(),
+        (replacement, CredentialAttemptStatus::Open)
     );
 }
 
@@ -187,7 +221,7 @@ fn rejected_rotation_keeps_the_existing_generation_and_secrets() {
         .begin_attempt()
         .unwrap_or_else(|_| unreachable!("existing Robot generation was closed"));
     assert_eq!(
-        credentials.try_with_attempt(attempt, |username, password| {
+        credentials.try_with_attempt(&attempt, |username, password| {
             username == "robot-user" && password == "replace-only-secret"
         }),
         Ok(true)
@@ -212,7 +246,7 @@ fn guarded_rotation_clears_sources_and_advances_once() {
         .begin_attempt()
         .unwrap_or_else(|_| unreachable!("guarded replacement generation was closed"));
     assert_eq!(
-        credentials.try_with_attempt(attempt, |username, password| {
+        credentials.try_with_attempt(&attempt, |username, password| {
             username == "guarded-user" && password == "guarded-secret"
         }),
         Ok(true)
@@ -273,5 +307,8 @@ fn diagnostics_are_payload_free_and_status_is_public() {
 #[test]
 fn credential_owner_is_send_sync_but_not_clone() {
     fn assert_send_sync<T: Send + Sync>() {}
+    fn assert_static<T: 'static>() {}
     assert_send_sync::<RobotCredentials>();
+    assert_send_sync::<RobotCredentialAttempt>();
+    assert_static::<RobotCredentialAttempt>();
 }

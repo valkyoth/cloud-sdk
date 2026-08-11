@@ -1135,7 +1135,7 @@ published at this internal milestone.
 
 | Crate | Published | Source | Change | Publish | Reason |
 | --- | --- | --- | --- | --- | --- |
-| `cloud-sdk` | `0.75.0` | `0.76.0` | `code` | No | Add the allocation-free shared credential-attempt generation and rejection lifecycle. |
+| `cloud-sdk` | `0.75.0` | `0.76.0` | `code` | No | Add borrowed allocation-free and alloc-backed owned credential-attempt lineages with generation rejection. |
 | `cloud-sdk-hetzner` | `0.42.0` | `0.42.0` | `code` | No | Accumulate Robot service identity, exact endpoint scope, protected credentials, rotation, and lockout policy for v0.80.0. |
 | `cloud-sdk-reqwest` | `0.35.0` | `0.35.0` | `unchanged` | No | No transport boundary changes. |
 | `cloud-sdk-sanitization` | `0.18.0` | `0.18.0` | `unchanged` | No | Reuse the existing admitted protected-string and cleanup boundary. |

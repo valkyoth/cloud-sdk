@@ -1,4 +1,3 @@
-use core::hash::{Hash, Hasher};
 use core::sync::atomic::{AtomicU32, Ordering};
 
 const REJECTED: u32 = 1;
@@ -21,6 +20,15 @@ impl CredentialAttemptGeneration {
 }
 
 /// Proof that one credential generation was open when execution began.
+///
+/// Owner identity is deliberately not hashable because exposing it to a
+/// caller-supplied hasher could disclose a process address.
+///
+/// ```compile_fail
+/// use cloud_sdk::authentication::CredentialAttempt;
+/// fn require_hash<T: core::hash::Hash>() {}
+/// require_hash::<CredentialAttempt<'static>>();
+/// ```
 #[derive(Clone, Copy)]
 pub struct CredentialAttempt<'a> {
     owner: &'a SharedCredentialAttemptState,
@@ -52,13 +60,6 @@ impl PartialEq for CredentialAttempt<'_> {
 }
 
 impl Eq for CredentialAttempt<'_> {}
-
-impl Hash for CredentialAttempt<'_> {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        core::ptr::from_ref(self.owner).hash(state);
-        self.generation.hash(state);
-    }
-}
 
 /// Explicit caller acknowledgement for retrying unchanged credentials.
 ///
@@ -149,8 +150,15 @@ impl SharedCredentialAttemptState {
     /// Revalidates an attempt immediately before credential use.
     pub fn validate(&self, attempt: CredentialAttempt<'_>) -> Result<(), CredentialAttemptError> {
         self.validate_owner(attempt)?;
+        self.validate_generation(attempt.generation)
+    }
+
+    pub(crate) fn validate_generation(
+        &self,
+        expected: CredentialAttemptGeneration,
+    ) -> Result<(), CredentialAttemptError> {
         let (generation, status) = self.observe();
-        if generation != attempt.generation {
+        if generation != expected {
             return Err(CredentialAttemptError::StaleGeneration);
         }
         if status == CredentialAttemptStatus::Rejected {
@@ -165,10 +173,17 @@ impl SharedCredentialAttemptState {
     /// idempotent. A stale report cannot close replacement credentials.
     pub fn reject(&self, attempt: CredentialAttempt<'_>) -> Result<(), CredentialAttemptError> {
         self.validate_owner(attempt)?;
+        self.reject_generation(attempt.generation)
+    }
+
+    pub(crate) fn reject_generation(
+        &self,
+        expected: CredentialAttemptGeneration,
+    ) -> Result<(), CredentialAttemptError> {
         loop {
             let current = self.packed.load(Ordering::Acquire);
             let (generation, status) = unpack(current);
-            if generation != attempt.generation {
+            if generation != expected {
                 return Err(CredentialAttemptError::StaleGeneration);
             }
             if status == CredentialAttemptStatus::Rejected {

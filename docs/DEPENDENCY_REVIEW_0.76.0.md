@@ -6,6 +6,9 @@ v0.76 adds no third-party package, build script, native component, network
 stack, runtime, filesystem, clock, or unsafe code.
 
 The provider-neutral attempt lifecycle uses `core::sync::atomic::AtomicU32`.
+Its optional owned lineage uses `alloc::sync::Arc`; state construction creates
+one allocation and beginning an attempt only increments the existing strong
+count. No owner address is exposed through diagnostics or `Hash`.
 Protected Robot strings reuse the admitted `SecretString`, `SecretBuffer`, and
 volatile-clear functions already supplied by `cloud-sdk-sanitization` under
 the existing `alloc` feature. The provider's opt-in `alloc` feature now

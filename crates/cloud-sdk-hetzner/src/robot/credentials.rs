@@ -2,9 +2,9 @@ use alloc::string::String;
 use core::fmt;
 
 use cloud_sdk::authentication::{
-    AuthenticationScope, AuthenticationScopePolicy, CredentialAttempt, CredentialAttemptError,
+    AuthenticationScope, AuthenticationScopePolicy, CredentialAttemptError,
     CredentialAttemptGeneration, CredentialAttemptStatus, CredentialReconfirmation,
-    ScopeRequirement, SharedCredentialAttemptState,
+    OwnedCredentialAttempt, OwnedCredentialAttemptState, ScopeRequirement,
 };
 use cloud_sdk_sanitization::{SecretBuffer, SecretString, sanitize_bytes};
 
@@ -135,14 +135,17 @@ impl RobotCredentialScope {
     }
 }
 
-/// Lockout-aware proof for one Robot credential generation.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct RobotCredentialAttempt<'a>(CredentialAttempt<'a>);
+/// Owned lockout-aware proof for one Robot credential generation.
+///
+/// The attempt can cross task boundaries and does not borrow
+/// [`RobotCredentials`]. Owner identity remains opaque and non-hashable.
+#[derive(Debug, Eq, PartialEq)]
+pub struct RobotCredentialAttempt(OwnedCredentialAttempt);
 
-impl RobotCredentialAttempt<'_> {
+impl RobotCredentialAttempt {
     /// Returns the credential generation used by this attempt.
     #[must_use]
-    pub const fn generation(self) -> CredentialAttemptGeneration {
+    pub const fn generation(&self) -> CredentialAttemptGeneration {
         self.0.generation()
     }
 }
@@ -151,11 +154,11 @@ impl RobotCredentialAttempt<'_> {
 ///
 /// This type does not encode an authorization header or send a request. Secret
 /// text is available only inside [`Self::try_with_attempt`], after revalidating
-/// that the attempt's generation remains open.
+/// that the attempt belongs to this owner and its generation remains open.
 pub struct RobotCredentials {
     username: SecretString,
     password: SecretString,
-    attempts: SharedCredentialAttemptState,
+    attempts: OwnedCredentialAttemptState,
 }
 
 impl RobotCredentials {
@@ -190,8 +193,8 @@ impl RobotCredentials {
         self.attempts.observe()
     }
 
-    /// Begins one execution on the current open generation.
-    pub fn begin_attempt(&self) -> Result<RobotCredentialAttempt<'_>, RobotCredentialStateError> {
+    /// Begins one owned execution attempt on the current open generation.
+    pub fn begin_attempt(&self) -> Result<RobotCredentialAttempt, RobotCredentialStateError> {
         self.attempts
             .begin()
             .map(RobotCredentialAttempt)
@@ -201,9 +204,9 @@ impl RobotCredentials {
     /// Marks the exact attempted generation rejected by Robot authentication.
     pub fn reject_attempt(
         &self,
-        attempt: RobotCredentialAttempt<'_>,
+        attempt: &RobotCredentialAttempt,
     ) -> Result<(), RobotCredentialStateError> {
-        self.attempts.reject(attempt.0).map_err(Into::into)
+        self.attempts.reject(&attempt.0).map_err(Into::into)
     }
 
     /// Reopens unchanged credentials only after explicit caller confirmation.
@@ -266,15 +269,15 @@ impl RobotCredentials {
     /// # use cloud_sdk_hetzner::robot::RobotCredentials;
     /// # fn example(credentials: &RobotCredentials) {
     /// # let Ok(attempt) = credentials.begin_attempt() else { return };
-    /// let _escaped = credentials.try_with_attempt(attempt, |username, _| username);
+    /// let _escaped = credentials.try_with_attempt(&attempt, |username, _| username);
     /// # }
     /// ```
     pub fn try_with_attempt<T>(
         &self,
-        attempt: RobotCredentialAttempt<'_>,
+        attempt: &RobotCredentialAttempt,
         use_credentials: impl FnOnce(&str, &str) -> T,
     ) -> Result<T, RobotCredentialStateError> {
-        self.attempts.validate(attempt.0)?;
+        self.attempts.validate(&attempt.0)?;
         self.username
             .try_with_secret(|username| {
                 self.password
@@ -289,7 +292,7 @@ impl RobotCredentials {
         Ok(Self {
             username,
             password,
-            attempts: SharedCredentialAttemptState::new(),
+            attempts: OwnedCredentialAttemptState::new(),
         })
     }
 

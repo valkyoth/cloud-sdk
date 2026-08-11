@@ -22,8 +22,9 @@ caller's source IP for ten minutes.
 ### Repeated Rejected Credentials
 
 - Every credential owner begins with one open nonzero generation.
-- Every attempt borrows the exact issuing state and carries the generation
-  that began execution.
+- Allocation-free core attempts borrow the exact issuing state. Alloc-backed
+  owned attempts retain an opaque shared lineage and generation without
+  borrowing the credential owner or allocating per attempt.
 - Validation and rejection check owner identity before status or generation;
   a foreign attempt fails even when both owners have equal generations.
 - Authentication rejection atomically and idempotently closes that generation
@@ -49,14 +50,20 @@ poller, or workflow repetition.
 - Invalid replacement material leaves the existing secrets and generation
   unchanged.
 - Closure-scoped access revalidates the generation and cannot return a borrow.
-- The attempt lifetime prevents safe code from detaching owner identity from
-  the generation token.
+- Borrowed attempt lifetimes and owned opaque lineages both prevent safe code
+  from detaching owner identity from the generation token.
+- Attempts are deliberately non-hashable, preventing owner addresses from
+  entering a caller-supplied hasher.
 - Debug, Display, and error source chains contain only public state and static
   messages.
 
 Immutable source copies, allocator internals, intentionally copied closure
 values, process dumps, transport/TLS/kernel buffers, and provider-side storage
 remain operational boundaries.
+
+Owned Robot attempts may outlive a rotation and move across task boundaries.
+An old authentication response is then classified as stale without delaying
+replacement credentials or requiring a lock across network execution.
 
 ### Live Lockout Testing
 

@@ -18,9 +18,16 @@ until replacement material or explicit caller reconfirmation.
 
 Independent credential owners commonly have the same generation number. A
 numeric token alone could therefore validate against or close the wrong
-owner. Each attempt instead borrows its issuing state, and validation rejects
-foreign owner identity before inspecting generation or status. This remains
-allocation-free and requires no global identifier source.
+owner. Allocation-free core attempts borrow their issuing state; alloc-backed
+owned attempts retain an opaque shared lineage. Both reject foreign owner
+identity before inspecting generation or status and require no global
+identifier source.
+
+## Hashing Owner Pointers
+
+Hashing a state pointer would let a caller-supplied hasher observe a process
+address. Attempts support exact equality for local comparison but deliberately
+do not implement `Hash`.
 
 ## Reconfirming An Open Generation
 
@@ -34,6 +41,11 @@ Credentials and generation state are checked before execution. Atomic state
 permits caller-bounded concurrent attempts without a lock across `.await` or
 network I/O. Existing in-flight requests remain an explicit caller
 concurrency boundary.
+
+Robot uses the owned lineage variant so its attempt can move into a task and
+does not retain a borrow or lock guard across network execution. Rotation may
+advance the credentials while an older attempt remains in flight; its later
+response is stale.
 
 ## Public Username Or Password Accessors
 

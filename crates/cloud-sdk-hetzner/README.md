@@ -145,14 +145,14 @@ assert!(username.iter().all(|byte| *byte == 0));
 assert!(password.iter().all(|byte| *byte == 0));
 
 let attempt = credentials.begin_attempt()?;
-credentials.try_with_attempt(attempt, |username, password| {
+credentials.try_with_attempt(&attempt, |username, password| {
     // Encode and send only through an exact official Robot endpoint here.
     assert_eq!(username, "robot-user");
     assert_eq!(password, "example-only-secret");
 })?;
 
 // An authentication rejection closes this generation globally.
-credentials.reject_attempt(attempt)?;
+credentials.reject_attempt(&attempt)?;
 let _next_generation = credentials.reconfirm(
     CredentialReconfirmation::acknowledge_same_credentials(),
 )?;
@@ -324,7 +324,8 @@ Upstream source monitoring and lock-refresh decisions follow the
 [API drift maintenance runbook](https://github.com/valkyoth/cloud-sdk/blob/main/docs/API_DRIFT_MAINTENANCE.md).
 The separate Robot Webservice exposes its bounded form codec, exact official
 endpoint identity, Robot service marker, protected credentials, and
-lockout-aware attempt generation, but no endpoint-family operation or client.
+lockout-aware owned attempt generation that permits in-flight rotation without
+holding a credential borrow, but no endpoint-family operation or client.
 Its complete source lock records 89 active operations and excludes all 16
 deprecated Storage Box operations before endpoint implementation begins in
 v0.78.0. See the
