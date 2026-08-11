@@ -95,7 +95,9 @@ Provider-neutral Basic clients do not rotate or retry credentials. The v0.76
 Robot provider layer owns a separate protected credential type fixed to the
 Hetzner Robot service and official endpoint. Mutable or guarded source buffers
 clear on ingestion and rotation. Secret text is available only inside a
-closure bound to one still-open `RobotCredentialAttempt` generation.
+closure bound to one still-open `RobotCredentialAttempt` from that exact
+credential owner. A foreign owner's attempt fails before generation or status
+is considered, even when the numeric generations match.
 
 Robot authentication rejection closes that generation for all future
 execution. Replacement material advances the generation; unchanged material

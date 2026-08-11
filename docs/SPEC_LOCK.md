@@ -326,6 +326,10 @@ password validation follows the reviewed Basic interoperability profile:
 visible non-colon ASCII for usernames and printable ASCII for passwords, with
 independent finite bounds.
 
+Each credential attempt borrows the exact state owner that issued it. Secret
+access and authentication rejection validate owner identity before generation
+or status, so an equal generation from another owner fails closed.
+
 The v0.42 source fact that three authentication failures block the caller's
 source IP for 600 seconds is enforced structurally: a 401-classified attempt
 closes its complete generation, stale attempts cannot affect replacement

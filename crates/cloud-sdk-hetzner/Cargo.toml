@@ -14,7 +14,7 @@ all-features = true
 
 [features]
 default = []
-alloc = ["cloud-sdk/alloc"]
+alloc = ["cloud-sdk/alloc", "cloud-sdk-sanitization/alloc"]
 serde = [
     "alloc",
     "dep:base64-ng",

@@ -1,3 +1,4 @@
+use core::hash::{Hash, Hasher};
 use core::sync::atomic::{AtomicU32, Ordering};
 
 const REJECTED: u32 = 1;
@@ -20,16 +21,42 @@ impl CredentialAttemptGeneration {
 }
 
 /// Proof that one credential generation was open when execution began.
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq)]
-pub struct CredentialAttempt {
+#[derive(Clone, Copy)]
+pub struct CredentialAttempt<'a> {
+    owner: &'a SharedCredentialAttemptState,
     generation: CredentialAttemptGeneration,
 }
 
-impl CredentialAttempt {
+impl CredentialAttempt<'_> {
     /// Returns the generation used by this attempt.
     #[must_use]
     pub const fn generation(self) -> CredentialAttemptGeneration {
         self.generation
+    }
+}
+
+impl core::fmt::Debug for CredentialAttempt<'_> {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        formatter
+            .debug_struct("CredentialAttempt")
+            .field("owner", &"[bound]")
+            .field("generation", &self.generation)
+            .finish()
+    }
+}
+
+impl PartialEq for CredentialAttempt<'_> {
+    fn eq(&self, other: &Self) -> bool {
+        core::ptr::eq(self.owner, other.owner) && self.generation == other.generation
+    }
+}
+
+impl Eq for CredentialAttempt<'_> {}
+
+impl Hash for CredentialAttempt<'_> {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        core::ptr::from_ref(self.owner).hash(state);
+        self.generation.hash(state);
     }
 }
 
@@ -62,6 +89,8 @@ pub enum CredentialAttemptStatus {
 /// Credential-attempt lifecycle transition failure.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum CredentialAttemptError {
+    /// The attempt belongs to another credential lifecycle.
+    ForeignState,
     /// Authentication rejection closed the current generation.
     GenerationRejected,
     /// The supplied generation is no longer current.
@@ -73,6 +102,7 @@ pub enum CredentialAttemptError {
 }
 
 impl_static_error!(CredentialAttemptError,
+    Self::ForeignState => "credential attempt belongs to another state",
     Self::GenerationRejected => "credential attempt generation was rejected",
     Self::StaleGeneration => "credential attempt generation is stale",
     Self::ReconfirmationNotRequired => "credential attempt generation is still open",
@@ -105,16 +135,20 @@ impl SharedCredentialAttemptState {
     }
 
     /// Begins execution only when the current generation remains open.
-    pub fn begin(&self) -> Result<CredentialAttempt, CredentialAttemptError> {
+    pub fn begin(&self) -> Result<CredentialAttempt<'_>, CredentialAttemptError> {
         let (generation, status) = self.observe();
         if status == CredentialAttemptStatus::Rejected {
             return Err(CredentialAttemptError::GenerationRejected);
         }
-        Ok(CredentialAttempt { generation })
+        Ok(CredentialAttempt {
+            owner: self,
+            generation,
+        })
     }
 
     /// Revalidates an attempt immediately before credential use.
-    pub fn validate(&self, attempt: CredentialAttempt) -> Result<(), CredentialAttemptError> {
+    pub fn validate(&self, attempt: CredentialAttempt<'_>) -> Result<(), CredentialAttemptError> {
+        self.validate_owner(attempt)?;
         let (generation, status) = self.observe();
         if generation != attempt.generation {
             return Err(CredentialAttemptError::StaleGeneration);
@@ -129,7 +163,8 @@ impl SharedCredentialAttemptState {
     ///
     /// Repeated concurrent rejection reports for the same generation are
     /// idempotent. A stale report cannot close replacement credentials.
-    pub fn reject(&self, attempt: CredentialAttempt) -> Result<(), CredentialAttemptError> {
+    pub fn reject(&self, attempt: CredentialAttempt<'_>) -> Result<(), CredentialAttemptError> {
+        self.validate_owner(attempt)?;
         loop {
             let current = self.packed.load(Ordering::Acquire);
             let (generation, status) = unpack(current);
@@ -205,6 +240,13 @@ impl SharedCredentialAttemptState {
                 return Ok(next_generation);
             }
         }
+    }
+
+    fn validate_owner(&self, attempt: CredentialAttempt<'_>) -> Result<(), CredentialAttemptError> {
+        if !core::ptr::eq(self, attempt.owner) {
+            return Err(CredentialAttemptError::ForeignState);
+        }
+        Ok(())
     }
 
     #[cfg(test)]
@@ -332,6 +374,50 @@ mod tests {
             Err(CredentialAttemptError::StaleGeneration)
         );
         assert_eq!(state.observe(), (current, CredentialAttemptStatus::Open));
+    }
+
+    #[test]
+    fn foreign_attempts_never_validate_or_close_equal_generations() {
+        let owner_a = SharedCredentialAttemptState::new();
+        let owner_b = SharedCredentialAttemptState::new();
+        let foreign = owner_a
+            .begin()
+            .unwrap_or_else(|_| unreachable!("owner A generation was closed"));
+
+        assert_eq!(
+            owner_b.validate(foreign),
+            Err(CredentialAttemptError::ForeignState)
+        );
+        assert_eq!(
+            owner_b.reject(foreign),
+            Err(CredentialAttemptError::ForeignState)
+        );
+        assert_eq!(
+            owner_b.observe(),
+            (
+                CredentialAttemptGeneration::INITIAL,
+                CredentialAttemptStatus::Open
+            )
+        );
+
+        let generation_a = owner_a
+            .replace(CredentialAttemptGeneration::INITIAL)
+            .unwrap_or_else(|_| unreachable!("owner A replacement failed"));
+        let generation_b = owner_b
+            .replace(CredentialAttemptGeneration::INITIAL)
+            .unwrap_or_else(|_| unreachable!("owner B replacement failed"));
+        assert_eq!(generation_a, generation_b);
+        let foreign_replacement = owner_a
+            .begin()
+            .unwrap_or_else(|_| unreachable!("owner A replacement was closed"));
+        assert_eq!(
+            owner_b.reject(foreign_replacement),
+            Err(CredentialAttemptError::ForeignState)
+        );
+        assert_eq!(
+            owner_b.observe(),
+            (generation_b, CredentialAttemptStatus::Open)
+        );
     }
 
     #[test]

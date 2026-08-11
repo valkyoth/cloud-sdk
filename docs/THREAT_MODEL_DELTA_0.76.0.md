@@ -22,7 +22,10 @@ caller's source IP for ten minutes.
 ### Repeated Rejected Credentials
 
 - Every credential owner begins with one open nonzero generation.
-- Every attempt carries the exact generation that began execution.
+- Every attempt borrows the exact issuing state and carries the generation
+  that began execution.
+- Validation and rejection check owner identity before status or generation;
+  a foreign attempt fails even when both owners have equal generations.
 - Authentication rejection atomically and idempotently closes that generation
   for all later execution and secret access.
 - Only newly supplied replacement material or a consumed explicit
@@ -46,6 +49,8 @@ poller, or workflow repetition.
 - Invalid replacement material leaves the existing secrets and generation
   unchanged.
 - Closure-scoped access revalidates the generation and cannot return a borrow.
+- The attempt lifetime prevents safe code from detaching owner identity from
+  the generation token.
 - Debug, Display, and error source chains contain only public state and static
   messages.
 

@@ -10,22 +10,28 @@ use cloud_sdk::authentication::{
 #[test]
 fn concurrent_attempts_share_one_generation_and_rejection_is_global() {
     let state = Arc::new(SharedCredentialAttemptState::new());
-    let barrier = Arc::new(Barrier::new(9));
+    let started = Arc::new(Barrier::new(8));
+    let rejected = Arc::new(Barrier::new(8));
     let mut workers = Vec::new();
-    for _ in 0..8 {
+    for worker_index in 0..8 {
         let state = Arc::clone(&state);
-        let barrier = Arc::clone(&barrier);
+        let started = Arc::clone(&started);
+        let rejected = Arc::clone(&rejected);
         workers.push(thread::spawn(move || {
             let attempt = state
                 .begin()
                 .unwrap_or_else(|_| unreachable!("shared generation closed too early"));
-            barrier.wait();
-            attempt
+            let generation = attempt.generation();
+            started.wait();
+            if worker_index == 0 {
+                assert_eq!(state.reject(attempt), Ok(()));
+            }
+            rejected.wait();
+            (generation, state.validate(attempt))
         }));
     }
-    barrier.wait();
 
-    let attempts = workers
+    let outcomes = workers
         .into_iter()
         .map(|worker| {
             worker
@@ -33,22 +39,12 @@ fn concurrent_attempts_share_one_generation_and_rejection_is_global() {
                 .unwrap_or_else(|_| unreachable!("credential worker panicked"))
         })
         .collect::<Vec<_>>();
-    assert!(
-        attempts
-            .iter()
-            .all(|attempt| attempt.generation() == CredentialAttemptGeneration::INITIAL)
-    );
-
-    let first = attempts
-        .first()
-        .copied()
-        .unwrap_or_else(|| unreachable!("credential attempt fixture is empty"));
-    assert_eq!(state.reject(first), Ok(()));
+    assert!(outcomes.iter().all(|(generation, result)| {
+        *generation == CredentialAttemptGeneration::INITIAL
+            && *result == Err(CredentialAttemptError::GenerationRejected)
+    }));
     assert_eq!(
         state.begin(),
         Err(CredentialAttemptError::GenerationRejected)
     );
-    for attempt in attempts {
-        assert_eq!(state.reject(attempt), Ok(()));
-    }
 }

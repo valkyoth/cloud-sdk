@@ -2,14 +2,19 @@
 
 Status: implementation complete; pentest required.
 
-v0.76 adds no third-party package, feature activation, build script, native
-component, network stack, runtime, filesystem, clock, or unsafe code.
+v0.76 adds no third-party package, build script, native component, network
+stack, runtime, filesystem, clock, or unsafe code.
 
 The provider-neutral attempt lifecycle uses `core::sync::atomic::AtomicU32`.
 Protected Robot strings reuse the admitted `SecretString`, `SecretBuffer`, and
 volatile-clear functions already supplied by `cloud-sdk-sanitization` under
-the existing `alloc` feature. The default provider graph remains allocation-
-free and transport-free.
+the existing `alloc` feature. The provider's opt-in `alloc` feature now
+explicitly activates that first-party dependency feature instead of relying on
+dev-dependency feature unification. The default provider graph remains
+allocation-free and transport-free.
+
+Standalone production-mode checks cover `cloud-sdk-hetzner` with no default
+features, `alloc`, and `std` before its test suite runs.
 
 ## Root Lockfile Changes
 

@@ -35,10 +35,12 @@ security controls.
 - Never probe Robot with intentionally invalid credentials. Three failed
   logins can block the source IP for ten minutes. Use `RobotCredentials` with
   clearable mutable or guarded sources. Report a typed authentication
-  rejection against the exact `RobotCredentialAttempt`; that generation then
-  remains closed until replacement material or an explicit caller-created
-  `CredentialReconfirmation`. Never construct reconfirmation from automatic
-  retry, pager, polling, or workflow policy.
+  rejection against the exact `RobotCredentialAttempt` from the credential
+  owner that started the request; foreign-owner attempts are rejected even at
+  the same generation. That generation then remains closed until replacement
+  material or an explicit caller-created `CredentialReconfirmation`. Never
+  construct reconfirmation from automatic retry, pager, polling, or workflow
+  policy.
 
 ## OVHcloud Probe Credentials
 

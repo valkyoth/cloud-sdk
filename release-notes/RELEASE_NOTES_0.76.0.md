@@ -20,11 +20,14 @@ selected for crates.io publication.
   generations and open or rejected status.
 - Authentication rejection closes one exact generation globally and
   idempotently; stale attempts cannot close replacement credentials.
+- Attempts borrow their issuing state; validation and rejection return
+  `ForeignState` before inspecting equal generation numbers from another
+  owner.
 - Newly supplied credentials may advance from open or rejected state.
 - Unchanged credentials require an explicit consumed reconfirmation token and
   can be reconfirmed only after rejection.
 - Added concurrent same-generation, stale transition, rejection, replacement,
-  reconfirmation, and exhaustion tests.
+  reconfirmation, exhaustion, and cross-owner confusion tests.
 
 ## Robot Credentials
 
@@ -32,6 +35,9 @@ selected for crates.io publication.
   endpoint policy.
 - Added `alloc`-gated non-`Clone` protected username/password ownership with
   mutable and guarded ingestion and rotation.
+- Made the provider `alloc` feature explicitly activate the first-party
+  sanitization allocation support and added standalone production checks for
+  the no-default, `alloc`, and `std` feature modes.
 - Fixed every credential to Hetzner, Robot, and
   `https://robot-ws.your-server.de/`; Cloud and altered endpoint scope fail.
 - Revalidate attempt state before closure-scoped secret access and prevent

@@ -28,7 +28,10 @@ state.reconfirm(
 ```
 
 Replacement credentials use `replace(expected_generation)` instead. Stale
-attempts cannot close or reopen the replacement generation.
+attempts cannot close or reopen the replacement generation. An attempt now
+borrows the exact `SharedCredentialAttemptState` that issued it; passing it to
+another state returns `CredentialAttemptError::ForeignState`, including when
+both states have the same generation number.
 
 ## Protected Robot Credentials
 
@@ -54,6 +57,11 @@ credentials.try_with_attempt(attempt, |username, password| {
 `RobotCredentials` does not send requests or classify responses. Do not build
 an automatic 401 retry. Live testing must never intentionally use invalid
 Robot credentials.
+
+The provider's `alloc` feature now explicitly activates
+`cloud-sdk-sanitization/alloc`; `cloud-sdk-hetzner` production library builds
+with either `--features alloc` or `--features std` no longer depend on test
+feature unification.
 
 ## Published Dependencies
 

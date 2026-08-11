@@ -10,7 +10,8 @@ Scope: changes from signed v0.75.0 through the v0.76.0 implementation stop.
 
 - `SharedCredentialAttemptState` stores one atomic current generation and open
   or rejected state without allocation, `std`, a clock, or an executor;
-- `CredentialAttempt` proves which open generation began an execution;
+- `CredentialAttempt<'a>` proves which exact state owner and open generation
+  began an execution without an allocated identifier;
 - `CredentialAttemptGeneration` is bounded, nonzero, monotonic, and never
   wraps;
 - `CredentialReconfirmation` makes unchanged-credential reuse an explicit
@@ -20,8 +21,9 @@ Scope: changes from signed v0.75.0 through the v0.76.0 implementation stop.
 
 Concurrent attempts may share one open generation. Authentication rejection
 idempotently closes that generation. Stale attempts cannot close replacement
-credentials, reconfirmation is rejected while a generation remains open, and
-exhaustion cannot wrap into an older identity.
+credentials, attempts from another state fail with `ForeignState` even when
+their generations match, reconfirmation is rejected while a generation
+remains open, and exhaustion cannot wrap into an older identity.
 
 ## Hetzner Robot Addition
 
@@ -37,9 +39,9 @@ existing `alloc` feature, `cloud_sdk_hetzner::robot` also exposes:
 - mutable-byte and cleanup-guard ingestion and rotation methods.
 
 Secret text is available only inside `try_with_attempt`. Its closure cannot
-return a borrow, and the generation is revalidated immediately before access.
-There is no unrestricted `as_str`, username, password, authorization-header,
-or conversion API.
+return a borrow, and the issuing owner plus generation are revalidated
+immediately before access. There is no unrestricted `as_str`, username,
+password, authorization-header, or conversion API.
 
 ## Semver And Publication
 

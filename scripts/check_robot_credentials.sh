@@ -5,6 +5,8 @@ cargo check -p cloud-sdk --no-default-features
 cargo test -p cloud-sdk --no-default-features authentication::attempt
 cargo test -p cloud-sdk --no-default-features --test credential_attempt_concurrency
 cargo check -p cloud-sdk-hetzner --no-default-features
+cargo check -p cloud-sdk-hetzner --lib --no-default-features --features alloc
+cargo check -p cloud-sdk-hetzner --lib --no-default-features --features std
 cargo test -p cloud-sdk-hetzner --no-default-features --features alloc robot::credentials
 cargo test -p cloud-sdk-hetzner --no-default-features --features alloc --doc robot::credentials
 
@@ -49,6 +51,7 @@ done
 for contract in \
     'pub struct SharedCredentialAttemptState' \
     'pub struct CredentialReconfirmation' \
+    'Self::ForeignState' \
     'Self::GenerationRejected' \
     'Self::StaleGeneration' \
     'Self::ReconfirmationNotRequired' \

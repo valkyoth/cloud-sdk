@@ -2260,9 +2260,9 @@ Status: implementation complete; pentest required.
 
 Goal: type-separate Robot Basic credentials and prevent unsafe authentication testing.
 
-Deliverables: protected ingestion/rotation/cleanup, endpoint and Robot-service scope binding, and a lockout-aware credential-attempt generation. Authentication rejection closes that generation for execution; only newly supplied credentials or an explicit caller reconfirmation creates a new generation. No automatic policy, pager, action, or client path can reopen or repeat a rejected generation, and live evidence never intentionally uses invalid credentials.
+Deliverables: protected ingestion/rotation/cleanup, endpoint and Robot-service scope binding, and a lockout-aware credential-attempt generation bound to its exact issuing owner. Authentication rejection closes that generation for execution; foreign-owner attempts fail before generation comparison; only newly supplied credentials or an explicit caller reconfirmation creates a new generation. No automatic policy, pager, action, or client path can reopen or repeat a rejected generation, and live evidence never intentionally uses invalid credentials.
 
-Verification: auth cross-use, redaction, rotation, rejection-state transition, stale/rejected generation reuse, explicit reconfirmation, concurrent attempts sharing one generation, lockout gate, and `scripts/release_0_76_gate.sh`.
+Verification: auth cross-use, equal-generation foreign-owner rejection, redaction, rotation, rejection-state transition, stale/rejected generation reuse, explicit reconfirmation, concurrent attempts sharing one generation, standalone no-default/`alloc`/`std` production builds, lockout gate, and `scripts/release_0_76_gate.sh`.
 
 Stop gate: `v0.76.0 implementation stop reached. Complete the pentest and full release gate for this exact commit; defer crates.io publication to v0.80.0.`
 

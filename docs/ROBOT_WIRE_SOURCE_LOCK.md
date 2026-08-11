@@ -84,8 +84,9 @@ endpoint operations, response decoding, retries, or network execution.
 `v0.76.0` adds a Robot-only protected username/password owner fixed to the
 source-locked HTTPS origin, Hetzner provider identity, and Robot service
 identity. Mutable and guarded input clears on ingestion and rotation; secret
-text is available only inside one still-open attempt generation and cannot be
-borrowed out of the closure.
+text is available only inside one still-open attempt bound to the exact
+credential owner and cannot be borrowed out of the closure. Attempts from a
+different owner fail before equal generation values are considered.
 
 Authentication rejection atomically closes the attempted generation. No
 automatic retry, pager, poller, or client can reopen it. Newly supplied

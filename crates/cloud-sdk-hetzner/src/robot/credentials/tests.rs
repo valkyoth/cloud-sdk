@@ -130,12 +130,6 @@ fn rejection_closes_secret_access_until_rotation_or_explicit_reconfirmation() {
     assert_eq!(third.get(), 3);
     assert!(username.iter().all(|byte| *byte == 0));
     assert!(password.iter().all(|byte| *byte == 0));
-    assert_eq!(
-        credentials.reject_attempt(first),
-        Err(RobotCredentialStateError::Attempt(
-            CredentialAttemptError::StaleGeneration
-        ))
-    );
     let current = credentials
         .begin_attempt()
         .unwrap_or_else(|_| unreachable!("replacement Robot attempt was rejected"));
@@ -144,6 +138,35 @@ fn rejection_closes_secret_access_until_rotation_or_explicit_reconfirmation() {
             username == "replacement-user" && password == "replacement-secret"
         }),
         Ok(true)
+    );
+}
+
+#[test]
+fn foreign_attempts_cannot_use_or_close_equal_generation_credentials() {
+    let owner_a = credentials();
+    let owner_b = credentials();
+    let foreign = owner_a
+        .begin_attempt()
+        .unwrap_or_else(|_| unreachable!("owner A Robot attempt was rejected"));
+
+    assert_eq!(
+        owner_b.try_with_attempt(foreign, |_, _| ()),
+        Err(RobotCredentialStateError::Attempt(
+            CredentialAttemptError::ForeignState
+        ))
+    );
+    assert_eq!(
+        owner_b.reject_attempt(foreign),
+        Err(RobotCredentialStateError::Attempt(
+            CredentialAttemptError::ForeignState
+        ))
+    );
+    assert_eq!(
+        owner_b.status(),
+        (
+            CredentialAttemptGeneration::INITIAL,
+            CredentialAttemptStatus::Open
+        )
     );
 }
 

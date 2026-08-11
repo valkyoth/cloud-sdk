@@ -14,6 +14,14 @@ A 401 is evidence that the current credential generation may be unsafe to try
 again. No backoff duration makes the credential valid. The generation closes
 until replacement material or explicit caller reconfirmation.
 
+## Generation-Only Attempt Tokens
+
+Independent credential owners commonly have the same generation number. A
+numeric token alone could therefore validate against or close the wrong
+owner. Each attempt instead borrows its issuing state, and validation rejects
+foreign owner identity before inspecting generation or status. This remains
+allocation-free and requires no global identifier source.
+
 ## Reconfirming An Open Generation
 
 Advancing unchanged credentials before a concurrent rejection arrives would

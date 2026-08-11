@@ -137,9 +137,9 @@ impl RobotCredentialScope {
 
 /// Lockout-aware proof for one Robot credential generation.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct RobotCredentialAttempt(CredentialAttempt);
+pub struct RobotCredentialAttempt<'a>(CredentialAttempt<'a>);
 
-impl RobotCredentialAttempt {
+impl RobotCredentialAttempt<'_> {
     /// Returns the credential generation used by this attempt.
     #[must_use]
     pub const fn generation(self) -> CredentialAttemptGeneration {
@@ -191,7 +191,7 @@ impl RobotCredentials {
     }
 
     /// Begins one execution on the current open generation.
-    pub fn begin_attempt(&self) -> Result<RobotCredentialAttempt, RobotCredentialStateError> {
+    pub fn begin_attempt(&self) -> Result<RobotCredentialAttempt<'_>, RobotCredentialStateError> {
         self.attempts
             .begin()
             .map(RobotCredentialAttempt)
@@ -201,7 +201,7 @@ impl RobotCredentials {
     /// Marks the exact attempted generation rejected by Robot authentication.
     pub fn reject_attempt(
         &self,
-        attempt: RobotCredentialAttempt,
+        attempt: RobotCredentialAttempt<'_>,
     ) -> Result<(), RobotCredentialStateError> {
         self.attempts.reject(attempt.0).map_err(Into::into)
     }
@@ -271,7 +271,7 @@ impl RobotCredentials {
     /// ```
     pub fn try_with_attempt<T>(
         &self,
-        attempt: RobotCredentialAttempt,
+        attempt: RobotCredentialAttempt<'_>,
         use_credentials: impl FnOnce(&str, &str) -> T,
     ) -> Result<T, RobotCredentialStateError> {
         self.attempts.validate(attempt.0)?;
