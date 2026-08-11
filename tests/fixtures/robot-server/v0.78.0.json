@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "source": {
+    "url": "https://robot.hetzner.com/doc/webservice/en.html",
+    "sha256": "4b396790acc449f47b2b3b893f8eff759c0c25196dc38b1e5e92a12c9704771a"
+  },
+  "operations": [
+    {"id": "list_servers", "method": "GET", "path": "/server", "success": 200, "shape": "list"},
+    {"id": "get_server", "method": "GET", "path": "/server/{server-number}", "success": 200, "shape": "detail"},
+    {"id": "update_server", "method": "POST", "path": "/server/{server-number}", "success": 200, "shape": "detail"}
+  ],
+  "summary_fields": [
+    "server_ip", "server_ipv6_net", "server_number", "server_name", "product", "dc",
+    "traffic", "status", "cancelled", "paid_until", "ip", "subnet"
+  ],
+  "detail_fields": [
+    "reset", "rescue", "vnc", "windows", "plesk", "cpanel", "wol", "hot_swap"
+  ],
+  "optional_detail_fields": ["linked_storagebox"],
+  "status_values": ["ready", "in process"],
+  "nullable_fields": ["subnet"],
+  "update_form_fields": ["server_name"],
+  "identity": "positive-server-number",
+  "deprecated_aliases": [
+    "GET /server/{server-ip}",
+    "POST /server/{server-ip}"
+  ]
+}

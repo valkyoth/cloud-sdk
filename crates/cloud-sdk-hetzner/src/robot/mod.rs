@@ -13,6 +13,9 @@ mod form;
 mod protocol;
 mod server;
 
+/// Maximum Robot error-body bytes admitted by request and response policies.
+pub const MAX_ROBOT_ERROR_BODY_BYTES: usize = 65_536;
+
 #[cfg(feature = "alloc")]
 pub use credentials::{
     MAX_ROBOT_PASSWORD_BYTES, MAX_ROBOT_USERNAME_BYTES, RobotCredentialAttempt,
@@ -27,9 +30,9 @@ pub use form::{
 
 #[cfg(feature = "serde")]
 pub use protocol::{
-    MAX_ROBOT_ERROR_BODY_BYTES, MAX_ROBOT_INPUT_FIELDS, RobotDecodeError, RobotFailure,
-    RobotFailureCategory, RobotInvalidInput, RobotProviderError, RobotProviderErrorCode,
-    RobotQuota, RobotRetryDisposition, RobotTransientTransport, decode_robot_failure,
+    MAX_ROBOT_INPUT_FIELDS, RobotDecodeError, RobotFailure, RobotFailureCategory,
+    RobotInvalidInput, RobotProviderError, RobotProviderErrorCode, RobotQuota,
+    RobotRetryDisposition, RobotTransientTransport, decode_robot_failure,
 };
 
 pub use server::{

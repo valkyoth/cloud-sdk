@@ -98,7 +98,11 @@ reviewed independently.
 families. It consumes admitted responses, protects provider text, rejects
 unknown status/code fallbacks, maps quota to the neutral quota model, and
 makes authentication rejection structurally non-retryable. Endpoint-family
-request preparation begins in `v0.78.0`.
+request preparation begins in `v0.78.0` with canonical server-number list,
+get, and rename operations. That milestone also introduces bounded summary and
+detail models, capability flags, finite statuses, calendar-valid paid-through
+dates, canonical addresses/subnets, nullable subnet preservation, and checked
+response identity binding. Deprecated server-IP aliases remain excluded.
 
 ## API Coverage Tracks
 

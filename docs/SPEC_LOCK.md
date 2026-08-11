@@ -355,3 +355,23 @@ Authentication rejection is non-retryable; maintenance, quota delay, and an
 explicitly supplied delivery-classified transport failure remain caller-policy
 decisions. This milestone adds no Robot request execution or endpoint-family
 models.
+
+## v0.78.0 Robot Server Policy
+
+Robot server list, get, and update are bound to the three active `server` rows
+in `tests/fixtures/robot-api/v0.74.0.json` and the exact field contract in
+`tests/fixtures/robot-server/v0.78.0.json`. Public path identity is only a
+positive server number. Deprecated GET and POST aliases using the main IPv4
+address remain excluded.
+
+List responses require exact summary fields. Get and update require those
+fields plus eight capability booleans; `linked_storagebox` alone is optional
+because the official update example omits the field while its output table
+lists it. Status is exactly `ready` or `in process`. Dates must be valid
+`yyyy-MM-dd`; assigned addresses and subnets are bounded and duplicate-free;
+subnet host bits must be clear. Detail identity must equal the request.
+
+Request preparation binds the official Robot origin and service, Basic scope,
+form content type for rename, explicit operation metadata, and checked 200
+JSON success policy. The milestone does not add authorization encoding,
+network execution, or a Robot client.

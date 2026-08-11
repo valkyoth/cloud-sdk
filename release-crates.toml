@@ -1,27 +1,27 @@
 [release]
-version = "0.77.0"
-milestone = "0.77.0"
+version = "0.78.0"
+milestone = "0.78.0"
 baseline = "0.75.0"
-review_baseline = "0.76.0"
-cumulative_milestones = ["0.76.0", "0.77.0"]
+review_baseline = "0.77.0"
+cumulative_milestones = ["0.76.0", "0.77.0", "0.78.0"]
 policy = "independent"
 stage = "internal"
 exceptional = false
 exception_reason = ""
 
 [crates."cloud-sdk"]
-previous_version = "0.76.0"
-version = "0.77.0"
+previous_version = "0.77.0"
+version = "0.78.0"
 change = "metadata"
 publish = false
-reason = "Record the Robot error and quota protocol milestone; defer publication to v0.80.0."
+reason = "Record the Robot server operation milestone; defer publication to v0.80.0."
 
 [crates."cloud-sdk-hetzner"]
 previous_version = "0.42.0"
 version = "0.42.0"
 change = "code"
 publish = false
-reason = "Accumulate bounded Robot error, quota, maintenance, and retry classifications for v0.80.0."
+reason = "Accumulate Robot server list, get, rename, preparation, and response models for v0.80.0."
 
 [crates."cloud-sdk-reqwest"]
 previous_version = "0.35.0"

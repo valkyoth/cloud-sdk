@@ -97,6 +97,32 @@ The
 shows numbered Console Storage pagination through the named official Storage
 client path.
 
+Robot server reads and renames use only the canonical positive server number.
+The deprecated IPv4 path aliases are intentionally unavailable. Request
+preparation is allocation-free and available with default features; strict
+owned success models require `serde`:
+
+```rust
+use cloud_sdk::operation::{PreparationStorage, PrepareOperation};
+use cloud_sdk_hetzner::robot::{RobotServerGetRequest, RobotServerNumber};
+
+let number = RobotServerNumber::new(321).ok_or("server number must be positive")?;
+let request = RobotServerGetRequest::new(number);
+let mut target = [0_u8; 64];
+let mut body = [0_u8; 1];
+let prepared = request.prepare(PreparationStorage::new(&mut target, &mut body))?;
+
+assert_eq!(prepared.transport_request().target().as_str(), "/server/321");
+# Ok::<(), Box<dyn core::error::Error>>(())
+```
+
+`RobotServerListRequest`, `RobotServerGetRequest`, and
+`RobotServerUpdateRequest::rename` bind the official Robot origin, service and
+Basic-auth scope, form media type, explicit operation impact, retry policy,
+and checked `200`/JSON response policy. Their decode methods consume a
+`CheckedResponseGuard`, clear response storage, reject a mismatched server
+number, and return bounded `RobotServerList` or `RobotServer` models.
+
 Robot error responses use a separate strict decoder. Pass only an admitted
 transport response; unknown statuses, unknown codes, duplicate keys, and
 invalid content types fail closed:
@@ -349,14 +375,13 @@ Upstream source monitoring and lock-refresh decisions follow the
 [API drift maintenance runbook](https://github.com/valkyoth/cloud-sdk/blob/main/docs/API_DRIFT_MAINTENANCE.md).
 The separate Robot Webservice exposes its bounded form codec, exact official
 endpoint identity, Robot service marker, protected credentials, lockout-aware
-owned attempt generation, and strict typed error, quota, authentication, and
-maintenance decoding, but no endpoint-family operation or client.
-Its complete source lock records 89 active operations and excludes all 16
-deprecated Storage Box operations before endpoint implementation begins in
-v0.78.0. See the
+owned attempt generation, strict typed protocol errors, and the three server
+list/get/rename operations. It does not yet expose the later Robot endpoint
+families or a high-level Robot client. Its complete source lock records 89
+active operations and excludes all 16 deprecated Storage Box operations. See the
 [Robot source-lock contract](https://github.com/valkyoth/cloud-sdk/blob/main/docs/ROBOT_WIRE_SOURCE_LOCK.md).
-The v0.77 additions and source migration are described in the
-[v0.77 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.77.0.md).
+The v0.78 additions and source migration are described in the
+[v0.78 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.78.0.md).
 Breaking v0.27 constructor and custom-endpoint changes are listed in the
 [migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.27.0.md).
 Shared transport and credential lifecycle changes are listed in the

@@ -2256,7 +2256,7 @@ Stop gate: `v0.75.0 implementation stop reached. Run the pentest for this exact 
 
 ### v0.76.0 - Robot Credentials And Lockout Policy
 
-Status: release candidate; pentest and final retest passed.
+Status: released; pentest and final retest passed.
 
 Goal: type-separate Robot Basic credentials and prevent unsafe authentication testing.
 
@@ -2268,7 +2268,7 @@ Stop gate: `v0.76.0 implementation stop reached. Complete the pentest and full r
 
 ### v0.77.0 - Robot Error And Quota Protocol
 
-Status: implementation complete; pentest required.
+Status: released; pentest and final retest passed.
 
 Goal: type Robot errors, maintenance, invalid input, and quota behavior.
 
@@ -2279,6 +2279,8 @@ Verification: malformed/unknown/oversized/duplicate/quota tests, auth-versus-quo
 Stop gate: `v0.77.0 implementation stop reached. Complete the pentest and full release gate for this exact commit; defer crates.io publication to v0.80.0.`
 
 ### v0.78.0 - Robot Servers
+
+Status: implementation complete; pentest required.
 
 Goal: complete server list/get/update operations and models.
 

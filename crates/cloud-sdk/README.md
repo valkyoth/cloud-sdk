@@ -77,9 +77,9 @@ listed in the
 
 The v0.75 crates.io checkpoint includes exhaustive named clients for every
 active Hetzner Cloud, DNS, Security, and Console Storage Box operation plus the
-first bounded Robot form primitive. The v0.77 source milestone adds protected,
-typed Robot errors, quota metadata, maintenance handling, and fail-closed retry
-classification on top of v0.76 Robot credentials and lockout state. It remains
+first bounded Robot form primitive. The v0.78 source milestone adds canonical
+Robot server list, get, and rename preparation plus strict typed success
+models on top of the protected credential and error protocol. It remains
 transport-free and performs no network request.
 Crates.io publication is deferred to the v0.80 checkpoint. Future FIPS work
 remains deferred until Brynja is ready.
@@ -227,7 +227,7 @@ visible. Applications should enable only the features they use.
 - [Migrating source users to v0.72](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.72.0.md)
 - [Migrating source users to v0.73](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.73.0.md)
 - [Migrating to v0.75](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.75.0.md)
-- [Migrating source users to v0.77](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.77.0.md)
+- [Migrating source users to v0.78](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.78.0.md)
 - [Compile-time Hetzner operation associations](https://github.com/valkyoth/cloud-sdk/blob/main/docs/OPERATION_ASSOCIATIONS.md)
 - [Incremental provider decoding](https://github.com/valkyoth/cloud-sdk/blob/main/docs/INCREMENTAL_DECODING.md)
 - [Deprecated endpoint policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/DEPRECATED_ENDPOINT_POLICY.md)

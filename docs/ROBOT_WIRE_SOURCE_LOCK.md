@@ -3,7 +3,8 @@
 Status: narrow protocol fixture source-locked for `v0.42.0`; complete operation
 inventory source-locked for `v0.74.0`; bounded form codec implemented in
 `v0.75.0`; protected credentials and lockout-aware generations implemented in
-`v0.76.0`; bounded error and quota protocol implemented in `v0.77.0`.
+`v0.76.0`; bounded error and quota protocol implemented in `v0.77.0`; server
+list, get, and rename operations implemented in `v0.78.0`.
 
 Retrieved: 2026-07-30
 
@@ -119,6 +120,30 @@ provider maximum and interval and can produce one exhausted `robot-global`
 provider-neutral quota bucket. Maintenance and explicitly constructed
 transport failures require caller policy. Provider bytes cannot construct the
 transport variant, so an unknown code can never become a transient fallback.
+
+## Server Operation Contract
+
+`v0.78.0` implements the three active `server` rows from the complete lock:
+`GET /server`, `GET /server/{server-number}`, and
+`POST /server/{server-number}`. The two deprecated IPv4 path aliases remain
+unrepresentable. Default-feature request preparation binds only positive
+server numbers, the official Robot origin and service, HTTP Basic scope,
+explicit operation metadata, and form encoding for the sole update field
+`server_name`.
+
+With `serde`, checked success decoding admits the exact summary and detail
+field sets, finite `ready` and `in process` states, positive resource IDs,
+calendar-valid paid-through dates, canonical single addresses and subnets,
+bounded duplicate-free lists, and the documented nullable subnet shape. Get
+and update decoding reject a server number that differs from the request.
+`linked_storagebox` is optional because the official update example omits it
+while the corresponding output table lists it; a missing or zero value maps to
+no linked Storage Box. This documented source inconsistency must be re-reviewed
+if the upstream document changes.
+
+The field contract is committed in
+[`v0.78.0.json`](../tests/fixtures/robot-server/v0.78.0.json) and related back
+to the complete operation lock by `scripts/check_robot_server_contract.py`.
 
 ## Verification
 

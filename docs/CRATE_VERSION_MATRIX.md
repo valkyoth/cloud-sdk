@@ -1,7 +1,7 @@
 # Crate Version Matrix
 
-Status: `v0.75.0` is the latest published checkpoint and `v0.77.0` is the
-Robot error and quota protocol implementation candidate. Its implementation
+Status: `v0.75.0` is the latest published checkpoint and `v0.78.0` is the
+Robot server operation implementation candidate. Its implementation
 gate is green; pentest and final retest remain required before the full release
 gate, GitHub CI, CodeQL, and tagging. Cumulative crates.io publication is
 deferred to v0.80.0.
@@ -1153,6 +1153,20 @@ published.
 | `cloud-sdk-hetzner` | `0.42.0` | `0.42.0` | `code` | No | Accumulate bounded Robot error, quota, maintenance, authentication, and transport classifications for v0.80.0. |
 | `cloud-sdk-reqwest` | `0.35.0` | `0.35.0` | `unchanged` | No | No transport boundary changes. |
 | `cloud-sdk-sanitization` | `0.18.0` | `0.18.0` | `unchanged` | No | Reuse the existing protected-string cleanup boundary. |
+| `cloud-sdk-testkit` | `0.30.2` | `0.30.2` | `unchanged` | No | No testkit boundary changes. |
+
+## v0.78.0 Tracking Table
+
+`v0.78.0` adds canonical Robot server list, get, and rename operations plus
+strict success models. It remains an internal milestone in the v0.76-v0.80
+cumulative train, so no crate is published.
+
+| Crate | Published | Source | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.75.0` | `0.78.0` | `metadata` | No | Record the Robot server milestone without publishing the cumulative train. |
+| `cloud-sdk-hetzner` | `0.42.0` | `0.42.0` | `code` | No | Accumulate Robot server requests, preparation, bounded response models, and checked decoding for v0.80.0. |
+| `cloud-sdk-reqwest` | `0.35.0` | `0.35.0` | `unchanged` | No | No transport boundary changes. |
+| `cloud-sdk-sanitization` | `0.18.0` | `0.18.0` | `unchanged` | No | Reuse existing cleanup and protected-string boundaries. |
 | `cloud-sdk-testkit` | `0.30.2` | `0.30.2` | `unchanged` | No | No testkit boundary changes. |
 
 ## Planned Milestone Ownership

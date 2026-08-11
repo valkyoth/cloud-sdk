@@ -24,7 +24,7 @@ use crate::robot::{RobotForm, RobotFormError, RobotFormField};
 const JSON_MEDIA: &[MediaType<'static>] = &[MediaType::JSON];
 const OK: &[StatusCode] = &[StatusCode::OK];
 const MAX_SUCCESS_BYTES: usize = 8_388_608;
-const MAX_ERROR_BYTES: usize = 65_536;
+const MAX_ERROR_BYTES: usize = super::super::MAX_ROBOT_ERROR_BODY_BYTES;
 const ACCEPT: [RequestHeader<'static>; 1] = [RequestHeader::accept(MediaType::JSON)];
 const FORM_HEADERS: [RequestHeader<'static>; 2] = [
     RequestHeader::accept(MediaType::JSON),

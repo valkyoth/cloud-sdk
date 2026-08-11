@@ -323,25 +323,31 @@ provider error. Unknown status or code values fail closed and cannot become
 transient transport failures. This remains protocol support rather than an
 implemented Robot operation row.
 
+`v0.78.0` implements the first endpoint family: canonical server-number list,
+get, and rename requests, complete bounded summary/detail models, capability
+flags, finite statuses, checked response decoding, and explicit preservation
+of `null` versus empty subnets. The two deprecated server-IP route aliases are
+excluded and cannot be constructed.
+
 Robot implementation schedule:
 
-| Group | Active | Deprecated | Planned Module | Milestone |
-| --- | ---: | ---: | --- | --- |
-| server | 3 | 0 | `cloud_sdk_hetzner::robot::server` | `v0.78.0` |
-| cancellation | 9 | 0 | `cloud_sdk_hetzner::robot::cancellation` | `v0.79.0` |
-| IP | 6 | 0 | `cloud_sdk_hetzner::robot::ip` | `v0.80.0` |
-| subnet | 6 | 0 | `cloud_sdk_hetzner::robot::subnet` | `v0.81.0` |
-| reset | 3 | 0 | `cloud_sdk_hetzner::robot::reset` | `v0.82.0` |
-| failover | 4 | 0 | `cloud_sdk_hetzner::robot::failover` | `v0.83.0` |
-| wake on LAN | 2 | 0 | `cloud_sdk_hetzner::robot::wol` | `v0.84.0` |
-| boot configuration | 15 | 0 | `cloud_sdk_hetzner::robot::boot` | `v0.85.0` |
-| reverse DNS | 5 | 0 | `cloud_sdk_hetzner::robot::rdns` | `v0.86.0` |
-| traffic | 1 | 0 | `cloud_sdk_hetzner::robot::traffic` | `v0.87.0` |
-| SSH keys | 5 | 0 | `cloud_sdk_hetzner::robot::ssh_keys` | `v0.88.0` |
-| firewall | 8 | 0 | `cloud_sdk_hetzner::robot::firewall` | `v0.89.0` |
-| vSwitch | 7 | 0 | `cloud_sdk_hetzner::robot::vswitch` | `v0.90.0` |
-| ordering catalogs | 6 | 0 | `cloud_sdk_hetzner::robot::ordering` | `v0.91.0` |
-| transactions | 6 | 0 | `cloud_sdk_hetzner::robot::ordering` | `v0.92.0` |
-| ordering mutations | 3 | 0 | `cloud_sdk_hetzner::robot::ordering` | `v0.93.0` |
-| legacy Storage Box | 0 | 16 | existing Console Storage Box modules | excluded |
-| **Total** | **89** | **16** | | |
+| Group | Active | Deprecated | Planned Module | Milestone | Status |
+| --- | ---: | ---: | --- | --- | --- |
+| server | 3 | 0 | `cloud_sdk_hetzner::robot::server` | `v0.78.0` | implemented |
+| cancellation | 9 | 0 | `cloud_sdk_hetzner::robot::cancellation` | `v0.79.0` | planned |
+| IP | 6 | 0 | `cloud_sdk_hetzner::robot::ip` | `v0.80.0` | planned |
+| subnet | 6 | 0 | `cloud_sdk_hetzner::robot::subnet` | `v0.81.0` | planned |
+| reset | 3 | 0 | `cloud_sdk_hetzner::robot::reset` | `v0.82.0` | planned |
+| failover | 4 | 0 | `cloud_sdk_hetzner::robot::failover` | `v0.83.0` | planned |
+| wake on LAN | 2 | 0 | `cloud_sdk_hetzner::robot::wol` | `v0.84.0` | planned |
+| boot configuration | 15 | 0 | `cloud_sdk_hetzner::robot::boot` | `v0.85.0` | planned |
+| reverse DNS | 5 | 0 | `cloud_sdk_hetzner::robot::rdns` | `v0.86.0` | planned |
+| traffic | 1 | 0 | `cloud_sdk_hetzner::robot::traffic` | `v0.87.0` | planned |
+| SSH keys | 5 | 0 | `cloud_sdk_hetzner::robot::ssh_keys` | `v0.88.0` | planned |
+| firewall | 8 | 0 | `cloud_sdk_hetzner::robot::firewall` | `v0.89.0` | planned |
+| vSwitch | 7 | 0 | `cloud_sdk_hetzner::robot::vswitch` | `v0.90.0` | planned |
+| ordering catalogs | 6 | 0 | `cloud_sdk_hetzner::robot::ordering` | `v0.91.0` | planned |
+| transactions | 6 | 0 | `cloud_sdk_hetzner::robot::ordering` | `v0.92.0` | planned |
+| ordering mutations | 3 | 0 | `cloud_sdk_hetzner::robot::ordering` | `v0.93.0` | planned |
+| legacy Storage Box | 0 | 16 | existing Console Storage Box modules | excluded | excluded |
+| **Total** | **89** | **16** | | | |

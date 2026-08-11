@@ -8,11 +8,11 @@ use cloud_sdk::transport::{DeliveryClassified, DeliveryPhase};
 
 use crate::serde::SensitiveText;
 
+use super::MAX_ROBOT_ERROR_BODY_BYTES;
+
 mod decode;
 pub use decode::decode_robot_failure;
 
-/// Maximum Robot error-body bytes admitted by the decoder.
-pub const MAX_ROBOT_ERROR_BODY_BYTES: usize = 65_536;
 /// Maximum missing or invalid field names retained from one invalid-input error.
 pub const MAX_ROBOT_INPUT_FIELDS: usize = 256;
 const MAX_ROBOT_ERROR_CODE_BYTES: usize = 128;
