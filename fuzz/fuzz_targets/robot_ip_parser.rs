@@ -18,14 +18,14 @@ fuzz_target!(|data: &[u8]| {
     let Ok(candidate) = core::str::from_utf8(data) else {
         return;
     };
-    let oracle = IpAddr::from_str(candidate);
+    let oracle = IpAddr::from_str(candidate).ok();
     assert_eq!(
         decode_candidate(candidate, AddressField::Ipv4),
-        matches!(oracle, Ok(IpAddr::V4(_)))
+        oracle.filter(IpAddr::is_ipv4)
     );
     assert_eq!(
         decode_candidate(candidate, AddressField::Ipv6),
-        matches!(oracle, Ok(IpAddr::V6(_)))
+        oracle.filter(IpAddr::is_ipv6)
     );
 });
 
@@ -35,7 +35,7 @@ enum AddressField {
     Ipv6,
 }
 
-fn decode_candidate(candidate: &str, field: AddressField) -> bool {
+fn decode_candidate(candidate: &str, field: AddressField) -> Option<IpAddr> {
     let escaped = serde_json::to_string(candidate)
         .unwrap_or_else(|_| unreachable!("bounded UTF-8 candidate did not serialize"));
     let (ipv4, ipv6, addresses) = match field {
@@ -49,10 +49,10 @@ fn decode_candidate(candidate: &str, field: AddressField) -> bool {
          \"cancelled\":false,\"paid_until\":\"2028-02-29\",\"ip\":[{addresses}],\
          \"subnet\":null}}}}]"
     );
-    decode_list(body.as_bytes())
+    decode_list(body.as_bytes(), field)
 }
 
-fn decode_list(body: &[u8]) -> bool {
+fn decode_list(body: &[u8], field: AddressField) -> Option<IpAddr> {
     let request = RobotServerListRequest::new();
     let mut target = [0_u8; 128];
     let mut request_body = [0_u8; 1];
@@ -84,8 +84,11 @@ fn decode_list(body: &[u8]) -> bool {
         .commit(StatusCode::OK, body.len(), ResponseMetadata::EMPTY)
         .unwrap_or_else(|_| unreachable!("bounded response commit failed"));
     drop(attempt);
-    let Ok(checked) = prepared.validate_response(response) else {
-        return false;
-    };
-    request.decode_response(checked).is_ok()
+    let checked = prepared.validate_response(response).ok()?;
+    let list = request.decode_response(checked).ok()?;
+    let summary = list.as_slice().first()?;
+    Some(match field {
+        AddressField::Ipv4 => IpAddr::V4(summary.with_main_ipv4(|address| address)),
+        AddressField::Ipv6 => IpAddr::V6(summary.with_main_ipv6_network(|address| address)),
+    })
 }

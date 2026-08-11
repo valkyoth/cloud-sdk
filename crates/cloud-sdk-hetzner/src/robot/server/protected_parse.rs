@@ -157,6 +157,9 @@ fn parse_ipv6_into(text: &str, output: &mut [u16; 8]) -> Result<(), ProtectedVal
         return Err(INVALID);
     }
     if let Some((left, right)) = text.split_once("::") {
+        if left.as_bytes().contains(&b'.') {
+            return Err(INVALID);
+        }
         let left_units = section_units(left)?;
         let right_units = section_units(right)?;
         if left_units.checked_add(right_units).ok_or(INVALID)? >= 8 {

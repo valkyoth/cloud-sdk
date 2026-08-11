@@ -1,6 +1,6 @@
 # v0.78.0 Dependency Review
 
-Status: release candidate; pentest and final retest passed.
+Status: remediation complete; final retest required.
 
 v0.78 adds no third-party package, feature activation, build script, native
 component, network stack, runtime, filesystem, clock, or unsafe code.
@@ -12,7 +12,7 @@ now re-exports the already admitted `sanitization::SecretBoxBytes` type under
 stable, clear-on-drop allocation plus the existing opt-in strict JSON parser
 and protected string storage under `serde`. The committed source-contract
 checker uses only the Python standard library and repository fixtures.
-The final differential IP-parser fuzz target reuses `core::net`, the existing
+The value-level differential IP-parser fuzz target reuses `core::net`, the existing
 fuzz dependencies, and the public checked decoder; it adds no dependency or
 feature edge.
 

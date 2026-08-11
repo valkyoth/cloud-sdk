@@ -1,6 +1,6 @@
 # v0.78.0 Rejected Abstractions
 
-Status: release candidate; pentest and final retest passed.
+Status: remediation complete; final retest required.
 
 ## Reusing Cloud JSON Preparation
 

@@ -1,11 +1,11 @@
 # cloud-sdk 0.78.0 Milestone Notes
 
-Status: release candidate; pentest and final retest passed.
+Status: remediation complete; final retest required.
 
 Release date: 2026-08-11
 
 Security-Review: PASS
-Pentest: PASS
+Pentest: RETEST REQUIRED
 Publication: DEFERRED TO v0.80.0
 
 ## Overview
@@ -44,8 +44,10 @@ publication.
   added a direct checked-response Robot server fuzz target with exact-bound
   deterministic seeds.
 - Added differential property fuzzing that drives IPv4 and IPv6 candidates
-  through the public checked Robot decoder and compares acceptance with
-  `core::net::IpAddr::from_str` as an independent oracle.
+  through the public checked Robot decoder and compares complete decoded
+  values with `core::net::IpAddr::from_str` as an independent oracle.
+- Rejected embedded IPv4 dotted-quad syntax before an IPv6 `::` compression
+  marker and retained the malformed forms as deterministic regression seeds.
 - Added source-contract and regression checks for all three operations, fields,
   statuses, nullability, update input, and deprecated aliases.
 - Added provider-neutral form media-type constants without changing the

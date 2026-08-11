@@ -373,7 +373,15 @@ mod tests {
             assert!(protected.with_addr(|actual| actual == expected));
         }
 
-        for text in ["192.0.2", "192.00.2.1", "2001:::1", "2001:db8:1"] {
+        for text in [
+            "192.0.2",
+            "192.00.2.1",
+            "2001:::1",
+            "2001:db8:1",
+            "0.0.10.7::1",
+            "192.0.2.1::",
+            "192.0.2.1::1",
+        ] {
             assert!(ProtectedIpAddr::parse(text).is_err());
         }
     }

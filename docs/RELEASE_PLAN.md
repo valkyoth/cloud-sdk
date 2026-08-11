@@ -2280,13 +2280,13 @@ Stop gate: `v0.77.0 implementation stop reached. Complete the pentest and full r
 
 ### v0.78.0 - Robot Servers
 
-Status: release candidate; pentest and final retest passed.
+Status: remediation complete; final retest and full release gate required.
 
 Goal: complete server list/get/update operations and models.
 
 Deliverables: canonical server identity, capabilities, statuses, nullable subnets, explicit update intent, and no legacy IP aliases. Classified identities, topology, dates, states, and capabilities use fallible stable allocation-backed storage; strict JSON retains no ordinary scalar payload beside protected lexical/fixed storage; Robot parsing uses bounded clear-on-drop scratch and distinguishes malformed values from protected allocation failure; protected Boolean transfers write directly into final storage; request identities remain protected decimal bytes; model moves relocate only allocation metadata; and duplicate checks sort public indices without copied classified keys.
 
-Verification: source coverage, field/conflict/boundary tests, stable-allocation move tests for parser and model values, canonical decimal maximum and path tests, complete IPv4/IPv6/date/subnet parser tests, public-decoder differential fuzzing against `core::net::IpAddr::from_str`, protected error-class mapping, direct protected Boolean transfer, absence of Robot scalar extraction, index-only duplicate checks, and `scripts/release_0_78_gate.sh`.
+Verification: source coverage, field/conflict/boundary tests, stable-allocation move tests for parser and model values, canonical decimal maximum and path tests, complete IPv4/IPv6/date/subnet parser tests, public-decoder differential fuzzing of complete values against `core::net::IpAddr::from_str`, malformed embedded-IPv4 compression seeds, protected error-class mapping, direct protected Boolean transfer, absence of Robot scalar extraction, index-only duplicate checks, and `scripts/release_0_78_gate.sh`.
 
 Stop gate: `v0.78.0 implementation stop reached. Complete the pentest and full release gate for this exact commit; defer crates.io publication to v0.80.0.`
 

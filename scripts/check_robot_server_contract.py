@@ -108,6 +108,8 @@ def validate_implementation() -> None:
             "request identity is reconstructed as an ordinary scalar")
     require("struct Octets" in protected_parse and "struct Segments" in protected_parse,
             "clear-on-drop topology scratch is absent")
+    require("left.as_bytes().contains(&b'.')" in protected_parse,
+            "compressed IPv6 accepts an embedded IPv4 tail before the compression marker")
     require("canonical_network" in protected_parse, "subnet canonicalization is absent")
     require("enum ProtectedValueError" in protected
             and "Invalid," in protected
@@ -131,7 +133,9 @@ def validate_implementation() -> None:
     require("IpAddr::from_str(candidate)" in ip_fuzz
             and "AddressField::Ipv4" in ip_fuzz
             and "AddressField::Ipv6" in ip_fuzz
-            and "request.decode_response(checked).is_ok()" in ip_fuzz,
+            and "request.decode_response(checked).ok()?" in ip_fuzz
+            and "summary.with_main_ipv4" in ip_fuzz
+            and "summary.with_main_ipv6_network" in ip_fuzz,
             "public-decoder differential IP fuzzing is absent")
     require("RobotServerSummary([redacted])" in model, "summary diagnostics are not redacted")
 
