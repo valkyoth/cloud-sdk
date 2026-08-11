@@ -36,6 +36,12 @@ impl<'a> ContentType<'a> {
         essence_len: 16,
     };
 
+    /// `application/x-www-form-urlencoded`.
+    pub const FORM_URLENCODED: Self = Self {
+        value: "application/x-www-form-urlencoded",
+        essence_len: 33,
+    };
+
     /// Validates a content-type header value conservatively.
     pub fn new(value: &'a str) -> Result<Self, ContentTypeError> {
         if value.is_empty() {
@@ -90,6 +96,11 @@ impl<'a> MediaType<'a> {
     /// `application/json`.
     pub const JSON: Self = Self {
         value: "application/json",
+    };
+
+    /// `application/x-www-form-urlencoded`.
+    pub const FORM_URLENCODED: Self = Self {
+        value: "application/x-www-form-urlencoded",
     };
 
     /// Validates a media-type essence without parameters.
@@ -252,6 +263,10 @@ mod tests {
 
     #[test]
     fn validates_media_types_and_parameters_conservatively() {
+        assert_eq!(
+            ContentType::FORM_URLENCODED.essence(),
+            MediaType::FORM_URLENCODED.as_str()
+        );
         for value in [
             "application/json",
             "Application/JSON",

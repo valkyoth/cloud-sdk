@@ -203,7 +203,7 @@ impl Value {
         }
     }
 
-    pub(super) const fn as_bool(&self) -> Option<bool> {
+    pub(crate) const fn as_bool(&self) -> Option<bool> {
         match self {
             Self::Bool(value) => Some(*value),
             _ => None,

@@ -163,24 +163,27 @@ impl<'a> RobotForm<'a> {
         self,
         output: &'output mut [u8],
     ) -> Result<EncodedRobotForm<'output>, RobotFormError> {
-        let required = self.encoded_len()?;
-        if output.len() < required {
-            return Err(RobotFormError::BufferTooSmall);
-        }
-
-        sanitize_bytes(output);
-        let len = encode_snapshot_bounded(
-            self.fields,
-            output,
-            MAX_ROBOT_FORM_BODY_BYTES,
-            RobotFormError::BodyTooLong,
-            encode_fields,
-        )?;
+        let len = self.write_prepared(output)?;
         Ok(EncodedRobotForm {
             output,
             len,
             sensitivity: self.sensitivity,
         })
+    }
+
+    pub(crate) fn write_prepared(self, output: &mut [u8]) -> Result<usize, RobotFormError> {
+        let required = self.encoded_len()?;
+        if output.len() < required {
+            return Err(RobotFormError::BufferTooSmall);
+        }
+        sanitize_bytes(output);
+        encode_snapshot_bounded(
+            self.fields,
+            output,
+            MAX_ROBOT_FORM_BODY_BYTES,
+            RobotFormError::BodyTooLong,
+            encode_fields,
+        )
     }
 
     /// Returns the number of ordered fields.
