@@ -116,6 +116,11 @@ def validate_implementation() -> None:
         "protected_parse::subnet", "RequestBodySensitivity::Sensitive",
         "PreparedCancellation", "CheckedCancellation", "MutationOutcomeMismatch",
         "validate_schedule", "validate_reservation", "validate_reason",
+        "CancellationPlanConfirmation", "CancellationDestructivePermit",
+        "CancellationSharedDestructivePermit", "CancellationPermitAttempt",
+        "build_cancellation_plan_digest", "CheckedCancellation::from_executed",
+        "RobotLocationReservationIntent::Omit => !reservation_possible && !reserved",
+        "RobotLocationReservationIntent::Reserve => reservation_possible && reserved",
         "map_date_error", "is_unsafe_display_character",
     ):
         require(required in sources, f"implementation policy missing {required}")

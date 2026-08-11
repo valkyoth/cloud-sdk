@@ -21,7 +21,11 @@ pub struct PreparedCancellation<'storage, 'request, R> {
 }
 
 impl<'storage, 'request, R> PreparedCancellation<'storage, 'request, R> {
-    /// Borrows the provider-neutral request for plan confirmation or inspection.
+    /// Borrows the provider-neutral request for inspection.
+    ///
+    /// Destructive authority must be built from
+    /// [`super::CancellationPlanConfirmation`] so the exact request binding
+    /// survives permit execution.
     #[must_use]
     pub const fn as_untyped(&self) -> PreparedRequest<'storage> {
         self.inner
@@ -38,6 +42,10 @@ impl<'storage, 'request, R> PreparedCancellation<'storage, 'request, R> {
                 request: self.request,
                 inner,
             })
+    }
+
+    pub(super) fn into_plan_parts(self) -> (PreparedRequest<'storage>, &'request R) {
+        (self.inner, self.request)
     }
 }
 
@@ -71,6 +79,15 @@ impl<R> core::fmt::Debug for PreparedCancellation<'_, '_, R> {
 pub struct CheckedCancellation<'buffer, 'request, R> {
     request: &'request R,
     inner: CheckedResponseGuard<'buffer>,
+}
+
+impl<'buffer, 'request, R> CheckedCancellation<'buffer, 'request, R> {
+    pub(super) const fn from_executed(
+        request: &'request R,
+        inner: CheckedResponseGuard<'buffer>,
+    ) -> Self {
+        Self { request, inner }
+    }
 }
 
 impl<R> core::fmt::Debug for CheckedCancellation<'_, '_, R> {
@@ -157,7 +174,11 @@ impl CheckedCancellation<'_, '_, RobotServerCancellationCreateRequest<'_>> {
             result.is_cancelled(),
             result.cancellation_date(),
         )?;
-        validate_reservation(request.reservation, result.is_reserved())?;
+        validate_reservation(
+            request.reservation,
+            result.reservation_possible(),
+            result.is_reserved(),
+        )?;
         validate_reason(request.reason, &result)?;
         Ok(result)
     }
@@ -258,13 +279,13 @@ fn validate_schedule(
 
 fn validate_reservation(
     requested: RobotLocationReservationIntent,
+    reservation_possible: bool,
     reserved: bool,
 ) -> Result<(), RobotCancellationDecodeError> {
     let matches = match requested {
-        RobotLocationReservationIntent::Reserve => reserved,
-        RobotLocationReservationIntent::Omit | RobotLocationReservationIntent::DoNotReserve => {
-            !reserved
-        }
+        RobotLocationReservationIntent::Omit => !reservation_possible && !reserved,
+        RobotLocationReservationIntent::Reserve => reservation_possible && reserved,
+        RobotLocationReservationIntent::DoNotReserve => !reserved,
     };
     if matches {
         Ok(())

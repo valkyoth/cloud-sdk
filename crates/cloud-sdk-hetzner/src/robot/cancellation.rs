@@ -10,6 +10,8 @@ mod decode;
 mod exchange;
 #[cfg(feature = "serde")]
 mod model;
+#[cfg(feature = "serde")]
+mod permit;
 
 pub use request::{
     MAX_ROBOT_CANCELLATION_REASON_INPUT_BYTES, RobotCancellationReason,
@@ -36,8 +38,17 @@ pub use model::{
     MAX_ROBOT_CANCELLATION_REASON_BYTES, MAX_ROBOT_CANCELLATION_REASONS, RobotIpCancellation,
     RobotServerCancellation, RobotServerCancellationReason, RobotSubnetCancellation,
 };
+#[cfg(feature = "serde")]
+pub use permit::{
+    CancellationCanonicalPlanFingerprint, CancellationDestructivePermit, CancellationPermitAttempt,
+    CancellationPlanConfirmation, CancellationPlanFingerprintDigest, CancellationPlanSubject,
+    CancellationSharedDestructivePermit, build_cancellation_canonical_plan,
+    build_cancellation_plan_digest,
+};
 
 #[cfg(all(test, feature = "serde"))]
 mod exchange_tests;
+#[cfg(all(test, feature = "serde"))]
+mod permit_tests;
 #[cfg(all(test, feature = "serde"))]
 mod tests;

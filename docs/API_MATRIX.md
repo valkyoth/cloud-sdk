@@ -332,7 +332,9 @@ excluded and cannot be constructed.
 `v0.79.0` implements all nine cancellation operations across server, IP, and
 subnet identities. It adds protected canonical targets and dates, explicit
 scheduling and reservation intent, destructive retry-denied metadata, exact
-JSON/empty response policy, identity binding, and strict conflict decoding.
+JSON/empty response policy, request-bound destructive permit execution,
+identity binding, exact reservation acknowledgement, and strict conflict
+decoding.
 
 Robot implementation schedule:
 

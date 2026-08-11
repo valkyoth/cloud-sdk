@@ -1178,8 +1178,9 @@ published.
 
 `v0.79.0` adds all nine Robot server, IP, and subnet cancellation operations,
 protected canonical targets/dates, explicit scheduling and reservation intent,
-destructive retry-denied metadata, and strict conflict-aware decoding. It is
-an internal milestone in the v0.76-v0.80 cumulative train, so no crate is
+destructive retry-denied metadata, request-bound permit execution, and strict
+conflict-aware decoding with exact reservation acknowledgement. It is an
+internal milestone in the v0.76-v0.80 cumulative train, so no crate is
 published.
 
 | Crate | Published | Source | Change | Publish | Reason |

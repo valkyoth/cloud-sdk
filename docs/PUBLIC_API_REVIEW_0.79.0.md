@@ -30,6 +30,14 @@ exact request type and instance through response-policy validation; only the
 matching checked type exposes its decoder. Standalone low-level decoders still
 require a checked response plus expected identity and decoder workspace.
 
+Destructive execution uses `CancellationPlanConfirmation`, the exact or digest
+fingerprint builders, `CancellationDestructivePermit` or
+`CancellationSharedDestructivePermit`, and `CancellationPermitAttempt`. These
+wrappers carry the private exact-request binding beside the provider-neutral
+plan and permit state. Their blocking, Send-async, and local-async execute
+methods return `CheckedCancellation` directly, so the authorized path never
+erases response provenance or asks callers to reconstruct it.
+
 Models preserve protected IDs, addresses, dates, names, reasons, and state.
 They reject unknown fields, identity mismatch, impossible date presence,
 scheduled dates before the earliest date, invalid reservation combinations,
@@ -38,8 +46,10 @@ two officially documented IP/subnet date-field spellings.
 
 Mutation decoders additionally require POST acknowledgement to match active
 schedule, exact requested date when supplied, server reason, and reservation
-intent. IP/subnet DELETE returns and validates the documented inactive JSON
-model. Server DELETE remains the only empty success response.
+intent. Omission requires reservation to be unavailable and inactive; reserve
+requires available and active reservation; explicit non-reservation requires
+inactive reservation. IP/subnet DELETE returns and validates the documented
+inactive JSON model. Server DELETE remains the only empty success response.
 
 ## Semver And Publication
 

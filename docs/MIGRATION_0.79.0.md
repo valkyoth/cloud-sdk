@@ -26,14 +26,24 @@ validated reason and explicit `RobotLocationReservationIntent`. DELETE uses a
 named revoke request. Server DELETE accepts only an empty `200 OK`; IP and
 subnet DELETE require their documented JSON cancellation objects.
 
-With `serde`, call `prepare_bound`, validate through the resulting
-`PreparedCancellation`, and call `checked.decode_response()`. The typed checked
-response retains the exact request instance. POST decoding verifies active
-state, requested date, reason, and reservation intent; IP/subnet DELETE verifies
-that the returned cancellation is inactive.
+With `serde`, read-only code may call `prepare_bound`, validate through the
+resulting `PreparedCancellation`, and call `checked.decode_response()`.
+Destructive POST and DELETE execution must instead move that prepared value
+into `CancellationPlanConfirmation`, build an exact or strong-digest
+cancellation fingerprint, create `CancellationDestructivePermit` or
+`CancellationSharedDestructivePermit`, and execute its attempt. The attempt's
+blocking, Send-async, and local-async methods return `CheckedCancellation`
+directly, retaining the exact request instance through authorization and wire
+execution without caller rebinding.
 
-POST and DELETE are destructive and never automatically retryable. Execution
-must use the core destructive permit boundary and caller-owned reconciliation
-after uncertain delivery. v0.79 does not add the Robot high-level client.
+POST decoding verifies active state, requested date, reason, and complete
+reservation acknowledgement. `Omit` is accepted only when reservation is
+unavailable and inactive; `Reserve` requires available and active reservation;
+`DoNotReserve` requires inactive reservation. IP/subnet DELETE verifies that
+the returned cancellation is inactive.
+
+POST and DELETE are destructive and never automatically retryable. Use the
+request-bound cancellation permit API and caller-owned reconciliation after
+uncertain delivery. v0.79 does not add the Robot high-level client.
 
 The crate package remains 0.42.0 until cumulative publication at v0.80.0.

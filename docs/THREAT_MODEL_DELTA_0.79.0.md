@@ -19,8 +19,11 @@ operationally sensitive.
   intent and does not infer it from an earlier response.
 - POST and DELETE are destructive and never automatically retryable. POST is
   non-idempotent; DELETE remains retry-denied despite idempotent semantics.
-- The core permit boundary applies before execution. v0.79 itself performs no
-  network request and grants no permit.
+- The request-bound cancellation plan, fingerprint, and direct/shared permit
+  wrappers apply the core permit boundary before execution and retain the exact
+  request through blocking, Send-async, and local-async response admission.
+- No public constructor can manufacture or replace the private request
+  association. Permit execution returns `CheckedCancellation` directly.
 
 ### Hostile Or Contradictory Responses
 
@@ -29,13 +32,16 @@ operationally sensitive.
 - Exact envelopes reject unknown and duplicate fields.
 - Response identity must equal the request identity.
 - `PreparedCancellation` and `CheckedCancellation` retain the exact request
-  type and instance through validation, preventing bare-guard decoder use.
+  type and instance through direct validation and permit-authorized execution,
+  preventing bare-guard decoder use.
 - POST acknowledgement must be active and match the requested exact date,
   optional reason, and reservation intent. Immediate schedules require an
   active provider date. IP/subnet DELETE acknowledgement must be inactive.
 - Date presence must equal cancellation state and cannot precede the earliest
   date; dates are calendar-valid.
-- Reserved location requires both availability and active cancellation.
+- Reservation intent is acknowledged exactly: omission requires unavailable
+  and inactive reservation, reserve requires available and active reservation,
+  and explicit non-reservation requires inactive reservation.
 - Server reason shape changes exactly from bounded array to string-or-null.
 - IP/subnet spelling variants are mutually exclusive, and subnet host bits
   must be clear for the returned prefix.

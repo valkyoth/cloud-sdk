@@ -7,6 +7,8 @@ use super::*;
 use crate::robot::server::RobotServerNumber;
 
 const SERVER_CANCELLED: &[u8] = br#"{"cancellation":{"server_ip":"192.0.2.10","server_ipv6_net":"2001:db8::","server_number":321,"server_name":"server-1","earliest_cancellation_date":"2028-02-29","cancelled":true,"reservation_possible":true,"reserved":true,"cancellation_date":"2028-03-01","cancellation_reason":"migration"}}"#;
+const SERVER_CANCELLED_NOT_RESERVED: &[u8] = br#"{"cancellation":{"server_ip":"192.0.2.10","server_ipv6_net":"2001:db8::","server_number":321,"server_name":"server-1","earliest_cancellation_date":"2028-02-29","cancelled":true,"reservation_possible":true,"reserved":false,"cancellation_date":"2028-03-01","cancellation_reason":"migration"}}"#;
+const SERVER_CANCELLED_NO_RESERVATION: &[u8] = br#"{"cancellation":{"server_ip":"192.0.2.10","server_ipv6_net":"2001:db8::","server_number":321,"server_name":"server-1","earliest_cancellation_date":"2028-02-29","cancelled":true,"reservation_possible":false,"reserved":false,"cancellation_date":"2028-03-01","cancellation_reason":"migration"}}"#;
 const IP_CANCELLED: &[u8] = br#"{"cancellation":{"ip":"192.0.2.10","server_number":"321","earliest_cancellation_date":"2028-02-29","cancelled":true,"cancellation-date":"2028-03-01"}}"#;
 const IP_AVAILABLE: &[u8] = br#"{"cancellation":{"ip":"192.0.2.10","server_number":"321","earliest_cancellation_date":"2028-02-29","cancelled":false,"cancellation-date":null}}"#;
 const SUBNET_AVAILABLE: &[u8] = br#"{"cancellation":{"ip":"2001:db8::","mask":"64","server_number":321,"earliest_cancellation_date":"2028-02-29","cancelled":false,"cancellation_date":null}}"#;
@@ -74,6 +76,39 @@ fn mutation_acknowledgements_must_match_complete_request_intent() {
         ),
         Err(RobotCancellationDecodeError::MutationOutcomeMismatch)
     ));
+    let reason = RobotCancellationReason::new("migration")
+        .unwrap_or_else(|_| unreachable!("reason fixture failed"));
+    assert!(matches!(
+        decode_server_create(
+            SERVER_CANCELLED_NOT_RESERVED,
+            RobotCancellationSchedule::On(date("2028-03-01")),
+            Some(reason),
+            RobotLocationReservationIntent::Omit,
+        ),
+        Err(RobotCancellationDecodeError::MutationOutcomeMismatch)
+    ));
+    let reason = RobotCancellationReason::new("migration")
+        .unwrap_or_else(|_| unreachable!("reason fixture failed"));
+    assert!(matches!(
+        decode_server_create(
+            SERVER_CANCELLED_NOT_RESERVED,
+            RobotCancellationSchedule::On(date("2028-03-01")),
+            Some(reason),
+            RobotLocationReservationIntent::Reserve,
+        ),
+        Err(RobotCancellationDecodeError::MutationOutcomeMismatch)
+    ));
+    let reason = RobotCancellationReason::new("migration")
+        .unwrap_or_else(|_| unreachable!("reason fixture failed"));
+    assert!(
+        decode_server_create(
+            SERVER_CANCELLED_NO_RESERVATION,
+            RobotCancellationSchedule::On(date("2028-03-01")),
+            Some(reason),
+            RobotLocationReservationIntent::Omit,
+        )
+        .is_ok()
+    );
 }
 
 #[test]

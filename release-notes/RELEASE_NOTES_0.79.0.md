@@ -35,9 +35,13 @@ is selected for crates.io publication.
 - Added a dedicated source fixture/checker, regression suite, and direct
   checked-response fuzz target with deterministic server/IP/subnet seeds.
 - Pentest remediation binds checked responses to the exact cancellation
-  request type and instance, validates complete POST intent and inactive
-  revocation outcomes, shares Unicode display-safety policy, and preserves
-  protected-date allocation errors.
+  request type and instance across direct validation and blocking, Send-async,
+  or local-async destructive permit execution. The permit path returns the
+  bound checked response directly and exposes no caller-rebinding operation.
+- Pentest remediation also validates complete POST intent, including distinct
+  unavailable omission, available reservation, and explicit non-reservation
+  acknowledgements; validates inactive revocation outcomes; shares Unicode
+  display-safety policy; and preserves protected-date allocation errors.
 
 ## Versions
 

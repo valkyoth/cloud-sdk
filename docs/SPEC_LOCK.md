@@ -384,7 +384,11 @@ The nine active server, IP, and subnet cancellation rows are bound to
 protected identities. POST admits only `now` or a calendar-valid date; server
 POST additionally models optional reason and explicit location-reservation
 intent. POST and DELETE are destructive, are never automatically retryable,
-and require the core execution permit boundary when executed.
+and require the core execution permit boundary when executed. The public
+cancellation plan, fingerprint, direct/shared destructive permit, and attempt
+wrappers retain the exact request association through blocking, Send-async,
+and local-async execution; permit execution returns `CheckedCancellation`
+directly rather than an unbound checked response.
 
 GET, POST, and IP/subnet DELETE require exact `200` JSON cancellation
 envelopes. Server DELETE alone requires exact `200` with no body or content
@@ -398,3 +402,8 @@ array before cancellation and string or null afterward. For IP and subnet,
 the official tables name `cancellation_date` while examples use
 `cancellation-date`; exactly one reviewed spelling is admitted. Canonical
 subnet host bits are mandatory.
+
+Reservation acknowledgement is exact: `Omit` requires reservation to be both
+unavailable and inactive, `Reserve` requires available and active reservation,
+and `DoNotReserve` requires inactive reservation while permitting either
+availability state.

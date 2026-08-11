@@ -146,7 +146,8 @@ or calendar-date schedule; server requests also require explicit location
 reservation intent. Create and revoke metadata is destructive and never
 automatically retryable. Responses bind identity to the request, reject
 contradictory dates and state, require mutation acknowledgement to match the
-requested schedule/reason/reservation intent, and preserve the official
+requested schedule/reason/reservation intent and reservation availability,
+and preserve the official
 IP/subnet date-field spelling inconsistency without accepting both spellings at
 once. Server revoke has an empty success response; IP and subnet revoke return
 and validate inactive cancellation models.
@@ -177,9 +178,13 @@ assert_eq!(
 # fn main() {}
 ```
 
-Cancellation create and revoke requests are destructive. Execute them only
-through the permit-gated client kernel with caller-owned reconciliation after
-uncertain delivery; v0.79 does not provide the Robot high-level client.
+Cancellation create and revoke requests are destructive. Move their
+`PreparedCancellation` into `CancellationPlanConfirmation`, build a
+cancellation fingerprint, and execute a `CancellationDestructivePermit` or
+`CancellationSharedDestructivePermit` attempt. These request-bound wrappers
+return `CheckedCancellation` directly across blocking, Send-async, and
+local-async execution. Keep caller-owned reconciliation after uncertain
+delivery; v0.79 does not provide the Robot high-level client.
 
 Robot error responses use a separate strict decoder. Pass only an admitted
 transport response; unknown statuses, unknown codes, duplicate keys, and
