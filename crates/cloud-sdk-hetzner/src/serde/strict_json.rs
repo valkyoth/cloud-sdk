@@ -9,6 +9,11 @@ use cloud_sdk_sanitization::{SecretString, sanitize_string};
 mod parser;
 pub(crate) use parser::JsonError;
 
+#[cfg(test)]
+mod allocation_failure;
+#[cfg(test)]
+pub(crate) use allocation_failure::with_next_failure;
+
 pub(super) const MAX_JSON_DEPTH: usize = 64;
 pub(super) const MAX_JSON_CONTAINER_ENTRIES: usize = 4096;
 pub(super) const MAX_JSON_OBJECT_FIELDS: usize = 256;

@@ -13,7 +13,7 @@ use super::{
     RobotDecodeError, RobotFailure, RobotFailureCategory, RobotProviderErrorCode,
     RobotRetryDisposition, decode_robot_failure,
 };
-use crate::serde::strict_json::JsonError;
+use crate::serde::strict_json::{JsonError, with_next_failure};
 
 const INVALID: &[u8] = br#"{
   "error": {
@@ -185,6 +185,10 @@ fn parser_allocation_failure_remains_distinct_from_hostile_input() {
     assert_eq!(
         super::decode::map_json_error(JsonError::InvalidSyntax),
         RobotDecodeError::MalformedPayload
+    );
+    assert_eq!(
+        with_next_failure(|| decode(400, INVALID, Some(b"application/json"))),
+        Err(RobotDecodeError::Allocation)
     );
 }
 

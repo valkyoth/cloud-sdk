@@ -7,7 +7,8 @@ tests='crates/cloud-sdk-hetzner/src/robot/protocol/tests.rs'
 
 for file in "$protocol" "$decoder" "$tests" \
     fuzz/fuzz_targets/robot_error_protocol.rs \
-    fuzz/seeds/robot_error_protocol/quota.json; do
+    fuzz/seeds/robot_error_protocol/quota.json \
+    fuzz/seeds/robot_error_protocol/exact-body-boundary.seed; do
     test -s "$file" || {
         echo "Robot protocol: missing evidence $file" >&2
         exit 1
@@ -35,6 +36,8 @@ grep -Fq 'provider bytes created a transport classification' \
 grep -Fq 'JsonError::Allocation => RobotDecodeError::Allocation' "$decoder"
 grep -Fq 'elif [ "$target" = robot_error_protocol ]; then' scripts/check_fuzz_harness.sh
 grep -Fq 'max_len=65537' scripts/check_fuzz_harness.sh
+test "$(wc -c < fuzz/seeds/robot_error_protocol/exact-body-boundary.seed)" -eq 65537
+grep -Fq 'with_next_failure(|| decode(' "$tests"
 
 cargo check --locked -p cloud-sdk-hetzner --no-default-features
 cargo check --locked -p cloud-sdk-hetzner --no-default-features --features alloc

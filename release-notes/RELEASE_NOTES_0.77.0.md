@@ -1,11 +1,11 @@
 # cloud-sdk 0.77.0 Milestone Notes
 
-Status: implementation complete; pentest required.
+Status: release candidate; pentest and final retest passed.
 
 Release date: 2026-08-11
 
-Security-Review: PENDING
-Pentest: REQUIRED
+Security-Review: PASS
+Pentest: PASS
 Publication: DEFERRED TO v0.80.0
 
 ## Overview
@@ -33,7 +33,10 @@ crates.io publication.
   unknown, mismatch, quota, redaction, and retry-denial tests. Its release
   smoke admits the selector byte plus the complete 65,536-byte body boundary.
 - Preserved local parser allocation failures as a distinct payload-free
-  `RobotDecodeError::Allocation` instead of classifying them as hostile input.
+  `RobotDecodeError::Allocation` instead of classifying them as hostile input,
+  with deterministic test-only failure injection through the normal decoder.
+- Added a checked-in 65,537-byte Robot fuzz seed so every smoke run executes
+  the exact selector-plus-maximum-body input boundary.
 
 ## Versions
 
@@ -52,9 +55,10 @@ crates.io publication.
 - [`docs/THREAT_MODEL_DELTA_0.77.0.md`](../docs/THREAT_MODEL_DELTA_0.77.0.md)
 - [`docs/REJECTED_ABSTRACTIONS_0.77.0.md`](../docs/REJECTED_ABSTRACTIONS_0.77.0.md)
 - [`docs/MIGRATION_0.77.0.md`](../docs/MIGRATION_0.77.0.md)
+- [`security/pentest/v0.77.0.md`](../security/pentest/v0.77.0.md)
 
 ## Release Gate
 
-After the pentest report is committed, run `scripts/release_0_77_gate.sh` on
-the clean final evidence commit. GitHub CI and CodeQL must be green on that
-unchanged commit before the signed internal tag. Do not publish crates.
+Run `scripts/release_0_77_gate.sh` on the clean final evidence commit. GitHub
+CI and CodeQL must be green on that unchanged commit before the signed
+internal tag. Do not publish crates.

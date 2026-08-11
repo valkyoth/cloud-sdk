@@ -49,6 +49,19 @@ do
     fi
 done
 
+if ! awk '
+    /^#\[cfg\(test\)\]$/ { guarded = 1; next }
+    /^mod allocation_failure;$/ {
+        if (guarded) found = 1
+        else bad = 1
+    }
+    { guarded = 0 }
+    END { exit bad || !found }
+' crates/cloud-sdk-hetzner/src/serde/strict_json.rs; then
+    echo "modularity policy: allocation failure helper lost test guard" >&2
+    status=1
+fi
+
 if grep -RInE '(^|[^A-Za-z0-9_])std([[:space:]]*::|[[:space:]]+as|[[:space:]]*\{|[[:space:]]*;)' crates --include='*.rs' |
     grep -Ev '^[^:]+:[0-9]+:extern crate std;' |
     grep -Ev '^[^:]+:[0-9]+:use crate::std as test_std;$' |
@@ -58,6 +71,7 @@ if grep -RInE '(^|[^A-Za-z0-9_])std([[:space:]]*::|[[:space:]]+as|[[:space:]]*\{
     grep -Ev '^crates/cloud-sdk/tests/credential_attempt_concurrency.rs:' |
     grep -Ev '^crates/cloud-sdk/tests/response_cleanup.rs:' |
     grep -Ev '^crates/cloud-sdk/tests/encoder_cleanup.rs:' |
+    grep -Ev '^crates/cloud-sdk-hetzner/src/serde/strict_json/allocation_failure.rs:' |
     grep -Ev '^crates/cloud-sdk-hetzner/tests/live_smoke(\.rs:|/)'; then
     echo "modularity policy: unguarded std usage found under crates/" >&2
     status=1

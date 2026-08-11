@@ -33,7 +33,10 @@ sensitive account context.
   bytes; messages retain at most 16,384 bytes.
 - Quota maximum and interval must be nonzero unsigned integers.
 - Local parser allocation failure remains distinct from malformed provider
-  data so resource exhaustion cannot be misreported as hostile input.
+  data so resource exhaustion cannot be misreported as hostile input. A
+  test-only failure checkpoint drives this path through the normal decoder.
+- The exact 65,537-byte selector-plus-body fuzz boundary is a deterministic
+  corpus entry rather than depending on probabilistic smoke generation.
 
 ### Data Lifetime And Diagnostics
 

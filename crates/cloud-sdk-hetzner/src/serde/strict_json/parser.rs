@@ -100,6 +100,7 @@ impl Parser<'_> {
             if values.len() >= MAX_JSON_CONTAINER_ENTRIES {
                 return Err(JsonError::ContainerLimit);
             }
+            allocation_checkpoint()?;
             values.try_reserve(1).map_err(|_| JsonError::Allocation)?;
             values.push(self.parse_value(depth.saturating_add(1))?);
             self.skip_whitespace();
@@ -124,6 +125,7 @@ impl Parser<'_> {
             if values.len() >= MAX_JSON_OBJECT_FIELDS {
                 return Err(JsonError::ContainerLimit);
             }
+            allocation_checkpoint()?;
             values.try_reserve(1).map_err(|_| JsonError::Allocation)?;
             if self.current() != Some(b'"') {
                 return Err(JsonError::InvalidSyntax);
@@ -149,6 +151,7 @@ impl Parser<'_> {
 
     fn parse_secret_string(&mut self) -> Result<SecretString, JsonError> {
         let scan = scan_string(self.input, self.position)?;
+        allocation_checkpoint()?;
         let mut output =
             SecretString::try_with_capacity(scan.decoded_len).map_err(|_| JsonError::Allocation)?;
         decode_string(
@@ -166,6 +169,7 @@ impl Parser<'_> {
 
     fn parse_key(&mut self) -> Result<ProtectedKey, JsonError> {
         let scan = scan_string(self.input, self.position)?;
+        allocation_checkpoint()?;
         let mut output =
             ProtectedKey::try_with_capacity(scan.decoded_len).map_err(|_| JsonError::Allocation)?;
         decode_string(
@@ -291,7 +295,15 @@ fn parse_finite_float(text: &str) -> Result<Number, JsonError> {
 }
 
 fn lexical_number<T>(value: T, text: &str) -> Result<LexicalNumber<T>, JsonError> {
+    allocation_checkpoint()?;
     LexicalNumber::try_new(value, text).map_err(|_| JsonError::Allocation)
+}
+
+#[inline]
+fn allocation_checkpoint() -> Result<(), JsonError> {
+    #[cfg(test)]
+    super::allocation_failure::checkpoint()?;
+    Ok(())
 }
 
 struct StringScan {
