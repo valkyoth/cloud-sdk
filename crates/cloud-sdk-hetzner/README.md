@@ -65,11 +65,13 @@ Hetzner owns its provider and service markers:
 | `DnsService` | `dns` |
 | `SecurityService` | `security` |
 | `StorageService` | `storage` |
+| `RobotService` | `robot` |
 
 Prepared Cloud and Console Storage operations bind the appropriate marker and
 official endpoint automatically. Callers comparing metadata can use
 `HETZNER_PROVIDER_ID`, `CLOUD_SERVICE_ID`, `DNS_SERVICE_ID`,
-`SECURITY_SERVICE_ID`, and `STORAGE_SERVICE_ID`. These IDs are routing
+`SECURITY_SERVICE_ID`, `STORAGE_SERVICE_ID`, and `ROBOT_SERVICE_ID`. These IDs
+are routing
 metadata; exact endpoint verification remains a separate mandatory credential
 boundary.
 
@@ -127,8 +129,42 @@ standard form rules: spaces become `+`, while literal `+`, `&`, `=`, brackets,
 controls, and non-ASCII UTF-8 bytes are percent encoded. Field names require a
 nonempty identifier root followed only by complete bracketed components;
 `server[]` remains valid while malformed nesting fails before encoding. The
-codec does not send a request, own source secrets, or implement Robot
-authentication.
+codec does not send a request or own source secrets. With `alloc`, use the
+protected Robot-only credential owner for Basic authentication material:
+
+```rust
+# #[cfg(feature = "alloc")]
+# fn main() -> Result<(), Box<dyn core::error::Error>> {
+use cloud_sdk::authentication::CredentialReconfirmation;
+use cloud_sdk_hetzner::robot::RobotCredentials;
+
+let mut username = b"robot-user".to_vec();
+let mut password = b"example-only-secret".to_vec();
+let credentials = RobotCredentials::from_mut_bytes(&mut username, &mut password)?;
+assert!(username.iter().all(|byte| *byte == 0));
+assert!(password.iter().all(|byte| *byte == 0));
+
+let attempt = credentials.begin_attempt()?;
+credentials.try_with_attempt(attempt, |username, password| {
+    // Encode and send only through an exact official Robot endpoint here.
+    assert_eq!(username, "robot-user");
+    assert_eq!(password, "example-only-secret");
+})?;
+
+// An authentication rejection closes this generation globally.
+credentials.reject_attempt(attempt)?;
+let _next_generation = credentials.reconfirm(
+    CredentialReconfirmation::acknowledge_same_credentials(),
+)?;
+# Ok(())
+# }
+# #[cfg(not(feature = "alloc"))]
+# fn main() {}
+```
+
+Only newly supplied credentials or explicit caller reconfirmation reopen a
+rejected generation. Retry, polling, and client policy must never create that
+decision. The type does not build a Basic header or send a request.
 
 Use compile-time operation associations when endpoint, query, body, response,
 and safety policy must retain one nominal operation identity:
@@ -286,11 +322,15 @@ The construction, storage, and trust boundaries are described in the
 [Hetzner client guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/HETZNER_CLIENT.md).
 Upstream source monitoring and lock-refresh decisions follow the
 [API drift maintenance runbook](https://github.com/valkyoth/cloud-sdk/blob/main/docs/API_DRIFT_MAINTENANCE.md).
-The separate Robot Webservice currently exposes its bounded form codec but no
-endpoint-family operation or client. Its complete source lock records 89
-active operations and excludes all 16 deprecated Storage Box operations before
-endpoint implementation begins in v0.78.0. See the
+The separate Robot Webservice exposes its bounded form codec, exact official
+endpoint identity, Robot service marker, protected credentials, and
+lockout-aware attempt generation, but no endpoint-family operation or client.
+Its complete source lock records 89 active operations and excludes all 16
+deprecated Storage Box operations before endpoint implementation begins in
+v0.78.0. See the
 [Robot source-lock contract](https://github.com/valkyoth/cloud-sdk/blob/main/docs/ROBOT_WIRE_SOURCE_LOCK.md).
+The v0.76 additions and source migration are described in the
+[v0.76 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.76.0.md).
 Breaking v0.27 constructor and custom-endpoint changes are listed in the
 [migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.27.0.md).
 Shared transport and credential lifecycle changes are listed in the

@@ -17,6 +17,9 @@ pub const SECURITY_SERVICE_ID: ServiceId = service_id!("security");
 /// Canonical Hetzner Console Storage service identifier.
 pub const STORAGE_SERVICE_ID: ServiceId = service_id!("storage");
 
+/// Canonical Hetzner Robot Webservice identifier.
+pub const ROBOT_SERVICE_ID: ServiceId = service_id!("robot");
+
 /// Hetzner provider namespace marker.
 pub enum Hetzner {}
 
@@ -56,13 +59,22 @@ impl ServiceMarker for StorageService {
     const ID: ServiceId = STORAGE_SERVICE_ID;
 }
 
+/// Hetzner Robot Webservice marker.
+pub enum RobotService {}
+
+impl ServiceMarker for RobotService {
+    type Provider = Hetzner;
+    const ID: ServiceId = ROBOT_SERVICE_ID;
+}
+
 #[cfg(test)]
 mod tests {
     use cloud_sdk::{ProviderMarker, ServiceMarker};
 
     use super::{
         CLOUD_SERVICE_ID, CloudService, DNS_SERVICE_ID, DnsService, HETZNER_PROVIDER_ID, Hetzner,
-        SECURITY_SERVICE_ID, STORAGE_SERVICE_ID, SecurityService, StorageService,
+        ROBOT_SERVICE_ID, RobotService, SECURITY_SERVICE_ID, STORAGE_SERVICE_ID, SecurityService,
+        StorageService,
     };
 
     #[test]
@@ -72,6 +84,7 @@ mod tests {
         assert_eq!(DnsService::ID, DNS_SERVICE_ID);
         assert_eq!(SecurityService::ID, SECURITY_SERVICE_ID);
         assert_eq!(StorageService::ID, STORAGE_SERVICE_ID);
+        assert_eq!(RobotService::ID, ROBOT_SERVICE_ID);
         assert_eq!(
             <<StorageService as ServiceMarker>::Provider as ProviderMarker>::ID,
             HETZNER_PROVIDER_ID

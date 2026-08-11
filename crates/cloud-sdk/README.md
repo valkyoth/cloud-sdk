@@ -75,12 +75,13 @@ Published and planned versions for each independently versioned crate are
 listed in the
 [crate version matrix](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATE_VERSION_MATRIX.md).
 
-The v0.75 public checkpoint includes exhaustive named clients for every active
-Hetzner Cloud, DNS, Security, and Console Storage Box operation. It also
-source-locks all 105 official Robot operation headings and introduces the
-first Robot runtime primitive: bounded atomic form encoding with repeated-field
-ordering and cleanup-owning output. Endpoint-family Robot APIs continue in the
-following milestones. Future FIPS work remains deferred until Brynja is ready.
+The v0.75 crates.io checkpoint includes exhaustive named clients for every
+active Hetzner Cloud, DNS, Security, and Console Storage Box operation plus the
+first bounded Robot form primitive. The v0.76 source milestone adds protected,
+Robot-only Basic credentials with exact endpoint scope and a lockout-aware
+attempt lifecycle. It remains transport-free and performs no network request.
+Crates.io publication is deferred to the v0.80 checkpoint. Future FIPS work
+remains deferred until Brynja is ready.
 
 ## Trust Dashboard
 
@@ -225,6 +226,7 @@ visible. Applications should enable only the features they use.
 - [Migrating source users to v0.72](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.72.0.md)
 - [Migrating source users to v0.73](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.73.0.md)
 - [Migrating to v0.75](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.75.0.md)
+- [Migrating source users to v0.76](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.76.0.md)
 - [Compile-time Hetzner operation associations](https://github.com/valkyoth/cloud-sdk/blob/main/docs/OPERATION_ASSOCIATIONS.md)
 - [Incremental provider decoding](https://github.com/valkyoth/cloud-sdk/blob/main/docs/INCREMENTAL_DECODING.md)
 - [Deprecated endpoint policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/DEPRECATED_ENDPOINT_POLICY.md)

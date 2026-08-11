@@ -310,6 +310,11 @@ POST operations. This is protocol support, not endpoint coverage: no active
 Robot operation row becomes implemented until its assigned endpoint-family
 milestone.
 
+`v0.76.0` implements protected Robot credentials, exact official scope, and
+lockout-aware attempt generations. Authentication rejection closes a
+generation until replacement or explicit caller reconfirmation. This also is
+protocol support rather than endpoint coverage and performs no live request.
+
 Robot implementation schedule:
 
 | Group | Active | Deprecated | Planned Module | Milestone |

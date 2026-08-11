@@ -9,6 +9,9 @@ use cloud_sdk::transport::{
 
 use crate::request::ApiBaseUrl;
 
+/// Canonical Hetzner Robot Webservice origin.
+pub const ROBOT_API_BASE_URL: &str = "https://robot-ws.your-server.de";
+
 /// Failure while verifying a credential-bound transport destination.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum OfficialEndpointError {
@@ -87,6 +90,29 @@ pub fn verify_any_official_endpoint(
         .map_err(map_policy_error)?
         .verify(identity)
         .map_err(map_policy_error)
+}
+
+/// Returns the fixed policy for the official Hetzner Robot Webservice origin.
+pub fn official_robot_endpoint_policy() -> Result<EndpointPolicy<'static>, OfficialEndpointError> {
+    official_robot_endpoint_identity().map(EndpointPolicy::fixed)
+}
+
+/// Verifies that a credential-bound transport exactly matches Robot.
+pub fn verify_official_robot_endpoint(
+    transport: &(impl BoundTransport + ?Sized),
+) -> Result<(), OfficialEndpointError> {
+    let identity = transport
+        .endpoint_identity()
+        .map_err(OfficialEndpointError::InvalidIdentity)?;
+    official_robot_endpoint_policy()?
+        .verify(identity)
+        .map_err(map_policy_error)
+}
+
+pub(crate) fn official_robot_endpoint_identity()
+-> Result<EndpointIdentity<'static>, OfficialEndpointError> {
+    EndpointIdentity::new(EndpointScheme::Https, "robot-ws.your-server.de", 443, "/")
+        .map_err(|_| OfficialEndpointError::InvalidOfficialEndpoint)
 }
 
 fn map_policy_error(_error: EndpointPolicyError) -> OfficialEndpointError {
@@ -220,8 +246,9 @@ mod tests {
     };
 
     use super::{
-        ApiSurface, EndpointGroup, OfficialEndpointError, official_endpoint_policy,
-        parse_official_endpoint, verify_any_official_endpoint, verify_official_endpoint,
+        ApiSurface, EndpointGroup, OfficialEndpointError, ROBOT_API_BASE_URL,
+        official_endpoint_policy, official_robot_endpoint_policy, parse_official_endpoint,
+        verify_any_official_endpoint, verify_official_endpoint, verify_official_robot_endpoint,
     };
     use crate::request::{ApiBaseUrl, CLOUD_API_BASE_URL, HETZNER_API_BASE_URL};
 
@@ -319,6 +346,26 @@ mod tests {
                 EndpointIdentityError::InvalidHost
             ))
         );
+    }
+
+    #[test]
+    fn robot_policy_admits_only_the_exact_source_locked_origin() {
+        assert_eq!(ROBOT_API_BASE_URL, "https://robot-ws.your-server.de");
+        let robot = StubTransport::new(EndpointScheme::Https, "robot-ws.your-server.de", 443, "/");
+        assert_eq!(verify_official_robot_endpoint(&robot), Ok(()));
+        assert!(official_robot_endpoint_policy().is_ok());
+
+        for changed in [
+            StubTransport::new(EndpointScheme::Http, "robot-ws.your-server.de", 443, "/"),
+            StubTransport::new(EndpointScheme::Https, "robot.hetzner.com", 443, "/"),
+            StubTransport::new(EndpointScheme::Https, "robot-ws.your-server.de", 8443, "/"),
+            StubTransport::new(EndpointScheme::Https, "robot-ws.your-server.de", 443, "/v1"),
+        ] {
+            assert_eq!(
+                verify_official_robot_endpoint(&changed),
+                Err(OfficialEndpointError::DestinationMismatch)
+            );
+        }
     }
 
     struct StubTransport<'a> {

@@ -2,7 +2,8 @@
 
 Status: narrow protocol fixture source-locked for `v0.42.0`; complete operation
 inventory source-locked for `v0.74.0`; bounded form codec implemented in
-`v0.75.0`.
+`v0.75.0`; protected credentials and lockout-aware generations implemented in
+`v0.76.0`.
 
 Retrieved: 2026-07-30
 
@@ -77,6 +78,22 @@ owned by `EncodedRobotForm` until that guard clears the complete buffer on
 drop. Borrowed source values and downstream transport copies remain caller and
 operational cleanup boundaries. The codec does not add Robot credentials,
 endpoint operations, response decoding, retries, or network execution.
+
+## Credential And Lockout Contract
+
+`v0.76.0` adds a Robot-only protected username/password owner fixed to the
+source-locked HTTPS origin, Hetzner provider identity, and Robot service
+identity. Mutable and guarded input clears on ingestion and rotation; secret
+text is available only inside one still-open attempt generation and cannot be
+borrowed out of the closure.
+
+Authentication rejection atomically closes the attempted generation. No
+automatic retry, pager, poller, or client can reopen it. Newly supplied
+replacement credentials advance the generation, while reuse of unchanged
+material requires an explicit caller reconfirmation after rejection.
+Reconfirmation while open, stale transitions, and generation wrap fail closed.
+The milestone sends no request and does not intentionally test invalid live
+credentials.
 
 ## Verification
 

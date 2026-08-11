@@ -88,8 +88,11 @@ owned by `cloud-sdk-hetzner::storage`.
 The `v0.75.0` Robot form codec is the shared first runtime layer. It preserves
 ordered repeated fields, applies exact standard form byte encoding, enforces
 aggregate bounds before mutation, and returns a complete-buffer cleanup guard.
-It deliberately precedes credentials, typed protocol errors, and endpoint
-families so each boundary can be reviewed independently.
+`v0.76.0` follows with protected Robot-only Basic source material, exact
+provider/service/origin scope, atomic rejected generations, replacement
+rotation, and explicit post-rejection reconfirmation. Both deliberately
+precede typed protocol errors and endpoint families so each boundary can be
+reviewed independently.
 
 ## API Coverage Tracks
 

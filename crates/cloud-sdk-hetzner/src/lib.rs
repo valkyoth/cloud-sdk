@@ -46,12 +46,14 @@ pub mod serde;
 pub mod storage;
 
 pub use endpoint::{
-    ApiSurface, EndpointGroup, OfficialEndpointError, official_endpoint_policy,
-    verify_any_official_endpoint, verify_official_endpoint,
+    ApiSurface, EndpointGroup, OfficialEndpointError, ROBOT_API_BASE_URL, official_endpoint_policy,
+    official_robot_endpoint_policy, verify_any_official_endpoint, verify_official_endpoint,
+    verify_official_robot_endpoint,
 };
 pub use identity::{
     CLOUD_SERVICE_ID, CloudService, DNS_SERVICE_ID, DnsService, HETZNER_PROVIDER_ID, Hetzner,
-    SECURITY_SERVICE_ID, STORAGE_SERVICE_ID, SecurityService, StorageService,
+    ROBOT_SERVICE_ID, RobotService, SECURITY_SERVICE_ID, STORAGE_SERVICE_ID, SecurityService,
+    StorageService,
 };
 pub use request::{CLOUD_API_BASE_URL, CLOUD_API_VERSION};
 
@@ -74,6 +76,10 @@ mod tests {
     use crate::request::EndpointPathError;
     use crate::response::ApiError;
     use crate::robot::RobotFormError;
+    #[cfg(feature = "alloc")]
+    use crate::robot::{
+        RobotCredentialError, RobotCredentialRotationError, RobotCredentialStateError,
+    };
     use crate::security::ssh_keys::SecurityRequestError;
     #[cfg(feature = "serde")]
     use crate::serde::{ApiErrorResponse, ResponseSizeError, RrsetBodyError};
@@ -104,6 +110,12 @@ mod tests {
         assert_error::<HetznerQuotaError>();
         assert_error::<RrsetRequestError>();
         assert_error::<RobotFormError>();
+        #[cfg(feature = "alloc")]
+        {
+            assert_error::<RobotCredentialError>();
+            assert_error::<RobotCredentialRotationError>();
+            assert_error::<RobotCredentialStateError>();
+        }
         assert_error::<SecurityRequestError>();
         assert_error::<ServerRequestError>();
         assert_error::<SortError>();

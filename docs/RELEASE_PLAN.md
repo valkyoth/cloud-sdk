@@ -2244,6 +2244,8 @@ Stop gate: `v0.74.0 implementation stop reached. Complete the pentest and full r
 
 ### v0.75.0 - Robot Form Codec
 
+Status: released; pentest and final retest passed.
+
 Goal: implement bounded atomic form encoding.
 
 Deliverables: repeated fields, percent rules, exact preflight, transactional state, aggregate caps, and secret-tail cleanup.
@@ -2253,6 +2255,8 @@ Verification: every capacity, repeats, controls, fuzzing, and `scripts/release_0
 Stop gate: `v0.75.0 implementation stop reached. Run the pentest for this exact commit before tagging and crates.io publication.`
 
 ### v0.76.0 - Robot Credentials And Lockout Policy
+
+Status: implementation complete; pentest required.
 
 Goal: type-separate Robot Basic credentials and prevent unsafe authentication testing.
 

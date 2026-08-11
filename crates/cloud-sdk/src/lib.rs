@@ -48,9 +48,9 @@ mod tests {
     use crate::action_polling::{ActionObserveError, ActionPollError};
     use crate::async_resource::AsyncResourceValidationError;
     use crate::authentication::{
-        AuthenticationScopeError, CredentialGenerationError, CredentialLifetimeError,
-        ScopeValueError, SigningBuildError, SigningContextValueError, SigningInputError,
-        SigningOutputError, SigningValueError,
+        AuthenticationScopeError, CredentialAttemptError, CredentialGenerationError,
+        CredentialLifetimeError, ScopeValueError, SigningBuildError, SigningContextValueError,
+        SigningInputError, SigningOutputError, SigningValueError,
     };
     use crate::client::{
         CheckedDecodeError, ClientExecutionError, WorkspaceAcquireError, WorkspacePoolError,
@@ -101,6 +101,7 @@ mod tests {
         assert_error::<AsyncResourceValidationError>();
         assert_error::<HeaderCursorExecutionError<core::convert::Infallible>>();
         assert_error::<AuthenticationScopeError>();
+        assert_error::<CredentialAttemptError>();
         assert_error::<CredentialGenerationError>();
         assert_error::<CredentialLifetimeError>();
         assert_error::<ScopeValueError>();

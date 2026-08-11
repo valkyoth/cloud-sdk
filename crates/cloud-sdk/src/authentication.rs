@@ -1,5 +1,6 @@
 //! Provider-neutral authentication scope and execution contracts.
 
+mod attempt;
 mod expiry;
 mod generation;
 mod policy;
@@ -7,6 +8,10 @@ mod signing;
 mod transport;
 mod value;
 
+pub use attempt::{
+    CredentialAttempt, CredentialAttemptError, CredentialAttemptGeneration,
+    CredentialAttemptStatus, CredentialReconfirmation, SharedCredentialAttemptState,
+};
 pub use expiry::{
     CredentialLifetime, CredentialLifetimeError, CredentialLifetimeState, CredentialTimestamp,
 };

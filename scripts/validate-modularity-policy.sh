@@ -55,6 +55,7 @@ if grep -RInE '(^|[^A-Za-z0-9_])std([[:space:]]*::|[[:space:]]+as|[[:space:]]*\{
     grep -Ev '^[^:]+:[0-9]+:[[:space:]]*(//|///|//!|/\*)' |
     grep -Ev '^crates/cloud-sdk-reqwest/src/(asynchronous|blocking|shared)/' |
     grep -Ev '^crates/cloud-sdk-reqwest/src/test_server.rs:' |
+    grep -Ev '^crates/cloud-sdk/tests/credential_attempt_concurrency.rs:' |
     grep -Ev '^crates/cloud-sdk/tests/response_cleanup.rs:' |
     grep -Ev '^crates/cloud-sdk/tests/encoder_cleanup.rs:' |
     grep -Ev '^crates/cloud-sdk-hetzner/tests/live_smoke(\.rs:|/)'; then

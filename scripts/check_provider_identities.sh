@@ -13,6 +13,7 @@ for identity in \
     HETZNER_PROVIDER_ID \
     CLOUD_SERVICE_ID \
     DNS_SERVICE_ID \
+    ROBOT_SERVICE_ID \
     SECURITY_SERVICE_ID \
     STORAGE_SERVICE_ID; do
     if ! grep -q -E "pub const ${identity}:" \

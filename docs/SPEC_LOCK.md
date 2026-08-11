@@ -317,3 +317,17 @@ The public codec caps field count, name bytes, value bytes, and total encoded
 body bytes. It performs exact immutable preflight before mutation and owns
 complete-buffer cleanup after admission. These are SDK security policy bounds,
 not provider-advertised service maxima.
+
+## v0.76.0 Robot Credential And Lockout Policy
+
+Robot credentials are bound to provider `hetzner`, service `robot`, and the
+exact endpoint identity `https://robot-ws.your-server.de:443/`. Username and
+password validation follows the reviewed Basic interoperability profile:
+visible non-colon ASCII for usernames and printable ASCII for passwords, with
+independent finite bounds.
+
+The v0.42 source fact that three authentication failures block the caller's
+source IP for 600 seconds is enforced structurally: a 401-classified attempt
+closes its complete generation, stale attempts cannot affect replacement
+material, and unchanged credentials require explicit post-rejection caller
+reconfirmation. v0.76 performs no live authentication.

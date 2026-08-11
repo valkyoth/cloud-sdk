@@ -1,7 +1,7 @@
 # Authentication Policy
 
-Status: v0.58 regional authority and expiring OAuth conformance is at its
-implementation stop; pentest required.
+Status: v0.76 Robot credential and lockout policy is at its implementation
+stop; pentest required.
 
 The authentication layer is separate from credential-free raw HTTP execution. Core
 defines scope, generation, caller-clock credential lifetimes, and authenticated
@@ -91,10 +91,18 @@ independent finite caps.
 adapter-owned storage. It is optional, uses no default features, and is
 enabled only with an explicit reqwest transport feature.
 
-Basic clients do not rotate or retry credentials. Later Robot credential
-policy adds lockout-aware attempt generations before Robot operations become
-executable. The v0.42 Robot fixture sends no credential and makes no operation
-coverage claim.
+Provider-neutral Basic clients do not rotate or retry credentials. The v0.76
+Robot provider layer owns a separate protected credential type fixed to the
+Hetzner Robot service and official endpoint. Mutable or guarded source buffers
+clear on ingestion and rotation. Secret text is available only inside a
+closure bound to one still-open `RobotCredentialAttempt` generation.
+
+Robot authentication rejection closes that generation for all future
+execution. Replacement material advances the generation; unchanged material
+requires an explicit `CredentialReconfirmation`, which is rejected while the
+current generation remains open. Stale rejection cannot close replacement
+credentials. No v0.76 code classifies a response or sends a request; typed
+authentication errors begin in v0.77 and clients must not retry them.
 
 ## Rotation And Refresh
 

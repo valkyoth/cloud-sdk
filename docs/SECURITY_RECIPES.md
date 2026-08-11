@@ -33,8 +33,12 @@ security controls.
   clears owned intermediate and encoded bytes, but cannot clear immutable
   caller strings or copies retained below reqwest.
 - Never probe Robot with intentionally invalid credentials. Three failed
-  logins can block the source IP for ten minutes. Robot operation clients will
-  add lockout-aware attempt policy in a later milestone.
+  logins can block the source IP for ten minutes. Use `RobotCredentials` with
+  clearable mutable or guarded sources. Report a typed authentication
+  rejection against the exact `RobotCredentialAttempt`; that generation then
+  remains closed until replacement material or an explicit caller-created
+  `CredentialReconfirmation`. Never construct reconfirmation from automatic
+  retry, pager, polling, or workflow policy.
 
 ## OVHcloud Probe Credentials
 
