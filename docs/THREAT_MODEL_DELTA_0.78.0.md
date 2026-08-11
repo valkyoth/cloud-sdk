@@ -1,6 +1,6 @@
 # v0.78.0 Threat Model Delta
 
-Status: remediation complete; final retest required.
+Status: release candidate; pentest and final retest passed.
 
 ## New Boundary
 

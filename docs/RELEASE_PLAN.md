@@ -2280,7 +2280,7 @@ Stop gate: `v0.77.0 implementation stop reached. Complete the pentest and full r
 
 ### v0.78.0 - Robot Servers
 
-Status: remediation complete; final retest and full release gate required.
+Status: release candidate; pentest and final retest passed.
 
 Goal: complete server list/get/update operations and models.
 

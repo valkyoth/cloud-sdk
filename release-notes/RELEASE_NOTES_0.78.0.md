@@ -1,11 +1,11 @@
 # cloud-sdk 0.78.0 Milestone Notes
 
-Status: remediation complete; final retest required.
+Status: release candidate; pentest and final retest passed.
 
 Release date: 2026-08-11
 
 Security-Review: PASS
-Pentest: RETEST REQUIRED
+Pentest: PASS
 Publication: DEFERRED TO v0.80.0
 
 ## Overview

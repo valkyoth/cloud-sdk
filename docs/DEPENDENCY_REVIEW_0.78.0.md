@@ -1,6 +1,6 @@
 # v0.78.0 Dependency Review
 
-Status: remediation complete; final retest required.
+Status: release candidate; pentest and final retest passed.
 
 v0.78 adds no third-party package, feature activation, build script, native
 component, network stack, runtime, filesystem, clock, or unsafe code.
