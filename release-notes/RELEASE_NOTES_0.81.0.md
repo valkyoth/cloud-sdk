@@ -1,11 +1,11 @@
 # cloud-sdk 0.81.0 Milestone Notes
 
-Status: implementation stop reached; pentest required.
+Status: release candidate; pentest and final retest passed.
 
-Release date: pending
+Release date: 2026-08-12
 
-Security-Review: PENDING
-Pentest: PENDING
+Security-Review: PASS
+Pentest: PASS
 Publication: DEFERRED TO v0.85.0
 
 ## Overview
@@ -69,8 +69,10 @@ rather than normalized away.
 - [`docs/THREAT_MODEL_DELTA_0.81.0.md`](../docs/THREAT_MODEL_DELTA_0.81.0.md)
 - [`docs/REJECTED_ABSTRACTIONS_0.81.0.md`](../docs/REJECTED_ABSTRACTIONS_0.81.0.md)
 - [`docs/MIGRATION_0.81.0.md`](../docs/MIGRATION_0.81.0.md)
+- [`security/pentest/v0.81.0.md`](../security/pentest/v0.81.0.md)
 
-## Stop Gate
+## Release Gate
 
-`v0.81.0 implementation stop reached. Complete the pentest and full release
-gate for this exact commit; defer crates.io publication to v0.85.0.`
+Run `scripts/release_0_81_gate.sh` on the clean final evidence commit. GitHub
+CI and CodeQL must be green on that unchanged commit before signing the
+internal tag. Do not publish crates for this milestone.
