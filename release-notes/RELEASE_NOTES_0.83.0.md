@@ -1,11 +1,11 @@
 # cloud-sdk 0.83.0 Milestone Notes
 
-Status: implementation stop; pentest required.
+Status: release candidate; pentest and final retest passed.
 
-Release date: pending
+Release date: 2026-08-12
 
-Security-Review: PENDING
-Pentest: PENDING
+Security-Review: PASS
+Pentest: PASS
 Publication: DEFERRED TO v0.85.0
 
 ## Overview
@@ -62,4 +62,4 @@ incorrect; `204` and empty-body success remain rejected.
 - [`docs/THREAT_MODEL_DELTA_0.83.0.md`](../docs/THREAT_MODEL_DELTA_0.83.0.md)
 - [`docs/REJECTED_ABSTRACTIONS_0.83.0.md`](../docs/REJECTED_ABSTRACTIONS_0.83.0.md)
 - [`docs/MIGRATION_0.83.0.md`](../docs/MIGRATION_0.83.0.md)
-- `security/pentest/v0.83.0.md` after the required pentest and retest
+- [`security/pentest/v0.83.0.md`](../security/pentest/v0.83.0.md)
