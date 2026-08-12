@@ -1,6 +1,6 @@
 # v0.80.0 Dependency Review
 
-Status: implementation stop reached; pentest required.
+Status: release candidate; pentest and final retest passed.
 
 v0.80 adds no third-party package, feature activation, build script, native
 component, network stack, runtime, filesystem, clock, cryptography, or unsafe

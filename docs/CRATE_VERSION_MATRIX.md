@@ -1,8 +1,8 @@
 # Crate Version Matrix
 
 Status: `v0.75.0` is the latest published checkpoint. `v0.80.0` is the Robot
-IP cumulative public-checkpoint implementation stop; pentest, final release
-gate, GitHub CI, CodeQL, tagging, and crates.io publication remain.
+IP cumulative public-checkpoint release candidate; pentest and final retest
+passed, while GitHub CI, CodeQL, tagging, and crates.io publication remain.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared

@@ -1,19 +1,19 @@
 # cloud-sdk 0.80.0 Release Notes
 
-Status: implementation stop reached; pentest required.
+Status: release candidate; pentest and final retest passed.
 
-Release date: pending
+Release date: 2026-08-12
 
-Security-Review: PENDING
-Pentest: REQUIRED
+Security-Review: PASS
+Pentest: PASS
 Publication: PENDING
 
 ## Overview
 
 v0.80 implements every active Hetzner Robot single-IP and separate-MAC
-operation and closes the v0.76-v0.80 cumulative train. After pentest and the
-unchanged final release gate, this checkpoint publishes the accumulated Robot
-foundation and independently versioned neutral crates.
+operation and closes the v0.76-v0.80 cumulative train. After the unchanged
+final release gate, this checkpoint publishes the accumulated Robot foundation
+and independently versioned neutral crates.
 
 ## Robot IP Management
 
@@ -66,10 +66,10 @@ cancellation operations. No external dependency version or feature changes.
 - [`docs/THREAT_MODEL_DELTA_0.80.0.md`](../docs/THREAT_MODEL_DELTA_0.80.0.md)
 - [`docs/REJECTED_ABSTRACTIONS_0.80.0.md`](../docs/REJECTED_ABSTRACTIONS_0.80.0.md)
 - [`docs/MIGRATION_0.80.0.md`](../docs/MIGRATION_0.80.0.md)
-- `security/pentest/v0.80.0.md` after the final pentest and retest
+- [`security/pentest/v0.80.0.md`](../security/pentest/v0.80.0.md)
 
 ## Release Gate
 
-After the pentest report is committed, run `scripts/release_0_80_gate.sh`.
-GitHub CI and CodeQL must be green on the unchanged final evidence commit
-before signing the tag and publishing the selected crates.
+Run `scripts/release_0_80_gate.sh` on the clean final evidence commit. GitHub
+CI and CodeQL must be green on that unchanged commit before signing the tag
+and publishing the selected crates.
