@@ -7,7 +7,8 @@ inventory source-locked for `v0.74.0`; bounded form codec implemented in
 list, get, and rename operations implemented in `v0.78.0`.
 All nine cancellation operations are implemented in `v0.79.0`; all six
 single-IP and separate-MAC operations are implemented in `v0.80.0`. Subnet and
-subnet-MAC operations are implemented in `v0.81.0`.
+subnet-MAC operations are implemented in `v0.81.0`; reset discovery and
+execution are implemented in `v0.82.0`.
 
 Retrieved: 2026-07-30
 
@@ -201,6 +202,29 @@ fixture records every documented `(status, code)` pair; request-associated
 decoders admit each pair only for its exact operation. The checker compares
 the full normalized operation, field, inconsistency, and security contract and
 runs the compiled subnet contract tests.
+
+## Reset Operation Contract
+
+`v0.82.0` implements all three active reset rows: list capabilities, get one
+server's checked reset detail, and execute one advertised capability. The
+finite types are `sw`, `hw`, `power`, `power_long`, and `man`. Lists and
+capabilities are bounded and duplicate-free, address spelling is canonical,
+and detail identity is bound to the requested positive server number.
+
+Execution is constructible only from checked detail state and an explicitly
+selected advertised type. The sensitive `type` form is destructive,
+non-idempotent, and never automatically retried. Read requests cannot create
+the reset plan wrapper. Execute requests require strong-digest request-bound
+direct or shared destructive permits across blocking, Send-async, and
+local-async execution.
+
+Action success must match checked IPv4, IPv6 network, and requested type. The
+official POST example omits `server_number` although the output table lists
+it, so the field is narrowly optional and is identity-checked when present.
+The exact field, quota, error, inconsistency, and security contract is
+committed in
+[`v0.82.0.json`](../tests/fixtures/robot-reset/v0.82.0.json) and checked by
+`scripts/check_robot_resets.sh`.
 
 ## Verification
 

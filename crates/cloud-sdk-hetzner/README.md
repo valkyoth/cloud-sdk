@@ -188,6 +188,17 @@ Traffic policy and update types are non-`Copy`, redact `Debug`, return borrowed
 aggregate views, and clear their owned scalar storage on drop. Scalar values
 explicitly returned by accessors become caller-owned copies.
 
+Robot reset management covers capability list, checked detail, and disruptive
+execution. The finite reset types are `sw`, `hw`, `power`, `power_long`, and
+`man`; unknown or duplicate capabilities fail closed. Execution has no public
+server-number-only constructor: callers must select an advertised capability
+from a checked `RobotReset` detail. Its sensitive form is destructive,
+non-idempotent, never automatically retried, and requires a request-bound
+strong-digest permit. Success binds IPv4, IPv6 network, any returned server
+number, and the exact requested reset type. The official action example omits
+`server_number` despite the output table listing it, so only that field is
+narrowly optional.
+
 ```rust
 # #[cfg(feature = "serde")]
 # fn main() -> Result<(), Box<dyn core::error::Error>> {

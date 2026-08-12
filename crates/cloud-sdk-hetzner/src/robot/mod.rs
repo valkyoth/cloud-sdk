@@ -7,6 +7,7 @@
 //! and subnet cancellation operations are source-locked in `v0.79.0`. Active
 //! single-IP and separate-MAC operations are source-locked in `v0.80.0`, and
 //! active subnet and subnet-MAC operations are source-locked in `v0.81.0`.
+//! Reset discovery and disruptive execution are source-locked in `v0.82.0`.
 
 #[cfg(feature = "alloc")]
 mod cancellation;
@@ -19,6 +20,8 @@ mod form;
 mod ip;
 #[cfg(feature = "serde")]
 mod protocol;
+#[cfg(feature = "alloc")]
+mod reset;
 #[cfg(feature = "alloc")]
 mod server;
 #[cfg(feature = "alloc")]
@@ -85,6 +88,23 @@ pub use protocol::{
     MAX_ROBOT_INPUT_FIELDS, RobotDecodeError, RobotFailure, RobotFailureCategory,
     RobotInvalidInput, RobotProviderError, RobotProviderErrorCode, RobotQuota,
     RobotRetryDisposition, RobotTransientTransport, decode_robot_failure,
+};
+
+#[cfg(feature = "alloc")]
+pub use reset::{
+    RobotResetGetRequest, RobotResetIntent, RobotResetListRequest, RobotResetRequestError,
+    RobotResetType,
+};
+
+#[cfg(feature = "serde")]
+pub use reset::{
+    CheckedRobotReset, MAX_ROBOT_RESET_LIST_ITEMS, PreparedRobotReset, RobotReset,
+    RobotResetAction, RobotResetCanonicalPlanFingerprint, RobotResetDecodeError,
+    RobotResetDestructivePermit, RobotResetExecuteRequest, RobotResetFailureCode, RobotResetList,
+    RobotResetOperatingStatus, RobotResetPermitAttempt, RobotResetPlanConfirmation,
+    RobotResetPlanFingerprintDigest, RobotResetPlanSubject, RobotResetSharedDestructivePermit,
+    RobotResetSummary, build_robot_reset_canonical_plan, build_robot_reset_plan_digest,
+    decode_robot_reset, decode_robot_reset_action, decode_robot_reset_list,
 };
 
 #[cfg(feature = "alloc")]

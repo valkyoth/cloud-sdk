@@ -35,7 +35,10 @@ impl RobotSubnetFailureCode {
                 Some(Self::TrafficWarningUpdateFailed)
             }
             RobotProviderErrorCode::MacFailed => Some(Self::MacFailed),
-            RobotProviderErrorCode::ServerNotFound => None,
+            RobotProviderErrorCode::ServerNotFound
+            | RobotProviderErrorCode::ResetNotAvailable
+            | RobotProviderErrorCode::ResetManualActive
+            | RobotProviderErrorCode::ResetFailed => None,
         }
     }
 }

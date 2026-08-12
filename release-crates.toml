@@ -1,17 +1,17 @@
 [release]
-version = "0.81.0"
-milestone = "0.81.0"
+version = "0.82.0"
+milestone = "0.82.0"
 baseline = "0.80.0"
-review_baseline = "0.80.0"
-cumulative_milestones = ["0.81.0"]
+review_baseline = "0.81.0"
+cumulative_milestones = ["0.81.0", "0.82.0"]
 policy = "independent"
 stage = "internal"
 exceptional = false
 exception_reason = ""
 
 [crates."cloud-sdk"]
-previous_version = "0.80.0"
-version = "0.81.0"
+previous_version = "0.81.0"
+version = "0.82.0"
 change = "code"
 publish = false
 reason = "Advance the internal source milestone; defer publication to v0.85.0."
@@ -21,7 +21,7 @@ previous_version = "0.43.0"
 version = "0.43.0"
 change = "code"
 publish = false
-reason = "Accumulate source-locked Robot subnet management for v0.85.0."
+reason = "Accumulate source-locked Robot reset management for v0.85.0."
 
 [crates."cloud-sdk-reqwest"]
 previous_version = "0.35.1"

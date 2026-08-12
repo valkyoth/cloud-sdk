@@ -2408,11 +2408,47 @@ Stop gate: `v0.81.0 implementation stop reached. Complete the pentest and full r
 
 ### v0.82.0 - Robot Reset
 
-Goal: complete reset capabilities and mutations.
+Goal: complete the source-locked Robot reset discovery and disruptive
+execution boundary without permitting callers to invent unsupported reset
+capabilities or bypass destructive authorization.
 
-Deliverables: source-locked reset types, typed intent, permits, action responses, and unsupported-capability rejection.
+Deliverables:
 
-Verification: capability/permit/source tests and `scripts/release_0_82_gate.sh`.
+- add exact list, detail, and execute request types for the three active Robot
+  reset routes, with official endpoint, Basic scope, operation IDs, quotas,
+  methods, paths, content types, response bounds, and operation-associated
+  provider failures;
+- decode bounded duplicate-free capability inventories, canonical IPv4 and
+  IPv6 identities, positive server numbers, protected operating status, and
+  finite `sw`, `hw`, `power`, `power_long`, and `man` reset types;
+- construct execution only from checked detail state and an explicitly
+  selected advertised capability, encode the exact sensitive form, classify
+  execution as destructive/non-idempotent, and deny automatic retry;
+- require strong-digest exact-plan confirmation and request-bound direct or
+  shared destructive permits across blocking, Send-async, and local-async
+  transports; read-only reset requests cannot construct those plans;
+- bind action success to checked IPv4, IPv6 network, optional server number,
+  and exact requested reset type while narrowly admitting the official action
+  example's omitted `server_number` inconsistency;
+- source-lock every active row, field, quota, failure pair, finite capability,
+  reviewed inconsistency, and security policy; add mutation tests and direct
+  list/detail/action checked-response fuzzing; publish no crate before v0.85.
+
+Verification:
+
+- `scripts/check_robot_resets.sh` verifies the immutable source fixture,
+  mutation resistance, compiled capability/association/failure/cleanup/permit
+  tests, and reset fuzz-target compilation;
+- provider tests cover exact wire preparation, unsupported capability
+  rejection, duplicate/unknown capability rejection, unknown/missing fields,
+  identity mismatch, the documented optional action number, exact action type,
+  failed preparation cleanup, sensitive-body exact-plan rejection, and
+  request-bound direct/shared execution;
+- `scripts/check_fuzz_harness.sh --build` and `--smoke` exercise all three
+  checked response paths;
+- `scripts/release_0_82_gate.sh` runs cumulative dependency, platform,
+  upstream-drift, SBOM, audit, and release-readiness checks and selects no
+  package for crates.io publication.
 
 Stop gate: `v0.82.0 implementation stop reached. Complete the pentest and full release gate for this exact commit; defer crates.io publication to v0.85.0.`
 

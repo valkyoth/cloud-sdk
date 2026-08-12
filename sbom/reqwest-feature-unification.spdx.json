@@ -1,21 +1,21 @@
 {
   "SPDXID": "SPDXRef-DOCUMENT",
   "creationInfo": {
-    "created": "2026-08-12T12:41:48Z",
+    "created": "2026-08-12T13:46:10Z",
     "creators": [
       "Tool: cargo-sbom-v0.10.0",
       "Tool: cloud-sdk-complete-spdx-v1"
     ]
   },
   "dataLicense": "CC0-1.0",
-  "documentNamespace": "https://spdx.org/spdxdocs/reqwest-feature-unification-237d6865-135e-4f9e-bba5-33c5d478b9e0",
+  "documentNamespace": "https://spdx.org/spdxdocs/reqwest-feature-unification-c895ec5c-3cfb-4717-a5ce-6e390f68b4f7",
   "files": [
     {
       "SPDXID": "SPDXRef-File-cloud_sdk_reqwest_feature_unification_test",
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "1c80a82c000dc2c2fc90bbd3c54958c0ff1b3570"
+          "checksumValue": "6737682f58bb543750879c41341e18bcab653dc0"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -257,14 +257,14 @@
       "versionInfo": "0.10.1"
     },
     {
-      "SPDXID": "SPDXRef-Package-cloud-sdk-0.81.0",
+      "SPDXID": "SPDXRef-Package-cloud-sdk-0.82.0",
       "description": "no_std-first provider-neutral cloud SDK foundations.",
       "downloadLocation": "NONE",
       "homepage": "https://github.com/valkyoth/cloud-sdk",
       "licenseConcluded": "MIT OR Apache-2.0",
       "licenseDeclared": "MIT OR Apache-2.0",
       "name": "cloud-sdk",
-      "versionInfo": "0.81.0"
+      "versionInfo": "0.82.0"
     },
     {
       "SPDXID": "SPDXRef-Package-cloud-sdk-reqwest-0.35.1",
@@ -3460,12 +3460,12 @@
       "relatedSpdxElement": "SPDXRef-Package-rand--core-0.10.1"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-0.81.0",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-0.82.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-sanitization-0.19.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cloud-sdk-0.81.0",
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-0.82.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-subtle-2.6.1"
     },
@@ -3487,7 +3487,7 @@
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.35.1",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-0.81.0"
+      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-0.82.0"
     },
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-0.35.1",
@@ -3547,7 +3547,7 @@
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-feature-unification-test-0.0.0",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-0.81.0"
+      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-0.82.0"
     },
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-feature-unification-test-0.0.0",

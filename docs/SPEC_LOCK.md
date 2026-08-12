@@ -476,3 +476,29 @@ generic permit check; async checks run on first poll. DELETE acknowledgement
 must return that exact default MAC and preserve its server-address mapping. Subnet failures use request-associated
 decoders for the complete documented `(status, code)` sets, including the
 source-locked `500` failures; cross-operation codes fail closed.
+
+## v0.82.0 Robot Reset Policy
+
+The three active reset rows are bound to
+`tests/fixtures/robot-api/v0.74.0.json` and the exact contract in
+`tests/fixtures/robot-reset/v0.82.0.json`: list all reset capabilities, get one
+server's checked capability detail, and execute one advertised reset type.
+Deprecated server-IP route aliases remain excluded.
+
+The finite capability set is `sw`, `hw`, `power`, `power_long`, and `man`.
+Lists are bounded and duplicate-free by server number; each capability list is
+nonempty, finite, and duplicate-free. Addresses are canonical, server numbers
+are positive, and detail identity must equal the request. Operating status is
+retained in bounded protected storage.
+
+Execution has no server-number-only constructor. It borrows checked detail
+state and rejects a selected capability absent from that state. Its `type`
+form is sensitive, destructive, non-idempotent, and never automatically
+retryable. Only the execute request can construct the reset plan wrapper;
+strong-digest request-bound direct/shared destructive permits retain exact
+association through blocking, Send-async, and local-async execution.
+
+Action acknowledgement must match checked IPv4 and IPv6 identities and the
+exact requested reset type. `server_number` is optional only because the
+official POST example omits it while the output table requires it; when
+present it must match. Every documented error is status-and-operation bound.

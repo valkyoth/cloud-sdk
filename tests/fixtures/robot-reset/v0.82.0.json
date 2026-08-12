@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "source": {
+    "retrieved": "2026-08-12",
+    "url": "https://robot.hetzner.com/doc/webservice/en.html",
+    "sha256": "4b396790acc449f47b2b3b893f8eff759c0c25196dc38b1e5e92a12c9704771a"
+  },
+  "operations": [
+    {
+      "id": "robot_list_resets",
+      "method": "GET",
+      "path": "/reset",
+      "request_fields": [],
+      "success": {"status": 200, "body": "json", "shape": "reset-list"},
+      "errors": [{"status": 404, "code": "NOT_FOUND"}],
+      "quota": {"requests": 500, "seconds": 3600}
+    },
+    {
+      "id": "robot_get_reset",
+      "method": "GET",
+      "path": "/reset/{server-number}",
+      "request_fields": [],
+      "success": {"status": 200, "body": "json", "shape": "reset-detail"},
+      "errors": [
+        {"status": 404, "code": "SERVER_NOT_FOUND"},
+        {"status": 404, "code": "RESET_NOT_AVAILABLE"}
+      ],
+      "quota": {"requests": 500, "seconds": 3600}
+    },
+    {
+      "id": "robot_execute_reset",
+      "method": "POST",
+      "path": "/reset/{server-number}",
+      "request_fields": ["type"],
+      "success": {"status": 200, "body": "json", "shape": "reset-action"},
+      "errors": [
+        {"status": 400, "code": "INVALID_INPUT"},
+        {"status": 404, "code": "SERVER_NOT_FOUND"},
+        {"status": 404, "code": "RESET_NOT_AVAILABLE"},
+        {"status": 409, "code": "RESET_MANUAL_ACTIVE"},
+        {"status": 500, "code": "RESET_FAILED"}
+      ],
+      "quota": {"requests": 50, "seconds": 3600}
+    }
+  ],
+  "detail_fields": ["server_ip", "server_ipv6_net", "server_number", "type", "operating_status"],
+  "reset_types": ["sw", "hw", "power", "power_long", "man"],
+  "source_inconsistencies": {
+    "post_server_number": "required-by-output-table-omitted-by-example",
+    "deprecated_server_ip_route": "excluded"
+  },
+  "policy": {
+    "canonical_server_number_route": true,
+    "unknown_fields": "reject",
+    "capabilities": "nonempty-finite-duplicate-free",
+    "execute_from_checked_detail": true,
+    "execute_permit": "destructive",
+    "execute_body": "sensitive-form",
+    "execute_retry": "never",
+    "action_identity": "bind-ipv4-ipv6-and-optional-number",
+    "action_type": "exact-request-match"
+  }
+}

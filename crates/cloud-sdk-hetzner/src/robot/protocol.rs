@@ -64,6 +64,12 @@ pub enum RobotProviderErrorCode {
     TrafficWarningUpdateFailed,
     /// Robot could not apply or restore the subnet MAC.
     MacFailed,
+    /// The server does not provide any reset capability.
+    ResetNotAvailable,
+    /// A manually performed reset is already active.
+    ResetManualActive,
+    /// Robot could not execute the selected reset.
+    ResetFailed,
 }
 
 /// Protected details from an `INVALID_INPUT` response.

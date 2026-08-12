@@ -350,6 +350,13 @@ Canonical route identities may retain host bits because the official examples
 do; family-specific masks and gateway membership remain mandatory, and the
 mathematical network and IPv4 broadcast values are derived from the response.
 
+`v0.82.0` implements all three reset operations. Reset execution can only be
+constructed from a checked detail snapshot and one capability advertised by
+that snapshot. Its sensitive form is destructive, non-idempotent, never
+automatically retried, and executable only through an exact request-bound
+strong-digest permit. Action responses bind both address families, any
+returned server number, and the exact requested reset type.
+
 Robot implementation schedule:
 
 | Group | Active | Deprecated | Planned Module | Milestone | Status |
@@ -358,7 +365,7 @@ Robot implementation schedule:
 | cancellation | 9 | 9 | `cloud_sdk_hetzner::robot::cancellation` | `v0.79.0` | implemented |
 | IP | 6 | 0 | `cloud_sdk_hetzner::robot::ip` | `v0.80.0` | implemented |
 | subnet | 6 | 0 | `cloud_sdk_hetzner::robot::subnet` | `v0.81.0` | implemented |
-| reset | 3 | 0 | `cloud_sdk_hetzner::robot::reset` | `v0.82.0` | planned |
+| reset | 3 | 0 | `cloud_sdk_hetzner::robot::reset` | `v0.82.0` | implemented |
 | failover | 4 | 0 | `cloud_sdk_hetzner::robot::failover` | `v0.83.0` | planned |
 | wake on LAN | 2 | 0 | `cloud_sdk_hetzner::robot::wol` | `v0.84.0` | planned |
 | boot configuration | 15 | 0 | `cloud_sdk_hetzner::robot::boot` | `v0.85.0` | planned |
