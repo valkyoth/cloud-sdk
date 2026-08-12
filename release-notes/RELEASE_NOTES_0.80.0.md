@@ -40,6 +40,8 @@ foundation and independently versioned neutral crates.
   source fixtures/checkers, a compiled six-operation security-policy matrix,
   and a direct checked-response fuzz target with deterministic
   list/detail/MAC/delete selectors.
+- Package evidence requires the shared duplicate helper and rejects the
+  obsolete server-local source path.
 
 ## Cumulative Checkpoint
 
