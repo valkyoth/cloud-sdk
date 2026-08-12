@@ -2366,7 +2366,12 @@ Deliverables:
   mathematical network and IPv4 broadcast accessors;
 - decode the source-specific decimal-string MAC mask and a nonempty map of at
   most 256 canonical address-to-MAC choices, require the current MAC in that
-  map, and require PUT acknowledgement to match the selected MAC;
+  map, require PUT acknowledgement to match the selected MAC, and derive
+  DELETE authority from checked same-resource subnet/MAC snapshots so its
+  acknowledgement matches the assigned server's advertised default MAC;
+- decode every documented subnet `(status, code)` pair through the exact
+  request type, including operation-specific `404` and `500` failures, without
+  widening the shared Robot decoder;
 - retain exact request association through checked decoding and direct/shared
   blocking, Send-async, and local-async mutation or destructive permits;
 - source-lock the official nullable/string and integer/string inconsistencies,
@@ -2377,7 +2382,8 @@ Verification:
 
 - `scripts/check_robot_subnets.sh` and `scripts/test-robot-subnets.py` prove all
   six source rows, methods, paths, fields, reviewed inconsistencies, security
-  policy, and fuzz-target compilation;
+  policy, exact quotas and failure pairs, mutation resistance, compiled Rust
+  behavior, and fuzz-target compilation;
 - provider tests cover source-compatible host bits, IPv4/IPv6 prefix limits,
   derived network/broadcast boundaries, gateway family/membership, nullable
   assignments, list duplicates, response identity, exact update/MAC outcomes,

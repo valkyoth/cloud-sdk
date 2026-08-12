@@ -12,6 +12,7 @@ use super::MAX_ROBOT_ERROR_BODY_BYTES;
 
 mod decode;
 pub use decode::decode_robot_failure;
+pub(crate) use decode::decode_robot_failure_with;
 
 /// Maximum missing or invalid field names retained from one invalid-input error.
 pub const MAX_ROBOT_INPUT_FIELDS: usize = 256;
@@ -53,6 +54,16 @@ pub enum RobotRetryDisposition {
 pub enum RobotProviderErrorCode {
     /// The requested server was not found.
     ServerNotFound,
+    /// No resources were found for a list operation.
+    NotFound,
+    /// The requested subnet was not found.
+    SubnetNotFound,
+    /// Separate MAC assignment is unavailable for the subnet.
+    MacNotAvailable,
+    /// Robot could not update the subnet traffic-warning policy.
+    TrafficWarningUpdateFailed,
+    /// Robot could not apply or restore the subnet MAC.
+    MacFailed,
 }
 
 /// Protected details from an `INVALID_INPUT` response.

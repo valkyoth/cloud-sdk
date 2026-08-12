@@ -12,7 +12,7 @@
       "path": "/subnet",
       "request_fields": ["server_ip?"],
       "success": {"status": 200, "body": "json", "shape": "subnet-list"},
-      "errors": [404],
+      "errors": [{"status": 404, "code": "NOT_FOUND"}],
       "quota": {"requests": 5000, "seconds": 3600}
     },
     {
@@ -21,7 +21,7 @@
       "path": "/subnet/{net-ip}",
       "request_fields": [],
       "success": {"status": 200, "body": "json", "shape": "subnet-detail"},
-      "errors": [404],
+      "errors": [{"status": 404, "code": "SUBNET_NOT_FOUND"}],
       "quota": {"requests": 5000, "seconds": 3600}
     },
     {
@@ -30,7 +30,11 @@
       "path": "/subnet/{net-ip}",
       "request_fields": ["traffic_warnings?", "traffic_hourly?", "traffic_daily?", "traffic_monthly?"],
       "success": {"status": 200, "body": "json", "shape": "subnet-detail"},
-      "errors": [400, 404, 500],
+      "errors": [
+        {"status": 400, "code": "INVALID_INPUT"},
+        {"status": 404, "code": "SUBNET_NOT_FOUND"},
+        {"status": 500, "code": "TRAFFIC_WARNING_UPDATE_FAILED"}
+      ],
       "quota": {"requests": 5000, "seconds": 3600}
     },
     {
@@ -39,7 +43,10 @@
       "path": "/subnet/{net-ip}/mac",
       "request_fields": [],
       "success": {"status": 200, "body": "json", "shape": "subnet-mac"},
-      "errors": [404],
+      "errors": [
+        {"status": 404, "code": "SUBNET_NOT_FOUND"},
+        {"status": 404, "code": "MAC_NOT_AVAILABLE"}
+      ],
       "quota": {"requests": 5000, "seconds": 3600}
     },
     {
@@ -48,7 +55,11 @@
       "path": "/subnet/{net-ip}/mac",
       "request_fields": ["mac"],
       "success": {"status": 200, "body": "json", "shape": "subnet-mac"},
-      "errors": [404, 500],
+      "errors": [
+        {"status": 404, "code": "SUBNET_NOT_FOUND"},
+        {"status": 404, "code": "MAC_NOT_AVAILABLE"},
+        {"status": 500, "code": "MAC_FAILED"}
+      ],
       "quota": {"requests": 10, "seconds": 3600}
     },
     {
@@ -57,7 +68,11 @@
       "path": "/subnet/{net-ip}/mac",
       "request_fields": [],
       "success": {"status": 200, "body": "json", "shape": "subnet-mac"},
-      "errors": [404, 500],
+      "errors": [
+        {"status": 404, "code": "SUBNET_NOT_FOUND"},
+        {"status": 404, "code": "MAC_NOT_AVAILABLE"},
+        {"status": 500, "code": "MAC_FAILED"}
+      ],
       "quota": {"requests": 10, "seconds": 3600}
     }
   ],
@@ -85,6 +100,7 @@
     "update_permit": "mutation",
     "set_mac_permit": "mutation",
     "delete_mac_permit": "destructive",
+    "delete_mac_default_binding": "checked-subnet-server-to-possible-mac",
     "set_mac_retry": "never",
     "delete_mac_retry": "never"
   }

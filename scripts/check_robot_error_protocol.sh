@@ -29,7 +29,8 @@ done
 
 grep -Fq 'Self::AuthenticationRejected | Self::InvalidInput(_) | Self::Provider(_)' "$protocol"
 grep -Fq 'RobotRetryDisposition::Never' "$protocol"
-grep -Fq 'if !matches!(status.get(), 400 | 403 | 404)' "$decoder"
+grep -Fq 'decode_robot_failure_with(response, workspace, true, &[404]' "$decoder"
+grep -Fq 'provider_statuses.contains(&status.get())' "$decoder"
 grep -Fq 'RobotDecodeError::UnknownCode' "$decoder"
 grep -Fq 'provider bytes created a transport classification' \
     fuzz/fuzz_targets/robot_error_protocol.rs

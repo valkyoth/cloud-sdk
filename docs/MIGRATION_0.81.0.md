@@ -27,10 +27,24 @@ assert_eq!(
 `RobotSubnetMacSetRequest` requires the selected `RobotMacAddress`; it does not
 infer one from an earlier response.
 
+Default restoration is intentionally evidence-gated. Decode a checked subnet
+detail and checked MAC snapshot, then consume both snapshots:
+
+```rust,ignore
+let delete = RobotSubnetMacDeleteRequest::from_checked(subnet, mac_state)?;
+```
+
+The snapshots must agree on route identity and prefix. The subnet must be
+assigned, and the assigned server main address must occur in `possible_mac`.
+There is no `RobotSubnetMacDeleteRequest::new(address)` constructor. This is a
+pre-release source correction made before v0.81 is tagged.
+
 With `serde`, use `prepare_bound`, validate the response through
 `PreparedRobotSubnet`, and call the matching checked decoder. Traffic and MAC
 forms are sensitive, so their authorized execution must use
 `build_robot_subnet_plan_digest`. MAC PUT/DELETE never retry automatically.
+For non-success responses, call `decode_failure` on the exact request. It
+admits only that operation's documented status/code combinations.
 
 Do not assume the returned route identity is the mathematical network address.
 Official examples contain host bits. Use `with_network_address` and

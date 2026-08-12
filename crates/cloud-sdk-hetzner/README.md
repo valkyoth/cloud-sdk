@@ -170,6 +170,12 @@ address-to-MAC choices. The mathematical network and IPv4 broadcast boundary
 are derived accessors rather than assumed route identities. Traffic updates
 and explicit MAC assignment use sensitive forms and strong-digest permits;
 MAC assignment and restoration are never automatically retried.
+Default restoration requests can only be constructed by consuming checked
+subnet and MAC snapshots. The assigned server address selects the expected
+default MAC, and DELETE success must preserve that mapping and return that
+exact MAC. Each subnet request also exposes operation-specific failure
+decoding, so documented `404` and `500` codes are typed without admitting a
+code for the wrong operation.
 
 ```rust
 # #[cfg(feature = "serde")]

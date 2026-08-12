@@ -8,6 +8,8 @@ mod decode;
 #[cfg(feature = "serde")]
 mod exchange;
 #[cfg(feature = "serde")]
+mod failure;
+#[cfg(feature = "serde")]
 mod model;
 #[cfg(feature = "serde")]
 mod permit;
@@ -25,6 +27,8 @@ pub use decode::{
 #[cfg(feature = "serde")]
 pub use exchange::{CheckedRobotSubnet, PreparedRobotSubnet};
 #[cfg(feature = "serde")]
+pub use failure::RobotSubnetFailureCode;
+#[cfg(feature = "serde")]
 pub use model::{
     MAX_ROBOT_SUBNET_LIST_ITEMS, MAX_ROBOT_SUBNET_MAC_OPTIONS, RobotSubnet, RobotSubnetList,
     RobotSubnetMac, RobotSubnetMacOption, RobotSubnetTrafficPolicy,
@@ -38,6 +42,8 @@ pub use permit::{
     build_robot_subnet_plan_digest,
 };
 
+#[cfg(all(test, feature = "serde"))]
+mod failure_tests;
 #[cfg(all(test, feature = "serde"))]
 mod permit_tests;
 #[cfg(all(test, feature = "serde"))]

@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import importlib.util
+from copy import deepcopy
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -24,26 +25,41 @@ def main() -> None:
     checker.validate_contract(value)
     assert len(payload) <= checker.MAX_LOCK_BYTES
 
-    changed = dict(value)
-    changed["operations"] = list(value["operations"][:-1])
-    try:
-        checker.validate_contract(changed)
-    except SystemExit:
-        pass
-    else:
-        raise AssertionError("missing Robot subnet operation was accepted")
+    mutations = []
+    missing = deepcopy(value)
+    missing["operations"].pop()
+    mutations.append(("missing operation", missing))
+    for field, replacement in [
+        ("method", "PATCH"),
+        ("path", "/changed"),
+        ("request_fields", []),
+        ("success", {"status": 201, "body": "json", "shape": "subnet-detail"}),
+        ("errors", [{"status": 404, "code": "WRONG"}]),
+        ("quota", {"requests": 5001, "seconds": 3600}),
+    ]:
+        changed = deepcopy(value)
+        changed["operations"][0][field] = replacement
+        mutations.append((f"operation {field}", changed))
+    for field in [
+        "source", "subnet_fields", "mac_fields", "source_inconsistencies", "policy"
+    ]:
+        changed = deepcopy(value)
+        if isinstance(changed[field], list):
+            changed[field].reverse()
+        else:
+            first = next(iter(changed[field]))
+            changed[field][first] = "changed"
+        mutations.append((field, changed))
 
-    changed = dict(value)
-    changed["policy"] = dict(value["policy"])
-    changed["policy"]["host_bits_set_identity"] = "reject"
-    try:
-        checker.validate_contract(changed)
-    except SystemExit:
-        pass
-    else:
-        raise AssertionError("source-incompatible host-bit policy was accepted")
+    for name, changed in mutations:
+        try:
+            checker.validate_contract(changed)
+        except SystemExit:
+            pass
+        else:
+            raise AssertionError(f"changed {name} was accepted")
 
-    print("2 Robot subnet contract regression groups passed.")
+    print(f"{len(mutations)} Robot subnet contract mutation groups passed.")
 
 
 if __name__ == "__main__":

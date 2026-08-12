@@ -26,9 +26,16 @@ publication.
   mathematical network and IPv4 broadcast values.
 - Added a nonempty bounded canonical IP-to-MAC choice map and exact selected
   MAC acknowledgement.
+- Made default-MAC restoration constructible only from consumed checked subnet
+  and MAC snapshots; success must return the assigned server's mapped MAC.
+- Added request-associated decoding for every documented subnet failure,
+  including operation-specific `404` and `500` codes.
 - Added request-bound direct/shared permits across blocking, Send-async, and
   local-async execution plus cleanup and redaction tests.
 - Added an exact source fixture/checker and direct checked-response fuzz target.
+- Hardened the source checker to compare every operation field, status/code
+  pair, exact quota, response field, source inconsistency, and security policy,
+  with mutation tests and compiled Rust contract enforcement.
 
 ## Reviewed Source Inconsistencies
 

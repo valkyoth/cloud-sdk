@@ -30,3 +30,15 @@ controls. The map is typed, nonempty, and bounded to 256 entries.
 
 Rejected for MAC assignment and restoration. Explicit reconciliation is
 required after uncertain delivery despite DELETE's idempotent semantics.
+
+## Address-Only Default Restoration
+
+Rejected because a subnet address cannot prove which MAC is the assigned
+server's default. Restoration authority consumes checked subnet and MAC
+snapshots and binds the assigned server-to-MAC mapping into the request.
+
+## Global Subnet Error Admission
+
+Rejected because a finite code union without operation association would admit
+valid provider text in the wrong control-plane context. Each request type
+admits only its documented status and code combinations.

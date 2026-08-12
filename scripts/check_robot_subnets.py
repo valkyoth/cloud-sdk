@@ -10,18 +10,79 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 LOCK = ROOT / "tests/fixtures/robot-subnet/v0.81.0.json"
-LOCK_SHA256 = "286c7e7462dbbaaccb3864c175ef38c32901b8b7333ce8c70bef7d3baea03952"
+LOCK_SHA256 = "114c43719347724c69f56bd0cd2c95429b29fc8824de2d94a99e39278e76402c"
 MAX_LOCK_BYTES = 32 * 1024
 SOURCE_SHA256 = "4b396790acc449f47b2b3b893f8eff759c0c25196dc38b1e5e92a12c9704771a"
 
-OPERATIONS = {
-    "robot_list_subnets": ("GET", "/subnet", "subnet-list"),
-    "robot_get_subnet": ("GET", "/subnet/{net-ip}", "subnet-detail"),
-    "robot_update_subnet": ("POST", "/subnet/{net-ip}", "subnet-detail"),
-    "robot_get_subnet_mac": ("GET", "/subnet/{net-ip}/mac", "subnet-mac"),
-    "robot_set_subnet_mac": ("PUT", "/subnet/{net-ip}/mac", "subnet-mac"),
-    "robot_delete_subnet_mac": ("DELETE", "/subnet/{net-ip}/mac", "subnet-mac"),
+def operation(
+    method: str,
+    path: str,
+    request_fields: list[str],
+    shape: str,
+    errors: list[tuple[int, str]],
+    requests: int,
+) -> dict[str, Any]:
+    return {
+        "method": method,
+        "path": path,
+        "request_fields": request_fields,
+        "success": {"status": 200, "body": "json", "shape": shape},
+        "errors": [
+            {"status": status, "code": code} for status, code in errors
+        ],
+        "quota": {"requests": requests, "seconds": 3600},
+    }
+
+
+EXPECTED_OPERATIONS = {
+    "robot_list_subnets": operation(
+        "GET", "/subnet", ["server_ip?"], "subnet-list",
+        [(404, "NOT_FOUND")], 5000,
+    ),
+    "robot_get_subnet": operation(
+        "GET", "/subnet/{net-ip}", [], "subnet-detail",
+        [(404, "SUBNET_NOT_FOUND")], 5000,
+    ),
+    "robot_update_subnet": operation(
+        "POST", "/subnet/{net-ip}",
+        ["traffic_warnings?", "traffic_hourly?", "traffic_daily?", "traffic_monthly?"],
+        "subnet-detail",
+        [
+            (400, "INVALID_INPUT"),
+            (404, "SUBNET_NOT_FOUND"),
+            (500, "TRAFFIC_WARNING_UPDATE_FAILED"),
+        ],
+        5000,
+    ),
+    "robot_get_subnet_mac": operation(
+        "GET", "/subnet/{net-ip}/mac", [], "subnet-mac",
+        [(404, "SUBNET_NOT_FOUND"), (404, "MAC_NOT_AVAILABLE")], 5000,
+    ),
+    "robot_set_subnet_mac": operation(
+        "PUT", "/subnet/{net-ip}/mac", ["mac"], "subnet-mac",
+        [
+            (404, "SUBNET_NOT_FOUND"),
+            (404, "MAC_NOT_AVAILABLE"),
+            (500, "MAC_FAILED"),
+        ],
+        10,
+    ),
+    "robot_delete_subnet_mac": operation(
+        "DELETE", "/subnet/{net-ip}/mac", [], "subnet-mac",
+        [
+            (404, "SUBNET_NOT_FOUND"),
+            (404, "MAC_NOT_AVAILABLE"),
+            (500, "MAC_FAILED"),
+        ],
+        10,
+    ),
 }
+
+EXPECTED_SUBNET_FIELDS = [
+    "ip", "mask", "gateway", "server_ip", "server_number", "failover",
+    "locked", "traffic_warnings", "traffic_hourly", "traffic_daily",
+    "traffic_monthly",
+]
 
 
 def fail(message: str) -> None:
@@ -57,15 +118,17 @@ def validate_contract(value: dict[str, Any]) -> None:
     )
     require(value.get("schema_version") == 1, "schema version changed")
     source = value.get("source")
-    require(isinstance(source, dict), "source identity is missing")
     require(
-        source.get("url") == "https://robot.hetzner.com/doc/webservice/en.html"
-        and source.get("sha256") == SOURCE_SHA256,
+        source == {
+            "retrieved": "2026-08-12",
+            "url": "https://robot.hetzner.com/doc/webservice/en.html",
+            "sha256": SOURCE_SHA256,
+        },
         "source identity changed",
     )
     operations = value.get("operations")
     require(isinstance(operations, list) and len(operations) == 6, "expected six operations")
-    observed: dict[str, tuple[str, str, str]] = {}
+    observed: dict[str, dict[str, Any]] = {}
     for operation in operations:
         require(isinstance(operation, dict), "operation must be an object")
         require(
@@ -75,26 +138,13 @@ def validate_contract(value: dict[str, Any]) -> None:
             "operation fields changed",
         )
         operation_id = operation.get("id")
-        success = operation.get("success")
-        quota = operation.get("quota")
         require(isinstance(operation_id, str), "operation id must be text")
-        require(
-            isinstance(success, dict)
-            and success.get("status") == 200
-            and success.get("body") == "json",
-            f"success policy changed for {operation_id}",
-        )
-        require(
-            isinstance(quota, dict)
-            and quota.get("seconds") == 3600
-            and quota.get("requests") in {10, 5000},
-            f"quota policy changed for {operation_id}",
-        )
-        observed[operation_id] = (
-            operation.get("method"), operation.get("path"), success.get("shape")
-        )
-    require(observed == OPERATIONS, "operation route or shape policy changed")
-    require(len(value.get("subnet_fields", [])) == 11, "subnet fields changed")
+        require(operation_id not in observed, "duplicate operation id")
+        observed[operation_id] = {
+            key: item for key, item in operation.items() if key != "id"
+        }
+    require(observed == EXPECTED_OPERATIONS, "complete operation contract changed")
+    require(value.get("subnet_fields") == EXPECTED_SUBNET_FIELDS, "subnet fields changed")
     require(
         value.get("mac_fields") == ["ip", "mask", "mac", "possible_mac"],
         "MAC fields changed",
@@ -121,6 +171,7 @@ def validate_contract(value: dict[str, Any]) -> None:
             "update_permit": "mutation",
             "set_mac_permit": "mutation",
             "delete_mac_permit": "destructive",
+            "delete_mac_default_binding": "checked-subnet-server-to-possible-mac",
             "set_mac_retry": "never",
             "delete_mac_retry": "never",
         },

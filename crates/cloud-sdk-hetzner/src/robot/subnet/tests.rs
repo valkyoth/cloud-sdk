@@ -14,6 +14,7 @@ use crate::robot::{RobotIpAddress, RobotMacAddress, RobotSubnetAddress};
 pub(super) const SUBNET: &str = r#"{"ip":"192.0.2.10","mask":24,"gateway":"192.0.2.1","server_ip":"192.0.2.1","server_number":321,"failover":false,"locked":false,"traffic_warnings":true,"traffic_hourly":50,"traffic_daily":500,"traffic_monthly":8}"#;
 const NULL_SUBNET: &str = r#"{"ip":"198.51.100.127","mask":24,"gateway":"198.51.100.1","server_ip":null,"server_number":421,"failover":false,"locked":false,"traffic_warnings":false,"traffic_hourly":100,"traffic_daily":500,"traffic_monthly":2}"#;
 pub(super) const DETAIL: &[u8] = br#"{"subnet":{"ip":"192.0.2.10","mask":24,"gateway":"192.0.2.1","server_ip":"192.0.2.1","server_number":321,"failover":false,"locked":false,"traffic_warnings":true,"traffic_hourly":50,"traffic_daily":500,"traffic_monthly":8}}"#;
+const MAC_SUBNET_DETAIL: &[u8] = br#"{"subnet":{"ip":"2001:db8::","mask":64,"gateway":"2001:db8::1","server_ip":"192.0.2.1","server_number":321,"failover":false,"locked":false,"traffic_warnings":true,"traffic_hourly":50,"traffic_daily":500,"traffic_monthly":8}}"#;
 pub(super) const MAC_SET: &[u8] = br#"{"mac":{"ip":"2001:db8::","mask":"64","mac":"00:21:85:62:3e:9d","possible_mac":{"192.0.2.1":"00:21:85:62:3e:9c","192.0.2.2":"00:21:85:62:3e:9d"}}}"#;
 pub(super) const MAC_DELETED: &[u8] = br#"{"mac":{"ip":"2001:db8::","mask":"64","mac":"00:21:85:62:3e:9c","possible_mac":{"192.0.2.1":"00:21:85:62:3e:9c","192.0.2.2":"00:21:85:62:3e:9d"}}}"#;
 
@@ -60,7 +61,7 @@ fn prepares_all_six_source_locked_operations() {
         b"mac=00%3A21%3A85%3A62%3A3e%3A9d",
     );
     assert_prepared(
-        RobotSubnetMacDeleteRequest::new(subnet("2001:db8::")),
+        delete_request(),
         Method::Delete,
         "/subnet/2001:db8::/mac",
         b"",
@@ -118,7 +119,7 @@ fn compiled_operation_policies_are_exact() {
         RequestBodySensitivity::Sensitive,
     );
     assert_policy(
-        RobotSubnetMacDeleteRequest::new(subnet("2001:db8::")),
+        delete_request(),
         Method::Delete,
         "robot_delete_subnet_mac",
         OperationImpact::Destructive,
@@ -249,6 +250,56 @@ fn request_association_rejects_filter_update_and_mac_conflicts() {
         decode_mac_set(set, MAC_SET).err(),
         Some(RobotSubnetDecodeError::MutationOutcomeMismatch)
     );
+    let wrong_default = text(MAC_DELETED).replace(
+        "\"mac\":\"00:21:85:62:3e:9c\"",
+        "\"mac\":\"00:21:85:62:3e:9d\"",
+    );
+    assert_eq!(
+        decode_mac_delete(delete_request(), wrong_default.as_bytes()).err(),
+        Some(RobotSubnetDecodeError::MutationOutcomeMismatch)
+    );
+    let contradictory_map = text(MAC_DELETED).replace(
+        "\"192.0.2.1\":\"00:21:85:62:3e:9c\",\"192.0.2.2\":\"00:21:85:62:3e:9d\"",
+        "\"192.0.2.1\":\"00:21:85:62:3e:9d\",\"192.0.2.2\":\"00:21:85:62:3e:9c\"",
+    );
+    assert_eq!(
+        decode_mac_delete(delete_request(), contradictory_map.as_bytes()).err(),
+        Some(RobotSubnetDecodeError::MutationOutcomeMismatch)
+    );
+}
+
+#[test]
+fn delete_request_requires_consistent_checked_default_evidence() {
+    let subnet_state = decode_get(
+        RobotSubnetGetRequest::new(subnet("2001:db8::")),
+        MAC_SUBNET_DETAIL,
+    )
+    .unwrap_or_else(|_| unreachable!("subnet evidence failed"));
+    let wrong_mac_state = decode_mac_get(
+        RobotSubnetMacGetRequest::new(subnet("2001:db8:1::")),
+        &text(MAC_SET)
+            .replace("2001:db8::", "2001:db8:1::")
+            .into_bytes(),
+    )
+    .unwrap_or_else(|_| unreachable!("MAC evidence failed"));
+    assert!(matches!(
+        RobotSubnetMacDeleteRequest::from_checked(subnet_state, wrong_mac_state),
+        Err(RobotSubnetRequestError::EvidenceMismatch)
+    ));
+
+    let unassigned =
+        text(MAC_SUBNET_DETAIL).replace("\"server_ip\":\"192.0.2.1\"", "\"server_ip\":null");
+    let subnet_state = decode_get(
+        RobotSubnetGetRequest::new(subnet("2001:db8::")),
+        unassigned.as_bytes(),
+    )
+    .unwrap_or_else(|_| unreachable!("unassigned subnet evidence failed"));
+    let mac_state = decode_mac_get(RobotSubnetMacGetRequest::new(subnet("2001:db8::")), MAC_SET)
+        .unwrap_or_else(|_| unreachable!("MAC evidence failed"));
+    assert!(matches!(
+        RobotSubnetMacDeleteRequest::from_checked(subnet_state, mac_state),
+        Err(RobotSubnetRequestError::UnassignedSubnet)
+    ));
 }
 
 #[test]
@@ -377,6 +428,24 @@ decode_bound!(
     RobotSubnetMac,
     128
 );
+decode_bound!(
+    decode_mac_delete,
+    RobotSubnetMacDeleteRequest,
+    RobotSubnetMac,
+    1
+);
+
+pub(super) fn delete_request() -> RobotSubnetMacDeleteRequest {
+    let subnet_state = decode_get(
+        RobotSubnetGetRequest::new(subnet("2001:db8::")),
+        MAC_SUBNET_DETAIL,
+    )
+    .unwrap_or_else(|_| unreachable!("subnet evidence failed"));
+    let mac_state = decode_mac_get(RobotSubnetMacGetRequest::new(subnet("2001:db8::")), MAC_SET)
+        .unwrap_or_else(|_| unreachable!("MAC evidence failed"));
+    RobotSubnetMacDeleteRequest::from_checked(subnet_state, mac_state)
+        .unwrap_or_else(|_| unreachable!("default MAC evidence failed"))
+}
 
 fn with_json<R, O>(
     prepared: PreparedRobotSubnet<'_, '_, R>,

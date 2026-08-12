@@ -19,6 +19,12 @@ pub enum RobotSubnetRequestError {
     InvalidOperationId(cloud_sdk::operation::OperationIdError),
     /// Operation safety metadata was internally inconsistent.
     InvalidMetadata(cloud_sdk::operation::OperationMetadataError),
+    /// Checked subnet and MAC snapshots described different resources.
+    EvidenceMismatch,
+    /// The checked subnet was not assigned to a server.
+    UnassignedSubnet,
+    /// The assigned server had no advertised default MAC.
+    DefaultMacUnavailable,
     /// The success-response policy was internally inconsistent.
     InvalidResponsePolicy(cloud_sdk::operation::ResponsePolicyValidationError),
     /// The raw response-wire policy was internally inconsistent.
@@ -36,6 +42,9 @@ impl_static_error!(RobotSubnetRequestError,
     Self::InvalidEndpoint(_) => "official Robot endpoint is invalid",
     Self::InvalidOperationId(_) => "Robot subnet operation identifier is invalid",
     Self::InvalidMetadata(_) => "Robot subnet metadata is invalid",
+    Self::EvidenceMismatch => "Robot subnet evidence does not identify one resource",
+    Self::UnassignedSubnet => "Robot subnet is not assigned to a server",
+    Self::DefaultMacUnavailable => "Robot subnet default MAC evidence is unavailable",
     Self::InvalidResponsePolicy(_) => "Robot subnet response policy is invalid",
     Self::InvalidRawPolicy(_) => "Robot subnet raw response policy is invalid",
     Self::InvalidPreparedPolicy(_) => "Robot subnet prepared policy is invalid",
@@ -112,10 +121,28 @@ macro_rules! address_request {
 
 address_request!(RobotSubnetGetRequest, "Gets one Robot subnet resource.");
 address_request!(RobotSubnetMacGetRequest, "Gets one subnet MAC assignment.");
-address_request!(
-    RobotSubnetMacDeleteRequest,
-    "Restores one subnet's default MAC."
-);
+/// Restores a checked subnet's server-bound default MAC.
+pub struct RobotSubnetMacDeleteRequest {
+    pub(super) address: RobotSubnetAddress,
+    #[cfg(feature = "serde")]
+    pub(super) expected_server: RobotIpAddress,
+    #[cfg(feature = "serde")]
+    pub(super) expected_default_mac: RobotMacAddress,
+}
+
+impl RobotSubnetMacDeleteRequest {
+    /// Returns the exact subnet identity.
+    #[must_use]
+    pub const fn address(&self) -> &RobotSubnetAddress {
+        &self.address
+    }
+}
+
+impl core::fmt::Debug for RobotSubnetMacDeleteRequest {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        formatter.write_str("RobotSubnetMacDeleteRequest([redacted])")
+    }
+}
 
 /// Non-empty partial subnet traffic-warning update.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]

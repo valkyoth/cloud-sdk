@@ -105,12 +105,12 @@ pub use subnet::{
 pub use subnet::{
     CheckedRobotSubnet, MAX_ROBOT_SUBNET_LIST_ITEMS, MAX_ROBOT_SUBNET_MAC_OPTIONS,
     PreparedRobotSubnet, RobotSubnet, RobotSubnetCanonicalPlanFingerprint, RobotSubnetDecodeError,
-    RobotSubnetDestructivePermit, RobotSubnetList, RobotSubnetMac, RobotSubnetMacOption,
-    RobotSubnetMutationPermit, RobotSubnetPermitAttempt, RobotSubnetPermitRequest,
-    RobotSubnetPlanConfirmation, RobotSubnetPlanFingerprintDigest, RobotSubnetPlanSubject,
-    RobotSubnetSharedDestructivePermit, RobotSubnetSharedMutationPermit, RobotSubnetTrafficPolicy,
-    build_robot_subnet_canonical_plan, build_robot_subnet_plan_digest, decode_robot_subnet,
-    decode_robot_subnet_list, decode_robot_subnet_mac,
+    RobotSubnetDestructivePermit, RobotSubnetFailureCode, RobotSubnetList, RobotSubnetMac,
+    RobotSubnetMacOption, RobotSubnetMutationPermit, RobotSubnetPermitAttempt,
+    RobotSubnetPermitRequest, RobotSubnetPlanConfirmation, RobotSubnetPlanFingerprintDigest,
+    RobotSubnetPlanSubject, RobotSubnetSharedDestructivePermit, RobotSubnetSharedMutationPermit,
+    RobotSubnetTrafficPolicy, build_robot_subnet_canonical_plan, build_robot_subnet_plan_digest,
+    decode_robot_subnet, decode_robot_subnet_list, decode_robot_subnet_mac,
 };
 
 #[cfg(feature = "serde")]

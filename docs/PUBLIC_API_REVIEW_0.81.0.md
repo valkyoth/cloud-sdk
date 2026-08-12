@@ -17,6 +17,11 @@ MAC and serializes it as a sensitive bounded form. Every request binds the
 official Robot service, origin, Basic scope, operation ID, response policy,
 impact, semantics, and retry classification.
 
+`RobotSubnetMacDeleteRequest::from_checked` consumes a checked `RobotSubnet`
+and `RobotSubnetMac`. The snapshots must identify the same resource and prefix,
+the subnet must be assigned, and the assigned server main address must map to
+one advertised default MAC. There is no address-only DELETE constructor.
+
 ## Serde Models And Association
 
 The `serde` feature adds `RobotSubnet`, `RobotSubnetList`, `RobotSubnetMac`,
@@ -32,9 +37,17 @@ from its advertised map, response identity mismatch, and mutation outcome
 conflicts. It deliberately admits host-bits-set route identities because the
 official source demonstrates them.
 
+Every request has an operation-associated `decode_failure` method. Shared
+authentication, quota, maintenance, and update-only invalid-input failures are
+retained, while `NOT_FOUND`, `SUBNET_NOT_FOUND`, `MAC_NOT_AVAILABLE`,
+`TRAFFIC_WARNING_UPDATE_FAILED`, and `MAC_FAILED` are admitted only for their
+exact source-locked operations and statuses.
+
 Traffic updates, MAC assignment, and MAC restoration use request-bound direct
 or shared permits. Sensitive bodies require strong-digest fingerprints. PUT
 and DELETE deny automatic retry; uncertain delivery requires reconciliation.
+DELETE success must return the checked default MAC and continue to advertise
+it for the checked assigned server.
 
 ## Semver And Publication
 

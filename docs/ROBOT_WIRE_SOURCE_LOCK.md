@@ -188,6 +188,14 @@ committed in
 [`v0.81.0.json`](../tests/fixtures/robot-subnet/v0.81.0.json) and checked by
 `scripts/check_robot_subnets.sh`.
 
+Default restoration consumes checked subnet and MAC snapshots. The assigned
+server main address selects the expected default MAC from `possible_mac`, and
+DELETE success must return and continue to advertise that exact mapping. The
+fixture records every documented `(status, code)` pair; request-associated
+decoders admit each pair only for its exact operation. The checker compares
+the full normalized operation, field, inconsistency, and security contract and
+runs the compiled subnet contract tests.
+
 ## Verification
 
 Run the local structural check:

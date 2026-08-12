@@ -179,9 +179,22 @@ impl CheckedRobotSubnet<'_, '_, RobotSubnetMacSetRequest> {
 }
 
 impl CheckedRobotSubnet<'_, '_, RobotSubnetMacDeleteRequest> {
-    /// Decodes the restored default MAC and selectable map.
+    /// Verifies restoration to the checked assigned server's default MAC.
     pub fn decode_response(self) -> Result<RobotSubnetMac, RobotSubnetDecodeError> {
-        decode_mac_response(self.request.address(), self.inner)
+        let result = decode_mac_response(self.request.address(), self.inner)?;
+        let default_is_advertised = result.possible().iter().any(|option| {
+            let server_matches = option.with_address(|actual| {
+                self.request
+                    .expected_server
+                    .with_addr(|expected| actual == expected)
+            });
+            server_matches && option.mac() == &self.request.expected_default_mac
+        });
+        if default_is_advertised && result.mac() == &self.request.expected_default_mac {
+            Ok(result)
+        } else {
+            Err(RobotSubnetDecodeError::MutationOutcomeMismatch)
+        }
     }
 }
 

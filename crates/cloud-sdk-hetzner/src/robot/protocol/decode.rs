@@ -16,6 +16,21 @@ pub fn decode_robot_failure(
     response: TransportResponse<'_, '_>,
     workspace: &mut ResponseDecodeWorkspace,
 ) -> Result<RobotFailure, RobotDecodeError> {
+    decode_robot_failure_with(response, workspace, true, &[404], |status, code| {
+        match (status, code) {
+            (404, "SERVER_NOT_FOUND") => Some(RobotProviderErrorCode::ServerNotFound),
+            _ => None,
+        }
+    })
+}
+
+pub(crate) fn decode_robot_failure_with(
+    response: TransportResponse<'_, '_>,
+    workspace: &mut ResponseDecodeWorkspace,
+    allow_invalid_input: bool,
+    provider_statuses: &[u16],
+    classify: impl Fn(u16, &str) -> Option<RobotProviderErrorCode>,
+) -> Result<RobotFailure, RobotDecodeError> {
     let status = response.status();
     if matches!(status.get(), 401 | 503) {
         if !response.body().is_empty() {
@@ -30,7 +45,10 @@ pub fn decode_robot_failure(
     if status.is_success() {
         return Err(RobotDecodeError::UnexpectedSuccessStatus);
     }
-    if !matches!(status.get(), 400 | 403 | 404) {
+    if status.get() != 403
+        && !(status.get() == 400 && allow_invalid_input)
+        && !provider_statuses.contains(&status.get())
+    {
         return Err(RobotDecodeError::UnsupportedStatus);
     }
     if response.body().is_empty() {
@@ -46,13 +64,19 @@ pub fn decode_robot_failure(
     if !content_type.matches(MediaType::JSON) {
         return Err(RobotDecodeError::InvalidContentType);
     }
-    decode_json_failure(status, response.body(), workspace.decoder_scratch_mut())
+    decode_json_failure(
+        status,
+        response.body(),
+        workspace.decoder_scratch_mut(),
+        classify,
+    )
 }
 
 fn decode_json_failure(
     status: StatusCode,
     body: &[u8],
     scratch: &mut [u8],
+    classify: impl Fn(u16, &str) -> Option<RobotProviderErrorCode>,
 ) -> Result<RobotFailure, RobotDecodeError> {
     let mut value = parse_with_scratch(body, scratch).map_err(map_json_error)?;
     let root = value
@@ -66,8 +90,7 @@ fn decode_json_failure(
     match status.get() {
         400 => decode_invalid_input(error),
         403 => decode_quota(error),
-        404 => decode_provider_error(error),
-        _ => Err(RobotDecodeError::UnsupportedStatus),
+        _ => decode_provider_error(error, status.get(), classify),
     }
 }
 
@@ -112,15 +135,28 @@ fn decode_quota(error: &mut Map) -> Result<RobotFailure, RobotDecodeError> {
     }))
 }
 
-fn decode_provider_error(error: &mut Map) -> Result<RobotFailure, RobotDecodeError> {
+fn decode_provider_error(
+    error: &mut Map,
+    status: u16,
+    classify: impl Fn(u16, &str) -> Option<RobotProviderErrorCode>,
+) -> Result<RobotFailure, RobotDecodeError> {
     require_fields(error, &["status", "code", "message"])?;
-    require_status(error, 404)?;
-    require_code(error, "SERVER_NOT_FOUND")?;
+    require_status(error, u64::from(status))?;
+    let code = error
+        .get("code")
+        .ok_or(RobotDecodeError::InvalidEnvelope)?
+        .try_with_str(|code| {
+            if code.len() > MAX_ROBOT_ERROR_CODE_BYTES {
+                None
+            } else {
+                classify(status, code)
+            }
+        })
+        .map_err(|_| RobotDecodeError::InvalidEnvelope)?
+        .flatten()
+        .ok_or(RobotDecodeError::UnknownCode)?;
     let message = take_text(error, "message", MAX_ROBOT_ERROR_MESSAGE_BYTES)?;
-    Ok(RobotFailure::Provider(RobotProviderError {
-        code: RobotProviderErrorCode::ServerNotFound,
-        message,
-    }))
+    Ok(RobotFailure::Provider(RobotProviderError { code, message }))
 }
 
 fn require_fields(object: &Map, fields: &[&str]) -> Result<(), RobotDecodeError> {

@@ -16,7 +16,7 @@ use crate::association::Sha256PlanHasher;
 use crate::endpoint::official_robot_endpoint_identity;
 use crate::robot::{RobotMacAddress, RobotSubnetAddress};
 
-use super::tests::{DETAIL, MAC_DELETED, MAC_SET};
+use super::tests::{DETAIL, MAC_DELETED, MAC_SET, delete_request};
 
 struct FixedClock;
 
@@ -136,7 +136,7 @@ fn sensitive_set_executes_through_shared_send_async_permit() {
 
 #[test]
 fn delete_executes_through_shared_local_destructive_permit() {
-    let request = RobotSubnetMacDeleteRequest::new(mac_ip());
+    let request = delete_request();
     let mut target = [0_u8; 128];
     let mut request_body = [0_u8; 1];
     let prepared = request
@@ -200,7 +200,7 @@ fn permit_scope_mismatch_fails_closed() {
         Err(ExecutionPermitError::ScopeMismatch)
     ));
 
-    let delete = RobotSubnetMacDeleteRequest::new(mac_ip());
+    let delete = delete_request();
     let mut delete_target = [0_u8; 128];
     let mut delete_body = [0_u8; 1];
     let prepared = delete

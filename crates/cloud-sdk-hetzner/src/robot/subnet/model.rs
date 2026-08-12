@@ -193,6 +193,35 @@ impl RobotSubnetMac {
     }
 }
 
+impl super::RobotSubnetMacDeleteRequest {
+    /// Consumes checked subnet and MAC snapshots into one restoration request.
+    ///
+    /// The snapshots must identify the same subnet and prefix. The subnet must
+    /// be assigned, and its server main address must have an advertised MAC.
+    pub fn from_checked(
+        subnet: RobotSubnet,
+        mut mac_state: RobotSubnetMac,
+    ) -> Result<Self, super::RobotSubnetRequestError> {
+        if subnet.address != mac_state.address || subnet.prefix != mac_state.prefix {
+            return Err(super::RobotSubnetRequestError::EvidenceMismatch);
+        }
+        let expected_server = subnet
+            .server_address
+            .ok_or(super::RobotSubnetRequestError::UnassignedSubnet)?;
+        let index = mac_state
+            .possible
+            .iter()
+            .position(|option| option.address == expected_server)
+            .ok_or(super::RobotSubnetRequestError::DefaultMacUnavailable)?;
+        let expected_default_mac = mac_state.possible.swap_remove(index).mac;
+        Ok(Self {
+            address: subnet.address,
+            expected_server,
+            expected_default_mac,
+        })
+    }
+}
+
 impl fmt::Debug for RobotSubnetMac {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter.write_str("RobotSubnetMac([redacted])")

@@ -16,6 +16,8 @@ sensitive.
 - Paths accept only canonical protected subnet route identities.
 - Request types fix method, route, operation ID, form shape, and response type.
 - PUT requires an explicit canonical selected MAC; no default is inferred.
+- DELETE authority consumes same-resource checked subnet and MAC snapshots;
+  address-only construction is unavailable.
 - Traffic update is idempotent with explicit-policy retries. MAC PUT is
   non-idempotent and MAC DELETE is destructive; both deny automatic retry.
 - Request-bound plan, fingerprint, permit, and checked-response wrappers retain
@@ -30,6 +32,10 @@ sensitive.
 - Response subnet identity and optional list filter must match the request.
 - The current MAC must be advertised; PUT acknowledgement must equal the
   selected MAC; traffic acknowledgement must include each requested value.
+- DELETE acknowledgement must equal the default MAC mapped to the checked
+  assigned server, and the returned map must preserve that association.
+- Provider errors are decoded through the exact request type; documented `404`
+  and `500` codes cannot cross operation boundaries.
 - Nullable `server_ip`, integer/string mask differences, and host-bits-set
   route identities are admitted only as explicit source-locked exceptions.
 
