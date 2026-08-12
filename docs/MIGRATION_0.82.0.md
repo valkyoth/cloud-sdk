@@ -54,5 +54,11 @@ credential lineage differs. `decode_robot_reset` remains public for inspection
 and custom response handling, but its `RobotReset` result cannot construct an
 execute request.
 
+Reset execution intentionally cannot be passed to generic helpers requiring
+`PrepareOperation`, and its typed prepared wrapper cannot be converted with
+`as_untyped()`. Keep it inside `RobotResetPlanConfirmation` and the reset
+permit types. Generic plan construction also rejects the retained core marker
+with `AuthorizationEvidenceRequired` as defense in depth.
+
 For non-success responses, call `decode_failure` on the exact request. It
 admits only that operation's source-locked status/code combinations.

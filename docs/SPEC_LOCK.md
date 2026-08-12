@@ -501,6 +501,9 @@ strong-digest request-bound direct/shared destructive permits retain exact
 association through blocking, Send-async, and local-async execution. Digest
 evidence includes credential binding, complete identity, capability,
 observation, and expiry; credential and freshness are rechecked at dispatch.
+Execute does not implement generic preparation and its prepared wrapper cannot
+return a generic request. Core retains a mandatory-evidence marker and rejects
+that marker from generic plan builders, preventing permit type erasure.
 List, detail, and action success limits are 2 MiB, 4 KiB, and 2 KiB.
 
 Action acknowledgement must match checked IPv4 and IPv6 identities and the

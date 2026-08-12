@@ -10,9 +10,15 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 LOCK = ROOT / "tests/fixtures/robot-reset/v0.82.0.json"
-LOCK_SHA256 = "ebf6205aa7ae368cbcb26aa29aa026a5a904bf38b35fa48909e9b1c1bdcfd7e5"
+LOCK_SHA256 = "a51e48739b69afd3f27290a2daaf360951e565667234700c5325d1be5a475444"
 MAX_LOCK_BYTES = 16 * 1024
 SOURCE_SHA256 = "4b396790acc449f47b2b3b893f8eff759c0c25196dc38b1e5e92a12c9704771a"
+PREPARE_SOURCE = ROOT / "crates/cloud-sdk-hetzner/src/robot/reset/prepare.rs"
+EXCHANGE_SOURCE = ROOT / "crates/cloud-sdk-hetzner/src/robot/reset/exchange.rs"
+CORE_PREPARED_SOURCE = ROOT / "crates/cloud-sdk/src/operation/prepared.rs"
+CORE_VALIDATION_SOURCE = (
+    ROOT / "crates/cloud-sdk/src/operation/permit/fingerprint/validation.rs"
+)
 
 
 def operation(
@@ -137,6 +143,7 @@ def validate_contract(value: dict[str, Any]) -> None:
             "credential_lineage": "opaque-transport-binding",
             "preflight_evidence_seconds": 30,
             "dispatch_revalidation": "credential-and-expiry",
+            "generic_type_erasure": "forbidden-by-provider-and-core",
             "execute_permit": "destructive",
             "execute_body": "sensitive-form",
             "execute_retry": "never",
@@ -149,11 +156,44 @@ def validate_contract(value: dict[str, Any]) -> None:
     )
 
 
+def validate_implementation_policy() -> None:
+    try:
+        prepare = PREPARE_SOURCE.read_text(encoding="utf-8")
+        exchange = EXCHANGE_SOURCE.read_text(encoding="utf-8")
+        core_prepared = CORE_PREPARED_SOURCE.read_text(encoding="utf-8")
+        core_validation = CORE_VALIDATION_SOURCE.read_text(encoding="utf-8")
+    except OSError as error:
+        fail(f"could not read implementation policy source: {error}")
+    require(
+        "impl PrepareOperation for RobotResetExecuteRequest" not in prepare,
+        "execute request entered generic PrepareOperation",
+    )
+    require(
+        "prepared.with_required_authorization_evidence()" in prepare,
+        "execute preparation lost the core evidence marker",
+    )
+    require(
+        exchange.count("pub const fn as_untyped") == 2
+        and "RobotResetListRequest>" in exchange
+        and "RobotResetGetRequest>" in exchange,
+        "execute wrapper exposes generic prepared request",
+    )
+    require(
+        "with_required_authorization_evidence" in core_prepared,
+        "core prepared request lost the evidence marker",
+    )
+    require(
+        "AuthorizationEvidenceRequired" in core_validation,
+        "generic plan validation no longer rejects missing evidence",
+    )
+
+
 def main() -> None:
     value, payload = read_lock()
     require(hashlib.sha256(payload).hexdigest() == LOCK_SHA256, "fixture digest changed")
     validate_contract(value)
-    print("3 Robot reset source policies passed; compiled tests enforce implementation policy.")
+    validate_implementation_policy()
+    print("4 Robot reset source policies passed; compiled tests enforce implementation policy.")
 
 
 if __name__ == "__main__":

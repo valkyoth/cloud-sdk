@@ -5,7 +5,8 @@ use super::fingerprint_tests::{TestEvidence, TestHasher, plan, time};
 use super::fixture::{endpoint, prepared};
 use crate::operation::{
     CostIntent, ExecutionPermitError, MutationPermit, OperationImpact, PlanAuthorizationEvidence,
-    PlanFingerprintBuildError, ReplayPolicy, build_plan_digest_with_authorization_evidence,
+    PlanFingerprintBuildError, ReplayPolicy, build_canonical_plan, build_plan_digest,
+    build_plan_digest_with_authorization_evidence,
 };
 #[cfg(feature = "std")]
 use crate::retry::{DigestAlgorithm, FingerprintHasher};
@@ -61,6 +62,53 @@ fn authorization_evidence_changes_digest_and_clears_scratch() {
     }
     assert_eq!(first_scratch, [0_u8; 4_096]);
     assert_eq!(second_scratch, [0_u8; 4_096]);
+}
+
+#[test]
+fn required_authorization_evidence_cannot_enter_generic_plan_builders() {
+    let Some(request) = prepared(
+        "/resources",
+        OperationImpact::Mutation,
+        CostIntent::NoKnownCost,
+    ) else {
+        unreachable!("permit security fixture construction failed");
+    };
+    let Some(endpoint) = endpoint() else {
+        unreachable!("permit security fixture construction failed")
+    };
+    let Some(plan) = plan(
+        request.with_required_authorization_evidence(),
+        endpoint,
+        b"required-evidence-test",
+        200,
+        ReplayPolicy::SingleAttempt,
+    ) else {
+        unreachable!("permit security fixture construction failed");
+    };
+    let mut exact = [0xa5_u8; 4_096];
+    assert!(matches!(
+        build_canonical_plan(plan, &mut exact),
+        Err(PlanFingerprintBuildError::AuthorizationEvidenceRequired)
+    ));
+    assert_eq!(exact, [0_u8; 4_096]);
+
+    let mut scratch = [0xa5_u8; 4_096];
+    let mut digest = [0x5a_u8; 32];
+    assert!(matches!(
+        build_plan_digest(plan, &mut scratch, &mut digest, &TestHasher),
+        Err(PlanFingerprintBuildError::AuthorizationEvidenceRequired)
+    ));
+    assert_eq!(scratch, [0_u8; 4_096]);
+    assert_eq!(digest, [0_u8; 32]);
+
+    let fingerprint = build_plan_digest_with_authorization_evidence(
+        plan,
+        &TestEvidence(b"required-evidence"),
+        &mut scratch,
+        &mut digest,
+        &TestHasher,
+    );
+    assert!(fingerprint.is_ok());
 }
 
 #[test]

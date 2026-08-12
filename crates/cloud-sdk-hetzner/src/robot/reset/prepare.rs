@@ -14,7 +14,7 @@ use cloud_sdk::transport::{
 use cloud_sdk_sanitization::sanitize_bytes;
 
 #[cfg(feature = "serde")]
-use super::RobotResetExecuteRequest;
+use super::{PreparedRobotReset, RobotResetExecuteRequest};
 use super::{RobotResetGetRequest, RobotResetListRequest, RobotResetRequestError};
 use crate::endpoint::{official_robot_endpoint_identity, official_robot_endpoint_policy};
 use crate::identity::{HETZNER_PROVIDER_ID, ROBOT_SERVICE_ID, RobotService};
@@ -63,18 +63,6 @@ impl PrepareOperation for RobotResetGetRequest {
         storage: PreparationStorage<'storage>,
     ) -> Result<PreparedRequest<'storage>, Self::Error> {
         prepare(Operation::Get(&self.number), storage)
-    }
-}
-
-#[cfg(feature = "serde")]
-impl PrepareOperation for RobotResetExecuteRequest<'_> {
-    type Error = RobotResetRequestError;
-
-    fn prepare<'storage>(
-        &self,
-        storage: PreparationStorage<'storage>,
-    ) -> Result<PreparedRequest<'storage>, Self::Error> {
-        prepare(Operation::Execute(self), storage)
     }
 }
 
@@ -215,9 +203,29 @@ fn prepare_inner<'storage>(
         },
     )
     .map_err(RobotResetRequestError::InvalidPreparedPolicy)?;
-    Ok(prepared
+    let prepared = prepared
         .with_operation_id(operation_id)
-        .with_replayable_body())
+        .with_replayable_body();
+    Ok(match operation {
+        #[cfg(feature = "serde")]
+        Operation::Execute(_) => prepared.with_required_authorization_evidence(),
+        Operation::List | Operation::Get(_) => prepared,
+    })
+}
+
+#[cfg(feature = "serde")]
+impl<'state> RobotResetExecuteRequest<'state> {
+    /// Prepares reset execution without erasing authorization evidence.
+    pub fn prepare_bound<'storage, 'request>(
+        &'request self,
+        storage: PreparationStorage<'storage>,
+    ) -> Result<PreparedRobotReset<'storage, 'request, Self>, RobotResetRequestError> {
+        let inner = prepare(Operation::Execute(self), storage)?;
+        Ok(PreparedRobotReset {
+            request: self,
+            inner,
+        })
+    }
 }
 
 impl<'a> Operation<'a> {

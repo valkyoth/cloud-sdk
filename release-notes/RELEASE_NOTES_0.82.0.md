@@ -33,6 +33,9 @@ internal source milestone; no crate is selected for crates.io publication.
   automatically retryable.
 - Restricted plan construction to execute requests and required request-bound
   strong-digest direct/shared destructive permits.
+- Removed generic `PrepareOperation` and `as_untyped` escape routes from reset
+  execution. The core prepared request now retains an irreversible mandatory
+  authorization-evidence marker, and generic plan builders reject it.
 - Preserved exact association across blocking, Send-async, and local-async
   execution.
 - Bound action success to checked IPv4, IPv6 network, optional server number,
@@ -43,6 +46,8 @@ internal source milestone; no crate is selected for crates.io publication.
   fuzzing.
 - Added deterministic 4,095/4,096/4,097 list-boundary tests and a 1 MiB reset
   fuzz-smoke input ceiling.
+- Added compile-fail tests proving execute requests cannot enter generic
+  preparation or erase their typed prepared association.
 
 ## Reviewed Source Inconsistency
 

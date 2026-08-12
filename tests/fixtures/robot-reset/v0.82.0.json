@@ -57,6 +57,7 @@
     "credential_lineage": "opaque-transport-binding",
     "preflight_evidence_seconds": 30,
     "dispatch_revalidation": "credential-and-expiry",
+    "generic_type_erasure": "forbidden-by-provider-and-core",
     "execute_permit": "destructive",
     "execute_body": "sensitive-form",
     "execute_retry": "never",

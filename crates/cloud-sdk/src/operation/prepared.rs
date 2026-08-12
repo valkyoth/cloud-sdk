@@ -39,6 +39,7 @@ pub struct PreparedRequest<'request> {
     operation_id: Option<OperationId>,
     body_replayability: BodyReplayability,
     body_sensitivity: RequestBodySensitivity,
+    authorization_evidence_required: bool,
 }
 
 impl<'request> PreparedRequest<'request> {
@@ -86,6 +87,7 @@ impl<'request> PreparedRequest<'request> {
                 BodyReplayability::NotReplayable
             },
             body_sensitivity,
+            authorization_evidence_required: false,
         })
     }
 
@@ -113,6 +115,17 @@ impl<'request> PreparedRequest<'request> {
     #[must_use]
     pub const fn with_sensitive_body(mut self) -> Self {
         self.body_sensitivity = RequestBodySensitivity::Sensitive;
+        self
+    }
+
+    /// Requires provider-owned authorization evidence during plan construction.
+    ///
+    /// This marker can only tighten a prepared request. Generic plan builders
+    /// reject marked requests; provider wrappers must use the evidence-aware
+    /// digest builder and retain their typed dispatch validation.
+    #[must_use]
+    pub const fn with_required_authorization_evidence(mut self) -> Self {
+        self.authorization_evidence_required = true;
         self
     }
 
@@ -180,6 +193,12 @@ impl<'request> PreparedRequest<'request> {
         self.body_sensitivity
     }
 
+    /// Reports whether plan construction requires provider-owned evidence.
+    #[must_use]
+    pub const fn authorization_evidence_required(self) -> bool {
+        self.authorization_evidence_required
+    }
+
     pub(crate) fn with_request_headers<'headers>(
         self,
         headers: RequestHeaders<'headers>,
@@ -198,6 +217,7 @@ impl<'request> PreparedRequest<'request> {
             operation_id: self.operation_id,
             body_replayability: self.body_replayability,
             body_sensitivity: self.body_sensitivity,
+            authorization_evidence_required: self.authorization_evidence_required,
         }
     }
 
@@ -210,6 +230,7 @@ impl<'request> PreparedRequest<'request> {
             && self.operation_id == other.operation_id
             && self.body_replayability == other.body_replayability
             && self.body_sensitivity == other.body_sensitivity
+            && self.authorization_evidence_required == other.authorization_evidence_required
             && self.has_same_header_policy(other)
     }
 
@@ -456,6 +477,10 @@ impl fmt::Debug for PreparedRequest<'_> {
             .field("operation_id", &self.operation_id)
             .field("body_replayability", &self.body_replayability)
             .field("body_sensitivity", &self.body_sensitivity)
+            .field(
+                "authorization_evidence_required",
+                &self.authorization_evidence_required,
+            )
             .finish()
     }
 }

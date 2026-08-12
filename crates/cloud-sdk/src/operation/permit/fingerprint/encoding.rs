@@ -9,7 +9,22 @@ pub(super) fn encode<E: Copy>(
     plan: &PlanConfirmation<'_, '_>,
     writer: &mut SnapshotEncoder<'_, PlanFingerprintBuildError<E>>,
 ) -> Result<(), PlanFingerprintBuildError<E>> {
-    let scope = validate(plan)?;
+    encode_inner(plan, writer, false)
+}
+
+pub(super) fn encode_with_authorization_evidence<E: Copy>(
+    plan: &PlanConfirmation<'_, '_>,
+    writer: &mut SnapshotEncoder<'_, PlanFingerprintBuildError<E>>,
+) -> Result<(), PlanFingerprintBuildError<E>> {
+    encode_inner(plan, writer, true)
+}
+
+fn encode_inner<E: Copy>(
+    plan: &PlanConfirmation<'_, '_>,
+    writer: &mut SnapshotEncoder<'_, PlanFingerprintBuildError<E>>,
+    authorization_evidence_supplied: bool,
+) -> Result<(), PlanFingerprintBuildError<E>> {
+    let scope = validate(plan, authorization_evidence_supplied)?;
     let prepared = plan.prepared;
     let request = prepared.transport_request();
     writer.bytes(DOMAIN)?;
@@ -88,6 +103,11 @@ pub(super) fn encode<E: Copy>(
         writer,
         30,
         &[u8::from(prepared.body_sensitivity().requires_digest())],
+    )?;
+    field(
+        writer,
+        31,
+        &[u8::from(prepared.authorization_evidence_required())],
     )
 }
 

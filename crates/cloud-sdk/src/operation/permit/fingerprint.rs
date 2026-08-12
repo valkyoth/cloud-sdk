@@ -10,17 +10,19 @@ use super::{
     PlanCost, PlanFingerprintScope, ReplayPolicy,
 };
 use crate::buffer::{encode_snapshot_bounded, measure_snapshot_bounded};
-use crate::operation::{CostIntent, OperationImpact, PreparedRequest};
+use crate::operation::PreparedRequest;
 use crate::retry::{DigestAlgorithm, FingerprintHasher};
 use crate::transport::EndpointIdentity;
 
 mod encoding;
 mod error;
 mod evidence;
+mod validation;
 use encoding::encode;
 pub use error::PlanFingerprintBuildError;
 use error::map_infallible;
 pub use evidence::{PlanAuthorizationEvidence, build_plan_digest_with_authorization_evidence};
+use validation::{subject, validate};
 
 const DOMAIN: &[u8] = b"cloud-sdk/plan-confirm/v1\0";
 /// Maximum complete exact plan-confirm input.
@@ -336,7 +338,7 @@ fn build_canonical_plan_inner<'output, 'plan, 'request>(
     PlanFingerprintBuildError<core::convert::Infallible>,
 > {
     sanitize_bytes(output);
-    let scope = validate(&plan)?;
+    let scope = validate(&plan, false)?;
     let required = measure_snapshot_bounded(
         &plan,
         MAX_CANONICAL_PLAN_BYTES,
@@ -426,75 +428,6 @@ impl Drop for DigestRollback<'_> {
     }
 }
 
-pub(super) fn validate<E>(
-    plan: &PlanConfirmation<'_, '_>,
-) -> Result<PermitScope, PlanFingerprintBuildError<E>> {
-    if plan.prepared.operation_id().is_none() {
-        return Err(PlanFingerprintBuildError::MissingOperationId);
-    }
-    if !plan
-        .prepared
-        .service()
-        .endpoint_policy()
-        .admits(plan.endpoint)
-    {
-        return Err(PlanFingerprintBuildError::EndpointNotAdmitted);
-    }
-    if plan.change == PlanChange::NoOp {
-        return Err(PlanFingerprintBuildError::NoOp);
-    }
-    plan.account
-        .bytes()
-        .map_err(PlanFingerprintBuildError::Context)?;
-    plan.tenant
-        .bytes()
-        .map_err(PlanFingerprintBuildError::Context)?;
-    let metadata = plan.prepared.metadata();
-    let scope = match (metadata.cost_intent(), metadata.impact()) {
-        (CostIntent::MayIncurCost, _) => PermitScope::Cost,
-        (_, OperationImpact::Destructive) => PermitScope::Destructive,
-        (_, OperationImpact::Mutation) => PermitScope::Mutation,
-        (_, OperationImpact::ReadOnly) => return Err(PlanFingerprintBuildError::ReadOnlyOperation),
-    };
-    match (scope, plan.cost) {
-        (PermitScope::Cost, None) => return Err(PlanFingerprintBuildError::MissingCost),
-        (PermitScope::Mutation | PermitScope::Destructive, Some(_)) => {
-            return Err(PlanFingerprintBuildError::UnexpectedCost);
-        }
-        _ => {}
-    }
-    match (plan.replay, plan.attempts.get(), plan.idempotency) {
-        (ReplayPolicy::SingleAttempt, 1, None)
-        | (ReplayPolicy::RecoverNotSent, _, None)
-        | (ReplayPolicy::ReconcileThenRetry, _, Some(_)) => {}
-        (ReplayPolicy::SingleAttempt, _, _) => {
-            return Err(PlanFingerprintBuildError::InvalidSingleAttemptBudget);
-        }
-        (ReplayPolicy::ReconcileThenRetry, _, None) => {
-            return Err(PlanFingerprintBuildError::MissingIdempotency);
-        }
-        (_, _, Some(_)) => return Err(PlanFingerprintBuildError::UnexpectedIdempotency),
-    }
-    Ok(scope)
-}
-
 fn constant_time_eq(left: &[u8], right: &[u8]) -> bool {
     left.len() == right.len() && bool::from(left.ct_eq(right))
-}
-
-fn subject<'request, 'plan: 'fingerprint, 'fingerprint>(
-    plan: &'fingerprint PlanConfirmation<'plan, 'request>,
-    scope: PermitScope,
-    fingerprint: PlanFingerprintRef<'fingerprint>,
-) -> PlanSubject<'request, 'fingerprint> {
-    PlanSubject {
-        prepared: &plan.prepared,
-        fingerprint,
-        endpoint: plan.endpoint,
-        scope,
-        validity: plan.validity,
-        replay: plan.replay,
-        attempts: plan.attempts,
-        idempotency: plan.idempotency,
-    }
 }

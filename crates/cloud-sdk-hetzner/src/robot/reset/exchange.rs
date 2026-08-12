@@ -19,12 +19,6 @@ pub struct PreparedRobotReset<'storage, 'request, R> {
 }
 
 impl<'storage, 'request, R> PreparedRobotReset<'storage, 'request, R> {
-    /// Borrows the provider-neutral prepared request for inspection.
-    #[must_use]
-    pub const fn as_untyped(&self) -> PreparedRequest<'storage> {
-        self.inner
-    }
-
     /// Applies the exact response policy and retains request provenance.
     pub fn validate_response<'buffer>(
         self,
@@ -40,6 +34,22 @@ impl<'storage, 'request, R> PreparedRobotReset<'storage, 'request, R> {
 
     pub(super) fn into_plan_parts(self) -> (PreparedRequest<'storage>, &'request R) {
         (self.inner, self.request)
+    }
+}
+
+impl<'storage, 'request> PreparedRobotReset<'storage, 'request, RobotResetListRequest> {
+    /// Returns the provider-neutral read request for generic execution.
+    #[must_use]
+    pub const fn as_untyped(&self) -> PreparedRequest<'storage> {
+        self.inner
+    }
+}
+
+impl<'storage, 'request> PreparedRobotReset<'storage, 'request, RobotResetGetRequest> {
+    /// Returns the provider-neutral read request for generic execution.
+    #[must_use]
+    pub const fn as_untyped(&self) -> PreparedRequest<'storage> {
+        self.inner
     }
 }
 
@@ -93,11 +103,7 @@ macro_rules! prepare_bound {
     )+ };
 }
 
-prepare_bound!(
-    RobotResetListRequest,
-    RobotResetGetRequest,
-    RobotResetExecuteRequest<'_>
-);
+prepare_bound!(RobotResetListRequest, RobotResetGetRequest);
 
 impl CheckedRobotReset<'_, '_, RobotResetListRequest> {
     /// Decodes a bounded duplicate-free reset capability list.
@@ -151,4 +157,24 @@ mod compile_fail {
     /// }
     /// ```
     fn association() {}
+
+    /// Reset execution cannot enter generic operation preparation.
+    ///
+    /// ```compile_fail
+    /// use cloud_sdk::operation::PrepareOperation;
+    /// use cloud_sdk_hetzner::robot::RobotResetExecuteRequest;
+    /// fn generic<R: PrepareOperation>() {}
+    /// generic::<RobotResetExecuteRequest<'static>>();
+    /// ```
+    fn generic_preparation() {}
+
+    /// Prepared reset execution cannot erase its typed association.
+    ///
+    /// ```compile_fail
+    /// use cloud_sdk_hetzner::robot::{PreparedRobotReset, RobotResetExecuteRequest};
+    /// fn erase(request: PreparedRobotReset<'_, '_, RobotResetExecuteRequest<'_>>) {
+    ///     let _ = request.as_untyped();
+    /// }
+    /// ```
+    fn execute_type_erasure() {}
 }

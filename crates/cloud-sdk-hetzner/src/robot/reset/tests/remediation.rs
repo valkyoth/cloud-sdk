@@ -1,6 +1,58 @@
 use super::*;
 
 #[test]
+fn prepares_exact_source_locked_requests_and_policies() {
+    assert_prepared(
+        RobotResetListRequest::new(),
+        Method::Get,
+        "/reset",
+        b"",
+        "robot_list_resets",
+        OperationImpact::ReadOnly,
+        RequestSemantics::Safe,
+        RetryEligibility::ExplicitPolicy,
+        RequestBodySensitivity::Public,
+        MAX_ROBOT_RESET_LIST_RESPONSE_BYTES,
+    );
+    assert_prepared(
+        RobotResetGetRequest::new(number(321)),
+        Method::Get,
+        "/reset/321",
+        b"",
+        "robot_get_reset",
+        OperationImpact::ReadOnly,
+        RequestSemantics::Safe,
+        RetryEligibility::ExplicitPolicy,
+        RequestBodySensitivity::Public,
+        MAX_ROBOT_RESET_DETAIL_RESPONSE_BYTES,
+    );
+    let checked = detail();
+    let execute = RobotResetExecuteRequest::from_checked(
+        &checked,
+        RobotResetIntent::Execute(RobotResetType::Hardware),
+    )
+    .unwrap_or_else(|_| unreachable!("advertised reset was rejected"));
+    let mut target = [0_u8; 128];
+    let mut body = [0_u8; 128];
+    let prepared = execute
+        .prepare_bound(PreparationStorage::new(&mut target, &mut body))
+        .unwrap_or_else(|_| unreachable!("reset preparation failed"));
+    assert!(prepared.inner.authorization_evidence_required());
+    assert_prepared_request(
+        prepared.inner,
+        Method::Post,
+        "/reset/321",
+        b"type=hw",
+        "robot_execute_reset",
+        OperationImpact::Destructive,
+        RequestSemantics::NonIdempotent,
+        RetryEligibility::Never,
+        RequestBodySensitivity::Sensitive,
+        MAX_ROBOT_RESET_ACTION_RESPONSE_BYTES,
+    );
+}
+
+#[test]
 fn only_authenticated_detail_execution_mints_short_lived_authority() {
     let request = RobotResetGetRequest::new(number(321));
     let mut target = [0_u8; 128];
@@ -8,7 +60,7 @@ fn only_authenticated_detail_execution_mints_short_lived_authority() {
     let prepared = request
         .prepare_bound(PreparationStorage::new(&mut target, &mut request_body))
         .unwrap_or_else(|_| unreachable!("detail preparation failed"));
-    let expected = expected_request(prepared.as_untyped());
+    let expected = expected_request(prepared.inner);
     let exchanges = [MockExchange::new(expected, json_fixture(DETAIL))];
     let transport = MockTransport::new(&exchanges)
         .with_endpoint(endpoint())
@@ -43,7 +95,7 @@ fn async_and_local_preflights_preserve_authenticated_lineage() {
     let prepared = request
         .prepare_bound(PreparationStorage::new(&mut target, &mut request_body))
         .unwrap_or_else(|_| unreachable!("async detail preparation failed"));
-    let expected = expected_request(prepared.as_untyped());
+    let expected = expected_request(prepared.inner);
     let exchanges = [MockExchange::new(expected, json_fixture(DETAIL))];
     let transport = MockTransport::new(&exchanges)
         .with_endpoint(endpoint())
@@ -160,7 +212,7 @@ fn assert_dispatch_authorization_rejected(
     let prepared = request
         .prepare_bound(PreparationStorage::new(&mut target, &mut body))
         .unwrap_or_else(|_| unreachable!("reset preparation failed"));
-    let expected = expected_request(prepared.as_untyped());
+    let expected = expected_request(prepared.inner);
     let mut scratch = [0_u8; 4_096];
     let mut digest = [0_u8; 32];
     let fingerprint = build_robot_reset_plan_digest(

@@ -35,6 +35,8 @@ pub enum PlanFingerprintBuildError<E> {
     SensitiveBodyRequiresDigest,
     /// Sensitive authorization evidence may only use collision-resistant digests.
     SensitiveAuthorizationEvidenceRequiresDigest,
+    /// The prepared request requires the evidence-aware plan builder.
+    AuthorizationEvidenceRequired,
     /// The permit remains valid after its authorization evidence expires.
     AuthorizationEvidenceValidityMismatch,
     /// Caller-provided collision-resistant hashing failed.
@@ -66,6 +68,9 @@ impl<E> fmt::Debug for PlanFingerprintBuildError<E> {
             Self::SensitiveAuthorizationEvidenceRequiresDigest => {
                 "PlanFingerprintBuildError::SensitiveAuthorizationEvidenceRequiresDigest"
             }
+            Self::AuthorizationEvidenceRequired => {
+                "PlanFingerprintBuildError::AuthorizationEvidenceRequired"
+            }
             Self::AuthorizationEvidenceValidityMismatch => {
                 "PlanFingerprintBuildError::AuthorizationEvidenceValidityMismatch"
             }
@@ -95,6 +100,9 @@ impl<E> fmt::Display for PlanFingerprintBuildError<E> {
             }
             Self::SensitiveAuthorizationEvidenceRequiresDigest => {
                 "sensitive authorization evidence requires a collision-resistant plan digest"
+            }
+            Self::AuthorizationEvidenceRequired => {
+                "prepared request requires provider authorization evidence"
             }
             Self::AuthorizationEvidenceValidityMismatch => {
                 "permit validity exceeds authorization evidence validity"
@@ -148,6 +156,9 @@ pub(super) fn map_infallible<E>(
         }
         PlanFingerprintBuildError::SensitiveAuthorizationEvidenceRequiresDigest => {
             PlanFingerprintBuildError::SensitiveAuthorizationEvidenceRequiresDigest
+        }
+        PlanFingerprintBuildError::AuthorizationEvidenceRequired => {
+            PlanFingerprintBuildError::AuthorizationEvidenceRequired
         }
         PlanFingerprintBuildError::AuthorizationEvidenceValidityMismatch => {
             PlanFingerprintBuildError::AuthorizationEvidenceValidityMismatch

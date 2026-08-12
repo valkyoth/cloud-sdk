@@ -26,6 +26,12 @@ ID, method, response policy, and source quota. Read operations are safe and
 idempotent. Execution is destructive, non-idempotent, sensitive-body, and
 never automatically retryable.
 
+Unlike the two read requests, `RobotResetExecuteRequest` deliberately does not
+implement `PrepareOperation`. It exposes only `prepare_bound`, and
+`PreparedRobotReset<RobotResetExecuteRequest>` deliberately has no
+`as_untyped`. The core `PreparedRequest` retained inside that wrapper carries
+an irreversible authorization-evidence requirement.
+
 List, detail, and action success bodies have separate 2 MiB, 4 KiB, and 2 KiB
 limits. The list allowance is 512 bytes for each of the maximum 4,096 items.
 
@@ -65,6 +71,10 @@ admitted operating-system CSPRNG and preserve it across clones. Reset evidence
 places credential binding, server identities, capability, observation, and
 expiry only in the strong digest. Permit validity cannot outlive the evidence;
 credential lineage and expiry are rechecked immediately before dispatch.
+It also adds `PreparedRequest::with_required_authorization_evidence` and
+`PlanFingerprintBuildError::AuthorizationEvidenceRequired`. Generic exact and
+digest plan builders reject marked requests; only the evidence-aware digest
+builder can construct their plan fingerprint.
 
 ## Semver And Publication
 

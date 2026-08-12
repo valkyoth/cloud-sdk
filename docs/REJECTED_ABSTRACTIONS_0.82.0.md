@@ -36,6 +36,14 @@ intent. Reset execution uses the strong-digest plan builder.
 Rejected even when a reset type appears repeatable. Delivery uncertainty and
 provider-side timing can make a second reset destructive in a different state.
 
+## Generic Execute Preparation Or Type Erasure
+
+Rejected because a copyable generic prepared request could enter generic plan
+and permit APIs without rechecking the reset credential lineage or 30-second
+evidence lifetime. Execute requests expose only typed preparation, their
+wrapper has no generic escape accessor, and core plan validation rejects the
+retained mandatory-evidence marker unless the evidence-aware builder is used.
+
 ## Require Action Server Number
 
 Rejected because the official POST example omits `server_number` while the

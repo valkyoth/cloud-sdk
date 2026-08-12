@@ -23,6 +23,11 @@ address, server, and operating-state data may be operationally sensitive.
   unknown capabilities fail closed.
 - Only execute requests can construct reset plan confirmation. The sensitive
   body requires a strong digest and a destructive permit.
+- Execute requests do not implement generic `PrepareOperation`, and their
+  typed prepared wrapper does not expose `as_untyped`. The underlying core
+  request is permanently marked as requiring authorization evidence; generic
+  canonical and digest plan builders reject that marker before authority can
+  be created.
 - Request, plan, fingerprint, permit, attempt, and checked response retain
   exact type association across blocking, Send-async, and local-async modes.
 - Credential binding, both addresses, server number, selected capability,
@@ -72,3 +77,9 @@ of the credential its authenticated send will use. The admitted reqwest Basic
 clients satisfy this with immutable credential state shared by clones. Custom
 transports are responsible for equivalent atomicity and CSPRNG-quality binding
 generation.
+
+The SDK cannot stop an application that deliberately bypasses the SDK and
+constructs a raw HTTP reset request. The enforced boundary prevents the SDK's
+generic operation and permit APIs from accidentally erasing reset evidence;
+application access to credentials and lower-level transports remains part of
+the caller's trust boundary.

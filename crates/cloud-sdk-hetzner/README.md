@@ -197,6 +197,10 @@ preflight and select an advertised capability from its 30-second
 non-authorizing. The evidence binds the transport's opaque credential lineage,
 both addresses, server number, capability, observation, and expiry into the
 strong digest, then rechecks credential and expiry immediately before dispatch.
+Execute requests expose only typed preparation: they do not implement generic
+`PrepareOperation`, and their prepared wrapper has no `as_untyped` escape.
+Core plan construction independently rejects their mandatory authorization-
+evidence marker when a generic builder is used.
 Its sensitive form is destructive,
 non-idempotent, never automatically retried, and requires a request-bound
 strong-digest permit. Success binds IPv4, IPv6 network, any returned server

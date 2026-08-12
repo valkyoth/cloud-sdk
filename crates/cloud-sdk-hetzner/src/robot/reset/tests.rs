@@ -46,51 +46,6 @@ impl PermitClock for TimestampClock {
 }
 
 #[test]
-fn prepares_exact_source_locked_requests_and_policies() {
-    assert_prepared(
-        RobotResetListRequest::new(),
-        Method::Get,
-        "/reset",
-        b"",
-        "robot_list_resets",
-        OperationImpact::ReadOnly,
-        RequestSemantics::Safe,
-        RetryEligibility::ExplicitPolicy,
-        RequestBodySensitivity::Public,
-        MAX_ROBOT_RESET_LIST_RESPONSE_BYTES,
-    );
-    assert_prepared(
-        RobotResetGetRequest::new(number(321)),
-        Method::Get,
-        "/reset/321",
-        b"",
-        "robot_get_reset",
-        OperationImpact::ReadOnly,
-        RequestSemantics::Safe,
-        RetryEligibility::ExplicitPolicy,
-        RequestBodySensitivity::Public,
-        MAX_ROBOT_RESET_DETAIL_RESPONSE_BYTES,
-    );
-    let checked = detail();
-    assert_prepared(
-        RobotResetExecuteRequest::from_checked(
-            &checked,
-            RobotResetIntent::Execute(RobotResetType::Hardware),
-        )
-        .unwrap_or_else(|_| unreachable!("advertised reset was rejected")),
-        Method::Post,
-        "/reset/321",
-        b"type=hw",
-        "robot_execute_reset",
-        OperationImpact::Destructive,
-        RequestSemantics::NonIdempotent,
-        RetryEligibility::Never,
-        RequestBodySensitivity::Sensitive,
-        MAX_ROBOT_RESET_ACTION_RESPONSE_BYTES,
-    );
-}
-
-#[test]
 fn checked_state_rejects_unadvertised_reset_types() {
     let reset = detail();
     assert!(matches!(
@@ -177,7 +132,7 @@ fn failed_preparation_clears_complete_caller_storage() {
     let mut body = [0x5a_u8; 4];
     assert!(
         request
-            .prepare(PreparationStorage::new(&mut target, &mut body))
+            .prepare_bound(PreparationStorage::new(&mut target, &mut body))
             .is_err()
     );
     assert_eq!(target, [0; 4]);
@@ -197,7 +152,7 @@ fn sensitive_reset_requires_digest_and_executes_with_direct_permit() {
     let prepared = request
         .prepare_bound(PreparationStorage::new(&mut target, &mut body))
         .unwrap_or_else(|_| unreachable!("reset preparation failed"));
-    let expected = expected_request(prepared.as_untyped());
+    let expected = expected_request(prepared.inner);
     let endpoint = endpoint();
     let mut exact = [0xa5_u8; 4_096];
     assert!(matches!(
@@ -256,7 +211,7 @@ fn shared_local_permit_preserves_action_association() {
     let prepared = request
         .prepare_bound(PreparationStorage::new(&mut target, &mut body))
         .unwrap_or_else(|_| unreachable!("reset preparation failed"));
-    let expected = expected_request(prepared.as_untyped());
+    let expected = expected_request(prepared.inner);
     let endpoint = endpoint();
     let mut scratch = [0_u8; 4_096];
     let mut digest = [0_u8; 32];
@@ -335,6 +290,33 @@ fn assert_prepared<O>(
             &mut body_storage,
         ))
         .unwrap_or_else(|_| unreachable!("request preparation failed"));
+    assert_prepared_request(
+        prepared,
+        method,
+        target,
+        body,
+        operation_id,
+        impact,
+        semantics,
+        retry,
+        sensitivity,
+        maximum_response_bytes,
+    );
+}
+
+#[allow(clippy::too_many_arguments)]
+fn assert_prepared_request(
+    prepared: cloud_sdk::operation::PreparedRequest<'_>,
+    method: Method,
+    target: &str,
+    body: &[u8],
+    operation_id: &str,
+    impact: OperationImpact,
+    semantics: RequestSemantics,
+    retry: RetryEligibility,
+    sensitivity: RequestBodySensitivity,
+    maximum_response_bytes: usize,
+) {
     assert_eq!(prepared.transport_request().method(), method);
     assert_eq!(prepared.transport_request().target().as_str(), target);
     assert_eq!(prepared.transport_request().body(), body);

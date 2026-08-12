@@ -1,6 +1,6 @@
 use cloud_sdk_sanitization::sanitize_bytes;
 
-use super::encoding::encode;
+use super::encoding::encode_with_authorization_evidence;
 use super::error::map_infallible;
 use super::{
     DigestRollback, MAX_CANONICAL_PLAN_BYTES, PlanConfirmation, PlanFingerprintBuildError,
@@ -54,7 +54,7 @@ pub fn build_plan_digest_with_authorization_evidence<
     sanitize_bytes(scratch);
     let mut scratch = SensitiveScratch::new(scratch);
     let mut rollback = DigestRollback::new(output);
-    let scope = validate(&plan)?;
+    let scope = validate(&plan, true)?;
     if evidence
         .valid_until()
         .is_some_and(|expires_at| plan.validity.expires_at() > expires_at)
@@ -94,7 +94,7 @@ fn encode_with_evidence<E: Copy, A: PlanAuthorizationEvidence + ?Sized>(
     (plan, evidence): (PlanConfirmation<'_, '_>, &A),
     writer: &mut SnapshotEncoder<'_, PlanFingerprintBuildError<E>>,
 ) -> Result<(), PlanFingerprintBuildError<E>> {
-    encode(&plan, writer)?;
+    encode_with_authorization_evidence(&plan, writer)?;
     writer.bytes(DOMAIN)?;
     evidence.encode(writer)
 }

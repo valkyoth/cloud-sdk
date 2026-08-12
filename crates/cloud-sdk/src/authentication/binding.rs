@@ -79,7 +79,37 @@ pub trait BoundCredentialTransport {
 
 #[cfg(test)]
 mod tests {
+    use core::fmt::Write;
+
     use super::{CREDENTIAL_BINDING_BYTES, CredentialBinding, CredentialBindingError};
+
+    struct DebugBuffer {
+        bytes: [u8; 64],
+        len: usize,
+    }
+
+    impl DebugBuffer {
+        const fn new() -> Self {
+            Self {
+                bytes: [0; 64],
+                len: 0,
+            }
+        }
+
+        fn as_str(&self) -> &str {
+            core::str::from_utf8(self.bytes.get(..self.len).unwrap_or_default()).unwrap_or_default()
+        }
+    }
+
+    impl core::fmt::Write for DebugBuffer {
+        fn write_str(&mut self, value: &str) -> core::fmt::Result {
+            let end = self.len.checked_add(value.len()).ok_or(core::fmt::Error)?;
+            let target = self.bytes.get_mut(self.len..end).ok_or(core::fmt::Error)?;
+            target.copy_from_slice(value.as_bytes());
+            self.len = end;
+            Ok(())
+        }
+    }
 
     #[test]
     fn bindings_reject_zero_compare_exactly_and_redact() {
@@ -95,7 +125,8 @@ mod tests {
             .unwrap_or_else(|_| unreachable!("binding fixture failed"));
         assert!(first.matches(same));
         assert!(!first.matches(other));
-        #[cfg(feature = "std")]
-        assert_eq!(std::format!("{first:?}"), "CredentialBinding([redacted])");
+        let mut debug = DebugBuffer::new();
+        assert!(write!(debug, "{first:?}").is_ok());
+        assert_eq!(debug.as_str(), "CredentialBinding([redacted])");
     }
 }

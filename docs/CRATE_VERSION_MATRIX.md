@@ -1229,8 +1229,8 @@ cumulative train. No crate is published at this internal milestone.
 
 `v0.82.0` implements all three Robot reset operations with source-locked
 capabilities, checked-state-only destructive intent, exact response
-association, and strong-digest direct/shared permits. No crate is published at
-this internal milestone.
+association, non-erasable authorization evidence, and strong-digest
+direct/shared permits. No crate is published at this internal milestone.
 
 | Crate | Published | Source | Change | Publish | Reason |
 | --- | --- | --- | --- | --- | --- |

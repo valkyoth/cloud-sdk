@@ -2432,6 +2432,9 @@ Deliverables:
 - require strong-digest exact-plan confirmation and request-bound direct or
   shared destructive permits across blocking, Send-async, and local-async
   transports; read-only reset requests cannot construct those plans;
+- deny generic execute preparation and prepared-request type erasure; retain a
+  mandatory authorization-evidence marker in core and reject marked requests
+  from generic exact or digest plan builders;
 - bind action success to checked IPv4, IPv6 network, optional server number,
   and exact requested reset type while narrowly admitting the official action
   example's omitted `server_number` inconsistency;
@@ -2452,6 +2455,9 @@ Verification:
   request-bound direct/shared execution, authenticated preflight minting,
   foreign-credential and stale-evidence rejection before network access,
   evidence/permit lifetime coupling, and exact 4,095/4,096/4,097 list bounds;
+- compile-fail tests prove execute requests implement neither generic
+  `PrepareOperation` nor `as_untyped`; core tests prove generic plan builders
+  reject marked requests and clear caller storage;
 - `scripts/check_fuzz_harness.sh --build` and `--smoke` exercise all three
   checked response paths;
 - `scripts/release_0_82_gate.sh` runs cumulative dependency, platform,
