@@ -28,6 +28,9 @@ address, server, and operating-state data may be operationally sensitive.
   request is permanently marked as requiring authorization evidence; generic
   canonical and digest plan builders reject that marker before authority can
   be created.
+- Ordinary plan confirmations retain the byte-for-byte v1 canonical format.
+  Evidence-required plans use the v2 domain and bind field 31 with value `1`,
+  preventing a format change from being mislabeled as v1.
 - Request, plan, fingerprint, permit, attempt, and checked response retain
   exact type association across blocking, Send-async, and local-async modes.
 - Credential binding, both addresses, server number, selected capability,

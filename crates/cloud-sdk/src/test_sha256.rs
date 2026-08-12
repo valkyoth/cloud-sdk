@@ -1,6 +1,6 @@
-use super::super::{DigestAlgorithm, FingerprintHasher};
+use crate::retry::{DigestAlgorithm, FingerprintHasher};
 
-pub(super) struct Sha256;
+pub(crate) struct Sha256;
 
 impl FingerprintHasher for Sha256 {
     type Error = core::convert::Infallible;
@@ -18,7 +18,7 @@ impl FingerprintHasher for Sha256 {
     }
 }
 
-pub(super) fn sha256(input: &[u8]) -> Option<[u8; 32]> {
+pub(crate) fn sha256(input: &[u8]) -> Option<[u8; 32]> {
     const INITIAL: [u32; 8] = [
         0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab,
         0x5be0cd19,

@@ -60,5 +60,10 @@ Reset execution intentionally cannot be passed to generic helpers requiring
 permit types. Generic plan construction also rejects the retained core marker
 with `AuthorizationEvidenceRequired` as defense in depth.
 
+Ordinary plan-confirm fingerprints remain on the byte-identical v1 format.
+Only requests marked as requiring authorization evidence use the v2 canonical
+domain and field 31. Approval systems should admit v2 only when they also
+support the evidence-aware digest flow.
+
 For non-success responses, call `decode_failure` on the exact request. It
 admits only that operation's source-locked status/code combinations.

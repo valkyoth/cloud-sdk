@@ -36,6 +36,9 @@ pub mod retry;
 pub mod schema;
 pub mod transport;
 
+#[cfg(test)]
+mod test_sha256;
+
 pub use identity::{
     IdentityError, MAX_PROVIDER_ID_BYTES, MAX_SERVICE_ID_BYTES, ProviderId, ProviderMarker,
     ServiceId, ServiceMarker,

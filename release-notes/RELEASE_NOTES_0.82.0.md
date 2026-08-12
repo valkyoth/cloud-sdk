@@ -36,6 +36,9 @@ internal source milestone; no crate is selected for crates.io publication.
 - Removed generic `PrepareOperation` and `as_untyped` escape routes from reset
   execution. The core prepared request now retains an irreversible mandatory
   authorization-evidence marker, and generic plan builders reject it.
+- Preserved the existing plan-confirm v1 bytes for ordinary requests. Marked
+  evidence-required plans use the v2 domain and field 31; SHA-256 golden
+  vectors lock both complete versioned inputs.
 - Preserved exact association across blocking, Send-async, and local-async
   execution.
 - Bound action success to checked IPv4, IPv6 network, optional server number,

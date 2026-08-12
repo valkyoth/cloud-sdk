@@ -24,7 +24,8 @@ use error::map_infallible;
 pub use evidence::{PlanAuthorizationEvidence, build_plan_digest_with_authorization_evidence};
 use validation::{subject, validate};
 
-const DOMAIN: &[u8] = b"cloud-sdk/plan-confirm/v1\0";
+const DOMAIN_V1: &[u8] = b"cloud-sdk/plan-confirm/v1\0";
+const DOMAIN_V2: &[u8] = b"cloud-sdk/plan-confirm/v2\0";
 /// Maximum complete exact plan-confirm input.
 pub const MAX_CANONICAL_PLAN_BYTES: usize = 16_777_216;
 

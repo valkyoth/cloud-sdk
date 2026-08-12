@@ -1,6 +1,6 @@
 //! Canonical plan-confirm wire encoding.
 
-use super::{DOMAIN, PlanConfirmation, PlanFingerprintBuildError, validate};
+use super::{DOMAIN_V1, DOMAIN_V2, PlanConfirmation, PlanFingerprintBuildError, validate};
 use crate::buffer::SnapshotEncoder;
 use crate::operation::{PermitIdempotencyKey, PermitScope, ReplayPolicy};
 use crate::transport::{CanonicalHost, EndpointIdentity, EndpointScheme};
@@ -27,7 +27,12 @@ fn encode_inner<E: Copy>(
     let scope = validate(plan, authorization_evidence_supplied)?;
     let prepared = plan.prepared;
     let request = prepared.transport_request();
-    writer.bytes(DOMAIN)?;
+    let authorization_evidence_required = prepared.authorization_evidence_required();
+    writer.bytes(if authorization_evidence_required {
+        DOMAIN_V2
+    } else {
+        DOMAIN_V1
+    })?;
     field(
         writer,
         1,
@@ -104,11 +109,10 @@ fn encode_inner<E: Copy>(
         30,
         &[u8::from(prepared.body_sensitivity().requires_digest())],
     )?;
-    field(
-        writer,
-        31,
-        &[u8::from(prepared.authorization_evidence_required())],
-    )
+    if authorization_evidence_required {
+        field(writer, 31, &[1])?;
+    }
+    Ok(())
 }
 
 fn endpoint_fields<E: Copy>(

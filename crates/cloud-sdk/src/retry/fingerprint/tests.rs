@@ -15,8 +15,7 @@ use crate::transport::{
 };
 use crate::{Method, ProviderId, ServiceId};
 
-mod sha256;
-use sha256::{Sha256, sha256};
+use crate::test_sha256::{Sha256, sha256};
 mod endpoint_policy_tests;
 mod helpers;
 use helpers::{WrongLength, contains_field};

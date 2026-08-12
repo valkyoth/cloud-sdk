@@ -19,6 +19,13 @@ name. The versioned `cloud-sdk/plan-confirm/v1` canonical input binds:
 - exact idempotency identity when reconciliation can authorize repetition; and
 - currency, observed price, and spending ceiling for cost-bearing requests.
 
+The v1 domain and field layout remain byte-for-byte stable for ordinary plans.
+Prepared requests that require provider authorization evidence instead use
+`cloud-sdk/plan-confirm/v2`; v2 adds field 31 with value `1` to bind that
+requirement before the separately domain-separated evidence snapshot. Generic
+canonical and digest builders reject these marked requests, so only the
+evidence-aware digest builder can construct their v2 identity.
+
 Use `build_canonical_plan` when bounded exact comparison is appropriate. Use
 `build_plan_digest` only with a caller-supplied collision-resistant
 `FingerprintHasher` implementing one of the admitted algorithms. Rust `Hash`,

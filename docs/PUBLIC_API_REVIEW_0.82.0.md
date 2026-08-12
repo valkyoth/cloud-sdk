@@ -76,6 +76,11 @@ It also adds `PreparedRequest::with_required_authorization_evidence` and
 digest plan builders reject marked requests; only the evidence-aware digest
 builder can construct their plan fingerprint.
 
+The marker does not alter ordinary `cloud-sdk/plan-confirm/v1` bytes.
+Evidence-required requests use `cloud-sdk/plan-confirm/v2`, where field 31
+explicitly binds the requirement. Fixed SHA-256 golden vectors lock both
+complete canonical inputs.
+
 ## Semver And Publication
 
 This is additive pre-1.0 provider API. `cloud-sdk` source advances to v0.82.0;
