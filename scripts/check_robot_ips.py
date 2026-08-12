@@ -117,30 +117,11 @@ def validate_contract(value: dict[str, Any]) -> None:
     )
 
 
-def validate_implementation() -> None:
-    base = ROOT / "crates/cloud-sdk-hetzner/src/robot/ip"
-    sources = "\n".join(path.read_text(encoding="utf-8") for path in sorted(base.rglob("*.rs")))
-    for operation_id in OPERATIONS:
-        require(f'"{operation_id}"' in sources, f"missing operation id {operation_id}")
-    for required in (
-        "PreparedRobotIp", "CheckedRobotIp", "ResponseIdentityMismatch",
-        "MutationOutcomeMismatch", "MAX_ROBOT_IP_LIST_ITEMS", "RobotMacAddress",
-        "RobotIpMutationPermit", "RobotIpDestructivePermit",
-        "RobotIpSharedMutationPermit", "RobotIpSharedDestructivePermit",
-        "RequestBodySensitivity::Sensitive", "OperationImpact::Destructive",
-        "RequestSemantics::NonIdempotent", "RetryEligibility::Never",
-        '"traffic_warnings"', '"traffic_hourly"', '"traffic_daily"',
-        '"traffic_monthly"', "validate_network", "require_fields",
-    ):
-        require(required in sources, f"implementation policy missing {required}")
-
-
 def main() -> None:
     value, payload = read_lock()
     require(hashlib.sha256(payload).hexdigest() == LOCK_SHA256, "fixture digest changed")
     validate_contract(value)
-    validate_implementation()
-    print("6 Robot IP operations and source policies passed.")
+    print("6 Robot IP source policies passed; compiled tests enforce implementation policy.")
 
 
 if __name__ == "__main__":

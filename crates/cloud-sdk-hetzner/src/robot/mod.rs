@@ -11,6 +11,8 @@
 mod cancellation;
 #[cfg(feature = "alloc")]
 mod credentials;
+#[cfg(feature = "serde")]
+mod duplicates;
 mod form;
 #[cfg(feature = "alloc")]
 mod ip;

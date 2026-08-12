@@ -13,7 +13,8 @@ sensitive. MAC generation and deletion can change network reachability.
 
 ### Wrong Target Or Mutation
 
-- Paths and the optional list filter accept only canonical protected IP values.
+- Paths accept canonical protected IP values; the server list filter accepts
+  only canonical IPv4 main addresses and rejects IPv6 before transport.
 - Named request types fix method, route, form, operation ID, and response
   policy; no arbitrary field or endpoint is public.
 - Traffic updates cannot be empty and serialize only explicitly selected
@@ -29,6 +30,7 @@ sensitive. MAC generation and deletion can change network reachability.
   content-type bounds.
 - Exact envelopes reject unknown and duplicate fields; lists are bounded to
   4,096 entries and duplicate-free by address, including a valid empty state.
+  Duplicate detection is `O(n log n)` over fallibly allocated public indices.
 - List filters and exact resource identities are verified after decoding.
 - Detail network family, prefix, gateway, and broadcast values must agree.
 - Update acknowledgement must match every requested field. MAC get/generate
@@ -37,7 +39,7 @@ sensitive. MAC generation and deletion can change network reachability.
 ### Data Lifetime
 
 - IP and MAC identities use stable protected storage, redacted diagnostics,
-  and closure-scoped inspection.
+  and closure-scoped inspection. MAC equality is constant-time.
 - Request preparation pre-clears caller path/body storage and clears both on
   reachable validation or capacity failure.
 - Checked decode consumes the cleanup-owning response guard. Unpolled permit

@@ -20,23 +20,26 @@ foundation and independently versioned neutral crates.
 - Added named list, detail, traffic-update, MAC-get, MAC-generate, and
   MAC-delete requests with exact official endpoint, Basic scope, method, path,
   query/form, operation metadata, and `200` JSON policy.
-- Added an optional canonical server-address list filter and non-empty partial
-  traffic updates for warning state plus hourly/daily megabyte and monthly
-  gigabyte thresholds.
+- Added an optional canonical IPv4 server-address list filter that rejects
+  IPv6 before transport, plus non-empty partial traffic updates for warning
+  state and hourly/daily megabyte and monthly gigabyte thresholds.
 - Added protected canonical lowercase EUI-48 values and bounded typed models
   for assignment, server, lock, traffic, network, and nullable separate-MAC
   state.
 - Added strict decoders rejecting unknown/duplicate fields, oversized or
   duplicate lists, identity/filter mismatch, inconsistent networks,
   contradictory traffic acknowledgement, and wrong nullable-MAC outcomes.
+- Duplicate list identities use fallible `O(n log n)` sorted-index scratch,
+  and protected MAC equality is constant-time.
 - Added request-bound prepared and checked responses plus exact/digest plan,
   direct/shared mutation/destructive permit, and blocking/Send-async/local-
   async execution support.
 - Sensitive update forms require digest fingerprints. MAC generation is
   non-idempotent and MAC deletion is destructive; both deny automatic retry.
 - Added preparation-failure and unpolled-attempt cleanup evidence, six-row
-  source fixtures/checkers, policy regressions, and a direct checked-response
-  fuzz target with deterministic list/detail/MAC/delete selectors.
+  source fixtures/checkers, a compiled six-operation security-policy matrix,
+  and a direct checked-response fuzz target with deterministic
+  list/detail/MAC/delete selectors.
 
 ## Cumulative Checkpoint
 

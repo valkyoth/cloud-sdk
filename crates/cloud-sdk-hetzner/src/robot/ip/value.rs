@@ -1,5 +1,3 @@
-use core::cmp::Ordering;
-
 use cloud_sdk_sanitization::SecretBoxBytes;
 
 /// Failure while validating a canonical Robot MAC address.
@@ -56,9 +54,7 @@ impl RobotMacAddress {
 
 impl PartialEq for RobotMacAddress {
     fn eq(&self, other: &Self) -> bool {
-        self.0
-            .with_secret(|left| other.0.with_secret(|right| left.cmp(right)))
-            == Ordering::Equal
+        other.0.with_secret(|right| self.0.constant_time_eq(right))
     }
 }
 
@@ -78,7 +74,13 @@ mod tests {
     fn mac_text_is_exact_and_canonical() {
         let value = RobotMacAddress::new("00:21:85:62:3e:9c")
             .unwrap_or_else(|_| unreachable!("canonical MAC was rejected"));
+        let same = RobotMacAddress::new("00:21:85:62:3e:9c")
+            .unwrap_or_else(|_| unreachable!("equal MAC was rejected"));
+        let different = RobotMacAddress::new("00:21:85:62:3e:9d")
+            .unwrap_or_else(|_| unreachable!("distinct MAC was rejected"));
         assert!(value.equals_text("00:21:85:62:3e:9c"));
+        assert_eq!(value, same);
+        assert_ne!(value, different);
         for invalid in [
             "",
             "0:21:85:62:3e:9c",

@@ -33,8 +33,9 @@ assert_eq!(
 ```
 
 `RobotIpListRequest::all()` lists all assigned addresses;
-`RobotIpListRequest::for_server(address)` binds every returned entry to one
-canonical server address. Use `RobotIpUpdateRequest` with a non-empty
+`RobotIpListRequest::for_server(address)` returns `Result`, accepts only an
+IPv4 server main address, and binds every returned entry to that address.
+IPv6 filters fail before transport. Use `RobotIpUpdateRequest` with a non-empty
 `RobotIpTrafficUpdate` for explicit partial threshold changes.
 
 Separate-MAC operations use `RobotIpMacGetRequest`, `RobotIpMacSetRequest`, and

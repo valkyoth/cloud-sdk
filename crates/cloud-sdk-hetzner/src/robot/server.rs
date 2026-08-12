@@ -6,8 +6,6 @@ mod request;
 #[cfg(feature = "serde")]
 mod decode;
 #[cfg(feature = "serde")]
-mod duplicates;
-#[cfg(feature = "serde")]
 mod model;
 #[cfg(feature = "serde")]
 mod protected;

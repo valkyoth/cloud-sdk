@@ -3,7 +3,6 @@ use alloc::vec::Vec;
 use cloud_sdk::operation::{CheckedResponse, CheckedResponseGuard};
 use cloud_sdk::transport::{ResponseDecodeWorkspace, StatusCode};
 
-use super::duplicates::{reject_duplicates, reject_duplicates_by};
 use super::identity::{DecimalServerNumberError, RobotServerNumber};
 use super::model::{
     MAX_ROBOT_SERVER_ADDRESSES, MAX_ROBOT_SERVER_LIST_ITEMS, RobotServer, RobotServerList,
@@ -14,6 +13,7 @@ use super::protected::{
     RobotServerStatus, RobotServerSubnet, RobotStorageBoxNumber,
 };
 use super::request::{RobotServerGetRequest, RobotServerListRequest, RobotServerUpdateRequest};
+use crate::robot::duplicates::{DuplicateError, reject_duplicates, reject_duplicates_by};
 use crate::serde::SensitiveText;
 use crate::serde::strict_json::{JsonError, Map, Value, parse_with_scratch};
 
@@ -96,8 +96,15 @@ pub fn decode_robot_server_list(
         let summary = parse_summary(server, SummaryShape::List)?;
         servers.push(summary);
     }
-    reject_duplicates_by(&servers, RobotServerSummary::number)?;
+    reject_duplicates_by(&servers, RobotServerSummary::number).map_err(map_duplicate_error)?;
     Ok(RobotServerList(servers))
+}
+
+fn map_duplicate_error(error: DuplicateError) -> RobotServerDecodeError {
+    match error {
+        DuplicateError::Duplicate => RobotServerDecodeError::DuplicateIdentity,
+        DuplicateError::Allocation => RobotServerDecodeError::Allocation,
+    }
 }
 
 /// Decodes a checked canonical get or update result and binds its identity.
@@ -327,7 +334,7 @@ fn parse_addresses(object: &mut Map) -> Result<Vec<ProtectedIpAddr>, RobotServer
             .ok_or(RobotServerDecodeError::InvalidEnvelope)??;
         result.push(address);
     }
-    reject_duplicates(&result)?;
+    reject_duplicates(&result).map_err(map_duplicate_error)?;
     Ok(result)
 }
 
@@ -357,7 +364,7 @@ fn parse_subnets(
         require_fields(subnet, &["ip", "mask"])?;
         result.push(parse_subnet(subnet)?);
     }
-    reject_duplicates(&result)?;
+    reject_duplicates(&result).map_err(map_duplicate_error)?;
     Ok(Some(result))
 }
 

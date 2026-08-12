@@ -19,11 +19,16 @@ pub(super) const MAC_DELETED: &[u8] = br#"{"mac":{"ip":"192.0.2.10","mac":null}}
 fn prepares_all_six_source_locked_operations() {
     assert_prepared(RobotIpListRequest::all(), Method::Get, "/ip", b"");
     assert_prepared(
-        RobotIpListRequest::for_server(ip("2001:db8::1")),
+        RobotIpListRequest::for_server(ip("192.0.2.1"))
+            .unwrap_or_else(|_| unreachable!("IPv4 server filter was rejected")),
         Method::Get,
-        "/ip?server_ip=2001%3Adb8%3A%3A1",
+        "/ip?server_ip=192.0.2.1",
         b"",
     );
+    assert!(matches!(
+        RobotIpListRequest::for_server(ip("2001:db8::1")),
+        Err(RobotIpRequestError::InvalidServerAddress)
+    ));
     assert_prepared(
         RobotIpGetRequest::new(ip("192.0.2.10")),
         Method::Get,
@@ -88,15 +93,64 @@ fn mutation_metadata_and_sensitive_form_are_exact() {
         prepared.transport_request().body(),
         b"traffic_warnings=false&traffic_daily=0"
     );
+}
 
-    let set = prepared_request(RobotIpMacSetRequest::new(ip("192.0.2.10")));
-    assert_eq!(set.0, OperationImpact::Mutation);
-    assert_eq!(set.1, RequestSemantics::NonIdempotent);
-    assert_eq!(set.2, RetryEligibility::Never);
-    let delete = prepared_request(RobotIpMacDeleteRequest::new(ip("192.0.2.10")));
-    assert_eq!(delete.0, OperationImpact::Destructive);
-    assert_eq!(delete.1, RequestSemantics::Idempotent);
-    assert_eq!(delete.2, RetryEligibility::Never);
+#[test]
+fn every_operation_has_exact_compiled_security_policy() {
+    assert_policy(
+        RobotIpListRequest::all(),
+        Method::Get,
+        "robot_list_ips",
+        OperationImpact::ReadOnly,
+        RequestSemantics::Safe,
+        RetryEligibility::ExplicitPolicy,
+        RequestBodySensitivity::Public,
+    );
+    assert_policy(
+        RobotIpGetRequest::new(ip("192.0.2.10")),
+        Method::Get,
+        "robot_get_ip",
+        OperationImpact::ReadOnly,
+        RequestSemantics::Safe,
+        RetryEligibility::ExplicitPolicy,
+        RequestBodySensitivity::Public,
+    );
+    assert_policy(
+        RobotIpUpdateRequest::new(ip("192.0.2.10"), RobotIpTrafficUpdate::warnings(true)),
+        Method::Post,
+        "robot_update_ip",
+        OperationImpact::Mutation,
+        RequestSemantics::Idempotent,
+        RetryEligibility::ExplicitPolicy,
+        RequestBodySensitivity::Sensitive,
+    );
+    assert_policy(
+        RobotIpMacGetRequest::new(ip("192.0.2.10")),
+        Method::Get,
+        "robot_get_ip_mac",
+        OperationImpact::ReadOnly,
+        RequestSemantics::Safe,
+        RetryEligibility::ExplicitPolicy,
+        RequestBodySensitivity::Public,
+    );
+    assert_policy(
+        RobotIpMacSetRequest::new(ip("192.0.2.10")),
+        Method::Put,
+        "robot_set_ip_mac",
+        OperationImpact::Mutation,
+        RequestSemantics::NonIdempotent,
+        RetryEligibility::Never,
+        RequestBodySensitivity::Public,
+    );
+    assert_policy(
+        RobotIpMacDeleteRequest::new(ip("192.0.2.10")),
+        Method::Delete,
+        "robot_delete_ip_mac",
+        OperationImpact::Destructive,
+        RequestSemantics::Idempotent,
+        RetryEligibility::Never,
+        RequestBodySensitivity::Public,
+    );
 }
 
 #[test]
@@ -202,7 +256,8 @@ fn list_filter_and_diagnostics_fail_closed() {
     let list_body = format!("[{{\"ip\":{SUMMARY}}}]");
     assert_eq!(
         decode_list(
-            RobotIpListRequest::for_server(ip("192.0.2.99")),
+            RobotIpListRequest::for_server(ip("192.0.2.99"))
+                .unwrap_or_else(|_| unreachable!("IPv4 server filter was rejected")),
             list_body.as_bytes()
         )
         .err(),
@@ -243,20 +298,31 @@ where
     assert_eq!(prepared.transport_request().body(), body);
 }
 
-fn prepared_request<O>(operation: O) -> (OperationImpact, RequestSemantics, RetryEligibility)
-where
+fn assert_policy<O>(
+    operation: O,
+    method: Method,
+    operation_id: &'static str,
+    impact: OperationImpact,
+    semantics: RequestSemantics,
+    retry: RetryEligibility,
+    sensitivity: RequestBodySensitivity,
+) where
     O: PrepareOperation<Error = RobotIpRequestError>,
 {
     let mut target = [0_u8; 128];
-    let mut body = [0_u8; 1];
+    let mut body = [0_u8; 256];
     let prepared = operation
         .prepare(PreparationStorage::new(&mut target, &mut body))
         .unwrap_or_else(|_| unreachable!("request preparation failed"));
-    (
-        prepared.metadata().impact(),
-        prepared.metadata().semantics(),
-        prepared.metadata().retry_eligibility(),
-    )
+    assert_eq!(prepared.transport_request().method(), method);
+    assert_eq!(
+        prepared.operation_id().map(|value| value.as_str()),
+        Some(operation_id)
+    );
+    assert_eq!(prepared.metadata().impact(), impact);
+    assert_eq!(prepared.metadata().semantics(), semantics);
+    assert_eq!(prepared.metadata().retry_eligibility(), retry);
+    assert_eq!(prepared.body_sensitivity(), sensitivity);
 }
 
 fn decode_list(

@@ -9,16 +9,18 @@ implementation stop.
 
 `cloud_sdk_hetzner::robot` adds six named request types covering list, detail,
 traffic-policy update, and separate-MAC get, generate, and delete. The list
-request accepts either all addresses or one canonical server-address filter.
-The update request requires a non-empty `RobotIpTrafficUpdate`, preventing an
-empty mutation while preserving explicit partial updates.
+request accepts either all addresses or one canonical IPv4 server-address
+filter. The fallible filter constructor rejects IPv6 before transport. The
+update request requires a non-empty `RobotIpTrafficUpdate`, preventing an empty
+mutation while preserving explicit partial updates.
 
 `RobotMacAddress` admits only canonical lowercase EUI-48 text and provides
 closure-scoped inspection. With `serde`, `RobotIpSummary`, `RobotIp`,
 `RobotIpList`, `RobotIpMac`, and `RobotIpTrafficPolicy` expose typed bounded
 results without public payload-bearing diagnostics. List and detail models
 retain assignment, server, lock, warning threshold, network, and separate-MAC
-state.
+state. MAC equality is constant-time, and list duplicate detection uses only
+fallible sorted index scratch rather than copying protected identities.
 
 All requests implement `PrepareOperation` and bind the official Robot origin,
 Robot service, Basic scope, exact method/path/query/form, operation metadata,

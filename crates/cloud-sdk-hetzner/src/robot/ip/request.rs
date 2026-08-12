@@ -3,6 +3,8 @@ use crate::robot::RobotIpAddress;
 /// Failure while validating or preparing a Robot IP operation.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum RobotIpRequestError {
+    /// A server-list filter was not an IPv4 main server address.
+    InvalidServerAddress,
     /// Caller-owned path storage was too small or encoding failed.
     Path,
     /// Robot form validation or encoding failed.
@@ -28,6 +30,7 @@ pub enum RobotIpRequestError {
 impl core::fmt::Display for RobotIpRequestError {
     fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         formatter.write_str(match self {
+            Self::InvalidServerAddress => "Robot IP server filter is not IPv4",
             Self::Path => "Robot IP path preparation failed",
             Self::Form(_) => "Robot IP form preparation failed",
             Self::InvalidTarget(_) => "Robot IP target is invalid",
@@ -59,11 +62,13 @@ impl RobotIpListRequest {
     }
 
     /// Lists only addresses assigned to one server main address.
-    #[must_use]
-    pub const fn for_server(server_address: RobotIpAddress) -> Self {
-        Self {
-            server_address: Some(server_address),
+    pub fn for_server(server_address: RobotIpAddress) -> Result<Self, RobotIpRequestError> {
+        if !server_address.with_addr(|address| address.is_ipv4()) {
+            return Err(RobotIpRequestError::InvalidServerAddress);
         }
+        Ok(Self {
+            server_address: Some(server_address),
+        })
     }
 
     /// Returns the optional canonical server filter.

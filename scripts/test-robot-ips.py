@@ -22,7 +22,6 @@ def main() -> None:
     checker = load_checker()
     value, payload = checker.read_lock()
     checker.validate_contract(value)
-    checker.validate_implementation()
     assert len(payload) <= checker.MAX_LOCK_BYTES
 
     changed = dict(value)

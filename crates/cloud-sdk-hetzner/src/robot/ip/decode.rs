@@ -6,6 +6,7 @@ use cloud_sdk::transport::{ResponseDecodeWorkspace, StatusCode};
 
 use super::model::*;
 use super::{RobotMacAddress, RobotMacAddressError};
+use crate::robot::duplicates::{DuplicateError, reject_duplicates_by_cmp};
 use crate::robot::server::identity::DecimalServerNumberError;
 use crate::robot::{RobotCancellationValueError, RobotIpAddress, RobotServerNumber};
 use crate::serde::strict_json::{JsonError, Map, Value, parse_with_scratch};
@@ -80,16 +81,17 @@ pub fn decode_robot_ip_list(
             .ok_or(RobotIpDecodeError::InvalidEnvelope)?;
         entries.push(parse_summary(object)?);
     }
-    for (index, entry) in entries.iter().enumerate() {
-        if entries
-            .get(index.saturating_add(1)..)
-            .unwrap_or_default()
-            .iter()
-            .any(|other| other.address == entry.address)
-        {
-            return Err(RobotIpDecodeError::InvalidList);
-        }
-    }
+    reject_duplicates_by_cmp(&entries, |left, right| {
+        left.address.with_addr(|left_address| {
+            right
+                .address
+                .with_addr(|right_address| left_address.cmp(&right_address))
+        })
+    })
+    .map_err(|error| match error {
+        DuplicateError::Duplicate => RobotIpDecodeError::InvalidList,
+        DuplicateError::Allocation => RobotIpDecodeError::Allocation,
+    })?;
     Ok(RobotIpList(entries))
 }
 
