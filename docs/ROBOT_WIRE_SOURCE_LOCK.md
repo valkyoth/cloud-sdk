@@ -6,7 +6,8 @@ inventory source-locked for `v0.74.0`; bounded form codec implemented in
 `v0.76.0`; bounded error and quota protocol implemented in `v0.77.0`; server
 list, get, and rename operations implemented in `v0.78.0`.
 All nine cancellation operations are implemented in `v0.79.0`; all six
-single-IP and separate-MAC operations are implemented in `v0.80.0`.
+single-IP and separate-MAC operations are implemented in `v0.80.0`. Subnet and
+subnet-MAC operations are implemented in `v0.81.0`.
 
 Retrieved: 2026-07-30
 
@@ -162,6 +163,30 @@ generation and deletion remain automatic-retry denied. The field and policy
 contract is committed in
 [`v0.80.0.json`](../tests/fixtures/robot-ip/v0.80.0.json) and checked against
 the complete operation lock by `scripts/check_robot_ips.sh`.
+
+## Subnet Operation Contract
+
+`v0.81.0` implements all six active subnet rows: list, detail, traffic-policy
+update, and subnet-MAC get, explicit assignment, and default restoration. The
+implementation admits canonical protected route identities, a nullable IPv4
+server main address, positive server numbers, finite prefix lengths, and
+same-family gateways within the addressed prefix.
+
+The official list example permits `server_ip: null` although the output table
+calls it a string. Subnet detail masks are JSON integers, while subnet-MAC
+masks are canonical decimal strings. Official IPv4 examples also use route
+identities with host bits set. These differences are explicit source-locked
+contracts: the SDK computes the mathematical network and IPv4 broadcast but
+does not replace or reject the provider's route identity.
+
+The MAC response admits a nonempty bounded map from canonical IP addresses to
+canonical lowercase EUI-48 values. The current MAC must occur in that map, and
+an explicit assignment response must equal the requested MAC. Traffic update
+and MAC assignment forms are sensitive and require digest fingerprints;
+assignment and restoration deny automatic retry. The exact contract is
+committed in
+[`v0.81.0.json`](../tests/fixtures/robot-subnet/v0.81.0.json) and checked by
+`scripts/check_robot_subnets.sh`.
 
 ## Verification
 

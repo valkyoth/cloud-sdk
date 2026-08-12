@@ -1,8 +1,8 @@
 # Crate Version Matrix
 
-Status: `v0.75.0` is the latest published checkpoint. `v0.80.0` is the Robot
-IP cumulative public-checkpoint release candidate; pentest and final retest
-passed, while GitHub CI, CodeQL, tagging, and crates.io publication remain.
+Status: `v0.80.0` is the latest published checkpoint. `v0.81.0` is the Robot
+subnet internal implementation stop; its pentest and final release gate are
+required before tagging. Crates.io publication remains deferred to v0.85.0.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
@@ -1209,6 +1209,21 @@ Publish order is computed from package dependencies by
 `cloud-sdk-hetzner` follows its neutral dependencies. Retired provider-specific
 boundary crates, fuzz/tools packages, and the unpublished OVHcloud probe remain
 excluded.
+
+## v0.81.0 Tracking Table
+
+`v0.81.0` implements all six Robot subnet and subnet-MAC operations with exact
+source-locked shapes, bounded protected models, explicit MAC selection, and
+request-bound mutation/destructive permits. It begins the v0.81-v0.85
+cumulative train. No crate is published at this internal milestone.
+
+| Crate | Published | Source | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.80.0` | `0.81.0` | `code` | No | Advance the internal source identity and release contract; defer publication to v0.85.0. |
+| `cloud-sdk-hetzner` | `0.43.0` | `0.43.0` | `code` | No | Accumulate source-locked Robot subnet management for v0.85.0. |
+| `cloud-sdk-reqwest` | `0.35.1` | `0.35.1` | `unchanged` | No | No transport boundary changes. |
+| `cloud-sdk-sanitization` | `0.19.0` | `0.19.0` | `unchanged` | No | No sanitization boundary changes. |
+| `cloud-sdk-testkit` | `0.30.3` | `0.30.3` | `unchanged` | No | No testkit boundary changes. |
 
 ## Planned Milestone Ownership
 

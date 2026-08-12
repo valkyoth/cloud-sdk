@@ -1,0 +1,50 @@
+# v0.81.0 Threat Model Delta
+
+Status: implementation stop; pentest required.
+
+## New Boundary
+
+v0.81 prepares Robot subnet traffic and MAC mutations and admits provider
+subnet topology, assignment metadata, and selectable MAC mappings. Addresses,
+server associations, traffic thresholds, and MAC values may be operationally
+sensitive.
+
+## Threats And Controls
+
+### Wrong Target Or Mutation
+
+- Paths accept only canonical protected subnet route identities.
+- Request types fix method, route, operation ID, form shape, and response type.
+- PUT requires an explicit canonical selected MAC; no default is inferred.
+- Traffic update is idempotent with explicit-policy retries. MAC PUT is
+  non-idempotent and MAC DELETE is destructive; both deny automatic retry.
+- Request-bound plan, fingerprint, permit, and checked-response wrappers retain
+  the exact request through blocking, Send-async, and local-async execution.
+
+### Hostile Or Contradictory Responses
+
+- Exact envelopes reject duplicate, unknown, missing, and mistyped fields.
+- Lists and selectable MAC maps are bounded and duplicate-free where identity
+  semantics require it.
+- Prefix limits and gateway family/membership are validated before admission.
+- Response subnet identity and optional list filter must match the request.
+- The current MAC must be advertised; PUT acknowledgement must equal the
+  selected MAC; traffic acknowledgement must include each requested value.
+- Nullable `server_ip`, integer/string mask differences, and host-bits-set
+  route identities are admitted only as explicit source-locked exceptions.
+
+### Data Lifetime
+
+- Addresses and MACs use stable protected ownership and redacted diagnostics.
+- Preparation pre-clears caller storage and clears target/body on failure.
+- Traffic and MAC assignment forms are sensitive and require digest plans.
+- Checked decode consumes the cleanup-owning response guard.
+- Unpolled permit execution clears caller response buffers and preserves only
+  the core reconciliation state required after uncertain delivery.
+
+## Residual Boundaries
+
+The official route identity is not necessarily the mathematical network base.
+Callers must use the derived network/broadcast accessors when range boundaries
+matter and must not reinterpret the route identity. No live mutation or
+automatic reconciliation is introduced.

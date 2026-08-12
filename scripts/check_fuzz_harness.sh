@@ -17,7 +17,7 @@ check_layout() {
 
     manifest_targets="$(
         sed -n 's/^name = "\([a-z0-9_]*\)"$/\1/p' fuzz/Cargo.toml |
-            tail -n 23 |
+            tail -n 24 |
             tr '\n' ' ' |
             sed 's/ $//'
     )"
@@ -93,4 +93,4 @@ case "$mode" in
     ;;
 esac
 
-echo "fuzz harness: ${mode} passed for 23 targets"
+echo "fuzz harness: ${mode} passed for 24 targets"

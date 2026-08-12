@@ -10,7 +10,7 @@ publish = false
 [dependencies]
 cloud-sdk = {
     path = "../../crates/cloud-sdk",
-    version = "=0.80.0",
+    version = "=0.81.0",
 }
 cloud-sdk-reqwest = {
     path = "../../crates/cloud-sdk-reqwest",

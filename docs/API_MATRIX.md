@@ -342,6 +342,14 @@ canonical protected lowercase EUI-48 values, bounded assignment/network/MAC
 models, request-bound mutation and destructive permits, and strict identity,
 network, update-acknowledgement, and nullable-MAC conflict checks.
 
+`v0.81.0` implements all six subnet and subnet-MAC operations. It adds the
+optional IPv4 server filter, nullable assignment metadata, non-empty traffic
+updates, explicit selected-MAC forms, bounded selectable MAC maps, exact
+request association, and direct/shared mutation and destructive permits.
+Canonical route identities may retain host bits because the official examples
+do; family-specific masks and gateway membership remain mandatory, and the
+mathematical network and IPv4 broadcast values are derived from the response.
+
 Robot implementation schedule:
 
 | Group | Active | Deprecated | Planned Module | Milestone | Status |
@@ -349,7 +357,7 @@ Robot implementation schedule:
 | server | 3 | 0 | `cloud_sdk_hetzner::robot::server` | `v0.78.0` | implemented |
 | cancellation | 9 | 9 | `cloud_sdk_hetzner::robot::cancellation` | `v0.79.0` | implemented |
 | IP | 6 | 0 | `cloud_sdk_hetzner::robot::ip` | `v0.80.0` | implemented |
-| subnet | 6 | 0 | `cloud_sdk_hetzner::robot::subnet` | `v0.81.0` | planned |
+| subnet | 6 | 0 | `cloud_sdk_hetzner::robot::subnet` | `v0.81.0` | implemented |
 | reset | 3 | 0 | `cloud_sdk_hetzner::robot::reset` | `v0.82.0` | planned |
 | failover | 4 | 0 | `cloud_sdk_hetzner::robot::failover` | `v0.83.0` | planned |
 | wake on LAN | 2 | 0 | `cloud_sdk_hetzner::robot::wol` | `v0.84.0` | planned |

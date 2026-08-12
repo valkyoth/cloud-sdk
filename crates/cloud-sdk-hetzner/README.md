@@ -161,6 +161,16 @@ and verifies requested threshold and nullable-MAC outcomes. Traffic and MAC
 mutations use request-bound direct/shared permits; MAC generation and deletion
 are never automatically retried.
 
+Robot subnet management covers list, detail, traffic-policy update, and
+subnet-MAC get, explicit assignment, and default restoration. Responses admit
+the documented nullable server assignment and host-bits-set route identities,
+while enforcing canonical address spelling, family-valid masks, gateway
+membership, bounded duplicate-free inventories, and bounded canonical
+address-to-MAC choices. The mathematical network and IPv4 broadcast boundary
+are derived accessors rather than assumed route identities. Traffic updates
+and explicit MAC assignment use sensitive forms and strong-digest permits;
+MAC assignment and restoration are never automatically retried.
+
 ```rust
 # #[cfg(feature = "serde")]
 # fn main() -> Result<(), Box<dyn core::error::Error>> {

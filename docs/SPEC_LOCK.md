@@ -439,3 +439,26 @@ request through blocking, Send-async, and local-async execution. Sensitive
 traffic forms require the strong-digest plan builder. Preparation failure and
 unpolled attempts clear caller-provided path/body storage and consume only the
 authority defined by the core permit lifecycle.
+
+## v0.81.0 Robot Subnet Policy
+
+The six active subnet and subnet-MAC rows are bound to
+`tests/fixtures/robot-api/v0.74.0.json` and the exact contract in
+`tests/fixtures/robot-subnet/v0.81.0.json`. The implemented set is
+`GET /subnet`, `GET /subnet/{net-ip}`, `POST /subnet/{net-ip}`, and GET, PUT,
+DELETE for `/subnet/{net-ip}/mac`.
+
+List filtering admits only canonical IPv4 server main addresses. Detail and
+list responses require exact fields, bounded duplicate-free subnet identities,
+valid family-specific prefixes, and same-family gateways in the addressed
+network. The officially demonstrated nullable `server_ip`, integer detail
+mask, decimal-string MAC mask, and host-bits-set subnet identity are explicit
+reviewed exceptions. Computed network and IPv4 broadcast accessors never
+rewrite the exact provider route identity.
+
+MAC responses require a nonempty map of at most 256 canonical IP-to-EUI-48
+choices and require the current MAC to occur in that map. PUT requires an
+explicit selected MAC and verifies exact acknowledgement. Traffic updates and
+MAC assignment are sensitive forms requiring digest plan fingerprints.
+Mutation/destructive permits retain request provenance through blocking,
+Send-async, and local-async execution; PUT and DELETE deny automatic retry.

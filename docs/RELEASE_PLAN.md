@@ -2348,11 +2348,46 @@ Stop gate: `v0.80.0 implementation stop reached. Run the pentest for this exact 
 
 ### v0.81.0 - Robot Subnet Management
 
-Goal: complete subnet and subnet-cancellation behavior.
+Goal: complete the six active Robot subnet and subnet-MAC operations while
+preserving the provider's exact route-identity behavior.
 
-Deliverables: canonical network/gateway/mask/broadcast semantics, assignment metadata, forms, conflicts, and permits.
+Deliverables:
 
-Verification: host-bit/family/boundary/source tests and `scripts/release_0_81_gate.sh`.
+- add named list, detail, traffic-update, MAC-read, explicit MAC-assignment,
+  and default-MAC-restoration requests bound to the official Robot endpoint,
+  Basic scope, exact methods, operation IDs, response policy, and retry rules;
+- add canonical protected subnet route identities, optional IPv4 server
+  filtering, non-empty traffic updates, and an explicit canonical selected-MAC
+  form without introducing arbitrary route or form construction;
+- decode exact bounded subnet models with nullable server assignment, positive
+  server identity, failover/lock state, traffic thresholds, family-valid
+  integer masks, and same-network gateways;
+- preserve documented host-bits-set route identities while exposing derived
+  mathematical network and IPv4 broadcast accessors;
+- decode the source-specific decimal-string MAC mask and a nonempty map of at
+  most 256 canonical address-to-MAC choices, require the current MAC in that
+  map, and require PUT acknowledgement to match the selected MAC;
+- retain exact request association through checked decoding and direct/shared
+  blocking, Send-async, and local-async mutation or destructive permits;
+- source-lock the official nullable/string and integer/string inconsistencies,
+  add direct response fuzzing, redaction and cleanup tests, and keep all crates
+  excluded from publication until the v0.85 checkpoint.
+
+Verification:
+
+- `scripts/check_robot_subnets.sh` and `scripts/test-robot-subnets.py` prove all
+  six source rows, methods, paths, fields, reviewed inconsistencies, security
+  policy, and fuzz-target compilation;
+- provider tests cover source-compatible host bits, IPv4/IPv6 prefix limits,
+  derived network/broadcast boundaries, gateway family/membership, nullable
+  assignments, list duplicates, response identity, exact update/MAC outcomes,
+  request redaction, failed preparation cleanup, permit scope, all transport
+  modes, and unpolled-attempt cleanup;
+- `scripts/check_fuzz_harness.sh --build` and `--smoke` exercise list, detail,
+  MAC-read, MAC-set, and MAC-delete checked decoder paths;
+- `scripts/release_0_81_gate.sh` runs the cumulative internal-milestone,
+  dependency, platform, upstream-drift, SBOM, audit, and release-readiness
+  gates and selects no crate for crates.io publication.
 
 Stop gate: `v0.81.0 implementation stop reached. Complete the pentest and full release gate for this exact commit; defer crates.io publication to v0.85.0.`
 
