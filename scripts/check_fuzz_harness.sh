@@ -4,7 +4,7 @@ set -eu
 mode="${1:---metadata}"
 toolchain="nightly-2026-07-26"
 cargo_fuzz_version="0.13.2"
-targets="buffer_writers request_targets action_requests labels_dns pagination quota_retry retry_policy pagination_opaque provider_links action_polling response_envelopes response_content_type checked_response cloud_special_responses raw_response_parser raw_http1_wire incremental_json robot_form robot_error_protocol robot_server_response robot_ip_parser robot_cancellation_response robot_ip_response"
+targets="buffer_writers request_targets action_requests labels_dns pagination quota_retry retry_policy pagination_opaque provider_links action_polling response_envelopes response_content_type checked_response cloud_special_responses raw_response_parser raw_http1_wire incremental_json robot_form robot_error_protocol robot_server_response robot_ip_parser robot_cancellation_response robot_ip_response robot_subnet_response"
 
 check_layout() {
     cargo fmt --manifest-path fuzz/Cargo.toml -- --check
