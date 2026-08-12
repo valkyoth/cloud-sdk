@@ -100,7 +100,10 @@
     "update_permit": "mutation",
     "set_mac_permit": "mutation",
     "delete_mac_permit": "destructive",
-    "delete_mac_default_binding": "checked-subnet-server-to-possible-mac",
+    "delete_mac_default_binding": "checked-subnet-server-to-possible-mac-digest-only",
+    "delete_mac_observation_age_seconds": 30,
+    "delete_mac_external_lock": "same-resource-protected-lease",
+    "traffic_policy_storage": "redacted-non-copy-drop-cleared",
     "set_mac_retry": "never",
     "delete_mac_retry": "never"
   }

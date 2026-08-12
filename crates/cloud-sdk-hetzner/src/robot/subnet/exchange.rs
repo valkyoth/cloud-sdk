@@ -138,7 +138,7 @@ impl CheckedRobotSubnet<'_, '_, RobotSubnetUpdateRequest> {
                 decode_robot_subnet(response, &self.request.address, workspace)
             })?;
         let actual = result.traffic();
-        let expected = self.request.update;
+        let expected = &self.request.update;
         let matches = expected
             .warnings
             .is_none_or(|value| actual.enabled() == value)

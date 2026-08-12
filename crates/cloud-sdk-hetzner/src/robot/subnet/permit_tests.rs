@@ -16,7 +16,8 @@ use crate::association::Sha256PlanHasher;
 use crate::endpoint::official_robot_endpoint_identity;
 use crate::robot::{RobotMacAddress, RobotSubnetAddress};
 
-use super::tests::{DETAIL, MAC_DELETED, MAC_SET, delete_request};
+use super::test_fixtures::{delete_request, delete_request_with};
+use super::tests::{DETAIL, MAC_DELETED, MAC_SET};
 
 struct FixedClock;
 
@@ -144,9 +145,15 @@ fn delete_executes_through_shared_local_destructive_permit() {
         .unwrap_or_else(|_| unreachable!("MAC delete preparation failed"));
     let expected = expected_request(prepared.as_untyped());
     let endpoint = endpoint();
-    let mut exact = [0_u8; 4_096];
-    let fingerprint = build_robot_subnet_canonical_plan(plan(prepared, endpoint), &mut exact)
-        .unwrap_or_else(|_| unreachable!("MAC delete fingerprint failed"));
+    let mut scratch = [0_u8; 4_096];
+    let mut digest = [0_u8; 32];
+    let fingerprint = build_robot_subnet_plan_digest(
+        plan(prepared, endpoint),
+        &mut scratch,
+        &mut digest,
+        &Sha256PlanHasher,
+    )
+    .unwrap_or_else(|_| unreachable!("MAC delete fingerprint failed"));
     let mut state = SharedPermitState::new();
     let permit = RobotSubnetSharedDestructivePermit::new(
         &mut state,
@@ -209,12 +216,119 @@ fn permit_scope_mismatch_fails_closed() {
             &mut delete_body,
         ))
         .unwrap_or_else(|_| unreachable!("delete preparation failed"));
-    let mut exact = [0_u8; 4_096];
-    let fingerprint = build_robot_subnet_canonical_plan(plan(prepared, endpoint()), &mut exact)
-        .unwrap_or_else(|_| unreachable!("delete fingerprint failed"));
+    let mut scratch = [0_u8; 4_096];
+    let mut digest = [0_u8; 32];
+    let fingerprint = build_robot_subnet_plan_digest(
+        plan(prepared, endpoint()),
+        &mut scratch,
+        &mut digest,
+        &Sha256PlanHasher,
+    )
+    .unwrap_or_else(|_| unreachable!("delete fingerprint failed"));
     assert!(matches!(
         RobotSubnetMutationPermit::new(fingerprint.subject(), PermitTimestamp::from_seconds(100)),
         Err(ExecutionPermitError::ScopeMismatch)
+    ));
+}
+
+#[test]
+fn delete_digest_binds_server_mac_freshness_and_lock_evidence() {
+    let request = delete_request();
+    let mut target = [0_u8; 128];
+    let mut body = [0_u8; 1];
+    let prepared = request
+        .prepare_bound(PreparationStorage::new(&mut target, &mut body))
+        .unwrap_or_else(|_| unreachable!("delete preparation failed"));
+    let mut exact = [0xa5_u8; 4_096];
+    assert!(matches!(
+        build_robot_subnet_canonical_plan(plan(prepared, endpoint()), &mut exact),
+        Err(PlanFingerprintBuildError::SensitiveAuthorizationEvidenceRequiresDigest)
+    ));
+    assert_eq!(exact, [0_u8; 4_096]);
+
+    let mut target = [0_u8; 128];
+    let mut body = [0_u8; 1];
+    let prepared = request
+        .prepare_bound(PreparationStorage::new(&mut target, &mut body))
+        .unwrap_or_else(|_| unreachable!("delete preparation failed"));
+    let mut scratch = [0_u8; 4_096];
+    let mut digest = [0_u8; 32];
+    let fingerprint = build_robot_subnet_plan_digest(
+        plan(prepared, endpoint()),
+        &mut scratch,
+        &mut digest,
+        &Sha256PlanHasher,
+    )
+    .unwrap_or_else(|_| unreachable!("delete digest failed"));
+    let mut permit = RobotSubnetDestructivePermit::new(
+        fingerprint.subject(),
+        PermitTimestamp::from_seconds(100),
+    )
+    .unwrap_or_else(|_| unreachable!("delete permit failed"));
+
+    for candidate in [
+        delete_request_with(
+            "192.0.2.2",
+            "00:21:85:62:3e:9c",
+            b"test-lock-generation-0001",
+            99,
+            100,
+            130,
+        ),
+        delete_request_with(
+            "192.0.2.1",
+            "00:21:85:62:3e:9d",
+            b"test-lock-generation-0001",
+            99,
+            100,
+            130,
+        ),
+        delete_request_with(
+            "192.0.2.1",
+            "00:21:85:62:3e:9c",
+            b"test-lock-generation-0002",
+            99,
+            100,
+            130,
+        ),
+        delete_request_with(
+            "192.0.2.1",
+            "00:21:85:62:3e:9c",
+            b"test-lock-generation-0001",
+            98,
+            100,
+            130,
+        ),
+    ] {
+        let mut candidate_target = [0_u8; 128];
+        let mut candidate_body = [0_u8; 1];
+        let candidate_prepared = candidate
+            .prepare_bound(PreparationStorage::new(
+                &mut candidate_target,
+                &mut candidate_body,
+            ))
+            .unwrap_or_else(|_| unreachable!("candidate preparation failed"));
+        let mut candidate_scratch = [0_u8; 4_096];
+        let mut candidate_digest = [0_u8; 32];
+        let candidate_fingerprint = build_robot_subnet_plan_digest(
+            plan(candidate_prepared, endpoint()),
+            &mut candidate_scratch,
+            &mut candidate_digest,
+            &Sha256PlanHasher,
+        )
+        .unwrap_or_else(|_| unreachable!("candidate digest failed"));
+        assert!(matches!(
+            permit.begin_for(
+                candidate_fingerprint.subject(),
+                PermitTimestamp::from_seconds(101),
+            ),
+            Err(ExecutionPermitError::FingerprintMismatch)
+        ));
+    }
+
+    assert!(matches!(
+        permit.begin(PermitTimestamp::from_seconds(129)),
+        Err(ExecutionPermitError::Expired)
     ));
 }
 

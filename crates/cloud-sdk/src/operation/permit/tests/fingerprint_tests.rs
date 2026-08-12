@@ -1,12 +1,14 @@
 use super::fixture::{endpoint, prepared, read_only};
 use crate::operation::{
     AttemptBudget, CostIntent, CurrencyCode, OperationImpact, PermitContext, PermitIdempotencyKey,
-    PermitTimestamp, PermitValidity, PlanChange, PlanConfirmation, PlanCost,
-    PlanFingerprintBuildError, PlanFingerprintScope, ReplayPolicy, build_canonical_plan,
+    PermitTimestamp, PermitValidity, PlanAuthorizationEvidence, PlanChange, PlanConfirmation,
+    PlanCost, PlanFingerprintBuildError, PlanFingerprintScope, ReplayPolicy, build_canonical_plan,
     build_plan_digest,
 };
 use crate::retry::{DigestAlgorithm, FingerprintHasher};
 
+#[cfg(feature = "std")]
+use crate::operation::build_plan_digest_with_authorization_evidence;
 #[cfg(feature = "std")]
 use crate::std as test_std;
 
@@ -330,9 +332,24 @@ fn digest_failures_and_panics_clear_all_caller_storage() {
     assert!(panic.is_err());
     assert_eq!(scratch, [0_u8; 4096]);
     assert_eq!(digest, [0_u8; 64]);
+
+    scratch.fill(0xa5);
+    digest.fill(0xa5);
+    let panic = test_std::panic::catch_unwind(test_std::panic::AssertUnwindSafe(|| {
+        let _ = build_plan_digest_with_authorization_evidence(
+            plan,
+            &TestEvidence(b"sensitive-evidence"),
+            &mut scratch,
+            &mut digest,
+            &PanickingHasher,
+        );
+    }));
+    assert!(panic.is_err());
+    assert_eq!(scratch, [0_u8; 4096]);
+    assert_eq!(digest, [0_u8; 64]);
 }
 
-fn plan<'a>(
+pub(super) fn plan<'a>(
     request: crate::operation::PreparedRequest<'static>,
     endpoint: crate::transport::EndpointIdentity<'static>,
     context: &'a [u8],
@@ -361,11 +378,22 @@ fn plan<'a>(
     ))
 }
 
-const fn time(value: u64) -> PermitTimestamp {
+pub(super) const fn time(value: u64) -> PermitTimestamp {
     PermitTimestamp::from_seconds(value)
 }
 
-struct TestHasher;
+pub(super) struct TestHasher;
+
+pub(super) struct TestEvidence(pub(super) &'static [u8]);
+
+impl PlanAuthorizationEvidence for TestEvidence {
+    fn encode<E: Copy>(
+        &self,
+        writer: &mut crate::buffer::SnapshotEncoder<'_, PlanFingerprintBuildError<E>>,
+    ) -> Result<(), PlanFingerprintBuildError<E>> {
+        writer.bytes(self.0)
+    }
+}
 
 impl FingerprintHasher for TestHasher {
     type Error = core::convert::Infallible;

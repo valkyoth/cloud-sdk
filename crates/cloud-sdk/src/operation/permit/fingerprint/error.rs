@@ -33,6 +33,8 @@ pub enum PlanFingerprintBuildError<E> {
     OutputTooSmall,
     /// Sensitive request bodies may only use collision-resistant digests.
     SensitiveBodyRequiresDigest,
+    /// Sensitive authorization evidence may only use collision-resistant digests.
+    SensitiveAuthorizationEvidenceRequiresDigest,
     /// Caller-provided collision-resistant hashing failed.
     Hasher(E),
     /// Hasher output length differs from its admitted algorithm.
@@ -59,6 +61,9 @@ impl<E> fmt::Debug for PlanFingerprintBuildError<E> {
             Self::SensitiveBodyRequiresDigest => {
                 "PlanFingerprintBuildError::SensitiveBodyRequiresDigest"
             }
+            Self::SensitiveAuthorizationEvidenceRequiresDigest => {
+                "PlanFingerprintBuildError::SensitiveAuthorizationEvidenceRequiresDigest"
+            }
             Self::Hasher(_) => "PlanFingerprintBuildError::Hasher([redacted])",
             Self::InvalidDigestLength => "PlanFingerprintBuildError::InvalidDigestLength",
         })
@@ -82,6 +87,9 @@ impl<E> fmt::Display for PlanFingerprintBuildError<E> {
             Self::OutputTooSmall => "plan confirmation output is too small",
             Self::SensitiveBodyRequiresDigest => {
                 "sensitive request body requires a collision-resistant plan digest"
+            }
+            Self::SensitiveAuthorizationEvidenceRequiresDigest => {
+                "sensitive authorization evidence requires a collision-resistant plan digest"
             }
             Self::Hasher(_) => "plan confirmation hashing failed",
             Self::InvalidDigestLength => "plan confirmation digest length is invalid",
@@ -129,6 +137,9 @@ pub(super) fn map_infallible<E>(
         PlanFingerprintBuildError::OutputTooSmall => PlanFingerprintBuildError::OutputTooSmall,
         PlanFingerprintBuildError::SensitiveBodyRequiresDigest => {
             PlanFingerprintBuildError::SensitiveBodyRequiresDigest
+        }
+        PlanFingerprintBuildError::SensitiveAuthorizationEvidenceRequiresDigest => {
+            PlanFingerprintBuildError::SensitiveAuthorizationEvidenceRequiresDigest
         }
         PlanFingerprintBuildError::InvalidDigestLength => {
             PlanFingerprintBuildError::InvalidDigestLength

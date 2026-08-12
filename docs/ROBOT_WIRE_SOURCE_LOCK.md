@@ -190,7 +190,11 @@ committed in
 
 Default restoration consumes checked subnet and MAC snapshots. The assigned
 server main address selects the expected default MAC from `possible_mac`, and
-DELETE success must return and continue to advertise that exact mapping. The
+both snapshots must fit a fixed 30-second freshness window. A protected
+same-resource external-lock lease is required through dispatch. The complete
+server/MAC/freshness/lock evidence is accepted only by the digest plan builder
+and checked again at permit entry. DELETE success must return and continue to
+advertise that exact mapping. The
 fixture records every documented `(status, code)` pair; request-associated
 decoders admit each pair only for its exact operation. The checker compares
 the full normalized operation, field, inconsistency, and security contract and

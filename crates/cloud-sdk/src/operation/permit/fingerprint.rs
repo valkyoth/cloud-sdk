@@ -16,9 +16,11 @@ use crate::transport::EndpointIdentity;
 
 mod encoding;
 mod error;
+mod evidence;
 use encoding::encode;
 pub use error::PlanFingerprintBuildError;
 use error::map_infallible;
+pub use evidence::{PlanAuthorizationEvidence, build_plan_digest_with_authorization_evidence};
 
 const DOMAIN: &[u8] = b"cloud-sdk/plan-confirm/v1\0";
 /// Maximum complete exact plan-confirm input.

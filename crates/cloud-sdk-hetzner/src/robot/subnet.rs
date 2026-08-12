@@ -6,6 +6,8 @@ mod request;
 #[cfg(feature = "serde")]
 mod decode;
 #[cfg(feature = "serde")]
+mod evidence;
+#[cfg(feature = "serde")]
 mod exchange;
 #[cfg(feature = "serde")]
 mod failure;
@@ -23,6 +25,11 @@ pub use request::{
 #[cfg(feature = "serde")]
 pub use decode::{
     RobotSubnetDecodeError, decode_robot_subnet, decode_robot_subnet_list, decode_robot_subnet_mac,
+};
+#[cfg(feature = "serde")]
+pub use evidence::{
+    MAX_ROBOT_SUBNET_EVIDENCE_AGE_SECONDS, MAX_ROBOT_SUBNET_LOCK_ID_BYTES,
+    RobotSubnetEvidenceError, RobotSubnetMutationLease, RobotSubnetObservationWindow,
 };
 #[cfg(feature = "serde")]
 pub use exchange::{CheckedRobotSubnet, PreparedRobotSubnet};
@@ -43,8 +50,12 @@ pub use permit::{
 };
 
 #[cfg(all(test, feature = "serde"))]
+mod evidence_tests;
+#[cfg(all(test, feature = "serde"))]
 mod failure_tests;
 #[cfg(all(test, feature = "serde"))]
 mod permit_tests;
+#[cfg(all(test, feature = "serde"))]
+mod test_fixtures;
 #[cfg(all(test, feature = "serde"))]
 mod tests;

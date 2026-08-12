@@ -8,13 +8,14 @@ use cloud_sdk::operation::{
 };
 use cloud_sdk::transport::{HeaderSensitivity, ResponseBuffer, ResponseMetadata, StatusCode};
 
+use super::test_fixtures::{delete_request, mutation_lease, observations};
 use super::*;
 use crate::robot::{RobotIpAddress, RobotMacAddress, RobotSubnetAddress};
 
 pub(super) const SUBNET: &str = r#"{"ip":"192.0.2.10","mask":24,"gateway":"192.0.2.1","server_ip":"192.0.2.1","server_number":321,"failover":false,"locked":false,"traffic_warnings":true,"traffic_hourly":50,"traffic_daily":500,"traffic_monthly":8}"#;
 const NULL_SUBNET: &str = r#"{"ip":"198.51.100.127","mask":24,"gateway":"198.51.100.1","server_ip":null,"server_number":421,"failover":false,"locked":false,"traffic_warnings":false,"traffic_hourly":100,"traffic_daily":500,"traffic_monthly":2}"#;
 pub(super) const DETAIL: &[u8] = br#"{"subnet":{"ip":"192.0.2.10","mask":24,"gateway":"192.0.2.1","server_ip":"192.0.2.1","server_number":321,"failover":false,"locked":false,"traffic_warnings":true,"traffic_hourly":50,"traffic_daily":500,"traffic_monthly":8}}"#;
-const MAC_SUBNET_DETAIL: &[u8] = br#"{"subnet":{"ip":"2001:db8::","mask":64,"gateway":"2001:db8::1","server_ip":"192.0.2.1","server_number":321,"failover":false,"locked":false,"traffic_warnings":true,"traffic_hourly":50,"traffic_daily":500,"traffic_monthly":8}}"#;
+pub(super) const MAC_SUBNET_DETAIL: &[u8] = br#"{"subnet":{"ip":"2001:db8::","mask":64,"gateway":"2001:db8::1","server_ip":"192.0.2.1","server_number":321,"failover":false,"locked":false,"traffic_warnings":true,"traffic_hourly":50,"traffic_daily":500,"traffic_monthly":8}}"#;
 pub(super) const MAC_SET: &[u8] = br#"{"mac":{"ip":"2001:db8::","mask":"64","mac":"00:21:85:62:3e:9d","possible_mac":{"192.0.2.1":"00:21:85:62:3e:9c","192.0.2.2":"00:21:85:62:3e:9d"}}}"#;
 pub(super) const MAC_DELETED: &[u8] = br#"{"mac":{"ip":"2001:db8::","mask":"64","mac":"00:21:85:62:3e:9c","possible_mac":{"192.0.2.1":"00:21:85:62:3e:9c","192.0.2.2":"00:21:85:62:3e:9d"}}}"#;
 
@@ -283,7 +284,12 @@ fn delete_request_requires_consistent_checked_default_evidence() {
     )
     .unwrap_or_else(|_| unreachable!("MAC evidence failed"));
     assert!(matches!(
-        RobotSubnetMacDeleteRequest::from_checked(subnet_state, wrong_mac_state),
+        RobotSubnetMacDeleteRequest::from_checked(
+            subnet_state,
+            wrong_mac_state,
+            observations(),
+            mutation_lease(),
+        ),
         Err(RobotSubnetRequestError::EvidenceMismatch)
     ));
 
@@ -297,7 +303,12 @@ fn delete_request_requires_consistent_checked_default_evidence() {
     let mac_state = decode_mac_get(RobotSubnetMacGetRequest::new(subnet("2001:db8::")), MAC_SET)
         .unwrap_or_else(|_| unreachable!("MAC evidence failed"));
     assert!(matches!(
-        RobotSubnetMacDeleteRequest::from_checked(subnet_state, mac_state),
+        RobotSubnetMacDeleteRequest::from_checked(
+            subnet_state,
+            mac_state,
+            observations(),
+            mutation_lease(),
+        ),
         Err(RobotSubnetRequestError::UnassignedSubnet)
     ));
 }
@@ -349,7 +360,7 @@ fn mac_shape_and_diagnostics_fail_closed() {
     }
 }
 
-fn subnet(value: &str) -> RobotSubnetAddress {
+pub(super) fn subnet(value: &str) -> RobotSubnetAddress {
     RobotSubnetAddress::new(value).unwrap_or_else(|_| unreachable!("subnet fixture failed"))
 }
 
@@ -407,7 +418,10 @@ fn assert_policy<O>(
 
 macro_rules! decode_bound {
     ($name:ident, $request:ty, $result:ty, $body_len:expr) => {
-        fn $name(request: $request, body: &[u8]) -> Result<$result, RobotSubnetDecodeError> {
+        pub(super) fn $name(
+            request: $request,
+            body: &[u8],
+        ) -> Result<$result, RobotSubnetDecodeError> {
             let mut target = [0_u8; 128];
             let mut request_body = [0_u8; $body_len];
             let prepared = request
@@ -434,18 +448,6 @@ decode_bound!(
     RobotSubnetMac,
     1
 );
-
-pub(super) fn delete_request() -> RobotSubnetMacDeleteRequest {
-    let subnet_state = decode_get(
-        RobotSubnetGetRequest::new(subnet("2001:db8::")),
-        MAC_SUBNET_DETAIL,
-    )
-    .unwrap_or_else(|_| unreachable!("subnet evidence failed"));
-    let mac_state = decode_mac_get(RobotSubnetMacGetRequest::new(subnet("2001:db8::")), MAC_SET)
-        .unwrap_or_else(|_| unreachable!("MAC evidence failed"));
-    RobotSubnetMacDeleteRequest::from_checked(subnet_state, mac_state)
-        .unwrap_or_else(|_| unreachable!("default MAC evidence failed"))
-}
 
 fn with_json<R, O>(
     prepared: PreparedRobotSubnet<'_, '_, R>,
@@ -482,6 +484,6 @@ fn with_json<R, O>(
     decode(checked)
 }
 
-fn text(bytes: &[u8]) -> &str {
+pub(super) fn text(bytes: &[u8]) -> &str {
     core::str::from_utf8(bytes).unwrap_or_else(|_| unreachable!("fixture lost UTF-8"))
 }

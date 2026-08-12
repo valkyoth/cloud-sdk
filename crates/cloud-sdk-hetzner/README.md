@@ -171,11 +171,20 @@ are derived accessors rather than assumed route identities. Traffic updates
 and explicit MAC assignment use sensitive forms and strong-digest permits;
 MAC assignment and restoration are never automatically retried.
 Default restoration requests can only be constructed by consuming checked
-subnet and MAC snapshots. The assigned server address selects the expected
-default MAC, and DELETE success must preserve that mapping and return that
-exact MAC. Each subnet request also exposes operation-specific failure
+subnet and MAC snapshots, their bounded observation window, and an external
+per-subnet mutation-lock lease. The assigned server address selects the
+expected default MAC. All evidence is bound into a strong digest, is checked
+again at permit entry, and DELETE success must preserve that mapping and return
+that exact MAC. Exact fingerprints are rejected for this sensitive evidence.
+The SDK verifies lock identity, resource, and expiry; callers must obtain the
+lease from a lock service that serializes every mutation of the subnet. Each
+subnet request also exposes operation-specific failure
 decoding, so documented `404` and `500` codes are typed without admitting a
 code for the wrong operation.
+
+Traffic policy and update types are non-`Copy`, redact `Debug`, return borrowed
+aggregate views, and clear their owned scalar storage on drop. Scalar values
+explicitly returned by accessors become caller-owned copies.
 
 ```rust
 # #[cfg(feature = "serde")]

@@ -21,6 +21,7 @@ macro_rules! direct_permit {
                 subject: RobotSubnetPlanSubject<'storage, 'fingerprint, 'request, R>,
                 now: PermitTimestamp,
             ) -> Result<Self, ExecutionPermitError> {
+                subject.binding.0.validate_authorization_evidence(now)?;
                 Ok(Self {
                     inner: cloud_sdk::operation::$inner::new(subject.inner, now)?,
                     binding: subject.binding,
@@ -41,6 +42,7 @@ macro_rules! direct_permit {
                 RobotSubnetPermitAttempt<'_, 'storage, 'fingerprint, 'request, R>,
                 ExecutionPermitError,
             > {
+                self.binding.0.validate_authorization_evidence(now)?;
                 Ok(RobotSubnetPermitAttempt {
                     inner: self.inner.begin(now)?,
                     binding: self.binding,
@@ -56,6 +58,8 @@ macro_rules! direct_permit {
                 RobotSubnetPermitAttempt<'_, 'storage, 'fingerprint, 'request, R>,
                 ExecutionPermitError,
             > {
+                self.binding.0.validate_authorization_evidence(now)?;
+                candidate.binding.0.validate_authorization_evidence(now)?;
                 Ok(RobotSubnetPermitAttempt {
                     inner: self.inner.begin_for(candidate.inner, now)?,
                     binding: self.binding,
@@ -79,6 +83,8 @@ macro_rules! direct_permit {
                 idempotency: PermitIdempotencyKey<'_>,
                 now: PermitTimestamp,
             ) -> Result<(), ExecutionPermitError> {
+                self.binding.0.validate_authorization_evidence(now)?;
+                candidate.binding.0.validate_authorization_evidence(now)?;
                 self.inner
                     .reconcile_not_applied(token, candidate.inner, idempotency, now)
             }

@@ -33,7 +33,7 @@ const FORM_HEADERS: [RequestHeader<'static>; 2] = [
 pub(super) enum Kind<'a> {
     List(Option<&'a RobotIpAddress>),
     Get(&'a RobotSubnetAddress),
-    Update(&'a RobotSubnetAddress, RobotSubnetTrafficUpdate),
+    Update(&'a RobotSubnetAddress, &'a RobotSubnetTrafficUpdate),
     GetMac(&'a RobotSubnetAddress),
     SetMac(&'a RobotSubnetAddress, &'a RobotMacAddress),
     DeleteMac(&'a RobotSubnetAddress),
@@ -69,7 +69,7 @@ impl PrepareOperation for RobotSubnetUpdateRequest {
         &self,
         storage: PreparationStorage<'storage>,
     ) -> Result<PreparedRequest<'storage>, Self::Error> {
-        prepare(Kind::Update(&self.address, self.update), storage)
+        prepare(Kind::Update(&self.address, &self.update), storage)
     }
 }
 prepare_operation!(RobotSubnetMacGetRequest, GetMac, address);
@@ -134,6 +134,21 @@ fn prepare<'storage>(
         )
         .map_err(RobotSubnetRequestError::InvalidRawPolicy)
     );
+    let policy_target = RequestTarget::new("/")
+        .unwrap_or_else(|_| unreachable!("static Robot policy target became invalid"));
+    let policy_request = TransportRequest::new(method(kind), policy_target);
+    admitted!(
+        PreparedRequest::new(
+            policy_request,
+            service,
+            metadata,
+            response,
+            authentication,
+            raw,
+            RequestBodySensitivity::Sensitive,
+        )
+        .map_err(RobotSubnetRequestError::InvalidPreparedPolicy)
+    );
     let path_len = admitted!(write_target(kind, target_storage));
     let body_len = match kind {
         Kind::Update(_, update) => admitted!(write_update_form(update, body_storage)),
@@ -155,7 +170,8 @@ fn prepare<'storage>(
         .and_then(|bytes| core::str::from_utf8(bytes).ok())
         .and_then(|text| RequestTarget::new(text).ok())
         .is_some();
-    if !target_valid {
+    let body_valid = body_storage.get(..body_len).is_some();
+    if !target_valid || !body_valid {
         sanitize_bytes(target_storage);
         sanitize_bytes(body_storage);
         return Err(RobotSubnetRequestError::Path);
@@ -173,7 +189,7 @@ fn prepare<'storage>(
     if body_len != 0 {
         let body = body_storage
             .get(..body_len)
-            .ok_or(RobotSubnetRequestError::Path)?;
+            .unwrap_or_else(|| unreachable!("validated Robot subnet body range became invalid"));
         request = request.with_body(body);
     }
     let prepared = PreparedRequest::new(
@@ -189,7 +205,7 @@ fn prepare<'storage>(
             RequestBodySensitivity::Sensitive
         },
     )
-    .map_err(RobotSubnetRequestError::InvalidPreparedPolicy)?;
+    .unwrap_or_else(|_| unreachable!("prevalidated Robot subnet policy became invalid"));
     Ok(prepared
         .with_operation_id(operation_id)
         .with_replayable_body())
@@ -229,7 +245,7 @@ fn write_target(kind: Kind<'_>, output: &mut [u8]) -> Result<usize, RobotSubnetR
 }
 
 fn write_update_form(
-    update: RobotSubnetTrafficUpdate,
+    update: &RobotSubnetTrafficUpdate,
     output: &mut [u8],
 ) -> Result<usize, RobotSubnetRequestError> {
     let warnings = if update.warnings == Some(true) {

@@ -18,11 +18,11 @@ pub use permit::{
     CurrencyCodeError, DestructivePermit, ExecutionPermitError, MutationPermit, PermitAttempt,
     PermitClock, PermitContext, PermitContextError, PermitDisposition, PermitExecutionError,
     PermitIdempotencyKey, PermitIdempotencyKeyError, PermitScope, PermitState, PermitTimestamp,
-    PermitValidity, PermitValidityError, PlanChange, PlanConfirmation, PlanCost, PlanCostError,
-    PlanFingerprintBuildError, PlanFingerprintDigest, PlanFingerprintRef, PlanFingerprintScope,
-    PlanSubject, ReconciliationToken, RecoveryToken, ReplayPolicy, SharedCostPermit,
-    SharedDestructivePermit, SharedMutationPermit, SharedPermitState, build_canonical_plan,
-    build_plan_digest,
+    PermitValidity, PermitValidityError, PlanAuthorizationEvidence, PlanChange, PlanConfirmation,
+    PlanCost, PlanCostError, PlanFingerprintBuildError, PlanFingerprintDigest, PlanFingerprintRef,
+    PlanFingerprintScope, PlanSubject, ReconciliationToken, RecoveryToken, ReplayPolicy,
+    SharedCostPermit, SharedDestructivePermit, SharedMutationPermit, SharedPermitState,
+    build_canonical_plan, build_plan_digest, build_plan_digest_with_authorization_evidence,
 };
 pub use policy::{
     CheckedResponse, CheckedResponseGuard, ContentTypePolicy, ResponseBodyPolicy, ResponsePolicy,

@@ -27,7 +27,12 @@ publication.
 - Added a nonempty bounded canonical IP-to-MAC choice map and exact selected
   MAC acknowledgement.
 - Made default-MAC restoration constructible only from consumed checked subnet
-  and MAC snapshots; success must return the assigned server's mapped MAC.
+  and MAC snapshots, bounded observation timestamps, and a same-resource
+  external-lock lease; success must return the assigned server's mapped MAC.
+- Bound server, MAC, freshness, and lock generation into digest-only
+  authorization evidence and reject stale evidence at permit entry.
+- Made traffic policy/update aggregates non-copyable, redacted, and
+  drop-cleared; validated late preparation policy before writing caller storage.
 - Added request-associated decoding for every documented subnet failure,
   including operation-specific `404` and `500` codes.
 - Added request-bound direct/shared permits across blocking, Send-async, and

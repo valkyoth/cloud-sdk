@@ -2369,6 +2369,11 @@ Deliverables:
   map, require PUT acknowledgement to match the selected MAC, and derive
   DELETE authority from checked same-resource subnet/MAC snapshots so its
   acknowledgement matches the assigned server's advertised default MAC;
+- require a fixed 30-second observation window and a same-resource external
+  mutation-lock lease for DELETE, bind all non-wire evidence into digest-only
+  authorization fingerprints, and reject stale evidence at permit entry;
+- redact and drop-clear non-copyable traffic policy/update aggregates and
+  prevalidate every late preparation policy before caller storage is written;
 - decode every documented subnet `(status, code)` pair through the exact
   request type, including operation-specific `404` and `500` failures, without
   widening the shared Robot decoder;
@@ -2387,8 +2392,10 @@ Verification:
 - provider tests cover source-compatible host bits, IPv4/IPv6 prefix limits,
   derived network/broadcast boundaries, gateway family/membership, nullable
   assignments, list duplicates, response identity, exact update/MAC outcomes,
-  request redaction, failed preparation cleanup, permit scope, all transport
-  modes, and unpolled-attempt cleanup;
+  request/traffic redaction, failed preparation cleanup, sensitive-evidence
+  exact-plan rejection, server/MAC/timestamp/lock fingerprint mismatch,
+  observation/lease expiry, permit scope, all transport modes, and
+  unpolled-attempt cleanup;
 - `scripts/check_fuzz_harness.sh --build` and `--smoke` exercise list, detail,
   MAC-read, MAC-set, and MAC-delete checked decoder paths;
 - `scripts/release_0_81_gate.sh` runs the cumulative internal-milestone,

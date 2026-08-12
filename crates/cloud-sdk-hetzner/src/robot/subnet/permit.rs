@@ -10,9 +10,9 @@ use cloud_sdk::authentication::{
 };
 use cloud_sdk::operation::{
     AttemptBudget, CanonicalPlanFingerprint, PermitClock, PermitContext, PermitDisposition,
-    PermitExecutionError, PermitIdempotencyKey, PermitValidity, PlanChange, PlanConfirmation,
-    PlanCost, PlanFingerprintBuildError, PlanFingerprintDigest, PlanFingerprintScope, PlanSubject,
-    ReplayPolicy,
+    PermitExecutionError, PermitIdempotencyKey, PermitValidity, PlanAuthorizationEvidence,
+    PlanChange, PlanConfirmation, PlanCost, PlanFingerprintBuildError, PlanFingerprintDigest,
+    PlanFingerprintScope, PlanSubject, ReplayPolicy,
 };
 use cloud_sdk::retry::FingerprintHasher;
 use cloud_sdk::transport::{BoundTransport, DeliveryClassified, DeliveryPhase, EndpointIdentity};
@@ -27,20 +27,98 @@ mod sealed {
 }
 
 /// Sealed marker for the three Robot subnet operations requiring execution authority.
-pub trait RobotSubnetPermitRequest: sealed::Sealed {}
+pub trait RobotSubnetPermitRequest: sealed::Sealed + PlanAuthorizationEvidence {
+    /// Whether the request carries non-wire authorization evidence.
+    const HAS_SENSITIVE_AUTHORIZATION_EVIDENCE: bool;
 
-macro_rules! permit_request {
+    /// Rejects stale evidence before authority is created or consumed.
+    fn validate_authorization_evidence(
+        &self,
+        now: cloud_sdk::operation::PermitTimestamp,
+    ) -> Result<(), cloud_sdk::operation::ExecutionPermitError>;
+}
+
+macro_rules! ordinary_permit_request {
     ($($type:ty),+ $(,)?) => {$ (
         impl sealed::Sealed for $type {}
-        impl RobotSubnetPermitRequest for $type {}
+        impl PlanAuthorizationEvidence for $type {
+            fn encode<E: Copy>(
+                &self,
+                _writer: &mut cloud_sdk::buffer::SnapshotEncoder<
+                    '_,
+                    PlanFingerprintBuildError<E>,
+                >,
+            ) -> Result<(), PlanFingerprintBuildError<E>> {
+                Ok(())
+            }
+        }
+        impl RobotSubnetPermitRequest for $type {
+            const HAS_SENSITIVE_AUTHORIZATION_EVIDENCE: bool = false;
+
+            fn validate_authorization_evidence(
+                &self,
+                _now: cloud_sdk::operation::PermitTimestamp,
+            ) -> Result<(), cloud_sdk::operation::ExecutionPermitError> {
+                Ok(())
+            }
+        }
     )+ };
 }
 
-permit_request!(
+ordinary_permit_request!(
     super::RobotSubnetUpdateRequest,
     super::RobotSubnetMacSetRequest,
-    super::RobotSubnetMacDeleteRequest,
 );
+
+impl sealed::Sealed for super::RobotSubnetMacDeleteRequest {}
+
+impl PlanAuthorizationEvidence for super::RobotSubnetMacDeleteRequest {
+    fn encode<E: Copy>(
+        &self,
+        writer: &mut cloud_sdk::buffer::SnapshotEncoder<'_, PlanFingerprintBuildError<E>>,
+    ) -> Result<(), PlanFingerprintBuildError<E>> {
+        writer.bytes(b"hetzner/robot/subnet-delete-evidence/v1\0")?;
+        self.expected_server
+            .with_text(|server| encode_evidence_field(writer, 1, server.as_bytes()))?;
+        self.expected_default_mac
+            .try_with_text(|mac| encode_evidence_field(writer, 2, mac.as_bytes()))
+            .map_err(|_| PlanFingerprintBuildError::InputTooLarge)??;
+        let (subnet_at, mac_at, evidence_expiry) = self.observations.fields();
+        encode_evidence_field(writer, 3, &subnet_at.as_seconds().to_be_bytes())?;
+        encode_evidence_field(writer, 4, &mac_at.as_seconds().to_be_bytes())?;
+        encode_evidence_field(writer, 5, &evidence_expiry.as_seconds().to_be_bytes())?;
+        self.mutation_lease
+            .with_identity(|identity| encode_evidence_field(writer, 6, identity))?;
+        encode_evidence_field(
+            writer,
+            7,
+            &self.mutation_lease.expires_at().as_seconds().to_be_bytes(),
+        )
+    }
+}
+
+impl RobotSubnetPermitRequest for super::RobotSubnetMacDeleteRequest {
+    const HAS_SENSITIVE_AUTHORIZATION_EVIDENCE: bool = true;
+
+    fn validate_authorization_evidence(
+        &self,
+        now: cloud_sdk::operation::PermitTimestamp,
+    ) -> Result<(), cloud_sdk::operation::ExecutionPermitError> {
+        self.observations.validate_at(now)?;
+        self.mutation_lease.validate_at(now)
+    }
+}
+
+fn encode_evidence_field<E: Copy>(
+    writer: &mut cloud_sdk::buffer::SnapshotEncoder<'_, PlanFingerprintBuildError<E>>,
+    tag: u8,
+    bytes: &[u8],
+) -> Result<(), PlanFingerprintBuildError<E>> {
+    writer.byte(tag)?;
+    let len = u64::try_from(bytes.len()).map_err(|_| PlanFingerprintBuildError::InputTooLarge)?;
+    writer.bytes(&len.to_be_bytes())?;
+    writer.bytes(bytes)
+}
 
 pub(super) struct SubnetBinding<'request, R>(pub(super) &'request R);
 
@@ -168,6 +246,10 @@ pub fn build_robot_subnet_canonical_plan<'output, 'plan, 'storage, 'request, R>(
 where
     R: RobotSubnetPermitRequest,
 {
+    if R::HAS_SENSITIVE_AUTHORIZATION_EVIDENCE {
+        cloud_sdk_sanitization::sanitize_bytes(output);
+        return Err(PlanFingerprintBuildError::SensitiveAuthorizationEvidenceRequiresDigest);
+    }
     let inner = cloud_sdk::operation::build_canonical_plan(plan.inner, output)?;
     Ok(RobotSubnetCanonicalPlanFingerprint {
         inner,
@@ -189,7 +271,17 @@ where
     R: RobotSubnetPermitRequest,
     H: FingerprintHasher,
 {
-    let inner = cloud_sdk::operation::build_plan_digest(plan.inner, scratch, output, hasher)?;
+    let inner = if R::HAS_SENSITIVE_AUTHORIZATION_EVIDENCE {
+        cloud_sdk::operation::build_plan_digest_with_authorization_evidence(
+            plan.inner,
+            plan.binding.0,
+            scratch,
+            output,
+            hasher,
+        )?
+    } else {
+        cloud_sdk::operation::build_plan_digest(plan.inner, scratch, output, hasher)?
+    };
     Ok(RobotSubnetPlanFingerprintDigest {
         inner,
         binding: plan.binding,

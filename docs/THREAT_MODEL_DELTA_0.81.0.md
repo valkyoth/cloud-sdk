@@ -16,8 +16,12 @@ sensitive.
 - Paths accept only canonical protected subnet route identities.
 - Request types fix method, route, operation ID, form shape, and response type.
 - PUT requires an explicit canonical selected MAC; no default is inferred.
-- DELETE authority consumes same-resource checked subnet and MAC snapshots;
-  address-only construction is unavailable.
+- DELETE authority consumes same-resource checked subnet and MAC snapshots,
+  a fixed 30-second observation window, and a same-resource external mutation
+  lease; address-only construction is unavailable.
+- Server, MAC, both observation timestamps, evidence expiry, lock generation,
+  and lease expiry are bound into digest-only authorization evidence. Permit
+  creation and every start/recheck path reject stale evidence.
 - Traffic update is idempotent with explicit-policy retries. MAC PUT is
   non-idempotent and MAC DELETE is destructive; both deny automatic retry.
 - Request-bound plan, fingerprint, permit, and checked-response wrappers retain
@@ -42,8 +46,11 @@ sensitive.
 ### Data Lifetime
 
 - Addresses and MACs use stable protected ownership and redacted diagnostics.
-- Preparation pre-clears caller storage and clears target/body on failure.
+- Preparation validates every fallible cross-policy invariant before writing,
+  pre-clears caller storage, and clears target/body on write failure.
 - Traffic and MAC assignment forms are sensitive and require digest plans.
+- Traffic policy/update aggregates redact diagnostics, cannot be copied as
+  aggregates, and clear their owned scalar fields on drop.
 - Checked decode consumes the cleanup-owning response guard.
 - Unpolled permit execution clears caller response buffers and preserves only
   the core reconciliation state required after uncertain delivery.
@@ -54,3 +61,9 @@ The official route identity is not necessarily the mathematical network base.
 Callers must use the derived network/broadcast accessors when range boundaries
 matter and must not reinterpret the route identity. No live mutation or
 automatic reconciliation is introduced.
+
+Robot exposes no ETag, generation, or conditional subnet-MAC mutation. The SDK
+therefore requires caller-provided external-lock evidence but cannot operate a
+distributed lock service. Callers must obtain each lease from a system that
+serializes every mutation for the same subnet. Scalar values explicitly read
+from traffic accessors become caller-owned copies outside SDK cleanup control.

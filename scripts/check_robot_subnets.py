@@ -10,7 +10,7 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 LOCK = ROOT / "tests/fixtures/robot-subnet/v0.81.0.json"
-LOCK_SHA256 = "114c43719347724c69f56bd0cd2c95429b29fc8824de2d94a99e39278e76402c"
+LOCK_SHA256 = "98cb5d562d9a4ece8bba5045b7c9a439c34e4d8a476af16a4a1766f48e1c914d"
 MAX_LOCK_BYTES = 32 * 1024
 SOURCE_SHA256 = "4b396790acc449f47b2b3b893f8eff759c0c25196dc38b1e5e92a12c9704771a"
 
@@ -171,7 +171,10 @@ def validate_contract(value: dict[str, Any]) -> None:
             "update_permit": "mutation",
             "set_mac_permit": "mutation",
             "delete_mac_permit": "destructive",
-            "delete_mac_default_binding": "checked-subnet-server-to-possible-mac",
+            "delete_mac_default_binding": "checked-subnet-server-to-possible-mac-digest-only",
+            "delete_mac_observation_age_seconds": 30,
+            "delete_mac_external_lock": "same-resource-protected-lease",
+            "traffic_policy_storage": "redacted-non-copy-drop-cleared",
             "set_mac_retry": "never",
             "delete_mac_retry": "never",
         },

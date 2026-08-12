@@ -25,6 +25,9 @@ pub enum RobotSubnetRequestError {
     UnassignedSubnet,
     /// The assigned server had no advertised default MAC.
     DefaultMacUnavailable,
+    /// Freshness or external mutation-lock evidence was invalid.
+    #[cfg(feature = "serde")]
+    InvalidEvidence(super::RobotSubnetEvidenceError),
     /// The success-response policy was internally inconsistent.
     InvalidResponsePolicy(cloud_sdk::operation::ResponsePolicyValidationError),
     /// The raw response-wire policy was internally inconsistent.
@@ -33,22 +36,30 @@ pub enum RobotSubnetRequestError {
     InvalidPreparedPolicy(cloud_sdk::operation::PreparedRequestPolicyError),
 }
 
-impl_static_error!(RobotSubnetRequestError,
-    Self::InvalidServerAddress => "Robot subnet server filter is not IPv4",
-    Self::Path => "Robot subnet path preparation failed",
-    Self::Form(_) => "Robot subnet form preparation failed",
-    Self::InvalidTarget(_) => "Robot subnet target is invalid",
-    Self::InvalidHeaders(_) => "Robot subnet headers are invalid",
-    Self::InvalidEndpoint(_) => "official Robot endpoint is invalid",
-    Self::InvalidOperationId(_) => "Robot subnet operation identifier is invalid",
-    Self::InvalidMetadata(_) => "Robot subnet metadata is invalid",
-    Self::EvidenceMismatch => "Robot subnet evidence does not identify one resource",
-    Self::UnassignedSubnet => "Robot subnet is not assigned to a server",
-    Self::DefaultMacUnavailable => "Robot subnet default MAC evidence is unavailable",
-    Self::InvalidResponsePolicy(_) => "Robot subnet response policy is invalid",
-    Self::InvalidRawPolicy(_) => "Robot subnet raw response policy is invalid",
-    Self::InvalidPreparedPolicy(_) => "Robot subnet prepared policy is invalid",
-);
+impl core::fmt::Display for RobotSubnetRequestError {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        formatter.write_str(match self {
+            Self::InvalidServerAddress => "Robot subnet server filter is not IPv4",
+            Self::Path => "Robot subnet path preparation failed",
+            Self::Form(_) => "Robot subnet form preparation failed",
+            Self::InvalidTarget(_) => "Robot subnet target is invalid",
+            Self::InvalidHeaders(_) => "Robot subnet headers are invalid",
+            Self::InvalidEndpoint(_) => "official Robot endpoint is invalid",
+            Self::InvalidOperationId(_) => "Robot subnet operation identifier is invalid",
+            Self::InvalidMetadata(_) => "Robot subnet metadata is invalid",
+            Self::EvidenceMismatch => "Robot subnet evidence does not identify one resource",
+            Self::UnassignedSubnet => "Robot subnet is not assigned to a server",
+            Self::DefaultMacUnavailable => "Robot subnet default MAC evidence is unavailable",
+            #[cfg(feature = "serde")]
+            Self::InvalidEvidence(_) => "Robot subnet destructive evidence is invalid",
+            Self::InvalidResponsePolicy(_) => "Robot subnet response policy is invalid",
+            Self::InvalidRawPolicy(_) => "Robot subnet raw response policy is invalid",
+            Self::InvalidPreparedPolicy(_) => "Robot subnet prepared policy is invalid",
+        })
+    }
+}
+
+impl core::error::Error for RobotSubnetRequestError {}
 
 /// Optional canonical server filter for `GET /subnet`.
 pub struct RobotSubnetListRequest {
@@ -128,6 +139,10 @@ pub struct RobotSubnetMacDeleteRequest {
     pub(super) expected_server: RobotIpAddress,
     #[cfg(feature = "serde")]
     pub(super) expected_default_mac: RobotMacAddress,
+    #[cfg(feature = "serde")]
+    pub(super) observations: super::RobotSubnetObservationWindow,
+    #[cfg(feature = "serde")]
+    pub(super) mutation_lease: super::RobotSubnetMutationLease,
 }
 
 impl RobotSubnetMacDeleteRequest {
@@ -145,12 +160,27 @@ impl core::fmt::Debug for RobotSubnetMacDeleteRequest {
 }
 
 /// Non-empty partial subnet traffic-warning update.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Eq, PartialEq)]
 pub struct RobotSubnetTrafficUpdate {
     pub(super) warnings: Option<bool>,
     pub(super) hourly: Option<u64>,
     pub(super) daily: Option<u64>,
     pub(super) monthly: Option<u64>,
+}
+
+impl core::fmt::Debug for RobotSubnetTrafficUpdate {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        formatter.write_str("RobotSubnetTrafficUpdate([redacted])")
+    }
+}
+
+impl Drop for RobotSubnetTrafficUpdate {
+    fn drop(&mut self) {
+        cloud_sdk_sanitization::sanitize_value(&mut self.warnings);
+        cloud_sdk_sanitization::sanitize_value(&mut self.hourly);
+        cloud_sdk_sanitization::sanitize_value(&mut self.daily);
+        cloud_sdk_sanitization::sanitize_value(&mut self.monthly);
+    }
 }
 
 impl RobotSubnetTrafficUpdate {
@@ -239,8 +269,8 @@ impl RobotSubnetUpdateRequest {
     }
     /// Returns the requested partial traffic policy.
     #[must_use]
-    pub const fn update(&self) -> RobotSubnetTrafficUpdate {
-        self.update
+    pub const fn update(&self) -> &RobotSubnetTrafficUpdate {
+        &self.update
     }
 }
 

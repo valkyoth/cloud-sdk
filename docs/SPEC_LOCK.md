@@ -466,7 +466,11 @@ Send-async, and local-async execution; PUT and DELETE deny automatic retry.
 DELETE requests are constructed only from consumed checked subnet and MAC
 snapshots. The snapshots must agree on route identity and prefix, the subnet
 must have an assigned server main address, and that address must map to one
-advertised MAC. DELETE acknowledgement must return that exact default MAC and
-preserve its server-address mapping. Subnet failures use request-associated
+advertised MAC. Both reads must fit the fixed 30-second observation window and
+a protected caller-provided external-lock lease must cover the same subnet
+through that window. The assigned server, MAC, timestamps, evidence expiry,
+lock generation, and lease expiry are digest-only authorization evidence;
+permit entry rejects stale evidence. DELETE acknowledgement must return that
+exact default MAC and preserve its server-address mapping. Subnet failures use request-associated
 decoders for the complete documented `(status, code)` sets, including the
 source-locked `500` failures; cross-operation codes fail closed.

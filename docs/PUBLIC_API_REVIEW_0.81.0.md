@@ -17,10 +17,19 @@ MAC and serializes it as a sensitive bounded form. Every request binds the
 official Robot service, origin, Basic scope, operation ID, response policy,
 impact, semantics, and retry classification.
 
-`RobotSubnetMacDeleteRequest::from_checked` consumes a checked `RobotSubnet`
-and `RobotSubnetMac`. The snapshots must identify the same resource and prefix,
-the subnet must be assigned, and the assigned server main address must map to
-one advertised default MAC. There is no address-only DELETE constructor.
+`RobotSubnetMacDeleteRequest::from_checked` consumes a checked `RobotSubnet`,
+`RobotSubnetMac`, `RobotSubnetObservationWindow`, and
+`RobotSubnetMutationLease`. The snapshots must identify the same resource and
+prefix, the subnet must be assigned, and the assigned server main address must
+map to one advertised default MAC. The observations have a fixed 30-second
+maximum age. The protected external-lock lease must identify the same subnet
+and remain valid through the evidence window. There is no address-only DELETE
+constructor.
+
+`PlanAuthorizationEvidence` and
+`build_plan_digest_with_authorization_evidence` provide a provider-neutral,
+caller-buffer digest boundary for security state that is not sent on the wire.
+Exact retention is unavailable through the Robot DELETE wrapper.
 
 ## Serde Models And Association
 
@@ -43,11 +52,14 @@ retained, while `NOT_FOUND`, `SUBNET_NOT_FOUND`, `MAC_NOT_AVAILABLE`,
 `TRAFFIC_WARNING_UPDATE_FAILED`, and `MAC_FAILED` are admitted only for their
 exact source-locked operations and statuses.
 
-Traffic updates, MAC assignment, and MAC restoration use request-bound direct
-or shared permits. Sensitive bodies require strong-digest fingerprints. PUT
-and DELETE deny automatic retry; uncertain delivery requires reconciliation.
+Traffic policy and update aggregates redact diagnostics, are non-`Copy`, and
+clear their scalar storage on drop. Traffic updates, MAC assignment, and MAC
+restoration use request-bound direct or shared permits. Sensitive bodies and
+DELETE authorization evidence require strong-digest fingerprints. PUT and
+DELETE deny automatic retry; uncertain delivery requires reconciliation.
 DELETE success must return the checked default MAC and continue to advertise
-it for the checked assigned server.
+it for the checked assigned server. Permit creation, recheck, and reconciliation
+also reject observation or lock-lease expiry.
 
 ## Semver And Publication
 

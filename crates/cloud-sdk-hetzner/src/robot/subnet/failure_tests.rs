@@ -5,7 +5,7 @@ use cloud_sdk::transport::{
     TransportResponse,
 };
 
-use super::tests::delete_request;
+use super::test_fixtures::delete_request;
 use super::*;
 use crate::robot::{
     RobotDecodeError, RobotFailure, RobotMacAddress, RobotProviderErrorCode, RobotSubnetAddress,

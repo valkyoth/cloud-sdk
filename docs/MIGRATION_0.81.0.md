@@ -31,18 +31,34 @@ Default restoration is intentionally evidence-gated. Decode a checked subnet
 detail and checked MAC snapshot, then consume both snapshots:
 
 ```rust,ignore
-let delete = RobotSubnetMacDeleteRequest::from_checked(subnet, mac_state)?;
+let observations = RobotSubnetObservationWindow::new(subnet_read_at, mac_read_at)?;
+let lease = RobotSubnetMutationLease::new(
+    subnet_address,
+    distributed_lock_generation,
+    lock_expires_at,
+)?;
+let delete = RobotSubnetMacDeleteRequest::from_checked(
+    subnet,
+    mac_state,
+    observations,
+    lease,
+)?;
 ```
 
 The snapshots must agree on route identity and prefix. The subnet must be
 assigned, and the assigned server main address must occur in `possible_mac`.
-There is no `RobotSubnetMacDeleteRequest::new(address)` constructor. This is a
-pre-release source correction made before v0.81 is tagged.
+The two reads must fit the fixed 30-second observation window and the external
+lease must cover the same subnet through that window. There is no
+`RobotSubnetMacDeleteRequest::new(address)` constructor. The lease identity,
+both timestamps, assigned server, and expected MAC are sensitive digest-only
+authorization evidence. The caller must obtain the lease from a system that
+serializes all mutations for that subnet.
 
 With `serde`, use `prepare_bound`, validate the response through
 `PreparedRobotSubnet`, and call the matching checked decoder. Traffic and MAC
 forms are sensitive, so their authorized execution must use
-`build_robot_subnet_plan_digest`. MAC PUT/DELETE never retry automatically.
+`build_robot_subnet_plan_digest`. Exact DELETE fingerprints are rejected and
+stale evidence fails before permit execution. MAC PUT/DELETE never retry automatically.
 For non-success responses, call `decode_failure` on the exact request. It
 admits only that operation's documented status/code combinations.
 

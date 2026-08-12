@@ -1,11 +1,12 @@
 #![no_main]
 
-use cloud_sdk::operation::PreparationStorage;
+use cloud_sdk::operation::{PermitTimestamp, PreparationStorage};
 use cloud_sdk::transport::{HeaderSensitivity, ResponseBuffer, ResponseMetadata, StatusCode};
 use cloud_sdk_hetzner::robot::{
     CheckedRobotSubnet, PreparedRobotSubnet, RobotMacAddress, RobotSubnetAddress,
     RobotSubnetGetRequest, RobotSubnetListRequest, RobotSubnetMacDeleteRequest,
-    RobotSubnetMacGetRequest, RobotSubnetMacSetRequest,
+    RobotSubnetMacGetRequest, RobotSubnetMacSetRequest, RobotSubnetMutationLease,
+    RobotSubnetObservationWindow,
 };
 use libfuzzer_sys::fuzz_target;
 
@@ -106,7 +107,18 @@ fn delete_request() -> Option<RobotSubnetMacDeleteRequest> {
         .prepare_bound(PreparationStorage::new(&mut mac_target, &mut mac_body))
         .ok()?;
     let mac_state = decode(prepared, DELETE_MAC, |checked| checked.decode_response())?.ok()?;
-    RobotSubnetMacDeleteRequest::from_checked(subnet, mac_state).ok()
+    let observations = RobotSubnetObservationWindow::new(
+        PermitTimestamp::from_seconds(1),
+        PermitTimestamp::from_seconds(2),
+    )
+    .ok()?;
+    let lease = RobotSubnetMutationLease::new(
+        address(),
+        b"fuzz-lock-generation-0001",
+        PermitTimestamp::from_seconds(31),
+    )
+    .ok()?;
+    RobotSubnetMacDeleteRequest::from_checked(subnet, mac_state, observations, lease).ok()
 }
 
 fn address() -> RobotSubnetAddress {

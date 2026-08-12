@@ -11,8 +11,9 @@ pub use clock::PermitClock;
 pub use direct::{CostPermit, DestructivePermit, MutationPermit};
 pub use execution_error::PermitExecutionError;
 pub use fingerprint::{
-    CanonicalPlanFingerprint, PlanConfirmation, PlanFingerprintBuildError, PlanFingerprintDigest,
-    PlanFingerprintRef, PlanSubject, build_canonical_plan, build_plan_digest,
+    CanonicalPlanFingerprint, PlanAuthorizationEvidence, PlanConfirmation,
+    PlanFingerprintBuildError, PlanFingerprintDigest, PlanFingerprintRef, PlanSubject,
+    build_canonical_plan, build_plan_digest, build_plan_digest_with_authorization_evidence,
 };
 pub use shared::{
     SharedCostPermit, SharedDestructivePermit, SharedMutationPermit, SharedPermitState,

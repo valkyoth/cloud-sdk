@@ -10,7 +10,7 @@ pub const MAX_ROBOT_SUBNET_LIST_ITEMS: usize = 4_096;
 pub const MAX_ROBOT_SUBNET_MAC_OPTIONS: usize = 256;
 
 /// Traffic-warning configuration returned for one subnet.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Eq, PartialEq)]
 pub struct RobotSubnetTrafficPolicy {
     pub(super) enabled: bool,
     pub(super) hourly_megabytes: u64,
@@ -21,23 +21,38 @@ pub struct RobotSubnetTrafficPolicy {
 impl RobotSubnetTrafficPolicy {
     /// Reports whether warning notifications are enabled.
     #[must_use]
-    pub const fn enabled(self) -> bool {
+    pub const fn enabled(&self) -> bool {
         self.enabled
     }
     /// Returns the hourly threshold in megabytes.
     #[must_use]
-    pub const fn hourly_megabytes(self) -> u64 {
+    pub const fn hourly_megabytes(&self) -> u64 {
         self.hourly_megabytes
     }
     /// Returns the daily threshold in megabytes.
     #[must_use]
-    pub const fn daily_megabytes(self) -> u64 {
+    pub const fn daily_megabytes(&self) -> u64 {
         self.daily_megabytes
     }
     /// Returns the monthly threshold in gigabytes.
     #[must_use]
-    pub const fn monthly_gigabytes(self) -> u64 {
+    pub const fn monthly_gigabytes(&self) -> u64 {
         self.monthly_gigabytes
+    }
+}
+
+impl fmt::Debug for RobotSubnetTrafficPolicy {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.write_str("RobotSubnetTrafficPolicy([redacted])")
+    }
+}
+
+impl Drop for RobotSubnetTrafficPolicy {
+    fn drop(&mut self) {
+        cloud_sdk_sanitization::sanitize_value(&mut self.enabled);
+        cloud_sdk_sanitization::sanitize_value(&mut self.hourly_megabytes);
+        cloud_sdk_sanitization::sanitize_value(&mut self.daily_megabytes);
+        cloud_sdk_sanitization::sanitize_value(&mut self.monthly_gigabytes);
     }
 }
 
@@ -91,8 +106,8 @@ impl RobotSubnet {
     }
     /// Returns the exact traffic-warning policy.
     #[must_use]
-    pub const fn traffic(&self) -> RobotSubnetTrafficPolicy {
-        self.traffic
+    pub const fn traffic(&self) -> &RobotSubnetTrafficPolicy {
+        &self.traffic
     }
     /// Runs a closure with the mathematical network address.
     pub fn with_network_address<R>(&self, inspect: impl FnOnce(IpAddr) -> R) -> R {
@@ -201,6 +216,8 @@ impl super::RobotSubnetMacDeleteRequest {
     pub fn from_checked(
         subnet: RobotSubnet,
         mut mac_state: RobotSubnetMac,
+        observations: super::RobotSubnetObservationWindow,
+        mutation_lease: super::RobotSubnetMutationLease,
     ) -> Result<Self, super::RobotSubnetRequestError> {
         if subnet.address != mac_state.address || subnet.prefix != mac_state.prefix {
             return Err(super::RobotSubnetRequestError::EvidenceMismatch);
@@ -214,10 +231,15 @@ impl super::RobotSubnetMacDeleteRequest {
             .position(|option| option.address == expected_server)
             .ok_or(super::RobotSubnetRequestError::DefaultMacUnavailable)?;
         let expected_default_mac = mac_state.possible.swap_remove(index).mac;
+        mutation_lease
+            .covers(&subnet.address, observations.fields().2)
+            .map_err(super::RobotSubnetRequestError::InvalidEvidence)?;
         Ok(Self {
             address: subnet.address,
             expected_server,
             expected_default_mac,
+            observations,
+            mutation_lease,
         })
     }
 }

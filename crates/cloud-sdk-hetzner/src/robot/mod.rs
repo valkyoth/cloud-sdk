@@ -103,14 +103,16 @@ pub use subnet::{
 
 #[cfg(feature = "serde")]
 pub use subnet::{
-    CheckedRobotSubnet, MAX_ROBOT_SUBNET_LIST_ITEMS, MAX_ROBOT_SUBNET_MAC_OPTIONS,
-    PreparedRobotSubnet, RobotSubnet, RobotSubnetCanonicalPlanFingerprint, RobotSubnetDecodeError,
-    RobotSubnetDestructivePermit, RobotSubnetFailureCode, RobotSubnetList, RobotSubnetMac,
-    RobotSubnetMacOption, RobotSubnetMutationPermit, RobotSubnetPermitAttempt,
-    RobotSubnetPermitRequest, RobotSubnetPlanConfirmation, RobotSubnetPlanFingerprintDigest,
-    RobotSubnetPlanSubject, RobotSubnetSharedDestructivePermit, RobotSubnetSharedMutationPermit,
-    RobotSubnetTrafficPolicy, build_robot_subnet_canonical_plan, build_robot_subnet_plan_digest,
-    decode_robot_subnet, decode_robot_subnet_list, decode_robot_subnet_mac,
+    CheckedRobotSubnet, MAX_ROBOT_SUBNET_EVIDENCE_AGE_SECONDS, MAX_ROBOT_SUBNET_LIST_ITEMS,
+    MAX_ROBOT_SUBNET_LOCK_ID_BYTES, MAX_ROBOT_SUBNET_MAC_OPTIONS, PreparedRobotSubnet, RobotSubnet,
+    RobotSubnetCanonicalPlanFingerprint, RobotSubnetDecodeError, RobotSubnetDestructivePermit,
+    RobotSubnetEvidenceError, RobotSubnetFailureCode, RobotSubnetList, RobotSubnetMac,
+    RobotSubnetMacOption, RobotSubnetMutationLease, RobotSubnetMutationPermit,
+    RobotSubnetObservationWindow, RobotSubnetPermitAttempt, RobotSubnetPermitRequest,
+    RobotSubnetPlanConfirmation, RobotSubnetPlanFingerprintDigest, RobotSubnetPlanSubject,
+    RobotSubnetSharedDestructivePermit, RobotSubnetSharedMutationPermit, RobotSubnetTrafficPolicy,
+    build_robot_subnet_canonical_plan, build_robot_subnet_plan_digest, decode_robot_subnet,
+    decode_robot_subnet_list, decode_robot_subnet_mac,
 };
 
 #[cfg(feature = "serde")]
