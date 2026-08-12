@@ -336,13 +336,19 @@ JSON/empty response policy, request-bound destructive permit execution,
 identity binding, exact reservation acknowledgement, and strict conflict
 decoding.
 
+`v0.80.0` implements all six single-IP and separate-MAC operations. It adds an
+optional canonical server filter, exact partial traffic-warning forms,
+canonical protected lowercase EUI-48 values, bounded assignment/network/MAC
+models, request-bound mutation and destructive permits, and strict identity,
+network, update-acknowledgement, and nullable-MAC conflict checks.
+
 Robot implementation schedule:
 
 | Group | Active | Deprecated | Planned Module | Milestone | Status |
 | --- | ---: | ---: | --- | --- | --- |
 | server | 3 | 0 | `cloud_sdk_hetzner::robot::server` | `v0.78.0` | implemented |
 | cancellation | 9 | 9 | `cloud_sdk_hetzner::robot::cancellation` | `v0.79.0` | implemented |
-| IP | 6 | 0 | `cloud_sdk_hetzner::robot::ip` | `v0.80.0` | planned |
+| IP | 6 | 0 | `cloud_sdk_hetzner::robot::ip` | `v0.80.0` | implemented |
 | subnet | 6 | 0 | `cloud_sdk_hetzner::robot::subnet` | `v0.81.0` | planned |
 | reset | 3 | 0 | `cloud_sdk_hetzner::robot::reset` | `v0.82.0` | planned |
 | failover | 4 | 0 | `cloud_sdk_hetzner::robot::failover` | `v0.83.0` | planned |

@@ -2304,11 +2304,45 @@ Stop gate: `v0.79.0 implementation stop reached. Complete the pentest and full r
 
 ### v0.80.0 - Robot IP Management
 
-Goal: complete active IP, MAC, warning, and cancellation behavior.
+Goal: complete every active Robot single-IP and separate-MAC operation while
+publishing the cumulative v0.76-v0.80 checkpoint.
 
-Deliverables: canonical addresses/MACs, traffic thresholds, lock/assignment state, repeated forms, and permits.
+Deliverables:
 
-Verification: address/form/conflict/source tests and `scripts/release_0_80_gate.sh`.
+- implement `GET /ip`, optional canonical `server_ip` filtering,
+  `GET /ip/{ip}`, and `POST /ip/{ip}` with a non-empty partial traffic-warning
+  update;
+- implement separate-MAC get, generate, and delete with named request types and
+  exact method, route, form, operation ID, authentication scope, response, and
+  retry policy;
+- add canonical protected IP and lowercase EUI-48 identities, bounded
+  duplicate-free list/detail/MAC models, assignment, lock, traffic threshold,
+  network, and nullable-MAC state;
+- retain the exact request through checked decoding and direct/shared
+  blocking, Send-async, and local-async mutation or destructive permit
+  execution;
+- reject identity, filter, network, requested-update, and MAC-state conflicts,
+  clear failed preparation and sensitive form storage, and keep automatic
+  mutation retry disabled unless metadata explicitly admits it;
+- source-lock the six active operations and exact response fields, add a
+  direct checked-response fuzz target, and publish the accumulated core,
+  provider, transport, sanitization, and testkit versions selected by
+  `release-crates.toml`.
+
+Verification:
+
+- `scripts/check_robot_ips.sh` and `scripts/test-robot-ips.py` prove all six
+  source rows, methods, paths, query/form fields, operation metadata, response
+  shapes, and fuzz-target registration;
+- provider tests cover canonical addresses/MACs, list bounds and duplicates,
+  assignment filters, network consistency, exact update acknowledgement,
+  nullable MAC semantics, request provenance, permit scope, all transport
+  modes, cleanup after preparation failure, and unpolled-attempt cleanup;
+- `scripts/check_fuzz_harness.sh --build` and `--smoke` exercise the bounded
+  Robot IP decoder with deterministic list/detail/MAC/delete selectors;
+- `scripts/release_0_80_gate.sh` runs the cumulative public-checkpoint,
+  dependency, platform, upstream-drift, SBOM, audit, and release-readiness
+  gates.
 
 Stop gate: `v0.80.0 implementation stop reached. Run the pentest for this exact commit before tagging and crates.io publication.`
 

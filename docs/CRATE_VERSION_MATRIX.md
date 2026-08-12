@@ -1,9 +1,8 @@
 # Crate Version Matrix
 
-Status: `v0.75.0` is the latest published checkpoint and `v0.79.0` is the
-Robot cancellation release candidate. Its pentest and final retest passed;
-the full release gate, GitHub CI, CodeQL, and tagging remain. Cumulative
-crates.io publication is deferred to v0.80.0.
+Status: `v0.75.0` is the latest published checkpoint. `v0.80.0` is the Robot
+IP cumulative public-checkpoint implementation stop; pentest, final release
+gate, GitHub CI, CodeQL, tagging, and crates.io publication remain.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
@@ -1189,6 +1188,27 @@ published.
 | `cloud-sdk-reqwest` | `0.35.0` | `0.35.0` | `unchanged` | No | No transport boundary changes. |
 | `cloud-sdk-sanitization` | `0.18.0` | `0.18.0` | `unchanged` | No | Reuse the admitted protected allocation boundary. |
 | `cloud-sdk-testkit` | `0.30.2` | `0.30.2` | `unchanged` | No | No testkit boundary changes. |
+
+## v0.80.0 Tracking Table
+
+`v0.80.0` implements all six Robot single-IP and separate-MAC operations with
+canonical protected identities, strict bounded response models, exact mutation
+acknowledgement, and request-bound direct/shared permits. It is the public
+checkpoint for all accumulated v0.76-v0.80 changes.
+
+| Crate | Published | v0.80 | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.75.0` | `0.80.0` | `code` | Yes | Publish the cumulative provider-neutral authentication-attempt and release-contract changes. |
+| `cloud-sdk-hetzner` | `0.42.0` | `0.43.0` | `code` | Yes | Publish cumulative Robot credentials, protocol, server, cancellation, and IP management. |
+| `cloud-sdk-reqwest` | `0.35.0` | `0.35.1` | `dependency` | Yes | Require the v0.80 core without changing transport behavior. |
+| `cloud-sdk-sanitization` | `0.18.0` | `0.19.0` | `code` | Yes | Publish the accumulated stable protected fixed-byte ownership re-export. |
+| `cloud-sdk-testkit` | `0.30.2` | `0.30.3` | `dependency` | Yes | Require the v0.80 core without changing testkit behavior. |
+
+Publish order is computed from package dependencies by
+`scripts/release_crates.py`; the facade remains the first selected package and
+`cloud-sdk-hetzner` follows its neutral dependencies. Retired provider-specific
+boundary crates, fuzz/tools packages, and the unpublished OVHcloud probe remain
+excluded.
 
 ## Planned Milestone Ownership
 

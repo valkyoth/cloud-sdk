@@ -1,0 +1,1 @@
+1{"ip":{"ip":"192.0.2.10","gateway":"192.0.2.1","mask":24,"broadcast":"192.0.2.255","server_ip":"192.0.2.1","server_number":321,"locked":false,"separate_mac":"00:21:85:62:3e:9c","traffic_warnings":true,"traffic_hourly":50,"traffic_daily":500,"traffic_monthly":8}}

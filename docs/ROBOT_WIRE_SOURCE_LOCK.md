@@ -5,6 +5,8 @@ inventory source-locked for `v0.74.0`; bounded form codec implemented in
 `v0.75.0`; protected credentials and lockout-aware generations implemented in
 `v0.76.0`; bounded error and quota protocol implemented in `v0.77.0`; server
 list, get, and rename operations implemented in `v0.78.0`.
+All nine cancellation operations are implemented in `v0.79.0`; all six
+single-IP and separate-MAC operations are implemented in `v0.80.0`.
 
 Retrieved: 2026-07-30
 
@@ -144,6 +146,22 @@ if the upstream document changes.
 The field contract is committed in
 [`v0.78.0.json`](../tests/fixtures/robot-server/v0.78.0.json) and related back
 to the complete operation lock by `scripts/check_robot_server_contract.py`.
+
+## IP Operation Contract
+
+`v0.80.0` implements all six active IP rows: list, detail, traffic-policy
+update, and separate-MAC get, generate, and delete. The implementation uses
+only canonical protected address values and canonical lowercase EUI-48 MACs.
+It binds the optional list filter and every mutation response to the exact
+request and enforces bounded duplicate-free lists, internally consistent
+network fields, non-empty partial update forms, and exact nullable-MAC state.
+
+Traffic update, MAC generation, and MAC deletion use request-bound mutation or
+destructive permits. Sensitive traffic forms require digest fingerprints; MAC
+generation and deletion remain automatic-retry denied. The field and policy
+contract is committed in
+[`v0.80.0.json`](../tests/fixtures/robot-ip/v0.80.0.json) and checked against
+the complete operation lock by `scripts/check_robot_ips.sh`.
 
 ## Verification
 

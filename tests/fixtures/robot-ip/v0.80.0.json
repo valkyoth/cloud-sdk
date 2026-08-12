@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "source": {
+    "retrieved": "2026-08-12",
+    "url": "https://robot.hetzner.com/doc/webservice/en.html",
+    "sha256": "4b396790acc449f47b2b3b893f8eff759c0c25196dc38b1e5e92a12c9704771a"
+  },
+  "operations": [
+    {
+      "id": "robot_list_ips",
+      "method": "GET",
+      "path": "/ip",
+      "request_fields": ["server_ip?"],
+      "success": {"status": 200, "body": "json", "shape": "ip-list"},
+      "errors": [404],
+      "quota": {"requests": 5000, "seconds": 3600}
+    },
+    {
+      "id": "robot_get_ip",
+      "method": "GET",
+      "path": "/ip/{ip}",
+      "request_fields": [],
+      "success": {"status": 200, "body": "json", "shape": "ip-detail"},
+      "errors": [404],
+      "quota": {"requests": 5000, "seconds": 3600}
+    },
+    {
+      "id": "robot_update_ip",
+      "method": "POST",
+      "path": "/ip/{ip}",
+      "request_fields": ["traffic_warnings?", "traffic_hourly?", "traffic_daily?", "traffic_monthly?"],
+      "success": {"status": 200, "body": "json", "shape": "ip-detail"},
+      "errors": [400, 404, 500],
+      "quota": {"requests": 5000, "seconds": 3600}
+    },
+    {
+      "id": "robot_get_ip_mac",
+      "method": "GET",
+      "path": "/ip/{ip}/mac",
+      "request_fields": [],
+      "success": {"status": 200, "body": "json", "shape": "mac-present"},
+      "errors": [404],
+      "quota": {"requests": 5000, "seconds": 3600}
+    },
+    {
+      "id": "robot_set_ip_mac",
+      "method": "PUT",
+      "path": "/ip/{ip}/mac",
+      "request_fields": [],
+      "success": {"status": 200, "body": "json", "shape": "mac-present"},
+      "errors": [404, 409, 500],
+      "quota": {"requests": 10, "seconds": 3600}
+    },
+    {
+      "id": "robot_delete_ip_mac",
+      "method": "DELETE",
+      "path": "/ip/{ip}/mac",
+      "request_fields": [],
+      "success": {"status": 200, "body": "json", "shape": "mac-null"},
+      "errors": [404, 409, 500],
+      "quota": {"requests": 10, "seconds": 3600}
+    }
+  ],
+  "summary_fields": [
+    "ip", "server_ip", "server_number", "locked", "separate_mac",
+    "traffic_warnings", "traffic_hourly", "traffic_daily", "traffic_monthly"
+  ],
+  "detail_fields": ["gateway", "mask", "broadcast"],
+  "mac_fields": ["ip", "mac"],
+  "policy": {
+    "canonical_ip": true,
+    "canonical_mac": "lowercase-eui48",
+    "unknown_fields": "reject",
+    "response_identity_binding": true,
+    "non_empty_partial_update": true,
+    "update_permit": "mutation",
+    "set_mac_permit": "mutation",
+    "delete_mac_permit": "destructive",
+    "set_mac_retry": "never",
+    "delete_mac_retry": "never"
+  }
+}

@@ -38,8 +38,8 @@ boundaries.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.75.0"
-cloud-sdk-hetzner = "0.42.0"
+cloud-sdk = "0.80.0"
+cloud-sdk-hetzner = "0.43.0"
 ```
 
 ## Features
@@ -151,6 +151,15 @@ and preserve the official
 IP/subnet date-field spelling inconsistency without accepting both spellings at
 once. Server revoke has an empty success response; IP and subnet revoke return
 and validate inactive cancellation models.
+
+Robot IP management covers list, detail, traffic-policy update, and
+separate-MAC get, generate, and delete. Requests admit only canonical protected
+addresses, non-empty partial traffic forms, and canonical lowercase EUI-48
+responses. Checked decoding binds optional server filters and exact resource
+identity, rejects duplicate or oversized lists and inconsistent network fields,
+and verifies requested threshold and nullable-MAC outcomes. Traffic and MAC
+mutations use request-bound direct/shared permits; MAC generation and deletion
+are never automatically retried.
 
 ```rust
 # #[cfg(feature = "serde")]
@@ -442,13 +451,14 @@ Upstream source monitoring and lock-refresh decisions follow the
 The separate Robot Webservice exposes its bounded form codec, exact official
 endpoint identity, Robot service marker, protected credentials, lockout-aware
 owned attempt generation, strict typed protocol errors, three server
-list/get/rename operations, and all nine cancellation operations. It does not
-yet expose the later Robot endpoint families or a high-level Robot client. Its
+list/get/rename operations, all nine cancellation operations, and all six IP
+and separate-MAC operations. It does not yet expose the later Robot endpoint
+families or a high-level Robot client. Its
 complete source lock records 89
 active operations and excludes all 16 deprecated Storage Box operations. See the
 [Robot source-lock contract](https://github.com/valkyoth/cloud-sdk/blob/main/docs/ROBOT_WIRE_SOURCE_LOCK.md).
 The latest Robot additions and source migration are described in the
-[v0.79 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.79.0.md).
+[v0.80 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.80.0.md).
 Breaking v0.27 constructor and custom-endpoint changes are listed in the
 [migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.27.0.md).
 Shared transport and credential lifecycle changes are listed in the
@@ -496,7 +506,7 @@ Enable Serde explicitly; it is never part of the default graph:
 
 ```toml
 [dependencies]
-cloud-sdk-hetzner = { version = "0.42.0", features = ["serde"] }
+cloud-sdk-hetzner = { version = "0.43.0", features = ["serde"] }
 ```
 
 The feature admits serde_json with `default-features = false` and `alloc` only

@@ -409,3 +409,33 @@ Reservation acknowledgement is exact: `Omit` requires reservation to be both
 unavailable and inactive, `Reserve` requires available and active reservation,
 and `DoNotReserve` requires inactive reservation while permitting either
 availability state.
+
+## v0.80.0 Robot IP Policy
+
+The six active single-IP and separate-MAC rows are bound to
+`tests/fixtures/robot-api/v0.74.0.json` and the exact contract in
+`tests/fixtures/robot-ip/v0.80.0.json`. The implemented set is `GET /ip`,
+`GET /ip/{ip}`, `POST /ip/{ip}`, and GET, PUT, DELETE for
+`/ip/{ip}/mac`. The list's optional `server_ip` query, every path identity,
+and every returned address must be canonical.
+
+The update body is a non-empty bounded form containing only explicitly chosen
+`traffic_warnings`, `traffic_hourly`, `traffic_daily`, or `traffic_monthly`
+fields. Thresholds are unsigned decimal values; hourly and daily units are
+megabytes and monthly units are gigabytes. Update is mutation/idempotent with
+explicit-policy retry eligibility. MAC generation is mutation/non-idempotent
+and MAC deletion is destructive/idempotent; both deny automatic retry.
+
+Checked list, detail, update, and MAC responses require exact `200` JSON
+envelopes and retain the exact request association. Lists are bounded to 4,096
+entries and duplicate-free by address; an empty inventory remains valid. Detail network family,
+prefix, gateway, and broadcast values must be internally consistent. Optional
+list filters bind every result to the requested server address. Update results
+must acknowledge every explicitly requested field. MAC get/generate requires
+a canonical lowercase EUI-48 value; delete requires an exact null MAC.
+
+The request-bound plan and direct/shared permit wrappers preserve the exact
+request through blocking, Send-async, and local-async execution. Sensitive
+traffic forms require the strong-digest plan builder. Preparation failure and
+unpolled attempts clear caller-provided path/body storage and consume only the
+authority defined by the core permit lifecycle.

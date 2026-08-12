@@ -4,13 +4,16 @@
 //! bearer-token JSON protocol used by Hetzner Cloud APIs. The module provides
 //! bounded forms plus an allocation-gated protected credential and lockout
 //! policy. Server operations are source-locked in `v0.78.0`, and server, IP,
-//! and subnet cancellation operations are source-locked in `v0.79.0`.
+//! and subnet cancellation operations are source-locked in `v0.79.0`. Active
+//! single-IP and separate-MAC operations are source-locked in `v0.80.0`.
 
 #[cfg(feature = "alloc")]
 mod cancellation;
 #[cfg(feature = "alloc")]
 mod credentials;
 mod form;
+#[cfg(feature = "alloc")]
+mod ip;
 #[cfg(feature = "serde")]
 mod protocol;
 #[cfg(feature = "alloc")]
@@ -52,6 +55,24 @@ pub use credentials::{
 pub use form::{
     EncodedRobotForm, MAX_ROBOT_FORM_BODY_BYTES, MAX_ROBOT_FORM_FIELDS, MAX_ROBOT_FORM_NAME_BYTES,
     MAX_ROBOT_FORM_VALUE_BYTES, RobotForm, RobotFormError, RobotFormField, RobotFormSensitivity,
+};
+
+#[cfg(feature = "alloc")]
+pub use ip::{
+    RobotIpGetRequest, RobotIpListRequest, RobotIpMacDeleteRequest, RobotIpMacGetRequest,
+    RobotIpMacSetRequest, RobotIpRequestError, RobotIpTrafficUpdate, RobotIpUpdateRequest,
+    RobotMacAddress, RobotMacAddressError,
+};
+
+#[cfg(feature = "serde")]
+pub use ip::{
+    CheckedRobotIp, MAX_ROBOT_IP_LIST_ITEMS, PreparedRobotIp, RobotIp,
+    RobotIpCanonicalPlanFingerprint, RobotIpDecodeError, RobotIpDestructivePermit, RobotIpList,
+    RobotIpMac, RobotIpMutationPermit, RobotIpPermitAttempt, RobotIpPermitRequest,
+    RobotIpPlanConfirmation, RobotIpPlanFingerprintDigest, RobotIpPlanSubject,
+    RobotIpSharedDestructivePermit, RobotIpSharedMutationPermit, RobotIpSummary,
+    RobotIpTrafficPolicy, build_robot_ip_canonical_plan, build_robot_ip_plan_digest,
+    decode_robot_ip, decode_robot_ip_list, decode_robot_ip_mac,
 };
 
 #[cfg(feature = "serde")]

@@ -50,6 +50,7 @@ scripts/check_fuzz_harness.sh --smoke
 | `checked_response` | prepared-policy binding, source-locked operation decoding, typed success/error envelopes, invalid UTF-8, oversized integers, deep nesting, and malformed payload rejection |
 | `incremental_json` | chunk-invariant bounded decoding, early stop, duplicate keys, and independent JSON-validity admission |
 | `robot_form` | Robot form ordering, repeated fields, HTML-form byte grammar, capacity atomicity, and complete output cleanup |
+| `robot_ip_response` | checked Robot IP list/detail/MAC/delete envelopes, bounded assignment state, canonical addresses/MACs, network consistency, and mutation outcome binding |
 
 Named seeds under `fuzz/seeds/` are synthetic valid and invalid cases derived
 from source-locked API examples and SDK policy boundaries. Generated corpora

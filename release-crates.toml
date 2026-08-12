@@ -1,45 +1,45 @@
 [release]
-version = "0.79.0"
-milestone = "0.79.0"
+version = "0.80.0"
+milestone = "0.80.0"
 baseline = "0.75.0"
-review_baseline = "0.78.0"
-cumulative_milestones = ["0.76.0", "0.77.0", "0.78.0", "0.79.0"]
+review_baseline = "0.79.0"
+cumulative_milestones = ["0.76.0", "0.77.0", "0.78.0", "0.79.0", "0.80.0"]
 policy = "independent"
-stage = "internal"
+stage = "public"
 exceptional = false
 exception_reason = ""
 
 [crates."cloud-sdk"]
-previous_version = "0.78.0"
-version = "0.79.0"
-change = "metadata"
-publish = false
-reason = "Record the Robot cancellation milestone; defer publication to v0.80.0."
+previous_version = "0.75.0"
+version = "0.80.0"
+change = "code"
+publish = true
+reason = "Publish the cumulative provider-neutral v0.76-v0.80 checkpoint."
 
 [crates."cloud-sdk-hetzner"]
 previous_version = "0.42.0"
-version = "0.42.0"
+version = "0.43.0"
 change = "code"
-publish = false
-reason = "Accumulate nine Robot cancellation operations and strict response models for v0.80.0."
+publish = true
+reason = "Publish cumulative Robot credentials, protocol, server, cancellation, and IP management."
 
 [crates."cloud-sdk-reqwest"]
 previous_version = "0.35.0"
-version = "0.35.0"
-change = "unchanged"
-publish = false
-reason = "No reqwest transport boundary changes."
+version = "0.35.1"
+change = "dependency"
+publish = true
+reason = "Require the v0.80 provider-neutral core without changing transport behavior."
 
 [crates."cloud-sdk-sanitization"]
 previous_version = "0.18.0"
-version = "0.18.0"
-change = "unchanged"
-publish = false
-reason = "No neutral sanitization boundary changes in v0.79.0."
+version = "0.19.0"
+change = "code"
+publish = true
+reason = "Publish the accumulated stable protected fixed-byte ownership re-export."
 
 [crates."cloud-sdk-testkit"]
 previous_version = "0.30.2"
-version = "0.30.2"
-change = "unchanged"
-publish = false
-reason = "No testkit boundary changes."
+version = "0.30.3"
+change = "dependency"
+publish = true
+reason = "Require the v0.80 provider-neutral core without changing testkit behavior."
