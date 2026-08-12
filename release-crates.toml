@@ -1,45 +1,45 @@
 [release]
-version = "0.80.0"
-milestone = "0.80.0"
-baseline = "0.75.0"
-review_baseline = "0.79.0"
-cumulative_milestones = ["0.76.0", "0.77.0", "0.78.0", "0.79.0", "0.80.0"]
+version = "0.81.0"
+milestone = "0.81.0"
+baseline = "0.80.0"
+review_baseline = "0.80.0"
+cumulative_milestones = ["0.81.0"]
 policy = "independent"
-stage = "public"
+stage = "internal"
 exceptional = false
 exception_reason = ""
 
 [crates."cloud-sdk"]
-previous_version = "0.75.0"
-version = "0.80.0"
+previous_version = "0.80.0"
+version = "0.81.0"
 change = "code"
-publish = true
-reason = "Publish the cumulative provider-neutral v0.76-v0.80 checkpoint."
+publish = false
+reason = "Advance the internal source milestone; defer publication to v0.85.0."
 
 [crates."cloud-sdk-hetzner"]
-previous_version = "0.42.0"
+previous_version = "0.43.0"
 version = "0.43.0"
 change = "code"
-publish = true
-reason = "Publish cumulative Robot credentials, protocol, server, cancellation, and IP management."
+publish = false
+reason = "Accumulate source-locked Robot subnet management for v0.85.0."
 
 [crates."cloud-sdk-reqwest"]
-previous_version = "0.35.0"
+previous_version = "0.35.1"
 version = "0.35.1"
-change = "dependency"
-publish = true
-reason = "Require the v0.80 provider-neutral core without changing transport behavior."
+change = "unchanged"
+publish = false
+reason = "No reqwest transport boundary changes."
 
 [crates."cloud-sdk-sanitization"]
-previous_version = "0.18.0"
+previous_version = "0.19.0"
 version = "0.19.0"
-change = "code"
-publish = true
-reason = "Publish the accumulated stable protected fixed-byte ownership re-export."
+change = "unchanged"
+publish = false
+reason = "No sanitization boundary changes."
 
 [crates."cloud-sdk-testkit"]
-previous_version = "0.30.2"
+previous_version = "0.30.3"
 version = "0.30.3"
-change = "dependency"
-publish = true
-reason = "Require the v0.80 provider-neutral core without changing testkit behavior."
+change = "unchanged"
+publish = false
+reason = "No testkit boundary changes."

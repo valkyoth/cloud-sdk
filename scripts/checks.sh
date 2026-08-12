@@ -48,6 +48,7 @@ scripts/check_robot_error_protocol.sh
 scripts/check_robot_servers.sh
 scripts/check_robot_cancellations.sh
 scripts/check_robot_ips.sh
+scripts/check_robot_subnets.sh
 scripts/check-provider-capabilities.py
 scripts/test-provider-capabilities.py
 scripts/check-custom-endpoint-docs.py

@@ -1,0 +1,91 @@
+{
+  "schema_version": 1,
+  "source": {
+    "retrieved": "2026-08-12",
+    "url": "https://robot.hetzner.com/doc/webservice/en.html",
+    "sha256": "4b396790acc449f47b2b3b893f8eff759c0c25196dc38b1e5e92a12c9704771a"
+  },
+  "operations": [
+    {
+      "id": "robot_list_subnets",
+      "method": "GET",
+      "path": "/subnet",
+      "request_fields": ["server_ip?"],
+      "success": {"status": 200, "body": "json", "shape": "subnet-list"},
+      "errors": [404],
+      "quota": {"requests": 5000, "seconds": 3600}
+    },
+    {
+      "id": "robot_get_subnet",
+      "method": "GET",
+      "path": "/subnet/{net-ip}",
+      "request_fields": [],
+      "success": {"status": 200, "body": "json", "shape": "subnet-detail"},
+      "errors": [404],
+      "quota": {"requests": 5000, "seconds": 3600}
+    },
+    {
+      "id": "robot_update_subnet",
+      "method": "POST",
+      "path": "/subnet/{net-ip}",
+      "request_fields": ["traffic_warnings?", "traffic_hourly?", "traffic_daily?", "traffic_monthly?"],
+      "success": {"status": 200, "body": "json", "shape": "subnet-detail"},
+      "errors": [400, 404, 500],
+      "quota": {"requests": 5000, "seconds": 3600}
+    },
+    {
+      "id": "robot_get_subnet_mac",
+      "method": "GET",
+      "path": "/subnet/{net-ip}/mac",
+      "request_fields": [],
+      "success": {"status": 200, "body": "json", "shape": "subnet-mac"},
+      "errors": [404],
+      "quota": {"requests": 5000, "seconds": 3600}
+    },
+    {
+      "id": "robot_set_subnet_mac",
+      "method": "PUT",
+      "path": "/subnet/{net-ip}/mac",
+      "request_fields": ["mac"],
+      "success": {"status": 200, "body": "json", "shape": "subnet-mac"},
+      "errors": [404, 500],
+      "quota": {"requests": 10, "seconds": 3600}
+    },
+    {
+      "id": "robot_delete_subnet_mac",
+      "method": "DELETE",
+      "path": "/subnet/{net-ip}/mac",
+      "request_fields": [],
+      "success": {"status": 200, "body": "json", "shape": "subnet-mac"},
+      "errors": [404, 500],
+      "quota": {"requests": 10, "seconds": 3600}
+    }
+  ],
+  "subnet_fields": [
+    "ip", "mask", "gateway", "server_ip", "server_number", "failover",
+    "locked", "traffic_warnings", "traffic_hourly", "traffic_daily",
+    "traffic_monthly"
+  ],
+  "mac_fields": ["ip", "mask", "mac", "possible_mac"],
+  "source_inconsistencies": {
+    "server_ip": "table-string-example-null",
+    "subnet_mask": "integer",
+    "mac_mask": "decimal-string",
+    "route_identity": "documented-examples-may-have-host-bits"
+  },
+  "policy": {
+    "canonical_ip": true,
+    "canonical_mac": "lowercase-eui48",
+    "unknown_fields": "reject",
+    "response_identity_binding": true,
+    "gateway_membership": true,
+    "host_bits_set_identity": "admit",
+    "possible_mac": "bounded-canonical-ip-to-mac-map",
+    "non_empty_partial_update": true,
+    "update_permit": "mutation",
+    "set_mac_permit": "mutation",
+    "delete_mac_permit": "destructive",
+    "set_mac_retry": "never",
+    "delete_mac_retry": "never"
+  }
+}
