@@ -35,6 +35,8 @@ pub enum PlanFingerprintBuildError<E> {
     SensitiveBodyRequiresDigest,
     /// Sensitive authorization evidence may only use collision-resistant digests.
     SensitiveAuthorizationEvidenceRequiresDigest,
+    /// The permit remains valid after its authorization evidence expires.
+    AuthorizationEvidenceValidityMismatch,
     /// Caller-provided collision-resistant hashing failed.
     Hasher(E),
     /// Hasher output length differs from its admitted algorithm.
@@ -64,6 +66,9 @@ impl<E> fmt::Debug for PlanFingerprintBuildError<E> {
             Self::SensitiveAuthorizationEvidenceRequiresDigest => {
                 "PlanFingerprintBuildError::SensitiveAuthorizationEvidenceRequiresDigest"
             }
+            Self::AuthorizationEvidenceValidityMismatch => {
+                "PlanFingerprintBuildError::AuthorizationEvidenceValidityMismatch"
+            }
             Self::Hasher(_) => "PlanFingerprintBuildError::Hasher([redacted])",
             Self::InvalidDigestLength => "PlanFingerprintBuildError::InvalidDigestLength",
         })
@@ -90,6 +95,9 @@ impl<E> fmt::Display for PlanFingerprintBuildError<E> {
             }
             Self::SensitiveAuthorizationEvidenceRequiresDigest => {
                 "sensitive authorization evidence requires a collision-resistant plan digest"
+            }
+            Self::AuthorizationEvidenceValidityMismatch => {
+                "permit validity exceeds authorization evidence validity"
             }
             Self::Hasher(_) => "plan confirmation hashing failed",
             Self::InvalidDigestLength => "plan confirmation digest length is invalid",
@@ -140,6 +148,9 @@ pub(super) fn map_infallible<E>(
         }
         PlanFingerprintBuildError::SensitiveAuthorizationEvidenceRequiresDigest => {
             PlanFingerprintBuildError::SensitiveAuthorizationEvidenceRequiresDigest
+        }
+        PlanFingerprintBuildError::AuthorizationEvidenceValidityMismatch => {
+            PlanFingerprintBuildError::AuthorizationEvidenceValidityMismatch
         }
         PlanFingerprintBuildError::InvalidDigestLength => {
             PlanFingerprintBuildError::InvalidDigestLength

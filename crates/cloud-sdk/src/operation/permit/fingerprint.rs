@@ -409,6 +409,9 @@ impl<'a> DigestRollback<'a> {
         self.output.get_mut(..len).unwrap_or_default()
     }
 
+    fn len(&self) -> usize {
+        self.output.len()
+    }
     fn disarm(mut self) -> &'a mut [u8] {
         self.armed = false;
         core::mem::take(&mut self.output)

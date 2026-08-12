@@ -7,6 +7,7 @@ use super::{
     PlanFingerprintDigest, validate,
 };
 use crate::buffer::{SnapshotEncoder, encode_snapshot_bounded};
+use crate::operation::PermitTimestamp;
 use crate::retry::FingerprintHasher;
 
 const DOMAIN: &[u8] = b"cloud-sdk/authorization-evidence/v1\0";
@@ -17,6 +18,14 @@ const DOMAIN: &[u8] = b"cloud-sdk/authorization-evidence/v1\0";
 /// read clocks, random sources, atomics, or other mutable state. Sensitive
 /// values should be exposed only for the duration of [`Self::encode`].
 pub trait PlanAuthorizationEvidence {
+    /// Returns the exclusive upper bound for authority derived from this evidence.
+    ///
+    /// `None` means the evidence has no independent time limit. A returned
+    /// timestamp must cover the complete permit validity interval.
+    fn valid_until(&self) -> Option<PermitTimestamp> {
+        None
+    }
+
     /// Encodes a provider-versioned, unambiguous evidence snapshot.
     fn encode<E: Copy>(
         &self,
@@ -43,10 +52,18 @@ pub fn build_plan_digest_with_authorization_evidence<
 ) -> Result<PlanFingerprintDigest<'output, 'plan, 'request>, PlanFingerprintBuildError<H::Error>> {
     sanitize_bytes(output);
     sanitize_bytes(scratch);
+    let mut scratch = SensitiveScratch::new(scratch);
+    let mut rollback = DigestRollback::new(output);
     let scope = validate(&plan)?;
+    if evidence
+        .valid_until()
+        .is_some_and(|expires_at| plan.validity.expires_at() > expires_at)
+    {
+        return Err(PlanFingerprintBuildError::AuthorizationEvidenceValidityMismatch);
+    }
     let len = encode_snapshot_bounded(
         (plan, evidence),
-        scratch,
+        scratch.as_mut(),
         MAX_CANONICAL_PLAN_BYTES,
         PlanFingerprintBuildError::InputTooLarge,
         encode_with_evidence::<core::convert::Infallible, A>,
@@ -54,12 +71,9 @@ pub fn build_plan_digest_with_authorization_evidence<
     .map_err(map_infallible)?;
     let algorithm = hasher.algorithm();
     let expected = algorithm.output_len();
-    if output.len() < expected {
-        sanitize_bytes(scratch);
+    if rollback.len() < expected {
         return Err(PlanFingerprintBuildError::OutputTooSmall);
     }
-    let scratch = SensitiveScratch::new(scratch);
-    let mut rollback = DigestRollback::new(output);
     let digest_len = hasher
         .digest(scratch.bytes(len), rollback.target(expected))
         .map_err(PlanFingerprintBuildError::Hasher)?;
@@ -94,6 +108,10 @@ impl<'a> SensitiveScratch<'a> {
 
     fn bytes(&self, len: usize) -> &[u8] {
         self.0.get(..len).unwrap_or_default()
+    }
+
+    fn as_mut(&mut self) -> &mut [u8] {
+        self.0
     }
 }
 

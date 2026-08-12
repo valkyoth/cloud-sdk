@@ -73,6 +73,11 @@ ordinary_permit_request!(
 impl sealed::Sealed for super::RobotSubnetMacDeleteRequest {}
 
 impl PlanAuthorizationEvidence for super::RobotSubnetMacDeleteRequest {
+    fn valid_until(&self) -> Option<cloud_sdk::operation::PermitTimestamp> {
+        let evidence = self.observations.fields().2;
+        Some(core::cmp::min(evidence, self.mutation_lease.expires_at()))
+    }
+
     fn encode<E: Copy>(
         &self,
         writer: &mut cloud_sdk::buffer::SnapshotEncoder<'_, PlanFingerprintBuildError<E>>,
@@ -128,6 +133,14 @@ impl<R> Clone for SubnetBinding<'_, R> {
     }
 }
 impl<R> Copy for SubnetBinding<'_, R> {}
+
+struct SampledPermitClock(cloud_sdk::operation::PermitTimestamp);
+
+impl PermitClock for SampledPermitClock {
+    fn now(&self) -> cloud_sdk::operation::PermitTimestamp {
+        self.0
+    }
+}
 
 /// Exact Robot subnet mutation plus caller policy ready for fingerprinting.
 pub struct RobotSubnetPlanConfirmation<'plan, 'storage, 'request, R: RobotSubnetPermitRequest> {
@@ -314,7 +327,7 @@ pub struct RobotSubnetPermitAttempt<'permit, 'storage, 'fingerprint, 'request, R
     pub(super) binding: SubnetBinding<'request, R>,
 }
 
-impl<'permit, 'storage, 'fingerprint, 'request, R>
+impl<'permit, 'storage, 'fingerprint, 'request, R: RobotSubnetPermitRequest>
     RobotSubnetPermitAttempt<'permit, 'storage, 'fingerprint, 'request, R>
 {
     /// Completes a manually driven attempt with conservative delivery state.
@@ -336,8 +349,14 @@ impl<'permit, 'storage, 'fingerprint, 'request, R>
         C: PermitClock + ?Sized,
     {
         let binding = self.binding;
+        cloud_sdk_sanitization::sanitize_bytes(body);
+        cloud_sdk_sanitization::sanitize_bytes(headers);
+        let now = clock.now();
+        if let Err(error) = binding.0.validate_authorization_evidence(now) {
+            return Err(self.inner.reject_authorization(error, body, headers));
+        }
         self.inner
-            .execute_blocking(clock, transport, body, headers)
+            .execute_blocking(&SampledPermitClock(now), transport, body, headers)
             .map(|inner| CheckedRobotSubnet::from_executed(binding.0, inner))
     }
 
@@ -363,9 +382,15 @@ impl<'permit, 'storage, 'fingerprint, 'request, R>
         'buffer: 'transport,
     {
         let binding = self.binding;
-        let future = self.inner.execute_async(clock, transport, body, headers);
+        cloud_sdk_sanitization::sanitize_bytes(body);
+        cloud_sdk_sanitization::sanitize_bytes(headers);
         async move {
-            future
+            let now = clock.now();
+            if let Err(error) = binding.0.validate_authorization_evidence(now) {
+                return Err(self.inner.reject_authorization(error, body, headers));
+            }
+            self.inner
+                .execute_async(&SampledPermitClock(now), transport, body, headers)
                 .await
                 .map(|inner| CheckedRobotSubnet::from_executed(binding.0, inner))
         }
@@ -393,11 +418,15 @@ impl<'permit, 'storage, 'fingerprint, 'request, R>
         'buffer: 'transport,
     {
         let binding = self.binding;
-        let future = self
-            .inner
-            .execute_local_async(clock, transport, body, headers);
+        cloud_sdk_sanitization::sanitize_bytes(body);
+        cloud_sdk_sanitization::sanitize_bytes(headers);
         async move {
-            future
+            let now = clock.now();
+            if let Err(error) = binding.0.validate_authorization_evidence(now) {
+                return Err(self.inner.reject_authorization(error, body, headers));
+            }
+            self.inner
+                .execute_local_async(&SampledPermitClock(now), transport, body, headers)
                 .await
                 .map(|inner| CheckedRobotSubnet::from_executed(binding.0, inner))
         }

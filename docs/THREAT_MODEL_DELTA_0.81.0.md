@@ -21,7 +21,9 @@ sensitive.
   lease; address-only construction is unavailable.
 - Server, MAC, both observation timestamps, evidence expiry, lock generation,
   and lease expiry are bound into digest-only authorization evidence. Permit
-  creation and every start/recheck path reject stale evidence.
+  validity cannot exceed either evidence lifetime. Creation, every
+  start/recheck path, and immediate pre-dispatch validation reject stale
+  evidence using one clock sample; async checks occur on first poll.
 - Traffic update is idempotent with explicit-policy retries. MAC PUT is
   non-idempotent and MAC DELETE is destructive; both deny automatic retry.
 - Request-bound plan, fingerprint, permit, and checked-response wrappers retain
@@ -49,6 +51,9 @@ sensitive.
 - Preparation validates every fallible cross-policy invariant before writing,
   pre-clears caller storage, and clears target/body on write failure.
 - Traffic and MAC assignment forms are sensitive and require digest plans.
+- Authorization-evidence scratch and digest output are cleanup-guarded before
+  evidence encoding, algorithm selection, or digest callbacks can run, so
+  errors and unwind-enabled panics clear both complete caller buffers.
 - Traffic policy/update aggregates redact diagnostics, cannot be copied as
   aggregates, and clear their owned scalar fields on drop.
 - Checked decode consumes the cleanup-owning response guard.

@@ -2371,7 +2371,8 @@ Deliverables:
   acknowledgement matches the assigned server's advertised default MAC;
 - require a fixed 30-second observation window and a same-resource external
   mutation-lock lease for DELETE, bind all non-wire evidence into digest-only
-  authorization fingerprints, and reject stale evidence at permit entry;
+  authorization fingerprints, reject permits that outlive evidence, and
+  recheck evidence with the generic clock sample immediately before dispatch;
 - redact and drop-clear non-copyable traffic policy/update aggregates and
   prevalidate every late preparation policy before caller storage is written;
 - decode every documented subnet `(status, code)` pair through the exact
@@ -2394,8 +2395,9 @@ Verification:
   assignments, list duplicates, response identity, exact update/MAC outcomes,
   request/traffic redaction, failed preparation cleanup, sensitive-evidence
   exact-plan rejection, server/MAC/timestamp/lock fingerprint mismatch,
-  observation/lease expiry, permit scope, all transport modes, and
-  unpolled-attempt cleanup;
+  observation/lease expiry, validity mismatch, blocking/Send-async/local-async
+  dispatch expiry, evidence/algorithm/digest panic cleanup, permit scope, all
+  transport modes, and unpolled-attempt cleanup;
 - `scripts/check_fuzz_harness.sh --build` and `--smoke` exercise list, detail,
   MAC-read, MAC-set, and MAC-delete checked decoder paths;
 - `scripts/release_0_81_gate.sh` runs the cumulative internal-milestone,

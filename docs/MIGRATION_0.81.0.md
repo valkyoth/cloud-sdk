@@ -52,13 +52,18 @@ lease must cover the same subnet through that window. There is no
 `RobotSubnetMacDeleteRequest::new(address)` constructor. The lease identity,
 both timestamps, assigned server, and expected MAC are sensitive digest-only
 authorization evidence. The caller must obtain the lease from a system that
-serializes all mutations for that subnet.
+serializes all mutations for that subnet. The selected `PermitValidity` must
+expire no later than both the observation window and external lease. A longer
+permit fails digest construction with
+`PlanFingerprintBuildError::AuthorizationEvidenceValidityMismatch`.
 
 With `serde`, use `prepare_bound`, validate the response through
 `PreparedRobotSubnet`, and call the matching checked decoder. Traffic and MAC
 forms are sensitive, so their authorized execution must use
-`build_robot_subnet_plan_digest`. Exact DELETE fingerprints are rejected and
-stale evidence fails before permit execution. MAC PUT/DELETE never retry automatically.
+`build_robot_subnet_plan_digest`. Exact DELETE fingerprints are rejected.
+Stale evidence fails at permit entry and is checked again with the generic
+permit clock sample immediately before transport dispatch; async checks run
+when first polled. MAC PUT/DELETE never retry automatically.
 For non-success responses, call `decode_failure` on the exact request. It
 admits only that operation's documented status/code combinations.
 

@@ -19,6 +19,8 @@ use crate::robot::{RobotMacAddress, RobotSubnetAddress};
 use super::test_fixtures::{delete_request, delete_request_with};
 use super::tests::{DETAIL, MAC_DELETED, MAC_SET};
 
+mod dispatch_evidence_tests;
+
 struct FixedClock;
 
 impl PermitClock for FixedClock {
@@ -295,8 +297,8 @@ fn delete_digest_binds_server_mac_freshness_and_lock_evidence() {
             "192.0.2.1",
             "00:21:85:62:3e:9c",
             b"test-lock-generation-0001",
-            98,
-            100,
+            99,
+            101,
             130,
         ),
     ] {
@@ -330,6 +332,29 @@ fn delete_digest_binds_server_mac_freshness_and_lock_evidence() {
         permit.begin(PermitTimestamp::from_seconds(129)),
         Err(ExecutionPermitError::Expired)
     ));
+}
+
+#[test]
+fn delete_digest_rejects_permit_validity_beyond_evidence() {
+    let request = delete_request();
+    let mut target = [0_u8; 128];
+    let mut body = [0_u8; 1];
+    let prepared = request
+        .prepare_bound(PreparationStorage::new(&mut target, &mut body))
+        .unwrap_or_else(|_| unreachable!("delete preparation failed"));
+    let mut scratch = [0xa5_u8; 4_096];
+    let mut digest = [0x5a_u8; 32];
+    assert!(matches!(
+        build_robot_subnet_plan_digest(
+            plan_expires(prepared, endpoint(), 130),
+            &mut scratch,
+            &mut digest,
+            &Sha256PlanHasher,
+        ),
+        Err(PlanFingerprintBuildError::AuthorizationEvidenceValidityMismatch)
+    ));
+    assert_eq!(scratch, [0_u8; 4_096]);
+    assert_eq!(digest, [0_u8; 32]);
 }
 
 #[test]
@@ -382,11 +407,22 @@ fn plan<'storage, 'request, R>(
 where
     R: RobotSubnetPermitRequest,
 {
+    plan_expires(prepared, endpoint, 129)
+}
+
+fn plan_expires<'storage, 'request, R>(
+    prepared: PreparedRobotSubnet<'storage, 'request, R>,
+    endpoint: EndpointIdentity<'static>,
+    expires_at: u64,
+) -> RobotSubnetPlanConfirmation<'static, 'storage, 'request, R>
+where
+    R: RobotSubnetPermitRequest,
+{
     let context = PermitContext::new(b"v0.81 Robot subnet permit fixture")
         .unwrap_or_else(|_| unreachable!("permit context failed"));
     let validity = PermitValidity::new(
         PermitTimestamp::from_seconds(100),
-        PermitTimestamp::from_seconds(200),
+        PermitTimestamp::from_seconds(expires_at),
     )
     .unwrap_or_else(|_| unreachable!("permit validity failed"));
     let attempts = AttemptBudget::new(1).unwrap_or_else(|_| unreachable!("budget failed"));

@@ -174,8 +174,10 @@ Default restoration requests can only be constructed by consuming checked
 subnet and MAC snapshots, their bounded observation window, and an external
 per-subnet mutation-lock lease. The assigned server address selects the
 expected default MAC. All evidence is bound into a strong digest, is checked
-again at permit entry, and DELETE success must preserve that mapping and return
-that exact MAC. Exact fingerprints are rejected for this sensitive evidence.
+at permit entry and immediately before transport dispatch, and bounds the
+permit lifetime. Async checks run on first poll using the generic permit
+check's clock sample. DELETE success must preserve that mapping and return that
+exact MAC. Exact fingerprints are rejected for this sensitive evidence.
 The SDK verifies lock identity, resource, and expiry; callers must obtain the
 lease from a lock service that serializes every mutation of the subnet. Each
 subnet request also exposes operation-specific failure

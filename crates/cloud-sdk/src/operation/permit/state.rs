@@ -252,6 +252,25 @@ impl<'permit, 'request, 'fingerprint> PermitAttempt<'permit, 'request, 'fingerpr
         self.finish(AttemptPhase::Applied)
     }
 
+    /// Rejects this in-flight attempt before transport dispatch.
+    ///
+    /// Provider wrappers use this after validating request-bound evidence with
+    /// the same clock sample supplied to the generic permit check.
+    pub fn reject_authorization<E>(
+        mut self,
+        error: ExecutionPermitError,
+        response_storage: &mut [u8],
+        response_header_storage: &mut [u8],
+    ) -> PermitExecutionError<E> {
+        sanitize_bytes(response_storage);
+        sanitize_bytes(response_header_storage);
+        let disposition = self.finish(AttemptPhase::Rejected);
+        PermitExecutionError {
+            execution: PreparedExecutionError::AuthorizationInvalid(error),
+            disposition,
+        }
+    }
+
     /// Executes once through a delivery-classified blocking transport.
     pub fn execute_blocking<'buffer, T, C>(
         mut self,

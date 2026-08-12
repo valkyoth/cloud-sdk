@@ -29,7 +29,10 @@ constructor.
 `PlanAuthorizationEvidence` and
 `build_plan_digest_with_authorization_evidence` provide a provider-neutral,
 caller-buffer digest boundary for security state that is not sent on the wire.
-Exact retention is unavailable through the Robot DELETE wrapper.
+Evidence can declare an exclusive validity ceiling; digest construction rejects
+a permit that outlives it. Scratch and digest output are cleared if evidence
+encoding, algorithm selection, or digest execution fails or unwinds. Exact
+retention is unavailable through the Robot DELETE wrapper.
 
 ## Serde Models And Association
 
@@ -58,8 +61,10 @@ restoration use request-bound direct or shared permits. Sensitive bodies and
 DELETE authorization evidence require strong-digest fingerprints. PUT and
 DELETE deny automatic retry; uncertain delivery requires reconciliation.
 DELETE success must return the checked default MAC and continue to advertise
-it for the checked assigned server. Permit creation, recheck, and reconciliation
-also reject observation or lock-lease expiry.
+it for the checked assigned server. Permit validity cannot exceed observation
+or lock-lease validity. Permit creation, recheck, reconciliation, and immediate
+pre-dispatch validation all reject expiry; async validation occurs on first
+poll and uses the same clock sample as generic permit validation.
 
 ## Semver And Publication
 

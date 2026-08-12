@@ -30,7 +30,10 @@ publication.
   and MAC snapshots, bounded observation timestamps, and a same-resource
   external-lock lease; success must return the assigned server's mapped MAC.
 - Bound server, MAC, freshness, and lock generation into digest-only
-  authorization evidence and reject stale evidence at permit entry.
+  authorization evidence, reject permit validity beyond that evidence, and
+  recheck expiry with the generic clock sample immediately before dispatch.
+- Installed evidence scratch/output cleanup guards before encoding, algorithm
+  selection, and digest callbacks, including unwind-enabled panic paths.
 - Made traffic policy/update aggregates non-copyable, redacted, and
   drop-cleared; validated late preparation policy before writing caller storage.
 - Added request-associated decoding for every documented subnet failure,

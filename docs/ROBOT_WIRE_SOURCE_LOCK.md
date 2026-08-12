@@ -193,8 +193,10 @@ server main address selects the expected default MAC from `possible_mac`, and
 both snapshots must fit a fixed 30-second freshness window. A protected
 same-resource external-lock lease is required through dispatch. The complete
 server/MAC/freshness/lock evidence is accepted only by the digest plan builder
-and checked again at permit entry. DELETE success must return and continue to
-advertise that exact mapping. The
+and bounds permit validity. It is checked at permit entry and immediately
+before transport using the generic check's clock sample; async checks occur on
+first poll. DELETE success must return and continue to advertise that exact
+mapping. The
 fixture records every documented `(status, code)` pair; request-associated
 decoders admit each pair only for its exact operation. The checker compares
 the full normalized operation, field, inconsistency, and security contract and

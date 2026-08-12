@@ -470,7 +470,9 @@ advertised MAC. Both reads must fit the fixed 30-second observation window and
 a protected caller-provided external-lock lease must cover the same subnet
 through that window. The assigned server, MAC, timestamps, evidence expiry,
 lock generation, and lease expiry are digest-only authorization evidence;
-permit entry rejects stale evidence. DELETE acknowledgement must return that
-exact default MAC and preserve its server-address mapping. Subnet failures use request-associated
+permit validity cannot outlive that evidence. Permit entry and immediate
+pre-dispatch checks reject stale evidence using the same clock sample as the
+generic permit check; async checks run on first poll. DELETE acknowledgement
+must return that exact default MAC and preserve its server-address mapping. Subnet failures use request-associated
 decoders for the complete documented `(status, code)` sets, including the
 source-locked `500` failures; cross-operation codes fail closed.
