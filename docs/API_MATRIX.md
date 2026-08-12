@@ -359,6 +359,14 @@ exact request-bound strong-digest permit with dispatch-time credential and
 freshness revalidation. Action responses bind both address families, any
 returned server number, and the exact requested reset type.
 
+`v0.83.0` implements all four failover operations. Failover route identities
+are canonical protected addresses paired with contiguous masks; host bits,
+cross-family masks or destinations, duplicate list routes, unknown fields, and
+response identity substitutions are rejected. Reroute and route deletion are
+non-idempotent and never automatically retried. Reroute requires a mutation
+permit and exact destination acknowledgement; deletion requires a destructive
+permit and the official JSON acknowledgement with `active_server_ip: null`.
+
 Robot implementation schedule:
 
 | Group | Active | Deprecated | Planned Module | Milestone | Status |
@@ -368,7 +376,7 @@ Robot implementation schedule:
 | IP | 6 | 0 | `cloud_sdk_hetzner::robot::ip` | `v0.80.0` | implemented |
 | subnet | 6 | 0 | `cloud_sdk_hetzner::robot::subnet` | `v0.81.0` | implemented |
 | reset | 3 | 0 | `cloud_sdk_hetzner::robot::reset` | `v0.82.0` | implemented |
-| failover | 4 | 0 | `cloud_sdk_hetzner::robot::failover` | `v0.83.0` | planned |
+| failover | 4 | 0 | `cloud_sdk_hetzner::robot::failover` | `v0.83.0` | implemented |
 | wake on LAN | 2 | 0 | `cloud_sdk_hetzner::robot::wol` | `v0.84.0` | planned |
 | boot configuration | 15 | 0 | `cloud_sdk_hetzner::robot::boot` | `v0.85.0` | planned |
 | reverse DNS | 5 | 0 | `cloud_sdk_hetzner::robot::rdns` | `v0.86.0` | planned |

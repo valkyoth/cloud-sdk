@@ -46,6 +46,14 @@ security controls.
   `UnsupportedStatus` into a transient retry. A decoded 401 has
   `RobotRetryDisposition::Never`; rotate or explicitly reconfirm credentials
   under the lockout lifecycle before another attempt.
+- Before rerouting a Robot failover address, independently verify that the
+  address is configured on every possible destination server as Hetzner
+  requires. Serialize route changes across processes. Reroute and route
+  deletion are non-idempotent and never automatically retried; after uncertain
+  delivery, read the route and reconcile it before creating new authority.
+  Require the exact request-bound mutation or destructive permit and treat the
+  destination form, response topology, and complete request target as
+  operationally sensitive.
 
 ## OVHcloud Probe Credentials
 

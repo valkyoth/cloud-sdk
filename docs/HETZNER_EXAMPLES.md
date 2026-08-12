@@ -21,6 +21,7 @@ execution so running them cannot create billable resources.
 | Global and certificate action queries | [`actions.rs`](../crates/cloud-sdk-hetzner/examples/actions.rs) | `cargo run -p cloud-sdk-hetzner --example actions` |
 | DNS Zone request | [`dns.rs`](../crates/cloud-sdk-hetzner/examples/dns.rs) | `cargo run -p cloud-sdk-hetzner --example dns` |
 | Storage Box list request | [`storage_box.rs`](../crates/cloud-sdk-hetzner/examples/storage_box.rs) | `cargo run -p cloud-sdk-hetzner --example storage_box` |
+| Robot failover read | [`robot_failover.rs`](../crates/cloud-sdk-hetzner/examples/robot_failover.rs) | `cargo run -p cloud-sdk-hetzner --example robot_failover --features serde` |
 
 ## Execution Boundary
 
@@ -43,6 +44,10 @@ execute, enforce response policy, and decode through one caller-owned
 workspace lease. State-changing methods retain separate named preparation and
 permit-authorized execution, so review and confirmation cannot be skipped.
 The client selects no transport, retry policy, runtime, clock, or secret store.
+
+Robot remains a separate Basic-auth service boundary. Its failover example
+prepares only a read. Reroute and route deletion require exact request-bound
+permits and intentionally have no directly runnable mutation example.
 
 ## Mutation Safety
 

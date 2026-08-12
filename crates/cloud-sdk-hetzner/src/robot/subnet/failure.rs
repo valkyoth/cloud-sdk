@@ -38,7 +38,12 @@ impl RobotSubnetFailureCode {
             RobotProviderErrorCode::ServerNotFound
             | RobotProviderErrorCode::ResetNotAvailable
             | RobotProviderErrorCode::ResetManualActive
-            | RobotProviderErrorCode::ResetFailed => None,
+            | RobotProviderErrorCode::ResetFailed
+            | RobotProviderErrorCode::FailoverNewServerNotFound
+            | RobotProviderErrorCode::FailoverAlreadyRouted
+            | RobotProviderErrorCode::FailoverLocked
+            | RobotProviderErrorCode::FailoverFailed
+            | RobotProviderErrorCode::FailoverNotComplete => None,
         }
     }
 }

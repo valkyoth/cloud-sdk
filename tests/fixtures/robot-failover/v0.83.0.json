@@ -1,0 +1,88 @@
+{
+  "schema_version": 1,
+  "source": {
+    "retrieved": "2026-08-12",
+    "url": "https://robot.hetzner.com/doc/webservice/en.html",
+    "sha256": "4b396790acc449f47b2b3b893f8eff759c0c25196dc38b1e5e92a12c9704771a"
+  },
+  "operations": [
+    {
+      "id": "robot_list_failovers",
+      "method": "GET",
+      "path": "/failover",
+      "request_fields": [],
+      "success": {"status": 200, "body": "json", "shape": "failover-list"},
+      "errors": [{"status": 404, "code": "NOT_FOUND"}],
+      "quota": {"requests": 100, "seconds": 3600}
+    },
+    {
+      "id": "robot_get_failover",
+      "method": "GET",
+      "path": "/failover/{failover-ip}",
+      "request_fields": [],
+      "success": {"status": 200, "body": "json", "shape": "failover-detail"},
+      "errors": [{"status": 404, "code": "NOT_FOUND"}],
+      "quota": {"requests": 100, "seconds": 3600}
+    },
+    {
+      "id": "robot_reroute_failover",
+      "method": "POST",
+      "path": "/failover/{failover-ip}",
+      "request_fields": ["active_server_ip"],
+      "success": {"status": 200, "body": "json", "shape": "failover-detail"},
+      "errors": [
+        {"status": 400, "code": "INVALID_INPUT"},
+        {"status": 404, "code": "NOT_FOUND"},
+        {"status": 404, "code": "FAILOVER_NEW_SERVER_NOT_FOUND"},
+        {"status": 409, "code": "FAILOVER_ALREADY_ROUTED"},
+        {"status": 409, "code": "FAILOVER_LOCKED"},
+        {"status": 500, "code": "FAILOVER_FAILED"},
+        {"status": 500, "code": "FAILOVER_NOT_COMPLETE"}
+      ],
+      "quota": {"requests": 50, "seconds": 3600}
+    },
+    {
+      "id": "robot_delete_failover_route",
+      "method": "DELETE",
+      "path": "/failover/{failover-ip}",
+      "request_fields": [],
+      "success": {"status": 200, "body": "json", "shape": "failover-detail-null-route"},
+      "errors": [
+        {"status": 404, "code": "NOT_FOUND"},
+        {"status": 409, "code": "FAILOVER_LOCKED"},
+        {"status": 500, "code": "FAILOVER_FAILED"},
+        {"status": 500, "code": "FAILOVER_NOT_COMPLETE"}
+      ],
+      "quota": {"requests": 50, "seconds": 3600}
+    }
+  ],
+  "detail_fields": [
+    "ip",
+    "netmask",
+    "server_ip",
+    "server_ipv6_net",
+    "server_number",
+    "active_server_ip"
+  ],
+  "source_inconsistencies": {
+    "active_server_ip_table_type": "string-but-delete-example-is-null",
+    "delete_success_body": "json-failover-object-not-no-content"
+  },
+  "policy": {
+    "canonical_route_address": true,
+    "contiguous_netmask": true,
+    "route_host_bits": "reject",
+    "route_destination_family": "exact-match",
+    "unknown_fields": "reject",
+    "duplicate_routes": "reject",
+    "reroute_permit": "mutation",
+    "delete_permit": "destructive",
+    "reroute_body": "sensitive-form",
+    "reroute_retry": "never",
+    "delete_retry": "never",
+    "reroute_outcome": "exact-active-server",
+    "delete_outcome": "active-server-null",
+    "success_body_bytes": {"list": 2097152, "item": 16384},
+    "list_item_boundary": [4095, 4096, 4097]
+  }
+}

@@ -70,6 +70,16 @@ pub enum RobotProviderErrorCode {
     ResetManualActive,
     /// Robot could not execute the selected reset.
     ResetFailed,
+    /// The requested failover destination server was not found.
+    FailoverNewServerNotFound,
+    /// The failover already points to the requested destination.
+    FailoverAlreadyRouted,
+    /// A failover transition is locked by another operation.
+    FailoverLocked,
+    /// Robot could not change the failover route.
+    FailoverFailed,
+    /// Robot could not confirm the failover transition completed.
+    FailoverNotComplete,
 }
 
 /// Protected details from an `INVALID_INPUT` response.

@@ -8,6 +8,8 @@
 //! single-IP and separate-MAC operations are source-locked in `v0.80.0`, and
 //! active subnet and subnet-MAC operations are source-locked in `v0.81.0`.
 //! Reset discovery and disruptive execution are source-locked in `v0.82.0`.
+//! Failover discovery, rerouting, and route deletion are source-locked in
+//! `v0.83.0`.
 
 #[cfg(feature = "alloc")]
 mod cancellation;
@@ -15,6 +17,8 @@ mod cancellation;
 mod credentials;
 #[cfg(feature = "serde")]
 mod duplicates;
+#[cfg(feature = "alloc")]
+mod failover;
 mod form;
 #[cfg(feature = "alloc")]
 mod ip;
@@ -63,6 +67,24 @@ pub use credentials::{
 pub use form::{
     EncodedRobotForm, MAX_ROBOT_FORM_BODY_BYTES, MAX_ROBOT_FORM_FIELDS, MAX_ROBOT_FORM_NAME_BYTES,
     MAX_ROBOT_FORM_VALUE_BYTES, RobotForm, RobotFormError, RobotFormField, RobotFormSensitivity,
+};
+
+#[cfg(feature = "alloc")]
+pub use failover::{
+    RobotFailoverDeleteRouteRequest, RobotFailoverGetRequest, RobotFailoverListRequest,
+    RobotFailoverRequestError, RobotFailoverRerouteRequest,
+};
+
+#[cfg(feature = "serde")]
+pub use failover::{
+    CheckedRobotFailover, MAX_ROBOT_FAILOVER_LIST_ITEMS, PreparedRobotFailover, RobotFailover,
+    RobotFailoverCanonicalPlanFingerprint, RobotFailoverDecodeError,
+    RobotFailoverDestructivePermit, RobotFailoverFailureCode, RobotFailoverList,
+    RobotFailoverMutationPermit, RobotFailoverPermitAttempt, RobotFailoverPermitRequest,
+    RobotFailoverPlanConfirmation, RobotFailoverPlanFingerprintDigest, RobotFailoverPlanSubject,
+    RobotFailoverSharedDestructivePermit, RobotFailoverSharedMutationPermit,
+    build_robot_failover_canonical_plan, build_robot_failover_plan_digest, decode_robot_failover,
+    decode_robot_failover_list,
 };
 
 #[cfg(feature = "alloc")]

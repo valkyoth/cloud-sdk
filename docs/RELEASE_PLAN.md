@@ -2468,11 +2468,57 @@ Stop gate: `v0.82.0 implementation stop reached. Complete the pentest and full r
 
 ### v0.83.0 - Robot Failover
 
-Goal: complete failover route management.
+Goal: complete the source-locked Robot failover discovery and route-transition
+boundary without widening network identities, silently accepting contradictory
+acknowledgements, or automatically replaying ambiguous mutations.
 
-Deliverables: canonical routes, reroute/delete intent, permits, conflicts, and no-content policy.
+Deliverables:
 
-Verification: route/family/permit/source tests and `scripts/release_0_83_gate.sh`.
+- add exact list, detail, reroute, and route-delete request types for all four
+  active Robot failover routes, with official endpoint, Basic scope, operation
+  IDs, quotas, methods, paths, content types, response bounds, and
+  operation-associated provider failures;
+- retain canonical failover, owner IPv4, owner IPv6-network, and active-target
+  addresses in protected allocation-backed storage with redacted diagnostics;
+- decode only the six reviewed failover fields, require positive server
+  numbers, enforce route/netmask family agreement, reject noncontiguous masks
+  and host bits in canonical route identities, require active-target family
+  agreement, and reject duplicate list routes;
+- encode reroute as the exact sensitive `active_server_ip` form and classify it
+  as non-idempotent mutation; classify route deletion as non-idempotent
+  destructive intent; deny automatic retries for both transition operations;
+- require request-bound direct or shared mutation/destructive permits across
+  blocking, Send-async, and local-async authenticated transports, with
+  sensitive reroutes requiring strong plan digests;
+- bind every checked response to its exact request type and route identity;
+  require reroute success to echo the requested destination and delete success
+  to return the official JSON failover object with `active_server_ip: null`;
+  explicitly reject the earlier roadmap assumption of a no-content response;
+- source-lock all active rows, fields, quotas, status/code pairs, the nullable
+  source inconsistency, exact response policies, and security decisions in a
+  bounded immutable fixture with mutation tests;
+- add deterministic IPv4, IPv6, null-route, mask, family, duplicate, identity,
+  conflict, cleanup, permit, and operation-association tests plus a four-path
+  checked-response fuzz target; publish no crate before v0.85.
+
+Verification:
+
+- `scripts/check_robot_failovers.sh` verifies the immutable source fixture,
+  mutation resistance, implementation-policy tokens, compiled failover tests,
+  and fuzz-target compilation;
+- provider tests cover exact wire preparation, sensitive form handling,
+  separate response limits, route-family and contiguous-mask validation,
+  canonical network identity, nullable active routes, strict fields, duplicate
+  rejection, request identity, exact reroute/delete outcomes, failure-code
+  narrowing, complete preparation cleanup, digest-only reroute confirmation,
+  permit scope separation, and direct/shared execution;
+- compile-fail documentation proves checked responses remain associated with
+  their exact failover request type;
+- `scripts/check_fuzz_harness.sh --build` and `--smoke` exercise list, detail,
+  reroute, and delete checked-response paths;
+- `scripts/release_0_83_gate.sh` runs cumulative dependency, platform,
+  upstream-drift, SBOM, audit, and release-readiness checks and selects no
+  package for crates.io publication.
 
 Stop gate: `v0.83.0 implementation stop reached. Complete the pentest and full release gate for this exact commit; defer crates.io publication to v0.85.0.`
 

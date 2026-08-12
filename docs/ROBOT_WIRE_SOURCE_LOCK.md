@@ -8,7 +8,8 @@ list, get, and rename operations implemented in `v0.78.0`.
 All nine cancellation operations are implemented in `v0.79.0`; all six
 single-IP and separate-MAC operations are implemented in `v0.80.0`. Subnet and
 subnet-MAC operations are implemented in `v0.81.0`; reset discovery and
-execution are implemented in `v0.82.0`.
+execution are implemented in `v0.82.0`; failover discovery and route
+transitions are implemented in `v0.83.0`.
 
 Retrieved: 2026-07-30
 
@@ -230,6 +231,30 @@ The exact field, quota, error, inconsistency, and security contract is
 committed in
 [`v0.82.0.json`](../tests/fixtures/robot-reset/v0.82.0.json) and checked by
 `scripts/check_robot_resets.sh`.
+
+## Failover Operation Contract
+
+`v0.83.0` implements all four active failover rows: list and get exact routes,
+reroute one failover address, and delete its active route. Failover, owner,
+and destination addresses are canonical protected values with redacted
+diagnostics. Route masks must be family-matched and contiguous, route host
+bits are rejected, active destinations must use the route family, and lists
+are bounded and duplicate-free.
+
+Reroute uses the sensitive `active_server_ip` form, is non-idempotent, never
+automatically retried, and requires a request-bound mutation permit. Route
+deletion is also non-idempotent and never automatically retried, and requires
+a destructive permit. Strong digests are mandatory whenever the prepared plan
+contains the sensitive reroute body. Checked success remains associated with
+the exact request and route; reroute must echo the exact destination.
+
+The official DELETE example returns a JSON failover object with
+`active_server_ip: null`, even though the field table calls the value a
+string. The implementation therefore requires that exact nullable JSON
+acknowledgement and does not admit `204` or an empty body. The complete field,
+quota, error, inconsistency, and security contract is committed in
+[`v0.83.0.json`](../tests/fixtures/robot-failover/v0.83.0.json) and checked by
+`scripts/check_robot_failovers.sh`.
 
 ## Verification
 

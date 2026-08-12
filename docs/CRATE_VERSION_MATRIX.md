@@ -1,9 +1,8 @@
 # Crate Version Matrix
 
-Status: `v0.80.0` is the latest published checkpoint. `v0.82.0` is the Robot
-reset internal release candidate; its pentest and final retest passed. GitHub
-CI and CodeQL must pass before tagging. Crates.io publication remains deferred
-to v0.85.0.
+Status: `v0.80.0` is the latest published checkpoint. `v0.83.0` is the Robot
+failover implementation stop; pentest and final release evidence are pending.
+Crates.io publication remains deferred to v0.85.0.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
@@ -1237,6 +1236,22 @@ direct/shared permits. No crate is published at this internal milestone.
 | --- | --- | --- | --- | --- | --- |
 | `cloud-sdk` | `0.80.0` | `0.82.0` | `code` | No | Advance the internal source identity and cumulative release contract; defer publication to v0.85.0. |
 | `cloud-sdk-hetzner` | `0.43.0` | `0.43.0` | `code` | No | Accumulate source-locked Robot reset management for v0.85.0. |
+| `cloud-sdk-reqwest` | `0.35.1` | `0.35.1` | `unchanged` | No | No transport boundary changes. |
+| `cloud-sdk-sanitization` | `0.19.0` | `0.19.0` | `unchanged` | No | No sanitization boundary changes. |
+| `cloud-sdk-testkit` | `0.30.3` | `0.30.3` | `unchanged` | No | No testkit boundary changes. |
+
+## v0.83.0 Tracking Table
+
+`v0.83.0` implements all four Robot failover operations with canonical
+protected route identities, strict contiguous-netmask validation, exact
+reroute and delete acknowledgements, operation-bound conflicts, and
+request-bound mutation/destructive permits. No crate is published at this
+internal milestone.
+
+| Crate | Published | Source | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.80.0` | `0.83.0` | `code` | No | Advance the internal source identity and cumulative release contract; defer publication to v0.85.0. |
+| `cloud-sdk-hetzner` | `0.43.0` | `0.43.0` | `code` | No | Accumulate source-locked Robot failover management for v0.85.0. |
 | `cloud-sdk-reqwest` | `0.35.1` | `0.35.1` | `unchanged` | No | No transport boundary changes. |
 | `cloud-sdk-sanitization` | `0.19.0` | `0.19.0` | `unchanged` | No | No sanitization boundary changes. |
 | `cloud-sdk-testkit` | `0.30.3` | `0.30.3` | `unchanged` | No | No testkit boundary changes. |

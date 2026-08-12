@@ -510,3 +510,28 @@ Action acknowledgement must match checked IPv4 and IPv6 identities and the
 exact requested reset type. `server_number` is optional only because the
 official POST example omits it while the output table requires it; when
 present it must match. Every documented error is status-and-operation bound.
+
+## v0.83.0 Robot Failover Policy
+
+The four active failover rows are bound to
+`tests/fixtures/robot-api/v0.74.0.json` and the exact normalized contract in
+`tests/fixtures/robot-failover/v0.83.0.json`: list, get, reroute, and delete
+the active route. Paths accept only canonical protected failover addresses.
+Responses contain exactly `ip`, `netmask`, `server_ip`, `server_ipv6_net`,
+`server_number`, and `active_server_ip`.
+
+The route and mask must use one family, the mask must be contiguous, and the
+route must have no host bits under that mask. The owner server addresses must
+be IPv4 and IPv6 respectively. A non-null active destination must use the
+route family. Lists are bounded to 4,096 distinct route identities; unknown,
+missing, duplicate, malformed, cross-family, and noncanonical values fail
+closed.
+
+Reroute is a sensitive-form non-idempotent mutation and deletion is a
+non-idempotent destructive operation. Neither is automatically retryable.
+Their request-bound direct/shared permits remain associated through blocking,
+Send-async, and local-async execution; reroute plans require strong digests.
+Success must match the request route. Reroute additionally requires the exact
+requested destination, while deletion requires the official JSON object with
+`active_server_ip: null`. Empty/no-content deletion is not admitted. Every
+provider error is status-and-operation bound.
