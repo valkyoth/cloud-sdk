@@ -1,5 +1,5 @@
 #[cfg(feature = "serde")]
-use super::model::RobotReset;
+use super::AuthorizedRobotReset;
 use crate::robot::RobotServerNumber;
 
 /// Finite reset capability values source-locked from Robot.
@@ -151,18 +151,18 @@ impl core::fmt::Debug for RobotResetGetRequest {
 /// Executes one capability selected from checked reset state.
 #[cfg(feature = "serde")]
 pub struct RobotResetExecuteRequest<'state> {
-    pub(super) reset: &'state RobotReset,
+    pub(super) reset: &'state AuthorizedRobotReset,
     pub(super) intent: RobotResetIntent,
 }
 
 #[cfg(feature = "serde")]
 impl<'state> RobotResetExecuteRequest<'state> {
-    /// Creates an execution request only when checked state advertises the type.
+    /// Creates execution only from authenticated capability evidence.
     pub fn from_checked(
-        reset: &'state RobotReset,
+        reset: &'state AuthorizedRobotReset,
         intent: RobotResetIntent,
     ) -> Result<Self, RobotResetRequestError> {
-        if !reset.supports(intent.reset_type()) {
+        if !reset.reset().supports(intent.reset_type()) {
             return Err(RobotResetRequestError::UnsupportedCapability);
         }
         Ok(Self { reset, intent })
@@ -171,7 +171,7 @@ impl<'state> RobotResetExecuteRequest<'state> {
     /// Returns the checked server number.
     #[must_use]
     pub const fn number(&self) -> &RobotServerNumber {
-        self.reset.summary().number()
+        self.reset.reset().summary().number()
     }
 
     /// Returns the exact disruptive intent.

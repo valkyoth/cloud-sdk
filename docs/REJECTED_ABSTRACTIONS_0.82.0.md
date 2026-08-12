@@ -2,11 +2,18 @@
 
 Status: implementation stop; pentest required.
 
-## Server-Number-Only Execute Constructor
+## Raw-Detail Or Server-Number-Only Execute Constructor
 
-Rejected because it would permit callers to request an unsupported reset type
-without provider preflight. Execute construction consumes a borrow of checked
+Rejected because either form could bypass authenticated provenance, freshness,
+or capability checks. Execute construction consumes authenticated short-lived
 detail state and verifies the selected advertised capability.
+
+## Caller-Supplied Credential Scope As Provenance
+
+Rejected because `PlanFingerprintScope` is caller policy, not proof of which
+credential sent the preflight. Reset authority instead binds an opaque
+transport-owned credential lineage into digest-only evidence and rechecks it
+at dispatch.
 
 ## Free-Form Reset Type
 

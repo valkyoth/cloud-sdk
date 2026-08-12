@@ -22,12 +22,20 @@ assert_eq!(
 # Ok::<(), Box<dyn core::error::Error>>(())
 ```
 
-With `serde`, validate and decode that response to obtain checked
-`RobotReset` state. Execution must then borrow that state:
+With `serde`, execute the exact prepared detail through a transport that
+implements `BoundCredentialTransport`. The authorizing helper validates and
+decodes the response, samples the caller clock, and returns a 30-second
+`AuthorizedRobotReset` tied to that credential lineage:
 
 ```rust,ignore
+let authorized = prepared.execute_authorizing_blocking(
+    &clock,
+    &transport,
+    &mut response_body,
+    &mut response_headers,
+)?;
 let execute = RobotResetExecuteRequest::from_checked(
-    &reset,
+    &authorized,
     RobotResetIntent::Execute(RobotResetType::Hardware),
 )?;
 ```
@@ -39,6 +47,12 @@ request with `prepare_bound`, build a strong-digest plan with
 fingerprints are rejected because the body is sensitive. Automatic retry is
 never permitted; reconcile uncertain delivery before authorizing another
 reset.
+
+The plan validity must end no later than `authorized.expires_at()`, and
+dispatch fails before network access if the evidence expires or the transport
+credential lineage differs. `decode_robot_reset` remains public for inspection
+and custom response handling, but its `RobotReset` result cannot construct an
+execute request.
 
 For non-success responses, call `decode_failure` on the exact request. It
 admits only that operation's source-locked status/code combinations.

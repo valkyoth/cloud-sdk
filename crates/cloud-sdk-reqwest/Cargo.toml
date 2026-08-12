@@ -17,6 +17,7 @@ default = []
 std = ["cloud-sdk/std", "cloud-sdk-sanitization?/std"]
 blocking-rustls = [
     "std",
+    "dep:aws-lc-rs",
     "dep:base64-ng",
     "dep:bytes",
     "dep:cloud-sdk-sanitization",
@@ -85,6 +86,7 @@ blocking-rustls-webpki-roots = [
 ]
 async-rustls = [
     "std",
+    "dep:aws-lc-rs",
     "dep:base64-ng",
     "dep:bytes",
     "dep:cloud-sdk-sanitization",

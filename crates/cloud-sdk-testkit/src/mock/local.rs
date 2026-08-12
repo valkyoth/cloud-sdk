@@ -1,6 +1,9 @@
 use core::{cell::Cell, fmt};
 
-use cloud_sdk::authentication::{AuthenticatedRequest, LocalAsyncAuthenticatedTransport};
+use cloud_sdk::authentication::{
+    AuthenticatedRequest, BoundCredentialTransport, CredentialBinding,
+    LocalAsyncAuthenticatedTransport,
+};
 use cloud_sdk::transport::{
     AsyncResponseStaging, BoundTransport, EndpointIdentity, EndpointIdentityError,
     LocalAsyncTransport, ResponseCompletion, TransportRequest,
@@ -38,6 +41,13 @@ impl<'a> LocalMockTransport<'a> {
     #[must_use]
     pub const fn with_endpoint(mut self, endpoint: EndpointIdentity<'a>) -> Self {
         self.inner = self.inner.with_endpoint(endpoint);
+        self
+    }
+
+    /// Selects a deterministic credential lineage for association tests.
+    #[must_use]
+    pub const fn with_credential_binding(mut self, binding: CredentialBinding) -> Self {
+        self.inner = self.inner.with_credential_binding(binding);
         self
     }
 
@@ -95,6 +105,12 @@ impl LocalAsyncAuthenticatedTransport for LocalMockTransport<'_> {
 impl BoundTransport for LocalMockTransport<'_> {
     fn endpoint_identity(&self) -> Result<EndpointIdentity<'_>, EndpointIdentityError> {
         self.inner.endpoint_identity()
+    }
+}
+
+impl BoundCredentialTransport for LocalMockTransport<'_> {
+    fn credential_binding(&self) -> CredentialBinding {
+        self.inner.credential_binding()
     }
 }
 

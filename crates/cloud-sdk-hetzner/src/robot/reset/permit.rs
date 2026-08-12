@@ -3,7 +3,8 @@
 use core::fmt;
 
 use cloud_sdk::authentication::{
-    AsyncAuthenticatedTransport, BlockingAuthenticatedTransport, LocalAsyncAuthenticatedTransport,
+    AsyncAuthenticatedTransport, BlockingAuthenticatedTransport, BoundCredentialTransport,
+    LocalAsyncAuthenticatedTransport,
 };
 use cloud_sdk::operation::{
     AttemptBudget, CanonicalPlanFingerprint, ExecutionPermitError, PermitClock, PermitContext,
@@ -16,6 +17,11 @@ use cloud_sdk::retry::FingerprintHasher;
 use cloud_sdk::transport::{BoundTransport, DeliveryClassified, DeliveryPhase, EndpointIdentity};
 
 use super::{CheckedRobotReset, PreparedRobotReset, RobotResetExecuteRequest};
+
+mod evidence;
+
+pub use evidence::RobotResetPermitRequest;
+use evidence::SampledPermitClock;
 
 struct ResetBinding<'request, R>(&'request R);
 
@@ -149,8 +155,15 @@ pub fn build_robot_reset_plan_digest<'output, 'plan, 'storage, 'request, R, H>(
 >
 where
     H: FingerprintHasher,
+    R: RobotResetPermitRequest,
 {
-    let inner = cloud_sdk::operation::build_plan_digest(plan.inner, scratch, output, hasher)?;
+    let inner = cloud_sdk::operation::build_plan_digest_with_authorization_evidence(
+        plan.inner,
+        plan.binding.0,
+        scratch,
+        output,
+        hasher,
+    )?;
     Ok(RobotResetPlanFingerprintDigest {
         inner,
         binding: plan.binding,
@@ -188,7 +201,7 @@ pub struct RobotResetPermitAttempt<'permit, 'storage, 'fingerprint, 'request, R>
     binding: ResetBinding<'request, R>,
 }
 
-impl<'permit, 'storage, 'fingerprint, 'request, R>
+impl<'permit, 'storage, 'fingerprint, 'request, R: RobotResetPermitRequest>
     RobotResetPermitAttempt<'permit, 'storage, 'fingerprint, 'request, R>
 {
     /// Completes a manually driven attempt with conservative delivery state.
@@ -205,13 +218,19 @@ impl<'permit, 'storage, 'fingerprint, 'request, R>
         headers: &'buffer mut [u8],
     ) -> Result<CheckedRobotReset<'buffer, 'request, R>, PermitExecutionError<T::Error>>
     where
-        T: BlockingAuthenticatedTransport + BoundTransport,
+        T: BlockingAuthenticatedTransport + BoundCredentialTransport + BoundTransport,
         T::Error: DeliveryClassified,
         C: PermitClock + ?Sized,
     {
         let binding = self.binding;
+        cloud_sdk_sanitization::sanitize_bytes(body);
+        cloud_sdk_sanitization::sanitize_bytes(headers);
+        let now = clock.now();
+        if let Err(error) = binding.0.validate_authorization_evidence(transport, now) {
+            return Err(self.inner.reject_authorization(error, body, headers));
+        }
         self.inner
-            .execute_blocking(clock, transport, body, headers)
+            .execute_blocking(&SampledPermitClock(now), transport, body, headers)
             .map(|inner| CheckedRobotReset::from_executed(binding.0, inner))
     }
 
@@ -227,7 +246,7 @@ impl<'permit, 'storage, 'fingerprint, 'request, R>
         Output = Result<CheckedRobotReset<'buffer, 'request, R>, PermitExecutionError<T::Error>>,
     > + 'transport
     where
-        T: AsyncAuthenticatedTransport + BoundTransport,
+        T: AsyncAuthenticatedTransport + BoundCredentialTransport + BoundTransport,
         T::Error: DeliveryClassified,
         C: PermitClock + Sync + ?Sized,
         'storage: 'transport,
@@ -237,9 +256,15 @@ impl<'permit, 'storage, 'fingerprint, 'request, R>
         'buffer: 'transport,
     {
         let binding = self.binding;
-        let future = self.inner.execute_async(clock, transport, body, headers);
+        cloud_sdk_sanitization::sanitize_bytes(body);
+        cloud_sdk_sanitization::sanitize_bytes(headers);
         async move {
-            future
+            let now = clock.now();
+            if let Err(error) = binding.0.validate_authorization_evidence(transport, now) {
+                return Err(self.inner.reject_authorization(error, body, headers));
+            }
+            self.inner
+                .execute_async(&SampledPermitClock(now), transport, body, headers)
                 .await
                 .map(|inner| CheckedRobotReset::from_executed(binding.0, inner))
         }
@@ -257,7 +282,7 @@ impl<'permit, 'storage, 'fingerprint, 'request, R>
         Output = Result<CheckedRobotReset<'buffer, 'request, R>, PermitExecutionError<T::Error>>,
     > + 'transport
     where
-        T: LocalAsyncAuthenticatedTransport + BoundTransport,
+        T: LocalAsyncAuthenticatedTransport + BoundCredentialTransport + BoundTransport,
         T::Error: DeliveryClassified,
         C: PermitClock + ?Sized,
         'storage: 'transport,
@@ -267,11 +292,15 @@ impl<'permit, 'storage, 'fingerprint, 'request, R>
         'buffer: 'transport,
     {
         let binding = self.binding;
-        let future = self
-            .inner
-            .execute_local_async(clock, transport, body, headers);
+        cloud_sdk_sanitization::sanitize_bytes(body);
+        cloud_sdk_sanitization::sanitize_bytes(headers);
         async move {
-            future
+            let now = clock.now();
+            if let Err(error) = binding.0.validate_authorization_evidence(transport, now) {
+                return Err(self.inner.reject_authorization(error, body, headers));
+            }
+            self.inner
+                .execute_local_async(&SampledPermitClock(now), transport, body, headers)
                 .await
                 .map(|inner| CheckedRobotReset::from_executed(binding.0, inner))
         }

@@ -53,11 +53,16 @@
     "canonical_server_number_route": true,
     "unknown_fields": "reject",
     "capabilities": "nonempty-finite-duplicate-free",
-    "execute_from_checked_detail": true,
+    "execute_from_authenticated_detail": true,
+    "credential_lineage": "opaque-transport-binding",
+    "preflight_evidence_seconds": 30,
+    "dispatch_revalidation": "credential-and-expiry",
     "execute_permit": "destructive",
     "execute_body": "sensitive-form",
     "execute_retry": "never",
     "action_identity": "bind-ipv4-ipv6-and-optional-number",
-    "action_type": "exact-request-match"
+    "action_type": "exact-request-match",
+    "success_body_bytes": {"list": 2097152, "detail": 4096, "action": 2048},
+    "list_item_boundary": [4095, 4096, 4097]
   }
 }

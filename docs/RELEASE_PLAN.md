@@ -2421,9 +2421,14 @@ Deliverables:
 - decode bounded duplicate-free capability inventories, canonical IPv4 and
   IPv6 identities, positive server numbers, protected operating status, and
   finite `sw`, `hw`, `power`, `power_long`, and `man` reset types;
-- construct execution only from checked detail state and an explicitly
-  selected advertised capability, encode the exact sensitive form, classify
-  execution as destructive/non-idempotent, and deny automatic retry;
+- construct execution only from a 30-second authenticated detail observation
+  bound to an opaque transport credential lineage and an explicitly selected
+  advertised capability; raw decoding remains non-authorizing;
+- bind credential lineage, complete server identity, capability, observation,
+  and expiry into digest-only evidence, constrain permit validity, and recheck
+  credential plus freshness immediately before destructive dispatch;
+- encode the exact sensitive form, classify execution as
+  destructive/non-idempotent, and deny automatic retry;
 - require strong-digest exact-plan confirmation and request-bound direct or
   shared destructive permits across blocking, Send-async, and local-async
   transports; read-only reset requests cannot construct those plans;
@@ -2432,7 +2437,8 @@ Deliverables:
   example's omitted `server_number` inconsistency;
 - source-lock every active row, field, quota, failure pair, finite capability,
   reviewed inconsistency, and security policy; add mutation tests and direct
-  list/detail/action checked-response fuzzing; publish no crate before v0.85.
+  list/detail/action checked-response fuzzing; use separate 2 MiB, 4 KiB, and
+  2 KiB success limits; publish no crate before v0.85.
 
 Verification:
 
@@ -2443,7 +2449,9 @@ Verification:
   rejection, duplicate/unknown capability rejection, unknown/missing fields,
   identity mismatch, the documented optional action number, exact action type,
   failed preparation cleanup, sensitive-body exact-plan rejection, and
-  request-bound direct/shared execution;
+  request-bound direct/shared execution, authenticated preflight minting,
+  foreign-credential and stale-evidence rejection before network access,
+  evidence/permit lifetime coupling, and exact 4,095/4,096/4,097 list bounds;
 - `scripts/check_fuzz_harness.sh --build` and `--smoke` exercise all three
   checked response paths;
 - `scripts/release_0_82_gate.sh` runs cumulative dependency, platform,

@@ -10,6 +10,7 @@ use core::sync::atomic::{AtomicUsize, Ordering};
 use cloud_sdk::Method;
 use cloud_sdk::authentication::{
     AsyncAuthenticatedTransport, AuthenticatedRequest, BlockingAuthenticatedTransport,
+    BoundCredentialTransport, CREDENTIAL_BINDING_BYTES, CredentialBinding,
 };
 use cloud_sdk::transport::{
     AsyncResponseStaging, AsyncTransport, BlockingTransport, BoundTransport, DeliveryClassified,
@@ -149,6 +150,7 @@ pub struct MockTransport<'a> {
     exchanges: &'a [MockExchange<'a>],
     cursor: AtomicUsize,
     endpoint: Option<EndpointIdentity<'a>>,
+    credential_binding: CredentialBinding,
 }
 
 impl<'a> MockTransport<'a> {
@@ -159,6 +161,10 @@ impl<'a> MockTransport<'a> {
             exchanges,
             cursor: AtomicUsize::new(0),
             endpoint: None,
+            credential_binding: match CredentialBinding::new([0x5a; CREDENTIAL_BINDING_BYTES]) {
+                Ok(binding) => binding,
+                Err(_) => unreachable!(),
+            },
         }
     }
 
@@ -166,6 +172,13 @@ impl<'a> MockTransport<'a> {
     #[must_use]
     pub const fn with_endpoint(mut self, endpoint: EndpointIdentity<'a>) -> Self {
         self.endpoint = Some(endpoint);
+        self
+    }
+
+    /// Selects a deterministic credential lineage for association tests.
+    #[must_use]
+    pub const fn with_credential_binding(mut self, binding: CredentialBinding) -> Self {
+        self.credential_binding = binding;
         self
     }
 
@@ -417,6 +430,12 @@ impl AsyncAuthenticatedTransport for MockTransport<'_> {
 impl BoundTransport for MockTransport<'_> {
     fn endpoint_identity(&self) -> Result<EndpointIdentity<'_>, EndpointIdentityError> {
         self.endpoint.ok_or(EndpointIdentityError::UnboundTransport)
+    }
+}
+
+impl BoundCredentialTransport for MockTransport<'_> {
+    fn credential_binding(&self) -> CredentialBinding {
+        self.credential_binding
     }
 }
 

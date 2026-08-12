@@ -92,19 +92,22 @@ pub use protocol::{
 
 #[cfg(feature = "alloc")]
 pub use reset::{
-    RobotResetGetRequest, RobotResetIntent, RobotResetListRequest, RobotResetRequestError,
-    RobotResetType,
+    MAX_ROBOT_RESET_ACTION_RESPONSE_BYTES, MAX_ROBOT_RESET_DETAIL_RESPONSE_BYTES,
+    MAX_ROBOT_RESET_LIST_RESPONSE_BYTES, RobotResetGetRequest, RobotResetIntent,
+    RobotResetListRequest, RobotResetRequestError, RobotResetType,
 };
 
 #[cfg(feature = "serde")]
 pub use reset::{
-    CheckedRobotReset, MAX_ROBOT_RESET_LIST_ITEMS, PreparedRobotReset, RobotReset,
-    RobotResetAction, RobotResetCanonicalPlanFingerprint, RobotResetDecodeError,
-    RobotResetDestructivePermit, RobotResetExecuteRequest, RobotResetFailureCode, RobotResetList,
-    RobotResetOperatingStatus, RobotResetPermitAttempt, RobotResetPlanConfirmation,
-    RobotResetPlanFingerprintDigest, RobotResetPlanSubject, RobotResetSharedDestructivePermit,
-    RobotResetSummary, build_robot_reset_canonical_plan, build_robot_reset_plan_digest,
-    decode_robot_reset, decode_robot_reset_action, decode_robot_reset_list,
+    AuthorizedRobotReset, CheckedRobotReset, MAX_ROBOT_RESET_EVIDENCE_AGE_SECONDS,
+    MAX_ROBOT_RESET_LIST_ITEMS, PreparedRobotReset, RobotReset, RobotResetAction,
+    RobotResetCanonicalPlanFingerprint, RobotResetDecodeError, RobotResetDestructivePermit,
+    RobotResetEvidenceError, RobotResetExecuteRequest, RobotResetFailureCode, RobotResetList,
+    RobotResetOperatingStatus, RobotResetPermitAttempt, RobotResetPermitRequest,
+    RobotResetPlanConfirmation, RobotResetPlanFingerprintDigest, RobotResetPlanSubject,
+    RobotResetPreflightError, RobotResetSharedDestructivePermit, RobotResetSummary,
+    build_robot_reset_canonical_plan, build_robot_reset_plan_digest, decode_robot_reset,
+    decode_robot_reset_action, decode_robot_reset_list,
 };
 
 #[cfg(feature = "alloc")]

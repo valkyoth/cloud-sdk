@@ -211,12 +211,17 @@ finite types are `sw`, `hw`, `power`, `power_long`, and `man`. Lists and
 capabilities are bounded and duplicate-free, address spelling is canonical,
 and detail identity is bound to the requested positive server number.
 
-Execution is constructible only from checked detail state and an explicitly
-selected advertised type. The sensitive `type` form is destructive,
+Execution is constructible only from an exact authenticated detail execution
+and an explicitly selected advertised type. Raw decoded details cannot grant
+authority. The resulting state binds an opaque transport credential lineage
+to a 30-second observation window. The sensitive `type` form is destructive,
 non-idempotent, and never automatically retried. Read requests cannot create
 the reset plan wrapper. Execute requests require strong-digest request-bound
 direct or shared destructive permits across blocking, Send-async, and
-local-async execution.
+local-async execution. The digest includes credential lineage, complete server
+identity, capability, observation, and expiry; dispatch rechecks credential and
+expiry before network access. Success limits are 2 MiB for list, 4 KiB for
+detail, and 2 KiB for action responses.
 
 Action success must match checked IPv4, IPv6 network, and requested type. The
 official POST example omits `server_number` although the output table lists

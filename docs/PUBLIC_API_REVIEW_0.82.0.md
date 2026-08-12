@@ -13,14 +13,21 @@ POST on the latter route with one bounded `type` form field.
 
 `RobotResetType` is finite: software, hardware, power, long power, or manual.
 `RobotResetIntent` makes disruptive caller choice explicit.
-`RobotResetExecuteRequest::from_checked` borrows a decoded `RobotReset` and
-rejects a type that its capability list does not advertise. There is no
-server-number-only execute constructor.
+Raw decoding returns a non-authorizing `RobotReset`. Only
+`PreparedRobotReset<RobotResetGetRequest>::execute_authorizing_*` can produce
+`AuthorizedRobotReset`, after exact authenticated transport execution. That
+state binds the transport credential lineage and a fixed 30-second caller-clock
+observation window. `RobotResetExecuteRequest::from_checked` accepts only that
+authorizing type and rejects a capability it does not advertise. There is no
+raw-detail or server-number-only execute constructor.
 
 Every request fixes the official Robot endpoint, Basic-auth scope, operation
 ID, method, response policy, and source quota. Read operations are safe and
 idempotent. Execution is destructive, non-idempotent, sensitive-body, and
 never automatically retryable.
+
+List, detail, and action success bodies have separate 2 MiB, 4 KiB, and 2 KiB
+limits. The list allowance is 512 bytes for each of the maximum 4,096 items.
 
 ## Models And Association
 
@@ -51,6 +58,13 @@ Request-bound direct and shared destructive permits preserve the exact execute
 request through blocking, Send-async, and local-async execution. Uncertain
 delivery consumes authority according to the common permit lifecycle and does
 not trigger an automatic retry.
+
+The core crate adds opaque `CredentialBinding` and `BoundCredentialTransport`
+contracts. The reqwest Basic transports generate a 256-bit binding with the
+admitted operating-system CSPRNG and preserve it across clones. Reset evidence
+places credential binding, server identities, capability, observation, and
+expiry only in the strong digest. Permit validity cannot outlive the evidence;
+credential lineage and expiry are rechecked immediately before dispatch.
 
 ## Semver And Publication
 

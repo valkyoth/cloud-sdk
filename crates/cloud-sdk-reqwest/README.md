@@ -265,6 +265,13 @@ assert!(response.status().is_success());
 Basic credentials use separate types and builders, but every send uses the
 same mandatory checked `PreparedRequest` path as the bearer example:
 
+Each Basic credential receives a 256-bit opaque lineage binding from the
+admitted operating-system CSPRNG. Cloned clients retain the same binding;
+constructing replacement credentials creates a new binding. Provider
+operations with authenticated-preflight authority can therefore reject a
+different credential lifecycle before mutation dispatch without exposing
+credential bytes.
+
 ```rust,no_run
 # #[cfg(feature = "blocking-rustls")]
 # fn main() {

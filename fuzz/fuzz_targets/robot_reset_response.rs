@@ -3,12 +3,10 @@
 use cloud_sdk::operation::PreparationStorage;
 use cloud_sdk::transport::{HeaderSensitivity, ResponseBuffer, ResponseMetadata, StatusCode};
 use cloud_sdk_hetzner::robot::{
-    CheckedRobotReset, PreparedRobotReset, RobotResetExecuteRequest, RobotResetGetRequest,
-    RobotResetIntent, RobotResetListRequest, RobotResetType, RobotServerNumber,
+    CheckedRobotReset, PreparedRobotReset, RobotResetGetRequest, RobotResetListRequest,
+    RobotServerNumber, decode_robot_reset_action,
 };
 use libfuzzer_sys::fuzz_target;
-
-const DETAIL: &[u8] = br#"{"reset":{"server_ip":"192.0.2.10","server_ipv6_net":"2001:db8::","server_number":321,"type":["sw","hw","man"],"operating_status":"not supported"}}"#;
 
 fuzz_target!(|data: &[u8]| {
     let Some((&selector, body)) = data.split_first() else {
@@ -42,31 +40,21 @@ fn detail(body: &[u8]) {
 }
 
 fn action(body: &[u8]) {
-    let detail_request = RobotResetGetRequest::new(number());
-    let mut detail_target = [0_u8; 64];
-    let mut detail_body = [0_u8; 1];
-    let detail_prepared = detail_request
-        .prepare_bound(PreparationStorage::new(
-            &mut detail_target,
-            &mut detail_body,
-        ))
-        .unwrap_or_else(|_| unreachable!("fixed reset preflight preparation failed"));
-    let Some(reset) =
-        decode(detail_prepared, DETAIL, |checked| checked.decode_response()).and_then(Result::ok)
-    else {
-        unreachable!("fixed checked reset state failed");
-    };
-    let request = RobotResetExecuteRequest::from_checked(
-        &reset,
-        RobotResetIntent::Execute(RobotResetType::Hardware),
-    )
-    .unwrap_or_else(|_| unreachable!("advertised reset capability failed"));
+    let request = RobotResetGetRequest::new(number());
     let mut target = [0_u8; 64];
-    let mut request_body = [0_u8; 32];
+    let mut request_body = [0_u8; 1];
     let prepared = request
         .prepare_bound(PreparationStorage::new(&mut target, &mut request_body))
-        .unwrap_or_else(|_| unreachable!("fixed reset action preparation failed"));
-    let _ = decode(prepared, body, |checked| checked.decode_response());
+        .unwrap_or_else(|_| unreachable!("fixed reset detail preparation failed"));
+    let mut response_storage = body.to_vec();
+    let capacity = response_storage.len();
+    let mut headers = [0_u8; 128];
+    let mut response = ResponseBuffer::new(&mut response_storage, capacity, &mut headers);
+    write_response(&mut response, body);
+    let _ = prepared
+        .as_untyped()
+        .validate_response(response)
+        .map(|checked| checked.decode_owned_with_workspace(decode_robot_reset_action));
 }
 
 fn number() -> RobotServerNumber {
@@ -82,6 +70,11 @@ fn decode<R, O>(
     let capacity = response_storage.len();
     let mut headers = [0_u8; 128];
     let mut response = ResponseBuffer::new(&mut response_storage, capacity, &mut headers);
+    write_response(&mut response, body);
+    prepared.validate_response(response).ok().map(decode)
+}
+
+fn write_response(response: &mut ResponseBuffer<'_>, body: &[u8]) {
     let mut attempt = response
         .writer()
         .begin_attempt()
@@ -103,5 +96,4 @@ fn decode<R, O>(
         .commit(StatusCode::OK, body.len(), ResponseMetadata::EMPTY)
         .unwrap_or_else(|_| unreachable!("response commit failed"));
     drop(attempt);
-    prepared.validate_response(response).ok().map(decode)
 }

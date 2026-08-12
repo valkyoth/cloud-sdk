@@ -24,7 +24,12 @@ use crate::robot::{RobotForm, RobotFormField};
 
 const JSON: &[MediaType<'static>] = &[MediaType::JSON];
 const OK: &[StatusCode] = &[StatusCode::OK];
-const MAX_SUCCESS_BYTES: usize = 8_388_608;
+/// List limit permits 512 bytes per maximum admitted item.
+pub const MAX_ROBOT_RESET_LIST_RESPONSE_BYTES: usize = 2_097_152;
+/// Detail envelope plus reviewed whitespace allowance.
+pub const MAX_ROBOT_RESET_DETAIL_RESPONSE_BYTES: usize = 4_096;
+/// Action envelope plus reviewed whitespace allowance.
+pub const MAX_ROBOT_RESET_ACTION_RESPONSE_BYTES: usize = 2_048;
 const ACCEPT: [RequestHeader<'static>; 1] = [RequestHeader::accept(MediaType::JSON)];
 const FORM_HEADERS: [RequestHeader<'static>; 2] = [
     RequestHeader::accept(MediaType::JSON),
@@ -117,12 +122,13 @@ fn prepare_inner<'storage>(
         ScopeRequirement::Forbidden,
     );
     let metadata = admitted!(metadata(operation));
+    let maximum = operation.success_limit();
     let response = admitted!(
         ResponsePolicy::new(
             OK,
             ContentTypePolicy::Required(JSON),
             ResponseBodyPolicy::Required,
-            MAX_SUCCESS_BYTES,
+            maximum,
         )
         .map_err(RobotResetRequestError::InvalidResponsePolicy)
     );
@@ -130,7 +136,7 @@ fn prepare_inner<'storage>(
         admitted!(HeaderName::new("content-type").map_err(RobotResetRequestError::InvalidHeaders));
     let raw = admitted!(
         RawResponsePolicy::new(
-            MAX_SUCCESS_BYTES,
+            maximum,
             crate::robot::MAX_ROBOT_ERROR_BODY_BYTES,
             ResponseMediaPolicy::Required(JSON),
             ResponseMediaPolicy::Optional(JSON),
@@ -238,6 +244,15 @@ impl<'a> Operation<'a> {
             Self::Get(_) => "robot_get_reset",
             #[cfg(feature = "serde")]
             Self::Execute(_) => "robot_execute_reset",
+        }
+    }
+
+    const fn success_limit(self) -> usize {
+        match self {
+            Self::List => MAX_ROBOT_RESET_LIST_RESPONSE_BYTES,
+            Self::Get(_) => MAX_ROBOT_RESET_DETAIL_RESPONSE_BYTES,
+            #[cfg(feature = "serde")]
+            Self::Execute(_) => MAX_ROBOT_RESET_ACTION_RESPONSE_BYTES,
         }
     }
 }

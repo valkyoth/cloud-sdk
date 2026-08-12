@@ -351,10 +351,12 @@ do; family-specific masks and gateway membership remain mandatory, and the
 mathematical network and IPv4 broadcast values are derived from the response.
 
 `v0.82.0` implements all three reset operations. Reset execution can only be
-constructed from a checked detail snapshot and one capability advertised by
-that snapshot. Its sensitive form is destructive, non-idempotent, never
-automatically retried, and executable only through an exact request-bound
-strong-digest permit. Action responses bind both address families, any
+constructed from a 30-second authenticated detail snapshot tied to the
+transport credential lineage and one capability advertised by that snapshot.
+Raw decoding is non-authorizing. Its sensitive form is destructive,
+non-idempotent, never automatically retried, and executable only through an
+exact request-bound strong-digest permit with dispatch-time credential and
+freshness revalidation. Action responses bind both address families, any
 returned server number, and the exact requested reset type.
 
 Robot implementation schedule:

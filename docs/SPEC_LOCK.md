@@ -491,12 +491,17 @@ nonempty, finite, and duplicate-free. Addresses are canonical, server numbers
 are positive, and detail identity must equal the request. Operating status is
 retained in bounded protected storage.
 
-Execution has no server-number-only constructor. It borrows checked detail
-state and rejects a selected capability absent from that state. Its `type`
+Execution has no raw-detail or server-number-only constructor. Only exact
+authenticated detail execution mints a 30-second `AuthorizedRobotReset` bound
+to the transport credential lineage. It rejects a selected capability absent
+from that state. Its `type`
 form is sensitive, destructive, non-idempotent, and never automatically
 retryable. Only the execute request can construct the reset plan wrapper;
 strong-digest request-bound direct/shared destructive permits retain exact
-association through blocking, Send-async, and local-async execution.
+association through blocking, Send-async, and local-async execution. Digest
+evidence includes credential binding, complete identity, capability,
+observation, and expiry; credential and freshness are rechecked at dispatch.
+List, detail, and action success limits are 2 MiB, 4 KiB, and 2 KiB.
 
 Action acknowledgement must match checked IPv4 and IPv6 identities and the
 exact requested reset type. `server_number` is optional only because the

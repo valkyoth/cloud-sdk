@@ -10,7 +10,7 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 LOCK = ROOT / "tests/fixtures/robot-reset/v0.82.0.json"
-LOCK_SHA256 = "c5d6628c0c6779f9a9f094494ffbeb569618f58cabd1319ba4be56e4d9eb8d03"
+LOCK_SHA256 = "ebf6205aa7ae368cbcb26aa29aa026a5a904bf38b35fa48909e9b1c1bdcfd7e5"
 MAX_LOCK_BYTES = 16 * 1024
 SOURCE_SHA256 = "4b396790acc449f47b2b3b893f8eff759c0c25196dc38b1e5e92a12c9704771a"
 
@@ -133,12 +133,17 @@ def validate_contract(value: dict[str, Any]) -> None:
             "canonical_server_number_route": True,
             "unknown_fields": "reject",
             "capabilities": "nonempty-finite-duplicate-free",
-            "execute_from_checked_detail": True,
+            "execute_from_authenticated_detail": True,
+            "credential_lineage": "opaque-transport-binding",
+            "preflight_evidence_seconds": 30,
+            "dispatch_revalidation": "credential-and-expiry",
             "execute_permit": "destructive",
             "execute_body": "sensitive-form",
             "execute_retry": "never",
             "action_identity": "bind-ipv4-ipv6-and-optional-number",
             "action_type": "exact-request-match",
+            "success_body_bytes": {"list": 2097152, "detail": 4096, "action": 2048},
+            "list_item_boundary": [4095, 4096, 4097],
         },
         "security policy changed",
     )

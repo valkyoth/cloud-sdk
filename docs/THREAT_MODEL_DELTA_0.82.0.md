@@ -12,14 +12,23 @@ address, server, and operating-state data may be operationally sensitive.
 
 ### Unauthorized Or Wrong Reset
 
-- Execute construction requires checked provider detail and an explicit type
-  currently advertised for that exact server.
+- Raw decoding is non-authorizing. Execute construction requires an exact
+  authenticated detail execution and an explicit type currently advertised
+  for that exact server.
+- The authorizing state binds an opaque transport credential lineage and a
+  fixed 30-second caller-clock lifetime. Credential changes during preflight,
+  cross-account transport reuse, stale evidence, and future-dated evidence
+  fail closed before destructive network access.
 - The finite type prevents arbitrary provider form values; duplicate or
   unknown capabilities fail closed.
 - Only execute requests can construct reset plan confirmation. The sensitive
   body requires a strong digest and a destructive permit.
 - Request, plan, fingerprint, permit, attempt, and checked response retain
   exact type association across blocking, Send-async, and local-async modes.
+- Credential binding, both addresses, server number, selected capability,
+  observation, and expiry enter digest-only authorization evidence. Permit
+  validity cannot exceed evidence expiry, and credential plus time are checked
+  again from one clock sample immediately before dispatch.
 - Execution is non-idempotent and automatic retry is denied. Uncertain
   delivery requires caller reconciliation.
 
@@ -27,7 +36,10 @@ address, server, and operating-state data may be operationally sensitive.
 
 - Exact envelopes reject duplicate, unknown, missing, mistyped, oversized,
   noncanonical, and contradictory data.
-- Lists and capabilities have hard bounds and duplicate rejection.
+- Lists and capabilities have hard bounds and duplicate rejection. Deterministic
+  tests exercise 4,095, 4,096, and 4,097 entries.
+- List, detail, and action success bodies are separately bounded at 2 MiB,
+  4 KiB, and 2 KiB before strict JSON allocation.
 - Detail server identity must equal the requested server number.
 - Action IPv4, IPv6 network, optional server number, and reset type must equal
   checked preflight state and caller intent.
@@ -54,3 +66,9 @@ operationally appropriate, whether the guest has flushed storage, or whether
 the provider accepted an uncertain request. Callers must confirm target and
 impact, coordinate workload shutdown, and reconcile uncertain delivery before
 issuing another reset. This milestone adds no live destructive test.
+
+The transport binding contract assumes an implementation returns the lineage
+of the credential its authenticated send will use. The admitted reqwest Basic
+clients satisfy this with immutable credential state shared by clones. Custom
+transports are responsible for equivalent atomicity and CSPRNG-quality binding
+generation.

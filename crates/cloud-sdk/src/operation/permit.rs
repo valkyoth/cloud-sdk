@@ -439,6 +439,8 @@ pub enum ExecutionPermitError {
     StaleGeneration,
     /// The supplied request fingerprint differs from the confirmed plan.
     FingerprintMismatch,
+    /// Authenticated evidence belongs to another credential lifecycle.
+    CredentialMismatch,
     /// Reconciliation used a different idempotency identity.
     IdempotencyMismatch,
     /// The selected replay policy forbids this transition.
@@ -458,6 +460,7 @@ impl_static_error!(ExecutionPermitError,
     Self::Spent => "execution permit is spent",
     Self::StaleGeneration => "execution permit generation is stale",
     Self::FingerprintMismatch => "execution permit fingerprint does not match",
+    Self::CredentialMismatch => "execution credential differs from authorization evidence",
     Self::IdempotencyMismatch => "execution permit idempotency identity does not match",
     Self::ReplayForbidden => "execution permit replay policy forbids repetition",
     Self::GenerationExhausted => "execution permit generation is exhausted",

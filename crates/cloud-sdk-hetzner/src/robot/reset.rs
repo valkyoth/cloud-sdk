@@ -6,6 +6,8 @@ mod request;
 #[cfg(feature = "serde")]
 mod decode;
 #[cfg(feature = "serde")]
+mod evidence;
+#[cfg(feature = "serde")]
 mod exchange;
 #[cfg(feature = "serde")]
 mod failure;
@@ -13,7 +15,13 @@ mod failure;
 mod model;
 #[cfg(feature = "serde")]
 mod permit;
+#[cfg(feature = "serde")]
+mod preflight;
 
+pub use prepare::{
+    MAX_ROBOT_RESET_ACTION_RESPONSE_BYTES, MAX_ROBOT_RESET_DETAIL_RESPONSE_BYTES,
+    MAX_ROBOT_RESET_LIST_RESPONSE_BYTES,
+};
 #[cfg(feature = "serde")]
 pub use request::RobotResetExecuteRequest;
 pub use request::{
@@ -24,6 +32,10 @@ pub use request::{
 #[cfg(feature = "serde")]
 pub use decode::{
     RobotResetDecodeError, decode_robot_reset, decode_robot_reset_action, decode_robot_reset_list,
+};
+#[cfg(feature = "serde")]
+pub use evidence::{
+    AuthorizedRobotReset, MAX_ROBOT_RESET_EVIDENCE_AGE_SECONDS, RobotResetEvidenceError,
 };
 #[cfg(feature = "serde")]
 pub use exchange::{CheckedRobotReset, PreparedRobotReset};
@@ -37,10 +49,12 @@ pub use model::{
 #[cfg(feature = "serde")]
 pub use permit::{
     RobotResetCanonicalPlanFingerprint, RobotResetDestructivePermit, RobotResetPermitAttempt,
-    RobotResetPlanConfirmation, RobotResetPlanFingerprintDigest, RobotResetPlanSubject,
-    RobotResetSharedDestructivePermit, build_robot_reset_canonical_plan,
+    RobotResetPermitRequest, RobotResetPlanConfirmation, RobotResetPlanFingerprintDigest,
+    RobotResetPlanSubject, RobotResetSharedDestructivePermit, build_robot_reset_canonical_plan,
     build_robot_reset_plan_digest,
 };
+#[cfg(feature = "serde")]
+pub use preflight::RobotResetPreflightError;
 
 #[cfg(all(test, feature = "serde"))]
 mod failure_tests;

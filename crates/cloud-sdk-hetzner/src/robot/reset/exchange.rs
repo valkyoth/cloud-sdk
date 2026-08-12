@@ -14,8 +14,8 @@ use super::{
 
 /// Prepared Robot reset request retaining its exact typed association.
 pub struct PreparedRobotReset<'storage, 'request, R> {
-    request: &'request R,
-    inner: PreparedRequest<'storage>,
+    pub(super) request: &'request R,
+    pub(super) inner: PreparedRequest<'storage>,
 }
 
 impl<'storage, 'request, R> PreparedRobotReset<'storage, 'request, R> {
@@ -123,7 +123,7 @@ impl CheckedRobotReset<'_, '_, RobotResetExecuteRequest<'_>> {
         let action = self
             .inner
             .decode_owned_with_workspace(decode_robot_reset_action)?;
-        let expected = self.request.reset.summary();
+        let expected = self.request.reset.reset().summary();
         let ipv4_matches = action.server_ipv4 == expected.server_ipv4;
         let ipv6_matches = action.server_ipv6_network == expected.server_ipv6_network;
         let number_matches = action

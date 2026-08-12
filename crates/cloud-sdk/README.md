@@ -551,6 +551,13 @@ Direct read-only execution additionally requires `GET` or `HEAD`; contradictory
 read-only metadata is rejected during preparation and cannot bypass the method
 check through type erasure.
 
+Operations whose mutation authority depends on an earlier authenticated read
+can additionally require `BoundCredentialTransport`. Its opaque 256-bit
+`CredentialBinding` associates evidence with one credential lifecycle without
+placing credential material in provider models or diagnostics. Custom
+transports must generate bindings with a CSPRNG, preserve them across clones,
+and replace them whenever credentials rotate.
+
 Use `PreparationStorageGuard` when request buffers may contain secrets. The
 prepared request borrows the guard, so safe Rust keeps cleanup ownership alive
 through transport use. Every preparation attempt and the guard's drop

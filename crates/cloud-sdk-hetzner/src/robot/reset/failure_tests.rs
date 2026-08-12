@@ -163,6 +163,15 @@ fn dispatch(
             let bytes = br#"{"reset":{"server_ip":"192.0.2.10","server_ipv6_net":"2001:db8::","server_number":321,"type":["hw"],"operating_status":"running"}}"#;
             let reset = with_json(prepared, bytes, |checked| checked.decode_response())
                 .unwrap_or_else(|_| unreachable!("reset fixture decoding failed"));
+            let reset = AuthorizedRobotReset::new(
+                reset,
+                cloud_sdk::authentication::CredentialBinding::new(
+                    [0x5a; cloud_sdk::authentication::CREDENTIAL_BINDING_BYTES],
+                )
+                .unwrap_or_else(|_| unreachable!("credential binding fixture failed")),
+                cloud_sdk::operation::PermitTimestamp::from_seconds(100),
+            )
+            .unwrap_or_else(|_| unreachable!("authorization fixture failed"));
             let execute = RobotResetExecuteRequest::from_checked(
                 &reset,
                 RobotResetIntent::Execute(RobotResetType::Hardware),

@@ -82,7 +82,9 @@ Targets perform no network, filesystem, environment, credential, or provider
 operations. Most targets use a 16 KiB input ceiling. `raw_http1_wire` uses
 `-max_len=66560` so mutations can cross the 64 KiB encoded response-head
 boundary. Deterministic tests cover its below/exact/plus-one cases, the 8 MiB
-body boundaries, and exact oversized model fields.
+body boundaries, and exact oversized model fields. `robot_reset_response` uses
+a 1 MiB ceiling so mutations can reach realistic near-limit reset lists;
+deterministic tests separately cover the exact 4,095/4,096/4,097 item boundary.
 
 ## Crash Reproduction
 

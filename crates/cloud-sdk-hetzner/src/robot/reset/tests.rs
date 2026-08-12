@@ -3,6 +3,7 @@ use core::future::Future;
 use core::task::{Context, Poll, Waker};
 
 use cloud_sdk::Method;
+use cloud_sdk::authentication::{CREDENTIAL_BINDING_BYTES, CredentialBinding};
 use cloud_sdk::operation::{
     AttemptBudget, OperationImpact, PermitClock, PermitContext, PermitTimestamp, PermitValidity,
     PlanChange, PlanFingerprintBuildError, PlanFingerprintScope, PreparationStorage,
@@ -21,6 +22,8 @@ use crate::association::Sha256PlanHasher;
 use crate::endpoint::official_robot_endpoint_identity;
 use crate::robot::RobotServerNumber;
 
+mod remediation;
+
 const SUMMARY: &str = r#"{"server_ip":"192.0.2.10","server_ipv6_net":"2001:db8::","server_number":321,"type":["sw","hw","man"]}"#;
 const DETAIL: &[u8] = br#"{"reset":{"server_ip":"192.0.2.10","server_ipv6_net":"2001:db8::","server_number":321,"type":["sw","hw","man"],"operating_status":"not supported"}}"#;
 const ACTION: &[u8] =
@@ -31,6 +34,14 @@ struct FixedClock;
 impl PermitClock for FixedClock {
     fn now(&self) -> PermitTimestamp {
         PermitTimestamp::from_seconds(102)
+    }
+}
+
+struct TimestampClock(u64);
+
+impl PermitClock for TimestampClock {
+    fn now(&self) -> PermitTimestamp {
+        PermitTimestamp::from_seconds(self.0)
     }
 }
 
@@ -46,6 +57,7 @@ fn prepares_exact_source_locked_requests_and_policies() {
         RequestSemantics::Safe,
         RetryEligibility::ExplicitPolicy,
         RequestBodySensitivity::Public,
+        MAX_ROBOT_RESET_LIST_RESPONSE_BYTES,
     );
     assert_prepared(
         RobotResetGetRequest::new(number(321)),
@@ -57,6 +69,7 @@ fn prepares_exact_source_locked_requests_and_policies() {
         RequestSemantics::Safe,
         RetryEligibility::ExplicitPolicy,
         RequestBodySensitivity::Public,
+        MAX_ROBOT_RESET_DETAIL_RESPONSE_BYTES,
     );
     let checked = detail();
     assert_prepared(
@@ -73,6 +86,7 @@ fn prepares_exact_source_locked_requests_and_policies() {
         RequestSemantics::NonIdempotent,
         RetryEligibility::Never,
         RequestBodySensitivity::Sensitive,
+        MAX_ROBOT_RESET_ACTION_RESPONSE_BYTES,
     );
 }
 
@@ -86,8 +100,8 @@ fn checked_state_rejects_unadvertised_reset_types() {
         ),
         Err(RobotResetRequestError::UnsupportedCapability)
     ));
-    assert!(reset.supports(RobotResetType::Software));
-    assert!(reset.operating_status().is_not_supported());
+    assert!(reset.reset().supports(RobotResetType::Software));
+    assert!(reset.reset().operating_status().is_not_supported());
     assert!(!format!("{reset:?}").contains("192.0.2"));
 }
 
@@ -282,8 +296,20 @@ fn number(value: u64) -> RobotServerNumber {
     RobotServerNumber::new(value).unwrap_or_else(|_| unreachable!("server number failed"))
 }
 
-fn detail() -> RobotReset {
-    decode_get(number(321), DETAIL).unwrap_or_else(|_| unreachable!("detail fixture failed"))
+fn detail() -> AuthorizedRobotReset {
+    let reset =
+        decode_get(number(321), DETAIL).unwrap_or_else(|_| unreachable!("detail fixture failed"));
+    AuthorizedRobotReset::new(
+        reset,
+        credential_binding(0x5a),
+        PermitTimestamp::from_seconds(100),
+    )
+    .unwrap_or_else(|_| unreachable!("authorization fixture failed"))
+}
+
+fn credential_binding(byte: u8) -> CredentialBinding {
+    CredentialBinding::new([byte; CREDENTIAL_BINDING_BYTES])
+        .unwrap_or_else(|_| unreachable!("credential binding fixture failed"))
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -297,6 +323,7 @@ fn assert_prepared<O>(
     semantics: RequestSemantics,
     retry: RetryEligibility,
     sensitivity: RequestBodySensitivity,
+    maximum_response_bytes: usize,
 ) where
     O: PrepareOperation<Error = RobotResetRequestError>,
 {
@@ -319,6 +346,14 @@ fn assert_prepared<O>(
     assert_eq!(prepared.metadata().semantics(), semantics);
     assert_eq!(prepared.metadata().retry_eligibility(), retry);
     assert_eq!(prepared.body_sensitivity(), sensitivity);
+    assert_eq!(
+        prepared.response_policy().max_body_bytes(),
+        maximum_response_bytes
+    );
+    assert_eq!(
+        prepared.raw_response_policy().body_limit(StatusCode::OK),
+        maximum_response_bytes
+    );
 }
 
 fn decode_list(body: &[u8]) -> Result<RobotResetList, RobotResetDecodeError> {
@@ -392,6 +427,14 @@ fn plan<'storage, 'request, 'state>(
     prepared: PreparedRobotReset<'storage, 'request, RobotResetExecuteRequest<'state>>,
     endpoint: EndpointIdentity<'static>,
 ) -> RobotResetPlanConfirmation<'static, 'storage, 'request, RobotResetExecuteRequest<'state>> {
+    plan_until(prepared, endpoint, 125)
+}
+
+fn plan_until<'storage, 'request, 'state>(
+    prepared: PreparedRobotReset<'storage, 'request, RobotResetExecuteRequest<'state>>,
+    endpoint: EndpointIdentity<'static>,
+    expires_at: u64,
+) -> RobotResetPlanConfirmation<'static, 'storage, 'request, RobotResetExecuteRequest<'state>> {
     RobotResetPlanConfirmation::new(
         prepared,
         endpoint,
@@ -401,7 +444,7 @@ fn plan<'storage, 'request, 'state>(
             .unwrap_or_else(|_| unreachable!("permit context failed")),
         PermitValidity::new(
             PermitTimestamp::from_seconds(100),
-            PermitTimestamp::from_seconds(200),
+            PermitTimestamp::from_seconds(expires_at),
         )
         .unwrap_or_else(|_| unreachable!("permit validity failed")),
         ReplayPolicy::SingleAttempt,

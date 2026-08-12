@@ -2,10 +2,16 @@
 
 Status: implementation stop; pentest required.
 
-v0.82 adds no third-party package, feature activation, build script, native
-component, network stack, runtime, filesystem, clock, cryptography, unsafe
-code, or new supply-chain edge. Reset operations reuse existing protected
-storage, bounded Robot forms, strict JSON parsing, permits, and IP types.
+v0.82 adds no third-party package, version, build script, native component,
+network stack, runtime, filesystem, unsafe code, or lockfile source. Reset
+operations reuse existing protected storage, bounded Robot forms, strict JSON
+parsing, permits, IP types, and `subtle` comparisons.
+
+The reqwest Basic feature sets now activate the already admitted direct
+`aws-lc-rs` dependency so `SystemRandom` can generate a 256-bit opaque
+credential-lineage binding. AWS-LC was already present at the same locked
+version in every affected rustls feature graph. Default features remain empty;
+the no_std and transport-free default graphs do not activate it.
 
 The source checker uses only Python's standard library. The response fuzz
 target reuses the admitted fuzz dependency graph.

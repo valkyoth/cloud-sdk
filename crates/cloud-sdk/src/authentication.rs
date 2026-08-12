@@ -3,6 +3,7 @@
 mod attempt;
 #[cfg(feature = "alloc")]
 mod attempt_owned;
+mod binding;
 mod expiry;
 mod generation;
 mod policy;
@@ -16,6 +17,9 @@ pub use attempt::{
 };
 #[cfg(feature = "alloc")]
 pub use attempt_owned::{OwnedCredentialAttempt, OwnedCredentialAttemptState};
+pub use binding::{
+    BoundCredentialTransport, CREDENTIAL_BINDING_BYTES, CredentialBinding, CredentialBindingError,
+};
 pub use expiry::{
     CredentialLifetime, CredentialLifetimeError, CredentialLifetimeState, CredentialTimestamp,
 };

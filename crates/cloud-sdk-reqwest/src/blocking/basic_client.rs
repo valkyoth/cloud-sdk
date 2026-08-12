@@ -1,7 +1,10 @@
 use core::fmt;
 use std::sync::Arc;
 
-use cloud_sdk::authentication::{AuthenticatedRequest, BlockingAuthenticatedTransport};
+use cloud_sdk::authentication::{
+    AuthenticatedRequest, BlockingAuthenticatedTransport, BoundCredentialTransport,
+    CredentialBinding,
+};
 use cloud_sdk::transport::{
     BoundTransport, EndpointIdentity, EndpointIdentityError, ResponseStorageSanitizer,
     ResponseWriter, TransportFailure,
@@ -90,6 +93,12 @@ impl ResponseStorageSanitizer for BlockingBasicClient {
 impl BoundTransport for BlockingBasicClient {
     fn endpoint_identity(&self) -> Result<EndpointIdentity<'_>, EndpointIdentityError> {
         self.endpoint.identity()
+    }
+}
+
+impl BoundCredentialTransport for BlockingBasicClient {
+    fn credential_binding(&self) -> CredentialBinding {
+        self.credential.binding()
     }
 }
 
