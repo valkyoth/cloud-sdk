@@ -3,10 +3,14 @@ use core::fmt::Write as _;
 
 use cloud_sdk::Method;
 use cloud_sdk::operation::{
-    OperationImpact, PreparationStorage, PrepareOperation, RequestBodySensitivity,
-    RequestSemantics, RetryEligibility,
+    CheckedResponse, ContentTypePolicy, OperationImpact, PreparationStorage, PrepareOperation,
+    RequestBodySensitivity, RequestIdPolicy, RequestSemantics, ResponseBodyPolicy, ResponsePolicy,
+    RetryEligibility,
 };
-use cloud_sdk::transport::{HeaderSensitivity, ResponseBuffer, ResponseMetadata, StatusCode};
+use cloud_sdk::transport::{
+    HeaderSensitivity, MediaType, ResponseBuffer, ResponseDecodeWorkspace, ResponseMetadata,
+    StatusCode,
+};
 
 use super::*;
 use crate::robot::RobotIpAddress;
@@ -14,6 +18,8 @@ use crate::robot::RobotIpAddress;
 pub(super) const ACTIVE: &[u8] = br#"{"failover":{"ip":"192.0.2.50","netmask":"255.255.255.255","server_ip":"192.0.2.10","server_ipv6_net":"2001:db8:1::","server_number":321,"active_server_ip":"192.0.2.11"}}"#;
 pub(super) const DELETED: &[u8] = br#"{"failover":{"ip":"192.0.2.50","netmask":"255.255.255.255","server_ip":"192.0.2.10","server_ipv6_net":"2001:db8:1::","server_number":321,"active_server_ip":null}}"#;
 const IPV6: &[u8] = br#"{"failover":{"ip":"2001:db8:2::","netmask":"ffff:ffff:ffff:ffff::","server_ip":"192.0.2.10","server_ipv6_net":"2001:db8:1::","server_number":321,"active_server_ip":"2001:db8:3::"}}"#;
+const JSON: &[MediaType<'static>] = &[MediaType::JSON];
+const OK: &[StatusCode] = &[StatusCode::OK];
 
 #[test]
 fn prepares_all_source_locked_operations_and_policies() {
@@ -127,6 +133,25 @@ fn list_boundary_accepts_4096_and_rejects_4097() {
     }
     let body = list_fixture(4_097);
     assert!(decode_list(body.as_bytes()).is_err());
+}
+
+#[test]
+fn free_decoders_enforce_operation_limits_after_a_wider_policy() {
+    let item = vec![b' '; MAX_ROBOT_FAILOVER_ITEM_RESPONSE_BYTES + 1];
+    let expected = ip("192.0.2.50");
+    assert_eq!(
+        with_wide_json(&item, |checked, workspace| {
+            decode_robot_failover(checked, &expected, workspace)
+        })
+        .err(),
+        Some(RobotFailoverDecodeError::ResponseTooLarge)
+    );
+
+    let list = vec![b' '; MAX_ROBOT_FAILOVER_LIST_RESPONSE_BYTES + 1];
+    assert_eq!(
+        with_wide_json(&list, decode_robot_failover_list).err(),
+        Some(RobotFailoverDecodeError::ResponseTooLarge)
+    );
 }
 
 #[test]
@@ -306,6 +331,50 @@ fn with_json<R, O>(
         .validate_response(response)
         .unwrap_or_else(|_| unreachable!("response policy failed"));
     decode(checked)
+}
+
+fn with_wide_json<R, E>(
+    body: &[u8],
+    decode: impl for<'response> FnOnce(
+        CheckedResponse<'response>,
+        &mut ResponseDecodeWorkspace,
+    ) -> Result<R, E>,
+) -> Result<R, E> {
+    let policy = ResponsePolicy::new(
+        OK,
+        ContentTypePolicy::Required(JSON),
+        ResponseBodyPolicy::Required,
+        body.len(),
+    )
+    .unwrap_or_else(|_| unreachable!("wide response policy failed"));
+    let mut response_storage = vec![0_u8; body.len()];
+    let mut headers = [0_u8; 128];
+    let mut response = ResponseBuffer::new(&mut response_storage, body.len(), &mut headers);
+    let mut attempt = response
+        .writer()
+        .begin_attempt()
+        .unwrap_or_else(|_| unreachable!("wide response attempt failed"));
+    attempt
+        .headers_mut()
+        .unwrap_or_else(|_| unreachable!("wide response headers failed"))
+        .try_push(
+            "content-type",
+            b"application/json",
+            HeaderSensitivity::Public,
+        )
+        .unwrap_or_else(|_| unreachable!("wide response content type failed"));
+    attempt
+        .body_mut()
+        .unwrap_or_else(|_| unreachable!("wide response body failed"))
+        .copy_from_slice(body);
+    attempt
+        .commit(StatusCode::OK, body.len(), ResponseMetadata::EMPTY)
+        .unwrap_or_else(|_| unreachable!("wide response commit failed"));
+    drop(attempt);
+    policy
+        .validate(response, RequestIdPolicy::Protected)
+        .unwrap_or_else(|_| unreachable!("wide response validation failed"))
+        .decode_owned_with_workspace(decode)
 }
 
 pub(super) fn ip(value: &str) -> RobotIpAddress {

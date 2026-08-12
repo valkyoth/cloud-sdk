@@ -36,7 +36,9 @@ unreachable. Route and owner topology may be operationally sensitive.
 - Exact envelopes reject duplicate, unknown, missing, mistyped, malformed,
   noncanonical, cross-family, and contradictory data.
 - Lists are capped at 4,096 distinct routes and list bodies at 2 MiB. Item
-  bodies are capped at 16 KiB before strict JSON allocation.
+  bodies are capped at 16 KiB before strict JSON allocation. The exported
+  free decoders repeat these operation-specific checks, so a response admitted
+  by a wider generic policy cannot bypass them.
 - Provider failures are admitted only for the documented operation and status;
   cross-operation conflict codes fail closed.
 - DELETE requires the official JSON object with `active_server_ip: null`;

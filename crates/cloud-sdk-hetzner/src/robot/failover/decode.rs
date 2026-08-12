@@ -5,6 +5,9 @@ use cloud_sdk::operation::{CheckedResponse, CheckedResponseGuard};
 use cloud_sdk::transport::{ResponseDecodeWorkspace, StatusCode};
 
 use super::model::*;
+use super::prepare::{
+    MAX_ROBOT_FAILOVER_ITEM_RESPONSE_BYTES, MAX_ROBOT_FAILOVER_LIST_RESPONSE_BYTES,
+};
 use super::request::{RobotFailoverGetRequest, RobotFailoverListRequest};
 use crate::robot::duplicates::{DuplicateError, reject_duplicates_by_cmp};
 use crate::robot::server::identity::DecimalServerNumberError;
@@ -16,6 +19,8 @@ use crate::serde::strict_json::{JsonError, Map, Value, parse_with_scratch};
 pub enum RobotFailoverDecodeError {
     /// The checked status was not the source-locked success status.
     UnexpectedStatus,
+    /// The body exceeded this failover operation's independent decode limit.
+    ResponseTooLarge,
     /// JSON syntax, UTF-8, nesting, duplicates, or parser bounds were invalid.
     MalformedPayload,
     /// Required, nullable, or extra response fields violated the source shape.
@@ -38,6 +43,7 @@ pub enum RobotFailoverDecodeError {
 
 impl_static_error!(RobotFailoverDecodeError,
     Self::UnexpectedStatus => "Robot failover response status is unexpected",
+    Self::ResponseTooLarge => "Robot failover response exceeds its operation limit",
     Self::MalformedPayload => "Robot failover response JSON is malformed",
     Self::InvalidEnvelope => "Robot failover response envelope is invalid",
     Self::InvalidAddress => "Robot failover response address is invalid",
@@ -55,6 +61,7 @@ pub fn decode_robot_failover_list(
     workspace: &mut ResponseDecodeWorkspace,
 ) -> Result<RobotFailoverList, RobotFailoverDecodeError> {
     require_ok(checked)?;
+    require_body_limit(checked, MAX_ROBOT_FAILOVER_LIST_RESPONSE_BYTES)?;
     let mut root = parse_with_scratch(checked.body(), workspace.decoder_scratch_mut())
         .map_err(map_json_error)?;
     let values = root
@@ -88,6 +95,7 @@ pub fn decode_robot_failover(
     workspace: &mut ResponseDecodeWorkspace,
 ) -> Result<RobotFailover, RobotFailoverDecodeError> {
     require_ok(checked)?;
+    require_body_limit(checked, MAX_ROBOT_FAILOVER_ITEM_RESPONSE_BYTES)?;
     let mut root = parse_with_scratch(checked.body(), workspace.decoder_scratch_mut())
         .map_err(map_json_error)?;
     let result = parse_wrapper(&mut root)?;
@@ -224,6 +232,17 @@ fn require_ok(checked: CheckedResponse<'_>) -> Result<(), RobotFailoverDecodeErr
         Ok(())
     } else {
         Err(RobotFailoverDecodeError::UnexpectedStatus)
+    }
+}
+
+fn require_body_limit(
+    checked: CheckedResponse<'_>,
+    maximum: usize,
+) -> Result<(), RobotFailoverDecodeError> {
+    if checked.body().len() <= maximum {
+        Ok(())
+    } else {
+        Err(RobotFailoverDecodeError::ResponseTooLarge)
     }
 }
 

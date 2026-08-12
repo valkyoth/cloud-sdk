@@ -14,6 +14,7 @@ mod model;
 #[cfg(feature = "serde")]
 mod permit;
 
+pub use prepare::{MAX_ROBOT_FAILOVER_ITEM_RESPONSE_BYTES, MAX_ROBOT_FAILOVER_LIST_RESPONSE_BYTES};
 pub use request::{
     RobotFailoverDeleteRouteRequest, RobotFailoverGetRequest, RobotFailoverListRequest,
     RobotFailoverRequestError, RobotFailoverRerouteRequest,

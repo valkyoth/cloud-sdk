@@ -26,6 +26,9 @@ allocation-backed storage and all public diagnostics are redacted.
 
 `PreparedRobotFailover` and `CheckedRobotFailover` preserve exact request
 association. List responses are bounded to 4,096 distinct route identities.
+`MAX_ROBOT_FAILOVER_LIST_RESPONSE_BYTES` and
+`MAX_ROBOT_FAILOVER_ITEM_RESPONSE_BYTES` expose the exact 2 MiB and 16 KiB
+decoder limits. Both request-bound and free decoding enforce those limits.
 All envelopes require exactly the six source-locked fields. Route masks must
 be family-matched and contiguous, route host bits are rejected, owner address
 families are fixed, and non-null destinations must match the route family.

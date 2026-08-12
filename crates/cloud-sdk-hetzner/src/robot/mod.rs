@@ -71,6 +71,7 @@ pub use form::{
 
 #[cfg(feature = "alloc")]
 pub use failover::{
+    MAX_ROBOT_FAILOVER_ITEM_RESPONSE_BYTES, MAX_ROBOT_FAILOVER_LIST_RESPONSE_BYTES,
     RobotFailoverDeleteRouteRequest, RobotFailoverGetRequest, RobotFailoverListRequest,
     RobotFailoverRequestError, RobotFailoverRerouteRequest,
 };

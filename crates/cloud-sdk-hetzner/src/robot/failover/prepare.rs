@@ -20,8 +20,10 @@ use crate::robot::{RobotForm, RobotFormField, RobotIpAddress};
 
 const JSON: &[MediaType<'static>] = &[MediaType::JSON];
 const OK: &[StatusCode] = &[StatusCode::OK];
-const MAX_LIST_RESPONSE_BYTES: usize = 2_097_152;
-const MAX_ITEM_RESPONSE_BYTES: usize = 16_384;
+/// Maximum accepted success-body bytes for `GET /failover`.
+pub const MAX_ROBOT_FAILOVER_LIST_RESPONSE_BYTES: usize = 2_097_152;
+/// Maximum accepted success-body bytes for one failover resource.
+pub const MAX_ROBOT_FAILOVER_ITEM_RESPONSE_BYTES: usize = 16_384;
 const ACCEPT: [RequestHeader<'static>; 1] = [RequestHeader::accept(MediaType::JSON)];
 const FORM_HEADERS: [RequestHeader<'static>; 2] = [
     RequestHeader::accept(MediaType::JSON),
@@ -254,9 +256,9 @@ const fn id(kind: Kind<'_>) -> &'static str {
 
 const fn maximum_response_bytes(kind: Kind<'_>) -> usize {
     if matches!(kind, Kind::List) {
-        MAX_LIST_RESPONSE_BYTES
+        MAX_ROBOT_FAILOVER_LIST_RESPONSE_BYTES
     } else {
-        MAX_ITEM_RESPONSE_BYTES
+        MAX_ROBOT_FAILOVER_ITEM_RESPONSE_BYTES
     }
 }
 

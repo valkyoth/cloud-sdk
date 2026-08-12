@@ -21,6 +21,8 @@ fuzz_target!(|data: &[u8]| {
 });
 
 fn list(body: &[u8]) {
+    let synthetic = synthetic_list_boundary(body).map(|length| vec![b' '; length]);
+    let body = synthetic.as_deref().unwrap_or(body);
     let request = RobotFailoverListRequest::new();
     let mut target = [0_u8; 64];
     let mut request_body = [0_u8; 1];
@@ -28,6 +30,15 @@ fn list(body: &[u8]) {
         .prepare_bound(PreparationStorage::new(&mut target, &mut request_body))
         .unwrap_or_else(|_| unreachable!("fixed failover list preparation failed"));
     let _ = decode(prepared, body, |checked| checked.decode_response());
+}
+
+fn synthetic_list_boundary(body: &[u8]) -> Option<usize> {
+    match body {
+        b"B-" | b"B-\n" => Some(2_097_151),
+        b"B0" | b"B0\n" => Some(2_097_152),
+        b"B+" | b"B+\n" => Some(2_097_153),
+        _ => None,
+    }
 }
 
 fn detail(body: &[u8]) {

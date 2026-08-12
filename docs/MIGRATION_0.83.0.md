@@ -19,6 +19,9 @@ provider source still declares `cloud-sdk-hetzner` `0.43.0`.
 - Use `RobotFailoverDeleteRouteRequest::new(route)` to express route removal.
 - Enable `serde` for strict `RobotFailover`/`RobotFailoverList` decoding and
   request-bound execution permits.
+- Use `MAX_ROBOT_FAILOVER_LIST_RESPONSE_BYTES` and
+  `MAX_ROBOT_FAILOVER_ITEM_RESPONSE_BYTES` when sizing caller response
+  storage. Free decoders independently reject bodies above those limits.
 
 Read requests can use `prepare_bound`, validate a checked JSON response, and
 call `decode_response`. Reroute and deletion must go through

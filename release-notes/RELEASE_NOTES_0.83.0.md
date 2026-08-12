@@ -21,6 +21,8 @@ internal source milestone; no crate is selected for crates.io publication.
   redacted diagnostics.
 - Added strict bounded response models with contiguous-mask, host-bit,
   address-family, duplicate-route, and exact-field validation.
+- Enforced the 2 MiB list and 16 KiB item limits again inside the exported
+  decoders, independently of the generic checked-response provenance.
 - Added exact request association and mutation acknowledgement checks:
   reroute must echo its destination and deletion must return a JSON failover
   object with `active_server_ip: null`.
@@ -32,7 +34,9 @@ internal source milestone; no crate is selected for crates.io publication.
 - Added exact operation-specific `404`, `409`, and `500` provider failure
   classification, plus reroute-only invalid-input admission.
 - Added a bounded immutable source fixture, mutation-resistant checker,
-  deterministic contract tests, and four-path response fuzzing.
+  deterministic contract tests, and four-path response fuzzing. Exact
+  minus-one, exact, and plus-one list-body boundaries are deterministic fuzz
+  corpus paths, and smoke fuzzing admits the full selector-plus-body size.
 
 ## Reviewed Source Inconsistency
 

@@ -16,6 +16,9 @@ SOURCE_SHA256 = "4b396790acc449f47b2b3b893f8eff759c0c25196dc38b1e5e92a12c9704771
 PREPARE_SOURCE = ROOT / "crates/cloud-sdk-hetzner/src/robot/failover/prepare.rs"
 DECODE_SOURCE = ROOT / "crates/cloud-sdk-hetzner/src/robot/failover/decode.rs"
 EXCHANGE_SOURCE = ROOT / "crates/cloud-sdk-hetzner/src/robot/failover/exchange.rs"
+FUZZ_SOURCE = ROOT / "fuzz/fuzz_targets/robot_failover_response.rs"
+FUZZ_HARNESS = ROOT / "scripts/check_fuzz_harness.sh"
+FUZZ_SEEDS = ROOT / "fuzz/seeds/robot_failover_response"
 
 
 def operation(
@@ -180,8 +183,41 @@ def validate_implementation_policy() -> None:
         ).read_text(encoding="utf-8")
         require(token in source, f"implementation lost {token}")
     require("contiguous_u32" in decode and "contiguous_u128" in decode, "netmask checks changed")
+    for token in [
+        "require_body_limit(checked, MAX_ROBOT_FAILOVER_LIST_RESPONSE_BYTES)",
+        "require_body_limit(checked, MAX_ROBOT_FAILOVER_ITEM_RESPONSE_BYTES)",
+        "RobotFailoverDecodeError::ResponseTooLarge",
+    ]:
+        require(token in decode, f"decoder lost independent bound: {token}")
     require("MutationOutcomeMismatch" in exchange, "exact mutation outcomes are not enforced")
     require("actual.is_none()" in exchange, "delete JSON null acknowledgement is not enforced")
+
+
+def validate_fuzz_policy() -> None:
+    try:
+        source = FUZZ_SOURCE.read_text(encoding="utf-8")
+        harness = FUZZ_HARNESS.read_text(encoding="utf-8")
+    except OSError as error:
+        fail(f"could not read fuzz policy source: {error}")
+    for boundary in ["2_097_151", "2_097_152", "2_097_153"]:
+        require(boundary in source, f"fuzz target lost {boundary}-byte boundary")
+    require(
+        'elif [ "$target" = robot_failover_response ]; then\n'
+        "            # One selector byte plus the complete 2 MiB list-response boundary.\n"
+        "            max_len=2097153" in harness,
+        "fuzz smoke limit no longer reaches the complete failover list boundary",
+    )
+    expected = {
+        "list-boundary-minus-one.seed": b"0B-\n",
+        "list-boundary-exact.seed": b"0B0\n",
+        "list-boundary-plus-one.seed": b"0B+\n",
+    }
+    for name, payload in expected.items():
+        try:
+            actual = (FUZZ_SEEDS / name).read_bytes()
+        except OSError as error:
+            fail(f"could not read {name}: {error}")
+        require(actual == payload, f"deterministic boundary seed changed: {name}")
 
 
 def main() -> None:
@@ -189,7 +225,8 @@ def main() -> None:
     require(hashlib.sha256(payload).hexdigest() == LOCK_SHA256, "fixture digest changed")
     validate_contract(value)
     validate_implementation_policy()
-    print("5 Robot failover source policies passed; compiled tests enforce implementation policy.")
+    validate_fuzz_policy()
+    print("7 Robot failover source and fuzz policies passed; compiled tests enforce bounds.")
 
 
 if __name__ == "__main__":
