@@ -310,12 +310,12 @@ fn lexical_number(text: &str) -> Result<LexicalNumber, JsonError> {
 }
 
 fn fits_unsigned_integer(text: &str) -> bool {
-    text.len() < 20 || (text.len() == 20 && text.as_bytes() <= b"18446744073709551615")
+    text.len() < 20 || (text.len() == 20 && text.as_bytes() <= &b"18446744073709551615"[..])
 }
 
 fn fits_signed_integer(text: &str) -> bool {
     let magnitude = text.as_bytes().get(1..).unwrap_or_default();
-    magnitude.len() < 19 || (magnitude.len() == 19 && magnitude <= b"9223372036854775808")
+    magnitude.len() < 19 || (magnitude.len() == 19 && magnitude <= &b"9223372036854775808"[..])
 }
 
 #[inline]

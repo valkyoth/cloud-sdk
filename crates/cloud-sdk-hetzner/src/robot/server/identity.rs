@@ -123,7 +123,7 @@ fn valid_positive_u64_decimal(digits: &[u8]) -> bool {
         && !digits.is_empty()
         && digits.first() != Some(&b'0')
         && digits.iter().all(u8::is_ascii_digit)
-        && (digits.len() < 20 || (digits.len() == 20 && digits <= b"18446744073709551615"))
+        && (digits.len() < 20 || (digits.len() == 20 && digits <= &b"18446744073709551615"[..]))
 }
 
 impl fmt::Debug for RobotServerNumber {

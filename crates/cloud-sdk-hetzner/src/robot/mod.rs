@@ -5,7 +5,8 @@
 //! bounded forms plus an allocation-gated protected credential and lockout
 //! policy. Server operations are source-locked in `v0.78.0`, and server, IP,
 //! and subnet cancellation operations are source-locked in `v0.79.0`. Active
-//! single-IP and separate-MAC operations are source-locked in `v0.80.0`.
+//! single-IP and separate-MAC operations are source-locked in `v0.80.0`, and
+//! active subnet and subnet-MAC operations are source-locked in `v0.81.0`.
 
 #[cfg(feature = "alloc")]
 mod cancellation;
@@ -20,6 +21,8 @@ mod ip;
 mod protocol;
 #[cfg(feature = "alloc")]
 mod server;
+#[cfg(feature = "alloc")]
+mod subnet;
 
 /// Maximum Robot error-body bytes admitted by request and response policies.
 pub const MAX_ROBOT_ERROR_BODY_BYTES: usize = 65_536;
@@ -89,6 +92,25 @@ pub use server::{
     MAX_ROBOT_SERVER_NAME_BYTES, RobotServerGetRequest, RobotServerListRequest, RobotServerName,
     RobotServerNumber, RobotServerNumberError, RobotServerRequestError, RobotServerUpdateIntent,
     RobotServerUpdateRequest,
+};
+
+#[cfg(feature = "alloc")]
+pub use subnet::{
+    RobotSubnetGetRequest, RobotSubnetListRequest, RobotSubnetMacDeleteRequest,
+    RobotSubnetMacGetRequest, RobotSubnetMacSetRequest, RobotSubnetRequestError,
+    RobotSubnetTrafficUpdate, RobotSubnetUpdateRequest,
+};
+
+#[cfg(feature = "serde")]
+pub use subnet::{
+    CheckedRobotSubnet, MAX_ROBOT_SUBNET_LIST_ITEMS, MAX_ROBOT_SUBNET_MAC_OPTIONS,
+    PreparedRobotSubnet, RobotSubnet, RobotSubnetCanonicalPlanFingerprint, RobotSubnetDecodeError,
+    RobotSubnetDestructivePermit, RobotSubnetList, RobotSubnetMac, RobotSubnetMacOption,
+    RobotSubnetMutationPermit, RobotSubnetPermitAttempt, RobotSubnetPermitRequest,
+    RobotSubnetPlanConfirmation, RobotSubnetPlanFingerprintDigest, RobotSubnetPlanSubject,
+    RobotSubnetSharedDestructivePermit, RobotSubnetSharedMutationPermit, RobotSubnetTrafficPolicy,
+    build_robot_subnet_canonical_plan, build_robot_subnet_plan_digest, decode_robot_subnet,
+    decode_robot_subnet_list, decode_robot_subnet_mac,
 };
 
 #[cfg(feature = "serde")]

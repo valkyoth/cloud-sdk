@@ -214,7 +214,7 @@ pub struct RobotSubnetCancellation {
 }
 
 impl RobotSubnetCancellation {
-    /// Returns the protected subnet base identity.
+    /// Returns the protected subnet route identity.
     #[must_use]
     pub const fn subnet(&self) -> &RobotSubnetAddress {
         &self.subnet

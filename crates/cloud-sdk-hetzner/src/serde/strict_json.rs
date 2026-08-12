@@ -81,6 +81,16 @@ impl Map {
     pub(super) fn iter_mut(&mut self) -> impl Iterator<Item = (&ProtectedKey, &mut Value)> {
         self.0.iter_mut().map(|(key, value)| (&*key, value))
     }
+
+    pub(crate) fn try_for_each<E>(
+        &self,
+        mut inspect: impl FnMut(&str, &Value) -> Result<(), E>,
+    ) -> Result<(), E> {
+        for (key, value) in &self.0 {
+            inspect(key.as_str(), value)?;
+        }
+        Ok(())
+    }
 }
 
 #[derive(Eq, Ord, PartialEq, PartialOrd)]
@@ -249,7 +259,7 @@ impl Value {
         }
     }
 
-    pub(super) fn as_object(&self) -> Option<&Map> {
+    pub(crate) fn as_object(&self) -> Option<&Map> {
         match self {
             Self::Object(values) => Some(values),
             _ => None,

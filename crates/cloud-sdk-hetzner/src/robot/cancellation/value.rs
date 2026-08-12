@@ -127,16 +127,16 @@ impl core::fmt::Debug for RobotIpAddress {
     }
 }
 
-/// Canonical protected subnet base address accepted by cancellation paths.
+/// Canonical protected subnet route identity accepted by Robot paths.
 pub struct RobotSubnetAddress(RobotIpAddress);
 
 impl RobotSubnetAddress {
-    /// Creates a subnet-path identity from its canonical base address.
+    /// Creates a subnet-path identity from its canonical address spelling.
     pub fn new(value: &str) -> Result<Self, RobotCancellationValueError> {
         RobotIpAddress::new(value).map(Self)
     }
 
-    /// Runs a closure with temporary access to the canonical base address.
+    /// Runs a closure with temporary access to the canonical route identity.
     pub fn with_addr<R>(&self, inspect: impl FnOnce(IpAddr) -> R) -> R {
         self.0.with_addr(inspect)
     }
