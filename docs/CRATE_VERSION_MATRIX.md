@@ -1,8 +1,9 @@
 # Crate Version Matrix
 
 Status: `v0.80.0` is the latest published checkpoint. `v0.82.0` is the Robot
-reset internal implementation stop; its pentest and final release gate are
-required before tagging. Crates.io publication remains deferred to v0.85.0.
+reset internal release candidate; its pentest and final retest passed. GitHub
+CI and CodeQL must pass before tagging. Crates.io publication remains deferred
+to v0.85.0.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
