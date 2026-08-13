@@ -293,8 +293,10 @@ exact requested address and PTR, and delete accepts only the documented empty
 `200` response. Raw decoders remain internal. Because filtered responses omit
 their server association, decode them only with a freshly checked
 `RobotIpList` through `decode_response_with_inventory`; the SDK rejects an
-address not assigned to the exact requested server, while provider state may
-still change between reads.
+address not assigned to the exact requested server and rejects empty results as
+unverifiable. Success returns `RobotRdnsFilteredMembership`, which proves only
+non-empty membership, not completeness or authoritative absence. Provider state
+may still change between reads.
 
 ```rust
 # #[cfg(feature = "serde")]

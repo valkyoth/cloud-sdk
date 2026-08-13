@@ -22,7 +22,10 @@ and caller-supplied names are untrusted.
 - Unfiltered lists decode through their operation-bound checked wrapper.
   Filtered responses do not echo their server association and therefore
   require an independently checked `RobotIpList`; every returned address must
-  match the exact requested server assignment or decoding fails closed.
+  match the exact requested server assignment or decoding fails closed. Empty
+  filtered responses are rejected as unverifiable. Non-empty results use the
+  membership-only `RobotRdnsFilteredMembership` type and do not claim
+  completeness or authoritative absence.
 
 ### Duplicate Or Ambiguous Mutation
 
@@ -56,7 +59,8 @@ Provider acceptance does not prove forward/reverse consistency, public DNS
 propagation, domain control, mail acceptance, or later state persistence.
 Robot inventory and reverse-DNS state can change between the two reads used to
 verify a filtered list; callers requiring one coherent snapshot must reconcile
-the relevant state after the read.
+the relevant state after the read. Filtered membership does not prove that the
+provider returned every reverse-DNS entry assigned to the requested server.
 Callers must reconcile state after uncertain mutation delivery. Endpoint-bound
 authenticated transport, authorization policy, credential custody,
 allocator/process abort, and live mutation testing remain outside this

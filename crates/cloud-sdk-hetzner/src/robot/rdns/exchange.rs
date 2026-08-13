@@ -5,7 +5,10 @@ use cloud_sdk::operation::{
 use cloud_sdk::transport::ResponseBuffer;
 
 use super::decode::{RobotRdnsDecodeError, decode_robot_rdns, decode_robot_rdns_list};
-use super::model::{RobotRdns, RobotRdnsList};
+use alloc::vec::Vec;
+use core::net::IpAddr;
+
+use super::model::{RobotRdns, RobotRdnsFilteredMembership, RobotRdnsList};
 use super::request::*;
 use crate::robot::RobotIpList;
 
@@ -110,36 +113,58 @@ impl CheckedRobotRdns<'_, '_, RobotRdnsListRequest> {
         self.decode_list()
     }
 
-    /// Decodes a filtered list using independently checked Robot IP inventory.
+    /// Decodes non-empty filtered membership using checked Robot IP inventory.
     ///
     /// Every returned address must occur in `inventory` with the exact main
-    /// server address retained by this request. The inventory should be
-    /// obtained from a freshly checked Robot IP list response. Provider state
-    /// may still change between those two reads.
+    /// server address retained by this request. Empty responses remain
+    /// unverifiable because the provider does not echo the filter. This method
+    /// proves membership only, not completeness or authoritative absence. The
+    /// inventory should be obtained from a freshly checked Robot IP list
+    /// response. Provider state may still change between those two reads.
     pub fn decode_response_with_inventory(
         self,
         inventory: &RobotIpList,
-    ) -> Result<RobotRdnsList, RobotRdnsDecodeError> {
+    ) -> Result<RobotRdnsFilteredMembership, RobotRdnsDecodeError> {
         let Self { request, inner } = self;
-        let result = inner.decode_owned_with_workspace(decode_robot_rdns_list)?;
         let Some(server_address) = request.server_address() else {
-            return Ok(result);
+            return Err(RobotRdnsDecodeError::UnverifiableServerFilter);
         };
-        if result
+        let result = inner.decode_owned_with_workspace(decode_robot_rdns_list)?;
+        let result = RobotRdnsFilteredMembership::new(result)
+            .ok_or(RobotRdnsDecodeError::UnverifiableServerFilter)?;
+        let assignments = assignment_index(inventory, server_address)?;
+        if !result
             .as_slice()
             .iter()
-            .all(|entry| inventory.contains_assignment(&entry.address, server_address))
+            .all(|entry| entry.with_address(|address| assignments.binary_search(&address).is_ok()))
         {
-            Ok(result)
-        } else {
-            Err(RobotRdnsDecodeError::ResponseIdentityMismatch)
+            return Err(RobotRdnsDecodeError::ResponseIdentityMismatch);
         }
+        Ok(result)
     }
 
     fn decode_list(self) -> Result<RobotRdnsList, RobotRdnsDecodeError> {
         self.inner
             .decode_owned_with_workspace(decode_robot_rdns_list)
     }
+}
+
+fn assignment_index(
+    inventory: &RobotIpList,
+    server_address: &crate::robot::RobotIpAddress,
+) -> Result<Vec<IpAddr>, RobotRdnsDecodeError> {
+    let expected_server = server_address.with_addr(|address| address);
+    let mut assignments = Vec::new();
+    assignments
+        .try_reserve_exact(inventory.len())
+        .map_err(|_| RobotRdnsDecodeError::Allocation)?;
+    for entry in inventory.as_slice() {
+        if entry.with_server_address(|address| address == expected_server) {
+            assignments.push(entry.with_address(|address| address));
+        }
+    }
+    assignments.sort_unstable();
+    Ok(assignments)
 }
 
 impl CheckedRobotRdns<'_, '_, RobotRdnsGetRequest> {

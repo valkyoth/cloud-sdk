@@ -17,6 +17,8 @@
     "address_identity": "canonical-ipv4-or-ipv6",
     "server_filter": "canonical-ipv4-main-address-only",
     "filtered_response_identity": "checked-ip-inventory-required",
+    "filtered_response_result": "non-empty-membership-only",
+    "filtered_response_lookup": "sorted-assignment-index",
     "ptr_identity": "lowercase-ascii-dns-name-without-root-dot",
     "ptr_bytes": 253,
     "unknown_fields": "reject",

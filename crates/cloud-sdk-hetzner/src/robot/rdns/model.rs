@@ -59,3 +59,43 @@ impl core::fmt::Debug for RobotRdnsList {
         formatter.write_str("RobotRdnsList([redacted])")
     }
 }
+
+/// Non-empty filtered results whose returned entries match checked IP inventory.
+///
+/// This proves membership at the time the independent inventory was observed.
+/// It does not prove that the filtered response is complete or that an omitted
+/// reverse-DNS entry does not exist.
+pub struct RobotRdnsFilteredMembership(RobotRdnsList);
+
+impl RobotRdnsFilteredMembership {
+    pub(super) fn new(results: RobotRdnsList) -> Option<Self> {
+        (!results.is_empty()).then_some(Self(results))
+    }
+
+    /// Returns the non-empty membership-verified entries.
+    #[must_use]
+    pub fn as_slice(&self) -> &[RobotRdns] {
+        self.0.as_slice()
+    }
+
+    /// Returns the number of membership-verified entries.
+    #[must_use]
+    pub fn len(&self) -> usize {
+        self.0.len()
+    }
+
+    /// Reports whether the result is empty.
+    ///
+    /// This is always `false`; empty filtered responses are unverifiable and
+    /// cannot construct this type.
+    #[must_use]
+    pub const fn is_empty(&self) -> bool {
+        false
+    }
+}
+
+impl core::fmt::Debug for RobotRdnsFilteredMembership {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        formatter.write_str("RobotRdnsFilteredMembership([redacted])")
+    }
+}

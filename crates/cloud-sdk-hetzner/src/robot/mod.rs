@@ -135,10 +135,10 @@ pub use rdns::{
 pub use rdns::{
     CheckedRobotRdns, MAX_ROBOT_RDNS_LIST_ITEMS, PreparedRobotRdns, RobotRdns,
     RobotRdnsCanonicalPlanFingerprint, RobotRdnsDecodeError, RobotRdnsDestructivePermit,
-    RobotRdnsFailureCode, RobotRdnsList, RobotRdnsMutationPermit, RobotRdnsPermitAttempt,
-    RobotRdnsPermitRequest, RobotRdnsPlanConfirmation, RobotRdnsPlanFingerprintDigest,
-    RobotRdnsPlanSubject, RobotRdnsSharedDestructivePermit, RobotRdnsSharedMutationPermit,
-    build_robot_rdns_canonical_plan, build_robot_rdns_plan_digest,
+    RobotRdnsFailureCode, RobotRdnsFilteredMembership, RobotRdnsList, RobotRdnsMutationPermit,
+    RobotRdnsPermitAttempt, RobotRdnsPermitRequest, RobotRdnsPlanConfirmation,
+    RobotRdnsPlanFingerprintDigest, RobotRdnsPlanSubject, RobotRdnsSharedDestructivePermit,
+    RobotRdnsSharedMutationPermit, build_robot_rdns_canonical_plan, build_robot_rdns_plan_digest,
 };
 
 #[cfg(feature = "serde")]

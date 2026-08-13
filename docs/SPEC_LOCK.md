@@ -586,6 +586,8 @@ identity substitution. Set and update acknowledgements must match the exact
 requested address and PTR. Delete admits only an empty `200` response. Every
 provider error is narrowed by operation and status. Raw decoders remain
 internal. Because filtered responses omit server association, filtered list
-decoding requires independently checked IP inventory and rejects any address
-not assigned to the exact filter. No client, implicit retry, or live mutation
-is introduced.
+decoding requires independently checked IP inventory, rejects empty results,
+and rejects any address not assigned to the exact filter. The distinct result
+type proves non-empty membership only, never completeness or authoritative
+absence. A sorted bounded assignment index prevents cross-product response
+work. No client, implicit retry, or live mutation is introduced.

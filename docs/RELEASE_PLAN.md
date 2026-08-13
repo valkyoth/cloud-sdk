@@ -2652,6 +2652,8 @@ Deliverables:
   unknown/duplicate-field handling, request-associated checked decoding,
   exact PTR acknowledgement, an empty-`200` delete contract, and checked IP
   inventory verification for filtered responses that omit server association;
+  reject unverifiable empty filtered results and return a distinct non-empty
+  membership-only type without a completeness or authoritative-absence claim;
 - narrow every source-locked reverse-DNS provider error by operation and
   status, and commit the reviewed five-operation wire fixture;
 - add direct/shared permit tests, compile-fail provenance checks, malformed and
@@ -2684,6 +2686,8 @@ Exit criteria:
 - checked responses cannot cross operations or substitute IP/PTR identity;
 - raw decoders remain internal and filtered list decoding fails closed without
   checked IP inventory matching every returned address to the exact filter;
+- maximum filtered verification uses one bounded sorted assignment index rather
+  than a response-by-inventory cross-product scan;
 - dependency review confirms no new external package, feature, unsafe, native,
   network, runtime, filesystem, clock, or cryptographic edge;
 - the exact implementation commit receives an incremental pentest and any

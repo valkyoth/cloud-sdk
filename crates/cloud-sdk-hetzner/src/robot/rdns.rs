@@ -29,7 +29,7 @@ pub use exchange::{CheckedRobotRdns, PreparedRobotRdns};
 #[cfg(feature = "serde")]
 pub use failure::RobotRdnsFailureCode;
 #[cfg(feature = "serde")]
-pub use model::{MAX_ROBOT_RDNS_LIST_ITEMS, RobotRdns, RobotRdnsList};
+pub use model::{MAX_ROBOT_RDNS_LIST_ITEMS, RobotRdns, RobotRdnsFilteredMembership, RobotRdnsList};
 #[cfg(feature = "serde")]
 pub use permit::{
     RobotRdnsCanonicalPlanFingerprint, RobotRdnsDestructivePermit, RobotRdnsMutationPermit,

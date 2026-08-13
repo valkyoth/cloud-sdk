@@ -28,6 +28,9 @@ after its incremental pentest and green CI/CodeQL but publishes no crate.
   identities and bind mutation acknowledgements to the requested IP and PTR.
 - Kept raw decoders internal and made filtered-list decoding require checked IP
   inventory because the provider response omits its server association.
+- Rejected unverifiable empty filtered responses, returned non-empty matches as
+  a distinct membership-only type, and bounded verification through a sorted
+  assignment index tested at the 4,096-by-4,096 input boundary.
 - Required the documented empty `200` delete response and narrowed every
   source-locked provider failure by operation and status.
 - Added an immutable five-operation source fixture, mutation-resistant checker,

@@ -39,9 +39,13 @@ echo the exact requested IP and PTR. Delete requires the documented empty
 Raw response decoders remain crate-private so callers cannot discard the typed
 request provenance. An unfiltered list decodes directly through its checked
 wrapper. Because a filtered Robot response does not echo the requested server
-association, filtered decoding fails closed unless the caller supplies a
-strictly decoded `RobotIpList`; every returned address must be assigned to the
-exact filtered server in that inventory.
+association, empty filtered responses remain unverifiable. Non-empty filtered
+decoding requires a strictly decoded `RobotIpList`; every returned address must
+be assigned to the exact filtered server in that inventory. The result is the
+distinct `RobotRdnsFilteredMembership` type, which proves membership only and
+cannot be confused with the potentially empty authoritative `RobotRdnsList`.
+Verification indexes the bounded inventory once and uses binary search rather
+than a cross-product scan.
 
 `RobotRdnsFailureCode` narrows only the source-locked failures admitted for the
 specific reverse-DNS operation and status.

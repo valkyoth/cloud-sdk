@@ -10,7 +10,7 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 LOCK = ROOT / "tests/fixtures/robot-rdns/v0.86.0.json"
-LOCK_SHA256 = "3db04f7689ea8319e2c370ead3a6e868b0c824e21d27821cb47d4167f6cf7f07"
+LOCK_SHA256 = "0baecb5e6b4db7dcc63326eb49a5b588d49c4f8b8b8be7238c3f62b8e98b0717"
 SOURCE_SHA256 = "4b396790acc449f47b2b3b893f8eff759c0c25196dc38b1e5e92a12c9704771a"
 MAX_LOCK_BYTES = 16 * 1024
 RDNS_SOURCE = ROOT / "crates/cloud-sdk-hetzner/src/robot/rdns"
@@ -35,6 +35,8 @@ POLICY = {
     "address_identity": "canonical-ipv4-or-ipv6",
     "server_filter": "canonical-ipv4-main-address-only",
     "filtered_response_identity": "checked-ip-inventory-required",
+    "filtered_response_result": "non-empty-membership-only",
+    "filtered_response_lookup": "sorted-assignment-index",
     "ptr_identity": "lowercase-ascii-dns-name-without-root-dot",
     "ptr_bytes": 253,
     "unknown_fields": "reject",
@@ -102,7 +104,8 @@ def validate_implementation_structure() -> None:
         "request.rs": ["InvalidServerAddress", "RobotRdnsSetRequest", "RobotRdnsUpdateRequest", "RobotRdnsDeleteRequest"],
         "value.rs": ["MAX_ROBOT_RDNS_NAME_BYTES", "valid_label", "SecretBoxBytes", "constant_time_eq"],
         "decode.rs": ["MAX_ROBOT_RDNS_LIST_ITEMS", "reject_duplicates_by_cmp", "ResponseIdentityMismatch", "InvalidPtr"],
-        "exchange.rs": ["MutationOutcomeMismatch", "RobotRdnsDeleteRequest", "decode_response_with_inventory"],
+        "exchange.rs": ["MutationOutcomeMismatch", "RobotRdnsDeleteRequest", "decode_response_with_inventory", "binary_search"],
+        "model.rs": ["RobotRdnsFilteredMembership", "then_some"],
         "failure.rs": ["RDNS_ALREADY_EXISTS", "RDNS_CREATE_FAILED", "RDNS_UPDATE_FAILED", "RDNS_DELETE_FAILED"],
         "permit.rs": ["RobotRdnsSetRequest", "RobotRdnsUpdateRequest", "RobotRdnsDeleteRequest"],
     }

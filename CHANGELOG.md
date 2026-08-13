@@ -11,6 +11,8 @@
   by operation and status.
 - Kept raw decoders internal and required checked Robot IP inventory before a
   server-filtered list can be accepted.
+- Rejected empty filtered responses as unverifiable and exposed non-empty
+  matches through a membership-only type backed by bounded indexed lookup.
 - Added request-bound mutation and destructive permits, immutable source-lock
   evidence, mutation-resistant contract checks, and direct decoder fuzzing.
 - Deferred crates.io publication to the cumulative v0.90.0 checkpoint.

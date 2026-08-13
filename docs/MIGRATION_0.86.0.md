@@ -39,10 +39,14 @@ List requests optionally accept a canonical IPv4 main-server address as their
 or IPv6 identities. Unfiltered lists use `decode_response`. A filtered Robot
 response does not echo the server association, so obtain a freshly checked
 `RobotIpList` and call `decode_response_with_inventory`; decoding rejects every
-returned address that is not assigned to the exact filtered server. Provider
-state can still change between those reads. Decode only through the
-operation-associated prepared/checked wrapper so status, media type, bounds,
-and request identity remain enforced; raw decoders are intentionally internal.
+returned address that is not assigned to the exact filtered server. Empty
+filtered responses fail as unverifiable. A successful call returns
+`RobotRdnsFilteredMembership`, which proves only that the returned non-empty
+entries belonged to the server when the inventory was observed; it does not
+prove completeness or absence. Provider state can still change between those
+reads. Decode only through the operation-associated prepared/checked wrapper
+so status, media type, bounds, and request identity remain enforced; raw
+decoders are intentionally internal.
 
 ## Mutation Requirements
 

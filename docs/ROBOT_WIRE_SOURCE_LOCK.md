@@ -303,10 +303,12 @@ with an empty body; no-content and JSON acknowledgements are not admitted.
 List decoding caps the collection at 4,096 entries and rejects duplicate IP
 identities. Raw decoders are internal. A filtered response does not echo the
 server association, so its checked wrapper requires independently checked IP
-inventory and verifies every returned address against the exact filter. The
-provider can still change assignment state between the inventory and
-reverse-DNS reads. The exact operation, form, status, quota, error, and response
-contract is committed in
+inventory and verifies every returned address against the exact filter through
+a sorted bounded assignment index. Empty filtered responses fail closed. The
+distinct successful result proves non-empty membership only, not completeness
+or authoritative absence. The provider can still change assignment state
+between the inventory and reverse-DNS reads. The exact operation, form, status,
+quota, error, and response contract is committed in
 [`v0.86.0.json`](../tests/fixtures/robot-rdns/v0.86.0.json) and checked by
 `scripts/check_robot_rdns.sh`.
 
