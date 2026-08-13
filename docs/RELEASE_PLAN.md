@@ -2577,11 +2577,54 @@ Stop gate: `v0.84.0 implementation stop reached. Complete the pentest and full r
 
 ### v0.85.0 - Robot Boot Configuration
 
-Goal: complete rescue, Linux, VNC, and Windows boot operations.
+Goal: complete the active Robot rescue, Linux, VNC, and Windows boot API and
+publish the cumulative v0.81-v0.85 checkpoint without admitting deprecated
+address aliases or architecture request fields.
 
-Deliverables: overview/get/activate/deactivate/last operations, validated configuration fields, generated passwords/keys, and protected cleanup.
+Deliverables:
 
-Verification: secret/form/compatibility/source tests and `scripts/release_0_85_gate.sh`.
+- implement the exact 15 active overview, get, activate, deactivate, and last
+  operations under `cloud_sdk_hetzner::robot::boot` with canonical positive
+  server-number paths and the documented 500-request/hour quota;
+- provide bounded boot selectors, keyboard layouts, language values, and up
+  to 64 unique authorized-key fingerprints with atomic form preparation;
+- classify every activation/deactivation as non-idempotent with automatic
+  retry disabled, and classify Linux, VNC, and Windows activation as
+  destructive because rebooting into an installer can erase server data;
+- decode strict identity-bound family and overview envelopes, accepting only
+  the explicitly source-locked deprecated response fields while never
+  exposing them in public models;
+- retain generated passwords, authorized keys, and host keys only in
+  redacted, cleanup-owning protected storage and require closure-scoped secret
+  access;
+- bind every checked response to its exact request type, enforce activation
+  selector/language acknowledgement, and require deactivation to return an
+  inactive password-free state;
+- source-lock the official operation, quota, field, error, and deprecation
+  inventory and add deterministic response seeds plus a bounded direct
+  decoder fuzz target; and
+- publish `cloud-sdk 0.85.0` and `cloud-sdk-hetzner 0.44.0`, plus dependency-
+  only `cloud-sdk-reqwest 0.35.2` and `cloud-sdk-testkit 0.30.4`; keep the
+  unchanged sanitization package unselected.
+
+Verification:
+
+- `scripts/check_robot_boot.sh` verifies the immutable source fixture,
+  mutation resistance, implementation-policy tokens, and focused compiled
+  tests for all four boot families;
+- provider tests cover exact methods, paths, forms, quota metadata,
+  destructive classification, no-retry behavior, malformed and duplicate
+  values, unknown fields, identity mismatch, protected secrets, mutation
+  outcome mismatch, and complete preparation cleanup;
+- compile-fail documentation proves checked responses cannot cross operation
+  types, while the fuzz harness exercises overview and family responses at
+  the exact 1 MiB boundary;
+- the generic Robot API drift checker re-fetches the official documentation
+  and proves exactly 15 active boot rows remain assigned to this milestone;
+  and
+- `scripts/release_0_85_gate.sh` runs cumulative dependency, platform,
+  upstream-drift, SBOM, audit, pentest-readiness, and package-selection checks
+  for the public checkpoint.
 
 Stop gate: `v0.85.0 implementation stop reached. Run the pentest for this exact commit before tagging and crates.io publication.`
 

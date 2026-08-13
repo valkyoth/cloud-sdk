@@ -535,3 +535,28 @@ Success must match the request route. Reroute additionally requires the exact
 requested destination, while deletion requires the official JSON object with
 `active_server_ip: null`. Empty/no-content deletion is not admitted. Every
 provider error is status-and-operation bound.
+
+## v0.85.0 Robot Boot Policy
+
+The 15 active boot rows are bound to
+`tests/fixtures/robot-api/v0.74.0.json` and the exact normalized contract in
+`tests/fixtures/robot-boot/v0.85.0.json`. The set covers the four-family
+overview, Rescue and Linux current/activate/deactivate/last operations, and VNC
+and Windows current/activate/deactivate operations. Paths accept only canonical
+positive server numbers; deprecated server-IP aliases and architecture inputs
+remain excluded.
+
+Selectors and keyboard layouts are nonempty bounded text without controls or
+bidirectional format controls. Rescue and Linux admit at most 64 unique
+authorized-key fingerprints. Form fields preserve exact source order, use the
+sensitive body policy, and clear complete caller storage on preparation
+failure. Every mutation is non-idempotent and never automatically retryable;
+Linux, VNC, and Windows activation is destructive.
+
+Responses are capped at 1 MiB and require exact family envelopes, canonical
+IPv4/IPv6 identities, the requested server number, bounded duplicate-free
+choices and keys, and coherent active/password state. Activation must select
+the exact requested primary value and language; deactivation must return an
+inactive password-free available state. Generated passwords and keys use
+protected owned storage. Literal deprecated response fields are validated and
+discarded. Every provider error is status-and-operation bound.

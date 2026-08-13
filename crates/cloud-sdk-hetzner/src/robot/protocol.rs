@@ -84,6 +84,16 @@ pub enum RobotProviderErrorCode {
     WolNotAvailable,
     /// Robot could not send the Wake-on-LAN packet.
     WolFailed,
+    /// Boot configuration is unavailable for the server.
+    BootNotAvailable,
+    /// Robot could not activate the selected boot configuration.
+    BootActivationFailed,
+    /// Robot could not deactivate the selected boot configuration.
+    BootDeactivationFailed,
+    /// The server has no Windows addon.
+    WindowsMissingAddon,
+    /// The selected or active Windows version is unsupported.
+    WindowsOutdatedVersion,
 }
 
 /// Protected details from an `INVALID_INPUT` response.

@@ -380,6 +380,17 @@ the documented 500 discovery/hour and 10 send/hour allowances without
 performing implicit throttling. Deprecated IPv4 path aliases are intentionally
 absent.
 
+`v0.85.0` implements all 15 active boot-configuration operations for the
+overview, Rescue, Linux, VNC, and Windows families. Requests use canonical
+server-number paths, bounded selectors and key fingerprints, atomic sensitive
+forms, exact operation metadata, and the documented 500-request/hour quota.
+All mutations are non-idempotent and never automatically retried; Linux, VNC,
+and Windows activation is destructive. Strict checked decoding binds identity,
+family, selector, language, and final state to the exact request while retaining
+generated passwords and keys only in protected redacted storage. Deprecated
+request fields remain unavailable, and source-locked deprecated response
+fields are validated then discarded.
+
 Robot implementation schedule:
 
 | Group | Active | Deprecated | Planned Module | Milestone | Status |
@@ -391,7 +402,7 @@ Robot implementation schedule:
 | reset | 3 | 0 | `cloud_sdk_hetzner::robot::reset` | `v0.82.0` | implemented |
 | failover | 4 | 0 | `cloud_sdk_hetzner::robot::failover` | `v0.83.0` | implemented |
 | wake on LAN | 2 | 0 | `cloud_sdk_hetzner::robot::wol` | `v0.84.0` | implemented |
-| boot configuration | 15 | 0 | `cloud_sdk_hetzner::robot::boot` | `v0.85.0` | planned |
+| boot configuration | 15 | 0 | `cloud_sdk_hetzner::robot::boot` | `v0.85.0` | implemented |
 | reverse DNS | 5 | 0 | `cloud_sdk_hetzner::robot::rdns` | `v0.86.0` | planned |
 | traffic | 1 | 0 | `cloud_sdk_hetzner::robot::traffic` | `v0.87.0` | planned |
 | SSH keys | 5 | 0 | `cloud_sdk_hetzner::robot::ssh_keys` | `v0.88.0` | planned |

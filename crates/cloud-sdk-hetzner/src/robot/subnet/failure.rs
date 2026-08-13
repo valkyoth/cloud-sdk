@@ -45,7 +45,12 @@ impl RobotSubnetFailureCode {
             | RobotProviderErrorCode::FailoverFailed
             | RobotProviderErrorCode::FailoverNotComplete
             | RobotProviderErrorCode::WolNotAvailable
-            | RobotProviderErrorCode::WolFailed => None,
+            | RobotProviderErrorCode::WolFailed
+            | RobotProviderErrorCode::BootNotAvailable
+            | RobotProviderErrorCode::BootActivationFailed
+            | RobotProviderErrorCode::BootDeactivationFailed
+            | RobotProviderErrorCode::WindowsMissingAddon
+            | RobotProviderErrorCode::WindowsOutdatedVersion => None,
         }
     }
 }

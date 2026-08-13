@@ -8,9 +8,9 @@ edition = "2024"
 cargo-fuzz = true
 
 [dependencies]
-cloud-sdk = { path = "../crates/cloud-sdk", version = "=0.84.0" }
-cloud-sdk-hetzner = { path = "../crates/cloud-sdk-hetzner", version = "=0.43.0", features = ["serde"] }
-cloud-sdk-reqwest = { path = "../crates/cloud-sdk-reqwest", version = "=0.35.1", default-features = false, features = ["fuzzing"] }
+cloud-sdk = { path = "../crates/cloud-sdk", version = "=0.85.0" }
+cloud-sdk-hetzner = { path = "../crates/cloud-sdk-hetzner", version = "=0.44.0", features = ["serde"] }
+cloud-sdk-reqwest = { path = "../crates/cloud-sdk-reqwest", version = "=0.35.2", default-features = false, features = ["fuzzing"] }
 libfuzzer-sys = "0.4.13"
 serde_json = "1.0.151"
 
@@ -192,6 +192,13 @@ bench = false
 [[bin]]
 name = "robot_failover_response"
 path = "fuzz_targets/robot_failover_response.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "robot_boot_response"
+path = "fuzz_targets/robot_boot_response.rs"
 test = false
 doc = false
 bench = false

@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.85.0 - Unreleased
+
+- Added all 15 active Robot boot-configuration operations across overview,
+  Rescue, Linux, VNC, and Windows families.
+- Added bounded activation forms, strict identity- and state-bound responses,
+  protected generated passwords and keys, exact failure narrowing, source-lock
+  checks, and direct decoder fuzz coverage.
+- Classified every boot mutation as non-idempotent and retry-denied, with
+  Linux, VNC, and Windows activation marked destructive.
+- Prepared the cumulative v0.81-v0.85 public checkpoint and selected only the
+  changed facade/provider plus dependency-only reqwest/testkit patches.
+
 ## 0.64.0 - 2026-08-08
 
 - Added source-complete owned Cloud action results with canonical UTC

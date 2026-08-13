@@ -1,0 +1,82 @@
+{
+  "schema_version": 1,
+  "source": {
+    "retrieved": "2026-08-13",
+    "url": "https://robot.hetzner.com/doc/webservice/en.html",
+    "sha256": "4b396790acc449f47b2b3b893f8eff759c0c25196dc38b1e5e92a12c9704771a"
+  },
+  "identity_fields": ["server_ip", "server_ipv6_net", "server_number"],
+  "families": {
+    "rescue": {
+      "primary": "os",
+      "languages": false,
+      "authorized_key": true,
+      "host_key": true,
+      "last": true,
+      "activation_fields": ["os", "authorized_key[]", "keyboard"],
+      "deprecated_fields": ["arch"]
+    },
+    "linux": {
+      "primary": "dist",
+      "languages": true,
+      "authorized_key": true,
+      "host_key": true,
+      "last": true,
+      "activation_fields": ["dist", "lang", "authorized_key[]"],
+      "deprecated_fields": ["arch"]
+    },
+    "vnc": {
+      "primary": "dist",
+      "languages": true,
+      "authorized_key": false,
+      "host_key": false,
+      "last": false,
+      "activation_fields": ["dist", "lang"],
+      "deprecated_fields": ["arch"]
+    },
+    "windows": {
+      "primary": "os",
+      "languages": true,
+      "authorized_key": false,
+      "host_key": false,
+      "last": false,
+      "activation_fields": ["lang", "os"],
+      "deprecated_fields": ["arch", "dist"]
+    }
+  },
+  "operations": [
+    {"id":"robot_get_boot","method":"GET","path":"/boot/{server-number}","family":"all","state":"current","input":[],"errors":[[404,"SERVER_NOT_FOUND"],[404,"BOOT_NOT_AVAILABLE"]]},
+    {"id":"robot_get_rescue","method":"GET","path":"/boot/{server-number}/rescue","family":"rescue","state":"current","input":[],"errors":[[404,"SERVER_NOT_FOUND"],[404,"BOOT_NOT_AVAILABLE"]]},
+    {"id":"robot_activate_rescue","method":"POST","path":"/boot/{server-number}/rescue","family":"rescue","state":"active","input":["os","authorized_key[]","keyboard"],"errors":[[400,"INVALID_INPUT"],[404,"SERVER_NOT_FOUND"],[404,"BOOT_NOT_AVAILABLE"],[500,"BOOT_ACTIVATION_FAILED"]]},
+    {"id":"robot_deactivate_rescue","method":"DELETE","path":"/boot/{server-number}/rescue","family":"rescue","state":"inactive","input":[],"errors":[[404,"SERVER_NOT_FOUND"],[404,"BOOT_NOT_AVAILABLE"],[500,"BOOT_DEACTIVATION_FAILED"]]},
+    {"id":"robot_get_last_rescue","method":"GET","path":"/boot/{server-number}/rescue/last","family":"rescue","state":"last","input":[],"errors":[[404,"SERVER_NOT_FOUND"],[404,"BOOT_NOT_AVAILABLE"]]},
+    {"id":"robot_get_linux","method":"GET","path":"/boot/{server-number}/linux","family":"linux","state":"current","input":[],"errors":[[404,"SERVER_NOT_FOUND"],[404,"BOOT_NOT_AVAILABLE"]]},
+    {"id":"robot_activate_linux","method":"POST","path":"/boot/{server-number}/linux","family":"linux","state":"active","input":["dist","lang","authorized_key[]"],"errors":[[400,"INVALID_INPUT"],[404,"SERVER_NOT_FOUND"],[404,"BOOT_NOT_AVAILABLE"],[500,"BOOT_ACTIVATION_FAILED"]]},
+    {"id":"robot_deactivate_linux","method":"DELETE","path":"/boot/{server-number}/linux","family":"linux","state":"inactive","input":[],"errors":[[404,"SERVER_NOT_FOUND"],[404,"BOOT_NOT_AVAILABLE"],[500,"BOOT_DEACTIVATION_FAILED"]]},
+    {"id":"robot_get_last_linux","method":"GET","path":"/boot/{server-number}/linux/last","family":"linux","state":"last","input":[],"errors":[[404,"SERVER_NOT_FOUND"],[404,"BOOT_NOT_AVAILABLE"]]},
+    {"id":"robot_get_vnc","method":"GET","path":"/boot/{server-number}/vnc","family":"vnc","state":"current","input":[],"errors":[[404,"SERVER_NOT_FOUND"],[404,"BOOT_NOT_AVAILABLE"]]},
+    {"id":"robot_activate_vnc","method":"POST","path":"/boot/{server-number}/vnc","family":"vnc","state":"active","input":["dist","lang"],"errors":[[400,"INVALID_INPUT"],[404,"SERVER_NOT_FOUND"],[404,"BOOT_NOT_AVAILABLE"],[500,"BOOT_ACTIVATION_FAILED"]]},
+    {"id":"robot_deactivate_vnc","method":"DELETE","path":"/boot/{server-number}/vnc","family":"vnc","state":"inactive","input":[],"errors":[[404,"SERVER_NOT_FOUND"],[404,"BOOT_NOT_AVAILABLE"],[500,"BOOT_DEACTIVATION_FAILED"]]},
+    {"id":"robot_get_windows","method":"GET","path":"/boot/{server-number}/windows","family":"windows","state":"current","input":[],"errors":[[404,"SERVER_NOT_FOUND"],[404,"BOOT_NOT_AVAILABLE"],[404,"WINDOWS_OUTDATED_VERSION"]]},
+    {"id":"robot_activate_windows","method":"POST","path":"/boot/{server-number}/windows","family":"windows","state":"active","input":["lang","os"],"errors":[[400,"INVALID_INPUT"],[404,"SERVER_NOT_FOUND"],[404,"BOOT_NOT_AVAILABLE"],[404,"WINDOWS_MISSING_ADDON"],[404,"WINDOWS_OUTDATED_VERSION"],[500,"BOOT_ACTIVATION_FAILED"]]},
+    {"id":"robot_deactivate_windows","method":"DELETE","path":"/boot/{server-number}/windows","family":"windows","state":"inactive","input":[],"errors":[[404,"SERVER_NOT_FOUND"],[404,"BOOT_NOT_AVAILABLE"],[404,"WINDOWS_OUTDATED_VERSION"],[500,"BOOT_DEACTIVATION_FAILED"]]}
+  ],
+  "quota": {"requests": 500, "seconds": 3600},
+  "policy": {
+    "canonical_server_number_route": true,
+    "deprecated_server_ip_routes": "excluded",
+    "deprecated_request_fields": "excluded",
+    "deprecated_response_fields": "validated-then-discarded",
+    "unknown_fields": "reject",
+    "response_identity": "exact-request-number-and-canonical-address-families",
+    "response_body_bytes": 1048576,
+    "selector_bytes": 256,
+    "key_bytes": 16384,
+    "maximum_options": 256,
+    "maximum_authorized_keys": 64,
+    "generated_passwords_and_keys": "protected-owned-storage",
+    "mutation_retry": "never",
+    "linux_vnc_windows_activation": "destructive",
+    "windows_activation_warning": "reboot-starts-installation-and-deletes-all-server-data"
+  }
+}

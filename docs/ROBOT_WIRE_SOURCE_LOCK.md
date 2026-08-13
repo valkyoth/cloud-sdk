@@ -9,7 +9,9 @@ All nine cancellation operations are implemented in `v0.79.0`; all six
 single-IP and separate-MAC operations are implemented in `v0.80.0`. Subnet and
 subnet-MAC operations are implemented in `v0.81.0`; reset discovery and
 execution are implemented in `v0.82.0`; failover discovery and route
-transitions are implemented in `v0.83.0`.
+transitions are implemented in `v0.83.0`; Wake-on-LAN is implemented in
+`v0.84.0`; all active boot-configuration operations are implemented in
+`v0.85.0`.
 
 Retrieved: 2026-07-30
 
@@ -255,6 +257,31 @@ acknowledgement and does not admit `204` or an empty body. The complete field,
 quota, error, inconsistency, and security contract is committed in
 [`v0.83.0.json`](../tests/fixtures/robot-failover/v0.83.0.json) and checked by
 `scripts/check_robot_failovers.sh`.
+
+## Boot Configuration Contract
+
+`v0.85.0` implements the complete 15-operation boot family: the four-family
+overview, Rescue and Linux current/activate/deactivate/last operations, and
+VNC and Windows current/activate/deactivate operations. All paths use only a
+canonical positive server number. Deprecated server-IP aliases and request
+`arch` fields are absent.
+
+Selectors, keyboard layouts, languages, and repeated authorized-key
+fingerprints are bounded and atomically form encoded. All mutations are
+non-idempotent and deny automatic retry. Linux, VNC, and Windows activation is
+destructive because rebooting into an installer can erase server data.
+Generated passwords, authorized keys, and host keys use protected owned
+storage with closure-scoped access and redacted diagnostics.
+
+Strict decoding requires canonical IPv4/IPv6 identity families and the exact
+requested server number. Unknown and duplicate fields, oversized or duplicate
+options or keys, contradictory active/password state, selector mismatch, and
+cross-operation response use fail closed. Deprecated response `arch` and
+Windows `dist` fields are accepted only where source-locked, validated, then
+discarded rather than exposed. The exact operation, field, quota, error,
+deprecation, and security contract is committed in
+[`v0.85.0.json`](../tests/fixtures/robot-boot/v0.85.0.json) and checked by
+`scripts/check_robot_boot.sh`.
 
 ## Verification
 

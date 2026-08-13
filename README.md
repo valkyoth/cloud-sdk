@@ -77,13 +77,12 @@ listed in the
 
 The v0.80 crates.io checkpoint includes exhaustive named clients for every
 active Hetzner Cloud, DNS, Security, and Console Storage Box operation plus the
-Robot protocol foundation, canonical server list/get/rename, all nine server,
-IP, and subnet cancellation operations, and all six single-IP and separate-MAC
-operations with strict typed success models. The provider crate remains
-transport-free and performs no network request. The unpublished v0.81-v0.84
-source milestones add all active Robot subnet, subnet-MAC, reset, failover, and
-Wake-on-LAN operations; crates.io publication remains deferred to v0.85.
-Future FIPS work remains deferred until Brynja is ready.
+Robot protocol foundation and its first endpoint families. The v0.85 release
+candidate adds the complete cumulative Robot subnet, reset, failover,
+Wake-on-LAN, and boot-configuration slices and is awaiting its required
+pentest before publication. Provider crates remain transport-free and perform
+no network request by default. Future FIPS work remains deferred until Brynja
+is ready.
 
 ## Trust Dashboard
 
@@ -141,8 +140,8 @@ Portable and native platform evidence is documented in
 
 ```toml
 [dependencies]
-cloud-sdk = "0.80.0"
-cloud-sdk-hetzner = "0.43.0"
+cloud-sdk = "0.85.0"
+cloud-sdk-hetzner = "0.44.0"
 ```
 
 ## cloud-sdk Features
@@ -235,6 +234,7 @@ visible. Applications should enable only the features they use.
 - [Migrating source users to v0.82](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.82.0.md)
 - [Migrating source users to v0.83](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.83.0.md)
 - [Migrating source users to v0.84](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.84.0.md)
+- [Migrating to v0.85](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.85.0.md)
 - [Compile-time Hetzner operation associations](https://github.com/valkyoth/cloud-sdk/blob/main/docs/OPERATION_ASSOCIATIONS.md)
 - [Incremental provider decoding](https://github.com/valkyoth/cloud-sdk/blob/main/docs/INCREMENTAL_DECODING.md)
 - [Deprecated endpoint policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/DEPRECATED_ENDPOINT_POLICY.md)
@@ -572,8 +572,8 @@ without changing the default allocation-free graph.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.80.0"
-cloud-sdk-reqwest = { version = "0.35.1", features = ["blocking-rustls"] }
+cloud-sdk = "0.85.0"
+cloud-sdk-reqwest = { version = "0.35.2", features = ["blocking-rustls"] }
 ```
 
 The production builder is HTTPS-only, requires explicit bounded timeouts and a
@@ -599,8 +599,8 @@ when deterministic public WebPKI roots are required:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.80.0"
-cloud-sdk-reqwest = { version = "0.35.1", features = ["blocking-rustls-webpki-roots"] }
+cloud-sdk = "0.85.0"
+cloud-sdk-reqwest = { version = "0.35.2", features = ["blocking-rustls-webpki-roots"] }
 ```
 
 The blocking API is unchanged. This feature excludes host-added enterprise
@@ -622,8 +622,8 @@ See the [FIPS deferment policy](https://github.com/valkyoth/cloud-sdk/blob/main/
 
 ```toml
 [dependencies]
-cloud-sdk = "0.80.0"
-cloud-sdk-reqwest = { version = "0.35.1", features = ["async-rustls"] }
+cloud-sdk = "0.85.0"
+cloud-sdk-reqwest = { version = "0.35.2", features = ["async-rustls"] }
 ```
 
 The async adapter requires an active Tokio executor because reqwest uses Tokio

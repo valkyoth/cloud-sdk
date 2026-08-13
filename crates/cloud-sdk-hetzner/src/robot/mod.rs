@@ -11,7 +11,11 @@
 //! Failover discovery, rerouting, and route deletion are source-locked in
 //! `v0.83.0`. Capability-checked Wake-on-LAN discovery and execution are
 //! source-locked in `v0.84.0`.
+//! Rescue, Linux, VNC, and Windows boot configuration operations are
+//! source-locked in `v0.85.0`.
 
+#[cfg(feature = "alloc")]
+mod boot;
 #[cfg(feature = "alloc")]
 mod cancellation;
 #[cfg(feature = "alloc")]
@@ -70,6 +74,25 @@ pub use credentials::{
 pub use form::{
     EncodedRobotForm, MAX_ROBOT_FORM_BODY_BYTES, MAX_ROBOT_FORM_FIELDS, MAX_ROBOT_FORM_NAME_BYTES,
     MAX_ROBOT_FORM_VALUE_BYTES, RobotForm, RobotFormError, RobotFormField, RobotFormSensitivity,
+};
+
+#[cfg(feature = "alloc")]
+pub use boot::{
+    MAX_ROBOT_BOOT_AUTHORIZED_KEYS, MAX_ROBOT_BOOT_KEY_BYTES, MAX_ROBOT_BOOT_RESPONSE_BYTES,
+    MAX_ROBOT_BOOT_VALUE_BYTES, ROBOT_BOOT_QUOTA, RobotBootGetRequest, RobotBootKey,
+    RobotBootQuota, RobotBootRequestError, RobotBootValue, RobotKeyboardLayout,
+    RobotLinuxActivateRequest, RobotLinuxDeactivateRequest, RobotLinuxGetRequest,
+    RobotLinuxLastRequest, RobotRescueActivateRequest, RobotRescueDeactivateRequest,
+    RobotRescueGetRequest, RobotRescueLastRequest, RobotVncActivateRequest,
+    RobotVncDeactivateRequest, RobotVncGetRequest, RobotWindowsActivateRequest,
+    RobotWindowsDeactivateRequest, RobotWindowsGetRequest,
+};
+
+#[cfg(feature = "serde")]
+pub use boot::{
+    CheckedRobotBoot, PreparedRobotBoot, RobotBoot, RobotBootChoice, RobotBootDecodeError,
+    RobotBootEntry, RobotBootFailureCode, RobotBootFamily, RobotBootSecret, decode_robot_boot,
+    decode_robot_boot_entry,
 };
 
 #[cfg(feature = "alloc")]
