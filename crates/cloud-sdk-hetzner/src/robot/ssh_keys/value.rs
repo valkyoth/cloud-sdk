@@ -234,6 +234,10 @@ mod tests {
                 RobotSshKeyName::new(&format!("prod{character}key")).err(),
                 Some(RobotSshKeyValueError::Invalid)
             );
+            assert_eq!(
+                RobotSshKeyData::new(&format!("ssh-ed25519 AAAA prod{character}key")).err(),
+                Some(RobotSshKeyValueError::Invalid)
+            );
         }
     }
 

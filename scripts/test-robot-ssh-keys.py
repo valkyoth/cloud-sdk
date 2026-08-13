@@ -12,11 +12,25 @@ ROOT = Path(__file__).resolve().parents[1]
 CHECK = ROOT / "scripts/check_robot_ssh_keys.py"
 FIXTURE = ROOT / "tests/fixtures/robot-ssh-keys/v0.88.0.json"
 API_LOCK = ROOT / "tests/fixtures/robot-api/v0.74.0.json"
+FUZZ_HARNESS = ROOT / "scripts/check_fuzz_harness.sh"
 
 
-def run(fixture: Path, api_lock: Path = API_LOCK) -> subprocess.CompletedProcess[str]:
+def run(
+    fixture: Path,
+    api_lock: Path = API_LOCK,
+    fuzz_harness: Path = FUZZ_HARNESS,
+) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
-        ["python3", str(CHECK), "--fixture", str(fixture), "--api-lock", str(api_lock)],
+        [
+            "python3",
+            str(CHECK),
+            "--fixture",
+            str(fixture),
+            "--api-lock",
+            str(api_lock),
+            "--fuzz-harness",
+            str(fuzz_harness),
+        ],
         cwd=ROOT,
         check=False,
         capture_output=True,
@@ -42,7 +56,20 @@ def main() -> None:
             path = Path(directory) / f"mutation-{index}.json"
             path.write_text(json.dumps(mutation), encoding="ascii")
             assert run(path).returncode != 0
-    print("4 Robot SSH-key contract regression groups passed.")
+        harness = Path(directory) / "check_fuzz_harness.sh"
+        source = FUZZ_HARNESS.read_text(encoding="ascii")
+        reviewed = (
+            'elif [ "$target" = robot_ssh_key_response ]; then\n'
+            "            # One selector byte plus the complete 2 MiB list-response boundary.\n"
+            "            max_len=2097153"
+        )
+        assert reviewed in source
+        harness.write_text(
+            source.replace(reviewed, reviewed.replace("2097153", "32769")),
+            encoding="ascii",
+        )
+        assert run(FIXTURE, fuzz_harness=harness).returncode != 0
+    print("5 Robot SSH-key contract regression groups passed.")
 
 
 if __name__ == "__main__":

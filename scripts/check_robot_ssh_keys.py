@@ -6,12 +6,14 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 FIXTURE = ROOT / "tests/fixtures/robot-ssh-keys/v0.88.0.json"
 API_LOCK = ROOT / "tests/fixtures/robot-api/v0.74.0.json"
+FUZZ_HARNESS = ROOT / "scripts/check_fuzz_harness.sh"
 MAX_BYTES = 64 * 1024
 FIXTURE_SHA256 = "913a447077962f5d1993ff21af7f4699cc4be0b2472d6fbc4bd6c37fb793db4e"
 
@@ -44,7 +46,7 @@ def expected() -> dict[str, Any]:
     )
 
 
-def validate(fixture: Path, api_lock: Path) -> None:
+def validate(fixture: Path, api_lock: Path, fuzz_harness: Path) -> None:
     try:
         fixture_digest = hashlib.sha256(fixture.read_bytes()).hexdigest()
     except OSError as error:
@@ -71,14 +73,26 @@ def validate(fixture: Path, api_lock: Path) -> None:
     }
     if actual_rows != expected_rows:
         fail("API inventory does not contain the exact five active SSH-key rows")
+    try:
+        harness = fuzz_harness.read_text(encoding="ascii")
+    except (OSError, UnicodeError) as error:
+        fail(f"could not read {fuzz_harness}: {error}")
+    fuzz_limit = re.search(
+        r'elif \[ "\$target" = robot_ssh_key_response \]; then\n'
+        r'(?:[^\n]*\n)*?\s*max_len=([0-9]+)\n',
+        harness,
+    )
+    if fuzz_limit is None or fuzz_limit.group(1) != "2097153":
+        fail("fuzzing must admit one selector plus the complete 2 MiB list response")
 
 
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--fixture", type=Path, default=FIXTURE)
     parser.add_argument("--api-lock", type=Path, default=API_LOCK)
+    parser.add_argument("--fuzz-harness", type=Path, default=FUZZ_HARNESS)
     args = parser.parse_args()
-    validate(args.fixture, args.api_lock)
+    validate(args.fixture, args.api_lock, args.fuzz_harness)
     print("Robot SSH-key source contract passed.")
 
 

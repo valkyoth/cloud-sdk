@@ -97,8 +97,8 @@ case "$mode" in
             # One selector byte plus the complete 8 MiB traffic-response boundary.
             max_len=8388609
         elif [ "$target" = robot_ssh_key_response ]; then
-            # One selector byte plus the complete 32 KiB item-response boundary.
-            max_len=32769
+            # One selector byte plus the complete 2 MiB list-response boundary.
+            max_len=2097153
         fi
         cargo "+${toolchain}" fuzz run "$target" "$corpus" -- \
             -runs=64 "-max_len=${max_len}" -timeout=10

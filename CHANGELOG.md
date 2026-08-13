@@ -10,10 +10,12 @@
   a separate SHA-256 identity for caller comparisons.
 - Added request-bound mutation/destructive permits, source contract checks,
   adversarial tests, and get/list/RFC 4716 create response fuzzing.
-- Reject Unicode controls and directional formatting in key names and SSH2
-  headers, sanitize non-copying fingerprint intermediates, prevalidate cross-
-  policy construction before borrowing request storage, and use guarded
-  storage in migration guidance.
+- Reject Unicode controls and directional formatting in key names, OpenSSH
+  comments, and SSH2 headers; sanitize non-copying fingerprint intermediates;
+  prevalidate cross-policy construction before borrowing request storage; and
+  use guarded storage in migration guidance.
+- Exercise the complete 2 MiB Robot SSH-key list-response boundary through the
+  dedicated response fuzzer.
 - Deferred crates.io publication to the cumulative v0.90.0 checkpoint.
 
 ## 0.87.0 - 2026-08-13

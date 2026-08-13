@@ -7,6 +7,7 @@ use crate::labels::{LabelKey, LabelSelector, LabelValue};
 use crate::pagination::{Page, PerPage, SortDirection};
 use crate::request::ApiBaseUrl;
 use crate::security::shared::SecurityRequestError;
+use alloc::format;
 use core::fmt::Write;
 
 #[test]
@@ -123,6 +124,16 @@ fn ssh_key_validation_rejects_bad_inputs() {
             Err(SecurityRequestError::InvalidSshPublicKey)
         );
     }
+    for character in [
+        '\u{0085}', '\u{061c}', '\u{200b}', '\u{202e}', '\u{2069}', '\u{feff}',
+    ] {
+        let value = format!("ssh-ed25519 AAAA deploy{character}key");
+        assert_eq!(
+            SshPublicKey::new(&value),
+            Err(SecurityRequestError::InvalidSshPublicKey)
+        );
+    }
+    assert!(SshPublicKey::new("ssh-ed25519 AAAA deploy-key-\u{00e5}").is_ok());
     assert_eq!(
         SshKeyListRequest::new().with_fingerprint("zz:zz"),
         Err(SecurityRequestError::InvalidSshFingerprint)

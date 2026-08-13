@@ -139,7 +139,12 @@ pub struct SshPublicKey<'a> {
 impl<'a> SshPublicKey<'a> {
     /// Creates a conservatively validated SSH public key value.
     pub fn new(value: &'a str) -> Result<Self, SecurityRequestError> {
-        if value.is_empty() || value.len() > MAX_SSH_PUBLIC_KEY_BYTES || has_control_byte(value) {
+        if value.is_empty()
+            || value.len() > MAX_SSH_PUBLIC_KEY_BYTES
+            || value
+                .chars()
+                .any(crate::display::is_unsafe_display_character)
+        {
             return Err(SecurityRequestError::InvalidSshPublicKey);
         }
         let mut fields = value.split(' ');

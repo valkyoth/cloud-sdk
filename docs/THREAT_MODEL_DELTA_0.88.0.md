@@ -12,9 +12,9 @@ but the account inventory and deployment associations are sensitive metadata.
 ## Controls
 
 - Names and path fingerprints use protected non-copyable storage and redacted
-  diagnostics. Names and SSH2 headers reject Unicode controls, directional
-  formatting, zero-width controls, and BOM. Response key text uses
-  cleanup-owning secret storage and only closure-scoped access.
+  diagnostics. Names, OpenSSH comments, and SSH2 headers reject Unicode
+  controls, directional formatting, zero-width controls, and BOM. Response key
+  text uses cleanup-owning secret storage and only closure-scoped access.
 - OpenSSH responses are Base64-decoded, parsed as exact RFC 4253 wire values,
   and checked for algorithm-specific structure. Source `type` and `size` must
   agree with the parsed key.
@@ -27,7 +27,8 @@ but the account inventory and deployment associations are sensitive metadata.
   provider response to match both the requested name and SHA-256 identity.
 - List responses are bounded and reject duplicate fingerprints. Get and
   update responses must match the exact protected path fingerprint; rename
-  responses must also match the requested name.
+  responses must also match the requested name. Dedicated fuzzing admits one
+  selector byte plus the complete 2 MiB list-response boundary.
 - Create and rename bodies are sensitive atomic forms. They require exact
   request-bound strong-digest mutation authority. Delete requires separate
   destructive authority. Automatic mutation retry remains forbidden.
