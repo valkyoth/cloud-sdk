@@ -79,10 +79,10 @@ The v0.80 crates.io checkpoint includes exhaustive named clients for every
 active Hetzner Cloud, DNS, Security, and Console Storage Box operation plus the
 Robot protocol foundation and its first endpoint families. The v0.85 release
 candidate adds the complete cumulative Robot subnet, reset, failover,
-Wake-on-LAN, and boot-configuration slices and is awaiting its required
-pentest before publication. Provider crates remain transport-free and perform
-no network request by default. Future FIPS work remains deferred until Brynja
-is ready.
+Wake-on-LAN, and boot-configuration slices. Its pentest and final retest have
+passed; publication awaits the unchanged GitHub CI/CodeQL result. Provider
+crates remain transport-free and perform no network request by default.
+Future FIPS work remains deferred until Brynja is ready.
 
 ## Trust Dashboard
 

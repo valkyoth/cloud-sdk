@@ -2628,6 +2628,9 @@ Verification:
 
 Stop gate: `v0.85.0 implementation stop reached. Run the pentest for this exact commit before tagging and crates.io publication.`
 
+Status: release candidate; pentest and final retest passed. The unchanged
+evidence commit now awaits the local release gate and GitHub CI/CodeQL.
+
 ### v0.86.0 - Robot Reverse DNS
 
 Goal: complete reverse-DNS operations.

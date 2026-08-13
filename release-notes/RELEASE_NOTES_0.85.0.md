@@ -1,11 +1,11 @@
 # cloud-sdk 0.85.0 Release Notes
 
-Status: implementation stop; pentest required.
+Status: release candidate; pentest and final retest passed.
 
-Release date: pending
+Release date: 2026-08-13
 
-Security-Review: PENDING
-Pentest: PENDING
+Security-Review: PASS
+Pentest: PASS
 Publication: PENDING
 
 ## Overview
@@ -27,8 +27,8 @@ facade, Hetzner provider, reqwest adapter, and testkit crates.
   decoding for identity, selector, language, active state, passwords, and
   generated key material.
 - Bound decoding to exact overview/current/last/mutation response shapes,
-  admitted the documented inactive Windows overview null language, and reject
-  contradictory state or multiple active overview families.
+  admitted the documented inactive Windows overview null language, and
+  rejected contradictory state or multiple active overview families.
 - Added operation-specific boot/Windows error narrowing and explicit handling
   of source-locked deprecated response fields without exposing them.
 - Added a 15-operation immutable source fixture, mutation-resistant checker,
@@ -59,7 +59,7 @@ core dependency requirement changes.
 - [`docs/THREAT_MODEL_DELTA_0.85.0.md`](../docs/THREAT_MODEL_DELTA_0.85.0.md)
 - [`docs/REJECTED_ABSTRACTIONS_0.85.0.md`](../docs/REJECTED_ABSTRACTIONS_0.85.0.md)
 - [`docs/MIGRATION_0.85.0.md`](../docs/MIGRATION_0.85.0.md)
-- `security/pentest/v0.85.0.md` after the required pentest and retest
+- [`security/pentest/v0.85.0.md`](../security/pentest/v0.85.0.md)
 
 ## Release Gate
 
