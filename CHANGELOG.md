@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.87.0 - Unreleased
+## 0.87.0 - 2026-08-13
 
 - Added the active Robot traffic query with bounded repeated IP/subnet targets,
   protected exact intervals, and optional individual values.

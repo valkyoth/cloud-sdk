@@ -1,8 +1,8 @@
 # Crate Version Matrix
 
 Status: `v0.85.0` is the latest published checkpoint. `v0.87.0` is the Robot
-traffic implementation stop; its incremental pentest is required before
-tagging, while crates.io publication remains deferred to `v0.90.0`.
+traffic release candidate; its incremental pentest and final retest passed,
+while crates.io publication remains deferred to `v0.90.0`.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared

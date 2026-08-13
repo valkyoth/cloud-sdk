@@ -2774,7 +2774,7 @@ Exit criteria:
 
 Stop gate: `v0.87.0 implementation stop reached. Run the incremental pentest for this exact commit before the full release gate and tag; defer crates.io publication to v0.90.0.`
 
-Status: implementation stop; pentest required.
+Status: release candidate; pentest and final retest passed.
 
 ### v0.88.0 - Robot SSH Keys
 

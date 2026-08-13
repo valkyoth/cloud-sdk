@@ -1,11 +1,11 @@
 # cloud-sdk 0.87.0 Release Notes
 
-Status: implementation stop; pentest required.
+Status: release candidate; pentest and final retest passed.
 
-Release date: unreleased
+Release date: 2026-08-13
 
-Security-Review: PENDING
-Pentest: PENDING
+Security-Review: PASS
+Pentest: PASS
 Publication: DEFERRED TO v0.90.0
 
 ## Overview
@@ -53,10 +53,10 @@ incremental pentest and green CI/CodeQL but publishes no crate.
 - [`docs/THREAT_MODEL_DELTA_0.87.0.md`](../docs/THREAT_MODEL_DELTA_0.87.0.md)
 - [`docs/REJECTED_ABSTRACTIONS_0.87.0.md`](../docs/REJECTED_ABSTRACTIONS_0.87.0.md)
 - [`docs/MIGRATION_0.87.0.md`](../docs/MIGRATION_0.87.0.md)
+- [`security/pentest/v0.87.0.md`](../security/pentest/v0.87.0.md)
 
 ## Stop Gate
 
-Run the incremental pentest against the exact implementation-stop commit.
-After remediation and retest, add the report, run `scripts/release_0_87_gate.sh`,
-and require green GitHub CI/CodeQL on the unchanged evidence commit before
-tagging. Do not publish crates for v0.87.
+The incremental pentest and final remediation retest passed. Run
+`scripts/release_0_87_gate.sh` and require green GitHub CI/CodeQL on the
+unchanged evidence commit before tagging. Do not publish crates for v0.87.
