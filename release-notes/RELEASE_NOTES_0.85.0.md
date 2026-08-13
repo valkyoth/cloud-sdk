@@ -26,6 +26,9 @@ facade, Hetzner provider, reqwest adapter, and testkit crates.
 - Added protected typed overview/family models and strict exact-request
   decoding for identity, selector, language, active state, passwords, and
   generated key material.
+- Bound decoding to exact overview/current/last/mutation response shapes,
+  admitted the documented inactive Windows overview null language, and reject
+  contradictory state or multiple active overview families.
 - Added operation-specific boot/Windows error narrowing and explicit handling
   of source-locked deprecated response fields without exposing them.
 - Added a 15-operation immutable source fixture, mutation-resistant checker,

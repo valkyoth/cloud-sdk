@@ -555,8 +555,12 @@ Linux, VNC, and Windows activation is destructive.
 
 Responses are capped at 1 MiB and require exact family envelopes, canonical
 IPv4/IPv6 identities, the requested server number, bounded duplicate-free
-choices and keys, and coherent active/password state. Activation must select
-the exact requested primary value and language; deactivation must return an
-inactive password-free available state. Generated passwords and keys use
-protected owned storage. Literal deprecated response fields are validated and
-discarded. Every provider error is status-and-operation bound.
+choices and keys, and coherent active/password/selection state. Typed request
+provenance selects the overview, current, last, activation, or deactivation
+decoder shape; no shape-free decoder is public. The overview alone admits an
+inactive Windows null language and rejects more than one active family.
+Activation must select the exact requested primary value and language;
+deactivation must return an inactive password-free available state, while a
+last-operation response retains exact selected values. Generated passwords
+and keys use protected owned storage. Literal deprecated response fields are
+validated and discarded. Every provider error is status-and-operation bound.

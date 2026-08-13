@@ -13,7 +13,7 @@ mod request;
 mod value;
 
 #[cfg(feature = "serde")]
-pub use decode::{RobotBootDecodeError, decode_robot_boot, decode_robot_boot_entry};
+pub use decode::RobotBootDecodeError;
 #[cfg(feature = "serde")]
 pub use exchange::{CheckedRobotBoot, PreparedRobotBoot};
 #[cfg(feature = "serde")]
@@ -34,5 +34,7 @@ pub use value::{
     RobotBootKey, RobotBootValue, RobotKeyboardLayout,
 };
 
+#[cfg(all(test, feature = "serde"))]
+mod state_tests;
 #[cfg(all(test, feature = "serde"))]
 mod tests;

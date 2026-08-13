@@ -18,7 +18,11 @@ contain generated passwords and private host material.
 - Selectors, languages, keyboard layouts, and keys are bounded before form
   construction. Duplicate authorized-key fingerprints fail closed.
 - Typed checked responses retain the exact request. Identity, family,
-  selector, language, and final active state must match that request.
+  response shape, selector, language, and final active state must match that
+  request.
+- Overview, current, last, activation, and deactivation responses enforce
+  separate state invariants. Overview responses reject multiple active boot
+  families and narrowly admit an inactive Windows null language.
 
 ### Duplicate Or Ambiguous Mutation
 
@@ -35,6 +39,9 @@ contain generated passwords and private host material.
   allocation.
 - Unknown, duplicate, missing, malformed, noncanonical, cross-family,
   oversized, contradictory, and identity-substituted values are rejected.
+  Active current state requires a generated password and exact selected
+  configuration; last-operation state retains an exact selection even after
+  deactivation.
 - Deprecated output fields are narrowly admitted only where source-locked,
   validated, and discarded.
 - Failure decoding narrows source-locked codes by operation and status.

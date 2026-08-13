@@ -14,6 +14,7 @@ const RESCUE_ACTIVE: &[u8] = br#"{"rescue":{"server_ip":"192.0.2.10","server_ipv
 const LINUX_INACTIVE: &[u8] = br#"{"linux":{"server_ip":"192.0.2.10","server_ipv6_net":"2001:db8::","server_number":321,"dist":["Debian 13 minimal"],"@deprecated arch":[64],"lang":["en"],"active":false,"password":null,"authorized_key":[],"host_key":[]}}"#;
 const VNC_INACTIVE: &[u8] = br#"{"vnc":{"server_ip":"192.0.2.10","server_ipv6_net":"2001:db8::","server_number":321,"dist":["rescue-vnc"],"lang":["en_US"],"active":false,"password":null}}"#;
 const WINDOWS_INACTIVE: &[u8] = br#"{"windows":{"server_ip":"192.0.2.10","server_ipv6_net":"2001:db8::","server_number":321,"dist":["standard"],"os":["Windows Server 2022 Standard Edition"],"lang":["en"],"active":false,"password":null}}"#;
+const WINDOWS_OVERVIEW_INACTIVE: &[u8] = br#"{"windows":{"server_ip":"192.0.2.10","server_ipv6_net":"2001:db8::","server_number":321,"dist":null,"os":["Windows Server 2022 Standard Edition"],"lang":null,"active":false,"password":null}}"#;
 
 #[test]
 fn prepares_all_fifteen_canonical_operations() {
@@ -178,7 +179,7 @@ fn deactivation_and_overview_require_exact_state_and_identity() {
         inner(RESCUE_ACTIVE, "rescue"),
         inner(LINUX_INACTIVE, "linux"),
         inner(VNC_INACTIVE, "vnc"),
-        inner(WINDOWS_INACTIVE, "windows"),
+        inner(WINDOWS_OVERVIEW_INACTIVE, "windows"),
     );
     let request = RobotBootGetRequest::new(number());
     let boot = decode_bound(&request, overview.as_bytes(), |checked| {

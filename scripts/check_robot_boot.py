@@ -10,7 +10,7 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 LOCK = ROOT / "tests/fixtures/robot-boot/v0.85.0.json"
-LOCK_SHA256 = "1345e41767116eedb9406df2520454e1d5c54ec9712b3ddd5df6173acef74e64"
+LOCK_SHA256 = "c00cccc36974814e781a423564df286684bf16345d4ed18b2734c1f481b8b910"
 SOURCE_SHA256 = "4b396790acc449f47b2b3b893f8eff759c0c25196dc38b1e5e92a12c9704771a"
 MAX_LOCK_BYTES = 16 * 1024
 BOOT_SOURCE = ROOT / "crates/cloud-sdk-hetzner/src/robot/boot"
@@ -47,6 +47,10 @@ POLICY = {
     "deprecated_response_fields": "validated-then-discarded",
     "unknown_fields": "reject",
     "response_identity": "exact-request-number-and-canonical-address-families",
+    "response_shape": "typed-operation-bound",
+    "state_coherence": "shape-specific-fail-closed",
+    "overview_active_families": "at-most-one",
+    "windows_overview_null_language": "inactive-only",
     "response_body_bytes": 1048576,
     "selector_bytes": 256,
     "key_bytes": 16384,
@@ -126,11 +130,15 @@ def validate_contract(value: dict[str, Any]) -> None:
 
 
 def validate_implementation_policy() -> None:
-    sources = {path.name: path.read_text(encoding="utf-8") for path in BOOT_SOURCE.glob("*.rs")}
+    sources = {
+        path.relative_to(BOOT_SOURCE).as_posix(): path.read_text(encoding="utf-8")
+        for path in BOOT_SOURCE.rglob("*.rs")
+    }
     required = {
         "prepare.rs": ["/boot/", "OperationImpact::Destructive", "RetryEligibility::Never", "authorized_key[]", "RequestBodySensitivity::Sensitive"],
-        "decode.rs": ["MAX_ROBOT_BOOT_KEY_BYTES", "ResponseIdentityMismatch", "reject_duplicate_secrets", "@deprecated arch"],
-        "exchange.rs": ["require_active_choice", "require_inactive", "RobotWindowsActivateRequest"],
+        "decode.rs": ["MAX_ROBOT_BOOT_KEY_BYTES", "ResponseIdentityMismatch", "reject_duplicate_secrets", "active_count", "@deprecated arch"],
+        "decode/state.rs": ["RobotBootEntryShape", "validate_state", "MutationOutcomeMismatch"],
+        "exchange.rs": ["RobotBootEntryShape::Current", "RobotBootEntryShape::Last", "RobotBootEntryShape::Activation", "RobotBootEntryShape::Deactivation", "RobotWindowsActivateRequest"],
         "failure.rs": ["BOOT_ACTIVATION_FAILED", "BOOT_DEACTIVATION_FAILED", "WINDOWS_MISSING_ADDON", "WINDOWS_OUTDATED_VERSION"],
         "model.rs": ["RobotBootSecret", "try_with_secret", "RobotBootChoice"],
         "request.rs": ["TooManyAuthorizedKeys", "DuplicateAuthorizedKey", "ROBOT_BOOT_QUOTA", "max_requests: 500", "RobotWindowsActivateRequest"],
@@ -148,7 +156,7 @@ def main() -> None:
     require(hashlib.sha256(payload).hexdigest() == LOCK_SHA256, "fixture digest changed")
     validate_contract(value)
     validate_implementation_policy()
-    print("15 Robot boot operations and 7 source/security policy groups passed.")
+    print("15 Robot boot operations and 11 source/security policy groups passed.")
 
 
 if __name__ == "__main__":

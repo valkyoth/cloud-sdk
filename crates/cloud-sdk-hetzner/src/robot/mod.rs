@@ -91,8 +91,7 @@ pub use boot::{
 #[cfg(feature = "serde")]
 pub use boot::{
     CheckedRobotBoot, PreparedRobotBoot, RobotBoot, RobotBootChoice, RobotBootDecodeError,
-    RobotBootEntry, RobotBootFailureCode, RobotBootFamily, RobotBootSecret, decode_robot_boot,
-    decode_robot_boot_entry,
+    RobotBootEntry, RobotBootFailureCode, RobotBootFamily, RobotBootSecret,
 };
 
 #[cfg(feature = "alloc")]

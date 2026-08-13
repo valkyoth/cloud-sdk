@@ -30,8 +30,12 @@ Decoding requires canonical address families, the exact server number, exact
 family envelopes, bounded duplicate-free collections, and coherent
 active/password/selection state. Activation acknowledgements must match the
 requested selector and language; deactivation must return inactive,
-password-free state. Operation-specific failures admit only the source-locked
-boot and Windows codes.
+password-free state. Each checked request supplies its internal overview,
+current, last, activation, or deactivation response shape; shape-free decoder
+functions are not exposed. The documented inactive Windows overview null
+language is admitted only there, and overviews reject multiple active
+families. Operation-specific failures admit only the source-locked boot and
+Windows codes.
 
 ## Cumulative Publication
 

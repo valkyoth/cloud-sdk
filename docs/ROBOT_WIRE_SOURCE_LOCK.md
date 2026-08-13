@@ -275,11 +275,14 @@ storage with closure-scoped access and redacted diagnostics.
 
 Strict decoding requires canonical IPv4/IPv6 identity families and the exact
 requested server number. Unknown and duplicate fields, oversized or duplicate
-options or keys, contradictory active/password state, selector mismatch, and
-cross-operation response use fail closed. Deprecated response `arch` and
-Windows `dist` fields are accepted only where source-locked, validated, then
-discarded rather than exposed. The exact operation, field, quota, error,
-deprecation, and security contract is committed in
+options or keys, contradictory active/password/selection state, selector
+mismatch, and cross-operation response use fail closed. Decoding is bound to
+the typed operation's overview, current, last, activation, or deactivation
+shape. An overview admits the documented inactive Windows `lang: null` shape
+only in that context and rejects more than one active family. Deprecated
+response `arch` and Windows `dist` fields are accepted only where
+source-locked, validated, then discarded rather than exposed. The exact
+operation, field, quota, error, deprecation, and security contract is committed in
 [`v0.85.0.json`](../tests/fixtures/robot-boot/v0.85.0.json) and checked by
 `scripts/check_robot_boot.sh`.
 

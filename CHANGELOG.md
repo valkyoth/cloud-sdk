@@ -7,6 +7,9 @@
 - Added bounded activation forms, strict identity- and state-bound responses,
   protected generated passwords and keys, exact failure narrowing, source-lock
   checks, and direct decoder fuzz coverage.
+- Bound boot decoding to exact operation response shapes, including the
+  documented inactive Windows overview null language, and rejected
+  contradictory state or multiple simultaneously active boot families.
 - Classified every boot mutation as non-idempotent and retry-denied, with
   Linux, VNC, and Windows activation marked destructive.
 - Prepared the cumulative v0.81-v0.85 public checkpoint and selected only the

@@ -10,6 +10,10 @@ use crate::robot::{RobotCancellationValueError, RobotIpAddress, RobotServerNumbe
 use crate::serde::SensitiveText;
 use crate::serde::strict_json::{JsonError, Map, Value, parse_with_scratch};
 
+pub(super) mod state;
+
+use state::{RobotBootEntryShape, validate_state};
+
 const MAX_OPTIONS: usize = 256;
 
 /// Failure while decoding a source-locked Robot boot response.
@@ -51,7 +55,7 @@ impl_static_error!(RobotBootDecodeError,
 );
 
 /// Decodes the complete `GET /boot/{server-number}` response.
-pub fn decode_robot_boot(
+pub(super) fn decode_robot_boot(
     checked: CheckedResponse<'_>,
     expected: &RobotServerNumber,
     workspace: &mut ResponseDecodeWorkspace,
@@ -68,15 +72,46 @@ pub fn decode_robot_boot(
         .and_then(Value::as_object_mut)
         .ok_or(RobotBootDecodeError::InvalidEnvelope)?;
     require_fields(boot, &["rescue", "linux", "vnc", "windows"])?;
-    let rescue = take_entry(boot, "rescue", RobotBootFamily::Rescue, expected)?;
-    let linux = take_entry(boot, "linux", RobotBootFamily::Linux, expected)?;
-    let vnc = take_entry(boot, "vnc", RobotBootFamily::Vnc, expected)?;
-    let windows = take_entry(boot, "windows", RobotBootFamily::Windows, expected)?;
+    let rescue = take_entry(
+        boot,
+        "rescue",
+        RobotBootFamily::Rescue,
+        RobotBootEntryShape::Overview,
+        expected,
+    )?;
+    let linux = take_entry(
+        boot,
+        "linux",
+        RobotBootFamily::Linux,
+        RobotBootEntryShape::Overview,
+        expected,
+    )?;
+    let vnc = take_entry(
+        boot,
+        "vnc",
+        RobotBootFamily::Vnc,
+        RobotBootEntryShape::Overview,
+        expected,
+    )?;
+    let windows = take_entry(
+        boot,
+        "windows",
+        RobotBootFamily::Windows,
+        RobotBootEntryShape::Overview,
+        expected,
+    )?;
     if !same_identity(&rescue, &linux)
         || !same_identity(&rescue, &vnc)
         || !same_identity(&rescue, &windows)
     {
         return Err(RobotBootDecodeError::ResponseIdentityMismatch);
+    }
+    let active_count = [&rescue, &linux, &vnc, &windows]
+        .into_iter()
+        .filter(|entry| entry.is_active())
+        .count();
+    if active_count > 1 {
+        return Err(RobotBootDecodeError::MutationOutcomeMismatch);
     }
     Ok(RobotBoot {
         rescue,
@@ -87,10 +122,11 @@ pub fn decode_robot_boot(
 }
 
 /// Decodes one family-specific boot response and checks request identity.
-pub fn decode_robot_boot_entry(
+pub(super) fn decode_robot_boot_entry(
     checked: CheckedResponse<'_>,
     expected: &RobotServerNumber,
     family: RobotBootFamily,
+    shape: RobotBootEntryShape,
     workspace: &mut ResponseDecodeWorkspace,
 ) -> Result<RobotBootEntry, RobotBootDecodeError> {
     require_ok(checked)?;
@@ -101,13 +137,14 @@ pub fn decode_robot_boot_entry(
         .ok_or(RobotBootDecodeError::InvalidEnvelope)?;
     let field = family_name(family);
     require_fields(wrapper, &[field])?;
-    take_entry(wrapper, field, family, expected)
+    take_entry(wrapper, field, family, shape, expected)
 }
 
 fn take_entry(
     wrapper: &mut Map,
     field: &str,
     family: RobotBootFamily,
+    shape: RobotBootEntryShape,
     expected: &RobotServerNumber,
 ) -> Result<RobotBootEntry, RobotBootDecodeError> {
     let object = wrapper
@@ -125,6 +162,10 @@ fn take_entry(
     if &number != expected {
         return Err(RobotBootDecodeError::ResponseIdentityMismatch);
     }
+    let active = object
+        .get("active")
+        .and_then(Value::as_bool)
+        .ok_or(RobotBootDecodeError::InvalidEnvelope)?;
     let primary_name = if matches!(family, RobotBootFamily::Rescue | RobotBootFamily::Windows) {
         "os"
     } else {
@@ -136,7 +177,12 @@ fn take_entry(
             .ok_or(RobotBootDecodeError::InvalidEnvelope)?,
         MAX_ROBOT_BOOT_VALUE_BYTES,
     )?;
-    let languages = if matches!(family, RobotBootFamily::Rescue) {
+    let languages = if matches!(family, RobotBootFamily::Rescue)
+        || (family == RobotBootFamily::Windows
+            && shape == RobotBootEntryShape::Overview
+            && !active
+            && object.get("lang").is_some_and(Value::is_null))
+    {
         None
     } else {
         Some(parse_choice(
@@ -146,10 +192,6 @@ fn take_entry(
             MAX_ROBOT_BOOT_VALUE_BYTES,
         )?)
     };
-    let active = object
-        .get("active")
-        .and_then(Value::as_bool)
-        .ok_or(RobotBootDecodeError::InvalidEnvelope)?;
     let password = take_optional_secret(object, "password", MAX_ROBOT_BOOT_KEY_BYTES)?;
     let (authorized_keys, host_keys) =
         if matches!(family, RobotBootFamily::Rescue | RobotBootFamily::Linux) {
@@ -160,10 +202,7 @@ fn take_entry(
         } else {
             (Vec::new(), Vec::new())
         };
-    if !active && password.is_some() {
-        return Err(RobotBootDecodeError::MutationOutcomeMismatch);
-    }
-    Ok(RobotBootEntry {
+    let entry = RobotBootEntry {
         family,
         server_ipv4,
         server_ipv6_network,
@@ -174,7 +213,9 @@ fn take_entry(
         password,
         authorized_keys,
         host_keys,
-    })
+    };
+    validate_state(&entry, shape)?;
+    Ok(entry)
 }
 
 fn validate_fields(object: &mut Map, family: RobotBootFamily) -> Result<(), RobotBootDecodeError> {

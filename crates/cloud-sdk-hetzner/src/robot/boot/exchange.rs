@@ -4,6 +4,7 @@ use cloud_sdk::operation::{
 };
 use cloud_sdk::transport::ResponseBuffer;
 
+use super::decode::state::RobotBootEntryShape;
 use super::decode::{RobotBootDecodeError, decode_robot_boot, decode_robot_boot_entry};
 use super::model::{RobotBoot, RobotBootEntry, RobotBootFamily};
 use super::request::*;
@@ -105,29 +106,58 @@ impl CheckedRobotBoot<'_, '_, RobotBootGetRequest> {
 }
 
 macro_rules! decode_read {
-    ($type:ty, $family:expr) => {
+    ($type:ty, $family:expr, $shape:expr) => {
         impl CheckedRobotBoot<'_, '_, $type> {
             /// Decodes one identity-bound family response.
             pub fn decode_response(self) -> Result<RobotBootEntry, RobotBootDecodeError> {
-                decode_entry(self.request.number(), $family, self.inner)
+                decode_entry(self.request.number(), $family, $shape, self.inner)
             }
         }
     };
 }
 
-decode_read!(RobotRescueGetRequest, RobotBootFamily::Rescue);
-decode_read!(RobotRescueLastRequest, RobotBootFamily::Rescue);
-decode_read!(RobotLinuxGetRequest, RobotBootFamily::Linux);
-decode_read!(RobotLinuxLastRequest, RobotBootFamily::Linux);
-decode_read!(RobotVncGetRequest, RobotBootFamily::Vnc);
-decode_read!(RobotWindowsGetRequest, RobotBootFamily::Windows);
+decode_read!(
+    RobotRescueGetRequest,
+    RobotBootFamily::Rescue,
+    RobotBootEntryShape::Current
+);
+decode_read!(
+    RobotRescueLastRequest,
+    RobotBootFamily::Rescue,
+    RobotBootEntryShape::Last
+);
+decode_read!(
+    RobotLinuxGetRequest,
+    RobotBootFamily::Linux,
+    RobotBootEntryShape::Current
+);
+decode_read!(
+    RobotLinuxLastRequest,
+    RobotBootFamily::Linux,
+    RobotBootEntryShape::Last
+);
+decode_read!(
+    RobotVncGetRequest,
+    RobotBootFamily::Vnc,
+    RobotBootEntryShape::Current
+);
+decode_read!(
+    RobotWindowsGetRequest,
+    RobotBootFamily::Windows,
+    RobotBootEntryShape::Current
+);
 
 macro_rules! decode_deactivate {
     ($type:ty, $family:expr) => {
         impl CheckedRobotBoot<'_, '_, $type> {
             /// Decodes an exact inactive acknowledgement.
             pub fn decode_response(self) -> Result<RobotBootEntry, RobotBootDecodeError> {
-                let entry = decode_entry(self.request.number(), $family, self.inner)?;
+                let entry = decode_entry(
+                    self.request.number(),
+                    $family,
+                    RobotBootEntryShape::Deactivation,
+                    self.inner,
+                )?;
                 require_inactive(entry)
             }
         }
@@ -142,7 +172,12 @@ decode_deactivate!(RobotWindowsDeactivateRequest, RobotBootFamily::Windows);
 impl CheckedRobotBoot<'_, '_, RobotRescueActivateRequest<'_>> {
     /// Decodes and matches an active Rescue acknowledgement.
     pub fn decode_response(self) -> Result<RobotBootEntry, RobotBootDecodeError> {
-        let entry = decode_entry(self.request.number(), RobotBootFamily::Rescue, self.inner)?;
+        let entry = decode_entry(
+            self.request.number(),
+            RobotBootFamily::Rescue,
+            RobotBootEntryShape::Activation,
+            self.inner,
+        )?;
         require_active_choice(entry, self.request.os.as_str(), None)
     }
 }
@@ -150,7 +185,12 @@ impl CheckedRobotBoot<'_, '_, RobotRescueActivateRequest<'_>> {
 impl CheckedRobotBoot<'_, '_, RobotLinuxActivateRequest<'_>> {
     /// Decodes and matches an active Linux acknowledgement.
     pub fn decode_response(self) -> Result<RobotBootEntry, RobotBootDecodeError> {
-        let entry = decode_entry(self.request.number(), RobotBootFamily::Linux, self.inner)?;
+        let entry = decode_entry(
+            self.request.number(),
+            RobotBootFamily::Linux,
+            RobotBootEntryShape::Activation,
+            self.inner,
+        )?;
         require_active_choice(
             entry,
             self.request.distribution.as_str(),
@@ -162,7 +202,12 @@ impl CheckedRobotBoot<'_, '_, RobotLinuxActivateRequest<'_>> {
 impl CheckedRobotBoot<'_, '_, RobotVncActivateRequest<'_>> {
     /// Decodes and matches an active VNC acknowledgement.
     pub fn decode_response(self) -> Result<RobotBootEntry, RobotBootDecodeError> {
-        let entry = decode_entry(self.request.number(), RobotBootFamily::Vnc, self.inner)?;
+        let entry = decode_entry(
+            self.request.number(),
+            RobotBootFamily::Vnc,
+            RobotBootEntryShape::Activation,
+            self.inner,
+        )?;
         require_active_choice(
             entry,
             self.request.distribution.as_str(),
@@ -174,7 +219,12 @@ impl CheckedRobotBoot<'_, '_, RobotVncActivateRequest<'_>> {
 impl CheckedRobotBoot<'_, '_, RobotWindowsActivateRequest<'_>> {
     /// Decodes and matches a destructive Windows acknowledgement.
     pub fn decode_response(self) -> Result<RobotBootEntry, RobotBootDecodeError> {
-        let entry = decode_entry(self.request.number(), RobotBootFamily::Windows, self.inner)?;
+        let entry = decode_entry(
+            self.request.number(),
+            RobotBootFamily::Windows,
+            RobotBootEntryShape::Activation,
+            self.inner,
+        )?;
         require_active_choice(
             entry,
             self.request.operating_system.as_str(),
@@ -186,10 +236,11 @@ impl CheckedRobotBoot<'_, '_, RobotWindowsActivateRequest<'_>> {
 fn decode_entry(
     expected: &crate::robot::RobotServerNumber,
     family: RobotBootFamily,
+    shape: RobotBootEntryShape,
     checked: CheckedResponseGuard<'_>,
 ) -> Result<RobotBootEntry, RobotBootDecodeError> {
     checked.decode_owned_with_workspace(|response, workspace| {
-        decode_robot_boot_entry(response, expected, family, workspace)
+        decode_robot_boot_entry(response, expected, family, shape, workspace)
     })
 }
 
