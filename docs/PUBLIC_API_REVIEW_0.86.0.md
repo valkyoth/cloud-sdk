@@ -16,10 +16,10 @@ idempotency, and retry eligibility.
 capped at 63 bytes. Names reject empty labels, a trailing dot, controls,
 non-ASCII text, and noncanonical uppercase spelling.
 
-Set and update require request-bound `AuthorizedRobotRdnsMutation` evidence.
-Delete requires `AuthorizedRobotRdnsDestructive` evidence. Direct and shared
-permits retain the exact request fingerprint and expire before dispatch rather
-than authorizing a resource class generally.
+Set and update require a request-bound `RobotRdnsMutationPermit`. Delete
+requires a `RobotRdnsDestructivePermit`. Their shared variants retain the exact
+request fingerprint and expire before dispatch rather than authorizing a
+resource class generally.
 
 ## Preparation And Decoding
 
@@ -35,6 +35,13 @@ duplicate list identities, oversized lists, wrong content types, wrong status,
 and cross-request identity substitution. Set and update acknowledgements must
 echo the exact requested IP and PTR. Delete requires the documented empty
 `200` response.
+
+Raw response decoders remain crate-private so callers cannot discard the typed
+request provenance. An unfiltered list decodes directly through its checked
+wrapper. Because a filtered Robot response does not echo the requested server
+association, filtered decoding fails closed unless the caller supplies a
+strictly decoded `RobotIpList`; every returned address must be assigned to the
+exact filtered server in that inventory.
 
 `RobotRdnsFailureCode` narrows only the source-locked failures admitted for the
 specific reverse-DNS operation and status.

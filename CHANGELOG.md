@@ -9,6 +9,8 @@
 - Bound successful mutations to the exact requested address and PTR target,
   required an empty delete acknowledgement, and narrowed every provider error
   by operation and status.
+- Kept raw decoders internal and required checked Robot IP inventory before a
+  server-filtered list can be accepted.
 - Added request-bound mutation and destructive permits, immutable source-lock
   evidence, mutation-resistant contract checks, and direct decoder fuzzing.
 - Deferred crates.io publication to the cumulative v0.90.0 checkpoint.

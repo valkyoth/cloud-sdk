@@ -292,12 +292,12 @@ fn metadata(kind: Kind<'_>) -> Result<OperationMetadata, RobotRdnsRequestError> 
         ),
         Kind::Update(_, _) => (
             OperationImpact::Mutation,
-            RequestSemantics::Idempotent,
+            RequestSemantics::NonIdempotent,
             RetryEligibility::Never,
         ),
         Kind::Delete(_) => (
             OperationImpact::Destructive,
-            RequestSemantics::Idempotent,
+            RequestSemantics::NonIdempotent,
             RetryEligibility::Never,
         ),
     };

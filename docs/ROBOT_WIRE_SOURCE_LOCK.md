@@ -11,7 +11,7 @@ subnet-MAC operations are implemented in `v0.81.0`; reset discovery and
 execution are implemented in `v0.82.0`; failover discovery and route
 transitions are implemented in `v0.83.0`; Wake-on-LAN is implemented in
 `v0.84.0`; all active boot-configuration operations are implemented in
-`v0.86.0`.
+`v0.85.0`; all active reverse-DNS operations are implemented in `v0.86.0`.
 
 Retrieved: 2026-07-30
 
@@ -301,7 +301,11 @@ destructive permit. None is automatically retryable. Set and update responses
 must echo the exact requested address and PTR. Delete requires status `200`
 with an empty body; no-content and JSON acknowledgements are not admitted.
 List decoding caps the collection at 4,096 entries and rejects duplicate IP
-identities. The exact operation, form, status, quota, error, and response
+identities. Raw decoders are internal. A filtered response does not echo the
+server association, so its checked wrapper requires independently checked IP
+inventory and verifies every returned address against the exact filter. The
+provider can still change assignment state between the inventory and
+reverse-DNS reads. The exact operation, form, status, quota, error, and response
 contract is committed in
 [`v0.86.0.json`](../tests/fixtures/robot-rdns/v0.86.0.json) and checked by
 `scripts/check_robot_rdns.sh`.

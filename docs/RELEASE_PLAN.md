@@ -2650,7 +2650,8 @@ Deliverables:
   automatic retry;
 - add bounded exact item/list models, duplicate-identity rejection, strict
   unknown/duplicate-field handling, request-associated checked decoding,
-  exact PTR acknowledgement, and an empty-`200` delete contract;
+  exact PTR acknowledgement, an empty-`200` delete contract, and checked IP
+  inventory verification for filtered responses that omit server association;
 - narrow every source-locked reverse-DNS provider error by operation and
   status, and commit the reviewed five-operation wire fixture;
 - add direct/shared permit tests, compile-fail provenance checks, malformed and
@@ -2681,6 +2682,8 @@ Exit criteria:
 - every mutation requires current exact-request authorization, denies replay
   across requests, and cannot be automatically retried;
 - checked responses cannot cross operations or substitute IP/PTR identity;
+- raw decoders remain internal and filtered list decoding fails closed without
+  checked IP inventory matching every returned address to the exact filter;
 - dependency review confirms no new external package, feature, unsafe, native,
   network, runtime, filesystem, clock, or cryptographic edge;
 - the exact implementation commit receives an incremental pentest and any

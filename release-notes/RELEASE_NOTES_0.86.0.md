@@ -23,9 +23,11 @@ after its incremental pentest and green CI/CodeQL but publishes no crate.
 - Added atomic optional-query and sensitive-form preparation with cleanup on
   failure.
 - Added exact request-bound mutation/destructive permits and denied automatic
-  retry for every mutation.
+  retry for every non-idempotent mutation.
 - Added bounded strict models and decoders that reject duplicate list
   identities and bind mutation acknowledgements to the requested IP and PTR.
+- Kept raw decoders internal and made filtered-list decoding require checked IP
+  inventory because the provider response omits its server association.
 - Required the documented empty `200` delete response and narrowed every
   source-locked provider failure by operation and status.
 - Added an immutable five-operation source fixture, mutation-resistant checker,

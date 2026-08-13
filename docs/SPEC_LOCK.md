@@ -574,15 +574,18 @@ IPv4/IPv6 values. PTR names are lowercase DNS names capped at 253 bytes, with
 labels capped at 63 bytes and no trailing root marker.
 
 The optional list `server_ip` filter accepts only a canonical main-server IPv4
-address. List and get are read-only. Set and update are non-idempotent mutations and
-delete is non-idempotent and destructive. Every mutation requires an exact
-request-bound permit and denies automatic retry. Preparation atomically writes
-the exact path, optional `server_ip` query, or `ptr` form and clears caller
-storage on failure.
+address. List and get are read-only. Set and update are non-idempotent
+mutations and delete is non-idempotent and destructive. Every mutation requires
+an exact request-bound permit and denies automatic retry. Preparation
+atomically writes the exact path, optional `server_ip` query, or `ptr` form and
+clears caller storage on failure.
 
 Success decoding rejects unknown or duplicate fields, noncanonical addresses,
 invalid names, duplicate list identities, oversized collections, and response
 identity substitution. Set and update acknowledgements must match the exact
 requested address and PTR. Delete admits only an empty `200` response. Every
-provider error is narrowed by operation and status; no client, implicit retry,
-or live mutation is introduced.
+provider error is narrowed by operation and status. Raw decoders remain
+internal. Because filtered responses omit server association, filtered list
+decoding requires independently checked IP inventory and rejects any address
+not assigned to the exact filter. No client, implicit retry, or live mutation
+is introduced.

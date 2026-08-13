@@ -23,7 +23,7 @@ pub use request::{
 pub use value::{MAX_ROBOT_RDNS_NAME_BYTES, RobotRdnsName, RobotRdnsNameError};
 
 #[cfg(feature = "serde")]
-pub use decode::{RobotRdnsDecodeError, decode_robot_rdns, decode_robot_rdns_list};
+pub use decode::RobotRdnsDecodeError;
 #[cfg(feature = "serde")]
 pub use exchange::{CheckedRobotRdns, PreparedRobotRdns};
 #[cfg(feature = "serde")]
@@ -41,6 +41,18 @@ pub use permit::{
 #[cfg(all(test, feature = "serde"))]
 mod failure_tests;
 #[cfg(all(test, feature = "serde"))]
+mod inventory_tests;
+#[cfg(all(test, feature = "serde"))]
 mod permit_tests;
 #[cfg(all(test, feature = "serde"))]
 mod tests;
+
+#[cfg(doctest)]
+mod compile_fail {
+    /// Raw response decoders are internal so callers cannot bypass request provenance.
+    ///
+    /// ```compile_fail
+    /// use cloud_sdk_hetzner::robot::decode_robot_rdns;
+    /// ```
+    fn raw_decoders_are_internal() {}
+}

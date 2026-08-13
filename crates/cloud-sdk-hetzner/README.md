@@ -290,7 +290,11 @@ update-or-create, and delete with canonical IPv4/IPv6 identities and bounded
 lowercase DNS names. Set and update require request-bound mutation permits;
 delete requires a destructive permit. Mutation acknowledgements must match the
 exact requested address and PTR, and delete accepts only the documented empty
-`200` response.
+`200` response. Raw decoders remain internal. Because filtered responses omit
+their server association, decode them only with a freshly checked
+`RobotIpList` through `decode_response_with_inventory`; the SDK rejects an
+address not assigned to the exact requested server, while provider state may
+still change between reads.
 
 ```rust
 # #[cfg(feature = "serde")]

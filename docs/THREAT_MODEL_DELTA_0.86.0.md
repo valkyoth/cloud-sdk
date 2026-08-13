@@ -18,7 +18,11 @@ and caller-supplied names are untrusted.
 - PTR values are bounded canonical lowercase DNS names with strict label and
   total-length checks.
 - Typed checked responses retain the exact request. Set and update must return
-  the requested address and PTR; list/get identities cannot cross requests.
+  the requested address and PTR; get identities cannot cross requests.
+- Unfiltered lists decode through their operation-bound checked wrapper.
+  Filtered responses do not echo their server association and therefore
+  require an independently checked `RobotIpList`; every returned address must
+  match the exact requested server assignment or decoding fails closed.
 
 ### Duplicate Or Ambiguous Mutation
 
@@ -50,6 +54,9 @@ and caller-supplied names are untrusted.
 
 Provider acceptance does not prove forward/reverse consistency, public DNS
 propagation, domain control, mail acceptance, or later state persistence.
+Robot inventory and reverse-DNS state can change between the two reads used to
+verify a filtered list; callers requiring one coherent snapshot must reconcile
+the relevant state after the read.
 Callers must reconcile state after uncertain mutation delivery. Endpoint-bound
 authenticated transport, authorization policy, credential custody,
 allocator/process abort, and live mutation testing remain outside this

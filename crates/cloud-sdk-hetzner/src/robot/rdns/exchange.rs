@@ -7,6 +7,7 @@ use cloud_sdk::transport::ResponseBuffer;
 use super::decode::{RobotRdnsDecodeError, decode_robot_rdns, decode_robot_rdns_list};
 use super::model::{RobotRdns, RobotRdnsList};
 use super::request::*;
+use crate::robot::RobotIpList;
 
 /// Prepared Robot reverse-DNS request retaining its exact typed association.
 pub struct PreparedRobotRdns<'storage, 'request, R> {
@@ -98,8 +99,44 @@ prepare_bound!(
 );
 
 impl CheckedRobotRdns<'_, '_, RobotRdnsListRequest> {
-    /// Decodes a bounded list of entries with distinct addresses.
+    /// Decodes an unfiltered bounded list of entries with distinct addresses.
+    ///
+    /// A filtered Robot response does not echo its server association. Use
+    /// [`Self::decode_response_with_inventory`] for a filtered request.
     pub fn decode_response(self) -> Result<RobotRdnsList, RobotRdnsDecodeError> {
+        if self.request.server_address().is_some() {
+            return Err(RobotRdnsDecodeError::UnverifiableServerFilter);
+        }
+        self.decode_list()
+    }
+
+    /// Decodes a filtered list using independently checked Robot IP inventory.
+    ///
+    /// Every returned address must occur in `inventory` with the exact main
+    /// server address retained by this request. The inventory should be
+    /// obtained from a freshly checked Robot IP list response. Provider state
+    /// may still change between those two reads.
+    pub fn decode_response_with_inventory(
+        self,
+        inventory: &RobotIpList,
+    ) -> Result<RobotRdnsList, RobotRdnsDecodeError> {
+        let Self { request, inner } = self;
+        let result = inner.decode_owned_with_workspace(decode_robot_rdns_list)?;
+        let Some(server_address) = request.server_address() else {
+            return Ok(result);
+        };
+        if result
+            .as_slice()
+            .iter()
+            .all(|entry| inventory.contains_assignment(&entry.address, server_address))
+        {
+            Ok(result)
+        } else {
+            Err(RobotRdnsDecodeError::ResponseIdentityMismatch)
+        }
+    }
+
+    fn decode_list(self) -> Result<RobotRdnsList, RobotRdnsDecodeError> {
         self.inner
             .decode_owned_with_workspace(decode_robot_rdns_list)
     }

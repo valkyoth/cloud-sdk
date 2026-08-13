@@ -16,6 +16,7 @@
   "policy": {
     "address_identity": "canonical-ipv4-or-ipv6",
     "server_filter": "canonical-ipv4-main-address-only",
+    "filtered_response_identity": "checked-ip-inventory-required",
     "ptr_identity": "lowercase-ascii-dns-name-without-root-dot",
     "ptr_bytes": 253,
     "unknown_fields": "reject",
@@ -27,6 +28,7 @@
     "item_response_bytes": 16384,
     "delete_response": "empty",
     "mutation_retry": "never",
+    "mutation_semantics": "non-idempotent",
     "mutation_authority": "request-bound-permit",
     "destructive_authority": "request-bound-permit"
   }

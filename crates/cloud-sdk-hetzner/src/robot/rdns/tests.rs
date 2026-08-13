@@ -12,6 +12,7 @@ use cloud_sdk::transport::{
     StatusCode,
 };
 
+use super::decode::{decode_robot_rdns, decode_robot_rdns_list};
 use super::prepare::{MAX_ROBOT_RDNS_ITEM_RESPONSE_BYTES, MAX_ROBOT_RDNS_LIST_RESPONSE_BYTES};
 use super::*;
 use crate::robot::RobotIpAddress;
@@ -79,7 +80,7 @@ fn prepares_all_source_locked_operations_and_policies() {
         b"ptr=new.example.com",
         "robot_update_rdns",
         OperationImpact::Mutation,
-        RequestSemantics::Idempotent,
+        RequestSemantics::NonIdempotent,
         RetryEligibility::Never,
         RequestBodySensitivity::Sensitive,
         16_384,
@@ -91,7 +92,7 @@ fn prepares_all_source_locked_operations_and_policies() {
         b"",
         "robot_delete_rdns",
         OperationImpact::Destructive,
-        RequestSemantics::Idempotent,
+        RequestSemantics::NonIdempotent,
         RetryEligibility::Never,
         RequestBodySensitivity::Public,
         0,

@@ -141,6 +141,21 @@ impl RobotIpList {
     pub fn is_empty(&self) -> bool {
         self.0.is_empty()
     }
+
+    pub(crate) fn contains_assignment(
+        &self,
+        address: &RobotIpAddress,
+        server_address: &RobotIpAddress,
+    ) -> bool {
+        self.0.iter().any(|entry| {
+            entry
+                .address
+                .with_addr(|actual| address.with_addr(|expected| actual == expected))
+                && entry
+                    .server_address
+                    .with_addr(|actual| server_address.with_addr(|expected| actual == expected))
+        })
+    }
 }
 
 impl fmt::Debug for RobotIpList {

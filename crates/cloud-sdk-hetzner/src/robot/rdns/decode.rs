@@ -30,6 +30,8 @@ pub enum RobotRdnsDecodeError {
     InvalidList,
     /// The response address did not match the exact request.
     ResponseIdentityMismatch,
+    /// A filtered list was decoded without independently checked IP inventory.
+    UnverifiableServerFilter,
     /// A successful mutation contradicted the requested PTR target.
     MutationOutcomeMismatch,
     /// Bounded protected result storage could not be allocated.
@@ -45,12 +47,13 @@ impl_static_error!(RobotRdnsDecodeError,
     Self::InvalidPtr => "Robot reverse-DNS response PTR target is invalid",
     Self::InvalidList => "Robot reverse-DNS response list is invalid",
     Self::ResponseIdentityMismatch => "Robot reverse-DNS response identity does not match the request",
+    Self::UnverifiableServerFilter => "Robot reverse-DNS server filter requires checked IP inventory",
     Self::MutationOutcomeMismatch => "Robot reverse-DNS mutation response contradicts the request",
     Self::Allocation => "Robot reverse-DNS response allocation failed",
 );
 
 /// Decodes the checked `GET /rdns` result.
-pub fn decode_robot_rdns_list(
+pub(crate) fn decode_robot_rdns_list(
     checked: CheckedResponse<'_>,
     workspace: &mut ResponseDecodeWorkspace,
 ) -> Result<RobotRdnsList, RobotRdnsDecodeError> {
@@ -85,7 +88,7 @@ pub fn decode_robot_rdns_list(
 }
 
 /// Decodes one item response and binds it to the exact request address.
-pub fn decode_robot_rdns(
+pub(crate) fn decode_robot_rdns(
     checked: CheckedResponse<'_>,
     expected: &RobotIpAddress,
     workspace: &mut ResponseDecodeWorkspace,
