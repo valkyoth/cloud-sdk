@@ -9,8 +9,8 @@ use crate::authentication::{
     BlockingAuthenticatedTransport, drive_async_authenticated,
 };
 use crate::operation::{
-    CheckedResponseGuard, OperationId, OperationImpact, OperationMetadata, RequestIdPolicy,
-    ResponsePolicy, ResponsePolicyError,
+    CheckedResponseGuard, OperationId, OperationImpact, OperationMetadata, ResponsePolicy,
+    ResponsePolicyError,
 };
 use crate::transport::{
     BoundTransport, EndpointIdentity, RawResponsePolicy, RequestHeaders, ResponseBuffer,
@@ -18,6 +18,7 @@ use crate::transport::{
 };
 
 mod body;
+mod construction;
 mod error;
 mod service;
 mod storage;
@@ -40,57 +41,10 @@ pub struct PreparedRequest<'request> {
     body_replayability: BodyReplayability,
     body_sensitivity: RequestBodySensitivity,
     authorization_evidence_required: bool,
+    direct_read_only_post: bool,
 }
 
 impl<'request> PreparedRequest<'request> {
-    /// Creates a complete prepared request after checking cross-policy invariants.
-    ///
-    /// # Errors
-    ///
-    /// Returns [`PreparedRequestPolicyError::MissingRequestIdHeader`] when
-    /// operation metadata protects or retains request IDs but the raw response
-    /// policy does not admit `x-request-id`. Returns
-    /// [`PreparedRequestPolicyError::ReadOnlyMethodMismatch`] when read-only
-    /// metadata is paired with any method other than `GET` or `HEAD`.
-    /// `body_sensitivity` is mandatory so provider implementations cannot omit
-    /// the confidential-body review and silently receive a public default.
-    pub fn new(
-        request: TransportRequest<'request>,
-        service: ProviderService<'request>,
-        metadata: OperationMetadata,
-        response_policy: ResponsePolicy,
-        authentication_policy: AuthenticationScopePolicy<'request>,
-        raw_response_policy: RawResponsePolicy<'request>,
-        body_sensitivity: RequestBodySensitivity,
-    ) -> Result<Self, PreparedRequestPolicyError> {
-        if matches!(metadata.impact(), OperationImpact::ReadOnly)
-            && !request.method().permits_direct_read_only()
-        {
-            return Err(PreparedRequestPolicyError::ReadOnlyMethodMismatch);
-        }
-        if metadata.request_id_policy() != RequestIdPolicy::Discard
-            && !raw_response_policy.admits_header("x-request-id")
-        {
-            return Err(PreparedRequestPolicyError::MissingRequestIdHeader);
-        }
-        Ok(Self {
-            request,
-            service,
-            metadata,
-            response_policy,
-            authentication_policy,
-            raw_response_policy,
-            operation_id: None,
-            body_replayability: if request.body().is_empty() {
-                BodyReplayability::Replayable
-            } else {
-                BodyReplayability::NotReplayable
-            },
-            body_sensitivity,
-            authorization_evidence_required: false,
-        })
-    }
-
     /// Binds a validated provider operation identifier to this request.
     #[must_use]
     pub const fn with_operation_id(mut self, operation_id: OperationId) -> Self {
@@ -218,6 +172,7 @@ impl<'request> PreparedRequest<'request> {
             body_replayability: self.body_replayability,
             body_sensitivity: self.body_sensitivity,
             authorization_evidence_required: self.authorization_evidence_required,
+            direct_read_only_post: self.direct_read_only_post,
         }
     }
 
@@ -231,6 +186,7 @@ impl<'request> PreparedRequest<'request> {
             && self.body_replayability == other.body_replayability
             && self.body_sensitivity == other.body_sensitivity
             && self.authorization_evidence_required == other.authorization_evidence_required
+            && self.direct_read_only_post == other.direct_read_only_post
             && self.has_same_header_policy(other)
     }
 
@@ -436,7 +392,7 @@ impl<'request> PreparedRequest<'request> {
     }
 
     pub(crate) const fn requires_execution_permit(self) -> bool {
-        !self.request.method().permits_direct_read_only()
+        (!self.request.method().permits_direct_read_only() && !self.direct_read_only_post)
             || !matches!(self.metadata.impact(), OperationImpact::ReadOnly)
             || matches!(self.metadata.cost_intent(), super::CostIntent::MayIncurCost)
     }
@@ -481,6 +437,7 @@ impl fmt::Debug for PreparedRequest<'_> {
                 "authorization_evidence_required",
                 &self.authorization_evidence_required,
             )
+            .field("direct_read_only_post", &self.direct_read_only_post)
             .finish()
     }
 }

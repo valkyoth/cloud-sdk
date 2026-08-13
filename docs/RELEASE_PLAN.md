@@ -2703,13 +2703,72 @@ Status: implementation stop; pentest required.
 
 ### v0.87.0 - Robot Traffic
 
-Goal: complete traffic queries and large response handling.
+Goal: complete the active Robot traffic query without weakening the core's
+method/impact policy, and decode large dynamic-key reports without building a
+second full JSON tree.
 
-Deliverables: bounded ranges/intervals/repeated addresses/numeric limits and incremental decoding.
+Deliverables:
 
-Verification: date/range/repeat/stream/source tests and `scripts/release_0_87_gate.sh`.
+- implement the source-locked `POST /traffic` operation with repeated `ip[]`
+  and `subnet[]` fields, exact `from`, `to`, and `type` values, and optional
+  `single_values=true`;
+- add protected source-compatible day, month, and year interval types with
+  exact grammar, component bounds, monotonic ranges, and an explicit note that
+  Gregorian month-length validation would reject Hetzner's published
+  September-31 example;
+- reject empty, excessive, duplicate, and cross-kind ambiguous target sets,
+  with a tighter grouped-query ceiling derived from aggregate parser limits;
+- add a narrowly validated provider-neutral read-only POST-query constructor
+  instead of globally treating POST as safe or misclassifying the operation as
+  a mutation;
+- prepare an exact sensitive replayable form, `application/json` response
+  policy, 200/hour caller-visible source quota documentation, and no automatic
+  retry without explicit caller policy;
+- incrementally decode the exact `traffic` envelope in fixed chunks, reject
+  duplicate and unknown keys, preserve bounded non-negative number lexemes,
+  sort sparse individual periods, and never convert traffic values through
+  floating point;
+- bind response `type`, `from`, `to`, IP identities, canonical subnet CIDRs,
+  and aggregate/single-value shape to the exact request while allowing Robot
+  to omit targets with no data;
+- source-lock `INVALID_INPUT`, `NOT_FOUND`, and `INTERNAL_ERROR` failures and
+  keep all protected request/response models redacted and non-copyable; and
+- add immutable traffic fixtures, mutation-resistant source checks, fuzz
+  seeds, release evidence, migration notes, and an internal-only release
+  manifest that publishes no crate before v0.90.0.
 
-Stop gate: `v0.87.0 implementation stop reached. Complete the pentest and full release gate for this exact commit; defer crates.io publication to v0.90.0.`
+Verification:
+
+- test all interval grammars, component edges, reversed ranges, the official
+  source example, repeated mixed-family targets, duplicate rejection, grouped
+  target ceilings, exact form order, and complete cleanup after preparation
+  failure;
+- test aggregate and sparse individual reports, exact decimal retention,
+  request/range/type/shape binding, canonical subnet prefixes, omitted targets,
+  unknown and duplicate fields, negative values, ordinal boundaries, parser
+  allocation limits, and a token crossing the internal 4 KiB chunk boundary;
+- test that ordinary `PreparedRequest::new` still rejects read-only POST while
+  the explicit constructor admits only POST plus read-only/safe metadata and
+  does not require mutation authority;
+- run the complete Robot source lock, traffic contract checker, fuzz harness,
+  MSRV/current toolchain matrix, no-std/all-features checks, documentation
+  checks, SBOM freshness, and `scripts/release_0_87_gate.sh`; and
+- dependency review confirms no new external package, feature, unsafe, native,
+  network, runtime, filesystem, clock, or cryptographic edge.
+
+Exit criteria:
+
+- every active traffic row is implemented and the API matrix reports it as
+  implemented;
+- the exact implementation commit receives an incremental pentest and every
+  finding is remediated and retested;
+- the unchanged evidence commit passes the full local release gate and GitHub
+  CI/CodeQL before tag creation; and
+- crates.io publication remains deferred to the cumulative v0.90.0 checkpoint.
+
+Stop gate: `v0.87.0 implementation stop reached. Run the incremental pentest for this exact commit before the full release gate and tag; defer crates.io publication to v0.90.0.`
+
+Status: implementation stop; pentest required.
 
 ### v0.88.0 - Robot SSH Keys
 

@@ -398,6 +398,12 @@ requires a request-bound destructive permit. Strict decoding rejects duplicate
 list identities and binds mutation acknowledgements to the exact requested IP
 and PTR. Delete accepts only the documented empty `200` response.
 
+`v0.87.0` implements the active Robot traffic query. Exact protected intervals,
+distinct repeated IP/subnet targets, and optional single-value mode feed an
+explicitly admitted read-only `POST`. Incremental strict decoding preserves
+non-negative decimal tokens and binds every returned target, interval, and
+granularity to the request.
+
 Robot implementation schedule:
 
 | Group | Active | Deprecated | Planned Module | Milestone | Status |
@@ -411,7 +417,7 @@ Robot implementation schedule:
 | wake on LAN | 2 | 0 | `cloud_sdk_hetzner::robot::wol` | `v0.84.0` | implemented |
 | boot configuration | 15 | 0 | `cloud_sdk_hetzner::robot::boot` | `v0.85.0` | implemented |
 | reverse DNS | 5 | 0 | `cloud_sdk_hetzner::robot::rdns` | `v0.86.0` | implemented |
-| traffic | 1 | 0 | `cloud_sdk_hetzner::robot::traffic` | `v0.87.0` | planned |
+| traffic | 1 | 0 | `cloud_sdk_hetzner::robot::traffic` | `v0.87.0` | implemented |
 | SSH keys | 5 | 0 | `cloud_sdk_hetzner::robot::ssh_keys` | `v0.88.0` | planned |
 | firewall | 8 | 0 | `cloud_sdk_hetzner::robot::firewall` | `v0.89.0` | planned |
 | vSwitch | 7 | 0 | `cloud_sdk_hetzner::robot::vswitch` | `v0.90.0` | planned |

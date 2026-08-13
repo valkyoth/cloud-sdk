@@ -92,6 +92,8 @@ pub enum RobotProviderErrorCode {
     RdnsUpdateFailed,
     /// Robot could not delete the reverse-DNS entry.
     RdnsDeleteFailed,
+    /// Robot failed internally while serving a traffic query.
+    TrafficInternalError,
     /// Wake-on-LAN is unavailable for the server.
     WolNotAvailable,
     /// Robot could not send the Wake-on-LAN packet.

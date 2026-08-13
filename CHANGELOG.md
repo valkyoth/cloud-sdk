@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.87.0 - Unreleased
+
+- Added the active Robot traffic query with bounded repeated IP/subnet targets,
+  protected exact intervals, and optional individual values.
+- Added direct incremental traffic decoding with request-bound ranges,
+  granularity, canonical target identities, sparse-period sorting, and exact
+  non-negative decimal tokens.
+- Added an explicit provider-neutral read-only POST-query contract without
+  weakening ordinary POST execution authorization.
+- Added source-lock, adversarial, boundary, documentation, and release evidence
+  while deferring crates.io publication to v0.90.0.
+
 ## 0.86.0 - 2026-08-13
 
 - Added all five active Robot reverse-DNS operations: list, get, create,

@@ -7,7 +7,7 @@ use super::super::MAX_SERDE_RESPONSE_BYTES;
 const HARD_MAX_DEPTH: usize = 64;
 const HARD_MAX_TOKENS: usize = 65_536;
 const HARD_MAX_FIELDS: usize = 65_536;
-const HARD_MAX_OBJECT_FIELDS: usize = 256;
+const HARD_MAX_OBJECT_FIELDS: usize = 4_096;
 const HARD_MAX_STRING_BYTES: usize = 1_048_576;
 const HARD_MAX_NUMBER_BYTES: usize = 128;
 const HARD_MAX_EXPONENT_DIGITS: usize = 6;

@@ -12,6 +12,8 @@ pub enum PreparedRequestPolicyError {
     MissingRequestIdHeader,
     /// Read-only metadata was paired with a method that can change state.
     ReadOnlyMethodMismatch,
+    /// The explicit read-only POST constructor received incompatible policy.
+    ReadOnlyPostQueryMismatch,
 }
 
 impl fmt::Display for PreparedRequestPolicyError {
@@ -21,6 +23,9 @@ impl fmt::Display for PreparedRequestPolicyError {
                 "prepared request ID policy requires raw x-request-id admission"
             }
             Self::ReadOnlyMethodMismatch => "read-only operation metadata requires GET or HEAD",
+            Self::ReadOnlyPostQueryMismatch => {
+                "read-only POST query requires POST and read-only safe metadata"
+            }
         })
     }
 }

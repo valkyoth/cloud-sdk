@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "source": {
+    "retrieved": "2026-08-13",
+    "url": "https://robot.hetzner.com/doc/webservice/en.html",
+    "sha256": "4b396790acc449f47b2b3b893f8eff759c0c25196dc38b1e5e92a12c9704771a"
+  },
+  "inventory": "tests/fixtures/robot-api/v0.74.0.json",
+  "operation": {
+    "id": "robot_get_traffic",
+    "inventory_id": "get_traffic",
+    "method": "POST",
+    "path": "/traffic",
+    "impact": "read-only",
+    "quota": {"requests": 200, "interval_seconds": 3600}
+  },
+  "request": {
+    "content_type": "application/x-www-form-urlencoded",
+    "required": ["target", "from", "to", "type"],
+    "repeated_targets": ["ip[]", "subnet[]"],
+    "types": ["day", "month", "year"],
+    "single_values": "optional-true"
+  },
+  "response": {
+    "status": 200,
+    "content_type": "application/json",
+    "fields": ["traffic.type", "traffic.from", "traffic.to", "traffic.data"],
+    "amount_fields": ["in", "out", "sum"],
+    "units": "GB",
+    "missing_targets": "omitted",
+    "single_value_keys": {"day": "00-23", "month": "01-31", "year": "01-12"}
+  },
+  "failures": {
+    "400": ["INVALID_INPUT"],
+    "404": ["NOT_FOUND"],
+    "500": ["INTERNAL_ERROR"]
+  },
+  "local_limits": {
+    "response_bytes": 8388608,
+    "targets": 4092,
+    "single_value_targets": 250,
+    "number_bytes": 128,
+    "object_fields": 4096
+  }
+}

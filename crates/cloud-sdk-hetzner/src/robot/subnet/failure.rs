@@ -56,7 +56,8 @@ impl RobotSubnetFailureCode {
             | RobotProviderErrorCode::BootActivationFailed
             | RobotProviderErrorCode::BootDeactivationFailed
             | RobotProviderErrorCode::WindowsMissingAddon
-            | RobotProviderErrorCode::WindowsOutdatedVersion => None,
+            | RobotProviderErrorCode::WindowsOutdatedVersion
+            | RobotProviderErrorCode::TrafficInternalError => None,
         }
     }
 }

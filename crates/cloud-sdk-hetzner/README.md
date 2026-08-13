@@ -38,7 +38,7 @@ boundaries.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.86.0"
+cloud-sdk = "0.87.0"
 cloud-sdk-hetzner = "0.44.0"
 ```
 
@@ -312,6 +312,39 @@ let prepared = request.prepare_bound(PreparationStorage::new(&mut target, &mut b
 assert_eq!(
     prepared.as_untyped().transport_request().target().as_str(),
     "/rdns/192.0.2.10",
+);
+# Ok(())
+# }
+# #[cfg(not(feature = "serde"))]
+# fn main() {}
+```
+
+Robot traffic supports bounded mixed IP/subnet queries and exact aggregate or
+individual values. The provider uses `POST` for this read-only query; the SDK
+admits that exception explicitly without weakening ordinary POST authority.
+
+```rust
+# #[cfg(feature = "serde")]
+# fn main() -> Result<(), Box<dyn core::error::Error>> {
+use cloud_sdk::operation::PreparationStorage;
+use cloud_sdk_hetzner::robot::{
+    RobotIpAddress, RobotTrafficGranularity, RobotTrafficInterval,
+    RobotTrafficRequest, RobotTrafficTarget,
+};
+
+let interval = RobotTrafficInterval::new(
+    RobotTrafficGranularity::Month,
+    "2026-07-01",
+    "2026-07-31",
+)?;
+let target = RobotTrafficTarget::ip(RobotIpAddress::new("192.0.2.10")?);
+let request = RobotTrafficRequest::new(interval, Vec::from([target]), false)?;
+let mut path = [0_u8; 32];
+let mut body = [0_u8; 256];
+let prepared = request.prepare_bound(PreparationStorage::new(&mut path, &mut body))?;
+assert_eq!(
+    prepared.as_untyped().transport_request().target().as_str(),
+    "/traffic",
 );
 # Ok(())
 # }
@@ -637,13 +670,15 @@ endpoint identity, Robot service marker, protected credentials, lockout-aware
 owned attempt generation, strict typed protocol errors, three server
 list/get/rename operations, all nine cancellation operations, and all six IP
 and separate-MAC operations plus subnet, reset, failover, Wake-on-LAN, boot
-configuration, and reverse DNS. It does not yet expose the later Robot endpoint
+configuration, reverse DNS, and bounded traffic queries. Traffic reports use
+incremental exact-number decoding and bind returned targets, intervals, and
+granularity to the request. It does not yet expose the later Robot endpoint
 families or a high-level Robot client. Its
 complete source lock records 89
 active operations and excludes all 16 deprecated Storage Box operations. See the
 [Robot source-lock contract](https://github.com/valkyoth/cloud-sdk/blob/main/docs/ROBOT_WIRE_SOURCE_LOCK.md).
 The latest Robot additions and source migration are described in the
-[v0.86 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.86.0.md).
+[v0.87 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.87.0.md).
 Breaking v0.27 constructor and custom-endpoint changes are listed in the
 [migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.27.0.md).
 Shared transport and credential lifecycle changes are listed in the

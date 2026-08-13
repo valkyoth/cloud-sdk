@@ -591,3 +591,22 @@ and rejects any address not assigned to the exact filter. The distinct result
 type proves non-empty membership only, never completeness or authoritative
 absence. A sorted bounded assignment index prevents cross-product response
 work. No client, implicit retry, or live mutation is introduced.
+
+## v0.87.0 Robot Traffic Policy
+
+The active `POST /traffic` row is bound to the complete Robot inventory and
+the normalized `tests/fixtures/robot-traffic/v0.87.0.json` contract. Requests
+contain at least one distinct canonical `ip[]` or subnet-base `subnet[]`, exact
+`day`, `month`, or `year` bounds, and optional `single_values=true`. Component
+ranges are checked without imposing Gregorian month lengths because Hetzner's
+published month example uses `2010-09-31`.
+
+The POST body is an explicitly admitted read-only query, sensitive and
+replayable, but retry requires caller policy. Successful reports require the
+exact echoed type and bounds. Dynamic targets must match the requested kind
+and address; subnet keys must be canonical family-valid CIDRs. Incremental
+decoding rejects unknown and duplicate keys, negative or overlong numbers,
+invalid period ordinals, excessive structure, and aggregate/grouped shape
+confusion. Exact number text is retained without floating-point conversion.
+Robot may omit requested targets with no data. No mutation, permit, automatic
+retry, high-level Robot client, or network transport is introduced.

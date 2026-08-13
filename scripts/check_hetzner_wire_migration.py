@@ -13,6 +13,7 @@ EXPECTED_ACTIVE = 208
 
 FILES = {
     "core_prepared": "crates/cloud-sdk/src/operation/prepared.rs",
+    "core_prepared_construction": "crates/cloud-sdk/src/operation/prepared/construction.rs",
     "core_authenticated": "crates/cloud-sdk/src/authentication/transport.rs",
     "core_raw": "crates/cloud-sdk/src/transport/raw.rs",
     "provider_operation": "crates/cloud-sdk-hetzner/src/prepared/operation.rs",
@@ -30,11 +31,13 @@ REQUIRED = {
     "core_prepared": [
         "authentication_policy: AuthenticationScopePolicy",
         "raw_response_policy: RawResponsePolicy",
-        "PreparedRequestPolicyError::MissingRequestIdHeader",
-        'raw_response_policy.admits_header("x-request-id")',
         "T: BlockingAuthenticatedTransport + BoundTransport",
         "T: AsyncAuthenticatedTransport + BoundTransport",
         ".send_authenticated(self.authenticated_request(), response.writer())",
+    ],
+    "core_prepared_construction": [
+        "PreparedRequestPolicyError::MissingRequestIdHeader",
+        'raw_response_policy.admits_header("x-request-id")',
     ],
     "core_authenticated": [
         "response_policy: RawResponsePolicy",

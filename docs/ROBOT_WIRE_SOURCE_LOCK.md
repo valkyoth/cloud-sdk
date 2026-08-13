@@ -315,6 +315,18 @@ quota, error, and response contract is committed in
 [`v0.86.0.json`](../tests/fixtures/robot-rdns/v0.86.0.json) and checked by
 `scripts/check_robot_rdns.sh`.
 
+`v0.87.0` implements the one active traffic row. Robot receives repeated IP
+and subnet form fields, exact source-compatible interval text, an aggregation
+type, and optional individual-value selection. The operation is a read-only
+query despite its POST wire method, remains explicitly policy-gated for retry,
+and is limited by the documented 200 requests/hour source quota. Incremental
+success decoding binds the echoed interval and every dynamic target to the
+request, preserves exact non-negative numeric text, validates canonical subnet
+CIDRs, and sorts bounded sparse period values. The normalized contract is
+committed in
+[`v0.87.0.json`](../tests/fixtures/robot-traffic/v0.87.0.json) and checked by
+`scripts/check_robot_traffic.sh`.
+
 ## Verification
 
 Run the local structural check:

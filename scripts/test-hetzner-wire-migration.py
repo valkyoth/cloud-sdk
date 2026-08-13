@@ -67,7 +67,7 @@ def main() -> None:
                 "compatibility fallback",
             ),
             (
-                "core_prepared",
+                "core_prepared_construction",
                 'raw_response_policy.admits_header("x-request-id")',
                 'raw_response_policy.admits_header("content-type")',
                 "missing required wire control",

@@ -143,3 +143,67 @@ fn read_only_metadata_rejects_methods_that_can_change_state() -> Result<(), &'st
     }
     Ok(())
 }
+
+#[test]
+fn explicit_read_only_post_query_is_narrow_and_permitless() -> Result<(), &'static str> {
+    let target = RequestTarget::new("/query").map_err(|_| "target")?;
+    let endpoint = EndpointIdentity::new(EndpointScheme::Https, "api.example.invalid", 443, "/v1")
+        .map_err(|_| "endpoint")?;
+    let response = ResponsePolicy::new(
+        &OK,
+        ContentTypePolicy::Required(&JSON),
+        ResponseBodyPolicy::Required,
+        16,
+    )
+    .map_err(|_| "response")?;
+    let metadata = OperationMetadata::new(
+        OperationImpact::ReadOnly,
+        RequestSemantics::Safe,
+        RetryEligibility::ExplicitPolicy,
+        CostIntent::NoKnownCost,
+        RequestIdPolicy::Discard,
+    )
+    .map_err(|_| "metadata")?;
+    let authentication = AuthenticationScopePolicy::new(
+        ScopeRequirement::Required(TestProvider::ID),
+        ScopeRequirement::Required(TestService::ID),
+        ScopeRequirement::Required(endpoint),
+        ScopeRequirement::Forbidden,
+        ScopeRequirement::Forbidden,
+        ScopeRequirement::Forbidden,
+    );
+    let raw = RawResponsePolicy::new(
+        16,
+        16,
+        ResponseMediaPolicy::Required(&JSON),
+        ResponseMediaPolicy::Required(&JSON),
+        &[],
+        8,
+    )
+    .map_err(|_| "raw")?;
+    let prepared = PreparedRequest::new_read_only_post_query(
+        TransportRequest::new(Method::Post, target).with_body(b"query=true"),
+        ProviderService::from_marker::<TestService>(EndpointPolicy::fixed(endpoint)),
+        metadata,
+        response,
+        authentication,
+        raw,
+        RequestBodySensitivity::Sensitive,
+    )
+    .map_err(|_| "read-only POST")?;
+    assert!(!prepared.requires_execution_permit());
+
+    assert!(matches!(
+        PreparedRequest::new_read_only_post_query(
+            TransportRequest::new(Method::Get, target),
+            ProviderService::from_marker::<TestService>(EndpointPolicy::fixed(endpoint)),
+            metadata,
+            response,
+            authentication,
+            raw,
+            RequestBodySensitivity::Public,
+        ),
+        Err(PreparedRequestPolicyError::ReadOnlyPostQueryMismatch)
+    ));
+    Ok(())
+}

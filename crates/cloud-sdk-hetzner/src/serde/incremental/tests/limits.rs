@@ -117,7 +117,7 @@ fn limit_builders_reject_zero_or_above_hard_maxima() {
     );
     assert!(
         IncrementalJsonLimits::DEFAULT
-            .with_object_fields(257)
+            .with_object_fields(4_097)
             .is_err()
     );
 }

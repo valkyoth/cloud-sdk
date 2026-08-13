@@ -14,6 +14,8 @@
 //! Rescue, Linux, VNC, and Windows boot configuration operations are
 //! source-locked in `v0.85.0`.
 //! Reverse-DNS discovery and mutations are source-locked in `v0.86.0`.
+//! Bounded traffic queries and incremental traffic decoding are source-locked
+//! in `v0.87.0`.
 
 #[cfg(feature = "alloc")]
 mod boot;
@@ -38,6 +40,8 @@ mod reset;
 mod server;
 #[cfg(feature = "alloc")]
 mod subnet;
+#[cfg(feature = "serde")]
+mod traffic;
 #[cfg(feature = "alloc")]
 mod wol;
 
@@ -191,6 +195,16 @@ pub use subnet::{
     RobotSubnetGetRequest, RobotSubnetListRequest, RobotSubnetMacDeleteRequest,
     RobotSubnetMacGetRequest, RobotSubnetMacSetRequest, RobotSubnetRequestError,
     RobotSubnetTrafficUpdate, RobotSubnetUpdateRequest,
+};
+
+#[cfg(feature = "serde")]
+pub use traffic::{
+    CheckedRobotTraffic, MAX_ROBOT_TRAFFIC_RESPONSE_BYTES, MAX_ROBOT_TRAFFIC_SINGLE_VALUE_TARGETS,
+    MAX_ROBOT_TRAFFIC_TARGETS, PreparedRobotTraffic, ROBOT_TRAFFIC_QUOTA, RobotTrafficAmount,
+    RobotTrafficData, RobotTrafficDecodeError, RobotTrafficFailureCode, RobotTrafficGranularity,
+    RobotTrafficInterval, RobotTrafficIntervalError, RobotTrafficPoint, RobotTrafficQuota,
+    RobotTrafficReport, RobotTrafficRequest, RobotTrafficRequestError, RobotTrafficResult,
+    RobotTrafficResultTarget, RobotTrafficTarget,
 };
 
 #[cfg(feature = "alloc")]
