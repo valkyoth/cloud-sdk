@@ -10,7 +10,7 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
 LOCK = ROOT / "tests/fixtures/robot-wol/v0.84.0.json"
-LOCK_SHA256 = "d0b038e72fc7f8429d082b933edd6d2d9ebde9110290c6b41877761f95b5e3ab"
+LOCK_SHA256 = "8bdd74948e05e8a3e539e7929d8d30a77e7562d9f31f4cec79cb32b405044f01"
 MAX_LOCK_BYTES = 12 * 1024
 SOURCE_SHA256 = "4b396790acc449f47b2b3b893f8eff759c0c25196dc38b1e5e92a12c9704771a"
 WOL_SOURCE = ROOT / "crates/cloud-sdk-hetzner/src/robot/wol"
@@ -135,7 +135,7 @@ def validate_contract(value: dict[str, Any]) -> None:
             "send_permit": "mutation",
             "send_body": "empty-form",
             "send_retry": "never",
-            "success_identity": "exact-server-number",
+            "success_identity": "exact-server-number-ipv4-ipv6-network",
             "success_body_bytes": 16384,
         },
         "security policy changed",
@@ -169,6 +169,7 @@ def validate_implementation_policy() -> None:
             "RobotWolDecodeError::ResponseTooLarge",
             "ResponseIdentityMismatch",
         ],
+        "exchange.rs": ["same_identity(expected)", "ResponseIdentityMismatch"],
         "evidence.rs": [
             "MAX_ROBOT_WOL_EVIDENCE_AGE_SECONDS: u64 = 30",
             "CredentialChangedDuringPreflight",
@@ -178,7 +179,17 @@ def validate_implementation_policy() -> None:
             "build_plan_digest_with_authorization_evidence",
             "validate_authorization_evidence",
         ],
-        "request.rs": ["RobotWolIntent", "RobotWolSendRequest", "from_checked"],
+        "request.rs": [
+            "RobotWolIntent",
+            "RobotWolSendRequest",
+            "from_checked",
+            "ROBOT_WOL_DISCOVERY_QUOTA",
+            "max_requests: 500",
+            "ROBOT_WOL_SEND_QUOTA",
+            "max_requests: 10",
+            "DelaySeconds::new(3_600)",
+            "pub const fn quota(&self) -> RobotWolQuota",
+        ],
         "failure.rs": ["WOL_NOT_AVAILABLE", "WOL_FAILED"],
     }
     for name, tokens in requirements.items():

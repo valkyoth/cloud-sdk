@@ -16,7 +16,9 @@ IPv4 path alias.
 not implement generic `PrepareOperation`, and its prepared wrapper does not
 expose `as_untyped`. Every request fixes the official Robot endpoint,
 Basic-auth scope, operation ID, method, checked JSON response policy, and
-source quota.
+source quota. `RobotWolQuota`, `ROBOT_WOL_DISCOVERY_QUOTA`, and
+`ROBOT_WOL_SEND_QUOTA` expose the documented allowances without acquiring a
+clock, sleeping, or choosing caller account scope.
 
 ## Models And Association
 
@@ -29,6 +31,8 @@ the 16 KiB source-specific body limit.
 
 `PreparedRobotWol` and `CheckedRobotWol` preserve exact request association.
 Both discovery and send success must return `200` JSON with a nonempty body.
+Send acknowledgements must equal all three identity values included in the
+authenticated evidence and strong plan digest.
 Operation-specific failure decoding admits only `SERVER_NOT_FOUND`,
 `WOL_NOT_AVAILABLE`, and send-only `WOL_FAILED` under their documented status
 codes.

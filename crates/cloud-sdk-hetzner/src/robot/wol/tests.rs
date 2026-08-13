@@ -35,6 +35,9 @@ impl PermitClock for FixedClock {
 #[test]
 fn prepares_exact_discovery_and_capability_checked_send() {
     let get = RobotWolGetRequest::new(number(321));
+    assert_eq!(get.quota(), ROBOT_WOL_DISCOVERY_QUOTA);
+    assert_eq!(get.quota().max_requests(), 500);
+    assert_eq!(get.quota().interval().get(), 3_600);
     let mut get_target = [0_u8; 64];
     let mut get_body = [0_u8; 1];
     assert_prepared(
@@ -50,6 +53,9 @@ fn prepares_exact_discovery_and_capability_checked_send() {
 
     let authorized = authorized();
     let send = RobotWolSendRequest::from_checked(&authorized, RobotWolIntent::Send);
+    assert_eq!(send.quota(), ROBOT_WOL_SEND_QUOTA);
+    assert_eq!(send.quota().max_requests(), 10);
+    assert_eq!(send.quota().interval().get(), 3_600);
     let mut target = [0_u8; 64];
     let mut body = [0_u8; 1];
     let prepared = send
@@ -65,6 +71,27 @@ fn prepares_exact_discovery_and_capability_checked_send() {
         RetryEligibility::Never,
         true,
     );
+}
+
+#[test]
+fn send_acknowledgement_requires_the_complete_authorized_identity() {
+    for (original, replacement) in [("192.0.2.10", "192.0.2.11"), ("2001:db8::", "2001:db8:1::")] {
+        let authorized = authorized();
+        let send = RobotWolSendRequest::from_checked(&authorized, RobotWolIntent::Send);
+        let mut target = [0_u8; 64];
+        let mut body = [0_u8; 1];
+        let prepared = send
+            .prepare_bound(PreparationStorage::new(&mut target, &mut body))
+            .unwrap_or_else(|_| unreachable!("WOL send preparation failed"));
+        let substituted = text(RESPONSE).replace(original, replacement);
+        let result = with_json(prepared, substituted.as_bytes(), |checked| {
+            checked.decode_response()
+        });
+        assert_eq!(
+            result.err(),
+            Some(RobotWolDecodeError::ResponseIdentityMismatch)
+        );
+    }
 }
 
 #[test]

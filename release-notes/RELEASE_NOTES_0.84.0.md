@@ -18,9 +18,12 @@ internal source milestone; no crate is selected for crates.io publication.
 - Added exact server-number-only capability discovery and packet-send request
   preparation with official Basic-auth scope, methods, quotas, media types,
   operation IDs, and checked response policy.
+- Exposed the source-locked 500 discovery/hour and 10 send/hour allowances on
+  their request types for caller-owned account and credential limiters.
 - Added protected redacted WOL identity with strict canonical IPv4, IPv6
   network, positive server-number, exact-field, and request-association
-  validation.
+  validation. Send acknowledgements must preserve all three identity fields
+  from authenticated discovery, not only the server number.
 - Independently capped exported success decoding at 16 KiB.
 - Required packet sending to use explicit `RobotWolIntent::Send` constructed
   from a 30-second authenticated discovery bound to credential lineage.

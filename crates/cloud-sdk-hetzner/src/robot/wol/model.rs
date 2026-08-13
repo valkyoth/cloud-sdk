@@ -11,6 +11,12 @@ pub struct RobotWol {
 }
 
 impl RobotWol {
+    pub(super) fn same_identity(&self, other: &Self) -> bool {
+        self.server_ipv4 == other.server_ipv4
+            && self.server_ipv6_network == other.server_ipv6_network
+            && self.number == other.number
+    }
+
     /// Runs a closure with the server's canonical main IPv4 address.
     pub fn with_server_ipv4<R>(&self, inspect: impl FnOnce(Ipv4Addr) -> R) -> R {
         self.server_ipv4.with_addr(|address| match address {

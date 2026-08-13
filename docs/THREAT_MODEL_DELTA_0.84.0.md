@@ -18,7 +18,9 @@ The response also contains sensitive server topology.
 - Raw response decoding is non-authorizing. Only authenticated execution of
   the exact discovery operation mints `AuthorizedRobotWol`.
 - Strict decoding requires fixed address families and the exact requested
-  server number under an exact three-field envelope.
+  server number under an exact three-field envelope. Mutation acknowledgement
+  decoding additionally requires both addresses to equal the authenticated
+  discovery identity included in the plan digest.
 
 ### Stale Or Replayed Authorization
 
@@ -30,6 +32,9 @@ The response also contains sensitive server topology.
 - Sending requires direct or shared mutation authority. The request is
   non-idempotent, permits one attempt, and is never automatically retried.
   Unknown delivery consumes authority and requires caller reconciliation.
+- Request types expose the documented 500 discovery/hour and 10 send/hour
+  allowances as machine-readable metadata. Enforcement, scope selection,
+  sleeping, and clocks remain explicit caller policy.
 
 ### Hostile Responses And Failure Widening
 

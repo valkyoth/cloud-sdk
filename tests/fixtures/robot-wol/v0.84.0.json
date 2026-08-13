@@ -50,7 +50,7 @@
     "send_permit": "mutation",
     "send_body": "empty-form",
     "send_retry": "never",
-    "success_identity": "exact-server-number",
+    "success_identity": "exact-server-number-ipv4-ipv6-network",
     "success_body_bytes": 16384
   }
 }

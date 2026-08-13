@@ -1,6 +1,41 @@
 #[cfg(feature = "serde")]
 use super::AuthorizedRobotWol;
+use cloud_sdk::rate_limit::DelaySeconds;
+
 use crate::robot::RobotServerNumber;
+
+/// Source-locked request allowance for one WOL operation and interval.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct RobotWolQuota {
+    max_requests: u16,
+    interval: DelaySeconds,
+}
+
+impl RobotWolQuota {
+    /// Returns the maximum requests documented for one interval.
+    #[must_use]
+    pub const fn max_requests(self) -> u16 {
+        self.max_requests
+    }
+
+    /// Returns the documented quota interval.
+    #[must_use]
+    pub const fn interval(self) -> DelaySeconds {
+        self.interval
+    }
+}
+
+/// Documented availability-discovery allowance: 500 requests per hour.
+pub const ROBOT_WOL_DISCOVERY_QUOTA: RobotWolQuota = RobotWolQuota {
+    max_requests: 500,
+    interval: DelaySeconds::new(3_600),
+};
+
+/// Documented packet-send allowance: 10 requests per hour.
+pub const ROBOT_WOL_SEND_QUOTA: RobotWolQuota = RobotWolQuota {
+    max_requests: 10,
+    interval: DelaySeconds::new(3_600),
+};
 
 /// Explicit Wake-on-LAN action selected by the caller.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -61,6 +96,12 @@ impl RobotWolGetRequest {
     pub const fn number(&self) -> &RobotServerNumber {
         &self.number
     }
+
+    /// Returns the source-locked discovery allowance.
+    #[must_use]
+    pub const fn quota(&self) -> RobotWolQuota {
+        ROBOT_WOL_DISCOVERY_QUOTA
+    }
 }
 
 impl core::fmt::Debug for RobotWolGetRequest {
@@ -94,6 +135,12 @@ impl<'state> RobotWolSendRequest<'state> {
     #[must_use]
     pub const fn intent(&self) -> RobotWolIntent {
         self.intent
+    }
+
+    /// Returns the source-locked packet-send allowance.
+    #[must_use]
+    pub const fn quota(&self) -> RobotWolQuota {
+        ROBOT_WOL_SEND_QUOTA
     }
 }
 

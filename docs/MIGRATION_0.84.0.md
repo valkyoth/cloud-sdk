@@ -22,14 +22,19 @@ provider source still declares `cloud-sdk-hetzner` `0.43.0`.
 - Build a strong digest with `build_robot_wol_plan_digest`, then use
   `RobotWolMutationPermit` or `RobotWolSharedMutationPermit` for execution.
 - Size success storage using `MAX_ROBOT_WOL_RESPONSE_BYTES` (16 KiB).
+- Read the source-locked allowance from `RobotWolGetRequest::quota()` or
+  `RobotWolSendRequest::quota()` and apply a caller-owned limiter at the
+  appropriate Robot account and credential scope.
 
 ## Behavioral Requirements
 
 - Server IPv4 aliases are deprecated upstream and intentionally unsupported;
   use `RobotServerNumber`.
 - Raw `decode_robot_wol` output cannot authorize a packet send.
-- Discovery and send responses must identify the exact requested number and
-  contain only canonical IPv4, IPv6 network, and server-number fields.
+- Discovery responses must identify the exact requested number and contain
+  only canonical IPv4, IPv6 network, and server-number fields. Send
+  acknowledgements must additionally preserve both exact addresses from
+  authenticated discovery.
 - Credential rotation or evidence expiry invalidates execution authority.
 - A send is non-idempotent and never automatically retried. Reconcile
   uncertain delivery before another attempt.

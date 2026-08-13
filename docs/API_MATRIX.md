@@ -374,8 +374,11 @@ availability for the same credential lineage. That evidence expires after 30
 seconds and is rechecked at dispatch. Sending is a non-idempotent mutation,
 requires an exact request-bound strong-digest permit, and is never
 automatically retried. Both success paths require the exact three-field server
-identity and independently cap the JSON body at 16 KiB. Deprecated IPv4 path
-aliases are intentionally absent.
+identity and independently cap the JSON body at 16 KiB. Send acknowledgement
+must match all three fields from authenticated discovery. Request types expose
+the documented 500 discovery/hour and 10 send/hour allowances without
+performing implicit throttling. Deprecated IPv4 path aliases are intentionally
+absent.
 
 Robot implementation schedule:
 

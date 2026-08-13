@@ -229,8 +229,11 @@ The evidence binds the exact server identity and opaque credential lineage,
 then is rechecked at dispatch. Sending is a non-idempotent mutation, is never
 automatically retried, and requires a request-bound strong-digest mutation
 permit. Both responses admit exactly the canonical IPv4, IPv6 network, and
-server number fields under a 16 KiB body limit. The deprecated server-IP path
-alias is intentionally unavailable.
+server number fields under a 16 KiB body limit, and a send acknowledgement
+must equal the complete authenticated discovery identity. `quota()` exposes
+the documented 500 discovery/hour and 10 send/hour allowances for explicit
+caller-owned limiting. The deprecated server-IP path alias is intentionally
+unavailable.
 
 ```rust
 # #[cfg(feature = "serde")]

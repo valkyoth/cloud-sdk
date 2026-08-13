@@ -152,7 +152,8 @@ pub use subnet::{
 
 #[cfg(feature = "alloc")]
 pub use wol::{
-    MAX_ROBOT_WOL_RESPONSE_BYTES, RobotWolGetRequest, RobotWolIntent, RobotWolRequestError,
+    MAX_ROBOT_WOL_RESPONSE_BYTES, ROBOT_WOL_DISCOVERY_QUOTA, ROBOT_WOL_SEND_QUOTA,
+    RobotWolGetRequest, RobotWolIntent, RobotWolQuota, RobotWolRequestError,
 };
 
 #[cfg(feature = "serde")]

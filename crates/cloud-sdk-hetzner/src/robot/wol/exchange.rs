@@ -100,10 +100,16 @@ impl CheckedRobotWol<'_, '_, RobotWolGetRequest> {
 impl CheckedRobotWol<'_, '_, RobotWolSendRequest<'_>> {
     /// Requires the wake acknowledgement to retain exact checked identity.
     pub fn decode_response(self) -> Result<RobotWol, RobotWolDecodeError> {
-        self.inner
+        let expected = self.request.wol.wol();
+        let actual = self
+            .inner
             .decode_owned_with_workspace(|response, workspace| {
                 decode_robot_wol(response, self.request.number(), workspace)
-            })
+            })?;
+        if !actual.same_identity(expected) {
+            return Err(RobotWolDecodeError::ResponseIdentityMismatch);
+        }
+        Ok(actual)
     }
 }
 

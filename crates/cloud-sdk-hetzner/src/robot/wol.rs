@@ -19,7 +19,10 @@ mod permit;
 mod preflight;
 
 pub use prepare::MAX_ROBOT_WOL_RESPONSE_BYTES;
-pub use request::{RobotWolGetRequest, RobotWolIntent, RobotWolRequestError};
+pub use request::{
+    ROBOT_WOL_DISCOVERY_QUOTA, ROBOT_WOL_SEND_QUOTA, RobotWolGetRequest, RobotWolIntent,
+    RobotWolQuota, RobotWolRequestError,
+};
 
 #[cfg(feature = "serde")]
 pub use decode::{RobotWolDecodeError, decode_robot_wol};
