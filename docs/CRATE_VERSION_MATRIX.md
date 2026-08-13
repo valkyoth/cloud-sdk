@@ -1,7 +1,7 @@
 # Crate Version Matrix
 
-Status: `v0.80.0` is the latest published checkpoint. `v0.83.0` is the Robot
-failover internal release candidate; its pentest and final retest passed.
+Status: `v0.80.0` is the latest published checkpoint. `v0.84.0` is the Robot
+Wake-on-LAN internal release candidate; its pentest and final retest passed.
 GitHub CI and CodeQL must pass before tagging. Crates.io publication remains
 deferred to v0.85.0.
 

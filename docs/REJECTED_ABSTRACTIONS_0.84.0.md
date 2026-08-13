@@ -1,6 +1,6 @@
 # v0.84.0 Rejected Abstractions
 
-Status: implementation stop; pentest required.
+Status: release review complete; pentest and final retest passed.
 
 ## Server Address Path Identity
 

@@ -1,6 +1,6 @@
 # v0.84.0 Dependency Review
 
-Status: implementation stop; pentest required.
+Status: release review complete; pentest and final retest passed.
 
 v0.84 adds no third-party package, version, build script, native component,
 network stack, runtime, filesystem, unsafe code, or lockfile source. The WOL
