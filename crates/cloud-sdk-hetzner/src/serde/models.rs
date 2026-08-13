@@ -15,7 +15,7 @@ mod scalars;
 mod security;
 mod special;
 mod ssh_key;
-mod ssh_wire;
+pub(crate) mod ssh_wire;
 mod storage_box;
 mod wipe_string;
 

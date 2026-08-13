@@ -327,6 +327,19 @@ committed in
 [`v0.87.0.json`](../tests/fixtures/robot-traffic/v0.87.0.json) and checked by
 `scripts/check_robot_traffic.sh`.
 
+`v0.88.0` implements all five active SSH-key rows. Create accepts the
+source-documented `name` and OpenSSH/SSH2 `data` form fields and requires
+`201`; rename accepts only `name`; list, get, rename, and delete require `200`,
+with an empty delete body. Names, fingerprints, and returned key data use
+protected redacted storage. Checked decoding parses normalized RFC 4253 key
+wire, requires source algorithm and size coherence, verifies the provider MD5
+path identity, and computes a separate SHA-256 identity. Create reconciles
+OpenSSH or RFC 4716 input with the returned normalized key. Mutations require
+request-bound authority and cannot be retried automatically. The normalized
+contract is committed in
+[`v0.88.0.json`](../tests/fixtures/robot-ssh-keys/v0.88.0.json) and checked by
+`scripts/check_robot_ssh_keys.sh`.
+
 ## Verification
 
 Run the local structural check:

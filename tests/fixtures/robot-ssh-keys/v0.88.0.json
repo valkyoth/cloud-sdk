@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "source": {
+    "retrieved": "2026-08-13",
+    "url": "https://robot.hetzner.com/doc/webservice/en.html",
+    "sha256": "4b396790acc449f47b2b3b893f8eff759c0c25196dc38b1e5e92a12c9704771a"
+  },
+  "inventory": "tests/fixtures/robot-api/v0.74.0.json",
+  "operations": [
+    {"id":"robot_list_ssh_keys","inventory_id":"list_ssh_keys","method":"GET","path":"/key","success":200,"quota":{"requests":500,"interval_seconds":3600}},
+    {"id":"robot_create_ssh_key","inventory_id":"create_ssh_key","method":"POST","path":"/key","success":201,"quota":{"requests":200,"interval_seconds":3600}},
+    {"id":"robot_get_ssh_key","inventory_id":"get_ssh_key","method":"GET","path":"/key/{fingerprint}","success":200,"quota":{"requests":500,"interval_seconds":3600}},
+    {"id":"robot_update_ssh_key","inventory_id":"update_ssh_key","method":"POST","path":"/key/{fingerprint}","success":200,"quota":{"requests":200,"interval_seconds":3600}},
+    {"id":"robot_delete_ssh_key","inventory_id":"delete_ssh_key","method":"DELETE","path":"/key/{fingerprint}","success":200,"quota":{"requests":200,"interval_seconds":3600}}
+  ],
+  "request": {
+    "content_type": "application/x-www-form-urlencoded",
+    "create_fields": ["name", "data"],
+    "create_key_formats": ["OpenSSH", "SSH2"],
+    "update_fields": ["name"],
+    "path_identity": "lowercase-md5-fingerprint"
+  },
+  "response": {
+    "content_type": "application/json",
+    "envelope": "key",
+    "fields": ["name", "fingerprint", "type", "size", "data", "created_at"],
+    "list_envelope": "array-of-key-wrappers",
+    "normalized_key_format": "OpenSSH",
+    "delete_body": "empty"
+  },
+  "failures": {
+    "list": {"404": ["NOT_FOUND"]},
+    "create": {"400": ["INVALID_INPUT"], "409": ["KEY_ALREADY_EXISTS"], "500": ["KEY_CREATE_FAILED"]},
+    "get": {"404": ["NOT_FOUND"]},
+    "update": {"400": ["INVALID_INPUT"], "404": ["NOT_FOUND"], "500": ["KEY_UPDATE_FAILED"]},
+    "delete": {"404": ["NOT_FOUND"], "500": ["KEY_DELETE_FAILED"]}
+  },
+  "local_policy": {
+    "name_bytes": 128,
+    "key_data_bytes": 8192,
+    "item_response_bytes": 32768,
+    "list_response_bytes": 2097152,
+    "list_items": 4096,
+    "algorithms": ["RSA", "ECDSA", "ED25519"],
+    "fingerprints": ["provider-md5-verified", "sdk-sha256-computed"]
+  }
+}

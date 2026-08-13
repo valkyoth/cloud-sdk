@@ -107,7 +107,7 @@ for contract in \
     "$ssh_key:.map(SensitiveText::new)" \
     "$ssh_key:sanitize_bytes(&mut self.sha256_fingerprint)" \
     "$ssh_wire:let mut wire = SecretBuffer::new(storage.as_mut_slice())" \
-    "$ssh_wire:validate_wire(algorithm, wire.as_slice())?"; do
+    "$ssh_wire:parse_wire_identity(algorithm, wire.as_slice())"; do
     file=${contract%%:*}
     required=${contract#*:}
     if ! grep -Fq "$required" "$file"; then

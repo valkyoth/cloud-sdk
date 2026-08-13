@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.88.0 - Unreleased
+
+- Added all five active Robot SSH-key operations with exact request, response,
+  quota, and failure contracts.
+- Added protected names and MD5 path fingerprints, bounded OpenSSH/SSH2 create
+  input, strict key-wire validation, and redacted owned response models.
+- Verify source algorithm, size, and MD5 against RFC 4253 key bytes and compute
+  a separate SHA-256 identity for caller comparisons.
+- Added request-bound mutation/destructive permits, source contract checks,
+  adversarial tests, and direct response fuzzing.
+- Deferred crates.io publication to the cumulative v0.90.0 checkpoint.
+
 ## 0.87.0 - 2026-08-13
 
 - Added the active Robot traffic query with bounded repeated IP/subnet targets,

@@ -2778,13 +2778,72 @@ Status: release candidate; pentest and final retest passed.
 
 ### v0.88.0 - Robot SSH Keys
 
-Goal: complete SSH-key operations and protected material handling.
+Goal: complete every active Robot SSH-key operation while making provider MD5
+fingerprints compatibility identifiers rather than unverified trust anchors.
 
-Deliverables: algorithms, fingerprints, names, keys, atomic forms, redaction, and cleanup.
+Deliverables:
 
-Verification: key/form/secret/source tests and `scripts/release_0_88_gate.sh`.
+- implement source-locked list, create, get, rename, and delete operations with
+  exact methods, paths, quotas, success statuses, form fields, empty-delete
+  acknowledgement, and operation-specific errors;
+- admit bounded OpenSSH and RFC 4716 SSH2 create input, prepare atomic sensitive
+  forms, clear all caller storage on failure, and keep mutation retries denied;
+- add protected non-copyable names and canonical lowercase MD5 path
+  fingerprints, strict normalized OpenSSH response storage, redacted
+  diagnostics, and closure-scoped data access;
+- decode exact six-field key wrappers and bounded duplicate-free lists, reject
+  unknown fields, malformed timestamps, excessive values, unknown algorithm
+  families, and contradictory algorithm or key-size metadata;
+- cryptographically parse the RFC 4253 key wire, verify the provider MD5
+  fingerprint against those bytes, compute an SDK SHA-256 fingerprint, and
+  bind get/update/delete responses to the exact path identity;
+- normalize both admitted create formats to one key-wire identity and require
+  the provider's created response to match the exact requested key and name;
+- require request-bound strong-digest mutation authority for sensitive create
+  and rename forms, separate destructive delete authority, and prevent
+  cross-request or cross-impact permit substitution; and
+- add immutable source evidence, mutation-resistant checker tests, direct
+  decoder fuzzing, migration/security/API review, and an internal-only release
+  manifest that publishes no crate before v0.90.0.
 
-Stop gate: `v0.88.0 implementation stop reached. Complete the pentest and full release gate for this exact commit; defer crates.io publication to v0.90.0.`
+Verification:
+
+- test all five methods, targets, operation IDs, status/content/body policies,
+  safety metadata, exact form encoding, cleanup, redaction, and no-retry
+  behavior;
+- test OpenSSH and SSH2 input grammar, exact name/fingerprint bounds,
+  cryptographic fingerprint matching, RSA/ECDSA/Ed25519 type and size
+  coherence, valid/invalid calendar timestamps, duplicate lists, unknown
+  fields, wrong request identity, and contradictory mutation outcomes;
+- test operation-bound `INVALID_INPUT`, `NOT_FOUND`, `KEY_ALREADY_EXISTS`,
+  `KEY_CREATE_FAILED`, `KEY_UPDATE_FAILED`, and `KEY_DELETE_FAILED` decoding;
+- test sensitive plans require a strong digest and mutation/destructive permit
+  types cannot authorize each other;
+- run `scripts/check_robot_ssh_keys.sh`, its contract mutation tests, the full
+  Robot source lock, fuzz harness, MSRV/current/no-std/platform matrices,
+  documentation/SBOM/dependency gates, and `scripts/release_0_88_gate.sh`; and
+- dependency review confirms no new external package, feature, unsafe, native,
+  network, runtime, filesystem, clock, or cryptographic implementation edge.
+
+Exit criteria:
+
+- all five active SSH-key rows are implemented and the API matrix contains no
+  planned SSH-key claim;
+- every returned key has source metadata reconciled against strict key-wire
+  parsing, provider MD5 verification, and an SDK-computed SHA-256 identity;
+- every mutation requires exact current request authority, cannot be retried
+  automatically, and cannot consume authority for another request or impact;
+- raw decoders remain internal, responses cannot cross operation types, and
+  protected values remain redacted and non-copyable;
+- the exact implementation commit receives an incremental pentest and every
+  finding triggers remediation plus retest;
+- the unchanged evidence commit passes the full local release gate and GitHub
+  CI/CodeQL before tag creation; and
+- crates.io publication remains deferred to the cumulative v0.90.0 checkpoint.
+
+Stop gate: `v0.88.0 implementation stop reached. Run the incremental pentest for this exact commit before the full release gate and tag; defer crates.io publication to v0.90.0.`
+
+Status: implementation stop; pentest required.
 
 ### v0.89.0 - Robot Firewalls And Templates
 

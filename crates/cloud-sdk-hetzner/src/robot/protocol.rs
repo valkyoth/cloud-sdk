@@ -94,6 +94,14 @@ pub enum RobotProviderErrorCode {
     RdnsDeleteFailed,
     /// Robot failed internally while serving a traffic query.
     TrafficInternalError,
+    /// The supplied Robot SSH key already exists.
+    SshKeyAlreadyExists,
+    /// Robot could not create the SSH key.
+    SshKeyCreateFailed,
+    /// Robot could not update the SSH-key name.
+    SshKeyUpdateFailed,
+    /// Robot could not delete the SSH key.
+    SshKeyDeleteFailed,
     /// Wake-on-LAN is unavailable for the server.
     WolNotAvailable,
     /// Robot could not send the Wake-on-LAN packet.

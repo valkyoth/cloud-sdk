@@ -404,6 +404,12 @@ explicitly admitted read-only `POST`. Incremental strict decoding preserves
 non-negative decimal tokens and binds every returned target, interval, and
 granularity to the request.
 
+`v0.88.0` implements all five active Robot SSH-key operations. Protected names
+and canonical MD5 path fingerprints feed exact list/create/get/rename/delete
+requests. Checked responses parse normalized OpenSSH key wire, reconcile
+algorithm and size, verify provider MD5, compute SHA-256, reject duplicate
+lists, and bind mutations to the exact requested name and key identity.
+
 Robot implementation schedule:
 
 | Group | Active | Deprecated | Planned Module | Milestone | Status |
@@ -418,7 +424,7 @@ Robot implementation schedule:
 | boot configuration | 15 | 0 | `cloud_sdk_hetzner::robot::boot` | `v0.85.0` | implemented |
 | reverse DNS | 5 | 0 | `cloud_sdk_hetzner::robot::rdns` | `v0.86.0` | implemented |
 | traffic | 1 | 0 | `cloud_sdk_hetzner::robot::traffic` | `v0.87.0` | implemented |
-| SSH keys | 5 | 0 | `cloud_sdk_hetzner::robot::ssh_keys` | `v0.88.0` | planned |
+| SSH keys | 5 | 0 | `cloud_sdk_hetzner::robot::ssh_keys` | `v0.88.0` | implemented |
 | firewall | 8 | 0 | `cloud_sdk_hetzner::robot::firewall` | `v0.89.0` | planned |
 | vSwitch | 7 | 0 | `cloud_sdk_hetzner::robot::vswitch` | `v0.90.0` | planned |
 | ordering catalogs | 6 | 0 | `cloud_sdk_hetzner::robot::ordering` | `v0.91.0` | planned |

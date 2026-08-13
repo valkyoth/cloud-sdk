@@ -10,10 +10,28 @@ use super::ResponseModelError;
 use crate::security::shared::{SshAlgorithm, ssh_algorithm};
 use crate::security::ssh_keys::{MAX_SSH_PUBLIC_KEY_BYTES, SshPublicKey};
 
+#[derive(Clone, Copy)]
+pub(crate) struct SshKeyIdentity {
+    pub(crate) algorithm: SshAlgorithm,
+    pub(crate) bits: u32,
+    pub(crate) md5: [u8; 16],
+    pub(crate) sha256: [u8; 32],
+}
+
 pub(super) fn validate_key_identity(
     value: &str,
     supplied_fingerprint: [u8; 16],
 ) -> Result<[u8; 32], ResponseModelError> {
+    let identity = parse_openssh_key_identity(value)?;
+    if identity.md5 != supplied_fingerprint {
+        return Err(ResponseModelError::EnvelopeMismatch);
+    }
+    Ok(identity.sha256)
+}
+
+pub(crate) fn parse_openssh_key_identity(
+    value: &str,
+) -> Result<SshKeyIdentity, ResponseModelError> {
     SshPublicKey::new(value).map_err(|_| ResponseModelError::InvalidText)?;
     let mut fields = value.split(' ');
     let algorithm_text = fields.next().ok_or(ResponseModelError::InvalidText)?;
@@ -38,36 +56,62 @@ pub(super) fn validate_key_identity(
     if written != decoded_len {
         return Err(ResponseModelError::InvalidText);
     }
-    validate_wire(algorithm, wire.as_slice())?;
-
-    let computed_fingerprint: [u8; 16] = <Md5 as md5::Digest>::digest(wire.as_slice()).into();
-    if computed_fingerprint != supplied_fingerprint {
-        return Err(ResponseModelError::EnvelopeMismatch);
-    }
-    Ok(<Sha256 as sha2::Digest>::digest(wire.as_slice()).into())
+    parse_wire_identity(algorithm, wire.as_slice())
 }
 
-fn validate_wire(algorithm: SshAlgorithm, wire: &[u8]) -> Result<(), ResponseModelError> {
+pub(crate) fn parse_ssh2_wire_identity(wire: &[u8]) -> Result<SshKeyIdentity, ResponseModelError> {
+    let mut reader = WireReader::new(wire);
+    let algorithm = str::from_utf8(reader.string()?)
+        .ok()
+        .and_then(ssh_algorithm)
+        .ok_or(ResponseModelError::InvalidText)?;
+    parse_wire_identity(algorithm, wire)
+}
+
+fn parse_wire_identity(
+    algorithm: SshAlgorithm,
+    wire: &[u8],
+) -> Result<SshKeyIdentity, ResponseModelError> {
     let mut reader = WireReader::new(wire);
     if reader.string()? != algorithm.as_str().as_bytes() {
         return Err(ResponseModelError::InvalidText);
     }
-    match algorithm {
-        SshAlgorithm::Ed25519 => validate_ed25519(&mut reader)?,
+    let bits = match algorithm {
+        SshAlgorithm::Ed25519 => {
+            validate_ed25519(&mut reader)?;
+            256
+        }
         SshAlgorithm::Rsa => validate_rsa(&mut reader)?,
-        SshAlgorithm::EcdsaNistP256 => validate_ecdsa(&mut reader, b"nistp256", 33, 65)?,
-        SshAlgorithm::EcdsaNistP384 => validate_ecdsa(&mut reader, b"nistp384", 49, 97)?,
-        SshAlgorithm::EcdsaNistP521 => validate_ecdsa(&mut reader, b"nistp521", 67, 133)?,
+        SshAlgorithm::EcdsaNistP256 => {
+            validate_ecdsa(&mut reader, b"nistp256", 33, 65)?;
+            256
+        }
+        SshAlgorithm::EcdsaNistP384 => {
+            validate_ecdsa(&mut reader, b"nistp384", 49, 97)?;
+            384
+        }
+        SshAlgorithm::EcdsaNistP521 => {
+            validate_ecdsa(&mut reader, b"nistp521", 67, 133)?;
+            521
+        }
         SshAlgorithm::SkEd25519 => {
             validate_ed25519(&mut reader)?;
             validate_application(&mut reader)?;
+            256
         }
         SshAlgorithm::SkEcdsaNistP256 => {
             validate_ecdsa(&mut reader, b"nistp256", 33, 65)?;
             validate_application(&mut reader)?;
+            256
         }
-    }
-    reader.finish()
+    };
+    reader.finish()?;
+    Ok(SshKeyIdentity {
+        algorithm,
+        bits,
+        md5: <Md5 as md5::Digest>::digest(wire).into(),
+        sha256: <Sha256 as sha2::Digest>::digest(wire).into(),
+    })
 }
 
 fn validate_ed25519(reader: &mut WireReader<'_>) -> Result<(), ResponseModelError> {
@@ -77,11 +121,24 @@ fn validate_ed25519(reader: &mut WireReader<'_>) -> Result<(), ResponseModelErro
     Ok(())
 }
 
-fn validate_rsa(reader: &mut WireReader<'_>) -> Result<(), ResponseModelError> {
-    if !is_positive_mpint(reader.string()?) || !is_positive_mpint(reader.string()?) {
+fn validate_rsa(reader: &mut WireReader<'_>) -> Result<u32, ResponseModelError> {
+    let exponent = reader.string()?;
+    let modulus = reader.string()?;
+    if !is_positive_mpint(exponent) || !is_positive_mpint(modulus) {
         return Err(ResponseModelError::InvalidText);
     }
-    Ok(())
+    mpint_bits(modulus).ok_or(ResponseModelError::InvalidText)
+}
+
+fn mpint_bits(value: &[u8]) -> Option<u32> {
+    let significant = if value.first() == Some(&0) {
+        value.get(1..)?
+    } else {
+        value
+    };
+    let first = *significant.first()?;
+    let tail_bits = u32::try_from(significant.len().checked_sub(1)?.checked_mul(8)?).ok()?;
+    tail_bits.checked_add(8_u32.checked_sub(first.leading_zeros())?)
 }
 
 fn validate_ecdsa(

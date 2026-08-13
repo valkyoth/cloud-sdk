@@ -1,8 +1,8 @@
 # Crate Version Matrix
 
-Status: `v0.85.0` is the latest published checkpoint. `v0.87.0` is the Robot
-traffic release candidate; its incremental pentest and final retest passed,
-while crates.io publication remains deferred to `v0.90.0`.
+Status: `v0.85.0` is the latest published checkpoint. `v0.88.0` is the Robot
+SSH-key implementation stop; its incremental pentest is required, while
+crates.io publication remains deferred to `v0.90.0`.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
@@ -1309,6 +1309,20 @@ cumulative train and does not publish any crate.
 | --- | --- | --- | --- | --- | --- |
 | `cloud-sdk` | `0.85.0` | `0.87.0` | `code` | No | Add a closed operation-bound read-only POST approval; defer publication to v0.90.0. |
 | `cloud-sdk-hetzner` | `0.44.0` | `0.44.0` | `code` | No | Accumulate source-locked Robot traffic queries for v0.90.0. |
+| `cloud-sdk-reqwest` | `0.35.2` | `0.35.2` | `unchanged` | No | No transport boundary changes. |
+| `cloud-sdk-sanitization` | `0.19.0` | `0.19.0` | `unchanged` | No | No sanitization boundary changes. |
+| `cloud-sdk-testkit` | `0.30.4` | `0.30.4` | `unchanged` | No | No testkit boundary changes. |
+
+## v0.88.0 Tracking Table
+
+`v0.88.0` implements all five active Robot SSH-key operations with strict
+key-wire identity checks. It remains inside the v0.86-v0.90 cumulative train
+and does not publish any crate.
+
+| Crate | Published | v0.88 | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.85.0` | `0.88.0` | `code` | No | Advance the internal Robot SSH-key source milestone; defer publication to v0.90.0. |
+| `cloud-sdk-hetzner` | `0.44.0` | `0.44.0` | `code` | No | Accumulate source-locked Robot SSH-key lifecycle operations for v0.90.0. |
 | `cloud-sdk-reqwest` | `0.35.2` | `0.35.2` | `unchanged` | No | No transport boundary changes. |
 | `cloud-sdk-sanitization` | `0.19.0` | `0.19.0` | `unchanged` | No | No sanitization boundary changes. |
 | `cloud-sdk-testkit` | `0.30.4` | `0.30.4` | `unchanged` | No | No testkit boundary changes. |

@@ -57,6 +57,10 @@ impl RobotSubnetFailureCode {
             | RobotProviderErrorCode::BootDeactivationFailed
             | RobotProviderErrorCode::WindowsMissingAddon
             | RobotProviderErrorCode::WindowsOutdatedVersion
+            | RobotProviderErrorCode::SshKeyAlreadyExists
+            | RobotProviderErrorCode::SshKeyCreateFailed
+            | RobotProviderErrorCode::SshKeyUpdateFailed
+            | RobotProviderErrorCode::SshKeyDeleteFailed
             | RobotProviderErrorCode::TrafficInternalError => None,
         }
     }

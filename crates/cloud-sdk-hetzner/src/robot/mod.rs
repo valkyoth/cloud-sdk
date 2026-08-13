@@ -16,6 +16,7 @@
 //! Reverse-DNS discovery and mutations are source-locked in `v0.86.0`.
 //! Bounded traffic queries and incremental traffic decoding are source-locked
 //! in `v0.87.0`.
+//! SSH-key inventory and lifecycle operations are source-locked in `v0.88.0`.
 
 #[cfg(feature = "alloc")]
 mod boot;
@@ -38,6 +39,8 @@ mod rdns;
 mod reset;
 #[cfg(feature = "alloc")]
 mod server;
+#[cfg(feature = "alloc")]
+mod ssh_keys;
 #[cfg(feature = "alloc")]
 mod subnet;
 #[cfg(feature = "serde")]
@@ -133,6 +136,26 @@ pub use rdns::{
     MAX_ROBOT_RDNS_NAME_BYTES, RobotRdnsDeleteRequest, RobotRdnsGetRequest, RobotRdnsListRequest,
     RobotRdnsName, RobotRdnsNameError, RobotRdnsRequestError, RobotRdnsSetRequest,
     RobotRdnsUpdateRequest,
+};
+
+#[cfg(feature = "alloc")]
+pub use ssh_keys::{
+    MAX_ROBOT_SSH_KEY_DATA_BYTES, MAX_ROBOT_SSH_KEY_ITEM_RESPONSE_BYTES,
+    MAX_ROBOT_SSH_KEY_LIST_RESPONSE_BYTES, MAX_ROBOT_SSH_KEY_NAME_BYTES, RobotSshKeyCreateRequest,
+    RobotSshKeyData, RobotSshKeyDeleteRequest, RobotSshKeyFingerprint, RobotSshKeyGetRequest,
+    RobotSshKeyListRequest, RobotSshKeyName, RobotSshKeyRequestError, RobotSshKeyUpdateRequest,
+    RobotSshKeyValueError,
+};
+
+#[cfg(feature = "serde")]
+pub use ssh_keys::{
+    CheckedRobotSshKey, MAX_ROBOT_SSH_KEY_LIST_ITEMS, PreparedRobotSshKey, RobotSshKey,
+    RobotSshKeyAlgorithm, RobotSshKeyCanonicalPlanFingerprint, RobotSshKeyCreatedAt,
+    RobotSshKeyDecodeError, RobotSshKeyDestructivePermit, RobotSshKeyFailureCode, RobotSshKeyList,
+    RobotSshKeyMutationPermit, RobotSshKeyPermitAttempt, RobotSshKeyPermitRequest,
+    RobotSshKeyPlanConfirmation, RobotSshKeyPlanFingerprintDigest, RobotSshKeyPlanSubject,
+    RobotSshKeySharedDestructivePermit, RobotSshKeySharedMutationPermit,
+    build_robot_ssh_key_canonical_plan, build_robot_ssh_key_plan_digest,
 };
 
 #[cfg(feature = "serde")]

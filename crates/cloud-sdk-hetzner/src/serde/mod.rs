@@ -12,7 +12,7 @@
 mod binding;
 mod checked;
 mod incremental;
-mod models;
+pub(crate) mod models;
 mod pagination;
 mod response;
 mod rrsets;

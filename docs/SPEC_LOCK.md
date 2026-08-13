@@ -610,3 +610,22 @@ invalid period ordinals, excessive structure, and aggregate/grouped shape
 confusion. Exact number text is retained without floating-point conversion.
 Robot may omit requested targets with no data. No mutation, permit, automatic
 retry, high-level Robot client, or network transport is introduced.
+
+## v0.88.0 Robot SSH-Key Policy
+
+The five active `/key` rows are bound to the complete Robot inventory and the
+normalized `tests/fixtures/robot-ssh-keys/v0.88.0.json` contract. List/get are
+read-only; create/rename are non-idempotent mutations; delete is destructive.
+Every mutation denies automatic retry and requires exact request-bound
+authority.
+
+Create accepts bounded conservative OpenSSH or RFC 4716 SSH2 text. Forms are
+sensitive and atomically clear caller storage on failure. Provider responses
+must contain exactly `name`, `fingerprint`, `type`, `size`, `data`, and
+`created_at`. The normalized OpenSSH value is decoded as RFC 4253 key wire;
+algorithm and size must agree, provider MD5 is verified over the wire bytes,
+and SHA-256 is computed independently. Lists are bounded and reject duplicate
+fingerprints. Get/rename bind the exact path fingerprint, while create also
+binds the normalized request key and name. Delete admits only an empty `200`
+acknowledgement. No raw decoder, automatic retry, high-level Robot client, or
+network transport is introduced.
