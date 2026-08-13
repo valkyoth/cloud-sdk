@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.88.0 - Unreleased
+## 0.88.0 - 2026-08-13
 
 - Added all five active Robot SSH-key operations with exact request, response,
   quota, and failure contracts.
