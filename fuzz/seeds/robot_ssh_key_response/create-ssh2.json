@@ -1,0 +1,1 @@
+2{"key":{"name":"deploy-key","fingerprint":"ae:6f:ba:1b:70:2c:ae:c7:5c:ab:6e:4d:5e:d4:c7:23","type":"ED25519","size":256,"data":"ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILM+rvN+ot98qgEN796jTiQfZfG1KaT0PtFDJ/XFSqti user@example.com","created_at":"2021-12-31 23:59:59"}}

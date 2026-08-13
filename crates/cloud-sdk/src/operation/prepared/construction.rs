@@ -1,3 +1,4 @@
+use crate::Method;
 use crate::authentication::AuthenticationScopePolicy;
 use crate::operation::{OperationImpact, OperationMetadata, RequestIdPolicy, ResponsePolicy};
 use crate::transport::{RawResponsePolicy, TransportRequest};
@@ -8,6 +9,29 @@ use super::{
 };
 
 impl<'request> PreparedRequest<'request> {
+    /// Validates cross-policy invariants before provider storage is borrowed.
+    ///
+    /// Provider preparation code should call this before writing sensitive
+    /// request bytes. [`Self::new`] repeats the same validation when it binds
+    /// the complete request.
+    pub fn validate_construction_policy(
+        method: Method,
+        metadata: OperationMetadata,
+        raw_response_policy: RawResponsePolicy<'_>,
+    ) -> Result<(), PreparedRequestPolicyError> {
+        if matches!(metadata.impact(), OperationImpact::ReadOnly)
+            && !method.permits_direct_read_only()
+        {
+            return Err(PreparedRequestPolicyError::ReadOnlyMethodMismatch);
+        }
+        if metadata.request_id_policy() != RequestIdPolicy::Discard
+            && !raw_response_policy.admits_header("x-request-id")
+        {
+            return Err(PreparedRequestPolicyError::MissingRequestIdHeader);
+        }
+        Ok(())
+    }
+
     /// Creates a complete prepared request after checking cross-policy invariants.
     ///
     /// # Errors
@@ -91,13 +115,9 @@ impl<'request> PreparedRequest<'request> {
         body_sensitivity: RequestBodySensitivity,
         read_only_post_approval: Option<ApprovedReadOnlyPostQuery>,
     ) -> Result<Self, PreparedRequestPolicyError> {
-        if matches!(metadata.impact(), OperationImpact::ReadOnly)
-            && !request.method().permits_direct_read_only()
-            && read_only_post_approval.is_none()
-        {
-            return Err(PreparedRequestPolicyError::ReadOnlyMethodMismatch);
-        }
-        if metadata.request_id_policy() != RequestIdPolicy::Discard
+        if read_only_post_approval.is_none() {
+            Self::validate_construction_policy(request.method(), metadata, *raw_response_policy)?;
+        } else if metadata.request_id_policy() != RequestIdPolicy::Discard
             && !raw_response_policy.admits_header("x-request-id")
         {
             return Err(PreparedRequestPolicyError::MissingRequestIdHeader);

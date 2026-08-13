@@ -68,8 +68,8 @@ def main() -> None:
             ),
             (
                 "core_prepared_construction",
-                'raw_response_policy.admits_header("x-request-id")',
-                'raw_response_policy.admits_header("content-type")',
+                "Self::validate_construction_policy(request.method(), metadata, *raw_response_policy)?",
+                "drop((request, metadata, raw_response_policy))",
                 "missing required wire control",
             ),
             (

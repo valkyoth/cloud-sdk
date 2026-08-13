@@ -3,7 +3,7 @@
 use alloc::string::String;
 use core::fmt;
 
-use cloud_sdk_sanitization::{sanitize_bytes, sanitize_string};
+use cloud_sdk_sanitization::{SecretBuffer, sanitize_bytes, sanitize_string};
 
 use super::cloud_schema::validate_model;
 use super::ssh_wire::validate_key_identity;
@@ -120,7 +120,8 @@ pub(crate) fn parse_ssh_key(value: &mut Value) -> Result<SshKey, ResponseModelEr
         required(fields, "fingerprint")?,
         MD5_FINGERPRINT_BYTES,
     )?);
-    let supplied_fingerprint = parse_md5_fingerprint(fingerprint.as_str())?;
+    let mut supplied_fingerprint = parse_md5_fingerprint(fingerprint.as_str())?;
+    let supplied_fingerprint = SecretBuffer::new(&mut supplied_fingerprint);
     let labels = parse_labels(required(fields, "labels")?, MAX_LABELS)?;
     let created = required(fields, "created")?
         .try_with_str(UtcTimestamp::try_new)
@@ -134,7 +135,7 @@ pub(crate) fn parse_ssh_key(value: &mut Value) -> Result<SshKey, ResponseModelEr
         .ok_or(ResponseModelError::WrongType)?;
     public_key.validate(MAX_SSH_PUBLIC_KEY_BYTES)?;
     let sha256_fingerprint = public_key
-        .try_with_secret(|value| validate_key_identity(value, supplied_fingerprint))
+        .try_with_secret(|value| validate_key_identity(value, supplied_fingerprint.as_slice()))
         .map_err(|_| ResponseModelError::InvalidText)??;
     Ok(SshKey {
         id,

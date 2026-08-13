@@ -129,7 +129,8 @@ impl CheckedRobotSshKey<'_, '_, RobotSshKeyCreateRequest<'_>> {
     pub fn decode_response(self) -> Result<RobotSshKey, RobotSshKeyDecodeError> {
         let expected = self.request.data().with_text(request_identity)?;
         let result = decode_one(self.inner)?;
-        if result.name() == self.request.name() && result.sha256_fingerprint() == &expected.sha256 {
+        if result.name() == self.request.name() && result.sha256_fingerprint() == expected.sha256()
+        {
             Ok(result)
         } else {
             Err(RobotSshKeyDecodeError::MutationOutcomeMismatch)

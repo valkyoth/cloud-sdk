@@ -30,7 +30,9 @@ impl RobotSshKeyName {
     pub fn new(value: &str) -> Result<Self, RobotSshKeyValueError> {
         if value.is_empty()
             || value.len() > MAX_ROBOT_SSH_KEY_NAME_BYTES
-            || value.bytes().any(|byte| byte < 0x20 || byte == 0x7f)
+            || value
+                .chars()
+                .any(crate::display::is_unsafe_display_character)
         {
             return Err(RobotSshKeyValueError::Invalid);
         }
@@ -198,7 +200,9 @@ fn valid_ssh2_header(line: &str) -> bool {
         && name
             .bytes()
             .all(|byte| byte.is_ascii_alphanumeric() || byte == b'-')
-        && value.bytes().all(|byte| byte >= 0x20 && byte != 0x7f)
+        && !value
+            .chars()
+            .any(crate::display::is_unsafe_display_character)
 }
 
 #[cfg(test)]
@@ -223,6 +227,14 @@ mod tests {
             RobotSshKeyFingerprint::new("15:28:B0:03:95:f0:77:b3:10:56:15:6b:77:22:a5:bb").err(),
             Some(RobotSshKeyValueError::Invalid)
         );
+        for character in [
+            '\u{0085}', '\u{061c}', '\u{200b}', '\u{202e}', '\u{2069}', '\u{feff}',
+        ] {
+            assert_eq!(
+                RobotSshKeyName::new(&format!("prod{character}key")).err(),
+                Some(RobotSshKeyValueError::Invalid)
+            );
+        }
     }
 
     #[test]
@@ -237,6 +249,17 @@ mod tests {
         ] {
             assert_eq!(
                 RobotSshKeyData::new(invalid).err(),
+                Some(RobotSshKeyValueError::Invalid)
+            );
+        }
+        for character in [
+            '\u{0085}', '\u{061c}', '\u{200b}', '\u{202e}', '\u{2069}', '\u{feff}',
+        ] {
+            let unsafe_header = format!(
+                "---- BEGIN SSH2 PUBLIC KEY ----\nComment: prod{character}key\nAAAA\n---- END SSH2 PUBLIC KEY ----"
+            );
+            assert_eq!(
+                RobotSshKeyData::new(&unsafe_header).err(),
                 Some(RobotSshKeyValueError::Invalid)
             );
         }

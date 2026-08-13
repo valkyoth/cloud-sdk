@@ -38,6 +38,7 @@ REQUIRED = {
     "core_prepared_construction": [
         "PreparedRequestPolicyError::MissingRequestIdHeader",
         'raw_response_policy.admits_header("x-request-id")',
+        "Self::validate_construction_policy(request.method(), metadata, *raw_response_policy)?",
     ],
     "core_authenticated": [
         "response_policy: RawResponsePolicy",

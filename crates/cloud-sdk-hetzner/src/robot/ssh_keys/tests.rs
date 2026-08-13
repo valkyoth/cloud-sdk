@@ -2,8 +2,8 @@ use alloc::{format, vec};
 
 use cloud_sdk::Method;
 use cloud_sdk::operation::{
-    OperationImpact, PreparationStorage, PrepareOperation, RequestBodySensitivity,
-    RequestSemantics, RetryEligibility,
+    CostIntent, OperationImpact, OperationMetadata, PreparationStorage, PrepareOperation,
+    RequestBodySensitivity, RequestIdPolicy, RequestSemantics, RetryEligibility,
 };
 use cloud_sdk::transport::{HeaderSensitivity, ResponseBuffer, ResponseMetadata, StatusCode};
 
@@ -11,6 +11,7 @@ use super::*;
 use crate::security::shared::SshAlgorithm;
 
 pub(super) const PUBLIC_KEY: &str = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILM+rvN+ot98qgEN796jTiQfZfG1KaT0PtFDJ/XFSqti user@example.com";
+const SSH2_KEY: &str = "---- BEGIN SSH2 PUBLIC KEY ----\nComment: deploy\nAAAAC3NzaC1lZDI1NTE5AAAAILM+rvN+ot98qgEN796jTiQfZfG1KaT0PtFDJ/XFSqti\n---- END SSH2 PUBLIC KEY ----";
 pub(super) const FINGERPRINT: &str = "ae:6f:ba:1b:70:2c:ae:c7:5c:ab:6e:4d:5e:d4:c7:23";
 pub(super) const ENTRY: &[u8] = br#"{"key":{"name":"deploy-key","fingerprint":"ae:6f:ba:1b:70:2c:ae:c7:5c:ab:6e:4d:5e:d4:c7:23","type":"ED25519","size":256,"data":"ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILM+rvN+ot98qgEN796jTiQfZfG1KaT0PtFDJ/XFSqti user@example.com","created_at":"2021-12-31 23:59:59"}}"#;
 
@@ -175,6 +176,16 @@ fn response_association_rejects_wrong_identity_and_mutation_outcome() {
 }
 
 #[test]
+fn rfc4716_create_normalizes_to_the_response_key_identity() {
+    let request = RobotSshKeyCreateRequest::new(
+        name("deploy-key"),
+        RobotSshKeyData::new(SSH2_KEY)
+            .unwrap_or_else(|_| unreachable!("valid RFC 4716 fixture failed")),
+    );
+    assert!(decode_create(&request, ENTRY).is_ok());
+}
+
+#[test]
 fn delete_requires_exact_empty_ok_response() {
     let request = RobotSshKeyDeleteRequest::new(fingerprint());
     let mut target = [0_u8; 128];
@@ -205,6 +216,34 @@ fn failed_preparation_clears_all_caller_storage() {
     );
     assert_eq!(target, [0_u8; 2]);
     assert_eq!(body, [0_u8; 4]);
+}
+
+#[test]
+fn prepared_policy_failure_precedes_borrow_and_clears_sensitive_storage() {
+    let request = RobotSshKeyCreateRequest::new(name("deploy-key"), data());
+    let metadata = OperationMetadata::new(
+        OperationImpact::ReadOnly,
+        RequestSemantics::Safe,
+        RetryEligibility::ExplicitPolicy,
+        CostIntent::NoKnownCost,
+        RequestIdPolicy::Discard,
+    )
+    .unwrap_or_else(|_| unreachable!("late-failure metadata fixture failed"));
+    let mut target = [0xa5_u8; 128];
+    let mut body = [0x5a_u8; 1_024];
+    let result = super::prepare::prepare_with_metadata(
+        super::prepare::Kind::Create(&request.name, &request.data),
+        PreparationStorage::new(&mut target, &mut body),
+        Ok(metadata),
+    );
+    assert!(matches!(
+        result,
+        Err(RobotSshKeyRequestError::InvalidPreparedPolicy(
+            cloud_sdk::operation::PreparedRequestPolicyError::ReadOnlyMethodMismatch
+        ))
+    ));
+    assert_eq!(target, [0_u8; 128]);
+    assert_eq!(body, [0_u8; 1_024]);
 }
 
 #[allow(clippy::too_many_arguments)]

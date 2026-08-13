@@ -2,6 +2,7 @@ use alloc::vec::Vec;
 
 use cloud_sdk::operation::CheckedResponse;
 use cloud_sdk::transport::{ResponseDecodeWorkspace, StatusCode};
+use cloud_sdk_sanitization::SecretBuffer;
 
 use super::model::*;
 use super::prepare::{
@@ -116,7 +117,8 @@ fn parse_wrapper(value: &mut Value) -> Result<RobotSshKey, RobotSshKeyDecodeErro
 fn parse_key(object: &mut Map) -> Result<RobotSshKey, RobotSshKeyDecodeError> {
     let name = text_value(object, "name", RobotSshKeyName::new)?;
     let fingerprint = text_value(object, "fingerprint", RobotSshKeyFingerprint::new)?;
-    let supplied_md5 = fingerprint.with_text(parse_md5_fingerprint)?;
+    let mut supplied_md5 = fingerprint.with_text(parse_md5_fingerprint)?;
+    let supplied_md5 = SecretBuffer::new(&mut supplied_md5);
     let algorithm = object
         .get("type")
         .ok_or(RobotSshKeyDecodeError::InvalidEnvelope)?
@@ -140,18 +142,19 @@ fn parse_key(object: &mut Map) -> Result<RobotSshKey, RobotSshKeyDecodeError> {
         .and_then(Value::take_string)
         .map(SensitiveText::new)
         .ok_or(RobotSshKeyDecodeError::InvalidEnvelope)?;
-    let identity = data
+    let mut identity = data
         .try_with_secret(parse_openssh_key_identity)
         .map_err(|_| RobotSshKeyDecodeError::InvalidKey)?
         .map_err(map_model_error)?;
-    require_identity(identity, algorithm, size_bits, supplied_md5)?;
+    require_identity(&identity, algorithm, size_bits, supplied_md5.as_slice())?;
+    let sha256_fingerprint = identity.take_sha256();
     Ok(RobotSshKey {
         name,
         fingerprint,
         algorithm,
         size_bits,
         data,
-        sha256_fingerprint: identity.sha256,
+        sha256_fingerprint,
         created_at,
     })
 }
@@ -171,14 +174,14 @@ fn text_value<T>(
 }
 
 fn require_identity(
-    identity: SshKeyIdentity,
+    identity: &SshKeyIdentity,
     algorithm: RobotSshKeyAlgorithm,
     size_bits: u32,
-    supplied_md5: [u8; 16],
+    supplied_md5: &[u8],
 ) -> Result<(), RobotSshKeyDecodeError> {
-    if source_algorithm(identity.algorithm) == algorithm
-        && identity.bits == size_bits
-        && identity.md5 == supplied_md5
+    if source_algorithm(identity.algorithm()) == algorithm
+        && identity.bits() == size_bits
+        && identity.md5().as_slice() == supplied_md5
     {
         Ok(())
     } else {

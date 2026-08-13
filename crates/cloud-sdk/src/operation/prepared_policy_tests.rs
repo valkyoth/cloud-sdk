@@ -70,6 +70,10 @@ fn non_discarded_request_ids_require_raw_header_admission() -> Result<(), &'stat
         )
         .map_err(|_| "metadata")?;
         assert!(matches!(
+            PreparedRequest::validate_construction_policy(Method::Get, metadata, raw),
+            Err(PreparedRequestPolicyError::MissingRequestIdHeader)
+        ));
+        assert!(matches!(
             PreparedRequest::new(
                 TransportRequest::new(Method::Get, target),
                 ProviderService::from_marker::<TestService>(EndpointPolicy::fixed(endpoint)),
@@ -130,6 +134,10 @@ fn read_only_metadata_rejects_methods_that_can_change_state() -> Result<(), &'st
         Method::Delete,
         Method::Options,
     ] {
+        assert!(matches!(
+            PreparedRequest::validate_construction_policy(method, metadata, raw),
+            Err(PreparedRequestPolicyError::ReadOnlyMethodMismatch)
+        ));
         assert!(matches!(
             PreparedRequest::new(
                 TransportRequest::new(method, target),

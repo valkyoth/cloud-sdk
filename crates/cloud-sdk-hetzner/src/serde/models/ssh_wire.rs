@@ -2,7 +2,7 @@ use alloc::vec::Vec;
 use core::str;
 
 use base64_ng::STRICT_STANDARD_PADDED;
-use cloud_sdk_sanitization::SecretBuffer;
+use cloud_sdk_sanitization::{SecretBuffer, sanitize_bytes};
 use md5::Md5;
 use sha2::Sha256;
 
@@ -10,23 +10,51 @@ use super::ResponseModelError;
 use crate::security::shared::{SshAlgorithm, ssh_algorithm};
 use crate::security::ssh_keys::{MAX_SSH_PUBLIC_KEY_BYTES, SshPublicKey};
 
-#[derive(Clone, Copy)]
 pub(crate) struct SshKeyIdentity {
-    pub(crate) algorithm: SshAlgorithm,
-    pub(crate) bits: u32,
-    pub(crate) md5: [u8; 16],
-    pub(crate) sha256: [u8; 32],
+    algorithm: SshAlgorithm,
+    bits: u32,
+    md5: [u8; 16],
+    sha256: [u8; 32],
+}
+
+impl SshKeyIdentity {
+    pub(crate) const fn algorithm(&self) -> SshAlgorithm {
+        self.algorithm
+    }
+
+    pub(crate) const fn bits(&self) -> u32 {
+        self.bits
+    }
+
+    pub(crate) const fn md5(&self) -> &[u8; 16] {
+        &self.md5
+    }
+
+    pub(crate) const fn sha256(&self) -> &[u8; 32] {
+        &self.sha256
+    }
+
+    pub(crate) fn take_sha256(&mut self) -> [u8; 32] {
+        core::mem::take(&mut self.sha256)
+    }
+}
+
+impl Drop for SshKeyIdentity {
+    fn drop(&mut self) {
+        sanitize_bytes(&mut self.md5);
+        sanitize_bytes(&mut self.sha256);
+    }
 }
 
 pub(super) fn validate_key_identity(
     value: &str,
-    supplied_fingerprint: [u8; 16],
+    supplied_fingerprint: &[u8],
 ) -> Result<[u8; 32], ResponseModelError> {
-    let identity = parse_openssh_key_identity(value)?;
-    if identity.md5 != supplied_fingerprint {
+    let mut identity = parse_openssh_key_identity(value)?;
+    if identity.md5().as_slice() != supplied_fingerprint {
         return Err(ResponseModelError::EnvelopeMismatch);
     }
-    Ok(identity.sha256)
+    Ok(identity.take_sha256())
 }
 
 pub(crate) fn parse_openssh_key_identity(

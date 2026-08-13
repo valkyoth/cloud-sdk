@@ -84,6 +84,14 @@ fn prepare<'storage>(
     kind: Kind<'_>,
     storage: PreparationStorage<'storage>,
 ) -> Result<PreparedRequest<'storage>, RobotSshKeyRequestError> {
+    prepare_with_metadata(kind, storage, metadata(kind))
+}
+
+pub(super) fn prepare_with_metadata<'storage>(
+    kind: Kind<'_>,
+    storage: PreparationStorage<'storage>,
+    metadata_result: Result<OperationMetadata, RobotSshKeyRequestError>,
+) -> Result<PreparedRequest<'storage>, RobotSshKeyRequestError> {
     let (target_storage, body_storage) = storage.into_parts();
     sanitize_bytes(target_storage);
     sanitize_bytes(body_storage);
@@ -115,7 +123,7 @@ fn prepare<'storage>(
         ScopeRequirement::Forbidden,
     );
     let service = ProviderService::from_marker::<RobotService>(endpoint);
-    let metadata = admitted!(metadata(kind));
+    let metadata = admitted!(metadata_result);
     let empty_success = matches!(kind, Kind::Delete(_));
     let maximum = maximum_response_bytes(kind);
     let response = admitted!(
@@ -152,6 +160,10 @@ fn prepare<'storage>(
         )
         .map_err(RobotSshKeyRequestError::InvalidRawPolicy)
     );
+    admitted!(
+        PreparedRequest::validate_construction_policy(method(kind), metadata, raw)
+            .map_err(RobotSshKeyRequestError::InvalidPreparedPolicy)
+    );
     let path_len = admitted!(write_target(kind, target_storage));
     let body_len = admitted!(write_form(kind, body_storage));
     let headers = admitted!(
@@ -164,6 +176,11 @@ fn prepare<'storage>(
     );
     let operation_id =
         admitted!(OperationId::new(id(kind)).map_err(RobotSshKeyRequestError::InvalidOperationId));
+    if body_len > body_storage.len() {
+        sanitize_bytes(target_storage);
+        sanitize_bytes(body_storage);
+        return Err(RobotSshKeyRequestError::Path);
+    }
     let target_valid = target_storage
         .get(..path_len)
         .and_then(|bytes| core::str::from_utf8(bytes).ok())
@@ -187,10 +204,10 @@ fn prepare<'storage>(
     if body_len != 0 {
         let body = body_storage
             .get(..body_len)
-            .ok_or(RobotSshKeyRequestError::Path)?;
+            .unwrap_or_else(|| unreachable!("validated Robot SSH-key form exceeded storage"));
         request = request.with_body(body);
     }
-    PreparedRequest::new(
+    let prepared = PreparedRequest::new(
         request,
         service,
         metadata,
@@ -203,12 +220,10 @@ fn prepare<'storage>(
             RequestBodySensitivity::Sensitive
         },
     )
-    .map_err(RobotSshKeyRequestError::InvalidPreparedPolicy)
-    .map(|prepared| {
-        prepared
-            .with_operation_id(operation_id)
-            .with_replayable_body()
-    })
+    .unwrap_or_else(|_| unreachable!("prevalidated Robot SSH-key policy changed during binding"));
+    Ok(prepared
+        .with_operation_id(operation_id)
+        .with_replayable_body())
 }
 
 fn write_target(kind: Kind<'_>, output: &mut [u8]) -> Result<usize, RobotSshKeyRequestError> {

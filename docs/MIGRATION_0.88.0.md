@@ -15,7 +15,7 @@ cloud-sdk-hetzner = { version = "0.44.0", features = ["serde"] }
 Construct a bounded key create request and retain the typed association:
 
 ```rust
-use cloud_sdk::operation::PreparationStorage;
+use cloud_sdk::operation::PreparationStorageGuard;
 use cloud_sdk_hetzner::robot::{
     RobotSshKeyCreateRequest, RobotSshKeyData, RobotSshKeyName,
 };
@@ -27,8 +27,11 @@ let data = RobotSshKeyData::new(
 let request = RobotSshKeyCreateRequest::new(name, data);
 let mut path = [0_u8; 64];
 let mut body = [0_u8; 16_384];
-let prepared = request.prepare_bound(PreparationStorage::new(&mut path, &mut body))?;
-# let _ = prepared;
+let mut storage = PreparationStorageGuard::new(&mut path, &mut body);
+let prepared = storage.prepare_with(|buffers| request.prepare_bound(buffers))?;
+# drop(prepared);
+// Execute while `storage` remains borrowed. Both complete buffers are cleared
+// when the guard drops.
 # Ok::<(), Box<dyn core::error::Error>>(())
 ```
 
