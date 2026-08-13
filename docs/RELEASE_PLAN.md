@@ -2524,11 +2524,54 @@ Stop gate: `v0.83.0 implementation stop reached. Complete the pentest and full r
 
 ### v0.84.0 - Robot Wake-On-LAN
 
-Goal: complete server-number-only Wake-on-LAN behavior.
+Goal: complete both source-locked Robot Wake-on-LAN operations without
+admitting the deprecated IP-address route, treating raw decoded data as
+execution authority, or replaying an ambiguous packet send.
 
-Deliverables: capability checks, explicit wake intent, mutation permit, response policy, and legacy alias absence.
+Deliverables:
 
-Verification: identity/capability/permit/source tests and `scripts/release_0_84_gate.sh`.
+- add exact `GET /wol/{server-number}` discovery and
+  `POST /wol/{server-number}` send request types with official endpoint,
+  Basic-auth scope, operation IDs, methods, quotas, empty-form media policy,
+  checked JSON response policy, and operation-associated provider failures;
+- accept only canonical positive `RobotServerNumber` path identity and expose
+  no constructor or path encoder for the deprecated `{server-ip}` alias;
+- decode exactly `server_ip`, `server_ipv6_net`, and `server_number`, require
+  canonical fixed-family addresses and exact request-number association,
+  reject duplicate/unknown/missing fields, and independently enforce the
+  16 KiB operation body limit;
+- make wake execution an explicit `RobotWolIntent::Send` that can only be
+  constructed from a successful authenticated discovery response; bind its
+  checked identity, credential lineage, observation, and 30-second expiry into
+  non-forgeable authorization evidence;
+- classify sending as non-idempotent mutation with retry eligibility `Never`,
+  require request-bound direct/shared mutation permits and a strong plan
+  digest, and recheck credential lineage plus evidence freshness immediately
+  before blocking, Send-async, or local-async dispatch;
+- require the send acknowledgement to preserve the exact server number and
+  strict identity shape; source-lock `SERVER_NOT_FOUND`, `WOL_NOT_AVAILABLE`,
+  and send-only `WOL_FAILED` without widening failures across operations;
+- record both active rows, quotas, errors, exact response fields, empty-form
+  source note, deprecated alias exclusion, and security decisions in a bounded
+  immutable fixture with mutation tests; publish no crate before v0.85.
+
+Verification:
+
+- `scripts/check_robot_wol.sh` verifies the immutable source fixture,
+  mutation resistance, implementation-policy tokens, and focused compiled
+  WOL tests;
+- provider tests cover exact GET/POST targets and metadata, canonical address
+  families, unknown-field and alias rejection, request identity mismatch,
+  complete failed-preparation cleanup, authenticated capability minting,
+  evidence-only digest construction, dispatch-time credential/freshness
+  checks, direct/shared permit state, and exact send acknowledgement;
+- compile-fail documentation proves WOL execution cannot use generic operation
+  preparation or erase its typed request association;
+- the generic Robot API drift checker re-fetches the official documentation
+  and proves exactly two active WOL rows remain assigned to this milestone;
+- `scripts/release_0_84_gate.sh` runs cumulative dependency, platform,
+  upstream-drift, SBOM, audit, and release-readiness checks and selects no
+  package for crates.io publication.
 
 Stop gate: `v0.84.0 implementation stop reached. Complete the pentest and full release gate for this exact commit; defer crates.io publication to v0.85.0.`
 

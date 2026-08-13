@@ -80,10 +80,10 @@ active Hetzner Cloud, DNS, Security, and Console Storage Box operation plus the
 Robot protocol foundation, canonical server list/get/rename, all nine server,
 IP, and subnet cancellation operations, and all six single-IP and separate-MAC
 operations with strict typed success models. The provider crate remains
-transport-free and performs no network request. The unpublished v0.81-v0.83
-source milestones add all active Robot subnet, subnet-MAC, reset, and failover
-operations; crates.io publication remains deferred to v0.85. Future FIPS work
-remains deferred until Brynja is ready.
+transport-free and performs no network request. The unpublished v0.81-v0.84
+source milestones add all active Robot subnet, subnet-MAC, reset, failover, and
+Wake-on-LAN operations; crates.io publication remains deferred to v0.85.
+Future FIPS work remains deferred until Brynja is ready.
 
 ## Trust Dashboard
 
@@ -234,6 +234,7 @@ visible. Applications should enable only the features they use.
 - [Migrating source users to v0.81](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.81.0.md)
 - [Migrating source users to v0.82](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.82.0.md)
 - [Migrating source users to v0.83](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.83.0.md)
+- [Migrating source users to v0.84](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.84.0.md)
 - [Compile-time Hetzner operation associations](https://github.com/valkyoth/cloud-sdk/blob/main/docs/OPERATION_ASSOCIATIONS.md)
 - [Incremental provider decoding](https://github.com/valkyoth/cloud-sdk/blob/main/docs/INCREMENTAL_DECODING.md)
 - [Deprecated endpoint policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/DEPRECATED_ENDPOINT_POLICY.md)

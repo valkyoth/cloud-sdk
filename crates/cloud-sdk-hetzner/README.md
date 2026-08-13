@@ -220,6 +220,39 @@ is automatically retried. Reroute success must echo the requested active
 server. The official DELETE response is JSON and must contain
 `active_server_ip: null`; empty/no-content deletion is intentionally rejected.
 
+Robot Wake-on-LAN support covers capability discovery and packet sending using
+canonical server numbers only. `RobotWolGetRequest` is a safe read. A send
+request cannot be created directly from a number: callers must execute that
+authenticated discovery and construct `RobotWolSendRequest` from its
+30-second `AuthorizedRobotWol` evidence plus explicit `RobotWolIntent::Send`.
+The evidence binds the exact server identity and opaque credential lineage,
+then is rechecked at dispatch. Sending is a non-idempotent mutation, is never
+automatically retried, and requires a request-bound strong-digest mutation
+permit. Both responses admit exactly the canonical IPv4, IPv6 network, and
+server number fields under a 16 KiB body limit. The deprecated server-IP path
+alias is intentionally unavailable.
+
+```rust
+# #[cfg(feature = "serde")]
+# fn main() -> Result<(), Box<dyn core::error::Error>> {
+use cloud_sdk::operation::PreparationStorage;
+use cloud_sdk_hetzner::robot::{RobotServerNumber, RobotWolGetRequest};
+
+let number = RobotServerNumber::new(321)?;
+let request = RobotWolGetRequest::new(number);
+let mut target = [0_u8; 64];
+let mut body = [0_u8; 1];
+let prepared = request.prepare_bound(PreparationStorage::new(&mut target, &mut body))?;
+assert_eq!(
+    prepared.as_untyped().transport_request().target().as_str(),
+    "/wol/321",
+);
+# Ok(())
+# }
+# #[cfg(not(feature = "serde"))]
+# fn main() {}
+```
+
 ```rust
 # #[cfg(feature = "serde")]
 # fn main() -> Result<(), Box<dyn core::error::Error>> {

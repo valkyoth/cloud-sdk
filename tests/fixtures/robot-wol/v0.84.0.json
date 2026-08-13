@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "source": {
+    "retrieved": "2026-08-13",
+    "url": "https://robot.hetzner.com/doc/webservice/en.html",
+    "sha256": "4b396790acc449f47b2b3b893f8eff759c0c25196dc38b1e5e92a12c9704771a"
+  },
+  "operations": [
+    {
+      "id": "robot_get_wol",
+      "method": "GET",
+      "path": "/wol/{server-number}",
+      "request_fields": [],
+      "success": {"status": 200, "body": "json", "shape": "wol-identity"},
+      "errors": [
+        {"status": 404, "code": "SERVER_NOT_FOUND"},
+        {"status": 404, "code": "WOL_NOT_AVAILABLE"}
+      ],
+      "quota": {"requests": 500, "seconds": 3600}
+    },
+    {
+      "id": "robot_send_wol",
+      "method": "POST",
+      "path": "/wol/{server-number}",
+      "request_fields": [],
+      "success": {"status": 200, "body": "json", "shape": "wol-identity"},
+      "errors": [
+        {"status": 404, "code": "SERVER_NOT_FOUND"},
+        {"status": 404, "code": "WOL_NOT_AVAILABLE"},
+        {"status": 500, "code": "WOL_FAILED"}
+      ],
+      "quota": {"requests": 10, "seconds": 3600}
+    }
+  ],
+  "identity_fields": ["server_ip", "server_ipv6_net", "server_number"],
+  "source_inconsistencies": {
+    "post_empty_form": "curl-demonstrates-empty-data-with-no-input-fields",
+    "deprecated_server_ip_route": "excluded"
+  },
+  "policy": {
+    "canonical_server_number_route": true,
+    "unknown_fields": "reject",
+    "address_families": "server-ipv4-and-ipv6-network",
+    "send_intent": "explicit",
+    "send_from_authenticated_discovery": true,
+    "credential_lineage": "opaque-transport-binding",
+    "preflight_evidence_seconds": 30,
+    "dispatch_revalidation": "credential-and-expiry",
+    "generic_type_erasure": "forbidden-by-provider-and-core",
+    "send_permit": "mutation",
+    "send_body": "empty-form",
+    "send_retry": "never",
+    "success_identity": "exact-server-number",
+    "success_body_bytes": 16384
+  }
+}

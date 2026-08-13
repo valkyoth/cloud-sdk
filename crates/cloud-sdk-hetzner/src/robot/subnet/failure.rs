@@ -43,7 +43,9 @@ impl RobotSubnetFailureCode {
             | RobotProviderErrorCode::FailoverAlreadyRouted
             | RobotProviderErrorCode::FailoverLocked
             | RobotProviderErrorCode::FailoverFailed
-            | RobotProviderErrorCode::FailoverNotComplete => None,
+            | RobotProviderErrorCode::FailoverNotComplete
+            | RobotProviderErrorCode::WolNotAvailable
+            | RobotProviderErrorCode::WolFailed => None,
         }
     }
 }

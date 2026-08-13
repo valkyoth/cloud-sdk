@@ -367,6 +367,16 @@ non-idempotent and never automatically retried. Reroute requires a mutation
 permit and exact destination acknowledgement; deletion requires a destructive
 permit and the official JSON acknowledgement with `active_server_ip: null`.
 
+`v0.84.0` implements both Wake-on-LAN operations using canonical positive
+server numbers only. Sending a packet has no direct number-only constructor:
+an authenticated `GET /wol/{server-number}` must first prove provider
+availability for the same credential lineage. That evidence expires after 30
+seconds and is rechecked at dispatch. Sending is a non-idempotent mutation,
+requires an exact request-bound strong-digest permit, and is never
+automatically retried. Both success paths require the exact three-field server
+identity and independently cap the JSON body at 16 KiB. Deprecated IPv4 path
+aliases are intentionally absent.
+
 Robot implementation schedule:
 
 | Group | Active | Deprecated | Planned Module | Milestone | Status |
@@ -377,7 +387,7 @@ Robot implementation schedule:
 | subnet | 6 | 0 | `cloud_sdk_hetzner::robot::subnet` | `v0.81.0` | implemented |
 | reset | 3 | 0 | `cloud_sdk_hetzner::robot::reset` | `v0.82.0` | implemented |
 | failover | 4 | 0 | `cloud_sdk_hetzner::robot::failover` | `v0.83.0` | implemented |
-| wake on LAN | 2 | 0 | `cloud_sdk_hetzner::robot::wol` | `v0.84.0` | planned |
+| wake on LAN | 2 | 0 | `cloud_sdk_hetzner::robot::wol` | `v0.84.0` | implemented |
 | boot configuration | 15 | 0 | `cloud_sdk_hetzner::robot::boot` | `v0.85.0` | planned |
 | reverse DNS | 5 | 0 | `cloud_sdk_hetzner::robot::rdns` | `v0.86.0` | planned |
 | traffic | 1 | 0 | `cloud_sdk_hetzner::robot::traffic` | `v0.87.0` | planned |

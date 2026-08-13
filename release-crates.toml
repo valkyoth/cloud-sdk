@@ -1,27 +1,27 @@
 [release]
-version = "0.83.0"
-milestone = "0.83.0"
+version = "0.84.0"
+milestone = "0.84.0"
 baseline = "0.80.0"
-review_baseline = "0.82.0"
-cumulative_milestones = ["0.81.0", "0.82.0", "0.83.0"]
+review_baseline = "0.83.0"
+cumulative_milestones = ["0.81.0", "0.82.0", "0.83.0", "0.84.0"]
 policy = "independent"
 stage = "internal"
 exceptional = false
 exception_reason = ""
 
 [crates."cloud-sdk"]
-previous_version = "0.82.0"
-version = "0.83.0"
+previous_version = "0.83.0"
+version = "0.84.0"
 change = "code"
 publish = false
-reason = "Advance the internal failover source milestone; defer publication to v0.85.0."
+reason = "Advance the internal Wake-on-LAN source milestone; defer publication to v0.85.0."
 
 [crates."cloud-sdk-hetzner"]
 previous_version = "0.43.0"
 version = "0.43.0"
 change = "code"
 publish = false
-reason = "Accumulate source-locked Robot failover management for v0.85.0."
+reason = "Accumulate source-locked Robot Wake-on-LAN management for v0.85.0."
 
 [crates."cloud-sdk-reqwest"]
 previous_version = "0.35.1"

@@ -9,7 +9,8 @@
 //! active subnet and subnet-MAC operations are source-locked in `v0.81.0`.
 //! Reset discovery and disruptive execution are source-locked in `v0.82.0`.
 //! Failover discovery, rerouting, and route deletion are source-locked in
-//! `v0.83.0`.
+//! `v0.83.0`. Capability-checked Wake-on-LAN discovery and execution are
+//! source-locked in `v0.84.0`.
 
 #[cfg(feature = "alloc")]
 mod cancellation;
@@ -30,6 +31,8 @@ mod reset;
 mod server;
 #[cfg(feature = "alloc")]
 mod subnet;
+#[cfg(feature = "alloc")]
+mod wol;
 
 /// Maximum Robot error-body bytes admitted by request and response policies.
 pub const MAX_ROBOT_ERROR_BODY_BYTES: usize = 65_536;
@@ -145,6 +148,21 @@ pub use subnet::{
     RobotSubnetGetRequest, RobotSubnetListRequest, RobotSubnetMacDeleteRequest,
     RobotSubnetMacGetRequest, RobotSubnetMacSetRequest, RobotSubnetRequestError,
     RobotSubnetTrafficUpdate, RobotSubnetUpdateRequest,
+};
+
+#[cfg(feature = "alloc")]
+pub use wol::{
+    MAX_ROBOT_WOL_RESPONSE_BYTES, RobotWolGetRequest, RobotWolIntent, RobotWolRequestError,
+};
+
+#[cfg(feature = "serde")]
+pub use wol::{
+    AuthorizedRobotWol, CheckedRobotWol, MAX_ROBOT_WOL_EVIDENCE_AGE_SECONDS, PreparedRobotWol,
+    RobotWol, RobotWolCanonicalPlanFingerprint, RobotWolDecodeError, RobotWolEvidenceError,
+    RobotWolFailureCode, RobotWolMutationPermit, RobotWolPermitAttempt, RobotWolPermitRequest,
+    RobotWolPlanConfirmation, RobotWolPlanFingerprintDigest, RobotWolPlanSubject,
+    RobotWolPreflightError, RobotWolSendRequest, RobotWolSharedMutationPermit,
+    build_robot_wol_canonical_plan, build_robot_wol_plan_digest, decode_robot_wol,
 };
 
 #[cfg(feature = "serde")]

@@ -1257,6 +1257,21 @@ internal milestone.
 | `cloud-sdk-sanitization` | `0.19.0` | `0.19.0` | `unchanged` | No | No sanitization boundary changes. |
 | `cloud-sdk-testkit` | `0.30.3` | `0.30.3` | `unchanged` | No | No testkit boundary changes. |
 
+## v0.84.0 Tracking Table
+
+`v0.84.0` implements both Robot Wake-on-LAN operations with canonical
+server-number paths, authenticated short-lived capability evidence, exact
+identity acknowledgement, and request-bound mutation permits. No crate is
+published at this internal milestone.
+
+| Crate | Published | Source | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.80.0` | `0.84.0` | `code` | No | Advance the internal source identity and cumulative release contract; defer publication to v0.85.0. |
+| `cloud-sdk-hetzner` | `0.43.0` | `0.43.0` | `code` | No | Accumulate source-locked Robot Wake-on-LAN management for v0.85.0. |
+| `cloud-sdk-reqwest` | `0.35.1` | `0.35.1` | `unchanged` | No | No transport boundary changes. |
+| `cloud-sdk-sanitization` | `0.19.0` | `0.19.0` | `unchanged` | No | No sanitization boundary changes. |
+| `cloud-sdk-testkit` | `0.30.3` | `0.30.3` | `unchanged` | No | No testkit boundary changes. |
+
 ## Planned Milestone Ownership
 
 Exact independent crate versions are assigned when each milestone starts.

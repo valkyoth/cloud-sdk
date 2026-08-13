@@ -80,6 +80,10 @@ pub enum RobotProviderErrorCode {
     FailoverFailed,
     /// Robot could not confirm the failover transition completed.
     FailoverNotComplete,
+    /// Wake-on-LAN is unavailable for the server.
+    WolNotAvailable,
+    /// Robot could not send the Wake-on-LAN packet.
+    WolFailed,
 }
 
 /// Protected details from an `INVALID_INPUT` response.
