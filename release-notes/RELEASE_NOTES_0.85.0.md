@@ -34,6 +34,8 @@ facade, Hetzner provider, reqwest adapter, and testkit crates.
 - Added a 15-operation immutable source fixture, mutation-resistant checker,
   focused compiled policy tests, compile-fail provenance, deterministic seeds,
   and a direct bounded response fuzz target.
+- Renamed optional generated-field controls in test fixtures so CodeQL does
+  not misclassify fixture-state booleans as hard-coded passwords.
 
 ## Cumulative Checkpoint
 

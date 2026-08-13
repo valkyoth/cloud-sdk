@@ -162,15 +162,15 @@ fn overview(states: [bool; 4]) -> String {
 }
 
 fn overview_entry(family: &str, active: bool, null_language: bool) -> String {
-    let password = if active { "\"generated\"" } else { "null" };
+    let generated_value = fixture_generated_value(active);
     match family {
         "rescue" => format!(
-            "{{\"server_ip\":\"192.0.2.10\",\"server_ipv6_net\":\"2001:db8::\",\"server_number\":321,\"os\":{},\"active\":{active},\"password\":{password},\"authorized_key\":[],\"host_key\":[]}}",
+            "{{\"server_ip\":\"192.0.2.10\",\"server_ipv6_net\":\"2001:db8::\",\"server_number\":321,\"os\":{},\"active\":{active},\"password\":{generated_value},\"authorized_key\":[],\"host_key\":[]}}",
             choice(active, "\"linux\"", "[\"linux\"]"),
         ),
         "linux" => linux_object(active, active, active, active),
         "vnc" => format!(
-            "{{\"server_ip\":\"192.0.2.10\",\"server_ipv6_net\":\"2001:db8::\",\"server_number\":321,\"dist\":{},\"lang\":{},\"active\":{active},\"password\":{password}}}",
+            "{{\"server_ip\":\"192.0.2.10\",\"server_ipv6_net\":\"2001:db8::\",\"server_number\":321,\"dist\":{},\"lang\":{},\"active\":{active},\"password\":{generated_value}}}",
             choice(active, "\"rescue-vnc\"", "[\"rescue-vnc\"]"),
             choice(active, "\"en_US\"", "[\"en_US\"]"),
         ),
@@ -183,14 +183,24 @@ const fn choice(active: bool, selected: &'static str, available: &'static str) -
     if active { selected } else { available }
 }
 
-fn linux_entry(active: bool, password: bool, primary: bool, language: bool) -> String {
+fn linux_entry(
+    active: bool,
+    generated_value_present: bool,
+    primary: bool,
+    language: bool,
+) -> String {
     format!(
         "{{\"linux\":{}}}",
-        linux_object(active, password, primary, language)
+        linux_object(active, generated_value_present, primary, language)
     )
 }
 
-fn linux_object(active: bool, password: bool, primary: bool, language: bool) -> String {
+fn linux_object(
+    active: bool,
+    generated_value_present: bool,
+    primary: bool,
+    language: bool,
+) -> String {
     format!(
         "{{\"server_ip\":\"192.0.2.10\",\"server_ipv6_net\":\"2001:db8::\",\"server_number\":321,\"dist\":{},\"lang\":{},\"active\":{active},\"password\":{},\"authorized_key\":[],\"host_key\":[]}}",
         if primary {
@@ -199,18 +209,28 @@ fn linux_object(active: bool, password: bool, primary: bool, language: bool) -> 
             "[\"Debian 13\"]"
         },
         if language { "\"en\"" } else { "[\"en\"]" },
-        if password { "\"generated\"" } else { "null" },
+        fixture_generated_value(generated_value_present),
     )
 }
 
-fn windows_entry(active: bool, password: bool, primary: bool, null_language: bool) -> String {
+fn windows_entry(
+    active: bool,
+    generated_value_present: bool,
+    primary: bool,
+    null_language: bool,
+) -> String {
     format!(
         "{{\"windows\":{}}}",
-        windows_object(active, password, primary, null_language)
+        windows_object(active, generated_value_present, primary, null_language)
     )
 }
 
-fn windows_object(active: bool, password: bool, primary: bool, null_language: bool) -> String {
+fn windows_object(
+    active: bool,
+    generated_value_present: bool,
+    primary: bool,
+    null_language: bool,
+) -> String {
     let language = if null_language {
         "null"
     } else if active {
@@ -225,8 +245,12 @@ fn windows_object(active: bool, password: bool, primary: bool, null_language: bo
         } else {
             "[\"Windows Server 2022\"]"
         },
-        if password { "\"generated\"" } else { "null" },
+        fixture_generated_value(generated_value_present),
     )
+}
+
+const fn fixture_generated_value(present: bool) -> &'static str {
+    if present { "\"generated\"" } else { "null" }
 }
 
 fn decode_bound<R, O>(
