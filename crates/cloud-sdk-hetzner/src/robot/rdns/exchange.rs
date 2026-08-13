@@ -6,6 +6,7 @@ use cloud_sdk::transport::ResponseBuffer;
 
 use super::decode::{RobotRdnsDecodeError, decode_robot_rdns, decode_robot_rdns_list};
 use alloc::vec::Vec;
+use core::cmp::Ordering;
 use core::net::IpAddr;
 
 use super::model::{RobotRdns, RobotRdnsFilteredMembership, RobotRdnsList};
@@ -136,7 +137,7 @@ impl CheckedRobotRdns<'_, '_, RobotRdnsListRequest> {
         if !result
             .as_slice()
             .iter()
-            .all(|entry| entry.with_address(|address| assignments.binary_search(&address).is_ok()))
+            .all(|entry| entry.with_address(|address| contains_sorted(&assignments, &address)))
         {
             return Err(RobotRdnsDecodeError::ResponseIdentityMismatch);
         }
@@ -147,6 +148,20 @@ impl CheckedRobotRdns<'_, '_, RobotRdnsListRequest> {
         self.inner
             .decode_owned_with_workspace(decode_robot_rdns_list)
     }
+}
+
+fn contains_sorted(assignments: &[IpAddr], address: &IpAddr) -> bool {
+    contains_sorted_by(assignments, address, IpAddr::cmp)
+}
+
+pub(super) fn contains_sorted_by(
+    assignments: &[IpAddr],
+    address: &IpAddr,
+    mut compare: impl FnMut(&IpAddr, &IpAddr) -> Ordering,
+) -> bool {
+    assignments
+        .binary_search_by(|candidate| compare(candidate, address))
+        .is_ok()
 }
 
 fn assignment_index(

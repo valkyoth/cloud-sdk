@@ -45,7 +45,8 @@ be assigned to the exact filtered server in that inventory. The result is the
 distinct `RobotRdnsFilteredMembership` type, which proves membership only and
 cannot be confused with the potentially empty authoritative `RobotRdnsList`.
 Verification indexes the bounded inventory once and uses binary search rather
-than a cross-product scan.
+than a cross-product scan. Executable boundary tests instrument the production
+lookup helper and cap each 4,096-entry lookup at 13 comparisons.
 
 `RobotRdnsFailureCode` narrows only the source-locked failures admitted for the
 specific reverse-DNS operation and status.

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate the v0.86 Robot reverse-DNS source lock and implementation policy."""
+"""Validate the immutable v0.86 Robot reverse-DNS source contract."""
 
 from __future__ import annotations
 
@@ -13,7 +13,6 @@ LOCK = ROOT / "tests/fixtures/robot-rdns/v0.86.0.json"
 LOCK_SHA256 = "0baecb5e6b4db7dcc63326eb49a5b588d49c4f8b8b8be7238c3f62b8e98b0717"
 SOURCE_SHA256 = "4b396790acc449f47b2b3b893f8eff759c0c25196dc38b1e5e92a12c9704771a"
 MAX_LOCK_BYTES = 16 * 1024
-RDNS_SOURCE = ROOT / "crates/cloud-sdk-hetzner/src/robot/rdns"
 
 OPERATIONS = [
     ("robot_list_rdns", "GET", "/rdns", [200], ["server_ip?"], "rdns-list"),
@@ -94,33 +93,11 @@ def validate_contract(value: dict[str, Any]) -> None:
     require(len(ids) == len(set(ids)), "duplicate operation id")
 
 
-def validate_implementation_structure() -> None:
-    sources = {
-        path.relative_to(RDNS_SOURCE).as_posix(): path.read_text(encoding="utf-8")
-        for path in RDNS_SOURCE.rglob("*.rs")
-    }
-    required = {
-        "prepare.rs": ["/rdns", "StatusCode::CREATED", "ResponseBodyPolicy::Forbidden", "RobotFormField::sensitive(\"ptr\""],
-        "request.rs": ["InvalidServerAddress", "RobotRdnsSetRequest", "RobotRdnsUpdateRequest", "RobotRdnsDeleteRequest"],
-        "value.rs": ["MAX_ROBOT_RDNS_NAME_BYTES", "valid_label", "SecretBoxBytes", "constant_time_eq"],
-        "decode.rs": ["MAX_ROBOT_RDNS_LIST_ITEMS", "reject_duplicates_by_cmp", "ResponseIdentityMismatch", "InvalidPtr"],
-        "exchange.rs": ["MutationOutcomeMismatch", "RobotRdnsDeleteRequest", "decode_response_with_inventory", "binary_search"],
-        "model.rs": ["RobotRdnsFilteredMembership", "then_some"],
-        "failure.rs": ["RDNS_ALREADY_EXISTS", "RDNS_CREATE_FAILED", "RDNS_UPDATE_FAILED", "RDNS_DELETE_FAILED"],
-        "permit.rs": ["RobotRdnsSetRequest", "RobotRdnsUpdateRequest", "RobotRdnsDeleteRequest"],
-    }
-    for name, tokens in required.items():
-        require(name in sources, f"implementation lost {name}")
-        for token in tokens:
-            require(token in sources[name], f"implementation lost {name}: {token}")
-
-
 def main() -> None:
     value, payload = read_lock()
     require(hashlib.sha256(payload).hexdigest() == LOCK_SHA256, "fixture digest changed")
     validate_contract(value)
-    validate_implementation_structure()
-    print("5 Robot reverse-DNS operations and 16 fixture/structure groups passed.")
+    print("5 Robot reverse-DNS operations and exact source contract passed.")
 
 
 if __name__ == "__main__":

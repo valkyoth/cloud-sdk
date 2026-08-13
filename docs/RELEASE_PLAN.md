@@ -2687,7 +2687,8 @@ Exit criteria:
 - raw decoders remain internal and filtered list decoding fails closed without
   checked IP inventory matching every returned address to the exact filter;
 - maximum filtered verification uses one bounded sorted assignment index rather
-  than a response-by-inventory cross-product scan;
+  than a response-by-inventory cross-product scan, with executable tests
+  enforcing at most 13 comparisons per maximum-size lookup;
 - dependency review confirms no new external package, feature, unsafe, native,
   network, runtime, filesystem, clock, or cryptographic edge;
 - the exact implementation commit receives an incremental pentest and any

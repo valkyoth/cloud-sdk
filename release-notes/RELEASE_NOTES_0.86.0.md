@@ -30,7 +30,10 @@ after its incremental pentest and green CI/CodeQL but publishes no crate.
   inventory because the provider response omits its server association.
 - Rejected unverifiable empty filtered responses, returned non-empty matches as
   a distinct membership-only type, and bounded verification through a sorted
-  assignment index tested at the 4,096-by-4,096 input boundary.
+  assignment index tested at the 4,096-by-4,096 input boundary and at most 13
+  comparisons per lookup.
+- Restricted the Python checker to immutable source-contract validation;
+  executable Rust tests own semantic and complexity assurance.
 - Required the documented empty `200` delete response and narrowed every
   source-locked provider failure by operation and status.
 - Added an immutable five-operation source fixture, mutation-resistant checker,

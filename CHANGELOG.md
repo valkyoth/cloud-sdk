@@ -13,6 +13,8 @@
   server-filtered list can be accepted.
 - Rejected empty filtered responses as unverifiable and exposed non-empty
   matches through a membership-only type backed by bounded indexed lookup.
+- Replaced literal implementation scanning with executable lookup-complexity
+  coverage capped at 13 comparisons for 4,096 assignments.
 - Added request-bound mutation and destructive permits, immutable source-lock
   evidence, mutation-resistant contract checks, and direct decoder fuzzing.
 - Deferred crates.io publication to the cumulative v0.90.0 checkpoint.

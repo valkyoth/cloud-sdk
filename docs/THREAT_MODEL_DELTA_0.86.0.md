@@ -26,6 +26,9 @@ and caller-supplied names are untrusted.
   filtered responses are rejected as unverifiable. Non-empty results use the
   membership-only `RobotRdnsFilteredMembership` type and do not claim
   completeness or authoritative absence.
+- Inventory lookup parses each admitted address once, sorts one bounded index,
+  and performs at most 13 tested comparisons per lookup at the 4,096-entry
+  boundary.
 
 ### Duplicate Or Ambiguous Mutation
 

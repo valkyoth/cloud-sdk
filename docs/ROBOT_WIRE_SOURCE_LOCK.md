@@ -304,9 +304,12 @@ List decoding caps the collection at 4,096 entries and rejects duplicate IP
 identities. Raw decoders are internal. A filtered response does not echo the
 server association, so its checked wrapper requires independently checked IP
 inventory and verifies every returned address against the exact filter through
-a sorted bounded assignment index. Empty filtered responses fail closed. The
-distinct successful result proves non-empty membership only, not completeness
-or authoritative absence. The provider can still change assignment state
+a sorted bounded assignment index. Executable tests cap each maximum-size
+lookup at 13 comparisons; the Python checker validates only the immutable
+source contract and makes no semantic implementation claim. Empty filtered
+responses fail closed. The distinct successful result proves non-empty
+membership only, not completeness or authoritative absence. The provider can
+still change assignment state
 between the inventory and reverse-DNS reads. The exact operation, form, status,
 quota, error, and response contract is committed in
 [`v0.86.0.json`](../tests/fixtures/robot-rdns/v0.86.0.json) and checked by

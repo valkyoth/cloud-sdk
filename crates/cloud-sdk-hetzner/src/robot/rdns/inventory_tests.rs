@@ -1,5 +1,9 @@
-use alloc::{format, string::String, vec};
-use core::fmt::Write;
+use alloc::{format, string::String, vec, vec::Vec};
+use core::{
+    cell::Cell,
+    fmt::Write,
+    net::{IpAddr, Ipv4Addr},
+};
 
 use cloud_sdk::operation::PreparationStorage;
 use cloud_sdk::transport::{HeaderSensitivity, ResponseBuffer, ResponseMetadata, StatusCode};
@@ -64,6 +68,36 @@ fn maximum_filtered_list_uses_the_bounded_assignment_index() {
     let result = decode_filtered_body(rdns_body.as_bytes(), Some(&inventory))
         .unwrap_or_else(|_| unreachable!("maximum filtered response was rejected"));
     assert_eq!(result.len(), MAX_ROBOT_RDNS_LIST_ITEMS);
+}
+
+#[test]
+fn maximum_assignment_index_uses_at_most_thirteen_comparisons_per_lookup() {
+    let assignments: Vec<IpAddr> = (0..MAX_ROBOT_RDNS_LIST_ITEMS)
+        .map(|index| {
+            IpAddr::V4(Ipv4Addr::new(
+                198,
+                18,
+                u8::try_from(index / 256)
+                    .unwrap_or_else(|_| unreachable!("third octet exceeded u8")),
+                u8::try_from(index % 256)
+                    .unwrap_or_else(|_| unreachable!("fourth octet exceeded u8")),
+            ))
+        })
+        .collect();
+
+    for address in assignments
+        .iter()
+        .copied()
+        .chain(["198.17.255.255", "198.19.0.0"].map(ip_addr))
+    {
+        let comparisons = Cell::new(0_usize);
+        let found = super::exchange::contains_sorted_by(&assignments, &address, |left, right| {
+            comparisons.set(comparisons.get() + 1);
+            left.cmp(right)
+        });
+        assert_eq!(found, assignments.contains(&address));
+        assert!(comparisons.get() <= 13);
+    }
 }
 
 fn decode_filtered_list(
@@ -150,4 +184,10 @@ fn with_json<R>(body: &[u8], inspect: impl FnOnce(ResponseBuffer<'_>) -> R) -> R
 
 fn ip(value: &str) -> crate::robot::RobotIpAddress {
     crate::robot::RobotIpAddress::new(value).unwrap_or_else(|_| unreachable!("IP fixture failed"))
+}
+
+fn ip_addr(value: &str) -> IpAddr {
+    value
+        .parse()
+        .unwrap_or_else(|_| unreachable!("address fixture failed"))
 }
