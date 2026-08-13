@@ -22,8 +22,10 @@ cleanup ownership.
 - Read-only POST is admitted only through a closed core approval registry. The
   Robot entry binds the exact provider, service, official endpoint,
   authentication scope, operation ID, method, target, headers, body presence,
-  and safety metadata. Caller-supplied classifications cannot approve another
-  POST, and the bound operation ID cannot be replaced afterward.
+  sensitive-body classification, and safety metadata. The retained approval is
+  revalidated at permit evaluation, so transformed headers fail closed.
+  Caller-supplied classifications cannot approve another POST, and the bound
+  operation ID cannot be replaced afterward.
 - The response is decoded directly from bounded incremental events. Unknown or
   duplicate fields, shape confusion, hostile chunking, excessive structure,
   negative values, malformed ordinals, noncanonical CIDRs, unrequested targets,

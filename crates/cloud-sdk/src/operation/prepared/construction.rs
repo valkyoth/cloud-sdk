@@ -36,7 +36,7 @@ impl<'request> PreparedRequest<'request> {
             authentication_policy,
             &raw_response_policy,
             body_sensitivity,
-            false,
+            None,
         )
     }
 
@@ -44,8 +44,8 @@ impl<'request> PreparedRequest<'request> {
     ///
     /// The closed approval entry validates provider, service, official
     /// endpoint, operation ID, method, target, headers, body presence,
-    /// authentication scope, and complete safety metadata before permitless
-    /// execution is admitted.
+    /// sensitive-body classification, authentication scope, and complete
+    /// safety metadata before permitless execution is admitted.
     #[allow(clippy::too_many_arguments)]
     pub fn new_read_only_post_query(
         approval: ApprovedReadOnlyPostQuery,
@@ -58,7 +58,13 @@ impl<'request> PreparedRequest<'request> {
         body_sensitivity: RequestBodySensitivity,
     ) -> Result<Self, PreparedRequestPolicyError> {
         let operation_id = approval
-            .validate(request, service, metadata, authentication_policy)
+            .validate(
+                request,
+                service,
+                metadata,
+                authentication_policy,
+                body_sensitivity,
+            )
             .ok_or(PreparedRequestPolicyError::ReadOnlyPostQueryMismatch)?;
         let mut prepared = Self::new_inner(
             request,
@@ -68,7 +74,7 @@ impl<'request> PreparedRequest<'request> {
             authentication_policy,
             &raw_response_policy,
             body_sensitivity,
-            true,
+            Some(approval),
         )?;
         prepared.operation_id = Some(operation_id);
         Ok(prepared)
@@ -83,11 +89,11 @@ impl<'request> PreparedRequest<'request> {
         authentication_policy: AuthenticationScopePolicy<'request>,
         raw_response_policy: &RawResponsePolicy<'request>,
         body_sensitivity: RequestBodySensitivity,
-        approved_read_only_post: bool,
+        read_only_post_approval: Option<ApprovedReadOnlyPostQuery>,
     ) -> Result<Self, PreparedRequestPolicyError> {
         if matches!(metadata.impact(), OperationImpact::ReadOnly)
             && !request.method().permits_direct_read_only()
-            && !approved_read_only_post
+            && read_only_post_approval.is_none()
         {
             return Err(PreparedRequestPolicyError::ReadOnlyMethodMismatch);
         }
@@ -111,7 +117,7 @@ impl<'request> PreparedRequest<'request> {
             },
             body_sensitivity,
             authorization_evidence_required: false,
-            approved_read_only_post,
+            read_only_post_approval,
         })
     }
 }

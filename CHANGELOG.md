@@ -9,7 +9,8 @@
   non-negative decimal tokens.
 - Added a closed, operation-bound read-only POST-query approval without
   weakening ordinary POST execution authorization or permitting operation-ID
-  replacement.
+  replacement. Permit evaluation revalidates current wire properties and
+  sensitive-body classification instead of trusting cached approval state.
 - Canonically sorted traffic targets, replaced quadratic target scans with
   adjacent checks and binary response lookup, and rejected non-canonical CIDR
   prefixes.

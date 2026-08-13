@@ -43,7 +43,7 @@ pub struct PreparedRequest<'request> {
     body_replayability: BodyReplayability,
     body_sensitivity: RequestBodySensitivity,
     authorization_evidence_required: bool,
-    approved_read_only_post: bool,
+    read_only_post_approval: Option<ApprovedReadOnlyPostQuery>,
 }
 
 impl<'request> PreparedRequest<'request> {
@@ -53,7 +53,7 @@ impl<'request> PreparedRequest<'request> {
     /// this method cannot replace that security identity.
     #[must_use]
     pub const fn with_operation_id(mut self, operation_id: OperationId) -> Self {
-        if !self.approved_read_only_post {
+        if self.read_only_post_approval.is_none() {
             self.operation_id = Some(operation_id);
         }
         self
@@ -179,7 +179,7 @@ impl<'request> PreparedRequest<'request> {
             body_replayability: self.body_replayability,
             body_sensitivity: self.body_sensitivity,
             authorization_evidence_required: self.authorization_evidence_required,
-            approved_read_only_post: self.approved_read_only_post,
+            read_only_post_approval: self.read_only_post_approval,
         }
     }
 
@@ -193,7 +193,7 @@ impl<'request> PreparedRequest<'request> {
             && self.body_replayability == other.body_replayability
             && self.body_sensitivity == other.body_sensitivity
             && self.authorization_evidence_required == other.authorization_evidence_required
-            && self.approved_read_only_post == other.approved_read_only_post
+            && self.read_only_post_approval == other.read_only_post_approval
             && self.has_same_header_policy(other)
     }
 
@@ -398,8 +398,20 @@ impl<'request> PreparedRequest<'request> {
         Ok(response)
     }
 
-    pub(crate) const fn requires_execution_permit(self) -> bool {
-        (!self.request.method().permits_direct_read_only() && !self.approved_read_only_post)
+    pub(crate) fn requires_execution_permit(self) -> bool {
+        let approved_read_only_post = self
+            .read_only_post_approval
+            .and_then(|approval| {
+                approval.validate(
+                    self.request,
+                    self.service,
+                    self.metadata,
+                    self.authentication_policy,
+                    self.body_sensitivity,
+                )
+            })
+            .is_some_and(|operation_id| self.operation_id == Some(operation_id));
+        (!self.request.method().permits_direct_read_only() && !approved_read_only_post)
             || !matches!(self.metadata.impact(), OperationImpact::ReadOnly)
             || matches!(self.metadata.cost_intent(), super::CostIntent::MayIncurCost)
     }
@@ -444,7 +456,7 @@ impl fmt::Debug for PreparedRequest<'_> {
                 "authorization_evidence_required",
                 &self.authorization_evidence_required,
             )
-            .field("approved_read_only_post", &self.approved_read_only_post)
+            .field("read_only_post_approval", &self.read_only_post_approval)
             .finish()
     }
 }

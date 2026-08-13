@@ -8,13 +8,16 @@ Status: implementation stop; pentest required.
 `ApprovedReadOnlyPostQuery` selected from a closed core registry. The Robot
 traffic entry validates the exact provider, service, official endpoint,
 authentication scope, method, target, required headers, non-empty body, and
-complete safety metadata. It also binds `robot_get_traffic` during construction.
-The selector cannot approve caller-defined operations.
+sensitive-body classification plus complete safety metadata. It also binds
+`robot_get_traffic` during construction. The selector cannot approve
+caller-defined operations.
 
 `PreparedRequest::with_operation_id` retains its existing behavior for ordinary
 requests but cannot replace the operation identity installed by a closed
 approval. Ordinary `PreparedRequest::new` continues to reject read-only POST,
 and all unapproved POST requests continue to require mutation authority.
+Permit checks revalidate the retained approval against the current request, so
+an internal header transformation cannot carry stale permitless authority.
 
 ## Robot Traffic
 

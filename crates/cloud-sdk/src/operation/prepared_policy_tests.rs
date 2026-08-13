@@ -219,6 +219,32 @@ fn approved_read_only_post_query_is_exact_and_permitless() -> Result<(), &'stati
             .operation_id(),
         Some(operation_id!("robot_get_traffic"))
     );
+    let altered_entries = [
+        RequestHeader::accept(MediaType::JSON),
+        RequestHeader::content_type(ContentType::FORM_URLENCODED),
+        RequestHeader::new("x-page", "2").map_err(|_| "pagination header")?,
+    ];
+    let altered_headers = RequestHeaders::new(&altered_entries).map_err(|_| "altered headers")?;
+    assert!(
+        prepared
+            .with_request_headers(altered_headers)
+            .requires_execution_permit()
+    );
+
+    assert_eq!(
+        PreparedRequest::new_read_only_post_query(
+            ApprovedReadOnlyPostQuery::HetznerRobotTraffic,
+            transport,
+            service,
+            metadata,
+            response,
+            authentication,
+            raw,
+            RequestBodySensitivity::Public,
+        )
+        .err(),
+        Some(PreparedRequestPolicyError::ReadOnlyPostQueryMismatch)
+    );
 
     for invalid_transport in [
         TransportRequest::new(Method::Get, target)

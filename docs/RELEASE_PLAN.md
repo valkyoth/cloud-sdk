@@ -2720,8 +2720,9 @@ Deliverables:
   with a tighter grouped-query ceiling derived from aggregate parser limits;
 - add a closed core approval registry whose Robot traffic entry binds exact
   provider, service, official endpoint, authentication scope, operation ID,
-  method, target, headers, body presence, and safety metadata instead of
-  trusting a caller-declared read-only POST classification;
+  method, target, headers, body presence, sensitive-body classification, and
+  safety metadata instead of trusting a caller-declared read-only POST
+  classification, then revalidate those bindings after internal transforms;
 - prepare an exact sensitive replayable form, `application/json` response
   policy, 200/hour caller-visible source quota documentation, and no automatic
   retry without explicit caller policy;
@@ -2752,7 +2753,9 @@ Verification:
 - test that ordinary `PreparedRequest::new` still rejects read-only POST while
   the closed approval rejects substituted providers, services, endpoints,
   methods, targets, headers, authentication scopes, metadata, and operation-ID
-  replacement, yet the exact Robot traffic operation needs no mutation permit;
+  replacement or public body classification, and prove transformed headers
+  invalidate permitless approval while the exact operation needs no mutation
+  permit;
 - run the complete Robot source lock, traffic contract checker, fuzz harness,
   MSRV/current toolchain matrix, no-std/all-features checks, documentation
   checks, SBOM freshness, and `scripts/release_0_87_gate.sh`; and

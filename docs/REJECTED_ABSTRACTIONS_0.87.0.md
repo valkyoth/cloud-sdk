@@ -20,6 +20,13 @@ closed `ApprovedReadOnlyPostQuery` registry validates the complete reviewed
 Robot traffic identity and installs an operation ID that later builder calls
 cannot replace.
 
+## Cached Approval Boolean
+
+Rejected because internal request transformations could preserve a stale
+Boolean after changing reviewed wire properties. Prepared requests retain the
+closed selector and revalidate the current request, operation ID, and sensitive
+body classification whenever permit requirements are evaluated.
+
 ## Full-Tree Traffic Decoding
 
 Rejected because dynamic target and period objects can be large. A direct

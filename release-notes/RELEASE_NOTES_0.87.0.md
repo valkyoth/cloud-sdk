@@ -22,7 +22,8 @@ incremental pentest and green CI/CodeQL but publishes no crate.
   `single_values=true`, explicit replayability, and caller-policy-only retry.
 - Added a closed, operation-bound read-only POST-query approval for Robot
   traffic without weakening ordinary POST authorization. It validates the
-  complete official identity and prevents later operation-ID replacement.
+  complete official identity and sensitive-body classification, prevents later
+  operation-ID replacement, and revalidates after internal wire transforms.
 - Added direct incremental decoding with duplicate/unknown-key rejection,
   request-bound type/ranges/targets, canonical subnet CIDRs, sorted sparse
   periods, and exact non-negative decimal tokens.

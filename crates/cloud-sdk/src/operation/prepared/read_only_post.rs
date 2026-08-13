@@ -8,7 +8,7 @@ use crate::operation::{
 use crate::transport::{EndpointIdentity, EndpointPolicy, EndpointScheme, TransportRequest};
 use crate::{Method, operation_id};
 
-use super::ProviderService;
+use super::{ProviderService, RequestBodySensitivity};
 
 /// Closed registry of reviewed read-only queries carried by `POST`.
 ///
@@ -28,6 +28,7 @@ impl ApprovedReadOnlyPostQuery {
         service: ProviderService<'_>,
         metadata: OperationMetadata,
         authentication: AuthenticationScopePolicy<'_>,
+        body_sensitivity: RequestBodySensitivity,
     ) -> Option<OperationId> {
         match self {
             Self::HetznerRobotTraffic => {
@@ -63,7 +64,8 @@ impl ApprovedReadOnlyPostQuery {
                     && metadata.semantics() == RequestSemantics::Safe
                     && metadata.retry_eligibility() == RetryEligibility::ExplicitPolicy
                     && metadata.cost_intent() == CostIntent::NoKnownCost
-                    && metadata.request_id_policy() == RequestIdPolicy::Discard)
+                    && metadata.request_id_policy() == RequestIdPolicy::Discard
+                    && body_sensitivity == RequestBodySensitivity::Sensitive)
                     .then_some(operation_id!("robot_get_traffic"))
             }
         }
