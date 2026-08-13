@@ -11,7 +11,7 @@ subnet-MAC operations are implemented in `v0.81.0`; reset discovery and
 execution are implemented in `v0.82.0`; failover discovery and route
 transitions are implemented in `v0.83.0`; Wake-on-LAN is implemented in
 `v0.84.0`; all active boot-configuration operations are implemented in
-`v0.85.0`.
+`v0.86.0`.
 
 Retrieved: 2026-07-30
 
@@ -285,6 +285,26 @@ source-locked, validated, then discarded rather than exposed. The exact
 operation, field, quota, error, deprecation, and security contract is committed in
 [`v0.85.0.json`](../tests/fixtures/robot-boot/v0.85.0.json) and checked by
 `scripts/check_robot_boot.sh`.
+
+## Reverse-DNS Contract
+
+`v0.86.0` implements all five active reverse-DNS operations: list, get, set,
+update-or-create, and delete. Paths contain only canonical protected IPv4 or
+IPv6 text. The optional list filter accepts only a canonical main-server IPv4
+address and uses the exact `server_ip` query name.
+PTR values are lowercase bounded DNS names without a trailing dot, controls,
+empty labels, or oversized labels.
+
+Set and update are non-idempotent mutations and require exact request-bound
+mutation permits. Delete is destructive and requires its own request-bound
+destructive permit. None is automatically retryable. Set and update responses
+must echo the exact requested address and PTR. Delete requires status `200`
+with an empty body; no-content and JSON acknowledgements are not admitted.
+List decoding caps the collection at 4,096 entries and rejects duplicate IP
+identities. The exact operation, form, status, quota, error, and response
+contract is committed in
+[`v0.86.0.json`](../tests/fixtures/robot-rdns/v0.86.0.json) and checked by
+`scripts/check_robot_rdns.sh`.
 
 ## Verification
 

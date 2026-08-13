@@ -391,6 +391,13 @@ generated passwords and keys only in protected redacted storage. Deprecated
 request fields remain unavailable, and source-locked deprecated response
 fields are validated then discarded.
 
+`v0.86.0` implements all five active reverse-DNS operations. Canonical
+addresses and bounded lowercase DNS names feed exact list/get/set/update/delete
+requests. Set and update require request-bound mutation permits; delete
+requires a request-bound destructive permit. Strict decoding rejects duplicate
+list identities and binds mutation acknowledgements to the exact requested IP
+and PTR. Delete accepts only the documented empty `200` response.
+
 Robot implementation schedule:
 
 | Group | Active | Deprecated | Planned Module | Milestone | Status |
@@ -403,7 +410,7 @@ Robot implementation schedule:
 | failover | 4 | 0 | `cloud_sdk_hetzner::robot::failover` | `v0.83.0` | implemented |
 | wake on LAN | 2 | 0 | `cloud_sdk_hetzner::robot::wol` | `v0.84.0` | implemented |
 | boot configuration | 15 | 0 | `cloud_sdk_hetzner::robot::boot` | `v0.85.0` | implemented |
-| reverse DNS | 5 | 0 | `cloud_sdk_hetzner::robot::rdns` | `v0.86.0` | planned |
+| reverse DNS | 5 | 0 | `cloud_sdk_hetzner::robot::rdns` | `v0.86.0` | implemented |
 | traffic | 1 | 0 | `cloud_sdk_hetzner::robot::traffic` | `v0.87.0` | planned |
 | SSH keys | 5 | 0 | `cloud_sdk_hetzner::robot::ssh_keys` | `v0.88.0` | planned |
 | firewall | 8 | 0 | `cloud_sdk_hetzner::robot::firewall` | `v0.89.0` | planned |

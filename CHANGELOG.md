@@ -1,6 +1,19 @@
 # Changelog
 
-## 0.85.0 - Unreleased
+## 0.86.0 - Unreleased
+
+- Added all five active Robot reverse-DNS operations: list, get, create,
+  update-or-create, and delete.
+- Added canonical protected IPv4/IPv6 identities and bounded lowercase DNS PTR
+  targets with strict duplicate-free response models.
+- Bound successful mutations to the exact requested address and PTR target,
+  required an empty delete acknowledgement, and narrowed every provider error
+  by operation and status.
+- Added request-bound mutation and destructive permits, immutable source-lock
+  evidence, mutation-resistant contract checks, and direct decoder fuzzing.
+- Deferred crates.io publication to the cumulative v0.90.0 checkpoint.
+
+## 0.85.0 - 2026-08-13
 
 - Added all 15 active Robot boot-configuration operations across overview,
   Rescue, Linux, VNC, and Windows families.

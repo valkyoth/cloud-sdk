@@ -38,7 +38,7 @@ provider without adding transport dependencies to provider crates.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.85.0"
+cloud-sdk = "0.86.0"
 cloud-sdk-reqwest = { version = "0.35.2", features = ["blocking-rustls"] }
 ```
 
@@ -341,7 +341,7 @@ compiled into `webpki-roots`:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.85.0"
+cloud-sdk = "0.86.0"
 cloud-sdk-reqwest = { version = "0.35.2", features = ["blocking-rustls-webpki-roots"] }
 ```
 

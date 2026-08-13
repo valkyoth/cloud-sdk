@@ -2628,18 +2628,70 @@ Verification:
 
 Stop gate: `v0.85.0 implementation stop reached. Run the pentest for this exact commit before tagging and crates.io publication.`
 
-Status: release candidate; pentest and final retest passed. The unchanged
-evidence commit now awaits the local release gate and GitHub CI/CodeQL.
+Status: released and published on 2026-08-13.
 
 ### v0.86.0 - Robot Reverse DNS
 
-Goal: complete reverse-DNS operations.
+Goal: complete all five active Robot reverse-DNS operations without admitting
+free-form paths, ambiguous names, automatic mutation retries, or response
+identity substitution.
 
-Deliverables: canonical addresses, bounded DNS names, forms, conflicts, permits, and exact models.
+Deliverables:
 
-Verification: DNS/address/source tests and `scripts/release_0_86_gate.sh`.
+- add named list, get, set, update-or-create, and delete requests bound to the
+  official Robot endpoint, service identity, HTTP method, Basic scope, quota,
+  exact response policy, and operation metadata;
+- reuse canonical protected IPv4/IPv6 identities and add bounded lowercase DNS
+  names with exact label and total-length validation;
+- atomically encode the optional `server_ip` query and sensitive `ptr` forms,
+  clearing caller storage on every preparation failure;
+- require exact request-bound mutation permits for set/update and a destructive
+  permit for delete; classify every mutation as non-idempotent and deny
+  automatic retry;
+- add bounded exact item/list models, duplicate-identity rejection, strict
+  unknown/duplicate-field handling, request-associated checked decoding,
+  exact PTR acknowledgement, and an empty-`200` delete contract;
+- narrow every source-locked reverse-DNS provider error by operation and
+  status, and commit the reviewed five-operation wire fixture;
+- add direct/shared permit tests, compile-fail provenance checks, malformed and
+  adversarial response tests, deterministic seeds, and a bounded fuzz target;
+  and
+- add migration, public API, threat-model, dependency, rejected-abstraction,
+  API-matrix, source-lock, release-note, and crate-version evidence while
+  leaving all crates unselected for crates.io until v0.90.0.
 
-Stop gate: `v0.86.0 implementation stop reached. Complete the pentest and full release gate for this exact commit; defer crates.io publication to v0.90.0.`
+Verification:
+
+- `scripts/check_robot_rdns.sh` proves the exact source fixture, request/body
+  policy, permit association, strict decode behavior, deterministic seeds, and
+  fuzz-target compilation;
+- no-default, alloc, Serde, all-feature, doctest, lint, file-length, dependency,
+  API matrix, SBOM, and platform gates remain green;
+- `scripts/check_robot_wire_fixture.py --fetch` and
+  `scripts/check_robot_api_lock.py --fetch` authenticate the complete Robot
+  source while the reverse-DNS fixture locks this milestone's normalized
+  contract; and
+- `scripts/release_0_86_gate.sh` runs cumulative checks and verifies that no
+  crate is selected for publication.
+
+Exit criteria:
+
+- all five active reverse-DNS rows are implemented and the API matrix contains
+  no reverse-DNS planned claim;
+- every mutation requires current exact-request authorization, denies replay
+  across requests, and cannot be automatically retried;
+- checked responses cannot cross operations or substitute IP/PTR identity;
+- dependency review confirms no new external package, feature, unsafe, native,
+  network, runtime, filesystem, clock, or cryptographic edge;
+- the exact implementation commit receives an incremental pentest and any
+  finding triggers remediation plus retest; and
+- the unchanged evidence commit passes the full local release gate and GitHub
+  CI/CodeQL before tag creation. Crates.io publication remains deferred to
+  v0.90.0.
+
+Stop gate: `v0.86.0 implementation stop reached. Run the incremental pentest for this exact commit before the full release gate and tag; defer crates.io publication to v0.90.0.`
+
+Status: implementation stop; pentest required.
 
 ### v0.87.0 - Robot Traffic
 

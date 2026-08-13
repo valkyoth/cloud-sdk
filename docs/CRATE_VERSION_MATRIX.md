@@ -1,9 +1,8 @@
 # Crate Version Matrix
 
-Status: `v0.80.0` is the latest published checkpoint. `v0.85.0` is the Robot
-boot-configuration public release candidate; its pentest and final retest
-passed, and GitHub CI/CodeQL must now pass on the unchanged evidence commit
-before tagging and crates.io publication.
+Status: `v0.85.0` is the latest published checkpoint. `v0.86.0` is the Robot
+reverse-DNS implementation stop; its incremental pentest is required before
+tagging, while crates.io publication remains deferred to `v0.90.0`.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
@@ -1286,6 +1285,19 @@ patches, while unchanged sanitization remains unselected.
 | `cloud-sdk-reqwest` | `0.35.1` | `0.35.2` | `dependency` | Yes | Require the v0.85 core without changing transport behavior. |
 | `cloud-sdk-sanitization` | `0.19.0` | `0.19.0` | `unchanged` | No | No sanitization boundary changes. |
 | `cloud-sdk-testkit` | `0.30.3` | `0.30.4` | `dependency` | Yes | Require the v0.85 core without changing testkit behavior. |
+
+## v0.86.0 Tracking Table
+
+`v0.86.0` implements all five active Robot reverse-DNS operations. It begins
+the v0.86-v0.90 cumulative train and does not publish any crate.
+
+| Crate | Published | v0.86 | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.85.0` | `0.86.0` | `code` | No | Advance the internal source identity and release contract; defer publication to v0.90.0. |
+| `cloud-sdk-hetzner` | `0.44.0` | `0.44.0` | `code` | No | Accumulate source-locked Robot reverse-DNS management for v0.90.0. |
+| `cloud-sdk-reqwest` | `0.35.2` | `0.35.2` | `unchanged` | No | No transport boundary changes. |
+| `cloud-sdk-sanitization` | `0.19.0` | `0.19.0` | `unchanged` | No | No sanitization boundary changes. |
+| `cloud-sdk-testkit` | `0.30.4` | `0.30.4` | `unchanged` | No | No testkit boundary changes. |
 
 ## Planned Milestone Ownership
 

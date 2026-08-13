@@ -1,12 +1,12 @@
 # cloud-sdk 0.85.0 Release Notes
 
-Status: release candidate; pentest and final retest passed.
+Status: released and published.
 
 Release date: 2026-08-13
 
 Security-Review: PASS
 Pentest: PASS
-Publication: PENDING
+Publication: COMPLETE
 
 ## Overview
 
