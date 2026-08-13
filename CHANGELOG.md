@@ -14,8 +14,9 @@
   comments, and SSH2 headers; sanitize non-copying fingerprint intermediates;
   prevalidate cross-policy construction before borrowing request storage; and
   use guarded storage in migration guidance.
-- Exercise the complete 2 MiB Robot SSH-key list-response boundary through the
-  dedicated response fuzzer.
+- Deterministically prove the exact 2 MiB Robot SSH-key list-response limit and
+  its one-byte rejection boundary; retain dedicated fuzzing that admits inputs
+  throughout that range.
 - Deferred crates.io publication to the cumulative v0.90.0 checkpoint.
 
 ## 0.87.0 - 2026-08-13

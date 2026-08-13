@@ -30,8 +30,9 @@ crate.
 - Require strong-digest mutation authority for sensitive forms and separate
   destructive authority for delete; automatic retry remains forbidden.
 - Added immutable source evidence, checker mutation tests, focused hostile
-  fixtures, get/list/RFC 4716 create decoder fuzzing through the complete 2 MiB
-  list boundary, and release-gate coverage.
+  fixtures, deterministic exact-limit and limit-plus-one response tests, and
+  get/list/RFC 4716 create decoder fuzzing that admits the complete 2 MiB list
+  range.
 - Hardened key names, OpenSSH comments, and SSH2 headers against Unicode
   controls and directional formatting; made fingerprint intermediates
   non-copying cleanup owners; and moved prepared-policy validation before

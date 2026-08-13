@@ -3,7 +3,8 @@ use alloc::{format, vec};
 use cloud_sdk::Method;
 use cloud_sdk::operation::{
     CostIntent, OperationImpact, OperationMetadata, PreparationStorage, PrepareOperation,
-    RequestBodySensitivity, RequestIdPolicy, RequestSemantics, RetryEligibility,
+    RequestBodySensitivity, RequestIdPolicy, RequestSemantics, ResponsePolicyError,
+    RetryEligibility,
 };
 use cloud_sdk::transport::{HeaderSensitivity, ResponseBuffer, ResponseMetadata, StatusCode};
 
@@ -149,6 +150,36 @@ fn list_rejects_duplicate_fingerprints_and_extra_fields() {
     assert_eq!(
         decode_list(format!("[{entry},{entry}]").as_bytes()).err(),
         Some(RobotSshKeyDecodeError::InvalidList)
+    );
+}
+
+#[test]
+fn list_response_enforces_complete_body_boundary() {
+    {
+        let at_limit = vec![b' '; MAX_ROBOT_SSH_KEY_LIST_RESPONSE_BYTES];
+        assert_eq!(
+            decode_list(&at_limit).err(),
+            Some(RobotSshKeyDecodeError::MalformedPayload)
+        );
+    }
+
+    let request = RobotSshKeyListRequest::new();
+    let mut target = [0_u8; 128];
+    let mut request_body = [0_u8; 1];
+    let prepared = request
+        .prepare_bound(PreparationStorage::new(&mut target, &mut request_body))
+        .unwrap_or_else(|_| unreachable!("list preparation failed"));
+    let over_limit = vec![b' '; MAX_ROBOT_SSH_KEY_LIST_RESPONSE_BYTES + 1];
+    with_response(
+        StatusCode::OK,
+        &over_limit,
+        Some("application/json"),
+        |response| {
+            assert_eq!(
+                prepared.validate_response(response).err(),
+                Some(ResponsePolicyError::BodyTooLarge)
+            );
+        },
     );
 }
 

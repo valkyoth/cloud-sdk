@@ -27,8 +27,9 @@ but the account inventory and deployment associations are sensitive metadata.
   provider response to match both the requested name and SHA-256 identity.
 - List responses are bounded and reject duplicate fingerprints. Get and
   update responses must match the exact protected path fingerprint; rename
-  responses must also match the requested name. Dedicated fuzzing admits one
-  selector byte plus the complete 2 MiB list-response boundary.
+  responses must also match the requested name. Deterministic tests execute the
+  exact 2 MiB list limit and its one-byte rejection boundary; dedicated fuzzing
+  admits one selector byte plus that complete response range.
 - Create and rename bodies are sensitive atomic forms. They require exact
   request-bound strong-digest mutation authority. Delete requires separate
   destructive authority. Automatic mutation retry remains forbidden.
