@@ -13,6 +13,7 @@
 //! source-locked in `v0.84.0`.
 //! Rescue, Linux, VNC, and Windows boot configuration operations are
 //! source-locked in `v0.85.0`.
+//! Reverse-DNS discovery and mutations are source-locked in `v0.86.0`.
 
 #[cfg(feature = "alloc")]
 mod boot;
@@ -29,6 +30,8 @@ mod form;
 mod ip;
 #[cfg(feature = "serde")]
 mod protocol;
+#[cfg(feature = "alloc")]
+mod rdns;
 #[cfg(feature = "alloc")]
 mod reset;
 #[cfg(feature = "alloc")]
@@ -118,6 +121,25 @@ pub use ip::{
     RobotIpGetRequest, RobotIpListRequest, RobotIpMacDeleteRequest, RobotIpMacGetRequest,
     RobotIpMacSetRequest, RobotIpRequestError, RobotIpTrafficUpdate, RobotIpUpdateRequest,
     RobotMacAddress, RobotMacAddressError,
+};
+
+#[cfg(feature = "alloc")]
+pub use rdns::{
+    MAX_ROBOT_RDNS_ITEM_RESPONSE_BYTES, MAX_ROBOT_RDNS_LIST_RESPONSE_BYTES,
+    MAX_ROBOT_RDNS_NAME_BYTES, RobotRdnsDeleteRequest, RobotRdnsGetRequest, RobotRdnsListRequest,
+    RobotRdnsName, RobotRdnsNameError, RobotRdnsRequestError, RobotRdnsSetRequest,
+    RobotRdnsUpdateRequest,
+};
+
+#[cfg(feature = "serde")]
+pub use rdns::{
+    CheckedRobotRdns, MAX_ROBOT_RDNS_LIST_ITEMS, PreparedRobotRdns, RobotRdns,
+    RobotRdnsCanonicalPlanFingerprint, RobotRdnsDecodeError, RobotRdnsDestructivePermit,
+    RobotRdnsFailureCode, RobotRdnsList, RobotRdnsMutationPermit, RobotRdnsPermitAttempt,
+    RobotRdnsPermitRequest, RobotRdnsPlanConfirmation, RobotRdnsPlanFingerprintDigest,
+    RobotRdnsPlanSubject, RobotRdnsSharedDestructivePermit, RobotRdnsSharedMutationPermit,
+    build_robot_rdns_canonical_plan, build_robot_rdns_plan_digest, decode_robot_rdns,
+    decode_robot_rdns_list,
 };
 
 #[cfg(feature = "serde")]

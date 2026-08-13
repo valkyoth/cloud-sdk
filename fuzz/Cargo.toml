@@ -202,3 +202,10 @@ path = "fuzz_targets/robot_boot_response.rs"
 test = false
 doc = false
 bench = false
+
+[[bin]]
+name = "robot_rdns_response"
+path = "fuzz_targets/robot_rdns_response.rs"
+test = false
+doc = false
+bench = false

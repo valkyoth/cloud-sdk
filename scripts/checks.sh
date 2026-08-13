@@ -53,6 +53,7 @@ scripts/check_robot_resets.sh
 scripts/check_robot_failovers.sh
 scripts/check_robot_wol.sh
 scripts/check_robot_boot.sh
+scripts/check_robot_rdns.sh
 scripts/check-provider-capabilities.py
 scripts/test-provider-capabilities.py
 scripts/check-custom-endpoint-docs.py

@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "source": {
+    "retrieved": "2026-08-13",
+    "url": "https://robot.hetzner.com/doc/webservice/en.html",
+    "sha256": "4b396790acc449f47b2b3b893f8eff759c0c25196dc38b1e5e92a12c9704771a"
+  },
+  "operations": [
+    {"id":"robot_list_rdns","method":"GET","path":"/rdns","success":[200],"input":["server_ip?"],"output":"rdns-list","errors":[[404,"NOT_FOUND"]]},
+    {"id":"robot_get_rdns","method":"GET","path":"/rdns/{ip}","success":[200],"input":[],"output":"rdns","errors":[[404,"IP_NOT_FOUND"],[404,"RDNS_NOT_FOUND"]]},
+    {"id":"robot_set_rdns","method":"PUT","path":"/rdns/{ip}","success":[201],"input":["ptr"],"output":"rdns","errors":[[400,"INVALID_INPUT"],[404,"IP_NOT_FOUND"],[409,"RDNS_ALREADY_EXISTS"],[500,"RDNS_CREATE_FAILED"]]},
+    {"id":"robot_update_rdns","method":"POST","path":"/rdns/{ip}","success":[200,201],"input":["ptr"],"output":"rdns","errors":[[400,"INVALID_INPUT"],[404,"IP_NOT_FOUND"],[500,"RDNS_CREATE_FAILED"],[500,"RDNS_UPDATE_FAILED"]]},
+    {"id":"robot_delete_rdns","method":"DELETE","path":"/rdns/{ip}","success":[200],"input":[],"output":"empty","errors":[[404,"IP_NOT_FOUND"],[500,"RDNS_DELETE_FAILED"],[500,"RDNS_UPDATE_FAILED"]]}
+  ],
+  "quota": {"requests": 500, "seconds": 3600},
+  "policy": {
+    "address_identity": "canonical-ipv4-or-ipv6",
+    "server_filter": "canonical-ipv4-main-address-only",
+    "ptr_identity": "lowercase-ascii-dns-name-without-root-dot",
+    "ptr_bytes": 253,
+    "unknown_fields": "reject",
+    "response_identity": "exact-request-address",
+    "mutation_outcome": "exact-request-ptr",
+    "list_identity": "distinct-addresses",
+    "maximum_list_items": 4096,
+    "list_response_bytes": 2097152,
+    "item_response_bytes": 16384,
+    "delete_response": "empty",
+    "mutation_retry": "never",
+    "mutation_authority": "request-bound-permit",
+    "destructive_authority": "request-bound-permit"
+  }
+}

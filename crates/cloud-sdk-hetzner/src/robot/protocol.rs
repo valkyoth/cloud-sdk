@@ -80,6 +80,18 @@ pub enum RobotProviderErrorCode {
     FailoverFailed,
     /// Robot could not confirm the failover transition completed.
     FailoverNotComplete,
+    /// The requested IP address was not found.
+    IpNotFound,
+    /// The requested address has no reverse-DNS entry.
+    RdnsNotFound,
+    /// A reverse-DNS entry already exists for the requested address.
+    RdnsAlreadyExists,
+    /// Robot could not create the reverse-DNS entry.
+    RdnsCreateFailed,
+    /// Robot could not update the reverse-DNS entry.
+    RdnsUpdateFailed,
+    /// Robot could not delete the reverse-DNS entry.
+    RdnsDeleteFailed,
     /// Wake-on-LAN is unavailable for the server.
     WolNotAvailable,
     /// Robot could not send the Wake-on-LAN packet.

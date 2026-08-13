@@ -44,6 +44,12 @@ impl RobotSubnetFailureCode {
             | RobotProviderErrorCode::FailoverLocked
             | RobotProviderErrorCode::FailoverFailed
             | RobotProviderErrorCode::FailoverNotComplete
+            | RobotProviderErrorCode::IpNotFound
+            | RobotProviderErrorCode::RdnsNotFound
+            | RobotProviderErrorCode::RdnsAlreadyExists
+            | RobotProviderErrorCode::RdnsCreateFailed
+            | RobotProviderErrorCode::RdnsUpdateFailed
+            | RobotProviderErrorCode::RdnsDeleteFailed
             | RobotProviderErrorCode::WolNotAvailable
             | RobotProviderErrorCode::WolFailed
             | RobotProviderErrorCode::BootNotAvailable
