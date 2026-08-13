@@ -7,8 +7,12 @@
 - Added direct incremental traffic decoding with request-bound ranges,
   granularity, canonical target identities, sparse-period sorting, and exact
   non-negative decimal tokens.
-- Added an explicit provider-neutral read-only POST-query contract without
-  weakening ordinary POST execution authorization.
+- Added a closed, operation-bound read-only POST-query approval without
+  weakening ordinary POST execution authorization or permitting operation-ID
+  replacement.
+- Canonically sorted traffic targets, replaced quadratic target scans with
+  adjacent checks and binary response lookup, and rejected non-canonical CIDR
+  prefixes.
 - Added source-lock, adversarial, boundary, documentation, and release evidence
   while deferring crates.io publication to v0.90.0.
 

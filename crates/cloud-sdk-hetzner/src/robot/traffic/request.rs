@@ -67,6 +67,14 @@ impl RobotTrafficTarget {
         }
     }
 
+    fn sort_key(&self) -> (IpAddr, bool) {
+        self.with_address(|address, subnet| (address, subnet))
+    }
+
+    fn address(&self) -> IpAddr {
+        self.with_address(|address, _| address)
+    }
+
     pub(super) fn with_text<R>(&self, inspect: impl FnOnce(&str) -> R) -> R {
         match self {
             Self::Ip(address) => address.with_text(inspect),
@@ -101,8 +109,6 @@ pub enum RobotTrafficRequestError {
     InvalidHeaders(cloud_sdk::transport::HeaderError),
     /// The official Robot endpoint policy was invalid.
     InvalidEndpoint(crate::endpoint::OfficialEndpointError),
-    /// A source-locked operation identifier was invalid.
-    InvalidOperationId(cloud_sdk::operation::OperationIdError),
     /// Operation safety metadata was internally inconsistent.
     InvalidMetadata(cloud_sdk::operation::OperationMetadataError),
     /// The success-response policy was internally inconsistent.
@@ -121,7 +127,6 @@ impl_static_error!(RobotTrafficRequestError,
     Self::InvalidTarget(_) => "Robot traffic request target is invalid",
     Self::InvalidHeaders(_) => "Robot traffic request headers are invalid",
     Self::InvalidEndpoint(_) => "official Robot endpoint is invalid",
-    Self::InvalidOperationId(_) => "Robot traffic operation identifier is invalid",
     Self::InvalidMetadata(_) => "Robot traffic operation metadata is invalid",
     Self::InvalidResponsePolicy(_) => "Robot traffic response policy is invalid",
     Self::InvalidRawPolicy(_) => "Robot traffic raw response policy is invalid",
@@ -136,10 +141,10 @@ pub struct RobotTrafficRequest {
 }
 
 impl RobotTrafficRequest {
-    /// Creates a query and rejects empty, excessive, or ambiguous target sets.
+    /// Creates a query and canonicalizes a bounded, duplicate-free target set.
     pub fn new(
         interval: RobotTrafficInterval,
-        targets: Vec<RobotTrafficTarget>,
+        mut targets: Vec<RobotTrafficTarget>,
         single_values: bool,
     ) -> Result<Self, RobotTrafficRequestError> {
         if targets.is_empty() {
@@ -150,19 +155,24 @@ impl RobotTrafficRequest {
         {
             return Err(RobotTrafficRequestError::TooManyTargets);
         }
-        for (index, target) in targets.iter().enumerate() {
-            let duplicate = targets.iter().skip(index.saturating_add(1)).any(|other| {
-                target.with_address(|left, _| other.with_address(|right, _| left == right))
-            });
-            if duplicate {
-                return Err(RobotTrafficRequestError::DuplicateTarget);
-            }
+        targets.sort_unstable_by_key(RobotTrafficTarget::sort_key);
+        if targets.windows(2).any(|pair| match pair {
+            [left, right] => left.address() == right.address(),
+            _ => false,
+        }) {
+            return Err(RobotTrafficRequestError::DuplicateTarget);
         }
         Ok(Self {
             interval,
             targets,
             single_values,
         })
+    }
+
+    pub(super) fn target_index(&self, address: IpAddr) -> Option<usize> {
+        self.targets
+            .binary_search_by_key(&address, RobotTrafficTarget::address)
+            .ok()
     }
 
     /// Returns the exact protected query interval.

@@ -1,11 +1,10 @@
-use crate::Method;
 use crate::authentication::AuthenticationScopePolicy;
 use crate::operation::{OperationImpact, OperationMetadata, RequestIdPolicy, ResponsePolicy};
 use crate::transport::{RawResponsePolicy, TransportRequest};
 
 use super::{
-    BodyReplayability, PreparedRequest, PreparedRequestPolicyError, ProviderService,
-    RequestBodySensitivity,
+    ApprovedReadOnlyPostQuery, BodyReplayability, PreparedRequest, PreparedRequestPolicyError,
+    ProviderService, RequestBodySensitivity,
 };
 
 impl<'request> PreparedRequest<'request> {
@@ -41,14 +40,15 @@ impl<'request> PreparedRequest<'request> {
         )
     }
 
-    /// Creates an explicitly reviewed read-only query carried by `POST`.
+    /// Creates a registry-approved read-only query carried by `POST`.
     ///
-    /// This narrow constructor exists for provider protocols that use a form
-    /// body to describe a query. It rejects methods other than `POST` and
-    /// metadata other than read-only/safe. The resulting request can execute
-    /// without mutation authority, while retry still follows its explicit
-    /// metadata and body-replayability policies.
+    /// The closed approval entry validates provider, service, official
+    /// endpoint, operation ID, method, target, headers, body presence,
+    /// authentication scope, and complete safety metadata before permitless
+    /// execution is admitted.
+    #[allow(clippy::too_many_arguments)]
     pub fn new_read_only_post_query(
+        approval: ApprovedReadOnlyPostQuery,
         request: TransportRequest<'request>,
         service: ProviderService<'request>,
         metadata: OperationMetadata,
@@ -57,12 +57,10 @@ impl<'request> PreparedRequest<'request> {
         raw_response_policy: RawResponsePolicy<'request>,
         body_sensitivity: RequestBodySensitivity,
     ) -> Result<Self, PreparedRequestPolicyError> {
-        if request.method() != Method::Post
-            || !matches!(metadata.impact(), OperationImpact::ReadOnly)
-        {
-            return Err(PreparedRequestPolicyError::ReadOnlyPostQueryMismatch);
-        }
-        Self::new_inner(
+        let operation_id = approval
+            .validate(request, service, metadata, authentication_policy)
+            .ok_or(PreparedRequestPolicyError::ReadOnlyPostQueryMismatch)?;
+        let mut prepared = Self::new_inner(
             request,
             service,
             metadata,
@@ -71,7 +69,9 @@ impl<'request> PreparedRequest<'request> {
             &raw_response_policy,
             body_sensitivity,
             true,
-        )
+        )?;
+        prepared.operation_id = Some(operation_id);
+        Ok(prepared)
     }
 
     #[allow(clippy::too_many_arguments)]
@@ -83,11 +83,11 @@ impl<'request> PreparedRequest<'request> {
         authentication_policy: AuthenticationScopePolicy<'request>,
         raw_response_policy: &RawResponsePolicy<'request>,
         body_sensitivity: RequestBodySensitivity,
-        direct_read_only_post: bool,
+        approved_read_only_post: bool,
     ) -> Result<Self, PreparedRequestPolicyError> {
         if matches!(metadata.impact(), OperationImpact::ReadOnly)
             && !request.method().permits_direct_read_only()
-            && !direct_read_only_post
+            && !approved_read_only_post
         {
             return Err(PreparedRequestPolicyError::ReadOnlyMethodMismatch);
         }
@@ -111,7 +111,7 @@ impl<'request> PreparedRequest<'request> {
             },
             body_sensitivity,
             authorization_evidence_required: false,
-            direct_read_only_post,
+            approved_read_only_post,
         })
     }
 }

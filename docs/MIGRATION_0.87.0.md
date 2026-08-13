@@ -35,6 +35,11 @@ let prepared = request.prepare_bound(PreparationStorage::new(&mut path, &mut bod
 # Ok::<(), Box<dyn core::error::Error>>(())
 ```
 
+`RobotTrafficRequest::new` canonicalizes target order. Callers must treat the
+input as a set rather than rely on insertion order. A closed core approval owns
+the Robot traffic operation ID; subsequent builder calls cannot replace that
+provider-approved identity.
+
 Execute through the existing authenticated transport boundary, validate the
 response with `PreparedRobotTraffic::validate_response`, and call
 `CheckedRobotTraffic::decode_response`. Returned targets can be fewer than the

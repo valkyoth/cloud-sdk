@@ -20,11 +20,13 @@ use crate::transport::{
 mod body;
 mod construction;
 mod error;
+mod read_only_post;
 mod service;
 mod storage;
 pub use body::{BodyReplayability, RequestBodySensitivity};
 use error::{EndpointCheckError, map_endpoint_error};
 pub use error::{PreparedExecutionError, PreparedRequestPolicyError};
+pub use read_only_post::ApprovedReadOnlyPostQuery;
 pub use service::ProviderService;
 pub use storage::{PreparationStorage, PrepareOperation};
 
@@ -41,14 +43,19 @@ pub struct PreparedRequest<'request> {
     body_replayability: BodyReplayability,
     body_sensitivity: RequestBodySensitivity,
     authorization_evidence_required: bool,
-    direct_read_only_post: bool,
+    approved_read_only_post: bool,
 }
 
 impl<'request> PreparedRequest<'request> {
-    /// Binds a validated provider operation identifier to this request.
+    /// Binds a validated provider operation identifier.
+    ///
+    /// Closed approved operations bind their identifier during construction;
+    /// this method cannot replace that security identity.
     #[must_use]
     pub const fn with_operation_id(mut self, operation_id: OperationId) -> Self {
-        self.operation_id = Some(operation_id);
+        if !self.approved_read_only_post {
+            self.operation_id = Some(operation_id);
+        }
         self
     }
 
@@ -172,7 +179,7 @@ impl<'request> PreparedRequest<'request> {
             body_replayability: self.body_replayability,
             body_sensitivity: self.body_sensitivity,
             authorization_evidence_required: self.authorization_evidence_required,
-            direct_read_only_post: self.direct_read_only_post,
+            approved_read_only_post: self.approved_read_only_post,
         }
     }
 
@@ -186,7 +193,7 @@ impl<'request> PreparedRequest<'request> {
             && self.body_replayability == other.body_replayability
             && self.body_sensitivity == other.body_sensitivity
             && self.authorization_evidence_required == other.authorization_evidence_required
-            && self.direct_read_only_post == other.direct_read_only_post
+            && self.approved_read_only_post == other.approved_read_only_post
             && self.has_same_header_policy(other)
     }
 
@@ -392,7 +399,7 @@ impl<'request> PreparedRequest<'request> {
     }
 
     pub(crate) const fn requires_execution_permit(self) -> bool {
-        (!self.request.method().permits_direct_read_only() && !self.direct_read_only_post)
+        (!self.request.method().permits_direct_read_only() && !self.approved_read_only_post)
             || !matches!(self.metadata.impact(), OperationImpact::ReadOnly)
             || matches!(self.metadata.cost_intent(), super::CostIntent::MayIncurCost)
     }
@@ -437,7 +444,7 @@ impl fmt::Debug for PreparedRequest<'_> {
                 "authorization_evidence_required",
                 &self.authorization_evidence_required,
             )
-            .field("direct_read_only_post", &self.direct_read_only_post)
+            .field("approved_read_only_post", &self.approved_read_only_post)
             .finish()
     }
 }

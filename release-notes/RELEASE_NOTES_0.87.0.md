@@ -20,11 +20,16 @@ incremental pentest and green CI/CodeQL but publishes no crate.
   month, and year intervals.
 - Added atomic sensitive form preparation for `POST /traffic`, optional
   `single_values=true`, explicit replayability, and caller-policy-only retry.
-- Added an explicit provider-neutral read-only POST-query constructor without
-  weakening ordinary POST authorization.
+- Added a closed, operation-bound read-only POST-query approval for Robot
+  traffic without weakening ordinary POST authorization. It validates the
+  complete official identity and prevents later operation-ID replacement.
 - Added direct incremental decoding with duplicate/unknown-key rejection,
   request-bound type/ranges/targets, canonical subnet CIDRs, sorted sparse
   periods, and exact non-negative decimal tokens.
+- Canonically sorted request targets, replaced quadratic duplicate and response
+  membership scans with adjacent checks and binary lookup, and tracked returned
+  targets through bounded indexed state.
+- Reject non-canonical CIDR prefix spellings such as `/064`.
 - Source-locked the 200/hour quota, success shape, and operation-specific
   `INVALID_INPUT`, `NOT_FOUND`, and `INTERNAL_ERROR` failures.
 - Added focused boundary, hostile shape, chunk-split, source contract, and core

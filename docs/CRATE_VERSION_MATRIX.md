@@ -1301,13 +1301,13 @@ the v0.86-v0.90 cumulative train and does not publish any crate.
 
 ## v0.87.0 Tracking Table
 
-`v0.87.0` implements the active Robot traffic query and the provider-neutral
-read-only POST-query contract. It remains inside the v0.86-v0.90 cumulative
-train and does not publish any crate.
+`v0.87.0` implements the active Robot traffic query and its closed,
+operation-bound read-only POST approval. It remains inside the v0.86-v0.90
+cumulative train and does not publish any crate.
 
 | Crate | Published | v0.87 | Change | Publish | Reason |
 | --- | --- | --- | --- | --- | --- |
-| `cloud-sdk` | `0.85.0` | `0.87.0` | `code` | No | Add an explicit read-only POST query contract; defer publication to v0.90.0. |
+| `cloud-sdk` | `0.85.0` | `0.87.0` | `code` | No | Add a closed operation-bound read-only POST approval; defer publication to v0.90.0. |
 | `cloud-sdk-hetzner` | `0.44.0` | `0.44.0` | `code` | No | Accumulate source-locked Robot traffic queries for v0.90.0. |
 | `cloud-sdk-reqwest` | `0.35.2` | `0.35.2` | `unchanged` | No | No transport boundary changes. |
 | `cloud-sdk-sanitization` | `0.19.0` | `0.19.0` | `unchanged` | No | No sanitization boundary changes. |

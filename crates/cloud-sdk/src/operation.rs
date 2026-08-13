@@ -29,8 +29,9 @@ pub use policy::{
     ResponsePolicyError, ResponsePolicyValidationError,
 };
 pub use prepared::{
-    BodyReplayability, PreparationStorage, PrepareOperation, PreparedExecutionError,
-    PreparedRequest, PreparedRequestPolicyError, ProviderService, RequestBodySensitivity,
+    ApprovedReadOnlyPostQuery, BodyReplayability, PreparationStorage, PrepareOperation,
+    PreparedExecutionError, PreparedRequest, PreparedRequestPolicyError, ProviderService,
+    RequestBodySensitivity,
 };
 #[cfg(feature = "alloc")]
 pub use storage::OwnedPreparationStorage;

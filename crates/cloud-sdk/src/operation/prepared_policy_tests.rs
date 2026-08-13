@@ -1,15 +1,17 @@
 use super::{
-    ContentTypePolicy, CostIntent, OperationImpact, OperationMetadata, PreparedRequest,
-    PreparedRequestPolicyError, ProviderService, RequestBodySensitivity, RequestIdPolicy,
-    RequestSemantics, ResponseBodyPolicy, ResponsePolicy, RetryEligibility,
+    ApprovedReadOnlyPostQuery, ContentTypePolicy, CostIntent, OperationImpact, OperationMetadata,
+    PreparedRequest, PreparedRequestPolicyError, ProviderService, RequestBodySensitivity,
+    RequestIdPolicy, RequestSemantics, ResponseBodyPolicy, ResponsePolicy, RetryEligibility,
 };
 use crate::authentication::{AuthenticationScopePolicy, ScopeRequirement};
 use crate::transport::{
-    EndpointIdentity, EndpointPolicy, EndpointScheme, HeaderName, MediaType, RawResponsePolicy,
-    RequestTarget, ResponseMediaPolicy, StatusCode, TransportRequest,
+    ContentType, EndpointIdentity, EndpointPolicy, EndpointScheme, HeaderName, MediaType,
+    RawResponsePolicy, RequestHeader, RequestHeaders, RequestTarget, ResponseMediaPolicy,
+    StatusCode, TransportRequest,
 };
 use crate::{
-    Method, ProviderId, ProviderMarker, ServiceId, ServiceMarker, provider_id, service_id,
+    Method, ProviderId, ProviderMarker, ServiceId, ServiceMarker, operation_id, provider_id,
+    service_id,
 };
 
 static JSON: [MediaType<'static>; 1] = [MediaType::JSON];
@@ -145,10 +147,11 @@ fn read_only_metadata_rejects_methods_that_can_change_state() -> Result<(), &'st
 }
 
 #[test]
-fn explicit_read_only_post_query_is_narrow_and_permitless() -> Result<(), &'static str> {
-    let target = RequestTarget::new("/query").map_err(|_| "target")?;
-    let endpoint = EndpointIdentity::new(EndpointScheme::Https, "api.example.invalid", 443, "/v1")
-        .map_err(|_| "endpoint")?;
+fn approved_read_only_post_query_is_exact_and_permitless() -> Result<(), &'static str> {
+    let target = RequestTarget::new("/traffic").map_err(|_| "target")?;
+    let endpoint =
+        EndpointIdentity::new(EndpointScheme::Https, "robot-ws.your-server.de", 443, "/")
+            .map_err(|_| "endpoint")?;
     let response = ResponsePolicy::new(
         &OK,
         ContentTypePolicy::Required(&JSON),
@@ -165,8 +168,8 @@ fn explicit_read_only_post_query_is_narrow_and_permitless() -> Result<(), &'stat
     )
     .map_err(|_| "metadata")?;
     let authentication = AuthenticationScopePolicy::new(
-        ScopeRequirement::Required(TestProvider::ID),
-        ScopeRequirement::Required(TestService::ID),
+        ScopeRequirement::Required(provider_id!("hetzner")),
+        ScopeRequirement::Required(service_id!("robot")),
         ScopeRequirement::Required(endpoint),
         ScopeRequirement::Forbidden,
         ScopeRequirement::Forbidden,
@@ -181,9 +184,23 @@ fn explicit_read_only_post_query_is_narrow_and_permitless() -> Result<(), &'stat
         8,
     )
     .map_err(|_| "raw")?;
+    let request_headers = [
+        RequestHeader::accept(MediaType::JSON),
+        RequestHeader::content_type(ContentType::FORM_URLENCODED),
+    ];
+    let headers = RequestHeaders::new(&request_headers).map_err(|_| "headers")?;
+    let service = ProviderService::new(
+        provider_id!("hetzner"),
+        service_id!("robot"),
+        EndpointPolicy::fixed(endpoint),
+    );
+    let transport = TransportRequest::new(Method::Post, target)
+        .with_headers(headers)
+        .with_body(b"ip%5B%5D=192.0.2.10");
     let prepared = PreparedRequest::new_read_only_post_query(
-        TransportRequest::new(Method::Post, target).with_body(b"query=true"),
-        ProviderService::from_marker::<TestService>(EndpointPolicy::fixed(endpoint)),
+        ApprovedReadOnlyPostQuery::HetznerRobotTraffic,
+        transport,
+        service,
         metadata,
         response,
         authentication,
@@ -192,18 +209,103 @@ fn explicit_read_only_post_query_is_narrow_and_permitless() -> Result<(), &'stat
     )
     .map_err(|_| "read-only POST")?;
     assert!(!prepared.requires_execution_permit());
+    assert_eq!(
+        prepared.operation_id(),
+        Some(operation_id!("robot_get_traffic"))
+    );
+    assert_eq!(
+        prepared
+            .with_operation_id(operation_id!("server_update"))
+            .operation_id(),
+        Some(operation_id!("robot_get_traffic"))
+    );
 
-    assert!(matches!(
+    for invalid_transport in [
+        TransportRequest::new(Method::Get, target)
+            .with_headers(headers)
+            .with_body(b"ip%5B%5D=192.0.2.10"),
+        TransportRequest::new(
+            Method::Post,
+            RequestTarget::new("/server/1").map_err(|_| "target")?,
+        )
+        .with_headers(headers)
+        .with_body(b"ip%5B%5D=192.0.2.10"),
+        TransportRequest::new(Method::Post, target).with_body(b"ip%5B%5D=192.0.2.10"),
+    ] {
+        assert_eq!(
+            PreparedRequest::new_read_only_post_query(
+                ApprovedReadOnlyPostQuery::HetznerRobotTraffic,
+                invalid_transport,
+                service,
+                metadata,
+                response,
+                authentication,
+                raw,
+                RequestBodySensitivity::Sensitive,
+            )
+            .err(),
+            Some(PreparedRequestPolicyError::ReadOnlyPostQueryMismatch)
+        );
+    }
+
+    assert_eq!(
         PreparedRequest::new_read_only_post_query(
-            TransportRequest::new(Method::Get, target),
+            ApprovedReadOnlyPostQuery::HetznerRobotTraffic,
+            transport,
             ProviderService::from_marker::<TestService>(EndpointPolicy::fixed(endpoint)),
             metadata,
             response,
             authentication,
             raw,
-            RequestBodySensitivity::Public,
-        ),
-        Err(PreparedRequestPolicyError::ReadOnlyPostQueryMismatch)
-    ));
+            RequestBodySensitivity::Sensitive,
+        )
+        .err(),
+        Some(PreparedRequestPolicyError::ReadOnlyPostQueryMismatch)
+    );
+
+    let alternate_endpoint =
+        EndpointIdentity::new(EndpointScheme::Https, "proxy.example.invalid", 443, "/")
+            .map_err(|_| "alternate endpoint")?;
+    let wrong_endpoint_service = ProviderService::new(
+        provider_id!("hetzner"),
+        service_id!("robot"),
+        EndpointPolicy::fixed(alternate_endpoint),
+    );
+    let wrong_authentication = AuthenticationScopePolicy::new(
+        ScopeRequirement::Required(provider_id!("hetzner")),
+        ScopeRequirement::Required(service_id!("robot")),
+        ScopeRequirement::Required(alternate_endpoint),
+        ScopeRequirement::Forbidden,
+        ScopeRequirement::Forbidden,
+        ScopeRequirement::Forbidden,
+    );
+    let costly_metadata = OperationMetadata::new(
+        OperationImpact::ReadOnly,
+        RequestSemantics::Safe,
+        RetryEligibility::ExplicitPolicy,
+        CostIntent::MayIncurCost,
+        RequestIdPolicy::Discard,
+    )
+    .map_err(|_| "costly metadata")?;
+    for (candidate_service, candidate_metadata, candidate_authentication) in [
+        (wrong_endpoint_service, metadata, authentication),
+        (service, metadata, wrong_authentication),
+        (service, costly_metadata, authentication),
+    ] {
+        assert_eq!(
+            PreparedRequest::new_read_only_post_query(
+                ApprovedReadOnlyPostQuery::HetznerRobotTraffic,
+                transport,
+                candidate_service,
+                candidate_metadata,
+                response,
+                candidate_authentication,
+                raw,
+                RequestBodySensitivity::Sensitive,
+            )
+            .err(),
+            Some(PreparedRequestPolicyError::ReadOnlyPostQueryMismatch)
+        );
+    }
     Ok(())
 }

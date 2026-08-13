@@ -2718,9 +2718,10 @@ Deliverables:
   September-31 example;
 - reject empty, excessive, duplicate, and cross-kind ambiguous target sets,
   with a tighter grouped-query ceiling derived from aggregate parser limits;
-- add a narrowly validated provider-neutral read-only POST-query constructor
-  instead of globally treating POST as safe or misclassifying the operation as
-  a mutation;
+- add a closed core approval registry whose Robot traffic entry binds exact
+  provider, service, official endpoint, authentication scope, operation ID,
+  method, target, headers, body presence, and safety metadata instead of
+  trusting a caller-declared read-only POST classification;
 - prepare an exact sensitive replayable form, `application/json` response
   policy, 200/hour caller-visible source quota documentation, and no automatic
   retry without explicit caller policy;
@@ -2728,9 +2729,10 @@ Deliverables:
   duplicate and unknown keys, preserve bounded non-negative number lexemes,
   sort sparse individual periods, and never convert traffic values through
   floating point;
-- bind response `type`, `from`, `to`, IP identities, canonical subnet CIDRs,
-  and aggregate/single-value shape to the exact request while allowing Robot
-  to omit targets with no data;
+- canonicalize request target order, reject adjacent duplicates, and bind
+  response `type`, `from`, `to`, IP identities, canonical decimal subnet CIDRs,
+  and aggregate/single-value shape through binary target lookup plus a bounded
+  seen bitmap while allowing Robot to omit targets with no data;
 - source-lock `INVALID_INPUT`, `NOT_FOUND`, and `INTERNAL_ERROR` failures and
   keep all protected request/response models redacted and non-copyable; and
 - add immutable traffic fixtures, mutation-resistant source checks, fuzz
@@ -2748,8 +2750,9 @@ Verification:
   unknown and duplicate fields, negative values, ordinal boundaries, parser
   allocation limits, and a token crossing the internal 4 KiB chunk boundary;
 - test that ordinary `PreparedRequest::new` still rejects read-only POST while
-  the explicit constructor admits only POST plus read-only/safe metadata and
-  does not require mutation authority;
+  the closed approval rejects substituted providers, services, endpoints,
+  methods, targets, headers, authentication scopes, metadata, and operation-ID
+  replacement, yet the exact Robot traffic operation needs no mutation permit;
 - run the complete Robot source lock, traffic contract checker, fuzz harness,
   MSRV/current toolchain matrix, no-std/all-features checks, documentation
   checks, SBOM freshness, and `scripts/release_0_87_gate.sh`; and

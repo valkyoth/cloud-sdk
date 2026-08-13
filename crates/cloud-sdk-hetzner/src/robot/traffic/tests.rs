@@ -1,4 +1,5 @@
 use alloc::{format, vec, vec::Vec};
+use core::net::IpAddr;
 
 use cloud_sdk::Method;
 use cloud_sdk::operation::{
@@ -56,6 +57,23 @@ fn request_rejects_empty_duplicate_and_grouped_overflow_targets() {
         RobotTrafficRequest::new(month(), targets, false).err(),
         Some(RobotTrafficRequestError::DuplicateTarget)
     );
+    let request = RobotTrafficRequest::new(
+        month(),
+        vec![
+            subnet_target("2001:db8::"),
+            ip_target("192.0.2.11"),
+            ip_target("192.0.2.10"),
+        ],
+        false,
+    )
+    .unwrap_or_else(|_| unreachable!("sortable traffic fixture failed"));
+    let expected = ["192.0.2.10", "192.0.2.11", "2001:db8::"];
+    for (target, expected) in request.targets().iter().zip(expected) {
+        let expected = expected
+            .parse::<IpAddr>()
+            .unwrap_or_else(|_| unreachable!("sorted address fixture failed"));
+        target.with_address(|address, _| assert_eq!(address, expected));
+    }
     let mut targets = Vec::new();
     for index in 0..=MAX_ROBOT_TRAFFIC_SINGLE_VALUE_TARGETS {
         let third = index / 256;
@@ -141,6 +159,25 @@ fn grouped_decode_sorts_sparse_points_and_accepts_subnet_identity() {
     assert_eq!(points.len(), 2);
     assert_eq!(points.first().map(RobotTrafficPoint::ordinal), Some(1));
     assert_eq!(points.get(1).map(RobotTrafficPoint::ordinal), Some(2));
+}
+
+#[test]
+fn response_targets_use_canonical_prefixes_and_request_bound_lookup() {
+    let traffic_request = request(
+        false,
+        vec![ip_target("192.0.2.11"), ip_target("192.0.2.10")],
+    );
+    let body = br#"{"traffic":{"type":"month","from":"2026-07-01","to":"2026-07-31","data":{"192.0.2.11":{"in":1,"out":2,"sum":3},"192.0.2.10":{"in":3,"out":2,"sum":5}}}}"#;
+    let report = decode(&traffic_request, body)
+        .unwrap_or_else(|_| unreachable!("binary target lookup fixture failed"));
+    assert_eq!(report.len(), 2);
+
+    let subnet_request = request(false, vec![subnet_target("2001:db8::")]);
+    let body = br#"{"traffic":{"data":{"2001:db8::/064":{"in":1,"out":2,"sum":3}},"to":"2026-07-31","from":"2026-07-01","type":"month"}}"#;
+    assert_eq!(
+        decode(&subnet_request, body).err(),
+        Some(RobotTrafficDecodeError::InvalidTarget)
+    );
 }
 
 #[test]

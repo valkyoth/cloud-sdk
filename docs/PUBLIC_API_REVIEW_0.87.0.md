@@ -4,17 +4,26 @@ Status: implementation stop; pentest required.
 
 ## Core Contract
 
-`PreparedRequest::new_read_only_post_query` is the only new provider-neutral
-execution primitive. It accepts only `POST` with already validated read-only,
-safe metadata. Ordinary `PreparedRequest::new` continues to reject read-only
-POST, and all other POST requests continue to require mutation authority.
+`PreparedRequest::new_read_only_post_query` requires an
+`ApprovedReadOnlyPostQuery` selected from a closed core registry. The Robot
+traffic entry validates the exact provider, service, official endpoint,
+authentication scope, method, target, required headers, non-empty body, and
+complete safety metadata. It also binds `robot_get_traffic` during construction.
+The selector cannot approve caller-defined operations.
+
+`PreparedRequest::with_operation_id` retains its existing behavior for ordinary
+requests but cannot replace the operation identity installed by a closed
+approval. Ordinary `PreparedRequest::new` continues to reject read-only POST,
+and all unapproved POST requests continue to require mutation authority.
 
 ## Robot Traffic
 
 `RobotTrafficInterval` owns protected exact bounds and exposes them only through
 closures. `RobotTrafficTarget` owns protected canonical IP or subnet-base
-identities. `RobotTrafficRequest` rejects empty, excessive, duplicate, and
-cross-kind ambiguous sets before preparation.
+identities. `RobotTrafficRequest` sorts targets by canonical address and kind,
+then rejects adjacent duplicate or cross-kind ambiguous identities before
+preparation. Response binding uses binary lookup into that canonical set and a
+bounded seen bitmap instead of repeated linear scans.
 
 `PreparedRobotTraffic` and `CheckedRobotTraffic` retain exact request
 provenance. No raw public decoder can bypass that association. Result targets,

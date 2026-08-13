@@ -2,7 +2,7 @@ use cloud_sdk::Method;
 use cloud_sdk::authentication::{AuthenticationScopePolicy, ScopeRequirement};
 use cloud_sdk::buffer::{SnapshotEncoder, encode_snapshot_bounded, measure_snapshot_bounded};
 use cloud_sdk::operation::{
-    ContentTypePolicy, CostIntent, OperationId, OperationImpact, OperationMetadata,
+    ApprovedReadOnlyPostQuery, ContentTypePolicy, CostIntent, OperationImpact, OperationMetadata,
     PreparationStorage, PrepareOperation, PreparedRequest, ProviderService, RequestBodySensitivity,
     RequestIdPolicy, RequestSemantics, ResponseBodyPolicy, ResponsePolicy, RetryEligibility,
 };
@@ -102,12 +102,11 @@ fn prepare_inner<'storage>(
     .map_err(RobotTrafficRequestError::InvalidRawPolicy)?;
     let headers =
         RequestHeaders::new(&HEADERS).map_err(RobotTrafficRequestError::InvalidHeaders)?;
-    let operation_id = OperationId::new("robot_get_traffic")
-        .map_err(RobotTrafficRequestError::InvalidOperationId)?;
     let transport = TransportRequest::new(Method::Post, target)
         .with_headers(headers)
         .with_body(body);
     PreparedRequest::new_read_only_post_query(
+        ApprovedReadOnlyPostQuery::HetznerRobotTraffic,
         transport,
         service,
         metadata,
@@ -117,11 +116,7 @@ fn prepare_inner<'storage>(
         RequestBodySensitivity::Sensitive,
     )
     .map_err(RobotTrafficRequestError::InvalidPreparedPolicy)
-    .map(|prepared| {
-        prepared
-            .with_operation_id(operation_id)
-            .with_replayable_body()
-    })
+    .map(PreparedRequest::with_replayable_body)
 }
 
 fn write_form(

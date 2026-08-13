@@ -1,6 +1,5 @@
 use alloc::vec::Vec;
-use core::net::IpAddr;
-use core::str::FromStr;
+use core::{net::IpAddr, str::FromStr};
 
 use cloud_sdk::operation::CheckedResponse;
 use cloud_sdk::transport::StatusCode;
@@ -65,7 +64,7 @@ pub(super) fn decode_robot_traffic(
         .with_object_fields(4_096)
         .map_err(|_| RobotTrafficDecodeError::MalformedPayload)?;
     let mut decoder = IncrementalJsonDecoder::with_limits(limits);
-    let mut visitor = TrafficVisitor::new(request);
+    let mut visitor = TrafficVisitor::new(request)?;
     for chunk in checked.body().chunks(4_096) {
         if decoder.push(chunk, &mut visitor).map_err(map_parser)?
             != IncrementalJsonProgress::Pending
@@ -154,11 +153,17 @@ struct TrafficVisitor<'request> {
     amount: AmountBuilder,
     points: Vec<RobotTrafficPoint>,
     results: Vec<RobotTrafficResult>,
+    seen_targets: Vec<u8>,
 }
 
 impl<'request> TrafficVisitor<'request> {
-    fn new(request: &'request RobotTrafficRequest) -> Self {
-        Self {
+    fn new(request: &'request RobotTrafficRequest) -> Result<Self, RobotTrafficDecodeError> {
+        let mut seen_targets = Vec::new();
+        seen_targets
+            .try_reserve_exact(request.targets.len())
+            .map_err(|_| RobotTrafficDecodeError::Allocation)?;
+        seen_targets.resize(request.targets.len(), 0);
+        Ok(Self {
             request,
             depth: 0,
             pending: Pending::None,
@@ -170,7 +175,8 @@ impl<'request> TrafficVisitor<'request> {
             amount: AmountBuilder::new(),
             points: Vec::new(),
             results: Vec::new(),
-        }
+            seen_targets,
+        })
     }
 
     fn finish(self) -> Result<RobotTrafficReport, RobotTrafficDecodeError> {
@@ -200,7 +206,15 @@ impl<'request> TrafficVisitor<'request> {
                 _ => return Err(RobotTrafficDecodeError::InvalidEnvelope),
             },
             3 => {
-                self.target = Some(parse_target(key, self.request, &self.results)?);
+                let (target, index) = parse_target(key, self.request)?;
+                let seen = self
+                    .seen_targets
+                    .get_mut(index)
+                    .ok_or(RobotTrafficDecodeError::InvalidTarget)?;
+                if core::mem::replace(seen, 1) != 0 {
+                    return Err(RobotTrafficDecodeError::InvalidTarget);
+                }
+                self.target = Some(target);
                 Pending::Target
             }
             4 if self.request.single_values => {
@@ -412,13 +426,10 @@ fn parse_point(
 fn parse_target(
     value: &str,
     request: &RobotTrafficRequest,
-    prior: &[RobotTrafficResult],
-) -> Result<RobotTrafficResultTarget, RobotTrafficDecodeError> {
+) -> Result<(RobotTrafficResultTarget, usize), RobotTrafficDecodeError> {
     let (address_text, prefix) = match value.split_once('/') {
         Some((address, prefix)) => {
-            let prefix = prefix
-                .parse::<u8>()
-                .map_err(|_| RobotTrafficDecodeError::InvalidTarget)?;
+            let prefix = parse_canonical_prefix(prefix)?;
             (address, Some(prefix))
         }
         None => (value, None),
@@ -428,25 +439,39 @@ fn parse_target(
     if !canonical_network(address, prefix) {
         return Err(RobotTrafficDecodeError::InvalidTarget);
     }
-    let requested = request.targets.iter().any(|target| {
-        target.with_address(|candidate, subnet| candidate == address && subnet == prefix.is_some())
-    });
-    let duplicate = prior.iter().any(|result| {
-        result
-            .target()
-            .with_address(|candidate| candidate == address)
-    });
-    if !requested || duplicate {
+    let index = request
+        .target_index(address)
+        .ok_or(RobotTrafficDecodeError::InvalidTarget)?;
+    let requested = request
+        .targets
+        .get(index)
+        .ok_or(RobotTrafficDecodeError::InvalidTarget)?;
+    let requested_kind = requested.with_address(|_, subnet| subnet);
+    if requested_kind != prefix.is_some() {
         return Err(RobotTrafficDecodeError::InvalidTarget);
     }
-    match prefix {
+    let target = match prefix {
         None => RobotIpAddress::new(address_text)
             .map(RobotTrafficResultTarget::Ip)
             .map_err(|_| RobotTrafficDecodeError::InvalidTarget),
         Some(prefix) => RobotSubnetAddress::new(address_text)
             .map(|address| RobotTrafficResultTarget::Subnet { address, prefix })
             .map_err(|_| RobotTrafficDecodeError::InvalidTarget),
+    }?;
+    Ok((target, index))
+}
+
+fn parse_canonical_prefix(value: &str) -> Result<u8, RobotTrafficDecodeError> {
+    let bytes = value.as_bytes();
+    if bytes.is_empty()
+        || !bytes.iter().all(u8::is_ascii_digit)
+        || (bytes.len() > 1 && bytes.first() == Some(&b'0'))
+    {
+        return Err(RobotTrafficDecodeError::InvalidTarget);
     }
+    value
+        .parse::<u8>()
+        .map_err(|_| RobotTrafficDecodeError::InvalidTarget)
 }
 
 fn canonical_network(address: IpAddr, prefix: Option<u8>) -> bool {
