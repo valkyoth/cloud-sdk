@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.86.0 - Unreleased
+## 0.86.0 - 2026-08-13
 
 - Added all five active Robot reverse-DNS operations: list, get, create,
   update-or-create, and delete.

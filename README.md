@@ -78,10 +78,10 @@ listed in the
 The v0.85 crates.io checkpoint includes exhaustive named clients for every
 active Hetzner Cloud, DNS, Security, and Console Storage Box operation plus
 source-locked Robot support through boot configuration. The v0.86 development
-milestone adds all active Robot reverse-DNS operations and now awaits its
-incremental pentest. Provider crates remain transport-free and perform no
-network request by default. Future FIPS work remains deferred until Brynja is
-ready.
+milestone adds all active Robot reverse-DNS operations and has passed its
+incremental pentest and final retest. Provider crates remain transport-free and
+perform no network request by default. Future FIPS work remains deferred until
+Brynja is ready.
 
 ## Trust Dashboard
 
