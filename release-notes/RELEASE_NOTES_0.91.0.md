@@ -27,6 +27,11 @@ only after its incremental pentest and green CI/CodeQL; it publishes no crate.
   structured prices to reference advertised locations.
 - Added non-executable standard, auction, and addon plan inputs carrying a
   mandatory revalidation warning for every observed price.
+- Retained the exact per-server request in decoded addon catalogs so safe Rust
+  cannot relabel one server's catalog or plan with another server identity.
+- Completely redacted addon-selection diagnostics, volatile-cleared decimal
+  scalar mirrors on drop, and made the ordering example own successful-path
+  request-target cleanup.
 - Added immutable official-source evidence, response examples, mutation-
   resistant contract checks, hostile tests, and a dedicated 4 MiB response
   fuzz target.

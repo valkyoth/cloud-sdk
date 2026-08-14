@@ -16,6 +16,8 @@ PREPARE = ROOT / "crates/cloud-sdk-hetzner/src/robot/ordering/prepare.rs"
 DECODE = ROOT / "crates/cloud-sdk-hetzner/src/robot/ordering/decode"
 EXCHANGE = ROOT / "crates/cloud-sdk-hetzner/src/robot/ordering/exchange.rs"
 PLAN = ROOT / "crates/cloud-sdk-hetzner/src/robot/ordering/plan.rs"
+VALUE = ROOT / "crates/cloud-sdk-hetzner/src/robot/ordering/value.rs"
+README = ROOT / "crates/cloud-sdk-hetzner/README.md"
 FUZZ_HARNESS = ROOT / "scripts/check_fuzz_harness.sh"
 
 
@@ -27,6 +29,8 @@ def run(**overrides: Path) -> subprocess.CompletedProcess[str]:
         "decode": DECODE,
         "exchange": EXCHANGE,
         "plan": PLAN,
+        "value": VALUE,
+        "readme": README,
         "fuzz_harness": FUZZ_HARNESS,
     }
     values.update(overrides)
@@ -68,12 +72,44 @@ def main() -> None:
             assert run(fixture=path).returncode != 0
         mutate_source(root, "prepare.rs", PREPARE, "OperationImpact::ReadOnly", "OperationImpact::Mutation", "prepare")
         mutate_source(root, "plan.rs", PLAN, "RevalidateImmediatelyBeforePurchase", "PriceUnchecked", "plan")
+        mutate_source(
+            root,
+            "exchange.rs",
+            EXCHANGE,
+            "request: &'request RobotAddonProductListRequest",
+            "server: &'request RobotServerNumber",
+            "exchange",
+        )
+        mutate_source(
+            root,
+            "plan-provenance.rs",
+            PLAN,
+            "catalog: &'catalog RobotAddonCatalog<'request>",
+            "server: &'catalog RobotServerNumber",
+            "plan",
+        )
+        mutate_source(
+            root,
+            "value.rs",
+            VALUE,
+            "sanitize_value(&mut self.coefficient);",
+            "self.coefficient = 0;",
+            "value",
+        )
+        mutate_source(
+            root,
+            "README.md",
+            README,
+            "storage.prepare_with(|buffers| request.prepare_bound(buffers))?;",
+            "request.prepare_bound(PreparationStorage::new(&mut target, &mut body))?;",
+            "readme",
+        )
         harness = root / "check_fuzz_harness.sh"
         source = FUZZ_HARNESS.read_text(encoding="ascii")
         assert "max_len=4194305" in source
         harness.write_text(source.replace("max_len=4194305", "max_len=1048577"), encoding="ascii")
         assert run(fuzz_harness=harness).returncode != 0
-    print("9 Robot ordering catalog regression groups passed.")
+    print("13 Robot ordering catalog regression groups passed.")
 
 
 def mutate_source(

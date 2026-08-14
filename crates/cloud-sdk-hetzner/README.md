@@ -394,7 +394,7 @@ purchase operation.
 ```rust
 # #[cfg(feature = "serde")]
 # fn main() -> Result<(), Box<dyn core::error::Error>> {
-use cloud_sdk::operation::PreparationStorage;
+use cloud_sdk::operation::PreparationStorageGuard;
 use cloud_sdk_hetzner::robot::{
     RobotOrderDecimal, RobotOrderLocation, RobotStandardProductFilters,
     RobotStandardProductListRequest,
@@ -410,11 +410,16 @@ let filters = RobotStandardProductFilters::new(
 let request = RobotStandardProductListRequest::new(filters);
 let mut target = [0_u8; 192];
 let mut body = [0_u8; 1];
-let prepared = request.prepare_bound(PreparationStorage::new(&mut target, &mut body))?;
-assert_eq!(
-    prepared.as_untyped().transport_request().target().as_str(),
-    "/order/server/product?min_price=40.0000&max_price=100.0000&location=FSN1",
-);
+{
+    let mut storage = PreparationStorageGuard::new(&mut target, &mut body);
+    let prepared = storage.prepare_with(|buffers| request.prepare_bound(buffers))?;
+    assert_eq!(
+        prepared.as_untyped().transport_request().target().as_str(),
+        "/order/server/product?min_price=40.0000&max_price=100.0000&location=FSN1",
+    );
+}
+assert!(target.iter().all(|byte| *byte == 0));
+assert!(body.iter().all(|byte| *byte == 0));
 # Ok(())
 # }
 # #[cfg(not(feature = "serde"))]

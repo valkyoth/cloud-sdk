@@ -1,4 +1,5 @@
 use super::RobotOrderCurrency;
+use super::exchange::RobotAddonCatalog;
 use super::model::{
     RobotAddonProduct, RobotMarketProduct, RobotOrderPrice, RobotOrderableAddon,
     RobotStandardProduct,
@@ -82,12 +83,7 @@ impl<'a> RobotStandardAddonSelection<'a> {
 
 impl core::fmt::Debug for RobotStandardAddonSelection<'_> {
     fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        formatter
-            .debug_struct("RobotStandardAddonSelection")
-            .field("addon", &"[bound]")
-            .field("price", &"[bound]")
-            .field("quantity", &self.quantity)
-            .finish()
+        formatter.write_str("RobotStandardAddonSelection([redacted])")
     }
 }
 
@@ -272,36 +268,44 @@ impl core::fmt::Debug for RobotMarketOrderPlan<'_> {
     }
 }
 
-/// Non-executable per-server addon plan bound to one catalog observation.
-pub struct RobotAddonOrderPlan<'a> {
-    server: &'a RobotServerNumber,
-    product: &'a RobotAddonProduct,
-    currency: &'a RobotOrderCurrency,
+/// Non-executable per-server addon plan bound to one request-owned catalog.
+pub struct RobotAddonOrderPlan<'catalog, 'request> {
+    catalog: &'catalog RobotAddonCatalog<'request>,
+    product_index: usize,
+    currency: &'catalog RobotOrderCurrency,
 }
 
-impl<'a> RobotAddonOrderPlan<'a> {
-    /// Binds a server and advertised addon without creating a purchase request.
-    #[must_use]
-    pub const fn new(
-        server: &'a RobotServerNumber,
-        product: &'a RobotAddonProduct,
-        currency: &'a RobotOrderCurrency,
-    ) -> Self {
-        Self {
-            server,
-            product,
+impl<'catalog, 'request> RobotAddonOrderPlan<'catalog, 'request> {
+    /// Selects an addon from its request-bound catalog without preparing a purchase.
+    pub fn new(
+        catalog: &'catalog RobotAddonCatalog<'request>,
+        product_index: usize,
+        currency: &'catalog RobotOrderCurrency,
+    ) -> Result<Self, RobotCatalogPlanError> {
+        catalog
+            .products()
+            .products()
+            .get(product_index)
+            .ok_or(RobotCatalogPlanError::MissingSelection)?;
+        Ok(Self {
+            catalog,
+            product_index,
             currency,
-        }
+        })
     }
     /// Returns the request-bound server identity.
     #[must_use]
     pub const fn server(&self) -> &RobotServerNumber {
-        self.server
+        self.catalog.server()
     }
     /// Returns the selected advertised addon.
     #[must_use]
-    pub const fn product(&self) -> &RobotAddonProduct {
-        self.product
+    pub fn product(&self) -> &RobotAddonProduct {
+        self.catalog
+            .products()
+            .products()
+            .get(self.product_index)
+            .unwrap_or_else(|| unreachable!("validated addon index disappeared"))
     }
     /// Returns the separately observed account currency.
     #[must_use]
@@ -315,8 +319,29 @@ impl<'a> RobotAddonOrderPlan<'a> {
     }
 }
 
-impl core::fmt::Debug for RobotAddonOrderPlan<'_> {
+impl core::fmt::Debug for RobotAddonOrderPlan<'_, '_> {
     fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         formatter.write_str("RobotAddonOrderPlan([redacted])")
     }
+}
+
+#[cfg(doctest)]
+mod compile_fail {
+    /// An addon catalog cannot be relabeled with an unrelated server identity.
+    ///
+    /// ```compile_fail
+    /// use cloud_sdk_hetzner::robot::{
+    ///     RobotAddonCatalog, RobotAddonOrderPlan, RobotOrderCurrency,
+    ///     RobotServerNumber,
+    /// };
+    /// fn relabel(
+    ///     catalog: &RobotAddonCatalog<'_>,
+    ///     other_server: &RobotServerNumber,
+    ///     currency: &RobotOrderCurrency,
+    /// ) {
+    ///     let product = &catalog.products().products()[0];
+    ///     let _ = RobotAddonOrderPlan::new(other_server, product, currency);
+    /// }
+    /// ```
+    fn addon_catalog_server_is_not_replaceable() {}
 }

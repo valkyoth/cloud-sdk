@@ -1,6 +1,6 @@
 use core::cmp::Ordering;
 
-use cloud_sdk_sanitization::SecretBoxBytes;
+use cloud_sdk_sanitization::{SecretBoxBytes, sanitize_value};
 
 /// Maximum bytes in a standard-product or addon identifier.
 pub const MAX_ROBOT_ORDER_PRODUCT_ID_BYTES: usize = 128;
@@ -205,6 +205,13 @@ impl Ord for RobotOrderDecimal {
 impl core::fmt::Debug for RobotOrderDecimal {
     fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         formatter.write_str("RobotOrderDecimal([redacted])")
+    }
+}
+
+impl Drop for RobotOrderDecimal {
+    fn drop(&mut self) {
+        sanitize_value(&mut self.coefficient);
+        sanitize_value(&mut self.scale);
     }
 }
 

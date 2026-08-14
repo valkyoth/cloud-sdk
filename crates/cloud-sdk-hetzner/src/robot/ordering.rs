@@ -33,7 +33,7 @@ pub use value::{
 #[cfg(feature = "serde")]
 pub use decode::RobotOrderCatalogDecodeError;
 #[cfg(feature = "serde")]
-pub use exchange::{CheckedRobotOrderCatalog, PreparedRobotOrderCatalog};
+pub use exchange::{CheckedRobotOrderCatalog, PreparedRobotOrderCatalog, RobotAddonCatalog};
 #[cfg(feature = "serde")]
 pub use failure::RobotOrderFailureCode;
 #[cfg(feature = "serde")]

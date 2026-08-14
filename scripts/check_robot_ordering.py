@@ -15,6 +15,8 @@ PREPARE = ROOT / "crates/cloud-sdk-hetzner/src/robot/ordering/prepare.rs"
 DECODE = ROOT / "crates/cloud-sdk-hetzner/src/robot/ordering/decode"
 EXCHANGE = ROOT / "crates/cloud-sdk-hetzner/src/robot/ordering/exchange.rs"
 PLAN = ROOT / "crates/cloud-sdk-hetzner/src/robot/ordering/plan.rs"
+VALUE = ROOT / "crates/cloud-sdk-hetzner/src/robot/ordering/value.rs"
+README = ROOT / "crates/cloud-sdk-hetzner/README.md"
 FUZZ_MANIFEST = ROOT / "fuzz/Cargo.toml"
 FUZZ_HARNESS = ROOT / "scripts/check_fuzz_harness.sh"
 
@@ -46,6 +48,8 @@ def validate(
     decode_path: Path,
     exchange_path: Path,
     plan_path: Path,
+    value_path: Path,
+    readme_path: Path,
     fuzz_manifest_path: Path,
     fuzz_harness_path: Path,
 ) -> None:
@@ -106,8 +110,14 @@ def validate(
             fail(f"strict decoding evidence lost {token}")
 
     exchange = exchange_path.read_text(encoding="ascii")
-    if "ResponseIdentityMismatch" not in exchange:
-        fail("typed exchange lost response identity validation")
+    for token in [
+        "ResponseIdentityMismatch",
+        "pub struct RobotAddonCatalog<'request>",
+        "request: &'request RobotAddonProductListRequest",
+        "Result<RobotAddonCatalog<'request>",
+    ]:
+        if token not in exchange:
+            fail(f"typed exchange lost request provenance: {token}")
 
     plan = plan_path.read_text(encoding="ascii")
     for token in [
@@ -115,11 +125,27 @@ def validate(
         "LocationMismatch",
         "DuplicateAddon",
         "InvalidQuantity",
+        "catalog: &'catalog RobotAddonCatalog<'request>",
+        "RobotStandardAddonSelection([redacted])",
     ]:
         if token not in plan:
             fail(f"non-executable plan evidence lost {token}")
     if "impl PrepareOperation" in plan or "TransportRequest" in plan:
         fail("catalog plan became executable")
+    if "server: &'a RobotServerNumber" in plan:
+        fail("addon plan accepts a replaceable server identity")
+
+    value = value_path.read_text(encoding="ascii")
+    for token in [
+        "sanitize_value(&mut self.coefficient);",
+        "sanitize_value(&mut self.scale);",
+    ]:
+        if token not in value:
+            fail(f"decimal scalar cleanup lost {token}")
+
+    readme = readme_path.read_text(encoding="ascii")
+    if "storage.prepare_with(|buffers| request.prepare_bound(buffers))?;" not in readme:
+        fail("ordering example lost successful-path storage cleanup")
 
     manifest = fuzz_manifest_path.read_text(encoding="ascii")
     harness = fuzz_harness_path.read_text(encoding="ascii")
@@ -227,6 +253,8 @@ def main() -> None:
     parser.add_argument("--decode", type=Path, default=DECODE)
     parser.add_argument("--exchange", type=Path, default=EXCHANGE)
     parser.add_argument("--plan", type=Path, default=PLAN)
+    parser.add_argument("--value", type=Path, default=VALUE)
+    parser.add_argument("--readme", type=Path, default=README)
     parser.add_argument("--fuzz-manifest", type=Path, default=FUZZ_MANIFEST)
     parser.add_argument("--fuzz-harness", type=Path, default=FUZZ_HARNESS)
     args = parser.parse_args()
@@ -237,6 +265,8 @@ def main() -> None:
         args.decode,
         args.exchange,
         args.plan,
+        args.value,
+        args.readme,
         args.fuzz_manifest,
         args.fuzz_harness,
     )

@@ -126,6 +126,10 @@ fn decodes_complete_standard_catalog_and_non_executable_plan() {
         .unwrap_or_else(|| unreachable!("standard addon fixture disappeared"));
     let selection = RobotStandardAddonSelection::new(addon, 0, 1)
         .unwrap_or_else(|_| unreachable!("addon selection failed"));
+    assert_eq!(
+        format!("{selection:?}"),
+        "RobotStandardAddonSelection([redacted])"
+    );
     let selections = [selection];
     let plan = RobotStandardOrderPlan::new(&product, &currency, 0, 1, 0, &selections)
         .unwrap_or_else(|_| unreachable!("standard plan failed"));
@@ -157,17 +161,32 @@ fn decodes_complete_market_addon_and_currency_catalogs() {
         RobotCatalogPriceWarning::RevalidateImmediatelyBeforePurchase
     );
 
-    let products = decode_addons(ADDONS).unwrap_or_else(|_| unreachable!("addon fixture failed"));
-    assert_eq!(products.products().len(), 2);
-    let addon = products
-        .products()
-        .first()
-        .unwrap_or_else(|| unreachable!("addon fixture disappeared"));
-    let server = server();
-    let addon_plan = RobotAddonOrderPlan::new(&server, addon, &currency);
+    let request = RobotAddonProductListRequest::new(server());
+    let catalog =
+        decode_addons(&request, ADDONS).unwrap_or_else(|_| unreachable!("addon fixture failed"));
+    assert_eq!(catalog.products().products().len(), 2);
+    assert_eq!(format!("{catalog:?}"), "RobotAddonCatalog([redacted])");
+    let addon_plan = RobotAddonOrderPlan::new(&catalog, 0, &currency)
+        .unwrap_or_else(|_| unreachable!("addon plan failed"));
+    let other_server =
+        RobotServerNumber::new(322).unwrap_or_else(|_| unreachable!("other server fixture failed"));
+    assert_eq!(addon_plan.server(), catalog.server());
+    assert_ne!(addon_plan.server(), &other_server);
+    assert!(core::ptr::eq(
+        addon_plan.product(),
+        catalog
+            .products()
+            .products()
+            .first()
+            .unwrap_or_else(|| unreachable!("addon fixture disappeared")),
+    ));
     assert_eq!(
         addon_plan.price_warning(),
         RobotCatalogPriceWarning::RevalidateImmediatelyBeforePurchase
+    );
+    assert_eq!(
+        RobotAddonOrderPlan::new(&catalog, 2, &currency).err(),
+        Some(RobotCatalogPlanError::MissingSelection)
     );
 }
 
@@ -300,8 +319,10 @@ fn decode_market_fixture(body: &[u8]) -> Result<RobotMarketProduct, RobotOrderCa
     with_json(prepared, body, |checked| checked.decode_response())
 }
 
-fn decode_addons(body: &[u8]) -> Result<RobotAddonProductList, RobotOrderCatalogDecodeError> {
-    let request = RobotAddonProductListRequest::new(server());
+fn decode_addons<'request>(
+    request: &'request RobotAddonProductListRequest,
+    body: &[u8],
+) -> Result<RobotAddonCatalog<'request>, RobotOrderCatalogDecodeError> {
     let mut target = [0_u8; 256];
     let mut request_body = [0_u8; 1];
     let prepared = request
@@ -322,10 +343,10 @@ fn decode_currency_fixture(
     with_json(prepared, body, |checked| checked.decode_response())
 }
 
-fn with_json<R, O>(
-    prepared: PreparedRobotOrderCatalog<'_, '_, R>,
+fn with_json<'request, R, O>(
+    prepared: PreparedRobotOrderCatalog<'_, 'request, R>,
     body: &[u8],
-    decode: impl FnOnce(CheckedRobotOrderCatalog<'_, '_, R>) -> O,
+    decode: impl FnOnce(CheckedRobotOrderCatalog<'_, 'request, R>) -> O,
 ) -> O {
     let mut storage = vec![0_u8; body.len()];
     let mut headers = [0_u8; 128];

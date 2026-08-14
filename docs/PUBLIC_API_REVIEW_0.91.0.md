@@ -15,6 +15,9 @@ prepared and checked exchanges, and operation-specific Robot failure codes.
 Catalog-derived standard, auction, and addon plan types retain references to
 the decoded snapshot and always expose
 `RobotCatalogPriceWarning::RevalidateImmediatelyBeforePurchase`.
+`RobotAddonCatalog<'request>` retains the exact per-server request through
+decoding. Addon plans select a product by index from that catalog and cannot
+accept or substitute a separate server identity.
 
 ## Non-Execution Boundary
 
@@ -38,4 +41,6 @@ ranges. Lists are bounded and reject duplicate product identities. Detail
 responses are bound to the requested product ID. Location-specific product and
 addon prices must refer to advertised locations, and hourly net/gross auction
 prices must be present or absent together. Returned provider text is protected,
-redacted, bounded, and available only through closure-scoped inspection.
+redacted, bounded, and available only through closure-scoped inspection. Plan
+selection diagnostics are completely redacted, and exact decimal scalar
+mirrors receive best-effort volatile cleanup on drop.

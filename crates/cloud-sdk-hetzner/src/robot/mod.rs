@@ -187,9 +187,9 @@ pub use ordering::{
 #[cfg(feature = "serde")]
 pub use ordering::{
     CheckedRobotOrderCatalog, MAX_ROBOT_ADDON_PRODUCTS, MAX_ROBOT_MARKET_PRODUCTS,
-    MAX_ROBOT_STANDARD_PRODUCTS, PreparedRobotOrderCatalog, RobotAddonOrderPlan, RobotAddonProduct,
-    RobotAddonProductList, RobotCatalogPlanError, RobotCatalogPriceWarning, RobotMarketOrderPlan,
-    RobotMarketProduct, RobotMarketProductList, RobotOrderCatalogDecodeError,
+    MAX_ROBOT_STANDARD_PRODUCTS, PreparedRobotOrderCatalog, RobotAddonCatalog, RobotAddonOrderPlan,
+    RobotAddonProduct, RobotAddonProductList, RobotCatalogPlanError, RobotCatalogPriceWarning,
+    RobotMarketOrderPlan, RobotMarketProduct, RobotMarketProductList, RobotOrderCatalogDecodeError,
     RobotOrderFailureCode, RobotOrderPrice, RobotOrderPricePair, RobotOrderText,
     RobotOrderableAddon, RobotStandardAddonSelection, RobotStandardOrderPlan, RobotStandardProduct,
     RobotStandardProductList,

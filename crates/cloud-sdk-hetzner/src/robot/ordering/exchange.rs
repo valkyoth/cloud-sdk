@@ -14,6 +14,7 @@ use super::model::{
     RobotStandardProductList,
 };
 use super::request::*;
+use crate::robot::RobotServerNumber;
 
 /// Prepared Robot ordering-catalog request retaining exact request association.
 pub struct PreparedRobotOrderCatalog<'storage, 'request, R> {
@@ -56,6 +57,32 @@ impl<R> core::fmt::Debug for PreparedRobotOrderCatalog<'_, '_, R> {
 pub struct CheckedRobotOrderCatalog<'buffer, 'request, R> {
     request: &'request R,
     inner: CheckedResponseGuard<'buffer>,
+}
+
+/// Per-server addon catalog retaining the exact request that admitted it.
+pub struct RobotAddonCatalog<'request> {
+    request: &'request RobotAddonProductListRequest,
+    products: RobotAddonProductList,
+}
+
+impl RobotAddonCatalog<'_> {
+    /// Returns the server whose addon catalog was requested.
+    #[must_use]
+    pub const fn server(&self) -> &RobotServerNumber {
+        &self.request.server
+    }
+
+    /// Returns the bounded products advertised for that server.
+    #[must_use]
+    pub const fn products(&self) -> &RobotAddonProductList {
+        &self.products
+    }
+}
+
+impl core::fmt::Debug for RobotAddonCatalog<'_> {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        formatter.write_str("RobotAddonCatalog([redacted])")
+    }
 }
 
 impl<R> core::fmt::Debug for CheckedRobotOrderCatalog<'_, '_, R> {
@@ -130,10 +157,16 @@ impl CheckedRobotOrderCatalog<'_, '_, RobotMarketProductGetRequest> {
     }
 }
 
-impl CheckedRobotOrderCatalog<'_, '_, RobotAddonProductListRequest> {
+impl<'request> CheckedRobotOrderCatalog<'_, 'request, RobotAddonProductListRequest> {
     /// Decodes addons currently advertised for the request-bound server.
-    pub fn decode_response(self) -> Result<RobotAddonProductList, RobotOrderCatalogDecodeError> {
-        self.inner.decode_owned_with_workspace(decode_addon_list)
+    pub fn decode_response(
+        self,
+    ) -> Result<RobotAddonCatalog<'request>, RobotOrderCatalogDecodeError> {
+        let products = self.inner.decode_owned_with_workspace(decode_addon_list)?;
+        Ok(RobotAddonCatalog {
+            request: self.request,
+            products,
+        })
     }
 }
 

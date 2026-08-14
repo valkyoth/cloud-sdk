@@ -27,7 +27,12 @@ values.
   protected with redacted diagnostics;
 - strict decoders reject unknown fields, duplicate product identities,
   mismatched detail identities, invalid locations, and partial hourly prices;
+- per-server addon decoding retains the exact admitting request, and addon
+  plans select through that catalog instead of accepting a separate server;
 - request preparation is transactional and clears caller storage on failure;
+  the public ordering example retains cleanup ownership through successful use;
+- complete selection diagnostics are redacted, and decimal text plus its
+  coefficient and scale mirrors receive best-effort volatile cleanup on drop;
 - all six requests are safe read-only `GET` operations with no known direct
   cost and no implicit retry;
 - plan types have no transport implementation and carry an unavoidable current-
@@ -40,4 +45,6 @@ price, tax, location, addon bounds, or currency after the response. v0.91 does
 not authorize or execute purchases. A future billable operation must fetch the
 current catalog again and bind explicit cost authority to the newly observed
 values. Provider text remains untrusted when rendered and requires context-
-appropriate escaping after closure-scoped inspection.
+appropriate escaping after closure-scoped inspection. Compiler-created scalar
+copies, registers, crash dumps, and allocator/process-abort behavior remain
+outside best-effort in-process drop cleanup.
