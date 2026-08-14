@@ -3056,7 +3056,7 @@ release evidence is finalized.
 
 Stop gate: `v0.91.0 implementation stop reached. Run the incremental pentest for this exact commit before the full release gate and tag; defer crates.io publication to v0.95.0.`
 
-Status: implementation stop; pentest required.
+Status: release candidate; pentest and final retest passed.
 
 ### v0.92.0 - Robot Transactions
 

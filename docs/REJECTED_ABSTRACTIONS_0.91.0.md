@@ -1,6 +1,6 @@
 # Rejected Abstractions 0.91.0
 
-Status: implementation stop; pentest required.
+Status: release candidate; pentest and final retest passed.
 
 ## Floating-Point Prices
 
