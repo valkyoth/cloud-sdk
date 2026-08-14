@@ -96,13 +96,16 @@ impl<'a> RobotFirewallRule<'a> {
     pub fn validate(self) -> Result<Self, RobotFirewallRuleError> {
         let has_ip = self.destination_ip.is_some() || self.source_ip.is_some();
         let has_port = self.destination_port.is_some() || self.source_port.is_some();
+        let incompatible_port_protocol = has_port
+            && self.protocol.is_some_and(|protocol| {
+                !matches!(
+                    protocol,
+                    RobotFirewallProtocol::Tcp | RobotFirewallProtocol::Udp
+                )
+            });
         if has_ip && self.ip_version != Some(RobotFirewallIpVersion::Ipv4)
             || self.ip_version.is_none() && self.protocol.is_some()
-            || has_port
-                && !matches!(
-                    self.protocol,
-                    Some(RobotFirewallProtocol::Tcp | RobotFirewallProtocol::Udp)
-                )
+            || incompatible_port_protocol
             || self.tcp_flags.is_some() && self.protocol != Some(RobotFirewallProtocol::Tcp)
             || self.ip_version == Some(RobotFirewallIpVersion::Ipv6) && has_ip
         {

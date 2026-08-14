@@ -26,10 +26,27 @@ fn template_json(id: u64, name: &str, rules: &str) -> alloc::string::String {
     )
 }
 
+fn template_json_without_name(id: u64, rules: &str) -> alloc::string::String {
+    format!(
+        r#"{{"firewall_template":{{"id":{id},"filter_ipv6":false,"whitelist_hos":true,"is_default":false,"rules":{rules}}}}}"#
+    )
+}
+
 #[test]
 fn validates_source_locked_rule_values_and_conflicts() {
     assert!(RobotFirewallTemplateId::new(0).is_err());
-    assert!(RobotFirewallTemplateName::new("\u{202e}hidden").is_err());
+    for misleading in [
+        '\u{061c}', '\u{200b}', '\u{200e}', '\u{200f}', '\u{202a}', '\u{202e}', '\u{2060}',
+        '\u{2066}', '\u{2069}', '\u{feff}',
+    ] {
+        let name = format!("visible{misleading}hidden");
+        assert!(RobotFirewallTemplateName::new(&name).is_err());
+        assert!(
+            RobotFirewallRule::new(RobotFirewallAction::Accept)
+                .with_name(&name)
+                .is_err()
+        );
+    }
     assert!(RobotFirewallCidr::new("192.0.2.1/24").is_err());
     assert!(RobotFirewallCidr::new("192.0.2.0/24").is_ok());
     assert!(RobotFirewallCidr::new("01.2.3.4").is_err());
@@ -53,6 +70,17 @@ fn validates_source_locked_rule_values_and_conflicts() {
         RobotFirewallRule::new(RobotFirewallAction::Accept).with_tcp_flags(flags("syn"));
     assert_eq!(
         flags_without_tcp.validate().err(),
+        Some(RobotFirewallRuleError::FieldConflict)
+    );
+    let port_without_protocol = RobotFirewallRule::new(RobotFirewallAction::Accept)
+        .with_ip_version(RobotFirewallIpVersion::Ipv4)
+        .with_destination_port(port("80"));
+    assert!(port_without_protocol.validate().is_ok());
+    assert_eq!(
+        port_without_protocol
+            .with_protocol(RobotFirewallProtocol::Icmp)
+            .validate()
+            .err(),
         Some(RobotFirewallRuleError::FieldConflict)
     );
 }
@@ -167,6 +195,18 @@ fn inline_and_template_forms_are_exact_and_mutually_exclusive() {
         },
     );
     assert_eq!(prepare_body(&template), "status=active&template_id=17");
+
+    let source_rule = RobotFirewallRule::new(RobotFirewallAction::Accept)
+        .with_name("rule 1")
+        .unwrap_or_else(|_| unreachable!("official rule name failed"))
+        .with_ip_version(RobotFirewallIpVersion::Ipv4)
+        .with_source_ip(cidr("1.1.1.1"))
+        .with_destination_port(port("80"));
+    let source_rules = [source_rule];
+    let source = RobotFirewallReplaceRequest::new(server(321), inline_intent(&source_rules));
+    let body = prepare_body(&source);
+    assert!(body.contains("rules%5Binput%5D%5B0%5D%5Bdst_port%5D=80"));
+    assert!(!body.contains("protocol"));
 }
 
 #[test]
@@ -199,6 +239,42 @@ fn checked_get_is_strict_bound_and_redacted() {
     assert!(
         decode_get(&body.replace("\"port\":\"main\"", "\"port\":\"main\",\"extra\":1")).is_err()
     );
+}
+
+#[test]
+fn official_source_examples_decode_and_expose_complete_policy() {
+    let firewall = decode_get(include_str!(
+        "../../../../../tests/fixtures/robot-firewall/official-firewall-response.json"
+    ))
+    .unwrap_or_else(|_| unreachable!("official firewall response failed"));
+    let Some(rule) = firewall.rules().input().first() else {
+        unreachable!("official input rule disappeared")
+    };
+    assert_eq!(rule.protocol(), None);
+    assert_eq!(
+        rule.try_with_destination_port(|value| value == Some("80")),
+        Ok(true)
+    );
+    assert_eq!(rule.try_with_source_port(|value| value.is_none()), Ok(true));
+    assert_eq!(rule.try_with_tcp_flags(|value| value.is_none()), Ok(true));
+
+    let request = RobotFirewallTemplateGetRequest::new(
+        RobotFirewallTemplateId::new(123)
+            .unwrap_or_else(|_| unreachable!("official template ID failed")),
+    );
+    let template = decode_template_get(
+        &request,
+        include_str!(
+            "../../../../../tests/fixtures/robot-firewall/official-template-response.json"
+        ),
+    )
+    .unwrap_or_else(|_| unreachable!("official template response failed"));
+    assert_eq!(
+        template.summary().try_with_name(|value| value.is_none()),
+        Ok(true)
+    );
+    assert!(!template.summary().filter_ipv6());
+    assert!(template.summary().whitelist_hos());
 }
 
 #[test]
@@ -249,7 +325,24 @@ fn template_inventory_and_mutations_are_request_bound() {
     );
     let request_rules = [request_rule()];
     let create = RobotFirewallTemplateCreateRequest::new(template_config(&request_rules));
-    assert!(decode_template_create(&create, &body).is_ok());
+    let confirmed = decode_template_create(&create, &body)
+        .unwrap_or_else(|_| unreachable!("confirmed template failed"));
+    assert!(confirmed.is_confirmed());
+    assert_eq!(
+        confirmed
+            .template()
+            .reconcile(template_config(&request_rules)),
+        RobotFirewallTemplateReconciliation::Confirmed
+    );
+    let unconfirmed = decode_template_create(&create, &template_json_without_name(17, &rules))
+        .unwrap_or_else(|_| unreachable!("no-name template failed"));
+    assert!(!unconfirmed.is_confirmed());
+    assert_eq!(
+        unconfirmed
+            .template()
+            .reconcile(template_config(&request_rules)),
+        RobotFirewallTemplateReconciliation::NameUnconfirmed
+    );
     assert_eq!(
         decode_template_create(&create, &template_json(17, "changed", &rules)).err(),
         Some(RobotFirewallDecodeError::MutationOutcomeMismatch)

@@ -163,19 +163,13 @@ pub(crate) fn decode_robot_firewall_template(
         .get_mut("firewall_template")
         .and_then(Value::as_object_mut)
         .ok_or(RobotFirewallDecodeError::InvalidEnvelope)?;
-    require_fields(
+    require_fields_with_optional(
         object,
-        &[
-            "id",
-            "name",
-            "filter_ipv6",
-            "whitelist_hos",
-            "is_default",
-            "rules",
-        ],
+        &["id", "filter_ipv6", "whitelist_hos", "is_default", "rules"],
+        &["name"],
     )?;
     let id = template_id(object)?;
-    let name = template_name(object)?;
+    let name = optional_template_name(object)?;
     let filter_ipv6 = required_bool(object, "filter_ipv6")?;
     let whitelist_hos = required_bool(object, "whitelist_hos")?;
     let is_default = required_bool(object, "is_default")?;
@@ -205,7 +199,7 @@ fn parse_summary(
     )?;
     Ok(RobotFirewallTemplateSummary {
         id: template_id(object)?,
-        name: template_name(object)?,
+        name: Some(template_name(object)?),
         filter_ipv6: required_bool(object, "filter_ipv6")?,
         whitelist_hos: required_bool(object, "whitelist_hos")?,
         is_default: required_bool(object, "is_default")?,
@@ -250,12 +244,16 @@ fn parse_direction(
     for mut value in values {
         rules.push(parse_rule(object_mut(&mut value)?)?);
     }
+    let mut duplicate = false;
     let mut remaining = rules.as_slice();
     while let Some((rule, tail)) = remaining.split_first() {
-        if tail.iter().any(|candidate| rules_equal(rule, candidate)) {
-            return Err(RobotFirewallDecodeError::InvalidCollection);
-        }
+        duplicate |= tail.iter().fold(false, |found, candidate| {
+            rules_equal(rule, candidate) | found
+        });
         remaining = tail;
+    }
+    if duplicate {
+        return Err(RobotFirewallDecodeError::InvalidCollection);
     }
     Ok(rules)
 }
@@ -291,13 +289,16 @@ fn parse_rule(object: &mut Map) -> Result<RobotFirewallRuleModel, RobotFirewallD
     let action = required_text(object, "action", parse_action)?;
     let has_ip = destination_ip.is_some() || source_ip.is_some();
     let has_port = destination_port.is_some() || source_port.is_some();
+    let incompatible_port_protocol = has_port
+        && protocol.is_some_and(|protocol| {
+            !matches!(
+                protocol,
+                RobotFirewallProtocol::Tcp | RobotFirewallProtocol::Udp
+            )
+        });
     if has_ip && ip_version != Some(RobotFirewallIpVersion::Ipv4)
         || ip_version.is_none() && protocol.is_some()
-        || has_port
-            && !matches!(
-                protocol,
-                Some(RobotFirewallProtocol::Tcp | RobotFirewallProtocol::Udp)
-            )
+        || incompatible_port_protocol
         || tcp_flags.is_some() && protocol != Some(RobotFirewallProtocol::Tcp)
     {
         return Err(RobotFirewallDecodeError::InvalidValue);
@@ -326,6 +327,16 @@ fn template_name(object: &mut Map) -> Result<SensitiveText, RobotFirewallDecodeE
             .map(|_| ())
             .map_err(|_| RobotFirewallDecodeError::InvalidValue)
     })
+}
+
+fn optional_template_name(
+    object: &mut Map,
+) -> Result<Option<SensitiveText>, RobotFirewallDecodeError> {
+    if object.get("name").is_none() {
+        Ok(None)
+    } else {
+        template_name(object).map(Some)
+    }
 }
 
 fn take_text(

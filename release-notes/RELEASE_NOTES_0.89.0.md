@@ -26,6 +26,14 @@ CI/CodeQL; it publishes no crate.
   source-locked IP/protocol/port/flag conflict.
 - Added strict protected firewall, template, and inventory models with exact
   request identity and mutation-outcome association.
+- Aligned port/protocol validation and all eight 500-per-hour quotas with the
+  official source examples; digest-bound examples now execute through the Rust
+  decoder.
+- Added complete protected rule/template accessors and fixed-work comparison.
+  Detailed responses may omit the documented template name, so mutation
+  decoding reports reconciliation-required instead of unconfirmed success.
+- Rejected additional bidirectional and invisible Unicode formatting and made
+  all form-builder allocations explicitly fallible.
 - Added request-bound mutation/destructive permits, immutable source evidence,
   mutation-resistant checks, hostile tests, and direct response fuzzing across
   the complete 2 MiB template-list range.

@@ -1,15 +1,18 @@
-use alloc::{borrow::Cow, format, string::String, vec::Vec};
+use alloc::{borrow::Cow, string::String, vec::Vec};
+use core::fmt::Write;
 
 use super::prepare::Kind;
 use super::request::{RobotFirewallReplaceIntent, RobotFirewallRequestError};
 use super::value::{RobotFirewallRule, RobotFirewallRules};
 use crate::robot::{RobotForm, RobotFormField};
 
+type FormValue<'a> = (Cow<'a, str>, Cow<'a, str>);
+
 pub(super) fn write_form(
     kind: Kind<'_>,
     output: &mut [u8],
 ) -> Result<usize, RobotFirewallRequestError> {
-    let mut values: Vec<(String, Cow<'_, str>)> = Vec::new();
+    let mut values: Vec<FormValue<'_>> = Vec::new();
     match kind {
         Kind::Replace(
             _,
@@ -35,7 +38,11 @@ pub(super) fn write_form(
         ) => {
             push(&mut values, "status", status.as_str())?;
             push_optional_bool(&mut values, "filter_ipv6", filter_ipv6)?;
-            push_owned(&mut values, "template_id", format!("{}", template_id.get()))?;
+            push_owned(
+                &mut values,
+                "template_id",
+                decimal_string(template_id.get())?,
+            )?;
         }
         Kind::TemplateCreate(config) | Kind::TemplateUpdate(_, config) => {
             let (name, filter_ipv6, whitelist_hos, is_default, rules) = config.parts();
@@ -67,7 +74,7 @@ pub(super) fn write_form(
 }
 
 fn push_rules<'a>(
-    values: &mut Vec<(String, Cow<'a, str>)>,
+    values: &mut Vec<FormValue<'a>>,
     rules: RobotFirewallRules<'a>,
 ) -> Result<(), RobotFirewallRequestError> {
     for (direction, rules) in [("input", rules.input()), ("output", rules.output())] {
@@ -79,7 +86,7 @@ fn push_rules<'a>(
 }
 
 fn push_rule<'a>(
-    values: &mut Vec<(String, Cow<'a, str>)>,
+    values: &mut Vec<FormValue<'a>>,
     direction: &str,
     index: usize,
     rule: RobotFirewallRule<'a>,
@@ -110,7 +117,7 @@ fn push_rule<'a>(
 }
 
 fn push_dynamic<'a>(
-    values: &mut Vec<(String, Cow<'a, str>)>,
+    values: &mut Vec<FormValue<'a>>,
     direction: &str,
     index: usize,
     field: &str,
@@ -118,30 +125,30 @@ fn push_dynamic<'a>(
 ) -> Result<(), RobotFirewallRequestError> {
     push_pair(
         values,
-        format!("rules[{direction}][{index}][{field}]"),
+        Cow::Owned(dynamic_field_name(direction, index, field)?),
         Cow::Borrowed(value),
     )
 }
 
 fn push<'a>(
-    values: &mut Vec<(String, Cow<'a, str>)>,
-    name: &str,
+    values: &mut Vec<FormValue<'a>>,
+    name: &'static str,
     value: &'a str,
 ) -> Result<(), RobotFirewallRequestError> {
-    push_pair(values, String::from(name), Cow::Borrowed(value))
+    push_pair(values, Cow::Borrowed(name), Cow::Borrowed(value))
 }
 
 fn push_owned<'a>(
-    values: &mut Vec<(String, Cow<'a, str>)>,
-    name: &str,
+    values: &mut Vec<FormValue<'a>>,
+    name: &'static str,
     value: String,
 ) -> Result<(), RobotFirewallRequestError> {
-    push_pair(values, String::from(name), Cow::Owned(value))
+    push_pair(values, Cow::Borrowed(name), Cow::Owned(value))
 }
 
 fn push_pair<'a>(
-    values: &mut Vec<(String, Cow<'a, str>)>,
-    name: String,
+    values: &mut Vec<FormValue<'a>>,
+    name: Cow<'a, str>,
     value: Cow<'a, str>,
 ) -> Result<(), RobotFirewallRequestError> {
     values
@@ -152,14 +159,40 @@ fn push_pair<'a>(
 }
 
 fn push_optional_bool<'a>(
-    values: &mut Vec<(String, Cow<'a, str>)>,
-    name: &str,
+    values: &mut Vec<FormValue<'a>>,
+    name: &'static str,
     value: Option<bool>,
 ) -> Result<(), RobotFirewallRequestError> {
     if let Some(value) = value {
         push(values, name, bool_text(value))?;
     }
     Ok(())
+}
+
+fn dynamic_field_name(
+    direction: &str,
+    index: usize,
+    field: &str,
+) -> Result<String, RobotFirewallRequestError> {
+    let capacity = direction
+        .len()
+        .checked_add(field.len())
+        .and_then(|length| length.checked_add(32))
+        .ok_or(RobotFirewallRequestError::Allocation)?;
+    let mut name = String::new();
+    name.try_reserve_exact(capacity)
+        .map_err(|_| RobotFirewallRequestError::Allocation)?;
+    write!(&mut name, "rules[{direction}][{index}][{field}]")
+        .map_err(|_| RobotFirewallRequestError::Allocation)?;
+    Ok(name)
+}
+
+fn decimal_string(value: u64) -> Result<String, RobotFirewallRequestError> {
+    let mut text = String::new();
+    text.try_reserve_exact(20)
+        .map_err(|_| RobotFirewallRequestError::Allocation)?;
+    write!(&mut text, "{value}").map_err(|_| RobotFirewallRequestError::Allocation)?;
+    Ok(text)
 }
 
 const fn bool_text(value: bool) -> &'static str {

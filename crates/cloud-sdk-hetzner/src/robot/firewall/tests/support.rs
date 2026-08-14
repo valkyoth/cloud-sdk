@@ -166,7 +166,7 @@ pub(super) fn decode_template_get(
 pub(super) fn decode_template_create(
     request: &RobotFirewallTemplateCreateRequest<'_>,
     body: &str,
-) -> Result<RobotFirewallTemplate, RobotFirewallDecodeError> {
+) -> Result<RobotFirewallTemplateMutationOutcome, RobotFirewallDecodeError> {
     let mut target = [0_u8; 128];
     let mut request_body = [0_u8; 16_384];
     let prepared = request

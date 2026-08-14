@@ -15,10 +15,13 @@ replacement or clear mutations.
   order, and reject exact duplicates without sorting or implicit deduplication.
 - IPv4 selectors require canonical host or network text; CIDRs reject host bits.
   Ports require canonical non-zero single values or ascending ranges. Names
-  reject controls and directional formatting.
-- Cross-field validation requires IPv4 for address selectors, TCP/UDP for port
-  selectors, and TCP for flag expressions. IPv6 rules cannot carry IPv4
-  selectors, and protocol constraints require an explicit IP version.
+  reject controls, bidirectional controls, zero-width formatting, and byte
+  order marks.
+- Cross-field validation requires IPv4 for address selectors and TCP for flag
+  expressions. Robot's official examples permit a port without an explicit
+  protocol; explicitly incompatible protocols remain rejected. IPv6 rules
+  cannot carry IPv4 selectors, and protocol constraints require an explicit IP
+  version.
 - Inline-rule and template-ID replacement modes are distinct types. Safe
   construction cannot emit Robot's source-forbidden mixed form.
 - Forms are atomically encoded into caller storage, marked sensitive, and
@@ -27,14 +30,18 @@ replacement or clear mutations.
 - Strict decoding rejects unknown/missing fields, malformed identities and
   states, excessive or duplicate collections, contradictory rules, and
   noncanonical selectors. Protected text is non-copyable and diagnostics are
-  redacted.
+  redacted. Protected policy comparison uses constant-time text equality and
+  fixed-work field traversal.
 - Checked responses retain the exact operation and request. Server/template
   identities and complete replacement/create/update/clear outcomes must match
-  before success is exposed.
+  before success is exposed. When an official detailed template response omits
+  the documented name, create/update returns reconciliation-required rather
+  than claiming complete confirmation.
 - Mutations require request-bound strong-digest authority; server clear and
   template delete require distinct destructive authority. Permit attempts
   remain delivery-classified and single use.
-- Immutable source evidence reconciles all eight active inventory rows.
+- Immutable source evidence reconciles all eight active inventory rows, their
+  exact 500-per-hour quotas, and digest-bound official response examples.
   Dedicated decoder fuzzing admits one selector byte plus the complete 2 MiB
   template-list boundary.
 

@@ -3,18 +3,22 @@
   "source": {
     "retrieved": "2026-08-14",
     "url": "https://robot.hetzner.com/doc/webservice/en.html",
-    "sha256": "4b396790acc449f47b2b3b893f8eff759c0c25196dc38b1e5e92a12c9704771a"
+    "sha256": "4b396790acc449f47b2b3b893f8eff759c0c25196dc38b1e5e92a12c9704771a",
+    "examples": [
+      {"path":"tests/fixtures/robot-firewall/official-firewall-response.json","sha256":"9801694f6488c98cf2f4a340f12ad2ccb74d2439423f5e8650b98c00c714092d"},
+      {"path":"tests/fixtures/robot-firewall/official-template-response.json","sha256":"9df462ec80cc1dc8e7a669d113b04f331b8ea00ecfa2feaadf89e929b71adec2"}
+    ]
   },
   "inventory": "tests/fixtures/robot-api/v0.74.0.json",
   "operations": [
     {"id":"robot_get_firewall","inventory_id":"get_firewall","method":"GET","path":"/firewall/{server-id}","success":200,"quota":{"requests":500,"interval_seconds":3600}},
-    {"id":"robot_update_firewall","inventory_id":"update_firewall","method":"POST","path":"/firewall/{server-id}","success":200,"quota":{"requests":200,"interval_seconds":3600}},
-    {"id":"robot_delete_firewall","inventory_id":"delete_firewall","method":"DELETE","path":"/firewall/{server-id}","success":200,"quota":{"requests":200,"interval_seconds":3600}},
+    {"id":"robot_update_firewall","inventory_id":"update_firewall","method":"POST","path":"/firewall/{server-id}","success":200,"quota":{"requests":500,"interval_seconds":3600}},
+    {"id":"robot_delete_firewall","inventory_id":"delete_firewall","method":"DELETE","path":"/firewall/{server-id}","success":200,"quota":{"requests":500,"interval_seconds":3600}},
     {"id":"robot_list_firewall_templates","inventory_id":"list_firewall_templates","method":"GET","path":"/firewall/template","success":200,"quota":{"requests":500,"interval_seconds":3600}},
-    {"id":"robot_create_firewall_template","inventory_id":"create_firewall_template","method":"POST","path":"/firewall/template","success":201,"quota":{"requests":200,"interval_seconds":3600}},
+    {"id":"robot_create_firewall_template","inventory_id":"create_firewall_template","method":"POST","path":"/firewall/template","success":201,"quota":{"requests":500,"interval_seconds":3600}},
     {"id":"robot_get_firewall_template","inventory_id":"get_firewall_template","method":"GET","path":"/firewall/template/{template-id}","success":200,"quota":{"requests":500,"interval_seconds":3600}},
-    {"id":"robot_update_firewall_template","inventory_id":"update_firewall_template","method":"POST","path":"/firewall/template/{template-id}","success":200,"quota":{"requests":200,"interval_seconds":3600}},
-    {"id":"robot_delete_firewall_template","inventory_id":"delete_firewall_template","method":"DELETE","path":"/firewall/template/{template-id}","success":200,"quota":{"requests":200,"interval_seconds":3600}}
+    {"id":"robot_update_firewall_template","inventory_id":"update_firewall_template","method":"POST","path":"/firewall/template/{template-id}","success":200,"quota":{"requests":500,"interval_seconds":3600}},
+    {"id":"robot_delete_firewall_template","inventory_id":"delete_firewall_template","method":"DELETE","path":"/firewall/template/{template-id}","success":200,"quota":{"requests":500,"interval_seconds":3600}}
   ],
   "request": {
     "content_type": "application/x-www-form-urlencoded",
@@ -24,14 +28,17 @@
     "rule_directions": ["input", "output"],
     "protocols": ["tcp", "udp", "gre", "icmp", "ipip", "ah", "esp"],
     "actions": ["accept", "discard"],
-    "replacement_intents": ["inline-rules", "template-id"]
+    "replacement_intents": ["inline-rules", "template-id"],
+    "port_protocol_policy": "protocol-may-be-omitted-with-port"
   },
   "response": {
     "content_type": "application/json",
     "firewall_envelope": "firewall",
     "firewall_fields": ["server_ip", "server_number", "status", "filter_ipv6", "whitelist_hos", "port", "rules"],
     "template_envelope": "firewall_template",
-    "template_fields": ["id", "name", "filter_ipv6", "whitelist_hos", "is_default", "rules"],
+    "template_required_fields": ["id", "filter_ipv6", "whitelist_hos", "is_default", "rules"],
+    "template_optional_fields": ["name"],
+    "template_name_source_conflict": "output-table-required-but-official-detailed-examples-omit-name",
     "template_list_envelope": "array-of-firewall-template-wrappers",
     "delete_template_body": "empty"
   },

@@ -84,6 +84,30 @@ impl RobotFirewallRuleModel {
     ) -> Result<R, core::str::Utf8Error> {
         with_optional_text(self.source_ip.as_ref(), inspect)
     }
+
+    /// Runs a closure with the protected optional destination port selector.
+    pub fn try_with_destination_port<R>(
+        &self,
+        inspect: impl FnOnce(Option<&str>) -> R,
+    ) -> Result<R, core::str::Utf8Error> {
+        with_optional_text(self.destination_port.as_ref(), inspect)
+    }
+
+    /// Runs a closure with the protected optional source port selector.
+    pub fn try_with_source_port<R>(
+        &self,
+        inspect: impl FnOnce(Option<&str>) -> R,
+    ) -> Result<R, core::str::Utf8Error> {
+        with_optional_text(self.source_port.as_ref(), inspect)
+    }
+
+    /// Runs a closure with the protected optional TCP-flag expression.
+    pub fn try_with_tcp_flags<R>(
+        &self,
+        inspect: impl FnOnce(Option<&str>) -> R,
+    ) -> Result<R, core::str::Utf8Error> {
+        with_optional_text(self.tcp_flags.as_ref(), inspect)
+    }
 }
 
 impl core::fmt::Debug for RobotFirewallRuleModel {
@@ -202,7 +226,7 @@ impl core::fmt::Debug for RobotFirewall {
 /// Firewall-template inventory entry without rule payloads.
 pub struct RobotFirewallTemplateSummary {
     pub(super) id: RobotFirewallTemplateId,
-    pub(super) name: SensitiveText,
+    pub(super) name: Option<SensitiveText>,
     pub(super) filter_ipv6: bool,
     pub(super) whitelist_hos: bool,
     pub(super) is_default: bool,
@@ -215,18 +239,33 @@ impl RobotFirewallTemplateSummary {
         self.id
     }
 
+    /// Returns whether IPv6 filtering is enabled.
+    #[must_use]
+    pub const fn filter_ipv6(&self) -> bool {
+        self.filter_ipv6
+    }
+
+    /// Returns whether Hetzner services are whitelisted.
+    #[must_use]
+    pub const fn whitelist_hos(&self) -> bool {
+        self.whitelist_hos
+    }
+
     /// Returns whether this is Robot's default template.
     #[must_use]
     pub const fn is_default(&self) -> bool {
         self.is_default
     }
 
-    /// Runs a closure with the protected name.
+    /// Runs a closure with the protected optional name.
+    ///
+    /// Robot's detailed template examples omit `name` even though its output
+    /// table lists the field. Template-list entries still require a name.
     pub fn try_with_name<R>(
         &self,
-        inspect: impl FnOnce(&str) -> R,
+        inspect: impl FnOnce(Option<&str>) -> R,
     ) -> Result<R, core::str::Utf8Error> {
-        self.name.try_with_secret(inspect)
+        with_optional_text(self.name.as_ref(), inspect)
     }
 }
 

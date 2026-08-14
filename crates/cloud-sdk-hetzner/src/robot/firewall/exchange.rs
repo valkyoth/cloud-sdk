@@ -9,9 +9,12 @@ use super::decode::{
     decode_robot_firewall_template_list,
 };
 use super::model::*;
+use super::reconcile::{
+    RobotFirewallTemplateMutationOutcome, RobotFirewallTemplateReconciliation, rules_match,
+    template_reconciliation,
+};
 use super::request::*;
 use super::types::RobotFirewallTemplateId;
-use super::value::{RobotFirewallRule, RobotFirewallRules, RobotFirewallTemplateConfig};
 
 /// Prepared Robot firewall request retaining its exact typed association.
 pub struct PreparedRobotFirewall<'storage, 'request, R> {
@@ -179,26 +182,42 @@ impl CheckedRobotFirewall<'_, '_, RobotFirewallTemplateGetRequest> {
 }
 
 impl CheckedRobotFirewall<'_, '_, RobotFirewallTemplateCreateRequest<'_>> {
-    /// Requires the created template to match the complete requested configuration.
-    pub fn decode_response(self) -> Result<RobotFirewallTemplate, RobotFirewallDecodeError> {
+    /// Reconciles the created template with the complete requested configuration.
+    pub fn decode_response(
+        self,
+    ) -> Result<RobotFirewallTemplateMutationOutcome, RobotFirewallDecodeError> {
         let result = decode_template(self.inner)?;
-        if template_matches(self.request.config, &result) {
-            Ok(result)
-        } else {
-            Err(RobotFirewallDecodeError::MutationOutcomeMismatch)
+        match template_reconciliation(self.request.config, &result) {
+            RobotFirewallTemplateReconciliation::Confirmed => {
+                Ok(RobotFirewallTemplateMutationOutcome::Confirmed(result))
+            }
+            RobotFirewallTemplateReconciliation::NameUnconfirmed => {
+                Ok(RobotFirewallTemplateMutationOutcome::ReconciliationRequired(result))
+            }
+            RobotFirewallTemplateReconciliation::Mismatch => {
+                Err(RobotFirewallDecodeError::MutationOutcomeMismatch)
+            }
         }
     }
 }
 
 impl CheckedRobotFirewall<'_, '_, RobotFirewallTemplateUpdateRequest<'_>> {
-    /// Requires identity preservation and a complete replacement match.
-    pub fn decode_response(self) -> Result<RobotFirewallTemplate, RobotFirewallDecodeError> {
+    /// Requires identity preservation and reports whether all fields were confirmed.
+    pub fn decode_response(
+        self,
+    ) -> Result<RobotFirewallTemplateMutationOutcome, RobotFirewallDecodeError> {
         let result = decode_template(self.inner)?;
         require_template(&result, self.request.template_id)?;
-        if template_matches(self.request.config, &result) {
-            Ok(result)
-        } else {
-            Err(RobotFirewallDecodeError::MutationOutcomeMismatch)
+        match template_reconciliation(self.request.config, &result) {
+            RobotFirewallTemplateReconciliation::Confirmed => {
+                Ok(RobotFirewallTemplateMutationOutcome::Confirmed(result))
+            }
+            RobotFirewallTemplateReconciliation::NameUnconfirmed => {
+                Ok(RobotFirewallTemplateMutationOutcome::ReconciliationRequired(result))
+            }
+            RobotFirewallTemplateReconciliation::Mismatch => {
+                Err(RobotFirewallDecodeError::MutationOutcomeMismatch)
+            }
         }
     }
 }
@@ -242,80 +261,6 @@ fn require_template(
         Ok(())
     } else {
         Err(RobotFirewallDecodeError::ResponseIdentityMismatch)
-    }
-}
-
-fn template_matches(
-    config: RobotFirewallTemplateConfig<'_>,
-    result: &RobotFirewallTemplate,
-) -> bool {
-    let (name, filter_ipv6, whitelist_hos, is_default, rules) = config.parts();
-    result
-        .summary
-        .name
-        .try_with_secret(|actual| actual == name.as_str())
-        .unwrap_or(false)
-        && filter_ipv6.is_none_or(|expected| expected == result.summary.filter_ipv6)
-        && whitelist_hos == result.summary.whitelist_hos
-        && is_default == result.summary.is_default
-        && rules_match(rules, &result.rules)
-}
-
-fn rules_match(expected: RobotFirewallRules<'_>, actual: &RobotFirewallRuleSet) -> bool {
-    direction_matches(expected.input(), &actual.input)
-        && direction_matches(expected.output(), &actual.output)
-}
-
-fn direction_matches(
-    expected: &[RobotFirewallRule<'_>],
-    actual: &[RobotFirewallRuleModel],
-) -> bool {
-    expected.len() == actual.len()
-        && expected
-            .iter()
-            .copied()
-            .zip(actual)
-            .all(|(expected, actual)| rule_matches(expected, actual))
-}
-
-fn rule_matches(expected: RobotFirewallRule<'_>, actual: &RobotFirewallRuleModel) -> bool {
-    let Ok(expected) = expected.validate() else {
-        return false;
-    };
-    let fields = expected.fields();
-    fields.ip_version == actual.ip_version
-        && fields.protocol == actual.protocol
-        && fields.action == actual.action
-        && text_matches(actual.name.as_ref(), fields.name)
-        && text_matches(
-            actual.destination_ip.as_ref(),
-            fields.destination_ip.map(|value| value.as_str()),
-        )
-        && text_matches(
-            actual.source_ip.as_ref(),
-            fields.source_ip.map(|value| value.as_str()),
-        )
-        && text_matches(
-            actual.destination_port.as_ref(),
-            fields.destination_port.map(|value| value.as_str()),
-        )
-        && text_matches(
-            actual.source_port.as_ref(),
-            fields.source_port.map(|value| value.as_str()),
-        )
-        && text_matches(
-            actual.tcp_flags.as_ref(),
-            fields.tcp_flags.map(|value| value.as_str()),
-        )
-}
-
-fn text_matches(actual: Option<&crate::serde::SensitiveText>, expected: Option<&str>) -> bool {
-    match (actual, expected) {
-        (None, None) => true,
-        (Some(actual), Some(expected)) => actual
-            .try_with_secret(|actual| actual == expected)
-            .unwrap_or(false),
-        _ => false,
     }
 }
 

@@ -644,10 +644,17 @@ reject exact duplicates. IPv4 hosts/CIDRs, ports/ranges, protocol constraints,
 TCP flags, names, and template IDs are validated before atomic form encoding.
 Inline rules and template application are separate intent variants, preventing
 the source-forbidden combination of `template_id` with `whitelist_hos` or
-inline `rules`.
+inline `rules`. A port may omit protocol exactly as shown in the official
+request and response examples; explicitly incompatible protocols remain
+invalid.
 
 Strict protected response models reject unknown fields, malformed values,
 duplicate identities, and mismatched server/template or mutation outcomes.
+The official detailed template examples omit `name` despite the output table;
+the field is therefore optional and mutation decoding requires later
+reconciliation instead of claiming full confirmation when it is absent.
+Protected policy comparison covers ports and TCP flags without ordinary
+short-circuit text comparison.
 Server clear requires an `in process` response with no rules; template delete
 requires the exact empty `200` acknowledgement. Raw decoders, automatic
 mutation retry, high-level Robot client, and network transport remain absent.

@@ -2868,13 +2868,17 @@ Deliverables:
   together through safe constructors;
 - add strict protected firewall, rule, template, and inventory models with
   redacted diagnostics, exact server/template identity checks, duplicate
-  template rejection, and complete mutation-outcome reconciliation;
+  template rejection, complete protected field accessors, fixed-work exact
+  comparison, and explicit reconciliation-required mutation outcomes when the
+  official detailed response omits its documented template name;
 - bind replace/create/update to request-specific strong-digest mutation
   permits, bind server/template delete to distinct destructive permits, and
   deny automatic mutation retry;
 - add immutable source evidence, inventory reconciliation, mutation-resistant
-  checker tests, direct firewall/template decoder fuzzing, migration/security/
-  API review, and an internal-only release manifest; and
+  checker tests, exact 500-per-hour quota assertions, digest-bound official
+  response examples executed through the Rust decoder, direct
+  firewall/template decoder fuzzing, migration/security/API review, and an
+  internal-only release manifest; and
 - keep all implementation files below 500 lines with separate value, form,
   preparation, decoding, model, association, failure, and permit modules.
 
@@ -2884,7 +2888,9 @@ Verification:
   safety metadata, response limits, and request-body sensitivity classes;
 - test exact ordered form encoding, inline/template exclusivity, IPv4 CIDR
   canonicality, port ranges, protocol/IP/port/TCP-flag conflicts, duplicate
-  rejection, and full storage cleanup after failed preparation;
+  rejection, missing-protocol port examples, prohibited invisible Unicode,
+  fallible dynamic form allocation, and full storage cleanup after failed
+  preparation;
 - test exact response envelopes, unknown fields, redaction, wrong server or
   template identity, contradictory replacement/create/update/clear outcomes,
   duplicate template lists, and exact 2 MiB plus one-byte rejection;
@@ -2908,7 +2914,8 @@ Exit criteria:
 - ordered rules survive request encoding and checked decoding without sorting,
   deduplication, implicit widening, or inline/template field ambiguity;
 - every response remains associated with its exact operation and requested
-  server or template, and every mutation result matches its complete intent;
+  server or template, and every mutation result either matches its complete
+  intent or explicitly requires reconciliation for an omitted template name;
 - raw decoders remain internal, protected values remain redacted and
   non-copyable, automatic mutation retry remains forbidden, and permit types
   cannot authorize another request or impact class;

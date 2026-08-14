@@ -42,6 +42,10 @@ impl SensitiveText {
         self.0.try_with_secret(inspect)
     }
 
+    pub(crate) fn constant_time_eq(&self, candidate: &str) -> bool {
+        self.0.constant_time_eq(candidate)
+    }
+
     pub(crate) fn validate(&self, max: usize) -> Result<(), ResponseModelError> {
         self.try_with_secret(|value| validate_text(value, max))
             .map_err(|_| ResponseModelError::InvalidText)?

@@ -293,15 +293,24 @@ pub(crate) fn validate_name(value: &str, maximum: usize) -> Result<(), RobotFire
         || value.len() > maximum
         || value.starts_with(char::is_whitespace)
         || value.ends_with(char::is_whitespace)
-        || value.chars().any(|character| {
-            character.is_control()
-                || matches!(character, '\u{202a}'..='\u{202e}' | '\u{2066}'..='\u{2069}')
-        })
+        || value.chars().any(prohibited_name_character)
     {
         Err(RobotFirewallRuleError::InvalidName)
     } else {
         Ok(())
     }
+}
+
+fn prohibited_name_character(character: char) -> bool {
+    character.is_control()
+        || matches!(
+            character,
+            '\u{061c}'
+                | '\u{200b}'..='\u{200f}'
+                | '\u{202a}'..='\u{202e}'
+                | '\u{2060}'..='\u{2069}'
+                | '\u{feff}'
+        )
 }
 
 fn parse_port(value: &str) -> Result<u16, RobotFirewallRuleError> {

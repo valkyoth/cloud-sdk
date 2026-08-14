@@ -677,7 +677,14 @@ algorithm, size, provider MD5, and SDK-computed SHA-256 identity while keeping
 account metadata protected and redacted. Firewall requests preserve ordered
 rules, reject conflicting inline/template replacement intent, and bind checked
 mutation results to the exact server, template, and replacement policy. It does
-not yet expose the later Robot endpoint families or a high-level Robot client.
+not require a protocol merely because a port selector is present, matching the
+official Robot examples, but still rejects an explicitly incompatible
+protocol. Detailed template examples omit the documented `name`; reads expose
+that field as optional and create/update decoding returns an explicit
+reconciliation-required outcome when Robot does not confirm it. Protected
+ports, TCP flags, and template summary flags remain inspectable through
+closure-scoped accessors and exact comparison helpers. It does not yet expose
+the later Robot endpoint families or a high-level Robot client.
 Its complete source lock records 89
 active operations and excludes all 16 deprecated Storage Box operations. See the
 [Robot source-lock contract](https://github.com/valkyoth/cloud-sdk/blob/main/docs/ROBOT_WIRE_SOURCE_LOCK.md).

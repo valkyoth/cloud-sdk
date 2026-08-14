@@ -348,7 +348,12 @@ IPv4 selectors, ports, protocols, TCP flags, actions, names, and IDs are
 validated before atomic sensitive form preparation. Inline rules and template
 application are mutually exclusive typed intents. Checked responses bind exact
 server/template identity and complete mutation outcomes, while automatic
-mutation retry remains forbidden. The normalized contract is committed in
+mutation retry remains forbidden. Official rules with ports and no protocol
+are accepted; incompatible explicit protocols remain rejected. The source's
+output table lists a template name, but its detailed examples omit it, so
+template mutation decoding exposes an explicit reconciliation-required result.
+All eight operations are locked to 500 requests per hour. The normalized
+contract and digest-bound official examples are committed in
 [`v0.89.0.json`](../tests/fixtures/robot-firewall/v0.89.0.json) and checked by
 `scripts/check_robot_firewalls.sh`.
 

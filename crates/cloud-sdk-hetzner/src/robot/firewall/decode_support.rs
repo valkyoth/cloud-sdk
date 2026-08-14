@@ -2,9 +2,8 @@ use cloud_sdk::operation::CheckedResponse;
 use cloud_sdk::transport::StatusCode;
 
 use super::decode::RobotFirewallDecodeError;
-use super::model::RobotFirewallRuleModel;
 use super::prepare::MAX_ROBOT_FIREWALL_ITEM_RESPONSE_BYTES;
-use crate::serde::SensitiveText;
+use super::reconcile::rule_models_equal;
 use crate::serde::strict_json::{JsonError, Map, Value};
 
 pub(super) fn require_item(checked: CheckedResponse<'_>) -> Result<(), RobotFirewallDecodeError> {
@@ -53,33 +52,31 @@ pub(super) fn require_fields(
     }
 }
 
-pub(super) fn rules_equal(left: &RobotFirewallRuleModel, right: &RobotFirewallRuleModel) -> bool {
-    left.ip_version == right.ip_version
-        && left.protocol == right.protocol
-        && left.action == right.action
-        && optional_text_eq(left.name.as_ref(), right.name.as_ref())
-        && optional_text_eq(left.destination_ip.as_ref(), right.destination_ip.as_ref())
-        && optional_text_eq(left.source_ip.as_ref(), right.source_ip.as_ref())
-        && optional_text_eq(
-            left.destination_port.as_ref(),
-            right.destination_port.as_ref(),
-        )
-        && optional_text_eq(left.source_port.as_ref(), right.source_port.as_ref())
-        && optional_text_eq(left.tcp_flags.as_ref(), right.tcp_flags.as_ref())
+pub(super) fn require_fields_with_optional(
+    object: &Map,
+    required: &[&str],
+    optional: &[&str],
+) -> Result<(), RobotFirewallDecodeError> {
+    let present_optional = optional
+        .iter()
+        .filter(|field| object.get(field).is_some())
+        .count();
+    let expected_count = required
+        .len()
+        .checked_add(present_optional)
+        .ok_or(RobotFirewallDecodeError::InvalidEnvelope)?;
+    if object.len() == expected_count && required.iter().all(|field| object.get(field).is_some()) {
+        Ok(())
+    } else {
+        Err(RobotFirewallDecodeError::InvalidEnvelope)
+    }
 }
 
-fn optional_text_eq(left: Option<&SensitiveText>, right: Option<&SensitiveText>) -> bool {
-    match (left, right) {
-        (None, None) => true,
-        (Some(left), Some(right)) => left
-            .try_with_secret(|left| {
-                right
-                    .try_with_secret(|right| left == right)
-                    .unwrap_or(false)
-            })
-            .unwrap_or(false),
-        _ => false,
-    }
+pub(super) fn rules_equal(
+    left: &super::model::RobotFirewallRuleModel,
+    right: &super::model::RobotFirewallRuleModel,
+) -> bool {
+    rule_models_equal(left, right)
 }
 
 pub(super) const fn map_json_error(error: JsonError) -> RobotFirewallDecodeError {

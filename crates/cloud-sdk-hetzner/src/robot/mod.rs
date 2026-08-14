@@ -139,8 +139,9 @@ pub use firewall::{
     RobotFirewallPlanFingerprintDigest, RobotFirewallPlanSubject, RobotFirewallPort,
     RobotFirewallRuleModel, RobotFirewallRuleSet, RobotFirewallRuntimeStatus,
     RobotFirewallSharedDestructivePermit, RobotFirewallSharedMutationPermit, RobotFirewallTemplate,
-    RobotFirewallTemplateList, RobotFirewallTemplateSummary, build_robot_firewall_canonical_plan,
-    build_robot_firewall_plan_digest,
+    RobotFirewallTemplateList, RobotFirewallTemplateMutationOutcome,
+    RobotFirewallTemplateReconciliation, RobotFirewallTemplateSummary,
+    build_robot_firewall_canonical_plan, build_robot_firewall_plan_digest,
 };
 
 #[cfg(feature = "serde")]

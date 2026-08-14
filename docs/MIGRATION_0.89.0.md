@@ -48,3 +48,18 @@ reconstruct forms manually: rule order affects policy, and safe preparation
 prevents `template_id` from being combined with inline `rules` or
 `whitelist_hos`. Firewall and template mutations use the request-bound
 strong-digest permit flow; clear and delete require destructive authority.
+
+Robot's official examples allow `dst_port` without a protocol. The SDK now
+preserves that source behavior and rejects only an explicitly incompatible
+protocol. Detailed template examples also omit `name`, although the output
+table lists it. `RobotFirewallTemplateSummary::try_with_name` therefore passes
+`Option<&str>` to its closure. Template create/update decoding returns
+`RobotFirewallTemplateMutationOutcome`: `Confirmed` means every requested
+field was returned and matched, while `ReconciliationRequired` means all
+returned policy fields matched but the protected name must be confirmed by a
+subsequent read. Use `RobotFirewallTemplate::reconcile` for that comparison.
+
+Decoded destination/source ports and TCP flags now have closure-scoped
+accessors. `RobotFirewallRuleModel::matches`, `RobotFirewallRuleSet::matches`,
+and `RobotFirewall::matches_inline_policy` provide complete protected
+comparisons without requiring callers to copy response text.

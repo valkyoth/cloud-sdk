@@ -18,6 +18,8 @@ mod failure;
 mod model;
 #[cfg(feature = "serde")]
 mod permit;
+#[cfg(feature = "serde")]
+mod reconcile;
 
 pub use prepare::{
     MAX_ROBOT_FIREWALL_ITEM_RESPONSE_BYTES, MAX_ROBOT_FIREWALL_TEMPLATE_LIST_RESPONSE_BYTES,
@@ -56,6 +58,8 @@ pub use permit::{
     RobotFirewallSharedDestructivePermit, RobotFirewallSharedMutationPermit,
     build_robot_firewall_canonical_plan, build_robot_firewall_plan_digest,
 };
+#[cfg(feature = "serde")]
+pub use reconcile::{RobotFirewallTemplateMutationOutcome, RobotFirewallTemplateReconciliation};
 
 #[cfg(all(test, feature = "serde"))]
 mod tests;

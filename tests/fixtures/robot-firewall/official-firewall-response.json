@@ -1,0 +1,19 @@
+{
+  "firewall": {
+    "server_ip": "123.123.123.123",
+    "server_number": 321,
+    "status": "in process",
+    "filter_ipv6": false,
+    "whitelist_hos": true,
+    "port": "main",
+    "rules": {
+      "input": [
+        {"ip_version":"ipv4","name":"rule 1","dst_ip":null,"src_ip":"1.1.1.1","dst_port":"80","src_port":null,"protocol":null,"tcp_flags":null,"action":"accept"},
+        {"ip_version":"ipv4","name":"Allow MySQL","dst_ip":null,"src_ip":null,"dst_port":"3306","src_port":null,"protocol":null,"tcp_flags":null,"action":"accept"}
+      ],
+      "output": [
+        {"ip_version":null,"name":"Allow all","dst_ip":null,"src_ip":null,"dst_port":null,"src_port":null,"protocol":null,"tcp_flags":null,"action":"accept"}
+      ]
+    }
+  }
+}

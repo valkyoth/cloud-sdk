@@ -13,12 +13,18 @@ CHECK = ROOT / "scripts/check_robot_firewalls.py"
 FIXTURE = ROOT / "tests/fixtures/robot-firewall/v0.89.0.json"
 API_LOCK = ROOT / "tests/fixtures/robot-api/v0.74.0.json"
 FUZZ_HARNESS = ROOT / "scripts/check_fuzz_harness.sh"
+FORM_SOURCE = ROOT / "crates/cloud-sdk-hetzner/src/robot/firewall/form.rs"
+RECONCILE_SOURCE = ROOT / "crates/cloud-sdk-hetzner/src/robot/firewall/reconcile.rs"
+NAME_SOURCE = ROOT / "crates/cloud-sdk-hetzner/src/robot/firewall/types.rs"
 
 
 def run(
     fixture: Path,
     api_lock: Path = API_LOCK,
     fuzz_harness: Path = FUZZ_HARNESS,
+    form_source: Path = FORM_SOURCE,
+    reconcile_source: Path = RECONCILE_SOURCE,
+    name_source: Path = NAME_SOURCE,
 ) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
         [
@@ -30,6 +36,12 @@ def run(
             str(api_lock),
             "--fuzz-harness",
             str(fuzz_harness),
+            "--form-source",
+            str(form_source),
+            "--reconcile-source",
+            str(reconcile_source),
+            "--name-source",
+            str(name_source),
         ],
         cwd=ROOT,
         check=False,
@@ -51,6 +63,15 @@ def main() -> None:
     changed = json.loads(json.dumps(original))
     changed["local_policy"]["rules_per_direction"] = 101
     mutations.append(changed)
+    changed = json.loads(json.dumps(original))
+    changed["operations"][1]["quota"]["requests"] = 200
+    mutations.append(changed)
+    changed = json.loads(json.dumps(original))
+    changed["request"]["port_protocol_policy"] = "protocol-required-with-port"
+    mutations.append(changed)
+    changed = json.loads(json.dumps(original))
+    changed["response"]["template_optional_fields"] = []
+    mutations.append(changed)
     with tempfile.TemporaryDirectory() as directory:
         for index, mutation in enumerate(mutations):
             path = Path(directory) / f"mutation-{index}.json"
@@ -69,7 +90,29 @@ def main() -> None:
             encoding="ascii",
         )
         assert run(FIXTURE, fuzz_harness=harness).returncode != 0
-    print("5 Robot firewall contract regression groups passed.")
+        form = Path(directory) / "form.rs"
+        form.write_text(
+            FORM_SOURCE.read_text(encoding="ascii").replace(
+                "let mut text = String::new();", "let mut text = String::from(\"\");"
+            ),
+            encoding="ascii",
+        )
+        assert run(FIXTURE, form_source=form).returncode != 0
+        reconcile = Path(directory) / "reconcile.rs"
+        reconcile.write_text(
+            RECONCILE_SOURCE.read_text(encoding="ascii").replace(
+                "constant_time_eq", "ordinary_eq"
+            ),
+            encoding="ascii",
+        )
+        assert run(FIXTURE, reconcile_source=reconcile).returncode != 0
+        names = Path(directory) / "types.rs"
+        names.write_text(
+            NAME_SOURCE.read_text(encoding="ascii").replace("\\u{061c}", "\\u{0061}"),
+            encoding="ascii",
+        )
+        assert run(FIXTURE, name_source=names).returncode != 0
+    print("11 Robot firewall contract regression groups passed.")
 
 
 if __name__ == "__main__":
