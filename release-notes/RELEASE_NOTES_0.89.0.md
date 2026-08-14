@@ -1,19 +1,19 @@
 # cloud-sdk 0.89.0 Release Notes
 
-Status: implementation stop; pentest required.
+Status: release candidate; pentest and final retest passed.
 
-Release date: pending
+Release date: 2026-08-14
 
-Security-Review: PENDING
-Pentest: PENDING
+Security-Review: PASS
+Pentest: PASS
 Publication: DEFERRED TO v0.90.0
 
 ## Overview
 
 v0.89 implements all eight active Hetzner Robot firewall and firewall-template
 operations and continues the v0.86-v0.90 cumulative train. This internal
-milestone will be tagged only after its incremental pentest and green
-CI/CodeQL; it publishes no crate.
+milestone will be tagged only after green CI/CodeQL on the unchanged release
+evidence commit; it publishes no crate.
 
 ## Robot Firewalls
 
@@ -62,10 +62,11 @@ CI/CodeQL; it publishes no crate.
 - [`docs/THREAT_MODEL_DELTA_0.89.0.md`](../docs/THREAT_MODEL_DELTA_0.89.0.md)
 - [`docs/REJECTED_ABSTRACTIONS_0.89.0.md`](../docs/REJECTED_ABSTRACTIONS_0.89.0.md)
 - [`docs/MIGRATION_0.89.0.md`](../docs/MIGRATION_0.89.0.md)
+- [`security/pentest/v0.89.0.md`](../security/pentest/v0.89.0.md)
 
 ## Stop Gate
 
-Run the incremental pentest for the exact implementation commit. After every
-finding is remediated and retested, run `scripts/release_0_89_gate.sh` and
-require green GitHub CI/CodeQL on the unchanged evidence commit before tagging.
-Do not publish crates for v0.89.
+The incremental pentest and final remediation retest passed. Run
+`scripts/release_0_89_gate.sh` on the committed release evidence and require
+green GitHub CI/CodeQL on that unchanged commit before tagging. Do not publish
+crates for v0.89.

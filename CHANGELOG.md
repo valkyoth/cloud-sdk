@@ -13,6 +13,12 @@
 - Added request-bound mutation and destructive permits, immutable source
   evidence, mutation-resistant contract checks, adversarial tests, and direct
   firewall/template response fuzzing through the complete 2 MiB list boundary.
+- Bound template reconciliation to non-erasable pending state retaining the
+  exact original mutation configuration, and verify same-ID list/detail reads
+  against protected names, policy flags, and ordered rules.
+- Aligned protocol-less port handling and exact quotas with official Robot
+  evidence, strengthened fixed-work protected comparisons, rejected unsafe
+  display controls, and made form allocations fallible.
 - Deferred crates.io publication to the cumulative v0.90.0 checkpoint.
 
 ## 0.88.0 - 2026-08-13

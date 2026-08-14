@@ -79,9 +79,10 @@ The v0.85 crates.io checkpoint includes exhaustive named clients for every
 active Hetzner Cloud, DNS, Security, and Console Storage Box operation plus
 source-locked Robot support through boot configuration. The v0.89 development
 milestone extends the cumulative Robot work through SSH keys and all active
-firewall/template operations; its incremental pentest is required before
-tagging. Provider crates remain transport-free and perform no network request
-by default. Future FIPS work remains deferred until Brynja is ready.
+firewall/template operations. Its incremental pentest and final remediation
+retest passed; tagging awaits green CI/CodeQL on the unchanged release evidence
+commit. Provider crates remain transport-free and perform no network request by
+default. Future FIPS work remains deferred until Brynja is ready.
 
 ## Trust Dashboard
 

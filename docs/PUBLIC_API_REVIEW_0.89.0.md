@@ -1,6 +1,6 @@
 # Public API Review 0.89.0
 
-Status: implementation stop; pentest required.
+Status: release candidate; pentest and final retest passed.
 
 ## Added Surface
 

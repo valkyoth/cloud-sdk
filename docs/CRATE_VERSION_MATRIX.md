@@ -1,8 +1,9 @@
 # Crate Version Matrix
 
-Status: `v0.85.0` is the latest published checkpoint. `v0.89.0` is the Robot
-firewall implementation stop; its incremental pentest is required, while
-crates.io publication remains deferred to `v0.90.0`.
+Status: `v0.85.0` is the latest published checkpoint. `v0.89.0` is a Robot
+firewall release candidate whose incremental pentest and final retest passed;
+tagging awaits unchanged green CI/CodeQL, while crates.io publication remains
+deferred to `v0.90.0`.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
