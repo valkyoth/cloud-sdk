@@ -1,9 +1,9 @@
 # Crate Version Matrix
 
 Status: `v0.85.0` is the latest published checkpoint. `v0.90.0` is the
-cumulative Robot vSwitch public checkpoint at implementation stop; its exact
-commit requires the incremental pentest and full release gate before tagging
-and crates.io publication.
+cumulative Robot vSwitch public release candidate; its pentest and final
+retest passed. Tagging and crates.io publication require the unchanged
+release-evidence commit to pass the local release gate and GitHub CI/CodeQL.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared

@@ -1,6 +1,6 @@
 # Threat Model Delta 0.90.0
 
-Status: implementation stop reached; pentest required.
+Status: release candidate; pentest and final retest passed.
 
 ## New Inputs
 

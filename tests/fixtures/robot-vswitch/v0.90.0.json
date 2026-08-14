@@ -44,7 +44,7 @@
     "invalid_input": ["create_vswitch", "update_vswitch", "delete_vswitch", "add_vswitch_servers", "remove_vswitch_servers"]
   },
   "local_policy": {
-    "vlan_range": [1, 4094],
+    "vlan_range": [4000, 4091],
     "name_bytes": 128,
     "membership_request_items": 256,
     "list_items": 4096,

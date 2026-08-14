@@ -19,8 +19,9 @@ PREPARE_SOURCE = ROOT / "crates/cloud-sdk-hetzner/src/robot/vswitch/prepare.rs"
 DECODE_SOURCE = ROOT / "crates/cloud-sdk-hetzner/src/robot/vswitch/decode.rs"
 EXCHANGE_SOURCE = ROOT / "crates/cloud-sdk-hetzner/src/robot/vswitch/exchange.rs"
 PERMIT_SOURCE = ROOT / "crates/cloud-sdk-hetzner/src/robot/vswitch/permit.rs"
+TYPES_SOURCE = ROOT / "crates/cloud-sdk-hetzner/src/robot/vswitch/types.rs"
 MAX_BYTES = 64 * 1024
-FIXTURE_SHA256 = "b16f953a609659505bf181485eed7c317d555ebe5d48cf0388448ec67b1fc971"
+FIXTURE_SHA256 = "e316e5d105a1d58c6868df1b014eb874082ca35f46e0efec131c5c988848f93c"
 
 
 def fail(message: str) -> None:
@@ -59,6 +60,7 @@ def validate(
     decode_source_path: Path,
     exchange_source_path: Path,
     permit_source_path: Path,
+    types_source_path: Path,
 ) -> None:
     try:
         fixture_payload = fixture.read_bytes()
@@ -117,7 +119,7 @@ def validate(
         fail("empty acknowledgement inventory changed")
     policy = reviewed["local_policy"]
     expected_policy = {
-        "vlan_range": [1, 4094],
+        "vlan_range": [4000, 4091],
         "name_bytes": 128,
         "membership_request_items": 256,
         "list_items": 4096,
@@ -202,6 +204,9 @@ def validate(
     ]:
         if request_type not in permit_source:
             fail(f"permit coverage lost {request_type}")
+    types_source = read_text(types_source_path)
+    if "if value < 4000 || value > 4091" not in types_source:
+        fail("implementation no longer enforces the source-locked VLAN range")
 
 
 def main() -> None:
@@ -214,6 +219,7 @@ def main() -> None:
     parser.add_argument("--decode-source", type=Path, default=DECODE_SOURCE)
     parser.add_argument("--exchange-source", type=Path, default=EXCHANGE_SOURCE)
     parser.add_argument("--permit-source", type=Path, default=PERMIT_SOURCE)
+    parser.add_argument("--types-source", type=Path, default=TYPES_SOURCE)
     args = parser.parse_args()
     validate(
         args.fixture,
@@ -224,6 +230,7 @@ def main() -> None:
         args.decode_source,
         args.exchange_source,
         args.permit_source,
+        args.types_source,
     )
     print("Robot vSwitch source contract passed.")
 

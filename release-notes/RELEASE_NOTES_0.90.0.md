@@ -1,12 +1,12 @@
 # cloud-sdk 0.90.0 Release Notes
 
-Status: implementation stop reached; pentest required.
+Status: release candidate; pentest and final retest passed.
 
 Release date: 2026-08-14
 
-Security-Review: PENDING
-Pentest: REQUIRED
-Publication: BLOCKED UNTIL GREEN PENTEST, RELEASE GATE, AND CI/CODEQL
+Security-Review: PASS
+Pentest: PASS
+Publication: PENDING
 
 ## Overview
 
@@ -59,8 +59,8 @@ TLS implementation, or retry policy enters the default provider graph.
 - [`docs/REJECTED_ABSTRACTIONS_0.90.0.md`](../docs/REJECTED_ABSTRACTIONS_0.90.0.md)
 - [`docs/MIGRATION_0.90.0.md`](../docs/MIGRATION_0.90.0.md)
 
-The permanent pentest report is added only after the exact implementation
-commit passes review and remediation retest.
+The permanent pentest report records the exact reviewed implementation and
+remediation commits. No finding remains open.
 
 ## Stop Gate
 

@@ -2995,7 +2995,9 @@ publication.
 
 Stop gate: `v0.90.0 implementation stop reached. Run the pentest for this exact commit before tagging and crates.io publication.`
 
-Status: implementation stop reached; pentest required.
+Status: release candidate; pentest and final retest passed. Tagging and the
+four-crate public checkpoint await the unchanged release-evidence commit's
+local release gate and GitHub CI/CodeQL.
 
 ### v0.91.0 - Robot Ordering Catalogs
 

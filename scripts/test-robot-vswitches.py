@@ -18,6 +18,7 @@ PREPARE_SOURCE = ROOT / "crates/cloud-sdk-hetzner/src/robot/vswitch/prepare.rs"
 DECODE_SOURCE = ROOT / "crates/cloud-sdk-hetzner/src/robot/vswitch/decode.rs"
 EXCHANGE_SOURCE = ROOT / "crates/cloud-sdk-hetzner/src/robot/vswitch/exchange.rs"
 PERMIT_SOURCE = ROOT / "crates/cloud-sdk-hetzner/src/robot/vswitch/permit.rs"
+TYPES_SOURCE = ROOT / "crates/cloud-sdk-hetzner/src/robot/vswitch/types.rs"
 
 
 def run(
@@ -29,6 +30,7 @@ def run(
     decode_source: Path = DECODE_SOURCE,
     exchange_source: Path = EXCHANGE_SOURCE,
     permit_source: Path = PERMIT_SOURCE,
+    types_source: Path = TYPES_SOURCE,
 ) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
         [
@@ -50,6 +52,8 @@ def run(
             str(exchange_source),
             "--permit-source",
             str(permit_source),
+            "--types-source",
+            str(types_source),
         ],
         cwd=ROOT,
         check=False,
@@ -76,6 +80,9 @@ def main() -> None:
     mutations.append(changed)
     changed = json.loads(json.dumps(original))
     changed["local_policy"]["membership_request_items"] = 4096
+    mutations.append(changed)
+    changed = json.loads(json.dumps(original))
+    changed["local_policy"]["vlan_range"] = [1, 4094]
     mutations.append(changed)
 
     with tempfile.TemporaryDirectory() as directory:
@@ -117,6 +124,14 @@ def main() -> None:
             "MissingCancelRequest",
             permit_source=True,
         )
+        assert_mutated_source_fails(
+            root,
+            "types.rs",
+            TYPES_SOURCE,
+            "if value < 4000 || value > 4091",
+            "if value == 0 || value > 4094",
+            types_source=True,
+        )
         harness = root / "check_fuzz_harness.sh"
         harness_source = FUZZ_HARNESS.read_text(encoding="ascii")
         reviewed_fuzz = (
@@ -132,7 +147,7 @@ def main() -> None:
             encoding="ascii",
         )
         assert run(fuzz_harness=harness).returncode != 0
-    print("11 Robot vSwitch contract regression groups passed.")
+    print("13 Robot vSwitch contract regression groups passed.")
 
 
 def assert_mutated_source_fails(
@@ -146,6 +161,7 @@ def assert_mutated_source_fails(
     decode_source: bool = False,
     exchange_source: bool = False,
     permit_source: bool = False,
+    types_source: bool = False,
 ) -> None:
     path = root / name
     text = source.read_text(encoding="ascii")
@@ -160,6 +176,8 @@ def assert_mutated_source_fails(
         kwargs = {"exchange_source": path}
     elif permit_source:
         kwargs = {"permit_source": path}
+    elif types_source:
+        kwargs = {"types_source": path}
     assert run(**kwargs).returncode != 0
 
 

@@ -78,11 +78,12 @@ listed in the
 The v0.85 crates.io checkpoint includes exhaustive named clients for every
 active Hetzner Cloud, DNS, Security, and Console Storage Box operation plus
 source-locked Robot support through boot configuration. The v0.90 public
-checkpoint adds the cumulative reverse-DNS, traffic, SSH-key, firewall, and
-vSwitch work. Its implementation stop is reached; the exact commit must pass
-the incremental pentest and full release gate before tagging or crates.io
-publication. Provider crates remain transport-free and perform no network
-request by default. Future FIPS work remains deferred until Brynja is ready.
+release candidate adds the cumulative reverse-DNS, traffic, SSH-key, firewall,
+and vSwitch work. Its pentest and final retest passed; tagging and publication
+require the unchanged release-evidence commit to pass the local release gate
+and GitHub CI/CodeQL. Provider crates remain transport-free and perform no
+network request by default. Future FIPS work remains deferred until Brynja is
+ready.
 
 ## Trust Dashboard
 
