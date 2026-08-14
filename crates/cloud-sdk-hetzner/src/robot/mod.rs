@@ -27,6 +27,8 @@ mod boot;
 #[cfg(feature = "alloc")]
 mod cancellation;
 #[cfg(feature = "alloc")]
+mod canonical;
+#[cfg(feature = "alloc")]
 mod credentials;
 #[cfg(feature = "serde")]
 mod duplicates;

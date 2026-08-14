@@ -39,6 +39,8 @@ assert_eq!(
 `RobotVSwitchUpdateIntent` requires at least one replacement field. Membership
 changes require a non-empty duplicate-free `RobotVSwitchServers` slice whose
 entries are canonical positive server numbers or canonical IP addresses.
+VLAN IDs are restricted to `1..=4094`. vSwitch names use the conservative
+ASCII profile `[A-Za-z0-9 ._-]` and cannot begin or end with a space.
 
 Creation decodes and verifies the requested name and VLAN. Update,
 cancellation, attachment, and detachment accept only the documented empty

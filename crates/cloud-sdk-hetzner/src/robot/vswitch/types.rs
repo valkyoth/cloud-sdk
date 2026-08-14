@@ -1,9 +1,10 @@
-use alloc::string::ToString;
 use core::cmp::Ordering;
 use core::net::IpAddr;
 use core::str::FromStr;
 
 use cloud_sdk_sanitization::SecretBoxBytes;
+
+use crate::robot::canonical::display_matches;
 
 /// Maximum UTF-8 bytes admitted in a Robot vSwitch name.
 pub const MAX_ROBOT_VSWITCH_NAME_BYTES: usize = 128;
@@ -67,7 +68,7 @@ pub struct RobotVlanId(u16);
 impl RobotVlanId {
     /// Admits VLAN IDs `1..=4094`; Robot may enforce a narrower account policy.
     pub const fn new(value: u16) -> Result<Self, RobotVSwitchValueError> {
-        if value == 0 || value == 4095 {
+        if value == 0 || value > 4094 {
             Err(RobotVSwitchValueError::InvalidVlan)
         } else {
             Ok(Self(value))
@@ -85,15 +86,15 @@ impl RobotVlanId {
 pub struct RobotVSwitchName(SecretBoxBytes);
 
 impl RobotVSwitchName {
-    /// Copies bounded display-safe text into protected owned storage.
+    /// Copies bounded high-assurance ASCII text into protected owned storage.
     pub fn new(value: &str) -> Result<Self, RobotVSwitchValueError> {
         if value.is_empty()
             || value.len() > MAX_ROBOT_VSWITCH_NAME_BYTES
-            || value.starts_with(char::is_whitespace)
-            || value.ends_with(char::is_whitespace)
-            || value
-                .chars()
-                .any(crate::display::is_unsafe_display_character)
+            || value.as_bytes().first() == Some(&b' ')
+            || value.as_bytes().last() == Some(&b' ')
+            || !value.bytes().all(|byte| {
+                byte.is_ascii_alphanumeric() || matches!(byte, b' ' | b'-' | b'_' | b'.')
+            })
         {
             return Err(RobotVSwitchValueError::InvalidName);
         }
@@ -226,5 +227,5 @@ fn valid_server_number(value: &str) -> bool {
 }
 
 fn valid_ip(value: &str) -> bool {
-    IpAddr::from_str(value).is_ok_and(|address| address.to_string() == value)
+    IpAddr::from_str(value).is_ok_and(|address| display_matches(value, address))
 }

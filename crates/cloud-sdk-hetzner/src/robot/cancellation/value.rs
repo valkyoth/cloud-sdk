@@ -1,10 +1,10 @@
 use core::cmp::Ordering;
-use core::fmt::Write;
 use core::net::IpAddr;
 use core::str::FromStr;
 
 use cloud_sdk_sanitization::SecretBoxBytes;
 
+use crate::robot::canonical::display_matches;
 use crate::robot::server::protected_parse::{self, AddressFamily, ProtectedValueError};
 
 /// Failure while constructing a protected Robot cancellation value.
@@ -55,8 +55,7 @@ impl RobotIpAddress {
         let parsed = protected_parse::address(value, AddressFamily::Any).map_err(map_error)?;
         let canonical =
             IpAddr::from_str(value).map_err(|_| RobotCancellationValueError::Invalid)?;
-        let mut check = CanonicalText::new(value);
-        if write!(&mut check, "{canonical}").is_err() || !check.complete() {
+        if !display_matches(value, canonical) {
             return Err(RobotCancellationValueError::Invalid);
         }
         drop(parsed);
@@ -80,38 +79,6 @@ impl RobotIpAddress {
                 .unwrap_or_else(|_| unreachable!("protected Robot address lost UTF-8"));
             inspect(text)
         })
-    }
-}
-
-struct CanonicalText<'a> {
-    expected: &'a [u8],
-    offset: usize,
-}
-
-impl<'a> CanonicalText<'a> {
-    const fn new(expected: &'a str) -> Self {
-        Self {
-            expected: expected.as_bytes(),
-            offset: 0,
-        }
-    }
-
-    fn complete(&self) -> bool {
-        self.offset == self.expected.len()
-    }
-}
-
-impl Write for CanonicalText<'_> {
-    fn write_str(&mut self, value: &str) -> core::fmt::Result {
-        let end = self
-            .offset
-            .checked_add(value.len())
-            .ok_or(core::fmt::Error)?;
-        if self.expected.get(self.offset..end) != Some(value.as_bytes()) {
-            return Err(core::fmt::Error);
-        }
-        self.offset = end;
-        Ok(())
     }
 }
 

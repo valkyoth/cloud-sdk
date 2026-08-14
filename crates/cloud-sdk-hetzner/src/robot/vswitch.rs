@@ -56,6 +56,8 @@ mod failure_tests;
 mod permit_tests;
 #[cfg(all(test, feature = "serde"))]
 mod tests;
+#[cfg(all(test, feature = "serde"))]
+mod value_tests;
 
 #[cfg(doctest)]
 mod compile_fail {

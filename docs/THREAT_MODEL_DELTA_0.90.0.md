@@ -10,8 +10,9 @@ status, subnet routes, cloud-network routes, and account-wide inventory.
 
 ## Controls
 
-- IDs are nonzero, VLANs are bounded, names reject controls and invisible
-  formatting, and member selectors require canonical number or IP text.
+- IDs are nonzero, VLANs are restricted to `1..=4094`, names use a conservative
+  ASCII profile, and member selectors require canonical number or
+  allocation-free canonical IP text.
 - Membership requests are non-empty, bounded, and duplicate-free. Exact
   repeated `server[]` fields are encoded only after complete preflight.
 - Update intent cannot be empty. Every sensitive form and complete preparation

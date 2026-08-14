@@ -17,16 +17,9 @@ const SUMMARY: &str = r#"{"id":4321,"name":"my vSwitch","vlan":4000,"cancelled":
 #[test]
 fn values_are_bounded_canonical_unique_and_redacted() {
     assert!(RobotVSwitchId::new(0).is_err());
-    assert!(RobotVlanId::new(0).is_err());
-    assert!(RobotVlanId::new(4094).is_ok());
-    assert!(RobotVlanId::new(4095).is_err());
-
     let name = RobotVSwitchName::new("private fabric")
         .unwrap_or_else(|_| unreachable!("name fixture failed"));
     assert_eq!(format!("{name:?}"), "RobotVSwitchName([redacted])");
-    for invalid in ["", " leading", "trailing ", "hidden\nline", "a\u{202e}b"] {
-        assert!(RobotVSwitchName::new(invalid).is_err());
-    }
 
     for valid in ["321", "18446744073709551615", "192.0.2.10", "2001:db8::1"] {
         assert!(RobotVSwitchServerIdentifier::new(valid).is_ok());
@@ -193,6 +186,13 @@ fn detail_decode_is_strict_bounded_and_redacted() {
         .err(),
         Some(RobotVSwitchDecodeError::ResponseIdentityMismatch)
     );
+    for invalid in [4095_u16, 4096, u16::MAX] {
+        let response = text(DETAIL).replace("\"vlan\":4000", &format!("\"vlan\":{invalid}"));
+        assert_eq!(
+            decode_get(id(), response.as_bytes()).err(),
+            Some(RobotVSwitchDecodeError::InvalidVSwitch)
+        );
+    }
 }
 
 #[test]

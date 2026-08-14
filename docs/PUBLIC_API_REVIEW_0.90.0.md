@@ -9,6 +9,10 @@ nonzero vSwitch identities, bounded VLANs, protected names, canonical borrowed
 server selectors, bounded duplicate-free membership sets, and a non-empty
 update-intent enum.
 
+Protected vSwitch names deliberately admit only ASCII letters, digits, spaces,
+hyphens, underscores, and periods, with no leading or trailing space. This
+prevents invisible Unicode, mixed-script names, and non-ASCII confusables.
+
 With `serde`, it also exposes exact typed prepared/checked associations, strict
 owned summary/detail/list and route models, operation-specific provider failure
 codes, canonical/exact plan fingerprints, direct and shared mutation permits,
