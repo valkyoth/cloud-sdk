@@ -31,7 +31,12 @@ CI/CodeQL; it publishes no crate.
   decoder.
 - Added complete protected rule/template accessors and fixed-work comparison.
   Detailed responses may omit the documented template name, so mutation
-  decoding reports reconciliation-required instead of unconfirmed success.
+  decoding reports non-erasable pending state instead of unconfirmed success.
+  Confirmation consumes that state with a same-ID, name-bearing list summary
+  and checks the protected name, policy flags, and detailed ordered rules.
+- Documented Robot's non-atomic list/detail observation boundary: callers must
+  exclude concurrent template mutation or repeat reconciliation after a
+  possible race because Robot supplies no revision binding the two reads.
 - Rejected additional bidirectional and invisible Unicode formatting and made
   all form-builder allocations explicitly fallible.
 - Added request-bound mutation/destructive permits, immutable source evidence,

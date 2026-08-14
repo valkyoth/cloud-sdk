@@ -14,9 +14,13 @@ request-bound mutation/destructive permits.
 The reviewed remediation adds complete closure-scoped destination/source port
 and TCP-flag access, template summary policy flags, protected exact comparison
 helpers, `RobotFirewallTemplateReconciliation`, and
-`RobotFirewallTemplateMutationOutcome`. Detailed template names are optional
-because the official create/get/update examples omit the field despite the
-output table listing it.
+`RobotFirewallTemplateMutationOutcome`. Its unresolved variant owns a
+`PendingRobotFirewallTemplate`, and `into_confirmed()` returns that pending
+state instead of erasing it. Pending confirmation consumes the state together
+with the matching name-bearing list summary and verifies identity, protected
+name, summary flags, detailed flags, and ordered rules. Detailed template names
+are optional because the official create/get/update examples omit the field
+despite the output table listing it.
 
 Inline replacement and template application are distinct public enum variants.
 Raw response decoders, strict JSON helpers, and form assembly remain
@@ -39,3 +43,6 @@ and is never normalized by sorting. Missing-protocol port rules remain
 representable as documented by Robot, while an explicitly incompatible
 protocol remains rejected. Template mutations cannot claim full confirmation
 when Robot omits the protected name.
+The list and detail observations have no provider revision binding, so callers
+must exclude concurrent template mutation or repeat reconciliation after a
+possible race.

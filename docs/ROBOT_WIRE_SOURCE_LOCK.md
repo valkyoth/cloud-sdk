@@ -352,6 +352,11 @@ mutation retry remains forbidden. Official rules with ports and no protocol
 are accepted; incompatible explicit protocols remain rejected. The source's
 output table lists a template name, but its detailed examples omit it, so
 template mutation decoding exposes an explicit reconciliation-required result.
+That result owns non-erasable pending state. Confirmation consumes it with the
+same-ID, name-bearing list summary and compares the protected name, all summary
+flags, detailed flags, and ordered rules against the request. Robot exposes no
+revision binding list and detail observations, so callers must serialize
+concurrent mutations or repeat reconciliation after a possible race.
 All eight operations are locked to 500 requests per hour. The normalized
 contract and digest-bound official examples are committed in
 [`v0.89.0.json`](../tests/fixtures/robot-firewall/v0.89.0.json) and checked by

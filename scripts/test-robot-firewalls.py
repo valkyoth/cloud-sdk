@@ -106,13 +106,21 @@ def main() -> None:
             encoding="ascii",
         )
         assert run(FIXTURE, reconcile_source=reconcile).returncode != 0
+        incomplete_reconcile = Path(directory) / "incomplete-reconcile.rs"
+        incomplete_reconcile.write_text(
+            RECONCILE_SOURCE.read_text(encoding="ascii").replace(
+                "reconcile_with_summary", "reconcile_without_summary"
+            ),
+            encoding="ascii",
+        )
+        assert run(FIXTURE, reconcile_source=incomplete_reconcile).returncode != 0
         names = Path(directory) / "types.rs"
         names.write_text(
             NAME_SOURCE.read_text(encoding="ascii").replace("\\u{061c}", "\\u{0061}"),
             encoding="ascii",
         )
         assert run(FIXTURE, name_source=names).returncode != 0
-    print("11 Robot firewall contract regression groups passed.")
+    print("12 Robot firewall contract regression groups passed.")
 
 
 if __name__ == "__main__":

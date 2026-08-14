@@ -132,12 +132,12 @@ pub use firewall::{
 
 #[cfg(feature = "serde")]
 pub use firewall::{
-    CheckedRobotFirewall, MAX_ROBOT_FIREWALL_TEMPLATE_LIST_ITEMS, PreparedRobotFirewall,
-    RobotFirewall, RobotFirewallCanonicalPlanFingerprint, RobotFirewallDecodeError,
-    RobotFirewallDestructivePermit, RobotFirewallFailureCode, RobotFirewallMutationPermit,
-    RobotFirewallPermitAttempt, RobotFirewallPermitRequest, RobotFirewallPlanConfirmation,
-    RobotFirewallPlanFingerprintDigest, RobotFirewallPlanSubject, RobotFirewallPort,
-    RobotFirewallRuleModel, RobotFirewallRuleSet, RobotFirewallRuntimeStatus,
+    CheckedRobotFirewall, MAX_ROBOT_FIREWALL_TEMPLATE_LIST_ITEMS, PendingRobotFirewallTemplate,
+    PreparedRobotFirewall, RobotFirewall, RobotFirewallCanonicalPlanFingerprint,
+    RobotFirewallDecodeError, RobotFirewallDestructivePermit, RobotFirewallFailureCode,
+    RobotFirewallMutationPermit, RobotFirewallPermitAttempt, RobotFirewallPermitRequest,
+    RobotFirewallPlanConfirmation, RobotFirewallPlanFingerprintDigest, RobotFirewallPlanSubject,
+    RobotFirewallPort, RobotFirewallRuleModel, RobotFirewallRuleSet, RobotFirewallRuntimeStatus,
     RobotFirewallSharedDestructivePermit, RobotFirewallSharedMutationPermit, RobotFirewallTemplate,
     RobotFirewallTemplateList, RobotFirewallTemplateMutationOutcome,
     RobotFirewallTemplateReconciliation, RobotFirewallTemplateSummary,

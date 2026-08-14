@@ -652,7 +652,13 @@ Strict protected response models reject unknown fields, malformed values,
 duplicate identities, and mismatched server/template or mutation outcomes.
 The official detailed template examples omit `name` despite the output table;
 the field is therefore optional and mutation decoding requires later
-reconciliation instead of claiming full confirmation when it is absent.
+reconciliation instead of claiming full confirmation when it is absent. The
+pending result cannot be extracted as a confirmed template. Confirmation
+consumes it with the corresponding name-bearing list summary and verifies
+template identity, protected name, all summary flags, detailed flags, and
+ordered rules. Robot provides no revision binding those list/detail reads;
+callers must exclude concurrent mutation or repeat the reconciliation after a
+possible race.
 Protected policy comparison covers ports and TCP flags without ordinary
 short-circuit text comparison.
 Server clear requires an `in process` response with no rules; template delete

@@ -35,8 +35,10 @@ replacement or clear mutations.
 - Checked responses retain the exact operation and request. Server/template
   identities and complete replacement/create/update/clear outcomes must match
   before success is exposed. When an official detailed template response omits
-  the documented name, create/update returns reconciliation-required rather
-  than claiming complete confirmation.
+  the documented name, create/update returns a non-erasable pending type rather
+  than claiming complete confirmation. Confirmation consumes that state and
+  requires a matching name-bearing list summary, exact identity, protected
+  name, policy flags, and detailed ordered rules.
 - Mutations require request-bound strong-digest authority; server clear and
   template delete require distinct destructive authority. Permit attempts
   remain delivery-classified and single use.
@@ -54,3 +56,9 @@ before depending on enforcement. The SDK validates source syntax and exact
 request/response coherence but cannot prove the provider's packet-filtering
 implementation or prevent callers from intentionally constructing permissive
 ordered policies.
+
+Robot supplies no revision or ETag that atomically binds template-list and
+detail observations. Callers must prevent concurrent mutation while collecting
+both views or repeat reconciliation after any possible race. The SDK rejects
+cross-identity and contradictory observations but cannot prove that no third
+party changed the template between provider reads.

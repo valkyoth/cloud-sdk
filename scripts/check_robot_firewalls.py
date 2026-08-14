@@ -165,6 +165,16 @@ def validate(
     reconcile_source = read_text(reconcile_source_path)
     if "constant_time_eq" not in reconcile_source or ".fold(" not in reconcile_source:
         fail("protected firewall reconciliation is no longer fixed-work")
+    for required in [
+        "PendingRobotFirewallTemplate",
+        "reconcile_with_summary",
+        "into_confirmed",
+        "summary_matches_detail",
+    ]:
+        if required not in reconcile_source:
+            fail(f"template reconciliation typestate lost {required}")
+    if "into_template(" in reconcile_source:
+        fail("template reconciliation state can be erased")
     name_source = read_text(name_source_path)
     for scalar in ["061c", "200b", "200f", "202a", "202e", "2060", "2069", "feff"]:
         if f"\\u{{{scalar}}}" not in name_source:

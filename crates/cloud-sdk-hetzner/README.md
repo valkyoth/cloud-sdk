@@ -683,7 +683,12 @@ protocol. Detailed template examples omit the documented `name`; reads expose
 that field as optional and create/update decoding returns an explicit
 reconciliation-required outcome when Robot does not confirm it. Protected
 ports, TCP flags, and template summary flags remain inspectable through
-closure-scoped accessors and exact comparison helpers. It does not yet expose
+closure-scoped accessors and exact comparison helpers. The unresolved outcome
+owns non-erasable pending state; confirmation consumes it with a same-ID,
+name-bearing list summary and verifies the complete requested policy. Robot
+does not revision-bind the list and detail reads, so callers must prevent
+concurrent mutation or repeat reconciliation after a possible race. It does
+not yet expose
 the later Robot endpoint families or a high-level Robot client.
 Its complete source lock records 89
 active operations and excludes all 16 deprecated Storage Box operations. See the

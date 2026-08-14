@@ -59,7 +59,10 @@ pub use permit::{
     build_robot_firewall_canonical_plan, build_robot_firewall_plan_digest,
 };
 #[cfg(feature = "serde")]
-pub use reconcile::{RobotFirewallTemplateMutationOutcome, RobotFirewallTemplateReconciliation};
+pub use reconcile::{
+    PendingRobotFirewallTemplate, RobotFirewallTemplateMutationOutcome,
+    RobotFirewallTemplateReconciliation,
+};
 
 #[cfg(all(test, feature = "serde"))]
 mod tests;

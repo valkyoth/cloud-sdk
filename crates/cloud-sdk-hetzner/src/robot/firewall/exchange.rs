@@ -10,8 +10,8 @@ use super::decode::{
 };
 use super::model::*;
 use super::reconcile::{
-    RobotFirewallTemplateMutationOutcome, RobotFirewallTemplateReconciliation, rules_match,
-    template_reconciliation,
+    PendingRobotFirewallTemplate, RobotFirewallTemplateMutationOutcome,
+    RobotFirewallTemplateReconciliation, rules_match, template_reconciliation,
 };
 use super::request::*;
 use super::types::RobotFirewallTemplateId;
@@ -191,9 +191,11 @@ impl CheckedRobotFirewall<'_, '_, RobotFirewallTemplateCreateRequest<'_>> {
             RobotFirewallTemplateReconciliation::Confirmed => {
                 Ok(RobotFirewallTemplateMutationOutcome::Confirmed(result))
             }
-            RobotFirewallTemplateReconciliation::NameUnconfirmed => {
-                Ok(RobotFirewallTemplateMutationOutcome::ReconciliationRequired(result))
-            }
+            RobotFirewallTemplateReconciliation::NameUnconfirmed => Ok(
+                RobotFirewallTemplateMutationOutcome::ReconciliationRequired(
+                    PendingRobotFirewallTemplate::new(result),
+                ),
+            ),
             RobotFirewallTemplateReconciliation::Mismatch => {
                 Err(RobotFirewallDecodeError::MutationOutcomeMismatch)
             }
@@ -212,9 +214,11 @@ impl CheckedRobotFirewall<'_, '_, RobotFirewallTemplateUpdateRequest<'_>> {
             RobotFirewallTemplateReconciliation::Confirmed => {
                 Ok(RobotFirewallTemplateMutationOutcome::Confirmed(result))
             }
-            RobotFirewallTemplateReconciliation::NameUnconfirmed => {
-                Ok(RobotFirewallTemplateMutationOutcome::ReconciliationRequired(result))
-            }
+            RobotFirewallTemplateReconciliation::NameUnconfirmed => Ok(
+                RobotFirewallTemplateMutationOutcome::ReconciliationRequired(
+                    PendingRobotFirewallTemplate::new(result),
+                ),
+            ),
             RobotFirewallTemplateReconciliation::Mismatch => {
                 Err(RobotFirewallDecodeError::MutationOutcomeMismatch)
             }

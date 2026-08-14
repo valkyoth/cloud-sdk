@@ -1,5 +1,6 @@
 use super::model::{
     RobotFirewall, RobotFirewallRuleModel, RobotFirewallRuleSet, RobotFirewallTemplate,
+    RobotFirewallTemplateSummary,
 };
 use super::value::{RobotFirewallRule, RobotFirewallRules, RobotFirewallTemplateConfig};
 use crate::serde::SensitiveText;
@@ -15,34 +16,102 @@ pub enum RobotFirewallTemplateReconciliation {
     Mismatch,
 }
 
+/// Detailed template whose protected name still requires reconciliation.
+#[must_use = "pending Robot firewall templates must be reconciled"]
+pub struct PendingRobotFirewallTemplate {
+    template: RobotFirewallTemplate,
+}
+
+impl PendingRobotFirewallTemplate {
+    pub(super) const fn new(template: RobotFirewallTemplate) -> Self {
+        Self { template }
+    }
+
+    /// Borrows the observed detailed state without marking it confirmed.
+    #[must_use]
+    pub const fn observed(&self) -> &RobotFirewallTemplate {
+        &self.template
+    }
+
+    /// Confirms this pending mutation using its name-bearing list summary.
+    ///
+    /// Robot does not expose a revision binding the list and detail reads.
+    /// Callers must prevent concurrent template mutation while collecting both
+    /// observations or repeat reconciliation after any possible race.
+    pub fn reconcile_with_summary(
+        self,
+        summary: &RobotFirewallTemplateSummary,
+        expected: RobotFirewallTemplateConfig<'_>,
+    ) -> Result<RobotFirewallTemplate, Self> {
+        let (name, filter_ipv6, whitelist_hos, is_default, _) = expected.parts();
+        let identity_matches = summary.id == self.template.summary.id;
+        let name_matches = summary
+            .name
+            .as_ref()
+            .is_some_and(|actual| actual.constant_time_eq(name.as_str()));
+        let summary_matches_detail = (summary.filter_ipv6 == self.template.summary.filter_ipv6)
+            & (summary.whitelist_hos == self.template.summary.whitelist_hos)
+            & (summary.is_default == self.template.summary.is_default);
+        let summary_matches_expected = filter_ipv6.is_none_or(|value| value == summary.filter_ipv6)
+            & (whitelist_hos == summary.whitelist_hos)
+            & (is_default == summary.is_default);
+        let detail_matches = template_policy_matches_without_name(expected, &self.template);
+        if identity_matches
+            & name_matches
+            & summary_matches_detail
+            & summary_matches_expected
+            & detail_matches
+        {
+            Ok(self.template)
+        } else {
+            Err(self)
+        }
+    }
+}
+
+impl core::fmt::Debug for PendingRobotFirewallTemplate {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        formatter
+            .debug_tuple("PendingRobotFirewallTemplate")
+            .field(&"[redacted template]")
+            .finish()
+    }
+}
+
 /// Checked result of a successful template mutation.
+#[must_use = "template mutation confirmation state must be handled"]
 pub enum RobotFirewallTemplateMutationOutcome {
     /// Robot returned enough state to confirm the complete requested policy.
     Confirmed(RobotFirewallTemplate),
-    /// Robot omitted the name, so the template must be read and reconciled.
-    ReconciliationRequired(RobotFirewallTemplate),
+    /// Robot omitted the name, so list and detail state must be reconciled.
+    ReconciliationRequired(PendingRobotFirewallTemplate),
 }
 
 impl RobotFirewallTemplateMutationOutcome {
-    /// Returns the decoded template regardless of confirmation state.
+    /// Borrows the template only when every requested field was confirmed.
     #[must_use]
-    pub const fn template(&self) -> &RobotFirewallTemplate {
+    pub const fn confirmed(&self) -> Option<&RobotFirewallTemplate> {
         match self {
-            Self::Confirmed(template) | Self::ReconciliationRequired(template) => template,
+            Self::Confirmed(template) => Some(template),
+            Self::ReconciliationRequired(_) => None,
         }
     }
 
-    /// Reports whether the response confirmed every requested field.
+    /// Borrows the explicit pending state when reconciliation is required.
     #[must_use]
-    pub const fn is_confirmed(&self) -> bool {
-        matches!(self, Self::Confirmed(_))
+    pub const fn pending(&self) -> Option<&PendingRobotFirewallTemplate> {
+        match self {
+            Self::Confirmed(_) => None,
+            Self::ReconciliationRequired(pending) => Some(pending),
+        }
     }
 
-    /// Consumes the outcome and returns the decoded template.
-    #[must_use]
-    pub fn into_template(self) -> RobotFirewallTemplate {
+    /// Consumes the outcome without erasing unresolved confirmation state.
+    #[must_use = "unresolved template state must not be discarded"]
+    pub fn into_confirmed(self) -> Result<RobotFirewallTemplate, PendingRobotFirewallTemplate> {
         match self {
-            Self::Confirmed(template) | Self::ReconciliationRequired(template) => template,
+            Self::Confirmed(template) => Ok(template),
+            Self::ReconciliationRequired(pending) => Err(pending),
         }
     }
 }
@@ -105,17 +174,13 @@ pub(super) fn template_reconciliation(
     config: RobotFirewallTemplateConfig<'_>,
     result: &RobotFirewallTemplate,
 ) -> RobotFirewallTemplateReconciliation {
-    let (name, filter_ipv6, whitelist_hos, is_default, rules) = config.parts();
+    let (name, ..) = config.parts();
     let name_matches = result
         .summary
         .name
         .as_ref()
         .is_some_and(|actual| actual.constant_time_eq(name.as_str()));
-    let other_fields_match = filter_ipv6
-        .is_none_or(|expected| expected == result.summary.filter_ipv6)
-        & (whitelist_hos == result.summary.whitelist_hos)
-        & (is_default == result.summary.is_default)
-        & rules_match(rules, &result.rules);
+    let other_fields_match = template_policy_matches_without_name(config, result);
     if !other_fields_match || result.summary.name.is_some() && !name_matches {
         RobotFirewallTemplateReconciliation::Mismatch
     } else if name_matches {
@@ -123,6 +188,17 @@ pub(super) fn template_reconciliation(
     } else {
         RobotFirewallTemplateReconciliation::NameUnconfirmed
     }
+}
+
+fn template_policy_matches_without_name(
+    config: RobotFirewallTemplateConfig<'_>,
+    result: &RobotFirewallTemplate,
+) -> bool {
+    let (_, filter_ipv6, whitelist_hos, is_default, rules) = config.parts();
+    filter_ipv6.is_none_or(|expected| expected == result.summary.filter_ipv6)
+        & (whitelist_hos == result.summary.whitelist_hos)
+        & (is_default == result.summary.is_default)
+        & rules_match(rules, &result.rules)
 }
 
 pub(super) fn rules_match(expected: RobotFirewallRules<'_>, actual: &RobotFirewallRuleSet) -> bool {

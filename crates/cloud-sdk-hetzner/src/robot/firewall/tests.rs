@@ -11,6 +11,7 @@ use super::*;
 
 mod support;
 use support::*;
+mod reconciliation;
 
 const RULE_JSON: &str = r#"{"ip_version":"ipv4","name":"HTTPS","dst_ip":"192.0.2.0/24","src_ip":null,"dst_port":"443","src_port":null,"protocol":"tcp","tcp_flags":"syn|ack","action":"accept"}"#;
 
@@ -327,21 +328,59 @@ fn template_inventory_and_mutations_are_request_bound() {
     let create = RobotFirewallTemplateCreateRequest::new(template_config(&request_rules));
     let confirmed = decode_template_create(&create, &body)
         .unwrap_or_else(|_| unreachable!("confirmed template failed"));
-    assert!(confirmed.is_confirmed());
+    assert!(confirmed.pending().is_none());
     assert_eq!(
         confirmed
-            .template()
+            .confirmed()
+            .unwrap_or_else(|| unreachable!("confirmed state disappeared"))
             .reconcile(template_config(&request_rules)),
         RobotFirewallTemplateReconciliation::Confirmed
     );
-    let unconfirmed = decode_template_create(&create, &template_json_without_name(17, &rules))
+    assert!(confirmed.into_confirmed().is_ok());
+
+    let pending = decode_template_create(&create, &template_json_without_name(17, &rules))
         .unwrap_or_else(|_| unreachable!("no-name template failed"));
-    assert!(!unconfirmed.is_confirmed());
+    assert!(pending.confirmed().is_none());
     assert_eq!(
-        unconfirmed
-            .template()
+        pending
+            .pending()
+            .unwrap_or_else(|| unreachable!("pending state disappeared"))
+            .observed()
             .reconcile(template_config(&request_rules)),
         RobotFirewallTemplateReconciliation::NameUnconfirmed
+    );
+    let pending = pending
+        .into_confirmed()
+        .err()
+        .unwrap_or_else(|| unreachable!("pending state was erased"));
+    let summary = list
+        .as_slice()
+        .first()
+        .unwrap_or_else(|| unreachable!("list summary disappeared"));
+    assert!(
+        pending
+            .reconcile_with_summary(summary, template_config(&request_rules))
+            .is_ok()
+    );
+
+    let wrong_summary = r#"[{"firewall_template":{"id":18,"name":"baseline","filter_ipv6":false,"whitelist_hos":true,"is_default":false}}]"#;
+    let wrong_list = decode_template_list(wrong_summary.as_bytes())
+        .unwrap_or_else(|_| unreachable!("wrong summary fixture failed"));
+    let pending = decode_template_create(&create, &template_json_without_name(17, &rules))
+        .unwrap_or_else(|_| unreachable!("second pending template failed"))
+        .into_confirmed()
+        .err()
+        .unwrap_or_else(|| unreachable!("second pending state was erased"));
+    assert!(
+        pending
+            .reconcile_with_summary(
+                wrong_list
+                    .as_slice()
+                    .first()
+                    .unwrap_or_else(|| unreachable!("wrong summary disappeared")),
+                template_config(&request_rules),
+            )
+            .is_err()
     );
     assert_eq!(
         decode_template_create(&create, &template_json(17, "changed", &rules)).err(),

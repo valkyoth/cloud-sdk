@@ -56,8 +56,20 @@ table lists it. `RobotFirewallTemplateSummary::try_with_name` therefore passes
 `Option<&str>` to its closure. Template create/update decoding returns
 `RobotFirewallTemplateMutationOutcome`: `Confirmed` means every requested
 field was returned and matched, while `ReconciliationRequired` means all
-returned policy fields matched but the protected name must be confirmed by a
-subsequent read. Use `RobotFirewallTemplate::reconcile` for that comparison.
+returned policy fields matched but the protected name remains unresolved. The
+latter variant contains `PendingRobotFirewallTemplate`; it cannot be consumed
+as a confirmed template. Call `into_confirmed()` and, when it returns the
+pending value, obtain the matching name-bearing template-list summary and call
+`PendingRobotFirewallTemplate::reconcile_with_summary`. Confirmation checks
+the template ID, protected name, every summary policy flag, and the detailed
+ordered rules against the original request.
+
+Robot does not expose a revision or ETag that binds template-list and detail
+reads into one atomic observation. Prevent concurrent template mutations while
+collecting both responses, or repeat reconciliation after any possible race.
+`RobotFirewallTemplate::reconcile` remains useful for comparing a detailed
+read, but a detail response that omits `name` returns `NameUnconfirmed` and
+cannot alone complete pending mutation confirmation.
 
 Decoded destination/source ports and TCP flags now have closure-scoped
 accessors. `RobotFirewallRuleModel::matches`, `RobotFirewallRuleSet::matches`,
