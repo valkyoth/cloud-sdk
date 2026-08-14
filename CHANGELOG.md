@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.91.0 - Pending
+
+- Added all six active read-only Robot ordering-catalog operations for
+  standard products, Server Auction products, per-server addons, and currency.
+- Added exact non-floating-point prices, protected identifiers and text,
+  bounded complete response models, and request-bound detail decoding.
+- Added typed catalog plans that cannot prepare purchases and always require
+  immediate price revalidation.
+- Added official-source and response-example locks, mutation checks,
+  adversarial tests, and dedicated ordering response fuzzing.
+- Deferred crates.io publication to the cumulative v0.95.0 checkpoint.
+
 ## 0.90.0 - 2026-08-14
 
 - Added all seven active Robot vSwitch operations with exact list, create,

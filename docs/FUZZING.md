@@ -44,14 +44,34 @@ scripts/check_fuzz_harness.sh --smoke
 | `action_requests` | global and certificate action path/query buffer boundaries |
 | `labels_dns` | labels, selectors, DNS names, endpoint paths, and record JSON |
 | `pagination` | metadata coherence, entry bounds, traversal locks, and non-mutation |
+| `quota_retry` | quota headers, Retry-After values, and bounded provider retry decisions |
+| `retry_policy` | retry ownership, budgets, attempt state, and ambiguous delivery |
+| `pagination_opaque` | protected cursor and marker history, cycles, and cleanup |
+| `provider_links` | provider-link endpoint, method, operation, and target identity |
 | `action_polling` | progress, policy, terminal state, and non-mutation |
 | `response_envelopes` | bounded action, error, and pagination JSON envelopes |
 | `response_content_type` | media-type essence, parameters, quoted strings, escapes, and bounded owned response metadata |
 | `checked_response` | prepared-policy binding, source-locked operation decoding, typed success/error envelopes, invalid UTF-8, oversized integers, deep nesting, and malformed payload rejection |
+| `cloud_special_responses` | metrics, zonefiles, and no-content operation response boundaries |
+| `raw_response_parser` | incremental raw status/header/body parsing and exact limits |
+| `raw_http1_wire` | complete HTTP/1 response-head and body boundary handling |
 | `incremental_json` | chunk-invariant bounded decoding, early stop, duplicate keys, and independent JSON-validity admission |
 | `robot_form` | Robot form ordering, repeated fields, HTML-form byte grammar, capacity atomicity, and complete output cleanup |
+| `robot_error_protocol` | Robot status/code allowlists, quota, maintenance, and lockout classification |
+| `robot_server_response` | Robot server list/detail/rename identity and protected model decoding |
+| `robot_ip_parser` | differential canonical IPv4/IPv6 parsing and network policy |
+| `robot_cancellation_response` | cancellation state, date, identity, and acknowledgement decoding |
 | `robot_ip_response` | checked Robot IP list/detail/MAC/delete envelopes, bounded assignment state, canonical addresses/MACs, network consistency, and mutation outcome binding |
 | `robot_subnet_response` | checked Robot subnet list/detail/MAC/set/delete envelopes, nullable assignments, prefix/gateway consistency, bounded selectable MAC maps, and mutation outcome binding |
+| `robot_reset_response` | reset capability/detail bounds and request-bound execution evidence |
+| `robot_failover_response` | failover route/state identity and mutation outcomes |
+| `robot_boot_response` | Rescue, Linux, VNC, and Windows configuration variants |
+| `robot_rdns_response` | reverse-DNS inventory, canonical addresses, and PTR identity |
+| `robot_traffic_response` | bounded sparse traffic periods, exact decimals, and echoed query identity |
+| `robot_ssh_key_response` | normalized public-key wire, fingerprint, size, and algorithm coherence |
+| `robot_firewall_response` | ordered rules, templates, protected metadata, and reconciliation |
+| `robot_vswitch_response` | VLAN, membership, route, gateway, and acknowledgement boundaries |
+| `robot_ordering_response` | standard, auction, addon, currency, exact-price, and catalog identity boundaries |
 
 Named seeds under `fuzz/seeds/` are synthetic valid and invalid cases derived
 from source-locked API examples and SDK policy boundaries. Generated corpora
@@ -85,6 +105,8 @@ boundary. Deterministic tests cover its below/exact/plus-one cases, the 8 MiB
 body boundaries, and exact oversized model fields. `robot_reset_response` uses
 a 1 MiB ceiling so mutations can reach realistic near-limit reset lists;
 deterministic tests separately cover the exact 4,095/4,096/4,097 item boundary.
+`robot_ordering_response` uses a 4 MiB ceiling plus one byte so mutations can
+reach both the admitted list limit and its rejection boundary.
 
 ## Crash Reproduction
 

@@ -422,6 +422,13 @@ VLAN/name/member models, exact repeated membership forms, strict list/detail
 and creation decoding, request-bound mutation/destructive permits, and an
 explicit detail-read reconciliation boundary after bodyless acknowledgements.
 
+`v0.91.0` implements all six active read-only Robot ordering-catalog
+operations. Standard products, Server Auction products, per-server addons, and
+account currency use exact source-locked paths, bounded protected values,
+strict request-associated responses, and non-floating-point prices. Typed
+catalog plans carry a mandatory current-price warning and cannot prepare a
+purchase request.
+
 Robot implementation schedule:
 
 | Group | Active | Deprecated | Planned Module | Milestone | Status |
@@ -439,7 +446,7 @@ Robot implementation schedule:
 | SSH keys | 5 | 0 | `cloud_sdk_hetzner::robot::ssh_keys` | `v0.88.0` | implemented |
 | firewall | 8 | 0 | `cloud_sdk_hetzner::robot::firewall` | `v0.89.0` | implemented |
 | vSwitch | 7 | 0 | `cloud_sdk_hetzner::robot::vswitch` | `v0.90.0` | implemented |
-| ordering catalogs | 6 | 0 | `cloud_sdk_hetzner::robot::ordering` | `v0.91.0` | planned |
+| ordering catalogs | 6 | 0 | `cloud_sdk_hetzner::robot::ordering` | `v0.91.0` | implemented |
 | transactions | 6 | 0 | `cloud_sdk_hetzner::robot::ordering` | `v0.92.0` | planned |
 | ordering mutations | 3 | 0 | `cloud_sdk_hetzner::robot::ordering` | `v0.93.0` | planned |
 | legacy Storage Box | 0 | 16 | existing Console Storage Box modules | excluded | excluded |

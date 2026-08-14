@@ -1,0 +1,26 @@
+[
+  {
+    "product": {
+      "id": "additional_ipv4",
+      "name": "Additional IP address",
+      "type": "ip_ipv4",
+      "price": {
+        "location": "NBG1",
+        "price": {"net": "0.8403", "gross": "1.0000", "hourly_net": "0.0014", "hourly_gross": "0.0017"},
+        "price_setup": {"net": "19.0000", "gross": "22.6100"}
+      }
+    }
+  },
+  {
+    "product": {
+      "id": "subnet_ipv4_29",
+      "name": "Additional subnet /29",
+      "type": "subnet_ipv4",
+      "price": {
+        "location": "NBG1",
+        "price": {"net": "6.7227", "gross": "8.0000", "hourly_net": "0.0108", "hourly_gross": "0.0129"},
+        "price_setup": {"net": "152.0000", "gross": "180.8800"}
+      }
+    }
+  }
+]

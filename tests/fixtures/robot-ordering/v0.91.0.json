@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "source": {
+    "retrieved": "2026-08-14",
+    "url": "https://robot.hetzner.com/doc/webservice/en.html",
+    "sha256": "4b396790acc449f47b2b3b893f8eff759c0c25196dc38b1e5e92a12c9704771a",
+    "examples": [
+      {"path":"tests/fixtures/robot-ordering/standard.json","sha256":"31a802fc33728e7720d10e202e95b7d65083d8ecd734d61f676356e4cf57b8c2"},
+      {"path":"tests/fixtures/robot-ordering/market.json","sha256":"5d13dd016a99c08708278ade7f49b6bbf7502edc11166d587393f73ea54d562d"},
+      {"path":"tests/fixtures/robot-ordering/addons.json","sha256":"0be316ca5c4e05ca4e7f2d19beba385bd5a48b3b981836bfa00faa697bc06ca8"},
+      {"path":"tests/fixtures/robot-ordering/currency.json","sha256":"44c2a33eae91d4122c94ed2197999a3f6155515b63f3d79fab8aa51ee1a788c5"}
+    ]
+  },
+  "inventory": "tests/fixtures/robot-api/v0.74.0.json",
+  "operations": [
+    {"id":"robot_list_server_products","inventory_id":"list_server_products","method":"GET","path":"/order/server/product","success":200,"quota":{"requests":500,"interval_seconds":3600},"body":"json-list"},
+    {"id":"robot_get_server_product","inventory_id":"get_server_product","method":"GET","path":"/order/server/product/{product-id}","success":200,"quota":{"requests":500,"interval_seconds":3600},"body":"json-detail"},
+    {"id":"robot_list_server_market_products","inventory_id":"list_server_market_products","method":"GET","path":"/order/server_market/product","success":200,"quota":{"requests":500,"interval_seconds":3600},"body":"json-list"},
+    {"id":"robot_get_server_market_product","inventory_id":"get_server_market_product","method":"GET","path":"/order/server_market/product/{product-id}","success":200,"quota":{"requests":500,"interval_seconds":3600},"body":"json-detail"},
+    {"id":"robot_list_server_addon_products","inventory_id":"list_server_addon_products","method":"GET","path":"/order/server_addon/{server-number}/product","success":200,"quota":{"requests":500,"interval_seconds":3600},"body":"json-list"},
+    {"id":"robot_list_order_currencies","inventory_id":"list_order_currencies","method":"GET","path":"/order/currency","success":200,"quota":{"requests":500,"interval_seconds":3600},"body":"json-detail"}
+  ],
+  "request": {
+    "standard_filters": ["min_price", "max_price", "min_price_setup", "max_price_setup", "location"],
+    "content_type": null,
+    "authentication": "robot-basic"
+  },
+  "response": {
+    "content_type": "application/json",
+    "standard_fields": ["id", "name", "description", "traffic", "dist", "@deprecated arch", "lang", "location", "prices", "orderable_addons"],
+    "market_fields": ["id", "name", "description", "traffic", "dist", "@deprecated arch", "lang", "cpu", "cpu_benchmark", "memory_size", "hdd_size", "hdd_text", "hdd_count", "datacenter", "network_speed", "price", "price_hourly", "price_setup", "price_vat", "price_hourly_vat", "price_setup_vat", "fixed_price", "next_reduce", "next_reduce_date", "orderable_addons"],
+    "addon_fields": ["id", "name", "type", "price"],
+    "price_fields": ["location", "price", "price_setup"],
+    "currency_fields": ["currency"]
+  },
+  "local_policy": {
+    "decimal_fractional_digits": 4,
+    "decimal_total_digits": 18,
+    "product_items": 4096,
+    "nested_items": 4096,
+    "list_response_bytes": 4194304,
+    "item_response_bytes": 1048576,
+    "plans_are_executable": false,
+    "price_warning": "revalidate-immediately-before-purchase",
+    "automatic_retry": "explicit-policy"
+  }
+}

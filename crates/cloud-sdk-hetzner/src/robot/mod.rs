@@ -21,6 +21,8 @@
 //! `v0.89.0`.
 //! vSwitch inventory, configuration, cancellation, and repeated server
 //! membership operations are source-locked in `v0.90.0`.
+//! Read-only server, Server Auction, addon, and account-currency catalogs are
+//! source-locked in `v0.91.0`; ordering remains deliberately non-executable.
 
 #[cfg(feature = "alloc")]
 mod boot;
@@ -39,6 +41,8 @@ mod firewall;
 mod form;
 #[cfg(feature = "alloc")]
 mod ip;
+#[cfg(feature = "alloc")]
+mod ordering;
 #[cfg(feature = "serde")]
 mod protocol;
 #[cfg(feature = "alloc")]
@@ -167,6 +171,28 @@ pub use ip::{
     RobotIpGetRequest, RobotIpListRequest, RobotIpMacDeleteRequest, RobotIpMacGetRequest,
     RobotIpMacSetRequest, RobotIpRequestError, RobotIpTrafficUpdate, RobotIpUpdateRequest,
     RobotMacAddress, RobotMacAddressError,
+};
+
+#[cfg(feature = "alloc")]
+pub use ordering::{
+    MAX_ROBOT_ORDER_CHOICE_BYTES, MAX_ROBOT_ORDER_ITEM_RESPONSE_BYTES,
+    MAX_ROBOT_ORDER_LIST_RESPONSE_BYTES, MAX_ROBOT_ORDER_LOCATION_BYTES,
+    MAX_ROBOT_ORDER_PRODUCT_ID_BYTES, RobotAddonProductListRequest, RobotMarketProductGetRequest,
+    RobotMarketProductId, RobotMarketProductListRequest, RobotOrderChoice, RobotOrderCurrency,
+    RobotOrderCurrencyRequest, RobotOrderDecimal, RobotOrderLocation, RobotOrderProductId,
+    RobotOrderRequestError, RobotOrderValueError, RobotStandardProductFilters,
+    RobotStandardProductGetRequest, RobotStandardProductListRequest,
+};
+
+#[cfg(feature = "serde")]
+pub use ordering::{
+    CheckedRobotOrderCatalog, MAX_ROBOT_ADDON_PRODUCTS, MAX_ROBOT_MARKET_PRODUCTS,
+    MAX_ROBOT_STANDARD_PRODUCTS, PreparedRobotOrderCatalog, RobotAddonOrderPlan, RobotAddonProduct,
+    RobotAddonProductList, RobotCatalogPlanError, RobotCatalogPriceWarning, RobotMarketOrderPlan,
+    RobotMarketProduct, RobotMarketProductList, RobotOrderCatalogDecodeError,
+    RobotOrderFailureCode, RobotOrderPrice, RobotOrderPricePair, RobotOrderText,
+    RobotOrderableAddon, RobotStandardAddonSelection, RobotStandardOrderPlan, RobotStandardProduct,
+    RobotStandardProductList,
 };
 
 #[cfg(feature = "alloc")]

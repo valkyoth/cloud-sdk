@@ -184,7 +184,7 @@ impl Value {
         }
     }
 
-    pub(super) fn as_i64(&self) -> Option<i64> {
+    pub(crate) fn as_i64(&self) -> Option<i64> {
         match self {
             Self::Number(Number::Unsigned(value) | Number::Signed(value)) => {
                 value.as_str().parse().ok()

@@ -1,0 +1,43 @@
+{
+  "product": {
+    "id": 282323,
+    "name": "SB109",
+    "description": ["Intel Core i7", "24 GB RAM", "2 x 120 GB SSD"],
+    "traffic": "20 TB",
+    "dist": ["Rescue system"],
+    "@deprecated arch": [64],
+    "lang": ["en"],
+    "cpu": "Intel Core i7 980x",
+    "cpu_benchmark": 8944,
+    "memory_size": 24,
+    "hdd_size": 120,
+    "hdd_text": "SSD",
+    "hdd_count": 2,
+    "datacenter": "FSN1-DC4",
+    "network_speed": "1 Gbit/s",
+    "price": "91.6000",
+    "price_hourly": "0.1468",
+    "price_setup": "0.0000",
+    "price_vat": "109.0040",
+    "price_hourly_vat": "0.1747",
+    "price_setup_vat": "0.0000",
+    "fixed_price": false,
+    "next_reduce": -10800,
+    "next_reduce_date": "2028-05-01 12:22:00",
+    "orderable_addons": [
+      {
+        "id": "primary_ipv4",
+        "name": "Primary IPv4",
+        "min": 0,
+        "max": 1,
+        "prices": [
+          {
+            "location": "FSN1",
+            "price": {"net": "1.7000", "gross": "2.0230", "hourly_net": "0.0027", "hourly_gross": "0.0032"},
+            "price_setup": {"net": "0.0000", "gross": "0.0000"}
+          }
+        ]
+      }
+    ]
+  }
+}

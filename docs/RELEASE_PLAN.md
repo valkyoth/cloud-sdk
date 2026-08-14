@@ -2995,19 +2995,68 @@ publication.
 
 Stop gate: `v0.90.0 implementation stop reached. Run the pentest for this exact commit before tagging and crates.io publication.`
 
-Status: release candidate; pentest and final retest passed. Tagging and the
-four-crate public checkpoint await the unchanged release-evidence commit's
-local release gate and GitHub CI/CodeQL.
+Status: tagged and published public checkpoint; pentest, final retest, local
+release gate, GitHub CI, and CodeQL passed.
 
 ### v0.91.0 - Robot Ordering Catalogs
 
-Goal: complete read-only products, auctions, prices, currencies, and addons.
+Goal: implement every active read-only Robot ordering-catalog operation while
+making catalog observations useful without making a billable request possible.
 
-Deliverables: exact decimals, locations, distributions, limits, current-price warnings, and typed plan inputs without purchase execution.
+Deliverables:
 
-Verification: catalog/price/decimal/source tests and `scripts/release_0_91_gate.sh`.
+- add standard-server product list/detail, Server Auction product list/detail,
+  per-server addon catalog, and authenticated-account currency requests with
+  exact official methods, paths, filters, statuses, and 500-request/hour
+  quotas;
+- retain standard, auction, addon, location-specific, monthly, hourly, setup,
+  net, and gross prices as exact bounded decimals without floating point;
+- model protected product identifiers, locations, distributions, languages,
+  descriptions, hardware fields, addon quantity limits, account currency, and
+  current auction-reduction metadata;
+- strictly decode bounded complete responses, reject duplicate identities and
+  extra fields, require coherent location prices and hourly net/gross pairs,
+  and bind detail responses to the exact requested product;
+- expose typed standard-server, auction, and per-server addon plan inputs that
+  retain catalog references and an unavoidable current-price warning but have
+  no transport or purchase-preparation implementation;
+- add immutable source and example digests, mutation-resistant contract checks,
+  adversarial tests, response fuzzing and deterministic seeds, public API,
+  migration, dependency, threat, rejected-abstraction, release-note, and SBOM
+  evidence;
+- advance only `cloud-sdk` to `0.91.0` for the internal tag; retain published
+  `cloud-sdk-hetzner 0.45.0`, reqwest `0.35.3`, sanitization `0.19.0`, and
+  testkit `0.30.5`, with crates.io publication deferred to v0.95.0.
 
-Stop gate: `v0.91.0 implementation stop reached. Complete the pentest and full release gate for this exact commit; defer crates.io publication to v0.95.0.`
+Verification:
+
+- test all six method/path/query contracts, exact filter ordering, inverted-
+  range rejection, response limits, safe/read-only metadata, and fail-closed
+  caller-storage cleanup;
+- test decimal canonicalization and ordering, digit/scale bounds, protected
+  diagnostics, list and nested collection limits, location/price coherence,
+  optional hourly pairs, duplicate rejection, unknown fields, malformed
+  values, and request/response identity mismatch;
+- test valid and invalid standard, auction, and addon plans, quantity limits,
+  foreign or duplicate addons, location mismatch, mandatory price warnings,
+  and compile-fail non-executability;
+- source-lock all six active inventory rows and reviewed examples, mutation-
+  test the fixture checker, build and smoke the dedicated fuzz target, and run
+  `scripts/check_robot_ordering.sh` plus `scripts/test-robot-ordering.py`;
+- run formatting, lint, workspace/default/no-std/MSRV/current/platform tests,
+  documentation links and doctests, dependency policy, API/source drift,
+  release metadata, SBOM freshness, and `scripts/release_0_91_gate.sh`.
+
+Exit criteria: all six active ordering-catalog rows are represented exactly
+once; catalog and nested price data are bounded and strictly decoded; detail
+identity and cross-field price relationships fail closed; no v0.91 type can
+prepare or authorize a purchase; no crate is selected for publication; and
+the exact implementation commit is ready for an incremental pentest before
+release evidence is finalized.
+
+Stop gate: `v0.91.0 implementation stop reached. Run the incremental pentest for this exact commit before the full release gate and tag; defer crates.io publication to v0.95.0.`
+
+Status: implementation stop; pentest required.
 
 ### v0.92.0 - Robot Transactions
 

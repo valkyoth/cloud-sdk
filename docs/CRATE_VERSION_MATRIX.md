@@ -1,9 +1,7 @@
 # Crate Version Matrix
 
-Status: `v0.85.0` is the latest published checkpoint. `v0.90.0` is the
-cumulative Robot vSwitch public release candidate; its pentest and final
-retest passed. Tagging and crates.io publication require the unchanged
-release-evidence commit to pass the local release gate and GitHub CI/CodeQL.
+Status: `v0.90.0` is the latest published checkpoint. `v0.91.0` is the first
+internal milestone in the v0.91-v0.95 cumulative train.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
@@ -1356,6 +1354,20 @@ dependents move by dependency-only patches.
 | `cloud-sdk-reqwest` | `0.35.2` | `0.35.3` | `dependency` | Yes | Require the v0.90 core without changing transport behavior. |
 | `cloud-sdk-sanitization` | `0.19.0` | `0.19.0` | `unchanged` | No | No sanitization boundary changes. |
 | `cloud-sdk-testkit` | `0.30.4` | `0.30.5` | `dependency` | Yes | Require the v0.90 core without changing testkit behavior. |
+
+## v0.91.0 Tracking Table
+
+`v0.91.0` implements all six active read-only Robot ordering-catalog
+operations. It begins the v0.91-v0.95 cumulative train and does not publish any
+crate.
+
+| Crate | Published | v0.91 | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.90.0` | `0.91.0` | `code` | No | Advance the internal Robot ordering-catalog milestone; defer publication to v0.95.0. |
+| `cloud-sdk-hetzner` | `0.45.0` | `0.45.0` | `code` | No | Accumulate source-locked Robot ordering catalogs for v0.95.0. |
+| `cloud-sdk-reqwest` | `0.35.3` | `0.35.3` | `unchanged` | No | No transport boundary changes. |
+| `cloud-sdk-sanitization` | `0.19.0` | `0.19.0` | `unchanged` | No | No sanitization boundary changes. |
+| `cloud-sdk-testkit` | `0.30.5` | `0.30.5` | `unchanged` | No | No testkit boundary changes. |
 
 ## Planned Milestone Ownership
 

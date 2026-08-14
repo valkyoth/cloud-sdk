@@ -665,3 +665,30 @@ short-circuit text comparison.
 Server clear requires an `in process` response with no rules; template delete
 requires the exact empty `200` acknowledgement. Raw decoders, automatic
 mutation retry, high-level Robot client, and network transport remain absent.
+
+## v0.91.0 Robot Ordering-Catalog Policy
+
+The six active ordering-catalog rows are bound to the complete Robot inventory
+and normalized `tests/fixtures/robot-ordering/v0.91.0.json` contract. Every
+operation is a read-only `GET`, requires a strict JSON `200` response, uses the
+official Robot endpoint, and retains explicit retry ownership under the
+documented 500-request/hour quota.
+
+Standard-product filters use exact protected non-negative decimal and location
+values. Decimal syntax rejects signs, exponents, noncanonical leading zeroes,
+more than 18 digits, and more than four fractional digits. Preparation writes
+the fixed filter order transactionally and clears caller storage on failure.
+
+Strict response models cap product and nested arrays at 4,096 entries, reject
+unknown fields and duplicate product identities, bind detail responses to the
+requested identity, and require standard/addon prices to reference advertised
+locations. Server Auction hourly net and gross prices must both be present or
+both be absent. Returned names, descriptions, selectors, and exact price text
+use protected redacted storage.
+
+Catalog-derived standard, auction, and addon plans are snapshots only. They
+retain typed references and always report that prices require immediate
+revalidation. They do not implement request preparation, contain transport
+requests, authorize cost, or expose purchase forms. Raw decoders, automatic
+retry, billable ordering, a high-level Robot client, and network transport
+remain absent.

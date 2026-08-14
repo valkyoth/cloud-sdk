@@ -13,7 +13,8 @@ transitions are implemented in `v0.83.0`; Wake-on-LAN is implemented in
 `v0.84.0`; all active boot-configuration operations are implemented in
 `v0.85.0`; all active reverse-DNS operations are implemented in `v0.86.0`.
 Traffic, SSH keys, firewalls, and vSwitches are implemented in
-`v0.87.0-v0.90.0`.
+`v0.87.0-v0.90.0`; all active read-only ordering catalogs are implemented in
+`v0.91.0`.
 
 Retrieved: 2026-08-14
 
@@ -386,6 +387,27 @@ changes. The normalized contract and digest-bound official examples are
 committed in
 [`v0.90.0.json`](../tests/fixtures/robot-vswitch/v0.90.0.json) and checked by
 `scripts/check_robot_vswitches.sh`.
+
+`v0.91.0` implements all six active ordering-catalog rows. Standard-server
+list/detail use `GET /order/server/product` and its protected string ID path;
+the list admits the documented monthly/setup price and location filters.
+Server Auction list/detail use `GET /order/server_market/product` and a nonzero
+numeric ID. Per-server addons use `GET /order/server_addon/{server-number}/product`,
+and account currency uses `GET /order/currency`. All six operations are locked
+to 500 requests per hour and accept only strict JSON success responses.
+
+Prices retain canonical source decimal text with at most 18 digits and four
+fractional digits. Standard products, market products, nested location prices,
+orderable addons, and per-server addons are bounded to 4,096 entries and reject
+duplicate identities. Detail results must match the requested product.
+Advertised prices must refer to advertised locations, and nullable hourly net
+and gross auction prices must occur together. Protected provider text and
+selection values remain redacted and closure-scoped. Catalog-derived plans
+have no transport implementation and require immediate current-price
+revalidation before any later purchase. The normalized contract and reviewed
+response examples are committed in
+[`v0.91.0.json`](../tests/fixtures/robot-ordering/v0.91.0.json) and checked by
+`scripts/check_robot_ordering.sh`.
 
 ## Verification
 

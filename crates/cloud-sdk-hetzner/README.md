@@ -38,7 +38,7 @@ boundaries.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.90.0"
+cloud-sdk = "0.91.0"
 cloud-sdk-hetzner = "0.45.0"
 ```
 
@@ -385,6 +385,42 @@ assert_eq!(
 # fn main() {}
 ```
 
+Robot ordering-catalog support covers standard-server products, Server Auction
+products, per-server addons, and account currency. Prices retain exact decimal
+text without floating point. Catalog-derived plan types are deliberately non-
+executable and always require immediate price revalidation before a later
+purchase operation.
+
+```rust
+# #[cfg(feature = "serde")]
+# fn main() -> Result<(), Box<dyn core::error::Error>> {
+use cloud_sdk::operation::PreparationStorage;
+use cloud_sdk_hetzner::robot::{
+    RobotOrderDecimal, RobotOrderLocation, RobotStandardProductFilters,
+    RobotStandardProductListRequest,
+};
+
+let filters = RobotStandardProductFilters::new(
+    Some(RobotOrderDecimal::new("40.0000")?),
+    Some(RobotOrderDecimal::new("100.0000")?),
+    None,
+    None,
+    Some(RobotOrderLocation::new("FSN1")?),
+)?;
+let request = RobotStandardProductListRequest::new(filters);
+let mut target = [0_u8; 192];
+let mut body = [0_u8; 1];
+let prepared = request.prepare_bound(PreparationStorage::new(&mut target, &mut body))?;
+assert_eq!(
+    prepared.as_untyped().transport_request().target().as_str(),
+    "/order/server/product?min_price=40.0000&max_price=100.0000&location=FSN1",
+);
+# Ok(())
+# }
+# #[cfg(not(feature = "serde"))]
+# fn main() {}
+```
+
 Mutation constructors prepare intent and policy but do not execute it. Review
 the exact selected OS or distribution and language, preserve caller-owned
 input cleanup, use a bounded authenticated transport, and reconcile current
@@ -705,7 +741,8 @@ list/get/rename operations, all nine cancellation operations, and all six IP
 and separate-MAC operations plus subnet, reset, failover, Wake-on-LAN, boot
 configuration, reverse DNS, bounded traffic queries, all five active SSH-key
 lifecycle operations, all eight active firewall and template operations, and
-all seven active vSwitch operations.
+all seven active vSwitch operations, and all six active read-only ordering-
+catalog operations.
 SSH-key responses cryptographically reconcile
 algorithm, size, provider MD5, and SDK-computed SHA-256 identity while keeping
 account metadata protected and redacted. Firewall requests preserve ordered
@@ -727,13 +764,15 @@ possible race. vSwitch support validates VLANs, canonical server selectors,
 bounded duplicate-free memberships, exact repeated `server[]` forms, strict
 list/detail/create responses, and request-bound authority for every mutation.
 Bodyless update, cancellation, attach, and detach acknowledgements require a
-subsequent detail read when callers need reconciled state. It does not yet
-expose the later Robot endpoint families or a high-level Robot client.
+subsequent detail read when callers need reconciled state. Ordering catalogs
+use exact prices, strict request-associated decoding, and non-executable plans.
+It does not yet expose Robot transaction/order mutations or a high-level Robot
+client.
 Its complete source lock records 89
 active operations and excludes all 16 deprecated Storage Box operations. See the
 [Robot source-lock contract](https://github.com/valkyoth/cloud-sdk/blob/main/docs/ROBOT_WIRE_SOURCE_LOCK.md).
 The latest Robot additions and source migration are described in the
-[v0.90 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.90.0.md).
+[v0.91 source migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.91.0.md).
 Breaking v0.27 constructor and custom-endpoint changes are listed in the
 [migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.27.0.md).
 Shared transport and credential lifecycle changes are listed in the

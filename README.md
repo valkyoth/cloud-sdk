@@ -75,15 +75,13 @@ Published and planned versions for each independently versioned crate are
 listed in the
 [crate version matrix](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATE_VERSION_MATRIX.md).
 
-The v0.85 crates.io checkpoint includes exhaustive named clients for every
+The v0.90 crates.io checkpoint includes exhaustive named clients for every
 active Hetzner Cloud, DNS, Security, and Console Storage Box operation plus
-source-locked Robot support through boot configuration. The v0.90 public
-release candidate adds the cumulative reverse-DNS, traffic, SSH-key, firewall,
-and vSwitch work. Its pentest and final retest passed; tagging and publication
-require the unchanged release-evidence commit to pass the local release gate
-and GitHub CI/CodeQL. Provider crates remain transport-free and perform no
-network request by default. Future FIPS work remains deferred until Brynja is
-ready.
+source-locked Robot support through vSwitches. The v0.91 source milestone adds
+read-only Robot standard-server, Server Auction, per-server addon, and currency
+catalogs with exact prices and deliberately non-executable plans. Provider
+crates remain transport-free and perform no network request by default. Future
+FIPS work remains deferred until Brynja is ready.
 
 ## Trust Dashboard
 
@@ -141,7 +139,7 @@ Portable and native platform evidence is documented in
 
 ```toml
 [dependencies]
-cloud-sdk = "0.90.0"
+cloud-sdk = "0.91.0"
 cloud-sdk-hetzner = "0.45.0"
 ```
 
@@ -236,6 +234,7 @@ visible. Applications should enable only the features they use.
 - [Migrating source users to v0.83](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.83.0.md)
 - [Migrating source users to v0.84](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.84.0.md)
 - [Migrating to v0.90](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.90.0.md)
+- [Migrating source users to v0.91](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.91.0.md)
 - [Compile-time Hetzner operation associations](https://github.com/valkyoth/cloud-sdk/blob/main/docs/OPERATION_ASSOCIATIONS.md)
 - [Incremental provider decoding](https://github.com/valkyoth/cloud-sdk/blob/main/docs/INCREMENTAL_DECODING.md)
 - [Deprecated endpoint policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/DEPRECATED_ENDPOINT_POLICY.md)
@@ -573,7 +572,7 @@ without changing the default allocation-free graph.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.90.0"
+cloud-sdk = "0.91.0"
 cloud-sdk-reqwest = { version = "0.35.3", features = ["blocking-rustls"] }
 ```
 
@@ -600,7 +599,7 @@ when deterministic public WebPKI roots are required:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.90.0"
+cloud-sdk = "0.91.0"
 cloud-sdk-reqwest = { version = "0.35.3", features = ["blocking-rustls-webpki-roots"] }
 ```
 
@@ -623,7 +622,7 @@ See the [FIPS deferment policy](https://github.com/valkyoth/cloud-sdk/blob/main/
 
 ```toml
 [dependencies]
-cloud-sdk = "0.90.0"
+cloud-sdk = "0.91.0"
 cloud-sdk-reqwest = { version = "0.35.3", features = ["async-rustls"] }
 ```
 
