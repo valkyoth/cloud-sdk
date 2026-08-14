@@ -102,6 +102,18 @@ pub enum RobotProviderErrorCode {
     SshKeyUpdateFailed,
     /// Robot could not delete the SSH key.
     SshKeyDeleteFailed,
+    /// The selected firewall switch port was not found.
+    FirewallPortNotFound,
+    /// Firewall configuration is unavailable for the server.
+    FirewallNotAvailable,
+    /// The selected firewall template was not found.
+    FirewallTemplateNotFound,
+    /// A firewall replacement is already in progress.
+    FirewallInProcess,
+    /// The provider firewall rule limit was exceeded.
+    FirewallRuleLimitExceeded,
+    /// Internal provider rules prevent disabling the firewall.
+    FirewallCannotBeDisabled,
     /// Wake-on-LAN is unavailable for the server.
     WolNotAvailable,
     /// Robot could not send the Wake-on-LAN packet.

@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.89.0 - 2026-08-14
+
+- Added all eight active Robot firewall and firewall-template operations with
+  exact methods, paths, forms, statuses, quotas, and failure classifications.
+- Added bounded ordered rules, canonical IPv4 host/CIDR selectors, canonical
+  ports and ranges, protocols, TCP flags, template names, and non-zero IDs.
+- Made inline-rule and template-ID replacement intents mutually exclusive and
+  rejected cross-field conflicts, duplicate rules, and duplicate templates.
+- Added strict protected response models with request-bound server, template,
+  replacement, create, update, clear, and delete outcomes.
+- Added request-bound mutation and destructive permits, immutable source
+  evidence, mutation-resistant contract checks, adversarial tests, and direct
+  firewall/template response fuzzing through the complete 2 MiB list boundary.
+- Deferred crates.io publication to the cumulative v0.90.0 checkpoint.
+
 ## 0.88.0 - 2026-08-13
 
 - Added all five active Robot SSH-key operations with exact request, response,

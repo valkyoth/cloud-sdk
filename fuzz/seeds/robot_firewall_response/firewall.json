@@ -1,0 +1,1 @@
+0{"firewall":{"server_ip":"192.0.2.1","server_number":321,"status":"active","filter_ipv6":false,"whitelist_hos":true,"port":"main","rules":{"input":[],"output":[]}}}

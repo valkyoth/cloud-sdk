@@ -4,7 +4,7 @@ set -eu
 mode="${1:---metadata}"
 toolchain="nightly-2026-07-26"
 cargo_fuzz_version="0.13.2"
-targets="buffer_writers request_targets action_requests labels_dns pagination quota_retry retry_policy pagination_opaque provider_links action_polling response_envelopes response_content_type checked_response cloud_special_responses raw_response_parser raw_http1_wire incremental_json robot_form robot_error_protocol robot_server_response robot_ip_parser robot_cancellation_response robot_ip_response robot_subnet_response robot_reset_response robot_failover_response robot_boot_response robot_rdns_response robot_traffic_response robot_ssh_key_response"
+targets="buffer_writers request_targets action_requests labels_dns pagination quota_retry retry_policy pagination_opaque provider_links action_polling response_envelopes response_content_type checked_response cloud_special_responses raw_response_parser raw_http1_wire incremental_json robot_form robot_error_protocol robot_server_response robot_ip_parser robot_cancellation_response robot_ip_response robot_subnet_response robot_reset_response robot_failover_response robot_boot_response robot_rdns_response robot_traffic_response robot_ssh_key_response robot_firewall_response"
 
 check_layout() {
     cargo fmt --manifest-path fuzz/Cargo.toml -- --check
@@ -17,7 +17,7 @@ check_layout() {
 
     manifest_targets="$(
         sed -n 's/^name = "\([a-z0-9_]*\)"$/\1/p' fuzz/Cargo.toml |
-            tail -n 30 |
+            tail -n 31 |
             tr '\n' ' ' |
             sed 's/ $//'
     )"
@@ -99,6 +99,9 @@ case "$mode" in
         elif [ "$target" = robot_ssh_key_response ]; then
             # One selector byte plus the complete 2 MiB list-response boundary.
             max_len=2097153
+        elif [ "$target" = robot_firewall_response ]; then
+            # One selector byte plus the complete 2 MiB list-response boundary.
+            max_len=2097153
         fi
         cargo "+${toolchain}" fuzz run "$target" "$corpus" -- \
             -runs=64 "-max_len=${max_len}" -timeout=10
@@ -110,4 +113,4 @@ case "$mode" in
     ;;
 esac
 
-echo "fuzz harness: ${mode} passed for 30 targets"
+echo "fuzz harness: ${mode} passed for 31 targets"

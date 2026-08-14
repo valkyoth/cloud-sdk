@@ -340,6 +340,18 @@ contract is committed in
 [`v0.88.0.json`](../tests/fixtures/robot-ssh-keys/v0.88.0.json) and checked by
 `scripts/check_robot_ssh_keys.sh`.
 
+`v0.89.0` implements all eight active firewall rows. Server firewall get,
+complete replacement, and clear use `/firewall/{server-id}`; template
+list/create and get/replace/delete use `/firewall/template` and its numeric ID
+path. Ordered input/output rules retain indexed source semantics. Canonical
+IPv4 selectors, ports, protocols, TCP flags, actions, names, and IDs are
+validated before atomic sensitive form preparation. Inline rules and template
+application are mutually exclusive typed intents. Checked responses bind exact
+server/template identity and complete mutation outcomes, while automatic
+mutation retry remains forbidden. The normalized contract is committed in
+[`v0.89.0.json`](../tests/fixtures/robot-firewall/v0.89.0.json) and checked by
+`scripts/check_robot_firewalls.sh`.
+
 ## Verification
 
 Run the local structural check:

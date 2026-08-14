@@ -1,27 +1,27 @@
 [release]
-version = "0.88.0"
-milestone = "0.88.0"
+version = "0.89.0"
+milestone = "0.89.0"
 baseline = "0.85.0"
-review_baseline = "0.87.0"
-cumulative_milestones = ["0.86.0", "0.87.0", "0.88.0"]
+review_baseline = "0.88.0"
+cumulative_milestones = ["0.86.0", "0.87.0", "0.88.0", "0.89.0"]
 policy = "independent"
 stage = "internal"
 exceptional = false
 exception_reason = ""
 
 [crates."cloud-sdk"]
-previous_version = "0.87.0"
-version = "0.88.0"
+previous_version = "0.88.0"
+version = "0.89.0"
 change = "code"
 publish = false
-reason = "Advance the internal Robot SSH-key source milestone; defer publication to v0.90.0."
+reason = "Advance the internal Robot firewall source milestone; defer publication to v0.90.0."
 
 [crates."cloud-sdk-hetzner"]
 previous_version = "0.44.0"
 version = "0.44.0"
 change = "code"
 publish = false
-reason = "Accumulate source-locked Robot SSH-key lifecycle operations for v0.90.0."
+reason = "Accumulate source-locked Robot firewall and template operations for v0.90.0."
 
 [crates."cloud-sdk-reqwest"]
 previous_version = "0.35.2"

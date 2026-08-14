@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "source": {
+    "retrieved": "2026-08-14",
+    "url": "https://robot.hetzner.com/doc/webservice/en.html",
+    "sha256": "4b396790acc449f47b2b3b893f8eff759c0c25196dc38b1e5e92a12c9704771a"
+  },
+  "inventory": "tests/fixtures/robot-api/v0.74.0.json",
+  "operations": [
+    {"id":"robot_get_firewall","inventory_id":"get_firewall","method":"GET","path":"/firewall/{server-id}","success":200,"quota":{"requests":500,"interval_seconds":3600}},
+    {"id":"robot_update_firewall","inventory_id":"update_firewall","method":"POST","path":"/firewall/{server-id}","success":200,"quota":{"requests":200,"interval_seconds":3600}},
+    {"id":"robot_delete_firewall","inventory_id":"delete_firewall","method":"DELETE","path":"/firewall/{server-id}","success":200,"quota":{"requests":200,"interval_seconds":3600}},
+    {"id":"robot_list_firewall_templates","inventory_id":"list_firewall_templates","method":"GET","path":"/firewall/template","success":200,"quota":{"requests":500,"interval_seconds":3600}},
+    {"id":"robot_create_firewall_template","inventory_id":"create_firewall_template","method":"POST","path":"/firewall/template","success":201,"quota":{"requests":200,"interval_seconds":3600}},
+    {"id":"robot_get_firewall_template","inventory_id":"get_firewall_template","method":"GET","path":"/firewall/template/{template-id}","success":200,"quota":{"requests":500,"interval_seconds":3600}},
+    {"id":"robot_update_firewall_template","inventory_id":"update_firewall_template","method":"POST","path":"/firewall/template/{template-id}","success":200,"quota":{"requests":200,"interval_seconds":3600}},
+    {"id":"robot_delete_firewall_template","inventory_id":"delete_firewall_template","method":"DELETE","path":"/firewall/template/{template-id}","success":200,"quota":{"requests":200,"interval_seconds":3600}}
+  ],
+  "request": {
+    "content_type": "application/x-www-form-urlencoded",
+    "replace_fields": ["status", "filter_ipv6", "whitelist_hos", "template_id", "rules"],
+    "template_fields": ["name", "filter_ipv6", "whitelist_hos", "is_default", "rules"],
+    "rule_fields": ["name", "ip_version", "dst_ip", "src_ip", "dst_port", "src_port", "protocol", "tcp_flags", "action"],
+    "rule_directions": ["input", "output"],
+    "protocols": ["tcp", "udp", "gre", "icmp", "ipip", "ah", "esp"],
+    "actions": ["accept", "discard"],
+    "replacement_intents": ["inline-rules", "template-id"]
+  },
+  "response": {
+    "content_type": "application/json",
+    "firewall_envelope": "firewall",
+    "firewall_fields": ["server_ip", "server_number", "status", "filter_ipv6", "whitelist_hos", "port", "rules"],
+    "template_envelope": "firewall_template",
+    "template_fields": ["id", "name", "filter_ipv6", "whitelist_hos", "is_default", "rules"],
+    "template_list_envelope": "array-of-firewall-template-wrappers",
+    "delete_template_body": "empty"
+  },
+  "failures": {
+    "server": ["SERVER_NOT_FOUND", "FIREWALL_PORT_NOT_FOUND", "FIREWALL_NOT_AVAILABLE", "FIREWALL_TEMPLATE_NOT_FOUND", "FIREWALL_IN_PROCESS", "FIREWALL_RULE_LIMIT_EXCEEDED", "FIREWALL_CANNOT_BE_DISABLED"],
+    "template": ["NOT_FOUND"],
+    "invalid_input": ["update_firewall", "create_firewall_template", "update_firewall_template"]
+  },
+  "local_policy": {
+    "rules_per_direction": 100,
+    "rule_name_bytes": 128,
+    "template_name_bytes": 128,
+    "item_response_bytes": 262144,
+    "template_list_response_bytes": 2097152,
+    "template_list_items": 4096,
+    "cidr_policy": "canonical-ipv4-network-or-host",
+    "automatic_mutation_retry": false
+  }
+}

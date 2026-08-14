@@ -17,6 +17,8 @@
 //! Bounded traffic queries and incremental traffic decoding are source-locked
 //! in `v0.87.0`.
 //! SSH-key inventory and lifecycle operations are source-locked in `v0.88.0`.
+//! Ordered firewall and firewall-template operations are source-locked in
+//! `v0.89.0`.
 
 #[cfg(feature = "alloc")]
 mod boot;
@@ -28,6 +30,8 @@ mod credentials;
 mod duplicates;
 #[cfg(feature = "alloc")]
 mod failover;
+#[cfg(feature = "alloc")]
+mod firewall;
 mod form;
 #[cfg(feature = "alloc")]
 mod ip;
@@ -109,6 +113,34 @@ pub use failover::{
     MAX_ROBOT_FAILOVER_ITEM_RESPONSE_BYTES, MAX_ROBOT_FAILOVER_LIST_RESPONSE_BYTES,
     RobotFailoverDeleteRouteRequest, RobotFailoverGetRequest, RobotFailoverListRequest,
     RobotFailoverRequestError, RobotFailoverRerouteRequest,
+};
+
+#[cfg(feature = "alloc")]
+pub use firewall::{
+    MAX_ROBOT_FIREWALL_ITEM_RESPONSE_BYTES, MAX_ROBOT_FIREWALL_RULE_NAME_BYTES,
+    MAX_ROBOT_FIREWALL_RULES_PER_DIRECTION, MAX_ROBOT_FIREWALL_TEMPLATE_LIST_RESPONSE_BYTES,
+    MAX_ROBOT_FIREWALL_TEMPLATE_NAME_BYTES, RobotFirewallAction, RobotFirewallCidr,
+    RobotFirewallDeleteRequest, RobotFirewallGetRequest, RobotFirewallIpVersion,
+    RobotFirewallPortRange, RobotFirewallProtocol, RobotFirewallReplaceIntent,
+    RobotFirewallReplaceRequest, RobotFirewallRequestError, RobotFirewallRule,
+    RobotFirewallRuleError, RobotFirewallRules, RobotFirewallStatus, RobotFirewallTcpFlags,
+    RobotFirewallTemplateConfig, RobotFirewallTemplateCreateRequest,
+    RobotFirewallTemplateDeleteRequest, RobotFirewallTemplateGetRequest, RobotFirewallTemplateId,
+    RobotFirewallTemplateListRequest, RobotFirewallTemplateName,
+    RobotFirewallTemplateUpdateRequest,
+};
+
+#[cfg(feature = "serde")]
+pub use firewall::{
+    CheckedRobotFirewall, MAX_ROBOT_FIREWALL_TEMPLATE_LIST_ITEMS, PreparedRobotFirewall,
+    RobotFirewall, RobotFirewallCanonicalPlanFingerprint, RobotFirewallDecodeError,
+    RobotFirewallDestructivePermit, RobotFirewallFailureCode, RobotFirewallMutationPermit,
+    RobotFirewallPermitAttempt, RobotFirewallPermitRequest, RobotFirewallPlanConfirmation,
+    RobotFirewallPlanFingerprintDigest, RobotFirewallPlanSubject, RobotFirewallPort,
+    RobotFirewallRuleModel, RobotFirewallRuleSet, RobotFirewallRuntimeStatus,
+    RobotFirewallSharedDestructivePermit, RobotFirewallSharedMutationPermit, RobotFirewallTemplate,
+    RobotFirewallTemplateList, RobotFirewallTemplateSummary, build_robot_firewall_canonical_plan,
+    build_robot_firewall_plan_digest,
 };
 
 #[cfg(feature = "serde")]

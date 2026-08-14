@@ -61,6 +61,12 @@ impl RobotSubnetFailureCode {
             | RobotProviderErrorCode::SshKeyCreateFailed
             | RobotProviderErrorCode::SshKeyUpdateFailed
             | RobotProviderErrorCode::SshKeyDeleteFailed
+            | RobotProviderErrorCode::FirewallPortNotFound
+            | RobotProviderErrorCode::FirewallNotAvailable
+            | RobotProviderErrorCode::FirewallTemplateNotFound
+            | RobotProviderErrorCode::FirewallInProcess
+            | RobotProviderErrorCode::FirewallRuleLimitExceeded
+            | RobotProviderErrorCode::FirewallCannotBeDisabled
             | RobotProviderErrorCode::TrafficInternalError => None,
         }
     }

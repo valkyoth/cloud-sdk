@@ -629,3 +629,25 @@ fingerprints. Get/rename bind the exact path fingerprint, while create also
 binds the normalized request key and name. Delete admits only an empty `200`
 acknowledgement. No raw decoder, automatic retry, high-level Robot client, or
 network transport is introduced.
+
+## v0.89.0 Robot Firewall Policy
+
+The eight active firewall rows are bound to the complete Robot inventory and
+the normalized `tests/fixtures/robot-firewall/v0.89.0.json` contract. Server
+get and template list/get are read-only. Server replacement and template
+create/update are non-idempotent mutations. Server clear and template delete
+are destructive. Every mutation denies automatic retry and requires exact
+request-bound authority.
+
+Input and output rules are independently bounded, retain source order, and
+reject exact duplicates. IPv4 hosts/CIDRs, ports/ranges, protocol constraints,
+TCP flags, names, and template IDs are validated before atomic form encoding.
+Inline rules and template application are separate intent variants, preventing
+the source-forbidden combination of `template_id` with `whitelist_hos` or
+inline `rules`.
+
+Strict protected response models reject unknown fields, malformed values,
+duplicate identities, and mismatched server/template or mutation outcomes.
+Server clear requires an `in process` response with no rules; template delete
+requires the exact empty `200` acknowledgement. Raw decoders, automatic
+mutation retry, high-level Robot client, and network transport remain absent.

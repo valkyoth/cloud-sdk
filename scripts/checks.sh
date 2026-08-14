@@ -14,7 +14,7 @@ scripts/test-platform-matrix.py
 scripts/test-latest-tools.py
 scripts/test-rustsec-advisories.py
 scripts/test-dependency-review.py
-scripts/check_dependency_review.py v0.85.0 docs/DEPENDENCY_REVIEW_0.88.0.md
+scripts/check_dependency_review.py v0.85.0 docs/DEPENDENCY_REVIEW_0.89.0.md
 scripts/test-publishable-readmes.py
 scripts/check-release-plan-structure.py
 scripts/test-release-plan-structure.py
@@ -58,6 +58,8 @@ scripts/check_robot_traffic.sh
 python3 scripts/test-robot-traffic.py
 scripts/check_robot_ssh_keys.sh
 python3 scripts/test-robot-ssh-keys.py
+scripts/check_robot_firewalls.sh
+python3 scripts/test-robot-firewalls.py
 scripts/check-provider-capabilities.py
 scripts/test-provider-capabilities.py
 scripts/check-custom-endpoint-docs.py

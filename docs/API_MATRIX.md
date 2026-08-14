@@ -410,6 +410,13 @@ requests. Checked responses parse normalized OpenSSH key wire, reconcile
 algorithm and size, verify provider MD5, compute SHA-256, reject duplicate
 lists, and bind mutations to the exact requested name and key identity.
 
+`v0.89.0` implements all eight active Robot firewall and firewall-template
+operations. Bounded ordered rules preserve provider evaluation order, canonical
+IPv4 selectors and port ranges reject ambiguous input, and distinct inline and
+template replacement intents make the provider field conflict unrepresentable.
+Checked responses retain exact server/template request identity and mutation
+outcomes, while account metadata remains protected and redacted.
+
 Robot implementation schedule:
 
 | Group | Active | Deprecated | Planned Module | Milestone | Status |
@@ -425,7 +432,7 @@ Robot implementation schedule:
 | reverse DNS | 5 | 0 | `cloud_sdk_hetzner::robot::rdns` | `v0.86.0` | implemented |
 | traffic | 1 | 0 | `cloud_sdk_hetzner::robot::traffic` | `v0.87.0` | implemented |
 | SSH keys | 5 | 0 | `cloud_sdk_hetzner::robot::ssh_keys` | `v0.88.0` | implemented |
-| firewall | 8 | 0 | `cloud_sdk_hetzner::robot::firewall` | `v0.89.0` | planned |
+| firewall | 8 | 0 | `cloud_sdk_hetzner::robot::firewall` | `v0.89.0` | implemented |
 | vSwitch | 7 | 0 | `cloud_sdk_hetzner::robot::vswitch` | `v0.90.0` | planned |
 | ordering catalogs | 6 | 0 | `cloud_sdk_hetzner::robot::ordering` | `v0.91.0` | planned |
 | transactions | 6 | 0 | `cloud_sdk_hetzner::robot::ordering` | `v0.92.0` | planned |

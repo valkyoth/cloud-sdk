@@ -38,7 +38,7 @@ boundaries.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.88.0"
+cloud-sdk = "0.89.0"
 cloud-sdk-hetzner = "0.44.0"
 ```
 
@@ -670,16 +670,19 @@ endpoint identity, Robot service marker, protected credentials, lockout-aware
 owned attempt generation, strict typed protocol errors, three server
 list/get/rename operations, all nine cancellation operations, and all six IP
 and separate-MAC operations plus subnet, reset, failover, Wake-on-LAN, boot
-configuration, reverse DNS, bounded traffic queries, and all five active
-SSH-key lifecycle operations. SSH-key responses cryptographically reconcile
+configuration, reverse DNS, bounded traffic queries, all five active SSH-key
+lifecycle operations, and all eight active firewall and template operations.
+SSH-key responses cryptographically reconcile
 algorithm, size, provider MD5, and SDK-computed SHA-256 identity while keeping
-account metadata protected and redacted. It does not yet expose the later
-Robot endpoint families or a high-level Robot client. Its
-complete source lock records 89
+account metadata protected and redacted. Firewall requests preserve ordered
+rules, reject conflicting inline/template replacement intent, and bind checked
+mutation results to the exact server, template, and replacement policy. It does
+not yet expose the later Robot endpoint families or a high-level Robot client.
+Its complete source lock records 89
 active operations and excludes all 16 deprecated Storage Box operations. See the
 [Robot source-lock contract](https://github.com/valkyoth/cloud-sdk/blob/main/docs/ROBOT_WIRE_SOURCE_LOCK.md).
 The latest Robot additions and source migration are described in the
-[v0.88 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.88.0.md).
+[v0.89 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.89.0.md).
 Breaking v0.27 constructor and custom-endpoint changes are listed in the
 [migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.27.0.md).
 Shared transport and credential lifecycle changes are listed in the

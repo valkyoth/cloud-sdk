@@ -2699,7 +2699,7 @@ Exit criteria:
 
 Stop gate: `v0.86.0 implementation stop reached. Run the incremental pentest for this exact commit before the full release gate and tag; defer crates.io publication to v0.90.0.`
 
-Status: implementation stop; pentest required.
+Status: tagged; incremental pentest and final retest passed.
 
 ### v0.87.0 - Robot Traffic
 
@@ -2843,17 +2843,84 @@ Exit criteria:
 
 Stop gate: `v0.88.0 implementation stop reached. Run the incremental pentest for this exact commit before the full release gate and tag; defer crates.io publication to v0.90.0.`
 
-Status: implementation stop; pentest required.
+Status: tagged; incremental pentest and final retest passed.
 
 ### v0.89.0 - Robot Firewalls And Templates
 
-Goal: complete firewall and template operations.
+Goal: complete all active Robot firewall and firewall-template operations while
+preserving rule order, making conflicting replacement modes unrepresentable,
+and requiring request-bound authority for every mutation.
 
-Deliverables: bounded ordered rules, CIDRs, ports, protocols, replacement intent, conflicts, and permits.
+Deliverables:
 
-Verification: ordering/duplicate/rule/form/source tests and `scripts/release_0_89_gate.sh`.
+- implement source-locked get, replace, and clear for server firewalls plus
+  list, create, get, replace, and delete for templates with exact methods,
+  paths, quotas, statuses, forms, body policies, and operation-specific errors;
+- add bounded ordered input/output rules, canonical IPv4 host/network
+  selectors, canonical non-zero ports and ranges, the exact protocol/action
+  domains, bounded TCP-flag expressions, protected names, and non-zero template
+  identities;
+- reject host-bit CIDRs, duplicate rules, excessive directions, Unicode
+  controls/directional formatting in names, protocol/IP/port/TCP-flag
+  conflicts, and unknown or contradictory response fields;
+- represent inline rules and template selection as distinct replacement
+  intents so `template_id`, `whitelist_hos`, and inline `rules` cannot be sent
+  together through safe constructors;
+- add strict protected firewall, rule, template, and inventory models with
+  redacted diagnostics, exact server/template identity checks, duplicate
+  template rejection, and complete mutation-outcome reconciliation;
+- bind replace/create/update to request-specific strong-digest mutation
+  permits, bind server/template delete to distinct destructive permits, and
+  deny automatic mutation retry;
+- add immutable source evidence, inventory reconciliation, mutation-resistant
+  checker tests, direct firewall/template decoder fuzzing, migration/security/
+  API review, and an internal-only release manifest; and
+- keep all implementation files below 500 lines with separate value, form,
+  preparation, decoding, model, association, failure, and permit modules.
 
-Stop gate: `v0.89.0 implementation stop reached. Complete the pentest and full release gate for this exact commit; defer crates.io publication to v0.90.0.`
+Verification:
+
+- test all eight methods, paths, operation IDs, success/content/body policies,
+  safety metadata, response limits, and request-body sensitivity classes;
+- test exact ordered form encoding, inline/template exclusivity, IPv4 CIDR
+  canonicality, port ranges, protocol/IP/port/TCP-flag conflicts, duplicate
+  rejection, and full storage cleanup after failed preparation;
+- test exact response envelopes, unknown fields, redaction, wrong server or
+  template identity, contradictory replacement/create/update/clear outcomes,
+  duplicate template lists, and exact 2 MiB plus one-byte rejection;
+- test operation-bound `INVALID_INPUT`, `SERVER_NOT_FOUND`,
+  `FIREWALL_PORT_NOT_FOUND`, `FIREWALL_NOT_AVAILABLE`,
+  `FIREWALL_TEMPLATE_NOT_FOUND`, `FIREWALL_IN_PROCESS`,
+  `FIREWALL_RULE_LIMIT_EXCEEDED`, `FIREWALL_CANNOT_BE_DISABLED`, and
+  template `NOT_FOUND` decoding;
+- test strong-digest mutation authority, destructive authority, and
+  cross-request/cross-impact permit rejection;
+- run `scripts/check_robot_firewalls.sh`, its contract mutation tests, the full
+  Robot source lock, fuzz harness, MSRV/current/no-std/platform matrices,
+  documentation/SBOM/dependency gates, and `scripts/release_0_89_gate.sh`; and
+- dependency review confirms no new external package, feature, unsafe, native,
+  network, runtime, filesystem, clock, randomness, or cryptographic edge.
+
+Exit criteria:
+
+- all eight active firewall rows are implemented and the API matrix contains
+  no planned firewall claim;
+- ordered rules survive request encoding and checked decoding without sorting,
+  deduplication, implicit widening, or inline/template field ambiguity;
+- every response remains associated with its exact operation and requested
+  server or template, and every mutation result matches its complete intent;
+- raw decoders remain internal, protected values remain redacted and
+  non-copyable, automatic mutation retry remains forbidden, and permit types
+  cannot authorize another request or impact class;
+- the exact implementation commit receives an incremental pentest and every
+  finding triggers remediation plus retest;
+- the unchanged evidence commit passes the full local release gate and GitHub
+  CI/CodeQL before tag creation; and
+- crates.io publication remains deferred to the cumulative v0.90.0 checkpoint.
+
+Stop gate: `v0.89.0 implementation stop reached. Run the incremental pentest for this exact commit before the full release gate and tag; defer crates.io publication to v0.90.0.`
+
+Status: implementation stop; pentest required.
 
 ### v0.90.0 - Robot vSwitches
 
