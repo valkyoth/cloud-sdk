@@ -29,6 +29,8 @@ values.
   mismatched detail identities, invalid locations, and partial hourly prices;
 - per-server addon decoding retains the exact admitting request, and addon
   plans select through that catalog instead of accepting a separate server;
+- plan constructors retain validated product, distribution, and language
+  references directly, leaving no production `unreachable!` accessor path;
 - request preparation is transactional and clears caller storage on failure;
   the public ordering example retains cleanup ownership through successful use;
 - complete selection diagnostics are redacted, and decimal text plus its

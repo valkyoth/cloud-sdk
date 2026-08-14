@@ -18,6 +18,8 @@ the decoded snapshot and always expose
 `RobotAddonCatalog<'request>` retains the exact per-server request through
 decoding. Addon plans select a product by index from that catalog and cannot
 accept or substitute a separate server identity.
+Validated plan selections are retained as direct references, so public
+accessors do not need an impossible-state panic path.
 
 ## Non-Execution Boundary
 

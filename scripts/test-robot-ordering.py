@@ -90,6 +90,14 @@ def main() -> None:
         )
         mutate_source(
             root,
+            "plan-product.rs",
+            PLAN,
+            "product: &'catalog RobotAddonProduct",
+            "product_index: usize",
+            "plan",
+        )
+        mutate_source(
+            root,
             "value.rs",
             VALUE,
             "sanitize_value(&mut self.coefficient);",
@@ -109,7 +117,7 @@ def main() -> None:
         assert "max_len=4194305" in source
         harness.write_text(source.replace("max_len=4194305", "max_len=1048577"), encoding="ascii")
         assert run(fuzz_harness=harness).returncode != 0
-    print("13 Robot ordering catalog regression groups passed.")
+    print("14 Robot ordering catalog regression groups passed.")
 
 
 def mutate_source(

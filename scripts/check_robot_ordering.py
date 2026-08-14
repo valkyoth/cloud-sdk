@@ -126,6 +126,7 @@ def validate(
         "DuplicateAddon",
         "InvalidQuantity",
         "catalog: &'catalog RobotAddonCatalog<'request>",
+        "product: &'catalog RobotAddonProduct",
         "RobotStandardAddonSelection([redacted])",
     ]:
         if token not in plan:
@@ -134,6 +135,8 @@ def validate(
         fail("catalog plan became executable")
     if "server: &'a RobotServerNumber" in plan:
         fail("addon plan accepts a replaceable server identity")
+    if "unreachable!" in plan:
+        fail("validated plan accessors retain a production panic path")
 
     value = value_path.read_text(encoding="ascii")
     for token in [

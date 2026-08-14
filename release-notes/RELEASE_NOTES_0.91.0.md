@@ -32,6 +32,8 @@ only after its incremental pentest and green CI/CodeQL; it publishes no crate.
 - Completely redacted addon-selection diagnostics, volatile-cleared decimal
   scalar mirrors on drop, and made the ordering example own successful-path
   request-target cleanup.
+- Stored validated plan selections as direct references, removing production
+  impossible-state panic paths from ordering plan accessors.
 - Added immutable official-source evidence, response examples, mutation-
   resistant contract checks, hostile tests, and a dedicated 4 MiB response
   fuzz target.

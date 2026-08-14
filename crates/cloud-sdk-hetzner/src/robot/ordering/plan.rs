@@ -92,8 +92,8 @@ pub struct RobotStandardOrderPlan<'a> {
     product: &'a RobotStandardProduct,
     currency: &'a RobotOrderCurrency,
     price: &'a RobotOrderPrice,
-    distribution_index: usize,
-    language_index: usize,
+    distribution: &'a super::RobotOrderChoice,
+    language: &'a super::RobotOrderChoice,
     addons: &'a [RobotStandardAddonSelection<'a>],
 }
 
@@ -111,11 +111,11 @@ impl<'a> RobotStandardOrderPlan<'a> {
             .prices()
             .get(price_index)
             .ok_or(RobotCatalogPlanError::MissingSelection)?;
-        product
+        let distribution = product
             .distributions()
             .get(distribution_index)
             .ok_or(RobotCatalogPlanError::MissingSelection)?;
-        product
+        let language = product
             .languages()
             .get(language_index)
             .ok_or(RobotCatalogPlanError::MissingSelection)?;
@@ -142,8 +142,8 @@ impl<'a> RobotStandardOrderPlan<'a> {
             product,
             currency,
             price,
-            distribution_index,
-            language_index,
+            distribution,
+            language,
             addons,
         })
     }
@@ -165,19 +165,13 @@ impl<'a> RobotStandardOrderPlan<'a> {
     }
     /// Returns the selected distribution.
     #[must_use]
-    pub fn distribution(&self) -> &super::RobotOrderChoice {
-        self.product
-            .distributions()
-            .get(self.distribution_index)
-            .unwrap_or_else(|| unreachable!("validated distribution index disappeared"))
+    pub const fn distribution(&self) -> &super::RobotOrderChoice {
+        self.distribution
     }
     /// Returns the selected language.
     #[must_use]
-    pub fn language(&self) -> &super::RobotOrderChoice {
-        self.product
-            .languages()
-            .get(self.language_index)
-            .unwrap_or_else(|| unreachable!("validated language index disappeared"))
+    pub const fn language(&self) -> &super::RobotOrderChoice {
+        self.language
     }
     /// Returns selected addon quantities and prices.
     #[must_use]
@@ -201,8 +195,8 @@ impl core::fmt::Debug for RobotStandardOrderPlan<'_> {
 pub struct RobotMarketOrderPlan<'a> {
     product: &'a RobotMarketProduct,
     currency: &'a RobotOrderCurrency,
-    distribution_index: usize,
-    language_index: usize,
+    distribution: &'a super::RobotOrderChoice,
+    language: &'a super::RobotOrderChoice,
 }
 
 impl<'a> RobotMarketOrderPlan<'a> {
@@ -213,19 +207,19 @@ impl<'a> RobotMarketOrderPlan<'a> {
         distribution_index: usize,
         language_index: usize,
     ) -> Result<Self, RobotCatalogPlanError> {
-        product
+        let distribution = product
             .distributions()
             .get(distribution_index)
             .ok_or(RobotCatalogPlanError::MissingSelection)?;
-        product
+        let language = product
             .languages()
             .get(language_index)
             .ok_or(RobotCatalogPlanError::MissingSelection)?;
         Ok(Self {
             product,
             currency,
-            distribution_index,
-            language_index,
+            distribution,
+            language,
         })
     }
 
@@ -241,19 +235,13 @@ impl<'a> RobotMarketOrderPlan<'a> {
     }
     /// Returns the selected distribution.
     #[must_use]
-    pub fn distribution(&self) -> &super::RobotOrderChoice {
-        self.product
-            .distributions()
-            .get(self.distribution_index)
-            .unwrap_or_else(|| unreachable!("validated market distribution disappeared"))
+    pub const fn distribution(&self) -> &super::RobotOrderChoice {
+        self.distribution
     }
     /// Returns the selected language.
     #[must_use]
-    pub fn language(&self) -> &super::RobotOrderChoice {
-        self.product
-            .languages()
-            .get(self.language_index)
-            .unwrap_or_else(|| unreachable!("validated market language disappeared"))
+    pub const fn language(&self) -> &super::RobotOrderChoice {
+        self.language
     }
     /// Returns the mandatory stale-price warning.
     #[must_use]
@@ -271,7 +259,7 @@ impl core::fmt::Debug for RobotMarketOrderPlan<'_> {
 /// Non-executable per-server addon plan bound to one request-owned catalog.
 pub struct RobotAddonOrderPlan<'catalog, 'request> {
     catalog: &'catalog RobotAddonCatalog<'request>,
-    product_index: usize,
+    product: &'catalog RobotAddonProduct,
     currency: &'catalog RobotOrderCurrency,
 }
 
@@ -282,14 +270,14 @@ impl<'catalog, 'request> RobotAddonOrderPlan<'catalog, 'request> {
         product_index: usize,
         currency: &'catalog RobotOrderCurrency,
     ) -> Result<Self, RobotCatalogPlanError> {
-        catalog
+        let product = catalog
             .products()
             .products()
             .get(product_index)
             .ok_or(RobotCatalogPlanError::MissingSelection)?;
         Ok(Self {
             catalog,
-            product_index,
+            product,
             currency,
         })
     }
@@ -300,12 +288,8 @@ impl<'catalog, 'request> RobotAddonOrderPlan<'catalog, 'request> {
     }
     /// Returns the selected advertised addon.
     #[must_use]
-    pub fn product(&self) -> &RobotAddonProduct {
-        self.catalog
-            .products()
-            .products()
-            .get(self.product_index)
-            .unwrap_or_else(|| unreachable!("validated addon index disappeared"))
+    pub const fn product(&self) -> &RobotAddonProduct {
+        self.product
     }
     /// Returns the separately observed account currency.
     #[must_use]
