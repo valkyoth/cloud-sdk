@@ -11,7 +11,7 @@ Sources:
 - Robot Webservice: <https://robot.hetzner.com/doc/webservice/en.html>
 
 OpenAPI sources retrieved: 2026-07-08.
-Robot source retrieved: 2026-08-10.
+Robot source retrieved: 2026-08-14.
 Total OpenAPI source-locked operations: 221 (`cloud`: 189, `hetzner`: 32).
 Request coverage: 208 non-deprecated operations implemented; 13 deprecated
 operations deferred.
@@ -417,6 +417,11 @@ template replacement intents make the provider field conflict unrepresentable.
 Checked responses retain exact server/template request identity and mutation
 outcomes, while account metadata remains protected and redacted.
 
+`v0.90.0` implements all seven active Robot vSwitch operations with bounded
+VLAN/name/member models, exact repeated membership forms, strict list/detail
+and creation decoding, request-bound mutation/destructive permits, and an
+explicit detail-read reconciliation boundary after bodyless acknowledgements.
+
 Robot implementation schedule:
 
 | Group | Active | Deprecated | Planned Module | Milestone | Status |
@@ -433,7 +438,7 @@ Robot implementation schedule:
 | traffic | 1 | 0 | `cloud_sdk_hetzner::robot::traffic` | `v0.87.0` | implemented |
 | SSH keys | 5 | 0 | `cloud_sdk_hetzner::robot::ssh_keys` | `v0.88.0` | implemented |
 | firewall | 8 | 0 | `cloud_sdk_hetzner::robot::firewall` | `v0.89.0` | implemented |
-| vSwitch | 7 | 0 | `cloud_sdk_hetzner::robot::vswitch` | `v0.90.0` | planned |
+| vSwitch | 7 | 0 | `cloud_sdk_hetzner::robot::vswitch` | `v0.90.0` | implemented |
 | ordering catalogs | 6 | 0 | `cloud_sdk_hetzner::robot::ordering` | `v0.91.0` | planned |
 | transactions | 6 | 0 | `cloud_sdk_hetzner::robot::ordering` | `v0.92.0` | planned |
 | ordering mutations | 3 | 0 | `cloud_sdk_hetzner::robot::ordering` | `v0.93.0` | planned |

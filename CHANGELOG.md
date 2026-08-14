@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.90.0 - 2026-08-14
+
+- Added all seven active Robot vSwitch operations with exact list, create,
+  detail, update, cancellation, attach, and detach wire contracts.
+- Added bounded VLAN, protected name, canonical server-selector, and
+  duplicate-free membership types plus non-empty update intent.
+- Added strict list/detail/create response models with finite statuses,
+  canonical routes, gateway containment, identity checks, and bounded unique
+  collections.
+- Added request-bound mutation and destructive permits, explicit post-mutation
+  reconciliation requirements, source fixtures, mutation tests, and dedicated
+  response fuzzing.
+- Prepared the cumulative v0.86-v0.90 public checkpoint for `cloud-sdk 0.90.0`
+  and `cloud-sdk-hetzner 0.45.0`, with dependency-only reqwest `0.35.3` and
+  testkit `0.30.5` patches; sanitization remains unchanged.
+
 ## 0.89.0 - 2026-08-14
 
 - Added all eight active Robot firewall and firewall-template operations with

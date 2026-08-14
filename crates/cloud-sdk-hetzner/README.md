@@ -38,8 +38,8 @@ boundaries.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.89.0"
-cloud-sdk-hetzner = "0.44.0"
+cloud-sdk = "0.90.0"
+cloud-sdk-hetzner = "0.45.0"
 ```
 
 ## Features
@@ -345,6 +345,39 @@ let prepared = request.prepare_bound(PreparationStorage::new(&mut path, &mut bod
 assert_eq!(
     prepared.as_untyped().transport_request().target().as_str(),
     "/traffic",
+);
+# Ok(())
+# }
+# #[cfg(not(feature = "serde"))]
+# fn main() {}
+```
+
+Robot vSwitch support covers inventory, creation, detail, non-empty updates,
+scheduled cancellation, and bounded attach/detach membership changes. Server
+selectors are canonical positive numbers or IP addresses; repeated members
+are rejected before form encoding.
+
+```rust
+# #[cfg(feature = "serde")]
+# fn main() -> Result<(), Box<dyn core::error::Error>> {
+use cloud_sdk::operation::PreparationStorage;
+use cloud_sdk_hetzner::robot::{
+    RobotVSwitchCreateRequest, RobotVSwitchName, RobotVlanId,
+};
+
+let name = RobotVSwitchName::new("private fabric")?;
+let vlan = RobotVlanId::new(4000)?;
+let request = RobotVSwitchCreateRequest::new(name, vlan);
+let mut target = [0_u8; 32];
+let mut body = [0_u8; 128];
+let prepared = request.prepare_bound(PreparationStorage::new(&mut target, &mut body))?;
+assert_eq!(
+    prepared.as_untyped().transport_request().target().as_str(),
+    "/vswitch",
+);
+assert_eq!(
+    prepared.as_untyped().transport_request().body(),
+    b"name=private+fabric&vlan=4000",
 );
 # Ok(())
 # }
@@ -671,7 +704,8 @@ owned attempt generation, strict typed protocol errors, three server
 list/get/rename operations, all nine cancellation operations, and all six IP
 and separate-MAC operations plus subnet, reset, failover, Wake-on-LAN, boot
 configuration, reverse DNS, bounded traffic queries, all five active SSH-key
-lifecycle operations, and all eight active firewall and template operations.
+lifecycle operations, all eight active firewall and template operations, and
+all seven active vSwitch operations.
 SSH-key responses cryptographically reconcile
 algorithm, size, provider MD5, and SDK-computed SHA-256 identity while keeping
 account metadata protected and redacted. Firewall requests preserve ordered
@@ -689,13 +723,17 @@ name-bearing list summary and verifies the complete original mutation policy
 retained inside the pending type. The confirmation API accepts no replacement
 caller intent. Robot does not revision-bind the list and detail reads, so
 callers must prevent concurrent mutation or repeat reconciliation after a
-possible race. It does not yet expose
-the later Robot endpoint families or a high-level Robot client.
+possible race. vSwitch support validates VLANs, canonical server selectors,
+bounded duplicate-free memberships, exact repeated `server[]` forms, strict
+list/detail/create responses, and request-bound authority for every mutation.
+Bodyless update, cancellation, attach, and detach acknowledgements require a
+subsequent detail read when callers need reconciled state. It does not yet
+expose the later Robot endpoint families or a high-level Robot client.
 Its complete source lock records 89
 active operations and excludes all 16 deprecated Storage Box operations. See the
 [Robot source-lock contract](https://github.com/valkyoth/cloud-sdk/blob/main/docs/ROBOT_WIRE_SOURCE_LOCK.md).
 The latest Robot additions and source migration are described in the
-[v0.89 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.89.0.md).
+[v0.90 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.90.0.md).
 Breaking v0.27 constructor and custom-endpoint changes are listed in the
 [migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.27.0.md).
 Shared transport and credential lifecycle changes are listed in the
@@ -743,7 +781,7 @@ Enable Serde explicitly; it is never part of the default graph:
 
 ```toml
 [dependencies]
-cloud-sdk-hetzner = { version = "0.44.0", features = ["serde"] }
+cloud-sdk-hetzner = { version = "0.45.0", features = ["serde"] }
 ```
 
 The feature admits serde_json with `default-features = false` and `alloc` only

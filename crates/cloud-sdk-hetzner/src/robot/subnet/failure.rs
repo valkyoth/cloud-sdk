@@ -67,6 +67,13 @@ impl RobotSubnetFailureCode {
             | RobotProviderErrorCode::FirewallInProcess
             | RobotProviderErrorCode::FirewallRuleLimitExceeded
             | RobotProviderErrorCode::FirewallCannotBeDisabled
+            | RobotProviderErrorCode::VSwitchNotAvailable
+            | RobotProviderErrorCode::VSwitchLimitReached
+            | RobotProviderErrorCode::VSwitchInProcess
+            | RobotProviderErrorCode::VSwitchVlanNotUnique
+            | RobotProviderErrorCode::VSwitchServerLimitReached
+            | RobotProviderErrorCode::VSwitchPerServerLimitReached
+            | RobotProviderErrorCode::VSwitchAlreadyCancelled
             | RobotProviderErrorCode::TrafficInternalError => None,
         }
     }

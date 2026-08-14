@@ -2941,13 +2941,59 @@ Status: release candidate; incremental pentest and final retest passed.
 
 ### v0.90.0 - Robot vSwitches
 
-Goal: complete vSwitch membership and cancellation operations.
+Goal: implement all seven active Robot vSwitch operations and publish the
+cumulative v0.86-v0.90 checkpoint without weakening the provider-neutral
+default graph.
 
-Deliverables: VLANs, server lists, attach/detach/cancel intent, conflicts, repeated forms, and permits.
+Deliverables:
 
-Verification: VLAN/membership/form/source tests and `scripts/release_0_90_gate.sh`.
+- add list, create, detail, update, cancellation, server attachment, and
+  server detachment requests with exact source-locked methods and paths;
+- model nonzero vSwitch identities, validated VLAN IDs, protected bounded
+  names, and canonical positive-number or IP server selectors;
+- require non-empty update intent and bounded duplicate-free membership
+  changes so invalid partial operations are unrepresentable;
+- encode exact `name`, `vlan`, `cancellation_date`, and repeated `server[]`
+  form fields transactionally in cleanup-owning storage;
+- decode strict bounded list, detail, and creation responses with finite
+  status values, canonical networks, in-range gateways, unique identities,
+  and request-bound creation reconciliation;
+- bind every mutation and destructive operation to exact or strong-digest
+  direct/shared permits, deny automatic retry, and require a later detail read
+  when Robot returns only an empty acknowledgement;
+- add source fixtures, operation-lock verification, mutation tests, response
+  fuzzing and deterministic seeds, public API/migration/threat/dependency
+  review, SBOM evidence, and a complete crate-specific example;
+- publish `cloud-sdk 0.90.0` and `cloud-sdk-hetzner 0.45.0`, plus dependency-
+  only `cloud-sdk-reqwest 0.35.3` and `cloud-sdk-testkit 0.30.5`; leave
+  `cloud-sdk-sanitization 0.19.0` unchanged.
+
+Verification:
+
+- test all seven method/path/body contracts, VLAN/name/member bounds,
+  duplicate rejection, update variants, scheduled cancellation, cleanup,
+  response policies, request association, and authority-scope mismatch;
+- reject duplicate/extra/malformed response fields, unknown statuses,
+  identity mismatches, non-canonical routes, out-of-network gateways, and
+  cross-operation provider error codes;
+- source-lock the official vSwitch operations and examples, mutation-test the
+  fixture/checker, build and smoke the dedicated fuzz target, and run
+  `scripts/check_robot_vswitches.sh` plus `scripts/test-robot-vswitches.py`;
+- run formatting, lint, workspace/default/no-std/MSRV/current/platform tests,
+  documentation links and doctests, dependency policy, API/source drift,
+  release metadata, SBOM freshness, and `scripts/release_0_90_gate.sh`.
+
+Exit criteria: every active vSwitch heading is represented exactly once; all
+read results and creation state are strictly decoded and request-associated;
+all state changes require the correct request-bound permit; empty success
+responses cannot be mistaken for reconciled state; only code-changing or
+dependency-closing crates are selected for the public checkpoint; and the exact
+implementation commit is ready for an incremental pentest before evidence
+publication.
 
 Stop gate: `v0.90.0 implementation stop reached. Run the pentest for this exact commit before tagging and crates.io publication.`
+
+Status: implementation stop reached; pentest required.
 
 ### v0.91.0 - Robot Ordering Catalogs
 

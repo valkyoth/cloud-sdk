@@ -12,8 +12,10 @@ execution are implemented in `v0.82.0`; failover discovery and route
 transitions are implemented in `v0.83.0`; Wake-on-LAN is implemented in
 `v0.84.0`; all active boot-configuration operations are implemented in
 `v0.85.0`; all active reverse-DNS operations are implemented in `v0.86.0`.
+Traffic, SSH keys, firewalls, and vSwitches are implemented in
+`v0.87.0-v0.90.0`.
 
-Retrieved: 2026-07-30
+Retrieved: 2026-08-14
 
 Official source:
 <https://robot.hetzner.com/doc/webservice/en.html>
@@ -362,6 +364,24 @@ All eight operations are locked to 500 requests per hour. The normalized
 contract and digest-bound official examples are committed in
 [`v0.89.0.json`](../tests/fixtures/robot-firewall/v0.89.0.json) and checked by
 `scripts/check_robot_firewalls.sh`.
+
+`v0.90.0` implements all seven active vSwitch rows. Inventory and detail use
+`GET /vswitch` and `GET /vswitch/{id}`; creation and non-empty updates use
+`POST`; cancellation uses `DELETE /vswitch/{id}`; and bounded server
+attachment/removal use `POST` and `DELETE` on `/vswitch/{id}/server` with
+repeated `server[]` form fields. Names use protected redacted storage, VLANs
+are bounded, and server selectors admit only canonical positive numbers or IP
+addresses. Checked decoding rejects unknown statuses, duplicate identities,
+non-canonical routes, out-of-network gateways, and creation state that does
+not match the exact requested name and VLAN. Every mutation is automatically
+non-retryable and requires request-bound mutation or destructive authority.
+Update, cancellation, attach, and detach return bodyless acknowledgements, so
+the SDK deliberately returns no reconciled resource state; callers requiring
+confirmation must issue a later detail read and account for concurrent Robot
+changes. The normalized contract and digest-bound official examples are
+committed in
+[`v0.90.0.json`](../tests/fixtures/robot-vswitch/v0.90.0.json) and checked by
+`scripts/check_robot_vswitches.sh`.
 
 ## Verification
 

@@ -19,6 +19,8 @@
 //! SSH-key inventory and lifecycle operations are source-locked in `v0.88.0`.
 //! Ordered firewall and firewall-template operations are source-locked in
 //! `v0.89.0`.
+//! vSwitch inventory, configuration, cancellation, and repeated server
+//! membership operations are source-locked in `v0.90.0`.
 
 #[cfg(feature = "alloc")]
 mod boot;
@@ -49,6 +51,8 @@ mod ssh_keys;
 mod subnet;
 #[cfg(feature = "serde")]
 mod traffic;
+#[cfg(feature = "alloc")]
+mod vswitch;
 #[cfg(feature = "alloc")]
 mod wol;
 
@@ -267,6 +271,30 @@ pub use traffic::{
 pub use wol::{
     MAX_ROBOT_WOL_RESPONSE_BYTES, ROBOT_WOL_DISCOVERY_QUOTA, ROBOT_WOL_SEND_QUOTA,
     RobotWolGetRequest, RobotWolIntent, RobotWolQuota, RobotWolRequestError,
+};
+
+#[cfg(feature = "alloc")]
+pub use vswitch::{
+    MAX_ROBOT_VSWITCH_ITEM_RESPONSE_BYTES, MAX_ROBOT_VSWITCH_LIST_RESPONSE_BYTES,
+    MAX_ROBOT_VSWITCH_NAME_BYTES, MAX_ROBOT_VSWITCH_SERVERS_PER_REQUEST,
+    RobotVSwitchAddServersRequest, RobotVSwitchCancelRequest, RobotVSwitchCreateRequest,
+    RobotVSwitchGetRequest, RobotVSwitchId, RobotVSwitchListRequest, RobotVSwitchName,
+    RobotVSwitchRemoveServersRequest, RobotVSwitchRequestError, RobotVSwitchServerIdentifier,
+    RobotVSwitchServers, RobotVSwitchUpdateIntent, RobotVSwitchUpdateRequest,
+    RobotVSwitchValueError, RobotVlanId,
+};
+
+#[cfg(feature = "serde")]
+pub use vswitch::{
+    CheckedRobotVSwitch, MAX_ROBOT_VSWITCH_CLOUD_NETWORKS, MAX_ROBOT_VSWITCH_LIST_ITEMS,
+    MAX_ROBOT_VSWITCH_MEMBER_SERVERS, MAX_ROBOT_VSWITCH_SUBNETS, PreparedRobotVSwitch,
+    RobotVSwitch, RobotVSwitchCanonicalPlanFingerprint, RobotVSwitchCloudNetwork,
+    RobotVSwitchDecodeError, RobotVSwitchDestructivePermit, RobotVSwitchFailureCode,
+    RobotVSwitchList, RobotVSwitchMutationPermit, RobotVSwitchPermitAttempt,
+    RobotVSwitchPermitRequest, RobotVSwitchPlanConfirmation, RobotVSwitchPlanFingerprintDigest,
+    RobotVSwitchPlanSubject, RobotVSwitchServer, RobotVSwitchServerStatus,
+    RobotVSwitchSharedDestructivePermit, RobotVSwitchSharedMutationPermit, RobotVSwitchSubnet,
+    RobotVSwitchSummary, build_robot_vswitch_canonical_plan, build_robot_vswitch_plan_digest,
 };
 
 #[cfg(feature = "serde")]

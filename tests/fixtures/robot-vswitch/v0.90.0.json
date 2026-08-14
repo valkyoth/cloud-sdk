@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "source": {
+    "retrieved": "2026-08-14",
+    "url": "https://robot.hetzner.com/doc/webservice/en.html",
+    "sha256": "4b396790acc449f47b2b3b893f8eff759c0c25196dc38b1e5e92a12c9704771a",
+    "examples": [
+      {"path":"tests/fixtures/robot-vswitch/official-detail-response.json","sha256":"568931bcf1d640889d76b97b36e21b0a372f7a41f1e2e113c034c0cda6b5918e"},
+      {"path":"tests/fixtures/robot-vswitch/official-list-response.json","sha256":"ccb7722cd06f8ccc43e6ae23ead66e928bf025b16891df837653032be4b2807b"}
+    ]
+  },
+  "inventory": "tests/fixtures/robot-api/v0.74.0.json",
+  "operations": [
+    {"id":"robot_list_vswitches","inventory_id":"list_vswitches","method":"GET","path":"/vswitch","success":200,"quota":{"requests":500,"interval_seconds":3600},"body":"json-list"},
+    {"id":"robot_create_vswitch","inventory_id":"create_vswitch","method":"POST","path":"/vswitch","success":201,"quota":{"requests":100,"interval_seconds":3600},"body":"json-detail"},
+    {"id":"robot_get_vswitch","inventory_id":"get_vswitch","method":"GET","path":"/vswitch/{vswitch-id}","success":200,"quota":{"requests":500,"interval_seconds":3600},"body":"json-detail"},
+    {"id":"robot_update_vswitch","inventory_id":"update_vswitch","method":"POST","path":"/vswitch/{vswitch-id}","success":200,"quota":{"requests":100,"interval_seconds":3600},"body":"empty"},
+    {"id":"robot_cancel_vswitch","inventory_id":"delete_vswitch","method":"DELETE","path":"/vswitch/{vswitch-id}","success":200,"quota":{"requests":100,"interval_seconds":3600},"body":"empty"},
+    {"id":"robot_add_vswitch_servers","inventory_id":"add_vswitch_servers","method":"POST","path":"/vswitch/{vswitch-id}/server","success":200,"quota":{"requests":100,"interval_seconds":3600},"body":"empty"},
+    {"id":"robot_remove_vswitch_servers","inventory_id":"remove_vswitch_servers","method":"DELETE","path":"/vswitch/{vswitch-id}/server","success":200,"quota":{"requests":100,"interval_seconds":3600},"body":"empty"}
+  ],
+  "request": {
+    "content_type": "application/x-www-form-urlencoded",
+    "create_fields": ["name", "vlan"],
+    "update_fields": ["name", "vlan"],
+    "cancel_fields": ["cancellation_date"],
+    "membership_field": "server[]",
+    "membership_value": "server_number-or-server_ip",
+    "membership_order": "caller-order-repeated-fields"
+  },
+  "response": {
+    "content_type": "application/json",
+    "summary_fields": ["id", "name", "vlan", "cancelled"],
+    "detail_fields": ["id", "name", "vlan", "cancelled", "server", "subnet", "cloud_network"],
+    "server_fields": ["server_ip", "server_ipv6_net", "server_number", "status"],
+    "server_statuses": ["ready", "in process", "failed"],
+    "subnet_fields": ["ip", "mask", "gateway"],
+    "cloud_network_fields": ["id", "ip", "mask", "gateway"],
+    "empty_acknowledgements": ["update_vswitch", "delete_vswitch", "add_vswitch_servers", "remove_vswitch_servers"]
+  },
+  "failures": {
+    "not_found": ["NOT_FOUND", "SERVER_NOT_FOUND", "VSWITCH_NOT_AVAILABLE"],
+    "conflict": ["CONFLICT", "VSWITCH_IN_PROCESS", "VSWITCH_VLAN_NOT_UNIQUE", "VSWITCH_LIMIT_REACHED", "VSWITCH_SERVER_LIMIT_REACHED", "VSWITCH_PER_SERVER_LIMIT_REACHED"],
+    "invalid_input": ["create_vswitch", "update_vswitch", "delete_vswitch", "add_vswitch_servers", "remove_vswitch_servers"]
+  },
+  "local_policy": {
+    "vlan_range": [1, 4094],
+    "name_bytes": 128,
+    "membership_request_items": 256,
+    "list_items": 4096,
+    "member_servers": 4096,
+    "subnets": 4096,
+    "cloud_networks": 4096,
+    "list_response_bytes": 1048576,
+    "item_response_bytes": 1048576,
+    "automatic_mutation_retry": false,
+    "empty_mutation_requires_get_reconciliation": true
+  }
+}

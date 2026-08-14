@@ -1,34 +1,34 @@
 [release]
-version = "0.89.0"
-milestone = "0.89.0"
+version = "0.90.0"
+milestone = "0.90.0"
 baseline = "0.85.0"
-review_baseline = "0.88.0"
-cumulative_milestones = ["0.86.0", "0.87.0", "0.88.0", "0.89.0"]
+review_baseline = "0.89.0"
+cumulative_milestones = ["0.86.0", "0.87.0", "0.88.0", "0.89.0", "0.90.0"]
 policy = "independent"
-stage = "internal"
+stage = "public"
 exceptional = false
 exception_reason = ""
 
 [crates."cloud-sdk"]
-previous_version = "0.88.0"
-version = "0.89.0"
+previous_version = "0.85.0"
+version = "0.90.0"
 change = "code"
-publish = false
-reason = "Advance the internal Robot firewall source milestone; defer publication to v0.90.0."
+publish = true
+reason = "Publish the cumulative v0.86-v0.90 Robot checkpoint."
 
 [crates."cloud-sdk-hetzner"]
 previous_version = "0.44.0"
-version = "0.44.0"
+version = "0.45.0"
 change = "code"
-publish = false
-reason = "Accumulate source-locked Robot firewall and template operations for v0.90.0."
+publish = true
+reason = "Publish accumulated reverse-DNS, traffic, SSH-key, firewall, and vSwitch operations."
 
 [crates."cloud-sdk-reqwest"]
 previous_version = "0.35.2"
-version = "0.35.2"
-change = "unchanged"
-publish = false
-reason = "No reqwest transport boundary changes."
+version = "0.35.3"
+change = "dependency"
+publish = true
+reason = "Require the v0.90 core without changing transport behavior."
 
 [crates."cloud-sdk-sanitization"]
 previous_version = "0.19.0"
@@ -39,7 +39,7 @@ reason = "No sanitization boundary changes."
 
 [crates."cloud-sdk-testkit"]
 previous_version = "0.30.4"
-version = "0.30.4"
-change = "unchanged"
-publish = false
-reason = "No testkit boundary changes."
+version = "0.30.5"
+change = "dependency"
+publish = true
+reason = "Require the v0.90 core without changing testkit behavior."

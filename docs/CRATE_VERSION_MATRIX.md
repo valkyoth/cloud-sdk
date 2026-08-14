@@ -1,9 +1,9 @@
 # Crate Version Matrix
 
-Status: `v0.85.0` is the latest published checkpoint. `v0.89.0` is a Robot
-firewall release candidate whose incremental pentest and final retest passed;
-tagging awaits unchanged green CI/CodeQL, while crates.io publication remains
-deferred to `v0.90.0`.
+Status: `v0.85.0` is the latest published checkpoint. `v0.90.0` is the
+cumulative Robot vSwitch public checkpoint at implementation stop; its exact
+commit requires the incremental pentest and full release gate before tagging
+and crates.io publication.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
@@ -1341,6 +1341,21 @@ remains inside the v0.86-v0.90 cumulative train and does not publish any crate.
 | `cloud-sdk-reqwest` | `0.35.2` | `0.35.2` | `unchanged` | No | No transport boundary changes. |
 | `cloud-sdk-sanitization` | `0.19.0` | `0.19.0` | `unchanged` | No | No sanitization boundary changes. |
 | `cloud-sdk-testkit` | `0.30.4` | `0.30.4` | `unchanged` | No | No testkit boundary changes. |
+
+## v0.90.0 Tracking Table
+
+`v0.90.0` implements all seven active Robot vSwitch operations and publishes
+the cumulative reverse-DNS, traffic, SSH-key, firewall, and vSwitch work from
+v0.86-v0.90. Code-changing crates move by a minor version and direct neutral
+dependents move by dependency-only patches.
+
+| Crate | Published | v0.90 | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.85.0` | `0.90.0` | `code` | Yes | Publish the cumulative provider-neutral v0.86-v0.90 checkpoint. |
+| `cloud-sdk-hetzner` | `0.44.0` | `0.45.0` | `code` | Yes | Publish accumulated reverse-DNS, traffic, SSH-key, firewall, and vSwitch operations. |
+| `cloud-sdk-reqwest` | `0.35.2` | `0.35.3` | `dependency` | Yes | Require the v0.90 core without changing transport behavior. |
+| `cloud-sdk-sanitization` | `0.19.0` | `0.19.0` | `unchanged` | No | No sanitization boundary changes. |
+| `cloud-sdk-testkit` | `0.30.4` | `0.30.5` | `dependency` | Yes | Require the v0.90 core without changing testkit behavior. |
 
 ## Planned Milestone Ownership
 

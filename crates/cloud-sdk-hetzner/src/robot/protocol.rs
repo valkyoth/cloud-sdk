@@ -114,6 +114,20 @@ pub enum RobotProviderErrorCode {
     FirewallRuleLimitExceeded,
     /// Internal provider rules prevent disabling the firewall.
     FirewallCannotBeDisabled,
+    /// vSwitch connectivity is unavailable for a submitted server.
+    VSwitchNotAvailable,
+    /// The account vSwitch count limit was reached.
+    VSwitchLimitReached,
+    /// Another vSwitch update is already running.
+    VSwitchInProcess,
+    /// The requested vSwitch VLAN conflicts with another vSwitch.
+    VSwitchVlanNotUnique,
+    /// The vSwitch server membership limit was reached.
+    VSwitchServerLimitReached,
+    /// A submitted server's per-server vSwitch limit was reached.
+    VSwitchPerServerLimitReached,
+    /// The vSwitch is already cancelled.
+    VSwitchAlreadyCancelled,
     /// Wake-on-LAN is unavailable for the server.
     WolNotAvailable,
     /// Robot could not send the Wake-on-LAN packet.
