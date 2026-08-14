@@ -4,7 +4,7 @@ use core::net::IpAddr;
 
 use crate::robot::{RobotIpAddress, RobotServerNumber};
 
-use super::{RobotVSwitchId, RobotVSwitchName, RobotVlanId};
+use super::{RobotVSwitchId, RobotVSwitchObservedName, RobotVlanId};
 
 /// Maximum vSwitch summaries admitted from one list response.
 pub const MAX_ROBOT_VSWITCH_LIST_ITEMS: usize = 4_096;
@@ -18,7 +18,7 @@ pub const MAX_ROBOT_VSWITCH_CLOUD_NETWORKS: usize = 4_096;
 /// One bounded Robot vSwitch inventory summary.
 pub struct RobotVSwitchSummary {
     pub(super) id: RobotVSwitchId,
-    pub(super) name: RobotVSwitchName,
+    pub(super) name: RobotVSwitchObservedName,
     pub(super) vlan: RobotVlanId,
     pub(super) cancelled: bool,
 }
@@ -31,7 +31,7 @@ impl RobotVSwitchSummary {
     }
     /// Returns the protected name.
     #[must_use]
-    pub const fn name(&self) -> &RobotVSwitchName {
+    pub const fn name(&self) -> &RobotVSwitchObservedName {
         &self.name
     }
     /// Returns the VLAN identity.
@@ -196,7 +196,7 @@ impl fmt::Debug for RobotVSwitchCloudNetwork {
 /// One source-complete Robot vSwitch detail resource.
 pub struct RobotVSwitch {
     pub(super) id: RobotVSwitchId,
-    pub(super) name: RobotVSwitchName,
+    pub(super) name: RobotVSwitchObservedName,
     pub(super) vlan: RobotVlanId,
     pub(super) cancelled: bool,
     pub(super) servers: Vec<RobotVSwitchServer>,
@@ -212,7 +212,7 @@ impl RobotVSwitch {
     }
     /// Returns the protected name.
     #[must_use]
-    pub const fn name(&self) -> &RobotVSwitchName {
+    pub const fn name(&self) -> &RobotVSwitchObservedName {
         &self.name
     }
     /// Returns the VLAN identity.

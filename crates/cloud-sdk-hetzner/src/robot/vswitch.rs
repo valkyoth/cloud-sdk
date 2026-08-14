@@ -1,6 +1,8 @@
 //! Source-locked Robot vSwitch inventory and lifecycle operations.
 
 mod form;
+#[cfg(feature = "serde")]
+mod observed_name;
 mod prepare;
 mod request;
 mod types;
@@ -41,6 +43,8 @@ pub use model::{
     RobotVSwitchCloudNetwork, RobotVSwitchList, RobotVSwitchServer, RobotVSwitchServerStatus,
     RobotVSwitchSubnet, RobotVSwitchSummary,
 };
+#[cfg(feature = "serde")]
+pub use observed_name::RobotVSwitchObservedName;
 #[cfg(feature = "serde")]
 pub use permit::{
     RobotVSwitchCanonicalPlanFingerprint, RobotVSwitchDestructivePermit,

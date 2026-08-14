@@ -292,11 +292,12 @@ pub use vswitch::{
     MAX_ROBOT_VSWITCH_MEMBER_SERVERS, MAX_ROBOT_VSWITCH_SUBNETS, PreparedRobotVSwitch,
     RobotVSwitch, RobotVSwitchCanonicalPlanFingerprint, RobotVSwitchCloudNetwork,
     RobotVSwitchDecodeError, RobotVSwitchDestructivePermit, RobotVSwitchFailureCode,
-    RobotVSwitchList, RobotVSwitchMutationPermit, RobotVSwitchPermitAttempt,
-    RobotVSwitchPermitRequest, RobotVSwitchPlanConfirmation, RobotVSwitchPlanFingerprintDigest,
-    RobotVSwitchPlanSubject, RobotVSwitchServer, RobotVSwitchServerStatus,
-    RobotVSwitchSharedDestructivePermit, RobotVSwitchSharedMutationPermit, RobotVSwitchSubnet,
-    RobotVSwitchSummary, build_robot_vswitch_canonical_plan, build_robot_vswitch_plan_digest,
+    RobotVSwitchList, RobotVSwitchMutationPermit, RobotVSwitchObservedName,
+    RobotVSwitchPermitAttempt, RobotVSwitchPermitRequest, RobotVSwitchPlanConfirmation,
+    RobotVSwitchPlanFingerprintDigest, RobotVSwitchPlanSubject, RobotVSwitchServer,
+    RobotVSwitchServerStatus, RobotVSwitchSharedDestructivePermit,
+    RobotVSwitchSharedMutationPermit, RobotVSwitchSubnet, RobotVSwitchSummary,
+    build_robot_vswitch_canonical_plan, build_robot_vswitch_plan_digest,
 };
 
 #[cfg(feature = "serde")]

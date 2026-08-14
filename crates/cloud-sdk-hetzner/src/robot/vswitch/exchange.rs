@@ -120,7 +120,7 @@ impl CheckedRobotVSwitch<'_, '_, RobotVSwitchCreateRequest> {
     /// Requires the created resource to match both requested configuration fields.
     pub fn decode_response(self) -> Result<RobotVSwitch, RobotVSwitchDecodeError> {
         let result = decode_one(self.inner)?;
-        if result.name == self.request.name
+        if result.name.matches(&self.request.name)
             && result.vlan == self.request.vlan
             && !result.cancelled
             && result.servers.is_empty()

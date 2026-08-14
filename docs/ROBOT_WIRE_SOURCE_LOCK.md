@@ -370,8 +370,12 @@ contract and digest-bound official examples are committed in
 `POST`; cancellation uses `DELETE /vswitch/{id}`; and bounded server
 attachment/removal use `POST` and `DELETE` on `/vswitch/{id}/server` with
 repeated `server[]` form fields. Names use protected redacted storage, VLANs
-are bounded, and server selectors admit only canonical positive numbers or IP
-addresses. Checked decoding rejects unknown statuses, duplicate identities,
+use Hetzner's documented `4000..=4091` range, and server selectors admit only
+canonical positive numbers or IP addresses. Outbound names use a conservative
+ASCII profile. Response names outside that profile remain bounded and
+protected but are explicitly quarantined, because the Webservice contract
+specifies only a string and does not publish the outbound profile. Checked
+decoding rejects unknown statuses, duplicate identities,
 non-canonical routes, out-of-network gateways, and creation state that does
 not match the exact requested name and VLAN. Every mutation is automatically
 non-retryable and requires request-bound mutation or destructive authority.

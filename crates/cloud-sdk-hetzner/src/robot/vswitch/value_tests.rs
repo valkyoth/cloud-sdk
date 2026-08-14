@@ -1,15 +1,19 @@
 use alloc::format;
 
+use super::tests::{
+    CREATED, DETAIL, SUMMARY, decode_create, decode_get, decode_list, id, name, vlan,
+};
 use super::*;
 
 #[test]
 fn vlan_boundaries_reject_every_value_outside_the_usable_range() {
-    assert!(RobotVlanId::new(0).is_err());
-    assert!(RobotVlanId::new(1).is_ok());
-    assert!(RobotVlanId::new(4094).is_ok());
-    assert!(RobotVlanId::new(4095).is_err());
-    assert!(RobotVlanId::new(4096).is_err());
-    assert!(RobotVlanId::new(u16::MAX).is_err());
+    for value in 0..=u16::MAX {
+        assert_eq!(
+            RobotVlanId::new(value).is_ok(),
+            (4000..=4091).contains(&value),
+            "unexpected VLAN admission for {value}",
+        );
+    }
 }
 
 #[test]
@@ -54,4 +58,74 @@ fn server_ip_canonicalization_accepts_exact_display_only() {
     ] {
         assert!(RobotVSwitchServerIdentifier::new(invalid).is_err());
     }
+}
+
+#[test]
+fn provider_names_are_high_assurance_or_explicitly_quarantined() {
+    let ordinary =
+        decode_get(id(), DETAIL).unwrap_or_else(|_| unreachable!("ordinary provider name failed"));
+    assert!(ordinary.name().is_high_assurance());
+    assert!(!ordinary.name().is_quarantined());
+    assert!(ordinary.name().as_high_assurance().is_some());
+    let detail =
+        core::str::from_utf8(DETAIL).unwrap_or_else(|_| unreachable!("detail fixture lost UTF-8"));
+
+    for (wire, expected) in [
+        ("prod/eu", "prod/eu"),
+        ("mixed-\\u0430", "mixed-\u{0430}"),
+        ("line\\nbreak", "line\nbreak"),
+    ] {
+        let response = detail.replace("my vSwitch", wire);
+        let observed = decode_get(id(), response.as_bytes())
+            .unwrap_or_else(|_| unreachable!("bounded provider name was not quarantined"));
+        assert!(!observed.name().is_high_assurance());
+        assert!(observed.name().is_quarantined());
+        assert!(observed.name().as_high_assurance().is_none());
+        assert_eq!(
+            observed.name().try_with_text(|value| value == expected),
+            Ok(true)
+        );
+        assert_eq!(
+            format!("{:?}", observed.name()),
+            "RobotVSwitchObservedName([redacted])"
+        );
+    }
+
+    let empty = detail.replace("my vSwitch", "");
+    assert_eq!(
+        decode_get(id(), empty.as_bytes()).err(),
+        Some(RobotVSwitchDecodeError::InvalidVSwitch)
+    );
+    let oversized = "a".repeat(MAX_ROBOT_VSWITCH_NAME_BYTES + 1);
+    let response = detail.replace("my vSwitch", &oversized);
+    assert_eq!(
+        decode_get(id(), response.as_bytes()).err(),
+        Some(RobotVSwitchDecodeError::InvalidVSwitch)
+    );
+}
+
+#[test]
+fn one_quarantined_name_does_not_invalidate_the_complete_inventory() {
+    let second = SUMMARY
+        .replace("\"id\":4321", "\"id\":4322")
+        .replace("my vSwitch", "prod/eu")
+        .replace("\"vlan\":4000", "\"vlan\":4001");
+    let response = format!("[{SUMMARY},{second}]");
+    let inventory = decode_list(response.as_bytes())
+        .unwrap_or_else(|_| unreachable!("mixed-assurance inventory failed"));
+    assert_eq!(inventory.len(), 2);
+    assert!(inventory.as_slice()[0].name().is_high_assurance());
+    assert!(inventory.as_slice()[1].name().is_quarantined());
+}
+
+#[test]
+fn creation_reconciliation_rejects_a_quarantined_provider_name() {
+    let request = RobotVSwitchCreateRequest::new(name("my vSwitch"), vlan(4000));
+    let response = core::str::from_utf8(CREATED)
+        .unwrap_or_else(|_| unreachable!("creation fixture lost UTF-8"))
+        .replace("my vSwitch", "my/vSwitch");
+    assert_eq!(
+        decode_create(&request, response.as_bytes()).err(),
+        Some(RobotVSwitchDecodeError::MutationOutcomeMismatch)
+    );
 }

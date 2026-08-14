@@ -12,6 +12,11 @@ update-intent enum.
 Protected vSwitch names deliberately admit only ASCII letters, digits, spaces,
 hyphens, underscores, and periods, with no leading or trailing space. This
 prevents invisible Unicode, mixed-script names, and non-ASCII confusables.
+Decoded resources use the separate `RobotVSwitchObservedName`: conforming
+provider names report high assurance, while bounded nonconforming provider
+names are protected and explicitly quarantined. Quarantined names cannot be
+reused as outbound names without deliberate revalidation. The observed type is
+opaque, so callers cannot fabricate either state or bypass its bound.
 
 With `serde`, it also exposes exact typed prepared/checked associations, strict
 owned summary/detail/list and route models, operation-specific provider failure
@@ -31,9 +36,11 @@ unchanged.
 
 The exact operation and request remain part of preparation, response
 validation, decoding, and authority. Create responses must match the requested
-name and VLAN. List and detail responses reject duplicate identities,
+high-assurance name and VLAN. VLANs use Hetzner's documented `4000..=4091`
+range. List and detail responses reject duplicate identities,
 noncanonical networks, gateways outside their networks, unknown status text,
-and excess collections.
+and excess collections without dropping the inventory solely because a
+bounded provider name falls outside the outbound profile.
 
 Update, cancellation, attach, and detach deliberately decode only the official
 empty acknowledgement. They do not expose a misleading resource snapshot.

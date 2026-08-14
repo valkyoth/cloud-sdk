@@ -2949,8 +2949,9 @@ Deliverables:
 
 - add list, create, detail, update, cancellation, server attachment, and
   server detachment requests with exact source-locked methods and paths;
-- model nonzero vSwitch identities, validated VLAN IDs, protected bounded
-  names, and canonical positive-number or IP server selectors;
+- model nonzero vSwitch identities, Hetzner-range VLAN IDs, strict outbound
+  names, separately quarantined bounded response names, and canonical
+  positive-number or IP server selectors;
 - require non-empty update intent and bounded duplicate-free membership
   changes so invalid partial operations are unrepresentable;
 - encode exact `name`, `vlan`, `cancellation_date`, and repeated `server[]`
@@ -2970,7 +2971,8 @@ Deliverables:
 
 Verification:
 
-- test all seven method/path/body contracts, VLAN/name/member bounds,
+- test all seven method/path/body contracts, exact `4000..=4091` VLAN bounds,
+  outbound-name policy, response-name quarantine, member bounds,
   duplicate rejection, update variants, scheduled cancellation, cleanup,
   response policies, request association, and authority-scope mismatch;
 - reject duplicate/extra/malformed response fields, unknown statuses,

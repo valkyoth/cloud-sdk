@@ -9,7 +9,7 @@ use super::model::*;
 use super::prepare::{
     MAX_ROBOT_VSWITCH_ITEM_RESPONSE_BYTES, MAX_ROBOT_VSWITCH_LIST_RESPONSE_BYTES,
 };
-use super::{RobotVSwitchId, RobotVSwitchName, RobotVSwitchValueError, RobotVlanId};
+use super::{RobotVSwitchId, RobotVSwitchObservedName, RobotVSwitchValueError, RobotVlanId};
 use crate::robot::duplicates::{DuplicateError, reject_duplicates_by_cmp};
 use crate::robot::server::identity::DecimalServerNumberError;
 use crate::robot::{RobotCancellationValueError, RobotIpAddress, RobotServerNumber};
@@ -329,11 +329,14 @@ fn parse_vlan(object: &Map, field: &str) -> Result<RobotVlanId, RobotVSwitchDeco
         .and_then(|value| RobotVlanId::new(value).map_err(map_value_error))
 }
 
-fn parse_name(object: &Map, field: &str) -> Result<RobotVSwitchName, RobotVSwitchDecodeError> {
+fn parse_name(
+    object: &Map,
+    field: &str,
+) -> Result<RobotVSwitchObservedName, RobotVSwitchDecodeError> {
     object
         .get(field)
         .ok_or(RobotVSwitchDecodeError::InvalidEnvelope)?
-        .try_with_str(RobotVSwitchName::new)
+        .try_with_str(RobotVSwitchObservedName::from_provider)
         .map_err(|_| RobotVSwitchDecodeError::InvalidVSwitch)?
         .ok_or(RobotVSwitchDecodeError::InvalidEnvelope)?
         .map_err(map_value_error)

@@ -10,9 +10,13 @@ status, subnet routes, cloud-network routes, and account-wide inventory.
 
 ## Controls
 
-- IDs are nonzero, VLANs are restricted to `1..=4094`, names use a conservative
-  ASCII profile, and member selectors require canonical number or
+- IDs are nonzero, VLANs are restricted to Hetzner's documented
+  `4000..=4091`, outbound names use a conservative ASCII profile, and member
+  selectors require canonical number or
   allocation-free canonical IP text.
+- Bounded provider-observed names outside the outbound profile are protected
+  and explicitly quarantined. They cannot be reused as trusted outbound names
+  without deliberate revalidation.
 - Membership requests are non-empty, bounded, and duplicate-free. Exact
   repeated `server[]` fields are encoded only after complete preflight.
 - Update intent cannot be empty. Every sensitive form and complete preparation
@@ -38,8 +42,8 @@ supplies no revision or ETag that atomically binds a mutation acknowledgement
 to a later detail read. The SDK detects identity and schema contradictions but
 cannot prevent another actor from changing provider state between requests.
 
-VLAN admission follows the documented numeric field and standard VLAN range;
-Robot remains authoritative for account-specific availability and uniqueness.
+VLAN admission follows Hetzner's documented `4000..=4091` range; Robot remains
+authoritative for account-specific availability and uniqueness.
 The SDK cannot prove switching behavior or membership convergence inside the
 provider network. Callers must reconcile after uncertain delivery before
 repeating a state change.

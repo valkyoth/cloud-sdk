@@ -38,9 +38,17 @@ assert_eq!(
 
 `RobotVSwitchUpdateIntent` requires at least one replacement field. Membership
 changes require a non-empty duplicate-free `RobotVSwitchServers` slice whose
-entries are canonical positive server numbers or canonical IP addresses.
-VLAN IDs are restricted to `1..=4094`. vSwitch names use the conservative
-ASCII profile `[A-Za-z0-9 ._-]` and cannot begin or end with a space.
+entries are canonical positive server numbers or canonical IP addresses. VLAN
+IDs are restricted to Hetzner's documented `4000..=4091` range. Outbound
+vSwitch names use the conservative ASCII profile `[A-Za-z0-9 ._-]` and cannot
+begin or end with a space.
+
+Decoded resources expose `RobotVSwitchObservedName`. `is_high_assurance()` and
+`is_quarantined()` report how provider text relates to the outbound profile;
+`as_high_assurance()` returns a reusable `RobotVSwitchName` only in that case.
+Other non-empty names up to 128 UTF-8 bytes remain protected and are marked as
+quarantined instead of making the complete inventory unavailable. Treat text
+accessed from a quarantined name as untrusted provider data.
 
 Creation decodes and verifies the requested name and VLAN. Update,
 cancellation, attachment, and detachment accept only the documented empty

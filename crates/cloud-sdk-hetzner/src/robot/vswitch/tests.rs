@@ -11,8 +11,8 @@ use super::*;
 use crate::robot::{RobotCancellationDate, RobotCancellationSchedule};
 
 pub(super) const DETAIL: &[u8] = br#"{"id":4321,"name":"my vSwitch","vlan":4000,"cancelled":false,"server":[{"server_ip":"192.0.2.10","server_ipv6_net":"2001:db8:1::","server_number":321,"status":"ready"},{"server_ip":"192.0.2.11","server_ipv6_net":"2001:db8:2::","server_number":421,"status":"in process"}],"subnet":[{"ip":"198.51.100.0","mask":29,"gateway":"198.51.100.1"}],"cloud_network":[{"id":123,"ip":"10.0.2.0","mask":24,"gateway":"10.0.2.1"}]}"#;
-const CREATED: &[u8] = br#"{"id":4321,"name":"my vSwitch","vlan":4000,"cancelled":false,"server":[],"subnet":[],"cloud_network":[]}"#;
-const SUMMARY: &str = r#"{"id":4321,"name":"my vSwitch","vlan":4000,"cancelled":false}"#;
+pub(super) const CREATED: &[u8] = br#"{"id":4321,"name":"my vSwitch","vlan":4000,"cancelled":false,"server":[],"subnet":[],"cloud_network":[]}"#;
+pub(super) const SUMMARY: &str = r#"{"id":4321,"name":"my vSwitch","vlan":4000,"cancelled":false}"#;
 
 #[test]
 fn values_are_bounded_canonical_unique_and_redacted() {
@@ -186,7 +186,7 @@ fn detail_decode_is_strict_bounded_and_redacted() {
         .err(),
         Some(RobotVSwitchDecodeError::ResponseIdentityMismatch)
     );
-    for invalid in [4095_u16, 4096, u16::MAX] {
+    for invalid in [0_u16, 3999, 4092, 4094, 4095, 4096, u16::MAX] {
         let response = text(DETAIL).replace("\"vlan\":4000", &format!("\"vlan\":{invalid}"));
         assert_eq!(
             decode_get(id(), response.as_bytes()).err(),
@@ -356,7 +356,7 @@ where
     )
 }
 
-fn decode_list(body: &[u8]) -> Result<RobotVSwitchList, RobotVSwitchDecodeError> {
+pub(super) fn decode_list(body: &[u8]) -> Result<RobotVSwitchList, RobotVSwitchDecodeError> {
     let request = RobotVSwitchListRequest::new();
     let mut target = [0_u8; 128];
     let mut request_body = [0_u8; 1];
@@ -368,7 +368,10 @@ fn decode_list(body: &[u8]) -> Result<RobotVSwitchList, RobotVSwitchDecodeError>
     })
 }
 
-fn decode_get(id: RobotVSwitchId, body: &[u8]) -> Result<RobotVSwitch, RobotVSwitchDecodeError> {
+pub(super) fn decode_get(
+    id: RobotVSwitchId,
+    body: &[u8],
+) -> Result<RobotVSwitch, RobotVSwitchDecodeError> {
     let request = RobotVSwitchGetRequest::new(id);
     let mut target = [0_u8; 128];
     let mut request_body = [0_u8; 1];
@@ -380,7 +383,7 @@ fn decode_get(id: RobotVSwitchId, body: &[u8]) -> Result<RobotVSwitch, RobotVSwi
     })
 }
 
-fn decode_create(
+pub(super) fn decode_create(
     request: &RobotVSwitchCreateRequest,
     body: &[u8],
 ) -> Result<RobotVSwitch, RobotVSwitchDecodeError> {

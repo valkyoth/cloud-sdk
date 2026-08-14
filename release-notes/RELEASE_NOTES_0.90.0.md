@@ -21,9 +21,12 @@ TLS implementation, or retry policy enters the default provider graph.
   limits, and provider failure classifications.
 - Added protected bounded names, VLAN IDs, canonical positive-number/IP server
   selectors, duplicate-free membership sets, and non-empty update intent.
-- VLAN admission enforces the complete `1..=4094` range. Protected names use a
-  conservative ASCII profile, and canonical IP comparison performs no heap
-  allocation.
+- VLAN admission enforces Hetzner's documented `4000..=4091` range. Outbound
+  protected names use a conservative ASCII profile, and canonical IP
+  comparison performs no heap allocation.
+- Decoded resources distinguish high-assurance names from bounded protected
+  quarantined provider names, preserving inventory availability without
+  allowing untrusted names to become outbound request values implicitly.
 - Added transactional sensitive form encoding for `name`, `vlan`,
   `cancellation_date`, and repeated `server[]` fields.
 - Added strict bounded list/detail/create response decoding with finite server

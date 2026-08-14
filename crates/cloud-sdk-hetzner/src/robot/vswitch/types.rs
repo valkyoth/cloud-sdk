@@ -16,7 +16,7 @@ pub const MAX_ROBOT_VSWITCH_SERVERS_PER_REQUEST: usize = 256;
 pub enum RobotVSwitchValueError {
     /// A provider identifier was zero.
     InvalidId,
-    /// The VLAN identifier was outside the standard usable range.
+    /// The VLAN identifier was outside Hetzner's vSwitch range.
     InvalidVlan,
     /// A name was empty, oversized, or unsafe for diagnostics.
     InvalidName,
@@ -61,14 +61,14 @@ impl RobotVSwitchId {
     }
 }
 
-/// Standard usable IEEE 802.1Q VLAN identifier.
+/// Hetzner Robot vSwitch VLAN identifier.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub struct RobotVlanId(u16);
 
 impl RobotVlanId {
-    /// Admits VLAN IDs `1..=4094`; Robot may enforce a narrower account policy.
+    /// Admits the Hetzner Robot vSwitch range `4000..=4091`.
     pub const fn new(value: u16) -> Result<Self, RobotVSwitchValueError> {
-        if value == 0 || value > 4094 {
+        if value < 4000 || value > 4091 {
             Err(RobotVSwitchValueError::InvalidVlan)
         } else {
             Ok(Self(value))
