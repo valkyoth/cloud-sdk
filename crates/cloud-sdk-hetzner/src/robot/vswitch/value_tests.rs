@@ -114,8 +114,17 @@ fn one_quarantined_name_does_not_invalidate_the_complete_inventory() {
     let inventory = decode_list(response.as_bytes())
         .unwrap_or_else(|_| unreachable!("mixed-assurance inventory failed"));
     assert_eq!(inventory.len(), 2);
-    assert!(inventory.as_slice()[0].name().is_high_assurance());
-    assert!(inventory.as_slice()[1].name().is_quarantined());
+    let entries = inventory.as_slice();
+    assert!(
+        entries
+            .first()
+            .is_some_and(|entry| entry.name().is_high_assurance())
+    );
+    assert!(
+        entries
+            .get(1)
+            .is_some_and(|entry| entry.name().is_quarantined())
+    );
 }
 
 #[test]
