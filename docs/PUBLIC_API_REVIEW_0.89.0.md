@@ -16,11 +16,13 @@ and TCP-flag access, template summary policy flags, protected exact comparison
 helpers, `RobotFirewallTemplateReconciliation`, and
 `RobotFirewallTemplateMutationOutcome`. Its unresolved variant owns a
 `PendingRobotFirewallTemplate`, and `into_confirmed()` returns that pending
-state instead of erasing it. Pending confirmation consumes the state together
-with the matching name-bearing list summary and verifies identity, protected
-name, summary flags, detailed flags, and ordered rules. Detailed template names
-are optional because the official create/get/update examples omit the field
-despite the output table listing it.
+state instead of erasing it. The pending type retains the exact typed mutation
+configuration; callers cannot supply replacement intent during confirmation.
+Pending confirmation consumes the state together with the matching
+name-bearing list summary and verifies identity, protected name, summary flags,
+detailed flags, and ordered rules. Detailed template names are optional because
+the official create/get/update examples omit the field despite the output table
+listing it.
 
 Inline replacement and template application are distinct public enum variants.
 Raw response decoders, strict JSON helpers, and form assembly remain

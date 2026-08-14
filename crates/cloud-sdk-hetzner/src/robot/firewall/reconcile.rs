@@ -16,15 +16,19 @@ pub enum RobotFirewallTemplateReconciliation {
     Mismatch,
 }
 
-/// Detailed template whose protected name still requires reconciliation.
+/// Detailed template retaining the exact mutation policy awaiting confirmation.
 #[must_use = "pending Robot firewall templates must be reconciled"]
-pub struct PendingRobotFirewallTemplate {
+pub struct PendingRobotFirewallTemplate<'a> {
     template: RobotFirewallTemplate,
+    expected: RobotFirewallTemplateConfig<'a>,
 }
 
-impl PendingRobotFirewallTemplate {
-    pub(super) const fn new(template: RobotFirewallTemplate) -> Self {
-        Self { template }
+impl<'a> PendingRobotFirewallTemplate<'a> {
+    pub(super) const fn new(
+        template: RobotFirewallTemplate,
+        expected: RobotFirewallTemplateConfig<'a>,
+    ) -> Self {
+        Self { template, expected }
     }
 
     /// Borrows the observed detailed state without marking it confirmed.
@@ -33,16 +37,18 @@ impl PendingRobotFirewallTemplate {
         &self.template
     }
 
-    /// Confirms this pending mutation using its name-bearing list summary.
+    /// Confirms the retained mutation policy using its name-bearing list summary.
     ///
     /// Robot does not expose a revision binding the list and detail reads.
     /// Callers must prevent concurrent template mutation while collecting both
     /// observations or repeat reconciliation after any possible race.
+    // The error intentionally retains complete pending state without allocating.
+    #[allow(clippy::result_large_err)]
     pub fn reconcile_with_summary(
         self,
         summary: &RobotFirewallTemplateSummary,
-        expected: RobotFirewallTemplateConfig<'_>,
     ) -> Result<RobotFirewallTemplate, Self> {
+        let expected = self.expected;
         let (name, filter_ipv6, whitelist_hos, is_default, _) = expected.parts();
         let identity_matches = summary.id == self.template.summary.id;
         let name_matches = summary
@@ -69,7 +75,7 @@ impl PendingRobotFirewallTemplate {
     }
 }
 
-impl core::fmt::Debug for PendingRobotFirewallTemplate {
+impl core::fmt::Debug for PendingRobotFirewallTemplate<'_> {
     fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         formatter
             .debug_tuple("PendingRobotFirewallTemplate")
@@ -80,14 +86,14 @@ impl core::fmt::Debug for PendingRobotFirewallTemplate {
 
 /// Checked result of a successful template mutation.
 #[must_use = "template mutation confirmation state must be handled"]
-pub enum RobotFirewallTemplateMutationOutcome {
+pub enum RobotFirewallTemplateMutationOutcome<'a> {
     /// Robot returned enough state to confirm the complete requested policy.
     Confirmed(RobotFirewallTemplate),
     /// Robot omitted the name, so list and detail state must be reconciled.
-    ReconciliationRequired(PendingRobotFirewallTemplate),
+    ReconciliationRequired(PendingRobotFirewallTemplate<'a>),
 }
 
-impl RobotFirewallTemplateMutationOutcome {
+impl<'a> RobotFirewallTemplateMutationOutcome<'a> {
     /// Borrows the template only when every requested field was confirmed.
     #[must_use]
     pub const fn confirmed(&self) -> Option<&RobotFirewallTemplate> {
@@ -99,7 +105,7 @@ impl RobotFirewallTemplateMutationOutcome {
 
     /// Borrows the explicit pending state when reconciliation is required.
     #[must_use]
-    pub const fn pending(&self) -> Option<&PendingRobotFirewallTemplate> {
+    pub const fn pending(&self) -> Option<&PendingRobotFirewallTemplate<'a>> {
         match self {
             Self::Confirmed(_) => None,
             Self::ReconciliationRequired(pending) => Some(pending),
@@ -108,7 +114,9 @@ impl RobotFirewallTemplateMutationOutcome {
 
     /// Consumes the outcome without erasing unresolved confirmation state.
     #[must_use = "unresolved template state must not be discarded"]
-    pub fn into_confirmed(self) -> Result<RobotFirewallTemplate, PendingRobotFirewallTemplate> {
+    // The error intentionally retains complete pending state without allocating.
+    #[allow(clippy::result_large_err)]
+    pub fn into_confirmed(self) -> Result<RobotFirewallTemplate, PendingRobotFirewallTemplate<'a>> {
         match self {
             Self::Confirmed(template) => Ok(template),
             Self::ReconciliationRequired(pending) => Err(pending),
@@ -116,7 +124,7 @@ impl RobotFirewallTemplateMutationOutcome {
     }
 }
 
-impl core::fmt::Debug for RobotFirewallTemplateMutationOutcome {
+impl core::fmt::Debug for RobotFirewallTemplateMutationOutcome<'_> {
     fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         formatter
             .debug_tuple(match self {

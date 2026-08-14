@@ -181,11 +181,11 @@ impl CheckedRobotFirewall<'_, '_, RobotFirewallTemplateGetRequest> {
     }
 }
 
-impl CheckedRobotFirewall<'_, '_, RobotFirewallTemplateCreateRequest<'_>> {
+impl<'a> CheckedRobotFirewall<'_, '_, RobotFirewallTemplateCreateRequest<'a>> {
     /// Reconciles the created template with the complete requested configuration.
     pub fn decode_response(
         self,
-    ) -> Result<RobotFirewallTemplateMutationOutcome, RobotFirewallDecodeError> {
+    ) -> Result<RobotFirewallTemplateMutationOutcome<'a>, RobotFirewallDecodeError> {
         let result = decode_template(self.inner)?;
         match template_reconciliation(self.request.config, &result) {
             RobotFirewallTemplateReconciliation::Confirmed => {
@@ -193,7 +193,7 @@ impl CheckedRobotFirewall<'_, '_, RobotFirewallTemplateCreateRequest<'_>> {
             }
             RobotFirewallTemplateReconciliation::NameUnconfirmed => Ok(
                 RobotFirewallTemplateMutationOutcome::ReconciliationRequired(
-                    PendingRobotFirewallTemplate::new(result),
+                    PendingRobotFirewallTemplate::new(result, self.request.config),
                 ),
             ),
             RobotFirewallTemplateReconciliation::Mismatch => {
@@ -203,11 +203,11 @@ impl CheckedRobotFirewall<'_, '_, RobotFirewallTemplateCreateRequest<'_>> {
     }
 }
 
-impl CheckedRobotFirewall<'_, '_, RobotFirewallTemplateUpdateRequest<'_>> {
+impl<'a> CheckedRobotFirewall<'_, '_, RobotFirewallTemplateUpdateRequest<'a>> {
     /// Requires identity preservation and reports whether all fields were confirmed.
     pub fn decode_response(
         self,
-    ) -> Result<RobotFirewallTemplateMutationOutcome, RobotFirewallDecodeError> {
+    ) -> Result<RobotFirewallTemplateMutationOutcome<'a>, RobotFirewallDecodeError> {
         let result = decode_template(self.inner)?;
         require_template(&result, self.request.template_id)?;
         match template_reconciliation(self.request.config, &result) {
@@ -216,7 +216,7 @@ impl CheckedRobotFirewall<'_, '_, RobotFirewallTemplateUpdateRequest<'_>> {
             }
             RobotFirewallTemplateReconciliation::NameUnconfirmed => Ok(
                 RobotFirewallTemplateMutationOutcome::ReconciliationRequired(
-                    PendingRobotFirewallTemplate::new(result),
+                    PendingRobotFirewallTemplate::new(result, self.request.config),
                 ),
             ),
             RobotFirewallTemplateReconciliation::Mismatch => {

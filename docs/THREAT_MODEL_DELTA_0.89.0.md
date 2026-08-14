@@ -38,7 +38,9 @@ replacement or clear mutations.
   the documented name, create/update returns a non-erasable pending type rather
   than claiming complete confirmation. Confirmation consumes that state and
   requires a matching name-bearing list summary, exact identity, protected
-  name, policy flags, and detailed ordered rules.
+  name, policy flags, and detailed ordered rules. The pending type retains the
+  exact admitting request configuration, and its confirmation method accepts no
+  caller-supplied replacement intent.
 - Mutations require request-bound strong-digest authority; server clear and
   template delete require distinct destructive authority. Permit attempts
   remain delivery-classified and single use.

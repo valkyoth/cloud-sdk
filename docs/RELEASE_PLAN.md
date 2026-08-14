@@ -2872,7 +2872,8 @@ Deliverables:
   comparison, and non-erasable pending reconciliation outcomes when the
   official detailed response omits its documented template name; confirmation
   consumes that state with a same-ID, name-bearing list summary and checks all
-  summary flags plus detailed ordered rules;
+  summary flags plus detailed ordered rules against the exact original mutation
+  configuration retained in the pending type;
 - bind replace/create/update to request-specific strong-digest mutation
   permits, bind server/template delete to distinct destructive permits, and
   deny automatic mutation retry;
@@ -2897,8 +2898,9 @@ Verification:
   template identity, contradictory replacement/create/update/clear outcomes,
   duplicate template lists, and exact 2 MiB plus one-byte rejection;
 - test pending-state preservation, rejected state-erasing extraction,
-  list/detail identity mismatch, absent or mismatched protected names, every
-  summary-flag mismatch, and documented non-atomic observation handling;
+  caller-intent substitution rejection, list/detail identity mismatch, absent
+  or mismatched protected names, every summary-flag mismatch, and documented
+  non-atomic observation handling;
 - test operation-bound `INVALID_INPUT`, `SERVER_NOT_FOUND`,
   `FIREWALL_PORT_NOT_FOUND`, `FIREWALL_NOT_AVAILABLE`,
   `FIREWALL_TEMPLATE_NOT_FOUND`, `FIREWALL_IN_PROCESS`,
@@ -2922,7 +2924,8 @@ Exit criteria:
   server or template, and every mutation result either matches its complete
   intent or retains non-erasable pending reconciliation state for an omitted
   template name; pending state can become confirmed only through a matching
-  name-bearing list summary and complete policy comparison;
+  name-bearing list summary and complete comparison with the original mutation
+  policy retained by that pending state;
 - raw decoders remain internal, protected values remain redacted and
   non-copyable, automatic mutation retry remains forbidden, and permit types
   cannot authorize another request or impact class;

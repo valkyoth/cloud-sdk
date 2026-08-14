@@ -33,7 +33,9 @@ CI/CodeQL; it publishes no crate.
   Detailed responses may omit the documented template name, so mutation
   decoding reports non-erasable pending state instead of unconfirmed success.
   Confirmation consumes that state with a same-ID, name-bearing list summary
-  and checks the protected name, policy flags, and detailed ordered rules.
+  and checks the protected name, policy flags, and detailed ordered rules
+  against the exact mutation configuration retained by the pending type.
+  Callers cannot substitute replacement intent during reconciliation.
 - Documented Robot's non-atomic list/detail observation boundary: callers must
   exclude concurrent template mutation or repeat reconciliation after a
   possible race because Robot supplies no revision binding the two reads.

@@ -16,6 +16,7 @@ API_LOCK = ROOT / "tests/fixtures/robot-api/v0.74.0.json"
 FUZZ_HARNESS = ROOT / "scripts/check_fuzz_harness.sh"
 FORM_SOURCE = ROOT / "crates/cloud-sdk-hetzner/src/robot/firewall/form.rs"
 RECONCILE_SOURCE = ROOT / "crates/cloud-sdk-hetzner/src/robot/firewall/reconcile.rs"
+EXCHANGE_SOURCE = ROOT / "crates/cloud-sdk-hetzner/src/robot/firewall/exchange.rs"
 NAME_SOURCE = ROOT / "crates/cloud-sdk-hetzner/src/robot/firewall/types.rs"
 MAX_BYTES = 64 * 1024
 FIXTURE_SHA256 = "238cec5b8cc51546483cae4336eedc65d644eb27e69179b5f70173702abc8538"
@@ -54,6 +55,7 @@ def validate(
     fuzz_harness: Path,
     form_source_path: Path,
     reconcile_source_path: Path,
+    exchange_source_path: Path,
     name_source_path: Path,
 ) -> None:
     try:
@@ -166,7 +168,10 @@ def validate(
     if "constant_time_eq" not in reconcile_source or ".fold(" not in reconcile_source:
         fail("protected firewall reconciliation is no longer fixed-work")
     for required in [
-        "PendingRobotFirewallTemplate",
+        "pub struct PendingRobotFirewallTemplate<'a>",
+        "template: RobotFirewallTemplate,\n    expected: RobotFirewallTemplateConfig<'a>,",
+        "Self { template, expected }",
+        "let expected = self.expected;",
         "reconcile_with_summary",
         "into_confirmed",
         "summary_matches_detail",
@@ -175,6 +180,10 @@ def validate(
             fail(f"template reconciliation typestate lost {required}")
     if "into_template(" in reconcile_source:
         fail("template reconciliation state can be erased")
+    exchange_source = read_text(exchange_source_path)
+    request_binding = "PendingRobotFirewallTemplate::new(result, self.request.config)"
+    if exchange_source.count(request_binding) != 2:
+        fail("pending template reconciliation lost its exact mutation request binding")
     name_source = read_text(name_source_path)
     for scalar in ["061c", "200b", "200f", "202a", "202e", "2060", "2069", "feff"]:
         if f"\\u{{{scalar}}}" not in name_source:
@@ -188,6 +197,7 @@ def main() -> None:
     parser.add_argument("--fuzz-harness", type=Path, default=FUZZ_HARNESS)
     parser.add_argument("--form-source", type=Path, default=FORM_SOURCE)
     parser.add_argument("--reconcile-source", type=Path, default=RECONCILE_SOURCE)
+    parser.add_argument("--exchange-source", type=Path, default=EXCHANGE_SOURCE)
     parser.add_argument("--name-source", type=Path, default=NAME_SOURCE)
     args = parser.parse_args()
     validate(
@@ -196,6 +206,7 @@ def main() -> None:
         args.fuzz_harness,
         args.form_source,
         args.reconcile_source,
+        args.exchange_source,
         args.name_source,
     )
     print("Robot firewall source contract passed.")

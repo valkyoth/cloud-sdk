@@ -5,7 +5,9 @@ use super::*;
 
 const RULES: &str = r#"{"input":[{"ip_version":"ipv4","name":"HTTPS","dst_ip":"192.0.2.0/24","src_ip":null,"dst_port":"443","src_port":null,"protocol":"tcp","tcp_flags":"syn|ack","action":"accept"}],"output":[]}"#;
 
-fn pending(request: &RobotFirewallTemplateCreateRequest<'_>) -> PendingRobotFirewallTemplate {
+fn pending<'a>(
+    request: &RobotFirewallTemplateCreateRequest<'a>,
+) -> PendingRobotFirewallTemplate<'a> {
     let body = format!(
         r#"{{"firewall_template":{{"id":17,"filter_ipv6":false,"whitelist_hos":true,"is_default":false,"rules":{RULES}}}}}"#
     );
@@ -17,7 +19,7 @@ fn pending(request: &RobotFirewallTemplateCreateRequest<'_>) -> PendingRobotFire
 }
 
 #[test]
-fn pending_reconciliation_rejects_torn_or_mismatched_summaries() {
+fn pending_reconciliation_rejects_substituted_intent_and_torn_summaries() {
     let request_rules = [request_rule()];
     let request = RobotFirewallTemplateCreateRequest::new(template_config(&request_rules));
     let mismatches = [
@@ -35,10 +37,6 @@ fn pending_reconciliation_rejects_torn_or_mismatched_summaries() {
             .as_slice()
             .first()
             .unwrap_or_else(|| unreachable!("summary mismatch disappeared"));
-        assert!(
-            pending(&request)
-                .reconcile_with_summary(summary, template_config(&request_rules))
-                .is_err()
-        );
+        assert!(pending(&request).reconcile_with_summary(summary).is_err());
     }
 }

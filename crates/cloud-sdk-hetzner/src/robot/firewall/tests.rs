@@ -357,11 +357,7 @@ fn template_inventory_and_mutations_are_request_bound() {
         .as_slice()
         .first()
         .unwrap_or_else(|| unreachable!("list summary disappeared"));
-    assert!(
-        pending
-            .reconcile_with_summary(summary, template_config(&request_rules))
-            .is_ok()
-    );
+    assert!(pending.reconcile_with_summary(summary).is_ok());
 
     let wrong_summary = r#"[{"firewall_template":{"id":18,"name":"baseline","filter_ipv6":false,"whitelist_hos":true,"is_default":false}}]"#;
     let wrong_list = decode_template_list(wrong_summary.as_bytes())
@@ -378,7 +374,6 @@ fn template_inventory_and_mutations_are_request_bound() {
                     .as_slice()
                     .first()
                     .unwrap_or_else(|| unreachable!("wrong summary disappeared")),
-                template_config(&request_rules),
             )
             .is_err()
     );
