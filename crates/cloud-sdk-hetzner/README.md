@@ -815,9 +815,16 @@ Transaction list reads expose Robot's fixed 30-day snapshot without inventing
 pagination; detail responses remain bound to the requested protected
 transaction ID. Finite status, server-result nullability, keys, products,
 prices, and addon resources are bounded and strictly decoded. Billable orders
-require catalog-derived cost authority, exact request fingerprints, guarded
-sensitive form preparation, and transaction reconciliation after uncertain
-delivery. CI and live smoke contain no billable Robot route. It does not
+require transport-produced credential-bound catalog observations,
+catalog-derived cost authority, exact request fingerprints, guarded sensitive
+form preparation, one-shot permit minting, same-credential dispatch,
+type-checked RIPE addon parameters, and credential-bound transaction
+reconciliation after uncertain delivery. CI and live smoke contain no billable
+Robot route. Addon creation responses must match the request-bound catalog type
+and price exactly. Uncertain-delivery reconciliation is intentionally more
+conservative: a historical transaction for the same server and product blocks
+retry even if its price or optional type changed, preventing an automatic
+duplicate charge. It does not
 expose a high-level Robot client.
 Its complete source lock records 89
 active operations and excludes all 16 deprecated Storage Box operations. See the

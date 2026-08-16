@@ -1,13 +1,15 @@
 use alloc::vec;
 
+use cloud_sdk::authentication::{CREDENTIAL_BINDING_BYTES, CredentialBinding};
 use cloud_sdk::operation::{PreparationStorage, PreparationStorageGuard};
 use cloud_sdk::transport::{HeaderSensitivity, ResponseBuffer, ResponseMetadata, StatusCode};
 
 use super::*;
 use crate::robot::RobotServerNumber;
 use crate::robot::ordering::{
-    CheckedRobotOrderCatalog, PreparedRobotOrderCatalog, RobotAddonCatalog, RobotAddonOrderPlan,
-    RobotAddonProductListRequest, RobotMarketOrderPlan, RobotMarketProduct,
+    CheckedRobotOrderCatalog, CredentialObserved, PreparedRobotOrderCatalog, RobotAddonCatalog,
+    RobotAddonOrderPlan, RobotAddonProductListRequest, RobotAddonTransactionList,
+    RobotAddonTransactionListRequest, RobotMarketOrderPlan, RobotMarketProduct,
     RobotMarketProductGetRequest, RobotMarketProductId, RobotOrderCurrency,
     RobotOrderCurrencyRequest, RobotOrderProductId, RobotStandardAddonSelection,
     RobotStandardOrderPlan, RobotStandardProduct, RobotStandardProductGetRequest,
@@ -19,23 +21,63 @@ mod permit;
 
 const STANDARD: &[u8] =
     include_bytes!("../../../../../../tests/fixtures/robot-ordering/standard.json");
+const STANDARD_MULTISET: &[u8] =
+    include_bytes!("../../../../../../tests/fixtures/robot-order-mutations/standard-multiset.json");
 const MARKET: &[u8] = include_bytes!("../../../../../../tests/fixtures/robot-ordering/market.json");
 const ADDONS: &[u8] = include_bytes!("../../../../../../tests/fixtures/robot-ordering/addons.json");
 const CURRENCY: &[u8] =
     include_bytes!("../../../../../../tests/fixtures/robot-ordering/currency.json");
 
-fn standard_product() -> RobotStandardProduct {
-    let request = RobotStandardProductGetRequest::new(product_id("EX40"));
-    let mut target = [0_u8; 256];
-    let mut body = [0_u8; 1];
-    let prepared = request
-        .prepare_bound(PreparationStorage::new(&mut target, &mut body))
-        .unwrap_or_else(|_| unreachable!("standard catalog preparation failed"));
-    with_catalog_json(prepared, STANDARD, |checked| checked.decode_response())
-        .unwrap_or_else(|_| unreachable!("standard catalog fixture failed"))
+fn credential(byte: u8) -> CredentialBinding {
+    CredentialBinding::new([byte; CREDENTIAL_BINDING_BYTES])
+        .unwrap_or_else(|_| unreachable!("credential fixture is nonzero"))
 }
 
-fn market_product() -> RobotMarketProduct {
+fn authorization<R: RobotOrderPermitRequest + ?Sized>(
+    request: &R,
+) -> RobotOrderAuthorizationEvidence<'static> {
+    RobotOrderAuthorizationEvidence::for_request(
+        RobotOrderAccount::new(b"robot-account").unwrap_or_else(|_| unreachable!()),
+        request,
+    )
+}
+
+fn observed<T>(value: T) -> CredentialObserved<T> {
+    observed_with(value, 0x5a)
+}
+
+fn observed_with<T>(value: T, byte: u8) -> CredentialObserved<T> {
+    CredentialObserved::from_parts(value, credential(byte))
+}
+
+fn addon_parameters() -> RobotAddonOrderParameters<'static> {
+    RobotAddonOrderParameters::Ip {
+        reason: RobotRipeReason::new("VPS").unwrap_or_else(|_| unreachable!()),
+    }
+}
+
+fn multiset_standard_product() -> CredentialObserved<RobotStandardProduct> {
+    standard_product_from_with(STANDARD_MULTISET, 0x5a)
+}
+
+fn standard_product_from_with(
+    body: &[u8],
+    credential_byte: u8,
+) -> CredentialObserved<RobotStandardProduct> {
+    let request = RobotStandardProductGetRequest::new(product_id("EX40"));
+    let mut target = [0_u8; 256];
+    let mut response_storage = [0_u8; 1];
+    let prepared = request
+        .prepare_bound(PreparationStorage::new(&mut target, &mut response_storage))
+        .unwrap_or_else(|_| unreachable!("standard catalog preparation failed"));
+    observed_with(
+        with_catalog_json(prepared, body, |checked| checked.decode_response())
+            .unwrap_or_else(|_| unreachable!("standard catalog fixture failed")),
+        credential_byte,
+    )
+}
+
+fn market_product() -> CredentialObserved<RobotMarketProduct> {
     let request = RobotMarketProductGetRequest::new(
         RobotMarketProductId::new(282_323)
             .unwrap_or_else(|_| unreachable!("market product fixture failed")),
@@ -45,25 +87,42 @@ fn market_product() -> RobotMarketProduct {
     let prepared = request
         .prepare_bound(PreparationStorage::new(&mut target, &mut body))
         .unwrap_or_else(|_| unreachable!("market catalog preparation failed"));
-    with_catalog_json(prepared, MARKET, |checked| checked.decode_response())
-        .unwrap_or_else(|_| unreachable!("market catalog fixture failed"))
+    observed(
+        with_catalog_json(prepared, MARKET, |checked| checked.decode_response())
+            .unwrap_or_else(|_| unreachable!("market catalog fixture failed")),
+    )
 }
 
-fn currency() -> RobotOrderCurrency {
+fn currency() -> CredentialObserved<RobotOrderCurrency> {
+    currency_with(0x5a)
+}
+
+fn currency_with(credential_byte: u8) -> CredentialObserved<RobotOrderCurrency> {
     let request = RobotOrderCurrencyRequest::new();
     let mut target = [0_u8; 128];
     let mut body = [0_u8; 1];
     let prepared = request
         .prepare_bound(PreparationStorage::new(&mut target, &mut body))
         .unwrap_or_else(|_| unreachable!("currency preparation failed"));
-    with_catalog_json(prepared, CURRENCY, |checked| checked.decode_response())
-        .unwrap_or_else(|_| unreachable!("currency fixture failed"))
+    observed_with(
+        with_catalog_json(prepared, CURRENCY, |checked| checked.decode_response())
+            .unwrap_or_else(|_| unreachable!("currency fixture failed")),
+        credential_byte,
+    )
 }
 
 fn with_standard_plan<R>(inspect: impl FnOnce(&RobotStandardOrderPlan<'_>) -> R) -> R {
-    let product = standard_product();
-    let currency = currency();
+    with_standard_plan_with(0x5a, inspect)
+}
+
+fn with_standard_plan_with<R>(
+    credential_byte: u8,
+    inspect: impl FnOnce(&RobotStandardOrderPlan<'_>) -> R,
+) -> R {
+    let product = standard_product_from_with(STANDARD, credential_byte);
+    let currency = currency_with(credential_byte);
     let addon = product
+        .value()
         .orderable_addons()
         .first()
         .unwrap_or_else(|| unreachable!("standard addon fixture disappeared"));
@@ -84,6 +143,13 @@ fn with_market_plan<R>(inspect: impl FnOnce(&RobotMarketOrderPlan<'_>) -> R) -> 
 }
 
 fn with_addon_plan<R>(inspect: impl FnOnce(&RobotAddonOrderPlan<'_, '_>) -> R) -> R {
+    with_addon_plan_at(0, inspect)
+}
+
+fn with_addon_plan_at<R>(
+    product_index: usize,
+    inspect: impl FnOnce(&RobotAddonOrderPlan<'_, '_>) -> R,
+) -> R {
     let request = RobotAddonProductListRequest::new(server(321));
     let mut target = [0_u8; 256];
     let mut body = [0_u8; 1];
@@ -93,8 +159,9 @@ fn with_addon_plan<R>(inspect: impl FnOnce(&RobotAddonOrderPlan<'_, '_>) -> R) -
     let catalog: RobotAddonCatalog<'_> =
         with_catalog_json(prepared, ADDONS, |checked| checked.decode_response())
             .unwrap_or_else(|_| unreachable!("addon catalog fixture failed"));
+    let catalog = observed(catalog);
     let currency = currency();
-    let plan = RobotAddonOrderPlan::new(&catalog, 0, &currency)
+    let plan = RobotAddonOrderPlan::new(&catalog, product_index, &currency)
         .unwrap_or_else(|_| unreachable!("addon plan failed"));
     inspect(&plan)
 }
@@ -111,6 +178,31 @@ fn with_catalog_json<'request, R, O>(
         prepared
             .validate_response(response)
             .unwrap_or_else(|_| unreachable!("catalog response policy failed")),
+    )
+}
+
+fn addon_history(body: &[u8]) -> CredentialObserved<RobotAddonTransactionList> {
+    let request = RobotAddonTransactionListRequest::new();
+    let mut target = [0_u8; 128];
+    let mut request_body = [0_u8; 1];
+    let mut guard = PreparationStorageGuard::new(&mut target, &mut request_body);
+    let prepared = request
+        .prepare_bound(&mut guard)
+        .unwrap_or_else(|_| unreachable!("addon history preparation failed"));
+    let mut response_body = vec![0_u8; body.len()];
+    let mut response_headers = [0_u8; 128];
+    let response = json_response(
+        &mut response_body,
+        &mut response_headers,
+        StatusCode::OK,
+        body,
+    );
+    observed(
+        prepared
+            .validate_response(response)
+            .unwrap_or_else(|_| unreachable!("addon history response policy failed"))
+            .decode_response()
+            .unwrap_or_else(|_| unreachable!("addon history fixture failed")),
     )
 }
 

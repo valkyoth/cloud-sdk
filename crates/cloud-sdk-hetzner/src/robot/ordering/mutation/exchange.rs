@@ -5,9 +5,11 @@ use cloud_sdk::transport::ResponseBuffer;
 
 use super::prepare::{Kind, prepare};
 use super::request::*;
-use crate::robot::ordering::transaction::{decode_addon, decode_market, decode_standard};
+use crate::robot::ordering::transaction::{
+    decode_addon_created, decode_market_created, decode_standard,
+};
 use crate::robot::ordering::{
-    RobotAddonTransaction, RobotMarketTransaction, RobotStandardTransaction,
+    RobotAddonTransaction, RobotMarketCreatedTransaction, RobotStandardTransaction,
 };
 
 /// Guarded prepared billable order retaining its exact catalog-derived intent.
@@ -106,13 +108,15 @@ impl CheckedRobotOrderMutation<'_, '_, RobotStandardOrderCreateRequest<'_>> {
 
 impl CheckedRobotOrderMutation<'_, '_, RobotMarketOrderCreateRequest<'_>> {
     /// Decodes the created transaction and verifies the complete observable intent.
-    pub fn decode_response(self) -> Result<RobotMarketTransaction, RobotOrderMutationDecodeError> {
+    pub fn decode_response(
+        self,
+    ) -> Result<RobotMarketCreatedTransaction, RobotOrderMutationDecodeError> {
         let value = self
             .inner
-            .decode_owned_with_workspace(decode_market)
+            .decode_owned_with_workspace(decode_market_created)
             .map_err(RobotOrderMutationDecodeError::Transaction)?;
         self.request
-            .matches_transaction(&value)
+            .matches_created_transaction(&value)
             .then_some(value)
             .ok_or(RobotOrderMutationDecodeError::ResponseIntentMismatch)
     }
@@ -123,10 +127,10 @@ impl CheckedRobotOrderMutation<'_, '_, RobotAddonOrderCreateRequest<'_, '_>> {
     pub fn decode_response(self) -> Result<RobotAddonTransaction, RobotOrderMutationDecodeError> {
         let value = self
             .inner
-            .decode_owned_with_workspace(decode_addon)
+            .decode_owned_with_workspace(decode_addon_created)
             .map_err(RobotOrderMutationDecodeError::Transaction)?;
         self.request
-            .matches_transaction(&value)
+            .matches_created_transaction(&value)
             .then_some(value)
             .ok_or(RobotOrderMutationDecodeError::ResponseIntentMismatch)
     }

@@ -19,6 +19,8 @@ mod model;
 #[cfg(feature = "serde")]
 mod mutation;
 #[cfg(feature = "serde")]
+mod observation;
+#[cfg(feature = "serde")]
 mod plan;
 
 pub use prepare::{MAX_ROBOT_ORDER_ITEM_RESPONSE_BYTES, MAX_ROBOT_ORDER_LIST_RESPONSE_BYTES};
@@ -45,7 +47,10 @@ pub use value::{
 #[cfg(feature = "serde")]
 pub use decode::RobotOrderCatalogDecodeError;
 #[cfg(feature = "serde")]
-pub use exchange::{CheckedRobotOrderCatalog, PreparedRobotOrderCatalog, RobotAddonCatalog};
+pub use exchange::{
+    CheckedRobotOrderCatalog, CredentialCheckedRobotOrderCatalog, PreparedRobotOrderCatalog,
+    RobotAddonCatalog,
+};
 #[cfg(feature = "serde")]
 pub use failure::RobotOrderFailureCode;
 #[cfg(feature = "serde")]
@@ -57,16 +62,20 @@ pub use model::{
 };
 #[cfg(feature = "serde")]
 pub use mutation::{
-    CheckedRobotOrderMutation, MAX_ROBOT_ORDER_MUTATION_RESPONSE_BYTES, PreparedRobotOrderMutation,
-    ROBOT_ORDER_MUTATION_QUOTA, RobotAddonOrderCreateRequest, RobotMarketOrderCreateRequest,
-    RobotOrderAccount, RobotOrderCanonicalPlanFingerprint, RobotOrderCostError,
-    RobotOrderCostPermit, RobotOrderMutationDecodeError, RobotOrderMutationFailureCode,
-    RobotOrderMutationQuota, RobotOrderMutationRequestError, RobotOrderNotApplied,
-    RobotOrderPermitAttempt, RobotOrderPermitRequest, RobotOrderPlanConfirmation,
-    RobotOrderPlanFingerprintDigest, RobotOrderPlanSubject, RobotOrderReconciliationError,
+    CheckedRobotOrderMutation, MAX_ROBOT_ORDER_MUTATION_RESPONSE_BYTES,
+    MAX_ROBOT_RIPE_REASON_BYTES, PreparedRobotOrderMutation, ROBOT_ORDER_MUTATION_QUOTA,
+    RobotAddonOrderCreateError, RobotAddonOrderCreateRequest, RobotAddonOrderParameters,
+    RobotMarketOrderCreateRequest, RobotOrderAccount, RobotOrderAuthorizationEvidence,
+    RobotOrderCanonicalPlanFingerprint, RobotOrderCostError, RobotOrderCostPermit,
+    RobotOrderMutationDecodeError, RobotOrderMutationFailureCode, RobotOrderMutationQuota,
+    RobotOrderMutationRequestError, RobotOrderNotApplied, RobotOrderPermitAttempt,
+    RobotOrderPermitRequest, RobotOrderPlanConfirmation, RobotOrderPlanFingerprintDigest,
+    RobotOrderPlanSubject, RobotOrderReconciliationError, RobotRipeReason,
     RobotStandardOrderCreateRequest, build_robot_order_canonical_plan,
     build_robot_order_plan_digest,
 };
+#[cfg(feature = "serde")]
+pub use observation::CredentialObserved;
 #[cfg(feature = "serde")]
 pub use plan::{
     RobotAddonOrderPlan, RobotCatalogPlanError, RobotCatalogPriceWarning, RobotMarketOrderPlan,
@@ -74,10 +83,11 @@ pub use plan::{
 };
 #[cfg(feature = "serde")]
 pub use transaction::{
-    CheckedRobotOrderTransaction, MAX_ROBOT_ORDER_TRANSACTION_ITEMS,
-    MAX_ROBOT_ORDER_TRANSACTION_KEYS, MAX_ROBOT_ORDER_TRANSACTION_RESOURCES,
-    PreparedRobotOrderTransaction, RobotAddonTransaction, RobotAddonTransactionList,
-    RobotAddonTransactionProduct, RobotMarketTransaction, RobotMarketTransactionList,
+    CheckedRobotOrderTransaction, CredentialCheckedRobotOrderTransaction,
+    MAX_ROBOT_ORDER_TRANSACTION_ITEMS, MAX_ROBOT_ORDER_TRANSACTION_KEYS,
+    MAX_ROBOT_ORDER_TRANSACTION_RESOURCES, PreparedRobotOrderTransaction, RobotAddonTransaction,
+    RobotAddonTransactionList, RobotAddonTransactionProduct, RobotMarketCreatedProduct,
+    RobotMarketCreatedTransaction, RobotMarketTransaction, RobotMarketTransactionList,
     RobotMarketTransactionProduct, RobotOrderTransactionDecodeError,
     RobotOrderTransactionFailureCode, RobotOrderTransactionKey, RobotOrderTransactionResource,
     RobotOrderTransactionStatus, RobotOrderTransactionTimestamp, RobotStandardTransaction,

@@ -1,3 +1,5 @@
+use core::net::Ipv4Addr;
+
 use super::super::{RobotAddonOrderPlan, RobotMarketOrderPlan, RobotStandardOrderPlan};
 use super::cost::{addon_cost, market_cost, standard_cost};
 use cloud_sdk::operation::PlanCost;
@@ -75,6 +77,75 @@ impl_static_error!(RobotOrderMutationDecodeError,
     Self::ResponseIntentMismatch => "Robot order response does not match the confirmed intent",
 );
 
+/// Maximum bytes accepted for one RIPE justification.
+pub const MAX_ROBOT_RIPE_REASON_BYTES: usize = 1_024;
+
+/// Invalid parameters for a billable per-server addon order.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum RobotAddonOrderCreateError {
+    /// Catalog-derived cost validation failed.
+    Cost(super::RobotOrderCostError),
+    /// The RIPE justification was empty, oversized, or unsafe text.
+    InvalidReason,
+    /// Parameters do not match the exact catalog product type.
+    ParameterMismatch,
+}
+
+impl_static_error!(RobotAddonOrderCreateError,
+    Self::Cost(_) => "Robot addon order cost validation failed",
+    Self::InvalidReason => "Robot addon order RIPE reason is invalid",
+    Self::ParameterMismatch => "Robot addon order parameters do not match the catalog product type",
+);
+
+/// Bounded borrowed RIPE justification. Diagnostics never expose its text.
+#[derive(Clone, Copy, Eq, PartialEq)]
+pub struct RobotRipeReason<'a>(&'a str);
+
+impl<'a> RobotRipeReason<'a> {
+    /// Validates a non-empty reason without controls or directional formatting.
+    pub fn new(value: &'a str) -> Result<Self, RobotAddonOrderCreateError> {
+        if value.is_empty()
+            || value.len() > MAX_ROBOT_RIPE_REASON_BYTES
+            || value
+                .chars()
+                .any(crate::display::is_unsafe_display_character)
+        {
+            Err(RobotAddonOrderCreateError::InvalidReason)
+        } else {
+            Ok(Self(value))
+        }
+    }
+
+    pub(super) const fn as_str(self) -> &'a str {
+        self.0
+    }
+}
+
+impl core::fmt::Debug for RobotRipeReason<'_> {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        formatter.write_str("RobotRipeReason([redacted])")
+    }
+}
+
+/// Catalog-type-specific parameters for a per-server addon purchase.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum RobotAddonOrderParameters<'a> {
+    /// Parameters for an `ip_ipv4` or `failover_subnet_ipv4` addon.
+    Ip {
+        /// Mandatory RIPE justification.
+        reason: RobotRipeReason<'a>,
+    },
+    /// Parameters for a `subnet_ipv4` addon.
+    Subnet {
+        /// Mandatory RIPE justification.
+        reason: RobotRipeReason<'a>,
+        /// Optional routing target; omission uses the server's primary IPv4.
+        gateway: Option<Ipv4Addr>,
+    },
+    /// No extra parameters for a catalog type without RIPE requirements.
+    Other,
+}
+
 macro_rules! order_request {
     ($name:ident, $plan:ty, $cost:ident, $description:literal) => {
         #[doc = $description]
@@ -124,6 +195,7 @@ order_request!(
 /// Billable per-server addon order derived from a request-bound addon catalog.
 pub struct RobotAddonOrderCreateRequest<'a, 'request> {
     pub(super) plan: &'a RobotAddonOrderPlan<'a, 'request>,
+    pub(super) parameters: RobotAddonOrderParameters<'a>,
     pub(super) cost: PlanCost,
 }
 
@@ -131,17 +203,44 @@ impl<'a, 'request> RobotAddonOrderCreateRequest<'a, 'request> {
     /// Binds one current addon plan to an explicit first-invoice ceiling.
     pub fn new(
         plan: &'a RobotAddonOrderPlan<'a, 'request>,
+        parameters: RobotAddonOrderParameters<'a>,
         ceiling_units_at_scale_4: u128,
-    ) -> Result<Self, super::RobotOrderCostError> {
+    ) -> Result<Self, RobotAddonOrderCreateError> {
+        validate_addon_parameters(plan, parameters)?;
         Ok(Self {
             plan,
-            cost: addon_cost(plan, ceiling_units_at_scale_4)?,
+            parameters,
+            cost: addon_cost(plan, ceiling_units_at_scale_4)
+                .map_err(RobotAddonOrderCreateError::Cost)?,
         })
     }
 
     pub(super) const fn cost(&self) -> PlanCost {
         self.cost
     }
+}
+
+fn validate_addon_parameters(
+    plan: &RobotAddonOrderPlan<'_, '_>,
+    parameters: RobotAddonOrderParameters<'_>,
+) -> Result<(), RobotAddonOrderCreateError> {
+    let matches = plan
+        .product()
+        .kind()
+        .try_with_text(|kind| {
+            matches!(
+                (kind, parameters),
+                (
+                    "ip_ipv4" | "failover_subnet_ipv4",
+                    RobotAddonOrderParameters::Ip { .. }
+                ) | ("subnet_ipv4", RobotAddonOrderParameters::Subnet { .. })
+            ) || (!matches!(kind, "ip_ipv4" | "subnet_ipv4" | "failover_subnet_ipv4")
+                && matches!(parameters, RobotAddonOrderParameters::Other))
+        })
+        .unwrap_or(false);
+    matches
+        .then_some(())
+        .ok_or(RobotAddonOrderCreateError::ParameterMismatch)
 }
 
 impl core::fmt::Debug for RobotAddonOrderCreateRequest<'_, '_> {

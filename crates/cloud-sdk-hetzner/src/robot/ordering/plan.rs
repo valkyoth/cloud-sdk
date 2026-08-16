@@ -1,3 +1,4 @@
+use super::CredentialObserved;
 use super::RobotOrderCurrency;
 use super::exchange::RobotAddonCatalog;
 use super::model::{
@@ -5,6 +6,7 @@ use super::model::{
     RobotStandardProduct,
 };
 use crate::robot::RobotServerNumber;
+use cloud_sdk::authentication::CredentialBinding;
 
 /// Failure while binding a non-executable order plan to catalog evidence.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -19,6 +21,8 @@ pub enum RobotCatalogPlanError {
     LocationMismatch,
     /// The same addon was selected more than once.
     DuplicateAddon,
+    /// Catalog and currency observations came from different credential lifecycles.
+    CredentialMismatch,
 }
 
 impl_static_error!(RobotCatalogPlanError,
@@ -27,6 +31,7 @@ impl_static_error!(RobotCatalogPlanError,
     Self::InvalidQuantity => "Robot order plan addon quantity is invalid",
     Self::LocationMismatch => "Robot order plan price locations differ",
     Self::DuplicateAddon => "Robot order plan repeats an addon",
+    Self::CredentialMismatch => "Robot order plan observations use different credentials",
 );
 
 /// Mandatory warning carried by every catalog-derived order plan.
@@ -95,18 +100,25 @@ pub struct RobotStandardOrderPlan<'a> {
     distribution: &'a super::RobotOrderChoice,
     language: &'a super::RobotOrderChoice,
     addons: &'a [RobotStandardAddonSelection<'a>],
+    credential: CredentialBinding,
 }
 
 impl<'a> RobotStandardOrderPlan<'a> {
     /// Binds selections to one product without creating a purchase request.
     pub fn new(
-        product: &'a RobotStandardProduct,
-        currency: &'a RobotOrderCurrency,
+        product: &'a CredentialObserved<RobotStandardProduct>,
+        currency: &'a CredentialObserved<RobotOrderCurrency>,
         price_index: usize,
         distribution_index: usize,
         language_index: usize,
         addons: &'a [RobotStandardAddonSelection<'a>],
     ) -> Result<Self, RobotCatalogPlanError> {
+        if !product.credential().matches(currency.credential()) {
+            return Err(RobotCatalogPlanError::CredentialMismatch);
+        }
+        let credential = product.credential();
+        let product = product.value();
+        let currency = currency.value();
         let price = product
             .prices()
             .get(price_index)
@@ -145,6 +157,7 @@ impl<'a> RobotStandardOrderPlan<'a> {
             distribution,
             language,
             addons,
+            credential,
         })
     }
 
@@ -183,6 +196,10 @@ impl<'a> RobotStandardOrderPlan<'a> {
     pub const fn price_warning(&self) -> RobotCatalogPriceWarning {
         RobotCatalogPriceWarning::RevalidateImmediatelyBeforePurchase
     }
+
+    pub(super) const fn credential(&self) -> CredentialBinding {
+        self.credential
+    }
 }
 
 impl core::fmt::Debug for RobotStandardOrderPlan<'_> {
@@ -197,16 +214,23 @@ pub struct RobotMarketOrderPlan<'a> {
     currency: &'a RobotOrderCurrency,
     distribution: &'a super::RobotOrderChoice,
     language: &'a super::RobotOrderChoice,
+    credential: CredentialBinding,
 }
 
 impl<'a> RobotMarketOrderPlan<'a> {
     /// Binds distribution and language without creating a purchase request.
     pub fn new(
-        product: &'a RobotMarketProduct,
-        currency: &'a RobotOrderCurrency,
+        product: &'a CredentialObserved<RobotMarketProduct>,
+        currency: &'a CredentialObserved<RobotOrderCurrency>,
         distribution_index: usize,
         language_index: usize,
     ) -> Result<Self, RobotCatalogPlanError> {
+        if !product.credential().matches(currency.credential()) {
+            return Err(RobotCatalogPlanError::CredentialMismatch);
+        }
+        let credential = product.credential();
+        let product = product.value();
+        let currency = currency.value();
         let distribution = product
             .distributions()
             .get(distribution_index)
@@ -220,6 +244,7 @@ impl<'a> RobotMarketOrderPlan<'a> {
             currency,
             distribution,
             language,
+            credential,
         })
     }
 
@@ -248,6 +273,10 @@ impl<'a> RobotMarketOrderPlan<'a> {
     pub const fn price_warning(&self) -> RobotCatalogPriceWarning {
         RobotCatalogPriceWarning::RevalidateImmediatelyBeforePurchase
     }
+
+    pub(super) const fn credential(&self) -> CredentialBinding {
+        self.credential
+    }
 }
 
 impl core::fmt::Debug for RobotMarketOrderPlan<'_> {
@@ -261,15 +290,22 @@ pub struct RobotAddonOrderPlan<'catalog, 'request> {
     catalog: &'catalog RobotAddonCatalog<'request>,
     product: &'catalog RobotAddonProduct,
     currency: &'catalog RobotOrderCurrency,
+    credential: CredentialBinding,
 }
 
 impl<'catalog, 'request> RobotAddonOrderPlan<'catalog, 'request> {
     /// Selects an addon from its request-bound catalog without preparing a purchase.
     pub fn new(
-        catalog: &'catalog RobotAddonCatalog<'request>,
+        catalog: &'catalog CredentialObserved<RobotAddonCatalog<'request>>,
         product_index: usize,
-        currency: &'catalog RobotOrderCurrency,
+        currency: &'catalog CredentialObserved<RobotOrderCurrency>,
     ) -> Result<Self, RobotCatalogPlanError> {
+        if !catalog.credential().matches(currency.credential()) {
+            return Err(RobotCatalogPlanError::CredentialMismatch);
+        }
+        let credential = catalog.credential();
+        let catalog = catalog.value();
+        let currency = currency.value();
         let product = catalog
             .products()
             .products()
@@ -279,6 +315,7 @@ impl<'catalog, 'request> RobotAddonOrderPlan<'catalog, 'request> {
             catalog,
             product,
             currency,
+            credential,
         })
     }
     /// Returns the request-bound server identity.
@@ -301,6 +338,10 @@ impl<'catalog, 'request> RobotAddonOrderPlan<'catalog, 'request> {
     pub const fn price_warning(&self) -> RobotCatalogPriceWarning {
         RobotCatalogPriceWarning::RevalidateImmediatelyBeforePurchase
     }
+
+    pub(super) const fn credential(&self) -> CredentialBinding {
+        self.credential
+    }
 }
 
 impl core::fmt::Debug for RobotAddonOrderPlan<'_, '_> {
@@ -315,16 +356,15 @@ mod compile_fail {
     ///
     /// ```compile_fail
     /// use cloud_sdk_hetzner::robot::{
-    ///     RobotAddonCatalog, RobotAddonOrderPlan, RobotOrderCurrency,
-    ///     RobotServerNumber,
+    ///     CredentialObserved, RobotAddonCatalog, RobotAddonOrderPlan,
+    ///     RobotOrderCurrency, RobotServerNumber,
     /// };
     /// fn relabel(
-    ///     catalog: &RobotAddonCatalog<'_>,
+    ///     catalog: &CredentialObserved<RobotAddonCatalog<'_>>,
     ///     other_server: &RobotServerNumber,
-    ///     currency: &RobotOrderCurrency,
+    ///     currency: &CredentialObserved<RobotOrderCurrency>,
     /// ) {
-    ///     let product = &catalog.products().products()[0];
-    ///     let _ = RobotAddonOrderPlan::new(other_server, product, currency);
+    ///     let _ = RobotAddonOrderPlan::new(other_server, catalog, 0, currency);
     /// }
     /// ```
     fn addon_catalog_server_is_not_replaceable() {}

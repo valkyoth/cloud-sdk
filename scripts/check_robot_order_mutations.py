@@ -90,17 +90,33 @@ def validate_policy(fixture: dict) -> None:
         "content_type": "application/x-www-form-urlencoded",
         "standard_fields": ["product_id", "dist", "lang", "location", "addon[]"],
         "market_fields": ["product_id", "dist", "lang"],
-        "addon_fields": ["server_number", "product_id"],
+        "addon_fields": ["server_number", "product_id", "reason", "gateway"],
+        "addon_reason_required_types": ["ip_ipv4", "subnet_ipv4", "failover_subnet_ipv4"],
+        "addon_gateway_type": "subnet_ipv4",
         "deprecated_fields": ["arch"],
     }:
         fail("request-field policy changed")
+    if fixture.get("responses") != {
+        "market_created_fields": ["id", "date", "status", "server_number", "server_ip", "authorized_key", "host_key", "comment", "product", "addons"],
+        "market_created_product_fields": ["id", "name", "description", "traffic", "dist", "@deprecated arch", "lang", "cpu", "cpu_benchmark", "memory_size", "hdd_size", "hdd_text", "hdd_count", "datacenter", "network_speed"],
+        "addon_product_fields": ["id", "name", "type", "price"],
+    }:
+        fail("creation-response policy changed")
     if fixture.get("local_policy") != {
         "cost": "catalog-gross-recurring-plus-setup-scale-4",
-        "account": "required-fingerprint-scope",
+        "account": "required-credential-bound-authorization-evidence",
+        "catalog_observation": "authenticated-execution-stable-credential",
+        "transaction_observation": "authenticated-execution-stable-credential",
+        "permit_minting": "one-shot-strong-digest",
+        "market_created_addons": "must-be-empty",
+        "addon_created_price": "exact-catalog-price",
+        "addon_reconciliation_identity": "server-number-plus-product-id-conservative",
+        "addon_get_type": "optional-documented-example",
+        "addon_created_type": "required-documented-schema",
         "response_bytes": 1048576,
         "automatic_retry": "never",
         "single_attempt": "no-idempotency-key",
-        "uncertain_repeat": "fresh-exact-plan-plus-same-idempotency-plus-absent-transaction-proof",
+        "uncertain_repeat": "fresh-exact-plan-plus-same-credential-plus-same-idempotency-plus-absent-transaction-multiset-proof",
         "ci_purchase": False,
     }:
         fail("local billable-operation policy changed")
@@ -108,9 +124,17 @@ def validate_policy(fixture: dict) -> None:
 
 def validate_implementation(module: Path) -> None:
     source = "\n".join(path.read_text(encoding="ascii") for path in module.rglob("*.rs"))
+    authorization = (module / "authorization.rs").read_text(encoding="ascii")
+    observation = (module.parent / "observation.rs").read_text(encoding="ascii")
+    catalog_exchange = (module.parent / "exchange.rs").read_text(encoding="ascii")
+    transaction_exchange = (module.parent / "transaction/exchange.rs").read_text(encoding="ascii")
+    plan = (module.parent / "plan.rs").read_text(encoding="ascii")
     prepare = (module / "prepare.rs").read_text(encoding="ascii")
     permit = (module / "permit.rs").read_text(encoding="ascii")
     reconcile = (module / "reconcile.rs").read_text(encoding="ascii")
+    request = (module / "request.rs").read_text(encoding="ascii")
+    market_created = (module.parent / "transaction/decode/market_created.rs").read_text(encoding="ascii")
+    addon_decode = (module.parent / "transaction/decode/addon.rs").read_text(encoding="ascii")
     for operation_id, _, path in OPERATIONS:
         if operation_id not in prepare or path not in prepare:
             fail(f"implementation lost {operation_id}")
@@ -128,7 +152,11 @@ def validate_implementation(module: Path) -> None:
     for token in [
         "RobotOrderCostPermit",
         "Some(request.plan_cost())",
-        "RobotOrderAccount",
+        "BoundCredentialTransport",
+        "build_plan_digest_with_authorization_evidence",
+        "permit_minted.replace(true)",
+        "AuthorityAlreadyMinted",
+        "CredentialMismatch",
         "PermitValidity",
         "ReplayPolicy",
         "RobotOrderNotApplied",
@@ -137,15 +165,97 @@ def validate_implementation(module: Path) -> None:
     ]:
         if token not in permit:
             fail(f"cost authority lost {token}")
+    for token in [
+        "RobotOrderAccount",
+        "RobotOrderAuthorizationEvidence",
+        "RobotOrderPermitRequest",
+        "for_request",
+        "request.credential_binding()",
+        "PlanAuthorizationEvidence",
+        "CredentialBinding",
+    ]:
+        if token not in authorization:
+            fail(f"authorization evidence lost {token}")
+    normalized_permit = permit.replace("\n", "").replace(" ", "")
+    if (
+        "credential_matches=request.credential_binding().matches(authorization.credential())"
+        not in normalized_permit
+        or "if!credential_matches" not in normalized_permit
+    ):
+        fail("confirmation authorization/request credential check changed")
+    for token in ["CredentialObserved", "from_parts", "credential", "[redacted]"]:
+        if token not in observation:
+            fail(f"credential observation lost {token}")
+    for exchange in [catalog_exchange, transaction_exchange]:
+        for token in [
+            "execute_observed_blocking",
+            "execute_observed_async",
+            "execute_observed_local_async",
+            "require_stable_credential",
+            "CredentialMismatch",
+        ]:
+            if token not in exchange:
+                fail(f"authenticated observation execution lost {token}")
+        if exchange.count("execute_observed_blocking") != 3:
+            fail("blocking observation execution coverage changed")
+    for token in ["CredentialObserved", "CredentialMismatch", ".credential().matches"]:
+        if token not in plan:
+            fail(f"catalog credential association lost {token}")
     if permit.count("core::ptr::eq") != 2:
         fail("request/proof identity checks changed")
-    for token in ["MatchingTransaction", ".any(|value| self.matches_transaction(value))"]:
+    if permit.count("BoundCredentialTransport") != 5:
+        fail("credential-bound dispatch coverage changed")
+    for token in [
+        "MatchingTransaction",
+        ".any(|value| self.matches_transaction(value))",
+        ".any(|value| self.matches_reconciliation_transaction(value))",
+        "matches_reconciliation_transaction",
+        ".filter(|candidate| *candidate == selection.addon().id())",
+        "transactions.credential()",
+        "value.addons().is_empty()",
+        "price_matches",
+        "pair_matches",
+    ]:
         if token not in reconcile:
             fail(f"reconciliation lost {token}")
     if reconcile.count("MatchingTransaction") != 5:
         fail("matching-transaction rejection coverage changed")
+    if reconcile.count("price_matches") != 2:
+        fail("addon exact-price comparison coverage changed")
+    normalized_reconcile = reconcile.replace("\n", "").replace(" ", "")
+    if (
+        "fnmatches_reconciliation_transaction(&self,value:&RobotAddonTransaction)->bool{"
+        "value.server_number()==self.plan.server()"
+        "&&value.product().id()==self.plan.product().id()}"
+        not in normalized_reconcile
+    ):
+        fail("addon reconciliation identity is no longer conservative")
+    if (
+        "self.matches_reconciliation_transaction(value)"
+        "&&value.product().kind().is_some_and"
+        not in normalized_reconcile
+        or "&&price_matches(self.plan.product().price(),value.product().price())"
+        not in normalized_reconcile
+    ):
+        fail("addon creation response lost strict type or price validation")
     if "impl PrepareOperation for" in source or "pub fn as_untyped" in source:
         fail("billable request regained an unguarded or type-erased execution route")
+    for token in ["RobotRipeReason", "ip_ipv4", "subnet_ipv4", "failover_subnet_ipv4"]:
+        if token not in request:
+            fail(f"addon parameter policy lost {token}")
+    for token in ["addons", "network_speed"]:
+        if token not in market_created:
+            fail(f"market creation decoder lost {token}")
+    for token in [
+        "RequiredForCreation",
+        "OptionalForDocumentedGet",
+        "decode_addon_created",
+        'require_fields(product, &["id", "name", "type", "price"])',
+    ]:
+        if token not in addon_decode:
+            fail(f"addon type policy lost {token}")
+    if addon_decode.count("RequiredForCreation") != 3:
+        fail("creation-required addon type coverage changed")
 
 
 def validate_nonexecution() -> None:

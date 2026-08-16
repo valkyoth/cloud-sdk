@@ -16,16 +16,31 @@
     "content_type": "application/x-www-form-urlencoded",
     "standard_fields": ["product_id","dist","lang","location","addon[]"],
     "market_fields": ["product_id","dist","lang"],
-    "addon_fields": ["server_number","product_id"],
+    "addon_fields": ["server_number","product_id","reason","gateway"],
+    "addon_reason_required_types": ["ip_ipv4","subnet_ipv4","failover_subnet_ipv4"],
+    "addon_gateway_type": "subnet_ipv4",
     "deprecated_fields": ["arch"]
+  },
+  "responses": {
+    "market_created_fields": ["id","date","status","server_number","server_ip","authorized_key","host_key","comment","product","addons"],
+    "market_created_product_fields": ["id","name","description","traffic","dist","@deprecated arch","lang","cpu","cpu_benchmark","memory_size","hdd_size","hdd_text","hdd_count","datacenter","network_speed"],
+    "addon_product_fields": ["id","name","type","price"]
   },
   "local_policy": {
     "cost": "catalog-gross-recurring-plus-setup-scale-4",
-    "account": "required-fingerprint-scope",
+    "account": "required-credential-bound-authorization-evidence",
+    "catalog_observation": "authenticated-execution-stable-credential",
+    "transaction_observation": "authenticated-execution-stable-credential",
+    "permit_minting": "one-shot-strong-digest",
+    "market_created_addons": "must-be-empty",
+    "addon_created_price": "exact-catalog-price",
+    "addon_reconciliation_identity": "server-number-plus-product-id-conservative",
+    "addon_get_type": "optional-documented-example",
+    "addon_created_type": "required-documented-schema",
     "response_bytes": 1048576,
     "automatic_retry": "never",
     "single_attempt": "no-idempotency-key",
-    "uncertain_repeat": "fresh-exact-plan-plus-same-idempotency-plus-absent-transaction-proof",
+    "uncertain_repeat": "fresh-exact-plan-plus-same-credential-plus-same-idempotency-plus-absent-transaction-multiset-proof",
     "ci_purchase": false
   }
 }

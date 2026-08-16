@@ -435,6 +435,8 @@ pub enum ExecutionPermitError {
     ReconciliationRequired,
     /// The authority or attempt budget is spent.
     Spent,
+    /// This fingerprint already minted its single direct authority.
+    AuthorityAlreadyMinted,
     /// Recovery or reconciliation belongs to another generation.
     StaleGeneration,
     /// The supplied request fingerprint differs from the confirmed plan.
@@ -458,6 +460,7 @@ impl_static_error!(ExecutionPermitError,
     Self::RecoveryRequired => "execution permit requires not-sent recovery",
     Self::ReconciliationRequired => "execution permit requires reconciliation",
     Self::Spent => "execution permit is spent",
+    Self::AuthorityAlreadyMinted => "execution authority was already minted",
     Self::StaleGeneration => "execution permit generation is stale",
     Self::FingerprintMismatch => "execution permit fingerprint does not match",
     Self::CredentialMismatch => "execution credential differs from authorization evidence",

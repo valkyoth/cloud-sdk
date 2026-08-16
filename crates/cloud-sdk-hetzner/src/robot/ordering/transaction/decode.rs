@@ -1,11 +1,13 @@
 mod addon;
 mod common;
+mod market_created;
 mod server;
 
 use cloud_sdk::operation::CheckedResponse;
 use cloud_sdk::transport::{ResponseDecodeWorkspace, StatusCode};
 
-pub(in crate::robot::ordering) use addon::{decode_addon, decode_addon_list};
+pub(in crate::robot::ordering) use addon::{decode_addon, decode_addon_created, decode_addon_list};
+pub(in crate::robot::ordering) use market_created::decode_market_created;
 pub(in crate::robot::ordering) use server::{
     decode_market, decode_market_list, decode_standard, decode_standard_list,
 };

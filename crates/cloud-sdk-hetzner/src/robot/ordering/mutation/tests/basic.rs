@@ -7,10 +7,11 @@ use cloud_sdk::operation::{
 use cloud_sdk::transport::StatusCode;
 
 use super::*;
+use crate::robot::ordering::RobotOrderTransactionDecodeError;
 
 pub(super) const STANDARD_CREATED: &[u8] = br#"{"transaction":{"id":"B-order","date":"2026-08-16T12:00:00Z","status":"in process","server_number":null,"server_ip":null,"authorized_key":[],"host_key":[],"comment":null,"product":{"id":"EX40","name":"EX40","description":[],"traffic":"30 TB","dist":"Rescue system","@deprecated arch":"64","lang":"en","location":"FSN1"},"addons":["primary_ipv4"]}}"#;
-const MARKET_CREATED: &[u8] = br#"{"transaction":{"id":"B-market","date":"2026-08-16T12:00:00Z","status":"in process","server_number":null,"server_ip":null,"authorized_key":[],"host_key":[],"comment":null,"product":{"id":282323,"name":"SB109","description":[],"traffic":"20 TB","dist":"Rescue system","@deprecated arch":"64","lang":"en","cpu":"Intel Core i7 980x","cpu_benchmark":8944,"memory_size":24,"hdd_size":120,"hdd_text":"SSD","hdd_count":2,"datacenter":"FSN1-DC4","network_speed":"1 Gbit/s","fixed_price":false,"next_reduce":-10800,"next_reduce_date":"2028-05-01 12:22:00"}}}"#;
-const ADDON_CREATED: &[u8] = br#"{"transaction":{"id":"B-addon","date":"2026-08-16T12:00:00Z","status":"in process","server_number":321,"product":{"id":"additional_ipv4","name":"Additional IP address","price":{"location":"NBG1","price":{"net":"0.8403","gross":"1.0000","hourly_net":"0.0014","hourly_gross":"0.0017"},"price_setup":{"net":"19.0000","gross":"22.6100"}}},"resources":[]}}"#;
+const MARKET_CREATED: &[u8] = br#"{"transaction":{"id":"B-market","date":"2026-08-16T12:00:00Z","status":"in process","server_number":null,"server_ip":null,"authorized_key":[],"host_key":[],"comment":null,"product":{"id":282323,"name":"SB109","description":[],"traffic":"20 TB","dist":"Rescue system","@deprecated arch":"64","lang":"en","cpu":"Intel Core i7 980x","cpu_benchmark":8944,"memory_size":24,"hdd_size":120,"hdd_text":"SSD","hdd_count":2,"datacenter":"FSN1-DC4","network_speed":"1 Gbit/s"},"addons":[]}}"#;
+pub(super) const ADDON_CREATED: &[u8] = br#"{"transaction":{"id":"B-addon","date":"2026-08-16T12:00:00Z","status":"in process","server_number":321,"product":{"id":"additional_ipv4","name":"Additional IP address","type":"ip_ipv4","price":{"location":"NBG1","price":{"net":"0.8403","gross":"1.0000","hourly_net":"0.0014","hourly_gross":"0.0017"},"price_setup":{"net":"19.0000","gross":"22.6100"}}},"resources":[]}}"#;
 
 #[test]
 fn prepares_all_billable_forms_with_fail_closed_metadata() {
@@ -41,7 +42,7 @@ fn prepares_all_billable_forms_with_fail_closed_metadata() {
         );
     });
     with_addon_plan(|plan| {
-        let request = RobotAddonOrderCreateRequest::new(plan, 300_000)
+        let request = RobotAddonOrderCreateRequest::new(plan, addon_parameters(), 300_000)
             .unwrap_or_else(|_| unreachable!("addon cost failed"));
         let mut target = [0_u8; 128];
         let mut body = [0_u8; 256];
@@ -52,7 +53,7 @@ fn prepares_all_billable_forms_with_fail_closed_metadata() {
         assert_contract(
             &prepared.inner,
             "/order/server_addon/transaction",
-            b"server_number=321&product_id=additional_ipv4",
+            b"server_number=321&product_id=additional_ipv4&reason=VPS",
             "robot_create_server_addon_transaction",
         );
     });
@@ -127,8 +128,8 @@ fn checked_created_responses_remain_bound_to_exact_intent() {
         );
     });
     with_addon_plan(|plan| {
-        let request =
-            RobotAddonOrderCreateRequest::new(plan, 300_000).unwrap_or_else(|_| unreachable!());
+        let request = RobotAddonOrderCreateRequest::new(plan, addon_parameters(), 300_000)
+            .unwrap_or_else(|_| unreachable!());
         let mut target = [0_u8; 128];
         let mut request_body = [0_u8; 128];
         let mut guard = PreparationStorageGuard::new(&mut target, &mut request_body);
@@ -148,6 +149,110 @@ fn checked_created_responses_remain_bound_to_exact_intent() {
     });
 }
 
+#[test]
+fn created_responses_reject_unrequested_addons_and_changed_prices() {
+    with_market_plan(|plan| {
+        let request = RobotMarketOrderCreateRequest::new(plan, 1_100_000)
+            .unwrap_or_else(|_| unreachable!("market cost failed"));
+        let changed =
+            text(MARKET_CREATED).replace("\"addons\":[]", "\"addons\":[\"primary_ipv4\"]");
+        let mut target = [0_u8; 128];
+        let mut request_body = [0_u8; 128];
+        let mut guard = PreparationStorageGuard::new(&mut target, &mut request_body);
+        let prepared = request
+            .prepare_bound(&mut guard)
+            .unwrap_or_else(|_| unreachable!("market preparation failed"));
+        assert_eq!(
+            decode_market_created_error(prepared, changed.as_bytes()),
+            RobotOrderMutationDecodeError::ResponseIntentMismatch
+        );
+    });
+
+    with_addon_plan(|plan| {
+        let request = RobotAddonOrderCreateRequest::new(plan, addon_parameters(), 300_000)
+            .unwrap_or_else(|_| unreachable!("addon cost failed"));
+        for (original, changed) in [
+            ("\"location\":\"NBG1\"", "\"location\":\"FSN1\""),
+            ("\"gross\":\"1.0000\"", "\"gross\":\"1.1000\""),
+            ("\"hourly_gross\":\"0.0017\"", "\"hourly_gross\":\"0.0018\""),
+            ("\"gross\":\"22.6100\"", "\"gross\":\"22.6200\""),
+        ] {
+            let response = text(ADDON_CREATED).replace(original, changed);
+            let mut target = [0_u8; 128];
+            let mut request_body = [0_u8; 128];
+            let mut guard = PreparationStorageGuard::new(&mut target, &mut request_body);
+            let prepared = request
+                .prepare_bound(&mut guard)
+                .unwrap_or_else(|_| unreachable!("addon preparation failed"));
+            assert_eq!(
+                decode_addon_created_error(prepared, response.as_bytes()),
+                RobotOrderMutationDecodeError::ResponseIntentMismatch
+            );
+        }
+
+        let missing_type = text(ADDON_CREATED).replace("\"type\":\"ip_ipv4\",", "");
+        let mut target = [0_u8; 128];
+        let mut request_body = [0_u8; 128];
+        let mut guard = PreparationStorageGuard::new(&mut target, &mut request_body);
+        let prepared = request
+            .prepare_bound(&mut guard)
+            .unwrap_or_else(|_| unreachable!("addon preparation failed"));
+        assert_eq!(
+            decode_addon_created_error(prepared, missing_type.as_bytes()),
+            RobotOrderMutationDecodeError::Transaction(
+                RobotOrderTransactionDecodeError::InvalidProduct
+            )
+        );
+    });
+}
+
+#[test]
+fn addon_parameters_follow_catalog_type_and_encode_canonically() {
+    with_addon_plan(|plan| {
+        assert_eq!(
+            RobotAddonOrderCreateRequest::new(plan, RobotAddonOrderParameters::Other, 300_000)
+                .err(),
+            Some(RobotAddonOrderCreateError::ParameterMismatch)
+        );
+        assert!(RobotRipeReason::new("").is_err());
+        assert!(RobotRipeReason::new("line\nbreak").is_err());
+    });
+    with_addon_plan_at(1, |plan| {
+        let reason = RobotRipeReason::new("virtualization")
+            .unwrap_or_else(|_| unreachable!("RIPE reason fixture failed"));
+        assert_eq!(
+            RobotAddonOrderCreateRequest::new(
+                plan,
+                RobotAddonOrderParameters::Ip { reason },
+                2_000_000,
+            )
+            .err(),
+            Some(RobotAddonOrderCreateError::ParameterMismatch)
+        );
+        let request = RobotAddonOrderCreateRequest::new(
+            plan,
+            RobotAddonOrderParameters::Subnet {
+                reason,
+                gateway: Some(core::net::Ipv4Addr::new(192, 0, 2, 10)),
+            },
+            2_000_000,
+        )
+        .unwrap_or_else(|_| unreachable!("subnet parameters rejected"));
+        let mut target = [0_u8; 128];
+        let mut body = [0_u8; 256];
+        let mut guard = PreparationStorageGuard::new(&mut target, &mut body);
+        let prepared = request
+            .prepare_bound(&mut guard)
+            .unwrap_or_else(|_| unreachable!("subnet preparation failed"));
+        assert_contract(
+            &prepared.inner,
+            "/order/server_addon/transaction",
+            b"server_number=321&product_id=subnet_ipv4_29&reason=virtualization&gateway=192.0.2.10",
+            "robot_create_server_addon_transaction",
+        );
+    });
+}
+
 fn assert_prepared(
     request: &RobotStandardOrderCreateRequest<'_>,
     target_text: &str,
@@ -161,6 +266,50 @@ fn assert_prepared(
         .prepare_bound(&mut guard)
         .unwrap_or_else(|_| unreachable!("standard preparation failed"));
     assert_contract(&prepared.inner, target_text, body_text, id);
+}
+
+fn decode_market_created_error(
+    prepared: PreparedRobotOrderMutation<'_, '_, RobotMarketOrderCreateRequest<'_>>,
+    body: &[u8],
+) -> RobotOrderMutationDecodeError {
+    let mut response_body = alloc::vec![0_u8; body.len()];
+    let mut response_headers = [0_u8; 128];
+    let response = json_response(
+        &mut response_body,
+        &mut response_headers,
+        StatusCode::CREATED,
+        body,
+    );
+    prepared
+        .validate_response(response)
+        .unwrap_or_else(|_| unreachable!("response policy rejected fixture"))
+        .decode_response()
+        .err()
+        .unwrap_or_else(|| unreachable!("adversarial response was accepted"))
+}
+
+fn decode_addon_created_error(
+    prepared: PreparedRobotOrderMutation<'_, '_, RobotAddonOrderCreateRequest<'_, '_>>,
+    body: &[u8],
+) -> RobotOrderMutationDecodeError {
+    let mut response_body = alloc::vec![0_u8; body.len()];
+    let mut response_headers = [0_u8; 128];
+    let response = json_response(
+        &mut response_body,
+        &mut response_headers,
+        StatusCode::CREATED,
+        body,
+    );
+    prepared
+        .validate_response(response)
+        .unwrap_or_else(|_| unreachable!("response policy rejected fixture"))
+        .decode_response()
+        .err()
+        .unwrap_or_else(|| unreachable!("adversarial response was accepted"))
+}
+
+fn text(value: &[u8]) -> &str {
+    core::str::from_utf8(value).unwrap_or_else(|_| unreachable!("JSON fixture is UTF-8"))
 }
 
 fn assert_contract(

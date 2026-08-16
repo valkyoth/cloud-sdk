@@ -1,9 +1,10 @@
 //! Exact cost authority for catalog-derived Robot orders.
 
-use core::fmt;
+use core::{cell::Cell, fmt};
 
 use cloud_sdk::authentication::{
-    AsyncAuthenticatedTransport, BlockingAuthenticatedTransport, LocalAsyncAuthenticatedTransport,
+    AsyncAuthenticatedTransport, BlockingAuthenticatedTransport, BoundCredentialTransport,
+    CredentialBinding, LocalAsyncAuthenticatedTransport,
 };
 use cloud_sdk::operation::{
     AttemptBudget, CanonicalPlanFingerprint, CostPermit, ExecutionPermitError, PermitClock,
@@ -15,7 +16,7 @@ use cloud_sdk::operation::{
 use cloud_sdk::retry::FingerprintHasher;
 use cloud_sdk::transport::{BoundTransport, DeliveryClassified, DeliveryPhase, EndpointIdentity};
 
-use super::cost::RobotOrderAccount;
+use super::authorization::RobotOrderAuthorizationEvidence;
 use super::exchange::{CheckedRobotOrderMutation, PreparedRobotOrderMutation};
 use super::reconcile::RobotOrderNotApplied;
 use super::request::{
@@ -25,29 +26,32 @@ use super::request::{
 mod sealed {
     pub trait Sealed {}
 }
-
 /// Sealed billable Robot request accepted by cost authority.
 pub trait RobotOrderPermitRequest: sealed::Sealed {
     #[doc(hidden)]
     fn plan_cost(&self) -> cloud_sdk::operation::PlanCost;
+    #[doc(hidden)]
+    fn credential_binding(&self) -> CredentialBinding;
 }
-
 macro_rules! permit_request {
     ($($type:ty),+ $(,)?) => {$ (
         impl sealed::Sealed for $type {}
         impl RobotOrderPermitRequest for $type {
             fn plan_cost(&self) -> cloud_sdk::operation::PlanCost { self.cost() }
+            fn credential_binding(&self) -> CredentialBinding { self.plan.credential() }
         }
     )+ };
 }
-
 permit_request!(
     RobotStandardOrderCreateRequest<'_>,
     RobotMarketOrderCreateRequest<'_>,
     RobotAddonOrderCreateRequest<'_, '_>,
 );
 
-struct OrderBinding<'request, R>(&'request R);
+struct OrderBinding<'request, R> {
+    request: &'request R,
+    credential: CredentialBinding,
+}
 impl<R> Clone for OrderBinding<'_, R> {
     fn clone(&self) -> Self {
         *self
@@ -58,6 +62,7 @@ impl<R> Copy for OrderBinding<'_, R> {}
 /// Complete exact billable-order intent ready for canonical fingerprinting.
 pub struct RobotOrderPlanConfirmation<'plan, 'storage, 'request, R: RobotOrderPermitRequest> {
     inner: PlanConfirmation<'plan, 'storage>,
+    authorization: RobotOrderAuthorizationEvidence<'plan>,
     binding: OrderBinding<'request, R>,
 }
 
@@ -66,23 +71,28 @@ impl<'plan, 'storage, 'request, R: RobotOrderPermitRequest>
 {
     /// Binds exact request bytes, price, account, expiry, replay, and fresh identity.
     #[allow(clippy::too_many_arguments)]
-    #[must_use]
     pub fn new(
         prepared: PreparedRobotOrderMutation<'storage, 'request, R>,
         endpoint: EndpointIdentity<'plan>,
-        account: RobotOrderAccount<'plan>,
+        authorization: RobotOrderAuthorizationEvidence<'plan>,
         context: PermitContext<'plan>,
         validity: PermitValidity,
         replay: ReplayPolicy,
         attempts: AttemptBudget,
         idempotency: Option<PermitIdempotencyKey<'plan>>,
-    ) -> Self {
+    ) -> Result<Self, ExecutionPermitError> {
         let (prepared, request) = prepared.into_plan_parts();
-        Self {
+        let credential_matches = request
+            .credential_binding()
+            .matches(authorization.credential());
+        if !credential_matches {
+            return Err(ExecutionPermitError::CredentialMismatch);
+        }
+        Ok(Self {
             inner: PlanConfirmation::new(
                 prepared,
                 endpoint,
-                PlanFingerprintScope::Value(account.bytes()),
+                PlanFingerprintScope::Value(authorization.account_bytes()),
                 PlanFingerprintScope::Absent,
                 context,
                 validity,
@@ -92,11 +102,14 @@ impl<'plan, 'storage, 'request, R: RobotOrderPermitRequest>
                 Some(request.plan_cost()),
                 idempotency,
             ),
-            binding: OrderBinding(request),
-        }
+            authorization,
+            binding: OrderBinding {
+                request,
+                credential: authorization.credential(),
+            },
+        })
     }
 }
-
 impl<R: RobotOrderPermitRequest> fmt::Debug for RobotOrderPlanConfirmation<'_, '_, '_, R> {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter.write_str("RobotOrderPlanConfirmation([redacted])")
@@ -136,6 +149,7 @@ pub struct RobotOrderPlanFingerprintDigest<
 > {
     inner: PlanFingerprintDigest<'output, 'plan, 'storage>,
     binding: OrderBinding<'request, R>,
+    permit_minted: Cell<bool>,
 }
 
 impl<R: RobotOrderPermitRequest> RobotOrderPlanFingerprintDigest<'_, '_, '_, '_, R> {
@@ -151,6 +165,34 @@ impl<R: RobotOrderPermitRequest> RobotOrderPlanFingerprintDigest<'_, '_, '_, '_,
             inner: self.inner.subject(),
             binding: self.binding,
         }
+    }
+}
+
+impl<'output, 'plan, 'storage, 'request, R: RobotOrderPermitRequest>
+    RobotOrderPlanFingerprintDigest<'output, 'plan, 'storage, 'request, R>
+{
+    /// Mints the only direct cost authority this digest can produce.
+    ///
+    /// A failed mint still consumes this one-shot authority.
+    pub fn mint_permit<'fingerprint>(
+        &'fingerprint self,
+        now: PermitTimestamp,
+    ) -> Result<RobotOrderCostPermit<'fingerprint, 'fingerprint, 'request, R>, ExecutionPermitError>
+    where
+        'output: 'fingerprint,
+        'plan: 'fingerprint,
+        'storage: 'fingerprint,
+    {
+        if self.permit_minted.replace(true) {
+            return Err(ExecutionPermitError::AuthorityAlreadyMinted);
+        }
+        RobotOrderCostPermit::from_subject(
+            RobotOrderPlanSubject {
+                inner: self.inner.subject(),
+                binding: self.binding,
+            },
+            now,
+        )
     }
 }
 
@@ -186,10 +228,17 @@ where
     R: RobotOrderPermitRequest,
     H: FingerprintHasher,
 {
-    let inner = cloud_sdk::operation::build_plan_digest(plan.inner, scratch, output, hasher)?;
+    let inner = cloud_sdk::operation::build_plan_digest_with_authorization_evidence(
+        plan.inner,
+        &plan.authorization,
+        scratch,
+        output,
+        hasher,
+    )?;
     Ok(RobotOrderPlanFingerprintDigest {
         inner,
         binding: plan.binding,
+        permit_minted: Cell::new(false),
     })
 }
 
@@ -219,8 +268,7 @@ pub struct RobotOrderCostPermit<'storage, 'fingerprint, 'request, R: RobotOrderP
 impl<'storage, 'fingerprint, 'request, R: RobotOrderPermitRequest>
     RobotOrderCostPermit<'storage, 'fingerprint, 'request, R>
 {
-    /// Creates authority from an exact catalog-derived cost subject.
-    pub fn new(
+    fn from_subject(
         subject: RobotOrderPlanSubject<'storage, 'fingerprint, 'request, R>,
         now: PermitTimestamp,
     ) -> Result<Self, ExecutionPermitError> {
@@ -283,10 +331,13 @@ impl<'storage, 'fingerprint, 'request, R: RobotOrderPermitRequest>
         idempotency: PermitIdempotencyKey<'_>,
         now: PermitTimestamp,
     ) -> Result<(), ExecutionPermitError> {
-        if !core::ptr::eq(self.binding.0, candidate.binding.0)
-            || !core::ptr::eq(self.binding.0, proof.request)
+        if !core::ptr::eq(self.binding.request, candidate.binding.request)
+            || !core::ptr::eq(self.binding.request, proof.request)
         {
             return Err(ExecutionPermitError::FingerprintMismatch);
+        }
+        if !self.binding.credential.matches(proof.credential) {
+            return Err(ExecutionPermitError::CredentialMismatch);
         }
         self.inner
             .reconcile_not_applied(token, candidate.inner, idempotency, now)
@@ -327,14 +378,20 @@ impl<'permit, 'storage, 'fingerprint, 'request, R>
         headers: &'buffer mut [u8],
     ) -> Result<CheckedRobotOrderMutation<'buffer, 'request, R>, PermitExecutionError<T::Error>>
     where
-        T: BlockingAuthenticatedTransport + BoundTransport,
+        T: BlockingAuthenticatedTransport + BoundCredentialTransport + BoundTransport,
         T::Error: DeliveryClassified,
         C: PermitClock + ?Sized,
     {
         let binding = self.binding;
+        cloud_sdk_sanitization::sanitize_bytes(body);
+        cloud_sdk_sanitization::sanitize_bytes(headers);
+        let now = clock.now();
+        if let Err(error) = validate_credential(binding.credential, transport) {
+            return Err(self.inner.reject_authorization(error, body, headers));
+        }
         self.inner
-            .execute_blocking(clock, transport, body, headers)
-            .map(|inner| CheckedRobotOrderMutation::from_executed(binding.0, inner))
+            .execute_blocking(&FixedClock(now), transport, body, headers)
+            .map(|inner| CheckedRobotOrderMutation::from_executed(binding.request, inner))
     }
 
     /// Executes once through a Send-async authenticated transport.
@@ -352,7 +409,7 @@ impl<'permit, 'storage, 'fingerprint, 'request, R>
         >,
     > + 'transport
     where
-        T: AsyncAuthenticatedTransport + BoundTransport,
+        T: AsyncAuthenticatedTransport + BoundCredentialTransport + BoundTransport,
         T::Error: DeliveryClassified,
         C: PermitClock + Sync + ?Sized,
         'storage: 'transport,
@@ -362,11 +419,17 @@ impl<'permit, 'storage, 'fingerprint, 'request, R>
         'buffer: 'transport,
     {
         let binding = self.binding;
-        let future = self.inner.execute_async(clock, transport, body, headers);
+        cloud_sdk_sanitization::sanitize_bytes(body);
+        cloud_sdk_sanitization::sanitize_bytes(headers);
         async move {
-            future
+            let now = clock.now();
+            if let Err(error) = validate_credential(binding.credential, transport) {
+                return Err(self.inner.reject_authorization(error, body, headers));
+            }
+            self.inner
+                .execute_async(&FixedClock(now), transport, body, headers)
                 .await
-                .map(|inner| CheckedRobotOrderMutation::from_executed(binding.0, inner))
+                .map(|inner| CheckedRobotOrderMutation::from_executed(binding.request, inner))
         }
     }
 
@@ -385,7 +448,7 @@ impl<'permit, 'storage, 'fingerprint, 'request, R>
         >,
     > + 'transport
     where
-        T: LocalAsyncAuthenticatedTransport + BoundTransport,
+        T: LocalAsyncAuthenticatedTransport + BoundCredentialTransport + BoundTransport,
         T::Error: DeliveryClassified,
         C: PermitClock + ?Sized,
         'storage: 'transport,
@@ -395,14 +458,37 @@ impl<'permit, 'storage, 'fingerprint, 'request, R>
         'buffer: 'transport,
     {
         let binding = self.binding;
-        let future = self
-            .inner
-            .execute_local_async(clock, transport, body, headers);
+        cloud_sdk_sanitization::sanitize_bytes(body);
+        cloud_sdk_sanitization::sanitize_bytes(headers);
         async move {
-            future
+            let now = clock.now();
+            if let Err(error) = validate_credential(binding.credential, transport) {
+                return Err(self.inner.reject_authorization(error, body, headers));
+            }
+            self.inner
+                .execute_local_async(&FixedClock(now), transport, body, headers)
                 .await
-                .map(|inner| CheckedRobotOrderMutation::from_executed(binding.0, inner))
+                .map(|inner| CheckedRobotOrderMutation::from_executed(binding.request, inner))
         }
+    }
+}
+
+fn validate_credential<T: BoundCredentialTransport + ?Sized>(
+    expected: CredentialBinding,
+    transport: &T,
+) -> Result<(), ExecutionPermitError> {
+    if expected.matches(transport.credential_binding()) {
+        Ok(())
+    } else {
+        Err(ExecutionPermitError::CredentialMismatch)
+    }
+}
+
+struct FixedClock(PermitTimestamp);
+
+impl PermitClock for FixedClock {
+    fn now(&self) -> PermitTimestamp {
+        self.0
     }
 }
 

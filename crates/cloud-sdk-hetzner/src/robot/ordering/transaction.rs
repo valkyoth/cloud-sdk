@@ -42,19 +42,25 @@ pub use request::{
 #[cfg(feature = "serde")]
 pub use decode::RobotOrderTransactionDecodeError;
 #[cfg(feature = "serde")]
-pub(in crate::robot::ordering) use decode::{decode_addon, decode_market, decode_standard};
+pub(in crate::robot::ordering) use decode::{
+    decode_addon_created, decode_market_created, decode_standard,
+};
 #[cfg(feature = "serde")]
-pub use exchange::{CheckedRobotOrderTransaction, PreparedRobotOrderTransaction};
+pub use exchange::{
+    CheckedRobotOrderTransaction, CredentialCheckedRobotOrderTransaction,
+    PreparedRobotOrderTransaction,
+};
 #[cfg(feature = "serde")]
 pub use failure::RobotOrderTransactionFailureCode;
 #[cfg(feature = "serde")]
 pub use model::{
     MAX_ROBOT_ORDER_TRANSACTION_ITEMS, MAX_ROBOT_ORDER_TRANSACTION_KEYS,
     MAX_ROBOT_ORDER_TRANSACTION_RESOURCES, RobotAddonTransaction, RobotAddonTransactionList,
-    RobotAddonTransactionProduct, RobotMarketTransaction, RobotMarketTransactionList,
-    RobotMarketTransactionProduct, RobotOrderTransactionKey, RobotOrderTransactionResource,
-    RobotOrderTransactionStatus, RobotOrderTransactionTimestamp, RobotStandardTransaction,
-    RobotStandardTransactionList, RobotStandardTransactionProduct,
+    RobotAddonTransactionProduct, RobotMarketCreatedProduct, RobotMarketCreatedTransaction,
+    RobotMarketTransaction, RobotMarketTransactionList, RobotMarketTransactionProduct,
+    RobotOrderTransactionKey, RobotOrderTransactionResource, RobotOrderTransactionStatus,
+    RobotOrderTransactionTimestamp, RobotStandardTransaction, RobotStandardTransactionList,
+    RobotStandardTransactionProduct,
 };
 
 #[cfg(all(test, feature = "serde"))]

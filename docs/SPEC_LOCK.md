@@ -731,15 +731,25 @@ The three operations share the documented 20-request daily quota.
 
 Executable requests can be created only from catalog-derived plans. Exact
 scale-4 gross recurring and setup prices, addon quantities, currency, account,
-endpoint, request bytes, validity, replay policy, attempt budget, and optional
-reconciliation identity are covered by the plan fingerprint. Sensitive bodies
+credential lineage, endpoint, request bytes, validity, replay policy, attempt
+budget, and optional reconciliation identity are covered by the plan
+fingerprint. Sensitive bodies
 require the collision-resistant digest path; direct canonical fingerprints
 fail closed.
+
+Each digest can mint one direct cost permit. Dispatch and reconciliation must
+retain the same opaque credential lineage as the approved account evidence.
+Standard addon history is matched as a bounded quantity-preserving multiset.
+Creation-specific auction fields, empty auction creation addons, exact addon
+creation prices, POST-required addon product `type`, GET-example-optional
+addon product `type`, mandatory RIPE reasons,
+and optional subnet-only IPv4 gateways are source-locked independently.
 
 `NotSent` recovery and uncertain-delivery reconciliation are separate state
 transitions. Possibly sent, response-started, or abandoned attempts cannot be
 repeated until the caller supplies the same request-bound absent-transaction
-proof, a fresh exact plan, and the original idempotency identity. Matching
+proof, a fresh exact plan, the same credential lineage, and the original
+idempotency identity. Matching
 transactions fail closed. Reconciliation snapshots are limited to Robot's
 documented 30-day list; freshness and eventual consistency must be assessed by
 the caller. CI and live smoke do not contain these purchase routes.

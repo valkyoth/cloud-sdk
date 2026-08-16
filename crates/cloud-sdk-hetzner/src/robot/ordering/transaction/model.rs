@@ -1,5 +1,6 @@
 mod addon;
 mod common;
+mod market_created;
 mod server;
 
 pub use addon::{RobotAddonTransaction, RobotAddonTransactionList, RobotAddonTransactionProduct};
@@ -9,6 +10,7 @@ pub use common::{
     MAX_ROBOT_ORDER_TRANSACTION_RESOURCES, RobotOrderTransactionKey, RobotOrderTransactionResource,
     RobotOrderTransactionStatus, RobotOrderTransactionTimestamp,
 };
+pub use market_created::{RobotMarketCreatedProduct, RobotMarketCreatedTransaction};
 pub use server::{
     RobotMarketTransaction, RobotMarketTransactionList, RobotMarketTransactionProduct,
     RobotStandardTransaction, RobotStandardTransactionList, RobotStandardTransactionProduct,

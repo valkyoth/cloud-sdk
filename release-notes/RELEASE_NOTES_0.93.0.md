@@ -28,6 +28,20 @@ crate.
 - Added direct non-cloneable cost permits and delivery-aware attempt handling.
   `NotSent` recovery is separate from mandatory uncertain-send transaction
   reconciliation.
+- Bound account approval, digest evidence, transaction reconciliation, and
+  dispatch to transport-produced catalog and transaction observations from one
+  opaque credential lifecycle; credential rotation is rejected during reads,
+  and dispatch mismatches fail before network access and clear response storage.
+- Made strong-digest permit minting one-shot and made standard-addon
+  reconciliation order-independent while preserving quantities.
+- Corrected strict creation decoding for the official Server Auction and addon
+  response shapes. Auction responses reject unrequested addons; addon responses
+  require exact catalog prices and the POST-required product `type`. Official
+  GET examples that omit `type` remain accepted and source-locked.
+- Separated strict addon creation-response validation from conservative
+  uncertain-delivery reconciliation. Historical transactions with the same
+  server and product block retry even when their price or optional type differs.
+- Added catalog-type-checked RIPE reasons and optional `subnet_ipv4` gateways.
 - Added strict request-bound success decoding, bounded guarded form encoding,
   provider-source fixtures, mutation-resistant contract checks, and static CI
   purchase-route rejection.

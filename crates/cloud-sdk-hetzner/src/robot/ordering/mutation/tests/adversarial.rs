@@ -6,7 +6,7 @@ use cloud_sdk::transport::{
     TransportResponse,
 };
 
-use super::basic::STANDARD_CREATED;
+use super::basic::{ADDON_CREATED, STANDARD_CREATED};
 use super::*;
 use crate::robot::ordering::RobotStandardTransactionList;
 use crate::robot::{RobotDecodeError, RobotFailure, RobotProviderErrorCode};
@@ -58,11 +58,76 @@ fn mismatched_success_and_matching_history_fail_closed() {
             .unwrap_or_else(|_| unreachable!("response policy failed"))
             .decode_response()
             .unwrap_or_else(|_| unreachable!("transaction fixture failed"));
-        let history = RobotStandardTransactionList(vec![transaction]);
+        let history = observed(RobotStandardTransactionList(vec![transaction]));
         assert_eq!(
             request.reconcile_not_applied(&history).err(),
             Some(RobotOrderReconciliationError::MatchingTransaction)
         );
+    });
+}
+
+#[test]
+fn standard_addon_reconciliation_is_a_bounded_multiset() {
+    let product = multiset_standard_product();
+    let currency = currency();
+    let first_addon = product
+        .value()
+        .orderable_addons()
+        .first()
+        .unwrap_or_else(|| unreachable!("first addon fixture disappeared"));
+    let second_addon = product
+        .value()
+        .orderable_addons()
+        .get(1)
+        .unwrap_or_else(|| unreachable!("second addon fixture disappeared"));
+    let first = RobotStandardAddonSelection::new(first_addon, 0, 1)
+        .unwrap_or_else(|_| unreachable!("first addon selection failed"));
+    let second = RobotStandardAddonSelection::new(second_addon, 0, 2)
+        .unwrap_or_else(|_| unreachable!("second addon selection failed"));
+    let selections = [first, second];
+    let plan = RobotStandardOrderPlan::new(&product, &currency, 0, 0, 0, &selections)
+        .unwrap_or_else(|_| unreachable!("multi-addon plan failed"));
+    let request = RobotStandardOrderCreateRequest::new(&plan, 1_200_000)
+        .unwrap_or_else(|_| unreachable!("multi-addon request failed"));
+    let response_body = br#"{"transaction":{"id":"B-order","date":"2026-08-16T12:00:00Z","status":"in process","server_number":null,"server_ip":null,"authorized_key":[],"host_key":[],"comment":null,"product":{"id":"EX40","name":"EX40","description":[],"traffic":"30 TB","dist":"Rescue system","@deprecated arch":"64","lang":"en","location":"FSN1"},"addons":["backup_space","primary_ipv4","backup_space"]}}"#;
+    let mut target = [0_u8; 128];
+    let mut request_body = [0_u8; 256];
+    let mut guard = PreparationStorageGuard::new(&mut target, &mut request_body);
+    let prepared = prepared_standard(&request, &mut guard);
+    let mut body = vec![0_u8; response_body.len()];
+    let mut headers = [0_u8; 128];
+    let response = json_response(&mut body, &mut headers, StatusCode::CREATED, response_body);
+    let transaction = prepared
+        .validate_response(response)
+        .unwrap_or_else(|_| unreachable!("response policy failed"))
+        .decode_response()
+        .unwrap_or_else(|_| unreachable!("unordered addon response was rejected"));
+    let history = observed(RobotStandardTransactionList(vec![transaction]));
+    assert_eq!(
+        request.reconcile_not_applied(&history).err(),
+        Some(RobotOrderReconciliationError::MatchingTransaction)
+    );
+}
+
+#[test]
+fn addon_reconciliation_blocks_retry_when_historical_price_or_type_changed() {
+    with_addon_plan(|plan| {
+        let request = RobotAddonOrderCreateRequest::new(plan, addon_parameters(), 300_000)
+            .unwrap_or_else(|_| unreachable!("addon request failed"));
+        let created = core::str::from_utf8(ADDON_CREATED)
+            .unwrap_or_else(|_| unreachable!("addon fixture is not UTF-8"));
+        let history = format!("[{created}]");
+
+        for changed in [
+            history.replace("\"gross\":\"1.0000\"", "\"gross\":\"1.1000\""),
+            history.replace("\"type\":\"ip_ipv4\"", "\"type\":\"subnet_ipv4\""),
+        ] {
+            let transactions = addon_history(changed.as_bytes());
+            assert_eq!(
+                request.reconcile_not_applied(&transactions).err(),
+                Some(RobotOrderReconciliationError::MatchingTransaction)
+            );
+        }
     });
 }
 
@@ -105,7 +170,7 @@ fn source_locked_failures_are_family_bound() {
         );
     });
     with_addon_plan(|plan| {
-        let request = RobotAddonOrderCreateRequest::new(plan, 300_000)
+        let request = RobotAddonOrderCreateRequest::new(plan, addon_parameters(), 300_000)
             .unwrap_or_else(|_| unreachable!("addon request failed"));
         assert_provider_failure(
             &request,

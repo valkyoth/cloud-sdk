@@ -1,5 +1,6 @@
 //! Billable Robot ordering mutations and request-bound cost authority.
 
+mod authorization;
 mod cost;
 mod exchange;
 mod failure;
@@ -11,6 +12,7 @@ mod request;
 #[cfg(test)]
 mod tests;
 
+pub use authorization::RobotOrderAuthorizationEvidence;
 pub use cost::{RobotOrderAccount, RobotOrderCostError};
 pub use exchange::{CheckedRobotOrderMutation, PreparedRobotOrderMutation};
 pub use failure::RobotOrderMutationFailureCode;
@@ -22,7 +24,8 @@ pub use permit::{
 pub use prepare::MAX_ROBOT_ORDER_MUTATION_RESPONSE_BYTES;
 pub use reconcile::{RobotOrderNotApplied, RobotOrderReconciliationError};
 pub use request::{
-    ROBOT_ORDER_MUTATION_QUOTA, RobotAddonOrderCreateRequest, RobotMarketOrderCreateRequest,
+    MAX_ROBOT_RIPE_REASON_BYTES, ROBOT_ORDER_MUTATION_QUOTA, RobotAddonOrderCreateError,
+    RobotAddonOrderCreateRequest, RobotAddonOrderParameters, RobotMarketOrderCreateRequest,
     RobotOrderMutationDecodeError, RobotOrderMutationQuota, RobotOrderMutationRequestError,
-    RobotStandardOrderCreateRequest,
+    RobotRipeReason, RobotStandardOrderCreateRequest,
 };

@@ -155,7 +155,14 @@ fn validate_field_count(kind: Kind<'_>) -> Result<(), RobotOrderMutationRequestE
             .iter()
             .try_fold(4_u64, |total, addon| total.checked_add(addon.quantity())),
         Kind::Market(_) => Some(3),
-        Kind::Addon(_) => Some(2),
+        Kind::Addon(request) => Some(match request.parameters {
+            RobotAddonOrderParameters::Ip { .. } => 3,
+            RobotAddonOrderParameters::Subnet {
+                gateway: Some(_), ..
+            } => 4,
+            RobotAddonOrderParameters::Subnet { gateway: None, .. } => 3,
+            RobotAddonOrderParameters::Other => 2,
+        }),
     };
     if count.is_some_and(|value| value <= crate::robot::MAX_ROBOT_FORM_FIELDS as u64) {
         Ok(())
@@ -242,7 +249,20 @@ fn encode_form(
                 .plan
                 .product()
                 .id()
-                .with_text(|value| pair(encoder, &mut first, "product_id", value))
+                .with_text(|value| pair(encoder, &mut first, "product_id", value))?;
+            match request.parameters {
+                RobotAddonOrderParameters::Ip { reason } => {
+                    pair(encoder, &mut first, "reason", reason.as_str())
+                }
+                RobotAddonOrderParameters::Subnet { reason, gateway } => {
+                    pair(encoder, &mut first, "reason", reason.as_str())?;
+                    if let Some(gateway) = gateway {
+                        pair_ipv4(encoder, &mut first, "gateway", gateway)?;
+                    }
+                    Ok(())
+                }
+                RobotAddonOrderParameters::Other => Ok(()),
+            }
         }
     }
 }
@@ -289,6 +309,23 @@ fn pair_u64(
 ) -> Result<(), RobotOrderMutationRequestError> {
     prefix(encoder, first, name)?;
     encoder.u64(value)
+}
+
+fn pair_ipv4(
+    encoder: &mut SnapshotEncoder<'_, RobotOrderMutationRequestError>,
+    first: &mut bool,
+    name: &str,
+    value: core::net::Ipv4Addr,
+) -> Result<(), RobotOrderMutationRequestError> {
+    prefix(encoder, first, name)?;
+    let octets = value.octets();
+    for (index, octet) in octets.iter().enumerate() {
+        if index != 0 {
+            encoder.byte(b'.')?;
+        }
+        encoder.u64(u64::from(*octet))?;
+    }
+    Ok(())
 }
 
 const fn operation_id(kind: Kind<'_>) -> &'static str {

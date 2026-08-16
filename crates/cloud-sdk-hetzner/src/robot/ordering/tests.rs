@@ -1,6 +1,7 @@
 use alloc::{format, vec};
 
 use cloud_sdk::Method;
+use cloud_sdk::authentication::{CREDENTIAL_BINDING_BYTES, CredentialBinding};
 use cloud_sdk::operation::{
     OperationImpact, PreparationStorage, PrepareOperation, RequestBodySensitivity,
     RequestSemantics, RetryEligibility,
@@ -9,6 +10,8 @@ use cloud_sdk::transport::{HeaderSensitivity, ResponseBuffer, ResponseMetadata, 
 
 use super::*;
 use crate::robot::RobotServerNumber;
+
+mod credential_observation;
 
 const STANDARD: &[u8] =
     include_bytes!("../../../../../tests/fixtures/robot-ordering/standard.json");
@@ -110,17 +113,24 @@ fn filter_ranges_fail_before_target_writes() {
 
 #[test]
 fn decodes_complete_standard_catalog_and_non_executable_plan() {
-    let product =
-        decode_standard(STANDARD).unwrap_or_else(|_| unreachable!("standard fixture failed"));
-    assert_eq!(product.prices().len(), 2);
-    assert_eq!(product.orderable_addons().len(), 1);
-    assert_eq!(product.distributions().len(), 2);
-    assert_eq!(product.languages().len(), 1);
-    assert_eq!(format!("{product:?}"), "RobotStandardProduct([redacted])");
+    let product = observed(
+        decode_standard(STANDARD).unwrap_or_else(|_| unreachable!("standard fixture failed")),
+    );
+    assert_eq!(product.value().prices().len(), 2);
+    assert_eq!(product.value().orderable_addons().len(), 1);
+    assert_eq!(product.value().distributions().len(), 2);
+    assert_eq!(product.value().languages().len(), 1);
+    assert_eq!(
+        format!("{:?}", product.value()),
+        "RobotStandardProduct([redacted])"
+    );
 
-    let currency = decode_currency_fixture(CURRENCY)
-        .unwrap_or_else(|_| unreachable!("currency fixture failed"));
+    let currency = observed(
+        decode_currency_fixture(CURRENCY)
+            .unwrap_or_else(|_| unreachable!("currency fixture failed")),
+    );
     let addon = product
+        .value()
         .orderable_addons()
         .first()
         .unwrap_or_else(|| unreachable!("standard addon fixture disappeared"));
@@ -142,18 +152,21 @@ fn decodes_complete_standard_catalog_and_non_executable_plan() {
 
 #[test]
 fn decodes_complete_market_addon_and_currency_catalogs() {
-    let product =
-        decode_market_fixture(MARKET).unwrap_or_else(|_| unreachable!("market fixture failed"));
-    assert_eq!(product.id(), market_id());
-    assert_eq!(product.cpu_benchmark(), 8_944);
-    assert_eq!(product.memory_size(), 24);
-    assert_eq!(product.hdd_count(), 2);
-    assert_eq!(product.next_reduce_seconds(), -10_800);
-    assert!(product.hourly_net().is_some());
-    assert!(!product.fixed_price());
+    let product = observed(
+        decode_market_fixture(MARKET).unwrap_or_else(|_| unreachable!("market fixture failed")),
+    );
+    assert_eq!(product.value().id(), market_id());
+    assert_eq!(product.value().cpu_benchmark(), 8_944);
+    assert_eq!(product.value().memory_size(), 24);
+    assert_eq!(product.value().hdd_count(), 2);
+    assert_eq!(product.value().next_reduce_seconds(), -10_800);
+    assert!(product.value().hourly_net().is_some());
+    assert!(!product.value().fixed_price());
 
-    let currency = decode_currency_fixture(CURRENCY)
-        .unwrap_or_else(|_| unreachable!("currency fixture failed"));
+    let currency = observed(
+        decode_currency_fixture(CURRENCY)
+            .unwrap_or_else(|_| unreachable!("currency fixture failed")),
+    );
     let plan = RobotMarketOrderPlan::new(&product, &currency, 0, 0)
         .unwrap_or_else(|_| unreachable!("market plan failed"));
     assert_eq!(
@@ -162,19 +175,24 @@ fn decodes_complete_market_addon_and_currency_catalogs() {
     );
 
     let request = RobotAddonProductListRequest::new(server());
-    let catalog =
-        decode_addons(&request, ADDONS).unwrap_or_else(|_| unreachable!("addon fixture failed"));
-    assert_eq!(catalog.products().products().len(), 2);
-    assert_eq!(format!("{catalog:?}"), "RobotAddonCatalog([redacted])");
+    let catalog = observed(
+        decode_addons(&request, ADDONS).unwrap_or_else(|_| unreachable!("addon fixture failed")),
+    );
+    assert_eq!(catalog.value().products().products().len(), 2);
+    assert_eq!(
+        format!("{:?}", catalog.value()),
+        "RobotAddonCatalog([redacted])"
+    );
     let addon_plan = RobotAddonOrderPlan::new(&catalog, 0, &currency)
         .unwrap_or_else(|_| unreachable!("addon plan failed"));
     let other_server =
         RobotServerNumber::new(322).unwrap_or_else(|_| unreachable!("other server fixture failed"));
-    assert_eq!(addon_plan.server(), catalog.server());
+    assert_eq!(addon_plan.server(), catalog.value().server());
     assert_ne!(addon_plan.server(), &other_server);
     assert!(core::ptr::eq(
         addon_plan.product(),
         catalog
+            .value()
             .products()
             .products()
             .first()
@@ -223,11 +241,15 @@ fn strict_decoding_rejects_identity_decimal_and_shape_drift() {
 
 #[test]
 fn plan_binding_rejects_wrong_location_quantity_and_duplicate_addons() {
-    let product =
-        decode_standard(STANDARD).unwrap_or_else(|_| unreachable!("standard fixture failed"));
-    let currency = decode_currency_fixture(CURRENCY)
-        .unwrap_or_else(|_| unreachable!("currency fixture failed"));
+    let product = observed(
+        decode_standard(STANDARD).unwrap_or_else(|_| unreachable!("standard fixture failed")),
+    );
+    let currency = observed(
+        decode_currency_fixture(CURRENCY)
+            .unwrap_or_else(|_| unreachable!("currency fixture failed")),
+    );
     let addon = product
+        .value()
         .orderable_addons()
         .first()
         .unwrap_or_else(|| unreachable!("addon fixture disappeared"));
@@ -249,6 +271,12 @@ fn plan_binding_rejects_wrong_location_quantity_and_duplicate_addons() {
         RobotStandardOrderPlan::new(&product, &currency, 0, 0, 0, &[first, second]).err(),
         Some(RobotCatalogPlanError::DuplicateAddon)
     );
+}
+
+fn observed<T>(value: T) -> CredentialObserved<T> {
+    let credential = CredentialBinding::new([0x5a; CREDENTIAL_BINDING_BYTES])
+        .unwrap_or_else(|_| unreachable!("credential fixture failed"));
+    CredentialObserved::from_parts(value, credential)
 }
 
 fn assert_prepared<O>(operation: O, target: &str, id: &str, maximum: usize)

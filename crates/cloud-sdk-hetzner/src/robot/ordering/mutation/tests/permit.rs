@@ -1,10 +1,12 @@
 use alloc::vec::Vec;
 
 use cloud_sdk::operation::{
-    AttemptBudget, ExecutionPermitError, PermitContext, PermitDisposition, PermitIdempotencyKey,
-    PermitState, PermitTimestamp, PermitValidity, PlanFingerprintBuildError, ReplayPolicy,
+    AttemptBudget, ExecutionPermitError, PermitClock, PermitContext, PermitDisposition,
+    PermitIdempotencyKey, PermitState, PermitTimestamp, PermitValidity, PlanFingerprintBuildError,
+    PreparedExecutionError, ReplayPolicy,
 };
 use cloud_sdk::transport::DeliveryPhase;
+use cloud_sdk_testkit::MockTransport;
 
 use super::*;
 use crate::association::Sha256PlanHasher;
@@ -44,9 +46,15 @@ fn sensitive_order_requires_digest_and_exact_budgeted_authority() {
         )
         .unwrap_or_else(|_| unreachable!("order digest failed"));
         assert_eq!(scratch, [0_u8; 4_096]);
-        let mut permit =
-            RobotOrderCostPermit::new(fingerprint.subject(), PermitTimestamp::from_seconds(101))
-                .unwrap_or_else(|_| unreachable!("cost permit failed"));
+        let mut permit = fingerprint
+            .mint_permit(PermitTimestamp::from_seconds(101))
+            .unwrap_or_else(|_| unreachable!("cost permit failed"));
+        assert_eq!(
+            fingerprint
+                .mint_permit(PermitTimestamp::from_seconds(101))
+                .err(),
+            Some(ExecutionPermitError::AuthorityAlreadyMinted)
+        );
         assert_eq!(permit.state(), PermitState::Ready);
         let attempt = permit
             .begin_for(fingerprint.subject(), PermitTimestamp::from_seconds(102))
@@ -80,9 +88,9 @@ fn not_sent_recovery_and_uncertain_reconciliation_are_distinct() {
             &Sha256PlanHasher,
         )
         .unwrap_or_else(|_| unreachable!());
-        let mut permit =
-            RobotOrderCostPermit::new(fingerprint.subject(), PermitTimestamp::from_seconds(101))
-                .unwrap_or_else(|_| unreachable!());
+        let mut permit = fingerprint
+            .mint_permit(PermitTimestamp::from_seconds(101))
+            .unwrap_or_else(|_| unreachable!());
 
         let first = permit
             .begin(PermitTimestamp::from_seconds(102))
@@ -108,7 +116,7 @@ fn not_sent_recovery_and_uncertain_reconciliation_are_distinct() {
             Some(ExecutionPermitError::ReconciliationRequired)
         );
 
-        let absent = RobotStandardTransactionList(Vec::new());
+        let absent = observed(RobotStandardTransactionList(Vec::new()));
         let proof = request
             .reconcile_not_applied(&absent)
             .unwrap_or_else(|_| unreachable!("empty complete history should reconcile"));
@@ -155,7 +163,8 @@ fn expiry_and_changed_plan_are_rejected_before_execution() {
         )
         .unwrap_or_else(|_| unreachable!("first fingerprint failed"));
         assert_eq!(
-            RobotOrderCostPermit::new(fingerprint.subject(), PermitTimestamp::from_seconds(200))
+            fingerprint
+                .mint_permit(PermitTimestamp::from_seconds(200))
                 .err(),
             Some(ExecutionPermitError::Expired)
         );
@@ -176,12 +185,12 @@ fn expiry_and_changed_plan_are_rejected_before_execution() {
             &Sha256PlanHasher,
         )
         .unwrap_or_else(|_| unreachable!("changed fingerprint failed"));
-        let mut permit =
-            RobotOrderCostPermit::new(fingerprint.subject(), PermitTimestamp::from_seconds(101))
-                .unwrap_or_else(|_| unreachable!("cost permit failed"));
+        let mut permit = changed
+            .mint_permit(PermitTimestamp::from_seconds(101))
+            .unwrap_or_else(|_| unreachable!("cost permit failed"));
         assert_eq!(
             permit
-                .begin_for(changed.subject(), PermitTimestamp::from_seconds(102))
+                .begin_for(fingerprint.subject(), PermitTimestamp::from_seconds(102))
                 .err(),
             Some(ExecutionPermitError::FingerprintMismatch)
         );
@@ -208,9 +217,9 @@ fn reconciliation_rejects_wrong_identity_request_and_exhausted_budget() {
             &Sha256PlanHasher,
         )
         .unwrap_or_else(|_| unreachable!("order fingerprint failed"));
-        let mut permit =
-            RobotOrderCostPermit::new(fingerprint.subject(), PermitTimestamp::from_seconds(101))
-                .unwrap_or_else(|_| unreachable!("cost permit failed"));
+        let mut permit = fingerprint
+            .mint_permit(PermitTimestamp::from_seconds(101))
+            .unwrap_or_else(|_| unreachable!("cost permit failed"));
         let attempt = permit
             .begin(PermitTimestamp::from_seconds(102))
             .unwrap_or_else(|_| unreachable!("first attempt failed"));
@@ -219,7 +228,7 @@ fn reconciliation_rejects_wrong_identity_request_and_exhausted_budget() {
         else {
             unreachable!("uncertain order did not require reconciliation")
         };
-        let absent = RobotStandardTransactionList(Vec::new());
+        let absent = observed(RobotStandardTransactionList(Vec::new()));
         let proof = request
             .reconcile_not_applied(&absent)
             .unwrap_or_else(|_| unreachable!("empty history rejected"));
@@ -248,6 +257,12 @@ fn reconciliation_rejects_wrong_identity_request_and_exhausted_budget() {
                 PermitTimestamp::from_seconds(104),
             ),
             Err(ExecutionPermitError::FingerprintMismatch)
+        );
+
+        let wrong_credential = observed_with(RobotStandardTransactionList(Vec::new()), 0x6b);
+        assert_eq!(
+            request.reconcile_not_applied(&wrong_credential).err(),
+            Some(RobotOrderReconciliationError::CredentialMismatch)
         );
 
         let proof = request
@@ -304,9 +319,9 @@ fn abandoned_attempt_requires_reconciliation() {
             &Sha256PlanHasher,
         )
         .unwrap_or_else(|_| unreachable!("order fingerprint failed"));
-        let mut permit =
-            RobotOrderCostPermit::new(fingerprint.subject(), PermitTimestamp::from_seconds(101))
-                .unwrap_or_else(|_| unreachable!("cost permit failed"));
+        let mut permit = fingerprint
+            .mint_permit(PermitTimestamp::from_seconds(101))
+            .unwrap_or_else(|_| unreachable!("cost permit failed"));
         let attempt = permit
             .begin(PermitTimestamp::from_seconds(102))
             .unwrap_or_else(|_| unreachable!("order attempt failed"));
@@ -317,6 +332,101 @@ fn abandoned_attempt_requires_reconciliation() {
             Some(ExecutionPermitError::ReconciliationRequired)
         );
     });
+}
+
+#[test]
+fn execution_rejects_a_different_credential_before_dispatch() {
+    with_standard_plan(|plan| {
+        let request = RobotStandardOrderCreateRequest::new(plan, 1_100_000)
+            .unwrap_or_else(|_| unreachable!("order cost failed"));
+        let mut target = [0_u8; 128];
+        let mut body = [0_u8; 256];
+        let mut guard = cloud_sdk::operation::PreparationStorageGuard::new(&mut target, &mut body);
+        let prepared = prepared_standard(&request, &mut guard);
+        let mut scratch = [0_u8; 4_096];
+        let mut digest = [0_u8; 32];
+        let fingerprint = build_robot_order_plan_digest(
+            confirmation(prepared, ReplayPolicy::SingleAttempt, 1),
+            &mut scratch,
+            &mut digest,
+            &Sha256PlanHasher,
+        )
+        .unwrap_or_else(|_| unreachable!("order fingerprint failed"));
+        let mut permit = fingerprint
+            .mint_permit(PermitTimestamp::from_seconds(101))
+            .unwrap_or_else(|_| unreachable!("cost permit failed"));
+        let attempt = permit
+            .begin(PermitTimestamp::from_seconds(102))
+            .unwrap_or_else(|_| unreachable!("order attempt failed"));
+        let transport = MockTransport::new(&[])
+            .with_endpoint(
+                official_robot_endpoint_identity().unwrap_or_else(|_| unreachable!("endpoint")),
+            )
+            .with_credential_binding(credential(0x6b));
+        let mut response_body = [0xa5_u8; 64];
+        let mut response_headers = [0x5a_u8; 64];
+        let error = attempt
+            .execute_blocking(
+                &FixedClock(PermitTimestamp::from_seconds(103)),
+                &transport,
+                &mut response_body,
+                &mut response_headers,
+            )
+            .err()
+            .unwrap_or_else(|| unreachable!("wrong credential dispatched"));
+        assert!(matches!(
+            error.execution(),
+            PreparedExecutionError::AuthorizationInvalid(ExecutionPermitError::CredentialMismatch)
+        ));
+        assert_eq!(response_body, [0_u8; 64]);
+        assert_eq!(response_headers, [0_u8; 64]);
+        assert_eq!(transport.remaining(), 0);
+    });
+}
+
+#[test]
+fn confirmation_rejects_authorization_from_another_request_credential() {
+    with_standard_plan_with(0x6b, |other_plan| {
+        let other_request = RobotStandardOrderCreateRequest::new(other_plan, 1_100_000)
+            .unwrap_or_else(|_| unreachable!("other order cost failed"));
+        let other_authorization = authorization(&other_request);
+        with_standard_plan(|plan| {
+            let request = RobotStandardOrderCreateRequest::new(plan, 1_100_000)
+                .unwrap_or_else(|_| unreachable!("order cost failed"));
+            let mut target = [0_u8; 128];
+            let mut body = [0_u8; 256];
+            let mut guard =
+                cloud_sdk::operation::PreparationStorageGuard::new(&mut target, &mut body);
+            let prepared = prepared_standard(&request, &mut guard);
+            let confirmation = RobotOrderPlanConfirmation::new(
+                prepared,
+                official_robot_endpoint_identity().unwrap_or_else(|_| unreachable!()),
+                other_authorization,
+                PermitContext::new(b"mismatched credential fixture")
+                    .unwrap_or_else(|_| unreachable!()),
+                PermitValidity::new(
+                    PermitTimestamp::from_seconds(100),
+                    PermitTimestamp::from_seconds(200),
+                )
+                .unwrap_or_else(|_| unreachable!()),
+                ReplayPolicy::SingleAttempt,
+                AttemptBudget::new(1).unwrap_or_else(|_| unreachable!()),
+                None,
+            );
+            assert_eq!(
+                confirmation.err(),
+                Some(ExecutionPermitError::CredentialMismatch)
+            );
+        });
+    });
+}
+
+struct FixedClock(PermitTimestamp);
+
+impl PermitClock for FixedClock {
+    fn now(&self) -> PermitTimestamp {
+        self.0
+    }
 }
 
 fn confirmation<'storage, 'request>(
@@ -333,10 +443,11 @@ fn confirmation<'storage, 'request>(
     'request,
     RobotStandardOrderCreateRequest<'request>,
 > {
+    let authorization = authorization(prepared.request);
     RobotOrderPlanConfirmation::new(
         prepared,
         official_robot_endpoint_identity().unwrap_or_else(|_| unreachable!()),
-        RobotOrderAccount::new(b"robot-account").unwrap_or_else(|_| unreachable!()),
+        authorization,
         PermitContext::new(b"v0.93 Robot order fixture").unwrap_or_else(|_| unreachable!()),
         PermitValidity::new(
             PermitTimestamp::from_seconds(100),
@@ -347,6 +458,7 @@ fn confirmation<'storage, 'request>(
         AttemptBudget::new(attempts).unwrap_or_else(|_| unreachable!()),
         (replay == ReplayPolicy::ReconcileThenRetry).then(idempotency),
     )
+    .unwrap_or_else(|_| unreachable!("matching authorization evidence rejected"))
 }
 
 fn idempotency() -> PermitIdempotencyKey<'static> {

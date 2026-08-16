@@ -19,7 +19,7 @@ const ADDON: &[u8] =
 
 const STANDARD_DETAIL: &[u8] = br#"{"transaction":{"id":"B-ready","date":"2026-08-15T12:30:43+02:00","status":"ready","server_number":107239,"server_ip":"188.40.1.1","authorized_key":[],"host_key":[],"comment":null,"product":{"id":"EX40","name":"EX40","description":[],"traffic":"30 TB","dist":"Rescue system","@deprecated arch":"64","lang":"en","location":"FSN1"},"addons":[]}}"#;
 const MARKET_DETAIL: &[u8] = br#"{"transaction":{"id":"B-market","date":"2026-08-15T12:30:43Z","status":"in process","server_number":null,"server_ip":null,"authorized_key":[],"host_key":[],"comment":null,"product":{"id":283693,"name":"SB110","description":[],"traffic":"20 TB","dist":"Rescue system","@deprecated arch":"64","lang":"en","cpu":"CPU","cpu_benchmark":8944,"memory_size":24,"hdd_size":1536,"hdd_text":"HDD","hdd_count":2,"datacenter":"FSN1-DC5","network_speed":"1 Gbit/s","fixed_price":true,"next_reduce":0,"next_reduce_date":"2026-08-15 12:30:43"}}}"#;
-const ADDON_DETAIL: &[u8] = br#"{"transaction":{"id":"B-addon","date":"2026-08-15T12:30:43Z","status":"ready","server_number":123,"product":{"id":"failover_subnet_ipv4_29","name":"Failover subnet /29","price":{"location":"NBG1","price":{"net":"15.1261","gross":"17.9999","hourly_net":"0.0242","hourly_gross":"0.0288"},"price_setup":{"net":"152.0000","gross":"180.8800"}}},"resources":[{"type":"subnet","id":"10.0.0.0"}]}}"#;
+const ADDON_DETAIL: &[u8] = br#"{"transaction":{"id":"B-addon","date":"2026-08-15T12:30:43Z","status":"ready","server_number":123,"product":{"id":"failover_subnet_ipv4_29","name":"Failover subnet /29","type":"failover_subnet_ipv4","price":{"location":"NBG1","price":{"net":"15.1261","gross":"17.9999","hourly_net":"0.0242","hourly_gross":"0.0288"},"price_setup":{"net":"152.0000","gross":"180.8800"}}},"resources":[{"type":"subnet","id":"10.0.0.0"}]}}"#;
 
 #[test]
 fn prepares_all_six_read_only_transaction_operations() {
@@ -131,7 +131,9 @@ fn decodes_official_standard_market_and_addon_snapshots() {
         unreachable!("addon transaction fixture count changed");
     };
     assert!(addon_pending.resources().is_empty());
+    assert!(addon_pending.product().kind().is_none());
     assert_eq!(addon_ready.resources().len(), 1);
+    assert!(addon_ready.product().kind().is_none());
     assert!(addon_ready.product().price().hourly().is_some());
 }
 
@@ -147,7 +149,9 @@ fn detail_decoding_is_bound_to_each_requested_transaction_identity() {
         decode_market_get("B-other", MARKET_DETAIL).err(),
         Some(RobotOrderTransactionDecodeError::ResponseIdentityMismatch)
     );
-    assert!(decode_addon_get("B-addon", ADDON_DETAIL).is_ok());
+    let addon_detail = decode_addon_get("B-addon", ADDON_DETAIL)
+        .unwrap_or_else(|_| unreachable!("typed addon detail failed"));
+    assert!(addon_detail.product().kind().is_some());
     assert_eq!(
         decode_addon_get("B-other", ADDON_DETAIL).err(),
         Some(RobotOrderTransactionDecodeError::ResponseIdentityMismatch)

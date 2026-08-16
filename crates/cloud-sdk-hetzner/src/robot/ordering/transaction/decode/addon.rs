@@ -35,7 +35,10 @@ pub(in crate::robot::ordering) fn decode_addon_list(
     }
     let mut transactions = reserved(values.len())?;
     for mut value in values {
-        transactions.push(parse_addon(transaction_object(&mut value)?)?);
+        transactions.push(parse_addon(
+            transaction_object(&mut value)?,
+            ProductTypePolicy::OptionalForDocumentedGet,
+        )?);
     }
     reject_transaction_duplicates(&transactions, RobotAddonTransaction::id)?;
     Ok(RobotAddonTransactionList(transactions))
@@ -47,11 +50,33 @@ pub(in crate::robot::ordering) fn decode_addon(
 ) -> Result<RobotAddonTransaction, RobotOrderTransactionDecodeError> {
     require_item(checked)?;
     let mut root = parse(checked, workspace)?;
-    parse_addon(transaction_object(&mut root)?)
+    parse_addon(
+        transaction_object(&mut root)?,
+        ProductTypePolicy::OptionalForDocumentedGet,
+    )
+}
+
+pub(in crate::robot::ordering) fn decode_addon_created(
+    checked: CheckedResponse<'_>,
+    workspace: &mut ResponseDecodeWorkspace,
+) -> Result<RobotAddonTransaction, RobotOrderTransactionDecodeError> {
+    require_item(checked)?;
+    let mut root = parse(checked, workspace)?;
+    parse_addon(
+        transaction_object(&mut root)?,
+        ProductTypePolicy::RequiredForCreation,
+    )
+}
+
+#[derive(Clone, Copy)]
+enum ProductTypePolicy {
+    RequiredForCreation,
+    OptionalForDocumentedGet,
 }
 
 fn parse_addon(
     object: &mut Map,
+    policy: ProductTypePolicy,
 ) -> Result<RobotAddonTransaction, RobotOrderTransactionDecodeError> {
     require_fields(object, FIELDS)?;
     let id = transaction_id(object, "id")?;
@@ -75,7 +100,7 @@ fn parse_addon(
         .get_mut("product")
         .and_then(Value::as_object_mut)
         .ok_or(RobotOrderTransactionDecodeError::InvalidProduct)
-        .and_then(parse_product)?;
+        .and_then(|product| parse_product(product, policy))?;
     let resources = parse_resources(object)?;
     Ok(RobotAddonTransaction {
         id,
@@ -89,8 +114,18 @@ fn parse_addon(
 
 fn parse_product(
     product: &mut Map,
+    policy: ProductTypePolicy,
 ) -> Result<RobotAddonTransactionProduct, RobotOrderTransactionDecodeError> {
-    require_fields(product, &["id", "name", "price"])?;
+    let has_kind = product.get("type").is_some();
+    match (policy, has_kind) {
+        (ProductTypePolicy::RequiredForCreation, false) => {
+            return Err(RobotOrderTransactionDecodeError::InvalidProduct);
+        }
+        (_, true) => require_fields(product, &["id", "name", "type", "price"]),
+        (ProductTypePolicy::OptionalForDocumentedGet, false) => {
+            require_fields(product, &["id", "name", "price"])
+        }
+    }?;
     let price = product
         .get_mut("price")
         .and_then(Value::as_object_mut)
@@ -99,6 +134,7 @@ fn parse_product(
     Ok(RobotAddonTransactionProduct {
         id: product_id(product, "id")?,
         name: text(product, "name")?,
+        kind: has_kind.then(|| text(product, "type")).transpose()?,
         price,
     })
 }

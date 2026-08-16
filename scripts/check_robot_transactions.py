@@ -241,7 +241,7 @@ def validate_sources(
     for token in ["RobotOrderTransactionStatus::Ready", "valid_rfc3339", "reject_transaction_duplicates", "reject_duplicates_by_cmp"]:
         if token not in nested:
             fail(f"strict transaction evidence lost {token}")
-    if files.get("exchange.rs", "").count("ResponseIdentityMismatch") != 3:
+    if files.get("exchange.rs", "").count("ResponseIdentityMismatch") != 4:
         fail("detail response identity binding changed")
     if "status == 404 && code == \"NOT_FOUND\"" not in files.get("failure.rs", ""):
         fail("source-locked NOT_FOUND decoder changed")

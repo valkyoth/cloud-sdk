@@ -8,8 +8,7 @@ use super::super::model::{
 };
 use super::common::*;
 use super::{RobotOrderTransactionDecodeError, parse, require_item, require_list};
-use crate::robot::duplicates::reject_duplicates_by_cmp;
-use crate::robot::ordering::{RobotMarketProductId, RobotOrderProductId};
+use crate::robot::ordering::RobotMarketProductId;
 use crate::serde::strict_json::{Map, Value};
 
 const STANDARD_FIELDS: &[&str] = &[
@@ -86,7 +85,6 @@ fn parse_standard(
                 .map_err(map_value_error)?,
         );
     }
-    reject_duplicates_by_cmp(&addons, compare_product_id).map_err(map_duplicate)?;
     Ok(RobotStandardTransaction {
         id: common.id,
         date: common.date,
@@ -256,11 +254,4 @@ fn unsigned(object: &Map, field: &str) -> Result<u64, RobotOrderTransactionDecod
         .get(field)
         .and_then(Value::as_u64)
         .ok_or(RobotOrderTransactionDecodeError::InvalidProduct)
-}
-
-fn compare_product_id(
-    left: &RobotOrderProductId,
-    right: &RobotOrderProductId,
-) -> core::cmp::Ordering {
-    left.with_text(|left| right.with_text(|right| left.cmp(right)))
 }

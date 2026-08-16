@@ -450,6 +450,30 @@ identical historical order therefore fails closed and may require operator
 resolution. Snapshot freshness and provider eventual consistency remain
 caller/provider boundaries.
 
+Account approval and reconciliation evidence retain the opaque credential
+lineage used for authenticated observations, and dispatch rejects a different
+lineage before network access. One strong digest can mint only one direct cost
+permit. Standard addon identifiers are compared as a bounded multiset because
+Robot does not guarantee response order and catalog quantities can repeat an
+identifier.
+
+Server Auction creation has a distinct strict response model: its transaction
+contains top-level `addons`, which must be empty because the request has no
+addon field, while its product omits list-only `fixed_price`, `next_reduce`,
+and `next_reduce_date`.
+
+Hetzner's addon transaction output table and POST `201` example include product
+`type`, but the official GET list/detail JSON examples omit it. The immutable
+GET fixture therefore retains the upstream bytes and its reviewed hash. GET
+decoding accepts an absent type while retaining and validating the bounded
+returned price. Creation decoding requires the type and compares the returned
+price exactly against the catalog observation. Historical uncertain-delivery
+reconciliation intentionally matches only the credential-bound server number
+and product ID.
+Addon order forms require a bounded RIPE `reason` for
+`ip_ipv4`, `subnet_ipv4`, and `failover_subnet_ipv4`; only `subnet_ipv4`
+accepts the optional canonical IPv4 `gateway`.
+
 The normalized contract is committed in
 [`v0.93.0.json`](../tests/fixtures/robot-order-mutations/v0.93.0.json) and
 checked by `scripts/check_robot_order_mutations.sh`. GitHub workflows and live

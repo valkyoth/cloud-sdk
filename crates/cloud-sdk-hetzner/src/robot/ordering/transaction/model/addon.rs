@@ -13,6 +13,7 @@ use super::common::{
 pub struct RobotAddonTransactionProduct {
     pub(in crate::robot::ordering) id: RobotOrderProductId,
     pub(in crate::robot::ordering) name: RobotOrderText,
+    pub(in crate::robot::ordering) kind: Option<RobotOrderText>,
     pub(in crate::robot::ordering) price: RobotOrderPrice,
 }
 
@@ -26,6 +27,11 @@ impl RobotAddonTransactionProduct {
     #[must_use]
     pub const fn name(&self) -> &RobotOrderText {
         &self.name
+    }
+    /// Returns the protected provider addon type.
+    #[must_use]
+    pub const fn kind(&self) -> Option<&RobotOrderText> {
+        self.kind.as_ref()
     }
     /// Returns the exact location-specific price retained by the transaction.
     #[must_use]

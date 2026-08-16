@@ -3131,18 +3131,28 @@ Deliverables:
 - derive every executable request from a current typed catalog plan and
   calculate exact scale-4 gross recurring-plus-setup cost, including standard
   addon quantities, with checked arithmetic and an explicit caller ceiling;
-- add a required protected account scope and typed cost confirmations whose
-  digest fingerprints bind exact request bytes, product and selection intent,
+- produce non-forgeable credential-bound catalog, currency, and transaction
+  observations inside authenticated blocking, Send-async, and local-async
+  execution; reject credential rotation during a read; require one matching
+  credential lifecycle throughout plan construction and reconciliation;
+- add required protected account evidence derived from the exact request and
+  typed cost confirmations whose digest fingerprints bind exact request bytes, product and selection intent,
   observed cost, currency, account, official endpoint, context, validity,
-  replay policy, attempt budget, and reconciliation identity;
-- expose only a direct non-cloneable Robot cost permit and request-associated
+  replay policy, attempt budget, reconciliation identity, and opaque credential
+  lineage;
+- expose one-shot digest minting and only a direct non-cloneable Robot cost permit and request-associated
   attempt/checked-response path; forbid raw preparation, type-erased prepared
   extraction, direct canonical fingerprinting of sensitive bodies, and
   automatic retry;
 - distinguish proven `NotSent` recovery from `PossiblySent`,
   `ResponseStarted`, and abandoned-attempt reconciliation; require a fresh
   exact subject, same idempotency identity, and request-bound transaction-list
-  absence proof before any uncertain repeat;
+  absence proof from the same credential before any uncertain repeat;
+- decode Server Auction creation independently from list transactions, reject
+  unrequested auction addons, require exact addon creation prices, preserve the
+  official GET omission/POST requirement for addon product `type`, compare
+  standard addons as bounded multisets, and require catalog-type-correct RIPE
+  reason/gateway parameters;
 - source-lock all three active rows, reject matching or indistinguishable
   historical transactions fail closed, document 30-day/freshness/eventual-
   consistency boundaries, and statically prove CI/live smoke contains no
@@ -3160,11 +3170,16 @@ Verification:
   non-idempotent/no-retry metadata, source-locked errors, guarded cleanup, and
   absence of a raw/type-erased execution route;
 - test exact price aggregation, quantity multiplication, overflow and ceiling
-  rejection, account/currency binding, expiry, request mismatch, digest-only
-  authority, single-use/replay budgets, and payload-free diagnostics;
+  rejection, account/currency/credential binding, credential rotation during
+  observed reads, non-forgeable observation construction, expiry, request mismatch,
+  digest-only one-shot authority, single-use/replay budgets, and payload-free
+  diagnostics;
 - test `NotSent`, `PossiblySent`, `ResponseStarted`, and dropped-attempt state
   transitions; stale generation, mismatched plan/idempotency/proof rejection;
-  matching-transaction denial; and fresh no-match reconciliation;
+  matching-transaction denial; order-independent quantity matching;
+  unrequested auction-addon rejection; exact addon price matching; official
+  GET/POST addon-type schema differences; RIPE parameter typing; and fresh
+  no-match reconciliation;
 - run `scripts/check_robot_order_mutations.sh`, its mutation-resistant checker
   tests, complete Robot source/API drift checks, and explicit CI non-execution
   checks;
@@ -3174,8 +3189,10 @@ Verification:
 
 Exit criteria: all three active ordering-mutation rows are represented exactly
 once; no order can be prepared outside cleanup-owned storage or executed
-without exact non-cloneable cost authority; uncertain delivery cannot repeat
-without typed transaction reconciliation; CI cannot purchase; no crate is
+without exact one-shot non-cloneable cost authority; plans and reconciliation
+cannot accept caller-associated credential evidence; uncertain delivery cannot
+repeat without same-credential typed transaction reconciliation; CI cannot
+purchase; no crate is
 selected for publication; and the exact implementation commit is ready for an
 incremental pentest before release evidence is finalized.
 

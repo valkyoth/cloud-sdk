@@ -1,0 +1,47 @@
+{
+  "product": {
+    "id": "EX40",
+    "name": "Dedicated Server EX40",
+    "description": ["32 GB RAM", "2 x 2 TB HDD"],
+    "traffic": "30 TB",
+    "dist": ["Rescue system", "Debian 12 minimal"],
+    "@deprecated arch": [64],
+    "lang": ["en"],
+    "location": ["FSN1"],
+    "prices": [
+      {
+        "location": "FSN1",
+        "price": {"net": "84.0300", "gross": "99.9960", "hourly_net": "0.1347", "hourly_gross": "0.1603"},
+        "price_setup": {"net": "0.0000", "gross": "0.0000"}
+      }
+    ],
+    "orderable_addons": [
+      {
+        "id": "primary_ipv4",
+        "name": "Primary IPv4",
+        "min": 0,
+        "max": 1,
+        "prices": [
+          {
+            "location": "FSN1",
+            "price": {"net": "1.7000", "gross": "2.0230", "hourly_net": "0.0027", "hourly_gross": "0.0032"},
+            "price_setup": {"net": "0.0000", "gross": "0.0000"}
+          }
+        ]
+      },
+      {
+        "id": "backup_space",
+        "name": "Backup space",
+        "min": 0,
+        "max": 2,
+        "prices": [
+          {
+            "location": "FSN1",
+            "price": {"net": "4.2017", "gross": "5.0000", "hourly_net": null, "hourly_gross": null},
+            "price_setup": {"net": "0.0000", "gross": "0.0000"}
+          }
+        ]
+      }
+    ]
+  }
+}
