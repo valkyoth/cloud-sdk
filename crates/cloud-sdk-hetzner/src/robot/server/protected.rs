@@ -5,7 +5,7 @@ use core::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
 use cloud_sdk_sanitization::SecretBoxBytes;
 
-pub(super) use super::protected_parse::ProtectedValueError;
+pub(crate) use super::protected_parse::ProtectedValueError;
 use super::protected_parse::{self, AddressFamily};
 
 fn protected(
@@ -49,7 +49,7 @@ fn ipv6_value(bytes: &[u8], offset: usize) -> Ipv6Addr {
 pub struct ProtectedIpAddr(SecretBoxBytes);
 
 impl ProtectedIpAddr {
-    pub(super) fn parse(value: &str) -> Result<Self, ProtectedValueError> {
+    pub(crate) fn parse(value: &str) -> Result<Self, ProtectedValueError> {
         protected_parse::address(value, AddressFamily::Any).map(Self)
     }
 

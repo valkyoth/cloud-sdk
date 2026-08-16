@@ -22,7 +22,9 @@
 //! vSwitch inventory, configuration, cancellation, and repeated server
 //! membership operations are source-locked in `v0.90.0`.
 //! Read-only server, Server Auction, addon, and account-currency catalogs are
-//! source-locked in `v0.91.0`; ordering remains deliberately non-executable.
+//! source-locked in `v0.91.0`. Read-only standard-server, Server Auction, and
+//! addon transaction snapshots are source-locked in `v0.92.0`; ordering
+//! remains deliberately non-executable.
 
 #[cfg(feature = "alloc")]
 mod boot;
@@ -177,22 +179,34 @@ pub use ip::{
 pub use ordering::{
     MAX_ROBOT_ORDER_CHOICE_BYTES, MAX_ROBOT_ORDER_ITEM_RESPONSE_BYTES,
     MAX_ROBOT_ORDER_LIST_RESPONSE_BYTES, MAX_ROBOT_ORDER_LOCATION_BYTES,
-    MAX_ROBOT_ORDER_PRODUCT_ID_BYTES, RobotAddonProductListRequest, RobotMarketProductGetRequest,
-    RobotMarketProductId, RobotMarketProductListRequest, RobotOrderChoice, RobotOrderCurrency,
-    RobotOrderCurrencyRequest, RobotOrderDecimal, RobotOrderLocation, RobotOrderProductId,
-    RobotOrderRequestError, RobotOrderValueError, RobotStandardProductFilters,
-    RobotStandardProductGetRequest, RobotStandardProductListRequest,
+    MAX_ROBOT_ORDER_PRODUCT_ID_BYTES, MAX_ROBOT_ORDER_TRANSACTION_ID_BYTES,
+    MAX_ROBOT_ORDER_TRANSACTION_ITEM_RESPONSE_BYTES,
+    MAX_ROBOT_ORDER_TRANSACTION_LIST_RESPONSE_BYTES, RobotAddonProductListRequest,
+    RobotAddonTransactionGetRequest, RobotAddonTransactionListRequest,
+    RobotMarketProductGetRequest, RobotMarketProductId, RobotMarketProductListRequest,
+    RobotMarketTransactionGetRequest, RobotMarketTransactionListRequest, RobotOrderChoice,
+    RobotOrderCurrency, RobotOrderCurrencyRequest, RobotOrderDecimal, RobotOrderLocation,
+    RobotOrderProductId, RobotOrderRequestError, RobotOrderTransactionId, RobotOrderValueError,
+    RobotStandardProductFilters, RobotStandardProductGetRequest, RobotStandardProductListRequest,
+    RobotStandardTransactionGetRequest, RobotStandardTransactionListRequest,
 };
 
 #[cfg(feature = "serde")]
 pub use ordering::{
-    CheckedRobotOrderCatalog, MAX_ROBOT_ADDON_PRODUCTS, MAX_ROBOT_MARKET_PRODUCTS,
-    MAX_ROBOT_STANDARD_PRODUCTS, PreparedRobotOrderCatalog, RobotAddonCatalog, RobotAddonOrderPlan,
-    RobotAddonProduct, RobotAddonProductList, RobotCatalogPlanError, RobotCatalogPriceWarning,
-    RobotMarketOrderPlan, RobotMarketProduct, RobotMarketProductList, RobotOrderCatalogDecodeError,
+    CheckedRobotOrderCatalog, CheckedRobotOrderTransaction, MAX_ROBOT_ADDON_PRODUCTS,
+    MAX_ROBOT_MARKET_PRODUCTS, MAX_ROBOT_ORDER_TRANSACTION_ITEMS, MAX_ROBOT_ORDER_TRANSACTION_KEYS,
+    MAX_ROBOT_ORDER_TRANSACTION_RESOURCES, MAX_ROBOT_STANDARD_PRODUCTS, PreparedRobotOrderCatalog,
+    PreparedRobotOrderTransaction, RobotAddonCatalog, RobotAddonOrderPlan, RobotAddonProduct,
+    RobotAddonProductList, RobotAddonTransaction, RobotAddonTransactionList,
+    RobotAddonTransactionProduct, RobotCatalogPlanError, RobotCatalogPriceWarning,
+    RobotMarketOrderPlan, RobotMarketProduct, RobotMarketProductList, RobotMarketTransaction,
+    RobotMarketTransactionList, RobotMarketTransactionProduct, RobotOrderCatalogDecodeError,
     RobotOrderFailureCode, RobotOrderPrice, RobotOrderPricePair, RobotOrderText,
+    RobotOrderTransactionDecodeError, RobotOrderTransactionFailureCode, RobotOrderTransactionKey,
+    RobotOrderTransactionResource, RobotOrderTransactionStatus, RobotOrderTransactionTimestamp,
     RobotOrderableAddon, RobotStandardAddonSelection, RobotStandardOrderPlan, RobotStandardProduct,
-    RobotStandardProductList,
+    RobotStandardProductList, RobotStandardTransaction, RobotStandardTransactionList,
+    RobotStandardTransactionProduct,
 };
 
 #[cfg(feature = "alloc")]

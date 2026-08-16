@@ -38,7 +38,7 @@ boundaries.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.91.0"
+cloud-sdk = "0.92.0"
 cloud-sdk-hetzner = "0.45.0"
 ```
 
@@ -426,6 +426,35 @@ assert!(body.iter().all(|byte| *byte == 0));
 # fn main() {}
 ```
 
+Robot transaction lists are bounded snapshots of the provider's fixed 30-day
+window. Detail requests retain the protected transaction ID through response
+validation; neither form authorizes or performs a purchase.
+
+```rust
+# #[cfg(feature = "serde")]
+# fn main() -> Result<(), Box<dyn core::error::Error>> {
+use cloud_sdk::operation::PreparationStorageGuard;
+use cloud_sdk_hetzner::robot::RobotStandardTransactionListRequest;
+
+let request = RobotStandardTransactionListRequest::new();
+let mut target = [0_u8; 64];
+let mut body = [0_u8; 1];
+{
+    let mut storage = PreparationStorageGuard::new(&mut target, &mut body);
+    let prepared = storage.prepare_with(|buffers| request.prepare_bound(buffers))?;
+    assert_eq!(
+        prepared.as_untyped().transport_request().target().as_str(),
+        "/order/server/transaction",
+    );
+}
+assert!(target.iter().all(|byte| *byte == 0));
+assert!(body.iter().all(|byte| *byte == 0));
+# Ok(())
+# }
+# #[cfg(not(feature = "serde"))]
+# fn main() {}
+```
+
 Mutation constructors prepare intent and policy but do not execute it. Review
 the exact selected OS or distribution and language, preserve caller-owned
 input cleanup, use a bounded authenticated transport, and reconcile current
@@ -747,7 +776,7 @@ and separate-MAC operations plus subnet, reset, failover, Wake-on-LAN, boot
 configuration, reverse DNS, bounded traffic queries, all five active SSH-key
 lifecycle operations, all eight active firewall and template operations, and
 all seven active vSwitch operations, and all six active read-only ordering-
-catalog operations.
+catalog operations and all six active read-only transaction operations.
 SSH-key responses cryptographically reconcile
 algorithm, size, provider MD5, and SDK-computed SHA-256 identity while keeping
 account metadata protected and redacted. Firewall requests preserve ordered
@@ -771,13 +800,16 @@ list/detail/create responses, and request-bound authority for every mutation.
 Bodyless update, cancellation, attach, and detach acknowledgements require a
 subsequent detail read when callers need reconciled state. Ordering catalogs
 use exact prices, strict request-associated decoding, and non-executable plans.
-It does not yet expose Robot transaction/order mutations or a high-level Robot
-client.
+Transaction list reads expose Robot's fixed 30-day snapshot without inventing
+pagination; detail responses remain bound to the requested protected
+transaction ID. Finite status, server-result nullability, keys, products,
+prices, and addon resources are bounded and strictly decoded. It does not
+expose Robot order mutations or a high-level Robot client.
 Its complete source lock records 89
 active operations and excludes all 16 deprecated Storage Box operations. See the
 [Robot source-lock contract](https://github.com/valkyoth/cloud-sdk/blob/main/docs/ROBOT_WIRE_SOURCE_LOCK.md).
 The latest Robot additions and source migration are described in the
-[v0.91 source migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.91.0.md).
+[v0.92 source migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.92.0.md).
 Breaking v0.27 constructor and custom-endpoint changes are listed in the
 [migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.27.0.md).
 Shared transport and credential lifecycle changes are listed in the

@@ -8,6 +8,8 @@ pub const MAX_ROBOT_ORDER_PRODUCT_ID_BYTES: usize = 128;
 pub const MAX_ROBOT_ORDER_LOCATION_BYTES: usize = 64;
 /// Maximum bytes in a distribution, language, or addon selection.
 pub const MAX_ROBOT_ORDER_CHOICE_BYTES: usize = 512;
+/// Maximum bytes in a Robot ordering transaction identifier.
+pub const MAX_ROBOT_ORDER_TRANSACTION_ID_BYTES: usize = 128;
 const MAX_DECIMAL_BYTES: usize = 24;
 const MAX_DECIMAL_DIGITS: usize = 18;
 const MAX_DECIMAL_SCALE: u8 = 4;
@@ -23,6 +25,8 @@ pub enum RobotOrderValueError {
     InvalidLocation,
     /// A selected catalog value was empty, oversized, or contained controls.
     InvalidChoice,
+    /// A transaction identifier was empty, oversized, or outside its path profile.
+    InvalidTransactionId,
     /// A decimal was negative, noncanonical, oversized, or too precise.
     InvalidDecimal,
     /// A currency was not a three-letter uppercase code.
@@ -36,6 +40,7 @@ impl_static_error!(RobotOrderValueError,
     Self::InvalidMarketProductId => "Robot market product identifier is invalid",
     Self::InvalidLocation => "Robot order location is invalid",
     Self::InvalidChoice => "Robot order catalog choice is invalid",
+    Self::InvalidTransactionId => "Robot order transaction identifier is invalid",
     Self::InvalidDecimal => "Robot order decimal is invalid",
     Self::InvalidCurrency => "Robot order currency is invalid",
     Self::Allocation => "Robot order value allocation failed",
@@ -113,6 +118,13 @@ protected_text!(
     InvalidChoice,
     valid_choice,
     "Protected distribution, language, or addon choice."
+);
+protected_text!(
+    RobotOrderTransactionId,
+    MAX_ROBOT_ORDER_TRANSACTION_ID_BYTES,
+    InvalidTransactionId,
+    valid_identifier,
+    "Protected Robot ordering transaction identifier."
 );
 
 /// Non-zero Server Auction product identifier.

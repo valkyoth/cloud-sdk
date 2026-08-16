@@ -3060,13 +3060,60 @@ Status: release candidate; pentest and final retest passed.
 
 ### v0.92.0 - Robot Transactions
 
-Goal: complete transaction and per-server addon read models.
+Goal: implement every active read-only Robot transaction operation as a
+bounded, request-associated observation without enabling a billable order.
 
-Deliverables: all states, identifiers, prices, timestamps, nullability, pagination, and read-only workflows.
+Deliverables:
 
-Verification: state/decimal/date/source tests and `scripts/release_0_92_gate.sh`.
+- add standard-server, Server Auction, and per-server addon transaction
+  list/detail requests with exact official methods, paths, statuses, quotas,
+  and fixed 30-day list semantics; do not invent pagination where Robot
+  exposes none;
+- model protected transaction identifiers and timestamps, finite `ready`,
+  `in process`, and `cancelled` states, state-dependent server identity,
+  bounded authorized and host keys, comments, product snapshots, exact addon
+  prices, and resulting addon resources;
+- strictly decode bounded complete responses, reject unknown fields,
+  duplicate transaction/key/resource identities, malformed calendars,
+  noncanonical addresses, mismatched hourly price pairs, and contradictory
+  state/nullability combinations;
+- bind every detail response to the exact requested protected transaction ID
+  and expose only the source-locked `404 NOT_FOUND` failure for these reads;
+- add immutable official-source and example digests, mutation-resistant
+  contract checks, adversarial tests, dedicated response fuzzing, public API,
+  migration, dependency, threat, rejected-abstraction, release-note, and SBOM
+  evidence;
+- advance only `cloud-sdk` to `0.92.0` for the internal tag; retain published
+  `cloud-sdk-hetzner 0.45.0`, reqwest `0.35.3`, sanitization `0.19.0`, and
+  testkit `0.30.5`, with crates.io publication deferred to v0.95.0.
 
-Stop gate: `v0.92.0 implementation stop reached. Complete the pentest and full release gate for this exact commit; defer crates.io publication to v0.95.0.`
+Verification:
+
+- test all six method/path contracts, percent-encoded protected IDs, response
+  limits, safe/read-only metadata, explicit retry ownership, and fail-closed
+  caller-storage cleanup;
+- test every finite state, ready/non-ready server nullability, RFC 3339 offset
+  timestamps, legacy auction timestamps, key shapes and bounds, exact decimal
+  prices, resource identities, duplicate rejection, and detail identity
+  substitution;
+- source-lock all six active inventory rows and three reviewed list examples,
+  mutation-test the fixture checker, build and smoke the dedicated fuzz target,
+  and run `scripts/check_robot_transactions.sh` plus
+  `scripts/test-robot-transactions.py`;
+- run formatting, lint, workspace/default/no-std/MSRV/current/platform tests,
+  documentation links and doctests, dependency policy, API/source drift,
+  release metadata, SBOM freshness, and `scripts/release_0_92_gate.sh`.
+
+Exit criteria: all six active transaction rows are represented exactly once;
+all returned collections and text are bounded; transaction state and resulting
+server identity fail closed; every detail decoder retains request provenance;
+no v0.92 type can prepare or authorize an order; no crate is selected for
+publication; and the exact implementation commit is ready for an incremental
+pentest before release evidence is finalized.
+
+Stop gate: `v0.92.0 implementation stop reached. Run the incremental pentest for this exact commit before the full release gate and tag; defer crates.io publication to v0.95.0.`
+
+Status: implementation stop reached; incremental pentest required.
 
 ### v0.93.0 - Robot Ordering Mutations
 

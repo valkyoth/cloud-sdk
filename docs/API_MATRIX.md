@@ -429,6 +429,13 @@ strict request-associated responses, and non-floating-point prices. Typed
 catalog plans carry a mandatory current-price warning and cannot prepare a
 purchase request.
 
+`v0.92.0` implements all six active read-only Robot transaction operations.
+Standard-server, Server Auction, and per-server addon list/detail requests use
+exact source-locked paths and bounded strict response models. Lists represent
+Robot's fixed 30-day window without invented pagination. Detail responses are
+bound to the requested protected transaction ID, and server-result nullability
+must agree with finite transaction state.
+
 Robot implementation schedule:
 
 | Group | Active | Deprecated | Planned Module | Milestone | Status |
@@ -447,7 +454,7 @@ Robot implementation schedule:
 | firewall | 8 | 0 | `cloud_sdk_hetzner::robot::firewall` | `v0.89.0` | implemented |
 | vSwitch | 7 | 0 | `cloud_sdk_hetzner::robot::vswitch` | `v0.90.0` | implemented |
 | ordering catalogs | 6 | 0 | `cloud_sdk_hetzner::robot::ordering` | `v0.91.0` | implemented |
-| transactions | 6 | 0 | `cloud_sdk_hetzner::robot::ordering` | `v0.92.0` | planned |
+| transactions | 6 | 0 | `cloud_sdk_hetzner::robot::ordering` | `v0.92.0` | implemented |
 | ordering mutations | 3 | 0 | `cloud_sdk_hetzner::robot::ordering` | `v0.93.0` | planned |
 | legacy Storage Box | 0 | 16 | existing Console Storage Box modules | excluded | excluded |
 | **Total** | **89** | **16** | | | |

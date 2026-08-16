@@ -13,8 +13,8 @@ transitions are implemented in `v0.83.0`; Wake-on-LAN is implemented in
 `v0.84.0`; all active boot-configuration operations are implemented in
 `v0.85.0`; all active reverse-DNS operations are implemented in `v0.86.0`.
 Traffic, SSH keys, firewalls, and vSwitches are implemented in
-`v0.87.0-v0.90.0`; all active read-only ordering catalogs are implemented in
-`v0.91.0`.
+`v0.87.0-v0.90.0`; all active read-only ordering catalogs and transactions are
+implemented in `v0.91.0-v0.92.0`.
 
 Retrieved: 2026-08-14
 
@@ -409,6 +409,25 @@ response examples are committed in
 [`v0.91.0.json`](../tests/fixtures/robot-ordering/v0.91.0.json) and checked by
 `scripts/check_robot_ordering.sh`.
 
+`v0.92.0` implements the standard-server, Server Auction, and per-server addon
+transaction list/detail pairs. Lists are fixed 30-day snapshots with no
+provider pagination. All six reads use `GET`, accept strict JSON `200`
+responses, retain explicit retry ownership, and share Robot's documented 500
+requests per hour quota.
+
+Transaction identifiers, timestamps, returned text, key metadata, and resource
+identities use protected bounded storage. Standard and auction transactions
+require both server number and canonical server address only in `ready` state;
+both fields are forbidden while `in process` or `cancelled`. Addon transactions
+retain a positive server number in every state. Lists reject duplicate
+transaction IDs, keys reject duplicate fingerprints, and addon resources reject
+duplicate type/ID pairs. Detail decoders retain and verify the exact request ID.
+The normalized contract and three reviewed official list examples are committed
+in [`v0.92.0.json`](../tests/fixtures/robot-transactions/v0.92.0.json) and
+checked by `scripts/check_robot_transactions.sh`. No purchase operation,
+automatic retry, invented pagination, high-level Robot client, or network
+transport is introduced.
+
 ## Verification
 
 Run the local structural check:
@@ -416,6 +435,7 @@ Run the local structural check:
 ```bash
 scripts/check_robot_wire_fixture.py
 scripts/check_robot_api_lock.py
+scripts/check_robot_transactions.sh
 ```
 
 Release preparation also authenticates the current official document against

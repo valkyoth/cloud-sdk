@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "source": {
+    "retrieved": "2026-08-16",
+    "url": "https://robot.hetzner.com/doc/webservice/en.html",
+    "sha256": "4b396790acc449f47b2b3b893f8eff759c0c25196dc38b1e5e92a12c9704771a",
+    "examples": [
+      {"path":"tests/fixtures/robot-transactions/standard.json","sha256":"a60c780548dab11eecd77d539326aeb18a942f07a55d35c3f979aa75e0964b15"},
+      {"path":"tests/fixtures/robot-transactions/market.json","sha256":"f9515aba25ed66bd58f618eed43e18b6cce09f263c725c2172efe7bb5df9a900"},
+      {"path":"tests/fixtures/robot-transactions/addon.json","sha256":"1102fc9f1cc50878cf72b100791996ffc5df0262bdceda6bd6bcf6c83c4d7677"}
+    ]
+  },
+  "inventory": "tests/fixtures/robot-api/v0.74.0.json",
+  "operations": [
+    {"id":"robot_list_server_transactions","inventory_id":"list_server_transactions","method":"GET","path":"/order/server/transaction","success":200,"quota":{"requests":500,"interval_seconds":3600},"window_days":30,"body":"json-list"},
+    {"id":"robot_get_server_transaction","inventory_id":"get_server_transaction","method":"GET","path":"/order/server/transaction/{id}","success":200,"quota":{"requests":500,"interval_seconds":3600},"window_days":null,"body":"json-detail"},
+    {"id":"robot_list_server_market_transactions","inventory_id":"list_server_market_transactions","method":"GET","path":"/order/server_market/transaction","success":200,"quota":{"requests":500,"interval_seconds":3600},"window_days":30,"body":"json-list"},
+    {"id":"robot_get_server_market_transaction","inventory_id":"get_server_market_transaction","method":"GET","path":"/order/server_market/transaction/{id}","success":200,"quota":{"requests":500,"interval_seconds":3600},"window_days":null,"body":"json-detail"},
+    {"id":"robot_list_server_addon_transactions","inventory_id":"list_server_addon_transactions","method":"GET","path":"/order/server_addon/transaction","success":200,"quota":{"requests":500,"interval_seconds":3600},"window_days":30,"body":"json-list"},
+    {"id":"robot_get_server_addon_transaction","inventory_id":"get_server_addon_transaction","method":"GET","path":"/order/server_addon/transaction/{id}","success":200,"quota":{"requests":500,"interval_seconds":3600},"window_days":null,"body":"json-detail"}
+  ],
+  "request": {"authentication":"robot-basic","content_type":null,"pagination":"none"},
+  "response": {
+    "content_type":"application/json",
+    "statuses":["ready","in process","cancelled"],
+    "server_fields":["id","date","status","server_number","server_ip","authorized_key","host_key","comment","product"],
+    "standard_extra_fields":["addons"],
+    "addon_fields":["id","date","status","server_number","product","resources"],
+    "failure":{"status":404,"code":"NOT_FOUND"}
+  },
+  "local_policy": {
+    "transaction_items":4096,
+    "keys_per_transaction":64,
+    "resources_per_transaction":4096,
+    "list_response_bytes":4194304,
+    "item_response_bytes":1048576,
+    "automatic_retry":"explicit-policy",
+    "ready_server_identity":"required",
+    "non_ready_server_identity":"forbidden",
+    "detail_identity":"request-bound"
+  }
+}

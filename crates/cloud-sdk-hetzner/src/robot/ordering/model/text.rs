@@ -35,6 +35,15 @@ impl RobotOrderText {
     ) -> Result<R, core::str::Utf8Error> {
         self.0.try_with_secret(inspect)
     }
+
+    pub(in crate::robot::ordering) fn compare(&self, other: &Self) -> core::cmp::Ordering {
+        self.try_with_text(|left| {
+            other
+                .try_with_text(|right| left.cmp(right))
+                .unwrap_or(core::cmp::Ordering::Equal)
+        })
+        .unwrap_or(core::cmp::Ordering::Equal)
+    }
 }
 
 impl core::fmt::Debug for RobotOrderText {

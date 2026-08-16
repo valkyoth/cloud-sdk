@@ -154,7 +154,7 @@ def validate(
     harness = fuzz_harness_path.read_text(encoding="ascii")
     if 'name = "robot_ordering_response"' not in manifest:
         fail("ordering response fuzz target is missing")
-    if 'max_len=4194305' not in harness or "passed for 33 targets" not in harness:
+    if 'max_len=4194305' not in harness or "passed for 34 targets" not in harness:
         fail("ordering fuzz boundary is not source-locked")
 
 

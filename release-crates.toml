@@ -1,27 +1,27 @@
 [release]
-version = "0.91.0"
-milestone = "0.91.0"
+version = "0.92.0"
+milestone = "0.92.0"
 baseline = "0.90.0"
-review_baseline = "0.90.0"
-cumulative_milestones = ["0.91.0"]
+review_baseline = "0.91.0"
+cumulative_milestones = ["0.91.0", "0.92.0"]
 policy = "independent"
 stage = "internal"
 exceptional = false
 exception_reason = ""
 
 [crates."cloud-sdk"]
-previous_version = "0.90.0"
-version = "0.91.0"
+previous_version = "0.91.0"
+version = "0.92.0"
 change = "code"
 publish = false
-reason = "Advance the internal Robot ordering-catalog milestone; defer publication to v0.95.0."
+reason = "Advance the internal Robot transaction milestone; defer publication to v0.95.0."
 
 [crates."cloud-sdk-hetzner"]
 previous_version = "0.45.0"
 version = "0.45.0"
 change = "code"
 publish = false
-reason = "Accumulate source-locked Robot ordering catalogs for v0.95.0."
+reason = "Accumulate source-locked Robot ordering catalogs and transactions for v0.95.0."
 
 [crates."cloud-sdk-reqwest"]
 previous_version = "0.35.3"

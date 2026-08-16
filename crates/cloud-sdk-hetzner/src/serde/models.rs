@@ -2,7 +2,7 @@
 
 mod actions;
 mod certificate;
-mod cloud_constraints;
+pub(crate) mod cloud_constraints;
 mod cloud_resources;
 mod cloud_schema;
 mod cloud_value;

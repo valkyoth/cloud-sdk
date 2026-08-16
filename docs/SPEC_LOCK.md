@@ -692,3 +692,29 @@ revalidation. They do not implement request preparation, contain transport
 requests, authorize cost, or expose purchase forms. Raw decoders, automatic
 retry, billable ordering, a high-level Robot client, and network transport
 remain absent.
+
+## v0.92.0 Robot Transaction Policy
+
+The six active transaction rows are bound to the complete Robot inventory and
+normalized `tests/fixtures/robot-transactions/v0.92.0.json` contract. Standard
+server, Server Auction, and per-server addon transaction families each expose
+one list and one detail `GET`. Lists are the provider's fixed 30-day snapshot;
+the SDK does not imply pagination or completeness beyond that documented
+window. Every read requires Robot Basic authentication, strict JSON `200`, and
+caller-owned retry policy under the 500-request/hour quota.
+
+Transaction identifiers and source timestamps are protected and bounded.
+Timestamps require calendar-valid RFC 3339 with the documented uppercase `T`;
+auction reduction timestamps retain their separately documented legacy space
+separator. Server and auction results admit exactly `ready`, `in process`, or
+`cancelled`; a resulting server number and canonical address must both be
+present only for `ready`. Authorized keys include names while host keys forbid
+them. Key arrays are bounded to 64 unique fingerprints.
+
+Transaction snapshots and nested collections are capped at 4,096 entries.
+Standard addon IDs, transaction IDs, and addon resource type/ID pairs must be
+unique. Addon prices retain exact bounded decimals, and hourly net/gross values
+must occur together. Strict response models reject unknown, missing,
+malformed, duplicate, contradictory, or request-substituted data. Raw decoders,
+automatic retry, billable ordering, invented pagination, a high-level Robot
+client, and network transport remain absent.
