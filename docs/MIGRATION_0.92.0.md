@@ -25,3 +25,9 @@ All six request types expose `quota()`, which returns
 `ROBOT_ORDER_TRANSACTION_QUOTA`: 500 requests per one-hour account window.
 Enforce this as one shared account budget, including explicit retries, rather
 than allocating 500 requests independently to each request type.
+
+Use `PreparationStorageGuard` for every transaction preparation. Reachable
+validation and encoding failures clear both buffers immediately. The guard also
+owns cleanup if future invariant drift makes a typed late target or policy error
+reachable after immutable target binding. Callers using raw
+`PreparationStorage` remain responsible for clearing their buffers.

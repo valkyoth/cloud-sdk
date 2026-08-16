@@ -14,6 +14,9 @@ FIXTURE = ROOT / "tests/fixtures/robot-transactions/v0.92.0.json"
 API_LOCK = ROOT / "tests/fixtures/robot-api/v0.74.0.json"
 MODULE = ROOT / "crates/cloud-sdk-hetzner/src/robot/ordering/transaction"
 README = ROOT / "crates/cloud-sdk-hetzner/README.md"
+THREAT_MODEL = ROOT / "docs/THREAT_MODEL_DELTA_0.92.0.md"
+MIGRATION = ROOT / "docs/MIGRATION_0.92.0.md"
+RELEASE_NOTES = ROOT / "release-notes/RELEASE_NOTES_0.92.0.md"
 FUZZ_MANIFEST = ROOT / "fuzz/Cargo.toml"
 FUZZ_GATE = ROOT / "scripts/check_fuzz_harness.sh"
 FUZZ_SOURCE = ROOT / "fuzz/fuzz_targets/robot_transaction_response.rs"
@@ -26,6 +29,9 @@ def run(**overrides: Path) -> subprocess.CompletedProcess[str]:
         "api_lock": API_LOCK,
         "module": MODULE,
         "readme": README,
+        "threat_model": THREAT_MODEL,
+        "migration": MIGRATION,
+        "release_notes": RELEASE_NOTES,
         "fuzz_manifest": FUZZ_MANIFEST,
         "fuzz_gate": FUZZ_GATE,
         "fuzz_source": FUZZ_SOURCE,
@@ -94,6 +100,13 @@ def main() -> None:
             ".unwrap_or_else(|_| unreachable!())",
         )
         assert run(module=module).returncode != 0
+        module = mutate_source(
+            root / "cleanup-boundary",
+            "prepare.rs",
+            "must prepare through `PreparationStorageGuard`",
+            "may prepare through `PreparationStorageGuard`",
+        )
+        assert run(module=module).returncode != 0
         module = mutate_source(root / "identity", "exchange.rs", "ResponseIdentityMismatch", "IdentityIgnored")
         assert run(module=module).returncode != 0
         module = mutate_source(root / "failure", "failure.rs", 'status == 404 && code == "NOT_FOUND"', 'status == 400 && code == "INVALID_INPUT"')
@@ -110,11 +123,20 @@ def main() -> None:
             encoding="ascii",
         )
         assert run(fuzz_source=fuzz_source).returncode != 0
+        threat_model = root / "threat-model.md"
+        threat_model.write_text(
+            THREAT_MODEL.read_text(encoding="ascii").replace(
+                "Unsafe lifetime emulation was rejected",
+                "Unsafe lifetime emulation may be introduced",
+            ),
+            encoding="ascii",
+        )
+        assert run(threat_model=threat_model).returncode != 0
         seeds = copy_seeds(root / "seeds")
         detail = seeds / "valid-addon-detail.json"
         detail.write_bytes(detail.read_bytes() + b" ")
         assert run(fuzz_seeds=seeds).returncode != 0
-    print("12 Robot transaction regression groups passed.")
+    print("14 Robot transaction regression groups passed.")
 
 
 if __name__ == "__main__":

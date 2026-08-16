@@ -32,7 +32,9 @@ crate.
   adversarial tests, and a dedicated 4 MiB response fuzz target that invokes
   every decoder from valid deep list/detail corpus entries.
 - Replaced panic-only production preparation invariants with payload-free typed
-  target and policy errors while preserving complete caller-buffer cleanup.
+  target and policy errors. Reachable failures clear both buffers before target
+  binding; `PreparationStorageGuard` remains mandatory when cleanup must also
+  survive future invariant drift.
 - Added no purchase request, cost permit, automatic retry, client, runtime,
   transport, dependency, feature, or unsafe code.
 

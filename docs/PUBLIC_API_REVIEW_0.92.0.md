@@ -42,3 +42,7 @@ collections are bounded, diagnostics are redacted, timestamps are calendar-
 validated, and duplicate transaction, key, addon, and resource identities fail
 closed. Production preparation maps target and prepared-policy invariant
 failures into existing payload-free error variants instead of panicking.
+Reachable preparation failures clear before immutable target binding. Source
+users requiring cleanup under future late invariant drift must prepare through
+`PreparationStorageGuard`; raw `PreparationStorage` retains caller-owned
+cleanup semantics.

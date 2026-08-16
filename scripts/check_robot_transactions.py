@@ -13,6 +13,9 @@ FIXTURE = ROOT / "tests/fixtures/robot-transactions/v0.92.0.json"
 API_LOCK = ROOT / "tests/fixtures/robot-api/v0.74.0.json"
 MODULE = ROOT / "crates/cloud-sdk-hetzner/src/robot/ordering/transaction"
 README = ROOT / "crates/cloud-sdk-hetzner/README.md"
+THREAT_MODEL = ROOT / "docs/THREAT_MODEL_DELTA_0.92.0.md"
+MIGRATION = ROOT / "docs/MIGRATION_0.92.0.md"
+RELEASE_NOTES = ROOT / "release-notes/RELEASE_NOTES_0.92.0.md"
 FUZZ_MANIFEST = ROOT / "fuzz/Cargo.toml"
 FUZZ_GATE = ROOT / "scripts/check_fuzz_harness.sh"
 FUZZ_SOURCE = ROOT / "fuzz/fuzz_targets/robot_transaction_response.rs"
@@ -56,6 +59,9 @@ def validate(
     api_lock_path: Path,
     module_path: Path,
     readme_path: Path,
+    threat_model_path: Path,
+    migration_path: Path,
+    release_notes_path: Path,
     fuzz_manifest_path: Path,
     fuzz_gate_path: Path,
     fuzz_source_path: Path,
@@ -90,6 +96,9 @@ def validate(
     validate_sources(
         module_path,
         readme_path,
+        threat_model_path,
+        migration_path,
+        release_notes_path,
         fuzz_manifest_path,
         fuzz_gate_path,
         fuzz_source_path,
@@ -162,6 +171,9 @@ def validate_schema(fixture: dict) -> None:
 def validate_sources(
     module: Path,
     readme: Path,
+    threat_model: Path,
+    migration: Path,
+    release_notes: Path,
     fuzz_manifest: Path,
     fuzz_gate: Path,
     fuzz_source: Path,
@@ -184,6 +196,8 @@ def validate_sources(
         ".map_err(RobotOrderRequestError::InvalidTarget)?",
         ".map_err(RobotOrderRequestError::InvalidPreparedPolicy)?",
         "admitted!(validate_target(target_storage, target_len));",
+        "rust-lang/rust#54663",
+        "must prepare through `PreparationStorageGuard`",
     ]:
         if token not in prepare:
             fail(f"typed transaction preparation failure lost {token}")
@@ -203,8 +217,31 @@ def validate_sources(
         fail("detail response identity binding changed")
     if "status == 404 && code == \"NOT_FOUND\"" not in files.get("failure.rs", ""):
         fail("source-locked NOT_FOUND decoder changed")
-    if "all six active read-only transaction operations" not in readme.read_text(encoding="ascii"):
+    readme_text = readme.read_text(encoding="ascii")
+    if "all six active read-only transaction operations" not in readme_text:
         fail("provider README lost transaction scope")
+    if "Use `PreparationStorageGuard` for transaction preparation" not in readme_text:
+        fail("provider README lost guarded transaction cleanup boundary")
+    documentation_tokens = {
+        threat_model: [
+            "every reachable validation and encoding failure",
+            "rust-lang/rust#54663",
+            "Unsafe lifetime emulation was rejected",
+        ],
+        migration: [
+            "Use `PreparationStorageGuard` for every transaction preparation",
+            "raw `PreparationStorage` remain responsible",
+        ],
+        release_notes: [
+            "Reachable failures clear both buffers before target binding",
+            "`PreparationStorageGuard` remains mandatory",
+        ],
+    }
+    for path, tokens in documentation_tokens.items():
+        content = " ".join(path.read_text(encoding="ascii").split())
+        for token in tokens:
+            if token not in content:
+                fail(f"cleanup boundary evidence lost {token} in {path.name}")
     manifest = fuzz_manifest.read_text(encoding="ascii")
     gate = fuzz_gate.read_text(encoding="ascii")
     if 'name = "robot_transaction_response"' not in manifest:
@@ -270,6 +307,9 @@ def main() -> None:
     parser.add_argument("--api-lock", type=Path, default=API_LOCK)
     parser.add_argument("--module", type=Path, default=MODULE)
     parser.add_argument("--readme", type=Path, default=README)
+    parser.add_argument("--threat-model", type=Path, default=THREAT_MODEL)
+    parser.add_argument("--migration", type=Path, default=MIGRATION)
+    parser.add_argument("--release-notes", type=Path, default=RELEASE_NOTES)
     parser.add_argument("--fuzz-manifest", type=Path, default=FUZZ_MANIFEST)
     parser.add_argument("--fuzz-gate", type=Path, default=FUZZ_GATE)
     parser.add_argument("--fuzz-source", type=Path, default=FUZZ_SOURCE)
@@ -280,6 +320,9 @@ def main() -> None:
         args.api_lock,
         args.module,
         args.readme,
+        args.threat_model,
+        args.migration,
+        args.release_notes,
         args.fuzz_manifest,
         args.fuzz_gate,
         args.fuzz_source,

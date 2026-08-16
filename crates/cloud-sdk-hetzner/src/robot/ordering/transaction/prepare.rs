@@ -151,10 +151,11 @@ fn prepare<'storage>(
     );
     admitted!(validate_target(target_storage, target_len));
 
-    // These constructors repeat checks completed above without mutating the
-    // validated target. Typed propagation keeps future invariant drift
-    // non-panicking; every presently reachable failure was already handled by
-    // `admitted!` while both buffers could still be cleared.
+    // Stable Rust cannot conditionally recover the mutable target after a
+    // successful branch returns a request borrowing it (rust-lang/rust#54663).
+    // These constructors repeat unchanged, prevalidated values, so their typed
+    // errors are currently unreachable. Callers requiring cleanup under future
+    // invariant drift must prepare through `PreparationStorageGuard`.
     let target_text = target_storage
         .get(..target_len)
         .and_then(|bytes| core::str::from_utf8(bytes).ok())

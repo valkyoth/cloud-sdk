@@ -431,6 +431,9 @@ window. Detail requests retain the protected transaction ID through response
 validation; neither form authorizes or performs a purchase. All six operations
 share one account-level allowance of 500 requests per hour. Callers must apply
 that as one budget rather than six independent per-request-type budgets.
+Use `PreparationStorageGuard` for transaction preparation. It retains cleanup
+ownership if future invariant drift makes a typed late binding error reachable;
+raw `PreparationStorage` callers must clear their own buffers.
 
 ```rust
 # #[cfg(feature = "serde")]

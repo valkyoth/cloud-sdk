@@ -28,7 +28,8 @@ from the requested transaction.
 - `ready` server transactions require both server number and address; non-ready
   states forbid both;
 - every detail response retains and verifies the exact admitting request;
-- request preparation is transactional and clears caller storage on failure;
+- request preparation clears both complete buffers on every reachable
+  validation and encoding failure before immutable target binding;
 - target and prepared-policy construction failures return typed errors instead
   of relying on panic-only invariant branches;
 - all six operations are safe read-only `GET` requests with explicit retry
@@ -40,6 +41,15 @@ from the requested transaction.
   resources, timestamps, and state coherence.
 
 ## Residual Boundaries
+
+Stable Rust cannot synchronously reborrow and clear a target in a late error
+branch when the success branch returns a request borrowing that target
+(`rust-lang/rust#54663`). The final target and policy constructors repeat
+unchanged, prevalidated values and their typed errors are currently
+unreachable. Callers requiring cleanup under future invariant drift must use
+`PreparationStorageGuard` and drop or reuse it promptly; raw
+`PreparationStorage` callers remain responsible for clearing their buffers.
+Unsafe lifetime emulation was rejected for this low-severity residual boundary.
 
 The fixed 30-day list is a provider observation, not an append-only audit log,
 pagination source, or proof that older or concurrently changing transactions do
