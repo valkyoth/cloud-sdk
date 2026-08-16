@@ -1,11 +1,11 @@
 # cloud-sdk 0.93.0 Release Notes
 
-Status: implementation stop; incremental pentest required.
+Status: release candidate; pentest and final retest passed.
 
 Release date: 2026-08-16
 
-Security-Review: PENDING
-Pentest: PENDING
+Security-Review: PASS
+Pentest: PASS
 Publication: DEFERRED TO v0.95.0
 
 ## Overview
@@ -65,10 +65,10 @@ crate.
 - [`docs/THREAT_MODEL_DELTA_0.93.0.md`](../docs/THREAT_MODEL_DELTA_0.93.0.md)
 - [`docs/REJECTED_ABSTRACTIONS_0.93.0.md`](../docs/REJECTED_ABSTRACTIONS_0.93.0.md)
 - [`docs/MIGRATION_0.93.0.md`](../docs/MIGRATION_0.93.0.md)
+- [`security/pentest/v0.93.0.md`](../security/pentest/v0.93.0.md)
 
 ## Stop Gate
 
-Run the incremental pentest against the exact implementation commit. After
-remediation and retest, add permanent pentest evidence, run
-`scripts/release_0_93_gate.sh`, and require green GitHub CI and CodeQL on the
+The incremental pentest and final remediation retest are green. Run
+`scripts/release_0_93_gate.sh`, then require green GitHub CI and CodeQL on the
 unchanged evidence commit before tagging. Do not publish crates for v0.93.
