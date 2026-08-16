@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "source": {
+    "retrieved": "2026-08-16",
+    "url": "https://robot.hetzner.com/doc/webservice/en.html",
+    "sha256": "4b396790acc449f47b2b3b893f8eff759c0c25196dc38b1e5e92a12c9704771a"
+  },
+  "inventory": "tests/fixtures/robot-api/v0.74.0.json",
+  "operations": [
+    {"id":"robot_create_server_transaction","inventory_id":"create_server_transaction","method":"POST","path":"/order/server/transaction","success":201,"quota":{"requests":20,"interval_seconds":86400},"errors":[[400,"INVALID_INPUT"],[412,"PRECONDITION_FAILED"],[500,"INTERNAL_ERROR"]]},
+    {"id":"robot_create_server_market_transaction","inventory_id":"create_server_market_transaction","method":"POST","path":"/order/server_market/transaction","success":201,"quota":{"requests":20,"interval_seconds":86400},"errors":[[400,"INVALID_INPUT"],[412,"PRECONDITION_FAILED"],[500,"INTERNAL_ERROR"]]},
+    {"id":"robot_create_server_addon_transaction","inventory_id":"create_server_addon_transaction","method":"POST","path":"/order/server_addon/transaction","success":201,"quota":{"requests":20,"interval_seconds":86400},"errors":[[400,"INVALID_INPUT"],[409,"CONFLICT"],[412,"PRECONDITION_FAILED"],[500,"INTERNAL_ERROR"]]}
+  ],
+  "request": {
+    "authentication": "robot-basic",
+    "content_type": "application/x-www-form-urlencoded",
+    "standard_fields": ["product_id","dist","lang","location","addon[]"],
+    "market_fields": ["product_id","dist","lang"],
+    "addon_fields": ["server_number","product_id"],
+    "deprecated_fields": ["arch"]
+  },
+  "local_policy": {
+    "cost": "catalog-gross-recurring-plus-setup-scale-4",
+    "account": "required-fingerprint-scope",
+    "response_bytes": 1048576,
+    "automatic_retry": "never",
+    "single_attempt": "no-idempotency-key",
+    "uncertain_repeat": "fresh-exact-plan-plus-same-idempotency-plus-absent-transaction-proof",
+    "ci_purchase": false
+  }
+}

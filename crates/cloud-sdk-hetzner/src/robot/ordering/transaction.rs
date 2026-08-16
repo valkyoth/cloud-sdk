@@ -42,6 +42,8 @@ pub use request::{
 #[cfg(feature = "serde")]
 pub use decode::RobotOrderTransactionDecodeError;
 #[cfg(feature = "serde")]
+pub(in crate::robot::ordering) use decode::{decode_addon, decode_market, decode_standard};
+#[cfg(feature = "serde")]
 pub use exchange::{CheckedRobotOrderTransaction, PreparedRobotOrderTransaction};
 #[cfg(feature = "serde")]
 pub use failure::RobotOrderTransactionFailureCode;

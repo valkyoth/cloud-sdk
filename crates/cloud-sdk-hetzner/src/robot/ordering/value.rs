@@ -195,6 +195,11 @@ impl RobotOrderDecimal {
         let exponent = scale.saturating_sub(self.scale);
         u128::from(self.coefficient).saturating_mul(pow10(exponent))
     }
+
+    #[cfg(feature = "serde")]
+    pub(in crate::robot::ordering) fn checked_units(&self, scale: u8) -> Option<u128> {
+        (scale >= self.scale).then(|| self.normalized(scale))
+    }
 }
 
 impl PartialEq for RobotOrderDecimal {
@@ -248,6 +253,15 @@ impl RobotOrderCurrency {
     ) -> Result<R, core::str::Utf8Error> {
         self.0
             .with_secret(|bytes| core::str::from_utf8(bytes).map(inspect))
+    }
+
+    #[cfg(feature = "serde")]
+    pub(in crate::robot::ordering) fn with_code<R>(&self, inspect: impl FnOnce(&str) -> R) -> R {
+        self.0.with_secret(|bytes| {
+            let code = core::str::from_utf8(bytes)
+                .unwrap_or_else(|_| unreachable!("protected Robot currency lost UTF-8"));
+            inspect(code)
+        })
     }
 }
 

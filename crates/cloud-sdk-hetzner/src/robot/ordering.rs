@@ -17,6 +17,8 @@ mod failure;
 #[cfg(feature = "serde")]
 mod model;
 #[cfg(feature = "serde")]
+mod mutation;
+#[cfg(feature = "serde")]
 mod plan;
 
 pub use prepare::{MAX_ROBOT_ORDER_ITEM_RESPONSE_BYTES, MAX_ROBOT_ORDER_LIST_RESPONSE_BYTES};
@@ -52,6 +54,18 @@ pub use model::{
     RobotAddonProduct, RobotAddonProductList, RobotMarketProduct, RobotMarketProductList,
     RobotOrderPrice, RobotOrderPricePair, RobotOrderText, RobotOrderableAddon,
     RobotStandardProduct, RobotStandardProductList,
+};
+#[cfg(feature = "serde")]
+pub use mutation::{
+    CheckedRobotOrderMutation, MAX_ROBOT_ORDER_MUTATION_RESPONSE_BYTES, PreparedRobotOrderMutation,
+    ROBOT_ORDER_MUTATION_QUOTA, RobotAddonOrderCreateRequest, RobotMarketOrderCreateRequest,
+    RobotOrderAccount, RobotOrderCanonicalPlanFingerprint, RobotOrderCostError,
+    RobotOrderCostPermit, RobotOrderMutationDecodeError, RobotOrderMutationFailureCode,
+    RobotOrderMutationQuota, RobotOrderMutationRequestError, RobotOrderNotApplied,
+    RobotOrderPermitAttempt, RobotOrderPermitRequest, RobotOrderPlanConfirmation,
+    RobotOrderPlanFingerprintDigest, RobotOrderPlanSubject, RobotOrderReconciliationError,
+    RobotStandardOrderCreateRequest, build_robot_order_canonical_plan,
+    build_robot_order_plan_digest,
 };
 #[cfg(feature = "serde")]
 pub use plan::{

@@ -436,6 +436,12 @@ Robot's fixed 30-day window without invented pagination. Detail responses are
 bound to the requested protected transaction ID, and server-result nullability
 must agree with finite transaction state.
 
+`v0.93.0` implements all three active billable Robot ordering mutations.
+Standard-server, Server Auction, and per-server addon orders require
+catalog-derived cost authority, exact request fingerprints, bounded sensitive
+form preparation, no automatic retry, and transaction reconciliation after
+uncertain delivery. CI and live smoke cannot invoke these routes.
+
 Robot implementation schedule:
 
 | Group | Active | Deprecated | Planned Module | Milestone | Status |
@@ -455,6 +461,6 @@ Robot implementation schedule:
 | vSwitch | 7 | 0 | `cloud_sdk_hetzner::robot::vswitch` | `v0.90.0` | implemented |
 | ordering catalogs | 6 | 0 | `cloud_sdk_hetzner::robot::ordering` | `v0.91.0` | implemented |
 | transactions | 6 | 0 | `cloud_sdk_hetzner::robot::ordering` | `v0.92.0` | implemented |
-| ordering mutations | 3 | 0 | `cloud_sdk_hetzner::robot::ordering` | `v0.93.0` | planned |
+| ordering mutations | 3 | 0 | `cloud_sdk_hetzner::robot::ordering` | `v0.93.0` | implemented |
 | legacy Storage Box | 0 | 16 | existing Console Storage Box modules | excluded | excluded |
 | **Total** | **89** | **16** | | | |

@@ -5,8 +5,10 @@ mod server;
 use cloud_sdk::operation::CheckedResponse;
 use cloud_sdk::transport::{ResponseDecodeWorkspace, StatusCode};
 
-pub(super) use addon::{decode_addon, decode_addon_list};
-pub(super) use server::{decode_market, decode_market_list, decode_standard, decode_standard_list};
+pub(in crate::robot::ordering) use addon::{decode_addon, decode_addon_list};
+pub(in crate::robot::ordering) use server::{
+    decode_market, decode_market_list, decode_standard, decode_standard_list,
+};
 
 use super::prepare::{
     MAX_ROBOT_ORDER_TRANSACTION_ITEM_RESPONSE_BYTES,
@@ -89,7 +91,7 @@ fn require_ok(
     checked: CheckedResponse<'_>,
     maximum: usize,
 ) -> Result<(), RobotOrderTransactionDecodeError> {
-    if checked.status() != StatusCode::OK {
+    if !matches!(checked.status(), StatusCode::OK | StatusCode::CREATED) {
         Err(RobotOrderTransactionDecodeError::UnexpectedStatus)
     } else if checked.body().len() > maximum {
         Err(RobotOrderTransactionDecodeError::ResponseTooLarge)

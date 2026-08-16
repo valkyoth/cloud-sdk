@@ -142,6 +142,14 @@ pub enum RobotProviderErrorCode {
     WindowsMissingAddon,
     /// The selected or active Windows version is unsupported.
     WindowsOutdatedVersion,
+    /// A billable order form was rejected as invalid.
+    OrderInvalidInput,
+    /// A billable addon order conflicts with current provider state.
+    OrderConflict,
+    /// A billable order requires an unmet prerequisite or web confirmation.
+    OrderPreconditionFailed,
+    /// Robot failed internally while creating a billable order transaction.
+    OrderInternalError,
 }
 
 /// Protected details from an `INVALID_INPUT` response.

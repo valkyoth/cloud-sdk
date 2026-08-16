@@ -431,6 +431,30 @@ checked by `scripts/check_robot_transactions.sh`. No purchase operation,
 automatic retry, invented pagination, high-level Robot client, or network
 transport is introduced.
 
+## v0.93.0 Billable Order Lock
+
+`v0.93.0` implements the three active order-creation rows: standard server,
+Server Auction, and per-server addon. Each uses `POST`, Robot Basic
+authentication, `application/x-www-form-urlencoded`, strict JSON `201`, and
+the documented shared limit of 20 requests per day. Standard and auction
+orders admit `INVALID_INPUT`, `PRECONDITION_FAILED`, and `INTERNAL_ERROR`;
+addon orders additionally admit `CONFLICT`.
+
+The implementation serializes non-deprecated catalog-derived fields. Gross
+recurring and setup prices are added in exact scale-4 units, checked against a
+caller ceiling, and retained in cost authority. Requests are non-idempotent
+and never automatically retried. Any uncertain delivery requires an exact
+fresh plan, the original reconciliation identity, and a complete
+caller-observed 30-day transaction snapshot with no matching intent. An
+identical historical order therefore fails closed and may require operator
+resolution. Snapshot freshness and provider eventual consistency remain
+caller/provider boundaries.
+
+The normalized contract is committed in
+[`v0.93.0.json`](../tests/fixtures/robot-order-mutations/v0.93.0.json) and
+checked by `scripts/check_robot_order_mutations.sh`. GitHub workflows and live
+smoke contain no billable Robot route.
+
 ## Verification
 
 Run the local structural check:
@@ -439,6 +463,7 @@ Run the local structural check:
 scripts/check_robot_wire_fixture.py
 scripts/check_robot_api_lock.py
 scripts/check_robot_transactions.sh
+scripts/check_robot_order_mutations.sh
 ```
 
 Release preparation also authenticates the current official document against

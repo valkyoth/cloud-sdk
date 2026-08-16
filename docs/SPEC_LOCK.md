@@ -720,3 +720,26 @@ must occur together. Strict response models reject unknown, missing,
 malformed, duplicate, contradictory, or request-substituted data. Raw decoders,
 automatic retry, billable ordering, invented pagination, a high-level Robot
 client, and network transport remain absent.
+
+## v0.93.0 Robot Billable Order Policy
+
+The three active ordering mutations are bound to the Robot inventory and the
+normalized `tests/fixtures/robot-order-mutations/v0.93.0.json` contract. Each
+request is a sensitive form `POST`, accepts only strict JSON `201`, carries
+mutation/non-idempotent/may-incur-cost metadata, and forbids automatic retry.
+The three operations share the documented 20-request daily quota.
+
+Executable requests can be created only from catalog-derived plans. Exact
+scale-4 gross recurring and setup prices, addon quantities, currency, account,
+endpoint, request bytes, validity, replay policy, attempt budget, and optional
+reconciliation identity are covered by the plan fingerprint. Sensitive bodies
+require the collision-resistant digest path; direct canonical fingerprints
+fail closed.
+
+`NotSent` recovery and uncertain-delivery reconciliation are separate state
+transitions. Possibly sent, response-started, or abandoned attempts cannot be
+repeated until the caller supplies the same request-bound absent-transaction
+proof, a fresh exact plan, and the original idempotency identity. Matching
+transactions fail closed. Reconciliation snapshots are limited to Robot's
+documented 30-day list; freshness and eventual consistency must be assessed by
+the caller. CI and live smoke do not contain these purchase routes.

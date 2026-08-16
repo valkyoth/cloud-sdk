@@ -74,7 +74,11 @@ impl RobotSubnetFailureCode {
             | RobotProviderErrorCode::VSwitchServerLimitReached
             | RobotProviderErrorCode::VSwitchPerServerLimitReached
             | RobotProviderErrorCode::VSwitchAlreadyCancelled
-            | RobotProviderErrorCode::TrafficInternalError => None,
+            | RobotProviderErrorCode::TrafficInternalError
+            | RobotProviderErrorCode::OrderInvalidInput
+            | RobotProviderErrorCode::OrderConflict
+            | RobotProviderErrorCode::OrderPreconditionFailed
+            | RobotProviderErrorCode::OrderInternalError => None,
         }
     }
 }

@@ -23,8 +23,9 @@
 //! membership operations are source-locked in `v0.90.0`.
 //! Read-only server, Server Auction, addon, and account-currency catalogs are
 //! source-locked in `v0.91.0`. Read-only standard-server, Server Auction, and
-//! addon transaction snapshots are source-locked in `v0.92.0`; ordering
-//! remains deliberately non-executable.
+//! addon transaction snapshots are source-locked in `v0.92.0`. Billable
+//! ordering mutations require request-bound cost authority and explicit
+//! uncertain-delivery reconciliation from `v0.93.0`.
 
 #[cfg(feature = "alloc")]
 mod boot;
@@ -195,20 +196,29 @@ pub use ordering::{
 
 #[cfg(feature = "serde")]
 pub use ordering::{
-    CheckedRobotOrderCatalog, CheckedRobotOrderTransaction, MAX_ROBOT_ADDON_PRODUCTS,
-    MAX_ROBOT_MARKET_PRODUCTS, MAX_ROBOT_ORDER_TRANSACTION_ITEMS, MAX_ROBOT_ORDER_TRANSACTION_KEYS,
+    CheckedRobotOrderCatalog, CheckedRobotOrderMutation, CheckedRobotOrderTransaction,
+    MAX_ROBOT_ADDON_PRODUCTS, MAX_ROBOT_MARKET_PRODUCTS, MAX_ROBOT_ORDER_MUTATION_RESPONSE_BYTES,
+    MAX_ROBOT_ORDER_TRANSACTION_ITEMS, MAX_ROBOT_ORDER_TRANSACTION_KEYS,
     MAX_ROBOT_ORDER_TRANSACTION_RESOURCES, MAX_ROBOT_STANDARD_PRODUCTS, PreparedRobotOrderCatalog,
-    PreparedRobotOrderTransaction, RobotAddonCatalog, RobotAddonOrderPlan, RobotAddonProduct,
+    PreparedRobotOrderMutation, PreparedRobotOrderTransaction, ROBOT_ORDER_MUTATION_QUOTA,
+    RobotAddonCatalog, RobotAddonOrderCreateRequest, RobotAddonOrderPlan, RobotAddonProduct,
     RobotAddonProductList, RobotAddonTransaction, RobotAddonTransactionList,
     RobotAddonTransactionProduct, RobotCatalogPlanError, RobotCatalogPriceWarning,
-    RobotMarketOrderPlan, RobotMarketProduct, RobotMarketProductList, RobotMarketTransaction,
-    RobotMarketTransactionList, RobotMarketTransactionProduct, RobotOrderCatalogDecodeError,
-    RobotOrderFailureCode, RobotOrderPrice, RobotOrderPricePair, RobotOrderText,
-    RobotOrderTransactionDecodeError, RobotOrderTransactionFailureCode, RobotOrderTransactionKey,
-    RobotOrderTransactionResource, RobotOrderTransactionStatus, RobotOrderTransactionTimestamp,
-    RobotOrderableAddon, RobotStandardAddonSelection, RobotStandardOrderPlan, RobotStandardProduct,
+    RobotMarketOrderCreateRequest, RobotMarketOrderPlan, RobotMarketProduct,
+    RobotMarketProductList, RobotMarketTransaction, RobotMarketTransactionList,
+    RobotMarketTransactionProduct, RobotOrderAccount, RobotOrderCanonicalPlanFingerprint,
+    RobotOrderCatalogDecodeError, RobotOrderCostError, RobotOrderCostPermit, RobotOrderFailureCode,
+    RobotOrderMutationDecodeError, RobotOrderMutationFailureCode, RobotOrderMutationQuota,
+    RobotOrderMutationRequestError, RobotOrderNotApplied, RobotOrderPermitAttempt,
+    RobotOrderPermitRequest, RobotOrderPlanConfirmation, RobotOrderPlanFingerprintDigest,
+    RobotOrderPlanSubject, RobotOrderPrice, RobotOrderPricePair, RobotOrderReconciliationError,
+    RobotOrderText, RobotOrderTransactionDecodeError, RobotOrderTransactionFailureCode,
+    RobotOrderTransactionKey, RobotOrderTransactionResource, RobotOrderTransactionStatus,
+    RobotOrderTransactionTimestamp, RobotOrderableAddon, RobotStandardAddonSelection,
+    RobotStandardOrderCreateRequest, RobotStandardOrderPlan, RobotStandardProduct,
     RobotStandardProductList, RobotStandardTransaction, RobotStandardTransactionList,
-    RobotStandardTransactionProduct,
+    RobotStandardTransactionProduct, build_robot_order_canonical_plan,
+    build_robot_order_plan_digest,
 };
 
 #[cfg(feature = "alloc")]

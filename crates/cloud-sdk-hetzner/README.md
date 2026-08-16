@@ -38,7 +38,7 @@ boundaries.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.92.0"
+cloud-sdk = "0.93.0"
 cloud-sdk-hetzner = "0.45.0"
 ```
 
@@ -786,7 +786,8 @@ and separate-MAC operations plus subnet, reset, failover, Wake-on-LAN, boot
 configuration, reverse DNS, bounded traffic queries, all five active SSH-key
 lifecycle operations, all eight active firewall and template operations, and
 all seven active vSwitch operations, and all six active read-only ordering-
-catalog operations and all six active read-only transaction operations.
+catalog operations, all six active read-only transaction operations, and all
+three active billable ordering mutations.
 SSH-key responses cryptographically reconcile
 algorithm, size, provider MD5, and SDK-computed SHA-256 identity while keeping
 account metadata protected and redacted. Firewall requests preserve ordered
@@ -813,13 +814,16 @@ use exact prices, strict request-associated decoding, and non-executable plans.
 Transaction list reads expose Robot's fixed 30-day snapshot without inventing
 pagination; detail responses remain bound to the requested protected
 transaction ID. Finite status, server-result nullability, keys, products,
-prices, and addon resources are bounded and strictly decoded. It does not
-expose Robot order mutations or a high-level Robot client.
+prices, and addon resources are bounded and strictly decoded. Billable orders
+require catalog-derived cost authority, exact request fingerprints, guarded
+sensitive form preparation, and transaction reconciliation after uncertain
+delivery. CI and live smoke contain no billable Robot route. It does not
+expose a high-level Robot client.
 Its complete source lock records 89
 active operations and excludes all 16 deprecated Storage Box operations. See the
 [Robot source-lock contract](https://github.com/valkyoth/cloud-sdk/blob/main/docs/ROBOT_WIRE_SOURCE_LOCK.md).
 The latest Robot additions and source migration are described in the
-[v0.92 source migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.92.0.md).
+[v0.93 source migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.93.0.md).
 Breaking v0.27 constructor and custom-endpoint changes are listed in the
 [migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.27.0.md).
 Shared transport and credential lifecycle changes are listed in the

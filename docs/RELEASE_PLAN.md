@@ -3120,13 +3120,68 @@ Status: implementation stop reached; incremental pentest required.
 
 ### v0.93.0 - Robot Ordering Mutations
 
-Goal: gate every billable server, auction, and addon order.
+Goal: implement every active billable Robot order behind exact cost authority,
+bounded sensitive preparation, and fail-closed uncertain-delivery handling.
 
-Deliverables: cost permits and plan-confirm fingerprints bound to product, observed price, currency, quantity, account, expiry input, and replay policy; delivery-phase-aware indeterminate-send handling; mandatory transaction reconciliation before any repeat after a possibly sent order; CI cannot purchase.
+Deliverables:
 
-Verification: stale-price/mismatch/replay/budget, not-sent/possibly-sent/response-started faults, reconciliation-before-repeat, non-execution/source tests, and `scripts/release_0_93_gate.sh`.
+- add standard-server, Server Auction, and per-server addon order requests with
+  exact official methods, paths, form fields, `201` response policy, typed
+  documented failures, and one shared 20-request-per-day quota;
+- derive every executable request from a current typed catalog plan and
+  calculate exact scale-4 gross recurring-plus-setup cost, including standard
+  addon quantities, with checked arithmetic and an explicit caller ceiling;
+- add a required protected account scope and typed cost confirmations whose
+  digest fingerprints bind exact request bytes, product and selection intent,
+  observed cost, currency, account, official endpoint, context, validity,
+  replay policy, attempt budget, and reconciliation identity;
+- expose only a direct non-cloneable Robot cost permit and request-associated
+  attempt/checked-response path; forbid raw preparation, type-erased prepared
+  extraction, direct canonical fingerprinting of sensitive bodies, and
+  automatic retry;
+- distinguish proven `NotSent` recovery from `PossiblySent`,
+  `ResponseStarted`, and abandoned-attempt reconciliation; require a fresh
+  exact subject, same idempotency identity, and request-bound transaction-list
+  absence proof before any uncertain repeat;
+- source-lock all three active rows, reject matching or indistinguishable
+  historical transactions fail closed, document 30-day/freshness/eventual-
+  consistency boundaries, and statically prove CI/live smoke contains no
+  billable Robot route;
+- add migration, public API, dependency, threat-model,
+  rejected-abstraction, release-note, contract-mutation, and SBOM evidence;
+- advance only `cloud-sdk` to `0.93.0` for the internal tag; retain published
+  `cloud-sdk-hetzner 0.45.0`, reqwest `0.35.3`, sanitization `0.19.0`, and
+  testkit `0.30.5`, with crates.io publication deferred to v0.95.0.
 
-Stop gate: `v0.93.0 implementation stop reached. Complete the pentest and full release gate for this exact commit; defer crates.io publication to v0.95.0.`
+Verification:
+
+- test exact methods, paths, form ordering/escaping, `201` response bounds,
+  shared quota, official authentication scopes, sensitive-body classification,
+  non-idempotent/no-retry metadata, source-locked errors, guarded cleanup, and
+  absence of a raw/type-erased execution route;
+- test exact price aggregation, quantity multiplication, overflow and ceiling
+  rejection, account/currency binding, expiry, request mismatch, digest-only
+  authority, single-use/replay budgets, and payload-free diagnostics;
+- test `NotSent`, `PossiblySent`, `ResponseStarted`, and dropped-attempt state
+  transitions; stale generation, mismatched plan/idempotency/proof rejection;
+  matching-transaction denial; and fresh no-match reconciliation;
+- run `scripts/check_robot_order_mutations.sh`, its mutation-resistant checker
+  tests, complete Robot source/API drift checks, and explicit CI non-execution
+  checks;
+- run formatting, lint, workspace/default/no-std/MSRV/current/platform tests,
+  documentation links and doctests, dependency policy, release metadata, SBOM
+  freshness, and `scripts/release_0_93_gate.sh`.
+
+Exit criteria: all three active ordering-mutation rows are represented exactly
+once; no order can be prepared outside cleanup-owned storage or executed
+without exact non-cloneable cost authority; uncertain delivery cannot repeat
+without typed transaction reconciliation; CI cannot purchase; no crate is
+selected for publication; and the exact implementation commit is ready for an
+incremental pentest before release evidence is finalized.
+
+Stop gate: `v0.93.0 implementation stop reached. Run the incremental pentest for this exact commit before the full release gate and tag; defer crates.io publication to v0.95.0.`
+
+Status: implementation stop reached; incremental pentest required.
 
 ### v0.94.0 - Robot Client Integration
 
