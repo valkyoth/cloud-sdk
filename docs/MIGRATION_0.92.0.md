@@ -20,3 +20,8 @@ Robot transaction lists represent only the provider's fixed 30-day window and
 are not pagers. They do not authorize a purchase or establish an independent
 audit record. Detail requests should be preferred when reconciling one known
 transaction ID.
+
+All six request types expose `quota()`, which returns
+`ROBOT_ORDER_TRANSACTION_QUOTA`: 500 requests per one-hour account window.
+Enforce this as one shared account budget, including explicit retries, rather
+than allocating 500 requests independently to each request type.

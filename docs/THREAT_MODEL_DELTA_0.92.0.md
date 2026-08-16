@@ -29,14 +29,23 @@ from the requested transaction.
   states forbid both;
 - every detail response retains and verifies the exact admitting request;
 - request preparation is transactional and clears caller storage on failure;
+- target and prepared-policy construction failures return typed errors instead
+  of relying on panic-only invariant branches;
 - all six operations are safe read-only `GET` requests with explicit retry
-  ownership and no purchase capability.
+  ownership and no purchase capability;
+- every request exposes the same typed 500-per-hour account quota, and the
+  documentation forbids treating it as six separate allowances;
+- dedicated fuzzing invokes all six decoders for every input and starts from
+  source-locked valid list/detail seeds covering keys, hardware, prices,
+  resources, timestamps, and state coherence.
 
 ## Residual Boundaries
 
 The fixed 30-day list is a provider observation, not an append-only audit log,
 pagination source, or proof that older or concurrently changing transactions do
 not exist. Transaction success is provider-reported state, not independent
-infrastructure attestation. Provider text remains untrusted when rendered.
+infrastructure attestation. Quota enforcement remains caller-owned and must be
+coordinated with other Robot operations sharing the account. Provider text
+remains untrusted when rendered.
 Compiler-created scalar copies, registers, crash dumps, and allocator/process-
 abort behavior remain outside best-effort in-process cleanup.

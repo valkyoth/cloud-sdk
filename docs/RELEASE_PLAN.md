@@ -3090,15 +3090,17 @@ Deliverables:
 Verification:
 
 - test all six method/path contracts, percent-encoded protected IDs, response
-  limits, safe/read-only metadata, explicit retry ownership, and fail-closed
+  limits, one shared typed 500-per-hour quota, safe/read-only metadata,
+  explicit retry ownership, typed invariant failures, and fail-closed
   caller-storage cleanup;
 - test every finite state, ready/non-ready server nullability, RFC 3339 offset
   timestamps, legacy auction timestamps, key shapes and bounds, exact decimal
   prices, resource identities, duplicate rejection, and detail identity
   substitution;
 - source-lock all six active inventory rows and three reviewed list examples,
-  mutation-test the fixture checker, build and smoke the dedicated fuzz target,
-  and run `scripts/check_robot_transactions.sh` plus
+  mutation-test the fixture checker, source-lock valid deep list/detail fuzz
+  seeds for every transaction family, build and smoke the all-decoder fuzz
+  target, and run `scripts/check_robot_transactions.sh` plus
   `scripts/test-robot-transactions.py`;
 - run formatting, lint, workspace/default/no-std/MSRV/current/platform tests,
   documentation links and doctests, dependency policy, API/source drift,

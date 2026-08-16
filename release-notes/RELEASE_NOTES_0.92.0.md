@@ -18,7 +18,8 @@ crate.
 ## Robot Transactions
 
 - Added standard-server, Server Auction, and per-server addon transaction
-  list/detail requests with exact source-locked paths and quotas.
+  list/detail requests with exact source-locked paths and one typed shared
+  500-request-per-hour account quota.
 - Modeled Robot's fixed 30-day list window without inventing pagination.
 - Added protected transaction identifiers, calendar-valid timestamps, finite
   status, server results, SSH metadata, product snapshots, exact prices, and
@@ -28,7 +29,10 @@ crate.
 - Bound every detail response to its exact request and admitted only the
   source-locked `404 NOT_FOUND` provider failure.
 - Added official-source fixtures, mutation-resistant contract checks,
-  adversarial tests, and a dedicated 4 MiB response fuzz target.
+  adversarial tests, and a dedicated 4 MiB response fuzz target that invokes
+  every decoder from valid deep list/detail corpus entries.
+- Replaced panic-only production preparation invariants with payload-free typed
+  target and policy errors while preserving complete caller-buffer cleanup.
 - Added no purchase request, cost permit, automatic retry, client, runtime,
   transport, dependency, feature, or unsafe code.
 

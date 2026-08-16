@@ -17,8 +17,9 @@ pub use prepare::{
     MAX_ROBOT_ORDER_TRANSACTION_LIST_RESPONSE_BYTES,
 };
 pub use request::{
-    RobotAddonTransactionGetRequest, RobotAddonTransactionListRequest,
-    RobotMarketTransactionGetRequest, RobotMarketTransactionListRequest,
+    ROBOT_ORDER_TRANSACTION_QUOTA, RobotAddonTransactionGetRequest,
+    RobotAddonTransactionListRequest, RobotMarketTransactionGetRequest,
+    RobotMarketTransactionListRequest, RobotOrderTransactionQuota,
     RobotStandardTransactionGetRequest, RobotStandardTransactionListRequest,
 };
 

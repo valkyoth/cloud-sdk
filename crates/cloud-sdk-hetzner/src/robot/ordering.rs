@@ -27,9 +27,10 @@ pub use request::{
 };
 pub use transaction::{
     MAX_ROBOT_ORDER_TRANSACTION_ITEM_RESPONSE_BYTES,
-    MAX_ROBOT_ORDER_TRANSACTION_LIST_RESPONSE_BYTES, RobotAddonTransactionGetRequest,
-    RobotAddonTransactionListRequest, RobotMarketTransactionGetRequest,
-    RobotMarketTransactionListRequest, RobotStandardTransactionGetRequest,
+    MAX_ROBOT_ORDER_TRANSACTION_LIST_RESPONSE_BYTES, ROBOT_ORDER_TRANSACTION_QUOTA,
+    RobotAddonTransactionGetRequest, RobotAddonTransactionListRequest,
+    RobotMarketTransactionGetRequest, RobotMarketTransactionListRequest,
+    RobotOrderTransactionQuota, RobotStandardTransactionGetRequest,
     RobotStandardTransactionListRequest,
 };
 pub use value::{

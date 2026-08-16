@@ -428,15 +428,22 @@ assert!(body.iter().all(|byte| *byte == 0));
 
 Robot transaction lists are bounded snapshots of the provider's fixed 30-day
 window. Detail requests retain the protected transaction ID through response
-validation; neither form authorizes or performs a purchase.
+validation; neither form authorizes or performs a purchase. All six operations
+share one account-level allowance of 500 requests per hour. Callers must apply
+that as one budget rather than six independent per-request-type budgets.
 
 ```rust
 # #[cfg(feature = "serde")]
 # fn main() -> Result<(), Box<dyn core::error::Error>> {
 use cloud_sdk::operation::PreparationStorageGuard;
-use cloud_sdk_hetzner::robot::RobotStandardTransactionListRequest;
+use cloud_sdk_hetzner::robot::{
+    ROBOT_ORDER_TRANSACTION_QUOTA, RobotStandardTransactionListRequest,
+};
 
 let request = RobotStandardTransactionListRequest::new();
+assert_eq!(request.quota(), ROBOT_ORDER_TRANSACTION_QUOTA);
+assert_eq!(request.quota().max_requests(), 500);
+assert_eq!(request.quota().interval().get(), 3_600);
 let mut target = [0_u8; 64];
 let mut body = [0_u8; 1];
 {

@@ -10,6 +10,11 @@ per-server addon transaction list/detail requests. All six implement
 checked exchanges, strict owned response models, and one source-locked
 `RobotOrderTransactionFailureCode::NotFound` category.
 
+`RobotOrderTransactionQuota` and `ROBOT_ORDER_TRANSACTION_QUOTA` expose the
+single source-locked account allowance of 500 requests per hour. Every request
+has a `quota()` accessor returning that same value; it does not represent six
+independent budgets.
+
 New protected value and model types retain transaction IDs, timestamps, finite
 status, server identities, key metadata, product snapshots, exact addon
 prices, and resulting resources. List wrappers expose bounded snapshots from
@@ -35,4 +40,5 @@ Detail decoding is tied to the exact protected request ID. Standard and auction
 transactions expose a server identity only in `ready` state. All text and
 collections are bounded, diagnostics are redacted, timestamps are calendar-
 validated, and duplicate transaction, key, addon, and resource identities fail
-closed.
+closed. Production preparation maps target and prepared-policy invariant
+failures into existing payload-free error variants instead of panicking.

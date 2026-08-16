@@ -23,38 +23,54 @@ const ADDON_DETAIL: &[u8] = br#"{"transaction":{"id":"B-addon","date":"2026-08-1
 
 #[test]
 fn prepares_all_six_read_only_transaction_operations() {
+    let quota = ROBOT_ORDER_TRANSACTION_QUOTA;
+    assert_eq!(quota.max_requests(), 500);
+    assert_eq!(quota.interval().get(), 3_600);
+
+    let standard_list = RobotStandardTransactionListRequest::new();
+    assert_eq!(standard_list.quota(), quota);
     assert_prepared(
-        RobotStandardTransactionListRequest::new(),
+        standard_list,
         "/order/server/transaction",
         "robot_list_server_transactions",
         MAX_ROBOT_ORDER_TRANSACTION_LIST_RESPONSE_BYTES,
     );
+    let standard_get = RobotStandardTransactionGetRequest::new(transaction_id("B-ready"));
+    assert_eq!(standard_get.quota(), quota);
     assert_prepared(
-        RobotStandardTransactionGetRequest::new(transaction_id("B-ready")),
+        standard_get,
         "/order/server/transaction/B-ready",
         "robot_get_server_transaction",
         MAX_ROBOT_ORDER_TRANSACTION_ITEM_RESPONSE_BYTES,
     );
+    let market_list = RobotMarketTransactionListRequest::new();
+    assert_eq!(market_list.quota(), quota);
     assert_prepared(
-        RobotMarketTransactionListRequest::new(),
+        market_list,
         "/order/server_market/transaction",
         "robot_list_server_market_transactions",
         MAX_ROBOT_ORDER_TRANSACTION_LIST_RESPONSE_BYTES,
     );
+    let market_get = RobotMarketTransactionGetRequest::new(transaction_id("B-market"));
+    assert_eq!(market_get.quota(), quota);
     assert_prepared(
-        RobotMarketTransactionGetRequest::new(transaction_id("B-market")),
+        market_get,
         "/order/server_market/transaction/B-market",
         "robot_get_server_market_transaction",
         MAX_ROBOT_ORDER_TRANSACTION_ITEM_RESPONSE_BYTES,
     );
+    let addon_list = RobotAddonTransactionListRequest::new();
+    assert_eq!(addon_list.quota(), quota);
     assert_prepared(
-        RobotAddonTransactionListRequest::new(),
+        addon_list,
         "/order/server_addon/transaction",
         "robot_list_server_addon_transactions",
         MAX_ROBOT_ORDER_TRANSACTION_LIST_RESPONSE_BYTES,
     );
+    let addon_get = RobotAddonTransactionGetRequest::new(transaction_id("B-addon"));
+    assert_eq!(addon_get.quota(), quota);
     assert_prepared(
-        RobotAddonTransactionGetRequest::new(transaction_id("B-addon")),
+        addon_get,
         "/order/server_addon/transaction/B-addon",
         "robot_get_server_addon_transaction",
         MAX_ROBOT_ORDER_TRANSACTION_ITEM_RESPONSE_BYTES,

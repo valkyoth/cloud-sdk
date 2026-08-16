@@ -25,18 +25,13 @@ macro_rules! decode {
     }};
 }
 
-fuzz_target!(|input: &[u8]| {
-    let Some((&selector, body)) = input.split_first() else {
-        return;
-    };
-    match selector % 6 {
-        0 => decode!(RobotStandardTransactionListRequest::new(), body),
-        1 => decode!(RobotStandardTransactionGetRequest::new(id("B-fuzz")), body),
-        2 => decode!(RobotMarketTransactionListRequest::new(), body),
-        3 => decode!(RobotMarketTransactionGetRequest::new(id("B-fuzz")), body),
-        4 => decode!(RobotAddonTransactionListRequest::new(), body),
-        _ => decode!(RobotAddonTransactionGetRequest::new(id("B-fuzz")), body),
-    }
+fuzz_target!(|body: &[u8]| {
+    decode!(RobotStandardTransactionListRequest::new(), body);
+    decode!(RobotStandardTransactionGetRequest::new(id("B-fuzz")), body);
+    decode!(RobotMarketTransactionListRequest::new(), body);
+    decode!(RobotMarketTransactionGetRequest::new(id("B-fuzz")), body);
+    decode!(RobotAddonTransactionListRequest::new(), body);
+    decode!(RobotAddonTransactionGetRequest::new(id("B-fuzz")), body);
 });
 
 fn id(value: &str) -> RobotOrderTransactionId {

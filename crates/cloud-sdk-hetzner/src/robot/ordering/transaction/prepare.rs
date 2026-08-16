@@ -149,22 +149,17 @@ fn prepare<'storage>(
     let operation_id = admitted!(
         OperationId::new(operation_id(kind)).map_err(RobotOrderRequestError::InvalidOperationId)
     );
-    let target_valid = target_storage
-        .get(..target_len)
-        .and_then(|bytes| core::str::from_utf8(bytes).ok())
-        .and_then(|text| RequestTarget::new(text).ok())
-        .is_some();
-    if !target_valid {
-        sanitize_bytes(target_storage);
-        sanitize_bytes(body_storage);
-        return Err(RobotOrderRequestError::Target);
-    }
+    admitted!(validate_target(target_storage, target_len));
+
+    // These constructors repeat checks completed above without mutating the
+    // validated target. Typed propagation keeps future invariant drift
+    // non-panicking; every presently reachable failure was already handled by
+    // `admitted!` while both buffers could still be cleared.
     let target_text = target_storage
         .get(..target_len)
         .and_then(|bytes| core::str::from_utf8(bytes).ok())
-        .unwrap_or_else(|| unreachable!("validated Robot transaction target lost UTF-8"));
-    let target = RequestTarget::new(target_text)
-        .unwrap_or_else(|_| unreachable!("validated Robot transaction target became invalid"));
+        .ok_or(RobotOrderRequestError::Target)?;
+    let target = RequestTarget::new(target_text).map_err(RobotOrderRequestError::InvalidTarget)?;
     let service = ProviderService::from_marker::<RobotService>(endpoint);
     let request = TransportRequest::new(Method::Get, target).with_headers(headers);
     let prepared = PreparedRequest::new(
@@ -176,8 +171,18 @@ fn prepare<'storage>(
         raw,
         RequestBodySensitivity::Public,
     )
-    .unwrap_or_else(|_| unreachable!("prevalidated Robot transaction policy changed"));
+    .map_err(RobotOrderRequestError::InvalidPreparedPolicy)?;
     Ok(prepared.with_operation_id(operation_id))
+}
+
+fn validate_target(target_storage: &[u8], target_len: usize) -> Result<(), RobotOrderRequestError> {
+    let target_text = target_storage
+        .get(..target_len)
+        .and_then(|bytes| core::str::from_utf8(bytes).ok())
+        .ok_or(RobotOrderRequestError::Target)?;
+    RequestTarget::new(target_text)
+        .map(|_| ())
+        .map_err(RobotOrderRequestError::InvalidTarget)
 }
 
 fn encode_target(

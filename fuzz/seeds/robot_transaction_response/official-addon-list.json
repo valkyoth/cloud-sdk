@@ -1,0 +1,4 @@
+[
+  {"transaction":{"id":"B20220210-1843193-S33055","date":"2022-02-10T12:20:11+01:00","status":"in process","server_number":123,"product":{"id":"failover_subnet_ipv4_29","name":"Failover subnet \/29","price":{"location":"NBG1","price":{"net":"15.1261","gross":"15.1261","hourly_net":"0.0242","hourly_gross":"0.0242"},"price_setup":{"net":"152.0000","gross":"152.0000"}}},"resources":[]}},
+  {"transaction":{"id":"B20220210-1843192-S33051","date":"2022-02-10T11:20:13+01:00","status":"ready","server_number":123,"product":{"id":"failover_subnet_ipv4_29","name":"Failover subnet \/29","price":{"location":"NBG1","price":{"net":"15.1261","gross":"15.1261","hourly_net":"0.0242","hourly_gross":"0.0242"},"price_setup":{"net":"152.0000","gross":"152.0000"}}},"resources":[{"type":"subnet","id":"10.0.0.0"}]}}
+]

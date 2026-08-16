@@ -16,6 +16,8 @@ MODULE = ROOT / "crates/cloud-sdk-hetzner/src/robot/ordering/transaction"
 README = ROOT / "crates/cloud-sdk-hetzner/README.md"
 FUZZ_MANIFEST = ROOT / "fuzz/Cargo.toml"
 FUZZ_GATE = ROOT / "scripts/check_fuzz_harness.sh"
+FUZZ_SOURCE = ROOT / "fuzz/fuzz_targets/robot_transaction_response.rs"
+FUZZ_SEEDS = ROOT / "fuzz/seeds/robot_transaction_response"
 
 
 def run(**overrides: Path) -> subprocess.CompletedProcess[str]:
@@ -26,6 +28,8 @@ def run(**overrides: Path) -> subprocess.CompletedProcess[str]:
         "readme": README,
         "fuzz_manifest": FUZZ_MANIFEST,
         "fuzz_gate": FUZZ_GATE,
+        "fuzz_source": FUZZ_SOURCE,
+        "fuzz_seeds": FUZZ_SEEDS,
     }
     values.update(overrides)
     command = ["python3", str(CHECK)]
@@ -44,6 +48,14 @@ def mutate_source(root: Path, relative: str, old: str, new: str) -> Path:
     source = path.read_text(encoding="ascii")
     assert old in source
     path.write_text(source.replace(old, new), encoding="ascii")
+    return destination
+
+
+def copy_seeds(destination: Path) -> Path:
+    destination.mkdir(parents=True, exist_ok=True)
+    for source in FUZZ_SEEDS.iterdir():
+        if source.is_file():
+            (destination / source.name).write_bytes(source.read_bytes())
     return destination
 
 
@@ -73,6 +85,15 @@ def main() -> None:
             assert run(fixture=path).returncode != 0
         module = mutate_source(root / "prepare", "prepare.rs", "OperationImpact::ReadOnly", "OperationImpact::Mutation")
         assert run(module=module).returncode != 0
+        module = mutate_source(root / "quota", "request.rs", "max_requests: 500", "max_requests: 501")
+        assert run(module=module).returncode != 0
+        module = mutate_source(
+            root / "panic",
+            "prepare.rs",
+            ".map_err(RobotOrderRequestError::InvalidTarget)?",
+            ".unwrap_or_else(|_| unreachable!())",
+        )
+        assert run(module=module).returncode != 0
         module = mutate_source(root / "identity", "exchange.rs", "ResponseIdentityMismatch", "IdentityIgnored")
         assert run(module=module).returncode != 0
         module = mutate_source(root / "failure", "failure.rs", 'status == 404 && code == "NOT_FOUND"', 'status == 400 && code == "INVALID_INPUT"')
@@ -80,7 +101,20 @@ def main() -> None:
         gate = root / "fuzz-gate.sh"
         gate.write_text(FUZZ_GATE.read_text(encoding="ascii").replace("passed for 34 targets", "passed for 33 targets"), encoding="ascii")
         assert run(fuzz_gate=gate).returncode != 0
-    print("8 Robot transaction regression groups passed.")
+        fuzz_source = root / "fuzz-source.rs"
+        fuzz_source.write_text(
+            FUZZ_SOURCE.read_text(encoding="ascii").replace(
+                "RobotAddonTransactionGetRequest::new(id(\"B-fuzz\"))",
+                "RobotAddonTransactionListRequest::new()",
+            ),
+            encoding="ascii",
+        )
+        assert run(fuzz_source=fuzz_source).returncode != 0
+        seeds = copy_seeds(root / "seeds")
+        detail = seeds / "valid-addon-detail.json"
+        detail.write_bytes(detail.read_bytes() + b" ")
+        assert run(fuzz_seeds=seeds).returncode != 0
+    print("12 Robot transaction regression groups passed.")
 
 
 if __name__ == "__main__":

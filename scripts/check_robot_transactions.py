@@ -15,6 +15,17 @@ MODULE = ROOT / "crates/cloud-sdk-hetzner/src/robot/ordering/transaction"
 README = ROOT / "crates/cloud-sdk-hetzner/README.md"
 FUZZ_MANIFEST = ROOT / "fuzz/Cargo.toml"
 FUZZ_GATE = ROOT / "scripts/check_fuzz_harness.sh"
+FUZZ_SOURCE = ROOT / "fuzz/fuzz_targets/robot_transaction_response.rs"
+FUZZ_SEEDS = ROOT / "fuzz/seeds/robot_transaction_response"
+
+FUZZ_SEED_HASHES = {
+    "official-addon-list.json": "1102fc9f1cc50878cf72b100791996ffc5df0262bdceda6bd6bcf6c83c4d7677",
+    "official-market-list.json": "f9515aba25ed66bd58f618eed43e18b6cce09f263c725c2172efe7bb5df9a900",
+    "official-standard-list.json": "a60c780548dab11eecd77d539326aeb18a942f07a55d35c3f979aa75e0964b15",
+    "valid-addon-detail.json": "7f419e43cbfe58a934c24cfbcad5644995b9bfc9a00ae464bec409f9b688cc6e",
+    "valid-market-detail.json": "f1e750d7ae2ddf6e1c2583f6af24adee3c01da2d5eacedc6ea2554c8eb4782ba",
+    "valid-standard-detail.json": "56a9524c4bce30abe75cc350b6027ecd743d106b444f05b17559cc8bef70af37",
+}
 
 OPERATIONS = [
     ("robot_list_server_transactions", "list_server_transactions", "/order/server/transaction", 30, "json-list"),
@@ -47,6 +58,8 @@ def validate(
     readme_path: Path,
     fuzz_manifest_path: Path,
     fuzz_gate_path: Path,
+    fuzz_source_path: Path,
+    fuzz_seeds_path: Path,
 ) -> None:
     fixture = load(fixture_path)
     if fixture.get("schema_version") != 1:
@@ -74,7 +87,14 @@ def validate(
         fail("six-operation transaction contract changed")
     validate_inventory(api_lock_path)
     validate_schema(fixture)
-    validate_sources(module_path, readme_path, fuzz_manifest_path, fuzz_gate_path)
+    validate_sources(
+        module_path,
+        readme_path,
+        fuzz_manifest_path,
+        fuzz_gate_path,
+        fuzz_source_path,
+        fuzz_seeds_path,
+    )
 
 
 def validate_examples(examples: object) -> None:
@@ -140,7 +160,12 @@ def validate_schema(fixture: dict) -> None:
 
 
 def validate_sources(
-    module: Path, readme: Path, fuzz_manifest: Path, fuzz_gate: Path
+    module: Path,
+    readme: Path,
+    fuzz_manifest: Path,
+    fuzz_gate: Path,
+    fuzz_source: Path,
+    fuzz_seeds: Path,
 ) -> None:
     files = {path.name: path.read_text(encoding="ascii") for path in module.glob("*.rs")}
     nested = "\n".join(path.read_text(encoding="ascii") for path in module.rglob("*.rs"))
@@ -153,6 +178,24 @@ def validate_sources(
             fail(f"preparation policy lost {token}")
     if "Method::Post" in prepare or "Method::Delete" in prepare:
         fail("transaction reads expose a mutation method")
+    if "unreachable!" in prepare:
+        fail("transaction preparation retains a panic-only invariant path")
+    for token in [
+        ".map_err(RobotOrderRequestError::InvalidTarget)?",
+        ".map_err(RobotOrderRequestError::InvalidPreparedPolicy)?",
+        "admitted!(validate_target(target_storage, target_len));",
+    ]:
+        if token not in prepare:
+            fail(f"typed transaction preparation failure lost {token}")
+    request = files.get("request.rs", "")
+    for token in [
+        "ROBOT_ORDER_TRANSACTION_QUOTA",
+        "max_requests: 500",
+        "interval: DelaySeconds::new(3_600)",
+        "This is one account-level budget",
+    ]:
+        if token not in request:
+            fail(f"shared transaction quota evidence lost {token}")
     for token in ["RobotOrderTransactionStatus::Ready", "valid_rfc3339", "reject_transaction_duplicates", "reject_duplicates_by_cmp"]:
         if token not in nested:
             fail(f"strict transaction evidence lost {token}")
@@ -166,8 +209,59 @@ def validate_sources(
     gate = fuzz_gate.read_text(encoding="ascii")
     if 'name = "robot_transaction_response"' not in manifest:
         fail("transaction response fuzz target is missing")
-    if "passed for 34 targets" not in gate or gate.count("max_len=4194305") < 2:
+    if "passed for 34 targets" not in gate or "max_len=4194304" not in gate:
         fail("transaction fuzz boundary is not source-locked")
+    source = fuzz_source.read_text(encoding="ascii")
+    if "split_first" in source:
+        fail("transaction fuzzing still depends on a shallow selector prefix")
+    for request_type in [
+        "RobotStandardTransactionListRequest::new()",
+        'RobotStandardTransactionGetRequest::new(id("B-fuzz"))',
+        "RobotMarketTransactionListRequest::new()",
+        'RobotMarketTransactionGetRequest::new(id("B-fuzz"))',
+        "RobotAddonTransactionListRequest::new()",
+        'RobotAddonTransactionGetRequest::new(id("B-fuzz"))',
+    ]:
+        if source.count(request_type) != 1:
+            fail(f"deep fuzz decoder coverage changed for {request_type}")
+    validate_fuzz_seeds(fuzz_seeds)
+
+
+def validate_fuzz_seeds(directory: Path) -> None:
+    for name, expected_hash in FUZZ_SEED_HASHES.items():
+        path = directory / name
+        try:
+            content = path.read_bytes()
+            value = json.loads(content)
+        except (OSError, UnicodeError, json.JSONDecodeError) as error:
+            fail(f"cannot read deep fuzz seed {name}: {error}")
+        if hashlib.sha256(content).hexdigest() != expected_hash:
+            fail(f"deep fuzz seed changed: {name}")
+        if name.startswith("official-"):
+            if not isinstance(value, list) or len(value) != 2:
+                fail(f"deep list fuzz seed lost provider examples: {name}")
+        else:
+            if not isinstance(value, dict):
+                fail(f"deep detail fuzz seed is not an object: {name}")
+            transaction = value.get("transaction")
+            if not isinstance(transaction, dict) or transaction.get("id") != "B-fuzz":
+                fail(f"deep detail fuzz seed lost request identity: {name}")
+    standard = load_seed(directory / "valid-standard-detail.json")
+    market = load_seed(directory / "valid-market-detail.json")
+    addon = load_seed(directory / "valid-addon-detail.json")
+    if not standard["transaction"].get("authorized_key"):
+        fail("standard detail fuzz seed lost key parsing depth")
+    if "cpu_benchmark" not in market["transaction"].get("product", {}):
+        fail("market detail fuzz seed lost hardware parsing depth")
+    if not addon["transaction"].get("resources"):
+        fail("addon detail fuzz seed lost resource parsing depth")
+
+
+def load_seed(path: Path) -> dict:
+    value = json.loads(path.read_text(encoding="ascii"))
+    if not isinstance(value, dict):
+        fail(f"deep detail fuzz seed is not an object: {path.name}")
+    return value
 
 
 def main() -> None:
@@ -178,8 +272,19 @@ def main() -> None:
     parser.add_argument("--readme", type=Path, default=README)
     parser.add_argument("--fuzz-manifest", type=Path, default=FUZZ_MANIFEST)
     parser.add_argument("--fuzz-gate", type=Path, default=FUZZ_GATE)
+    parser.add_argument("--fuzz-source", type=Path, default=FUZZ_SOURCE)
+    parser.add_argument("--fuzz-seeds", type=Path, default=FUZZ_SEEDS)
     args = parser.parse_args()
-    validate(args.fixture, args.api_lock, args.module, args.readme, args.fuzz_manifest, args.fuzz_gate)
+    validate(
+        args.fixture,
+        args.api_lock,
+        args.module,
+        args.readme,
+        args.fuzz_manifest,
+        args.fuzz_gate,
+        args.fuzz_source,
+        args.fuzz_seeds,
+    )
     print("Robot transaction source contract passed.")
 
 

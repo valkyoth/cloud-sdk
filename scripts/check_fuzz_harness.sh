@@ -109,8 +109,8 @@ case "$mode" in
             # One selector byte plus the complete 4 MiB catalog boundary.
             max_len=4194305
         elif [ "$target" = robot_transaction_response ]; then
-            # One selector byte plus the complete 4 MiB transaction-list boundary.
-            max_len=4194305
+            # The complete 4 MiB transaction-list boundary.
+            max_len=4194304
         fi
         cargo "+${toolchain}" fuzz run "$target" "$corpus" -- \
             -runs=64 "-max_len=${max_len}" -timeout=10
