@@ -2,7 +2,7 @@ use alloc::{format, vec};
 
 use cloud_sdk::Method;
 use cloud_sdk::operation::{
-    OperationImpact, PreparationStorage, PrepareOperation, RequestBodySensitivity,
+    OperationImpact, PreparationStorageGuard, PreparedRequest, RequestBodySensitivity,
     RequestSemantics, RetryEligibility,
 };
 use cloud_sdk::transport::{HeaderSensitivity, ResponseBuffer, ResponseMetadata, StatusCode};
@@ -84,12 +84,13 @@ fn transaction_identifiers_are_protected_and_target_failures_clear_storage() {
     let request = RobotStandardTransactionGetRequest::new(id);
     let mut target = [0x5a_u8; 8];
     let mut body = [0x5a_u8; 8];
-    assert_eq!(
-        request
-            .prepare(PreparationStorage::new(&mut target, &mut body))
-            .err(),
-        Some(RobotOrderRequestError::Target)
-    );
+    {
+        let mut storage = PreparationStorageGuard::new(&mut target, &mut body);
+        assert_eq!(
+            request.prepare_guarded(&mut storage).err(),
+            Some(RobotOrderRequestError::Target)
+        );
+    }
     assert!(target.iter().all(|byte| *byte == 0));
     assert!(body.iter().all(|byte| *byte == 0));
 }
@@ -228,15 +229,13 @@ fn strict_decoding_rejects_duplicate_keys_resources_and_price_pairs() {
 
 fn assert_prepared<O>(operation: O, target: &str, id: &str, maximum: usize)
 where
-    O: PrepareOperation<Error = RobotOrderRequestError>,
+    O: PrepareTransaction,
 {
     let mut target_storage = [0_u8; 4_096];
     let mut body_storage = [0_u8; 1];
+    let mut storage = PreparationStorageGuard::new(&mut target_storage, &mut body_storage);
     let prepared = operation
-        .prepare(PreparationStorage::new(
-            &mut target_storage,
-            &mut body_storage,
-        ))
+        .prepare_for_test(&mut storage)
         .unwrap_or_else(|_| unreachable!("transaction preparation failed"));
     assert_eq!(prepared.transport_request().method(), Method::Get);
     assert_eq!(prepared.transport_request().target().as_str(), target);
@@ -255,14 +254,44 @@ where
     assert_eq!(prepared.response_policy().max_body_bytes(), maximum);
 }
 
+trait PrepareTransaction {
+    fn prepare_for_test<'guard>(
+        &self,
+        storage: &'guard mut PreparationStorageGuard<'_>,
+    ) -> Result<PreparedRequest<'guard>, RobotOrderRequestError>;
+}
+
+macro_rules! prepare_transaction {
+    ($($type:ty),+ $(,)?) => {$ (
+        impl PrepareTransaction for $type {
+            fn prepare_for_test<'guard>(
+                &self,
+                storage: &'guard mut PreparationStorageGuard<'_>,
+            ) -> Result<PreparedRequest<'guard>, RobotOrderRequestError> {
+                self.prepare_guarded(storage)
+            }
+        }
+    )+ };
+}
+
+prepare_transaction!(
+    RobotStandardTransactionListRequest,
+    RobotStandardTransactionGetRequest,
+    RobotMarketTransactionListRequest,
+    RobotMarketTransactionGetRequest,
+    RobotAddonTransactionListRequest,
+    RobotAddonTransactionGetRequest,
+);
+
 fn decode_standard_list(
     body: &[u8],
 ) -> Result<RobotStandardTransactionList, RobotOrderTransactionDecodeError> {
     let request = RobotStandardTransactionListRequest::new();
     let mut target = [0_u8; 256];
     let mut request_body = [0_u8; 1];
+    let mut storage = PreparationStorageGuard::new(&mut target, &mut request_body);
     let prepared = request
-        .prepare_bound(PreparationStorage::new(&mut target, &mut request_body))
+        .prepare_bound(&mut storage)
         .unwrap_or_else(|_| unreachable!("standard list preparation failed"));
     with_json(prepared, body, |checked| checked.decode_response())
 }
@@ -273,8 +302,9 @@ fn decode_market_list(
     let request = RobotMarketTransactionListRequest::new();
     let mut target = [0_u8; 256];
     let mut request_body = [0_u8; 1];
+    let mut storage = PreparationStorageGuard::new(&mut target, &mut request_body);
     let prepared = request
-        .prepare_bound(PreparationStorage::new(&mut target, &mut request_body))
+        .prepare_bound(&mut storage)
         .unwrap_or_else(|_| unreachable!("market list preparation failed"));
     with_json(prepared, body, |checked| checked.decode_response())
 }
@@ -285,8 +315,9 @@ fn decode_addon_list(
     let request = RobotAddonTransactionListRequest::new();
     let mut target = [0_u8; 256];
     let mut request_body = [0_u8; 1];
+    let mut storage = PreparationStorageGuard::new(&mut target, &mut request_body);
     let prepared = request
-        .prepare_bound(PreparationStorage::new(&mut target, &mut request_body))
+        .prepare_bound(&mut storage)
         .unwrap_or_else(|_| unreachable!("addon list preparation failed"));
     with_json(prepared, body, |checked| checked.decode_response())
 }
@@ -297,8 +328,9 @@ macro_rules! detail_decoder {
             let request = <$request>::new(transaction_id(id));
             let mut target = [0_u8; 256];
             let mut request_body = [0_u8; 1];
+            let mut storage = PreparationStorageGuard::new(&mut target, &mut request_body);
             let prepared = request
-                .prepare_bound(PreparationStorage::new(&mut target, &mut request_body))
+                .prepare_bound(&mut storage)
                 .unwrap_or_else(|_| unreachable!("transaction detail preparation failed"));
             with_json(prepared, body, |checked| checked.decode_response())
         }

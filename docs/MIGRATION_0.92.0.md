@@ -26,8 +26,9 @@ All six request types expose `quota()`, which returns
 Enforce this as one shared account budget, including explicit retries, rather
 than allocating 500 requests independently to each request type.
 
-Use `PreparationStorageGuard` for every transaction preparation. Reachable
-validation and encoding failures clear both buffers immediately. The guard also
-owns cleanup if future invariant drift makes a typed late target or policy error
-reachable after immutable target binding. Callers using raw
-`PreparationStorage` remain responsible for clearing their buffers.
+Transaction preparation now requires `&mut PreparationStorageGuard` directly;
+these new v0.92 request types do not implement raw-storage `PrepareOperation`.
+Pass the guard to `prepare_guarded` for an untyped prepared request or to
+`prepare_bound` for exact response association. Reachable validation and
+encoding failures clear both buffers immediately, while the guard owns cleanup
+if future invariant drift makes a typed late target or policy error reachable.

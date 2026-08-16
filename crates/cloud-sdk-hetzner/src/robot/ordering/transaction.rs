@@ -1,4 +1,20 @@
 //! Read-only Robot order transaction snapshots.
+//!
+//! Transaction requests intentionally require [`PreparationStorageGuard`] and
+//! do not implement the raw-storage [`PrepareOperation`] contract.
+//!
+//! ```compile_fail
+//! use cloud_sdk::operation::{PreparationStorage, PrepareOperation};
+//! use cloud_sdk_hetzner::robot::RobotStandardTransactionListRequest;
+//!
+//! let request = RobotStandardTransactionListRequest::new();
+//! let mut target = [0_u8; 64];
+//! let mut body = [0_u8; 1];
+//! let _ = request.prepare(PreparationStorage::new(&mut target, &mut body));
+//! ```
+//!
+//! [`PreparationStorageGuard`]: cloud_sdk::operation::PreparationStorageGuard
+//! [`PrepareOperation`]: cloud_sdk::operation::PrepareOperation
 
 mod prepare;
 mod request;

@@ -17,6 +17,9 @@ README = ROOT / "crates/cloud-sdk-hetzner/README.md"
 THREAT_MODEL = ROOT / "docs/THREAT_MODEL_DELTA_0.92.0.md"
 MIGRATION = ROOT / "docs/MIGRATION_0.92.0.md"
 RELEASE_NOTES = ROOT / "release-notes/RELEASE_NOTES_0.92.0.md"
+WIRE_LOCK = ROOT / "docs/ROBOT_WIRE_SOURCE_LOCK.md"
+PUBLIC_API = ROOT / "docs/PUBLIC_API_REVIEW_0.92.0.md"
+SPEC_LOCK = ROOT / "docs/SPEC_LOCK.md"
 FUZZ_MANIFEST = ROOT / "fuzz/Cargo.toml"
 FUZZ_GATE = ROOT / "scripts/check_fuzz_harness.sh"
 FUZZ_SOURCE = ROOT / "fuzz/fuzz_targets/robot_transaction_response.rs"
@@ -32,6 +35,9 @@ def run(**overrides: Path) -> subprocess.CompletedProcess[str]:
         "threat_model": THREAT_MODEL,
         "migration": MIGRATION,
         "release_notes": RELEASE_NOTES,
+        "wire_lock": WIRE_LOCK,
+        "public_api": PUBLIC_API,
+        "spec_lock": SPEC_LOCK,
         "fuzz_manifest": FUZZ_MANIFEST,
         "fuzz_gate": FUZZ_GATE,
         "fuzz_source": FUZZ_SOURCE,
@@ -103,8 +109,8 @@ def main() -> None:
         module = mutate_source(
             root / "cleanup-boundary",
             "prepare.rs",
-            "must prepare through `PreparationStorageGuard`",
-            "may prepare through `PreparationStorageGuard`",
+            "storage: &'guard mut PreparationStorageGuard<'_>",
+            "storage: PreparationStorage<'guard>",
         )
         assert run(module=module).returncode != 0
         module = mutate_source(root / "identity", "exchange.rs", "ResponseIdentityMismatch", "IdentityIgnored")
@@ -126,17 +132,26 @@ def main() -> None:
         threat_model = root / "threat-model.md"
         threat_model.write_text(
             THREAT_MODEL.read_text(encoding="ascii").replace(
-                "Unsafe lifetime emulation was rejected",
+                "exposes no raw `PreparationStorage` preparation route",
                 "Unsafe lifetime emulation may be introduced",
             ),
             encoding="ascii",
         )
         assert run(threat_model=threat_model).returncode != 0
+        public_api = root / "public-api.md"
+        public_api.write_text(
+            PUBLIC_API.read_text(encoding="ascii").replace(
+                "All six expose\n`prepare_guarded`",
+                "All six expose\nraw preparation",
+            ),
+            encoding="ascii",
+        )
+        assert run(public_api=public_api).returncode != 0
         seeds = copy_seeds(root / "seeds")
         detail = seeds / "valid-addon-detail.json"
         detail.write_bytes(detail.read_bytes() + b" ")
         assert run(fuzz_seeds=seeds).returncode != 0
-    print("14 Robot transaction regression groups passed.")
+    print("15 Robot transaction regression groups passed.")
 
 
 if __name__ == "__main__":

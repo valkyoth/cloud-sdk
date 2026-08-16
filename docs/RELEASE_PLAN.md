@@ -3092,7 +3092,8 @@ Verification:
 - test all six method/path contracts, percent-encoded protected IDs, response
   limits, one shared typed 500-per-hour quota, safe/read-only metadata,
   explicit retry ownership, typed invariant failures, pre-binding fail-closed
-  cleanup, and guard-owned cleanup for late invariant drift;
+  cleanup, mandatory guarded preparation, no raw-storage preparation route,
+  and guard-owned cleanup for late invariant drift;
 - test every finite state, ready/non-ready server nullability, RFC 3339 offset
   timestamps, legacy auction timestamps, key shapes and bounds, exact decimal
   prices, resource identities, duplicate rejection, and detail identity

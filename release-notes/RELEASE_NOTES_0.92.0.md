@@ -33,8 +33,9 @@ crate.
   every decoder from valid deep list/detail corpus entries.
 - Replaced panic-only production preparation invariants with payload-free typed
   target and policy errors. Reachable failures clear both buffers before target
-  binding; `PreparationStorageGuard` remains mandatory when cleanup must also
-  survive future invariant drift.
+  binding. All six request types require `&mut PreparationStorageGuard` and
+  expose no raw-storage `PrepareOperation` route, retaining cleanup ownership
+  under future invariant drift.
 - Added no purchase request, cost permit, automatic retry, client, runtime,
   transport, dependency, feature, or unsafe code.
 

@@ -431,9 +431,9 @@ window. Detail requests retain the protected transaction ID through response
 validation; neither form authorizes or performs a purchase. All six operations
 share one account-level allowance of 500 requests per hour. Callers must apply
 that as one budget rather than six independent per-request-type budgets.
-Use `PreparationStorageGuard` for transaction preparation. It retains cleanup
-ownership if future invariant drift makes a typed late binding error reachable;
-raw `PreparationStorage` callers must clear their own buffers.
+Transaction preparation requires `PreparationStorageGuard` directly and has no
+raw `PreparationStorage` route. The guard retains cleanup ownership if future
+invariant drift makes a typed late binding error reachable.
 
 ```rust
 # #[cfg(feature = "serde")]
@@ -451,7 +451,7 @@ let mut target = [0_u8; 64];
 let mut body = [0_u8; 1];
 {
     let mut storage = PreparationStorageGuard::new(&mut target, &mut body);
-    let prepared = storage.prepare_with(|buffers| request.prepare_bound(buffers))?;
+    let prepared = request.prepare_bound(&mut storage)?;
     assert_eq!(
         prepared.as_untyped().transport_request().target().as_str(),
         "/order/server/transaction",

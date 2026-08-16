@@ -702,6 +702,8 @@ one list and one detail `GET`. Lists are the provider's fixed 30-day snapshot;
 the SDK does not imply pagination or completeness beyond that documented
 window. Every read requires Robot Basic authentication, strict JSON `200`, and
 caller-owned retry policy under the 500-request/hour quota.
+Every request requires `PreparationStorageGuard` directly and intentionally
+does not implement raw-storage `PrepareOperation`.
 
 Transaction identifiers and source timestamps are protected and bounded.
 Timestamps require calendar-valid RFC 3339 with the documented uppercase `T`;

@@ -3,8 +3,9 @@ use cloud_sdk::authentication::{AuthenticationScopePolicy, ScopeRequirement};
 use cloud_sdk::buffer::{SnapshotEncoder, encode_snapshot_bounded};
 use cloud_sdk::operation::{
     ContentTypePolicy, CostIntent, OperationId, OperationImpact, OperationMetadata,
-    PreparationStorage, PrepareOperation, PreparedRequest, ProviderService, RequestBodySensitivity,
-    RequestIdPolicy, RequestSemantics, ResponseBodyPolicy, ResponsePolicy, RetryEligibility,
+    PreparationStorage, PreparationStorageGuard, PreparedRequest, ProviderService,
+    RequestBodySensitivity, RequestIdPolicy, RequestSemantics, ResponseBodyPolicy, ResponsePolicy,
+    RetryEligibility,
 };
 use cloud_sdk::transport::{
     HeaderName, MAX_INFORMATIONAL_RESPONSES, MediaType, RawResponsePolicy, RequestHeader,
@@ -39,14 +40,13 @@ pub(super) enum Kind<'a> {
 
 macro_rules! prepare_operation {
     ($type:ty, $self:ident, $kind:expr) => {
-        impl PrepareOperation for $type {
-            type Error = RobotOrderRequestError;
-
-            fn prepare<'storage>(
+        impl $type {
+            /// Prepares this transaction read through mandatory guarded storage.
+            pub fn prepare_guarded<'guard>(
                 &$self,
-                storage: PreparationStorage<'storage>,
-            ) -> Result<PreparedRequest<'storage>, Self::Error> {
-                prepare($kind, storage)
+                storage: &'guard mut PreparationStorageGuard<'_>,
+            ) -> Result<PreparedRequest<'guard>, RobotOrderRequestError> {
+                storage.prepare_with(|buffers| prepare($kind, buffers))
             }
         }
     };

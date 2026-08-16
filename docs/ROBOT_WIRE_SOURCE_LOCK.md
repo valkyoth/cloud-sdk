@@ -422,6 +422,9 @@ both fields are forbidden while `in process` or `cancelled`. Addon transactions
 retain a positive server number in every state. Lists reject duplicate
 transaction IDs, keys reject duplicate fingerprints, and addon resources reject
 duplicate type/ID pairs. Detail decoders retain and verify the exact request ID.
+All six request types require `PreparationStorageGuard` directly and expose no
+raw `PreparationStorage` preparation route, preserving cleanup ownership even
+if a currently unreachable late invariant error becomes reachable.
 The normalized contract and three reviewed official list examples are committed
 in [`v0.92.0.json`](../tests/fixtures/robot-transactions/v0.92.0.json) and
 checked by `scripts/check_robot_transactions.sh`. No purchase operation,

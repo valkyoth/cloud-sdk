@@ -1,6 +1,5 @@
 use cloud_sdk::operation::{
-    CheckedResponseGuard, PreparationStorage, PrepareOperation, PreparedRequest,
-    ResponsePolicyError,
+    CheckedResponseGuard, PreparationStorageGuard, PreparedRequest, ResponsePolicyError,
 };
 use cloud_sdk::transport::ResponseBuffer;
 
@@ -72,11 +71,11 @@ macro_rules! prepare_bound {
     ($($type:ty),+ $(,)?) => {$ (
         impl $type {
             /// Prepares this read-only operation with exact response association.
-            pub fn prepare_bound<'storage, 'request>(
+            pub fn prepare_bound<'guard, 'request>(
                 &'request self,
-                storage: PreparationStorage<'storage>,
-            ) -> Result<PreparedRobotOrderTransaction<'storage, 'request, Self>, RobotOrderRequestError> {
-                let inner = self.prepare(storage)?;
+                storage: &'guard mut PreparationStorageGuard<'_>,
+            ) -> Result<PreparedRobotOrderTransaction<'guard, 'request, Self>, RobotOrderRequestError> {
+                let inner = self.prepare_guarded(storage)?;
                 Ok(PreparedRobotOrderTransaction { request: self, inner })
             }
         }

@@ -1,6 +1,6 @@
 #![no_main]
 
-use cloud_sdk::operation::PreparationStorage;
+use cloud_sdk::operation::PreparationStorageGuard;
 use cloud_sdk::transport::{HeaderSensitivity, ResponseBuffer, ResponseMetadata, StatusCode};
 use cloud_sdk_hetzner::robot::{
     RobotAddonTransactionGetRequest, RobotAddonTransactionListRequest,
@@ -14,8 +14,9 @@ macro_rules! decode {
         let request = $request;
         let mut target = [0_u8; 4_096];
         let mut request_body = [0_u8; 1];
+        let mut storage = PreparationStorageGuard::new(&mut target, &mut request_body);
         let prepared = request
-            .prepare_bound(PreparationStorage::new(&mut target, &mut request_body))
+            .prepare_bound(&mut storage)
             .unwrap_or_else(|_| unreachable!("fixed Robot transaction preparation failed"));
         with_response($body, |response| {
             if let Ok(checked) = prepared.validate_response(response) {

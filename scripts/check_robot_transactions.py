@@ -16,6 +16,9 @@ README = ROOT / "crates/cloud-sdk-hetzner/README.md"
 THREAT_MODEL = ROOT / "docs/THREAT_MODEL_DELTA_0.92.0.md"
 MIGRATION = ROOT / "docs/MIGRATION_0.92.0.md"
 RELEASE_NOTES = ROOT / "release-notes/RELEASE_NOTES_0.92.0.md"
+WIRE_LOCK = ROOT / "docs/ROBOT_WIRE_SOURCE_LOCK.md"
+PUBLIC_API = ROOT / "docs/PUBLIC_API_REVIEW_0.92.0.md"
+SPEC_LOCK = ROOT / "docs/SPEC_LOCK.md"
 FUZZ_MANIFEST = ROOT / "fuzz/Cargo.toml"
 FUZZ_GATE = ROOT / "scripts/check_fuzz_harness.sh"
 FUZZ_SOURCE = ROOT / "fuzz/fuzz_targets/robot_transaction_response.rs"
@@ -62,6 +65,9 @@ def validate(
     threat_model_path: Path,
     migration_path: Path,
     release_notes_path: Path,
+    wire_lock_path: Path,
+    public_api_path: Path,
+    spec_lock_path: Path,
     fuzz_manifest_path: Path,
     fuzz_gate_path: Path,
     fuzz_source_path: Path,
@@ -99,6 +105,9 @@ def validate(
         threat_model_path,
         migration_path,
         release_notes_path,
+        wire_lock_path,
+        public_api_path,
+        spec_lock_path,
         fuzz_manifest_path,
         fuzz_gate_path,
         fuzz_source_path,
@@ -174,6 +183,9 @@ def validate_sources(
     threat_model: Path,
     migration: Path,
     release_notes: Path,
+    wire_lock: Path,
+    public_api: Path,
+    spec_lock: Path,
     fuzz_manifest: Path,
     fuzz_gate: Path,
     fuzz_source: Path,
@@ -192,15 +204,31 @@ def validate_sources(
         fail("transaction reads expose a mutation method")
     if "unreachable!" in prepare:
         fail("transaction preparation retains a panic-only invariant path")
+    if "impl PrepareOperation for" in nested:
+        fail("transaction requests regained a raw-storage preparation route")
     for token in [
         ".map_err(RobotOrderRequestError::InvalidTarget)?",
         ".map_err(RobotOrderRequestError::InvalidPreparedPolicy)?",
         "admitted!(validate_target(target_storage, target_len));",
         "rust-lang/rust#54663",
         "must prepare through `PreparationStorageGuard`",
+        "pub fn prepare_guarded<'guard>",
+        "storage: &'guard mut PreparationStorageGuard<'_>",
+        "storage.prepare_with(|buffers| prepare($kind, buffers))",
     ]:
         if token not in prepare:
             fail(f"typed transaction preparation failure lost {token}")
+    exchange = files.get("exchange.rs", "")
+    for token in [
+        "storage: &'guard mut PreparationStorageGuard<'_>",
+        "self.prepare_guarded(storage)?",
+    ]:
+        if token not in exchange:
+            fail(f"guarded response association lost {token}")
+    module_doc = module.with_suffix(".rs").read_text(encoding="ascii")
+    for token in ["```compile_fail", "request.prepare(PreparationStorage::new"]:
+        if token not in module_doc:
+            fail(f"raw-storage compile-fail evidence lost {token}")
     request = files.get("request.rs", "")
     for token in [
         "ROBOT_ORDER_TRANSACTION_QUOTA",
@@ -220,21 +248,35 @@ def validate_sources(
     readme_text = readme.read_text(encoding="ascii")
     if "all six active read-only transaction operations" not in readme_text:
         fail("provider README lost transaction scope")
-    if "Use `PreparationStorageGuard` for transaction preparation" not in readme_text:
+    if "Transaction preparation requires `PreparationStorageGuard` directly" not in readme_text:
         fail("provider README lost guarded transaction cleanup boundary")
     documentation_tokens = {
         threat_model: [
             "every reachable validation and encoding failure",
             "rust-lang/rust#54663",
+            "exposes no raw `PreparationStorage` preparation route",
             "Unsafe lifetime emulation was rejected",
         ],
         migration: [
-            "Use `PreparationStorageGuard` for every transaction preparation",
-            "raw `PreparationStorage` remain responsible",
+            "requires `&mut PreparationStorageGuard` directly",
+            "do not implement raw-storage `PrepareOperation`",
         ],
         release_notes: [
             "Reachable failures clear both buffers before target binding",
-            "`PreparationStorageGuard` remains mandatory",
+            "require `&mut PreparationStorageGuard`",
+            "no raw-storage `PrepareOperation` route",
+        ],
+        wire_lock: [
+            "require `PreparationStorageGuard` directly",
+            "no raw `PreparationStorage` preparation route",
+        ],
+        public_api: [
+            "expose `prepare_guarded`",
+            "do not implement raw-storage `PrepareOperation`",
+        ],
+        spec_lock: [
+            "requires `PreparationStorageGuard` directly",
+            "does not implement raw-storage `PrepareOperation`",
         ],
     }
     for path, tokens in documentation_tokens.items():
@@ -310,6 +352,9 @@ def main() -> None:
     parser.add_argument("--threat-model", type=Path, default=THREAT_MODEL)
     parser.add_argument("--migration", type=Path, default=MIGRATION)
     parser.add_argument("--release-notes", type=Path, default=RELEASE_NOTES)
+    parser.add_argument("--wire-lock", type=Path, default=WIRE_LOCK)
+    parser.add_argument("--public-api", type=Path, default=PUBLIC_API)
+    parser.add_argument("--spec-lock", type=Path, default=SPEC_LOCK)
     parser.add_argument("--fuzz-manifest", type=Path, default=FUZZ_MANIFEST)
     parser.add_argument("--fuzz-gate", type=Path, default=FUZZ_GATE)
     parser.add_argument("--fuzz-source", type=Path, default=FUZZ_SOURCE)
@@ -323,6 +368,9 @@ def main() -> None:
         args.threat_model,
         args.migration,
         args.release_notes,
+        args.wire_lock,
+        args.public_api,
+        args.spec_lock,
         args.fuzz_manifest,
         args.fuzz_gate,
         args.fuzz_source,

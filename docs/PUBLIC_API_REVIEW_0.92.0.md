@@ -5,9 +5,11 @@ Status: implementation stop; incremental pentest required.
 ## Added Surface
 
 `cloud_sdk_hetzner::robot` now exposes standard-server, Server Auction, and
-per-server addon transaction list/detail requests. All six implement
-`PrepareOperation`; the `serde` feature adds request-associated prepared and
-checked exchanges, strict owned response models, and one source-locked
+per-server addon transaction list/detail requests. All six expose
+`prepare_guarded`, which requires `&mut PreparationStorageGuard`; they do not
+implement raw-storage `PrepareOperation`. The `serde` feature adds guarded
+request-associated prepared and checked exchanges, strict owned response
+models, and one source-locked
 `RobotOrderTransactionFailureCode::NotFound` category.
 
 `RobotOrderTransactionQuota` and `ROBOT_ORDER_TRANSACTION_QUOTA` expose the
@@ -42,7 +44,8 @@ collections are bounded, diagnostics are redacted, timestamps are calendar-
 validated, and duplicate transaction, key, addon, and resource identities fail
 closed. Production preparation maps target and prepared-policy invariant
 failures into existing payload-free error variants instead of panicking.
-Reachable preparation failures clear before immutable target binding. Source
-users requiring cleanup under future late invariant drift must prepare through
-`PreparationStorageGuard`; raw `PreparationStorage` retains caller-owned
-cleanup semantics.
+Reachable preparation failures clear before immutable target binding. The six
+transaction request types require `&mut PreparationStorageGuard` through
+`prepare_guarded` or `prepare_bound` and intentionally do not implement the raw-
+storage `PrepareOperation` contract. The guard therefore retains cleanup
+ownership under future late invariant drift.
