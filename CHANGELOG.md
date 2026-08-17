@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.94.0 - Pending
+## 0.94.0 - 2026-08-17
 
 - Added an exact-official-endpoint Robot client and sealed typed contracts for
   all 89 active Robot operations.

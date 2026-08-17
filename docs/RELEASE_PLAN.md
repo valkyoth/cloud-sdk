@@ -3253,7 +3253,7 @@ exact implementation commit is ready for incremental pentest.
 
 Stop gate: `v0.94.0 implementation stop reached. Run the incremental pentest for this exact commit before the full release gate and tag; defer crates.io publication to v0.95.0.`
 
-Status: implementation stop reached; incremental pentest required.
+Status: release candidate; incremental pentest and final retest passed.
 
 ### v0.95.0 - Robot Live Evidence
 
