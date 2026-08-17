@@ -26,9 +26,9 @@ reason = "Accumulate complete official-endpoint Robot clients and credential loc
 [crates."cloud-sdk-reqwest"]
 previous_version = "0.35.3"
 version = "0.35.3"
-change = "unchanged"
+change = "code"
 publish = false
-reason = "No reqwest transport boundary changes."
+reason = "Accumulate exact response-status preservation and admitted transport dependency updates for v0.95.0."
 
 [crates."cloud-sdk-sanitization"]
 previous_version = "0.19.0"
@@ -40,6 +40,6 @@ reason = "No sanitization boundary changes."
 [crates."cloud-sdk-testkit"]
 previous_version = "0.30.5"
 version = "0.30.5"
-change = "unchanged"
+change = "code"
 publish = false
-reason = "No testkit boundary changes."
+reason = "Accumulate exact-status regression coverage for v0.95.0."

@@ -177,6 +177,7 @@ fn raw_blocking_uses_error_cap_and_response_started_phase() {
         failure,
         Err(error)
             if error.phase() == DeliveryPhase::ResponseStarted
+                && error.observed_status().map(StatusCode::get) == Some(400)
                 && error.error() == &RawHttpError::ResponseTooLarge
     ));
 }

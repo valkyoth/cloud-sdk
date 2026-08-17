@@ -25,6 +25,12 @@ impl ResponseCompletion {
             metadata,
         }
     }
+
+    /// Returns the validated final response status.
+    #[must_use]
+    pub const fn status(&self) -> StatusCode {
+        self.status
+    }
 }
 
 /// Non-committing response view supplied to an asynchronous transport.

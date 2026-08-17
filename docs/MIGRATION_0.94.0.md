@@ -30,7 +30,21 @@ After any exact or malformed `401`, the current credential generation is
 closed. Further calls fail before network access. Call
 `reconfirm_credentials` only after explicitly deciding the same credentials
 are valid again, or replace the transport with a different credential binding.
-The client does not retry automatically.
+The client does not retry automatically. Only one request per Robot credential
+generation can be in flight; overlapping calls fail with
+`CredentialAttemptError::DispatchBusy`. An indeterminate post-dispatch failure
+or cancellation also closes the generation and requires the same explicit
+reconfirmation or replacement decision.
+
+This dispatch and rejection state belongs to one `RobotClient` lifecycle. Two
+independently constructed clients or processes using the same credential are
+not mutually serialized. Share one client or add an external credential-keyed
+coordinator when application-wide or fleet-wide exclusion is required.
+
+Provider-neutral `TransportFailure` can now retain `observed_status()`. Custom
+transports should return the final status when later response processing fails.
+Exhaustive matches on `RobotClientLifecycleError` must handle
+`ReplacementEndpoint(OfficialEndpointError)`.
 
 Robot lists and transaction snapshots are bounded single responses, not
 paginated resources. Robot has no Cloud-style action objects. Continue using

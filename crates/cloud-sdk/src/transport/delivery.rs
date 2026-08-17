@@ -2,6 +2,8 @@
 
 use core::fmt;
 
+use super::StatusCode;
+
 /// Furthest delivery point known for one failed HTTP attempt.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum DeliveryPhase {
@@ -14,18 +16,28 @@ pub enum DeliveryPhase {
 }
 
 /// Error whose furthest possible request-delivery phase is explicit.
+///
+/// Implementations should retain a final response status once observed so
+/// authentication and reconciliation policy can classify later failures.
 pub trait DeliveryClassified {
     /// Returns the conservative delivery phase for permit transitions.
     fn delivery_phase(&self) -> DeliveryPhase;
+
+    /// Returns a valid final status observed before the failure, when known.
+    fn observed_status(&self) -> Option<StatusCode> {
+        None
+    }
 }
 
-/// Payload-redacting transport failure with an explicit delivery phase.
+/// Payload-redacting transport failure with an explicit delivery phase and
+/// optional already-observed final status.
 ///
 /// Unknown send state must use [`Self::unknown`], which conservatively maps to
 /// [`DeliveryPhase::PossiblySent`].
 #[derive(Clone, Copy)]
 pub struct TransportFailure<E> {
     phase: DeliveryPhase,
+    observed_status: Option<StatusCode>,
     error: E,
 }
 
@@ -35,6 +47,7 @@ impl<E> TransportFailure<E> {
     pub const fn not_sent(error: E) -> Self {
         Self {
             phase: DeliveryPhase::NotSent,
+            observed_status: None,
             error,
         }
     }
@@ -44,6 +57,7 @@ impl<E> TransportFailure<E> {
     pub const fn possibly_sent(error: E) -> Self {
         Self {
             phase: DeliveryPhase::PossiblySent,
+            observed_status: None,
             error,
         }
     }
@@ -53,6 +67,17 @@ impl<E> TransportFailure<E> {
     pub const fn response_started(error: E) -> Self {
         Self {
             phase: DeliveryPhase::ResponseStarted,
+            observed_status: None,
+            error,
+        }
+    }
+
+    /// Records a failure after the supplied final response status was observed.
+    #[must_use]
+    pub const fn response_started_with_status(status: StatusCode, error: E) -> Self {
+        Self {
+            phase: DeliveryPhase::ResponseStarted,
+            observed_status: Some(status),
             error,
         }
     }
@@ -67,6 +92,20 @@ impl<E> TransportFailure<E> {
     #[must_use]
     pub const fn phase(&self) -> DeliveryPhase {
         self.phase
+    }
+
+    /// Returns a final status observed before response processing failed.
+    #[must_use]
+    pub const fn observed_status(&self) -> Option<StatusCode> {
+        self.observed_status
+    }
+
+    /// Preserves this failure while attaching a subsequently known final status.
+    #[must_use]
+    pub const fn with_observed_status(mut self, status: StatusCode) -> Self {
+        self.phase = DeliveryPhase::ResponseStarted;
+        self.observed_status = Some(status);
+        self
     }
 
     /// Returns a shared view of the payload-free adapter error.
@@ -86,6 +125,7 @@ impl<E> TransportFailure<E> {
     pub fn map<F>(self, transform: impl FnOnce(E) -> F) -> TransportFailure<F> {
         TransportFailure {
             phase: self.phase,
+            observed_status: self.observed_status,
             error: transform(self.error),
         }
     }
@@ -95,11 +135,17 @@ impl<E> DeliveryClassified for TransportFailure<E> {
     fn delivery_phase(&self) -> DeliveryPhase {
         self.phase
     }
+
+    fn observed_status(&self) -> Option<StatusCode> {
+        self.observed_status
+    }
 }
 
 impl<E: PartialEq> PartialEq for TransportFailure<E> {
     fn eq(&self, other: &Self) -> bool {
-        self.phase == other.phase && self.error == other.error
+        self.phase == other.phase
+            && self.observed_status == other.observed_status
+            && self.error == other.error
     }
 }
 
@@ -110,6 +156,7 @@ impl<E> fmt::Debug for TransportFailure<E> {
         formatter
             .debug_struct("TransportFailure")
             .field("phase", &self.phase)
+            .field("observed_status", &self.observed_status)
             .field("error", &"[redacted]")
             .finish()
     }
@@ -135,7 +182,7 @@ impl<E> core::error::Error for TransportFailure<E> {}
 mod tests {
     use core::fmt::{self, Write};
 
-    use super::{DeliveryPhase, TransportFailure};
+    use super::{DeliveryClassified, DeliveryPhase, StatusCode, TransportFailure};
 
     struct FixedText {
         bytes: [u8; 96],
@@ -173,5 +220,21 @@ mod tests {
         assert!(write!(&mut debug, "{failure:?}").is_ok());
         assert!(debug.as_str().contains("PossiblySent"));
         assert!(!debug.as_str().contains("secret payload"));
+    }
+
+    #[test]
+    fn observed_status_survives_mapping_without_exposing_error_payload() {
+        let failure = TransportFailure::response_started_with_status(
+            StatusCode::new(401).unwrap_or(StatusCode::OK),
+            "secret payload",
+        )
+        .map(|_| 7_u8);
+        assert_eq!(failure.phase(), DeliveryPhase::ResponseStarted);
+        assert_eq!(failure.observed_status().map(StatusCode::get), Some(401));
+        assert_eq!(
+            DeliveryClassified::observed_status(&failure),
+            failure.observed_status()
+        );
+        assert_eq!(*failure.error(), 7);
     }
 }

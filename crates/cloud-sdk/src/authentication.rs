@@ -13,7 +13,8 @@ mod value;
 
 pub use attempt::{
     CredentialAttempt, CredentialAttemptError, CredentialAttemptGeneration,
-    CredentialAttemptStatus, CredentialReconfirmation, SharedCredentialAttemptState,
+    CredentialAttemptStatus, CredentialDispatchGuard, CredentialReconfirmation,
+    SharedCredentialAttemptState,
 };
 #[cfg(feature = "alloc")]
 pub use attempt_owned::{OwnedCredentialAttempt, OwnedCredentialAttemptState};

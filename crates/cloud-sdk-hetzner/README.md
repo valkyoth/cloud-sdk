@@ -829,11 +829,18 @@ retry even if its price or optional type changed, preventing an automatic
 duplicate charge. `RobotClient::official` exposes all 89 operations across
 blocking, `Send` async, and local-async execution. It accepts no custom
 endpoint, automatically repeats no request, closes a credential generation
-after authentication rejection, and requires explicit reconfirmation or a
-different credential binding before another call. Robot has no Cloud-style
-pagination or action resources, so bounded lists remain single requests and
-operation-specific reconciliation remains explicit. Its complete source lock records 89
-active operations and excludes all 16 deprecated Storage Box operations. See the
+after authentication rejection, indeterminate post-dispatch failure, or
+cancellation, and requires explicit reconfirmation or a different credential
+binding before another call. One credential generation admits only one
+in-flight request through that client; overlapping calls fail before transport
+access. This serialization and rejection state is scoped to one `RobotClient`
+lifecycle. Applications using the same Robot credentials through separately
+constructed clients or processes must share one client or provide an external
+credential-keyed dispatch coordinator. Robot has no Cloud-style pagination or
+action resources, so bounded lists remain single requests and
+operation-specific reconciliation remains explicit. Its complete
+source lock records 89 active operations and excludes all 16 deprecated
+Storage Box operations. See the
 [Robot source-lock contract](https://github.com/valkyoth/cloud-sdk/blob/main/docs/ROBOT_WIRE_SOURCE_LOCK.md).
 The latest Robot additions and source migration are described in the
 [v0.94 source migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.94.0.md).

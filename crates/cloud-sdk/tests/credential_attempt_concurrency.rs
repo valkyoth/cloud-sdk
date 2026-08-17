@@ -3,6 +3,8 @@
 use std::sync::{Arc, Barrier};
 use std::thread;
 
+#[cfg(feature = "alloc")]
+use cloud_sdk::authentication::OwnedCredentialAttemptState;
 use cloud_sdk::authentication::{
     CredentialAttemptError, CredentialAttemptGeneration, SharedCredentialAttemptState,
 };
@@ -45,6 +47,47 @@ fn concurrent_attempts_share_one_generation_and_rejection_is_global() {
     }));
     assert_eq!(
         state.begin(),
+        Err(CredentialAttemptError::GenerationRejected)
+    );
+}
+
+#[cfg(feature = "alloc")]
+#[test]
+fn concurrent_owned_dispatch_cannot_pass_admission_twice() {
+    let state = Arc::new(OwnedCredentialAttemptState::new());
+    let held = state
+        .begin()
+        .unwrap_or_else(|_| unreachable!("initial owned attempt was rejected"));
+    let competing = state
+        .begin()
+        .unwrap_or_else(|_| unreachable!("competing owned attempt was rejected"));
+    let admitted = Arc::new(Barrier::new(2));
+    let release = Arc::new(Barrier::new(2));
+    let worker_state = Arc::clone(&state);
+    let worker_admitted = Arc::clone(&admitted);
+    let worker_release = Arc::clone(&release);
+    let worker = thread::spawn(move || {
+        let guard = worker_state
+            .reserve_dispatch(&held)
+            .unwrap_or_else(|_| unreachable!("first dispatch was not admitted"));
+        worker_admitted.wait();
+        worker_release.wait();
+        guard
+            .reject()
+            .unwrap_or_else(|_| unreachable!("guarded rejection failed"));
+    });
+
+    admitted.wait();
+    assert_eq!(
+        state.reserve_dispatch(&competing).map(|_| ()),
+        Err(CredentialAttemptError::DispatchBusy)
+    );
+    release.wait();
+    worker
+        .join()
+        .unwrap_or_else(|_| unreachable!("dispatch worker panicked"));
+    assert_eq!(
+        state.reserve_dispatch(&competing).map(|_| ()),
         Err(CredentialAttemptError::GenerationRejected)
     );
 }

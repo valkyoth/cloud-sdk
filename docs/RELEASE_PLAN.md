@@ -3248,7 +3248,7 @@ Verification:
 Exit criteria: every active Robot operation is typed and client-reachable,
 every state-changing route remains permit-gated, no rejected credential
 generation can reach a second wire attempt, response cleanup and source-locked
-decoding are preserved, no dependency or default feature is added, and the
+decoding are preserved, no dependency edge or default feature is added, and the
 exact implementation commit is ready for incremental pentest.
 
 Stop gate: `v0.94.0 implementation stop reached. Run the incremental pentest for this exact commit before the full release gate and tag; defer crates.io publication to v0.95.0.`

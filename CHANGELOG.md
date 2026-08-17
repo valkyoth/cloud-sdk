@@ -10,6 +10,9 @@
   replacement, pre-dispatch stale-attempt checks, and exact-status preservation.
 - Added exhaustive operation inventory, endpoint, decode, cleanup,
   cancellation, lockout, permit, and concurrency evidence.
+- Updated the admitted optional transport graph to `aws-lc-rs 1.18.0`,
+  `aws-lc-sys 0.44.0`, and `http-body-util 0.1.5`, plus compatible locked
+  transitives and the isolated `nightly-2026-08-17` fuzz toolchain.
 - Deferred crates.io publication to the cumulative v0.95.0 checkpoint.
 
 ## 0.93.0 - 2026-08-16

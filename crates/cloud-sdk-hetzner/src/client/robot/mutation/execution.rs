@@ -60,19 +60,22 @@ where
         R: RobotClientMutationOperation,
         C: PermitClock + ?Sized,
     {
-        if let Err(error) = self.validate_for_dispatch() {
-            let _ = attempt.complete(cloud_sdk::transport::DeliveryPhase::NotSent);
-            return Err(RobotMutationClientExecutionError::Permit(
-                RobotPermitClientExecutionError::Lifecycle(error),
-            ));
-        }
+        let dispatch = match self.reserve_for_dispatch() {
+            Ok(dispatch) => dispatch,
+            Err(error) => {
+                let _ = attempt.complete(cloud_sdk::transport::DeliveryPhase::NotSent);
+                return Err(RobotMutationClientExecutionError::Permit(
+                    RobotPermitClientExecutionError::Lifecycle(error),
+                ));
+            }
+        };
         let request = attempt.binding.0;
         let binding = self.client.binding;
         let result = attempt
             .inner
             .execute_blocking(clock, self.client.transport(), body, headers);
         let checked = self
-            .finish(result)
+            .finish(dispatch, result)
             .map_err(RobotMutationClientExecutionError::Permit)?;
         request
             .decode_success(checked, binding)
@@ -106,12 +109,15 @@ where
         'request: 'transport,
     {
         async move {
-            if let Err(error) = self.validate_for_dispatch() {
-                let _ = attempt.complete(cloud_sdk::transport::DeliveryPhase::NotSent);
-                return Err(RobotMutationClientExecutionError::Permit(
-                    RobotPermitClientExecutionError::Lifecycle(error),
-                ));
-            }
+            let dispatch = match self.reserve_for_dispatch() {
+                Ok(dispatch) => dispatch,
+                Err(error) => {
+                    let _ = attempt.complete(cloud_sdk::transport::DeliveryPhase::NotSent);
+                    return Err(RobotMutationClientExecutionError::Permit(
+                        RobotPermitClientExecutionError::Lifecycle(error),
+                    ));
+                }
+            };
             let request = attempt.binding.0;
             let binding = self.client.binding;
             let result = attempt
@@ -119,7 +125,7 @@ where
                 .execute_async(clock, self.client.transport(), body, headers)
                 .await;
             let checked = self
-                .finish(result)
+                .finish(dispatch, result)
                 .map_err(RobotMutationClientExecutionError::Permit)?;
             request
                 .decode_success(checked, binding)
@@ -158,12 +164,15 @@ where
         'fingerprint: 'transport,
         'request: 'transport,
     {
-        if let Err(error) = self.validate_for_dispatch() {
-            let _ = attempt.complete(cloud_sdk::transport::DeliveryPhase::NotSent);
-            return Err(RobotMutationClientExecutionError::Permit(
-                RobotPermitClientExecutionError::Lifecycle(error),
-            ));
-        }
+        let dispatch = match self.reserve_for_dispatch() {
+            Ok(dispatch) => dispatch,
+            Err(error) => {
+                let _ = attempt.complete(cloud_sdk::transport::DeliveryPhase::NotSent);
+                return Err(RobotMutationClientExecutionError::Permit(
+                    RobotPermitClientExecutionError::Lifecycle(error),
+                ));
+            }
+        };
         let request = attempt.binding.0;
         let binding = self.client.binding;
         let result = attempt
@@ -171,7 +180,7 @@ where
             .execute_local_async(clock, self.client.transport(), body, headers)
             .await;
         let checked = self
-            .finish(result)
+            .finish(dispatch, result)
             .map_err(RobotMutationClientExecutionError::Permit)?;
         request
             .decode_success(checked, binding)

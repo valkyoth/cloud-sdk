@@ -40,6 +40,8 @@ pub enum RobotClientLifecycleError {
     CredentialBindingChanged,
     /// Replacement retained the same credential lineage identity.
     CredentialBindingNotReplaced,
+    /// The replacement transport is not bound to the official Robot endpoint.
+    ReplacementEndpoint(OfficialEndpointError),
 }
 
 impl fmt::Display for RobotClientLifecycleError {
@@ -50,6 +52,9 @@ impl fmt::Display for RobotClientLifecycleError {
             Self::CredentialBindingNotReplaced => {
                 "Robot replacement transport retained the credential binding"
             }
+            Self::ReplacementEndpoint(_) => {
+                "Robot replacement transport official endpoint verification failed"
+            }
         })
     }
 }
@@ -58,6 +63,7 @@ impl core::error::Error for RobotClientLifecycleError {
     fn source(&self) -> Option<&(dyn core::error::Error + 'static)> {
         match self {
             Self::CredentialAttempt(error) => Some(error),
+            Self::ReplacementEndpoint(error) => Some(error),
             Self::CredentialBindingChanged | Self::CredentialBindingNotReplaced => None,
         }
     }
@@ -73,7 +79,11 @@ impl From<CredentialAttemptError> for RobotClientLifecycleError {
 ///
 /// The client accepts no custom endpoint. Clones of a transport may be used by
 /// callers, but every execution through this object is checked against the
-/// credential binding captured at construction.
+/// credential binding captured at construction. Dispatch serialization and
+/// rejection state are scoped to this client object; separately constructed
+/// clients and other processes do not share its credential lifecycle state.
+/// Applications reusing one Robot credential must share one client or provide
+/// an external credential-keyed coordinator.
 pub struct RobotClient<T> {
     pub(super) kernel: ClientKernel<T>,
     pub(super) binding: CredentialBinding,
@@ -118,7 +128,7 @@ where
         transport: T,
     ) -> Result<CredentialAttemptGeneration, RobotClientLifecycleError> {
         verify_official_robot_endpoint(&transport)
-            .map_err(|_| RobotClientLifecycleError::CredentialBindingChanged)?;
+            .map_err(RobotClientLifecycleError::ReplacementEndpoint)?;
         let binding = transport.credential_binding();
         if binding.matches(self.binding) {
             return Err(RobotClientLifecycleError::CredentialBindingNotReplaced);

@@ -88,6 +88,10 @@ required-features = ["serde"]
 name = "robot_client"
 required-features = ["serde"]
 
+[[test]]
+name = "robot_client_dispatch"
+required-features = ["serde"]
+
 [[example]]
 name = "action_polling"
 required-features = ["serde"]

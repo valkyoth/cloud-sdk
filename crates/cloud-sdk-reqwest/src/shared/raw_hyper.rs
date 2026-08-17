@@ -338,7 +338,10 @@ impl RawHyperClient {
         let writer_capacity = sink.body_capacity();
         let body_limit = {
             let headers = sink.headers_mut().map_err(|_| {
-                TransportFailure::response_started(RawHttpError::ResponseCommitFailed)
+                TransportFailure::response_started_with_status(
+                    status,
+                    RawHttpError::ResponseCommitFailed,
+                )
             })?;
             inspect_response_head(
                 method,
@@ -348,9 +351,11 @@ impl RawHyperClient {
                 headers,
                 writer_capacity,
             )
-            .map_err(TransportFailure::response_started)?
+            .map_err(|error| TransportFailure::response_started_with_status(status, error))?
         };
-        let body_len = read_bounded_body(response.into_body(), sink, body_limit).await?;
+        let body_len = read_bounded_body(response.into_body(), sink, body_limit)
+            .await
+            .map_err(|error| error.with_observed_status(status))?;
         Ok(ResponseCompletion::new(
             status,
             body_len,

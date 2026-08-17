@@ -114,7 +114,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Install pinned nightly
-        run: rustup toolchain install nightly-2026-07-26 --profile minimal
+        run: rustup toolchain install nightly-2026-08-17 --profile minimal
 
       - name: Install cargo-fuzz
         run: cargo install --locked cargo-fuzz --version 0.13.2

@@ -1,7 +1,8 @@
 use core::sync::atomic::{AtomicU32, Ordering};
 
 const REJECTED: u32 = 1;
-const GENERATION_SHIFT: u32 = 1;
+const DISPATCHING: u32 = 1 << 1;
+const GENERATION_SHIFT: u32 = 2;
 const MAX_GENERATION: u32 = u32::MAX >> GENERATION_SHIFT;
 
 /// Monotonic identity of one credential-attempt generation.
@@ -98,6 +99,8 @@ pub enum CredentialAttemptError {
     StaleGeneration,
     /// Explicit reconfirmation is valid only after authentication rejection.
     ReconfirmationNotRequired,
+    /// Another request is already using this credential generation.
+    DispatchBusy,
     /// The bounded monotonic generation cannot advance without wrapping.
     GenerationExhausted,
 }
@@ -107,17 +110,69 @@ impl_static_error!(CredentialAttemptError,
     Self::GenerationRejected => "credential attempt generation was rejected",
     Self::StaleGeneration => "credential attempt generation is stale",
     Self::ReconfirmationNotRequired => "credential attempt generation is still open",
+    Self::DispatchBusy => "credential attempt generation already has an in-flight request",
     Self::GenerationExhausted => "credential attempt generation is exhausted",
 );
 
 /// Caller-owned concurrent lockout state for one credential lifecycle.
 ///
-/// Cloned clients share this object by reference. Multiple attempts may begin
-/// on one open generation, but the first authentication rejection closes that
+/// Cloned clients share this object by reference. Multiple attempt proofs may
+/// begin on one open generation, but [`Self::reserve_dispatch`] admits only one
+/// in-flight request. The first authentication rejection closes that
 /// generation for every later execution. Only replacement credentials or an
 /// explicit [`CredentialReconfirmation`] advance to a new open generation.
 pub struct SharedCredentialAttemptState {
     packed: AtomicU32,
+}
+
+/// Exclusive admission for one in-flight credential-generation dispatch.
+///
+/// [`Self::complete`] releases admission after classification. Dropping an
+/// unclassified guard rejects the generation, including async cancellation.
+/// Authentication rejection must be recorded through [`Self::reject`] while
+/// the guard is held.
+#[must_use]
+pub struct CredentialDispatchGuard<'a> {
+    state: &'a SharedCredentialAttemptState,
+    generation: CredentialAttemptGeneration,
+    classified: bool,
+}
+
+impl CredentialDispatchGuard<'_> {
+    /// Closes the guarded generation after authentication rejection.
+    pub fn reject(&self) -> Result<(), CredentialAttemptError> {
+        self.state.reject_dispatched_generation(self.generation)
+    }
+
+    /// Returns the exclusively admitted generation.
+    #[must_use]
+    pub const fn generation(&self) -> CredentialAttemptGeneration {
+        self.generation
+    }
+
+    /// Marks response classification complete and releases dispatch admission.
+    pub fn complete(mut self) {
+        self.state.release_dispatch(self.generation, false);
+        self.classified = true;
+    }
+}
+
+impl core::fmt::Debug for CredentialDispatchGuard<'_> {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        formatter
+            .debug_struct("CredentialDispatchGuard")
+            .field("owner", &"[bound]")
+            .field("generation", &self.generation)
+            .finish()
+    }
+}
+
+impl Drop for CredentialDispatchGuard<'_> {
+    fn drop(&mut self) {
+        if !self.classified {
+            self.state.release_dispatch(self.generation, true);
+        }
+    }
 }
 
 impl SharedCredentialAttemptState {
@@ -125,7 +180,7 @@ impl SharedCredentialAttemptState {
     #[must_use]
     pub const fn new() -> Self {
         Self {
-            packed: AtomicU32::new(pack(CredentialAttemptGeneration::INITIAL, false)),
+            packed: AtomicU32::new(pack(CredentialAttemptGeneration::INITIAL, false, false)),
         }
     }
 
@@ -151,6 +206,50 @@ impl SharedCredentialAttemptState {
     pub fn validate(&self, attempt: CredentialAttempt<'_>) -> Result<(), CredentialAttemptError> {
         self.validate_owner(attempt)?;
         self.validate_generation(attempt.generation)
+    }
+
+    /// Exclusively admits one dispatch for the supplied open generation.
+    pub fn reserve_dispatch(
+        &self,
+        attempt: CredentialAttempt<'_>,
+    ) -> Result<CredentialDispatchGuard<'_>, CredentialAttemptError> {
+        self.validate_owner(attempt)?;
+        self.reserve_generation(attempt.generation)
+    }
+
+    pub(crate) fn reserve_generation(
+        &self,
+        expected: CredentialAttemptGeneration,
+    ) -> Result<CredentialDispatchGuard<'_>, CredentialAttemptError> {
+        loop {
+            let current = self.packed.load(Ordering::Acquire);
+            let (generation, status) = unpack(current);
+            if generation != expected {
+                return Err(CredentialAttemptError::StaleGeneration);
+            }
+            if status == CredentialAttemptStatus::Rejected {
+                return Err(CredentialAttemptError::GenerationRejected);
+            }
+            if current & DISPATCHING != 0 {
+                return Err(CredentialAttemptError::DispatchBusy);
+            }
+            if self
+                .packed
+                .compare_exchange(
+                    current,
+                    current | DISPATCHING,
+                    Ordering::AcqRel,
+                    Ordering::Acquire,
+                )
+                .is_ok()
+            {
+                return Ok(CredentialDispatchGuard {
+                    state: self,
+                    generation,
+                    classified: false,
+                });
+            }
+        }
     }
 
     pub(crate) fn validate_generation(
@@ -189,13 +288,64 @@ impl SharedCredentialAttemptState {
             if status == CredentialAttemptStatus::Rejected {
                 return Ok(());
             }
-            let next = pack(generation, true);
+            if current & DISPATCHING != 0 {
+                return Err(CredentialAttemptError::DispatchBusy);
+            }
+            let next = pack(generation, true, false);
             if self
                 .packed
                 .compare_exchange(current, next, Ordering::AcqRel, Ordering::Acquire)
                 .is_ok()
             {
                 return Ok(());
+            }
+        }
+    }
+
+    fn reject_dispatched_generation(
+        &self,
+        expected: CredentialAttemptGeneration,
+    ) -> Result<(), CredentialAttemptError> {
+        loop {
+            let current = self.packed.load(Ordering::Acquire);
+            let (generation, status) = unpack(current);
+            if generation != expected {
+                return Err(CredentialAttemptError::StaleGeneration);
+            }
+            if current & DISPATCHING == 0 {
+                return Err(CredentialAttemptError::DispatchBusy);
+            }
+            if status == CredentialAttemptStatus::Rejected {
+                return Ok(());
+            }
+            let next = current | REJECTED;
+            if self
+                .packed
+                .compare_exchange(current, next, Ordering::AcqRel, Ordering::Acquire)
+                .is_ok()
+            {
+                return Ok(());
+            }
+        }
+    }
+
+    fn release_dispatch(&self, expected: CredentialAttemptGeneration, reject: bool) {
+        loop {
+            let current = self.packed.load(Ordering::Acquire);
+            let (generation, _) = unpack(current);
+            if generation != expected || current & DISPATCHING == 0 {
+                return;
+            }
+            let mut next = current & !DISPATCHING;
+            if reject {
+                next |= REJECTED;
+            }
+            if self
+                .packed
+                .compare_exchange(current, next, Ordering::AcqRel, Ordering::Acquire)
+                .is_ok()
+            {
+                return;
             }
         }
     }
@@ -223,8 +373,11 @@ impl SharedCredentialAttemptState {
             if status != CredentialAttemptStatus::Rejected {
                 return Err(CredentialAttemptError::ReconfirmationNotRequired);
             }
+            if current & DISPATCHING != 0 {
+                return Err(CredentialAttemptError::DispatchBusy);
+            }
             let next_generation = checked_next(generation)?;
-            let next = pack(next_generation, false);
+            let next = pack(next_generation, false, false);
             if self
                 .packed
                 .compare_exchange(current, next, Ordering::AcqRel, Ordering::Acquire)
@@ -245,8 +398,11 @@ impl SharedCredentialAttemptState {
             if generation != expected {
                 return Err(CredentialAttemptError::StaleGeneration);
             }
+            if current & DISPATCHING != 0 {
+                return Err(CredentialAttemptError::DispatchBusy);
+            }
             let next_generation = checked_next(generation)?;
-            let next = pack(next_generation, false);
+            let next = pack(next_generation, false, false);
             if self
                 .packed
                 .compare_exchange(current, next, Ordering::AcqRel, Ordering::Acquire)
@@ -266,7 +422,7 @@ impl SharedCredentialAttemptState {
 
     #[cfg(test)]
     fn set_generation_for_test(&mut self, generation: u32, rejected: bool) {
-        *self.packed.get_mut() = pack(CredentialAttemptGeneration(generation), rejected);
+        *self.packed.get_mut() = pack(CredentialAttemptGeneration(generation), rejected, false);
     }
 }
 
@@ -298,8 +454,8 @@ impl core::fmt::Debug for SharedCredentialAttemptState {
     }
 }
 
-const fn pack(generation: CredentialAttemptGeneration, rejected: bool) -> u32 {
-    (generation.0 << GENERATION_SHIFT) | (rejected as u32)
+const fn pack(generation: CredentialAttemptGeneration, rejected: bool, dispatching: bool) -> u32 {
+    (generation.0 << GENERATION_SHIFT) | (rejected as u32) | ((dispatching as u32) << 1)
 }
 
 const fn unpack(value: u32) -> (CredentialAttemptGeneration, CredentialAttemptStatus) {
@@ -313,147 +469,5 @@ const fn unpack(value: u32) -> (CredentialAttemptGeneration, CredentialAttemptSt
 }
 
 #[cfg(test)]
-mod tests {
-    use super::{
-        CredentialAttemptError, CredentialAttemptGeneration, CredentialAttemptStatus,
-        CredentialReconfirmation, MAX_GENERATION, SharedCredentialAttemptState,
-    };
-
-    #[test]
-    fn rejection_closes_one_generation_until_replaced_or_reconfirmed() {
-        let state = SharedCredentialAttemptState::new();
-        let first = state
-            .begin()
-            .unwrap_or_else(|_| unreachable!("initial credential generation was closed"));
-        assert_eq!(first.generation(), CredentialAttemptGeneration::INITIAL);
-        assert_eq!(
-            state.reconfirm(
-                first.generation(),
-                CredentialReconfirmation::acknowledge_same_credentials(),
-            ),
-            Err(CredentialAttemptError::ReconfirmationNotRequired)
-        );
-        assert_eq!(state.reject(first), Ok(()));
-        assert_eq!(
-            state.validate(first),
-            Err(CredentialAttemptError::GenerationRejected)
-        );
-        assert_eq!(state.reject(first), Ok(()));
-        assert_eq!(
-            state.begin(),
-            Err(CredentialAttemptError::GenerationRejected)
-        );
-
-        let second = state
-            .reconfirm(
-                first.generation(),
-                CredentialReconfirmation::acknowledge_same_credentials(),
-            )
-            .unwrap_or_else(|_| unreachable!("explicit reconfirmation was rejected"));
-        assert_eq!(second.get(), 2);
-        assert!(state.begin().is_ok());
-
-        let third = state
-            .replace(second)
-            .unwrap_or_else(|_| unreachable!("replacement generation was rejected"));
-        assert_eq!(third.get(), 3);
-        assert!(state.begin().is_ok());
-    }
-
-    #[test]
-    fn stale_transitions_cannot_close_or_reopen_replacement_credentials() {
-        let state = SharedCredentialAttemptState::new();
-        let stale = state
-            .begin()
-            .unwrap_or_else(|_| unreachable!("initial credential generation was closed"));
-        let current = state
-            .replace(stale.generation())
-            .unwrap_or_else(|_| unreachable!("replacement generation was rejected"));
-        assert_eq!(
-            state.reject(stale),
-            Err(CredentialAttemptError::StaleGeneration)
-        );
-        assert_eq!(
-            state.validate(stale),
-            Err(CredentialAttemptError::StaleGeneration)
-        );
-        assert_eq!(
-            state.replace(stale.generation()),
-            Err(CredentialAttemptError::StaleGeneration)
-        );
-        assert_eq!(
-            state.reconfirm(
-                stale.generation(),
-                CredentialReconfirmation::acknowledge_same_credentials(),
-            ),
-            Err(CredentialAttemptError::StaleGeneration)
-        );
-        assert_eq!(state.observe(), (current, CredentialAttemptStatus::Open));
-    }
-
-    #[test]
-    fn foreign_attempts_never_validate_or_close_equal_generations() {
-        let owner_a = SharedCredentialAttemptState::new();
-        let owner_b = SharedCredentialAttemptState::new();
-        let foreign = owner_a
-            .begin()
-            .unwrap_or_else(|_| unreachable!("owner A generation was closed"));
-
-        assert_eq!(
-            owner_b.validate(foreign),
-            Err(CredentialAttemptError::ForeignState)
-        );
-        assert_eq!(
-            owner_b.reject(foreign),
-            Err(CredentialAttemptError::ForeignState)
-        );
-        assert_eq!(
-            owner_b.observe(),
-            (
-                CredentialAttemptGeneration::INITIAL,
-                CredentialAttemptStatus::Open
-            )
-        );
-
-        let generation_a = owner_a
-            .replace(CredentialAttemptGeneration::INITIAL)
-            .unwrap_or_else(|_| unreachable!("owner A replacement failed"));
-        let generation_b = owner_b
-            .replace(CredentialAttemptGeneration::INITIAL)
-            .unwrap_or_else(|_| unreachable!("owner B replacement failed"));
-        assert_eq!(generation_a, generation_b);
-        let foreign_replacement = owner_a
-            .begin()
-            .unwrap_or_else(|_| unreachable!("owner A replacement was closed"));
-        assert_eq!(
-            owner_b.reject(foreign_replacement),
-            Err(CredentialAttemptError::ForeignState)
-        );
-        assert_eq!(
-            owner_b.observe(),
-            (generation_b, CredentialAttemptStatus::Open)
-        );
-    }
-
-    #[test]
-    fn generation_exhaustion_fails_closed_without_wrapping() {
-        let mut state = SharedCredentialAttemptState::new();
-        state.set_generation_for_test(MAX_GENERATION, true);
-        let generation = state.observe().0;
-        assert_eq!(
-            state.replace(generation),
-            Err(CredentialAttemptError::GenerationExhausted)
-        );
-        assert_eq!(
-            state.reconfirm(
-                generation,
-                CredentialReconfirmation::acknowledge_same_credentials(),
-            ),
-            Err(CredentialAttemptError::GenerationExhausted)
-        );
-        assert_eq!(
-            state.observe(),
-            (generation, CredentialAttemptStatus::Rejected)
-        );
-    }
-}
+#[path = "attempt/tests.rs"]
+mod tests;

@@ -2,7 +2,7 @@ use alloc::sync::Arc;
 
 use super::attempt::{
     CredentialAttemptError, CredentialAttemptGeneration, CredentialAttemptStatus,
-    CredentialReconfirmation, SharedCredentialAttemptState,
+    CredentialDispatchGuard, CredentialReconfirmation, SharedCredentialAttemptState,
 };
 
 /// Owned proof that one credential generation was open when execution began.
@@ -76,6 +76,15 @@ impl OwnedCredentialAttemptState {
     pub fn validate(&self, attempt: &OwnedCredentialAttempt) -> Result<(), CredentialAttemptError> {
         self.validate_owner(attempt)?;
         self.state.validate_generation(attempt.generation)
+    }
+
+    /// Exclusively admits one in-flight dispatch for an owned attempt.
+    pub fn reserve_dispatch(
+        &self,
+        attempt: &OwnedCredentialAttempt,
+    ) -> Result<CredentialDispatchGuard<'_>, CredentialAttemptError> {
+        self.validate_owner(attempt)?;
+        self.state.reserve_generation(attempt.generation)
     }
 
     /// Closes the exact owned attempt generation after authentication rejection.

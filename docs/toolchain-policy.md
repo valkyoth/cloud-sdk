@@ -24,7 +24,7 @@ prove the higher-ranked lifetime bound for the client kernel's explicitly
 `Send` future (rust-lang/rust#100013). Weakening that contract would prevent
 generic cross-thread executor use, while Rust 1.92 and later compile it.
 
-Pinned release tools, checked against crates.io on 2026-07-27:
+Pinned release tools, checked against crates.io on 2026-08-17:
 
 | Tool | Version |
 | --- | --- |
@@ -34,7 +34,7 @@ Pinned release tools, checked against crates.io on 2026-07-27:
 | `cargo-fuzz` | `0.13.2` |
 
 The non-published fuzz harness separately pins
-`nightly-2026-07-26` and `libfuzzer-sys 0.4.13`. Nightly is never used to
+`nightly-2026-08-17` and `libfuzzer-sys 0.4.13`. Nightly is never used to
 compile or test the supported published-crate matrix.
 
 SBOM freshness checks also require `jq` `1.6` or newer. CI uses the runner's

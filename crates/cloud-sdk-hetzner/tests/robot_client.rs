@@ -14,9 +14,10 @@ use cloud_sdk::transport::{
     StatusCode,
 };
 use cloud_sdk_hetzner::client::{
-    ROBOT_CLIENT_METHODS, RobotClient, RobotClientExecutionError, RobotClientResponse,
-    RobotMutationClientExecutionError, RobotMutationPermit, RobotPermitClientExecutionError,
-    RobotResponseDecodeError, build_robot_mutation_canonical_plan, prepare_robot_client_mutation,
+    ROBOT_CLIENT_METHODS, RobotClient, RobotClientExecutionError, RobotClientLifecycleError,
+    RobotClientResponse, RobotMutationClientExecutionError, RobotMutationPermit,
+    RobotPermitClientExecutionError, RobotResponseDecodeError, build_robot_mutation_canonical_plan,
+    prepare_robot_client_mutation,
 };
 use cloud_sdk_hetzner::robot::{
     RobotServerDecodeError, RobotServerList, RobotServerListRequest, RobotServerName,
@@ -76,6 +77,26 @@ fn official_constructor_rejects_every_non_robot_endpoint() {
     let wrong = EndpointIdentity::new(EndpointScheme::Https, "api.hetzner.cloud", 443, "/v1")
         .unwrap_or_else(|_| unreachable!("wrong-endpoint fixture failed"));
     assert!(RobotClient::official(MockTransport::new(&exchanges).with_endpoint(wrong)).is_err());
+}
+
+#[test]
+fn replacement_endpoint_failure_retains_the_verification_cause() {
+    let exchanges = [];
+    let endpoint = official_endpoint();
+    let mut client = RobotClient::official(MockTransport::new(&exchanges).with_endpoint(endpoint))
+        .unwrap_or_else(|_| unreachable!("Robot client construction failed"));
+    let wrong = EndpointIdentity::new(EndpointScheme::Https, "api.hetzner.cloud", 443, "/v1")
+        .unwrap_or_else(|_| unreachable!("wrong-endpoint fixture failed"));
+    let Err(error) = client.replace_transport(MockTransport::new(&exchanges).with_endpoint(wrong))
+    else {
+        unreachable!("replacement endpoint did not fail closed");
+    };
+
+    assert!(matches!(
+        error,
+        RobotClientLifecycleError::ReplacementEndpoint(_)
+    ));
+    assert!(core::error::Error::source(&error).is_some());
 }
 
 #[test]

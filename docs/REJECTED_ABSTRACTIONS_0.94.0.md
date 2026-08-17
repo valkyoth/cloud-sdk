@@ -20,8 +20,13 @@ that had no stronger permit contract.
 
 Client-owned retry was rejected. Robot authentication rejection can lock a
 source IP, and mutations can have indeterminate delivery. A `401` closes the
-credential generation; retry requires caller-owned policy plus explicit new or
-reconfirmed credentials.
+credential generation. A post-dispatch failure or cancellation also closes it
+because the client cannot prove authentication was accepted. Retry requires
+caller-owned policy plus explicit new or reconfirmed credentials.
+
+Concurrent requests on one Robot credential generation were rejected for the
+same lockout reason. Dispatch admission is immediate and bounded; the SDK adds
+no queue or runtime lock across network execution.
 
 ## Synthetic Pager And Action APIs
 

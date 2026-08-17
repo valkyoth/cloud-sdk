@@ -41,9 +41,13 @@ impl RawBlockingClient {
             .begin_attempt()
             .map_err(|_| TransportFailure::not_sent(RawHttpError::ResponseAlreadyCommitted))?;
         let completion = runtime.block_on(self.inner.execute(request, policy, &mut attempt))?;
-        attempt
-            .commit_completion(completion)
-            .map_err(|_| TransportFailure::response_started(RawHttpError::ResponseCommitFailed))
+        let status = completion.status();
+        attempt.commit_completion(completion).map_err(|_| {
+            TransportFailure::response_started_with_status(
+                status,
+                RawHttpError::ResponseCommitFailed,
+            )
+        })
     }
 
     pub(crate) fn execute_authenticated(
@@ -71,9 +75,13 @@ impl RawBlockingClient {
             authorization,
             &mut attempt,
         ))?;
-        attempt
-            .commit_completion(completion)
-            .map_err(|_| TransportFailure::response_started(RawHttpError::ResponseCommitFailed))
+        let status = completion.status();
+        attempt.commit_completion(completion).map_err(|_| {
+            TransportFailure::response_started_with_status(
+                status,
+                RawHttpError::ResponseCommitFailed,
+            )
+        })
     }
 }
 

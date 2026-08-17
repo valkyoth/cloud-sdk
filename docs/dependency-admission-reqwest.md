@@ -6,7 +6,7 @@ and `cloud-sdk-reqwest/async-rustls`,
 with reqwest default features disabled. The internal `fuzzing` feature aliases
 `blocking-rustls` only for the isolated fuzz workspace.
 
-Checked: 2026-08-08.
+Checked: 2026-08-17.
 
 ## Decision
 
@@ -16,7 +16,7 @@ Checked: 2026-08-08.
 | `base64-ng` | `2.0.1` | bounded RFC 4648 Basic authorization encoding | disabled |
 | `bytes` | `1.12.1` | sanitized owned async request-body handoff | disabled |
 | `http` | `1.5.0` | raw request and response-head representation | disabled |
-| `http-body-util` | `0.1.4` | raw body ownership and response-frame access | disabled |
+| `http-body-util` | `0.1.5` | raw body ownership and response-frame access | disabled |
 | `hyper` | `1.11.0` | bounded raw HTTP/1 implementation | disabled |
 | `hyper-rustls` | `0.27.9` | raw rustls HTTPS connector | disabled |
 | `hyper-util` | `0.1.20` | raw client, connector, and Tokio adapters | disabled |
@@ -25,8 +25,9 @@ Checked: 2026-08-08.
 | `rustls` | `0.23.43` | TLS implementation | transitive |
 | `rustls-platform-verifier` | `0.7.0` | platform trust-store verification | transitive |
 | `webpki-roots` | `1.0.9` | deterministic Mozilla trust-root snapshot | disabled |
-| `aws-lc-rs` | `1.17.3` | rustls cryptographic provider | transitive |
-| `cloud-sdk-sanitization` | `0.18.0` | mandatory core and adapter-owned secret-buffer cleanup | disabled |
+| `aws-lc-rs` | `1.18.0` | rustls cryptographic provider | transitive |
+| `aws-lc-sys` | `0.44.0` | bundled native AWS-LC implementation | disabled |
+| `cloud-sdk-sanitization` | `0.19.0` | mandatory core and adapter-owned secret-buffer cleanup | disabled |
 | `sanitization` | `2.0.3` | reviewed volatile cleanup primitive | disabled |
 
 The exact repository graph is pinned by `Cargo.lock`, checked by `cargo deny`,
@@ -49,7 +50,7 @@ authenticated package checksum rather than copying unauthenticated source
 trees. The original v0.24 admission is recorded in
 [`DEPENDENCY_REVIEW_0.24.0.md`](DEPENDENCY_REVIEW_0.24.0.md). Current native
 archive checksums and update evidence are recorded in
-[`DEPENDENCY_REVIEW_0.65.0.md`](DEPENDENCY_REVIEW_0.65.0.md).
+[`DEPENDENCY_REVIEW_0.94.0.md`](DEPENDENCY_REVIEW_0.94.0.md).
 
 The version review used the reqwest 0.13.4 crate metadata, feature list, API
 documentation, and upstream source:

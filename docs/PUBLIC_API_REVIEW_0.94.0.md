@@ -32,14 +32,20 @@ unexpected status code.
 - Credential rejection closes one shared generation. Explicit replacement
   requires a different credential binding; reconfirmation requires the
   existing acknowledgement type.
+- `CredentialDispatchGuard` admits one in-flight request per generation and
+  rejects on unclassified drop. `TransportFailure::observed_status` retains a
+  final status across later response-processing failure.
+- Replacement endpoint failures retain `OfficialEndpointError` through
+  `RobotClientLifecycleError::ReplacementEndpoint` and `Error::source()`.
 
 ## Compatibility
 
 The client surface is additive pre-1.0 API. Adding
-`PreparedExecutionError::UnexpectedStatus` can require an extra match arm in
-source code that exhaustively matches this non-exhaustive pre-1.0 behavior.
-The previous generic response-policy classification is retained for high-level
-client diagnostics.
+`PreparedExecutionError::UnexpectedStatus`,
+`CredentialAttemptError::DispatchBusy`, and
+`RobotClientLifecycleError::ReplacementEndpoint` can require extra match arms
+in source code that exhaustively matches this pre-1.0 API. The previous generic
+response-policy classification is retained for high-level client diagnostics.
 
 `cloud-sdk` advances to `0.94.0` for the internal tag.
 `cloud-sdk-hetzner` remains at published package version `0.45.0` until the

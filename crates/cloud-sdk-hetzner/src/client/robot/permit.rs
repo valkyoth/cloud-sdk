@@ -2,7 +2,7 @@ use core::fmt;
 
 use cloud_sdk::authentication::{
     AsyncAuthenticatedTransport, BlockingAuthenticatedTransport, BoundCredentialTransport,
-    LocalAsyncAuthenticatedTransport, OwnedCredentialAttempt,
+    CredentialDispatchGuard, LocalAsyncAuthenticatedTransport, OwnedCredentialAttempt,
 };
 use cloud_sdk::operation::{
     PermitClock, PermitDisposition, PermitExecutionError, PreparedExecutionError,
@@ -80,7 +80,9 @@ impl<T> RobotClientAttempt<'_, T>
 where
     T: BoundCredentialTransport + BoundTransport,
 {
-    pub(super) fn validate_for_dispatch(&self) -> Result<(), RobotClientLifecycleError> {
+    pub(super) fn reserve_for_dispatch(
+        &self,
+    ) -> Result<CredentialDispatchGuard<'_>, RobotClientLifecycleError> {
         if !self
             .client
             .transport()
@@ -91,14 +93,18 @@ where
         }
         self.client
             .attempts
-            .validate(&self.credential)
+            .reserve_dispatch(&self.credential)
             .map_err(Into::into)
     }
 
     pub(super) fn finish<R, E>(
-        self,
+        &self,
+        dispatch: CredentialDispatchGuard<'_>,
         result: Result<R, PermitExecutionError<E>>,
-    ) -> Result<R, RobotPermitClientExecutionError<E>> {
+    ) -> Result<R, RobotPermitClientExecutionError<E>>
+    where
+        E: DeliveryClassified,
+    {
         if !self
             .client
             .transport()
@@ -109,27 +115,54 @@ where
                 RobotClientLifecycleError::CredentialBindingChanged,
             ));
         }
-        let rejected = result.as_ref().err().is_some_and(|error| {
-            matches!(
-                error.execution(),
-                PreparedExecutionError::UnexpectedStatus(status) if status.get() == 401
-            )
-        });
-        if rejected {
+        let authentication_rejected = result
+            .as_ref()
+            .err()
+            .is_some_and(|error| execution_observed_unauthorized(error.execution()));
+        let closes_generation = result
+            .as_ref()
+            .err()
+            .is_some_and(|error| execution_is_indeterminate(error.execution()))
+            || authentication_rejected;
+        if closes_generation {
+            dispatch
+                .reject()
+                .map_err(|error| RobotPermitClientExecutionError::Lifecycle(error.into()))?;
+        }
+        if authentication_rejected {
             let disposition = result
                 .as_ref()
                 .err()
                 .map(PermitExecutionError::disposition)
                 .unwrap_or_else(|| unreachable!("rejected Robot result lost its error"));
-            self.client
-                .attempts
-                .reject(&self.credential)
-                .map_err(|error| RobotPermitClientExecutionError::Lifecycle(error.into()))?;
             return Err(RobotPermitClientExecutionError::AuthenticationRejected(
                 disposition,
             ));
         }
+        dispatch.complete();
         result.map_err(RobotPermitClientExecutionError::Permit)
+    }
+}
+
+fn execution_observed_unauthorized<E: DeliveryClassified>(
+    error: &PreparedExecutionError<E>,
+) -> bool {
+    match error {
+        PreparedExecutionError::Transport(error) => error
+            .observed_status()
+            .is_some_and(|status| status.get() == 401),
+        PreparedExecutionError::UnexpectedStatus(status) => status.get() == 401,
+        _ => false,
+    }
+}
+
+fn execution_is_indeterminate<E: DeliveryClassified>(error: &PreparedExecutionError<E>) -> bool {
+    match error {
+        PreparedExecutionError::Transport(error) => {
+            error.delivery_phase() != cloud_sdk::transport::DeliveryPhase::NotSent
+        }
+        PreparedExecutionError::ResponseWriter(_) => true,
+        _ => false,
     }
 }
 
@@ -165,13 +198,16 @@ macro_rules! permit_family {
                 R: $bound,
                 C: PermitClock + ?Sized,
             {
-                if let Err(error) = self.validate_for_dispatch() {
-                    let _ = attempt.complete(cloud_sdk::transport::DeliveryPhase::NotSent);
-                    return Err(RobotPermitClientExecutionError::Lifecycle(error));
-                }
+                let dispatch = match self.reserve_for_dispatch() {
+                    Ok(dispatch) => dispatch,
+                    Err(error) => {
+                        let _ = attempt.complete(cloud_sdk::transport::DeliveryPhase::NotSent);
+                        return Err(RobotPermitClientExecutionError::Lifecycle(error));
+                    }
+                };
                 let result =
                     attempt.execute_blocking(clock, self.client.transport(), body, headers);
-                self.finish(result)
+                self.finish(dispatch, result)
             }
         }
 
@@ -215,14 +251,17 @@ macro_rules! permit_family {
                 'buffer: 'transport,
             {
                 async move {
-                    if let Err(error) = self.validate_for_dispatch() {
-                        let _ = attempt.complete(cloud_sdk::transport::DeliveryPhase::NotSent);
-                        return Err(RobotPermitClientExecutionError::Lifecycle(error));
-                    }
+                    let dispatch = match self.reserve_for_dispatch() {
+                        Ok(dispatch) => dispatch,
+                        Err(error) => {
+                            let _ = attempt.complete(cloud_sdk::transport::DeliveryPhase::NotSent);
+                            return Err(RobotPermitClientExecutionError::Lifecycle(error));
+                        }
+                    };
                     let result = attempt
                         .execute_async(clock, self.client.transport(), body, headers)
                         .await;
-                    self.finish(result)
+                    self.finish(dispatch, result)
                 }
             }
         }
@@ -257,14 +296,17 @@ macro_rules! permit_family {
                 'buffer: 'transport,
             {
                 async move {
-                    if let Err(error) = self.validate_for_dispatch() {
-                        let _ = attempt.complete(cloud_sdk::transport::DeliveryPhase::NotSent);
-                        return Err(RobotPermitClientExecutionError::Lifecycle(error));
-                    }
+                    let dispatch = match self.reserve_for_dispatch() {
+                        Ok(dispatch) => dispatch,
+                        Err(error) => {
+                            let _ = attempt.complete(cloud_sdk::transport::DeliveryPhase::NotSent);
+                            return Err(RobotPermitClientExecutionError::Lifecycle(error));
+                        }
+                    };
                     let result = attempt
                         .execute_local_async(clock, self.client.transport(), body, headers)
                         .await;
-                    self.finish(result)
+                    self.finish(dispatch, result)
                 }
             }
         }

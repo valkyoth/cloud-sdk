@@ -3,7 +3,7 @@ use std::time::Duration;
 
 use cloud_sdk::Method;
 use cloud_sdk::transport::{
-    DeliveryPhase, MediaType, RawResponsePolicy, ResponseBuffer, ResponseMediaPolicy,
+    DeliveryPhase, MediaType, RawResponsePolicy, ResponseBuffer, ResponseMediaPolicy, StatusCode,
     TransportRequest,
 };
 
@@ -326,6 +326,7 @@ Connection: close\r\n\r\n12345";
                 .await,
             Err(error)
                 if error.phase() == DeliveryPhase::ResponseStarted
+                    && error.observed_status().map(StatusCode::get) == Some(400)
                     && error.error() == &RawHttpError::ResponseTooLarge
         ));
     });
