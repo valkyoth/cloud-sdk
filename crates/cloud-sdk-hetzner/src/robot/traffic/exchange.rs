@@ -48,6 +48,15 @@ pub struct CheckedRobotTraffic<'buffer, 'request> {
     inner: CheckedResponseGuard<'buffer>,
 }
 
+impl<'buffer, 'request> CheckedRobotTraffic<'buffer, 'request> {
+    pub(crate) const fn from_executed(
+        request: &'request RobotTrafficRequest,
+        inner: CheckedResponseGuard<'buffer>,
+    ) -> Self {
+        Self { request, inner }
+    }
+}
+
 impl CheckedRobotTraffic<'_, '_> {
     /// Incrementally decodes and binds the report to the complete request.
     pub fn decode_response(self) -> Result<RobotTrafficReport, RobotTrafficDecodeError> {

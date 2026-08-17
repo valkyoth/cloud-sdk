@@ -52,6 +52,15 @@ pub struct CheckedRobotBoot<'buffer, 'request, R> {
     inner: CheckedResponseGuard<'buffer>,
 }
 
+impl<'buffer, 'request, R> CheckedRobotBoot<'buffer, 'request, R> {
+    pub(crate) const fn from_executed(
+        request: &'request R,
+        inner: CheckedResponseGuard<'buffer>,
+    ) -> Self {
+        Self { request, inner }
+    }
+}
+
 impl<R> core::fmt::Debug for CheckedRobotBoot<'_, '_, R> {
     fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         formatter

@@ -3,7 +3,7 @@
 use core::fmt;
 
 use crate::operation::{ExecutionPermitError, ResponsePolicyError};
-use crate::transport::{EndpointIdentityError, ResponseWriterError};
+use crate::transport::{EndpointIdentityError, ResponseWriterError, StatusCode};
 
 /// Incoherent policy supplied while constructing a prepared request.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -47,6 +47,8 @@ pub enum PreparedExecutionError<E> {
     Transport(E),
     /// The SDK-owned response transaction failed.
     ResponseWriter(ResponseWriterError),
+    /// A committed response used a status outside the operation success set.
+    UnexpectedStatus(StatusCode),
     /// The response failed provider-neutral policy.
     ResponsePolicy(ResponsePolicyError),
 }
@@ -69,6 +71,10 @@ impl<E> fmt::Debug for PreparedExecutionError<E> {
                 .debug_tuple("ResponseWriter")
                 .field(error)
                 .finish(),
+            Self::UnexpectedStatus(status) => formatter
+                .debug_tuple("UnexpectedStatus")
+                .field(status)
+                .finish(),
             Self::ResponsePolicy(error) => formatter
                 .debug_tuple("ResponsePolicy")
                 .field(error)
@@ -86,6 +92,7 @@ impl<E> fmt::Display for PreparedExecutionError<E> {
             Self::EndpointMismatch => "transport endpoint differs from prepared service",
             Self::Transport(_) => "prepared request transport failed",
             Self::ResponseWriter(_) => "prepared response transaction failed",
+            Self::UnexpectedStatus(_) => "prepared response status is unexpected",
             Self::ResponsePolicy(_) => "prepared response policy failed",
         })
     }
@@ -105,7 +112,7 @@ impl<E: crate::transport::DeliveryClassified> crate::transport::DeliveryClassifi
             | Self::EndpointMismatch => DeliveryPhase::NotSent,
             Self::Transport(error) => error.delivery_phase(),
             Self::ResponseWriter(_) => DeliveryPhase::PossiblySent,
-            Self::ResponsePolicy(_) => DeliveryPhase::ResponseStarted,
+            Self::UnexpectedStatus(_) | Self::ResponsePolicy(_) => DeliveryPhase::ResponseStarted,
         }
     }
 }

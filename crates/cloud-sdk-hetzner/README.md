@@ -38,7 +38,7 @@ boundaries.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.93.0"
+cloud-sdk = "0.94.0"
 cloud-sdk-hetzner = "0.45.0"
 ```
 
@@ -525,8 +525,9 @@ attempt. POST bodies are sensitive and must use
 fails closed for POST. Bodyless revoke requests may use the exact canonical or
 strong-digest builder. These request-bound wrappers return
 `CheckedCancellation` directly across blocking, Send-async, and local-async
-execution. Keep caller-owned reconciliation after uncertain delivery; v0.79
-does not provide the Robot high-level client.
+execution. Keep caller-owned reconciliation after uncertain delivery. The
+v0.94 official-endpoint Robot client exposes these wrappers without weakening
+their permit contract.
 
 Robot error responses use a separate strict decoder. Pass only an admitted
 transport response; unknown statuses, unknown codes, duplicate keys, and
@@ -766,6 +767,7 @@ authentication scope, raw response policy, and official endpoint.
 | Success response models | Complete checked envelopes for all 208 operations; source-complete ordinary Cloud resources, DNS zones and RRSets, zonefiles, actions, metrics, composites, pricing, locations, certificates, SSH keys, and Console Storage Boxes, types, snapshots, subaccounts, and folders; operation-branded typed execution guards decode through `decode_associated_checked_response` | Current |
 | Error response models | Complete checked typed API error decoding for all active operations | Current |
 | End-to-end client | Complete named workflows for all 208 active Cloud, DNS, Security, and Console Storage Box operations; custom-endpoint execution remains unavailable | Current |
+| Robot client | Complete typed contracts for all 89 active Robot operations; 45 read-only routes execute directly and every state change remains permit-gated | v0.94 source |
 
 Thirteen deprecated operations remain deliberately unavailable. A checked
 release gate prevents non-deprecated request operations from returning to a
@@ -824,13 +826,17 @@ Robot route. Addon creation responses must match the request-bound catalog type
 and price exactly. Uncertain-delivery reconciliation is intentionally more
 conservative: a historical transaction for the same server and product blocks
 retry even if its price or optional type changed, preventing an automatic
-duplicate charge. It does not
-expose a high-level Robot client.
-Its complete source lock records 89
+duplicate charge. `RobotClient::official` exposes all 89 operations across
+blocking, `Send` async, and local-async execution. It accepts no custom
+endpoint, automatically repeats no request, closes a credential generation
+after authentication rejection, and requires explicit reconfirmation or a
+different credential binding before another call. Robot has no Cloud-style
+pagination or action resources, so bounded lists remain single requests and
+operation-specific reconciliation remains explicit. Its complete source lock records 89
 active operations and excludes all 16 deprecated Storage Box operations. See the
 [Robot source-lock contract](https://github.com/valkyoth/cloud-sdk/blob/main/docs/ROBOT_WIRE_SOURCE_LOCK.md).
 The latest Robot additions and source migration are described in the
-[v0.93 source migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.93.0.md).
+[v0.94 source migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.94.0.md).
 Breaking v0.27 constructor and custom-endpoint changes are listed in the
 [migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.27.0.md).
 Shared transport and credential lifecycle changes are listed in the

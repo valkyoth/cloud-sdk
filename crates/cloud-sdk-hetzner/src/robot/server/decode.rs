@@ -190,7 +190,7 @@ pub fn decode_robot_server(
 impl RobotServerListRequest {
     /// Decodes and clears a response admitted by this request's prepared policy.
     pub fn decode_response(
-        self,
+        &self,
         checked: CheckedResponseGuard<'_>,
     ) -> Result<RobotServerList, RobotServerDecodeError> {
         checked.decode_owned_with_workspace(decode_robot_server_list)
@@ -200,7 +200,7 @@ impl RobotServerListRequest {
 impl RobotServerGetRequest {
     /// Decodes, identity-checks, and clears this request's response.
     pub fn decode_response(
-        self,
+        &self,
         checked: CheckedResponseGuard<'_>,
     ) -> Result<RobotServer, RobotServerDecodeError> {
         checked.decode_owned_with_workspace(|response, workspace| {
@@ -212,7 +212,7 @@ impl RobotServerGetRequest {
 impl RobotServerUpdateRequest<'_> {
     /// Decodes, identity-checks, and clears this request's response.
     pub fn decode_response(
-        self,
+        &self,
         checked: CheckedResponseGuard<'_>,
     ) -> Result<RobotServer, RobotServerDecodeError> {
         checked.decode_owned_with_workspace(|response, workspace| {

@@ -41,11 +41,23 @@ def main() -> None:
         overstated = run(path)
         assert overstated.returncode == 1, overstated
 
+        robot_client = (
+            "Robot client | Complete typed contracts for all 89 active Robot "
+            "operations; 45 read-only routes execute directly and every state "
+            "change remains permit-gated"
+        )
+        path.write_text(
+            source.replace(robot_client, "Robot client | Complete"),
+            encoding="utf-8",
+        )
+        incomplete_robot = run(path)
+        assert incomplete_robot.returncode == 1, incomplete_robot
+
         path.write_text(source.replace("| Capability | Current coverage | Planned completion |", "| Hetzner API area | Supported |"), encoding="utf-8")
         ambiguous = run(path)
         assert ambiguous.returncode == 1, ambiguous
 
-    print("3 provider capability documentation tests passed.")
+    print("4 provider capability documentation tests passed.")
 
 
 if __name__ == "__main__":

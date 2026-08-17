@@ -58,7 +58,7 @@ pub struct CheckedRobotIp<'buffer, 'request, R> {
 }
 
 impl<'buffer, 'request, R> CheckedRobotIp<'buffer, 'request, R> {
-    pub(super) const fn from_executed(
+    pub(crate) const fn from_executed(
         request: &'request R,
         inner: CheckedResponseGuard<'buffer>,
     ) -> Self {

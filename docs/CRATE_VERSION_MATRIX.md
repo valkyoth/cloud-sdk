@@ -1,6 +1,6 @@
 # Crate Version Matrix
 
-Status: `v0.90.0` is the latest published checkpoint. `v0.93.0` is the third
+Status: `v0.90.0` is the latest published checkpoint. `v0.94.0` is the fourth
 internal milestone in the v0.91-v0.95 cumulative train.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
@@ -1395,6 +1395,20 @@ remains inside the v0.91-v0.95 cumulative train and does not publish any crate.
 | `cloud-sdk-reqwest` | `0.35.3` | `0.35.3` | `unchanged` | No | No transport boundary changes. |
 | `cloud-sdk-sanitization` | `0.19.0` | `0.19.0` | `unchanged` | No | No sanitization boundary changes. |
 | `cloud-sdk-testkit` | `0.30.5` | `0.30.5` | `unchanged` | No | No testkit boundary changes. |
+
+## v0.94.0 Tracking Table
+
+`v0.94.0` exposes every active Robot operation through complete typed clients.
+It remains inside the v0.91-v0.95 cumulative train and does not publish any
+crate.
+
+| Crate | Published | v0.94 | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.90.0` | `0.94.0` | `code` | No | Advance the internal complete Robot client milestone; defer publication to v0.95.0. |
+| `cloud-sdk-hetzner` | `0.45.0` | `0.45.0` | `code` | No | Accumulate official-endpoint Robot clients and credential lockout for v0.95.0. |
+| `cloud-sdk-reqwest` | `0.35.3` | `0.35.3` | `unchanged` | No | No transport boundary changes. |
+| `cloud-sdk-sanitization` | `0.19.0` | `0.19.0` | `unchanged` | No | No sanitization boundary changes. |
+| `cloud-sdk-testkit` | `0.30.5` | `0.30.5` | `code` | No | Accumulate exact-status regression coverage without changing the package version. |
 
 ## Planned Milestone Ownership
 

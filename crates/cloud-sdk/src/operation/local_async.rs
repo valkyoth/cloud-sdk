@@ -25,8 +25,7 @@ impl<'request> PreparedRequest<'request> {
         let response = self
             .send_local_async(transport, response_storage, response_header_storage)
             .await?;
-        self.validate_response(response)
-            .map_err(PreparedExecutionError::ResponsePolicy)
+        self.validate_executed_response(response)
     }
 
     pub(crate) async fn send_local_async<'transport, 'buffer, T>(
@@ -67,8 +66,7 @@ impl<'request> PreparedRequest<'request> {
                 response_header_storage,
             )
             .await?;
-        self.validate_response(response)
-            .map_err(PreparedExecutionError::ResponsePolicy)
+        self.validate_executed_response(response)
     }
 
     pub(crate) async fn send_local_async_authorized<'transport, 'buffer, T>(

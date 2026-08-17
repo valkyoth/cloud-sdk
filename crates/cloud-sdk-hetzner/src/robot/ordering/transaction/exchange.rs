@@ -143,6 +143,15 @@ pub struct CheckedRobotOrderTransaction<'buffer, 'request, R> {
     inner: CheckedResponseGuard<'buffer>,
 }
 
+impl<'buffer, 'request, R> CheckedRobotOrderTransaction<'buffer, 'request, R> {
+    pub(crate) const fn from_executed(
+        request: &'request R,
+        inner: CheckedResponseGuard<'buffer>,
+    ) -> Self {
+        Self { request, inner }
+    }
+}
+
 /// Checked transaction response carrying transport-established credential provenance.
 pub struct CredentialCheckedRobotOrderTransaction<'buffer, 'request, R> {
     request: &'request R,

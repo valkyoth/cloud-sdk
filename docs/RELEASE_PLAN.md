@@ -3202,13 +3202,58 @@ Status: implementation stop reached; incremental pentest required.
 
 ### v0.94.0 - Robot Client Integration
 
-Goal: expose every active Robot operation through typed clients.
+Goal: expose every active Robot operation through one official-endpoint typed
+client without weakening request-bound decoding, permits, or credential
+lockout.
 
-Deliverables: blocking, Send-async, local-async, pager/action workflows, endpoint/auth separation, permits, cleanup, and complete mock scenarios. All layers delegate retry ownership to the `v0.46.0` policy, propagate Robot authentication rejection without repetition, and require a newly supplied or explicitly reconfirmed credential-attempt generation before another call.
+Deliverables:
 
-Verification: client coverage, authentication rejection through direct/pager/action/workflow paths with exactly one wire attempt, rejected-generation reuse denial, explicit reconfirmation, lockout/cancellation/concurrency scenarios, and `scripts/release_0_94_gate.sh`.
+- add a `RobotClient<T>` constructor that accepts only the exact official
+  Robot HTTPS endpoint and binds every call to the captured Basic-auth
+  credential lineage;
+- implement a sealed typed operation contract for all 89 active Robot
+  operations and publish an exact method/path inventory;
+- expose blocking, `Send` async, and local-async direct execution for all 45
+  read-only operations;
+- route all state changes through their existing specialized permit or a
+  sealed generic permit restricted to server update and the eight boot
+  activation/deactivation mutations;
+- reuse request-bound checked success and strict provider-error decoders, with
+  cleanup-owning request and response storage in every execution mode;
+- preserve exact unexpected status codes in neutral prepared execution;
+- close one shared credential generation after the first exact or malformed
+  authentication rejection, revalidate queued attempts immediately before
+  dispatch, and require different replacement credentials or explicit caller
+  reconfirmation before another wire call; and
+- keep retry ownership with the explicit `v0.46.0` policy. Robot bounded lists
+  and transaction snapshots remain one request because the provider exposes no
+  Cloud-style pagination; Robot exposes no Cloud action resource, so existing
+  mutation and order reconciliation workflows remain explicit rather than
+  being represented by synthetic pager/action APIs.
 
-Stop gate: `v0.94.0 implementation stop reached. Complete the pentest and full release gate for this exact commit; defer crates.io publication to v0.95.0.`
+Verification:
+
+- compile-time coverage proves all 89 operations implement the typed contract,
+  all 45 read-only operations expose direct execution, and only the reviewed
+  nine mutations enter the generic permit family;
+- deterministic mocks cover typed success across blocking, `Send` async, and
+  local-async execution, official-endpoint rejection, exact and malformed
+  `401`, one wire attempt, rejected-generation reuse denial, explicit
+  reconfirmation, permit spending, unpolled-future cancellation, and concurrent
+  stale-attempt denial;
+- core tests prove exact unexpected-status preservation in all three execution
+  modes; and
+- `scripts/check_robot_clients.sh` and `scripts/release_0_94_gate.sh` pass.
+
+Exit criteria: every active Robot operation is typed and client-reachable,
+every state-changing route remains permit-gated, no rejected credential
+generation can reach a second wire attempt, response cleanup and source-locked
+decoding are preserved, no dependency or default feature is added, and the
+exact implementation commit is ready for incremental pentest.
+
+Stop gate: `v0.94.0 implementation stop reached. Run the incremental pentest for this exact commit before the full release gate and tag; defer crates.io publication to v0.95.0.`
+
+Status: implementation stop reached; incremental pentest required.
 
 ### v0.95.0 - Robot Live Evidence
 

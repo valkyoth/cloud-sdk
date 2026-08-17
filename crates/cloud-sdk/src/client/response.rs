@@ -1,6 +1,7 @@
 use core::fmt;
 
 use crate::diagnostics::{DiagnosticRequestId, DiagnosticResponse};
+use crate::operation::CheckedResponseGuard;
 use crate::operation::{CheckedResponse, PreparedRequest, ResponsePolicyError};
 use crate::transport::{
     ResponseBuffer, ResponseDecodeWorkspace, ResponseWriterError, StatusCode, TransportResponse,
@@ -117,6 +118,22 @@ impl<'request, 'buffer> ClientResponse<'request, 'buffer> {
         checked
             .decode_owned_with_workspace(decode)
             .map_err(CheckedDecodeError::Decoder)
+    }
+
+    /// Applies success policy and lends the cleanup-owning checked response.
+    ///
+    /// Provider SDKs use this form when an existing request-bound response
+    /// wrapper must retain its provenance while decoding. The guard still
+    /// clears all response and decoder storage when consumed or dropped.
+    pub fn decode_success_guarded<R, E>(
+        self,
+        decode: impl FnOnce(CheckedResponseGuard<'buffer>) -> Result<R, E>,
+    ) -> Result<R, CheckedDecodeError<E>> {
+        let checked = self
+            .prepared
+            .validate_response(self.response)
+            .map_err(CheckedDecodeError::ResponsePolicy)?;
+        decode(checked).map_err(CheckedDecodeError::Decoder)
     }
 
     /// Applies error metadata policy, decodes an owned value, and clears all storage.

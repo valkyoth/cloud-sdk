@@ -61,7 +61,7 @@ pub struct CheckedRobotRdns<'buffer, 'request, R> {
 }
 
 impl<'buffer, 'request, R> CheckedRobotRdns<'buffer, 'request, R> {
-    pub(super) const fn from_executed(
+    pub(crate) const fn from_executed(
         request: &'request R,
         inner: CheckedResponseGuard<'buffer>,
     ) -> Self {

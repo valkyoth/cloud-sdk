@@ -1,6 +1,36 @@
 # Changelog
 
-## 0.91.0 - Pending
+## 0.94.0 - Pending
+
+- Added an exact-official-endpoint Robot client and sealed typed contracts for
+  all 89 active Robot operations.
+- Added direct blocking, `Send` async, and local-async execution for all 45
+  read-only operations while retaining permit gates for every state change.
+- Added shared authentication-rejection lockout, explicit reconfirmation and
+  replacement, pre-dispatch stale-attempt checks, and exact-status preservation.
+- Added exhaustive operation inventory, endpoint, decode, cleanup,
+  cancellation, lockout, permit, and concurrency evidence.
+- Deferred crates.io publication to the cumulative v0.95.0 checkpoint.
+
+## 0.93.0 - 2026-08-16
+
+- Added all three active billable Robot order operations with catalog-derived
+  cost authority, guarded preparation, one-shot permits, and strict responses.
+- Bound order and reconciliation evidence to endpoint, account, credential,
+  request, price, expiry, replay, and transaction identity.
+- Required explicit reconciliation after uncertain delivery and statically
+  excluded billable Robot routes from CI and live smoke.
+- Deferred crates.io publication to the cumulative v0.95.0 checkpoint.
+
+## 0.92.0 - 2026-08-16
+
+- Added all six active read-only Robot transaction operations with bounded
+  30-day snapshots and request-bound detail decoding.
+- Added credential-observed transaction evidence used by guarded order
+  reconciliation without inventing provider revision or pagination semantics.
+- Deferred crates.io publication to the cumulative v0.95.0 checkpoint.
+
+## 0.91.0 - 2026-08-14
 
 - Added all six active read-only Robot ordering-catalog operations for
   standard products, Server Auction products, per-server addons, and currency.

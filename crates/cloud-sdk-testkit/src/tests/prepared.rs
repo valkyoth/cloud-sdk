@@ -190,10 +190,40 @@ fn mock_models_endpoint_status_content_type_and_empty_body_failures() {
         let mock = MockTransport::new(&exchanges).with_endpoint(endpoint);
         assert!(matches!(
             prepared.execute_blocking(&mock, &mut output, &mut response_headers),
-            Err(PreparedExecutionError::ResponsePolicy(
-                ResponsePolicyError::UnexpectedStatus
-            ))
+            Err(PreparedExecutionError::UnexpectedStatus(status))
+                if status == StatusCode::TOO_MANY_REQUESTS
         ));
+
+        let error = ResponseFixture::error(StatusCode::TOO_MANY_REQUESTS, json_body)
+            .unwrap_or_else(|_| unreachable!("provider-error fixture failed"))
+            .with_content_type("application/json");
+        let exchanges = [MockExchange::new(expected, error)];
+        let mock = MockTransport::new(&exchanges).with_endpoint(endpoint);
+        let mut context = Context::from_waker(Waker::noop());
+        {
+            let future = prepared.execute_async(&mock, &mut output, &mut response_headers);
+            let mut future = core::pin::pin!(future);
+            assert!(matches!(
+                Future::poll(future.as_mut(), &mut context),
+                Poll::Ready(Err(PreparedExecutionError::UnexpectedStatus(status)))
+                    if status == StatusCode::TOO_MANY_REQUESTS
+            ));
+        }
+
+        let error = ResponseFixture::error(StatusCode::TOO_MANY_REQUESTS, json_body)
+            .unwrap_or_else(|_| unreachable!("provider-error fixture failed"))
+            .with_content_type("application/json");
+        let exchanges = [MockExchange::new(expected, error)];
+        let mock = LocalMockTransport::new(&exchanges).with_endpoint(endpoint);
+        {
+            let future = prepared.execute_local_async(&mock, &mut output, &mut response_headers);
+            let mut future = core::pin::pin!(future);
+            assert!(matches!(
+                Future::poll(future.as_mut(), &mut context),
+                Poll::Ready(Err(PreparedExecutionError::UnexpectedStatus(status)))
+                    if status == StatusCode::TOO_MANY_REQUESTS
+            ));
+        }
     } else {
         unreachable!("provider-error fixture construction failed");
     }

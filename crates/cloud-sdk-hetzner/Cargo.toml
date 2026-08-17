@@ -84,6 +84,10 @@ required-features = ["serde"]
 name = "storage_client_unpolled_cleanup"
 required-features = ["serde"]
 
+[[test]]
+name = "robot_client"
+required-features = ["serde"]
+
 [[example]]
 name = "action_polling"
 required-features = ["serde"]

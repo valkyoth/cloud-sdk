@@ -9,10 +9,7 @@ pub struct CredentialObserved<T> {
 }
 
 impl<T> CredentialObserved<T> {
-    pub(in crate::robot::ordering) const fn from_parts(
-        value: T,
-        credential: CredentialBinding,
-    ) -> Self {
+    pub(crate) const fn from_parts(value: T, credential: CredentialBinding) -> Self {
         Self { value, credential }
     }
 

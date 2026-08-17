@@ -144,6 +144,15 @@ pub struct CheckedRobotOrderCatalog<'buffer, 'request, R> {
     inner: CheckedResponseGuard<'buffer>,
 }
 
+impl<'buffer, 'request, R> CheckedRobotOrderCatalog<'buffer, 'request, R> {
+    pub(crate) const fn from_executed(
+        request: &'request R,
+        inner: CheckedResponseGuard<'buffer>,
+    ) -> Self {
+        Self { request, inner }
+    }
+}
+
 /// Checked catalog response carrying transport-established credential provenance.
 pub struct CredentialCheckedRobotOrderCatalog<'buffer, 'request, R> {
     request: &'request R,

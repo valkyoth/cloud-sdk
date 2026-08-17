@@ -216,6 +216,20 @@ impl<'request> PreparedRequest<'request> {
             .validate(response, self.metadata.request_id_policy())
     }
 
+    pub(crate) fn validate_executed_response<'buffer, E>(
+        self,
+        response: ResponseBuffer<'buffer>,
+    ) -> Result<CheckedResponseGuard<'buffer>, PreparedExecutionError<E>> {
+        let status = response
+            .with_response(|response| response.status())
+            .map_err(PreparedExecutionError::ResponseWriter)?;
+        if !self.response_policy.success_statuses().contains(&status) {
+            return Err(PreparedExecutionError::UnexpectedStatus(status));
+        }
+        self.validate_response(response)
+            .map_err(PreparedExecutionError::ResponsePolicy)
+    }
+
     /// Applies operation-owned metadata policy before provider error decoding.
     ///
     /// This is the error-status counterpart to [`Self::validate_response`].
@@ -239,9 +253,7 @@ impl<'request> PreparedRequest<'request> {
         T: BlockingAuthenticatedTransport + BoundTransport,
     {
         let response = self.send_blocking(transport, response_storage, response_header_storage)?;
-        self.response_policy
-            .validate(response, self.metadata.request_id_policy())
-            .map_err(PreparedExecutionError::ResponsePolicy)
+        self.validate_executed_response(response)
     }
 
     pub(crate) fn send_blocking<'buffer, T>(
@@ -277,9 +289,7 @@ impl<'request> PreparedRequest<'request> {
             response_storage,
             response_header_storage,
         )?;
-        self.response_policy
-            .validate(response, self.metadata.request_id_policy())
-            .map_err(PreparedExecutionError::ResponsePolicy)
+        self.validate_executed_response(response)
     }
 
     pub(crate) fn send_blocking_authorized<'buffer, T>(
@@ -319,9 +329,7 @@ impl<'request> PreparedRequest<'request> {
         let response = self
             .send_async(transport, response_storage, response_header_storage)
             .await?;
-        self.response_policy
-            .validate(response, self.metadata.request_id_policy())
-            .map_err(PreparedExecutionError::ResponsePolicy)
+        self.validate_executed_response(response)
     }
 
     pub(crate) async fn send_async<'transport, 'buffer, T>(
@@ -362,9 +370,7 @@ impl<'request> PreparedRequest<'request> {
                 response_header_storage,
             )
             .await?;
-        self.response_policy
-            .validate(response, self.metadata.request_id_policy())
-            .map_err(PreparedExecutionError::ResponsePolicy)
+        self.validate_executed_response(response)
     }
 
     pub(crate) async fn send_async_authorized<'transport, 'buffer, T>(

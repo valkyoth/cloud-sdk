@@ -164,10 +164,12 @@ response identity binding. Deprecated server-IP aliases remain excluded.
    credential-attempt generations, structurally non-retryable authentication
    rejection, lockout, errors, quotas, every active resource family, ordering,
    and scoped billable mutations in `v0.74.0` through `v0.93.0`.
-18. Robot integration and live evidence: blocking, Send-async, local-async,
-   pager/action workflows that cannot repeat authentication rejection, complete
-   mock coverage, and carefully gated read-only live evidence in `v0.94.0` and
-   `v0.95.0`.
+18. Robot integration and live evidence: complete official-endpoint blocking,
+   Send-async, and local-async clients; one-generation authentication lockout;
+   permit-gated mutation and order reconciliation workflows; complete mock
+   coverage; and carefully gated read-only live evidence in `v0.94.0` and
+   `v0.95.0`. Robot bounded lists are single responses and Robot exposes no
+   Cloud-style action resource, so the SDK does not invent pager/action APIs.
 19. Whole-platform qualification: adversarial/fuzz evidence, platform/MSRV
    evidence, provenance/governance review, controlled mutation evidence, and
    the final release candidate in `v0.96.0` through `v0.99.0`.

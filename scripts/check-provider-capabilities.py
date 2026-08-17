@@ -39,6 +39,12 @@ EXPECTED = (
         "and Console Storage Box operations; custom-endpoint execution remains unavailable",
         "Current",
     ),
+    (
+        "Robot client",
+        "Complete typed contracts for all 89 active Robot operations; 45 read-only "
+        "routes execute directly and every state change remains permit-gated",
+        "v0.94 source",
+    ),
 )
 
 

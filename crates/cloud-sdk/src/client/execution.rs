@@ -270,6 +270,7 @@ fn execution_failed<E>(
         }
         PreparedExecutionError::Transport(_) => DiagnosticErrorCategory::Transport,
         PreparedExecutionError::ResponseWriter(_) => DiagnosticErrorCategory::ResponseTransaction,
+        PreparedExecutionError::UnexpectedStatus(_) => DiagnosticErrorCategory::ResponsePolicy,
         PreparedExecutionError::ResponsePolicy(_) => DiagnosticErrorCategory::ResponsePolicy,
     };
     DiagnosticEvent::ExecutionFailed { context, error }
