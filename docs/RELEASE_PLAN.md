@@ -3321,9 +3321,9 @@ release gate, and green GitHub CI/CodeQL.
 
 ### v0.96.0 - Hetzner Scope Closure And Adversarial Qualification
 
-Goal: close the sole prose-only Hetzner Cloud surface omitted by the OpenAPI
-inventory and then complete the wire, authentication, decoder, permit,
-cleanup, and Robot adversarial matrix.
+Goal: close the prose-only Server Metadata surface and every known gap between
+operation-level coverage and executable request fidelity, then complete the
+wire, authentication, decoder, permit, cleanup, and Robot adversarial matrix.
 
 Deliverables:
 
@@ -3342,6 +3342,26 @@ Deliverables:
 - bind the official changelog RSS source into the weekly and release drift
   workflow, review the August 2026 Load Balancer health and Primary IP
   behavior notices, and add exact regression fixtures for both;
+- correct `get_server_metrics` request fidelity: replace its single metric
+  selector with a non-empty duplicate-free `cpu`/`disk`/`network` selection,
+  validate the complete admitted RFC3339 timestamp profile with real calendar
+  bounds, and replace the generic text step with a dedicated positive bounded
+  resolution type;
+- reconcile all 222 query-parameter declarations in the current Cloud and
+  Console Storage schemas, including all 84 array-valued declarations (76
+  Cloud and eight Console Storage), and replace every accidental single-value
+  collapse with bounded repeated-value models and canonical wire encoding;
+- close the confirmed list-query gaps: complete Image `status`,
+  `include_deprecated`, `name`, `label_selector`, and `architecture` filters;
+  replace the obsolete Primary IP `type` filter with current `name` and `ip`
+  filters; complete catalog `name`, architecture, and wildcard filters; and
+  make resource/action `id`, `sort`, `status`, `type`, and `bound_to` arrays
+  fully expressible while retaining duplicate and aggregate bounds;
+- add a source-derived request-fidelity inventory and release check covering
+  path and query presence, array cardinality and encoding, required/optional
+  fields, enums, formats, numeric/string/collection bounds, request-body
+  schemas, and operation-specific request ownership so operation presence
+  alone cannot overstate support;
 - publish a finite 1.0 scope statement covering 208 active OpenAPI operations,
   89 active Robot operations, seven Server Metadata reads, 29 deprecated
   exclusions, standard-S3 Object Storage exclusion, and unavailable Robot
@@ -3362,6 +3382,16 @@ Verification:
 - prove current additive Load Balancer health fields and the Primary IP
   `unassigned`/`null` pair are accepted and validated without weakening unknown
   enum handling;
+- prove server metrics encode every non-empty metric combination canonically,
+  reject duplicate/empty selections and invalid timestamps or steps, preserve
+  exact endpoint/client behavior across all executors, and decode bounded
+  multi-series responses;
+- test repeated query values for every affected resource and action family,
+  including empty, duplicate, maximum-count, ordering, aggregate-target-size,
+  and failed-encoding cleanup cases;
+- compare every active operation's path, query, and body contract against the
+  generated request-fidelity inventory and require zero unexplained missing,
+  obsolete, narrowed, widened, or incorrectly encoded fields;
 - run all operation/client matrices, corpora, fuzz build/smoke, SBOM, deny,
   audit, no-std, MSRV/current, documentation, and package checks; and
 - run `scripts/release_0_96_gate.sh` against a clean exact commit.
@@ -3369,8 +3399,10 @@ Verification:
 Exit criteria: every official non-deprecated Cloud, Console Storage, Robot,
 and canonical Server Metadata operation in the frozen 1.0 scope is either
 implemented exactly once or explicitly excluded with an official rationale;
-all three source classes fail closed on drift; the complete adversarial matrix
-is green; and the exact implementation commit is ready for pentest.
+every operation's complete request contract is executable rather than merely
+cataloged; all three source classes fail closed on drift; the complete
+adversarial matrix is green; and the exact implementation commit is ready for
+pentest.
 
 Stop gate: `v0.96.0 implementation stop reached. Run the pentest and full release gate for this exact commit; defer crates.io publication to v0.99.0.`
 
