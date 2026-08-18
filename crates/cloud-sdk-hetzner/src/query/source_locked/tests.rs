@@ -77,6 +77,19 @@ fn rejects_wrong_types_invalid_enums_steps_and_timestamps() {
         SourceLockedQuery::try_new(SourceQueryOperation::GET_SERVER_METRICS, &metrics),
         Err(SourceQueryError::InvalidTimestamp)
     );
+
+    let non_decimal_timestamp = [
+        SourceQueryArgument::text(SourceQueryParameter::End, text("2026-09-01T00:00:00Z")),
+        SourceQueryArgument::text(SourceQueryParameter::Start, text("2026-08-0:T00:00:00Z")),
+        SourceQueryArgument::text(SourceQueryParameter::Type, text("cpu")),
+    ];
+    assert_eq!(
+        SourceLockedQuery::try_new(
+            SourceQueryOperation::GET_SERVER_METRICS,
+            &non_decimal_timestamp,
+        ),
+        Err(SourceQueryError::InvalidTimestamp)
+    );
 }
 
 #[test]

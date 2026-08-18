@@ -8,6 +8,8 @@
   accepted upstream parameter changes red until implementation review.
 - Corrected server metrics combinations, timestamps, numeric steps, and
   provider-documented comma encoding.
+- Restricted dependency-review evidence to the current release section and
+  rejected non-decimal bytes in source-locked metrics timestamps.
 - Replaced the obsolete Primary IP type filter and completed common Image
   filters. Crates.io publication remains deferred to v0.100.0.
 

@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import re
 import subprocess
 import sys
 import tomllib
@@ -58,6 +59,17 @@ def missing_rows(
     ]
 
 
+def review_section(review_text: str, version: str) -> str:
+    """Return only the dependency evidence for one release version."""
+    if re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+", version) is None:
+        raise ReviewError("dependency review: release version is invalid")
+    marker = f"## v{version}\n"
+    _, found, remainder = review_text.partition(marker)
+    if not found:
+        raise ReviewError(f"dependency review: missing section v{version}")
+    return remainder.split("\n## ", 1)[0]
+
+
 def previous_lock(base: str) -> str:
     """Read Cargo.lock from one local reviewed Git ref without invoking a shell."""
     result = subprocess.run(
@@ -73,13 +85,14 @@ def previous_lock(base: str) -> str:
 
 
 def main(arguments: list[str]) -> int:
-    if len(arguments) != 2:
+    if len(arguments) != 3:
         print(
-            "usage: check_dependency_review.py <previous-tag> <review-document>",
+            "usage: check_dependency_review.py "
+            "<previous-tag> <release-version> <review-document>",
             file=sys.stderr,
         )
         return 2
-    base, review_name = arguments
+    base, release_version, review_name = arguments
     review_path = (ROOT / review_name).resolve()
     docs_root = (ROOT / "docs").resolve()
     if docs_root not in review_path.parents:
@@ -87,7 +100,9 @@ def main(arguments: list[str]) -> int:
         return 2
     try:
         current_text = (ROOT / "Cargo.lock").read_text(encoding="utf-8")
-        review_text = review_path.read_text(encoding="utf-8")
+        review_text = review_section(
+            review_path.read_text(encoding="utf-8"), release_version
+        )
         changes = version_changes(
             package_versions(previous_lock(base)), package_versions(current_text)
         )

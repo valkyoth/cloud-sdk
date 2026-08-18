@@ -154,9 +154,11 @@ fn valid_timestamp(value: &str) -> bool {
 fn decimal(bytes: &[u8], start: usize, end: usize) -> Option<u16> {
     let mut value = 0_u16;
     for byte in bytes.get(start..end)? {
-        value = value
-            .checked_mul(10)?
-            .checked_add(u16::from(byte.checked_sub(b'0')?))?;
+        let digit = byte.checked_sub(b'0')?;
+        if digit > 9 {
+            return None;
+        }
+        value = value.checked_mul(10)?.checked_add(u16::from(digit))?;
     }
     Some(value)
 }

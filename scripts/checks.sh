@@ -16,7 +16,7 @@ scripts/test-platform-matrix.py
 scripts/test-latest-tools.py
 scripts/test-rustsec-advisories.py
 scripts/test-dependency-review.py
-scripts/check_dependency_review.py v0.94.0 docs/DEPENDENCY_REVIEW.md
+scripts/check_dependency_review.py v0.95.0 0.96.0 docs/DEPENDENCY_REVIEW.md
 scripts/check_review_digests.py
 scripts/test-publishable-readmes.py
 scripts/check-release-plan-structure.py

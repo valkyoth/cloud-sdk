@@ -46,6 +46,16 @@ It starts the v0.96-v0.100 cumulative train and publishes no crate.
 - Added compile-checked documentation and preparation tests for complete
   repeated filters and mismatch cleanup.
 
+## Pentest Remediation
+
+- Scoped dependency-review evidence to the explicitly selected release
+  section and corrected the v0.96 comparison baseline to v0.95.0. Historical
+  evidence can no longer satisfy a current dependency transition.
+- Rejected every non-decimal byte in source-locked metrics timestamps rather
+  than accepting punctuation whose ASCII offset exceeded nine.
+- Added regressions for historical dependency-row reuse, missing or malformed
+  release sections, and malformed metrics timestamp digits.
+
 ## Versions
 
 | Crate | Published | v0.96 source | Publication |

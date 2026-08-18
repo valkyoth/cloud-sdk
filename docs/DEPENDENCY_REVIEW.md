@@ -393,7 +393,7 @@ Add future release sections here instead of creating another version-named file.
 
 Status: release candidate; pentest and final retest passed.
 
-## Result
+### Result
 
 v0.95 adds one exact Unix-only development dependency: `rustix 1.1.4` with
 only `fs`, `process`, and `std`. The ignored live integration harness uses its
@@ -413,7 +413,7 @@ The optional non-FIPS graph remains exactly `aws-lc-rs 1.18.0`,
 remain absent and deferred to Brynja. All ordinary first-party crate defaults
 remain empty, and `cloud-sdk-hetzner` has no transport dependency.
 
-## Lockfile Changes
+### Lockfile Changes
 
 | Package | Previous | v0.95 | Review |
 | --- | --- | --- | --- |
@@ -423,7 +423,7 @@ remain empty, and `cloud-sdk-hetzner` has no transport dependency.
 | `ovhcloud-v2-probe` | `0.94.0` | `0.95.0` | Advance the excluded workspace probe identity only. |
 | `rustix` | `-` | `1.1.4` | Exact safe descriptor and effective-user API for the ignored Unix live harness only. |
 
-## Workspace Version Changes
+### Workspace Version Changes
 
 | Package | Published | v0.95 | Change | Publish |
 | --- | --- | --- | --- | --- |
@@ -448,12 +448,14 @@ embedded generated TSV and existing fixed-buffer primitives. The Python
 generator uses only the standard library. Default provider graphs remain
 transport-free and `no_std`; FIPS remains deferred to Brynja.
 
-## Lockfile Changes
+### Lockfile Changes
 
 | Package | Previous | v0.96 | Review |
 | --- | --- | --- | --- |
-| `cloud-sdk` | `0.94.0` | `0.96.0` | Advance the provider-neutral internal milestone identity; v0.95 was the intervening published checkpoint. |
-| `ovhcloud-v2-probe` | `0.94.0` | `0.96.0` | Advance the excluded workspace probe identity only. |
+| `cloud-sdk` | `0.95.0` | `0.96.0` | Advance the provider-neutral internal milestone identity. |
+| `ovhcloud-v2-probe` | `0.95.0` | `0.96.0` | Advance the excluded workspace probe identity only. |
+
+### Workspace Version Changes
 
 | Package | Published | v0.96 | Change | Publish |
 | --- | --- | --- | --- | --- |
