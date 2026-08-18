@@ -450,8 +450,10 @@ indeterminate post-dispatch failure.
 
 `v0.95.0` adds ignored live evidence for the sole bodyless `GET /server`
 inventory request. Credential-free staging, separate private Basic credential
-files, a fixed root-owned launcher, static output, and source checks keep
-mutations, orders, invalid-login tests, retries, and GitHub execution absent.
+files, Unix no-follow descriptor validation, a fixed root-owned launcher,
+static output, and an exact-match transport test over the shared execution
+function keep mutations, orders, invalid-login tests, retries, and GitHub
+execution absent. Substring source inspection remains a secondary tripwire.
 
 Robot implementation schedule:
 

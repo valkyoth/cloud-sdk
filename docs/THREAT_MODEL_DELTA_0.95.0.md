@@ -25,15 +25,19 @@ ordering, response/resource disclosure, and hidden retries.
 - The Robot launcher has one fixed mode. The runner clears inherited state,
   rejects additional arguments, destructive opt-in, bearer tokens, incomplete
   or mixed credentials, and selects exactly `read_only_robot_server_smoke`.
-- Credential files must be separate private regular files. The Rust boundary
-  rejects symlinks, hard links, broad Unix permissions, identity changes,
-  oversized or empty values, and clears both complete source allocations on
-  every return.
+- Credential files must be separate private regular files in owner-only parent
+  directories. Unix opens are descriptor-based with no-follow semantics and
+  require effective-user ownership, one link, and owner-only permissions;
+  non-Unix live loading fails closed. Oversized or empty values are rejected,
+  and both complete source allocations clear on every return.
 - Basic authorization is scoped to Hetzner, Robot, and the exact official HTTPS
   endpoint. `RobotClient::official` verifies that destination again.
-- The only live request is bodyless `GET /server`; source gates reject
-  mutation, permits, orders, transactions, custom endpoints, and workflow
-  execution. No invalid credential or automatic retry is intentionally sent.
+- The only live request is bodyless `GET /server`. A compiled exact-match
+  transport test exercises the shared live execution function and rejects any
+  method, target, body, header, endpoint, or dispatch-count change. Static
+  source checks remain secondary tripwires for mutation, permits, orders,
+  transactions, custom endpoints, and workflow execution. No invalid
+  credential or automatic retry is intentionally sent.
 - Request, response, header, authorization, and credential storage stays
   bounded and cleanup-owned. Output and errors remain static and payload-free.
 

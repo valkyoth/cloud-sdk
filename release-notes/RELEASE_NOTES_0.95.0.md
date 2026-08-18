@@ -29,9 +29,13 @@ read-only operator harness without changing any default dependency graph.
   reviewed commit.
 - Made the isolated runner reject mixed Cloud/Robot credentials, destructive
   opt-in, incomplete files, arbitrary arguments, and all operation selection.
-- Added source and regression gates proving CI receives no Robot credentials
-  and the live path contains no mutation, order, transaction, custom endpoint,
-  invalid-login test, or automatic retry.
+- Added an exact-match transport regression over the shared live execution
+  function, requiring one bodyless `GET /server` at the official endpoint and
+  rejecting any extra dispatch. Static source inspection remains a secondary
+  tripwire, and CI receives no Robot credentials.
+- Hardened Unix credential loading with descriptor-level no-follow opens,
+  effective-user ownership, private-parent, single-link, and owner-only mode
+  checks; unsupported non-Unix live loading fails closed.
 - Documented least-capability account setup, privileged sealing, private-file
   handling, output policy, lockout risk, revocation, and residual cleanup
   boundaries.

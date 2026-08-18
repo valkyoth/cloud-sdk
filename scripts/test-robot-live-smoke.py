@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Regression tests for the Robot live-smoke source contract."""
+"""Regression tests for the Robot live-smoke secondary source tripwire."""
 
 from __future__ import annotations
 
@@ -38,8 +38,8 @@ def main() -> None:
         [str(CHECK)], cwd=ROOT, check=False, capture_output=True, text=True
     )
     assert result.returncode == 0, result
-    assert result.stdout.strip() == "Robot live smoke source contract passed."
-    print("3 Robot live smoke contract tests passed.")
+    assert result.stdout.strip() == "Robot live smoke secondary source tripwire passed."
+    print("3 Robot live smoke source-tripwire tests passed.")
 
 
 if __name__ == "__main__":

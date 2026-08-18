@@ -846,7 +846,10 @@ The separately sealed operator harness can execute only one bodyless typed
 Robot server-list read against the exact official endpoint. It is ignored by
 default, absent from CI, accepts separate private Basic credential files only
 after credential-free staging, and contains no mutation, ordering, invalid-
-login, or retry route. See the
+login, or retry route. Unix files use no-follow descriptor opens with owner and
+private-parent validation; non-Unix live loading fails closed. An exact-match
+authenticated transport tests the shared live execution function and rejects
+wire or dispatch-count drift. See the
 [live-smoke runbook](https://github.com/valkyoth/cloud-sdk/blob/main/docs/LIVE_SMOKE_TESTING.md).
 The complete Robot client and live-evidence migration is described in the
 [v0.95 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.95.0.md).

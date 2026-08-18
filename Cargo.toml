@@ -55,6 +55,7 @@ cloud-sdk-testkit = { path = "crates/cloud-sdk-testkit", version = "0.31.0" }
 reqwest = { version = "=0.13.4", default-features = false }
 rustls = { version = "=0.23.43", default-features = false }
 rustls-platform-verifier = { version = "=0.7.0", default-features = false }
+rustix = { version = "=1.1.4", default-features = false, features = ["fs", "process", "std"] }
 webpki-roots = { version = "=1.0.9", default-features = false }
 tokio = { version = "1.53.1", default-features = false }
 serde = { version = "1.0.229", default-features = false, features = ["alloc", "derive"] }

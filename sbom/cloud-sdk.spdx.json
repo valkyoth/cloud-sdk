@@ -1,21 +1,21 @@
 {
   "SPDXID": "SPDXRef-DOCUMENT",
   "creationInfo": {
-    "created": "2026-08-18T13:45:59Z",
+    "created": "2026-08-18T14:22:53Z",
     "creators": [
       "Tool: cargo-sbom-v0.10.0",
       "Tool: cloud-sdk-complete-spdx-v1"
     ]
   },
   "dataLicense": "CC0-1.0",
-  "documentNamespace": "https://spdx.org/spdxdocs/cloud-sdk-d586a2b9-36d8-485a-aa7d-c398ea26bba0",
+  "documentNamespace": "https://spdx.org/spdxdocs/cloud-sdk-c39eb533-d868-426f-b042-23443f266f21",
   "files": [
     {
       "SPDXID": "SPDXRef-File-cloud_sdk",
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "0818b4acb36e6074f4982651a50352a713590af7"
+          "checksumValue": "0fd6c39f7662101830bff09454c916a4eb192b30"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -29,7 +29,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "0818b4acb36e6074f4982651a50352a713590af7"
+          "checksumValue": "0fd6c39f7662101830bff09454c916a4eb192b30"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -43,7 +43,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "0818b4acb36e6074f4982651a50352a713590af7"
+          "checksumValue": "0fd6c39f7662101830bff09454c916a4eb192b30"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -57,7 +57,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "0818b4acb36e6074f4982651a50352a713590af7"
+          "checksumValue": "0fd6c39f7662101830bff09454c916a4eb192b30"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -71,7 +71,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "0818b4acb36e6074f4982651a50352a713590af7"
+          "checksumValue": "0fd6c39f7662101830bff09454c916a4eb192b30"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -85,7 +85,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "0818b4acb36e6074f4982651a50352a713590af7"
+          "checksumValue": "0fd6c39f7662101830bff09454c916a4eb192b30"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -504,6 +504,22 @@
         {
           "referenceCategory": "PACKAGE-MANAGER",
           "referenceLocator": "pkg:cargo/dunce@1.0.5",
+          "referenceType": "purl"
+        }
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-Package-errno-0.3.14",
+      "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
+      "licenseConcluded": "MIT OR Apache-2.0",
+      "name": "errno",
+      "versionInfo": "0.3.14",
+      "licenseDeclared": "MIT OR Apache-2.0",
+      "description": "Cross-platform interface to the `errno` variable.",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:cargo/errno@0.3.14",
           "referenceType": "purl"
         }
       ]
@@ -1121,6 +1137,22 @@
       "versionInfo": "0.2.189"
     },
     {
+      "SPDXID": "SPDXRef-Package-linux-raw-sys-0.12.1",
+      "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
+      "licenseConcluded": "Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT",
+      "name": "linux-raw-sys",
+      "versionInfo": "0.12.1",
+      "licenseDeclared": "Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT",
+      "description": "Generated bindings for Linux's userspace API",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:cargo/linux-raw-sys@0.12.1",
+          "referenceType": "purl"
+        }
+      ]
+    },
+    {
       "SPDXID": "SPDXRef-Package-litemap-0.8.3",
       "description": "A key-value Map implementation based on a flat, sorted Vec.",
       "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
@@ -1537,6 +1569,22 @@
       "licenseDeclared": "Apache-2.0 OR MIT",
       "name": "rustc-hash",
       "versionInfo": "2.1.3"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-rustix-1.1.4",
+      "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
+      "licenseConcluded": "Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT",
+      "name": "rustix",
+      "versionInfo": "1.1.4",
+      "licenseDeclared": "Apache-2.0 WITH LLVM-exception OR Apache-2.0 OR MIT",
+      "description": "Safe Rust bindings to POSIX/Unix/Linux/Winsock-like syscalls",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:cargo/rustix@1.1.4",
+          "referenceType": "purl"
+        }
+      ]
     },
     {
       "SPDXID": "SPDXRef-Package-rustls-0.23.43",
@@ -3118,6 +3166,11 @@
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-hetzner-0.46.0",
       "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-rustix-1.1.4"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-hetzner-0.46.0",
+      "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-serde--json-1.0.151"
     },
     {
@@ -3289,6 +3342,16 @@
       "spdxElementId": "SPDXRef-Package-dunce-1.0.5",
       "relationshipType": "BUILD_DEPENDENCY_OF",
       "relatedSpdxElement": "SPDXRef-Package-aws-lc-sys-0.44.0"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-errno-0.3.14",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-libc-0.2.189"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-errno-0.3.14",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-windows-sys-0.61.2"
     },
     {
       "spdxElementId": "SPDXRef-Package-form--urlencoded-1.2.2",
@@ -4354,6 +4417,31 @@
       "spdxElementId": "SPDXRef-Package-rustc-5f-version-0.4.1",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-semver-1.0.28"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-rustix-1.1.4",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-bitflags-2.13.1"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-rustix-1.1.4",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-errno-0.3.14"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-rustix-1.1.4",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-libc-0.2.189"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-rustix-1.1.4",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-linux-raw-sys-0.12.1"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-rustix-1.1.4",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-windows-sys-0.61.2"
     },
     {
       "spdxElementId": "SPDXRef-Package-rustls-0.23.43",

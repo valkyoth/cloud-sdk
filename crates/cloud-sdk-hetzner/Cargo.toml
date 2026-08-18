@@ -41,6 +41,9 @@ cloud-sdk-sanitization.workspace = true
 cloud-sdk-testkit.workspace = true
 serde_json.workspace = true
 
+[target.'cfg(unix)'.dev-dependencies]
+rustix.workspace = true
+
 [lints]
 workspace = true
 

@@ -141,7 +141,19 @@ fn rejects_symlinks_multiple_links_and_broad_permissions() -> std::io::Result<()
     symlink(&path, &link)?;
     assert!(matches!(
         read_secret_file(&link, 64),
-        Err(RobotLiveConfigurationError::FileSymlink)
+        Err(RobotLiveConfigurationError::FileOpenFailed)
+    ));
+
+    let real_parent = directory.path().join("real-parent");
+    fs::create_dir(&real_parent)?;
+    fs::set_permissions(&real_parent, fs::Permissions::from_mode(0o700))?;
+    let nested_credential = real_parent.join("credential");
+    write_private_file(&nested_credential, b"secret\n")?;
+    let parent_link = directory.path().join("parent-link");
+    symlink(&real_parent, &parent_link)?;
+    assert!(matches!(
+        read_secret_file(&parent_link.join("credential"), 64),
+        Err(RobotLiveConfigurationError::ParentDirectoryUntrusted)
     ));
 
     let hardlink = directory.path().join("hardlink");
@@ -156,6 +168,12 @@ fn rejects_symlinks_multiple_links_and_broad_permissions() -> std::io::Result<()
     assert!(matches!(
         read_secret_file(&path, 64),
         Err(RobotLiveConfigurationError::FilePermissionsTooBroad)
+    ));
+
+    fs::set_permissions(directory.path(), fs::Permissions::from_mode(0o750))?;
+    assert!(matches!(
+        read_secret_file(&path, 64),
+        Err(RobotLiveConfigurationError::ParentDirectoryUntrusted)
     ));
     Ok(())
 }

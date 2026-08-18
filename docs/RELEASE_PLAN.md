@@ -3267,8 +3267,10 @@ Deliverables:
   root-owned Robot launcher and a manifest-bound launcher digest;
 - accept Robot username and password only as paths to separate private regular
   files during the post-build operator phase, reject Cloud bearer credentials,
-  destructive opt-in, symlinks, hard links, broad Unix permissions, changed
-  opened files, oversized input, and same-file credential aliases;
+  destructive opt-in, symlinks, hard links, broad Unix permissions, untrusted
+  parent directories, wrong ownership, oversized input, and same-file
+  credential aliases; open each Unix file once with descriptor-level no-follow
+  semantics and fail closed on unsupported non-Unix live execution;
 - clear complete credential source allocations on every return and construct
   only the existing provider/service/official-endpoint scoped Basic transport;
 - add one ignored `RobotClient` probe for the bodyless `GET /server` operation,
@@ -3277,9 +3279,10 @@ Deliverables:
 - select that exact test from a fixed root-owned launcher after inherited
   environment removal, with no runtime argument capable of selecting another
   operation;
-- add a source contract proving the live path contains no mutation, permit,
-  order, transaction, invalid-credential, custom-endpoint, or GitHub workflow
-  execution route; and
+- test the same live execution function through an exact-match authenticated
+  transport that requires one bodyless `GET /server` request against the
+  official endpoint and rejects extra dispatch, while retaining substring
+  inspection only as a secondary source tripwire; and
 - publish `cloud-sdk 0.95.0`, `cloud-sdk-hetzner 0.46.0`,
   `cloud-sdk-reqwest 0.36.0`, and `cloud-sdk-testkit 0.31.0` after all gates;
   keep unchanged `cloud-sdk-sanitization 0.19.0` out of the publish set.
@@ -3288,15 +3291,16 @@ Verification:
 
 - deterministic credential-file tests cover exact mode selection, Cloud-token
   exclusion, empty/oversized files, line endings, distinct identities,
-  symlink/hard-link/permission rejection, Basic construction, and redacted
-  diagnostics;
+  symlink/hard-link/permission/owner/private-parent rejection, no-follow open,
+  unsupported-platform failure, Basic construction, and redacted diagnostics;
 - staging and runner tests prove all three credential variables are absent
   during Cargo, manifests bind both launchers, Cloud and Robot environments
   cannot mix, the Robot launcher selects only
   `read_only_robot_server_smoke`, and descriptor execution remains race-safe;
-- the ignored test compiles and offline tests prove official endpoint, typed
-  `RobotServerListRequest`, exact one-attempt blocking execution, bounded
-  response admission, and payload-free failure handling;
+- the ignored test compiles and the exact-match transport exercises its shared
+  execution function, requiring official endpoint, typed
+  `RobotServerListRequest`, bodyless `GET /server`, exact one-attempt blocking
+  execution, bounded response admission, and payload-free failure handling;
 - `scripts/check_robot_live_smoke.sh`, current Robot source/API drift checks,
   the explicit operator smoke procedure, package/version/publication checks,
   and `scripts/release_0_95_gate.sh` pass.

@@ -1,6 +1,6 @@
 use std::env;
 use std::ffi::OsStr;
-use std::fs::{self, File, Metadata};
+use std::fs::{File, Metadata};
 use std::io::Read;
 use std::path::{Path, PathBuf};
 
@@ -26,12 +26,14 @@ pub(super) enum RobotLiveConfigurationError {
     BearerTokenForbidden,
     CredentialFileRequired,
     CredentialFilesNotDistinct,
+    #[cfg(not(unix))]
+    UnsupportedPlatform,
+    ParentDirectoryUntrusted,
     FileMetadataUnavailable,
-    FileSymlink,
     FileNotRegular,
     FileHasMultipleLinks,
+    FileOwnerMismatch,
     FilePermissionsTooBroad,
-    FileChangedDuringOpen,
     FileOpenFailed,
     FileTooLarge,
     FileReadFailed,
@@ -114,21 +116,11 @@ fn read_secret_file(
     path: &Path,
     max_secret_bytes: usize,
 ) -> Result<SecretFile, RobotLiveConfigurationError> {
-    let before = fs::symlink_metadata(path)
-        .map_err(|_| RobotLiveConfigurationError::FileMetadataUnavailable)?;
-    if before.file_type().is_symlink() {
-        return Err(RobotLiveConfigurationError::FileSymlink);
-    }
-    validate_metadata(&before)?;
-
-    let file = File::open(path).map_err(|_| RobotLiveConfigurationError::FileOpenFailed)?;
+    let file = open_secret_file(path)?;
     let opened = file
         .metadata()
         .map_err(|_| RobotLiveConfigurationError::FileMetadataUnavailable)?;
     validate_metadata(&opened)?;
-    if !same_opened_file(&before, &opened) {
-        return Err(RobotLiveConfigurationError::FileChangedDuringOpen);
-    }
 
     let max_file_bytes = max_secret_bytes
         .checked_add(2)
@@ -154,6 +146,64 @@ fn read_secret_file(
         return Err(RobotLiveConfigurationError::FileTooLarge);
     }
     Ok(secret)
+}
+
+#[cfg(unix)]
+fn open_secret_file(path: &Path) -> Result<File, RobotLiveConfigurationError> {
+    use std::os::unix::fs::{MetadataExt, PermissionsExt};
+
+    use rustix::fs::{Mode, OFlags, open, openat};
+    use rustix::process::geteuid;
+
+    let parent = path
+        .parent()
+        .ok_or(RobotLiveConfigurationError::ParentDirectoryUntrusted)?;
+    let parent = if parent.as_os_str().is_empty() {
+        Path::new(".")
+    } else {
+        parent
+    };
+    let file_name = path
+        .file_name()
+        .ok_or(RobotLiveConfigurationError::FileOpenFailed)?;
+    let parent_descriptor = open(
+        parent,
+        OFlags::RDONLY | OFlags::DIRECTORY | OFlags::CLOEXEC | OFlags::NOFOLLOW,
+        Mode::empty(),
+    )
+    .map_err(|_| RobotLiveConfigurationError::ParentDirectoryUntrusted)?;
+    let parent_directory = File::from(parent_descriptor);
+    let parent_metadata = parent_directory
+        .metadata()
+        .map_err(|_| RobotLiveConfigurationError::ParentDirectoryUntrusted)?;
+    let expected_owner = geteuid().as_raw();
+    if !parent_metadata.is_dir()
+        || parent_metadata.uid() != expected_owner
+        || parent_metadata.permissions().mode() & 0o077 != 0
+    {
+        return Err(RobotLiveConfigurationError::ParentDirectoryUntrusted);
+    }
+
+    let descriptor = openat(
+        &parent_directory,
+        file_name,
+        OFlags::RDONLY | OFlags::CLOEXEC | OFlags::NOFOLLOW,
+        Mode::empty(),
+    )
+    .map_err(|_| RobotLiveConfigurationError::FileOpenFailed)?;
+    let file = File::from(descriptor);
+    let metadata = file
+        .metadata()
+        .map_err(|_| RobotLiveConfigurationError::FileMetadataUnavailable)?;
+    if metadata.uid() != expected_owner {
+        return Err(RobotLiveConfigurationError::FileOwnerMismatch);
+    }
+    Ok(file)
+}
+
+#[cfg(not(unix))]
+fn open_secret_file(_path: &Path) -> Result<File, RobotLiveConfigurationError> {
+    Err(RobotLiveConfigurationError::UnsupportedPlatform)
 }
 
 fn normalized_secret(bytes: &mut [u8]) -> Result<&mut [u8], RobotLiveConfigurationError> {
@@ -189,18 +239,6 @@ fn validate_metadata(metadata: &Metadata) -> Result<(), RobotLiveConfigurationEr
         }
     }
     Ok(())
-}
-
-#[cfg(unix)]
-fn same_opened_file(before: &Metadata, opened: &Metadata) -> bool {
-    use std::os::unix::fs::MetadataExt;
-
-    before.dev() == opened.dev() && before.ino() == opened.ino()
-}
-
-#[cfg(not(unix))]
-fn same_opened_file(_before: &Metadata, _opened: &Metadata) -> bool {
-    true
 }
 
 #[cfg(unix)]

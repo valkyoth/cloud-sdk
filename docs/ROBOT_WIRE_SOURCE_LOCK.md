@@ -59,8 +59,10 @@ the listed protocol distinctions and makes no Robot operation-coverage claim.
 
 The v0.95 live probe is not a fixture or source lock. It is an ignored local
 operator check of the already locked `GET /server` route. Credential-free
-staging and source gates exclude every mutation, order, invalid-login test,
-retry, custom endpoint, and GitHub execution path.
+staging and a compiled exact-match transport test over the shared live
+execution function exclude wire or dispatch-count drift. Static source checks
+remain secondary tripwires for mutation, order, invalid-login test, retry,
+custom endpoint, and GitHub execution paths.
 
 ## Complete Operation Lock
 

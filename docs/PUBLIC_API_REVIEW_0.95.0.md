@@ -34,9 +34,11 @@ reuses existing public `BlockingBasicClientBuilder`, `RobotClient::official`,
   filename, endpoint, response body, or resource identity.
 - The sole request is bodyless `GET /server`, with one attempt, no retry, an
   8 MiB response cap, strict typed decoding, and cleanup-owned storage.
-- CI and Cargo receive no Robot credential variable, and the static release
-  contract rejects mutation, order, transaction, custom-endpoint, or GitHub
-  workflow execution paths.
+- CI and Cargo receive no Robot credential variable. A compiled exact-match
+  transport test exercises the same execution function and accepts only one
+  bodyless `GET /server` request at the official endpoint; static substring
+  inspection remains a secondary tripwire for mutation, ordering, custom
+  endpoints, or GitHub workflow execution paths.
 
 ## Compatibility
 

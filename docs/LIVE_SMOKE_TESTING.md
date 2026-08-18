@@ -217,13 +217,15 @@ printf '%s\n' "$robot_password" >"$password_file"
 unset robot_username robot_password
 ```
 
-The Robot path rejects missing or identical paths, symlinks, non-regular
-files, Unix files with multiple hard links or group/world permission bits,
-files that change identity during open, and values beyond the Basic-auth
-bounds. It permits one terminal LF or CRLF and clears both complete source
-allocations on success or rejection. Filesystem caches, shell input, transport
-copies, crash tooling, swap, and remote-service handling remain operational
-cleanup boundaries.
+The Robot path is supported only on Unix and fails closed elsewhere. It rejects
+missing or identical paths, untrusted parent directories, symlinks,
+non-regular files, wrong ownership, multiple hard links, group/world permission
+bits, and values beyond the Basic-auth bounds. Each file is opened once with
+descriptor-level no-follow and close-on-exec semantics, then validated and read
+only through that descriptor. It permits one terminal LF or CRLF and clears
+both complete source allocations on success or rejection. Filesystem caches,
+shell input, transport copies, crash tooling, swap, and remote-service handling
+remain operational cleanup boundaries.
 
 Run only the root-owned Robot launcher:
 

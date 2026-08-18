@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fail-closed source contract for the read-only Robot live smoke."""
+"""Secondary source tripwire for the read-only Robot live smoke."""
 
 from __future__ import annotations
 
@@ -55,6 +55,18 @@ def check_repository(root: Path) -> None:
             "Transaction",
             "RobotServerGetRequest",
         ),
+    )
+    checked_text(
+        "Robot exact-wire regression",
+        robot,
+        (
+            "fn robot_live_probe_has_exact_read_only_wire_contract()",
+            'RequestTarget::new("/server")',
+            "ExpectedRequest::new(Method::Get, target)",
+            "run_server_probe_with_client(&client)",
+            "client.transport().is_complete()",
+        ),
+        (),
     )
 
     integration = read(root / "crates/cloud-sdk-hetzner/tests/live_smoke.rs")
@@ -124,7 +136,7 @@ def main() -> int:
     except (OSError, ValueError) as error:
         print(f"Robot live smoke contract: {error}", file=sys.stderr)
         return 1
-    print("Robot live smoke source contract passed.")
+    print("Robot live smoke secondary source tripwire passed.")
     return 0
 
 

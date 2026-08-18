@@ -4,11 +4,18 @@ Status: implementation stop; pentest required.
 
 ## Result
 
-v0.95 adds no third-party dependency, feature, unsafe code, native build,
-network client, runtime, filesystem, clock, randomness, or secret-store edge.
-The live harness is test-only and reuses the already admitted optional
-reqwest/rustls Basic transport, first-party sanitization boundary, client
-workspace, and strict Robot decoder.
+v0.95 adds one exact Unix-only development dependency: `rustix 1.1.4` with
+only `fs`, `process`, and `std`. The ignored live integration harness uses its
+safe descriptor API for `NOFOLLOW`, `CLOEXEC`, and effective-user ownership
+checks. This edge is absent from published normal dependencies, every default
+graph, non-Unix targets, and the provider's `no_std` library surface. It adds
+no first-party unsafe code, native build, network client, runtime, clock,
+randomness, or secret-store edge.
+
+The harness otherwise reuses the already admitted optional reqwest/rustls
+Basic transport, first-party sanitization boundary, client workspace, and
+strict Robot decoder. The admission rationale and alternatives are recorded in
+[`dependency-admission-rustix.md`](dependency-admission-rustix.md).
 
 The optional non-FIPS graph remains exactly `aws-lc-rs 1.18.0`,
 `aws-lc-sys 0.44.0`, and `http-body-util 0.1.5`. FIPS packages and features
@@ -20,7 +27,10 @@ remain empty, and `cloud-sdk-hetzner` has no transport dependency.
 | Package | Previous | v0.95 | Review |
 | --- | --- | --- | --- |
 | `cloud-sdk` | `0.94.0` | `0.95.0` | Advance the internal facade for the public Robot checkpoint. |
+| `errno` | `-` | `0.3.14` | Target-specific transitive OS-error support for the Unix-only `rustix` development edge. |
+| `linux-raw-sys` | `-` | `0.12.1` | Generated Linux syscall constants used by `rustix`; no first-party direct use. |
 | `ovhcloud-v2-probe` | `0.94.0` | `0.95.0` | Advance the excluded workspace probe identity only. |
+| `rustix` | `-` | `1.1.4` | Exact safe descriptor and effective-user API for the ignored Unix live harness only. |
 
 ## Workspace Version Changes
 
