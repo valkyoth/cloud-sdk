@@ -3116,7 +3116,8 @@ pentest before release evidence is finalized.
 
 Stop gate: `v0.92.0 implementation stop reached. Run the incremental pentest for this exact commit before the full release gate and tag; defer crates.io publication to v0.95.0.`
 
-Status: implementation stop reached; incremental pentest required.
+Status: release candidate; incremental pentest and final retest passed. Await
+green GitHub CI and CodeQL before the internal signed tag; publish no crate.
 
 ### v0.93.0 - Robot Ordering Mutations
 

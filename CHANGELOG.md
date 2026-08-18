@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.96.0 - Unreleased
+## 0.96.0 - 2026-08-18
 
 - Added an operation-bound, allocation-free query model generated from every
   active OpenAPI query declaration, including repeated action/list filters.

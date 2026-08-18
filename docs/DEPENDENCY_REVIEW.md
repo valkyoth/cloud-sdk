@@ -441,7 +441,7 @@ SBOM gates remain mandatory before publication.
 
 ## v0.96.0
 
-Status: implementation stop; incremental pentest required.
+Status: release candidate; incremental pentest and final retest passed.
 
 No dependency or feature edge changes. The executable query contract uses an
 embedded generated TSV and existing fixed-buffer primitives. The Python

@@ -441,7 +441,7 @@ provider transport separation are unchanged.
 
 ## v0.96.0
 
-Status: implementation stop; incremental pentest required.
+Status: release candidate; incremental pentest and final retest passed.
 
 The v0.96 source for `cloud-sdk-hetzner 0.46.0` adds `SourceLockedQuery`, its finite operation and
 parameter domains, bounded typed values, and static errors. It can pair only

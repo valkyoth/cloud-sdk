@@ -1,11 +1,11 @@
 # cloud-sdk 0.96.0 Release Notes
 
-Status: implementation stop; pentest required.
+Status: release candidate; pentest and final retest passed.
 
-Release date: pending
+Release date: 2026-08-18
 
-Security-Review: PENDING
-Pentest: PENDING
+Security-Review: PASS
+Pentest: PASS
 Publication: DEFERRED TO v0.100.0
 
 ## Overview
@@ -68,7 +68,12 @@ It starts the v0.96-v0.100 cumulative train and publishes no crate.
 
 ## Stop Gate
 
-Run the incremental pentest for the exact implementation commit. After the
-report and remediation retest are green, run `scripts/release_0_96_gate.sh`
-and require green GitHub CI and CodeQL before tagging. Do not publish crates;
-the cumulative public checkpoint is v0.100.0.
+The incremental pentest and remediation retest are green. Run
+`scripts/release_0_96_gate.sh` against the exact final evidence commit and
+require green GitHub CI and CodeQL before tagging. Do not publish crates; the
+cumulative public checkpoint is v0.100.0.
+
+## Result
+
+v0.96.0 is ready for its internal signed tag after the clean local release
+gate and GitHub CI and CodeQL pass. No crate is selected for publication.
