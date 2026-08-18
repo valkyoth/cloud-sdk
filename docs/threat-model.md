@@ -247,7 +247,8 @@
   a separately pinned nightly without changing stable crate support;
 - complete release and security-delta review before every tag, with an
   incremental pentest report against the preceding tag and crates.io
-  publication every fifth pre-1.0 minor.
+  publication every fifth pre-1.0 minor plus the final v0.99.0 release
+  candidate.
 - direct state-changing prepared execution fails closed; non-`Copy` direct
   permits and explicitly shared atomic permits bind one exact versioned plan,
   endpoint, scope, validity interval, attempt budget, replay policy,

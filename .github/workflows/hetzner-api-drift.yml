@@ -23,6 +23,4 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Compare official Hetzner API specs
-        run: |
-          scripts/check_hetzner_api_drift.py --fetch
-          scripts/check_robot_api_lock.py --fetch
+        run: scripts/check_hetzner_api_surface.sh --fetch

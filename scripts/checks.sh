@@ -98,6 +98,8 @@ scripts/check_iana_ipv6_registry.py --local-only
 scripts/test-iana-ipv6-registry.py
 scripts/check_hetzner_api_drift.py --local-only
 scripts/test-hetzner-api-drift.py
+scripts/check_hetzner_changelog.py --local-only
+scripts/test-hetzner-changelog.py
 scripts/test-generate-cloud-model-schema.py
 scripts/check_dns_response_models.sh
 scripts/check_security_response_models.sh

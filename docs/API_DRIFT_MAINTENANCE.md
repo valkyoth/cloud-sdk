@@ -1,6 +1,6 @@
 # Hetzner API Drift Maintenance
 
-This document covers the full Hetzner-specific OpenAPI workflow. New provider
+This document covers the full Hetzner-specific API-source workflow. New provider
 probes and crates also use the provider-neutral manifest and canonical diff
 layer in [`PROVIDER_DRIFT.md`](PROVIDER_DRIFT.md). The neutral Hetzner bridge
 must remain green, but it does not replace the deeper checks below.
@@ -15,11 +15,10 @@ procedure.
 ## Monitoring
 
 The read-only `Hetzner API Drift` GitHub workflow runs every Monday and can be
-started manually. It invokes:
+started manually. The same complete check is one local command:
 
 ```bash
-scripts/check_hetzner_api_drift.py --fetch
-scripts/check_robot_api_lock.py --fetch
+scripts/check_hetzner_api_surface.sh --fetch
 ```
 
 Release gates run the same live comparison. The fetch accepts only the two
@@ -36,6 +35,13 @@ reviewed source SHA-256 and operation-policy SHA-256, compares all 105 HTTP
 operation headings in source order, and requires upstream deprecation markers
 for the 16 excluded legacy Storage Box operations. Robot lock refreshes are
 manual reviewed changes; the checker has no write mode.
+
+The changelog checker separately authenticates and bounds Hetzner's official
+RSS feed. This closes the OpenAPI blind spot for advance deprecations and
+operational behavior changes that may not alter the specification. Any feed
+semantic-digest or latest-entry change is a release stop even when both OpenAPI
+documents remain unchanged. Server Metadata prose is raw-digest-bound inside
+the Cloud specification and receives a dedicated operation lock in `v0.96.0`.
 
 ## Triage
 
@@ -106,6 +112,9 @@ scripts/check_hetzner_api_drift.py --fetch
 scripts/test-robot-api-lock.py
 scripts/check_robot_api_lock.py
 scripts/check_robot_api_lock.py --fetch
+scripts/test-hetzner-changelog.py
+scripts/check_hetzner_changelog.py --fetch
+scripts/check_hetzner_api_surface.sh --fetch
 scripts/checks.sh
 ```
 

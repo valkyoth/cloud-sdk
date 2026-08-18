@@ -63,6 +63,14 @@ evidence in the same reviewed source-lock pass. Use
 
 ## Changelog Items Considered
 
+- 2026-08-17: Load Balancer target health status can include additive `detail`
+  and `http_status_code` fields. Existing complete response trees retain
+  additive fields; explicit validation is assigned to `v0.96.0`.
+- 2026-08-01: the legacy EC2-compatible Server Metadata routes were removed.
+  Only the canonical `/hetzner/v1/*` surface is assigned to `v0.96.0`.
+- 2026-08-01: unassigned Primary IPs return `assignee_type: "unassigned"`
+  with `assignee_id: null`. Existing open text and nullable-ID decoding admits
+  this state; an exact regression fixture is assigned to `v0.96.0`.
 - 2025-11-12: Firewall `source_ips` and `destination_ips` stopped accepting
   CIDRs with host bits set on 2025-12-10. Canonical networks and individual
   `/32` or `/128` hosts remain valid.

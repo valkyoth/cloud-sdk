@@ -19,6 +19,7 @@ FIELD = re.compile(r"^(Goal|Deliverables|Verification|Stop gate):(.*)$", re.MULT
 FIELD_ORDER = ("Goal", "Deliverables", "Verification", "Stop gate")
 DEFERRED_PENTEST_START = (0, 51, 0)
 PER_TAG_PENTEST_START = (0, 56, 0)
+EXTRA_PUBLIC_CHECKPOINTS = {(0, 99, 0)}
 
 
 @dataclass(frozen=True, order=True)
@@ -101,7 +102,15 @@ def stop_gate_contract(content: str) -> str:
 
 def expected_checkpoint(version: Version) -> str:
     next_minor = ((version.minor // 5) + 1) * 5
+    if version.major == 0 and version.minor < 99 and next_minor >= 100:
+        return "v0.99.0"
     return "v1.0.0" if next_minor >= 100 else f"v0.{next_minor}.0"
+
+
+def is_public_checkpoint(version: Version) -> bool:
+    current = (version.major, version.minor, version.patch)
+    regular = version.major == 0 and version.patch == 0 and version.minor % 5 == 0
+    return regular or current in EXTRA_PUBLIC_CHECKPOINTS
 
 
 def validate_stop_gate(version: Version, contract: str) -> str | None:
@@ -112,11 +121,7 @@ def validate_stop_gate(version: Version, contract: str) -> str | None:
     historical = current < DEFERRED_PENTEST_START
     per_tag = current >= PER_TAG_PENTEST_START
     stable = version.major >= 1
-    checkpoint = (
-        version.major == 0
-        and version.patch == 0
-        and version.minor % 5 == 0
-    )
+    checkpoint = is_public_checkpoint(version)
     if stable:
         required = ("pentest", "exact commit")
     elif per_tag:

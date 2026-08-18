@@ -100,12 +100,19 @@ def main() -> None:
                 "v0.56.0 implementation stop reached. Complete the security review",
             ),
         )
+        reject(
+            path,
+            repository_text.replace(
+                "defer crates.io publication to v0.99.0",
+                "defer crates.io publication to v1.0.0",
+            ),
+        )
 
         path.write_text(first + second, encoding="utf-8")
         valid_fixture = run(path)
         assert valid_fixture.returncode == 0, valid_fixture
 
-    print("12 release plan structure tests passed.")
+    print("13 release plan structure tests passed.")
 
 
 if __name__ == "__main__":

@@ -50,9 +50,10 @@ infrastructure.
 Every pre-1.0 version receives the complete automated release gate, an
 incremental pentest against the preceding tag, GitHub CI and CodeQL, release
 notes, permanent pentest evidence, and a normal signed `v0.x.x` tag. Crates.io
-publication occurs every fifth minor version. Intervening tags are fully
-reviewed but are not separately published. A material security or compatibility
-need can trigger an earlier publication.
+publication normally occurs every fifth minor version. Intervening tags are
+fully reviewed but are not separately published. The final `0.99.0` development
+release is an additional public checkpoint before `1.0.0`; a material security
+or compatibility need can trigger another earlier publication.
 
 ## Cost And Production Warning
 
@@ -96,7 +97,7 @@ remains deferred until Brynja is ready.
 | Default features | empty |
 | Network defaults | none |
 | Secret storage defaults | none |
-| Release evidence | full gates, SBOM, and incremental pentest for every tag; crates.io publication every fifth pre-1.0 minor or earlier when required |
+| Release evidence | full gates, SBOM, and incremental pentest for every tag; crates.io publication every fifth pre-1.0 minor, at `0.99.0`, or earlier when required |
 | Platform support | explicit tiers and targets in [`docs/PLATFORM_SUPPORT.md`](https://github.com/valkyoth/cloud-sdk/blob/main/docs/PLATFORM_SUPPORT.md) |
 | Crate versions | tracked in [`docs/CRATE_VERSION_MATRIX.md`](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATE_VERSION_MATRIX.md) |
 | 1.0 target | serious production-ready foundation plus complete Hetzner Cloud, DNS, Console Storage Box, and Robot provider |

@@ -45,6 +45,12 @@ EXPECTED = (
         "routes execute directly and every state change remains permit-gated",
         "v0.46 published checkpoint",
     ),
+    (
+        "Server Metadata",
+        "Seven canonical link-local reads are outside OpenAPI and assigned to the "
+        "v0.96 scope-closure release",
+        "Planned v0.96",
+    ),
 )
 
 

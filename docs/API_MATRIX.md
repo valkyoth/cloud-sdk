@@ -294,6 +294,23 @@ operations deferred.
 | hetzner | Storage Boxes | PUT | `/storage_boxes/{id}` | `update_storage_box` | `cloud_sdk_hetzner::storage::storage_boxes` | no | no | none | no | implemented |
 | hetzner | Storage Boxes | GET | `/storage_boxes/{id}/folders` | `list_storage_box_folders` | `cloud_sdk_hetzner::storage::storage_boxes` | no | no | none | no | implemented |
 
+## Non-OpenAPI And Adjacent Surfaces
+
+The official reference also documents a seven-read Server Metadata surface:
+the canonical `/hetzner/v1/metadata` summary and its `hostname`, `instance-id`,
+`public-ipv4`, `private-networks`, `availability-zone`, and `region` children.
+These link-local HTTP routes are absent from both OpenAPI documents and
+therefore are not included in the 221-operation count above. They are assigned
+to `v0.96.0` with a fixed link-local endpoint, forbidden authentication,
+forbidden redirects and proxies, bounded text/YAML decoding, and explicit
+exclusion of the removed EC2-compatible aliases.
+
+Hetzner Object Storage exposes the standard S3 API without Hetzner-specific
+extensions. It is intentionally outside the `cloud-sdk-hetzner` 1.0 scope;
+callers should use a reviewed S3 implementation. Robot domain registration is
+also outside scope because the official Robot Webservice states that it is not
+available through that API and instead uses a separate mail interface.
+
 ## Pre-1.0 Robot Webservice
 
 Robot Webservice is required for the full Hetzner 1.0 SDK. It is tracked
@@ -460,7 +477,7 @@ Robot implementation schedule:
 | Group | Active | Deprecated | Planned Module | Milestone | Status |
 | --- | ---: | ---: | --- | --- | --- |
 | server | 3 | 0 | `cloud_sdk_hetzner::robot::server` | `v0.78.0` | implemented |
-| cancellation | 9 | 9 | `cloud_sdk_hetzner::robot::cancellation` | `v0.79.0` | implemented |
+| cancellation | 9 | 0 | `cloud_sdk_hetzner::robot::cancellation` | `v0.79.0` | implemented |
 | IP | 6 | 0 | `cloud_sdk_hetzner::robot::ip` | `v0.80.0` | implemented |
 | subnet | 6 | 0 | `cloud_sdk_hetzner::robot::subnet` | `v0.81.0` | implemented |
 | reset | 3 | 0 | `cloud_sdk_hetzner::robot::reset` | `v0.82.0` | implemented |

@@ -53,11 +53,22 @@ def main() -> None:
         incomplete_robot = run(path)
         assert incomplete_robot.returncode == 1, incomplete_robot
 
+        metadata = (
+            "Server Metadata | Seven canonical link-local reads are outside "
+            "OpenAPI and assigned to the v0.96 scope-closure release | Planned v0.96"
+        )
+        path.write_text(
+            source.replace(metadata, "Server Metadata | Complete | Current"),
+            encoding="utf-8",
+        )
+        overstated_metadata = run(path)
+        assert overstated_metadata.returncode == 1, overstated_metadata
+
         path.write_text(source.replace("| Capability | Current coverage | Planned completion |", "| Hetzner API area | Supported |"), encoding="utf-8")
         ambiguous = run(path)
         assert ambiguous.returncode == 1, ambiguous
 
-    print("4 provider capability documentation tests passed.")
+    print("5 provider capability documentation tests passed.")
 
 
 if __name__ == "__main__":

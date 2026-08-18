@@ -84,6 +84,27 @@ def test_intermediate_patch_keeps_the_same_checkpoint() -> None:
     assert release_train.next_checkpoint("0.99.0") == "1.0.0"
 
 
+def test_final_development_milestones_target_the_public_release_candidate() -> None:
+    assert release_train.next_checkpoint("0.95.0") == "0.99.0"
+    assert release_train.next_checkpoint("0.96.0") == "0.99.0"
+    assert release_train.next_checkpoint("0.98.7") == "0.99.0"
+
+
+def test_v0_99_is_a_scheduled_public_checkpoint() -> None:
+    milestones = tuple(f"0.{minor}.0" for minor in range(96, 100))
+    context = release_train.validate_release_context(
+        release(
+            "0.99.0",
+            stage="public",
+            baseline="0.95.0",
+            review_baseline="0.98.0",
+            milestones=milestones,
+        )
+    )
+    assert release_train.publication_allowed(context)
+    assert not context["exceptional"]
+
+
 def test_scheduled_checkpoint_requires_public_stage() -> None:
     candidate = release(
         "0.55.0",

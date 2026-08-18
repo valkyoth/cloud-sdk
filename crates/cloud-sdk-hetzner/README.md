@@ -768,6 +768,7 @@ authentication scope, raw response policy, and official endpoint.
 | Error response models | Complete checked typed API error decoding for all active operations | Current |
 | End-to-end client | Complete named workflows for all 208 active Cloud, DNS, Security, and Console Storage Box operations; custom-endpoint execution remains unavailable | Current |
 | Robot client | Complete typed contracts for all 89 active Robot operations; 45 read-only routes execute directly and every state change remains permit-gated | v0.46 published checkpoint |
+| Server Metadata | Seven canonical link-local reads are outside OpenAPI and assigned to the v0.96 scope-closure release | Planned v0.96 |
 
 Thirteen deprecated operations remain deliberately unavailable. A checked
 release gate prevents non-deprecated request operations from returning to a

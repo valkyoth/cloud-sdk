@@ -3314,60 +3314,205 @@ four changed crates form a validated cumulative public checkpoint.
 
 Stop gate: `v0.95.0 implementation stop reached. Run the pentest for this exact commit before tagging and crates.io publication.`
 
-Status: release candidate; pentest and final retest passed. Local release
-gate and GitHub CI/CodeQL remain before tagging and publication.
+Status: released as the signed public `v0.95.0` checkpoint after pentest,
+release gate, and green GitHub CI/CodeQL.
 
 ## Tier F - Whole-Platform Qualification
 
-### v0.96.0 - Complete Adversarial And Fuzz Qualification
+### v0.96.0 - Hetzner Scope Closure And Adversarial Qualification
 
-Goal: close the full wire/auth/decoder/permit/cleanup/Robot adversarial matrix.
+Goal: close the sole prose-only Hetzner Cloud surface omitted by the OpenAPI
+inventory and then complete the wire, authentication, decoder, permit,
+cleanup, and Robot adversarial matrix.
 
-Deliverables: zero unclassified claimed operations, maintained corpora, cross-adapter differential tests, and current fuzz evidence.
+Deliverables:
 
-Verification: all corpora/fuzz smoke/matrices/SBOM/deny/audit and `scripts/release_0_96_gate.sh`.
+- source-lock the canonical Server Metadata summary and six child reads from
+  the official reference and explicitly exclude every removed EC2-compatible
+  alias;
+- add provider-owned request and response contracts for the exact link-local
+  endpoint, with no custom destination, credentials, redirects, proxy routing,
+  mutation, retry, TLS claim, or ambient environment interpretation;
+- add bounded strict decoding for summary text, scalar text/number/address
+  responses, and private-network YAML, including duplicate, unknown,
+  cross-field, address, subnet, gateway, interface, and aggregate limits;
+- retain the default no-network/no-runtime/no-filesystem graph and expose
+  blocking, `Send` async, and local-async metadata execution only through an
+  adapter path that proves proxy bypass and exact destination confinement;
+- bind the official changelog RSS source into the weekly and release drift
+  workflow, review the August 2026 Load Balancer health and Primary IP
+  behavior notices, and add exact regression fixtures for both;
+- publish a finite 1.0 scope statement covering 208 active OpenAPI operations,
+  89 active Robot operations, seven Server Metadata reads, 29 deprecated
+  exclusions, standard-S3 Object Storage exclusion, and unavailable Robot
+  domain-registration automation;
+- close every unclassified claimed operation and maintain deterministic
+  corpora, cross-adapter differential tests, and current fuzz evidence; and
+- advance versions for an internal signed tag only, with crates.io publication
+  deferred to the public `v0.99.0` release candidate.
 
-Stop gate: `v0.96.0 implementation stop reached. Complete the pentest and full release gate for this exact commit; defer crates.io publication to v1.0.0.`
+Verification:
+
+- compare all OpenAPI, Robot, and changelog sources through
+  `scripts/check_hetzner_api_surface.sh --fetch` and mutation-test every source
+  origin, redirect, size, timeout, digest, identity, and refresh boundary;
+- test all seven metadata routes, exact wire targets, forbidden auth and proxy
+  use, redirect refusal, response bounds, malformed YAML/text, duplicate and
+  oversized collections, cleanup, cancellation, and executor parity;
+- prove current additive Load Balancer health fields and the Primary IP
+  `unassigned`/`null` pair are accepted and validated without weakening unknown
+  enum handling;
+- run all operation/client matrices, corpora, fuzz build/smoke, SBOM, deny,
+  audit, no-std, MSRV/current, documentation, and package checks; and
+- run `scripts/release_0_96_gate.sh` against a clean exact commit.
+
+Exit criteria: every official non-deprecated Cloud, Console Storage, Robot,
+and canonical Server Metadata operation in the frozen 1.0 scope is either
+implemented exactly once or explicitly excluded with an official rationale;
+all three source classes fail closed on drift; the complete adversarial matrix
+is green; and the exact implementation commit is ready for pentest.
+
+Stop gate: `v0.96.0 implementation stop reached. Run the pentest and full release gate for this exact commit; defer crates.io publication to v0.99.0.`
+
+Status: planned; implementation has not started.
 
 ### v0.97.0 - Platform And MSRV Qualification
 
 Goal: produce current evidence for every supported target, compiler, and active feature graph while keeping FIPS deferred to Brynja.
 
-Deliverables: complete portable/native target evidence, unsupported-target rejection, exact compiler and feature-graph records, native dependency/build review, and a verified absence of FIPS features, dependencies, package content, and compliance claims.
+Deliverables:
 
-Verification: full platform/MSRV matrix, packaged active-feature tests, FIPS deferment gate, native-build review, dependency freshness, and `scripts/release_0_97_gate.sh`.
+- produce complete portable evidence for Linux, Windows, FreeBSD, macOS,
+  Android, iOS, WebAssembly, and bare-metal targets across every public
+  default, alloc, Serde, and metadata-compatible feature graph;
+- produce native transport evidence only where the adapter is supported and
+  retain explicit unsupported-target diagnostics everywhere else;
+- verify Rust 1.92.0 MSRV through pinned 1.97.1 development, current stable,
+  docs.rs, examples, doctests, and packaged crate graphs;
+- review every native build dependency, target-specific edge, compiler/tool
+  pin, and supply-chain exception; and
+- prove FIPS features, FIPS dependencies, FIPS package content, and compliance
+  claims remain absent until the separately reviewed Brynja migration.
 
-Stop gate: `v0.97.0 implementation stop reached. Complete the pentest and full release gate for this exact commit; defer crates.io publication to v1.0.0.`
+Verification:
+
+- run the full platform/MSRV/current matrix and packaged active-feature tests;
+- run default dependency, no-std, unsupported-target, native-build, AWS-LC,
+  and FIPS deferment gates;
+- refresh dependency/tool freshness, SBOM, deny, audit, documentation, and
+  release metadata evidence; and
+- run `scripts/release_0_97_gate.sh` on every required native CI platform.
+
+Exit criteria: every documented platform/compiler/feature claim has current
+compile or native execution evidence, unsupported combinations fail clearly,
+no accidental platform or FIPS claim remains, and the exact commit is ready
+for pentest.
+
+Stop gate: `v0.97.0 implementation stop reached. Run the pentest and full release gate for this exact commit; defer crates.io publication to v0.99.0.`
+
+Status: planned.
 
 ### v0.98.0 - Provenance And Governance Review
 
 Goal: make release trust and independent-review claims exact.
 
-Deliverables: signer rotation/revocation, branch/release protection, trusted-publishing evaluation, reproducible packages/SBOMs, recovery procedures, and explicit independence disclosure without report-signing burden.
+Deliverables:
 
-Verification: runbook/signer/provenance/reproducibility tests and `scripts/release_0_98_gate.sh`.
+- document and test signer rotation, compromise, revocation, repository
+  recovery, crates.io ownership recovery, and release rollback procedures;
+- verify branch/tag/release protection, least-privilege GitHub permissions,
+  CodeQL/default security tooling, and the trusted-publishing decision;
+- reproduce publishable package archives and complete SPDX SBOMs from clean
+  checkouts with exact source, dependency, and tool provenance;
+- bind release selection to changed public crates while proving excluded,
+  unchanged, fuzz, probe, test, and tool packages cannot be published; and
+- state pentest independence and limitations accurately without reintroducing
+  report-signing or private-key workflow burden.
 
-Stop gate: `v0.98.0 implementation stop reached. Complete the pentest and full release gate for this exact commit; defer crates.io publication to v1.0.0.`
+Verification:
+
+- run signer/runbook mutation tests, package/SBOM reproducibility comparisons,
+  release dry runs, owner/protection reviews, and clean-checkout recovery
+  drills;
+- verify every GitHub action pin, permission, artifact boundary, and release
+  metadata transition; and
+- run `scripts/release_0_98_gate.sh` against the reproducible candidate.
+
+Exit criteria: a maintainer can independently verify, recover, reproduce, and
+publish the exact reviewed artifacts without hidden state; no tooling can
+silently widen the publish set; governance claims match configured controls;
+and the exact commit is ready for pentest.
+
+Stop gate: `v0.98.0 implementation stop reached. Run the pentest and full release gate for this exact commit; defer crates.io publication to v0.99.0.`
+
+Status: planned.
 
 ### v0.99.0 - Controlled Mutation Release Candidate
 
 Goal: finish real mutation evidence and freeze the exact 1.0 candidate.
 
-Deliverables: manual-only disposable project, approval, spending ceilings, unique prefixes, cleanup ledger, empty-inventory verification, final API/docs/migration review, and no CI mutation capability.
+Deliverables:
 
-Verification: fake-provider dry runs, approved manual evidence when available, every release gate, and `scripts/release_0_99_gate.sh`.
+- execute mutation qualification only in a disposable project/account under
+  explicit operator approval, spending ceilings, unique resource prefixes,
+  one cleanup ledger, and final empty-inventory verification;
+- cover representative Cloud, DNS, Security, Console Storage, and Robot
+  mutation/destructive/cost workflows without granting CI any credential or
+  live mutation capability;
+- retain exact uncertain-delivery and reconciliation evidence for every
+  attempted mutation and require operator resolution for ambiguous outcomes;
+- freeze the 1.0 public API candidate and complete final API, changelog,
+  documentation, examples, migration, threat-model, dependency, platform,
+  provenance, and package reviews; and
+- publish every changed public crate as the final development checkpoint on
+  crates.io after pentest and green GitHub/CodeQL, while excluding unchanged
+  and non-public crates exactly as declared by the release plan.
 
-Stop gate: `v0.99.0 implementation stop reached. Complete the pentest and full release gate for this exact commit; defer crates.io publication to v1.0.0.`
+Verification:
+
+- run deterministic fake-provider dry runs for every live mutation step,
+  failure, cleanup, replay, cost, and reconciliation branch;
+- record approved manual evidence where credentials and service availability
+  permit, then independently verify the cleanup ledger and empty inventories;
+- rerun every v0.96-v0.98 qualification gate, all current source drift checks,
+  complete package/SBOM/audit/fuzz evidence, and a release dry run showing the
+  exact publish set; and
+- run `scripts/release_0_99_gate.sh` against the frozen candidate.
+
+Exit criteria: approved evidence demonstrates that representative real
+mutations cannot bypass authority, cost, cleanup, or uncertain-delivery
+controls; no CI mutation route exists; the public API and dependency graphs are
+frozen; the exact publish set is verified; and `v0.99.0` is ready for pentest,
+GitHub validation, signed tagging, and crates.io publication.
+
+Stop gate: `v0.99.0 implementation stop reached. Run the pentest and full release gate for this exact commit before the signed tag and final development publication to crates.io.`
+
+Status: planned public release candidate.
 
 ### v1.0.0 - Full Hetzner Production SDK
 
 Goal: release the qualified candidate without adding features.
 
-Deliverables: complete non-deprecated Hetzner Cloud, DNS, security, Console Storage Box, and Robot typed SDK; frozen neutral contracts; current docs, provenance, platform, SBOM, audit, fuzz, mutation, independent-review disclosure, and pentest evidence.
+Deliverables: release the complete non-deprecated Hetzner Cloud, DNS,
+security, Console Storage Box, Robot, and canonical Server Metadata SDK without
+adding a new feature; freeze neutral contracts; and carry forward current
+documentation, provenance, platform, SBOM, audit, fuzz, mutation,
+independent-review disclosure, and pentest evidence.
 
-Verification: exact `v0.99.0` candidate ancestry, `scripts/checks.sh`, all source locks/matrices, `scripts/release_1_0_gate.sh`, and green GitHub/CodeQL.
+Verification: require exact `v0.99.0` candidate ancestry and API equivalence;
+rerun `scripts/checks.sh`, all source locks and matrices, package
+reproducibility, the complete release train, `scripts/release_1_0_gate.sh`, and
+green GitHub/CodeQL.
 
-Stop gate: `v1.0.0 implementation stop reached. Run pentest for this exact commit.`
+Exit criteria: no API, behavior, dependency, feature, or scope change exists
+between the qualified candidate and stable artifacts except stable version
+metadata; every changed public crate is published in dependency order; signed
+tags and crates.io artifacts verify; and all 1.0 support and exclusion claims
+are exact.
+
+Stop gate: `v1.0.0 implementation stop reached. Run the final pentest for this exact commit before stable publication.`
+
+Status: planned stable release.
 
 ## Post-1.0 Provider Blueprint
 

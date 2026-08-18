@@ -38,15 +38,17 @@ requirements and pentest evidence model remain in the
 
 Every intermediate tag remains inside the package-change range published at
 the next checkpoint. Patch tags receive their own incremental pentest but do
-not reset or advance the five-minor publication schedule.
+not reset or advance the publication schedule.
 
 ## Public Checkpoint
 
-A `v0.N.0` milestone divisible by five is the scheduled public checkpoint.
-Material security or compatibility needs may require an earlier exceptional
-publication. That tag still receives the same incremental pentest and becomes
-the new public baseline when published. v1.0.0 always requires a full-project
-assessment.
+A `v0.N.0` milestone divisible by five is normally the scheduled public
+checkpoint. The final development release `v0.99.0` is also a scheduled public
+checkpoint so crates.io receives the complete release candidate before
+`v1.0.0`. Material security or compatibility needs may require another
+exceptional publication. That tag still receives the same incremental pentest
+and becomes the new public baseline when published. `v1.0.0` always requires a
+full-project assessment.
 
 Before pentest:
 
