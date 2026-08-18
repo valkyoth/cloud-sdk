@@ -115,7 +115,7 @@ dependencies = [
 
 [[package]]
 name = "cloud-sdk"
-version = "0.94.0"
+version = "0.95.0"
 dependencies = [
  "cloud-sdk-sanitization",
  "subtle",
@@ -123,7 +123,7 @@ dependencies = [
 
 [[package]]
 name = "cloud-sdk-reqwest"
-version = "0.35.3"
+version = "0.36.0"
 dependencies = [
  "aws-lc-rs",
  "base64-ng",

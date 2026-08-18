@@ -11,6 +11,11 @@ reject_credential_environment() {
         echo "live smoke: token file must not be available during Cargo execution" >&2
         exit 2
     fi
+    if [ -n "${CLOUD_SDK_HETZNER_ROBOT_USERNAME_FILE:-}" ] ||
+        [ -n "${CLOUD_SDK_HETZNER_ROBOT_PASSWORD_FILE:-}" ]; then
+        echo "live smoke: Robot credential files must not be available during Cargo execution" >&2
+        exit 2
+    fi
     if [ -n "${CLOUD_SDK_HETZNER_ALLOW_DESTRUCTIVE:-}" ]; then
         echo "live smoke: destructive opt-in is forbidden" >&2
         exit 2
@@ -69,11 +74,12 @@ prepare_artifact() {
     staged_artifact="$(/usr/bin/mktemp "$artifact_dir/live-smoke.XXXXXX")"
     staged_runner="$(/usr/bin/mktemp "$artifact_dir/runner.XXXXXX")"
     staged_launcher="$(/usr/bin/mktemp "$artifact_dir/launcher.XXXXXX")"
+    staged_robot_launcher="$(/usr/bin/mktemp "$artifact_dir/robot-launcher.XXXXXX")"
     staged_manifest="$(/usr/bin/mktemp "$artifact_dir/manifest.XXXXXX")"
     cleanup() {
         /usr/bin/rm -f \
             "$messages" "$staged_artifact" "$staged_runner" \
-            "$staged_launcher" "$staged_manifest"
+            "$staged_launcher" "$staged_robot_launcher" "$staged_manifest"
     }
     trap cleanup EXIT HUP INT TERM
 
@@ -91,22 +97,28 @@ prepare_artifact() {
         "$repo_root/scripts/hetzner-live-smoke-runner.py" "$staged_runner"
     /usr/bin/install -m 0555 -- \
         "$repo_root/scripts/cloud-sdk-hetzner-smoke" "$staged_launcher"
+    /usr/bin/install -m 0555 -- \
+        "$repo_root/scripts/cloud-sdk-hetzner-robot-smoke" "$staged_robot_launcher"
     artifact_digest="$(sha256_file "$staged_artifact")"
     runner_digest="$(sha256_file "$staged_runner")"
     launcher_digest="$(sha256_file "$staged_launcher")"
+    robot_launcher_digest="$(sha256_file "$staged_robot_launcher")"
     reviewed_head="$(/usr/bin/git rev-parse HEAD)"
     {
-        printf 'format=2\n'
+        printf 'format=3\n'
         printf 'commit=%s\n' "$reviewed_head"
         printf 'artifact_sha256=%s\n' "$artifact_digest"
         printf 'runner_sha256=%s\n' "$runner_digest"
         printf 'launcher_sha256=%s\n' "$launcher_digest"
+        printf 'robot_launcher_sha256=%s\n' "$robot_launcher_digest"
     } >"$staged_manifest"
     /usr/bin/chmod 0444 "$staged_manifest"
 
     /usr/bin/mv -f -- "$staged_artifact" "$staging_dir/live_smoke"
     /usr/bin/mv -f -- "$staged_runner" "$staging_dir/runner.py"
     /usr/bin/mv -f -- "$staged_launcher" "$staging_dir/cloud-sdk-hetzner-smoke"
+    /usr/bin/mv -f -- \
+        "$staged_robot_launcher" "$staging_dir/cloud-sdk-hetzner-robot-smoke"
     /usr/bin/mv -f -- "$staged_manifest" "$staging_dir/manifest"
     trap - EXIT HUP INT TERM
     cleanup

@@ -8,13 +8,15 @@ scripts/check_shell_syntax.sh
 scripts/test-aws-lc-build-policy.py
 scripts/check_doc_links.sh
 scripts/test-doc-links.py
+scripts/check_robot_live_smoke.py
+scripts/test-robot-live-smoke.py
 scripts/test-live-smoke-wrapper.py
 scripts/test-hetzner-live-smoke-runner.py
 scripts/test-platform-matrix.py
 scripts/test-latest-tools.py
 scripts/test-rustsec-advisories.py
 scripts/test-dependency-review.py
-scripts/check_dependency_review.py v0.93.0 docs/DEPENDENCY_REVIEW_0.94.0.md
+scripts/check_dependency_review.py v0.94.0 docs/DEPENDENCY_REVIEW_0.95.0.md
 scripts/test-publishable-readmes.py
 scripts/check-release-plan-structure.py
 scripts/test-release-plan-structure.py

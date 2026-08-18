@@ -107,7 +107,7 @@ dependencies = [
 
 [[package]]
 name = "cloud-sdk"
-version = "0.94.0"
+version = "0.95.0"
 dependencies = [
  "cloud-sdk-sanitization",
  "subtle",
@@ -115,7 +115,7 @@ dependencies = [
 
 [[package]]
 name = "cloud-sdk-hetzner"
-version = "0.45.0"
+version = "0.46.0"
 dependencies = [
  "base64-ng",
  "cloud-sdk",
@@ -130,7 +130,7 @@ dependencies = [
 
 [[package]]
 name = "cloud-sdk-reqwest"
-version = "0.35.3"
+version = "0.36.0"
 dependencies = [
  "aws-lc-rs",
  "aws-lc-sys",
@@ -159,7 +159,7 @@ dependencies = [
 
 [[package]]
 name = "cloud-sdk-testkit"
-version = "0.30.5"
+version = "0.31.0"
 dependencies = [
  "cloud-sdk",
 ]
@@ -699,7 +699,7 @@ checksum = "7c87def4c32ab89d880effc9e097653c8da5d6ef28e6b539d313baaacfbafcbe"
 
 [[package]]
 name = "ovhcloud-v2-probe"
-version = "0.94.0"
+version = "0.95.0"
 dependencies = [
  "cloud-sdk",
  "cloud-sdk-reqwest",

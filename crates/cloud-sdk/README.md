@@ -75,12 +75,11 @@ Published and planned versions for each independently versioned crate are
 listed in the
 [crate version matrix](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATE_VERSION_MATRIX.md).
 
-The v0.90 crates.io checkpoint includes exhaustive named clients for every
-active Hetzner Cloud, DNS, Security, and Console Storage Box operation plus
-source-locked Robot support through vSwitches. The v0.91-v0.94 source
-milestones add read-only ordering catalogs, bounded transaction snapshots,
-cost-authorized Robot ordering mutations, and complete typed Robot clients.
-Provider crates remain
+The v0.95 crates.io checkpoint includes exhaustive named clients for every
+active Hetzner Cloud, DNS, Security, Console Storage Box, and Robot operation.
+It adds read-only Robot ordering catalogs, bounded transaction snapshots,
+cost-authorized ordering mutations, complete typed Robot clients, credential
+lockout, and a separately sealed read-only Robot live-smoke path. Provider crates remain
 transport-free and perform no network request by default. Future FIPS work
 remains deferred until Brynja is ready.
 
@@ -140,8 +139,8 @@ Portable and native platform evidence is documented in
 
 ```toml
 [dependencies]
-cloud-sdk = "0.94.0"
-cloud-sdk-hetzner = "0.45.0"
+cloud-sdk = "0.95.0"
+cloud-sdk-hetzner = "0.46.0"
 ```
 
 ## cloud-sdk Features
@@ -238,6 +237,7 @@ visible. Applications should enable only the features they use.
 - [Migrating source users to v0.91](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.91.0.md)
 - [Migrating source users to v0.93](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.93.0.md)
 - [Migrating source users to v0.94](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.94.0.md)
+- [Migrating to v0.95](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.95.0.md)
 - [Compile-time Hetzner operation associations](https://github.com/valkyoth/cloud-sdk/blob/main/docs/OPERATION_ASSOCIATIONS.md)
 - [Incremental provider decoding](https://github.com/valkyoth/cloud-sdk/blob/main/docs/INCREMENTAL_DECODING.md)
 - [Deprecated endpoint policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/DEPRECATED_ENDPOINT_POLICY.md)
@@ -575,8 +575,8 @@ without changing the default allocation-free graph.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.94.0"
-cloud-sdk-reqwest = { version = "0.35.3", features = ["blocking-rustls"] }
+cloud-sdk = "0.95.0"
+cloud-sdk-reqwest = { version = "0.36.0", features = ["blocking-rustls"] }
 ```
 
 The production builder is HTTPS-only, requires explicit bounded timeouts and a
@@ -602,8 +602,8 @@ when deterministic public WebPKI roots are required:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.94.0"
-cloud-sdk-reqwest = { version = "0.35.3", features = ["blocking-rustls-webpki-roots"] }
+cloud-sdk = "0.95.0"
+cloud-sdk-reqwest = { version = "0.36.0", features = ["blocking-rustls-webpki-roots"] }
 ```
 
 The blocking API is unchanged. This feature excludes host-added enterprise
@@ -625,8 +625,8 @@ See the [FIPS deferment policy](https://github.com/valkyoth/cloud-sdk/blob/main/
 
 ```toml
 [dependencies]
-cloud-sdk = "0.94.0"
-cloud-sdk-reqwest = { version = "0.35.3", features = ["async-rustls"] }
+cloud-sdk = "0.95.0"
+cloud-sdk-reqwest = { version = "0.36.0", features = ["async-rustls"] }
 ```
 
 The async adapter requires an active Tokio executor because reqwest uses Tokio

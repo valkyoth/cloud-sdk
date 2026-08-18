@@ -33,7 +33,7 @@ def descriptor_for(data: bytes) -> int:
 
 def valid_manifest() -> bytes:
     return (
-        b"format=2\n"
+        b"format=3\n"
         + b"commit="
         + b"a" * 40
         + b"\nartifact_sha256="
@@ -42,6 +42,8 @@ def valid_manifest() -> bytes:
         + b"c" * 64
         + b"\nlauncher_sha256="
         + b"d" * 64
+        + b"\nrobot_launcher_sha256="
+        + b"e" * 64
         + b"\n"
     )
 
@@ -69,12 +71,12 @@ def test_manifest(runner) -> None:
         fields = runner.read_manifest(descriptor)
     finally:
         os.close(descriptor)
-    assert fields["format"] == "2"
+    assert fields["format"] == "3"
     assert fields["commit"] == "a" * 40
 
     for invalid in (
         valid_manifest() + b"extra=value\n",
-        valid_manifest().replace(b"format=2", b"format=1"),
+        valid_manifest().replace(b"format=3", b"format=2"),
         valid_manifest().replace(b"commit=" + b"a" * 40, b"commit=UPPER"),
         b"x" * 513,
     ):
@@ -132,6 +134,39 @@ def test_descriptor_hash(runner) -> None:
     assert os.execve in os.supports_fd
 
 
+def test_execution_configuration(runner) -> None:
+    cloud_environment, cloud_arguments = runner.execution_configuration(
+        runner.CLOUD_MODE, "/cloud-token", "", "", ""
+    )
+    assert cloud_environment[runner.TOKEN_ENV] == "/cloud-token"
+    assert runner.ROBOT_USERNAME_ENV not in cloud_environment
+    assert cloud_arguments[1] == "read_only_catalog_smoke"
+
+    robot_environment, robot_arguments = runner.execution_configuration(
+        runner.ROBOT_MODE, "", "/robot-user", "/robot-password", ""
+    )
+    assert robot_environment[runner.ROBOT_USERNAME_ENV] == "/robot-user"
+    assert robot_environment[runner.ROBOT_PASSWORD_ENV] == "/robot-password"
+    assert runner.TOKEN_ENV not in robot_environment
+    assert robot_arguments[1] == "read_only_robot_server_smoke"
+
+    invalid = (
+        (runner.CLOUD_MODE, "", "", "", ""),
+        (runner.CLOUD_MODE, "/token", "/user", "", ""),
+        (runner.ROBOT_MODE, "/token", "/user", "/password", ""),
+        (runner.ROBOT_MODE, "", "/same", "/same", ""),
+        (runner.ROBOT_MODE, "", "/user", "", ""),
+        (runner.ROBOT_MODE, "", "/user", "/password", "yes"),
+    )
+    for arguments in invalid:
+        try:
+            runner.execution_configuration(*arguments)
+        except runner.RunnerError:
+            pass
+        else:
+            raise AssertionError("invalid execution configuration was accepted")
+
+
 def test_descriptor_execution_ignores_path_replacement(runner) -> None:
     with tempfile.TemporaryDirectory() as temporary:
         directory = Path(temporary)
@@ -147,7 +182,10 @@ def test_descriptor_execution_ignores_path_replacement(runner) -> None:
 
         child = os.fork()
         if child == 0:
-            runner.execute_descriptor(descriptor, "/unused-test-token")
+            environment, arguments = runner.execution_configuration(
+                runner.CLOUD_MODE, "/unused-test-token", "", "", ""
+            )
+            runner.execute_descriptor(descriptor, environment, arguments)
         os.close(descriptor)
         _, status = os.waitpid(child, 0)
         assert os.waitstatus_to_exitcode(status) == 0
@@ -158,8 +196,9 @@ def main() -> None:
     test_manifest(runner)
     test_ownership(runner)
     test_descriptor_hash(runner)
+    test_execution_configuration(runner)
     test_descriptor_execution_ignores_path_replacement(runner)
-    print("9 live smoke runner tests passed.")
+    print("15 live smoke runner tests passed.")
 
 
 if __name__ == "__main__":

@@ -38,8 +38,8 @@ boundaries.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.94.0"
-cloud-sdk-hetzner = "0.45.0"
+cloud-sdk = "0.95.0"
+cloud-sdk-hetzner = "0.46.0"
 ```
 
 ## Features
@@ -767,7 +767,7 @@ authentication scope, raw response policy, and official endpoint.
 | Success response models | Complete checked envelopes for all 208 operations; source-complete ordinary Cloud resources, DNS zones and RRSets, zonefiles, actions, metrics, composites, pricing, locations, certificates, SSH keys, and Console Storage Boxes, types, snapshots, subaccounts, and folders; operation-branded typed execution guards decode through `decode_associated_checked_response` | Current |
 | Error response models | Complete checked typed API error decoding for all active operations | Current |
 | End-to-end client | Complete named workflows for all 208 active Cloud, DNS, Security, and Console Storage Box operations; custom-endpoint execution remains unavailable | Current |
-| Robot client | Complete typed contracts for all 89 active Robot operations; 45 read-only routes execute directly and every state change remains permit-gated | v0.94 source |
+| Robot client | Complete typed contracts for all 89 active Robot operations; 45 read-only routes execute directly and every state change remains permit-gated | v0.46 published checkpoint |
 
 Thirteen deprecated operations remain deliberately unavailable. A checked
 release gate prevents non-deprecated request operations from returning to a
@@ -842,8 +842,14 @@ operation-specific reconciliation remains explicit. Its complete
 source lock records 89 active operations and excludes all 16 deprecated
 Storage Box operations. See the
 [Robot source-lock contract](https://github.com/valkyoth/cloud-sdk/blob/main/docs/ROBOT_WIRE_SOURCE_LOCK.md).
-The latest Robot additions and source migration are described in the
-[v0.94 source migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.94.0.md).
+The separately sealed operator harness can execute only one bodyless typed
+Robot server-list read against the exact official endpoint. It is ignored by
+default, absent from CI, accepts separate private Basic credential files only
+after credential-free staging, and contains no mutation, ordering, invalid-
+login, or retry route. See the
+[live-smoke runbook](https://github.com/valkyoth/cloud-sdk/blob/main/docs/LIVE_SMOKE_TESTING.md).
+The complete Robot client and live-evidence migration is described in the
+[v0.95 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.95.0.md).
 Breaking v0.27 constructor and custom-endpoint changes are listed in the
 [migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.27.0.md).
 Shared transport and credential lifecycle changes are listed in the
@@ -891,7 +897,7 @@ Enable Serde explicitly; it is never part of the default graph:
 
 ```toml
 [dependencies]
-cloud-sdk-hetzner = { version = "0.45.0", features = ["serde"] }
+cloud-sdk-hetzner = { version = "0.46.0", features = ["serde"] }
 ```
 
 The feature admits serde_json with `default-features = false` and `alloc` only

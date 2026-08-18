@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.95.0 - Unreleased
+
+- Added a separately sealed, ignored Robot live-smoke path for one typed
+  bodyless `GET /server` request against the exact official endpoint.
+- Added distinct private username/password file ingestion, complete source
+  cleanup, lockout-safe one-attempt execution, and static payload-free output.
+- Added manifest-bound Cloud and Robot launchers, credential-free staging,
+  isolated root-owned mode selection, and source gates excluding CI,
+  mutations, orders, custom endpoints, invalid-login tests, and retries.
+- Prepared the cumulative v0.91-v0.95 public checkpoint for `cloud-sdk 0.95.0`,
+  `cloud-sdk-hetzner 0.46.0`, `cloud-sdk-reqwest 0.36.0`, and
+  `cloud-sdk-testkit 0.31.0`; sanitization remains unchanged.
+
 ## 0.94.0 - 2026-08-17
 
 - Added an exact-official-endpoint Robot client and sealed typed contracts for

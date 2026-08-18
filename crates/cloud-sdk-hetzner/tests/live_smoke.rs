@@ -6,6 +6,10 @@ use core::fmt;
 mod catalog;
 #[path = "live_smoke/config.rs"]
 mod config;
+#[path = "live_smoke/robot.rs"]
+mod robot;
+#[path = "live_smoke/robot_config.rs"]
+mod robot_config;
 
 use std::time::Duration;
 
@@ -48,6 +52,7 @@ enum LiveSmokeError {
     DnsProbe(DnsProbeStage),
     SecurityProbe(SecurityProbeStage),
     StorageProbe(StorageProbeStage),
+    RobotProbe(robot::RobotLiveSmokeError),
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -115,6 +120,7 @@ impl fmt::Debug for LiveSmokeError {
             Self::StorageProbe(stage) => {
                 formatter.debug_tuple("StorageProbe").field(stage).finish()
             }
+            Self::RobotProbe(error) => formatter.debug_tuple("RobotProbe").field(error).finish(),
         }
     }
 }
@@ -393,6 +399,14 @@ fn read_only_storage_model_smoke() -> Result<(), LiveSmokeError> {
         list_storage_box_types_blocking,
         HetznerSuccess::StorageBoxTypes(_)
     );
+    Ok(())
+}
+
+#[test]
+#[ignore = "requires explicit opt-in and private Robot Webservice credential files"]
+fn read_only_robot_server_smoke() -> Result<(), LiveSmokeError> {
+    robot::run_read_only_server_probe().map_err(LiveSmokeError::RobotProbe)?;
+    println!("live smoke: typed Robot server list passed");
     Ok(())
 }
 

@@ -1,8 +1,9 @@
 # Hetzner Live Smoke Testing
 
 The live smoke harness validates the published SDK request, transport, and
-response boundaries against the public Hetzner Cloud API. It is opt-in,
-read-only, and disabled in normal CI and workspace tests.
+response boundaries against the public Hetzner Cloud and Robot APIs. It is
+opt-in, read-only by construction, and disabled in normal CI and workspace
+tests.
 
 ## Scope
 
@@ -19,6 +20,12 @@ cover:
 Later releases add read-only typed probes for DNS zones, certificates, SSH
 keys, Storage Boxes, and Storage Box types. No live probe creates, updates,
 resets, or deletes provider state.
+
+v0.95 adds a separately launched Robot probe for the bodyless
+`GET /server` operation. It uses `RobotClient::official`, a scoped Basic
+transport, an 8 MiB response limit, strict checked server-list decoding, and
+one attempt. It sends no invalid credential, form body, mutation, order,
+transaction query, reset, Wake-on-LAN, retry, or custom-endpoint request.
 
 List probes request one entry, require strict Hetzner pagination metadata, and
 validate the expected top-level collection. Pricing must return its expected
@@ -48,9 +55,10 @@ ignored:
 scripts/smoke_hetzner_live.sh --check
 ```
 
-Both `--check` and the build phase reject a token-file environment variable so
-Cargo, build scripts, procedural macros, compiler wrappers, linkers, and other
-build tooling cannot discover its path through their inherited environment.
+Both `--check` and the build phase reject Cloud token and Robot username or
+password file environment variables so Cargo, build scripts, procedural
+macros, compiler wrappers, linkers, and other build tooling cannot discover
+their paths through the inherited environment.
 
 ## Least-Privilege Project
 
@@ -64,20 +72,31 @@ limits its own behavior to typed read-only requests, but token scope, project
 membership, creation, rotation, revocation, and billing controls remain caller
 responsibilities.
 
+Robot uses separate HTTP Basic Webservice credentials and warns that three
+failed logins block the caller's source IP for ten minutes. The harness never
+intentionally submits invalid credentials and performs no automatic retry.
+Use a separate Robot Webservice user with the narrowest account and server
+access available. The SDK cannot prove that a Robot credential is read-only;
+the root-owned launcher limits only this executable's behavior. Do not use an
+owner login, production automation credential, or credential shared with
+another process. Revoke or rotate both values after the probe.
+
 ## Credential-Free Build Phase
 
-Build the live-smoke executable from a clean reviewed commit **before** the
-token file exists or is mounted:
+Build the live-smoke executable from a clean reviewed commit **before** any
+Cloud or Robot credential file exists or is mounted:
 
 ```sh
 unset CLOUD_SDK_HETZNER_TOKEN_FILE
+unset CLOUD_SDK_HETZNER_ROBOT_USERNAME_FILE
+unset CLOUD_SDK_HETZNER_ROBOT_PASSWORD_FILE
 unset CLOUD_SDK_HETZNER_ALLOW_DESTRUCTIVE
 scripts/smoke_hetzner_live.sh --prepare
 ```
 
 `--prepare` invokes Cargo without credential variables, selects exactly one
 `live_smoke` test executable from Cargo's structured JSON output, and creates an
-ignored staging bundle containing the executable, runtime, launcher, manifest,
+ignored staging bundle containing the executable, runtime, launchers, manifest,
 SHA-256 digests, and reviewed Git commit. The wrapper rejects a dirty worktree
 and anchors all repository paths to its own physical location, not the caller's
 working directory.
@@ -105,17 +124,21 @@ sudo /usr/bin/install -o root -g root -m 0444 \
     "$stage/manifest" /usr/local/libexec/cloud-sdk-live-smoke/manifest
 sudo /usr/bin/install -o root -g root -m 0555 \
     "$stage/cloud-sdk-hetzner-smoke" /usr/local/bin/cloud-sdk-hetzner-smoke
+sudo /usr/bin/install -o root -g root -m 0555 \
+    "$stage/cloud-sdk-hetzner-robot-smoke" \
+    /usr/local/bin/cloud-sdk-hetzner-robot-smoke
 ```
 
-Install the launcher last so an incomplete update fails closed. Confirm that
+Install both launchers last so an incomplete update fails closed. Confirm that
 `/usr/local`, `/usr/local/libexec`, the bundle directory, `/usr/local/bin`, and
 all installed files are owned by root and are not group- or world-writable.
-Terminate the credential-free build environment before creating or mounting the
-token. The repository wrapper cannot perform this privileged trust transition.
+Terminate the credential-free build environment before creating or mounting
+credentials. The repository wrapper cannot perform this privileged trust
+transition.
 
-Do not rebuild or reseal after provisioning the token. If code changes, revoke
-or remove the token first, commit and review the changes, then repeat both
-credential-free phases.
+Do not rebuild or reseal after provisioning credentials. If code changes,
+revoke or remove every credential first, commit and review the changes, then
+repeat both credential-free phases.
 
 ## Private Token File
 
@@ -173,12 +196,56 @@ adapter-owned request storage. It cannot clear copies retained by the shell,
 filesystem, OS cache, reqwest, rustls, crash tooling, swap, or the remote
 service.
 
+## Private Robot Credential Files
+
+Create two different private files after the credential-free bundle has been
+sealed. Do not place either value in command arguments, raw environment
+variables, shell history, the repository, or one combined file:
+
+```sh
+credential_dir="${XDG_CONFIG_HOME:-$HOME/.config}/cloud-sdk"
+username_file="$credential_dir/hetzner-robot.username"
+password_file="$credential_dir/hetzner-robot.password"
+install -d -m 700 -- "$credential_dir"
+install -m 600 /dev/null "$username_file"
+install -m 600 /dev/null "$password_file"
+IFS= read -r robot_username
+IFS= read -r -s robot_password
+printf '\n'
+printf '%s\n' "$robot_username" >"$username_file"
+printf '%s\n' "$robot_password" >"$password_file"
+unset robot_username robot_password
+```
+
+The Robot path rejects missing or identical paths, symlinks, non-regular
+files, Unix files with multiple hard links or group/world permission bits,
+files that change identity during open, and values beyond the Basic-auth
+bounds. It permits one terminal LF or CRLF and clears both complete source
+allocations on success or rejection. Filesystem caches, shell input, transport
+copies, crash tooling, swap, and remote-service handling remain operational
+cleanup boundaries.
+
+Run only the root-owned Robot launcher:
+
+```sh
+CLOUD_SDK_HETZNER_ROBOT_USERNAME_FILE="$username_file" \
+CLOUD_SDK_HETZNER_ROBOT_PASSWORD_FILE="$password_file" \
+    /usr/local/bin/cloud-sdk-hetzner-robot-smoke
+```
+
+The runner rejects a Cloud bearer-token path, destructive opt-in, missing
+files, mixed modes, additional arguments, and same textual file paths. It
+clears the inherited environment and selects exactly
+`read_only_robot_server_smoke`. Inspect the Robot login/security view after
+the run, then revoke or rotate the Webservice credential and securely remove
+both files.
+
 ## Output Policy
 
 Successful output contains only static probe names. Failure diagnostics contain
 only static error categories, the static probe name, and possibly an HTTP
-status. Token values, token-file paths, endpoints, response bodies, and provider
-resource IDs are never written by the harness.
+status. Token, username, password, credential-file paths, endpoints, response
+bodies, and provider resource IDs are never written by the harness.
 
 Do not add `--debug`, shell tracing, packet capture, or response-body logging to
 an authenticated run. Treat terminal capture and CI logs as potentially
@@ -186,8 +253,8 @@ persistent records.
 
 ## Destructive Test Plan
 
-Mutation execution is deliberately not implemented in `v0.19.0`. A future
-destructive harness must remain a separate command and satisfy all of these
+Mutation execution is deliberately not implemented. A future destructive
+harness must remain a separate command and satisfy all of these
 gates before its first network request:
 
 1. Use a dedicated disposable project containing no production resources.

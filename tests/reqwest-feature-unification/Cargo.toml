@@ -10,11 +10,11 @@ publish = false
 [dependencies]
 cloud-sdk = {
     path = "../../crates/cloud-sdk",
-    version = "=0.94.0",
+    version = "=0.95.0",
 }
 cloud-sdk-reqwest = {
     path = "../../crates/cloud-sdk-reqwest",
-    version = "=0.35.3",
+    version = "=0.36.0",
     features = [
         "async-rustls",
         "blocking-rustls",

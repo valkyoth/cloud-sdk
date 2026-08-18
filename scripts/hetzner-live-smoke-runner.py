@@ -16,9 +16,14 @@ ARTIFACT = INSTALL_DIR / "live_smoke"
 MANIFEST = INSTALL_DIR / "manifest"
 RUNNER = INSTALL_DIR / "runner.py"
 LAUNCHER = Path("/usr/local/bin/cloud-sdk-hetzner-smoke")
+ROBOT_LAUNCHER = Path("/usr/local/bin/cloud-sdk-hetzner-robot-smoke")
 TOKEN_ENV = "CLOUD_SDK_HETZNER_TOKEN_FILE"
+ROBOT_USERNAME_ENV = "CLOUD_SDK_HETZNER_ROBOT_USERNAME_FILE"
+ROBOT_PASSWORD_ENV = "CLOUD_SDK_HETZNER_ROBOT_PASSWORD_FILE"
 DESTRUCTIVE_ENV = "CLOUD_SDK_HETZNER_ALLOW_DESTRUCTIVE"
 MAX_MANIFEST_BYTES = 512
+CLOUD_MODE = "cloud-read-only"
+ROBOT_MODE = "robot-read-only"
 
 
 class RunnerError(Exception):
@@ -87,12 +92,18 @@ def read_manifest(descriptor: int) -> dict[str, str]:
         "artifact_sha256",
         "runner_sha256",
         "launcher_sha256",
+        "robot_launcher_sha256",
     }
-    if set(fields) != expected or fields["format"] != "2":
+    if set(fields) != expected or fields["format"] != "3":
         raise RunnerError("manifest validation failed")
     if len(fields["commit"]) not in {40, 64} or not is_lower_hex(fields["commit"]):
         raise RunnerError("manifest validation failed")
-    for key in ("artifact_sha256", "runner_sha256", "launcher_sha256"):
+    for key in (
+        "artifact_sha256",
+        "runner_sha256",
+        "launcher_sha256",
+        "robot_launcher_sha256",
+    ):
         if len(fields[key]) != 64 or not is_lower_hex(fields[key]):
             raise RunnerError("manifest validation failed")
     return fields
@@ -111,21 +122,57 @@ def sha256_descriptor(descriptor: int) -> str:
     return digest.hexdigest()
 
 
-def execute_descriptor(artifact_descriptor: int, token_file: str) -> NoReturn:
-    os.set_inheritable(artifact_descriptor, True)
-    environment = {
-        "PATH": "/usr/bin:/bin",
-        "CLOUD_SDK_HETZNER_LIVE_MODE": "read-only",
-        TOKEN_ENV: token_file,
-    }
-    arguments = [
+def execution_configuration(
+    mode: str,
+    token_file: str,
+    username_file: str,
+    password_file: str,
+    destructive: str,
+) -> tuple[dict[str, str], list[str]]:
+    if destructive:
+        raise RunnerError("destructive opt-in is forbidden")
+    environment = {"PATH": "/usr/bin:/bin"}
+    if mode == CLOUD_MODE:
+        if not token_file or username_file or password_file:
+            raise RunnerError("Cloud credential configuration failed")
+        environment.update(
+            {
+                "CLOUD_SDK_HETZNER_LIVE_MODE": "read-only",
+                TOKEN_ENV: token_file,
+            }
+        )
+        test = "read_only_catalog_smoke"
+    elif mode == ROBOT_MODE:
+        if token_file or not username_file or not password_file:
+            raise RunnerError("Robot credential configuration failed")
+        if username_file == password_file:
+            raise RunnerError("Robot credential configuration failed")
+        environment.update(
+            {
+                "CLOUD_SDK_HETZNER_LIVE_MODE": "robot-read-only",
+                ROBOT_USERNAME_ENV: username_file,
+                ROBOT_PASSWORD_ENV: password_file,
+            }
+        )
+        test = "read_only_robot_server_smoke"
+    else:
+        raise RunnerError("live smoke mode is invalid")
+    return environment, [
         str(ARTIFACT),
-        "read_only_catalog_smoke",
+        test,
         "--exact",
         "--ignored",
         "--nocapture",
         "--test-threads=1",
     ]
+
+
+def execute_descriptor(
+    artifact_descriptor: int,
+    environment: dict[str, str],
+    arguments: list[str],
+) -> NoReturn:
+    os.set_inheritable(artifact_descriptor, True)
     try:
         os.execve(artifact_descriptor, arguments, environment)
     except OSError:
@@ -135,14 +182,26 @@ def execute_descriptor(artifact_descriptor: int, token_file: str) -> NoReturn:
 
 def execute() -> NoReturn:
     token_file = os.environ.get(TOKEN_ENV, "")
+    username_file = os.environ.get(ROBOT_USERNAME_ENV, "")
+    password_file = os.environ.get(ROBOT_PASSWORD_ENV, "")
     destructive = os.environ.get(DESTRUCTIVE_ENV, "")
     os.environ.clear()
-    if not token_file:
-        fail("token file is required")
-    if destructive:
-        fail("destructive opt-in is forbidden")
-    if len(sys.argv) != 1:
+    if len(sys.argv) == 1:
+        mode = CLOUD_MODE
+    elif len(sys.argv) == 2 and sys.argv[1] == "--robot-read-only":
+        mode = ROBOT_MODE
+    else:
         fail("arguments are forbidden")
+    try:
+        environment, arguments = execution_configuration(
+            mode,
+            token_file,
+            username_file,
+            password_file,
+            destructive,
+        )
+    except RunnerError:
+        fail("credential configuration failed")
     if os.execve not in os.supports_fd:
         fail("descriptor execution is unsupported")
 
@@ -155,6 +214,7 @@ def execute() -> NoReturn:
         for path, mode, field in (
             (RUNNER, 0o444, "runner_sha256"),
             (LAUNCHER, 0o555, "launcher_sha256"),
+            (ROBOT_LAUNCHER, 0o555, "robot_launcher_sha256"),
         ):
             descriptor = open_root_owned_file(path, mode)
             try:
@@ -169,7 +229,7 @@ def execute() -> NoReturn:
     except (OSError, RunnerError):
         fail("installed bundle verification failed")
 
-    execute_descriptor(artifact_descriptor, token_file)
+    execute_descriptor(artifact_descriptor, environment, arguments)
 
 
 if __name__ == "__main__":

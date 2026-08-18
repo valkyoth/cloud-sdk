@@ -14,6 +14,8 @@ ROOT = Path(__file__).resolve().parent.parent
 WRAPPER = ROOT / "scripts" / "smoke_hetzner_live.sh"
 SELECTOR = ROOT / "scripts" / "find-cargo-test-executable.py"
 TOKEN_ENV = "CLOUD_SDK_HETZNER_TOKEN_FILE"
+ROBOT_USERNAME_ENV = "CLOUD_SDK_HETZNER_ROBOT_USERNAME_FILE"
+ROBOT_PASSWORD_ENV = "CLOUD_SDK_HETZNER_ROBOT_PASSWORD_FILE"
 
 
 def run(
@@ -21,6 +23,8 @@ def run(
 ) -> subprocess.CompletedProcess[str]:
     environment = os.environ.copy()
     environment.pop(TOKEN_ENV, None)
+    environment.pop(ROBOT_USERNAME_ENV, None)
+    environment.pop(ROBOT_PASSWORD_ENV, None)
     environment.pop("CLOUD_SDK_HETZNER_ALLOW_DESTRUCTIVE", None)
     if extra_env:
         environment.update(extra_env)
@@ -40,6 +44,12 @@ def assert_credential_rejected(mode: str) -> None:
     assert result.returncode == 2, result
     assert "must not be available during Cargo execution" in result.stderr
     assert sentinel not in result.stdout + result.stderr
+
+    for name in (ROBOT_USERNAME_ENV, ROBOT_PASSWORD_ENV):
+        result = run([str(WRAPPER), mode], ROOT, {name: sentinel})
+        assert result.returncode == 2, result
+        assert "must not be available during Cargo execution" in result.stderr
+        assert sentinel not in result.stdout + result.stderr
 
 
 def test_repository_anchor() -> None:
@@ -97,7 +107,7 @@ def main() -> None:
     assert_credential_rejected("--read-only")
     test_repository_anchor()
     test_selector()
-    print("7 live smoke staging tests passed.")
+    print("13 live smoke staging tests passed.")
 
 
 if __name__ == "__main__":

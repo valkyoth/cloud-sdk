@@ -3257,13 +3257,60 @@ Status: release candidate; incremental pentest and final retest passed.
 
 ### v0.95.0 - Robot Live Evidence
 
-Goal: validate least-privilege read-only Robot behavior without lockout or cost risk.
+Goal: validate one least-capability read-only Robot operation through the
+published client and transport without creating lockout or cost risk, then
+publish the cumulative v0.91.0-v0.95.0 checkpoint.
 
-Deliverables: credential-free staging, ignored operator harness, private token files, no invalid credentials, mutations, orders, or destructive calls.
+Deliverables:
 
-Verification: staging/runner tests, explicit operator smoke, source drift, and `scripts/release_0_95_gate.sh`.
+- extend the credential-free live-smoke staging bundle with a separate
+  root-owned Robot launcher and a manifest-bound launcher digest;
+- accept Robot username and password only as paths to separate private regular
+  files during the post-build operator phase, reject Cloud bearer credentials,
+  destructive opt-in, symlinks, hard links, broad Unix permissions, changed
+  opened files, oversized input, and same-file credential aliases;
+- clear complete credential source allocations on every return and construct
+  only the existing provider/service/official-endpoint scoped Basic transport;
+- add one ignored `RobotClient` probe for the bodyless `GET /server` operation,
+  with bounded caller-owned request, response, and header storage and static
+  payload-free diagnostics;
+- select that exact test from a fixed root-owned launcher after inherited
+  environment removal, with no runtime argument capable of selecting another
+  operation;
+- add a source contract proving the live path contains no mutation, permit,
+  order, transaction, invalid-credential, custom-endpoint, or GitHub workflow
+  execution route; and
+- publish `cloud-sdk 0.95.0`, `cloud-sdk-hetzner 0.46.0`,
+  `cloud-sdk-reqwest 0.36.0`, and `cloud-sdk-testkit 0.31.0` after all gates;
+  keep unchanged `cloud-sdk-sanitization 0.19.0` out of the publish set.
+
+Verification:
+
+- deterministic credential-file tests cover exact mode selection, Cloud-token
+  exclusion, empty/oversized files, line endings, distinct identities,
+  symlink/hard-link/permission rejection, Basic construction, and redacted
+  diagnostics;
+- staging and runner tests prove all three credential variables are absent
+  during Cargo, manifests bind both launchers, Cloud and Robot environments
+  cannot mix, the Robot launcher selects only
+  `read_only_robot_server_smoke`, and descriptor execution remains race-safe;
+- the ignored test compiles and offline tests prove official endpoint, typed
+  `RobotServerListRequest`, exact one-attempt blocking execution, bounded
+  response admission, and payload-free failure handling;
+- `scripts/check_robot_live_smoke.sh`, current Robot source/API drift checks,
+  the explicit operator smoke procedure, package/version/publication checks,
+  and `scripts/release_0_95_gate.sh` pass.
+
+Exit criteria: the reviewed executable can perform only one source-locked
+read-only Robot server inventory request against the exact official endpoint;
+build tooling and CI receive no credential paths; invalid credentials are
+never intentionally sent; no mutation, order, retry, or custom destination is
+reachable; credential and response cleanup boundaries are documented; and the
+four changed crates form a validated cumulative public checkpoint.
 
 Stop gate: `v0.95.0 implementation stop reached. Run the pentest for this exact commit before tagging and crates.io publication.`
+
+Status: implementation stop reached; pentest required.
 
 ## Tier F - Whole-Platform Qualification
 

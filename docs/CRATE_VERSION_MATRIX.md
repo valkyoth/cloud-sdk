@@ -1379,7 +1379,7 @@ crate.
 | --- | --- | --- | --- | --- | --- |
 | `cloud-sdk` | `0.90.0` | `0.92.0` | `code` | No | Advance the internal Robot transaction milestone; defer publication to v0.95.0. |
 | `cloud-sdk-hetzner` | `0.45.0` | `0.45.0` | `code` | No | Accumulate source-locked Robot ordering catalogs and transactions for v0.95.0. |
-| `cloud-sdk-reqwest` | `0.35.3` | `0.35.3` | `unchanged` | No | No transport boundary changes. |
+| `cloud-sdk-reqwest` | `0.35.3` | `0.35.3` | `code` | No | Accumulate exact response-status preservation and admitted transport dependency updates for v0.95.0. |
 | `cloud-sdk-sanitization` | `0.19.0` | `0.19.0` | `unchanged` | No | No sanitization boundary changes. |
 | `cloud-sdk-testkit` | `0.30.5` | `0.30.5` | `unchanged` | No | No testkit boundary changes. |
 
@@ -1409,6 +1409,20 @@ crate.
 | `cloud-sdk-reqwest` | `0.35.3` | `0.35.3` | `unchanged` | No | No transport boundary changes. |
 | `cloud-sdk-sanitization` | `0.19.0` | `0.19.0` | `unchanged` | No | No sanitization boundary changes. |
 | `cloud-sdk-testkit` | `0.30.5` | `0.30.5` | `code` | No | Accumulate exact-status regression coverage for v0.95.0. |
+
+## v0.95.0 Tracking Table
+
+`v0.95.0` adds separately sealed read-only Robot live evidence and publishes
+the complete v0.91-v0.95 cumulative train. Only crates with accumulated code
+changes are selected.
+
+| Crate | Published | v0.95 | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.90.0` | `0.95.0` | `code` | Yes | Publish the cumulative v0.91-v0.95 Robot checkpoint. |
+| `cloud-sdk-hetzner` | `0.45.0` | `0.46.0` | `code` | Yes | Publish accumulated Robot ordering, complete clients, lockout, and read-only live evidence. |
+| `cloud-sdk-reqwest` | `0.35.3` | `0.36.0` | `code` | Yes | Publish accumulated exact-status transport behavior and admitted dependency updates. |
+| `cloud-sdk-sanitization` | `0.19.0` | `0.19.0` | `unchanged` | No | No sanitization boundary changes. |
+| `cloud-sdk-testkit` | `0.30.5` | `0.31.0` | `code` | Yes | Publish accumulated exact-status and Robot client regression coverage. |
 
 ## Planned Milestone Ownership
 

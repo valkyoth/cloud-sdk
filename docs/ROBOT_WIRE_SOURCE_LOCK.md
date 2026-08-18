@@ -14,7 +14,10 @@ transitions are implemented in `v0.83.0`; Wake-on-LAN is implemented in
 `v0.85.0`; all active reverse-DNS operations are implemented in `v0.86.0`.
 Traffic, SSH keys, firewalls, and vSwitches are implemented in
 `v0.87.0-v0.90.0`; all active read-only ordering catalogs and transactions are
-implemented in `v0.91.0-v0.92.0`.
+implemented in `v0.91.0-v0.92.0`; billable ordering mutations are implemented
+in `v0.93.0`; all 89 active operations are exposed through the typed Robot
+client in `v0.94.0`; and `v0.95.0` adds separately sealed read-only live
+evidence for only `GET /server`.
 
 Retrieved: 2026-08-14
 
@@ -53,6 +56,11 @@ mutations have no response body.
 The fixture contains no `Authorization`, cookie, token, username, password, or
 live account data. It lives outside every publishable crate. It proves only
 the listed protocol distinctions and makes no Robot operation-coverage claim.
+
+The v0.95 live probe is not a fixture or source lock. It is an ignored local
+operator check of the already locked `GET /server` route. Credential-free
+staging and source gates exclude every mutation, order, invalid-login test,
+retry, custom endpoint, and GitHub execution path.
 
 ## Complete Operation Lock
 

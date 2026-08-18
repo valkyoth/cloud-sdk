@@ -442,6 +442,17 @@ catalog-derived cost authority, exact request fingerprints, bounded sensitive
 form preparation, no automatic retry, and transaction reconciliation after
 uncertain delivery. CI and live smoke cannot invoke these routes.
 
+`v0.94.0` exposes all 89 active operations through the exact-official-endpoint
+typed Robot client. All 45 read-only operations execute directly; every state
+change remains permit-gated. One credential generation admits one in-flight
+request and closes after authentication rejection, cancellation, or
+indeterminate post-dispatch failure.
+
+`v0.95.0` adds ignored live evidence for the sole bodyless `GET /server`
+inventory request. Credential-free staging, separate private Basic credential
+files, a fixed root-owned launcher, static output, and source checks keep
+mutations, orders, invalid-login tests, retries, and GitHub execution absent.
+
 Robot implementation schedule:
 
 | Group | Active | Deprecated | Planned Module | Milestone | Status |
@@ -464,3 +475,8 @@ Robot implementation schedule:
 | ordering mutations | 3 | 0 | `cloud_sdk_hetzner::robot::ordering` | `v0.93.0` | implemented |
 | legacy Storage Box | 0 | 16 | existing Console Storage Box modules | excluded | excluded |
 | **Total** | **89** | **16** | | | |
+
+All 89 active operations are request-, response-, error-, association-, and
+client-complete. Live evidence intentionally covers one representative
+read-only server inventory operation rather than claiming live execution of
+every route.
