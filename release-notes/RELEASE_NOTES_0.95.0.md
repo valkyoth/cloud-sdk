@@ -1,11 +1,11 @@
 # cloud-sdk 0.95.0 Release Notes
 
-Status: implementation stop; pentest required.
+Status: release candidate; pentest and final retest passed.
 
-Release date: pending
+Release date: 2026-08-18
 
-Security-Review: PENDING
-Pentest: PENDING
+Security-Review: PASS
+Pentest: PASS
 Publication: PENDING
 
 ## Overview
@@ -68,6 +68,9 @@ read-only operator harness without changing any default dependency graph.
 - [`docs/THREAT_MODEL_DELTA_0.95.0.md`](../docs/THREAT_MODEL_DELTA_0.95.0.md)
 - [`docs/REJECTED_ABSTRACTIONS_0.95.0.md`](../docs/REJECTED_ABSTRACTIONS_0.95.0.md)
 - [`docs/MIGRATION_0.95.0.md`](../docs/MIGRATION_0.95.0.md)
+
+The permanent pentest report binds the exact reviewed implementation and both
+remediation commits. No finding remains open.
 
 ## Stop Gate
 

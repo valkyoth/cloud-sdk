@@ -1,6 +1,6 @@
 # Rejected Abstractions 0.95.0
 
-Status: implementation stop; pentest required.
+Status: release candidate; pentest and final retest passed.
 
 ## Robot Live Execution In CI
 

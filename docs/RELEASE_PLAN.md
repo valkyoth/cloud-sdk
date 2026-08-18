@@ -3314,7 +3314,8 @@ four changed crates form a validated cumulative public checkpoint.
 
 Stop gate: `v0.95.0 implementation stop reached. Run the pentest for this exact commit before tagging and crates.io publication.`
 
-Status: implementation stop reached; pentest required.
+Status: release candidate; pentest and final retest passed. Local release
+gate and GitHub CI/CodeQL remain before tagging and publication.
 
 ## Tier F - Whole-Platform Qualification
 
