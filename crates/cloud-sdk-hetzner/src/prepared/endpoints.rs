@@ -402,6 +402,17 @@ macro_rules! query_wire {
     };
 }
 
+impl crate::prepared::QueryWire for crate::query::SourceLockedQuery<'_> {
+    fn write_query(self, output: &mut [u8]) -> Result<usize, super::HetznerPreparationError> {
+        self.write_query(output)
+            .map_err(|_| super::HetznerPreparationError::Query)
+    }
+
+    fn operation_key(self) -> &'static str {
+        self.operation_id()
+    }
+}
+
 mod compute;
 mod network;
 mod security_dns;

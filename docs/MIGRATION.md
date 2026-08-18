@@ -471,3 +471,21 @@ The MSRV remains Rust 1.92.0, development remains pinned to Rust 1.97.1,
 default features remain empty, and the provider default graph remains
 transport-free and `no_std`. The live harness is an ignored integration test
 behind existing development features and adds no published runtime dependency.
+
+## v0.96.0
+
+`ServerMetricsRequest::try_new` now takes `ServerMetricTypes`; start with
+`ServerMetricTypes::new(metric)` and add values with `.with(metric)`. Replace a
+text metrics step with `ServerMetricsStep::new(seconds)`. `TimestampValue` now
+rejects impossible UTC calendar values.
+
+`PrimaryIpListRequest::with_type` was removed because the current API no longer
+declares it. Use `.with_name(...)` or `.with_ip(...)`. `ImageListRequest` now
+has a borrow lifetime when named or label filters are used. Existing inferred
+construction is unchanged.
+
+For repeated filters or less common source fields, construct typed
+`SourceQueryArgument` values and pass them to `SourceLockedQuery::try_new` with
+the exact `SourceQueryOperation`, then pair that query with the endpoint using
+`HetznerPreparedOperation::query`. Preparation rejects a mismatched operation
+before dispatch and clears complete caller-owned request storage.

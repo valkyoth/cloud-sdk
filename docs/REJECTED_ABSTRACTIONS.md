@@ -244,3 +244,24 @@ Custom endpoint configuration was rejected because it could exfiltrate Basic
 credentials. The provider-owned endpoint policy and `RobotClient::official`
 both bind the request to `https://robot-ws.your-server.de/`.
 
+## v0.96.0
+
+### Unchecked Key/Value Query Builder As Coverage Evidence
+
+The existing generic `QueryBuilder` was rejected as proof of provider support:
+it cannot establish operation ownership, requiredness, cardinality, enums, or
+upstream freshness. `SourceLockedQuery` retains caller-owned storage while
+sealing those provider contracts.
+
+### Automatic Inventory Refresh
+
+Regenerating executable contracts during an OpenAPI lock refresh was rejected.
+It could turn a new upstream option into an unreviewed support claim. Accepted
+source drift intentionally leaves CI red until code, tests, and the inventory
+are reviewed together.
+
+### One Universal Array Encoding
+
+Blindly applying OpenAPI default repetition was rejected because official
+metrics prose requires comma separation. Only the two metrics `type` arrays
+receive that explicit exception; ordinary arrays remain repeated parameters.

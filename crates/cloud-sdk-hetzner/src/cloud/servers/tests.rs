@@ -3,9 +3,9 @@ use super::actions::{
 };
 use super::{
     PrimaryIpSelection, ServerCreateRequest, ServerEndpoint, ServerId, ServerListRequest,
-    ServerMetricType, ServerMetricsRequest, ServerName, ServerPublicNet, ServerReference,
-    ServerRequestError, ServerResourceId, ServerSortField, ServerStatus, TextValue, TimestampValue,
-    UserData,
+    ServerMetricType, ServerMetricTypes, ServerMetricsRequest, ServerMetricsStep, ServerName,
+    ServerPublicNet, ServerReference, ServerRequestError, ServerResourceId, ServerSortField,
+    ServerStatus, TextValue, TimestampValue, UserData,
 };
 use crate::EndpointGroup;
 use crate::actions::ActionId;
@@ -153,10 +153,18 @@ fn server_text_values_reject_json_and_bidi_spoofing_bytes() {
 }
 
 #[test]
-fn server_timestamp_validation_is_fixed_width_and_digit_only() {
+fn server_timestamp_validation_enforces_utc_calendar_bounds() {
     assert_eq!(
         TimestampValue::new("9999-99-99T99:99:99Z").map(TimestampValue::as_str),
-        Ok("9999-99-99T99:99:99Z")
+        Err(ServerRequestError::InvalidTimestamp)
+    );
+    assert_eq!(
+        TimestampValue::new("2024-02-29T23:59:59Z").map(TimestampValue::as_str),
+        Ok("2024-02-29T23:59:59Z")
+    );
+    assert_eq!(
+        TimestampValue::new("2025-02-29T00:00:00Z"),
+        Err(ServerRequestError::InvalidTimestamp)
     );
     assert_eq!(
         TimestampValue::new("2026-07-08T10:00:00.500Z"),
@@ -189,25 +197,42 @@ fn server_metrics_validate_time_range_and_write_query() {
     let (Some(id), Ok(start), Ok(end)) = (id, start, end) else {
         unreachable!("security fixture construction failed");
     };
-    let request = ServerMetricsRequest::try_new(id, ServerMetricType::Cpu, start, end);
+    let metrics = ServerMetricTypes::new(ServerMetricType::Cpu)
+        .with(ServerMetricType::Disk)
+        .with(ServerMetricType::Network)
+        .with(ServerMetricType::Cpu);
+    let request = ServerMetricsRequest::try_new(id, metrics, start, end).map(|request| {
+        request.with_step(ServerMetricsStep::new(60).unwrap_or_else(|_| unreachable!()))
+    });
     assert!(request.is_ok());
     let Ok(request) = request else {
         unreachable!("security fixture construction failed");
     };
     let mut output = [0u8; 128];
     let written = request.write_query(&mut output);
-    assert_eq!(written, Ok(68));
+    assert_eq!(written, Ok(93));
     let query = output
-        .get(..68)
+        .get(..93)
         .and_then(|bytes| core::str::from_utf8(bytes).ok());
     assert_eq!(
         query,
-        Some("end=2026-07-08T11%3A00%3A00Z&start=2026-07-08T10%3A00%3A00Z&type=cpu")
+        Some(
+            "end=2026-07-08T11%3A00%3A00Z&step=60&start=2026-07-08T10%3A00%3A00Z&type=cpu%2Cdisk%2Cnetwork"
+        )
     );
 
     assert_eq!(
-        ServerMetricsRequest::try_new(id, ServerMetricType::Cpu, end, start),
+        ServerMetricsRequest::try_new(
+            id,
+            ServerMetricTypes::new(ServerMetricType::Cpu),
+            end,
+            start
+        ),
         Err(ServerRequestError::InvalidTimeRange)
+    );
+    assert_eq!(
+        ServerMetricsStep::new(0),
+        Err(ServerRequestError::InvalidMetricsStep)
     );
 }
 

@@ -1,9 +1,10 @@
 use super::{
-    ImageActionEndpoint, ImageEndpoint, ImageId, ImageListRequest, ImageProtectionRequest,
-    ImageSortField, ImageTypeFilter,
+    ImageActionEndpoint, ImageArchitecture, ImageEndpoint, ImageId, ImageListRequest, ImageName,
+    ImageProtectionRequest, ImageSortField, ImageStatus, ImageTypeFilter,
 };
 use crate::EndpointGroup;
 use crate::actions::ActionId;
+use crate::labels::LabelSelector;
 use crate::pagination::{Page, PerPage, SortDirection};
 
 #[test]
@@ -51,24 +52,35 @@ fn server_adjacent_image_list_query_writes_filters_pagination_and_sorting() {
     let bound_to = ImageId::new(42);
     let page = Page::new(2);
     let per_page = PerPage::new(25);
-    let mut output = [0u8; 96];
-    let (Some(bound_to), Ok(page), Ok(per_page)) = (bound_to, page, per_page) else {
+    let selector = LabelSelector::new("env=prod");
+    let name = ImageName::new("debian");
+    let mut output = [0u8; 192];
+    let (Some(bound_to), Ok(page), Ok(per_page), Ok(selector), Ok(name)) =
+        (bound_to, page, per_page, selector, name)
+    else {
         unreachable!("security fixture construction failed");
     };
     let request = ImageListRequest::new()
+        .with_architecture(ImageArchitecture::Arm)
         .with_bound_to(bound_to)
+        .with_include_deprecated(false)
+        .with_label_selector(selector)
+        .with_name(name)
         .with_page(page)
         .with_per_page(per_page)
         .with_sort(ImageSortField::Created, SortDirection::Desc)
+        .with_status(ImageStatus::Available)
         .with_type(ImageTypeFilter::Snapshot);
     let written = request.write_query(&mut output);
-    assert_eq!(written, Ok(64));
+    assert_eq!(written, Ok(161));
     let query = output
-        .get(..64)
+        .get(..161)
         .and_then(|bytes| core::str::from_utf8(bytes).ok());
     assert_eq!(
         query,
-        Some("bound_to=42&page=2&per_page=25&sort=created%3Adesc&type=snapshot")
+        Some(
+            "architecture=arm&bound_to=42&include_deprecated=false&label_selector=env%3Dprod&name=debian&page=2&per_page=25&sort=created%3Adesc&status=available&type=snapshot"
+        )
     );
 }
 

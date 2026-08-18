@@ -1,5 +1,6 @@
 //! Server endpoint request domains.
 
+mod metrics;
 mod shared;
 
 pub mod placement_groups;
@@ -31,6 +32,10 @@ pub use self::shared::ServerRequestError;
 
 /// Server name validated as a conservative RFC 1123 hostname.
 pub use self::shared::ServerName;
+
+pub use self::metrics::{
+    ServerMetricType, ServerMetricTypes, ServerMetricsRequest, ServerMetricsStep,
+};
 
 /// ID-or-name server create/action reference.
 pub use self::shared::ServerReference;
@@ -387,83 +392,6 @@ impl<'a> ServerUpdateRequest<'a> {
     #[must_use]
     pub const fn endpoint(self) -> ServerEndpoint {
         ServerEndpoint::Update(self.id)
-    }
-}
-
-/// Metrics type query value.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum ServerMetricType {
-    /// CPU metrics.
-    Cpu,
-    /// Disk metrics.
-    Disk,
-    /// Network metrics.
-    Network,
-}
-
-impl ServerMetricType {
-    const fn as_api_str(self) -> &'static str {
-        match self {
-            Self::Cpu => "cpu",
-            Self::Disk => "disk",
-            Self::Network => "network",
-        }
-    }
-}
-
-/// Server metrics request.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct ServerMetricsRequest<'a> {
-    id: ServerId,
-    metric_type: ServerMetricType,
-    start: TimestampValue<'a>,
-    end: TimestampValue<'a>,
-    step: Option<TextValue<'a>>,
-}
-
-impl<'a> ServerMetricsRequest<'a> {
-    /// Creates a metrics request with required query fields.
-    pub fn try_new(
-        id: ServerId,
-        metric_type: ServerMetricType,
-        start: TimestampValue<'a>,
-        end: TimestampValue<'a>,
-    ) -> Result<Self, ServerRequestError> {
-        if start.as_str() >= end.as_str() {
-            return Err(ServerRequestError::InvalidTimeRange);
-        }
-        Ok(Self {
-            id,
-            metric_type,
-            start,
-            end,
-            step: None,
-        })
-    }
-
-    /// Sets the optional resolution step.
-    #[must_use]
-    pub const fn with_step(mut self, step: TextValue<'a>) -> Self {
-        self.step = Some(step);
-        self
-    }
-
-    /// Returns the endpoint.
-    #[must_use]
-    pub const fn endpoint(self) -> ServerEndpoint {
-        ServerEndpoint::Metrics(self.id)
-    }
-
-    /// Writes the query string into a caller-owned buffer.
-    pub fn write_query(self, output: &mut [u8]) -> Result<usize, ServerRequestError> {
-        encode_server_query(output, |writer, first| {
-            writer.query_pair(first, "end", self.end.as_str())?;
-            if let Some(step) = self.step {
-                writer.query_pair(first, "step", step.as_str())?;
-            }
-            writer.query_pair(first, "start", self.start.as_str())?;
-            writer.query_pair(first, "type", self.metric_type.as_api_str())
-        })
     }
 }
 

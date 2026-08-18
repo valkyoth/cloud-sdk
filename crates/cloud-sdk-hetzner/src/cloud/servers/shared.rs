@@ -48,6 +48,8 @@ pub enum ServerRequestError {
     InvalidTimestamp,
     /// End time must be later than start time.
     InvalidTimeRange,
+    /// Metrics resolution must be positive.
+    InvalidMetricsStep,
     /// Fields cannot be combined safely.
     MutuallyExclusiveFields,
 }
@@ -67,6 +69,7 @@ impl_static_error!(ServerRequestError,
     Self::InvalidUserData => "server user data is invalid",
     Self::InvalidTimestamp => "server timestamp is invalid",
     Self::InvalidTimeRange => "server time range is invalid",
+    Self::InvalidMetricsStep => "server metrics step is invalid",
     Self::MutuallyExclusiveFields => "server request fields are mutually exclusive",
 );
 
@@ -250,6 +253,34 @@ impl<'a> TimestampValue<'a> {
         {
             return Err(ServerRequestError::InvalidTimestamp);
         }
+        let Some(year) = ascii_number(bytes, 0, 4) else {
+            return Err(ServerRequestError::InvalidTimestamp);
+        };
+        let Some(month) = ascii_number(bytes, 5, 7) else {
+            return Err(ServerRequestError::InvalidTimestamp);
+        };
+        let Some(day) = ascii_number(bytes, 8, 10) else {
+            return Err(ServerRequestError::InvalidTimestamp);
+        };
+        let Some(hour) = ascii_number(bytes, 11, 13) else {
+            return Err(ServerRequestError::InvalidTimestamp);
+        };
+        let Some(minute) = ascii_number(bytes, 14, 16) else {
+            return Err(ServerRequestError::InvalidTimestamp);
+        };
+        let Some(second) = ascii_number(bytes, 17, 19) else {
+            return Err(ServerRequestError::InvalidTimestamp);
+        };
+        if month == 0
+            || month > 12
+            || day == 0
+            || day > days_in_month(year, month)
+            || hour > 23
+            || minute > 59
+            || second > 59
+        {
+            return Err(ServerRequestError::InvalidTimestamp);
+        }
         Ok(Self { value })
     }
 
@@ -257,6 +288,27 @@ impl<'a> TimestampValue<'a> {
     #[must_use]
     pub const fn as_str(self) -> &'a str {
         self.value
+    }
+}
+
+fn ascii_number(bytes: &[u8], start: usize, end: usize) -> Option<u16> {
+    let mut value = 0_u16;
+    for byte in bytes.get(start..end)? {
+        value = value
+            .checked_mul(10)?
+            .checked_add(u16::from(byte.checked_sub(b'0')?))?;
+    }
+    Some(value)
+}
+
+const fn days_in_month(year: u16, month: u16) -> u16 {
+    match month {
+        2 if year.is_multiple_of(400) || (year.is_multiple_of(4) && !year.is_multiple_of(100)) => {
+            29
+        }
+        2 => 28,
+        4 | 6 | 9 | 11 => 30,
+        _ => 31,
     }
 }
 

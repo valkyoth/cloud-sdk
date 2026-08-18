@@ -157,7 +157,7 @@ endpoint_wire!(
     identity endpoint => { let _ = endpoint; crate::association::ExpectedResponseIdentity::None }
 );
 
-query_wire!(ImageListRequest, request => {
+query_wire!(ImageListRequest<'_>, request => {
     let _ = request;
     ImageEndpoint::List
 });

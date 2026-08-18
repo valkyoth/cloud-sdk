@@ -1424,6 +1424,20 @@ changes are selected.
 | `cloud-sdk-sanitization` | `0.19.0` | `0.19.0` | `unchanged` | No | No sanitization boundary changes. |
 | `cloud-sdk-testkit` | `0.30.5` | `0.31.0` | `code` | Yes | Publish accumulated exact-status and Robot client regression coverage. |
 
+## v0.96.0 Tracking Table
+
+`v0.96.0` adds complete source-derived request-query fidelity and corrected
+server metrics. It starts the v0.96-v0.100 cumulative train and publishes no
+crate.
+
+| Crate | Published | v0.96 | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.95.0` | `0.96.0` | `code` | No | Advance the internal request-fidelity milestone; defer publication to v0.100.0. |
+| `cloud-sdk-hetzner` | `0.46.0` | `0.46.0` | `code` | No | Accumulate complete source-locked queries and corrected server metrics for v0.100.0. |
+| `cloud-sdk-reqwest` | `0.36.0` | `0.36.0` | `unchanged` | No | No transport boundary changes. |
+| `cloud-sdk-sanitization` | `0.19.0` | `0.19.0` | `unchanged` | No | No sanitization boundary changes. |
+| `cloud-sdk-testkit` | `0.31.0` | `0.31.0` | `unchanged` | No | No testkit boundary changes. |
+
 ## Planned Milestone Ownership
 
 Exact independent crate versions are assigned when each milestone starts.

@@ -38,7 +38,7 @@ boundaries.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.95.0"
+cloud-sdk = "0.96.0"
 cloud-sdk-hetzner = "0.46.0"
 ```
 
@@ -768,7 +768,19 @@ authentication scope, raw response policy, and official endpoint.
 | Error response models | Complete checked typed API error decoding for all active operations | Current |
 | End-to-end client | Complete named workflows for all 208 active Cloud, DNS, Security, and Console Storage Box operations; custom-endpoint execution remains unavailable | Current |
 | Robot client | Complete typed contracts for all 89 active Robot operations; 45 read-only routes execute directly and every state change remains permit-gated | v0.46 published checkpoint |
-| Server Metadata | Seven canonical link-local reads are outside OpenAPI and assigned to the v0.96 scope-closure release | Planned v0.96 |
+| Server Metadata | Seven canonical link-local reads are outside OpenAPI and assigned to the v0.97 scope-closure release | Planned v0.97 |
+
+The convenience request types cover common filters with domain-specific
+values. `query::SourceLockedQuery` is the complete operation-bound fallback
+for every query field in the pinned schemas, including repeated action,
+status, type, sort, and binding values. It validates operation ownership,
+required fields, scalar/array cardinality, duplicate values, source enums,
+pagination bounds, metrics timestamps and steps, and the provider-documented
+comma encoding used only by metrics. The generated
+[`REQUEST_CONTRACT_INVENTORY.tsv`](https://github.com/valkyoth/cloud-sdk/blob/main/docs/REQUEST_CONTRACT_INVENTORY.tsv)
+tracks all 437 path/query declarations plus all 91 request-body operations;
+four query rows belonging to deprecated Data Center operations remain explicit
+reviewed exclusions.
 
 Thirteen deprecated operations remain deliberately unavailable. A checked
 release gate prevents non-deprecated request operations from returning to a
@@ -1084,24 +1096,37 @@ assert_eq!(
 # }
 ```
 
-## Query Encoding Example
+## Source-Locked Query Example
 
 ```rust
-use cloud_sdk_hetzner::query::{QueryBuilder, QueryParam};
+use cloud_sdk_hetzner::query::{
+    SourceLockedQuery, SourceQueryArgument, SourceQueryOperation,
+    SourceQueryParameter, SourceQueryText,
+};
 
-# fn main() -> Result<(), cloud_sdk_hetzner::query::QueryError> {
-let mut query = QueryBuilder::<1>::new();
-query.push(QueryParam::new("label_selector", "env=prod")?)?;
+fn main() -> Result<(), cloud_sdk_hetzner::query::SourceQueryError> {
+let available = SourceQueryText::new("available")?;
+let system = SourceQueryText::new("system")?;
+let snapshot = SourceQueryText::new("snapshot")?;
+let arguments = [
+    SourceQueryArgument::text(SourceQueryParameter::Status, available),
+    SourceQueryArgument::text(SourceQueryParameter::Type, system),
+    SourceQueryArgument::text(SourceQueryParameter::Type, snapshot),
+];
+let query = SourceLockedQuery::try_new(
+    SourceQueryOperation::LIST_IMAGES,
+    &arguments,
+)?;
 
-let mut output = [0u8; 64];
-let written = query.write_percent_encoded(&mut output)?;
+let mut output = [0u8; 96];
+let written = query.write_query(&mut output)?;
 let encoded = output
     .get(..written)
     .and_then(|bytes| core::str::from_utf8(bytes).ok());
 
-assert_eq!(encoded, Some("label_selector=env%3Dprod"));
-# Ok(())
-# }
+assert_eq!(encoded, Some("status=available&type=system&type=snapshot"));
+Ok(())
+}
 ```
 
 ## Catalog Request Example
@@ -1314,7 +1339,9 @@ assert_eq!(request.endpoint().write_path(&mut [0u8; 16])?, 9);
 
 ```rust
 use cloud_sdk_hetzner::cloud::servers::{
-    ServerCreateRequest, ServerName, ServerReference,
+    ServerCreateRequest, ServerId, ServerMetricType, ServerMetricTypes,
+    ServerMetricsRequest, ServerMetricsStep, ServerName, ServerReference,
+    TimestampValue,
 };
 
 # fn main() -> Result<(), cloud_sdk_hetzner::cloud::servers::ServerRequestError> {
@@ -1325,6 +1352,22 @@ let request = ServerCreateRequest::new(name, server_type, image);
 
 assert_eq!(request.endpoint().method().as_str(), "POST");
 assert_eq!(request.endpoint().write_path(&mut [0u8; 16])?, 8);
+
+let Some(id) = ServerId::new(42) else {
+    return Ok(());
+};
+let start = TimestampValue::new("2026-08-18T10:00:00Z")?;
+let end = TimestampValue::new("2026-08-18T11:00:00Z")?;
+let metrics = ServerMetricTypes::new(ServerMetricType::Cpu)
+    .with(ServerMetricType::Disk);
+let metrics = ServerMetricsRequest::try_new(id, metrics, start, end)?
+    .with_step(ServerMetricsStep::new(60)?);
+let mut query = [0_u8; 96];
+let written = metrics.write_query(&mut query)?;
+assert_eq!(
+    core::str::from_utf8(&query[..written]).ok(),
+    Some("end=2026-08-18T11%3A00%3A00Z&step=60&start=2026-08-18T10%3A00%3A00Z&type=cpu%2Cdisk"),
+);
 # Ok(())
 # }
 ```

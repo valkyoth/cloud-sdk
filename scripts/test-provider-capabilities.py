@@ -55,7 +55,7 @@ def main() -> None:
 
         metadata = (
             "Server Metadata | Seven canonical link-local reads are outside "
-            "OpenAPI and assigned to the v0.96 scope-closure release | Planned v0.96"
+            "OpenAPI and assigned to the v0.97 scope-closure release | Planned v0.97"
         )
         path.write_text(
             source.replace(metadata, "Server Metadata | Complete | Current"),

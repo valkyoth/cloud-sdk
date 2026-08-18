@@ -19,6 +19,7 @@ execution so running them cannot create billable resources.
 | Complete Security client read | [`security_client.rs`](../crates/cloud-sdk-hetzner/examples/security_client.rs) | `cargo run -p cloud-sdk-hetzner --example security_client --features serde` |
 | Complete Storage client read | [`storage_client.rs`](../crates/cloud-sdk-hetzner/examples/storage_client.rs) | `cargo run -p cloud-sdk-hetzner --example storage_client --features serde` |
 | Global and certificate action queries | [`actions.rs`](../crates/cloud-sdk-hetzner/examples/actions.rs) | `cargo run -p cloud-sdk-hetzner --example actions` |
+| Complete source-locked query | [`source_locked_query.rs`](../crates/cloud-sdk-hetzner/examples/source_locked_query.rs) | `cargo run -p cloud-sdk-hetzner --example source_locked_query` |
 | DNS Zone request | [`dns.rs`](../crates/cloud-sdk-hetzner/examples/dns.rs) | `cargo run -p cloud-sdk-hetzner --example dns` |
 | Storage Box list request | [`storage_box.rs`](../crates/cloud-sdk-hetzner/examples/storage_box.rs) | `cargo run -p cloud-sdk-hetzner --example storage_box` |
 | Robot failover read | [`robot_failover.rs`](../crates/cloud-sdk-hetzner/examples/robot_failover.rs) | `cargo run -p cloud-sdk-hetzner --example robot_failover --features serde` |

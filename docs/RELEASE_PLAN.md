@@ -3332,10 +3332,11 @@ Deliverables:
   validate the complete admitted RFC3339 timestamp profile with real calendar
   bounds, and replace the generic text step with a dedicated positive bounded
   resolution type;
-- reconcile all 222 query-parameter declarations in the current Cloud and
-  Console Storage schemas, including all 84 array-valued declarations (76
-  Cloud and eight Console Storage), and replace every accidental single-value
-  collapse with bounded repeated-value models and canonical wire encoding;
+- reconcile all 218 active query-parameter declarations in the current Cloud
+  and Console Storage schemas, including all 83 active array-valued
+  declarations, while recording the four deprecated Data Center declarations
+  as explicit exclusions; provide bounded operation-owned repeated values and
+  canonical wire encoding even where a convenience request remains scalar;
 - close the confirmed list-query gaps: complete Image `status`,
   `include_deprecated`, `name`, `label_selector`, and `architecture` filters;
   replace the obsolete Primary IP `type` filter with current `name` and `ip`
@@ -3383,7 +3384,7 @@ is ready for pentest.
 
 Stop gate: `v0.96.0 implementation stop reached. Run the pentest and full release gate for this exact commit; defer crates.io publication to v0.100.0.`
 
-Status: planned; implementation has not started.
+Status: implementation stop reached; incremental pentest required.
 
 ### v0.97.0 - Hetzner Scope Closure And Adversarial Qualification
 

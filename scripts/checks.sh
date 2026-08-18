@@ -99,6 +99,8 @@ scripts/check_iana_ipv6_registry.py --local-only
 scripts/test-iana-ipv6-registry.py
 scripts/check_hetzner_api_drift.py --local-only
 scripts/test-hetzner-api-drift.py
+python3 scripts/generate_request_contract_inventory.py
+python3 scripts/test-request-contract-inventory.py
 scripts/check_hetzner_changelog.py --local-only
 scripts/test-hetzner-changelog.py
 scripts/test-generate-cloud-model-schema.py

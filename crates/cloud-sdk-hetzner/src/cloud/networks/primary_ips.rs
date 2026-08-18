@@ -43,15 +43,6 @@ pub enum PrimaryIpType {
     Ipv6,
 }
 
-impl PrimaryIpType {
-    const fn as_api_str(self) -> &'static str {
-        match self {
-            Self::Ipv4 => "ipv4",
-            Self::Ipv6 => "ipv6",
-        }
-    }
-}
-
 /// Primary IP sort fields admitted by the source-locked API.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum PrimaryIpSortField {
@@ -122,7 +113,8 @@ impl PrimaryIpEndpoint {
 /// Primary IP list request.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct PrimaryIpListRequest<'a> {
-    ip_type: Option<PrimaryIpType>,
+    name: Option<PrimaryIpName<'a>>,
+    ip: Option<PrimaryIpAddress<'a>>,
     label_selector: Option<LabelSelector<'a>>,
     page: Option<Page>,
     per_page: Option<PerPage>,
@@ -134,7 +126,8 @@ impl<'a> PrimaryIpListRequest<'a> {
     #[must_use]
     pub const fn new() -> Self {
         Self {
-            ip_type: None,
+            name: None,
+            ip: None,
             label_selector: None,
             page: None,
             per_page: None,
@@ -142,10 +135,17 @@ impl<'a> PrimaryIpListRequest<'a> {
         }
     }
 
-    /// Sets type filtering.
+    /// Sets exact name filtering.
     #[must_use]
-    pub const fn with_type(mut self, ip_type: PrimaryIpType) -> Self {
-        self.ip_type = Some(ip_type);
+    pub const fn with_name(mut self, name: PrimaryIpName<'a>) -> Self {
+        self.name = Some(name);
+        self
+    }
+
+    /// Sets exact IP-address filtering.
+    #[must_use]
+    pub const fn with_ip(mut self, ip: PrimaryIpAddress<'a>) -> Self {
+        self.ip = Some(ip);
         self
     }
 
@@ -180,8 +180,14 @@ impl<'a> PrimaryIpListRequest<'a> {
     /// Writes the query string into a caller-owned buffer.
     pub fn write_query(self, output: &mut [u8]) -> Result<usize, PrimaryIpRequestError> {
         encode_query(output, |writer, first| {
+            if let Some(ip) = self.ip {
+                writer.query_pair(first, "ip", ip.as_str())?;
+            }
             if let Some(selector) = self.label_selector {
                 writer.query_pair(first, "label_selector", selector.as_str())?;
+            }
+            if let Some(name) = self.name {
+                writer.query_pair(first, "name", name.as_str())?;
             }
             if let Some(page) = self.page {
                 writer.query_u64(first, "page", page.get())?;
@@ -191,9 +197,6 @@ impl<'a> PrimaryIpListRequest<'a> {
             }
             if let Some((field, direction)) = self.sort {
                 writer.query_pair(first, "sort", primary_ip_sort_value(field, direction))?;
-            }
-            if let Some(ip_type) = self.ip_type {
-                writer.query_pair(first, "type", ip_type.as_api_str())?;
             }
             Ok(())
         })

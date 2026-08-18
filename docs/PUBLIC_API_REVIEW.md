@@ -439,3 +439,17 @@ pre-1.0 additions and exhaustive-enum changes documented by the four
 intervening migration guides. Default features, MSRV, `no_std` behavior, and
 provider transport separation are unchanged.
 
+## v0.96.0
+
+Status: implementation stop; incremental pentest required.
+
+The v0.96 source for `cloud-sdk-hetzner 0.46.0` adds `SourceLockedQuery`, its finite operation and
+parameter domains, bounded typed values, and static errors. It can pair only
+with the exact endpoint operation through the existing prepared association.
+`ServerMetricTypes` and `ServerMetricsStep` replace the narrowed server metric
+arguments. Primary IP lists expose current `name` and `ip` filters instead of
+the removed `type`; Image lists gain architecture, deprecation, label, name,
+and status shortcuts. The fallback covers repeated values without allocation.
+
+This is a deliberate pre-1.0 breaking correction. No neutral transport,
+executor, authentication, response, permit, or default-feature API changes.

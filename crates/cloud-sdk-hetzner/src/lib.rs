@@ -72,7 +72,7 @@ mod tests {
     use crate::dns::zones::ZoneRequestError;
     use crate::labels::LabelError;
     use crate::pagination::{PaginationError, SortError};
-    use crate::query::QueryError;
+    use crate::query::{QueryError, SourceQueryError};
     use crate::rate_limit::HetznerQuotaError;
     use crate::request::EndpointPathError;
     use crate::response::ApiError;
@@ -111,6 +111,7 @@ mod tests {
         assert_error::<OfficialEndpointError>();
         assert_error::<PaginationError>();
         assert_error::<QueryError>();
+        assert_error::<SourceQueryError>();
         assert_error::<HetznerQuotaError>();
         assert_error::<RrsetRequestError>();
         assert_error::<RobotFormError>();

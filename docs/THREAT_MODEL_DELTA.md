@@ -262,3 +262,18 @@ availability, and account billing remain operational boundaries. Live success
 is point-in-time evidence and does not replace source drift, mocks, fuzzing,
 platform qualification, or the controlled-mutation plan.
 
+## v0.96.0
+
+New threats are query-field omission, wrong operation ownership, duplicate or
+scalar-collapsed arrays, stale generated contracts, and prose/schema encoding
+conflicts. `SourceLockedQuery` validates the complete borrowed snapshot before
+atomic encoding, caps it at 128 arguments and the request-target limit, and
+rejects unknown fields, wrong kinds, missing required fields, duplicates,
+invalid enums, timestamps, steps, and pagination. Preparation independently
+checks the operation ID and clears all request storage on mismatch.
+
+The embedded contract is generated only from pinned rows. Lock refresh makes
+its freshness gate fail until separately reviewed regeneration. Metrics comma
+encoding is an explicit reviewed upstream-prose exception. Semantically broad
+but percent-encoded source strings remain caller-controlled filters, never
+credentials, headers, paths, bodies, or endpoint authority.

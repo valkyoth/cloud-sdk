@@ -27,6 +27,14 @@ from generate_response_operations import render as render_response_operations
 from generate_response_operations import rows as response_operation_rows
 from generate_cloud_model_schema import render as render_cloud_model_schema
 from generate_cloud_model_schema import render_fixtures as render_cloud_model_fixtures
+from generate_request_contract_inventory import (
+    INVENTORY_OUTPUT as REQUEST_INVENTORY_LOCK,
+    OPERATION_OUTPUT as QUERY_OPERATION_LOCK,
+    QUERY_OUTPUT as QUERY_CONTRACT_LOCK,
+    render_inventory as render_request_inventory,
+    render_operations as render_query_operations,
+    render_query as render_query_contracts,
+)
 from hetzner_openapi_contracts import (
     digest,
     operation_rows,
@@ -288,6 +296,9 @@ def validate_local_files() -> int:
         RESPONSE_LOCK,
         CLOUD_MODEL_SCHEMA_LOCK,
         CLOUD_MODEL_FIXTURE_LOCK,
+        QUERY_CONTRACT_LOCK,
+        QUERY_OPERATION_LOCK,
+        REQUEST_INVENTORY_LOCK,
     ):
         if not path.is_file() or path.stat().st_size == 0:
             print(f"missing required lock file: {path}", file=sys.stderr)
@@ -299,6 +310,16 @@ def validate_local_files() -> int:
     schema_count = len(read_tsv(SCHEMA_LOCK))
     parameter_count = len(read_tsv(PARAMETER_LOCK))
     model_field_count = len(read_tsv(CLOUD_MODEL_SCHEMA_LOCK))
+    parameter_rows_locked = read_tsv(PARAMETER_LOCK)
+    generated_request_files = (
+        (QUERY_CONTRACT_LOCK, render_query_contracts(parameter_rows_locked)),
+        (QUERY_OPERATION_LOCK, render_query_operations(parameter_rows_locked)),
+        (REQUEST_INVENTORY_LOCK, render_request_inventory(parameter_rows_locked)),
+    )
+    for path, expected in generated_request_files:
+        if path.read_text(encoding="ascii") != expected:
+            print(f"stale request contract inventory: {path}", file=sys.stderr)
+            status = 1
     matrix_text = MATRIX.read_text(encoding="utf-8")
     spec_text = SPEC_LOCK.read_text(encoding="utf-8")
     required = [

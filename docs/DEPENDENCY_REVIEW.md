@@ -439,6 +439,30 @@ the OVHcloud probe, and retired provider-specific helper crates. Cargo Deny,
 RustSec, package, feature-unification, platform, freshness, and complete SPDX
 SBOM gates remain mandatory before publication.
 
+## v0.96.0
+
+Status: implementation stop; incremental pentest required.
+
+No dependency or feature edge changes. The executable query contract uses an
+embedded generated TSV and existing fixed-buffer primitives. The Python
+generator uses only the standard library. Default provider graphs remain
+transport-free and `no_std`; FIPS remains deferred to Brynja.
+
+## Lockfile Changes
+
+| Package | Previous | v0.96 | Review |
+| --- | --- | --- | --- |
+| `cloud-sdk` | `0.94.0` | `0.96.0` | Advance the provider-neutral internal milestone identity; v0.95 was the intervening published checkpoint. |
+| `ovhcloud-v2-probe` | `0.94.0` | `0.96.0` | Advance the excluded workspace probe identity only. |
+
+| Package | Published | v0.96 | Change | Publish |
+| --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.95.0` | `0.96.0` | request-fidelity milestone | no |
+| `cloud-sdk-hetzner` | `0.46.0` | `0.46.0` | provider request code | no |
+| `cloud-sdk-reqwest` | `0.36.0` | `0.36.0` | unchanged | no |
+| `cloud-sdk-sanitization` | `0.19.0` | `0.19.0` | unchanged | no |
+| `cloud-sdk-testkit` | `0.31.0` | `0.31.0` | unchanged | no |
+
 ## 2026-07-20
 
 **Status:** historical reviewed snapshot  

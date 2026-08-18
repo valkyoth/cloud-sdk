@@ -1,8 +1,8 @@
 use super::{
     PrimaryIpActionEndpoint, PrimaryIpAddress, PrimaryIpAssignRequest,
     PrimaryIpChangeDnsPtrRequest, PrimaryIpCreateRequest, PrimaryIpDnsPtr, PrimaryIpDnsPtrIntent,
-    PrimaryIpEndpoint, PrimaryIpId, PrimaryIpListRequest, PrimaryIpProtectionRequest,
-    PrimaryIpSortField, PrimaryIpType,
+    PrimaryIpEndpoint, PrimaryIpId, PrimaryIpListRequest, PrimaryIpName,
+    PrimaryIpProtectionRequest, PrimaryIpSortField, PrimaryIpType,
 };
 use crate::EndpointGroup;
 use crate::actions::ActionId;
@@ -65,24 +65,31 @@ fn server_adjacent_primary_ip_query_writes_filters_pagination_and_sorting() {
     let selector = LabelSelector::new("env=prod");
     let page = Page::new(2);
     let per_page = PerPage::new(25);
+    let name = PrimaryIpName::new("edge");
+    let ip = PrimaryIpAddress::new("192.0.2.10");
     let mut output = [0u8; 96];
-    let (Ok(selector), Ok(page), Ok(per_page)) = (selector, page, per_page) else {
+    let (Ok(selector), Ok(page), Ok(per_page), Ok(name), Ok(ip)) =
+        (selector, page, per_page, name, ip)
+    else {
         unreachable!("security fixture construction failed");
     };
     let request = PrimaryIpListRequest::new()
+        .with_ip(ip)
         .with_label_selector(selector)
+        .with_name(name)
         .with_page(page)
         .with_per_page(per_page)
-        .with_sort(PrimaryIpSortField::Created, SortDirection::Desc)
-        .with_type(PrimaryIpType::Ipv6);
+        .with_sort(PrimaryIpSortField::Created, SortDirection::Desc);
     let written = request.write_query(&mut output);
-    assert_eq!(written, Ok(74));
+    assert_eq!(written, Ok(88));
     let query = output
-        .get(..74)
+        .get(..88)
         .and_then(|bytes| core::str::from_utf8(bytes).ok());
     assert_eq!(
         query,
-        Some("label_selector=env%3Dprod&page=2&per_page=25&sort=created%3Adesc&type=ipv6")
+        Some(
+            "ip=192.0.2.10&label_selector=env%3Dprod&name=edge&page=2&per_page=25&sort=created%3Adesc"
+        )
     );
 }
 

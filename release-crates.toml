@@ -1,34 +1,34 @@
 [release]
-version = "0.95.0"
-milestone = "0.95.0"
-baseline = "0.90.0"
-review_baseline = "0.94.0"
-cumulative_milestones = ["0.91.0", "0.92.0", "0.93.0", "0.94.0", "0.95.0"]
+version = "0.96.0"
+milestone = "0.96.0"
+baseline = "0.95.0"
+review_baseline = "0.95.0"
+cumulative_milestones = ["0.96.0"]
 policy = "independent"
-stage = "public"
+stage = "internal"
 exceptional = false
 exception_reason = ""
 
 [crates."cloud-sdk"]
-previous_version = "0.90.0"
-version = "0.95.0"
+previous_version = "0.95.0"
+version = "0.96.0"
 change = "code"
-publish = true
-reason = "Publish the cumulative v0.91-v0.95 Robot checkpoint."
+publish = false
+reason = "Advance the internal request-fidelity milestone; defer publication to v0.100.0."
 
 [crates."cloud-sdk-hetzner"]
-previous_version = "0.45.0"
+previous_version = "0.46.0"
 version = "0.46.0"
 change = "code"
-publish = true
-reason = "Publish accumulated Robot ordering, complete clients, lockout, and read-only live evidence."
+publish = false
+reason = "Accumulate complete source-locked queries and corrected server metrics for v0.100.0."
 
 [crates."cloud-sdk-reqwest"]
-previous_version = "0.35.3"
+previous_version = "0.36.0"
 version = "0.36.0"
-change = "code"
-publish = true
-reason = "Publish accumulated exact-status transport behavior and admitted dependency updates."
+change = "unchanged"
+publish = false
+reason = "No transport boundary changes."
 
 [crates."cloud-sdk-sanitization"]
 previous_version = "0.19.0"
@@ -38,8 +38,8 @@ publish = false
 reason = "No sanitization boundary changes."
 
 [crates."cloud-sdk-testkit"]
-previous_version = "0.30.5"
+previous_version = "0.31.0"
 version = "0.31.0"
-change = "code"
-publish = true
-reason = "Publish accumulated exact-status and Robot client regression coverage."
+change = "unchanged"
+publish = false
+reason = "No testkit boundary changes."

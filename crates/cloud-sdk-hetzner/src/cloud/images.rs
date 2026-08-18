@@ -4,6 +4,7 @@ use cloud_sdk::Method;
 
 use crate::EndpointGroup;
 use crate::actions::ActionId;
+use crate::labels::LabelSelector;
 use crate::pagination::{Page, PerPage, SortDirection};
 use crate::request::{ApiBaseUrl, EndpointPath};
 
@@ -41,6 +42,45 @@ pub enum ImageTypeFilter {
     Snapshot,
     /// Backup image.
     Backup,
+}
+
+/// Image architecture filter.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum ImageArchitecture {
+    /// x86 architecture.
+    X86,
+    /// Arm architecture.
+    Arm,
+}
+
+impl ImageArchitecture {
+    const fn as_api_str(self) -> &'static str {
+        match self {
+            Self::X86 => "x86",
+            Self::Arm => "arm",
+        }
+    }
+}
+
+/// Image availability filter.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum ImageStatus {
+    /// Image can be used.
+    Available,
+    /// Image is being created.
+    Creating,
+    /// Image cannot currently be used.
+    Unavailable,
+}
+
+impl ImageStatus {
+    const fn as_api_str(self) -> &'static str {
+        match self {
+            Self::Available => "available",
+            Self::Creating => "creating",
+            Self::Unavailable => "unavailable",
+        }
+    }
 }
 
 impl ImageTypeFilter {
@@ -122,25 +162,42 @@ impl ImageEndpoint {
 
 /// Image list request.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct ImageListRequest {
+pub struct ImageListRequest<'a> {
+    architecture: Option<ImageArchitecture>,
     image_type: Option<ImageTypeFilter>,
     bound_to: Option<ImageId>,
+    include_deprecated: Option<bool>,
+    label_selector: Option<LabelSelector<'a>>,
+    name: Option<ImageName<'a>>,
+    status: Option<ImageStatus>,
     page: Option<Page>,
     per_page: Option<PerPage>,
     sort: Option<(ImageSortField, SortDirection)>,
 }
 
-impl ImageListRequest {
+impl<'a> ImageListRequest<'a> {
     /// Creates an empty image list request.
     #[must_use]
     pub const fn new() -> Self {
         Self {
+            architecture: None,
             image_type: None,
             bound_to: None,
+            include_deprecated: None,
+            label_selector: None,
+            name: None,
+            status: None,
             page: None,
             per_page: None,
             sort: None,
         }
+    }
+
+    /// Sets architecture filtering.
+    #[must_use]
+    pub const fn with_architecture(mut self, architecture: ImageArchitecture) -> Self {
+        self.architecture = Some(architecture);
+        self
     }
 
     /// Sets image type filtering.
@@ -154,6 +211,34 @@ impl ImageListRequest {
     #[must_use]
     pub const fn with_bound_to(mut self, id: ImageId) -> Self {
         self.bound_to = Some(id);
+        self
+    }
+
+    /// Includes or excludes deprecated images explicitly.
+    #[must_use]
+    pub const fn with_include_deprecated(mut self, include: bool) -> Self {
+        self.include_deprecated = Some(include);
+        self
+    }
+
+    /// Sets label-selector filtering.
+    #[must_use]
+    pub const fn with_label_selector(mut self, selector: LabelSelector<'a>) -> Self {
+        self.label_selector = Some(selector);
+        self
+    }
+
+    /// Sets exact name filtering.
+    #[must_use]
+    pub const fn with_name(mut self, name: ImageName<'a>) -> Self {
+        self.name = Some(name);
+        self
+    }
+
+    /// Sets one status filter; use [`crate::query::SourceLockedQuery`] for repeated statuses.
+    #[must_use]
+    pub const fn with_status(mut self, status: ImageStatus) -> Self {
+        self.status = Some(status);
         self
     }
 
@@ -181,8 +266,24 @@ impl ImageListRequest {
     /// Writes the query string into a caller-owned buffer.
     pub fn write_query(self, output: &mut [u8]) -> Result<usize, ImageRequestError> {
         encode_query(output, |writer, first| {
+            if let Some(architecture) = self.architecture {
+                writer.query_pair(first, "architecture", architecture.as_api_str())?;
+            }
             if let Some(id) = self.bound_to {
                 writer.query_u64(first, "bound_to", id.get())?;
+            }
+            if let Some(include) = self.include_deprecated {
+                writer.query_pair(
+                    first,
+                    "include_deprecated",
+                    if include { "true" } else { "false" },
+                )?;
+            }
+            if let Some(selector) = self.label_selector {
+                writer.query_pair(first, "label_selector", selector.as_str())?;
+            }
+            if let Some(name) = self.name {
+                writer.query_pair(first, "name", name.as_str())?;
             }
             if let Some(page) = self.page {
                 writer.query_u64(first, "page", page.get())?;
@@ -193,6 +294,9 @@ impl ImageListRequest {
             if let Some((field, direction)) = self.sort {
                 writer.query_pair(first, "sort", image_sort_value(field, direction))?;
             }
+            if let Some(status) = self.status {
+                writer.query_pair(first, "status", status.as_api_str())?;
+            }
             if let Some(image_type) = self.image_type {
                 writer.query_pair(first, "type", image_type.as_api_str())?;
             }
@@ -201,7 +305,7 @@ impl ImageListRequest {
     }
 }
 
-impl Default for ImageListRequest {
+impl Default for ImageListRequest<'_> {
     fn default() -> Self {
         Self::new()
     }

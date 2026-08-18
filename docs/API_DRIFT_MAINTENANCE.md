@@ -41,7 +41,7 @@ RSS feed. This closes the OpenAPI blind spot for advance deprecations and
 operational behavior changes that may not alter the specification. Any feed
 semantic-digest or latest-entry change is a release stop even when both OpenAPI
 documents remain unchanged. Server Metadata prose is raw-digest-bound inside
-the Cloud specification and receives a dedicated operation lock in `v0.96.0`.
+the Cloud specification and receives a dedicated operation lock in `v0.97.0`.
 
 ## Triage
 
@@ -83,6 +83,20 @@ Do not infer safety only from the category or fingerprint value.
    scripts/check_hetzner_api_drift.py \
        --fetch --write-lock --accept-lock-refresh
    ```
+
+   The refresh intentionally makes the executable request inventory stale.
+   After implementing and testing every accepted parameter/body change, review
+   and regenerate it explicitly:
+
+   ```bash
+   python3 scripts/generate_request_contract_inventory.py --write
+   python3 scripts/generate_request_contract_inventory.py
+   python3 scripts/test-request-contract-inventory.py
+   ```
+
+   Do not regenerate merely to make the gate green. The inventory contains a
+   row for every path/query parameter and request-body operation; the embedded
+   provider query contract is compiled from the same reviewed rows.
 
 6. Complete the upstream-drift release-note template, run the full release
    gate, and include the change in pentest scope.

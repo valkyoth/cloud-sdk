@@ -1,6 +1,17 @@
 # Changelog
 
-## 0.95.0 - Unreleased
+## 0.96.0 - Unreleased
+
+- Added an operation-bound, allocation-free query model generated from every
+  active OpenAPI query declaration, including repeated action/list filters.
+- Added a complete request inventory and freshness/mutation gates that keep
+  accepted upstream parameter changes red until implementation review.
+- Corrected server metrics combinations, timestamps, numeric steps, and
+  provider-documented comma encoding.
+- Replaced the obsolete Primary IP type filter and completed common Image
+  filters. Crates.io publication remains deferred to v0.100.0.
+
+## 0.95.0 - 2026-08-18
 
 - Added a separately sealed, ignored Robot live-smoke path for one typed
   bodyless `GET /server` request against the exact official endpoint.

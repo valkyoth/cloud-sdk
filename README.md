@@ -78,11 +78,10 @@ listed in the
 
 The v0.95 crates.io checkpoint includes exhaustive named clients for every
 active Hetzner Cloud, DNS, Security, Console Storage Box, and Robot operation.
-It adds read-only Robot ordering catalogs, bounded transaction snapshots,
-cost-authorized ordering mutations, complete typed Robot clients, credential
-lockout, and a separately sealed read-only Robot live-smoke path. Provider crates remain
-transport-free and perform no network request by default. Future FIPS work
-remains deferred until Brynja is ready.
+The v0.96 internal milestone adds source-derived request-contract fidelity and
+correct multi-series server metrics without publishing crates. Provider crates
+remain transport-free and perform no network request by default. Future FIPS
+work remains deferred until Brynja is ready.
 
 ## Trust Dashboard
 
@@ -140,7 +139,7 @@ Portable and native platform evidence is documented in
 
 ```toml
 [dependencies]
-cloud-sdk = "0.95.0"
+cloud-sdk = "0.96.0"
 cloud-sdk-hetzner = "0.46.0"
 ```
 
@@ -519,7 +518,7 @@ without changing the default allocation-free graph.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.95.0"
+cloud-sdk = "0.96.0"
 cloud-sdk-reqwest = { version = "0.36.0", features = ["blocking-rustls"] }
 ```
 
@@ -546,7 +545,7 @@ when deterministic public WebPKI roots are required:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.95.0"
+cloud-sdk = "0.96.0"
 cloud-sdk-reqwest = { version = "0.36.0", features = ["blocking-rustls-webpki-roots"] }
 ```
 
@@ -569,7 +568,7 @@ See the [FIPS deferment policy](https://github.com/valkyoth/cloud-sdk/blob/main/
 
 ```toml
 [dependencies]
-cloud-sdk = "0.95.0"
+cloud-sdk = "0.96.0"
 cloud-sdk-reqwest = { version = "0.36.0", features = ["async-rustls"] }
 ```
 

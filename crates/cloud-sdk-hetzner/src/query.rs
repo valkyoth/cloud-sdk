@@ -3,6 +3,12 @@
 use cloud_sdk::buffer::{self, SnapshotEncoder};
 use cloud_sdk::transport::MAX_REQUEST_TARGET_BYTES;
 
+mod source_locked;
+pub use source_locked::{
+    SourceLockedQuery, SourceQueryArgument, SourceQueryError, SourceQueryOperation,
+    SourceQueryParameter, SourceQueryText, SourceQueryValue,
+};
+
 /// Maximum query key length admitted by the SDK policy.
 pub const MAX_QUERY_KEY_BYTES: usize = 64;
 

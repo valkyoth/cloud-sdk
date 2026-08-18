@@ -32,7 +32,7 @@ pub(super) fn run_read_only_server_probe() -> Result<(), RobotLiveSmokeError> {
         .map_err(|_| RobotLiveSmokeError::Endpoint)?;
     let credential = load_read_only_robot_credential(endpoint.clone())
         .map_err(RobotLiveSmokeError::Configuration)?;
-    let user_agent = UserAgent::new("cloud-sdk-robot-live-smoke/0.95.0")
+    let user_agent = UserAgent::new("cloud-sdk-robot-live-smoke/0.96.0")
         .map_err(|_| RobotLiveSmokeError::UserAgent)?;
     let timeouts = RequestTimeouts::new(Duration::from_secs(30), Duration::from_secs(10))
         .map_err(|_| RobotLiveSmokeError::Timeout)?;

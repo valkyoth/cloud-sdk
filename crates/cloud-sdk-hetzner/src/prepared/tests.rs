@@ -38,7 +38,7 @@ use crate::{
 };
 
 use super::{EndpointWire, HetznerPreparationError, HetznerPreparedOperation};
-
+mod source_query;
 #[test]
 fn every_surface_owns_exact_service_auth_and_raw_wire_policy() {
     assert_wire_policy(

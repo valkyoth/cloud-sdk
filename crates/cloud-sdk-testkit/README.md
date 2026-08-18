@@ -39,7 +39,7 @@ failures need deterministic multi-request coverage.
 
 ```toml
 [dev-dependencies]
-cloud-sdk = "0.95.0"
+cloud-sdk = "0.96.0"
 cloud-sdk-testkit = "0.31.0"
 ```
 
