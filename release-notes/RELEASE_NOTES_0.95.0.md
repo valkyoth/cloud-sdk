@@ -35,7 +35,9 @@ read-only operator harness without changing any default dependency graph.
   tripwire, and CI receives no Robot credentials.
 - Hardened Unix credential loading with descriptor-level no-follow opens,
   effective-user ownership, private-parent, single-link, and owner-only mode
-  checks; unsupported non-Unix live loading fails closed.
+  checks; unsupported non-Unix live loading fails closed. Native Linux,
+  Windows, and macOS CI executes the offline live-smoke suite to preserve both
+  platform behaviors.
 - Documented least-capability account setup, privileged sealing, private-file
   handling, output policy, lockout risk, revocation, and residual cleanup
   boundaries.

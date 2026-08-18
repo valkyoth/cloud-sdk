@@ -74,10 +74,12 @@ scripts/check_platform_matrix.sh --native
 ```
 
 That command checks every portable crate with all features and the standard,
-deterministic-root, and async reqwest/rustls adapters. Linux remains the
-runtime test platform in the main check gate; Windows and both macOS
-architectures provide native compile evidence without enabling the separately
-scoped transport features.
+deterministic-root, and async reqwest/rustls adapters. It also executes the
+offline Hetzner live-smoke tests natively, proving Unix credential-file checks
+on Linux and macOS and explicit fail-closed behavior on Windows. The complete
+workspace runtime suite remains Linux evidence; Windows and both macOS
+architectures otherwise provide native compile evidence without enabling the
+separately scoped transport features.
 
 FIPS support is excluded from the 1.0 platform claim and deferred to Brynja.
 No active feature, target, or operating environment is claimed as FIPS

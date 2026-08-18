@@ -1,20 +1,29 @@
+#[cfg(unix)]
 use std::fs::{self, DirBuilder, OpenOptions};
+#[cfg(unix)]
 use std::io::Write;
-use std::path::{Path, PathBuf};
+use std::path::Path;
+#[cfg(unix)]
+use std::path::PathBuf;
+#[cfg(unix)]
 use std::sync::atomic::{AtomicU64, Ordering};
 
+#[cfg(unix)]
 use cloud_sdk_hetzner::{ROBOT_API_BASE_URL, official_robot_endpoint_policy};
+#[cfg(unix)]
 use cloud_sdk_reqwest::blocking::HttpsEndpoint;
 
-use super::{
-    RobotLiveConfigurationError, normalized_secret, read_secret_file, same_secret_file,
-    validate_live_mode,
-};
+#[cfg(unix)]
+use super::same_secret_file;
+use super::{RobotLiveConfigurationError, normalized_secret, read_secret_file, validate_live_mode};
 
+#[cfg(unix)]
 static TEMP_SEQUENCE: AtomicU64 = AtomicU64::new(0);
 
+#[cfg(unix)]
 struct TempDirectory(PathBuf);
 
+#[cfg(unix)]
 impl TempDirectory {
     fn new() -> std::io::Result<Self> {
         let sequence = TEMP_SEQUENCE.fetch_add(1, Ordering::Relaxed);
@@ -38,12 +47,14 @@ impl TempDirectory {
     }
 }
 
+#[cfg(unix)]
 impl Drop for TempDirectory {
     fn drop(&mut self) {
         let _ = fs::remove_dir_all(&self.0);
     }
 }
 
+#[cfg(unix)]
 fn write_private_file(path: &Path, bytes: &[u8]) -> std::io::Result<()> {
     let mut options = OpenOptions::new();
     options.write(true).create_new(true);
@@ -93,6 +104,7 @@ fn strips_only_one_terminal_line_ending() {
     );
 }
 
+#[cfg(unix)]
 #[test]
 fn private_distinct_files_build_a_redacted_basic_credential() -> std::io::Result<()> {
     let directory = TempDirectory::new()?;
@@ -127,6 +139,15 @@ fn private_distinct_files_build_a_redacted_basic_credential() -> std::io::Result
     assert!(!diagnostic.contains("robot-user"));
     assert!(!diagnostic.contains("secret-password"));
     Ok(())
+}
+
+#[cfg(not(unix))]
+#[test]
+fn robot_credential_loading_fails_closed() {
+    assert!(matches!(
+        read_secret_file(Path::new("unused"), 64),
+        Err(RobotLiveConfigurationError::UnsupportedPlatform)
+    ));
 }
 
 #[cfg(unix)]

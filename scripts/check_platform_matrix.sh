@@ -85,6 +85,7 @@ check_native() {
     cargo check --locked --all-targets --no-default-features \
         -p cloud-sdk-reqwest \
         --features std,blocking-rustls,blocking-rustls-webpki-roots,async-rustls
+    cargo test --locked -p cloud-sdk-hetzner --test live_smoke --all-features
 }
 
 check_default_boundary() {

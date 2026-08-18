@@ -140,6 +140,7 @@ def test_native_mode() -> None:
             "check --locked --all-targets --no-default-features "
             "-p cloud-sdk-reqwest "
             "--features std,blocking-rustls,blocking-rustls-webpki-roots,async-rustls",
+            "test --locked -p cloud-sdk-hetzner --test live_smoke --all-features",
         ]
 
 
