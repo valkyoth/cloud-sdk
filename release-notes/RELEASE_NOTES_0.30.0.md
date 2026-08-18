@@ -102,7 +102,7 @@ No retired provider-specific helper crate is present in the publish plan.
 
 ## Migration
 
-See [`docs/MIGRATION_0.30.0.md`](../docs/MIGRATION_0.30.0.md) for prepared
+See [`docs/MIGRATION.md#v0300`](../docs/MIGRATION.md#v0300) for prepared
 operation construction, buffer ownership, reusable action components, and the
 explicit firewall apply/remove intent.
 

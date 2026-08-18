@@ -53,11 +53,11 @@ TLS implementation, or retry policy enters the default provider graph.
 
 ## Evidence
 
-- [`docs/PUBLIC_API_REVIEW_0.90.0.md`](../docs/PUBLIC_API_REVIEW_0.90.0.md)
-- [`docs/DEPENDENCY_REVIEW_0.90.0.md`](../docs/DEPENDENCY_REVIEW_0.90.0.md)
-- [`docs/THREAT_MODEL_DELTA_0.90.0.md`](../docs/THREAT_MODEL_DELTA_0.90.0.md)
-- [`docs/REJECTED_ABSTRACTIONS_0.90.0.md`](../docs/REJECTED_ABSTRACTIONS_0.90.0.md)
-- [`docs/MIGRATION_0.90.0.md`](../docs/MIGRATION_0.90.0.md)
+- [`docs/PUBLIC_API_REVIEW.md#v0900`](../docs/PUBLIC_API_REVIEW.md#v0900)
+- [`docs/DEPENDENCY_REVIEW.md#v0900`](../docs/DEPENDENCY_REVIEW.md#v0900)
+- [`docs/THREAT_MODEL_DELTA.md#v0900`](../docs/THREAT_MODEL_DELTA.md#v0900)
+- [`docs/REJECTED_ABSTRACTIONS.md#v0900`](../docs/REJECTED_ABSTRACTIONS.md#v0900)
+- [`docs/MIGRATION.md#v0900`](../docs/MIGRATION.md#v0900)
 
 The permanent pentest report records the exact reviewed implementation and
 remediation commits. No finding remains open.

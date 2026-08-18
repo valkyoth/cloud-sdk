@@ -76,9 +76,9 @@ one additional byte fails with `InputTooLong`. See the
 
 ## Migration
 
-See [`docs/MIGRATION_0.34.0.md`](../docs/MIGRATION_0.34.0.md),
-[`docs/PUBLIC_API_REVIEW_0.34.0.md`](../docs/PUBLIC_API_REVIEW_0.34.0.md), and
-[`docs/DEPENDENCY_REVIEW_0.34.0.md`](../docs/DEPENDENCY_REVIEW_0.34.0.md).
+See [`docs/MIGRATION.md#v0340`](../docs/MIGRATION.md#v0340),
+[`docs/PUBLIC_API_REVIEW.md#v0340`](../docs/PUBLIC_API_REVIEW.md#v0340), and
+[`docs/DEPENDENCY_REVIEW.md#v0340`](../docs/DEPENDENCY_REVIEW.md#v0340).
 
 ## Release Gate
 

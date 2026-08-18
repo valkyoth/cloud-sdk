@@ -68,11 +68,11 @@ internal milestone and publishes no crate.
 
 ## Release Evidence
 
-- [`docs/PUBLIC_API_REVIEW_0.69.0.md`](../docs/PUBLIC_API_REVIEW_0.69.0.md)
-- [`docs/DEPENDENCY_REVIEW_0.69.0.md`](../docs/DEPENDENCY_REVIEW_0.69.0.md)
-- [`docs/THREAT_MODEL_DELTA_0.69.0.md`](../docs/THREAT_MODEL_DELTA_0.69.0.md)
-- [`docs/REJECTED_ABSTRACTIONS_0.69.0.md`](../docs/REJECTED_ABSTRACTIONS_0.69.0.md)
-- [`docs/MIGRATION_0.69.0.md`](../docs/MIGRATION_0.69.0.md)
+- [`docs/PUBLIC_API_REVIEW.md#v0690`](../docs/PUBLIC_API_REVIEW.md#v0690)
+- [`docs/DEPENDENCY_REVIEW.md#v0690`](../docs/DEPENDENCY_REVIEW.md#v0690)
+- [`docs/THREAT_MODEL_DELTA.md#v0690`](../docs/THREAT_MODEL_DELTA.md#v0690)
+- [`docs/REJECTED_ABSTRACTIONS.md#v0690`](../docs/REJECTED_ABSTRACTIONS.md#v0690)
+- [`docs/MIGRATION.md#v0690`](../docs/MIGRATION.md#v0690)
 - [`security/pentest/v0.69.0.md`](../security/pentest/v0.69.0.md)
 
 ## Release Gate

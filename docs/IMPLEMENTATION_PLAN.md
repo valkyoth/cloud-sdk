@@ -170,9 +170,11 @@ response identity binding. Deprecated server-IP aliases remain excluded.
    coverage; and carefully gated read-only live evidence in `v0.94.0` and
    `v0.95.0`. Robot bounded lists are single responses and Robot exposes no
    Cloud-style action resource, so the SDK does not invent pager/action APIs.
-19. Whole-platform qualification: adversarial/fuzz evidence, platform/MSRV
-   evidence, provenance/governance review, controlled mutation evidence, and
-   the final release candidate in `v0.96.0` through `v0.99.0`.
+19. Request and whole-platform qualification: complete source-to-executable
+   request fidelity in `v0.96.0`, then Server Metadata/scope closure,
+   adversarial/fuzz evidence, platform/MSRV evidence, provenance/governance
+   review, controlled mutation evidence, and the final release candidate in
+   `v0.97.0` through `v0.100.0`.
 20. Future providers: publish focused provider crates only after the provider's
    official API source, auth model, transport expectations, threat model, API
    matrix, live-test policy, and release plan are documented. The publication

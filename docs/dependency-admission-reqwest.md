@@ -48,9 +48,9 @@ host. Release CI and reproducible/offline builders must use pinned, audited
 build images and toolchains. Offline preparation must preserve Cargo's
 authenticated package checksum rather than copying unauthenticated source
 trees. The original v0.24 admission is recorded in
-[`DEPENDENCY_REVIEW_0.24.0.md`](DEPENDENCY_REVIEW_0.24.0.md). Current native
+[`DEPENDENCY_REVIEW.md#v0240`](DEPENDENCY_REVIEW.md#v0240). Current native
 archive checksums and update evidence are recorded in
-[`DEPENDENCY_REVIEW_0.94.0.md`](DEPENDENCY_REVIEW_0.94.0.md).
+[`DEPENDENCY_REVIEW.md#v0940`](DEPENDENCY_REVIEW.md#v0940).
 
 The version review used the reqwest 0.13.4 crate metadata, feature list, API
 documentation, and upstream source:

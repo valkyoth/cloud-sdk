@@ -3319,29 +3319,14 @@ release gate, and green GitHub CI/CodeQL.
 
 ## Tier F - Whole-Platform Qualification
 
-### v0.96.0 - Hetzner Scope Closure And Adversarial Qualification
+### v0.96.0 - Hetzner Request Contract Fidelity
 
-Goal: close the prose-only Server Metadata surface and every known gap between
-operation-level coverage and executable request fidelity, then complete the
-wire, authentication, decoder, permit, cleanup, and Robot adversarial matrix.
+Goal: make every claimed OpenAPI operation's complete request contract
+executable and source-verifiable instead of treating operation presence as
+sufficient evidence of SDK support.
 
 Deliverables:
 
-- source-lock the canonical Server Metadata summary and six child reads from
-  the official reference and explicitly exclude every removed EC2-compatible
-  alias;
-- add provider-owned request and response contracts for the exact link-local
-  endpoint, with no custom destination, credentials, redirects, proxy routing,
-  mutation, retry, TLS claim, or ambient environment interpretation;
-- add bounded strict decoding for summary text, scalar text/number/address
-  responses, and private-network YAML, including duplicate, unknown,
-  cross-field, address, subnet, gateway, interface, and aggregate limits;
-- retain the default no-network/no-runtime/no-filesystem graph and expose
-  blocking, `Send` async, and local-async metadata execution only through an
-  adapter path that proves proxy bypass and exact destination confinement;
-- bind the official changelog RSS source into the weekly and release drift
-  workflow, review the August 2026 Load Balancer health and Primary IP
-  behavior notices, and add exact regression fixtures for both;
 - correct `get_server_metrics` request fidelity: replace its single metric
   selector with a non-empty duplicate-free `cpu`/`disk`/`network` selection,
   validate the complete admitted RFC3339 timestamp profile with real calendar
@@ -3362,26 +3347,16 @@ Deliverables:
   fields, enums, formats, numeric/string/collection bounds, request-body
   schemas, and operation-specific request ownership so operation presence
   alone cannot overstate support;
-- publish a finite 1.0 scope statement covering 208 active OpenAPI operations,
-  89 active Robot operations, seven Server Metadata reads, 29 deprecated
-  exclusions, standard-S3 Object Storage exclusion, and unavailable Robot
-  domain-registration automation;
-- close every unclassified claimed operation and maintain deterministic
-  corpora, cross-adapter differential tests, and current fuzz evidence; and
+- generate parameter-level drift evidence that reports added, removed, and
+  changed path/query/header parameters, cardinality, style, enum, format, and
+  bound changes independently from whole-operation hashes;
+- correct every path, query, header, and request-body mismatch exposed by the
+  inventory without widening conservative security policy silently; and
 - advance versions for an internal signed tag only, with crates.io publication
-  deferred to the public `v0.99.0` release candidate.
+  deferred to the public `v0.100.0` release candidate.
 
 Verification:
 
-- compare all OpenAPI, Robot, and changelog sources through
-  `scripts/check_hetzner_api_surface.sh --fetch` and mutation-test every source
-  origin, redirect, size, timeout, digest, identity, and refresh boundary;
-- test all seven metadata routes, exact wire targets, forbidden auth and proxy
-  use, redirect refusal, response bounds, malformed YAML/text, duplicate and
-  oversized collections, cleanup, cancellation, and executor parity;
-- prove current additive Load Balancer health fields and the Primary IP
-  `unassigned`/`null` pair are accepted and validated without weakening unknown
-  enum handling;
 - prove server metrics encode every non-empty metric combination canonically,
   reject duplicate/empty selections and invalid timestamps or steps, preserve
   exact endpoint/client behavior across all executors, and decode bounded
@@ -3392,23 +3367,83 @@ Verification:
 - compare every active operation's path, query, and body contract against the
   generated request-fidelity inventory and require zero unexplained missing,
   obsolete, narrowed, widened, or incorrectly encoded fields;
-- run all operation/client matrices, corpora, fuzz build/smoke, SBOM, deny,
-  audit, no-std, MSRV/current, documentation, and package checks; and
+- mutation-test parameter additions, removals, requiredness, array/scalar
+  transitions, enum changes, encoding style, numeric/string bounds, and lock
+  refresh so future options cannot collapse into a whole-operation warning;
+- run all request encoders, preparation paths, client matrices, corpora, fuzz
+  build/smoke, SBOM, deny, audit, no-std, documentation, and package checks;
+  and
 - run `scripts/release_0_96_gate.sh` against a clean exact commit.
 
-Exit criteria: every official non-deprecated Cloud, Console Storage, Robot,
-and canonical Server Metadata operation in the frozen 1.0 scope is either
-implemented exactly once or explicitly excluded with an official rationale;
-every operation's complete request contract is executable rather than merely
-cataloged; all three source classes fail closed on drift; the complete
-adversarial matrix is green; and the exact implementation commit is ready for
-pentest.
+Exit criteria: all 221 source-locked OpenAPI operations have exact executable
+request contracts or explicit reviewed exclusions; the detailed parameter and
+body inventories have zero unexplained mismatch; future source changes fail
+with actionable field-level diagnostics; and the exact implementation commit
+is ready for pentest.
 
-Stop gate: `v0.96.0 implementation stop reached. Run the pentest and full release gate for this exact commit; defer crates.io publication to v0.99.0.`
+Stop gate: `v0.96.0 implementation stop reached. Run the pentest and full release gate for this exact commit; defer crates.io publication to v0.100.0.`
 
 Status: planned; implementation has not started.
 
-### v0.97.0 - Platform And MSRV Qualification
+### v0.97.0 - Hetzner Scope Closure And Adversarial Qualification
+
+Goal: close canonical Server Metadata and prove that every non-deprecated
+Hetzner surface in the finite 1.0 scope has complete request, response,
+authentication, authority, cleanup, and executor behavior.
+
+Deliverables:
+
+- source-lock the canonical Server Metadata summary and six child reads from
+  the official reference and explicitly exclude every removed EC2-compatible
+  alias;
+- add provider-owned request and response contracts for the exact link-local
+  endpoint, with no custom destination, credentials, redirects, proxy routing,
+  mutation, retry, TLS claim, or ambient environment interpretation;
+- add bounded strict decoding for summary text, scalar text/number/address
+  responses, and private-network YAML, including duplicate, unknown,
+  cross-field, address, subnet, gateway, interface, and aggregate limits;
+- retain the default no-network/no-runtime/no-filesystem graph and expose
+  blocking, `Send` async, and local-async metadata execution only through an
+  adapter path that proves proxy bypass and exact destination confinement;
+- bind the official changelog RSS source into the weekly and release drift
+  workflow, review the August 2026 Load Balancer health and Primary IP
+  behavior notices, and add exact regression fixtures for both;
+- publish a finite 1.0 scope statement covering 208 active OpenAPI operations,
+  89 active Robot operations, seven Server Metadata reads, 29 deprecated
+  exclusions, standard-S3 Object Storage exclusion, and unavailable Robot
+  domain-registration automation;
+- close every unclassified claimed operation and maintain deterministic
+  corpora, cross-adapter differential tests, and current fuzz evidence; and
+- advance versions for an internal signed tag only, with crates.io publication
+  deferred to the public `v0.100.0` release candidate.
+
+Verification:
+
+- compare all OpenAPI, Robot, metadata, and changelog sources through
+  `scripts/check_hetzner_api_surface.sh --fetch` and mutation-test every source
+  origin, redirect, size, timeout, digest, identity, and refresh boundary;
+- test all seven metadata routes, exact wire targets, forbidden auth and proxy
+  use, redirect refusal, response bounds, malformed YAML/text, duplicate and
+  oversized collections, cleanup, cancellation, and executor parity;
+- prove current additive Load Balancer health fields and the Primary IP
+  `unassigned`/`null` pair are accepted and validated without weakening unknown
+  enum handling;
+- rerun the v0.96 request-fidelity gate, all operation/client matrices,
+  corpora, cross-adapter differential tests, fuzz build/smoke, and complete
+  adversarial response suites; and
+- run `scripts/release_0_97_gate.sh` against a clean exact commit.
+
+Exit criteria: every official non-deprecated Cloud, Console Storage, Robot,
+and canonical Server Metadata operation in the frozen 1.0 scope is implemented
+exactly once or explicitly excluded with an official rationale; all source
+classes fail closed on drift; the complete adversarial matrix is green; and
+the exact implementation commit is ready for pentest.
+
+Stop gate: `v0.97.0 implementation stop reached. Run the pentest and full release gate for this exact commit; defer crates.io publication to v0.100.0.`
+
+Status: planned.
+
+### v0.98.0 - Platform And MSRV Qualification
 
 Goal: produce current evidence for every supported target, compiler, and active feature graph while keeping FIPS deferred to Brynja.
 
@@ -3433,18 +3468,18 @@ Verification:
   and FIPS deferment gates;
 - refresh dependency/tool freshness, SBOM, deny, audit, documentation, and
   release metadata evidence; and
-- run `scripts/release_0_97_gate.sh` on every required native CI platform.
+- run `scripts/release_0_98_gate.sh` on every required native CI platform.
 
 Exit criteria: every documented platform/compiler/feature claim has current
 compile or native execution evidence, unsupported combinations fail clearly,
 no accidental platform or FIPS claim remains, and the exact commit is ready
 for pentest.
 
-Stop gate: `v0.97.0 implementation stop reached. Run the pentest and full release gate for this exact commit; defer crates.io publication to v0.99.0.`
+Stop gate: `v0.98.0 implementation stop reached. Run the pentest and full release gate for this exact commit; defer crates.io publication to v0.100.0.`
 
 Status: planned.
 
-### v0.98.0 - Provenance And Governance Review
+### v0.99.0 - Provenance And Governance Review
 
 Goal: make release trust and independent-review claims exact.
 
@@ -3468,18 +3503,18 @@ Verification:
   drills;
 - verify every GitHub action pin, permission, artifact boundary, and release
   metadata transition; and
-- run `scripts/release_0_98_gate.sh` against the reproducible candidate.
+- run `scripts/release_0_99_gate.sh` against the reproducible candidate.
 
 Exit criteria: a maintainer can independently verify, recover, reproduce, and
 publish the exact reviewed artifacts without hidden state; no tooling can
 silently widen the publish set; governance claims match configured controls;
 and the exact commit is ready for pentest.
 
-Stop gate: `v0.98.0 implementation stop reached. Run the pentest and full release gate for this exact commit; defer crates.io publication to v0.99.0.`
+Stop gate: `v0.99.0 implementation stop reached. Run the pentest and full release gate for this exact commit; defer crates.io publication to v0.100.0.`
 
 Status: planned.
 
-### v0.99.0 - Controlled Mutation Release Candidate
+### v0.100.0 - Controlled Mutation Release Candidate
 
 Goal: finish real mutation evidence and freeze the exact 1.0 candidate.
 
@@ -3506,18 +3541,18 @@ Verification:
   failure, cleanup, replay, cost, and reconciliation branch;
 - record approved manual evidence where credentials and service availability
   permit, then independently verify the cleanup ledger and empty inventories;
-- rerun every v0.96-v0.98 qualification gate, all current source drift checks,
+- rerun every v0.96-v0.99 qualification gate, all current source drift checks,
   complete package/SBOM/audit/fuzz evidence, and a release dry run showing the
   exact publish set; and
-- run `scripts/release_0_99_gate.sh` against the frozen candidate.
+- run `scripts/release_0_100_gate.sh` against the frozen candidate.
 
 Exit criteria: approved evidence demonstrates that representative real
 mutations cannot bypass authority, cost, cleanup, or uncertain-delivery
 controls; no CI mutation route exists; the public API and dependency graphs are
-frozen; the exact publish set is verified; and `v0.99.0` is ready for pentest,
+frozen; the exact publish set is verified; and `v0.100.0` is ready for pentest,
 GitHub validation, signed tagging, and crates.io publication.
 
-Stop gate: `v0.99.0 implementation stop reached. Run the pentest and full release gate for this exact commit before the signed tag and final development publication to crates.io.`
+Stop gate: `v0.100.0 implementation stop reached. Run the cumulative pentest and full release gate for this exact commit before the signed tag and final development publication to crates.io.`
 
 Status: planned public release candidate.
 
@@ -3531,7 +3566,7 @@ adding a new feature; freeze neutral contracts; and carry forward current
 documentation, provenance, platform, SBOM, audit, fuzz, mutation,
 independent-review disclosure, and pentest evidence.
 
-Verification: require exact `v0.99.0` candidate ancestry and API equivalence;
+Verification: require exact `v0.100.0` candidate ancestry and API equivalence;
 rerun `scripts/checks.sh`, all source locks and matrices, package
 reproducibility, the complete release train, `scripts/release_1_0_gate.sh`, and
 green GitHub/CodeQL.

@@ -66,11 +66,11 @@ at 0.40.0 while changes accumulate for v0.70.0.
 
 ## Release Evidence
 
-- [`docs/PUBLIC_API_REVIEW_0.67.0.md`](../docs/PUBLIC_API_REVIEW_0.67.0.md)
-- [`docs/DEPENDENCY_REVIEW_0.67.0.md`](../docs/DEPENDENCY_REVIEW_0.67.0.md)
-- [`docs/THREAT_MODEL_DELTA_0.67.0.md`](../docs/THREAT_MODEL_DELTA_0.67.0.md)
-- [`docs/REJECTED_ABSTRACTIONS_0.67.0.md`](../docs/REJECTED_ABSTRACTIONS_0.67.0.md)
-- [`docs/MIGRATION_0.67.0.md`](../docs/MIGRATION_0.67.0.md)
+- [`docs/PUBLIC_API_REVIEW.md#v0670`](../docs/PUBLIC_API_REVIEW.md#v0670)
+- [`docs/DEPENDENCY_REVIEW.md#v0670`](../docs/DEPENDENCY_REVIEW.md#v0670)
+- [`docs/THREAT_MODEL_DELTA.md#v0670`](../docs/THREAT_MODEL_DELTA.md#v0670)
+- [`docs/REJECTED_ABSTRACTIONS.md#v0670`](../docs/REJECTED_ABSTRACTIONS.md#v0670)
+- [`docs/MIGRATION.md#v0670`](../docs/MIGRATION.md#v0670)
 
 ## Release Gate
 

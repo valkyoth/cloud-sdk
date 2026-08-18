@@ -60,9 +60,9 @@ version but is not part of the independent crate publication plan.
 
 - [`provider-probes/ovhcloud-v2/README.md`](../provider-probes/ovhcloud-v2/README.md)
 - [`provider-probes/ovhcloud-v2/THREAT_MODEL.md`](../provider-probes/ovhcloud-v2/THREAT_MODEL.md)
-- [`docs/MIGRATION_0.61.0.md`](../docs/MIGRATION_0.61.0.md)
-- [`docs/PUBLIC_API_REVIEW_0.61.0.md`](../docs/PUBLIC_API_REVIEW_0.61.0.md)
-- [`docs/DEPENDENCY_REVIEW_0.61.0.md`](../docs/DEPENDENCY_REVIEW_0.61.0.md)
+- [`docs/MIGRATION.md#v0610`](../docs/MIGRATION.md#v0610)
+- [`docs/PUBLIC_API_REVIEW.md#v0610`](../docs/PUBLIC_API_REVIEW.md#v0610)
+- [`docs/DEPENDENCY_REVIEW.md#v0610`](../docs/DEPENDENCY_REVIEW.md#v0610)
 - [`security/pentest/v0.61.0.md`](../security/pentest/v0.61.0.md)
 
 ## Release Gate

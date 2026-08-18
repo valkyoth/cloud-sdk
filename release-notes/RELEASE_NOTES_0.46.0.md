@@ -62,9 +62,9 @@ dependency boundary.
 ## Documentation
 
 - [`docs/RETRY_AND_IDEMPOTENCY.md`](../docs/RETRY_AND_IDEMPOTENCY.md)
-- [`docs/MIGRATION_0.46.0.md`](../docs/MIGRATION_0.46.0.md)
-- [`docs/PUBLIC_API_REVIEW_0.46.0.md`](../docs/PUBLIC_API_REVIEW_0.46.0.md)
-- [`docs/DEPENDENCY_REVIEW_0.46.0.md`](../docs/DEPENDENCY_REVIEW_0.46.0.md)
+- [`docs/MIGRATION.md#v0460`](../docs/MIGRATION.md#v0460)
+- [`docs/PUBLIC_API_REVIEW.md#v0460`](../docs/PUBLIC_API_REVIEW.md#v0460)
+- [`docs/DEPENDENCY_REVIEW.md#v0460`](../docs/DEPENDENCY_REVIEW.md#v0460)
 
 ## Pentest
 

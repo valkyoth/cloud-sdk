@@ -79,6 +79,8 @@ def build_drift_report(
     current_schemas: list[dict[str, str]],
     source_hashes: dict[str, str],
     pinned_hashes: dict[str, str],
+    locked_parameters: list[dict[str, str]] | None = None,
+    current_parameters: list[dict[str, str]] | None = None,
 ) -> dict[str, Any]:
     operations = compare_row_sets(
         "operation",
@@ -88,6 +90,12 @@ def build_drift_report(
     )
     schemas = compare_row_sets(
         "schema", locked_schemas, current_schemas, ("api", "schema")
+    )
+    parameters = compare_row_sets(
+        "parameter",
+        locked_parameters or [],
+        current_parameters or [],
+        ("api", "method", "path", "in", "name"),
     )
     deprecated = []
     changed = []
@@ -115,12 +123,14 @@ def build_drift_report(
         "deprecated": deprecated,
         "changed": changed,
         "changed_sources": changed_sources,
+        "parameters": parameters,
         "schema_only": schemas,
     }
 
 
 def report_has_drift(report: dict[str, Any]) -> bool:
     schemas = report["schema_only"]
+    parameters = report.get("parameters", {})
     return any(
         (
             report["added"],
@@ -128,6 +138,9 @@ def report_has_drift(report: dict[str, Any]) -> bool:
             report["deprecated"],
             report["changed"],
             report["changed_sources"],
+            parameters.get("added", []),
+            parameters.get("removed", []),
+            parameters.get("changed", []),
             schemas["added"],
             schemas["removed"],
             schemas["changed"],
@@ -187,6 +200,12 @@ def print_drift_report(report: dict[str, Any]) -> int:
     print_changes("deprecated operations", report["deprecated"])
     print_changes("changed operations", report["changed"])
     print_changes("changed source digests", report["changed_sources"])
+    parameters = report.get("parameters", {})
+    if any(parameters.get(key) for key in ("added", "removed", "changed")):
+        print("  parameter changes:", file=sys.stderr)
+        print_keys("added parameters", parameters["added"], indent=4)
+        print_keys("removed parameters", parameters["removed"], indent=4)
+        print_changes("changed parameters", parameters["changed"], indent=4)
     schemas = report["schema_only"]
     if schemas["added"] or schemas["removed"] or schemas["changed"]:
         print("  schema-only changes:", file=sys.stderr)

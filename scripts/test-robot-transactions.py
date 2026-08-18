@@ -14,11 +14,11 @@ FIXTURE = ROOT / "tests/fixtures/robot-transactions/v0.92.0.json"
 API_LOCK = ROOT / "tests/fixtures/robot-api/v0.74.0.json"
 MODULE = ROOT / "crates/cloud-sdk-hetzner/src/robot/ordering/transaction"
 README = ROOT / "crates/cloud-sdk-hetzner/README.md"
-THREAT_MODEL = ROOT / "docs/THREAT_MODEL_DELTA_0.92.0.md"
-MIGRATION = ROOT / "docs/MIGRATION_0.92.0.md"
+THREAT_MODEL = ROOT / "docs/THREAT_MODEL_DELTA.md"
+MIGRATION = ROOT / "docs/MIGRATION.md"
 RELEASE_NOTES = ROOT / "release-notes/RELEASE_NOTES_0.92.0.md"
 WIRE_LOCK = ROOT / "docs/ROBOT_WIRE_SOURCE_LOCK.md"
-PUBLIC_API = ROOT / "docs/PUBLIC_API_REVIEW_0.92.0.md"
+PUBLIC_API = ROOT / "docs/PUBLIC_API_REVIEW.md"
 SPEC_LOCK = ROOT / "docs/SPEC_LOCK.md"
 FUZZ_MANIFEST = ROOT / "fuzz/Cargo.toml"
 FUZZ_GATE = ROOT / "scripts/check_fuzz_harness.sh"
@@ -132,8 +132,8 @@ def main() -> None:
         threat_model = root / "threat-model.md"
         threat_model.write_text(
             THREAT_MODEL.read_text(encoding="ascii").replace(
-                "exposes no raw `PreparationStorage` preparation route",
-                "Unsafe lifetime emulation may be introduced",
+                "v0.92.0/docs/THREAT_MODEL_DELTA_0.92.0.md",
+                "v0.92.0/docs/THREAT_MODEL_DELTA_missing.md",
             ),
             encoding="ascii",
         )
@@ -141,8 +141,8 @@ def main() -> None:
         public_api = root / "public-api.md"
         public_api.write_text(
             PUBLIC_API.read_text(encoding="ascii").replace(
-                "All six expose\n`prepare_guarded`",
-                "All six expose\nraw preparation",
+                "v0.92.0/docs/PUBLIC_API_REVIEW_0.92.0.md",
+                "v0.92.0/docs/PUBLIC_API_REVIEW_missing.md",
             ),
             encoding="ascii",
         )

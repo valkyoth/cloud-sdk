@@ -107,4 +107,4 @@ cargo test -p cloud-sdk-reqwest --no-default-features \
     --features async-rustls asynchronous::tests::raw_executor
 
 test -s docs/RAW_HTTP_EXECUTOR.md
-test -s docs/MIGRATION_0.40.0.md
+test -s docs/MIGRATION.md

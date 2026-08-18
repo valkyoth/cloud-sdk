@@ -59,7 +59,7 @@ assert_eq!(target.query_bytes(), Some(query.as_str().as_bytes()));
 
 Absent and present-empty queries are distinct. `CanonicalQuery` requires `%20`
 for spaces; provider-specific form semantics use `FormQuery`. See
-[`MIGRATION_0.35.0.md`](MIGRATION_0.35.0.md).
+[`MIGRATION.md#v0350`](MIGRATION.md#v0350).
 Only `output[..target.len()]` is initialized; never consume the untouched
 scratch-buffer tail, which may contain bytes from an earlier use.
 
@@ -79,35 +79,35 @@ assert_eq!(headers.as_slice().len(), 2);
 # Ok::<(), cloud_sdk::transport::HeaderError>(())
 ```
 
-See [`MIGRATION_0.36.0.md`](MIGRATION_0.36.0.md) for reserved ownership,
+See [`MIGRATION.md#v0360`](MIGRATION.md#v0360) for reserved ownership,
 duplicate handling, limits, response metadata, and adapter changes.
-See [`MIGRATION_0.38.0.md`](MIGRATION_0.38.0.md) for mandatory response
+See [`MIGRATION.md#v0380`](MIGRATION.md#v0380) for mandatory response
 cleanup, protected request identifiers, and complete checked decode workspace
 ownership.
-See [`MIGRATION_0.39.0.md`](MIGRATION_0.39.0.md) for transactional request
+See [`MIGRATION.md#v0390`](MIGRATION.md#v0390) for transactional request
 encoding, guarded preparation storage, and named capacity profiles.
-See [`MIGRATION_0.40.0.md`](MIGRATION_0.40.0.md) for raw bounded HTTP
+See [`MIGRATION.md#v0400`](MIGRATION.md#v0400) for raw bounded HTTP
 execution, delivery phases, and response-wire policy.
-See [`MIGRATION_0.41.0.md`](MIGRATION_0.41.0.md) for mandatory bearer scope,
+See [`MIGRATION.md#v0410`](MIGRATION.md#v0410) for mandatory bearer scope,
 generation-safe rotation, and compare-and-swap refresh.
-See [`MIGRATION_0.42.0.md`](MIGRATION_0.42.0.md) for Basic authentication and
+See [`MIGRATION.md#v0420`](MIGRATION.md#v0420) for Basic authentication and
 canonical signing inputs.
-See [`MIGRATION_0.43.0.md`](MIGRATION_0.43.0.md) for mandatory prepared
+See [`MIGRATION.md#v0430`](MIGRATION.md#v0430) for mandatory prepared
 authentication and raw-response policy, authenticated execution, and the
 complete Hetzner wire migration.
-See [`MIGRATION_0.44.0.md`](MIGRATION_0.44.0.md) for distinct numbered,
+See [`MIGRATION.md#v0440`](MIGRATION.md#v0440) for distinct numbered,
 offset, cursor, marker, and provider-link pagination strategies.
-See [`MIGRATION_0.45.0.md`](MIGRATION_0.45.0.md) for provider-owned quota
+See [`MIGRATION.md#v0450`](MIGRATION.md#v0450) for provider-owned quota
 decoding, exact `Retry-After`, and pure bounded delay decisions.
-See [`MIGRATION_0.46.0.md`](MIGRATION_0.46.0.md) for canonical request
+See [`MIGRATION.md#v0460`](MIGRATION.md#v0460) for canonical request
 fingerprints, fresh intent binding, and single-owner retry budgets.
-See [`MIGRATION_0.47.0.md`](MIGRATION_0.47.0.md) for local `!Send` futures,
+See [`MIGRATION.md#v0470`](MIGRATION.md#v0470) for local `!Send` futures,
 explicit cancellation policy, and local prepared execution.
-See [`MIGRATION_0.48.0.md`](MIGRATION_0.48.0.md) for bounded streaming policy,
+See [`MIGRATION.md#v0480`](MIGRATION.md#v0480) for bounded streaming policy,
 source/sink contracts, replay identity, and partial-state cleanup.
-See [`MIGRATION_0.49.0.md`](MIGRATION_0.49.0.md) for bounded incremental
+See [`MIGRATION.md#v0490`](MIGRATION.md#v0490) for bounded incremental
 provider decoding across arbitrary input chunks.
-See [`MIGRATION_0.50.0.md`](MIGRATION_0.50.0.md) for exhaustive compile-time
+See [`MIGRATION.md#v0500`](MIGRATION.md#v0500) for exhaustive compile-time
 Hetzner operation associations.
 
 ## Guard Preparation Storage
@@ -138,7 +138,7 @@ fallibly. No allocation is introduced by default.
 Provider crates can use `Method::extension("PURGE")` for a finite static
 extension. Extensions are bounded uppercase HTTP tokens; known aliases,
 CONNECT, and TRACE are rejected. See
-[`MIGRATION_0.33.0.md`](MIGRATION_0.33.0.md).
+[`MIGRATION.md#v0330`](MIGRATION.md#v0330).
 
 The complete compile-checked source is
 [`provider_neutral.rs`](../crates/cloud-sdk/examples/provider_neutral.rs). Run
@@ -183,7 +183,7 @@ assert_eq!(ExampleProvider::ID.as_str(), "example");
 assert_eq!(ComputeService::ID.as_str(), "compute");
 ```
 
-See [`MIGRATION_0.32.0.md`](MIGRATION_0.32.0.md) for direct
+See [`MIGRATION.md#v0320`](MIGRATION.md#v0320) for direct
 `ProviderService` construction and migration from the removed closed enums.
 
 ## Bind Endpoint Trust
@@ -191,7 +191,7 @@ See [`MIGRATION_0.32.0.md`](MIGRATION_0.32.0.md) for direct
 `EndpointPolicy` admits fixed, finite official-set, provider-derived regional,
 and explicitly acknowledged custom destinations. Provider operations carry
 the policy into `PreparedRequest`; execution checks it before credentials are
-sent. See [`MIGRATION_0.34.0.md`](MIGRATION_0.34.0.md).
+sent. See [`MIGRATION.md#v0340`](MIGRATION.md#v0340).
 
 ## Select A Transport
 

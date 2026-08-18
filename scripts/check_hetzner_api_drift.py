@@ -27,10 +27,17 @@ from generate_response_operations import render as render_response_operations
 from generate_response_operations import rows as response_operation_rows
 from generate_cloud_model_schema import render as render_cloud_model_schema
 from generate_cloud_model_schema import render_fixtures as render_cloud_model_fixtures
+from hetzner_openapi_contracts import (
+    digest,
+    operation_rows,
+    parameter_rows,
+    schema_rows,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 OP_LOCK = ROOT / "docs" / "API_FINGERPRINTS.tsv"
 SCHEMA_LOCK = ROOT / "docs" / "API_SCHEMA_FINGERPRINTS.tsv"
+PARAMETER_LOCK = ROOT / "docs" / "API_PARAMETER_FINGERPRINTS.tsv"
 MATRIX = ROOT / "docs" / "API_MATRIX.md"
 SPEC_LOCK = ROOT / "docs" / "SPEC_LOCK.md"
 RESPONSE_LOCK = (
@@ -47,6 +54,23 @@ CLOUD_MODEL_SCHEMA_LOCK = (
 CLOUD_MODEL_FIXTURE_LOCK = CLOUD_MODEL_SCHEMA_LOCK.with_name(
     "cloud_model_fixtures.json"
 )
+PARAMETER_FIELDS = [
+    "api",
+    "method",
+    "path",
+    "operation_id",
+    "in",
+    "name",
+    "required",
+    "schema_type",
+    "schema_format",
+    "items_type",
+    "style",
+    "explode",
+    "enum",
+    "constraints",
+    "fingerprint",
+]
 
 SPECS = {
     "cloud": "https://docs.hetzner.cloud/cloud.spec.json",
@@ -58,8 +82,6 @@ PINNED_SPEC_SHA256 = {
     "hetzner": "f70750016d81c927ddf877e103541c90d3e3372723cdf54e6fd7b2eba4a8108a",
 }
 
-DOC_ONLY_KEYS = {"description", "summary", "externalDocs", "example", "examples"}
-HTTP_METHODS = {"get", "post", "put", "patch", "delete"}
 MAX_SPEC_BYTES = 32 * 1024 * 1024
 FETCH_CONNECT_TIMEOUT_SECONDS = 10
 FETCH_TOTAL_TIMEOUT_SECONDS = 60
@@ -79,118 +101,6 @@ class RejectRedirects(urllib.request.HTTPRedirectHandler):
         _new_url: str,
     ) -> None:
         return None
-
-
-def clean_json(value: Any) -> Any:
-    if isinstance(value, dict):
-        return {
-            key: clean_json(item)
-            for key, item in sorted(value.items())
-            if key not in DOC_ONLY_KEYS
-        }
-    if isinstance(value, list):
-        return [clean_json(item) for item in value]
-    return value
-
-
-def digest(value: Any) -> str:
-    payload = json.dumps(clean_json(value), sort_keys=True, separators=(",", ":"))
-    return hashlib.sha256(payload.encode("utf-8")).hexdigest()
-
-
-def action_kind(method: str, path: str) -> str:
-    if path.endswith("/actions"):
-        return "action-list"
-    if "/actions/{action_id}" in path:
-        return "resource-action-get"
-    if "/actions/{id}" in path:
-        return "action-get"
-    if "/actions/" in path and method == "post":
-        return "starts-action"
-    if "/actions/" in path:
-        return "action"
-    return "none"
-
-
-def query_names(operation: dict[str, Any]) -> set[str]:
-    parameters = operation.get("parameters", [])
-    if not isinstance(parameters, list):
-        raise ValueError("parameters must be an array")
-    names = set()
-    for parameter in parameters:
-        if not isinstance(parameter, dict):
-            raise ValueError("parameter must be an object")
-        if parameter.get("in") == "query":
-            name = parameter.get("name")
-            if not isinstance(name, str):
-                raise ValueError("query parameter name must be text")
-            names.add(name)
-    return names
-
-
-def operation_rows(api: str, document: dict[str, Any]) -> list[dict[str, str]]:
-    rows: list[dict[str, str]] = []
-    paths = document.get("paths", {})
-    if not isinstance(paths, dict):
-        raise SystemExit(f"{api} spec paths must be an object")
-    for path, path_item in paths.items():
-        if not isinstance(path, str) or not isinstance(path_item, dict):
-            raise SystemExit(f"{api} spec contains an invalid path item")
-        for method, operation in path_item.items():
-            if method not in HTTP_METHODS:
-                continue
-            if not isinstance(operation, dict):
-                raise SystemExit(f"{api} spec contains an invalid operation")
-            try:
-                queries = query_names(operation)
-            except ValueError as error:
-                raise SystemExit(
-                    f"{api} spec contains invalid operation parameters"
-                ) from error
-            tags = operation.get("tags") or ["untagged"]
-            operation_id = operation.get("operationId", "")
-            if (
-                not isinstance(tags, list)
-                or not tags
-                or not isinstance(tags[0], str)
-                or not isinstance(operation_id, str)
-            ):
-                raise SystemExit(f"{api} spec contains invalid operation metadata")
-            fingerprint_input = dict(operation)
-            fingerprint_input.pop("deprecated", None)
-            rows.append(
-                {
-                    "api": api,
-                    "method": method.upper(),
-                    "path": path,
-                    "tag": tags[0],
-                    "operation_id": operation_id,
-                    "deprecated": "yes" if operation.get("deprecated") else "no",
-                    "pagination": "yes"
-                    if {"page", "per_page"}.issubset(queries)
-                    else "no",
-                    "sorting": "yes" if "sort" in queries else "no",
-                    "action": action_kind(method, path),
-                    "fingerprint": digest(fingerprint_input),
-                }
-            )
-    return sorted(rows, key=lambda row: (row["api"], row["path"], row["method"]))
-
-
-def schema_rows(api: str, document: dict[str, Any]) -> list[dict[str, str]]:
-    components = document.get("components", {})
-    if not isinstance(components, dict):
-        raise SystemExit(f"{api} spec components must be an object")
-    schemas = components.get("schemas", {})
-    if not isinstance(schemas, dict) or any(
-        not isinstance(name, str) for name in schemas
-    ):
-        raise SystemExit(f"{api} spec schemas must be a text-keyed object")
-    rows = [
-        {"api": api, "schema": name, "fingerprint": digest(schema)}
-        for name, schema in schemas.items()
-    ]
-    return sorted(rows, key=lambda row: (row["api"], row["schema"]))
 
 
 def read_bounded_file(
@@ -372,6 +282,7 @@ def validate_local_files() -> int:
     for path in (
         OP_LOCK,
         SCHEMA_LOCK,
+        PARAMETER_LOCK,
         MATRIX,
         SPEC_LOCK,
         RESPONSE_LOCK,
@@ -386,6 +297,7 @@ def validate_local_files() -> int:
 
     operation_count = len(read_tsv(OP_LOCK))
     schema_count = len(read_tsv(SCHEMA_LOCK))
+    parameter_count = len(read_tsv(PARAMETER_LOCK))
     model_field_count = len(read_tsv(CLOUD_MODEL_SCHEMA_LOCK))
     matrix_text = MATRIX.read_text(encoding="utf-8")
     spec_text = SPEC_LOCK.read_text(encoding="utf-8")
@@ -402,6 +314,7 @@ def validate_local_files() -> int:
             status = 1
     print(f"locked operations: {operation_count}")
     print(f"locked schemas: {schema_count}")
+    print(f"locked parameters: {parameter_count}")
     print(f"locked Cloud model fields: {model_field_count}")
     return status
 
@@ -435,9 +348,11 @@ def main() -> int:
         raise SystemExit(f"invalid response schemas: {error}") from error
     operations = []
     schemas = []
+    parameters = []
     for api, document in documents.items():
         operations.extend(operation_rows(api, document))
         schemas.extend(schema_rows(api, document))
+        parameters.extend(parameter_rows(api, document))
 
     if args.write_lock:
         if not args.accept_lock_refresh:
@@ -454,6 +369,8 @@ def main() -> int:
                 schemas,
                 source_hashes,
                 PINNED_SPEC_SHA256,
+                read_tsv(PARAMETER_LOCK),
+                parameters,
             )
             status = print_drift_report(report)
             if status:
@@ -475,11 +392,13 @@ def main() -> int:
             ],
         )
         write_tsv(SCHEMA_LOCK, schemas, ["api", "schema", "fingerprint"])
+        write_tsv(PARAMETER_LOCK, parameters, PARAMETER_FIELDS)
         RESPONSE_LOCK.write_text(response_lock, encoding="ascii")
         CLOUD_MODEL_SCHEMA_LOCK.write_text(cloud_model_schema_lock, encoding="ascii")
         CLOUD_MODEL_FIXTURE_LOCK.write_text(cloud_model_fixture_lock, encoding="ascii")
         print(f"wrote {len(operations)} operation fingerprints")
         print(f"wrote {len(schemas)} schema fingerprints")
+        print(f"wrote {len(parameters)} parameter fingerprints")
         return 0
 
     status = validate_local_files()
@@ -499,6 +418,8 @@ def main() -> int:
         schemas,
         source_hashes,
         PINNED_SPEC_SHA256,
+        read_tsv(PARAMETER_LOCK),
+        parameters,
     )
     status |= print_drift_report(report)
     return status

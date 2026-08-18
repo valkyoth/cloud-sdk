@@ -56,10 +56,10 @@ operation safety remains explicit provider metadata.
 
 ## Migration
 
-See [`docs/MIGRATION_0.33.0.md`](../docs/MIGRATION_0.33.0.md) and
-[`docs/PUBLIC_API_REVIEW_0.33.0.md`](../docs/PUBLIC_API_REVIEW_0.33.0.md).
+See [`docs/MIGRATION.md#v0330`](../docs/MIGRATION.md#v0330) and
+[`docs/PUBLIC_API_REVIEW.md#v0330`](../docs/PUBLIC_API_REVIEW.md#v0330).
 No external package changed; the review is in
-[`docs/DEPENDENCY_REVIEW_0.33.0.md`](../docs/DEPENDENCY_REVIEW_0.33.0.md).
+[`docs/DEPENDENCY_REVIEW.md#v0330`](../docs/DEPENDENCY_REVIEW.md#v0330).
 
 ## Release Gate
 

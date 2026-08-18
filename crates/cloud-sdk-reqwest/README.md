@@ -45,39 +45,39 @@ cloud-sdk-reqwest = { version = "0.36.0", features = ["blocking-rustls"] }
 The examples use Hetzner as a concrete endpoint, but the adapter contains no
 provider-specific routing, authentication, or response logic.
 Response metadata changes from the previous release are listed in the
-[v0.29 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.29.0.md).
+[v0.29 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION.md#v0290).
 The adapters transmit every method admitted by `cloud-sdk 0.33`, including
 bounded provider extensions. Method validation and migration details are in
 the
-[v0.33 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.33.0.md).
+[v0.33 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION.md#v0330).
 Endpoint trust construction changed in v0.34. Prefer
 `HttpsEndpoint::new_with_policy` with a provider-owned fixed, official-set, or
 regional policy. `new_custom` now requires
 `CustomEndpointAcknowledgement::trusted_operator_configuration()` so a custom
 credential destination cannot be selected accidentally. See the
-[v0.34 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.34.0.md).
+[v0.34 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION.md#v0340).
 Raw endpoint input is bounded by `MAX_CONFIGURED_ENDPOINT_BYTES` before URL
 parsing. Base paths must already be exact printable ASCII and cannot contain
 backslashes, percent escapes, controls, whitespace, non-ASCII bytes, repeated
 slashes, or dot segments.
 Request paths and queries are validated once by `cloud-sdk`; this adapter
 preserves their exact bytes and does not apply a second encoding dialect. See
-the [v0.35 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.35.0.md).
+the [v0.35 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION.md#v0350).
 Request headers are now complete bounded core values rather than adapter
 defaults. Response headers are retained in bounded owned metadata. See the
-[v0.36 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.36.0.md).
+[v0.36 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION.md#v0360).
 Response provenance migration is listed in the
-[v0.37 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.37.0.md).
+[v0.37 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION.md#v0370).
 Mandatory response cleanup migration is listed in the
-[v0.38 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.38.0.md).
+[v0.38 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION.md#v0380).
 Raw bounded execution and delivery-phase migration are listed in the
-[v0.40 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.40.0.md).
+[v0.40 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION.md#v0400).
 Mandatory bearer scope, rotation, and refresh migration are listed in the
-[v0.41 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.41.0.md).
+[v0.41 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION.md#v0410).
 Basic credential and client additions are listed in the
-[v0.42 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.42.0.md).
+[v0.42 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION.md#v0420).
 Authenticated raw-wire execution and delivery-phase changes are listed in the
-[v0.43 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.43.0.md).
+[v0.43 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION.md#v0430).
 The v0.46 package change is dependency-only. Retry ownership remains in the
 provider-neutral caller policy described by the
 [retry and idempotency guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/RETRY_AND_IDEMPOTENCY.md);

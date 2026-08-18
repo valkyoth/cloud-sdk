@@ -77,9 +77,9 @@ default and std-only graphs.
 - [`docs/AUTHENTICATION_POLICY.md`](../docs/AUTHENTICATION_POLICY.md)
 - [`docs/SIGNING_INPUT_POLICY.md`](../docs/SIGNING_INPUT_POLICY.md)
 - [`docs/ROBOT_WIRE_SOURCE_LOCK.md`](../docs/ROBOT_WIRE_SOURCE_LOCK.md)
-- [`docs/MIGRATION_0.42.0.md`](../docs/MIGRATION_0.42.0.md)
-- [`docs/PUBLIC_API_REVIEW_0.42.0.md`](../docs/PUBLIC_API_REVIEW_0.42.0.md)
-- [`docs/DEPENDENCY_REVIEW_0.42.0.md`](../docs/DEPENDENCY_REVIEW_0.42.0.md)
+- [`docs/MIGRATION.md#v0420`](../docs/MIGRATION.md#v0420)
+- [`docs/PUBLIC_API_REVIEW.md#v0420`](../docs/PUBLIC_API_REVIEW.md#v0420)
+- [`docs/DEPENDENCY_REVIEW.md#v0420`](../docs/DEPENDENCY_REVIEW.md#v0420)
 
 ## Pentest
 

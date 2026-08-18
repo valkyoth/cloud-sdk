@@ -103,4 +103,4 @@ cargo test -p cloud-sdk-reqwest --no-default-features \
     --features async-rustls authentication
 
 test -s docs/AUTHENTICATION_POLICY.md
-test -s docs/MIGRATION_0.41.0.md
+test -s docs/MIGRATION.md

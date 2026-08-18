@@ -72,7 +72,7 @@ central registry.
 
 ## Migration
 
-See [`docs/MIGRATION_0.32.0.md`](../docs/MIGRATION_0.32.0.md).
+See [`docs/MIGRATION.md#v0320`](../docs/MIGRATION.md#v0320).
 
 ## Security Review
 

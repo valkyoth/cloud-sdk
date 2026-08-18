@@ -13,11 +13,11 @@ FIXTURE = ROOT / "tests/fixtures/robot-transactions/v0.92.0.json"
 API_LOCK = ROOT / "tests/fixtures/robot-api/v0.74.0.json"
 MODULE = ROOT / "crates/cloud-sdk-hetzner/src/robot/ordering/transaction"
 README = ROOT / "crates/cloud-sdk-hetzner/README.md"
-THREAT_MODEL = ROOT / "docs/THREAT_MODEL_DELTA_0.92.0.md"
-MIGRATION = ROOT / "docs/MIGRATION_0.92.0.md"
+THREAT_MODEL = ROOT / "docs/THREAT_MODEL_DELTA.md"
+MIGRATION = ROOT / "docs/MIGRATION.md"
 RELEASE_NOTES = ROOT / "release-notes/RELEASE_NOTES_0.92.0.md"
 WIRE_LOCK = ROOT / "docs/ROBOT_WIRE_SOURCE_LOCK.md"
-PUBLIC_API = ROOT / "docs/PUBLIC_API_REVIEW_0.92.0.md"
+PUBLIC_API = ROOT / "docs/PUBLIC_API_REVIEW.md"
 SPEC_LOCK = ROOT / "docs/SPEC_LOCK.md"
 FUZZ_MANIFEST = ROOT / "fuzz/Cargo.toml"
 FUZZ_GATE = ROOT / "scripts/check_fuzz_harness.sh"
@@ -252,14 +252,12 @@ def validate_sources(
         fail("provider README lost guarded transaction cleanup boundary")
     documentation_tokens = {
         threat_model: [
-            "every reachable validation and encoding failure",
-            "rust-lang/rust#54663",
-            "exposes no raw `PreparationStorage` preparation route",
-            "Unsafe lifetime emulation was rejected",
+            "## v0.92.0",
+            "v0.92.0/docs/THREAT_MODEL_DELTA_0.92.0.md",
         ],
         migration: [
-            "requires `&mut PreparationStorageGuard` directly",
-            "do not implement raw-storage `PrepareOperation`",
+            "## v0.92.0",
+            "v0.92.0/docs/MIGRATION_0.92.0.md",
         ],
         release_notes: [
             "Reachable failures clear both buffers before target binding",
@@ -271,8 +269,8 @@ def validate_sources(
             "no raw `PreparationStorage` preparation route",
         ],
         public_api: [
-            "expose `prepare_guarded`",
-            "do not implement raw-storage `PrepareOperation`",
+            "## v0.92.0",
+            "v0.92.0/docs/PUBLIC_API_REVIEW_0.92.0.md",
         ],
         spec_lock: [
             "requires `PreparationStorageGuard` directly",

@@ -43,9 +43,9 @@ not reset or advance the publication schedule.
 ## Public Checkpoint
 
 A `v0.N.0` milestone divisible by five is normally the scheduled public
-checkpoint. The final development release `v0.99.0` is also a scheduled public
-checkpoint so crates.io receives the complete release candidate before
-`v1.0.0`. Material security or compatibility needs may require another
+checkpoint. The final development release `v0.100.0` follows that regular
+cadence and publishes the complete release candidate before `v1.0.0`.
+Material security or compatibility needs may require another
 exceptional publication. That tag still receives the same incremental pentest
 and becomes the new public baseline when published. `v1.0.0` always requires a
 full-project assessment.

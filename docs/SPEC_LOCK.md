@@ -23,6 +23,10 @@ surface. `hetzner.spec.json` currently covers Storage Box operations.
 
 Locked operation fingerprints live in `docs/API_FINGERPRINTS.tsv`. Locked
 component schema fingerprints live in `docs/API_SCHEMA_FINGERPRINTS.tsv`.
+The 437 effective path, query, header, and cookie parameter contracts live in
+`docs/API_PARAMETER_FINGERPRINTS.tsv`. Each row preserves operation ownership,
+requiredness, scalar/array and item types, format, effective OpenAPI
+style/explode encoding, enum values, bounds, and a semantic parameter digest.
 
 Use the drift detector before endpoint-model work or release prep:
 
@@ -30,11 +34,14 @@ Use the drift detector before endpoint-model work or release prep:
 scripts/check_hetzner_api_drift.py --fetch
 ```
 
-The detector reports added, removed, deprecated, and changed operations plus
-schema-only and source-digest changes. It strips prose-only OpenAPI fields such
-as descriptions and examples before hashing so documentation copy changes do
-not create semantic release noise. The separately indexed deprecation flag is
-excluded from the semantic fingerprint, so a deprecation-only transition and a
+The detector reports added, removed, deprecated, and changed operations,
+parameter-level additions/removals/contract changes, schema-only changes, and
+source-digest changes. This makes a new filter, option, enum value, bound, or
+array encoding visible without requiring maintainers to reverse-engineer one
+whole-operation hash. It strips prose-only OpenAPI fields such as descriptions
+and examples before hashing so documentation copy changes do not create
+semantic release noise. The separately indexed deprecation flag is excluded
+from the semantic fingerprint, so a deprecation-only transition and a
 simultaneous contract change are classified independently. The complete
 maintenance and decision flow is documented in
 `docs/API_DRIFT_MAINTENANCE.md`.

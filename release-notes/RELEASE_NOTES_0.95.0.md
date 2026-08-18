@@ -63,11 +63,11 @@ read-only operator harness without changing any default dependency graph.
 
 ## Evidence
 
-- [`docs/PUBLIC_API_REVIEW_0.95.0.md`](../docs/PUBLIC_API_REVIEW_0.95.0.md)
-- [`docs/DEPENDENCY_REVIEW_0.95.0.md`](../docs/DEPENDENCY_REVIEW_0.95.0.md)
-- [`docs/THREAT_MODEL_DELTA_0.95.0.md`](../docs/THREAT_MODEL_DELTA_0.95.0.md)
-- [`docs/REJECTED_ABSTRACTIONS_0.95.0.md`](../docs/REJECTED_ABSTRACTIONS_0.95.0.md)
-- [`docs/MIGRATION_0.95.0.md`](../docs/MIGRATION_0.95.0.md)
+- [`docs/PUBLIC_API_REVIEW.md#v0950`](../docs/PUBLIC_API_REVIEW.md#v0950)
+- [`docs/DEPENDENCY_REVIEW.md#v0950`](../docs/DEPENDENCY_REVIEW.md#v0950)
+- [`docs/THREAT_MODEL_DELTA.md#v0950`](../docs/THREAT_MODEL_DELTA.md#v0950)
+- [`docs/REJECTED_ABSTRACTIONS.md#v0950`](../docs/REJECTED_ABSTRACTIONS.md#v0950)
+- [`docs/MIGRATION.md#v0950`](../docs/MIGRATION.md#v0950)
 
 The permanent pentest report binds the exact reviewed implementation and both
 remediation commits. No finding remains open.

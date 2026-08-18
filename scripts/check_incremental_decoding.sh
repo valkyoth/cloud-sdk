@@ -35,9 +35,9 @@ done
 
 for document in \
     docs/INCREMENTAL_DECODING.md \
-    docs/MIGRATION_0.49.0.md \
-    docs/PUBLIC_API_REVIEW_0.49.0.md \
-    docs/DEPENDENCY_REVIEW_0.49.0.md \
+    docs/MIGRATION.md \
+    docs/PUBLIC_API_REVIEW.md \
+    docs/DEPENDENCY_REVIEW.md \
     release-notes/RELEASE_NOTES_0.49.0.md; do
     if [ ! -s "$document" ]; then
         echo "incremental decoding: missing evidence $document" >&2

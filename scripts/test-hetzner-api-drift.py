@@ -28,9 +28,7 @@ def load_checker():
     spec.loader.exec_module(module)
     return module
 
-
 checker = load_checker()
-
 
 class FetchResponse:
     def __init__(self, url: str) -> None:
@@ -222,6 +220,86 @@ def test_fixture_report_ignores_prose_only_changes() -> None:
     assert stable_schema == current_schema
 
 
+def parameter_document(enum: list[str], *, required: bool = False) -> dict:
+    return {
+        "paths": {
+            "/items/{id}": {
+                "parameters": [
+                    {
+                        "in": "path",
+                        "name": "id",
+                        "required": True,
+                        "schema": {"type": "integer", "minimum": 1},
+                    }
+                ],
+                "get": {
+                    "operationId": "list_items",
+                    "parameters": [
+                        {
+                            "in": "query",
+                            "name": "status",
+                            "required": required,
+                            "schema": {
+                                "type": "array",
+                                "items": {"type": "string", "enum": enum},
+                                "maxItems": 4,
+                                "uniqueItems": True,
+                            },
+                        }
+                    ],
+                },
+            }
+        }
+    }
+
+def test_parameter_rows_lock_effective_cardinality_and_encoding() -> None:
+    rows = checker.parameter_rows("cloud", parameter_document(["ready", "failed"]))
+    assert [(row["in"], row["name"]) for row in rows] == [
+        ("path", "id"),
+        ("query", "status"),
+    ]
+    status = rows[1]
+    assert status["schema_type"] == "array"
+    assert status["items_type"] == "string"
+    assert status["style"] == "form"
+    assert status["explode"] == "yes"
+    assert status["enum"] == '["ready","failed"]'
+    assert status["constraints"] == '{"maxItems":4,"uniqueItems":true}'
+
+def test_parameter_report_names_added_removed_and_changed_fields() -> None:
+    locked = checker.parameter_rows("cloud", parameter_document(["ready"]))
+    changed = parameter_document(["ready", "failed"], required=True)
+    current = checker.parameter_rows("cloud", changed)
+    removed = next(row for row in locked if row["name"] == "id")
+    locked.append({**removed, "name": "legacy"})
+    current.append({**removed, "name": "region"})
+    report = checker.build_drift_report(
+        [],
+        [],
+        [],
+        [],
+        checker.PINNED_SPEC_SHA256.copy(),
+        checker.PINNED_SPEC_SHA256,
+        locked,
+        current,
+    )
+    added = ("cloud", "GET", "/items/{id}", "path", "region")
+    removed = ("cloud", "GET", "/items/{id}", "path", "legacy")
+    assert report["parameters"]["added"] == [added]
+    assert report["parameters"]["removed"] == [removed]
+    changes = report["parameters"]["changed"]
+    assert [change["key"] for change in changes] == [
+        ("cloud", "GET", "/items/{id}", "query", "status")
+    ]
+    assert changes[0]["fields"]["required"] == ("no", "yes")
+    assert changes[0]["fields"]["enum"] == ('["ready"]', '["ready","failed"]')
+
+def test_parameter_references_fail_closed_with_context() -> None:
+    document = parameter_document(["ready"])
+    operation = document["paths"]["/items/{id}"]["get"]
+    operation["parameters"] = [{"$ref": "#/components/parameters/status"}]
+    assert_exits("cloud spec contains invalid parameters", checker.parameter_rows, "cloud", document)
+
 def test_changed_fetched_digest_is_reported_after_safe_parsing() -> None:
     payload = b'{"openapi":"3.1.0","paths":{}}'
     with tempfile.TemporaryDirectory() as directory:
@@ -398,6 +476,9 @@ def main() -> None:
         test_load_specs_authenticates_before_parsing,
         test_fixture_report_groups_every_drift_category,
         test_fixture_report_ignores_prose_only_changes,
+        test_parameter_rows_lock_effective_cardinality_and_encoding,
+        test_parameter_report_names_added_removed_and_changed_fields,
+        test_parameter_references_fail_closed_with_context,
         test_changed_fetched_digest_is_reported_after_safe_parsing,
         test_duplicate_operation_identity_is_rejected,
         test_deprecation_with_contract_change_appears_in_both_groups,

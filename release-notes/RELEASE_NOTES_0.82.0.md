@@ -70,9 +70,9 @@ absent and validates it against checked state whenever present.
 
 ## Evidence
 
-- [`docs/PUBLIC_API_REVIEW_0.82.0.md`](../docs/PUBLIC_API_REVIEW_0.82.0.md)
-- [`docs/DEPENDENCY_REVIEW_0.82.0.md`](../docs/DEPENDENCY_REVIEW_0.82.0.md)
-- [`docs/THREAT_MODEL_DELTA_0.82.0.md`](../docs/THREAT_MODEL_DELTA_0.82.0.md)
-- [`docs/REJECTED_ABSTRACTIONS_0.82.0.md`](../docs/REJECTED_ABSTRACTIONS_0.82.0.md)
-- [`docs/MIGRATION_0.82.0.md`](../docs/MIGRATION_0.82.0.md)
+- [`docs/PUBLIC_API_REVIEW.md#v0820`](../docs/PUBLIC_API_REVIEW.md#v0820)
+- [`docs/DEPENDENCY_REVIEW.md#v0820`](../docs/DEPENDENCY_REVIEW.md#v0820)
+- [`docs/THREAT_MODEL_DELTA.md#v0820`](../docs/THREAT_MODEL_DELTA.md#v0820)
+- [`docs/REJECTED_ABSTRACTIONS.md#v0820`](../docs/REJECTED_ABSTRACTIONS.md#v0820)
+- [`docs/MIGRATION.md#v0820`](../docs/MIGRATION.md#v0820)
 - [`security/pentest/v0.82.0.md`](../security/pentest/v0.82.0.md)

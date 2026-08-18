@@ -41,9 +41,9 @@ complete JSON tree. Existing buffered checked decoding remains unchanged.
 ## Documentation
 
 - [`docs/INCREMENTAL_DECODING.md`](../docs/INCREMENTAL_DECODING.md)
-- [`docs/MIGRATION_0.49.0.md`](../docs/MIGRATION_0.49.0.md)
-- [`docs/PUBLIC_API_REVIEW_0.49.0.md`](../docs/PUBLIC_API_REVIEW_0.49.0.md)
-- [`docs/DEPENDENCY_REVIEW_0.49.0.md`](../docs/DEPENDENCY_REVIEW_0.49.0.md)
+- [`docs/MIGRATION.md#v0490`](../docs/MIGRATION.md#v0490)
+- [`docs/PUBLIC_API_REVIEW.md#v0490`](../docs/PUBLIC_API_REVIEW.md#v0490)
+- [`docs/DEPENDENCY_REVIEW.md#v0490`](../docs/DEPENDENCY_REVIEW.md#v0490)
 
 ## Pentest
 

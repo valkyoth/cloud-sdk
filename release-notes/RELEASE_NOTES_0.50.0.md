@@ -49,9 +49,9 @@ and execution.
 ## Documentation
 
 - [`docs/OPERATION_ASSOCIATIONS.md`](../docs/OPERATION_ASSOCIATIONS.md)
-- [`docs/MIGRATION_0.50.0.md`](../docs/MIGRATION_0.50.0.md)
-- [`docs/PUBLIC_API_REVIEW_0.50.0.md`](../docs/PUBLIC_API_REVIEW_0.50.0.md)
-- [`docs/DEPENDENCY_REVIEW_0.50.0.md`](../docs/DEPENDENCY_REVIEW_0.50.0.md)
+- [`docs/MIGRATION.md#v0500`](../docs/MIGRATION.md#v0500)
+- [`docs/PUBLIC_API_REVIEW.md#v0500`](../docs/PUBLIC_API_REVIEW.md#v0500)
+- [`docs/DEPENDENCY_REVIEW.md#v0500`](../docs/DEPENDENCY_REVIEW.md#v0500)
 
 ## Pentest
 

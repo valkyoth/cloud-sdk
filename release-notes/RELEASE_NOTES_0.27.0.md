@@ -54,7 +54,7 @@ regression checker rejects an ambiguous `Supported` capability table or claims
 that body serialization, typed responses, or the end-to-end client are already
 complete.
 
-See `docs/MIGRATION_0.27.0.md` for changed signatures and endpoint setup.
+See `docs/MIGRATION.md#v0270` for changed signatures and endpoint setup.
 
 ## Independent Crate Versions
 

@@ -853,45 +853,45 @@ authenticated transport tests the shared live execution function and rejects
 wire or dispatch-count drift. See the
 [live-smoke runbook](https://github.com/valkyoth/cloud-sdk/blob/main/docs/LIVE_SMOKE_TESTING.md).
 The complete Robot client and live-evidence migration is described in the
-[v0.95 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.95.0.md).
+[v0.95 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION.md#v0950).
 Breaking v0.27 constructor and custom-endpoint changes are listed in the
-[migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.27.0.md).
+[migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION.md#v0270).
 Shared transport and credential lifecycle changes are listed in the
-[v0.29 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.29.0.md).
+[v0.29 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION.md#v0290).
 The complete method domain and explicit operation metadata migration are listed
 in the
-[v0.33 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.33.0.md).
+[v0.33 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION.md#v0330).
 Endpoint trust-policy migration is listed in the
-[v0.34 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.34.0.md).
+[v0.34 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION.md#v0340).
 Canonical request-target migration is listed in the
-[v0.35 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.35.0.md).
+[v0.35 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION.md#v0350).
 Prepared request-header migration is listed in the
-[v0.36 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.36.0.md).
+[v0.36 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION.md#v0360).
 Response provenance migration is listed in the
-[v0.37 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.37.0.md).
+[v0.37 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION.md#v0370).
 Mandatory response cleanup migration is listed in the
-[v0.38 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.38.0.md).
+[v0.38 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION.md#v0380).
 Transactional request encoding and preparation cleanup are listed in the
-[v0.39 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.39.0.md).
+[v0.39 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION.md#v0390).
 Bearer authentication scope and generation-safe refresh are listed in the
-[v0.41 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.41.0.md).
+[v0.41 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION.md#v0410).
 Basic authentication and canonical signing input additions are listed in the
-[v0.42 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.42.0.md).
+[v0.42 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION.md#v0420).
 The authenticated raw-wire migration is listed in the
-[v0.43 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.43.0.md).
+[v0.43 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION.md#v0430).
 The numbered pagination migration and provider-neutral strategy family are
 listed in the
-[v0.44 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.44.0.md).
+[v0.44 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION.md#v0440).
 Provider-owned quota decoding and pure delay policy are described in the
-[v0.45 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.45.0.md)
+[v0.45 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION.md#v0450)
 and the
 [quota and retry guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/QUOTA_AND_RETRY.md).
 Exact replay identity and source-locked retry classes are described in the
-[v0.46 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.46.0.md)
+[v0.46 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION.md#v0460)
 and the
 [retry and idempotency guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/RETRY_AND_IDEMPOTENCY.md).
 Local `!Send` prepared execution and cancellation policy are described in the
-[v0.47 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.47.0.md)
+[v0.47 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION.md#v0470)
 and the
 [local async guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/LOCAL_ASYNC.md).
 

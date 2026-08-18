@@ -82,7 +82,7 @@ def main() -> int:
         ),
     )
     require(
-        ROOT / "docs/REJECTED_ABSTRACTIONS_0.62.0.md",
+        ROOT / "docs/REJECTED_ABSTRACTIONS.md",
         ("Provider Enum In Core", "A Second Response Decoder", "Unprotected PEM"),
     )
     print("6 source-complete Hetzner vertical assignments checked.")

@@ -103,7 +103,7 @@ def main() -> None:
         reject(
             path,
             repository_text.replace(
-                "defer crates.io publication to v0.99.0",
+                "defer crates.io publication to v0.100.0",
                 "defer crates.io publication to v1.0.0",
             ),
         )

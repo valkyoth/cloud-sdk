@@ -51,9 +51,9 @@ buffered request behavior or the default no_std dependency graph.
 ## Documentation
 
 - [`docs/STREAMING.md`](../docs/STREAMING.md)
-- [`docs/MIGRATION_0.48.0.md`](../docs/MIGRATION_0.48.0.md)
-- [`docs/PUBLIC_API_REVIEW_0.48.0.md`](../docs/PUBLIC_API_REVIEW_0.48.0.md)
-- [`docs/DEPENDENCY_REVIEW_0.48.0.md`](../docs/DEPENDENCY_REVIEW_0.48.0.md)
+- [`docs/MIGRATION.md#v0480`](../docs/MIGRATION.md#v0480)
+- [`docs/PUBLIC_API_REVIEW.md#v0480`](../docs/PUBLIC_API_REVIEW.md#v0480)
+- [`docs/DEPENDENCY_REVIEW.md#v0480`](../docs/DEPENDENCY_REVIEW.md#v0480)
 
 ## Pentest
 

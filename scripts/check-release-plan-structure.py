@@ -19,7 +19,7 @@ FIELD = re.compile(r"^(Goal|Deliverables|Verification|Stop gate):(.*)$", re.MULT
 FIELD_ORDER = ("Goal", "Deliverables", "Verification", "Stop gate")
 DEFERRED_PENTEST_START = (0, 51, 0)
 PER_TAG_PENTEST_START = (0, 56, 0)
-EXTRA_PUBLIC_CHECKPOINTS = {(0, 99, 0)}
+EXTRA_PUBLIC_CHECKPOINTS: set[tuple[int, int, int]] = set()
 
 
 @dataclass(frozen=True, order=True)
@@ -102,9 +102,7 @@ def stop_gate_contract(content: str) -> str:
 
 def expected_checkpoint(version: Version) -> str:
     next_minor = ((version.minor // 5) + 1) * 5
-    if version.major == 0 and version.minor < 99 and next_minor >= 100:
-        return "v0.99.0"
-    return "v1.0.0" if next_minor >= 100 else f"v0.{next_minor}.0"
+    return f"v0.{next_minor}.0"
 
 
 def is_public_checkpoint(version: Version) -> bool:

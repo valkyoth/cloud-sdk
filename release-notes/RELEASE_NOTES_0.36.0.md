@@ -79,9 +79,9 @@ The final retest passed commit
 
 ## Migration
 
-See [`docs/MIGRATION_0.36.0.md`](../docs/MIGRATION_0.36.0.md),
-[`docs/PUBLIC_API_REVIEW_0.36.0.md`](../docs/PUBLIC_API_REVIEW_0.36.0.md), and
-[`docs/DEPENDENCY_REVIEW_0.36.0.md`](../docs/DEPENDENCY_REVIEW_0.36.0.md).
+See [`docs/MIGRATION.md#v0360`](../docs/MIGRATION.md#v0360),
+[`docs/PUBLIC_API_REVIEW.md#v0360`](../docs/PUBLIC_API_REVIEW.md#v0360), and
+[`docs/DEPENDENCY_REVIEW.md#v0360`](../docs/DEPENDENCY_REVIEW.md#v0360).
 
 ## Release Gate
 

@@ -62,11 +62,11 @@ default provider graph remains transport-free, runtime-free, and `no_std`.
 
 ## Release Evidence
 
-- [`docs/PUBLIC_API_REVIEW_0.70.0.md`](../docs/PUBLIC_API_REVIEW_0.70.0.md)
-- [`docs/DEPENDENCY_REVIEW_0.70.0.md`](../docs/DEPENDENCY_REVIEW_0.70.0.md)
-- [`docs/THREAT_MODEL_DELTA_0.70.0.md`](../docs/THREAT_MODEL_DELTA_0.70.0.md)
-- [`docs/REJECTED_ABSTRACTIONS_0.70.0.md`](../docs/REJECTED_ABSTRACTIONS_0.70.0.md)
-- [`docs/MIGRATION_0.70.0.md`](../docs/MIGRATION_0.70.0.md)
+- [`docs/PUBLIC_API_REVIEW.md#v0700`](../docs/PUBLIC_API_REVIEW.md#v0700)
+- [`docs/DEPENDENCY_REVIEW.md#v0700`](../docs/DEPENDENCY_REVIEW.md#v0700)
+- [`docs/THREAT_MODEL_DELTA.md#v0700`](../docs/THREAT_MODEL_DELTA.md#v0700)
+- [`docs/REJECTED_ABSTRACTIONS.md#v0700`](../docs/REJECTED_ABSTRACTIONS.md#v0700)
+- [`docs/MIGRATION.md#v0700`](../docs/MIGRATION.md#v0700)
 - [`security/pentest/v0.70.0.md`](../security/pentest/v0.70.0.md)
 
 ## Release Gate

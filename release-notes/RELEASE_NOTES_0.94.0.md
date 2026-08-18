@@ -70,11 +70,11 @@ an invented pager or action abstraction.
 
 ## Evidence
 
-- [`docs/PUBLIC_API_REVIEW_0.94.0.md`](../docs/PUBLIC_API_REVIEW_0.94.0.md)
-- [`docs/DEPENDENCY_REVIEW_0.94.0.md`](../docs/DEPENDENCY_REVIEW_0.94.0.md)
-- [`docs/THREAT_MODEL_DELTA_0.94.0.md`](../docs/THREAT_MODEL_DELTA_0.94.0.md)
-- [`docs/REJECTED_ABSTRACTIONS_0.94.0.md`](../docs/REJECTED_ABSTRACTIONS_0.94.0.md)
-- [`docs/MIGRATION_0.94.0.md`](../docs/MIGRATION_0.94.0.md)
+- [`docs/PUBLIC_API_REVIEW.md#v0940`](../docs/PUBLIC_API_REVIEW.md#v0940)
+- [`docs/DEPENDENCY_REVIEW.md#v0940`](../docs/DEPENDENCY_REVIEW.md#v0940)
+- [`docs/THREAT_MODEL_DELTA.md#v0940`](../docs/THREAT_MODEL_DELTA.md#v0940)
+- [`docs/REJECTED_ABSTRACTIONS.md#v0940`](../docs/REJECTED_ABSTRACTIONS.md#v0940)
+- [`docs/MIGRATION.md#v0940`](../docs/MIGRATION.md#v0940)
 - [`security/pentest/v0.94.0.md`](../security/pentest/v0.94.0.md)
 
 ## Stop Gate

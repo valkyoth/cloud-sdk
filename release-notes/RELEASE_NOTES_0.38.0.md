@@ -112,9 +112,9 @@ check and not proof that an optional additive hook executed.
 
 ## Migration
 
-See [`docs/MIGRATION_0.38.0.md`](../docs/MIGRATION_0.38.0.md),
-[`docs/PUBLIC_API_REVIEW_0.38.0.md`](../docs/PUBLIC_API_REVIEW_0.38.0.md), and
-[`docs/DEPENDENCY_REVIEW_0.38.0.md`](../docs/DEPENDENCY_REVIEW_0.38.0.md).
+See [`docs/MIGRATION.md#v0380`](../docs/MIGRATION.md#v0380),
+[`docs/PUBLIC_API_REVIEW.md#v0380`](../docs/PUBLIC_API_REVIEW.md#v0380), and
+[`docs/DEPENDENCY_REVIEW.md#v0380`](../docs/DEPENDENCY_REVIEW.md#v0380).
 
 ## Release Gate
 

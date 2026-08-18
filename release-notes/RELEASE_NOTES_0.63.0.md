@@ -76,11 +76,11 @@ an internal tag and publishes no crate. The provider package version remains
 
 ## Release Evidence
 
-- [`docs/PUBLIC_API_REVIEW_0.63.0.md`](../docs/PUBLIC_API_REVIEW_0.63.0.md)
-- [`docs/DEPENDENCY_REVIEW_0.63.0.md`](../docs/DEPENDENCY_REVIEW_0.63.0.md)
-- [`docs/THREAT_MODEL_DELTA_0.63.0.md`](../docs/THREAT_MODEL_DELTA_0.63.0.md)
-- [`docs/REJECTED_ABSTRACTIONS_0.63.0.md`](../docs/REJECTED_ABSTRACTIONS_0.63.0.md)
-- [`docs/MIGRATION_0.63.0.md`](../docs/MIGRATION_0.63.0.md)
+- [`docs/PUBLIC_API_REVIEW.md#v0630`](../docs/PUBLIC_API_REVIEW.md#v0630)
+- [`docs/DEPENDENCY_REVIEW.md#v0630`](../docs/DEPENDENCY_REVIEW.md#v0630)
+- [`docs/THREAT_MODEL_DELTA.md#v0630`](../docs/THREAT_MODEL_DELTA.md#v0630)
+- [`docs/REJECTED_ABSTRACTIONS.md#v0630`](../docs/REJECTED_ABSTRACTIONS.md#v0630)
+- [`docs/MIGRATION.md#v0630`](../docs/MIGRATION.md#v0630)
 - [`security/pentest/v0.63.0.md`](../security/pentest/v0.63.0.md)
 
 ## Release Gate

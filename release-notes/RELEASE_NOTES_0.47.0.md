@@ -44,9 +44,9 @@ no_std dependency boundary.
 ## Documentation
 
 - [`docs/LOCAL_ASYNC.md`](../docs/LOCAL_ASYNC.md)
-- [`docs/MIGRATION_0.47.0.md`](../docs/MIGRATION_0.47.0.md)
-- [`docs/PUBLIC_API_REVIEW_0.47.0.md`](../docs/PUBLIC_API_REVIEW_0.47.0.md)
-- [`docs/DEPENDENCY_REVIEW_0.47.0.md`](../docs/DEPENDENCY_REVIEW_0.47.0.md)
+- [`docs/MIGRATION.md#v0470`](../docs/MIGRATION.md#v0470)
+- [`docs/PUBLIC_API_REVIEW.md#v0470`](../docs/PUBLIC_API_REVIEW.md#v0470)
+- [`docs/DEPENDENCY_REVIEW.md#v0470`](../docs/DEPENDENCY_REVIEW.md#v0470)
 
 ## Pentest
 

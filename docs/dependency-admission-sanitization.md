@@ -59,7 +59,7 @@ API. `SecretString::from_string`, closure-scoped UTF-8 access, capacity-aware
 growth cleanup, and drop cleanup remain available. No newly added default or
 optional feature is enabled through this boundary.
 The release-specific evidence and Cargo checksum are recorded in
-[`DEPENDENCY_REVIEW_0.32.0.md`](DEPENDENCY_REVIEW_0.32.0.md).
+[`DEPENDENCY_REVIEW.md#v0320`](DEPENDENCY_REVIEW.md#v0320).
 
 ## Verification
 

@@ -58,9 +58,9 @@ and external refresh use generation-safe state transitions.
 ## Documentation
 
 - [`docs/AUTHENTICATION_POLICY.md`](../docs/AUTHENTICATION_POLICY.md)
-- [`docs/MIGRATION_0.41.0.md`](../docs/MIGRATION_0.41.0.md)
-- [`docs/PUBLIC_API_REVIEW_0.41.0.md`](../docs/PUBLIC_API_REVIEW_0.41.0.md)
-- [`docs/DEPENDENCY_REVIEW_0.41.0.md`](../docs/DEPENDENCY_REVIEW_0.41.0.md)
+- [`docs/MIGRATION.md#v0410`](../docs/MIGRATION.md#v0410)
+- [`docs/PUBLIC_API_REVIEW.md#v0410`](../docs/PUBLIC_API_REVIEW.md#v0410)
+- [`docs/DEPENDENCY_REVIEW.md#v0410`](../docs/DEPENDENCY_REVIEW.md#v0410)
 
 ## Pentest
 

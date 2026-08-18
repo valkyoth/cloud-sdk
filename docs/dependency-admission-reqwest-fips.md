@@ -101,7 +101,7 @@ Release builders must retain Cargo checksum verification, use reviewed pinned
 build images, avoid untrusted compiler environment flags, and preserve build
 logs. Reproducible byte-for-byte native outputs are not claimed. The v0.24
 review and the
-[`v0.65 dependency review`](DEPENDENCY_REVIEW_0.65.0.md) record the applicable
+[`v0.65 dependency review`](DEPENDENCY_REVIEW.md#v0650) record the applicable
 exact Cargo archive checksums and confirm that hosted native tools remain
 mutable; production builders must pin those tools in an immutable reviewed
 image. Cargo Deny narrowly skips duplicate detection for build-only
@@ -109,7 +109,7 @@ image. Cargo Deny narrowly skips duplicate detection for build-only
 all-feature workspace also permits compile-time `syn 2.0.119` while current
 Serde uses `syn 3`. Neither duplicate has a runtime path, so each exception
 remains only until its parent dependencies can converge. See
-[`DEPENDENCY_REVIEW_0.24.0.md`](DEPENDENCY_REVIEW_0.24.0.md).
+[`DEPENDENCY_REVIEW.md#v0240`](DEPENDENCY_REVIEW.md#v0240).
 
 Primary upstream references:
 

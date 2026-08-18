@@ -51,8 +51,8 @@ Every pre-1.0 version receives the complete automated release gate, an
 incremental pentest against the preceding tag, GitHub CI and CodeQL, release
 notes, permanent pentest evidence, and a normal signed `v0.x.x` tag. Crates.io
 publication normally occurs every fifth minor version. Intervening tags are
-fully reviewed but are not separately published. The final `0.99.0` development
-release is an additional public checkpoint before `1.0.0`; a material security
+fully reviewed but are not separately published. The final `0.100.0` development
+release is the scheduled public checkpoint before `1.0.0`; a material security
 or compatibility need can trigger another earlier publication.
 
 ## Cost And Production Warning
@@ -97,7 +97,7 @@ remains deferred until Brynja is ready.
 | Default features | empty |
 | Network defaults | none |
 | Secret storage defaults | none |
-| Release evidence | full gates, SBOM, and incremental pentest for every tag; crates.io publication every fifth pre-1.0 minor, at `0.99.0`, or earlier when required |
+| Release evidence | full gates, SBOM, and incremental pentest for every tag; crates.io publication every fifth pre-1.0 minor, including the final `0.100.0` candidate, or earlier when required |
 | Platform support | explicit tiers and targets in [`docs/PLATFORM_SUPPORT.md`](https://github.com/valkyoth/cloud-sdk/blob/main/docs/PLATFORM_SUPPORT.md) |
 | Crate versions | tracked in [`docs/CRATE_VERSION_MATRIX.md`](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATE_VERSION_MATRIX.md) |
 | 1.0 target | serious production-ready foundation plus complete Hetzner Cloud, DNS, Console Storage Box, and Robot provider |
@@ -181,64 +181,7 @@ visible. Applications should enable only the features they use.
 - [Release runbook](https://github.com/valkyoth/cloud-sdk/blob/main/docs/RELEASE_RUNBOOK.md)
 - [Versioning and error policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/VERSIONING_POLICY.md)
 - [Provider-generic drift evidence](https://github.com/valkyoth/cloud-sdk/blob/main/docs/PROVIDER_DRIFT.md)
-- [Migrating to v0.29](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.29.0.md)
-- [Migrating to v0.30](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.30.0.md)
-- [Migrating to v0.31](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.31.0.md)
-- [Migrating to v0.32](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.32.0.md)
-- [Migrating to v0.33](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.33.0.md)
-- [Migrating to v0.34](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.34.0.md)
-- [Migrating to v0.35](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.35.0.md)
-- [Migrating to v0.36](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.36.0.md)
-- [Migrating to v0.37](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.37.0.md)
-- [Migrating to v0.38](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.38.0.md)
-- [Migrating to v0.39](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.39.0.md)
-- [Migrating to v0.40](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.40.0.md)
-- [Migrating to v0.41](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.41.0.md)
-- [Migrating to v0.42](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.42.0.md)
-- [Migrating to v0.43](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.43.0.md)
-- [Migrating to v0.44](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.44.0.md)
-- [Migrating to v0.45](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.45.0.md)
-- [Migrating to v0.46](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.46.0.md)
-- [Migrating to v0.47](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.47.0.md)
-- [Migrating to v0.48](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.48.0.md)
-- [Migrating to v0.49](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.49.0.md)
-- [Migrating to v0.50](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.50.0.md)
-- [Migrating source users to v0.51](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.51.0.md)
-- [Migrating source users to v0.52](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.52.0.md)
-- [Migrating source users to v0.53](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.53.0.md)
-- [Migrating source users to v0.54](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.54.0.md)
-- [Migrating to v0.55](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.55.0.md)
-- [Migrating source users to v0.56](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.56.0.md)
-- [Migrating source users to v0.57](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.57.0.md)
-- [Migrating source users to v0.58](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.58.0.md)
-- [Migrating source users to v0.59](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.59.0.md)
-- [Migrating to v0.60](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.60.0.md)
-- [Migrating source users to v0.61](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.61.0.md)
-- [Migrating source users to v0.62](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.62.0.md)
-- [Migrating source users to v0.63](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.63.0.md)
-- [Migrating source users to v0.64](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.64.0.md)
-- [Migrating to v0.65](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.65.0.md)
-- [Migrating source users to v0.66](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.66.0.md)
-- [Migrating source users to v0.67](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.67.0.md)
-- [Migrating source users to v0.68](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.68.0.md)
-- [Migrating source users to v0.69](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.69.0.md)
-- [Migrating to v0.70](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.70.0.md)
-- [Migrating source users to v0.71](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.71.0.md)
-- [Migrating source users to v0.72](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.72.0.md)
-- [Migrating source users to v0.73](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.73.0.md)
-- [Migrating to v0.75](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.75.0.md)
-- [Migrating source users to v0.78](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.78.0.md)
-- [Migrating source users to v0.79](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.79.0.md)
-- [Migrating to v0.80](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.80.0.md)
-- [Migrating source users to v0.81](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.81.0.md)
-- [Migrating source users to v0.82](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.82.0.md)
-- [Migrating source users to v0.83](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.83.0.md)
-- [Migrating source users to v0.84](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.84.0.md)
-- [Migrating to v0.90](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.90.0.md)
-- [Migrating source users to v0.91](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.91.0.md)
-- [Migrating source users to v0.93](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.93.0.md)
-- [Migrating source users to v0.94](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.94.0.md)
-- [Migrating to v0.95](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION_0.95.0.md)
+- [Migration digest](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION.md)
 - [Compile-time Hetzner operation associations](https://github.com/valkyoth/cloud-sdk/blob/main/docs/OPERATION_ASSOCIATIONS.md)
 - [Incremental provider decoding](https://github.com/valkyoth/cloud-sdk/blob/main/docs/INCREMENTAL_DECODING.md)
 - [Deprecated endpoint policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/DEPRECATED_ENDPOINT_POLICY.md)

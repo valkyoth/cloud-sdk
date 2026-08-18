@@ -10,7 +10,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 STAGES = ("internal", "public")
 CADENCE_BASELINE = (0, 50, 0)
-EXTRA_PUBLIC_CHECKPOINTS = {(0, 99, 0)}
+EXTRA_PUBLIC_CHECKPOINTS: set[tuple[int, int, int]] = set()
 
 
 def publication_allowed(plan: dict) -> bool:
@@ -40,11 +40,7 @@ def next_checkpoint(version: str) -> str:
     major, minor, _patch = parse_version(version)
     if major != 0:
         raise RuntimeError("development checkpoint calculation is pre-1.0 only")
-    if 95 <= minor < 99:
-        return "0.99.0"
     next_minor = ((minor // 5) + 1) * 5
-    if next_minor >= 100:
-        return "1.0.0"
     return f"0.{next_minor}.0"
 
 

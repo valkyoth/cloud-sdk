@@ -69,9 +69,9 @@ the v0.60.0 checkpoint.
 ## Documentation
 
 - [`docs/PROVIDER_DRIFT.md`](../docs/PROVIDER_DRIFT.md)
-- [`docs/MIGRATION_0.56.0.md`](../docs/MIGRATION_0.56.0.md)
-- [`docs/PUBLIC_API_REVIEW_0.56.0.md`](../docs/PUBLIC_API_REVIEW_0.56.0.md)
-- [`docs/DEPENDENCY_REVIEW_0.56.0.md`](../docs/DEPENDENCY_REVIEW_0.56.0.md)
+- [`docs/MIGRATION.md#v0560`](../docs/MIGRATION.md#v0560)
+- [`docs/PUBLIC_API_REVIEW.md#v0560`](../docs/PUBLIC_API_REVIEW.md#v0560)
+- [`docs/DEPENDENCY_REVIEW.md#v0560`](../docs/DEPENDENCY_REVIEW.md#v0560)
 
 ## Release Gate
 

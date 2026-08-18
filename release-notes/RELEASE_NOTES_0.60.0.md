@@ -56,9 +56,9 @@ models. It does not publish or claim an OVHcloud provider.
 
 - [`docs/ASYNC_RESOURCES.md`](../docs/ASYNC_RESOURCES.md)
 - [`provider-probes/ovhcloud-v2/README.md`](../provider-probes/ovhcloud-v2/README.md)
-- [`docs/MIGRATION_0.60.0.md`](../docs/MIGRATION_0.60.0.md)
-- [`docs/PUBLIC_API_REVIEW_0.60.0.md`](../docs/PUBLIC_API_REVIEW_0.60.0.md)
-- [`docs/DEPENDENCY_REVIEW_0.60.0.md`](../docs/DEPENDENCY_REVIEW_0.60.0.md)
+- [`docs/MIGRATION.md#v0600`](../docs/MIGRATION.md#v0600)
+- [`docs/PUBLIC_API_REVIEW.md#v0600`](../docs/PUBLIC_API_REVIEW.md#v0600)
+- [`docs/DEPENDENCY_REVIEW.md#v0600`](../docs/DEPENDENCY_REVIEW.md#v0600)
 
 ## Release Gate
 

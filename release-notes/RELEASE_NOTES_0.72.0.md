@@ -50,11 +50,11 @@ selected for crates.io publication.
 
 ## Release Evidence
 
-- [`docs/PUBLIC_API_REVIEW_0.72.0.md`](../docs/PUBLIC_API_REVIEW_0.72.0.md)
-- [`docs/DEPENDENCY_REVIEW_0.72.0.md`](../docs/DEPENDENCY_REVIEW_0.72.0.md)
-- [`docs/THREAT_MODEL_DELTA_0.72.0.md`](../docs/THREAT_MODEL_DELTA_0.72.0.md)
-- [`docs/REJECTED_ABSTRACTIONS_0.72.0.md`](../docs/REJECTED_ABSTRACTIONS_0.72.0.md)
-- [`docs/MIGRATION_0.72.0.md`](../docs/MIGRATION_0.72.0.md)
+- [`docs/PUBLIC_API_REVIEW.md#v0720`](../docs/PUBLIC_API_REVIEW.md#v0720)
+- [`docs/DEPENDENCY_REVIEW.md#v0720`](../docs/DEPENDENCY_REVIEW.md#v0720)
+- [`docs/THREAT_MODEL_DELTA.md#v0720`](../docs/THREAT_MODEL_DELTA.md#v0720)
+- [`docs/REJECTED_ABSTRACTIONS.md#v0720`](../docs/REJECTED_ABSTRACTIONS.md#v0720)
+- [`docs/MIGRATION.md#v0720`](../docs/MIGRATION.md#v0720)
 - [`security/pentest/v0.72.0.md`](../security/pentest/v0.72.0.md)
 
 ## Release Gate

@@ -50,9 +50,9 @@ crates.io publication range.
 ## Documentation
 
 - [`docs/DIAGNOSTICS.md`](../docs/DIAGNOSTICS.md)
-- [`docs/MIGRATION_0.54.0.md`](../docs/MIGRATION_0.54.0.md)
-- [`docs/PUBLIC_API_REVIEW_0.54.0.md`](../docs/PUBLIC_API_REVIEW_0.54.0.md)
-- [`docs/DEPENDENCY_REVIEW_0.54.0.md`](../docs/DEPENDENCY_REVIEW_0.54.0.md)
+- [`docs/MIGRATION.md#v0540`](../docs/MIGRATION.md#v0540)
+- [`docs/PUBLIC_API_REVIEW.md#v0540`](../docs/PUBLIC_API_REVIEW.md#v0540)
+- [`docs/DEPENDENCY_REVIEW.md#v0540`](../docs/DEPENDENCY_REVIEW.md#v0540)
 
 ## Release Gate
 

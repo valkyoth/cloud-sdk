@@ -65,11 +65,11 @@ publication.
 
 ## Release Evidence
 
-- [`docs/PUBLIC_API_REVIEW_0.78.0.md`](../docs/PUBLIC_API_REVIEW_0.78.0.md)
-- [`docs/DEPENDENCY_REVIEW_0.78.0.md`](../docs/DEPENDENCY_REVIEW_0.78.0.md)
-- [`docs/THREAT_MODEL_DELTA_0.78.0.md`](../docs/THREAT_MODEL_DELTA_0.78.0.md)
-- [`docs/REJECTED_ABSTRACTIONS_0.78.0.md`](../docs/REJECTED_ABSTRACTIONS_0.78.0.md)
-- [`docs/MIGRATION_0.78.0.md`](../docs/MIGRATION_0.78.0.md)
+- [`docs/PUBLIC_API_REVIEW.md#v0780`](../docs/PUBLIC_API_REVIEW.md#v0780)
+- [`docs/DEPENDENCY_REVIEW.md#v0780`](../docs/DEPENDENCY_REVIEW.md#v0780)
+- [`docs/THREAT_MODEL_DELTA.md#v0780`](../docs/THREAT_MODEL_DELTA.md#v0780)
+- [`docs/REJECTED_ABSTRACTIONS.md#v0780`](../docs/REJECTED_ABSTRACTIONS.md#v0780)
+- [`docs/MIGRATION.md#v0780`](../docs/MIGRATION.md#v0780)
 - [`security/pentest/v0.78.0.md`](../security/pentest/v0.78.0.md)
 
 ## Release Gate

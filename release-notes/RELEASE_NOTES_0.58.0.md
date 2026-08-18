@@ -56,9 +56,9 @@ the v0.60.0 checkpoint.
 - [`provider-probes/ovhcloud-v2/README.md`](../provider-probes/ovhcloud-v2/README.md)
 - [`docs/AUTHENTICATION_POLICY.md`](../docs/AUTHENTICATION_POLICY.md)
 - [`docs/SECURITY_RECIPES.md`](../docs/SECURITY_RECIPES.md)
-- [`docs/MIGRATION_0.58.0.md`](../docs/MIGRATION_0.58.0.md)
-- [`docs/PUBLIC_API_REVIEW_0.58.0.md`](../docs/PUBLIC_API_REVIEW_0.58.0.md)
-- [`docs/DEPENDENCY_REVIEW_0.58.0.md`](../docs/DEPENDENCY_REVIEW_0.58.0.md)
+- [`docs/MIGRATION.md#v0580`](../docs/MIGRATION.md#v0580)
+- [`docs/PUBLIC_API_REVIEW.md#v0580`](../docs/PUBLIC_API_REVIEW.md#v0580)
+- [`docs/DEPENDENCY_REVIEW.md#v0580`](../docs/DEPENDENCY_REVIEW.md#v0580)
 
 ## Release Gate
 

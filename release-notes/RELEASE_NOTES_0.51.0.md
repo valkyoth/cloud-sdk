@@ -59,9 +59,9 @@ included in the cumulative v0.55 pentest and crates.io publication.
 ## Documentation
 
 - [`docs/EXECUTION_PERMITS.md`](../docs/EXECUTION_PERMITS.md)
-- [`docs/MIGRATION_0.51.0.md`](../docs/MIGRATION_0.51.0.md)
-- [`docs/PUBLIC_API_REVIEW_0.51.0.md`](../docs/PUBLIC_API_REVIEW_0.51.0.md)
-- [`docs/DEPENDENCY_REVIEW_0.51.0.md`](../docs/DEPENDENCY_REVIEW_0.51.0.md)
+- [`docs/MIGRATION.md#v0510`](../docs/MIGRATION.md#v0510)
+- [`docs/PUBLIC_API_REVIEW.md#v0510`](../docs/PUBLIC_API_REVIEW.md#v0510)
+- [`docs/DEPENDENCY_REVIEW.md#v0510`](../docs/DEPENDENCY_REVIEW.md#v0510)
 
 ## Release Gate
 

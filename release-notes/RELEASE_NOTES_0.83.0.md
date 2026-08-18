@@ -57,9 +57,9 @@ incorrect; `204` and empty-body success remain rejected.
 
 ## Evidence
 
-- [`docs/PUBLIC_API_REVIEW_0.83.0.md`](../docs/PUBLIC_API_REVIEW_0.83.0.md)
-- [`docs/DEPENDENCY_REVIEW_0.83.0.md`](../docs/DEPENDENCY_REVIEW_0.83.0.md)
-- [`docs/THREAT_MODEL_DELTA_0.83.0.md`](../docs/THREAT_MODEL_DELTA_0.83.0.md)
-- [`docs/REJECTED_ABSTRACTIONS_0.83.0.md`](../docs/REJECTED_ABSTRACTIONS_0.83.0.md)
-- [`docs/MIGRATION_0.83.0.md`](../docs/MIGRATION_0.83.0.md)
+- [`docs/PUBLIC_API_REVIEW.md#v0830`](../docs/PUBLIC_API_REVIEW.md#v0830)
+- [`docs/DEPENDENCY_REVIEW.md#v0830`](../docs/DEPENDENCY_REVIEW.md#v0830)
+- [`docs/THREAT_MODEL_DELTA.md#v0830`](../docs/THREAT_MODEL_DELTA.md#v0830)
+- [`docs/REJECTED_ABSTRACTIONS.md#v0830`](../docs/REJECTED_ABSTRACTIONS.md#v0830)
+- [`docs/MIGRATION.md#v0830`](../docs/MIGRATION.md#v0830)
 - [`security/pentest/v0.83.0.md`](../security/pentest/v0.83.0.md)

@@ -54,9 +54,9 @@ diagnostics, and realistic allocation-free test scenarios.
 ## Documentation
 
 - [`docs/DYNAMIC_TESTKIT.md`](../docs/DYNAMIC_TESTKIT.md)
-- [`docs/MIGRATION_0.55.0.md`](../docs/MIGRATION_0.55.0.md)
-- [`docs/PUBLIC_API_REVIEW_0.55.0.md`](../docs/PUBLIC_API_REVIEW_0.55.0.md)
-- [`docs/DEPENDENCY_REVIEW_0.55.0.md`](../docs/DEPENDENCY_REVIEW_0.55.0.md)
+- [`docs/MIGRATION.md#v0550`](../docs/MIGRATION.md#v0550)
+- [`docs/PUBLIC_API_REVIEW.md#v0550`](../docs/PUBLIC_API_REVIEW.md#v0550)
+- [`docs/DEPENDENCY_REVIEW.md#v0550`](../docs/DEPENDENCY_REVIEW.md#v0550)
 
 ## Pentest
 

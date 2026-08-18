@@ -51,11 +51,11 @@ crate.
 
 ## Evidence
 
-- [`docs/PUBLIC_API_REVIEW_0.92.0.md`](../docs/PUBLIC_API_REVIEW_0.92.0.md)
-- [`docs/DEPENDENCY_REVIEW_0.92.0.md`](../docs/DEPENDENCY_REVIEW_0.92.0.md)
-- [`docs/THREAT_MODEL_DELTA_0.92.0.md`](../docs/THREAT_MODEL_DELTA_0.92.0.md)
-- [`docs/REJECTED_ABSTRACTIONS_0.92.0.md`](../docs/REJECTED_ABSTRACTIONS_0.92.0.md)
-- [`docs/MIGRATION_0.92.0.md`](../docs/MIGRATION_0.92.0.md)
+- [`docs/PUBLIC_API_REVIEW.md#v0920`](../docs/PUBLIC_API_REVIEW.md#v0920)
+- [`docs/DEPENDENCY_REVIEW.md#v0920`](../docs/DEPENDENCY_REVIEW.md#v0920)
+- [`docs/THREAT_MODEL_DELTA.md#v0920`](../docs/THREAT_MODEL_DELTA.md#v0920)
+- [`docs/REJECTED_ABSTRACTIONS.md#v0920`](../docs/REJECTED_ABSTRACTIONS.md#v0920)
+- [`docs/MIGRATION.md#v0920`](../docs/MIGRATION.md#v0920)
 - [`security/pentest/v0.92.0.md`](../security/pentest/v0.92.0.md)
 
 ## Stop Gate

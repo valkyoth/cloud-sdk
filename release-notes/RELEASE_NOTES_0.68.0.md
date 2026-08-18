@@ -49,11 +49,11 @@ and publishes no crate.
 
 ## Release Evidence
 
-- [`docs/PUBLIC_API_REVIEW_0.68.0.md`](../docs/PUBLIC_API_REVIEW_0.68.0.md)
-- [`docs/DEPENDENCY_REVIEW_0.68.0.md`](../docs/DEPENDENCY_REVIEW_0.68.0.md)
-- [`docs/THREAT_MODEL_DELTA_0.68.0.md`](../docs/THREAT_MODEL_DELTA_0.68.0.md)
-- [`docs/REJECTED_ABSTRACTIONS_0.68.0.md`](../docs/REJECTED_ABSTRACTIONS_0.68.0.md)
-- [`docs/MIGRATION_0.68.0.md`](../docs/MIGRATION_0.68.0.md)
+- [`docs/PUBLIC_API_REVIEW.md#v0680`](../docs/PUBLIC_API_REVIEW.md#v0680)
+- [`docs/DEPENDENCY_REVIEW.md#v0680`](../docs/DEPENDENCY_REVIEW.md#v0680)
+- [`docs/THREAT_MODEL_DELTA.md#v0680`](../docs/THREAT_MODEL_DELTA.md#v0680)
+- [`docs/REJECTED_ABSTRACTIONS.md#v0680`](../docs/REJECTED_ABSTRACTIONS.md#v0680)
+- [`docs/MIGRATION.md#v0680`](../docs/MIGRATION.md#v0680)
 
 ## Release Gate
 

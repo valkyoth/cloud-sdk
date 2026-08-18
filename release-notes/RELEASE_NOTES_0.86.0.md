@@ -52,11 +52,11 @@ after its incremental pentest and green CI/CodeQL but publishes no crate.
 
 ## Evidence
 
-- [`docs/PUBLIC_API_REVIEW_0.86.0.md`](../docs/PUBLIC_API_REVIEW_0.86.0.md)
-- [`docs/DEPENDENCY_REVIEW_0.86.0.md`](../docs/DEPENDENCY_REVIEW_0.86.0.md)
-- [`docs/THREAT_MODEL_DELTA_0.86.0.md`](../docs/THREAT_MODEL_DELTA_0.86.0.md)
-- [`docs/REJECTED_ABSTRACTIONS_0.86.0.md`](../docs/REJECTED_ABSTRACTIONS_0.86.0.md)
-- [`docs/MIGRATION_0.86.0.md`](../docs/MIGRATION_0.86.0.md)
+- [`docs/PUBLIC_API_REVIEW.md#v0860`](../docs/PUBLIC_API_REVIEW.md#v0860)
+- [`docs/DEPENDENCY_REVIEW.md#v0860`](../docs/DEPENDENCY_REVIEW.md#v0860)
+- [`docs/THREAT_MODEL_DELTA.md#v0860`](../docs/THREAT_MODEL_DELTA.md#v0860)
+- [`docs/REJECTED_ABSTRACTIONS.md#v0860`](../docs/REJECTED_ABSTRACTIONS.md#v0860)
+- [`docs/MIGRATION.md#v0860`](../docs/MIGRATION.md#v0860)
 - [`security/pentest/v0.86.0.md`](../security/pentest/v0.86.0.md)
 
 ## Stop Gate

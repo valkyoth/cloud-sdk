@@ -50,9 +50,9 @@ internal source milestone; no crate is selected for crates.io publication.
 
 ## Evidence
 
-- [`docs/PUBLIC_API_REVIEW_0.84.0.md`](../docs/PUBLIC_API_REVIEW_0.84.0.md)
-- [`docs/DEPENDENCY_REVIEW_0.84.0.md`](../docs/DEPENDENCY_REVIEW_0.84.0.md)
-- [`docs/THREAT_MODEL_DELTA_0.84.0.md`](../docs/THREAT_MODEL_DELTA_0.84.0.md)
-- [`docs/REJECTED_ABSTRACTIONS_0.84.0.md`](../docs/REJECTED_ABSTRACTIONS_0.84.0.md)
-- [`docs/MIGRATION_0.84.0.md`](../docs/MIGRATION_0.84.0.md)
+- [`docs/PUBLIC_API_REVIEW.md#v0840`](../docs/PUBLIC_API_REVIEW.md#v0840)
+- [`docs/DEPENDENCY_REVIEW.md#v0840`](../docs/DEPENDENCY_REVIEW.md#v0840)
+- [`docs/THREAT_MODEL_DELTA.md#v0840`](../docs/THREAT_MODEL_DELTA.md#v0840)
+- [`docs/REJECTED_ABSTRACTIONS.md#v0840`](../docs/REJECTED_ABSTRACTIONS.md#v0840)
+- [`docs/MIGRATION.md#v0840`](../docs/MIGRATION.md#v0840)
 - [`security/pentest/v0.84.0.md`](../security/pentest/v0.84.0.md)

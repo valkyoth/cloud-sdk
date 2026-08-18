@@ -70,7 +70,7 @@ No retired provider-specific helper crate is present in the publish plan.
 
 ## Migration
 
-See [`docs/MIGRATION_0.28.0.md`](../docs/MIGRATION_0.28.0.md) for receiver,
+See [`docs/MIGRATION.md#v0280`](../docs/MIGRATION.md#v0280) for receiver,
 endpoint-identity, token-rotation, and testkit changes.
 
 ## Verification

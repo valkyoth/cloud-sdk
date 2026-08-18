@@ -70,9 +70,9 @@ authentication or retry behavior.
 ## Documentation
 
 - [`docs/RAW_HTTP_EXECUTOR.md`](../docs/RAW_HTTP_EXECUTOR.md)
-- [`docs/MIGRATION_0.40.0.md`](../docs/MIGRATION_0.40.0.md)
-- [`docs/PUBLIC_API_REVIEW_0.40.0.md`](../docs/PUBLIC_API_REVIEW_0.40.0.md)
-- [`docs/DEPENDENCY_REVIEW_0.40.0.md`](../docs/DEPENDENCY_REVIEW_0.40.0.md)
+- [`docs/MIGRATION.md#v0400`](../docs/MIGRATION.md#v0400)
+- [`docs/PUBLIC_API_REVIEW.md#v0400`](../docs/PUBLIC_API_REVIEW.md#v0400)
+- [`docs/DEPENDENCY_REVIEW.md#v0400`](../docs/DEPENDENCY_REVIEW.md#v0400)
 
 ## Pentest
 

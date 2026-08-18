@@ -72,7 +72,7 @@ No retired provider-specific helper crate is present in the publish plan.
 
 ## Migration
 
-See [`docs/MIGRATION_0.29.0.md`](../docs/MIGRATION_0.29.0.md) for prepared
+See [`docs/MIGRATION.md#v0290`](../docs/MIGRATION.md#v0290) for prepared
 operation, response content-type, reqwest, and testkit changes.
 
 ## Security Review

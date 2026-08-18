@@ -57,11 +57,11 @@ evidence commit; it publishes no crate.
 
 ## Evidence
 
-- [`docs/PUBLIC_API_REVIEW_0.89.0.md`](../docs/PUBLIC_API_REVIEW_0.89.0.md)
-- [`docs/DEPENDENCY_REVIEW_0.89.0.md`](../docs/DEPENDENCY_REVIEW_0.89.0.md)
-- [`docs/THREAT_MODEL_DELTA_0.89.0.md`](../docs/THREAT_MODEL_DELTA_0.89.0.md)
-- [`docs/REJECTED_ABSTRACTIONS_0.89.0.md`](../docs/REJECTED_ABSTRACTIONS_0.89.0.md)
-- [`docs/MIGRATION_0.89.0.md`](../docs/MIGRATION_0.89.0.md)
+- [`docs/PUBLIC_API_REVIEW.md#v0890`](../docs/PUBLIC_API_REVIEW.md#v0890)
+- [`docs/DEPENDENCY_REVIEW.md#v0890`](../docs/DEPENDENCY_REVIEW.md#v0890)
+- [`docs/THREAT_MODEL_DELTA.md#v0890`](../docs/THREAT_MODEL_DELTA.md#v0890)
+- [`docs/REJECTED_ABSTRACTIONS.md#v0890`](../docs/REJECTED_ABSTRACTIONS.md#v0890)
+- [`docs/MIGRATION.md#v0890`](../docs/MIGRATION.md#v0890)
 - [`security/pentest/v0.89.0.md`](../security/pentest/v0.89.0.md)
 
 ## Stop Gate

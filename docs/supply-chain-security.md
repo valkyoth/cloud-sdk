@@ -50,16 +50,16 @@ single audited primitive while preserving a `no_std`, allocation-free default
 graph. Provider, testkit, and transport boundaries receive it through core;
 features still gate owned secret storage and transport implementations.
 The v0.32 major-version review is recorded in
-[`DEPENDENCY_REVIEW_0.32.0.md`](DEPENDENCY_REVIEW_0.32.0.md).
+[`DEPENDENCY_REVIEW.md#v0320`](DEPENDENCY_REVIEW.md#v0320).
 The v0.33 no-external-change freshness review is recorded in
-[`DEPENDENCY_REVIEW_0.33.0.md`](DEPENDENCY_REVIEW_0.33.0.md).
+[`DEPENDENCY_REVIEW.md#v0330`](DEPENDENCY_REVIEW.md#v0330).
 From v0.45 onward, `scripts/check_dependency_review.py` compares the root
 `Cargo.lock` with the previous release tag and fails unless every changed
 package version has an exact row in the versioned dependency review.
 The v0.34 endpoint-policy no-external-change review is recorded in
-[`DEPENDENCY_REVIEW_0.34.0.md`](DEPENDENCY_REVIEW_0.34.0.md).
+[`DEPENDENCY_REVIEW.md#v0340`](DEPENDENCY_REVIEW.md#v0340).
 The v0.35 canonical request-target no-external-change review is recorded in
-[`DEPENDENCY_REVIEW_0.36.0.md`](DEPENDENCY_REVIEW_0.36.0.md).
+[`DEPENDENCY_REVIEW.md#v0360`](DEPENDENCY_REVIEW.md#v0360).
 
 Reqwest `0.13.4` is admitted only through the non-default
 `cloud-sdk-reqwest/blocking-rustls`, `blocking-rustls-webpki-roots`,
@@ -82,8 +82,8 @@ disabled and supplies that compiled Mozilla snapshot to a complete custom
 rustls client configuration. Its trust-store and update tradeoffs, exact
 archive checksums, direct dependency freshness review, and native AWS-LC build
 review are recorded in the original
-[`DEPENDENCY_REVIEW_0.24.0.md`](DEPENDENCY_REVIEW_0.24.0.md) and current
-[`DEPENDENCY_REVIEW_2026-07-20.md`](DEPENDENCY_REVIEW_2026-07-20.md).
+[`DEPENDENCY_REVIEW.md#v0240`](DEPENDENCY_REVIEW.md#v0240) and current
+[`DEPENDENCY_REVIEW.md#2026-07-20`](DEPENDENCY_REVIEW.md#2026-07-20).
 
 FIPS dependencies and transport APIs are excluded from the active workspace.
 The previous AWS-LC experiment remains recorded as historical evidence in

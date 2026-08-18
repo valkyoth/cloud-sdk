@@ -57,9 +57,9 @@ provider-neutral quota and pure retry-delay policy.
 ## Documentation
 
 - [`docs/QUOTA_AND_RETRY.md`](../docs/QUOTA_AND_RETRY.md)
-- [`docs/MIGRATION_0.45.0.md`](../docs/MIGRATION_0.45.0.md)
-- [`docs/PUBLIC_API_REVIEW_0.45.0.md`](../docs/PUBLIC_API_REVIEW_0.45.0.md)
-- [`docs/DEPENDENCY_REVIEW_0.45.0.md`](../docs/DEPENDENCY_REVIEW_0.45.0.md)
+- [`docs/MIGRATION.md#v0450`](../docs/MIGRATION.md#v0450)
+- [`docs/PUBLIC_API_REVIEW.md#v0450`](../docs/PUBLIC_API_REVIEW.md#v0450)
+- [`docs/DEPENDENCY_REVIEW.md#v0450`](../docs/DEPENDENCY_REVIEW.md#v0450)
 
 ## Pentest
 

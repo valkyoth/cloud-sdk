@@ -54,6 +54,8 @@ accepted, rejected, or deferred.
 | Removed operation | Confirm the upstream removal and compatibility impact. Do not silently remove a public SDK API. |
 | Deprecated operation | Record the replacement and removal date. Keep it excluded or provide a documented migration policy. |
 | Changed operation | Review method, path, parameters, request body, responses, authentication, pagination, actions, and cost impact. |
+| Added or removed parameter | Assign the exact request model and encoder change, or record an official exclusion; an operation-level association is not implementation evidence. |
+| Changed parameter | Review requiredness, scalar/array cardinality, repeated-value encoding, enum/format/bounds, request ownership, target-size accounting, and negative tests. |
 | Schema-only change | Identify every request/response model using the schema and add positive, negative, and adversarial tests as needed. |
 | Changed source digest | Compare the complete old and new documents. A prose-only change may rotate evidence without changing semantic fingerprints. |
 
@@ -68,8 +70,10 @@ Do not infer safety only from the category or fingerprint value.
    the repository long enough to inspect their complete diff.
 2. Confirm the source URL, digest, OpenAPI version, API title, path and operation
    counts, response headers, and relevant changelog entries.
-3. Implement required SDK, validation, test, API matrix, and documentation
-   changes before refreshing the lock.
+3. Implement required SDK, validation, test, API matrix, request-fidelity
+   inventory, and documentation changes before refreshing the lock. Every
+   active parameter row must map to an executable typed request field and wire
+   test; merely retaining the operation association is insufficient.
 4. Update the pinned SHA-256 values in
    `scripts/check_hetzner_api_drift.py`, `scripts/check_hetzner_upstream.sh`,
    and `docs/SPEC_LOCK.md` in the same reviewed change.
@@ -83,9 +87,9 @@ Do not infer safety only from the category or fingerprint value.
 6. Complete the upstream-drift release-note template, run the full release
    gate, and include the change in pentest scope.
 
-The explicit refresh flags authorize fingerprint file replacement only when
-the fetched bytes match the newly reviewed pins; they do not approve SDK
-behavior or a new source digest by themselves.
+The explicit refresh flags authorize operation, parameter, schema, and model
+lock replacement only when the fetched bytes match the newly reviewed pins;
+they do not approve SDK behavior or a new source digest by themselves.
 
 ### Reject
 
