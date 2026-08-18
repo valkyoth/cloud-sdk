@@ -67,7 +67,7 @@ if [ "$stage" != "internal" ] && [ "$stage" != "public" ]; then
 fi
 checkpoint="$(
     python3 -c \
-        'import sys; minor = int(sys.argv[1].split(".")[1]); nxt = ((minor // 5) + 1) * 5; print("v1.0.0" if nxt >= 100 else f"v0.{nxt}.0")' \
+        'import sys; sys.path.insert(0, "scripts"); from release_train import next_checkpoint; print(f"v{next_checkpoint(sys.argv[1])}")' \
         "$version"
 )"
 security_review="$(unique_field "$release_notes" Security-Review)"

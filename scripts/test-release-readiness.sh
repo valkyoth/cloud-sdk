@@ -137,6 +137,24 @@ repo="$(make_fixture wrong-deferral 0.56.0 internal 0.55.0)"
         scripts/validate-release-readiness.sh v0.56.0
 )
 
+repo="$(make_fixture final-development-train 0.96.0 internal 0.95.0)"
+(
+    cd "$repo"
+    stage_candidate 0.96.0 0.95.0 internal v0.100.0
+    scripts/validate-release-readiness.sh v0.96.0
+)
+
+repo="$(make_fixture premature-stable-deferral 0.96.0 internal 0.95.0)"
+(
+    cd "$repo"
+    write_internal_notes 0.96.0 v1.0.0
+    write_sboms
+    git add release-notes sbom
+    git commit -q -m metadata
+    assert_fails_with "must defer publication to v0.100.0" \
+        scripts/validate-release-readiness.sh v0.96.0
+)
+
 repo="$(make_fixture checkpoint 0.60.0 public 0.55.0)"
 (
     cd "$repo"
@@ -281,4 +299,4 @@ repo="$(make_fixture targeted 0.57.0 internal 0.55.0 true)"
     scripts/validate-release-readiness.sh v0.57.0
 )
 
-echo "16 staged release readiness tests passed."
+echo "18 staged release readiness tests passed."

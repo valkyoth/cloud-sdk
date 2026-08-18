@@ -55,6 +55,9 @@ It starts the v0.96-v0.100 cumulative train and publishes no crate.
   than accepting punctuation whose ASCII offset exceeded nine.
 - Added regressions for historical dependency-row reuse, missing or malformed
   release sections, and malformed metrics timestamp digits.
+- Reused the canonical release-train checkpoint calculation in release
+  readiness, with regressions proving v0.96 defers to v0.100 and rejects a
+  premature v1.0 deferral.
 
 ## Versions
 

@@ -10,6 +10,8 @@
   provider-documented comma encoding.
 - Restricted dependency-review evidence to the current release section and
   rejected non-decimal bytes in source-locked metrics timestamps.
+- Unified release-readiness checkpoint calculation with the release train so
+  v0.96 correctly defers publication to v0.100 rather than v1.0.
 - Replaced the obsolete Primary IP type filter and completed common Image
   filters. Crates.io publication remains deferred to v0.100.0.
 
