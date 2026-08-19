@@ -1,6 +1,6 @@
 # Crate Version Matrix
 
-Status: `v0.95.0` is the latest published checkpoint. `v0.97.0` is the current
+Status: `v0.95.0` is the latest published checkpoint. `v0.98.0` is the current
 pentest-passed internal release candidate in the v0.96-v0.100 cumulative train
 and publishes no crate.
 

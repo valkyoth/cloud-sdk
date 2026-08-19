@@ -453,7 +453,7 @@ Lockfile identities advanced `cloud-sdk` and the unpublished probe from
 
 ## v0.98.0
 
-Status: implementation stop; incremental pentest required.
+Status: release candidate; incremental pentest and final retest passed.
 
 No third-party version or feature name changed. `cloud-sdk` and the unpublished
 probe advance from `0.97.0` to `0.98.0`. Existing optional reqwest

@@ -1,11 +1,11 @@
 # cloud-sdk 0.98.0 Release Notes
 
-Status: implementation stop; incremental pentest required.
+Status: release candidate; pentest and final retest passed.
 
 Release date: 2026-08-19
 
-Security-Review: PENDING
-Pentest: PENDING
+Security-Review: PASS
+Pentest: PASS
 Publication: DEFERRED TO v0.100.0
 
 ## Overview
@@ -57,8 +57,26 @@ is an internal cumulative tag and publishes no crate.
 | `cloud-sdk-sanitization` | `0.19.0` | `0.19.0` | unchanged |
 | `cloud-sdk-testkit` | `0.31.0` | `0.31.0` | unchanged |
 
+## Pentest Remediation
+
+- Changed native crypto qualification from one all-feature inventory to 15
+  independently resolved production feature/target graphs with exact normal
+  edge traversal from reqwest through `aws-lc-rs` to `aws-lc-sys`.
+- Added backend-substitution, resolved-edge removal, duplicate-version, and
+  FIPS mutation tests. Active `ring` or FIPS in a production transport graph
+  now fails closed.
+- Expanded unsupported-target qualification so blocking platform roots,
+  blocking deterministic roots, and async transport must each emit the exact
+  SDK diagnostic on Android, iOS, WASM, and bare metal.
+
 ## Stop Gate
 
-Run the incremental pentest for the exact implementation commit. After a green
-retest, add permanent v0.98 evidence and run `scripts/release_0_98_gate.sh`.
-Do not publish crates; the cumulative public checkpoint is v0.100.0.
+The incremental pentest and remediation retest are green. Run
+`scripts/release_0_98_gate.sh` against the exact final evidence commit and
+require green GitHub CI and CodeQL before tagging. Do not publish crates; the
+cumulative public checkpoint is v0.100.0.
+
+## Result
+
+v0.98.0 is ready for its internal signed tag after the clean local release
+gate and GitHub CI and CodeQL pass. No crate is selected for publication.

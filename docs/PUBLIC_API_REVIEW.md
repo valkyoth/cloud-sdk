@@ -454,7 +454,7 @@ active operations with 29 explicit deprecated exclusions.
 
 ## v0.98.0
 
-Status: implementation stop; incremental pentest required.
+Status: release candidate; incremental pentest and final retest passed.
 
 No supported public Rust item changes. Target availability is made explicit:
 optional reqwest transport modules exist only on Linux, Windows, macOS, and

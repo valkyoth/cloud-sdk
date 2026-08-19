@@ -3483,7 +3483,9 @@ for pentest.
 
 Stop gate: `v0.98.0 implementation stop reached. Run the pentest and full release gate for this exact commit; defer crates.io publication to v0.100.0.`
 
-Status: implementation stop reached; pentest required before tagging.
+Status: release candidate; incremental pentest and final retest passed;
+crates.io publication remains deferred to v0.100.0. Tag only after the exact
+final evidence commit passes the local release gate, CI, and CodeQL.
 
 ### v0.99.0 - Provenance And Governance Review
 

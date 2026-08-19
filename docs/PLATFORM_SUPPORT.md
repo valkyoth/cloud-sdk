@@ -1,7 +1,8 @@
 # Platform Support
 
-Status: `v0.98.0` platform and MSRV qualification implemented; runtime support
-remains bounded by the selected transport and operating environment.
+Status: `v0.98.0` platform and MSRV qualification passed pentest and final
+retest; runtime support remains bounded by the selected transport and
+operating environment.
 
 ## Scope Of The Claim
 
