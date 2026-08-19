@@ -46,7 +46,7 @@ matches.
 | Ruleset bypass | Maintainer and organization-administrator bypass exists | Direct maintainer releases are procedurally reviewed, not independently prevented by GitHub. |
 | Tag ruleset | None | Signed annotated tags, local gates, exact target verification, and explicit maintainer approval are procedural controls. |
 | Actions token | Repository default is read-only and cannot approve reviews | Every committed workflow also declares only `contents: read`. |
-| Allowed Actions | GitHub permits all Actions and does not require SHA pins | The source checker rejects every non-SHA-pinned `uses:` entry and every unclassified workflow. |
+| Allowed Actions | GitHub permits all Actions and does not require SHA pins | The source checker accepts only the reviewed checkout SHA and input plus the exact workflow inventory. |
 | CodeQL | Default setup, default suite, weekly, Actions/Python/Rust | No advanced CodeQL workflow is maintained in this repository. |
 | Secret scanning | Disabled in the reviewed repository settings | Repository checks prohibit release credentials in workflows, but GitHub secret scanning and push protection are not claimed. |
 
@@ -56,12 +56,14 @@ before DOM construction and bounds input bytes, parser events, and nesting
 depth. The unpublished tool then uses `saphyr 0.0.12` to check top-level and job
 mappings, flow mappings, action references, steps, and commands semantically.
 YAML merge keys, custom tags, job permission overrides, write or OIDC
-permissions, release triggers, GitHub environments, credential contexts, and
-all commands or environment entries outside exact reviewed allowlists fail
-closed. Current CI therefore has neither a crate-publication credential nor a
-writable GitHub token and cannot mint a trusted-publisher token. Both parsers'
-default encoding features are disabled; workflows must be bounded regular
-UTF-8 files.
+permissions, release triggers, GitHub environments, job containers or services,
+execution defaults, working-directory and conditional modifiers, and custom
+shells fail closed. Only the source-locked checkout action and its reviewed
+input, four exact GitHub expressions, and exact command, environment, and step
+forms are accepted. Current CI therefore has neither a crate-publication
+credential nor a writable GitHub token and cannot mint a trusted-publisher
+token. Both parsers' default encoding features are disabled; workflows must be
+bounded regular UTF-8 files.
 
 ## Trusted Publishing Decision
 

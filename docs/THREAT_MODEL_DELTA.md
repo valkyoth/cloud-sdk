@@ -328,15 +328,15 @@ claims, non-reproducible archives, incomplete dependency evidence, and review
 independence being overstated.
 
 The closed package policy, bounded pre-DOM rejection of YAML anchors and aliases,
-semantic checks for both workflow filename extensions, exact command and
-environment allowlists, credential-context rejection, and a machine-readable
-live GitHub/crates.io baseline fail closed on reviewed drift. SHA-pinned
-read-only workflow checks, exact signed-tag/state checks, two-clean-clone
-archive and SBOM comparison, and recovery procedures provide further evidence.
-Provenance reads package policy, committed SBOM, source-tree, and lockfile data
-from the captured Git object and rejects concurrent source-state changes. The
-publisher contains no Git push, owner-management, GitHub release, or CI entry
-point.
+semantic checks for both workflow filename extensions, exact expression,
+action, action-input, step, command, and environment allowlists, execution
+modifier rejection, and a machine-readable live GitHub/crates.io baseline fail
+closed on reviewed drift. SHA-pinned read-only workflow checks, exact signed-tag
+and state checks, two-clean-clone archive and SBOM comparison, and recovery
+procedures provide further evidence. Provenance reads package policy, committed
+SBOM, source-tree, and lockfile data from the captured Git object and rejects
+concurrent source-state changes. The publisher contains no Git push,
+owner-management, GitHub release, or CI entry point.
 
 Maintainer and organization-administrator branch bypass, absent tag protection,
 one crates.io owner, disabled GitHub secret scanning, release-host credentials,

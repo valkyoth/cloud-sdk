@@ -11,6 +11,8 @@ use saphyr_parser::{Event, Parser};
 const MAX_WORKFLOW_BYTES: usize = 1024 * 1024;
 const MAX_YAML_EVENTS: usize = 10_000;
 const MAX_YAML_DEPTH: usize = 64;
+const ALLOWED_ACTIONS: [&str; 1] = ["actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1"];
+const ALLOWED_EXPRESSIONS: [&str; 4] = ["matrix.os", "matrix.rust", "matrix.target", "runner.temp"];
 const ALLOWED_RUN_COMMANDS: [&str; 18] = [
     "rustup target add \"$TARGET\"",
     "scripts/check_platform_matrix.sh --portable \"$TARGET\"",
@@ -175,7 +177,8 @@ fn reject_ambiguous_nodes(node: &Yaml<'_>, path: &Path) -> Result<(), String> {
 
 fn check_document(document: &Yaml<'_>, path: &Path) -> Result<(), String> {
     let root = mapping(document, path, "workflow")?;
-    reject_sensitive_contexts(document, path)?;
+    check_expressions(document, path)?;
+    reject_key(root, "defaults", path, "workflow execution defaults")?;
     check_environment(root, path)?;
     if let Some(events) = mapping_value(root, "on") {
         check_triggers(events, path)?;
@@ -243,23 +246,56 @@ fn check_job(name: &str, node: &Yaml<'_>, path: &Path) -> Result<(), String> {
             path.display()
         ));
     }
-    check_environment(job, path)?;
-    if let Some(reference) = mapping_value(job, "uses") {
-        check_action(reference, path)?;
+    for key in ["defaults", "container", "services", "uses"] {
+        reject_key(job, key, path, &format!("job {key} in {name}"))?;
     }
+    check_environment(job, path)?;
     if let Some(steps) = mapping_value(job, "steps") {
         let steps = steps
             .as_vec()
             .ok_or_else(|| format!("{}: steps in {name} must be a sequence", path.display()))?;
         for (index, step) in steps.iter().enumerate() {
             let step = mapping(step, path, &format!("step {index} in {name}"))?;
+            check_step(step, path)?;
+        }
+    }
+    Ok(())
+}
+
+fn check_step(step: &Mapping<'_>, path: &Path) -> Result<(), String> {
+    let run = mapping_value(step, "run");
+    let action = mapping_value(step, "uses");
+    let allowed_keys: &[&str] = match (run, action) {
+        (Some(command), None) => {
+            check_run(command, path)?;
             check_environment(step, path)?;
-            if let Some(reference) = mapping_value(step, "uses") {
-                check_action(reference, path)?;
+            match mapping_value(step, "shell") {
+                None => {}
+                Some(shell) if shell.as_str() == Some("bash") => {}
+                Some(_) => {
+                    return Err(format!("{}: custom shell is forbidden", path.display()));
+                }
             }
-            if let Some(command) = mapping_value(step, "run") {
-                check_run(command, path)?;
-            }
+            &["name", "run", "env", "shell"]
+        }
+        (None, Some(reference)) => {
+            check_action(reference, path)?;
+            check_action_inputs(step, path)?;
+            &["name", "uses", "with"]
+        }
+        _ => {
+            return Err(format!(
+                "{}: each step must contain exactly one approved run or uses entry",
+                path.display()
+            ));
+        }
+    };
+    for key in step.keys().filter_map(Yaml::as_str) {
+        if !allowed_keys.contains(&key) {
+            return Err(format!(
+                "{}: step key is not explicitly approved: {key}",
+                path.display()
+            ));
         }
     }
     Ok(())
@@ -269,21 +305,26 @@ fn check_action(node: &Yaml<'_>, path: &Path) -> Result<(), String> {
     let Some(reference) = node.as_str() else {
         return Err(format!("{}: action reference must be text", path.display()));
     };
-    let Some((repository, revision)) = reference.rsplit_once('@') else {
+    if !ALLOWED_ACTIONS.contains(&reference) {
         return Err(format!(
-            "{}: action is not SHA-pinned: {reference}",
+            "{}: action is not explicitly approved: {reference}",
             path.display()
         ));
+    }
+    Ok(())
+}
+
+fn check_action_inputs(step: &Mapping<'_>, path: &Path) -> Result<(), String> {
+    let Some(inputs) = mapping_value(step, "with") else {
+        return Ok(());
     };
-    let valid_repository = repository.contains('/')
-        && repository
-            .bytes()
-            .all(|byte| byte.is_ascii_alphanumeric() || matches!(byte, b'_' | b'-' | b'.' | b'/'));
-    let valid_revision =
-        revision.len() == 40 && revision.bytes().all(|byte| byte.is_ascii_hexdigit());
-    if !valid_repository || !valid_revision {
+    let inputs = mapping(inputs, path, "action inputs")?;
+    let fetch_depth_is_zero = mapping_value(inputs, "fetch-depth")
+        .and_then(Yaml::as_integer)
+        .is_some_and(|value| value == 0);
+    if inputs.len() != 1 || !fetch_depth_is_zero {
         return Err(format!(
-            "{}: action is not SHA-pinned: {reference}",
+            "{}: action inputs are not explicitly approved",
             path.display()
         ));
     }
@@ -329,7 +370,7 @@ fn check_environment(container: &Mapping<'_>, path: &Path) -> Result<(), String>
     Ok(())
 }
 
-fn reject_sensitive_contexts(node: &Yaml<'_>, path: &Path) -> Result<(), String> {
+fn check_expressions(node: &Yaml<'_>, path: &Path) -> Result<(), String> {
     match node {
         Yaml::Mapping(mapping) => {
             for (key, value) in mapping {
@@ -342,28 +383,65 @@ fn reject_sensitive_contexts(node: &Yaml<'_>, path: &Path) -> Result<(), String>
                 if key.eq_ignore_ascii_case("secrets") {
                     return Err(format!("{} contains a secrets mapping", path.display()));
                 }
-                reject_sensitive_contexts(value, path)?;
+                check_expression_text(key, path)?;
+                check_expressions(value, path)?;
             }
         }
         Yaml::Sequence(sequence) => {
             for value in sequence {
-                reject_sensitive_contexts(value, path)?;
+                check_expressions(value, path)?;
             }
         }
         _ => {
             if let Some(value) = node.as_str() {
-                let value = value.to_ascii_lowercase();
-                if value.contains("${{ secrets.")
-                    || value.contains("${{ github.token")
-                    || value.contains("${{ github_token")
-                {
-                    return Err(format!(
-                        "{} contains an explicit secret or token context",
-                        path.display()
-                    ));
-                }
+                check_expression_text(value, path)?;
             }
         }
+    }
+    Ok(())
+}
+
+fn check_expression_text(value: &str, path: &Path) -> Result<(), String> {
+    let mut remaining = value;
+    loop {
+        let opening = remaining.find("${{");
+        let closing = remaining.find("}}");
+        let Some(start) = opening else {
+            if closing.is_some() {
+                return Err(format!(
+                    "{} contains an incomplete expression",
+                    path.display()
+                ));
+            }
+            return Ok(());
+        };
+        if closing.is_some_and(|end| end < start) {
+            return Err(format!(
+                "{} contains an incomplete expression",
+                path.display()
+            ));
+        }
+        let expression = &remaining[start + 3..];
+        let Some(end) = expression.find("}}") else {
+            return Err(format!(
+                "{} contains an incomplete expression",
+                path.display()
+            ));
+        };
+        let expression_text = expression[..end].trim();
+        if !ALLOWED_EXPRESSIONS.contains(&expression_text) {
+            return Err(format!(
+                "{}: expression is not explicitly approved: {expression_text:?}",
+                path.display()
+            ));
+        }
+        remaining = &expression[end + 2..];
+    }
+}
+
+fn reject_key(mapping: &Mapping<'_>, key: &str, path: &Path, label: &str) -> Result<(), String> {
+    if mapping_value(mapping, key).is_some() {
+        return Err(format!("{}: {label} is forbidden", path.display()));
     }
     Ok(())
 }

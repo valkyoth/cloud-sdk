@@ -13,6 +13,7 @@ import sys
 sys.dont_write_bytecode = True
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts" / "check_release_governance.py"
+CHECKOUT = "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1"
 
 
 def load_checker():
@@ -59,7 +60,7 @@ def source_governance_fixture() -> tuple[Path, dict]:
 def test_pinned_read_only_workflow_passes() -> None:
     path = workflow(
         "name: Test\npermissions:\n  contents: read\njobs:\n  test:\n"
-        "    steps:\n      - uses: actions/checkout@" + "a" * 40 + " # v1\n"
+        f"    steps:\n      - uses: {CHECKOUT} # v7.0.1\n"
     )
     checker.check_workflow(path)
 
@@ -69,7 +70,7 @@ def test_unpinned_action_fails() -> None:
         "name: Test\npermissions:\n  contents: read\njobs:\n  test:\n"
         "    steps:\n      - uses: actions/checkout@v7\n"
     )
-    assert_fails("not SHA-pinned", lambda: checker.check_workflow(path))
+    assert_fails("not explicitly approved", lambda: checker.check_workflow(path))
 
 
 def test_write_permission_fails() -> None:
@@ -101,7 +102,7 @@ def test_flow_style_unpinned_action_fails() -> None:
         "name: Test\npermissions: {contents: read}\njobs:\n"
         "  test:\n    steps: [{uses: actions/checkout@v7}]\n"
     )
-    assert_fails("not SHA-pinned", lambda: checker.check_workflow(path))
+    assert_fails("not explicitly approved", lambda: checker.check_workflow(path))
 
 
 def test_aliases_are_rejected_before_dom_expansion() -> None:
@@ -184,13 +185,48 @@ def test_environment_constructed_publish_command_fails() -> None:
     assert_fails("not explicitly approved", lambda: checker.check_workflow(path))
 
 
-def test_secret_context_fails() -> None:
-    path = workflow(
-        "name: Test\npermissions: {contents: read}\njobs:\n  test:\n"
-        "    steps:\n      - env: {CARGO_REGISTRY_TOKEN: '${{ secrets.CRATES_IO }}'}\n"
-        "        run: scripts/checks.sh\n"
+def test_execution_modifiers_fail() -> None:
+    cases = (
+        ("defaults: {run: {shell: 'bash -c \"cargo publish; bash {0}\"'}}\n", "forbidden"),
+        ("jobs: {test: {defaults: {run: {shell: bash}}, steps: []}}\n", "forbidden"),
+        ("jobs: {test: {container: rust:latest, steps: []}}\n", "forbidden"),
+        ("jobs: {test: {services: {db: {image: postgres}}, steps: []}}\n", "forbidden"),
+        ("jobs: {test: {steps: [{working-directory: /tmp, run: scripts/checks.sh}]}}\n", "not explicitly approved"),
+        ("jobs: {test: {steps: [{shell: 'bash -c {0}', run: scripts/checks.sh}]}}\n", "custom shell"),
     )
-    assert_fails("secret or token context", lambda: checker.check_workflow(path))
+    prefix = "name: Test\npermissions: {contents: read}\n"
+    for body, expected in cases:
+        assert_fails(expected, lambda body=body: checker.check_workflow(workflow(prefix + body)))
+
+
+def test_secret_context_fails() -> None:
+    expressions = (
+        "${{secrets.CRATES_IO}}",
+        "${{ secrets['CRATES_IO'] }}",
+        "${{ github['token'] }}",
+        "${{ github.token }}",
+        "${{ matrix.unreviewed }}",
+    )
+    prefix = "name: Test\npermissions: {contents: read}\njobs:\n  test:\n    steps:\n"
+    for expression in expressions:
+        body = f"      - env: {{TOKEN: \"{expression}\"}}\n        run: scripts/checks.sh\n"
+        assert_fails(
+            "expression is not explicitly approved",
+            lambda body=body: checker.check_workflow(workflow(prefix + body)),
+        )
+
+
+def test_unapproved_pinned_action_fails() -> None:
+    path = workflow(
+        "name: Test\npermissions: {contents: read}\njobs:\n  test:\n    steps:\n"
+        "      - uses: attacker/publish-action@aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\n"
+    )
+    assert_fails("not explicitly approved", lambda: checker.check_workflow(path))
+    alternate = workflow(
+        "name: Test\npermissions: {contents: read}\njobs:\n  test:\n    steps:\n"
+        f"      - uses: {CHECKOUT}\n        with: {{repository: attacker/repository}}\n"
+    )
+    assert_fails("action inputs", lambda: checker.check_workflow(alternate))
 
 
 def test_github_environment_fails() -> None:
@@ -427,7 +463,9 @@ def main() -> None:
         test_unlisted_yaml_workflow_fails_inventory,
         test_publish_command_fails,
         test_environment_constructed_publish_command_fails,
+        test_execution_modifiers_fail,
         test_secret_context_fails,
+        test_unapproved_pinned_action_fails,
         test_github_environment_fails,
         test_flow_style_release_trigger_fails,
         test_incomplete_recovery_runbook_fails,
