@@ -12,6 +12,9 @@ import tomllib
 ROOT = Path(__file__).resolve().parent.parent
 DEPENDENCY_TABLES = {"dependencies", "dev-dependencies", "build-dependencies"}
 OPEN_FENCE = re.compile(r"^ {0,3}(?P<fence>`{3,}|~{3,})(?P<info>[^\r\n]*)$")
+DEPENDENCY_HEADER = re.compile(
+    r"(?m)^\s*\[(?:[^\]\r\n]*\.)?(?:dev-|build-)?dependencies\]\s*(?:#.*)?$"
+)
 
 
 class ReadmeDependencyError(Exception):
@@ -55,10 +58,17 @@ def fence_language(info: str) -> str:
     stripped = info.strip()
     if not stripped:
         return ""
-    token = stripped.split(maxsplit=1)[0].casefold()
-    if token.startswith("{."):
-        token = token[2:].rstrip("}")
-    return token
+    folded = stripped.casefold()
+    if folded.split(maxsplit=1)[0] == "toml":
+        return "toml"
+    for attributes in re.findall(r"\{([^}]*)\}", folded):
+        if ".toml" in attributes.split():
+            return "toml"
+    return ""
+
+
+def is_dependency_toml(language: str, block: str) -> bool:
+    return language == "toml" or DEPENDENCY_HEADER.search(block) is not None
 
 
 def toml_blocks(path: Path) -> list[tuple[int, str]]:
@@ -89,17 +99,20 @@ def toml_blocks(path: Path) -> list[tuple[int, str]]:
             line,
         )
         if closing is not None:
-            if language == "toml":
-                blocks.append((start, "\n".join(content) + "\n"))
+            block = "\n".join(content) + "\n"
+            if is_dependency_toml(language, block):
+                blocks.append((start, block))
             start = None
             fence_char = ""
             fence_length = 0
             language = ""
             content = []
-        elif language == "toml":
+        else:
             content.append(line)
-    if start is not None and language == "toml":
-        raise ReadmeDependencyError("README contains an unterminated TOML fence")
+    if start is not None:
+        block = "\n".join(content) + "\n"
+        if is_dependency_toml(language, block):
+            raise ReadmeDependencyError("README contains an unterminated TOML fence")
     return blocks
 
 
@@ -146,10 +159,10 @@ def validate_readme(
                 package, version = dependency_identity(name, specification)
                 if package not in versions:
                     continue
-                expected = versions[package]
+                expected = f"={versions[package]}"
                 if version != expected:
                     raise ReadmeDependencyError(
-                        f"{path}:{line}: {package} must use version {expected}"
+                        f"{path}:{line}: {package} must use exact version {expected}"
                     )
 
 

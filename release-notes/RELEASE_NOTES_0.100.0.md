@@ -40,9 +40,10 @@ freezing the public API candidate.
   removed Primary IP `type` filter is retained as a deprecated fail-closed
   compatibility shim; Image name/label filtering uses `SourceLockedQuery`
   without changing the established `ImageListRequest` generic arity.
-- Every selected package's README TOML examples use exact planned first-party
-  versions and are parsed across CommonMark backtick/tilde fence variants by
-  the release gate to reject dependency skew and malformed TOML.
+- Every selected package's README Cargo examples use `=version` requirements
+  for exact planned first-party releases. The release gate detects dependency
+  tables regardless of fence labeling and rejects dependency skew or malformed
+  TOML across CommonMark backtick and tilde fence variants.
 
 ## Versions
 

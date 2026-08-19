@@ -72,20 +72,20 @@ def test_first_party_dependency_versions_are_exact() -> None:
             """```toml
 [dependencies]
 cloud-sdk = "0.99.0"
-cloud-sdk-reqwest = { version = "0.37.0" }
+cloud-sdk-reqwest = { version = "=0.37.0" }
 ```
 """,
             encoding="ascii",
         )
         result = run(readme)
         assert result.returncode == 1, result
-        assert "cloud-sdk must use version 0.100.0" in result.stderr
+        assert "cloud-sdk must use exact version =0.100.0" in result.stderr
 
         readme.write_text(
             """```toml
 [dependencies]
-cloud-sdk = "0.100.0"
-cloud-sdk-reqwest = { version = "0.37.0" }
+cloud-sdk = "=0.100.0"
+cloud-sdk-reqwest = { version = "=0.37.0" }
 ```
 """,
             encoding="ascii",
@@ -113,6 +113,7 @@ def test_commonmark_toml_fences_are_enforced() -> None:
         ('```toml title="Cargo.toml"', "```"),
         ("````toml", "`````"),
         ('```{.toml title="Cargo.toml"}', "```"),
+        ('```{#cargo .toml title="Cargo.toml"}', "```"),
     )
     with tempfile.TemporaryDirectory() as temporary:
         readme = Path(temporary) / "README.md"
@@ -123,7 +124,43 @@ def test_commonmark_toml_fences_are_enforced() -> None:
             )
             result = run(readme)
             assert result.returncode == 1, (opening, result)
-            assert "cloud-sdk must use version 0.100.0" in result.stderr
+            assert "cloud-sdk must use exact version =0.100.0" in result.stderr
+
+
+def test_dependency_tables_override_missing_or_incorrect_languages() -> None:
+    fences = (
+        ("```", "```"),
+        ("```text", "```"),
+        ("~~~{#cargo .example}", "~~~"),
+    )
+    with tempfile.TemporaryDirectory() as temporary:
+        readme = Path(temporary) / "README.md"
+        for opening, closing in fences:
+            readme.write_text(
+                f'{opening}\n[dependencies]\ncloud-sdk = "0.99.0"\n{closing}\n',
+                encoding="ascii",
+            )
+            result = run(readme)
+            assert result.returncode == 1, (opening, result)
+            assert "cloud-sdk must use exact version =0.100.0" in result.stderr
+
+
+def test_cargo_dependency_table_variants_are_detected() -> None:
+    headers = (
+        "[dev-dependencies]",
+        "[build-dependencies]",
+        "[target.'cfg(unix)'.dependencies]",
+    )
+    with tempfile.TemporaryDirectory() as temporary:
+        readme = Path(temporary) / "README.md"
+        for header in headers:
+            readme.write_text(
+                f'```text\n{header}\ncloud-sdk = "0.99.0"\n```\n',
+                encoding="ascii",
+            )
+            result = run(readme)
+            assert result.returncode == 1, (header, result)
+            assert "cloud-sdk must use exact version =0.100.0" in result.stderr
 
 
 def test_unterminated_toml_variants_fail_closed() -> None:
@@ -138,6 +175,14 @@ def test_unterminated_toml_variants_fail_closed() -> None:
             assert result.returncode == 1, (opening, result)
             assert "unterminated TOML fence" in result.stderr
 
+        readme.write_text(
+            '```text\n[dependencies]\ncloud-sdk = "=0.100.0"\n',
+            encoding="ascii",
+        )
+        result = run(readme)
+        assert result.returncode == 1, result
+        assert "unterminated TOML fence" in result.stderr
+
 
 def main() -> None:
     test_repository_readmes()
@@ -147,8 +192,10 @@ def main() -> None:
     test_first_party_dependency_versions_are_exact()
     test_invalid_toml_fence_is_rejected()
     test_commonmark_toml_fences_are_enforced()
+    test_dependency_tables_override_missing_or_incorrect_languages()
+    test_cargo_dependency_table_variants_are_detected()
     test_unterminated_toml_variants_fail_closed()
-    print("8 publishable README regression groups passed.")
+    print("10 publishable README regression groups passed.")
 
 
 if __name__ == "__main__":
