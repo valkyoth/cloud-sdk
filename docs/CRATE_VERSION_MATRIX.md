@@ -1,8 +1,8 @@
 # Crate Version Matrix
 
-Status: `v0.95.0` is the latest published checkpoint. `v0.98.0` is the current
-pentest-passed internal release candidate in the v0.96-v0.100 cumulative train
-and publishes no crate.
+Status: `v0.95.0` is the latest published checkpoint. `v0.99.0` is the current
+internal implementation stop in the v0.96-v0.100 cumulative train, requires
+pentest, and publishes no crate.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
@@ -1466,6 +1466,20 @@ publishes no crate.
 | `cloud-sdk-reqwest` | `0.36.0` | `0.36.0` | `code` | No | Accumulate explicit supported-target boundaries and diagnostics. |
 | `cloud-sdk-sanitization` | `0.19.0` | `0.19.0` | `unchanged` | No | No sanitization boundary changes. |
 | `cloud-sdk-testkit` | `0.31.0` | `0.31.0` | `unchanged` | No | No testkit boundary changes. |
+
+## v0.99.0 Tracking Table
+
+`v0.99.0` qualifies release governance, package selection, account and signer
+recovery, and clean-checkout artifact/SBOM provenance. It is an internal tag
+and publishes no crate.
+
+| Crate | Published | v0.99 | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.95.0` | `0.99.0` | `code` | No | Advance the internal provenance/governance milestone; defer publication to v0.100.0. |
+| `cloud-sdk-hetzner` | `0.46.0` | `0.46.0` | `code` | No | Retain accumulated provider code for v0.100.0. |
+| `cloud-sdk-reqwest` | `0.36.0` | `0.36.0` | `code` | No | Retain accumulated transport code for v0.100.0. |
+| `cloud-sdk-sanitization` | `0.19.0` | `0.19.0` | `unchanged` | No | No sanitization boundary changes. |
+| `cloud-sdk-testkit` | `0.31.0` | `0.31.0` | `dependency` | No | Retain the accumulated cloud-sdk dependency update for v0.100.0. |
 
 ## Planned Milestone Ownership
 

@@ -383,6 +383,8 @@ def wait_for_index(package: str, version: str, *, dry_run: bool) -> None:
 def publish(package: str, args: argparse.Namespace) -> None:
     reject_retired_packages((package,), source="publish request")
     reject_nested_cloud_sdk_packages((package,), source="publish request")
+    if package not in PUBLISH_ORDER:
+        raise RuntimeError(f"publish request is outside the package allowlist: {package}")
     command = ["cargo", "publish", "--locked", "-p", package]
     run(command, dry_run=args.dry_run)
 

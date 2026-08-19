@@ -1,20 +1,20 @@
 [release]
-version = "0.98.0"
-milestone = "0.98.0"
+version = "0.99.0"
+milestone = "0.99.0"
 baseline = "0.95.0"
-review_baseline = "0.97.0"
-cumulative_milestones = ["0.96.0", "0.97.0", "0.98.0"]
+review_baseline = "0.98.0"
+cumulative_milestones = ["0.96.0", "0.97.0", "0.98.0", "0.99.0"]
 policy = "independent"
 stage = "internal"
 exceptional = false
 exception_reason = ""
 
 [crates."cloud-sdk"]
-previous_version = "0.97.0"
-version = "0.98.0"
+previous_version = "0.98.0"
+version = "0.99.0"
 change = "code"
 publish = false
-reason = "Advance the internal platform and MSRV qualification milestone; defer publication to v0.100.0."
+reason = "Advance the internal provenance and governance milestone; defer publication to v0.100.0."
 
 [crates."cloud-sdk-hetzner"]
 previous_version = "0.46.0"
@@ -40,6 +40,6 @@ reason = "No sanitization boundary changes."
 [crates."cloud-sdk-testkit"]
 previous_version = "0.31.0"
 version = "0.31.0"
-change = "unchanged"
+change = "dependency"
 publish = false
-reason = "No testkit boundary changes."
+reason = "Retain the accumulated cloud-sdk dependency update for v0.100.0."

@@ -470,6 +470,27 @@ the core std integrations enable that core feature explicitly.
 | `cloud-sdk` | `0.97.0` | `0.98.0` | Advance the internal milestone identity. |
 | `ovhcloud-v2-probe` | `0.97.0` | `0.98.0` | Advance the unpublished probe identity only. |
 
+## v0.99.0
+
+Status: implementation stop; incremental pentest required.
+
+No third-party package, version, feature, target, native build, or default edge
+changed. Lockfile identities advance `cloud-sdk` and the unpublished probe from
+`0.98.0` to `0.99.0`. The new governance and provenance checks use only Python
+3.11 standard-library modules and existing pinned Git, Cargo, jq, cargo-sbom,
+cargo-deny, and cargo-audit tools. They add no crate dependency or published
+runtime surface.
+
+`cloud-sdk-testkit` is marked dependency-affected because its workspace
+dependency accumulates the unpublished facade versions. No package publishes
+at this internal milestone; the v0.100 release plan must assign the independent
+patch version required by the final dependency range.
+
+| Package | Previous | v0.99 | Review |
+| --- | --- | --- | --- |
+| `cloud-sdk` | `0.98.0` | `0.99.0` | Advance the internal milestone identity. |
+| `ovhcloud-v2-probe` | `0.98.0` | `0.99.0` | Advance the excluded probe identity only. |
+
 ## 2026-07-20
 
 **Status:** historical reviewed snapshot  

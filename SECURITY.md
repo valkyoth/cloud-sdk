@@ -13,11 +13,17 @@ Run these regularly and before releases:
 ```bash
 scripts/checks.sh
 scripts/check_latest_tools.sh
-scripts/release_0_1_gate.sh
+scripts/check_release_governance.py
+scripts/check_release_provenance.py
+scripts/release_0_99_gate.sh # use the gate for the current release
 cargo deny check
 cargo audit
 scripts/generate-sbom.sh
 ```
+
+Release authority, signer and credential rotation, repository and crates.io
+recovery, rollback, reproducibility, and review-independence boundaries are
+defined in [`docs/RELEASE_GOVERNANCE.md`](docs/RELEASE_GOVERNANCE.md).
 
 GitHub Actions run CI. GitHub CodeQL default setup should be enabled in the
 repository security settings. Do not add an advanced CodeQL workflow while

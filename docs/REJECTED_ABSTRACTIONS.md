@@ -306,3 +306,26 @@ diagnostic. Those targets use the provider-neutral transport traits.
 
 Successful AWS-LC builds do not establish FIPS validation. FIPS features and
 dependencies remain forbidden until the separately reviewed Brynja migration.
+
+## v0.99.0
+
+### Automated CI Publication
+
+A GitHub release workflow, write-scoped token, and OIDC trusted-publisher path
+were rejected for the pre-1.0 train. The reviewed process keeps publication as
+an explicit local action after pentest, signed tag, local gates, CI, and CodeQL.
+Any future trusted-publishing migration must remove the superseded credential
+path and receive a separate security review.
+
+### Repository-Pinned Signer As Authorization
+
+A committed public key can verify a signature but cannot prove that its holder
+remains an authorized maintainer. The release host and GitHub account own signer
+authorization and rotation; the repository records exact procedures and signed
+objects without storing private keys or adding a separate pentest-signing flow.
+
+### Mutable Rollback
+
+Moving tags, replacing releases, or attempting to overwrite crates was rejected.
+Published evidence remains immutable; incidents use advisories, yanks where
+needed, and a newly reviewed corrective version.

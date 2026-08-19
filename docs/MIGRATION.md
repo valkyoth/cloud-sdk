@@ -494,3 +494,7 @@ must use a target-native implementation of the provider-neutral transport
 traits; selecting a reqwest transport feature now emits an explicit error.
 `cloud-sdk-reqwest/std` no longer enables `cloud-sdk/std` transitively. Enable
 both features explicitly when core std integrations are required.
+
+## v0.99.0
+No Rust API migration is required; this internal tag changes only release tooling and evidence.
+Crates.io remains at 0.95.0; internal source consumers follow the v0.99 version matrix.

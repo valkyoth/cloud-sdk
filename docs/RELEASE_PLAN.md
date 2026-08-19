@@ -252,7 +252,7 @@ has not been assigned to a release.
 | Repeated invalid Robot credentials can temporarily block the caller's source IP. | Separate credentials and lockout policy in `v0.76.0`; classify authentication rejection as structurally non-retryable in `v0.77.0`; require newly supplied or explicitly reconfirmed credentials before `v0.94.0` clients can attempt again; `v0.95.0` live tests never intentionally submit invalid credentials. |
 | Robot ordering mutations can create immediate infrastructure costs. | Keep catalogs/transactions read-only in `v0.91.0-v0.92.0`; `v0.93.0` requires cost permits, indeterminate-send reconciliation, and keeps purchases outside CI/live smoke. |
 | FIPS configuration flags do not prove certificate, target, module, operating environment, or operational readiness. | Retire the experimental AWS-LC feature after `v0.70.0`, exclude FIPS from 1.0, and permit a later Brynja integration only after the exact module, certificate, operating environment, build, runtime, and review conditions in `docs/FIPS_DEFERMENT.md` are satisfied. |
-| Release controls do not provide organizationally independent review by themselves. | Add governance limits, signer policy, provenance review, and independent-review disclosure in `v0.98.0`; never claim independence when unavailable. |
+| Release controls do not provide organizationally independent review by themselves. | Add governance limits, signer policy, provenance review, and independent-review disclosure in `v0.99.0`; never claim independence when unavailable. |
 | Destructive and billable behavior lacks controlled disposable-account evidence. | Add a manual-only mutation harness with spending ceilings, cleanup ledgers, and empty-inventory verification in `v0.99.0`; CI remains incapable of invoking it. |
 | Future providers need proven patterns but are not part of the Hetzner 1.0 claim. | The unpublished OVHcloud probe lands in `v0.57.0-v0.61.0`; post-1.0 publishing starts with a finite source-locked Scaleway inventory in `v1.1.0`, then a finite DigitalOcean inventory in `v1.7.0`, with full OVHcloud considered after `v1.12.0`. |
 
@@ -3520,7 +3520,7 @@ and the exact commit is ready for pentest.
 
 Stop gate: `v0.99.0 implementation stop reached. Run the pentest and full release gate for this exact commit; defer crates.io publication to v0.100.0.`
 
-Status: planned.
+Status: implementation stop; incremental pentest required.
 
 ### v0.100.0 - Controlled Mutation Release Candidate
 

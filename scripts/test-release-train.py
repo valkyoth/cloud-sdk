@@ -235,6 +235,54 @@ def test_public_checkpoint_rejects_lost_dependency_delta() -> None:
     )
 
 
+def test_change_selection_rejects_unmodified_code_package() -> None:
+    packages = {"cloud-sdk-hetzner": {"dependencies": []}}
+    plan = {
+        "crates": {
+            "cloud-sdk-hetzner": {
+                "previous_version": "0.3.0",
+                "version": "0.4.0",
+                "change": "code",
+            }
+        }
+    }
+    assert_fails(
+        "package tree did not change",
+        release_train.validate_change_selection,
+        packages,
+        plan,
+        set(),
+    )
+
+
+def test_dependency_selection_requires_changed_dependency() -> None:
+    packages = {
+        "cloud-sdk-testkit": {"dependencies": [{"name": "cloud-sdk"}]},
+        "cloud-sdk": {"dependencies": []},
+    }
+    plan = {
+        "crates": {
+            "cloud-sdk": {
+                "previous_version": "0.55.0",
+                "version": "0.55.0",
+                "change": "unchanged",
+            },
+            "cloud-sdk-testkit": {
+                "previous_version": "0.3.0",
+                "version": "0.3.1",
+                "change": "dependency",
+            },
+        }
+    }
+    assert_fails(
+        "no internal dependency changed",
+        release_train.validate_change_selection,
+        packages,
+        plan,
+        set(),
+    )
+
+
 def main() -> None:
     tests = tuple(
         value

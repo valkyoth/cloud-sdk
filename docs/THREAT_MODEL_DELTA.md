@@ -318,3 +318,24 @@ unsupported target exercises all three transport features independently.
 Hosted runners prove compatibility, not immutable toolchain provenance,
 platform hardening, availability, or accreditation. FIPS remains absent and no
 platform qualification result creates a FIPS claim.
+
+## v0.99.0
+
+New release threats are workflow authority drift, an unlisted package reaching
+the publisher, internal milestones accidentally publishing, mutable or moved
+tags, signer/account compromise, single-owner loss, stale external protection
+claims, non-reproducible archives, incomplete dependency evidence, and review
+independence being overstated.
+
+The closed package policy, SHA-pinned read-only workflow checks, live GitHub
+and crates.io review, exact signed-tag/state checks, two-clean-clone archive and
+SBOM comparison, and explicit recovery/rollback procedures fail closed on
+source-controlled drift. The publisher contains no Git push, owner-management,
+GitHub release, or CI entry point.
+
+Maintainer and organization-administrator branch bypass, absent tag protection,
+one crates.io owner, disabled GitHub secret scanning, release-host credentials,
+provider account recovery, platform compromise, and external service
+availability remain operational limits. Maintainer pentest work is not an
+organizationally independent assessment, and reproducible source artifacts do
+not prove a reproducible or accredited operating environment.

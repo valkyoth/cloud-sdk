@@ -43,7 +43,7 @@ The default and `std`-only graphs remain portable and transport-free.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.98.0"
+cloud-sdk = "0.99.0"
 cloud-sdk-reqwest = { version = "0.36.0", features = ["blocking-rustls"] }
 ```
 

@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.99.0 - 2026-08-19
+
+- Added one machine-readable release-governance policy covering the exact five
+  publishable packages, four excluded packages, workflow inventory, ownership,
+  trusted-publishing decision, and review-independence boundary.
+- Added fail-closed checks for SHA-pinned read-only GitHub workflows, package
+  eligibility, internal publication deferral, publisher allowlist drift, and
+  live GitHub/crates.io governance settings.
+- Added two-clean-clone reproduction of every `.crate` archive and all four
+  complete SPDX graphs, including exact source, lockfile, tool, package, and
+  canonical-SBOM digests.
+- Documented signer rotation and compromise response, repository and crates.io
+  recovery, immutable release rollback, current GitHub bypass/tag limitations,
+  and the absence of an independent security assessment claim.
+- Hardened the publisher against direct calls naming an unlisted package and
+  activated the excluded-workspace-package regression in its test runner.
+- Advanced the internal cumulative source to `cloud-sdk 0.99.0`; crates.io
+  publication remains deferred to v0.100.0.
+
 ## 0.98.0 - 2026-08-19
 
 - Qualified independent default, alloc, Serde, std, and transport feature

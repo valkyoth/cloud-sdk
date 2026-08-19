@@ -449,6 +449,22 @@ def test_publish_command_rejects_retired_package() -> None:
     assert commands == []
 
 
+def test_publish_command_rejects_unlisted_package() -> None:
+    commands: list[list[str]] = []
+    original = release_crates.run
+    release_crates.run = lambda command, *, dry_run: commands.append(command)
+    try:
+        assert_fails(
+            "outside the package allowlist",
+            release_crates.publish,
+            "serde",
+            argparse.Namespace(dry_run=False),
+        )
+    finally:
+        release_crates.run = original
+    assert commands == []
+
+
 def test_post_tag_preflight_refreshes_audit_without_rerunning_gate() -> None:
     commands: list[list[str]] = []
     original = release_crates.run
@@ -478,6 +494,7 @@ def test_post_tag_preflight_can_explicitly_rerun_version_gate() -> None:
 def run_tests() -> None:
     tests = (
         test_current_plan_accepts_unchanged_crates,
+        test_workspace_package_selection_excludes_publish_false_tools,
         test_retired_package_is_absent_from_publish_order,
         test_retired_package_is_rejected_from_workspace_metadata,
         test_retired_package_is_rejected_from_release_plan,
@@ -501,6 +518,7 @@ def run_tests() -> None:
         test_required_release_tag_rejects_unsigned_tag,
         test_publish_command_has_no_bypass_flags,
         test_publish_command_rejects_retired_package,
+        test_publish_command_rejects_unlisted_package,
         test_post_tag_preflight_refreshes_audit_without_rerunning_gate,
         test_post_tag_preflight_can_explicitly_rerun_version_gate,
     )

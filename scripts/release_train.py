@@ -220,12 +220,43 @@ def changed_packages(packages: dict[str, dict], baseline: str) -> set[str]:
 def validate_cumulative_package_changes(packages: dict[str, dict], plan: dict) -> None:
     if plan["stage"] != "public" or plan["anchor"]:
         return
-    for name in changed_packages(packages, plan["baseline"]):
+    changed = changed_packages(packages, plan["baseline"])
+    for name in changed:
         if plan["crates"][name]["change"] == "unchanged":
             raise RuntimeError(
                 f"{name} changed after v{plan['baseline']} but is marked unchanged"
             )
+    validate_change_selection(packages, plan, changed)
     validate_dependency_closure(packages, plan)
+
+
+def validate_change_selection(
+    packages: dict[str, dict], plan: dict, changed: set[str]
+) -> None:
+    changed_versions = {
+        name
+        for name, entry in plan["crates"].items()
+        if entry["version"] != entry["previous_version"]
+    }
+    for name, entry in plan["crates"].items():
+        change = entry["change"]
+        if change == "unchanged" or name == "cloud-sdk":
+            continue
+        if change in {"code", "metadata"} and name not in changed:
+            raise RuntimeError(
+                f"{name} is marked {change} but its package tree did not change"
+            )
+        if change == "dependency":
+            package = packages[name]
+            dependencies = {
+                dependency["name"]
+                for dependency in package["dependencies"]
+                if dependency["name"] in changed_versions
+            }
+            if not dependencies:
+                raise RuntimeError(
+                    f"{name} is marked dependency but no internal dependency changed"
+                )
 
 
 def validate_dependency_closure(packages: dict[str, dict], plan: dict) -> None:

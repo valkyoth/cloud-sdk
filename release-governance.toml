@@ -1,0 +1,32 @@
+[policy]
+version = 1
+repository = "valkyoth/cloud-sdk"
+default_branch = "main"
+codeql_setup = "default"
+workflow_default_permissions = "read"
+trusted_publishing = false
+publication_driver = "scripts/release_crates.py"
+independent_pentest = false
+
+[ownership]
+code_owner = "@eldryoth"
+required_crates_io_owner = "eldryoth"
+
+[packages]
+publishable = [
+    "cloud-sdk-sanitization",
+    "cloud-sdk",
+    "cloud-sdk-reqwest",
+    "cloud-sdk-testkit",
+    "cloud-sdk-hetzner",
+]
+excluded = [
+    "cloud-sdk-fuzz",
+    "cloud-sdk-prepared-coverage-check",
+    "cloud-sdk-reqwest-feature-unification-test",
+    "ovhcloud-v2-probe",
+]
+
+[workflows]
+files = ["ci.yml", "hetzner-api-drift.yml"]
+

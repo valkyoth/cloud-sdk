@@ -462,3 +462,13 @@ FreeBSD, while unsupported targets receive one static compile diagnostic. The
 portable default and `std`-only status types remain available everywhere. The
 reqwest `std` feature stops implicitly enabling `cloud-sdk/std`, preventing an
 adapter selection from widening the portable core graph.
+
+## v0.99.0
+
+Status: implementation stop; incremental pentest required.
+
+No supported Rust library item, feature, target, request, response, client, or
+provider operation changes. The release-governance TOML, Python checks,
+recovery runbook, and reproducibility evidence are repository tooling rather
+than published API. `cloud-sdk` advances only to preserve the ordinary tag and
+facade milestone identity; all supporting package versions remain unchanged.
