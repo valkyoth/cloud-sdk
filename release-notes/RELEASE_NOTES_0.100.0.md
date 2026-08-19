@@ -1,11 +1,11 @@
 # cloud-sdk 0.100.0 Release Notes
 
-Status: implementation candidate; controlled mutation and pentest required.
+Status: pentest passed; controlled mutation required.
 
 Release date: 2026-08-19
 
-Security-Review: PENDING
-Pentest: PENDING
+Security-Review: PASS
+Pentest: PASS
 Publication: PENDING
 
 ## Overview
@@ -64,6 +64,6 @@ freezing the public API candidate.
 ## Remaining Gates
 
 Complete and commit `security/mutation/v0.100.0.json` against the exact frozen
-source commit, run the incremental pentest from signed `v0.99.0`, commit the
-final report, and run `scripts/release_0_100_gate.sh`. Tag and publish only
-after the exact final commit passes GitHub CI and CodeQL.
+source commit, then run `scripts/release_0_100_gate.sh`. The incremental pentest
+from signed `v0.99.0` and remediation retest passed. Tag and publish only after
+the exact final commit passes the full gate, GitHub CI, and CodeQL.

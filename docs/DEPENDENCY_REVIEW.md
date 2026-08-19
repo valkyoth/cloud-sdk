@@ -482,7 +482,8 @@ network, credential, or runtime edge. Nothing publishes at this milestone.
 | `saphyr-parser` | transitive | `0.0.12` | Exact direct pre-DOM event parser; no publishable edge. |
 
 ## v0.100.0
-Status: candidate freeze; pentest required after controlled mutation evidence.
+Status: candidate freeze; pentest and remediation retest passed; controlled
+mutation evidence required.
 
 No third-party package or feature changed. Mutation tooling is repository-only
 and adds no runtime, credential, network, build-script, or package edge.

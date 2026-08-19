@@ -81,9 +81,10 @@ for the provider-neutral foundation and exhaustive named Hetzner
 Cloud, DNS, Security, Console Storage Box, and Robot clients. This milestone
 adds controlled-mutation qualification and freezes the candidate public API after the
 platform, compiler, feature, package, documentation, release-governance, and
-provenance reviews. Manual mutation and pentest evidence remain required before
-publication. Provider crates remain transport-free and perform no network
-request by default. Future FIPS work remains deferred until Brynja is ready.
+provenance reviews. The incremental pentest and remediation retest passed;
+manual controlled-mutation evidence remains required before publication.
+Provider crates remain transport-free and perform no network request by
+default. Future FIPS work remains deferred until Brynja is ready.
 
 ## Trust Dashboard
 
