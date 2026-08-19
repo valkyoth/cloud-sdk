@@ -15,7 +15,7 @@ scripts/checks.sh
 scripts/check_latest_tools.sh
 scripts/check_release_governance.py
 scripts/check_release_provenance.py
-scripts/release_0_99_gate.sh # use the gate for the current release
+scripts/release_0_100_gate.sh # use the gate for the current release
 cargo deny check
 cargo audit
 scripts/generate-sbom.sh
