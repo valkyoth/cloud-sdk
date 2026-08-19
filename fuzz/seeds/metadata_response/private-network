@@ -1,0 +1,9 @@
+n- ip: 10.0.0.2
+  alias_ips: [10.0.0.3]
+  interface_num: 1
+  mac_address: 86:00:00:00:00:01
+  network_id: 7
+  network_name: private
+  network: 10.0.0.0/16
+  subnet: 10.0.0.0/24
+  gateway: 10.0.0.1

@@ -27,14 +27,14 @@ fetched RSS is never compiled, packaged, or accepted automatically.
 The latest review identified three post-spec-lock notices relevant to the SDK:
 
 - Load Balancer health targets can include additive `detail` and
-  `http_status_code` fields. Existing complete response trees retain additive
-  fields; explicit validation and regression coverage is assigned to `v0.96.0`.
+  `http_status_code` fields. `v0.97.0` validates their exact unhealthy-only and
+  HTTP-status cross-field semantics.
 - Only canonical `/hetzner/v1/*` Server Metadata routes remain. That prose-only
-  service was absent from the OpenAPI operation inventory and is assigned to
-  `v0.96.0` before the stable scope freezes.
+  service was absent from the OpenAPI operation inventory and is implemented
+  and separately source-locked in `v0.97.0`.
 - An unassigned Primary IP returns `assignee_type: "unassigned"` with
   `assignee_id: null`. Existing response models retain open text values and
-  nullable IDs; an exact regression fixture is assigned to `v0.96.0`.
+  nullable IDs; `v0.97.0` adds exact cross-field regression fixtures.
 
 Run every tracked Hetzner source check with:
 

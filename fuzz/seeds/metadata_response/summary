@@ -1,0 +1,5 @@
+shostname: cloud-sdk
+instance-id: 42
+public-ipv4: 192.0.2.1
+availability-zone: fsn1-dc14
+region: eu-central

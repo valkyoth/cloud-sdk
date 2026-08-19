@@ -1,5 +1,7 @@
 use core::fmt;
 use reqwest::Url;
+use std::net::Ipv4Addr;
+use std::str::FromStr;
 use std::string::String;
 #[cfg(test)]
 use std::string::ToString;
@@ -69,6 +71,53 @@ impl_static_error!(EndpointError,
 pub struct HttpsEndpoint {
     base: Url,
     prefix: String,
+}
+
+/// Provider-policy-bound IPv4 link-local HTTP endpoint for metadata services.
+///
+/// This type cannot carry credentials and is accepted only by explicit raw
+/// client constructors. It rejects DNS names, non-link-local addresses,
+/// non-default ports, and destinations outside the supplied fixed policy.
+#[derive(Clone)]
+pub struct LinkLocalHttpEndpoint {
+    inner: HttpsEndpoint,
+}
+
+impl fmt::Debug for LinkLocalHttpEndpoint {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter.write_str("LinkLocalHttpEndpoint([redacted])")
+    }
+}
+
+impl LinkLocalHttpEndpoint {
+    /// Validates one direct HTTP metadata destination against provider policy.
+    pub fn new_with_policy(value: &str, policy: EndpointPolicy<'_>) -> Result<Self, EndpointError> {
+        let inner = HttpsEndpoint::new_inner(value, false)?;
+        let identity = inner
+            .identity()
+            .map_err(|_| EndpointError::IdentityRejected)?;
+        let address =
+            Ipv4Addr::from_str(identity.host()).map_err(|_| EndpointError::PolicyRejected)?;
+        if identity.scheme() != EndpointScheme::Http
+            || identity.effective_port() != 80
+            || !address.is_link_local()
+        {
+            return Err(EndpointError::PolicyRejected);
+        }
+        policy
+            .verify(identity)
+            .map_err(|_| EndpointError::PolicyRejected)?;
+        Ok(Self { inner })
+    }
+
+    /// Returns the normalized endpoint identity.
+    pub fn identity(&self) -> Result<EndpointIdentity<'_>, EndpointIdentityError> {
+        self.inner.identity()
+    }
+
+    pub(crate) fn into_inner(self) -> HttpsEndpoint {
+        self.inner
+    }
 }
 
 impl fmt::Debug for HttpsEndpoint {
@@ -325,4 +374,36 @@ fn validate_configured_base_path(value: &str) -> Result<&str, EndpointError> {
         return Err(EndpointError::IdentityRejected);
     }
     Ok(path)
+}
+
+#[cfg(test)]
+mod link_local_tests {
+    use cloud_sdk::transport::{EndpointIdentity, EndpointPolicy, EndpointScheme};
+
+    use super::{EndpointError, LinkLocalHttpEndpoint};
+
+    #[test]
+    fn link_local_http_requires_exact_provider_policy() {
+        let identity = EndpointIdentity::new(EndpointScheme::Http, "169.254.169.254", 80, "/")
+            .unwrap_or_else(|_| unreachable!("valid fixed endpoint"));
+        let policy = EndpointPolicy::fixed(identity);
+        let endpoint = LinkLocalHttpEndpoint::new_with_policy("http://169.254.169.254", policy);
+        let Ok(endpoint) = endpoint else {
+            unreachable!("fixed link-local endpoint was rejected");
+        };
+        assert_eq!(endpoint.identity(), Ok(identity));
+
+        for value in [
+            "https://169.254.169.254",
+            "http://10.0.0.1",
+            "http://169.254.169.253",
+            "http://169.254.169.254:81",
+            "http://169.254.169.254/2009-04-04/meta-data",
+        ] {
+            assert!(matches!(
+                LinkLocalHttpEndpoint::new_with_policy(value, policy),
+                Err(EndpointError::PolicyRejected)
+            ));
+        }
+    }
 }

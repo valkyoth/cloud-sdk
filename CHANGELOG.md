@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.97.0 - Unreleased
+
+- Added complete allocation-free contracts for all seven canonical Hetzner
+  Server Metadata reads, strict summary/scalar/private-network decoding, and
+  blocking, `Send` async, and local-async one-attempt execution.
+- Added an exact credential-free IPv4 link-local raw transport constructor;
+  custom destinations, credentials, redirects, proxies, retries, and ambient
+  endpoint configuration remain unavailable.
+- Source-locked metadata prose alongside OpenAPI, Robot, and changelog drift;
+  added deterministic mutation tests and a dedicated metadata fuzz target.
+- Validated the August 2026 Load Balancer health-detail and Primary IP
+  unassigned/null response semantics with exact cross-field regressions.
+- Froze the finite Hetzner 1.0 scope at 304 active operations and 29 deprecated
+  exclusions, with explicit standard-S3 and Robot domain-registration limits.
+- Advanced the internal cumulative source to `cloud-sdk 0.97.0`; crates.io
+  publication remains deferred to v0.100.0.
+
 ## 0.96.0 - 2026-08-18
 
 - Added an operation-bound, allocation-free query model generated from every

@@ -300,6 +300,7 @@ fn model_for_root(root: &str) -> Option<&'static str> {
 #[cfg(test)]
 mod tests {
     use alloc::format;
+    use alloc::vec::Vec;
 
     use super::{CloudResource, parse_cloud_resource};
     use crate::serde::models::ResponseModelError;
@@ -370,5 +371,130 @@ mod tests {
             unreachable!("future field was not retained")
         };
         assert!(!format!("{future:?}").contains("198.51.100.9"));
+    }
+
+    #[test]
+    fn changelog_additions_are_retained_without_weakening_known_validation() {
+        let fixture: serde_json::Value =
+            serde_json::from_str(include_str!("../cloud_model_fixtures.json"))
+                .unwrap_or_else(|_| unreachable!("generated fixture JSON"));
+
+        let mut load_balancer = fixture_resource(&fixture, "load_balancer");
+        let health = health_fixture_mut(&mut load_balancer);
+        health.insert("status".into(), serde_json::json!("unhealthy"));
+        health.insert("detail".into(), serde_json::json!("unexpected_http_status"));
+        health.insert("http_status_code".into(), serde_json::json!(503));
+        let load_balancer = parse_resource_fixture("load_balancer", &load_balancer);
+        let CloudResource::LoadBalancer(load_balancer) = load_balancer else {
+            unreachable!("load-balancer fixture kind")
+        };
+        let health = load_balancer
+            .fields()
+            .get("targets")
+            .and_then(|value| value.as_array())
+            .and_then(|targets| targets.first())
+            .and_then(|value| value.as_object())
+            .and_then(|target| target.get("health_status"))
+            .and_then(|value| value.as_array())
+            .and_then(|statuses| statuses.first())
+            .and_then(|value| value.as_object())
+            .unwrap_or_else(|| unreachable!("retained health status"));
+        assert_eq!(health.text("detail"), Some("unexpected_http_status"));
+        assert_eq!(health.u64("http_status_code"), Some(503));
+
+        let mut primary_ip = fixture_resource(&fixture, "primary_ip");
+        set_fixture_field(
+            &mut primary_ip,
+            "assignee_type",
+            serde_json::json!("unassigned"),
+        );
+        set_fixture_field(&mut primary_ip, "assignee_id", serde_json::Value::Null);
+        let primary_ip = parse_resource_fixture("primary_ip", &primary_ip);
+        let CloudResource::PrimaryIp(primary_ip) = primary_ip else {
+            unreachable!("primary-IP fixture kind")
+        };
+        assert_eq!(
+            primary_ip.fields().text("assignee_type"),
+            Some("unassigned")
+        );
+        assert!(
+            primary_ip
+                .fields()
+                .get("assignee_id")
+                .is_some_and(super::super::CloudValue::is_null)
+        );
+
+        let mut mismatch = fixture_resource(&fixture, "primary_ip");
+        set_fixture_field(
+            &mut mismatch,
+            "assignee_type",
+            serde_json::json!("unassigned"),
+        );
+        set_fixture_field(&mut mismatch, "assignee_id", serde_json::json!(42));
+        assert!(matches!(
+            try_parse_resource_fixture("primary_ip", &mismatch),
+            Err(ResponseModelError::InconsistentFields)
+        ));
+
+        let mut mismatch = fixture_resource(&fixture, "load_balancer");
+        let health = health_fixture_mut(&mut mismatch);
+        health.insert("status".into(), serde_json::json!("unhealthy"));
+        health.insert("detail".into(), serde_json::json!("unexpected_http_status"));
+        assert!(matches!(
+            try_parse_resource_fixture("load_balancer", &mismatch),
+            Err(ResponseModelError::InconsistentFields)
+        ));
+
+        let mut mismatch = fixture_resource(&fixture, "load_balancer");
+        let health = health_fixture_mut(&mut mismatch);
+        health.insert("status".into(), serde_json::json!("unhealthy"));
+        health.insert("detail".into(), serde_json::json!("future_reason"));
+        assert!(matches!(
+            try_parse_resource_fixture("load_balancer", &mismatch),
+            Err(ResponseModelError::UnknownEnumValue)
+        ));
+    }
+
+    fn fixture_resource(fixture: &serde_json::Value, name: &str) -> serde_json::Value {
+        fixture
+            .get(name)
+            .cloned()
+            .unwrap_or_else(|| unreachable!("generated resource fixture"))
+    }
+
+    fn health_fixture_mut(
+        fixture: &mut serde_json::Value,
+    ) -> &mut serde_json::Map<alloc::string::String, serde_json::Value> {
+        fixture
+            .get_mut("targets")
+            .and_then(serde_json::Value::as_array_mut)
+            .and_then(|targets| targets.first_mut())
+            .and_then(|target| target.get_mut("health_status"))
+            .and_then(serde_json::Value::as_array_mut)
+            .and_then(|statuses| statuses.first_mut())
+            .and_then(serde_json::Value::as_object_mut)
+            .unwrap_or_else(|| unreachable!("health fixture object"))
+    }
+
+    fn set_fixture_field(fixture: &mut serde_json::Value, name: &str, value: serde_json::Value) {
+        fixture
+            .as_object_mut()
+            .unwrap_or_else(|| unreachable!("resource fixture object"))
+            .insert(name.into(), value);
+    }
+
+    fn parse_resource_fixture(model: &str, fixture: &serde_json::Value) -> CloudResource {
+        try_parse_resource_fixture(model, fixture)
+            .unwrap_or_else(|_| unreachable!("source-complete fixture parsing"))
+    }
+
+    fn try_parse_resource_fixture(
+        model: &str,
+        fixture: &serde_json::Value,
+    ) -> Result<CloudResource, ResponseModelError> {
+        let bytes: Vec<u8> =
+            serde_json::to_vec(fixture).unwrap_or_else(|_| unreachable!("fixture serialization"));
+        let value = parse(&bytes).unwrap_or_else(|_| unreachable!("strict fixture parsing"));
+        parse_cloud_resource(model, &value)
     }
 }

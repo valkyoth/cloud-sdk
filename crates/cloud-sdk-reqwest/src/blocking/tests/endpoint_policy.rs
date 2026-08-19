@@ -4,8 +4,34 @@ use cloud_sdk::transport::{
     RequestTarget,
 };
 
-use super::{EndpointError, HttpsEndpoint, custom_endpoint};
-use crate::blocking::MAX_CONFIGURED_ENDPOINT_BYTES;
+use super::{EndpointError, HttpsEndpoint, custom_endpoint, test_timeouts};
+use crate::blocking::{
+    LinkLocalHttpEndpoint, MAX_CONFIGURED_ENDPOINT_BYTES, RawBlockingClientBuilder, UserAgent,
+};
+
+#[test]
+fn exact_link_local_endpoint_builds_only_the_raw_credential_free_client() {
+    let identity = EndpointIdentity::new(EndpointScheme::Http, "169.254.169.254", 80, "/");
+    let (Ok(identity), Some(timeouts), Ok(user_agent)) = (
+        identity,
+        test_timeouts(),
+        UserAgent::new("cloud-sdk-metadata-test/0.97"),
+    ) else {
+        unreachable!("security fixture construction failed")
+    };
+    let endpoint = LinkLocalHttpEndpoint::new_with_policy(
+        "http://169.254.169.254",
+        EndpointPolicy::fixed(identity),
+    );
+    let Ok(endpoint) = endpoint else {
+        unreachable!("security fixture construction failed")
+    };
+    assert!(
+        RawBlockingClientBuilder::new_link_local(endpoint, user_agent, timeouts)
+            .build()
+            .is_ok()
+    );
+}
 
 #[test]
 fn exact_composite_endpoint_limit_is_accepted() {

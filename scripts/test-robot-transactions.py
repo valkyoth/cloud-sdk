@@ -118,7 +118,7 @@ def main() -> None:
         module = mutate_source(root / "failure", "failure.rs", 'status == 404 && code == "NOT_FOUND"', 'status == 400 && code == "INVALID_INPUT"')
         assert run(module=module).returncode != 0
         gate = root / "fuzz-gate.sh"
-        gate.write_text(FUZZ_GATE.read_text(encoding="ascii").replace("passed for 34 targets", "passed for 33 targets"), encoding="ascii")
+        gate.write_text(FUZZ_GATE.read_text(encoding="ascii").replace("passed for 35 targets", "passed for 34 targets"), encoding="ascii")
         assert run(fuzz_gate=gate).returncode != 0
         fuzz_source = root / "fuzz-source.rs"
         fuzz_source.write_text(

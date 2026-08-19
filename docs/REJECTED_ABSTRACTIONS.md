@@ -265,3 +265,24 @@ are reviewed together.
 Blindly applying OpenAPI default repetition was rejected because official
 metrics prose requires comma separation. Only the two metrics `type` arrays
 receive that explicit exception; ordinary arrays remain repeated parameters.
+
+## v0.97.0
+
+### Generic Metadata URL Or Authenticated Client
+
+Arbitrary metadata URLs, HTTPS substitution, Cloud or Robot credentials,
+redirects, proxies, retries, and ambient endpoint configuration were rejected.
+The canonical service is an unauthenticated fixed IPv4 link-local HTTP origin;
+generalizing it would create an SSRF and credential-exfiltration boundary.
+
+### General YAML Dependency
+
+A general YAML parser was rejected for the small fixed upstream subset. The
+allocation-free decoder accepts only the exact summary and private-network
+shape, bounded collections, canonical scalars, and reviewed cross-field rules.
+
+### Automatic Scope Expansion
+
+Treating new source operations as implicitly supported was rejected. OpenAPI,
+Robot, metadata, and changelog drift remains a review stop until models,
+execution, security evidence, and the finite scope statement change together.

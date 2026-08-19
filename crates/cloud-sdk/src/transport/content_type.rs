@@ -103,6 +103,19 @@ impl<'a> MediaType<'a> {
         value: "application/x-www-form-urlencoded",
     };
 
+    /// `text/plain`.
+    pub const TEXT_PLAIN: Self = Self {
+        value: "text/plain",
+    };
+
+    /// `application/yaml`.
+    pub const APPLICATION_YAML: Self = Self {
+        value: "application/yaml",
+    };
+
+    /// `text/yaml`.
+    pub const TEXT_YAML: Self = Self { value: "text/yaml" };
+
     /// Validates a media-type essence without parameters.
     pub fn new(value: &'a str) -> Result<Self, ContentTypeError> {
         if value.is_empty() {

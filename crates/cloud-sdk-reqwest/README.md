@@ -38,7 +38,7 @@ provider without adding transport dependencies to provider crates.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.96.0"
+cloud-sdk = "0.97.0"
 cloud-sdk-reqwest = { version = "0.36.0", features = ["blocking-rustls"] }
 ```
 
@@ -86,6 +86,54 @@ The v0.47 package change is also dependency-only. Reqwest's `Send` futures
 automatically satisfy the local async traits, but the adapter still requires
 Tokio and does not become a browser-WASM or embedded transport. See the
 [local async guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/LOCAL_ASYNC.md).
+
+## Link-Local Metadata Executor
+
+`LinkLocalHttpEndpoint` is the only admitted HTTP exception. It requires a
+provider-owned fixed policy, an IPv4 link-local literal, port 80, and the exact
+base path. `RawBlockingClientBuilder::new_link_local` and
+`RawAsyncClientBuilder::new_link_local` have no credential parameter, use the
+direct Hyper connector, follow no redirects, consult no proxy environment,
+and perform one attempt:
+
+```rust,no_run
+# #[cfg(feature = "blocking-rustls")]
+# fn main() -> Result<(), Box<dyn std::error::Error>> {
+use std::time::Duration;
+use cloud_sdk::transport::{EndpointIdentity, EndpointPolicy, EndpointScheme};
+use cloud_sdk_reqwest::blocking::{
+    LinkLocalHttpEndpoint, RawBlockingClientBuilder, RequestTimeouts, UserAgent,
+};
+
+let identity = EndpointIdentity::new(
+    EndpointScheme::Http,
+    "169.254.169.254",
+    80,
+    "/",
+)?;
+let endpoint = LinkLocalHttpEndpoint::new_with_policy(
+    "http://169.254.169.254",
+    EndpointPolicy::fixed(identity),
+)?;
+let user_agent = UserAgent::new("metadata-reader/1")?;
+let timeouts = RequestTimeouts::new(
+    Duration::from_secs(2),
+    Duration::from_secs(1),
+)?;
+let _client = RawBlockingClientBuilder::new_link_local(
+    endpoint,
+    user_agent,
+    timeouts,
+).build()?;
+# Ok(())
+# }
+# #[cfg(not(feature = "blocking-rustls"))]
+# fn main() {}
+```
+
+The provider crate supplies the fixed Hetzner identity and typed request and
+decoder. Do not generalize this constructor into arbitrary HTTP or credentialed
+metadata access.
 
 ## Raw Blocking Executor
 

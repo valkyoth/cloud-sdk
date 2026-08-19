@@ -54,11 +54,11 @@ def main() -> None:
         assert incomplete_robot.returncode == 1, incomplete_robot
 
         metadata = (
-            "Server Metadata | Seven canonical link-local reads are outside "
-            "OpenAPI and assigned to the v0.97 scope-closure release | Planned v0.97"
+            "Server Metadata | Complete strict contracts for all seven canonical "
+            "credential-free link-local reads | Current"
         )
         path.write_text(
-            source.replace(metadata, "Server Metadata | Complete | Current"),
+            source.replace(metadata, "Server Metadata | Planned | v0.98"),
             encoding="utf-8",
         )
         overstated_metadata = run(path)

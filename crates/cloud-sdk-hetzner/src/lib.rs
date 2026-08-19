@@ -34,6 +34,7 @@ pub mod dns;
 pub mod endpoint;
 pub mod identity;
 pub mod labels;
+pub mod metadata;
 pub mod pagination;
 pub mod prepared;
 pub mod query;

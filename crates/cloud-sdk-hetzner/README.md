@@ -38,7 +38,7 @@ boundaries.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.96.0"
+cloud-sdk = "0.97.0"
 cloud-sdk-hetzner = "0.46.0"
 ```
 
@@ -768,7 +768,7 @@ authentication scope, raw response policy, and official endpoint.
 | Error response models | Complete checked typed API error decoding for all active operations | Current |
 | End-to-end client | Complete named workflows for all 208 active Cloud, DNS, Security, and Console Storage Box operations; custom-endpoint execution remains unavailable | Current |
 | Robot client | Complete typed contracts for all 89 active Robot operations; 45 read-only routes execute directly and every state change remains permit-gated | v0.46 published checkpoint |
-| Server Metadata | Seven canonical link-local reads are outside OpenAPI and assigned to the v0.97 scope-closure release | Planned v0.97 |
+| Server Metadata | Complete strict contracts for all seven canonical credential-free link-local reads | Current |
 
 The convenience request types cover common filters with domain-specific
 values. `query::SourceLockedQuery` is the complete operation-bound fallback
@@ -793,6 +793,29 @@ The construction, storage, and trust boundaries are described in the
 [Hetzner client guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/HETZNER_CLIENT.md).
 Upstream source monitoring and lock-refresh decisions follow the
 [API drift maintenance runbook](https://github.com/valkyoth/cloud-sdk/blob/main/docs/API_DRIFT_MAINTENANCE.md).
+
+## Server Metadata Example
+
+Metadata requests select one of seven fixed routes and carry no credentials,
+body, custom endpoint, or retry policy. Response decoding is strict and
+allocation-free:
+
+```rust
+use cloud_sdk_hetzner::metadata::{
+    MetadataResponse, MetadataRoute, decode_metadata_body,
+};
+
+let decoded = decode_metadata_body(MetadataRoute::Hostname, b"example-host\n")?;
+assert_eq!(decoded, MetadataResponse::Hostname("example-host"));
+# Ok::<(), cloud_sdk_hetzner::metadata::MetadataDecodeError>(())
+```
+
+Execution additionally verifies exact HTTP destination
+`169.254.169.254:80` and base path `/` before the single request attempt.
+Use only the raw link-local adapter; authenticated client builders and custom
+destinations are intentionally incompatible with this surface. The complete
+contract and exclusions are in the
+[finite Hetzner 1.0 scope](https://github.com/valkyoth/cloud-sdk/blob/main/docs/HETZNER_1_0_SCOPE.md).
 The separate Robot Webservice exposes its bounded form codec, exact official
 endpoint identity, Robot service marker, protected credentials, lockout-aware
 owned attempt generation, strict typed protocol errors, three server

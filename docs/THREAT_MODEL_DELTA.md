@@ -277,3 +277,26 @@ its freshness gate fail until separately reviewed regeneration. Metrics comma
 encoding is an explicit reviewed upstream-prose exception. Semantically broad
 but percent-encoded source strings remain caller-controlled filters, never
 credentials, headers, paths, bodies, or endpoint authority.
+
+## v0.97.0
+
+Server Metadata adds a link-local cleartext origin, unauthenticated local
+instance data, strict text/YAML parsing, and adapter HTTP support. Threats are
+SSRF through configurable destinations, credential leakage, proxy or redirect
+escape, route substitution, oversized or contradictory metadata, parser
+ambiguity, stale prose-only source coverage, and staged-byte retention after
+cancellation.
+
+The provider owns all seven paths and the exact `169.254.169.254:80` identity.
+Execution verifies that identity before one attempt, accepts no credential or
+custom endpoint, and uses a direct raw connector with no proxy or redirect
+layer. Decoders enforce aggregate and item bounds, exact fields, canonical
+numbers, IPv4, CIDRs, MAC addresses, and network relationships while borrowing
+caller storage. Cancellation clears staged bytes. Dedicated source mutation,
+executor parity, adversarial, and fuzz evidence covers the new boundary.
+
+HTTP metadata has no confidentiality or server-authentication guarantee beyond
+the host's link-local routing and platform isolation. A compromised guest,
+network namespace, hypervisor, kernel, or provider control plane remains
+outside SDK control. Callers must not treat metadata as a secret or an
+independent trust root for high-impact authorization.

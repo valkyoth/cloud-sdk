@@ -1,7 +1,7 @@
 # Crate Version Matrix
 
-Status: `v0.95.0` is the latest published checkpoint. `v0.96.0` is an internal
-release candidate that starts the v0.96-v0.100 cumulative train and publishes
+Status: `v0.95.0` is the latest published checkpoint. `v0.97.0` is the current
+internal release candidate in the v0.96-v0.100 cumulative train and publishes
 no crate.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
@@ -1436,6 +1436,20 @@ crate.
 | `cloud-sdk` | `0.95.0` | `0.96.0` | `code` | No | Advance the internal request-fidelity milestone; defer publication to v0.100.0. |
 | `cloud-sdk-hetzner` | `0.46.0` | `0.46.0` | `code` | No | Accumulate complete source-locked queries and corrected server metrics for v0.100.0. |
 | `cloud-sdk-reqwest` | `0.36.0` | `0.36.0` | `unchanged` | No | No transport boundary changes. |
+| `cloud-sdk-sanitization` | `0.19.0` | `0.19.0` | `unchanged` | No | No sanitization boundary changes. |
+| `cloud-sdk-testkit` | `0.31.0` | `0.31.0` | `unchanged` | No | No testkit boundary changes. |
+
+## v0.97.0 Tracking Table
+
+`v0.97.0` closes the canonical Server Metadata surface, validates current
+changelog response semantics, and freezes the finite Hetzner 1.0 scope. It is
+an internal tag and publishes no crate.
+
+| Crate | Published | v0.97 | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.95.0` | `0.97.0` | `code` | No | Advance the internal Hetzner scope-closure milestone; defer publication to v0.100.0. |
+| `cloud-sdk-hetzner` | `0.46.0` | `0.46.0` | `code` | No | Accumulate canonical Server Metadata and changelog response validation for v0.100.0. |
+| `cloud-sdk-reqwest` | `0.36.0` | `0.36.0` | `code` | No | Accumulate the credential-free exact link-local raw transport constructor for v0.100.0. |
 | `cloud-sdk-sanitization` | `0.19.0` | `0.19.0` | `unchanged` | No | No sanitization boundary changes. |
 | `cloud-sdk-testkit` | `0.31.0` | `0.31.0` | `unchanged` | No | No testkit boundary changes. |
 

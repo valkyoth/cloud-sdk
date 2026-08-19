@@ -41,6 +41,7 @@ from hetzner_openapi_contracts import (
     parameter_rows,
     schema_rows,
 )
+from hetzner_metadata_contracts import render as render_metadata_contract
 
 ROOT = Path(__file__).resolve().parents[1]
 OP_LOCK = ROOT / "docs" / "API_FINGERPRINTS.tsv"
@@ -48,6 +49,7 @@ SCHEMA_LOCK = ROOT / "docs" / "API_SCHEMA_FINGERPRINTS.tsv"
 PARAMETER_LOCK = ROOT / "docs" / "API_PARAMETER_FINGERPRINTS.tsv"
 MATRIX = ROOT / "docs" / "API_MATRIX.md"
 SPEC_LOCK = ROOT / "docs" / "SPEC_LOCK.md"
+METADATA_LOCK = ROOT / "docs" / "METADATA_FINGERPRINTS.tsv"
 RESPONSE_LOCK = (
     ROOT / "crates" / "cloud-sdk-hetzner" / "src" / "serde" / "response_operations.tsv"
 )
@@ -299,6 +301,7 @@ def validate_local_files() -> int:
         QUERY_CONTRACT_LOCK,
         QUERY_OPERATION_LOCK,
         REQUEST_INVENTORY_LOCK,
+        METADATA_LOCK,
     ):
         if not path.is_file() or path.stat().st_size == 0:
             print(f"missing required lock file: {path}", file=sys.stderr)
@@ -365,6 +368,7 @@ def main() -> int:
         cloud_model_fixture_lock = render_cloud_model_fixtures(
             documents["cloud"], documents["hetzner"]
         )
+        metadata_lock = render_metadata_contract(documents["cloud"])
     except ValueError as error:
         raise SystemExit(f"invalid response schemas: {error}") from error
     operations = []
@@ -417,6 +421,7 @@ def main() -> int:
         RESPONSE_LOCK.write_text(response_lock, encoding="ascii")
         CLOUD_MODEL_SCHEMA_LOCK.write_text(cloud_model_schema_lock, encoding="ascii")
         CLOUD_MODEL_FIXTURE_LOCK.write_text(cloud_model_fixture_lock, encoding="ascii")
+        METADATA_LOCK.write_text(metadata_lock, encoding="ascii")
         print(f"wrote {len(operations)} operation fingerprints")
         print(f"wrote {len(schemas)} schema fingerprints")
         print(f"wrote {len(parameters)} parameter fingerprints")
@@ -431,6 +436,9 @@ def main() -> int:
         status = 1
     if CLOUD_MODEL_FIXTURE_LOCK.read_text(encoding="ascii") != cloud_model_fixture_lock:
         print("Hetzner Cloud model fixtures have drift", file=sys.stderr)
+        status = 1
+    if METADATA_LOCK.read_text(encoding="ascii") != metadata_lock:
+        print("Hetzner Server Metadata contract has drift", file=sys.stderr)
         status = 1
     report = build_drift_report(
         read_tsv(OP_LOCK),

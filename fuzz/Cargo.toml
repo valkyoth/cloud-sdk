@@ -8,7 +8,7 @@ edition = "2024"
 cargo-fuzz = true
 
 [dependencies]
-cloud-sdk = { path = "../crates/cloud-sdk", version = "=0.96.0" }
+cloud-sdk = { path = "../crates/cloud-sdk", version = "=0.97.0" }
 cloud-sdk-hetzner = { path = "../crates/cloud-sdk-hetzner", version = "=0.46.0", features = ["serde"] }
 cloud-sdk-reqwest = { path = "../crates/cloud-sdk-reqwest", version = "=0.36.0", default-features = false, features = ["fuzzing"] }
 libfuzzer-sys = "0.4.13"
@@ -248,6 +248,13 @@ bench = false
 [[bin]]
 name = "robot_transaction_response"
 path = "fuzz_targets/robot_transaction_response.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "metadata_response"
+path = "fuzz_targets/metadata_response.rs"
 test = false
 doc = false
 bench = false

@@ -48,7 +48,9 @@ pub use credentials::{
     BearerCredentialSnapshot, BearerRefreshHandoff, CredentialStateError, CredentialUpdateError,
     RefreshHandoffError, TokenRefreshError, TokenRotationError,
 };
-pub use endpoint::{EndpointError, HttpsEndpoint, MAX_CONFIGURED_ENDPOINT_BYTES};
+pub use endpoint::{
+    EndpointError, HttpsEndpoint, LinkLocalHttpEndpoint, MAX_CONFIGURED_ENDPOINT_BYTES,
+};
 pub use error::{BuildError, TransportError};
 pub(crate) use raw::inspect_response_head;
 pub use raw::{

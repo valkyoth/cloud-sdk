@@ -47,9 +47,9 @@ EXPECTED = (
     ),
     (
         "Server Metadata",
-        "Seven canonical link-local reads are outside OpenAPI and assigned to the "
-        "v0.97 scope-closure release",
-        "Planned v0.97",
+        "Complete strict contracts for all seven canonical credential-free "
+        "link-local reads",
+        "Current",
     ),
 )
 

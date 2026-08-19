@@ -10,7 +10,8 @@ use std::sync::Arc;
 #[cfg(not(feature = "blocking-rustls-webpki-roots"))]
 use crate::shared::platform_client_config;
 use crate::shared::{
-    BearerCredential, BuildError, HttpsEndpoint, RawHyperClient, RequestTimeouts, UserAgent,
+    BearerCredential, BuildError, HttpsEndpoint, LinkLocalHttpEndpoint, RawHyperClient,
+    RequestTimeouts, UserAgent,
 };
 
 use super::{BlockingClient, RawBlockingClient};
@@ -29,6 +30,7 @@ pub struct RawBlockingClientBuilder {
     endpoint: HttpsEndpoint,
     user_agent: UserAgent,
     timeouts: RequestTimeouts,
+    https_only: bool,
 }
 
 impl BlockingClientBuilder {
@@ -92,12 +94,29 @@ impl RawBlockingClientBuilder {
             endpoint,
             user_agent,
             timeouts,
+            https_only: true,
+        }
+    }
+
+    /// Creates a raw direct-link-local HTTP builder with no credential path.
+    #[must_use]
+    pub fn new_link_local(
+        endpoint: LinkLocalHttpEndpoint,
+        user_agent: UserAgent,
+        timeouts: RequestTimeouts,
+    ) -> Self {
+        Self {
+            endpoint: endpoint.into_inner(),
+            user_agent,
+            timeouts,
+            https_only: false,
         }
     }
 
     /// Builds an HTTPS-only executor with no implicit authorization.
     pub fn build(self) -> Result<RawBlockingClient, BuildError> {
-        self.build_inner(true)
+        let https_only = self.https_only;
+        self.build_inner(https_only)
     }
 
     fn build_inner(self, https_only: bool) -> Result<RawBlockingClient, BuildError> {
@@ -132,6 +151,7 @@ impl fmt::Debug for RawBlockingClientBuilder {
             .field("endpoint", &"[redacted]")
             .field("user_agent", &self.user_agent)
             .field("timeouts", &self.timeouts);
+        debug.field("link_local_http", &!self.https_only);
         debug.finish()
     }
 }

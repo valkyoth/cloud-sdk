@@ -102,6 +102,8 @@ pub enum ResponseModelError {
     EnvelopeMismatch,
     /// A numeric value is outside its source-locked range.
     InvalidNumber,
+    /// Individually valid response fields contradict a source-locked relation.
+    InconsistentFields,
     /// Memory required for a bounded response model could not be reserved.
     Allocation,
     /// The committed source-derived model schema is malformed or incomplete.
@@ -120,6 +122,7 @@ impl_static_error!(ResponseModelError,
     Self::InvalidPagination => "Hetzner response pagination is invalid",
     Self::EnvelopeMismatch => "Hetzner response does not match the operation envelope",
     Self::InvalidNumber => "Hetzner response number is invalid",
+    Self::InconsistentFields => "Hetzner response fields are inconsistent",
     Self::Allocation => "Hetzner response model allocation failed",
     Self::SchemaMismatch => "Hetzner source-derived model schema is invalid",
     Self::ResponseIdentityMismatch => "Hetzner response identity does not match its request",

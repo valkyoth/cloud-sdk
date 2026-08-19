@@ -465,6 +465,33 @@ transport-free and `no_std`; FIPS remains deferred to Brynja.
 | `cloud-sdk-sanitization` | `0.19.0` | `0.19.0` | unchanged | no |
 | `cloud-sdk-testkit` | `0.31.0` | `0.31.0` | unchanged | no |
 
+## v0.97.0
+
+Status: implementation stop; incremental pentest required.
+
+No third-party package, feature, target, build-script, or default dependency
+edge is added. The provider metadata implementation uses only `core`, existing
+`cloud-sdk` fixed-buffer contracts, and first-party modules. The reqwest
+boundary reuses its admitted direct Hyper connector and existing optional TLS
+graph; it adds no proxy, redirect, credential, DNS, or runtime dependency.
+
+### Lockfile Changes
+
+| Package | Previous | v0.97 | Review |
+| --- | --- | --- | --- |
+| `cloud-sdk` | `0.96.0` | `0.97.0` | Advance the provider-neutral internal milestone identity. |
+| `ovhcloud-v2-probe` | `0.96.0` | `0.97.0` | Advance the excluded workspace probe identity only. |
+
+### Workspace Version Changes
+
+| Package | Published | v0.97 | Change | Publish |
+| --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.95.0` | `0.97.0` | scope-closure milestone | no |
+| `cloud-sdk-hetzner` | `0.46.0` | `0.46.0` | metadata and response validation | no |
+| `cloud-sdk-reqwest` | `0.36.0` | `0.36.0` | exact link-local raw transport | no |
+| `cloud-sdk-sanitization` | `0.19.0` | `0.19.0` | unchanged | no |
+| `cloud-sdk-testkit` | `0.31.0` | `0.31.0` | unchanged | no |
+
 ## 2026-07-20
 
 **Status:** historical reviewed snapshot  

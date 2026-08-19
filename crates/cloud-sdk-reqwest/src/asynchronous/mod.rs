@@ -12,7 +12,7 @@ pub use crate::shared::{
     BasicUsernameError, BearerCredential, BearerCredentialScope, BearerCredentialScopeError,
     BearerCredentialSnapshot, BearerRefreshHandoff, BearerToken, BearerTokenError, BuildError,
     CredentialStateError, CredentialUpdateError, CustomEndpointAcknowledgement, EndpointError,
-    HttpsEndpoint, MAX_BASIC_AUTHORIZATION_BYTES, MAX_BASIC_PASSWORD_BYTES,
+    HttpsEndpoint, LinkLocalHttpEndpoint, MAX_BASIC_AUTHORIZATION_BYTES, MAX_BASIC_PASSWORD_BYTES,
     MAX_BASIC_USERNAME_BYTES, MAX_BEARER_TOKEN_BYTES, MAX_CONFIGURED_ENDPOINT_BYTES,
     MAX_RAW_REQUEST_BODY_BYTES, MAX_TIMEOUT_SECONDS, MAX_UPSTREAM_HTTP1_HEAD_BYTES,
     MAX_UPSTREAM_HTTP1_HEADERS, RawHttpError, RawTransportFailure, RefreshHandoffError,

@@ -25,6 +25,112 @@ pub(super) fn validate_model(model: &str, value: &Value) -> Result<(), ResponseM
     if !found {
         return Err(ResponseModelError::SchemaMismatch);
     }
+    validate_changelog_contracts(model, value)
+}
+
+fn validate_changelog_contracts(model: &str, value: &Value) -> Result<(), ResponseModelError> {
+    match model {
+        "primary_ip" => validate_primary_ip_assignment(value),
+        "load_balancer" => validate_load_balancer_health(value),
+        _ => Ok(()),
+    }
+}
+
+fn validate_primary_ip_assignment(value: &Value) -> Result<(), ResponseModelError> {
+    let object = value.as_object().ok_or(ResponseModelError::WrongType)?;
+    let kind = object
+        .get("assignee_type")
+        .ok_or(ResponseModelError::MissingField)?;
+    let id = object
+        .get("assignee_id")
+        .ok_or(ResponseModelError::MissingField)?;
+    let kind = kind
+        .try_with_str(|value| match value {
+            "server" => 1,
+            "unassigned" => 2,
+            _ => 0,
+        })
+        .map_err(|_| ResponseModelError::InvalidText)?
+        .ok_or(ResponseModelError::WrongType)?;
+    match kind {
+        2 if id.is_null() => Ok(()),
+        1 if id.as_u64().is_some_and(|value| value != 0) => Ok(()),
+        1 | 2 => Err(ResponseModelError::InconsistentFields),
+        _ => Ok(()),
+    }
+}
+
+fn validate_load_balancer_health(value: &Value) -> Result<(), ResponseModelError> {
+    let targets = value
+        .as_object()
+        .and_then(|object| object.get("targets"))
+        .and_then(Value::as_array)
+        .ok_or(ResponseModelError::WrongType)?;
+    for target in targets {
+        validate_target_health(target)?;
+        if let Some(nested) = target
+            .as_object()
+            .and_then(|object| object.get("targets"))
+            .and_then(Value::as_array)
+        {
+            for target in nested {
+                validate_target_health(target)?;
+            }
+        }
+    }
+    Ok(())
+}
+
+fn validate_target_health(target: &Value) -> Result<(), ResponseModelError> {
+    let Some(statuses) = target
+        .as_object()
+        .and_then(|object| object.get("health_status"))
+        .and_then(Value::as_array)
+    else {
+        return Ok(());
+    };
+    for status in statuses {
+        let object = status.as_object().ok_or(ResponseModelError::WrongType)?;
+        let unhealthy = object
+            .get("status")
+            .ok_or(ResponseModelError::MissingField)?
+            .try_with_str(|value| value == "unhealthy")
+            .map_err(|_| ResponseModelError::InvalidText)?
+            .ok_or(ResponseModelError::WrongType)?;
+        let detail = object.get("detail");
+        let code = object.get("http_status_code");
+        if !unhealthy && (detail.is_some() || code.is_some()) {
+            return Err(ResponseModelError::InconsistentFields);
+        }
+        let detail = match detail {
+            Some(value) => value
+                .try_with_str(|value| match value {
+                    "layer4_no_connection"
+                    | "layer4_timeout"
+                    | "layer7_timeout"
+                    | "unexpected_http_content"
+                    | "unspecified" => 1,
+                    "unexpected_http_status" => 2,
+                    _ => 0,
+                })
+                .map_err(|_| ResponseModelError::InvalidText)?
+                .ok_or(ResponseModelError::WrongType)
+                .map(Some)?,
+            None => None,
+        };
+        if detail == Some(0) {
+            return Err(ResponseModelError::UnknownEnumValue);
+        }
+        let code = match code {
+            Some(value) => Some(value.as_u64().ok_or(ResponseModelError::WrongType)?),
+            None => None,
+        };
+        if code.is_some_and(|value| !(100..=599).contains(&value))
+            || (detail == Some(2)) != code.is_some()
+        {
+            return Err(ResponseModelError::InconsistentFields);
+        }
+    }
     Ok(())
 }
 

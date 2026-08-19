@@ -453,3 +453,38 @@ and status shortcuts. The fallback covers repeated values without allocation.
 
 This is a deliberate pre-1.0 breaking correction. No neutral transport,
 executor, authentication, response, permit, or default-feature API changes.
+
+## v0.97.0
+
+Status: implementation stop; incremental pentest required.
+
+### Added Surface
+
+- `cloud_sdk_hetzner::metadata` owns the exact seven canonical metadata
+  routes, fixed endpoint policy, bounded request and response contracts,
+  strict borrowed decoders, and blocking, `Send` async, and local-async
+  one-attempt execution helpers.
+- `cloud_sdk_reqwest::{blocking,asynchronous}::LinkLocalHttpEndpoint` and the
+  raw builders' `new_link_local` constructors admit only provider-policy-bound
+  IPv4 link-local HTTP on port 80 and accept no credential.
+- Core media types add public `text/plain`, `application/yaml`, and `text/yaml`
+  constants used by bounded metadata response policies.
+- Existing complete Cloud response trees validate the source-locked Load
+  Balancer health-detail and Primary IP assignee cross-field rules.
+
+### Contract Review
+
+No arbitrary metadata path, destination, credential, mutation, retry, proxy,
+redirect, TLS assertion, or environment-derived setting is public. Metadata
+response models borrow caller-owned bounded bytes and allocate nothing. Error
+diagnostics contain no response body, endpoint, address, or transport error.
+The finite scope statement distinguishes all 304 active operations from 29
+deprecated exclusions and does not claim standard S3 or mail-only Robot domain
+registration.
+
+### Compatibility
+
+This is additive pre-1.0 API. Default features, MSRV, `no_std`, provider
+transport separation, official authenticated endpoint policy, and independent
+crate versions are unchanged. `cloud-sdk-reqwest` accumulates the new optional
+constructor without publication until v0.100.0.

@@ -309,10 +309,12 @@ The official reference also documents a seven-read Server Metadata surface:
 the canonical `/hetzner/v1/metadata` summary and its `hostname`, `instance-id`,
 `public-ipv4`, `private-networks`, `availability-zone`, and `region` children.
 These link-local HTTP routes are absent from both OpenAPI documents and
-therefore are not included in the 221-operation count above. They are assigned
-to `v0.96.0` with a fixed link-local endpoint, forbidden authentication,
-forbidden redirects and proxies, bounded text/YAML decoding, and explicit
-exclusion of the removed EC2-compatible aliases.
+therefore are not included in the 221-operation count above. They are
+implemented in `v0.97.0` with a fixed link-local endpoint, forbidden
+authentication, redirects, proxies, retries, and custom destinations, bounded
+strict text/YAML decoding, and explicit exclusion of the removed
+EC2-compatible aliases. The finite active and deprecated totals are recorded
+in [`HETZNER_1_0_SCOPE.md`](HETZNER_1_0_SCOPE.md).
 
 Hetzner Object Storage exposes the standard S3 API without Hetzner-specific
 extensions. It is intentionally outside the `cloud-sdk-hetzner` 1.0 scope;

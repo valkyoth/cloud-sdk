@@ -489,3 +489,11 @@ For repeated filters or less common source fields, construct typed
 the exact `SourceQueryOperation`, then pair that query with the endpoint using
 `HetznerPreparedOperation::query`. Preparation rejects a mismatched operation
 before dispatch and clears complete caller-owned request storage.
+
+## v0.97.0
+
+Use `cloud_sdk_hetzner::metadata` only with its fixed `MetadataRoute`,
+`MetadataRequest`, and provider-bound `LinkLocalHttpEndpoint`; never attach
+credentials or configure another origin. Load Balancer and Primary IP response
+decoding now rejects the contradictory cross-field states identified by the
+August 2026 changelog while retaining valid additive fields.

@@ -16,7 +16,7 @@ scripts/test-platform-matrix.py
 scripts/test-latest-tools.py
 scripts/test-rustsec-advisories.py
 scripts/test-dependency-review.py
-scripts/check_dependency_review.py v0.95.0 0.96.0 docs/DEPENDENCY_REVIEW.md
+scripts/check_dependency_review.py v0.96.0 0.97.0 docs/DEPENDENCY_REVIEW.md
 scripts/check_review_digests.py
 scripts/test-publishable-readmes.py
 scripts/check-release-plan-structure.py
@@ -99,6 +99,7 @@ scripts/check_iana_ipv6_registry.py --local-only
 scripts/test-iana-ipv6-registry.py
 scripts/check_hetzner_api_drift.py --local-only
 scripts/test-hetzner-api-drift.py
+scripts/test-hetzner-metadata-contracts.py
 python3 scripts/generate_request_contract_inventory.py
 python3 scripts/test-request-contract-inventory.py
 scripts/check_hetzner_changelog.py --local-only

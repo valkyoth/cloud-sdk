@@ -286,7 +286,7 @@ def validate_sources(
     gate = fuzz_gate.read_text(encoding="ascii")
     if 'name = "robot_transaction_response"' not in manifest:
         fail("transaction response fuzz target is missing")
-    if "passed for 34 targets" not in gate or "max_len=4194304" not in gate:
+    if "passed for 35 targets" not in gate or "max_len=4194304" not in gate:
         fail("transaction fuzz boundary is not source-locked")
     source = fuzz_source.read_text(encoding="ascii")
     if "split_first" in source:
