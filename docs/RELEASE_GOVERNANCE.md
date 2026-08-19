@@ -144,7 +144,8 @@ exact commit twice without local hard links, and from each clone:
 - generates all four complete SPDX dependency graphs;
 - compares package archives byte for byte through SHA-256;
 - compares SBOMs after removing only cargo-sbom's creation timestamp and random
-  document namespace; and
+  document namespace and normalizing the validated checkout-basename document
+  name to its logical project name; and
 - compares each generated canonical SBOM with committed evidence.
 
 The report prints the source commit and tree, `Cargo.lock` SHA-256, package and

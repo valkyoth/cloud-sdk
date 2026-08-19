@@ -41,7 +41,8 @@ is an internal cumulative tag and publishes no crate.
   unpublished in-train dependencies, then regenerate all four complete SPDX
   graphs.
 - Package archives must have identical SHA-256 values. Canonical SBOMs remove
-  only creation time and random namespace before comparison and must also equal
+  creation time and random namespace and normalize only the validated
+  checkout-basename document name before comparison; they must also equal
   committed evidence.
 - Evidence prints the source commit/tree, `Cargo.lock` digest, exact Git/Rust/
   Cargo/cargo-sbom versions, and every package and canonical-SBOM digest.

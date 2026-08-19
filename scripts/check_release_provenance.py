@@ -121,12 +121,16 @@ def package_archives(root: Path, packages: tuple[str, ...]) -> dict[str, str]:
     return hashes
 
 
-def canonical_sbom(document: dict[str, Any]) -> bytes:
+def canonical_sbom(
+    document: dict[str, Any], canonical_name: str | None = None
+) -> bytes:
     normalized = json.loads(json.dumps(document))
     creation = normalized.get("creationInfo")
     if isinstance(creation, dict):
         creation.pop("created", None)
     normalized.pop("documentNamespace", None)
+    if canonical_name is not None:
+        normalized["name"] = canonical_name
     for field in ("files", "packages"):
         values = normalized.get(field)
         if isinstance(values, list):
@@ -152,7 +156,15 @@ def sbom_hashes(root: Path) -> dict[str, str]:
             document = json.load(handle)
         if not isinstance(document, dict):
             raise ProvenanceError(f"{path}: SPDX document must be an object")
-        hashes[name] = hashlib.sha256(canonical_sbom(document)).hexdigest()
+        logical_name = name.removesuffix(".spdx.json")
+        allowed_names = {logical_name}
+        if logical_name == "cloud-sdk":
+            allowed_names.add(root.name)
+        if document.get("name") not in allowed_names:
+            raise ProvenanceError(f"{path}: unexpected SPDX document name")
+        hashes[name] = hashlib.sha256(
+            canonical_sbom(document, logical_name)
+        ).hexdigest()
     return hashes
 
 
@@ -163,7 +175,12 @@ def committed_sbom_hashes(root: Path) -> dict[str, str]:
             document = json.load(handle)
         if not isinstance(document, dict):
             raise ProvenanceError(f"committed {name} is not an SPDX object")
-        hashes[name] = hashlib.sha256(canonical_sbom(document)).hexdigest()
+        logical_name = name.removesuffix(".spdx.json")
+        if document.get("name") != logical_name:
+            raise ProvenanceError(f"committed {name} has the wrong document name")
+        hashes[name] = hashlib.sha256(
+            canonical_sbom(document, logical_name)
+        ).hexdigest()
     return hashes
 
 

@@ -60,6 +60,16 @@ def test_dependency_change_changes_sbom_identity() -> None:
     assert checker.canonical_sbom(first) != checker.canonical_sbom(second)
 
 
+def test_checkout_directory_name_is_canonicalized_explicitly() -> None:
+    first = document("2026-01-01T00:00:00Z", "urn:first", ("a",))
+    second = document("2026-01-01T00:00:00Z", "urn:first", ("a",))
+    first["name"] = "first"
+    second["name"] = "second"
+    assert checker.canonical_sbom(first, "cloud-sdk") == checker.canonical_sbom(
+        second, "cloud-sdk"
+    )
+
+
 def test_comparison_rejects_missing_artifact() -> None:
     assert_fails(
         "differs between clean clones",
@@ -92,6 +102,7 @@ def main() -> None:
     tests = (
         test_volatile_sbom_fields_do_not_change_identity,
         test_dependency_change_changes_sbom_identity,
+        test_checkout_directory_name_is_canonicalized_explicitly,
         test_comparison_rejects_missing_artifact,
         test_comparison_rejects_changed_artifact,
         test_policy_names_all_five_publishable_packages,
