@@ -146,21 +146,42 @@ def test_dependency_tables_override_missing_or_incorrect_languages() -> None:
 
 
 def test_cargo_dependency_table_variants_are_detected() -> None:
-    headers = (
-        "[dev-dependencies]",
-        "[build-dependencies]",
-        "[target.'cfg(unix)'.dependencies]",
+    examples = (
+        '[dev-dependencies]\ncloud-sdk = "0.99.0"',
+        '[build-dependencies]\ncloud-sdk = "0.99.0"',
+        '[target.\'cfg(unix)\'.dependencies]\ncloud-sdk = "0.99.0"',
+        '[dependencies.cloud-sdk]\nversion = "0.99.0"',
+        '["dependencies"]\ncloud-sdk = "0.99.0"',
+        'dependencies.cloud-sdk = "0.99.0"',
+        (
+            '[target.\'cfg(unix)\'.dependencies.cloud-sdk]\n'
+            'version = "0.99.0"'
+        ),
     )
     with tempfile.TemporaryDirectory() as temporary:
         readme = Path(temporary) / "README.md"
-        for header in headers:
+        for example in examples:
             readme.write_text(
-                f'```text\n{header}\ncloud-sdk = "0.99.0"\n```\n',
+                f"```text\n{example}\n```\n",
                 encoding="ascii",
             )
             result = run(readme)
-            assert result.returncode == 1, (header, result)
+            assert result.returncode == 1, (example, result)
             assert "cloud-sdk must use exact version =0.100.0" in result.stderr
+
+
+def test_non_toml_blocks_without_dependencies_are_ignored() -> None:
+    examples = (
+        "```rust\nfn main() {}\n```\n",
+        "```text\nnot valid TOML = but valid prose\n```\n",
+        "```text\ntitle = \"valid unrelated TOML\"\n```\n",
+    )
+    with tempfile.TemporaryDirectory() as temporary:
+        readme = Path(temporary) / "README.md"
+        for example in examples:
+            readme.write_text(example, encoding="ascii")
+            result = run(readme)
+            assert result.returncode == 0, (example, result)
 
 
 def test_unterminated_toml_variants_fail_closed() -> None:
@@ -194,8 +215,9 @@ def main() -> None:
     test_commonmark_toml_fences_are_enforced()
     test_dependency_tables_override_missing_or_incorrect_languages()
     test_cargo_dependency_table_variants_are_detected()
+    test_non_toml_blocks_without_dependencies_are_ignored()
     test_unterminated_toml_variants_fail_closed()
-    print("10 publishable README regression groups passed.")
+    print("11 publishable README regression groups passed.")
 
 
 if __name__ == "__main__":

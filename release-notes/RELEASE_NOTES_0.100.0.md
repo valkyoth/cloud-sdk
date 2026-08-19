@@ -42,8 +42,9 @@ freezing the public API candidate.
   without changing the established `ImageListRequest` generic arity.
 - Every selected package's README Cargo examples use `=version` requirements
   for exact planned first-party releases. The release gate detects dependency
-  tables regardless of fence labeling and rejects dependency skew or malformed
-  TOML across CommonMark backtick and tilde fence variants.
+  tables structurally in every syntactically valid fenced TOML candidate,
+  regardless of fence labeling, and rejects dependency skew or malformed TOML
+  across CommonMark backtick and tilde fence variants.
 
 ## Versions
 

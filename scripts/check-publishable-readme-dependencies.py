@@ -67,13 +67,13 @@ def fence_language(info: str) -> str:
     return ""
 
 
-def is_dependency_toml(language: str, block: str) -> bool:
-    return language == "toml" or DEPENDENCY_HEADER.search(block) is not None
+def has_dependency_hint(block: str) -> bool:
+    return DEPENDENCY_HEADER.search(block) is not None
 
 
-def toml_blocks(path: Path) -> list[tuple[int, str]]:
+def fenced_blocks(path: Path) -> list[tuple[int, str, str, bool]]:
     lines = path.read_text(encoding="utf-8").splitlines()
-    blocks: list[tuple[int, str]] = []
+    blocks: list[tuple[int, str, str, bool]] = []
     start: int | None = None
     fence_char = ""
     fence_length = 0
@@ -100,8 +100,7 @@ def toml_blocks(path: Path) -> list[tuple[int, str]]:
         )
         if closing is not None:
             block = "\n".join(content) + "\n"
-            if is_dependency_toml(language, block):
-                blocks.append((start, block))
+            blocks.append((start, language, block, True))
             start = None
             fence_char = ""
             fence_length = 0
@@ -111,8 +110,7 @@ def toml_blocks(path: Path) -> list[tuple[int, str]]:
             content.append(line)
     if start is not None:
         block = "\n".join(content) + "\n"
-        if is_dependency_toml(language, block):
-            raise ReadmeDependencyError("README contains an unterminated TOML fence")
+        blocks.append((start, language, block, False))
     return blocks
 
 
@@ -147,14 +145,21 @@ def validate_readme(
     owner = readme_owner(path)
     if owner is not None and owner not in selected:
         return
-    for line, block in toml_blocks(path):
+    for line, language, block, terminated in fenced_blocks(path):
         try:
             parsed = tomllib.loads(block)
         except tomllib.TOMLDecodeError as error:
+            if language != "toml" and not has_dependency_hint(block):
+                continue
             raise ReadmeDependencyError(
                 f"{path}:{line}: TOML example is invalid"
             ) from error
-        for table in dependency_tables(parsed):
+        tables = list(dependency_tables(parsed))
+        if language != "toml" and not tables:
+            continue
+        if not terminated:
+            raise ReadmeDependencyError("README contains an unterminated TOML fence")
+        for table in tables:
             for name, specification in table.items():
                 package, version = dependency_identity(name, specification)
                 if package not in versions:
