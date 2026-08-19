@@ -39,7 +39,9 @@ are part of the deployment build trust boundary. GitHub-hosted runner labels
 are native compatibility evidence, not immutable or reproducible toolchain
 images and not compliance accreditation. The workflow-policy checker admits
 only the reviewed GitHub-hosted labels, closes the complete `matrix.os` axis,
-and rejects arrays, self-hosted labels, and matrix include overrides.
+and rejects arrays, self-hosted labels, and matrix include overrides. Live
+governance separately requires no direct self-hosted runners and no inherited
+organization or enterprise runner groups visible to this repository.
 
 ## Qualification
 

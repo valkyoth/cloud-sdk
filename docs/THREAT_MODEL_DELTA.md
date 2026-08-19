@@ -332,8 +332,9 @@ semantic checks for both workflow filename extensions, exact expression,
 action, action-input, step, command, and environment allowlists, execution
 modifier rejection, exact GitHub-hosted runner and runner-matrix validation, and
 a machine-readable live GitHub/crates.io baseline fail closed on reviewed drift.
-The live baseline requires zero repository-accessible self-hosted runners.
-SHA-pinned read-only workflow checks, exact signed-tag and state checks,
+The live baseline requires zero direct repository self-hosted runners and zero
+organization or enterprise runner groups visible to this repository. SHA-pinned
+read-only workflow checks, exact signed-tag and state checks,
 two-clean-clone archive and SBOM comparison, and recovery procedures provide
 further evidence. Provenance reads package policy, committed SBOM, source-tree,
 and lockfile data from the captured Git object and rejects concurrent

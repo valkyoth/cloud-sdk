@@ -350,17 +350,14 @@ def live_fixture() -> tuple[dict, dict[str, object]]:
             "sha_pinning_required": False,
         },
         f"repos/{repository}/actions/runners": {"total_count": 0, "runners": []},
+        "orgs/valkyoth/actions/runner-groups?visible_to_repository=cloud-sdk&per_page=100": {"total_count": 0, "runner_groups": []},
     }
     return config, responses
 
 
-def test_live_github_baseline_passes() -> None:
-    config, responses = live_fixture()
-    checker.check_live_github(config, lambda endpoint: responses[endpoint])
-
-
 def test_every_documented_live_setting_drift_fails() -> None:
     config, baseline = live_fixture()
+    checker.check_live_github(config, lambda endpoint: baseline[endpoint])
     repository = config["policy"]["repository"]
     cases = (
         (
@@ -405,6 +402,7 @@ def test_every_documented_live_setting_drift_fails() -> None:
             lambda value: value.update(total_count=1),
             "self-hosted runner",
         ),
+        ("orgs/valkyoth/actions/runner-groups?visible_to_repository=cloud-sdk&per_page=100", lambda value: value.update(total_count=1), "runner-group"),
         (
             f"repos/{repository}",
             lambda value: value["security_and_analysis"]["secret_scanning"].update(
@@ -486,7 +484,6 @@ def main() -> None:
         test_flow_style_release_trigger_fails,
         test_incomplete_recovery_runbook_fails,
         test_publisher_with_git_push_fails,
-        test_live_github_baseline_passes,
         test_every_documented_live_setting_drift_fails,
         test_current_repository_policy_passes,
     )

@@ -13,7 +13,8 @@
   unapproved expressions, execution modifiers, job overrides, and release
   authority; and restricted actions, action inputs, commands, environment
   entries, step structures, direct runners, and runner-matrix values to exact
-  reviewed forms. Live governance also requires zero self-hosted runners.
+  reviewed forms. Live governance also requires zero direct self-hosted runners
+  and zero organization or enterprise runner groups visible to the repository.
 - Added two-clean-clone reproduction of every `.crate` archive and all four
   complete SPDX graphs, including exact source, lockfile, tool, package, and
   canonical-SBOM digests plus explicit unpublished first-party patch policy.

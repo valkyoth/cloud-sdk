@@ -8,6 +8,7 @@ import json
 import subprocess
 import sys
 from pathlib import Path
+from urllib.parse import urlencode
 
 sys.dont_write_bytecode = True
 
@@ -327,6 +328,14 @@ def check_live_github(config: dict, query=gh_json) -> None:
     runners = query(f"repos/{repository}/actions/runners")
     if runners.get("total_count") != policy["self_hosted_runner_count"]:
         raise GovernanceError("self-hosted runner count differs from reviewed policy")
+
+    owner, repo = repository.split("/", 1)
+    parameters = urlencode({"visible_to_repository": repo, "per_page": 100})
+    groups = query(f"orgs/{owner}/actions/runner-groups?{parameters}")
+    if groups.get("total_count") != policy["visible_self_hosted_runner_group_count"]:
+        raise GovernanceError(
+            "visible self-hosted runner-group count differs from reviewed policy"
+        )
 
     security = repository_state.get("security_and_analysis", {})
     for key in ("secret_scanning", "secret_scanning_push_protection"):

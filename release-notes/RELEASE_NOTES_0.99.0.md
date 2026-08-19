@@ -31,8 +31,8 @@ is an internal cumulative tag and publishes no crate.
   matrix values, and matrix include overrides fail closed.
 - Live review compares the exact source-locked default branch, branch ruleset
   and bypass actors, tag ruleset state, Actions policy, CodeQL setup, secret
-  scanning state, zero self-hosted runner exposure, and crates.io ownership
-  before reporting success.
+  scanning state, zero direct self-hosted runners, zero inherited runner groups
+  visible to the repository, and crates.io ownership before reporting success.
 - The governance review records current limitations: maintainer and
   organization-administrator branch bypasses, no tag ruleset, repository-level
   SHA pin enforcement disabled, GitHub secret scanning disabled, and one
