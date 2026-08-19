@@ -1,8 +1,9 @@
 # Crate Version Matrix
 
 Status: `v0.95.0` is the latest published checkpoint. `v0.100.0` is the current
-public release candidate for the complete v0.96-v0.100 cumulative train. A
-fresh incremental pentest remains required before publication.
+public release candidate for the complete v0.96-v0.100 cumulative train. Its
+incremental pentest and final retest passed, with local and GitHub release gates
+remaining before publication.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared

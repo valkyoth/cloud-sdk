@@ -1,11 +1,11 @@
 # cloud-sdk 0.100.0 Release Notes
 
-Status: implementation candidate; fresh pentest required.
+Status: release candidate; incremental pentest and final retest passed.
 
 Release date: 2026-08-19
 
-Security-Review: PENDING
-Pentest: PENDING
+Security-Review: PASS
+Pentest: PASS
 Publication: PENDING
 
 ## Overview
@@ -59,6 +59,6 @@ freezing the public API candidate.
 
 ## Remaining Gates
 
-Run the fresh incremental pentest from signed `v0.99.0`, commit the permanent
-report, and run `scripts/release_0_100_gate.sh`. Tag and publish only after the
-exact final commit passes the full gate, GitHub CI, and CodeQL.
+Run `scripts/release_0_100_gate.sh` on the exact final evidence commit. Tag and
+publish only after that unchanged commit passes the full local gate, GitHub CI,
+and CodeQL.

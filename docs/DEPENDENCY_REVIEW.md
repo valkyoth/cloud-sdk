@@ -482,7 +482,7 @@ network, credential, or runtime edge. Nothing publishes at this milestone.
 | `saphyr-parser` | transitive | `0.0.12` | Exact direct pre-DOM event parser; no publishable edge. |
 
 ## v0.100.0
-Status: candidate freeze; fresh incremental pentest required.
+Status: candidate freeze; incremental pentest and final retest passed.
 
 No third-party package or feature changed. Credential-free mutation tests are
 repository-only and add no runtime, credential, network, build-script, or

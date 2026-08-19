@@ -475,7 +475,7 @@ facade milestone identity; all supporting package versions remain unchanged.
 
 ## v0.100.0
 
-Status: candidate API freeze; fresh incremental pentest required.
+Status: candidate API freeze; incremental pentest and final retest passed.
 
 The cumulative public additions since v0.95 are `SourceLockedQuery` and its
 typed operation/argument/value/error contracts, corrected Server metrics

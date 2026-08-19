@@ -81,10 +81,11 @@ for the provider-neutral foundation and exhaustive named Hetzner
 Cloud, DNS, Security, Console Storage Box, and Robot clients. This milestone
 adds credential-free mutation safety qualification and freezes the candidate
 public API after the platform, compiler, feature, package, documentation,
-release-governance, and provenance reviews. A fresh incremental pentest is
-required before publication. Provider crates remain transport-free and perform
-no network request by default. Future FIPS work remains deferred until Brynja
-is ready.
+release-governance, and provenance reviews. The incremental pentest and final
+retest passed; the unchanged candidate still requires the local release gate,
+GitHub CI, and CodeQL before tagging. Provider crates remain transport-free and
+perform no network request by default. Future FIPS work remains deferred until
+Brynja is ready.
 
 ## Trust Dashboard
 
