@@ -10,7 +10,7 @@
   live GitHub/crates.io governance settings.
 - Added two-clean-clone reproduction of every `.crate` archive and all four
   complete SPDX graphs, including exact source, lockfile, tool, package, and
-  canonical-SBOM digests.
+  canonical-SBOM digests plus explicit unpublished first-party patch policy.
 - Documented signer rotation and compromise response, repository and crates.io
   recovery, immutable release rollback, current GitHub bypass/tag limitations,
   and the absence of an independent security assessment claim.

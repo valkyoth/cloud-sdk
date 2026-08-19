@@ -84,6 +84,10 @@ def test_policy_names_all_five_publishable_packages() -> None:
     )
 
 
+def test_every_publishable_package_has_explicit_patch_policy() -> None:
+    assert set(checker.packages_from_policy()) == set(checker.PACKAGE_PATCHES)
+
+
 def main() -> None:
     tests = (
         test_volatile_sbom_fields_do_not_change_identity,
@@ -91,6 +95,7 @@ def main() -> None:
         test_comparison_rejects_missing_artifact,
         test_comparison_rejects_changed_artifact,
         test_policy_names_all_five_publishable_packages,
+        test_every_publishable_package_has_explicit_patch_policy,
     )
     for test in tests:
         test()

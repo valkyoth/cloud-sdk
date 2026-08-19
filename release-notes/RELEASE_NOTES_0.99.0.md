@@ -37,7 +37,9 @@ is an internal cumulative tag and publishes no crate.
 ## Provenance And Publication
 
 - Two independent clean clones of one exact commit build every allowed crate
-  archive using the lockfile and regenerate all four complete SPDX graphs.
+  archive using the lockfile and explicit package-specific local patches for
+  unpublished in-train dependencies, then regenerate all four complete SPDX
+  graphs.
 - Package archives must have identical SHA-256 values. Canonical SBOMs remove
   only creation time and random namespace before comparison and must also equal
   committed evidence.
@@ -64,4 +66,3 @@ Run the incremental pentest against v0.98.0 for the exact implementation
 commit. After a green retest, add permanent v0.99 evidence and run
 `scripts/release_0_99_gate.sh`. Do not publish crates; the cumulative public
 checkpoint is v0.100.0.
-

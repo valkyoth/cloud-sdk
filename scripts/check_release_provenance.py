@@ -29,6 +29,26 @@ SBOMS = (
     "fuzz.spdx.json",
     "prepared-coverage-check.spdx.json",
 )
+PACKAGE_PATCHES = {
+    "cloud-sdk-sanitization": (),
+    "cloud-sdk": (
+        'patch.crates-io.cloud-sdk-sanitization.path="crates/cloud-sdk-sanitization"',
+    ),
+    "cloud-sdk-reqwest": (
+        'patch.crates-io.cloud-sdk.path="crates/cloud-sdk"',
+        'patch.crates-io.cloud-sdk-sanitization.path="crates/cloud-sdk-sanitization"',
+    ),
+    "cloud-sdk-testkit": (
+        'patch.crates-io.cloud-sdk.path="crates/cloud-sdk"',
+        'patch.crates-io.cloud-sdk-sanitization.path="crates/cloud-sdk-sanitization"',
+    ),
+    "cloud-sdk-hetzner": (
+        'patch.crates-io.cloud-sdk.path="crates/cloud-sdk"',
+        'patch.crates-io.cloud-sdk-reqwest.path="crates/cloud-sdk-reqwest"',
+        'patch.crates-io.cloud-sdk-sanitization.path="crates/cloud-sdk-sanitization"',
+        'patch.crates-io.cloud-sdk-testkit.path="crates/cloud-sdk-testkit"',
+    ),
+}
 
 
 class ProvenanceError(RuntimeError):
@@ -74,15 +94,18 @@ def package_archives(root: Path, packages: tuple[str, ...]) -> dict[str, str]:
     environment = os.environ.copy()
     environment["CARGO_TARGET_DIR"] = str(target)
     for package in packages:
+        command = [
+            "cargo",
+            "package",
+            "--locked",
+            "--no-verify",
+            "-p",
+            package,
+        ]
+        for patch in PACKAGE_PATCHES.get(package, ()):
+            command.extend(("--config", patch))
         subprocess.run(
-            [
-                "cargo",
-                "package",
-                "--locked",
-                "--no-verify",
-                "-p",
-                package,
-            ],
+            command,
             cwd=root,
             env=environment,
             check=True,
@@ -171,6 +194,8 @@ def packages_from_policy() -> tuple[str, ...]:
     packages = config["packages"]["publishable"]
     if not isinstance(packages, list) or not all(isinstance(item, str) for item in packages):
         raise ProvenanceError("release governance publishable list is malformed")
+    if set(packages) != set(PACKAGE_PATCHES):
+        raise ProvenanceError("package patch inventory differs from governance policy")
     return tuple(packages)
 
 
@@ -220,4 +245,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

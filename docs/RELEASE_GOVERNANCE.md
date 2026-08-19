@@ -138,6 +138,9 @@ artifacts. It does not make external account configuration part of Git.
 exact commit twice without local hard links, and from each clone:
 
 - creates all five allowed `.crate` archives with `--locked --no-verify`;
+- resolves unpublished in-train first-party versions through an explicit,
+  package-specific local patch inventory while retaining registry dependency
+  declarations in the resulting archives;
 - generates all four complete SPDX dependency graphs;
 - compares package archives byte for byte through SHA-256;
 - compares SBOMs after removing only cargo-sbom's creation timestamp and random
@@ -182,4 +185,3 @@ signed. The signed release tag binds the complete commit containing them.
 Claims such as FIPS validation, military-grade security, regulated-environment
 approval, reproducible operating environments, or independent certification
 are outside the current project evidence.
-
