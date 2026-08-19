@@ -468,7 +468,7 @@ the core std integrations enable that core feature explicitly.
 | `ovhcloud-v2-probe` | `0.97.0` | `0.98.0` | Advance the unpublished probe identity only. |
 
 ## v0.99.0
-Status: pentest remediation; incremental retest required.
+Status: release candidate; incremental pentest and final retest passed.
 
 Pentest found that line-oriented YAML inspection could not substantiate the
 workflow-policy claim. Remediation admits exact `saphyr 0.0.12` and direct

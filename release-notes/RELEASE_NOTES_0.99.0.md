@@ -1,11 +1,11 @@
 # cloud-sdk 0.99.0 Release Notes
 
-Status: implementation stop; incremental pentest required.
+Status: release candidate; pentest and final retest passed.
 
 Release date: 2026-08-19
 
-Security-Review: PENDING
-Pentest: PENDING
+Security-Review: PASS
+Pentest: PASS
 Publication: DEFERRED TO v0.100.0
 
 ## Overview
@@ -72,9 +72,29 @@ is an internal cumulative tag and publishes no crate.
 | `cloud-sdk-sanitization` | `0.19.0` | `0.19.0` | unchanged |
 | `cloud-sdk-testkit` | `0.31.0` | `0.31.0` | accumulated dependency change; deferred |
 
+## Pentest Remediation
+
+- Replaced line-oriented workflow inspection with bounded YAML event and DOM
+  parsing, then restricted workflow expressions, actions, inputs, steps,
+  commands, environments, execution modifiers, and runner selectors to exact
+  reviewed forms.
+- Added a closed GitHub-hosted runner matrix and independent live zero baselines
+  for direct repository runners and organization or enterprise runner groups
+  visible to this repository.
+- Bound provenance inputs to the captured Git object, rejected concurrent
+  source-state changes, and made clean-clone package and canonical SBOM
+  reproduction deterministic for unpublished in-train dependencies.
+- Expanded regression coverage for workflow authority bypasses, parser resource
+  bounds, release selection, live governance drift, and artifact provenance.
+
 ## Stop Gate
 
-Run the incremental pentest against v0.98.0 for the exact implementation
-commit. After a green retest, add permanent v0.99 evidence and run
-`scripts/release_0_99_gate.sh`. Do not publish crates; the cumulative public
-checkpoint is v0.100.0.
+The incremental pentest and remediation retest are green. Run
+`scripts/release_0_99_gate.sh` against the exact final evidence commit and
+require green GitHub CI and CodeQL before tagging. Do not publish crates; the
+cumulative public checkpoint is v0.100.0.
+
+## Result
+
+v0.99.0 is ready for its internal signed tag after the clean local release
+gate and GitHub CI and CodeQL pass. No crate is selected for publication.

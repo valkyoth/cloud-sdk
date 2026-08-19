@@ -465,7 +465,7 @@ adapter selection from widening the portable core graph.
 
 ## v0.99.0
 
-Status: implementation stop; incremental pentest required.
+Status: release candidate; incremental pentest and final retest passed.
 
 No supported Rust library item, feature, target, request, response, client, or
 provider operation changes. The release-governance TOML, Python checks,

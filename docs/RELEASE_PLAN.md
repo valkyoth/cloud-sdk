@@ -3520,7 +3520,9 @@ and the exact commit is ready for pentest.
 
 Stop gate: `v0.99.0 implementation stop reached. Run the pentest and full release gate for this exact commit; defer crates.io publication to v0.100.0.`
 
-Status: implementation stop; incremental pentest required.
+Status: release candidate; incremental pentest and final retest passed;
+crates.io publication remains deferred to v0.100.0. Tag only after the exact
+final evidence commit passes the local release gate, CI, and CodeQL.
 
 ### v0.100.0 - Controlled Mutation Release Candidate
 
