@@ -5,7 +5,7 @@
 - Added complete allocation-free contracts for all seven canonical Hetzner
   Server Metadata reads, strict summary/scalar/private-network decoding, and
   blocking, `Send` async, and local-async one-attempt execution.
-- Added an exact credential-free IPv4 link-local raw transport constructor;
+- Added exact credential-free IPv4 link-local raw transport builder types;
   custom destinations, credentials, redirects, proxies, retries, and ambient
   endpoint configuration remain unavailable.
 - Source-locked metadata prose alongside OpenAPI, Robot, and changelog drift;

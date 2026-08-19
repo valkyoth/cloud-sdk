@@ -91,10 +91,10 @@ Tokio and does not become a browser-WASM or embedded transport. See the
 
 `LinkLocalHttpEndpoint` is the only admitted HTTP exception. It requires a
 provider-owned fixed policy, an IPv4 link-local literal, port 80, and the exact
-base path. `RawBlockingClientBuilder::new_link_local` and
-`RawAsyncClientBuilder::new_link_local` have no credential parameter, use the
-direct Hyper connector, follow no redirects, consult no proxy environment,
-and perform one attempt:
+base path. `RawLinkLocalBlockingClientBuilder` and
+`RawLinkLocalAsyncClientBuilder` are separate from the HTTPS-only raw builders,
+have no credential parameter, use the direct Hyper connector, follow no
+redirects, consult no proxy environment, and perform one attempt:
 
 ```rust,no_run
 # #[cfg(feature = "blocking-rustls")]
@@ -102,7 +102,8 @@ and perform one attempt:
 use std::time::Duration;
 use cloud_sdk::transport::{EndpointIdentity, EndpointPolicy, EndpointScheme};
 use cloud_sdk_reqwest::blocking::{
-    LinkLocalHttpEndpoint, RawBlockingClientBuilder, RequestTimeouts, UserAgent,
+    LinkLocalHttpEndpoint, RawLinkLocalBlockingClientBuilder, RequestTimeouts,
+    UserAgent,
 };
 
 let identity = EndpointIdentity::new(
@@ -120,7 +121,7 @@ let timeouts = RequestTimeouts::new(
     Duration::from_secs(2),
     Duration::from_secs(1),
 )?;
-let _client = RawBlockingClientBuilder::new_link_local(
+let _client = RawLinkLocalBlockingClientBuilder::new(
     endpoint,
     user_agent,
     timeouts,

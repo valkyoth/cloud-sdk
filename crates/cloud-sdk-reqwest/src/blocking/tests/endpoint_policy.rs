@@ -6,7 +6,8 @@ use cloud_sdk::transport::{
 
 use super::{EndpointError, HttpsEndpoint, custom_endpoint, test_timeouts};
 use crate::blocking::{
-    LinkLocalHttpEndpoint, MAX_CONFIGURED_ENDPOINT_BYTES, RawBlockingClientBuilder, UserAgent,
+    LinkLocalHttpEndpoint, MAX_CONFIGURED_ENDPOINT_BYTES, RawLinkLocalBlockingClientBuilder,
+    UserAgent,
 };
 
 #[test]
@@ -27,7 +28,7 @@ fn exact_link_local_endpoint_builds_only_the_raw_credential_free_client() {
         unreachable!("security fixture construction failed")
     };
     assert!(
-        RawBlockingClientBuilder::new_link_local(endpoint, user_agent, timeouts)
+        RawLinkLocalBlockingClientBuilder::new(endpoint, user_agent, timeouts)
             .build()
             .is_ok()
     );

@@ -27,8 +27,8 @@ publishes no crate.
   CIDR, MAC, gateway, subnet, interface, network, alias, and aggregate checks.
 - Added blocking, `Send` async, and local-async one-attempt helpers with exact
   endpoint verification before executor access.
-- Added a credential-free link-local raw reqwest adapter constructor while
-  preserving HTTPS-only behavior for every existing authenticated builder.
+- Added separate credential-free link-local raw reqwest adapter builder types;
+  HTTPS-only builders cannot carry a runtime HTTP downgrade mode.
 
 ## Source And Response Qualification
 

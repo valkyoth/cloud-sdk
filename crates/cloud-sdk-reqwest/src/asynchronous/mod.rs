@@ -22,7 +22,7 @@ pub use crate::shared::{
 pub use basic_client::AsyncBasicClient;
 pub use basic_config::AsyncBasicClientBuilder;
 pub use client::AsyncClient;
-pub use config::{AsyncClientBuilder, RawAsyncClientBuilder};
+pub use config::{AsyncClientBuilder, RawAsyncClientBuilder, RawLinkLocalAsyncClientBuilder};
 pub use raw::RawAsyncClient;
 
 #[cfg(test)]

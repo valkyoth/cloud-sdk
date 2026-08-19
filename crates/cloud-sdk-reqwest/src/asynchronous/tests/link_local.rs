@@ -1,7 +1,7 @@
 use cloud_sdk::transport::{EndpointIdentity, EndpointPolicy, EndpointScheme};
 
 use super::test_timeouts;
-use crate::asynchronous::{LinkLocalHttpEndpoint, RawAsyncClientBuilder, UserAgent};
+use crate::asynchronous::{LinkLocalHttpEndpoint, RawLinkLocalAsyncClientBuilder, UserAgent};
 
 #[test]
 fn exact_link_local_endpoint_builds_only_the_raw_credential_free_client() {
@@ -21,7 +21,7 @@ fn exact_link_local_endpoint_builds_only_the_raw_credential_free_client() {
         unreachable!("security fixture construction failed")
     };
     assert!(
-        RawAsyncClientBuilder::new_link_local(endpoint, user_agent, timeouts)
+        RawLinkLocalAsyncClientBuilder::new(endpoint, user_agent, timeouts)
             .build()
             .is_ok()
     );

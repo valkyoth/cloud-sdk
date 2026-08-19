@@ -24,7 +24,9 @@ pub use crate::shared::{
 pub use basic_client::BlockingBasicClient;
 pub use basic_config::BlockingBasicClientBuilder;
 pub use client::BlockingClient;
-pub use config::{BlockingClientBuilder, RawBlockingClientBuilder};
+pub use config::{
+    BlockingClientBuilder, RawBlockingClientBuilder, RawLinkLocalBlockingClientBuilder,
+};
 pub use raw::RawBlockingClient;
 
 #[cfg(test)]

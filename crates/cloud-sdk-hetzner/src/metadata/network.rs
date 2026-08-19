@@ -331,18 +331,32 @@ fn parse_aliases(value: &str) -> Result<AliasIpv4Addresses<'_>, MetadataDecodeEr
         .strip_prefix('[')
         .and_then(|value| value.strip_suffix(']'))
         .ok_or(MetadataDecodeError::InvalidSyntax)?;
+    let mut addresses = [0_u32; MAX_METADATA_ALIAS_IPS];
     let mut count = 0_usize;
     if !values.is_empty() {
-        for (index, value) in values.split(", ").enumerate() {
-            if value.is_empty() || parse_ipv4(value).is_err() {
-                return Err(MetadataDecodeError::InvalidIpv4);
+        for value in values.split(", ") {
+            if count == MAX_METADATA_ALIAS_IPS {
+                return Err(MetadataDecodeError::TooManyItems);
             }
-            if values.split(", ").take(index).any(|prior| prior == value) {
-                return Err(MetadataDecodeError::InconsistentNetwork);
-            }
+            let address = parse_ipv4(value)?;
+            let slot = addresses
+                .get_mut(count)
+                .ok_or(MetadataDecodeError::TooManyItems)?;
+            *slot = u32::from_be_bytes(address.octets());
             count = count
                 .checked_add(1)
                 .ok_or(MetadataDecodeError::TooManyItems)?;
+        }
+        let used = addresses
+            .get_mut(..count)
+            .ok_or(MetadataDecodeError::TooManyItems)?;
+        used.sort_unstable();
+        if used.windows(2).any(|pair| {
+            pair.first()
+                .zip(pair.get(1))
+                .is_some_and(|(left, right)| left == right)
+        }) {
+            return Err(MetadataDecodeError::InconsistentNetwork);
         }
         if values.contains(',') && !values.contains(", ") {
             return Err(MetadataDecodeError::InvalidSyntax);

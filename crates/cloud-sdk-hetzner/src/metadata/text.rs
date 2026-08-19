@@ -3,6 +3,8 @@ use core::str::FromStr;
 
 use cloud_sdk::transport::{StatusCode, TransportResponse};
 
+use crate::cloud::{public_ip::invalid_public_v4, servers::ServerName};
+
 use super::{MAX_METADATA_RESPONSE_BYTES, MetadataPrivateNetworks, MetadataRoute};
 
 /// Strict decoded response for one canonical metadata route.
@@ -141,15 +143,11 @@ pub fn decode_metadata_body(
     let text = core::str::from_utf8(body).map_err(|_| MetadataDecodeError::InvalidUtf8)?;
     match route {
         MetadataRoute::Summary => parse_summary(text).map(MetadataResponse::Summary),
-        MetadataRoute::Hostname => {
-            scalar(text, 253, valid_hostname).map(MetadataResponse::Hostname)
-        }
+        MetadataRoute::Hostname => parse_metadata_hostname(text).map(MetadataResponse::Hostname),
         MetadataRoute::InstanceId => {
             parse_instance_id(scalar(text, 20, ascii_digits)?).map(MetadataResponse::InstanceId)
         }
-        MetadataRoute::PublicIpv4 => {
-            parse_ipv4(scalar(text, 15, ipv4_chars)?).map(MetadataResponse::PublicIpv4)
-        }
+        MetadataRoute::PublicIpv4 => parse_public_ipv4(text).map(MetadataResponse::PublicIpv4),
         MetadataRoute::PrivateNetworks => {
             MetadataPrivateNetworks::new(text).map(MetadataResponse::PrivateNetworks)
         }
@@ -175,9 +173,9 @@ fn parse_summary(text: &str) -> Result<MetadataSummary<'_>, MetadataDecodeError>
             return Err(MetadataDecodeError::InvalidSyntax);
         }
         match key {
-            "hostname" => set(&mut hostname, scalar(value, 253, valid_hostname)?),
+            "hostname" => set(&mut hostname, parse_metadata_hostname(value)?),
             "instance-id" => set(&mut instance_id, parse_instance_id(value)?),
-            "public-ipv4" => set(&mut public_ipv4, parse_ipv4(value)?),
+            "public-ipv4" => set(&mut public_ipv4, parse_public_ipv4(value)?),
             "availability-zone" => set(&mut availability_zone, scalar(value, 64, name_chars)?),
             "region" => set(&mut region, scalar(value, 64, name_chars)?),
             _ => return Err(MetadataDecodeError::UnknownField),
@@ -238,6 +236,20 @@ fn parse_instance_id(value: &str) -> Result<u64, MetadataDecodeError> {
     Ok(value)
 }
 
+fn parse_metadata_hostname(value: &str) -> Result<&str, MetadataDecodeError> {
+    let value = scalar(value, 63, name_chars)?;
+    ServerName::new(value).map_err(|_| MetadataDecodeError::InvalidSyntax)?;
+    Ok(value)
+}
+
+fn parse_public_ipv4(value: &str) -> Result<Ipv4Addr, MetadataDecodeError> {
+    let address = parse_ipv4(value)?;
+    if invalid_public_v4(address) {
+        return Err(MetadataDecodeError::InvalidIpv4);
+    }
+    Ok(address)
+}
+
 pub(super) fn parse_ipv4(value: &str) -> Result<Ipv4Addr, MetadataDecodeError> {
     let address = Ipv4Addr::from_str(value).map_err(|_| MetadataDecodeError::InvalidIpv4)?;
     let octets = address.octets();
@@ -274,17 +286,10 @@ fn set<T>(slot: &mut Option<T>, value: T) -> Result<(), MetadataDecodeError> {
     }
 }
 
-fn valid_hostname(byte: u8) -> bool {
-    byte.is_ascii_alphanumeric() || matches!(byte, b'.' | b'-' | b'_')
-}
-
 fn name_chars(byte: u8) -> bool {
     byte.is_ascii_alphanumeric() || byte == b'-'
 }
 
 fn ascii_digits(byte: u8) -> bool {
     byte.is_ascii_digit()
-}
-fn ipv4_chars(byte: u8) -> bool {
-    byte.is_ascii_digit() || byte == b'.'
 }

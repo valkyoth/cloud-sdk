@@ -465,8 +465,10 @@ Status: implementation stop; incremental pentest required.
   strict borrowed decoders, and blocking, `Send` async, and local-async
   one-attempt execution helpers.
 - `cloud_sdk_reqwest::{blocking,asynchronous}::LinkLocalHttpEndpoint` and the
-  raw builders' `new_link_local` constructors admit only provider-policy-bound
-  IPv4 link-local HTTP on port 80 and accept no credential.
+  dedicated `RawLinkLocalBlockingClientBuilder` and
+  `RawLinkLocalAsyncClientBuilder` admit only provider-policy-bound IPv4
+  link-local HTTP on port 80 and accept no credential. The HTTPS-only raw
+  builders cannot carry a runtime HTTP downgrade mode.
 - Core media types add public `text/plain`, `application/yaml`, and `text/yaml`
   constants used by bounded metadata response policies.
 - Existing complete Cloud response trees validate the source-locked Load

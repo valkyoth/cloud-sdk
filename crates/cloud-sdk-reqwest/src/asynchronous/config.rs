@@ -21,7 +21,13 @@ pub struct RawAsyncClientBuilder {
     endpoint: HttpsEndpoint,
     user_agent: UserAgent,
     timeouts: RequestTimeouts,
-    https_only: bool,
+}
+
+/// Builder for the credential-free raw IPv4 link-local HTTP executor.
+pub struct RawLinkLocalAsyncClientBuilder {
+    endpoint: LinkLocalHttpEndpoint,
+    user_agent: UserAgent,
+    timeouts: RequestTimeouts,
 }
 
 impl AsyncClientBuilder {
@@ -87,29 +93,12 @@ impl RawAsyncClientBuilder {
             endpoint,
             user_agent,
             timeouts,
-            https_only: true,
-        }
-    }
-
-    /// Creates a raw direct-link-local HTTP builder with no credential path.
-    #[must_use]
-    pub fn new_link_local(
-        endpoint: LinkLocalHttpEndpoint,
-        user_agent: UserAgent,
-        timeouts: RequestTimeouts,
-    ) -> Self {
-        Self {
-            endpoint: endpoint.into_inner(),
-            user_agent,
-            timeouts,
-            https_only: false,
         }
     }
 
     /// Builds an HTTPS-only executor with no implicit authorization.
     pub fn build(self) -> Result<RawAsyncClient, BuildError> {
-        let https_only = self.https_only;
-        self.build_inner(https_only)
+        self.build_inner(true)
     }
 
     fn build_inner(self, https_only: bool) -> Result<RawAsyncClient, BuildError> {
@@ -119,6 +108,32 @@ impl RawAsyncClientBuilder {
     #[cfg(test)]
     pub(super) fn build_for_loopback(self) -> Result<RawAsyncClient, BuildError> {
         self.build_inner(false)
+    }
+}
+
+impl RawLinkLocalAsyncClientBuilder {
+    /// Creates a direct-link-local HTTP builder with no credential path.
+    #[must_use]
+    pub const fn new(
+        endpoint: LinkLocalHttpEndpoint,
+        user_agent: UserAgent,
+        timeouts: RequestTimeouts,
+    ) -> Self {
+        Self {
+            endpoint,
+            user_agent,
+            timeouts,
+        }
+    }
+
+    /// Builds an HTTP executor restricted to the configured link-local endpoint.
+    pub fn build(self) -> Result<RawAsyncClient, BuildError> {
+        configured_raw_client(
+            self.endpoint.into_inner(),
+            &self.user_agent,
+            self.timeouts,
+            false,
+        )
     }
 }
 
@@ -141,7 +156,17 @@ impl fmt::Debug for RawAsyncClientBuilder {
             .field("endpoint", &"[redacted]")
             .field("user_agent", &self.user_agent)
             .field("timeouts", &self.timeouts)
-            .field("link_local_http", &!self.https_only)
+            .finish()
+    }
+}
+
+impl fmt::Debug for RawLinkLocalAsyncClientBuilder {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("RawLinkLocalAsyncClientBuilder")
+            .field("endpoint", &"[redacted]")
+            .field("user_agent", &self.user_agent)
+            .field("timeouts", &self.timeouts)
             .finish()
     }
 }
