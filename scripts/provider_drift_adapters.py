@@ -12,6 +12,7 @@ from urllib.parse import urlsplit
 
 import check_hetzner_api_drift as hetzner
 import generate_response_operations as responses
+from hetzner_openapi_contracts import HTTP_METHODS
 from provider_drift_model import read_bounded_bytes
 from ovhcloud_probe_adapter import (
     OvhcloudProbeError,
@@ -158,7 +159,7 @@ def _header_row(service: str, document: dict[str, Any]) -> dict[str, Any]:
         if not isinstance(path, str) or not isinstance(item, dict):
             raise AdapterError("provider path structure is invalid")
         for method, operation in item.items():
-            if method not in hetzner.HTTP_METHODS:
+            if method not in HTTP_METHODS:
                 continue
             if not isinstance(operation, dict):
                 raise AdapterError("provider operation structure is invalid")

@@ -88,7 +88,19 @@ def test_source_derived_categories_do_not_inherit_lock_values() -> None:
             "securitySchemes": {"APIToken": {"scheme": "bearer", "type": "http"}},
             "schemas": {},
         },
-        "paths": {},
+        "paths": {
+            "/servers": {
+                "get": {
+                    "responses": {
+                        "200": {
+                            "headers": {
+                                "X-Next": {"schema": {"type": "string"}}
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "security": [{"APIToken": []}],
         "servers": [{"url": "https://api.hetzner.cloud/v1"}],
     }
@@ -126,6 +138,7 @@ def test_source_derived_categories_do_not_inherit_lock_values() -> None:
         "docs/OPERATION_ASSOCIATIONS.tsv"
     )
     assert len(observed["contracts"]["headers"]) == 4
+    assert observed["contracts"]["headers"][0]["values"]["names"] == ["x-next"]
     assert observed["contracts"]["pagination"][0]["values"]["operation_count"] == 0
     assert observed["contracts"]["retry"][0]["values"]["delivery_phases"] == [
         "not_sent",

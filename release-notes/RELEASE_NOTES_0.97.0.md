@@ -67,6 +67,9 @@ publishes no crate.
   async builder types so HTTPS builders cannot carry a runtime downgrade mode.
 - Restored the shared scalar policy for public IPv4 responses: exactly one
   terminal LF is accepted, while CRLF and repeated newlines remain rejected.
+- Repaired the generic provider-drift adapter after the OpenAPI checker split
+  by importing its HTTP method contract from the canonical contracts module;
+  a real-operation regression now exercises live header normalization.
 
 ## Stop Gate
 

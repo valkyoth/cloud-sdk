@@ -17,6 +17,8 @@
 - Hardened metadata identity semantics, bounded alias duplicate detection,
   type-separated HTTPS/link-local builders, and scalar newline handling after
   incremental pentest and green retest.
+- Repaired live provider-drift verification after the OpenAPI checker split
+  and added a real-operation adapter regression.
 - Advanced the internal cumulative source to `cloud-sdk 0.97.0`; crates.io
   publication remains deferred to v0.100.0.
 
