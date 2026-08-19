@@ -76,13 +76,14 @@ Published and planned versions for each independently versioned crate are
 listed in the
 [crate version matrix](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATE_VERSION_MATRIX.md).
 
-The v0.95 crates.io checkpoint includes exhaustive named clients for every
-active Hetzner Cloud, DNS, Security, Console Storage Box, and Robot operation.
-The v0.99 internal milestone adds exact release-governance, package-selection,
-clean-checkout recovery, and artifact/SBOM reproducibility evidence to the
-already qualified platform, compiler, feature, package, and documentation graphs.
-Provider crates remain transport-free and perform no network request by
-default. Future FIPS work remains deferred until Brynja is ready.
+The v0.100 release candidate completes the cumulative final-development
+checkpoint for the provider-neutral foundation and exhaustive named Hetzner
+Cloud, DNS, Security, Console Storage Box, and Robot clients. This milestone
+qualifies controlled mutations and freezes the candidate public API after the
+platform, compiler, feature, package, documentation, release-governance, and
+provenance reviews. Provider crates remain transport-free and perform no
+network request by default. Future FIPS work remains deferred until Brynja is
+ready.
 
 ## Trust Dashboard
 
@@ -140,8 +141,8 @@ Portable and native platform evidence is documented in
 
 ```toml
 [dependencies]
-cloud-sdk = "0.99.0"
-cloud-sdk-hetzner = "0.46.0"
+cloud-sdk = "0.100.0"
+cloud-sdk-hetzner = "0.47.0"
 ```
 
 ## cloud-sdk Features
@@ -521,8 +522,8 @@ without changing the default allocation-free graph.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.99.0"
-cloud-sdk-reqwest = { version = "0.36.0", features = ["blocking-rustls"] }
+cloud-sdk = "0.100.0"
+cloud-sdk-reqwest = { version = "0.37.0", features = ["blocking-rustls"] }
 ```
 
 The production builder is HTTPS-only, requires explicit bounded timeouts and a
@@ -548,8 +549,8 @@ when deterministic public WebPKI roots are required:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.99.0"
-cloud-sdk-reqwest = { version = "0.36.0", features = ["blocking-rustls-webpki-roots"] }
+cloud-sdk = "0.100.0"
+cloud-sdk-reqwest = { version = "0.37.0", features = ["blocking-rustls-webpki-roots"] }
 ```
 
 The blocking API is unchanged. This feature excludes host-added enterprise
@@ -571,8 +572,8 @@ See the [FIPS deferment policy](https://github.com/valkyoth/cloud-sdk/blob/main/
 
 ```toml
 [dependencies]
-cloud-sdk = "0.99.0"
-cloud-sdk-reqwest = { version = "0.36.0", features = ["async-rustls"] }
+cloud-sdk = "0.100.0"
+cloud-sdk-reqwest = { version = "0.37.0", features = ["async-rustls"] }
 ```
 
 The async adapter requires an active Tokio executor because reqwest uses Tokio
