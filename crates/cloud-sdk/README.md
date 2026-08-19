@@ -162,6 +162,7 @@ visible. Applications should enable only the features they use.
 - [Hetzner workflow examples](https://github.com/valkyoth/cloud-sdk/blob/main/docs/HETZNER_EXAMPLES.md)
 - [Finite Hetzner 1.0 scope](https://github.com/valkyoth/cloud-sdk/blob/main/docs/HETZNER_1_0_SCOPE.md)
 - [Hetzner live smoke testing](https://github.com/valkyoth/cloud-sdk/blob/main/docs/LIVE_SMOKE_TESTING.md)
+- [Controlled mutation qualification](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CONTROLLED_MUTATION.md)
 - [Security recipes](https://github.com/valkyoth/cloud-sdk/blob/main/docs/SECURITY_RECIPES.md)
 - [Release governance and recovery](https://github.com/valkyoth/cloud-sdk/blob/main/docs/RELEASE_GOVERNANCE.md)
 - [Raw bounded HTTP executor](https://github.com/valkyoth/cloud-sdk/blob/main/docs/RAW_HTTP_EXECUTOR.md)

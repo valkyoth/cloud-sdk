@@ -887,6 +887,10 @@ private-parent validation; non-Unix live loading fails closed. An exact-match
 authenticated transport tests the shared live execution function and rejects
 wire or dispatch-count drift. See the
 [live-smoke runbook](https://github.com/valkyoth/cloud-sdk/blob/main/docs/LIVE_SMOKE_TESTING.md).
+The separate
+[controlled-mutation protocol](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CONTROLLED_MUTATION.md)
+uses a disposable scope, one attempt per reversible scenario, an independently
+verified cleanup ledger, and no Robot purchase dispatch.
 The complete Robot client and live-evidence migration is described in the
 [v0.95 migration guide](https://github.com/valkyoth/cloud-sdk/blob/main/docs/MIGRATION.md#v0950).
 Breaking v0.27 constructor and custom-endpoint changes are listed in the

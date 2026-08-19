@@ -96,6 +96,7 @@ scripts/check_reqwest_webpki_roots_boundary.sh
 scripts/check_fips_deferred.py
 scripts/test-fips-deferred.py
 scripts/smoke_hetzner_live.sh --check
+scripts/check_controlled_mutation.sh
 scripts/check_publishable_readmes.sh
 scripts/validate-release-metadata.sh
 scripts/test-release-readiness.sh

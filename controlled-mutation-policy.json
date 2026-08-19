@@ -1,0 +1,45 @@
+{
+  "format": 1,
+  "release": "0.100.0",
+  "maximum_evidence_bytes": 65536,
+  "resource_prefix": "cloud-sdk-live-v0-100-",
+  "maximum_attempts_per_scenario": 1,
+  "scenarios": [
+    {
+      "name": "cloud-placement-group",
+      "service": "cloud",
+      "classification": "mutation",
+      "live_dispatch": "required"
+    },
+    {
+      "name": "dns-zone",
+      "service": "dns",
+      "classification": "mutation",
+      "live_dispatch": "required"
+    },
+    {
+      "name": "security-ssh-key",
+      "service": "security",
+      "classification": "mutation",
+      "live_dispatch": "required"
+    },
+    {
+      "name": "storage-snapshot",
+      "service": "storage",
+      "classification": "mutation",
+      "live_dispatch": "required"
+    },
+    {
+      "name": "robot-server-rename",
+      "service": "robot",
+      "classification": "mutation",
+      "live_dispatch": "required"
+    },
+    {
+      "name": "robot-order-reconciliation",
+      "service": "robot",
+      "classification": "cost",
+      "live_dispatch": "forbidden"
+    }
+  ]
+}

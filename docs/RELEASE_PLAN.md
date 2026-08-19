@@ -253,7 +253,7 @@ has not been assigned to a release.
 | Robot ordering mutations can create immediate infrastructure costs. | Keep catalogs/transactions read-only in `v0.91.0-v0.92.0`; `v0.93.0` requires cost permits, indeterminate-send reconciliation, and keeps purchases outside CI/live smoke. |
 | FIPS configuration flags do not prove certificate, target, module, operating environment, or operational readiness. | Retire the experimental AWS-LC feature after `v0.70.0`, exclude FIPS from 1.0, and permit a later Brynja integration only after the exact module, certificate, operating environment, build, runtime, and review conditions in `docs/FIPS_DEFERMENT.md` are satisfied. |
 | Release controls do not provide organizationally independent review by themselves. | Add governance limits, signer policy, provenance review, and independent-review disclosure in `v0.99.0`; never claim independence when unavailable. |
-| Destructive and billable behavior lacks controlled disposable-account evidence. | Add a manual-only mutation harness with spending ceilings, cleanup ledgers, and empty-inventory verification in `v0.99.0`; CI remains incapable of invoking it. |
+| Destructive and billable behavior lacks controlled disposable-account evidence. | Add a manual-only mutation protocol with spending ceilings, cleanup ledgers, and empty-inventory verification in `v0.100.0`; CI remains incapable of invoking it and Robot order dispatch remains forbidden. |
 | Future providers need proven patterns but are not part of the Hetzner 1.0 claim. | The unpublished OVHcloud probe lands in `v0.57.0-v0.61.0`; post-1.0 publishing starts with a finite source-locked Scaleway inventory in `v1.1.0`, then a finite DigitalOcean inventory in `v1.7.0`, with full OVHcloud considered after `v1.12.0`. |
 
 ## Post-1.0 Provider Sequence
@@ -3535,7 +3535,9 @@ Deliverables:
   one cleanup ledger, and final empty-inventory verification;
 - cover representative Cloud, DNS, Security, Console Storage, and Robot
   mutation/destructive/cost workflows without granting CI any credential or
-  live mutation capability;
+  live mutation capability; cost qualification stops at reviewed preparation,
+  permit, spending-ceiling, and reconciliation boundaries and never places a
+  Robot order;
 - retain exact uncertain-delivery and reconciliation evidence for every
   attempted mutation and require operator resolution for ambiguous outcomes;
 - freeze the 1.0 public API candidate and complete final API, changelog,
@@ -3549,8 +3551,9 @@ Verification:
 
 - run deterministic fake-provider dry runs for every live mutation step,
   failure, cleanup, replay, cost, and reconciliation branch;
-- record approved manual evidence where credentials and service availability
-  permit, then independently verify the cleanup ledger and empty inventories;
+- record approved manual evidence for all five reversible live scenarios,
+  then independently verify the cleanup ledger and empty inventories; validate
+  the Robot cost path without dispatch;
 - rerun every v0.96-v0.99 qualification gate, all current source drift checks,
   complete package/SBOM/audit/fuzz evidence, and a release dry run showing the
   exact publish set; and

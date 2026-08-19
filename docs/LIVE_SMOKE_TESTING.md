@@ -253,22 +253,13 @@ Do not add `--debug`, shell tracing, packet capture, or response-body logging to
 an authenticated run. Treat terminal capture and CI logs as potentially
 persistent records.
 
-## Destructive Test Plan
+## Controlled Mutations
 
-Mutation execution is deliberately not implemented. A future destructive
-harness must remain a separate command and satisfy all of these
-gates before its first network request:
+The v0.100 controlled-mutation protocol is documented separately in
+[`CONTROLLED_MUTATION.md`](CONTROLLED_MUTATION.md). It uses credential-free
+typed mock execution in automated checks and a manual-only disposable-scope
+protocol for real mutations. Robot purchase dispatch remains forbidden.
 
-1. Use a dedicated disposable project containing no production resources.
-2. Create a short-lived **Read & Write** token only for that run.
-3. Require an exact destructive acknowledgement distinct from `read-only`.
-4. Require a unique resource prefix beginning with `cloud-sdk-live-`.
-5. Review every operation, region, quota, and current provider price manually.
-6. Record a resource inventory before mutation without logging provider IDs.
-7. Create the minimum-sized resource set and never retry a mutation implicitly.
-8. Run cleanup on success, failure, timeout, and interruption paths.
-9. List resources after cleanup and fail until no prefixed resource remains.
-10. Revoke the token and inspect the provider project and billing view manually.
-
-No destructive command may infer consent from the token's permission, reuse
-the read-only wrapper, accept an empty or generic prefix, or run in default CI.
+The read-only smoke artifact, runner, and launchers remain incapable of
+mutation. No destructive command may infer consent from a token's permission,
+reuse the read-only wrapper, accept an empty or generic prefix, or run in CI.
