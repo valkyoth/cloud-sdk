@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from pathlib import Path
 import re
 import sys
@@ -12,8 +13,9 @@ import tomllib
 ROOT = Path(__file__).resolve().parent.parent
 DEPENDENCY_TABLES = {"dependencies", "dev-dependencies", "build-dependencies"}
 OPEN_FENCE = re.compile(r"^ {0,3}(?P<fence>`{3,}|~{3,})(?P<info>[^\r\n]*)$")
-DEPENDENCY_HEADER = re.compile(
-    r"(?m)^\s*\[(?:[^\]\r\n]*\.)?(?:dev-|build-)?dependencies\]\s*(?:#.*)?$"
+DEPENDENCY_WORD = re.compile(
+    r"(?i)(?<![A-Za-z0-9_-])(?:dev-|build-)?dependencies"
+    r"(?![A-Za-z0-9_-])"
 )
 
 
@@ -67,8 +69,17 @@ def fence_language(info: str) -> str:
     return ""
 
 
-def has_dependency_hint(block: str) -> bool:
-    return DEPENDENCY_HEADER.search(block) is not None
+def has_dependency_hint(block: str, packages: Iterable[str]) -> bool:
+    if DEPENDENCY_WORD.search(block) is None:
+        return False
+    return any(
+        re.search(
+            rf"(?<![A-Za-z0-9_-]){re.escape(package)}(?![A-Za-z0-9_-])",
+            block,
+        )
+        is not None
+        for package in packages
+    )
 
 
 def fenced_blocks(path: Path) -> list[tuple[int, str, str, bool]]:
@@ -149,7 +160,7 @@ def validate_readme(
         try:
             parsed = tomllib.loads(block)
         except tomllib.TOMLDecodeError as error:
-            if language != "toml" and not has_dependency_hint(block):
+            if language != "toml" and not has_dependency_hint(block, versions):
                 continue
             raise ReadmeDependencyError(
                 f"{path}:{line}: TOML example is invalid"

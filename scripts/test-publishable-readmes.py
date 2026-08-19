@@ -170,11 +170,29 @@ def test_cargo_dependency_table_variants_are_detected() -> None:
             assert "cloud-sdk must use exact version =0.100.0" in result.stderr
 
 
+def test_malformed_dotted_dependency_fails_closed() -> None:
+    with tempfile.TemporaryDirectory() as temporary:
+        readme = Path(temporary) / "README.md"
+        readme.write_text(
+            """```text
+dependencies.cloud-sdk = "0.99.0"
+broken = [
+```
+""",
+            encoding="ascii",
+        )
+        result = run(readme)
+        assert result.returncode == 1, result
+        assert "TOML example is invalid" in result.stderr
+
+
 def test_non_toml_blocks_without_dependencies_are_ignored() -> None:
     examples = (
         "```rust\nfn main() {}\n```\n",
         "```text\nnot valid TOML = but valid prose\n```\n",
         "```text\ntitle = \"valid unrelated TOML\"\n```\n",
+        "```text\nmy-dependencies = \"cloud-sdk\"\nbroken = [\n```\n",
+        "```text\ndependencies = \"not-cloud-sdk\"\nbroken = [\n```\n",
     )
     with tempfile.TemporaryDirectory() as temporary:
         readme = Path(temporary) / "README.md"
@@ -215,9 +233,10 @@ def main() -> None:
     test_commonmark_toml_fences_are_enforced()
     test_dependency_tables_override_missing_or_incorrect_languages()
     test_cargo_dependency_table_variants_are_detected()
+    test_malformed_dotted_dependency_fails_closed()
     test_non_toml_blocks_without_dependencies_are_ignored()
     test_unterminated_toml_variants_fail_closed()
-    print("11 publishable README regression groups passed.")
+    print("12 publishable README regression groups passed.")
 
 
 if __name__ == "__main__":

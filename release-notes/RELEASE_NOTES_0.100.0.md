@@ -43,8 +43,9 @@ freezing the public API candidate.
 - Every selected package's README Cargo examples use `=version` requirements
   for exact planned first-party releases. The release gate detects dependency
   tables structurally in every syntactically valid fenced TOML candidate,
-  regardless of fence labeling, and rejects dependency skew or malformed TOML
-  across CommonMark backtick and tilde fence variants.
+  regardless of fence labeling. Malformed blocks mentioning dependency syntax
+  and a known first-party package also fail closed across CommonMark backtick
+  and tilde fence variants.
 
 ## Versions
 
