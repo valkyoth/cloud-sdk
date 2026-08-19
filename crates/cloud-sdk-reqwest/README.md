@@ -34,11 +34,16 @@ The crate remains no_std and transport-free by default. Its non-default
 provide reviewed HTTPS implementations for every
 provider without adding transport dependencies to provider crates.
 
+Transport features are supported on Linux, Windows, macOS, and FreeBSD.
+Android, iOS, WASM, and bare-metal builds fail with an explicit diagnostic;
+use a target-native implementation of the `cloud-sdk` transport traits there.
+The default and `std`-only graphs remain portable and transport-free.
+
 ## Install
 
 ```toml
 [dependencies]
-cloud-sdk = "0.97.0"
+cloud-sdk = "0.98.0"
 cloud-sdk-reqwest = { version = "0.36.0", features = ["blocking-rustls"] }
 ```
 
@@ -661,7 +666,7 @@ use mutable or guarded ingestion whenever the source can be cleared.
 | Feature | Default | Effect |
 | --- | --- | --- |
 | `default` | yes | Empty; keeps the crate transport-free and `no_std`. |
-| `std` | no | Enables only std support in first-party boundary crates. |
+| `std` | no | Enables adapter-local std support and std support in the optional sanitization boundary; it does not force `cloud-sdk/std`. |
 | `blocking-rustls` | no | Enables hardened blocking bearer/Basic reqwest/rustls adapters, Base64 encoding, and sanitization. |
 | `blocking-rustls-webpki-roots` | no | Enables blocking bearer/Basic adapters with a deterministic reviewed Mozilla root snapshot. |
 | `async-rustls` | no | Enables hardened async bearer/Basic reqwest/rustls adapters; callers provide an active Tokio runtime. |

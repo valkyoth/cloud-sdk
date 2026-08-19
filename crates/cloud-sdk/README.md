@@ -78,11 +78,10 @@ listed in the
 
 The v0.95 crates.io checkpoint includes exhaustive named clients for every
 active Hetzner Cloud, DNS, Security, Console Storage Box, and Robot operation.
-The v0.97 internal milestone closes the canonical Server Metadata surface,
-source-locks the finite Hetzner 1.0 scope, and validates the latest provider
-response semantics without publishing crates. Provider crates remain
-transport-free and perform no network request by default. Future FIPS work
-remains deferred until Brynja is ready.
+The v0.98 internal milestone qualifies the finite Hetzner 1.0 scope across the
+documented platform, compiler, feature, package, and documentation graphs.
+Provider crates remain transport-free and perform no network request by
+default. Future FIPS work remains deferred until Brynja is ready.
 
 ## Trust Dashboard
 
@@ -129,8 +128,8 @@ cross-thread async guarantee instead of weakening it for those two compilers.
 
 | Rust | Local Evidence |
 | --- | --- |
-| `1.92.0 - 1.96.1` | `cargo +<version> check --workspace --all-features` for every supported compiler |
-| `1.97.0` | `cargo +1.97.0 check --workspace --all-features` |
+| `1.92.0 - 1.96.1` | `cargo +<version> check --locked --workspace --all-targets --all-features` for every supported compiler and point release |
+| `1.97.0` | `cargo +1.97.0 check --locked --workspace --all-targets --all-features` |
 | `1.97.1` | `scripts/checks.sh` |
 
 Portable and native platform evidence is documented in
@@ -140,7 +139,7 @@ Portable and native platform evidence is documented in
 
 ```toml
 [dependencies]
-cloud-sdk = "0.97.0"
+cloud-sdk = "0.98.0"
 cloud-sdk-hetzner = "0.46.0"
 ```
 
@@ -520,7 +519,7 @@ without changing the default allocation-free graph.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.97.0"
+cloud-sdk = "0.98.0"
 cloud-sdk-reqwest = { version = "0.36.0", features = ["blocking-rustls"] }
 ```
 
@@ -547,7 +546,7 @@ when deterministic public WebPKI roots are required:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.97.0"
+cloud-sdk = "0.98.0"
 cloud-sdk-reqwest = { version = "0.36.0", features = ["blocking-rustls-webpki-roots"] }
 ```
 
@@ -570,7 +569,7 @@ See the [FIPS deferment policy](https://github.com/valkyoth/cloud-sdk/blob/main/
 
 ```toml
 [dependencies]
-cloud-sdk = "0.97.0"
+cloud-sdk = "0.98.0"
 cloud-sdk-reqwest = { version = "0.36.0", features = ["async-rustls"] }
 ```
 

@@ -3,7 +3,7 @@ set -eu
 
 . scripts/enforce_bundled_aws_lc.sh
 
-supported_versions="1.92.0 1.93.0 1.94.0 1.95.0 1.96.0 1.96.1 1.97.0 1.97.1"
+supported_versions="1.92.0 1.93.0 1.93.1 1.94.0 1.94.1 1.95.0 1.96.0 1.96.1 1.97.0 1.97.1"
 requested="${1:-}"
 
 check_version() {
@@ -15,7 +15,7 @@ check_version() {
         exit 2
         ;;
     esac
-    cargo "+$version" check --workspace --all-features
+    cargo "+$version" check --locked --workspace --all-targets --all-features
 }
 
 if [ -n "$requested" ]; then

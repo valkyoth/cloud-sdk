@@ -8,14 +8,18 @@ Compatibility must be maintained for:
 | --- | --- |
 | `1.92.0` | `cargo +1.92.0 check --workspace --all-features` |
 | `1.93.0` | `cargo +1.93.0 check --workspace --all-features` |
+| `1.93.1` | `cargo +1.93.1 check --workspace --all-features` |
 | `1.94.0` | `cargo +1.94.0 check --workspace --all-features` |
+| `1.94.1` | `cargo +1.94.1 check --workspace --all-features` |
 | `1.95.0` | `cargo +1.95.0 check --workspace --all-features` |
 | `1.96.0` | `cargo +1.96.0 check --workspace --all-features` |
 | `1.96.1` | `cargo +1.96.1 check --workspace --all-features` |
 | `1.97.0` | `cargo +1.97.0 check --workspace --all-features` |
 | `1.97.1` | full release gate |
 
-`scripts/check_rust_version_matrix.sh` checks the complete table locally. CI
+Every compatibility command also uses `--locked --all-targets`. The shorter
+commands in the table identify the compiler contract without repeating those
+common flags. `scripts/check_rust_version_matrix.sh` checks the complete table locally. CI
 runs each version as an independent fail-fast-disabled matrix job so one failure
 does not hide results from the remaining supported compilers.
 

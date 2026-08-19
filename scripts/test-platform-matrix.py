@@ -79,10 +79,14 @@ def test_portable_target() -> None:
         result = run(["--portable", "x86_64-unknown-linux-gnu"], environment)
         assert result.returncode == 0, result
         commands = log.read_text(encoding="ascii").splitlines()
-        assert len(commands) == 2, commands
+        assert len(commands) == 6, commands
         assert all("--locked --target x86_64-unknown-linux-gnu" in item for item in commands)
         assert "--no-default-features" in commands[0]
-        assert "cloud-sdk-hetzner/serde" in commands[1]
+        assert commands[1].endswith("-p cloud-sdk --features alloc")
+        assert commands[2].endswith("-p cloud-sdk-sanitization --features alloc")
+        assert commands[3].endswith("-p cloud-sdk-hetzner --features alloc")
+        assert commands[4].endswith("-p cloud-sdk-hetzner --features serde")
+        assert commands[5].endswith("-p cloud-sdk-testkit --features alloc")
 
 
 def test_rejected_and_missing_targets() -> None:
@@ -137,11 +141,55 @@ def test_native_mode() -> None:
         assert log.read_text(encoding="ascii").splitlines() == [
             "check --locked --all-targets --all-features -p cloud-sdk "
             "-p cloud-sdk-hetzner -p cloud-sdk-sanitization -p cloud-sdk-testkit",
+            "check --locked --all-targets --no-default-features -p cloud-sdk-reqwest",
+            "check --locked --all-targets --no-default-features "
+            "-p cloud-sdk-reqwest --features std",
+            "check --locked --all-targets --no-default-features "
+            "-p cloud-sdk-reqwest --features blocking-rustls",
+            "test --locked --no-default-features "
+            "-p cloud-sdk-reqwest --features blocking-rustls",
+            "check --locked --all-targets --no-default-features "
+            "-p cloud-sdk-reqwest --features blocking-rustls-webpki-roots",
+            "test --locked --no-default-features "
+            "-p cloud-sdk-reqwest --features blocking-rustls-webpki-roots",
+            "check --locked --all-targets --no-default-features "
+            "-p cloud-sdk-reqwest --features async-rustls",
+            "test --locked --no-default-features "
+            "-p cloud-sdk-reqwest --features async-rustls",
             "check --locked --all-targets --no-default-features "
             "-p cloud-sdk-reqwest "
-            "--features std,blocking-rustls,blocking-rustls-webpki-roots,async-rustls",
+            "--features blocking-rustls,blocking-rustls-webpki-roots,async-rustls",
+            "test --locked --all-features -p cloud-sdk-reqwest",
             "test --locked -p cloud-sdk-hetzner --test live_smoke --all-features",
         ]
+
+
+def test_transport_has_an_explicit_unsupported_target_diagnostic() -> None:
+    source = (ROOT / "crates/cloud-sdk-reqwest/src/lib.rs").read_text(
+        encoding="ascii"
+    )
+    assert "cloud-sdk-reqwest transport features are unsupported" in source
+    for supported in ('target_os = "linux"', 'target_os = "windows"',
+                      'target_os = "macos"', 'target_os = "freebsd"'):
+        assert supported in source
+    manifest = (ROOT / "crates/cloud-sdk-reqwest/Cargo.toml").read_text(
+        encoding="ascii"
+    )
+    target_dependencies = (
+        '[target.\'cfg(any(target_os = "freebsd", target_os = "linux", '
+        'target_os = "macos", target_os = "windows"))\'.dependencies]'
+    )
+    assert target_dependencies in manifest
+    checker = CHECKER.read_text(encoding="ascii")
+    for unsupported in (
+        "aarch64-linux-android",
+        "aarch64-apple-ios",
+        "wasm32-unknown-unknown",
+        "thumbv7em-none-eabihf",
+    ):
+        assert unsupported in checker
+    assert "unsupported transport compiled" in checker
+    assert "missing unsupported transport diagnostic" in checker
 
 
 def test_default_dependency_boundary() -> None:
@@ -191,9 +239,10 @@ def main() -> None:
     test_rejected_and_missing_targets()
     test_rustup_failures()
     test_native_mode()
+    test_transport_has_an_explicit_unsupported_target_diagnostic()
     test_default_dependency_boundary()
     test_argument_validation()
-    print("6 platform matrix regression groups passed.")
+    print("7 platform matrix regression groups passed.")
 
 
 if __name__ == "__main__":

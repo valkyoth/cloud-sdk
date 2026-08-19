@@ -38,7 +38,7 @@ boundaries.
 
 ```toml
 [dependencies]
-cloud-sdk = "0.97.0"
+cloud-sdk = "0.98.0"
 cloud-sdk-hetzner = "0.46.0"
 ```
 

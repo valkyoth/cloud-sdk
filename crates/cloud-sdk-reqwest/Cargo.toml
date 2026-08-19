@@ -14,7 +14,7 @@ all-features = true
 
 [features]
 default = []
-std = ["cloud-sdk/std", "cloud-sdk-sanitization?/std"]
+std = ["cloud-sdk-sanitization?/std"]
 blocking-rustls = [
     "std",
     "dep:aws-lc-rs",
@@ -125,11 +125,13 @@ fuzzing = [
 ]
 
 [dependencies]
+cloud-sdk.workspace = true
+
+[target.'cfg(any(target_os = "freebsd", target_os = "linux", target_os = "macos", target_os = "windows"))'.dependencies]
 aws-lc-rs = { workspace = true, optional = true }
 aws-lc-sys = { workspace = true, optional = true }
 base64-ng = { workspace = true, optional = true }
 bytes = { workspace = true, optional = true }
-cloud-sdk.workspace = true
 cloud-sdk-sanitization = { workspace = true, optional = true }
 http = { workspace = true, optional = true }
 http-body-util = { workspace = true, optional = true }

@@ -10,7 +10,7 @@ pub const MAX_OPERATION_ID_BYTES: usize = 128;
 pub enum OperationIdError {
     /// The identifier is empty.
     Empty,
-    /// The identifier exceeds [`MAX_OPERATION_ID_BYTES`].
+    /// The identifier exceeds the internal maximum operation-ID length.
     TooLong,
     /// The identifier contains a byte outside lowercase ASCII, digits, or `_`.
     InvalidByte,

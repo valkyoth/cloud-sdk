@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.98.0 - 2026-08-19
+
+- Qualified independent default, alloc, Serde, std, and transport feature
+  graphs across the documented portable and native target matrix.
+- Added exact unsupported-target diagnostics for reqwest transport features
+  and target-qualified every optional networking dependency.
+- Expanded MSRV evidence to all targets, the lockfile, and Rust 1.93.1 and
+  1.94.1 point releases through the pinned Rust 1.97.1 toolchain.
+- Added package/docs.rs CI, complete build-script inventory enforcement, and a
+  native dependency review covering bundled AWS-LC and conditional ring.
+- Reconfirmed that all default graphs remain transport-free and that FIPS
+  features, dependencies, package content, and claims remain deferred.
+- Advanced the internal cumulative source to `cloud-sdk 0.98.0`; crates.io
+  publication remains deferred to v0.100.0.
+
 ## 0.97.0 - 2026-08-19
 
 - Added complete allocation-free contracts for all seven canonical Hetzner

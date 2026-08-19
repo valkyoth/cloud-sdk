@@ -87,7 +87,9 @@ jobs:
         rust:
           - 1.92.0
           - 1.93.0
+          - 1.93.1
           - 1.94.0
+          - 1.94.1
           - 1.95.0
           - 1.96.0
           - 1.96.1
@@ -103,6 +105,22 @@ jobs:
 
       - name: Check supported compiler
         run: scripts/check_rust_version_matrix.sh "${{ matrix.rust }}"
+
+  packaged-documentation:
+    name: Packaged crates and documentation
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Qualify package and documentation graphs
+        env:
+          RUSTDOCFLAGS: -D warnings
+        run: |
+          scripts/check_packaged_feature_graphs.sh
+          cargo doc --locked --workspace --all-features --no-deps
 
   fuzz-build:
     name: Fuzz targets

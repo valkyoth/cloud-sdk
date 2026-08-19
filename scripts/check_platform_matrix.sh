@@ -70,10 +70,35 @@ check_portable_target() {
         -p cloud-sdk-sanitization \
         -p cloud-sdk-testkit
     cargo check --locked --target "$target" --no-default-features \
-        -p cloud-sdk \
-        -p cloud-sdk-hetzner \
-        -p cloud-sdk-testkit \
-        --features cloud-sdk/alloc,cloud-sdk-hetzner/serde,cloud-sdk-testkit/alloc
+        -p cloud-sdk --features alloc
+    cargo check --locked --target "$target" --no-default-features \
+        -p cloud-sdk-sanitization --features alloc
+    cargo check --locked --target "$target" --no-default-features \
+        -p cloud-sdk-hetzner --features alloc
+    cargo check --locked --target "$target" --no-default-features \
+        -p cloud-sdk-hetzner --features serde
+    cargo check --locked --target "$target" --no-default-features \
+        -p cloud-sdk-testkit --features alloc
+
+    case "$target" in
+    aarch64-linux-android|aarch64-apple-ios|wasm32-unknown-unknown|thumbv7em-none-eabihf)
+        diagnostic="cloud-sdk-reqwest transport features are unsupported on this target"
+        output="$(mktemp "${TMPDIR:-/tmp}/cloud-sdk-unsupported.XXXXXX")"
+        if cargo check --locked --target "$target" --no-default-features \
+            -p cloud-sdk-reqwest --features blocking-rustls >"$output" 2>&1; then
+            rm -f -- "$output"
+            echo "platform matrix: unsupported transport compiled for $target" >&2
+            exit 1
+        fi
+        if ! grep -Fq "$diagnostic" "$output"; then
+            cat "$output" >&2
+            rm -f -- "$output"
+            echo "platform matrix: missing unsupported transport diagnostic" >&2
+            exit 1
+        fi
+        rm -f -- "$output"
+        ;;
+    esac
 }
 
 check_native() {
@@ -83,8 +108,22 @@ check_native() {
         -p cloud-sdk-sanitization \
         -p cloud-sdk-testkit
     cargo check --locked --all-targets --no-default-features \
+        -p cloud-sdk-reqwest
+    cargo check --locked --all-targets --no-default-features \
+        -p cloud-sdk-reqwest --features std
+    for feature in \
+        blocking-rustls \
+        blocking-rustls-webpki-roots \
+        async-rustls; do
+        cargo check --locked --all-targets --no-default-features \
+            -p cloud-sdk-reqwest --features "$feature"
+        cargo test --locked --no-default-features \
+            -p cloud-sdk-reqwest --features "$feature"
+    done
+    cargo check --locked --all-targets --no-default-features \
         -p cloud-sdk-reqwest \
-        --features std,blocking-rustls,blocking-rustls-webpki-roots,async-rustls
+        --features blocking-rustls,blocking-rustls-webpki-roots,async-rustls
+    cargo test --locked --all-features -p cloud-sdk-reqwest
     cargo test --locked -p cloud-sdk-hetzner --test live_smoke --all-features
 }
 

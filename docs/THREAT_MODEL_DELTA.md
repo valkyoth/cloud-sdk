@@ -300,3 +300,17 @@ the host's link-local routing and platform isolation. A compromised guest,
 network namespace, hypervisor, kernel, or provider control plane remains
 outside SDK control. Callers must not treat metadata as a secret or an
 independent trust root for high-impact authorization.
+
+## v0.98.0
+
+New qualification threats are feature unification hiding an independently
+broken graph, cross-compilation being mistaken for native execution, an
+unsupported target reaching target-incompatible dependencies before the SDK
+diagnostic, unreviewed build scripts entering conditional graphs, and a stale
+docs.rs or MSRV claim. Independent feature commands, native feature tests,
+expected-failure target jobs, exact manifest/build-script inventories, package
+verification, and expanded locked all-target MSRV jobs fail closed on drift.
+
+Hosted runners prove compatibility, not immutable toolchain provenance,
+platform hardening, availability, or accreditation. FIPS remains absent and no
+platform qualification result creates a FIPS claim.

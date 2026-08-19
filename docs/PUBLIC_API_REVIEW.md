@@ -441,52 +441,24 @@ provider transport separation are unchanged.
 
 ## v0.96.0
 
-Status: release candidate; incremental pentest and final retest passed.
-
-The v0.96 source for `cloud-sdk-hetzner 0.46.0` adds `SourceLockedQuery`, its finite operation and
-parameter domains, bounded typed values, and static errors. It can pair only
-with the exact endpoint operation through the existing prepared association.
-`ServerMetricTypes` and `ServerMetricsStep` replace the narrowed server metric
-arguments. Primary IP lists expose current `name` and `ip` filters instead of
-the removed `type`; Image lists gain architecture, deprecation, label, name,
-and status shortcuts. The fallback covers repeated values without allocation.
-
-This is a deliberate pre-1.0 breaking correction. No neutral transport,
-executor, authentication, response, permit, or default-feature API changes.
+`cloud-sdk-hetzner 0.46.0` adds finite source-locked query types, corrected
+metrics types, and current Primary IP and Image filters. No neutral transport,
+authentication, permit, or default-feature API changed.
 
 ## v0.97.0
 
+The additive metadata surface owns seven fixed routes, strict bounded decoders,
+and one-attempt execution at one credential-free link-local endpoint. Raw HTTP
+builders cannot weaken HTTPS builders. The finite provider scope remains 304
+active operations with 29 explicit deprecated exclusions.
+
+## v0.98.0
+
 Status: implementation stop; incremental pentest required.
 
-### Added Surface
-
-- `cloud_sdk_hetzner::metadata` owns the exact seven canonical metadata
-  routes, fixed endpoint policy, bounded request and response contracts,
-  strict borrowed decoders, and blocking, `Send` async, and local-async
-  one-attempt execution helpers.
-- `cloud_sdk_reqwest::{blocking,asynchronous}::LinkLocalHttpEndpoint` and the
-  dedicated `RawLinkLocalBlockingClientBuilder` and
-  `RawLinkLocalAsyncClientBuilder` admit only provider-policy-bound IPv4
-  link-local HTTP on port 80 and accept no credential. The HTTPS-only raw
-  builders cannot carry a runtime HTTP downgrade mode.
-- Core media types add public `text/plain`, `application/yaml`, and `text/yaml`
-  constants used by bounded metadata response policies.
-- Existing complete Cloud response trees validate the source-locked Load
-  Balancer health-detail and Primary IP assignee cross-field rules.
-
-### Contract Review
-
-No arbitrary metadata path, destination, credential, mutation, retry, proxy,
-redirect, TLS assertion, or environment-derived setting is public. Metadata
-response models borrow caller-owned bounded bytes and allocate nothing. Error
-diagnostics contain no response body, endpoint, address, or transport error.
-The finite scope statement distinguishes all 304 active operations from 29
-deprecated exclusions and does not claim standard S3 or mail-only Robot domain
-registration.
-
-### Compatibility
-
-This is additive pre-1.0 API. Default features, MSRV, `no_std`, provider
-transport separation, official authenticated endpoint policy, and independent
-crate versions are unchanged. `cloud-sdk-reqwest` accumulates the new optional
-constructor without publication until v0.100.0.
+No supported public Rust item changes. Target availability is made explicit:
+optional reqwest transport modules exist only on Linux, Windows, macOS, and
+FreeBSD, while unsupported targets receive one static compile diagnostic. The
+portable default and `std`-only status types remain available everywhere. The
+reqwest `std` feature stops implicitly enabling `cloud-sdk/std`, preventing an
+adapter selection from widening the portable core graph.

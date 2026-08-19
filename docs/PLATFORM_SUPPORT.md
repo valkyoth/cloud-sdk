@@ -1,7 +1,7 @@
 # Platform Support
 
-Status: `v0.20.0` compile matrix implemented; runtime support remains bounded
-by the selected transport and operating environment.
+Status: `v0.98.0` platform and MSRV qualification implemented; runtime support
+remains bounded by the selected transport and operating environment.
 
 ## Scope Of The Claim
 
@@ -64,7 +64,8 @@ The command checks:
 
 - all four portable crates with `--no-default-features`;
 - `cloud-sdk/alloc`;
-- `cloud-sdk-hetzner/serde`, which includes its alloc boundary; and
+- `cloud-sdk-sanitization/alloc`;
+- `cloud-sdk-hetzner/alloc` and `cloud-sdk-hetzner/serde` independently; and
 - `cloud-sdk-testkit/alloc`.
 
 Native Linux, Windows, macOS ARM64, and macOS x86-64 jobs run:
@@ -73,13 +74,18 @@ Native Linux, Windows, macOS ARM64, and macOS x86-64 jobs run:
 scripts/check_platform_matrix.sh --native
 ```
 
-That command checks every portable crate with all features and the standard,
-deterministic-root, and async reqwest/rustls adapters. It also executes the
+That command checks every portable crate with all features and independently
+checks and tests the standard, deterministic-root, and async reqwest/rustls
+adapters before testing their combined graph. It also executes the
 offline Hetzner live-smoke tests natively, proving Unix credential-file checks
 on Linux and macOS and explicit fail-closed behavior on Windows. The complete
 workspace runtime suite remains Linux evidence; Windows and both macOS
-architectures otherwise provide native compile evidence without enabling the
-separately scoped transport features.
+architectures execute the same feature-specific transport tests.
+
+Unsupported Android, iOS, WASM, and bare-metal transport combinations are
+compiled as expected failures. The gate requires the crate-owned diagnostic
+and rejects accidental success. See [`NATIVE_BUILD_REVIEW.md`](NATIVE_BUILD_REVIEW.md)
+for the complete build-script and target-edge review.
 
 FIPS support is excluded from the 1.0 platform claim and deferred to Brynja.
 No active feature, target, or operating environment is claimed as FIPS

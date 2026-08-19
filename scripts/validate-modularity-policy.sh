@@ -16,6 +16,9 @@ for root in crates/*/src/lib.rs; do
 done
 
 for root in crates/*/src/lib.rs; do
+    if [ "$root" = crates/cloud-sdk-reqwest/src/lib.rs ]; then
+        continue
+    fi
     if ! awk '
         /^#\[cfg\(feature = "std"\)\]$/ { guarded = 1; next }
         /extern crate std;/ {
@@ -30,6 +33,26 @@ for root in crates/*/src/lib.rs; do
         status=1
     fi
 done
+
+if ! awk '
+    /^#\[cfg\(all\(/ { scanning = 1; std_feature = 0; supported_os = 0 }
+    scanning && /feature = "std"/ { std_feature = 1 }
+    scanning && /target_os = "linux"/ { supported_os = 1 }
+    scanning && /^\)\)\]$/ {
+        guarded = std_feature && supported_os
+        scanning = 0
+        next
+    }
+    /extern crate std;/ {
+        if (guarded) found = 1
+        else bad = 1
+    }
+    !scanning && !/extern crate std;/ { guarded = 0 }
+    END { exit bad || !found }
+' crates/cloud-sdk-reqwest/src/lib.rs; then
+    echo "modularity policy: reqwest std import lost feature/target guard" >&2
+    status=1
+fi
 
 for source in \
     crates/cloud-sdk/src/authentication/signing/tests.rs \
@@ -78,27 +101,46 @@ if grep -RInE '(^|[^A-Za-z0-9_])std([[:space:]]*::|[[:space:]]+as|[[:space:]]*\{
 fi
 
 if ! awk '
-    /^#\[cfg\(feature = "async-rustls"\)\]$/ { guarded = 1; next }
+    /^#\[cfg\(all\(/ { scanning = 1; feature = 0; supported_os = 0 }
+    scanning && /feature = "async-rustls"/ { feature = 1 }
+    scanning && /target_os = "linux"/ { supported_os = 1 }
+    scanning && /^\)\)\]$/ {
+        guarded = feature && supported_os
+        scanning = 0
+        next
+    }
     /^pub mod asynchronous;$/ {
         if (guarded) found = 1
+        else bad = 1
     }
-    { guarded = 0 }
-    END { exit !found }
+    !scanning && !/^pub mod asynchronous;$/ { guarded = 0 }
+    END { exit bad || !found }
 ' crates/cloud-sdk-reqwest/src/lib.rs; then
     echo "modularity policy: reqwest async module lost feature guard" >&2
     status=1
 fi
 
 if ! awk '
-    /^#\[cfg\(any\(feature = "blocking-rustls", feature = "blocking-rustls-webpki-roots"\)\)\]$/ {
-        guarded = 1
+    /^#\[cfg\(all\(/ {
+        scanning = 1
+        blocking = 0
+        roots = 0
+        supported_os = 0
+    }
+    scanning && /feature = "blocking-rustls"/ { blocking = 1 }
+    scanning && /feature = "blocking-rustls-webpki-roots"/ { roots = 1 }
+    scanning && /target_os = "linux"/ { supported_os = 1 }
+    scanning && /^\)\)\]$/ {
+        guarded = blocking && roots && supported_os
+        scanning = 0
         next
     }
     /^pub mod blocking;$/ {
         if (guarded) found = 1
+        else bad = 1
     }
-    !/^pub mod blocking;$/ { guarded = 0 }
-    END { exit !found }
+    !scanning && !/^pub mod blocking;$/ { guarded = 0 }
+    END { exit bad || !found }
 ' crates/cloud-sdk-reqwest/src/lib.rs; then
     echo "modularity policy: reqwest blocking module lost feature guard" >&2
     status=1

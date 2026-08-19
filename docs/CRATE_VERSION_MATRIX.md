@@ -1453,6 +1453,20 @@ an internal tag and publishes no crate.
 | `cloud-sdk-sanitization` | `0.19.0` | `0.19.0` | `unchanged` | No | No sanitization boundary changes. |
 | `cloud-sdk-testkit` | `0.31.0` | `0.31.0` | `unchanged` | No | No testkit boundary changes. |
 
+## v0.98.0 Tracking Table
+
+`v0.98.0` qualifies the documented platform, compiler, feature, package,
+documentation, and native-build boundaries. It is an internal tag and
+publishes no crate.
+
+| Crate | Published | v0.98 | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.95.0` | `0.98.0` | `code` | No | Advance the internal platform/MSRV milestone; defer publication to v0.100.0. |
+| `cloud-sdk-hetzner` | `0.46.0` | `0.46.0` | `code` | No | Retain accumulated provider code for v0.100.0. |
+| `cloud-sdk-reqwest` | `0.36.0` | `0.36.0` | `code` | No | Accumulate explicit supported-target boundaries and diagnostics. |
+| `cloud-sdk-sanitization` | `0.19.0` | `0.19.0` | `unchanged` | No | No sanitization boundary changes. |
+| `cloud-sdk-testkit` | `0.31.0` | `0.31.0` | `unchanged` | No | No testkit boundary changes. |
+
 ## Planned Milestone Ownership
 
 Exact independent crate versions are assigned when each milestone starts.

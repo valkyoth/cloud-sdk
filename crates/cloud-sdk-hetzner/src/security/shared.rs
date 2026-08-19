@@ -29,7 +29,7 @@ pub enum SecurityRequestError {
     InvalidLabel(LabelError),
     /// Resource names must not be empty.
     EmptyName,
-    /// Resource names are capped by [`MAX_SECURITY_NAME_BYTES`].
+    /// The resource name exceeds the internal maximum length.
     NameTooLong,
     /// Resource names must not contain control bytes.
     InvalidNameByte,

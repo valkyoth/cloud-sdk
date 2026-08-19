@@ -286,3 +286,23 @@ shape, bounded collections, canonical scalars, and reviewed cross-field rules.
 Treating new source operations as implicitly supported was rejected. OpenAPI,
 Robot, metadata, and changelog drift remains a review stop until models,
 execution, security evidence, and the finite scope statement change together.
+
+## v0.98.0
+
+### One Unified Feature Build As Complete Evidence
+
+An all-feature build was rejected as the only feature proof because unification
+can hide missing optional edges. Public portable and transport features are
+checked independently before their combined graphs.
+
+### Pretending Reqwest Is Portable Everywhere
+
+Compiling provider models on Android, iOS, WASM, or bare metal does not make a
+native reqwest/rustls transport available there. Optional transport dependencies
+are target-qualified and unsupported selection fails with a crate-owned
+diagnostic. Those targets use the provider-neutral transport traits.
+
+### Platform Qualification As FIPS Evidence
+
+Successful AWS-LC builds do not establish FIPS validation. FIPS features and
+dependencies remain forbidden until the separately reviewed Brynja migration.

@@ -15,6 +15,7 @@ PROTECTED_SCRIPTS = (
     "release_0_24_gate.sh",
     "release_0_25_gate.sh",
     "check_packaged_reqwest_tests.sh",
+    "check_packaged_feature_graphs.sh",
     "check_platform_matrix.sh",
     "check_reqwest_boundary.sh",
     "check_reqwest_webpki_roots_boundary.sh",

@@ -474,21 +474,9 @@ behind existing development features and adds no published runtime dependency.
 
 ## v0.96.0
 
-`ServerMetricsRequest::try_new` now takes `ServerMetricTypes`; start with
-`ServerMetricTypes::new(metric)` and add values with `.with(metric)`. Replace a
-text metrics step with `ServerMetricsStep::new(seconds)`. `TimestampValue` now
-rejects impossible UTC calendar values.
-
-`PrimaryIpListRequest::with_type` was removed because the current API no longer
-declares it. Use `.with_name(...)` or `.with_ip(...)`. `ImageListRequest` now
-has a borrow lifetime when named or label filters are used. Existing inferred
-construction is unchanged.
-
-For repeated filters or less common source fields, construct typed
-`SourceQueryArgument` values and pass them to `SourceLockedQuery::try_new` with
-the exact `SourceQueryOperation`, then pair that query with the endpoint using
-`HetznerPreparedOperation::query`. Preparation rejects a mismatched operation
-before dispatch and clears complete caller-owned request storage.
+Use typed `ServerMetricTypes`, `ServerMetricsStep`, and source-locked query
+arguments. The removed Primary IP `type` filter has no replacement; use current
+`name` or `ip` filters. Preparation rejects operation/query mismatches.
 
 ## v0.97.0
 
@@ -497,3 +485,12 @@ Use `cloud_sdk_hetzner::metadata` only with its fixed `MetadataRoute`,
 credentials or configure another origin. Load Balancer and Primary IP response
 decoding now rejects the contradictory cross-field states identified by the
 August 2026 changelog while retaining valid additive fields.
+
+## v0.98.0
+
+No supported Rust API changed. Reqwest transport features now compile only on
+Linux, Windows, macOS, and FreeBSD. Android, iOS, WASM, and bare-metal users
+must use a target-native implementation of the provider-neutral transport
+traits; selecting a reqwest transport feature now emits an explicit error.
+`cloud-sdk-reqwest/std` no longer enables `cloud-sdk/std` transitively. Enable
+both features explicitly when core std integrations are required.

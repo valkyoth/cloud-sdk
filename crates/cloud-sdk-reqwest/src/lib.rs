@@ -1,24 +1,81 @@
 #![no_std]
 #![doc = include_str!("../README.md")]
 
-#[cfg(feature = "std")]
+#[cfg(all(
+    any(
+        feature = "async-rustls",
+        feature = "blocking-rustls",
+        feature = "blocking-rustls-webpki-roots"
+    ),
+    not(any(
+        target_os = "freebsd",
+        target_os = "linux",
+        target_os = "macos",
+        target_os = "windows"
+    ))
+))]
+compile_error!(
+    "cloud-sdk-reqwest transport features are unsupported on this target; use a target-native implementation of the cloud-sdk transport traits"
+);
+
+#[cfg(all(
+    feature = "std",
+    any(
+        target_os = "freebsd",
+        target_os = "linux",
+        target_os = "macos",
+        target_os = "windows"
+    )
+))]
 extern crate std;
 
-#[cfg(any(
-    feature = "async-rustls",
-    feature = "blocking-rustls",
-    feature = "blocking-rustls-webpki-roots"
+#[cfg(all(
+    any(
+        feature = "async-rustls",
+        feature = "blocking-rustls",
+        feature = "blocking-rustls-webpki-roots"
+    ),
+    any(
+        target_os = "freebsd",
+        target_os = "linux",
+        target_os = "macos",
+        target_os = "windows"
+    )
 ))]
 mod shared;
 
-#[cfg(feature = "fuzzing")]
+#[cfg(all(
+    feature = "fuzzing",
+    any(
+        target_os = "freebsd",
+        target_os = "linux",
+        target_os = "macos",
+        target_os = "windows"
+    )
+))]
 #[doc(hidden)]
 pub use shared::{fuzz_raw_http1_wire, fuzz_raw_response_parser};
 
-#[cfg(any(feature = "blocking-rustls", feature = "blocking-rustls-webpki-roots"))]
+#[cfg(all(
+    any(feature = "blocking-rustls", feature = "blocking-rustls-webpki-roots"),
+    any(
+        target_os = "freebsd",
+        target_os = "linux",
+        target_os = "macos",
+        target_os = "windows"
+    )
+))]
 pub mod blocking;
 
-#[cfg(feature = "async-rustls")]
+#[cfg(all(
+    feature = "async-rustls",
+    any(
+        target_os = "freebsd",
+        target_os = "linux",
+        target_os = "macos",
+        target_os = "windows"
+    )
+))]
 pub mod asynchronous;
 
 #[cfg(all(
@@ -27,6 +84,12 @@ pub mod asynchronous;
         feature = "async-rustls",
         feature = "blocking-rustls",
         feature = "blocking-rustls-webpki-roots"
+    ),
+    any(
+        target_os = "freebsd",
+        target_os = "linux",
+        target_os = "macos",
+        target_os = "windows"
     )
 ))]
 mod test_server;

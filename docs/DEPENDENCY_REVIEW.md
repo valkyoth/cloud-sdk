@@ -441,56 +441,34 @@ SBOM gates remain mandatory before publication.
 
 ## v0.96.0
 
-Status: release candidate; incremental pentest and final retest passed.
-
-No dependency or feature edge changes. The executable query contract uses an
-embedded generated TSV and existing fixed-buffer primitives. The Python
-generator uses only the standard library. Default provider graphs remain
-transport-free and `no_std`; FIPS remains deferred to Brynja.
-
-### Lockfile Changes
-
-| Package | Previous | v0.96 | Review |
-| --- | --- | --- | --- |
-| `cloud-sdk` | `0.95.0` | `0.96.0` | Advance the provider-neutral internal milestone identity. |
-| `ovhcloud-v2-probe` | `0.95.0` | `0.96.0` | Advance the excluded workspace probe identity only. |
-
-### Workspace Version Changes
-
-| Package | Published | v0.96 | Change | Publish |
-| --- | --- | --- | --- | --- |
-| `cloud-sdk` | `0.95.0` | `0.96.0` | request-fidelity milestone | no |
-| `cloud-sdk-hetzner` | `0.46.0` | `0.46.0` | provider request code | no |
-| `cloud-sdk-reqwest` | `0.36.0` | `0.36.0` | unchanged | no |
-| `cloud-sdk-sanitization` | `0.19.0` | `0.19.0` | unchanged | no |
-| `cloud-sdk-testkit` | `0.31.0` | `0.31.0` | unchanged | no |
+No dependency or feature edge changed. Lockfile identities advanced
+`cloud-sdk` and the unpublished probe from `0.95.0` to `0.96.0`; only
+provider request code accumulated and no crate was published.
 
 ## v0.97.0
 
+No third-party package, feature, target, build-script, or default edge changed.
+Lockfile identities advanced `cloud-sdk` and the unpublished probe from
+`0.96.0` to `0.97.0`; metadata and link-local code accumulated for v0.100.
+
+## v0.98.0
+
 Status: implementation stop; incremental pentest required.
 
-No third-party package, feature, target, build-script, or default dependency
-edge is added. The provider metadata implementation uses only `core`, existing
-`cloud-sdk` fixed-buffer contracts, and first-party modules. The reqwest
-boundary reuses its admitted direct Hyper connector and existing optional TLS
-graph; it adds no proxy, redirect, credential, DNS, or runtime dependency.
+No third-party version or feature name changed. `cloud-sdk` and the unpublished
+probe advance from `0.97.0` to `0.98.0`. Existing optional reqwest
+dependencies move under the exact Linux, Windows, macOS, and FreeBSD target
+predicate so unsupported targets reach a crate-owned diagnostic before
+third-party compilation. The all-target build-script inventory is pinned;
+bundled `aws-lc-sys 0.44.0` remains the admitted native crypto implementation,
+conditional `ring 0.17.14` remains reviewed, and FIPS remains absent.
+The reqwest `std` marker no longer forces `cloud-sdk/std`; applications needing
+the core std integrations enable that core feature explicitly.
 
-### Lockfile Changes
-
-| Package | Previous | v0.97 | Review |
+| Package | Previous | v0.98 | Review |
 | --- | --- | --- | --- |
-| `cloud-sdk` | `0.96.0` | `0.97.0` | Advance the provider-neutral internal milestone identity. |
-| `ovhcloud-v2-probe` | `0.96.0` | `0.97.0` | Advance the excluded workspace probe identity only. |
-
-### Workspace Version Changes
-
-| Package | Published | v0.97 | Change | Publish |
-| --- | --- | --- | --- | --- |
-| `cloud-sdk` | `0.95.0` | `0.97.0` | scope-closure milestone | no |
-| `cloud-sdk-hetzner` | `0.46.0` | `0.46.0` | metadata and response validation | no |
-| `cloud-sdk-reqwest` | `0.36.0` | `0.36.0` | exact link-local raw transport | no |
-| `cloud-sdk-sanitization` | `0.19.0` | `0.19.0` | unchanged | no |
-| `cloud-sdk-testkit` | `0.31.0` | `0.31.0` | unchanged | no |
+| `cloud-sdk` | `0.97.0` | `0.98.0` | Advance the internal milestone identity. |
+| `ovhcloud-v2-probe` | `0.97.0` | `0.98.0` | Advance the unpublished probe identity only. |
 
 ## 2026-07-20
 
