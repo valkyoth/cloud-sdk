@@ -106,6 +106,39 @@ def test_invalid_toml_fence_is_rejected() -> None:
         assert "TOML example is invalid" in result.stderr
 
 
+def test_commonmark_toml_fences_are_enforced() -> None:
+    fences = (
+        ("```TOML", "```"),
+        ("~~~toml", "~~~"),
+        ('```toml title="Cargo.toml"', "```"),
+        ("````toml", "`````"),
+        ('```{.toml title="Cargo.toml"}', "```"),
+    )
+    with tempfile.TemporaryDirectory() as temporary:
+        readme = Path(temporary) / "README.md"
+        for opening, closing in fences:
+            readme.write_text(
+                f"{opening}\n[dependencies]\ncloud-sdk = \"0.99.0\"\n{closing}\n",
+                encoding="ascii",
+            )
+            result = run(readme)
+            assert result.returncode == 1, (opening, result)
+            assert "cloud-sdk must use version 0.100.0" in result.stderr
+
+
+def test_unterminated_toml_variants_fail_closed() -> None:
+    with tempfile.TemporaryDirectory() as temporary:
+        readme = Path(temporary) / "README.md"
+        for opening in ("```TOML", "~~~toml", '```toml title="Cargo.toml"'):
+            readme.write_text(
+                f"{opening}\n[dependencies]\ncloud-sdk = \"0.99.0\"\n",
+                encoding="ascii",
+            )
+            result = run(readme)
+            assert result.returncode == 1, (opening, result)
+            assert "unterminated TOML fence" in result.stderr
+
+
 def main() -> None:
     test_repository_readmes()
     test_stable_wording()
@@ -113,7 +146,9 @@ def main() -> None:
     test_missing_file_is_rejected()
     test_first_party_dependency_versions_are_exact()
     test_invalid_toml_fence_is_rejected()
-    print("6 publishable README regression groups passed.")
+    test_commonmark_toml_fences_are_enforced()
+    test_unterminated_toml_variants_fail_closed()
+    print("8 publishable README regression groups passed.")
 
 
 if __name__ == "__main__":

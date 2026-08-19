@@ -41,7 +41,8 @@ freezing the public API candidate.
   compatibility shim; Image name/label filtering uses `SourceLockedQuery`
   without changing the established `ImageListRequest` generic arity.
 - Every selected package's README TOML examples use exact planned first-party
-  versions and are parsed by the release gate to reject dependency skew.
+  versions and are parsed across CommonMark backtick/tilde fence variants by
+  the release gate to reject dependency skew and malformed TOML.
 
 ## Versions
 

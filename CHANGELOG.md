@@ -11,7 +11,8 @@
   mutations and mandatory operational attestations are deferred to a separately
   reviewed future milestone; Robot purchase dispatch remains forbidden.
 - Source-locked first-party versions in every selected package's README TOML
-  examples and added a structured gate against incompatible dependency skew.
+  examples and added a structured CommonMark fence gate against incompatible
+  dependency skew, alternate fence syntax, and malformed or unterminated TOML.
 - Preserved v0.95 source compatibility across the cumulative public checkpoint:
   obsolete Primary IP type filtering now fails closed, Image list generic arity
   remains unchanged, and new validation paths avoid widening existing enums.
