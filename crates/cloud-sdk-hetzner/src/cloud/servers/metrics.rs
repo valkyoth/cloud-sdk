@@ -60,11 +60,23 @@ const fn metric_bit(metric: ServerMetricType) -> u8 {
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct ServerMetricsStep(u32);
 
+/// Invalid Server metrics resolution.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct ServerMetricsStepError;
+
+impl core::fmt::Display for ServerMetricsStepError {
+    fn fmt(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        formatter.write_str("server metrics step is invalid")
+    }
+}
+
+impl core::error::Error for ServerMetricsStepError {}
+
 impl ServerMetricsStep {
     /// Creates a positive resolution.
-    pub const fn new(seconds: u32) -> Result<Self, ServerRequestError> {
+    pub const fn new(seconds: u32) -> Result<Self, ServerMetricsStepError> {
         if seconds == 0 {
-            return Err(ServerRequestError::InvalidMetricsStep);
+            return Err(ServerMetricsStepError);
         }
         Ok(Self(seconds))
     }

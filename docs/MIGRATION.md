@@ -414,69 +414,25 @@ Add future release sections here instead of creating another version-named file.
 
 ## v0.95.0
 
-
-v0.95.0 is the cumulative public checkpoint for the v0.91.0-v0.95.0 Robot
-work. Update independently versioned crates together when they are used in one
-application:
-
-```toml
-[dependencies]
-cloud-sdk = "0.95.0"
-cloud-sdk-hetzner = { version = "0.46.0", features = ["serde"] }
-cloud-sdk-reqwest = { version = "0.36.0", features = ["blocking-rustls"] }
-
-[dev-dependencies]
-cloud-sdk-testkit = "0.31.0"
-```
-
-`cloud-sdk-sanitization 0.19.0` is unchanged and is not republished.
-
-## Cumulative Robot Surface
-
-The provider release adds strict read-only ordering catalogs, bounded 30-day
-transaction snapshots, cost-authorized order mutations, all 89 active Robot
-operations through `RobotClient`, and one-generation authentication lockout.
-Read-only operations execute directly through blocking, `Send` async, and
-local-async transports. Every state change remains permit-gated, and Robot
-lists remain bounded single responses rather than synthetic pagers.
-
-After authentication rejection, indeterminate post-dispatch failure, or
-cancellation, the client requires a different credential binding or explicit
-reconfirmation before another wire attempt. Applications using one credential
-through multiple clients or processes still need an external credential-keyed
-coordinator.
-
-See the source migration details for [v0.91](#v0910), [v0.92](#v0920),
-[v0.93](#v0930), and [v0.94](#v0940) before updating exhaustive pre-1.0
-matches.
-
-## Robot Live Evidence
-
-The repository operator harness adds a separate
-`cloud-sdk-hetzner-robot-smoke` launcher. It accepts paths to two distinct
-private files through `CLOUD_SDK_HETZNER_ROBOT_USERNAME_FILE` and
-`CLOUD_SDK_HETZNER_ROBOT_PASSWORD_FILE` only after a credential-free build and
-privileged sealing phase. It can execute only the typed bodyless
-`RobotServerListRequest` against the exact official endpoint.
-
-Do not pass Robot credentials to Cargo, CI, command arguments, raw environment
-variables, or the Cloud launcher. Do not intentionally test invalid Robot
-credentials: three failed logins can block the caller's source IP. Follow
-[`LIVE_SMOKE_TESTING.md`](LIVE_SMOKE_TESTING.md) for the complete operator
-procedure and cleanup boundaries.
-
-## Compatibility
-
-The MSRV remains Rust 1.92.0, development remains pinned to Rust 1.97.1,
-default features remain empty, and the provider default graph remains
-transport-free and `no_std`. The live harness is an ignored integration test
-behind existing development features and adds no published runtime dependency.
+The v0.91-v0.95 public checkpoint adds all 89 active Robot operations,
+ordering catalogs, 30-day transaction snapshots, cost-authorized orders, and
+one-generation authentication lockout. State changes remain permit-gated;
+indeterminate dispatch requires reconciliation; shared credentials across
+clients/processes require an external coordinator. The separately sealed live
+harness executes only typed `GET /server` with private credential files after a
+credential-free build. See [v0.91](#v0910) through [v0.94](#v0940) and the
+[`LIVE_SMOKE_TESTING.md`](LIVE_SMOKE_TESTING.md) runbook. Default features,
+Rust 1.92 MSRV, transport-free `no_std`, and sanitization 0.19 remain unchanged.
 
 ## v0.96.0
 
 Use typed `ServerMetricTypes`, `ServerMetricsStep`, and source-locked query
-arguments. The removed Primary IP `type` filter has no replacement; use current
-`name` or `ip` filters. Preparation rejects operation/query mismatches.
+arguments. The removed Primary IP `type` filter has no upstream replacement;
+the deprecated `PrimaryIpListRequest::with_type` remains source-compatible but
+fails query encoding instead of silently sending an obsolete filter. Use
+current `name` or `ip` filters. Image `name` and `label_selector` filters are
+available through `SourceLockedQuery`. Preparation rejects operation/query
+mismatches.
 
 ## v0.97.0
 
@@ -498,3 +454,25 @@ both features explicitly when core std integrations are required.
 ## v0.99.0
 No Rust API migration is required; this internal tag changes only release tooling and evidence.
 Crates.io remains at 0.95.0; internal source consumers follow the v0.99 version matrix.
+
+## v0.100.0
+
+Update the cumulative public checkpoint together:
+
+```toml
+[dependencies]
+cloud-sdk = "0.100.0"
+cloud-sdk-hetzner = { version = "0.47.0", features = ["serde"] }
+cloud-sdk-reqwest = { version = "0.37.0", features = ["blocking-rustls"] }
+```
+
+`cloud-sdk-testkit 0.31.1` carries only the core dependency update;
+`cloud-sdk-sanitization 0.19.0` is unchanged. Existing named clients remain
+source compatible. Adopt `SourceLockedQuery` for operations lacking a narrower
+query type, the corrected `ServerMetricsRequest` for metrics, and the fixed
+credential-free metadata endpoint/builders for Server Metadata. Reqwest
+transport features are supported only on Linux, Windows, macOS, and FreeBSD;
+other targets provide their own neutral transport. The manual controlled-
+mutation protocol is release tooling, not a runtime API. A workspace-wide
+semver comparison against v0.95 verifies that the cumulative public checkpoint
+does not remove or incompatibly alter an existing API item.

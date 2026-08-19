@@ -94,6 +94,18 @@ fn server_adjacent_primary_ip_query_writes_filters_pagination_and_sorting() {
 }
 
 #[test]
+#[allow(deprecated)]
+fn removed_primary_ip_type_filter_fails_closed() {
+    let mut output = [0xaa; 32];
+    let request = PrimaryIpListRequest::new().with_type(PrimaryIpType::Ipv4);
+    assert_eq!(
+        request.write_query(&mut output),
+        Err(super::PrimaryIpRequestError::InvalidType)
+    );
+    assert_eq!(output, [0xaa; 32]);
+}
+
+#[test]
 fn server_adjacent_primary_ip_assignment_and_dns_ptr_intent_are_explicit() {
     let Some(server_id) = PrimaryIpId::new(42) else {
         unreachable!("security fixture construction failed");

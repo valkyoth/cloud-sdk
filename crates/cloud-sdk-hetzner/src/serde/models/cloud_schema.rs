@@ -55,7 +55,7 @@ fn validate_primary_ip_assignment(value: &Value) -> Result<(), ResponseModelErro
     match kind {
         2 if id.is_null() => Ok(()),
         1 if id.as_u64().is_some_and(|value| value != 0) => Ok(()),
-        1 | 2 => Err(ResponseModelError::InconsistentFields),
+        1 | 2 => Err(ResponseModelError::EnvelopeMismatch),
         _ => Ok(()),
     }
 }
@@ -100,7 +100,7 @@ fn validate_target_health(target: &Value) -> Result<(), ResponseModelError> {
         let detail = object.get("detail");
         let code = object.get("http_status_code");
         if !unhealthy && (detail.is_some() || code.is_some()) {
-            return Err(ResponseModelError::InconsistentFields);
+            return Err(ResponseModelError::EnvelopeMismatch);
         }
         let detail = match detail {
             Some(value) => value
@@ -128,7 +128,7 @@ fn validate_target_health(target: &Value) -> Result<(), ResponseModelError> {
         if code.is_some_and(|value| !(100..=599).contains(&value))
             || (detail == Some(2)) != code.is_some()
         {
-            return Err(ResponseModelError::InconsistentFields);
+            return Err(ResponseModelError::EnvelopeMismatch);
         }
     }
     Ok(())

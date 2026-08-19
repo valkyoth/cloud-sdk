@@ -3567,7 +3567,9 @@ GitHub validation, signed tagging, and crates.io publication.
 
 Stop gate: `v0.100.0 implementation stop reached. Run the cumulative pentest and full release gate for this exact commit before the signed tag and final development publication to crates.io.`
 
-Status: planned public release candidate.
+Status: implementation candidate; offline mutation qualification, API review,
+and release binding are complete. Manual controlled-mutation evidence and the
+incremental pentest remain required before the public release gate.
 
 ### v1.0.0 - Full Hetzner Production SDK
 

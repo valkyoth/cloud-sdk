@@ -35,6 +35,7 @@ pub use self::shared::ServerName;
 
 pub use self::metrics::{
     ServerMetricType, ServerMetricTypes, ServerMetricsRequest, ServerMetricsStep,
+    ServerMetricsStepError,
 };
 
 /// ID-or-name server create/action reference.

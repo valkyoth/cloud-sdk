@@ -4,7 +4,6 @@ use cloud_sdk::Method;
 
 use crate::EndpointGroup;
 use crate::actions::ActionId;
-use crate::labels::LabelSelector;
 use crate::pagination::{Page, PerPage, SortDirection};
 use crate::request::{ApiBaseUrl, EndpointPath};
 
@@ -162,20 +161,18 @@ impl ImageEndpoint {
 
 /// Image list request.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct ImageListRequest<'a> {
+pub struct ImageListRequest {
     architecture: Option<ImageArchitecture>,
     image_type: Option<ImageTypeFilter>,
     bound_to: Option<ImageId>,
     include_deprecated: Option<bool>,
-    label_selector: Option<LabelSelector<'a>>,
-    name: Option<ImageName<'a>>,
     status: Option<ImageStatus>,
     page: Option<Page>,
     per_page: Option<PerPage>,
     sort: Option<(ImageSortField, SortDirection)>,
 }
 
-impl<'a> ImageListRequest<'a> {
+impl ImageListRequest {
     /// Creates an empty image list request.
     #[must_use]
     pub const fn new() -> Self {
@@ -184,8 +181,6 @@ impl<'a> ImageListRequest<'a> {
             image_type: None,
             bound_to: None,
             include_deprecated: None,
-            label_selector: None,
-            name: None,
             status: None,
             page: None,
             per_page: None,
@@ -218,20 +213,6 @@ impl<'a> ImageListRequest<'a> {
     #[must_use]
     pub const fn with_include_deprecated(mut self, include: bool) -> Self {
         self.include_deprecated = Some(include);
-        self
-    }
-
-    /// Sets label-selector filtering.
-    #[must_use]
-    pub const fn with_label_selector(mut self, selector: LabelSelector<'a>) -> Self {
-        self.label_selector = Some(selector);
-        self
-    }
-
-    /// Sets exact name filtering.
-    #[must_use]
-    pub const fn with_name(mut self, name: ImageName<'a>) -> Self {
-        self.name = Some(name);
         self
     }
 
@@ -279,12 +260,6 @@ impl<'a> ImageListRequest<'a> {
                     if include { "true" } else { "false" },
                 )?;
             }
-            if let Some(selector) = self.label_selector {
-                writer.query_pair(first, "label_selector", selector.as_str())?;
-            }
-            if let Some(name) = self.name {
-                writer.query_pair(first, "name", name.as_str())?;
-            }
             if let Some(page) = self.page {
                 writer.query_u64(first, "page", page.get())?;
             }
@@ -305,7 +280,7 @@ impl<'a> ImageListRequest<'a> {
     }
 }
 
-impl Default for ImageListRequest<'_> {
+impl Default for ImageListRequest {
     fn default() -> Self {
         Self::new()
     }

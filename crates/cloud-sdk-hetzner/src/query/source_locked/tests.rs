@@ -11,6 +11,7 @@ fn image_query_expresses_every_scalar_and_repeated_filter() {
         SourceQueryArgument::text(SourceQueryParameter::Type, text("snapshot")),
         SourceQueryArgument::text(SourceQueryParameter::Status, text("available")),
         SourceQueryArgument::text(SourceQueryParameter::Sort, text("created:desc")),
+        SourceQueryArgument::text(SourceQueryParameter::LabelSelector, text("env=prod")),
         SourceQueryArgument::text(SourceQueryParameter::Name, text("debian")),
         SourceQueryArgument::boolean(SourceQueryParameter::IncludeDeprecated, false),
         SourceQueryArgument::text(SourceQueryParameter::BoundTo, text("42")),
@@ -28,7 +29,7 @@ fn image_query_expresses_every_scalar_and_repeated_filter() {
         .unwrap_or("");
     assert_eq!(
         actual,
-        "architecture=arm&bound_to=42&include_deprecated=false&name=debian&sort=created%3Adesc&status=available&type=system&type=snapshot"
+        "architecture=arm&bound_to=42&include_deprecated=false&label_selector=env%3Dprod&name=debian&sort=created%3Adesc&status=available&type=system&type=snapshot"
     );
 }
 

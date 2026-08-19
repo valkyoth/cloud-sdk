@@ -3,9 +3,9 @@ use super::actions::{
 };
 use super::{
     PrimaryIpSelection, ServerCreateRequest, ServerEndpoint, ServerId, ServerListRequest,
-    ServerMetricType, ServerMetricTypes, ServerMetricsRequest, ServerMetricsStep, ServerName,
-    ServerPublicNet, ServerReference, ServerRequestError, ServerResourceId, ServerSortField,
-    ServerStatus, TextValue, TimestampValue, UserData,
+    ServerMetricType, ServerMetricTypes, ServerMetricsRequest, ServerMetricsStep,
+    ServerMetricsStepError, ServerName, ServerPublicNet, ServerReference, ServerRequestError,
+    ServerResourceId, ServerSortField, ServerStatus, TextValue, TimestampValue, UserData,
 };
 use crate::EndpointGroup;
 use crate::actions::ActionId;
@@ -230,10 +230,7 @@ fn server_metrics_validate_time_range_and_write_query() {
         ),
         Err(ServerRequestError::InvalidTimeRange)
     );
-    assert_eq!(
-        ServerMetricsStep::new(0),
-        Err(ServerRequestError::InvalidMetricsStep)
-    );
+    assert_eq!(ServerMetricsStep::new(0), Err(ServerMetricsStepError));
 }
 
 #[test]

@@ -22,7 +22,7 @@ scripts/test-release-provenance.py
 scripts/test-latest-tools.py
 scripts/test-rustsec-advisories.py
 scripts/test-dependency-review.py
-scripts/check_dependency_review.py v0.98.0 0.99.0 docs/DEPENDENCY_REVIEW.md
+scripts/check_dependency_review.py v0.99.0 0.100.0 docs/DEPENDENCY_REVIEW.md
 scripts/check_review_digests.py
 scripts/test-publishable-readmes.py
 scripts/check-release-plan-structure.py

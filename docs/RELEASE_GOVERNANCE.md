@@ -1,6 +1,6 @@
 # Release Governance
 
-Status: reviewed for the v0.99.0 provenance and governance milestone.
+Status: reviewed at v0.99.0 and carried into the v0.100.0 public checkpoint.
 
 This document defines how a maintainer verifies, recovers, reproduces, and
 releases the exact reviewed source. It does not claim organizationally

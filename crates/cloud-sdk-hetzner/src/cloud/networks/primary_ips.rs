@@ -113,6 +113,7 @@ impl PrimaryIpEndpoint {
 /// Primary IP list request.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct PrimaryIpListRequest<'a> {
+    removed_type_filter: bool,
     name: Option<PrimaryIpName<'a>>,
     ip: Option<PrimaryIpAddress<'a>>,
     label_selector: Option<LabelSelector<'a>>,
@@ -126,6 +127,7 @@ impl<'a> PrimaryIpListRequest<'a> {
     #[must_use]
     pub const fn new() -> Self {
         Self {
+            removed_type_filter: false,
             name: None,
             ip: None,
             label_selector: None,
@@ -133,6 +135,20 @@ impl<'a> PrimaryIpListRequest<'a> {
             per_page: None,
             sort: None,
         }
+    }
+
+    /// Retains source compatibility for the removed upstream `type` filter.
+    ///
+    /// Requests using this method fail during query encoding. Use `with_name`
+    /// or `with_ip` instead.
+    #[deprecated(
+        since = "0.47.0",
+        note = "Hetzner removed the Primary IP type filter; use name or IP filtering"
+    )]
+    #[must_use]
+    pub const fn with_type(mut self, _ip_type: PrimaryIpType) -> Self {
+        self.removed_type_filter = true;
+        self
     }
 
     /// Sets exact name filtering.
@@ -179,6 +195,9 @@ impl<'a> PrimaryIpListRequest<'a> {
 
     /// Writes the query string into a caller-owned buffer.
     pub fn write_query(self, output: &mut [u8]) -> Result<usize, PrimaryIpRequestError> {
+        if self.removed_type_filter {
+            return Err(CloudRequestError::InvalidType);
+        }
         encode_query(output, |writer, first| {
             if let Some(ip) = self.ip {
                 writer.query_pair(first, "ip", ip.as_str())?;

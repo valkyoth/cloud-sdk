@@ -48,8 +48,6 @@ pub enum ServerRequestError {
     InvalidTimestamp,
     /// End time must be later than start time.
     InvalidTimeRange,
-    /// Metrics resolution must be positive.
-    InvalidMetricsStep,
     /// Fields cannot be combined safely.
     MutuallyExclusiveFields,
 }
@@ -69,7 +67,6 @@ impl_static_error!(ServerRequestError,
     Self::InvalidUserData => "server user data is invalid",
     Self::InvalidTimestamp => "server timestamp is invalid",
     Self::InvalidTimeRange => "server time range is invalid",
-    Self::InvalidMetricsStep => "server metrics step is invalid",
     Self::MutuallyExclusiveFields => "server request fields are mutually exclusive",
 );
 

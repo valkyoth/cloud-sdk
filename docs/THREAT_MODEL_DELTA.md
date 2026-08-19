@@ -347,3 +347,31 @@ provider account recovery, platform compromise, and external service
 availability remain operational limits. Maintainer pentest work is not an
 organizationally independent assessment, and reproducible source artifacts do
 not prove a reproducible or accredited operating environment.
+
+## v0.100.0
+
+New threats are credentialed mutation escaping CI, reuse of production scope,
+implicit retries, billable dispatch, plan/permit drift, indeterminate delivery,
+duplicate cleanup claims, residual prefixed resources, cost overrun, sensitive
+evidence, self-attested cleanup, and code changes after live qualification.
+
+The automated gate rejects credential and destructive-opt-in variables and
+runs only exact mock-provider paths. The manual protocol requires a unique
+prefix, disposable scope, explicit EUR ceiling, one attempt, official
+endpoints, plan-bound permits, reconciliation before cleanup, distinct cleanup
+fingerprints, unique opaque resource references, one ledger, a different
+cleanup reviewer, zero final inventories across all five services, billing
+review, and credential revocation. Robot purchase dispatch is forbidden.
+
+The release binding requires evidence to follow a specific ancestor containing
+the controls and permits only mutation evidence, the pentest report, and final
+release-note status afterward. Any other source change invalidates live
+qualification. The JSON validator is bounded, static, payload-free, and has no
+network, subprocess, environment, or credential input.
+
+Residual risks remain operational: attestations can be dishonest, provider
+reads can race or be stale, account scope and reviewer independence cannot be
+proved by repository code, allocator/process/host failures can interrupt
+cleanup, provider billing can lag, and SHA-256 references do not prove remote
+events. Maintainers must inspect control planes and billing independently; the
+record is not certification or regulated-environment accreditation.

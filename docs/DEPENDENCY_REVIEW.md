@@ -470,21 +470,9 @@ the core std integrations enable that core feature explicitly.
 ## v0.99.0
 Status: release candidate; incremental pentest and final retest passed.
 
-Pentest found that line-oriented YAML inspection could not substantiate the
-workflow-policy claim. Remediation admits exact `saphyr 0.0.12` and direct
-`saphyr-parser 0.0.12`, with default features disabled, into the unpublished
-coverage tool. A bounded event pass rejects anchors and aliases before DOM
-construction. Both are absent from every publishable graph and archive.
-
-Their locked transitive graph is `arraydeque 0.5.1`,
-`hashlink 0.12.1`, `hashbrown 0.17.1`, `foldhash 0.2.0`, `ordered-float 5.3.0`,
-`num-traits 0.2.19`, `autocfg 1.5.1`, `thiserror 2.0.20`, and `quote 1.0.47`.
-There is no native build, network, TLS, runtime, watcher, clock, randomness,
-credential, or published edge. Cargo Deny, RustSec, SBOM, and lockfile gates
-cover the graph.
-
-`cloud-sdk-testkit` remains dependency-affected by accumulated facade versions.
-Nothing publishes; v0.100 assigns the required independent patch version.
+Exact default-disabled `saphyr 0.0.12` and `saphyr-parser 0.0.12` support the
+unpublished bounded YAML workflow checker. They have no published, native,
+network, credential, or runtime edge. Nothing publishes at this milestone.
 
 | Package | Previous | v0.99 | Review |
 | --- | --- | --- | --- |
@@ -493,8 +481,17 @@ Nothing publishes; v0.100 assigns the required independent patch version.
 | `saphyr` | `-` | `0.0.12` | Exact YAML 1.2 parser in the unpublished workflow-policy checker only; default encoding disabled. |
 | `saphyr-parser` | transitive | `0.0.12` | Exact direct pre-DOM event parser; no publishable edge. |
 
-## 2026-07-20
+## v0.100.0
+Status: candidate freeze; pentest required after controlled mutation evidence.
 
-**Status:** historical reviewed snapshot  
-**Topics:** Compiler And Tools; Direct Dependency Updates; Native Archive Checksums; FIPS Status; Verification  
-**Full snapshot:** [repository history](https://github.com/valkyoth/cloud-sdk/commits/main/docs/DEPENDENCY_REVIEW_2026-07-20.md)
+No third-party package or feature changed. Mutation tooling is repository-only
+and adds no runtime, credential, network, build-script, or package edge.
+Sanitization remains unchanged; optional AWS-LC remains non-FIPS.
+
+| Package | Previous | v0.100 | Review |
+| --- | --- | --- | --- |
+| `cloud-sdk` | `0.99.0` | `0.100.0` | Advance the public facade checkpoint. |
+| `cloud-sdk-hetzner` | `0.46.0` | `0.47.0` | Publish accumulated request, metadata, and qualification code. |
+| `cloud-sdk-reqwest` | `0.36.0` | `0.37.0` | Publish accumulated target and link-local transport code. |
+| `cloud-sdk-testkit` | `0.31.0` | `0.31.1` | Dependency-only facade update. |
+| `ovhcloud-v2-probe` | `0.99.0` | `0.100.0` | Advance excluded inherited workspace identity only. |

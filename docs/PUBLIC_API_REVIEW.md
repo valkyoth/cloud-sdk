@@ -472,3 +472,25 @@ provider operation changes. The release-governance TOML, Python checks,
 recovery runbook, and reproducibility evidence are repository tooling rather
 than published API. `cloud-sdk` advances only to preserve the ordinary tag and
 facade milestone identity; all supporting package versions remain unchanged.
+
+## v0.100.0
+
+Status: candidate API freeze; controlled mutation and pentest evidence required.
+
+The cumulative public additions since v0.95 are `SourceLockedQuery` and its
+typed operation/argument/value/error contracts, corrected Server metrics
+types, the complete fixed-origin Server Metadata module, `MediaType` constants
+for plain text and YAML, and credential-free `LinkLocalHttpEndpoint` plus raw
+blocking/async builders. Provider models remain transport-free and `no_std`.
+
+No existing named client, permit, credential, transport trait, or response
+contract is removed. Reqwest transport modules are now explicitly available
+only on Linux, Windows, macOS, and FreeBSD; unsupported targets retain the
+neutral traits and receive a static diagnostic if they select that adapter.
+The removed upstream Primary IP `type` filter keeps a deprecated fail-closed
+source-compatibility shim, and image name/label filtering remains available
+through `SourceLockedQuery` without changing `ImageListRequest` generic arity.
+New validation paths reuse compatible public error shapes where necessary.
+The controlled-mutation schema and release tools are not published Rust API.
+This surface is the frozen v1.0 candidate; post-evidence changes require a new
+qualification cycle.

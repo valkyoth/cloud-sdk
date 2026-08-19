@@ -76,14 +76,14 @@ Published and planned versions for each independently versioned crate are
 listed in the
 [crate version matrix](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATE_VERSION_MATRIX.md).
 
-The v0.100 release candidate completes the cumulative final-development
-checkpoint for the provider-neutral foundation and exhaustive named Hetzner
+The v0.100 release candidate is the cumulative final-development checkpoint
+for the provider-neutral foundation and exhaustive named Hetzner
 Cloud, DNS, Security, Console Storage Box, and Robot clients. This milestone
-qualifies controlled mutations and freezes the candidate public API after the
+adds controlled-mutation qualification and freezes the candidate public API after the
 platform, compiler, feature, package, documentation, release-governance, and
-provenance reviews. Provider crates remain transport-free and perform no
-network request by default. Future FIPS work remains deferred until Brynja is
-ready.
+provenance reviews. Manual mutation and pentest evidence remain required before
+publication. Provider crates remain transport-free and perform no network
+request by default. Future FIPS work remains deferred until Brynja is ready.
 
 ## Trust Dashboard
 

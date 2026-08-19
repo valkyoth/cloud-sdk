@@ -1387,8 +1387,9 @@ let start = TimestampValue::new("2026-08-18T10:00:00Z")?;
 let end = TimestampValue::new("2026-08-18T11:00:00Z")?;
 let metrics = ServerMetricTypes::new(ServerMetricType::Cpu)
     .with(ServerMetricType::Disk);
+let step = ServerMetricsStep::new(60).unwrap_or_else(|_| unreachable!());
 let metrics = ServerMetricsRequest::try_new(id, metrics, start, end)?
-    .with_step(ServerMetricsStep::new(60)?);
+    .with_step(step);
 let mut query = [0_u8; 96];
 let written = metrics.write_query(&mut query)?;
 assert_eq!(

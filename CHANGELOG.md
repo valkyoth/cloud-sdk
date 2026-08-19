@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.100.0 - 2026-08-19
+
+- Completed the cumulative v0.96-v0.100 request-fidelity, Server Metadata,
+  platform/MSRV, release-governance, and provenance qualification train.
+- Added a credential-free controlled-mutation gate across exact typed Cloud,
+  DNS, Security, Console Storage, Robot mutation, and Robot billable-order
+  reconciliation paths.
+- Added a bounded manual evidence protocol with one-attempt authority, unique
+  prefixes and opaque resource references, explicit cost ceilings, resolved
+  uncertain delivery, one cleanup ledger, independent empty inventories,
+  billing review, and credential revocation. Robot purchase dispatch remains
+  forbidden.
+- Bound live evidence to an unchanged source commit; only the evidence,
+  pentest report, and final release-note status may follow qualification.
+- Preserved v0.95 source compatibility across the cumulative public checkpoint:
+  obsolete Primary IP type filtering now fails closed, Image list generic arity
+  remains unchanged, and new validation paths avoid widening existing enums.
+- Prepared the public checkpoint for `cloud-sdk 0.100.0`,
+  `cloud-sdk-hetzner 0.47.0`, `cloud-sdk-reqwest 0.37.0`, and dependency-only
+  `cloud-sdk-testkit 0.31.1`; sanitization remains unchanged.
+
 ## 0.99.0 - 2026-08-19
 
 - Added one machine-readable release-governance policy covering the exact five

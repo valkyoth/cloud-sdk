@@ -433,7 +433,7 @@ mod tests {
         set_fixture_field(&mut mismatch, "assignee_id", serde_json::json!(42));
         assert!(matches!(
             try_parse_resource_fixture("primary_ip", &mismatch),
-            Err(ResponseModelError::InconsistentFields)
+            Err(ResponseModelError::EnvelopeMismatch)
         ));
 
         let mut mismatch = fixture_resource(&fixture, "load_balancer");
@@ -442,7 +442,7 @@ mod tests {
         health.insert("detail".into(), serde_json::json!("unexpected_http_status"));
         assert!(matches!(
             try_parse_resource_fixture("load_balancer", &mismatch),
-            Err(ResponseModelError::InconsistentFields)
+            Err(ResponseModelError::EnvelopeMismatch)
         ));
 
         let mut mismatch = fixture_resource(&fixture, "load_balancer");

@@ -329,3 +329,28 @@ objects without storing private keys or adding a separate pentest-signing flow.
 Moving tags, replacing releases, or attempting to overwrite crates was rejected.
 Published evidence remains immutable; incidents use advisories, yanks where
 needed, and a newly reviewed corrective version.
+
+## v0.100.0
+
+### CI Or General-Purpose Mutation Runner
+
+A credentialed CI job and repository command accepting arbitrary operations,
+endpoints, or resource IDs were rejected. They would turn a release-evidence
+tool into standing infrastructure authority. Automated checks use exact mocked
+typed paths; real reversible mutations remain a manual disposable-scope
+protocol with one attempt and independent cleanup review.
+
+### Billable Robot Order As Release Proof
+
+Purchasing a server was rejected as unnecessary cost and irreversible release
+coupling. The exact catalog price, ceiling, permit, delivery, and reconciliation
+path is qualified without dispatch; evidence must record that the order was
+withheld and confirmed not applied.
+
+### Self-Attested Cleanup Or Raw Provider IDs
+
+One operator marking their own cleanup complete and committing provider IDs,
+responses, or screenshots were rejected. Evidence uses unique opaque SHA-256
+references, a separate reviewer identity, one cross-checked cleanup ledger,
+and zero prefixed inventory for every service. The record is explicitly an
+operational attestation, not cryptographic proof of provider events.
