@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.97.0 - Unreleased
+## 0.97.0 - 2026-08-19
 
 - Added complete allocation-free contracts for all seven canonical Hetzner
   Server Metadata reads, strict summary/scalar/private-network decoding, and
@@ -14,6 +14,9 @@
   unassigned/null response semantics with exact cross-field regressions.
 - Froze the finite Hetzner 1.0 scope at 304 active operations and 29 deprecated
   exclusions, with explicit standard-S3 and Robot domain-registration limits.
+- Hardened metadata identity semantics, bounded alias duplicate detection,
+  type-separated HTTPS/link-local builders, and scalar newline handling after
+  incremental pentest and green retest.
 - Advanced the internal cumulative source to `cloud-sdk 0.97.0`; crates.io
   publication remains deferred to v0.100.0.
 

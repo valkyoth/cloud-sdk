@@ -1,11 +1,11 @@
 # cloud-sdk 0.97.0 Release Notes
 
-Status: implementation stop reached; incremental pentest required.
+Status: release candidate; pentest and final retest passed.
 
-Release date: pending
+Release date: 2026-08-19
 
-Security-Review: PENDING
-Pentest: PENDING
+Security-Review: PASS
+Pentest: PASS
 Publication: DEFERRED TO v0.100.0
 
 ## Overview
@@ -56,15 +56,26 @@ publishes no crate.
 | `cloud-sdk-sanitization` | `0.19.0` | `0.19.0` | unchanged |
 | `cloud-sdk-testkit` | `0.31.0` | `0.31.0` | unchanged |
 
+## Pentest Remediation
+
+- Reused the established server-name and public-address policies for metadata
+  hostname and public IPv4 values in scalar and summary responses.
+- Replaced quadratic alias duplicate scans with a fixed 512-address scratch
+  array, checked range access, bounded sorting, and adjacent duplicate checks;
+  item 513 is rejected before address parsing.
+- Split raw HTTPS and link-local HTTP construction into distinct blocking and
+  async builder types so HTTPS builders cannot carry a runtime downgrade mode.
+- Restored the shared scalar policy for public IPv4 responses: exactly one
+  terminal LF is accepted, while CRLF and repeated newlines remain rejected.
+
 ## Stop Gate
 
-Run the incremental pentest against v0.96.0. After remediation and a green
-retest, publish the final report, run `scripts/release_0_97_gate.sh` against
-the exact clean evidence commit, and require green GitHub CI and CodeQL before
-tagging. Do not publish crates; the cumulative public checkpoint is v0.100.0.
+The incremental pentest and remediation retest are green. Run
+`scripts/release_0_97_gate.sh` against the exact final evidence commit and
+require green GitHub CI and CodeQL before tagging. Do not publish crates; the
+cumulative public checkpoint is v0.100.0.
 
 ## Result
 
-Implementation is complete and ready for its incremental pentest. Release
-readiness, Security-Review, Pentest, date, and result remain pending until the
-review cycle is complete.
+v0.97.0 is ready for its internal signed tag after the clean local release
+gate and GitHub CI and CodeQL pass. No crate is selected for publication.

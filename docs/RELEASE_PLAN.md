@@ -3385,7 +3385,9 @@ is ready for pentest.
 
 Stop gate: `v0.96.0 implementation stop reached. Run the pentest and full release gate for this exact commit; defer crates.io publication to v0.100.0.`
 
-Status: implementation stop reached; incremental pentest required.
+Status: released as the signed internal `v0.96.0` milestone after pentest,
+green final gate, CI, and CodeQL; crates.io publication remains deferred to
+v0.100.0.
 
 ### v0.97.0 - Hetzner Scope Closure And Adversarial Qualification
 
@@ -3443,7 +3445,9 @@ the exact implementation commit is ready for pentest.
 
 Stop gate: `v0.97.0 implementation stop reached. Run the pentest and full release gate for this exact commit; defer crates.io publication to v0.100.0.`
 
-Status: implementation stop reached; incremental pentest required.
+Status: release candidate; incremental pentest and final retest passed;
+crates.io publication remains deferred to v0.100.0. Tag only after the exact
+final evidence commit passes the local release gate, CI, and CodeQL.
 
 ### v0.98.0 - Platform And MSRV Qualification
 
