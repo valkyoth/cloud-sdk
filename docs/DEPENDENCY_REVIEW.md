@@ -440,19 +440,16 @@ RustSec, package, feature-unification, platform, freshness, and complete SPDX
 SBOM gates remain mandatory before publication.
 
 ## v0.96.0
-
 No dependency or feature edge changed. Lockfile identities advanced
 `cloud-sdk` and the unpublished probe from `0.95.0` to `0.96.0`; only
 provider request code accumulated and no crate was published.
 
 ## v0.97.0
-
 No third-party package, feature, target, build-script, or default edge changed.
 Lockfile identities advanced `cloud-sdk` and the unpublished probe from
 `0.96.0` to `0.97.0`; metadata and link-local code accumulated for v0.100.
 
 ## v0.98.0
-
 Status: release candidate; incremental pentest and final retest passed.
 
 No third-party version or feature name changed. `cloud-sdk` and the unpublished
@@ -471,25 +468,29 @@ the core std integrations enable that core feature explicitly.
 | `ovhcloud-v2-probe` | `0.97.0` | `0.98.0` | Advance the unpublished probe identity only. |
 
 ## v0.99.0
+Status: pentest remediation; incremental retest required.
 
-Status: implementation stop; incremental pentest required.
+Pentest found that line-oriented YAML inspection could not substantiate the
+workflow-policy claim. Remediation admits exact `saphyr 0.0.12`, with default
+features disabled, into the unpublished coverage tool. It parses bounded UTF-8
+workflows semantically and is absent from every publishable crate, SDK feature,
+default or transport graph, and `.crate` archive.
 
-No third-party package, version, feature, target, native build, or default edge
-changed. Lockfile identities advance `cloud-sdk` and the unpublished probe from
-`0.98.0` to `0.99.0`. The new governance and provenance checks use only Python
-3.11 standard-library modules and existing pinned Git, Cargo, jq, cargo-sbom,
-cargo-deny, and cargo-audit tools. They add no crate dependency or published
-runtime surface.
+Its locked transitive graph is `saphyr-parser 0.0.12`, `arraydeque 0.5.1`,
+`hashlink 0.12.1`, `hashbrown 0.17.1`, `foldhash 0.2.0`, `ordered-float 5.3.0`,
+`num-traits 0.2.19`, `autocfg 1.5.1`, `thiserror 2.0.20`, and `quote 1.0.47`.
+There is no native build, network, TLS, runtime, watcher, clock, randomness,
+credential, or published edge. Cargo Deny, RustSec, SBOM, and lockfile gates
+cover the graph.
 
-`cloud-sdk-testkit` is marked dependency-affected because its workspace
-dependency accumulates the unpublished facade versions. No package publishes
-at this internal milestone; the v0.100 release plan must assign the independent
-patch version required by the final dependency range.
+`cloud-sdk-testkit` remains dependency-affected by accumulated facade versions.
+Nothing publishes; v0.100 assigns the required independent patch version.
 
 | Package | Previous | v0.99 | Review |
 | --- | --- | --- | --- |
 | `cloud-sdk` | `0.98.0` | `0.99.0` | Advance the internal milestone identity. |
 | `ovhcloud-v2-probe` | `0.98.0` | `0.99.0` | Advance the excluded probe identity only. |
+| `saphyr` | `-` | `0.0.12` | Exact YAML 1.2 parser in the unpublished workflow-policy checker only; default encoding disabled. |
 
 ## 2026-07-20
 

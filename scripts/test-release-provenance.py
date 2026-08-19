@@ -5,7 +5,9 @@ from __future__ import annotations
 
 import importlib.util
 from pathlib import Path
+import subprocess
 import sys
+import tempfile
 
 sys.dont_write_bytecode = True
 ROOT = Path(__file__).resolve().parents[1]
@@ -98,6 +100,62 @@ def test_every_publishable_package_has_explicit_patch_policy() -> None:
     assert set(checker.packages_from_policy()) == set(checker.PACKAGE_PATCHES)
 
 
+def repository() -> tuple[Path, str]:
+    root = Path(tempfile.mkdtemp())
+    subprocess.run(["git", "init", "--quiet"], cwd=root, check=True)
+    subprocess.run(
+        ["git", "config", "user.email", "provenance@example.invalid"],
+        cwd=root,
+        check=True,
+    )
+    subprocess.run(
+        ["git", "config", "user.name", "Provenance Test"], cwd=root, check=True
+    )
+    (root / "evidence.txt").write_text("reviewed\n", encoding="ascii")
+    (root / "release-governance.toml").write_text(
+        '[packages]\npublishable = ["cloud-sdk-sanitization", "cloud-sdk", '
+        '"cloud-sdk-reqwest", "cloud-sdk-testkit", "cloud-sdk-hetzner"]\n',
+        encoding="ascii",
+    )
+    subprocess.run(
+        ["git", "add", "evidence.txt", "release-governance.toml"],
+        cwd=root,
+        check=True,
+    )
+    subprocess.run(["git", "commit", "--quiet", "-m", "fixture"], cwd=root, check=True)
+    head = checker.capture(["git", "rev-parse", "HEAD"], root=root)
+    return root, head
+
+
+def test_committed_file_ignores_mutable_worktree() -> None:
+    root, head = repository()
+    (root / "evidence.txt").write_text("changed\n", encoding="ascii")
+    assert checker.committed_file(root, head, "evidence.txt") == b"reviewed\n"
+
+
+def test_source_tree_is_bound_to_captured_commit() -> None:
+    root, head = repository()
+    expected = checker.capture(["git", "rev-parse", "HEAD^{tree}"], root=root)
+    assert checker.source_tree_at(root, head) == expected
+
+
+def test_source_change_is_rejected() -> None:
+    root, head = repository()
+    (root / "evidence.txt").write_text("changed\n", encoding="ascii")
+    assert_fails(
+        "source worktree changed during reproduction",
+        lambda: checker.assert_source_unchanged(root, head),
+    )
+
+
+def test_package_policy_is_read_from_captured_commit() -> None:
+    root, head = repository()
+    (root / "release-governance.toml").write_text(
+        '[packages]\npublishable = ["unreviewed"]\n', encoding="ascii"
+    )
+    assert checker.packages_from_policy(root, head) == checker.packages_from_policy()
+
+
 def main() -> None:
     tests = (
         test_volatile_sbom_fields_do_not_change_identity,
@@ -107,6 +165,10 @@ def main() -> None:
         test_comparison_rejects_changed_artifact,
         test_policy_names_all_five_publishable_packages,
         test_every_publishable_package_has_explicit_patch_policy,
+        test_committed_file_ignores_mutable_worktree,
+        test_source_tree_is_bound_to_captured_commit,
+        test_source_change_is_rejected,
+        test_package_policy_is_read_from_captured_commit,
     )
     for test in tests:
         test()

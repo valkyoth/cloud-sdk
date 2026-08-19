@@ -8,9 +8,14 @@
 - Added fail-closed checks for SHA-pinned read-only GitHub workflows, package
   eligibility, internal publication deferral, publisher allowlist drift, and
   live GitHub/crates.io governance settings.
+- Replaced line-oriented workflow inspection with a locked YAML 1.2 parser,
+  covered both accepted workflow extensions, and rejected semantic job
+  permission overrides, merge keys, malformed actions, and release authority.
 - Added two-clean-clone reproduction of every `.crate` archive and all four
   complete SPDX graphs, including exact source, lockfile, tool, package, and
   canonical-SBOM digests plus explicit unpublished first-party patch policy.
+- Bound committed SBOM, source-tree, and lockfile evidence to the captured Git
+  object and reject source `HEAD` or worktree changes before reporting success.
 - Documented signer rotation and compromise response, repository and crates.io
   recovery, immutable release rollback, current GitHub bypass/tag limitations,
   and the absence of an independent security assessment claim.

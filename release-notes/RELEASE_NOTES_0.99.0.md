@@ -22,6 +22,10 @@ is an internal cumulative tag and publishes no crate.
 - Source checks require one known workflow inventory, SHA-pinned Actions,
   top-level `contents: read`, no elevated job permissions, and no CI release or
   publication command.
+- Pentest remediation inventories both `.yml` and `.yaml` files and replaces
+  line matching with a lockfile-pinned YAML 1.2 parser in the unpublished
+  coverage tool. Flow mappings, resolved aliases, merge keys, job overrides,
+  semantic action references, triggers, and run commands now fail closed.
 - Live review verifies the active default-branch ruleset, read-only Actions
   defaults, CodeQL default setup, and crates.io ownership.
 - The governance review records current limitations: maintainer and
@@ -46,6 +50,8 @@ is an internal cumulative tag and publishes no crate.
   committed evidence.
 - Evidence prints the source commit/tree, `Cargo.lock` digest, exact Git/Rust/
   Cargo/cargo-sbom versions, and every package and canonical-SBOM digest.
+- Package policy, committed SBOMs, the source tree, and `Cargo.lock` are read
+  from the captured Git object; changed source state prevents final success.
 - The publisher now rejects direct calls for any package outside its closed
   allowlist. Its exclusion regression runs as part of the normal test suite.
 - `release_crates.py --check --version 0.99.0` must report `stage=internal`, and

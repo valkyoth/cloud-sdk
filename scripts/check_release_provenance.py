@@ -59,6 +59,14 @@ def capture(command: list[str], *, root: Path) -> str:
     return subprocess.check_output(command, cwd=root, text=True).strip()
 
 
+def capture_bytes(command: list[str], *, root: Path) -> bytes:
+    return subprocess.check_output(command, cwd=root)
+
+
+def sha256_bytes(value: bytes) -> str:
+    return hashlib.sha256(value).hexdigest()
+
+
 def sha256(path: Path) -> str:
     digest = hashlib.sha256()
     with path.open("rb") as handle:
@@ -71,6 +79,21 @@ def clean_status(root: Path) -> str:
     return capture(
         ["git", "status", "--porcelain=v1", "--untracked-files=all"], root=root
     )
+
+
+def source_tree_at(root: Path, head: str) -> str:
+    return capture(["git", "rev-parse", f"{head}^{{tree}}"], root=root)
+
+
+def committed_file(root: Path, head: str, relative: str) -> bytes:
+    return capture_bytes(["git", "show", f"{head}:{relative}"], root=root)
+
+
+def assert_source_unchanged(root: Path, expected_head: str) -> None:
+    if capture(["git", "rev-parse", "HEAD"], root=root) != expected_head:
+        raise ProvenanceError("source HEAD changed during reproduction")
+    if clean_status(root):
+        raise ProvenanceError("source worktree changed during reproduction")
 
 
 def clone_exact(source: Path, destination: Path, head: str) -> None:
@@ -168,11 +191,10 @@ def sbom_hashes(root: Path) -> dict[str, str]:
     return hashes
 
 
-def committed_sbom_hashes(root: Path) -> dict[str, str]:
+def committed_sbom_hashes(root: Path, head: str) -> dict[str, str]:
     hashes: dict[str, str] = {}
     for name in SBOMS:
-        with (root / "sbom" / name).open("r", encoding="utf-8") as handle:
-            document = json.load(handle)
+        document = json.loads(committed_file(root, head, f"sbom/{name}"))
         if not isinstance(document, dict):
             raise ProvenanceError(f"committed {name} is not an SPDX object")
         logical_name = name.removesuffix(".spdx.json")
@@ -196,8 +218,8 @@ def compare(label: str, first: dict[str, str], second: dict[str, str]) -> None:
 def tool_provenance(root: Path, head: str) -> dict[str, str]:
     return {
         "source_commit": head,
-        "source_tree": capture(["git", "rev-parse", "HEAD^{tree}"], root=root),
-        "cargo_lock_sha256": sha256(root / "Cargo.lock"),
+        "source_tree": source_tree_at(root, head),
+        "cargo_lock_sha256": sha256_bytes(committed_file(root, head, "Cargo.lock")),
         "git": capture(["git", "--version"], root=root),
         "rustc": capture(["rustc", "--version", "--verbose"], root=root).replace("\n", "; "),
         "cargo": capture(["cargo", "--version", "--verbose"], root=root).replace("\n", "; "),
@@ -205,9 +227,14 @@ def tool_provenance(root: Path, head: str) -> dict[str, str]:
     }
 
 
-def packages_from_policy() -> tuple[str, ...]:
-    with CONFIG.open("rb") as handle:
-        config = tomllib.load(handle)
+def packages_from_policy(root: Path = ROOT, head: str | None = None) -> tuple[str, ...]:
+    if head is None:
+        with (root / "release-governance.toml").open("rb") as handle:
+            config = tomllib.load(handle)
+    else:
+        config = tomllib.loads(
+            committed_file(root, head, "release-governance.toml").decode("utf-8")
+        )
     packages = config["packages"]["publishable"]
     if not isinstance(packages, list) or not all(isinstance(item, str) for item in packages):
         raise ProvenanceError("release governance publishable list is malformed")
@@ -220,7 +247,7 @@ def run_reproducibility() -> None:
     if clean_status(ROOT):
         raise ProvenanceError("source worktree must be clean")
     head = capture(["git", "rev-parse", "HEAD"], root=ROOT)
-    packages = packages_from_policy()
+    packages = packages_from_policy(ROOT, head)
     with tempfile.TemporaryDirectory(prefix="cloud-sdk-reproduce-") as temporary:
         base = Path(temporary)
         roots = (base / "first", base / "second")
@@ -232,13 +259,16 @@ def run_reproducibility() -> None:
         first_sboms = sbom_hashes(roots[0])
         second_sboms = sbom_hashes(roots[1])
         compare("canonical SBOMs", first_sboms, second_sboms)
-        compare("committed SBOMs", committed_sbom_hashes(ROOT), first_sboms)
+        compare("committed SBOMs", committed_sbom_hashes(ROOT, head), first_sboms)
 
-    print(json.dumps(tool_provenance(ROOT, head), indent=2, sort_keys=True))
+    evidence = tool_provenance(ROOT, head)
+    assert_source_unchanged(ROOT, head)
+    print(json.dumps(evidence, indent=2, sort_keys=True))
     for name, digest in sorted(first_packages.items()):
         print(f"package sha256 {digest}  {name}")
     for name, digest in sorted(first_sboms.items()):
         print(f"canonical SBOM sha256 {digest}  {name}")
+    assert_source_unchanged(ROOT, head)
     print("Two clean clones reproduced every package archive and complete SBOM.")
 
 

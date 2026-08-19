@@ -1,21 +1,21 @@
 {
   "SPDXID": "SPDXRef-DOCUMENT",
   "creationInfo": {
-    "created": "2026-08-19T11:31:21Z",
+    "created": "2026-08-19T12:19:50Z",
     "creators": [
       "Tool: cargo-sbom-v0.10.0",
       "Tool: cloud-sdk-complete-spdx-v1"
     ]
   },
   "dataLicense": "CC0-1.0",
-  "documentNamespace": "https://spdx.org/spdxdocs/prepared-coverage-check-fda94682-ebe0-4fa5-a3be-561ede2d01f1",
+  "documentNamespace": "https://spdx.org/spdxdocs/prepared-coverage-check-4a590881-1c09-48c2-987e-603557b7c9f8",
   "files": [
     {
       "SPDXID": "SPDXRef-File-cloud-sdk-prepared-coverage-check",
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "bb15f68ae14d4412cc227d59057738e3f9305a7a"
+          "checksumValue": "3564c1906392b06bea97212811f965134b9df97a"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -29,7 +29,21 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "bb15f68ae14d4412cc227d59057738e3f9305a7a"
+          "checksumValue": "3564c1906392b06bea97212811f965134b9df97a"
+        }
+      ],
+      "fileName": "./Cargo.lock",
+      "fileTypes": [
+        "SOURCE",
+        "TEXT"
+      ]
+    },
+    {
+      "SPDXID": "SPDXRef-File-workflow-policy-check",
+      "checksums": [
+        {
+          "algorithm": "SHA1",
+          "checksumValue": "3564c1906392b06bea97212811f965134b9df97a"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -42,12 +56,126 @@
   "name": "prepared-coverage-check",
   "packages": [
     {
+      "SPDXID": "SPDXRef-Package-arraydeque-0.5.1",
+      "description": "A ring buffer with a fixed capacity, which can be stored on the stack.",
+      "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:cargo/arraydeque@0.5.1",
+          "referenceType": "purl"
+        }
+      ],
+      "homepage": "https://github.com/andylokandy/arraydeque",
+      "licenseConcluded": "MIT OR Apache-2.0",
+      "licenseDeclared": "MIT OR Apache-2.0",
+      "name": "arraydeque",
+      "versionInfo": "0.5.1"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-autocfg-1.5.1",
+      "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
+      "licenseConcluded": "Apache-2.0 OR MIT",
+      "name": "autocfg",
+      "versionInfo": "1.5.1",
+      "licenseDeclared": "Apache-2.0 OR MIT",
+      "description": "Automatic cfg for Rust compiler features",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:cargo/autocfg@1.5.1",
+          "referenceType": "purl"
+        }
+      ]
+    },
+    {
       "SPDXID": "SPDXRef-Package-cloud-sdk-prepared-coverage-check-0.0.0",
       "downloadLocation": "NONE",
       "licenseConcluded": "MIT OR Apache-2.0",
       "licenseDeclared": "MIT OR Apache-2.0",
       "name": "cloud-sdk-prepared-coverage-check",
       "versionInfo": "0.0.0"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-foldhash-0.2.0",
+      "description": "A fast, non-cryptographic, minimally DoS-resistant hashing algorithm.",
+      "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:cargo/foldhash@0.2.0",
+          "referenceType": "purl"
+        }
+      ],
+      "licenseConcluded": "Zlib",
+      "licenseDeclared": "Zlib",
+      "name": "foldhash",
+      "versionInfo": "0.2.0"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-hashbrown-0.17.1",
+      "description": "A Rust port of Google's SwissTable hash map",
+      "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:cargo/hashbrown@0.17.1",
+          "referenceType": "purl"
+        }
+      ],
+      "licenseConcluded": "MIT OR Apache-2.0",
+      "licenseDeclared": "MIT OR Apache-2.0",
+      "name": "hashbrown",
+      "versionInfo": "0.17.1"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-hashlink-0.12.1",
+      "description": "HashMap-like containers that hold their key-value pairs in a user controllable order",
+      "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:cargo/hashlink@0.12.1",
+          "referenceType": "purl"
+        }
+      ],
+      "licenseConcluded": "MIT OR Apache-2.0",
+      "licenseDeclared": "MIT OR Apache-2.0",
+      "name": "hashlink",
+      "versionInfo": "0.12.1"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-num-traits-0.2.19",
+      "description": "Numeric traits for generic mathematics",
+      "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:cargo/num-traits@0.2.19",
+          "referenceType": "purl"
+        }
+      ],
+      "homepage": "https://github.com/rust-num/num-traits",
+      "licenseConcluded": "MIT OR Apache-2.0",
+      "licenseDeclared": "MIT OR Apache-2.0",
+      "name": "num-traits",
+      "versionInfo": "0.2.19"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-ordered-float-5.3.0",
+      "description": "Wrappers for total ordering on floats",
+      "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:cargo/ordered-float@5.3.0",
+          "referenceType": "purl"
+        }
+      ],
+      "licenseConcluded": "MIT",
+      "licenseDeclared": "MIT",
+      "name": "ordered-float",
+      "versionInfo": "5.3.0"
     },
     {
       "SPDXID": "SPDXRef-Package-proc-macro2-1.0.107",
@@ -66,6 +194,54 @@
       "versionInfo": "1.0.107"
     },
     {
+      "SPDXID": "SPDXRef-Package-quote-1.0.47",
+      "description": "Quasi-quoting macro quote!(...)",
+      "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:cargo/quote@1.0.47",
+          "referenceType": "purl"
+        }
+      ],
+      "licenseConcluded": "MIT OR Apache-2.0",
+      "licenseDeclared": "MIT OR Apache-2.0",
+      "name": "quote",
+      "versionInfo": "1.0.47"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-saphyr-0.0.12",
+      "description": "A fully YAML 1.2 compliant YAML library",
+      "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:cargo/saphyr@0.0.12",
+          "referenceType": "purl"
+        }
+      ],
+      "licenseConcluded": "MIT OR Apache-2.0",
+      "licenseDeclared": "MIT OR Apache-2.0",
+      "name": "saphyr",
+      "versionInfo": "0.0.12"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-saphyr-parser-0.0.12",
+      "description": "A fully YAML 1.2 compliant YAML library",
+      "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:cargo/saphyr-parser@0.0.12",
+          "referenceType": "purl"
+        }
+      ],
+      "licenseConcluded": "MIT OR Apache-2.0",
+      "licenseDeclared": "MIT OR Apache-2.0",
+      "name": "saphyr-parser",
+      "versionInfo": "0.0.12"
+    },
+    {
       "SPDXID": "SPDXRef-Package-syn-3.0.3",
       "description": "Parser for Rust source code",
       "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
@@ -80,6 +256,38 @@
       "licenseDeclared": "MIT OR Apache-2.0",
       "name": "syn",
       "versionInfo": "3.0.3"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-thiserror-2.0.20",
+      "description": "derive(Error)",
+      "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:cargo/thiserror@2.0.20",
+          "referenceType": "purl"
+        }
+      ],
+      "licenseConcluded": "MIT OR Apache-2.0",
+      "licenseDeclared": "MIT OR Apache-2.0",
+      "name": "thiserror",
+      "versionInfo": "2.0.20"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-thiserror-impl-2.0.20",
+      "description": "Implementation detail of the `thiserror` crate",
+      "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:cargo/thiserror-impl@2.0.20",
+          "referenceType": "purl"
+        }
+      ],
+      "licenseConcluded": "MIT OR Apache-2.0",
+      "licenseDeclared": "MIT OR Apache-2.0",
+      "name": "thiserror-impl",
+      "versionInfo": "2.0.20"
     },
     {
       "SPDXID": "SPDXRef-Package-unicode-ident-1.0.24",
@@ -110,6 +318,11 @@
       "relatedSpdxElement": "SPDXRef-File-fail-closed-test-check"
     },
     {
+      "spdxElementId": "SPDXRef-DOCUMENT",
+      "relationshipType": "DESCRIBES",
+      "relatedSpdxElement": "SPDXRef-File-workflow-policy-check"
+    },
+    {
       "spdxElementId": "SPDXRef-File-cloud-sdk-prepared-coverage-check",
       "relationshipType": "GENERATED_FROM",
       "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-prepared-coverage-check-0.0.0"
@@ -120,14 +333,84 @@
       "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-prepared-coverage-check-0.0.0"
     },
     {
+      "spdxElementId": "SPDXRef-File-workflow-policy-check",
+      "relationshipType": "GENERATED_FROM",
+      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-prepared-coverage-check-0.0.0"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-autocfg-1.5.1",
+      "relationshipType": "BUILD_DEPENDENCY_OF",
+      "relatedSpdxElement": "SPDXRef-Package-num-traits-0.2.19"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-prepared-coverage-check-0.0.0",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-saphyr-0.0.12"
+    },
+    {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-prepared-coverage-check-0.0.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-syn-3.0.3"
     },
     {
+      "spdxElementId": "SPDXRef-Package-hashbrown-0.17.1",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-foldhash-0.2.0"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-hashlink-0.12.1",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-hashbrown-0.17.1"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-num-traits-0.2.19",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-autocfg-1.5.1"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-ordered-float-5.3.0",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-num-traits-0.2.19"
+    },
+    {
       "spdxElementId": "SPDXRef-Package-proc-macro2-1.0.107",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-unicode-ident-1.0.24"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-quote-1.0.47",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-proc-macro2-1.0.107"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-saphyr-0.0.12",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-hashlink-0.12.1"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-saphyr-0.0.12",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-ordered-float-5.3.0"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-saphyr-0.0.12",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-saphyr-parser-0.0.12"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-saphyr-0.0.12",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-thiserror-2.0.20"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-saphyr-parser-0.0.12",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-arraydeque-0.5.1"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-saphyr-parser-0.0.12",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-thiserror-2.0.20"
     },
     {
       "spdxElementId": "SPDXRef-Package-syn-3.0.3",
@@ -137,7 +420,32 @@
     {
       "spdxElementId": "SPDXRef-Package-syn-3.0.3",
       "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-quote-1.0.47"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-syn-3.0.3",
+      "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-unicode-ident-1.0.24"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-thiserror-2.0.20",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-thiserror-impl-2.0.20"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-thiserror-impl-2.0.20",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-proc-macro2-1.0.107"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-thiserror-impl-2.0.20",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-quote-1.0.47"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-thiserror-impl-2.0.20",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-syn-3.0.3"
     }
   ],
   "spdxVersion": "SPDX-2.3"

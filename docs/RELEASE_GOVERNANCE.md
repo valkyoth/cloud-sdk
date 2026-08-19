@@ -48,10 +48,16 @@ checkpoint to detect drift.
 | CodeQL | Default setup, default suite, weekly, Actions/Python/Rust | No advanced CodeQL workflow is maintained in this repository. |
 | Secret scanning | Disabled in the reviewed repository settings | Repository checks prohibit release credentials in workflows, but GitHub secret scanning and push protection are not claimed. |
 
-The source checker also rejects job-level permission overrides, write or OIDC
-permissions, release-triggered workflows, `cargo publish`, and `gh release` in
-GitHub Actions. CI therefore cannot publish a crate or mint a trusted-publisher
-token from this repository configuration.
+The source checker inventories both `.yml` and `.yaml` workflow files and sends
+every classified file through the lockfile-pinned `saphyr 0.0.12` YAML 1.2
+parser in the unpublished coverage-check tool. It semantically checks top-level
+and job mappings, resolved aliases, flow-style mappings, action references,
+steps, and run commands. YAML merge keys, unresolved aliases, custom tags,
+job-level permission overrides, write or OIDC permissions, release-triggered
+workflows, `cargo publish`, and `gh release` fail closed. CI therefore cannot
+publish a crate or mint a trusted-publisher token from this repository
+configuration. The parser's default encoding feature is disabled; workflows
+must be bounded regular UTF-8 files.
 
 ## Trusted Publishing Decision
 
@@ -152,7 +158,10 @@ The report prints the source commit and tree, `Cargo.lock` SHA-256, package and
 canonical-SBOM SHA-256 values, and exact Git, Rust, Cargo, and cargo-sbom
 versions. Package compilation and tests remain separate mandatory gates;
 `--no-verify` here isolates archive construction from compilation so the two
-pieces of evidence cannot conceal each other.
+pieces of evidence cannot conceal each other. The package policy, source tree,
+lockfile, and committed SBOM bytes are read from the initially captured Git
+commit rather than the mutable worktree. The checker revalidates both `HEAD`
+and complete worktree cleanliness before it prints the final success line.
 
 ## Rollback And Incident Response
 

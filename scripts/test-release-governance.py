@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import importlib.util
+import shutil
 import tempfile
 from pathlib import Path
 import sys
@@ -40,6 +41,20 @@ def workflow(text: str) -> Path:
     return path
 
 
+def source_governance_fixture() -> tuple[Path, dict]:
+    root = Path(tempfile.mkdtemp())
+    workflows = root / ".github" / "workflows"
+    workflows.mkdir(parents=True)
+    allowed = workflows / "allowed.yml"
+    allowed.write_text(
+        "name: Test\npermissions: {contents: read}\njobs:\n"
+        "  test: {runs-on: ubuntu-latest, steps: []}\n",
+        encoding="utf-8",
+    )
+    config = {"workflows": {"files": ["allowed.yml"]}}
+    return root, config
+
+
 def test_pinned_read_only_workflow_passes() -> None:
     path = workflow(
         "name: Test\npermissions:\n  contents: read\njobs:\n  test:\n"
@@ -72,12 +87,69 @@ def test_job_permissions_fail() -> None:
     assert_fails("job-level permissions", lambda: checker.check_workflow(path))
 
 
+def test_flow_style_write_all_job_permissions_fail() -> None:
+    path = workflow(
+        "name: Test\npermissions: {contents: read}\njobs:\n"
+        "  privileged: {permissions: write-all, runs-on: ubuntu-latest, steps: []}\n"
+    )
+    assert_fails("job-level permissions", lambda: checker.check_workflow(path))
+
+
+def test_flow_style_unpinned_action_fails() -> None:
+    path = workflow(
+        "name: Test\npermissions: {contents: read}\njobs:\n"
+        "  test:\n    steps: [{uses: actions/checkout@v7}]\n"
+    )
+    assert_fails("not SHA-pinned", lambda: checker.check_workflow(path))
+
+
+def test_aliased_job_permissions_are_checked_semantically() -> None:
+    path = workflow(
+        "name: Test\npermissions: {contents: read}\n"
+        "template: &privileged {permissions: write-all, steps: []}\n"
+        "jobs: {test: *privileged}\n"
+    )
+    assert_fails("job-level permissions", lambda: checker.check_workflow(path))
+
+
+def test_yaml_merge_key_fails_closed() -> None:
+    path = workflow(
+        "name: Test\npermissions: {contents: read}\n"
+        "template: &privileged {permissions: write-all}\n"
+        "jobs:\n  test: {<<: *privileged, steps: []}\n"
+    )
+    assert_fails("YAML merge key", lambda: checker.check_workflow(path))
+
+
+def test_unlisted_yaml_workflow_fails_inventory() -> None:
+    root, config = source_governance_fixture()
+    (root / ".github/workflows/backdoor.yaml").write_text(
+        "permissions: write-all\njobs: {}\n", encoding="utf-8"
+    )
+    expected = set(config["workflows"]["files"])
+    assert_fails(
+        "workflow inventory differs",
+        lambda: checker.check_workflow_inventory(
+            root / ".github/workflows", expected
+        ),
+    )
+    shutil.rmtree(root)
+
+
 def test_publish_command_fails() -> None:
     path = workflow(
         "name: Test\npermissions:\n  contents: read\njobs:\n  test:\n"
         "    steps:\n      - run: cargo publish\n"
     )
     assert_fails("forbidden workflow", lambda: checker.check_workflow(path))
+
+
+def test_flow_style_release_trigger_fails() -> None:
+    path = workflow(
+        "name: Test\non: [push, release]\npermissions: {contents: read}\n"
+        "jobs: {test: {runs-on: ubuntu-latest, steps: []}}\n"
+    )
+    assert_fails("forbidden workflow trigger", lambda: checker.check_workflow(path))
 
 
 def test_incomplete_recovery_runbook_fails() -> None:
@@ -108,7 +180,13 @@ def main() -> None:
         test_unpinned_action_fails,
         test_write_permission_fails,
         test_job_permissions_fail,
+        test_flow_style_write_all_job_permissions_fail,
+        test_flow_style_unpinned_action_fails,
+        test_aliased_job_permissions_are_checked_semantically,
+        test_yaml_merge_key_fails_closed,
+        test_unlisted_yaml_workflow_fails_inventory,
         test_publish_command_fails,
+        test_flow_style_release_trigger_fails,
         test_incomplete_recovery_runbook_fails,
         test_publisher_with_git_push_fails,
         test_current_repository_policy_passes,
