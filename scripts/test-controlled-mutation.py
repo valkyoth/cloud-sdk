@@ -6,6 +6,7 @@ from __future__ import annotations
 import copy
 import importlib.util
 import json
+import os
 from pathlib import Path
 import subprocess
 import tempfile
@@ -125,6 +126,7 @@ def test_policy_and_valid_evidence(checker) -> tuple[dict, dict]:
 def test_global_fail_closed_paths(checker, policy: dict, evidence: dict) -> None:
     mutations = (
         lambda value: value.update(format=2),
+        lambda value: value.update(format=True),
         lambda value: value.update(release="0.99.0"),
         lambda value: value.update(source_commit="not-a-commit"),
         lambda value: value.update(run_id="generic"),
@@ -152,6 +154,7 @@ def test_global_fail_closed_paths(checker, policy: dict, evidence: dict) -> None
         ),
         lambda value: value["final_inventory"].pop(),
         lambda value: value["final_inventory"][0].update(prefixed_resources=1),
+        lambda value: value["final_inventory"][0].update(prefixed_resources=False),
         lambda value: value["final_inventory"][0].update(verified_by=DIGEST_A),
     )
     for callback in mutations:
@@ -167,6 +170,7 @@ def test_live_scenario_fail_closed_paths(checker, policy: dict, evidence: dict) 
         lambda value: value["scenarios"][index].update(permit_bound=False),
         lambda value: value["scenarios"][index].update(attempts=0),
         lambda value: value["scenarios"][index].update(attempts=2),
+        lambda value: value["scenarios"][index].update(attempts=True),
         lambda value: value["scenarios"][index].update(delivery="not-sent"),
         lambda value: value["scenarios"][index].update(outcome="unknown"),
         lambda value: value["scenarios"][index].update(reconciliation="unresolved"),
@@ -222,6 +226,67 @@ def test_bounded_file_boundary(checker, policy: dict, evidence: dict) -> None:
         else:
             raise AssertionError("non-ASCII evidence was accepted")
 
+        link = root / "evidence-link.json"
+        link.symlink_to(valid)
+        for rejected in (link, root):
+            try:
+                checker.read_json(rejected, policy["maximum_evidence_bytes"])
+            except checker.EvidenceError:
+                pass
+            else:
+                raise AssertionError("non-regular evidence was accepted")
+
+        fifo = root / "evidence-fifo.json"
+        os.mkfifo(fifo)
+        try:
+            checker.read_json(fifo, policy["maximum_evidence_bytes"])
+        except checker.EvidenceError:
+            pass
+        else:
+            raise AssertionError("FIFO evidence was accepted")
+
+
+def test_strict_json_rejects_duplicates(checker, evidence: dict) -> None:
+    raw = json.dumps(evidence).encode("ascii")
+    duplicates = (
+        b'"format": 1',
+        b'"attempts": 1',
+        b'"status": "confirmed-removed"',
+        b'"prefixed_resources": 0',
+    )
+    for field in duplicates:
+        assert field in raw
+        changed = raw.replace(field, field + b", " + field, 1)
+        try:
+            checker.parse_json(changed)
+        except checker.EvidenceError:
+            pass
+        else:
+            raise AssertionError("duplicate JSON field was accepted")
+
+    try:
+        checker.parse_json(b'{"format": NaN}')
+    except checker.EvidenceError:
+        pass
+    else:
+        raise AssertionError("non-standard JSON number was accepted")
+
+
+def test_policy_integer_types_are_exact(checker, policy: dict) -> None:
+    for field in (
+        "format",
+        "maximum_evidence_bytes",
+        "maximum_attempts_per_scenario",
+    ):
+        changed = copy.deepcopy(policy)
+        changed[field] = True
+        try:
+            checker.validate_policy(changed)
+        except checker.EvidenceError:
+            pass
+        else:
+            raise AssertionError("boolean policy integer was accepted")
+
 
 def test_cli_is_static_and_payload_free(policy: dict, evidence: dict) -> None:
     with tempfile.TemporaryDirectory() as temporary:
@@ -271,6 +336,8 @@ def main() -> None:
     test_live_scenario_fail_closed_paths(checker, policy, evidence)
     test_cost_scenario_never_dispatches(checker, policy, evidence)
     test_bounded_file_boundary(checker, policy, evidence)
+    test_strict_json_rejects_duplicates(checker, evidence)
+    test_policy_integer_types_are_exact(checker, policy)
     test_cli_is_static_and_payload_free(policy, evidence)
     test_checker_has_no_network_or_credential_input()
     print("Controlled-mutation protocol regressions passed.")

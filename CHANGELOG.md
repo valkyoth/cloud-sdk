@@ -14,6 +14,9 @@
   forbidden.
 - Bound live evidence to an unchanged source commit; only the evidence,
   pentest report, and final release-note status may follow qualification.
+- Hardened mutation evidence ingestion with bounded no-follow descriptor reads,
+  duplicate-free JSON, exact integer types, and validation of committed regular
+  Git blobs for both evidence and source controls.
 - Preserved v0.95 source compatibility across the cumulative public checkpoint:
   obsolete Primary IP type filtering now fails closed, Image list generic arity
   remains unchanged, and new validation paths avoid widening existing enums.

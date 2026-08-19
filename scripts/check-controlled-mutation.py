@@ -5,8 +5,10 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 from pathlib import Path
 import re
+import stat
 import sys
 
 
@@ -26,21 +28,68 @@ def exact_keys(value: dict, expected: set[str], label: str) -> None:
         raise EvidenceError(f"{label} fields are invalid")
 
 
-def read_json(path: Path, maximum: int) -> object:
+def read_bounded_regular(path: Path, maximum: int) -> bytes:
+    required = ("O_CLOEXEC", "O_NOFOLLOW", "O_NONBLOCK")
+    if any(not hasattr(os, name) for name in required):
+        raise EvidenceError("platform lacks secure evidence reads")
+    flags = os.O_RDONLY | os.O_CLOEXEC | os.O_NOFOLLOW | os.O_NONBLOCK
     try:
-        raw = path.read_bytes()
+        descriptor = os.open(path, flags)
     except OSError as error:
-        raise EvidenceError("evidence file could not be read") from error
-    if not raw or len(raw) > maximum or any(byte > 0x7F for byte in raw):
+        raise EvidenceError("evidence file could not be opened") from error
+    try:
+        metadata = os.fstat(descriptor)
+        if not stat.S_ISREG(metadata.st_mode):
+            raise EvidenceError("evidence must be a regular file")
+        if metadata.st_size > maximum:
+            raise EvidenceError("evidence file is too large")
+        raw = bytearray()
+        while True:
+            remaining = maximum + 1 - len(raw)
+            try:
+                chunk = os.read(descriptor, min(64 * 1024, remaining))
+            except OSError as error:
+                raise EvidenceError("evidence file could not be read") from error
+            if not chunk:
+                return bytes(raw)
+            raw.extend(chunk)
+            if len(raw) > maximum:
+                raise EvidenceError("evidence file is too large")
+    finally:
+        os.close(descriptor)
+
+
+def unique_object(pairs: list[tuple[str, object]]) -> dict[str, object]:
+    value: dict[str, object] = {}
+    for key, item in pairs:
+        if key in value:
+            raise EvidenceError("evidence JSON contains a duplicate field")
+        value[key] = item
+    return value
+
+
+def reject_constant(_value: str) -> object:
+    raise EvidenceError("evidence JSON contains a non-standard number")
+
+
+def parse_json(raw: bytes) -> object:
+    if not raw or any(byte > 0x7F for byte in raw):
         raise EvidenceError("evidence file size or encoding is invalid")
     try:
-        return json.loads(raw)
-    except (json.JSONDecodeError, RecursionError) as error:
+        return json.loads(
+            raw,
+            object_pairs_hook=unique_object,
+            parse_constant=reject_constant,
+        )
+    except (json.JSONDecodeError, RecursionError, UnicodeDecodeError) as error:
         raise EvidenceError("evidence JSON is invalid") from error
 
 
-def load_policy(path: Path = POLICY_PATH) -> dict:
-    value = read_json(path, 32_768)
+def read_json(path: Path, maximum: int) -> object:
+    return parse_json(read_bounded_regular(path, maximum))
+
+
+def validate_policy(value: object) -> dict:
     if not isinstance(value, dict):
         raise EvidenceError("policy root is invalid")
     exact_keys(
@@ -56,10 +105,13 @@ def load_policy(path: Path = POLICY_PATH) -> dict:
         "policy",
     )
     if (
-        value["format"] != 1
+        type(value["format"]) is not int
+        or value["format"] != 1
         or value["release"] != "0.100.0"
+        or type(value["maximum_evidence_bytes"]) is not int
         or value["maximum_evidence_bytes"] != 65_536
         or value["resource_prefix"] != "cloud-sdk-live-v0-100-"
+        or type(value["maximum_attempts_per_scenario"]) is not int
         or value["maximum_attempts_per_scenario"] != 1
         or not isinstance(value["scenarios"], list)
     ):
@@ -88,6 +140,10 @@ def load_policy(path: Path = POLICY_PATH) -> dict:
     return value
 
 
+def load_policy(path: Path = POLICY_PATH) -> dict:
+    return validate_policy(read_json(path, 32_768))
+
+
 def validate_scenario(actual: dict, expected: dict, maximum_attempts: int) -> None:
     exact_keys(
         actual,
@@ -114,7 +170,11 @@ def validate_scenario(actual: dict, expected: dict, maximum_attempts: int) -> No
         actual["plan_fingerprint_sha256"]
     ):
         raise EvidenceError("scenario plan fingerprint is invalid")
-    if actual["permit_bound"] is not True or actual["attempts"] != maximum_attempts:
+    if (
+        actual["permit_bound"] is not True
+        or type(actual["attempts"]) is not int
+        or actual["attempts"] != maximum_attempts
+    ):
         raise EvidenceError("scenario authority or attempt count is invalid")
     if not isinstance(actual["observed_cost_minor"], int) or isinstance(
         actual["observed_cost_minor"], bool
@@ -156,6 +216,7 @@ def validate_inventory(value: object, reviewer: str) -> None:
         if (
             service not in expected
             or service in observed
+            or type(item["prefixed_resources"]) is not int
             or item["prefixed_resources"] != 0
             or item["verified_by"] != reviewer
         ):
@@ -236,7 +297,11 @@ def validate_evidence(value: object, policy: dict) -> None:
         },
         "evidence",
     )
-    if value["format"] != 1 or value["release"] != policy["release"]:
+    if (
+        type(value["format"]) is not int
+        or value["format"] != 1
+        or value["release"] != policy["release"]
+    ):
         raise EvidenceError("evidence version is invalid")
     if not isinstance(value["source_commit"], str) or not HEX_COMMIT(value["source_commit"]):
         raise EvidenceError("source commit is invalid")

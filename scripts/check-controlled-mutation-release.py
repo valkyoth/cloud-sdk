@@ -24,6 +24,8 @@ REQUIRED_SOURCE_PATHS = (
     "scripts/check_controlled_mutation.sh",
     "docs/CONTROLLED_MUTATION.md",
 )
+MAX_EVIDENCE_BYTES = 65_536
+MAX_POLICY_BYTES = 32_768
 
 
 class ReleaseEvidenceError(Exception):
@@ -66,6 +68,63 @@ def changed_paths(source: str) -> tuple[str, ...]:
         raise ReleaseEvidenceError("source change inventory failed") from error
 
 
+def parse_tree_entry(raw: bytes, path: str) -> str:
+    if not raw.endswith(b"\0") or raw.count(b"\0") != 1:
+        raise ReleaseEvidenceError("committed path is missing or ambiguous")
+    try:
+        metadata, actual_path = raw[:-1].split(b"\t", 1)
+        mode, object_type, object_id = metadata.split()
+        decoded_path = actual_path.decode("ascii")
+        decoded_id = object_id.decode("ascii")
+    except (ValueError, UnicodeDecodeError) as error:
+        raise ReleaseEvidenceError("committed path metadata is invalid") from error
+    if (
+        mode != b"100644"
+        or object_type != b"blob"
+        or decoded_path != path
+        or len(decoded_id) not in {40, 64}
+    ):
+        raise ReleaseEvidenceError("committed path must be a regular file")
+    return decoded_id
+
+
+def regular_blob_oid(revision: str, path: str) -> str:
+    try:
+        raw = subprocess.check_output(
+            ["git", "ls-tree", "-z", "--full-tree", revision, "--", path],
+            cwd=ROOT,
+        )
+    except subprocess.CalledProcessError as error:
+        raise ReleaseEvidenceError("committed path could not be inspected") from error
+    return parse_tree_entry(raw, path)
+
+
+def read_committed_blob(object_id: str, maximum: int) -> bytes:
+    try:
+        size_raw = subprocess.check_output(
+            ["git", "cat-file", "-s", object_id], cwd=ROOT
+        ).strip()
+        size = int(size_raw)
+    except (subprocess.CalledProcessError, ValueError) as error:
+        raise ReleaseEvidenceError("committed evidence size is invalid") from error
+    if size <= 0 or size > maximum:
+        raise ReleaseEvidenceError("committed evidence size is invalid")
+    try:
+        raw = subprocess.check_output(
+            ["git", "cat-file", "blob", object_id], cwd=ROOT
+        )
+    except subprocess.CalledProcessError as error:
+        raise ReleaseEvidenceError("committed evidence could not be read") from error
+    if len(raw) != size:
+        raise ReleaseEvidenceError("committed evidence size changed")
+    return raw
+
+
+def committed_json(checker, revision: str, path: str, maximum: int) -> object:
+    object_id = regular_blob_oid(revision, path)
+    return checker.parse_json(read_committed_blob(object_id, maximum))
+
+
 def validate_binding(source: str, paths: tuple[str, ...]) -> None:
     if not git_success("cat-file", "-e", f"{source}^{{commit}}"):
         raise ReleaseEvidenceError("qualified source commit was not found")
@@ -74,26 +133,44 @@ def validate_binding(source: str, paths: tuple[str, ...]) -> None:
     if git_success("cat-file", "-e", f"{source}:{EVIDENCE_PATH.as_posix()}"):
         raise ReleaseEvidenceError("evidence must follow the qualified source commit")
     for path in REQUIRED_SOURCE_PATHS:
-        if not git_success("cat-file", "-e", f"{source}:{path}"):
+        try:
+            regular_blob_oid(source, path)
+        except ReleaseEvidenceError:
             raise ReleaseEvidenceError("qualified source lacks mutation controls")
     if set(paths) - ALLOWED_AFTER_SOURCE:
         raise ReleaseEvidenceError("qualified source changed after live mutation")
     if EVIDENCE_PATH.as_posix() not in paths:
         raise ReleaseEvidenceError("mutation evidence does not follow qualified source")
-    if not git_success("cat-file", "-e", f"HEAD:{EVIDENCE_PATH.as_posix()}"):
-        raise ReleaseEvidenceError("mutation evidence is not committed")
+    try:
+        regular_blob_oid("HEAD", EVIDENCE_PATH.as_posix())
+    except ReleaseEvidenceError as error:
+        raise ReleaseEvidenceError("mutation evidence is not a committed regular file") from error
 
 
 def main() -> int:
     checker = load_checker()
     try:
-        policy = checker.load_policy()
-        evidence = checker.read_json(
-            ROOT / EVIDENCE_PATH, policy["maximum_evidence_bytes"]
+        evidence = committed_json(
+            checker,
+            "HEAD",
+            EVIDENCE_PATH.as_posix(),
+            MAX_EVIDENCE_BYTES,
+        )
+        if not isinstance(evidence, dict):
+            raise ReleaseEvidenceError("committed evidence root is invalid")
+        source = evidence["source_commit"]
+        if not isinstance(source, str) or not checker.HEX_COMMIT(source):
+            raise ReleaseEvidenceError("committed source identity is invalid")
+        validate_binding(source, changed_paths(source))
+        policy = checker.validate_policy(
+            committed_json(
+                checker,
+                source,
+                "controlled-mutation-policy.json",
+                MAX_POLICY_BYTES,
+            )
         )
         checker.validate_evidence(evidence, policy)
-        source = evidence["source_commit"]
-        validate_binding(source, changed_paths(source))
     except (checker.EvidenceError, ReleaseEvidenceError, KeyError) as error:
         print(f"controlled mutation release: {error}", file=sys.stderr)
         return 1

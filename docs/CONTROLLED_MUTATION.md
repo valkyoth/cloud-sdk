@@ -116,19 +116,23 @@ The committed release evidence path is:
 security/mutation/v0.100.0.json
 ```
 
-It must be ASCII JSON no larger than 65,536 bytes and use exactly the fields
-defined by [`controlled-mutation-policy.json`](../controlled-mutation-policy.json)
-and `scripts/check-controlled-mutation.py`. Validate it with:
+It must be a no-follow regular file containing ASCII JSON no larger than 65,536
+bytes and use exactly the fields defined by
+[`controlled-mutation-policy.json`](../controlled-mutation-policy.json) and
+`scripts/check-controlled-mutation.py`. Validate it with:
 
 ```sh
 scripts/check-controlled-mutation.py security/mutation/v0.100.0.json
 ```
 
-The validator rejects unknown fields, missing or duplicated scenarios,
-multiple attempts, unbound permits, unresolved delivery, incomplete cleanup,
-reused resource references, cost drift, CI execution, non-disposable scope,
-unrevoked credentials, a non-independent reviewer, and non-empty final
-inventories. Diagnostics are static and do not reproduce evidence values.
+The validator rejects duplicate JSON fields at every nesting level, unknown
+fields, boolean integer aliases, missing or duplicated scenarios, multiple
+attempts, unbound permits, unresolved delivery, incomplete cleanup, reused
+resource references, cost drift, CI execution, non-disposable scope, unrevoked
+credentials, a non-independent reviewer, and non-empty final inventories.
+Diagnostics are static and do not reproduce evidence values. The release gate
+validates the exact committed regular-file blob, not the worktree path or a
+symlink target, and requires every source control to be a regular Git blob.
 
 This evidence is an operational attestation, not cryptographic proof of remote
 provider events and not an independent certification. The validator proves

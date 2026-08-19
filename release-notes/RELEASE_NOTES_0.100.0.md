@@ -30,6 +30,9 @@ freezing the public API candidate.
 - Release binding rejects evidence that predates its controls or any code,
   manifest, lockfile, workflow, or documentation change after live
   qualification.
+- Evidence parsing uses bounded no-follow regular-file reads, rejects duplicate
+  fields and boolean integer aliases, and validates the exact committed Git
+  blob rather than a worktree path or symlink target.
 
 ## Cumulative Public Surface
 
