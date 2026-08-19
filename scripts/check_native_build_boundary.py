@@ -10,6 +10,18 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
+PRODUCTION_FEATURES = (
+    "blocking-rustls",
+    "blocking-rustls-webpki-roots",
+    "async-rustls",
+)
+PRODUCTION_TARGETS = (
+    "x86_64-unknown-linux-gnu",
+    "x86_64-pc-windows-msvc",
+    "x86_64-apple-darwin",
+    "aarch64-apple-darwin",
+    "x86_64-unknown-freebsd",
+)
 EXPECTED = {
     "aws-lc-rs": ("1.18.0", "aws-lc-sys"),
     "aws-lc-sys": ("0.44.0", None),
@@ -51,9 +63,127 @@ EXPECTED_BUILD_SCRIPTS = {
 }
 
 
+def node_map(metadata: dict) -> dict[str, dict]:
+    return {node["id"]: node for node in metadata["resolve"]["nodes"]}
+
+
+def package_map(metadata: dict) -> dict[str, dict]:
+    return {package["id"]: package for package in metadata["packages"]}
+
+
+def optional_dependency_is_active(node: dict, package: dict, alias: str) -> bool:
+    active_features = set(node["features"])
+    if alias in active_features:
+        return True
+    prefixes = (f"dep:{alias}", f"{alias}/")
+    return any(
+        requirement == prefixes[0]
+        or requirement.startswith(prefixes[1])
+        for feature in active_features
+        for requirement in package["features"].get(feature, [])
+    )
+
+
+def normal_dependencies(node: dict, package: dict) -> set[str]:
+    declarations = {
+        (dependency["rename"] or dependency["name"]).replace("-", "_"): (
+            dependency,
+            dependency["rename"] or dependency["name"],
+        )
+        for dependency in package["dependencies"]
+        if dependency["kind"] is None
+    }
+    active: set[str] = set()
+    for dependency in node["deps"]:
+        if not any(kind["kind"] is None for kind in dependency["dep_kinds"]):
+            continue
+        matched = declarations.get(dependency["name"].replace("-", "_"))
+        if matched is None:
+            continue
+        declaration, alias = matched
+        if not declaration["optional"] or optional_dependency_is_active(
+            node, package, alias
+        ):
+            active.add(dependency["pkg"])
+    return active
+
+
+def reachable_from(
+    root: str, nodes: dict[str, dict], packages: dict[str, dict]
+) -> set[str]:
+    reachable: set[str] = set()
+    pending = [root]
+    while pending:
+        package_id = pending.pop()
+        if package_id in reachable:
+            continue
+        reachable.add(package_id)
+        pending.extend(normal_dependencies(nodes[package_id], packages[package_id]))
+    return reachable
+
+
+def production_failures(metadata: dict, feature: str, target: str) -> list[str]:
+    problems: list[str] = []
+    nodes = node_map(metadata)
+    packages = package_map(metadata)
+    roots = [
+        package_id
+        for package_id, package in packages.items()
+        if package_id in nodes
+        and package["name"] == "cloud-sdk-reqwest"
+        and package["source"] is None
+    ]
+    context = f"{target}/{feature}"
+    if len(roots) != 1:
+        return [f"{context}: expected exactly one workspace reqwest root"]
+
+    root = roots[0]
+    reachable_ids = reachable_from(root, nodes, packages)
+    reachable = [packages[package_id] for package_id in reachable_ids]
+    active = {(package["name"], package["version"]) for package in reachable}
+    required = {("aws-lc-rs", "1.18.0"), ("aws-lc-sys", "0.44.0")}
+    if not required <= active:
+        problems.append(f"{context}: AWS-LC production graph drifted")
+    forbidden = sorted(
+        (name, version)
+        for name, version in active
+        if name in {"ring", "aws-lc-fips-sys"}
+    )
+    if forbidden:
+        problems.append(f"{context}: forbidden crypto backend active: {forbidden}")
+
+    root_features = set(nodes[root]["features"])
+    if feature not in root_features or "fuzzing" in root_features:
+        problems.append(f"{context}: production feature selection drifted")
+
+    aws_ids = [
+        package_id
+        for package_id in reachable_ids
+        if (packages[package_id]["name"], packages[package_id]["version"])
+        == ("aws-lc-rs", "1.18.0")
+    ]
+    sys_ids = [
+        package_id
+        for package_id in reachable_ids
+        if (packages[package_id]["name"], packages[package_id]["version"])
+        == ("aws-lc-sys", "0.44.0")
+    ]
+    root_dependencies = normal_dependencies(nodes[root], packages[root])
+    if len(aws_ids) != 1 or aws_ids[0] not in root_dependencies:
+        problems.append(f"{context}: reqwest root lost its direct aws-lc-rs edge")
+    if len(aws_ids) == 1 and (
+        len(sys_ids) != 1
+        or sys_ids[0]
+        not in normal_dependencies(nodes[aws_ids[0]], packages[aws_ids[0]])
+    ):
+        problems.append(f"{context}: aws-lc-rs lost its resolved aws-lc-sys edge")
+    return problems
+
+
 def failures(metadata: dict) -> list[str]:
     problems: list[str] = []
-    active_ids = {node["id"] for node in metadata["resolve"]["nodes"]}
+    nodes = node_map(metadata)
+    active_ids = set(nodes)
     packages = [
         package for package in metadata["packages"] if package["id"] in active_ids
     ]
@@ -73,14 +203,37 @@ def failures(metadata: dict) -> list[str]:
             problems.append(f"expected exactly one {name} {version}")
             continue
         if required_dependency is not None:
-            names = {
-                dependency["name"] for dependency in matches[0]["dependencies"]
-            }
+            dependency_ids = normal_dependencies(
+                nodes[matches[0]["id"]], matches[0]
+            )
+            names = {package["name"] for package in packages if package["id"] in dependency_ids}
             if required_dependency not in names:
                 problems.append(f"{name} lost {required_dependency}")
     if any(package["name"] == "aws-lc-fips-sys" for package in packages):
         problems.append("FIPS package entered the graph")
     return problems
+
+
+def resolved_graph(feature: str, target: str) -> dict:
+    result = subprocess.run(
+        [
+            "cargo",
+            "metadata",
+            "--locked",
+            "--format-version",
+            "1",
+            "--no-default-features",
+            "--features",
+            f"cloud-sdk-reqwest/{feature}",
+            "--filter-platform",
+            target,
+        ],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return json.loads(result.stdout)
 
 
 def main() -> int:
@@ -95,11 +248,23 @@ def main() -> int:
         sys.stderr.write(result.stderr)
         return result.returncode
     problems = failures(json.loads(result.stdout))
+    try:
+        for target in PRODUCTION_TARGETS:
+            for feature in PRODUCTION_FEATURES:
+                problems.extend(
+                    production_failures(resolved_graph(feature, target), feature, target)
+                )
+    except subprocess.CalledProcessError as error:
+        sys.stderr.write(error.stderr)
+        return error.returncode
     if problems:
         for problem in problems:
             print(f"native build boundary: {problem}", file=sys.stderr)
         return 1
-    print("Native crypto boundary is exact: AWS-LC is active; ring is a target-specific edge.")
+    print(
+        "Native crypto boundary is exact: every production graph uses AWS-LC; "
+        "ring remains target-specific outside those graphs."
+    )
     return 0
 
 

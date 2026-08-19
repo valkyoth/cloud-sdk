@@ -310,6 +310,10 @@ diagnostic, unreviewed build scripts entering conditional graphs, and a stale
 docs.rs or MSRV claim. Independent feature commands, native feature tests,
 expected-failure target jobs, exact manifest/build-script inventories, package
 verification, and expanded locked all-target MSRV jobs fail closed on drift.
+The native-build gate also traverses effective normal Cargo edges for every
+production feature and admitted target; inactive optional and development
+edges cannot satisfy or falsely violate the production backend contract. Every
+unsupported target exercises all three transport features independently.
 
 Hosted runners prove compatibility, not immutable toolchain provenance,
 platform hardening, availability, or accreditation. FIPS remains absent and no

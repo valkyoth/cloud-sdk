@@ -10,6 +10,9 @@
   1.94.1 point releases through the pinned Rust 1.97.1 toolchain.
 - Added package/docs.rs CI, complete build-script inventory enforcement, and a
   native dependency review covering bundled AWS-LC and conditional ring.
+- Bound every production transport feature on every admitted native target to
+  the resolved AWS-LC edge chain, and negative-tested all transport features
+  on every unsupported target class.
 - Reconfirmed that all default graphs remain transport-free and that FIPS
   features, dependencies, package content, and claims remain deferred.
 - Advanced the internal cumulative source to `cloud-sdk 0.98.0`; crates.io

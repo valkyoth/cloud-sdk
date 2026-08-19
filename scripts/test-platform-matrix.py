@@ -18,6 +18,7 @@ def fake_environment(
     directory: Path,
     *,
     installed: str = "x86_64-unknown-linux-gnu",
+    reject_transport: bool = False,
     tree: str = (
         "cloud-sdk v0.48.0\n"
         "cloud-sdk-hetzner v0.36.2\n"
@@ -32,7 +33,15 @@ def fake_environment(
     cargo.write_text(
         "#!/bin/sh\n"
         "printf '%s\\n' \"$*\" >> \"$PLATFORM_TEST_LOG\"\n"
-        "if [ \"${1:-}\" = tree ]; then printf '%s\\n' \"$PLATFORM_TEST_TREE\"; fi\n",
+        "if [ \"${1:-}\" = tree ]; then printf '%s\\n' \"$PLATFORM_TEST_TREE\"; fi\n"
+        "if [ \"${PLATFORM_TEST_REJECT_TRANSPORT:-0}\" = 1 ]; then\n"
+        "    case \"$*\" in\n"
+        "    *'-p cloud-sdk-reqwest --features '*)\n"
+        "        printf '%s\\n' 'cloud-sdk-reqwest transport features are unsupported on this target' >&2\n"
+        "        exit 1\n"
+        "        ;;\n"
+        "    esac\n"
+        "fi\n",
         encoding="ascii",
     )
     cargo.chmod(0o755)
@@ -53,6 +62,7 @@ def fake_environment(
             "PATH": f"{fake_bin}:/usr/bin:/bin",
             "PLATFORM_TEST_INSTALLED": installed,
             "PLATFORM_TEST_LOG": str(log),
+            "PLATFORM_TEST_REJECT_TRANSPORT": "1" if reject_transport else "0",
             "PLATFORM_TEST_TREE": tree,
         }
     )
@@ -188,8 +198,30 @@ def test_transport_has_an_explicit_unsupported_target_diagnostic() -> None:
         "thumbv7em-none-eabihf",
     ):
         assert unsupported in checker
-    assert "unsupported transport compiled" in checker
-    assert "missing unsupported transport diagnostic" in checker
+    assert "unsupported $feature compiled" in checker
+    assert "missing $feature diagnostic" in checker
+
+
+def test_every_transport_feature_fails_on_unsupported_targets() -> None:
+    with tempfile.TemporaryDirectory() as temporary:
+        environment, log = fake_environment(
+            Path(temporary),
+            installed="aarch64-linux-android",
+            reject_transport=True,
+        )
+        result = run(["--portable", "aarch64-linux-android"], environment)
+        assert result.returncode == 0, result
+        commands = log.read_text(encoding="ascii").splitlines()
+        assert len(commands) == 9, commands
+        assert commands[-3:] == [
+            "check --locked --target aarch64-linux-android "
+            "--no-default-features -p cloud-sdk-reqwest --features blocking-rustls",
+            "check --locked --target aarch64-linux-android "
+            "--no-default-features -p cloud-sdk-reqwest "
+            "--features blocking-rustls-webpki-roots",
+            "check --locked --target aarch64-linux-android "
+            "--no-default-features -p cloud-sdk-reqwest --features async-rustls",
+        ]
 
 
 def test_default_dependency_boundary() -> None:
@@ -240,9 +272,10 @@ def main() -> None:
     test_rustup_failures()
     test_native_mode()
     test_transport_has_an_explicit_unsupported_target_diagnostic()
+    test_every_transport_feature_fails_on_unsupported_targets()
     test_default_dependency_boundary()
     test_argument_validation()
-    print("7 platform matrix regression groups passed.")
+    print("8 platform matrix regression groups passed.")
 
 
 if __name__ == "__main__":

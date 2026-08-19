@@ -13,7 +13,11 @@ generation, target discovery, procedural macros, and platform bindings. A
 Cargo `custom-build` target does not by itself mean C or assembly is compiled.
 The exact package/version inventory is enforced by
 `scripts/check_native_build_boundary.py`; any addition, removal, or version
-change requires a new review.
+change requires a new review. The same gate independently resolves each of the
+three production transport features for Linux, Windows, both macOS
+architectures, and FreeBSD. It follows effective normal Cargo edges from the
+reqwest crate and requires the exact `cloud-sdk-reqwest -> aws-lc-rs ->
+aws-lc-sys` chain while rejecting active `ring` or FIPS backends.
 
 ## Cryptographic Native Code
 
@@ -41,7 +45,9 @@ Native CI executes every individual reqwest feature and the combined graph on
 Linux, Windows, macOS ARM64, and macOS x86-64. FreeBSD receives compile
 evidence because no GitHub-hosted FreeBSD runner is available. Android, iOS,
 WASM, and bare-metal reject transport features with a crate-owned diagnostic
-before target-incompatible networking dependencies compile.
+before target-incompatible networking dependencies compile. The negative gate
+executes blocking platform roots, blocking deterministic roots, and async
+transport separately for every unsupported target class.
 
 The portable crates independently compile default, alloc, and Serde graphs on
 all documented representative targets. Package verification, docs.rs

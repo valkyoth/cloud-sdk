@@ -23,7 +23,8 @@ is an internal cumulative tag and publishes no crate.
   Windows, macOS ARM64, and macOS x86-64.
 - Reqwest dependencies are target-qualified for Linux, Windows, macOS, and
   FreeBSD. Unsupported targets require one crate-owned diagnostic instead of
-  leaking failures from networking dependencies.
+  leaking failures from networking dependencies; all three transport features
+  are independently negative-tested on Android, iOS, WASM, and bare metal.
 - `cloud-sdk-reqwest/std` no longer propagates `cloud-sdk/std`; callers select
   core std integrations explicitly, and bare-metal diagnostics are no longer
   preempted by a missing core standard library.
@@ -39,6 +40,10 @@ is an internal cumulative tag and publishes no crate.
 - The complete all-target build-script inventory is exact. Bundled
   `aws-lc-sys 0.44.0` remains the active native crypto build, while
   target-specific `ring 0.17.14` remains reviewed.
+- Every production transport feature is independently resolved for Linux,
+  Windows, macOS x86-64 and ARM64, and FreeBSD. Effective normal dependency
+  edges must reach `aws-lc-rs 1.18.0` and `aws-lc-sys 0.44.0`; active `ring`
+  or FIPS backends fail the gate.
 - FIPS features, dependencies, package content, and compliance claims remain
   absent and deferred until Brynja is ready.
 

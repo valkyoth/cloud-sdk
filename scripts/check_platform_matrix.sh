@@ -83,20 +83,25 @@ check_portable_target() {
     case "$target" in
     aarch64-linux-android|aarch64-apple-ios|wasm32-unknown-unknown|thumbv7em-none-eabihf)
         diagnostic="cloud-sdk-reqwest transport features are unsupported on this target"
-        output="$(mktemp "${TMPDIR:-/tmp}/cloud-sdk-unsupported.XXXXXX")"
-        if cargo check --locked --target "$target" --no-default-features \
-            -p cloud-sdk-reqwest --features blocking-rustls >"$output" 2>&1; then
+        for feature in \
+            blocking-rustls \
+            blocking-rustls-webpki-roots \
+            async-rustls; do
+            output="$(mktemp "${TMPDIR:-/tmp}/cloud-sdk-unsupported.XXXXXX")"
+            if cargo check --locked --target "$target" --no-default-features \
+                -p cloud-sdk-reqwest --features "$feature" >"$output" 2>&1; then
+                rm -f -- "$output"
+                echo "platform matrix: unsupported $feature compiled for $target" >&2
+                exit 1
+            fi
+            if ! grep -Fq "$diagnostic" "$output"; then
+                cat "$output" >&2
+                rm -f -- "$output"
+                echo "platform matrix: missing $feature diagnostic for $target" >&2
+                exit 1
+            fi
             rm -f -- "$output"
-            echo "platform matrix: unsupported transport compiled for $target" >&2
-            exit 1
-        fi
-        if ! grep -Fq "$diagnostic" "$output"; then
-            cat "$output" >&2
-            rm -f -- "$output"
-            echo "platform matrix: missing unsupported transport diagnostic" >&2
-            exit 1
-        fi
-        rm -f -- "$output"
+        done
         ;;
     esac
 }
