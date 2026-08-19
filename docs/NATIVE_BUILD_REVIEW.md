@@ -37,7 +37,9 @@ Bundled AWS-LC requires the platform C/C++ compiler, assembler, CMake, linker,
 and upstream build tooling required by that exact crate release. These tools
 are part of the deployment build trust boundary. GitHub-hosted runner labels
 are native compatibility evidence, not immutable or reproducible toolchain
-images and not compliance accreditation.
+images and not compliance accreditation. The workflow-policy checker admits
+only the reviewed GitHub-hosted labels, closes the complete `matrix.os` axis,
+and rejects arrays, self-hosted labels, and matrix include overrides.
 
 ## Qualification
 

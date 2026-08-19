@@ -47,6 +47,7 @@ matches.
 | Tag ruleset | None | Signed annotated tags, local gates, exact target verification, and explicit maintainer approval are procedural controls. |
 | Actions token | Repository default is read-only and cannot approve reviews | Every committed workflow also declares only `contents: read`. |
 | Allowed Actions | GitHub permits all Actions and does not require SHA pins | The source checker accepts only the reviewed checkout SHA and input plus the exact workflow inventory. |
+| Self-hosted runners | Zero runners are exposed to this repository | Source policy accepts only reviewed GitHub-hosted labels and a closed runner matrix. |
 | CodeQL | Default setup, default suite, weekly, Actions/Python/Rust | No advanced CodeQL workflow is maintained in this repository. |
 | Secret scanning | Disabled in the reviewed repository settings | Repository checks prohibit release credentials in workflows, but GitHub secret scanning and push protection are not claimed. |
 
@@ -60,10 +61,12 @@ permissions, release triggers, GitHub environments, job containers or services,
 execution defaults, working-directory and conditional modifiers, and custom
 shells fail closed. Only the source-locked checkout action and its reviewed
 input, four exact GitHub expressions, and exact command, environment, and step
-forms are accepted. Current CI therefore has neither a crate-publication
-credential nor a writable GitHub token and cannot mint a trusted-publisher
-token. Both parsers' default encoding features are disabled; workflows must be
-bounded regular UTF-8 files.
+forms are accepted. Runner selectors must be one of four reviewed GitHub-hosted
+labels; `matrix.os` permits no other axis, include override, or unapproved
+value. The live check requires zero repository-accessible self-hosted runners.
+Current CI therefore has neither a crate-publication credential nor a writable
+GitHub token and cannot mint a trusted-publisher token. Both parsers' default
+encoding features are disabled; workflows must be bounded regular UTF-8 files.
 
 ## Trusted Publishing Decision
 

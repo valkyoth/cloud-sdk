@@ -15,7 +15,6 @@ ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts" / "check_release_governance.py"
 CHECKOUT = "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1"
 
-
 def load_checker():
     spec = importlib.util.spec_from_file_location("release_governance", SCRIPT)
     if spec is None or spec.loader is None:
@@ -60,7 +59,7 @@ def source_governance_fixture() -> tuple[Path, dict]:
 def test_pinned_read_only_workflow_passes() -> None:
     path = workflow(
         "name: Test\npermissions:\n  contents: read\njobs:\n  test:\n"
-        f"    steps:\n      - uses: {CHECKOUT} # v7.0.1\n"
+        f"    runs-on: ubuntu-latest\n    steps:\n      - uses: {CHECKOUT} # v7.0.1\n"
     )
     checker.check_workflow(path)
 
@@ -237,6 +236,16 @@ def test_github_environment_fails() -> None:
     assert_fails("GitHub environments", lambda: checker.check_workflow(path))
 
 
+def test_unapproved_runners_fail() -> None:
+    prefix = "name: Test\npermissions: {contents: read}\njobs:\n  test:\n"
+    for body in (
+        "    runs-on: self-hosted\n    steps: []\n",
+        "    runs-on: [self-hosted, linux]\n    steps: []\n",
+        "    runs-on: '${{ matrix.os }}'\n    strategy: {matrix: {os: [self-hosted]}}\n    steps: []\n",
+        "    runs-on: '${{ matrix.os }}'\n    strategy: {matrix: {os: [ubuntu-latest], include: [{os: self-hosted}]}}\n    steps: []\n",
+    ):
+        assert_fails("runner", lambda body=body: checker.check_workflow(workflow(prefix + body)))
+
 def test_flow_style_release_trigger_fails() -> None:
     path = workflow(
         "name: Test\non: [push, release]\npermissions: {contents: read}\n"
@@ -340,6 +349,7 @@ def live_fixture() -> tuple[dict, dict[str, object]]:
             "allowed_actions": "all",
             "sha_pinning_required": False,
         },
+        f"repos/{repository}/actions/runners": {"total_count": 0, "runners": []},
     }
     return config, responses
 
@@ -389,6 +399,11 @@ def test_every_documented_live_setting_drift_fails() -> None:
             f"repos/{repository}/actions/permissions",
             lambda value: value.update(sha_pinning_required=True),
             "sha_pinning_required",
+        ),
+        (
+            f"repos/{repository}/actions/runners",
+            lambda value: value.update(total_count=1),
+            "self-hosted runner",
         ),
         (
             f"repos/{repository}",
@@ -467,6 +482,7 @@ def main() -> None:
         test_secret_context_fails,
         test_unapproved_pinned_action_fails,
         test_github_environment_fails,
+        test_unapproved_runners_fail,
         test_flow_style_release_trigger_fails,
         test_incomplete_recovery_runbook_fails,
         test_publisher_with_git_push_fails,

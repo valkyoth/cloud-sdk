@@ -12,7 +12,8 @@
   bounded pre-DOM events and depth; rejected anchors, aliases, merge keys,
   unapproved expressions, execution modifiers, job overrides, and release
   authority; and restricted actions, action inputs, commands, environment
-  entries, and step structures to exact reviewed forms.
+  entries, step structures, direct runners, and runner-matrix values to exact
+  reviewed forms. Live governance also requires zero self-hosted runners.
 - Added two-clean-clone reproduction of every `.crate` archive and all four
   complete SPDX graphs, including exact source, lockfile, tool, package, and
   canonical-SBOM digests plus explicit unpublished first-party patch policy.

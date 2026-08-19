@@ -15,6 +15,7 @@ branch_ruleset_name = "Valkyoth Protect Main Branch"
 tag_ruleset_required = false
 secret_scanning = "disabled"
 secret_scanning_push_protection = "disabled"
+self_hosted_runner_count = 0
 expected_branch_bypass_actors = [
     { actor_type = "OrganizationAdmin", bypass_mode = "always" },
     { actor_type = "User", actor_id = 1921261, bypass_mode = "always" },

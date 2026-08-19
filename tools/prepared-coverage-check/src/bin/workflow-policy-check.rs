@@ -8,6 +8,9 @@ use std::path::{Path, PathBuf};
 use saphyr::{LoadableYamlNode, Mapping, Yaml};
 use saphyr_parser::{Event, Parser};
 
+#[path = "workflow_policy/runner.rs"]
+mod workflow_policy_runner;
+
 const MAX_WORKFLOW_BYTES: usize = 1024 * 1024;
 const MAX_YAML_EVENTS: usize = 10_000;
 const MAX_YAML_DEPTH: usize = 64;
@@ -259,6 +262,7 @@ fn check_job(name: &str, node: &Yaml<'_>, path: &Path) -> Result<(), String> {
             check_step(step, path)?;
         }
     }
+    workflow_policy_runner::check(job, path)?;
     Ok(())
 }
 

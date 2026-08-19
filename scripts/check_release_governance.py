@@ -324,6 +324,10 @@ def check_live_github(config: dict, query=gh_json) -> None:
         if action_policy.get(key) != expected:
             raise GovernanceError(f"Actions {key} differs from reviewed policy")
 
+    runners = query(f"repos/{repository}/actions/runners")
+    if runners.get("total_count") != policy["self_hosted_runner_count"]:
+        raise GovernanceError("self-hosted runner count differs from reviewed policy")
+
     security = repository_state.get("security_and_analysis", {})
     for key in ("secret_scanning", "secret_scanning_push_protection"):
         if security.get(key, {}).get("status") != policy[key]:

@@ -22,15 +22,17 @@ is an internal cumulative tag and publishes no crate.
 - Source checks require one known workflow inventory, SHA-pinned Actions,
   top-level `contents: read`, no elevated job permissions or execution
   modifiers, and exact reviewed expression, action, action-input, step, command,
-  and environment forms.
+  environment, GitHub-hosted runner, and runner-matrix forms.
 - Pentest remediation inventories both workflow extensions and uses a bounded
   event pass to reject anchors and aliases before YAML DOM construction. Flow
   mappings, merge keys, job overrides, action references, triggers, event and
   depth exhaustion, custom shells, alternate action inputs, credential syntax,
-  and indirect command construction fail closed.
+  indirect command construction, self-hosted labels, runner arrays, hostile
+  matrix values, and matrix include overrides fail closed.
 - Live review compares the exact source-locked default branch, branch ruleset
   and bypass actors, tag ruleset state, Actions policy, CodeQL setup, secret
-  scanning state, and crates.io ownership before reporting success.
+  scanning state, zero self-hosted runner exposure, and crates.io ownership
+  before reporting success.
 - The governance review records current limitations: maintainer and
   organization-administrator branch bypasses, no tag ruleset, repository-level
   SHA pin enforcement disabled, GitHub secret scanning disabled, and one
