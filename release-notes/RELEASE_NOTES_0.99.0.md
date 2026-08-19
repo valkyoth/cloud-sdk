@@ -20,14 +20,15 @@ is an internal cumulative tag and publishes no crate.
 - `release-governance.toml` names exactly five publishable packages and four
   excluded packages. Every new Cargo manifest must be classified.
 - Source checks require one known workflow inventory, SHA-pinned Actions,
-  top-level `contents: read`, no elevated job permissions, and no CI release or
-  publication command.
-- Pentest remediation inventories both `.yml` and `.yaml` files and replaces
-  line matching with a lockfile-pinned YAML 1.2 parser in the unpublished
-  coverage tool. Flow mappings, resolved aliases, merge keys, job overrides,
-  semantic action references, triggers, and run commands now fail closed.
-- Live review verifies the active default-branch ruleset, read-only Actions
-  defaults, CodeQL default setup, and crates.io ownership.
+  top-level `contents: read`, no elevated job permissions, no credential
+  contexts, and exact reviewed command and environment forms.
+- Pentest remediation inventories both workflow extensions and uses a bounded
+  event pass to reject anchors and aliases before YAML DOM construction. Flow
+  mappings, merge keys, job overrides, action references, triggers, event and
+  depth exhaustion, and indirect command construction fail closed.
+- Live review compares the exact source-locked default branch, branch ruleset
+  and bypass actors, tag ruleset state, Actions policy, CodeQL setup, secret
+  scanning state, and crates.io ownership before reporting success.
 - The governance review records current limitations: maintainer and
   organization-administrator branch bypasses, no tag ruleset, repository-level
   SHA pin enforcement disabled, GitHub secret scanning disabled, and one

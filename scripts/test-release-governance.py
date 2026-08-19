@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import copy
 import importlib.util
 import shutil
 import tempfile
@@ -103,22 +104,52 @@ def test_flow_style_unpinned_action_fails() -> None:
     assert_fails("not SHA-pinned", lambda: checker.check_workflow(path))
 
 
-def test_aliased_job_permissions_are_checked_semantically() -> None:
+def test_aliases_are_rejected_before_dom_expansion() -> None:
     path = workflow(
         "name: Test\npermissions: {contents: read}\n"
         "template: &privileged {permissions: write-all, steps: []}\n"
         "jobs: {test: *privileged}\n"
     )
-    assert_fails("job-level permissions", lambda: checker.check_workflow(path))
+    assert_fails("anchors or aliases", lambda: checker.check_workflow(path))
+
+
+def test_alias_expansion_bomb_is_rejected_before_dom_expansion() -> None:
+    path = workflow(
+        "name: Test\npermissions: {contents: read}\n"
+        "a: &a [x, x, x, x, x, x, x, x, x, x]\n"
+        "b: &b [*a, *a, *a, *a, *a, *a, *a, *a, *a, *a]\n"
+        "c: &c [*b, *b, *b, *b, *b, *b, *b, *b, *b, *b]\n"
+        "jobs: {test: {steps: []}}\n"
+    )
+    assert len(path.read_bytes()) < 1024
+    assert_fails("anchors or aliases", lambda: checker.check_workflow(path))
 
 
 def test_yaml_merge_key_fails_closed() -> None:
     path = workflow(
         "name: Test\npermissions: {contents: read}\n"
-        "template: &privileged {permissions: write-all}\n"
-        "jobs:\n  test: {<<: *privileged, steps: []}\n"
+        "jobs:\n  test: {<<: {permissions: write-all}, steps: []}\n"
     )
     assert_fails("YAML merge key", lambda: checker.check_workflow(path))
+
+
+def test_excessive_yaml_depth_fails_before_dom_construction() -> None:
+    nested = "[" * 65 + "x" + "]" * 65
+    path = workflow(
+        "name: Test\npermissions: {contents: read}\n"
+        f"extra: {nested}\njobs: {{test: {{steps: []}}}}\n"
+    )
+    assert_fails("nesting depth", lambda: checker.check_workflow(path))
+
+
+def test_excessive_yaml_events_fail_before_dom_construction() -> None:
+    path = workflow(
+        "name: Test\npermissions: {contents: read}\nextra: ["
+        + ",".join("x" for _ in range(10_001))
+        + "]\njobs: {test: {steps: []}}\n"
+    )
+    assert len(path.read_bytes()) < 1024 * 1024
+    assert_fails("too many YAML events", lambda: checker.check_workflow(path))
 
 
 def test_unlisted_yaml_workflow_fails_inventory() -> None:
@@ -141,7 +172,33 @@ def test_publish_command_fails() -> None:
         "name: Test\npermissions:\n  contents: read\njobs:\n  test:\n"
         "    steps:\n      - run: cargo publish\n"
     )
-    assert_fails("forbidden workflow", lambda: checker.check_workflow(path))
+    assert_fails("not explicitly approved", lambda: checker.check_workflow(path))
+
+
+def test_environment_constructed_publish_command_fails() -> None:
+    path = workflow(
+        "name: Test\npermissions: {contents: read}\njobs:\n  test:\n"
+        "    steps:\n      - env: {OPERATION: publish}\n"
+        '        run: cargo "$OPERATION"\n'
+    )
+    assert_fails("not explicitly approved", lambda: checker.check_workflow(path))
+
+
+def test_secret_context_fails() -> None:
+    path = workflow(
+        "name: Test\npermissions: {contents: read}\njobs:\n  test:\n"
+        "    steps:\n      - env: {CARGO_REGISTRY_TOKEN: '${{ secrets.CRATES_IO }}'}\n"
+        "        run: scripts/checks.sh\n"
+    )
+    assert_fails("secret or token context", lambda: checker.check_workflow(path))
+
+
+def test_github_environment_fails() -> None:
+    path = workflow(
+        "name: Test\npermissions: {contents: read}\njobs:\n"
+        "  test: {environment: release, steps: []}\n"
+    )
+    assert_fails("GitHub environments", lambda: checker.check_workflow(path))
 
 
 def test_flow_style_release_trigger_fails() -> None:
@@ -168,6 +225,186 @@ def test_publisher_with_git_push_fails() -> None:
     )
 
 
+def live_fixture() -> tuple[dict, dict[str, object]]:
+    config = checker.load_toml(checker.CONFIG)
+    repository = config["policy"]["repository"]
+    ruleset = {
+        "id": 7,
+        "name": config["policy"]["branch_ruleset_name"],
+        "target": "branch",
+        "enforcement": "active",
+    }
+    details = {
+        "conditions": {"ref_name": {"include": ["~DEFAULT_BRANCH"]}},
+        "bypass_actors": [
+            {
+                "actor_id": None,
+                "actor_type": "OrganizationAdmin",
+                "bypass_mode": "always",
+            },
+            {"actor_id": 1921261, "actor_type": "User", "bypass_mode": "always"},
+        ],
+        "rules": [
+            {"type": name}
+            for name in (
+                "creation",
+                "deletion",
+                "non_fast_forward",
+                "required_linear_history",
+                "required_signatures",
+                "update",
+            )
+        ]
+        + [
+            {
+                "type": "pull_request",
+                "parameters": {
+                    "required_approving_review_count": 1,
+                    "require_code_owner_review": True,
+                    "dismiss_stale_reviews_on_push": True,
+                    "require_last_push_approval": True,
+                },
+            },
+            {
+                "type": "code_scanning",
+                "parameters": {
+                    "code_scanning_tools": [
+                        {
+                            "tool": "CodeQL",
+                            "security_alerts_threshold": "all",
+                            "alerts_threshold": "all",
+                        }
+                    ]
+                },
+            },
+        ],
+    }
+    responses = {
+        f"repos/{repository}": {
+            "default_branch": "main",
+            "security_and_analysis": {
+                "secret_scanning": {"status": "disabled"},
+                "secret_scanning_push_protection": {"status": "disabled"},
+            },
+        },
+        f"repos/{repository}/rulesets": [ruleset],
+        f"repos/{repository}/rulesets/7": details,
+        f"repos/{repository}/actions/permissions/workflow": {
+            "default_workflow_permissions": "read",
+            "can_approve_pull_request_reviews": False,
+        },
+        f"repos/{repository}/code-scanning/default-setup": {
+            "state": "configured",
+            "query_suite": "default",
+            "schedule": "weekly",
+            "languages": ["actions", "python", "rust"],
+        },
+        f"repos/{repository}/actions/permissions": {
+            "enabled": True,
+            "allowed_actions": "all",
+            "sha_pinning_required": False,
+        },
+    }
+    return config, responses
+
+
+def test_live_github_baseline_passes() -> None:
+    config, responses = live_fixture()
+    checker.check_live_github(config, lambda endpoint: responses[endpoint])
+
+
+def test_every_documented_live_setting_drift_fails() -> None:
+    config, baseline = live_fixture()
+    repository = config["policy"]["repository"]
+    cases = (
+        (
+            f"repos/{repository}",
+            lambda value: value.update(default_branch="trunk"),
+            "default branch",
+        ),
+        (
+            f"repos/{repository}/rulesets/7",
+            lambda value: value.update(bypass_actors=[]),
+            "bypass actors",
+        ),
+        (
+            f"repos/{repository}/rulesets",
+            lambda value: value[0].update(name="replacement ruleset"),
+            "uniquely active",
+        ),
+        (
+            f"repos/{repository}/rulesets",
+            lambda value: value.append(
+                {"id": 8, "name": "tags", "target": "tag", "enforcement": "active"}
+            ),
+            "tag ruleset state",
+        ),
+        (
+            f"repos/{repository}/actions/permissions",
+            lambda value: value.update(allowed_actions="selected"),
+            "allowed_actions",
+        ),
+        (
+            f"repos/{repository}/actions/permissions",
+            lambda value: value.update(enabled=False),
+            "enabled",
+        ),
+        (
+            f"repos/{repository}/actions/permissions",
+            lambda value: value.update(sha_pinning_required=True),
+            "sha_pinning_required",
+        ),
+        (
+            f"repos/{repository}",
+            lambda value: value["security_and_analysis"]["secret_scanning"].update(
+                status="enabled"
+            ),
+            "secret_scanning",
+        ),
+        (
+            f"repos/{repository}",
+            lambda value: value["security_and_analysis"][
+                "secret_scanning_push_protection"
+            ].update(status="enabled"),
+            "secret_scanning_push_protection",
+        ),
+        (
+            f"repos/{repository}/actions/permissions/workflow",
+            lambda value: value.update(can_approve_pull_request_reviews=True),
+            "review approval",
+        ),
+        (
+            f"repos/{repository}/code-scanning/default-setup",
+            lambda value: value.update(state="not-configured"),
+            "CodeQL state",
+        ),
+        (
+            f"repos/{repository}/code-scanning/default-setup",
+            lambda value: value.update(query_suite="security-extended"),
+            "query suite",
+        ),
+        (
+            f"repos/{repository}/code-scanning/default-setup",
+            lambda value: value.update(schedule="monthly"),
+            "CodeQL schedule",
+        ),
+        (
+            f"repos/{repository}/code-scanning/default-setup",
+            lambda value: value.update(languages=["python", "rust"]),
+            "CodeQL languages",
+        ),
+    )
+    for endpoint, mutate, expected in cases:
+        responses = copy.deepcopy(baseline)
+        mutate(responses[endpoint])
+        assert_fails(
+            expected,
+            lambda responses=responses: checker.check_live_github(
+                config, lambda endpoint: responses[endpoint]
+            ),
+        )
+
+
 def test_current_repository_policy_passes() -> None:
     config = checker.load_toml(checker.CONFIG)
     checker.check_package_policy(ROOT, config)
@@ -182,13 +419,21 @@ def main() -> None:
         test_job_permissions_fail,
         test_flow_style_write_all_job_permissions_fail,
         test_flow_style_unpinned_action_fails,
-        test_aliased_job_permissions_are_checked_semantically,
+        test_aliases_are_rejected_before_dom_expansion,
+        test_alias_expansion_bomb_is_rejected_before_dom_expansion,
         test_yaml_merge_key_fails_closed,
+        test_excessive_yaml_depth_fails_before_dom_construction,
+        test_excessive_yaml_events_fail_before_dom_construction,
         test_unlisted_yaml_workflow_fails_inventory,
         test_publish_command_fails,
+        test_environment_constructed_publish_command_fails,
+        test_secret_context_fails,
+        test_github_environment_fails,
         test_flow_style_release_trigger_fails,
         test_incomplete_recovery_runbook_fails,
         test_publisher_with_git_push_fails,
+        test_live_github_baseline_passes,
+        test_every_documented_live_setting_drift_fails,
         test_current_repository_policy_passes,
     )
     for test in tests:

@@ -471,12 +471,12 @@ the core std integrations enable that core feature explicitly.
 Status: pentest remediation; incremental retest required.
 
 Pentest found that line-oriented YAML inspection could not substantiate the
-workflow-policy claim. Remediation admits exact `saphyr 0.0.12`, with default
-features disabled, into the unpublished coverage tool. It parses bounded UTF-8
-workflows semantically and is absent from every publishable crate, SDK feature,
-default or transport graph, and `.crate` archive.
+workflow-policy claim. Remediation admits exact `saphyr 0.0.12` and direct
+`saphyr-parser 0.0.12`, with default features disabled, into the unpublished
+coverage tool. A bounded event pass rejects anchors and aliases before DOM
+construction. Both are absent from every publishable graph and archive.
 
-Its locked transitive graph is `saphyr-parser 0.0.12`, `arraydeque 0.5.1`,
+Their locked transitive graph is `arraydeque 0.5.1`,
 `hashlink 0.12.1`, `hashbrown 0.17.1`, `foldhash 0.2.0`, `ordered-float 5.3.0`,
 `num-traits 0.2.19`, `autocfg 1.5.1`, `thiserror 2.0.20`, and `quote 1.0.47`.
 There is no native build, network, TLS, runtime, watcher, clock, randomness,
@@ -491,6 +491,7 @@ Nothing publishes; v0.100 assigns the required independent patch version.
 | `cloud-sdk` | `0.98.0` | `0.99.0` | Advance the internal milestone identity. |
 | `ovhcloud-v2-probe` | `0.98.0` | `0.99.0` | Advance the excluded probe identity only. |
 | `saphyr` | `-` | `0.0.12` | Exact YAML 1.2 parser in the unpublished workflow-policy checker only; default encoding disabled. |
+| `saphyr-parser` | transitive | `0.0.12` | Exact direct pre-DOM event parser; no publishable edge. |
 
 ## 2026-07-20
 

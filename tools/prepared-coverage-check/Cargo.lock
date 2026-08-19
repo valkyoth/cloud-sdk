@@ -19,6 +19,7 @@ name = "cloud-sdk-prepared-coverage-check"
 version = "0.0.0"
 dependencies = [
  "saphyr",
+ "saphyr-parser",
  "syn",
 ]
 

@@ -215,14 +215,47 @@ def gh_json(endpoint: str) -> dict | list:
     return capture_json(["gh", "api", endpoint])
 
 
-def check_live_github(config: dict) -> None:
-    repository = config["policy"]["repository"]
-    rulesets = gh_json(f"repos/{repository}/rulesets")
+def normalized_bypass_actors(actors: list[dict]) -> tuple[tuple[object, ...], ...]:
+    normalized = []
+    for actor in actors:
+        normalized.append(
+            (
+                actor.get("actor_type"),
+                actor.get("actor_id"),
+                actor.get("bypass_mode"),
+            )
+        )
+    return tuple(sorted(normalized, key=repr))
+
+
+def check_live_github(config: dict, query=gh_json) -> None:
+    policy = config["policy"]
+    repository = policy["repository"]
+    repository_state = query(f"repos/{repository}")
+    if repository_state.get("default_branch") != policy["default_branch"]:
+        raise GovernanceError("default branch differs from reviewed policy")
+
+    rulesets = query(f"repos/{repository}/rulesets")
     active = [item for item in rulesets if item.get("enforcement") == "active"]
-    branch_rulesets = [item for item in active if item.get("target") == "branch"]
-    if not branch_rulesets:
-        raise GovernanceError("GitHub has no active branch ruleset")
-    details = gh_json(f"repos/{repository}/rulesets/{branch_rulesets[0]['id']}")
+    branch_rulesets = [
+        item
+        for item in active
+        if item.get("target") == "branch"
+        and item.get("name") == policy["branch_ruleset_name"]
+    ]
+    if len(branch_rulesets) != 1:
+        raise GovernanceError("reviewed branch ruleset is not uniquely active")
+    tag_rulesets = [item for item in active if item.get("target") == "tag"]
+    if bool(tag_rulesets) != policy["tag_ruleset_required"]:
+        raise GovernanceError("tag ruleset state differs from reviewed policy")
+
+    details = query(f"repos/{repository}/rulesets/{branch_rulesets[0]['id']}")
+    observed_bypasses = normalized_bypass_actors(details.get("bypass_actors", []))
+    expected_bypasses = normalized_bypass_actors(
+        policy["expected_branch_bypass_actors"]
+    )
+    if observed_bypasses != expected_bypasses:
+        raise GovernanceError("branch ruleset bypass actors differ from reviewed policy")
     include = details.get("conditions", {}).get("ref_name", {}).get("include", [])
     if "~DEFAULT_BRANCH" not in include:
         raise GovernanceError("active ruleset does not protect the default branch")
@@ -259,20 +292,42 @@ def check_live_github(config: dict) -> None:
     ):
         raise GovernanceError("branch ruleset does not require all CodeQL alerts")
 
-    workflow = gh_json(f"repos/{repository}/actions/permissions/workflow")
-    if workflow.get("default_workflow_permissions") != "read":
+    workflow = query(f"repos/{repository}/actions/permissions/workflow")
+    if (
+        workflow.get("default_workflow_permissions")
+        != policy["workflow_default_permissions"]
+    ):
         raise GovernanceError("GitHub Actions default token is not read-only")
-    if workflow.get("can_approve_pull_request_reviews"):
-        raise GovernanceError("GitHub Actions may approve pull requests")
-    codeql = gh_json(f"repos/{repository}/code-scanning/default-setup")
-    if codeql.get("state") != "configured":
-        raise GovernanceError("CodeQL default setup is not configured")
-    if not {"actions", "python", "rust"} <= set(codeql.get("languages", [])):
-        raise GovernanceError("CodeQL default setup lacks a required language")
+    if (
+        workflow.get("can_approve_pull_request_reviews")
+        != policy["workflow_can_approve_pull_requests"]
+    ):
+        raise GovernanceError("Actions review approval differs from reviewed policy")
 
-    action_policy = gh_json(f"repos/{repository}/actions/permissions")
-    if not action_policy.get("enabled"):
-        raise GovernanceError("GitHub Actions is disabled")
+    codeql = query(f"repos/{repository}/code-scanning/default-setup")
+    if codeql.get("state") != policy["codeql_state"]:
+        raise GovernanceError("CodeQL state differs from reviewed policy")
+    if codeql.get("query_suite") != policy["codeql_setup"]:
+        raise GovernanceError("CodeQL query suite differs from reviewed policy")
+    if codeql.get("schedule") != policy["codeql_schedule"]:
+        raise GovernanceError("CodeQL schedule differs from reviewed policy")
+    if set(codeql.get("languages", [])) != set(policy["codeql_languages"]):
+        raise GovernanceError("CodeQL languages differ from reviewed policy")
+
+    action_policy = query(f"repos/{repository}/actions/permissions")
+    expected_action_policy = {
+        "enabled": policy["actions_enabled"],
+        "allowed_actions": policy["allowed_actions"],
+        "sha_pinning_required": policy["sha_pinning_required"],
+    }
+    for key, expected in expected_action_policy.items():
+        if action_policy.get(key) != expected:
+            raise GovernanceError(f"Actions {key} differs from reviewed policy")
+
+    security = repository_state.get("security_and_analysis", {})
+    for key in ("secret_scanning", "secret_scanning_push_protection"):
+        if security.get(key, {}).get("status") != policy[key]:
+            raise GovernanceError(f"{key} differs from reviewed policy")
     print("Live GitHub release controls match the reviewed governance baseline.")
 
 

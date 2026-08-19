@@ -7,10 +7,11 @@
   trusted-publishing decision, and review-independence boundary.
 - Added fail-closed checks for SHA-pinned read-only GitHub workflows, package
   eligibility, internal publication deferral, publisher allowlist drift, and
-  live GitHub/crates.io governance settings.
-- Replaced line-oriented workflow inspection with a locked YAML 1.2 parser,
-  covered both accepted workflow extensions, and rejected semantic job
-  permission overrides, merge keys, malformed actions, and release authority.
+  an exact machine-readable GitHub/crates.io governance baseline.
+- Replaced line-oriented workflow inspection with a locked YAML 1.2 parser;
+  bounded pre-DOM events and depth; rejected anchors, aliases, merge keys,
+  credential contexts, job overrides, malformed actions, and release authority;
+  and restricted commands and environment entries to exact reviewed forms.
 - Added two-clean-clone reproduction of every `.crate` archive and all four
   complete SPDX graphs, including exact source, lockfile, tool, package, and
   canonical-SBOM digests plus explicit unpublished first-party patch policy.

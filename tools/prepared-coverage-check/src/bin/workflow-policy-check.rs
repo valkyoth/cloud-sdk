@@ -6,9 +6,44 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use saphyr::{LoadableYamlNode, Mapping, Yaml};
+use saphyr_parser::{Event, Parser};
 
 const MAX_WORKFLOW_BYTES: usize = 1024 * 1024;
-const FORBIDDEN_RUN_TEXT: [&str; 4] = ["cargo publish", "cargo owner", "gh release", "git push"];
+const MAX_YAML_EVENTS: usize = 10_000;
+const MAX_YAML_DEPTH: usize = 64;
+const ALLOWED_RUN_COMMANDS: [&str; 18] = [
+    "rustup target add \"$TARGET\"",
+    "scripts/check_platform_matrix.sh --portable \"$TARGET\"",
+    "scripts/check_platform_matrix.sh --native",
+    "scripts/check_fips_deferred.py",
+    "rustup toolchain install \"$RUST_VERSION\" --profile minimal",
+    "scripts/check_rust_version_matrix.sh \"$RUST_VERSION\"",
+    "scripts/check_packaged_feature_graphs.sh\ncargo doc --locked --workspace --all-features --no-deps",
+    "rustup toolchain install nightly-2026-08-17 --profile minimal",
+    "cargo install --locked cargo-fuzz --version 0.13.2",
+    "scripts/check_fuzz_harness.sh --build\nscripts/check_fuzz_harness.sh --smoke",
+    "rustup show",
+    "cargo install --locked cargo-deny --version 0.20.2\ncargo install --locked cargo-audit --version 0.22.2",
+    "cargo install --locked cargo-sbom --version 0.10.0",
+    "scripts/checks.sh",
+    r#"cargo deny check
+cargo deny --manifest-path tests/reqwest-feature-unification/Cargo.toml \
+  --config deny.toml --locked check advisories licenses sources
+cargo deny --manifest-path fuzz/Cargo.toml \
+  --config deny.toml --locked check advisories licenses sources
+cargo deny --manifest-path tools/prepared-coverage-check/Cargo.toml \
+  --config deny.toml --locked check advisories licenses sources"#,
+    "scripts/check_rustsec_advisories.sh",
+    "scripts/check_sbom_freshness.sh",
+    "scripts/check_hetzner_api_surface.sh --fetch",
+];
+const ALLOWED_ENVIRONMENT: [(&str, &str); 5] = [
+    ("CARGO_TERM_COLOR", "always"),
+    ("RUSTDOCFLAGS", "-D warnings"),
+    ("RUST_VERSION", "${{ matrix.rust }}"),
+    ("TARGET", "${{ matrix.target }}"),
+    ("TMPDIR", "${{ runner.temp }}"),
+];
 
 fn main() {
     if let Err(error) = run(env::args_os().skip(1)) {
@@ -44,6 +79,7 @@ fn check_workflow(path: &Path) -> Result<(), String> {
     }
     let source = std::str::from_utf8(&bytes)
         .map_err(|error| format!("{} is not UTF-8: {error}", path.display()))?;
+    reject_expansion_and_complexity(source, path)?;
     let documents = Yaml::load_from_str(source)
         .map_err(|error| format!("cannot parse {}: {error}", path.display()))?;
     let [document] = documents.as_slice() else {
@@ -54,6 +90,46 @@ fn check_workflow(path: &Path) -> Result<(), String> {
     };
     reject_ambiguous_nodes(document, path)?;
     check_document(document, path)
+}
+
+fn reject_expansion_and_complexity(source: &str, path: &Path) -> Result<(), String> {
+    let mut depth = 0_usize;
+    for (count, result) in Parser::new_from_str(source).enumerate() {
+        if count >= MAX_YAML_EVENTS {
+            return Err(format!("{} contains too many YAML events", path.display()));
+        }
+        let (event, _) =
+            result.map_err(|error| format!("cannot parse {}: {error}", path.display()))?;
+        match event {
+            Event::Alias(_)
+            | Event::Scalar(_, _, 1.., _)
+            | Event::SequenceStart(1.., _)
+            | Event::MappingStart(1.., _) => {
+                return Err(format!(
+                    "{} contains forbidden YAML anchors or aliases",
+                    path.display()
+                ));
+            }
+            Event::SequenceStart(0, _) | Event::MappingStart(0, _) => {
+                depth = depth
+                    .checked_add(1)
+                    .ok_or_else(|| "YAML nesting depth overflowed".to_owned())?;
+                if depth > MAX_YAML_DEPTH {
+                    return Err(format!("{} exceeds YAML nesting depth", path.display()));
+                }
+            }
+            Event::SequenceEnd | Event::MappingEnd => {
+                depth = depth
+                    .checked_sub(1)
+                    .ok_or_else(|| format!("{} has incoherent YAML nesting", path.display()))?;
+            }
+            _ => {}
+        }
+    }
+    if depth != 0 {
+        return Err(format!("{} has incomplete YAML nesting", path.display()));
+    }
+    Ok(())
 }
 
 fn reject_ambiguous_nodes(node: &Yaml<'_>, path: &Path) -> Result<(), String> {
@@ -99,6 +175,8 @@ fn reject_ambiguous_nodes(node: &Yaml<'_>, path: &Path) -> Result<(), String> {
 
 fn check_document(document: &Yaml<'_>, path: &Path) -> Result<(), String> {
     let root = mapping(document, path, "workflow")?;
+    reject_sensitive_contexts(document, path)?;
+    check_environment(root, path)?;
     if let Some(events) = mapping_value(root, "on") {
         check_triggers(events, path)?;
     }
@@ -159,6 +237,13 @@ fn check_job(name: &str, node: &Yaml<'_>, path: &Path) -> Result<(), String> {
             path.display()
         ));
     }
+    if mapping_value(job, "environment").is_some() {
+        return Err(format!(
+            "{}: GitHub environments are forbidden in {name}",
+            path.display()
+        ));
+    }
+    check_environment(job, path)?;
     if let Some(reference) = mapping_value(job, "uses") {
         check_action(reference, path)?;
     }
@@ -168,6 +253,7 @@ fn check_job(name: &str, node: &Yaml<'_>, path: &Path) -> Result<(), String> {
             .ok_or_else(|| format!("{}: steps in {name} must be a sequence", path.display()))?;
         for (index, step) in steps.iter().enumerate() {
             let step = mapping(step, path, &format!("step {index} in {name}"))?;
+            check_environment(step, path)?;
             if let Some(reference) = mapping_value(step, "uses") {
                 check_action(reference, path)?;
             }
@@ -208,13 +294,75 @@ fn check_run(node: &Yaml<'_>, path: &Path) -> Result<(), String> {
     let Some(command) = node.as_str() else {
         return Err(format!("{}: run command must be text", path.display()));
     };
-    let lowered = command.to_ascii_lowercase();
-    for forbidden in FORBIDDEN_RUN_TEXT {
-        if lowered.contains(forbidden) {
+    let command = command.trim();
+    if !ALLOWED_RUN_COMMANDS.contains(&command) {
+        return Err(format!(
+            "{}: run command is not explicitly approved: {command:?}",
+            path.display()
+        ));
+    }
+    Ok(())
+}
+
+fn check_environment(container: &Mapping<'_>, path: &Path) -> Result<(), String> {
+    let Some(environment) = mapping_value(container, "env") else {
+        return Ok(());
+    };
+    let environment = mapping(environment, path, "environment")?;
+    for (name, value) in environment {
+        let Some(name) = name.as_str() else {
+            return Err(format!("{}: environment name must be text", path.display()));
+        };
+        let Some(value) = value.as_str() else {
             return Err(format!(
-                "{}: forbidden workflow capability {forbidden}",
+                "{}: environment value must be text",
                 path.display()
             ));
+        };
+        if !ALLOWED_ENVIRONMENT.contains(&(name, value)) {
+            return Err(format!(
+                "{}: environment entry is not explicitly approved: {name}",
+                path.display()
+            ));
+        }
+    }
+    Ok(())
+}
+
+fn reject_sensitive_contexts(node: &Yaml<'_>, path: &Path) -> Result<(), String> {
+    match node {
+        Yaml::Mapping(mapping) => {
+            for (key, value) in mapping {
+                let Some(key) = key.as_str() else {
+                    return Err(format!(
+                        "{} contains a non-string mapping key",
+                        path.display()
+                    ));
+                };
+                if key.eq_ignore_ascii_case("secrets") {
+                    return Err(format!("{} contains a secrets mapping", path.display()));
+                }
+                reject_sensitive_contexts(value, path)?;
+            }
+        }
+        Yaml::Sequence(sequence) => {
+            for value in sequence {
+                reject_sensitive_contexts(value, path)?;
+            }
+        }
+        _ => {
+            if let Some(value) = node.as_str() {
+                let value = value.to_ascii_lowercase();
+                if value.contains("${{ secrets.")
+                    || value.contains("${{ github.token")
+                    || value.contains("${{ github_token")
+                {
+                    return Err(format!(
+                        "{} contains an explicit secret or token context",
+                        path.display()
+                    ));
+                }
+            }
         }
     }
     Ok(())

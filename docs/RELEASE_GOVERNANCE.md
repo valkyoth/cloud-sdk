@@ -33,9 +33,11 @@ workspace release tag and publishes last among packages that depend on it.
 
 ## GitHub Review
 
-The following controls were read through the GitHub API on 2026-08-19. Run
+The following controls were read through the GitHub API on 2026-08-19 and are
+represented exactly in `release-governance.toml`. Run
 `scripts/check_release_governance.py --live` before v0.99 and every public
-checkpoint to detect drift.
+checkpoint; it compares every table row before claiming that the baseline
+matches.
 
 | Control | Reviewed state | Boundary |
 | --- | --- | --- |
@@ -48,16 +50,18 @@ checkpoint to detect drift.
 | CodeQL | Default setup, default suite, weekly, Actions/Python/Rust | No advanced CodeQL workflow is maintained in this repository. |
 | Secret scanning | Disabled in the reviewed repository settings | Repository checks prohibit release credentials in workflows, but GitHub secret scanning and push protection are not claimed. |
 
-The source checker inventories both `.yml` and `.yaml` workflow files and sends
-every classified file through the lockfile-pinned `saphyr 0.0.12` YAML 1.2
-parser in the unpublished coverage-check tool. It semantically checks top-level
-and job mappings, resolved aliases, flow-style mappings, action references,
-steps, and run commands. YAML merge keys, unresolved aliases, custom tags,
-job-level permission overrides, write or OIDC permissions, release-triggered
-workflows, `cargo publish`, and `gh release` fail closed. CI therefore cannot
-publish a crate or mint a trusted-publisher token from this repository
-configuration. The parser's default encoding feature is disabled; workflows
-must be bounded regular UTF-8 files.
+The source checker inventories both `.yml` and `.yaml` workflow files. A
+lockfile-pinned `saphyr-parser 0.0.12` event pass rejects anchors and aliases
+before DOM construction and bounds input bytes, parser events, and nesting
+depth. The unpublished tool then uses `saphyr 0.0.12` to check top-level and job
+mappings, flow mappings, action references, steps, and commands semantically.
+YAML merge keys, custom tags, job permission overrides, write or OIDC
+permissions, release triggers, GitHub environments, credential contexts, and
+all commands or environment entries outside exact reviewed allowlists fail
+closed. Current CI therefore has neither a crate-publication credential nor a
+writable GitHub token and cannot mint a trusted-publisher token. Both parsers'
+default encoding features are disabled; workflows must be bounded regular
+UTF-8 files.
 
 ## Trusted Publishing Decision
 
