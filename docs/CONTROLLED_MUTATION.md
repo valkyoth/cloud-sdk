@@ -132,7 +132,10 @@ resource references, cost drift, CI execution, non-disposable scope, unrevoked
 credentials, a non-independent reviewer, and non-empty final inventories.
 Diagnostics are static and do not reproduce evidence values. The release gate
 validates the exact committed regular-file blob, not the worktree path or a
-symlink target, and requires every source control to be a regular Git blob.
+symlink target. Each source control must be a regular Git blob with its exact
+reviewed mode: policy and documentation are `100644`; validator and shell
+entry-point scripts are `100755`. Malformed scalar types and oversized JSON
+integers terminate with static payload-free diagnostics rather than tracebacks.
 
 This evidence is an operational attestation, not cryptographic proof of remote
 provider events and not an independent certification. The validator proves

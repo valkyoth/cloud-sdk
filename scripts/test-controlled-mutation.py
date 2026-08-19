@@ -116,6 +116,15 @@ def mutate(evidence: dict, callback) -> dict:
     return changed
 
 
+def replace_path(value: dict, path: tuple[object, ...], replacement: object) -> dict:
+    changed = copy.deepcopy(value)
+    target = changed
+    for segment in path[:-1]:
+        target = target[segment]
+    target[path[-1]] = replacement
+    return changed
+
+
 def test_policy_and_valid_evidence(checker) -> tuple[dict, dict]:
     policy = checker.load_policy()
     evidence = valid_evidence(policy)
@@ -288,6 +297,44 @@ def test_policy_integer_types_are_exact(checker, policy: dict) -> None:
             raise AssertionError("boolean policy integer was accepted")
 
 
+def test_every_scalar_type_confusion_fails_closed(
+    checker, policy: dict, evidence: dict
+) -> None:
+    policy_paths = [
+        (field,)
+        for field in policy
+        if field != "scenarios"
+    ]
+    for index, scenario in enumerate(policy["scenarios"]):
+        policy_paths.extend(("scenarios", index, field) for field in scenario)
+    for path in policy_paths:
+        for replacement in ([], {}, None):
+            changed = replace_path(policy, path, replacement)
+            try:
+                checker.validate_policy(changed)
+            except checker.EvidenceError:
+                pass
+            else:
+                raise AssertionError("policy scalar type confusion was accepted")
+
+    evidence_paths = [
+        (field,)
+        for field in evidence
+        if field not in {"scenarios", "cleanup_ledger", "final_inventory"}
+    ]
+    for collection in ("scenarios", "cleanup_ledger", "final_inventory"):
+        for index, item in enumerate(evidence[collection]):
+            evidence_paths.extend((collection, index, field) for field in item)
+    for path in evidence_paths:
+        original = evidence
+        for segment in path:
+            original = original[segment]
+        for replacement in ([], {}, None):
+            if replacement == original:
+                continue
+            assert_rejected(checker, replace_path(evidence, path, replacement), policy)
+
+
 def test_cli_is_static_and_payload_free(policy: dict, evidence: dict) -> None:
     with tempfile.TemporaryDirectory() as temporary:
         path = Path(temporary) / "evidence.json"
@@ -312,6 +359,43 @@ def test_cli_is_static_and_payload_free(policy: dict, evidence: dict) -> None:
         )
         assert rejected.returncode == 1, rejected
         assert "secret-sentinel" not in rejected.stdout + rejected.stderr
+
+        malformed = (
+            mutate(
+                evidence,
+                lambda value: value["scenarios"][0].update(delivery=[]),
+            ),
+            mutate(
+                evidence,
+                lambda value: value["cleanup_ledger"][0].update(scenario={}),
+            ),
+            mutate(
+                evidence,
+                lambda value: value["final_inventory"][0].update(service=None),
+            ),
+        )
+        for changed in malformed:
+            path.write_text(json.dumps(changed), encoding="ascii")
+            rejected = subprocess.run(
+                ["python3", str(CHECKER), str(path)],
+                cwd=ROOT,
+                check=False,
+                capture_output=True,
+                text=True,
+            )
+            assert rejected.returncode == 1, rejected
+            assert "Traceback" not in rejected.stdout + rejected.stderr
+
+        path.write_bytes(b'{"format":' + b"9" * 5_000 + b"}")
+        rejected = subprocess.run(
+            ["python3", str(CHECKER), str(path)],
+            cwd=ROOT,
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        assert rejected.returncode == 1, rejected
+        assert "Traceback" not in rejected.stdout + rejected.stderr
 
 
 def test_checker_has_no_network_or_credential_input() -> None:
@@ -338,6 +422,7 @@ def main() -> None:
     test_bounded_file_boundary(checker, policy, evidence)
     test_strict_json_rejects_duplicates(checker, evidence)
     test_policy_integer_types_are_exact(checker, policy)
+    test_every_scalar_type_confusion_fails_closed(checker, policy, evidence)
     test_cli_is_static_and_payload_free(policy, evidence)
     test_checker_has_no_network_or_credential_input()
     print("Controlled-mutation protocol regressions passed.")

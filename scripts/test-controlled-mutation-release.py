@@ -36,7 +36,9 @@ def test_path_allowlist(module) -> None:
         and arguments[2].endswith(":security/mutation/v0.100.0.json")
         and arguments[2].startswith("a" * 40)
     )
-    module.regular_blob_oid = lambda _revision, _path: "b" * 40
+    module.regular_blob_oid = (
+        lambda _revision, _path, _mode=b"100644": "b" * 40
+    )
     source = "a" * 40
     evidence = "security/mutation/v0.100.0.json"
     try:
@@ -79,7 +81,9 @@ def test_git_state_failures(module) -> None:
     evidence = ("security/mutation/v0.100.0.json",)
     original = module.git_success
     original_blob = module.regular_blob_oid
-    module.regular_blob_oid = lambda _revision, _path: "b" * 40
+    module.regular_blob_oid = (
+        lambda _revision, _path, _mode=b"100644": "b" * 40
+    )
     cases = (
         (
             lambda *arguments: arguments[:2] != ("cat-file", "-e")
@@ -104,9 +108,11 @@ def test_git_state_failures(module) -> None:
         module.regular_blob_oid = original_blob
 
 
-def expect_tree_failure(module, raw: bytes, path: str) -> None:
+def expect_tree_failure(
+    module, raw: bytes, path: str, expected_mode: bytes = b"100644"
+) -> None:
     try:
-        module.parse_tree_entry(raw, path)
+        module.parse_tree_entry(raw, path, expected_mode)
     except module.ReleaseEvidenceError:
         return
     raise AssertionError("non-regular committed path was accepted")
@@ -117,6 +123,8 @@ def test_committed_tree_modes(module) -> None:
     object_id = b"a" * 40
     accepted = b"100644 blob " + object_id + b"\t" + path.encode("ascii") + b"\0"
     assert module.parse_tree_entry(accepted, path) == "a" * 40
+    executable = b"100755 blob " + object_id + b"\t" + path.encode("ascii") + b"\0"
+    assert module.parse_tree_entry(executable, path, b"100755") == "a" * 40
     for raw in (
         b"",
         b"120000 blob " + object_id + b"\t" + path.encode("ascii") + b"\0",
@@ -139,7 +147,9 @@ def test_required_controls_must_be_regular(module) -> None:
         and arguments[2].startswith(source)
     )
 
-    def reject_policy(_revision: str, path: str) -> str:
+    def reject_policy(
+        _revision: str, path: str, _mode: bytes = b"100644"
+    ) -> str:
         if path == "controlled-mutation-policy.json":
             raise module.ReleaseEvidenceError("committed path must be a regular file")
         return "b" * 40
@@ -154,6 +164,8 @@ def test_required_controls_must_be_regular(module) -> None:
 
 def test_repository_blob_reader(module) -> None:
     checker = module.load_checker()
+    for path, expected_mode in module.REQUIRED_SOURCE_PATHS.items():
+        module.regular_blob_oid("HEAD", path, expected_mode)
     policy = module.committed_json(
         checker,
         "HEAD",

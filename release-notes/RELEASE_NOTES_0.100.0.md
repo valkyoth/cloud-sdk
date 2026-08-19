@@ -32,7 +32,8 @@ freezing the public API candidate.
   qualification.
 - Evidence parsing uses bounded no-follow regular-file reads, rejects duplicate
   fields and boolean integer aliases, and validates the exact committed Git
-  blob rather than a worktree path or symlink target.
+  blob and reviewed executable mode rather than a worktree path or symlink
+  target. Malformed scalar types produce static diagnostics without tracebacks.
 
 ## Cumulative Public Surface
 

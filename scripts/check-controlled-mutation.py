@@ -81,7 +81,12 @@ def parse_json(raw: bytes) -> object:
             object_pairs_hook=unique_object,
             parse_constant=reject_constant,
         )
-    except (json.JSONDecodeError, RecursionError, UnicodeDecodeError) as error:
+    except (
+        json.JSONDecodeError,
+        RecursionError,
+        UnicodeDecodeError,
+        ValueError,
+    ) as error:
         raise EvidenceError("evidence JSON is invalid") from error
 
 
@@ -126,6 +131,11 @@ def validate_policy(value: object) -> dict:
             {"name", "service", "classification", "live_dispatch"},
             "policy scenario",
         )
+        if not all(
+            isinstance(scenario[field], str)
+            for field in ("name", "service", "classification", "live_dispatch")
+        ):
+            raise EvidenceError("policy scenario value is invalid")
         if (
             scenario["name"] in names
             or scenario["service"] not in {"cloud", "dns", "security", "storage", "robot"}
@@ -163,6 +173,19 @@ def validate_scenario(actual: dict, expected: dict, maximum_attempts: int) -> No
         },
         "scenario",
     )
+    if not all(
+        isinstance(actual[field], str)
+        for field in (
+            "name",
+            "service",
+            "classification",
+            "delivery",
+            "outcome",
+            "reconciliation",
+            "cleanup",
+        )
+    ):
+        raise EvidenceError("scenario scalar value is invalid")
     for field in ("name", "service", "classification"):
         if actual[field] != expected[field]:
             raise EvidenceError("scenario identity is invalid")
@@ -213,6 +236,8 @@ def validate_inventory(value: object, reviewer: str) -> None:
             raise EvidenceError("inventory entry is invalid")
         exact_keys(item, {"service", "prefixed_resources", "verified_by"}, "inventory")
         service = item["service"]
+        if not isinstance(service, str) or not isinstance(item["verified_by"], str):
+            raise EvidenceError("inventory scalar value is invalid")
         if (
             service not in expected
             or service in observed
@@ -252,6 +277,11 @@ def validate_cleanup_ledger(value: object, scenarios: dict[str, dict]) -> None:
         name = entry["scenario"]
         resource = entry["resource_reference_sha256"]
         cleanup_plan = entry["cleanup_plan_fingerprint_sha256"]
+        if not all(
+            isinstance(item, str)
+            for item in (name, resource, cleanup_plan, entry["status"])
+        ):
+            raise EvidenceError("cleanup ledger scalar value is invalid")
         if (
             name not in live
             or name in observed
@@ -307,7 +337,10 @@ def validate_evidence(value: object, policy: dict) -> None:
         raise EvidenceError("source commit is invalid")
     if not isinstance(value["run_id"], str) or not RUN_ID(value["run_id"]):
         raise EvidenceError("run identifier is invalid")
-    if value["resource_prefix"] != value["run_id"] + "-":
+    if (
+        not isinstance(value["resource_prefix"], str)
+        or value["resource_prefix"] != value["run_id"] + "-"
+    ):
         raise EvidenceError("resource prefix is not unique to the run")
     if (
         value["operator_approval"] != "approved-v0.100-controlled-mutations"
@@ -376,6 +409,9 @@ def main() -> int:
         validate_evidence(evidence, policy)
     except EvidenceError as error:
         print(f"controlled mutation: {error}", file=sys.stderr)
+        return 1
+    except (TypeError, ValueError, OverflowError):
+        print("controlled mutation: evidence scalar type is invalid", file=sys.stderr)
         return 1
     print("Controlled-mutation evidence is complete, bounded, and cleanup-closed.")
     return 0

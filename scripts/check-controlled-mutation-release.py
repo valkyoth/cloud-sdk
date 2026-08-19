@@ -17,13 +17,13 @@ ALLOWED_AFTER_SOURCE = {
     "security/pentest/v0.100.0.md",
     "release-notes/RELEASE_NOTES_0.100.0.md",
 }
-REQUIRED_SOURCE_PATHS = (
-    "controlled-mutation-policy.json",
-    "scripts/check-controlled-mutation.py",
-    "scripts/check-controlled-mutation-release.py",
-    "scripts/check_controlled_mutation.sh",
-    "docs/CONTROLLED_MUTATION.md",
-)
+REQUIRED_SOURCE_PATHS = {
+    "controlled-mutation-policy.json": b"100644",
+    "scripts/check-controlled-mutation.py": b"100755",
+    "scripts/check-controlled-mutation-release.py": b"100755",
+    "scripts/check_controlled_mutation.sh": b"100755",
+    "docs/CONTROLLED_MUTATION.md": b"100644",
+}
 MAX_EVIDENCE_BYTES = 65_536
 MAX_POLICY_BYTES = 32_768
 
@@ -68,7 +68,7 @@ def changed_paths(source: str) -> tuple[str, ...]:
         raise ReleaseEvidenceError("source change inventory failed") from error
 
 
-def parse_tree_entry(raw: bytes, path: str) -> str:
+def parse_tree_entry(raw: bytes, path: str, expected_mode: bytes = b"100644") -> str:
     if not raw.endswith(b"\0") or raw.count(b"\0") != 1:
         raise ReleaseEvidenceError("committed path is missing or ambiguous")
     try:
@@ -79,16 +79,18 @@ def parse_tree_entry(raw: bytes, path: str) -> str:
     except (ValueError, UnicodeDecodeError) as error:
         raise ReleaseEvidenceError("committed path metadata is invalid") from error
     if (
-        mode != b"100644"
+        mode != expected_mode
         or object_type != b"blob"
         or decoded_path != path
         or len(decoded_id) not in {40, 64}
     ):
-        raise ReleaseEvidenceError("committed path must be a regular file")
+        raise ReleaseEvidenceError("committed path has the wrong type or mode")
     return decoded_id
 
 
-def regular_blob_oid(revision: str, path: str) -> str:
+def regular_blob_oid(
+    revision: str, path: str, expected_mode: bytes = b"100644"
+) -> str:
     try:
         raw = subprocess.check_output(
             ["git", "ls-tree", "-z", "--full-tree", revision, "--", path],
@@ -96,7 +98,7 @@ def regular_blob_oid(revision: str, path: str) -> str:
         )
     except subprocess.CalledProcessError as error:
         raise ReleaseEvidenceError("committed path could not be inspected") from error
-    return parse_tree_entry(raw, path)
+    return parse_tree_entry(raw, path, expected_mode)
 
 
 def read_committed_blob(object_id: str, maximum: int) -> bytes:
@@ -132,9 +134,9 @@ def validate_binding(source: str, paths: tuple[str, ...]) -> None:
         raise ReleaseEvidenceError("qualified source is not an ancestor of HEAD")
     if git_success("cat-file", "-e", f"{source}:{EVIDENCE_PATH.as_posix()}"):
         raise ReleaseEvidenceError("evidence must follow the qualified source commit")
-    for path in REQUIRED_SOURCE_PATHS:
+    for path, expected_mode in REQUIRED_SOURCE_PATHS.items():
         try:
-            regular_blob_oid(source, path)
+            regular_blob_oid(source, path, expected_mode)
         except ReleaseEvidenceError:
             raise ReleaseEvidenceError("qualified source lacks mutation controls")
     if set(paths) - ALLOWED_AFTER_SOURCE:
@@ -173,6 +175,12 @@ def main() -> int:
         checker.validate_evidence(evidence, policy)
     except (checker.EvidenceError, ReleaseEvidenceError, KeyError) as error:
         print(f"controlled mutation release: {error}", file=sys.stderr)
+        return 1
+    except (TypeError, ValueError, OverflowError):
+        print(
+            "controlled mutation release: evidence scalar type is invalid",
+            file=sys.stderr,
+        )
         return 1
     print("Controlled-mutation evidence is bound to unchanged qualified source.")
     return 0
