@@ -65,12 +65,55 @@ def test_missing_file_is_rejected() -> None:
         assert "missing file" in result.stderr
 
 
+def test_first_party_dependency_versions_are_exact() -> None:
+    with tempfile.TemporaryDirectory() as temporary:
+        readme = Path(temporary) / "README.md"
+        readme.write_text(
+            """```toml
+[dependencies]
+cloud-sdk = "0.99.0"
+cloud-sdk-reqwest = { version = "0.37.0" }
+```
+""",
+            encoding="ascii",
+        )
+        result = run(readme)
+        assert result.returncode == 1, result
+        assert "cloud-sdk must use version 0.100.0" in result.stderr
+
+        readme.write_text(
+            """```toml
+[dependencies]
+cloud-sdk = "0.100.0"
+cloud-sdk-reqwest = { version = "0.37.0" }
+```
+""",
+            encoding="ascii",
+        )
+        result = run(readme)
+        assert result.returncode == 0, result
+
+
+def test_invalid_toml_fence_is_rejected() -> None:
+    with tempfile.TemporaryDirectory() as temporary:
+        readme = Path(temporary) / "README.md"
+        readme.write_text(
+            "```toml\n[dependencies\ncloud-sdk = \"0.100.0\"\n```\n",
+            encoding="ascii",
+        )
+        result = run(readme)
+        assert result.returncode == 1, result
+        assert "TOML example is invalid" in result.stderr
+
+
 def main() -> None:
     test_repository_readmes()
     test_stable_wording()
     test_development_status_is_rejected()
     test_missing_file_is_rejected()
-    print("4 publishable README regression groups passed.")
+    test_first_party_dependency_versions_are_exact()
+    test_invalid_toml_fence_is_rejected()
+    print("6 publishable README regression groups passed.")
 
 
 if __name__ == "__main__":

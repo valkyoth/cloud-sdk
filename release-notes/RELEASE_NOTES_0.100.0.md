@@ -40,6 +40,8 @@ freezing the public API candidate.
   removed Primary IP `type` filter is retained as a deprecated fail-closed
   compatibility shim; Image name/label filtering uses `SourceLockedQuery`
   without changing the established `ImageListRequest` generic arity.
+- Every selected package's README TOML examples use exact planned first-party
+  versions and are parsed by the release gate to reject dependency skew.
 
 ## Versions
 

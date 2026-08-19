@@ -395,7 +395,7 @@ compiled into `webpki-roots`:
 
 ```toml
 [dependencies]
-cloud-sdk = "0.90.0"
+cloud-sdk = "0.100.0"
 cloud-sdk-reqwest = { version = "0.37.0", features = ["blocking-rustls-webpki-roots"] }
 ```
 

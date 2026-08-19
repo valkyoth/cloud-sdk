@@ -20,3 +20,5 @@ for readme in "$@"; do
         exit 1
     fi
 done
+
+python3 "$root_dir/scripts/check-publishable-readme-dependencies.py" "$@"
