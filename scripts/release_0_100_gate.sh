@@ -8,7 +8,6 @@ if [ -n "$(git status --porcelain=v1 --untracked-files=all)" ]; then
     exit 1
 fi
 
-scripts/check-controlled-mutation-release.py
 scripts/validate-release-readiness.sh v0.100.0
 reviewed_head="$(git rev-parse HEAD)"
 scripts/checks.sh
@@ -106,5 +105,4 @@ if [ "$(git rev-parse HEAD)" != "$reviewed_head" ]; then
     echo "release gate: HEAD changed while checks were running" >&2
     exit 1
 fi
-scripts/check-controlled-mutation-release.py
 scripts/validate-release-readiness.sh v0.100.0

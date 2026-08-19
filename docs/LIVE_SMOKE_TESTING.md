@@ -255,10 +255,10 @@ persistent records.
 
 ## Controlled Mutations
 
-The v0.100 controlled-mutation protocol is documented separately in
-[`CONTROLLED_MUTATION.md`](CONTROLLED_MUTATION.md). It uses credential-free
-typed mock execution in automated checks and a manual-only disposable-scope
-protocol for real mutations. Robot purchase dispatch remains forbidden.
+The v0.100 mutation safety qualification is documented separately in
+[`CONTROLLED_MUTATION.md`](CONTROLLED_MUTATION.md). It uses only
+credential-free typed mock execution in automated checks. Live mutation
+qualification is deferred, and Robot purchase dispatch remains forbidden.
 
 The read-only smoke artifact, runner, and launchers remain incapable of
 mutation. No destructive command may infer consent from a token's permission,

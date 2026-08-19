@@ -3524,22 +3524,20 @@ Status: release candidate; incremental pentest and final retest passed;
 crates.io publication remains deferred to v0.100.0. Tag only after the exact
 final evidence commit passes the local release gate, CI, and CodeQL.
 
-### v0.100.0 - Controlled Mutation Release Candidate
+### v0.100.0 - Mutation Safety Release Candidate
 
-Goal: finish real mutation evidence and freeze the exact 1.0 candidate.
+Goal: qualify credential-free mutation safety and freeze the exact 1.0
+candidate.
 
 Deliverables:
 
-- execute mutation qualification only in a disposable project/account under
-  explicit operator approval, spending ceilings, unique resource prefixes,
-  one cleanup ledger, and final empty-inventory verification;
 - cover representative Cloud, DNS, Security, Console Storage, and Robot
-  mutation/destructive/cost workflows without granting CI any credential or
-  live mutation capability; cost qualification stops at reviewed preparation,
-  permit, spending-ceiling, and reconciliation boundaries and never places a
-  Robot order;
-- retain exact uncertain-delivery and reconciliation evidence for every
-  attempted mutation and require operator resolution for ambiguous outcomes;
+  mutation/destructive/cost workflows through exact credential-free mock
+  execution without granting CI any credential or live mutation capability;
+- keep cost qualification at preparation, permit, spending-ceiling, delivery,
+  and reconciliation boundaries and never place a Robot order;
+- explicitly defer live provider mutation and mandatory operational
+  attestations to a separately reviewed future milestone;
 - freeze the 1.0 public API candidate and complete final API, changelog,
   documentation, examples, migration, threat-model, dependency, platform,
   provenance, and package reviews; and
@@ -3549,28 +3547,27 @@ Deliverables:
 
 Verification:
 
-- run deterministic fake-provider dry runs for every live mutation step,
+- run deterministic fake-provider tests for every mutation step,
   failure, cleanup, replay, cost, and reconciliation branch;
-- record approved manual evidence for all five reversible live scenarios,
-  then independently verify the cleanup ledger and empty inventories; validate
-  the Robot cost path without dispatch;
+- prove the gate rejects credential and destructive-opt-in variables and
+  validate the Robot cost path without dispatch;
 - rerun every v0.96-v0.99 qualification gate, all current source drift checks,
   complete package/SBOM/audit/fuzz evidence, and a release dry run showing the
   exact publish set; and
 - run `scripts/release_0_100_gate.sh` against the frozen candidate.
 
-Exit criteria: approved evidence demonstrates that representative real
-mutations cannot bypass authority, cost, cleanup, or uncertain-delivery
-controls; no CI mutation route exists; the public API and dependency graphs are
-frozen; the exact publish set is verified; and `v0.100.0` is ready for pentest,
-GitHub validation, signed tagging, and crates.io publication.
+Exit criteria: representative mutation paths exercise authority, cost,
+cleanup, and uncertain-delivery controls without credentials or network
+access; no CI mutation route exists; no live qualification is claimed; the
+public API and dependency graphs are frozen; the exact publish set is verified;
+and `v0.100.0` is ready for pentest, GitHub validation, signed tagging, and
+crates.io publication.
 
 Stop gate: `v0.100.0 implementation stop reached. Run the cumulative pentest and full release gate for this exact commit before the signed tag and final development publication to crates.io.`
 
-Status: implementation candidate; offline mutation qualification, API review,
-release binding, incremental pentest, and remediation retest are complete.
-Manual controlled-mutation evidence remains required before the public release
-gate.
+Status: implementation candidate; credential-free mutation qualification and
+API review are complete. A fresh incremental pentest is required before the
+public release gate.
 
 ### v1.0.0 - Full Hetzner Production SDK
 

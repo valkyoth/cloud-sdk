@@ -475,8 +475,7 @@ facade milestone identity; all supporting package versions remain unchanged.
 
 ## v0.100.0
 
-Status: candidate API freeze; pentest and remediation retest passed; controlled
-mutation evidence required.
+Status: candidate API freeze; fresh incremental pentest required.
 
 The cumulative public additions since v0.95 are `SourceLockedQuery` and its
 typed operation/argument/value/error contracts, corrected Server metrics
@@ -492,6 +491,6 @@ The removed upstream Primary IP `type` filter keeps a deprecated fail-closed
 source-compatibility shim, and image name/label filtering remains available
 through `SourceLockedQuery` without changing `ImageListRequest` generic arity.
 New validation paths reuse compatible public error shapes where necessary.
-The controlled-mutation schema and release tools are not published Rust API.
-This surface is the frozen v1.0 candidate; post-evidence changes require a new
-qualification cycle.
+The credential-free mutation test gate is not published Rust API. This surface
+is the frozen v1.0 candidate; post-pentest changes require a new qualification
+cycle.

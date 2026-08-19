@@ -4,21 +4,12 @@
 
 - Completed the cumulative v0.96-v0.100 request-fidelity, Server Metadata,
   platform/MSRV, release-governance, and provenance qualification train.
-- Added a credential-free controlled-mutation gate across exact typed Cloud,
+- Added a credential-free mutation safety gate across exact typed Cloud,
   DNS, Security, Console Storage, Robot mutation, and Robot billable-order
   reconciliation paths.
-- Added a bounded manual evidence protocol with one-attempt authority, unique
-  prefixes and opaque resource references, explicit cost ceilings, resolved
-  uncertain delivery, one cleanup ledger, independent empty inventories,
-  billing review, and credential revocation. Robot purchase dispatch remains
-  forbidden.
-- Bound live evidence to an unchanged source commit; only the evidence,
-  pentest report, and final release-note status may follow qualification.
-- Hardened mutation evidence ingestion with bounded no-follow descriptor reads,
-  duplicate-free JSON, exact integer types, and validation of committed regular
-  Git blobs with exact reviewed executable modes for evidence and source
-  controls. Malformed scalar types and oversized integers now remain inside
-  static payload-free diagnostics.
+- Kept mutation qualification offline and credential-free. Live provider
+  mutations and mandatory operational attestations are deferred to a separately
+  reviewed future milestone; Robot purchase dispatch remains forbidden.
 - Preserved v0.95 source compatibility across the cumulative public checkpoint:
   obsolete Primary IP type filtering now fails closed, Image list generic arity
   remains unchanged, and new validation paths avoid widening existing enums.

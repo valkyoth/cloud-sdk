@@ -9,8 +9,6 @@ if [ -n "${CLOUD_SDK_HETZNER_TOKEN_FILE:-}" ] ||
     exit 2
 fi
 
-python3 scripts/test-controlled-mutation.py
-
 cargo test --locked -p cloud-sdk-hetzner --all-features \
     --test vertical_execution action_and_no_content_slices_cross_permit_and_executor_paths \
     -- --exact
@@ -28,4 +26,4 @@ cargo test --locked -p cloud-sdk-hetzner --all-features \
     -- --exact
 scripts/check_robot_order_mutations.sh
 
-echo "Controlled-mutation fake-provider qualification passed without credentials."
+echo "Credential-free mutation safety qualification passed."

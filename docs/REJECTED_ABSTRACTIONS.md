@@ -335,10 +335,10 @@ needed, and a newly reviewed corrective version.
 ### CI Or General-Purpose Mutation Runner
 
 A credentialed CI job and repository command accepting arbitrary operations,
-endpoints, or resource IDs were rejected. They would turn a release-evidence
-tool into standing infrastructure authority. Automated checks use exact mocked
-typed paths; real reversible mutations remain a manual disposable-scope
-protocol with one attempt and independent cleanup review.
+endpoints, or resource IDs were rejected. They would turn test tooling into
+standing infrastructure authority. Automated checks use exact mocked typed
+paths; live mutation qualification is deferred to a separately reviewed future
+boundary.
 
 ### Billable Robot Order As Release Proof
 
@@ -347,10 +347,11 @@ coupling. The exact catalog price, ceiling, permit, delivery, and reconciliation
 path is qualified without dispatch; evidence must record that the order was
 withheld and confirmed not applied.
 
-### Self-Attested Cleanup Or Raw Provider IDs
+### Mandatory Live Attestation For v0.100.0
 
-One operator marking their own cleanup complete and committing provider IDs,
-responses, or screenshots were rejected. Evidence uses unique opaque SHA-256
-references, a separate reviewer identity, one cross-checked cleanup ledger,
-and zero prefixed inventory for every service. The record is explicitly an
-operational attestation, not cryptographic proof of provider events.
+A repository-required live mutation record was rejected after review because
+the workspace provides no approved operator runner and ordinary release hosts
+do not necessarily own disposable Cloud, DNS, Storage, and Robot resources.
+Invented or self-attested evidence would weaken the release. v0.100.0 claims
+only credential-free mutation safety coverage; any future live attestation must
+arrive with its own executable boundary, cleanup model, and pentest.

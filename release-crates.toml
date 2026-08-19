@@ -21,7 +21,7 @@ previous_version = "0.46.0"
 version = "0.47.0"
 change = "code"
 publish = true
-reason = "Publish accumulated request fidelity, metadata, and controlled-mutation qualification."
+reason = "Publish accumulated request fidelity, metadata, and mutation safety qualification."
 
 [crates."cloud-sdk-reqwest"]
 previous_version = "0.36.0"

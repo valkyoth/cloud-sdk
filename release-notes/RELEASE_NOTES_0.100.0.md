@@ -1,39 +1,29 @@
 # cloud-sdk 0.100.0 Release Notes
 
-Status: pentest passed; controlled mutation required.
+Status: implementation candidate; fresh pentest required.
 
 Release date: 2026-08-19
 
-Security-Review: PASS
-Pentest: PASS
+Security-Review: PENDING
+Pentest: PENDING
 Publication: PENDING
 
 ## Overview
 
 v0.100 is the final development checkpoint before v1.0. It publishes the
 cumulative request-fidelity, Server Metadata, platform/MSRV, release-
-governance, provenance, and controlled-mutation work from v0.96-v0.100 while
+governance, provenance, and mutation safety work from v0.96-v0.100 while
 freezing the public API candidate.
 
-## Controlled Mutation
+## Mutation Safety
 
 - Automated checks select exact typed Cloud, DNS, Security, Console Storage,
   Robot mutation, and Robot billable-order reconciliation paths without
   accepting credentials or performing network I/O.
-- Manual evidence requires a disposable scope, explicit approval and EUR
-  ceiling, a unique run prefix, one attempt per reversible scenario, exact
-  plan and cleanup fingerprints, resolved delivery, unique opaque resource
-  references, one cleanup ledger, independent zero inventories, billing
-  review, and credential revocation.
 - The Robot order path proves price, cost-permit, delivery, and reconciliation
   controls without dispatch. The release process never purchases a server.
-- Release binding rejects evidence that predates its controls or any code,
-  manifest, lockfile, workflow, or documentation change after live
-  qualification.
-- Evidence parsing uses bounded no-follow regular-file reads, rejects duplicate
-  fields and boolean integer aliases, and validates the exact committed Git
-  blob and reviewed executable mode rather than a worktree path or symlink
-  target. Malformed scalar types produce static diagnostics without tracebacks.
+- Live provider mutation and mandatory operational attestation are deferred to
+  a separately reviewed future milestone and do not block this release.
 
 ## Cumulative Public Surface
 
@@ -63,7 +53,6 @@ freezing the public API candidate.
 
 ## Remaining Gates
 
-Complete and commit `security/mutation/v0.100.0.json` against the exact frozen
-source commit, then run `scripts/release_0_100_gate.sh`. The incremental pentest
-from signed `v0.99.0` and remediation retest passed. Tag and publish only after
-the exact final commit passes the full gate, GitHub CI, and CodeQL.
+Run the fresh incremental pentest from signed `v0.99.0`, commit the permanent
+report, and run `scripts/release_0_100_gate.sh`. Tag and publish only after the
+exact final commit passes the full gate, GitHub CI, and CodeQL.

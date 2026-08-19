@@ -1,9 +1,8 @@
 # Crate Version Matrix
 
 Status: `v0.95.0` is the latest published checkpoint. `v0.100.0` is the current
-public release candidate for the complete v0.96-v0.100 cumulative train. Its
-incremental pentest and remediation retest passed; controlled-mutation evidence
-remains required before publication.
+public release candidate for the complete v0.96-v0.100 cumulative train. A
+fresh incremental pentest remains required before publication.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
@@ -1484,14 +1483,14 @@ and publishes no crate.
 
 ## v0.100.0 Tracking Table
 
-`v0.100.0` qualifies controlled reversible mutations, forbids release-time
-Robot purchase dispatch, freezes the v1.0 API candidate, and publishes the
-complete v0.96-v0.100 development train.
+`v0.100.0` qualifies credential-free mutation safety paths, forbids
+release-time Robot purchase dispatch, freezes the v1.0 API candidate, and
+publishes the complete v0.96-v0.100 development train.
 
 | Crate | Published | v0.100 | Change | Publish | Reason |
 | --- | --- | --- | --- | --- | --- |
 | `cloud-sdk` | `0.95.0` | `0.100.0` | `code` | Yes | Publish the cumulative final-development foundation checkpoint. |
-| `cloud-sdk-hetzner` | `0.46.0` | `0.47.0` | `code` | Yes | Publish request fidelity, metadata, and controlled-mutation qualification. |
+| `cloud-sdk-hetzner` | `0.46.0` | `0.47.0` | `code` | Yes | Publish request fidelity, metadata, and credential-free mutation safety qualification. |
 | `cloud-sdk-reqwest` | `0.36.0` | `0.37.0` | `code` | Yes | Publish target diagnostics and credential-free link-local transport support. |
 | `cloud-sdk-sanitization` | `0.19.0` | `0.19.0` | `unchanged` | No | No sanitization boundary changes. |
 | `cloud-sdk-testkit` | `0.31.0` | `0.31.1` | `dependency` | Yes | Publish the cumulative cloud-sdk dependency update. |
@@ -1511,7 +1510,7 @@ crates or placing provider-specific behavior in a neutral boundary.
 | `v0.63.0 - v0.73.0` | `cloud-sdk-hetzner`, with neutral fixes only when genuinely provider-independent | Complete pre-Robot models, exact operation bindings, and Cloud/DNS/security/Console Storage Box clients. |
 | `v0.74.0 - v0.95.0` | `cloud-sdk-hetzner`; neutral boundaries only for reusable behavior | Robot source lock, protocol, lockout-safe non-retryable authentication rejection, every active endpoint family, client integration, and live evidence. |
 | `v0.96.0` | `cloud-sdk-hetzner`, request tooling, adapters, testkit, and documentation | Complete source-to-executable request fidelity, including detailed parameter/body drift evidence and all known filter corrections. |
-| `v0.97.0 - v0.100.0` | release tooling/docs and affected crates only for proven qualification fixes | Server Metadata and scope closure, platform/MSRV, provenance, and controlled-mutation release-candidate evidence; FIPS remains deferred to Brynja. |
+| `v0.97.0 - v0.100.0` | release tooling/docs and affected crates only for proven qualification fixes | Server Metadata and scope closure, platform/MSRV, provenance, and credential-free mutation safety qualification; FIPS remains deferred to Brynja. |
 | `v1.0.0` | all changed publishable crates under independent version rules | Stable provider-neutral foundation and complete claimed Hetzner provider. |
 
 Every milestone still follows the independent rules above: `cloud-sdk` matches

@@ -173,8 +173,8 @@ response identity binding. Deprecated server-IP aliases remain excluded.
 19. Request and whole-platform qualification: complete source-to-executable
    request fidelity in `v0.96.0`, then Server Metadata/scope closure,
    adversarial/fuzz evidence, platform/MSRV evidence, provenance/governance
-   review, controlled mutation evidence, and the final release candidate in
-   `v0.97.0` through `v0.100.0`.
+   review, credential-free mutation safety tests, and the final release
+   candidate in `v0.97.0` through `v0.100.0`.
 20. Future providers: publish focused provider crates only after the provider's
    official API source, auth model, transport expectations, threat model, API
    matrix, live-test policy, and release plan are documented. The publication

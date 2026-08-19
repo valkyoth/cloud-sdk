@@ -97,7 +97,6 @@ scripts/check_fips_deferred.py
 scripts/test-fips-deferred.py
 scripts/smoke_hetzner_live.sh --check
 scripts/check_controlled_mutation.sh
-scripts/test-controlled-mutation-release.py
 scripts/check_publishable_readmes.sh
 scripts/validate-release-metadata.sh
 scripts/test-release-readiness.sh

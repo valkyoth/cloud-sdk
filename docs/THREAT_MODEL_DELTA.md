@@ -260,7 +260,7 @@ binary provenance. Filesystem caches, shell input, OS and TLS copies, crash
 tooling, swap, process abort, allocator exhaustion, remote logging, provider
 availability, and account billing remain operational boundaries. Live success
 is point-in-time evidence and does not replace source drift, mocks, fuzzing,
-platform qualification, or the controlled-mutation plan.
+platform qualification, or the mutation safety tests.
 
 ## v0.96.0
 
@@ -350,28 +350,18 @@ not prove a reproducible or accredited operating environment.
 
 ## v0.100.0
 
-New threats are credentialed mutation escaping CI, reuse of production scope,
-implicit retries, billable dispatch, plan/permit drift, indeterminate delivery,
-duplicate cleanup claims, residual prefixed resources, cost overrun, sensitive
-evidence, self-attested cleanup, and code changes after live qualification.
+New threats are credentialed mutation escaping CI, accidental billable
+dispatch, implicit retry, and mock tests being misrepresented as live provider
+qualification.
 
 The automated gate rejects credential and destructive-opt-in variables and
-runs only exact mock-provider paths. The manual protocol requires a unique
-prefix, disposable scope, explicit EUR ceiling, one attempt, official
-endpoints, plan-bound permits, reconciliation before cleanup, distinct cleanup
-fingerprints, unique opaque resource references, one ledger, a different
-cleanup reviewer, zero final inventories across all five services, billing
-review, and credential revocation. Robot purchase dispatch is forbidden.
+runs only exact mock-provider paths across Cloud, DNS, Security, Console
+Storage, Robot mutation, and Robot order reconciliation. Robot purchase
+dispatch is forbidden. No repository release command reads mutation
+credentials, opens a live mutation connection, or requires an operational
+attestation.
 
-The release binding requires evidence to follow a specific ancestor containing
-the controls and permits only mutation evidence, the pentest report, and final
-release-note status afterward. Any other source change invalidates live
-qualification. The JSON validator is bounded, static, payload-free, and has no
-network, subprocess, environment, or credential input.
-
-Residual risks remain operational: attestations can be dishonest, provider
-reads can race or be stale, account scope and reviewer independence cannot be
-proved by repository code, allocator/process/host failures can interrupt
-cleanup, provider billing can lag, and SHA-256 references do not prove remote
-events. Maintainers must inspect control planes and billing independently; the
-record is not certification or regulated-environment accreditation.
+Residual provider behavior, account scope, billing, cleanup, and
+uncertain-delivery risks remain unqualified by this offline evidence. Live
+mutation testing is deferred to a separately reviewed future boundary and is
+not claimed by v0.100.0.
