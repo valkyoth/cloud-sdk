@@ -57,6 +57,19 @@ fn scalar_decoders_reject_controls_noncanonical_values_and_extra_lines() {
 }
 
 #[test]
+fn public_ipv4_accepts_only_the_shared_single_lf_normalization() {
+    assert!(decode_metadata_body(MetadataRoute::PublicIpv4, b"1.2.3.4\n").is_ok());
+    assert_eq!(
+        decode_metadata_body(MetadataRoute::PublicIpv4, b"1.2.3.4\n\n"),
+        Err(MetadataDecodeError::InvalidSyntax)
+    );
+    assert_eq!(
+        decode_metadata_body(MetadataRoute::PublicIpv4, b"1.2.3.4\r\n"),
+        Err(MetadataDecodeError::InvalidSyntax)
+    );
+}
+
+#[test]
 fn metadata_identity_fields_enforce_server_and_public_address_semantics() {
     let invalid_hostnames = ["-", ".", "a..b", "-host", "host-", "host_name"];
     for hostname in invalid_hostnames {

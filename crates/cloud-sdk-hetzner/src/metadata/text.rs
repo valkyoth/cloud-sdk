@@ -243,6 +243,7 @@ fn parse_metadata_hostname(value: &str) -> Result<&str, MetadataDecodeError> {
 }
 
 fn parse_public_ipv4(value: &str) -> Result<Ipv4Addr, MetadataDecodeError> {
+    let value = scalar(value, 15, |byte| byte.is_ascii_digit() || byte == b'.')?;
     let address = parse_ipv4(value)?;
     if invalid_public_v4(address) {
         return Err(MetadataDecodeError::InvalidIpv4);
