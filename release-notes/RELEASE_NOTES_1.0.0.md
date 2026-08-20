@@ -1,11 +1,11 @@
 # cloud-sdk 1.0.0 Release Notes
 
-Status: stable release candidate; dependency-pin remediation requires retest.
+Status: stable release candidate; full-project pentest and final retest passed.
 
 Release date: 2026-08-20
 
-Security-Review: PENDING
-Pentest: PENDING
+Security-Review: PASS
+Pentest: PASS
 Publication: PENDING
 
 ## Overview
@@ -46,8 +46,8 @@ with signed tag `v0.100.0`.
 The first independent full-project assessment found no issue. A subsequent scan
 identified inconsistent direct dependency pinning as one Low finding. The
 resolved graph is unchanged; every direct third-party requirement is now exact
-and guarded by a fail-closed regression-tested repository check. Retest remains
-required before the permanent report can return to PASS.
+and guarded by a fail-closed regression-tested repository check. The final
+retest is fully green and found no additional issue.
 
 ## Remaining Gates
 
