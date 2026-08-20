@@ -1,11 +1,11 @@
 # cloud-sdk 1.0.0 Release Notes
 
-Status: stable release candidate; full-project pentest required.
+Status: stable release candidate; full-project pentest passed.
 
 Release date: 2026-08-20
 
-Security-Review: PENDING
-Pentest: PENDING
+Security-Review: PASS
+Pentest: PASS
 Publication: PENDING
 
 ## Overview
@@ -39,9 +39,14 @@ lockfiles, and public package trees directly with signed tag `v0.100.0`.
 | `cloud-sdk-sanitization` | `0.19.0` | `1.0.0` | stable metadata promotion |
 | `cloud-sdk-testkit` | `0.31.1` | `1.0.0` | stable metadata promotion |
 
+## Security Review
+
+The independent full-project assessment reviewed the exact stable candidate
+against `v0.100.0` and found no Critical, High, Medium, or Low issue. The
+permanent report is recorded in `security/pentest/v1.0.0.md`.
+
 ## Remaining Gates
 
-Run a full-project pentest against `v0.100.0`, commit the permanent report,
-then run `scripts/release_1_0_gate.sh` on the exact final evidence commit. Tag
-and publish only after that unchanged commit passes the complete local gate,
+Run `scripts/release_1_0_gate.sh` on the exact final evidence commit. Tag and
+publish only after that unchanged commit passes the complete local gate,
 GitHub CI, and CodeQL.

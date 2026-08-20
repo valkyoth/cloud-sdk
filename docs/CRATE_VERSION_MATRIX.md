@@ -1,8 +1,8 @@
 # Crate Version Matrix
 
 Status: `v0.100.0` is the latest published development checkpoint. `v1.0.0` is
-the stable release candidate and requires a full-project pentest, local release
-gate, and green GitHub CI and CodeQL before publication.
+the stable release candidate and has passed its full-project pentest. The local
+release gate and green GitHub CI and CodeQL remain required before publication.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
