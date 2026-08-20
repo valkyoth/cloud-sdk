@@ -3,8 +3,8 @@
 ## Workspace Releases
 
 Repository tags follow the `cloud-sdk` facade version. The facade always moves
-to the tag version and keeps ordinary `vX.Y.Z` tag names. Beginning after the
-published v0.55.0 baseline, pre-1.0 tags form five-minor publication trains:
+to the tag version and keeps ordinary `vX.Y.Z` tag names. The completed pre-1.0
+train used five-minor publication checkpoints:
 
 - every version receives an incremental pentest against the preceding tag and
   a signed tag;
@@ -15,9 +15,11 @@ published v0.55.0 baseline, pre-1.0 tags form five-minor publication trains:
 - material security or compatibility needs may create an exceptional earlier
   publication checkpoint.
 
-Every other published crate is independently versioned:
+For v1.0.0, all five public crates move together to `1.0.0` without runtime or
+dependency behavior changes. After v1.0, every published crate is independently
+versioned:
 
-- real public code changes receive an appropriate pre-1.0 minor increment;
+- real public code changes receive an appropriate SemVer increment;
 - dependency-only changes receive a patch increment;
 - unchanged crates are not published;
 - one provider maps to one provider crate.
@@ -29,7 +31,7 @@ first and the facade publishes last. `release-crates.toml` records the stage,
 public baseline, immediate review baseline, complete milestone list, reason,
 and change class for every crate.
 
-## Pre-1.0 Compatibility
+## Compatibility
 
 Before `1.0.0`, minor releases may contain necessary public API changes. Such
 changes must be deliberate, documented in release notes and a migration guide,

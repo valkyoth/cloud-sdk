@@ -1,6 +1,6 @@
 # Migration Digest
 
-This document consolidates the pre-1.0 `MIGRATION_*` review series. The current checkpoint detail remains here; earlier complete snapshots remain available from their signed Git tags and repository history.
+This document consolidates release migrations. Earlier complete snapshots remain available from their signed Git tags and repository history.
 
 Add future release sections here instead of creating another version-named file. Current policies live in the focused documents linked from each release note and in the release roadmap.
 
@@ -476,3 +476,21 @@ other targets provide their own neutral transport. The manual controlled-
 mutation protocol is release tooling, not a runtime API. A workspace-wide
 semver comparison against v0.95 verifies that the cumulative public checkpoint
 does not remove or incompatibly alter an existing API item.
+
+## v1.0.0
+
+Update all first-party packages together:
+
+```toml
+[dependencies]
+cloud-sdk = "=1.0.0"
+cloud-sdk-hetzner = { version = "=1.0.0", features = ["serde"] }
+cloud-sdk-reqwest = { version = "=1.0.0", features = ["blocking-rustls"] }
+cloud-sdk-sanitization = "=1.0.0"
+cloud-sdk-testkit = "=1.0.0"
+```
+
+No source, feature, behavior, platform, or third-party dependency migration is
+required from the published v0.100.0 package set. The coordinated version
+change establishes the stable SemVer contract. FIPS remains excluded and
+deferred until the separately reviewed Brynja integration is ready.

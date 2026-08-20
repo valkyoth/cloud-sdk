@@ -1,6 +1,5 @@
 # Public API Review Digest
-
-This document consolidates the pre-1.0 `PUBLIC_API_REVIEW_*` review series. The current checkpoint detail remains here; earlier complete snapshots remain available from their signed Git tags and repository history.
+This document consolidates release API reviews. Earlier complete snapshots remain available from their signed Git tags and repository history.
 
 Add future release sections here instead of creating another version-named file. Current policies live in the focused documents linked from each release note and in the release roadmap.
 
@@ -494,3 +493,8 @@ New validation paths reuse compatible public error shapes where necessary.
 The credential-free mutation test gate is not published Rust API. This surface
 is the frozen v1.0 candidate; post-pentest changes require a new qualification
 cycle.
+## v1.0.0
+The supported Rust API, features, targets, provider scope, and runtime behavior
+are identical to the published v0.100.0 candidate.
+The version-only promotion establishes the stable SemVer contract; future
+incompatible public changes require a new major release.

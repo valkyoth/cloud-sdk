@@ -55,7 +55,7 @@ def main() -> None:
 
         metadata = (
             "Server Metadata | Complete strict contracts for all seven canonical "
-            "credential-free link-local reads | Current"
+            "credential-free link-local reads | Stable 1.0"
         )
         path.write_text(
             source.replace(metadata, "Server Metadata | Planned | v0.98"),
@@ -64,7 +64,7 @@ def main() -> None:
         overstated_metadata = run(path)
         assert overstated_metadata.returncode == 1, overstated_metadata
 
-        path.write_text(source.replace("| Capability | Current coverage | Planned completion |", "| Hetzner API area | Supported |"), encoding="utf-8")
+        path.write_text(source.replace("| Capability | Current coverage | Release status |", "| Hetzner API area | Supported |"), encoding="utf-8")
         ambiguous = run(path)
         assert ambiguous.returncode == 1, ambiguous
 

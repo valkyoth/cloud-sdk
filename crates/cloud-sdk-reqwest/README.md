@@ -29,7 +29,7 @@ Optional provider-neutral transport adapter for the main
 [`cloud-sdk`](https://github.com/valkyoth/cloud-sdk) workspace and
 [`cloud-sdk`](https://crates.io/crates/cloud-sdk) crate.
 
-The crate remains no_std and transport-free by default. Its non-default
+Version 1.0 remains no_std and transport-free by default. Its non-default
 `blocking-rustls`, `blocking-rustls-webpki-roots`, and `async-rustls` features
 provide reviewed HTTPS implementations for every
 provider without adding transport dependencies to provider crates.
@@ -43,8 +43,8 @@ The default and `std`-only graphs remain portable and transport-free.
 
 ```toml
 [dependencies]
-cloud-sdk = "=0.100.0"
-cloud-sdk-reqwest = { version = "=0.37.0", features = ["blocking-rustls"] }
+cloud-sdk = "=1.0.0"
+cloud-sdk-reqwest = { version = "=1.0.0", features = ["blocking-rustls"] }
 ```
 
 The examples use Hetzner as a concrete endpoint, but the adapter contains no
@@ -371,8 +371,8 @@ else { return };
 Prefer mutable-byte or guarded-buffer constructors so caller-owned credential
 sources can be cleared. Robot authentication rejection can block the source IP
 after repeated failed logins; this example constructs a client but performs no
-request. Robot operation clients and lockout-aware credential attempts remain
-later pre-1.0 milestones.
+request. Stable Robot operation clients and lockout-aware credential attempts
+live in `cloud-sdk-hetzner`; this adapter remains provider-neutral.
 
 Responses retain complete bounded header metadata plus one validated
 `Content-Type` value for prepared response policy. Duplicate names, controls,
@@ -395,8 +395,8 @@ compiled into `webpki-roots`:
 
 ```toml
 [dependencies]
-cloud-sdk = "=0.100.0"
-cloud-sdk-reqwest = { version = "=0.37.0", features = ["blocking-rustls-webpki-roots"] }
+cloud-sdk = "=1.0.0"
+cloud-sdk-reqwest = { version = "=1.0.0", features = ["blocking-rustls-webpki-roots"] }
 ```
 
 The blocking API is identical to the example above. The custom rustls client

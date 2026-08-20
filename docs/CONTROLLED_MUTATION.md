@@ -1,7 +1,7 @@
 # Mutation Safety Qualification
 
-Status: v0.100.0 credential-free release gate. Live mutation qualification is
-deferred and is not required for release.
+Status: stable v1.0 credential-free release control. Live mutation
+qualification remains deferred and is not claimed by the release.
 
 ## Purpose
 
@@ -33,7 +33,7 @@ or write live evidence.
 
 ## Release Boundary
 
-v0.100.0 follows the normal release process: implementation stop, incremental
+Stable releases follow the normal release process: implementation stop,
 pentest, complete local release gate, GitHub CI and CodeQL, signed tag, and
 explicit crates.io publication. No `security/mutation` attestation is required.
 

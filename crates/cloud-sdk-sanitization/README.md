@@ -29,17 +29,18 @@ Provider-neutral cleanup and secret-handling boundary for the main
 [`cloud-sdk`](https://github.com/valkyoth/cloud-sdk) workspace and
 [`cloud-sdk`](https://crates.io/crates/cloud-sdk) crate.
 
-This crate provides the mandatory volatile cleanup primitive used by the
-default `no_std` SDK plus reusable caller-owned guards. It delegates clearing to the
-independently reviewed [`sanitization`](https://crates.io/crates/sanitization)
-crate with default features disabled.
+Version 1.0 provides the mandatory volatile cleanup primitive used by the
+stable default `no_std` SDK plus reusable caller-owned guards. It delegates
+clearing to the independently reviewed
+[`sanitization`](https://crates.io/crates/sanitization) crate with default
+features disabled.
 
 ## Install
 
 ```toml
 [dependencies]
-cloud-sdk = "0.50.0"
-cloud-sdk-sanitization = "0.19.0"
+cloud-sdk = "=1.0.0"
+cloud-sdk-sanitization = "=1.0.0"
 ```
 
 ## Example

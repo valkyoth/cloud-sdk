@@ -25,7 +25,7 @@
 
 # cloud-sdk-testkit
 
-Provider-neutral testing support for the main
+Stable version 1.0 provider-neutral testing support for the main
 [`cloud-sdk`](https://crates.io/crates/cloud-sdk) crate and its provider crates.
 The default graph is no_std, allocation-free, network-free, filesystem-free,
 and runtime-free.
@@ -39,8 +39,8 @@ failures need deterministic multi-request coverage.
 
 ```toml
 [dev-dependencies]
-cloud-sdk = "=0.100.0"
-cloud-sdk-testkit = "=0.31.1"
+cloud-sdk = "=1.0.0"
+cloud-sdk-testkit = "=1.0.0"
 ```
 
 ## Mock Transport

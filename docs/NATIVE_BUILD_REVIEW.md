@@ -1,6 +1,6 @@
 # Native Build Review
 
-Status: reviewed for the v0.98.0 platform qualification milestone.
+Status: reviewed for the stable v1.0 native transport boundary.
 
 ## Boundary
 

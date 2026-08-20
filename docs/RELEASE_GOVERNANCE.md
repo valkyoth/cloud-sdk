@@ -1,6 +1,6 @@
 # Release Governance
 
-Status: reviewed at v0.99.0 and carried into the v0.100.0 public checkpoint.
+Status: reviewed for the stable v1.0 release process.
 
 This document defines how a maintainer verifies, recovers, reproduces, and
 releases the exact reviewed source. It does not claim organizationally
@@ -72,15 +72,14 @@ features are disabled; workflows must be bounded regular UTF-8 files.
 
 ## Trusted Publishing Decision
 
-Trusted publishing is not enabled for the pre-1.0 release train. Publication
+Trusted publishing is not enabled. Publication
 is an explicit local operator action after a signed tag, green GitHub checks,
 and a clean release gate. `cargo` obtains its crates.io credential from the
 release host; the repository, release plan, logs, and GitHub workflows must not
 contain that credential. The operator rotates or revokes it through crates.io
 account settings.
 
-This decision avoids granting a GitHub workflow publication authority while
-the workflow and governance model are still pre-1.0. A future migration to
+This decision keeps GitHub workflows free of publication authority. A future migration to
 trusted publishing requires its own threat-model change, environment and
 subject binding, minimal OIDC permission, publisher tests, documentation, and
 pentest. It must remove the superseded long-lived token rather than retain two

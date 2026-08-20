@@ -29,17 +29,17 @@ Hetzner provider crate for the main GitHub
 [`cloud-sdk`](https://github.com/valkyoth/cloud-sdk) workspace and the
 [`cloud-sdk`](https://crates.io/crates/cloud-sdk) crate on crates.io.
 
-This is the main documentation surface for Hetzner support in `cloud-sdk`.
-It covers the Hetzner Cloud, DNS, and Storage Box APIs and provides validated
-request models with reviewed shared response, pagination, and action
-boundaries.
+Version 1.0 is the main documentation surface for stable Hetzner support in
+`cloud-sdk`. It covers the complete claimed non-deprecated Hetzner Cloud, DNS,
+Security, Console Storage Box, Server Metadata, and Robot APIs with validated
+request models, typed clients, and reviewed response and workflow boundaries.
 
 ## Install
 
 ```toml
 [dependencies]
-cloud-sdk = "=0.100.0"
-cloud-sdk-hetzner = "=0.47.0"
+cloud-sdk = "=1.0.0"
+cloud-sdk-hetzner = "=1.0.0"
 ```
 
 ## Features
@@ -759,16 +759,16 @@ authentication scope, raw response policy, and official endpoint.
 
 ### Capability Coverage
 
-| Capability | Current coverage | Planned completion |
+| Capability | Current coverage | Release status |
 | --- | --- | --- |
-| Request models | Complete for all 208 non-deprecated operations | Current |
-| Path/query encoding | Complete for all 208 non-deprecated operations | Current |
-| Body serialization | Complete for all 91 non-deprecated operations with request bodies | Current |
-| Success response models | Complete checked envelopes for all 208 operations; source-complete ordinary Cloud resources, DNS zones and RRSets, zonefiles, actions, metrics, composites, pricing, locations, certificates, SSH keys, and Console Storage Boxes, types, snapshots, subaccounts, and folders; operation-branded typed execution guards decode through `decode_associated_checked_response` | Current |
-| Error response models | Complete checked typed API error decoding for all active operations | Current |
-| End-to-end client | Complete named workflows for all 208 active Cloud, DNS, Security, and Console Storage Box operations; custom-endpoint execution remains unavailable | Current |
-| Robot client | Complete typed contracts for all 89 active Robot operations; 45 read-only routes execute directly and every state change remains permit-gated | v0.46 published checkpoint |
-| Server Metadata | Complete strict contracts for all seven canonical credential-free link-local reads | Current |
+| Request models | Complete for all 208 non-deprecated operations | Stable 1.0 |
+| Path/query encoding | Complete for all 208 non-deprecated operations | Stable 1.0 |
+| Body serialization | Complete for all 91 non-deprecated operations with request bodies | Stable 1.0 |
+| Success response models | Complete checked envelopes for all 208 operations; source-complete ordinary Cloud resources, DNS zones and RRSets, zonefiles, actions, metrics, composites, pricing, locations, certificates, SSH keys, and Console Storage Boxes, types, snapshots, subaccounts, and folders; operation-branded typed execution guards decode through `decode_associated_checked_response` | Stable 1.0 |
+| Error response models | Complete checked typed API error decoding for all active operations | Stable 1.0 |
+| End-to-end client | Complete named workflows for all 208 active Cloud, DNS, Security, and Console Storage Box operations; custom-endpoint execution remains unavailable | Stable 1.0 |
+| Robot client | Complete typed contracts for all 89 active Robot operations; 45 read-only routes execute directly and every state change remains permit-gated | Stable 1.0 |
+| Server Metadata | Complete strict contracts for all seven canonical credential-free link-local reads | Stable 1.0 |
 
 The convenience request types cover common filters with domain-specific
 values. `query::SourceLockedQuery` is the complete operation-bound fallback
@@ -940,7 +940,7 @@ Enable Serde explicitly; it is never part of the default graph:
 
 ```toml
 [dependencies]
-cloud-sdk-hetzner = { version = "=0.47.0", features = ["serde"] }
+cloud-sdk-hetzner = { version = "=1.0.0", features = ["serde"] }
 ```
 
 The feature admits serde_json with `default-features = false` and `alloc` only

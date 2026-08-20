@@ -1,9 +1,8 @@
 # Crate Version Matrix
 
-Status: `v0.95.0` is the latest published checkpoint. `v0.100.0` is the current
-public release candidate for the complete v0.96-v0.100 cumulative train. Its
-incremental pentest and final retest passed, with local and GitHub release gates
-remaining before publication.
+Status: `v0.100.0` is the latest published development checkpoint. `v1.0.0` is
+the stable release candidate and requires a full-project pentest, local release
+gate, and green GitHub CI and CodeQL before publication.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
@@ -27,7 +26,7 @@ tool compares each package tree with the previous public tag, rejects any lost
 delta, verifies every intervening tag's pentest report, and publishes changed
 packages in dependency order. Unchanged crates are not republished.
 
-All minor and patch tags after the public baseline must appear in
+All development minor and patch tags after the public baseline must appear in
 `cumulative_milestones`; a checkpoint cannot omit an intervening build from
 publication planning or the pentest-evidence chain.
 
@@ -1495,6 +1494,20 @@ publishes the complete v0.96-v0.100 development train.
 | `cloud-sdk-reqwest` | `0.36.0` | `0.37.0` | `code` | Yes | Publish target diagnostics and credential-free link-local transport support. |
 | `cloud-sdk-sanitization` | `0.19.0` | `0.19.0` | `unchanged` | No | No sanitization boundary changes. |
 | `cloud-sdk-testkit` | `0.31.0` | `0.31.1` | `dependency` | Yes | Publish the cumulative cloud-sdk dependency update. |
+
+## v1.0.0 Tracking Table
+
+`v1.0.0` promotes the exact qualified v0.100 runtime and dependency behavior
+to the stable SemVer contract. All public crates publish together so users can
+select one coherent stable dependency set.
+
+| Crate | Published | v1.0 | Change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `0.100.0` | `1.0.0` | `metadata` | Yes | Publish the qualified provider-neutral API as stable. |
+| `cloud-sdk-hetzner` | `0.47.0` | `1.0.0` | `metadata` | Yes | Publish the complete qualified Hetzner provider as stable. |
+| `cloud-sdk-reqwest` | `0.37.0` | `1.0.0` | `metadata` | Yes | Publish the qualified optional transport adapter as stable. |
+| `cloud-sdk-sanitization` | `0.19.0` | `1.0.0` | `metadata` | Yes | Publish the qualified cleanup and secret boundary as stable. |
+| `cloud-sdk-testkit` | `0.31.1` | `1.0.0` | `metadata` | Yes | Publish the qualified test support API as stable. |
 
 ## Planned Milestone Ownership
 

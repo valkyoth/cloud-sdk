@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Keep pre-1.0 review evidence consolidated into five bounded digests."""
+"""Keep release review evidence consolidated into five bounded digests."""
 
 from __future__ import annotations
 
@@ -10,21 +10,36 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 DOCS = ROOT / "docs"
-VERSION = re.compile(r"^## v(0\.\d+\.0)$", re.MULTILINE)
+VERSION = re.compile(r"^## v(\d+\.\d+\.\d+)$", re.MULTILINE)
 CATEGORIES = {
-    "DEPENDENCY_REVIEW": {"0.24.0", *(f"0.{minor}.0" for minor in range(32, 96))},
-    "MIGRATION": {f"0.{minor}.0" for minor in range(27, 96)},
+    "DEPENDENCY_REVIEW": {
+        "0.24.0",
+        *(f"0.{minor}.0" for minor in range(32, 96)),
+        "1.0.0",
+    },
+    "MIGRATION": {*(f"0.{minor}.0" for minor in range(27, 96)), "1.0.0"},
     "PUBLIC_API_REVIEW": {
         "0.27.0",
         *(f"0.{minor}.0" for minor in range(32, 96)),
+        "1.0.0",
     },
-    "REJECTED_ABSTRACTIONS": {f"0.{minor}.0" for minor in range(62, 96)},
-    "THREAT_MODEL_DELTA": {f"0.{minor}.0" for minor in range(62, 96)},
+    "REJECTED_ABSTRACTIONS": {
+        *(f"0.{minor}.0" for minor in range(62, 96)),
+        "1.0.0",
+    },
+    "THREAT_MODEL_DELTA": {
+        *(f"0.{minor}.0" for minor in range(62, 96)),
+        "1.0.0",
+    },
 }
 
 
 def future_versions(versions: set[str]) -> set[str]:
-    future = sorted(int(version.split(".")[1]) for version in versions if int(version.split(".")[1]) >= 96)
+    future = sorted(
+        int(version.split(".")[1])
+        for version in versions
+        if version.startswith("0.") and int(version.split(".")[1]) >= 96
+    )
     if not future:
         return set()
     expected = list(range(96, future[-1] + 1))
@@ -49,7 +64,7 @@ def validate_digest(prefix: str, historical: set[str]) -> set[str]:
     unexpected = actual - historical - future
     if unexpected:
         raise ValueError(f"{path.name} contains unexpected versions {sorted(unexpected)}")
-    for version in historical - {"0.95.0"}:
+    for version in historical - {"0.95.0", "1.0.0"}:
         source = f"/v{version}/docs/{prefix}_{version}.md"
         if source not in text:
             raise ValueError(f"{path.name} lacks signed-tag source for v{version}")

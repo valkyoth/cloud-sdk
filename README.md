@@ -40,21 +40,6 @@ fit their environment. The project emphasizes validated inputs, bounded
 memory use, caller-controlled behavior, cross-platform compatibility,
 security review, and reproducible release evidence.
 
-## Development Status
-
-All `0.x` versions are development releases. Their APIs may change and they
-may still contain defects or incomplete behavior before `1.0.0`; review the
-documented operation and provider limits before using them with real
-infrastructure.
-
-Every pre-1.0 version receives the complete automated release gate, an
-incremental pentest against the preceding tag, GitHub CI and CodeQL, release
-notes, permanent pentest evidence, and a normal signed `v0.x.x` tag. Crates.io
-publication normally occurs every fifth minor version. Intervening tags are
-fully reviewed but are not separately published. The final `0.100.0` development
-release is the scheduled public checkpoint before `1.0.0`; a material security
-or compatibility need can trigger another earlier publication.
-
 ## Cost And Production Warning
 
 Cloud APIs can create, modify, and delete billable resources. This SDK is built
@@ -67,25 +52,6 @@ inputs, permissions, and provider pricing yourself. You are responsible for the
 infrastructure actions you execute and for any costs, downtime, data loss, or
 configuration changes caused by those actions. If you find an SDK mistake,
 please report it so it can be fixed.
-
-## Current Status
-
-Completed milestones and upcoming work are tracked in the
-[release roadmap](https://github.com/valkyoth/cloud-sdk/blob/main/docs/RELEASE_PLAN.md).
-Published and planned versions for each independently versioned crate are
-listed in the
-[crate version matrix](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATE_VERSION_MATRIX.md).
-
-The v0.100 release candidate is the cumulative final-development checkpoint
-for the provider-neutral foundation and exhaustive named Hetzner
-Cloud, DNS, Security, Console Storage Box, and Robot clients. This milestone
-adds credential-free mutation safety qualification and freezes the candidate
-public API after the platform, compiler, feature, package, documentation,
-release-governance, and provenance reviews. The incremental pentest and final
-retest passed; the unchanged candidate still requires the local release gate,
-GitHub CI, and CodeQL before tagging. Provider crates remain transport-free and
-perform no network request by default. Future FIPS work remains deferred until
-Brynja is ready.
 
 ## Trust Dashboard
 
@@ -100,17 +66,17 @@ Brynja is ready.
 | Default features | empty |
 | Network defaults | none |
 | Secret storage defaults | none |
-| Release evidence | full gates, SBOM, and incremental pentest for every tag; crates.io publication every fifth pre-1.0 minor, including the final `0.100.0` candidate, or earlier when required |
+| Release evidence | complete local and GitHub gates, reproducible packages and SBOMs, and a full-project pentest for stable 1.0 |
 | Platform support | explicit tiers and targets in [`docs/PLATFORM_SUPPORT.md`](https://github.com/valkyoth/cloud-sdk/blob/main/docs/PLATFORM_SUPPORT.md) |
 | Crate versions | tracked in [`docs/CRATE_VERSION_MATRIX.md`](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATE_VERSION_MATRIX.md) |
-| 1.0 target | serious production-ready foundation plus complete Hetzner Cloud, DNS, Console Storage Box, and Robot provider |
+| Stable scope | provider-neutral foundation plus complete claimed Hetzner Cloud, DNS, Security, Console Storage Box, Server Metadata, and Robot support |
 
 ## Provider Roadmap
 
 | Provider or role | Target | Crate or status |
 | --- | --- | --- |
-| [`Hetzner Cloud`](https://www.hetzner.com/) | `1.0.0` | [`cloud-sdk-hetzner`](https://crates.io/crates/cloud-sdk-hetzner) |
-| [`Hetzner Robot`](https://robot.hetzner.com/doc/webservice/en.html) | `1.0.0` | pre-1.0 milestones in `cloud-sdk-hetzner` |
+| [`Hetzner Cloud`](https://www.hetzner.com/) | `1.0.0` | stable in [`cloud-sdk-hetzner`](https://crates.io/crates/cloud-sdk-hetzner) |
+| [`Hetzner Robot`](https://robot.hetzner.com/doc/webservice/en.html) | `1.0.0` | stable in `cloud-sdk-hetzner` |
 | [`OVHcloud API v2`](https://docs.ovhcloud.com/en/guides/manage-and-operate/api/apiv2/) architecture probe | `0.57.0 - 0.61.0` | unpublished conformance fixture; neutral freeze follows in `0.62.0` |
 | [`Scaleway`](https://www.scaleway.com/en/developers/api/) | `1.1.0 - 1.6.0` | planned `cloud-sdk-scaleway`; stable GA APIs first |
 | [`DigitalOcean`](https://docs.digitalocean.com/reference/api/reference/public-apis/) | `1.7.0 - 1.12.0` | planned `cloud-sdk-digitalocean` |
@@ -122,8 +88,8 @@ matrix, release plan, tests, and pentest gates.
 
 ## Rust Version Support
 
-The minimum supported Rust version is Rust `1.92.0`. Development uses the
-pinned stable Rust `1.97.1` until the toolchain policy is updated.
+The minimum supported Rust version is Rust `1.92.0`. Repository verification
+uses pinned stable Rust `1.97.1` until the toolchain policy is updated.
 
 v0.52.0 raised the MSRV from Rust 1.90 to 1.92 because Rust 1.90 and 1.91 hit
 [compiler issue #100013](https://github.com/rust-lang/rust/issues/100013) when
@@ -143,8 +109,8 @@ Portable and native platform evidence is documented in
 
 ```toml
 [dependencies]
-cloud-sdk = "=0.100.0"
-cloud-sdk-hetzner = "=0.47.0"
+cloud-sdk = "=1.0.0"
+cloud-sdk-hetzner = "=1.0.0"
 ```
 
 ## cloud-sdk Features
@@ -525,8 +491,8 @@ without changing the default allocation-free graph.
 
 ```toml
 [dependencies]
-cloud-sdk = "=0.100.0"
-cloud-sdk-reqwest = { version = "=0.37.0", features = ["blocking-rustls"] }
+cloud-sdk = "=1.0.0"
+cloud-sdk-reqwest = { version = "=1.0.0", features = ["blocking-rustls"] }
 ```
 
 The production builder is HTTPS-only, requires explicit bounded timeouts and a
@@ -552,8 +518,8 @@ when deterministic public WebPKI roots are required:
 
 ```toml
 [dependencies]
-cloud-sdk = "=0.100.0"
-cloud-sdk-reqwest = { version = "=0.37.0", features = ["blocking-rustls-webpki-roots"] }
+cloud-sdk = "=1.0.0"
+cloud-sdk-reqwest = { version = "=1.0.0", features = ["blocking-rustls-webpki-roots"] }
 ```
 
 The blocking API is unchanged. This feature excludes host-added enterprise
@@ -575,8 +541,8 @@ See the [FIPS deferment policy](https://github.com/valkyoth/cloud-sdk/blob/main/
 
 ```toml
 [dependencies]
-cloud-sdk = "=0.100.0"
-cloud-sdk-reqwest = { version = "=0.37.0", features = ["async-rustls"] }
+cloud-sdk = "=1.0.0"
+cloud-sdk-reqwest = { version = "=1.0.0", features = ["async-rustls"] }
 ```
 
 The async adapter requires an active Tokio executor because reqwest uses Tokio
@@ -877,7 +843,7 @@ and the
 and the
 [API drift maintenance runbook](https://github.com/valkyoth/cloud-sdk/blob/main/docs/API_DRIFT_MAINTENANCE.md).
 
-## Development Checks
+## Verification
 
 Run `scripts/checks.sh` for the maintained local check suite. The complete
 pentest, CI, release-gate, tagging, and publication process is documented in

@@ -8,9 +8,9 @@ edition = "2024"
 cargo-fuzz = true
 
 [dependencies]
-cloud-sdk = { path = "../crates/cloud-sdk", version = "=0.100.0" }
-cloud-sdk-hetzner = { path = "../crates/cloud-sdk-hetzner", version = "=0.47.0", features = ["serde"] }
-cloud-sdk-reqwest = { path = "../crates/cloud-sdk-reqwest", version = "=0.37.0", default-features = false, features = ["fuzzing"] }
+cloud-sdk = { path = "../crates/cloud-sdk", version = "=1.0.0" }
+cloud-sdk-hetzner = { path = "../crates/cloud-sdk-hetzner", version = "=1.0.0", features = ["serde"] }
+cloud-sdk-reqwest = { path = "../crates/cloud-sdk-reqwest", version = "=1.0.0", default-features = false, features = ["fuzzing"] }
 libfuzzer-sys = "0.4.13"
 serde_json = "1.0.151"
 

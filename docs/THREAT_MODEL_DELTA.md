@@ -1,6 +1,6 @@
 # Threat Model Delta Digest
 
-This document consolidates the pre-1.0 `THREAT_MODEL_DELTA_*` review series. The current checkpoint detail remains here; earlier complete snapshots remain available from their signed Git tags and repository history.
+This document consolidates release threat-model changes. Earlier complete snapshots remain available from their signed Git tags and repository history.
 
 Add future release sections here instead of creating another version-named file. Current policies live in the focused documents linked from each release note and in the release roadmap.
 
@@ -365,3 +365,10 @@ Residual provider behavior, account scope, billing, cleanup, and
 uncertain-delivery risks remain unqualified by this offline evidence. Live
 mutation testing is deferred to a separately reviewed future boundary and is
 not claimed by v0.100.0.
+
+## v1.0.0
+
+No runtime, dependency, feature, transport, credential, or provider-scope
+threat changes from v0.100.0. Stable support increases compatibility and
+maintenance obligations but grants no additional authority. Cost, endpoint,
+secret-lifecycle, platform, live-mutation, and FIPS exclusions remain exact.

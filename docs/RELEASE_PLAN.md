@@ -3565,9 +3565,8 @@ crates.io publication.
 
 Stop gate: `v0.100.0 implementation stop reached. Run the cumulative pentest and full release gate for this exact commit before the signed tag and final development publication to crates.io.`
 
-Status: implementation candidate; credential-free mutation qualification and
-API review are complete. A fresh incremental pentest is required before the
-public release gate.
+Status: released and published on crates.io; this is the qualified runtime and
+dependency baseline for v1.0.0.
 
 ### v1.0.0 - Full Hetzner Production SDK
 
@@ -3592,7 +3591,9 @@ are exact.
 
 Stop gate: `v1.0.0 implementation stop reached. Run the final pentest for this exact commit before stable publication.`
 
-Status: planned stable release.
+Status: implementation candidate; stable versions and release documentation
+are prepared. A full-project pentest is required before the public release
+gate, signed tag, and crates.io publication.
 
 ## Post-1.0 Provider Blueprint
 

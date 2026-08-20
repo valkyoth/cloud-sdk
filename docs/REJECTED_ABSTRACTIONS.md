@@ -1,6 +1,6 @@
 # Rejected Abstractions Digest
 
-This document consolidates the pre-1.0 `REJECTED_ABSTRACTIONS_*` review series. The current checkpoint detail remains here; earlier complete snapshots remain available from their signed Git tags and repository history.
+This document consolidates rejected release designs. Earlier complete snapshots remain available from their signed Git tags and repository history.
 
 Add future release sections here instead of creating another version-named file. Current policies live in the focused documents linked from each release note and in the release roadmap.
 
@@ -355,3 +355,12 @@ do not necessarily own disposable Cloud, DNS, Storage, and Robot resources.
 Invented or self-attested evidence would weaken the release. v0.100.0 claims
 only credential-free mutation safety coverage; any future live attestation must
 arrive with its own executable boundary, cleanup model, and pentest.
+
+## v1.0.0
+
+### Compatibility Shim Or Feature Addition During Promotion
+
+Adding convenience APIs, dependency changes, feature aliases, or corrective
+behavior during the stable version promotion was rejected. v1.0.0 must remain
+runtime- and dependency-equivalent to the published v0.100.0 candidate; later
+additions use ordinary reviewed releases.

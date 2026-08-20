@@ -1,45 +1,45 @@
 [release]
-version = "0.100.0"
-milestone = "0.100.0"
-baseline = "0.95.0"
-review_baseline = "0.99.0"
-cumulative_milestones = ["0.96.0", "0.97.0", "0.98.0", "0.99.0", "0.100.0"]
+version = "1.0.0"
+milestone = "1.0.0"
+baseline = "0.100.0"
+review_baseline = "0.100.0"
+cumulative_milestones = ["1.0.0"]
 policy = "independent"
 stage = "public"
 exceptional = false
 exception_reason = ""
 
 [crates."cloud-sdk"]
-previous_version = "0.95.0"
-version = "0.100.0"
-change = "code"
+previous_version = "0.100.0"
+version = "1.0.0"
+change = "metadata"
 publish = true
-reason = "Publish the cumulative v0.96-v0.100 final development checkpoint."
+reason = "Publish the qualified provider-neutral API as stable 1.0."
 
 [crates."cloud-sdk-hetzner"]
-previous_version = "0.46.0"
-version = "0.47.0"
-change = "code"
+previous_version = "0.47.0"
+version = "1.0.0"
+change = "metadata"
 publish = true
-reason = "Publish accumulated request fidelity, metadata, and mutation safety qualification."
+reason = "Publish the complete qualified Hetzner provider as stable 1.0."
 
 [crates."cloud-sdk-reqwest"]
-previous_version = "0.36.0"
-version = "0.37.0"
-change = "code"
+previous_version = "0.37.0"
+version = "1.0.0"
+change = "metadata"
 publish = true
-reason = "Publish accumulated target support, diagnostics, and mutation transport qualification."
+reason = "Publish the qualified provider-neutral reqwest adapter as stable 1.0."
 
 [crates."cloud-sdk-sanitization"]
 previous_version = "0.19.0"
-version = "0.19.0"
-change = "unchanged"
-publish = false
-reason = "No sanitization boundary changes."
+version = "1.0.0"
+change = "metadata"
+publish = true
+reason = "Publish the qualified cleanup and secret boundary as stable 1.0."
 
 [crates."cloud-sdk-testkit"]
-previous_version = "0.31.0"
-version = "0.31.1"
-change = "dependency"
+previous_version = "0.31.1"
+version = "1.0.0"
+change = "metadata"
 publish = true
-reason = "Publish the cumulative cloud-sdk dependency update."
+reason = "Publish the qualified provider-neutral testkit as stable 1.0."

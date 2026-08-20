@@ -20,7 +20,7 @@ requirements and pentest evidence model remain in the
 5. Run `scripts/checks.sh`, the version-specific release gate prerequisites,
    `cargo deny check`, and `cargo audit`.
 
-## Pentest Every Tag
+## Pentest
 
 1. Commit the complete implementation-stop state and run an incremental
    pentest against `review_baseline`.
@@ -42,13 +42,11 @@ not reset or advance the publication schedule.
 
 ## Public Checkpoint
 
-A `v0.N.0` milestone divisible by five is normally the scheduled public
-checkpoint. The final development release `v0.100.0` follows that regular
-cadence and publishes the complete release candidate before `v1.0.0`.
-Material security or compatibility needs may require another
-exceptional publication. That tag still receives the same incremental pentest
-and becomes the new public baseline when published. `v1.0.0` always requires a
-full-project assessment.
+The historical pre-1.0 train published every fifth minor and ended with the
+complete v0.100.0 candidate. Stable releases are public checkpoints and follow
+SemVer. Material security or compatibility needs may require an exceptional
+release, but it still receives the same controls. `v1.0.0` requires a
+full-project assessment against v0.100.0.
 
 Before pentest:
 

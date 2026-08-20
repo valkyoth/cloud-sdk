@@ -1,6 +1,5 @@
 # Dependency Review Digest
-
-This document consolidates the pre-1.0 `DEPENDENCY_REVIEW_*` review series. The current checkpoint detail remains here; earlier complete snapshots remain available from their signed Git tags and repository history.
+This document consolidates release dependency reviews. Earlier complete snapshots remain available from their signed Git tags and repository history.
 
 Add future release sections here instead of creating another version-named file. Current policies live in the focused documents linked from each release note and in the release roadmap.
 
@@ -450,8 +449,6 @@ Lockfile identities advanced `cloud-sdk` and the unpublished probe from
 `0.96.0` to `0.97.0`; metadata and link-local code accumulated for v0.100.
 
 ## v0.98.0
-Status: release candidate; incremental pentest and final retest passed.
-
 No third-party version or feature name changed. `cloud-sdk` and the unpublished
 probe advance from `0.97.0` to `0.98.0`. Existing optional reqwest
 dependencies move under the exact Linux, Windows, macOS, and FreeBSD target
@@ -468,8 +465,6 @@ the core std integrations enable that core feature explicitly.
 | `ovhcloud-v2-probe` | `0.97.0` | `0.98.0` | Advance the unpublished probe identity only. |
 
 ## v0.99.0
-Status: release candidate; incremental pentest and final retest passed.
-
 Exact default-disabled `saphyr 0.0.12` and `saphyr-parser 0.0.12` support the
 unpublished bounded YAML workflow checker. They have no published, native,
 network, credential, or runtime edge. Nothing publishes at this milestone.
@@ -482,8 +477,6 @@ network, credential, or runtime edge. Nothing publishes at this milestone.
 | `saphyr-parser` | transitive | `0.0.12` | Exact direct pre-DOM event parser; no publishable edge. |
 
 ## v0.100.0
-Status: candidate freeze; incremental pentest and final retest passed.
-
 No third-party package or feature changed. Credential-free mutation tests are
 repository-only and add no runtime, credential, network, build-script, or
 package edge. Sanitization remains unchanged; optional AWS-LC remains non-FIPS.
@@ -495,3 +488,13 @@ package edge. Sanitization remains unchanged; optional AWS-LC remains non-FIPS.
 | `cloud-sdk-reqwest` | `0.36.0` | `0.37.0` | Publish accumulated target and link-local transport code. |
 | `cloud-sdk-testkit` | `0.31.0` | `0.31.1` | Dependency-only facade update. |
 | `ovhcloud-v2-probe` | `0.99.0` | `0.100.0` | Advance excluded inherited workspace identity only. |
+## v1.0.0
+No external dependency, feature, target, build-script, or default edge changes.
+| Package | Previous | v1.0 | Review |
+| --- | --- | --- | --- |
+| `cloud-sdk` | `0.100.0` | `1.0.0` | Stable metadata promotion. |
+| `cloud-sdk-hetzner` | `0.47.0` | `1.0.0` | Stable metadata promotion. |
+| `cloud-sdk-reqwest` | `0.37.0` | `1.0.0` | Stable metadata promotion. |
+| `cloud-sdk-sanitization` | `0.19.0` | `1.0.0` | Stable metadata promotion. |
+| `cloud-sdk-testkit` | `0.31.1` | `1.0.0` | Stable metadata promotion. |
+| `ovhcloud-v2-probe` | `0.100.0` | `1.0.0` | Excluded inherited identity only. |
