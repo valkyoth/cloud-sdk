@@ -14,28 +14,28 @@ previous_version = "0.100.0"
 version = "1.0.0"
 change = "metadata"
 publish = true
-reason = "Publish the qualified provider-neutral API as stable 1.0."
+reason = "Publish the qualified provider-neutral API with exact reviewed third-party requirements as stable 1.0."
 
 [crates."cloud-sdk-hetzner"]
 previous_version = "0.47.0"
 version = "1.0.0"
 change = "metadata"
 publish = true
-reason = "Publish the complete qualified Hetzner provider as stable 1.0."
+reason = "Publish the complete qualified Hetzner provider with exact reviewed third-party requirements as stable 1.0."
 
 [crates."cloud-sdk-reqwest"]
 previous_version = "0.37.0"
 version = "1.0.0"
 change = "metadata"
 publish = true
-reason = "Publish the qualified provider-neutral reqwest adapter as stable 1.0."
+reason = "Publish the qualified reqwest adapter with exact reviewed transport requirements as stable 1.0."
 
 [crates."cloud-sdk-sanitization"]
 previous_version = "0.19.0"
 version = "1.0.0"
 change = "metadata"
 publish = true
-reason = "Publish the qualified cleanup and secret boundary as stable 1.0."
+reason = "Publish the qualified cleanup boundary with an exact reviewed sanitization requirement as stable 1.0."
 
 [crates."cloud-sdk-testkit"]
 previous_version = "0.31.1"

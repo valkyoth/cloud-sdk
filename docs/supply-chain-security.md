@@ -12,6 +12,9 @@ Dependencies are denied by default until reviewed. New dependencies require:
 - documentation under `docs/dependency-admission-*.md`.
 
 Every tag requires `cargo deny check`, `cargo audit`, and current SBOM evidence.
+Every direct third-party workspace dependency uses an exact `=X.Y.Z`
+requirement. `scripts/check_exact_dependency_pins.py` rejects broader or
+unversioned direct requirements before lockfile and package evidence can pass.
 Intermediate pre-1.0 stages prohibit crates.io publication. At every
 fifth-minor or exceptional public checkpoint, the publisher compares package
 trees cumulatively with the previous public tag, publishes changed

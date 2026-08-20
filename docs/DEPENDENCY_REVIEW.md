@@ -489,12 +489,12 @@ package edge. Sanitization remains unchanged; optional AWS-LC remains non-FIPS.
 | `cloud-sdk-testkit` | `0.31.0` | `0.31.1` | Dependency-only facade update. |
 | `ovhcloud-v2-probe` | `0.99.0` | `0.100.0` | Advance excluded inherited workspace identity only. |
 ## v1.0.0
-No external dependency, feature, target, build-script, or default edge changes.
+No resolved dependency, feature, target, build-script, or default edge changes; every direct third-party requirement narrows to the exact reviewed v0.100.0 version, and CI rejects broader or unversioned requirements.
 | Package | Previous | v1.0 | Review |
 | --- | --- | --- | --- |
-| `cloud-sdk` | `0.100.0` | `1.0.0` | Stable metadata promotion. |
-| `cloud-sdk-hetzner` | `0.47.0` | `1.0.0` | Stable metadata promotion. |
-| `cloud-sdk-reqwest` | `0.37.0` | `1.0.0` | Stable metadata promotion. |
-| `cloud-sdk-sanitization` | `0.19.0` | `1.0.0` | Stable metadata promotion. |
+| `cloud-sdk` | `0.100.0` | `1.0.0` | Stable promotion; direct third-party requirements become exact. |
+| `cloud-sdk-hetzner` | `0.47.0` | `1.0.0` | Stable promotion; direct third-party requirements become exact. |
+| `cloud-sdk-reqwest` | `0.37.0` | `1.0.0` | Stable promotion; transport requirements become exact. |
+| `cloud-sdk-sanitization` | `0.19.0` | `1.0.0` | Stable promotion; sanitization requirement becomes exact. |
 | `cloud-sdk-testkit` | `0.31.1` | `1.0.0` | Stable metadata promotion. |
 | `ovhcloud-v2-probe` | `0.100.0` | `1.0.0` | Excluded inherited identity only. |

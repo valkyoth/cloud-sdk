@@ -1,8 +1,9 @@
 # Crate Version Matrix
 
 Status: `v0.100.0` is the latest published development checkpoint. `v1.0.0` is
-the stable release candidate and has passed its full-project pentest. The local
-release gate and green GitHub CI and CodeQL remain required before publication.
+the stable release candidate. Its Low dependency-pin finding is remediated with
+an unchanged resolved graph; independent retest, the local release gate, and
+green GitHub CI and CodeQL remain required before publication.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
@@ -1503,10 +1504,10 @@ select one coherent stable dependency set.
 
 | Crate | Published | v1.0 | Change | Publish | Reason |
 | --- | --- | --- | --- | --- | --- |
-| `cloud-sdk` | `0.100.0` | `1.0.0` | `metadata` | Yes | Publish the qualified provider-neutral API as stable. |
-| `cloud-sdk-hetzner` | `0.47.0` | `1.0.0` | `metadata` | Yes | Publish the complete qualified Hetzner provider as stable. |
-| `cloud-sdk-reqwest` | `0.37.0` | `1.0.0` | `metadata` | Yes | Publish the qualified optional transport adapter as stable. |
-| `cloud-sdk-sanitization` | `0.19.0` | `1.0.0` | `metadata` | Yes | Publish the qualified cleanup and secret boundary as stable. |
+| `cloud-sdk` | `0.100.0` | `1.0.0` | `metadata` | Yes | Publish the qualified provider-neutral API with exact reviewed third-party requirements. |
+| `cloud-sdk-hetzner` | `0.47.0` | `1.0.0` | `metadata` | Yes | Publish the complete provider with exact reviewed third-party requirements. |
+| `cloud-sdk-reqwest` | `0.37.0` | `1.0.0` | `metadata` | Yes | Publish the optional adapter with exact reviewed transport requirements. |
+| `cloud-sdk-sanitization` | `0.19.0` | `1.0.0` | `metadata` | Yes | Publish the cleanup boundary with an exact reviewed sanitization requirement. |
 | `cloud-sdk-testkit` | `0.31.1` | `1.0.0` | `metadata` | Yes | Publish the qualified test support API as stable. |
 
 ## Planned Milestone Ownership

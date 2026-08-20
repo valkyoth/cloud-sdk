@@ -3589,12 +3589,12 @@ metadata; every changed public crate is published in dependency order; signed
 tags and crates.io artifacts verify; and all 1.0 support and exclusion claims
 are exact.
 
-Stop gate: `v1.0.0 full-project pentest passed. Run the final release gate for this exact commit before stable publication.`
+Stop gate: `v1.0.0 dependency-pin remediation complete. Run the pentest retest for this exact commit before the final release gate and stable publication.`
 
-Status: full-project pentest passed with no finding. Stable versions, release
-documentation, and permanent security evidence are prepared. The final public
-release gate and green GitHub CI and CodeQL are required before signed tagging
-and crates.io publication.
+Status: one Low direct-dependency pinning finding is remediated without changing
+the resolved graph. Independent retest remains required before the permanent
+report returns to PASS, followed by the final public release gate and green
+GitHub CI and CodeQL before signed tagging and crates.io publication.
 
 ## Post-1.0 Provider Blueprint
 

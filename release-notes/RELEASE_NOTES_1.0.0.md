@@ -1,19 +1,21 @@
 # cloud-sdk 1.0.0 Release Notes
 
-Status: stable release candidate; full-project pentest passed.
+Status: stable release candidate; dependency-pin remediation requires retest.
 
 Release date: 2026-08-20
 
-Security-Review: PASS
-Pentest: PASS
+Security-Review: PENDING
+Pentest: PENDING
 Publication: PENDING
 
 ## Overview
 
 v1.0.0 promotes the published v0.100.0 candidate to the stable SemVer
 contract. It adds no runtime API, behavior, feature, target, provider scope, or
-third-party dependency change. A repository gate compares normalized manifests,
-lockfiles, and public package trees directly with signed tag `v0.100.0`.
+resolved third-party dependency change. Direct third-party requirements narrow
+to the exact versions already reviewed and locked at v0.100.0. A repository
+gate compares normalized manifests, lockfiles, and public package trees directly
+with signed tag `v0.100.0`.
 
 ## Stable Scope
 
@@ -33,17 +35,19 @@ lockfiles, and public package trees directly with signed tag `v0.100.0`.
 
 | Crate | Previous | v1.0 | Change |
 | --- | --- | --- | --- |
-| `cloud-sdk` | `0.100.0` | `1.0.0` | stable metadata promotion |
-| `cloud-sdk-hetzner` | `0.47.0` | `1.0.0` | stable metadata promotion |
-| `cloud-sdk-reqwest` | `0.37.0` | `1.0.0` | stable metadata promotion |
-| `cloud-sdk-sanitization` | `0.19.0` | `1.0.0` | stable metadata promotion |
+| `cloud-sdk` | `0.100.0` | `1.0.0` | stable promotion and exact third-party requirements |
+| `cloud-sdk-hetzner` | `0.47.0` | `1.0.0` | stable promotion and exact third-party requirements |
+| `cloud-sdk-reqwest` | `0.37.0` | `1.0.0` | stable promotion and exact transport requirements |
+| `cloud-sdk-sanitization` | `0.19.0` | `1.0.0` | stable promotion and exact sanitization requirement |
 | `cloud-sdk-testkit` | `0.31.1` | `1.0.0` | stable metadata promotion |
 
 ## Security Review
 
-The independent full-project assessment reviewed the exact stable candidate
-against `v0.100.0` and found no Critical, High, Medium, or Low issue. The
-permanent report is recorded in `security/pentest/v1.0.0.md`.
+The first independent full-project assessment found no issue. A subsequent scan
+identified inconsistent direct dependency pinning as one Low finding. The
+resolved graph is unchanged; every direct third-party requirement is now exact
+and guarded by a fail-closed regression-tested repository check. Retest remains
+required before the permanent report can return to PASS.
 
 ## Remaining Gates
 

@@ -51,6 +51,16 @@ def test_external_manifest_changes_remain_visible() -> None:
     assert before != after
 
 
+def test_external_exact_pin_narrowing_is_normalized() -> None:
+    before = candidate.normalize_manifest(
+        "Cargo.toml", manifest("0.100.0", external="1.0.0")
+    )
+    after = candidate.normalize_manifest(
+        "Cargo.toml", manifest("1.0.0", external="=1.0.0")
+    )
+    assert before == after
+
+
 def test_lock_versions_are_normalized() -> None:
     assert candidate.normalize_lock(lock("0.100.0")) == candidate.normalize_lock(
         lock("1.0.0")
@@ -90,10 +100,11 @@ def test_untracked_runtime_file_is_rejected() -> None:
 def main() -> None:
     test_manifest_versions_are_normalized()
     test_external_manifest_changes_remain_visible()
+    test_external_exact_pin_narrowing_is_normalized()
     test_lock_versions_are_normalized()
     test_external_lock_changes_remain_visible()
     test_untracked_runtime_file_is_rejected()
-    print("5 stable-candidate equivalence regression groups passed.")
+    print("6 stable-candidate equivalence regression groups passed.")
 
 
 if __name__ == "__main__":

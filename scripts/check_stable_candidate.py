@@ -79,10 +79,16 @@ def normalize_manifest(path: str, data: bytes) -> dict:
 
 def normalize_dependency_versions(dependencies: dict) -> None:
     for name, specification in dependencies.items():
-        if name not in PUBLIC_PACKAGES or not isinstance(specification, dict):
+        if name in PUBLIC_PACKAGES and isinstance(specification, dict):
+            if "version" in specification:
+                specification["version"] = "<stable-version>"
             continue
-        if "version" in specification:
-            specification["version"] = "<stable-version>"
+        if isinstance(specification, str):
+            dependencies[name] = specification.removeprefix("=")
+        elif isinstance(specification, dict):
+            requirement = specification.get("version")
+            if isinstance(requirement, str):
+                specification["version"] = requirement.removeprefix("=")
 
 
 def normalize_lock(data: bytes) -> dict:
@@ -218,7 +224,10 @@ def main() -> int:
     except (subprocess.CalledProcessError, StableCandidateError) as error:
         print(f"stable candidate: {error}", file=sys.stderr)
         return 1
-    print("Stable 1.0 candidate matches v0.100.0 runtime and dependency behavior.")
+    print(
+        "Stable 1.0 candidate matches v0.100.0 runtime and resolved dependency "
+        "behavior; direct third-party requirements may only narrow to exact pins."
+    )
     return 0
 
 
