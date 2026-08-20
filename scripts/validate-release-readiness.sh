@@ -65,11 +65,6 @@ done
 if [ "$stage" != "internal" ] && [ "$stage" != "public" ]; then
     fail "unknown release classification: stage=${stage} exceptional=${exceptional}"
 fi
-checkpoint="$(
-    python3 -c \
-        'import sys; sys.path.insert(0, "scripts"); from release_train import next_checkpoint; print(f"v{next_checkpoint(sys.argv[1])}")' \
-        "$version"
-)"
 security_review="$(unique_field "$release_notes" Security-Review)"
 test "$security_review" = PASS ||
     fail "release notes must record Security-Review: PASS"
@@ -78,6 +73,11 @@ test "$pentest_status" = PASS ||
     fail "release notes must record Pentest: PASS"
 publication="$(unique_field "$release_notes" Publication)"
 if [ "$stage" = "internal" ]; then
+    checkpoint="$(
+        python3 -c \
+            'import sys; sys.path.insert(0, "scripts"); from release_train import next_checkpoint; print(f"v{next_checkpoint(sys.argv[1])}")' \
+            "$version"
+    )"
     test "$publication" = "DEFERRED TO ${checkpoint}" ||
         fail "internal release notes must defer publication to ${checkpoint}"
 else

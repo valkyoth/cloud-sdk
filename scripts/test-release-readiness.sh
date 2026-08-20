@@ -162,6 +162,20 @@ repo="$(make_fixture checkpoint 0.60.0 public 0.55.0)"
     scripts/validate-release-readiness.sh v0.60.0
 )
 
+repo="$(make_fixture stable 1.0.0 public 0.100.0)"
+(
+    cd "$repo"
+    write_public_notes 1.0.0
+    write_sboms
+    git add release-notes sbom
+    git commit -q -m metadata
+    reviewed="$(git rev-parse HEAD)"
+    write_pentest 1.0.0 0.100.0 "$reviewed" FULL
+    git add security
+    git commit -q -m report
+    scripts/validate-release-readiness.sh v1.0.0
+)
+
 repo="$(make_fixture missing-public-report 0.60.0 public 0.55.0)"
 (
     cd "$repo"
@@ -299,4 +313,4 @@ repo="$(make_fixture targeted 0.57.0 internal 0.55.0 true)"
     scripts/validate-release-readiness.sh v0.57.0
 )
 
-echo "18 staged release readiness tests passed."
+echo "19 staged release readiness tests passed."
