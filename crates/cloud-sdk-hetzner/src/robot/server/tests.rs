@@ -215,7 +215,7 @@ fn every_server_diagnostic_is_static_and_redacted() {
     ] {
         assert!(
             !diagnostics.contains(secret),
-            "diagnostics exposed {secret}"
+            "diagnostics exposed a redacted fixture value"
         );
     }
 }

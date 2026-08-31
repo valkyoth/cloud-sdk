@@ -24,8 +24,8 @@ explicit trust and dependency review.
 
 ## Non-Negotiable Engineering Rules
 
-- Rust stable `1.97.1`, edition 2024, workspace resolver `3`.
-- MSRV is Rust `1.92.0`; compatibility must be checked through `1.97.1`.
+- Rust stable `1.98.0`, edition 2024, workspace resolver `3`.
+- MSRV is Rust `1.92.0`; compatibility must be checked through `1.98.0`.
 - Latest crate and tool versions are checked before dependency or tooling edits.
 - Hetzner API behavior is implemented from current official documentation or a
   pinned official OpenAPI/spec source, never from memory.
@@ -269,7 +269,7 @@ Expected future candidates must be reviewed before use:
   bounded execution, and testkit evidence without admitting any new
   third-party dependency or default feature.
 - `v0.30.0` introduced `syn` only in the excluded, non-published prepared
-  coverage checker. The current isolated pin is `syn 3.0.3`; it is absent from
+  coverage checker. The current isolated pin is `syn 3.0.4`; it is absent from
   every SDK crate and published graph.
 - `v0.32.0` updates the first-party optional sanitization boundary to `2.0.3`
   after a dedicated major-version API, feature, MSRV, cleanup, and checksum

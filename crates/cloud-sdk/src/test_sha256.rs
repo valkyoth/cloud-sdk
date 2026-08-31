@@ -37,23 +37,30 @@ pub(crate) fn sha256(input: &[u8]) -> Option<[u8; 32]> {
     ];
     let bit_len = u64::try_from(input.len()).ok()?.checked_mul(8)?;
     let mut state = INITIAL;
-    let mut blocks = input.chunks_exact(64);
-    for block in &mut blocks {
+    let (blocks, remaining) = input.as_chunks::<64>();
+    for block in blocks {
         compress(&mut state, block, &ROUND)?;
     }
     let mut tail = [0_u8; 128];
-    let remaining = blocks.remainder();
     tail.get_mut(..remaining.len())?.copy_from_slice(remaining);
     *tail.get_mut(remaining.len())? = 0x80;
     let end = if remaining.len() < 56 { 64_usize } else { 128 };
     let length_start = end.checked_sub(8)?;
     tail.get_mut(length_start..end)?
         .copy_from_slice(&bit_len.to_be_bytes());
-    for block in tail.get(..end)?.chunks_exact(64) {
+    let (tail_blocks, tail_remainder) = tail.get(..end)?.as_chunks::<64>();
+    if !tail_remainder.is_empty() {
+        return None;
+    }
+    for block in tail_blocks {
         compress(&mut state, block, &ROUND)?;
     }
     let mut output = [0_u8; 32];
-    for (word, target) in state.iter().zip(output.chunks_exact_mut(4)) {
+    let (targets, output_remainder) = output.as_chunks_mut::<4>();
+    if !output_remainder.is_empty() {
+        return None;
+    }
+    for (word, target) in state.iter().zip(targets) {
         target.copy_from_slice(&word.to_be_bytes());
     }
     Some(output)
@@ -61,9 +68,12 @@ pub(crate) fn sha256(input: &[u8]) -> Option<[u8; 32]> {
 
 fn compress(state: &mut [u32; 8], block: &[u8], round: &[u32; 64]) -> Option<()> {
     let mut words = [0_u32; 64];
-    for (index, bytes) in block.chunks_exact(4).enumerate() {
-        let encoded: [u8; 4] = bytes.try_into().ok()?;
-        *words.get_mut(index)? = u32::from_be_bytes(encoded);
+    let (encoded_words, remainder) = block.as_chunks::<4>();
+    if !remainder.is_empty() {
+        return None;
+    }
+    for (index, bytes) in encoded_words.iter().enumerate() {
+        *words.get_mut(index)? = u32::from_be_bytes(*bytes);
     }
     for index in 16_usize..64 {
         let a = *words.get(index.checked_sub(15)?)?;

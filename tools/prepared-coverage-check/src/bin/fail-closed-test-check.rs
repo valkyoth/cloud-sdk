@@ -199,10 +199,7 @@ fn explicit_failure(expression: &syn::Expr) -> bool {
         syn::Expr::Group(expression) => explicit_failure(&expression.expr),
         syn::Expr::Paren(expression) => explicit_failure(&expression.expr),
         syn::Expr::Macro(expression) => failure_macro(&expression.mac),
-        syn::Expr::Return(expression) => expression
-            .expr
-            .as_deref()
-            .is_some_and(returned_error),
+        syn::Expr::Return(expression) => expression.expr.as_deref().is_some_and(returned_error),
         _ => false,
     }
 }
@@ -216,9 +213,10 @@ fn statement_is_failure(statement: &syn::Stmt) -> bool {
 }
 
 fn failure_macro(mac: &syn::Macro) -> bool {
-    mac.path.segments.last().is_some_and(|segment| {
-        segment.ident == "unreachable" || segment.ident == "panic"
-    })
+    mac.path
+        .segments
+        .last()
+        .is_some_and(|segment| segment.ident == "unreachable" || segment.ident == "panic")
 }
 
 fn returned_error(expression: &syn::Expr) -> bool {

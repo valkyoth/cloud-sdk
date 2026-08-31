@@ -10,7 +10,7 @@ default-run = "cloud-sdk-prepared-coverage-check"
 [dependencies]
 saphyr = { version = "=0.0.12", default-features = false }
 saphyr-parser = { version = "=0.0.12", default-features = false }
-syn = { version = "=3.0.3", default-features = false, features = ["full", "parsing", "visit"] }
+syn = { version = "=3.0.4", default-features = false, features = ["full", "parsing", "visit"] }
 
 [workspace]
 

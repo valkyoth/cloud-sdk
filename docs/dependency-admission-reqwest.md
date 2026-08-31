@@ -6,18 +6,18 @@ and `cloud-sdk-reqwest/async-rustls`,
 with reqwest default features disabled. The internal `fuzzing` feature aliases
 `blocking-rustls` only for the isolated fuzz workspace.
 
-Checked: 2026-08-17.
+Checked: 2026-08-31.
 
 ## Decision
 
 | Crate | Version | Role | Default features |
 | --- | --- | --- | --- |
 | `reqwest` | `0.13.4` | blocking/async HTTP client and URL/header types | disabled |
-| `base64-ng` | `2.0.1` | bounded RFC 4648 Basic authorization encoding | disabled |
+| `base64-ng` | `2.0.2` | bounded RFC 4648 Basic authorization encoding | disabled |
 | `bytes` | `1.12.1` | sanitized owned async request-body handoff | disabled |
 | `http` | `1.5.0` | raw request and response-head representation | disabled |
 | `http-body-util` | `0.1.5` | raw body ownership and response-frame access | disabled |
-| `hyper` | `1.11.0` | bounded raw HTTP/1 implementation | disabled |
+| `hyper` | `1.11.1` | bounded raw HTTP/1 implementation | disabled |
 | `hyper-rustls` | `0.27.9` | raw rustls HTTPS connector | disabled |
 | `hyper-util` | `0.1.20` | raw client, connector, and Tokio adapters | disabled |
 | `tokio` | `1.53.1` | opt-in reqwest and raw executor runtime | disabled |
@@ -27,7 +27,7 @@ Checked: 2026-08-17.
 | `webpki-roots` | `1.0.9` | deterministic Mozilla trust-root snapshot | disabled |
 | `aws-lc-rs` | `1.18.0` | rustls cryptographic provider | transitive |
 | `aws-lc-sys` | `0.44.0` | bundled native AWS-LC implementation | disabled |
-| `cloud-sdk-sanitization` | `0.19.0` | mandatory core and adapter-owned secret-buffer cleanup | disabled |
+| `cloud-sdk-sanitization` | `1.0.0` | mandatory core and adapter-owned secret-buffer cleanup | disabled |
 | `sanitization` | `2.0.3` | reviewed volatile cleanup primitive | disabled |
 
 The exact repository graph is pinned by `Cargo.lock`, checked by `cargo deny`,
@@ -58,6 +58,12 @@ documentation, and upstream source:
 - <https://crates.io/crates/reqwest/0.13.4>
 - <https://docs.rs/reqwest/0.13.4/reqwest/>
 - <https://github.com/seanmonstar/reqwest/tree/v0.13.4>
+
+The 2026-08-31 freshness review also accepted `base64-ng 2.0.2` and
+`hyper 1.11.1`. Both retain default-disabled graphs and MSRVs below this
+workspace's Rust 1.92 floor. The Base64 update preserves the scalar API used by
+Basic authentication and SSH-key parsing; the Hyper patch preserves the
+HTTP/1 features and dependency boundary used by the raw executor.
 
 ## Feature Boundary
 

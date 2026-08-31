@@ -1,6 +1,5 @@
 use alloc::format;
 
-use super::support::*;
 use super::*;
 
 const RULES: &str = r#"{"input":[{"ip_version":"ipv4","name":"HTTPS","dst_ip":"192.0.2.0/24","src_ip":null,"dst_port":"443","src_port":null,"protocol":"tcp","tcp_flags":"syn|ack","action":"accept"}],"output":[]}"#;

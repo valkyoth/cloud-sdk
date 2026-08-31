@@ -59,7 +59,7 @@ please report it so it can be fixed.
 | --- | --- |
 | License | `MIT OR Apache-2.0` |
 | MSRV | Rust `1.92.0` |
-| Pinned toolchain | Rust `1.97.1` |
+| Pinned toolchain | Rust `1.98.0` |
 | Default target | `no_std` |
 | Default runtime dependencies | only the first-party cleanup boundary and admitted `sanitization` primitive; provider crates remain transport-free |
 | Unsafe policy | first-party crates use `#![forbid(unsafe_code)]` |
@@ -89,7 +89,7 @@ matrix, release plan, tests, and pentest gates.
 ## Rust Version Support
 
 The minimum supported Rust version is Rust `1.92.0`. Repository verification
-uses pinned stable Rust `1.97.1` until the toolchain policy is updated.
+uses pinned stable Rust `1.98.0` until the toolchain policy is updated.
 
 v0.52.0 raised the MSRV from Rust 1.90 to 1.92 because Rust 1.90 and 1.91 hit
 [compiler issue #100013](https://github.com/rust-lang/rust/issues/100013) when
@@ -98,9 +98,8 @@ cross-thread async guarantee instead of weakening it for those two compilers.
 
 | Rust | Local Evidence |
 | --- | --- |
-| `1.92.0 - 1.96.1` | `cargo +<version> check --locked --workspace --all-targets --all-features` for every supported compiler and point release |
-| `1.97.0` | `cargo +1.97.0 check --locked --workspace --all-targets --all-features` |
-| `1.97.1` | `scripts/checks.sh` |
+| `1.92.0 - 1.97.1` | `cargo +<version> check --locked --workspace --all-targets --all-features` for every supported compiler and point release |
+| `1.98.0` | `scripts/checks.sh` |
 
 Portable and native platform evidence is documented in
 [`docs/PLATFORM_SUPPORT.md`](https://github.com/valkyoth/cloud-sdk/blob/main/docs/PLATFORM_SUPPORT.md).

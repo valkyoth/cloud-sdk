@@ -20,7 +20,7 @@ serde_tree="$(
     cargo tree --locked -p cloud-sdk-hetzner --features serde \
         --edges normal --prefix none
 )"
-for dependency in 'base64-ng v2.0.1' 'md-5 v0.11.0' 'sha2 v0.11.0'; do
+for dependency in 'base64-ng v2.0.2' 'md-5 v0.11.0' 'sha2 v0.11.0'; do
     if ! printf '%s\n' "$serde_tree" | grep -Fqx "$dependency"; then
         echo "Hetzner security response model graph is missing $dependency" >&2
         exit 1

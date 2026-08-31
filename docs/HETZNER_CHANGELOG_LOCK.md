@@ -1,17 +1,17 @@
 # Hetzner Changelog Source Lock
 
-Status: reviewed before the final `1.0.0` qualification train.
+Status: current operational source reviewed after stable `1.0.0`.
 
-Retrieved: 2026-08-18
+Retrieved: 2026-08-31
 
 Official source:
 <https://docs.hetzner.cloud/changelog/feed.rss>
 
 Normalized semantic SHA-256:
-`e9100ee01fc2cc28904850273236310eb4a4bf6e834154b61d687eb7530ac318`
+`102fa2a3092c24a2c5cf9b25e7b7a60093ce3d6eb05ec0aa505c37843c2a6641`
 
 Latest reviewed entry:
-<https://docs.hetzner.cloud/changelog#2026-08-17-load-balancer-health-check-details>
+<https://docs.hetzner.cloud/changelog#2026-08-31-debian-11-image-is-deprecated>
 
 The normalization excludes only RSS `lastBuildDate`, which Hetzner regenerates
 without publishing a new entry. Element names, attributes, channel identity,
@@ -24,7 +24,13 @@ deprecation, rollout, and behavior notices that may precede or never alter an
 OpenAPI document. Any semantic digest or latest-entry change is a review stop;
 fetched RSS is never compiled, packaged, or accepted automatically.
 
-The latest review identified three post-spec-lock notices relevant to the SDK:
+The latest review identified four post-spec-lock notices relevant to the SDK:
+
+- The Debian 11 server image is deprecated and Hetzner announces that it will
+  no longer be available for new servers after 30 November 2026. Image
+  identities are caller-provided checked strings rather than an SDK allowlist,
+  so this operational catalog change requires no request or response model
+  change. Applications must choose a currently available image.
 
 - Load Balancer health targets can include additive `detail` and
   `http_status_code` fields. `v0.97.0` validates their exact unhealthy-only and

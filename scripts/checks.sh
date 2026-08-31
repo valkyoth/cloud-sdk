@@ -26,8 +26,6 @@ scripts/check_dependency_review.py v0.100.0 1.0.0 docs/DEPENDENCY_REVIEW.md
 scripts/test-exact-dependency-pins.py
 scripts/check_exact_dependency_pins.py
 scripts/check_review_digests.py
-scripts/test-stable-candidate.py
-scripts/check_stable_candidate.py
 scripts/test-publishable-readmes.py
 scripts/check-release-plan-structure.py
 scripts/test-release-plan-structure.py

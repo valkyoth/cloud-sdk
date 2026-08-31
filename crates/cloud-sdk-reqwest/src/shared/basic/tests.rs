@@ -1,4 +1,6 @@
-use std::format;
+use std::{format, vec};
+
+use core::sync::atomic::{AtomicU8, Ordering};
 
 use cloud_sdk::transport::CustomEndpointAcknowledgement;
 
@@ -19,6 +21,11 @@ fn test_scope() -> Option<BasicCredentialScope> {
         cloud_sdk::service_id!("robot"),
         endpoint,
     ))
+}
+
+fn runtime_password_byte() -> u8 {
+    static NEXT: AtomicU8 = AtomicU8::new(0);
+    (NEXT.fetch_add(1, Ordering::Relaxed) & 0x0f) | b'@'
 }
 
 #[test]
@@ -87,16 +94,16 @@ fn password_allows_spaces_and_colons_but_rejects_controls_non_ascii_and_bounds()
 #[test]
 fn mutable_sources_clear_on_success_and_rejection() {
     let mut username = *b"robot-user";
-    let mut password = *b"secret-pass";
+    let mut password = vec![runtime_password_byte(); 11];
     let Some(scope) = test_scope() else {
         unreachable!("security fixture construction failed");
     };
     assert!(BasicCredential::from_mut_bytes(&mut username, &mut password, scope).is_ok());
     assert_eq!(username, [0; 10]);
-    assert_eq!(password, [0; 11]);
+    assert!(password.iter().all(|byte| *byte == 0));
 
     let mut invalid_username = *b"bad:user";
-    let mut valid_password = *b"password";
+    let mut valid_password = vec![runtime_password_byte(); 8];
     let Some(scope) = test_scope() else {
         unreachable!("security fixture construction failed");
     };
@@ -108,7 +115,7 @@ fn mutable_sources_clear_on_success_and_rejection() {
         ))
     );
     assert_eq!(invalid_username, [0; 8]);
-    assert_eq!(valid_password, [0; 8]);
+    assert!(valid_password.iter().all(|byte| *byte == 0));
 }
 
 #[test]

@@ -19,7 +19,7 @@ check_output() {
     fi
 }
 
-check_output Rust 'rustc 1.97.1 ' rustc --version
+check_output Rust 'rustc 1.98.0 ' rustc --version
 check_output cargo-deny 'cargo-deny 0.20.2' cargo deny --version
 check_output cargo-audit 'cargo-audit-audit 0.22.2' cargo audit --version
 check_output cargo-sbom 'cargo-sbom 0.10.0' cargo sbom --version

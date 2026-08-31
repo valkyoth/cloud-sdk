@@ -2,7 +2,7 @@
 
 Status: admitted only behind the non-default `cloud-sdk-hetzner/serde` feature.
 
-Checked: 2026-08-09.
+Checked: 2026-08-31.
 
 ## Decision
 
@@ -14,7 +14,7 @@ the request model and creates no second owned public-key representation.
 
 | Package | Version | Direct features | License |
 | --- | --- | --- | --- |
-| `base64-ng` | `2.0.1` | defaults disabled | MIT OR Apache-2.0 |
+| `base64-ng` | `2.0.2` | defaults disabled | MIT OR Apache-2.0 |
 | `md-5` | `0.11.0` | defaults disabled | MIT OR Apache-2.0 |
 | `sha2` | `0.11.0` | defaults disabled | MIT OR Apache-2.0 |
 

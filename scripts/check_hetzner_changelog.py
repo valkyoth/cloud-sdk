@@ -21,11 +21,11 @@ LOCK_DOCUMENT = ROOT / "docs" / "HETZNER_CHANGELOG_LOCK.md"
 SOURCE_URL = "https://docs.hetzner.cloud/changelog/feed.rss"
 SELF_URL = "https://docs.hetzner.cloud/changelog/rss"
 PINNED_SEMANTIC_SHA256 = (
-    "e9100ee01fc2cc28904850273236310eb4a4bf6e834154b61d687eb7530ac318"
+    "102fa2a3092c24a2c5cf9b25e7b7a60093ce3d6eb05ec0aa505c37843c2a6641"
 )
 PINNED_LATEST_GUID = (
     "https://docs.hetzner.cloud/changelog#"
-    "2026-08-17-load-balancer-health-check-details"
+    "2026-08-31-debian-11-image-is-deprecated"
 )
 MAX_SOURCE_BYTES = 8 * 1024 * 1024
 CONNECT_TIMEOUT_SECONDS = 10

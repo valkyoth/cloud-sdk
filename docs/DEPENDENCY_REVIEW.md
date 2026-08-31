@@ -388,12 +388,8 @@ Add future release sections here instead of creating another version-named file.
 **Full snapshot:** [signed-tag source](https://github.com/valkyoth/cloud-sdk/blob/v0.94.0/docs/DEPENDENCY_REVIEW_0.94.0.md)
 
 ## v0.95.0
-
-
 Status: release candidate; pentest and final retest passed.
-
 ### Result
-
 v0.95 adds one exact Unix-only development dependency: `rustix 1.1.4` with
 only `fs`, `process`, and `std`. The ignored live integration harness uses its
 safe descriptor API for `NOFOLLOW`, `CLOEXEC`, and effective-user ownership
@@ -401,19 +397,15 @@ checks. This edge is absent from published normal dependencies, every default
 graph, non-Unix targets, and the provider's `no_std` library surface. It adds
 no first-party unsafe code, native build, network client, runtime, clock,
 randomness, or secret-store edge.
-
 The harness otherwise reuses the already admitted optional reqwest/rustls
 Basic transport, first-party sanitization boundary, client workspace, and
 strict Robot decoder. The admission rationale and alternatives are recorded in
 [`dependency-admission-rustix.md`](dependency-admission-rustix.md).
-
 The optional non-FIPS graph remains exactly `aws-lc-rs 1.18.0`,
 `aws-lc-sys 0.44.0`, and `http-body-util 0.1.5`. FIPS packages and features
 remain absent and deferred to Brynja. All ordinary first-party crate defaults
 remain empty, and `cloud-sdk-hetzner` has no transport dependency.
-
 ### Lockfile Changes
-
 | Package | Previous | v0.95 | Review |
 | --- | --- | --- | --- |
 | `cloud-sdk` | `0.94.0` | `0.95.0` | Advance the internal facade for the public Robot checkpoint. |
@@ -421,9 +413,7 @@ remain empty, and `cloud-sdk-hetzner` has no transport dependency.
 | `linux-raw-sys` | `-` | `0.12.1` | Generated Linux syscall constants used by `rustix`; no first-party direct use. |
 | `ovhcloud-v2-probe` | `0.94.0` | `0.95.0` | Advance the excluded workspace probe identity only. |
 | `rustix` | `-` | `1.1.4` | Exact safe descriptor and effective-user API for the ignored Unix live harness only. |
-
 ### Workspace Version Changes
-
 | Package | Published | v0.95 | Change | Publish |
 | --- | --- | --- | --- | --- |
 | `cloud-sdk` | `0.90.0` | `0.95.0` | cumulative core code | yes |
@@ -431,23 +421,19 @@ remain empty, and `cloud-sdk-hetzner` has no transport dependency.
 | `cloud-sdk-reqwest` | `0.35.3` | `0.36.0` | accumulated transport code and dependency updates | yes |
 | `cloud-sdk-sanitization` | `0.19.0` | `0.19.0` | unchanged | no |
 | `cloud-sdk-testkit` | `0.30.5` | `0.31.0` | accumulated regression code | yes |
-
 The release tool must publish exactly the four selected crates in dependency
 order and must exclude sanitization, fuzzing, internal tools, isolated tests,
 the OVHcloud probe, and retired provider-specific helper crates. Cargo Deny,
 RustSec, package, feature-unification, platform, freshness, and complete SPDX
 SBOM gates remain mandatory before publication.
-
 ## v0.96.0
 No dependency or feature edge changed. Lockfile identities advanced
 `cloud-sdk` and the unpublished probe from `0.95.0` to `0.96.0`; only
 provider request code accumulated and no crate was published.
-
 ## v0.97.0
 No third-party package, feature, target, build-script, or default edge changed.
 Lockfile identities advanced `cloud-sdk` and the unpublished probe from
 `0.96.0` to `0.97.0`; metadata and link-local code accumulated for v0.100.
-
 ## v0.98.0
 No third-party version or feature name changed. `cloud-sdk` and the unpublished
 probe advance from `0.97.0` to `0.98.0`. Existing optional reqwest
@@ -458,29 +444,24 @@ bundled `aws-lc-sys 0.44.0` remains the admitted native crypto implementation,
 conditional `ring 0.17.14` remains reviewed, and FIPS remains absent.
 The reqwest `std` marker no longer forces `cloud-sdk/std`; applications needing
 the core std integrations enable that core feature explicitly.
-
 | Package | Previous | v0.98 | Review |
 | --- | --- | --- | --- |
 | `cloud-sdk` | `0.97.0` | `0.98.0` | Advance the internal milestone identity. |
 | `ovhcloud-v2-probe` | `0.97.0` | `0.98.0` | Advance the unpublished probe identity only. |
-
 ## v0.99.0
 Exact default-disabled `saphyr 0.0.12` and `saphyr-parser 0.0.12` support the
 unpublished bounded YAML workflow checker. They have no published, native,
 network, credential, or runtime edge. Nothing publishes at this milestone.
-
 | Package | Previous | v0.99 | Review |
 | --- | --- | --- | --- |
 | `cloud-sdk` | `0.98.0` | `0.99.0` | Advance the internal milestone identity. |
 | `ovhcloud-v2-probe` | `0.98.0` | `0.99.0` | Advance the excluded probe identity only. |
 | `saphyr` | `-` | `0.0.12` | Exact YAML 1.2 parser in the unpublished workflow-policy checker only; default encoding disabled. |
 | `saphyr-parser` | transitive | `0.0.12` | Exact direct pre-DOM event parser; no publishable edge. |
-
 ## v0.100.0
 No third-party package or feature changed. Credential-free mutation tests are
 repository-only and add no runtime, credential, network, build-script, or
 package edge. Sanitization remains unchanged; optional AWS-LC remains non-FIPS.
-
 | Package | Previous | v0.100 | Review |
 | --- | --- | --- | --- |
 | `cloud-sdk` | `0.99.0` | `0.100.0` | Advance the public facade checkpoint. |
@@ -489,8 +470,8 @@ package edge. Sanitization remains unchanged; optional AWS-LC remains non-FIPS.
 | `cloud-sdk-testkit` | `0.31.0` | `0.31.1` | Dependency-only facade update. |
 | `ovhcloud-v2-probe` | `0.99.0` | `0.100.0` | Advance excluded inherited workspace identity only. |
 ## v1.0.0
-No resolved dependency, feature, target, build-script, or default edge changes; every direct third-party requirement narrows to the exact reviewed v0.100.0 version, and CI rejects broader or unversioned requirements.
-| Package | Previous | v1.0 | Review |
+No resolved dependency, feature, target, build-script, or default edge changed for the stable tag; post-release maintenance on 2026-08-31 advances reviewed compatible patches without changing features, targets, sources, licenses, or the published default graph. The isolated policy checker separately advances `syn 3.0.3 -> 3.0.4` under its own deny, audit, test, and SBOM gates.
+| Package | Previous | Current | Review |
 | --- | --- | --- | --- |
 | `cloud-sdk` | `0.100.0` | `1.0.0` | Stable promotion; direct third-party requirements become exact. |
 | `cloud-sdk-hetzner` | `0.47.0` | `1.0.0` | Stable promotion; direct third-party requirements become exact. |
@@ -498,3 +479,16 @@ No resolved dependency, feature, target, build-script, or default edge changes; 
 | `cloud-sdk-sanitization` | `0.19.0` | `1.0.0` | Stable promotion; sanitization requirement becomes exact. |
 | `cloud-sdk-testkit` | `0.31.1` | `1.0.0` | Stable metadata promotion. |
 | `ovhcloud-v2-probe` | `0.100.0` | `1.0.0` | Excluded inherited identity only. |
+| `base64-ng` | `2.0.1` | `2.0.2` | Exact direct patch; defaults remain disabled and the Rust 1.90 dependency MSRV stays below the workspace floor. |
+| `cc` | `1.4.3` | `1.4.4` | Compatible native-build helper patch; the bundled AWS-LC policy and native build boundary remain unchanged. |
+| `chacha20` | `0.10.1` | `0.10.2` | Compatible transitive patch in the existing rustls platform graph. |
+| `combine` | `4.6.7` | `4.6.8` | Compatible transitive parser patch in the existing platform-verifier graph. |
+| `cpufeatures` | `0.3.0` | `0.3.1` | Compatible transitive CPU-feature detection patch; no first-party feature or unsafe boundary changes. |
+| `hyper` | `1.11.0` | `1.11.1` | Exact direct HTTP/1 patch; defaults stay disabled and the admitted feature set is unchanged. |
+| `icu_provider` | `2.3.0` | `2.3.1` | Compatible transitive Unicode provider patch in the existing URL graph. |
+| `log` | `0.4.33` | `0.4.34` | Compatible transitive logging facade patch; no first-party logging capability is added. |
+| `quinn-proto` | `0.11.16` | `0.11.17` | Compatible transitive reqwest graph patch; HTTP/3 remains unenabled. |
+| `rustls-webpki` | `0.103.14` | `0.103.15` | Compatible certificate-validation patch under the existing rustls boundary. |
+| `syn` | `3.0.3` | `3.0.4` | Compatible macro parser patch used by existing derive/build paths. |
+| `zerovec` | `0.11.7` | `0.11.8` | Compatible transitive Unicode storage patch in the existing URL graph. |
+| `zerovec-derive` | `0.11.4` | `0.11.6` | Compatible derive patch paired with the reviewed zerovec update. |

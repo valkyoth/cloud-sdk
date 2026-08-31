@@ -1,6 +1,7 @@
 use alloc::format;
 use alloc::vec;
 use alloc::vec::Vec;
+use core::sync::atomic::{AtomicU8, Ordering};
 
 use cloud_sdk::authentication::{
     CredentialAttemptError, CredentialAttemptGeneration, CredentialAttemptStatus,
@@ -14,6 +15,11 @@ use super::{
     RobotCredentialStateError, RobotCredentials,
 };
 use crate::identity::{CLOUD_SERVICE_ID, HETZNER_PROVIDER_ID, ROBOT_SERVICE_ID};
+
+fn runtime_password_byte() -> u8 {
+    static NEXT: AtomicU8 = AtomicU8::new(0);
+    (NEXT.fetch_add(1, Ordering::Relaxed) & 0x0f) | b'@'
+}
 
 fn credentials() -> RobotCredentials {
     let mut username = Vec::from(b"robot-user".as_slice());
@@ -46,7 +52,7 @@ fn mutable_and_guarded_sources_clear_on_success_and_rejection() {
 #[test]
 fn exact_component_bounds_and_ascii_profiles_are_enforced() {
     let mut username = vec![b'u'; MAX_ROBOT_USERNAME_BYTES];
-    let mut password = vec![b'p'; MAX_ROBOT_PASSWORD_BYTES];
+    let mut password = vec![runtime_password_byte(); MAX_ROBOT_PASSWORD_BYTES];
     assert!(RobotCredentials::from_mut_bytes(&mut username, &mut password).is_ok());
 
     for (mut username, mut password, expected) in [
@@ -72,7 +78,7 @@ fn exact_component_bounds_and_ascii_profiles_are_enforced() {
         ),
         (
             Vec::from(b"user".as_slice()),
-            vec![b'p'; MAX_ROBOT_PASSWORD_BYTES + 1],
+            vec![runtime_password_byte(); MAX_ROBOT_PASSWORD_BYTES + 1],
             RobotCredentialError::PasswordTooLong,
         ),
         (
