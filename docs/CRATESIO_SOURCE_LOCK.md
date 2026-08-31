@@ -1,0 +1,80 @@
+# crates.io Source Lock
+
+Status: Commit 1 accepted-source candidate for the unreleased `1.1.0` train.
+
+This lock establishes finite crates.io scope before provider code exists. The
+machine-readable source manifest is
+[`provider-drift/providers/cratesio-source.lock.json`](../provider-drift/providers/cratesio-source.lock.json).
+The complete public operation inventory is
+[`CRATESIO_API_SCOPE.tsv`](CRATESIO_API_SCOPE.tsv), and the independently
+reviewed Cargo overlap is
+[`CRATESIO_CARGO_COMPATIBILITY.tsv`](CRATESIO_CARGO_COMPATIBILITY.tsv).
+
+## Reviewed Sources
+
+The 2026-08-31 observation binds five official HTTPS representations:
+
+| Evidence | Exact source | Bound |
+| --- | --- | --- |
+| Public API | `https://crates.io/api/openapi.json` | 1 MiB |
+| Stable Cargo contract | `https://doc.rust-lang.org/cargo/reference/registry-web-api.html` | 512 KiB |
+| Deployed access policy | `https://crates.io/data-access` | 128 KiB |
+| OpenAPI implementation | `rust-lang/crates.io` `src/openapi.rs` at `ea3b6ebad504d9701bc41f4d2f1d32ab864cee94` | 128 KiB |
+| Policy implementation | `rust-lang/crates.io` `svelte/src/routes/data-access/+page.svelte` at the same commit | 128 KiB |
+
+The manifest records each requested URL, final URL, redirect chain, media type,
+exact byte length, and SHA-256 digest. Retrieval requires HTTPS, a bounded
+response, a 60-second total read deadline, and same-origin redirects only. The
+accepted observation has no redirects.
+
+The deployed policy uses HTTP content negotiation. A request without an HTML
+`Accept` header currently returns `404`; the authoritative
+`Accept: text/html` representation returns the complete policy. The source-lock
+fetcher records and enforces that request representation.
+
+## Finite Scope
+
+The locked OpenAPI 3.1 document contains exactly 40 paths and 51 public
+operations. Every operation is classified `included`; no private,
+undocumented, or browser-only route is inferred. The two operations marked
+deprecated by the public document remain explicit included rows so their
+status cannot disappear silently.
+
+The OpenAPI exposes `api_token`, `trustpub_token`, and `cookie`. Cookie is
+recorded as upstream evidence but excluded from admitted SDK authentication.
+Every operation has an anonymous, token, trusted-publishing, OIDC-body, or
+one-time path-token route that does not require browser-session replay.
+
+Seven stable Cargo Registry Web API operations overlap public OpenAPI rows:
+publish, yank, unyank, owner list, owner add, owner remove, and search. Their
+Cargo rows are classified `superseded` by the named OpenAPI operation rather
+than implemented twice. Cargo's `/me` login URL is classified `excluded`
+because it is an instruction target, not an API operation.
+
+## Access Policy
+
+The deployed policy requires API clients to use at most one request per second
+and send an identifying `User-Agent`; contact information is strongly
+recommended. API access is a fallback after the sparse index, static crate
+downloads, RSS feeds, and daily database dumps. These are source-locked
+provider requirements, not optional SDK defaults.
+
+## Verification
+
+Validate committed evidence without network access:
+
+```console
+scripts/check_cratesio_source_lock.py
+```
+
+Re-fetch every official source and reconstruct both inventories in memory:
+
+```console
+scripts/check_cratesio_source_lock.py --fetch
+```
+
+The live command never rewrites accepted evidence. Digest, size, redirect,
+media-type, OpenAPI version, reference, operation identity, auth, Cargo
+contract, policy, or classification changes fail closed and require explicit
+review. Commit 2 will add semantic drift reporting and a controlled refresh
+workflow on top of this finite lock.

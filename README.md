@@ -161,6 +161,8 @@ visible. Applications should enable only the features they use.
 - [Compile-time Hetzner operation associations](https://github.com/valkyoth/cloud-sdk/blob/main/docs/OPERATION_ASSOCIATIONS.md)
 - [Incremental provider decoding](https://github.com/valkyoth/cloud-sdk/blob/main/docs/INCREMENTAL_DECODING.md)
 - [Deprecated endpoint policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/DEPRECATED_ENDPOINT_POLICY.md)
+- [crates.io 1.1 implementation plan](https://github.com/valkyoth/cloud-sdk/blob/main/docs/cratesio-commit-plan.md)
+- [crates.io source lock and finite scope](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATESIO_SOURCE_LOCK.md)
 
 ## Provider-Neutral Quickstart
 
@@ -839,7 +841,10 @@ transport, testing, and secret-handling capabilities remain provider-neutral.
 ## Provider Documentation
 
 Provider-specific API coverage and maintenance procedures live outside this
-provider-neutral README. For Hetzner, see the
+provider-neutral README. The unreleased crates.io provider is tracked by its
+[implementation plan](https://github.com/valkyoth/cloud-sdk/blob/main/docs/cratesio-commit-plan.md)
+and [source lock](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATESIO_SOURCE_LOCK.md).
+For Hetzner, see the
 [`cloud-sdk-hetzner` crate](https://crates.io/crates/cloud-sdk-hetzner), the
 [API matrix](https://github.com/valkyoth/cloud-sdk/blob/main/docs/API_MATRIX.md),
 and the

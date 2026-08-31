@@ -46,3 +46,23 @@ plan can become `public`.
 `cloud-sdk-cratesio` will enter this table when Commit 3 creates the provider
 crate. Exact final change classifications are assigned only after the complete
 train is implemented.
+
+## Completed Checkpoints
+
+### Commit 1 - Source Lock And Finite Scope
+
+- Locked five bounded official source representations: the public OpenAPI
+  document, stable Cargo Registry Web API contract, deployed data-access route,
+  and commit-pinned upstream OpenAPI and policy implementations.
+- Classified all 51 public operations across 40 paths and retained the two
+  upstream-deprecated operations as explicit rows.
+- Mapped the seven stable Cargo operations to their OpenAPI rows and excluded
+  Cargo's `/me` browser instruction from API coverage.
+- Recorded observed and admitted authentication, request and response schema
+  fingerprints, media types, statuses, and policy classifications.
+- Added offline validation, explicit live reconstruction, and adversarial
+  regression tests for redirects, bounds, malformed evidence, unresolved
+  references, unknown authentication, and incomplete classification.
+
+Security review remains pending until the Commit 1 incremental pentest is
+complete.

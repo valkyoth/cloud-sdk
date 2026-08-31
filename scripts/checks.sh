@@ -108,6 +108,8 @@ scripts/check_iana_ipv6_registry.py --local-only
 scripts/test-iana-ipv6-registry.py
 scripts/check_hetzner_api_drift.py --local-only
 scripts/test-hetzner-api-drift.py
+scripts/check_cratesio_source_lock.py
+scripts/test-cratesio-source-lock.py
 scripts/test-hetzner-metadata-contracts.py
 python3 scripts/generate_request_contract_inventory.py
 python3 scripts/test-request-contract-inventory.py

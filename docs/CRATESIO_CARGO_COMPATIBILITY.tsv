@@ -1,0 +1,9 @@
+classification	contract	method	path	openapi_operation_id	policy
+superseded	publish	PUT	/api/v1/crates/new	publish	implemented-through-public-openapi-row
+superseded	yank	DELETE	/api/v1/crates/{crate_name}/{version}/yank	yank_version	implemented-through-public-openapi-row
+superseded	unyank	PUT	/api/v1/crates/{crate_name}/{version}/unyank	unyank_version	implemented-through-public-openapi-row
+superseded	owners-list	GET	/api/v1/crates/{crate_name}/owners	list_owners	implemented-through-public-openapi-row
+superseded	owners-add	PUT	/api/v1/crates/{crate_name}/owners	add_owners	implemented-through-public-openapi-row
+superseded	owners-remove	DELETE	/api/v1/crates/{crate_name}/owners	remove_owners	implemented-through-public-openapi-row
+superseded	search	GET	/api/v1/crates	list_crates	implemented-through-public-openapi-row
+excluded	login-instruction	INSTRUCTION	/me	-	not-an-api-operation

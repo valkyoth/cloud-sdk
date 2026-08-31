@@ -182,14 +182,21 @@ response identity binding. Deprecated server-IP aliases remain excluded.
 20. Future providers: publish focused provider crates only after the provider's
    official API source, auth model, transport expectations, threat model, API
    matrix, live-test policy, and release plan are documented. The publication
-   order is Scaleway first, DigitalOcean second, and full OVHcloud later. The
+   order is crates.io first, Scaleway second, DigitalOcean third, and full
+   OVHcloud later. The
    unpublished `v0.57.0-v0.61.0` OVHcloud v2 probe proves architecture only
    and is not a supported provider release.
 
 ## Post-1.0 Provider Direction
 
-The next published provider is `cloud-sdk-scaleway`. `v1.1.0` selects a finite
-product list and exact stable GA versions from
+The next published provider is `cloud-sdk-cratesio`. The unreleased `v1.1.0`
+train implements every source-locked public operation plus exact compatibility
+with the seven overlapping stable Cargo Registry Web API operations. Its
+finite scope, access-policy boundary, and numbered checkpoints are defined in
+[`cratesio-commit-plan.md`](cratesio-commit-plan.md).
+
+`cloud-sdk-scaleway` follows crates.io. Its release selects a finite product
+list and exact stable GA versions from
 [Scaleway's APIs](https://www.scaleway.com/en/developers/api/). That inventory
 must account for global, regional, and zonal authorities, `X-Auth-Token`, PATCH
 requests, per-product schemas, and product-specific pagination/count
@@ -197,7 +204,7 @@ conventions such as `per_page`, `page_size`, `X-Total-Count`, and body
 `total_count`. Only selected matrix rows enter the completeness claim; alpha,
 beta, unselected GA versions, and unselected products remain excluded.
 
-`cloud-sdk-digitalocean` follows Scaleway. `v1.7.0` selects a finite operation
+`cloud-sdk-digitalocean` follows Scaleway. Its release selects a finite operation
 inventory from an exact revision of DigitalOcean's official
 [OpenAPI source](https://github.com/digitalocean/openapi) and validates the
 simpler bearer-auth and `/v2` path together with same-authority link

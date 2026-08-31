@@ -1,7 +1,7 @@
 # crates.io Commit Plan
 
-Status: service candidate assessment; this plan does not select crates.io as
-the next integration and does not assign a release version.
+Status: selected unreleased `1.1.0` implementation train. Commit 1 source-lock
+implementation is complete and awaits its incremental pentest.
 
 ## Decision Summary
 
@@ -45,14 +45,14 @@ if approved, a signed release tag and crate publication.
 
 ## Preliminary Survey
 
-This assessment was performed on 2026-08-20 against:
+This assessment was refreshed on 2026-08-31 against:
 
 - the official [crates.io OpenAPI document](https://crates.io/api/openapi.json);
 - the official
   [Cargo Registry Web API](https://doc.rust-lang.org/cargo/reference/registry-web-api.html);
 - the data-access policy linked by the OpenAPI document; and
 - official [`rust-lang/crates.io`](https://github.com/rust-lang/crates.io)
-  commit `d5a06769477625b2de83553db545e6239edf9952` from 2026-08-19 as
+  commit `ea3b6ebad504d9701bc41f4d2f1d32ab864cee94` as
   secondary implementation evidence.
 
 The observed OpenAPI 3.1 document exposed 40 paths and 51 public operations.
@@ -77,20 +77,27 @@ operations.
 The linked data-access policy requires clients to prefer the sparse index,
 static crate downloads, RSS feeds, or database dumps when those sources fit the
 task. Direct crates.io API use is limited to one request per second and requires
-an identifying `User-Agent`. The official policy route returned `404` during
-this survey even though the current crates.io source still contains the policy.
-Commit 1 must resolve and lock the deployed authoritative policy before any
-implementation claim is accepted.
+an identifying `User-Agent`. The deployed policy route is content-negotiated:
+requests without an HTML `Accept` header currently return `404`, while
+`Accept: text/html` returns the crates.io application. Commit 1 therefore binds
+both the deployed route and the policy component in the official source
+repository at the pinned commit.
 
 The survey copies had these SHA-256 digests:
 
 - OpenAPI JSON:
-  `198e7c27b95a541179030d702289da44ef8f67827640f6ebcdb1c6f320a132fb`;
+  `c9c1e39be547cca34ebde188cf3b52e66906ab23c50357ca51c766853139a17f`;
 - rendered Cargo Registry Web API page:
-  `ddd1958c9c8bbeaa721f64ac37cb5909b57db5351b35426c30fe246df8a1d7ac`.
+  `2e349014e3bc95e7896f3e33ddbee2fdbb30de0a4ec58dca5dd8b1bd6f98a138`;
+- deployed data-access route:
+  `47cb6a1d933a908deba30caf6440b5b9cc135c220102dd15ffeccd44cdad25ab`;
+- pinned OpenAPI source:
+  `05319ccd6c1fa9e0e3ac9acd86fca932ccd1100358c5e395427b6322ce4d7810`;
+- pinned data-access policy source:
+  `db5078a31e412c395321b95124ba5e4b3db7954e1d2a66a9a5847c3cbbaca802`.
 
-These values are sizing evidence only. Commit 1 creates the maintained source
-locks and exact operation matrix.
+The maintained manifest, operation matrix, and Cargo compatibility matrix are
+documented in [`CRATESIO_SOURCE_LOCK.md`](CRATESIO_SOURCE_LOCK.md).
 
 ## Scope Rules
 
@@ -114,6 +121,8 @@ locks and exact operation matrix.
 12. A numbered commit cannot widen scope assigned to a later commit.
 
 ## Commit 1 - Source Lock And Finite Scope
+
+Checkpoint status: implementation complete; incremental pentest pending.
 
 Goal: establish the exact crates.io and Cargo protocol support claim before
 service code exists.
