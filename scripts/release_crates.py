@@ -169,6 +169,24 @@ def validate_plan_entry(
     planned_version = parse_version(version)
     release_parts = parse_version(release)
 
+    if stage == "candidate":
+        if publish:
+            raise RuntimeError(f"{package_name} cannot publish at candidate stage")
+        if planned_version != release_parts:
+            raise RuntimeError(
+                f"{package_name} must match candidate version {release}"
+            )
+        if is_initial(previous):
+            if change != "code":
+                raise RuntimeError(
+                    f"{package_name} initial candidate must be a code change"
+                )
+        elif change not in {"code", "metadata"}:
+            raise RuntimeError(
+                f"{package_name} candidate change must be code or metadata"
+            )
+        return
+
     if stage == "internal":
         if publish:
             raise RuntimeError(f"{package_name} cannot publish at internal stage")
@@ -435,7 +453,7 @@ def main() -> int:
 
     if not publication_allowed(plan):
         print(
-            "Refusing crates.io publication for an internal tagged milestone.",
+            "Refusing crates.io publication for a non-public milestone.",
             file=sys.stderr,
         )
         return 1

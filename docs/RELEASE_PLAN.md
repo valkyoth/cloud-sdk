@@ -1,6 +1,11 @@
-# cloud-sdk Release Plan To 1.0
+# cloud-sdk Historical Release Plan Through 1.0
 
-Status: planning document.
+Status: completed historical plan.
+
+The stable `v1.0.0` release completed this plan. The unreleased `1.1.0`
+crates.io provider train follows
+[`cratesio-commit-plan.md`](cratesio-commit-plan.md) and uses pentested numbered
+commit checkpoints without intermediate tags.
 
 This plan is intentionally granular. `cloud-sdk` manages infrastructure APIs,
 so each milestone must be small enough to review, test, and stop cleanly before

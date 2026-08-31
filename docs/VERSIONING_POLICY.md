@@ -31,6 +31,13 @@ first and the facade publishes last. `release-crates.toml` records the stage,
 public baseline, immediate review baseline, complete milestone list, reason,
 and change class for every crate.
 
+Post-1.0 provider trains use numbered, pentested commit checkpoints without
+intermediate tags. During such a train, `stage = "candidate"` moves every
+workspace package manifest and dependency example to the selected unreleased
+version while selecting no package for publication. The publisher rejects the
+candidate stage. The final qualified checkpoint reclassifies package changes,
+switches to `public`, and receives the only release tag for the train.
+
 ## Compatibility
 
 Before `1.0.0`, minor releases may contain necessary public API changes. Such

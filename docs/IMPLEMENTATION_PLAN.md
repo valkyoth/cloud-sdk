@@ -6,6 +6,10 @@ Workspace name: `cloud-sdk`
 
 Primary crates: `cloud-sdk` and `cloud-sdk-hetzner`
 
+Current candidate: `1.1.0`, implementing the complete source-locked public
+crates.io API through the numbered checkpoints in
+[`cratesio-commit-plan.md`](cratesio-commit-plan.md).
+
 1.0 target: a serious production-ready provider-neutral `cloud-sdk` foundation
 and complete Hetzner Cloud, DNS, Console Storage Box, and Robot provider with
 no_std request/response domains, complete claimed non-deprecated endpoint

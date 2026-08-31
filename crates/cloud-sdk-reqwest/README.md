@@ -29,6 +29,10 @@ Optional provider-neutral transport adapter for the main
 [`cloud-sdk`](https://github.com/valkyoth/cloud-sdk) workspace and
 [`cloud-sdk`](https://crates.io/crates/cloud-sdk) crate.
 
+This README tracks the unreleased workspace `1.1.0` candidate. The published
+stable transport crate remains `1.0.0` until the complete candidate train is
+qualified.
+
 Version 1.0 remains no_std and transport-free by default. Its non-default
 `blocking-rustls`, `blocking-rustls-webpki-roots`, and `async-rustls` features
 provide reviewed HTTPS implementations for every
@@ -43,8 +47,8 @@ The default and `std`-only graphs remain portable and transport-free.
 
 ```toml
 [dependencies]
-cloud-sdk = "=1.0.0"
-cloud-sdk-reqwest = { version = "=1.0.0", features = ["blocking-rustls"] }
+cloud-sdk = "=1.1.0"
+cloud-sdk-reqwest = { version = "=1.1.0", features = ["blocking-rustls"] }
 ```
 
 The examples use Hetzner as a concrete endpoint, but the adapter contains no
@@ -395,8 +399,8 @@ compiled into `webpki-roots`:
 
 ```toml
 [dependencies]
-cloud-sdk = "=1.0.0"
-cloud-sdk-reqwest = { version = "=1.0.0", features = ["blocking-rustls-webpki-roots"] }
+cloud-sdk = "=1.1.0"
+cloud-sdk-reqwest = { version = "=1.1.0", features = ["blocking-rustls-webpki-roots"] }
 ```
 
 The blocking API is identical to the example above. The custom rustls client

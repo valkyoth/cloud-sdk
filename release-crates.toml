@@ -1,45 +1,45 @@
 [release]
-version = "1.0.0"
-milestone = "1.0.0"
-baseline = "0.100.0"
-review_baseline = "0.100.0"
-cumulative_milestones = ["1.0.0"]
+version = "1.1.0"
+milestone = "1.1.0"
+baseline = "1.0.0"
+review_baseline = "1.0.0"
+cumulative_milestones = ["1.1.0"]
 policy = "independent"
-stage = "public"
+stage = "candidate"
 exceptional = false
 exception_reason = ""
 
 [crates."cloud-sdk"]
-previous_version = "0.100.0"
-version = "1.0.0"
+previous_version = "1.0.0"
+version = "1.1.0"
 change = "metadata"
-publish = true
-reason = "Publish the qualified provider-neutral API with exact reviewed third-party requirements as stable 1.0."
+publish = false
+reason = "Track the unreleased crates.io provider train without enabling publication."
 
 [crates."cloud-sdk-hetzner"]
-previous_version = "0.47.0"
-version = "1.0.0"
+previous_version = "1.0.0"
+version = "1.1.0"
 change = "metadata"
-publish = true
-reason = "Publish the complete qualified Hetzner provider with exact reviewed third-party requirements as stable 1.0."
+publish = false
+reason = "Keep the stable Hetzner provider on the coherent unreleased workspace version."
 
 [crates."cloud-sdk-reqwest"]
-previous_version = "0.37.0"
-version = "1.0.0"
+previous_version = "1.0.0"
+version = "1.1.0"
 change = "metadata"
-publish = true
-reason = "Publish the qualified reqwest adapter with exact reviewed transport requirements as stable 1.0."
+publish = false
+reason = "Keep the neutral transport boundary on the coherent unreleased workspace version."
 
 [crates."cloud-sdk-sanitization"]
-previous_version = "0.19.0"
-version = "1.0.0"
+previous_version = "1.0.0"
+version = "1.1.0"
 change = "metadata"
-publish = true
-reason = "Publish the qualified cleanup boundary with an exact reviewed sanitization requirement as stable 1.0."
+publish = false
+reason = "Keep the cleanup boundary on the coherent unreleased workspace version."
 
 [crates."cloud-sdk-testkit"]
-previous_version = "0.31.1"
-version = "1.0.0"
+previous_version = "1.0.0"
+version = "1.1.0"
 change = "metadata"
-publish = true
-reason = "Publish the qualified provider-neutral testkit as stable 1.0."
+publish = false
+reason = "Keep the testkit on the coherent unreleased workspace version."

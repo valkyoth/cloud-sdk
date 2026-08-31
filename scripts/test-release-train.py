@@ -58,6 +58,41 @@ def test_intermediate_minor_is_internal() -> None:
     assert release_train.next_checkpoint("0.51.0") == "0.55.0"
 
 
+def test_post_stable_candidate_is_not_publishable() -> None:
+    context = release_train.validate_release_context(
+        release(
+            "1.1.0",
+            stage="candidate",
+            baseline="1.0.0",
+            review_baseline="1.0.0",
+            milestones=("1.1.0",),
+        )
+    )
+    assert context["stage"] == "candidate"
+    assert not release_train.publication_allowed(context)
+
+
+def test_candidate_stage_rejects_pre_stable_and_exceptions() -> None:
+    assert_fails(
+        "available only after v1.0.0",
+        release_train.validate_release_context,
+        release("0.51.0", stage="candidate", milestones=("0.51.0",)),
+    )
+    assert_fails(
+        "cannot declare a release exception",
+        release_train.validate_release_context,
+        release(
+            "1.1.0",
+            stage="candidate",
+            baseline="1.0.0",
+            review_baseline="1.0.0",
+            milestones=("1.1.0",),
+            exceptional=True,
+            reason="not permitted",
+        ),
+    )
+
+
 def test_review_baseline_is_retained_in_validated_context() -> None:
     context = release_train.validate_release_context(
         release(

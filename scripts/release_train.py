@@ -8,7 +8,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-STAGES = ("internal", "public")
+STAGES = ("candidate", "internal", "public")
 CADENCE_BASELINE = (0, 50, 0)
 EXTRA_PUBLIC_CHECKPOINTS: set[tuple[int, int, int]] = set()
 
@@ -104,7 +104,12 @@ def validate_release_context(release: dict) -> dict:
             raise RuntimeError("cumulative milestones must follow the public baseline")
 
     scheduled = is_scheduled_checkpoint(version)
-    if stage == "internal":
+    if stage == "candidate":
+        if parsed[0] == 0:
+            raise RuntimeError("candidate stage is available only after v1.0.0")
+        if exceptional or exception_reason:
+            raise RuntimeError("candidate stage cannot declare a release exception")
+    elif stage == "internal":
         if parsed[0] != 0 or scheduled:
             raise RuntimeError("internal stage conflicts with release classification")
         if exceptional and not exception_reason.strip():

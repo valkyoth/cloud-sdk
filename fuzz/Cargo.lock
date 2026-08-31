@@ -113,7 +113,7 @@ dependencies = [
 
 [[package]]
 name = "cloud-sdk"
-version = "1.0.0"
+version = "1.1.0"
 dependencies = [
  "cloud-sdk-sanitization",
  "subtle",
@@ -132,7 +132,7 @@ dependencies = [
 
 [[package]]
 name = "cloud-sdk-hetzner"
-version = "1.0.0"
+version = "1.1.0"
 dependencies = [
  "base64-ng",
  "cloud-sdk",
@@ -145,7 +145,7 @@ dependencies = [
 
 [[package]]
 name = "cloud-sdk-reqwest"
-version = "1.0.0"
+version = "1.1.0"
 dependencies = [
  "aws-lc-rs",
  "aws-lc-sys",
@@ -166,7 +166,7 @@ dependencies = [
 
 [[package]]
 name = "cloud-sdk-sanitization"
-version = "1.0.0"
+version = "1.1.0"
 dependencies = [
  "sanitization",
 ]

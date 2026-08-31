@@ -1,9 +1,10 @@
 # Crate Version Matrix
 
-Status: `v0.100.0` is the latest published development checkpoint. `v1.0.0` is
-the stable release candidate. Its Low dependency-pin finding is remediated and
-the final retest is fully green with no other finding. The local release gate
-and green GitHub CI and CodeQL remain required before publication.
+Status: `v1.0.0` is the latest published stable release. The workspace is on
+the unreleased `1.1.0` candidate line for the crates.io API implementation
+train. Candidate checkpoints are committed and pentested without tags or
+crates.io publication; all packages remain non-publishable in release tooling
+until the final service candidate is qualified.
 
 `cloud-sdk` is the provider-neutral entry point. Provider crates such as
 `cloud-sdk-hetzner` own their endpoint models in internal modules. Shared
@@ -1509,6 +1510,22 @@ select one coherent stable dependency set.
 | `cloud-sdk-reqwest` | `0.37.0` | `1.0.0` | `metadata` | Yes | Publish the optional adapter with exact reviewed transport requirements. |
 | `cloud-sdk-sanitization` | `0.19.0` | `1.0.0` | `metadata` | Yes | Publish the cleanup boundary with an exact reviewed sanitization requirement. |
 | `cloud-sdk-testkit` | `0.31.1` | `1.0.0` | `metadata` | Yes | Publish the qualified test support API as stable. |
+
+## v1.1.0 Candidate Tracking Table
+
+`1.1.0` is the unreleased crates.io API provider train. All existing public
+packages carry the candidate version so documentation and local dependency
+examples describe `main` accurately. `stage = "candidate"` selects no package
+for publication. The final checkpoint will classify actual package changes and
+switch to `public` only after the complete incremental and full-service review.
+
+| Crate | Published | Candidate | Current change | Publish | Reason |
+| --- | --- | --- | --- | --- | --- |
+| `cloud-sdk` | `1.0.0` | `1.1.0` | `metadata` | No | Mark `main` as the unreleased crates.io provider integration line. |
+| `cloud-sdk-hetzner` | `1.0.0` | `1.1.0` | `metadata` | No | Keep one coherent workspace version without changing stable Hetzner behavior. |
+| `cloud-sdk-reqwest` | `1.0.0` | `1.1.0` | `metadata` | No | Keep the shared transport boundary aligned for later crates.io execution. |
+| `cloud-sdk-sanitization` | `1.0.0` | `1.1.0` | `metadata` | No | Keep the shared cleanup boundary aligned. |
+| `cloud-sdk-testkit` | `1.0.0` | `1.1.0` | `metadata` | No | Keep the shared test boundary aligned for provider fixtures. |
 
 ## Planned Milestone Ownership
 

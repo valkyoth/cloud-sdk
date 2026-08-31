@@ -27,7 +27,7 @@ Checked: 2026-08-31.
 | `webpki-roots` | `1.0.9` | deterministic Mozilla trust-root snapshot | disabled |
 | `aws-lc-rs` | `1.18.0` | rustls cryptographic provider | transitive |
 | `aws-lc-sys` | `0.44.0` | bundled native AWS-LC implementation | disabled |
-| `cloud-sdk-sanitization` | `1.0.0` | mandatory core and adapter-owned secret-buffer cleanup | disabled |
+| `cloud-sdk-sanitization` | `1.1.0` | mandatory core and adapter-owned secret-buffer cleanup | disabled |
 | `sanitization` | `2.0.3` | reviewed volatile cleanup primitive | disabled |
 
 The exact repository graph is pinned by `Cargo.lock`, checked by `cargo deny`,

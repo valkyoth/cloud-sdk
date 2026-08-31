@@ -8,14 +8,15 @@ requirements and pentest evidence model remain in the
 
 1. Finish code, tests, docs, crate versions, release metadata, lockfiles, and
    all SBOMs.
-2. Set `release-crates.toml` to `stage = "internal"` for an ordinary
-   intermediate tag or `stage = "public"` for a scheduled or exceptional
-   checkpoint. Keep the normal `vX.Y.Z` tag name in either case.
+2. Set `release-crates.toml` to `stage = "candidate"` for an untagged post-1.0
+   implementation train, `stage = "internal"` for a historical pre-1.0
+   intermediate tag, or `stage = "public"` for a publishable checkpoint.
 3. Keep `baseline` at the preceding public checkpoint, set `review_baseline`
    to the immediately preceding tag, and list every minor and patch tag after
    the public baseline through the candidate in `cumulative_milestones`.
-4. For an internal stage, select no crates for publication and retain the
-   published versions of supporting crates. For a public stage, cumulatively
+4. Candidate and internal stages select no crates for publication. Candidate
+   packages share the selected post-1.0 version; historical internal stages
+   retain published supporting-crate versions. Public stages cumulatively
    classify every changed package and publish the facade last.
 5. Run `scripts/checks.sh`, the version-specific release gate prerequisites,
    `cargo deny check`, and `cargo audit`.

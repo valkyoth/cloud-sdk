@@ -29,6 +29,10 @@ Hetzner provider crate for the main GitHub
 [`cloud-sdk`](https://github.com/valkyoth/cloud-sdk) workspace and the
 [`cloud-sdk`](https://crates.io/crates/cloud-sdk) crate on crates.io.
 
+This README tracks the unreleased workspace `1.1.0` candidate. The published
+stable Hetzner provider remains `1.0.0` until the complete candidate train is
+qualified.
+
 Version 1.0 is the main documentation surface for stable Hetzner support in
 `cloud-sdk`. It covers the complete claimed non-deprecated Hetzner Cloud, DNS,
 Security, Console Storage Box, Server Metadata, and Robot APIs with validated
@@ -38,8 +42,8 @@ request models, typed clients, and reviewed response and workflow boundaries.
 
 ```toml
 [dependencies]
-cloud-sdk = "=1.0.0"
-cloud-sdk-hetzner = "=1.0.0"
+cloud-sdk = "=1.1.0"
+cloud-sdk-hetzner = "=1.1.0"
 ```
 
 ## Features
@@ -940,7 +944,7 @@ Enable Serde explicitly; it is never part of the default graph:
 
 ```toml
 [dependencies]
-cloud-sdk-hetzner = { version = "=1.0.0", features = ["serde"] }
+cloud-sdk-hetzner = { version = "=1.1.0", features = ["serde"] }
 ```
 
 The feature admits serde_json with `default-features = false` and `alloc` only

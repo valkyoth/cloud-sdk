@@ -27,6 +27,9 @@
 
 Stable version 1.0 provider-neutral testing support for the main
 [`cloud-sdk`](https://crates.io/crates/cloud-sdk) crate and its provider crates.
+
+This README tracks the unreleased workspace `1.1.0` candidate. The published
+stable testkit remains `1.0.0` until the complete candidate train is qualified.
 The default graph is no_std, allocation-free, network-free, filesystem-free,
 and runtime-free.
 
@@ -39,8 +42,8 @@ failures need deterministic multi-request coverage.
 
 ```toml
 [dev-dependencies]
-cloud-sdk = "=1.0.0"
-cloud-sdk-testkit = "=1.0.0"
+cloud-sdk = "=1.1.0"
+cloud-sdk-testkit = "=1.1.0"
 ```
 
 ## Mock Transport

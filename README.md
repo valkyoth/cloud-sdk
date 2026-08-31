@@ -40,6 +40,10 @@ fit their environment. The project emphasizes validated inputs, bounded
 memory use, caller-controlled behavior, cross-platform compatibility,
 security review, and reproducible release evidence.
 
+The latest published stable release is `1.0.0`. The `main` branch carries the
+unreleased `1.1.0` crates.io provider candidate and cannot be published while
+its release metadata remains in the non-public `candidate` stage.
+
 ## Cost And Production Warning
 
 Cloud APIs can create, modify, and delete billable resources. This SDK is built
@@ -78,9 +82,10 @@ please report it so it can be fixed.
 | [`Hetzner Cloud`](https://www.hetzner.com/) | `1.0.0` | stable in [`cloud-sdk-hetzner`](https://crates.io/crates/cloud-sdk-hetzner) |
 | [`Hetzner Robot`](https://robot.hetzner.com/doc/webservice/en.html) | `1.0.0` | stable in `cloud-sdk-hetzner` |
 | [`OVHcloud API v2`](https://docs.ovhcloud.com/en/guides/manage-and-operate/api/apiv2/) architecture probe | `0.57.0 - 0.61.0` | unpublished conformance fixture; neutral freeze follows in `0.62.0` |
-| [`Scaleway`](https://www.scaleway.com/en/developers/api/) | `1.1.0 - 1.6.0` | planned `cloud-sdk-scaleway`; stable GA APIs first |
-| [`DigitalOcean`](https://docs.digitalocean.com/reference/api/reference/public-apis/) | `1.7.0 - 1.12.0` | planned `cloud-sdk-digitalocean` |
-| [`OVHcloud`](https://docs.ovhcloud.com/en/) full provider | later post-1.0 | planned `cloud-sdk-ovhcloud` after a dedicated v1/v2 and product-scope plan |
+| [`crates.io`](https://crates.io/) | `1.1.0` | in development; complete public API and Cargo Registry Web API compatibility through `cloud-sdk-cratesio` |
+| [`Scaleway`](https://www.scaleway.com/en/developers/api/) | candidate assessment | commit plan available; stable GA APIs first |
+| [`DigitalOcean`](https://docs.digitalocean.com/reference/api/reference/public-apis/) | candidate assessment | commit plan available |
+| [`OVHcloud`](https://docs.ovhcloud.com/en/) full provider | later candidate | follows a dedicated v1/v2 and product-scope plan |
 
 The probe exists to test the shared architecture against a materially different
 API. Published providers receive their own source lock, threat model, API
@@ -108,8 +113,8 @@ Portable and native platform evidence is documented in
 
 ```toml
 [dependencies]
-cloud-sdk = "=1.0.0"
-cloud-sdk-hetzner = "=1.0.0"
+cloud-sdk = "=1.1.0"
+cloud-sdk-hetzner = "=1.1.0"
 ```
 
 ## cloud-sdk Features
@@ -490,8 +495,8 @@ without changing the default allocation-free graph.
 
 ```toml
 [dependencies]
-cloud-sdk = "=1.0.0"
-cloud-sdk-reqwest = { version = "=1.0.0", features = ["blocking-rustls"] }
+cloud-sdk = "=1.1.0"
+cloud-sdk-reqwest = { version = "=1.1.0", features = ["blocking-rustls"] }
 ```
 
 The production builder is HTTPS-only, requires explicit bounded timeouts and a
@@ -517,8 +522,8 @@ when deterministic public WebPKI roots are required:
 
 ```toml
 [dependencies]
-cloud-sdk = "=1.0.0"
-cloud-sdk-reqwest = { version = "=1.0.0", features = ["blocking-rustls-webpki-roots"] }
+cloud-sdk = "=1.1.0"
+cloud-sdk-reqwest = { version = "=1.1.0", features = ["blocking-rustls-webpki-roots"] }
 ```
 
 The blocking API is unchanged. This feature excludes host-added enterprise
@@ -540,8 +545,8 @@ See the [FIPS deferment policy](https://github.com/valkyoth/cloud-sdk/blob/main/
 
 ```toml
 [dependencies]
-cloud-sdk = "=1.0.0"
-cloud-sdk-reqwest = { version = "=1.0.0", features = ["async-rustls"] }
+cloud-sdk = "=1.1.0"
+cloud-sdk-reqwest = { version = "=1.1.0", features = ["async-rustls"] }
 ```
 
 The async adapter requires an active Tokio executor because reqwest uses Tokio

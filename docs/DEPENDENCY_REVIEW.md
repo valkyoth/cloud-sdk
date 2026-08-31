@@ -4,25 +4,21 @@ This document consolidates release dependency reviews. Earlier complete snapshot
 Add future release sections here instead of creating another version-named file. Current policies live in the focused documents linked from each release note and in the release roadmap.
 
 ## v0.24.0
-
 **Status:** historical reviewed snapshot  
 **Topics:** Direct Published-Crate Dependencies; Tooling; Deterministic Trust Roots; Native AWS-LC Boundary; Evidence  
 **Full snapshot:** [signed-tag source](https://github.com/valkyoth/cloud-sdk/blob/v0.24.0/docs/DEPENDENCY_REVIEW_0.24.0.md)
 
 ## v0.32.0
-
 **Status:** historical reviewed snapshot  
 **Topics:** Reviewed Direct Updates; sanitization 2.0.3; Isolated And Transitive Updates; Cargo Archive Checksums; Required Verification  
 **Full snapshot:** [signed-tag source](https://github.com/valkyoth/cloud-sdk/blob/v0.32.0/docs/DEPENDENCY_REVIEW_0.32.0.md)
 
 ## v0.33.0
-
 **Status:** historical reviewed snapshot  
 **Topics:** Result; Required Verification  
 **Full snapshot:** [signed-tag source](https://github.com/valkyoth/cloud-sdk/blob/v0.33.0/docs/DEPENDENCY_REVIEW_0.33.0.md)
 
 ## v0.34.0
-
 **Status:** historical reviewed snapshot  
 **Topics:** Result; Required Verification  
 **Full snapshot:** [signed-tag source](https://github.com/valkyoth/cloud-sdk/blob/v0.34.0/docs/DEPENDENCY_REVIEW_0.34.0.md)
@@ -470,7 +466,7 @@ package edge. Sanitization remains unchanged; optional AWS-LC remains non-FIPS.
 | `cloud-sdk-testkit` | `0.31.0` | `0.31.1` | Dependency-only facade update. |
 | `ovhcloud-v2-probe` | `0.99.0` | `0.100.0` | Advance excluded inherited workspace identity only. |
 ## v1.0.0
-No resolved dependency, feature, target, build-script, or default edge changed for the stable tag; post-release maintenance on 2026-08-31 advances reviewed compatible patches without changing features, targets, sources, licenses, or the published default graph. The isolated policy checker separately advances `syn 3.0.3 -> 3.0.4` under its own deny, audit, test, and SBOM gates.
+No resolved dependency, feature, target, build-script, or default edge changed for the stable tag.
 | Package | Previous | Current | Review |
 | --- | --- | --- | --- |
 | `cloud-sdk` | `0.100.0` | `1.0.0` | Stable promotion; direct third-party requirements become exact. |
@@ -479,6 +475,16 @@ No resolved dependency, feature, target, build-script, or default edge changed f
 | `cloud-sdk-sanitization` | `0.19.0` | `1.0.0` | Stable promotion; sanitization requirement becomes exact. |
 | `cloud-sdk-testkit` | `0.31.1` | `1.0.0` | Stable metadata promotion. |
 | `ovhcloud-v2-probe` | `0.100.0` | `1.0.0` | Excluded inherited identity only. |
+## v1.1.0
+The unreleased candidate aligns every workspace crate at 1.1.0. Reviewed compatible maintenance patches retain their existing features, targets, sources, licenses, and default graph; the isolated policy checker remains separately gated.
+| Package | Previous | Current | Review |
+| --- | --- | --- | --- |
+| `cloud-sdk` | `1.0.0` | `1.1.0` | Advance the unreleased facade candidate. |
+| `cloud-sdk-hetzner` | `1.0.0` | `1.1.0` | Align the provider with the candidate train. |
+| `cloud-sdk-reqwest` | `1.0.0` | `1.1.0` | Align the transport adapter with the candidate train. |
+| `cloud-sdk-sanitization` | `1.0.0` | `1.1.0` | Align the cleanup boundary with the candidate train. |
+| `cloud-sdk-testkit` | `1.0.0` | `1.1.0` | Align the testkit with the candidate train. |
+| `ovhcloud-v2-probe` | `1.0.0` | `1.1.0` | Align the excluded probe identity only. |
 | `base64-ng` | `2.0.1` | `2.0.2` | Exact direct patch; defaults remain disabled and the Rust 1.90 dependency MSRV stays below the workspace floor. |
 | `cc` | `1.4.3` | `1.4.4` | Compatible native-build helper patch; the bundled AWS-LC policy and native build boundary remain unchanged. |
 | `chacha20` | `0.10.1` | `0.10.2` | Compatible transitive patch in the existing rustls platform graph. |
