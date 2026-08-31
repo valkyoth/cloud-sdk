@@ -63,6 +63,12 @@ train is implemented.
 - Added offline validation, explicit live reconstruction, and adversarial
   regression tests for redirects, bounds, malformed evidence, unresolved
   references, unknown authentication, and incomplete classification.
+- Bound every requested and final source URL to its exact official authority
+  and path, bound committed inventories by SHA-256, and required live
+  reconstruction in the final release gate.
+- Made path-token and OIDC-body authentication conditional on exact upstream
+  structures, and rejected TRACE explicitly rather than omitting it from
+  coverage.
 
 Security review remains pending until the Commit 1 incremental pentest is
 complete.

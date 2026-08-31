@@ -9,12 +9,12 @@ import sys
 from pathlib import Path
 
 from cratesio_source_fetch import fetch_source
+from cratesio_source_manifest import validate_artifact_digests, validate_lock
+from cratesio_source_error import SourceLockError
 from cratesio_source_lock import (
     CARGO_COLUMNS,
     TSV_COLUMNS,
-    SourceLockError,
     observe,
-    validate_lock,
     validate_tsv,
 )
 
@@ -42,6 +42,7 @@ def main() -> int:
         validate_lock(lock)
         operation_lock = OPERATIONS.read_bytes()
         cargo_lock = CARGO.read_bytes()
+        validate_artifact_digests(lock, operation_lock, cargo_lock)
         operation_rows = validate_tsv(
             operation_lock, TSV_COLUMNS, lock["openapi"]["operations"]
         )

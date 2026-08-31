@@ -42,8 +42,8 @@ request models, typed clients, and reviewed response and workflow boundaries.
 
 ```toml
 [dependencies]
-cloud-sdk = "=1.1.0"
-cloud-sdk-hetzner = "=1.1.0"
+cloud-sdk = "=1.0.0"
+cloud-sdk-hetzner = "=1.0.0"
 ```
 
 ## Features
@@ -944,7 +944,7 @@ Enable Serde explicitly; it is never part of the default graph:
 
 ```toml
 [dependencies]
-cloud-sdk-hetzner = { version = "=1.1.0", features = ["serde"] }
+cloud-sdk-hetzner = { version = "=1.0.0", features = ["serde"] }
 ```
 
 The feature admits serde_json with `default-features = false` and `alloc` only

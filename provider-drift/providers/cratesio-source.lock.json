@@ -59,6 +59,10 @@
       "sha256": "db5078a31e412c395321b95124ba5e4b3db7954e1d2a66a9a5847c3cbbaca802"
     }
   ],
+  "artifacts": {
+    "operations_sha256": "60ca11c24188976609e63500c4cd14ae37559fe7462b8e53305c34ab878e38ec",
+    "cargo_compatibility_sha256": "d4c9d2a6ab17d583926ed0887897f989ea70d5641dc0a044682e90517e24d8d0"
+  },
   "openapi": {
     "version": "3.1.0",
     "paths": 40,

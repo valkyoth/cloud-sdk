@@ -5,6 +5,7 @@ set -eu
 
 scripts/validate-release-readiness.sh v1.1.0
 reviewed_head="$(git rev-parse HEAD)"
+scripts/check_cratesio_source_lock.py --fetch
 scripts/checks.sh
 
 if [ "$(git rev-parse HEAD)" != "$reviewed_head" ]; then

@@ -8,9 +8,12 @@ import json
 import re
 from html.parser import HTMLParser
 from typing import Any
-from urllib.parse import urlsplit
 
-METHODS = {"delete", "get", "head", "options", "patch", "post", "put"}
+from cratesio_openapi_auth import synthetic_auth
+from cratesio_source_error import SourceLockError
+
+OPENAPI_METHODS = {"delete", "get", "head", "options", "patch", "post", "put", "trace"}
+ADMITTED_METHODS = OPENAPI_METHODS - {"trace"}
 CLASSIFICATIONS = {"included", "deferred", "excluded", "superseded"}
 KNOWN_AUTH = {"api_token", "cookie", "trustpub_token"}
 STABLE_OPERATIONS = {
@@ -21,11 +24,6 @@ STABLE_OPERATIONS = {
     "remove_owners",
     "unyank_version",
     "yank_version",
-}
-PATH_AUTH = {
-    "accept_crate_owner_invitation_with_token": "owner_invitation_path_token",
-    "confirm_user_email": "email_confirmation_path_token",
-    "exchange_trustpub_token": "oidc_assertion_body",
 }
 TSV_COLUMNS = (
     "classification",
@@ -91,9 +89,6 @@ CARGO_CONTRACTS = (
     ("search", "get", "/api/v1/crates", "list_crates", "search"),
 )
 
-class SourceLockError(ValueError):
-    """The upstream source or committed lock is incomplete."""
-
 def canonical_bytes(value: Any) -> bytes:
     return json.dumps(
         value, sort_keys=True, separators=(",", ":"), ensure_ascii=True
@@ -102,7 +97,6 @@ def canonical_bytes(value: Any) -> bytes:
 def digest(value: Any) -> str:
     return hashlib.sha256(canonical_bytes(value)).hexdigest()
 
-
 def _unique_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
     result: dict[str, Any] = {}
     for key, value in pairs:
@@ -110,7 +104,6 @@ def _unique_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
             raise SourceLockError(f"JSON contains duplicate key {key!r}")
         result[key] = value
     return result
-
 
 def parse_json(payload: bytes, label: str) -> dict[str, Any]:
     try:
@@ -215,7 +208,11 @@ def operation_rows(document: dict[str, Any]) -> list[dict[str, str]]:
         item = paths[path]
         if not isinstance(path, str) or not isinstance(item, dict):
             raise SourceLockError("OpenAPI path item is invalid")
-        for method in sorted(METHODS & item.keys()):
+        present = OPENAPI_METHODS & item.keys()
+        unsupported = present - ADMITTED_METHODS
+        if unsupported:
+            raise SourceLockError(f"{path} exposes unsupported methods: {sorted(unsupported)}")
+        for method in sorted(present):
             operation = item[method]
             if not isinstance(operation, dict):
                 raise SourceLockError("OpenAPI operation must be an object")
@@ -230,8 +227,9 @@ def operation_rows(document: dict[str, Any]) -> list[dict[str, str]]:
                 raise SourceLockError(f"{operation_id} lacks responses")
             observed = _auth_alternatives(document, operation)
             admitted = [value for value in observed if "cookie" not in value]
-            if operation_id in PATH_AUTH:
-                admitted = [PATH_AUTH[operation_id]]
+            synthetic = synthetic_auth(operation_id, path, item, operation, observed)
+            if synthetic is not None:
+                admitted = [synthetic]
             if not admitted:
                 raise SourceLockError(f"{operation_id} has no non-cookie auth route")
             request = {
@@ -402,39 +400,6 @@ def validate_source_evidence(openapi_source: bytes, policy_source: bytes) -> Non
         raise SourceLockError("OpenAPI implementation evidence is incomplete")
     if "Data Access Policy" not in policy_text or "A maximum of 1 request per second" not in policy_text:
         raise SourceLockError("policy implementation evidence is incomplete")
-
-
-def validate_lock(lock: dict[str, Any]) -> None:
-    required = {"format", "reviewed_at", "source_commit", "sources", "openapi", "cargo", "policy"}
-    if set(lock) != required or lock.get("format") != 1:
-        raise SourceLockError("crates.io source lock has unknown or missing fields")
-    if not re.fullmatch(r"[0-9a-f]{40}", str(lock.get("source_commit", ""))):
-        raise SourceLockError("crates.io source commit is invalid")
-    sources = lock.get("sources")
-    if not isinstance(sources, list) or len(sources) != 5:
-        raise SourceLockError("crates.io source lock must contain five sources")
-    ids: set[str] = set()
-    for source in sources:
-        expected = {"id", "url", "accept", "final_url", "redirects", "media_type", "max_bytes", "size_bytes", "sha256"}
-        if not isinstance(source, dict) or set(source) != expected:
-            raise SourceLockError("crates.io source entry is incomplete")
-        if source["id"] in ids or urlsplit(source["url"]).scheme != "https":
-            raise SourceLockError("crates.io source identity or URL is invalid")
-        ids.add(source["id"])
-        if not re.fullmatch(r"[0-9a-f]{64}", source["sha256"]):
-            raise SourceLockError("crates.io source digest is invalid")
-        if not 0 < source["size_bytes"] <= source["max_bytes"]:
-            raise SourceLockError("crates.io source size is invalid")
-    if ids != {"cargo", "openapi", "openapi-source", "policy", "policy-source"}:
-        raise SourceLockError("crates.io source identities changed")
-    source_commit = lock["source_commit"]
-    for source in sources:
-        if source["id"].endswith("-source") and source_commit not in source["url"]:
-            raise SourceLockError("official source evidence is not commit-pinned")
-    if lock["openapi"] != {"version": "3.1.0", "paths": 40, "operations": 51, "auth_schemes": ["api_token", "cookie", "trustpub_token"]}:
-        raise SourceLockError("crates.io OpenAPI summary changed")
-    if lock["cargo"] != {"stable_operations": 7, "instruction_targets": 1}:
-        raise SourceLockError("Cargo compatibility summary changed")
 
 
 def validate_tsv(data: bytes, columns: tuple[str, ...], expected_rows: int) -> list[dict[str, str]]:

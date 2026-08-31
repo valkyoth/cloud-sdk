@@ -13,23 +13,29 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from cratesio_source_fetch import SameOriginRedirects, read_response
+from cratesio_source_error import SourceLockError
+from cratesio_source_manifest import validate_artifact_digests, validate_lock
 from cratesio_source_lock import (
     CARGO_COLUMNS,
     TSV_COLUMNS,
-    SourceLockError,
     cargo_rows,
     html_text,
     operation_rows,
     parse_json,
     policy_observation,
     render_tsv,
-    validate_lock,
     validate_source_evidence,
     validate_tsv,
 )
 
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def committed_lock() -> dict:
+    return json.loads(
+        (ROOT / "provider-drift/providers/cratesio-source.lock.json").read_text()
+    )
 
 
 def auth_schemes() -> dict:
@@ -134,18 +140,13 @@ def fetch_source_fixture(max_bytes: int = 4) -> dict:
 
 class SourceLockTests(unittest.TestCase):
     def test_committed_lock_and_matrix_are_structurally_valid(self) -> None:
-        lock = json.loads(
-            (ROOT / "provider-drift/providers/cratesio-source.lock.json").read_text()
-        )
+        lock = committed_lock()
         validate_lock(lock)
-        operations = validate_tsv(
-            (ROOT / "docs/CRATESIO_API_SCOPE.tsv").read_bytes(), TSV_COLUMNS, 51
-        )
-        cargo = validate_tsv(
-            (ROOT / "docs/CRATESIO_CARGO_COMPATIBILITY.tsv").read_bytes(),
-            CARGO_COLUMNS,
-            8,
-        )
+        operation_data = (ROOT / "docs/CRATESIO_API_SCOPE.tsv").read_bytes()
+        cargo_data = (ROOT / "docs/CRATESIO_CARGO_COMPATIBILITY.tsv").read_bytes()
+        validate_artifact_digests(lock, operation_data, cargo_data)
+        operations = validate_tsv(operation_data, TSV_COLUMNS, 51)
+        cargo = validate_tsv(cargo_data, CARGO_COLUMNS, 8)
         self.assertEqual(sum(row["stability"] == "stable-cargo" for row in operations), 7)
         self.assertEqual(sum(row["classification"] == "superseded" for row in cargo), 7)
 
@@ -178,6 +179,44 @@ class SourceLockTests(unittest.TestCase):
     def test_unknown_auth_is_rejected(self) -> None:
         document = specification()
         document["paths"]["/api/v1/fixture"]["get"]["security"] = [{"unknown": []}]
+        with self.assertRaises(SourceLockError):
+            operation_rows(document)
+
+    def test_synthetic_auth_requires_anonymous_upstream_evidence(self) -> None:
+        document = specification()
+        token = operation("accept_crate_owner_invitation_with_token")
+        token["security"] = [{"cookie": []}]
+        token["parameters"] = [
+            {
+                "name": "token",
+                "in": "path",
+                "required": True,
+                "schema": {"type": "string"},
+            }
+        ]
+        document["paths"] = {
+            "/api/v1/me/crate_owner_invitations/accept/{token}": {"put": token}
+        }
+        with self.assertRaises(SourceLockError):
+            operation_rows(document)
+
+    def test_synthetic_auth_requires_its_exact_path_or_body_token(self) -> None:
+        document = specification()
+        confirmation = operation("confirm_user_email")
+        document["paths"] = {
+            "/api/v1/confirm/{email_token}": {"put": confirmation}
+        }
+        with self.assertRaises(SourceLockError):
+            operation_rows(document)
+
+        exchange = operation("exchange_trustpub_token")
+        document["paths"] = {"/api/v1/trusted_publishing/tokens": {"post": exchange}}
+        with self.assertRaises(SourceLockError):
+            operation_rows(document)
+
+    def test_trace_operations_are_rejected_instead_of_omitted(self) -> None:
+        document = specification()
+        document["paths"] = {"/api/v1/fixture": {"trace": operation()}}
         with self.assertRaises(SourceLockError):
             operation_rows(document)
 
@@ -224,13 +263,31 @@ class SourceLockTests(unittest.TestCase):
             read_response(Response(b"1", source, "invalid"), source, [], 0.0, lambda: 0.0)
 
     def test_source_lock_rejects_unpinned_source_evidence(self) -> None:
-        lock = json.loads(
-            (ROOT / "provider-drift/providers/cratesio-source.lock.json").read_text()
-        )
+        lock = committed_lock()
         changed = copy.deepcopy(lock)
         changed["sources"][3]["url"] = "https://raw.githubusercontent.com/rust-lang/crates.io/main/src/openapi.rs"
         with self.assertRaises(SourceLockError):
             validate_lock(changed)
+
+    def test_source_lock_requires_exact_official_requested_and_final_urls(self) -> None:
+        for field in ("url", "final_url"):
+            with self.subTest(field=field):
+                changed = copy.deepcopy(committed_lock())
+                changed["sources"][0][field] = "https://attacker.example/api/openapi.json"
+                with self.assertRaises(SourceLockError):
+                    validate_lock(changed)
+
+    def test_artifact_digests_reject_shape_preserving_inventory_changes(self) -> None:
+        lock = committed_lock()
+        operations = (ROOT / "docs/CRATESIO_API_SCOPE.tsv").read_bytes()
+        cargo = (ROOT / "docs/CRATESIO_CARGO_COMPATIBILITY.tsv").read_bytes()
+        changed = operations.replace(b"/api/v1/categories", b"/api/v1/attacker", 1)
+        with self.assertRaises(SourceLockError):
+            validate_artifact_digests(lock, changed, cargo)
+
+    def test_release_gate_reconstructs_from_official_sources(self) -> None:
+        gate = (ROOT / "scripts/release_1_1_gate.sh").read_text(encoding="ascii")
+        self.assertIn("scripts/check_cratesio_source_lock.py --fetch", gate)
 
 
 if __name__ == "__main__":

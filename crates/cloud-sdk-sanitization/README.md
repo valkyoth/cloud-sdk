@@ -43,8 +43,8 @@ features disabled.
 
 ```toml
 [dependencies]
-cloud-sdk = "=1.1.0"
-cloud-sdk-sanitization = "=1.1.0"
+cloud-sdk = "=1.0.0"
+cloud-sdk-sanitization = "=1.0.0"
 ```
 
 ## Example

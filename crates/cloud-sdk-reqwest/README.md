@@ -47,8 +47,8 @@ The default and `std`-only graphs remain portable and transport-free.
 
 ```toml
 [dependencies]
-cloud-sdk = "=1.1.0"
-cloud-sdk-reqwest = { version = "=1.1.0", features = ["blocking-rustls"] }
+cloud-sdk = "=1.0.0"
+cloud-sdk-reqwest = { version = "=1.0.0", features = ["blocking-rustls"] }
 ```
 
 The examples use Hetzner as a concrete endpoint, but the adapter contains no
@@ -399,8 +399,8 @@ compiled into `webpki-roots`:
 
 ```toml
 [dependencies]
-cloud-sdk = "=1.1.0"
-cloud-sdk-reqwest = { version = "=1.1.0", features = ["blocking-rustls-webpki-roots"] }
+cloud-sdk = "=1.0.0"
+cloud-sdk-reqwest = { version = "=1.0.0", features = ["blocking-rustls-webpki-roots"] }
 ```
 
 The blocking API is identical to the example above. The custom rustls client

@@ -25,7 +25,10 @@ The 2026-08-31 observation binds five official HTTPS representations:
 The manifest records each requested URL, final URL, redirect chain, media type,
 exact byte length, and SHA-256 digest. Retrieval requires HTTPS, a bounded
 response, a 60-second total read deadline, and same-origin redirects only. The
-accepted observation has no redirects.
+accepted observation has no redirects. Validation additionally requires each
+requested and final URL to equal its approved official authority and path;
+changing a URL, query, fragment, credential component, retrieval media type, or
+bound is not an accepted lock refresh.
 
 The deployed policy uses HTTP content negotiation. A request without an HTML
 `Accept` header currently returns `404`; the authoritative
@@ -76,5 +79,7 @@ scripts/check_cratesio_source_lock.py --fetch
 The live command never rewrites accepted evidence. Digest, size, redirect,
 media-type, OpenAPI version, reference, operation identity, auth, Cargo
 contract, policy, or classification changes fail closed and require explicit
-review. Commit 2 will add semantic drift reporting and a controlled refresh
-workflow on top of this finite lock.
+review. The manifest also binds both committed TSV artifacts by SHA-256, and the
+final `scripts/release_1_1_gate.sh` reconstructs the observation from the
+approved authorities. Commit 2 will add semantic drift reporting and a
+controlled refresh workflow on top of this finite lock.

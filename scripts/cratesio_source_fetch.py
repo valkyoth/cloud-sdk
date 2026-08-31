@@ -10,7 +10,7 @@ import urllib.request
 from typing import Any
 from urllib.parse import urlsplit
 
-from cratesio_source_lock import SourceLockError
+from cratesio_source_error import SourceLockError
 
 
 class SameOriginRedirects(urllib.request.HTTPRedirectHandler):

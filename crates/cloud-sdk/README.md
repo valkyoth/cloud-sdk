@@ -111,10 +111,13 @@ Portable and native platform evidence is documented in
 
 ## Install
 
+The crates.io-installable release remains `1.0.0` while the `1.1.0` candidate
+is developed on `main`:
+
 ```toml
 [dependencies]
-cloud-sdk = "=1.1.0"
-cloud-sdk-hetzner = "=1.1.0"
+cloud-sdk = "=1.0.0"
+cloud-sdk-hetzner = "=1.0.0"
 ```
 
 ## cloud-sdk Features
@@ -497,8 +500,8 @@ without changing the default allocation-free graph.
 
 ```toml
 [dependencies]
-cloud-sdk = "=1.1.0"
-cloud-sdk-reqwest = { version = "=1.1.0", features = ["blocking-rustls"] }
+cloud-sdk = "=1.0.0"
+cloud-sdk-reqwest = { version = "=1.0.0", features = ["blocking-rustls"] }
 ```
 
 The production builder is HTTPS-only, requires explicit bounded timeouts and a
@@ -524,8 +527,8 @@ when deterministic public WebPKI roots are required:
 
 ```toml
 [dependencies]
-cloud-sdk = "=1.1.0"
-cloud-sdk-reqwest = { version = "=1.1.0", features = ["blocking-rustls-webpki-roots"] }
+cloud-sdk = "=1.0.0"
+cloud-sdk-reqwest = { version = "=1.0.0", features = ["blocking-rustls-webpki-roots"] }
 ```
 
 The blocking API is unchanged. This feature excludes host-added enterprise
@@ -547,8 +550,8 @@ See the [FIPS deferment policy](https://github.com/valkyoth/cloud-sdk/blob/main/
 
 ```toml
 [dependencies]
-cloud-sdk = "=1.1.0"
-cloud-sdk-reqwest = { version = "=1.1.0", features = ["async-rustls"] }
+cloud-sdk = "=1.0.0"
+cloud-sdk-reqwest = { version = "=1.0.0", features = ["async-rustls"] }
 ```
 
 The async adapter requires an active Tokio executor because reqwest uses Tokio
