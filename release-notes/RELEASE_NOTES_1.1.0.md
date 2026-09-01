@@ -119,6 +119,9 @@ Commit 1 passed its incremental pentest, remediation retest, and GitHub checks.
   reference cycles, and support strict percent-decoded RFC 6901 object and
   array traversal so hidden external dependencies cannot bypass the source
   lock and valid array pointers do not create false drift failures.
+- Apply one exception-safe depth budget to references, inline callbacks, and
+  recursive content/header structures so adversarial nesting fails with a
+  controlled source-lock error instead of exhausting Python's call stack.
 
 Security review remains pending until the Commit 2 incremental pentest is
 complete.

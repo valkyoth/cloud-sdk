@@ -9,7 +9,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from cratesio_openapi_schema import MAX_REFERENCE_DEPTH, validate_schema_dialects
+from cratesio_openapi_schema import MAX_TRAVERSAL_DEPTH, validate_schema_dialects
 from cratesio_source_error import SourceLockError
 
 
@@ -31,22 +31,22 @@ def response_chain(length: int) -> dict:
 
 class ReferenceDepthTests(unittest.TestCase):
     def test_exact_reference_depth_limit_is_admitted(self) -> None:
-        validate_schema_dialects(response_chain(MAX_REFERENCE_DEPTH))
+        validate_schema_dialects(response_chain(MAX_TRAVERSAL_DEPTH))
 
     def test_reference_depth_limit_plus_one_fails_closed(self) -> None:
         with self.assertRaisesRegex(
-            SourceLockError, "OpenAPI reference depth exceeds reviewed limit"
+            SourceLockError, "OpenAPI traversal depth exceeds reviewed limit"
         ):
-            validate_schema_dialects(response_chain(MAX_REFERENCE_DEPTH + 1))
+            validate_schema_dialects(response_chain(MAX_TRAVERSAL_DEPTH + 1))
 
     def test_reference_depth_is_restored_between_independent_chains(self) -> None:
-        responses = response_components("Left", MAX_REFERENCE_DEPTH)
-        responses.update(response_components("Right", MAX_REFERENCE_DEPTH))
+        responses = response_components("Left", MAX_TRAVERSAL_DEPTH)
+        responses.update(response_components("Right", MAX_TRAVERSAL_DEPTH))
         validate_schema_dialects({"components": {"responses": responses}})
 
     def test_long_acyclic_chain_returns_a_controlled_error(self) -> None:
         with self.assertRaisesRegex(
-            SourceLockError, "OpenAPI reference depth exceeds reviewed limit"
+            SourceLockError, "OpenAPI traversal depth exceeds reviewed limit"
         ):
             validate_schema_dialects(response_chain(1_500))
 

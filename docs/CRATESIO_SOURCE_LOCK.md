@@ -127,9 +127,12 @@ typed OpenAPI Reference Object positions. They must be strings, must use local
 targets are followed and validated using the schema, parameter, header,
 request-body, response, callback, path-item, example, link, or security-scheme
 context that admitted the reference. Cycle guards bound recursive references.
-Typed Reference Object traversal also admits at most 128 simultaneously followed
-references, so long acyclic chains fail with a controlled source-lock error
-before reaching the Python recursion limit.
+One exception-safe traversal budget admits at most 128 simultaneously followed
+typed references and inline structural descents. Long acyclic reference chains,
+nested callbacks, and recursive content/encoding/header structures therefore
+fail with a controlled source-lock error before reaching the Python recursion
+limit. Reference and inline nesting share the same counter, so mixed structures
+cannot bypass the limit.
 Pointer evaluation strictly decodes URI fragments and RFC 6901 escapes, admits
 canonical array indices, and rejects malformed escapes, invalid UTF-8,
 noncanonical indices, and nonexistent values. Payload examples, Example Object

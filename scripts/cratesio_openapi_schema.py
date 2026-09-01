@@ -10,7 +10,7 @@ from cratesio_source_error import SourceLockError
 
 
 OAS_31_DIALECT = "https://spec.openapis.org/oas/3.1/dialect/base"
-MAX_REFERENCE_DEPTH = 128
+MAX_TRAVERSAL_DEPTH = 128
 HTTP_METHODS = {"delete", "get", "head", "options", "patch", "post", "put", "trace"}
 SINGLE_SUBSCHEMAS = {
     "additionalProperties",
@@ -33,7 +33,20 @@ class _OpenApiValidator:
     def __init__(self, document: dict[str, Any]) -> None:
         self.document = document
         self.visited: dict[str, set[int]] = {}
-        self.reference_depth = 0
+        self.traversal_depth = 0
+
+    def nested_traversal(
+        self, validator: Callable[[Any], None], value: Any
+    ) -> None:
+        if self.traversal_depth >= MAX_TRAVERSAL_DEPTH:
+            raise SourceLockError(
+                "OpenAPI traversal depth exceeds reviewed limit"
+            )
+        self.traversal_depth += 1
+        try:
+            validator(value)
+        finally:
+            self.traversal_depth -= 1
 
     @staticmethod
     def _unresolved(reference: str) -> NoReturn:
@@ -121,16 +134,8 @@ class _OpenApiValidator:
             return None
         visited.add(identity)
         if "$ref" in value:
-            if self.reference_depth >= MAX_REFERENCE_DEPTH:
-                raise SourceLockError(
-                    "OpenAPI reference depth exceeds reviewed limit"
-                )
             target = self.resolve_local_reference(value["$ref"])
-            self.reference_depth += 1
-            try:
-                validator(target)
-            finally:
-                self.reference_depth -= 1
+            self.nested_traversal(validator, target)
         return value
 
     def schema_tree(self, root: Any) -> None:
@@ -217,7 +222,7 @@ class _OpenApiValidator:
             for value in encoding.values():
                 if not isinstance(value, dict):
                     raise SourceLockError("OpenAPI encoding is invalid")
-                self.headers(value.get("headers"))
+                self.nested_traversal(self.headers, value.get("headers"))
 
         self.value_map(content, validate_media, "content")
 
@@ -238,7 +243,7 @@ class _OpenApiValidator:
             return
         if "schema" in value:
             self.schema_tree(value["schema"])
-        self.content(value.get("content"))
+        self.nested_traversal(self.content, value.get("content"))
         self.examples(value.get("examples"))
 
     def parameters(self, parameters: Any) -> None:
@@ -274,7 +279,7 @@ class _OpenApiValidator:
             return
         for expression, item in value.items():
             if expression != "$ref" and not expression.startswith("x-"):
-                self.path_item(item)
+                self.nested_traversal(self.path_item, item)
 
     def operation(self, operation: Any) -> None:
         if not isinstance(operation, dict):
