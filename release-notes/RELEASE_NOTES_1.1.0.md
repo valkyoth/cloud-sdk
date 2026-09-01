@@ -102,6 +102,8 @@ Commit 1 passed its incremental pentest, remediation retest, and GitHub checks.
 - Require every OpenAPI path placeholder to have exactly one direct, required
   path declaration; reject malformed, missing, extra, duplicate, misplaced,
   optional, or referenced path-parameter evidence.
+- Bind stable Cargo path parameters to string schemas and exact simple,
+  non-exploded, non-reserved, schema-based OpenAPI wire serialization.
 
 Security review remains pending until the Commit 2 incremental pentest is
 complete.

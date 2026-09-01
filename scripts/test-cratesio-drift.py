@@ -85,7 +85,7 @@ def compatible_openapi() -> dict:
         item[method] = {
             "operationId": operation_id,
             "parameters": [
-                {"name": name, "in": "path", "required": True}
+                {"name": name, "in": "path", "required": True, "schema": {"type": "string"}}
                 for name in re.findall(r"\{([^{}]+)\}", openapi_path)
             ],
             "responses": {"200": copy.deepcopy(response)},
@@ -359,7 +359,7 @@ def test_cargo_path_parameter_identity_and_position_fail_closed() -> None:
         document = compatible_openapi()
         item = document["paths"].pop(original)
         item["delete"]["parameters"] = [
-            {"name": name, "in": "path", "required": True}
+            {"name": name, "in": "path", "required": True, "schema": {"type": "string"}}
             for name in declarations
         ]
         document["paths"][invalid_path] = item

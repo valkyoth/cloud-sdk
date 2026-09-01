@@ -89,6 +89,32 @@ def path_specification() -> dict:
     return document
 
 
+def stable_path_specification() -> dict:
+    document = specification()
+    operation_value = operation("yank_version")
+    operation_value["parameters"] = [
+        {
+            "name": "crate_name",
+            "in": "path",
+            "required": True,
+            "schema": {"type": "string"},
+            "style": "simple",
+            "explode": False,
+            "allowReserved": False,
+        },
+        {
+            "name": "version",
+            "in": "path",
+            "required": True,
+            "schema": {"type": "string"},
+        },
+    ]
+    document["paths"] = {
+        "/api/v1/crates/{crate_name}/{version}/yank": {"delete": operation_value}
+    }
+    return document
+
+
 def cargo_html() -> bytes:
     sections = [
         ("publish", "PUT", "/api/v1/crates/new", "h2"),
@@ -249,6 +275,29 @@ class SourceLockTests(unittest.TestCase):
         invalid.append(("repeated-template", repeated))
 
         for label, document in invalid:
+            with self.subTest(label=label), self.assertRaises(SourceLockError):
+                operation_rows(document)
+
+    def test_stable_path_parameters_require_cargo_wire_semantics(self) -> None:
+        path = "/api/v1/crates/{crate_name}/{version}/yank"
+        operation_rows(stable_path_specification())
+        changes = (
+            ("missing-schema", None),
+            ("array", {"schema": {"type": "array", "items": {"type": "string"}}}),
+            ("object", {"schema": {"type": "object"}}),
+            ("matrix", {"style": "matrix"}),
+            ("label", {"style": "label"}),
+            ("exploded", {"explode": True}),
+            ("reserved", {"allowReserved": True}),
+            ("content", {"content": {"text/plain": {"schema": {"type": "string"}}}}),
+        )
+        for label, change in changes:
+            document = stable_path_specification()
+            parameter = document["paths"][path]["delete"]["parameters"][0]
+            if change is None:
+                parameter.pop("schema")
+            else:
+                parameter.update(change)
             with self.subTest(label=label), self.assertRaises(SourceLockError):
                 operation_rows(document)
 
