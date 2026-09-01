@@ -92,8 +92,9 @@ Commit 1 passed its incremental pentest, remediation retest, and GitHub checks.
   reconstruct every inventory, summary, observation, and provider lock during
   verification, preventing circularly rewritten derivatives from being clean.
 - Require all seven stable Cargo contracts to match their public OpenAPI route
-  structures; placeholder labels such as `{crate_name}` and `{name}` remain
-  source-exact while comparing as the same positional HTTP route.
+  structures, preserving path-parameter identity and position while admitting
+  only operation-scoped reviewed aliases such as OpenAPI `{name}` to Cargo
+  `{crate_name}`.
 - Replaced natural-language policy inference with an exact reviewed-payload
   digest and typed policy, and require the current bytes to equal the policy at
   the reviewed source commit before candidate verification succeeds.

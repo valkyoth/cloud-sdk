@@ -31,11 +31,32 @@ SOURCE_IDS = {
     "policy-current",
     "policy-source",
 }
-PATH_PARAMETER = re.compile(r"\{[^{}]+\}")
+PATH_PARAMETER = re.compile(r"\{([A-Za-z_][A-Za-z0-9_]*)\}")
+PATH_PARAMETER_ALIASES = {
+    "add_owners": {"name": "crate_name"},
+    "list_owners": {"name": "crate_name"},
+    "remove_owners": {"name": "crate_name"},
+    "unyank_version": {"name": "crate_name"},
+    "yank_version": {"name": "crate_name"},
+}
 
 
 def _row(identity: str, values: dict[str, Any]) -> dict[str, Any]:
     return {"id": identity, "values": values}
+
+
+def _canonical_path(path: str, operation_id: str) -> str | None:
+    """Preserve path-parameter positions under reviewed operation aliases."""
+    matches = tuple(PATH_PARAMETER.finditer(path))
+    if path.count("{") != len(matches) or path.count("}") != len(matches):
+        return None
+    aliases = PATH_PARAMETER_ALIASES.get(operation_id, {})
+
+    def canonical_parameter(match: re.Match[str]) -> str:
+        name = aliases.get(match.group(1), match.group(1))
+        return f"{{{name}}}"
+
+    return PATH_PARAMETER.sub(canonical_parameter, path)
 
 
 def _operation_nodes(document: dict[str, Any]) -> dict[str, tuple[str, str, dict[str, Any], dict[str, Any]]]:
@@ -141,11 +162,18 @@ def _cargo_contracts(
     contracts = []
     for row in rows:
         operation = openapi.get(row["openapi_operation_id"])
+        operation_path = (
+            None
+            if operation is None
+            else _canonical_path(operation["path"], row["openapi_operation_id"])
+        )
+        cargo_path = _canonical_path(row["path"], row["openapi_operation_id"])
         matches = (
             operation is not None
             and operation["method"] == row["method"]
-            and PATH_PARAMETER.sub("{}", operation["path"])
-            == PATH_PARAMETER.sub("{}", row["path"])
+            and operation_path is not None
+            and cargo_path is not None
+            and operation_path == cargo_path
             and operation["stability"] == "stable-cargo"
         )
         values = {

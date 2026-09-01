@@ -101,6 +101,11 @@ type, response status, stability classification, stable Cargo overlap, and
 access-policy rule. Additions, removals, renames, and changed fields are
 classified through the provider-neutral drift report.
 
+Stable Cargo route comparison preserves path-parameter identity and position.
+Only the operation-scoped, reviewed OpenAPI `name` to Cargo `crate_name` alias
+is admitted for yank, unyank, and owner operations. Swapped, duplicated,
+missing, malformed, or unreviewed parameter names fail the compatibility gate.
+
 ## Controlled Refresh
 
 After reviewing an upstream crates.io repository commit, stage one complete

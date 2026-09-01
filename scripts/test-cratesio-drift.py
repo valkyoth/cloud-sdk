@@ -339,6 +339,35 @@ def test_cargo_and_openapi_parameter_labels_share_one_route_shape() -> None:
     assert yank["values"]["openapi_match"] is True
 
 
+def test_cargo_path_parameter_identity_and_position_fail_closed() -> None:
+    original = "/api/v1/crates/{name}/{version}/yank"
+    invalid_paths = {
+        "swapped": "/api/v1/crates/{version}/{name}/yank",
+        "duplicated": "/api/v1/crates/{name}/{name}/yank",
+        "missing": "/api/v1/crates/{name}/yank",
+        "unreviewed": "/api/v1/crates/{package}/{version}/yank",
+        "malformed": "/api/v1/crates/{name}/{version-/yank",
+    }
+    for label, invalid_path in invalid_paths.items():
+        document = compatible_openapi()
+        document["paths"][invalid_path] = document["paths"].pop(original)
+        data = payloads(document)
+        lock = fixture_lock(data)
+        observation = observe(lock, data)
+        yank = next(
+            row
+            for row in observation["contracts"]["operations"]
+            if row["id"] == "cargo/yank"
+        )
+        assert yank["values"]["openapi_match"] is False, label
+        try:
+            validate_stable_cargo_matches(observation)
+        except CratesioAdapterError:
+            pass
+        else:
+            raise AssertionError(f"{label} Cargo path parameters were accepted")
+
+
 def test_candidate_derivatives_are_rebuilt_from_embedded_payloads() -> None:
     candidate = candidate_fixture()
     refresh.verify_payload_binding(candidate)
