@@ -3,7 +3,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Callable
+from typing import Any, Callable, NoReturn
+from urllib.parse import unquote_to_bytes
 
 from cratesio_source_error import SourceLockError
 
@@ -30,26 +31,95 @@ MAP_SUBSCHEMAS = {"$defs", "dependentSchemas", "patternProperties", "properties"
 class _OpenApiValidator:
     def __init__(self, document: dict[str, Any]) -> None:
         self.document = document
+        self.visited: dict[str, set[int]] = {}
 
-    def local_reference(self, reference: Any) -> None:
+    @staticmethod
+    def _unresolved(reference: str) -> NoReturn:
+        raise SourceLockError(f"OpenAPI has unresolved reference {reference!r}")
+
+    @staticmethod
+    def _pointer_token(raw: str, reference: str) -> str:
+        output: list[str] = []
+        index = 0
+        while index < len(raw):
+            if raw[index] != "~":
+                output.append(raw[index])
+                index += 1
+                continue
+            if index + 1 >= len(raw) or raw[index + 1] not in "01":
+                _OpenApiValidator._unresolved(reference)
+            output.append("~" if raw[index + 1] == "0" else "/")
+            index += 2
+        return "".join(output)
+
+    @staticmethod
+    def _fragment(reference: str) -> str:
+        encoded = reference[2:]
+        index = 0
+        while index < len(encoded):
+            if encoded[index] != "%":
+                index += 1
+                continue
+            if (
+                index + 2 >= len(encoded)
+                or encoded[index + 1] not in "0123456789abcdefABCDEF"
+                or encoded[index + 2] not in "0123456789abcdefABCDEF"
+            ):
+                _OpenApiValidator._unresolved(reference)
+            index += 3
+        try:
+            return unquote_to_bytes(encoded).decode("utf-8", errors="strict")
+        except UnicodeDecodeError as error:
+            raise SourceLockError(
+                f"OpenAPI has unresolved reference {reference!r}"
+            ) from error
+
+    def resolve_local_reference(self, reference: Any) -> Any:
         if not isinstance(reference, str):
             raise SourceLockError("OpenAPI reference must be a string")
         if not reference.startswith("#/"):
             raise SourceLockError(f"OpenAPI has external reference {reference!r}")
         current: Any = self.document
-        for raw in reference[2:].split("/"):
-            key = raw.replace("~1", "/").replace("~0", "~")
-            if not isinstance(current, dict) or key not in current:
-                raise SourceLockError(
-                    f"OpenAPI has unresolved reference {reference!r}"
-                )
-            current = current[key]
+        for raw in self._fragment(reference).split("/"):
+            token = self._pointer_token(raw, reference)
+            if isinstance(current, dict):
+                if token not in current:
+                    self._unresolved(reference)
+                current = current[token]
+                continue
+            if isinstance(current, list):
+                if (
+                    not current
+                    or not token.isascii()
+                    or not token.isdigit()
+                    or (len(token) > 1 and token.startswith("0"))
+                    or len(token) > len(str(len(current) - 1))
+                ):
+                    self._unresolved(reference)
+                position = int(token)
+                if position >= len(current):
+                    self._unresolved(reference)
+                current = current[position]
+                continue
+            self._unresolved(reference)
+        return current
 
-    def object_reference(self, value: Any, label: str) -> dict[str, Any]:
+    def object_reference(
+        self,
+        value: Any,
+        label: str,
+        context: str,
+        validator: Callable[[Any], None],
+    ) -> dict[str, Any] | None:
         if not isinstance(value, dict):
             raise SourceLockError(f"OpenAPI {label} is invalid")
+        identity = id(value)
+        visited = self.visited.setdefault(context, set())
+        if identity in visited:
+            return None
+        visited.add(identity)
         if "$ref" in value:
-            self.local_reference(value["$ref"])
+            validator(self.resolve_local_reference(value["$ref"]))
         return value
 
     def schema_tree(self, root: Any) -> None:
@@ -60,8 +130,16 @@ class _OpenApiValidator:
                 continue
             if not isinstance(schema, dict):
                 raise SourceLockError("OpenAPI Schema Object is invalid")
+            identity = id(schema)
+            visited = self.visited.setdefault("schema", set())
+            if identity in visited:
+                continue
+            visited.add(identity)
             if "$ref" in schema:
-                self.local_reference(schema["$ref"])
+                target = self.resolve_local_reference(schema["$ref"])
+                if not isinstance(target, (dict, bool)):
+                    raise SourceLockError("OpenAPI schema reference target is invalid")
+                stack.append(target)
             if "$dynamicRef" in schema:
                 reference = schema["$dynamicRef"]
                 if not isinstance(reference, str):
@@ -99,11 +177,19 @@ class _OpenApiValidator:
         for value in values.values():
             validator(value)
 
-    def reference_value(self, value: Any) -> None:
-        self.object_reference(value, "reference-capable object")
+    def example(self, value: Any) -> None:
+        self.object_reference(value, "example", "example", self.example)
+
+    def link(self, value: Any) -> None:
+        self.object_reference(value, "link", "link", self.link)
+
+    def security_scheme(self, value: Any) -> None:
+        self.object_reference(
+            value, "security scheme", "security scheme", self.security_scheme
+        )
 
     def examples(self, examples: Any) -> None:
-        self.value_map(examples, self.reference_value, "examples")
+        self.value_map(examples, self.example, "examples")
 
     def content(self, content: Any) -> None:
         def validate_media(media: Any) -> None:
@@ -125,7 +211,20 @@ class _OpenApiValidator:
         self.value_map(content, validate_media, "content")
 
     def parameter(self, parameter: Any) -> None:
-        value = self.object_reference(parameter, "parameter")
+        value = self.object_reference(
+            parameter, "parameter", "parameter", self.parameter
+        )
+        if value is None:
+            return
+        if "schema" in value:
+            self.schema_tree(value["schema"])
+        self.content(value.get("content"))
+        self.examples(value.get("examples"))
+
+    def header(self, header: Any) -> None:
+        value = self.object_reference(header, "header", "header", self.header)
+        if value is None:
+            return
         if "schema" in value:
             self.schema_tree(value["schema"])
         self.content(value.get("content"))
@@ -140,20 +239,28 @@ class _OpenApiValidator:
             self.parameter(parameter)
 
     def headers(self, headers: Any) -> None:
-        self.value_map(headers, self.parameter, "headers")
+        self.value_map(headers, self.header, "headers")
 
     def request_body(self, body: Any) -> None:
-        value = self.object_reference(body, "request body")
+        value = self.object_reference(
+            body, "request body", "request body", self.request_body
+        )
+        if value is None:
+            return
         self.content(value.get("content"))
 
     def response(self, response: Any) -> None:
-        value = self.object_reference(response, "response")
+        value = self.object_reference(response, "response", "response", self.response)
+        if value is None:
+            return
         self.content(value.get("content"))
         self.headers(value.get("headers"))
-        self.value_map(value.get("links"), self.reference_value, "links")
+        self.value_map(value.get("links"), self.link, "links")
 
     def callback(self, callback: Any) -> None:
-        value = self.object_reference(callback, "callback")
+        value = self.object_reference(callback, "callback", "callback", self.callback)
+        if value is None:
+            return
         for expression, item in value.items():
             if expression != "$ref" and not expression.startswith("x-"):
                 self.path_item(item)
@@ -168,7 +275,9 @@ class _OpenApiValidator:
         self.value_map(operation.get("callbacks"), self.callback, "callbacks")
 
     def path_item(self, item: Any) -> None:
-        value = self.object_reference(item, "path item")
+        value = self.object_reference(item, "path item", "path item", self.path_item)
+        if value is None:
+            return
         self.parameters(value.get("parameters"))
         for method in HTTP_METHODS & value.keys():
             self.operation(value[method])
@@ -180,15 +289,15 @@ class _OpenApiValidator:
             raise SourceLockError("OpenAPI components must be an object")
         validators = {
             "callbacks": self.callback,
-            "examples": self.reference_value,
-            "headers": self.parameter,
-            "links": self.reference_value,
+            "examples": self.example,
+            "headers": self.header,
+            "links": self.link,
             "parameters": self.parameter,
             "pathItems": self.path_item,
             "requestBodies": self.request_body,
             "responses": self.response,
             "schemas": self.schema_tree,
-            "securitySchemes": self.reference_value,
+            "securitySchemes": self.security_scheme,
         }
         for key, validator in validators.items():
             self.value_map(components.get(key), validator, f"component {key}")

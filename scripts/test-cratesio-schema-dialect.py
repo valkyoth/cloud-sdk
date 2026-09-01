@@ -252,6 +252,148 @@ class SchemaDialectTests(unittest.TestCase):
             with self.subTest(reference=reference), self.assertRaises(SourceLockError):
                 operation_rows(document)
 
+    def test_schema_references_validate_targets_in_schema_context(self) -> None:
+        document = {
+            "components": {
+                "schemas": {
+                    "Entry": {"$ref": "#/components/examples/Hidden/value"}
+                },
+                "examples": {
+                    "Hidden": {
+                        "value": {"$ref": "https://attacker.invalid/schema"}
+                    }
+                },
+            }
+        }
+        with self.assertRaises(SourceLockError):
+            validate_schema_dialects(document)
+
+    def test_json_pointers_support_arrays_percent_encoding_and_escapes(self) -> None:
+        document = {
+            "components": {
+                "schemas": {
+                    "Choice Name/Version~1": {
+                        "oneOf": [{"type": "string"}, {"type": "integer"}]
+                    },
+                    "ArrayEntry": {
+                        "$ref": "#/components/schemas/Choice%20Name~1Version~01/oneOf/0"
+                    },
+                    "ObjectEntry": {
+                        "$ref": "#/components/schemas/Choice%20Name~1Version~01"
+                    },
+                }
+            }
+        }
+        validate_schema_dialects(document)
+
+    def test_malformed_json_pointer_boundaries_fail_closed(self) -> None:
+        references = (
+            "#/components/schemas/Choice/oneOf/01",
+            "#/components/schemas/Choice/oneOf/-",
+            "#/components/schemas/Choice/oneOf/1",
+            "#/components/schemas/Choice/oneOf/%",
+            "#/components/schemas/Choice/oneOf/%GG",
+            "#/components/schemas/Choice/oneOf/%FF",
+            "#/components/schemas/Choice~2",
+        )
+        for reference in references:
+            document = {
+                "components": {
+                    "schemas": {
+                        "Choice": {"oneOf": [{"type": "string"}]},
+                        "Entry": {"$ref": reference},
+                    }
+                }
+            }
+            with self.subTest(reference=reference), self.assertRaises(SourceLockError):
+                validate_schema_dialects(document)
+
+    def test_local_reference_cycles_are_bounded(self) -> None:
+        validate_schema_dialects(
+            {
+                "components": {
+                    "schemas": {
+                        "Left": {"$ref": "#/components/schemas/Right"},
+                        "Right": {"$ref": "#/components/schemas/Left"},
+                    },
+                    "responses": {
+                        "Left": {"$ref": "#/components/responses/Right"},
+                        "Right": {"$ref": "#/components/responses/Left"},
+                    },
+                }
+            }
+        )
+
+    def test_typed_local_reference_to_a_concrete_target_is_admitted(self) -> None:
+        validate_schema_dialects(
+            {
+                "components": {
+                    "responses": {
+                        "Concrete": {
+                            "description": "ok",
+                            "content": {
+                                "application/json": {"schema": {"type": "object"}}
+                            },
+                        },
+                        "Alias": {"$ref": "#/components/responses/Concrete"},
+                    }
+                }
+            }
+        )
+
+    def test_typed_local_references_validate_their_resolved_targets(self) -> None:
+        external = {"$ref": "https://attacker.invalid/object"}
+        references = (
+            {"paths": {"/x": {"$ref": "#/x-hidden"}}},
+            {
+                "paths": {
+                    "/x": {
+                        "get": {
+                            "parameters": [{"$ref": "#/x-hidden"}]
+                        }
+                    }
+                }
+            },
+            {
+                "paths": {
+                    "/x": {
+                        "post": {"requestBody": {"$ref": "#/x-hidden"}}
+                    }
+                }
+            },
+            {
+                "paths": {
+                    "/x": {
+                        "get": {
+                            "responses": {"200": {"$ref": "#/x-hidden"}}
+                        }
+                    }
+                }
+            },
+            {"components": {"headers": {"Header": {"$ref": "#/x-hidden"}}}},
+            {"components": {"callbacks": {"Call": {"$ref": "#/x-hidden"}}}},
+            {"components": {"examples": {"Sample": {"$ref": "#/x-hidden"}}}},
+            {"components": {"links": {"Next": {"$ref": "#/x-hidden"}}}},
+            {
+                "components": {
+                    "securitySchemes": {"Auth": {"$ref": "#/x-hidden"}}
+                }
+            },
+        )
+        for index, document in enumerate(references):
+            document["x-hidden"] = external
+            with self.subTest(index=index), self.assertRaises(SourceLockError):
+                validate_schema_dialects(document)
+
+    def test_typed_reference_targets_must_be_objects(self) -> None:
+        with self.assertRaises(SourceLockError):
+            validate_schema_dialects(
+                {
+                    "x-hidden": "not-an-object",
+                    "paths": {"/x": {"$ref": "#/x-hidden"}},
+                }
+            )
+
     def test_external_references_fail_at_reference_object_positions(self) -> None:
         reference = {"$ref": "https://attacker.invalid/object"}
         documents = (

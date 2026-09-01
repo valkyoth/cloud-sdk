@@ -123,10 +123,15 @@ Object `$dynamicRef` is rejected until every target resource, dynamic anchor,
 and resolution scope can be bundled and digest-bound without network access.
 Ordinary `$ref` controls are interpreted only inside actual Schema Objects and
 typed OpenAPI Reference Object positions. They must be strings, must use local
-`#/` JSON Pointers, and must resolve inside the digest-bound document. Payload
-examples, Example Object values, defaults, constants, enums, and other instance
-data may contain a `$ref` property without being mistaken for an OpenAPI
-control.
+`#/` JSON Pointers, and must resolve inside the digest-bound document. Resolved
+targets are followed and validated using the schema, parameter, header,
+request-body, response, callback, path-item, example, link, or security-scheme
+context that admitted the reference. Cycle guards bound recursive references.
+Pointer evaluation strictly decodes URI fragments and RFC 6901 escapes, admits
+canonical array indices, and rejects malformed escapes, invalid UTF-8,
+noncanonical indices, and nonexistent values. Payload examples, Example Object
+values, defaults, constants, enums, and other instance data may contain a
+`$ref` property without being mistaken for an OpenAPI control.
 
 ## Controlled Refresh
 

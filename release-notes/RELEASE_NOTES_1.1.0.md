@@ -115,6 +115,10 @@ Commit 1 passed its incremental pentest, remediation retest, and GitHub checks.
 - Scope ordinary `$ref` validation to Schema Objects and typed OpenAPI
   Reference Object positions, preserving local resolution checks without
   rejecting `$ref` properties in arbitrary example payloads.
+- Follow each local `$ref` target under its admitting OpenAPI type, bound
+  reference cycles, and support strict percent-decoded RFC 6901 object and
+  array traversal so hidden external dependencies cannot bypass the source
+  lock and valid array pointers do not create false drift failures.
 
 Security review remains pending until the Commit 2 incremental pentest is
 complete.
