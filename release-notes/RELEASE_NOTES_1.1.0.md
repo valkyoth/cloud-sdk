@@ -106,6 +106,8 @@ Commit 1 passed its incremental pentest, remediation retest, and GitHub checks.
   non-exploded, non-reserved, schema-based OpenAPI wire serialization.
 - Require the complete reviewed stable path schema, rejecting restrictive JSON
   Schema assertions even when the declared base type remains a string.
+- Pin the OpenAPI 3.1 JSON Schema dialect at both the document default and
+  nested `$schema` boundaries before deriving Cargo compatibility.
 
 Security review remains pending until the Commit 2 incremental pentest is
 complete.

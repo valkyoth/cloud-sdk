@@ -210,6 +210,12 @@ class SourceLockTests(unittest.TestCase):
         with self.assertRaises(SourceLockError):
             parse_json(b'{"openapi":"3.1.0","openapi":"3.0.0"}', "fixture")
 
+    def test_operation_rows_rejects_an_unreviewed_schema_dialect(self) -> None:
+        document = specification()
+        document["jsonSchemaDialect"] = "https://attacker.invalid/dialect"
+        with self.assertRaises(SourceLockError):
+            operation_rows(document)
+
     def test_unresolved_references_are_rejected(self) -> None:
         document = specification()
         document["paths"]["/api/v1/fixture"]["get"]["responses"]["200"]["content"]["application/json"]["schema"]["$ref"] = "#/components/schemas/Missing"

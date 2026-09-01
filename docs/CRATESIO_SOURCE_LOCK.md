@@ -114,7 +114,9 @@ require their exact reviewed `{"type":"string"}` schemas and the exact
 OpenAPI default wire profile: `simple` style, no explosion, no
 reserved-character allowance, and no content-based encoding. Restrictive JSON
 Schema assertions and serialization drift therefore cannot remain
-Cargo-compatible.
+Cargo-compatible. The document default and every explicit nested `$schema`
+declaration must select the OpenAPI 3.1 base dialect; custom or malformed
+dialect selectors fail closed before compatibility classification.
 
 ## Controlled Refresh
 

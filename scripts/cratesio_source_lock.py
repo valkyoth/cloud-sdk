@@ -11,6 +11,7 @@ from typing import Any
 
 from cratesio_openapi_auth import synthetic_auth
 from cratesio_openapi_parameters import validate_path_parameters
+from cratesio_openapi_schema import validate_schema_dialects
 from cratesio_reviewed_policy import policy_observation
 from cratesio_source_error import SourceLockError
 
@@ -200,6 +201,7 @@ def _validate_auth_schemes(document: dict[str, Any]) -> None:
 def operation_rows(document: dict[str, Any]) -> list[dict[str, str]]:
     if document.get("openapi") != "3.1.0":
         raise SourceLockError("OpenAPI version is not exactly 3.1.0")
+    validate_schema_dialects(document)
     paths = document.get("paths")
     if not isinstance(paths, dict):
         raise SourceLockError("OpenAPI paths must be an object")
