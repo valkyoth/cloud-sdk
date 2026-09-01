@@ -21,7 +21,7 @@ LOCK_DOCUMENT = ROOT / "docs" / "HETZNER_CHANGELOG_LOCK.md"
 SOURCE_URL = "https://docs.hetzner.cloud/changelog/feed.rss"
 SELF_URL = "https://docs.hetzner.cloud/changelog/rss"
 PINNED_SEMANTIC_SHA256 = (
-    "102fa2a3092c24a2c5cf9b25e7b7a60093ce3d6eb05ec0aa505c37843c2a6641"
+    "29a1ea0bacae078b213916a41f6af27c53a1e74ead7bb4f90c9cda89470748aa"
 )
 PINNED_LATEST_GUID = (
     "https://docs.hetzner.cloud/changelog#"

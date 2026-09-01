@@ -2,13 +2,13 @@
 
 Status: current operational source reviewed after stable `1.0.0`.
 
-Retrieved: 2026-08-31
+Retrieved: 2026-09-01
 
 Official source:
 <https://docs.hetzner.cloud/changelog/feed.rss>
 
 Normalized semantic SHA-256:
-`102fa2a3092c24a2c5cf9b25e7b7a60093ce3d6eb05ec0aa505c37843c2a6641`
+`29a1ea0bacae078b213916a41f6af27c53a1e74ead7bb4f90c9cda89470748aa`
 
 Latest reviewed entry:
 <https://docs.hetzner.cloud/changelog#2026-08-31-debian-11-image-is-deprecated>
@@ -25,6 +25,11 @@ OpenAPI document. Any semantic digest or latest-entry change is a review stop;
 fetched RSS is never compiled, packaged, or accepted automatically.
 
 The latest review identified four post-spec-lock notices relevant to the SDK:
+
+The 2026-09-01 refresh contains 142 entries and retains the same newest entry
+identity as the preceding review. The feed's normalized historical content
+changed, but no newer operational notice or machine-readable API drift was
+present.
 
 - The Debian 11 server image is deprecated and Hetzner announces that it will
   no longer be available for new servers after 30 November 2026. Image

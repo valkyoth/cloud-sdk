@@ -1,7 +1,7 @@
 # crates.io Commit Plan
 
-Status: selected unreleased `1.1.0` implementation train. Commit 1 is accepted;
-Commit 2 drift detection is implemented and awaits its incremental pentest.
+Status: selected unreleased `1.1.0` implementation train. Commits 1 and 2 are
+accepted; Commit 3 is the next implementation checkpoint.
 
 ## Decision Summary
 
@@ -154,7 +154,10 @@ scope-classification boundary.
 
 ## Commit 2 - Drift, Policy, And Compatibility Detection
 
-Checkpoint status: implementation complete; incremental pentest pending.
+Checkpoint status: accepted at
+`10d3caa5a0ed9ad98086df26449fb13212904aaf` after incremental pentest,
+remediation, green retest, and complete local verification. The next checkpoint
+must use this commit as its comparison baseline.
 
 Goal: turn upstream API, Cargo contract, and access-policy changes into
 fail-closed maintenance events.

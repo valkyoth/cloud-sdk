@@ -123,5 +123,15 @@ Commit 1 passed its incremental pentest, remediation retest, and GitHub checks.
   recursive content/header structures so adversarial nesting fails with a
   controlled source-lock error instead of exhausting Python's call stack.
 
-Security review remains pending until the Commit 2 incremental pentest is
-complete.
+Commit 2 passed its incremental pentest and final remediation retest. The
+accepted comparison baseline for Commit 3 is
+`10d3caa5a0ed9ad98086df26449fb13212904aaf`; the complete `1.1.0` security
+review remains pending until every planned checkpoint and the final
+full-service assessment are complete.
+
+### Maintenance Evidence
+
+- Re-reviewed the complete 142-entry Hetzner changelog feed after its semantic
+  digest changed without a new entry. The latest notice remains the reviewed
+  Debian 11 image deprecation, and the machine-readable Hetzner API still
+  reports no drift. No SDK behavior or model change is required.
