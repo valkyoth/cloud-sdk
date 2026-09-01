@@ -4,17 +4,19 @@
 from __future__ import annotations
 
 import hashlib
+import re
 from typing import Any
 
 from cratesio_source_lock import (
     ADMITTED_METHODS,
+    CARGO_CONTRACTS,
     cargo_rows,
     digest,
     operation_rows,
     parse_json,
-    policy_observation,
     validate_source_evidence,
 )
+from cratesio_reviewed_policy import policy_observation
 
 
 class CratesioAdapterError(ValueError):
@@ -29,6 +31,7 @@ SOURCE_IDS = {
     "policy-current",
     "policy-source",
 }
+PATH_PARAMETER = re.compile(r"\{[^{}]+\}")
 
 
 def _row(identity: str, values: dict[str, Any]) -> dict[str, Any]:
@@ -141,7 +144,8 @@ def _cargo_contracts(
         matches = (
             operation is not None
             and operation["method"] == row["method"]
-            and operation["path"] == row["path"]
+            and PATH_PARAMETER.sub("{}", operation["path"])
+            == PATH_PARAMETER.sub("{}", row["path"])
             and operation["stability"] == "stable-cargo"
         )
         values = {
@@ -202,6 +206,33 @@ def _observed_sources(lock: dict[str, Any], payloads: dict[str, bytes]) -> list[
     return rows
 
 
+def _source_sha256(lock: dict[str, Any], identity: str) -> str:
+    matches = [source["sha256"] for source in lock["sources"] if source["id"] == identity]
+    if len(matches) != 1:
+        raise CratesioAdapterError(f"crates.io source {identity!r} is missing")
+    return matches[0]
+
+
+def validate_stable_cargo_matches(observation: dict[str, Any]) -> None:
+    """Reject candidate evidence that breaks a stable Cargo contract."""
+    expected = {f"cargo/{contract}" for contract, *_rest in CARGO_CONTRACTS}
+    rows = [
+        row
+        for row in observation["contracts"]["operations"]
+        if row["id"].startswith("cargo/")
+        and row["values"].get("classification") == "superseded"
+    ]
+    mismatches = [
+        row["id"] for row in rows if row["values"].get("openapi_match") is not True
+    ]
+    identities = {row["id"] for row in rows}
+    if identities != expected or mismatches:
+        details = mismatches or sorted(expected.symmetric_difference(identities))
+        raise CratesioAdapterError(
+            f"stable Cargo contracts no longer match OpenAPI: {details}"
+        )
+
+
 def build_observation(
     lock: dict[str, Any], payloads: dict[str, bytes]
 ) -> dict[str, Any]:
@@ -213,7 +244,9 @@ def build_observation(
         operations = operation_rows(document)
         cargo = cargo_rows(payloads["cargo"])
         policy = policy_observation(
-            payloads["policy"], payloads["policy-current"], strict=False
+            payloads["policy"],
+            payloads["policy-current"],
+            _source_sha256(lock, "policy-current"),
         )
         validate_source_evidence(payloads["openapi-source"], payloads["policy-source"])
         operation_contracts, operation_auth, operation_schemas = (

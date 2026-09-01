@@ -51,7 +51,7 @@ train is implemented.
 
 ### Commit 1 - Source Lock And Finite Scope
 
-- Locked five bounded official source representations: the public OpenAPI
+- Locked six bounded official source representations: the public OpenAPI
   document, stable Cargo Registry Web API contract, deployed data-access route,
   and commit-pinned upstream OpenAPI and policy implementations.
 - Classified all 51 public operations across 40 paths and retained the two
@@ -88,6 +88,16 @@ Commit 1 passed its incremental pentest, remediation retest, and GitHub checks.
   accepted repository evidence.
 - Added semantic fixtures for every drift family plus incomplete policy,
   unavailable refresh, and candidate-overwrite rejection.
+- Made refresh candidates self-contained with bounded source payloads and
+  reconstruct every inventory, summary, observation, and provider lock during
+  verification, preventing circularly rewritten derivatives from being clean.
+- Require all seven stable Cargo contracts to match their public OpenAPI route
+  structures; placeholder labels such as `{crate_name}` and `{name}` remain
+  source-exact while comparing as the same positional HTTP route.
+- Replaced natural-language policy inference with an exact reviewed-payload
+  digest and typed policy, and require the current bytes to equal the policy at
+  the reviewed source commit before candidate verification succeeds.
+- Reject nonexistent calendar dates in source-review evidence.
 
 Security review remains pending until the Commit 2 incremental pentest is
 complete.

@@ -10,9 +10,13 @@ import tempfile
 from pathlib import Path
 
 import stage_cratesio_lock_refresh as refresh
-from cratesio_drift_adapter import CratesioAdapterError, build_observation
+from cratesio_drift_adapter import (
+    CratesioAdapterError,
+    build_observation,
+    validate_stable_cargo_matches,
+)
 from cratesio_drift_documents import provider_lock
-from cratesio_source_lock import CARGO_CONTRACTS
+from cratesio_source_lock import CARGO_CONTRACTS, observe as observe_sources
 from provider_drift_model import CATEGORIES, validate_lock, validate_observation
 from provider_drift_report import build_report
 
@@ -65,6 +69,22 @@ def openapi() -> dict:
             },
         },
     }
+
+
+def compatible_openapi() -> dict:
+    document = openapi()
+    response = {
+        "description": "fixture",
+        "content": {"application/json": {"schema": {"type": "object"}}},
+    }
+    for _contract, method, path, operation_id, _section in CARGO_CONTRACTS:
+        openapi_path = path.replace("{crate_name}", "{name}")
+        item = document["paths"].setdefault(openapi_path, {})
+        item[method] = {
+            "operationId": operation_id,
+            "responses": {"200": copy.deepcopy(response)},
+        }
+    return document
 
 
 def cargo_html() -> bytes:
@@ -199,10 +219,12 @@ def test_policy_weakening_is_reported_in_each_owned_category() -> None:
     weakened = weakened.replace(b'<h2 id="rss-feeds">rss</h2>', b"")
     data = payloads()
     data["policy-current"] = weakened
-    report = changes(lock, data)
-    assert changed(report, "cost", "data-access")["severity"] == "blocking"
-    assert changed(report, "headers", "data-access")["severity"] == "blocking"
-    assert changed(report, "retry", "data-access")["severity"] == "blocking"
+    try:
+        observe(lock, data)
+    except CratesioAdapterError:
+        pass
+    else:
+        raise AssertionError("unreviewed policy bytes were semantically interpreted")
 
 
 def test_unavailable_or_incomplete_policy_cannot_be_clean() -> None:
@@ -242,6 +264,180 @@ def test_failed_refresh_does_not_publish_and_candidates_never_overwrite() -> Non
         else:
             raise AssertionError("candidate publication overwrote prior evidence")
         assert output.read_bytes() == b"first"
+
+
+def candidate_fixture() -> dict:
+    data = payloads(compatible_openapi())
+    sources = [
+        {
+            "id": identity,
+            "max_bytes": max(1, len(payload)),
+            "sha256": hashlib.sha256(payload).hexdigest(),
+            "size_bytes": len(payload),
+            "url": f"https://example.com/{identity}",
+        }
+        for identity, payload in sorted(data.items())
+    ]
+    source_lock = {"sources": sources}
+    operations, cargo, summary = observe_sources(source_lock, data)
+    source_lock.update(summary)
+    source_lock["artifacts"] = {
+        "operations_sha256": hashlib.sha256(operations).hexdigest(),
+        "cargo_compatibility_sha256": hashlib.sha256(cargo).hexdigest(),
+    }
+    empty = {category: [] for category in CATEGORIES}
+    base = provider_lock(source_lock, empty)
+    observation = validate_observation(build_observation(base, data))
+    lock = provider_lock(source_lock, observation["contracts"])
+    return {
+        "cargo_tsv": cargo.decode("ascii"),
+        "format": refresh.BUNDLE_FORMAT,
+        "observation": observation,
+        "operations_tsv": operations.decode("ascii"),
+        "payloads": refresh.encode_payloads(data),
+        "provider_lock": lock,
+        "source_lock": source_lock,
+    }
+
+
+def test_every_stable_cargo_contract_must_match_openapi() -> None:
+    candidate = candidate_fixture()
+    observation = candidate["observation"]
+    validate_stable_cargo_matches(observation)
+    rows = [
+        row
+        for row in observation["contracts"]["operations"]
+        if row["id"].startswith("cargo/")
+        and row["values"]["classification"] == "superseded"
+    ]
+    assert len(rows) == 7
+    for index in range(len(rows)):
+        changed_observation = copy.deepcopy(observation)
+        changed_rows = [
+            row
+            for row in changed_observation["contracts"]["operations"]
+            if row["id"].startswith("cargo/")
+            and row["values"]["classification"] == "superseded"
+        ]
+        changed_rows[index]["values"]["openapi_match"] = False
+        try:
+            validate_stable_cargo_matches(changed_observation)
+        except CratesioAdapterError:
+            pass
+        else:
+            raise AssertionError(f"Cargo mismatch {index} was accepted")
+
+
+def test_cargo_and_openapi_parameter_labels_share_one_route_shape() -> None:
+    candidate = candidate_fixture()
+    yank = next(
+        row
+        for row in candidate["observation"]["contracts"]["operations"]
+        if row["id"] == "cargo/yank"
+    )
+    assert yank["values"]["path"].endswith("/{crate_name}/{version}/yank")
+    assert yank["values"]["openapi_match"] is True
+
+
+def test_candidate_derivatives_are_rebuilt_from_embedded_payloads() -> None:
+    candidate = candidate_fixture()
+    refresh.verify_payload_binding(candidate)
+
+    missing_auth = copy.deepcopy(candidate)
+    missing_auth["observation"]["contracts"]["authentication"] = []
+    try:
+        refresh.verify_payload_binding(missing_auth)
+    except refresh.ModelError:
+        pass
+    else:
+        raise AssertionError("candidate accepted an observation missing authentication")
+
+    changed_inventory = copy.deepcopy(candidate)
+    changed_inventory["operations_tsv"] += "unexpected\n"
+    try:
+        refresh.verify_payload_binding(changed_inventory)
+    except refresh.ModelError:
+        pass
+    else:
+        raise AssertionError("candidate accepted an inventory not derived from payloads")
+
+    changed_payload = copy.deepcopy(candidate)
+    encoded = changed_payload["payloads"]["policy-current"]
+    changed_payload["payloads"]["policy-current"] = ("A" if encoded[0] != "A" else "B") + encoded[1:]
+    try:
+        refresh.verify_payload_binding(changed_payload)
+    except refresh.ModelError:
+        pass
+    else:
+        raise AssertionError("candidate accepted a payload outside its manifest")
+
+    changed_pinned_policy = copy.deepcopy(candidate)
+    changed = policy_source() + b"\nreviewed fork\n"
+    changed_pinned_policy["payloads"]["policy-source"] = (
+        refresh.encode_payloads({"policy-source": changed})["policy-source"]
+    )
+    source = next(
+        row
+        for row in changed_pinned_policy["source_lock"]["sources"]
+        if row["id"] == "policy-source"
+    )
+    source["size_bytes"] = len(changed)
+    source["sha256"] = hashlib.sha256(changed).hexdigest()
+    try:
+        refresh.verify_payload_binding(changed_pinned_policy)
+    except refresh.ModelError:
+        pass
+    else:
+        raise AssertionError("current policy was not bound to the reviewed commit")
+
+
+def test_candidate_validator_rejects_circularly_rewritten_contracts() -> None:
+    candidate = candidate_fixture()
+    original = refresh.validate_source_lock
+    refresh.validate_source_lock = lambda _source_lock: None
+    try:
+        refresh.validate_candidate(candidate)
+        changed = copy.deepcopy(candidate)
+        changed["observation"]["contracts"]["authentication"] = []
+        changed["provider_lock"] = provider_lock(
+            changed["source_lock"], changed["observation"]["contracts"]
+        )
+        try:
+            refresh.validate_candidate(changed)
+        except refresh.ModelError:
+            pass
+        else:
+            raise AssertionError("circularly rewritten candidate was accepted")
+    finally:
+        refresh.validate_source_lock = original
+
+
+def test_refresh_dates_and_payload_encoding_are_strict() -> None:
+    try:
+        refresh.source_template("a" * 40, "2026-99-99")
+    except refresh.ModelError:
+        pass
+    else:
+        raise AssertionError("nonexistent review date was accepted")
+
+    candidate = candidate_fixture()
+    malformed = copy.deepcopy(candidate)
+    malformed["payloads"]["policy-current"] = "***"
+    try:
+        refresh.decode_candidate_payloads(
+            malformed["payloads"], malformed["source_lock"]
+        )
+    except refresh.ModelError:
+        pass
+    else:
+        raise AssertionError("malformed candidate base64 was accepted")
+
+    try:
+        refresh.unique_object([("format", "first"), ("format", "second")])
+    except refresh.ModelError:
+        pass
+    else:
+        raise AssertionError("duplicate candidate keys were accepted")
 
 
 def main() -> None:

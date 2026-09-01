@@ -114,11 +114,18 @@ scripts/stage_cratesio_lock_refresh.py stage \
 scripts/stage_cratesio_lock_refresh.py verify /tmp/cratesio-refresh.json
 ```
 
-The candidate contains the rich source manifest, both TSV inventories, the
-neutral provider lock, and its matching observation. Publication is one
-non-overwriting atomic link after every source, parser, model, digest, and
-clean-report check succeeds. The command never promotes or rewrites repository
-evidence. A reviewer must inspect the report and candidate, apply all accepted
-artifacts together, run the full checks and pentest, and commit the result.
+The candidate contains the bounded source payloads, rich source manifest, both
+TSV inventories, neutral provider lock, and its matching observation.
+Verification checks every embedded payload against its manifest digest and
+size, then reconstructs every derivative before accepting the bundle.
+The typed data-access rules are emitted only when the current policy bytes are
+identical to the policy at the reviewed source commit; any prose change
+requires an explicit source-commit and policy review rather than heuristic
+natural-language interpretation.
+Publication is one non-overwriting atomic link after every source, parser,
+model, digest, stable Cargo compatibility, and clean-report check succeeds. The
+command never promotes or rewrites repository evidence. A reviewer must inspect
+the exact payloads, report, and candidate, apply all accepted artifacts
+together, run the full checks and pentest, and commit the result.
 Failed, timed-out, oversized, redirected, malformed, incomplete, or internally
 inconsistent observations leave accepted files untouched.

@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import copy
+import hashlib
 import json
 import subprocess
 import sys
@@ -230,10 +231,29 @@ class SourceLockTests(unittest.TestCase):
 
     def test_policy_requires_deployed_route_and_complete_source_text(self) -> None:
         deployed = b"<html><body>crates.io: Rust Package Registry</body></html>"
-        observed = policy_observation(deployed, policy_source())
+        source = policy_source()
+        expected_sha256 = hashlib.sha256(source).hexdigest()
+        observed = policy_observation(deployed, source, expected_sha256)
         self.assertEqual(observed["api_max_requests_per_second"], 1)
         with self.assertRaises(SourceLockError):
-            policy_observation(deployed, b"<h2 id=\"api\">missing</h2>")
+            policy_observation(
+                deployed,
+                b'<h2 id="api">missing</h2>',
+                expected_sha256,
+            )
+
+    def test_negated_policy_prose_cannot_reuse_the_reviewed_policy(self) -> None:
+        deployed = b"<html><body>crates.io: Rust Package Registry</body></html>"
+        source = policy_source()
+        negated = source.replace(
+            b"A user-agent", b"You need not send a user-agent"
+        ).replace(b"strongly suggest", b"do not suggest")
+        with self.assertRaises(SourceLockError):
+            policy_observation(
+                deployed,
+                negated,
+                hashlib.sha256(source).hexdigest(),
+            )
 
     def test_source_evidence_must_contain_both_contracts(self) -> None:
         validate_source_evidence(
@@ -268,6 +288,12 @@ class SourceLockTests(unittest.TestCase):
         lock = committed_lock()
         changed = copy.deepcopy(lock)
         changed["sources"][3]["url"] = "https://raw.githubusercontent.com/rust-lang/crates.io/main/src/openapi.rs"
+        with self.assertRaises(SourceLockError):
+            validate_lock(changed)
+
+    def test_source_lock_rejects_nonexistent_calendar_date(self) -> None:
+        changed = copy.deepcopy(committed_lock())
+        changed["reviewed_at"] = "2026-99-99"
         with self.assertRaises(SourceLockError):
             validate_lock(changed)
 

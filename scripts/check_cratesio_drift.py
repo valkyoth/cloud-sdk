@@ -8,7 +8,11 @@ import json
 import sys
 from pathlib import Path
 
-from cratesio_drift_adapter import CratesioAdapterError, build_observation
+from cratesio_drift_adapter import (
+    CratesioAdapterError,
+    build_observation,
+    validate_stable_cargo_matches,
+)
 from cratesio_drift_documents import provider_lock, source_projection
 from cratesio_source_error import SourceLockError
 from cratesio_source_fetch import observe_source
@@ -55,6 +59,7 @@ def load_documents() -> tuple[dict, dict, dict, dict]:
         raise ModelError("crates.io drift sources differ from the accepted source lock")
     if lock != provider_lock(source_lock, observation["contracts"]):
         raise ModelError("crates.io drift lock policy differs from the reviewed policy")
+    validate_stable_cargo_matches(observation)
     return plugin, source_lock, lock, observation
 
 

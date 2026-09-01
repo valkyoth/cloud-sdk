@@ -6,6 +6,7 @@ from __future__ import annotations
 import hashlib
 import hmac
 import re
+from datetime import date
 from typing import Any
 
 from cratesio_source_error import SourceLockError
@@ -58,8 +59,15 @@ def validate_lock(lock: dict[str, Any]) -> None:
         r"[0-9a-f]{40}", source_commit
     ):
         raise SourceLockError("crates.io source commit is invalid")
-    if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", str(lock.get("reviewed_at", ""))):
+    reviewed_at = str(lock.get("reviewed_at", ""))
+    if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", reviewed_at):
         raise SourceLockError("crates.io review date is invalid")
+    try:
+        parsed_reviewed_at = date.fromisoformat(reviewed_at)
+    except ValueError as error:
+        raise SourceLockError("crates.io review date is not a real date") from error
+    if parsed_reviewed_at.isoformat() != reviewed_at:
+        raise SourceLockError("crates.io review date is not canonical")
     sources = lock.get("sources")
     if not isinstance(sources, list) or len(sources) != len(SOURCE_DETAILS):
         raise SourceLockError("crates.io source lock must contain six sources")
