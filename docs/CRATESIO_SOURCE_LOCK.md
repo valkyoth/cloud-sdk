@@ -121,6 +121,12 @@ classification. Instance-valued examples, defaults, constants, enums, and
 property names remain payload data rather than dialect declarations. Schema
 Object `$dynamicRef` is rejected until every target resource, dynamic anchor,
 and resolution scope can be bundled and digest-bound without network access.
+Ordinary `$ref` controls are interpreted only inside actual Schema Objects and
+typed OpenAPI Reference Object positions. They must be strings, must use local
+`#/` JSON Pointers, and must resolve inside the digest-bound document. Payload
+examples, Example Object values, defaults, constants, enums, and other instance
+data may contain a `$ref` property without being mistaken for an OpenAPI
+control.
 
 ## Controlled Refresh
 

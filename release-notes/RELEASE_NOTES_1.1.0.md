@@ -112,6 +112,9 @@ Commit 1 passed its incremental pentest, remediation retest, and GitHub checks.
   payload examples and model properties named `$schema` remain valid data.
 - Reject Schema Object `$dynamicRef` until dynamic targets and scope can be
   resolved entirely from digest-bound reviewed evidence.
+- Scope ordinary `$ref` validation to Schema Objects and typed OpenAPI
+  Reference Object positions, preserving local resolution checks without
+  rejecting `$ref` properties in arbitrary example payloads.
 
 Security review remains pending until the Commit 2 incremental pentest is
 complete.

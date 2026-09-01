@@ -119,32 +119,6 @@ def parse_json(payload: bytes, label: str) -> dict[str, Any]:
     return value
 
 
-def _resolve_pointer(document: dict[str, Any], reference: str) -> None:
-    if not reference.startswith("#/"):
-        raise SourceLockError(f"OpenAPI has external reference {reference!r}")
-    current: Any = document
-    for raw in reference[2:].split("/"):
-        key = raw.replace("~1", "/").replace("~0", "~")
-        if not isinstance(current, dict) or key not in current:
-            raise SourceLockError(f"OpenAPI has unresolved reference {reference!r}")
-        current = current[key]
-
-
-def _validate_references(document: dict[str, Any]) -> None:
-    stack: list[Any] = [document]
-    while stack:
-        value = stack.pop()
-        if isinstance(value, dict):
-            reference = value.get("$ref")
-            if reference is not None:
-                if not isinstance(reference, str):
-                    raise SourceLockError("OpenAPI reference must be a string")
-                _resolve_pointer(document, reference)
-            stack.extend(value.values())
-        elif isinstance(value, list):
-            stack.extend(value)
-
-
 def _auth_alternatives(document: dict[str, Any], operation: dict[str, Any]) -> list[str]:
     security = operation.get("security", document.get("security", []))
     if not isinstance(security, list):
@@ -206,7 +180,6 @@ def operation_rows(document: dict[str, Any]) -> list[dict[str, str]]:
     if not isinstance(paths, dict):
         raise SourceLockError("OpenAPI paths must be an object")
     _validate_auth_schemes(document)
-    _validate_references(document)
     rows: list[dict[str, str]] = []
     identities: set[str] = set()
     for path in sorted(paths):

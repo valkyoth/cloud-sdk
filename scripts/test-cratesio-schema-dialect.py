@@ -189,12 +189,14 @@ class SchemaDialectTests(unittest.TestCase):
     def test_instance_data_and_schema_property_names_are_not_controls(self) -> None:
         payload = {
             "$dynamicRef": "customer-payload-reference",
+            "$ref": "customer-payload-reference",
             "$schema": "customer-payload-value",
         }
         schema = {
             "type": "object",
             "properties": {
                 "$dynamicRef": {"type": "string"},
+                "$ref": {"type": "string"},
                 "$schema": {"type": "string"},
             },
             "example": payload,
@@ -226,6 +228,68 @@ class SchemaDialectTests(unittest.TestCase):
             },
         }
         validate_schema_dialects(document)
+
+    def test_payload_references_are_admitted_by_the_source_lock(self) -> None:
+        operation_rows(
+            source_lock_document(
+                {"type": "object"}, {"$ref": "customer-payload-reference"}
+            )
+        )
+
+    def test_schema_references_must_be_local_resolvable_strings(self) -> None:
+        document = source_lock_document({"$ref": "#/components/schemas/Fixture"})
+        document["components"]["schemas"] = {"Fixture": {"type": "object"}}
+        operation_rows(document)
+
+        for reference in (
+            "https://attacker.invalid/schema",
+            "#/components/schemas/Missing",
+            None,
+            1,
+            {},
+        ):
+            document = source_lock_document({"$ref": reference})
+            with self.subTest(reference=reference), self.assertRaises(SourceLockError):
+                operation_rows(document)
+
+    def test_external_references_fail_at_reference_object_positions(self) -> None:
+        reference = {"$ref": "https://attacker.invalid/object"}
+        documents = (
+            {"paths": {"/x": reference}},
+            {"paths": {"/x": {"get": {"parameters": [reference]}}}},
+            {"paths": {"/x": {"post": {"requestBody": reference}}}},
+            {
+                "paths": {
+                    "/x": {"get": {"responses": {"200": reference}}}
+                }
+            },
+            {"components": {"headers": {"Header": reference}}},
+            {"components": {"callbacks": {"Callback": reference}}},
+            {"components": {"examples": {"Example": reference}}},
+            {"components": {"links": {"Link": reference}}},
+            {"components": {"securitySchemes": {"Auth": reference}}},
+            {
+                "paths": {
+                    "/x": {
+                        "get": {
+                            "responses": {
+                                "200": {
+                                    "links": {"next": reference},
+                                    "content": {
+                                        "application/json": {
+                                            "examples": {"sample": reference}
+                                        }
+                                    },
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+        )
+        for index, document in enumerate(documents):
+            with self.subTest(index=index), self.assertRaises(SourceLockError):
+                validate_schema_dialects(document)
 
     def test_dynamic_references_are_rejected_only_in_schema_objects(self) -> None:
         for value in ("https://attacker.invalid/schema", "#node", None, 1, {}):
