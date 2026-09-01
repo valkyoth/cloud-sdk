@@ -72,6 +72,23 @@ def specification() -> dict:
     }
 
 
+def path_specification() -> dict:
+    document = specification()
+    operation_value = operation("path_fixture")
+    operation_value["parameters"] = [
+        {"name": "crate_name", "in": "path", "required": True}
+    ]
+    document["paths"] = {
+        "/api/v1/crates/{crate_name}/{version}": {
+            "parameters": [
+                {"name": "version", "in": "path", "required": True}
+            ],
+            "get": operation_value,
+        }
+    }
+    return document
+
+
 def cargo_html() -> bytes:
     sections = [
         ("publish", "PUT", "/api/v1/crates/new", "h2"),
@@ -172,6 +189,68 @@ class SourceLockTests(unittest.TestCase):
         document["paths"]["/api/v1/fixture"]["get"]["responses"]["200"]["content"]["application/json"]["schema"]["$ref"] = "#/components/schemas/Missing"
         with self.assertRaises(SourceLockError):
             operation_rows(document)
+
+    def test_path_parameters_are_exact_direct_required_declarations(self) -> None:
+        path = "/api/v1/crates/{crate_name}/{version}"
+        operation_rows(path_specification())
+        invalid = []
+
+        missing = path_specification()
+        missing["paths"][path]["get"]["parameters"] = []
+        invalid.append(("missing", missing))
+
+        extra = path_specification()
+        extra["paths"][path]["get"]["parameters"].append(
+            {"name": "other", "in": "path", "required": True}
+        )
+        invalid.append(("extra", extra))
+
+        duplicate = path_specification()
+        duplicate["paths"][path]["get"]["parameters"].append(
+            {"name": "crate_name", "in": "path", "required": True}
+        )
+        invalid.append(("duplicate", duplicate))
+
+        misplaced = path_specification()
+        misplaced["paths"][path]["get"]["parameters"][0]["in"] = "query"
+        invalid.append(("misplaced", misplaced))
+
+        optional = path_specification()
+        optional["paths"][path]["parameters"][0]["required"] = False
+        invalid.append(("optional", optional))
+
+        referenced = path_specification()
+        referenced["components"]["parameters"] = {
+            "crate": {"name": "crate_name", "in": "path", "required": True}
+        }
+        referenced["paths"][path]["get"]["parameters"][0] = {
+            "$ref": "#/components/parameters/crate"
+        }
+        invalid.append(("referenced", referenced))
+
+        invalid_object = path_specification()
+        invalid_object["paths"][path]["get"]["parameters"][0] = None
+        invalid.append(("invalid-object", invalid_object))
+
+        invalid_array = path_specification()
+        invalid_array["paths"][path]["parameters"] = {}
+        invalid.append(("invalid-array", invalid_array))
+
+        malformed = path_specification()
+        malformed["paths"]["/api/v1/crates/{crate_name}/{version"] = (
+            malformed["paths"].pop(path)
+        )
+        invalid.append(("malformed", malformed))
+
+        repeated = path_specification()
+        repeated["paths"]["/api/v1/crates/{crate_name}/{crate_name}"] = (
+            repeated["paths"].pop(path)
+        )
+        invalid.append(("repeated-template", repeated))
+
+        for label, document in invalid:
+            with self.subTest(label=label), self.assertRaises(SourceLockError):
+                operation_rows(document)
 
     def test_duplicate_operation_ids_are_rejected(self) -> None:
         document = specification()

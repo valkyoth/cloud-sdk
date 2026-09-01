@@ -105,6 +105,10 @@ Stable Cargo route comparison preserves path-parameter identity and position.
 Only the operation-scoped, reviewed OpenAPI `name` to Cargo `crate_name` alias
 is admitted for yank, unyank, and owner operations. Swapped, duplicated,
 missing, malformed, or unreviewed parameter names fail the compatibility gate.
+Every OpenAPI path placeholder must also have exactly one direct `in: path`,
+`required: true` declaration across its path item and operation. Extra,
+duplicate, misplaced, optional, malformed, or referenced declarations fail
+closed; parameter references require a separately reviewed resolver.
 
 ## Controlled Refresh
 

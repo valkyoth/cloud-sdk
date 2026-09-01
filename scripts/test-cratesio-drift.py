@@ -6,6 +6,7 @@ from __future__ import annotations
 import copy
 import hashlib
 import json
+import re
 import tempfile
 from pathlib import Path
 
@@ -56,7 +57,8 @@ def openapi() -> dict:
                             "in": "query",
                             "required": False,
                             "schema": {"type": "string"},
-                        }
+                        },
+                        {"name": "category", "in": "path", "required": True},
                     ],
                     "responses": {"200": copy.deepcopy(response)},
                 }
@@ -82,6 +84,10 @@ def compatible_openapi() -> dict:
         item = document["paths"].setdefault(openapi_path, {})
         item[method] = {
             "operationId": operation_id,
+            "parameters": [
+                {"name": name, "in": "path", "required": True}
+                for name in re.findall(r"\{([^{}]+)\}", openapi_path)
+            ],
             "responses": {"200": copy.deepcopy(response)},
         }
     return document
@@ -342,15 +348,21 @@ def test_cargo_and_openapi_parameter_labels_share_one_route_shape() -> None:
 def test_cargo_path_parameter_identity_and_position_fail_closed() -> None:
     original = "/api/v1/crates/{name}/{version}/yank"
     invalid_paths = {
-        "swapped": "/api/v1/crates/{version}/{name}/yank",
-        "duplicated": "/api/v1/crates/{name}/{name}/yank",
-        "missing": "/api/v1/crates/{name}/yank",
-        "unreviewed": "/api/v1/crates/{package}/{version}/yank",
-        "malformed": "/api/v1/crates/{name}/{version-/yank",
+        "swapped": ("/api/v1/crates/{version}/{name}/yank", ("name", "version")),
+        "missing": ("/api/v1/crates/{name}/yank", ("name",)),
+        "unreviewed": (
+            "/api/v1/crates/{package}/{version}/yank",
+            ("package", "version"),
+        ),
     }
-    for label, invalid_path in invalid_paths.items():
+    for label, (invalid_path, declarations) in invalid_paths.items():
         document = compatible_openapi()
-        document["paths"][invalid_path] = document["paths"].pop(original)
+        item = document["paths"].pop(original)
+        item["delete"]["parameters"] = [
+            {"name": name, "in": "path", "required": True}
+            for name in declarations
+        ]
+        document["paths"][invalid_path] = item
         data = payloads(document)
         lock = fixture_lock(data)
         observation = observe(lock, data)

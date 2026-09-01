@@ -6,6 +6,7 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+from collections import Counter
 from html.parser import HTMLParser
 from typing import Any
 
@@ -17,6 +18,7 @@ OPENAPI_METHODS = {"delete", "get", "head", "options", "patch", "post", "put", "
 ADMITTED_METHODS = OPENAPI_METHODS - {"trace"}
 CLASSIFICATIONS = {"included", "deferred", "excluded", "superseded"}
 KNOWN_AUTH = {"api_token", "cookie", "trustpub_token"}
+PATH_PARAMETER = re.compile(r"\{([A-Za-z_][A-Za-z0-9_]*)\}")
 STABLE_OPERATIONS = {
     "add_owners",
     "list_crates",
@@ -196,6 +198,47 @@ def _validate_auth_schemes(document: dict[str, Any]) -> None:
             raise SourceLockError(f"OpenAPI auth scheme {name!r} changed")
 
 
+def _validate_path_parameters(
+    path: str,
+    item: dict[str, Any],
+    operation: dict[str, Any],
+    operation_id: str,
+) -> None:
+    expected = PATH_PARAMETER.findall(path)
+    if path.count("{") != len(expected) or path.count("}") != len(expected):
+        raise SourceLockError(f"{operation_id} has a malformed path template")
+    item_parameters = item.get("parameters", [])
+    operation_parameters = operation.get("parameters", [])
+    if not isinstance(item_parameters, list) or not isinstance(
+        operation_parameters, list
+    ):
+        raise SourceLockError(f"{operation_id} parameters must be arrays")
+    declared = []
+    for parameter in [*item_parameters, *operation_parameters]:
+        if not isinstance(parameter, dict):
+            raise SourceLockError(f"{operation_id} has an invalid parameter")
+        if "$ref" in parameter:
+            raise SourceLockError(f"{operation_id} parameter references are not supported")
+        if parameter.get("in") != "path":
+            continue
+        if parameter.get("required") is not True:
+            raise SourceLockError(f"{operation_id} has a non-required path parameter")
+        name = parameter.get("name")
+        if not isinstance(name, str):
+            raise SourceLockError(f"{operation_id} has an unnamed path parameter")
+        declared.append(name)
+    expected_counts = Counter(expected)
+    declared_counts = Counter(declared)
+    if (
+        any(count != 1 for count in expected_counts.values())
+        or any(count != 1 for count in declared_counts.values())
+        or expected_counts != declared_counts
+    ):
+        raise SourceLockError(
+            f"{operation_id} path template and declarations differ"
+        )
+
+
 def operation_rows(document: dict[str, Any]) -> list[dict[str, str]]:
     if document.get("openapi") != "3.1.0":
         raise SourceLockError("OpenAPI version is not exactly 3.1.0")
@@ -224,6 +267,7 @@ def operation_rows(document: dict[str, Any]) -> list[dict[str, str]]:
             if operation_id in identities:
                 raise SourceLockError(f"duplicate operation ID {operation_id!r}")
             identities.add(operation_id)
+            _validate_path_parameters(path, item, operation, operation_id)
             responses = operation.get("responses")
             if not isinstance(responses, dict) or not responses:
                 raise SourceLockError(f"{operation_id} lacks responses")

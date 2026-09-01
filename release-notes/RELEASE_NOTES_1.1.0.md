@@ -99,6 +99,9 @@ Commit 1 passed its incremental pentest, remediation retest, and GitHub checks.
   digest and typed policy, and require the current bytes to equal the policy at
   the reviewed source commit before candidate verification succeeds.
 - Reject nonexistent calendar dates in source-review evidence.
+- Require every OpenAPI path placeholder to have exactly one direct, required
+  path declaration; reject malformed, missing, extra, duplicate, misplaced,
+  optional, or referenced path-parameter evidence.
 
 Security review remains pending until the Commit 2 incremental pentest is
 complete.
