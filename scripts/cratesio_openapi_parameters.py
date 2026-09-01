@@ -11,22 +11,34 @@ from cratesio_source_error import SourceLockError
 
 
 PATH_PARAMETER = re.compile(r"\{([A-Za-z_][A-Za-z0-9_]*)\}")
+STABLE_PATH_SCHEMAS = {
+    ("add_owners", "name"): {"type": "string"},
+    ("list_owners", "name"): {"type": "string"},
+    ("remove_owners", "name"): {"type": "string"},
+    ("unyank_version", "name"): {"type": "string"},
+    ("unyank_version", "version"): {"type": "string"},
+    ("yank_version", "name"): {"type": "string"},
+    ("yank_version", "version"): {"type": "string"},
+}
 
 
 def _validate_stable_semantics(
     parameter: dict[str, Any], operation_id: str
 ) -> None:
-    schema = parameter.get("schema")
+    name = parameter.get("name")
+    expected_schema = STABLE_PATH_SCHEMAS.get((operation_id, name))
+    if expected_schema is None or parameter.get("schema") != expected_schema:
+        raise SourceLockError(
+            f"{operation_id}.{name} changed its stable parameter schema"
+        )
     if (
-        not isinstance(schema, dict)
-        or schema.get("type") != "string"
-        or "content" in parameter
+        "content" in parameter
         or parameter.get("style", "simple") != "simple"
         or parameter.get("explode", False) is not False
         or parameter.get("allowReserved", False) is not False
     ):
         raise SourceLockError(
-            f"{operation_id} has incompatible stable path serialization"
+            f"{operation_id}.{name} has incompatible path serialization"
         )
 
 

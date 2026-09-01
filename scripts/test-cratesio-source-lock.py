@@ -94,7 +94,7 @@ def stable_path_specification() -> dict:
     operation_value = operation("yank_version")
     operation_value["parameters"] = [
         {
-            "name": "crate_name",
+            "name": "name",
             "in": "path",
             "required": True,
             "schema": {"type": "string"},
@@ -110,7 +110,7 @@ def stable_path_specification() -> dict:
         },
     ]
     document["paths"] = {
-        "/api/v1/crates/{crate_name}/{version}/yank": {"delete": operation_value}
+        "/api/v1/crates/{name}/{version}/yank": {"delete": operation_value}
     }
     return document
 
@@ -279,12 +279,23 @@ class SourceLockTests(unittest.TestCase):
                 operation_rows(document)
 
     def test_stable_path_parameters_require_cargo_wire_semantics(self) -> None:
-        path = "/api/v1/crates/{crate_name}/{version}/yank"
+        path = "/api/v1/crates/{name}/{version}/yank"
         operation_rows(stable_path_specification())
         changes = (
             ("missing-schema", None),
             ("array", {"schema": {"type": "array", "items": {"type": "string"}}}),
             ("object", {"schema": {"type": "object"}}),
+            ("maximum", {"schema": {"type": "string", "maxLength": 0}}),
+            ("minimum", {"schema": {"type": "string", "minLength": 2}}),
+            ("pattern", {"schema": {"type": "string", "pattern": "^x$"}}),
+            ("enum", {"schema": {"type": "string", "enum": ["x"]}}),
+            ("constant", {"schema": {"type": "string", "const": "x"}}),
+            ("reference", {"schema": {"type": "string", "$ref": "#/x"}}),
+            ("negation", {"schema": {"type": "string", "not": {}}}),
+            ("all-of", {"schema": {"type": "string", "allOf": []}}),
+            ("any-of", {"schema": {"type": "string", "anyOf": []}}),
+            ("one-of", {"schema": {"type": "string", "oneOf": []}}),
+            ("renamed", {"name": "package"}),
             ("matrix", {"style": "matrix"}),
             ("label", {"style": "label"}),
             ("exploded", {"explode": True}),
@@ -300,6 +311,24 @@ class SourceLockTests(unittest.TestCase):
                 parameter.update(change)
             with self.subTest(label=label), self.assertRaises(SourceLockError):
                 operation_rows(document)
+
+    def test_every_stable_path_operation_accepts_its_exact_schema(self) -> None:
+        cases = (
+            ("list_owners", "/api/v1/crates/{name}/owners", ("name",)),
+            ("add_owners", "/api/v1/crates/{name}/owners", ("name",)),
+            ("remove_owners", "/api/v1/crates/{name}/owners", ("name",)),
+            ("unyank_version", "/api/v1/crates/{name}/{version}/unyank", ("name", "version")),
+            ("yank_version", "/api/v1/crates/{name}/{version}/yank", ("name", "version")),
+        )
+        for operation_id, path, names in cases:
+            document = specification()
+            value = operation(operation_id)
+            value["parameters"] = [
+                {"name": name, "in": "path", "required": True, "schema": {"type": "string"}}
+                for name in names
+            ]
+            document["paths"] = {path: {"get": value}}
+            operation_rows(document)
 
     def test_duplicate_operation_ids_are_rejected(self) -> None:
         document = specification()

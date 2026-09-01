@@ -110,9 +110,11 @@ Every OpenAPI path placeholder must also have exactly one direct `in: path`,
 duplicate, misplaced, optional, malformed, or referenced declarations fail
 closed; parameter references require a separately reviewed resolver.
 Path parameters belonging to the seven stable Cargo overlaps additionally
-require string schemas and the exact OpenAPI default wire profile: `simple`
-style, no explosion, no reserved-character allowance, and no content-based
-encoding. Serialization drift therefore cannot remain Cargo-compatible.
+require their exact reviewed `{"type":"string"}` schemas and the exact
+OpenAPI default wire profile: `simple` style, no explosion, no
+reserved-character allowance, and no content-based encoding. Restrictive JSON
+Schema assertions and serialization drift therefore cannot remain
+Cargo-compatible.
 
 ## Controlled Refresh
 

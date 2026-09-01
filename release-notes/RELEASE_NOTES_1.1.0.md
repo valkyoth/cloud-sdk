@@ -104,6 +104,8 @@ Commit 1 passed its incremental pentest, remediation retest, and GitHub checks.
   optional, or referenced path-parameter evidence.
 - Bind stable Cargo path parameters to string schemas and exact simple,
   non-exploded, non-reserved, schema-based OpenAPI wire serialization.
+- Require the complete reviewed stable path schema, rejecting restrictive JSON
+  Schema assertions even when the declared base type remains a string.
 
 Security review remains pending until the Commit 2 incremental pentest is
 complete.

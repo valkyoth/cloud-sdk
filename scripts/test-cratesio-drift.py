@@ -350,10 +350,6 @@ def test_cargo_path_parameter_identity_and_position_fail_closed() -> None:
     invalid_paths = {
         "swapped": ("/api/v1/crates/{version}/{name}/yank", ("name", "version")),
         "missing": ("/api/v1/crates/{name}/yank", ("name",)),
-        "unreviewed": (
-            "/api/v1/crates/{package}/{version}/yank",
-            ("package", "version"),
-        ),
     }
     for label, (invalid_path, declarations) in invalid_paths.items():
         document = compatible_openapi()
