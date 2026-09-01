@@ -111,6 +111,7 @@ scripts/test-hetzner-api-drift.py
 scripts/check_cratesio_source_lock.py
 scripts/test-cratesio-source-lock.py
 python3 scripts/test-cratesio-schema-dialect.py
+python3 scripts/test-cratesio-reference-depth.py
 scripts/test-hetzner-metadata-contracts.py
 python3 scripts/generate_request_contract_inventory.py
 python3 scripts/test-request-contract-inventory.py

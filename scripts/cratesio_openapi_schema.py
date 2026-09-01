@@ -10,6 +10,7 @@ from cratesio_source_error import SourceLockError
 
 
 OAS_31_DIALECT = "https://spec.openapis.org/oas/3.1/dialect/base"
+MAX_REFERENCE_DEPTH = 128
 HTTP_METHODS = {"delete", "get", "head", "options", "patch", "post", "put", "trace"}
 SINGLE_SUBSCHEMAS = {
     "additionalProperties",
@@ -32,6 +33,7 @@ class _OpenApiValidator:
     def __init__(self, document: dict[str, Any]) -> None:
         self.document = document
         self.visited: dict[str, set[int]] = {}
+        self.reference_depth = 0
 
     @staticmethod
     def _unresolved(reference: str) -> NoReturn:
@@ -119,7 +121,16 @@ class _OpenApiValidator:
             return None
         visited.add(identity)
         if "$ref" in value:
-            validator(self.resolve_local_reference(value["$ref"]))
+            if self.reference_depth >= MAX_REFERENCE_DEPTH:
+                raise SourceLockError(
+                    "OpenAPI reference depth exceeds reviewed limit"
+                )
+            target = self.resolve_local_reference(value["$ref"])
+            self.reference_depth += 1
+            try:
+                validator(target)
+            finally:
+                self.reference_depth -= 1
         return value
 
     def schema_tree(self, root: Any) -> None:
