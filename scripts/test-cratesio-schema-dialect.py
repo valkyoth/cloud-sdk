@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Regression tests for crates.io OpenAPI schema-dialect admission."""
+"""Regression tests for context-aware OpenAPI schema-dialect admission."""
 
 from __future__ import annotations
 
@@ -9,8 +9,23 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from cratesio_openapi_schema import OAS_31_DIALECT, validate_schema_dialects
+from cratesio_openapi_schema import (
+    OAS_31_DIALECT,
+    validate_schema_dialects,
+    validate_schema_tree,
+)
 from cratesio_source_error import SourceLockError
+
+
+BAD_DIALECT = "https://attacker.invalid/dialect"
+
+
+def custom_schema() -> dict:
+    return {"$schema": BAD_DIALECT}
+
+
+def custom_content() -> dict:
+    return {"application/json": {"schema": custom_schema()}}
 
 
 class SchemaDialectTests(unittest.TestCase):
@@ -19,20 +34,164 @@ class SchemaDialectTests(unittest.TestCase):
         validate_schema_dialects({"jsonSchemaDialect": OAS_31_DIALECT})
 
     def test_custom_and_non_string_root_dialects_are_rejected(self) -> None:
-        for value in ("https://attacker.invalid/dialect", None, 1, {}):
+        for value in (BAD_DIALECT, None, 1, {}):
             with self.subTest(value=value), self.assertRaises(SourceLockError):
                 validate_schema_dialects({"jsonSchemaDialect": value})
 
-    def test_exact_nested_schema_dialect_is_admitted(self) -> None:
-        validate_schema_dialects(
-            {"components": {"schemas": [{"$schema": OAS_31_DIALECT}]}}
+    def test_custom_dialects_fail_at_known_schema_positions(self) -> None:
+        documents = (
+            {"components": {"schemas": {"Model": custom_schema()}}},
+            {
+                "components": {
+                    "schemas": {
+                        "Model": {
+                            "properties": {"value": {"$schema": BAD_DIALECT}}
+                        }
+                    }
+                }
+            },
+            {
+                "paths": {
+                    "/x": {
+                        "get": {
+                            "parameters": [{"schema": custom_schema()}]
+                        }
+                    }
+                }
+            },
+            {
+                "paths": {
+                    "/x": {
+                        "get": {
+                            "responses": {
+                                "200": {
+                                    "content": custom_content()
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {"components": {"headers": {"x": {"schema": custom_schema()}}}},
+            {
+                "components": {
+                    "requestBodies": {"Body": {"content": custom_content()}}
+                }
+            },
+            {
+                "components": {
+                    "responses": {"Reply": {"headers": {"x": {"schema": custom_schema()}}}}
+                }
+            },
+            {
+                "components": {
+                    "pathItems": {"Item": {"parameters": [{"schema": custom_schema()}]}}
+                }
+            },
+            {
+                "paths": {
+                    "/x": {"post": {"requestBody": {"content": custom_content()}}}
+                }
+            },
+            {
+                "paths": {
+                    "/x": {
+                        "get": {
+                            "responses": {
+                                "200": {"headers": {"x": {"schema": custom_schema()}}}
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "paths": {
+                    "/x": {
+                        "get": {
+                            "responses": {
+                                "200": {
+                                    "content": {
+                                        "application/json": {
+                                            "encoding": {
+                                                "field": {
+                                                    "headers": {
+                                                        "x": {"schema": custom_schema()}
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                "paths": {
+                    "/x": {
+                        "get": {
+                            "callbacks": {
+                                "done": {
+                                    "{$request.body#/url}": {
+                                        "parameters": [{"schema": custom_schema()}]
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            {"webhooks": {"event": {"parameters": [{"schema": custom_schema()}]}}},
         )
-
-    def test_nested_schema_dialect_overrides_are_rejected(self) -> None:
-        for value in ("https://attacker.invalid/dialect", None, 1, {}):
-            document = {"components": {"schemas": [{"$schema": value}]}}
-            with self.subTest(value=value), self.assertRaises(SourceLockError):
+        for index, document in enumerate(documents):
+            with self.subTest(index=index), self.assertRaises(SourceLockError):
                 validate_schema_dialects(document)
+
+    def test_instance_data_and_schema_property_names_are_not_dialects(self) -> None:
+        payload = {"$schema": "customer-payload-value"}
+        schema = {
+            "type": "object",
+            "properties": {"$schema": {"type": "string"}},
+            "example": payload,
+            "default": payload,
+            "const": payload,
+            "enum": [payload],
+        }
+        document = {
+            "components": {
+                "examples": {"Payload": {"value": payload}},
+                "schemas": {"Model": schema},
+            },
+            "paths": {
+                "/x": {
+                    "get": {
+                        "responses": {
+                            "200": {
+                                "content": {
+                                    "application/json": {
+                                        "schema": schema,
+                                        "example": payload,
+                                        "examples": {"sample": {"value": payload}},
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+        }
+        validate_schema_dialects(document)
+
+    def test_boolean_and_exact_nested_schemas_are_admitted(self) -> None:
+        validate_schema_tree(True)
+        validate_schema_tree(False)
+        validate_schema_tree({"properties": {"value": {"$schema": OAS_31_DIALECT}}})
+
+    def test_malformed_recursive_schema_containers_are_rejected(self) -> None:
+        for schema in ({"allOf": {}}, {"properties": []}, {"items": "invalid"}):
+            with self.subTest(schema=schema), self.assertRaises(SourceLockError):
+                validate_schema_tree(schema)
 
 
 if __name__ == "__main__":

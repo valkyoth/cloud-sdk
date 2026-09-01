@@ -108,6 +108,8 @@ Commit 1 passed its incremental pentest, remediation retest, and GitHub checks.
   Schema assertions even when the declared base type remains a string.
 - Pin the OpenAPI 3.1 JSON Schema dialect at both the document default and
   nested `$schema` boundaries before deriving Cargo compatibility.
+- Restrict nested dialect inspection to real Schema Object positions so
+  payload examples and model properties named `$schema` remain valid data.
 
 Security review remains pending until the Commit 2 incremental pentest is
 complete.
