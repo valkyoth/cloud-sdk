@@ -70,5 +70,24 @@ train is implemented.
   structures, and rejected TRACE explicitly rather than omitting it from
   coverage.
 
-Security review remains pending until the Commit 1 incremental pentest is
+Commit 1 passed its incremental pentest, remediation retest, and GitHub checks.
+
+### Commit 2 - Drift, Policy, And Compatibility Detection
+
+- Added a crates.io adapter for the provider-neutral drift engine with
+  operation, parameter, schema, authentication, content-type, response-status,
+  stability, Cargo-contract, and policy fingerprints.
+- Added an exact current-policy observation alongside the commit-pinned policy
+  provenance so rate, identifying `User-Agent`, fallback, contact, and
+  preferred-data-source changes are visible.
+- Added canonical payload-free reporting for additions, removals, renames,
+  changed requiredness and schemas, authentication changes, status/media
+  changes, and stable Cargo/OpenAPI conflicts.
+- Added a bounded candidate-only refresh workflow that validates every source
+  and artifact before one non-overwriting atomic publication and never mutates
+  accepted repository evidence.
+- Added semantic fixtures for every drift family plus incomplete policy,
+  unavailable refresh, and candidate-overwrite rejection.
+
+Security review remains pending until the Commit 2 incremental pentest is
 complete.

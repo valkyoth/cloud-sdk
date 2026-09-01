@@ -1,0 +1,2798 @@
+{
+  "contracts": {
+    "authentication": [
+      {
+        "id": "schemes",
+        "values": {
+          "fingerprint": "b2c306464fefdcd882183134f4d28ee5682846ca20be1885883af0fb377bbf51",
+          "names": [
+            "api_token",
+            "cookie",
+            "trustpub_token"
+          ]
+        }
+      },
+      {
+        "id": "operation/list_categories",
+        "values": {
+          "admitted": [
+            "anonymous"
+          ],
+          "fingerprint": "6d5ab3ea86d09d5d89310481af590896672df6b8bbc684249842caf24edda379",
+          "observed": [
+            "anonymous"
+          ]
+        }
+      },
+      {
+        "id": "operation/find_category",
+        "values": {
+          "admitted": [
+            "anonymous"
+          ],
+          "fingerprint": "6d5ab3ea86d09d5d89310481af590896672df6b8bbc684249842caf24edda379",
+          "observed": [
+            "anonymous"
+          ]
+        }
+      },
+      {
+        "id": "operation/list_category_slugs",
+        "values": {
+          "admitted": [
+            "anonymous"
+          ],
+          "fingerprint": "6d5ab3ea86d09d5d89310481af590896672df6b8bbc684249842caf24edda379",
+          "observed": [
+            "anonymous"
+          ]
+        }
+      },
+      {
+        "id": "operation/confirm_user_email",
+        "values": {
+          "admitted": [
+            "email_confirmation_path_token"
+          ],
+          "fingerprint": "3bb9ed618bd6f77a046757081eef99552f34470702bc6a95c1799a42d25c6c32",
+          "observed": [
+            "anonymous"
+          ]
+        }
+      },
+      {
+        "id": "operation/list_crates",
+        "values": {
+          "admitted": [
+            "anonymous",
+            "api_token"
+          ],
+          "fingerprint": "3e66907783aae57d99d0135857fc23c2c8bfc76365067496518157426ddb3849",
+          "observed": [
+            "anonymous",
+            "api_token",
+            "cookie"
+          ]
+        }
+      },
+      {
+        "id": "operation/find_new_crate",
+        "values": {
+          "admitted": [
+            "anonymous"
+          ],
+          "fingerprint": "6d5ab3ea86d09d5d89310481af590896672df6b8bbc684249842caf24edda379",
+          "observed": [
+            "anonymous"
+          ]
+        }
+      },
+      {
+        "id": "operation/publish",
+        "values": {
+          "admitted": [
+            "api_token",
+            "trustpub_token"
+          ],
+          "fingerprint": "3a673e44eeb4fb76764c82bb03b8a962ea359b53f05ed17ea4be706cf0ca51ce",
+          "observed": [
+            "api_token",
+            "trustpub_token",
+            "cookie"
+          ]
+        }
+      },
+      {
+        "id": "operation/find_crate",
+        "values": {
+          "admitted": [
+            "anonymous"
+          ],
+          "fingerprint": "6d5ab3ea86d09d5d89310481af590896672df6b8bbc684249842caf24edda379",
+          "observed": [
+            "anonymous"
+          ]
+        }
+      },
+      {
+        "id": "operation/update_crate",
+        "values": {
+          "admitted": [
+            "api_token"
+          ],
+          "fingerprint": "06cf2a3f20425c1e50092059e8ff404ca8fa5a43fd5f15e179b9c4d2a68b8115",
+          "observed": [
+            "api_token",
+            "cookie"
+          ]
+        }
+      },
+      {
+        "id": "operation/get_crate_downloads",
+        "values": {
+          "admitted": [
+            "anonymous"
+          ],
+          "fingerprint": "6d5ab3ea86d09d5d89310481af590896672df6b8bbc684249842caf24edda379",
+          "observed": [
+            "anonymous"
+          ]
+        }
+      },
+      {
+        "id": "operation/unfollow_crate",
+        "values": {
+          "admitted": [
+            "api_token"
+          ],
+          "fingerprint": "06cf2a3f20425c1e50092059e8ff404ca8fa5a43fd5f15e179b9c4d2a68b8115",
+          "observed": [
+            "api_token",
+            "cookie"
+          ]
+        }
+      },
+      {
+        "id": "operation/follow_crate",
+        "values": {
+          "admitted": [
+            "api_token"
+          ],
+          "fingerprint": "06cf2a3f20425c1e50092059e8ff404ca8fa5a43fd5f15e179b9c4d2a68b8115",
+          "observed": [
+            "api_token",
+            "cookie"
+          ]
+        }
+      },
+      {
+        "id": "operation/get_team_owners",
+        "values": {
+          "admitted": [
+            "anonymous"
+          ],
+          "fingerprint": "6d5ab3ea86d09d5d89310481af590896672df6b8bbc684249842caf24edda379",
+          "observed": [
+            "anonymous"
+          ]
+        }
+      },
+      {
+        "id": "operation/get_user_owners",
+        "values": {
+          "admitted": [
+            "anonymous"
+          ],
+          "fingerprint": "6d5ab3ea86d09d5d89310481af590896672df6b8bbc684249842caf24edda379",
+          "observed": [
+            "anonymous"
+          ]
+        }
+      },
+      {
+        "id": "operation/remove_owners",
+        "values": {
+          "admitted": [
+            "api_token"
+          ],
+          "fingerprint": "06cf2a3f20425c1e50092059e8ff404ca8fa5a43fd5f15e179b9c4d2a68b8115",
+          "observed": [
+            "api_token",
+            "cookie"
+          ]
+        }
+      },
+      {
+        "id": "operation/list_owners",
+        "values": {
+          "admitted": [
+            "anonymous"
+          ],
+          "fingerprint": "6d5ab3ea86d09d5d89310481af590896672df6b8bbc684249842caf24edda379",
+          "observed": [
+            "anonymous"
+          ]
+        }
+      },
+      {
+        "id": "operation/add_owners",
+        "values": {
+          "admitted": [
+            "api_token"
+          ],
+          "fingerprint": "06cf2a3f20425c1e50092059e8ff404ca8fa5a43fd5f15e179b9c4d2a68b8115",
+          "observed": [
+            "api_token",
+            "cookie"
+          ]
+        }
+      },
+      {
+        "id": "operation/list_reverse_dependencies",
+        "values": {
+          "admitted": [
+            "anonymous"
+          ],
+          "fingerprint": "6d5ab3ea86d09d5d89310481af590896672df6b8bbc684249842caf24edda379",
+          "observed": [
+            "anonymous"
+          ]
+        }
+      },
+      {
+        "id": "operation/list_versions",
+        "values": {
+          "admitted": [
+            "anonymous"
+          ],
+          "fingerprint": "6d5ab3ea86d09d5d89310481af590896672df6b8bbc684249842caf24edda379",
+          "observed": [
+            "anonymous"
+          ]
+        }
+      },
+      {
+        "id": "operation/find_version",
+        "values": {
+          "admitted": [
+            "anonymous"
+          ],
+          "fingerprint": "6d5ab3ea86d09d5d89310481af590896672df6b8bbc684249842caf24edda379",
+          "observed": [
+            "anonymous"
+          ]
+        }
+      },
+      {
+        "id": "operation/update_version",
+        "values": {
+          "admitted": [
+            "api_token"
+          ],
+          "fingerprint": "06cf2a3f20425c1e50092059e8ff404ca8fa5a43fd5f15e179b9c4d2a68b8115",
+          "observed": [
+            "api_token",
+            "cookie"
+          ]
+        }
+      },
+      {
+        "id": "operation/get_version_authors",
+        "values": {
+          "admitted": [
+            "anonymous"
+          ],
+          "fingerprint": "6d5ab3ea86d09d5d89310481af590896672df6b8bbc684249842caf24edda379",
+          "observed": [
+            "anonymous"
+          ]
+        }
+      },
+      {
+        "id": "operation/get_version_dependencies",
+        "values": {
+          "admitted": [
+            "anonymous"
+          ],
+          "fingerprint": "6d5ab3ea86d09d5d89310481af590896672df6b8bbc684249842caf24edda379",
+          "observed": [
+            "anonymous"
+          ]
+        }
+      },
+      {
+        "id": "operation/download_version",
+        "values": {
+          "admitted": [
+            "anonymous"
+          ],
+          "fingerprint": "6d5ab3ea86d09d5d89310481af590896672df6b8bbc684249842caf24edda379",
+          "observed": [
+            "anonymous"
+          ]
+        }
+      },
+      {
+        "id": "operation/get_version_downloads",
+        "values": {
+          "admitted": [
+            "anonymous"
+          ],
+          "fingerprint": "6d5ab3ea86d09d5d89310481af590896672df6b8bbc684249842caf24edda379",
+          "observed": [
+            "anonymous"
+          ]
+        }
+      },
+      {
+        "id": "operation/get_version_readme",
+        "values": {
+          "admitted": [
+            "anonymous"
+          ],
+          "fingerprint": "6d5ab3ea86d09d5d89310481af590896672df6b8bbc684249842caf24edda379",
+          "observed": [
+            "anonymous"
+          ]
+        }
+      },
+      {
+        "id": "operation/unyank_version",
+        "values": {
+          "admitted": [
+            "api_token"
+          ],
+          "fingerprint": "06cf2a3f20425c1e50092059e8ff404ca8fa5a43fd5f15e179b9c4d2a68b8115",
+          "observed": [
+            "api_token",
+            "cookie"
+          ]
+        }
+      },
+      {
+        "id": "operation/yank_version",
+        "values": {
+          "admitted": [
+            "api_token"
+          ],
+          "fingerprint": "06cf2a3f20425c1e50092059e8ff404ca8fa5a43fd5f15e179b9c4d2a68b8115",
+          "observed": [
+            "api_token",
+            "cookie"
+          ]
+        }
+      },
+      {
+        "id": "operation/list_keywords",
+        "values": {
+          "admitted": [
+            "anonymous"
+          ],
+          "fingerprint": "6d5ab3ea86d09d5d89310481af590896672df6b8bbc684249842caf24edda379",
+          "observed": [
+            "anonymous"
+          ]
+        }
+      },
+      {
+        "id": "operation/find_keyword",
+        "values": {
+          "admitted": [
+            "anonymous"
+          ],
+          "fingerprint": "6d5ab3ea86d09d5d89310481af590896672df6b8bbc684249842caf24edda379",
+          "observed": [
+            "anonymous"
+          ]
+        }
+      },
+      {
+        "id": "operation/accept_crate_owner_invitation_with_token",
+        "values": {
+          "admitted": [
+            "owner_invitation_path_token"
+          ],
+          "fingerprint": "36925b983d6f809c3ba4d647e6c59c408379eb96becb339c04ac1c98e612104c",
+          "observed": [
+            "anonymous"
+          ]
+        }
+      },
+      {
+        "id": "operation/handle_crate_owner_invitation",
+        "values": {
+          "admitted": [
+            "api_token"
+          ],
+          "fingerprint": "06cf2a3f20425c1e50092059e8ff404ca8fa5a43fd5f15e179b9c4d2a68b8115",
+          "observed": [
+            "api_token",
+            "cookie"
+          ]
+        }
+      },
+      {
+        "id": "operation/update_email_notifications",
+        "values": {
+          "admitted": [
+            "api_token"
+          ],
+          "fingerprint": "06cf2a3f20425c1e50092059e8ff404ca8fa5a43fd5f15e179b9c4d2a68b8115",
+          "observed": [
+            "api_token",
+            "cookie"
+          ]
+        }
+      },
+      {
+        "id": "operation/revoke_api_token",
+        "values": {
+          "admitted": [
+            "api_token"
+          ],
+          "fingerprint": "06cf2a3f20425c1e50092059e8ff404ca8fa5a43fd5f15e179b9c4d2a68b8115",
+          "observed": [
+            "api_token",
+            "cookie"
+          ]
+        }
+      },
+      {
+        "id": "operation/find_api_token",
+        "values": {
+          "admitted": [
+            "api_token"
+          ],
+          "fingerprint": "06cf2a3f20425c1e50092059e8ff404ca8fa5a43fd5f15e179b9c4d2a68b8115",
+          "observed": [
+            "api_token",
+            "cookie"
+          ]
+        }
+      },
+      {
+        "id": "operation/get_site_metadata",
+        "values": {
+          "admitted": [
+            "anonymous"
+          ],
+          "fingerprint": "6d5ab3ea86d09d5d89310481af590896672df6b8bbc684249842caf24edda379",
+          "observed": [
+            "anonymous"
+          ]
+        }
+      },
+      {
+        "id": "operation/get_summary",
+        "values": {
+          "admitted": [
+            "anonymous"
+          ],
+          "fingerprint": "6d5ab3ea86d09d5d89310481af590896672df6b8bbc684249842caf24edda379",
+          "observed": [
+            "anonymous"
+          ]
+        }
+      },
+      {
+        "id": "operation/find_team",
+        "values": {
+          "admitted": [
+            "anonymous"
+          ],
+          "fingerprint": "6d5ab3ea86d09d5d89310481af590896672df6b8bbc684249842caf24edda379",
+          "observed": [
+            "anonymous"
+          ]
+        }
+      },
+      {
+        "id": "operation/revoke_current_api_token",
+        "values": {
+          "admitted": [
+            "api_token"
+          ],
+          "fingerprint": "e1f0ca0d15c39ee797db2455212a8d5153b4e46f15dd0328f95be9da230912db",
+          "observed": [
+            "api_token"
+          ]
+        }
+      },
+      {
+        "id": "operation/list_trustpub_github_configs",
+        "values": {
+          "admitted": [
+            "api_token"
+          ],
+          "fingerprint": "f0d4f707a47da40a74429ce7588e4fe04efea1e797a669a1ab8a4e34f55fbb32",
+          "observed": [
+            "cookie",
+            "api_token"
+          ]
+        }
+      },
+      {
+        "id": "operation/create_trustpub_github_config",
+        "values": {
+          "admitted": [
+            "api_token"
+          ],
+          "fingerprint": "f0d4f707a47da40a74429ce7588e4fe04efea1e797a669a1ab8a4e34f55fbb32",
+          "observed": [
+            "cookie",
+            "api_token"
+          ]
+        }
+      },
+      {
+        "id": "operation/delete_trustpub_github_config",
+        "values": {
+          "admitted": [
+            "api_token"
+          ],
+          "fingerprint": "f0d4f707a47da40a74429ce7588e4fe04efea1e797a669a1ab8a4e34f55fbb32",
+          "observed": [
+            "cookie",
+            "api_token"
+          ]
+        }
+      },
+      {
+        "id": "operation/list_trustpub_gitlab_configs",
+        "values": {
+          "admitted": [
+            "api_token"
+          ],
+          "fingerprint": "f0d4f707a47da40a74429ce7588e4fe04efea1e797a669a1ab8a4e34f55fbb32",
+          "observed": [
+            "cookie",
+            "api_token"
+          ]
+        }
+      },
+      {
+        "id": "operation/create_trustpub_gitlab_config",
+        "values": {
+          "admitted": [
+            "api_token"
+          ],
+          "fingerprint": "f0d4f707a47da40a74429ce7588e4fe04efea1e797a669a1ab8a4e34f55fbb32",
+          "observed": [
+            "cookie",
+            "api_token"
+          ]
+        }
+      },
+      {
+        "id": "operation/delete_trustpub_gitlab_config",
+        "values": {
+          "admitted": [
+            "api_token"
+          ],
+          "fingerprint": "f0d4f707a47da40a74429ce7588e4fe04efea1e797a669a1ab8a4e34f55fbb32",
+          "observed": [
+            "cookie",
+            "api_token"
+          ]
+        }
+      },
+      {
+        "id": "operation/revoke_trustpub_token",
+        "values": {
+          "admitted": [
+            "trustpub_token"
+          ],
+          "fingerprint": "d6b5283bd9c91a7b2de1984c4a17a6ebd9873b9c9c4e03ca852110e0e634c7d4",
+          "observed": [
+            "trustpub_token"
+          ]
+        }
+      },
+      {
+        "id": "operation/exchange_trustpub_token",
+        "values": {
+          "admitted": [
+            "oidc_assertion_body"
+          ],
+          "fingerprint": "a7dac70c2c5f3142d35357b8747bbfd40c63ffb0c1235158b8043b03fb53476d",
+          "observed": [
+            "anonymous"
+          ]
+        }
+      },
+      {
+        "id": "operation/resend_email_verification",
+        "values": {
+          "admitted": [
+            "api_token"
+          ],
+          "fingerprint": "06cf2a3f20425c1e50092059e8ff404ca8fa5a43fd5f15e179b9c4d2a68b8115",
+          "observed": [
+            "api_token",
+            "cookie"
+          ]
+        }
+      },
+      {
+        "id": "operation/get_user_stats",
+        "values": {
+          "admitted": [
+            "anonymous"
+          ],
+          "fingerprint": "6d5ab3ea86d09d5d89310481af590896672df6b8bbc684249842caf24edda379",
+          "observed": [
+            "anonymous"
+          ]
+        }
+      },
+      {
+        "id": "operation/find_user",
+        "values": {
+          "admitted": [
+            "anonymous"
+          ],
+          "fingerprint": "6d5ab3ea86d09d5d89310481af590896672df6b8bbc684249842caf24edda379",
+          "observed": [
+            "anonymous"
+          ]
+        }
+      },
+      {
+        "id": "operation/update_user",
+        "values": {
+          "admitted": [
+            "api_token"
+          ],
+          "fingerprint": "06cf2a3f20425c1e50092059e8ff404ca8fa5a43fd5f15e179b9c4d2a68b8115",
+          "observed": [
+            "api_token",
+            "cookie"
+          ]
+        }
+      }
+    ],
+    "cost": [
+      {
+        "id": "data-access",
+        "values": {
+          "api_is_fallback": true,
+          "contact_information_recommended": true,
+          "fingerprint": "69bf96b2d2f198b29a53e3cbca57e638e9575157c3224d221b1d5975cb95afc3",
+          "preferred_sources": [
+            "sparse-index",
+            "static-downloads",
+            "rss",
+            "database-dumps"
+          ]
+        }
+      }
+    ],
+    "endpoints": [
+      {
+        "id": "api-v1",
+        "values": {
+          "base_path": "/api/v1",
+          "host": "crates.io",
+          "scheme": "https",
+          "servers_fingerprint": "ee255b2821c2435c2447f2fde47f51f4a8ee5ab39fbcba2271e0da87bd5407e5"
+        }
+      }
+    ],
+    "headers": [
+      {
+        "id": "data-access",
+        "values": {
+          "fingerprint": "5c2253dedecff3b37f1e1f71325ee2a2748750e1ab91b80da8429e48a97bdf0b",
+          "identifying_user_agent_required": true
+        }
+      }
+    ],
+    "idempotency": [],
+    "operations": [
+      {
+        "id": "openapi/list_categories",
+        "values": {
+          "cargo_contract": false,
+          "classification": "included",
+          "deprecated": false,
+          "fingerprint": "60fdc9d47a4acc5bb14bfa23b4c7f1ddde3e1ac1777387f74068f6a9e18d2671",
+          "method": "GET",
+          "path": "/api/v1/categories",
+          "policy": "public-openapi",
+          "stability": "experimental"
+        }
+      },
+      {
+        "id": "openapi/find_category",
+        "values": {
+          "cargo_contract": false,
+          "classification": "included",
+          "deprecated": false,
+          "fingerprint": "bd3e4b9a3a1eeb62a609b5ea9088c02d4026b020e2e9231c829ab03625efc9e1",
+          "method": "GET",
+          "path": "/api/v1/categories/{category}",
+          "policy": "public-openapi",
+          "stability": "experimental"
+        }
+      },
+      {
+        "id": "openapi/list_category_slugs",
+        "values": {
+          "cargo_contract": false,
+          "classification": "included",
+          "deprecated": false,
+          "fingerprint": "43219d3698511f5ee45a5b93aa42d010f8c12e767ab65ab07874e81b6411fc3e",
+          "method": "GET",
+          "path": "/api/v1/category_slugs",
+          "policy": "public-openapi",
+          "stability": "experimental"
+        }
+      },
+      {
+        "id": "openapi/confirm_user_email",
+        "values": {
+          "cargo_contract": false,
+          "classification": "included",
+          "deprecated": false,
+          "fingerprint": "0e1ab48ef5923460028ecf27b4a90545311e946e926f4cffbc2d48014f68bf5d",
+          "method": "PUT",
+          "path": "/api/v1/confirm/{email_token}",
+          "policy": "public-openapi",
+          "stability": "experimental"
+        }
+      },
+      {
+        "id": "openapi/list_crates",
+        "values": {
+          "cargo_contract": true,
+          "classification": "included",
+          "deprecated": false,
+          "fingerprint": "3b1bbbed2cab75279e8baae0bec65acf7f1697e7ebba663d2f83f23e30feca55",
+          "method": "GET",
+          "path": "/api/v1/crates",
+          "policy": "cargo-stable",
+          "stability": "stable-cargo"
+        }
+      },
+      {
+        "id": "openapi/find_new_crate",
+        "values": {
+          "cargo_contract": false,
+          "classification": "included",
+          "deprecated": false,
+          "fingerprint": "f2e2e3ea44a24ef070767e8633a9454a04f9b9ef4fa377575ec4aa62edd0913b",
+          "method": "GET",
+          "path": "/api/v1/crates/new",
+          "policy": "public-openapi",
+          "stability": "experimental"
+        }
+      },
+      {
+        "id": "openapi/publish",
+        "values": {
+          "cargo_contract": true,
+          "classification": "included",
+          "deprecated": false,
+          "fingerprint": "41362485331f8b55e82f82ca98db5a6ba91aa507e9ca83d81fb40de676dc7231",
+          "method": "PUT",
+          "path": "/api/v1/crates/new",
+          "policy": "cargo-stable",
+          "stability": "stable-cargo"
+        }
+      },
+      {
+        "id": "openapi/find_crate",
+        "values": {
+          "cargo_contract": false,
+          "classification": "included",
+          "deprecated": false,
+          "fingerprint": "6da53c2adcff1d3c9b131a571bd88952afe29876620aac79d0f1da4c54705849",
+          "method": "GET",
+          "path": "/api/v1/crates/{name}",
+          "policy": "public-openapi",
+          "stability": "experimental"
+        }
+      },
+      {
+        "id": "openapi/update_crate",
+        "values": {
+          "cargo_contract": false,
+          "classification": "included",
+          "deprecated": false,
+          "fingerprint": "293dc1e32b4ee6c29bf518d52876f797e1b9350184ddde1b5fe1d32b77350968",
+          "method": "PATCH",
+          "path": "/api/v1/crates/{name}",
+          "policy": "public-openapi",
+          "stability": "experimental"
+        }
+      },
+      {
+        "id": "openapi/get_crate_downloads",
+        "values": {
+          "cargo_contract": false,
+          "classification": "included",
+          "deprecated": false,
+          "fingerprint": "2a7f3a45815d5e072dc1ce11e7b01e7c028620e3331eebb6ffd5a6b7c85214f3",
+          "method": "GET",
+          "path": "/api/v1/crates/{name}/downloads",
+          "policy": "public-openapi",
+          "stability": "experimental"
+        }
+      },
+      {
+        "id": "openapi/unfollow_crate",
+        "values": {
+          "cargo_contract": false,
+          "classification": "included",
+          "deprecated": false,
+          "fingerprint": "d1e06a0a0a6dc8ce97c1be83a05c412b0cdb43788387c5684f5da33f3bc284a0",
+          "method": "DELETE",
+          "path": "/api/v1/crates/{name}/follow",
+          "policy": "public-openapi",
+          "stability": "experimental"
+        }
+      },
+      {
+        "id": "openapi/follow_crate",
+        "values": {
+          "cargo_contract": false,
+          "classification": "included",
+          "deprecated": false,
+          "fingerprint": "a96b5f2ec0177c3acb06d46a2e2d157ae1ac1781fa56a48f4ff2412111d1375d",
+          "method": "PUT",
+          "path": "/api/v1/crates/{name}/follow",
+          "policy": "public-openapi",
+          "stability": "experimental"
+        }
+      },
+      {
+        "id": "openapi/get_team_owners",
+        "values": {
+          "cargo_contract": false,
+          "classification": "included",
+          "deprecated": false,
+          "fingerprint": "e64140e271de1f92b50f7b91d0785e0968f7626222337fddcdcf40ca1e9acd61",
+          "method": "GET",
+          "path": "/api/v1/crates/{name}/owner_team",
+          "policy": "public-openapi",
+          "stability": "experimental"
+        }
+      },
+      {
+        "id": "openapi/get_user_owners",
+        "values": {
+          "cargo_contract": false,
+          "classification": "included",
+          "deprecated": false,
+          "fingerprint": "555d37d66dc7615acb222778b965e4a231dd1ccd76be551bc3c7129ce6f68abf",
+          "method": "GET",
+          "path": "/api/v1/crates/{name}/owner_user",
+          "policy": "public-openapi",
+          "stability": "experimental"
+        }
+      },
+      {
+        "id": "openapi/remove_owners",
+        "values": {
+          "cargo_contract": true,
+          "classification": "included",
+          "deprecated": false,
+          "fingerprint": "80c469cb5d1003f7c2a1e0217ced6454e89dcbaa94dc2d4fdbc60af2beaec2f2",
+          "method": "DELETE",
+          "path": "/api/v1/crates/{name}/owners",
+          "policy": "cargo-stable",
+          "stability": "stable-cargo"
+        }
+      },
+      {
+        "id": "openapi/list_owners",
+        "values": {
+          "cargo_contract": true,
+          "classification": "included",
+          "deprecated": false,
+          "fingerprint": "f8015870ec2f01418fe08083460597656621f4ce494acffcc59f99a1d99f4570",
+          "method": "GET",
+          "path": "/api/v1/crates/{name}/owners",
+          "policy": "cargo-stable",
+          "stability": "stable-cargo"
+        }
+      },
+      {
+        "id": "openapi/add_owners",
+        "values": {
+          "cargo_contract": true,
+          "classification": "included",
+          "deprecated": false,
+          "fingerprint": "edcac2730ba9126cd0d2b803cbf7e24766f8a1bdc577320cd8ef160d56d332b3",
+          "method": "PUT",
+          "path": "/api/v1/crates/{name}/owners",
+          "policy": "cargo-stable",
+          "stability": "stable-cargo"
+        }
+      },
+      {
+        "id": "openapi/list_reverse_dependencies",
+        "values": {
+          "cargo_contract": false,
+          "classification": "included",
+          "deprecated": false,
+          "fingerprint": "6caaaa70cd15720acb316b92b04068fc665113226c083c7a2edf925cbce840b7",
+          "method": "GET",
+          "path": "/api/v1/crates/{name}/reverse_dependencies",
+          "policy": "public-openapi",
+          "stability": "experimental"
+        }
+      },
+      {
+        "id": "openapi/list_versions",
+        "values": {
+          "cargo_contract": false,
+          "classification": "included",
+          "deprecated": false,
+          "fingerprint": "6e059da6f3f437a7b7acda434e17201ea40f953827417cc6b7c8fbcd658c395c",
+          "method": "GET",
+          "path": "/api/v1/crates/{name}/versions",
+          "policy": "public-openapi",
+          "stability": "experimental"
+        }
+      },
+      {
+        "id": "openapi/find_version",
+        "values": {
+          "cargo_contract": false,
+          "classification": "included",
+          "deprecated": false,
+          "fingerprint": "5abc732ba398ffb8c1402722c25e1fc4e7a63921b092a8c5077fe9fedb844707",
+          "method": "GET",
+          "path": "/api/v1/crates/{name}/{version}",
+          "policy": "public-openapi",
+          "stability": "experimental"
+        }
+      },
+      {
+        "id": "openapi/update_version",
+        "values": {
+          "cargo_contract": false,
+          "classification": "included",
+          "deprecated": false,
+          "fingerprint": "781005d820ac847d3f998fd07db8ee3559643df64ce5d781853936526899a4ba",
+          "method": "PATCH",
+          "path": "/api/v1/crates/{name}/{version}",
+          "policy": "public-openapi",
+          "stability": "experimental"
+        }
+      },
+      {
+        "id": "openapi/get_version_authors",
+        "values": {
+          "cargo_contract": false,
+          "classification": "included",
+          "deprecated": true,
+          "fingerprint": "1222e5044f82fea9b8c69ab8ddaeed1d4e5a201e52c5db52b352062b086481d9",
+          "method": "GET",
+          "path": "/api/v1/crates/{name}/{version}/authors",
+          "policy": "public-openapi",
+          "stability": "deprecated-experimental"
+        }
+      },
+      {
+        "id": "openapi/get_version_dependencies",
+        "values": {
+          "cargo_contract": false,
+          "classification": "included",
+          "deprecated": false,
+          "fingerprint": "6d769175ef97d3ee116241bc4ae753a5a8c097588875e386d68952f7e81e0fae",
+          "method": "GET",
+          "path": "/api/v1/crates/{name}/{version}/dependencies",
+          "policy": "public-openapi",
+          "stability": "experimental"
+        }
+      },
+      {
+        "id": "openapi/download_version",
+        "values": {
+          "cargo_contract": false,
+          "classification": "included",
+          "deprecated": false,
+          "fingerprint": "97e2a110fa91b1bf4f906e30d5acf5586271f9f25ed5fb0211912bbffb9055a4",
+          "method": "GET",
+          "path": "/api/v1/crates/{name}/{version}/download",
+          "policy": "public-openapi",
+          "stability": "experimental"
+        }
+      },
+      {
+        "id": "openapi/get_version_downloads",
+        "values": {
+          "cargo_contract": false,
+          "classification": "included",
+          "deprecated": false,
+          "fingerprint": "38462ef83a93f8a101ae92194447fcbb737e15e4b29bab56ffb53f76386adf02",
+          "method": "GET",
+          "path": "/api/v1/crates/{name}/{version}/downloads",
+          "policy": "public-openapi",
+          "stability": "experimental"
+        }
+      },
+      {
+        "id": "openapi/get_version_readme",
+        "values": {
+          "cargo_contract": false,
+          "classification": "included",
+          "deprecated": false,
+          "fingerprint": "7e0e5234805bc62412bfded78bbd680b4a4948975223c0b7982fb589ef8d4307",
+          "method": "GET",
+          "path": "/api/v1/crates/{name}/{version}/readme",
+          "policy": "public-openapi",
+          "stability": "experimental"
+        }
+      },
+      {
+        "id": "openapi/unyank_version",
+        "values": {
+          "cargo_contract": true,
+          "classification": "included",
+          "deprecated": false,
+          "fingerprint": "ae9b9edc5a823776fed9177ec3942f7007fabe086fcfba9d69b782c32c5dc7e8",
+          "method": "PUT",
+          "path": "/api/v1/crates/{name}/{version}/unyank",
+          "policy": "cargo-stable",
+          "stability": "stable-cargo"
+        }
+      },
+      {
+        "id": "openapi/yank_version",
+        "values": {
+          "cargo_contract": true,
+          "classification": "included",
+          "deprecated": false,
+          "fingerprint": "ff41cf0e892fd0b7d75006ac162822fc16e16546d2e65da070b0847c180d4d1a",
+          "method": "DELETE",
+          "path": "/api/v1/crates/{name}/{version}/yank",
+          "policy": "cargo-stable",
+          "stability": "stable-cargo"
+        }
+      },
+      {
+        "id": "openapi/list_keywords",
+        "values": {
+          "cargo_contract": false,
+          "classification": "included",
+          "deprecated": false,
+          "fingerprint": "10fc87f71c97420af5bf954f3ddafa164d589713e70aefc0242884b8e6db4265",
+          "method": "GET",
+          "path": "/api/v1/keywords",
+          "policy": "public-openapi",
+          "stability": "experimental"
+        }
+      },
+      {
+        "id": "openapi/find_keyword",
+        "values": {
+          "cargo_contract": false,
+          "classification": "included",
+          "deprecated": false,
+          "fingerprint": "24c4226c6d5b995098b4bb8f027daa00e11eb857cd972839cc0bef575a5cb22e",
+          "method": "GET",
+          "path": "/api/v1/keywords/{keyword}",
+          "policy": "public-openapi",
+          "stability": "experimental"
+        }
+      },
+      {
+        "id": "openapi/accept_crate_owner_invitation_with_token",
+        "values": {
+          "cargo_contract": false,
+          "classification": "included",
+          "deprecated": false,
+          "fingerprint": "a941569db64d1fb48bf3e88d61860cf8ccb99f8e2c7b2c51bb10bb23e30308a0",
+          "method": "PUT",
+          "path": "/api/v1/me/crate_owner_invitations/accept/{token}",
+          "policy": "public-openapi",
+          "stability": "experimental"
+        }
+      },
+      {
+        "id": "openapi/handle_crate_owner_invitation",
+        "values": {
+          "cargo_contract": false,
+          "classification": "included",
+          "deprecated": false,
+          "fingerprint": "c497d667281bee5d4fb73f256dab385bf4d6c5ff96046b094f36d085665ab547",
+          "method": "PUT",
+          "path": "/api/v1/me/crate_owner_invitations/{crate_id}",
+          "policy": "public-openapi",
+          "stability": "experimental"
+        }
+      },
+      {
+        "id": "openapi/update_email_notifications",
+        "values": {
+          "cargo_contract": false,
+          "classification": "included",
+          "deprecated": true,
+          "fingerprint": "e61067893f21f087a4f09b405369e9c8206385efec99b33389d20f9ef1769d7d",
+          "method": "PUT",
+          "path": "/api/v1/me/email_notifications",
+          "policy": "public-openapi",
+          "stability": "deprecated-experimental"
+        }
+      },
+      {
+        "id": "openapi/revoke_api_token",
+        "values": {
+          "cargo_contract": false,
+          "classification": "included",
+          "deprecated": false,
+          "fingerprint": "19b0c3f8bf48cf4bf6d2c157bdb08a71a722ac16ac4357401f4317541374e473",
+          "method": "DELETE",
+          "path": "/api/v1/me/tokens/{id}",
+          "policy": "public-openapi",
+          "stability": "experimental"
+        }
+      },
+      {
+        "id": "openapi/find_api_token",
+        "values": {
+          "cargo_contract": false,
+          "classification": "included",
+          "deprecated": false,
+          "fingerprint": "322ac9da37021cd3246ceefa4ef822350755996bdbbd0b603714599e3f581e72",
+          "method": "GET",
+          "path": "/api/v1/me/tokens/{id}",
+          "policy": "public-openapi",
+          "stability": "experimental"
+        }
+      },
+      {
+        "id": "openapi/get_site_metadata",
+        "values": {
+          "cargo_contract": false,
+          "classification": "included",
+          "deprecated": false,
+          "fingerprint": "b9b20fac3be476d3fdc51c56cccbe35be36b04d998b51f2bce21682d3d91e2a5",
+          "method": "GET",
+          "path": "/api/v1/site_metadata",
+          "policy": "public-openapi",
+          "stability": "experimental"
+        }
+      },
+      {
+        "id": "openapi/get_summary",
+        "values": {
+          "cargo_contract": false,
+          "classification": "included",
+          "deprecated": false,
+          "fingerprint": "142f3201b06954d75f316dc8d6c13ea8dc3a6de2cfa94d76fbac6fe7b010771e",
+          "method": "GET",
+          "path": "/api/v1/summary",
+          "policy": "public-openapi",
+          "stability": "experimental"
+        }
+      },
+      {
+        "id": "openapi/find_team",
+        "values": {
+          "cargo_contract": false,
+          "classification": "included",
+          "deprecated": false,
+          "fingerprint": "a6b70ab22cc54a1dd9c442ec5b9bd7a3208c0afeb9371dae89fd30f9571070d4",
+          "method": "GET",
+          "path": "/api/v1/teams/{team}",
+          "policy": "public-openapi",
+          "stability": "experimental"
+        }
+      },
+      {
+        "id": "openapi/revoke_current_api_token",
+        "values": {
+          "cargo_contract": false,
+          "classification": "included",
+          "deprecated": false,
+          "fingerprint": "8e9a4292a45315d4c8840b0ef94b28b7460b3bbaf719bffc7c38bdff4bcb6122",
+          "method": "DELETE",
+          "path": "/api/v1/tokens/current",
+          "policy": "public-openapi",
+          "stability": "experimental"
+        }
+      },
+      {
+        "id": "openapi/list_trustpub_github_configs",
+        "values": {
+          "cargo_contract": false,
+          "classification": "included",
+          "deprecated": false,
+          "fingerprint": "cc745d52a8c658608618cbd463ee20e185cf6403399cd49847dc4a07d751e6f8",
+          "method": "GET",
+          "path": "/api/v1/trusted_publishing/github_configs",
+          "policy": "public-openapi",
+          "stability": "experimental"
+        }
+      },
+      {
+        "id": "openapi/create_trustpub_github_config",
+        "values": {
+          "cargo_contract": false,
+          "classification": "included",
+          "deprecated": false,
+          "fingerprint": "ae6f50b6d0bfe0940c73b3a69dd0708bd3ae977a48ccc024f34eb95c53123d33",
+          "method": "POST",
+          "path": "/api/v1/trusted_publishing/github_configs",
+          "policy": "public-openapi",
+          "stability": "experimental"
+        }
+      },
+      {
+        "id": "openapi/delete_trustpub_github_config",
+        "values": {
+          "cargo_contract": false,
+          "classification": "included",
+          "deprecated": false,
+          "fingerprint": "b1cc7f1302be2e67819c4eff6128447e7a35e2978aabcd972005eaf1c60afdf4",
+          "method": "DELETE",
+          "path": "/api/v1/trusted_publishing/github_configs/{id}",
+          "policy": "public-openapi",
+          "stability": "experimental"
+        }
+      },
+      {
+        "id": "openapi/list_trustpub_gitlab_configs",
+        "values": {
+          "cargo_contract": false,
+          "classification": "included",
+          "deprecated": false,
+          "fingerprint": "3ba3011779a41d14eedfbbe2c6e800576752e61669036d18f77e69fc7824bc07",
+          "method": "GET",
+          "path": "/api/v1/trusted_publishing/gitlab_configs",
+          "policy": "public-openapi",
+          "stability": "experimental"
+        }
+      },
+      {
+        "id": "openapi/create_trustpub_gitlab_config",
+        "values": {
+          "cargo_contract": false,
+          "classification": "included",
+          "deprecated": false,
+          "fingerprint": "c767a8358eb7bfbcedb43b4baa22950757659f67352ce4ce91f1f1e1897bf202",
+          "method": "POST",
+          "path": "/api/v1/trusted_publishing/gitlab_configs",
+          "policy": "public-openapi",
+          "stability": "experimental"
+        }
+      },
+      {
+        "id": "openapi/delete_trustpub_gitlab_config",
+        "values": {
+          "cargo_contract": false,
+          "classification": "included",
+          "deprecated": false,
+          "fingerprint": "0a8836ca891dd6b39d045a5773dd7cf9708712e1c1abf5bbfc6443839b1655e0",
+          "method": "DELETE",
+          "path": "/api/v1/trusted_publishing/gitlab_configs/{id}",
+          "policy": "public-openapi",
+          "stability": "experimental"
+        }
+      },
+      {
+        "id": "openapi/revoke_trustpub_token",
+        "values": {
+          "cargo_contract": false,
+          "classification": "included",
+          "deprecated": false,
+          "fingerprint": "cb783650805c1675430cbc23c5f62f3395a9fa89203187638ff5efb1f0952ff1",
+          "method": "DELETE",
+          "path": "/api/v1/trusted_publishing/tokens",
+          "policy": "public-openapi",
+          "stability": "experimental"
+        }
+      },
+      {
+        "id": "openapi/exchange_trustpub_token",
+        "values": {
+          "cargo_contract": false,
+          "classification": "included",
+          "deprecated": false,
+          "fingerprint": "29ed0a4f710c3c2987773aef54e804b7b75c931390313fab87a72ae59c28d972",
+          "method": "POST",
+          "path": "/api/v1/trusted_publishing/tokens",
+          "policy": "public-openapi",
+          "stability": "experimental"
+        }
+      },
+      {
+        "id": "openapi/resend_email_verification",
+        "values": {
+          "cargo_contract": false,
+          "classification": "included",
+          "deprecated": false,
+          "fingerprint": "850459236db2c2f47ae2c5b4bb4ad99f55458775bc754f6b5404647995ef6770",
+          "method": "PUT",
+          "path": "/api/v1/users/{id}/resend",
+          "policy": "public-openapi",
+          "stability": "experimental"
+        }
+      },
+      {
+        "id": "openapi/get_user_stats",
+        "values": {
+          "cargo_contract": false,
+          "classification": "included",
+          "deprecated": false,
+          "fingerprint": "6b1eeac987f9dae199a6d04b82647f9ae758b587456d4bca2cd82c39a0f4884b",
+          "method": "GET",
+          "path": "/api/v1/users/{id}/stats",
+          "policy": "public-openapi",
+          "stability": "experimental"
+        }
+      },
+      {
+        "id": "openapi/find_user",
+        "values": {
+          "cargo_contract": false,
+          "classification": "included",
+          "deprecated": false,
+          "fingerprint": "812271ad05f84105cf67f915ca1a9a575c459e33147d25603da909a6e6a469c2",
+          "method": "GET",
+          "path": "/api/v1/users/{user}",
+          "policy": "public-openapi",
+          "stability": "experimental"
+        }
+      },
+      {
+        "id": "openapi/update_user",
+        "values": {
+          "cargo_contract": false,
+          "classification": "included",
+          "deprecated": false,
+          "fingerprint": "b0492aa11cff7680d63de1d032db84b7b0b41b1965d2d4e35c2c65ceb859c5b1",
+          "method": "PUT",
+          "path": "/api/v1/users/{user}",
+          "policy": "public-openapi",
+          "stability": "experimental"
+        }
+      },
+      {
+        "id": "cargo/publish",
+        "values": {
+          "classification": "superseded",
+          "contract_fingerprint": "ecd481449487264e1c7492a003d8d32698dbf3f02441c04e223055590fbb73f8",
+          "fingerprint": "ee42035ec9252b542066aedff032739e068fb272a6d197b30c0758fc93ac3299",
+          "method": "PUT",
+          "openapi_match": true,
+          "openapi_operation_id": "publish",
+          "openapi_stability": "stable-cargo",
+          "path": "/api/v1/crates/new",
+          "policy": "implemented-through-public-openapi-row"
+        }
+      },
+      {
+        "id": "cargo/yank",
+        "values": {
+          "classification": "superseded",
+          "contract_fingerprint": "4cbd5a66bc0ca376a3528ebcba5aca313428a2b72d70105916dfc9e6cf11832d",
+          "fingerprint": "17e39bdabb93dd3bce25e39daf9a7a2eb8f7fd16035c23cb05cad6c34d618b69",
+          "method": "DELETE",
+          "openapi_match": false,
+          "openapi_operation_id": "yank_version",
+          "openapi_stability": "stable-cargo",
+          "path": "/api/v1/crates/{crate_name}/{version}/yank",
+          "policy": "implemented-through-public-openapi-row"
+        }
+      },
+      {
+        "id": "cargo/unyank",
+        "values": {
+          "classification": "superseded",
+          "contract_fingerprint": "686300da40ba87e76d4ad64774da9e1c703176537b2f3a943fcee59d6cf12ead",
+          "fingerprint": "863d251cbc2b9058a8014b8c30e6d46a2829b781857a97ff6584139b860bfbc2",
+          "method": "PUT",
+          "openapi_match": false,
+          "openapi_operation_id": "unyank_version",
+          "openapi_stability": "stable-cargo",
+          "path": "/api/v1/crates/{crate_name}/{version}/unyank",
+          "policy": "implemented-through-public-openapi-row"
+        }
+      },
+      {
+        "id": "cargo/owners-list",
+        "values": {
+          "classification": "superseded",
+          "contract_fingerprint": "217acfa8f7b1e1929cba6addf7139150a355a01d866e5b104d6b7943add7a96d",
+          "fingerprint": "97b74c3251893fdd371be3ec6a77b79d1790c2bf5e37c7a1acafeaadc5d6da01",
+          "method": "GET",
+          "openapi_match": false,
+          "openapi_operation_id": "list_owners",
+          "openapi_stability": "stable-cargo",
+          "path": "/api/v1/crates/{crate_name}/owners",
+          "policy": "implemented-through-public-openapi-row"
+        }
+      },
+      {
+        "id": "cargo/owners-add",
+        "values": {
+          "classification": "superseded",
+          "contract_fingerprint": "8d5f8e5de4439caaffb7761628637c893bbc6de83eda6fd1c62b5b5466d0fcac",
+          "fingerprint": "09b707bbe4b128eb7517f2ec4cb55c28024cd584165d3705f2342fedfd710b3e",
+          "method": "PUT",
+          "openapi_match": false,
+          "openapi_operation_id": "add_owners",
+          "openapi_stability": "stable-cargo",
+          "path": "/api/v1/crates/{crate_name}/owners",
+          "policy": "implemented-through-public-openapi-row"
+        }
+      },
+      {
+        "id": "cargo/owners-remove",
+        "values": {
+          "classification": "superseded",
+          "contract_fingerprint": "cb9d053b65f8bbeed1317ae8dea65f107710531411740bd28d75408791b3fb13",
+          "fingerprint": "776d0f4b5804c60ee8c5efa2d3abfe41a1e5dbd5939ca8ca17b7bae88bd739ca",
+          "method": "DELETE",
+          "openapi_match": false,
+          "openapi_operation_id": "remove_owners",
+          "openapi_stability": "stable-cargo",
+          "path": "/api/v1/crates/{crate_name}/owners",
+          "policy": "implemented-through-public-openapi-row"
+        }
+      },
+      {
+        "id": "cargo/search",
+        "values": {
+          "classification": "superseded",
+          "contract_fingerprint": "424ccbfbf633990b1d075974340a84fef2fcc2d8a6545875351ac4bda01099e4",
+          "fingerprint": "fde36ad47d11fc318d6cb84f8579f2c972023bd35e280dbe054185bb31f21286",
+          "method": "GET",
+          "openapi_match": true,
+          "openapi_operation_id": "list_crates",
+          "openapi_stability": "stable-cargo",
+          "path": "/api/v1/crates",
+          "policy": "implemented-through-public-openapi-row"
+        }
+      },
+      {
+        "id": "cargo/login-instruction",
+        "values": {
+          "classification": "excluded",
+          "contract_fingerprint": "8e887983542ffa97eb650189da3184c0882806ed18bda0d5bf551da3e3043d54",
+          "fingerprint": "11850d6cebf3238e7f85e6c00479a4e5ee9b2299af8790db9709161d69ffdaa0",
+          "method": "INSTRUCTION",
+          "openapi_match": false,
+          "openapi_operation_id": "-",
+          "openapi_stability": "missing",
+          "path": "/me",
+          "policy": "not-an-api-operation"
+        }
+      }
+    ],
+    "pagination": [],
+    "retry": [
+      {
+        "id": "data-access",
+        "values": {
+          "api_max_requests_per_second": 1,
+          "fingerprint": "ffe478892a185f610d1e29fcba0db5658bd7ea990f55b49faa8f5abc430a8e21"
+        }
+      }
+    ],
+    "schemas": [
+      {
+        "id": "request/list_categories",
+        "values": {
+          "content_types": [],
+          "fingerprint": "48dc608d4e4e7605920ee8e950f0ae2cd8f7dc0d0476c420faf1864710e2184a"
+        }
+      },
+      {
+        "id": "response/list_categories",
+        "values": {
+          "content_types": [
+            "application/json"
+          ],
+          "fingerprint": "e961f75d5d4113963541bef442e399027d55666526ef208874a788ae4f6df364",
+          "statuses": [
+            "200",
+            "4XX",
+            "5XX"
+          ]
+        }
+      },
+      {
+        "id": "request/find_category",
+        "values": {
+          "content_types": [],
+          "fingerprint": "996a548bf34a421cf24a9de1113ad898e1d866bbca860a5d33d7e170d36027be"
+        }
+      },
+      {
+        "id": "response/find_category",
+        "values": {
+          "content_types": [
+            "application/json"
+          ],
+          "fingerprint": "8fd8f9534bd2f02ba00e6a5ac32b5343a65edb62a803bc2aff0c4dd7312db170",
+          "statuses": [
+            "200",
+            "4XX",
+            "5XX"
+          ]
+        }
+      },
+      {
+        "id": "request/list_category_slugs",
+        "values": {
+          "content_types": [],
+          "fingerprint": "b5756d4da10f713505b73bcb27112c6a9849093b9b727255fc5bf4b4cdda95d9"
+        }
+      },
+      {
+        "id": "response/list_category_slugs",
+        "values": {
+          "content_types": [
+            "application/json"
+          ],
+          "fingerprint": "997504d8937b7cb9717f26b283481237ad4aedd2a74f130a3b9c376789562dfd",
+          "statuses": [
+            "200",
+            "4XX",
+            "5XX"
+          ]
+        }
+      },
+      {
+        "id": "request/confirm_user_email",
+        "values": {
+          "content_types": [],
+          "fingerprint": "f74a25b5aff867c2a7dda76c993fdb5c10e514cf8fc3711c5dd4c0b2f7f4864b"
+        }
+      },
+      {
+        "id": "response/confirm_user_email",
+        "values": {
+          "content_types": [
+            "application/json"
+          ],
+          "fingerprint": "7bd65484b7a8d488ed0ddb9d4d2c83a2f2b5ada528d599328b621e2b044fc9b2",
+          "statuses": [
+            "200",
+            "4XX",
+            "5XX"
+          ]
+        }
+      },
+      {
+        "id": "request/list_crates",
+        "values": {
+          "content_types": [],
+          "fingerprint": "2af917d97247cb4a0fc836178f42d091d022ce6b0a94f1f24d3b1199ecc220af"
+        }
+      },
+      {
+        "id": "response/list_crates",
+        "values": {
+          "content_types": [
+            "application/json"
+          ],
+          "fingerprint": "7dda1dddb7ceb28388f09ea4a9418af83651ca167cb29ea65df4e55ca3dccc8d",
+          "statuses": [
+            "200",
+            "4XX",
+            "5XX"
+          ]
+        }
+      },
+      {
+        "id": "request/find_new_crate",
+        "values": {
+          "content_types": [],
+          "fingerprint": "b5756d4da10f713505b73bcb27112c6a9849093b9b727255fc5bf4b4cdda95d9"
+        }
+      },
+      {
+        "id": "response/find_new_crate",
+        "values": {
+          "content_types": [
+            "application/json"
+          ],
+          "fingerprint": "d5475e8a8a6b8a3fec8b9cdf8c8e13431cbbbe57d3ad10772eeb3131c7659b56",
+          "statuses": [
+            "200",
+            "4XX",
+            "5XX"
+          ]
+        }
+      },
+      {
+        "id": "request/publish",
+        "values": {
+          "content_types": [],
+          "fingerprint": "b5756d4da10f713505b73bcb27112c6a9849093b9b727255fc5bf4b4cdda95d9"
+        }
+      },
+      {
+        "id": "response/publish",
+        "values": {
+          "content_types": [
+            "application/json"
+          ],
+          "fingerprint": "1806c358bbec1def82d290a8cfbc43418bdff447d70d4a14e6e7f0254fe52c77",
+          "statuses": [
+            "200",
+            "4XX",
+            "5XX"
+          ]
+        }
+      },
+      {
+        "id": "request/find_crate",
+        "values": {
+          "content_types": [],
+          "fingerprint": "a9cc50d5a81182d6555172a8dc205d833290f34df2908c614d978dda4adb5e02"
+        }
+      },
+      {
+        "id": "response/find_crate",
+        "values": {
+          "content_types": [
+            "application/json"
+          ],
+          "fingerprint": "d5475e8a8a6b8a3fec8b9cdf8c8e13431cbbbe57d3ad10772eeb3131c7659b56",
+          "statuses": [
+            "200",
+            "4XX",
+            "5XX"
+          ]
+        }
+      },
+      {
+        "id": "request/update_crate",
+        "values": {
+          "content_types": [
+            "application/json"
+          ],
+          "fingerprint": "28a53d39b753d8bf7796fb097fc815473a0742da98055d9641074cd0bbcf8ddc"
+        }
+      },
+      {
+        "id": "response/update_crate",
+        "values": {
+          "content_types": [
+            "application/json"
+          ],
+          "fingerprint": "faab61981549510ce49f2ec11da139928bd47bfd0384ead618b19f458ce9ff07",
+          "statuses": [
+            "200",
+            "4XX",
+            "5XX"
+          ]
+        }
+      },
+      {
+        "id": "request/get_crate_downloads",
+        "values": {
+          "content_types": [],
+          "fingerprint": "1eea5da223c9b8552630e267c0f016b174aea787a28e2aab6a337adec48458ed"
+        }
+      },
+      {
+        "id": "response/get_crate_downloads",
+        "values": {
+          "content_types": [
+            "application/json"
+          ],
+          "fingerprint": "6dd8ca6351c9e8a76558acfb8935b241aebaefe35df05976a9f20cfd3caa9802",
+          "statuses": [
+            "200",
+            "4XX",
+            "5XX"
+          ]
+        }
+      },
+      {
+        "id": "request/unfollow_crate",
+        "values": {
+          "content_types": [],
+          "fingerprint": "908240ecc81e5c0d06a2a68395891d3312d5d5b2108c132d7d887dac040a51b4"
+        }
+      },
+      {
+        "id": "response/unfollow_crate",
+        "values": {
+          "content_types": [
+            "application/json"
+          ],
+          "fingerprint": "7bd65484b7a8d488ed0ddb9d4d2c83a2f2b5ada528d599328b621e2b044fc9b2",
+          "statuses": [
+            "200",
+            "4XX",
+            "5XX"
+          ]
+        }
+      },
+      {
+        "id": "request/follow_crate",
+        "values": {
+          "content_types": [],
+          "fingerprint": "908240ecc81e5c0d06a2a68395891d3312d5d5b2108c132d7d887dac040a51b4"
+        }
+      },
+      {
+        "id": "response/follow_crate",
+        "values": {
+          "content_types": [
+            "application/json"
+          ],
+          "fingerprint": "7bd65484b7a8d488ed0ddb9d4d2c83a2f2b5ada528d599328b621e2b044fc9b2",
+          "statuses": [
+            "200",
+            "4XX",
+            "5XX"
+          ]
+        }
+      },
+      {
+        "id": "request/get_team_owners",
+        "values": {
+          "content_types": [],
+          "fingerprint": "908240ecc81e5c0d06a2a68395891d3312d5d5b2108c132d7d887dac040a51b4"
+        }
+      },
+      {
+        "id": "response/get_team_owners",
+        "values": {
+          "content_types": [
+            "application/json"
+          ],
+          "fingerprint": "14cd07a80eee9821f57e858dd9fb6f0122a2832634ee4344e828838b7d0fb87d",
+          "statuses": [
+            "200",
+            "4XX",
+            "5XX"
+          ]
+        }
+      },
+      {
+        "id": "request/get_user_owners",
+        "values": {
+          "content_types": [],
+          "fingerprint": "908240ecc81e5c0d06a2a68395891d3312d5d5b2108c132d7d887dac040a51b4"
+        }
+      },
+      {
+        "id": "response/get_user_owners",
+        "values": {
+          "content_types": [
+            "application/json"
+          ],
+          "fingerprint": "cc64d462c99b4ab6126ccefd98e2af65755bb0434e1fb04b851534832af4be54",
+          "statuses": [
+            "200",
+            "4XX",
+            "5XX"
+          ]
+        }
+      },
+      {
+        "id": "request/remove_owners",
+        "values": {
+          "content_types": [
+            "application/json"
+          ],
+          "fingerprint": "a971af780cc428086943c0faabaab3501ea33518539ae38ecceb6d21b85ecb1a"
+        }
+      },
+      {
+        "id": "response/remove_owners",
+        "values": {
+          "content_types": [
+            "application/json"
+          ],
+          "fingerprint": "78123cfc2fc0339803abc68857a18ebfa63582c6fa468ae55c10e5a95e300eb4",
+          "statuses": [
+            "200",
+            "4XX",
+            "5XX"
+          ]
+        }
+      },
+      {
+        "id": "request/list_owners",
+        "values": {
+          "content_types": [],
+          "fingerprint": "908240ecc81e5c0d06a2a68395891d3312d5d5b2108c132d7d887dac040a51b4"
+        }
+      },
+      {
+        "id": "response/list_owners",
+        "values": {
+          "content_types": [
+            "application/json"
+          ],
+          "fingerprint": "cc64d462c99b4ab6126ccefd98e2af65755bb0434e1fb04b851534832af4be54",
+          "statuses": [
+            "200",
+            "4XX",
+            "5XX"
+          ]
+        }
+      },
+      {
+        "id": "request/add_owners",
+        "values": {
+          "content_types": [
+            "application/json"
+          ],
+          "fingerprint": "a971af780cc428086943c0faabaab3501ea33518539ae38ecceb6d21b85ecb1a"
+        }
+      },
+      {
+        "id": "response/add_owners",
+        "values": {
+          "content_types": [
+            "application/json"
+          ],
+          "fingerprint": "78123cfc2fc0339803abc68857a18ebfa63582c6fa468ae55c10e5a95e300eb4",
+          "statuses": [
+            "200",
+            "4XX",
+            "5XX"
+          ]
+        }
+      },
+      {
+        "id": "request/list_reverse_dependencies",
+        "values": {
+          "content_types": [],
+          "fingerprint": "a32e15ab96e53413a96e6bead26d84b87df657409a3c7d99a36e8a93a4af55ee"
+        }
+      },
+      {
+        "id": "response/list_reverse_dependencies",
+        "values": {
+          "content_types": [
+            "application/json"
+          ],
+          "fingerprint": "509a4017f00d5ec71c83c9849c3827875fab3452424c566f958d9039cde0a7c5",
+          "statuses": [
+            "200",
+            "4XX",
+            "5XX"
+          ]
+        }
+      },
+      {
+        "id": "request/list_versions",
+        "values": {
+          "content_types": [],
+          "fingerprint": "741365bd07b5eee198895bd93264155b2b172a34def8c6f5d906a6560b3562bd"
+        }
+      },
+      {
+        "id": "response/list_versions",
+        "values": {
+          "content_types": [
+            "application/json"
+          ],
+          "fingerprint": "9936515385572f61879c273ab8069730b00bc3efeff0c4773ebd66c9b07d287f",
+          "statuses": [
+            "200",
+            "4XX",
+            "5XX"
+          ]
+        }
+      },
+      {
+        "id": "request/find_version",
+        "values": {
+          "content_types": [],
+          "fingerprint": "5ab8dd5e798dfa4b5c63d4858ebd90a1f0059e3c4e7e7d5d50b743860d92cec0"
+        }
+      },
+      {
+        "id": "response/find_version",
+        "values": {
+          "content_types": [
+            "application/json"
+          ],
+          "fingerprint": "fefdf6a15ec1764174165819aaa90f10a41275518185f056faefc967c7a61719",
+          "statuses": [
+            "200",
+            "4XX",
+            "5XX"
+          ]
+        }
+      },
+      {
+        "id": "request/update_version",
+        "values": {
+          "content_types": [
+            "application/json"
+          ],
+          "fingerprint": "dcc3b6004744b1917954c6e77007314587419daec50291778b929273e4e54512"
+        }
+      },
+      {
+        "id": "response/update_version",
+        "values": {
+          "content_types": [
+            "application/json"
+          ],
+          "fingerprint": "7b0fa79216491b39b9b2c8856e6e9a141b9fa61200c1cd372d825618dbbd47ec",
+          "statuses": [
+            "200",
+            "4XX",
+            "5XX"
+          ]
+        }
+      },
+      {
+        "id": "request/get_version_authors",
+        "values": {
+          "content_types": [],
+          "fingerprint": "5ab8dd5e798dfa4b5c63d4858ebd90a1f0059e3c4e7e7d5d50b743860d92cec0"
+        }
+      },
+      {
+        "id": "response/get_version_authors",
+        "values": {
+          "content_types": [
+            "application/json"
+          ],
+          "fingerprint": "5234941336ad300bbd48aa7c83f94cab6741bafd9ed5e9162f2a859aff11d52a",
+          "statuses": [
+            "200",
+            "4XX",
+            "5XX"
+          ]
+        }
+      },
+      {
+        "id": "request/get_version_dependencies",
+        "values": {
+          "content_types": [],
+          "fingerprint": "5ab8dd5e798dfa4b5c63d4858ebd90a1f0059e3c4e7e7d5d50b743860d92cec0"
+        }
+      },
+      {
+        "id": "response/get_version_dependencies",
+        "values": {
+          "content_types": [
+            "application/json"
+          ],
+          "fingerprint": "14d1f0ab1cf2a882a6e5fb45ea664d3a683630dedd3409854e86591eed9f57eb",
+          "statuses": [
+            "200",
+            "4XX",
+            "5XX"
+          ]
+        }
+      },
+      {
+        "id": "request/download_version",
+        "values": {
+          "content_types": [],
+          "fingerprint": "5ab8dd5e798dfa4b5c63d4858ebd90a1f0059e3c4e7e7d5d50b743860d92cec0"
+        }
+      },
+      {
+        "id": "response/download_version",
+        "values": {
+          "content_types": [
+            "application/json"
+          ],
+          "fingerprint": "e0f9f7f157b6de6d37f9bddc8a4b3707f437f5185a205972de3fec6a8b998a62",
+          "statuses": [
+            "200",
+            "302",
+            "4XX",
+            "5XX"
+          ]
+        }
+      },
+      {
+        "id": "request/get_version_downloads",
+        "values": {
+          "content_types": [],
+          "fingerprint": "dded081c4fd86cdddc57dac0cad8bf7c1ae15d4ecfbb03b202db31424a9c0892"
+        }
+      },
+      {
+        "id": "response/get_version_downloads",
+        "values": {
+          "content_types": [
+            "application/json"
+          ],
+          "fingerprint": "3f87d165cef631c2fde56c738410cc9eeba3d145954016dc42df92178caeabed",
+          "statuses": [
+            "200",
+            "4XX",
+            "5XX"
+          ]
+        }
+      },
+      {
+        "id": "request/get_version_readme",
+        "values": {
+          "content_types": [],
+          "fingerprint": "5ab8dd5e798dfa4b5c63d4858ebd90a1f0059e3c4e7e7d5d50b743860d92cec0"
+        }
+      },
+      {
+        "id": "response/get_version_readme",
+        "values": {
+          "content_types": [
+            "application/json"
+          ],
+          "fingerprint": "925c4d9f06f6071168bc8097c4cfa27e30ca61b9cb974c2e485ffce827321a65",
+          "statuses": [
+            "200",
+            "302",
+            "4XX",
+            "5XX"
+          ]
+        }
+      },
+      {
+        "id": "request/unyank_version",
+        "values": {
+          "content_types": [],
+          "fingerprint": "5ab8dd5e798dfa4b5c63d4858ebd90a1f0059e3c4e7e7d5d50b743860d92cec0"
+        }
+      },
+      {
+        "id": "response/unyank_version",
+        "values": {
+          "content_types": [
+            "application/json"
+          ],
+          "fingerprint": "7bd65484b7a8d488ed0ddb9d4d2c83a2f2b5ada528d599328b621e2b044fc9b2",
+          "statuses": [
+            "200",
+            "4XX",
+            "5XX"
+          ]
+        }
+      },
+      {
+        "id": "request/yank_version",
+        "values": {
+          "content_types": [],
+          "fingerprint": "5ab8dd5e798dfa4b5c63d4858ebd90a1f0059e3c4e7e7d5d50b743860d92cec0"
+        }
+      },
+      {
+        "id": "response/yank_version",
+        "values": {
+          "content_types": [
+            "application/json"
+          ],
+          "fingerprint": "7bd65484b7a8d488ed0ddb9d4d2c83a2f2b5ada528d599328b621e2b044fc9b2",
+          "statuses": [
+            "200",
+            "4XX",
+            "5XX"
+          ]
+        }
+      },
+      {
+        "id": "request/list_keywords",
+        "values": {
+          "content_types": [],
+          "fingerprint": "b9cdf7d4c7c4233a9274c49c6027caee00f2e8f553881720c642b01859d17551"
+        }
+      },
+      {
+        "id": "response/list_keywords",
+        "values": {
+          "content_types": [
+            "application/json"
+          ],
+          "fingerprint": "1c1b953a3bc86f55451cb742f4be655d8a5ae34de624675eb524a3e5655fc516",
+          "statuses": [
+            "200",
+            "4XX",
+            "5XX"
+          ]
+        }
+      },
+      {
+        "id": "request/find_keyword",
+        "values": {
+          "content_types": [],
+          "fingerprint": "672ba0773c7bb23e92fa5f1f88b34b0e54c39d9fb29272d34ce6e3f5d4c26456"
+        }
+      },
+      {
+        "id": "response/find_keyword",
+        "values": {
+          "content_types": [
+            "application/json"
+          ],
+          "fingerprint": "c0802b05b7197b5b7d72694462a863d63437d57ece47fb315c4e1124a059ba15",
+          "statuses": [
+            "200",
+            "4XX",
+            "5XX"
+          ]
+        }
+      },
+      {
+        "id": "request/accept_crate_owner_invitation_with_token",
+        "values": {
+          "content_types": [],
+          "fingerprint": "652494e57eb98f13f70596c9919c2b9bd08de8241a44ad10962c60d72ad1fef2"
+        }
+      },
+      {
+        "id": "response/accept_crate_owner_invitation_with_token",
+        "values": {
+          "content_types": [
+            "application/json"
+          ],
+          "fingerprint": "d08e1146423ba6360661f10106962fccfd39590b99255b2f72c102787dcbdab1",
+          "statuses": [
+            "200",
+            "4XX",
+            "5XX"
+          ]
+        }
+      },
+      {
+        "id": "request/handle_crate_owner_invitation",
+        "values": {
+          "content_types": [
+            "application/json"
+          ],
+          "fingerprint": "3f3f94e0dcf30a2465059044fe14f0f78f3539e19523c84f7686ebac49e1da3d"
+        }
+      },
+      {
+        "id": "response/handle_crate_owner_invitation",
+        "values": {
+          "content_types": [
+            "application/json"
+          ],
+          "fingerprint": "d08e1146423ba6360661f10106962fccfd39590b99255b2f72c102787dcbdab1",
+          "statuses": [
+            "200",
+            "4XX",
+            "5XX"
+          ]
+        }
+      },
+      {
+        "id": "request/update_email_notifications",
+        "values": {
+          "content_types": [],
+          "fingerprint": "b5756d4da10f713505b73bcb27112c6a9849093b9b727255fc5bf4b4cdda95d9"
+        }
+      },
+      {
+        "id": "response/update_email_notifications",
+        "values": {
+          "content_types": [
+            "application/json"
+          ],
+          "fingerprint": "7bd65484b7a8d488ed0ddb9d4d2c83a2f2b5ada528d599328b621e2b044fc9b2",
+          "statuses": [
+            "200",
+            "4XX",
+            "5XX"
+          ]
+        }
+      },
+      {
+        "id": "request/revoke_api_token",
+        "values": {
+          "content_types": [],
+          "fingerprint": "fbc2a46f13a0772ecdaa7dc58617f98aa2d71891d63003e07e66284e9ac27ce3"
+        }
+      },
+      {
+        "id": "response/revoke_api_token",
+        "values": {
+          "content_types": [
+            "application/json"
+          ],
+          "fingerprint": "4b584727980192dd4f0470d2d332510b0a3c1e635fca9071048801e74d27c34d",
+          "statuses": [
+            "200",
+            "4XX",
+            "5XX"
+          ]
+        }
+      },
+      {
+        "id": "request/find_api_token",
+        "values": {
+          "content_types": [],
+          "fingerprint": "fbc2a46f13a0772ecdaa7dc58617f98aa2d71891d63003e07e66284e9ac27ce3"
+        }
+      },
+      {
+        "id": "response/find_api_token",
+        "values": {
+          "content_types": [
+            "application/json"
+          ],
+          "fingerprint": "9cffdec3f675e414b4245edb047921a486020f504bfd864f73a5bcc0ab698eec",
+          "statuses": [
+            "200",
+            "4XX",
+            "5XX"
+          ]
+        }
+      },
+      {
+        "id": "request/get_site_metadata",
+        "values": {
+          "content_types": [],
+          "fingerprint": "b5756d4da10f713505b73bcb27112c6a9849093b9b727255fc5bf4b4cdda95d9"
+        }
+      },
+      {
+        "id": "response/get_site_metadata",
+        "values": {
+          "content_types": [
+            "application/json"
+          ],
+          "fingerprint": "4e96f3a59a9ef540aea07f10575f0e903df8a2dd6e0e125f00f07911704187df",
+          "statuses": [
+            "200",
+            "4XX",
+            "5XX"
+          ]
+        }
+      },
+      {
+        "id": "request/get_summary",
+        "values": {
+          "content_types": [],
+          "fingerprint": "b5756d4da10f713505b73bcb27112c6a9849093b9b727255fc5bf4b4cdda95d9"
+        }
+      },
+      {
+        "id": "response/get_summary",
+        "values": {
+          "content_types": [
+            "application/json"
+          ],
+          "fingerprint": "b223b01a2aa88353d6414476b2b30a396281bba497914bb48a39149d21ac9d64",
+          "statuses": [
+            "200",
+            "4XX",
+            "5XX"
+          ]
+        }
+      },
+      {
+        "id": "request/find_team",
+        "values": {
+          "content_types": [],
+          "fingerprint": "4e3638aa7d8ab46288f7ccadb8547461211cc3e04a2ac546d6769096122a7141"
+        }
+      },
+      {
+        "id": "response/find_team",
+        "values": {
+          "content_types": [
+            "application/json"
+          ],
+          "fingerprint": "4cf1e89c12201f7af1566dad238cb97d03811a72efcafa2bc925f4614c3889ba",
+          "statuses": [
+            "200",
+            "4XX",
+            "5XX"
+          ]
+        }
+      },
+      {
+        "id": "request/revoke_current_api_token",
+        "values": {
+          "content_types": [],
+          "fingerprint": "b5756d4da10f713505b73bcb27112c6a9849093b9b727255fc5bf4b4cdda95d9"
+        }
+      },
+      {
+        "id": "response/revoke_current_api_token",
+        "values": {
+          "content_types": [
+            "application/json"
+          ],
+          "fingerprint": "8dd72b21bf167c800488da415488c77724e27aa0e17f7c7e05d7d2ea71439c85",
+          "statuses": [
+            "204",
+            "4XX",
+            "5XX"
+          ]
+        }
+      },
+      {
+        "id": "request/list_trustpub_github_configs",
+        "values": {
+          "content_types": [],
+          "fingerprint": "a4cf902ceee2f2ae916bbead190318ff98caf7f0339219cc0cffb0309343812d"
+        }
+      },
+      {
+        "id": "response/list_trustpub_github_configs",
+        "values": {
+          "content_types": [
+            "application/json"
+          ],
+          "fingerprint": "333b7ebbaf3381ace6db2b4bd4458a87784b5f84940973ecf4c06d31f7aeb360",
+          "statuses": [
+            "200",
+            "4XX",
+            "5XX"
+          ]
+        }
+      },
+      {
+        "id": "request/create_trustpub_github_config",
+        "values": {
+          "content_types": [
+            "application/json"
+          ],
+          "fingerprint": "9686c8c8cf1df5faa18df8d28c18d9a81c7a2cdb672fe61126885584ffe35745"
+        }
+      },
+      {
+        "id": "response/create_trustpub_github_config",
+        "values": {
+          "content_types": [
+            "application/json"
+          ],
+          "fingerprint": "e9204954644992fb3a941559dc010e8448704b88317b9fe1b83393df2b84cbe9",
+          "statuses": [
+            "200",
+            "4XX",
+            "5XX"
+          ]
+        }
+      },
+      {
+        "id": "request/delete_trustpub_github_config",
+        "values": {
+          "content_types": [],
+          "fingerprint": "2ced5a2b90e319b4e45947c86f8746854b814da04d44798ffc97c58ff595c990"
+        }
+      },
+      {
+        "id": "response/delete_trustpub_github_config",
+        "values": {
+          "content_types": [
+            "application/json"
+          ],
+          "fingerprint": "8dd72b21bf167c800488da415488c77724e27aa0e17f7c7e05d7d2ea71439c85",
+          "statuses": [
+            "204",
+            "4XX",
+            "5XX"
+          ]
+        }
+      },
+      {
+        "id": "request/list_trustpub_gitlab_configs",
+        "values": {
+          "content_types": [],
+          "fingerprint": "a4cf902ceee2f2ae916bbead190318ff98caf7f0339219cc0cffb0309343812d"
+        }
+      },
+      {
+        "id": "response/list_trustpub_gitlab_configs",
+        "values": {
+          "content_types": [
+            "application/json"
+          ],
+          "fingerprint": "75a78888132cfbb8620c2c99dedd99392f806f818db9ded63fb2352016dcf8a8",
+          "statuses": [
+            "200",
+            "4XX",
+            "5XX"
+          ]
+        }
+      },
+      {
+        "id": "request/create_trustpub_gitlab_config",
+        "values": {
+          "content_types": [
+            "application/json"
+          ],
+          "fingerprint": "ff9f631b2ca5268eb91ce796fc76ee30b3ef85d6eb55e48d1fdf9c6677979d10"
+        }
+      },
+      {
+        "id": "response/create_trustpub_gitlab_config",
+        "values": {
+          "content_types": [
+            "application/json"
+          ],
+          "fingerprint": "ccd60ba74ffba243280335e7e33341049c0b88bb8a24d3d021a97ace4c8ab3b8",
+          "statuses": [
+            "200",
+            "4XX",
+            "5XX"
+          ]
+        }
+      },
+      {
+        "id": "request/delete_trustpub_gitlab_config",
+        "values": {
+          "content_types": [],
+          "fingerprint": "2ced5a2b90e319b4e45947c86f8746854b814da04d44798ffc97c58ff595c990"
+        }
+      },
+      {
+        "id": "response/delete_trustpub_gitlab_config",
+        "values": {
+          "content_types": [
+            "application/json"
+          ],
+          "fingerprint": "8dd72b21bf167c800488da415488c77724e27aa0e17f7c7e05d7d2ea71439c85",
+          "statuses": [
+            "204",
+            "4XX",
+            "5XX"
+          ]
+        }
+      },
+      {
+        "id": "request/revoke_trustpub_token",
+        "values": {
+          "content_types": [],
+          "fingerprint": "b5756d4da10f713505b73bcb27112c6a9849093b9b727255fc5bf4b4cdda95d9"
+        }
+      },
+      {
+        "id": "response/revoke_trustpub_token",
+        "values": {
+          "content_types": [
+            "application/json"
+          ],
+          "fingerprint": "8dd72b21bf167c800488da415488c77724e27aa0e17f7c7e05d7d2ea71439c85",
+          "statuses": [
+            "204",
+            "4XX",
+            "5XX"
+          ]
+        }
+      },
+      {
+        "id": "request/exchange_trustpub_token",
+        "values": {
+          "content_types": [
+            "application/json"
+          ],
+          "fingerprint": "fc662be6a491f2db4b33b32fac7af7d9bf1580b687268089d4ffd7aeedc273dc"
+        }
+      },
+      {
+        "id": "response/exchange_trustpub_token",
+        "values": {
+          "content_types": [
+            "application/json"
+          ],
+          "fingerprint": "6ff62f2aed2d5360f57885cc853675fb1cdd33d18449d00dcb47b45434141f93",
+          "statuses": [
+            "200",
+            "4XX",
+            "5XX"
+          ]
+        }
+      },
+      {
+        "id": "request/resend_email_verification",
+        "values": {
+          "content_types": [],
+          "fingerprint": "54216190c14c37bda0a45be4bb10171b692287e3a868198802eb003a07d4905a"
+        }
+      },
+      {
+        "id": "response/resend_email_verification",
+        "values": {
+          "content_types": [
+            "application/json"
+          ],
+          "fingerprint": "7bd65484b7a8d488ed0ddb9d4d2c83a2f2b5ada528d599328b621e2b044fc9b2",
+          "statuses": [
+            "200",
+            "4XX",
+            "5XX"
+          ]
+        }
+      },
+      {
+        "id": "request/get_user_stats",
+        "values": {
+          "content_types": [],
+          "fingerprint": "54216190c14c37bda0a45be4bb10171b692287e3a868198802eb003a07d4905a"
+        }
+      },
+      {
+        "id": "response/get_user_stats",
+        "values": {
+          "content_types": [
+            "application/json"
+          ],
+          "fingerprint": "49cd57c406fdb6e7bb382bd751eaa0b803ddf44bf27f8bfc3c9320155171d84f",
+          "statuses": [
+            "200",
+            "4XX",
+            "5XX"
+          ]
+        }
+      },
+      {
+        "id": "request/find_user",
+        "values": {
+          "content_types": [],
+          "fingerprint": "d43995888f74dd984eae065d82fddfebaa8368c7f171a34e7c9a6081f9b0efd6"
+        }
+      },
+      {
+        "id": "response/find_user",
+        "values": {
+          "content_types": [
+            "application/json"
+          ],
+          "fingerprint": "18df84406ccb8684e9800495d1f8fe4a9242619e053a04b6f53daa192d926a2c",
+          "statuses": [
+            "200",
+            "4XX",
+            "5XX"
+          ]
+        }
+      },
+      {
+        "id": "request/update_user",
+        "values": {
+          "content_types": [
+            "application/json"
+          ],
+          "fingerprint": "ba7c4f4900f357bb548e0c96468856ed8fe7e1e2dd60125616fd83d242c17d03"
+        }
+      },
+      {
+        "id": "response/update_user",
+        "values": {
+          "content_types": [
+            "application/json"
+          ],
+          "fingerprint": "7bd65484b7a8d488ed0ddb9d4d2c83a2f2b5ada528d599328b621e2b044fc9b2",
+          "statuses": [
+            "200",
+            "4XX",
+            "5XX"
+          ]
+        }
+      },
+      {
+        "id": "component/acbcbc2a71b9de8655878e25e56240f0",
+        "values": {
+          "fingerprint": "b9dff2bca0f332b056cf9f12fab5279382cebefed0455f9675ce29ae3581e401",
+          "name": "ApiErrorResponse"
+        }
+      },
+      {
+        "id": "component/ace00b30dd63d6229524509ddc1e8f0e",
+        "values": {
+          "fingerprint": "fca8ea9b0bdb9bc79429fcf8a5aa156e2e21f886391a13a82252b7e9657ff61c",
+          "name": "ApiToken"
+        }
+      },
+      {
+        "id": "component/880caad2caceca798b333570a9118e29",
+        "values": {
+          "fingerprint": "f955ce33c9b3bc6002b9cc1c2a897e683ab2f43dbd24f2dbaf3ef1dce7605cd2",
+          "name": "ApiTokenWithToken"
+        }
+      },
+      {
+        "id": "component/b9e2a6758f04f7d525a9ee24c0e17a67",
+        "values": {
+          "fingerprint": "e657dc11bf6be02e349dd0c2ef7fe341ecaa300b3dd12af89ab14173cf17593f",
+          "name": "AuthenticatedUser"
+        }
+      },
+      {
+        "id": "component/292c06f0045a45d044be282b132b7055",
+        "values": {
+          "fingerprint": "a540b25c3fdd51b1aa669c00b17c4ee62bf8e7d63b967ae04e816de4b283e9fe",
+          "name": "Category"
+        }
+      },
+      {
+        "id": "component/ef90fcddc4f05f0101c43667f9a898ed",
+        "values": {
+          "fingerprint": "48c9db1519b595c9f6d9f150007e09ebc21895c18e3c3bd5f7bc3b0b7793656d",
+          "name": "Crate"
+        }
+      },
+      {
+        "id": "component/3a7592225c95574acaf9977df1fdc65a",
+        "values": {
+          "fingerprint": "5479c8621440a1037c5098e045aae3a38693dba2d99924c63c51d9d7633ecdf2",
+          "name": "CrateLinks"
+        }
+      },
+      {
+        "id": "component/1b44ff147f5230918b99b0a9c5ce266d",
+        "values": {
+          "fingerprint": "10e8b126e25173171e01a45907018745c756902c60c7649c79b7a583c3441d36",
+          "name": "CrateOwnerInvitation"
+        }
+      },
+      {
+        "id": "component/711595f184a741e167aa1950131b6ded",
+        "values": {
+          "fingerprint": "10167bcd0e385963191caf598a8d27b093dba130bad0f59ff96a44b45fcefd2a",
+          "name": "Dependency"
+        }
+      },
+      {
+        "id": "component/eccf816d559b427727594c81eced61da",
+        "values": {
+          "fingerprint": "6558a37eb9ca3908d6e1e1153a18b12c4fc7a55969f5d798dd1dbb9d9db8e35a",
+          "name": "EndpointScope"
+        }
+      },
+      {
+        "id": "component/d71a831a6b38f1402efb1b212a5fd060",
+        "values": {
+          "fingerprint": "b4c8d3e5baaae745345c3c405dcc27e255e264437168fc8fcc513a5b4bacbf58",
+          "name": "GitHubConfig"
+        }
+      },
+      {
+        "id": "component/3106573cf74556315da68fc7f0b466c1",
+        "values": {
+          "fingerprint": "2251f910eb55e5532b74511aae6aaf111801a1c8467f590406bbfc7b6ae15c62",
+          "name": "GitLabConfig"
+        }
+      },
+      {
+        "id": "component/a668022aed26067debf017f10c180d4b",
+        "values": {
+          "fingerprint": "a09779f9a06dbb545004387fb5335a13f77d105d6fe6086b7e2ad984aeb00180",
+          "name": "Keyword"
+        }
+      },
+      {
+        "id": "component/f9966e2fc3ccdab8769fcaec3cbe4e35",
+        "values": {
+          "fingerprint": "9f0e99aca4049c6dff07b884ae34386cd0ad5ef2a9a5119bc66372e91fa5a3fa",
+          "name": "LegacyCrateOwnerInvitation"
+        }
+      },
+      {
+        "id": "component/4b1b8aa3608a26da451ae0630d75b60a",
+        "values": {
+          "fingerprint": "c55e6aa427543fa1ef4b0a68ad2b117d934a41417ea18b8e997f2a03b05f375b",
+          "name": "Owner"
+        }
+      },
+      {
+        "id": "component/c307a0bb9fc62d3c5d50f8f68af97c73",
+        "values": {
+          "fingerprint": "059a1d82ab365c6aa6ddc6a471d8103c4cccabb17c4d33f11b77cc195574cd84",
+          "name": "PublishWarnings"
+        }
+      },
+      {
+        "id": "component/bd77b00d46d1e7b8c4d8ca0c11fc1646",
+        "values": {
+          "fingerprint": "0e3f1bfe7b049fbe70145420204263e52c970867541ac8cfeb4a73197c0e713d",
+          "name": "ReleaseTrackDetails"
+        }
+      },
+      {
+        "id": "component/6edb7060cf0a13c1c20be51a8ca3f409",
+        "values": {
+          "fingerprint": "4f0377afc642f92819d266ab8787fccf5205a18812ec1e341483e149a621d1a9",
+          "name": "SignupDetails"
+        }
+      },
+      {
+        "id": "component/d15387ecc6c5e22dee4fb57610138e15",
+        "values": {
+          "fingerprint": "4f464dc7a87da6485c2cd3c86f99fcd566b8de0864b570d9c5bcf0266d89ac6c",
+          "name": "Slug"
+        }
+      },
+      {
+        "id": "component/5985039f106df054b43c3529139613bf",
+        "values": {
+          "fingerprint": "e8faefc45d49a2154a44188df2de222d6a5fbfbb3f0584fbc95431400314930a",
+          "name": "Team"
+        }
+      },
+      {
+        "id": "component/5cac3dfeb41e49a1260e1dad6b837ac4",
+        "values": {
+          "fingerprint": "546229004d8d3fcff6f3370feb5034919655efac4c5ae971aa7dab17ed98e68f",
+          "name": "TrustpubData"
+        }
+      },
+      {
+        "id": "component/b512d97e7cbf97c273e4db073bbb547a",
+        "values": {
+          "fingerprint": "b70a0c878253159a2cf1f4d015b9a09816e1cc07e559ffc1c97b69b2daea9008",
+          "name": "User"
+        }
+      },
+      {
+        "id": "component/dd167905de0defcaf72de673ee44c074",
+        "values": {
+          "fingerprint": "bb2dc468848c5ea3277997dd739f0ef446abd674c3be283d8995c6a2ba8ee4af",
+          "name": "Version"
+        }
+      },
+      {
+        "id": "component/1076b8ba6c0915923ba5701471b4a0e0",
+        "values": {
+          "fingerprint": "f42c5ff27157dcfaf910e3fa58efc1c74336e3085c0a5e27336486cb55ba02fb",
+          "name": "VersionDownload"
+        }
+      },
+      {
+        "id": "component/89db4f868ab8a7d90d9cc6192a7cf9e6",
+        "values": {
+          "fingerprint": "cce59fd8030f0323bd58f65faf0ab006b8f7248a11006b5f47aa689019ea5617",
+          "name": "VersionLinks"
+        }
+      },
+      {
+        "id": "component/3460d0ce66c351d6c40d645e15c1e277",
+        "values": {
+          "fingerprint": "55b7d9449a6d9c323ebfaf9d5a9be0f33d11cb0ead61f3954545553023b474a0",
+          "name": "VersionUpdate"
+        }
+      }
+    ]
+  },
+  "format": "cloud-sdk-provider-observation/v1",
+  "plugin": {
+    "id": "normalized-json",
+    "version": 1
+  },
+  "provider": "cratesio",
+  "sources": [
+    {
+      "id": "cargo",
+      "max_bytes": 524288,
+      "sha256": "2e349014e3bc95e7896f3e33ddbee2fdbb30de0a4ec58dca5dd8b1bd6f98a138",
+      "url": "https://doc.rust-lang.org/cargo/reference/registry-web-api.html"
+    },
+    {
+      "id": "openapi",
+      "max_bytes": 1048576,
+      "sha256": "c9c1e39be547cca34ebde188cf3b52e66906ab23c50357ca51c766853139a17f",
+      "url": "https://crates.io/api/openapi.json"
+    },
+    {
+      "id": "openapi-source",
+      "max_bytes": 131072,
+      "sha256": "05319ccd6c1fa9e0e3ac9acd86fca932ccd1100358c5e395427b6322ce4d7810",
+      "url": "https://raw.githubusercontent.com/rust-lang/crates.io/ea3b6ebad504d9701bc41f4d2f1d32ab864cee94/src/openapi.rs"
+    },
+    {
+      "id": "policy",
+      "max_bytes": 131072,
+      "sha256": "47cb6a1d933a908deba30caf6440b5b9cc135c220102dd15ffeccd44cdad25ab",
+      "url": "https://crates.io/data-access"
+    },
+    {
+      "id": "policy-current",
+      "max_bytes": 131072,
+      "sha256": "db5078a31e412c395321b95124ba5e4b3db7954e1d2a66a9a5847c3cbbaca802",
+      "url": "https://raw.githubusercontent.com/rust-lang/crates.io/main/svelte/src/routes/data-access/%2Bpage.svelte"
+    },
+    {
+      "id": "policy-source",
+      "max_bytes": 131072,
+      "sha256": "db5078a31e412c395321b95124ba5e4b3db7954e1d2a66a9a5847c3cbbaca802",
+      "url": "https://raw.githubusercontent.com/rust-lang/crates.io/ea3b6ebad504d9701bc41f4d2f1d32ab864cee94/svelte/src/routes/data-access/%2Bpage.svelte"
+    }
+  ]
+}

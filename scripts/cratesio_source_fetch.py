@@ -43,7 +43,7 @@ class SameOriginRedirects(urllib.request.HTTPRedirectHandler):
         return super().redirect_request(request, file, code, message, headers, new_url)
 
 
-def fetch_source(source: dict[str, Any], monotonic: Any = time.monotonic) -> bytes:
+def observe_source(source: dict[str, Any], monotonic: Any = time.monotonic) -> bytes:
     redirector = SameOriginRedirects(source["url"])
     opener = urllib.request.build_opener(
         urllib.request.HTTPSHandler(context=ssl.create_default_context()), redirector
@@ -58,11 +58,14 @@ def fetch_source(source: dict[str, Any], monotonic: Any = time.monotonic) -> byt
     started = monotonic()
     try:
         with opener.open(request, timeout=10) as response:
-            payload = read_response(
-                response, source, redirector.redirects, started, monotonic
-            )
+            payload = read_response(response, source, redirector.redirects, started, monotonic)
     except OSError as error:
         raise SourceLockError(f"could not fetch {source['id']}: {error}") from error
+    return payload
+
+
+def fetch_source(source: dict[str, Any], monotonic: Any = time.monotonic) -> bytes:
+    payload = observe_source(source, monotonic)
     actual = hashlib.sha256(payload).hexdigest()
     if len(payload) != source["size_bytes"] or actual != source["sha256"]:
         raise SourceLockError(f"{source['id']} digest or size changed")

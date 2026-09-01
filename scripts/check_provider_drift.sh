@@ -5,6 +5,7 @@ scripts/test-provider-drift-model.py
 scripts/test-provider-drift-fetch.py
 scripts/test-provider-drift-report.py
 scripts/test-provider-drift-check.py
+scripts/test-cratesio-drift.py
 scripts/test-hetzner-provider-drift-bridge.py
 scripts/check_hetzner_provider_drift_bridge.py
 scripts/test-ovhcloud-probe.py
@@ -19,6 +20,13 @@ result="$(
 expected='{"changes":[],"format":"cloud-sdk-provider-drift-report/v1","provider":"hetzner","result":"clean"}'
 if [ "$result" != "$expected" ]; then
     echo "provider drift: tracked clean report is not canonical" >&2
+    exit 1
+fi
+
+result="$(scripts/check_cratesio_drift.py)"
+expected='{"changes":[],"format":"cloud-sdk-provider-drift-report/v1","provider":"cratesio","result":"clean"}'
+if [ "$result" != "$expected" ]; then
+    echo "provider drift: crates.io report is not canonical" >&2
     exit 1
 fi
 

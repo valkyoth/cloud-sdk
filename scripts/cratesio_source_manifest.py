@@ -17,6 +17,7 @@ SOURCE_DETAILS = {
     "policy": ("text/html", "text/html", 131072),
     "openapi-source": ("text/plain", "text/plain", 131072),
     "policy-source": ("text/plain", "text/plain", 131072),
+    "policy-current": ("text/plain", "text/plain", 131072),
 }
 
 
@@ -31,6 +32,10 @@ def official_urls(source_commit: str) -> dict[str, str]:
         "openapi-source": repository + "/src/openapi.rs",
         "policy-source": (
             repository + "/svelte/src/routes/data-access/%2Bpage.svelte"
+        ),
+        "policy-current": (
+            "https://raw.githubusercontent.com/rust-lang/crates.io/"
+            "main/svelte/src/routes/data-access/%2Bpage.svelte"
         ),
     }
 
@@ -57,7 +62,7 @@ def validate_lock(lock: dict[str, Any]) -> None:
         raise SourceLockError("crates.io review date is invalid")
     sources = lock.get("sources")
     if not isinstance(sources, list) or len(sources) != len(SOURCE_DETAILS):
-        raise SourceLockError("crates.io source lock must contain five sources")
+        raise SourceLockError("crates.io source lock must contain six sources")
     expected_urls = official_urls(source_commit)
     ids: set[str] = set()
     fields = {

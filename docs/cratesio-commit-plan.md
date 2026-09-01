@@ -1,7 +1,7 @@
 # crates.io Commit Plan
 
-Status: selected unreleased `1.1.0` implementation train. Commit 1 source-lock
-implementation is complete and awaits its incremental pentest.
+Status: selected unreleased `1.1.0` implementation train. Commit 1 is accepted;
+Commit 2 drift detection is implemented and awaits its incremental pentest.
 
 ## Decision Summary
 
@@ -96,6 +96,10 @@ The survey copies had these SHA-256 digests:
 - pinned data-access policy source:
   `db5078a31e412c395321b95124ba5e4b3db7954e1d2a66a9a5847c3cbbaca802`.
 
+Commit 2 additionally observes the current policy file on the official `main`
+branch. At this checkpoint it has the same digest as the pinned policy source;
+the separate identity exists so a future policy edit becomes semantic drift.
+
 The maintained manifest, operation matrix, and Cargo compatibility matrix are
 documented in [`CRATESIO_SOURCE_LOCK.md`](CRATESIO_SOURCE_LOCK.md).
 
@@ -122,7 +126,8 @@ documented in [`CRATESIO_SOURCE_LOCK.md`](CRATESIO_SOURCE_LOCK.md).
 
 ## Commit 1 - Source Lock And Finite Scope
 
-Checkpoint status: implementation complete; incremental pentest pending.
+Checkpoint status: accepted after incremental pentest, remediation, retest, and
+green GitHub checks.
 
 Goal: establish the exact crates.io and Cargo protocol support claim before
 service code exists.
@@ -148,6 +153,8 @@ Pentest stop: run an incremental pentest for the exact Commit 1 source-lock and
 scope-classification boundary.
 
 ## Commit 2 - Drift, Policy, And Compatibility Detection
+
+Checkpoint status: implementation complete; incremental pentest pending.
 
 Goal: turn upstream API, Cargo contract, and access-policy changes into
 fail-closed maintenance events.

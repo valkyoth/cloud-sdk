@@ -11,6 +11,10 @@ from typing import Any, Callable
 from urllib.parse import urlsplit
 
 import check_hetzner_api_drift as hetzner
+from cratesio_drift_adapter import (
+    CratesioAdapterError,
+    build_observation as build_cratesio_observation,
+)
 import generate_response_operations as responses
 from hetzner_openapi_contracts import HTTP_METHODS
 from provider_drift_model import read_bounded_bytes
@@ -386,6 +390,7 @@ def _hetzner_observation(
 
 Adapter = Callable[[dict[str, Any], dict[str, bytes]], dict[str, Any]]
 ADAPTERS: dict[tuple[str, str, int], Adapter] = {
+    ("cratesio", "normalized-json", 1): build_cratesio_observation,
     ("hetzner", "normalized-json", 1): _hetzner_observation,
     ("ovhcloud-v2-probe", "normalized-json", 1):
         build_ovhcloud_probe_observation,
@@ -405,6 +410,8 @@ def build_live_observation(
         raise
     except OvhcloudProbeError as error:
         raise AdapterError("OVHcloud probe source normalization failed") from error
+    except CratesioAdapterError as error:
+        raise AdapterError("crates.io source normalization failed") from error
     except (
         csv.Error,
         KeyError,

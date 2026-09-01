@@ -95,8 +95,10 @@ def policy_source() -> bytes:
 <h2 id="crate-content">static</h2><h2 id="rss-feeds">rss</h2>
 <h2 id="database-dumps">dumps</h2><h2 id="api">api</h2>
 <p>Please try them in the order below</p>
+<p>Should you be unable to use one of the previous options, use the API.</p>
 <li>A maximum of 1 request per second, and</li>
 <li>A <code>user-agent</code> header that identifies your application.</li>
+<p>We strongly suggest providing a way for us to contact you.</p>
 <p>Data Access Policy</p>"""
 
 
@@ -288,6 +290,11 @@ class SourceLockTests(unittest.TestCase):
     def test_release_gate_reconstructs_from_official_sources(self) -> None:
         gate = (ROOT / "scripts/release_1_1_gate.sh").read_text(encoding="ascii")
         self.assertIn("scripts/check_cratesio_source_lock.py --fetch", gate)
+        self.assertIn("scripts/check_cratesio_drift.py --fetch", gate)
+        self.assertLess(
+            gate.index("scripts/check_cratesio_drift.py --fetch"),
+            gate.index("scripts/check_cratesio_source_lock.py --fetch"),
+        )
 
 
 if __name__ == "__main__":

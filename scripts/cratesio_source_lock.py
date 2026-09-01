@@ -47,6 +47,7 @@ CARGO_COLUMNS = (
     "method",
     "path",
     "openapi_operation_id",
+    "contract_sha256",
     "policy",
 )
 CARGO_CONTRACTS = (
@@ -343,6 +344,7 @@ def cargo_rows(payload: bytes) -> list[dict[str, str]]:
                 "method": method.upper(),
                 "path": path,
                 "openapi_operation_id": operation_id,
+                "contract_sha256": digest(section_text),
                 "policy": "implemented-through-public-openapi-row",
             }
         )
@@ -355,13 +357,16 @@ def cargo_rows(payload: bytes) -> list[dict[str, str]]:
             "method": "INSTRUCTION",
             "path": "/me",
             "openapi_operation_id": "-",
+            "contract_sha256": digest("/me login instruction target"),
             "policy": "not-an-api-operation",
         }
     )
     return rows
 
 
-def policy_observation(payload: bytes, source_payload: bytes) -> dict[str, Any]:
+def policy_observation(
+    payload: bytes, source_payload: bytes, *, strict: bool = True
+) -> dict[str, Any]:
     deployed_text, _deployed_ids = html_text(payload, "crates.io data-access policy")
     if "crates.io: Rust Package Registry" not in deployed_text:
         raise SourceLockError("deployed data-access route is not the crates.io application")
@@ -369,25 +374,50 @@ def policy_observation(payload: bytes, source_payload: bytes) -> dict[str, Any]:
         source = source_payload.decode("utf-8")
     except UnicodeDecodeError as error:
         raise SourceLockError("data-access policy source is not UTF-8") from error
-    ids = set(re.findall(r'id="([a-z-]+)"', source))
+    all_ids = re.findall(r'id="([a-z-]+)"', source)
+    ids = set(all_ids)
+    if len(ids) != len(all_ids):
+        raise SourceLockError("data-access policy has duplicate section identities")
     text = " ".join(re.sub(r"<[^>]+>", " ", source).split())
-    required_ids = {"crate-index", "crate-content", "rss-feeds", "database-dumps", "api"}
-    if not required_ids <= ids:
-        raise SourceLockError("data-access policy lacks required source sections")
-    phrases = (
-        "A maximum of 1 request per second",
-        "user-agent header that identifies your application",
-        "Please try them in the order below",
-    )
-    if any(phrase not in text for phrase in phrases):
+    if "api" not in ids or "Data Access Policy" not in source:
         raise SourceLockError("data-access policy text is incomplete")
-    return {
+    section_ids = re.findall(r'<h2 id="([a-z-]+)"', source)
+    try:
+        preferred_ids = section_ids[: section_ids.index("api")]
+    except ValueError as error:
+        raise SourceLockError("data-access policy API section is missing") from error
+    names = {
+        "crate-index": "sparse-index",
+        "crate-content": "static-downloads",
+        "rss-feeds": "rss",
+        "database-dumps": "database-dumps",
+    }
+    preferred_sources = [names.get(identity, f"section:{identity}") for identity in preferred_ids]
+    rates = re.findall(r"A maximum of ([0-9]{1,9}) requests? per second", text)
+    if len(rates) > 1:
+        raise SourceLockError("data-access policy has ambiguous API rate limits")
+    rate: int | str = int(rates[0]) if rates else "unspecified"
+    observed = {
+        "api_max_requests_per_second": rate,
+        "identifying_user_agent_required": (
+            "user-agent header that identifies your application" in text
+        ),
+        "contact_information_recommended": (
+            "suggest providing a way for us to contact you" in text
+        ),
+        "api_is_fallback": "unable to use one of the previous options" in text,
+        "preferred_sources": preferred_sources,
+    }
+    expected = {
         "api_max_requests_per_second": 1,
         "identifying_user_agent_required": True,
         "contact_information_recommended": True,
         "api_is_fallback": True,
         "preferred_sources": ["sparse-index", "static-downloads", "rss", "database-dumps"],
     }
+    if strict and observed != expected:
+        raise SourceLockError("data-access policy semantics changed")
+    return observed
 
 
 def validate_source_evidence(openapi_source: bytes, policy_source: bytes) -> None:
@@ -435,7 +465,7 @@ def observe(lock: dict[str, Any], payloads: dict[str, bytes]) -> tuple[bytes, by
     document = parse_json(payloads["openapi"], "crates.io OpenAPI")
     operations = operation_rows(document)
     cargo = cargo_rows(payloads["cargo"])
-    policy = policy_observation(payloads["policy"], payloads["policy-source"])
+    policy = policy_observation(payloads["policy"], payloads["policy-current"])
     validate_source_evidence(payloads["openapi-source"], payloads["policy-source"])
     summary = {
         "openapi": {

@@ -1,9 +1,9 @@
-classification	contract	method	path	openapi_operation_id	policy
-superseded	publish	PUT	/api/v1/crates/new	publish	implemented-through-public-openapi-row
-superseded	yank	DELETE	/api/v1/crates/{crate_name}/{version}/yank	yank_version	implemented-through-public-openapi-row
-superseded	unyank	PUT	/api/v1/crates/{crate_name}/{version}/unyank	unyank_version	implemented-through-public-openapi-row
-superseded	owners-list	GET	/api/v1/crates/{crate_name}/owners	list_owners	implemented-through-public-openapi-row
-superseded	owners-add	PUT	/api/v1/crates/{crate_name}/owners	add_owners	implemented-through-public-openapi-row
-superseded	owners-remove	DELETE	/api/v1/crates/{crate_name}/owners	remove_owners	implemented-through-public-openapi-row
-superseded	search	GET	/api/v1/crates	list_crates	implemented-through-public-openapi-row
-excluded	login-instruction	INSTRUCTION	/me	-	not-an-api-operation
+classification	contract	method	path	openapi_operation_id	contract_sha256	policy
+superseded	publish	PUT	/api/v1/crates/new	publish	ecd481449487264e1c7492a003d8d32698dbf3f02441c04e223055590fbb73f8	implemented-through-public-openapi-row
+superseded	yank	DELETE	/api/v1/crates/{crate_name}/{version}/yank	yank_version	4cbd5a66bc0ca376a3528ebcba5aca313428a2b72d70105916dfc9e6cf11832d	implemented-through-public-openapi-row
+superseded	unyank	PUT	/api/v1/crates/{crate_name}/{version}/unyank	unyank_version	686300da40ba87e76d4ad64774da9e1c703176537b2f3a943fcee59d6cf12ead	implemented-through-public-openapi-row
+superseded	owners-list	GET	/api/v1/crates/{crate_name}/owners	list_owners	217acfa8f7b1e1929cba6addf7139150a355a01d866e5b104d6b7943add7a96d	implemented-through-public-openapi-row
+superseded	owners-add	PUT	/api/v1/crates/{crate_name}/owners	add_owners	8d5f8e5de4439caaffb7761628637c893bbc6de83eda6fd1c62b5b5466d0fcac	implemented-through-public-openapi-row
+superseded	owners-remove	DELETE	/api/v1/crates/{crate_name}/owners	remove_owners	cb9d053b65f8bbeed1317ae8dea65f107710531411740bd28d75408791b3fb13	implemented-through-public-openapi-row
+superseded	search	GET	/api/v1/crates	list_crates	424ccbfbf633990b1d075974340a84fef2fcc2d8a6545875351ac4bda01099e4	implemented-through-public-openapi-row
+excluded	login-instruction	INSTRUCTION	/me	-	8e887983542ffa97eb650189da3184c0882806ed18bda0d5bf551da3e3043d54	not-an-api-operation

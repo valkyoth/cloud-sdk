@@ -1,6 +1,7 @@
 # crates.io Source Lock
 
-Status: Commit 1 accepted-source candidate for the unreleased `1.1.0` train.
+Status: Commit 1 accepted; Commit 2 semantic drift candidate for the unreleased
+`1.1.0` train.
 
 This lock establishes finite crates.io scope before provider code exists. The
 machine-readable source manifest is
@@ -12,7 +13,7 @@ reviewed Cargo overlap is
 
 ## Reviewed Sources
 
-The 2026-08-31 observation binds five official HTTPS representations:
+The 2026-08-31 observation binds six official HTTPS representations:
 
 | Evidence | Exact source | Bound |
 | --- | --- | --- |
@@ -21,6 +22,7 @@ The 2026-08-31 observation binds five official HTTPS representations:
 | Deployed access policy | `https://crates.io/data-access` | 128 KiB |
 | OpenAPI implementation | `rust-lang/crates.io` `src/openapi.rs` at `ea3b6ebad504d9701bc41f4d2f1d32ab864cee94` | 128 KiB |
 | Policy implementation | `rust-lang/crates.io` `svelte/src/routes/data-access/+page.svelte` at the same commit | 128 KiB |
+| Current policy observation | the same file on the official `rust-lang/crates.io` `main` branch | 128 KiB |
 
 The manifest records each requested URL, final URL, redirect chain, media type,
 exact byte length, and SHA-256 digest. Retrieval requires HTTPS, a bounded
@@ -34,6 +36,11 @@ The deployed policy uses HTTP content negotiation. A request without an HTML
 `Accept` header currently returns `404`; the authoritative
 `Accept: text/html` representation returns the complete policy. The source-lock
 fetcher records and enforces that request representation.
+
+The commit-pinned policy source preserves reviewed provenance. The separately
+bound `main` representation detects later changes to rate, identifying
+`User-Agent`, contact, API-fallback, and preferred-data-source rules. It is
+never treated as accepted evidence merely because it was fetched successfully.
 
 ## Finite Scope
 
@@ -76,10 +83,42 @@ Re-fetch every official source and reconstruct both inventories in memory:
 scripts/check_cratesio_source_lock.py --fetch
 ```
 
+Emit a canonical payload-free semantic drift report from current official
+bytes:
+
+```console
+scripts/check_cratesio_drift.py --fetch
+```
+
 The live command never rewrites accepted evidence. Digest, size, redirect,
 media-type, OpenAPI version, reference, operation identity, auth, Cargo
 contract, policy, or classification changes fail closed and require explicit
 review. The manifest also binds both committed TSV artifacts by SHA-256, and the
 final `scripts/release_1_1_gate.sh` reconstructs the observation from the
-approved authorities. Commit 2 will add semantic drift reporting and a
-controlled refresh workflow on top of this finite lock.
+approved authorities. The semantic adapter fingerprints every operation,
+parameter/request structure, component schema, authentication route, content
+type, response status, stability classification, stable Cargo overlap, and
+access-policy rule. Additions, removals, renames, and changed fields are
+classified through the provider-neutral drift report.
+
+## Controlled Refresh
+
+After reviewing an upstream crates.io repository commit, stage one complete
+candidate bundle without modifying accepted evidence:
+
+```console
+scripts/stage_cratesio_lock_refresh.py stage \
+  --source-commit <40-character-commit> \
+  --reviewed-at YYYY-MM-DD \
+  --output /tmp/cratesio-refresh.json
+scripts/stage_cratesio_lock_refresh.py verify /tmp/cratesio-refresh.json
+```
+
+The candidate contains the rich source manifest, both TSV inventories, the
+neutral provider lock, and its matching observation. Publication is one
+non-overwriting atomic link after every source, parser, model, digest, and
+clean-report check succeeds. The command never promotes or rewrites repository
+evidence. A reviewer must inspect the report and candidate, apply all accepted
+artifacts together, run the full checks and pentest, and commit the result.
+Failed, timed-out, oversized, redirected, malformed, incomplete, or internally
+inconsistent observations leave accepted files untouched.
