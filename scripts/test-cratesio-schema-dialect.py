@@ -15,6 +15,7 @@ from cratesio_openapi_schema import (
     validate_schema_tree,
 )
 from cratesio_source_error import SourceLockError
+from cratesio_source_lock import operation_rows
 
 
 BAD_DIALECT = "https://attacker.invalid/dialect"
@@ -26,6 +27,43 @@ def custom_schema() -> dict:
 
 def custom_content() -> dict:
     return {"application/json": {"schema": custom_schema()}}
+
+
+def source_lock_document(schema: dict, example: dict | None = None) -> dict:
+    media = {"schema": schema}
+    if example is not None:
+        media["example"] = example
+    return {
+        "openapi": "3.1.0",
+        "paths": {
+            "/api/v1/fixture": {
+                "get": {
+                    "operationId": "fixture",
+                    "responses": {
+                        "200": {
+                            "description": "ok",
+                            "content": {"application/json": media},
+                        }
+                    },
+                }
+            }
+        },
+        "components": {
+            "securitySchemes": {
+                "api_token": {
+                    "type": "apiKey",
+                    "in": "header",
+                    "name": "authorization",
+                },
+                "cookie": {
+                    "type": "apiKey",
+                    "in": "cookie",
+                    "name": "cargo_session",
+                },
+                "trustpub_token": {"type": "http", "scheme": "bearer"},
+            }
+        },
+    }
 
 
 class SchemaDialectTests(unittest.TestCase):
@@ -148,11 +186,17 @@ class SchemaDialectTests(unittest.TestCase):
             with self.subTest(index=index), self.assertRaises(SourceLockError):
                 validate_schema_dialects(document)
 
-    def test_instance_data_and_schema_property_names_are_not_dialects(self) -> None:
-        payload = {"$schema": "customer-payload-value"}
+    def test_instance_data_and_schema_property_names_are_not_controls(self) -> None:
+        payload = {
+            "$dynamicRef": "customer-payload-reference",
+            "$schema": "customer-payload-value",
+        }
         schema = {
             "type": "object",
-            "properties": {"$schema": {"type": "string"}},
+            "properties": {
+                "$dynamicRef": {"type": "string"},
+                "$schema": {"type": "string"},
+            },
             "example": payload,
             "default": payload,
             "const": payload,
@@ -182,6 +226,20 @@ class SchemaDialectTests(unittest.TestCase):
             },
         }
         validate_schema_dialects(document)
+
+    def test_dynamic_references_are_rejected_only_in_schema_objects(self) -> None:
+        for value in ("https://attacker.invalid/schema", "#node", None, 1, {}):
+            with self.subTest(value=value), self.assertRaises(SourceLockError):
+                validate_schema_tree({"$dynamicRef": value})
+        with self.assertRaises(SourceLockError):
+            operation_rows(
+                source_lock_document({"$dynamicRef": "https://attacker.invalid/schema"})
+            )
+        operation_rows(
+            source_lock_document(
+                {"type": "object"}, {"$dynamicRef": "customer-payload-reference"}
+            )
+        )
 
     def test_boolean_and_exact_nested_schemas_are_admitted(self) -> None:
         validate_schema_tree(True)

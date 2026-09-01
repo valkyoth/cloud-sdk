@@ -36,6 +36,11 @@ def validate_schema_tree(root: Any) -> None:
             continue
         if not isinstance(schema, dict):
             raise SourceLockError("OpenAPI Schema Object is invalid")
+        if "$dynamicRef" in schema:
+            reference = schema["$dynamicRef"]
+            if not isinstance(reference, str):
+                raise SourceLockError("OpenAPI $dynamicRef must be a string")
+            raise SourceLockError("OpenAPI dynamic schema references are not supported")
         if schema.get("$schema", OAS_31_DIALECT) != OAS_31_DIALECT:
             raise SourceLockError("OpenAPI nested schema dialect is not reviewed")
         for key in SINGLE_SUBSCHEMAS:

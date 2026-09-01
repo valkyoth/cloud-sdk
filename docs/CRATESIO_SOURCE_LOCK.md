@@ -118,7 +118,9 @@ Cargo-compatible. The document default and every `$schema` declaration inside
 an actual OpenAPI Schema Object must select the OpenAPI 3.1 base dialect;
 custom or malformed dialect selectors fail closed before compatibility
 classification. Instance-valued examples, defaults, constants, enums, and
-property names remain payload data rather than dialect declarations.
+property names remain payload data rather than dialect declarations. Schema
+Object `$dynamicRef` is rejected until every target resource, dynamic anchor,
+and resolution scope can be bundled and digest-bound without network access.
 
 ## Controlled Refresh
 
