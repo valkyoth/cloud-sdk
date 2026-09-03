@@ -129,8 +129,6 @@ accepted comparison baseline for Commit 3 is
 review remains pending until every planned checkpoint and the final
 full-service assessment are complete.
 
-## Current Checkpoint
-
 ### Commit 3 - Crate, Identity, And Module Boundaries
 
 - Added the `cloud-sdk-cratesio` provider crate with empty defaults and a
@@ -149,9 +147,11 @@ full-service assessment are complete.
   scripts, dependency aliases, source substitutions, and unreviewed dependency
   sections.
 
-Commit 3 implementation is complete. Its incremental pentest, remediation if
-needed, retest, and GitHub checks remain pending before this checkpoint can be
-accepted.
+Commit 3 passed its incremental pentest, remediation, and final green retest.
+The accepted implementation commit is
+`5b05e70732f5ffc62949617b22829a613c55388c`; the complete `1.1.0` security
+review remains pending until every planned checkpoint and the final
+full-service assessment are complete.
 
 ### Maintenance Evidence
 

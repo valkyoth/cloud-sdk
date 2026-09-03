@@ -1,7 +1,7 @@
 # crates.io Commit Plan
 
-Status: selected unreleased `1.1.0` implementation train. Commits 1 and 2 are
-accepted; Commit 3 is implemented and awaiting its incremental pentest.
+Status: selected unreleased `1.1.0` implementation train. Commits 1 through 3
+are accepted; Commit 4 is the next implementation checkpoint.
 
 ## Decision Summary
 
@@ -181,9 +181,11 @@ policy-observation boundary.
 
 ## Commit 3 - Crate, Identity, And Module Boundaries
 
-Checkpoint status: implemented on `main`; incremental pentest and GitHub checks
-are required before acceptance. The comparison baseline is
-`17650825a067b0748399ddfbf8cb9f066bd6b66d`.
+Checkpoint status: accepted at reviewed implementation commit
+`5b05e70732f5ffc62949617b22829a613c55388c` after incremental pentest,
+remediation, green retest, and complete local verification. The evidence commit
+containing the permanent report becomes Commit 4's comparison baseline after
+its GitHub checks pass.
 
 Goal: add the service without coupling crates.io behavior to neutral core code.
 

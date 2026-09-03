@@ -1,7 +1,7 @@
 # crates.io Source Lock
 
-Status: Commit 2 semantic drift boundary accepted for the unreleased `1.1.0`
-train.
+Status: Commit 3 provider crate and topology boundary accepted for the
+unreleased `1.1.0` train.
 
 This lock establishes finite crates.io scope before provider code exists. The
 machine-readable source manifest is
