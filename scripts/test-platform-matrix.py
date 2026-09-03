@@ -89,14 +89,16 @@ def test_portable_target() -> None:
         result = run(["--portable", "x86_64-unknown-linux-gnu"], environment)
         assert result.returncode == 0, result
         commands = log.read_text(encoding="ascii").splitlines()
-        assert len(commands) == 6, commands
+        assert len(commands) == 8, commands
         assert all("--locked --target x86_64-unknown-linux-gnu" in item for item in commands)
         assert "--no-default-features" in commands[0]
         assert commands[1].endswith("-p cloud-sdk --features alloc")
-        assert commands[2].endswith("-p cloud-sdk-sanitization --features alloc")
-        assert commands[3].endswith("-p cloud-sdk-hetzner --features alloc")
-        assert commands[4].endswith("-p cloud-sdk-hetzner --features serde")
-        assert commands[5].endswith("-p cloud-sdk-testkit --features alloc")
+        assert commands[2].endswith("-p cloud-sdk-cratesio --features alloc")
+        assert commands[3].endswith("-p cloud-sdk-cratesio --features serde")
+        assert commands[4].endswith("-p cloud-sdk-sanitization --features alloc")
+        assert commands[5].endswith("-p cloud-sdk-hetzner --features alloc")
+        assert commands[6].endswith("-p cloud-sdk-hetzner --features serde")
+        assert commands[7].endswith("-p cloud-sdk-testkit --features alloc")
 
 
 def test_rejected_and_missing_targets() -> None:
@@ -150,7 +152,8 @@ def test_native_mode() -> None:
         assert result.returncode == 0, result
         assert log.read_text(encoding="ascii").splitlines() == [
             "check --locked --all-targets --all-features -p cloud-sdk "
-            "-p cloud-sdk-hetzner -p cloud-sdk-sanitization -p cloud-sdk-testkit",
+            "-p cloud-sdk-cratesio -p cloud-sdk-hetzner "
+            "-p cloud-sdk-sanitization -p cloud-sdk-testkit",
             "check --locked --all-targets --no-default-features -p cloud-sdk-reqwest",
             "check --locked --all-targets --no-default-features "
             "-p cloud-sdk-reqwest --features std",
@@ -212,7 +215,7 @@ def test_every_transport_feature_fails_on_unsupported_targets() -> None:
         result = run(["--portable", "aarch64-linux-android"], environment)
         assert result.returncode == 0, result
         commands = log.read_text(encoding="ascii").splitlines()
-        assert len(commands) == 9, commands
+        assert len(commands) == 11, commands
         assert commands[-3:] == [
             "check --locked --target aarch64-linux-android "
             "--no-default-features -p cloud-sdk-reqwest --features blocking-rustls",

@@ -42,10 +42,10 @@ plan can become `public`.
 | `cloud-sdk-reqwest` | `1.0.0` | `1.1.0` | candidate metadata |
 | `cloud-sdk-sanitization` | `1.0.0` | `1.1.0` | candidate metadata |
 | `cloud-sdk-testkit` | `1.0.0` | `1.1.0` | candidate metadata |
+| `cloud-sdk-cratesio` | none | `1.1.0` | initial candidate provider boundary |
 
-`cloud-sdk-cratesio` will enter this table when Commit 3 creates the provider
-crate. Exact final change classifications are assigned only after the complete
-train is implemented.
+Exact final change classifications are assigned only after the complete train
+is implemented.
 
 ## Completed Checkpoints
 
@@ -125,9 +125,29 @@ Commit 1 passed its incremental pentest, remediation retest, and GitHub checks.
 
 Commit 2 passed its incremental pentest and final remediation retest. The
 accepted comparison baseline for Commit 3 is
-`10d3caa5a0ed9ad98086df26449fb13212904aaf`; the complete `1.1.0` security
+`17650825a067b0748399ddfbf8cb9f066bd6b66d`; the complete `1.1.0` security
 review remains pending until every planned checkpoint and the final
 full-service assessment are complete.
+
+## Current Checkpoint
+
+### Commit 3 - Crate, Identity, And Module Boundaries
+
+- Added the `cloud-sdk-cratesio` provider crate with empty defaults and a
+  `no_std` base.
+- Added provider and registry service marker identities without extending a
+  closed neutral-core enum.
+- Reserved provider-owned catalog, accounts, ownership, publishing, and
+  trusted-publishing modules without claiming endpoint support early.
+- Defined explicit `alloc`, `serde`, `std`, `blocking`, and `async` feature
+  ownership while adding no network, TLS, runtime, filesystem, or clock
+  dependency.
+- Added exact crate-topology, feature, dependency, provider-isolation,
+  platform, package-content, and release-governance checks.
+
+Commit 3 implementation is complete. Its incremental pentest, remediation if
+needed, retest, and GitHub checks remain pending before this checkpoint can be
+accepted.
 
 ### Maintenance Evidence
 

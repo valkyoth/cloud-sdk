@@ -18,6 +18,7 @@ Only these packages may ever reach the publisher:
 3. `cloud-sdk-reqwest`
 4. `cloud-sdk-testkit`
 5. `cloud-sdk-hetzner`
+6. `cloud-sdk-cratesio`
 
 The OVHcloud probe, fuzz package, feature-unification harness, and coverage
 tool must set `publish = false`. A new manifest fails governance checks until
@@ -122,8 +123,10 @@ Suspected compromise:
 ## Ownership And Repository Recovery
 
 The 2026-08-19 crates.io review found the required `eldryoth` owner on all five
-publishable crates. It is currently the only listed owner, so loss of that
-account has no independent owner fallback. Recovery depends on crates.io
+packages published for `1.0.0`. It is currently the only listed owner, so loss
+of that account has no independent owner fallback. The unpublished
+`cloud-sdk-cratesio` candidate has no crates.io ownership claim yet; its owner
+must be verified before its first public release. Recovery depends on crates.io
 account recovery or crates.io support and proof of control over the public
 repository. This limitation must not be described as redundant ownership.
 
@@ -153,7 +156,7 @@ artifacts. It does not make external account configuration part of Git.
 `scripts/check_release_provenance.py` refuses a dirty source tree, clones the
 exact commit twice without local hard links, and from each clone:
 
-- creates all five allowed `.crate` archives with `--locked --no-verify`;
+- creates all six allowed `.crate` archives with `--locked --no-verify`;
 - resolves unpublished in-train first-party versions through an explicit,
   package-specific local patch inventory while retaining registry dependency
   declarations in the resulting archives;

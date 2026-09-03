@@ -48,6 +48,9 @@ PACKAGE_PATCHES = {
         'patch.crates-io.cloud-sdk-sanitization.path="crates/cloud-sdk-sanitization"',
         'patch.crates-io.cloud-sdk-testkit.path="crates/cloud-sdk-testkit"',
     ),
+    "cloud-sdk-cratesio": (
+        'patch.crates-io.cloud-sdk.path="crates/cloud-sdk"',
+    ),
 }
 
 

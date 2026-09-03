@@ -65,6 +65,7 @@ def base_packages() -> dict[str, dict]:
     packages["cloud-sdk"]["dependencies"] = [{"name": "cloud-sdk-sanitization"}]
     packages["cloud-sdk-reqwest"]["dependencies"] = [{"name": "cloud-sdk"}]
     packages["cloud-sdk-testkit"]["dependencies"] = [{"name": "cloud-sdk"}]
+    packages["cloud-sdk-cratesio"]["dependencies"] = [{"name": "cloud-sdk"}]
     return packages
 
 
@@ -139,6 +140,7 @@ def test_neutral_boundaries_and_single_provider_crates_are_allowed() -> None:
             "cloud-sdk-testkit",
             "cloud-sdk-ovh",
             "cloud-sdk-scaleway",
+            "cloud-sdk-cratesio",
         ),
         source="test",
     )

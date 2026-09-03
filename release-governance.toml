@@ -36,6 +36,7 @@ publishable = [
     "cloud-sdk-reqwest",
     "cloud-sdk-testkit",
     "cloud-sdk-hetzner",
+    "cloud-sdk-cratesio",
 ]
 excluded = [
     "cloud-sdk-fuzz",

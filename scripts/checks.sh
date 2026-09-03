@@ -31,6 +31,8 @@ scripts/check-release-plan-structure.py
 scripts/test-release-plan-structure.py
 scripts/test-provider-identities.py
 scripts/check_provider_identities.sh
+scripts/check_cratesio_crate_boundary.py
+scripts/test-cratesio-crate-boundary.py
 scripts/check_http_method_domain.sh
 scripts/check_request_targets.sh
 scripts/check_pagination_strategies.sh
@@ -173,6 +175,8 @@ cargo package -p cloud-sdk-hetzner --allow-dirty --features serde \
     --config 'patch.crates-io.cloud-sdk-reqwest.path="crates/cloud-sdk-reqwest"' \
     --config 'patch.crates-io.cloud-sdk-sanitization.path="crates/cloud-sdk-sanitization"' \
     --config 'patch.crates-io.cloud-sdk-testkit.path="crates/cloud-sdk-testkit"'
+cargo package -p cloud-sdk-cratesio --allow-dirty --all-features \
+    --config 'patch.crates-io.cloud-sdk.path="crates/cloud-sdk"'
 CARGO_TARGET_DIR=/dev/null scripts/check_packaged_reqwest_tests.sh
 cargo package -p cloud-sdk-sanitization --allow-dirty
 cargo package -p cloud-sdk-testkit --allow-dirty \

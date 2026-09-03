@@ -24,7 +24,6 @@ Add future release sections here instead of creating another version-named file.
 **Full snapshot:** [signed-tag source](https://github.com/valkyoth/cloud-sdk/blob/v0.34.0/docs/DEPENDENCY_REVIEW_0.34.0.md)
 
 ## v0.35.0
-
 **Status:** historical reviewed snapshot  
 **Topics:** Result; Required Verification  
 **Full snapshot:** [signed-tag source](https://github.com/valkyoth/cloud-sdk/blob/v0.35.0/docs/DEPENDENCY_REVIEW_0.35.0.md)
@@ -480,6 +479,7 @@ The unreleased candidate aligns every workspace crate at 1.1.0. Reviewed compati
 | Package | Previous | Current | Review |
 | --- | --- | --- | --- |
 | `cloud-sdk` | `1.0.0` | `1.1.0` | Advance the unreleased facade candidate. |
+| `cloud-sdk-cratesio` | `-` | `1.1.0` | Add the first-party provider boundary with only `cloud-sdk` and optional Serde dependencies; no new third-party package enters the lockfile. |
 | `cloud-sdk-hetzner` | `1.0.0` | `1.1.0` | Align the provider with the candidate train. |
 | `cloud-sdk-reqwest` | `1.0.0` | `1.1.0` | Align the transport adapter with the candidate train. |
 | `cloud-sdk-sanitization` | `1.0.0` | `1.1.0` | Align the cleanup boundary with the candidate train. |

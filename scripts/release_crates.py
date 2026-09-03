@@ -46,6 +46,7 @@ PUBLISH_ORDER = (
     "cloud-sdk-reqwest",
     "cloud-sdk-testkit",
     "cloud-sdk-hetzner",
+    "cloud-sdk-cratesio",
 )
 
 

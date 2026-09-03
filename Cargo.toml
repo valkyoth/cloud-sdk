@@ -1,6 +1,7 @@
 [workspace]
 members = [
     "crates/cloud-sdk",
+    "crates/cloud-sdk-cratesio",
     "crates/cloud-sdk-hetzner",
     "crates/cloud-sdk-reqwest",
     "crates/cloud-sdk-sanitization",
@@ -48,6 +49,7 @@ hyper-rustls = { version = "=0.27.9", default-features = false }
 hyper-util = { version = "=0.1.20", default-features = false }
 md-5 = { version = "=0.11.0", default-features = false }
 cloud-sdk = { path = "crates/cloud-sdk", version = "1.1.0", default-features = false }
+cloud-sdk-cratesio = { path = "crates/cloud-sdk-cratesio", version = "1.1.0", default-features = false }
 cloud-sdk-hetzner = { path = "crates/cloud-sdk-hetzner", version = "1.1.0" }
 cloud-sdk-reqwest = { path = "crates/cloud-sdk-reqwest", version = "1.1.0" }
 cloud-sdk-sanitization = { path = "crates/cloud-sdk-sanitization", version = "1.1.0", default-features = false }

@@ -8,6 +8,7 @@ fi
 
 cargo test -p cloud-sdk --test provider_extensibility --all-features
 cargo test -p cloud-sdk --doc --all-features
+cargo test -p cloud-sdk-cratesio --test identity --all-features
 
 for identity in \
     HETZNER_PROVIDER_ID \
@@ -19,6 +20,14 @@ for identity in \
     if ! grep -q -E "pub const ${identity}:" \
         crates/cloud-sdk-hetzner/src/identity.rs; then
         echo "provider identities: missing Hetzner identity ${identity}" >&2
+        exit 1
+    fi
+done
+
+for identity in CRATES_IO_PROVIDER_ID REGISTRY_SERVICE_ID; do
+    if ! grep -q -E "pub const ${identity}:" \
+        crates/cloud-sdk-cratesio/src/identity.rs; then
+        echo "provider identities: missing crates.io identity ${identity}" >&2
         exit 1
     fi
 done

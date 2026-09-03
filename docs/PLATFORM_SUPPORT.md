@@ -5,10 +5,11 @@ by the selected transport and operating environment.
 
 ## Scope Of The Claim
 
-`cloud-sdk`, `cloud-sdk-hetzner`, `cloud-sdk-sanitization`, and
-`cloud-sdk-testkit` are portable no_std-first crates. Their default features do
-not require an allocator, network client, TLS implementation, async runtime,
-filesystem, clock, socket API, or operating-system abstraction crate.
+`cloud-sdk`, `cloud-sdk-cratesio`, `cloud-sdk-hetzner`,
+`cloud-sdk-sanitization`, and `cloud-sdk-testkit` are portable no_std-first
+crates. Their default features do not require an allocator, network client,
+TLS implementation, async runtime, filesystem, clock, socket API, or
+operating-system abstraction crate.
 
 `cloud-sdk-reqwest` is different. Its default feature set is transport-free,
 but `blocking-rustls`, `blocking-rustls-webpki-roots`,
@@ -62,8 +63,9 @@ scripts/check_platform_matrix.sh --portable TARGET
 
 The command checks:
 
-- all four portable crates with `--no-default-features`;
+- all five portable crates with `--no-default-features`;
 - `cloud-sdk/alloc`;
+- `cloud-sdk-cratesio/alloc` and `cloud-sdk-cratesio/serde` independently;
 - `cloud-sdk-sanitization/alloc`;
 - `cloud-sdk-hetzner/alloc` and `cloud-sdk-hetzner/serde` independently; and
 - `cloud-sdk-testkit/alloc`.
@@ -100,7 +102,7 @@ scripts/check_platform_matrix.sh --default-boundary
 ```
 
 It inspects the normal default-feature workspace graph for all target-specific
-dependency branches. Only the five first-party workspace crates and the
+dependency branches. Only the six first-party workspace crates and the
 admitted `sanitization` package are allowed; every other package fails closed.
 Regression tests bind validation to the exact all-target Cargo command and
 prove that unknown targets, missing target libraries, extra arguments, and

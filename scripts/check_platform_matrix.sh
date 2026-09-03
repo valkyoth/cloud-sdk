@@ -66,11 +66,16 @@ check_portable_target() {
 
     cargo check --locked --target "$target" --no-default-features \
         -p cloud-sdk \
+        -p cloud-sdk-cratesio \
         -p cloud-sdk-hetzner \
         -p cloud-sdk-sanitization \
         -p cloud-sdk-testkit
     cargo check --locked --target "$target" --no-default-features \
         -p cloud-sdk --features alloc
+    cargo check --locked --target "$target" --no-default-features \
+        -p cloud-sdk-cratesio --features alloc
+    cargo check --locked --target "$target" --no-default-features \
+        -p cloud-sdk-cratesio --features serde
     cargo check --locked --target "$target" --no-default-features \
         -p cloud-sdk-sanitization --features alloc
     cargo check --locked --target "$target" --no-default-features \
@@ -109,6 +114,7 @@ check_portable_target() {
 check_native() {
     cargo check --locked --all-targets --all-features \
         -p cloud-sdk \
+        -p cloud-sdk-cratesio \
         -p cloud-sdk-hetzner \
         -p cloud-sdk-sanitization \
         -p cloud-sdk-testkit
@@ -137,7 +143,7 @@ check_default_boundary() {
         cargo tree --locked --workspace --target all \
             --edges normal --prefix none
     )"
-    allowed='^(cloud-sdk|cloud-sdk-hetzner|cloud-sdk-reqwest|cloud-sdk-sanitization|cloud-sdk-testkit|ovhcloud-v2-probe|sanitization|subtle) v'
+    allowed='^(cloud-sdk|cloud-sdk-cratesio|cloud-sdk-hetzner|cloud-sdk-reqwest|cloud-sdk-sanitization|cloud-sdk-testkit|ovhcloud-v2-probe|sanitization|subtle) v'
     unexpected="$(
         printf '%s\n' "$dependency_tree" \
             | grep -E '^[^[:space:]]+ v' \

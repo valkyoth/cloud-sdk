@@ -1526,6 +1526,7 @@ switch to `public` only after the complete incremental and full-service review.
 | `cloud-sdk-reqwest` | `1.0.0` | `1.1.0` | `metadata` | No | Keep the shared transport boundary aligned for later crates.io execution. |
 | `cloud-sdk-sanitization` | `1.0.0` | `1.1.0` | `metadata` | No | Keep the shared cleanup boundary aligned. |
 | `cloud-sdk-testkit` | `1.0.0` | `1.1.0` | `metadata` | No | Keep the shared test boundary aligned for provider fixtures. |
+| `cloud-sdk-cratesio` | none | `1.1.0` | `code` | No | Add the initial no_std crates.io provider identity, module, and feature boundary. |
 
 ## Planned Milestone Ownership
 

@@ -20,13 +20,16 @@ IDENTITIES = (
     "SECURITY_SERVICE_ID",
     "STORAGE_SERVICE_ID",
 )
+CRATESIO_IDENTITIES = ("CRATES_IO_PROVIDER_ID", "REGISTRY_SERVICE_ID")
 
 
 def fixture(directory: Path) -> tuple[dict[str, str], Path, Path]:
     core = directory / "crates" / "cloud-sdk" / "src"
     hetzner = directory / "crates" / "cloud-sdk-hetzner" / "src"
+    cratesio = directory / "crates" / "cloud-sdk-cratesio" / "src"
     core.mkdir(parents=True)
     hetzner.mkdir(parents=True)
+    cratesio.mkdir(parents=True)
     (core / "lib.rs").write_text(
         "pub struct ProviderId;\n"
         "pub enum ProviderLinkExecutionError<E> { Transport(E) }\n",
@@ -35,6 +38,13 @@ def fixture(directory: Path) -> tuple[dict[str, str], Path, Path]:
     identity = hetzner / "identity.rs"
     identity.write_text(
         "".join(f"pub const {name}: &str = \"test\";\n" for name in IDENTITIES),
+        encoding="ascii",
+    )
+    (cratesio / "identity.rs").write_text(
+        "".join(
+            f"pub const {name}: &str = \"test\";\n"
+            for name in CRATESIO_IDENTITIES
+        ),
         encoding="ascii",
     )
 
@@ -83,6 +93,7 @@ def test_minimal_path() -> None:
         assert cargo_log.read_text(encoding="ascii").splitlines() == [
             "test -p cloud-sdk --test provider_extensibility --all-features",
             "test -p cloud-sdk --doc --all-features",
+            "test -p cloud-sdk-cratesio --test identity --all-features",
         ]
 
 
@@ -108,6 +119,22 @@ def test_closed_taxonomy_and_missing_identity() -> None:
         missing = run(directory, environment)
         assert missing.returncode == 1, missing
         assert "missing Hetzner identity DNS_SERVICE_ID" in missing.stderr
+
+        identity.write_text(
+            "".join(f"pub const {name}: &str = \"test\";\n" for name in IDENTITIES),
+            encoding="ascii",
+        )
+        cratesio = directory / "crates/cloud-sdk-cratesio/src/identity.rs"
+        cratesio.write_text(
+            cratesio.read_text(encoding="ascii").replace(
+                "pub const REGISTRY_SERVICE_ID:",
+                "const REGISTRY_SERVICE_ID:",
+            ),
+            encoding="ascii",
+        )
+        missing = run(directory, environment)
+        assert missing.returncode == 1, missing
+        assert "missing crates.io identity REGISTRY_SERVICE_ID" in missing.stderr
 
 
 def main() -> None:

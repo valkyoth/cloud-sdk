@@ -86,13 +86,14 @@ def test_comparison_rejects_changed_artifact() -> None:
     )
 
 
-def test_policy_names_all_five_publishable_packages() -> None:
+def test_policy_names_all_six_publishable_packages() -> None:
     assert checker.packages_from_policy() == (
         "cloud-sdk-sanitization",
         "cloud-sdk",
         "cloud-sdk-reqwest",
         "cloud-sdk-testkit",
         "cloud-sdk-hetzner",
+        "cloud-sdk-cratesio",
     )
 
 
@@ -114,7 +115,8 @@ def repository() -> tuple[Path, str]:
     (root / "evidence.txt").write_text("reviewed\n", encoding="ascii")
     (root / "release-governance.toml").write_text(
         '[packages]\npublishable = ["cloud-sdk-sanitization", "cloud-sdk", '
-        '"cloud-sdk-reqwest", "cloud-sdk-testkit", "cloud-sdk-hetzner"]\n',
+        '"cloud-sdk-reqwest", "cloud-sdk-testkit", "cloud-sdk-hetzner", '
+        '"cloud-sdk-cratesio"]\n',
         encoding="ascii",
     )
     subprocess.run(
@@ -163,7 +165,7 @@ def main() -> None:
         test_checkout_directory_name_is_canonicalized_explicitly,
         test_comparison_rejects_missing_artifact,
         test_comparison_rejects_changed_artifact,
-        test_policy_names_all_five_publishable_packages,
+        test_policy_names_all_six_publishable_packages,
         test_every_publishable_package_has_explicit_patch_policy,
         test_committed_file_ignores_mutable_worktree,
         test_source_tree_is_bound_to_captured_commit,

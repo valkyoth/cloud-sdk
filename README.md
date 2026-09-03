@@ -833,6 +833,7 @@ assert_eq!(value, Some("\"line\\n\\\"quoted\\\"\""));
 | Crate | Default `std`? | Purpose |
 | --- | --- | --- |
 | [`cloud-sdk`](https://crates.io/crates/cloud-sdk) | no | Provider-neutral domains, prepared operations, checked responses, and bounded streaming policy. |
+| [`cloud-sdk-cratesio`](https://github.com/valkyoth/cloud-sdk/tree/main/crates/cloud-sdk-cratesio) | no | Unreleased crates.io provider identity and reviewed API-domain boundaries. |
 | [`cloud-sdk-hetzner`](https://crates.io/crates/cloud-sdk-hetzner) | no | Hetzner provider APIs and provider-specific documentation. |
 | [`cloud-sdk-reqwest`](https://crates.io/crates/cloud-sdk-reqwest) | no | Provider-neutral optional blocking and async reqwest/rustls transports; transport-free by default. |
 | [`cloud-sdk-testkit`](https://crates.io/crates/cloud-sdk-testkit) | no | Provider-neutral mock transports, stream fixtures, prepared-request records, response fixtures, and adversarial corpus. |
@@ -844,8 +845,9 @@ transport, testing, and secret-handling capabilities remain provider-neutral.
 ## Provider Documentation
 
 Provider-specific API coverage and maintenance procedures live outside this
-provider-neutral README. The unreleased crates.io provider is tracked by its
-[implementation plan](https://github.com/valkyoth/cloud-sdk/blob/main/docs/cratesio-commit-plan.md)
+provider-neutral README. The unreleased crates.io provider has its own
+[crate documentation](https://github.com/valkyoth/cloud-sdk/tree/main/crates/cloud-sdk-cratesio),
+[implementation plan](https://github.com/valkyoth/cloud-sdk/blob/main/docs/cratesio-commit-plan.md),
 and [source lock](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATESIO_SOURCE_LOCK.md).
 For Hetzner, see the
 [`cloud-sdk-hetzner` crate](https://crates.io/crates/cloud-sdk-hetzner), the

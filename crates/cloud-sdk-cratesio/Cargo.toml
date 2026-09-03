@@ -1,0 +1,28 @@
+[package]
+name = "cloud-sdk-cratesio"
+description = "no_std-first crates.io provider crate for cloud-sdk."
+version = "1.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+homepage.workspace = true
+repository.workspace = true
+readme = "README.md"
+
+[package.metadata.docs.rs]
+all-features = true
+
+[features]
+default = []
+alloc = ["cloud-sdk/alloc"]
+serde = ["alloc", "dep:serde"]
+std = ["alloc", "cloud-sdk/std"]
+blocking = ["serde", "std"]
+async = ["serde", "std"]
+
+[dependencies]
+cloud-sdk.workspace = true
+serde = { workspace = true, optional = true }
+
+[lints]
+workspace = true

@@ -35,6 +35,14 @@ FEATURES = {
     "cloud-sdk-sanitization": {"default", "alloc", "std"},
     "cloud-sdk-testkit": {"default", "alloc", "std"},
     "cloud-sdk-hetzner": {"default", "alloc", "serde", "std"},
+    "cloud-sdk-cratesio": {
+        "default",
+        "alloc",
+        "serde",
+        "std",
+        "blocking",
+        "async",
+    },
     "cloud-sdk-reqwest": {
         "default",
         "std",
