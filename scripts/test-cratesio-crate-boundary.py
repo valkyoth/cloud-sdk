@@ -27,6 +27,15 @@ checker = load_checker()
 
 def fixture() -> Path:
     root = Path(tempfile.mkdtemp())
+    (root / "Cargo.toml").write_text(
+        "[workspace]\n"
+        "[workspace.dependencies]\n"
+        "cloud-sdk = { path = \"crates/cloud-sdk\", version = \"1.1.0\", "
+        "default-features = false }\n"
+        "serde = { version = \"=1.0.229\", default-features = false, "
+        "features = [\"alloc\", \"derive\"] }\n",
+        encoding="ascii",
+    )
     source = ROOT / checker.CRATE
     destination = root / checker.CRATE
     destination.parent.mkdir(parents=True)
@@ -74,8 +83,114 @@ def test_feature_or_dependency_widening_is_rejected() -> None:
         ),
         encoding="ascii",
     )
-    assert_rejected(root, "dependency inventory")
+    assert_rejected(root, "dependency specifications")
     shutil.rmtree(root)
+
+
+def test_automatic_targets_and_build_scripts_are_rejected() -> None:
+    for field in checker.EXPECTED_AUTO_TARGETS:
+        root = fixture()
+        manifest = root / checker.CRATE / "Cargo.toml"
+        manifest.write_text(
+            manifest.read_text(encoding="ascii").replace(
+                f"{field} = false", f"{field} = true"
+            ),
+            encoding="ascii",
+        )
+        assert_rejected(root, f"automatic target policy changed: {field}")
+        shutil.rmtree(root)
+
+    for relative in ("build.rs", "build/main.rs"):
+        root = fixture()
+        build_script = root / checker.CRATE / relative
+        build_script.parent.mkdir(parents=True, exist_ok=True)
+        build_script.write_text("fn main() {}\n", encoding="ascii")
+        assert_rejected(root, f"forbidden build-script source: {relative}")
+        shutil.rmtree(root)
+
+
+def test_explicit_target_substitution_is_rejected() -> None:
+    root = fixture()
+    manifest = root / checker.CRATE / "Cargo.toml"
+    manifest.write_text(
+        manifest.read_text(encoding="ascii").replace(
+            'path = "src/lib.rs"', 'path = "src/identity.rs"'
+        ),
+        encoding="ascii",
+    )
+    assert_rejected(root, "library target changed")
+    shutil.rmtree(root)
+
+    root = fixture()
+    manifest = root / checker.CRATE / "Cargo.toml"
+    manifest.write_text(
+        manifest.read_text(encoding="ascii").replace(
+            'path = "tests/identity.rs"', 'path = "src/identity.rs"'
+        ),
+        encoding="ascii",
+    )
+    assert_rejected(root, "test target inventory changed")
+    shutil.rmtree(root)
+
+    for target in ("bin", "example", "bench"):
+        root = fixture()
+        manifest = root / checker.CRATE / "Cargo.toml"
+        manifest.write_text(
+            manifest.read_text(encoding="ascii")
+            + f'\n[[{target}]]\nname = "unexpected"\npath = "src/identity.rs"\n',
+            encoding="ascii",
+        )
+        assert_rejected(root, f"explicit {target} targets changed")
+        shutil.rmtree(root)
+
+
+def test_dependency_substitution_and_extra_sections_are_rejected() -> None:
+    root = fixture()
+    manifest = root / checker.CRATE / "Cargo.toml"
+    manifest.write_text(
+        manifest.read_text(encoding="ascii").replace(
+            "cloud-sdk.workspace = true",
+            'cloud-sdk = { package = "serde_core", version = "=1.0.229" }',
+        ),
+        encoding="ascii",
+    )
+    assert_rejected(root, "dependency specifications")
+    shutil.rmtree(root)
+
+    for section in ("dev-dependencies", "build-dependencies"):
+        root = fixture()
+        manifest = root / checker.CRATE / "Cargo.toml"
+        manifest.write_text(
+            manifest.read_text(encoding="ascii")
+            + f"\n[{section}]\nsubtle = \"2.6.1\"\n",
+            encoding="ascii",
+        )
+        assert_rejected(root, section)
+        shutil.rmtree(root)
+
+    root = fixture()
+    manifest = root / checker.CRATE / "Cargo.toml"
+    manifest.write_text(
+        manifest.read_text(encoding="ascii")
+        + '\n[target.\'cfg(unix)\'.dependencies]\nsubtle = "2.6.1"\n',
+        encoding="ascii",
+    )
+    assert_rejected(root, "provider target changed")
+    shutil.rmtree(root)
+
+
+def test_workspace_dependency_substitution_is_rejected() -> None:
+    for name in checker.EXPECTED_WORKSPACE_DEPENDENCIES:
+        root = fixture()
+        manifest = root / "Cargo.toml"
+        manifest.write_text(
+            manifest.read_text(encoding="ascii").replace(
+                f"{name} = {{", f'{name} = {{ package = "subtle",'
+            ),
+            encoding="ascii",
+        )
+        assert_rejected(root, f"workspace {name} dependency identity")
+        shutil.rmtree(root)
 
 
 def test_endpoint_code_and_extra_modules_are_rejected() -> None:
@@ -102,11 +217,26 @@ def test_unrelated_crate_dependency_is_rejected() -> None:
     assert_rejected(root, "unrelated crate depends on provider")
     shutil.rmtree(root)
 
+    root = fixture()
+    manifest = root / "crates/cloud-sdk-hetzner/Cargo.toml"
+    manifest.write_text(
+        manifest.read_text(encoding="ascii")
+        + '\n[dependencies]\nregistry = { package = "cloud-sdk-cratesio", '
+        'version = "1.1.0" }\n',
+        encoding="ascii",
+    )
+    assert_rejected(root, "unrelated crate depends on provider")
+    shutil.rmtree(root)
+
 
 def main() -> None:
     tests = (
         test_repository_boundary,
         test_feature_or_dependency_widening_is_rejected,
+        test_automatic_targets_and_build_scripts_are_rejected,
+        test_explicit_target_substitution_is_rejected,
+        test_dependency_substitution_and_extra_sections_are_rejected,
+        test_workspace_dependency_substitution_is_rejected,
         test_endpoint_code_and_extra_modules_are_rejected,
         test_unrelated_crate_dependency_is_rejected,
     )

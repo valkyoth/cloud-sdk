@@ -25,6 +25,32 @@ EXPECTED_FEATURES = {
     "blocking": ["serde", "std"],
     "async": ["serde", "std"],
 }
+EXPECTED_AUTO_TARGETS = {
+    "build": False,
+    "autolib": False,
+    "autobins": False,
+    "autoexamples": False,
+    "autotests": False,
+    "autobenches": False,
+}
+EXPECTED_DEPENDENCIES = {
+    "cloud-sdk": {"workspace": True},
+    "serde": {"workspace": True, "optional": True},
+}
+EXPECTED_LIBRARY = {"path": "src/lib.rs"}
+EXPECTED_TESTS = [{"name": "identity", "path": "tests/identity.rs"}]
+EXPECTED_WORKSPACE_DEPENDENCIES = {
+    "cloud-sdk": {
+        "path": "crates/cloud-sdk",
+        "version": "1.1.0",
+        "default-features": False,
+    },
+    "serde": {
+        "version": "=1.0.229",
+        "default-features": False,
+        "features": ["alloc", "derive"],
+    },
+}
 
 
 class BoundaryError(RuntimeError):
@@ -36,12 +62,18 @@ def load(path: Path) -> dict:
         return tomllib.load(source)
 
 
-def dependency_names(document: dict) -> set[str]:
+def dependency_package_names(document: dict) -> set[str]:
     names: set[str] = set()
     for section in ("dependencies", "dev-dependencies", "build-dependencies"):
         table = document.get(section, {})
         if isinstance(table, dict):
-            names.update(table)
+            for alias, specification in table.items():
+                package = (
+                    specification.get("package")
+                    if isinstance(specification, dict)
+                    else None
+                )
+                names.add(package if isinstance(package, str) else alias)
     targets = document.get("target", {})
     if isinstance(targets, dict):
         for target in targets.values():
@@ -54,7 +86,13 @@ def dependency_names(document: dict) -> set[str]:
             ):
                 table = target.get(section, {})
                 if isinstance(table, dict):
-                    names.update(table)
+                    for alias, specification in table.items():
+                        package = (
+                            specification.get("package")
+                            if isinstance(specification, dict)
+                            else None
+                        )
+                        names.add(package if isinstance(package, str) else alias)
     return names
 
 
@@ -66,16 +104,32 @@ def validate(root: Path) -> None:
         raise BoundaryError("provider package name changed")
     if package.get("version") != "1.1.0":
         raise BoundaryError("provider candidate version changed")
+    for field, expected in EXPECTED_AUTO_TARGETS.items():
+        if package.get(field) is not expected:
+            raise BoundaryError(f"provider automatic target policy changed: {field}")
     docs = package.get("metadata", {}).get("docs", {}).get("rs", {})
     if docs.get("all-features") is not True:
         raise BoundaryError("docs.rs must expose every provider feature")
     if manifest.get("features") != EXPECTED_FEATURES:
         raise BoundaryError("provider feature inventory changed")
-    if dependency_names(manifest) != {"cloud-sdk", "serde"}:
-        raise BoundaryError("provider dependency inventory changed")
-    serde = manifest.get("dependencies", {}).get("serde", {})
-    if not isinstance(serde, dict) or serde.get("optional") is not True:
-        raise BoundaryError("Serde must remain optional")
+    if manifest.get("dependencies") != EXPECTED_DEPENDENCIES:
+        raise BoundaryError("provider dependency specifications changed")
+    if manifest.get("lib") != EXPECTED_LIBRARY:
+        raise BoundaryError("provider library target changed")
+    if manifest.get("test") != EXPECTED_TESTS:
+        raise BoundaryError("provider test target inventory changed")
+    for target in ("bin", "example", "bench"):
+        if manifest.get(target, []) != []:
+            raise BoundaryError(f"provider explicit {target} targets changed")
+    for section in ("dev-dependencies", "build-dependencies", "target"):
+        if manifest.get(section, {}) != {}:
+            raise BoundaryError(f"provider {section} changed")
+
+    workspace = load(root / "Cargo.toml").get("workspace", {})
+    workspace_dependencies = workspace.get("dependencies", {})
+    for name, expected in EXPECTED_WORKSPACE_DEPENDENCIES.items():
+        if workspace_dependencies.get(name) != expected:
+            raise BoundaryError(f"workspace {name} dependency identity changed")
 
     expected_sources = {
         "lib.rs",
@@ -88,6 +142,9 @@ def validate(root: Path) -> None:
     }
     if actual_sources != expected_sources:
         raise BoundaryError("provider source-module inventory changed")
+    for forbidden in ("build.rs", "build/main.rs"):
+        if (crate / forbidden).exists():
+            raise BoundaryError(f"forbidden build-script source: {forbidden}")
     library = (crate / "src/lib.rs").read_text(encoding="ascii")
     if "#![no_std]" not in library:
         raise BoundaryError("provider lost its no_std crate boundary")
@@ -110,7 +167,7 @@ def validate(root: Path) -> None:
     for path in sorted((root / "crates").glob("*/Cargo.toml")):
         if path.parent == crate:
             continue
-        if "cloud-sdk-cratesio" in dependency_names(load(path)):
+        if "cloud-sdk-cratesio" in dependency_package_names(load(path)):
             raise BoundaryError(f"unrelated crate depends on provider: {path}")
 
 

@@ -144,6 +144,10 @@ full-service assessment are complete.
   dependency.
 - Added exact crate-topology, feature, dependency, provider-isolation,
   platform, package-content, and release-governance checks.
+- Disabled Cargo automatic target discovery, declared the reviewed library and
+  identity test targets explicitly, and made the boundary gate reject build
+  scripts, dependency aliases, source substitutions, and unreviewed dependency
+  sections.
 
 Commit 3 implementation is complete. Its incremental pentest, remediation if
 needed, retest, and GitHub checks remain pending before this checkpoint can be

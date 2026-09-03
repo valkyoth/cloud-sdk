@@ -2,6 +2,12 @@
 name = "cloud-sdk-cratesio"
 description = "no_std-first crates.io provider crate for cloud-sdk."
 version = "1.1.0"
+build = false
+autolib = false
+autobins = false
+autoexamples = false
+autotests = false
+autobenches = false
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
@@ -26,3 +32,10 @@ serde = { workspace = true, optional = true }
 
 [lints]
 workspace = true
+
+[lib]
+path = "src/lib.rs"
+
+[[test]]
+name = "identity"
+path = "tests/identity.rs"
