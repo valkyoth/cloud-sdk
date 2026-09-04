@@ -45,10 +45,14 @@ construction remains assigned to later checkpoints.
 ## Redirects
 
 The transport adapters keep automatic redirects disabled. A
-`ProductionDownloadResponse` can be minted only while checking a committed
-response against all of these conditions:
+`ProductionDownloadResponse` can be minted only by atomically executing the
+source request through the same production-bound raw executor whose committed
+response is checked. The SDK constructs the bodyless `GET`, supplies empty
+request headers, admits only `Location`, rejects response bodies and media
+types, and applies all of these conditions:
 
-1. The response transport is bound to the exact production API origin.
+1. The source executor is bound to the exact production API origin before it
+   dispatches the request.
 2. The source target is exactly
    `/api/v1/crates/{name}/{version}/download` without a query.
 3. The status is exactly `302`, the body is empty, no content type is retained,
@@ -58,6 +62,14 @@ response against all of these conditions:
 5. The destination directory and `{name}-{version}.crate` archive match the
    source target exactly.
 6. The validated relative target fits caller-owned bounded storage.
+
+The structural response constructor is not public, so safe callers cannot pair
+an unrelated or synthetic response with a separately verified transport to
+claim production provenance. Blocking, Send async, and local async source
+execution provide the same causal binding and clear caller-owned target storage
+before every attempt and on every failure. They also reject an already
+committed response buffer before dispatch, preventing stale response evidence
+from being reused by a non-conforming executor.
 
 `DownloadRedirect` consumes that checked proof and does not expose its endpoint
 or target. Its blocking, Send async, and local async follow methods accept only

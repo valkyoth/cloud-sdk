@@ -23,10 +23,8 @@ const VALID_LOCATION: &[u8] = b"https://static.crates.io/crates/serde/serde-1.0.
 #[test]
 fn checked_response_and_anonymous_execution_are_one_fail_closed_path() {
     let source = source_target("/api/v1/crates/serde/1.0.0/download");
-    let production = StubTransport::new(OfficialCratesIoEndpoint::production_api());
     let mut checked_target = [0_u8; 128];
     let checked = check_response(
-        &production,
         source,
         found(),
         &[],
@@ -51,10 +49,8 @@ fn checked_response_and_anonymous_execution_are_one_fail_closed_path() {
 #[test]
 fn anonymous_execution_rejects_the_wrong_transport_before_dispatch() {
     let source = source_target("/api/v1/crates/serde/1.0.0/download");
-    let production = StubTransport::new(OfficialCratesIoEndpoint::production_api());
     let mut checked_target = [0_u8; 128];
     let checked = check_response(
-        &production,
         source,
         found(),
         &[],
@@ -81,10 +77,8 @@ fn anonymous_execution_rejects_the_wrong_transport_before_dispatch() {
 #[test]
 fn anonymous_execution_uses_the_same_empty_request_for_async_variants() {
     let source = source_target("/api/v1/crates/serde/1.0.0/download");
-    let production = StubTransport::new(OfficialCratesIoEndpoint::production_api());
     let mut checked_target = [0_u8; 128];
     let checked = check_response(
-        &production,
         source,
         found(),
         &[],
@@ -124,26 +118,9 @@ fn anonymous_execution_uses_the_same_empty_request_for_async_variants() {
 }
 
 #[test]
-fn response_provenance_checks_endpoint_status_body_media_and_headers() {
+fn executed_response_checks_status_body_media_and_headers() {
     let source = source_target("/api/v1/crates/serde/1.0.0/download");
-    let staging = StubTransport::new(OfficialCratesIoEndpoint::staging_api());
-    let production = StubTransport::new(OfficialCratesIoEndpoint::production_api());
     let mut target = [0x5a_u8; 128];
-    assert!(matches!(
-        check_response(
-            &staging,
-            source,
-            found(),
-            &[],
-            &[("location", VALID_LOCATION)],
-            &mut target,
-        ),
-        Err(DownloadRedirectError::InvalidSourceEndpoint(
-            CratesIoEndpointError::DestinationMismatch
-        ))
-    ));
-    assert!(target.iter().all(|byte| *byte == 0));
-
     for (status, body, headers, expected) in [
         (
             StatusCode::OK,
@@ -186,7 +163,7 @@ fn response_provenance_checks_endpoint_status_body_media_and_headers() {
         ),
     ] {
         target.fill(0x5a);
-        let result = check_response(&production, source, status, body, headers, &mut target);
+        let result = check_response(source, status, body, headers, &mut target);
         assert!(matches!(result, Err(error) if error == expected));
         assert!(target.iter().all(|byte| *byte == 0));
     }
@@ -195,7 +172,6 @@ fn response_provenance_checks_endpoint_status_body_media_and_headers() {
 #[test]
 fn redirects_reject_authority_and_archive_confusion_from_checked_responses() {
     let source = source_target("/api/v1/crates/serde/1.0.0/download");
-    let production = StubTransport::new(OfficialCratesIoEndpoint::production_api());
     for location in [
         "http://static.crates.io/crates/serde/serde-1.0.0.crate",
         "https://user@static.crates.io/crates/serde/serde-1.0.0.crate",
@@ -213,7 +189,6 @@ fn redirects_reject_authority_and_archive_confusion_from_checked_responses() {
         let mut target = [0x5a_u8; 128];
         assert!(
             check_response(
-                &production,
                 source,
                 found(),
                 &[],
@@ -228,12 +203,10 @@ fn redirects_reject_authority_and_archive_confusion_from_checked_responses() {
 
 #[test]
 fn source_location_and_caller_storage_bounds_fail_closed() {
-    let production = StubTransport::new(OfficialCratesIoEndpoint::production_api());
     let wrong_source = source_target("/api/v1/crates/serde");
     let mut target = [0x5a_u8; 128];
     assert!(matches!(
         check_response(
-            &production,
             wrong_source,
             found(),
             &[],
@@ -256,7 +229,6 @@ fn source_location_and_caller_storage_bounds_fail_closed() {
     let mut too_small = [0x5a_u8; 8];
     assert!(matches!(
         check_response(
-            &production,
             source,
             found(),
             &[],
@@ -269,7 +241,6 @@ fn source_location_and_caller_storage_bounds_fail_closed() {
 }
 
 fn check_response<'storage>(
-    transport: &StubTransport,
     source: ApiRequestTarget<'_>,
     status: StatusCode,
     body: &[u8],
@@ -312,12 +283,7 @@ fn check_response<'storage>(
         );
     }
     let checked = response.with_response(|response| {
-        ProductionDownloadResponse::from_checked_response(
-            transport,
-            source,
-            response,
-            target_storage,
-        )
+        ProductionDownloadResponse::from_executed_response(source, response, target_storage)
     });
     let Ok(checked) = checked else {
         unreachable!("committed response fixture was unavailable");
@@ -359,26 +325,6 @@ fn empty_response_policy() -> RawResponsePolicy<'static> {
         unreachable!("empty response policy fixture failed");
     };
     policy
-}
-
-struct StubTransport {
-    endpoint: EndpointIdentity<'static>,
-}
-
-impl StubTransport {
-    fn new(endpoint: OfficialCratesIoEndpoint) -> Self {
-        let identity = endpoint.identity();
-        let Ok(endpoint) = identity else {
-            unreachable!("official endpoint fixture failed");
-        };
-        Self { endpoint }
-    }
-}
-
-impl BoundTransport for StubTransport {
-    fn endpoint_identity(&self) -> Result<EndpointIdentity<'_>, EndpointIdentityError> {
-        Ok(self.endpoint)
-    }
 }
 
 struct RecordingRawTransport {

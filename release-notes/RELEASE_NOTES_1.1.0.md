@@ -161,9 +161,14 @@ full-service assessment are complete.
   targets and query-free `/crates/{name}/{archive}.crate` targets.
 - Added source-correlated download redirect validation that accepts only the
   exact production download route and `static.crates.io` archive destination.
-- Added an opaque checked production-response proof requiring exact endpoint,
+- Added an opaque checked production-response proof minted only by atomic
+  execution through the exact production-bound raw executor. The SDK owns the
+  bodyless `GET`, empty request headers, and response policy before requiring
   `302` status, empty body, absent content type, one retained `Location`, and
   caller-owned bounded target storage.
+- Kept the structural response constructor private to source execution so safe
+  callers cannot combine an unrelated response with a separately verified
+  transport to assert production provenance.
 - Made redirect following atomic through credential-free blocking, Send async,
   and local async raw executors. The SDK supplies a bodyless `GET` with empty
   headers and exposes neither destination endpoint nor target components.

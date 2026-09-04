@@ -19,31 +19,38 @@ pub const MAX_DOWNLOAD_REDIRECT_LOCATION_BYTES: usize =
 
 /// Checked production redirect response detached into caller-owned storage.
 ///
-/// Safe callers cannot construct this proof without validating a committed
-/// `302` response from a transport bound to the production crates.io origin.
-/// Response body, content type, and retained-header shape are checked before
-/// the static target is copied.
+/// Safe callers can obtain this proof only through its atomic source-execution
+/// methods. Response body, content type, and retained-header shape are checked
+/// before the static target is copied.
+///
+/// ```compile_fail
+/// use cloud_sdk::transport::TransportResponse;
+/// use cloud_sdk_cratesio::endpoint::{ApiRequestTarget, ProductionDownloadResponse};
+/// fn cannot_assert_provenance<'a>(
+///     source: ApiRequestTarget<'_>,
+///     response: TransportResponse<'_, '_>,
+///     storage: &'a mut [u8],
+/// ) -> ProductionDownloadResponse<'a> {
+///     ProductionDownloadResponse::from_executed_response(source, response, storage).unwrap()
+/// }
+/// ```
 pub struct ProductionDownloadResponse<'storage> {
     target_storage: &'storage mut [u8],
     target_len: usize,
 }
 
 impl<'storage> ProductionDownloadResponse<'storage> {
-    /// Checks production response provenance and copies its bounded target.
+    /// Checks an atomically executed response and copies its bounded target.
     ///
     /// `target_storage` is cleared before validation and remains cleared on
-    /// every error. The exact transport whose response is being inspected
-    /// must be supplied so endpoint validation cannot be skipped.
-    pub fn from_checked_response<T: BoundTransport + ?Sized>(
-        transport: &T,
+    /// every error. This constructor is restricted to the sibling source
+    /// execution module, which owns endpoint verification and dispatch.
+    pub(super) fn from_executed_response(
         source: ApiRequestTarget<'_>,
         response: TransportResponse<'_, '_>,
         target_storage: &'storage mut [u8],
     ) -> Result<Self, DownloadRedirectError> {
         sanitize_bytes(target_storage);
-        OfficialCratesIoEndpoint::production_api()
-            .verify_transport(transport)
-            .map_err(DownloadRedirectError::InvalidSourceEndpoint)?;
         let (name, version) =
             source_parts(source).ok_or(DownloadRedirectError::InvalidSourcePath)?;
         if response.status().get() != 302 {
@@ -217,8 +224,6 @@ impl fmt::Debug for DownloadRedirect<'_> {
 /// crates.io static-download redirect validation error.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum DownloadRedirectError {
-    /// The response transport is not bound to the production API origin.
-    InvalidSourceEndpoint(CratesIoEndpointError),
     /// The source is not an exact version-download API target.
     InvalidSourcePath,
     /// The source response is not exactly `302 Found`.
@@ -244,7 +249,6 @@ pub enum DownloadRedirectError {
 impl fmt::Display for DownloadRedirectError {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter.write_str(match self {
-            Self::InvalidSourceEndpoint(_) => "download redirect source endpoint is invalid",
             Self::InvalidSourcePath => "download redirect source path is invalid",
             Self::InvalidSourceStatus => "download redirect source status is invalid",
             Self::InvalidSourceResponse => "download redirect source response is invalid",

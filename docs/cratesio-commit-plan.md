@@ -223,11 +223,14 @@ custom-endpoint constructors.
 Verification: host, port, path, query, fragment, user-info, Unicode, control
 byte, encoded separator, traversal, downgrade, redirect, and authority-confusion
 tests; prove credentials cannot cross an authority boundary and download
-redirects can execute only through an SDK-created empty-header raw request.
+source proofs and redirects can execute only through SDK-created empty-header
+raw requests. Prove safe callers cannot pair a synthetic or unrelated response
+with a separately verified transport to assert production provenance.
 
 Exit criteria: official constructors cannot be redirected to an attacker host,
 custom endpoints require an explicit unsafe-trust decision, and targets are
-bounded before transport execution.
+bounded before transport execution. Production redirect proof is causally bound
+to the exact executor that produced its committed source response.
 
 Pentest stop: run an incremental pentest for the exact Commit 4 endpoint and
 redirect boundary.

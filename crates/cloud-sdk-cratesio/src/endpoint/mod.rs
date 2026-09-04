@@ -2,6 +2,7 @@
 
 mod authority;
 mod redirect;
+mod redirect_source;
 mod target;
 
 pub use authority::{
@@ -13,8 +14,11 @@ pub use redirect::{
     DownloadExecutionError, DownloadRedirect, DownloadRedirectError,
     MAX_DOWNLOAD_REDIRECT_LOCATION_BYTES, ProductionDownloadResponse,
 };
+pub use redirect_source::DownloadProvenanceError;
 pub use target::{ApiRequestTarget, CratesIoTargetError, StaticDownloadTarget};
 
+#[cfg(test)]
+mod redirect_source_tests;
 #[cfg(test)]
 mod redirect_tests;
 #[cfg(test)]
