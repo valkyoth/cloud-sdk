@@ -1,7 +1,7 @@
 # crates.io Endpoint Policy
 
-Status: Commit 4 implementation boundary for the unreleased `1.1.0` candidate;
-incremental pentest and GitHub checks are required before acceptance.
+Status: Commit 4 endpoint and request-target boundary accepted for the
+unreleased `1.1.0` candidate.
 
 ## Official Authorities
 

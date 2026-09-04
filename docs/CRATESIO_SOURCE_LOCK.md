@@ -1,7 +1,7 @@
 # crates.io Source Lock
 
-Status: Commit 4 endpoint and request-target boundary implemented for the
-unreleased `1.1.0` train; incremental acceptance remains pending.
+Status: Commit 4 endpoint and request-target boundary accepted for the
+unreleased `1.1.0` train.
 
 This lock establishes finite crates.io scope before provider code exists. The
 machine-readable source manifest is

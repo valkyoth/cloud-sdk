@@ -181,10 +181,11 @@ full-service assessment are complete.
   control-byte, encoded-separator, traversal, downgrade, redirect, archive,
   and authority-confusion coverage.
 
-Commit 4 implementation and pentest remediation are complete. Its green
-retest and GitHub checks remain pending before this checkpoint can be accepted.
-The comparison baseline is
-`716c3ef8dd56a3dcd5881ed70a1ae9011517b3bf`.
+Commit 4 passed its incremental pentest, remediation, and final green retest.
+The accepted implementation commit is
+`b613b1a25b31a85a04b0d79b955364a8e2a65ee9`; the complete `1.1.0` security
+review remains pending until every planned checkpoint and the final
+full-service assessment are complete.
 
 ### Maintenance Evidence
 

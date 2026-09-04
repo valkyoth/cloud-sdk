@@ -1,7 +1,7 @@
 # crates.io Commit Plan
 
-Status: selected unreleased `1.1.0` implementation train. Commits 1 through 3
-are accepted; Commit 4 remediation is complete and awaiting a green retest.
+Status: selected unreleased `1.1.0` implementation train. Commits 1 through 4
+are accepted; Commit 5 is the next implementation checkpoint.
 
 ## Decision Summary
 
@@ -208,10 +208,11 @@ feature topology.
 
 ## Commit 4 - Endpoint And Request-Target Safety
 
-Checkpoint status: implementation and pentest remediation are complete on
-`main`; green retest and GitHub checks are required before acceptance. The
-comparison baseline is
-`716c3ef8dd56a3dcd5881ed70a1ae9011517b3bf`.
+Checkpoint status: accepted at reviewed implementation commit
+`b613b1a25b31a85a04b0d79b955364a8e2a65ee9` after incremental pentest,
+remediation, green retest, and complete local verification. The evidence commit
+containing the permanent report becomes Commit 5's comparison baseline after
+its GitHub checks pass.
 
 Goal: make official routing safe before credentials or operations exist.
 
