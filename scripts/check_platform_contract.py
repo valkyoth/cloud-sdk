@@ -65,8 +65,8 @@ def failures(root: Path) -> list[str]:
     if workspace["workspace"]["package"].get("rust-version") != "1.92":
         problems.append("workspace MSRV is not exactly 1.92")
     toolchain = load(root / "rust-toolchain.toml")
-    if toolchain.get("toolchain", {}).get("channel") != "1.98.0":
-        problems.append("development toolchain is not exactly 1.98.0")
+    if toolchain.get("toolchain", {}).get("channel") != "1.98.1":
+        problems.append("development toolchain is not exactly 1.98.1")
 
     for crate, expected_features in FEATURES.items():
         manifest = load(root / "crates" / crate / "Cargo.toml")

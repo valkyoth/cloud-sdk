@@ -42,7 +42,7 @@ plan can become `public`.
 | `cloud-sdk-reqwest` | `1.0.0` | `1.1.0` | candidate metadata |
 | `cloud-sdk-sanitization` | `1.0.0` | `1.1.0` | candidate metadata |
 | `cloud-sdk-testkit` | `1.0.0` | `1.1.0` | candidate metadata |
-| `cloud-sdk-cratesio` | none | `1.1.0` | initial candidate provider boundary |
+| `cloud-sdk-cratesio` | none | `1.1.0` | endpoint-safe candidate provider boundary |
 
 Exact final change classifications are assigned only after the complete train
 is implemented.
@@ -153,8 +153,52 @@ The accepted implementation commit is
 review remains pending until every planned checkpoint and the final
 full-service assessment are complete.
 
+### Commit 4 - Endpoint And Request-Target Safety
+
+- Added exact constructors and fixed-origin policies for the production API,
+  staging API, and anonymous static package-download authority.
+- Added bounded provider-specific wrappers for canonical `/api/v1/` request
+  targets and query-free `/crates/{name}/{archive}.crate` targets.
+- Added source-correlated download redirect validation that accepts only the
+  exact production download route and `static.crates.io` archive destination.
+- Made cross-authority redirect authorization unrepresentable except as
+  `RedirectAuthorization::Omit`.
+- Added an explicit HTTPS custom API endpoint that cannot be constructed
+  without the provider-neutral trusted-operator acknowledgement.
+- Added adversarial host, port, path, query, fragment, user-info, Unicode,
+  control-byte, encoded-separator, traversal, downgrade, redirect, archive,
+  and authority-confusion coverage.
+
+Commit 4 implementation is complete. Its incremental pentest, remediation if
+needed, retest, and GitHub checks remain pending before this checkpoint can be
+accepted. The comparison baseline is
+`716c3ef8dd56a3dcd5881ed70a1ae9011517b3bf`.
+
 ### Maintenance Evidence
 
+- Advanced the complete development and compatibility gate to stable Rust
+  `1.98.1` and the fuzz compiler to `nightly-2026-09-04` while retaining Rust
+  `1.92.0` as the MSRV.
+- Verified every workspace and auxiliary-workspace dependency is current,
+  every pinned Cargo security/SBOM/fuzz tool matches crates.io, and
+  `actions/checkout` remains pinned to the exact latest `v7.0.1` commit.
+- Added a manifest-driven live freshness gate for every exact direct library
+  pin after confirming that `cargo outdated` resolves inside exact
+  requirements and can therefore miss newer crates.io releases.
+- Updated `aws-lc-rs` to `1.18.1`, bundled `aws-lc-sys` to `0.45.0`,
+  `base64-ng` to `2.0.3`, and `sanitization` to `2.0.4`. These patches retain
+  the existing features and MSRVs while adding fail-closed crypto contracts,
+  native-build hardening, high-assurance target gating, and protected-storage
+  continuity. FIPS remains excluded.
+- Refreshed compatible transitive lock entries for `cc`, `find-msvc-tools`,
+  `mio`, `smallvec`, `tinyvec`, and `tokio-rustls`; the isolated reqwest
+  feature-unification fixture additionally advances its Hickory packages from
+  `0.26.1` to `0.26.2`. No default or published dependency capability expands.
+- Refreshed crates.io source evidence to upstream commit
+  `9ae7f769cea32f38ebc2ea9ec2ce455b47641511` after `find_user` gained an
+  optional `include` query and optional `linked_accounts` response data. The
+  operation count, authentication, response statuses, media types, Cargo
+  compatibility, and data-access policy semantics remain unchanged.
 - Re-reviewed the complete 142-entry Hetzner changelog feed after its semantic
   digest changed without a new entry. The latest notice remains the reviewed
   Debian 11 image deprecation, and the machine-readable Hetzner API still

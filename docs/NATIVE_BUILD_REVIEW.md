@@ -1,6 +1,6 @@
 # Native Build Review
 
-Status: reviewed for the stable v1.0 native transport boundary.
+Status: reviewed for the v1.1 candidate native transport boundary.
 
 ## Boundary
 
@@ -21,10 +21,14 @@ aws-lc-sys` chain while rejecting active `ring` or FIPS backends.
 
 ## Cryptographic Native Code
 
-- `aws-lc-rs 1.18.0` selects bundled `aws-lc-sys 0.44.0` for admitted native
+- `aws-lc-rs 1.18.1` selects bundled `aws-lc-sys 0.45.0` for admitted native
   transport builds. The repository forces `AWS_LC_SYS_USE_SYSTEM=0`, rejects
   target-specific override variables, and tests every native Cargo entry point
-  for this policy.
+  for this policy. The patch adds fail-closed AEAD extension checks, cipher IV
+  validation, ECDH shared-secret cleanup, digest/algorithm binding, and native
+  build-environment fixes. The bundled AWS-LC source advances from commit
+  `991e67ff4cf04df4dd89e407f8b920c6936cb56a` to
+  `02561621ffa4cf17c0c4f70bc11a82df36b42ae9`.
 - `ring 0.17.14` is retained in Cargo's all-target resolution through
   target-specific upstream verifier branches. It is not selected by the
   Linux, Windows, macOS, or FreeBSD transport graph, but remains pinned and

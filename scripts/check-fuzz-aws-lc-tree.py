@@ -9,7 +9,7 @@ import sys
 
 ANSI_ESCAPE = re.compile(r"\x1b\[[0-?]*[ -/]*[@-~]")
 PACKAGE = re.compile(r"^(aws-lc-(?:rs|sys) v\S+?)(?: \(\*\))?$")
-EXPECTED = frozenset(("aws-lc-rs v1.18.0", "aws-lc-sys v0.44.0"))
+EXPECTED = frozenset(("aws-lc-rs v1.18.1", "aws-lc-sys v0.45.0"))
 
 
 def observed_packages(lines: list[str]) -> frozenset[str]:

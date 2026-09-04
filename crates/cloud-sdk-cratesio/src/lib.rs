@@ -9,6 +9,7 @@ extern crate alloc;
 
 pub mod accounts;
 pub mod catalog;
+pub mod endpoint;
 pub mod identity;
 pub mod ownership;
 pub mod publishing;

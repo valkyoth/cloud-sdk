@@ -63,7 +63,7 @@ please report it so it can be fixed.
 | --- | --- |
 | License | `MIT OR Apache-2.0` |
 | MSRV | Rust `1.92.0` |
-| Pinned toolchain | Rust `1.98.0` |
+| Pinned toolchain | Rust `1.98.1` |
 | Default target | `no_std` |
 | Default runtime dependencies | only the first-party cleanup boundary and admitted `sanitization` primitive; provider crates remain transport-free |
 | Unsafe policy | first-party crates use `#![forbid(unsafe_code)]` |
@@ -94,7 +94,7 @@ matrix, release plan, tests, and pentest gates.
 ## Rust Version Support
 
 The minimum supported Rust version is Rust `1.92.0`. Repository verification
-uses pinned stable Rust `1.98.0` until the toolchain policy is updated.
+uses pinned stable Rust `1.98.1` until the toolchain policy is updated.
 
 v0.52.0 raised the MSRV from Rust 1.90 to 1.92 because Rust 1.90 and 1.91 hit
 [compiler issue #100013](https://github.com/rust-lang/rust/issues/100013) when
@@ -103,8 +103,8 @@ cross-thread async guarantee instead of weakening it for those two compilers.
 
 | Rust | Local Evidence |
 | --- | --- |
-| `1.92.0 - 1.97.1` | `cargo +<version> check --locked --workspace --all-targets --all-features` for every supported compiler and point release |
-| `1.98.0` | `scripts/checks.sh` |
+| `1.92.0 - 1.98.0` | `cargo +<version> check --locked --workspace --all-targets --all-features` for every supported compiler and point release |
+| `1.98.1` | `scripts/checks.sh` |
 
 Portable and native platform evidence is documented in
 [`docs/PLATFORM_SUPPORT.md`](https://github.com/valkyoth/cloud-sdk/blob/main/docs/PLATFORM_SUPPORT.md).
@@ -166,6 +166,7 @@ visible. Applications should enable only the features they use.
 - [Deprecated endpoint policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/DEPRECATED_ENDPOINT_POLICY.md)
 - [crates.io 1.1 implementation plan](https://github.com/valkyoth/cloud-sdk/blob/main/docs/cratesio-commit-plan.md)
 - [crates.io source lock and finite scope](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATESIO_SOURCE_LOCK.md)
+- [crates.io endpoint and redirect policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATESIO_ENDPOINT_POLICY.md)
 
 ## Provider-Neutral Quickstart
 

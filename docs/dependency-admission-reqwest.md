@@ -6,14 +6,14 @@ and `cloud-sdk-reqwest/async-rustls`,
 with reqwest default features disabled. The internal `fuzzing` feature aliases
 `blocking-rustls` only for the isolated fuzz workspace.
 
-Checked: 2026-08-31.
+Checked: 2026-09-04.
 
 ## Decision
 
 | Crate | Version | Role | Default features |
 | --- | --- | --- | --- |
 | `reqwest` | `0.13.4` | blocking/async HTTP client and URL/header types | disabled |
-| `base64-ng` | `2.0.2` | bounded RFC 4648 Basic authorization encoding | disabled |
+| `base64-ng` | `2.0.3` | bounded RFC 4648 Basic authorization encoding | disabled |
 | `bytes` | `1.12.1` | sanitized owned async request-body handoff | disabled |
 | `http` | `1.5.0` | raw request and response-head representation | disabled |
 | `http-body-util` | `0.1.5` | raw body ownership and response-frame access | disabled |
@@ -25,10 +25,10 @@ Checked: 2026-08-31.
 | `rustls` | `0.23.43` | TLS implementation | transitive |
 | `rustls-platform-verifier` | `0.7.0` | platform trust-store verification | transitive |
 | `webpki-roots` | `1.0.9` | deterministic Mozilla trust-root snapshot | disabled |
-| `aws-lc-rs` | `1.18.0` | rustls cryptographic provider | transitive |
-| `aws-lc-sys` | `0.44.0` | bundled native AWS-LC implementation | disabled |
+| `aws-lc-rs` | `1.18.1` | rustls cryptographic provider | transitive |
+| `aws-lc-sys` | `0.45.0` | bundled native AWS-LC implementation | disabled |
 | `cloud-sdk-sanitization` | `1.1.0` | mandatory core and adapter-owned secret-buffer cleanup | disabled |
-| `sanitization` | `2.0.3` | reviewed volatile cleanup primitive | disabled |
+| `sanitization` | `2.0.4` | reviewed volatile cleanup primitive | disabled |
 
 The exact repository graph is pinned by `Cargo.lock`, checked by `cargo deny`,
 and recorded in the generated SBOM. Applications own their downstream
@@ -50,7 +50,7 @@ authenticated package checksum rather than copying unauthenticated source
 trees. The original v0.24 admission is recorded in
 [`DEPENDENCY_REVIEW.md#v0240`](DEPENDENCY_REVIEW.md#v0240). Current native
 archive checksums and update evidence are recorded in
-[`DEPENDENCY_REVIEW.md#v0940`](DEPENDENCY_REVIEW.md#v0940).
+[`DEPENDENCY_REVIEW.md#v110`](DEPENDENCY_REVIEW.md#v110).
 
 The version review used the reqwest 0.13.4 crate metadata, feature list, API
 documentation, and upstream source:
@@ -59,11 +59,14 @@ documentation, and upstream source:
 - <https://docs.rs/reqwest/0.13.4/reqwest/>
 - <https://github.com/seanmonstar/reqwest/tree/v0.13.4>
 
-The 2026-08-31 freshness review also accepted `base64-ng 2.0.2` and
-`hyper 1.11.1`. Both retain default-disabled graphs and MSRVs below this
-workspace's Rust 1.92 floor. The Base64 update preserves the scalar API used by
-Basic authentication and SSH-key parsing; the Hyper patch preserves the
-HTTP/1 features and dependency boundary used by the raw executor.
+The 2026-09-04 freshness review accepted `base64-ng 2.0.3`, `hyper 1.11.1`,
+`aws-lc-rs 1.18.1`, and `aws-lc-sys 0.45.0`. All retain default-disabled
+graphs and MSRVs below this workspace's Rust 1.92 floor. The Base64 update
+preserves the scalar API used by Basic authentication and SSH-key parsing
+while tightening high-assurance target gating. The Hyper patch preserves the
+HTTP/1 features and dependency boundary used by the raw executor. The AWS-LC
+pair adds fail-closed AEAD/cipher/digest contract checks, secret cleanup, and
+native-build environment hardening; the SDK still enables no FIPS feature.
 
 ## Feature Boundary
 

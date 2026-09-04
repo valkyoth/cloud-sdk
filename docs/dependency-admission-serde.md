@@ -11,7 +11,7 @@ Checked: 2026-08-03.
 | `serde` | `1.0.229` | optional normal dependency | MIT OR Apache-2.0 | disabled |
 | `serde_json` | `1.0.151` | optional request/envelope Serde implementation and test parser | MIT OR Apache-2.0 | disabled; `alloc` only |
 | `cloud-sdk-sanitization` | `1.1.0` | mandatory cleanup plus bounded fallible protected-string growth | MIT OR Apache-2.0 | disabled; `alloc` only |
-| `sanitization` | `2.0.3` | transitive volatile byte cleanup | MIT OR Apache-2.0 | disabled |
+| `sanitization` | `2.0.4` | transitive volatile byte cleanup | MIT OR Apache-2.0 | disabled |
 
 Serde and serde_json are sourced from crates.io and maintained by the Serde
 project at <https://github.com/serde-rs/serde> and

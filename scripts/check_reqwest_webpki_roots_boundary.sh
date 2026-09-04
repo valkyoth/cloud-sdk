@@ -11,8 +11,8 @@ roots_tree="$(
 for dependency in \
     'reqwest v0.13.4' \
     'rustls v0.23.43' \
-    'aws-lc-rs v1.18.0' \
-    'aws-lc-sys v0.44.0' \
+    'aws-lc-rs v1.18.1' \
+    'aws-lc-sys v0.45.0' \
     'webpki-roots v1.0.9'; do
     if ! printf '%s\n' "$roots_tree" | grep -Fq "$dependency"; then
         echo "reqwest WebPKI-roots boundary: required dependency $dependency is missing" >&2

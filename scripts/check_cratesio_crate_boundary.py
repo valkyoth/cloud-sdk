@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate the initial cloud-sdk-cratesio crate and feature boundary."""
+"""Validate the reviewed cloud-sdk-cratesio crate and feature boundary."""
 
 from __future__ import annotations
 
@@ -39,6 +39,13 @@ EXPECTED_DEPENDENCIES = {
 }
 EXPECTED_LIBRARY = {"path": "src/lib.rs"}
 EXPECTED_TESTS = [{"name": "identity", "path": "tests/identity.rs"}]
+ENDPOINT_SOURCES = {
+    "endpoint/mod.rs",
+    "endpoint/authority.rs",
+    "endpoint/redirect.rs",
+    "endpoint/target.rs",
+    "endpoint/tests.rs",
+}
 EXPECTED_WORKSPACE_DEPENDENCIES = {
     "cloud-sdk": {
         "path": "crates/cloud-sdk",
@@ -134,6 +141,7 @@ def validate(root: Path) -> None:
     expected_sources = {
         "lib.rs",
         "identity.rs",
+        *ENDPOINT_SOURCES,
         *(f"{module}.rs" for module in DOMAIN_MODULES),
     }
     actual_sources = {
@@ -148,6 +156,8 @@ def validate(root: Path) -> None:
     library = (crate / "src/lib.rs").read_text(encoding="ascii")
     if "#![no_std]" not in library:
         raise BoundaryError("provider lost its no_std crate boundary")
+    if "pub mod endpoint;" not in library:
+        raise BoundaryError("provider does not export the endpoint boundary")
     for module in DOMAIN_MODULES:
         if f"pub mod {module};" not in library:
             raise BoundaryError(f"provider does not export {module}")

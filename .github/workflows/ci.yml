@@ -100,6 +100,7 @@ jobs:
           - 1.97.0
           - 1.97.1
           - 1.98.0
+          - 1.98.1
 
     steps:
       - name: Checkout repository
@@ -141,7 +142,7 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Install pinned nightly
-        run: rustup toolchain install nightly-2026-08-30 --profile minimal
+        run: rustup toolchain install nightly-2026-09-04 --profile minimal
 
       - name: Install cargo-fuzz
         run: cargo install --locked cargo-fuzz --version 0.13.2

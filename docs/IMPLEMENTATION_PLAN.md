@@ -28,8 +28,8 @@ explicit trust and dependency review.
 
 ## Non-Negotiable Engineering Rules
 
-- Rust stable `1.98.0`, edition 2024, workspace resolver `3`.
-- MSRV is Rust `1.92.0`; compatibility must be checked through `1.98.0`.
+- Rust stable `1.98.1`, edition 2024, workspace resolver `3`.
+- MSRV is Rust `1.92.0`; compatibility must be checked through `1.98.1`.
 - Latest crate and tool versions are checked before dependency or tooling edits.
 - Hetzner API behavior is implemented from current official documentation or a
   pinned official OpenAPI/spec source, never from memory.

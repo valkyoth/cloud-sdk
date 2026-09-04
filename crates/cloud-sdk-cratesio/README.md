@@ -23,9 +23,10 @@ provider identities, API models, request preparation, checked response
 decoding, authentication rules, and high-level workflows while reusing the
 provider-neutral execution contracts from `cloud-sdk`.
 
-The crate is currently an unreleased `1.1.0` candidate. This first boundary
-contains no endpoint or operation implementation. The source-locked API is
-being added through independently reviewed checkpoints before publication.
+The crate is currently an unreleased `1.1.0` candidate. Provider identity and
+the endpoint, request-target, and static-download redirect boundaries are now
+implemented. Operations and credentials remain unavailable until their
+independently reviewed checkpoints are complete.
 
 ## Current Boundary
 
@@ -35,7 +36,10 @@ being added through independently reviewed checkpoints before publication.
 | Service identity | `registry` |
 | Default features | empty |
 | Default target | `no_std` |
-| Endpoint implementation | deferred to Commit 4 |
+| Official endpoints | production API, staging API, and anonymous static downloads |
+| Request targets | bounded `/api/v1/` API and `/crates/` static-download forms |
+| Redirects | exact source-correlated production download redirect; authorization omitted |
+| Custom API endpoints | HTTPS plus explicit trusted-operator acknowledgement |
 | Credentials | deferred to Commit 5 |
 | API operations | deferred to their source-locked implementation commits |
 
@@ -43,6 +47,31 @@ The public modules reserve ownership without claiming executable coverage:
 `catalog`, `accounts`, `ownership`, `publishing`, and `trusted_publishing`.
 The complete 51-operation scope is maintained in the
 [crates.io source lock](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATESIO_SOURCE_LOCK.md).
+
+## Endpoint Example
+
+Official routing remains allocation-free and transport-neutral:
+
+```rust
+use cloud_sdk_cratesio::endpoint::{
+    ApiRequestTarget, OfficialCratesIoEndpoint,
+};
+
+let endpoint = OfficialCratesIoEndpoint::production_api();
+assert_eq!(endpoint.base_url(), "https://crates.io");
+
+let target = ApiRequestTarget::new("/api/v1/crates?q=serde");
+assert!(target.is_ok());
+```
+
+Custom API origins require
+`CustomEndpointAcknowledgement::trusted_operator_configuration()` and an
+already validated HTTPS `EndpointIdentity`. Values must never come from tenant,
+request, webhook, or other attacker-controlled input. Static download
+redirects accept only the exact `https://static.crates.io` authority, correlate
+the crate and version with the source API target, and require authorization to
+be omitted. The complete contract is documented in the
+[crates.io endpoint policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATESIO_ENDPOINT_POLICY.md).
 
 ## Features
 
@@ -78,9 +107,9 @@ assert_eq!(
 ## Security And Policy
 
 The provider will not support browser-session cookies or undocumented private
-routes. Official endpoint policy, credential contexts, one-request-per-second
-scheduling, identifying user agents, mutation permits, and bounded response
-decoding are introduced only in their assigned reviewed checkpoints.
+routes. Credential contexts, one-request-per-second scheduling, identifying
+user agents, mutation permits, and bounded response decoding are introduced
+only in their assigned reviewed checkpoints.
 
 Direct crates.io API use must follow the service's data-access policy. Prefer
 the sparse index, static downloads, RSS feeds, or database dumps when those

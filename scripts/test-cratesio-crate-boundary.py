@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Regression tests for the initial crates.io provider boundary."""
+"""Regression tests for the reviewed crates.io provider boundary."""
 
 from __future__ import annotations
 
@@ -198,6 +198,11 @@ def test_endpoint_code_and_extra_modules_are_rejected() -> None:
     catalog = root / checker.CRATE / "src/catalog.rs"
     catalog.write_text("pub const ENDPOINT: &str = \"/api/v1/crates\";\n", encoding="ascii")
     assert_rejected(root, "endpoint implementation")
+    shutil.rmtree(root)
+
+    root = fixture()
+    (root / checker.CRATE / "src/endpoint/redirect.rs").unlink()
+    assert_rejected(root, "source-module inventory")
     shutil.rmtree(root)
 
     root = fixture()

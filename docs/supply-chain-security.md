@@ -15,6 +15,10 @@ Every tag requires `cargo deny check`, `cargo audit`, and current SBOM evidence.
 Every direct third-party workspace dependency uses an exact `=X.Y.Z`
 requirement. `scripts/check_exact_dependency_pins.py` rejects broader or
 unversioned direct requirements before lockfile and package evidence can pass.
+Its release-only `--fetch` mode compares every exact pin with crates.io's
+stable-version metadata under bounded HTTPS/no-redirect rules. This check is
+separate from `cargo outdated`, whose resolution under exact requirements can
+legitimately report a stale pin as current.
 Intermediate pre-1.0 stages prohibit crates.io publication. At every
 fifth-minor or exceptional public checkpoint, the publisher compares package
 trees cumulatively with the previous public tag, publishes changed
@@ -33,7 +37,7 @@ feature remain disabled. The full decision and transitive surface are recorded i
 [`dependency-admission-serde.md`](dependency-admission-serde.md), and
 `scripts/check_serde_boundary.sh` enforces graph isolation.
 
-Exact `base64-ng 2.0.2`, `md-5 0.11.0`, and `sha2 0.11.0` are admitted only
+Exact `base64-ng 2.0.3`, `md-5 0.11.0`, and `sha2 0.11.0` are admitted only
 through the non-default provider Serde boundary. A bounded first-party parser
 uses them to structurally validate OpenSSH/RFC 4253 public keys, bind Hetzner's
 legacy response fingerprint, and derive SHA-256 identity without creating a
@@ -42,7 +46,7 @@ security decisions. The complete graph and limitations are recorded in
 [`dependency-admission-ssh-public-key.md`](dependency-admission-ssh-public-key.md),
 while `scripts/check_security_response_models.sh` enforces graph isolation.
 
-The first-party `sanitization` `2.0.3` crate is admitted only through
+The first-party `sanitization` `2.0.4` crate is admitted only through
 `cloud-sdk-sanitization`, with default features disabled and no transitive
 runtime dependencies. The decision and limits are recorded in
 [`dependency-admission-sanitization.md`](dependency-admission-sanitization.md),

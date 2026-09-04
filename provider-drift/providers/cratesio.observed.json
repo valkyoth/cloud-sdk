@@ -2527,7 +2527,7 @@
         "id": "request/find_user",
         "values": {
           "content_types": [],
-          "fingerprint": "d43995888f74dd984eae065d82fddfebaa8368c7f171a34e7c9a6081f9b0efd6"
+          "fingerprint": "213527df2d4a1c3a009851f31ce5228bdc071a7e9047485a740db8d6c8c7411c"
         }
       },
       {
@@ -2536,7 +2536,7 @@
           "content_types": [
             "application/json"
           ],
-          "fingerprint": "18df84406ccb8684e9800495d1f8fe4a9242619e053a04b6f53daa192d926a2c",
+          "fingerprint": "fae3e414d24534c6c2ae467edef14d264e6a76877c5f7532dafde7a7207efc57",
           "statuses": [
             "200",
             "4XX",
@@ -2666,6 +2666,13 @@
         }
       },
       {
+        "id": "component/fbebd57c48e70995d6b4f060c8637984",
+        "values": {
+          "fingerprint": "345e8c8186b84a15973e14923b33cdc7eaef027c201886f6b0ca08ce992399b2",
+          "name": "LinkedAccount"
+        }
+      },
+      {
         "id": "component/4b1b8aa3608a26da451ae0630d75b60a",
         "values": {
           "fingerprint": "c55e6aa427543fa1ef4b0a68ad2b117d934a41417ea18b8e997f2a03b05f375b",
@@ -2767,19 +2774,19 @@
     {
       "id": "openapi",
       "max_bytes": 1048576,
-      "sha256": "c9c1e39be547cca34ebde188cf3b52e66906ab23c50357ca51c766853139a17f",
+      "sha256": "1d3b2570d91806c20f90ab0c3debfcd1849810d65f61f28aae5374196de82d03",
       "url": "https://crates.io/api/openapi.json"
     },
     {
       "id": "openapi-source",
       "max_bytes": 131072,
       "sha256": "05319ccd6c1fa9e0e3ac9acd86fca932ccd1100358c5e395427b6322ce4d7810",
-      "url": "https://raw.githubusercontent.com/rust-lang/crates.io/ea3b6ebad504d9701bc41f4d2f1d32ab864cee94/src/openapi.rs"
+      "url": "https://raw.githubusercontent.com/rust-lang/crates.io/9ae7f769cea32f38ebc2ea9ec2ce455b47641511/src/openapi.rs"
     },
     {
       "id": "policy",
       "max_bytes": 131072,
-      "sha256": "47cb6a1d933a908deba30caf6440b5b9cc135c220102dd15ffeccd44cdad25ab",
+      "sha256": "44782b069720f3f4055bf070064c5903b7964ff7db2d7684637803ce629222c3",
       "url": "https://crates.io/data-access"
     },
     {
@@ -2792,7 +2799,7 @@
       "id": "policy-source",
       "max_bytes": 131072,
       "sha256": "db5078a31e412c395321b95124ba5e4b3db7954e1d2a66a9a5847c3cbbaca802",
-      "url": "https://raw.githubusercontent.com/rust-lang/crates.io/ea3b6ebad504d9701bc41f4d2f1d32ab864cee94/svelte/src/routes/data-access/%2Bpage.svelte"
+      "url": "https://raw.githubusercontent.com/rust-lang/crates.io/9ae7f769cea32f38ebc2ea9ec2ce455b47641511/svelte/src/routes/data-access/%2Bpage.svelte"
     }
   ]
 }

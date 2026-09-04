@@ -1,6 +1,6 @@
 # Toolchain Policy
 
-The workspace develops on stable Rust `1.98.0` and declares MSRV `1.92`.
+The workspace develops on stable Rust `1.98.1` and declares MSRV `1.92`.
 
 Compatibility must be maintained for:
 
@@ -16,7 +16,8 @@ Compatibility must be maintained for:
 | `1.96.1` | `cargo +1.96.1 check --workspace --all-features` |
 | `1.97.0` | `cargo +1.97.0 check --workspace --all-features` |
 | `1.97.1` | `cargo +1.97.1 check --workspace --all-features` |
-| `1.98.0` | full release gate |
+| `1.98.0` | compatibility |
+| `1.98.1` | full release gate |
 
 Every compatibility command also uses `--locked --all-targets`. The shorter
 commands in the table identify the compiler contract without repeating those
@@ -29,7 +30,7 @@ prove the higher-ranked lifetime bound for the client kernel's explicitly
 `Send` future (rust-lang/rust#100013). Weakening that contract would prevent
 generic cross-thread executor use, while Rust 1.92 and later compile it.
 
-Pinned release tools, checked against crates.io on 2026-08-31:
+Pinned release tools, checked against crates.io on 2026-09-04:
 
 | Tool | Version |
 | --- | --- |
@@ -39,7 +40,7 @@ Pinned release tools, checked against crates.io on 2026-08-31:
 | `cargo-fuzz` | `0.13.2` |
 
 The non-published fuzz harness separately pins
-`nightly-2026-08-30` and `libfuzzer-sys 0.4.13`. Nightly is never used to
+`nightly-2026-09-04` and `libfuzzer-sys 0.4.13`. Nightly is never used to
 compile or test the supported published-crate matrix.
 
 SBOM freshness checks also require `jq` `1.6` or newer. CI uses the runner's
@@ -48,7 +49,10 @@ uses no version-specific behavior beyond stable sorting and key deletion.
 
 `scripts/check_latest_tools.sh --local-only` verifies installed pins. Its
 `--fetch` mode also compares every Cargo tool pin with crates.io and is required
-by the release gate.
+by the release gate. `scripts/check_exact_dependency_pins.py --fetch`
+independently checks every direct library pin against crates.io's latest stable
+version; `cargo outdated` is retained as secondary graph evidence, not as the
+exact-pin freshness authority.
 
 Before changing the pinned toolchain, check the current stable Rust release and
 update this document, `README.md`, and `rust-toolchain.toml` together.

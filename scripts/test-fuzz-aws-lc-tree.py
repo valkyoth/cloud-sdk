@@ -25,26 +25,26 @@ def run(tree: str) -> subprocess.CompletedProcess[str]:
 
 def test_colored_repeated_packages_are_one_exact_graph() -> None:
     result = run(
-        "\x1b[1;32maws-lc-rs v1.18.0\x1b[0m\n"
-        "aws-lc-rs v1.18.0 (*)\n"
-        "aws-lc-sys v0.44.0\n"
-        "\x1b[36maws-lc-sys v0.44.0 (*)\x1b[0m\n"
+        "\x1b[1;32maws-lc-rs v1.18.1\x1b[0m\n"
+        "aws-lc-rs v1.18.1 (*)\n"
+        "aws-lc-sys v0.45.0\n"
+        "\x1b[36maws-lc-sys v0.45.0 (*)\x1b[0m\n"
     )
     assert result.returncode == 0, result
 
 
 def test_changed_or_additional_versions_fail_closed() -> None:
     result = run(
-        "aws-lc-rs v1.18.0\n"
+        "aws-lc-rs v1.18.1\n"
         "aws-lc-rs v1.17.3\n"
-        "aws-lc-sys v0.44.0\n"
+        "aws-lc-sys v0.45.0\n"
     )
     assert result.returncode == 1, result
     assert "aws-lc-rs v1.17.3" in result.stderr
 
 
 def test_missing_packages_fail_closed() -> None:
-    result = run("aws-lc-rs v1.18.0\n")
+    result = run("aws-lc-rs v1.18.1\n")
     assert result.returncode == 1, result
 
 

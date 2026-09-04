@@ -1,0 +1,29 @@
+{
+  "format": "cloud-sdk-cratesio-endpoints/v1",
+  "reviewed_at": "2026-09-04",
+  "source_commit": "9ae7f769cea32f38ebc2ea9ec2ce455b47641511",
+  "sources": [
+    {
+      "accept": "application/json",
+      "final_url": "https://index.crates.io/config.json",
+      "id": "index-config",
+      "max_bytes": 4096,
+      "media_type": "application/octet-stream",
+      "redirects": [],
+      "sha256": "5b943a2c6f7eb743f7308aba07bdbb47d9ae44aafecd832d7f15df186afbafb3",
+      "size_bytes": 76,
+      "url": "https://index.crates.io/config.json"
+    },
+    {
+      "accept": "text/plain",
+      "final_url": "https://raw.githubusercontent.com/rust-lang/crates.io/9ae7f769cea32f38ebc2ea9ec2ce455b47641511/docs/CONTRIBUTING.md",
+      "id": "staging-source",
+      "max_bytes": 262144,
+      "media_type": "text/plain",
+      "redirects": [],
+      "sha256": "95656a69d07234654d1aeecdb2a369052c07a84295befd5f1749b139c3379651",
+      "size_bytes": 24413,
+      "url": "https://raw.githubusercontent.com/rust-lang/crates.io/9ae7f769cea32f38ebc2ea9ec2ce455b47641511/docs/CONTRIBUTING.md"
+    }
+  ]
+}

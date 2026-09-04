@@ -23,13 +23,13 @@ PRODUCTION_TARGETS = (
     "x86_64-unknown-freebsd",
 )
 EXPECTED = {
-    "aws-lc-rs": ("1.18.0", "aws-lc-sys"),
-    "aws-lc-sys": ("0.44.0", None),
+    "aws-lc-rs": ("1.18.1", "aws-lc-sys"),
+    "aws-lc-sys": ("0.45.0", None),
     "ring": ("0.17.14", None),
 }
 EXPECTED_BUILD_SCRIPTS = {
-    ("aws-lc-rs", "1.18.0"),
-    ("aws-lc-sys", "0.44.0"),
+    ("aws-lc-rs", "1.18.1"),
+    ("aws-lc-sys", "0.45.0"),
     ("getrandom", "0.4.3"),
     ("httparse", "1.10.1"),
     ("icu_normalizer_data", "2.3.0"),
@@ -141,7 +141,7 @@ def production_failures(metadata: dict, feature: str, target: str) -> list[str]:
     reachable_ids = reachable_from(root, nodes, packages)
     reachable = [packages[package_id] for package_id in reachable_ids]
     active = {(package["name"], package["version"]) for package in reachable}
-    required = {("aws-lc-rs", "1.18.0"), ("aws-lc-sys", "0.44.0")}
+    required = {("aws-lc-rs", "1.18.1"), ("aws-lc-sys", "0.45.0")}
     if not required <= active:
         problems.append(f"{context}: AWS-LC production graph drifted")
     forbidden = sorted(
@@ -160,13 +160,13 @@ def production_failures(metadata: dict, feature: str, target: str) -> list[str]:
         package_id
         for package_id in reachable_ids
         if (packages[package_id]["name"], packages[package_id]["version"])
-        == ("aws-lc-rs", "1.18.0")
+        == ("aws-lc-rs", "1.18.1")
     ]
     sys_ids = [
         package_id
         for package_id in reachable_ids
         if (packages[package_id]["name"], packages[package_id]["version"])
-        == ("aws-lc-sys", "0.44.0")
+        == ("aws-lc-sys", "0.45.0")
     ]
     root_dependencies = normal_dependencies(nodes[root], packages[root])
     if len(aws_ids) != 1 or aws_ids[0] not in root_dependencies:

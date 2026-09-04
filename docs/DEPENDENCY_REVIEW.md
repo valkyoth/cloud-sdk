@@ -1,13 +1,10 @@
 # Dependency Review Digest
 This document consolidates release dependency reviews. Earlier complete snapshots remain available from their signed Git tags and repository history.
-
 Add future release sections here instead of creating another version-named file. Current policies live in the focused documents linked from each release note and in the release roadmap.
-
 ## v0.24.0
 **Status:** historical reviewed snapshot  
 **Topics:** Direct Published-Crate Dependencies; Tooling; Deterministic Trust Roots; Native AWS-LC Boundary; Evidence  
 **Full snapshot:** [signed-tag source](https://github.com/valkyoth/cloud-sdk/blob/v0.24.0/docs/DEPENDENCY_REVIEW_0.24.0.md)
-
 ## v0.32.0
 **Status:** historical reviewed snapshot  
 **Topics:** Reviewed Direct Updates; sanitization 2.0.3; Isolated And Transitive Updates; Cargo Archive Checksums; Required Verification  
@@ -29,31 +26,26 @@ Add future release sections here instead of creating another version-named file.
 **Full snapshot:** [signed-tag source](https://github.com/valkyoth/cloud-sdk/blob/v0.35.0/docs/DEPENDENCY_REVIEW_0.35.0.md)
 
 ## v0.36.0
-
 **Status:** historical reviewed snapshot  
 **Topics:** Result; Freshness; Required Verification  
 **Full snapshot:** [signed-tag source](https://github.com/valkyoth/cloud-sdk/blob/v0.36.0/docs/DEPENDENCY_REVIEW_0.36.0.md)
 
 ## v0.37.0
-
 **Status:** historical reviewed snapshot  
 **Topics:** Result; Required Verification  
 **Full snapshot:** [signed-tag source](https://github.com/valkyoth/cloud-sdk/blob/v0.37.0/docs/DEPENDENCY_REVIEW_0.37.0.md)
 
 ## v0.38.0
-
 **Status:** historical reviewed snapshot  
 **Topics:** Result; Required Verification  
 **Full snapshot:** [signed-tag source](https://github.com/valkyoth/cloud-sdk/blob/v0.38.0/docs/DEPENDENCY_REVIEW_0.38.0.md)
 
 ## v0.39.0
-
 **Status:** historical reviewed snapshot  
 **Topics:** Result; Required Verification  
 **Full snapshot:** [signed-tag source](https://github.com/valkyoth/cloud-sdk/blob/v0.39.0/docs/DEPENDENCY_REVIEW_0.39.0.md)
 
 ## v0.40.0
-
 **Status:** historical reviewed snapshot  
 **Topics:** Result; Boundary; Required Verification  
 **Full snapshot:** [signed-tag source](https://github.com/valkyoth/cloud-sdk/blob/v0.40.0/docs/DEPENDENCY_REVIEW_0.40.0.md)
@@ -485,16 +477,24 @@ The unreleased candidate aligns every workspace crate at 1.1.0. Reviewed compati
 | `cloud-sdk-sanitization` | `1.0.0` | `1.1.0` | Align the cleanup boundary with the candidate train. |
 | `cloud-sdk-testkit` | `1.0.0` | `1.1.0` | Align the testkit with the candidate train. |
 | `ovhcloud-v2-probe` | `1.0.0` | `1.1.0` | Align the excluded probe identity only. |
-| `base64-ng` | `2.0.1` | `2.0.2` | Exact direct patch; defaults remain disabled and the Rust 1.90 dependency MSRV stays below the workspace floor. |
-| `cc` | `1.4.3` | `1.4.4` | Compatible native-build helper patch; the bundled AWS-LC policy and native build boundary remain unchanged. |
+| `aws-lc-rs` | `1.18.0` | `1.18.1` | Security-relevant fail-closed AEAD/cipher/digest patch; defaults remain disabled and only the existing non-FIPS provider is admitted. Archive checksum `b281d307588d634de920874890732659e2e7672f72b5e10e81badc1a8a83621e`. |
+| `aws-lc-sys` | `0.44.0` | `0.45.0` | Corresponding bundled AWS-LC and native build-policy update; archive checksum `9bff6c3b54fad79a2e60b8102caf565819711497c1f5f092f49508e2f5c31b27`. |
+| `base64-ng` | `2.0.1` | `2.0.3` | Cumulative exact direct patches; defaults remain disabled, scalar APIs are unchanged, and high-assurance target eligibility is tightened. Archive checksum `de9ffc17cca7788889a3782a727359ab907711f425f74af63cc2af61e704422e`. |
+| `cc` | `1.4.3` | `1.4.5` | Cumulative compatible native-build helper patches; the bundled AWS-LC policy and native build boundary remain enforced. |
 | `chacha20` | `0.10.1` | `0.10.2` | Compatible transitive patch in the existing rustls platform graph. |
 | `combine` | `4.6.7` | `4.6.8` | Compatible transitive parser patch in the existing platform-verifier graph. |
 | `cpufeatures` | `0.3.0` | `0.3.1` | Compatible transitive CPU-feature detection patch; no first-party feature or unsafe boundary changes. |
+| `find-msvc-tools` | `0.1.11` | `0.1.12` | Compatible compiler-discovery helper patch used through `cc`; no runtime edge. |
 | `hyper` | `1.11.0` | `1.11.1` | Exact direct HTTP/1 patch; defaults stay disabled and the admitted feature set is unchanged. |
 | `icu_provider` | `2.3.0` | `2.3.1` | Compatible transitive Unicode provider patch in the existing URL graph. |
 | `log` | `0.4.33` | `0.4.34` | Compatible transitive logging facade patch; no first-party logging capability is added. |
+| `mio` | `1.2.2` | `1.2.3` | Compatible Tokio OS-I/O patch in optional transport graphs only. |
 | `quinn-proto` | `0.11.16` | `0.11.17` | Compatible transitive reqwest graph patch; HTTP/3 remains unenabled. |
 | `rustls-webpki` | `0.103.14` | `0.103.15` | Compatible certificate-validation patch under the existing rustls boundary. |
+| `sanitization` | `2.0.3` | `2.0.4` | Exact direct security hardening; replacement storage cannot downgrade an established preferred protection. Defaults remain disabled; archive checksum `f6c00771cb2e89cc08c486588aa5b462190634313f8885fbdc375de33ee84612`. |
+| `smallvec` | `1.15.2` | `1.16.0` | Compatible transitive bounded inline-vector update; no direct API or feature change. |
 | `syn` | `3.0.3` | `3.0.4` | Compatible macro parser patch used by existing derive/build paths. |
+| `tinyvec` | `1.12.0` | `1.13.2` | Compatible transitive Unicode/QUIC storage patches; HTTP/3 remains disabled. |
+| `tokio-rustls` | `0.26.4` | `0.26.5` | Compatible optional transport patch under the existing Rustls boundary. |
 | `zerovec` | `0.11.7` | `0.11.8` | Compatible transitive Unicode storage patch in the existing URL graph. |
 | `zerovec-derive` | `0.11.4` | `0.11.6` | Compatible derive patch paired with the reviewed zerovec update. |

@@ -1,21 +1,21 @@
 {
   "SPDXID": "SPDXRef-DOCUMENT",
   "creationInfo": {
-    "created": "2026-09-03T09:16:12Z",
+    "created": "2026-09-04T13:47:00Z",
     "creators": [
       "Tool: cargo-sbom-v0.10.0",
       "Tool: cloud-sdk-complete-spdx-v1"
     ]
   },
   "dataLicense": "CC0-1.0",
-  "documentNamespace": "https://spdx.org/spdxdocs/fuzz-07e7e682-19dd-4331-9cd1-2d9da052c280",
+  "documentNamespace": "https://spdx.org/spdxdocs/fuzz-75fa3823-17ae-431f-97c5-d5c23cd2aa28",
   "files": [
     {
       "SPDXID": "SPDXRef-File-action_polling",
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "eb5c3548213167c06fee05fd700536f4337a0141"
+          "checksumValue": "bd2a8ebdb3b69bfdb1186e22268e46181c133109"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -29,7 +29,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "eb5c3548213167c06fee05fd700536f4337a0141"
+          "checksumValue": "bd2a8ebdb3b69bfdb1186e22268e46181c133109"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -43,7 +43,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "eb5c3548213167c06fee05fd700536f4337a0141"
+          "checksumValue": "bd2a8ebdb3b69bfdb1186e22268e46181c133109"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -57,7 +57,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "eb5c3548213167c06fee05fd700536f4337a0141"
+          "checksumValue": "bd2a8ebdb3b69bfdb1186e22268e46181c133109"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -71,7 +71,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "eb5c3548213167c06fee05fd700536f4337a0141"
+          "checksumValue": "bd2a8ebdb3b69bfdb1186e22268e46181c133109"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -85,7 +85,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "eb5c3548213167c06fee05fd700536f4337a0141"
+          "checksumValue": "bd2a8ebdb3b69bfdb1186e22268e46181c133109"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -99,7 +99,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "eb5c3548213167c06fee05fd700536f4337a0141"
+          "checksumValue": "bd2a8ebdb3b69bfdb1186e22268e46181c133109"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -113,7 +113,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "eb5c3548213167c06fee05fd700536f4337a0141"
+          "checksumValue": "bd2a8ebdb3b69bfdb1186e22268e46181c133109"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -127,7 +127,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "eb5c3548213167c06fee05fd700536f4337a0141"
+          "checksumValue": "bd2a8ebdb3b69bfdb1186e22268e46181c133109"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -141,7 +141,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "eb5c3548213167c06fee05fd700536f4337a0141"
+          "checksumValue": "bd2a8ebdb3b69bfdb1186e22268e46181c133109"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -155,7 +155,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "eb5c3548213167c06fee05fd700536f4337a0141"
+          "checksumValue": "bd2a8ebdb3b69bfdb1186e22268e46181c133109"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -169,7 +169,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "eb5c3548213167c06fee05fd700536f4337a0141"
+          "checksumValue": "bd2a8ebdb3b69bfdb1186e22268e46181c133109"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -183,7 +183,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "eb5c3548213167c06fee05fd700536f4337a0141"
+          "checksumValue": "bd2a8ebdb3b69bfdb1186e22268e46181c133109"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -197,7 +197,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "eb5c3548213167c06fee05fd700536f4337a0141"
+          "checksumValue": "bd2a8ebdb3b69bfdb1186e22268e46181c133109"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -211,7 +211,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "eb5c3548213167c06fee05fd700536f4337a0141"
+          "checksumValue": "bd2a8ebdb3b69bfdb1186e22268e46181c133109"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -225,7 +225,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "eb5c3548213167c06fee05fd700536f4337a0141"
+          "checksumValue": "bd2a8ebdb3b69bfdb1186e22268e46181c133109"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -239,7 +239,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "eb5c3548213167c06fee05fd700536f4337a0141"
+          "checksumValue": "bd2a8ebdb3b69bfdb1186e22268e46181c133109"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -253,7 +253,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "eb5c3548213167c06fee05fd700536f4337a0141"
+          "checksumValue": "bd2a8ebdb3b69bfdb1186e22268e46181c133109"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -267,7 +267,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "eb5c3548213167c06fee05fd700536f4337a0141"
+          "checksumValue": "bd2a8ebdb3b69bfdb1186e22268e46181c133109"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -281,7 +281,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "eb5c3548213167c06fee05fd700536f4337a0141"
+          "checksumValue": "bd2a8ebdb3b69bfdb1186e22268e46181c133109"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -295,7 +295,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "eb5c3548213167c06fee05fd700536f4337a0141"
+          "checksumValue": "bd2a8ebdb3b69bfdb1186e22268e46181c133109"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -309,7 +309,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "eb5c3548213167c06fee05fd700536f4337a0141"
+          "checksumValue": "bd2a8ebdb3b69bfdb1186e22268e46181c133109"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -323,7 +323,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "eb5c3548213167c06fee05fd700536f4337a0141"
+          "checksumValue": "bd2a8ebdb3b69bfdb1186e22268e46181c133109"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -337,7 +337,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "eb5c3548213167c06fee05fd700536f4337a0141"
+          "checksumValue": "bd2a8ebdb3b69bfdb1186e22268e46181c133109"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -351,7 +351,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "eb5c3548213167c06fee05fd700536f4337a0141"
+          "checksumValue": "bd2a8ebdb3b69bfdb1186e22268e46181c133109"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -365,7 +365,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "eb5c3548213167c06fee05fd700536f4337a0141"
+          "checksumValue": "bd2a8ebdb3b69bfdb1186e22268e46181c133109"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -379,7 +379,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "eb5c3548213167c06fee05fd700536f4337a0141"
+          "checksumValue": "bd2a8ebdb3b69bfdb1186e22268e46181c133109"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -393,7 +393,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "eb5c3548213167c06fee05fd700536f4337a0141"
+          "checksumValue": "bd2a8ebdb3b69bfdb1186e22268e46181c133109"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -407,7 +407,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "eb5c3548213167c06fee05fd700536f4337a0141"
+          "checksumValue": "bd2a8ebdb3b69bfdb1186e22268e46181c133109"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -421,7 +421,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "eb5c3548213167c06fee05fd700536f4337a0141"
+          "checksumValue": "bd2a8ebdb3b69bfdb1186e22268e46181c133109"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -435,7 +435,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "eb5c3548213167c06fee05fd700536f4337a0141"
+          "checksumValue": "bd2a8ebdb3b69bfdb1186e22268e46181c133109"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -449,7 +449,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "eb5c3548213167c06fee05fd700536f4337a0141"
+          "checksumValue": "bd2a8ebdb3b69bfdb1186e22268e46181c133109"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -463,7 +463,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "eb5c3548213167c06fee05fd700536f4337a0141"
+          "checksumValue": "bd2a8ebdb3b69bfdb1186e22268e46181c133109"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -477,7 +477,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "eb5c3548213167c06fee05fd700536f4337a0141"
+          "checksumValue": "bd2a8ebdb3b69bfdb1186e22268e46181c133109"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -491,7 +491,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "eb5c3548213167c06fee05fd700536f4337a0141"
+          "checksumValue": "bd2a8ebdb3b69bfdb1186e22268e46181c133109"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -536,13 +536,13 @@
       "versionInfo": "1.1.2"
     },
     {
-      "SPDXID": "SPDXRef-Package-aws-lc-rs-1.18.0",
+      "SPDXID": "SPDXRef-Package-aws-lc-rs-1.18.1",
       "description": "aws-lc-rs is a cryptographic library using AWS-LC for its cryptographic operations. This library strives to be API-compatible with the popular Rust library named ring.",
       "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
-          "referenceLocator": "pkg:cargo/aws-lc-rs@1.18.0",
+          "referenceLocator": "pkg:cargo/aws-lc-rs@1.18.1",
           "referenceType": "purl"
         }
       ],
@@ -550,23 +550,23 @@
       "licenseConcluded": "ISC AND (Apache-2.0 OR ISC)",
       "licenseDeclared": "ISC AND (Apache-2.0 OR ISC)",
       "name": "aws-lc-rs",
-      "versionInfo": "1.18.0"
+      "versionInfo": "1.18.1"
     },
     {
-      "SPDXID": "SPDXRef-Package-aws-lc-sys-0.44.0",
+      "SPDXID": "SPDXRef-Package-aws-lc-sys-0.45.0",
       "description": "AWS-LC is a general-purpose cryptographic library maintained by the AWS Cryptography team for AWS and their customers. It \u0456s based on code from the Google BoringSSL project and the OpenSSL project.",
       "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
-          "referenceLocator": "pkg:cargo/aws-lc-sys@0.44.0",
+          "referenceLocator": "pkg:cargo/aws-lc-sys@0.45.0",
           "referenceType": "purl"
         }
       ],
       "licenseConcluded": "ISC AND (Apache-2.0 OR ISC) AND Apache-2.0 AND MIT AND BSD-3-Clause AND (Apache-2.0 OR ISC OR MIT) AND (Apache-2.0 OR ISC OR MIT-0)",
       "licenseDeclared": "ISC AND (Apache-2.0 OR ISC) AND Apache-2.0 AND MIT AND BSD-3-Clause AND (Apache-2.0 OR ISC OR MIT) AND (Apache-2.0 OR ISC OR MIT-0)",
       "name": "aws-lc-sys",
-      "versionInfo": "0.44.0"
+      "versionInfo": "0.45.0"
     },
     {
       "SPDXID": "SPDXRef-Package-base64-0.22.1",
@@ -585,13 +585,13 @@
       "versionInfo": "0.22.1"
     },
     {
-      "SPDXID": "SPDXRef-Package-base64-ng-2.0.2",
+      "SPDXID": "SPDXRef-Package-base64-ng-2.0.3",
       "description": "no_std-first Base64 encoding and decoding with strict RFC 4648 APIs and optional SIMD",
       "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
-          "referenceLocator": "pkg:cargo/base64-ng@2.0.2",
+          "referenceLocator": "pkg:cargo/base64-ng@2.0.3",
           "referenceType": "purl"
         }
       ],
@@ -599,7 +599,7 @@
       "licenseConcluded": "MIT OR Apache-2.0",
       "licenseDeclared": "MIT OR Apache-2.0",
       "name": "base64-ng",
-      "versionInfo": "2.0.2"
+      "versionInfo": "2.0.3"
     },
     {
       "SPDXID": "SPDXRef-Package-bitflags-2.13.1",
@@ -667,18 +667,18 @@
       "versionInfo": "1.12.1"
     },
     {
-      "SPDXID": "SPDXRef-Package-cc-1.4.4",
+      "SPDXID": "SPDXRef-Package-cc-1.4.5",
       "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
       "licenseConcluded": "MIT OR Apache-2.0",
       "name": "cc",
-      "versionInfo": "1.4.4",
+      "versionInfo": "1.4.5",
       "licenseDeclared": "MIT OR Apache-2.0",
       "description": "A build-time dependency for Cargo build scripts to assist in invoking the native\nC compiler to compile native C code into a static archive to be linked into Rust\ncode.\n",
       "homepage": "https://github.com/rust-lang/cc-rs",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
-          "referenceLocator": "pkg:cargo/cc@1.4.4",
+          "referenceLocator": "pkg:cargo/cc@1.4.5",
           "referenceType": "purl"
         }
       ]
@@ -928,17 +928,17 @@
       ]
     },
     {
-      "SPDXID": "SPDXRef-Package-find-msvc-tools-0.1.11",
+      "SPDXID": "SPDXRef-Package-find-msvc-tools-0.1.12",
       "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
       "licenseConcluded": "MIT OR Apache-2.0",
       "name": "find-msvc-tools",
-      "versionInfo": "0.1.11",
+      "versionInfo": "0.1.12",
       "licenseDeclared": "MIT OR Apache-2.0",
       "description": "Find windows-specific tools, read MSVC versions from the registry and from COM interfaces",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
-          "referenceLocator": "pkg:cargo/find-msvc-tools@0.1.11",
+          "referenceLocator": "pkg:cargo/find-msvc-tools@0.1.12",
           "referenceType": "purl"
         }
       ]
@@ -1637,13 +1637,13 @@
       "versionInfo": "2.8.3"
     },
     {
-      "SPDXID": "SPDXRef-Package-mio-1.2.2",
+      "SPDXID": "SPDXRef-Package-mio-1.2.3",
       "description": "Lightweight non-blocking I/O.",
       "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
-          "referenceLocator": "pkg:cargo/mio@1.2.2",
+          "referenceLocator": "pkg:cargo/mio@1.2.3",
           "referenceType": "purl"
         }
       ],
@@ -1651,7 +1651,7 @@
       "licenseConcluded": "MIT",
       "licenseDeclared": "MIT",
       "name": "mio",
-      "versionInfo": "1.2.2"
+      "versionInfo": "1.2.3"
     },
     {
       "SPDXID": "SPDXRef-Package-once--cell-1.21.4",
@@ -2096,13 +2096,13 @@
       ]
     },
     {
-      "SPDXID": "SPDXRef-Package-sanitization-2.0.3",
+      "SPDXID": "SPDXRef-Package-sanitization-2.0.4",
       "description": "Dependency-free no_std secret memory sanitization with safe defaults and an explicit volatile wipe backend.",
       "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
-          "referenceLocator": "pkg:cargo/sanitization@2.0.3",
+          "referenceLocator": "pkg:cargo/sanitization@2.0.4",
           "referenceType": "purl"
         }
       ],
@@ -2110,7 +2110,7 @@
       "licenseConcluded": "MIT OR Apache-2.0",
       "licenseDeclared": "MIT OR Apache-2.0",
       "name": "sanitization",
-      "versionInfo": "2.0.3"
+      "versionInfo": "2.0.4"
     },
     {
       "SPDXID": "SPDXRef-Package-schannel-0.1.29",
@@ -2328,20 +2328,20 @@
       "versionInfo": "0.4.12"
     },
     {
-      "SPDXID": "SPDXRef-Package-smallvec-1.15.2",
+      "SPDXID": "SPDXRef-Package-smallvec-1.16.0",
       "description": "'Small vector' optimization: store up to a small number of items on the stack",
       "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
-          "referenceLocator": "pkg:cargo/smallvec@1.15.2",
+          "referenceLocator": "pkg:cargo/smallvec@1.16.0",
           "referenceType": "purl"
         }
       ],
       "licenseConcluded": "MIT OR Apache-2.0",
       "licenseDeclared": "MIT OR Apache-2.0",
       "name": "smallvec",
-      "versionInfo": "1.15.2"
+      "versionInfo": "1.16.0"
     },
     {
       "SPDXID": "SPDXRef-Package-socket2-0.6.5",
@@ -2523,20 +2523,20 @@
       "versionInfo": "0.1.1"
     },
     {
-      "SPDXID": "SPDXRef-Package-tinyvec-1.12.0",
+      "SPDXID": "SPDXRef-Package-tinyvec-1.13.2",
       "description": "`tinyvec` provides 100% safe vec-like data structures.",
       "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
-          "referenceLocator": "pkg:cargo/tinyvec@1.12.0",
+          "referenceLocator": "pkg:cargo/tinyvec@1.13.2",
           "referenceType": "purl"
         }
       ],
       "licenseConcluded": "Zlib OR Apache-2.0 OR MIT",
       "licenseDeclared": "Zlib OR Apache-2.0 OR MIT",
       "name": "tinyvec",
-      "versionInfo": "1.12.0"
+      "versionInfo": "1.13.2"
     },
     {
       "SPDXID": "SPDXRef-Package-tokio-1.53.1",
@@ -2556,13 +2556,13 @@
       "versionInfo": "1.53.1"
     },
     {
-      "SPDXID": "SPDXRef-Package-tokio-rustls-0.26.4",
+      "SPDXID": "SPDXRef-Package-tokio-rustls-0.26.5",
       "description": "Asynchronous TLS/SSL streams for Tokio using Rustls.",
       "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
-          "referenceLocator": "pkg:cargo/tokio-rustls@0.26.4",
+          "referenceLocator": "pkg:cargo/tokio-rustls@0.26.5",
           "referenceType": "purl"
         }
       ],
@@ -2570,7 +2570,7 @@
       "licenseConcluded": "MIT OR Apache-2.0",
       "licenseDeclared": "MIT OR Apache-2.0",
       "name": "tokio-rustls",
-      "versionInfo": "0.26.4"
+      "versionInfo": "0.26.5"
     },
     {
       "SPDXID": "SPDXRef-Package-tower-0.5.3",
@@ -3679,37 +3679,37 @@
       "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-fuzz-0.0.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-aws-lc-rs-1.18.0",
+      "spdxElementId": "SPDXRef-Package-aws-lc-rs-1.18.1",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-aws-lc-sys-0.44.0"
+      "relatedSpdxElement": "SPDXRef-Package-aws-lc-sys-0.45.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-aws-lc-rs-1.18.0",
+      "spdxElementId": "SPDXRef-Package-aws-lc-rs-1.18.1",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-zeroize-1.9.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-aws-lc-sys-0.44.0",
+      "spdxElementId": "SPDXRef-Package-aws-lc-sys-0.45.0",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cc-1.4.4"
+      "relatedSpdxElement": "SPDXRef-Package-cc-1.4.5"
     },
     {
-      "spdxElementId": "SPDXRef-Package-aws-lc-sys-0.44.0",
+      "spdxElementId": "SPDXRef-Package-aws-lc-sys-0.45.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cmake-0.1.58"
     },
     {
-      "spdxElementId": "SPDXRef-Package-aws-lc-sys-0.44.0",
+      "spdxElementId": "SPDXRef-Package-aws-lc-sys-0.45.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-dunce-1.0.5"
     },
     {
-      "spdxElementId": "SPDXRef-Package-aws-lc-sys-0.44.0",
+      "spdxElementId": "SPDXRef-Package-aws-lc-sys-0.45.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-fs-5f-extra-1.3.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-aws-lc-sys-0.44.0",
+      "spdxElementId": "SPDXRef-Package-aws-lc-sys-0.45.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-pkg-config-0.3.34"
     },
@@ -3719,37 +3719,37 @@
       "relatedSpdxElement": "SPDXRef-Package-hybrid-array-0.4.14"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cc-1.4.4",
+      "spdxElementId": "SPDXRef-Package-cc-1.4.5",
       "relationshipType": "BUILD_DEPENDENCY_OF",
-      "relatedSpdxElement": "SPDXRef-Package-aws-lc-sys-0.44.0"
+      "relatedSpdxElement": "SPDXRef-Package-aws-lc-sys-0.45.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cc-1.4.4",
+      "spdxElementId": "SPDXRef-Package-cc-1.4.5",
       "relationshipType": "BUILD_DEPENDENCY_OF",
       "relatedSpdxElement": "SPDXRef-Package-libfuzzer-sys-0.4.13"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cc-1.4.4",
+      "spdxElementId": "SPDXRef-Package-cc-1.4.5",
       "relationshipType": "BUILD_DEPENDENCY_OF",
       "relatedSpdxElement": "SPDXRef-Package-ring-0.17.14"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cc-1.4.4",
+      "spdxElementId": "SPDXRef-Package-cc-1.4.5",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-find-msvc-tools-0.1.11"
+      "relatedSpdxElement": "SPDXRef-Package-find-msvc-tools-0.1.12"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cc-1.4.4",
+      "spdxElementId": "SPDXRef-Package-cc-1.4.5",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-jobserver-0.1.35"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cc-1.4.4",
+      "spdxElementId": "SPDXRef-Package-cc-1.4.5",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-libc-0.2.189"
     },
     {
-      "spdxElementId": "SPDXRef-Package-cc-1.4.4",
+      "spdxElementId": "SPDXRef-Package-cc-1.4.5",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-shlex-2.0.1"
     },
@@ -3816,7 +3816,7 @@
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-hetzner-1.1.0",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-base64-ng-2.0.2"
+      "relatedSpdxElement": "SPDXRef-Package-base64-ng-2.0.3"
     },
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-hetzner-1.1.0",
@@ -3851,17 +3851,17 @@
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-1.1.0",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-aws-lc-rs-1.18.0"
+      "relatedSpdxElement": "SPDXRef-Package-aws-lc-rs-1.18.1"
     },
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-1.1.0",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-aws-lc-sys-0.44.0"
+      "relatedSpdxElement": "SPDXRef-Package-aws-lc-sys-0.45.0"
     },
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-1.1.0",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-base64-ng-2.0.2"
+      "relatedSpdxElement": "SPDXRef-Package-base64-ng-2.0.3"
     },
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-1.1.0",
@@ -3926,17 +3926,17 @@
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-sanitization-1.1.0",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-sanitization-2.0.3"
+      "relatedSpdxElement": "SPDXRef-Package-sanitization-2.0.4"
     },
     {
       "spdxElementId": "SPDXRef-Package-cmake-0.1.58",
       "relationshipType": "BUILD_DEPENDENCY_OF",
-      "relatedSpdxElement": "SPDXRef-Package-aws-lc-sys-0.44.0"
+      "relatedSpdxElement": "SPDXRef-Package-aws-lc-sys-0.45.0"
     },
     {
       "spdxElementId": "SPDXRef-Package-cmake-0.1.58",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cc-1.4.4"
+      "relatedSpdxElement": "SPDXRef-Package-cc-1.4.5"
     },
     {
       "spdxElementId": "SPDXRef-Package-combine-4.6.8",
@@ -3996,7 +3996,7 @@
     {
       "spdxElementId": "SPDXRef-Package-dunce-1.0.5",
       "relationshipType": "BUILD_DEPENDENCY_OF",
-      "relatedSpdxElement": "SPDXRef-Package-aws-lc-sys-0.44.0"
+      "relatedSpdxElement": "SPDXRef-Package-aws-lc-sys-0.45.0"
     },
     {
       "spdxElementId": "SPDXRef-Package-form--urlencoded-1.2.2",
@@ -4006,7 +4006,7 @@
     {
       "spdxElementId": "SPDXRef-Package-fs-5f-extra-1.3.0",
       "relationshipType": "BUILD_DEPENDENCY_OF",
-      "relatedSpdxElement": "SPDXRef-Package-aws-lc-sys-0.44.0"
+      "relatedSpdxElement": "SPDXRef-Package-aws-lc-sys-0.45.0"
     },
     {
       "spdxElementId": "SPDXRef-Package-futures-channel-0.3.34",
@@ -4206,7 +4206,7 @@
     {
       "spdxElementId": "SPDXRef-Package-hyper-1.11.1",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-smallvec-1.15.2"
+      "relatedSpdxElement": "SPDXRef-Package-smallvec-1.16.0"
     },
     {
       "spdxElementId": "SPDXRef-Package-hyper-1.11.1",
@@ -4251,7 +4251,7 @@
     {
       "spdxElementId": "SPDXRef-Package-hyper-rustls-0.27.9",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-tokio-rustls-0.26.4"
+      "relatedSpdxElement": "SPDXRef-Package-tokio-rustls-0.26.5"
     },
     {
       "spdxElementId": "SPDXRef-Package-hyper-rustls-0.27.9",
@@ -4411,7 +4411,7 @@
     {
       "spdxElementId": "SPDXRef-Package-icu--normalizer-2.3.0",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-smallvec-1.15.2"
+      "relatedSpdxElement": "SPDXRef-Package-smallvec-1.16.0"
     },
     {
       "spdxElementId": "SPDXRef-Package-icu--normalizer-2.3.0",
@@ -4506,7 +4506,7 @@
     {
       "spdxElementId": "SPDXRef-Package-idna-1.1.0",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-smallvec-1.15.2"
+      "relatedSpdxElement": "SPDXRef-Package-smallvec-1.16.0"
     },
     {
       "spdxElementId": "SPDXRef-Package-idna-1.1.0",
@@ -4631,7 +4631,7 @@
     {
       "spdxElementId": "SPDXRef-Package-libfuzzer-sys-0.4.13",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cc-1.4.4"
+      "relatedSpdxElement": "SPDXRef-Package-cc-1.4.5"
     },
     {
       "spdxElementId": "SPDXRef-Package-md-5-0.11.0",
@@ -4644,24 +4644,24 @@
       "relatedSpdxElement": "SPDXRef-Package-digest-0.11.3"
     },
     {
-      "spdxElementId": "SPDXRef-Package-mio-1.2.2",
+      "spdxElementId": "SPDXRef-Package-mio-1.2.3",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-libc-0.2.189"
     },
     {
-      "spdxElementId": "SPDXRef-Package-mio-1.2.2",
+      "spdxElementId": "SPDXRef-Package-mio-1.2.3",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-wasi-0.11.1-plus-wasi-snapshot-preview1"
     },
     {
-      "spdxElementId": "SPDXRef-Package-mio-1.2.2",
+      "spdxElementId": "SPDXRef-Package-mio-1.2.3",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-windows-sys-0.61.2"
     },
     {
       "spdxElementId": "SPDXRef-Package-pkg-config-0.3.34",
       "relationshipType": "BUILD_DEPENDENCY_OF",
-      "relatedSpdxElement": "SPDXRef-Package-aws-lc-sys-0.44.0"
+      "relatedSpdxElement": "SPDXRef-Package-aws-lc-sys-0.45.0"
     },
     {
       "spdxElementId": "SPDXRef-Package-potential--utf-0.1.6",
@@ -4736,7 +4736,7 @@
     {
       "spdxElementId": "SPDXRef-Package-quinn-proto-0.11.17",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-aws-lc-rs-1.18.0"
+      "relatedSpdxElement": "SPDXRef-Package-aws-lc-rs-1.18.1"
     },
     {
       "spdxElementId": "SPDXRef-Package-quinn-proto-0.11.17",
@@ -4796,7 +4796,7 @@
     {
       "spdxElementId": "SPDXRef-Package-quinn-proto-0.11.17",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-tinyvec-1.12.0"
+      "relatedSpdxElement": "SPDXRef-Package-tinyvec-1.13.2"
     },
     {
       "spdxElementId": "SPDXRef-Package-quinn-proto-0.11.17",
@@ -4971,7 +4971,7 @@
     {
       "spdxElementId": "SPDXRef-Package-reqwest-0.13.4",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-tokio-rustls-0.26.4"
+      "relatedSpdxElement": "SPDXRef-Package-tokio-rustls-0.26.5"
     },
     {
       "spdxElementId": "SPDXRef-Package-reqwest-0.13.4",
@@ -5011,7 +5011,7 @@
     {
       "spdxElementId": "SPDXRef-Package-ring-0.17.14",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-cc-1.4.4"
+      "relatedSpdxElement": "SPDXRef-Package-cc-1.4.5"
     },
     {
       "spdxElementId": "SPDXRef-Package-ring-0.17.14",
@@ -5056,7 +5056,7 @@
     {
       "spdxElementId": "SPDXRef-Package-rustls-0.23.43",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-aws-lc-rs-1.18.0"
+      "relatedSpdxElement": "SPDXRef-Package-aws-lc-rs-1.18.1"
     },
     {
       "spdxElementId": "SPDXRef-Package-rustls-0.23.43",
@@ -5181,7 +5181,7 @@
     {
       "spdxElementId": "SPDXRef-Package-rustls-webpki-0.103.15",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-aws-lc-rs-1.18.0"
+      "relatedSpdxElement": "SPDXRef-Package-aws-lc-rs-1.18.1"
     },
     {
       "spdxElementId": "SPDXRef-Package-rustls-webpki-0.103.15",
@@ -5419,7 +5419,7 @@
       "relatedSpdxElement": "SPDXRef-Package-zerovec-0.11.8"
     },
     {
-      "spdxElementId": "SPDXRef-Package-tinyvec-1.12.0",
+      "spdxElementId": "SPDXRef-Package-tinyvec-1.13.2",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-tinyvec--macros-0.1.1"
     },
@@ -5436,7 +5436,7 @@
     {
       "spdxElementId": "SPDXRef-Package-tokio-1.53.1",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-mio-1.2.2"
+      "relatedSpdxElement": "SPDXRef-Package-mio-1.2.3"
     },
     {
       "spdxElementId": "SPDXRef-Package-tokio-1.53.1",
@@ -5454,12 +5454,12 @@
       "relatedSpdxElement": "SPDXRef-Package-windows-sys-0.61.2"
     },
     {
-      "spdxElementId": "SPDXRef-Package-tokio-rustls-0.26.4",
+      "spdxElementId": "SPDXRef-Package-tokio-rustls-0.26.5",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-rustls-0.23.43"
     },
     {
-      "spdxElementId": "SPDXRef-Package-tokio-rustls-0.26.4",
+      "spdxElementId": "SPDXRef-Package-tokio-rustls-0.26.5",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-tokio-1.53.1"
     },

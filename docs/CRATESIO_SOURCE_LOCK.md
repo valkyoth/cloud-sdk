@@ -1,11 +1,14 @@
 # crates.io Source Lock
 
-Status: Commit 3 provider crate and topology boundary accepted for the
-unreleased `1.1.0` train.
+Status: Commit 4 endpoint and request-target boundary implemented for the
+unreleased `1.1.0` train; incremental acceptance remains pending.
 
 This lock establishes finite crates.io scope before provider code exists. The
 machine-readable source manifest is
 [`provider-drift/providers/cratesio-source.lock.json`](../provider-drift/providers/cratesio-source.lock.json).
+The separately bounded production, staging, and static-download authority
+evidence is in
+[`provider-drift/providers/cratesio-endpoints.lock.json`](../provider-drift/providers/cratesio-endpoints.lock.json).
 The complete public operation inventory is
 [`CRATESIO_API_SCOPE.tsv`](CRATESIO_API_SCOPE.tsv), and the independently
 reviewed Cargo overlap is
@@ -13,14 +16,14 @@ reviewed Cargo overlap is
 
 ## Reviewed Sources
 
-The 2026-08-31 observation binds six official HTTPS representations:
+The 2026-09-04 observation binds six official HTTPS representations:
 
 | Evidence | Exact source | Bound |
 | --- | --- | --- |
 | Public API | `https://crates.io/api/openapi.json` | 1 MiB |
 | Stable Cargo contract | `https://doc.rust-lang.org/cargo/reference/registry-web-api.html` | 512 KiB |
 | Deployed access policy | `https://crates.io/data-access` | 128 KiB |
-| OpenAPI implementation | `rust-lang/crates.io` `src/openapi.rs` at `ea3b6ebad504d9701bc41f4d2f1d32ab864cee94` | 128 KiB |
+| OpenAPI implementation | `rust-lang/crates.io` `src/openapi.rs` at `9ae7f769cea32f38ebc2ea9ec2ce455b47641511` | 128 KiB |
 | Policy implementation | `rust-lang/crates.io` `svelte/src/routes/data-access/+page.svelte` at the same commit | 128 KiB |
 | Current policy observation | the same file on the official `rust-lang/crates.io` `main` branch | 128 KiB |
 

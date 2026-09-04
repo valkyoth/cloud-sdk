@@ -1,7 +1,7 @@
 # crates.io Commit Plan
 
 Status: selected unreleased `1.1.0` implementation train. Commits 1 through 3
-are accepted; Commit 4 is the next implementation checkpoint.
+are accepted; Commit 4 is implemented and awaiting its incremental pentest.
 
 ## Decision Summary
 
@@ -207,6 +207,10 @@ Pentest stop: run an incremental pentest for the exact Commit 3 crate and
 feature topology.
 
 ## Commit 4 - Endpoint And Request-Target Safety
+
+Checkpoint status: implemented on `main`; incremental pentest and GitHub checks
+are required before acceptance. The comparison baseline is
+`716c3ef8dd56a3dcd5881ed70a1ae9011517b3bf`.
 
 Goal: make official routing safe before credentials or operations exist.
 

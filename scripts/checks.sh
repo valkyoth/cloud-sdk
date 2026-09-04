@@ -33,6 +33,8 @@ scripts/test-provider-identities.py
 scripts/check_provider_identities.sh
 scripts/check_cratesio_crate_boundary.py
 scripts/test-cratesio-crate-boundary.py
+scripts/check_cratesio_endpoints.py
+scripts/test-cratesio-endpoints.py
 scripts/check_http_method_domain.sh
 scripts/check_request_targets.sh
 scripts/check_pagination_strategies.sh
