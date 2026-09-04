@@ -43,6 +43,7 @@ ENDPOINT_SOURCES = {
     "endpoint/mod.rs",
     "endpoint/authority.rs",
     "endpoint/redirect.rs",
+    "endpoint/redirect_tests.rs",
     "endpoint/target.rs",
     "endpoint/tests.rs",
 }

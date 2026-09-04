@@ -38,7 +38,7 @@ independently reviewed checkpoints are complete.
 | Default target | `no_std` |
 | Official endpoints | production API, staging API, and anonymous static downloads |
 | Request targets | bounded `/api/v1/` API and `/crates/` static-download forms |
-| Redirects | exact source-correlated production download redirect; authorization omitted |
+| Redirects | checked production `302` proof plus atomic credential-free download execution |
 | Custom API endpoints | HTTPS plus explicit trusted-operator acknowledgement |
 | Credentials | deferred to Commit 5 |
 | API operations | deferred to their source-locked implementation commits |
@@ -69,8 +69,10 @@ Custom API origins require
 already validated HTTPS `EndpointIdentity`. Values must never come from tenant,
 request, webhook, or other attacker-controlled input. Static download
 redirects accept only the exact `https://static.crates.io` authority, correlate
-the crate and version with the source API target, and require authorization to
-be omitted. The complete contract is documented in the
+the crate and version with the source API target, and can be followed only
+through a raw executor using an SDK-created bodyless `GET` with empty headers.
+The redirect does not expose endpoint or target pieces that could be reused by
+an authenticated request. The complete contract is documented in the
 [crates.io endpoint policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATESIO_ENDPOINT_POLICY.md).
 
 ## Features

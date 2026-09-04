@@ -161,17 +161,21 @@ full-service assessment are complete.
   targets and query-free `/crates/{name}/{archive}.crate` targets.
 - Added source-correlated download redirect validation that accepts only the
   exact production download route and `static.crates.io` archive destination.
-- Made cross-authority redirect authorization unrepresentable except as
-  `RedirectAuthorization::Omit`.
+- Added an opaque checked production-response proof requiring exact endpoint,
+  `302` status, empty body, absent content type, one retained `Location`, and
+  caller-owned bounded target storage.
+- Made redirect following atomic through credential-free blocking, Send async,
+  and local async raw executors. The SDK supplies a bodyless `GET` with empty
+  headers and exposes neither destination endpoint nor target components.
 - Added an explicit HTTPS custom API endpoint that cannot be constructed
   without the provider-neutral trusted-operator acknowledgement.
 - Added adversarial host, port, path, query, fragment, user-info, Unicode,
   control-byte, encoded-separator, traversal, downgrade, redirect, archive,
   and authority-confusion coverage.
 
-Commit 4 implementation is complete. Its incremental pentest, remediation if
-needed, retest, and GitHub checks remain pending before this checkpoint can be
-accepted. The comparison baseline is
+Commit 4 implementation and pentest remediation are complete. Its green
+retest and GitHub checks remain pending before this checkpoint can be accepted.
+The comparison baseline is
 `716c3ef8dd56a3dcd5881ed70a1ae9011517b3bf`.
 
 ### Maintenance Evidence

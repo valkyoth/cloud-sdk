@@ -6,9 +6,7 @@ use cloud_sdk::transport::{
 use super::{
     AcknowledgedCustomApiEndpoint, ApiRequestTarget, CRATES_IO_API_BASE_URL,
     CRATES_IO_STAGING_API_BASE_URL, CRATES_IO_STATIC_DOWNLOAD_BASE_URL, CratesIoEndpointError,
-    CratesIoTargetError, DownloadRedirect, DownloadRedirectError,
-    MAX_DOWNLOAD_REDIRECT_LOCATION_BYTES, OfficialCratesIoEndpoint, OfficialEndpointPurpose,
-    RedirectAuthorization, StaticDownloadTarget,
+    CratesIoTargetError, OfficialCratesIoEndpoint, OfficialEndpointPurpose, StaticDownloadTarget,
 };
 
 #[test]
@@ -147,123 +145,6 @@ fn static_targets_are_anonymous_path_only_archives() {
             Err(CratesIoTargetError::InvalidStaticDownloadPath)
         );
     }
-}
-
-#[test]
-fn download_redirect_is_exact_correlated_and_never_authorized() {
-    let source = ApiRequestTarget::new("/api/v1/crates/serde/1.0.0/download");
-    assert!(source.is_ok());
-    let Ok(source) = source else {
-        unreachable!("download source fixture construction failed");
-    };
-    let redirect = DownloadRedirect::new(
-        OfficialCratesIoEndpoint::production_api(),
-        source,
-        "https://static.crates.io/crates/serde/serde-1.0.0.crate",
-    );
-    assert!(redirect.is_ok());
-    let Ok(redirect) = redirect else {
-        unreachable!("download redirect fixture construction failed");
-    };
-    assert_eq!(
-        redirect.endpoint(),
-        OfficialCratesIoEndpoint::static_downloads()
-    );
-    assert_eq!(redirect.authorization(), RedirectAuthorization::Omit);
-    assert_eq!(
-        redirect.target().as_str(),
-        "/crates/serde/serde-1.0.0.crate"
-    );
-}
-
-#[test]
-fn redirects_reject_downgrade_user_info_ports_and_authority_confusion() {
-    let source = ApiRequestTarget::new("/api/v1/crates/serde/1.0.0/download");
-    assert!(source.is_ok());
-    let Ok(source) = source else {
-        unreachable!("download source fixture construction failed");
-    };
-    for location in [
-        "http://static.crates.io/crates/serde/serde-1.0.0.crate",
-        "https://user@static.crates.io/crates/serde/serde-1.0.0.crate",
-        "https://static.crates.io:443/crates/serde/serde-1.0.0.crate",
-        "https://static.crates.io.evil.example/crates/serde/serde-1.0.0.crate",
-        "https://static.crates.io@evil.example/crates/serde/serde-1.0.0.crate",
-        "https://static.crates.io./crates/serde/serde-1.0.0.crate",
-        "https://static.crat\u{e9}s.io/crates/serde/serde-1.0.0.crate",
-    ] {
-        assert!(
-            DownloadRedirect::new(OfficialCratesIoEndpoint::production_api(), source, location,)
-                .is_err()
-        );
-    }
-}
-
-#[test]
-fn redirects_reject_wrong_source_and_destination_content() {
-    let source = ApiRequestTarget::new("/api/v1/crates/serde/1.0.0/download");
-    assert!(source.is_ok());
-    let Ok(source) = source else {
-        unreachable!("download source fixture construction failed");
-    };
-    assert_eq!(
-        DownloadRedirect::new(
-            OfficialCratesIoEndpoint::staging_api(),
-            source,
-            "https://static.crates.io/crates/serde/serde-1.0.0.crate",
-        ),
-        Err(DownloadRedirectError::InvalidSourceEndpoint)
-    );
-    for location in [
-        "https://static.crates.io/crates/other/other-1.0.0.crate",
-        "https://static.crates.io/crates/serde/serde-2.0.0.crate",
-        "https://static.crates.io/crates/serde/other-1.0.0.crate",
-        "https://static.crates.io/crates/serde/serde-1.0.0.crate?token=secret",
-        "https://static.crates.io/crates/serde/%2E%2E.crate",
-    ] {
-        assert!(
-            DownloadRedirect::new(OfficialCratesIoEndpoint::production_api(), source, location,)
-                .is_err()
-        );
-    }
-    let wrong_source = ApiRequestTarget::new("/api/v1/crates/serde");
-    assert!(wrong_source.is_ok());
-    let Ok(wrong_source) = wrong_source else {
-        unreachable!("wrong download source fixture construction failed");
-    };
-    assert_eq!(
-        DownloadRedirect::new(
-            OfficialCratesIoEndpoint::production_api(),
-            wrong_source,
-            "https://static.crates.io/crates/serde/serde-1.0.0.crate",
-        ),
-        Err(DownloadRedirectError::InvalidSourcePath)
-    );
-}
-
-#[test]
-fn redirect_locations_are_bounded_before_target_validation() {
-    let source = ApiRequestTarget::new("/api/v1/crates/serde/1.0.0/download");
-    assert!(source.is_ok());
-    let Ok(source) = source else {
-        unreachable!("download source fixture construction failed");
-    };
-    let oversized = alloc::string::String::from_utf8(alloc::vec![
-        b'a';
-        MAX_DOWNLOAD_REDIRECT_LOCATION_BYTES + 1
-    ]);
-    assert!(oversized.is_ok());
-    let Ok(oversized) = oversized else {
-        unreachable!("oversized redirect fixture is not UTF-8");
-    };
-    assert_eq!(
-        DownloadRedirect::new(
-            OfficialCratesIoEndpoint::production_api(),
-            source,
-            &oversized,
-        ),
-        Err(DownloadRedirectError::LocationTooLong)
-    );
 }
 
 fn identity(

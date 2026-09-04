@@ -10,10 +10,12 @@ pub use authority::{
     OfficialEndpointPurpose,
 };
 pub use redirect::{
-    DownloadRedirect, DownloadRedirectError, MAX_DOWNLOAD_REDIRECT_LOCATION_BYTES,
-    RedirectAuthorization,
+    DownloadExecutionError, DownloadRedirect, DownloadRedirectError,
+    MAX_DOWNLOAD_REDIRECT_LOCATION_BYTES, ProductionDownloadResponse,
 };
 pub use target::{ApiRequestTarget, CratesIoTargetError, StaticDownloadTarget};
 
+#[cfg(test)]
+mod redirect_tests;
 #[cfg(test)]
 mod tests;

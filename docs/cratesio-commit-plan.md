@@ -1,7 +1,7 @@
 # crates.io Commit Plan
 
 Status: selected unreleased `1.1.0` implementation train. Commits 1 through 3
-are accepted; Commit 4 is implemented and awaiting its incremental pentest.
+are accepted; Commit 4 remediation is complete and awaiting a green retest.
 
 ## Decision Summary
 
@@ -208,8 +208,9 @@ feature topology.
 
 ## Commit 4 - Endpoint And Request-Target Safety
 
-Checkpoint status: implemented on `main`; incremental pentest and GitHub checks
-are required before acceptance. The comparison baseline is
+Checkpoint status: implementation and pentest remediation are complete on
+`main`; green retest and GitHub checks are required before acceptance. The
+comparison baseline is
 `716c3ef8dd56a3dcd5881ed70a1ae9011517b3bf`.
 
 Goal: make official routing safe before credentials or operations exist.
@@ -222,7 +223,7 @@ custom-endpoint constructors.
 Verification: host, port, path, query, fragment, user-info, Unicode, control
 byte, encoded separator, traversal, downgrade, redirect, and authority-confusion
 tests; prove credentials cannot cross an authority boundary and download
-redirects cannot inherit API authorization.
+redirects can execute only through an SDK-created empty-header raw request.
 
 Exit criteria: official constructors cannot be redirected to an attacker host,
 custom endpoints require an explicit unsafe-trust decision, and targets are

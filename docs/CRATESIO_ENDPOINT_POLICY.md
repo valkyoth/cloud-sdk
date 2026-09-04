@@ -44,24 +44,34 @@ construction remains assigned to later checkpoints.
 
 ## Redirects
 
-The transport adapters keep automatic redirects disabled. A caller may create
-a `DownloadRedirect` only when all of these conditions hold:
+The transport adapters keep automatic redirects disabled. A
+`ProductionDownloadResponse` can be minted only while checking a committed
+response against all of these conditions:
 
-1. The source endpoint is the exact production API origin.
+1. The response transport is bound to the exact production API origin.
 2. The source target is exactly
    `/api/v1/crates/{name}/{version}/download` without a query.
-3. The absolute `Location` starts with the exact
+3. The status is exactly `302`, the body is empty, no content type is retained,
+   and `Location` is the only retained response header.
+4. The absolute `Location` starts with the exact
    `https://static.crates.io` origin and contains a canonical static target.
-4. The destination directory and `{name}-{version}.crate` archive match the
+5. The destination directory and `{name}-{version}.crate` archive match the
    source target exactly.
-5. The follow-up request omits API authorization.
+6. The validated relative target fits caller-owned bounded storage.
+
+`DownloadRedirect` consumes that checked proof and does not expose its endpoint
+or target. Its blocking, Send async, and local async follow methods accept only
+the provider-neutral raw executor contracts. The SDK constructs one bodyless
+`GET` with `RequestHeaders::EMPTY` and verifies that the same executor is bound
+to the exact static-download origin before dispatch. API authorization,
+cookies, proxy authorization, and caller-supplied sensitive headers therefore
+cannot enter the SDK-created follow-up request.
 
 Downgrades, ports, user information, Unicode authorities, trailing-dot aliases,
 host suffixes, fragments, queries, traversal, encoded separators, mismatched
 archives, staging-to-production redirects, and oversized locations fail
-closed. Redirect execution itself is introduced only with the later checked
-client workflow; Commit 4 defines the authority and target proof required by
-that execution.
+closed. Raw executor implementations remain responsible for honoring their
+contract not to add implicit authentication, redirects, or retries.
 
 ## Custom Endpoints
 
