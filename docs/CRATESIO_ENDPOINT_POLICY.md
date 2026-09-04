@@ -54,7 +54,8 @@ types, and applies all of these conditions:
 1. The source executor is bound to the exact production API origin before it
    dispatches the request.
 2. The source target is exactly
-   `/api/v1/crates/{name}/{version}/download` without a query.
+   `/api/v1/crates/{name}/{version}/download` without a query, and this shape is
+   validated before dispatch.
 3. The status is exactly `302`, the body is empty, no content type is retained,
    and `Location` is the only retained response header.
 4. The absolute `Location` starts with the exact
@@ -67,7 +68,8 @@ The structural response constructor is not public, so safe callers cannot pair
 an unrelated or synthetic response with a separately verified transport to
 claim production provenance. Blocking, Send async, and local async source
 execution provide the same causal binding and clear caller-owned target storage
-before every attempt and on every failure. They also reject an already
+before every attempt and on every failure. Invalid generic API targets fail
+before the executor is called. They also reject an already
 committed response buffer before dispatch, preventing stale response evidence
 from being reused by a non-conforming executor.
 

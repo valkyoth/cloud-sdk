@@ -337,7 +337,7 @@ pub(super) fn validated_target<'a>(
     Ok(destination)
 }
 
-fn source_parts(source: ApiRequestTarget<'_>) -> Option<(&str, &str)> {
+pub(super) fn source_parts(source: ApiRequestTarget<'_>) -> Option<(&str, &str)> {
     if source.as_request_target().query().is_present() {
         return None;
     }

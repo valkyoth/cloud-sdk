@@ -31,6 +31,7 @@ impl<'storage> ProductionDownloadResponse<'storage> {
         T: BlockingRawHttpExecutor + BoundTransport,
     {
         sanitize_bytes(target_storage);
+        validate_download_source(source)?;
         verify_source_transport(transport)?;
         ensure_uncommitted(response)?;
         let policy = source_policy()?;
@@ -58,6 +59,7 @@ impl<'storage> ProductionDownloadResponse<'storage> {
         'buffer: 'writer,
     {
         sanitize_bytes(target_storage);
+        validate_download_source(source)?;
         verify_source_transport(transport)?;
         ensure_uncommitted(response)?;
         let policy = source_policy()?;
@@ -86,6 +88,7 @@ impl<'storage> ProductionDownloadResponse<'storage> {
         'buffer: 'writer,
     {
         sanitize_bytes(target_storage);
+        validate_download_source(source)?;
         verify_source_transport(transport)?;
         ensure_uncommitted(response)?;
         let policy = source_policy()?;
@@ -172,6 +175,14 @@ fn checked_response<'storage, E>(
         })
         .map_err(DownloadProvenanceError::ResponseWriter)?
         .map_err(DownloadProvenanceError::InvalidRedirect)
+}
+
+fn validate_download_source<E>(
+    source: ApiRequestTarget<'_>,
+) -> Result<(), DownloadProvenanceError<E>> {
+    super::redirect::source_parts(source).map(|_| ()).ok_or(
+        DownloadProvenanceError::InvalidRedirect(DownloadRedirectError::InvalidSourcePath),
+    )
 }
 
 fn verify_source_transport<E>(

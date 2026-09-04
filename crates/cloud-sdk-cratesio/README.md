@@ -73,8 +73,9 @@ the crate and version with the source API target, and can be followed only
 through a raw executor using an SDK-created bodyless `GET` with empty headers.
 Source proof creation also dispatches through the exact production-bound raw
 executor using an SDK-created bodyless `GET`, empty headers, and an exact
-response policy; callers cannot combine an unrelated response with a separately
-verified transport. The redirect does not expose endpoint or target pieces
+response policy after validating the exact version-download route; invalid
+generic API targets never reach the executor. Callers cannot combine an
+unrelated response with a separately verified transport. The redirect does not expose endpoint or target pieces
 that could be reused by an authenticated request. The complete contract is
 documented in the [crates.io endpoint policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATESIO_ENDPOINT_POLICY.md).
 

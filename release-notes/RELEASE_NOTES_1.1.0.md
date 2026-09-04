@@ -166,6 +166,9 @@ full-service assessment are complete.
   bodyless `GET`, empty request headers, and response policy before requiring
   `302` status, empty body, absent content type, one retained `Location`, and
   caller-owned bounded target storage.
+- Validate the exact version-download source route before blocking, Send async,
+  or local async dispatch, so unrelated generic crates.io API targets fail with
+  zero transport calls.
 - Kept the structural response constructor private to source execution so safe
   callers cannot combine an unrelated response with a separately verified
   transport to assert production provenance.

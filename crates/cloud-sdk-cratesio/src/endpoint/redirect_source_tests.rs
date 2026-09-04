@@ -58,6 +58,65 @@ fn endpoint_rejection_happens_before_source_dispatch() {
 }
 
 #[test]
+fn invalid_source_path_is_rejected_before_every_execution_mode_dispatches() {
+    let transport = SourceTransport::new(OfficialCratesIoEndpoint::production_api(), found());
+    let invalid_source = invalid_source();
+
+    let mut blocking_body = [0_u8; 1];
+    let mut blocking_headers = [0_u8; 256];
+    let mut blocking_response = ResponseBuffer::new(&mut blocking_body, 0, &mut blocking_headers);
+    let mut blocking_target = [0x5a_u8; 128];
+    assert!(matches!(
+        ProductionDownloadResponse::execute_blocking(
+            &transport,
+            invalid_source,
+            &mut blocking_response,
+            &mut blocking_target,
+        ),
+        Err(DownloadProvenanceError::InvalidRedirect(
+            DownloadRedirectError::InvalidSourcePath
+        ))
+    ));
+
+    let mut send_body = [0_u8; 1];
+    let mut send_headers = [0_u8; 256];
+    let mut send_response = ResponseBuffer::new(&mut send_body, 0, &mut send_headers);
+    let mut send_target = [0x5a_u8; 128];
+    assert!(matches!(
+        poll_once(ProductionDownloadResponse::execute_async(
+            &transport,
+            invalid_source,
+            &mut send_response,
+            &mut send_target,
+        )),
+        Poll::Ready(Err(DownloadProvenanceError::InvalidRedirect(
+            DownloadRedirectError::InvalidSourcePath
+        )))
+    ));
+
+    let mut local_body = [0_u8; 1];
+    let mut local_headers = [0_u8; 256];
+    let mut local_response = ResponseBuffer::new(&mut local_body, 0, &mut local_headers);
+    let mut local_target = [0x5a_u8; 128];
+    assert!(matches!(
+        poll_once(ProductionDownloadResponse::execute_local_async(
+            &transport,
+            invalid_source,
+            &mut local_response,
+            &mut local_target,
+        )),
+        Poll::Ready(Err(DownloadProvenanceError::InvalidRedirect(
+            DownloadRedirectError::InvalidSourcePath
+        )))
+    ));
+
+    assert_eq!(transport.calls.load(Ordering::Relaxed), 0);
+    assert!(blocking_target.iter().all(|byte| *byte == 0));
+    assert!(send_target.iter().all(|byte| *byte == 0));
+    assert!(local_target.iter().all(|byte| *byte == 0));
+}
+
+#[test]
 fn async_execution_modes_mint_only_their_own_committed_response() {
     let transport = SourceTransport::new(OfficialCratesIoEndpoint::production_api(), found());
     let mut send_body = [0_u8; 1];
@@ -154,6 +213,14 @@ fn source() -> ApiRequestTarget<'static> {
     let source = ApiRequestTarget::new(SOURCE);
     let Ok(source) = source else {
         unreachable!("source fixture failed");
+    };
+    source
+}
+
+fn invalid_source() -> ApiRequestTarget<'static> {
+    let source = ApiRequestTarget::new("/api/v1/crates/serde");
+    let Ok(source) = source else {
+        unreachable!("invalid download source fixture must remain a valid generic API target");
     };
     source
 }
