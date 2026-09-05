@@ -204,6 +204,11 @@ Commit 5 is implemented and awaiting incremental pentest against accepted
 checkpoint `3c9b2ad6c230f069b75b1138cbbebecbe350aba7`. The train remains blocked
 from publication until all numbered checkpoints are accepted.
 
+Commit 5 pentest remediation adds independent fixed-operation method/path
+assertions at both constructor and emitted-material boundaries, including
+temporary-token revocation. This closes a regression-test gap without changing
+the currently correct runtime constructors. Remediation retest is pending.
+
 ### Maintenance Evidence
 
 - Advanced the complete development and compatibility gate to stable Rust

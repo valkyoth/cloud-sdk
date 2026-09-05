@@ -82,6 +82,10 @@ expiry, rotation schedules and remote invalidation. No hidden retries occur.
   rejection with source cleanup; maximum material and exact/short output tests.
 - Header scheme formatting, JSON body and secret path routing; redacted errors,
   credentials and material; clone/type-mismatch/escaping-borrow compile failures.
+- Independent literal method and target assertions for every fixed constructor
+  in both origins, and for emitted material including temporary-token revocation.
+  These do not derive their expected values from the context under test; the
+  Python inventory comparison alone does not verify constructor behavior.
 - Wrong host, static host, staging mismatch, scheme, port and base-path rejection
   before callback; source-locked operation/method and reserved-header rejection.
 - Protected ownership transfer, successful/failed rotation, explicit clear,

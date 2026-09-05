@@ -7,6 +7,53 @@ use cloud_sdk::Method;
 use cloud_sdk::transport::{EndpointIdentity, EndpointScheme, RequestHeader};
 
 #[test]
+fn fixed_credential_contexts_match_independent_source_contracts() {
+    fn check<K: CredentialKind>(
+        context: CredentialContext<'_, K>,
+        origin: CredentialOrigin,
+        method: Method,
+        target: &str,
+    ) {
+        assert_eq!(context.origin, origin);
+        assert_eq!(context.method, method);
+        assert_eq!(context.target, target);
+    }
+
+    for origin in [CredentialOrigin::Production, CredentialOrigin::Staging] {
+        check(
+            CredentialContext::publish(origin),
+            origin,
+            Method::Put,
+            "/api/v1/crates/new",
+        );
+        check(
+            CredentialContext::revoke(origin),
+            origin,
+            Method::Delete,
+            "/api/v1/trusted_publishing/tokens",
+        );
+        check(
+            CredentialContext::exchange(origin),
+            origin,
+            Method::Post,
+            "/api/v1/trusted_publishing/tokens",
+        );
+        check(
+            CredentialContext::confirm_email(origin),
+            origin,
+            Method::Put,
+            "/api/v1/confirm/",
+        );
+        check(
+            CredentialContext::accept_invitation(origin),
+            origin,
+            Method::Put,
+            "/api/v1/me/crate_owner_invitations/accept/",
+        );
+    }
+}
+
+#[test]
 fn every_admitted_api_route_has_an_accepted_context() {
     for (method, template) in super::policy::API_ROUTES {
         let path = template

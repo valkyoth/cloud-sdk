@@ -180,7 +180,13 @@ fn clear_rotation_and_protected_ownership_preserve_the_boundary() {
 
 #[test]
 fn every_material_kind_formats_exactly_and_clears_the_entire_output() {
-    fn run<K: CredentialKind>(secret: &[u8], context: CredentialContext<'_, K>, expected: &str) {
+    fn run<K: CredentialKind>(
+        secret: &[u8],
+        context: CredentialContext<'_, K>,
+        expected: &str,
+        expected_method: cloud_sdk::Method,
+        expected_target: &str,
+    ) {
         let token = credential::<K>(secret);
         let mut output = vec![0xa5; expected.len() + 3];
         token
@@ -208,7 +214,8 @@ fn every_material_kind_formats_exactly_and_clears_the_entire_output() {
                     _ => unreachable!("credential kind fixture"),
                 };
                 assert_eq!(wire, expected);
-                assert_eq!(material.method(), context.method);
+                assert_eq!(material.method(), expected_method);
+                assert_eq!(material.target().as_str(), expected_target);
                 assert_eq!(material.endpoint().host(), "crates.io");
                 assert!(!format!("{material:?}").contains(expected));
             })
@@ -239,25 +246,46 @@ fn every_material_kind_formats_exactly_and_clears_the_entire_output() {
             .unwrap_or_else(|_| unreachable!("path fixture")),
     )
     .unwrap_or_else(|_| unreachable!("API fixture"));
-    run::<Api>(b"raw-value", api, "raw-value");
+    run::<Api>(
+        b"raw-value",
+        api,
+        "raw-value",
+        cloud_sdk::Method::Put,
+        "/api/v1/crates/new",
+    );
     run::<TrustedPublishing>(
         b"temporary",
         CredentialContext::publish(origin),
         "Bearer temporary",
+        cloud_sdk::Method::Put,
+        "/api/v1/crates/new",
+    );
+    run::<TrustedPublishing>(
+        b"temporary",
+        CredentialContext::revoke(origin),
+        "Bearer temporary",
+        cloud_sdk::Method::Delete,
+        "/api/v1/trusted_publishing/tokens",
     );
     run::<Oidc>(
         b"e30.e30.c2ln",
         CredentialContext::exchange(origin),
         "{\"jwt\":\"e30.e30.c2ln\"}",
+        cloud_sdk::Method::Post,
+        "/api/v1/trusted_publishing/tokens",
     );
     run::<EmailConfirmation>(
         b"confirmation",
         CredentialContext::confirm_email(origin),
         "/api/v1/confirm/confirmation",
+        cloud_sdk::Method::Put,
+        "/api/v1/confirm/confirmation",
     );
     run::<OwnerInvitation>(
         b"invitation",
         CredentialContext::accept_invitation(origin),
+        "/api/v1/me/crate_owner_invitations/accept/invitation",
+        cloud_sdk::Method::Put,
         "/api/v1/me/crate_owner_invitations/accept/invitation",
     );
 }
