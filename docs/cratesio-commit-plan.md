@@ -1,7 +1,8 @@
 # crates.io Commit Plan
 
 Status: selected unreleased `1.1.0` implementation train. Commits 1 through 4
-are accepted; Commit 5 is the next implementation checkpoint.
+are accepted; Commit 5 is implemented and awaiting its incremental pentest.
+Stop here before starting Commit 6.
 
 ## Decision Summary
 
@@ -239,6 +240,16 @@ Pentest stop: run an incremental pentest for the exact Commit 4 endpoint and
 redirect boundary.
 
 ## Commit 5 - Credentials And Authentication Contexts
+
+Implementation status: implemented; pentest pending. Compare against accepted
+Commit 4 evidence commit `3c9b2ad6c230f069b75b1138cbbebecbe350aba7` through the
+Commit 5 implementation HEAD. Do not tag or publish this candidate checkpoint.
+
+Implemented contract: [credential policy](CRATESIO_CREDENTIAL_POLICY.md).
+Protected storage and adapter preparation are available under `alloc`, without
+changing default features. Actual authenticated execution, remote token
+revocation and trusted-publishing exchange workflows remain in their later
+numbered checkpoints; the callback here is an explicit trusted adapter API.
 
 Goal: represent each non-cookie authentication mode without accidental leaks or
 header confusion.

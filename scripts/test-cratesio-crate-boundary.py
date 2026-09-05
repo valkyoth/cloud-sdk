@@ -27,11 +27,15 @@ checker = load_checker()
 
 def fixture() -> Path:
     root = Path(tempfile.mkdtemp())
+    (root / "docs").mkdir()
+    shutil.copyfile(ROOT / "docs/CRATESIO_API_SCOPE.tsv", root / "docs/CRATESIO_API_SCOPE.tsv")
     (root / "Cargo.toml").write_text(
         "[workspace]\n"
         "[workspace.dependencies]\n"
         "cloud-sdk = { path = \"crates/cloud-sdk\", version = \"1.1.0\", "
         "default-features = false }\n"
+        "cloud-sdk-sanitization = { path = \"crates/cloud-sdk-sanitization\", "
+        "version = \"1.1.0\", default-features = false }\n"
         "serde = { version = \"=1.0.229\", default-features = false, "
         "features = [\"alloc\", \"derive\"] }\n",
         encoding="ascii",
@@ -234,6 +238,32 @@ def test_unrelated_crate_dependency_is_rejected() -> None:
     shutil.rmtree(root)
 
 
+def test_credential_inventory_and_feature_regressions_are_rejected() -> None:
+    for old, new in (
+        ('"/api/v1/crates/new"', '"/api/v1/crates/other"'),
+        ('(Method::Get, "/api/v1/crates"),', ''),
+        ('(Method::Get, "/api/v1/crates"),', '(Method::Get, "/api/v1/crates"),\n(Method::Get, "/api/v1/crates"),'),
+        ('(Method::Get, "/api/v1/crates"),', 'other_routes(),'),
+    ):
+        root = fixture()
+        path = root / checker.CRATE / "src/credentials/policy.rs"
+        text = path.read_text(encoding="ascii")
+        assert old in text
+        path.write_text(text.replace(old, new), encoding="ascii")
+        assert_rejected(root, "credential route inventory")
+        shutil.rmtree(root)
+    root = fixture()
+    path = root / "docs/CRATESIO_API_SCOPE.tsv"
+    path.write_text(path.read_text(encoding="ascii").replace("trustpub_token", "anonymous"), encoding="ascii")
+    assert_rejected(root, "contexts need source review")
+    shutil.rmtree(root)
+    root = fixture()
+    path = root / checker.CRATE / "src/lib.rs"
+    path.write_text(path.read_text(encoding="ascii").replace('#[cfg(feature = "alloc")]\npub mod credentials;', 'pub mod credentials;'), encoding="ascii")
+    assert_rejected(root, "credential allocation boundary")
+    shutil.rmtree(root)
+
+
 def main() -> None:
     tests = (
         test_repository_boundary,
@@ -244,6 +274,7 @@ def main() -> None:
         test_workspace_dependency_substitution_is_rejected,
         test_endpoint_code_and_extra_modules_are_rejected,
         test_unrelated_crate_dependency_is_rejected,
+        test_credential_inventory_and_feature_regressions_are_rejected,
     )
     for test in tests:
         test()

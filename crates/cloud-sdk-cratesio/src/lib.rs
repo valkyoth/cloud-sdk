@@ -9,6 +9,8 @@ extern crate alloc;
 
 pub mod accounts;
 pub mod catalog;
+#[cfg(feature = "alloc")]
+pub mod credentials;
 pub mod endpoint;
 pub mod identity;
 pub mod ownership;

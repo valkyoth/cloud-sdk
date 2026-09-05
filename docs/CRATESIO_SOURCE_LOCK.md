@@ -1,9 +1,10 @@
 # crates.io Source Lock
 
-Status: Commit 4 endpoint and request-target boundary accepted for the
-unreleased `1.1.0` train.
+Status: Commits 1 through 4 accepted; Commit 5 credential preparation is
+implemented and awaiting pentest in the unreleased `1.1.0` train. See the
+[credential contract](CRATESIO_CREDENTIAL_POLICY.md).
 
-This lock establishes finite crates.io scope before provider code exists. The
+This lock establishes the finite reviewed scope for provider implementation. The
 machine-readable source manifest is
 [`provider-drift/providers/cratesio-source.lock.json`](../provider-drift/providers/cratesio-source.lock.json).
 The separately bounded production, staging, and static-download authority

@@ -118,6 +118,7 @@ name = "cloud-sdk-cratesio"
 version = "1.1.0"
 dependencies = [
  "cloud-sdk",
+ "cloud-sdk-sanitization",
  "serde",
 ]
 

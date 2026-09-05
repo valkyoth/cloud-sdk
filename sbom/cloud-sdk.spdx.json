@@ -1,21 +1,21 @@
 {
   "SPDXID": "SPDXRef-DOCUMENT",
   "creationInfo": {
-    "created": "2026-09-04T15:45:00Z",
+    "created": "2026-09-05T07:13:38Z",
     "creators": [
       "Tool: cargo-sbom-v0.10.0",
       "Tool: cloud-sdk-complete-spdx-v1"
     ]
   },
   "dataLicense": "CC0-1.0",
-  "documentNamespace": "https://spdx.org/spdxdocs/cloud-sdk-95df296f-b7f5-4515-a3b8-7798cd4df5bd",
+  "documentNamespace": "https://spdx.org/spdxdocs/cloud-sdk-79f27ff2-5941-4ea1-9b12-1bb70047008e",
   "files": [
     {
       "SPDXID": "SPDXRef-File-cloud_sdk",
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "c5eed13fe9fd1f68841669a0e70fc477f178c0b4"
+          "checksumValue": "8207a34c3b7406eb915af82f8455d8ec7a8791d0"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -29,7 +29,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "c5eed13fe9fd1f68841669a0e70fc477f178c0b4"
+          "checksumValue": "8207a34c3b7406eb915af82f8455d8ec7a8791d0"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -43,7 +43,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "c5eed13fe9fd1f68841669a0e70fc477f178c0b4"
+          "checksumValue": "8207a34c3b7406eb915af82f8455d8ec7a8791d0"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -57,7 +57,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "c5eed13fe9fd1f68841669a0e70fc477f178c0b4"
+          "checksumValue": "8207a34c3b7406eb915af82f8455d8ec7a8791d0"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -71,7 +71,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "c5eed13fe9fd1f68841669a0e70fc477f178c0b4"
+          "checksumValue": "8207a34c3b7406eb915af82f8455d8ec7a8791d0"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -85,7 +85,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "c5eed13fe9fd1f68841669a0e70fc477f178c0b4"
+          "checksumValue": "8207a34c3b7406eb915af82f8455d8ec7a8791d0"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -99,7 +99,7 @@
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "c5eed13fe9fd1f68841669a0e70fc477f178c0b4"
+          "checksumValue": "8207a34c3b7406eb915af82f8455d8ec7a8791d0"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -3171,6 +3171,11 @@
       "spdxElementId": "SPDXRef-Package-cloud-sdk-cratesio-1.1.0",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-1.1.0"
+    },
+    {
+      "spdxElementId": "SPDXRef-Package-cloud-sdk-cratesio-1.1.0",
+      "relationshipType": "DEPENDS_ON",
+      "relatedSpdxElement": "SPDXRef-Package-cloud-sdk-sanitization-1.1.0"
     },
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-cratesio-1.1.0",

@@ -42,7 +42,7 @@ plan can become `public`.
 | `cloud-sdk-reqwest` | `1.0.0` | `1.1.0` | candidate metadata |
 | `cloud-sdk-sanitization` | `1.0.0` | `1.1.0` | candidate metadata |
 | `cloud-sdk-testkit` | `1.0.0` | `1.1.0` | candidate metadata |
-| `cloud-sdk-cratesio` | none | `1.1.0` | endpoint-safe candidate provider boundary |
+| `cloud-sdk-cratesio` | none | `1.1.0` | endpoint-safe provider and protected credential preparation |
 
 Exact final change classifications are assigned only after the complete train
 is implemented.
@@ -186,6 +186,23 @@ The accepted implementation commit is
 `b613b1a25b31a85a04b0d79b955364a8e2a65ee9`; the complete `1.1.0` security
 review remains pending until every planned checkpoint and the final
 full-service assessment are complete.
+
+### Commit 5 - Credentials And Authentication Contexts
+
+- Added five non-cloneable protected credential kinds behind `alloc`, with
+  immutable production/staging origins and source-locked operation contexts.
+- Reused the admitted neutral sanitization crate for fallible protected storage,
+  ownership transfer, local rotation and full caller-buffer cleanup.
+- Added bounded raw Authorization, Bearer, OIDC JSON and secret-path formatting
+  through an explicit trusted adapter callback. No executable authenticated
+  client, token acquisition, remote revocation or automatic retry is claimed.
+- Added positive/adversarial tests, compile-fail type/lifetime checks and exact
+  API-token route comparison with the source inventory. Default features stay
+  empty and no new third-party package is admitted.
+
+Commit 5 is implemented and awaiting incremental pentest against accepted
+checkpoint `3c9b2ad6c230f069b75b1138cbbebecbe350aba7`. The train remains blocked
+from publication until all numbered checkpoints are accepted.
 
 ### Maintenance Evidence
 

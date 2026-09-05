@@ -3,6 +3,8 @@
 
 from __future__ import annotations
 
+import csv
+import re
 import sys
 import tomllib
 from pathlib import Path
@@ -19,7 +21,7 @@ DOMAIN_MODULES = (
 )
 EXPECTED_FEATURES = {
     "default": [],
-    "alloc": ["cloud-sdk/alloc"],
+    "alloc": ["cloud-sdk/alloc", "dep:cloud-sdk-sanitization", "cloud-sdk-sanitization/alloc"],
     "serde": ["alloc", "dep:serde"],
     "std": ["alloc", "cloud-sdk/std"],
     "blocking": ["serde", "std"],
@@ -35,6 +37,7 @@ EXPECTED_AUTO_TARGETS = {
 }
 EXPECTED_DEPENDENCIES = {
     "cloud-sdk": {"workspace": True},
+    "cloud-sdk-sanitization": {"workspace": True, "optional": True},
     "serde": {"workspace": True, "optional": True},
 }
 EXPECTED_LIBRARY = {"path": "src/lib.rs"}
@@ -49,7 +52,16 @@ ENDPOINT_SOURCES = {
     "endpoint/target.rs",
     "endpoint/tests.rs",
 }
+CREDENTIAL_SOURCES = {
+    f"credentials/{name}.rs"
+    for name in ("mod", "context", "context_tests", "kind", "material", "policy", "secret", "tests")
+}
 EXPECTED_WORKSPACE_DEPENDENCIES = {
+    "cloud-sdk-sanitization": {
+        "path": "crates/cloud-sdk-sanitization",
+        "version": "1.1.0",
+        "default-features": False,
+    },
     "cloud-sdk": {
         "path": "crates/cloud-sdk",
         "version": "1.1.0",
@@ -106,6 +118,38 @@ def dependency_package_names(document: dict) -> set[str]:
     return names
 
 
+def validate_authentication_inventory(root: Path) -> None:
+    """Compare the deliberately literal Rust route inventory, not arbitrary Rust."""
+    source = (root / CRATE / "src/credentials/policy.rs").read_text(encoding="ascii")
+    table = re.search(r"const API_ROUTES:.*?= &\[(.*?)\];", source, re.DOTALL)
+    if table is None:
+        raise BoundaryError("credential route inventory is missing")
+    entry = r'\(\s*Method::(Get|Put|Post|Patch|Delete),\s*"([^"\n]+)"\s*,?\s*\),'
+    entries = re.findall(entry, table[1])
+    if re.sub(entry, "", table[1]).strip():
+        raise BoundaryError("credential route inventory is not a literal table")
+    actual = [(method.upper(), path) for method, path in entries]
+    with (root / "docs/CRATESIO_API_SCOPE.tsv").open(encoding="ascii", newline="") as stream:
+        rows = list(csv.DictReader(stream, delimiter="\t"))
+    expected = [
+        (row["method"], row["path"])
+        for row in rows
+        if "api_token" in row["admitted_auth"].split("|")
+    ]
+    if sorted(actual) != sorted(expected):
+        raise BoundaryError("credential route inventory differs from source lock")
+    special = {
+        "trustpub_token": {("PUT", "/api/v1/crates/new"), ("DELETE", "/api/v1/trusted_publishing/tokens")},
+        "oidc_assertion_body": {("POST", "/api/v1/trusted_publishing/tokens")},
+        "email_confirmation_path_token": {("PUT", "/api/v1/confirm/{email_token}")},
+        "owner_invitation_path_token": {("PUT", "/api/v1/me/crate_owner_invitations/accept/{token}")},
+    }
+    for mode, routes in special.items():
+        observed = [(row["method"], row["path"]) for row in rows if mode in row["admitted_auth"].split("|")]
+        if sorted(observed) != sorted(routes):
+            raise BoundaryError(f"credential {mode} contexts need source review")
+
+
 def validate(root: Path) -> None:
     crate = root / CRATE
     manifest = load(crate / "Cargo.toml")
@@ -145,6 +189,7 @@ def validate(root: Path) -> None:
         "lib.rs",
         "identity.rs",
         *ENDPOINT_SOURCES,
+        *CREDENTIAL_SOURCES,
         *(f"{module}.rs" for module in DOMAIN_MODULES),
     }
     actual_sources = {
@@ -161,6 +206,8 @@ def validate(root: Path) -> None:
         raise BoundaryError("provider lost its no_std crate boundary")
     if "pub mod endpoint;" not in library:
         raise BoundaryError("provider does not export the endpoint boundary")
+    if '#[cfg(feature = "alloc")]\npub mod credentials;' not in library:
+        raise BoundaryError("provider credential allocation boundary changed")
     for module in DOMAIN_MODULES:
         if f"pub mod {module};" not in library:
             raise BoundaryError(f"provider does not export {module}")
@@ -182,6 +229,7 @@ def validate(root: Path) -> None:
             continue
         if "cloud-sdk-cratesio" in dependency_package_names(load(path)):
             raise BoundaryError(f"unrelated crate depends on provider: {path}")
+    validate_authentication_inventory(root)
 
 
 def main() -> int:

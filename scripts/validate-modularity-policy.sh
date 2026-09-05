@@ -56,7 +56,8 @@ fi
 
 for source in \
     crates/cloud-sdk/src/authentication/signing/tests.rs \
-    crates/cloud-sdk/src/authentication/signing/tests/output.rs
+    crates/cloud-sdk/src/authentication/signing/tests/output.rs \
+    crates/cloud-sdk-cratesio/src/credentials/tests.rs
 do
     if ! awk '
         /^#\[cfg\(feature = "std"\)\]$/ { guarded = 1; next }
@@ -67,7 +68,7 @@ do
         { guarded = 0 }
         END { exit bad || !found }
     ' "$source"; then
-        echo "modularity policy: signing test std alias lost feature guard: $source" >&2
+        echo "modularity policy: test std alias lost feature guard: $source" >&2
         status=1
     fi
 done
