@@ -26,8 +26,9 @@ provider-neutral execution contracts from `cloud-sdk`.
 The crate is currently an unreleased `1.1.0` candidate. Provider identity and
 the endpoint, request-target, and static-download redirect boundaries are now
 implemented. Protected credential preparation is implemented behind `alloc`
-and awaiting its checkpoint pentest. API workflows and authenticated network
-execution remain unavailable until their reviewed checkpoints are complete.
+and has passed its checkpoint pentest and remediation retest. API workflows
+and authenticated network execution remain unavailable until their reviewed
+checkpoints are complete.
 
 ## Current Boundary
 

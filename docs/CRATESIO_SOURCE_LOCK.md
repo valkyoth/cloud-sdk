@@ -1,7 +1,7 @@
 # crates.io Source Lock
 
-Status: Commits 1 through 4 accepted; Commit 5 credential preparation is
-implemented and awaiting pentest in the unreleased `1.1.0` train. See the
+Status: Commits 1 through 5 have passed pentest; Commit 5 credential preparation
+awaits GitHub approval in the unreleased `1.1.0` train. See the
 [credential contract](CRATESIO_CREDENTIAL_POLICY.md).
 
 This lock establishes the finite reviewed scope for provider implementation. The

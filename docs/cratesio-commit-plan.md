@@ -1,8 +1,8 @@
 # crates.io Commit Plan
 
-Status: selected unreleased `1.1.0` implementation train. Commits 1 through 4
-are accepted; Commit 5 is implemented and awaiting its incremental pentest.
-Stop here before starting Commit 6.
+Status: selected unreleased `1.1.0` implementation train. Commits 1 through 5
+have passed their pentests. Commit 5 is awaiting GitHub CI and CodeQL approval;
+stop here before starting Commit 6.
 
 ## Decision Summary
 
@@ -241,9 +241,14 @@ redirect boundary.
 
 ## Commit 5 - Credentials And Authentication Contexts
 
-Implementation status: implemented; pentest pending. Compare against accepted
-Commit 4 evidence commit `3c9b2ad6c230f069b75b1138cbbebecbe350aba7` through the
-Commit 5 implementation HEAD. Do not tag or publish this candidate checkpoint.
+Implementation status: incremental pentest and remediation retest passed.
+Reviewed range: accepted Commit 4 evidence commit
+`3c9b2ad6c230f069b75b1138cbbebecbe350aba7` through
+`e79273b7f4d4bafa0520e0b7105dd11012b782af`. The permanent
+[pentest report](../security/pentest/cratesio-commit-5.md) records the resolved
+test-coverage finding. The evidence commit containing that report becomes
+Commit 6's comparison baseline after GitHub CI and CodeQL pass. Do not tag or
+publish this candidate checkpoint.
 
 Implemented contract: [credential policy](CRATESIO_CREDENTIAL_POLICY.md).
 Protected storage and adapter preparation are available under `alloc`, without

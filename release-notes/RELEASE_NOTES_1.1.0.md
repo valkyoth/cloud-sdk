@@ -200,14 +200,22 @@ full-service assessment are complete.
   API-token route comparison with the source inventory. Default features stay
   empty and no new third-party package is admitted.
 
-Commit 5 is implemented and awaiting incremental pentest against accepted
-checkpoint `3c9b2ad6c230f069b75b1138cbbebecbe350aba7`. The train remains blocked
-from publication until all numbered checkpoints are accepted.
+Commit 5 passed its incremental pentest and remediation retest from accepted
+checkpoint `3c9b2ad6c230f069b75b1138cbbebecbe350aba7` through reviewed commit
+`e79273b7f4d4bafa0520e0b7105dd11012b782af`. GitHub approval is pending. The train
+remains blocked from publication until all numbered checkpoints are accepted.
 
 Commit 5 pentest remediation adds independent fixed-operation method/path
 assertions at both constructor and emitted-material boundaries, including
 temporary-token revocation. This closes a regression-test gap without changing
-the currently correct runtime constructors. Remediation retest is pending.
+the currently correct runtime constructors. Both regression tests reject each
+of ten isolated method/path mutations; the restored snapshot passes. The final
+user-confirmed retest found no remaining issue.
+
+Checkpoint qualification also corrected the isolated package-feature gate to
+patch both unpublished local dependencies of `cloud-sdk-cratesio`, matching the
+main check gate. A mock-Cargo regression test asserts the actual complete
+package command. This changes only build verification, not SDK behavior.
 
 ### Maintenance Evidence
 

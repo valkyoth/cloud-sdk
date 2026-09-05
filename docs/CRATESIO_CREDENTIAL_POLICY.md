@@ -1,7 +1,8 @@
 # crates.io Credential Contract
 
-Status: Commit 5 implemented; incremental pentest pending. Candidate `1.1.0`
-is not publishable. No authenticated API workflow is claimed complete.
+Status: Commit 5 incremental pentest and remediation retest passed; GitHub
+approval is pending. Candidate `1.1.0` is not publishable. No authenticated API
+workflow is claimed complete.
 
 ## Source And Context
 
@@ -94,4 +95,6 @@ expiry, rotation schedules and remote invalidation. No hidden retries occur.
 - Source-inventory checker regression tests, default/alloc/all-feature builds,
   MSRV, Clippy, doctests, package verification, SBOM and repository gates.
 
-User pentest approval is still required for this checkpoint.
+The user confirmed a green remediation retest. The
+[permanent report](../security/pentest/cratesio-commit-5.md) records the exact
+reviewed range. GitHub CI and CodeQL must pass before Commit 6 begins.

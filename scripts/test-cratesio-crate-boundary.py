@@ -4,7 +4,11 @@
 from __future__ import annotations
 
 import importlib.util
+import json
+import os
 import shutil
+import subprocess
+import sys
 import tempfile
 from pathlib import Path
 
@@ -264,6 +268,42 @@ def test_credential_inventory_and_feature_regressions_are_rejected() -> None:
     shutil.rmtree(root)
 
 
+def test_packaged_candidate_uses_both_local_dependency_patches() -> None:
+    with tempfile.TemporaryDirectory() as directory:
+        root = Path(directory)
+        scripts = root / "scripts"
+        scripts.mkdir()
+        shutil.copyfile(ROOT / "scripts/enforce_bundled_aws_lc.sh", scripts / "enforce_bundled_aws_lc.sh")
+        reqwest = scripts / "check_packaged_reqwest_tests.sh"
+        reqwest.write_text("#!/bin/sh\nexit 0\n", encoding="ascii")
+        reqwest.chmod(0o700)
+        binary = root / "bin"
+        binary.mkdir()
+        log = root / "cargo.jsonl"
+        cargo = binary / "cargo"
+        cargo.write_text(
+            f"#!{sys.executable}\n"
+            "import json, sys\n"
+            f"with open({str(log)!r}, 'a', encoding='ascii') as output:\n"
+            "    output.write(json.dumps(sys.argv[1:]) + '\\n')\n",
+            encoding="ascii",
+        )
+        cargo.chmod(0o700)
+        environment = dict(os.environ, PATH=str(binary) + os.pathsep + os.environ["PATH"])
+        result = subprocess.run(
+            ["sh", str(ROOT / "scripts/check_packaged_feature_graphs.sh")],
+            cwd=root, env=environment, text=True, capture_output=True, check=False,
+        )
+        assert result.returncode == 0, result
+        calls = [json.loads(line) for line in log.read_text(encoding="ascii").splitlines()]
+        provider_calls = [call for call in calls if "cloud-sdk-cratesio" in call]
+        assert provider_calls == [[
+            "package", "--locked", "-p", "cloud-sdk-cratesio", "--allow-dirty", "--all-features",
+            "--config", 'patch.crates-io.cloud-sdk.path="crates/cloud-sdk"',
+            "--config", 'patch.crates-io.cloud-sdk-sanitization.path="crates/cloud-sdk-sanitization"',
+        ]], provider_calls
+
+
 def main() -> None:
     tests = (
         test_repository_boundary,
@@ -275,6 +315,7 @@ def main() -> None:
         test_endpoint_code_and_extra_modules_are_rejected,
         test_unrelated_crate_dependency_is_rejected,
         test_credential_inventory_and_feature_regressions_are_rejected,
+        test_packaged_candidate_uses_both_local_dependency_patches,
     )
     for test in tests:
         test()
