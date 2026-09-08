@@ -97,4 +97,4 @@ expiry, rotation schedules and remote invalidation. No hidden retries occur.
 
 The user confirmed a green remediation retest. The
 [permanent report](../security/pentest/cratesio-commit-5.md) records the exact
-reviewed range. GitHub CI and CodeQL must pass before Commit 6 begins.
+reviewed range. GitHub CI and CodeQL subsequently passed, permitting Commit 6.

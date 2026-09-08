@@ -1,8 +1,9 @@
 # crates.io Commit Plan
 
 Status: selected unreleased `1.1.0` implementation train. Commits 1 through 5
-have passed pentest and GitHub checks. Commit 6 wire foundations are implemented
-and awaiting incremental pentest. Stop before Commit 7; do not tag or publish.
+have passed pentest and GitHub checks. Commit 6 wire foundations passed their
+incremental pentest and remediation retest; GitHub checks are pending on the
+evidence checkpoint. Stop before Commit 7; do not tag or publish.
 
 ## Decision Summary
 
@@ -279,10 +280,12 @@ authentication surface.
 
 ## Commit 6 - Wire, Error, Rate, And Response Foundations
 
-Implementation status: implementation stop, incremental pentest pending.
-Accepted comparison baseline: `2f1c858293dfa472e0aba753d129872e01f82fa1`
-(Commit 5 evidence plus its code-identical CI retrigger). Pentest this baseline
-through the complete Commit 6 implementation and any remediation commits.
+Implementation status: incremental pentest and remediation retest passed.
+Reviewed range: `2f1c858293dfa472e0aba753d129872e01f82fa1` through
+`d2a7105002f129da7dcba5d8dc0d3661362d4290`. The permanent
+[pentest report](../security/pentest/cratesio-commit-6.md) records the contact
+validation finding and regression tests. Its evidence commit becomes Commit 7's
+comparison baseline after GitHub CI and CodeQL pass. Do not tag or publish.
 
 Implemented contract: [wire policy](CRATESIO_WIRE_POLICY.md). The existing
 bounded incremental decoder is now provider-neutral under `cloud-sdk/alloc`,

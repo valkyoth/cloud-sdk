@@ -27,8 +27,9 @@ The crate is currently an unreleased `1.1.0` candidate. Provider identity and
 the endpoint, request-target, and static-download redirect boundaries are now
 implemented. Protected credential preparation is implemented behind `alloc`
 and has passed its checkpoint pentest and remediation retest. Checked JSON
-envelopes, request scheduling and user-agent policy are implemented and await
-their checkpoint pentest. API workflows
+envelopes, request scheduling and user-agent policy have also passed their
+checkpoint pentest and remediation retest; GitHub checks remain pending.
+API workflows
 and authenticated network execution remain unavailable until their reviewed
 checkpoints are complete.
 

@@ -37,12 +37,12 @@ plan can become `public`.
 
 | Crate | Published | Candidate | Current state |
 | --- | --- | --- | --- |
-| `cloud-sdk` | `1.0.0` | `1.1.0` | candidate metadata |
-| `cloud-sdk-hetzner` | `1.0.0` | `1.1.0` | candidate metadata; stable behavior unchanged |
-| `cloud-sdk-reqwest` | `1.0.0` | `1.1.0` | candidate metadata |
-| `cloud-sdk-sanitization` | `1.0.0` | `1.1.0` | candidate metadata |
+| `cloud-sdk` | `1.0.0` | `1.1.0` | shared incremental JSON decoder; default graph unchanged |
+| `cloud-sdk-hetzner` | `1.0.0` | `1.1.0` | stable API; compatibility exports use the shared decoder |
+| `cloud-sdk-reqwest` | `1.0.0` | `1.1.0` | reviewed TLS and authentication dependency updates |
+| `cloud-sdk-sanitization` | `1.0.0` | `1.1.0` | reviewed sanitization dependency update |
 | `cloud-sdk-testkit` | `1.0.0` | `1.1.0` | candidate metadata |
-| `cloud-sdk-cratesio` | none | `1.1.0` | endpoint-safe provider and protected credential preparation |
+| `cloud-sdk-cratesio` | none | `1.1.0` | endpoint-safe provider, protected credentials, checked wire and scheduling foundations |
 
 Exact final change classifications are assigned only after the complete train
 is implemented.
@@ -239,7 +239,12 @@ package command. This changes only build verification, not SDK behavior.
   HTTPS contacts. Regression tests retain the exact 256-byte header boundary.
 - Operation-specific models, asynchronous client integration and complete
   authenticated execution remain assigned to later checkpoints. This is an
-  implementation stop requiring incremental pentest, not a service release.
+  implementation checkpoint, not a service release.
+
+Commit 6 passed its incremental pentest and remediation retest at `d2a71050`.
+The [permanent report](../security/pentest/cratesio-commit-6.md) records the
+reviewed range. GitHub CI and CodeQL are pending on the evidence checkpoint;
+Commit 7 must not begin before they pass.
 
 ### Maintenance Evidence
 

@@ -1,8 +1,9 @@
 # crates.io Wire Contract
 
-Status: unreleased `1.1.0`, Commit 6 implementation stop. Incremental pentest
-is required against accepted baseline
-`2f1c858293dfa472e0aba753d129872e01f82fa1`. No tag or publication is authorized.
+Status: unreleased `1.1.0`, Commit 6 incremental pentest and remediation retest
+passed. The [permanent report](../security/pentest/cratesio-commit-6.md) records
+the reviewed range. GitHub CI and CodeQL remain pending on the evidence
+checkpoint. No tag or publication is authorized.
 
 ## Source Contract
 
@@ -128,4 +129,5 @@ Local qualification on 2026-09-08 passed `scripts/checks.sh`, the full Rust
 1.92.0 through 1.98.1 matrix, all configured portable targets plus native
 checks, all six package graphs, SBOM freshness, fresh RustSec scans of four
 lockfiles, cargo-deny, direct-pin/tool freshness and live crates.io drift.
-This is local implementation evidence, not pentest or GitHub approval.
+These are local qualification results. The separate pentest retest passed;
+GitHub CI and CodeQL approval remain pending on the evidence checkpoint.
