@@ -7,6 +7,9 @@ pub const MAX_USER_AGENT_BYTES: usize = 256;
 ///
 /// Format: `product/version (contact)`. The contact is a trusted operator email
 /// or HTTPS URL, not a credential. Syntax cannot establish its real ownership.
+/// Email contacts use ASCII dot-atoms (at most 64 local-part bytes); both
+/// contact forms require dotted DNS names with 1 through 63 byte labels.
+/// Quoted local parts, address literals, and internationalized text are excluded.
 #[derive(Clone, Copy)]
 pub struct IdentifyingUserAgent<'a>(&'a str);
 
@@ -51,27 +54,41 @@ fn valid_contact(contact: &str) -> bool {
     }
     if let Some(url) = contact.strip_prefix("https://") {
         let host = url.split('/').next().unwrap_or_default();
-        return !host.is_empty()
-            && !url.contains(['@', '#', '?'])
-            && host
-                .bytes()
-                .all(|byte| byte.is_ascii_alphanumeric() || matches!(byte, b'.' | b'-'))
-            && host.contains('.')
-            && !host.starts_with('.')
-            && !host.ends_with('.');
+        return !url.contains(['@', '#', '?']) && valid_contact_domain(host);
     }
+    valid_email_contact(contact)
+}
+
+fn valid_email_contact(contact: &str) -> bool {
     let Some((local, domain)) = contact.split_once('@') else {
         return false;
     };
-    !local.is_empty()
-        && !domain.is_empty()
-        && !domain.contains('@')
-        && domain.contains('.')
-        && domain
-            .bytes()
-            .all(|byte| byte.is_ascii_alphanumeric() || matches!(byte, b'.' | b'-'))
-        && !domain.starts_with('.')
-        && !domain.ends_with('.')
+    local.len() <= 64
+        && local.split('.').all(|atom| {
+            !atom.is_empty()
+                && atom.bytes().all(|byte| {
+                    byte.is_ascii_alphanumeric() || b"!#$%&'*+-/=?^_`{|}~".contains(&byte)
+                })
+        })
+        && valid_contact_domain(domain)
+}
+
+fn valid_contact_domain(domain: &str) -> bool {
+    domain.contains('.')
+        && domain.split('.').all(|label| {
+            label.len() <= 63
+                && label
+                    .as_bytes()
+                    .first()
+                    .is_some_and(u8::is_ascii_alphanumeric)
+                && label
+                    .as_bytes()
+                    .last()
+                    .is_some_and(u8::is_ascii_alphanumeric)
+                && label
+                    .bytes()
+                    .all(|byte| byte.is_ascii_alphanumeric() || byte == b'-')
+        })
 }
 
 impl fmt::Debug for IdentifyingUserAgent<'_> {

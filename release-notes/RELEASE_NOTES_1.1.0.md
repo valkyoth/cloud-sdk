@@ -234,6 +234,9 @@ package command. This changes only build verification, not SDK behavior.
 - Added identifying user-agent validation, clock-free non-burst scheduling and
   a process-wide blocking adapter gate with a full one-second quiet period
   after every attempt. No retries, sleeps, or network calls are implicit.
+- Tightened contact validation after pentest: reject malformed email dot-atoms,
+  local parts above 64 bytes, and invalid or oversized DNS labels in email and
+  HTTPS contacts. Regression tests retain the exact 256-byte header boundary.
 - Operation-specific models, asynchronous client integration and complete
   authenticated execution remain assigned to later checkpoints. This is an
   implementation stop requiring incremental pentest, not a service release.

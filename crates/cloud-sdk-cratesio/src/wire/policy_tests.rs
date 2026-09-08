@@ -40,8 +40,8 @@ fn user_agent_requires_explicit_bounded_single_line_identity() {
     ] {
         assert!(IdentifyingUserAgent::new(invalid).is_err());
     }
-    let prefix = "a/1 (";
-    let suffix = "@example.org)";
+    let prefix = "a";
+    let suffix = "/1 (ops@example.org)";
     let valid = format!(
         "{prefix}{}{suffix}",
         "x".repeat(
@@ -51,10 +51,66 @@ fn user_agent_requires_explicit_bounded_single_line_identity() {
         )
     );
     assert!(IdentifyingUserAgent::new(&valid).is_ok());
-    let over = valid.replacen("a/1", "aa/1", 1);
+    let over = format!("a{valid}");
     assert!(IdentifyingUserAgent::new(&over).is_err());
     let unicode = String::from("a/1 (\u{2603}@example.org)");
     assert!(IdentifyingUserAgent::new(&unicode).is_err());
+}
+
+#[test]
+fn user_agent_rejects_malformed_email_atoms_and_dns_labels() {
+    for contact in [
+        "ops@example..org",
+        "a:b@example.org",
+        ".ops@example.org",
+        "ops.@example.org",
+        "op..s@example.org",
+        "ops@-example.org",
+        "ops@example-.org",
+        "ops@exam_ple.org",
+        "ops@.example.org",
+        "ops@example.org.",
+        "ops@example",
+        "ops@[127.0.0.1]",
+        "\"ops\"@example.org",
+        "https://example..org/contact",
+        "https://-example.org/contact",
+        "https://example-.org/contact",
+    ] {
+        assert!(
+            IdentifyingUserAgent::new(&format!("app/1 ({contact})")).is_err(),
+            "malformed contact accepted: {contact}"
+        );
+    }
+    for contact in [
+        "first.last+ops@example.org",
+        "!#$%&'*+-/=?^_`{|}~@example.org",
+        "OPS@sub-domain.Example.org",
+        "ops@1.2",
+        "https://sub-domain.example.org/contact",
+    ] {
+        assert!(IdentifyingUserAgent::new(&format!("app/1 ({contact})")).is_ok());
+    }
+}
+
+#[test]
+fn user_agent_enforces_email_local_and_contact_label_length_limits() {
+    for (length, accepted) in [(63, true), (64, true), (65, false)] {
+        let value = format!("app/1 ({}@example.org)", "a".repeat(length));
+        assert_eq!(IdentifyingUserAgent::new(&value).is_ok(), accepted);
+    }
+    for (length, accepted) in [(1, true), (63, true), (64, false)] {
+        let label = "a".repeat(length);
+        for contact in [
+            format!("ops@{label}.org"),
+            format!("ops@example.{label}"),
+            format!("https://{label}.org/contact"),
+            format!("https://example.{label}/contact"),
+        ] {
+            let value = format!("app/1 ({contact})");
+            assert_eq!(IdentifyingUserAgent::new(&value).is_ok(), accepted);
+        }
+    }
 }
 
 #[test]

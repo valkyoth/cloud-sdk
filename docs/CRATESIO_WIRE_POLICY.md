@@ -80,6 +80,17 @@ syntax does not prove its ownership or reachability. Controls, CRLF, Unicode,
 missing identification and oversized values fail. Debug redacts the value.
 This public identity must never contain a secret.
 
+Email syntax uses a restricted ASCII dot-atom profile: nonempty atoms separated
+by single dots and at most 64 local-part bytes. Quoted local parts, address
+literals and internationalized text are intentionally unsupported. Email
+domains and HTTPS hosts require dotted DNS names with nonempty labels of at
+most 63 bytes, alphanumeric ends and only interior alphanumeric/hyphen bytes.
+The full 256-byte user-agent ceiling still applies. This profile follows
+[RFC 5322 section 3.2.3](https://www.rfc-editor.org/rfc/rfc5322.html#section-3.2.3)
+and the domain and local-part constraints in
+[RFC 5321](https://www.rfc-editor.org/rfc/rfc5321.html#section-4.1.2);
+it does not attempt to accept every legal mailbox representation.
+
 `ApiSchedule` is a non-cloneable, clock-free state machine. All workers must
 share one synchronized instance and one trusted monotonic clock. It admits
 only immediate starts, never redeemable future permits. Failed attempts consume
@@ -107,6 +118,7 @@ Regression tests cover exact success/status/media matrices, unknown nested
 fields, malformed and duplicate envelopes, 200-with-errors, error-detail shape,
 byte limits, cleanup, invalid/missing/overflowing Retry-After and HTTP dates,
 user-agent injection, monotonic rollback/overflow, failed attempt accounting,
+malformed contact atoms and DNS labels, exact local/label/header length bounds,
 reentrant process-wide gate use, concurrent scheduler contention and redacted
 diagnostics. Moved parser tests retain split-boundary, grammar-oracle, resource
 bound, panic-poison and staging-cleanup checks. The existing incremental fuzz
