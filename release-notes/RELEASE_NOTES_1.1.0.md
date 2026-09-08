@@ -202,7 +202,7 @@ full-service assessment are complete.
 
 Commit 5 passed its incremental pentest and remediation retest from accepted
 checkpoint `3c9b2ad6c230f069b75b1138cbbebecbe350aba7` through reviewed commit
-`e79273b7f4d4bafa0520e0b7105dd11012b782af`. GitHub approval is pending. The train
+`e79273b7f4d4bafa0520e0b7105dd11012b782af`. GitHub checks passed. The train
 remains blocked from publication until all numbered checkpoints are accepted.
 
 Commit 5 pentest remediation adds independent fixed-operation method/path
@@ -216,6 +216,27 @@ Checkpoint qualification also corrected the isolated package-feature gate to
 patch both unpublished local dependencies of `cloud-sdk-cratesio`, matching the
 main check gate. A mock-Cargo regression test asserts the actual complete
 package command. This changes only build verification, not SDK behavior.
+
+### Commit 6 - Wire, Error, Rate, And Response Foundations
+
+- Refreshed exact pins to `base64-ng 2.0.4`, `sanitization 2.1.0`, and
+  `rustls 0.23.44` after the live freshness gate identified the newer releases.
+  Existing feature selection and MSRV remain unchanged; the dependency digest
+  records archive checksums and optional TLS behavior changes.
+- Reused the bounded incremental JSON decoder in `cloud-sdk/alloc`, retaining
+  Hetzner's existing public reexports and moving all parser regression tests
+  with the implementation. No new runtime third-party dependency is added.
+- Added cleanup-owning crates.io JSON success admission with exact status,
+  lowered byte budgets, strict UTF-8 JSON media policy, complete duplicate-key
+  and structural validation, and Cargo error-envelope rejection even on 200.
+- Added payload-free provider errors, explicit 429/503 classification and
+  bounded `Retry-After` parsing through the existing neutral HTTP-date parser.
+- Added identifying user-agent validation, clock-free non-burst scheduling and
+  a process-wide blocking adapter gate with a full one-second quiet period
+  after every attempt. No retries, sleeps, or network calls are implicit.
+- Operation-specific models, asynchronous client integration and complete
+  authenticated execution remain assigned to later checkpoints. This is an
+  implementation stop requiring incremental pentest, not a service release.
 
 ### Maintenance Evidence
 

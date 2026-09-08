@@ -1,21 +1,21 @@
 {
   "SPDXID": "SPDXRef-DOCUMENT",
   "creationInfo": {
-    "created": "2026-09-04T15:45:00Z",
+    "created": "2026-09-08T09:35:14Z",
     "creators": [
       "Tool: cargo-sbom-v0.10.0",
       "Tool: cloud-sdk-complete-spdx-v1"
     ]
   },
   "dataLicense": "CC0-1.0",
-  "documentNamespace": "https://spdx.org/spdxdocs/reqwest-feature-unification-7ae430e0-4d91-46c9-8f70-cabe2e9380a5",
+  "documentNamespace": "https://spdx.org/spdxdocs/reqwest-feature-unification-8a0332b0-3a87-44bb-9f83-22b7ac5c84c6",
   "files": [
     {
       "SPDXID": "SPDXRef-File-cloud_sdk_reqwest_feature_unification_test",
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "d377760ad66bcbdf5b1a9e284452c8641c448bef"
+          "checksumValue": "398e3d052b1e37e6a7357c0b23fdcc131e2f94e0"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -125,13 +125,13 @@
       "versionInfo": "0.22.1"
     },
     {
-      "SPDXID": "SPDXRef-Package-base64-ng-2.0.3",
+      "SPDXID": "SPDXRef-Package-base64-ng-2.0.4",
       "description": "no_std-first Base64 encoding and decoding with strict RFC 4648 APIs and optional SIMD",
       "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
-          "referenceLocator": "pkg:cargo/base64-ng@2.0.3",
+          "referenceLocator": "pkg:cargo/base64-ng@2.0.4",
           "referenceType": "purl"
         }
       ],
@@ -139,7 +139,7 @@
       "licenseConcluded": "MIT OR Apache-2.0",
       "licenseDeclared": "MIT OR Apache-2.0",
       "name": "base64-ng",
-      "versionInfo": "2.0.3"
+      "versionInfo": "2.0.4"
     },
     {
       "SPDXID": "SPDXRef-Package-bitflags-2.13.1",
@@ -1843,13 +1843,13 @@
       "versionInfo": "2.1.3"
     },
     {
-      "SPDXID": "SPDXRef-Package-rustls-0.23.43",
+      "SPDXID": "SPDXRef-Package-rustls-0.23.44",
       "description": "Rustls is a modern TLS library written in Rust.",
       "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
-          "referenceLocator": "pkg:cargo/rustls@0.23.43",
+          "referenceLocator": "pkg:cargo/rustls@0.23.44",
           "referenceType": "purl"
         }
       ],
@@ -1857,7 +1857,7 @@
       "licenseConcluded": "Apache-2.0 OR ISC OR MIT",
       "licenseDeclared": "Apache-2.0 OR ISC OR MIT",
       "name": "rustls",
-      "versionInfo": "0.23.43"
+      "versionInfo": "0.23.44"
     },
     {
       "SPDXID": "SPDXRef-Package-rustls-native-certs-0.8.4",
@@ -1975,13 +1975,13 @@
       ]
     },
     {
-      "SPDXID": "SPDXRef-Package-sanitization-2.0.4",
+      "SPDXID": "SPDXRef-Package-sanitization-2.1.0",
       "description": "Dependency-free no_std secret memory sanitization with safe defaults and an explicit volatile wipe backend.",
       "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
-          "referenceLocator": "pkg:cargo/sanitization@2.0.4",
+          "referenceLocator": "pkg:cargo/sanitization@2.1.0",
           "referenceType": "purl"
         }
       ],
@@ -1989,7 +1989,7 @@
       "licenseConcluded": "MIT OR Apache-2.0",
       "licenseDeclared": "MIT OR Apache-2.0",
       "name": "sanitization",
-      "versionInfo": "2.0.4"
+      "versionInfo": "2.1.0"
     },
     {
       "SPDXID": "SPDXRef-Package-schannel-0.1.29",
@@ -3477,7 +3477,7 @@
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-1.1.0",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-base64-ng-2.0.3"
+      "relatedSpdxElement": "SPDXRef-Package-base64-ng-2.0.4"
     },
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-1.1.0",
@@ -3527,7 +3527,7 @@
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-1.1.0",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-rustls-0.23.43"
+      "relatedSpdxElement": "SPDXRef-Package-rustls-0.23.44"
     },
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-1.1.0",
@@ -3562,7 +3562,7 @@
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-feature-unification-test-0.0.0",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-rustls-0.23.43"
+      "relatedSpdxElement": "SPDXRef-Package-rustls-0.23.44"
     },
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-feature-unification-test-0.0.0",
@@ -3572,7 +3572,7 @@
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-sanitization-1.1.0",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-sanitization-2.0.4"
+      "relatedSpdxElement": "SPDXRef-Package-sanitization-2.1.0"
     },
     {
       "spdxElementId": "SPDXRef-Package-cmake-0.1.58",
@@ -4192,7 +4192,7 @@
     {
       "spdxElementId": "SPDXRef-Package-hyper-rustls-0.27.9",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-rustls-0.23.43"
+      "relatedSpdxElement": "SPDXRef-Package-rustls-0.23.44"
     },
     {
       "spdxElementId": "SPDXRef-Package-hyper-rustls-0.27.9",
@@ -4797,7 +4797,7 @@
     {
       "spdxElementId": "SPDXRef-Package-quinn-0.11.11",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-rustls-0.23.43"
+      "relatedSpdxElement": "SPDXRef-Package-rustls-0.23.44"
     },
     {
       "spdxElementId": "SPDXRef-Package-quinn-0.11.11",
@@ -4867,7 +4867,7 @@
     {
       "spdxElementId": "SPDXRef-Package-quinn-proto-0.11.17",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-rustls-0.23.43"
+      "relatedSpdxElement": "SPDXRef-Package-rustls-0.23.44"
     },
     {
       "spdxElementId": "SPDXRef-Package-quinn-proto-0.11.17",
@@ -5057,7 +5057,7 @@
     {
       "spdxElementId": "SPDXRef-Package-reqwest-0.13.4",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-rustls-0.23.43"
+      "relatedSpdxElement": "SPDXRef-Package-rustls-0.23.44"
     },
     {
       "spdxElementId": "SPDXRef-Package-reqwest-0.13.4",
@@ -5165,32 +5165,32 @@
       "relatedSpdxElement": "SPDXRef-Package-semver-1.0.28"
     },
     {
-      "spdxElementId": "SPDXRef-Package-rustls-0.23.43",
+      "spdxElementId": "SPDXRef-Package-rustls-0.23.44",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-aws-lc-rs-1.18.1"
     },
     {
-      "spdxElementId": "SPDXRef-Package-rustls-0.23.43",
+      "spdxElementId": "SPDXRef-Package-rustls-0.23.44",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-once--cell-1.21.4"
     },
     {
-      "spdxElementId": "SPDXRef-Package-rustls-0.23.43",
+      "spdxElementId": "SPDXRef-Package-rustls-0.23.44",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-rustls-pki-types-1.15.1"
     },
     {
-      "spdxElementId": "SPDXRef-Package-rustls-0.23.43",
+      "spdxElementId": "SPDXRef-Package-rustls-0.23.44",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-rustls-webpki-0.103.15"
     },
     {
-      "spdxElementId": "SPDXRef-Package-rustls-0.23.43",
+      "spdxElementId": "SPDXRef-Package-rustls-0.23.44",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-subtle-2.6.1"
     },
     {
-      "spdxElementId": "SPDXRef-Package-rustls-0.23.43",
+      "spdxElementId": "SPDXRef-Package-rustls-0.23.44",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-zeroize-1.9.0"
     },
@@ -5252,7 +5252,7 @@
     {
       "spdxElementId": "SPDXRef-Package-rustls-platform-verifier-0.7.0",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-rustls-0.23.43"
+      "relatedSpdxElement": "SPDXRef-Package-rustls-0.23.44"
     },
     {
       "spdxElementId": "SPDXRef-Package-rustls-platform-verifier-0.7.0",
@@ -5572,7 +5572,7 @@
     {
       "spdxElementId": "SPDXRef-Package-tokio-rustls-0.26.5",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-rustls-0.23.43"
+      "relatedSpdxElement": "SPDXRef-Package-rustls-0.23.44"
     },
     {
       "spdxElementId": "SPDXRef-Package-tokio-rustls-0.26.5",

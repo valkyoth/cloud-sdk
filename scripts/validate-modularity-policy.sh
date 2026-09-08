@@ -57,7 +57,8 @@ fi
 for source in \
     crates/cloud-sdk/src/authentication/signing/tests.rs \
     crates/cloud-sdk/src/authentication/signing/tests/output.rs \
-    crates/cloud-sdk-cratesio/src/credentials/tests.rs
+    crates/cloud-sdk-cratesio/src/credentials/tests.rs \
+    crates/cloud-sdk-cratesio/src/wire/policy_tests.rs
 do
     if ! awk '
         /^#\[cfg\(feature = "std"\)\]$/ { guarded = 1; next }
@@ -72,6 +73,19 @@ do
         status=1
     fi
 done
+
+if ! awk '
+    /^#\[cfg\(feature = "std"\)\]$/ { guarded = 1; next }
+    /^mod shared_rate;$/ {
+        if (guarded) found = 1
+        else bad = 1
+    }
+    { guarded = 0 }
+    END { exit bad || !found }
+' crates/cloud-sdk-cratesio/src/wire/mod.rs; then
+    echo "modularity policy: crates.io shared rate gate lost std guard" >&2
+    status=1
+fi
 
 if ! awk '
     /^#\[cfg\(test\)\]$/ { guarded = 1; next }
@@ -92,6 +106,7 @@ if grep -RInE '(^|[^A-Za-z0-9_])std([[:space:]]*::|[[:space:]]+as|[[:space:]]*\{
     grep -Ev '^[^:]+:[0-9]+:[[:space:]]*(//|///|//!|/\*)' |
     grep -Ev '^crates/cloud-sdk-reqwest/src/(asynchronous|blocking|shared)/' |
     grep -Ev '^crates/cloud-sdk-reqwest/src/test_server.rs:' |
+    grep -Ev '^crates/cloud-sdk-cratesio/src/wire/shared_rate.rs:' |
     grep -Ev '^crates/cloud-sdk/tests/credential_attempt_concurrency.rs:' |
     grep -Ev '^crates/cloud-sdk/tests/response_cleanup.rs:' |
     grep -Ev '^crates/cloud-sdk/tests/encoder_cleanup.rs:' |

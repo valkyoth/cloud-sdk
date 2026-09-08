@@ -10,7 +10,7 @@ roots_tree="$(
 
 for dependency in \
     'reqwest v0.13.4' \
-    'rustls v0.23.43' \
+    'rustls v0.23.44' \
     'aws-lc-rs v1.18.1' \
     'aws-lc-sys v0.45.0' \
     'webpki-roots v1.0.9'; do

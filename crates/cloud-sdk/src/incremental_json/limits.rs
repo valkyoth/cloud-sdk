@@ -2,7 +2,7 @@
 
 use core::fmt;
 
-use super::super::MAX_SERDE_RESPONSE_BYTES;
+const MAX_JSON_INPUT_BYTES: usize = 8_388_608;
 
 const HARD_MAX_DEPTH: usize = 64;
 const HARD_MAX_TOKENS: usize = 65_536;
@@ -31,7 +31,7 @@ pub struct IncrementalJsonLimits {
 impl IncrementalJsonLimits {
     /// Reviewed default limits.
     pub const DEFAULT: Self = Self {
-        input_bytes: MAX_SERDE_RESPONSE_BYTES,
+        input_bytes: MAX_JSON_INPUT_BYTES,
         depth: HARD_MAX_DEPTH,
         tokens: HARD_MAX_TOKENS,
         fields: HARD_MAX_FIELDS,
@@ -91,7 +91,7 @@ impl IncrementalJsonLimits {
 
     /// Lowers the aggregate input-byte limit.
     pub fn with_input_bytes(mut self, limit: usize) -> Result<Self, IncrementalJsonLimitsError> {
-        self.input_bytes = checked_nonzero(limit, MAX_SERDE_RESPONSE_BYTES)?;
+        self.input_bytes = checked_nonzero(limit, MAX_JSON_INPUT_BYTES)?;
         Ok(self)
     }
 

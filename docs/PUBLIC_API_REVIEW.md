@@ -4,43 +4,36 @@ This document consolidates release API reviews. Earlier complete snapshots remai
 Add future release sections here instead of creating another version-named file. Current policies live in the focused documents linked from each release note and in the release roadmap.
 
 ## v0.27.0
-
 **Status:** historical reviewed snapshot  
 **Topics:** Scope; Findings And Decisions; Feature Review; Deferred Work  
 **Full snapshot:** [signed-tag source](https://github.com/valkyoth/cloud-sdk/blob/v0.27.0/docs/PUBLIC_API_REVIEW_0.27.0.md)
 
 ## v0.32.0
-
 **Status:** historical reviewed snapshot  
 **Topics:** Decision; Provider Ownership; Compatibility Evidence; Breaking Changes; Rejected Alternatives; Security Notes  
 **Full snapshot:** [signed-tag source](https://github.com/valkyoth/cloud-sdk/blob/v0.32.0/docs/PUBLIC_API_REVIEW_0.32.0.md)
 
 ## v0.33.0
-
 **Status:** historical reviewed snapshot  
 **Topics:** Decision; Adapter Contract; Provider Migration; Rejected Alternatives; Compatibility  
 **Full snapshot:** [signed-tag source](https://github.com/valkyoth/cloud-sdk/blob/v0.33.0/docs/PUBLIC_API_REVIEW_0.33.0.md)
 
 ## v0.34.0
-
 **Status:** historical reviewed snapshot  
 **Topics:** Decision; Authority Contract; Open Provider Model; Egress Boundary; Compatibility  
 **Full snapshot:** [signed-tag source](https://github.com/valkyoth/cloud-sdk/blob/v0.34.0/docs/PUBLIC_API_REVIEW_0.34.0.md)
 
 ## v0.35.0
-
 **Status:** historical reviewed snapshot  
 **Topics:** Decision; Canonical Grammar; Adapter Contract; Scratch Buffer Boundary; Future Signing Boundary; Compatibility  
 **Full snapshot:** [signed-tag source](https://github.com/valkyoth/cloud-sdk/blob/v0.35.0/docs/PUBLIC_API_REVIEW_0.35.0.md)
 
 ## v0.36.0
-
 **Status:** historical reviewed snapshot  
 **Topics:** Implementation Decision; Ownership Policy; Duplicate And Grammar Policy; Bounds; Compatibility; Deferred Work  
 **Full snapshot:** [signed-tag source](https://github.com/valkyoth/cloud-sdk/blob/v0.36.0/docs/PUBLIC_API_REVIEW_0.36.0.md)
 
 ## v0.37.0
-
 **Status:** historical reviewed snapshot  
 **Topics:** Decision; Ownership And Lifetimes; Failure Semantics; Compatibility; Deferred Work  
 **Full snapshot:** [signed-tag source](https://github.com/valkyoth/cloud-sdk/blob/v0.37.0/docs/PUBLIC_API_REVIEW_0.37.0.md)
@@ -498,3 +491,9 @@ The supported Rust API, features, targets, provider scope, and runtime behavior
 are identical to the published v0.100.0 candidate.
 The version-only promotion establishes the stable SemVer contract; future
 incompatible public changes require a new major release.
+
+## v1.1.0 Candidate - crates.io Commit 6
+
+Additive `cloud-sdk::incremental_json` exports are available under `alloc`. Hetzner's existing decoder exports reexport the same types and retain behavior, limits and feature availability. The complete parser regression suite moves with the implementation; the existing fuzz entry point retains its old import.
+
+The crates.io `wire` module adds public payload-free errors, identifying user agents, clock-free scheduling, allocation-gated cleanup-owning JSON success admission, and an optional std process-wide synchronous adapter gate. These are foundations, not complete operation or authenticated client coverage. See [the wire contract](CRATESIO_WIRE_POLICY.md). Incremental pentest is pending.

@@ -51,37 +51,31 @@ Add future release sections here instead of creating another version-named file.
 **Full snapshot:** [signed-tag source](https://github.com/valkyoth/cloud-sdk/blob/v0.40.0/docs/DEPENDENCY_REVIEW_0.40.0.md)
 
 ## v0.41.0
-
 **Status:** historical reviewed snapshot  
 **Topics:** Result; Boundary; Required Verification  
 **Full snapshot:** [signed-tag source](https://github.com/valkyoth/cloud-sdk/blob/v0.41.0/docs/DEPENDENCY_REVIEW_0.41.0.md)
 
 ## v0.42.0
-
 **Status:** historical reviewed snapshot  
 **Topics:** Result; Required Verification  
 **Full snapshot:** [signed-tag source](https://github.com/valkyoth/cloud-sdk/blob/v0.42.0/docs/DEPENDENCY_REVIEW_0.42.0.md)
 
 ## v0.43.0
-
 **Status:** historical reviewed snapshot  
 **Topics:** Result; Required Verification  
 **Full snapshot:** [signed-tag source](https://github.com/valkyoth/cloud-sdk/blob/v0.43.0/docs/DEPENDENCY_REVIEW_0.43.0.md)
 
 ## v0.44.0
-
 **Status:** historical reviewed snapshot  
 **Topics:** Result; Required Verification  
 **Full snapshot:** [signed-tag source](https://github.com/valkyoth/cloud-sdk/blob/v0.44.0/docs/DEPENDENCY_REVIEW_0.44.0.md)
 
 ## v0.45.0
-
 **Status:** historical reviewed snapshot  
 **Topics:** Result; Root Lockfile Change Inventory; Required Verification  
 **Full snapshot:** [signed-tag source](https://github.com/valkyoth/cloud-sdk/blob/v0.45.0/docs/DEPENDENCY_REVIEW_0.45.0.md)
 
 ## v0.46.0
-
 **Status:** historical reviewed snapshot  
 **Topics:** Result; Third-Party Version Changes; Local Package Changes; Required Verification  
 **Full snapshot:** [signed-tag source](https://github.com/valkyoth/cloud-sdk/blob/v0.46.0/docs/DEPENDENCY_REVIEW_0.46.0.md)
@@ -479,7 +473,7 @@ The unreleased candidate aligns every workspace crate at 1.1.0. Reviewed compati
 | `ovhcloud-v2-probe` | `1.0.0` | `1.1.0` | Align the excluded probe identity only. |
 | `aws-lc-rs` | `1.18.0` | `1.18.1` | Security-relevant fail-closed AEAD/cipher/digest patch; defaults remain disabled and only the existing non-FIPS provider is admitted. Archive checksum `b281d307588d634de920874890732659e2e7672f72b5e10e81badc1a8a83621e`. |
 | `aws-lc-sys` | `0.44.0` | `0.45.0` | Corresponding bundled AWS-LC and native build-policy update; archive checksum `9bff6c3b54fad79a2e60b8102caf565819711497c1f5f092f49508e2f5c31b27`. |
-| `base64-ng` | `2.0.1` | `2.0.3` | Cumulative exact direct patches; defaults remain disabled, scalar APIs are unchanged, and high-assurance target eligibility is tightened. Archive checksum `de9ffc17cca7788889a3782a727359ab907711f425f74af63cc2af61e704422e`. |
+| `base64-ng` | `2.0.1` | `2.0.4` | Exact maintenance patches; scalar API and disabled defaults unchanged. Archive checksum `9fbc418b9e6eeb4b11cf02aa4710dc3e1e61f826a310294618fd979151f51509`. |
 | `cc` | `1.4.3` | `1.4.5` | Cumulative compatible native-build helper patches; the bundled AWS-LC policy and native build boundary remain enforced. |
 | `chacha20` | `0.10.1` | `0.10.2` | Compatible transitive patch in the existing rustls platform graph. |
 | `combine` | `4.6.7` | `4.6.8` | Compatible transitive parser patch in the existing platform-verifier graph. |
@@ -491,10 +485,15 @@ The unreleased candidate aligns every workspace crate at 1.1.0. Reviewed compati
 | `mio` | `1.2.2` | `1.2.3` | Compatible Tokio OS-I/O patch in optional transport graphs only. |
 | `quinn-proto` | `0.11.16` | `0.11.17` | Compatible transitive reqwest graph patch; HTTP/3 remains unenabled. |
 | `rustls-webpki` | `0.103.14` | `0.103.15` | Compatible certificate-validation patch under the existing rustls boundary. |
-| `sanitization` | `2.0.3` | `2.0.4` | Exact direct security hardening; replacement storage cannot downgrade an established preferred protection. Defaults remain disabled; archive checksum `f6c00771cb2e89cc08c486588aa5b462190634313f8885fbdc375de33ee84612`. |
+| `sanitization` | `2.0.3` | `2.1.0` | Adds bounded mapped-secret APIs; existing wipe/SecretString interfaces and disabled defaults retained. Native hardening features remain unselected. Archive checksum `0c395c5164295d69016c014a3c2dd69d28a84b7e89ba971c1e81b17acc41e411`. |
 | `smallvec` | `1.15.2` | `1.16.0` | Compatible transitive bounded inline-vector update; no direct API or feature change. |
 | `syn` | `3.0.3` | `3.0.4` | Compatible macro parser patch used by existing derive/build paths. |
 | `tinyvec` | `1.12.0` | `1.13.2` | Compatible transitive Unicode/QUIC storage patches; HTTP/3 remains disabled. |
 | `tokio-rustls` | `0.26.4` | `0.26.5` | Compatible optional transport patch under the existing Rustls boundary. |
 | `zerovec` | `0.11.7` | `0.11.8` | Compatible transitive Unicode storage patch in the existing URL graph. |
 | `zerovec-derive` | `0.11.4` | `0.11.6` | Compatible derive patch paired with the reviewed zerovec update. |
+| `rustls` | `0.23.43` | `0.23.44` | Certificate-name correction on ECH rejection and ML-DSA verification in AWS-LC; key-log file permission hardening (SDK does not enable key logging). Archive checksum `6725596c3f2c3a0aef021139e145d4eafe314a6623e4680ca83852b2c67ab2ba`. |
+
+### crates.io Commit 6
+
+The existing incremental JSON implementation moves into `cloud-sdk/alloc`. Core's allocation feature now activates `cloud-sdk-sanitization/alloc` for its protected parser staging. The same exact admitted `serde_json` version becomes a core dev dependency for the moved grammar-oracle tests, not a runtime edge. No new third-party package or default feature is admitted. Hetzner retains compatible serde exports; crates.io reuses core without depending on Hetzner.

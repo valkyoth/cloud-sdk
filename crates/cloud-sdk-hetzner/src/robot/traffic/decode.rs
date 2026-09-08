@@ -377,10 +377,7 @@ impl IncrementalJsonVisitor for TrafficVisitor<'_> {
                 let field = core::mem::replace(&mut self.pending, Pending::None);
                 self.amount.set(field, value)?;
             }
-            IncrementalJsonEvent::StartArray
-            | IncrementalJsonEvent::EndArray
-            | IncrementalJsonEvent::Bool(_)
-            | IncrementalJsonEvent::Null => return Err(RobotTrafficDecodeError::InvalidEnvelope),
+            _ => return Err(RobotTrafficDecodeError::InvalidEnvelope),
         }
         Ok(VisitControl::Continue)
     }

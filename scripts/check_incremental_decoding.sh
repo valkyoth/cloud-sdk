@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 set -eu
 
-root="crates/cloud-sdk-hetzner/src/serde/incremental"
+root="crates/cloud-sdk/src/incremental_json"
 
 for symbol in \
     IncrementalJsonDecoder \
@@ -53,6 +53,7 @@ find "$root" -type f -name '*.rs' -print | while IFS= read -r source; do
     fi
 done
 
+cargo test --locked -p cloud-sdk --features alloc,std incremental_json
 cargo test --locked -p cloud-sdk-hetzner --features serde,std incremental
 
 echo "incremental decoding: contract, limits, chunking, cleanup, and docs passed"

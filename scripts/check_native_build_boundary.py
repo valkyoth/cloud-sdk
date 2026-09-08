@@ -43,7 +43,7 @@ EXPECTED_BUILD_SCRIPTS = {
     ("quote", "1.0.47"),
     ("ring", "0.17.14"),
     ("rustix", "1.1.4"),
-    ("rustls", "0.23.43"),
+    ("rustls", "0.23.44"),
     ("rustversion", "1.0.23"),
     ("serde", "1.0.229"),
     ("serde_core", "1.0.229"),

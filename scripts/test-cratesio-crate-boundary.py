@@ -304,6 +304,18 @@ def test_packaged_candidate_uses_both_local_dependency_patches() -> None:
         ]], provider_calls
 
 
+def test_wire_scheduling_cannot_lose_its_std_guard() -> None:
+    root = fixture()
+    try:
+        module = root / checker.CRATE / "src/wire/mod.rs"
+        module.write_text(module.read_text(encoding="ascii").replace(
+            '#[cfg(feature = "std")]\nmod shared_rate;', 'mod shared_rate;'
+        ), encoding="ascii")
+        assert_rejected(root, "scheduling std guard")
+    finally:
+        shutil.rmtree(root)
+
+
 def main() -> None:
     tests = (
         test_repository_boundary,
@@ -316,6 +328,7 @@ def main() -> None:
         test_unrelated_crate_dependency_is_rejected,
         test_credential_inventory_and_feature_regressions_are_rejected,
         test_packaged_candidate_uses_both_local_dependency_patches,
+        test_wire_scheduling_cannot_lose_its_std_guard,
     )
     for test in tests:
         test()

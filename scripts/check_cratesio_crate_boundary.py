@@ -190,6 +190,10 @@ def validate(root: Path) -> None:
         "identity.rs",
         *ENDPOINT_SOURCES,
         *CREDENTIAL_SOURCES,
+        *(f"wire/{name}.rs" for name in (
+            "mod", "error", "rate", "shared_rate", "user_agent", "envelope",
+            "response", "policy_tests", "response_tests", "boundary_tests",
+        )),
         *(f"{module}.rs" for module in DOMAIN_MODULES),
     }
     actual_sources = {
@@ -202,6 +206,9 @@ def validate(root: Path) -> None:
         if (crate / forbidden).exists():
             raise BoundaryError(f"forbidden build-script source: {forbidden}")
     library = (crate / "src/lib.rs").read_text(encoding="ascii")
+    wire = (crate / "src/wire/mod.rs").read_text(encoding="ascii")
+    if '#[cfg(feature = "std")]\nmod shared_rate;' not in wire:
+        raise BoundaryError("wire scheduling std guard changed")
     if "#![no_std]" not in library:
         raise BoundaryError("provider lost its no_std crate boundary")
     if "pub mod endpoint;" not in library:

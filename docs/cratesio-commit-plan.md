@@ -1,8 +1,8 @@
 # crates.io Commit Plan
 
 Status: selected unreleased `1.1.0` implementation train. Commits 1 through 5
-have passed their pentests. Commit 5 is awaiting GitHub CI and CodeQL approval;
-stop here before starting Commit 6.
+have passed pentest and GitHub checks. Commit 6 wire foundations are implemented
+and awaiting incremental pentest. Stop before Commit 7; do not tag or publish.
 
 ## Decision Summary
 
@@ -247,7 +247,8 @@ Reviewed range: accepted Commit 4 evidence commit
 `e79273b7f4d4bafa0520e0b7105dd11012b782af`. The permanent
 [pentest report](../security/pentest/cratesio-commit-5.md) records the resolved
 test-coverage finding. The evidence commit containing that report becomes
-Commit 6's comparison baseline after GitHub CI and CodeQL pass. Do not tag or
+Commit 6's comparison baseline after GitHub CI and CodeQL pass. They have now
+passed, including the code-identical CI retrigger at `2f1c8582`. Do not tag or
 publish this candidate checkpoint.
 
 Implemented contract: [credential policy](CRATESIO_CREDENTIAL_POLICY.md).
@@ -277,6 +278,19 @@ Pentest stop: run an incremental pentest for the exact Commit 5 credential and
 authentication surface.
 
 ## Commit 6 - Wire, Error, Rate, And Response Foundations
+
+Implementation status: implementation stop, incremental pentest pending.
+Accepted comparison baseline: `2f1c858293dfa472e0aba753d129872e01f82fa1`
+(Commit 5 evidence plus its code-identical CI retrigger). Pentest this baseline
+through the complete Commit 6 implementation and any remediation commits.
+
+Implemented contract: [wire policy](CRATESIO_WIRE_POLICY.md). The existing
+bounded incremental decoder is now provider-neutral under `cloud-sdk/alloc`,
+with unchanged Hetzner compatibility exports. Response admission uses that
+decoder without introducing another JSON parser or ordinary payload tree.
+The synchronous process-wide gate is a trusted adapter boundary; it does not
+claim completed authenticated or async clients. Later operation/client commits
+must bind these foundations to their exact execution paths.
 
 Goal: define one checked wire contract for all crates.io operations.
 

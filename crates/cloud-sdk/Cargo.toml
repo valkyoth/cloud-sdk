@@ -14,7 +14,7 @@ all-features = true
 
 [features]
 default = []
-alloc = []
+alloc = ["cloud-sdk-sanitization/alloc"]
 std = ["alloc"]
 
 [dependencies]
@@ -23,3 +23,6 @@ subtle.workspace = true
 
 [lints]
 workspace = true
+
+[dev-dependencies]
+serde_json.workspace = true

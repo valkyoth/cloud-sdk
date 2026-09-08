@@ -494,3 +494,7 @@ No source, feature, behavior, platform, or third-party dependency migration is
 required from the published v0.100.0 package set. The coordinated version
 change establishes the stable SemVer contract. FIPS remains excluded and
 deferred until the separately reviewed Brynja integration is ready.
+
+## v1.1.0 Candidate - crates.io Commit 6
+
+No migration is required for existing Hetzner incremental-decoder imports. Neutral consumers may select `cloud-sdk/alloc` and use `cloud_sdk::incremental_json` directly. The implementation and limits are shared. Core's alloc graph now enables protected parser storage, while defaults remain allocation-free. The new crates.io wire APIs are unreleased foundations; use the [wire contract](CRATESIO_WIRE_POLICY.md) to distinguish admission, scheduling, and trusted adapters from the operation clients still planned for later commits.

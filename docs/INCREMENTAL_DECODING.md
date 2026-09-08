@@ -1,8 +1,11 @@
 # Incremental Provider Decoding
 
-`cloud-sdk-hetzner` exposes a bounded incremental JSON visitor under its
-optional `serde` feature. It processes large provider bodies across arbitrary
-input chunks without constructing one complete JSON tree.
+The `1.1.0` candidate exposes the bounded incremental JSON visitor through
+`cloud-sdk::incremental_json` under `alloc`. `cloud-sdk-hetzner` retains its
+existing exports under the optional `serde` feature. Both paths use the same
+implementation, tests and protected staging; there is no parser fork. It
+processes provider bodies across arbitrary input chunks without constructing
+one complete JSON tree.
 
 The repository also contains a compile-checked
 [`incremental_json` example](../crates/cloud-sdk-hetzner/examples/incremental_json.rs).

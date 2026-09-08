@@ -39,9 +39,9 @@ checksum = "72b3254f16251a8381aa12e40e3c4d2f0199f8c6508fbecb9d91f575e0fbb8c6"
 
 [[package]]
 name = "base64-ng"
-version = "2.0.3"
+version = "2.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "de9ffc17cca7788889a3782a727359ab907711f425f74af63cc2af61e704422e"
+checksum = "9fbc418b9e6eeb4b11cf02aa4710dc3e1e61f826a310294618fd979151f51509"
 
 [[package]]
 name = "bitflags"
@@ -110,6 +110,7 @@ name = "cloud-sdk"
 version = "1.1.0"
 dependencies = [
  "cloud-sdk-sanitization",
+ "serde_json",
  "subtle",
 ]
 
@@ -948,9 +949,9 @@ dependencies = [
 
 [[package]]
 name = "rustls"
-version = "0.23.43"
+version = "0.23.44"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0283386ce02abc0151e1761d08802dfe86c173b0b494af5cbc086574e453da06"
+checksum = "6725596c3f2c3a0aef021139e145d4eafe314a6623e4680ca83852b2c67ab2ba"
 dependencies = [
  "aws-lc-rs",
  "once_cell",
@@ -1038,9 +1039,9 @@ dependencies = [
 
 [[package]]
 name = "sanitization"
-version = "2.0.4"
+version = "2.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f6c00771cb2e89cc08c486588aa5b462190634313f8885fbdc375de33ee84612"
+checksum = "0c395c5164295d69016c014a3c2dd69d28a84b7e89ba971c1e81b17acc41e411"
 
 [[package]]
 name = "schannel"

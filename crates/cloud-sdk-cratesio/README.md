@@ -26,7 +26,9 @@ provider-neutral execution contracts from `cloud-sdk`.
 The crate is currently an unreleased `1.1.0` candidate. Provider identity and
 the endpoint, request-target, and static-download redirect boundaries are now
 implemented. Protected credential preparation is implemented behind `alloc`
-and has passed its checkpoint pentest and remediation retest. API workflows
+and has passed its checkpoint pentest and remediation retest. Checked JSON
+envelopes, request scheduling and user-agent policy are implemented and await
+their checkpoint pentest. API workflows
 and authenticated network execution remain unavailable until their reviewed
 checkpoints are complete.
 
@@ -43,6 +45,8 @@ checkpoints are complete.
 | Redirects | atomic production source proof plus atomic credential-free download execution |
 | Custom API endpoints | HTTPS plus explicit trusted-operator acknowledgement |
 | Credentials | five protected token kinds, origin-bound contexts, scoped adapter material (`alloc`) |
+| JSON wire admission | exact status, bounded complete JSON, Cargo error detection and cleanup (`alloc`) |
+| Request policy | identifying user agent and clock-free scheduling; process-wide blocking gate (`std`) |
 | API operations | deferred to their source-locked implementation commits |
 
 The public modules reserve ownership without claiming executable coverage:
@@ -86,15 +90,16 @@ documented in the [crates.io endpoint policy](https://github.com/valkyoth/cloud-
 | Feature | Default | Effect |
 | --- | --- | --- |
 | `default` | yes | Empty; keeps the provider allocation-free and `no_std`. |
-| `alloc` | no | Enables protected credentials through `cloud-sdk-sanitization`; still `no_std`. |
+| `alloc` | no | Enables protected credentials and checked JSON admission; still `no_std`. |
 | `serde` | no | Enables future bounded model serialization with no Serde `std` feature. |
-| `std` | no | Enables `alloc` and standard-library integration. |
+| `std` | no | Enables `alloc` and the shared monotonic blocking API gate. |
 | `blocking` | no | Reserves provider-owned blocking execution integration; no transport dependency is added. |
 | `async` | no | Reserves provider-owned async execution integration; no runtime or transport dependency is added. |
 
 Networking and TLS remain opt-in provider-neutral concerns. This crate does
 not depend on `cloud-sdk-reqwest`, an async runtime, a TLS implementation, a
-filesystem, or a clock.
+filesystem, or an external clock package. Only the explicit `std` request gate
+reads the system monotonic clock.
 
 ## Identity Example
 
@@ -170,11 +175,55 @@ Process abort, deliberately leaked objects, adapter/OS copies and external
 storage are outside drop-cleanup guarantees. Full policy and admission evidence
 are in the [credential contract](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATESIO_CREDENTIAL_POLICY.md).
 
+## Response And Scheduling Examples
+
+The response policy consumes the core's cleanup-owning committed buffer and
+rejects provider errors even when HTTP status is 200:
+
+```rust
+# #[cfg(feature = "alloc")]
+# {
+use cloud_sdk::rate_limit::WallClockTimestamp;
+use cloud_sdk::transport::{ResponseBuffer, StatusCode};
+use cloud_sdk_cratesio::wire::{CratesIoWireError, JsonResponsePolicy, JsonSuccess};
+
+fn admit<'a>(response: ResponseBuffer<'a>) -> Result<JsonSuccess<'a>, CratesIoWireError> {
+    let policy = JsonResponsePolicy::new(StatusCode::OK, 65_536)?;
+    // Supply trusted wall time for HTTP-date interpretation in real adapters.
+    policy.admit(response, WallClockTimestamp::new(0))
+}
+# }
+```
+
+Apply `policy.maximum_bytes()` to the response writer before transport starts.
+Resource-specific success decoders and complete clients come in later
+checkpoints; `JsonSuccess::visit` currently exposes checked JSON events.
+
+```rust
+use core::time::Duration;
+use cloud_sdk_cratesio::wire::{ApiSchedule, IdentifyingUserAgent};
+
+let identity = IdentifyingUserAgent::new("inventory/1.0 (ops@example.org)")?;
+let mut schedule = ApiSchedule::new();
+assert!(schedule.try_start(Duration::ZERO).is_ok());
+assert!(schedule.try_start(Duration::ZERO).is_err());
+assert!(schedule.try_start(Duration::from_secs(1)).is_ok());
+# Ok::<(), cloud_sdk_cratesio::wire::UserAgentError>(())
+```
+
+Share one schedule across workers and supply trusted monotonic time. Under
+`std`, `OfficialApiGate` provides shared process-wide scheduling for a trusted
+blocking adapter callback, requiring the validated identity. It is not an
+async or authenticated client. No retries or sleeps happen automatically.
+See the [wire policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATESIO_WIRE_POLICY.md)
+for response limits, cleanup and adapter responsibilities.
+
 ## Security And Policy
 
 The provider will not support browser-session cookies or undocumented private
-routes. One-request-per-second scheduling, identifying user agents, mutation
-permits, and bounded response decoding remain assigned to later checkpoints.
+routes. Scheduling and bounded response admission are available foundations;
+operation-bound clients, mutation permits and async integration remain
+assigned to later checkpoints.
 
 Direct crates.io API use must follow the service's data-access policy. Prefer
 the sparse index, static downloads, RSS feeds, or database dumps when those

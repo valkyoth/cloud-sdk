@@ -1,7 +1,7 @@
 # crates.io Credential Contract
 
-Status: Commit 5 incremental pentest and remediation retest passed; GitHub
-approval is pending. Candidate `1.1.0` is not publishable. No authenticated API
+Status: Commit 5 incremental pentest, remediation retest, and GitHub checks
+passed. Candidate `1.1.0` is not publishable. No authenticated API
 workflow is claimed complete.
 
 ## Source And Context

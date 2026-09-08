@@ -28,6 +28,8 @@ pub mod buffer;
 pub mod client;
 pub mod diagnostics;
 mod identity;
+#[cfg(feature = "alloc")]
+pub mod incremental_json;
 mod method;
 pub mod operation;
 pub mod pagination;

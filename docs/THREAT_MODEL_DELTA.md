@@ -372,3 +372,19 @@ No runtime, dependency, feature, transport, credential, or provider-scope
 threat changes from v0.100.0. Stable support increases compatibility and
 maintenance obligations but grants no additional authority. Cost, endpoint,
 secret-lifecycle, platform, live-mutation, and FIPS exclusions remain exact.
+
+## v1.1.0 Candidate - crates.io Commit 6
+
+Response admission now rejects Cargo error envelopes on success statuses,
+contradictory/malformed envelopes, ambiguous media and duplicate JSON fields.
+It uses the existing protected incremental decoder moved to neutral core; no
+ordinary payload tree or new parser is introduced. Error details are discarded
+and public error chains are payload-free. Resource decoder callbacks must
+protect copies they retain.
+
+Identifying user agents and shared rate admission reduce accidental policy
+violations. Trusted blocking adapters must perform exactly one synchronous
+exchange with the supplied identity and no hidden retries/redirects. Independent
+processes, bypassing adapters and caller-provided clocks require external
+coordination; no async-client or global-egress guarantee is claimed. The complete
+boundary and required tests are in [the wire policy](CRATESIO_WIRE_POLICY.md).
