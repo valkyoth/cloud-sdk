@@ -2,8 +2,8 @@
 
 Status: unreleased `1.1.0`, Commit 6 incremental pentest and remediation retest
 passed. The [permanent report](../security/pentest/cratesio-commit-6.md) records
-the reviewed range. GitHub CI and CodeQL remain pending on the evidence
-checkpoint. No tag or publication is authorized.
+the reviewed range. GitHub CI and CodeQL passed on evidence checkpoint
+`f079a65c`. No tag or publication is authorized.
 
 ## Source Contract
 
@@ -130,4 +130,4 @@ Local qualification on 2026-09-08 passed `scripts/checks.sh`, the full Rust
 checks, all six package graphs, SBOM freshness, fresh RustSec scans of four
 lockfiles, cargo-deny, direct-pin/tool freshness and live crates.io drift.
 These are local qualification results. The separate pentest retest passed;
-GitHub CI and CodeQL approval remain pending on the evidence checkpoint.
+GitHub CI and CodeQL also passed on the Commit 6 evidence checkpoint.

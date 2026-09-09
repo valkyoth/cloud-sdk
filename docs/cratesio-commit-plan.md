@@ -1,9 +1,9 @@
 # crates.io Commit Plan
 
-Status: selected unreleased `1.1.0` implementation train. Commits 1 through 5
-have passed pentest and GitHub checks. Commit 6 wire foundations passed their
-incremental pentest and remediation retest; GitHub checks are pending on the
-evidence checkpoint. Stop before Commit 7; do not tag or publish.
+Status: selected unreleased `1.1.0` implementation train. Commits 1 through 6
+have passed pentest and GitHub checks. Commit 7 identifiers, queries and
+pagination are implemented and awaiting incremental pentest. Stop before
+Commit 8; do not tag or publish.
 
 ## Decision Summary
 
@@ -285,7 +285,8 @@ Reviewed range: `2f1c858293dfa472e0aba753d129872e01f82fa1` through
 `d2a7105002f129da7dcba5d8dc0d3661362d4290`. The permanent
 [pentest report](../security/pentest/cratesio-commit-6.md) records the contact
 validation finding and regression tests. Its evidence commit becomes Commit 7's
-comparison baseline after GitHub CI and CodeQL pass. Do not tag or publish.
+comparison baseline after GitHub CI and CodeQL pass. They have now passed at
+`f079a65cec1fefb529371f2e8128beb4098f6e6f`. Do not tag or publish.
 
 Implemented contract: [wire policy](CRATESIO_WIRE_POLICY.md). The existing
 bounded incremental decoder is now provider-neutral under `cloud-sdk/alloc`,
@@ -316,6 +317,14 @@ Pentest stop: run an incremental pentest for the exact Commit 6 wire, error,
 rate, and diagnostics boundary.
 
 ## Commit 7 - Identifiers, Queries, And Pagination
+
+Implementation status: implementation stop, incremental pentest pending.
+Accepted comparison baseline: `f079a65cec1fefb529371f2e8128beb4098f6e6f`.
+Pentest the entire range through the implementation and any remediation commits.
+The [request policy](CRATESIO_REQUEST_POLICY.md) records source-owned versus SDK
+limits, exact query coverage, continuation bindings, the SemVer oracle and tests.
+Default builds remain allocation-free. These components do not claim completed
+operation clients or resource-specific JSON metadata decoders.
 
 Goal: make all path and query construction canonical, bounded, and policy aware.
 
@@ -621,6 +630,11 @@ Pentest stop: run an incremental pentest for the exact Commit 21 qualification
 surface.
 
 ## Commit 22 - Scope Freeze And Release Candidate
+
+Cross-provider prerequisite: resolve the
+[2026-09-09 Hetzner live drift](SPEC_LOCK.md#pending-live-drift-review-2026-09-09)
+in a separate reviewed maintenance checkpoint before final release qualification.
+Do not treat passing crates.io source checks as evidence that Hetzner is current.
 
 Goal: freeze and qualify the complete selected crates.io integration without
 adding features.

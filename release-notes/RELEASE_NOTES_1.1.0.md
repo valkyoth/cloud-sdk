@@ -42,7 +42,7 @@ plan can become `public`.
 | `cloud-sdk-reqwest` | `1.0.0` | `1.1.0` | reviewed TLS and authentication dependency updates |
 | `cloud-sdk-sanitization` | `1.0.0` | `1.1.0` | reviewed sanitization dependency update |
 | `cloud-sdk-testkit` | `1.0.0` | `1.1.0` | candidate metadata |
-| `cloud-sdk-cratesio` | none | `1.1.0` | endpoint-safe provider, protected credentials, checked wire and scheduling foundations |
+| `cloud-sdk-cratesio` | none | `1.1.0` | endpoint-safe provider, protected credentials, wire, typed query and pagination foundations |
 
 Exact final change classifications are assigned only after the complete train
 is implemented.
@@ -243,8 +243,39 @@ package command. This changes only build verification, not SDK behavior.
 
 Commit 6 passed its incremental pentest and remediation retest at `d2a71050`.
 The [permanent report](../security/pentest/cratesio-commit-6.md) records the
-reviewed range. GitHub CI and CodeQL are pending on the evidence checkpoint;
-Commit 7 must not begin before they pass.
+reviewed range. GitHub CI and CodeQL passed at `f079a65c`, the accepted baseline
+for Commit 7.
+
+### Commit 7 - Identifiers, Queries, And Pagination
+
+- Added allocation-free borrowed crate names, exact Cargo versions, category
+  hierarchies, keywords, user/team logins, owners, numeric IDs and dates.
+- Added operation-scoped include, sort and filter values, bounded pages and
+  opaque seek state; reject duplicates, shadowed filters and page/seek conflicts.
+- Reused atomic snapshot encoding for typed paths, percent-encoded queries,
+  repeated array pairs and complete operation-bound targets.
+- Added meta next/previous link validation and legacy `more` continuation,
+  preserving original filters and page sizes across exact official origins.
+  Transport transfer retains the core cleanup-owning link's dispatch checks.
+- Reused neutral traversal budgets; rate admission stays explicit and separate.
+- Added a source-pinned request-policy checker for implementation limits and
+  all public query-name fixtures, with live verification in the final gate.
+- Admitted exact `semver 1.0.28` only as a dev-only independent grammar oracle;
+  it adds no runtime/default dependency or change to existing provider APIs.
+- Refreshed reqwest to `0.13.5`, including its transitive `base64 0.23.1`
+  admission and narrowly scoped duplicate-line exception. The SDK's own
+  credential encoding remains on `base64-ng`; transport is still opt-in.
+- Added boundary, mutation, operation-matrix, SemVer differential, transport
+  binding, cleanup and documentation examples. See the
+  [request policy](../docs/CRATESIO_REQUEST_POLICY.md).
+
+This is an implementation stop requiring incremental pentest, not a release
+or complete operation-client claim. Stop before Commit 8; do not tag or publish.
+
+The extra 2026-09-09 live Hetzner check detected upstream drift. Its
+[maintenance record](../docs/SPEC_LOCK.md#pending-live-drift-review-2026-09-09)
+must be resolved separately before 1.1.0 release qualification. Existing
+Hetzner locks were not refreshed merely to silence that check.
 
 ### Maintenance Evidence
 

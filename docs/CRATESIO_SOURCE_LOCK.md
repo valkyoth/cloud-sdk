@@ -1,8 +1,8 @@
 # crates.io Source Lock
 
-Status: Commits 1 through 5 passed pentest and GitHub checks. Commit 6 wire
-foundations passed pentest and remediation retest; their evidence checkpoint
-awaits GitHub checks in the unreleased `1.1.0` train. See the
+Status: Commits 1 through 6 passed pentest and GitHub checks. Commit 7 request
+and pagination foundations await pentest in the unreleased `1.1.0` train.
+See the [request policy](CRATESIO_REQUEST_POLICY.md),
 [credential contract](CRATESIO_CREDENTIAL_POLICY.md) and
 [wire policy](CRATESIO_WIRE_POLICY.md).
 

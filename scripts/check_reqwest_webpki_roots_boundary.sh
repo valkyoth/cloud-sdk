@@ -9,7 +9,7 @@ roots_tree="$(
 )"
 
 for dependency in \
-    'reqwest v0.13.4' \
+    'reqwest v0.13.5' \
     'rustls v0.23.44' \
     'aws-lc-rs v1.18.1' \
     'aws-lc-sys v0.45.0' \

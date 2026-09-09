@@ -474,6 +474,7 @@ The unreleased candidate aligns every workspace crate at 1.1.0. Reviewed compati
 | `aws-lc-rs` | `1.18.0` | `1.18.1` | Security-relevant fail-closed AEAD/cipher/digest patch; defaults remain disabled and only the existing non-FIPS provider is admitted. Archive checksum `b281d307588d634de920874890732659e2e7672f72b5e10e81badc1a8a83621e`. |
 | `aws-lc-sys` | `0.44.0` | `0.45.0` | Corresponding bundled AWS-LC and native build-policy update; archive checksum `9bff6c3b54fad79a2e60b8102caf565819711497c1f5f092f49508e2f5c31b27`. |
 | `base64-ng` | `2.0.1` | `2.0.4` | Exact maintenance patches; scalar API and disabled defaults unchanged. Archive checksum `9fbc418b9e6eeb4b11cf02aa4710dc3e1e61f826a310294618fd979151f51509`. |
+| `base64` | `-` | `0.23.1` | Reqwest's new transitive line; 0.22.1 remains through hyper-util. Explicit SIMD/default-feature and narrow duplicate admission in [transport review](dependency-admission-reqwest.md). Archive checksum `ac07cdecf99051d9a5238b80f35af32cdeba5b336e55d957b318b50137e18da5`. |
 | `cc` | `1.4.3` | `1.4.5` | Cumulative compatible native-build helper patches; the bundled AWS-LC policy and native build boundary remain enforced. |
 | `chacha20` | `0.10.1` | `0.10.2` | Compatible transitive patch in the existing rustls platform graph. |
 | `combine` | `4.6.7` | `4.6.8` | Compatible transitive parser patch in the existing platform-verifier graph. |
@@ -484,6 +485,7 @@ The unreleased candidate aligns every workspace crate at 1.1.0. Reviewed compati
 | `log` | `0.4.33` | `0.4.34` | Compatible transitive logging facade patch; no first-party logging capability is added. |
 | `mio` | `1.2.2` | `1.2.3` | Compatible Tokio OS-I/O patch in optional transport graphs only. |
 | `quinn-proto` | `0.11.16` | `0.11.17` | Compatible transitive reqwest graph patch; HTTP/3 remains unenabled. |
+| `reqwest` | `0.13.4` | `0.13.5` | Timeout/proxy-auth fixes, unchanged feature selection and MSRV 1.85; reviewed 2026-09-09. Archive checksum `16a1cfa75cc186dd73d5818e510e042e40927bccc9c236b061cea97e1eb08029`. |
 | `rustls-webpki` | `0.103.14` | `0.103.15` | Compatible certificate-validation patch under the existing rustls boundary. |
 | `sanitization` | `2.0.3` | `2.1.0` | Adds bounded mapped-secret APIs; existing wipe/SecretString interfaces and disabled defaults retained. Native hardening features remain unselected. Archive checksum `0c395c5164295d69016c014a3c2dd69d28a84b7e89ba971c1e81b17acc41e411`. |
 | `smallvec` | `1.15.2` | `1.16.0` | Compatible transitive bounded inline-vector update; no direct API or feature change. |
@@ -493,7 +495,6 @@ The unreleased candidate aligns every workspace crate at 1.1.0. Reviewed compati
 | `zerovec` | `0.11.7` | `0.11.8` | Compatible transitive Unicode storage patch in the existing URL graph. |
 | `zerovec-derive` | `0.11.4` | `0.11.6` | Compatible derive patch paired with the reviewed zerovec update. |
 | `rustls` | `0.23.43` | `0.23.44` | Certificate-name correction on ECH rejection and ML-DSA verification in AWS-LC; key-log file permission hardening (SDK does not enable key logging). Archive checksum `6725596c3f2c3a0aef021139e145d4eafe314a6623e4680ca83852b2c67ab2ba`. |
-
 ### crates.io Commit 6
-
 The existing incremental JSON implementation moves into `cloud-sdk/alloc`. Core's allocation feature now activates `cloud-sdk-sanitization/alloc` for its protected parser staging. The same exact admitted `serde_json` version becomes a core dev dependency for the moved grammar-oracle tests, not a runtime edge. No new third-party package or default feature is admitted. Hetzner retains compatible serde exports; crates.io reuses core without depending on Hetzner.
+Commit 7 admits exact `semver = 1.0.28` only as a crates.io dev dependency, with defaults disabled; this existing locked package is the independent grammar oracle, never a runtime/default edge. Its checksum, license, MSRV, feature review and rationale are recorded in [the request policy](CRATESIO_REQUEST_POLICY.md#verification-and-dependency-admission).

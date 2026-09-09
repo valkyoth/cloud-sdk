@@ -40,6 +40,7 @@ wildcards = "deny"
 highlight = "all"
 skip = [
     { crate = "syn@2.0.119", reason = "Platform macros require syn 2 while current Serde requires syn 3; both lines are compile-time only" },
+    { crate = "base64@0.22.1", reason = "hyper-util requires 0.22 while reqwest 0.13.5 requires 0.23; optional transport-only, reviewed in dependency-admission-reqwest.md" },
 ]
 
 [advisories]

@@ -175,7 +175,13 @@ def validate(root: Path) -> None:
     for target in ("bin", "example", "bench"):
         if manifest.get(target, []) != []:
             raise BoundaryError(f"provider explicit {target} targets changed")
-    for section in ("dev-dependencies", "build-dependencies", "target"):
+    if manifest.get("dev-dependencies") != {"semver": {"workspace": True}}:
+        raise BoundaryError("provider dev-dependencies oracle changed")
+    if load(root / "Cargo.toml")["workspace"]["dependencies"].get("semver") != {
+        "version": "=1.0.28", "default-features": False
+    }:
+        raise BoundaryError("provider SemVer oracle pin changed")
+    for section in ("build-dependencies", "target"):
         if manifest.get(section, {}) != {}:
             raise BoundaryError(f"provider {section} changed")
 
@@ -190,6 +196,9 @@ def validate(root: Path) -> None:
         "identity.rs",
         *ENDPOINT_SOURCES,
         *CREDENTIAL_SOURCES,
+        *(f"identifiers/{name}.rs" for name in ("mod", "date", "version", "tests")),
+        *(f"query/{name}.rs" for name in ("mod", "values", "path", "parameters", "encode", "tests", "contract_tests")),
+        *(f"pagination/{name}.rs" for name in ("mod", "link", "compare", "tests", "execution_tests")),
         *(f"wire/{name}.rs" for name in (
             "mod", "error", "rate", "shared_rate", "user_agent", "envelope",
             "response", "policy_tests", "response_tests", "boundary_tests",

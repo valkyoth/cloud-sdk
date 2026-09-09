@@ -48,7 +48,7 @@ for dependency in \
     'hyper v1.11.1' \
     'hyper-rustls v0.27.9' \
     'hyper-util v0.1.20' \
-    'reqwest v0.13.4' \
+    'reqwest v0.13.5' \
     'cloud-sdk-sanitization v1.1.0' \
     'sanitization v2.1.0' \
     'rustls v0.23.44'; do
@@ -73,7 +73,7 @@ for dependency in \
     'hyper v1.11.1' \
     'hyper-rustls v0.27.9' \
     'hyper-util v0.1.20' \
-    'reqwest v0.13.4' \
+    'reqwest v0.13.5' \
     'tokio v1.53.1' \
     'cloud-sdk-sanitization v1.1.0' \
     'sanitization v2.1.0' \

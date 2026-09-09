@@ -8,6 +8,32 @@ Changelog page: <https://docs.hetzner.cloud/changelog>
 
 ## Locked Specs
 
+### Pending Live Drift Review (2026-09-09)
+
+The extra live check during crates.io Commit 7 detected changes in 28 Cloud
+operation fingerprints, three standalone target schemas, and both source
+digests. No operation addition or removal was reported. This is **unresolved
+Hetzner maintenance**, not an accepted source-lock refresh or a clean live gate.
+
+Comparing the generated response-field inventory identifies image `deprecation`
+(including nested server images), target health `detail` and `http_status_code`,
+and newly declared 1..255 name lengths for Floating and Primary IPs. Operation
+fingerprints also include request and documentation changes; the field summary
+is not a complete compatibility assessment. The Storage Box source digest also
+changed without a reported operation fingerprint change.
+
+Observed official source SHA-256 values:
+
+- Cloud: `7467483b455386dcff8db84b87bad3b7353ffabf08a82c020d7e053028670421`
+- Storage Box: `0afcd318330d18896104f6f99459e41692956665ce45c11b8b304391a651e0f8`
+
+Before releasing 1.1.0, review the complete schema/request/response delta,
+implement and test compatibility changes, refresh fixtures and locks only after
+review, and pass `scripts/check_hetzner_api_drift.py --fetch`. This independent
+maintenance task does not expand crates.io Commit 7 or authorize publication.
+
+### Reviewed Snapshot
+
 | API | URL | OpenAPI | Title | Spec Version | Paths | Operations | SHA-256 | Last-Modified | ETag | Content-Length |
 | --- | --- | --- | --- | --- | ---: | ---: | --- | --- | --- | ---: |
 | `cloud` | <https://docs.hetzner.cloud/cloud.spec.json> | `3.1.2` | `Hetzner Cloud API` | `1.0.0` | 151 | 189 | `9ca6b542a057b002804b9f4f45ccfdb8b9a28c92b7e5bf5ae1b7f46b54fe0093` | `Wed, 08 Jul 2026 11:25:09 GMT` | `W/"34b0fd-19f41797e95"` | 3453181 |

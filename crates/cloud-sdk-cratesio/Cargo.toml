@@ -31,6 +31,9 @@ cloud-sdk.workspace = true
 cloud-sdk-sanitization = { workspace = true, optional = true }
 serde = { workspace = true, optional = true }
 
+[dev-dependencies]
+semver.workspace = true
+
 [lints]
 workspace = true
 

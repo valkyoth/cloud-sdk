@@ -41,7 +41,8 @@ def fixture() -> Path:
         "cloud-sdk-sanitization = { path = \"crates/cloud-sdk-sanitization\", "
         "version = \"1.1.0\", default-features = false }\n"
         "serde = { version = \"=1.0.229\", default-features = false, "
-        "features = [\"alloc\", \"derive\"] }\n",
+        "features = [\"alloc\", \"derive\"] }\n"
+        "semver = { version = \"=1.0.28\", default-features = false }\n",
         encoding="ascii",
     )
     source = ROOT / checker.CRATE
@@ -168,11 +169,10 @@ def test_dependency_substitution_and_extra_sections_are_rejected() -> None:
     for section in ("dev-dependencies", "build-dependencies"):
         root = fixture()
         manifest = root / checker.CRATE / "Cargo.toml"
-        manifest.write_text(
-            manifest.read_text(encoding="ascii")
-            + f"\n[{section}]\nsubtle = \"2.6.1\"\n",
-            encoding="ascii",
-        )
+        text = manifest.read_text(encoding="ascii")
+        header = f"[{section}]"
+        text = text.replace(header, header + '\nsubtle = "2.6.1"', 1) if header in text else text + f'\n{header}\nsubtle = "2.6.1"\n'
+        manifest.write_text(text, encoding="ascii")
         assert_rejected(root, section)
         shutil.rmtree(root)
 

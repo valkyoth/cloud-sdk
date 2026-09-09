@@ -12,9 +12,12 @@ pub mod catalog;
 #[cfg(feature = "alloc")]
 pub mod credentials;
 pub mod endpoint;
+pub mod identifiers;
 pub mod identity;
 pub mod ownership;
+pub mod pagination;
 pub mod publishing;
+pub mod query;
 pub mod trusted_publishing;
 pub mod wire;
 

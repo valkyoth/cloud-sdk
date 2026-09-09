@@ -1,21 +1,21 @@
 {
   "SPDXID": "SPDXRef-DOCUMENT",
   "creationInfo": {
-    "created": "2026-09-08T09:35:14Z",
+    "created": "2026-09-09T08:54:11Z",
     "creators": [
       "Tool: cargo-sbom-v0.10.0",
       "Tool: cloud-sdk-complete-spdx-v1"
     ]
   },
   "dataLicense": "CC0-1.0",
-  "documentNamespace": "https://spdx.org/spdxdocs/reqwest-feature-unification-8a0332b0-3a87-44bb-9f83-22b7ac5c84c6",
+  "documentNamespace": "https://spdx.org/spdxdocs/reqwest-feature-unification-bdfb211f-b669-4794-b813-d6c8dd0b9f5f",
   "files": [
     {
       "SPDXID": "SPDXRef-File-cloud_sdk_reqwest_feature_unification_test",
       "checksums": [
         {
           "algorithm": "SHA1",
-          "checksumValue": "398e3d052b1e37e6a7357c0b23fdcc131e2f94e0"
+          "checksumValue": "e1449c8cb1fa49c5ea40bdb9d7337a017dc6e75a"
         }
       ],
       "fileName": "./Cargo.lock",
@@ -123,6 +123,22 @@
       "licenseDeclared": "MIT OR Apache-2.0",
       "name": "base64",
       "versionInfo": "0.22.1"
+    },
+    {
+      "SPDXID": "SPDXRef-Package-base64-0.23.1",
+      "description": "encodes and decodes base64 as bytes or utf8",
+      "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
+      "externalRefs": [
+        {
+          "referenceCategory": "PACKAGE-MANAGER",
+          "referenceLocator": "pkg:cargo/base64@0.23.1",
+          "referenceType": "purl"
+        }
+      ],
+      "licenseConcluded": "MIT OR Apache-2.0",
+      "licenseDeclared": "MIT OR Apache-2.0",
+      "name": "base64",
+      "versionInfo": "0.23.1"
     },
     {
       "SPDXID": "SPDXRef-Package-base64-ng-2.0.4",
@@ -1762,20 +1778,20 @@
       "versionInfo": "0.5.18"
     },
     {
-      "SPDXID": "SPDXRef-Package-reqwest-0.13.4",
+      "SPDXID": "SPDXRef-Package-reqwest-0.13.5",
       "description": "higher level HTTP client library",
       "downloadLocation": "registry+https://github.com/rust-lang/crates.io-index",
       "externalRefs": [
         {
           "referenceCategory": "PACKAGE-MANAGER",
-          "referenceLocator": "pkg:cargo/reqwest@0.13.4",
+          "referenceLocator": "pkg:cargo/reqwest@0.13.5",
           "referenceType": "purl"
         }
       ],
       "licenseConcluded": "MIT OR Apache-2.0",
       "licenseDeclared": "MIT OR Apache-2.0",
       "name": "reqwest",
-      "versionInfo": "0.13.4"
+      "versionInfo": "0.13.5"
     },
     {
       "SPDXID": "SPDXRef-Package-resolv-conf-0.7.6",
@@ -3522,7 +3538,7 @@
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-1.1.0",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-reqwest-0.13.4"
+      "relatedSpdxElement": "SPDXRef-Package-reqwest-0.13.5"
     },
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-1.1.0",
@@ -3557,7 +3573,7 @@
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-feature-unification-test-0.0.0",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-reqwest-0.13.4"
+      "relatedSpdxElement": "SPDXRef-Package-reqwest-0.13.5"
     },
     {
       "spdxElementId": "SPDXRef-Package-cloud-sdk-reqwest-feature-unification-test-0.0.0",
@@ -4960,162 +4976,162 @@
       "relatedSpdxElement": "SPDXRef-Package-bitflags-2.13.1"
     },
     {
-      "spdxElementId": "SPDXRef-Package-reqwest-0.13.4",
+      "spdxElementId": "SPDXRef-Package-reqwest-0.13.5",
       "relationshipType": "DEPENDS_ON",
-      "relatedSpdxElement": "SPDXRef-Package-base64-0.22.1"
+      "relatedSpdxElement": "SPDXRef-Package-base64-0.23.1"
     },
     {
-      "spdxElementId": "SPDXRef-Package-reqwest-0.13.4",
+      "spdxElementId": "SPDXRef-Package-reqwest-0.13.5",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-bytes-1.12.1"
     },
     {
-      "spdxElementId": "SPDXRef-Package-reqwest-0.13.4",
+      "spdxElementId": "SPDXRef-Package-reqwest-0.13.5",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-futures-channel-0.3.34"
     },
     {
-      "spdxElementId": "SPDXRef-Package-reqwest-0.13.4",
+      "spdxElementId": "SPDXRef-Package-reqwest-0.13.5",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-futures-core-0.3.34"
     },
     {
-      "spdxElementId": "SPDXRef-Package-reqwest-0.13.4",
+      "spdxElementId": "SPDXRef-Package-reqwest-0.13.5",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-futures-util-0.3.34"
     },
     {
-      "spdxElementId": "SPDXRef-Package-reqwest-0.13.4",
+      "spdxElementId": "SPDXRef-Package-reqwest-0.13.5",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-h2-0.4.19"
     },
     {
-      "spdxElementId": "SPDXRef-Package-reqwest-0.13.4",
+      "spdxElementId": "SPDXRef-Package-reqwest-0.13.5",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-hickory-resolver-0.26.2"
     },
     {
-      "spdxElementId": "SPDXRef-Package-reqwest-0.13.4",
+      "spdxElementId": "SPDXRef-Package-reqwest-0.13.5",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-http-1.5.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-reqwest-0.13.4",
+      "spdxElementId": "SPDXRef-Package-reqwest-0.13.5",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-http-body-1.1.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-reqwest-0.13.4",
+      "spdxElementId": "SPDXRef-Package-reqwest-0.13.5",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-http-body-util-0.1.5"
     },
     {
-      "spdxElementId": "SPDXRef-Package-reqwest-0.13.4",
+      "spdxElementId": "SPDXRef-Package-reqwest-0.13.5",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-hyper-1.11.1"
     },
     {
-      "spdxElementId": "SPDXRef-Package-reqwest-0.13.4",
+      "spdxElementId": "SPDXRef-Package-reqwest-0.13.5",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-hyper-rustls-0.27.9"
     },
     {
-      "spdxElementId": "SPDXRef-Package-reqwest-0.13.4",
+      "spdxElementId": "SPDXRef-Package-reqwest-0.13.5",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-hyper-util-0.1.20"
     },
     {
-      "spdxElementId": "SPDXRef-Package-reqwest-0.13.4",
+      "spdxElementId": "SPDXRef-Package-reqwest-0.13.5",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-js-sys-0.3.104"
     },
     {
-      "spdxElementId": "SPDXRef-Package-reqwest-0.13.4",
+      "spdxElementId": "SPDXRef-Package-reqwest-0.13.5",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-log-0.4.34"
     },
     {
-      "spdxElementId": "SPDXRef-Package-reqwest-0.13.4",
+      "spdxElementId": "SPDXRef-Package-reqwest-0.13.5",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-once--cell-1.21.4"
     },
     {
-      "spdxElementId": "SPDXRef-Package-reqwest-0.13.4",
+      "spdxElementId": "SPDXRef-Package-reqwest-0.13.5",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-percent-encoding-2.3.2"
     },
     {
-      "spdxElementId": "SPDXRef-Package-reqwest-0.13.4",
+      "spdxElementId": "SPDXRef-Package-reqwest-0.13.5",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-pin-project-lite-0.2.17"
     },
     {
-      "spdxElementId": "SPDXRef-Package-reqwest-0.13.4",
+      "spdxElementId": "SPDXRef-Package-reqwest-0.13.5",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-quinn-0.11.11"
     },
     {
-      "spdxElementId": "SPDXRef-Package-reqwest-0.13.4",
+      "spdxElementId": "SPDXRef-Package-reqwest-0.13.5",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-rustls-0.23.44"
     },
     {
-      "spdxElementId": "SPDXRef-Package-reqwest-0.13.4",
+      "spdxElementId": "SPDXRef-Package-reqwest-0.13.5",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-rustls-pki-types-1.15.1"
     },
     {
-      "spdxElementId": "SPDXRef-Package-reqwest-0.13.4",
+      "spdxElementId": "SPDXRef-Package-reqwest-0.13.5",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-rustls-platform-verifier-0.7.0"
     },
     {
-      "spdxElementId": "SPDXRef-Package-reqwest-0.13.4",
+      "spdxElementId": "SPDXRef-Package-reqwest-0.13.5",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-sync--wrapper-1.0.2"
     },
     {
-      "spdxElementId": "SPDXRef-Package-reqwest-0.13.4",
+      "spdxElementId": "SPDXRef-Package-reqwest-0.13.5",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-tokio-1.53.1"
     },
     {
-      "spdxElementId": "SPDXRef-Package-reqwest-0.13.4",
+      "spdxElementId": "SPDXRef-Package-reqwest-0.13.5",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-tokio-rustls-0.26.5"
     },
     {
-      "spdxElementId": "SPDXRef-Package-reqwest-0.13.4",
+      "spdxElementId": "SPDXRef-Package-reqwest-0.13.5",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-tower-0.5.3"
     },
     {
-      "spdxElementId": "SPDXRef-Package-reqwest-0.13.4",
+      "spdxElementId": "SPDXRef-Package-reqwest-0.13.5",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-tower-http-0.6.11"
     },
     {
-      "spdxElementId": "SPDXRef-Package-reqwest-0.13.4",
+      "spdxElementId": "SPDXRef-Package-reqwest-0.13.5",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-tower-service-0.3.3"
     },
     {
-      "spdxElementId": "SPDXRef-Package-reqwest-0.13.4",
+      "spdxElementId": "SPDXRef-Package-reqwest-0.13.5",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-url-2.5.8"
     },
     {
-      "spdxElementId": "SPDXRef-Package-reqwest-0.13.4",
+      "spdxElementId": "SPDXRef-Package-reqwest-0.13.5",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-wasm-bindgen-0.2.127"
     },
     {
-      "spdxElementId": "SPDXRef-Package-reqwest-0.13.4",
+      "spdxElementId": "SPDXRef-Package-reqwest-0.13.5",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-wasm-bindgen-futures-0.4.77"
     },
     {
-      "spdxElementId": "SPDXRef-Package-reqwest-0.13.4",
+      "spdxElementId": "SPDXRef-Package-reqwest-0.13.5",
       "relationshipType": "DEPENDS_ON",
       "relatedSpdxElement": "SPDXRef-Package-web-sys-0.3.104"
     },

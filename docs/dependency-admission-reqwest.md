@@ -6,14 +6,14 @@ and `cloud-sdk-reqwest/async-rustls`,
 with reqwest default features disabled. The internal `fuzzing` feature aliases
 `blocking-rustls` only for the isolated fuzz workspace.
 
-Checked: 2026-09-04.
+Checked: 2026-09-09.
 
 ## Decision
 
 | Crate | Version | Role | Default features |
 | --- | --- | --- | --- |
-| `reqwest` | `0.13.4` | blocking/async HTTP client and URL/header types | disabled |
-| `base64-ng` | `2.0.3` | bounded RFC 4648 Basic authorization encoding | disabled |
+| `reqwest` | `0.13.5` | blocking/async HTTP client and URL/header types | disabled |
+| `base64-ng` | `2.0.4` | bounded RFC 4648 Basic authorization encoding | disabled |
 | `bytes` | `1.12.1` | sanitized owned async request-body handoff | disabled |
 | `http` | `1.5.0` | raw request and response-head representation | disabled |
 | `http-body-util` | `0.1.5` | raw body ownership and response-frame access | disabled |
@@ -22,13 +22,13 @@ Checked: 2026-09-04.
 | `hyper-util` | `0.1.20` | raw client, connector, and Tokio adapters | disabled |
 | `tokio` | `1.53.1` | opt-in reqwest and raw executor runtime | disabled |
 | `url` | `2.5.8` | authority-preserving endpoint parsing | transitive |
-| `rustls` | `0.23.43` | TLS implementation | transitive |
+| `rustls` | `0.23.44` | TLS implementation | transitive |
 | `rustls-platform-verifier` | `0.7.0` | platform trust-store verification | transitive |
 | `webpki-roots` | `1.0.9` | deterministic Mozilla trust-root snapshot | disabled |
 | `aws-lc-rs` | `1.18.1` | rustls cryptographic provider | transitive |
 | `aws-lc-sys` | `0.45.0` | bundled native AWS-LC implementation | disabled |
 | `cloud-sdk-sanitization` | `1.1.0` | mandatory core and adapter-owned secret-buffer cleanup | disabled |
-| `sanitization` | `2.0.4` | reviewed volatile cleanup primitive | disabled |
+| `sanitization` | `2.1.0` | reviewed volatile cleanup primitive | disabled |
 
 The exact repository graph is pinned by `Cargo.lock`, checked by `cargo deny`,
 and recorded in the generated SBOM. Applications own their downstream
@@ -36,7 +36,8 @@ resolution and must retain a reviewed lockfile or vendored source set; a
 library lockfile is not published as a consumer constraint. All admitted
 licenses satisfy `deny.toml`. The rustls trust-root data requires
 `CDLA-Permissive-2.0`, which is explicitly admitted. The ordinary transport
-graph has no duplicate-version exception. The boundary rejects legacy
+graph has a narrowly scoped `base64 0.22.1` duplicate-version exception:
+hyper-util requires 0.22 while reqwest now requires 0.23. The boundary rejects legacy
 `windows-sys` `0.52.0` if it becomes reachable again.
 
 Aws-lc-sys introduces the workspace's first native dependency build script. It
@@ -52,12 +53,26 @@ trees. The original v0.24 admission is recorded in
 archive checksums and update evidence are recorded in
 [`DEPENDENCY_REVIEW.md#v110`](DEPENDENCY_REVIEW.md#v110).
 
-The version review used the reqwest 0.13.4 crate metadata, feature list, API
+The version review used the reqwest 0.13.5 crate metadata, feature list, API
 documentation, and upstream source:
 
-- <https://crates.io/crates/reqwest/0.13.4>
-- <https://docs.rs/reqwest/0.13.4/reqwest/>
-- <https://github.com/seanmonstar/reqwest/tree/v0.13.4>
+- <https://crates.io/crates/reqwest/0.13.5>
+- <https://docs.rs/reqwest/0.13.5/reqwest/>
+- <https://github.com/seanmonstar/reqwest/tree/v0.13.5>
+
+The 2026-09-09 patch review accepts reqwest 0.13.5 (MIT OR Apache-2.0,
+MSRV 1.85, no build script), including timeout classification and proxy-auth
+selection fixes. Its features remain unchanged; the SDK disables proxies.
+The transitive Base64 requirement changes from 0.22 to 0.23. Locked
+`base64 0.23.1` is MIT OR Apache-2.0, MSRV 1.71, with no build script or
+runtime dependencies. Its default-on `simd-unsafe` feature compiles additional
+upstream unsafe SIMD code; reqwest's `util::basic_auth` still selects the scalar
+`BASE64_STANDARD` engine, not those engines. SDK credential formatting continues
+to use `base64-ng` and does not call reqwest's Basic-auth helper. This is an
+explicit third-party transport admission, not a relaxation of the first-party
+unsafe or default no_std policies. The duplicate exception must be removed when
+hyper-util and reqwest converge on one Base64 line. Checksums and the complete
+lockfile delta are in the dependency review digest.
 
 The 2026-09-04 freshness review accepted `base64-ng 2.0.3`, `hyper 1.11.1`,
 `aws-lc-rs 1.18.1`, and `aws-lc-sys 0.45.0`. All retain default-disabled

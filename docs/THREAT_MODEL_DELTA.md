@@ -388,3 +388,13 @@ exchange with the supplied identity and no hidden retries/redirects. Independent
 processes, bypassing adapters and caller-provided clocks require external
 coordination; no async-client or global-egress guarantee is claimed. The complete
 boundary and required tests are in [the wire policy](CRATESIO_WIRE_POLICY.md).
+
+### crates.io Commit 7
+
+Checked identifiers and operation-specific query parameters prevent delimiter
+injection, duplicate inputs and shadowed filters. Continuations bind the exact
+official origin, path and unchanged non-pagination parameters; transfer uses
+the existing cleanup-owning core link and its dispatch checks. Traversal caps
+and the separate rate gate remain explicit caller/driver obligations. There is
+no default allocation or new runtime dependency. See [the request policy](CRATESIO_REQUEST_POLICY.md)
+for SDK profile limits, opaque seek state, bounded cycle behavior and tests.

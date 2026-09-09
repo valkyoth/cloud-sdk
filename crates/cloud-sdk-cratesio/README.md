@@ -28,8 +28,9 @@ the endpoint, request-target, and static-download redirect boundaries are now
 implemented. Protected credential preparation is implemented behind `alloc`
 and has passed its checkpoint pentest and remediation retest. Checked JSON
 envelopes, request scheduling and user-agent policy have also passed their
-checkpoint pentest and remediation retest; GitHub checks remain pending.
-API workflows
+checkpoint pentest, remediation retest and GitHub checks. Typed identifiers,
+operation-scoped queries and validated pagination are implemented and await
+their Commit 7 pentest. API workflows
 and authenticated network execution remain unavailable until their reviewed
 checkpoints are complete.
 
@@ -48,6 +49,8 @@ checkpoints are complete.
 | Credentials | five protected token kinds, origin-bound contexts, scoped adapter material (`alloc`) |
 | JSON wire admission | exact status, bounded complete JSON, Cargo error detection and cleanup (`alloc`) |
 | Request policy | identifying user agent and clock-free scheduling; process-wide blocking gate (`std`) |
+| Identifiers and queries | bounded public identifiers, operation-specific values and atomic percent encoding |
+| Pagination | checked meta links, legacy `more`, and explicit traversal limits |
 | API operations | deferred to their source-locked implementation commits |
 
 The public modules reserve ownership without claiming executable coverage:
@@ -218,6 +221,72 @@ blocking adapter callback, requiring the validated identity. It is not an
 async or authenticated client. No retries or sleeps happen automatically.
 See the [wire policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATESIO_WIRE_POLICY.md)
 for response limits, cleanup and adapter responsibilities.
+
+## Typed Query Example
+
+```rust
+use cloud_sdk_cratesio::query::{
+    ApiPath, FixedSegment, Page, Parameter, PathSegment, PerPage, Query,
+    QueryOperation, Sort,
+};
+
+let segments = [PathSegment::Fixed(FixedSegment::Categories)];
+let path = ApiPath::new(&segments)?;
+let parameters = [
+    Parameter::Sort(Sort::Alpha),
+    Parameter::Page(Page::new(1)?),
+    Parameter::PerPage(PerPage::new(25)?),
+];
+let query = Query::new(QueryOperation::Categories, &parameters)?;
+let mut output = [0; 128];
+let target = query.write_target(path, &mut output)?;
+assert_eq!(target.as_str(), "/api/v1/categories?page=1&per_page=25&sort=alpha");
+# Ok::<(), cloud_sdk_cratesio::query::QueryError>(())
+```
+
+`identifiers` also provides crate names, exact versions, category slugs, keywords,
+user/team logins, owners, numeric IDs and dates. Include and sort choices are
+operation-specific; duplicate parameters and conflicting filters are rejected.
+
+## Pagination Example
+
+```rust
+# fn main() -> Result<(), Box<dyn std::error::Error>> {
+use cloud_sdk::pagination::PaginationLimits;
+use cloud_sdk_cratesio::{
+    endpoint::OfficialCratesIoEndpoint,
+    pagination::{Direction, PageLink, Traversal},
+    query::{ApiPath, FixedSegment, Parameter, PathSegment, PerPage, Query, QueryOperation},
+};
+
+let endpoint = OfficialCratesIoEndpoint::production_api();
+let segments = [PathSegment::Fixed(FixedSegment::Crates)];
+let path = ApiPath::new(&segments)?;
+let size = PerPage::new(10)?;
+let parameters = [Parameter::PerPage(size)];
+let query = Query::new(QueryOperation::Crates, &parameters)?;
+let next = PageLink::new(endpoint, path, query, "?page=2&per_page=10", Direction::Next)?;
+let limits = PaginationLimits::new(5, 50, 128)?;
+let mut traversal = Traversal::new(limits, size);
+traversal.admit(10, Some(&next))?;
+
+let mut path_storage = [0; 128];
+let mut target_storage = [0; 128];
+let continuation = next.transfer_to(&mut path_storage, &mut target_storage, limits)?;
+drop(continuation);
+assert!(target_storage.iter().all(|byte| *byte == 0));
+# Ok(())
+# }
+```
+
+This example starts from a decoded meta link and item count. Resource-specific
+response decoders and complete operation drivers follow in later checkpoints.
+The transferred core link checks endpoint, method and operation at dispatch;
+callers must still apply the rate gate to every attempt. `MetaLinks` validates
+both next and previous fields, and `Traversal::admit_legacy` supports Cargo's
+numbered `more` responses. See the
+[request policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATESIO_REQUEST_POLICY.md)
+for exact input limits and source-verification commands.
 
 ## Security And Policy
 

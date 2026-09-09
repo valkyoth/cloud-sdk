@@ -21,6 +21,6 @@ cloud-sdk-reqwest = {
         "blocking-rustls-webpki-roots",
     ],
 }
-reqwest = { version = "=0.13.4", default-features = false, features = ["hickory-dns", "http2"] }
+reqwest = { version = "=0.13.5", default-features = false, features = ["hickory-dns", "http2"] }
 rustls = { version = "=0.23.44", default-features = false, features = ["std"] }
 tokio = { version = "=1.53.1", default-features = false, features = ["rt"] }
