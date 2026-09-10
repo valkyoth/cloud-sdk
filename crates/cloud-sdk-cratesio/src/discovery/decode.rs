@@ -124,14 +124,14 @@ impl DiscoveryRequest<'_> {
         let end = u64::from(current)
             .checked_mul(u64::from(query.per_page()))
             .ok_or(Error::Limit)?;
-        let mut next = if end >= total {
+        let next = if end >= total {
             PageContinuation::End
         } else {
             Page::new(current.checked_add(1).ok_or(Error::Limit)?)
                 .map(PageContinuation::Page)
                 .unwrap_or(PageContinuation::LimitReached)
         };
-        let mut previous = current.checked_sub(1).and_then(|p| Page::new(p).ok());
+        let previous = current.checked_sub(1).and_then(|p| Page::new(p).ok());
         let (segments, len) = self.segments();
         let path =
             ApiPath::new(segments.get(..len).ok_or(Error::Binding)?).map_err(|_| Error::Binding)?;
@@ -154,11 +154,18 @@ impl DiscoveryRequest<'_> {
                 };
                 match direction {
                     Direction::Next => {
-                        next = page
+                        let advertised = page
                             .map(PageContinuation::Page)
-                            .unwrap_or(PageContinuation::End)
+                            .unwrap_or(PageContinuation::End);
+                        if advertised != next {
+                            return Err(Error::Binding);
+                        }
                     }
-                    Direction::Previous => previous = page,
+                    Direction::Previous => {
+                        if page != previous {
+                            return Err(Error::Binding);
+                        }
+                    }
                 }
             }
         }

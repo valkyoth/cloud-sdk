@@ -12,6 +12,7 @@ use cloud_sdk::{
 use serde_json::{Value, json};
 
 mod model_contracts;
+mod pagination_contracts;
 
 pub(crate) trait Fixture<T> {
     fn fixture(self, message: &str) -> T;

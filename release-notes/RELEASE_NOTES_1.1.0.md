@@ -278,6 +278,9 @@ The independent Hetzner drift detected on September 9 is resolved below.
   operations, including complete nested Crate and CrateLinks response fields.
 - Added typed atomic targets, exact source operation metadata, explicit
   numbered continuations, and required/nullable/unknown-field validation.
+- Pentest remediation rejects supplied pagination links (including nulls)
+  that contradict derived next/previous state. Category and keyword regression
+  matrices preserve completion, continuation and page-ceiling distinctions.
 - Reused the neutral incremental JSON parser and protected staging; added
   bounded models, calendar timestamps and redacted open-ended badge values.
 - Added official anonymous blocking, local-async and Send-async discovery.

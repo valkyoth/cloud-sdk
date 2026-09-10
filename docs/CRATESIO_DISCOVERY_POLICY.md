@@ -92,9 +92,14 @@ Current controllers return `meta.total`. Continuation is derived from the
 original page and page size; the page-depth ceiling returns `LimitReached`
 instead of claiming end-of-data. Optional returned next/previous links are
 checked against the same origin, resource, filters, page size and direction.
-They cannot introduce a seek cursor. Changing totals do not provide snapshot
-isolation. Callers explicitly create each next request and must obey the same
-rate gate and their own total-page/item/time budget; there is no bulk crawler.
+Supplied links, including nulls, must agree with the count-derived continuation
+and request-derived previous page; contradictory metadata fails with `Binding`.
+In particular, null cannot turn continuation or `LimitReached` into `End`, and
+a next link cannot extend count-derived completion. Omitted links retain the
+derived state. They cannot introduce a seek cursor. Changing totals do not
+provide snapshot isolation. Callers explicitly create each next request and
+must obey the same rate gate and their own total-page/item/time budget; there
+is no bulk crawler.
 
 ## Execution And Cleanup
 
@@ -158,3 +163,9 @@ Four fresh RustSec lockfile scans, cargo-deny policies, direct dependency/tool
 freshness, all four SBOM graphs and live crates.io/Hetzner source gates passed.
 All six candidate publication flags remain false. These are local checks,
 not an independent pentest result or GitHub approval for this new checkpoint.
+
+The subsequent pagination pentest finding was reproduced by two regression
+matrices that failed on the original decoder. Both now pass for category and
+keyword lists, including on Rust 1.92.0 with only `alloc` enabled. The updated
+provider suite (84 unit tests, one integration test and 14 doctests), Clippy,
+and `scripts/checks.sh` passed. Independent retesting remains pending.

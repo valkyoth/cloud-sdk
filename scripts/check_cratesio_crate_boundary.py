@@ -204,7 +204,7 @@ def validate(root: Path) -> None:
         *(f"discovery/{name}.rs" for name in (
             "mod", "request", "value", "models", "crate_model", "decode",
             "client", "tests", "client/asynchronous", "client/tests",
-            "tests/model_contracts",
+            "tests/model_contracts", "tests/pagination_contracts",
         )),
         *(f"wire/{name}.rs" for name in (
             "mod", "error", "rate", "shared_rate", "user_agent", "envelope",
