@@ -12,9 +12,9 @@ exception_reason = ""
 [crates."cloud-sdk"]
 previous_version = "1.0.0"
 version = "1.1.0"
-change = "metadata"
+change = "code"
 publish = false
-reason = "Track the unreleased crates.io provider train without enabling publication."
+reason = "Add shared incremental decoding and transport user-agent identity without enabling candidate publication."
 
 [crates."cloud-sdk-cratesio"]
 previous_version = "none"
@@ -26,16 +26,16 @@ reason = "Add the initial crates.io provider boundary without enabling candidate
 [crates."cloud-sdk-hetzner"]
 previous_version = "1.0.0"
 version = "1.1.0"
-change = "metadata"
+change = "code"
 publish = false
-reason = "Keep the stable Hetzner provider on the coherent unreleased workspace version."
+reason = "Refresh reviewed Hetzner schemas and announced deprecation compatibility; publication remains disabled."
 
 [crates."cloud-sdk-reqwest"]
 previous_version = "1.0.0"
 version = "1.1.0"
-change = "metadata"
+change = "code"
 publish = false
-reason = "Keep the neutral transport boundary on the coherent unreleased workspace version."
+reason = "Expose stable identifying user-agent configuration on neutral raw transports; publication remains disabled."
 
 [crates."cloud-sdk-sanitization"]
 previous_version = "1.0.0"

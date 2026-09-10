@@ -4,6 +4,9 @@
 from __future__ import annotations
 
 from pathlib import Path
+import shutil
+import subprocess
+import tempfile
 
 import check_hetzner_provider_drift_bridge as bridge
 from provider_drift_model import read_bounded_json, validate_lock
@@ -107,6 +110,31 @@ def main() -> None:
     for test in tests:
         test()
     print(f"{len(tests)} Hetzner provider drift bridge tests passed.")
+
+
+def test_surface_gate_checks_bridge_and_propagates_its_failure() -> None:
+    names = ["check_hetzner_api_drift.py", "check_robot_api_lock.py",
+             "check_hetzner_changelog.py", "check_hetzner_provider_drift_bridge.py"]
+    with tempfile.TemporaryDirectory() as directory:
+        root = Path(directory)
+        scripts = root / "scripts"
+        scripts.mkdir()
+        shutil.copyfile(ROOT / "scripts/check_hetzner_api_surface.sh", scripts / "surface.sh")
+        for mode in ("--local-only", "--fetch"):
+            for status in (0, 37):
+                for name in names:
+                    path = scripts / name
+                    code = status if name == names[-1] else 0
+                    path.write_text(f"#!/bin/sh\nprintf '%s\\n' '{name}' >> calls\nexit {code}\n",
+                                    encoding="ascii")
+                    path.chmod(0o700)
+                log = root / "calls"
+                log.unlink(missing_ok=True)
+                result = subprocess.run(["sh", "scripts/surface.sh", mode], cwd=root,
+                                        capture_output=True, text=True, check=False)
+                assert result.returncode == status, result
+                assert log.read_text(encoding="ascii").splitlines() == names
+                assert ("All tracked" in result.stdout) == (status == 0)
 
 
 if __name__ == "__main__":

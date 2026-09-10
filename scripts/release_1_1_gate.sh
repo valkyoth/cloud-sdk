@@ -11,6 +11,7 @@ scripts/check_cratesio_drift.py --fetch
 scripts/check_cratesio_source_lock.py --fetch
 scripts/check_cratesio_endpoints.py --fetch
 python3 scripts/check_cratesio_request_policy.py --fetch
+python3 scripts/generate_cratesio_discovery_fixtures.py
 scripts/checks.sh
 
 if [ "$(git rev-parse HEAD)" != "$reviewed_head" ]; then

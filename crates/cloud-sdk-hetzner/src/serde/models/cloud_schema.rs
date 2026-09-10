@@ -19,7 +19,17 @@ pub(super) fn validate_model(model: &str, value: &Value) -> Result<(), ResponseM
             continue;
         }
         found = true;
-        let descriptor = Descriptor::parse(&mut fields)?;
+        let mut descriptor = Descriptor::parse(&mut fields)?;
+        // The 2026-09-08 changelog announces removal on 2026-11-02.
+        // Preserve the exact OpenAPI table and validate legacy values if present.
+        if matches!(
+            (model, descriptor.path),
+            ("image" | "server_type" | "load_balancer_type", "deprecated")
+                | ("server", "image/deprecated" | "server_type/deprecated")
+                | ("load_balancer", "load_balancer_type/deprecated")
+        ) {
+            descriptor.required = false;
+        }
         validate_path(model, value, descriptor.path, descriptor)?;
     }
     if !found {

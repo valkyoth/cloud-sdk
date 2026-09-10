@@ -2,9 +2,9 @@
 set -eu
 
 cloud_url="https://docs.hetzner.cloud/cloud.spec.json"
-cloud_sha256="9ca6b542a057b002804b9f4f45ccfdb8b9a28c92b7e5bf5ae1b7f46b54fe0093"
+cloud_sha256="7467483b455386dcff8db84b87bad3b7353ffabf08a82c020d7e053028670421"
 hetzner_url="https://docs.hetzner.cloud/hetzner.spec.json"
-hetzner_sha256="f70750016d81c927ddf877e103541c90d3e3372723cdf54e6fd7b2eba4a8108a"
+hetzner_sha256="0afcd318330d18896104f6f99459e41692956665ce45c11b8b304391a651e0f8"
 
 require_text() {
     file="$1"
@@ -26,7 +26,7 @@ check_local_lock() {
     require_text docs/SPEC_LOCK.md "$hetzner_url"
     require_text docs/SPEC_LOCK.md "$hetzner_sha256"
     require_text docs/SPEC_LOCK.md "Total source-locked operations: 221"
-    require_text docs/SPEC_LOCK.md "2026-07-08"
+    require_text docs/SPEC_LOCK.md "2026-09-10"
 
     require_text docs/API_MATRIX.md "Total OpenAPI source-locked operations: 221"
     require_text docs/API_MATRIX.md "| cloud | Actions | GET | \`/actions\` | \`get_actions\` |"

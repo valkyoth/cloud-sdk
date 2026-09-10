@@ -55,7 +55,8 @@ actual delays must be bounded by the caller before scheduling.
 `JsonSuccess::visit` replays already-admitted events to a trusted resource
 decoder and clears the wire buffer afterwards. Visitors must protect retained
 copies. A visitor stop remains distinct from completion. This foundation does
-not yet implement operation-specific success models or token-response models.
+not itself implement operation-specific models. The [discovery layer](CRATESIO_DISCOVERY_POLICY.md)
+now decodes seven anonymous operations; token-response models remain later work.
 
 ## Parser Continuity
 
@@ -99,7 +100,9 @@ their interval; rollback and overflow reject; deferral cannot shorten a wait.
 
 Under `std`, `OfficialApiGate` shares a process-wide mutex and monotonic clock
 across instances, origins and credentials. It conservatively serializes whole
-blocking attempts and enforces one second of quiet time after completion.
+blocking and discovery async attempts and enforces one second of quiet time
+after completion or cancellation. An owned admission guard releases the mutex
+before dispatch; no mutex is held across await.
 Busy, early or poisoned calls fail rather than sleep. Reentrant use fails;
 panics poison the gate. No global reset API exists.
 
@@ -109,9 +112,10 @@ and do not return a future/deferred task. It does not verify endpoint or
 credential binding on its own; combine those separately reviewed boundaries.
 It is not a finished official client, and cannot constrain deliberately
 bypassing adapters, other processes, or other applications sharing an egress IP.
-Those require external coordination. Async execution and operation clients
-must integrate admission at their own later checkpoints without holding an
-ordinary mutex across await. Static downloads are outside this API gate.
+Those require external coordination. Commit 8 discovery clients bind transport
+origin and identifying user-agent and hold owned admission through blocking,
+local-async or Send-async execution and decoding. Static downloads are outside
+this API gate.
 
 ## Verification
 

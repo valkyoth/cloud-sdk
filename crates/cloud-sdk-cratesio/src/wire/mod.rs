@@ -17,8 +17,12 @@ pub use error::{CratesIoWireError, ProviderError, ProviderErrorKind};
 pub use rate::{API_REQUEST_INTERVAL, ApiSchedule, ScheduleError};
 #[cfg(feature = "alloc")]
 pub use response::{JsonResponsePolicy, JsonSuccess, MAX_JSON_RESPONSE_BYTES};
+#[cfg(any(feature = "blocking", feature = "async"))]
+pub(crate) use shared_rate::OfficialApiAttempt;
 #[cfg(feature = "std")]
 pub use shared_rate::{OfficialApiGate, OfficialCallError};
+#[cfg(all(test, feature = "std"))]
+pub(crate) use shared_rate::{TEST_GATE_LOCK, reset_test_gate};
 pub use user_agent::{IdentifyingUserAgent, MAX_USER_AGENT_BYTES, UserAgentError};
 
 #[cfg(all(test, feature = "alloc"))]

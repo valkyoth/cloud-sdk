@@ -1,0 +1,9 @@
+{
+  "category_slugs": [
+    {
+      "description": "Libraries for creating games.",
+      "id": "game-development",
+      "slug": "game-development"
+    }
+  ]
+}

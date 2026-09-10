@@ -113,6 +113,15 @@ def normalize_fixture(model: str, value: Any) -> Any:
         )
     if model.startswith("storage_box") and isinstance(value, dict):
         normalize_storage_fixture(model, value)
+    if model == "load_balancer" and isinstance(value, dict):
+        for target in value.get("targets", []):
+            for item in [target, *target.get("targets", [])]:
+                for health in item.get("health_status", []):
+                    # These optional fields describe one unhealthy HTTP check,
+                    # not independent enum/integer examples.
+                    if "detail" in health or "http_status_code" in health:
+                        health.update(status="unhealthy",
+                                      detail="unexpected_http_status", http_status_code=503)
     return value
 
 

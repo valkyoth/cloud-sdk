@@ -269,13 +269,42 @@ for Commit 7.
   binding, cleanup and documentation examples. See the
   [request policy](../docs/CRATESIO_REQUEST_POLICY.md).
 
-This is an implementation stop requiring incremental pentest, not a release
-or complete operation-client claim. Stop before Commit 8; do not tag or publish.
+GitHub passed on `89910ad7`; the user authorized advancing to Commit 8.
+The independent Hetzner drift detected on September 9 is resolved below.
 
-The extra 2026-09-09 live Hetzner check detected upstream drift. Its
-[maintenance record](../docs/SPEC_LOCK.md#pending-live-drift-review-2026-09-09)
-must be resolved separately before 1.1.0 release qualification. Existing
-Hetzner locks were not refreshed merely to silence that check.
+### Commit 8 - Taxonomy And Site Discovery
+
+- Implemented all seven category, slug, keyword, site metadata and summary
+  operations, including complete nested Crate and CrateLinks response fields.
+- Added typed atomic targets, exact source operation metadata, explicit
+  numbered continuations, and required/nullable/unknown-field validation.
+- Reused the neutral incremental JSON parser and protected staging; added
+  bounded models, calendar timestamps and redacted open-ended badge values.
+- Added official anonymous blocking, local-async and Send-async discovery.
+  All modes bind origin and identifying user-agent, enforce response policy
+  and clear caller storage, including cancelled and unpolled futures.
+- Added the neutral `BoundUserAgent` inspection trait and implementations for
+  raw reqwest adapters. Transport-owned user-agent cannot be overridden by
+  ordinary headers; loopback tests compare configuration with wire bytes.
+- The process gate now holds owned admission through async completion without
+  holding a mutex across await. Cancellation consumes admission; valid
+  Retry-After can only extend the quiet interval. No hidden retry or sleep.
+- Added seven pinned-source fixtures, generator mutation tests, complete
+  required-field/limit/identity/parity tests and a compile-checked README example.
+  Existing `serde_json` is a dev-only fixture oracle, not a runtime dependency.
+- Resolved [Hetzner API drift](../docs/SPEC_LOCK.md#reviewed-live-drift-2026-09-10):
+  no endpoint/parameter inventory change; 730 response-field rows now cover
+  required nullable image deprecation, IP name bounds and all target-health
+  variants. Regenerated fixtures preserve the existing health cross-field rules.
+- Reviewed the September 8 legacy `deprecated` removal announcement and
+  accept omission at only the six affected resource paths while retaining
+  validation for present values and required replacement fields. The September 9
+  Object Storage notice is outside current SDK scope.
+
+Implementation stop: pentest `89910ad7cab7a1549a67f16e7bea7556557c4f3e..HEAD`,
+including the neutral transport and Hetzner maintenance changes.
+The [discovery contract](../docs/CRATESIO_DISCOVERY_POLICY.md) records limits
+and verification commands. Do not begin Commit 9, tag or publish yet.
 
 ### Maintenance Evidence
 

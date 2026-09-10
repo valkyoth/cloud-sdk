@@ -162,6 +162,9 @@ pub(crate) struct RawHyperClient {
 }
 
 impl RawHyperClient {
+    pub(crate) fn configured_user_agent(&self) -> &[u8] {
+        self.user_agent.as_bytes()
+    }
     pub(crate) fn new(
         endpoint: HttpsEndpoint,
         user_agent: &UserAgent,

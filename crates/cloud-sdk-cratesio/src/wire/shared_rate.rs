@@ -4,8 +4,62 @@ use std::time::Instant;
 
 use super::{API_REQUEST_INTERVAL, ApiSchedule, IdentifyingUserAgent, ScheduleError};
 
-static SCHEDULE: Mutex<ApiSchedule> = Mutex::new(ApiSchedule::new());
+pub(super) static SCHEDULE: Mutex<SharedSchedule> = Mutex::new(SharedSchedule {
+    schedule: ApiSchedule::new(),
+    active: false,
+    poisoned: false,
+});
 static EPOCH: OnceLock<Instant> = OnceLock::new();
+
+#[cfg(test)]
+pub(crate) static TEST_GATE_LOCK: Mutex<()> = Mutex::new(());
+#[cfg(test)]
+pub(crate) fn reset_test_gate() {
+    let mut state = SCHEDULE
+        .lock()
+        .unwrap_or_else(|_| unreachable!("test schedule lock"));
+    assert!(!state.active, "cannot reset a live attempt");
+    *state = SharedSchedule {
+        schedule: ApiSchedule::new(),
+        active: false,
+        poisoned: false,
+    };
+}
+
+pub(super) struct SharedSchedule {
+    schedule: ApiSchedule,
+    active: bool,
+    poisoned: bool,
+}
+
+/// Owned admission across a complete synchronous or asynchronous exchange.
+/// No mutex guard crosses an await. Drop imposes a new quiet interval even
+/// when a future is cancelled; a panic permanently closes the process gate.
+pub(crate) struct OfficialApiAttempt {
+    delay: core::time::Duration,
+}
+impl OfficialApiAttempt {
+    #[cfg(any(feature = "blocking", feature = "async"))]
+    pub(crate) fn defer(&mut self, delay: core::time::Duration) {
+        self.delay = self.delay.max(delay);
+    }
+}
+impl Drop for OfficialApiAttempt {
+    fn drop(&mut self) {
+        let Ok(mut state) = SCHEDULE.lock() else {
+            return;
+        };
+        if std::thread::panicking() {
+            state.poisoned = true;
+        }
+        let now = EPOCH.get_or_init(Instant::now).elapsed();
+        match now.checked_add(self.delay.max(API_REQUEST_INTERVAL)) {
+            Some(deadline) => state.schedule.defer_until(deadline),
+            None => state.poisoned = true,
+        }
+        state.active = false;
+    }
+}
 
 /// Process-wide synchronous API gate, shared across all instances and credentials.
 ///
@@ -26,6 +80,27 @@ impl<'a> OfficialApiGate<'a> {
         Self { user_agent }
     }
 
+    pub(crate) fn begin(&self) -> Result<OfficialApiAttempt, ScheduleError> {
+        let mut state = SCHEDULE
+            .try_lock()
+            .map_err(|_| ScheduleError::Unavailable)?;
+        if state.active || state.poisoned {
+            return Err(ScheduleError::Unavailable);
+        }
+        state
+            .schedule
+            .try_start(EPOCH.get_or_init(Instant::now).elapsed())?;
+        state.active = true;
+        Ok(OfficialApiAttempt {
+            delay: API_REQUEST_INTERVAL,
+        })
+    }
+
+    #[cfg(any(feature = "blocking", feature = "async"))]
+    pub(crate) const fn user_agent(&self) -> IdentifyingUserAgent<'a> {
+        self.user_agent
+    }
+
     /// Tries one complete blocking exchange without sleeping or retrying.
     /// Concurrent attempts return Unavailable; early attempts return Wait.
     /// Callback panics poison the gate, failing all later calls closed.
@@ -33,20 +108,8 @@ impl<'a> OfficialApiGate<'a> {
         &self,
         send: impl FnOnce(IdentifyingUserAgent<'_>) -> Result<T, E>,
     ) -> Result<T, OfficialCallError<E>> {
-        let mut schedule = SCHEDULE
-            .try_lock()
-            .map_err(|_| OfficialCallError::Schedule(ScheduleError::Unavailable))?;
-        let epoch = EPOCH.get_or_init(Instant::now);
-        schedule
-            .try_start(epoch.elapsed())
-            .map_err(OfficialCallError::Schedule)?;
-        let result = send(self.user_agent);
-        let deadline = epoch
-            .elapsed()
-            .checked_add(API_REQUEST_INTERVAL)
-            .ok_or(OfficialCallError::Schedule(ScheduleError::Overflow))?;
-        schedule.defer_until(deadline);
-        result.map_err(OfficialCallError::Transport)
+        let _attempt = self.begin().map_err(OfficialCallError::Schedule)?;
+        send(self.user_agent).map_err(OfficialCallError::Transport)
     }
 }
 

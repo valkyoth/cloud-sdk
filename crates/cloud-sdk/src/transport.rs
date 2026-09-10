@@ -11,6 +11,7 @@ mod request_target;
 mod response;
 mod retained;
 mod streaming;
+mod user_agent;
 mod workspace;
 
 pub use asynchronous::{
@@ -68,6 +69,8 @@ pub use workspace::{
 };
 
 use core::fmt;
+
+pub use user_agent::BoundUserAgent;
 
 use crate::Method;
 

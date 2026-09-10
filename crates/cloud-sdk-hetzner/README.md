@@ -798,6 +798,12 @@ The construction, storage, and trust boundaries are described in the
 Upstream source monitoring and lock-refresh decisions follow the
 [API drift maintenance runbook](https://github.com/valkyoth/cloud-sdk/blob/main/docs/API_DRIFT_MAINTENANCE.md).
 
+The current candidate includes the September 2026
+[schema and deprecation review](https://github.com/valkyoth/cloud-sdk/blob/main/docs/SPEC_LOCK.md#reviewed-live-drift-2026-09-10).
+Use the replacement `deprecation` metadata: Hetzner has announced removal of
+legacy `deprecated` fields on November 2. Both present and omitted legacy
+fields are handled at the affected resource paths.
+
 ## Server Metadata Example
 
 Metadata requests select one of seven fixed routes and carry no credentials,

@@ -21,11 +21,11 @@ LOCK_DOCUMENT = ROOT / "docs" / "HETZNER_CHANGELOG_LOCK.md"
 SOURCE_URL = "https://docs.hetzner.cloud/changelog/feed.rss"
 SELF_URL = "https://docs.hetzner.cloud/changelog/rss"
 PINNED_SEMANTIC_SHA256 = (
-    "29a1ea0bacae078b213916a41f6af27c53a1e74ead7bb4f90c9cda89470748aa"
+    "170fc4dbef43b82cb80562cc793aa8d38146c5641291609c07e8353906dff0c5"
 )
 PINNED_LATEST_GUID = (
     "https://docs.hetzner.cloud/changelog#"
-    "2026-08-31-debian-11-image-is-deprecated"
+    "2026-09-09-object-storage-new-delete-rule"
 )
 MAX_SOURCE_BYTES = 8 * 1024 * 1024
 CONNECT_TIMEOUT_SECONDS = 10

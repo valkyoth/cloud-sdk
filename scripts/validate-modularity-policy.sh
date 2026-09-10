@@ -8,6 +8,10 @@ if [ "$mode" != "check" ]; then
 fi
 
 status=0
+if ! python3 scripts/check_cratesio_crate_boundary.py; then
+    echo "modularity policy: crates.io feature/module guards changed" >&2
+    status=1
+fi
 for root in crates/*/src/lib.rs; do
     if ! grep -Fq '#![no_std]' "$root"; then
         echo "modularity policy: missing #![no_std]: $root" >&2
@@ -107,6 +111,7 @@ if grep -RInE '(^|[^A-Za-z0-9_])std([[:space:]]*::|[[:space:]]+as|[[:space:]]*\{
     grep -Ev '^crates/cloud-sdk-reqwest/src/(asynchronous|blocking|shared)/' |
     grep -Ev '^crates/cloud-sdk-reqwest/src/test_server.rs:' |
     grep -Ev '^crates/cloud-sdk-cratesio/src/wire/shared_rate.rs:' |
+    grep -Ev '^crates/cloud-sdk-cratesio/src/discovery/client.rs:' |
     grep -Ev '^crates/cloud-sdk/tests/credential_attempt_concurrency.rs:' |
     grep -Ev '^crates/cloud-sdk/tests/response_cleanup.rs:' |
     grep -Ev '^crates/cloud-sdk/tests/encoder_cleanup.rs:' |

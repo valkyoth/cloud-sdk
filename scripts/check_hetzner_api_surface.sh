@@ -20,4 +20,5 @@ case "$mode" in
     ;;
 esac
 
+scripts/check_hetzner_provider_drift_bridge.py
 printf '%s\n' 'All tracked Hetzner API sources are current.'

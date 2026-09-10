@@ -37,45 +37,7 @@ fn policy(limit: u8) -> Option<RawResponsePolicy<'static>> {
     .ok()
 }
 
-#[test]
-fn raw_async_streams_directly_into_the_caller_buffer() {
-    run_async_test(async {
-        let server = spawn(
-            "200 OK",
-            &[("Content-Type", "application/json")],
-            b"{}",
-            Duration::ZERO,
-        );
-        let Ok(server) = server else {
-            unreachable!("security fixture construction failed")
-        };
-        let Some(client) = build_raw_loopback(&server.endpoint) else {
-            unreachable!("security fixture construction failed");
-        };
-        let Ok(target) = cloud_sdk::transport::RequestTarget::new("/servers") else {
-            unreachable!("security fixture construction failed");
-        };
-        let policy = policy(2).unwrap_or_else(|| unreachable!());
-        let mut body = [0xa5_u8; 16];
-        let mut header_storage = [0xa5_u8; 128];
-        let mut response = ResponseBuffer::new(&mut body, 16, &mut header_storage);
-        assert!(
-            client
-                .execute_checked(
-                    TransportRequest::new(Method::Get, target),
-                    policy,
-                    response.writer(),
-                )
-                .await
-                .is_ok()
-        );
-        assert!(
-            response
-                .with_response(|value| value.body() == b"{}")
-                .unwrap_or(false)
-        );
-    });
-}
+mod identity;
 
 #[test]
 fn raw_async_cancellation_clears_partial_body_and_headers() {

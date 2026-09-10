@@ -42,6 +42,7 @@ def fixture() -> Path:
         "version = \"1.1.0\", default-features = false }\n"
         "serde = { version = \"=1.0.229\", default-features = false, "
         "features = [\"alloc\", \"derive\"] }\n"
+        "serde_json = { version = \"=1.0.151\", default-features = false, features = [\"alloc\"] }\n"
         "semver = { version = \"=1.0.28\", default-features = false }\n",
         encoding="ascii",
     )
@@ -329,10 +330,31 @@ def main() -> None:
         test_credential_inventory_and_feature_regressions_are_rejected,
         test_packaged_candidate_uses_both_local_dependency_patches,
         test_wire_scheduling_cannot_lose_its_std_guard,
+        test_discovery_feature_guards_cannot_be_removed,
     )
     for test in tests:
         test()
     print(f"{len(tests)} crates.io crate boundary regression groups passed.")
+
+
+def test_discovery_feature_guards_cannot_be_removed() -> None:
+    root = fixture()
+    try:
+        module = root / checker.CRATE / "src/discovery/mod.rs"
+        original = module.read_text(encoding="ascii")
+        guards = [('#[cfg(any(feature = "blocking", feature = "async"))]\nmod client;',
+                   "mod client;", "client execution guard")]
+        guards.extend((f'#[cfg(feature = "alloc")]\nmod {name};',
+                       f"mod {name};", "allocation guard")
+                      for name in ("crate_model", "decode", "models", "value"))
+        for guarded, unguarded, message in guards:
+            assert guarded in original
+            module.write_text(original.replace(guarded, unguarded), encoding="ascii")
+            assert_rejected(root, message)
+        module.write_text(original, encoding="ascii")
+        checker.validate(root)
+    finally:
+        shutil.rmtree(root)
 
 
 if __name__ == "__main__":

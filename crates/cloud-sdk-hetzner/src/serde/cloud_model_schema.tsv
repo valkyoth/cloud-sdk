@@ -60,7 +60,7 @@ floating_ip	home_location/network_zone	yes	string	-	-	-	-	-	-	-	^[a-z0-9]+(-?[a-
 floating_ip	id	yes	integer	1	9007199254740991	-	-	-	-	int64	-	-
 floating_ip	ip	yes	string	-	-	-	-	-	-	-	-	-
 floating_ip	labels	yes	object	-	-	-	-	-	-	-	-	-
-floating_ip	name	yes	string	-	-	-	-	-	-	-	-	-
+floating_ip	name	yes	string	-	-	1	255	-	-	-	-	-
 floating_ip	protection	yes	object	-	-	-	-	-	-	-	-	-
 floating_ip	protection/delete	yes	boolean	-	-	-	-	-	-	-	-	-
 floating_ip	server	yes	integer|null	-	-	-	-	-	-	int64	-	-
@@ -73,6 +73,9 @@ image	created_from/id	yes	integer	-	-	-	-	-	-	int64	-	-
 image	created_from/name	yes	string	-	-	-	-	-	-	-	-	-
 image	deleted	yes	null|string	-	-	-	-	-	-	-	-	-
 image	deprecated	yes	null|string	-	-	-	-	-	-	date-time	-	-
+image	deprecation	yes	null|object	-	-	-	-	-	-	-	-	-
+image	deprecation/announced	yes	string	-	-	-	-	-	-	date-time	-	-
+image	deprecation/unavailable_after	yes	string	-	-	-	-	-	-	date-time	-	-
 image	description	yes	string	-	-	-	-	-	-	-	-	-
 image	disk_size	yes	number	-	-	-	-	-	-	-	-	-
 image	id	yes	integer	1	9007199254740991	-	-	-	-	int64	-	-
@@ -218,6 +221,8 @@ load_balancer	services[protocol=https]/proxyprotocol	yes	boolean	-	-	-	-	-	-	-	-
 load_balancer	targets	yes	array	-	-	-	-	-	-	-	-	-
 load_balancer	targets[]/type	yes	string	-	-	-	-	-	-	-	-	ip|label_selector|server
 load_balancer	targets[type=server]/health_status	yes	array	-	-	-	-	-	-	-	-	-
+load_balancer	targets[type=server]/health_status[]/detail	no	string	-	-	-	-	-	-	-	-	unspecified|layer4_no_connection|layer4_timeout|layer7_timeout|unexpected_http_status|unexpected_http_content
+load_balancer	targets[type=server]/health_status[]/http_status_code	no	integer	-	-	-	-	-	-	-	-	-
 load_balancer	targets[type=server]/health_status[]/listen_port	yes	integer	-	-	-	-	-	-	-	-	-
 load_balancer	targets[type=server]/health_status[]/status	yes	string	-	-	-	-	-	-	-	-	healthy|unhealthy|unknown
 load_balancer	targets[type=server]/server	yes	object	-	-	-	-	-	-	-	-	-
@@ -229,6 +234,8 @@ load_balancer	targets[type=label_selector]/label_selector	yes	object	-	-	-	-	-	-
 load_balancer	targets[type=label_selector]/label_selector/selector	yes	string	-	-	1	1000	-	-	-	-	-
 load_balancer	targets[type=label_selector]/targets	yes	array	-	-	-	-	-	-	-	-	-
 load_balancer	targets[type=label_selector]/targets[]/health_status	yes	array	-	-	-	-	-	-	-	-	-
+load_balancer	targets[type=label_selector]/targets[]/health_status[]/detail	no	string	-	-	-	-	-	-	-	-	unspecified|layer4_no_connection|layer4_timeout|layer7_timeout|unexpected_http_status|unexpected_http_content
+load_balancer	targets[type=label_selector]/targets[]/health_status[]/http_status_code	no	integer	-	-	-	-	-	-	-	-	-
 load_balancer	targets[type=label_selector]/targets[]/health_status[]/listen_port	yes	integer	-	-	-	-	-	-	-	-	-
 load_balancer	targets[type=label_selector]/targets[]/health_status[]/status	yes	string	-	-	-	-	-	-	-	-	healthy|unhealthy|unknown
 load_balancer	targets[type=label_selector]/targets[]/server	yes	object	-	-	-	-	-	-	-	-	-
@@ -239,6 +246,8 @@ load_balancer	targets[type=label_selector]/targets[]/use_private_ip	yes	boolean	
 load_balancer	targets[type=label_selector]/type	yes	string	-	-	-	-	-	-	-	-	label_selector
 load_balancer	targets[type=label_selector]/use_private_ip	yes	boolean	-	-	-	-	-	-	-	-	-
 load_balancer	targets[type=ip]/health_status	yes	array	-	-	-	-	-	-	-	-	-
+load_balancer	targets[type=ip]/health_status[]/detail	no	string	-	-	-	-	-	-	-	-	unspecified|layer4_no_connection|layer4_timeout|layer7_timeout|unexpected_http_status|unexpected_http_content
+load_balancer	targets[type=ip]/health_status[]/http_status_code	no	integer	-	-	-	-	-	-	-	-	-
 load_balancer	targets[type=ip]/health_status[]/listen_port	yes	integer	-	-	-	-	-	-	-	-	-
 load_balancer	targets[type=ip]/health_status[]/status	yes	string	-	-	-	-	-	-	-	-	healthy|unhealthy|unknown
 load_balancer	targets[type=ip]/ip	yes	object	-	-	-	-	-	-	-	-	-
@@ -386,7 +395,7 @@ primary_ip	location/latitude	yes	number	-	-	-	-	-	-	double	-	-
 primary_ip	location/longitude	yes	number	-	-	-	-	-	-	double	-	-
 primary_ip	location/name	yes	string	-	-	-	-	-	-	-	^[a-z0-9]+(-?[a-z0-9]*)*$	-
 primary_ip	location/network_zone	yes	string	-	-	-	-	-	-	-	^[a-z0-9]+(-?[a-z0-9]*)*$	-
-primary_ip	name	yes	string	-	-	-	-	-	-	-	-	-
+primary_ip	name	yes	string	-	-	1	255	-	-	-	-	-
 primary_ip	protection	yes	object	-	-	-	-	-	-	-	-	-
 primary_ip	protection/delete	yes	boolean	-	-	-	-	-	-	-	-	-
 primary_ip	type	yes	string	-	-	-	-	-	-	-	-	ipv4|ipv6
@@ -413,6 +422,9 @@ server	image/created_from/id	yes	integer	-	-	-	-	-	-	int64	-	-
 server	image/created_from/name	yes	string	-	-	-	-	-	-	-	-	-
 server	image/deleted	yes	null|string	-	-	-	-	-	-	-	-	-
 server	image/deprecated	yes	null|string	-	-	-	-	-	-	date-time	-	-
+server	image/deprecation	yes	null|object	-	-	-	-	-	-	-	-	-
+server	image/deprecation/announced	yes	string	-	-	-	-	-	-	date-time	-	-
+server	image/deprecation/unavailable_after	yes	string	-	-	-	-	-	-	date-time	-	-
 server	image/description	yes	string	-	-	-	-	-	-	-	-	-
 server	image/disk_size	yes	number	-	-	-	-	-	-	-	-	-
 server	image/id	yes	integer	1	9007199254740991	-	-	-	-	int64	-	-

@@ -110,6 +110,12 @@ impl BoundTransport for RawBlockingClient {
     }
 }
 
+impl cloud_sdk::transport::BoundUserAgent for RawBlockingClient {
+    fn configured_user_agent(&self) -> &[u8] {
+        self.inner.configured_user_agent()
+    }
+}
+
 impl fmt::Debug for RawBlockingClient {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter

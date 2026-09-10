@@ -123,7 +123,7 @@
         "active_count": 208,
         "count": 221,
         "path": "docs/API_FINGERPRINTS.tsv",
-          "sha256": "2db2942ea7bd4a04f840592f418f72cc015c37f29af358010f460988a476ff83"
+          "sha256": "52837844e2e88c5bed789938d1e36c79f0289e465f83aa844d94fa286d328cc1"
         }
       },
       {
@@ -177,7 +177,7 @@
         "values": {
           "count": 8,
         "path": "docs/API_SCHEMA_FINGERPRINTS.tsv",
-          "sha256": "5d9bf5ca3383248b077ce34a2fb0eafa2ec4cd8df517666cbb4d9488b2266589"
+          "sha256": "44c02f0f5538802165827855ad01df6da9a18c8b3789e0e14553cf0138403548"
         }
       }
     ]
@@ -192,13 +192,13 @@
     {
       "id": "cloud-openapi",
       "max_bytes": 33554432,
-      "sha256": "9ca6b542a057b002804b9f4f45ccfdb8b9a28c92b7e5bf5ae1b7f46b54fe0093",
+      "sha256": "7467483b455386dcff8db84b87bad3b7353ffabf08a82c020d7e053028670421",
       "url": "https://docs.hetzner.cloud/cloud.spec.json"
     },
     {
       "id": "storage-openapi",
       "max_bytes": 33554432,
-      "sha256": "f70750016d81c927ddf877e103541c90d3e3372723cdf54e6fd7b2eba4a8108a",
+      "sha256": "0afcd318330d18896104f6f99459e41692956665ce45c11b8b304391a651e0f8",
       "url": "https://docs.hetzner.cloud/hetzner.spec.json"
     }
   ]

@@ -197,6 +197,10 @@ fn concurrent_workers_share_one_non_bursting_schedule() {
 #[cfg(feature = "std")]
 #[test]
 fn official_gate_shares_state_passes_identity_and_hides_transport_errors() {
+    let _serial = super::TEST_GATE_LOCK
+        .lock()
+        .unwrap_or_else(|_| unreachable!("test gate lock"));
+    super::reset_test_gate();
     use super::{OfficialApiGate, OfficialCallError};
     use core::error::Error;
     let ua = IdentifyingUserAgent::new("test/1 (tests@example.org)")
@@ -221,4 +225,27 @@ fn official_gate_shares_state_passes_identity_and_hides_transport_errors() {
         second.try_call::<(), ()>(|_| unreachable!("gate bypassed its quiet period")),
         Err(OfficialCallError::Schedule(ScheduleError::Wait(_)))
     ));
+}
+
+#[cfg(feature = "std")]
+#[test]
+fn official_gate_unwind_closes_later_attempts() {
+    let _serial = super::TEST_GATE_LOCK
+        .lock()
+        .unwrap_or_else(|_| unreachable!("test gate lock"));
+    super::reset_test_gate();
+    let identity = IdentifyingUserAgent::new("test/1 (tests@example.org)")
+        .unwrap_or_else(|_| unreachable!("identity fixture"));
+    let gate = super::OfficialApiGate::new(identity);
+    let result = test_std::panic::catch_unwind(|| {
+        gate.try_call::<(), ()>(|_| unreachable!("intentional adapter unwind fixture"))
+    });
+    assert!(result.is_err());
+    assert!(matches!(
+        gate.try_call::<(), ()>(|_| unreachable!("poisoned gate must not dispatch")),
+        Err(super::OfficialCallError::Schedule(
+            ScheduleError::Unavailable
+        ))
+    ));
+    super::reset_test_gate();
 }

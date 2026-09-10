@@ -299,8 +299,7 @@ fn model_for_root(root: &str) -> Option<&'static str> {
 
 #[cfg(test)]
 mod tests {
-    use alloc::format;
-    use alloc::vec::Vec;
+    use alloc::{format, vec::Vec};
 
     use super::{CloudResource, parse_cloud_resource};
     use crate::serde::models::ResponseModelError;
@@ -440,6 +439,7 @@ mod tests {
         let health = health_fixture_mut(&mut mismatch);
         health.insert("status".into(), serde_json::json!("unhealthy"));
         health.insert("detail".into(), serde_json::json!("unexpected_http_status"));
+        assert!(health.remove("http_status_code").is_some());
         assert!(matches!(
             try_parse_resource_fixture("load_balancer", &mismatch),
             Err(ResponseModelError::EnvelopeMismatch)

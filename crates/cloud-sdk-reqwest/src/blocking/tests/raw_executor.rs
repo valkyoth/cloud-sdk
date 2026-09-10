@@ -141,6 +141,11 @@ fn raw_blocking_sends_no_implicit_auth_or_json_accept() {
         unreachable!("security fixture construction failed");
     };
     let wire = String::from_utf8_lossy(&recorded.bytes).to_ascii_lowercase();
+    assert_eq!(
+        cloud_sdk::transport::BoundUserAgent::configured_user_agent(&client),
+        b"cloud-sdk-raw-test/0.40"
+    );
+    assert!(wire.contains("user-agent: cloud-sdk-raw-test/0.40\r\n"));
     assert!(!wire.contains("authorization:"));
     assert!(!wire.contains("accept: application/json"));
 }

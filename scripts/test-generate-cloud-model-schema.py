@@ -395,7 +395,7 @@ def test_committed_evidence_is_structurally_complete() -> None:
         )
     )
     fixtures = json.loads(generator.DEFAULT_FIXTURES.read_text(encoding="ascii"))
-    assert len(rows) == 718
+    assert len(rows) == 730
     assert {row["model"] for row in rows} == generator.ALL_EXPECTED_MODELS
     assert set(fixtures) == generator.ALL_EXPECTED_MODELS
     identities = [(row["model"], row["path"]) for row in rows]
@@ -451,10 +451,25 @@ def main() -> None:
         test_all_of_composition_is_narrow_and_explicit,
         test_committed_evidence_is_structurally_complete,
         test_cli_requires_the_console_specification,
+        test_health_fixtures_preserve_cross_field_contracts,
     )
     for test in tests:
         test()
     print(f"{len(tests)} Cloud model generator tests passed.")
+
+
+def test_health_fixtures_preserve_cross_field_contracts() -> None:
+    from cloud_model_fixtures import normalize_fixture
+    source = {"targets": [
+        {"health_status": [{"status": "healthy", "detail": "unspecified", "http_status_code": 1}]},
+        {"targets": [{"health_status": [{"status": "healthy", "detail": "unspecified"}]}]},
+        {"health_status": [{"status": "healthy"}]},
+    ]}
+    result = normalize_fixture("load_balancer", source)
+    expected = {"status": "unhealthy", "detail": "unexpected_http_status", "http_status_code": 503}
+    assert result["targets"][0]["health_status"] == [expected]
+    assert result["targets"][1]["targets"][0]["health_status"] == [expected]
+    assert result["targets"][2]["health_status"] == [{"status": "healthy"}]
 
 
 if __name__ == "__main__":

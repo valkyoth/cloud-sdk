@@ -1,10 +1,10 @@
 # crates.io Identifiers, Queries And Pagination
 
-Status: unreleased `1.1.0`, Commit 7 implementation stop. Incremental pentest
-is required from accepted Commit 6 baseline
-`f079a65cec1fefb529371f2e8128beb4098f6e6f` through the implementation and fixes.
-No tagging or publication is authorized. API operation clients and resource
-response decoders remain assigned to later checkpoints.
+Status: unreleased `1.1.0`, Commit 7 implementation baseline
+`89910ad7cab7a1549a67f16e7bea7556557c4f3e`. GitHub is green and the user
+authorized Commit 8. [Discovery execution](CRATESIO_DISCOVERY_POLICY.md) is
+now implemented and awaiting its incremental pentest. No tag or publication
+is authorized.
 
 ## Source Contract
 
@@ -137,6 +137,6 @@ Implementation verification on 2026-09-09 passed the full repository suite,
 Rust 1.92.0 through 1.98.1 matrix, local platform matrix, six packaged feature
 graphs, fresh four-lockfile advisory scans, dependency policy and SBOM freshness.
 Live crates.io drift and request-policy checks passed. The independent
-[Hetzner live drift](SPEC_LOCK.md#pending-live-drift-review-2026-09-09) remains
-open for separate maintenance. Publication remains disabled for this candidate;
-Commit 7 still requires the user's incremental pentest and GitHub qualification.
+[Hetzner live drift](SPEC_LOCK.md#reviewed-live-drift-2026-09-10) was resolved
+in Commit 8 with schema, fixture, changelog and compatibility tests.
+Publication remains disabled for this candidate.

@@ -66,6 +66,12 @@ impl BoundTransport for RawAsyncClient {
     }
 }
 
+impl cloud_sdk::transport::BoundUserAgent for RawAsyncClient {
+    fn configured_user_agent(&self) -> &[u8] {
+        self.inner.configured_user_agent()
+    }
+}
+
 impl fmt::Debug for RawAsyncClient {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter

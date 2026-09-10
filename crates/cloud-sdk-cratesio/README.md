@@ -23,16 +23,12 @@ provider identities, API models, request preparation, checked response
 decoding, authentication rules, and high-level workflows while reusing the
 provider-neutral execution contracts from `cloud-sdk`.
 
-The crate is currently an unreleased `1.1.0` candidate. Provider identity and
-the endpoint, request-target, and static-download redirect boundaries are now
-implemented. Protected credential preparation is implemented behind `alloc`
-and has passed its checkpoint pentest and remediation retest. Checked JSON
-envelopes, request scheduling and user-agent policy have also passed their
-checkpoint pentest, remediation retest and GitHub checks. Typed identifiers,
-operation-scoped queries and validated pagination are implemented and await
-their Commit 7 pentest. API workflows
-and authenticated network execution remain unavailable until their reviewed
-checkpoints are complete.
+The crate is an unreleased `1.1.0` candidate. Seven anonymous discovery
+operations now have typed requests, complete success models and checked
+blocking, local-async and Send-async execution. They are awaiting the Commit 8
+pentest. Authentication preparation, endpoint, query and response foundations
+are available, but authenticated clients and the other API workflows remain
+assigned to later checkpoints. This is not yet a complete crates.io provider.
 
 ## Current Boundary
 
@@ -48,15 +44,68 @@ checkpoints are complete.
 | Custom API endpoints | HTTPS plus explicit trusted-operator acknowledgement |
 | Credentials | five protected token kinds, origin-bound contexts, scoped adapter material (`alloc`) |
 | JSON wire admission | exact status, bounded complete JSON, Cargo error detection and cleanup (`alloc`) |
-| Request policy | identifying user agent and clock-free scheduling; process-wide blocking gate (`std`) |
+| Request policy | identifying user agent and a process-wide gate across blocking and async discovery |
 | Identifiers and queries | bounded public identifiers, operation-specific values and atomic percent encoding |
 | Pagination | checked meta links, legacy `more`, and explicit traversal limits |
-| API operations | deferred to their source-locked implementation commits |
+| Discovery operations | categories, category slugs, keywords, site metadata and complete front-page summary |
+| Other API operations | deferred to their source-locked implementation commits |
 
 The public modules reserve ownership without claiming executable coverage:
 `catalog`, `accounts`, `ownership`, `publishing`, and `trusted_publishing`.
 The complete 51-operation scope is maintained in the
 [crates.io source lock](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATESIO_SOURCE_LOCK.md).
+
+## Discovery Example
+
+| API operation | Request/target | Success/error decode | Blocking/local/Send async |
+| --- | --- | --- | --- |
+| Category list and detail | Implemented | Implemented | Implemented |
+| Category slugs | Implemented | Implemented | Implemented |
+| Keyword list and detail | Implemented | Implemented | Implemented |
+| Site metadata | Implemented | Implemented | Implemented |
+| Front-page summary | Implemented | Implemented | Implemented |
+
+Enable `blocking` and supply a trusted anonymous raw executor configured for
+`https://crates.io` with the same identifying user-agent. The provider does
+not choose a TLS stack or runtime for you:
+
+```rust
+# #[cfg(feature = "blocking")]
+# {
+use cloud_sdk::transport::{BlockingRawHttpExecutor, BoundTransport, BoundUserAgent};
+use cloud_sdk_cratesio::{
+    discovery::{DiscoveryClient, DiscoveryRequest, DiscoveryResponse},
+    wire::IdentifyingUserAgent,
+};
+
+fn inspect<T>(executor: &T) -> Result<DiscoveryResponse, Box<dyn std::error::Error>>
+where
+    T: BlockingRawHttpExecutor + BoundTransport + BoundUserAgent,
+    T::Error: 'static,
+{
+    let identity = IdentifyingUserAgent::new("inventory/1.0 (ops@example.org)")?;
+    let client = DiscoveryClient::production(executor, identity, 65_536)?;
+    let mut body = vec![0; 65_536];
+    let mut headers = [0; 512];
+    Ok(client.execute(DiscoveryRequest::site_metadata(), &mut body, &mut headers)?)
+}
+# }
+```
+
+Under `async`, `execute_local` admits non-Send executors and
+`execute_async` returns a Send future for a shared Sync executor. Every call
+checks origin, identifying user-agent, exact status, media type, response bounds
+and schema. Response/header buffers clear on return, error or cancellation,
+including an unpolled future. No credentials, retries, redirects or sleeps are
+added. The process-wide rate gate can return `ScheduleError::Wait`; callers
+decide when to try again and must coordinate shared egress across processes.
+
+Models retain every source-required field, explicit nullability and checked
+timestamps. Unknown values are bounded; returned descriptions, links and banner
+text are untrusted data, not HTML or routing authority. Pagination reports
+`LimitReached` when more data exists beyond the SDK's numbered-page ceiling.
+See the [discovery contract](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATESIO_DISCOVERY_POLICY.md)
+for all bounds, source fixtures and execution guarantees.
 
 ## Endpoint Example
 
@@ -94,16 +143,16 @@ documented in the [crates.io endpoint policy](https://github.com/valkyoth/cloud-
 | Feature | Default | Effect |
 | --- | --- | --- |
 | `default` | yes | Empty; keeps the provider allocation-free and `no_std`. |
-| `alloc` | no | Enables protected credentials and checked JSON admission; still `no_std`. |
-| `serde` | no | Enables future bounded model serialization with no Serde `std` feature. |
-| `std` | no | Enables `alloc` and the shared monotonic blocking API gate. |
-| `blocking` | no | Reserves provider-owned blocking execution integration; no transport dependency is added. |
-| `async` | no | Reserves provider-owned async execution integration; no runtime or transport dependency is added. |
+| `alloc` | no | Enables protected credentials, checked JSON admission and discovery models; still `no_std`. |
+| `serde` | no | Enables the Serde boundary for later serialization; discovery decoding reuses core JSON events. |
+| `std` | no | Enables `alloc` and the shared monotonic API gate. |
+| `blocking` | no | Enables checked anonymous blocking discovery; no transport dependency is added. |
+| `async` | no | Enables checked local/Send async discovery; no runtime or transport dependency is added. |
 
 Networking and TLS remain opt-in provider-neutral concerns. This crate does
 not depend on `cloud-sdk-reqwest`, an async runtime, a TLS implementation, a
-filesystem, or an external clock package. Only the explicit `std` request gate
-reads the system monotonic clock.
+filesystem, or an external clock package. The explicit `std` gate reads a
+monotonic clock; discovery execution also reads wall time for HTTP-date delays.
 
 ## Identity Example
 
@@ -200,8 +249,8 @@ fn admit<'a>(response: ResponseBuffer<'a>) -> Result<JsonSuccess<'a>, CratesIoWi
 ```
 
 Apply `policy.maximum_bytes()` to the response writer before transport starts.
-Resource-specific success decoders and complete clients come in later
-checkpoints; `JsonSuccess::visit` currently exposes checked JSON events.
+Discovery success decoders consume this checked boundary; other resource
+clients come in later checkpoints. `JsonSuccess::visit` exposes checked events.
 
 ```rust
 use core::time::Duration;
@@ -218,7 +267,8 @@ assert!(schedule.try_start(Duration::from_secs(1)).is_ok());
 Share one schedule across workers and supply trusted monotonic time. Under
 `std`, `OfficialApiGate` provides shared process-wide scheduling for a trusted
 blocking adapter callback, requiring the validated identity. It is not an
-async or authenticated client. No retries or sleeps happen automatically.
+authenticated client. Discovery execution integrates its admission across all
+three execution modes. No retries or sleeps happen automatically.
 See the [wire policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATESIO_WIRE_POLICY.md)
 for response limits, cleanup and adapter responsibilities.
 

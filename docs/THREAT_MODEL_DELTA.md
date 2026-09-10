@@ -398,3 +398,26 @@ the existing cleanup-owning core link and its dispatch checks. Traversal caps
 and the separate rate gate remain explicit caller/driver obligations. There is
 no default allocation or new runtime dependency. See [the request policy](CRATESIO_REQUEST_POLICY.md)
 for SDK profile limits, opaque seek state, bounded cycle behavior and tests.
+
+## crates.io Commit 8
+
+Seven anonymous discovery operations now execute through checked raw adapters.
+Origin and stable identifying user-agent are compared at construction and
+dispatch. Custom adapters remain trusted not to inject credentials or perform
+additional exchanges. The neutral inspection trait does not weaken reserved
+headers. A process-wide owned admission guard survives async suspension and
+imposes a new quiet interval after cancellation; no mutex spans await.
+
+Discovery uses the existing incremental parser and bounded protected staging.
+Known public response strings are ordinary caller-owned data; retained
+schema-open badges remain protected. Redacted diagnostics do not make caller
+rendering/logging safe. Limits, timestamp profile, numbered traversal limits,
+shared-egress coordination and allocator/process-abort exclusions are explicit
+in the [discovery contract](CRATESIO_DISCOVERY_POLICY.md).
+
+Hetzner changes are restricted to the reviewed live schema and changelog:
+image deprecation, IP names, all health target branches, and omission of the
+legacy deprecated field at six exact paths. Present legacy values still
+validate. The refreshed source locks remain fail-closed and never auto-accept
+new upstream data. No live mutation, credential use, publication or FIPS
+admission occurs in this checkpoint.

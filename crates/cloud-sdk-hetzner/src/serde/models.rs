@@ -3,6 +3,8 @@
 mod actions;
 mod certificate;
 pub(crate) mod cloud_constraints;
+#[cfg(test)]
+mod cloud_drift_tests;
 mod cloud_resources;
 mod cloud_schema;
 mod cloud_value;

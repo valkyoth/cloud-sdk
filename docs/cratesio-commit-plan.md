@@ -1,9 +1,10 @@
 # crates.io Commit Plan
 
 Status: selected unreleased `1.1.0` implementation train. Commits 1 through 6
-have passed pentest and GitHub checks. Commit 7 identifiers, queries and
-pagination are implemented and awaiting incremental pentest. Stop before
-Commit 8; do not tag or publish.
+passed pentest and GitHub checks. The user confirmed Commit 7 GitHub checks
+green at `89910ad7` and authorized Commit 8. Discovery and the Hetzner drift
+maintenance are now at the Commit 8 implementation stop, awaiting pentest.
+Stop before Commit 9; do not tag or publish.
 
 ## Decision Summary
 
@@ -318,8 +319,8 @@ rate, and diagnostics boundary.
 
 ## Commit 7 - Identifiers, Queries, And Pagination
 
-Implementation status: implementation stop, incremental pentest pending.
-Accepted comparison baseline: `f079a65cec1fefb529371f2e8128beb4098f6e6f`.
+Implementation status: GitHub green at `89910ad7`; user authorized advancing to Commit 8.
+Original comparison baseline: `f079a65cec1fefb529371f2e8128beb4098f6e6f`.
 Pentest the entire range through the implementation and any remediation commits.
 The [request policy](CRATESIO_REQUEST_POLICY.md) records source-owned versus SDK
 limits, exact query coverage, continuation bindings, the SemVer oracle and tests.
@@ -346,6 +347,14 @@ Pentest stop: run an incremental pentest for the exact Commit 7 identifier,
 query, and pagination surface.
 
 ## Commit 8 - Taxonomy And Site Discovery
+
+Implementation status: implementation stop; incremental pentest pending.
+Comparison baseline: `89910ad7cab7a1549a67f16e7bea7556557c4f3e`.
+The [discovery contract](CRATESIO_DISCOVERY_POLICY.md) documents all seven
+executable operations, model bounds, anonymous transport identity and cleanup.
+The same checkpoint resolves [Hetzner live drift](SPEC_LOCK.md#reviewed-live-drift-2026-09-10),
+including the announced legacy-field removal. Review the complete range, not
+only the crates.io directory. No next checkpoint or publication is authorized.
 
 Goal: implement the anonymous low-risk discovery foundation.
 
@@ -631,9 +640,9 @@ surface.
 
 ## Commit 22 - Scope Freeze And Release Candidate
 
-Cross-provider prerequisite: resolve the
-[2026-09-09 Hetzner live drift](SPEC_LOCK.md#pending-live-drift-review-2026-09-09)
-in a separate reviewed maintenance checkpoint before final release qualification.
+Cross-provider prerequisite: rerun the live Hetzner gates before qualification.
+The [September drift](SPEC_LOCK.md#reviewed-live-drift-2026-09-10) was resolved
+with schema, fixture and compatibility changes in Commit 8.
 Do not treat passing crates.io source checks as evidence that Hetzner is current.
 
 Goal: freeze and qualify the complete selected crates.io integration without

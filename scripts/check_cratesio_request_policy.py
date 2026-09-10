@@ -15,6 +15,8 @@ ROOT = Path(__file__).resolve().parents[1]
 COMMIT = "9ae7f769cea32f38ebc2ea9ec2ce455b47641511"
 BASE = f"https://raw.githubusercontent.com/rust-lang/crates.io/{COMMIT}/"
 SOURCES = {
+    "src/controllers/category.rs": (5934, "5b097ddf3861ed8e720c371460493cf25a219e28dc3c0172763d5a40f9baa6df"),
+    "src/controllers/keyword.rs": (4091, "eff3511ce8695ad2496ad19d01a7a5136d8be1da07e4b498820fc81748a6adf0"),
     "crates/crates_io_validation/src/lib.rs": (12829, "02872dd2803f5ebefbedb7d6d3f8cd3b8c2137e041e0c42a6b01d85b04d1d8a4"),
     "src/controllers/helpers/pagination.rs": (23556, "e65573b6888acdbde657946297203980804afbf3525476d6be20a011a7442a53"),
     "src/controllers/krate/publish.rs": (42593, "4dd23414ff79b5eb1ff63b9ebf320de3c07de245b46d54a9b511a0dbf110d004"),

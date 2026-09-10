@@ -2,16 +2,16 @@
 
 Status: current operational source reviewed after stable `1.0.0`.
 
-Retrieved: 2026-09-01
+Retrieved: 2026-09-10
 
 Official source:
 <https://docs.hetzner.cloud/changelog/feed.rss>
 
 Normalized semantic SHA-256:
-`29a1ea0bacae078b213916a41f6af27c53a1e74ead7bb4f90c9cda89470748aa`
+`170fc4dbef43b82cb80562cc793aa8d38146c5641291609c07e8353906dff0c5`
 
 Latest reviewed entry:
-<https://docs.hetzner.cloud/changelog#2026-08-31-debian-11-image-is-deprecated>
+<https://docs.hetzner.cloud/changelog#2026-09-09-object-storage-new-delete-rule>
 
 The normalization excludes only RSS `lastBuildDate`, which Hetzner regenerates
 without publishing a new entry. Element names, attributes, channel identity,
@@ -24,12 +24,21 @@ deprecation, rollout, and behavior notices that may precede or never alter an
 OpenAPI document. Any semantic digest or latest-entry change is a review stop;
 fetched RSS is never compiled, packaged, or accepted automatically.
 
-The latest review identified four post-spec-lock notices relevant to the SDK:
+The September 10 review contains 144 entries, including two new notices:
 
-The 2026-09-01 refresh contains 142 entries and retains the same newest entry
-identity as the preceding review. The feed's normalized historical content
-changed, but no newer operational notice or machine-readable API drift was
-present.
+- September 8: legacy `deprecated` fields will disappear on November 2 from
+  Images, Server Types and Load Balancer Types. Exact root/nested decoder
+  exceptions accept omission now and still validate values when present.
+  Applications should inspect image/type `deprecation` or server-type
+  `locations[].deprecation`. Tests cover all six paths without relaxing
+  required replacement fields. The new image field is schema-locked.
+- September 9: bucket deletion can tolerate up to 1,000 leftover multipart
+  upload parts, but project deletion still requires completely empty buckets.
+  This is the S3-compatible Object Storage API, outside the Cloud, DNS,
+  Storage Box, Robot and Server Metadata SDK scope. No endpoint/model is
+  silently added; no mutation or deletion test was performed.
+
+Previously reviewed operational notices remain relevant:
 
 - The Debian 11 server image is deprecated and Hetzner announces that it will
   no longer be available for new servers after 30 November 2026. Image

@@ -1,43 +1,57 @@
 # Hetzner API Source Lock
 
-Status: source-locked for `v0.2.0`.
+Status: current source lock reviewed for the unreleased `1.1.0` candidate.
 
-Retrieved: 2026-07-08
+Retrieved: 2026-09-10
 Reference page: <https://docs.hetzner.cloud/reference/cloud>
 Changelog page: <https://docs.hetzner.cloud/changelog>
 
 ## Locked Specs
 
-### Pending Live Drift Review (2026-09-09)
+### Reviewed Live Drift (2026-09-10)
 
-The extra live check during crates.io Commit 7 detected changes in 28 Cloud
-operation fingerprints, three standalone target schemas, and both source
-digests. No operation addition or removal was reported. This is **unresolved
-Hetzner maintenance**, not an accepted source-lock refresh or a clean live gate.
+Resolved the drift detected during crates.io Commit 7 as part of Commit 8.
+Reviewed 28 changed Cloud operation fingerprints and three standalone target
+schemas. There are no added/removed operations, response-operation changes,
+or effective parameter-contract changes. The 221-operation inventory remains
+unchanged. Response fields increase from 718 to 730:
 
-Comparing the generated response-field inventory identifies image `deprecation`
-(including nested server images), target health `detail` and `http_status_code`,
-and newly declared 1..255 name lengths for Floating and Primary IPs. Operation
-fingerprints also include request and documentation changes; the field summary
-is not a complete compatibility assessment. The Storage Box source digest also
-changed without a reported operation fingerprint change.
+- Images and nested server images require nullable `deprecation`; non-null
+  objects require calendar-valid `announced` and `unavailable_after` timestamps.
+- Floating and Primary IP response names have explicit 1..255 character bounds.
+- Load-balancer server, IP and nested selector targets declare health
+  `detail` and `http_status_code`. Existing changelog-derived cross-field
+  validation remains active; all target branches have regression coverage.
 
-Observed official source SHA-256 values:
+The Storage Box source changed without operation or schema contract changes.
+Affected write-operation schemas were also reviewed against existing typed
+IP create/update, DNS-pointer, protection and load-balancer target/service
+builders. IP request names retain the existing stricter 128-byte SDK cap,
+within the source's 255-byte maximum; the current
+request-body fields and required values are represented by those builders.
+No new parameter encoding is required. Refreshed exact
+pins, operation/schema fingerprints, generated field tables and fixtures
+together, without weakening the drift detector. Old image replay fixtures
+must now include `deprecation: null` or the complete object.
+The provider-neutral Hetzner lock/observation pair is refreshed against these
+same evidence digests. The aggregate surface command now checks that bridge
+in both local and fetched modes, so stale duplicate pins cannot report success.
 
-- Cloud: `7467483b455386dcff8db84b87bad3b7353ffabf08a82c020d7e053028670421`
-- Storage Box: `0afcd318330d18896104f6f99459e41692956665ce45c11b8b304391a651e0f8`
-
-Before releasing 1.1.0, review the complete schema/request/response delta,
-implement and test compatibility changes, refresh fixtures and locks only after
-review, and pass `scripts/check_hetzner_api_drift.py --fetch`. This independent
-maintenance task does not expand crates.io Commit 7 or authorize publication.
+The September 8 changelog announces removal of legacy `deprecated` on
+November 2 for Images, Server Types and Load Balancer Types. The decoder now
+accepts omission only at those exact root and nested resource paths, still
+validates present legacy values, and retains required replacement fields.
+The generated table continues to reflect the current OpenAPI verbatim.
+See the [changelog review](HETZNER_CHANGELOG_LOCK.md) for this and the
+out-of-scope Object Storage bucket notice. This maintenance is included in
+Commit 8's pentest range; it is not publication authorization.
 
 ### Reviewed Snapshot
 
 | API | URL | OpenAPI | Title | Spec Version | Paths | Operations | SHA-256 | Last-Modified | ETag | Content-Length |
 | --- | --- | --- | --- | --- | ---: | ---: | --- | --- | --- | ---: |
-| `cloud` | <https://docs.hetzner.cloud/cloud.spec.json> | `3.1.2` | `Hetzner Cloud API` | `1.0.0` | 151 | 189 | `9ca6b542a057b002804b9f4f45ccfdb8b9a28c92b7e5bf5ae1b7f46b54fe0093` | `Wed, 08 Jul 2026 11:25:09 GMT` | `W/"34b0fd-19f41797e95"` | 3453181 |
-| `hetzner` | <https://docs.hetzner.cloud/hetzner.spec.json> | `3.1.2` | `Hetzner API` | `1.0.0` | 23 | 32 | `f70750016d81c927ddf877e103541c90d3e3372723cdf54e6fd7b2eba4a8108a` | `Wed, 08 Jul 2026 11:25:09 GMT` | `W/"7ecd4-19f41797e96"` | 519380 |
+| `cloud` | <https://docs.hetzner.cloud/cloud.spec.json> | `3.1.2` | `Hetzner Cloud API` | `1.0.0` | 151 | 189 | `7467483b455386dcff8db84b87bad3b7353ffabf08a82c020d7e053028670421` | `Tue, 08 Sep 2026 10:31:03 GMT` | `W/"3543ee-1a080923f94"` | 3490798 |
+| `hetzner` | <https://docs.hetzner.cloud/hetzner.spec.json> | `3.1.2` | `Hetzner API` | `1.0.0` | 23 | 32 | `0afcd318330d18896104f6f99459e41692956665ce45c11b8b304391a651e0f8` | `Tue, 08 Sep 2026 10:31:03 GMT` | `W/"7ed90-1a080923f95"` | 519568 |
 
 Total source-locked operations: 221 (`cloud`: 189, `hetzner`: 32).
 

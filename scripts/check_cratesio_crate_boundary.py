@@ -72,6 +72,8 @@ EXPECTED_WORKSPACE_DEPENDENCIES = {
         "default-features": False,
         "features": ["alloc", "derive"],
     },
+    "serde_json": {"version": "=1.0.151", "default-features": False,
+        "features": ["alloc"]},
 }
 
 
@@ -175,7 +177,7 @@ def validate(root: Path) -> None:
     for target in ("bin", "example", "bench"):
         if manifest.get(target, []) != []:
             raise BoundaryError(f"provider explicit {target} targets changed")
-    if manifest.get("dev-dependencies") != {"semver": {"workspace": True}}:
+    if manifest.get("dev-dependencies") != {"semver": {"workspace": True}, "serde_json": {"workspace": True}}:
         raise BoundaryError("provider dev-dependencies oracle changed")
     if load(root / "Cargo.toml")["workspace"]["dependencies"].get("semver") != {
         "version": "=1.0.28", "default-features": False
@@ -199,6 +201,11 @@ def validate(root: Path) -> None:
         *(f"identifiers/{name}.rs" for name in ("mod", "date", "version", "tests")),
         *(f"query/{name}.rs" for name in ("mod", "values", "path", "parameters", "encode", "tests", "contract_tests")),
         *(f"pagination/{name}.rs" for name in ("mod", "link", "compare", "tests", "execution_tests")),
+        *(f"discovery/{name}.rs" for name in (
+            "mod", "request", "value", "models", "crate_model", "decode",
+            "client", "tests", "client/asynchronous", "client/tests",
+            "tests/model_contracts",
+        )),
         *(f"wire/{name}.rs" for name in (
             "mod", "error", "rate", "shared_rate", "user_agent", "envelope",
             "response", "policy_tests", "response_tests", "boundary_tests",
@@ -216,6 +223,12 @@ def validate(root: Path) -> None:
             raise BoundaryError(f"forbidden build-script source: {forbidden}")
     library = (crate / "src/lib.rs").read_text(encoding="ascii")
     wire = (crate / "src/wire/mod.rs").read_text(encoding="ascii")
+    discovery = (crate / "src/discovery/mod.rs").read_text(encoding="ascii")
+    if '#[cfg(any(feature = "blocking", feature = "async"))]\nmod client;' not in discovery:
+        raise BoundaryError("discovery client execution guard changed")
+    for module in ("crate_model", "decode", "models", "value"):
+        if f'#[cfg(feature = "alloc")]\nmod {module};' not in discovery:
+            raise BoundaryError("discovery allocation guard changed")
     if '#[cfg(feature = "std")]\nmod shared_rate;' not in wire:
         raise BoundaryError("wire scheduling std guard changed")
     if "#![no_std]" not in library:
