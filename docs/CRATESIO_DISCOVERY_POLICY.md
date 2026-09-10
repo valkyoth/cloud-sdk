@@ -1,7 +1,8 @@
 # crates.io Discovery Contract
 
-Status: unreleased `1.1.0`, logical Commit 8 implementation stop. Pentest the
-complete range from `89910ad7cab7a1549a67f16e7bea7556557c4f3e` through HEAD.
+Status: unreleased `1.1.0`, logical Commit 8 passed incremental pentest and
+remediation retest for `89910ad7cab7a1549a67f16e7bea7556557c4f3e` through
+`2c0746982c927929f63a08ff034bd3d132f0a4d3`. The evidence checkpoint awaits GitHub.
 This checkpoint also includes the [Hetzner drift review](SPEC_LOCK.md#reviewed-live-drift-2026-09-10).
 Do not start Commit 9, tag, or publish before the checkpoint is accepted.
 
@@ -168,4 +169,6 @@ The subsequent pagination pentest finding was reproduced by two regression
 matrices that failed on the original decoder. Both now pass for category and
 keyword lists, including on Rust 1.92.0 with only `alloc` enabled. The updated
 provider suite (84 unit tests, one integration test and 14 doctests), Clippy,
-and `scripts/checks.sh` passed. Independent retesting remains pending.
+and `scripts/checks.sh` passed. The user confirmed the independent retest is
+green. The [permanent report](../security/pentest/cratesio-commit-8.md) records
+the finding and final qualification; GitHub approval remains pending.

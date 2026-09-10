@@ -2,7 +2,8 @@
 
 Status: Commits 1 through 6 passed pentest and GitHub checks; the user confirmed
 Commit 7 GitHub green and authorized Commit 8. Seven discovery operations are
-implemented and awaiting incremental pentest in the unreleased `1.1.0` train.
+implemented and passed incremental pentest and remediation retest in the
+unreleased `1.1.0` train. The evidence checkpoint awaits GitHub approval.
 See the [discovery contract](CRATESIO_DISCOVERY_POLICY.md), [request policy](CRATESIO_REQUEST_POLICY.md),
 [credential contract](CRATESIO_CREDENTIAL_POLICY.md) and
 [wire policy](CRATESIO_WIRE_POLICY.md).

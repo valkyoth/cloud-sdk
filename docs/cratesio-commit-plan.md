@@ -3,7 +3,8 @@
 Status: selected unreleased `1.1.0` implementation train. Commits 1 through 6
 passed pentest and GitHub checks. The user confirmed Commit 7 GitHub checks
 green at `89910ad7` and authorized Commit 8. Discovery and the Hetzner drift
-maintenance are now at the Commit 8 implementation stop, awaiting pentest.
+maintenance passed the Commit 8 incremental pentest and remediation retest at
+`2c074698`. The evidence checkpoint awaits GitHub approval.
 Stop before Commit 9; do not tag or publish.
 
 ## Decision Summary
@@ -348,8 +349,12 @@ query, and pagination surface.
 
 ## Commit 8 - Taxonomy And Site Discovery
 
-Implementation status: implementation stop; incremental pentest pending.
+Implementation status: incremental pentest and remediation retest passed at
+`2c0746982c927929f63a08ff034bd3d132f0a4d3`; evidence checkpoint awaits GitHub.
 Comparison baseline: `89910ad7cab7a1549a67f16e7bea7556557c4f3e`.
+The [permanent report](../security/pentest/cratesio-commit-8.md) records the
+pagination consistency finding, remediation and verification. Once GitHub
+passes, its evidence commit becomes the next incremental comparison baseline.
 The [discovery contract](CRATESIO_DISCOVERY_POLICY.md) documents all seven
 executable operations, model bounds, anonymous transport identity and cleanup.
 The same checkpoint resolves [Hetzner live drift](SPEC_LOCK.md#reviewed-live-drift-2026-09-10),

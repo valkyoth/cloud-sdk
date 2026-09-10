@@ -3,8 +3,8 @@
 Status: unreleased `1.1.0`, Commit 7 implementation baseline
 `89910ad7cab7a1549a67f16e7bea7556557c4f3e`. GitHub is green and the user
 authorized Commit 8. [Discovery execution](CRATESIO_DISCOVERY_POLICY.md) is
-now implemented and awaiting its incremental pentest. No tag or publication
-is authorized.
+now implemented and passed its incremental pentest and remediation retest.
+Its evidence checkpoint awaits GitHub; no tag or publication is authorized.
 
 ## Source Contract
 
