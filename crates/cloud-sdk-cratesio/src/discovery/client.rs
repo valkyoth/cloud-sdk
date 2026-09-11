@@ -135,7 +135,9 @@ impl<'a, T: BoundTransport + BoundUserAgent + ?Sized> DiscoveryClient<'a, T> {
                     .unwrap_or(0)
                     .saturating_sub(now.as_secs()),
             };
-            attempt.defer(core::time::Duration::from_secs(seconds));
+            attempt
+                .defer(core::time::Duration::from_secs(seconds))
+                .map_err(DiscoveryExecutionError::Schedule)?;
         }
         request
             .decode(

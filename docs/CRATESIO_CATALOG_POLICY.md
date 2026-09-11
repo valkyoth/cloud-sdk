@@ -1,6 +1,6 @@
 # crates.io Catalog Contract
 
-Status: unreleased `1.1.0`, logical Commit 9 implementation pending pentest.
+Status: unreleased `1.1.0`, logical Commit 9 pentest remediation pending retest.
 Compare the complete workspace against accepted checkpoint
 `71e3f972ee68995be7b0be048dc7a856c5f1a611`. Do not tag, publish or start Commit 10.
 
@@ -99,6 +99,11 @@ it does not independently prove the origin of caller-supplied responses.
 Anonymous blocking, local async and Send async calls share the process gate
 with discovery: one in-flight attempt and at least one second of quiet time
 after completion/error/cancellation. Retry-After may only extend the delay.
+`MAX_PROVIDER_DELAY` bounds provider-requested deferral to 24 hours. A larger
+delay rejects the current response with `ScheduleError::Overflow` and imposes
+the capped wait; it cannot poison the process gate. This SDK policy applies
+to seconds and HTTP dates, successful responses and provider errors, and the
+token adapter. No retry is scheduled automatically after the wait.
 Storage ownership begins before dispatch/first poll, including unpolled future
 cleanup. No retries, sleeps, credentials, cookies or redirects are implicit.
 Separate processes sharing egress still require operator coordination.
@@ -154,3 +159,37 @@ The all-feature provider suite has 99 unit tests, one integration test and
 and documentation tests. No dependencies, lockfiles or publication flags changed;
 all six crates remain unpublished candidates. This is local implementation
 evidence, not an independent pentest result or GitHub approval for Commit 9.
+
+## Pentest Remediation
+
+The first scan of `71e3f972..16269d3f` reported one medium and two low findings.
+All three were reproduced with regression tests before correction:
+
+- Unbounded provider delays could indefinitely disable shared API execution.
+  Deferral now stores at most 86,400 seconds and returns a scheduling error for
+  larger input. Boundary tests cover zero, the exact cap, cap-plus-one, maximum
+  seconds/duration, and a far-future HTTP date. Client tests cover success/error
+  status, blocking/local/Send execution, the token adapter and buffer cleanup.
+  A deterministic test advances the real scheduler to its deadline and proves
+  recovery without poisoning or sleeping for a day.
+- `oneOf` sibling validation constraints were silently ignored by generation.
+  The generator now rejects those combinations and requires one to eight
+  branches. Regression fixtures cover type/enum/format siblings, malformed
+  branch containers, empty/oversized choices and allowed annotations.
+- Allocation failures in `oneOf` were misclassified as limit errors. The shared
+  branch evaluator now preserves both fatal errors exactly and stops immediately.
+  Deterministic branch-result injection tests allocation/limit errors before
+  and after a matching branch, while preserving exactly-one-match semantics.
+  This tests classification, not a global allocator failure hook.
+
+The pinned schema projection and source fixtures remain unchanged. Independent
+retest must cover the full incremental range through the remediation commit;
+the previous local qualification does not substitute for that retest.
+
+Remediation verification passed `scripts/checks.sh`, including workspace tests,
+Clippy, doctests, package checks and the fail-closed fixture lint. The provider
+passes 104 all-feature unit tests on Rust 1.98.1 and the 1.92.0 MSRV, 90
+alloc-only unit tests, one integration test and 16 doctests. Separate std-only,
+blocking and async builds, generator regression/source verification, document
+links, file-length checks and all four SBOM freshness graphs passed. No
+dependencies, generated schema/fixtures or publication flags changed.

@@ -51,17 +51,7 @@ pub(super) fn validate(value: &Value, id: usize, depth: usize) -> Result<(), Err
             }
         }
         Node::OneOf(choices) => {
-            let mut matches = 0_usize;
-            for child in *choices {
-                match validate(value, *child, next) {
-                    Ok(()) => matches = matches.checked_add(1).ok_or(Error::Limit)?,
-                    Err(Error::Allocation | Error::Limit) => return Err(Error::Limit),
-                    Err(_) => (),
-                }
-            }
-            if matches != 1 {
-                return Err(Error::Schema);
-            }
+            one_of(choices.iter().map(|child| validate(value, *child, next)))?;
         }
         Node::Object(fields, extra) => {
             value.object()?;
@@ -83,4 +73,54 @@ pub(super) fn validate(value: &Value, id: usize, depth: usize) -> Result<(), Err
         }
     }
     Ok(())
+}
+
+fn one_of(results: impl Iterator<Item = Result<(), Error>>) -> Result<(), Error> {
+    let mut matches = 0_usize;
+    for result in results {
+        match result {
+            Ok(()) => matches = matches.checked_add(1).ok_or(Error::Limit)?,
+            Err(error @ (Error::Allocation | Error::Limit)) => return Err(error),
+            Err(_) => (),
+        }
+    }
+    if matches != 1 {
+        return Err(Error::Schema);
+    }
+    Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{Error, one_of};
+
+    #[test]
+    fn one_of_preserves_operational_errors_before_and_after_matches() {
+        for error in [Error::Allocation, Error::Limit] {
+            for results in [
+                [Err(error), Ok(())],
+                [Ok(()), Err(error)],
+                [Err(Error::Schema), Err(error)],
+            ] {
+                assert_eq!(one_of(results.into_iter()), Err(error));
+            }
+            let mut branches = 0;
+            let result = one_of((0..2).map(|_| {
+                branches += 1;
+                Err(error)
+            }));
+            assert_eq!(result, Err(error));
+            assert_eq!(branches, 1);
+        }
+    }
+
+    #[test]
+    fn one_of_still_requires_exactly_one_successful_branch() {
+        assert_eq!(one_of([Ok(())].into_iter()), Ok(()));
+        assert_eq!(one_of([Err(Error::Value), Ok(())].into_iter()), Ok(()));
+        assert_eq!(one_of([Ok(()), Err(Error::Schema)].into_iter()), Ok(()));
+        assert_eq!(one_of([Ok(()), Ok(())].into_iter()), Err(Error::Schema));
+        assert_eq!(one_of([Err(Error::Value)].into_iter()), Err(Error::Schema));
+        assert_eq!(one_of(core::iter::empty()), Err(Error::Schema));
+    }
 }

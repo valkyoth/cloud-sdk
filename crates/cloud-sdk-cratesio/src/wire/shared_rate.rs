@@ -40,8 +40,12 @@ pub(crate) struct OfficialApiAttempt {
 }
 impl OfficialApiAttempt {
     #[cfg(any(feature = "blocking", feature = "async"))]
-    pub(crate) fn defer(&mut self, delay: core::time::Duration) {
-        self.delay = self.delay.max(delay);
+    pub(crate) fn defer(&mut self, delay: core::time::Duration) -> Result<(), ScheduleError> {
+        self.delay = self.delay.max(delay.min(super::MAX_PROVIDER_DELAY));
+        if delay > super::MAX_PROVIDER_DELAY {
+            return Err(ScheduleError::Overflow);
+        }
+        Ok(())
     }
 }
 impl Drop for OfficialApiAttempt {
@@ -149,3 +153,58 @@ impl<E> fmt::Display for OfficialCallError<E> {
 }
 
 impl<E> core::error::Error for OfficialCallError<E> {}
+
+#[cfg(all(test, any(feature = "blocking", feature = "async")))]
+mod tests {
+    use super::*;
+    use crate::discovery::tests::Fixture as _;
+    use core::time::Duration;
+
+    #[test]
+    fn provider_delay_bounds_remain_monotonic_and_recover_without_sleep() {
+        let _serial = TEST_GATE_LOCK.lock().fixture("gate lock");
+        let cap = crate::wire::MAX_PROVIDER_DELAY;
+        assert_eq!(cap, Duration::from_secs(86_400));
+        let identity = IdentifyingUserAgent::new("test/1 (tests@example.org)").fixture("identity");
+        for delay in [
+            Duration::ZERO,
+            Duration::from_secs(1),
+            Duration::from_secs(86_399),
+            cap,
+            Duration::from_secs(86_401),
+            Duration::from_secs(u64::MAX),
+            Duration::MAX,
+        ] {
+            reset_test_gate();
+            let mut attempt = OfficialApiGate::new(identity).begin().fixture("attempt");
+            let expected = if delay > cap {
+                Err(ScheduleError::Overflow)
+            } else {
+                Ok(())
+            };
+            assert_eq!(attempt.defer(delay), expected);
+            assert_eq!(attempt.delay, delay.min(cap).max(API_REQUEST_INTERVAL));
+            assert_eq!(attempt.defer(Duration::ZERO), Ok(()));
+            assert_eq!(attempt.delay, delay.min(cap).max(API_REQUEST_INTERVAL));
+            let now = EPOCH.get().fixture("epoch").elapsed();
+            drop(attempt);
+            {
+                let mut state = SCHEDULE.lock().fixture("state");
+                assert!(!state.active);
+                assert!(!state.poisoned);
+                let Err(ScheduleError::Wait(wait)) = state.schedule.try_start(now) else {
+                    unreachable!("quiet interval must remain active");
+                };
+                assert!(wait >= delay.min(cap).max(API_REQUEST_INTERVAL));
+                // Drive the real scheduler at its exact deadline without a 24h sleep.
+                assert_eq!(
+                    state
+                        .schedule
+                        .try_start(now.checked_add(wait).fixture("deadline")),
+                    Ok(())
+                );
+            }
+        }
+        reset_test_gate();
+    }
+}

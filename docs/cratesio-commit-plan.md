@@ -379,7 +379,8 @@ surface.
 
 ## Commit 9 - Crate Search And Metadata
 
-Implementation status: implemented, pending incremental pentest and GitHub.
+Implementation status: first incremental pentest findings remediated; independent
+retest and GitHub approval pending. See [remediation details](CRATESIO_CATALOG_POLICY.md#pentest-remediation).
 Comparison baseline: `71e3f972ee68995be7b0be048dc7a856c5f1a611`.
 The [catalog contract](CRATESIO_CATALOG_POLICY.md) records all three source
 operations, the stable Cargo response profile, include/schema rules and limits.

@@ -375,3 +375,63 @@ fn transport_user_agent_is_bound_before_construction_and_each_dispatch() {
     assert!(headers.iter().all(|b| *b == 0));
     assert_eq!(fixture.calls.load(Ordering::SeqCst), 0);
 }
+
+#[test]
+fn oversized_provider_delay_is_rejected_without_poisoning_shared_gate() {
+    let _serial = TEST_GATE_LOCK.lock().fixture("test gate lock");
+    for retry in [
+        b"86401".as_slice(),
+        b"18446744073709551615",
+        b"Fri, 31 Dec 9999 23:59:59 GMT",
+    ] {
+        for status in [200, 503] {
+            let fixture = Fixture {
+                status,
+                retry: Some(retry),
+                ..fixture(5)
+            };
+            let local = Local(
+                Fixture {
+                    status,
+                    retry: Some(retry),
+                    ..self::fixture(5)
+                },
+                core::cell::Cell::new(()),
+            );
+            let client =
+                DiscoveryClient::production(&fixture, identity(), 65_536).fixture("client");
+            let local_client =
+                DiscoveryClient::production(&local, identity(), 65_536).fixture("local");
+            let mut body = [0xa5; 65_536];
+            let mut headers = [0xa5; 512];
+            for mode in 0..3 {
+                reset_test_gate();
+                let result = match mode {
+                    0 => client.execute(DiscoveryRequest::site_metadata(), &mut body, &mut headers),
+                    1 => ready(client.execute_async(
+                        DiscoveryRequest::site_metadata(),
+                        &mut body,
+                        &mut headers,
+                    )),
+                    _ => ready(local_client.execute_local(
+                        DiscoveryRequest::site_metadata(),
+                        &mut body,
+                        &mut headers,
+                    )),
+                };
+                assert!(matches!(
+                    result,
+                    Err(DiscoveryExecutionError::Schedule(ScheduleError::Overflow))
+                ));
+                assert!(body.iter().all(|v| *v == 0));
+                assert!(headers.iter().all(|v| *v == 0));
+                assert!(
+                    matches!(client.execute(DiscoveryRequest::site_metadata(), &mut body, &mut headers),
+                    Err(DiscoveryExecutionError::Schedule(ScheduleError::Wait(delay)))
+                    if delay <= core::time::Duration::from_secs(86_400))
+                );
+            }
+        }
+    }
+    reset_test_gate();
+}

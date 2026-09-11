@@ -113,6 +113,9 @@ crates.io web schema. `execute_local` and `execute_async` provide the same
 anonymous checks under `async`. Every call shares the discovery rate gate and
 may return `ScheduleError::Wait`; it never sleeps or retries for you.
 Response buffers clear on every return or cancelled/unpolled future.
+Provider `Retry-After` is capped at 24 hours (`MAX_PROVIDER_DELAY`). Larger
+delays reject the response with a scheduling error and impose a capped wait,
+without permanently disabling the shared gate. No automatic retry occurs.
 
 `CatalogContinuation::LimitReached` is not end-of-data. Crate links are inert
 untrusted metadata, and include-expanded versions expose schema-checked protected

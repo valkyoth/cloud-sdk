@@ -23,6 +23,8 @@ struct Executor {
     index: usize,
     calls: AtomicUsize,
     pending: bool,
+    retry: Option<&'static [u8]>,
+    status: u16,
 }
 impl BoundTransport for Executor {
     fn endpoint_identity(&self) -> Result<EndpointIdentity<'_>, EndpointIdentityError> {
@@ -74,8 +76,15 @@ impl Executor {
                 HeaderSensitivity::Public,
             )
             .map_err(|_| "header")?;
+        if let Some(retry) = self.retry {
+            response
+                .headers_mut()
+                .map_err(|_| "headers")?
+                .try_push("retry-after", retry, HeaderSensitivity::Public)
+                .map_err(|_| "retry")?;
+        }
         Ok(ResponseCompletion::new(
-            StatusCode::OK,
+            StatusCode::new(self.status).fixture("status"),
             bytes.len(),
             ResponseMetadata::EMPTY,
         ))
@@ -107,8 +116,19 @@ impl BlockingRawHttpExecutor for Executor {
                 HeaderSensitivity::Public,
             )
             .map_err(|_| "header")?;
+        if let Some(retry) = self.retry {
+            attempt
+                .headers_mut()
+                .map_err(|_| "headers")?
+                .try_push("retry-after", retry, HeaderSensitivity::Public)
+                .map_err(|_| "retry")?;
+        }
         attempt
-            .commit(StatusCode::OK, bytes.len(), ResponseMetadata::EMPTY)
+            .commit(
+                StatusCode::new(self.status).fixture("status"),
+                bytes.len(),
+                ResponseMetadata::EMPTY,
+            )
             .map_err(|_| "commit")
     }
 }
@@ -169,6 +189,8 @@ fn executor(index: usize) -> Executor {
         index,
         calls: AtomicUsize::new(0),
         pending: false,
+        retry: None,
+        status: 200,
     }
 }
 fn identity() -> IdentifyingUserAgent<'static> {
@@ -336,4 +358,88 @@ fn optional_token_only_enters_list_and_secret_storage_always_clears() {
     assert!(secret.iter().all(|v| *v == 0));
     assert!(body.iter().all(|v| *v == 0));
     assert!(headers.iter().all(|v| *v == 0));
+}
+
+#[test]
+fn catalog_and_token_delays_are_bounded_and_clear_every_buffer() {
+    let _serial = TEST_GATE_LOCK.lock().fixture("gate");
+    let mut source = alloc::format!("fixture{}", line!()).into_bytes();
+    let token =
+        ApiToken::from_mut_bytes(CredentialOrigin::Production, &mut source).fixture("token");
+    let request = CatalogRequest::list(&[]).fixture("list");
+    for status in [200, 503] {
+        for retry in [
+            b"86400".as_slice(),
+            b"86401",
+            b"18446744073709551615",
+            b"Fri, 31 Dec 9999 23:59:59 GMT",
+        ] {
+            let executor = Executor {
+                retry: Some(retry),
+                status,
+                ..executor(0)
+            };
+            let local = Local(
+                Executor {
+                    retry: Some(retry),
+                    status,
+                    ..self::executor(0)
+                },
+                core::cell::Cell::new(()),
+            );
+            let client = CatalogClient::production(&executor, identity(), 65_536).fixture("client");
+            let local_client =
+                CatalogClient::production(&local, identity(), 65_536).fixture("local");
+            let mut body = [0; 65_536];
+            let mut headers = [0; 512];
+            let mut secret = [0; 1024];
+            for mode in 0..4 {
+                reset_test_gate();
+                body.fill(0xa5);
+                headers.fill(0xa5);
+                secret.fill(0xa5);
+                let result = match mode {
+                    0 => client.execute(request, &mut body, &mut headers),
+                    1 => ready(send(client.execute_async(request, &mut body, &mut headers))),
+                    2 => ready(local_client.execute_local(request, &mut body, &mut headers)),
+                    _ => client.execute_with_token(
+                        request,
+                        &token,
+                        &mut secret,
+                        &mut body,
+                        &mut headers,
+                        |executor, _, wire, policy, response| {
+                            BlockingRawHttpExecutor::execute(executor, wire, policy, response)
+                        },
+                    ),
+                };
+                if retry == b"86400" {
+                    if status == 200 {
+                        assert!(result.is_ok());
+                    } else {
+                        assert!(matches!(
+                            result,
+                            Err(CatalogExecutionError::Wire(
+                                crate::wire::CratesIoWireError::Provider(_)
+                            ))
+                        ));
+                    }
+                } else {
+                    assert!(matches!(
+                        result,
+                        Err(CatalogExecutionError::Schedule(ScheduleError::Overflow))
+                    ));
+                }
+                assert!(body.iter().all(|v| *v == 0));
+                assert!(headers.iter().all(|v| *v == 0));
+                if mode == 3 {
+                    assert!(secret.iter().all(|v| *v == 0));
+                }
+                assert!(matches!(client.execute(request, &mut body, &mut headers),
+                    Err(CatalogExecutionError::Schedule(ScheduleError::Wait(delay)))
+                    if delay <= crate::wire::MAX_PROVIDER_DELAY));
+            }
+        }
+    }
+    reset_test_gate();
 }

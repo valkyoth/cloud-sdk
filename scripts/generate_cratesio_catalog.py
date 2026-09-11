@@ -60,7 +60,12 @@ def render(document):
                 raise ValueError(f"unreviewed catalog constraint: {forbidden}")
         kind = schema.get("type")
         if "oneOf" in schema:
-            entry = "Node::OneOf(&[" + ",".join(str(child(s)) for s in schema["oneOf"]) + "])"
+            if set(schema) - {"oneOf", "description", "deprecated", "example"}:
+                raise ValueError("catalog oneOf sibling constraint")
+            choices = schema["oneOf"]
+            if not isinstance(choices, list) or not choices or len(choices) > 8:
+                raise ValueError("catalog oneOf branch count")
+            entry = "Node::OneOf(&[" + ",".join(str(child(s)) for s in choices) + "])"
         elif isinstance(kind, list):
             if len(kind) != 2 or "null" not in kind:
                 raise ValueError("catalog type union")

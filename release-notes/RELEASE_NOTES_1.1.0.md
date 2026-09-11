@@ -338,6 +338,15 @@ The [catalog contract](../docs/CRATESIO_CATALOG_POLICY.md) records exact scope
 and verification. Incremental pentest must cover `71e3f972..HEAD`, including the
 shared discovery runner and pagination helper. Stop before Commit 10.
 
+Commit 9 pentest remediation bounds provider-requested delays to 24 hours and
+rejects larger values without poisoning the shared gate, including the token
+adapter. Schema generation rejects `oneOf` sibling constraints and invalid
+branch counts; runtime branch validation preserves allocation failures instead
+of reporting them as limit errors. Regression tests reproduce all three
+findings and verify bounded scheduling recovery, cleanup and error propagation.
+The [remediation record](../docs/CRATESIO_CATALOG_POLICY.md#pentest-remediation)
+is pending independent retest; no next checkpoint or publication is authorized.
+
 ### Maintenance Evidence
 
 - Advanced the complete development and compatibility gate to stable Rust

@@ -33,6 +33,7 @@ def document():
 
 
 def main():
+    one_of_constraints()
     source = document()
     table, fixtures = render(source)
     assert "Node::Object" in table and "Node::Integer" in table
@@ -62,7 +63,37 @@ def main():
     del mutated["paths"][PATHS["list_crates"]]
     rejected(lambda: render(mutated))
     assert {p.name for p in (OUTPUT / "fixtures").glob("*.json")} == set(fixtures)
-    print("5 catalog schema and fixture regression groups passed.")
+    print("6 catalog schema and fixture regression groups passed.")
+
+
+def one_of_constraints():
+    for sibling in ({"type": "string"}, {"enum": ["x"]}, {"format": "date-time"}):
+        source = document()
+        source["components"]["schemas"]["Version"]["properties"]["num"] = {
+            "oneOf": [{"type": "integer"}], "example": "1.0.0", **sibling}
+        try:
+            render(source)
+        except ValueError as error:
+            assert "oneOf sibling constraint" in str(error), error
+        else:
+            raise AssertionError("oneOf sibling constraint silently ignored")
+    for choices in ([], None, {}, "string", [{"type": "integer"}] * 9):
+        source = document()
+        source["components"]["schemas"]["Version"]["properties"]["num"] = {
+            "oneOf": choices, "example": "1.0.0"}
+        try:
+            render(source)
+        except ValueError as error:
+            assert "oneOf branch count" in str(error), error
+        else:
+            raise AssertionError("invalid oneOf branches accepted")
+    for count in (1, 8):
+        source = document()
+        source["components"]["schemas"]["Version"]["properties"]["num"] = {
+            "oneOf": [{"type": "string"}] * count, "example": "1.0.0",
+            "description": "annotation", "deprecated": False}
+        table, _ = render(source)
+        assert "Node::OneOf" in table
 
 
 if __name__ == "__main__":

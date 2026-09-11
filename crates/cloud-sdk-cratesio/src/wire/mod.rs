@@ -14,7 +14,7 @@ mod shared_rate;
 mod user_agent;
 
 pub use error::{CratesIoWireError, ProviderError, ProviderErrorKind};
-pub use rate::{API_REQUEST_INTERVAL, ApiSchedule, ScheduleError};
+pub use rate::{API_REQUEST_INTERVAL, ApiSchedule, MAX_PROVIDER_DELAY, ScheduleError};
 #[cfg(feature = "alloc")]
 pub use response::{JsonResponsePolicy, JsonSuccess, MAX_JSON_RESPONSE_BYTES};
 #[cfg(any(feature = "blocking", feature = "async"))]

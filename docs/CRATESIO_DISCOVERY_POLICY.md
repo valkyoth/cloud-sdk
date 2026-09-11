@@ -127,7 +127,9 @@ The process-wide gate serializes the entire attempt across clients and origins.
 An owned admission guard holds no mutex across await. Completion, failure and
 cancelled in-flight attempts impose a fresh one-second quiet interval.
 Valid Retry-After on a checked success or provider error can only extend it.
-Monotonic deadline overflow or unwinding closes the gate; no public reset
+Commit 9 remediation bounds provider deferral to 24 hours (`MAX_PROVIDER_DELAY`).
+Larger values return `ScheduleError::Overflow` with a capped wait, never a
+permanently poisoned gate. Intrinsic clock overflow or unwinding closes the gate; no public reset
 exists. Wall time is used only for HTTP-date delay interpretation.
 Other processes and other applications sharing egress require operator coordination.
 A custom raw executor remains trusted to report truthful identity, enforce the

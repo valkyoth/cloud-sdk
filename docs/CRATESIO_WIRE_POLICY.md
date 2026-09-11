@@ -108,6 +108,13 @@ before dispatch; no mutex is held across await.
 Busy, early or poisoned calls fail rather than sleep. Reentrant use fails;
 panics poison the gate. No global reset API exists.
 
+Official catalog/discovery clients cap provider Retry-After at
+`MAX_PROVIDER_DELAY` (86,400 seconds). Larger second or HTTP-date delays reject
+the response with `ScheduleError::Overflow` and retain the capped quiet period
+without poisoning the gate. Smaller subsequent deferrals cannot shorten it.
+The lower-level JSON boundary still exposes parsed advisory metadata; custom
+schedulers must apply their own explicit bounded delay policy.
+
 The callback is a trusted blocking adapter extension: perform exactly one
 immediate exchange, apply the supplied user agent, disable redirects/retries,
 and do not return a future/deferred task. It does not verify endpoint or
