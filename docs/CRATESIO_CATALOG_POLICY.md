@@ -132,3 +132,25 @@ transport parity, cancellation, shared rate admission and token origin/route
 rejection. Offline generator tests reject schema/operation mutations. The
 release gate verifies generated fixtures and projection against pinned source.
 Use generator `--write` only after reviewing upstream source changes.
+
+## Local Qualification
+
+The implementation is committed as `a9bce255`. Local qualification on
+2026-09-11 passed:
+
+- `scripts/checks.sh`, including workspace default/all-feature tests, doctests,
+  Clippy, fixture fail-closed lint, module boundaries and package verification;
+- the complete Rust 1.92.0 through 1.98.1 matrix and configured portable/native
+  platform checks, with no live credentialed requests;
+- provider default and alloc-only Clippy, independent blocking/async checks,
+  and alloc-only tests on both development Rust and the MSRV;
+- all six packaged feature graphs and all four SBOM freshness graphs;
+- pinned catalog generation, request implementation source verification,
+  live crates.io/Hetzner drift, direct dependency and Cargo-tool freshness;
+- GitHub checkout freshness (`v7.0.1`), README parity and documentation links.
+
+The all-feature provider suite has 99 unit tests, one integration test and
+16 doctests. The alloc-only suite has 88 unit tests plus the same integration
+and documentation tests. No dependencies, lockfiles or publication flags changed;
+all six crates remain unpublished candidates. This is local implementation
+evidence, not an independent pentest result or GitHub approval for Commit 9.

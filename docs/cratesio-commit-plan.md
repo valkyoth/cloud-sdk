@@ -389,6 +389,10 @@ transports and async authenticated workflows remain later client work, not an
 implicit Bearer-header conversion. Version expansions are source-schema-checked
 protected field views; standalone version endpoints remain Commit 10.
 Live crates.io and Hetzner source checks found no drift on 2026-09-11.
+Implementation commit: `a9bce255`. The [local qualification record](CRATESIO_CATALOG_POLICY.md#local-qualification)
+records repository, compatibility, platform, package, source and freshness
+checks. Pentest the complete range from the comparison baseline through HEAD,
+including any qualification-only documentation commit.
 
 Goal: implement crate discovery and single-crate metadata without bulk crawling.
 
