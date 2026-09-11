@@ -335,8 +335,9 @@ and verification commands. No tag or publication is authorized.
   clean on 2026-09-11.
 
 The [catalog contract](../docs/CRATESIO_CATALOG_POLICY.md) records exact scope
-and verification. Incremental pentest must cover `71e3f972..HEAD`, including the
-shared discovery runner and pagination helper. Stop before Commit 10.
+and verification. Incremental pentest and remediation retest passed through
+`41fd2611`, including the shared discovery runner and pagination helper.
+Wait for GitHub on the evidence checkpoint; stop before Commit 10.
 
 Commit 9 pentest remediation bounds provider-requested delays to 24 hours and
 rejects larger values without poisoning the shared gate, including the token
@@ -345,7 +346,12 @@ branch counts; runtime branch validation preserves allocation failures instead
 of reporting them as limit errors. Regression tests reproduce all three
 findings and verify bounded scheduling recovery, cleanup and error propagation.
 The [remediation record](../docs/CRATESIO_CATALOG_POLICY.md#pentest-remediation)
-is pending independent retest; no next checkpoint or publication is authorized.
+and [permanent pentest report](../security/pentest/cratesio-commit-9.md) record
+the user-confirmed green retest with no open findings. The intentional bounded
+24-hour process-wide pause remains an availability consideration, not a new
+vulnerability. GitHub approval of the evidence checkpoint is pending; no next
+checkpoint or publication is authorized. Full-service security review and
+pentest remain pending until the final planned checkpoint.
 
 ### Maintenance Evidence
 

@@ -1,8 +1,10 @@
 # crates.io Catalog Contract
 
-Status: unreleased `1.1.0`, logical Commit 9 pentest remediation pending retest.
-Compare the complete workspace against accepted checkpoint
-`71e3f972ee68995be7b0be048dc7a856c5f1a611`. Do not tag, publish or start Commit 10.
+Status: unreleased `1.1.0`, logical Commit 9 passed incremental pentest and
+remediation retest at `41fd2611ebe4468fca56e0ab12891d06eb06b622` against
+accepted checkpoint `71e3f972ee68995be7b0be048dc7a856c5f1a611`. The
+[permanent report](../security/pentest/cratesio-commit-9.md) records the evidence.
+Wait for GitHub on the evidence checkpoint; do not tag, publish or start Commit 10.
 
 ## Executable Scope
 
@@ -104,6 +106,9 @@ delay rejects the current response with `ScheduleError::Overflow` and imposes
 the capped wait; it cannot poison the process gate. This SDK policy applies
 to seconds and HTTP dates, successful responses and provider errors, and the
 token adapter. No retry is scheduled automatically after the wait.
+The pause remains a substantial intentional availability boundary. There is
+no runtime shorter-cap configuration, and production/staging share one gate.
+Future isolation or shorter-cap policy must preserve aggregate API rate limits.
 Storage ownership begins before dispatch/first poll, including unpolled future
 cleanup. No retries, sleeps, credentials, cookies or redirects are implicit.
 Separate processes sharing egress still require operator coordination.
@@ -182,9 +187,10 @@ All three were reproduced with regression tests before correction:
   and after a matching branch, while preserving exactly-one-match semantics.
   This tests classification, not a global allocator failure hook.
 
-The pinned schema projection and source fixtures remain unchanged. Independent
-retest must cover the full incremental range through the remediation commit;
-the previous local qualification does not substitute for that retest.
+The pinned schema projection and source fixtures remain unchanged. The user
+confirmed that independent remediation retest passed with no new findings.
+The permanent report combines the initial scan and remediation retest ranges;
+local qualification does not substitute for the independent assessment.
 
 Remediation verification passed `scripts/checks.sh`, including workspace tests,
 Clippy, doctests, package checks and the fail-closed fixture lint. The provider

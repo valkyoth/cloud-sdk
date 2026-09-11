@@ -3,7 +3,8 @@
 Status: selected unreleased `1.1.0` implementation train. Commits 1 through 8
 are accepted; the user confirmed GitHub green on the Commit 8 evidence
 checkpoint `71e3f972ee68995be7b0be048dc7a856c5f1a611` and authorized Commit 9.
-Crate search and metadata are implemented and require incremental pentest.
+Crate search and metadata passed incremental pentest and remediation retest at
+`41fd2611`; the evidence checkpoint awaits GitHub approval.
 Stop before Commit 10; do not tag or publish.
 
 ## Decision Summary
@@ -379,8 +380,10 @@ surface.
 
 ## Commit 9 - Crate Search And Metadata
 
-Implementation status: first incremental pentest findings remediated; independent
-retest and GitHub approval pending. See [remediation details](CRATESIO_CATALOG_POLICY.md#pentest-remediation).
+Implementation status: incremental pentest and remediation retest passed at
+`41fd2611ebe4468fca56e0ab12891d06eb06b622`; evidence checkpoint awaits GitHub.
+The [permanent report](../security/pentest/cratesio-commit-9.md) records the
+three resolved findings, verification and bounded availability caveat.
 Comparison baseline: `71e3f972ee68995be7b0be048dc7a856c5f1a611`.
 The [catalog contract](CRATESIO_CATALOG_POLICY.md) records all three source
 operations, the stable Cargo response profile, include/schema rules and limits.

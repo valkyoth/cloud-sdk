@@ -2,8 +2,9 @@
 
 Status: unreleased `1.1.0`; Commit 8 is accepted at `71e3f972`.
 [Discovery execution](CRATESIO_DISCOVERY_POLICY.md) remains covered by that
-checkpoint. Commit 9 [catalog execution](CRATESIO_CATALOG_POLICY.md) requires
-incremental pentest; no tag or publication is authorized.
+checkpoint. Commit 9 [catalog execution](CRATESIO_CATALOG_POLICY.md) passed
+incremental pentest and remediation retest; its evidence checkpoint awaits
+GitHub. No tag or publication is authorized.
 
 ## Source Contract
 

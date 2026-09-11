@@ -1,7 +1,8 @@
 # crates.io Source Lock
 
 Status: Commits 1 through 8 are accepted in the unreleased `1.1.0` train.
-Commit 9 adds three search/metadata operations and requires incremental pentest.
+Commit 9 adds three search/metadata operations and passed incremental pentest
+and remediation retest; its evidence checkpoint awaits GitHub approval.
 No tag or publication is authorized.
 See the [catalog contract](CRATESIO_CATALOG_POLICY.md),
 [discovery contract](CRATESIO_DISCOVERY_POLICY.md), [request policy](CRATESIO_REQUEST_POLICY.md),
