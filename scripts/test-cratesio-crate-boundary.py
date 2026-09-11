@@ -204,8 +204,8 @@ def test_workspace_dependency_substitution_is_rejected() -> None:
 
 def test_endpoint_code_and_extra_modules_are_rejected() -> None:
     root = fixture()
-    catalog = root / checker.CRATE / "src/catalog.rs"
-    catalog.write_text("pub const ENDPOINT: &str = \"/api/v1/crates\";\n", encoding="ascii")
+    accounts = root / checker.CRATE / "src/accounts.rs"
+    accounts.write_text("pub const ENDPOINT: &str = \"/api/v1/crates\";\n", encoding="ascii")
     assert_rejected(root, "endpoint implementation")
     shutil.rmtree(root)
 
@@ -331,6 +331,7 @@ def main() -> None:
         test_packaged_candidate_uses_both_local_dependency_patches,
         test_wire_scheduling_cannot_lose_its_std_guard,
         test_discovery_feature_guards_cannot_be_removed,
+        test_catalog_feature_guards_cannot_be_removed,
     )
     for test in tests:
         test()
@@ -344,9 +345,29 @@ def test_discovery_feature_guards_cannot_be_removed() -> None:
         original = module.read_text(encoding="ascii")
         guards = [('#[cfg(any(feature = "blocking", feature = "async"))]\nmod client;',
                    "mod client;", "client execution guard")]
-        guards.extend((f'#[cfg(feature = "alloc")]\nmod {name};',
-                       f"mod {name};", "allocation guard")
+        guards.extend((f'#[cfg(feature = "alloc")]\n{("" if name == "decode" else "pub(crate) ")}mod {name};',
+                       f'{("" if name == "decode" else "pub(crate) ")}mod {name};', "allocation guard")
                       for name in ("crate_model", "decode", "models", "value"))
+        for guarded, unguarded, message in guards:
+            assert guarded in original
+            module.write_text(original.replace(guarded, unguarded), encoding="ascii")
+            assert_rejected(root, message)
+        module.write_text(original, encoding="ascii")
+        checker.validate(root)
+    finally:
+        shutil.rmtree(root)
+
+
+def test_catalog_feature_guards_cannot_be_removed() -> None:
+    root = fixture()
+    try:
+        module = root / checker.CRATE / "src/catalog/mod.rs"
+        original = module.read_text(encoding="ascii")
+        guards = [('#[cfg(any(feature = "blocking", feature = "async"))]\nmod client;',
+                   "mod client;", "catalog client guard")]
+        guards.extend((f'#[cfg(feature = "alloc")]\nmod {name};',
+                       f'mod {name};', "catalog allocation guard")
+                      for name in ("models", "decode", "pagination", "schema", "schema_table"))
         for guarded, unguarded, message in guards:
             assert guarded in original
             module.write_text(original.replace(guarded, unguarded), encoding="ascii")

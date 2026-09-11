@@ -168,6 +168,7 @@ visible. Applications should enable only the features they use.
 - [crates.io source lock and finite scope](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATESIO_SOURCE_LOCK.md)
 - [crates.io endpoint and redirect policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATESIO_ENDPOINT_POLICY.md)
 - [crates.io response and scheduling policy](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATESIO_WIRE_POLICY.md)
+- [crates.io search and metadata contract](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATESIO_CATALOG_POLICY.md)
 
 ## Provider-Neutral Quickstart
 

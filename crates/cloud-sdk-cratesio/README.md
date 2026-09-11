@@ -23,10 +23,9 @@ provider identities, API models, request preparation, checked response
 decoding, authentication rules, and high-level workflows while reusing the
 provider-neutral execution contracts from `cloud-sdk`.
 
-The crate is an unreleased `1.1.0` candidate. Seven anonymous discovery
-operations now have typed requests, complete success models and checked
-blocking, local-async and Send-async execution. Commit 8 passed its incremental
-pentest and remediation retest; its evidence checkpoint awaits GitHub approval.
+The crate is an unreleased `1.1.0` candidate. Seven discovery operations and
+three crate search/metadata operations have checked blocking, local-async and
+Send-async execution. Commit 8 is accepted; Commit 9 requires incremental pentest.
 Authentication preparation, endpoint, query and response foundations
 are available, but authenticated clients and the other API workflows remain
 assigned to later checkpoints. This is not yet a complete crates.io provider.
@@ -49,12 +48,79 @@ assigned to later checkpoints. This is not yet a complete crates.io provider.
 | Identifiers and queries | bounded public identifiers, operation-specific values and atomic percent encoding |
 | Pagination | checked meta links, legacy `more`, and explicit traversal limits |
 | Discovery operations | categories, category slugs, keywords, site metadata and complete front-page summary |
+| Catalog operations | web/Cargo search, named and literal-new metadata, includes and checked continuation |
 | Other API operations | deferred to their source-locked implementation commits |
 
 The public modules reserve ownership without claiming executable coverage:
-`catalog`, `accounts`, `ownership`, `publishing`, and `trusted_publishing`.
+`accounts`, `ownership`, `publishing`, and `trusted_publishing`.
 The complete 51-operation scope is maintained in the
 [crates.io source lock](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATESIO_SOURCE_LOCK.md).
+
+## Catalog Example
+
+Use the API for interactive discovery, not dependency resolution or bulk crawling.
+Prefer Cargo's sparse index or the database dump for those workloads.
+
+```rust
+use cloud_sdk_cratesio::{
+    catalog::{CatalogOperation, CatalogRequest},
+    identifiers::CrateName,
+    query::{Parameter, SearchQuery},
+};
+
+let params = [Parameter::Search(SearchQuery::new("serde")?)];
+let search = CatalogRequest::list(&params)?;
+let mut target = [0; 1024];
+assert_eq!(search.write_target(&mut target)?.as_str(), "/api/v1/crates?q=serde");
+let metadata = CatalogRequest::crate_metadata(CrateName::new("new")?, &[])?;
+assert_eq!(metadata.operation(), CatalogOperation::NewCrate);
+# Ok::<(), Box<dyn std::error::Error>>(())
+```
+
+With `blocking`, supply a trusted raw executor bound to `https://crates.io`
+and the identifying user-agent configured below:
+
+```rust
+# #[cfg(feature = "blocking")]
+# {
+use cloud_sdk::transport::{BlockingRawHttpExecutor, BoundTransport, BoundUserAgent};
+use cloud_sdk_cratesio::{
+    catalog::{CatalogClient, CatalogRequest, CatalogResponse},
+    identifiers::CrateName,
+    query::{Include, IncludeSet, Parameter},
+    wire::IdentifyingUserAgent,
+};
+
+fn metadata<T>(executor: &T) -> Result<CatalogResponse, Box<dyn std::error::Error>>
+where
+    T: BlockingRawHttpExecutor + BoundTransport + BoundUserAgent,
+    T::Error: 'static,
+{
+    let identity = IdentifyingUserAgent::new("inventory/1.0 (ops@example.org)")?;
+    let client = CatalogClient::production(executor, identity, 65_536)?;
+    let includes = [Include::DefaultVersion];
+    let params = [Parameter::Include(IncludeSet::new(&includes)?)];
+    let request = CatalogRequest::crate_metadata(CrateName::new("serde")?, &params)?;
+    let mut body = vec![0; 65_536];
+    let mut headers = [0; 512];
+    Ok(client.execute(request, &mut body, &mut headers)?)
+}
+# }
+```
+
+`cargo_search` selects Cargo's minimal response format; `list` selects the full
+crates.io web schema. `execute_local` and `execute_async` provide the same
+anonymous checks under `async`. Every call shares the discovery rate gate and
+may return `ScheduleError::Wait`; it never sleeps or retries for you.
+Response buffers clear on every return or cancelled/unpolled future.
+
+`CatalogContinuation::LimitReached` is not end-of-data. Crate links are inert
+untrusted metadata, and include-expanded versions expose schema-checked protected
+fields; dedicated version endpoints remain later work. Optional raw API-token
+list execution requires the explicit blocking `execute_with_token` trusted
+adapter callback, not a Bearer token. Anonymous `following` requests reject.
+See the [catalog contract](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATESIO_CATALOG_POLICY.md)
+for source coverage, pagination, includes, resource limits and adapter obligations.
 
 ## Discovery Example
 
@@ -144,11 +210,11 @@ documented in the [crates.io endpoint policy](https://github.com/valkyoth/cloud-
 | Feature | Default | Effect |
 | --- | --- | --- |
 | `default` | yes | Empty; keeps the provider allocation-free and `no_std`. |
-| `alloc` | no | Enables protected credentials, checked JSON admission and discovery models; still `no_std`. |
+| `alloc` | no | Enables protected credentials, checked JSON admission and discovery/catalog models; still `no_std`. |
 | `serde` | no | Enables the Serde boundary for later serialization; discovery decoding reuses core JSON events. |
 | `std` | no | Enables `alloc` and the shared monotonic API gate. |
-| `blocking` | no | Enables checked anonymous blocking discovery; no transport dependency is added. |
-| `async` | no | Enables checked local/Send async discovery; no runtime or transport dependency is added. |
+| `blocking` | no | Enables checked discovery/catalog execution and an explicit token adapter hook; no transport dependency is added. |
+| `async` | no | Enables checked anonymous local/Send async discovery/catalog; no runtime or transport dependency is added. |
 
 Networking and TLS remain opt-in provider-neutral concerns. This crate does
 not depend on `cloud-sdk-reqwest`, an async runtime, a TLS implementation, a

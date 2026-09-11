@@ -421,3 +421,18 @@ legacy deprecated field at six exact paths. Present legacy values still
 validate. The refreshed source locks remain fail-closed and never auto-accept
 new upstream data. No live mutation, credential use, publication or FIPS
 admission occurs in this checkpoint.
+
+## v1.1.0 Candidate - crates.io Commit 9
+
+Catalog search/metadata reuse discovery's bounded protected JSON staging and
+private checked execution runner. Exact origin/user-agent, status/media/error,
+response limits, one-second gate and async cancellation cleanup remain shared.
+Includes bind expansion presence and default-version identity. Returned meta
+links preserve authority/path/filters; page and relevance limits cannot silently
+claim completion. Crate links stay inert and unknown version fields remain in
+protected bounded storage. Public known strings still require safe rendering.
+Optional list tokens enter only an explicit blocking trusted-adapter callback
+with exact target/origin scope and cleared scratch. No cookie or implicit
+Bearer conversion, retry, crawler or new dependency is admitted. The adapter
+remains trusted to enforce wire policy and apply raw Authorization correctly.
+See [the catalog contract](CRATESIO_CATALOG_POLICY.md). Pentest is pending.

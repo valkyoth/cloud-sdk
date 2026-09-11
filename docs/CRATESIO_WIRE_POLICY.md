@@ -56,7 +56,9 @@ actual delays must be bounded by the caller before scheduling.
 decoder and clears the wire buffer afterwards. Visitors must protect retained
 copies. A visitor stop remains distinct from completion. This foundation does
 not itself implement operation-specific models. The [discovery layer](CRATESIO_DISCOVERY_POLICY.md)
-now decodes seven anonymous operations; token-response models remain later work.
+decodes seven anonymous operations. The [catalog layer](CRATESIO_CATALOG_POLICY.md)
+adds search/list and named/literal-new metadata with the same checked runner;
+token-response models remain later work.
 
 ## Parser Continuity
 

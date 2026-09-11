@@ -1,11 +1,10 @@
 # crates.io Commit Plan
 
-Status: selected unreleased `1.1.0` implementation train. Commits 1 through 6
-passed pentest and GitHub checks. The user confirmed Commit 7 GitHub checks
-green at `89910ad7` and authorized Commit 8. Discovery and the Hetzner drift
-maintenance passed the Commit 8 incremental pentest and remediation retest at
-`2c074698`. The evidence checkpoint awaits GitHub approval.
-Stop before Commit 9; do not tag or publish.
+Status: selected unreleased `1.1.0` implementation train. Commits 1 through 8
+are accepted; the user confirmed GitHub green on the Commit 8 evidence
+checkpoint `71e3f972ee68995be7b0be048dc7a856c5f1a611` and authorized Commit 9.
+Crate search and metadata are implemented and require incremental pentest.
+Stop before Commit 10; do not tag or publish.
 
 ## Decision Summary
 
@@ -350,16 +349,17 @@ query, and pagination surface.
 ## Commit 8 - Taxonomy And Site Discovery
 
 Implementation status: incremental pentest and remediation retest passed at
-`2c0746982c927929f63a08ff034bd3d132f0a4d3`; evidence checkpoint awaits GitHub.
+`2c0746982c927929f63a08ff034bd3d132f0a4d3`; the user confirmed GitHub green
+on evidence checkpoint `71e3f972ee68995be7b0be048dc7a856c5f1a611`.
 Comparison baseline: `89910ad7cab7a1549a67f16e7bea7556557c4f3e`.
 The [permanent report](../security/pentest/cratesio-commit-8.md) records the
-pagination consistency finding, remediation and verification. Once GitHub
-passes, its evidence commit becomes the next incremental comparison baseline.
+pagination consistency finding, remediation and verification. That evidence
+commit is the Commit 9 incremental comparison baseline.
 The [discovery contract](CRATESIO_DISCOVERY_POLICY.md) documents all seven
 executable operations, model bounds, anonymous transport identity and cleanup.
 The same checkpoint resolves [Hetzner live drift](SPEC_LOCK.md#reviewed-live-drift-2026-09-10),
 including the announced legacy-field removal. Review the complete range, not
-only the crates.io directory. No next checkpoint or publication is authorized.
+only the crates.io directory. No publication is authorized.
 
 Goal: implement the anonymous low-risk discovery foundation.
 
@@ -378,6 +378,17 @@ Pentest stop: run an incremental pentest for the exact Commit 8 discovery
 surface.
 
 ## Commit 9 - Crate Search And Metadata
+
+Implementation status: implemented, pending incremental pentest and GitHub.
+Comparison baseline: `71e3f972ee68995be7b0be048dc7a856c5f1a611`.
+The [catalog contract](CRATESIO_CATALOG_POLICY.md) records all three source
+operations, the stable Cargo response profile, include/schema rules and limits.
+Anonymous execution supports blocking/local/Send async. Optional raw API-token
+list execution uses a checked blocking trusted-adapter callback; built-in token
+transports and async authenticated workflows remain later client work, not an
+implicit Bearer-header conversion. Version expansions are source-schema-checked
+protected field views; standalone version endpoints remain Commit 10.
+Live crates.io and Hetzner source checks found no drift on 2026-09-11.
 
 Goal: implement crate discovery and single-crate metadata without bulk crawling.
 

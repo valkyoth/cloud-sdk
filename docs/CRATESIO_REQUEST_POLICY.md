@@ -1,10 +1,9 @@
 # crates.io Identifiers, Queries And Pagination
 
-Status: unreleased `1.1.0`, Commit 7 implementation baseline
-`89910ad7cab7a1549a67f16e7bea7556557c4f3e`. GitHub is green and the user
-authorized Commit 8. [Discovery execution](CRATESIO_DISCOVERY_POLICY.md) is
-now implemented and passed its incremental pentest and remediation retest.
-Its evidence checkpoint awaits GitHub; no tag or publication is authorized.
+Status: unreleased `1.1.0`; Commit 8 is accepted at `71e3f972`.
+[Discovery execution](CRATESIO_DISCOVERY_POLICY.md) remains covered by that
+checkpoint. Commit 9 [catalog execution](CRATESIO_CATALOG_POLICY.md) requires
+incremental pentest; no tag or publication is authorized.
 
 ## Source Contract
 

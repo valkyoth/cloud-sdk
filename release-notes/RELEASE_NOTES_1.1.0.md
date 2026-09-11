@@ -309,9 +309,34 @@ Commit 8 passed incremental pentest and remediation retest for
 including the neutral transport and Hetzner maintenance changes. The
 [permanent report](../security/pentest/cratesio-commit-8.md) records the resolved
 pagination finding and qualification evidence. GitHub CI and CodeQL must pass
-on the evidence checkpoint before Commit 9 starts.
+on the evidence checkpoint before Commit 9 starts. The user subsequently
+confirmed GitHub green on `71e3f972` and authorized Commit 9.
 The [discovery contract](../docs/CRATESIO_DISCOVERY_POLICY.md) records limits
-and verification commands. Do not begin Commit 9, tag or publish yet.
+and verification commands. No tag or publication is authorized.
+
+### Commit 9 - Crate Search And Metadata
+
+- Added all three source-locked catalog GET operations: crate list/search,
+  named metadata, and the literal `new` lookup (never the publish PUT route).
+- Separated the stable Cargo minimal search profile from complete crates.io
+  web records, including sort/filter/page policy and explicit include selectors.
+- Added bounded metadata expansion, full known included-version schema checks,
+  protected forward-compatible version fields and default-version binding.
+- Validated returned continuation authority, path, filters, size and direction.
+  Numbered-page and relevance ceilings report `LimitReached`, not false completion.
+- Reused discovery's private checked runner for blocking/local/Send execution,
+  exact wire admission, shared one-second rate gate and cancellation cleanup.
+- Added optional raw API-token list execution through a checked blocking
+  trusted-adapter callback. No Bearer conversion, cookie support, automatic
+  credentials, custom origin, retry or bulk traversal was added.
+- Added three pinned-source fixtures, a fail-closed included-version schema
+  generator, regression tests and compile-checked examples. Dependencies and
+  default features are unchanged. Live crates.io and Hetzner drift checks were
+  clean on 2026-09-11.
+
+The [catalog contract](../docs/CRATESIO_CATALOG_POLICY.md) records exact scope
+and verification. Incremental pentest must cover `71e3f972..HEAD`, including the
+shared discovery runner and pagination helper. Stop before Commit 10.
 
 ### Maintenance Evidence
 

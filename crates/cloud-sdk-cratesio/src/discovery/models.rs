@@ -12,7 +12,7 @@ macro_rules! model {
         }
     };
 }
-pub(super) use model;
+pub(crate) use model;
 model!(/// A category including optional, bounded parent and child collections.
     Category { id: String, category: String, slug: String, description: String,
         created_at: Timestamp, crates_cnt: u32, parent_categories: Option<Vec<Category>>,
@@ -45,7 +45,7 @@ impl Timestamp {
     pub fn as_str(&self) -> &str {
         &self.0
     }
-    pub(super) fn parse(value: &DiscoveryValue) -> Result<Self, Error> {
+    pub(crate) fn parse(value: &DiscoveryValue) -> Result<Self, Error> {
         let value = value.text(35)?;
         let (local, suffix) = if value.ends_with(['Z', 'z']) {
             (
@@ -145,16 +145,16 @@ pub enum DiscoveryResponse {
     Summary(Summary),
 }
 
-pub(super) fn text(v: &DiscoveryValue, name: &str, max: usize) -> Result<String, Error> {
+pub(crate) fn text(v: &DiscoveryValue, name: &str, max: usize) -> Result<String, Error> {
     v.required(name)?.text(max)
 }
-pub(super) fn count(v: &DiscoveryValue, name: &str) -> Result<u64, Error> {
+pub(crate) fn count(v: &DiscoveryValue, name: &str) -> Result<u64, Error> {
     v.required(name)?.count(i64::MAX as u64)
 }
-pub(super) fn small_count(v: &DiscoveryValue, name: &str) -> Result<u32, Error> {
+pub(crate) fn small_count(v: &DiscoveryValue, name: &str) -> Result<u32, Error> {
     u32::try_from(v.required(name)?.count(i32::MAX as u64)?).map_err(|_| Error::Value)
 }
-pub(super) fn nullable<T>(
+pub(crate) fn nullable<T>(
     v: &DiscoveryValue,
     parse: impl FnOnce(&DiscoveryValue) -> Result<T, Error>,
 ) -> Result<Option<T>, Error> {
@@ -164,7 +164,7 @@ pub(super) fn nullable<T>(
         parse(v).map(Some)
     }
 }
-pub(super) fn list<T>(
+pub(crate) fn list<T>(
     v: &DiscoveryValue,
     max: usize,
     mut parse: impl FnMut(&DiscoveryValue) -> Result<T, Error>,
@@ -181,7 +181,7 @@ pub(super) fn list<T>(
     }
     Ok(out)
 }
-pub(super) fn category(v: &DiscoveryValue, depth: usize) -> Result<Category, Error> {
+pub(crate) fn category(v: &DiscoveryValue, depth: usize) -> Result<Category, Error> {
     if depth > 8 {
         return Err(Error::Limit);
     }
@@ -205,7 +205,7 @@ pub(super) fn category(v: &DiscoveryValue, depth: usize) -> Result<Category, Err
         subcategories: related("subcategories")?,
     })
 }
-pub(super) fn keyword(v: &DiscoveryValue) -> Result<Keyword, Error> {
+pub(crate) fn keyword(v: &DiscoveryValue) -> Result<Keyword, Error> {
     Ok(Keyword {
         id: text(v, "id", 256)?,
         keyword: text(v, "keyword", 256)?,

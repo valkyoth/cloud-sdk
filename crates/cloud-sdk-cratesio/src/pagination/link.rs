@@ -33,6 +33,27 @@ impl<'a> PageLink<'a> {
         link: &'a str,
         direction: Direction,
     ) -> Result<Self, PaginationError> {
+        Self::parse(endpoint, path, current, link, direction, false).map(|(link, _)| link)
+    }
+    /// Validates all binding/URI checks even when the next numbered page is
+    /// one beyond the SDK ceiling. Never exposes an executable over-limit link.
+    #[cfg(feature = "alloc")]
+    pub(crate) fn next_at_limit(
+        endpoint: OfficialCratesIoEndpoint,
+        path: ApiPath<'a>,
+        current: Query<'a>,
+        link: &'a str,
+    ) -> Result<bool, PaginationError> {
+        Self::parse(endpoint, path, current, link, Direction::Next, true).map(|(_, limit)| limit)
+    }
+    fn parse(
+        endpoint: OfficialCratesIoEndpoint,
+        path: ApiPath<'a>,
+        current: Query<'a>,
+        link: &'a str,
+        direction: Direction,
+        allow_limit: bool,
+    ) -> Result<(Self, bool), PaginationError> {
         if link.is_empty() || link.len() > MAX_TARGET_BYTES {
             return Err(PaginationError::Limit);
         }
@@ -68,7 +89,14 @@ impl<'a> PageLink<'a> {
         };
         let mut query_bytes = [0; MAX_TARGET_BYTES];
         let expected_query = current.write(&mut query_bytes)?;
-        let cursor = check_query(query, expected_query, current, direction)?;
+        let (cursor, at_limit) = if allow_limit {
+            super::compare::check_query_limit(query, expected_query, current, direction, true)?
+        } else {
+            (
+                check_query(query, expected_query, current, direction)?,
+                false,
+            )
+        };
         let result = Self {
             endpoint,
             path,
@@ -81,7 +109,7 @@ impl<'a> PageLink<'a> {
         let limits =
             PaginationLimits::new(1, 1, MAX_TARGET_BYTES).map_err(|_| PaginationError::Limit)?;
         result.transfer_to(&mut path_bytes, &mut checked, limits)?;
-        Ok(result)
+        Ok((result, at_limit))
     }
     /// Returns the validated continuation kind without disclosing it in logs.
     #[must_use]

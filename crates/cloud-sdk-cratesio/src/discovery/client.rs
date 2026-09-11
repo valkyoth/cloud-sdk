@@ -1,3 +1,4 @@
+use super::checked::CheckedGet;
 use super::{DiscoveryError, DiscoveryRequest, DiscoveryResponse, MAX_DISCOVERY_BYTES};
 use crate::{
     endpoint::OfficialCratesIoEndpoint,
@@ -26,10 +27,10 @@ mod tests;
 /// exactly one exchange, with no credentials, redirects or retries. All client
 /// instances share the process API gate. Callers coordinate separate processes.
 pub struct DiscoveryClient<'a, T: ?Sized> {
-    executor: &'a T,
-    endpoint: OfficialCratesIoEndpoint,
-    gate: OfficialApiGate<'a>,
-    maximum: usize,
+    pub(crate) executor: &'a T,
+    pub(crate) endpoint: OfficialCratesIoEndpoint,
+    pub(crate) gate: OfficialApiGate<'a>,
+    pub(crate) maximum: usize,
 }
 impl<T: ?Sized> fmt::Debug for DiscoveryClient<'_, T> {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -85,7 +86,7 @@ impl<'a, T: BoundTransport + BoundUserAgent + ?Sized> DiscoveryClient<'a, T> {
             maximum,
         })
     }
-    fn policy(&self) -> Result<RawResponsePolicy<'static>, DiscoveryError> {
+    pub(crate) fn policy(&self) -> Result<RawResponsePolicy<'static>, DiscoveryError> {
         RawResponsePolicy::new(
             self.maximum,
             self.maximum,
@@ -96,7 +97,7 @@ impl<'a, T: BoundTransport + BoundUserAgent + ?Sized> DiscoveryClient<'a, T> {
         )
         .map_err(|_| DiscoveryError::Value)
     }
-    fn verify(&self) -> Result<(), DiscoveryError> {
+    pub(crate) fn verify(&self) -> Result<(), DiscoveryError> {
         if self.executor.configured_user_agent() != self.gate.user_agent().as_str().as_bytes() {
             return Err(DiscoveryError::Binding);
         }
@@ -104,18 +105,18 @@ impl<'a, T: BoundTransport + BoundUserAgent + ?Sized> DiscoveryClient<'a, T> {
             .verify_transport(self.executor)
             .map_err(|_| DiscoveryError::Binding)
     }
-    fn headers(&self) -> Result<[RequestHeader<'_>; 2], DiscoveryError> {
+    pub(crate) fn headers(&self) -> Result<[RequestHeader<'_>; 2], DiscoveryError> {
         Ok([
             RequestHeader::accept(MediaType::JSON),
             RequestHeader::new("accept-encoding", "identity").map_err(|_| DiscoveryError::Value)?,
         ])
     }
-    fn decode<E>(
+    pub(crate) fn decode<E, R: CheckedGet>(
         &self,
-        request: DiscoveryRequest<'_>,
+        request: R,
         response: ResponseBuffer<'_>,
         attempt: &mut OfficialApiAttempt,
-    ) -> Result<DiscoveryResponse, DiscoveryExecutionError<E>> {
+    ) -> Result<R::Response, DiscoveryExecutionError<E>> {
         let now = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .map_err(|_| DiscoveryExecutionError::Model(DiscoveryError::Value))?;
@@ -157,11 +158,23 @@ impl<T: BoundTransport + BoundUserAgent + cloud_sdk::transport::BlockingRawHttpE
         storage: &mut [u8],
         header_storage: &mut [u8],
     ) -> Result<DiscoveryResponse, DiscoveryExecutionError<T::Error>> {
+        self.execute_get(request, storage, header_storage)
+    }
+
+    pub(crate) fn execute_get<R: CheckedGet>(
+        &self,
+        request: R,
+        storage: &mut [u8],
+        header_storage: &mut [u8],
+    ) -> Result<R::Response, DiscoveryExecutionError<T::Error>> {
         let mut response = ResponseBuffer::new(storage, self.maximum, header_storage);
+        request
+            .anonymous()
+            .map_err(DiscoveryExecutionError::Model)?;
         self.verify().map_err(DiscoveryExecutionError::Model)?;
         let mut target = [0; MAX_TARGET_BYTES];
         let target = request
-            .write_target(&mut target)
+            .target(&mut target)
             .map_err(|_| DiscoveryExecutionError::Model(DiscoveryError::Binding))?;
         let headers = self.headers().map_err(DiscoveryExecutionError::Model)?;
         let wire = TransportRequest::new(Method::Get, target.as_request_target()).with_headers(

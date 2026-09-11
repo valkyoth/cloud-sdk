@@ -1,0 +1,134 @@
+# crates.io Catalog Contract
+
+Status: unreleased `1.1.0`, logical Commit 9 implementation pending pentest.
+Compare the complete workspace against accepted checkpoint
+`71e3f972ee68995be7b0be048dc7a856c5f1a611`. Do not tag, publish or start Commit 10.
+
+## Executable Scope
+
+| Source operation | GET target below `/api/v1` | Profile |
+| --- | --- | --- |
+| `list_crates` | `/crates` | Complete crates.io web list or explicit minimal Cargo search |
+| `find_crate` | `/crates/{name}` | Named metadata with includes |
+| `find_new_crate` | `/crates/new` | Metadata for the literal crate name `new` |
+
+Request construction is allocation-free; response models require `alloc`.
+`blocking` and `async` enable checked official-origin execution without adding
+a network/TLS dependency. Metadata is read-only and never automatically retried.
+No request publishes, changes an account, traverses a list or follows a returned
+crate link implicitly. Prefer Cargo's sparse index for dependency resolution,
+static downloads for artifacts and the database dump for bulk analysis.
+
+## Source And Schema
+
+The [source lock](CRATESIO_SOURCE_LOCK.md) covers all OpenAPI rows. Additional
+implementation evidence at `9ae7f769cea32f38ebc2ea9ec2ce455b47641511` is pinned by
+`check_cratesio_request_policy.py`:
+
+- [search controller](https://github.com/rust-lang/crates.io/blob/9ae7f769cea32f38ebc2ea9ec2ce455b47641511/src/controllers/krate/search.rs)
+  binds filters, numbered/seek pagination, sort defaults and the relevance limit;
+- [metadata controller](https://github.com/rust-lang/crates.io/blob/9ae7f769cea32f38ebc2ea9ec2ce455b47641511/src/controllers/krate/metadata.rs)
+  binds include selection and the literal-new alias, including its query support.
+
+The three committed fixtures are derived from pinned OpenAPI fields/examples.
+Independent example fragments are normalized into coherent list totals and
+full include expansion; they are not recorded live account responses.
+The generated included-version table covers the complete reachable Version
+schema. Unsupported new constraints, external references and excessive schema
+depth fail generation instead of silently extending the support claim.
+
+`CatalogRequest::cargo_search` admits only Cargo's `q` and `per_page` parameters.
+Its decoder accepts the stable `name`, `max_version`, nullable/omitted
+`description`, and `meta.total` contract. `CatalogRequest::list` instead requires
+the full web Crate schema and all three meta fields, including nullable
+`next_page`/`prev_page`. Omit `q` for an empty search; an explicitly empty
+`SearchQuery` rejects. Other query limits remain in the
+[request policy](CRATESIO_REQUEST_POLICY.md).
+
+Metadata requires `crate`, `versions`, `keywords`, and `categories`, including
+explicit nullable fields. Omitted includes select upstream `full`; explicit
+include selectors determine which expansion arrays must be present or null.
+Default-version-only expansion must contain exactly the selected version when
+one exists. Returned crate identity is bound using upstream ASCII case and
+hyphen/underscore equivalence. Included versions additionally require matching
+crate names, valid SemVer, positive IDs, 64 hexadecimal checksum characters,
+checked timestamps and the full source-owned nested schema.
+
+Public crate fields use the existing complete `SummaryCrate` model, re-exported
+as `CrateRecord`. `IncludedVersion::fields()` exposes a schema-checked protected
+JSON view, preserving unknown version fields and numeric spelling. Dedicated
+version APIs and ergonomic version-domain models remain Commit 10. Other
+unknown fields are fully parsed and bounded before being discarded. Crate
+links are bounded inert strings, not validated routing capabilities; applications
+must not use them as credential destinations or render descriptions as HTML.
+
+## Bounds And Pagination
+
+The [discovery limits](CRATESIO_DISCOVERY_POLICY.md#resource-limits) apply:
+caller response cap up to 8 MiB, 16,384 values, 32 levels, 64 members/object,
+1,024 elements/array, 65,536 decoded bytes/string and fallible reservations.
+Catalog list items are additionally capped at the requested size, at most 100.
+Oversized responses reject instead of returning a truncated success.
+
+Every returned continuation preserves the exact official origin, path, filter,
+sort and explicit page-size parameters. The existing `PageLink` checks cursor
+advancement and disallows reusing the current seek token. Null links contradicting
+known numbered continuation fail closed. Missing previous-page history rejects.
+The SDK's page-10 ceiling and upstream's first-1,000 relevance matches return
+`LimitReached` when further results exist. A returned page-11 link undergoes all
+binding checks but is never exposed as an executable over-limit link.
+
+Seek totals are not an offset or a snapshot guarantee. When a relevance seek
+response ends with more than 1,000 total matches, it conservatively reports
+`LimitReached`. A null non-relevance seek continuation is provider-reported end.
+The relevance cap requires a non-empty search query; `sort=relevance` alone
+uses the upstream alphabetical fallback. Seek responses cannot add previous links.
+Callers validate a `CatalogLink`, inspect its `Cursor`, explicitly construct
+the next typed request preserving filters, and enforce total time/page/item
+budgets. There is no high-level collection crawler or implicit backtracking.
+
+## Execution And Credentials
+
+`CatalogClient::production` and `::staging` reuse the private discovery GET
+runner. It verifies transport origin and actual configured identifying
+user-agent at construction and before dispatch. Exact HTTP 200, JSON media,
+response bounds, Cargo error envelopes and schema validation are inseparable
+from client execution. Lower-level `decode` accepts already wire-admitted data;
+it does not independently prove the origin of caller-supplied responses.
+
+Anonymous blocking, local async and Send async calls share the process gate
+with discovery: one in-flight attempt and at least one second of quiet time
+after completion/error/cancellation. Retry-After may only extend the delay.
+Storage ownership begins before dispatch/first poll, including unpolled future
+cleanup. No retries, sleeps, credentials, cookies or redirects are implicit.
+Separate processes sharing egress still require operator coordination.
+
+`execute_with_token` is an explicit blocking trusted-adapter callback for
+`list_crates` only. It scopes an `ApiToken` to the exact official origin, GET
+target and shared gate, and clears secret scratch and response/header storage
+on every exit. The callback must apply raw `Authorization` once as sensitive,
+honor the supplied response policy and execute only the supplied request.
+This is not a Bearer token. Ordinary anonymous raw reqwest executors do not
+inject it. Built-in token transport and async authenticated-client integration
+remain later work. The `following` filter fails before anonymous dispatch;
+metadata and the minimal Cargo profile cannot opt into token execution.
+
+## Verification
+
+```sh
+cargo test --locked -p cloud-sdk-cratesio --all-features
+cargo test --locked -p cloud-sdk-cratesio --no-default-features --features alloc
+python3 scripts/test-cratesio-catalog.py
+python3 scripts/generate_cratesio_catalog.py
+python3 scripts/check_cratesio_request_policy.py --fetch
+scripts/check_cratesio_drift.py --fetch
+scripts/check_hetzner_api_surface.sh --fetch
+```
+
+Tests cover every source fixture, include selector, stable Cargo profile,
+required fields, invalid types, unknown fields, defaults, atomic targets,
+literal-new routing, relevance/page limits, same-query links, response cleanup,
+transport parity, cancellation, shared rate admission and token origin/route
+rejection. Offline generator tests reject schema/operation mutations. The
+release gate verifies generated fixtures and projection against pinned source.
+Use generator `--write` only after reviewing upstream source changes.

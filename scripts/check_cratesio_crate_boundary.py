@@ -14,7 +14,6 @@ ROOT = Path(__file__).resolve().parents[1]
 CRATE = Path("crates/cloud-sdk-cratesio")
 DOMAIN_MODULES = (
     "accounts",
-    "catalog",
     "ownership",
     "publishing",
     "trusted_publishing",
@@ -205,7 +204,9 @@ def validate(root: Path) -> None:
             "mod", "request", "value", "models", "crate_model", "decode",
             "client", "tests", "client/asynchronous", "client/tests",
             "tests/model_contracts", "tests/pagination_contracts",
+            "checked",
         )),
+        *(f"catalog/{name}.rs" for name in ("mod", "request", "models", "decode", "pagination", "schema", "schema_table", "client", "client/token", "client/tests", "tests", "tests/pagination", "tests/metadata")),
         *(f"wire/{name}.rs" for name in (
             "mod", "error", "rate", "shared_rate", "user_agent", "envelope",
             "response", "policy_tests", "response_tests", "boundary_tests",
@@ -227,8 +228,15 @@ def validate(root: Path) -> None:
     if '#[cfg(any(feature = "blocking", feature = "async"))]\nmod client;' not in discovery:
         raise BoundaryError("discovery client execution guard changed")
     for module in ("crate_model", "decode", "models", "value"):
-        if f'#[cfg(feature = "alloc")]\nmod {module};' not in discovery:
+        visibility = "" if module == "decode" else "pub(crate) "
+        if f'#[cfg(feature = "alloc")]\n{visibility}mod {module};' not in discovery:
             raise BoundaryError("discovery allocation guard changed")
+    catalog = (crate / "src/catalog/mod.rs").read_text(encoding="ascii")
+    for module in ("models", "decode", "pagination", "schema", "schema_table"):
+        if f'#[cfg(feature = "alloc")]\nmod {module};' not in catalog:
+            raise BoundaryError("catalog allocation guard changed")
+    if '#[cfg(any(feature = "blocking", feature = "async"))]\nmod client;' not in catalog:
+        raise BoundaryError("catalog client guard changed")
     if '#[cfg(feature = "std")]\nmod shared_rate;' not in wire:
         raise BoundaryError("wire scheduling std guard changed")
     if "#![no_std]" not in library:

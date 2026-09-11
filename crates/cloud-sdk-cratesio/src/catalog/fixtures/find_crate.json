@@ -1,0 +1,108 @@
+{
+  "categories": [
+    {
+      "category": "Game development",
+      "crates_cnt": 42,
+      "created_at": "2019-12-13T13:46:41Z",
+      "description": "Libraries for creating games.",
+      "id": "game-development",
+      "slug": "game-development"
+    }
+  ],
+  "crate": {
+    "badges": [],
+    "categories": [
+      "game-development"
+    ],
+    "created_at": "2019-12-13T13:46:41Z",
+    "default_version": "1.0.0",
+    "description": "A generic serialization/deserialization framework",
+    "documentation": "https://docs.rs/serde",
+    "downloads": 123456789,
+    "exact_match": false,
+    "homepage": "https://serde.rs",
+    "id": "serde",
+    "keywords": [
+      "http"
+    ],
+    "links": {
+      "owner_team": "/api/v1/crates/serde/owner_team",
+      "owner_user": "/api/v1/crates/serde/owner_user",
+      "owners": "/api/v1/crates/serde/owners",
+      "reverse_dependencies": "/api/v1/crates/serde/reverse_dependencies",
+      "version_downloads": "/api/v1/crates/serde/downloads",
+      "versions": "/api/v1/crates/serde/versions"
+    },
+    "max_stable_version": "1.3.0",
+    "max_version": "2.0.0-beta.1",
+    "name": "serde",
+    "newest_version": "1.2.3",
+    "num_versions": 13,
+    "recent_downloads": 456789,
+    "repository": "https://github.com/serde-rs/serde",
+    "trustpub_only": false,
+    "updated_at": "2019-12-13T13:46:41Z",
+    "versions": [
+      42
+    ],
+    "yanked": false
+  },
+  "keywords": [
+    {
+      "crates_cnt": 42,
+      "created_at": "2017-01-06T14:23:11Z",
+      "id": "http",
+      "keyword": "http"
+    }
+  ],
+  "versions": [
+    {
+      "audit_actions": [
+        {
+          "action": "publish",
+          "time": "2019-12-13T13:46:41Z",
+          "user": {
+            "avatar": "https://avatars2.githubusercontent.com/u/1234567?v=4",
+            "created_at": null,
+            "github_username_matches": false,
+            "id": 42,
+            "login": "ghost",
+            "name": "Kate Morgan",
+            "url": "https://github.com/ghost"
+          }
+        }
+      ],
+      "bin_names": [],
+      "checksum": "e8dfc9d19bdbf6d17e22319da49161d5d0108e4188e8b680aef6299eed22df60",
+      "crate": "serde",
+      "crate_size": 1234,
+      "created_at": "2019-12-13T13:46:41Z",
+      "description": "A generic serialization/deserialization framework",
+      "dl_path": "/api/v1/crates/serde/1.0.0/download",
+      "documentation": "https://docs.rs/serde",
+      "downloads": 123456,
+      "edition": "2021",
+      "features": {},
+      "has_lib": true,
+      "homepage": "https://serde.rs",
+      "id": 42,
+      "lib_links": "git2",
+      "license": "MIT",
+      "linecounts": null,
+      "links": {
+        "authors": "/api/v1/crates/serde/1.0.0/authors",
+        "dependencies": "/api/v1/crates/serde/1.0.0/dependencies",
+        "version_downloads": "/api/v1/crates/serde/1.0.0/downloads"
+      },
+      "num": "1.0.0",
+      "published_by": null,
+      "readme_path": "/api/v1/crates/serde/1.0.0/readme",
+      "repository": "https://github.com/serde-rs/serde",
+      "rust_version": "1.31",
+      "trustpub_data": null,
+      "updated_at": "2019-12-13T13:46:41Z",
+      "yank_message": "Security vulnerability",
+      "yanked": false
+    }
+  ]
+}

@@ -128,6 +128,10 @@ impl<'a> Query<'a> {
     pub const fn operation(self) -> QueryOperation {
         self.operation
     }
+    #[cfg(feature = "alloc")]
+    pub(crate) const fn parameters(self) -> &'a [Parameter<'a>] {
+        self.parameters
+    }
     /// Returns a numbered starting page, or none for seek/unset pagination.
     #[must_use]
     pub fn page(self) -> Option<Page> {

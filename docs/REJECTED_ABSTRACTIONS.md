@@ -364,3 +364,15 @@ Adding convenience APIs, dependency changes, feature aliases, or corrective
 behavior during the stable version promotion was rejected. v1.0.0 must remain
 runtime- and dependency-equivalent to the published v0.100.0 candidate; later
 additions use ordinary reviewed releases.
+
+## v1.1.0 Candidate - crates.io Commit 9
+
+### Catalog Runtime And Unrestricted Token Client
+
+A provider-specific HTTP runtime, permissive Authorization override and bulk
+crawler were rejected. Catalog reuses the existing private checked GET runner
+and rate gate. Optional tokens have an explicit trusted blocking adapter
+boundary; async authenticated clients remain later work. A separate Cargo
+search profile avoids weakening full web-response validation. Included-version
+schema projection preserves checked fields without implementing the later
+version endpoint graph early. See [the catalog contract](CRATESIO_CATALOG_POLICY.md).

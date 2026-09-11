@@ -3,16 +3,18 @@
 //! Request construction is allocation-free. Models require `alloc`; execution
 //! requires `blocking` or `async`. Neither execution path accepts credentials.
 
+#[cfg(any(feature = "blocking", feature = "async"))]
+pub(crate) mod checked;
 mod request;
 pub use request::{DiscoveryOperation, DiscoveryRequest};
 #[cfg(feature = "alloc")]
-mod crate_model;
+pub(crate) mod crate_model;
 #[cfg(feature = "alloc")]
 mod decode;
 #[cfg(feature = "alloc")]
-mod models;
+pub(crate) mod models;
 #[cfg(feature = "alloc")]
-mod value;
+pub(crate) mod value;
 #[cfg(feature = "alloc")]
 pub use crate_model::{CrateLinks, SummaryCrate};
 #[cfg(feature = "alloc")]
@@ -60,4 +62,4 @@ pub const MAX_DISCOVERY_BYTES: usize = 8_388_608;
 pub const MAX_DISCOVERY_ITEMS: usize = 1_024;
 
 #[cfg(all(test, feature = "alloc"))]
-mod tests;
+pub(crate) mod tests;

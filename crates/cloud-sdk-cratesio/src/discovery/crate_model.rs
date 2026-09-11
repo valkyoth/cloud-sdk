@@ -15,7 +15,7 @@ model!(/// Complete crates.io crate record embedded in the front-page summary.
         homepage: Option<String>, documentation: Option<String>, repository: Option<String>,
         links: CrateLinks, exact_match: bool, trustpub_only: bool });
 
-pub(super) fn crate_record(v: &mut DiscoveryValue) -> Result<SummaryCrate, Error> {
+pub(crate) fn crate_record(v: &mut DiscoveryValue) -> Result<SummaryCrate, Error> {
     let opt_text = |name, max| nullable(v.required(name)?, |v| v.text(max));
     let strings = |name| nullable(v.required(name)?, |v| list(v, 1024, |v| v.text(256)));
     let links = v.required("links")?;

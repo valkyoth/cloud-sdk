@@ -7,8 +7,19 @@ pub(super) fn check_query<'a>(
     current: Query<'_>,
     direction: Direction,
 ) -> Result<Cursor<'a>, PaginationError> {
+    check_query_limit(actual, expected, current, direction, false).map(|(cursor, _)| cursor)
+}
+
+pub(super) fn check_query_limit<'a>(
+    actual: &'a str,
+    expected: &str,
+    current: Query<'_>,
+    direction: Direction,
+    allow_limit: bool,
+) -> Result<(Cursor<'a>, bool), PaginationError> {
     let mut matched = [false; 64];
     let mut cursor = None;
+    let mut at_limit = false;
     for (index, pair) in actual.split('&').enumerate() {
         if index >= matched.len() {
             return Err(PaginationError::Limit);
@@ -21,7 +32,21 @@ pub(super) fn check_query<'a>(
             // Continuation keys and values have canonical ASCII spellings. No
             // percent decoding or reconstruction of opaque cursor payloads.
             cursor = Some(match key {
-                "page" => Cursor::Page(Page::parse(value).map_err(|_| PaginationError::Limit)?),
+                "page" => {
+                    if allow_limit
+                        && value == "11"
+                        && current.page().map(Page::get) == Some(crate::query::MAX_PAGE)
+                        && direction == Direction::Next
+                    {
+                        at_limit = true;
+                        Cursor::Page(
+                            Page::new(crate::query::MAX_PAGE)
+                                .map_err(|_| PaginationError::Limit)?,
+                        )
+                    } else {
+                        Cursor::Page(Page::parse(value).map_err(|_| PaginationError::Limit)?)
+                    }
+                }
                 "seek" => Cursor::Seek(Seek::new(value)?),
                 _ => return Err(PaginationError::Invalid),
             });
@@ -61,7 +86,12 @@ pub(super) fn check_query<'a>(
                 Direction::Next => prior.checked_add(1),
                 Direction::Previous => prior.checked_sub(1),
             };
-            if wanted != Some(page.get()) {
+            let actual = if at_limit {
+                page.get().checked_add(1)
+            } else {
+                Some(page.get())
+            };
+            if wanted != actual {
                 return Err(PaginationError::Progress);
             }
         }
@@ -71,7 +101,7 @@ pub(super) fn check_query<'a>(
             }
         }
     }
-    Ok(cursor)
+    Ok((cursor, at_limit))
 }
 
 // Compare form query components one decoded byte at a time, without allocating

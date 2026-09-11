@@ -72,17 +72,30 @@ impl DiscoveryValue {
         }
         Ok(None)
     }
-    pub(super) fn required(&self, name: &str) -> Result<&Self, Error> {
+    pub(crate) fn required(&self, name: &str) -> Result<&Self, Error> {
         self.get(name)?.ok_or(Error::Schema)
     }
-    pub(super) fn object(&self) -> Result<(), Error> {
+    pub(crate) fn visit_fields(
+        &self,
+        mut visit: impl FnMut(&str, &Self) -> Result<(), Error>,
+    ) -> Result<(), Error> {
+        let Kind::Object(fields) = &self.0 else {
+            return Err(Error::Schema);
+        };
+        for (name, value) in fields {
+            name.try_with_secret(|name| visit(name, value))
+                .map_err(|_| Error::Value)??;
+        }
+        Ok(())
+    }
+    pub(crate) fn object(&self) -> Result<(), Error> {
         if matches!(self.0, Kind::Object(_)) {
             Ok(())
         } else {
             Err(Error::Schema)
         }
     }
-    pub(super) fn text(&self, maximum: usize) -> Result<String, Error> {
+    pub(crate) fn text(&self, maximum: usize) -> Result<String, Error> {
         self.with_text(|text| {
             if text.len() > maximum {
                 return Err(Error::Limit);
@@ -94,7 +107,7 @@ impl DiscoveryValue {
             Ok(out)
         })?
     }
-    pub(super) fn count(&self, maximum: u64) -> Result<u64, Error> {
+    pub(crate) fn count(&self, maximum: u64) -> Result<u64, Error> {
         self.with_number(|text| {
             if text.is_empty() || !text.bytes().all(|b| b.is_ascii_digit()) {
                 return Err(Error::Value);
@@ -105,7 +118,7 @@ impl DiscoveryValue {
                 .ok_or(Error::Value)
         })?
     }
-    pub(super) fn take(&mut self, name: &str) -> Result<Self, Error> {
+    pub(crate) fn take(&mut self, name: &str) -> Result<Self, Error> {
         let Kind::Object(fields) = &mut self.0 else {
             return Err(Error::Schema);
         };
@@ -119,7 +132,7 @@ impl DiscoveryValue {
         }
         Err(Error::Schema)
     }
-    pub(super) fn into_array(self) -> Result<Vec<Self>, Error> {
+    pub(crate) fn into_array(self) -> Result<Vec<Self>, Error> {
         match self.0 {
             Kind::Array(values) => Ok(values),
             _ => Err(Error::Schema),
@@ -132,14 +145,14 @@ struct Frame {
     key: Option<SecretString>,
 }
 #[derive(Default)]
-pub(super) struct Builder {
+pub(crate) struct Builder {
     stack: Vec<Frame>,
     root: Option<DiscoveryValue>,
     text: Option<SecretString>,
     nodes: usize,
 }
 impl Builder {
-    pub(super) fn finish(mut self) -> Result<DiscoveryValue, Error> {
+    pub(crate) fn finish(mut self) -> Result<DiscoveryValue, Error> {
         if !self.stack.is_empty() || self.text.is_some() {
             return Err(Error::Json);
         }
@@ -168,7 +181,7 @@ impl Builder {
         }
     }
 }
-pub(super) fn push<T>(values: &mut Vec<T>, value: T, maximum: usize) -> Result<(), Error> {
+pub(crate) fn push<T>(values: &mut Vec<T>, value: T, maximum: usize) -> Result<(), Error> {
     if values.len() >= maximum {
         return Err(Error::Limit);
     }

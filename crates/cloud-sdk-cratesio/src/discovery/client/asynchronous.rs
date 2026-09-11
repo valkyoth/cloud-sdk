@@ -18,12 +18,24 @@ impl<T: BoundTransport + BoundUserAgent + LocalAsyncRawHttpExecutor + ?Sized>
         header_storage: &'b mut [u8],
     ) -> impl Future<Output = Result<DiscoveryResponse, DiscoveryExecutionError<T::Error>>> + 's
     {
+        self.execute_get_local(request, storage, header_storage)
+    }
+
+    pub(crate) fn execute_get_local<'s, 'r: 's, 'b: 's, R: CheckedGet + 'r>(
+        &'s self,
+        request: R,
+        storage: &'b mut [u8],
+        header_storage: &'b mut [u8],
+    ) -> impl Future<Output = Result<R::Response, DiscoveryExecutionError<T::Error>>> + 's {
         let mut response = ResponseBuffer::new(storage, self.maximum, header_storage);
         async move {
+            request
+                .anonymous()
+                .map_err(DiscoveryExecutionError::Model)?;
             self.verify().map_err(DiscoveryExecutionError::Model)?;
             let mut target = [0; MAX_TARGET_BYTES];
             let target = request
-                .write_target(&mut target)
+                .target(&mut target)
                 .map_err(|_| DiscoveryExecutionError::Model(DiscoveryError::Binding))?;
             let headers = self.headers().map_err(DiscoveryExecutionError::Model)?;
             let wire = TransportRequest::new(Method::Get, target.as_request_target()).with_headers(
@@ -57,12 +69,25 @@ impl<T: BoundTransport + BoundUserAgent + AsyncRawHttpExecutor + Sync + ?Sized>
         header_storage: &'b mut [u8],
     ) -> impl Future<Output = Result<DiscoveryResponse, DiscoveryExecutionError<T::Error>>> + Send + 's
     {
+        self.execute_get_async(request, storage, header_storage)
+    }
+
+    pub(crate) fn execute_get_async<'s, 'r: 's, 'b: 's, R: CheckedGet + Send + 'r>(
+        &'s self,
+        request: R,
+        storage: &'b mut [u8],
+        header_storage: &'b mut [u8],
+    ) -> impl Future<Output = Result<R::Response, DiscoveryExecutionError<T::Error>>> + Send + 's
+    {
         let mut response = ResponseBuffer::new(storage, self.maximum, header_storage);
         async move {
+            request
+                .anonymous()
+                .map_err(DiscoveryExecutionError::Model)?;
             self.verify().map_err(DiscoveryExecutionError::Model)?;
             let mut target = [0; MAX_TARGET_BYTES];
             let target = request
-                .write_target(&mut target)
+                .target(&mut target)
                 .map_err(|_| DiscoveryExecutionError::Model(DiscoveryError::Binding))?;
             let headers = self.headers().map_err(DiscoveryExecutionError::Model)?;
             let wire = TransportRequest::new(Method::Get, target.as_request_target()).with_headers(
