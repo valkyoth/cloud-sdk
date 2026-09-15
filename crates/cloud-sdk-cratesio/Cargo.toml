@@ -44,3 +44,8 @@ path = "src/lib.rs"
 [[test]]
 name = "identity"
 path = "tests/identity.rs"
+
+[[test]]
+name = "version_metadata"
+path = "tests/version_metadata.rs"
+required-features = ["alloc"]

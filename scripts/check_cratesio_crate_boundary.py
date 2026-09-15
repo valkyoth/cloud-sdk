@@ -40,7 +40,10 @@ EXPECTED_DEPENDENCIES = {
     "serde": {"workspace": True, "optional": True},
 }
 EXPECTED_LIBRARY = {"path": "src/lib.rs"}
-EXPECTED_TESTS = [{"name": "identity", "path": "tests/identity.rs"}]
+EXPECTED_TESTS = [
+    {"name": "identity", "path": "tests/identity.rs"},
+    {"name": "version_metadata", "path": "tests/version_metadata.rs", "required-features": ["alloc"]},
+]
 ENDPOINT_SOURCES = {
     "endpoint/mod.rs",
     "endpoint/authority.rs",

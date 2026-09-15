@@ -111,6 +111,17 @@ The independent pentest must include the shared schema-validator refactoring
 and source refresh as well as the new version surface. Stop for the user's
 review; local verification does not substitute for pentest or GitHub approval.
 
+## Dynamic Metadata Inspection
+
+`DiscoveryValue::visit_fields` enumerates returned object names and values,
+including feature maps and release tracks whose keys callers do not know in
+advance. Names remain closure-scoped protected borrows. The visitor allocates
+no copies, preserves redacted diagnostics, rejects non-objects, and stops on
+the first callback error without changing it. Empty objects invoke no callback.
+Copies explicitly created by callers are caller-owned and require their own
+cleanup policy. External-consumer regression tests cover these contracts.
+This addresses checkpoint 10 pentest finding F1; independent retest is pending.
+
 ## Local Qualification 2026-09-15
 
 Implementation checkpoint: `6db21a77`. Local qualification passed:

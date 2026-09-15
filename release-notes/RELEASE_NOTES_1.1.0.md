@@ -355,6 +355,11 @@ pentest remain pending until the final planned checkpoint.
 
 ### Commit 10 - Version Details
 
+- Pentest remediation exposes closure-scoped `DiscoveryValue::visit_fields`
+  so consumers can enumerate dynamic feature names and release tracks.
+  External-consumer regression coverage checks enumeration, redaction,
+  empty/non-object handling, callback error propagation and buffer cleanup.
+  Retest remains required before accepting this checkpoint.
 - Add checked version list/detail, dependency, deprecated author and README
   location operations with blocking, local-async and Send-async parity.
 - Require explicit bounded seek pagination, retain complete version metadata,

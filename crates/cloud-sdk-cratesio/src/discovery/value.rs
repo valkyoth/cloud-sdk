@@ -14,7 +14,7 @@ enum Kind {
     Object(Vec<(SecretString, DiscoveryValue)>),
 }
 
-/// Bounded JSON retained only for schema-open badge objects.
+/// Bounded JSON retained for discovery, catalog and version metadata.
 /// Text and number inspection is closure-scoped; Debug never prints payloads.
 /// It is data, not a request, URL, credential or authorization capability.
 pub struct DiscoveryValue(Kind);
@@ -75,7 +75,12 @@ impl DiscoveryValue {
     pub(crate) fn required(&self, name: &str) -> Result<&Self, Error> {
         self.get(name)?.ok_or(Error::Schema)
     }
-    pub(crate) fn visit_fields(
+    /// Visits object fields without copying protected names.
+    /// Names are borrowed only during each callback. Caller-created copies are
+    /// caller-owned and are not protected by this value's cleanup policy.
+    /// Returns a schema error for non-objects; callback errors stop traversal
+    /// immediately and are returned unchanged. Empty objects invoke no callback.
+    pub fn visit_fields(
         &self,
         mut visit: impl FnMut(&str, &Self) -> Result<(), Error>,
     ) -> Result<(), Error> {
