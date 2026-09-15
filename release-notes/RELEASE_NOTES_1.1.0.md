@@ -374,6 +374,10 @@ regenerates their SBOMs. This fixes TLS 1.3 encryption-level message alignment
 ([GHSA-2mjx-qc3c-rqvc](https://github.com/rustls/rustls/security/advisories/GHSA-2mjx-qc3c-rqvc));
 default features, TLS provider and native build policy are unchanged. The
 transport security update is included in this checkpoint's pentest range.
+Local qualification passed at implementation checkpoint `6db21a77`; the
+[verification record](../docs/CRATESIO_VERSION_POLICY.md#local-qualification-2026-09-15)
+lists repository, compiler/platform, packaging, fuzz and supply-chain evidence.
+This is the implementation stop, not an independent pentest result.
 
 ### Maintenance Evidence
 

@@ -110,3 +110,38 @@ python3 scripts/check_cratesio_drift.py --fetch
 The independent pentest must include the shared schema-validator refactoring
 and source refresh as well as the new version surface. Stop for the user's
 review; local verification does not substitute for pentest or GitHub approval.
+
+## Local Qualification 2026-09-15
+
+Implementation checkpoint: `6db21a77`. Local qualification passed:
+
+- `scripts/checks.sh`: full repository suite, default/all-feature workspace
+  tests, doctests, warning-denied Clippy, packaging and security-policy gates.
+- Provider all-feature tests: 116 unit tests and one identity integration test;
+  alloc-only configuration: 99 unit tests and the integration test. The updated
+  README and compile-fail contracts supply 17 doctests.
+- All 12 supported Rust versions from 1.92.0 through 1.98.1, with workspace
+  all-target/all-feature checks against the updated rustls pin.
+- All ten configured portable compile targets and native Linux transport tests.
+  Cross-compilation is not native test evidence for other operating systems.
+- All six packaged dependency graphs, packaged transport test compilation,
+  and all-feature rustdoc with warnings denied.
+- All 35 existing fuzz targets built and passed 64-iteration smoke campaigns.
+  This is bounded existing-harness evidence, not exhaustive version fuzzing;
+  the dedicated provider fuzz checkpoint remains planned.
+- Fresh RustSec scans of all four lockfiles (1,246 advisories), configured
+  cargo-deny checks on the root and both changed secondary graphs, and complete
+  freshness checks for all four SBOMs.
+- Live crates.io source/semantic drift checks, catalog/version fixture
+  regeneration and all 12 pinned request/controller source digests. Hetzner
+  Cloud/Storage, Robot and changelog checks reported no drift.
+- Direct dependency pins and Cargo security/fuzz tools are current after the
+  rustls patch. Documentation links, review digests, release-plan structure,
+  README parity and candidate release metadata passed.
+
+The initial sandboxed full-suite attempt could not create loopback test
+servers; it was rerun successfully with loopback access. Final qualification
+was repeated after the TLS update. No credentialed API probe or live mutation
+was performed. All six candidate publication flags remain false. Pentest must
+cover `38d493a17c6741691e676be16fa6ac341ed28642..HEAD`, including this evidence
+update. Do not start Commit 11 until pentest/retest and GitHub are green.
