@@ -25,7 +25,7 @@ provider-neutral execution contracts from `cloud-sdk`.
 
 The crate is an unreleased `1.1.0` candidate. Seven discovery, three catalog
 and five version operations have checked blocking, local-async and Send-async
-execution. Commit 9 is accepted; Commit 10 requires incremental pentest.
+execution. Commit 10 passed incremental pentest; GitHub approval is pending.
 Authentication preparation, endpoint, query and response foundations
 are available, but authenticated clients and the other API workflows remain
 assigned to later checkpoints. This is not yet a complete crates.io provider.

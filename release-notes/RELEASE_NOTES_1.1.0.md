@@ -359,7 +359,9 @@ pentest remain pending until the final planned checkpoint.
   so consumers can enumerate dynamic feature names and release tracks.
   External-consumer regression coverage checks enumeration, redaction,
   empty/non-object handling, callback error propagation and buffer cleanup.
-  Retest remains required before accepting this checkpoint.
+  The independent retest closed F1 at `94c004b2` with no new findings; see the
+  [checkpoint report](../security/pentest/cratesio-commit-10.md). GitHub approval
+  remains required before Commit 11.
 - Add checked version list/detail, dependency, deprecated author and README
   location operations with blocking, local-async and Send-async parity.
 - Require explicit bounded seek pagination, retain complete version metadata,

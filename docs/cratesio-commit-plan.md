@@ -3,7 +3,7 @@
 Status: selected unreleased `1.1.0` implementation train. Commits 1 through 9
 are accepted; the user confirmed GitHub green on the Commit 9 evidence
 checkpoint `38d493a17c6741691e676be16fa6ac341ed28642` and authorized Commit 10.
-Version-detail implementation is pending incremental pentest and GitHub.
+Version-detail pentest/retest passed at `94c004b2`; GitHub approval is pending.
 Stop before Commit 11; do not tag or publish.
 
 ## Decision Summary
@@ -417,7 +417,9 @@ and metadata surface.
 
 ## Commit 10 - Versions, Dependencies, Authors, And Readmes
 
-Implementation status: implemented, pending incremental pentest and GitHub.
+Implementation status: pentest/retest passed, pending GitHub.
+The [checkpoint report](../security/pentest/cratesio-commit-10.md) closes F1
+at `94c004b2`. Do not start Commit 11 until GitHub is green.
 Comparison baseline: `38d493a17c6741691e676be16fa6ac341ed28642`.
 The [version contract](CRATESIO_VERSION_POLICY.md) records all five operations,
 seek-only bounded listing, deprecated authors and the JSON README location

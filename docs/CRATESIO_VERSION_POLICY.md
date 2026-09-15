@@ -1,6 +1,6 @@
 # crates.io Version Contract
 
-Status: unreleased `1.1.0`, logical Commit 10 implemented, pentest pending.
+Status: unreleased `1.1.0`, logical Commit 10 pentest passed; GitHub pending.
 Compare against accepted checkpoint `38d493a17c6741691e676be16fa6ac341ed28642`.
 Stop before Commit 11. No tag or publication is authorized.
 
@@ -120,7 +120,8 @@ no copies, preserves redacted diagnostics, rejects non-objects, and stops on
 the first callback error without changing it. Empty objects invoke no callback.
 Copies explicitly created by callers are caller-owned and require their own
 cleanup policy. External-consumer regression tests cover these contracts.
-This addresses checkpoint 10 pentest finding F1; independent retest is pending.
+The [independent retest](../security/pentest/cratesio-commit-10.md) closed
+checkpoint 10 finding F1 at `94c004b2` with no new findings.
 
 ## Local Qualification 2026-09-15
 
