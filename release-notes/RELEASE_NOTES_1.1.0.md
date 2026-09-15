@@ -404,7 +404,9 @@ This is the implementation stop, not an independent pentest result.
   provider row and remove the internal OVHcloud probe from the provider table.
 
 The [download contract](../docs/CRATESIO_DOWNLOAD_POLICY.md) records complete
-boundaries and pending drift. Incremental pentest range: `51a7d946..HEAD`.
+boundaries and pending drift. The [incremental pentest report](../security/pentest/cratesio-commit-11.md)
+records no confirmed security findings for `51a7d946..03301ac5`.
+GitHub approval remains pending.
 Stop before Commit 12; no tag or publication is authorized.
 
 ### Maintenance Evidence

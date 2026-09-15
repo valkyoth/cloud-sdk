@@ -1,8 +1,8 @@
 # crates.io Source Lock
 
 Status: Commits 1 through 10 are accepted in the unreleased `1.1.0` train.
-Commit 11 adds [downloads/statistics](CRATESIO_DOWNLOAD_POLICY.md) and requires
-incremental pentest against accepted evidence checkpoint `51a7d946`.
+Commit 11 adds [downloads/statistics](CRATESIO_DOWNLOAD_POLICY.md) and passed
+incremental pentest for `51a7d946..03301ac5`; GitHub approval remains pending.
 No tag or publication is authorized.
 See the [catalog contract](CRATESIO_CATALOG_POLICY.md),
 [discovery contract](CRATESIO_DISCOVERY_POLICY.md), [request policy](CRATESIO_REQUEST_POLICY.md),

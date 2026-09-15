@@ -1,6 +1,6 @@
 # crates.io Downloads And Statistics
 
-Status: unreleased `1.1.0`, logical Commit 11 implemented; pentest/GitHub pending.
+Status: unreleased `1.1.0`, logical Commit 11 pentest passed; GitHub pending.
 Baseline: `51a7d946` (accepted Commit 10 evidence).
 
 ## Operations
@@ -134,6 +134,7 @@ and writes, truncation, oversized archives, header mismatch, wrong origins,
 checksum failure, source/sink errors, empty buffers and cancellation.
 The new generator has offline malformed-schema and allocation/client guard tests.
 
-Run the incremental pentest over `51a7d946..HEAD`, including the README convention
-and source-lock changes. Do not start Commit 12, tag or publish until the user
-confirms green pentest/retest and GitHub. The full `1.1.0` train remains pending.
+The [incremental pentest](../security/pentest/cratesio-commit-11.md) passed for
+`51a7d946..03301ac5`, including the README convention and source-lock changes.
+Wait for GitHub approval before Commit 12; do not tag or publish.
+The full `1.1.0` train remains pending.

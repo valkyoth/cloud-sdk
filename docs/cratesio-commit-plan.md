@@ -5,7 +5,8 @@ are accepted; the user confirmed GitHub green on the Commit 9 evidence
 checkpoint `38d493a17c6741691e676be16fa6ac341ed28642` and authorized Commit 10.
 Version-detail pentest/retest passed at `94c004b2`; the user confirmed GitHub
 green on evidence checkpoint `51a7d946` and authorized Commit 11.
-Stop before Commit 11; do not tag or publish.
+Commit 11 passed its incremental pentest at `03301ac5`; GitHub approval is pending.
+Stop before Commit 12; do not tag or publish.
 
 ## Decision Summary
 
@@ -451,7 +452,9 @@ surface.
 
 ## Commit 11 - Downloads, Statistics, And Reverse Dependencies
 
-Implementation status: implemented, pending incremental pentest and GitHub.
+Implementation status: incremental pentest passed at `03301ac5`; GitHub pending.
+The [checkpoint report](../security/pentest/cratesio-commit-11.md) records no
+confirmed security findings and preserves the adapter/storage qualification boundaries.
 Comparison baseline: `51a7d946`.
 The [download contract](CRATESIO_DOWNLOAD_POLICY.md) records the four JSON
 operations, static streaming adapter/checksum hooks, limits and source choices.
@@ -657,6 +660,8 @@ without a new provider helper crate. Contract-only or buffered-download
 substitutes do not satisfy this unified-client exit gate. Include actual
 loopback HTTP streaming, redirect rejection, truncated bodies, deadlines and
 cancellation in the adapter conformance tests before claiming bundled support.
+Qualify actual transactional storage under cancellation and commit failure:
+tentative bytes must remain hidden and be discarded on abort.
 
 Verification: generated coverage assertions against the operation matrix;
 compile-checked examples; credential and permit routing; shared concurrent rate
