@@ -2,7 +2,7 @@
 
 Status: Commits 1 through 11 are accepted in the unreleased `1.1.0` train.
 Commit 12 adds [public accounts and owners](CRATESIO_ACCOUNT_POLICY.md);
-incremental pentest against accepted evidence `5c925018` and GitHub are pending.
+incremental pentest passed for `5c925018..7d98a087`; GitHub approval is pending.
 No tag or publication is authorized.
 See the [catalog contract](CRATESIO_CATALOG_POLICY.md),
 [discovery contract](CRATESIO_DISCOVERY_POLICY.md), [request policy](CRATESIO_REQUEST_POLICY.md),

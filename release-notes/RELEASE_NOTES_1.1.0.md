@@ -406,8 +406,8 @@ This is the implementation stop, not an independent pentest result.
 The [download contract](../docs/CRATESIO_DOWNLOAD_POLICY.md) records complete
 boundaries and pending drift. The [incremental pentest report](../security/pentest/cratesio-commit-11.md)
 records no confirmed security findings for `51a7d946..03301ac5`.
-GitHub approval remains pending.
-Stop before Commit 12; no tag or publication is authorized.
+The user confirmed GitHub green on `5c925018` and authorized Commit 12.
+No tag or publication is authorized.
 
 ### Commit 12 - Public Accounts And Ownership Reads
 
@@ -422,7 +422,9 @@ Stop before Commit 12; no tag or publication is authorized.
   the already detected Hetzner network-members coverage gap remains pending.
 
 The [account contract](../docs/CRATESIO_ACCOUNT_POLICY.md) records the scope and
-limits. Incremental pentest range: `5c925018..HEAD`. Stop before Commit 13;
+limits. The [incremental pentest report](../security/pentest/cratesio-commit-12.md)
+records no confirmed findings for `5c925018..7d98a087`. GitHub approval remains
+pending. Stop before Commit 13;
 no tag or publication is authorized.
 
 ### Maintenance Evidence (Earlier Checkpoints)

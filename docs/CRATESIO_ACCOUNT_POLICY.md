@@ -1,6 +1,6 @@
 # crates.io Public Accounts And Owners
 
-Status: unreleased `1.1.0`, logical Commit 12 implemented; pentest/GitHub pending.
+Status: unreleased `1.1.0`, logical Commit 12 pentest passed; GitHub pending.
 Baseline: `5c925018` (accepted Commit 11 evidence).
 
 ## Executable Scope
@@ -119,6 +119,11 @@ determinism and allocation/client feature guards.
 These are local implementation checks, not an independent pentest. No
 credentialed probe, live mutation, tag or publication ran.
 
-Pentest `5c925018..HEAD`, including the generator and boundary policy changes.
-Stop before Commit 13 until the user confirms green pentest and GitHub.
+The [incremental pentest](../security/pentest/cratesio-commit-12.md) passed for
+`5c925018..7d98a087`, including generator and boundary policy changes.
+After that review, the full repository, compiler/platform matrices, alloc-only
+tests, SBOM, audit, deny, source and documentation checks were repeated.
+All passed except the explicitly outstanding Hetzner Cloud/changelog drift.
+Release validation confirms candidate status and all six publication flags false.
+Stop before Commit 13 until the user confirms GitHub is green.
 No tag or publication is authorized; the full `1.1.0` train remains pending.

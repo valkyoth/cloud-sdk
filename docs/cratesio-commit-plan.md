@@ -7,6 +7,7 @@ Version-detail pentest/retest passed at `94c004b2`; the user confirmed GitHub
 green on evidence checkpoint `51a7d946` and authorized Commit 11.
 Commit 11 passed its incremental pentest at `03301ac5`; the user confirmed
 GitHub green on evidence checkpoint `5c925018` and authorized Commit 12.
+Commit 12 passed its incremental pentest at `7d98a087`; GitHub approval is pending.
 Stop before Commit 13; do not tag or publish.
 
 ## Decision Summary
@@ -486,7 +487,9 @@ statistics, and reverse-dependency surface.
 
 ## Commit 12 - Public Users, Teams, And Ownership Reads
 
-Implementation status: implemented; incremental pentest and GitHub pending.
+Implementation status: incremental pentest passed at `7d98a087`; GitHub pending.
+The [checkpoint report](../security/pentest/cratesio-commit-12.md) records no
+confirmed security findings or fundamental coding flaws in the reviewed increment.
 Baseline: accepted Commit 11 evidence `5c925018`.
 The [public account contract](CRATESIO_ACCOUNT_POLICY.md) records all six GETs,
 source projections, namespace checks, bounded metadata and shared execution.
