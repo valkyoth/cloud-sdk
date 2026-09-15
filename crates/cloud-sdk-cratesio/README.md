@@ -24,9 +24,9 @@ decoding, authentication rules, and high-level workflows while reusing the
 provider-neutral execution contracts from `cloud-sdk`.
 
 The crate is an unreleased `1.1.0` candidate. Seven discovery, three catalog
-and five version operations plus four download/statistics operations have checked
-blocking, local-async and Send-async execution. Commit 10 is accepted;
-Commit 11 passed incremental pentest; GitHub approval remains pending.
+and five version operations, four download/statistics operations and six public
+account/ownership operations have checked blocking, local-async and Send-async
+execution. Commit 11 is accepted; Commit 12 requires pentest and GitHub approval.
 Authentication preparation, endpoint, query and response foundations
 are available, but authenticated clients and the other API workflows remain
 assigned to later checkpoints. This is not yet a complete crates.io provider.
@@ -52,13 +52,51 @@ assigned to later checkpoints. This is not yet a complete crates.io provider.
 | Catalog operations | web/Cargo search, named and literal-new metadata, includes and checked continuation |
 | Version operations | seek-paged versions, exact detail, dependencies, deprecated empty authors and JSON README location |
 | Download operations | JSON archive location, crate/version count windows and bounded reverse dependencies |
+| Public accounts and owners | user lookup with linked accounts, user statistics, team lookup and combined/user/team owner lists |
 | Artifact streaming | static-origin transport and SHA-256 hooks, transactional sink, bounded scratch and cancellation cleanup; caller-supplied streaming adapter required |
 | Other API operations | deferred to their source-locked implementation commits |
 
 The public modules reserve ownership without claiming executable coverage:
-`accounts`, `ownership`, `publishing`, and `trusted_publishing`.
+`publishing` and `trusted_publishing`. Authenticated account/ownership mutations
+remain later work; public ownership reads do not grant mutation authority.
 The complete 51-operation scope is maintained in the
 [crates.io source lock](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATESIO_SOURCE_LOCK.md).
+
+## Public Ownership Example
+
+Anonymous ownership inspection uses the same bound executor and response
+cleanup as discovery. Returned user/team records are metadata, not permission
+to modify a crate.
+
+```rust
+# #[cfg(feature = "blocking")] {
+use cloud_sdk::transport::{BlockingRawHttpExecutor, BoundTransport, BoundUserAgent};
+use cloud_sdk_cratesio::{
+    accounts::{AccountClient, AccountRequest, AccountResponse},
+    identifiers::CrateName,
+    wire::IdentifyingUserAgent,
+};
+
+fn owners<T>(executor: &T) -> Result<AccountResponse, Box<dyn std::error::Error>>
+where
+    T: BlockingRawHttpExecutor + BoundTransport + BoundUserAgent,
+    T::Error: 'static,
+{
+    let identity = IdentifyingUserAgent::new("inventory/1.0 (ops@example.org)")?;
+    let client = AccountClient::production(executor, identity, 65_536)?;
+    let request = AccountRequest::owners(CrateName::new("serde")?);
+    let mut body = vec![0; 65_536];
+    let mut headers = [0; 512];
+    Ok(client.execute(request, &mut body, &mut headers)?)
+}
+# }
+```
+
+`AccountRequest::user`, `user_stats`, `team`, `user_owners` and `team_owners`
+cover the other public account reads. `execute_local` and `execute_async`
+provide the same checks under `async`. See the
+[public account contract](https://github.com/valkyoth/cloud-sdk/blob/main/docs/CRATESIO_ACCOUNT_POLICY.md)
+for namespace rules, bounds and linked-account inclusion.
 
 ## Install
 

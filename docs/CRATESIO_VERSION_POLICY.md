@@ -2,7 +2,8 @@
 
 Status: unreleased `1.1.0`, logical Commit 10 accepted after pentest and GitHub.
 Compare against accepted checkpoint `38d493a17c6741691e676be16fa6ac341ed28642`.
-Stop before Commit 11. No tag or publication is authorized.
+Follow the [commit plan](cratesio-commit-plan.md) for the current stop boundary.
+No tag or publication is authorized.
 
 ## Executable Scope
 
@@ -154,6 +155,6 @@ Implementation checkpoint: `6db21a77`. Local qualification passed:
 The initial sandboxed full-suite attempt could not create loopback test
 servers; it was rerun successfully with loopback access. Final qualification
 was repeated after the TLS update. No credentialed API probe or live mutation
-was performed. All six candidate publication flags remain false. Pentest must
-cover `38d493a17c6741691e676be16fa6ac341ed28642..HEAD`, including this evidence
-update. Do not start Commit 11 until pentest/retest and GitHub are green.
+was performed. All six candidate publication flags remained false. The
+subsequent [pentest/retest report](../security/pentest/cratesio-commit-10.md)
+and user-confirmed GitHub approval accepted this checkpoint before Commit 11.

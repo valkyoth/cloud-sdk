@@ -5,8 +5,9 @@ are accepted; the user confirmed GitHub green on the Commit 9 evidence
 checkpoint `38d493a17c6741691e676be16fa6ac341ed28642` and authorized Commit 10.
 Version-detail pentest/retest passed at `94c004b2`; the user confirmed GitHub
 green on evidence checkpoint `51a7d946` and authorized Commit 11.
-Commit 11 passed its incremental pentest at `03301ac5`; GitHub approval is pending.
-Stop before Commit 12; do not tag or publish.
+Commit 11 passed its incremental pentest at `03301ac5`; the user confirmed
+GitHub green on evidence checkpoint `5c925018` and authorized Commit 12.
+Stop before Commit 13; do not tag or publish.
 
 ## Decision Summary
 
@@ -452,7 +453,7 @@ surface.
 
 ## Commit 11 - Downloads, Statistics, And Reverse Dependencies
 
-Implementation status: incremental pentest passed at `03301ac5`; GitHub pending.
+Implementation status: accepted after incremental pentest and GitHub approval.
 The [checkpoint report](../security/pentest/cratesio-commit-11.md) records no
 confirmed security findings and preserves the adapter/storage qualification boundaries.
 Comparison baseline: `51a7d946`.
@@ -484,6 +485,11 @@ Pentest stop: run an incremental pentest for the exact Commit 11 artifact,
 statistics, and reverse-dependency surface.
 
 ## Commit 12 - Public Users, Teams, And Ownership Reads
+
+Implementation status: implemented; incremental pentest and GitHub pending.
+Baseline: accepted Commit 11 evidence `5c925018`.
+The [public account contract](CRATESIO_ACCOUNT_POLICY.md) records all six GETs,
+source projections, namespace checks, bounded metadata and shared execution.
 
 Goal: complete anonymous identity and ownership inspection.
 

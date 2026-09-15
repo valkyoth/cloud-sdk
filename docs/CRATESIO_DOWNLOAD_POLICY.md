@@ -1,6 +1,6 @@
 # crates.io Downloads And Statistics
 
-Status: unreleased `1.1.0`, logical Commit 11 pentest passed; GitHub pending.
+Status: unreleased `1.1.0`, logical Commit 11 accepted after pentest and GitHub.
 Baseline: `51a7d946` (accepted Commit 10 evidence).
 
 ## Operations
@@ -136,5 +136,6 @@ The new generator has offline malformed-schema and allocation/client guard tests
 
 The [incremental pentest](../security/pentest/cratesio-commit-11.md) passed for
 `51a7d946..03301ac5`, including the README convention and source-lock changes.
-Wait for GitHub approval before Commit 12; do not tag or publish.
+The user confirmed GitHub green on `5c925018` and authorized Commit 12.
+Do not tag or publish.
 The full `1.1.0` train remains pending.

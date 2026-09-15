@@ -15,6 +15,10 @@ ROOT = Path(__file__).resolve().parents[1]
 COMMIT = "9ae7f769cea32f38ebc2ea9ec2ce455b47641511"
 BASE = f"https://raw.githubusercontent.com/rust-lang/crates.io/{COMMIT}/"
 SOURCES = {
+    "crates/crates_io_database/tests/canon_username.rs": (1097, "b8b793aa0eb28dd2ab6bd0b767a0805a641019bae1a4cc668c0c36566a8ddd39"),
+    "src/controllers/user/other.rs": (5429, "bf1554948af0d26afa1c1c61f1a018456c709ce85609a49a0a34c45fa7817bf9"),
+    "src/controllers/team.rs": (1348, "d2606bb65fc398be6eb4d5ae74bdf1ab5aaa86a03fd1dd40c52e9b53a38fa8bb"),
+    "src/controllers/krate/owners.rs": (21192, "6106fd7ae3210d57be773aa289469e60179b30cffc23f78a7379dd3bc7c51675"),
     "src/controllers/krate/downloads.rs": (7221, "d50cb0cfb90890d6e8de02e1149e832a4736a2d368182ef4fdc4031e891f009b"),
     "src/controllers/version/downloads.rs": (4178, "7f753dd7d850c6e0fb589844611218f66b135130beea922b1be3f1047ef83a6d"),
     "src/controllers/krate/rev_deps.rs": (3374, "5bb31ff9028dd03f20a08a5ea8dfbeb763581da75c71c4f5f86c678780a5ca13"),

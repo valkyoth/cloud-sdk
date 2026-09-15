@@ -1,0 +1,13 @@
+{
+  "users": [
+    {
+      "avatar": "https://avatars2.githubusercontent.com/u/1234567?v=4",
+      "github_username_matches": false,
+      "id": 42,
+      "kind": "user",
+      "login": "ghost",
+      "name": "Kate Morgan",
+      "url": "https://github.com/ghost"
+    }
+  ]
+}

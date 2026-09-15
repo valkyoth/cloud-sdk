@@ -39,6 +39,7 @@ python3 scripts/test-cratesio-discovery-fixtures.py
 python3 scripts/test-cratesio-catalog.py
 python3 scripts/test-cratesio-versions.py
 python3 scripts/test-cratesio-downloads.py
+python3 scripts/test-cratesio-accounts.py
 scripts/check_cratesio_endpoints.py
 scripts/test-cratesio-endpoints.py
 scripts/check_http_method_domain.sh

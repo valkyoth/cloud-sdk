@@ -1,0 +1,9 @@
+{
+  "team": {
+    "avatar": "https://avatars2.githubusercontent.com/u/1234567?v=4",
+    "id": 42,
+    "login": "github:rust-lang:crates-io",
+    "name": "Crates.io team",
+    "url": "https://github.com/rust-lang"
+  }
+}

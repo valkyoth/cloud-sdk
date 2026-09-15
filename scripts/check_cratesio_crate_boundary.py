@@ -13,8 +13,6 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 CRATE = Path("crates/cloud-sdk-cratesio")
 DOMAIN_MODULES = (
-    "accounts",
-    "ownership",
     "publishing",
     "trusted_publishing",
 )
@@ -198,6 +196,7 @@ def validate(root: Path) -> None:
     expected_sources = {
         "lib.rs",
         "identity.rs",
+        "ownership.rs",
         *ENDPOINT_SOURCES,
         *CREDENTIAL_SOURCES,
         *(f"identifiers/{name}.rs" for name in ("mod", "date", "version", "tests")),
@@ -212,6 +211,7 @@ def validate(root: Path) -> None:
         *(f"catalog/{name}.rs" for name in ("mod", "request", "models", "decode", "pagination", "schema", "schema_table", "client", "client/token", "client/tests", "tests", "tests/pagination", "tests/metadata")),
         *(f"versions/{name}.rs" for name in ("mod", "request", "models", "decode", "schema_table", "client", "client/tests", "tests", "tests/pagination")),
         *(f"downloads/{name}.rs" for name in ("mod", "request", "models", "decode", "schema_table", "client", "client/tests", "tests", "artifact", "artifact/asynchronous", "artifact/tests")),
+        *(f"accounts/{name}.rs" for name in ("mod", "request", "models", "decode", "schema_table", "client", "client/tests", "tests")),
         *(f"wire/{name}.rs" for name in (
             "mod", "error", "rate", "shared_rate", "user_agent", "envelope",
             "response", "policy_tests", "response_tests", "boundary_tests",
@@ -242,6 +242,14 @@ def validate(root: Path) -> None:
         if f'#[cfg(feature = "alloc")]\n{visibility}mod {module};' not in catalog:
             raise BoundaryError("catalog allocation guard changed")
     versions = (crate / "src/versions/mod.rs").read_text(encoding="ascii")
+    accounts = (crate / "src/accounts/mod.rs").read_text(encoding="ascii")
+    if "pub mod accounts;" not in library or "pub mod ownership;" not in library:
+        raise BoundaryError("account/ownership exports missing")
+    for module in ("models", "decode", "schema_table"):
+        if f'#[cfg(feature = "alloc")]\nmod {module};' not in accounts:
+            raise BoundaryError("accounts allocation guard changed")
+    if '#[cfg(any(feature = "blocking", feature = "async"))]\nmod client;' not in accounts:
+        raise BoundaryError("accounts client guard changed")
     downloads = (crate / "src/downloads/mod.rs").read_text(encoding="ascii")
     for module in ("models", "decode", "schema_table"):
         if f'#[cfg(feature = "alloc")]\nmod {module};' not in downloads:

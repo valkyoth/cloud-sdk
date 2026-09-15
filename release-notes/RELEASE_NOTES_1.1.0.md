@@ -409,7 +409,23 @@ records no confirmed security findings for `51a7d946..03301ac5`.
 GitHub approval remains pending.
 Stop before Commit 12; no tag or publication is authorized.
 
-### Maintenance Evidence
+### Commit 12 - Public Accounts And Ownership Reads
+
+- Add anonymous user lookup/statistics, qualified team lookup, and combined,
+  user-only and team-only owner lists with all three checked execution modes.
+- Preserve typed identity namespaces, protected nullable metadata and explicit
+  linked-account inclusion. Validate response identity, duplicate owners and
+  bounded lists without deriving mutation authority from a read snapshot.
+- Pin the public controllers and username canonicalization evidence; add six
+  generated response projections, source fixtures and fail-closed regressions.
+- Keep the dependency/feature graph unchanged. Live crates.io drift is clean;
+  the already detected Hetzner network-members coverage gap remains pending.
+
+The [account contract](../docs/CRATESIO_ACCOUNT_POLICY.md) records the scope and
+limits. Incremental pentest range: `5c925018..HEAD`. Stop before Commit 13;
+no tag or publication is authorized.
+
+### Maintenance Evidence (Earlier Checkpoints)
 
 - Advanced the complete development and compatibility gate to stable Rust
   `1.98.1` and the fuzz compiler to `nightly-2026-09-04` while retaining Rust
